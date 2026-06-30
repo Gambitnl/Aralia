@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DamageCommand } from '../effects/DamageCommand';
+import { SummoningCommand } from '../effects/SummoningCommand';
 import { createMockCombatCharacter, createMockCombatState, createMockCommandContext, createMockGameState, createMockPlayerCharacter } from '../../utils/factories';
 import type { DamageEffect } from '../../types/spells';
+import type { SummoningEffect } from '../../types/spells';
+import simulacrum from '../../../public/data/spells/level-7/simulacrum.json';
 
 // This regression keeps the direct damage command honest: one hit should lower
 // HP and leave a readable combat log entry behind. It intentionally stays tiny
@@ -124,5 +127,71 @@ describe('DamageCommand', () => {
     // 30 HP - 21 Damage = 9 HP.
     expect(updatedTarget?.currentHP).toBe(9);
     expect(result.combatLog.some(entry => entry.message.includes("Savage Attacks adds +1 (1d1) to critical damage"))).toBe(true);
+  });
+
+  it('removes a live Simulacrum summon when damage drops it to 0 HP', async () => {
+    const caster = createMockCombatCharacter({
+      id: 'caster',
+      name: 'Wizard'
+    });
+    const enemy = createMockCombatCharacter({
+      id: 'enemy',
+      name: 'Enemy Mage',
+      team: 'enemy',
+      featChoices: {}
+    });
+    const summonEffect = simulacrum.effects.find((entry): entry is SummoningEffect => entry.type === 'SUMMONING');
+
+    expect(summonEffect).toBeDefined();
+
+    // Build the summon through the real summon command so the proof uses the
+    // live Simulacrum packet instead of a hand-written summon mock.
+    const summonedState = new SummoningCommand(summonEffect!, createMockCommandContext({
+      spellId: simulacrum.id,
+      spellName: simulacrum.name,
+      castAtLevel: 7,
+      caster,
+      targets: [],
+      gameState: createMockGameState()
+    })).execute(createMockCombatState({
+      characters: [caster, enemy],
+      combatLog: []
+    }));
+
+    const simulacrumSummon = summonedState.characters.find(character =>
+      character.isSummon &&
+      character.summonMetadata?.spellId === simulacrum.id &&
+      character.summonMetadata?.casterId === caster.id
+    );
+
+    expect(simulacrumSummon?.summonMetadata?.lifecycle?.zeroHpEnding).toContain('0 Hit Points');
+
+    const damageEffect: DamageEffect = {
+      type: 'DAMAGE',
+      damage: { dice: '10d1', type: 'Force' },
+      trigger: { type: 'immediate' },
+      condition: { type: 'hit' }
+    };
+
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    const command = new DamageCommand(damageEffect, createMockCommandContext({
+      spellId: 'force-bolt',
+      spellName: 'Force Bolt',
+      castAtLevel: 1,
+      caster: enemy,
+      targets: [simulacrumSummon!],
+      gameState: createMockGameState()
+    }));
+
+    const result = await command.execute(createMockCombatState({
+      characters: [caster, enemy, simulacrumSummon!],
+      combatLog: []
+    }));
+
+    vi.restoreAllMocks();
+
+    expect(result.characters.some(character => character.id === simulacrumSummon?.id)).toBe(false);
+    expect(result.combatLog.some(entry => entry.message.includes('disappears as the spell-created summon drops to 0 HP'))).toBe(true);
   });
 });

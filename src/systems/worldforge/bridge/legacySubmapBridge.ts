@@ -141,7 +141,14 @@ export function getBridgeAtlas(worldSeed: number): FmgWorldResult {
 /**
  * Map a legacy world-map tile to its anchoring atlas LAND cell.
  * Proportional projection, then nearest land cell by center distance
- * (linear scan â€” 10k cells, sub-millisecond, no index needed).
+ * (linear scan — ~10k cells, sub-millisecond, no index needed).
+ *
+ * NOTE (cell-native world): the approved bridge spec proposed reimplementing
+ * this as `legacyGridToAtlasCell + snapToLandCell` to unify the land rule with
+ * the marker half. That was tried and reverted — it shifts `getTownTilesForGrid`
+ * (FMG 960×540 projection vs graphWidth, and nearest-all+snap vs nearest-land),
+ * breaking the town-tile mapping + pipeline round-trip. Kept as-is; the shared
+ * `snapToLandCell` is still the single land-rule home for new cell-native paths.
  */
 export function legacyTileToAtlasCell(
   atlas: FmgAtlasResult,
@@ -157,7 +164,7 @@ export function legacyTileToAtlasCell(
   let best = -1;
   let bestDist = Infinity;
   for (let i = 0; i < cells.h.length; i++) {
-    if (cells.h[i] < 20) continue; // land only â€” the submap is walkable ground
+    if (cells.h[i] < 20) continue; // land only — the submap is walkable ground
     const p = cells.p[i];
     if (!p) continue;
     const dx = p[0] - px;

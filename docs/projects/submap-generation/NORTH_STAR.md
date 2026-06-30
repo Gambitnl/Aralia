@@ -13,7 +13,7 @@ evidence: "src/hooks/useSubmapProceduralData.ts; src/components/Submap/SubmapPan
 gap_signal: "2 open gaps; G4 and G5 are routed to Submap after this project merged into pre-deprecation extraction"
 protocol: living project doc set
 next_step: Do not assign separately. Route generation extraction through docs/projects/submap G4 and the Submap dependency contract.
-agent_comments: Clarified 2026-06-09: Submap Generation is supporting evidence for the active Submap pre-deprecation extraction project.
+agent_comments: "Clarified 2026-06-09: Submap Generation is supporting evidence for the active Submap pre-deprecation extraction project."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md

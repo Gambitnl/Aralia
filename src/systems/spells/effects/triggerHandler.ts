@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 12/06/2026, 22:59:07
- * Dependents: commands/effects/MovementCommand.ts, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/vfx/VFXSystem.tsx, hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts, utils/combat/resistanceUtils.ts
+ * Last Sync: 29/06/2026, 13:19:08
+ * Dependents: commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/vfx/VFXSystem.tsx, hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts, utils/combat/resistanceUtils.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -90,6 +90,11 @@ export interface MovementTriggerDebuff {
     hasTriggered: boolean;
     /** Spell save DC captured when the movement-triggered debuff was created. */
     saveDC?: number;
+}
+
+export interface MovementTriggerContext {
+    previousPosition?: Position;
+    movementType?: 'willing' | 'forced' | 'teleport';
 }
 
 /**
@@ -484,9 +489,14 @@ function getChebyshevTileDistance(from: Position, to: Position): number {
 export function processMovementTriggers(
     debuffs: MovementTriggerDebuff[],
     character: CombatCharacter,
-    round: number
+    round: number,
+    movementContext: MovementTriggerContext = {}
 ): TriggerResult[] {
     const results: TriggerResult[] = [];
+    const movementType = movementContext.movementType ?? 'willing';
+    const movedAtLeastFiveFeet = movementContext.previousPosition
+        ? getChebyshevTileDistance(movementContext.previousPosition, character.position) >= 1
+        : true;
 
     for (const debuff of debuffs) {
         // Only process debuffs on this character that haven't triggered and haven't expired
@@ -499,6 +509,17 @@ export function processMovementTriggers(
         );
 
         for (const effect of moveTriggerEffects) {
+            const requiredMovementType = (effect.trigger as { movementType?: string }).movementType;
+            if (requiredMovementType === 'willing' && movementType !== 'willing') {
+                continue;
+            }
+            if (requiredMovementType === 'forced' && movementType !== 'forced') {
+                continue;
+            }
+            if (!movedAtLeastFiveFeet) {
+                continue;
+            }
+
             // Check target filter (though movement debuffs are usually on a specific target)
             if (!matchesTargetFilter(effect.condition?.targetFilter, character)) {
                 continue;

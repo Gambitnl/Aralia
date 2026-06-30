@@ -50,12 +50,15 @@ if (urlParams.get('stubForgeAssets') === '1') {
 }
 
 import InWorldHUD from './InWorldHUD';
-import { requestMapCenterOnPlayer } from '../Worldforge/mapFocusSignal';
+import LocaleMovePane from './LocaleMovePane';
+import { localeFeetToGroundMeters } from '../../systems/worldforge/local/localePosition';
+import { requestMapCenterOnPlayer, requestMapDrillToPlayerTown } from '../Worldforge/mapFocusSignal';
 import { findCellAtPoint } from '../Worldforge/atlasSvg';
 import { createWorkerChunkLoader, type DisposableChunkLoader } from './createWorkerChunkLoader';
 import { usePlayerWorldPos, useWorldViewMode } from '../../hooks/useWorldViewMode';
 import { getTerrainHeight, gridWorldDimensions } from '../../utils/worldCoords';
 import { useGameState } from '../../state/GameContext';
+import { type SceneCastMember } from './SceneCast';
 import { scheduleClockFromGameTime } from '../../systems/worldforge/roster/gameClock';
 import { GamePhase } from '../../types/core';
 import type { WorldData } from '../../services/worldSim/types';
@@ -176,6 +179,10 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
     start: readonly [number, number, number];
     surfaceY: number;
     tile: { x: number; y: number };
+    // The active Locale's extent in ground cells (cols×5 ft by rows×5 ft). Held
+    // in render state (not just groundRef) so the 2D LocaleMovePane re-renders
+    // when a ground session becomes active. Cell-native world, Stage 3.
+    localeExtent: { cols: number; rows: number };
   } | null>(null);
 
   useEffect(() => {
@@ -365,6 +372,13 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           groundRef.current = ground;
           extractPatchRef.current = loaderMod.extractLocalTerrainPatch;
           combatTriggered.current = false;
+          // Dev hook: expose the resolved entry anchor + rendered town burg ids so a
+          // headless probe can assert the chosen town actually renders at the spawn.
+          (window as unknown as { __wfEntry?: unknown }).__wfEntry = {
+            anchor: anchor ?? null,
+            usedCellEntry: !!anchor,
+            groundTownBurgs: (ground.towns ?? []).map((t) => t.burgId),
+          };
 
           if (cancelled) return;
           // Spawn at the SAVED ground position when it belongs to this tile
@@ -387,6 +401,10 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
             start: [spawn.x, 0, spawn.z],
             surfaceY: heightToMeters(ground.heights[sgy * ground.cols + sgx] ?? 0),
             tile: { x: coords.x, y: coords.y },
+            // Cell-native world, Stage 3: the Locale extent the 2D LocaleMovePane
+            // draws (cols×5 ft by rows×5 ft) matches the ground world the 3D view
+            // renders — one Locale, two synced views.
+            localeExtent: { cols: ground.cols, rows: ground.rows },
           });
           const disposable: DisposableChunkLoader = Object.assign(
             (cx: number, cy: number) => groundLoader(cx, cy),
@@ -711,6 +729,55 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
     return heightToMeters(worldData.heights[gy * cols + gx] ?? 0);
   }, [worldData]);
 
+  // Staged cast for an in-world scene: the player + the dynamic NPCs actually
+  // present at this location (the opening-situation strangers at spawn). Rendered
+  // only in ground/walking mode, where figures are at a visible scale. Resolves
+  // names from generatedNpcs; the conversation's first participant is the speaker.
+  const sceneCast = useMemo<SceneCastMember[]>(() => {
+    const activeIds = state.currentLocationActiveDynamicNpcIds;
+    if (!activeIds || activeIds.length === 0) return [];
+    const speakerId = state.activeConversation?.kind === 'situation'
+      ? state.activeConversation.participants?.[0]
+      : undefined;
+    const npcs = activeIds
+      .slice(0, 4)
+      .map((id): SceneCastMember | null => {
+        const npc = state.generatedNpcs?.[id];
+        return npc ? { id, name: npc.name, isSpeaker: id === speakerId } : null;
+      })
+      .filter((m): m is SceneCastMember => m !== null);
+    if (npcs.length === 0) return [];
+    const player = state.party?.[0];
+    const cast: SceneCastMember[] = [];
+    if (player) cast.push({ id: player.id ?? 'player', name: player.name ?? 'You', isPlayer: true });
+    cast.push(...npcs);
+    return cast;
+  }, [state.currentLocationActiveDynamicNpcIds, state.generatedNpcs, state.party, state.activeConversation]);
+
+  // Cell-native world, Stage 3 — 2D Locale view click-to-move. The 2D pane and
+  // the 3D ground are TWO SYNCED VIEWS of ONE movement state (`playerGroundPos`).
+  // A 2D click dispatches the SAME `SET_PLAYER_GROUND_POS` action the 3D camera
+  // walk dispatches — converting the clicked Locale feet → tile-local meters via
+  // the bridge and stamping the active tile — so the reducer (which mirrors the
+  // position into `playerCell.localeCoords` as feet) is the single sync point.
+  // No new action, no cell↔tile mapping. The 3D camera reads `playerGroundPos`
+  // as its spawn on (re)entry, so a 2D move is reflected in 3D; a 3D walk moves
+  // the 2D marker live. (Live in-session 3D camera teleport from a 2D click is
+  // Stage 3 polish / Stage 5 — deferred per the design doc.)
+  // GRID-RETIRE: BA-3 — producer of the continuous Locale-feet movement state.
+  const handleLocaleMoveTo = useCallback(
+    (feetX: number, feetY: number) => {
+      const tile = wfGroundView?.tile;
+      if (!tile) return;
+      const { xM, zM } = localeFeetToGroundMeters({ x: feetX, y: feetY });
+      dispatch({
+        type: 'SET_PLAYER_GROUND_POS',
+        payload: { position: { tileX: tile.x, tileY: tile.y, xM, zM } },
+      });
+    },
+    [dispatch, wfGroundView?.tile],
+  );
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {loader ? (
@@ -727,6 +794,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           groundWorld={wfGroundView ? groundRef.current : null}
           agentClock={state.gameTime instanceof Date ? scheduleClockFromGameTime(state.gameTime) : undefined}
           frameTownCellNonce={frameTownCellNonce}
+          sceneCast={wfGroundView ? sceneCast : undefined}
         />
       ) : (
         <div
@@ -748,6 +816,20 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           World data is not ready for 3D view. Use Open Map to return to the atlas.
         </div>
       )}
+      {/* Cell-native world, Stage 3: the 2D Locale view, ground-mode only. It is
+          the second synced view of the one movement state (`playerGroundPos`):
+          it renders the player marker from that state and writes back to it on
+          click via the shared SET_PLAYER_GROUND_POS action. Additive — it sits
+          beside the compass / drill views, replacing none of them. */}
+      {wfGroundView ? (
+        <div style={{ position: 'absolute', left: 12, bottom: 12, zIndex: 20 }}>
+          <LocaleMovePane
+            localeExtent={wfGroundView.localeExtent}
+            groundPos={state.playerGroundPos ?? null}
+            onMoveTo={handleLocaleMoveTo}
+          />
+        </div>
+      ) : null}
       {/* InWorldHUD overlay — always mounted so exit controls work without a loader */}
       <InWorldHUD
         isDevModeEnabled={isDevModeEnabled}
@@ -769,6 +851,26 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
         // worldViewMode untouched, so closing the map returns here in place.
         onOpenCellMap={wfGroundView ? () => {
           requestMapCenterOnPlayer();
+          dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
+        } : undefined}
+        // "Town Plan": open the same 2D map modal but drilled straight to the
+        // town the player's 3D world is showing (World ▸ Region ▸ Town). The
+        // target burg must be passed explicitly: the player usually stands in a
+        // cell ADJACENT to the town's own cell (the ground window spans several
+        // atlas cells), so the town can't be derived from the player's cell.
+        // Pick the nearest ground town to the player; default to the spawn town.
+        onOpenTownPlan={wfGroundView ? () => {
+          const towns = groundRef.current?.towns ?? [];
+          const p = state.playerGroundPos;
+          let burgId: number | null = towns[0]?.burgId ?? null;
+          if (p && towns.length > 1) {
+            let best = Infinity;
+            for (const t of towns) {
+              const d = (t.xM - p.xM) ** 2 + (t.zM - p.zM) ** 2;
+              if (d < best) { best = d; burgId = t.burgId; }
+            }
+          }
+          requestMapDrillToPlayerTown(burgId);
           dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
         } : undefined}
       />

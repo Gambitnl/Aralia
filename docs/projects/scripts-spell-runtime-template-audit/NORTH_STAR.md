@@ -1,6 +1,6 @@
 ---
 schema_version: 1
-project: Scripts: Spell Runtime Template Audit
+project: "Scripts: Spell Runtime Template Audit"
 slug: scripts-spell-runtime-template-audit
 category: Scripts / Audit Projects
 main_category: Review / Archive

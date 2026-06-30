@@ -183,6 +183,7 @@ describe('BattleMap parity proof', () => {
               affectedTiles: [{ x: 1, y: 1 }],
               ability: { id: 'misty-step', name: 'Misty Step', range: 30 } as any
             },
+            targetValidationReason: 'This spell can only target enemies.',
             pendingTeleportAssignment: {
               ability: { name: 'Misty Step' },
               destinationsByTargetId: {
@@ -211,6 +212,7 @@ describe('BattleMap parity proof', () => {
     expect(targetTile.querySelector('.bg-red-500\\/40')).toBeInTheDocument();
     expect(aoeTile.querySelector('.bg-red-500\\/60')).toBeInTheDocument();
     expect(teleportTile.querySelector('.bg-sky-400\\/55')).toBeInTheDocument();
+    expect(screen.getByText('This spell can only target enemies.')).toBeInTheDocument();
 
     expect(mockBattleMapOverlay).toHaveBeenCalledWith(
       expect.objectContaining({

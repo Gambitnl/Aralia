@@ -30,14 +30,19 @@ and AI-arbitration path instead of silently doing nothing, flattening into a
 generic `UTILITY` effect, or being marked mechanical only because that is easier
 to test.
 
-The current scoped spell data shows only three level 0-3 spells with
+2026-06-29 refresh: this table preserves the original Package 5 starting
+point. Current live data has since been repaired for the two pilot `ai_dm`
+spells, and `blindness-deafness` is now mechanical despite still carrying
+AI-facing context metadata.
+
+The original scoped spell data showed only three level 0-3 spells with
 non-mechanical arbitration:
 
 | Spell | Level | Current arbitration | Notes |
 |---|---:|---|---|
-| `prestidigitation` | 0 | `ai_dm` | `aiContext.prompt` is empty and `playerInputRequired` is false, despite the spell needing player intent. |
-| `suggestion` | 2 | `ai_dm` | `aiContext.prompt` is empty and `playerInputRequired` is false, despite the spell depending on the suggested wording. |
-| `blindness-deafness` | 2 | `ai_assisted` | Mostly deterministic; keep as a regression/control case for the assisted validation path, not the main open-ended pilot. |
+| `prestidigitation` | 0 | `ai_dm` | Historical starting state: `aiContext.prompt` was empty and `playerInputRequired` was false. Current data has a prompt and requires player input. |
+| `suggestion` | 2 | `ai_dm` | Historical starting state: `aiContext.prompt` was empty and `playerInputRequired` was false. Current data has a prompt and requires player input. |
+| `blindness-deafness` | 2 | `ai_assisted` | Historical optional control case. Current data is `mechanical`, so do not use it as live proof of the assisted branch without a fresh routing decision. |
 
 The data also has many likely open-ended or interpretation-heavy spells still
 marked `mechanical`, including `minor-illusion`, `disguise-self`, `message`,

@@ -217,6 +217,63 @@ describe('worldReducer', () => {
         expect(clearResult.playerGroundPos).toBeNull();
     });
 
+    // ------------------------------------------------------------------------
+    // Stage 3 (cell-native world): SET_PLAYER_GROUND_POS also mirrors the new
+    // position into playerCell.localeCoords as continuous Locale FEET, so the
+    // 2D Locale view and 3D ground view stay synced through one reducer. The
+    // legacy playerGroundPos write is byte-identical to before (compat guard).
+    // ------------------------------------------------------------------------
+
+    it('SET_PLAYER_GROUND_POS mirrors the position into playerCell.localeCoords as feet', () => {
+        // 1.524 m = 5 ft; 3.048 m = 10 ft.
+        const position = { tileX: 4, tileY: 9, xM: 1.524, zM: 3.048 };
+        const baseState = createMockGameState({
+            playerGroundPos: null,
+            playerCell: { cellId: 77, localeCoords: { x: 15, y: 10 } },
+        });
+
+        const result = worldReducer(baseState, {
+            type: 'SET_PLAYER_GROUND_POS',
+            payload: { position },
+        });
+
+        // Compat guard: playerGroundPos write is unchanged.
+        expect(result.playerGroundPos).toEqual(position);
+
+        // Feet mirror, cell preserved.
+        expect(result.playerCell).toBeDefined();
+        expect(result.playerCell!.cellId).toBe(77);
+        expect(result.playerCell!.localeCoords).not.toBeNull();
+        expect(result.playerCell!.localeCoords!.x).toBeCloseTo(5, 9);
+        expect(result.playerCell!.localeCoords!.y).toBeCloseTo(10, 9);
+    });
+
+    it('SET_PLAYER_GROUND_POS is a no-op on playerCell when none is recorded yet', () => {
+        const baseState = createMockGameState({ playerGroundPos: null, playerCell: null });
+        const result = worldReducer(baseState, {
+            type: 'SET_PLAYER_GROUND_POS',
+            payload: { position: { tileX: 1, tileY: 2, xM: 5, zM: 5 } },
+        });
+        expect(result.playerGroundPos).toEqual({ tileX: 1, tileY: 2, xM: 5, zM: 5 });
+        // playerCell stays null (honest unknown) — the mirror does not invent a cell.
+        expect(result.playerCell ?? null).toBeNull();
+    });
+
+    it('SET_PLAYER_GROUND_POS clear (null) leaves playerCell untouched', () => {
+        const playerCell = { cellId: 12, localeCoords: { x: 3, y: 4 } };
+        const baseState = createMockGameState({
+            playerGroundPos: { tileX: 0, tileY: 0, xM: 9, zM: 9 },
+            playerCell,
+        });
+        const result = worldReducer(baseState, {
+            type: 'SET_PLAYER_GROUND_POS',
+            payload: { position: null },
+        });
+        expect(result.playerGroundPos).toBeNull();
+        // The cell presence outlives a transient ground-anchor clear.
+        expect(result.playerCell ?? playerCell).toEqual(playerCell);
+    });
+
     it('REVEAL_HIDDEN_SITE records a discovered hidden place (with tile), deduped by id', () => {
         const a = { id: 'hp:2', tileX: 3, tileY: 4, name: 'Cave', kind: 'cave' };
         const b = { id: 'hp:5', tileX: 7, tileY: 1, name: 'Ruins', kind: 'ruin' };
@@ -237,6 +294,49 @@ describe('worldReducer', () => {
             { type: 'REVEAL_HIDDEN_SITE', payload: b },
         );
         expect(second.discoveredHiddenSites).toEqual([a, b]);
+    });
+
+    // ============================================================================
+    // ADD_RUMORS — living-world chronicle → tavern-gossip bridge
+    // ============================================================================
+    // The reducer appends rumors but dedups BY ID, so re-running the chronicle sync
+    // on the same town news never grows activeRumors. The TavernGossipSystem reads
+    // activeRumors directly; this bridge only feeds it.
+    // ============================================================================
+
+    it('ADD_RUMORS dedups by id — dispatching the same rumors twice adds them once', () => {
+        const rumors = [
+            { id: 'chronicle-coord_3_4-1', text: 'Market boomed.', type: 'market' as const, timestamp: 100, expiration: 130 },
+            { id: 'chronicle-coord_3_4-2', text: 'A flood struck.', type: 'event' as const, timestamp: 101, expiration: 131 },
+        ];
+        const baseState = createMockGameState({ activeRumors: [] });
+
+        const first = worldReducer(baseState, { type: 'ADD_RUMORS', payload: { rumors } });
+        expect(first.activeRumors).toEqual(rumors);
+
+        // Re-dispatching the identical rumors is idempotent (empty slice, no growth).
+        const again = worldReducer(
+            { ...baseState, activeRumors: first.activeRumors! },
+            { type: 'ADD_RUMORS', payload: { rumors } },
+        );
+        expect(again.activeRumors).toBeUndefined();
+    });
+
+    it('ADD_RUMORS appends only the rumors whose id is new', () => {
+        const existing = [
+            { id: 'chronicle-coord_3_4-1', text: 'Market boomed.', type: 'market' as const, timestamp: 100, expiration: 130 },
+        ];
+        const incoming = [
+            { id: 'chronicle-coord_3_4-1', text: 'Market boomed.', type: 'market' as const, timestamp: 100, expiration: 130 },
+            { id: 'chronicle-coord_3_4-9', text: 'New lord crowned.', type: 'event' as const, timestamp: 105, expiration: 135 },
+        ];
+        const baseState = createMockGameState({ activeRumors: existing });
+
+        const result = worldReducer(baseState, { type: 'ADD_RUMORS', payload: { rumors: incoming } });
+        expect(result.activeRumors).toEqual([
+            existing[0],
+            incoming[1],
+        ]);
     });
 
     // ============================================================================

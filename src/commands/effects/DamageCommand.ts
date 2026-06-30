@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 13/06/2026, 10:54:35
- * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 13 files
+ * Last Sync: 29/06/2026, 17:32:53
+ * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
+ * Imports: 15 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,7 +33,7 @@ import { checkConcentration } from '../../utils/concentrationUtils';
 import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/savingThrowUtils';
 import type { SavingThrowModifier } from '../../utils/savingThrowUtils';
 import { rollDamage as rollDamageUtil, calculateCover } from '../../utils/combatUtils';
-import { BreakConcentrationCommand } from './ConcentrationCommands'
+import { BreakConcentrationCommand, breakFriendsConcentrationForCaster } from './ConcentrationCommands'
 import { ResistanceCalculator } from '../../utils/combat/resistanceUtils';
 import { getPlanarSpellModifier } from '../../utils/planarUtils';
 import { StatusConditionCommand } from './StatusConditionCommand';
@@ -109,7 +109,8 @@ export class DamageCommand extends BaseEffectCommand {
       // - Applies minRoll floor from Elemental Adept
       const isCritical = this.context.isCritical || false;
       this.emitSpellAttackHitEvent(caster, target, isCritical);
-      let damageRoll = this.rollDamage(this.effect.damage.dice, isCritical, minRoll);
+      const damageDice = this.resolveHitPointStateDamageDice(target);
+      let damageRoll = this.rollDamage(damageDice, isCritical, minRoll);
 
       // Some spell payloads deliberately resolve as a fraction of the rolled
       // damage before any mitigation is applied. Lightning Arrow's missed
@@ -239,6 +240,14 @@ export class DamageCommand extends BaseEffectCommand {
         }
       );
 
+      // Resistance is a separate flat rider from the normal resistance math.
+      // It spends once per turn on the first qualifying hit of the chosen type
+      // and leaves every other damage type untouched.
+      const resistanceRiderResult = this.applyResistanceRider(currentState, target, finalDamage);
+      currentState = resistanceRiderResult.state;
+      finalDamage = resistanceRiderResult.damage;
+      const targetAfterResistance = currentState.characters.find(character => character.id === target.id) ?? target;
+
       // --- HAM FEAT (2024): Reduce nonmagical physical damage by Proficiency Bonus ---
       // WHAT CHANGED: Added HAM damage reduction check.
       // WHY IT CHANGED: To support 2024 tanking mechanics. HAM now scales 
@@ -326,7 +335,7 @@ export class DamageCommand extends BaseEffectCommand {
       // --- Step 5: Apply final damage to target's HP ---
       // We delegate HP reduction, temporary HP, and downed/unconscious state changes
       // to the centralized applyDamageAndCheckDowned utility.
-      const updatedTarget = applyDamageAndCheckDowned(target, finalDamage, isCritical);
+      const updatedTarget = applyDamageAndCheckDowned(targetAfterResistance, finalDamage, isCritical);
       currentState = this.updateCharacter(currentState, target.id, {
         currentHP: updatedTarget.currentHP,
         tempHP: updatedTarget.tempHP,
@@ -350,6 +359,18 @@ export class DamageCommand extends BaseEffectCommand {
 
       // --- LOGGING ---
       currentState = this.logDamage(currentState, caster, target, finalDamage, planarModifier);
+
+      if (finalDamage > 0) {
+        currentState = await breakFriendsConcentrationForCaster(
+          currentState,
+          caster,
+          this.context,
+          'caster_deals_damage',
+          target.name
+        );
+      }
+
+      currentState = await this.breakFriendsWhenTargetTakesDamage(currentState, updatedTarget, finalDamage);
 
       // --- Step 6: Check Concentration ---
       // If the target is concentrating on a spell and took damage,
@@ -417,11 +438,81 @@ export class DamageCommand extends BaseEffectCommand {
     return currentState
   }
 
+  private async breakFriendsWhenTargetTakesDamage(
+    state: CombatState,
+    damagedTarget: CombatCharacter,
+    finalDamage: number
+  ): Promise<CombatState> {
+    if (finalDamage <= 0) {
+      return state;
+    }
+
+    const friendsEffect = damagedTarget.statusEffects.find(effect =>
+      effect.socialLifecycle?.kind === 'friends_charm' &&
+      effect.sourceCasterId
+    );
+
+    if (!friendsEffect?.sourceCasterId) {
+      return state;
+    }
+
+    const friendsCaster = state.characters.find(character =>
+      character.id === friendsEffect.sourceCasterId &&
+      character.concentratingOn?.spellId === 'friends'
+    );
+
+    if (!friendsCaster) {
+      return state;
+    }
+
+    const breakCommand = new BreakConcentrationCommand({
+      ...this.context,
+      caster: friendsCaster,
+      spellId: 'friends',
+      spellName: friendsEffect.source || 'Friends',
+      targets: []
+    });
+
+    const brokenState = await breakCommand.execute(state);
+    return this.addLogEntry(brokenState, {
+      type: 'status',
+      message: `${friendsEffect.source || 'Friends'} ends early because ${damagedTarget.name} takes damage.`,
+      characterId: damagedTarget.id,
+      targetIds: [damagedTarget.id],
+      data: {
+        spellId: 'friends',
+        earlyEndReason: 'target_takes_damage'
+      }
+    });
+  }
+
   get description(): string {
     if (isDamageEffect(this.effect)) {
       return `Deals ${this.effect.damage.dice} ${this.effect.damage.type} damage`
     }
     return 'Deals damage'
+  }
+
+  private resolveHitPointStateDamageDice(target: CombatCharacter): string {
+    if (!isDamageEffect(this.effect)) {
+      return '0d0';
+    }
+
+    // Toll the Dead keeps one damage row, but the die size depends on whether
+    // the target is already wounded. SpellCommandFactory may have already
+    // scaled the dice count for cantrip tiers, so this helper preserves the
+    // count and only switches the die size from d8 to d12.
+    if (
+      this.effect.hitPointState?.mode === 'missing_hit_points_damage_step' &&
+      target.currentHP < target.maxHP
+    ) {
+      const diceMatch = this.effect.damage.dice.match(/^(\d+)d(\d+)$/i);
+      if (diceMatch) {
+        return `${diceMatch[1]}d12`;
+      }
+    }
+
+    return this.effect.damage.dice;
   }
 
   /**
@@ -594,6 +685,67 @@ export class DamageCommand extends BaseEffectCommand {
       targetIds: [target.id],
       data: { value: finalDamage, type: this.effect.damage.type }
     });
+  }
+
+  /**
+   * Spend the Resistance spell's flat 1d4 rider after normal resistance math
+   * has resolved. The rider is tied to a single chosen damage type and only
+   * applies once per turn, so the active effect keeps the last turn it fired.
+   */
+  private applyResistanceRider(
+    state: CombatState,
+    target: CombatCharacter,
+    incomingDamage: number
+  ): { state: CombatState; damage: number } {
+    if (!isDamageEffect(this.effect) || incomingDamage <= 0) {
+      return { state, damage: incomingDamage };
+    }
+
+    const damageType = this.effect.damage.type.toLowerCase();
+    const currentTurn = state.turnState?.currentTurn ?? 0;
+    const liveTarget = state.characters.find(character => character.id === target.id) ?? target;
+    const matchingEffect = liveTarget.activeEffects?.find(effect => {
+      const rider = effect.mechanics?.damageReduction;
+      if (!rider || rider.appliesTo !== 'damage_taken') return false;
+      if ((rider.damageType || '').toLowerCase() !== damageType) return false;
+      if (rider.frequency !== 'once_per_turn') return false;
+      return rider.lastAppliedTurn !== currentTurn;
+    });
+
+    if (!matchingEffect) {
+      return { state, damage: incomingDamage };
+    }
+
+    const reductionRoll = rollDamageUtil(matchingEffect.mechanics?.damageReduction?.dice || '1d4', false, 1);
+    const reducedDamage = Math.max(0, incomingDamage - reductionRoll);
+    const updatedActiveEffects = (liveTarget.activeEffects || []).map(effect => {
+      if (effect.id !== matchingEffect.id) return effect;
+
+      return {
+        ...effect,
+        mechanics: {
+          ...effect.mechanics,
+          damageReduction: effect.mechanics?.damageReduction
+            ? {
+                ...effect.mechanics.damageReduction,
+                lastAppliedTurn: currentTurn
+              }
+            : effect.mechanics?.damageReduction
+        }
+      };
+    });
+
+    const nextState = this.updateCharacter(state, liveTarget.id, {
+      activeEffects: updatedActiveEffects
+    });
+
+    const loggedState = this.addLogEntry(nextState, {
+      type: 'status',
+      message: `${target.name} uses Resistance to reduce ${this.effect.damage.type.toLowerCase()} damage by ${reductionRoll}`,
+      characterId: target.id
+    });
+
+    return { state: loggedState, damage: reducedDamage };
   }
 
   /**

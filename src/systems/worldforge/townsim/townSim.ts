@@ -15,10 +15,27 @@ import type { FamilyTies } from '../roster/family';
 import {
   DAYS_PER_YEAR,
   ANNUAL_BIRTH_CHANCE,
+  ANNUAL_COURTSHIP_CHANCE,
+  COURTSHIP_DAYS,
   MAX_CHILDREN,
   BASELINE_WEALTH,
 } from './constants';
-import { dailyDeathProbability, childbearingWindow, lifespanForRace } from './lifespans';
+import {
+  dailyDeathProbability,
+  childbearingWindow,
+  marriageableWindow,
+  lifespanForRace,
+} from './lifespans';
+import { rollAnnualEconomy } from './economy';
+import {
+  rollAnnualDisaster,
+  disasterSummary,
+  fireDeaths,
+  plagueDeaths,
+  crimeWaveWealthLoss,
+} from './disasters';
+import { festivalsOnDayOfYear } from './festivals';
+import { newbornName } from './naming';
 import type {
   InstitutionRole,
   LifeEvent,
@@ -28,18 +45,26 @@ import type {
   TownSimState,
 } from './types';
 
-/** Plain given-name pool for newborns (naming polish is a later layer). */
-const NEWBORN_NAMES = [
-  'Ada', 'Bryn', 'Cael', 'Dara', 'Edda', 'Finn', 'Gwen', 'Hale',
-  'Isa', 'Joss', 'Kael', 'Lira', 'Maro', 'Nessa', 'Orin', 'Pell',
-];
-
 /** Integer age in years on the given gameDay. */
 export function ageOf(v: LivingVillager, day: number): number {
   return Math.floor((day - v.bornDay) / DAYS_PER_YEAR);
 }
 
 const isAlive = (v: LivingVillager): boolean => v.diedDay === undefined;
+
+/** True if a and b are parent/child or siblings — never allowed to marry. */
+function isCloseKin(a: LivingVillager, b: LivingVillager): boolean {
+  if (a.parentIds.includes(b.occupantId) || a.childIds.includes(b.occupantId)) return true;
+  return a.parentIds.some((p) => b.parentIds.includes(p)); // shared parent → siblings
+}
+
+/** Marriageable: alive, unwed, not currently courting, within the age window. */
+function isSingleMarriageable(v: LivingVillager, day: number): boolean {
+  if (!isAlive(v) || v.spouseId !== undefined || v.courtingId !== undefined) return false;
+  const w = marriageableWindow(v.race);
+  const age = ageOf(v, day);
+  return age >= w.min && age <= w.max;
+}
 
 /** Build a fresh sim state from a generated roster + family ties + key roles. */
 export function initTownSimState(
@@ -72,6 +97,8 @@ export function initTownSimState(
     burgId,
     villagers,
     chronicle: { burgId, events: [], nextEventId: 1 },
+    prosperity: 50,
+    totals: { births: 0, deaths: 0 },
     lastSimDay: startDay,
     nextVillagerId: maxId + 1,
   };
@@ -88,6 +115,7 @@ function cloneState(state: TownSimState): TownSimState {
     ...state,
     villagers,
     chronicle: { ...state.chronicle, events: [...state.chronicle.events] },
+    totals: { ...(state.totals ?? { births: 0, deaths: 0 }) },
   };
 }
 
@@ -101,6 +129,21 @@ function addEvent(
 ): void {
   chronicle.events.push({ id: chronicle.nextEventId, day, kind, subjectId, relatedIds, summary });
   chronicle.nextEventId += 1;
+}
+
+/**
+ * Kill a villager and run all the bookkeeping a death entails: stamp diedDay,
+ * write the 'death' chronicle line, then distribute the estate and succeed any
+ * institution. Shared by natural deaths AND town-scale disasters so a disaster
+ * death is indistinguishable from a natural one (population conservation holds
+ * and institutions never silently vanish). Mutates `state` in place.
+ */
+function killVillager(state: TownSimState, v: LivingVillager, day: number, summary: string): void {
+  v.diedDay = day;
+  if (state.totals) state.totals.deaths += 1;
+  addEvent(state.chronicle, day, 'death', v.occupantId, [], summary);
+  applyInheritance(state, v, day);
+  applySuccession(state, v, day);
 }
 
 /** Sorted living villager ids (numeric) for deterministic iteration. */
@@ -214,11 +257,31 @@ export function rollTownDay(state: TownSimState, day: number, rng: SeededRandom)
     if (!isAlive(v)) continue;
     const p = dailyDeathProbability(ageOf(v, day), v.race);
     if (rng.next() < p) {
-      v.diedDay = day;
-      addEvent(next.chronicle, day, 'death', v.occupantId, [], `${v.name} died at age ${ageOf(v, day)}.`);
-      applyInheritance(next, v, day);
-      applySuccession(next, v, day);
+      killVillager(next, v, day, `${v.name} died at age ${ageOf(v, day)}.`);
     }
+  }
+
+  // 1b. Resolve courtships: a matured courtship becomes a marriage; a courtship
+  // whose partner died (or no longer points back) simply ends. No rng.
+  for (const id of cohort) {
+    const v = next.villagers[id];
+    if (!isAlive(v) || v.courtingId === undefined) continue;
+    const partner = next.villagers[v.courtingId];
+    if (!partner || !isAlive(partner) || partner.courtingId !== v.occupantId) {
+      v.courtingId = undefined;
+      v.courtshipStartDay = undefined;
+      continue;
+    }
+    if (v.occupantId > partner.occupantId) continue; // process the pair once
+    if (v.spouseId !== undefined || partner.spouseId !== undefined) continue;
+    if (day - (v.courtshipStartDay ?? day) < COURTSHIP_DAYS) continue;
+    v.spouseId = partner.occupantId;
+    partner.spouseId = v.occupantId;
+    v.courtingId = undefined;
+    v.courtshipStartDay = undefined;
+    partner.courtingId = undefined;
+    partner.courtshipStartDay = undefined;
+    addEvent(next.chronicle, day, 'marriage', v.occupantId, [partner.occupantId], `${v.name} married ${partner.name}.`);
   }
 
   // 2. Births to living married couples (process once per couple, lower id leads).
@@ -239,9 +302,11 @@ export function rollTownDay(state: TownSimState, day: number, rng: SeededRandom)
     if (rng.next() < annualToDaily(ANNUAL_BIRTH_CHANCE)) {
       const childId = next.nextVillagerId;
       next.nextVillagerId += 1;
-      // bloodline: lower-id parent's race (matches family.ts head-of-household rule)
+      // bloodline: lower-id parent's race (matches family.ts head-of-household rule).
+      // v is the lower-id parent (the couple is processed once, led by lower id),
+      // so the child inherits v's race AND family surname.
       const bloodline = v.occupantId < spouse.occupantId ? v.race : spouse.race;
-      const childName = rng.pick(NEWBORN_NAMES);
+      const childName = newbornName(rng, bloodline, v.name);
       const newborn: LivingVillager = {
         occupantId: childId,
         name: childName,
@@ -255,6 +320,7 @@ export function rollTownDay(state: TownSimState, day: number, rng: SeededRandom)
       next.villagers[childId] = newborn;
       v.childIds.push(childId);
       spouse.childIds.push(childId);
+      if (next.totals) next.totals.births += 1;
       addEvent(
         next.chronicle,
         day,
@@ -276,14 +342,117 @@ export function rollTownDay(state: TownSimState, day: number, rng: SeededRandom)
     }
   }
 
+  // 4. Form new courtships among eligible singles (affinity abstracted into the
+  // courtship chance + the courtship period). rng drawn in sorted-id order;
+  // partners chosen deterministically by closest age (tie-break: lower id).
+  const singles = cohort
+    .map((id) => next.villagers[id])
+    .filter((v) => isSingleMarriageable(v, day))
+    .sort((a, b) => a.occupantId - b.occupantId);
+  const pairedToday = new Set<number>();
+  const dailyCourtship = annualToDaily(ANNUAL_COURTSHIP_CHANCE);
+  for (const a of singles) {
+    if (pairedToday.has(a.occupantId)) continue;
+    if (rng.next() >= dailyCourtship) continue;
+    const ageA = ageOf(a, day);
+    let best: LivingVillager | undefined;
+    let bestGap = Infinity;
+    for (const b of singles) {
+      if (b.occupantId === a.occupantId || pairedToday.has(b.occupantId)) continue;
+      if (isCloseKin(a, b)) continue;
+      const gap = Math.abs(ageOf(b, day) - ageA);
+      if (gap < bestGap || (gap === bestGap && best !== undefined && b.occupantId < best.occupantId)) {
+        best = b;
+        bestGap = gap;
+      }
+    }
+    if (!best) continue;
+    a.courtingId = best.occupantId;
+    a.courtshipStartDay = day;
+    best.courtingId = a.occupantId;
+    best.courtshipStartDay = day;
+    pairedToday.add(a.occupantId);
+    pairedToday.add(best.occupantId);
+    addEvent(next.chronicle, day, 'courtship', a.occupantId, [best.occupantId], `${a.name} and ${best.name} began courting.`);
+  }
+
+  // 5. Annual economy (event-grained): once per game year, a town-wide outcome
+  // (good/lean year, levy, boom) shifts every living villager's wealth meter and
+  // the town prosperity meter, and writes one chronicle line. subjectId 0 marks
+  // a town-level event (not a personal diary entry).
+  if (day > 0 && day % DAYS_PER_YEAR === 0) {
+    const outcome = rollAnnualEconomy(rng);
+    if (outcome.kind !== 'steady') {
+      for (const id of Object.keys(next.villagers)) {
+        const v = next.villagers[Number(id)];
+        if (!isAlive(v)) continue;
+        v.wealth = Math.max(0, v.wealth + outcome.wealthDelta);
+      }
+      const base = next.prosperity ?? 50;
+      next.prosperity = Math.max(0, Math.min(100, base + outcome.prosperityDelta));
+      addEvent(next.chronicle, day, 'economy', 0, [], outcome.summary);
+    }
+
+    // 5b. Annual disaster (rare + dramatic): after the economy pass so its rng
+    // draw order is unchanged. One town-level 'disaster' announcement, then the
+    // kind's bounded consequences. fire/plague kill distinct living villagers
+    // via killVillager (so each emits a 'death' + inheritance + succession,
+    // exactly like a natural death); crime_wave drains wealth only. Victims are
+    // picked deterministically: from the sorted living-id pool, draw a
+    // MAX-EXCLUSIVE index and splice it out, never exceeding the living count.
+    const disaster = rollAnnualDisaster(rng);
+    if (disaster) {
+      addEvent(next.chronicle, day, 'disaster', 0, [], disasterSummary(disaster.kind));
+      if (disaster.kind === 'crime_wave') {
+        const loss = crimeWaveWealthLoss();
+        for (const id of livingIdsSorted(next)) {
+          const v = next.villagers[id];
+          v.wealth = Math.max(0, v.wealth + loss);
+        }
+        const base = next.prosperity ?? 50;
+        next.prosperity = Math.max(0, Math.min(100, base - 3));
+      } else {
+        const pool = livingIdsSorted(next);
+        const want = disaster.kind === 'fire' ? fireDeaths(pool.length) : plagueDeaths(pool.length);
+        const toKill = Math.min(want, pool.length);
+        for (let k = 0; k < toKill; k++) {
+          const pick = rng.nextInt(0, pool.length); // MAX-EXCLUSIVE
+          const victimId = pool[pick];
+          pool.splice(pick, 1);
+          const victim = next.villagers[victimId];
+          killVillager(next, victim, day, `${victim.name} died in the ${disaster.kind}.`);
+        }
+      }
+    }
+  }
+
+  // 6. Festivals (calendar-deterministic; no rng). Any festival whose fixed
+  // day-of-year matches today is held: shared seasonal feasts plus this burg's
+  // Founding Day and Patron's Feast. Each writes one town-level chronicle line
+  // (subjectId 0, matching the economy convention) and nudges prosperity +1
+  // (clamped 0..100). Drawing no randomness keeps every other pass's RNG stream
+  // — and the existing tests — unperturbed.
+  const dayOfYear = ((day % DAYS_PER_YEAR) + DAYS_PER_YEAR) % DAYS_PER_YEAR;
+  for (const name of festivalsOnDayOfYear(dayOfYear, next.burgId)) {
+    const base = next.prosperity ?? 50;
+    next.prosperity = Math.max(0, Math.min(100, base + 1));
+    addEvent(next.chronicle, day, 'festival', 0, [], `The town held ${name}.`);
+  }
+
   next.lastSimDay = day;
   return next;
 }
 
 /**
- * Advance the sim from its current lastSimDay up to and including `toDay`.
- * `fromDay` is informational; the loop is anchored on state.lastSimDay so a
- * single RNG stream rolls each intervening day in order (deterministic).
+ * Advance the sim from its current lastSimDay up to and including `toDay`,
+ * threading ONE caller-supplied RNG across the whole span.
+ *
+ * TEST-ONLY. Because it uses a single RNG stream, its result is chunking-
+ * DEPENDENT (advancing 0→100 in one call ≠ 0→50 then 50→100). Production must
+ * use {@link advanceTown}/advanceRegistry instead, which re-seed per
+ * (worldSeed, burgId, day) and are therefore chunking-INDEPENDENT. This helper
+ * exists only to exercise rollTownDay's per-day logic under a fixed seed in unit
+ * tests; do not wire it into the real game.
  */
 export function advanceTownDays(
   state: TownSimState,

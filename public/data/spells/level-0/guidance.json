@@ -61,7 +61,7 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false,
-      "willing": "not_applicable",
+      "willing": "required",
       "objectEligibility": {
         "wornOrCarried": "not_applicable",
         "magicalStatus": "not_applicable",
@@ -109,7 +109,7 @@
           "alignments": [],
           "hasCondition": [],
           "isNativeToPlane": false,
-          "willing": "not_applicable",
+          "willing": "required",
           "objectEligibility": {
             "wornOrCarried": "not_applicable",
             "magicalStatus": "not_applicable",

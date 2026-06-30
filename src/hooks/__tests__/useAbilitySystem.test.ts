@@ -3504,6 +3504,7 @@ describe('useAbilitySystem - active light source live-state bridge', () => {
             dimRadius: 20,
             attachedTo: 'caster',
             attachedToCharacterId: defender.id,
+            opaqueCoverBlocks: true,
             createdTurn: 0
         };
         const lightSpell: Spell = {
@@ -3525,7 +3526,8 @@ describe('useAbilitySystem - active light source live-state bridge', () => {
                 light: {
                     brightRadius: 20,
                     dimRadius: 20,
-                    attachedTo: 'caster'
+                    attachedTo: 'caster',
+                    opaqueCoverBlocks: true
                 },
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }

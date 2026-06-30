@@ -1,6 +1,6 @@
 ---
 schema_version: 1
-project: Scripts: Workflows
+project: "Scripts: Workflows"
 slug: scripts-workflows
 category: Tools, Automation, and Infrastructure
 main_category: "Runtime & Services"

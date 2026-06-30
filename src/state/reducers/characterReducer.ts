@@ -178,6 +178,16 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             };
         }
 
+        // Append a fully-formed bespoke item (e.g. a broadsheet keepsake carrying
+        // a frozen news snapshot in readableContent) that ADD_ITEM's registry
+        // lookup cannot represent. Stamps acquiredAt like the other acquisition
+        // boundaries owned by this reducer.
+        case 'GIVE_ITEM': {
+            return {
+                inventory: [...state.inventory, stampItemAcquiredAt(action.payload.item)],
+            };
+        }
+
         case 'REMOVE_ITEM': {
             const { itemId, count = 1 } = action.payload;
             let remaining = count;

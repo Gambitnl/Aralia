@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/06/2026, 19:15:31
+ * Dependents: hooks/combat/useTurnManager.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file hooks/combat/useTurnOrder.ts
  * Manages the sequential turn order logic, including initiative sorting,
@@ -28,7 +44,7 @@ interface TurnOrderResult {
   /**
    * Adds a character to the existing turn order dynamically.
    */
-  joinTurnOrder: (characterId: string) => void;
+  joinTurnOrder: (characterId: string, afterCharacterId?: string) => void;
   /**
    * Checks if it is currently the given character's turn.
    */
@@ -74,11 +90,20 @@ export const useTurnOrder = ({ characters }: UseTurnOrderProps): TurnOrderResult
     });
   }, []);
 
-  const joinTurnOrder = useCallback((characterId: string) => {
+  const joinTurnOrder = useCallback((characterId: string, afterCharacterId?: string) => {
     setTurnState(prev => {
       const newOrder = [...prev.turnOrder];
       if (!newOrder.includes(characterId)) {
-        newOrder.push(characterId);
+        const anchorIndex = afterCharacterId ? newOrder.indexOf(afterCharacterId) : -1;
+
+        // Shared-initiative summons need to land directly after the caster
+        // that created them. Normal late joiners keep the older append-only
+        // behavior so existing combat participation does not change.
+        if (anchorIndex >= 0) {
+          newOrder.splice(anchorIndex + 1, 0, characterId);
+        } else {
+          newOrder.push(characterId);
+        }
       }
       return {
         ...prev,

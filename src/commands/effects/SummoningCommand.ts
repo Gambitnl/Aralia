@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/06/2026, 18:44:09
+ * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/SpellCommandFactory.ts
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { SummoningEffect } from '@/types/spells'
@@ -49,6 +65,15 @@ export class SummoningCommand extends BaseEffectCommand {
             newState = this.removeExistingFamiliar(newState, caster.id)
         }
 
+        // Persistent summons that advertise a recast-ending rule should
+        // replace the prior actor from the same caster and spell before the
+        // new copy is spawned. Simulacrum is the live data slice that needs
+        // this bridge; generic multi-creature summons stay untouched unless
+        // their packet explicitly opts into the same rule.
+        if (this.shouldReplaceExistingPersistentSummon(effect)) {
+            newState = this.removeExistingPersistentSummon(newState, caster.id)
+        }
+
         for (let i = 0; i < count; i++) {
             const spawnPosition = this.findSpawnPosition(newState, caster.position)
 
@@ -95,6 +120,10 @@ export class SummoningCommand extends BaseEffectCommand {
         return effect.summon?.entityType === 'familiar'
     }
 
+    private shouldReplaceExistingPersistentSummon(effect: SummoningEffect): boolean {
+        return effect.summon?.lifecycle?.recastEnding !== undefined
+    }
+
     private removeExistingFamiliar(state: CombatState, casterId: string): CombatState {
         const existingFamiliars = state.characters.filter(character =>
             character.isSummon &&
@@ -123,6 +152,37 @@ export class SummoningCommand extends BaseEffectCommand {
             data: {
                 spellId: this.context.spellId,
                 removedSummonIds: Array.from(familiarIds)
+            }
+        })
+    }
+
+    private removeExistingPersistentSummon(state: CombatState, casterId: string): CombatState {
+        const existingSummons = state.characters.filter(character =>
+            character.isSummon &&
+            character.summonMetadata?.casterId === casterId &&
+            character.summonMetadata?.spellId === this.context.spellId
+        )
+
+        if (existingSummons.length === 0) {
+            return state
+        }
+
+        const summonIds = new Set(existingSummons.map(summon => summon.id))
+        const summonNames = existingSummons.map(summon => summon.name).join(', ')
+
+        // Recasting a persistent summon should not stack a second actor when
+        // the live spell packet says the old copy ends on recast. We only trim
+        // the same caster/spell pair here so unrelated summons remain intact.
+        return this.addLogEntry({
+            ...state,
+            characters: state.characters.filter(character => !summonIds.has(character.id))
+        }, {
+            type: 'action',
+            message: `${this.context.caster.name}'s existing ${this.context.spellName} summon disappears before a new one is created (${summonNames})`,
+            characterId: casterId,
+            data: {
+                spellId: this.context.spellId,
+                removedSummonIds: Array.from(summonIds)
             }
         })
     }
@@ -437,6 +497,8 @@ export class SummoningCommand extends BaseEffectCommand {
                 telepathyRange: effect.summon?.telepathyRange,
                 sharedSenses: effect.summon?.sharedSenses,
                 sharedSensesCost: effect.summon?.sharedSensesCost,
+                lifecycle: effect.summon?.lifecycle,
+                control: effect.summon?.control,
                 actionPermissions: effect.summon?.actionPermissions,
                 formTraits: effect.summon?.formTraits,
                 durationRemaining: typeof effect.duration?.value === 'number' ? effect.duration.value : undefined,

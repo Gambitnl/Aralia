@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 26/06/2026, 19:54:20
+ * Last Sync: 29/06/2026, 19:15:30
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 12 files
  *
@@ -64,6 +64,37 @@ interface UseTurnManagerProps {
     spellAbility: Ability
   ) => Promise<void> | void;
 }
+
+const RAY_OF_FROST_SLOW_NAME = 'Ray of Frost Slow';
+const RAY_OF_FROST_SOURCE_NAMES = new Set(['Ray of Frost', 'ray-of-frost']);
+
+/**
+ * Clears the Ray of Frost rider from one combatant when the source caster's
+ * next turn starts.
+ */
+const removeRayOfFrostSlow = (character: CombatCharacter, sourceCasterId: string): CombatCharacter => {
+  const nextStatusEffects = (character.statusEffects || []).filter(effect =>
+    !(effect.name === RAY_OF_FROST_SLOW_NAME &&
+      effect.sourceCasterId === sourceCasterId &&
+      RAY_OF_FROST_SOURCE_NAMES.has(effect.source ?? ''))
+  );
+  const nextConditions = (character.conditions || []).filter(condition =>
+    !(condition.name === RAY_OF_FROST_SLOW_NAME &&
+      condition.sourceCasterId === sourceCasterId &&
+      RAY_OF_FROST_SOURCE_NAMES.has(condition.source ?? ''))
+  );
+
+  if (nextStatusEffects.length === (character.statusEffects || []).length &&
+      nextConditions.length === (character.conditions || []).length) {
+    return character;
+  }
+
+  return {
+    ...character,
+    statusEffects: nextStatusEffects,
+    conditions: nextConditions
+  };
+};
 
 export const useTurnManager = ({
   characters,
@@ -244,6 +275,23 @@ export const useTurnManager = ({
   }, []);
 
   const startTurnFor = useCallback((character: CombatCharacter) => {
+    // Ray of Frost expires at the source caster's next turn start, so clear
+    // the matching rider before this turn's economy reset runs.
+    const currentSourceCasterId = character.id;
+    const cleanedCurrentCharacter = removeRayOfFrostSlow(character, currentSourceCasterId);
+    if (cleanedCurrentCharacter !== character) {
+      character = cleanedCurrentCharacter;
+    }
+
+    characters.forEach(otherCharacter => {
+      if (otherCharacter.id === character.id) return;
+
+      const cleanedCharacter = removeRayOfFrostSlow(otherCharacter, currentSourceCasterId);
+      if (cleanedCharacter !== otherCharacter) {
+        handleCharacterUpdateWrapped(cleanedCharacter);
+      }
+    });
+
     let updatedChar = resetEconomy(character);
 
     // Light sources are map-level spell artifacts, so they do not get ticked
@@ -508,7 +556,7 @@ export const useTurnManager = ({
       characterId: character.id
     });
     // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
-  }, [handleCharacterUpdateWrapped, onLogEntry, processRepeatSaves, processScheduledSpellEffects, turnState.currentTurn]);
+  }, [characters, handleCharacterUpdateWrapped, onLogEntry, processRepeatSaves, processScheduledSpellEffects, turnState.currentTurn]);
 
   const initializeCombat = useCallback((initialCharacters: CombatCharacter[]) => {
     // 1. Roll initiatives
@@ -550,7 +598,14 @@ export const useTurnManager = ({
     const readyChar = resetEconomy(charWithInit);
     handleCharacterUpdateWrapped(readyChar);
 
-    joinTurnOrder(readyChar.id);
+    const sharedInitiativeAnchor = readyChar.isSummon && readyChar.summonMetadata?.initiativePolicy === 'shared'
+      ? readyChar.summonMetadata.casterId
+      : undefined;
+
+    // Shared-initiative summons should enter immediately after the caster
+    // that called them. Everyone else keeps the generic append/join behavior
+    // handled by useTurnOrder.
+    joinTurnOrder(readyChar.id, sharedInitiativeAnchor);
 
     onLogEntry({
       id: generateId(),

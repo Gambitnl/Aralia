@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 28/06/2026, 12:11:49
- * Dependents: commands/base/BaseEffectCommand.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, components/BattleMap/AISpellInputModal.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/Combat/ReactionPrompt.tsx, data/adapters/5eTools/index.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/feats/featsData.ts, data/races/racialTraits.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetValidator.ts, hooks/data/useSpellRegistry.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/spellEffectUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, scripts/audit_enchantment_consistency.ts, systems/creatures/CreatureTaxonomy.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/mechanics/SavingThrowResolver.ts, systems/spells/mechanics/ScalingEngine.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/validation/LegacySpellValidator.ts, systems/spells/validation/SpellIntegrityValidator.ts, systems/spells/validation/TargetingPresets.ts, types/index.ts, types/mechanics.ts, types/spellAttackMetadata.ts, types/spellTargeting.ts, utils/character/savingThrowUtils.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/resistanceUtils.ts, utils/core/factories.ts, utils/validation/spellAuditor.ts, utils/validation/spellConsistencyValidator.ts, utils/visuals/spellVisuals.ts
+ * Last Sync: 29/06/2026, 18:28:34
+ * Dependents: commands/base/BaseEffectCommand.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AISpellInputModal.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/Combat/ReactionPrompt.tsx, data/adapters/5eTools/index.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/feats/featsData.ts, data/races/racialTraits.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetValidator.ts, hooks/data/useSpellRegistry.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/spellEffectUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, scripts/audit_enchantment_consistency.ts, systems/creatures/CreatureTaxonomy.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/mechanics/SavingThrowResolver.ts, systems/spells/mechanics/ScalingEngine.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/validation/LegacySpellValidator.ts, systems/spells/validation/SpellIntegrityValidator.ts, systems/spells/validation/TargetingPresets.ts, types/index.ts, types/mechanics.ts, types/spellAttackMetadata.ts, types/spellTargeting.ts, utils/character/savingThrowUtils.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/resistanceUtils.ts, utils/core/factories.ts, utils/validation/spellAuditor.ts, utils/validation/spellConsistencyValidator.ts, utils/visuals/spellVisuals.ts
  * Imports: 16 files
  *
  * MULTI-AGENT SAFETY:
@@ -593,7 +593,7 @@ export interface TargetConditionFilter {
   /** Plane-native restriction used by banishment-style and summoning-adjacent effects. */
   isNativeToPlane?: boolean;
   /** Whether the spell requires a willing target, rejects willing targets, or does not care. */
-  willing?: "willing" | "unwilling" | "not_applicable";
+  willing?: "required" | "willing" | "unwilling" | "not_applicable";
   /** Object-specific gates such as worn, carried, magical, fixed, size, and weight limits. */
   objectEligibility?: {
     wornOrCarried?: string;
@@ -722,6 +722,17 @@ export interface BaseEffect {
 export interface DamageEffect extends BaseEffect {
   type: "DAMAGE";
   damage: DamageData;
+  /**
+   * Runtime-facing hit-point branch for damage spells whose dice change based
+   * on the target's current HP. Toll the Dead uses this to choose the wounded
+   * d12 branch without hard-coding the spell in the command factory.
+   */
+  hitPointState?: {
+    mode: "missing_hit_points_damage_step" | string;
+    normalDamage?: string;
+    woundedDamage?: string;
+    scaling?: string;
+  };
   /**
    * Damage multiplier used when an attack-bound rider resolves on a miss.
    *
@@ -981,6 +992,31 @@ export interface SummonedEntityStatBlock {
   }>;
 }
 
+/**
+ * Persistent summon rows can carry first-class lifecycle text so the
+ * validated packet keeps destruction, repair, and recast behavior visible.
+ */
+export interface SummonedEntityLifecycle {
+  hitPointMaximum?: string;
+  repairOnly?: string;
+  zeroHpEnding?: string;
+  recastEnding?: string;
+}
+
+/**
+ * Persistent summon rows can also carry an ownership/control summary without
+ * forcing that material into freeform description prose.
+ */
+export interface SummonedEntityControl {
+  entityType?: string;
+  source?: string;
+  allegiance?: string;
+  obedience?: string;
+  initiative?: string;
+  restrictions?: string[];
+  destruction?: string;
+}
+
 export interface SummoningEffect extends BaseEffect {
   type: "SUMMONING";
   // Legacy flat fields for backward compatibility during transition
@@ -1000,6 +1036,8 @@ export interface SummoningEffect extends BaseEffect {
     formOptions?: string[];
     statBlock?: SummonedEntityStatBlock;
     objectDescription?: string;
+    lifecycle?: SummonedEntityLifecycle;
+    control?: SummonedEntityControl;
     commandCost?: "action" | "bonus_action" | "free" | "none";
     commandsPerTurn?: number;
     initiative?: "immediate" | "rolled" | "shared";
@@ -1107,6 +1145,37 @@ export interface UtilityEffect extends BaseEffect {
   attackAugments?: AttackAugment[];
   abilityCheckModifier?: AbilityCheckModifier;
   controlledEntity?: ControlledEntity;
+  /**
+   * Tiny Servant keeps its object-to-creature lifecycle on the utility effect
+   * so the validated packet can preserve command cadence and reversion state.
+   */
+  animatedObjectState?: {
+    creatureType: "Construct";
+    size: "Tiny";
+    sourceObject: string;
+    lifecycle: {
+      hitPointEnding: string;
+      reversion: string;
+      damageCarryover: string;
+    };
+    control: string;
+  };
+  /**
+   * Tiny Servant's live control packet stays alongside the utility effect so
+   * the validated spell keeps the command range, cadence, and no-command
+   * behavior visible to future runtime consumers.
+   */
+  summonControl?: {
+    entityType: "Tiny Servant";
+    source: string;
+    commandAction: "Bonus Action";
+    commandRangeFeet: number;
+    multiCommand: string;
+    commandOptions: string;
+    noCommandBehavior: string;
+    persistentOrder: string;
+    lifecycle: string;
+  };
   createdObjects?: CreatedObject[];
   objectAccessChange?: ObjectAccessChange;
   controlOptions?: ControlOption[];
@@ -1118,8 +1187,91 @@ export interface UtilityEffect extends BaseEffect {
     attachedTo?: "caster" | "target" | "point";
     color?: string;         // e.g., "warm", "cold", "#RRGGBB"
   };
+  /**
+   * Runtime-facing movement contract for utility-created light artifacts.
+   * Dancing Lights uses this to keep the four-light leash, bonus-action move,
+   * and out-of-range vanish rule visible to command/UI layers.
+   */
+  movementState?: {
+    kind: "movable_created_lights" | string;
+    createdCount?: number | string;
+    hover?: boolean;
+    moveCost?: string;
+    moveDistance?: number | string;
+    rangeConstraint?: string;
+    outOfRange?: string;
+  };
+  /** Minor utility output metadata for weather omens, elemental lingerers, and similar modes. */
+  sensorState?: Record<string, unknown>;
+  aftermathState?: Record<string, unknown>;
   /** Structured save penalty for debuff effects like Mind Sliver */
   savePenalty?: SavePenalty;
+  /**
+   * Optional condition-benefit suppression for utility riders. Starry Wisp uses
+   * this to make a hit target stop benefiting from Invisible while still
+   * preserving the underlying Invisible condition record.
+   */
+  invisibilitySuppression?: StatusConditionEffect["invisibilitySuppression"];
+  /**
+   * Runtime-facing hit-point state bridge for utility spells that change the
+   * dying/stable state without healing. Spare the Dying uses this so the command
+   * executor can set death-save state instead of leaving the effect as prose.
+   */
+  hitPointState?: {
+    mode: "zero_hit_point_stabilization" | string;
+    targetRequirement?: string;
+    result?: string;
+  };
+  /**
+   * Runtime-facing repair bridge for utility spells that mend object damage.
+   * Mending uses this because the current combat state does not yet track full
+   * object HP, so repair outcomes need a durable structured record instead of a
+   * prose-only log.
+   */
+  repairState?: RepairState;
+  /**
+   * Message-style communication metadata is authored in spell JSON even though
+   * most utility spells do not need a communication executor. Keeping the
+   * optional block here lets the runtime consume that contract without treating
+   * the JSON as untyped prose.
+   */
+  communicationDetails?: {
+    messageMode?: string;
+    targetCanReply?: boolean;
+    replyAudibleOnlyToCaster?: boolean;
+    canPassThroughSolidObjects?: boolean;
+    barrierCondition?: string;
+    notes?: string;
+  };
+  /** Runtime-facing sensory and blocker contract for targeted communication. */
+  visionLightSound?: {
+    mode?: string;
+    casterOutput?: string;
+    targetHears?: string;
+    reply?: string;
+    rangeFeet?: number;
+    blockers?: string[];
+    solidObjectPass?: string;
+    lightPayload?: string;
+  };
+}
+
+/**
+ * Machine-readable repair contract for object-mending utility spells.
+ *
+ * The current combat runtime has no first-class object durability pool, so
+ * this keeps the spell's repair limits and magic-item behavior available to
+ * the executor and future object-state consumers.
+ */
+export interface RepairState {
+  targetKind: "object" | string;
+  repairLimit: "single_break_or_tear" | string;
+  maxDamageDimensionFeet: number;
+  leavesNoTrace: boolean;
+  canPhysicallyRepairMagicItem: boolean;
+  restoresMagicToMagicItem: boolean;
+  examples?: string[];
+  notes?: string;
 }
 
 /** Machine-readable changes to doors, chests, locks, bars, seals, and similar access-blocking objects. */
@@ -1149,7 +1301,7 @@ export interface ObjectAccessChange {
 /** Machine-readable object stacks created by utility spells such as Goodberry. */
 export interface CreatedObject {
   /** The gameplay family of object created by the spell. */
-  objectType: "food" | "water" | "ammunition" | "weapon" | "portal" | "structure" | "hazard" | "other";
+  objectType: "food" | "water" | "ammunition" | "weapon" | "portal" | "structure" | "hazard" | "fire" | "fire_state_change" | "sensory_effect" | "plant_effect" | "other";
   /** Player-facing object name, for example "Goodberry". */
   name: string;
   /** How many instances or units are created. */
@@ -1162,7 +1314,7 @@ export interface CreatedObject {
   /** Unit used by the count so pounds, gallons, and discrete objects stay distinct. */
   countUnit: "item" | "pound" | "gallon" | "cubic_foot" | "square_foot" | "structure" | "not_applicable";
   /** Where the object appears relative to the cast. */
-  appearsIn: "caster_hand" | "target_container" | "ground" | "unoccupied_space" | "spell_area" | "not_applicable";
+  appearsIn: "caster_hand" | "target_container" | "ground" | "unoccupied_space" | "spell_area" | "target_object" | "not_applicable";
   /** Allowed shapes for created structures or objects, such as round or square towers. */
   shapeOptions?: string[];
   /** Allowed material choices for created structures or objects. */
@@ -1524,7 +1676,7 @@ export interface CreatedObject {
   /** Runtime events that can cause the created object's hazard damage. */
   hazardTriggers?: ("enter" | "end_turn_inside" | "end_turn_within_radius" | "first_per_turn")[];
   /** Shape of a manipulated fluid or loose-material volume, such as Shape Water's cube. */
-  affectedVolumeShape?: "Cube" | "Sphere" | "Line" | "Wall" | "not_applicable";
+  affectedVolumeShape?: "Tiny" | "Cube" | "Sphere" | "Line" | "Wall" | "not_applicable";
   /** Size of the manipulated volume in feet, usually the cube edge or radius. */
   affectedVolumeSizeFeet?: number;
   /** Distance the affected material can be moved or redirected by the spell. */

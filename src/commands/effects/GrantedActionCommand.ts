@@ -1,7 +1,24 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/06/2026, 17:34:21
+ * Dependents: commands/factory/AbilityCommandFactory.ts
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
-import { CombatState } from '../../types/combat'
+import { CombatState, LightSource, Position, SelectedSpellTarget, SpellObjectImpact } from '../../types/combat'
 import type { DamageEffect, DamageType, UtilityEffect } from '../../types/spells'
+import { generateId } from '../../utils/idGenerator'
 import { rollD20, resolveAttack } from '../../utils/combatUtils'
 import { getAbilityModifierValue } from '../../utils/character/statUtils'
 import { calculateProficiencyBonus } from '../../utils/character/savingThrowUtils'
@@ -75,6 +92,10 @@ export class GrantedActionCommand extends BaseEffectCommand {
       return this.executeAttackDamagePayload(state, actionLabel)
     }
 
+    if (this.context.spellId === 'dancing-lights' && actionLabel.toLowerCase() === 'move') {
+      return this.executeDancingLightsMove(state, actor)
+    }
+
     // The concrete mechanics for individual granted actions are intentionally
     // not invented here. Logging the execution gives the turn system and player
     // a real action record while keeping spell-specific payloads explicit gaps.
@@ -120,17 +141,198 @@ export class GrantedActionCommand extends BaseEffectCommand {
     ) && !!this.options.damageDice && !!this.options.damageType
   }
 
+  private resolveAttackTarget(state: CombatState): {
+    kind: 'creature';
+    target: CombatState['characters'][0];
+  } | {
+    kind: 'object';
+    target: Extract<SelectedSpellTarget, { kind: 'object' }>;
+  } | null {
+    const selectedObjectTarget = this.context.selectedSpellTargets?.find(
+      (target): target is Extract<SelectedSpellTarget, { kind: 'object' }> => target.kind === 'object'
+    )
+
+    if (selectedObjectTarget) {
+      return {
+        kind: 'object',
+        target: selectedObjectTarget
+      }
+    }
+
+    const selectedCreatureTarget = this.context.selectedSpellTargets?.find(
+      (target): target is Extract<SelectedSpellTarget, { kind: 'creature' }> => target.kind === 'creature'
+    )
+
+    if (selectedCreatureTarget) {
+      const liveCreature = state.characters.find(character => character.id === selectedCreatureTarget.id)
+      if (liveCreature) {
+        return {
+          kind: 'creature',
+          target: liveCreature
+        }
+      }
+    }
+
+    const fallbackCreature = this.getTargets(state)[0]
+    return fallbackCreature
+      ? {
+          kind: 'creature',
+          target: fallbackCreature
+        }
+      : null
+  }
+
+  private executeDancingLightsMove(state: CombatState, actor: CombatState['characters'][0]): CombatState {
+    const destinationPoints = this.context.selectedSpellTargets
+      ?.filter((target): target is Extract<SelectedSpellTarget, { kind: 'point' }> => target.kind === 'point')
+      .map(target => target.position) ?? []
+
+    if (destinationPoints.length === 0) {
+      return this.addLogEntry(state, {
+        type: 'status',
+        message: `${actor.name} needs a destination point to move Dancing Lights.`,
+        characterId: actor.id,
+        data: {
+          spellId: this.context.spellId,
+          grantedAction: 'Move',
+          rejectedDancingLightsMove: 'missing_destination'
+        }
+      })
+    }
+
+    const ownedLights = (state.activeLightSources || []).filter(light =>
+      light.sourceSpellId === this.context.spellId &&
+      light.casterId === actor.id
+    )
+
+    if (ownedLights.length === 0) {
+      return this.addLogEntry(state, {
+        type: 'status',
+        message: `${actor.name} has no Dancing Lights to move.`,
+        characterId: actor.id,
+        data: {
+          spellId: this.context.spellId,
+          grantedAction: 'Move',
+          rejectedDancingLightsMove: 'no_active_lights'
+        }
+      })
+    }
+
+    const sortedLights = [...ownedLights].sort((left, right) => (left.clusterIndex ?? 0) - (right.clusterIndex ?? 0))
+    const nextPositions = destinationPoints.length >= sortedLights.length
+      ? destinationPoints.slice(0, sortedLights.length)
+      : this.translateDancingLightsCluster(sortedLights, destinationPoints[0])
+
+    const rangeLimit = this.options.rangeLimit ?? sortedLights[0]?.maxMoveDistanceFeet ?? 60
+    const overMoveLimit = sortedLights.find((light, index) =>
+      this.distanceFeet(light.position ?? light.originPosition ?? actor.position, nextPositions[index]) > rangeLimit
+    )
+    if (overMoveLimit) {
+      return this.addLogEntry(state, {
+        type: 'status',
+        message: `${actor.name} cannot move Dancing Lights more than ${rangeLimit} feet.`,
+        characterId: actor.id,
+        data: {
+          spellId: this.context.spellId,
+          grantedAction: 'Move',
+          rejectedDancingLightsMove: 'move_distance',
+          rangeLimit
+        }
+      })
+    }
+
+    const leashDistanceFeet = sortedLights[0]?.leashDistanceFeet ?? 20
+    if (!this.positionsSatisfyDancingLightsLeash(nextPositions, leashDistanceFeet)) {
+      return this.addLogEntry(state, {
+        type: 'status',
+        message: `Dancing Lights must stay within ${leashDistanceFeet} feet of another light.`,
+        characterId: actor.id,
+        data: {
+          spellId: this.context.spellId,
+          grantedAction: 'Move',
+          rejectedDancingLightsMove: 'leash',
+          leashDistanceFeet
+        }
+      })
+    }
+
+    const spellRangeFeet = sortedLights[0]?.vanishesBeyondRangeFeet ?? 120
+    const nextLightsById = new Map(sortedLights.map((light, index): [string, LightSource | null] => {
+      const nextPosition = nextPositions[index]
+      if (this.distanceFeet(actor.position, nextPosition) > spellRangeFeet) {
+        return [light.id, null]
+      }
+
+      return [light.id, {
+        ...light,
+        position: nextPosition,
+        originPosition: destinationPoints[0]
+      }]
+    }))
+
+    const nextLightSources = (state.activeLightSources || [])
+      .map(light => nextLightsById.has(light.id) ? nextLightsById.get(light.id) ?? null : light)
+      .filter((light): light is LightSource => light !== null)
+
+    const vanishedCount = sortedLights.length - [...nextLightsById.values()].filter(Boolean).length
+
+    return this.addLogEntry({
+      ...state,
+      activeLightSources: nextLightSources
+    }, {
+      type: 'action',
+      message: vanishedCount > 0
+        ? `${actor.name} moves Dancing Lights; ${vanishedCount} light${vanishedCount === 1 ? '' : 's'} vanish beyond range.`
+        : `${actor.name} moves Dancing Lights.`,
+      characterId: actor.id,
+      data: {
+        spellId: this.context.spellId,
+        grantedAction: 'Move',
+        movedDancingLights: sortedLights.map(light => light.id),
+        vanishedDancingLights: vanishedCount,
+        destination: destinationPoints[0]
+      }
+    })
+  }
+
+  private translateDancingLightsCluster(lights: LightSource[], destination: Position): Position[] {
+    const origin = lights[0]?.originPosition ?? lights[0]?.position ?? destination
+    return lights.map(light => {
+      const current = light.position ?? origin
+      return {
+        x: destination.x + (current.x - origin.x),
+        y: destination.y + (current.y - origin.y)
+      }
+    })
+  }
+
+  private positionsSatisfyDancingLightsLeash(positions: Position[], leashDistanceFeet: number): boolean {
+    if (positions.length <= 1) {
+      return true
+    }
+
+    return positions.every((position, index) =>
+      positions.some((otherPosition, otherIndex) =>
+        otherIndex !== index && this.distanceFeet(position, otherPosition) <= leashDistanceFeet
+      )
+    )
+  }
+
+  private distanceFeet(from: Position, to: Position): number {
+    return Math.hypot(to.x - from.x, to.y - from.y) * 5
+  }
+
   private async executeAttackDamagePayload(
     state: CombatState,
     actionLabel: string
   ): Promise<CombatState> {
     const actor = this.getCaster(state)
-    const target = this.getTargets(state)[0]
+    const targetSelection = this.resolveAttackTarget(state)
 
     // Target-selecting granted actions cannot resolve their damage without a
     // selected live target. Keep the failure visible in the combat log instead
     // of silently doing nothing.
-    if (!target) {
+    if (!targetSelection) {
       return this.addLogEntry(state, {
         type: 'status',
         message: `${actor.name} uses ${actionLabel}, but no valid target is selected.`,
@@ -139,20 +341,30 @@ export class GrantedActionCommand extends BaseEffectCommand {
       })
     }
 
+    const targetName = targetSelection.kind === 'creature'
+      ? targetSelection.target.name
+      : targetSelection.target.name ?? targetSelection.target.object?.name ?? targetSelection.target.id
+    const targetId = targetSelection.kind === 'creature'
+      ? targetSelection.target.id
+      : targetSelection.target.id
+    const targetArmorClass = targetSelection.kind === 'creature'
+      ? targetSelection.target.armorClass
+      : 10
+
     const d20 = rollD20()
     const attackModifier = this.calculateSpellAttackModifier(actor)
-    const attackResult = resolveAttack(d20, attackModifier, target.armorClass)
+    const attackResult = resolveAttack(d20, attackModifier, targetArmorClass)
     let currentState = this.addLogEntry(state, {
       type: 'action',
-      message: `${actor.name} uses ${actionLabel} against ${target.name}. ${d20} + ${attackModifier} = ${attackResult.total} vs AC ${target.armorClass}. ${attackResult.isHit ? (attackResult.isCritical ? 'CRITICAL HIT!' : 'HIT!') : (attackResult.isAutoMiss ? 'CRITICAL MISS!' : 'MISS.')}`,
+      message: `${actor.name} uses ${actionLabel} against ${targetName}. ${d20} + ${attackModifier} = ${attackResult.total} vs AC ${targetArmorClass}. ${attackResult.isHit ? (attackResult.isCritical ? 'CRITICAL HIT!' : 'HIT!') : (attackResult.isAutoMiss ? 'CRITICAL MISS!' : 'MISS.')}`,
       characterId: actor.id,
-      targetIds: [target.id],
+      targetIds: [targetId],
       data: {
         ...this.createLogData(actionLabel),
         attackRoll: d20,
         attackModifier,
         attackTotal: attackResult.total,
-        targetArmorClass: target.armorClass,
+        targetArmorClass,
         isHit: attackResult.isHit,
         isCritical: attackResult.isCritical,
         isAutoMiss: attackResult.isAutoMiss
@@ -163,29 +375,70 @@ export class GrantedActionCommand extends BaseEffectCommand {
     // death-save, elemental-state, and summon-disappearance rules stay in the
     // same runtime path as ordinary spell damage.
     if (attackResult.isHit && this.options.damageDice && this.options.damageType) {
-      const damageEffect: DamageEffect = {
-        type: 'DAMAGE',
-        trigger: { type: 'immediate' },
-        condition: { type: 'hit' },
-        damage: {
-          dice: this.resolveDamageDice(actor),
-          type: this.options.damageType
+      if (targetSelection.kind === 'object') {
+        const objectImpact: SpellObjectImpact = {
+          id: generateId(),
+          objectId: targetSelection.target.id,
+          objectName: targetSelection.target.name ?? targetSelection.target.object?.name,
+          position: targetSelection.target.position,
+          sourceSpellId: this.context.spellId,
+          sourceSpellName: this.context.spellName,
+          casterId: actor.id,
+          damage: {
+            dice: this.resolveDamageDice(actor),
+            type: this.options.damageType
+          },
+          createdTurn: state.turnState.currentTurn,
+          expiresAtRound: state.turnState.currentTurn + 1
         }
+
+        currentState = {
+          ...currentState,
+          spellObjectImpacts: [
+            ...(currentState.spellObjectImpacts || []),
+            objectImpact
+          ],
+          combatLog: [
+            ...currentState.combatLog,
+            {
+              id: generateId(),
+              timestamp: Date.now(),
+              type: 'damage',
+              message: `${targetName} takes ${objectImpact.damage.dice} ${objectImpact.damage.type} damage from ${actionLabel}.`,
+              characterId: actor.id,
+              targetIds: [targetId],
+              data: {
+                ...this.createLogData(actionLabel),
+                objectImpact
+              }
+            }
+          ]
+        }
+      } else {
+        const damageEffect: DamageEffect = {
+          type: 'DAMAGE',
+          trigger: { type: 'immediate' },
+          condition: { type: 'hit' },
+          damage: {
+            dice: this.resolveDamageDice(actor),
+            type: this.options.damageType
+          }
+        }
+
+        const damageCommand = new DamageCommand(damageEffect, {
+          ...this.context,
+          targets: [targetSelection.target],
+          isCritical: attackResult.isCritical,
+          attackType: this.options.attackType === 'melee_spell_attack' ? 'melee' : 'ranged'
+        })
+
+        currentState = await damageCommand.execute(currentState)
       }
-
-      const damageCommand = new DamageCommand(damageEffect, {
-        ...this.context,
-        targets: [target],
-        isCritical: attackResult.isCritical,
-        attackType: this.options.attackType === 'melee_spell_attack' ? 'melee' : 'ranged'
-      })
-
-      currentState = await damageCommand.execute(currentState)
     }
 
     currentState = this.reduceSpellZoneWallLength(currentState)
 
-    return this.addWallLengthReductionLog(currentState, actor.id, target.id, actionLabel)
+    return this.addWallLengthReductionLog(currentState, actor.id, targetId, actionLabel)
   }
 
   private calculateSpellAttackModifier(actor: CombatState['characters'][0]): number {

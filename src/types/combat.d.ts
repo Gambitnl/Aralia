@@ -6,7 +6,7 @@
 import type { AbilityScoreName, CharacterStats } from './core.js';
 import type { Class, SpellbookData, SpellSlots, FeatChoice, HitPointDicePool } from './character.js';
 import type { Item } from './items.js';
-import type { Spell, DamageType, ConditionName, EffectDuration, SpellEffect, TargetFilter, RepeatSave, EscapeCheck, ConditionBreakTrigger } from './spells.js';
+import type { Spell, DamageType, ConditionName, EffectDuration, SpellEffect, TargetFilter, RepeatSave, EscapeCheck, ConditionBreakTrigger, CreatedObject } from './spells.js';
 import { StateTag } from './elemental.js';
 import { Plane } from './planes.js';
 import { RitualState } from './ritual.js';
@@ -78,6 +78,13 @@ export interface StatusEffect {
         flat?: number;
         applies: 'next_save' | 'all_saves';
     };
+    /** Spell-specific social lifecycle metadata, currently used by Friends. */
+    socialLifecycle?: SocialSpellLifecycle;
+}
+export interface SocialSpellLifecycle {
+    kind: 'friends_charm' | string;
+    targetKnowsOnEnd?: boolean;
+    recastMemoryDurationRounds?: number;
 }
 /**
  * Represents an active, ongoing effect on a character (e.g., from a spell like Shield of Faith or Mage Armor).
@@ -168,6 +175,24 @@ export interface ActiveCondition {
     repeatSave?: RepeatSave;
     escapeCheck?: EscapeCheck;
     breakTriggers?: ConditionBreakTrigger[];
+    /** Social aftermath metadata mirrored from statusEffects for non-lossy cleanup. */
+    socialLifecycle?: SocialSpellLifecycle;
+}
+export interface SpellMemoryEntry {
+    spellId: string;
+    spellName?: string;
+    casterId: string;
+    affectedTurn: number;
+    expiresAtTurn: number;
+    kind: 'cast_by_caster' | string;
+}
+export interface SocialAwarenessEntry {
+    sourceSpellId: string;
+    sourceSpellName?: string;
+    casterId: string;
+    learnedTurn: number;
+    kind: 'post_charm_awareness' | string;
+    targetKnows: string;
 }
 export interface CombatCharacter {
     id: string;
@@ -193,6 +218,16 @@ export interface CombatCharacter {
     initiative: number;
     statusEffects: StatusEffect[];
     conditions?: ActiveCondition[];
+    /**
+     * Long-lived spell interaction memory used for recast gates such as Friends'
+     * "cast on this target within 24 hours" auto-success rule.
+     */
+    spellMemory?: SpellMemoryEntry[];
+    /**
+     * Character-facing aftermath facts such as knowing a caster charmed them.
+     * This is intentionally factual state, not a full relationship system.
+     */
+    socialAwareness?: SocialAwarenessEntry[];
     facing?: Direction;
     actionEconomy: ActionEconomyState;
     spellbook?: SpellbookData;
@@ -483,6 +518,33 @@ export interface LightSource {
     color?: string;
     createdTurn: number;
     expiresAtRound?: number;
+    clusterId?: string;
+    clusterIndex?: number;
+    clusterSize?: number;
+    presentation?: "single" | "cluster_member" | "combined_humanoid";
+    hover?: boolean;
+    maxMoveDistanceFeet?: number;
+    leashDistanceFeet?: number;
+    vanishesBeyondRangeFeet?: number;
+    originPosition?: Position;
+    movementCost?: "action" | "bonus_action" | "reaction" | "free" | string;
+}
+export interface ActiveMinorUtilityEffect {
+    id: string;
+    spellId: string;
+    spellName?: string;
+    casterId: string;
+    mode: string;
+    position?: Position;
+    targetObjectId?: string;
+    targetObjectName?: string;
+    createdTurn: number;
+    expiresAtRound?: number;
+    instantaneous: boolean;
+    harmless: boolean;
+    createdObject: CreatedObject;
+    sensorState?: Record<string, unknown>;
+    aftermathState?: Record<string, unknown>;
 }
 export type BattleMapTerrain = 'grass' | 'rock' | 'water' | 'difficult' | 'wall' | 'floor' | 'sand' | 'mud';
 export type BattleMapDecoration = 'tree' | 'boulder' | 'stalagmite' | 'pillar' | 'cactus' | 'mangrove' | null;
@@ -552,6 +614,17 @@ export interface CombatState {
     combatLog: CombatLogEntry[];
     reactiveTriggers: ReactiveTrigger[];
     activeLightSources: LightSource[];
+    movementDebuffs?: Array<{
+        id: string;
+        spellId: string;
+        casterId: string;
+        targetId: string;
+        effects: SpellEffect[];
+        expiresAtRound: number;
+        hasTriggered: boolean;
+        saveDC?: number;
+    }>;
+    activeMinorUtilityEffects?: ActiveMinorUtilityEffect[];
     spellCreatedInventoryItems?: Item[];
     mapData?: BattleMapData;
     currentPlane?: Plane;

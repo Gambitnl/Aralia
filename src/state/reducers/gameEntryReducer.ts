@@ -25,7 +25,7 @@
  * {@link gameEntryTransition} machine so the transitions stay testable.
  */
 
-import { GameState } from '../../types';
+import { GameState, SuspicionLevel } from '../../types';
 import { AppAction } from '../actionTypes';
 import { gameEntryTransition } from '../../systems/gameEntry/entryStateMachine';
 import { INITIAL_GAME_ENTRY_STATE } from '../../systems/gameEntry/types';
@@ -91,9 +91,31 @@ export function gameEntryReducer(state: GameState, action: AppAction): Partial<G
                 if (!merged.includes(npc.id)) merged.push(npc.id);
             }
 
+            // Seed a memory record for each stranger so the opening conversation
+            // (and later talks) can actually PERSIST something — met state, a
+            // remembered fact, a shifting disposition. Without this seed the
+            // npcMemory-keyed reducers no-op for these NPCs and the encounter
+            // leaves no trace. Only seed when absent (never clobber a prior memory).
+            const npcMemory = { ...state.npcMemory };
+            for (const npc of npcs) {
+                if (!npcMemory[npc.id]) {
+                    npcMemory[npc.id] = {
+                        disposition: 0,
+                        knownFacts: [],
+                        suspicion: SuspicionLevel.Unaware,
+                        goals: [],
+                        interactions: [],
+                        attitude: 0,
+                        discussedTopics: {},
+                        lastInteractionDate: null,
+                    };
+                }
+            }
+
             return {
                 generatedNpcs,
                 currentLocationActiveDynamicNpcIds: merged,
+                npcMemory,
             };
         }
 

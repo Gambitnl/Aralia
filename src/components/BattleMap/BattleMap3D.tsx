@@ -462,6 +462,15 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
           Viewing through {visibilityObserverSelection.sharedSenses.observerName}
         </div>
       )}
+      {abilitySystem.targetingMode && abilitySystem.targetValidationReason && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="pointer-events-none absolute left-3 top-12 z-[var(--z-index-submap-overlay)] max-w-[18rem] rounded border border-rose-300/70 bg-slate-950/90 px-3 py-2 text-xs font-semibold leading-snug text-rose-100 shadow-[0_0_16px_rgba(244,63,94,0.28)]"
+        >
+          {abilitySystem.targetValidationReason}
+        </div>
+      )}
       <Canvas
         className="h-full w-full"
         shadows

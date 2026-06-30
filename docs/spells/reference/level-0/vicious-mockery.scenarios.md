@@ -15,7 +15,7 @@ Source references:
 - 1 action casting time
 - Ranged 60-foot single-creature targeting
 - Creature-only valid targets
-- Line of sight in structured data, while the rules text also allows a creature the caster can hear
+- Explicit `sight_or_hearing` acquisition in structured data, so the caster may use sight or an auditory target signal
 - Verbal-only component profile
 - Wisdom saving throw
 - Psychic damage on a failed save
@@ -37,7 +37,7 @@ Source references:
 | Cast Vicious Mockery on a visible neutral creature within 60 feet. | PASS | Same target-contract path as the ally and enemy cases; neutral relation does not matter in the current data. |
 | Attempt to target an object, door, or ground point; the cast should be rejected. | PASS | `validTargets` is `creatures`, so object or point targets are rejected by the shared target resolver. |
 | Attempt to cast Vicious Mockery beyond 60 feet; the cast should be rejected. | PASS | `TargetResolver` rejects targets outside the row's 60-foot range before any save or damage logic runs. |
-| Cast Vicious Mockery on a creature that can be heard but not seen. | FAIL | The rules text allows a creature the caster can see or hear, but the reviewed runtime only models `lineOfSight: true` and the target resolver has no hearing-based acquisition path yet. This is the G59 gap. |
+| Cast Vicious Mockery on a creature that can be heard but not seen. | PASS | `TargetResolver` now consumes `targeting.acquisition.mode: sight_or_hearing`; a blocked-sight creature is legal when its combat state lists the caster in `audibleTo`. |
 | On a failed save, the target takes psychic damage. | PASS | The damage effect is Psychic, and `DamageCommand` applies the failed-save roll through the normal damage/resistance path. |
 | On a failed save, psychic resistance, immunity, and vulnerability modify the damage correctly. | PASS | `DamageCommand` delegates damage typing to `ResistanceCalculator`, so standard psychic resistance/immunity/vulnerability adjustments are part of the current combat path. |
 | On a failed save, the target also gets disadvantage on the next attack roll it makes. | PASS | The utility row stores `attackRollModifier: disadvantage`, `direction: outgoing`, and `attackKind: any`, and `AbilityCommandFactory` reads those active effects when future attacks are rolled. |
@@ -45,3 +45,9 @@ Source references:
 | At character levels 5, 11, and 17, the damage scales to 2d6, 3d6, and 4d6. | PASS | `SpellCommandFactory.applyScaling` handles `character_level` damage scaling, and the spell JSON carries the three breakpoint tiers. |
 | Casting Vicious Mockery in combat is a normal 1-action verbal spell. | PASS | The reference block and structured JSON both model a one-action, verbal-only cantrip, so the combat cast contract is clear. |
 | Using Vicious Mockery as a purely social jab outside combat is only narrative in the reviewed slice. | BLOCKED | The reviewed runtime is the combat-command path; no dedicated non-combat social-state executor was found for the insult rider beyond spell text and logging flavor. |
+
+## Focused proof
+
+- `npx vitest run src/systems/spells/targeting/__tests__/TargetResolver.test.ts` passed on 2026-06-29 with 2 files and 31 tests.
+- Direct JSON parse confirmed `public/data/spells/level-0/vicious-mockery.json` carries `targeting.acquisition.mode: sight_or_hearing`.
+- Dependency sync passed for `src/types/combat.ts`, `src/types/spellTargeting.ts`, `src/systems/spells/targeting/TargetResolver.ts`, and `src/systems/spells/validation/targetingSchemas.ts`.

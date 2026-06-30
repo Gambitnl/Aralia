@@ -1,7 +1,22 @@
 # Grid↔Atlas Bridge Unification — Design
 
 **Date:** 2026-06-27
-**Status:** Approved (design phase)
+**Status:** Approved — IMPLEMENTED 2026-06-29 (with one deviation, see below)
+
+> **Implementation note (2026-06-29):** Built as Stage 1 of the cell-native world
+> program ([umbrella](2026-06-29-cell-native-world-umbrella.md)). Shipped:
+> `snapToLandCell` + `entry3DAnchorForCell` (gridAtlasBridge), `getWorldforgeLocalForCell`
+> + region `windowCenterPx` (the burg-position centering — a spec gap TDD found:
+> cells are far larger than the Locale window so cell-id alone can't frame a town),
+> the `entry3DAnchor` GameState field threaded atomically through `START_GAME_SUCCESS`,
+> and both entry paths (start-selection spawn + MapPane click, snap hack removed).
+> Start-selection spawn fix verified LIVE (player spawns in the chosen town).
+> **DEVIATION:** §2's "reimplement `legacyTileToAtlasCell` as `legacyGridToAtlasCell`
+> + `snapToLandCell`" was tried and REVERTED — it shifts `getTownTilesForGrid`
+> (FMG 960×540 projection vs graphWidth; nearest-all+snap vs nearest-land),
+> breaking the town-tile mapping + pipeline round-trip. The two halves still use
+> separate land logic for water tiles (a benign edge case); revisit only with a
+> verified new town-tile golden.
 **Topic:** Close the world→atlas coordinate bridge so "click a cell, enter that cell" holds exactly in 3D.
 
 ## Problem

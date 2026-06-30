@@ -758,6 +758,17 @@ export interface UtilityEffect extends BaseEffect {
         attachedTo?: "caster" | "target" | "point";
         color?: string;
     };
+    movementState?: {
+        kind: "movable_created_lights" | string;
+        createdCount?: number | string;
+        hover?: boolean;
+        moveCost?: string;
+        moveDistance?: number | string;
+        rangeConstraint?: string;
+        outOfRange?: string;
+    };
+    sensorState?: Record<string, unknown>;
+    aftermathState?: Record<string, unknown>;
     /** Structured save penalty for debuff effects like Mind Sliver */
     savePenalty?: SavePenalty;
 }
@@ -779,7 +790,7 @@ export interface ObjectAccessChange {
 }
 /** Machine-readable object stacks created by utility spells such as Goodberry. */
 export interface CreatedObject {
-    objectType: "food" | "water" | "ammunition" | "weapon" | "portal" | "structure" | "hazard" | "other";
+    objectType: "food" | "water" | "ammunition" | "weapon" | "portal" | "structure" | "hazard" | "fire" | "fire_state_change" | "sensory_effect" | "plant_effect" | "other";
     name: string;
     count: number;
     countScaling?: {
@@ -971,7 +982,7 @@ export interface CreatedObject {
     hazardRadiusFeet?: number;
     hazardSide?: "caster_choice" | "all_sides" | "inside" | "outside" | "not_applicable";
     hazardTriggers?: ("enter" | "end_turn_inside" | "end_turn_within_radius" | "first_per_turn")[];
-    affectedVolumeShape?: "Cube" | "Sphere" | "Line" | "Wall" | "not_applicable";
+    affectedVolumeShape?: "Tiny" | "Cube" | "Sphere" | "Line" | "Wall" | "not_applicable";
     affectedVolumeSizeFeet?: number;
     maxManipulationDistanceFeet?: number;
     manipulationOptions?: string[];

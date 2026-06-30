@@ -21,5 +21,19 @@ export const MAX_CHILDREN = 6;
 /** Annual probability a fertile married couple produces a child. */
 export const ANNUAL_BIRTH_CHANCE = 0.22;
 
+/**
+ * How many years of chronicle to retain. Old events (and dead villagers no
+ * longer connected to the living) beyond this window are pruned to bound save
+ * size — readers only look back ~2–3 years, and cumulative totals survive
+ * pruning for invariants. Comfortably above the backstory backfill (3y).
+ */
+export const RETENTION_YEARS = 6;
+
 /** Baseline starting wealth meter for a pre-existing adult villager. */
 export const BASELINE_WEALTH = 50;
+
+/** Annual probability an eligible single villager begins a courtship. */
+export const ANNUAL_COURTSHIP_CHANCE = 0.4;
+
+/** Days a couple courts before marrying (affinity grows over the courtship). */
+export const COURTSHIP_DAYS = 200;

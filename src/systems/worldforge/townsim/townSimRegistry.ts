@@ -15,11 +15,45 @@
  */
 import { SeededRandom } from '../../../utils/random/seededRandom';
 import { makeSeedPath, seedFromPath } from '../seedPath';
+import { DAYS_PER_YEAR, RETENTION_YEARS } from './constants';
 import { rollTownDay } from './townSim';
 import type { TownSimState } from './types';
 
 /** Tracked towns keyed by burgId. */
 export type TownSimRegistry = Record<number, TownSimState>;
+
+/**
+ * Trim a town's persisted state to bound save growth: drop chronicle events
+ * older than RETENTION_YEARS, and dead villagers who died beyond the window and
+ * are no longer referenced by any LIVING villager (kin links stay intact while
+ * anyone connected to the living survives). Cumulative `totals` are NOT touched,
+ * so population invariants remain checkable. Pure + deterministic (no rng).
+ */
+export function pruneTownState(state: TownSimState, currentDay: number): TownSimState {
+  const cutoff = currentDay - RETENTION_YEARS * DAYS_PER_YEAR;
+
+  const referenced = new Set<number>();
+  for (const v of Object.values(state.villagers)) {
+    if (v.diedDay !== undefined) continue; // only living villagers anchor kin
+    referenced.add(v.occupantId);
+    for (const p of v.parentIds) referenced.add(p);
+    for (const c of v.childIds) referenced.add(c);
+    if (v.spouseId !== undefined) referenced.add(v.spouseId);
+  }
+
+  const villagers: Record<number, TownSimState['villagers'][number]> = {};
+  for (const v of Object.values(state.villagers)) {
+    const keep =
+      v.diedDay === undefined || v.diedDay >= cutoff || referenced.has(v.occupantId);
+    if (keep) villagers[v.occupantId] = v;
+  }
+
+  const events = state.chronicle.events.filter((e) => e.day >= cutoff);
+  if (events.length === state.chronicle.events.length && Object.keys(villagers).length === Object.keys(state.villagers).length) {
+    return state; // nothing trimmed — avoid needless allocation
+  }
+  return { ...state, villagers, chronicle: { ...state.chronicle, events } };
+}
 
 /** Deterministic RNG for one town's one day. */
 export function seedForTownDay(worldSeed: number, burgId: number, day: number): SeededRandom {
@@ -41,19 +75,33 @@ export function advanceTown(
   for (let day = s.lastSimDay + 1; day <= targetDay; day++) {
     s = rollTownDay(s, day, seedForTownDay(worldSeed, s.burgId, day));
   }
-  return s;
+  // Bound persisted/in-memory size once per advance (not per day): readers only
+  // look back a few years; cumulative totals preserve invariants past the trim.
+  return s === state ? s : pruneTownState(s, targetDay);
 }
 
-/** Advance every tracked town in the registry up to `targetDay`. */
+/**
+ * Advance tracked towns up to `targetDay`. If `onlyBurgIds` is given, ONLY those
+ * burgs advance this call (distance-LOD: tick near towns daily); the rest are
+ * left at their current `lastSimDay` and catch up in a later call. Because each
+ * day is re-seeded per (worldSeed, burgId, day), a town caught up in one big
+ * batch yields IDENTICAL state to one ticked daily — so LOD changes only WHEN
+ * the work happens, never the outcome. Omit `onlyBurgIds` to advance all.
+ */
 export function advanceRegistry(
   registry: TownSimRegistry,
   worldSeed: number,
   targetDay: number,
+  onlyBurgIds?: Iterable<number>,
 ): TownSimRegistry {
+  const filter = onlyBurgIds === undefined ? undefined : new Set(onlyBurgIds);
   const next: TownSimRegistry = {};
   for (const key of Object.keys(registry)) {
     const burgId = Number(key);
-    next[burgId] = advanceTown(registry[burgId], worldSeed, targetDay);
+    next[burgId] =
+      filter === undefined || filter.has(burgId)
+        ? advanceTown(registry[burgId], worldSeed, targetDay)
+        : registry[burgId]; // far town — unchanged, catches up when next included
   }
   return next;
 }

@@ -210,6 +210,15 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
           Viewing through {visibilityObserverSelection.sharedSenses.observerName}
         </div>
       )}
+      {abilitySystem.targetingMode && abilitySystem.targetValidationReason && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="absolute left-3 top-12 z-[var(--z-index-submap-overlay)] max-w-[18rem] rounded border border-rose-300/70 bg-slate-950/90 px-3 py-2 text-xs font-semibold leading-snug text-rose-100 shadow-[0_0_16px_rgba(244,63,94,0.28)]"
+        >
+          {abilitySystem.targetValidationReason}
+        </div>
+      )}
        {/* UI for current turn actions */}
        {currentCharacter && isCharacterTurn(currentCharacter.id) && (
         <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-gray-700 p-2 rounded-md shadow-lg flex gap-2 z-[var(--z-index-submap-overlay)]">

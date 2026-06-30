@@ -173,6 +173,24 @@ export interface Entry3DAnchor {
 }
 
 /**
+ * Canonical player presence (cell-native world, Stage 2). The atlas Voronoi cell
+ * the player occupies plus their Locale-local position. This is the SOURCE OF
+ * TRUTH for where the player is; `currentLocationId` (`coord_X_Y`) and
+ * `subMapCoordinates` are derived shadows kept for legacy-reader compat.
+ *
+ * `localeCoords` in Stage 2 mirrors the legacy submap sub-tile `{x,y}` (the same
+ * value as `subMapCoordinates`); Stage 3 (Locale movement) widens it to
+ * continuous Locale feet backed by `playerGroundPos`. The structural type is kept
+ * deliberately loose so that widening needs no second save migration.
+ */
+export interface PlayerCell {
+  /** Atlas (FMG) Voronoi cell id the player occupies. */
+  cellId: number;
+  /** Locale-local position (Stage 2: submap sub-tile, mirrors subMapCoordinates). */
+  localeCoords: { x: number; y: number } | null;
+}
+
+/**
  * A hidden off-map place the player has revealed by 3D proximity (SP4). Carries
  * the world tile where it was found so the atlas can pin it (the site itself is
  * off-map; tile-level position is enough — "near here").
@@ -317,6 +335,18 @@ export interface GameState {
 
   questLog: Quest[];
   isQuestLogVisible: boolean;
+  /** Whether the town notice board modal (living-world news) is open. */
+  isNoticeBoardVisible: boolean;
+  /** Whether the town broadsheet modal (living-world newspaper) is open. */
+  isBroadsheetVisible: boolean;
+  /**
+   * When set, the broadsheet modal renders this FROZEN snapshot instead of
+   * computing news live from the current town. JSON-serialized
+   * { townName, day, news } captured when the player took a broadsheet keepsake.
+   * Undefined ⇒ the modal computes live news (the in-town "Read the latest
+   * broadsheet" action). Cleared on open-live and on close.
+   */
+  broadsheetSnapshot?: string;
   // TODO(lint-intent): The any on 'notifications' hides the intended shape of this data.
   // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
   // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
@@ -434,6 +464,16 @@ export interface GameState {
    * cleared on 3D exit. Null → fall back to the legacy tile-derived entry.
    */
   entry3DAnchor: Entry3DAnchor | null;
+
+  /**
+   * Canonical player presence (cell-native world, Stage 2): the atlas cell +
+   * Locale-local position the player occupies. SOURCE OF TRUTH — `currentLocationId`
+   * (`coord_X_Y`) and `subMapCoordinates` are derived shadows kept for legacy-reader
+   * compat. Null before spawn / at the main menu (like `subMapCoordinates`). Recorded
+   * at every position write (MOVE_PLAYER, START_GAME_SUCCESS, …) and backfilled on
+   * load for pre-Stage-2 saves; readers are flipped onto it in Stage 3, not here.
+   */
+  playerCell: PlayerCell | null;
 
   // Worldforge replay log
   // Plot/building edits are stored as JSON-safe deltas so regenerated village

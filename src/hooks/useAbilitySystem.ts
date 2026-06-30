@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/06/2026, 01:24:21
+ * Last Sync: 29/06/2026, 17:57:00
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
- * Imports: 25 files
+ * Imports: 26 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -535,9 +535,11 @@ export const useAbilitySystem = ({
   } = useTargetValidator({ characters, mapData });
   const [pendingReaction, setPendingReaction] = useState<PendingReaction | null>(null);
   const [pendingTeleportAssignment, setPendingTeleportAssignment] = useState<PendingTeleportDestinationAssignment | null>(null);
+  const [targetValidationReason, setTargetValidationReason] = useState<string | null>(null);
 
   const cancelTargeting = useCallback(() => {
     setPendingTeleportAssignment(null);
+    setTargetValidationReason(null);
     baseCancelTargeting();
   }, [baseCancelTargeting]);
 
@@ -1067,8 +1069,25 @@ export const useAbilitySystem = ({
             });
           }
 
+          const commandProducedMovementDebuffs = finalState.movementDebuffs ?? [];
+          if (onAddMovementDebuff && commandProducedMovementDebuffs.length) {
+            // Some spells can only create their movement rider after command
+            // execution proves a hit. Publish those command-produced records
+            // directly so the hook does not need to guess from spell data.
+            commandProducedMovementDebuffs.forEach(debuff => onAddMovementDebuff(debuff as MovementTriggerDebuff));
+          }
+
           if (onAddMovementDebuff && spell.effects.some(hasTargetMovementTrigger)) {
             executionTargets.forEach(target => {
+              const alreadyPublishedByCommand = commandProducedMovementDebuffs.some(debuff =>
+                debuff.spellId === spell.id &&
+                debuff.casterId === caster.id &&
+                debuff.targetId === target.id
+              );
+              if (alreadyPublishedByCommand) {
+                return;
+              }
+
               // Target-move triggers need their own runtime debuff record so the
               // movement executor can notice the later move and apply the stored
               // spell payload. Capture save DC here for parity with zones and
@@ -1361,7 +1380,7 @@ export const useAbilitySystem = ({
       .map(id => currentCharacters.find(c => c.id === id))
       .filter((c): c is CombatCharacter => !!c);
 
-    const commands = AbilityCommandFactory.createCommands(ability, casterAfterCost, targets, commandGameState);
+    const commands = AbilityCommandFactory.createCommands(ability, casterAfterCost, targets, commandGameState, selectedSpellTargets);
 
     // Snapshot the event trace immediately before command execution. Weapon
     // attack commands emit structured hit/miss events during execution; after
@@ -1637,6 +1656,7 @@ export const useAbilitySystem = ({
    * needs a destination choice, such as Misty Step.
    */
   const startTargeting = useCallback((ability: Ability, caster: CombatCharacter) => {
+    setTargetValidationReason(null);
     baseStartTargeting(ability);
 
     if (ability.targeting === 'self' && ability.spell && hasTeleportMovementEffect(ability)) {
@@ -1667,6 +1687,8 @@ export const useAbilitySystem = ({
     // Note: selectedAbility is from hook state (props/reactive), not ref.
     // This is fine as selectTarget is re-created if selectedAbility changes (which is rare during targeting).
     if (!selectedAbility) return false;
+
+    setTargetValidationReason(null);
 
     if (pendingTeleportAssignment) {
       const activeTargetId = pendingTeleportAssignment.targetIds[pendingTeleportAssignment.activeTargetIndex];
@@ -1853,6 +1875,7 @@ export const useAbilitySystem = ({
       ? { isValid: true }
       : getTargetValidation(selectedAbility, caster, targetPosition);
     if (!validation.isValid) {
+      setTargetValidationReason(validation.reason ?? null);
       if (onNotification) onNotification(validation.reason ?? `${caster.name} cannot use ${selectedAbility.name} there.`, 'error');
       if (onLogEntry) {
         onLogEntry({
@@ -2038,6 +2061,7 @@ export const useAbilitySystem = ({
     aoePreview,
     teleportDestinationPreview,
     pendingTeleportAssignment,
+    targetValidationReason,
     getValidTargets,
     startTargeting,
     selectTarget,
@@ -2056,6 +2080,7 @@ export const useAbilitySystem = ({
     aoePreview,
     teleportDestinationPreview,
     pendingTeleportAssignment,
+    targetValidationReason,
     getValidTargets, // Reactive (Changes with map/chars)
     startTargeting, // Stable
     selectTarget, // Semi-stable (depends on selectedAbility)

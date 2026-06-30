@@ -51,6 +51,8 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { useDialogueSystem } from '../../hooks/useDialogueSystem';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useKnownPortsSync } from '../../hooks/useKnownPortsSync';
+import { useChronicleRumorsSync } from '../../hooks/useChronicleRumorsSync';
+import { useTownSimRegistration } from '../../hooks/useTownSimRegistration';
 import { useVoyageArrival } from '../../hooks/useVoyageArrival';
 
 import ErrorBoundary from '../ui/ErrorBoundary';
@@ -59,9 +61,12 @@ import ErrorBoundary from '../ui/ErrorBoundary';
 const MapPane = lazy(() => import('../MapPane'));
 const ThreeDModal = lazy(() => import('../ThreeDModal/ThreeDModal'));
 const QuestLog = lazy(() => import('../QuestLog'));
+const NoticeBoard = lazy(() => import('../Town/NoticeBoard'));
+const Broadsheet = lazy(() => import('../Town/Broadsheet'));
 const CharacterSheetModal = lazy(() => import('../CharacterSheet/CharacterSheetModal'));
 const DevMenu = lazy(() => import('../debug/DevMenu'));
 const AgentSimDevOverlay = lazy(() => import('../debug/AgentSimDevOverlay'));
+const TownHistoryDevOverlay = lazy(() => import('../debug/TownHistoryDevOverlay'));
 const PartyOverlay = lazy(() => import('../Party/PartyOverlay'));
 const PartyEditorModal = lazy(() => import('../Party/PartyEditorModal'));
 const GeminiLogViewer = lazy(() => import('../debug/GeminiLogViewer'));
@@ -176,6 +181,15 @@ const GameModals: React.FC<GameModalsProps> = ({
     // Idempotent — does nothing if knownPorts is already populated.
     useKnownPortsSync(gameState.worldSeed, gameState.naval.knownPorts, dispatch);
 
+    // Living-world: register the town the player is in (any arrival, 2D or 3D) so
+    // it starts accruing a persisted chronicle. Runs before the rumor sync so the
+    // town is tracked by the time rumors are mined from it.
+    useTownSimRegistration(gameState, dispatch);
+    // Living-world: while in a tracked town, its substantial recent chronicle news
+    // becomes WorldRumors the TavernGossipSystem surfaces for purchase. Idempotent
+    // — the ADD_RUMORS reducer dedups by stable rumor id.
+    useChronicleRumorsSync(gameState, dispatch);
+
     // Naval: relocate the player to the destination port tile when a voyage docks.
     // Idempotent — clears currentVoyage after dispatch so it cannot re-fire.
     useVoyageArrival({
@@ -202,6 +216,8 @@ const GameModals: React.FC<GameModalsProps> = ({
         if (gameState.isDiceRollerVisible) { dispatch({ type: 'TOGGLE_DICE_ROLLER' }); return; }
         if (gameState.isGlossaryVisible) { handleOpenGlossary(); return; }
         if (gameState.isQuestLogVisible) { dispatch({ type: 'TOGGLE_QUEST_LOG' }); return; }
+        if (gameState.isNoticeBoardVisible) { dispatch({ type: 'SET_NOTICE_BOARD_VISIBLE', payload: false }); return; }
+        if (gameState.isBroadsheetVisible) { dispatch({ type: 'SET_BROADSHEET_VISIBLE', payload: false }); return; }
         if (gameState.isInvestmentBoardVisible) { dispatch({ type: 'TOGGLE_INVESTMENT_BOARD' }); return; }
         if (gameState.isCourierPouchVisible) { dispatch({ type: 'TOGGLE_COURIER_POUCH' }); return; }
         if (gameState.isEconomyLedgerVisible) { dispatch({ type: 'TOGGLE_ECONOMY_LEDGER' }); return; }
@@ -321,6 +337,28 @@ const GameModals: React.FC<GameModalsProps> = ({
                 </div>
             )}
 
+            {/* Town Notice Board Overlay (living-world news; reads town live from gameState) */}
+            {gameState.isNoticeBoardVisible && (
+                <div key="noticeboard">
+                    <Suspense fallback={<LoadingSpinner />}>
+                        <ErrorBoundary fallbackMessage="Error in Notice Board.">
+                            <NoticeBoard />
+                        </ErrorBoundary>
+                    </Suspense>
+                </div>
+            )}
+
+            {/* Town Broadsheet Overlay (living-world newspaper; reads town live from gameState) */}
+            {gameState.isBroadsheetVisible && (
+                <div key="broadsheet">
+                    <Suspense fallback={<LoadingSpinner />}>
+                        <ErrorBoundary fallbackMessage="Error in Broadsheet.">
+                            <Broadsheet />
+                        </ErrorBoundary>
+                    </Suspense>
+                </div>
+            )}
+
             {/* Legacy submap 3D modal — not used in PLAYING (streamed world uses worldViewMode + TransitionController, W3DUI-22). */}
             {gameState.phase !== GamePhase.PLAYING &&
                 gameState.isThreeDVisible &&
@@ -391,6 +429,15 @@ const GameModals: React.FC<GameModalsProps> = ({
                 <Suspense key="agentsim" fallback={null}>
                     <ErrorBoundary fallbackMessage="Error in Agent Sim overlay.">
                         <AgentSimDevOverlay />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Town-history live dev overlay (dev mode, in-game only) — the living-world chronicle of the town the player is standing in. */}
+            {gameState.isDevModeEnabled && gameState.phase === GamePhase.PLAYING && (
+                <Suspense key="townhistory" fallback={null}>
+                    <ErrorBoundary fallbackMessage="Error in Town History overlay.">
+                        <TownHistoryDevOverlay />
                     </ErrorBoundary>
                 </Suspense>
             )}

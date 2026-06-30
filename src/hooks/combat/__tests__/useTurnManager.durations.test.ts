@@ -406,4 +406,95 @@ describe('useTurnManager duration tick-down & AC recalculation', () => {
 
     randomSpy.mockRestore();
   });
+
+  it('restores Ray of Frost slow when the caster\'s next turn starts', async () => {
+    const target = makeCharacter({
+      id: 'target',
+      name: 'Target',
+      stats: {
+        strength: 10,
+        dexterity: 18,
+        constitution: 12,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 8,
+        baseInitiative: 0,
+        speed: 30,
+        cr: '1'
+      },
+      statusEffects: [{
+        id: 'ray-of-frost-slow-caster-target',
+        name: 'Ray of Frost Slow',
+        type: 'debuff',
+        duration: 1,
+        source: 'Ray of Frost',
+        sourceCasterId: 'caster',
+        effect: {
+          type: 'stat_modifier',
+          stat: 'speed',
+          value: -10
+        }
+      }],
+      conditions: [{
+        name: 'Ray of Frost Slow',
+        duration: { type: 'rounds', value: 1 },
+        appliedTurn: 0,
+        source: 'Ray of Frost',
+        sourceCasterId: 'caster'
+      }]
+    });
+    const caster = makeCharacter({
+      id: 'caster',
+      name: 'Caster',
+      stats: {
+        strength: 10,
+        dexterity: 10,
+        constitution: 12,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 8,
+        baseInitiative: 0,
+        speed: 30,
+        cr: '1'
+      }
+    });
+    const onCharacterUpdate = vi.fn();
+    const onLogEntry = vi.fn();
+    const randomSpy = vi.spyOn(Math, 'random')
+      .mockReturnValueOnce(0.99)
+      .mockReturnValueOnce(0.0);
+
+    const { result } = renderHook(() => useTurnManager({
+      characters: [target, caster],
+      mapData: null,
+      onCharacterUpdate,
+      onLogEntry
+    }));
+
+    act(() => {
+      result.current.initializeCombat([target, caster]);
+    });
+
+    const slowedTarget = onCharacterUpdate.mock.calls
+      .map(call => call[0] as CombatCharacter)
+      .reverse()
+      .find(character => character.id === target.id && character.actionEconomy.movement.total === 20);
+
+    expect(slowedTarget).toBeDefined();
+
+    await act(async () => {
+      await result.current.endTurn();
+    });
+
+    const restoredTarget = onCharacterUpdate.mock.calls
+      .map(call => call[0] as CombatCharacter)
+      .reverse()
+      .find(character => character.id === target.id && character.actionEconomy.movement.total === 30);
+
+    expect(restoredTarget).toBeDefined();
+    expect(restoredTarget?.statusEffects).toEqual([]);
+    expect(restoredTarget?.conditions).toEqual([]);
+
+    randomSpy.mockRestore();
+  });
 });

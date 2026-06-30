@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 21/04/2026, 23:15:39
- * Dependents: commands/factory/SpellCommandFactory.ts
- * Imports: 6 files
+ * Last Sync: 29/06/2026, 13:41:52
+ * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -186,7 +186,18 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
     const effectType = modValue === 'advantage' || modValue === 'bonus' ? 'buff' : 'debuff';
 
     // Determine duration by preferring attack duration or falling back to save duration
-    const duration = attackMod?.duration || saveMod?.duration || { type: 'rounds', value: 1 };
+      const duration = attackMod?.duration || saveMod?.duration || { type: 'rounds', value: 1 };
+      const riderDuration =
+        attackMod?.consumption === 'next_attack' &&
+        duration.type === 'rounds'
+          // One-shot riders need to survive through the target's next turn so
+          // the combat engine can expire them at the next turn boundary if the
+          // target never makes a qualifying attack.
+          ? {
+              ...duration,
+              value: Math.max(duration.value ?? 0, 2)
+            }
+          : duration;
 
     return {
       id: `roll_mod_${this.context.spellId}_${targetId}_${Date.now()}`,
@@ -194,7 +205,7 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
       casterId: this.context.caster.id,
       sourceName: this.context.spellName,
       type: effectType,
-      duration: duration,
+      duration: riderDuration,
       startTime: currentTurn,
       mechanics: {
         ...(attackMod ? {
@@ -260,6 +271,7 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
       attachedToCharacterId,
       position: attachedTo === 'point' ? target.position : undefined,
       color: lightConfig.color,
+      opaqueCoverBlocks: lightConfig.opaqueCoverBlocks === true,
       createdTurn: state.turnState.currentTurn,
       expiresAtRound
     };

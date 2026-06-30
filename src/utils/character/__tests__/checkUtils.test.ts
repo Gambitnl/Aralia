@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { rollAbilityCheck } from '../checkUtils';
 import { CombatCharacter } from '../../../types/combat';
 import { rollDice } from '../../combat/combatUtils';
+import { rollSavingThrow } from '../savingThrowUtils';
 
 vi.mock('../../combat/combatUtils', () => ({
   rollDice: vi.fn()
@@ -33,6 +34,34 @@ const createCombatant = (): CombatCharacter => ({
   }
 } as unknown as CombatCharacter);
 
+const createGuidedCombatant = (skill: string): CombatCharacter => ({
+  ...createCombatant(),
+  statusEffects: [
+    {
+      id: `guidance-${skill.toLowerCase()}`,
+      name: `Guidance (${skill})`,
+      type: 'buff',
+      duration: 10,
+      source: 'Guidance',
+      sourceCasterId: 'caster',
+      effect: { type: 'condition' },
+      abilityCheckModifier: {
+        appliesTo: 'ability_check',
+        bonusDice: '1d4',
+        skillSelection: 'chosen_skill',
+        skillChooser: 'caster',
+        skillPool: 'any_skill',
+        frequency: 'every_matching_check',
+        durationScope: 'while_active',
+        notes: 'The target receives the bonus only for ability checks using the skill chosen when the spell is cast.'
+      },
+      modifiers: {
+        skill
+      }
+    }
+  ]
+} as unknown as CombatCharacter);
+
 describe('rollAbilityCheck', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -57,5 +86,30 @@ describe('rollAbilityCheck', () => {
     expect(dexterityCheck.roll).toBe(4);
     expect(dexterityCheck.total).toBe(6);
     expect(rollDice).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies Guidance only to the matching skill ability check and leaves saves untouched', () => {
+    const guidedTarget = createGuidedCombatant('Arcana');
+
+    // Guidance should boost the selected skill check, not every Intelligence
+    // check and not any unrelated saving throw or attack roll path.
+    vi.mocked(rollDice).mockImplementation((notation: string) => notation === '1d4' ? 4 : 16);
+    const arcanaCheck = rollAbilityCheck(guidedTarget, 'Intelligence', 'Arcana');
+    expect(arcanaCheck.modifiersApplied).toEqual([{ source: 'Guidance', value: 4 }]);
+
+    vi.clearAllMocks();
+    vi.mocked(rollDice).mockReturnValueOnce(9);
+    const historyCheck = rollAbilityCheck(guidedTarget, 'Intelligence', 'History');
+    expect(historyCheck.modifiersApplied).toBeUndefined();
+
+    vi.clearAllMocks();
+    vi.mocked(rollDice).mockReturnValueOnce(12);
+    const abilityOnlyCheck = rollAbilityCheck(guidedTarget, 'Intelligence');
+    expect(abilityOnlyCheck.modifiersApplied).toBeUndefined();
+
+    vi.clearAllMocks();
+    vi.mocked(rollDice).mockReturnValueOnce(11);
+    const savingThrow = rollSavingThrow(guidedTarget, 'Wisdom', 10);
+    expect(savingThrow.modifiersApplied).toBeUndefined();
   });
 });

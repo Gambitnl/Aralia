@@ -162,6 +162,117 @@ describe('DamageCommand', () => {
         expect(logEntry?.message).toMatch(/Hero (batters|crushes|bludgeons|pummels) Goblin/);
     });
 
+    describe('Hit-point-state damage branches (Toll the Dead)', () => {
+        it('uses the normal d8 branch when the target is not missing hit points', async () => {
+            const effect: SpellEffect = {
+                type: "DAMAGE",
+                damage: {
+                    dice: '1d8',
+                    type: 'Necrotic'
+                },
+                hitPointState: {
+                    mode: 'missing_hit_points_damage_step',
+                    normalDamage: '1d8 Necrotic',
+                    woundedDamage: '1d12 Necrotic if target is missing any Hit Points',
+                    scaling: 'damage dice count increases at cantrip tiers'
+                },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            };
+
+            const command = new DamageCommand(effect, {
+                ...mockContext,
+                spellId: 'toll-the-dead',
+                spellName: 'Toll the Dead'
+            });
+            const newState = await command.execute(mockState);
+            const damageLog = newState.combatLog.find(entry => entry.type === 'damage');
+
+            // A full-health target should keep the base d8 branch. The mocked
+            // dice roller returns the maximum face value, so 1d8 proves as 8.
+            expect(damageLog?.data?.value).toBe(8);
+        });
+
+        it('uses the wounded d12 branch when the target is missing hit points', async () => {
+            const woundedTarget = {
+                ...mockTarget,
+                currentHP: 5,
+                maxHP: 10
+            };
+            const woundedState = {
+                ...mockState,
+                characters: [mockCaster, woundedTarget]
+            };
+            const effect: SpellEffect = {
+                type: "DAMAGE",
+                damage: {
+                    dice: '1d8',
+                    type: 'Necrotic'
+                },
+                hitPointState: {
+                    mode: 'missing_hit_points_damage_step',
+                    normalDamage: '1d8 Necrotic',
+                    woundedDamage: '1d12 Necrotic if target is missing any Hit Points',
+                    scaling: 'damage dice count increases at cantrip tiers'
+                },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            };
+
+            const command = new DamageCommand(effect, {
+                ...mockContext,
+                spellId: 'toll-the-dead',
+                spellName: 'Toll the Dead',
+                targets: [woundedTarget]
+            });
+            const newState = await command.execute(woundedState);
+            const damageLog = newState.combatLog.find(entry => entry.type === 'damage');
+
+            expect(damageLog?.data?.value).toBe(12);
+        });
+
+        it('preserves scaled dice count when switching the wounded branch to d12', async () => {
+            const woundedTarget = {
+                ...mockTarget,
+                currentHP: 5,
+                maxHP: 10
+            };
+            const woundedState = {
+                ...mockState,
+                characters: [mockCaster, woundedTarget]
+            };
+            const effect: SpellEffect = {
+                type: "DAMAGE",
+                damage: {
+                    dice: '3d8',
+                    type: 'Necrotic'
+                },
+                hitPointState: {
+                    mode: 'missing_hit_points_damage_step',
+                    normalDamage: '1d8 Necrotic',
+                    woundedDamage: '1d12 Necrotic if target is missing any Hit Points',
+                    scaling: 'damage dice count increases at cantrip tiers'
+                },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            };
+
+            const command = new DamageCommand(effect, {
+                ...mockContext,
+                spellId: 'toll-the-dead',
+                spellName: 'Toll the Dead',
+                targets: [woundedTarget]
+            });
+            const newState = await command.execute(woundedState);
+            const damageLog = newState.combatLog.find(entry => entry.type === 'damage');
+
+            // The branch changes die size, not tier count. A level-11 style
+            // 3d8 payload therefore becomes 3d12, which the mocked roller
+            // reports as 36 total damage.
+            expect(damageLog?.data?.value).toBe(36);
+        });
+    });
+
     describe('Slasher Feat', () => {
         beforeEach(() => {
             // Robustly update the caster in the state to ensure feats are present

@@ -39,8 +39,10 @@ import { GameState } from '../types';
 import { getWeatherSummary } from '../types/environment';
 import { AppAction } from '../state/actionTypes';
 import { OllamaService, BanterContext } from '../services/ollama';
+import { townChronicleForLocation } from '../systems/worldforge/townsim/chronicleForLocation';
 import { ConversationMessage } from '../types/conversation';
 import { generateId } from '../utils/core/idGenerator';
+import { OPENING_QUEST_ID, OPENING_QUEST_OBJECTIVE_ID } from '../systems/gameEntry/openingQuest';
 
 export interface UseConversationResult {
     /** Start a new conversation with a companion */
@@ -95,6 +97,13 @@ export function useConversation(
             weather,
             timeOfDay,
             currentTask: activeQuest?.title,
+            townChronicle: townChronicleForLocation({
+                currentLocationId: state.currentLocationId,
+                worldSeed: state.worldSeed,
+                gridSize: state.mapData?.gridSize,
+                townSim: state.townSim,
+                gameTime: state.gameTime,
+            }),
         };
     }, []);
 
@@ -273,8 +282,38 @@ export function useConversation(
 
         const conversation = state.activeConversation;
 
-        // Only summarize if there were multiple exchanges
-        if (conversation.messages.length >= 3) {
+        // Partition participants: companions persist into companion memory/approval;
+        // situational strangers (the opening-situation NPCs, which are NOT companions)
+        // persist into npcMemory — met state, a remembered fact, a disposition shift —
+        // so the encounter actually leaves a mark instead of being purely cosmetic.
+        const companionIds = conversation.participants.filter((id) => state.companions[id]);
+        const strangerIds = conversation.participants.filter(
+            (id) => !state.companions[id] && !!state.generatedNpcs?.[id],
+        );
+
+        // Mark strangers as met regardless of length — even a one-line exchange means
+        // the player has now met them.
+        for (const id of strangerIds) {
+            dispatch({ type: 'ADD_MET_NPC', payload: { npcId: id } });
+        }
+
+        // Engaging the opening-situation strangers closes the opening quest's
+        // objective — the predicament now has a beginning AND an end. The reducer
+        // no-ops if the quest/objective is absent or already done, so this is safe
+        // for ordinary (non-opening) companion conversations too.
+        if (conversation.kind === 'situation' && strangerIds.length > 0) {
+            dispatch({
+                type: 'UPDATE_QUEST_OBJECTIVE',
+                payload: { questId: OPENING_QUEST_ID, objectiveId: OPENING_QUEST_OBJECTIVE_ID, isCompleted: true },
+            });
+        }
+
+        // Only spend a summarization model call when there's somewhere to put the
+        // result (a companion or a known stranger) AND enough was said to summarize.
+        const shouldSummarize =
+            conversation.messages.length >= 3 && (companionIds.length > 0 || strangerIds.length > 0);
+
+        if (shouldSummarize) {
             dispatch({ type: 'SET_CONVERSATION_PENDING', payload: true });
 
             const participants = getParticipantData(conversation.participants);
@@ -292,8 +331,8 @@ export function useConversation(
             const summary = result.success ? result.data : null;
 
             if (summary) {
-                // Add memory to all participants
-                for (const companionId of conversation.participants) {
+                // Companions: memory + approval (unchanged behavior).
+                for (const companionId of companionIds) {
                     dispatch({
                         type: 'ADD_COMPANION_MEMORY',
                         payload: {
@@ -327,6 +366,34 @@ export function useConversation(
                                     : `${companionName} was put off by the conversation`,
                                 source: 'conversation',
                             },
+                        });
+                    }
+                }
+
+                // Strangers: record the conversation as a remembered fact and let the
+                // sentiment nudge their disposition. These npcMemory writes stick
+                // because PLACE_SITUATION_NPCS seeds a memory entry for each stranger.
+                for (const npcId of strangerIds) {
+                    dispatch({
+                        type: 'ADD_NPC_KNOWN_FACT',
+                        payload: {
+                            npcId,
+                            fact: {
+                                id: generateId(),
+                                text: summary.text,
+                                source: 'direct',
+                                isPublic: false,
+                                timestamp: Date.now(),
+                                strength: 4,
+                                lifespan: 999,
+                            },
+                        },
+                    });
+                    if (summary.approvalChange !== 0) {
+                        // Disposition runs -100..100; scale the modest sentiment up a little.
+                        dispatch({
+                            type: 'UPDATE_NPC_DISPOSITION',
+                            payload: { npcId, amount: summary.approvalChange * 3 },
                         });
                     }
                 }

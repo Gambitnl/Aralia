@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/06/2026, 11:30:55
+ * Dependents: systems/spells/ai/AISpellArbitrator.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { Position, GameState, MapTile } from '../../../types';
 import { getSubmapTileInfo } from '../../../utils/submapUtils';
 import { SUBMAP_DIMENSIONS } from '../../../config/mapConfig';
@@ -5,6 +21,11 @@ import { SUBMAP_DIMENSIONS } from '../../../config/mapConfig';
 /**
  * Service for tagging tiles/objects with materials based on biome and terrain.
  * Used by AISpellArbitrator to provide context for spells (e.g., "Meld into Stone").
+ *
+ * The wording returned by this service is part of the AI safety boundary for
+ * spells: concrete submap tiles can be described as local facts, but biome-only
+ * fallback must stay clearly uncertain so an AI ruling does not overclaim that
+ * a guessed material is actually present under the caster.
  */
 export class MaterialTagService {
     /**
@@ -43,7 +64,7 @@ export class MaterialTagService {
                 );
 
                 const materials = this.getMaterialsFromTerrainType(tileInfo.effectiveTerrainType, currentWorldTile.biomeId);
-                return `Biome: ${currentWorldTile.biomeId}. Terrain: ${tileInfo.effectiveTerrainType}. Materials: ${materials.join(', ')}.`;
+                return `Verified local material context. Biome: ${currentWorldTile.biomeId}. Terrain: ${tileInfo.effectiveTerrainType}. Materials present here: ${materials.join(', ')}.`;
             }
         }
 
@@ -51,7 +72,7 @@ export class MaterialTagService {
         const biomeId = gameState.currentLocationId?.split('_')[0] || 'plains';
         const materials = this.inferMaterialsFromBiome(biomeId);
 
-        return `Biome: ${biomeId} (Fallback). Likely materials: ${materials.join(', ')}.`;
+        return `Inferred biome fallback only; no verified local tile material is available. Biome guess: ${biomeId}. Possible materials nearby, not confirmed at the target point: ${materials.join(', ')}.`;
     }
 
     private static getMaterialsFromTerrainType(terrainType: string, biomeId: string): string[] {

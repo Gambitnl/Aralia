@@ -212,6 +212,8 @@ export interface BanterContext {
     weather?: string;
     timeOfDay?: string;
     recentEvents?: string[];
+    /** Recent town history lines from the living-world sim (chronicleForLocation). */
+    townChronicle?: string[];
     currentTask?: string;
     conversationHistory?: string[];
     // WHAT CHANGED: Added player-state and NPC-personality fields.

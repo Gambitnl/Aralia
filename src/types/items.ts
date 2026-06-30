@@ -370,6 +370,15 @@ export interface Item {
 
   /** If true, the item is marked as junk for quick merchant selling. */
   isJunk?: boolean;
+
+  /**
+   * Frozen, readable text carried by an in-world readable item (e.g. a Book).
+   * Currently a JSON-serialized snapshot for the takeable town broadsheet; when
+   * present on a Book item, the inventory UI offers a "Read" affordance that
+   * opens the relevant reader (the broadsheet modal) showing this snapshot.
+   * Non-breaking: optional, so existing items and saves remain valid.
+   */
+  readableContent?: string;
 }
 
 /**

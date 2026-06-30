@@ -86,6 +86,17 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
   const [search, setSearch] = useState<string>('');
   const [selectedIndex, setSelectedIndex] = useState<number | null>(() => towns[0]?.burgIndex ?? null);
 
+  // Bumped to fire the map's "look here!" pulse around the selected town. The
+  // tiny yellow marker is hard to spot on a fully zoomed-out world, so we pulse
+  // it whenever the selection changes (default mount, list/map click, surprise)
+  // and on demand via the Highlight button.
+  const [pulseToken, setPulseToken] = useState(0);
+  const triggerPulse = useCallback(() => setPulseToken((t) => t + 1), []);
+  useEffect(() => {
+    if (selectedIndex == null) return;
+    setPulseToken((t) => t + 1);
+  }, [selectedIndex]);
+
   const selected = useMemo(
     () => towns.find((t) => t.burgIndex === selectedIndex) ?? null,
     [towns, selectedIndex],
@@ -164,10 +175,11 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
       select: (burgIndex: number) => setSelectedIndex(burgIndex),
       selected: () => selected,
       surpriseMe,
+      highlight: triggerPulse,
       confirm,
     };
     return () => { delete (window as unknown as Record<string, unknown>).__startSelect; };
-  }, [towns, regions, selected, surpriseMe, confirm]);
+  }, [towns, regions, selected, surpriseMe, triggerPulse, confirm]);
 
   // The atlas already renders every town via its always-on burgs + labels layers,
   // so we only mark the *selected* town here (extra pins for all 700+ towns would
@@ -182,12 +194,13 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
     <AtlasSvgView
       atlas={world}
       marker={marker}
+      pulseToken={pulseToken}
       width={mapSize.width}
       height={mapSize.height}
       onPickCell={handlePickCell}
     />
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [world, markerKey, mapSize.width, mapSize.height, handlePickCell]);
+  ), [world, markerKey, mapSize.width, mapSize.height, handlePickCell, pulseToken]);
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', background: '#0b1220', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}>
@@ -266,7 +279,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
                 key={t.burgIndex}
                 data-testid="start-town-row"
                 data-selected={isSel ? '1' : '0'}
-                onClick={() => selectTown(t)}
+                onClick={() => { selectTown(t); triggerPulse(); }}
                 onDoubleClick={() => { selectTown(t); onConfirm(t); }}
                 style={{
                   width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', cursor: 'pointer',
@@ -303,6 +316,17 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
             <div style={{ color: '#94a3b8' }}>
               {formatPopulation(selected.population)} inhabitants{selected.isPort ? ' · coastal port' : ''}
             </div>
+            <button
+              data-testid="start-highlight"
+              onClick={triggerPulse}
+              title="Flash this town's location on the map"
+              style={{
+                marginTop: 10, padding: '6px 10px', borderRadius: 6, border: '1px solid #7f1d1d',
+                background: '#1f2937', color: '#fca5a5', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+              }}
+            >
+              ◎ Highlight on map
+            </button>
           </div>
         )}
 

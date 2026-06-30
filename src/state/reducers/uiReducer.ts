@@ -118,6 +118,32 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
     case 'TOGGLE_QUEST_LOG':
       return { isQuestLogVisible: !state.isQuestLogVisible, isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isLogbookVisible: false };
 
+    case 'SET_NOTICE_BOARD_VISIBLE':
+      // Opening the notice board closes other conflicting overlays (mirrors the
+      // other visibility toggles); closing it leaves the rest of the UI alone.
+      return action.payload
+        ? { isNoticeBoardVisible: true, isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isLogbookVisible: false, isQuestLogVisible: false }
+        : { isNoticeBoardVisible: false };
+
+    case 'SET_BROADSHEET_VISIBLE':
+      // Opening the broadsheet closes other conflicting overlays (mirrors the
+      // notice-board toggle); closing it leaves the rest of the UI alone.
+      // Opening here is the LIVE path (the in-town action), so any frozen
+      // keepsake snapshot is cleared; closing also clears it so a later live
+      // open never inherits a stale snapshot.
+      return action.payload
+        ? { isBroadsheetVisible: true, broadsheetSnapshot: undefined, isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isLogbookVisible: false, isQuestLogVisible: false, isNoticeBoardVisible: false }
+        : { isBroadsheetVisible: false, broadsheetSnapshot: undefined };
+
+    case 'READ_ITEM': {
+      // Reading a readable Book item (e.g. a broadsheet keepsake) opens the
+      // broadsheet modal on its FROZEN snapshot — works anywhere, even after
+      // the player has left the town. Non-readable items are a no-op.
+      const item = state.inventory.find(i => i.id === action.payload.itemId);
+      if (!item?.readableContent) return {};
+      return { isBroadsheetVisible: true, broadsheetSnapshot: item.readableContent, isNoticeBoardVisible: false };
+    }
+
     case 'TOGGLE_GLOSSARY_VISIBILITY': {
       const openingGlossary = !state.isGlossaryVisible;
       return {

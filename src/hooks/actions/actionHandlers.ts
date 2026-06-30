@@ -54,7 +54,11 @@ import { gridCellCenterToWorldMeters } from '../../utils/worldCoords';
 import type { AppAction } from '../../state/actionTypes';
 import type { CastSpellPayload } from '../../types/actions';
 import { ITEMS, WEAPONS_DATA } from '../../constants';
-import { formatDuration } from '../../utils/core';
+import { formatDuration, getGameDay } from '../../utils/core';
+import { ItemType } from '../../types/items';
+import { generateId } from '../../utils/core/idGenerator';
+import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
+import { selectTownNews } from '../../systems/worldforge/townsim/townNews';
 import type { Lock, Puzzle } from '../../systems/puzzles/types.js';
 import type {
   AddGeminiLogFn,
@@ -367,6 +371,55 @@ export function buildActionHandlers({
     },
     TOGGLE_QUEST_LOG: () => {
       handleToggleQuestLog(dispatch);
+    },
+    OPEN_NOTICE_BOARD: () => {
+      // Open the living-world town news modal; the modal computes its own news
+      // live from gameState, so no payload is snapshotted here.
+      dispatch({ type: 'SET_NOTICE_BOARD_VISIBLE', payload: true });
+    },
+    OPEN_BROADSHEET: () => {
+      // Open the living-world town newspaper modal; the modal computes its own
+      // news live from gameState, so no payload is snapshotted here.
+      dispatch({ type: 'SET_BROADSHEET_VISIBLE', payload: true });
+    },
+    TAKE_BROADSHEET: () => {
+      // Freeze the tracked town's current news into a physical broadsheet the
+      // player can pocket and read later (even after leaving). Mirrors the
+      // gating the in-town broadsheet/notice-board actions use.
+      const town = resolveTownForLocation({
+        currentLocationId: gameState.currentLocationId,
+        worldSeed: gameState.worldSeed,
+        gridSize: gameState.mapData?.gridSize,
+        townSim: gameState.townSim,
+        gameTime: gameState.gameTime,
+      });
+      if (!town) return;
+
+      const day = gameState.gameTime instanceof Date ? getGameDay(gameState.gameTime) : 0;
+      const townName = gameState.dynamicLocations?.[gameState.currentLocationId]?.name ?? 'a nearby town';
+      // Store ALL tiers; the broadsheet modal re-splits by prominence on read.
+      const news = selectTownNews(town, day, { max: 24 });
+      // Don't hand the player a blank keepsake — nothing worth printing yet.
+      if (news.length === 0) {
+        addMessage('There are no broadsheets worth taking — no news to report.', 'system');
+        return;
+      }
+      const snapshot = { townName, day, news };
+
+      const item: Item = {
+        id: `broadsheet_${day}_${generateId()}`,
+        name: `Broadsheet — ${townName}, Day ${day}`,
+        description: `A printed broadsheet from ${townName}, dated Day ${day}. The news it carries is frozen in ink.`,
+        type: ItemType.Book,
+        readableContent: JSON.stringify(snapshot),
+      };
+
+      dispatch({ type: 'GIVE_ITEM', payload: { item } });
+      addMessage('You pocket a broadsheet.', 'system');
+    },
+    READ_ITEM: (action) => {
+      // Open the readable item's frozen snapshot (e.g. a broadsheet keepsake).
+      dispatch({ type: 'READ_ITEM', payload: action.payload as { itemId: string } });
     },
     SET_DEV_MODE_ENABLED: (action) => {
       dispatch({ type: 'SET_DEV_MODE_ENABLED', payload: (action.payload as { enabled: boolean }).enabled });

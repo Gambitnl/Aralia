@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 11/06/2026, 00:50:33
+ * Last Sync: 29/06/2026, 02:45:39
  * Dependents: systems/crafting/batchCrafting.ts, systems/crafting/craftingEngine.ts, systems/puzzles/mechanism.ts, utils/character/index.ts
  * Imports: 5 files
  *
@@ -19,7 +19,7 @@
  * Utility functions for handling ability checks and skill checks in D&D 5e.
  */
 import { PlayerCharacter } from '../../types/character';
-import { CombatCharacter } from '../../types/combat';
+import { CombatCharacter, StatusEffect } from '../../types/combat';
 import { rollDice } from '../combat/combatUtils';
 import { getAbilityModifierValue } from './statUtils';
 import { AbilityScoreName } from '../../types/core';
@@ -62,6 +62,44 @@ function modifierAppliesToCheck(text: string, ability: AbilityScoreName, skill?:
     }
 
     return normalized.includes('ability check');
+}
+
+function collectStructuredAbilityCheckBonuses(
+    character: PlayerCharacter | CombatCharacter,
+    skill?: string
+): { source: string; value: number }[] {
+    const statusEffects = 'statusEffects' in character ? character.statusEffects ?? [] : []
+    const applied: { source: string; value: number }[] = []
+
+    for (const effect of statusEffects as StatusEffect[]) {
+        const modifier = effect.abilityCheckModifier
+        if (!modifier || modifier.appliesTo !== 'ability_check') {
+            continue
+        }
+
+        const chosenSkill = effect.modifiers?.skill?.trim()
+        if (modifier.skillSelection === 'chosen_skill') {
+            if (!skill || !chosenSkill || chosenSkill.toLowerCase() !== skill.toLowerCase()) {
+                continue
+            }
+        } else if (skill && chosenSkill && chosenSkill.toLowerCase() !== skill.toLowerCase()) {
+            continue
+        }
+
+        const source = effect.source || effect.name
+        const bonusDice = modifier.bonusDice?.trim()
+        if (bonusDice) {
+            const val = rollDice(bonusDice)
+            applied.push({ source, value: val })
+            continue
+        }
+
+        if (modifier.flatModifier !== undefined) {
+            applied.push({ source, value: modifier.flatModifier })
+        }
+    }
+
+    return applied
 }
 
 /**
@@ -151,6 +189,15 @@ export function rollAbilityCheck(
             }
         }
     });
+
+    // Spell-linked ability-check riders such as Guidance live on status
+    // effects so concentration cleanup can remove them without re-parsing
+    // combat log text. They still feed the same modifier list here so the
+    // shared check roll stays the single consumer of the bonus dice.
+    for (const modifier of collectStructuredAbilityCheckBonuses(character, skill)) {
+        mod += modifier.value;
+        modifiersApplied.push(modifier);
+    }
 
     return {
         roll,

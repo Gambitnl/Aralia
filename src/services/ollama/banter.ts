@@ -32,7 +32,7 @@ import { parseJsonRobustly, extractTextField } from './jsonParser';
 // Banter Prompt Builders
 // ============================================================================
 
-function buildBanterPrompt(
+export function buildBanterPrompt(
     participants: BanterParticipant[],
     contextData: BanterContext
 ): string {
@@ -42,6 +42,9 @@ function buildBanterPrompt(
     if (contextData.currentTask) contextDescription += ` Current Goal: ${contextData.currentTask}.`;
     if (contextData.recentEvents && contextData.recentEvents.length > 0) {
         contextDescription += `\nRecent Events:\n- ${contextData.recentEvents.join('\n- ')}`;
+    }
+    if (contextData.townChronicle && contextData.townChronicle.length > 0) {
+        contextDescription += `\nThis town's recent history:\n- ${contextData.townChronicle.join('\n- ')}`;
     }
 
     let historySection = "";

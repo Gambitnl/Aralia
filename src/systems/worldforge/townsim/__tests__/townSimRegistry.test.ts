@@ -54,6 +54,22 @@ describe('advanceTown / advanceRegistry', () => {
     expect(advanceRegistry({}, 1, 1000)).toEqual({});
   });
 
+  it('onlyBurgIds (distance-LOD) advances just the named towns; others catch up identically', () => {
+    const make = (): TownSimRegistry => ({
+      7: townState(7, [villager({ occupantId: 1, spouseId: 2 }), villager({ occupantId: 2, spouseId: 1 })]),
+      9: townState(9, [villager({ occupantId: 1, spouseId: 2 }), villager({ occupantId: 2, spouseId: 1 })]),
+    });
+    // Tick only burg 7 to day 365; burg 9 stays put.
+    const near = advanceRegistry(make(), 555, 365, [7]);
+    expect(near[7].lastSimDay).toBe(365);
+    expect(near[9].lastSimDay).toBe(0); // far town untouched this call
+
+    // Later, burg 9 catches up in one batch → identical to ticking it all along.
+    const caughtUp = advanceRegistry(near, 555, 365, [9]);
+    const allAtOnce = advanceRegistry(make(), 555, 365); // both advanced together
+    expect(JSON.stringify(caughtUp[9])).toBe(JSON.stringify(allAtOnce[9]));
+  });
+
   it('advanceTown is a no-op when already at/after target', () => {
     const s = townState(7, [villager({ occupantId: 1 })]);
     const advanced = advanceTown(s, 1, 100);

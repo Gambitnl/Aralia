@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 28/06/2026, 12:11:50
+ * Last Sync: 29/06/2026, 03:50:44
  * Dependents: systems/spells/validation/spellValidator.ts
  * Imports: None
  *
@@ -336,6 +336,9 @@ export const Targeting = z.object({
   maxTargets: ScalableNumber,
   validTargets: z.array(ValidTargetType),
   lineOfSight: z.boolean(),
+  acquisition: z.object({
+    mode: z.enum(["line_of_sight", "sight_or_hearing"]),
+  }).optional(),
   // Non-area spells should not need to carry a fake zero-size Sphere just to
   // satisfy the validator. Area-targeted spells are still checked by the
   // stricter template audit so real area geometry remains required where it

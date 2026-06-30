@@ -55,14 +55,16 @@ import type { CellTraits } from './Worldforge/atlasSvg';
 import SubmapSvgView from './Worldforge/SubmapSvgView';
 import TownPlanView from './Worldforge/TownPlanView';
 import NeighbourhoodSvgView from './Worldforge/NeighbourhoodSvgView';
+import { consumeMapDrillToPlayerTown } from './Worldforge/mapFocusSignal';
 import { atlasCellToSubmapContext } from '@/systems/worldforge/submap/l0Adapter';
 import { buildAtlasNeighbourhood, type AtlasNeighbourhood } from '@/systems/worldforge/submap/neighbourhood';
 import { generateSubmap, submapCellToChildContext, polygonBounds, pointInPolygon, type SubmapModel, type SubmapParentContext, type Pt } from '@/systems/worldforge/submap/submapEngine';
 import { type TownPlan } from '@/systems/worldforge/town/townEngine';
 import { getCanonicalTownPlan } from '@/systems/worldforge/town/canonicalTown';
 import { rootSeedPath } from '@/systems/worldforge/seedPath';
-import { legacyGridToAtlasCell, gridCellToAtlasSite, spreadColocatedPoints } from '@/systems/worldforge/local/gridAtlasBridge';
-import { getTownTilesForGrid, getBridgeAtlas } from '@/systems/worldforge/bridge/legacySubmapBridge';
+import { legacyGridToAtlasCell, gridCellToAtlasSite, spreadColocatedPoints, entry3DAnchorForCell, atlasCellToLegacyGrid, snapToLandCell } from '@/systems/worldforge/local/gridAtlasBridge';
+import type { Entry3DAnchor } from '@/types/state';
+import { getBridgeAtlas } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { buildAtlasTravelGraph, atlasMilesPerUnit, nearestLandCell, transportMobility } from '@/systems/worldforge/travel/atlasTravelGraph';
 import { buildMultiModalAtlasGraph } from '@/systems/worldforge/travel/multiModalAtlasGraph';
 import { buildSubmapTravelGraph } from '@/systems/worldforge/travel/submapTravelGraph';
@@ -81,7 +83,7 @@ interface MapPaneProps {
   worldSeed?: number;
   onTileClick: (x: number, y: number, tile: MapTileType, travelMeta?: TravelMeta) => void;
   /** When set, clicking a discovered cell in Enter 3D mode starts streamed world entry. */
-  onEnter3DAtCell?: (x: number, y: number, tile: MapTileType) => void;
+  onEnter3DAtCell?: (x: number, y: number, tile: MapTileType, anchor?: Entry3DAnchor) => void;
   /** Last known 3D position — draws AtlasPlayerMarker on the Worldforge atlas. */
   playerWorldPos?: PlayerWorldPosition | null;
   /** SP4 discovered hidden places — pinned on the World Forge atlas. */
@@ -639,6 +641,61 @@ const MapPane: React.FC<MapPaneProps> = ({
     showMapNotice("Nothing to explore here — try a cell on land.");
   }, [buildNeighbourTier, showMapNotice]);
 
+  // Build the drill stack [Region, Town] that lands directly on a burg's town
+  // plan — the same two tiers a manual World → cell → burg drill produces,
+  // assembled from the existing helpers so the result is byte-identical. Drills
+  // to the burg's OWN atlas cell (`pack.burgs[burgId].cell`), NOT the player's
+  // cell: the player commonly stands in a cell adjacent to the town's, since the
+  // 3D ground window spans several atlas cells. Returns null if the burg can't
+  // be resolved to a settled cell.
+  const buildTownDrillStack = useCallback((burgId: number): DrillTier[] | null => {
+    if (!worldforgeAtlas) return null;
+    const pack = worldforgeAtlas.pack as unknown as { burgs?: Array<{ cell?: number } | undefined> };
+    const burgCell = pack.burgs?.[burgId]?.cell;
+    if (burgCell == null) return null;
+    const regionTier = buildNeighbourTier(burgCell);
+    if (!regionTier || !regionTier.model) return null;
+    // Prefer the model's own burg index; fall back to the matching burg subcell,
+    // then to any burg subcell (a one-burg focus cell has exactly one).
+    let burgIdx = regionTier.model.burgCellIndex ?? -1;
+    if (burgIdx < 0) burgIdx = regionTier.model.cells.findIndex((c) => c.feature?.kind === 'burg' && c.feature.id === burgId);
+    if (burgIdx < 0) burgIdx = regionTier.model.cells.findIndex((c) => c.feature?.kind === 'burg' && c.feature.id != null);
+    if (burgIdx < 0) return null;
+    const cell = regionTier.model.cells[burgIdx];
+    if (!cell || cell.feature?.kind !== 'burg' || cell.feature.id == null) return null;
+    const childCtx = normalizeCtxScale(submapCellToChildContext(cell, regionTier.ctx));
+    if (childCtx.polygon.length < 3) return null;
+    const town = getCanonicalTownPlan(worldforgeAtlas, worldforgeSeed, cell.feature.id);
+    return [regionTier, { ctx: childCtx, town, playerCellIndex: 0 }];
+  }, [worldforgeAtlas, worldforgeSeed, buildNeighbourTier]);
+
+  // One-shot: when the 3D HUD's "Town Plan" button opens the map, drill straight
+  // to the 3D world's town instead of the fit-to-world atlas. Mirrors AtlasSvgView's
+  // consumeMapCenterOnPlayer mount-consume; MapPane mounts fresh per map open, so
+  // we capture the flag (+ target burg) once, then seed the stack as soon as the
+  // atlas is ready (runs after the [worldforgeSeed] reset above, so it isn't clobbered).
+  // Capture the one-shot request exactly once per mount. The guard + "never
+  // re-apply null" matters under React StrictMode, whose double-invoke would
+  // otherwise consume the (already-cleared) signal a second time and wipe the
+  // captured burg. We deliberately do NOT clear the target on success: the
+  // sibling [worldforgeSeed] reset effect re-runs on StrictMode's second pass
+  // and empties the stack, so the drill effect must be free to re-seed it. The
+  // target only changes on a real remount (a fresh map open), where refs reset.
+  const wantDrillBurgRef = useRef<number | null>(null);
+  const drillConsumedRef = useRef(false);
+  useEffect(() => {
+    if (drillConsumedRef.current) return;
+    drillConsumedRef.current = true;
+    const req = consumeMapDrillToPlayerTown();
+    if (req.wanted) wantDrillBurgRef.current = req.burgId;
+  }, []);
+  useEffect(() => {
+    const burgId = wantDrillBurgRef.current;
+    if (burgId == null || !worldforgeAtlas) return;
+    const stack = buildTownDrillStack(burgId);
+    if (stack) setSubmapStack(stack);
+  }, [worldforgeAtlas, buildTownDrillStack]);
+
   // Click a neighbour in the neighbourhood view → recenter on it, but only if
   // explored (unexplored cells stay grey/info-only until physically traveled to).
   const handleRecenter = useCallback((cellId: number) => {
@@ -658,27 +715,15 @@ const MapPane: React.FC<MapPaneProps> = ({
     let tx = clampIndex(Math.floor((p[0] / worldforgeAtlas.graphWidth) * gridSize.cols), gridSize.cols);
     let ty = clampIndex(Math.floor((p[1] / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows);
     if (interactionMode === 'enter3d' && allow3DEntry && onEnter3DAtCell) {
-      // The 3D ground generator places towns on tiles chosen by getTownTilesForGrid,
-      // which uses a different burg→tile mapping than this proportional projection.
-      // Landing on the proportional tile drops the player in wilderness next to the
-      // town. If the picked cell carries a burg, snap to the exact tile that burg
-      // generates on so "click a town, enter that town" actually holds.
-      const burgId = worldforgeAtlas.pack.cells.burg?.[info.i];
-      if (burgId && worldforgeSeed != null) {
-        const townTiles = getTownTilesForGrid(worldforgeSeed, gridSize.cols, gridSize.rows);
-        const exact = townTiles.filter((t) => t.burgId === burgId);
-        const pool = exact.length ? exact : townTiles;
-        if (pool.length) {
-          const snapped = pool.reduce((best, t) =>
-            Math.hypot(t.x - tx, t.y - ty) < Math.hypot(best.x - tx, best.y - ty) ? t : best,
-          );
-          tx = snapped.x;
-          ty = snapped.y;
-        }
-      }
-      const tile = projectedTiles[ty]?.[tx];
+      // Cell-native entry: carry the EXACT clicked cell (burg-centered when the
+      // cell is settled, so the Locale frames the town instead of dropping the
+      // player in wilderness next to it). The grid tile is bookkeeping only,
+      // derived from the anchor cell — replaces the old getTownTilesForGrid snap hack.
+      const anchor = entry3DAnchorForCell(worldforgeAtlas, info.i);
+      const bk = atlasCellToLegacyGrid(worldforgeAtlas, anchor.cellId, gridSize) ?? { x: tx, y: ty };
+      const tile = projectedTiles[bk.y]?.[bk.x] ?? projectedTiles[ty]?.[tx];
       if (!tile) return;
-      onEnter3DAtCell(tx, ty, tile);
+      onEnter3DAtCell(bk.x, bk.y, tile, anchor);
       return;
     }
     const tile = projectedTiles[ty]?.[tx];
@@ -722,6 +767,15 @@ const MapPane: React.FC<MapPaneProps> = ({
       const encounterMessage = roll.encounter
         ? `After ${formatTravelTime(route.minutes)} on the road, danger finds you — an encounter!`
         : `You travel for ${formatTravelTime(route.minutes)} and arrive without incident.`;
+      // Cell-native arrival (Stage 4): carry the EXACT destination cell + its 3D-entry
+      // anchor so arrival lands that cell (not the lossy tx/ty reverse-derive), resets
+      // Locale feet, and frames the destination town on a later Enter-3D. The tx/ty
+      // above stay lossy bookkeeping only. Reuses the protected Stage-1 helpers; no new
+      // mapping, no cell→tile→cell round-trip.
+      const destinationCell = {
+        cellId: snapToLandCell(worldforgeAtlas, info.i),
+        anchor: entry3DAnchorForCell(worldforgeAtlas, info.i),
+      };
       // Provisioning gate: does the party carry enough food + water for the trip?
       const decision = decideTravelProvision({
         foodDays: daysOfFood(provisionInventory),
@@ -735,7 +789,7 @@ const MapPane: React.FC<MapPaneProps> = ({
         const provision: TravelProvisionEffect | undefined = partySize > 0
           ? { rationsToSpend: decision.rationsToSpend, waterToSpend: decision.waterToSpend }
           : undefined;
-        onTileClick(tx, ty, tile, { seconds: Math.round(route.minutes * 60), encounterMessage, provision });
+        onTileClick(tx, ty, tile, { seconds: Math.round(route.minutes * 60), encounterMessage, provision, destinationCell });
         return;
       }
       // Underprovisioned → open the choice flow instead of moving.
@@ -798,7 +852,16 @@ const MapPane: React.FC<MapPaneProps> = ({
         note: forageNote,
       };
       const target = projectedTiles[pt.ty]?.[pt.tx];
-      if (target) onTileClick(pt.tx, pt.ty, target, { seconds: Math.round(pt.minutes * 60 + extraSeconds), provision });
+      // Cell-native arrival (Stage 4): the trip completes at the destination cell, so
+      // carry it intact (same as the ungated commit). A partial-stop (below) halts at
+      // an intermediate point that is NOT the picked cell, so it stays a legacy tile
+      // move — re-deriving a cell from the lossy halt point would reintroduce the
+      // Stage-1 trap.
+      const destinationCell = {
+        cellId: snapToLandCell(worldforgeAtlas, pt.cellId),
+        anchor: entry3DAnchorForCell(worldforgeAtlas, pt.cellId),
+      };
+      if (target) onTileClick(pt.tx, pt.ty, target, { seconds: Math.round(pt.minutes * 60 + extraSeconds), provision, destinationCell });
       setPendingTravel(null);
       return;
     }
@@ -841,12 +904,15 @@ const MapPane: React.FC<MapPaneProps> = ({
     if (!worldforgeAtlas || !onEnter3DAtCell) return;
     const cellId = submapStack[0]?.neighbourhood?.focusCellId;
     if (cellId == null) return;
-    const p = worldforgeAtlas.pack.cells.p?.[cellId];
-    if (!p) return;
-    const tx = clampIndex(Math.floor((p[0] / worldforgeAtlas.graphWidth) * gridSize.cols), gridSize.cols);
-    const ty = clampIndex(Math.floor((p[1] / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows);
+    // Cell-native entry: the focus cell IS a real atlas cell — anchor on it
+    // directly (burg-centered if settled) so the leaf enters exactly here.
+    const anchor = entry3DAnchorForCell(worldforgeAtlas, cellId);
+    const bk = atlasCellToLegacyGrid(worldforgeAtlas, anchor.cellId, gridSize);
+    const fallbackP = worldforgeAtlas.pack.cells.p?.[cellId];
+    const tx = bk ? bk.x : clampIndex(Math.floor(((fallbackP?.[0] ?? 0) / worldforgeAtlas.graphWidth) * gridSize.cols), gridSize.cols);
+    const ty = bk ? bk.y : clampIndex(Math.floor(((fallbackP?.[1] ?? 0) / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows);
     const tile = projectedTiles[ty]?.[tx];
-    if (tile) onEnter3DAtCell(tx, ty, tile);
+    if (tile) onEnter3DAtCell(tx, ty, tile, anchor);
   }, [worldforgeAtlas, onEnter3DAtCell, submapStack, gridSize.cols, gridSize.rows, projectedTiles]);
 
   const handleSubmapDrill = useCallback((siteIndex: number) => {

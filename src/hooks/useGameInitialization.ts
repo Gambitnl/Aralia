@@ -341,6 +341,13 @@ export function useGameInitialization({
         entry3DAnchor: startTown?.centerPx
           ? { cellId: startTown.atlasCellId, centerPx: startTown.centerPx }
           : null,
+        // Canonical player presence (cell-native world, Stage 2): the chosen
+        // start town's cell when picked (so the source of truth agrees with the
+        // entry3DAnchor), else the reducer derives it from the spawn tile. The
+        // Locale-local position mirrors the legacy submap center for now.
+        playerCell: startTown
+          ? { cellId: startTown.atlasCellId, localeCoords: initialSubMapCoords }
+          : null,
       };
 
       // Dispatch transitions the game phase from character creation into active gameplay.

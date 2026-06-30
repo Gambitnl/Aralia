@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 12/06/2026, 23:50:22
+ * Last Sync: 29/06/2026, 12:05:39
  * Dependents: commands/effects/DamageCommand.ts, commands/effects/HealingCommand.ts, hooks/combat/engine/useCombatEngine.ts, utils/combat/actionEconomyUtils.ts
  * Imports: 1 files
  *
@@ -200,6 +200,13 @@ export function applyHealingAndRestore(character: CombatCharacter, amount: numbe
   let updatedCharacter = { ...character };
   const originalHP = updatedCharacter.currentHP;
 
+  // Chill Touch-style lockouts prevent Hit Point regain while the rider is
+  // active. This check lives in the shared HP helper so every healing command,
+  // area trigger, or future item path gets the same rules outcome.
+  if (hasHitPointRegainLockout(updatedCharacter)) {
+    return updatedCharacter;
+  }
+
   // Apply standard healing capped at max HP
   updatedCharacter.currentHP = Math.min(updatedCharacter.maxHP, updatedCharacter.currentHP + amount);
 
@@ -210,4 +217,21 @@ export function applyHealingAndRestore(character: CombatCharacter, amount: numbe
   }
 
   return updatedCharacter;
+}
+
+function hasHitPointRegainLockout(character: CombatCharacter): boolean {
+  const statusLockout = (character.statusEffects || []).some(effect =>
+    effect.hitPointState?.mode === 'healing_lockout' &&
+    effect.hitPointState.preventsHitPointRegain === true &&
+    effect.duration > 0
+  );
+
+  if (statusLockout) {
+    return true;
+  }
+
+  return (character.conditions || []).some(condition =>
+    condition.hitPointState?.mode === 'healing_lockout' &&
+    condition.hitPointState.preventsHitPointRegain === true
+  );
 }

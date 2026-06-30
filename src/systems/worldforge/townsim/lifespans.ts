@@ -58,3 +58,10 @@ export function childbearingWindow(race: string): { min: number; max: number } {
   const { comingOfAge, maxAge } = lifespanForRace(race);
   return { min: comingOfAge, max: comingOfAge + 0.4 * (maxAge - comingOfAge) };
 }
+
+/** Age window (years) in which a villager can marry (wider than childbearing —
+ * allows later-life and second marriages). */
+export function marriageableWindow(race: string): { min: number; max: number } {
+  const { comingOfAge, maxAge } = lifespanForRace(race);
+  return { min: comingOfAge, max: comingOfAge + 0.7 * (maxAge - comingOfAge) };
+}

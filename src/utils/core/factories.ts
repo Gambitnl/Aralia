@@ -614,6 +614,9 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       },
 
       isQuestLogVisible: false,
+      isNoticeBoardVisible: false,
+      isBroadsheetVisible: false,
+      broadsheetSnapshot: undefined,
 
       townState: null,
       townEntryDirection: null,
@@ -621,6 +624,9 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       mapSurface: 'classic',
       playerWorldPos: null,
       entry3DAnchor: null,
+      // Canonical player presence (cell-native world, Stage 2). Null until a
+      // spawn/move records it; readers still use the derived legacy fields.
+      playerCell: null,
       // Ground-mode resume positions use tile-local meters and begin unset in
       // tests unless a specific renderer or save scenario overrides them.
       playerGroundPos: null,
@@ -799,12 +805,17 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       visualDiceEnabled: true,
       underdark: { currentDepth: 0, currentBiomeId: 'cavern_standard', lightLevel: 'dim', activeLightSources: [], faerzressLevel: 0, wildMagicChance: 0, sanity: { current: 100, max: 100, madnessLevel: 0 } },
       isQuestLogVisible: false,
+      isNoticeBoardVisible: false,
+      isBroadsheetVisible: false,
+      broadsheetSnapshot: undefined,
       townState: null,
       townEntryDirection: null,
       worldViewMode: 'atlas',
       mapSurface: 'classic',
       playerWorldPos: null,
       entry3DAnchor: null,
+      // Canonical player presence (cell-native world, Stage 2); null in fallback.
+      playerCell: null,
       // Keep the tile-local ground resume field present even in fallback states.
       playerGroundPos: null,
       // Keep the fallback GameState structurally complete even if factory setup fails.

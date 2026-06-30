@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/06/2026, 22:04:14
+ * Last Sync: 29/06/2026, 03:48:26
  * Dependents: types/spells.ts
  * Imports: 1 files
  *
@@ -301,6 +301,15 @@ export interface SpatialDetails {
 interface BaseTargeting {
   validTargets: TargetFilter[];
   lineOfSight?: boolean;
+  /**
+   * Optional sensory acquisition override for spells whose target text permits
+   * more than ordinary sight. Vicious Mockery uses `sight_or_hearing` so a
+   * blocked sight line can still be legal when the target is explicitly audible
+   * to the caster.
+   */
+  acquisition?: {
+    mode: "line_of_sight" | "sight_or_hearing";
+  };
   filter?: TargetConditionFilter;
   /**
    * Optional final-selection rule after raw valid targets are found.

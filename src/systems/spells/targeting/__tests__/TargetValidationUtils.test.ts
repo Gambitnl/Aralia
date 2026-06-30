@@ -4,8 +4,11 @@ import { SpellValidator } from '../../validation/spellValidator'
 import { TargetConditionFilter, type Spell } from '@/types/spells'
 import { createMockCombatCharacter } from '@/utils/factories'
 import catapult from '../../../../../public/data/spells/level-1/catapult.json'
+import cureWounds from '../../../../../public/data/spells/level-1/cure-wounds.json'
 import findFamiliar from '../../../../../public/data/spells/level-1/find-familiar.json'
+import healingWord from '../../../../../public/data/spells/level-1/healing-word.json'
 import gentleRepose from '../../../../../public/data/spells/level-2/gentle-repose.json'
+import guidance from '../../../../../public/data/spells/level-0/guidance.json'
 import mistyStep from '../../../../../public/data/spells/level-2/misty-step.json'
 
 /**
@@ -28,8 +31,11 @@ import mistyStep from '../../../../../public/data/spells/level-2/misty-step.json
 
 const representativeSpells = [
   catapult,
+  cureWounds,
   findFamiliar,
+  healingWord,
   gentleRepose,
+  guidance,
   mistyStep
 ] as unknown as Spell[]
 
@@ -45,6 +51,14 @@ const readTopLevelFilter = (id: string): TargetConditionFilter => {
   const filter = findSpell(id).targeting.filter
   if (!filter) {
     throw new Error(`Package 10 representative spell ${id} has no targeting filter`)
+  }
+  return filter
+}
+
+const readEffectTargetFilter = (id: string): TargetConditionFilter => {
+  const filter = findSpell(id).effects[0]?.condition?.targetFilter
+  if (!filter) {
+    throw new Error(`Package 10 representative spell ${id} has no effect target filter`)
   }
   return filter
 }
@@ -122,6 +136,22 @@ describe('TargetValidationUtils', () => {
     expect(TargetValidationUtils.matchesFilter(ogre, filter)).toBe(false)
   })
 
+  it('rejects explicitly unwilling targets for willing-creature spells while preserving unknown-consent allies', () => {
+    // Guidance is the first level-0 spell using this bridge. Most combatants do
+    // not yet carry a consent flag, so unknown ally consent must keep working;
+    // explicitly unwilling targets are the scenario that should be rejected.
+    const guidanceFilter = readTopLevelFilter('guidance')
+    const willingAlly = createMockCombatCharacter({ currentHP: 10 })
+    const unwillingAlly = createMockCombatCharacter({
+      currentHP: 10,
+      isWilling: false
+    } as Partial<ReturnType<typeof createMockCombatCharacter>> & { isWilling: false })
+
+    expect(guidanceFilter.willing).toBe('required')
+    expect(TargetValidationUtils.matchesFilter(willingAlly, guidanceFilter)).toBe(true)
+    expect(TargetValidationUtils.matchesFilter(unwillingAlly, guidanceFilter)).toBe(false)
+  })
+
   it('keeps the representative Package 10 spell data valid under the live spell schema', () => {
     // Validating the committed spell JSON guards against a false-positive
     // repair where the TypeScript types compile but the data loader rejects the
@@ -165,5 +195,37 @@ describe('TargetValidationUtils', () => {
     })
     expect(TargetValidationUtils.matchesFilter(livingChar, gentleReposeFilter)).toBe(false)
     expect(TargetValidationUtils.matchesFilter(deadChar, gentleReposeFilter)).toBe(true)
+  })
+
+  it('uses real Cure Wounds and Healing Word data to reject Undead and Constructs', () => {
+    const livingHumanoid = createMockCombatCharacter({
+      currentHP: 4,
+      creatureTypes: ['Humanoid']
+    })
+    const undeadTarget = createMockCombatCharacter({
+      currentHP: 4,
+      creatureTypes: ['Undead']
+    })
+    const constructTarget = createMockCombatCharacter({
+      currentHP: 4,
+      creatureTypes: ['Construct']
+    })
+
+    for (const spellId of ['cure-wounds', 'healing-word']) {
+      const targetingFilter = readTopLevelFilter(spellId)
+      const effectFilter = readEffectTargetFilter(spellId)
+
+      // Healing spell restrictions live in both the UI-facing targeting filter
+      // and the command-facing effect filter so selection and execution cannot
+      // drift apart for the same live spell record.
+      expect(targetingFilter.excludeCreatureTypes).toEqual(['Undead', 'Construct'])
+      expect(effectFilter.excludeCreatureTypes).toEqual(['Undead', 'Construct'])
+      expect(TargetValidationUtils.matchesFilter(livingHumanoid, targetingFilter)).toBe(true)
+      expect(TargetValidationUtils.matchesFilter(undeadTarget, targetingFilter)).toBe(false)
+      expect(TargetValidationUtils.matchesFilter(constructTarget, targetingFilter)).toBe(false)
+      expect(TargetValidationUtils.matchesFilter(livingHumanoid, effectFilter)).toBe(true)
+      expect(TargetValidationUtils.matchesFilter(undeadTarget, effectFilter)).toBe(false)
+      expect(TargetValidationUtils.matchesFilter(constructTarget, effectFilter)).toBe(false)
+    }
   })
 })

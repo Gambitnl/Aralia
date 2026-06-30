@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createMockCombatCharacter, createMockCombatState } from '../../../utils/factories';
 import { AttackRollModifierCommand } from '../AttackRollModifierCommand';
 import { AttackRollModifierEffect } from '../../../types/spells';
@@ -85,6 +85,114 @@ describe('AttackRollModifierCommand', () => {
     // They should have the Status Condition
     const hasCondition = affectedTarget?.conditions?.some(c => c.name === 'Bane');
     expect(hasCondition).toBe(true);
+  });
+
+  it('applies Frostbite damage and the next-weapon-attack rider on a failed Constitution save', async () => {
+    const caster = createMockCombatCharacter({ id: 'frost-caster', name: 'Frost Caster' });
+    const target = createMockCombatCharacter({ id: 'frost-target', name: 'Frost Target' });
+    const state = createMockCombatState();
+    state.characters = [caster, target];
+
+    const effect: AttackRollModifierEffect = {
+      type: 'ATTACK_ROLL_MODIFIER',
+      trigger: {
+        type: 'immediate',
+        frequency: 'every_time',
+        consumption: 'unlimited',
+        attackFilter: { weaponType: 'any', attackType: 'any' },
+        movementType: 'any',
+        sustainCost: { actionType: 'action', optional: false }
+      },
+      condition: {
+        type: 'save',
+        saveType: 'Constitution',
+        saveEffect: 'negates_condition'
+      },
+      attackRollModifier: {
+        modifier: 'disadvantage',
+        direction: 'incoming',
+        attackKind: 'weapon',
+        consumption: 'next_attack',
+        duration: { type: 'rounds', value: 1 }
+      },
+      damage: {
+        dice: '1d6',
+        type: 'Cold'
+      }
+    };
+
+    const command = new AttackRollModifierCommand(effect, {
+      spellId: 'frostbite',
+      spellName: 'Frostbite',
+      castAtLevel: 0,
+      caster,
+      targets: [target],
+      gameState: null as unknown as any
+    });
+
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    const newState = await command.execute(state);
+    const affectedTarget = newState.characters.find(character => character.id === target.id);
+
+    expect(affectedTarget?.currentHP).toBeLessThan(target.currentHP);
+    expect(affectedTarget?.activeEffects?.some(activeEffect => activeEffect.spellId === 'frostbite')).toBe(true);
+
+    randomSpy.mockRestore();
+  });
+
+  it('does not apply Frostbite damage or rider on a successful Constitution save', async () => {
+    const caster = createMockCombatCharacter({ id: 'frost-caster', name: 'Frost Caster' });
+    const target = createMockCombatCharacter({ id: 'frost-target', name: 'Frost Target' });
+    const state = createMockCombatState();
+    state.characters = [caster, target];
+
+    const effect: AttackRollModifierEffect = {
+      type: 'ATTACK_ROLL_MODIFIER',
+      trigger: {
+        type: 'immediate',
+        frequency: 'every_time',
+        consumption: 'unlimited',
+        attackFilter: { weaponType: 'any', attackType: 'any' },
+        movementType: 'any',
+        sustainCost: { actionType: 'action', optional: false }
+      },
+      condition: {
+        type: 'save',
+        saveType: 'Constitution',
+        saveEffect: 'negates_condition'
+      },
+      attackRollModifier: {
+        modifier: 'disadvantage',
+        direction: 'incoming',
+        attackKind: 'weapon',
+        consumption: 'next_attack',
+        duration: { type: 'rounds', value: 1 }
+      },
+      damage: {
+        dice: '1d6',
+        type: 'Cold'
+      }
+    };
+
+    const command = new AttackRollModifierCommand(effect, {
+      spellId: 'frostbite',
+      spellName: 'Frostbite',
+      castAtLevel: 0,
+      caster,
+      targets: [target],
+      gameState: null as unknown as any
+    });
+
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.99);
+
+    const newState = await command.execute(state);
+    const affectedTarget = newState.characters.find(character => character.id === target.id);
+
+    expect(affectedTarget?.currentHP).toBe(target.currentHP);
+    expect(affectedTarget?.activeEffects?.some(activeEffect => activeEffect.spellId === 'frostbite')).toBeFalsy();
+
+    randomSpy.mockRestore();
   });
 
   it('materializes Shining Smite rider advantage, Invisible suppression, and target light together', async () => {

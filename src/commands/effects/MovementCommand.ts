@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 12/06/2026, 23:03:21
- * Dependents: commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts
- * Imports: 10 files
+ * Last Sync: 29/06/2026, 02:10:44
+ * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,10 +23,11 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { MovementEffect } from '@/types/spells'
-import { CombatState, CombatCharacter, Position, StatusEffect } from '@/types/combat'
+import { CombatState, CombatCharacter, Position, StatusEffect, ActiveCondition } from '@/types/combat'
 import { getDistance } from '../../utils/combatUtils'
 import { findPath } from '../../utils/pathfinding'
 import { calculatePathMovementCost } from '../../utils/combat/movementUtils'
+import { calculateMovementTotal } from '../../utils/combat/actionEconomyUtils'
 import { getTerrainHazards, getTerrainMovementCost } from '../../systems/environment/EnvironmentSystem'
 import { evaluateHazard } from '../../systems/environment/hazards'
 import { applyCommandAreaMovementEffects } from './commandAreaMovementEffects'
@@ -45,6 +46,10 @@ import { applyCommandAreaMovementEffects } from './commandAreaMovementEffects'
  * Forced movement stops early if the path is blocked by terrain or other creatures.
  */
 export class MovementCommand extends BaseEffectCommand {
+    private static readonly RAY_OF_FROST_SLOW_NAME = 'Ray of Frost Slow'
+
+    private static readonly RAY_OF_FROST_SOURCE_NAMES = new Set(['Ray of Frost', 'ray-of-frost'])
+
     constructor(
         effect: MovementEffect,
         context: CommandContext
@@ -316,6 +321,13 @@ export class MovementCommand extends BaseEffectCommand {
     private applySpeedChange(state: CombatState, target: CombatCharacter, effect: MovementEffect): CombatState {
         if (!effect.speedChange) return state
 
+        // Ray of Frost is a caster-relative slow, so we model it as one
+        // expiring rider and refresh that same rider on repeat hits instead of
+        // subtracting permanent speed from the character sheet.
+        if (MovementCommand.RAY_OF_FROST_SOURCE_NAMES.has(this.context.spellId) || MovementCommand.RAY_OF_FROST_SOURCE_NAMES.has(this.context.spellName)) {
+            return this.applyRayOfFrostSpeedChange(state, target, effect)
+        }
+
         const newSpeed = target.stats.speed + effect.speedChange.value
 
         const updatedState = this.updateCharacter(state, target.id, {
@@ -327,6 +339,113 @@ export class MovementCommand extends BaseEffectCommand {
             message: `${target.name}'s speed ${effect.speedChange.value > 0 ? 'increases' : 'decreases'} by ${Math.abs(effect.speedChange.value)} feet`,
             characterId: target.id
         })
+    }
+
+    /**
+     * Ray of Frost uses a temporary speed rider instead of a permanent stat
+     * delta so the slowdown can refresh cleanly and fall off at the caster's
+     * next turn boundary.
+     */
+    private applyRayOfFrostSpeedChange(state: CombatState, target: CombatCharacter, effect: MovementEffect): CombatState {
+        const sourceName = this.context.spellName || this.context.spellId
+        const sourceCasterId = this.context.caster.id
+        const speedDelta = effect.speedChange?.value ?? -10
+
+        const statusEffect: StatusEffect = {
+            id: `ray-of-frost-slow-${sourceCasterId}-${target.id}`,
+            name: MovementCommand.RAY_OF_FROST_SLOW_NAME,
+            type: 'debuff',
+            duration: 1,
+            source: sourceName,
+            sourceCasterId,
+            effect: {
+                type: 'stat_modifier',
+                stat: 'speed',
+                value: speedDelta
+            }
+        }
+
+        const condition: ActiveCondition = {
+            name: MovementCommand.RAY_OF_FROST_SLOW_NAME,
+            duration: { type: 'rounds', value: 1 },
+            appliedTurn: state.turnState.currentTurn,
+            source: sourceName,
+            sourceCasterId
+        }
+
+        const nextStatusEffects = this.replaceRayOfFrostStatus(target.statusEffects ?? [], statusEffect)
+        const nextConditions = this.replaceRayOfFrostCondition(target.conditions ?? [], condition)
+        const nextCharacter: CombatCharacter = {
+            ...target,
+            statusEffects: nextStatusEffects,
+            conditions: nextConditions
+        }
+        const movementTotal = calculateMovementTotal(nextCharacter)
+        const updatedState = this.updateCharacter(state, target.id, {
+            statusEffects: nextStatusEffects,
+            conditions: nextConditions,
+            actionEconomy: {
+                ...target.actionEconomy,
+                movement: {
+                    ...target.actionEconomy.movement,
+                    total: movementTotal
+                }
+            }
+        })
+
+        return this.addLogEntry(updatedState, {
+            type: 'status',
+            message: `${target.name}'s speed decreases by ${Math.abs(speedDelta)} feet until the start of the caster's next turn`,
+            characterId: target.id,
+            data: {
+                source: sourceName,
+                sourceCasterId,
+                speedDelta,
+                effectId: statusEffect.id
+            }
+        })
+    }
+
+    /**
+     * Refreshes the Ray of Frost status mirror instead of letting repeated hits
+     * stack multiple copies of the same slow.
+     */
+    private replaceRayOfFrostStatus(existing: StatusEffect[], statusEffect: StatusEffect): StatusEffect[] {
+        const nextStatusEffects = [...existing]
+        const matchIndex = nextStatusEffects.findIndex(effect =>
+            effect.name === statusEffect.name &&
+            effect.sourceCasterId === statusEffect.sourceCasterId &&
+            effect.source === statusEffect.source
+        )
+
+        if (matchIndex >= 0) {
+            nextStatusEffects[matchIndex] = statusEffect
+            return nextStatusEffects
+        }
+
+        nextStatusEffects.push(statusEffect)
+        return nextStatusEffects
+    }
+
+    /**
+     * Refreshes the Ray of Frost condition mirror so the duration stays tied to
+     * a single source instead of creating duplicate cleanup records.
+     */
+    private replaceRayOfFrostCondition(existing: ActiveCondition[], condition: ActiveCondition): ActiveCondition[] {
+        const nextConditions = [...existing]
+        const matchIndex = nextConditions.findIndex(effect =>
+            effect.name === condition.name &&
+            effect.sourceCasterId === condition.sourceCasterId &&
+            effect.source === condition.source
+        )
+
+        if (matchIndex >= 0) {
+            nextConditions[matchIndex] = condition
+            return nextConditions
+        }
+
+        nextConditions.push(condition)
+        return nextConditions
     }
 
     /**

@@ -1,6 +1,6 @@
 ---
 schema_version: 1
-project: Scripts: Audits
+project: "Scripts: Audits"
 slug: scripts-audits
 category: Tools, Automation, and Infrastructure
 main_category: "Interface & Experience"

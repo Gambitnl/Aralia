@@ -78,6 +78,10 @@ describe('gameEntryReducer', () => {
         expect(next.generatedNpcs?.['sit-1']).toBeDefined();
         expect(next.currentLocationActiveDynamicNpcIds).toContain('existing-npc');
         expect(next.currentLocationActiveDynamicNpcIds).toContain('sit-1');
+        // Seeds a memory record so the opening conversation can persist met
+        // state / a remembered fact / a disposition shift for the stranger.
+        expect(next.npcMemory?.['sit-1']).toBeDefined();
+        expect(next.npcMemory?.['sit-1'].disposition).toBe(0);
     });
 
     it('PLACE_SITUATION_NPCS with no NPCs is a no-op', () => {

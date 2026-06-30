@@ -22,7 +22,7 @@ import { sanitizeAIPromptText } from '../../utils/core/securityUtils';
 // Conversation Prompt Builders
 // ============================================================================
 
-function buildContinuePrompt(
+export function buildContinuePrompt(
     participants: ConversationParticipant[],
     history: { speakerId: string; text: string }[],
     contextData: BanterContext,
@@ -46,7 +46,9 @@ Personality: ${respondingCompanion.personality}
 [Context]
 Location: ${contextData.locationName}
 Weather: ${contextData.weather || 'Clear'}
-Time: ${contextData.timeOfDay}
+Time: ${contextData.timeOfDay}${contextData.townChronicle && contextData.townChronicle.length > 0
+    ? `\nThis town's recent history:\n${contextData.townChronicle.join('\n')}`
+    : ''}
 ${historyText}
 
 [Task]

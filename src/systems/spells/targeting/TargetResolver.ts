@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 26/06/2026, 20:14:07
- * Dependents: hooks/useAbilitySystem.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/index.ts
+ * Last Sync: 29/06/2026, 03:48:43
+ * Dependents: hooks/combat/useTargetValidator.ts, hooks/useAbilitySystem.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/index.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -136,16 +136,17 @@ export class TargetResolver {
 
       // Check line of sight (now including planar visibility)
       if (targeting.lineOfSight) {
-        if (!canSeeTarget(caster, target, gameState)) {
+        const canUseHearingRoute = this.canUseHearingAcquisition(targeting, caster, target)
+        if (!canUseHearingRoute && !canSeeTarget(caster, target, gameState)) {
           return {
             code: 'not_visible',
-            message: 'The caster cannot see this target.'
+            message: 'The caster cannot see or otherwise acquire this target.'
           }
         }
-        if (!this.hasLineOfSight(caster.position, target.position, gameState)) {
+        if (!canUseHearingRoute && !this.hasLineOfSight(caster.position, target.position, gameState)) {
           return {
             code: 'line_of_sight_blocked',
-            message: 'Line of sight to this target is blocked or unavailable.'
+            message: 'Line of sight to this target is blocked or unavailable, and this target is not audible to the caster.'
           }
         }
       }
@@ -378,6 +379,22 @@ export class TargetResolver {
     }
 
     return hasLineOfSight(startTile, endTile, gameState.mapData)
+  }
+
+  private static canUseHearingAcquisition(
+    targeting: SpellTargeting,
+    caster: CombatCharacter,
+    target: CombatCharacter
+  ): boolean {
+    // Most spells that set `lineOfSight: true` must still prove a visual path.
+    // Only spells with the explicit sight-or-hearing acquisition mode can use
+    // the auditory route, and only when combat state says this caster can hear
+    // the specific target.
+    if (targeting.acquisition?.mode !== 'sight_or_hearing') {
+      return false
+    }
+
+    return target.audibleTo?.includes(caster.id) ?? false
   }
 
   /**

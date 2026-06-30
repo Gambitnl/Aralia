@@ -54,8 +54,7 @@
                       "range":  15,
                       "rangeUnit":  "feet",
                       "validTargets":  [
-                                           "creatures",
-                                           "allies"
+                                           "creatures"
                                        ],
                       "lineOfSight":  true,
                       "maxTargets":  1,

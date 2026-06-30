@@ -36,7 +36,13 @@ export class DefensiveCommand implements SpellCommand {
     private context: CommandContext
   ) {
     this.id = uuidv4();
-    this.description = `Applies ${effect.defenseType} (${effect.value})`;
+    // Resistance is the only defensive row in this slice that depends on a
+    // player choice, so keep that chosen damage type visible in the command
+    // description for logs and debugging.
+    const chosenDamageType = this.getChosenDamageType();
+    this.description = chosenDamageType
+      ? `Applies ${effect.defenseType} (${chosenDamageType})`
+      : `Applies ${effect.defenseType} (${effect.value})`;
     this.metadata = {
       spellId: context.spellId,
       spellName: context.spellName,
@@ -150,34 +156,54 @@ export class DefensiveCommand implements SpellCommand {
           break;
         }
 
-        case 'resistance':
+        case 'damage_reduction': {
+          // Resistance chooses exactly one damage type at cast time. The spell
+          // keeps that choice on the active effect so the damage engine can
+          // spend the 1d4 rider once per turn and concentration cleanup can
+          // remove the entire mirror in one pass.
+          const chosenDamageType = this.getChosenDamageType();
+          if (!chosenDamageType) {
+            logMessage = `${this.context.spellName} needs a chosen damage type before it can grant resistance`;
+            break;
+          }
+
+          const activeEffect = this.createActiveEffect(
+            updatedCharacter.id,
+            this.effect.defenseType,
+            effectValue,
+            state.turnState.currentTurn,
+            [chosenDamageType]
+          );
+
+          // Recasting should replace the earlier mirror instead of leaving two
+          // resistance rows live on the same target.
+          updatedCharacter.activeEffects = [
+            ...(updatedCharacter.activeEffects || []).filter(effect => effect.spellId !== this.context.spellId),
+            activeEffect
+          ];
+
+          logMessage = `${this.context.spellName} prepares ${chosenDamageType} damage reduction`;
+          break;
+        }
+
         case 'immunity': {
-          // Damage protection rows are long-lived defensive state, not an
-          // immediate AC number. Store them both on the character for damage
-          // resolution and on the active effect for cleanup/UI proof.
+          // Damage immunity still follows the broader listed-damage contract
+          // used by the rest of the combat engine.
           const damageTypes = this.effect.damageType || [];
           const activeEffect = this.createActiveEffect(
             updatedCharacter.id,
             this.effect.defenseType,
             effectValue,
-            state.turnState.currentTurn
+            state.turnState.currentTurn,
+            damageTypes
           );
 
           updatedCharacter.activeEffects = [...(updatedCharacter.activeEffects || []), activeEffect];
-
-          if (this.effect.defenseType === 'resistance') {
-            updatedCharacter.resistances = Array.from(new Set([
-              ...(updatedCharacter.resistances || []),
-              ...damageTypes
-            ]));
-            logMessage = `${this.context.spellName} grants resistance to ${damageTypes.join(', ') || 'listed damage'}`;
-          } else {
-            updatedCharacter.immunities = Array.from(new Set([
-              ...(updatedCharacter.immunities || []),
-              ...damageTypes
-            ]));
-            logMessage = `${this.context.spellName} grants immunity to ${damageTypes.join(', ') || 'listed damage'}`;
-          }
+          updatedCharacter.immunities = Array.from(new Set([
+            ...(updatedCharacter.immunities || []),
+            ...damageTypes
+          ]));
+          logMessage = `${this.context.spellName} grants immunity to ${damageTypes.join(', ') || 'listed damage'}`;
           break;
         }
       }
@@ -216,7 +242,30 @@ export class DefensiveCommand implements SpellCommand {
     }
   }
 
-  private createActiveEffect(targetId: string, type: string, value: number, currentTurn: number): ActiveEffect {
+  private getChosenDamageType(): string | undefined {
+    if (this.effect.defenseType !== 'damage_reduction' || this.effect.damageTypeSource !== 'chosen_damage_type') {
+      return undefined;
+    }
+
+    const chosenDamageType = this.context.playerInput?.trim();
+    if (!chosenDamageType) {
+      return undefined;
+    }
+
+    return (this.effect.damageType || []).find(damageType =>
+      damageType.toLowerCase() === chosenDamageType.toLowerCase()
+    );
+  }
+
+  private createActiveEffect(
+    targetId: string,
+    type: string,
+    value: number,
+    currentTurn: number,
+    damageTypes?: string[]
+  ): ActiveEffect {
+    const chosenDamageType = damageTypes?.length === 1 ? damageTypes[0] : undefined;
+
     return {
       id: `effect-${this.context.spellId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       spellId: this.context.spellId,
@@ -230,8 +279,14 @@ export class DefensiveCommand implements SpellCommand {
         baseAC: type === 'set_base_ac' ? value : undefined,
         baseACFormula: type === 'set_base_ac' ? this.effect.baseACFormula : undefined,
         acMinimum: type === 'ac_minimum' ? value : undefined,
-        damageResistance: type === 'resistance' ? this.effect.damageType : undefined,
-        damageImmunity: type === 'immunity' ? this.effect.damageType : undefined,
+        damageResistance: type === 'resistance' ? damageTypes : undefined,
+        damageImmunity: type === 'immunity' ? damageTypes : undefined,
+        damageReduction: type === 'damage_reduction' && chosenDamageType && this.effect.damageReduction ? {
+          dice: this.effect.damageReduction.dice,
+          appliesTo: this.effect.damageReduction.appliesTo,
+          frequency: this.effect.damageReduction.frequency ?? 'once_per_turn',
+          damageType: chosenDamageType
+        } : undefined,
       }
     };
   }

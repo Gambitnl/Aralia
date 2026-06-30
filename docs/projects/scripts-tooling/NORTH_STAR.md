@@ -1,6 +1,6 @@
 ---
 schema_version: 1
-project: Scripts: Tooling
+project: "Scripts: Tooling"
 slug: scripts-tooling
 category: Developer Tooling
 main_category: "Tools, Docs & Agents"

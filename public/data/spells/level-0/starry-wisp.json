@@ -238,6 +238,12 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
+      "invisibilitySuppression": {
+        "suppressesConditionBenefit": "Invisible",
+        "scope": "target",
+        "duration": "until_end_of_caster_next_turn",
+        "description": "The target cannot benefit from Invisible while the Starry Wisp glow remains."
+      },
       "conditionalEndings": []
     }
   ],

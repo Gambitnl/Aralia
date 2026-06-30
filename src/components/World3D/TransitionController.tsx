@@ -112,7 +112,13 @@ const TransitionController: React.FC<TransitionControllerProps> = ({
   }, [transitionPhase, sceneVisible, mode]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    // The in-world view (2D atlas + 3D scene) fills the whole window. App's root
+    // is `min-h-screen` (min-height only, no definite height), so a `height: 100%`
+    // here would collapse and every percentage-height descendant — down to the
+    // World3DScene canvas — would fall back to its 520px floor, leaving the 3D
+    // world stuck in the top half of the window. Anchor to the viewport (100dvh)
+    // so the whole subtree fills the available pane and tracks window resizes.
+    <div style={{ position: 'relative', width: '100%', height: '100dvh' }}>
       {/* Atlas Layer */}
       <AnimatePresence>
         {atlasVisible && (

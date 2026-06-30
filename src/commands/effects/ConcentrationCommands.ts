@@ -1,8 +1,25 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/06/2026, 12:58:54
+ * Dependents: commands/effects/DamageCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/StatusConditionCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/useAbilitySystem.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
-import { CombatState, ConcentrationState } from '../../types/combat'
+import { CombatCharacter, CombatState, ConcentrationState } from '../../types/combat'
 import type { Spell, UtilityEffect } from '../../types/spells'
 import { AttackRiderSystem } from '../../systems/combat/AttackRiderSystem'
+import { generateId } from '../../utils/combatUtils'
 
 /**
  * Command to initiate concentration on a spell.
@@ -58,6 +75,14 @@ export class StartConcentrationCommand extends BaseEffectCommand {
                 if (source === spellId || source === this.context.spellName) {
                     effectIds.push(statusId);
                 }
+            }
+
+            // Guidance-style utility spells log their own status mirror instead
+            // of a legacy condition payload. Keep those effect ids on the same
+            // concentration cleanup path so a recast or concentration break can
+            // remove the target-side bonus cleanly.
+            if (statusId && typeof data.sourceSpellId === 'string' && data.sourceSpellId === spellId) {
+                effectIds.push(statusId);
             }
 
             // 2. Riders (RegisterRiderCommand)
@@ -169,6 +194,9 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
         updatedState = {
             ...updatedState,
             characters: updatedState.characters.map(char => {
+                const removedSocialEffects = (char.statusEffects || []).filter(eff =>
+                    trackedEffectIds.has(eff.id) && eff.socialLifecycle?.targetKnowsOnEnd === true
+                )
                 // Filter out StatusEffects that match tracked IDs
                 const newStatusEffects = (char.statusEffects || []).filter(eff => !trackedEffectIds.has(eff.id));
 
@@ -183,7 +211,22 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
                     return {
                         ...char,
                         statusEffects: newStatusEffects,
-                        conditions: newConditions
+                        conditions: newConditions,
+                        socialAwareness: removedSocialEffects.length > 0
+                            ? [
+                                ...(char.socialAwareness || []).filter(entry =>
+                                    !(entry.sourceSpellId === previousSpellId && entry.casterId === caster.id)
+                                ),
+                                ...removedSocialEffects.map(effect => ({
+                                    sourceSpellId: previousSpellId,
+                                    sourceSpellName: previousSpell,
+                                    casterId: caster.id,
+                                    learnedTurn: updatedState.turnState.currentTurn,
+                                    kind: 'post_charm_awareness' as const,
+                                    targetKnows: `it_was_Charmed_by_${caster.id}`
+                                }))
+                            ]
+                            : char.socialAwareness
                     };
                 }
                 return char;
@@ -191,16 +234,51 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
         };
 
         // 3. Remove Light Sources
-        if (updatedState.activeLightSources) {
-            updatedState = {
-                ...updatedState,
-                activeLightSources: updatedState.activeLightSources.filter(
-                    ls => ls.sourceSpellId !== previousSpellId && !trackedEffectIds.has(ls.id)
-                )
-            };
-        }
+          if (updatedState.activeLightSources) {
+              updatedState = {
+                  ...updatedState,
+                  activeLightSources: updatedState.activeLightSources.filter(
+                      ls => ls.sourceSpellId !== previousSpellId && !trackedEffectIds.has(ls.id)
+                  )
+              };
+          }
 
-        // 4. Remove Summons
+          // Spell-created fire artifacts such as Create Bonfire are not status
+          // effects or light sources. They still end with concentration, so keep
+          // their cleanup beside the other concentration-owned map artifacts.
+          if (updatedState.activeFireEffects) {
+              updatedState = {
+                  ...updatedState,
+                  activeFireEffects: updatedState.activeFireEffects.filter(
+                      fire => fire.spellId !== previousSpellId && !trackedEffectIds.has(fire.id)
+                  )
+              };
+          }
+
+          // 4. Remove direct active-effect mirrors written by concentration spells.
+        // Resistance, Mage Armor-style buffs, and similar spell mirrors live on
+        // activeEffects so the combat engine can read them without flattening
+        // them into the core character sheet. When concentration ends, they
+        // need to disappear with the same spell source.
+        updatedState = {
+            ...updatedState,
+            characters: updatedState.characters.map(char => {
+                const newActiveEffects = (char.activeEffects || []).filter(effect =>
+                    effect.spellId !== previousSpellId && !trackedEffectIds.has(effect.id)
+                );
+
+                if (newActiveEffects.length !== (char.activeEffects || []).length) {
+                    return {
+                        ...char,
+                        activeEffects: newActiveEffects
+                    };
+                }
+
+                return char;
+            })
+        };
+
+        // 5. Remove Summons
         // Summons are full combat actors, so ending the concentration spell
         // must remove the token from the roster. Prefer tracked effect IDs,
         // but also trust summon metadata because older concentration scans can
@@ -259,5 +337,47 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
 
     get description(): string {
         return `${this.context.caster.name} breaks concentration`
+    }
+}
+
+export async function breakFriendsConcentrationForCaster(
+    state: CombatState,
+    caster: CombatCharacter,
+    context: CommandContext,
+    reason: 'caster_makes_attack_roll' | 'caster_deals_damage' | 'caster_forces_saving_throw' | 'target_takes_damage',
+    detail?: string
+): Promise<CombatState> {
+    const liveCaster = state.characters.find(character => character.id === caster.id) ?? caster
+    if (liveCaster.concentratingOn?.spellId !== 'friends') {
+        return state
+    }
+
+    const breakCommand = new BreakConcentrationCommand({
+        ...context,
+        caster: liveCaster,
+        spellId: 'friends',
+        spellName: liveCaster.concentratingOn.spellName || 'Friends',
+        targets: []
+    })
+    const updatedState = await breakCommand.execute(state)
+    const reasonText = reason.replace(/_/g, ' ')
+
+    return {
+        ...updatedState,
+        combatLog: [
+            ...updatedState.combatLog,
+            {
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `Friends ends early because ${liveCaster.name} ${reasonText}${detail ? ` (${detail})` : ''}.`,
+                characterId: liveCaster.id,
+                data: {
+                    spellId: 'friends',
+                    earlyEndReason: reason,
+                    detail
+                }
+            }
+        ]
     }
 }

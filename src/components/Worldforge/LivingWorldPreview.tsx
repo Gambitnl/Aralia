@@ -69,7 +69,9 @@ const LivingWorldPreview: React.FC = () => {
       dead: all.length - living.length,
       births: state.chronicle.events.filter((e) => e.kind === 'birth').length,
       deaths: state.chronicle.events.filter((e) => e.kind === 'death').length,
+      marriages: state.chronicle.events.filter((e) => e.kind === 'marriage').length,
       events: state.chronicle.events.length,
+      prosperity: Math.round(state.prosperity ?? 50),
       years,
     };
   }, [state, roster, years]);
@@ -125,6 +127,8 @@ const LivingWorldPreview: React.FC = () => {
           ['Living now', stats.living],
           ['Died', stats.dead],
           ['Born', stats.births],
+          ['Marriages', stats.marriages],
+          ['Prosperity', stats.prosperity],
           ['Total ever', stats.totalEver],
           ['Events', stats.events],
         ] as const).map(([label, value]) => (

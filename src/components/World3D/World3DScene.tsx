@@ -41,6 +41,7 @@ import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
 import { useChunkStreaming } from './useChunkStreaming';
 import World3DNameplates from './World3DNameplates';
 import GroundAgents from './GroundAgents';
+import SceneCast, { type SceneCastMember } from './SceneCast';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import type { ChunkLoader, LoadedChunk } from '@/systems/world3d/types';
 import { chunkOriginWorld } from '@/systems/world3d/coords';
@@ -87,6 +88,12 @@ interface World3DSceneProps {
    * the same scene; no view switch.
    */
   frameTownCellNonce?: number;
+  /**
+   * Staged scene cast — the player + opening-situation strangers, rendered as
+   * figures at the spawn so the opening predicament is visible in-world. Empty
+   * once the opening is over.
+   */
+  sceneCast?: SceneCastMember[];
 }
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
@@ -441,6 +448,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   groundWorld = null,
   agentClock,
   frameTownCellNonce = 0,
+  sceneCast,
 }) => {
   const { loaded, update } = useChunkStreaming(loader);
 
@@ -573,6 +581,9 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           <ChunkPieces key={`${c.cx}|${c.cy}`} chunk={c} origin={sceneOrigin} />
         ))}
         <GroundAgents ground={groundWorld} clock={agentClock} sceneOrigin={sceneOrigin} />
+        {sceneCast && sceneCast.length > 0 && (
+          <SceneCast cast={sceneCast} surfaceY={startSurfaceY} />
+        )}
       </Canvas>
       </ForgeAssetContext.Provider>
     </div>

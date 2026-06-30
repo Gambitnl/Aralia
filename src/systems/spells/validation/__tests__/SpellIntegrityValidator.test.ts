@@ -5,6 +5,7 @@ import path from 'path';
 import { SpellIntegrityValidator } from '../SpellIntegrityValidator';
 import { SpellValidator } from '../spellValidator';
 import { Spell } from '../../../../types/spells';
+import tinyServant from '../../../../../public/data/spells/level-3/tiny-servant.json';
 
 /**
  * SpellIntegrityValidator — Regression Test Suite
@@ -49,9 +50,12 @@ function getSpells(level: number): Spell[] {
   const dir = path.join(SPELLS_ROOT, `level-${level}`);
   if (!fs.existsSync(dir)) return [];
 
+  // Some checked-in spell JSON files carry a UTF-8 BOM. Strip it here so the
+  // regression suite keeps exercising spell content instead of tripping over
+  // file-encoding noise in the loader.
   return fs.readdirSync(dir)
     .filter(f => f.endsWith('.json'))
-    .map(f => JSON.parse(fs.readFileSync(path.join(dir, f), 'utf-8')));
+    .map(f => JSON.parse(fs.readFileSync(path.join(dir, f), 'utf-8').replace(/^\uFEFF/, '')));
 }
 
 // ---------------------------------------------------------------------------
@@ -4941,6 +4945,75 @@ describe('SpellIntegrityValidator', () => {
       expect(familiarSummon?.description).toBe('Summon one persistent familiar spirit in an animal form at an unoccupied space within range. The familiar acts independently, obeys your commands, and stays until dismissed or reduced to 0 Hit Points. While it is within 100 feet, you can communicate telepathically with it, use a Bonus Action to perceive through its senses until the start of your next turn, and have it deliver your touch spells using its Reaction; you can have only one familiar at a time.');
       expect(servantUtility?.description).toBe('Animate each touched Tiny nonmagical unattended object into a controlled Tiny Servant for 8 hours. As a Bonus Action, you can mentally command any or all servants within 120 feet, they keep following a simple order until complete, they defend themselves if uncommanded, and each servant reverts to object form when it drops to 0 Hit Points.');
       expect(animateObjectsUtility?.description).toBe('Animate eligible nonmagical unattended Huge-or-smaller objects within 120 feet for up to 1 minute with concentration. Object size counts against your spellcasting ability modifier limit, each object becomes an allied Construct that shares your initiative, you can command any within 500 feet as a Bonus Action, uncommanded objects Dodge and avoid harm, and each object reverts at 0 Hit Points with excess damage carrying over.');
+    });
+
+    it('preserves live Tiny Servant lifecycle and command state through SpellValidator', () => {
+      const parsedTinyServant = SpellValidator.safeParse(tinyServant);
+
+      // Tiny Servant already carries structured lifecycle/control fields in live
+      // data. The validator should keep them intact so the spell is first-class
+      // control data instead of prose that gets stripped on parse.
+      expect(parsedTinyServant.success).toBe(true);
+
+      const servantUtility = parsedTinyServant.data.effects.find(effect => effect.type === 'UTILITY') as any;
+
+      expect(servantUtility?.summonControl).toEqual(expect.objectContaining({
+        entityType: 'Tiny Servant',
+        commandAction: 'Bonus Action',
+        commandRangeFeet: 120,
+        persistentOrder: 'continues following order until task complete',
+        lifecycle: 'reverts at 0 HP with remaining damage carryover'
+      }));
+      expect(servantUtility?.animatedObjectState).toEqual(expect.objectContaining({
+        creatureType: 'Construct',
+        size: 'Tiny',
+        lifecycle: expect.objectContaining({
+          hitPointEnding: 'servant remains animated until spell ends or it drops to 0 hit points',
+          reversion: 'when it drops to 0 hit points, it reverts to its original object form',
+          damageCarryover: 'remaining damage carries over to the original object form'
+        })
+      }));
+    });
+
+    it('preserves live Simulacrum lifecycle and control metadata through SpellValidator', () => {
+      const simulacrum = getSpells(7).find(spell => spell.id === 'simulacrum');
+      const parsedSimulacrum = simulacrum ? SpellValidator.safeParse(simulacrum) : { success: false as const };
+
+      // Simulacrum already encodes persistent lifecycle and command-control
+      // metadata in live data. The validator should keep those nested fields
+      // intact so the spell stays first-class summon/control data instead of
+      // losing the structured ownership packet at parse time.
+      expect(parsedSimulacrum.success).toBe(true);
+
+      const summonEffect = parsedSimulacrum.success ? parsedSimulacrum.data.effects.find(effect => effect.type === 'SUMMONING') as any : undefined;
+      const summon = summonEffect?.summon;
+
+      expect(summon?.persistent).toBe(true);
+      expect(summon?.commandsPerTurn).toBe(1);
+      expect(summon?.initiative).toBe('shared');
+      expect(summon?.statBlock).toEqual(expect.objectContaining({
+        name: 'Simulacrum',
+        type: 'Construct',
+        size: 'Medium'
+      }));
+      expect(summon?.lifecycle).toEqual(expect.objectContaining({
+        hitPointMaximum: 'half the original creature Hit Point maximum',
+        repairOnly: 'damaged simulacrum HP restored only by Long Rest repair costing 100 GP per Hit Point',
+        zeroHpEnding: 'at 0 Hit Points, simulacrum reverts to snow and melts away',
+        recastEnding: 'casting Simulacrum again instantly destroys any existing simulacrum from this spell'
+      }));
+      expect(summon?.control).toEqual(expect.objectContaining({
+        entityType: 'simulacrum_construct_duplicate',
+        source: 'Beast or Humanoid present through casting and snow/ice duplicate material',
+        allegiance: 'friendly to caster and creatures caster designates',
+        obedience: 'obeys spoken commands',
+        restrictions: expect.arrayContaining([
+          'cannot learn',
+          'cannot become more powerful',
+          'cannot regain expended spell slots',
+          'cannot take rests to recover resources unless represented elsewhere'
+        ])
+      }));
     });
 
     it('keeps command and prison control rows tied to saves turns and escape triggers', () => {

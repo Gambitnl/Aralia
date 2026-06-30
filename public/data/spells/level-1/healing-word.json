@@ -56,7 +56,10 @@
     "maxTargets": 1,
     "filter": {
       "creatureTypes": [],
-      "excludeCreatureTypes": [],
+      "excludeCreatureTypes": [
+        "Undead",
+        "Construct"
+      ],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
@@ -104,7 +107,10 @@
         "type": "always",
         "targetFilter": {
           "creatureTypes": [],
-          "excludeCreatureTypes": [],
+          "excludeCreatureTypes": [
+            "Undead",
+            "Construct"
+          ],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],

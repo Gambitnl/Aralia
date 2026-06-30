@@ -236,6 +236,26 @@
         "customFormula": "1d8 at level 1, 2d8 at level 5, 3d8 at level 11, 4d8 at level 17"
       },
       "description": "Until the spell ends, the caster can take a Magic action to hurl the flame at one creature or object within 60 feet; on a ranged spell hit, the target takes 1d8 Fire damage, and damage increases to 2d8 at level 5, 3d8 at level 11, and 4d8 at level 17.",
+      "grantedActions": [
+        {
+          "type": "action",
+          "action": "Hurl Flame",
+          "frequency": "while_active",
+          "actor": "caster",
+          "actionKind": "magic_action",
+          "prerequisites": [
+            "target_within_spell_range",
+            "target_object_within_spell_range"
+          ],
+          "rangeLimit": 60,
+          "attackType": "ranged_spell_attack",
+          "damage": {
+            "dice": "1d8",
+            "type": "Fire"
+          },
+          "notes": "Until the spell ends, the caster can take a Magic action to hurl the flame at one creature or object within 60 feet."
+        }
+      ],
       "conditionalEndings": [],
       "tags": [
         "fire-damage",

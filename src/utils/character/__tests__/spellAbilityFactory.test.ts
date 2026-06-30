@@ -226,5 +226,42 @@ describe('spellAbilityFactory', () => {
                 }
             ]);
         });
+
+        it('scales Spare the Dying range from caster level instead of spell-slot level', () => {
+            const spareTheDying = {
+                ...baseSpell,
+                id: 'spare-the-dying',
+                name: 'Spare the Dying',
+                level: 0,
+                description: 'Choose a creature within range that has 0 Hit Points and is not dead.',
+                range: { type: 'ranged', distance: 15 },
+                targeting: { type: 'single', range: 15, validTargets: ['creatures'] }
+            } as unknown as Spell;
+
+            const levelOneAbility = createAbilityFromSpell(spareTheDying, {
+                ...baseCaster,
+                level: 1
+            });
+            const levelFiveAbility = createAbilityFromSpell(spareTheDying, {
+                ...baseCaster,
+                level: 5
+            });
+            const levelElevenAbility = createAbilityFromSpell(spareTheDying, {
+                ...baseCaster,
+                level: 11
+            });
+            const levelSeventeenAbility = createAbilityFromSpell(spareTheDying, {
+                ...baseCaster,
+                level: 17
+            });
+
+            // Combat abilities store range in 5-foot tiles. These expectations
+            // prove the cantrip tier text becomes the actual targeting radius
+            // used by the battle-map ability picker.
+            expect(levelOneAbility.range).toBe(3);
+            expect(levelFiveAbility.range).toBe(6);
+            expect(levelElevenAbility.range).toBe(12);
+            expect(levelSeventeenAbility.range).toBe(24);
+        });
     });
 });

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { SpellCommandFactory } from '../SpellCommandFactory'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
 import fireBolt from '../../../../public/data/spells/level-0/fire-bolt.json'
+import frostbite from '../../../../public/data/spells/level-0/frostbite.json'
 import { type Spell, type SpellEffect, type DamageEffect } from '@/types/spells'
 
 type TestCommandWithEffect = {
@@ -20,6 +21,12 @@ function makeCaster(level: number) {
 
 const target = { ...createMockCombatCharacter(), id: 'target' }
 const gameState = createMockGameState()
+
+function getAttackRollModifierCommand(commands: unknown[]) {
+  return commands.find(
+    (c): c is TestCommandWithEffect => 'effect' in c && (c as TestCommandWithEffect).effect.type === 'ATTACK_ROLL_MODIFIER'
+  )
+}
 
 describe('SpellCommandFactory - Cantrip Scaling', () => {
   it('scales Fire Bolt to 2d10 at caster level 5', async () => {
@@ -68,5 +75,20 @@ describe('SpellCommandFactory - Cantrip Scaling', () => {
     )
     expect(damageCommand).toBeDefined()
     expect((damageCommand!.effect as DamageEffect).damage.dice).toBe('1d10')
+  })
+
+  it.each([
+    [5, '2d6'],
+    [11, '3d6'],
+    [17, '4d6']
+  ] as const)('scales Frostbite nested cold damage to %s at caster level %s', async (level, expectedDice) => {
+    const caster = makeCaster(level)
+    const commands = await SpellCommandFactory.createCommands(
+      frostbite as unknown as Spell, caster, [target], 0, gameState
+    )
+    const attackRollModifierCommand = getAttackRollModifierCommand(commands)
+
+    expect(attackRollModifierCommand).toBeDefined()
+    expect((attackRollModifierCommand!.effect as any).damage.dice).toBe(expectedDice)
   })
 })

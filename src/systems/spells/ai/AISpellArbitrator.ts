@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/06/2026, 17:23:11
+ * Dependents: commands/factory/SpellCommandFactory.ts
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { Spell } from '../../../types/spells'
 import { CombatCharacter, CombatState } from '../../../types/combat'
 import { GameState } from '../../../types'
@@ -57,7 +73,19 @@ const EFFECT_SCHEMA = `
 }
 `
 
+/**
+ * This file arbitrates spells that need AI judgment instead of pure mechanics.
+ *
+ * Mechanical spells return immediately, AI-assisted spells ask a narrow
+ * prerequisite question, and AI-DM spells ask for a fuller ruling with player
+ * input. The small in-memory cache below avoids paying for the exact same AI
+ * ruling twice while keeping the cache key tied to the full scene prompt so
+ * changed terrain, targets, caster context, or player text cannot reuse a stale
+ * decision.
+ */
 class AISpellArbitrator {
+    private arbitrationCache = new Map<string, ArbitrationResult>()
+
     /**
      * Main arbitration entry point
      */
@@ -89,6 +117,18 @@ class AISpellArbitrator {
     }
 
     /**
+     * Clears cached arbitration rulings for focused tests and future combat
+     * lifecycle hooks.
+     *
+     * The live game can call this when leaving combat or loading a materially
+     * different scene. Tests call it before each case so one assertion cannot
+     * accidentally inherit another assertion's AI ruling.
+     */
+    clearCacheForTest(): void {
+        this.arbitrationCache.clear()
+    }
+
+    /**
      * Tier 2: Validate context (e.g., "is there stone nearby?")
      */
     private async validateContext(
@@ -102,11 +142,19 @@ class AISpellArbitrator {
         }
 
         const context = this.buildGameStateContext(caster, combatState, gameState)
+        const prompt = `${spell.aiContext.prompt}\n\nContext:\n${context}`
+        const systemPrompt = 'You are a D&D 5e DM validating spell prerequisites. Respond with valid JSON only.'
+        const cacheKey = this.buildCacheKey('ai_assisted', prompt, systemPrompt)
+        const cached = this.getCachedResult(cacheKey)
+
+        if (cached) {
+            return cached
+        }
 
         try {
             const result = await generateText(
-                `${spell.aiContext.prompt}\n\nContext:\n${context}`,
-                'You are a D&D 5e DM validating spell prerequisites. Respond with valid JSON only.',
+                prompt,
+                systemPrompt,
                 true, // expectJson
                 'AISpellArbitrator.validateContext'
             )
@@ -129,11 +177,14 @@ class AISpellArbitrator {
                 };
             }
 
-            return {
+            const arbitrationResult = {
                 allowed: responseData.valid === true,
                 reason: responseData.reason,
                 narrativeOutcome: responseData.flavorText
             }
+
+            this.setCachedResult(cacheKey, arbitrationResult)
+            return arbitrationResult
         } catch (error) {
             logger.error('AI validation failed', { error })
             return {
@@ -178,12 +229,21 @@ class AISpellArbitrator {
             .replace('{playerInput}', safeInput)
             .replace('{spellDC}', this.calculateSpellDC(caster).toString())
 
+        const prompt = `${promptWithInput}\n\nContext:\n${context}`
+        const systemPrompt = `You are a D&D 5e Dungeon Master adjudicating spell effects. Be fair but follow the rules. Be concise.
+                Respond with valid JSON matching this schema:
+                ${EFFECT_SCHEMA}`
+        const cacheKey = this.buildCacheKey('ai_dm', prompt, systemPrompt)
+        const cached = this.getCachedResult(cacheKey)
+
+        if (cached) {
+            return cached
+        }
+
         try {
             const result = await generateText(
-                `${promptWithInput}\n\nContext:\n${context}`,
-                `You are a D&D 5e Dungeon Master adjudicating spell effects. Be fair but follow the rules. Be concise.
-                Respond with valid JSON matching this schema:
-                ${EFFECT_SCHEMA}`,
+                prompt,
+                systemPrompt,
                 true, // expectJson
                 'AISpellArbitrator.aiDMAdjudication'
             )
@@ -208,12 +268,15 @@ class AISpellArbitrator {
                 };
             }
 
-            return {
+            const arbitrationResult = {
                 allowed: responseData.allowed !== false, // Default to true if missing
                 reason: responseData.reason,
                 narrativeOutcome: responseData.narrativeOutcome,
                 mechanicalEffects: responseData.mechanicalEffects
             }
+
+            this.setCachedResult(cacheKey, arbitrationResult)
+            return arbitrationResult
         } catch (error) {
             logger.error('AI DM adjudication failed', { error })
             return {
@@ -287,6 +350,44 @@ Current Conditions:
         const spellcastingMod = Math.floor((score - 10) / 2)
 
         return 8 + proficiencyBonus + spellcastingMod
+    }
+
+    private buildCacheKey(mode: 'ai_assisted' | 'ai_dm', prompt: string, systemPrompt: string): string {
+        // The prompt already contains spell text, caster context, nearby
+        // creatures, material/terrain wording, weather, time, and sanitized
+        // player input. Using it as the cache identity keeps the policy simple:
+        // identical prompts can reuse a ruling, any meaningful scene change
+        // becomes a different cache entry.
+        return JSON.stringify({
+            mode,
+            prompt,
+            systemPrompt
+        })
+    }
+
+    private getCachedResult(cacheKey: string): ArbitrationResult | null {
+        const cached = this.arbitrationCache.get(cacheKey)
+
+        if (!cached) {
+            return null
+        }
+
+        // Return a fresh object so callers cannot mutate the cache entry and
+        // change what later identical spell casts receive.
+        return {
+            ...cached,
+            mechanicalEffects: cached.mechanicalEffects?.map(effect => ({ ...effect }))
+        }
+    }
+
+    private setCachedResult(cacheKey: string, result: ArbitrationResult): void {
+        // Store only AI-produced rulings. Service errors and security/input
+        // rejections return before this point, so transient failures do not get
+        // preserved as if they were durable spell rulings.
+        this.arbitrationCache.set(cacheKey, {
+            ...result,
+            mechanicalEffects: result.mechanicalEffects?.map(effect => ({ ...effect }))
+        })
     }
 }
 

@@ -22,6 +22,7 @@ import React from 'react';
 import { GameState, Action, GoalStatus, KnownFact } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as OllamaTextService from '../../services/ollamaTextService';
+import { townChronicleForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
 import { synthesizeSpeech } from '../../services/ttsService';
 import { AddMessageFn, AddGeminiLogFn, PlayPcmAudioFn } from './actionHandlerTypes';
 import { NPCS } from '../../constants';
@@ -43,6 +44,8 @@ interface BanterContext {
     weather: string;
     timeOfDay: string;
     currentTask?: string;
+    /** Recent town history from the living-world sim (chronicleForLocation). */
+    townChronicle?: string[];
 }
 
 interface HandleTalkProps {
@@ -232,6 +235,13 @@ function buildConversationContext(state: GameState): BanterContext {
         weather,
         timeOfDay,
         currentTask: activeQuest?.title,
+        townChronicle: townChronicleForLocation({
+            currentLocationId: state.currentLocationId,
+            worldSeed: state.worldSeed,
+            gridSize: state.mapData?.gridSize,
+            townSim: state.townSim,
+            gameTime: state.gameTime,
+        }),
     };
 }
 
@@ -437,6 +447,18 @@ export async function handleTalk({
     const activeGoals = memory.goals?.filter(g => g.status === GoalStatus.Active);
     if (activeGoals && activeGoals.length > 0) {
       fullPrompt += `\nMy Current Goals: ["${activeGoals.map(g => g.description).join('", "')}"]`;
+    }
+
+    // Living-world sim: let townsfolk reference their own town's recent history.
+    const townHistory = townChronicleForLocation({
+      currentLocationId: gameState.currentLocationId,
+      worldSeed: gameState.worldSeed,
+      gridSize: gameState.mapData?.gridSize,
+      townSim: gameState.townSim,
+      gameTime: gameState.gameTime,
+    });
+    if (townHistory.length > 0) {
+      fullPrompt += `\nRecent happenings in this town (you may reference them naturally): ${townHistory.join(' ')}`;
     }
 
     fullPrompt += `\n\nYour EXTREMELY BRIEF response (1-2 sentences MAX):`;

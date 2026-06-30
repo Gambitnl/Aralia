@@ -1,4 +1,4 @@
-﻿{
+{
     "id":  "vicious-mockery",
     "name":  "Vicious Mockery",
     "aliases":  [
@@ -55,6 +55,9 @@
                                            "creatures"
                                        ],
                       "lineOfSight":  true,
+                      "acquisition":  {
+                                          "mode":  "sight_or_hearing"
+                                      },
                       "maxTargets":  1,
                       "filter":  {
                                      "creatureTypes":  [

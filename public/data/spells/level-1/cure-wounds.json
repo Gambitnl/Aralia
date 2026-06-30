@@ -64,7 +64,8 @@
 
                                                        ],
                                      "excludeCreatureTypes":  [
-
+                                                                 "Undead",
+                                                                 "Construct"
                                                               ],
                                      "sizes":  [
 
@@ -122,7 +123,8 @@
 
                                                                                  ],
                                                                "excludeCreatureTypes":  [
-
+                                                                                           "Undead",
+                                                                                           "Construct"
                                                                                         ],
                                                                "sizes":  [
 

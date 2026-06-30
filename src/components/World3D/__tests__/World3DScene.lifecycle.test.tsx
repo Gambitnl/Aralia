@@ -143,10 +143,12 @@ describe('World3DScene lifecycle proof', () => {
       />,
     );
 
-    // The wrapper height is part of the blank-render defense: if this collapses, the scene can
-    // still mount but remain effectively invisible.
+    // The wrapper fills its pane (height:100%) with a 520px floor as a blank-render
+    // defense: the TransitionController root anchors the subtree to the viewport
+    // (100dvh) so this 100% resolves to the full window instead of collapsing; the
+    // minHeight keeps the scene visible even if an ancestor ever loses its height.
     const shell = container.firstElementChild as HTMLElement;
-    expect(shell.style.height).toBe('78vh');
+    expect(shell.style.height).toBe('100%');
     expect(shell.style.minHeight).toBe('520px');
 
     // The camera shell and scene origin are the mount-time values the renderer needs to keep the

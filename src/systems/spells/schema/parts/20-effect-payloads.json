@@ -1845,6 +1845,26 @@
             "$ref": "#/definitions/CreatedObject"
           }
         },
+        "light": {
+          "type": "object"
+        },
+        "invisibilitySuppression": {
+          "type": "object",
+          "properties": {
+            "suppressesConditionBenefit": {
+              "type": "string"
+            },
+            "scope": {
+              "type": "string"
+            },
+            "duration": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          }
+        },
         "sensoryManifestation": {
           "$ref": "#/definitions/SensoryManifestation"
         },

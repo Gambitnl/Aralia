@@ -13,9 +13,54 @@
  * nearest Voronoi site to that point. Pure: no React/DOM.
  */
 import type { FmgAtlasResult } from '../fmg/generateAtlas';
+import type { Entry3DAnchor } from '../../../types/state';
 
 export interface GridCoord { x: number; y: number }
 export interface GridSize { cols: number; rows: number }
+
+/** Land threshold — a cell is land when its height ≥ this (mirrors FMG / the
+ *  legacy tile→cell land rule). The ONE place this rule lives (bridge spec). */
+const LAND_H = 20;
+
+/**
+ * Snap an atlas cell to the nearest LAND cell. A land cell returns itself; a
+ * water/edge cell returns the nearest cell with height ≥ LAND_H (by site
+ * distance). The single home for the land rule both the marker and 3D-entry
+ * halves of the bridge share, so they stop naming different cells for a tile.
+ */
+export function snapToLandCell(atlas: FmgAtlasResult, cellId: number): number {
+  const cells = atlas.pack.cells;
+  if (cellId >= 0 && (cells.h[cellId] ?? 0) >= LAND_H) return cellId;
+  const site = cells.p[cellId];
+  if (!site) return cellId;
+  let best = cellId;
+  let bestD = Infinity;
+  for (let i = 0; i < cells.h.length; i++) {
+    if ((cells.h[i] ?? 0) < LAND_H) continue;
+    const p = cells.p[i];
+    if (!p) continue;
+    const d = (p[0] - site[0]) ** 2 + (p[1] - site[1]) ** 2;
+    if (d < bestD) { bestD = d; best = i; }
+  }
+  return best;
+}
+
+/**
+ * Resolve the exact 3D-entry anchor for a clicked atlas cell (cell-native world).
+ * A burg cell anchors on the BURG'S position (so the Locale frames the town —
+ * cells are far larger than the Locale window, and the burg sits anywhere within
+ * its cell); a non-burg cell land-snaps and centers on the cell site.
+ */
+export function entry3DAnchorForCell(atlas: FmgAtlasResult, cellId: number): Entry3DAnchor {
+  const burgId = (atlas.pack.cells as { burg?: ArrayLike<number> }).burg?.[cellId];
+  if (burgId) {
+    const burg = atlas.pack.burgs?.[burgId] as { x?: number; y?: number } | undefined;
+    if (burg && burg.x != null && burg.y != null) {
+      return { cellId: nearestCell(atlas, burg.x, burg.y), centerPx: [burg.x, burg.y] };
+    }
+  }
+  return { cellId: snapToLandCell(atlas, cellId) };
+}
 
 /** Cell-center of a grid cell, projected into atlas graph coords. */
 export function gridCellToGraphPoint(

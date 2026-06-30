@@ -1,25 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import { SummoningCommand } from '../effects/SummoningCommand';
 import type { CommandContext } from '../base/SpellCommand';
-import { findTouchDeliveryActor } from '../../hooks/combat/useTargetValidator';
-import type { Ability, CombatCharacter, CombatState } from '../../types/combat';
+import { AbilityCommandFactory } from '../factory/AbilityCommandFactory';
+import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { SummoningEffect } from '../../types/spells';
 import findFamiliar from '../../../public/data/spells/level-1/find-familiar.json';
 
 /**
- * This file proves the live Find Familiar spell data reaches summon metadata.
+ * This file proves live Find Familiar spell data reaches executable summon actions.
  *
- * The touch-delivery validator reads permissions from the summoned actor, not
- * directly from spell JSON. This focused proof executes the summon command with
- * the real Find Familiar packet and checks that the actor receives the shared
- * touch-delivery permission, range, and reaction-cost metadata.
+ * The dismissal and recall commands read the original spell id from generated
+ * familiar actions. This focused proof executes the summon command with the
+ * real Find Familiar packet, then confirms the generated actions move the
+ * familiar between the combat roster and pocketed summon state.
  *
  * Called by: focused summon runtime tests.
  * Depends on: SummoningCommand and the public Find Familiar spell packet.
  */
 
 describe('SummoningCommand live Find Familiar metadata bridge', () => {
-  it('stores live touch-delivery permissions on the summoned familiar actor', () => {
+  it('exposes live dismiss and recall commands on the caster after Find Familiar is summoned', () => {
     const caster = {
       id: 'find-familiar-caster',
       name: 'Find Familiar Caster',
@@ -43,85 +43,60 @@ describe('SummoningCommand live Find Familiar metadata bridge', () => {
       characters: [caster],
       currentTurn: 1,
       round: 1,
+      turnState: {
+        currentTurn: 1,
+        turnOrder: [caster.id],
+        currentCharacterId: caster.id,
+        phase: 'action',
+        actionsThisTurn: []
+      },
       combatLog: []
     } as CombatState;
 
-    // The command should copy Find Familiar's live action permissions onto the
-    // created actor. Later target validation should not need to reopen spell
-    // JSON to know the familiar can deliver touch spells by spending Reaction.
-    const command = new SummoningCommand(summonEffect, context);
-    const nextState = command.execute(state);
-    const summonedActor = nextState.characters.find(character =>
+    const summonedState = new SummoningCommand(summonEffect, context).execute(state);
+    const updatedCaster = summonedState.characters.find(character => character.id === caster.id);
+    const summonedFamiliar = summonedState.characters.find(character =>
       character.isSummon &&
-      character.summonMetadata?.spellId === findFamiliar.id
+      character.summonMetadata?.spellId === findFamiliar.id &&
+      character.summonMetadata?.casterId === caster.id
+    ) as CombatCharacter | undefined;
+
+    expect(updatedCaster?.abilities?.some(ability => ability.name === 'Dismiss Familiar')).toBe(true);
+    expect(updatedCaster?.abilities?.some(ability => ability.name === 'Recall Familiar')).toBe(true);
+    expect(summonedFamiliar).toBeDefined();
+
+    const dismissAbility = updatedCaster?.abilities?.find(ability => ability.name === 'Dismiss Familiar');
+    const recallAbility = updatedCaster?.abilities?.find(ability => ability.name === 'Recall Familiar');
+
+    expect(dismissAbility).toBeDefined();
+    expect(recallAbility).toBeDefined();
+
+    const dismissCommands = AbilityCommandFactory.createCommands(
+      dismissAbility!,
+      updatedCaster!,
+      [updatedCaster!],
+      {} as never
     );
 
-    expect(summonedActor).toBeDefined();
-    const createdFamiliar = summonedActor as CombatCharacter;
-
-    expect(summonedActor?.summonMetadata).toEqual(expect.objectContaining({
-      formName: 'Owl',
-      entityType: 'familiar',
-      sourceName: findFamiliar.name,
-      actionPermissions: expect.objectContaining({
-        canDeliverTouchSpells: true,
-        touchDeliveryRangeFeet: 100,
-        touchDeliveryCost: 'reaction'
-      }),
-      telepathyRange: 100,
-      sharedSenses: true,
-      dismissable: true
-    }));
-
-    const touchSpellAbility: Ability = {
-      id: 'live-cure-wounds-like',
-      name: 'Live Cure Wounds Like',
-      description: 'A live touch spell proxy used to prove command-created familiar delivery.',
-      type: 'spell',
-      cost: { type: 'action' },
-      targeting: 'single_any',
-      range: 1,
-      effects: [{ type: 'heal', value: 1 }],
-      spell: {
-        range: {
-          type: 'touch'
-        }
-      }
-    };
-    const touchTarget = {
-      id: 'live-touch-target',
-      name: 'Live Touch Target',
-      team: 'player',
-      position: {
-        x: createdFamiliar.position.x + 1,
-        y: createdFamiliar.position.y
-      },
-      currentHP: 10,
-      maxHP: 10,
-      stats: { size: 'medium' }
-    } as unknown as CombatCharacter;
-
-    // This proves the actor created by SummoningCommand is not merely carrying
-    // decorative metadata. The shared delivery helper can use that exact actor
-    // as the touch-spell origin, then rejects the same actor once its declared
-    // Find Familiar Reaction has already been spent.
-    expect(findTouchDeliveryActor(touchSpellAbility, caster, touchTarget, [
-      ...nextState.characters,
-      touchTarget
-    ])).toMatchObject({
-      deliveryActor: expect.objectContaining({ id: createdFamiliar.id }),
-      targetDistance: 1
+    const dismissedState = dismissCommands[0].execute({
+      ...summonedState,
+      turnState: state.turnState
     });
-    expect(findTouchDeliveryActor(touchSpellAbility, caster, touchTarget, [
-      caster,
-      {
-        ...createdFamiliar,
-        actionEconomy: {
-          ...createdFamiliar.actionEconomy,
-          reaction: { used: true, remaining: 0 }
-        }
-      } as CombatCharacter,
-      touchTarget
-    ])).toBeNull();
+    expect(dismissedState.characters.some(character => character.id === summonedFamiliar?.id)).toBe(false);
+    expect(dismissedState.pocketedSummons?.map(entry => entry.summon.id)).toEqual([summonedFamiliar!.id]);
+
+    const recallCommands = AbilityCommandFactory.createCommands(
+      recallAbility!,
+      updatedCaster!,
+      [updatedCaster!],
+      {} as never
+    );
+
+    const recalledState = recallCommands[0].execute({
+      ...dismissedState,
+      turnState: state.turnState
+    });
+    expect(recalledState.characters.some(character => character.id === summonedFamiliar?.id)).toBe(true);
+    expect(recalledState.pocketedSummons).toEqual([]);
   });
 });

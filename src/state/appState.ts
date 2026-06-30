@@ -35,7 +35,10 @@ import { getAllFactions } from '../utils/factionUtils';
 import { DEITIES } from '../data/deities';
 import { TEMPLES } from '../data/temples';
 import { canUseDevTools } from '../utils/permissions';
-import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
+import { SUBMAP_DIMENSIONS, MAP_GRID_SIZE } from '../config/mapConfig';
+import { derivePlayerCellForTile } from '../systems/worldforge/local/playerCellFromLegacy';
+import { locationIdToTile } from '../utils/locationUtils';
+import type { PlayerCell } from '../types/state';
 import { getGameDay, inGameTimestamp } from '../utils/core';
 import { gridWorldDimensions } from '../utils/worldCoords';
 import * as SaveLoadService from '../services/saveLoadService';
@@ -104,6 +107,35 @@ const INITIAL_NAVAL_STATE: NavalState = {
 
 import { initialGameState, INITIAL_DIVINE_FAVOR } from './initialState';
 export { initialGameState, INITIAL_DIVINE_FAVOR };
+
+/**
+ * Derive the canonical player cell (cell-native world, Stage 2) from a legacy
+ * location id + Locale-local position. The cell is a faithful shadow of the tile
+ * the game already computes (via the existing golden reverse mapping); returns
+ * null when it can't be resolved (e.g. the static 'clearing' node before spawn
+ * relocation, or a generator hiccup) so the reducer never throws. Readers still
+ * use the derived legacy fields this stage.
+ *
+ * GRID-RETIRE: BA-5 — dual `localeCoords` producer. This is the LEGACY tile path:
+ * it writes `localeCoords` from the integer submap sub-tile (`subMapCoordinates`).
+ * The ground path (`worldReducer` `SET_PLAYER_GROUND_POS`) writes continuous Locale
+ * feet and wins whenever a ground/Locale session is active. Both producers survive
+ * until Stage 6 deletes `subMapCoordinates` / this integer path, leaving feet sole.
+ */
+function derivePlayerCell(
+  worldSeed: number,
+  locationId: string,
+  localeCoords: { x: number; y: number } | null,
+  mapData: _MapData | null,
+): PlayerCell | null {
+  const tile = locationIdToTile(locationId, LOCATIONS);
+  if (!tile) return null;
+  const gridSize = mapData?.gridSize ?? MAP_GRID_SIZE;
+  return derivePlayerCellForTile(worldSeed, tile, localeCoords, {
+    cols: gridSize.cols,
+    rows: gridSize.rows,
+  });
+}
 
 // RALPH: The Root Brain.
 // Orchestrates the "Big Bang" of state updates.
@@ -532,6 +564,23 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 startTownRegion: restOfPayload.startTownRegion,
                 // Cell-native 3D entry anchor (set atomically with the spawn).
                 entry3DAnchor: restOfPayload.entry3DAnchor ?? null,
+                // Open the new game directly in the 3D world so the opening
+                // situation is staged in-world (the player + the situation
+                // strangers stand at the spawn — see SceneCast). The ground
+                // loader engages via entry3DAnchor; the opening conversation
+                // overlays the 3D scene. Dev/skip/load flows keep their own
+                // view mode (they don't go through START_GAME_SUCCESS).
+                worldViewMode: '3d',
+                // Canonical player presence (cell-native world, Stage 2): the
+                // start-selection spawn threads the chosen cell explicitly so the
+                // source of truth agrees with entry3DAnchor; dev/skip flows derive
+                // it from the resolved spawn tile (null if it's the static start).
+                playerCell: restOfPayload.playerCell ?? derivePlayerCell(
+                    restOfPayload.worldSeed ?? state.worldSeed,
+                    restOfPayload.initialLocationId ?? STARTING_LOCATION_ID,
+                    restOfPayload.initialSubMapCoordinates,
+                    restOfPayload.mapData,
+                ),
                 subMapCoordinates: restOfPayload.initialSubMapCoordinates,
                 mapData: restOfPayload.mapData,
                 dynamicLocationItemIds: restOfPayload.dynamicLocationItemIds,
@@ -698,6 +747,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // Older saves can still load without a first-build payload; keep
                 // an empty registry so the rest of the game can treat history as present.
                 worldHistory: loadedState.worldHistory ?? createEmptyHistory(),
+                // Saves predating the living-world sim have no townSim; default it
+                // so registration/advance never dereference undefined.
+                townSim: loadedState.townSim ?? {},
                 shortRestTracker: resolvedShortRestTracker,
                 underdark: loadedState.underdark || INITIAL_UNDERDARK_STATE,
                 naval: loadedState.naval || { ...INITIAL_NAVAL_STATE },
@@ -710,13 +762,37 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         }
 
         case 'MOVE_PLAYER': {
+            const movedMapData = action.payload.mapData || state.mapData;
+            // GRID-RETIRE: BA-2 — Stage 4 cell-native arrival. A Travel-mode atlas pick
+            // carries the EXACT destination cell + anchor; arrival lands that cell
+            // intact (not the lossy `coord_X_Y` reverse-derive), RESETS Locale feet (the
+            // old Locale's feet are meaningless in the new cell — mirrors how this case
+            // nulls `entry3DAnchor`), and stamps the anchor so a later Enter-3D frames
+            // the destination town. The legacy `coord_X_Y`/`subMapCoordinates` below stay
+            // as bookkeeping (the surviving BA-2 compromise) until Stage 6. When
+            // `destinationCell` is absent (compass/static moves) behaviour is unchanged.
+            const dest = action.payload.destinationCell;
+            const arrivalPlayerCell: PlayerCell | null = dest
+                ? { cellId: dest.cellId, localeCoords: null }
+                : derivePlayerCell(
+                    state.worldSeed,
+                    action.payload.newLocationId,
+                    action.payload.newSubMapCoordinates,
+                    movedMapData,
+                );
             return {
                 ...state,
                 currentLocationId: action.payload.newLocationId,
                 subMapCoordinates: action.payload.newSubMapCoordinates,
-                // Moving invalidates a start-selection / click entry anchor so a
-                // later 3D entry doesn't snap back to the old town (cell-native).
-                entry3DAnchor: null,
+                // Record the canonical cell (cell-native world). Stage 2 derived it as a
+                // shadow of the legacy tile; Stage 4 makes the atlas-travel destination
+                // authoritative (carried intact, feet reset). The legacy fields above
+                // are unchanged — every existing reader keeps using them this stage.
+                playerCell: arrivalPlayerCell,
+                // Moving invalidates a start-selection / click entry anchor so a later 3D
+                // entry doesn't snap back to the old town; an atlas-travel arrival
+                // instead stamps the destination's anchor so Enter-3D frames that town.
+                entry3DAnchor: dest ? dest.anchor : null,
                 mapData: action.payload.mapData || state.mapData,
                 currentLocationActiveDynamicNpcIds: action.payload.activeDynamicNpcIds,
                 geminiGeneratedActions: null,
@@ -740,6 +816,14 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     { id: Date.now() + Math.random() + 1, text: action.payload.initialLocationDescription, sender: 'system', timestamp: new Date(dummyGameTime.getTime()) }
                 ],
                 subMapCoordinates: action.payload.initialSubMapCoordinates,
+                // Keep the canonical cell self-consistent with the dev spawn's
+                // location (null for the static 'clearing' start tile).
+                playerCell: derivePlayerCell(
+                    action.payload.worldSeed,
+                    state.currentLocationId,
+                    action.payload.initialSubMapCoordinates,
+                    action.payload.mapData,
+                ),
                 isLoading: false, loadingMessage: null, isImageLoading: false,
                 mapData: action.payload.mapData,
                 dynamicLocationItemIds: action.payload.dynamicLocationItemIds,

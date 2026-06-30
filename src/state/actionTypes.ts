@@ -64,7 +64,11 @@ export type AppAction =
   | { type: 'SET_IMAGE_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'ADD_MESSAGE'; payload: GameMessage }
-  | { type: 'MOVE_PLAYER'; payload: { newLocationId: string; newSubMapCoordinates: { x: number; y: number }; mapData?: MapData; activeDynamicNpcIds: string[] | null } }
+  // `destinationCell` (Stage 4, cell-native world): a Travel-mode atlas pick carries
+  // the EXACT destination cell + its 3D-entry anchor so arrival lands that cell (not
+  // the lossy tile reverse-derive), resets Locale feet, and frames the destination
+  // town on a later Enter-3D. Optional ⇒ legacy compass/static moves are unaffected.
+  | { type: 'MOVE_PLAYER'; payload: { newLocationId: string; newSubMapCoordinates: { x: number; y: number }; mapData?: MapData; activeDynamicNpcIds: string[] | null; destinationCell?: { cellId: number; anchor: Entry3DAnchor } } }
   | { type: 'APPLY_TAKE_ITEM_UPDATE'; payload: { item: Item; locationId: string; discoveryEntry: DiscoveryEntry } }
   // Places foraged items onto a (typically procedural coord_) tile and, by the
   // mere presence of the key, marks that tile as already searched so it cannot be
@@ -82,6 +86,7 @@ export type AppAction =
   | { type: 'SET_LAST_NPC_INTERACTION'; payload: { npcId: string | null; response: string | null } }
   | { type: 'RESET_NPC_INTERACTION_CONTEXT' }
   | { type: 'ADVANCE_TIME'; payload: { seconds: number } }
+  | { type: 'TOWNSIM_REGISTER_BURG'; payload: { burgId: number } }
   | { type: 'INSPECT_SUBMAP_TILE'; payload: { inspectTileDetails: InspectSubmapTilePayload } }
   | { type: 'SET_DEV_MODE_ENABLED'; payload: boolean }
   | { type: 'TOGGLE_DEV_MENU' }
@@ -143,6 +148,13 @@ export type AppAction =
   | { type: 'ADD_GENERATED_CHARACTER'; payload: PlayerCharacter }
   // Resource Management Actions
   | { type: 'ADD_ITEM'; payload: { itemId: string; count?: number } }
+  // Appends a fully-formed bespoke Item instance to inventory (unlike ADD_ITEM,
+  // which is registry-keyed and cannot carry custom fields like readableContent).
+  | { type: 'GIVE_ITEM'; payload: { item: Item } }
+  // Opens a readable inventory item (a Book carrying readableContent). For the
+  // takeable broadsheet keepsake this surfaces the frozen snapshot in the
+  // broadsheet modal even after the player has left the town.
+  | { type: 'READ_ITEM'; payload: { itemId: string } }
   | { type: 'ADD_SPELL_CREATED_ITEMS'; payload: { items: Item[] } }
   | { type: 'REMOVE_ITEM'; payload: { itemId: string; count?: number } }
   | { type: 'MODIFY_GOLD'; payload: { amount: number } }
@@ -185,6 +197,10 @@ export type AppAction =
   | { type: 'REMOVE_LOCATION_RESIDUE'; payload: RemoveLocationResiduePayload }
   | { type: 'REGISTER_DYNAMIC_ENTITY'; payload: { entityType: 'location', entity: Location } | { entityType: 'faction', entity: Faction } | { entityType: 'npc', entity: NPC } }
   | { type: 'ADD_WORLD_HISTORY_EVENT'; payload: { event: WorldHistoryEvent } }
+  // Living-world chronicle → tavern-gossip bridge: substantial recent town news
+  // becomes WorldRumors the TavernGossipSystem already surfaces. The reducer
+  // dedups by rumor id, so re-firing the sync is safe.
+  | { type: 'ADD_RUMORS'; payload: { rumors: import('../types/world.js').WorldRumor[] } }
   // Worldforge deltas are append-only save records. Replaying the same delta can
   // happen during generation/load handoffs, so reducers treat the id as the
   // durable de-duplication key.
@@ -234,6 +250,10 @@ export type AppAction =
   | { type: 'HEAL_CHARACTER'; payload: { characterId?: string; amount: number } }
   // Quest UI Actions
   | { type: 'TOGGLE_QUEST_LOG' }
+  // Town notice board visibility (living-world news modal)
+  | { type: 'SET_NOTICE_BOARD_VISIBLE'; payload: boolean }
+  // Town broadsheet visibility (living-world newspaper modal)
+  | { type: 'SET_BROADSHEET_VISIBLE'; payload: boolean }
   // Town Navigation Actions
   | { type: 'ENTER_TOWN'; payload: { townMap: import('../types/town.js').TownState['townMap']; entryPoint: import('../types/town.js').TownState['entryPoint']; spawnPosition: import('../types/town.js').TownPosition } }
   | { type: 'SET_TOWN_ENTRY_DIRECTION'; payload: { direction: 'north' | 'east' | 'south' | 'west' | null } }

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 22:47:07
- * Dependents: commands/factory/SpellCommandFactory.ts
- * Imports: 6 files
+ * Last Sync: 29/06/2026, 16:51:25
+ * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/SpellCommandFactory.ts
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -17,9 +17,10 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { TerrainEffect, EffectDuration, DamageType } from '@/types/spells'
-import { CombatState, Position, BattleMapTile, StatusEffect, EnvironmentalEffect } from '@/types/combat'
+import { CombatState, Position, BattleMapTile, StatusEffect, EnvironmentalEffect, ActiveMoldEarthSurfaceMark } from '@/types/combat'
 import { calculateAffectedTiles, AoEParams } from '../../utils/combat/aoeCalculations'
 import { mapShapeToStandard } from '../../utils/spatial/targetingUtils'
+import { generateId } from '../../utils/idGenerator'
 
 export class TerrainCommand extends BaseEffectCommand {
     constructor(
@@ -305,6 +306,7 @@ export class TerrainCommand extends BaseEffectCommand {
     private executeManipulation(state: CombatState, effect: TerrainEffect, affectedTiles: Position[]): CombatState {
         const manip = effect.manipulation!
         let message: string
+        let nextState = state
 
         switch (manip.type) {
             case 'excavate':
@@ -324,21 +326,68 @@ export class TerrainCommand extends BaseEffectCommand {
                 break
             case 'cosmetic':
                 message = `${this.context.caster.name} shapes the earth cosmetically`
+                if (this.context.spellId === 'mold-earth') {
+                    nextState = this.recordMoldEarthSurfaceMark(state, effect)
+                }
                 break
             default:
                 message = `${this.context.caster.name} manipulates the terrain`
         }
 
-        return this.addLogEntry(state, {
+        return this.addLogEntry(nextState, {
             type: 'action',
             message,
             characterId: this.context.caster.id,
             data: {
                 terrainEffect: effect,
                 manipulation: manip,
-                affectedPositions: affectedTiles
+                affectedPositions: affectedTiles,
+                surfaceMark: nextState.activeMoldEarthSurfaceMarks?.at(-1)
             }
         })
+    }
+
+    private recordMoldEarthSurfaceMark(state: CombatState, effect: TerrainEffect): CombatState {
+        const position = this.resolveSelectedTerrainPoint() ?? this.context.targets?.[0]?.position ?? this.context.caster.position
+        const currentTurn = this.getCurrentTurn(state)
+        const surfaceMark: ActiveMoldEarthSurfaceMark = {
+            id: generateId(),
+            spellId: this.context.spellId || 'mold-earth',
+            spellName: this.context.spellName,
+            casterId: this.context.caster.id,
+            position,
+            createdTurn: currentTurn,
+            expiresAtRound: this.resolveExpiryRound(effect.manipulation?.duration ?? effect.duration, currentTurn),
+            manipulation: effect.manipulation!
+        }
+
+        return {
+            ...state,
+            activeMoldEarthSurfaceMarks: [
+                ...(state.activeMoldEarthSurfaceMarks || []),
+                surfaceMark
+            ]
+        }
+    }
+
+    private getCurrentTurn(state: CombatState): number {
+        return state.turnState?.currentTurn ?? state.round ?? 0
+    }
+
+    private resolveExpiryRound(duration: EffectDuration | undefined, currentTurn: number): number | undefined {
+        if (!duration) {
+            return undefined
+        }
+
+        if (duration.type === 'rounds') {
+            return currentTurn + (duration.value ?? 1)
+        }
+
+        if (duration.type === 'minutes') {
+            return currentTurn + ((duration.value ?? 1) * 10)
+        }
+
+        return undefined
     }
 
     private calculateTerrainArea(effect: TerrainEffect): Position[] {
@@ -358,7 +407,17 @@ export class TerrainCommand extends BaseEffectCommand {
      * This keeps terrain spells like Wall of Fire or Spike Growth deterministic even without UI input.
      */
     private resolveOrigin(): Position {
-        return this.context.targets?.[0]?.position ?? this.context.caster.position
+        return this.resolveSelectedTerrainPoint() ?? this.context.targets?.[0]?.position ?? this.context.caster.position
+    }
+
+    private resolveSelectedTerrainPoint(): Position | undefined {
+        const selectedPoint = this.context.selectedSpellTargets?.find(target => {
+            const kind = (target as { kind?: string }).kind
+            return (kind === 'point' || kind === 'ground') &&
+                Boolean((target as { position?: Position }).position)
+        })
+
+        return (selectedPoint as { position?: Position } | undefined)?.position
     }
 
     private buildAoEParams(effect: TerrainEffect, origin: Position, target: Position): AoEParams | null {

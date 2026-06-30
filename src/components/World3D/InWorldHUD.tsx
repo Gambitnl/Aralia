@@ -57,6 +57,12 @@ interface InWorldHUDProps {
    * player's town cell. Only provided in ground mode (otherwise hides).
    */
   onOpenCellMap?: () => void;
+  /**
+   * Open the 2D world map (modal over the 3D view) drilled straight to the
+   * player's town PLAN — the detailed building/ward map of the town the player
+   * is standing in. Only provided in ground mode (otherwise hides).
+   */
+  onOpenTownPlan?: () => void;
 }
 
 const InWorldHUD: React.FC<InWorldHUDProps> = ({
@@ -73,6 +79,7 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
   onToggleGroundMode,
   onFrameTownCell,
   onOpenCellMap,
+  onOpenTownPlan,
 }) => {
   return (
     <div
@@ -195,6 +202,37 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
             }}
           >
             🗺 Cell Map
+          </button>
+        )}
+        {isGroundMode && onOpenTownPlan && (
+          <button
+            type="button"
+            data-testid="hud-open-town-plan"
+            onClick={onOpenTownPlan}
+            title="Open the detailed town plan — the building/ward map of the town you're standing in (overlays the 3D view)"
+            style={{
+              padding: '6px 12px',
+              fontSize: '12px',
+              fontFamily: 'Outfit, sans-serif',
+              fontWeight: 600,
+              color: 'var(--text-primary, #e8e8e8)',
+              backgroundColor: 'var(--bg-surface-alt, #1e2e3e)',
+              border: '1px solid var(--border-color, #3a4a5a)',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--bg-active, #3a5a7a)';
+              e.currentTarget.style.borderColor = 'var(--text-secondary, #8a9aaa)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--bg-surface-alt, #1e2e3e)';
+              e.currentTarget.style.borderColor = 'var(--border-color, #3a4a5a)';
+            }}
+          >
+            🏘 Town Plan
           </button>
         )}
         {onToggleGroundMode && (

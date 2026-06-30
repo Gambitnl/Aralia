@@ -1,6 +1,6 @@
 ---
 schema_version: 1
-project: Scripts: Quality
+project: "Scripts: Quality"
 slug: scripts-quality
 category: Documentation
 main_category: "Tools, Docs & Agents"

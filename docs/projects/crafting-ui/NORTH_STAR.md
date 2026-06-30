@@ -12,7 +12,7 @@ confidence: medium
 evidence: docs/projects/crafting-ui
 gap_signal: 5 open gaps; G2 typing, G5 reducer proof, G4 windowing, G6 modularization, G7 stats dispatch
 protocol: living project doc set
-next_step: Implement G2+G5 as a single slice: tighten UPDATE_CRAFTING_STATS payload typing and add craftingReducer.test.ts.
+next_step: "Implement G2+G5 as a single slice: tighten UPDATE_CRAFTING_STATS payload typing and add craftingReducer.test.ts."
 agent_comments: ""
 active_agent: "Qoder CLI"
 agent_pass_status: finished

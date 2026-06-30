@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { TerrainCommand } from '../TerrainCommand'
 import { TerrainEffect } from '@/types/spells'
-import { CombatState } from '@/types/combat'
+import { CombatState, SelectedSpellTarget } from '@/types/combat'
 
 const makeCharacter = (id: string, position: { x: number, y: number }): any => ({
   id,
@@ -52,6 +52,45 @@ const makeContext = (caster: any, targets: any[]): any => ({
   isCritical: false,
   gameState: {} as any
 })
+
+const immediateTerrainCondition = {
+  type: 'always',
+  targetFilter: {
+    creatureTypes: [],
+    excludeCreatureTypes: [],
+    sizes: [],
+    alignments: [],
+    hasCondition: [],
+    isNativeToPlane: false,
+    willing: 'not_applicable',
+    objectEligibility: {
+      wornOrCarried: 'not_applicable',
+      magicalStatus: 'not_applicable',
+      fixedToSurface: 'not_applicable',
+      maxSize: 'not_applicable',
+      maxWeightPounds: 'not_applicable',
+      maxWeightScaling: 'not_applicable'
+    },
+    communicationPrerequisites: {
+      canHearCaster: 'not_applicable',
+      canUnderstandCaster: 'not_applicable',
+      canSeeCaster: 'not_applicable'
+    },
+    abilityThreshold: { ability: 'not_applicable', operator: 'not_applicable', value: 'not_applicable' },
+    selfRelation: 'not_applicable'
+  },
+  requiresStatus: [],
+  saveModifiers: []
+} as any
+
+const immediateTerrainTrigger = {
+  type: 'immediate',
+  frequency: 'every_time',
+  consumption: 'unlimited',
+  attackFilter: { weaponType: 'any', attackType: 'any' },
+  movementType: 'any',
+  sustainCost: { actionType: 'action', optional: false }
+} as any
 
 describe('TerrainCommand', () => {
   it('applies difficult terrain and doubles movement cost', () => {
@@ -141,5 +180,125 @@ describe('TerrainCommand', () => {
     expect(tile).toBeDefined()
     expect(tile?.movementCost).toBe(1)
     expect(tile?.environmentalEffects?.some((e: any) => e.type === 'difficult' || e.type === 'difficult_terrain')).toBe(false)
+  })
+
+  it('uses a selected Mold Earth ground point instead of the caster tile for excavation', () => {
+    const caster = makeCharacter('caster', { x: 2, y: 2 })
+    const selectedPoint: SelectedSpellTarget = {
+      kind: 'point',
+      position: { x: 4, y: 1 },
+      purpose: 'ground_target'
+    }
+    const state = makeState([caster])
+    const effect: TerrainEffect = {
+      type: 'TERRAIN',
+      terrainType: 'difficult',
+      areaOfEffect: { shape: 'Cube', size: 5, height: 0 },
+      duration: { type: 'special', value: 0 },
+      trigger: immediateTerrainTrigger,
+      condition: immediateTerrainCondition,
+      manipulation: {
+        type: 'excavate',
+        volume: { shape: 'Cube', size: 5, depth: 5 },
+        depositDistance: 5
+      }
+    }
+
+    const cmd = new TerrainCommand(effect, {
+      ...makeContext(caster, []),
+      spellId: 'mold-earth',
+      spellName: 'Mold Earth',
+      selectedSpellTargets: [selectedPoint]
+    })
+    const result = cmd.execute(state)
+
+    expect(result.mapData?.tiles.get('4-1')?.elevation).toBe(-1)
+    expect(result.mapData?.tiles.get('2-2')?.elevation).toBe(0)
+    expect(result.combatLog.at(-1)?.data?.affectedPositions).toContainEqual({ x: 4, y: 1 })
+  })
+
+  it('uses a selected Mold Earth ground point for terrain toggle mutations', () => {
+    const caster = makeCharacter('caster', { x: 2, y: 2 })
+    const selectedPoint: SelectedSpellTarget = {
+      kind: 'point',
+      position: { x: 1, y: 4 },
+      purpose: 'ground_target'
+    }
+    const state = makeState([caster])
+    const effect: TerrainEffect = {
+      type: 'TERRAIN',
+      terrainType: 'difficult',
+      areaOfEffect: { shape: 'Cube', size: 5, height: 0 },
+      duration: { type: 'minutes', value: 60 },
+      trigger: immediateTerrainTrigger,
+      condition: immediateTerrainCondition,
+      manipulation: {
+        type: 'difficult',
+        volume: { shape: 'Cube', size: 5 },
+        duration: { type: 'minutes', value: 60 }
+      }
+    }
+
+    const cmd = new TerrainCommand(effect, {
+      ...makeContext(caster, []),
+      spellId: 'mold-earth',
+      spellName: 'Mold Earth',
+      selectedSpellTargets: [selectedPoint]
+    })
+    const result = cmd.execute(state)
+
+    expect(result.mapData?.tiles.get('1-4')?.movementCost).toBe(2)
+    expect(result.mapData?.tiles.get('1-4')?.environmentalEffects?.some((effect: any) => effect.type === 'difficult_terrain')).toBe(true)
+    expect(result.mapData?.tiles.get('2-2')?.movementCost).toBe(1)
+  })
+
+  it('records Mold Earth Shapes And Colors as a surface mark at the selected point', () => {
+    const caster = makeCharacter('caster', { x: 2, y: 2 })
+    const selectedPoint: SelectedSpellTarget = {
+      kind: 'point',
+      position: { x: 3, y: 1 },
+      purpose: 'ground_target'
+    }
+    const state = makeState([caster])
+    const effect: TerrainEffect = {
+      type: 'TERRAIN',
+      terrainType: 'difficult',
+      areaOfEffect: { shape: 'Cube', size: 5, height: 0 },
+      duration: { type: 'minutes', value: 60 },
+      trigger: immediateTerrainTrigger,
+      condition: immediateTerrainCondition,
+      manipulation: {
+        type: 'cosmetic',
+        volume: { shape: 'Cube', size: 5 },
+        duration: { type: 'minutes', value: 60 },
+        materialOptions: ['dirt', 'stone']
+      }
+    }
+
+    const cmd = new TerrainCommand(effect, {
+      ...makeContext(caster, []),
+      spellId: 'mold-earth',
+      spellName: 'Mold Earth',
+      selectedSpellTargets: [selectedPoint]
+    })
+    const result = cmd.execute(state)
+    const mark = result.activeMoldEarthSurfaceMarks?.[0]
+
+    expect(mark).toMatchObject({
+      spellId: 'mold-earth',
+      spellName: 'Mold Earth',
+      casterId: 'caster',
+      position: { x: 3, y: 1 },
+      createdTurn: 1,
+      expiresAtRound: 601,
+      manipulation: {
+        type: 'cosmetic',
+        materialOptions: ['dirt', 'stone']
+      }
+    })
+    expect(result.combatLog.at(-1)?.data?.surfaceMark).toMatchObject({
+      spellId: 'mold-earth',
+      position: { x: 3, y: 1 }
+    })
   })
 })

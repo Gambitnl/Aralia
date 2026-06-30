@@ -23,7 +23,11 @@ import { withLegacyWeatherBridge } from '../../types/environment';
 import { AppAction } from '../actionTypes';
 import { LOCATIONS } from '../../data/world/locations';
 import { getTimeOfDay, getGameDay } from '../../utils/core';
+import { groundPosToLocaleFeet } from '../../systems/worldforge/local/localePosition';
 import { advanceRegistry } from '../../systems/worldforge/townsim/townSimRegistry';
+import { buildTownSimStateForBurg } from '../../systems/worldforge/townsim/townSimRegistration';
+import { getTownTilesForGrid } from '../../systems/worldforge/bridge/legacySubmapBridge';
+import { parseCoordinateLocationId } from '../../utils/locationUtils';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
 import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
 import { DEFAULT_WEATHER } from '../../systems/environment/EnvironmentSystem';
@@ -36,6 +40,10 @@ import { processAllInvestments } from '../../systems/economy/InvestmentManager';
 import { processAllNpcBusinesses } from '../../systems/economy/NpcBusinessManager';
 import { processPlayerBusinessManagement } from '../../systems/economy/BusinessManagement';
 import { SeededRandom } from '@/utils/random';
+
+/** Distance-LOD: tracked towns within this many tiles of the player tick daily;
+ * farther towns catch up on approach (identical result, deferred work). */
+const NEAR_SIM_RADIUS = 24;
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 const MILLIS_PER_HOUR = 60 * 60 * 1000;
@@ -125,16 +133,28 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       const nextPosition = action.payload.position;
 
       // Null is the explicit clear signal for stale ground anchors after leaving
-      // or invalidating a tile-scoped ground view.
+      // or invalidating a tile-scoped ground view. The cell presence outlives a
+      // transient ground-anchor clear, so playerCell is left untouched here.
       if (nextPosition === null) {
         return { playerGroundPos: null };
       }
 
-      // Replace the entire anchor and copy it so later mutations to the dispatch
-      // payload cannot silently alter the persisted resume point.
-      return {
-        playerGroundPos: { ...nextPosition },
-      };
+      // GRID-RETIRE: BA-3 — Stage 3 makes `playerGroundPos` the single live
+      // Locale movement state shared by the 3D ground view (which dispatches
+      // this action as the camera walks) and the 2D Locale view (which dispatches
+      // it on click-to-move). Mirror it into the canonical presence as continuous
+      // Locale FEET so both views stay in sync through one reducer. The feet mirror
+      // is a derived shadow of `playerGroundPos` (removed at Stage 6 when the cell
+      // becomes the sole truth). No-op when no cell is recorded yet (honest
+      // "unknown" — the mirror never invents a cell).
+      const slice: Partial<GameState> = { playerGroundPos: { ...nextPosition } };
+      if (state.playerCell) {
+        slice.playerCell = {
+          ...state.playerCell,
+          localeCoords: groundPosToLocaleFeet(nextPosition),
+        };
+      }
+      return slice;
     }
 
     case 'REVEAL_HIDDEN_SITE': {
@@ -192,6 +212,18 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
 
     case 'SET_GEMINI_ACTIONS':
       return { geminiGeneratedActions: action.payload as GameState['geminiGeneratedActions'] };
+
+    case 'TOWNSIM_REGISTER_BURG': {
+      // Plan D: the player has entered a town — start (or keep) tracking its
+      // living-world history. Idempotent: a town is built once, then advanced by
+      // the ADVANCE_TIME daily loop. Its history begins at the current game day.
+      const { burgId } = action.payload;
+      const registry = state.townSim ?? {}; // legacy saves may lack townSim
+      if (registry[burgId]) return {};
+      const currentDay = getGameDay(state.gameTime);
+      const townState = buildTownSimStateForBurg(state.worldSeed, burgId, currentDay);
+      return { townSim: { ...registry, [burgId]: townState } };
+    }
 
     case 'ADVANCE_TIME': {
       // RALPH: The Chronos Loop.
@@ -283,13 +315,24 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
           messages: [...nextState.messages, ...worldLogs]
         };
 
-        // 4b. Living-world town sim: advance every tracked town's multi-day
-        // history up to the new day. No-op until a town is first tracked
-        // (towns are registered on player encounter — see townsim Plan D).
+        // 4b. Living-world town sim: advance tracked towns' multi-day history up
+        // to the new day. Distance-LOD: only towns within NEAR_SIM_RADIUS tiles
+        // of the player tick each day; far towns catch up identically when the
+        // player next comes near (per-day re-seeding makes batch == daily). When
+        // the player isn't on a world tile, advance all (conservative, correct).
+        // No-op until a town is first tracked.
         if (nextState.townSim && Object.keys(nextState.townSim).length > 0) {
+          const here = parseCoordinateLocationId(nextState.currentLocationId);
+          let nearBurgIds: number[] | undefined;
+          if (here && nextState.mapData) {
+            const { cols, rows } = nextState.mapData.gridSize;
+            nearBurgIds = getTownTilesForGrid(nextState.worldSeed, cols, rows)
+              .filter((t) => Math.abs(t.x - here.x) + Math.abs(t.y - here.y) <= NEAR_SIM_RADIUS)
+              .map((t) => t.burgId);
+          }
           nextState = {
             ...nextState,
-            townSim: advanceRegistry(nextState.townSim, nextState.worldSeed, newDay),
+            townSim: advanceRegistry(nextState.townSim, nextState.worldSeed, newDay, nearBurgIds),
           };
         }
 
@@ -508,6 +551,17 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         };
       }
       return {};
+    }
+
+    case 'ADD_RUMORS': {
+      // Append chronicle-sourced (or any) rumors, deduped BY ID so re-running the
+      // living-world sync on the same town news never grows activeRumors. Stable
+      // rumor ids make this idempotent across repeated dispatches.
+      const existing = state.activeRumors ?? [];
+      const existingIds = new Set(existing.map((r) => r.id));
+      const newOnes = action.payload.rumors.filter((r) => !existingIds.has(r.id));
+      if (newOnes.length === 0) return {};
+      return { activeRumors: [...existing, ...newOnes] };
     }
 
     case 'ADD_WORLD_HISTORY_EVENT': {

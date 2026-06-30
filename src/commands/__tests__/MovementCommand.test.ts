@@ -194,8 +194,12 @@ describe('MovementCommand', () => {
     expect(updated?.position).toEqual({ x: 7, y: 1 })
     expect(teleportLog?.data).toMatchObject({
       requestedDestination: { x: 7, y: 1 },
+      requestedDistanceFeet: 30,
+      requestedBudgetTiles: 6,
       actualDistanceTiles: 6,
       actualDistanceFeet: 30,
+      budgetSpentFeet: 30,
+      budgetRemainingFeet: 0,
       clampedByBounds: false,
       usedFallbackDestination: false,
       maplessBoundsPolicy: 'range_bounded_unclamped'
@@ -230,6 +234,47 @@ describe('MovementCommand', () => {
     })
   })
 
+  it('chooses the nearest valid mapless fallback tile when several candidates exist', () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 })
+    const target = makeCharacter('target', { x: 1, y: 1 })
+    const blocker = makeCharacter('blocker', { x: 3, y: 1 })
+    const state = makeState(
+      [caster, target, blocker],
+      [
+        { x: 1, y: 3 },
+        { x: 3, y: 2 },
+        { x: 2, y: 2 }
+      ]
+    )
+
+    const effect: MovementEffect = {
+      type: 'MOVEMENT',
+      movementType: 'teleport',
+      distance: 15,
+      destination: { x: 3, y: 1 },
+      duration: { type: 'rounds', value: 1 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' }
+    }
+
+    const result = new MovementCommand(effect, makeMaplessContext(caster, [target])).execute(state)
+    const updated = result.characters.find(c => c.id === 'target')
+    const teleportLog = result.combatLog.at(-1)
+
+    // Mapless fallback preserves the caller's range budget while choosing the
+    // nearest valid landing space to the requested blocked coordinate.
+    expect(updated?.position).toEqual({ x: 3, y: 2 })
+    expect(teleportLog?.data).toMatchObject({
+      requestedDestination: { x: 3, y: 1 },
+      actualDistanceTiles: 2,
+      actualDistanceFeet: 10,
+      budgetSpentFeet: 10,
+      budgetRemainingFeet: 5,
+      usedFallbackDestination: true,
+      maplessBoundsPolicy: 'range_bounded_unclamped'
+    })
+  })
+
   it('rejects mapless teleport fallback candidates outside the spell range', () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 })
     const target = makeCharacter('target', { x: 1, y: 1 })
@@ -252,6 +297,141 @@ describe('MovementCommand', () => {
 
     expect(updated?.position).toEqual({ x: 1, y: 1 })
     expect(teleportLog?.message).toContain('cannot teleport to a valid space')
+  })
+
+  it('rejects a mapless teleport when no destination can be resolved', () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 })
+    const target = makeCharacter('target', { x: 0, y: 0 })
+    const state = makeState([caster, target])
+
+    const effect: MovementEffect = {
+      type: 'MOVEMENT',
+      movementType: 'teleport',
+      distance: 15,
+      duration: { type: 'rounds', value: 1 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' }
+    }
+
+    const result = new MovementCommand(effect, makeMaplessContext(caster, [target])).execute(state)
+    const updated = result.characters.find(c => c.id === 'target')
+    const teleportLog = result.combatLog.at(-1)
+
+    expect(updated?.position).toEqual({ x: 0, y: 0 })
+    expect(teleportLog?.message).toContain('attempts to teleport but no destination was available')
+  })
+
+  it('applies Ray of Frost as one expiring speed rider without changing base speed', () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 })
+    const target = makeCharacter('target', { x: 1, y: 1 })
+    const state = makeState([caster, target])
+
+    const effect: MovementEffect = {
+      type: 'MOVEMENT',
+      movementType: 'speed_change',
+      speedChange: {
+        stat: 'speed',
+        value: -10,
+        unit: 'feet'
+      },
+      duration: { type: 'rounds', value: 1 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'hit' }
+    }
+
+    const context = {
+      ...makeContext(caster, [target]),
+      spellId: 'ray-of-frost',
+      spellName: 'Ray of Frost'
+    }
+
+    const cmd = new MovementCommand(effect, context)
+    const result = cmd.execute(state)
+    const updated = result.characters.find(c => c.id === 'target')
+
+    expect(updated?.stats.speed).toBe(30)
+    expect(updated?.actionEconomy.movement.total).toBe(20)
+    expect(updated?.statusEffects).toHaveLength(1)
+    expect(updated?.statusEffects?.[0]).toMatchObject({
+      name: 'Ray of Frost Slow',
+      source: 'Ray of Frost',
+      sourceCasterId: 'caster',
+      duration: 1,
+      effect: {
+        type: 'stat_modifier',
+        stat: 'speed',
+        value: -10
+      }
+    })
+    expect(updated?.conditions).toHaveLength(1)
+    expect(updated?.conditions?.[0]).toMatchObject({
+      name: 'Ray of Frost Slow',
+      source: 'Ray of Frost',
+      sourceCasterId: 'caster',
+      duration: { type: 'rounds', value: 1 }
+    })
+    expect(result.combatLog.at(-1)?.message).toContain("until the start of the caster's next turn")
+  })
+
+  it('refreshes Ray of Frost instead of stacking a second slow copy', () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 })
+    const target = makeCharacter('target', { x: 1, y: 1 })
+    const existingStatus = {
+      id: 'ray-of-frost-slow-caster-target',
+      name: 'Ray of Frost Slow',
+      type: 'debuff' as const,
+      duration: 1,
+      source: 'Ray of Frost',
+      sourceCasterId: 'caster',
+      effect: {
+        type: 'stat_modifier' as const,
+        stat: 'speed',
+        value: -10
+      }
+    }
+    const existingCondition = {
+      name: 'Ray of Frost Slow',
+      duration: { type: 'rounds' as const, value: 1 },
+      appliedTurn: 1,
+      source: 'Ray of Frost',
+      sourceCasterId: 'caster'
+    }
+    const state = makeState([
+      caster,
+      {
+        ...target,
+        statusEffects: [existingStatus],
+        conditions: [existingCondition]
+      }
+    ])
+
+    const effect: MovementEffect = {
+      type: 'MOVEMENT',
+      movementType: 'speed_change',
+      speedChange: {
+        stat: 'speed',
+        value: -10,
+        unit: 'feet'
+      },
+      duration: { type: 'rounds', value: 1 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'hit' }
+    }
+
+    const context = {
+      ...makeContext(caster, [target]),
+      spellId: 'ray-of-frost',
+      spellName: 'Ray of Frost'
+    }
+
+    const cmd = new MovementCommand(effect, context)
+    const result = cmd.execute(state)
+    const updated = result.characters.find(c => c.id === 'target')
+
+    expect(updated?.actionEconomy.movement.total).toBe(20)
+    expect(updated?.statusEffects).toHaveLength(1)
+    expect(updated?.conditions).toHaveLength(1)
+    expect(updated?.statusEffects?.[0].id).toBe('ray-of-frost-slow-caster-target')
   })
 })
 

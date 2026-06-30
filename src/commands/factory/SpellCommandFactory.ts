@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 01:52:31
+ * Last Sync: 29/06/2026, 14:19:13
  * Dependents: commands/index.ts
- * Imports: 24 files
+ * Imports: 30 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,14 +14,14 @@
  */
 // @dependencies-end
 
-import { Spell, SpellEffect, TargetConditionFilter, UtilityEffect, isDamageEffect, isHealingEffect, StatusConditionEffect, isUtilityEffect } from '@/types/spells'
-import { CombatCharacter, SelectedSpellTarget } from '@/types/combat'
+import { Spell, SpellEffect, TargetConditionFilter, UtilityEffect, CreatedObject, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, StatusConditionEffect, isUtilityEffect, resolveScalableNumber, type DamageEffect, type MovementEffect } from '@/types/spells'
+import { ActiveFireEffect, CombatCharacter, CombatState, LightSource, SelectedSpellTarget, SpellObjectImpact } from '@/types/combat'
 
-import { SpellCommand, CommandContext } from '../base/SpellCommand'
+import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand'
 import { DamageCommand } from '../effects/DamageCommand'
 import { HealingCommand } from '../effects/HealingCommand'
 import { StatusConditionCommand } from '../effects/StatusConditionCommand'
-import { StartConcentrationCommand, BreakConcentrationCommand } from '../effects/ConcentrationCommands'
+import { StartConcentrationCommand, BreakConcentrationCommand, breakFriendsConcentrationForCaster } from '../effects/ConcentrationCommands'
 import { MovementCommand } from '../effects/MovementCommand'
 import { SummoningCommand } from '../effects/SummoningCommand'
 import { TerrainCommand } from '../effects/TerrainCommand'
@@ -36,6 +36,11 @@ import { WeaponAttackCommand } from './AbilityCommandFactory'
 import { GameState } from '@/types'
 import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidationUtils'
 import { Plane } from '@/types/planes'
+import { calculateProficiencyBonus } from '@/utils/character/savingThrowUtils'
+import { getAbilityModifierValue } from '@/utils/character/statUtils'
+import { generateId, getCharacterDistance, resolveAttack, rollD20 } from '@/utils/combatUtils'
+import { calculateSpellDC, rollSavingThrow } from '@/utils/character/savingThrowUtils'
+import { combatEvents } from '@/systems/events/CombatEvents'
 import {
   buildTrueStrikeAttack,
   hasTrueStrikeImmediateAttackAugment,
@@ -43,9 +48,715 @@ import {
   resolveTrueStrikeWeaponSnapshot,
   validateTrueStrikeWeaponSnapshot
 } from './trueStrikeAttackBridge'
+import {
+  buildBoomingBladeAttack,
+  hasBoomingBladeWeaponAttackBridge,
+  resolveBoomingBladeAttackTarget,
+  resolveBoomingBladeWeaponSnapshot,
+  validateBoomingBladeWeaponSnapshot
+} from './boomingBladeAttackBridge'
+import {
+  buildGreenFlameBladeAttack,
+  hasGreenFlameBladeWeaponAttackBridge,
+  resolveGreenFlameBladeAttackTarget,
+  resolveGreenFlameBladeWeaponSnapshot,
+  validateGreenFlameBladeWeaponSnapshot
+} from './greenFlameBladeAttackBridge'
 
 type SpellWithPerTargetChoices = Spell & {
   perTargetChoicesByTargetId?: EnhanceAbilityChoiceMap
+}
+
+type SpellAttackInstance = {
+  target?: CombatCharacter
+  objectTarget?: Extract<SelectedSpellTarget, { kind: 'object' }>
+}
+
+class SpellAttackCommand implements SpellCommand {
+  public readonly id = generateId()
+  public readonly description: string
+  public readonly metadata: CommandMetadata
+
+  constructor(
+    private readonly spell: Spell,
+    private readonly caster: CombatCharacter,
+    private readonly targets: CombatCharacter[],
+    private readonly context: CommandContext,
+    private readonly hitEffects: SpellEffect[],
+    private readonly createHitCommand: (effect: SpellEffect, context: CommandContext) => SpellCommand | null
+  ) {
+    this.description = `${caster.name} makes a ${spell.attackType || 'spell'} spell attack with ${spell.name}`
+    this.metadata = {
+      spellId: spell.id,
+      spellName: spell.name,
+      casterId: caster.id,
+      casterName: caster.name,
+      targetIds: targets.map(target => target.id),
+      effectType: 'spell_attack',
+      timestamp: Date.now()
+    }
+  }
+
+  async execute(state: CombatState): Promise<CombatState> {
+    let nextState = { ...state }
+    const attackInstances = this.resolveAttackInstances(nextState)
+
+    if (attackInstances.length === 0) {
+      return nextState
+    }
+
+    nextState = await breakFriendsConcentrationForCaster(
+      nextState,
+      this.caster,
+      this.context,
+      'caster_makes_attack_roll',
+      this.spell.name
+    )
+
+    const attackBonus = this.resolveSpellAttackBonus()
+    const weaponType = this.resolveSpellAttackWeaponType()
+
+    if (this.spell.id === 'primal-savagery') {
+      nextState = {
+        ...nextState,
+        combatLog: [
+          ...nextState.combatLog,
+          {
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'status',
+            message: `${this.caster.name}'s teeth or fingernails sharpen for Primal Savagery.`,
+            characterId: this.caster.id,
+            data: {
+              spellId: this.spell.id,
+              transientTransformation: 'primal_savagery_sharpened',
+              active: true
+            }
+          }
+        ]
+      }
+    }
+
+    for (let index = 0; index < attackInstances.length; index += 1) {
+      const attackInstance = attackInstances[index]
+      const liveTarget = attackInstance.target
+        ? (nextState.characters.find(character => character.id === attackInstance.target?.id) ?? attackInstance.target)
+        : null
+      const objectTarget = attackInstance.objectTarget
+      const targetName = liveTarget?.name ?? objectTarget?.name ?? objectTarget?.id ?? 'object'
+      const targetId = liveTarget?.id ?? objectTarget?.id ?? 'object'
+      const attackRoll = rollD20()
+      const targetAC = liveTarget?.armorClass || 10
+      const resolvedAttack = resolveAttack(attackRoll, attackBonus, targetAC)
+      const total = attackRoll + attackBonus
+
+      combatEvents.emit({
+        type: 'unit_attack',
+        attackerId: this.caster.id,
+        targetId,
+        isHit: resolvedAttack.isHit,
+        isCrit: resolvedAttack.isCritical,
+        attackType: 'spell',
+        weaponType
+      })
+
+      nextState = {
+        ...nextState,
+        combatLog: [
+          ...nextState.combatLog,
+          {
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'action',
+            message: `${this.caster.name} casts ${this.spell.name} at ${targetName}. ${attackRoll} + ${attackBonus} = ${total} vs AC ${targetAC}. ${resolvedAttack.isHit ? (resolvedAttack.isCritical ? 'CRITICAL HIT!' : 'HIT!') : (resolvedAttack.isAutoMiss ? 'CRITICAL MISS!' : 'MISS.')}`,
+            characterId: this.caster.id,
+            targetIds: [targetId],
+            data: {
+              spellId: this.spell.id,
+              attackType: 'spell',
+              weaponType,
+              isHit: resolvedAttack.isHit,
+              isCrit: resolvedAttack.isCritical,
+              rollResult: attackRoll,
+              total,
+              spellAttackInstanceIndex: index,
+              spellAttackInstanceCount: attackInstances.length,
+              spellAttackInstanceType: this.resolveAttackInstanceType(),
+              primalSavageryDamageDice: this.spell.id === 'primal-savagery'
+                ? this.resolvePrimaryDamageDice()
+                : undefined
+            }
+          }
+        ]
+      }
+
+      // Misses deliberately skip hit-conditioned effects but do not stop later
+      // beam instances from resolving their own attack rolls.
+      if (!resolvedAttack.isHit) {
+        continue
+      }
+
+      if (objectTarget) {
+        nextState = this.applyObjectHitEffects(nextState, objectTarget)
+        continue
+      }
+
+      for (const effect of this.hitEffects) {
+        const command = this.createHitCommand(effect, {
+          ...this.context,
+          targets: liveTarget ? [liveTarget] : [],
+          isCritical: resolvedAttack.isCritical
+        })
+
+        if (command) {
+          nextState = await command.execute(nextState)
+        }
+      }
+    }
+
+    if (this.spell.id === 'primal-savagery') {
+      nextState = {
+        ...nextState,
+        combatLog: [
+          ...nextState.combatLog,
+          {
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'status',
+            message: `${this.caster.name}'s teeth or fingernails return to normal.`,
+            characterId: this.caster.id,
+            data: {
+              spellId: this.spell.id,
+              transientTransformation: 'primal_savagery_sharpened',
+              active: false
+            }
+          }
+        ]
+      }
+    }
+
+    return nextState
+  }
+
+  private resolveAttackInstances(state: CombatState): SpellAttackInstance[] {
+    const selectedAttackTargets = (this.context.selectedSpellTargets || [])
+      .filter((selectedTarget): selectedTarget is Extract<SelectedSpellTarget, { kind: 'creature' | 'object' }> =>
+        selectedTarget.kind === 'creature' || selectedTarget.kind === 'object'
+      )
+
+    const selectedInstances = selectedAttackTargets
+      .map(selectedTarget => {
+        if (selectedTarget.kind === 'object') {
+          return { objectTarget: selectedTarget }
+        }
+
+        const liveTarget = state.characters.find(character => character.id === selectedTarget.id)
+        const snapshotTarget = this.targets.find(target => target.id === selectedTarget.id)
+        const target = liveTarget ?? snapshotTarget
+        return target ? { target } : null
+      })
+      .filter((instance): instance is SpellAttackInstance => instance !== null)
+
+    const baseInstances = selectedInstances.length > 0
+      ? selectedInstances
+      : this.targets.map(target => ({ target }))
+
+    if (!this.usesBeamAttackAllocation() || baseInstances.length === 0) {
+      return baseInstances.slice(0, 1)
+    }
+
+    const beamCount = this.resolveBeamCount()
+    if (baseInstances.length >= beamCount) {
+      return baseInstances.slice(0, beamCount)
+    }
+
+    // Eldritch Blast can assign multiple beam instances to the same target.
+    // When the cast provides fewer explicit refs than beams, repeat the final
+    // selected ref rather than de-duplicating away the spell's scaling.
+    const paddedInstances = [...baseInstances]
+    while (paddedInstances.length < beamCount) {
+      paddedInstances.push(baseInstances[baseInstances.length - 1])
+    }
+
+    return paddedInstances
+  }
+
+  private usesBeamAttackAllocation(): boolean {
+    return this.spell.targeting.type === 'multi' &&
+      this.spell.targeting.instanceAllocation?.instanceType === 'beam' &&
+      this.spell.targeting.instanceAllocation.assignment === 'same_or_different_targets'
+  }
+
+  private resolveBeamCount(): number {
+    const maxTargets = this.spell.targeting.type === 'multi'
+      ? this.spell.targeting.maxTargets
+      : undefined
+
+    if (maxTargets) {
+      return Math.max(1, resolveScalableNumber(maxTargets, this.caster.level || 1))
+    }
+
+    return Math.max(1, this.spell.targeting.instanceAllocation?.baseCount ?? 1)
+  }
+
+  private resolveAttackInstanceType(): string {
+    return this.usesBeamAttackAllocation()
+      ? this.spell.targeting.instanceAllocation?.instanceType ?? 'attack'
+      : 'attack'
+  }
+
+  private applyObjectHitEffects(
+    state: CombatState,
+    objectTarget: Extract<SelectedSpellTarget, { kind: 'object' }>
+  ): CombatState {
+    let nextState = state
+    const damageEffect = this.hitEffects.find(isDamageEffect)
+    const utilityEffect = this.hitEffects.find(isUtilityEffect)
+    const expiresAtRound = state.turnState.currentTurn + 1
+
+    if (damageEffect) {
+      const impact: SpellObjectImpact = {
+        id: generateId(),
+        objectId: objectTarget.id,
+        objectName: objectTarget.name ?? objectTarget.object?.name,
+        position: objectTarget.position,
+        sourceSpellId: this.spell.id,
+        sourceSpellName: this.spell.name,
+        casterId: this.caster.id,
+        damage: {
+          dice: damageEffect.damage.dice,
+          type: damageEffect.damage.type
+        },
+        createdTurn: state.turnState.currentTurn,
+        expiresAtRound
+      }
+
+      nextState = {
+        ...nextState,
+        spellObjectImpacts: [
+          ...(nextState.spellObjectImpacts || []),
+          impact
+        ],
+        combatLog: [
+          ...nextState.combatLog,
+          {
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'damage',
+            message: `${this.spell.name} hits ${objectTarget.name ?? objectTarget.id} for ${damageEffect.damage.dice} ${damageEffect.damage.type} object damage.`,
+            characterId: this.caster.id,
+            targetIds: [objectTarget.id],
+            data: {
+              spellId: this.spell.id,
+              objectImpact: impact
+            }
+          }
+        ]
+      }
+
+      nextState = this.applyObjectIgnition(nextState, objectTarget, damageEffect)
+    }
+
+    if (utilityEffect?.light && ((utilityEffect.light.brightRadius ?? 0) > 0 || (utilityEffect.light.dimRadius ?? 0) > 0)) {
+      const lightSource: LightSource = {
+        id: generateId(),
+        sourceSpellId: this.spell.id,
+        casterId: this.caster.id,
+        brightRadius: utilityEffect.light.brightRadius,
+        dimRadius: utilityEffect.light.dimRadius ?? 0,
+        attachedTo: 'point',
+        position: objectTarget.position,
+        color: utilityEffect.light.color,
+        opaqueCoverBlocks: utilityEffect.light.opaqueCoverBlocks === true,
+        createdTurn: state.turnState.currentTurn,
+        expiresAtRound
+      }
+
+      nextState = {
+        ...nextState,
+        activeLightSources: [
+          ...(nextState.activeLightSources || []),
+          lightSource
+        ],
+        combatLog: [
+          ...nextState.combatLog,
+          {
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'status',
+            message: `${objectTarget.name ?? objectTarget.id} sheds ${utilityEffect.light.dimRadius ?? 0} ft dim light from ${this.spell.name}.`,
+            characterId: this.caster.id,
+            targetIds: [objectTarget.id],
+            data: {
+              spellId: this.spell.id,
+              lightSource
+            }
+          }
+        ]
+      }
+    }
+
+    return nextState
+  }
+
+  private applyObjectIgnition(
+    state: CombatState,
+    objectTarget: Extract<SelectedSpellTarget, { kind: 'object' }>,
+    damageEffect: SpellEffect
+  ): CombatState {
+    if (!isDamageEffect(damageEffect)) {
+      return state
+    }
+
+    const ignitionObject = damageEffect.createdObjects?.find(createdObject =>
+      createdObject.ignitesTouchedObjects === true &&
+      createdObject.appearsIn === 'target_object'
+    )
+
+    if (!ignitionObject) {
+      return state
+    }
+
+    const selectedObject = objectTarget.object
+    const isWornOrCarried = selectedObject?.isWornOrCarried === true
+
+    if (ignitionObject.excludesWornOrCarriedObjects && isWornOrCarried) {
+      return {
+        ...state,
+        combatLog: [
+          ...state.combatLog,
+          {
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'status',
+            message: `${objectTarget.name ?? objectTarget.id} is not ignited by ${this.spell.name} because it is worn or carried.`,
+            characterId: this.caster.id,
+            targetIds: [objectTarget.id],
+            data: {
+              spellId: this.spell.id,
+              suppressedFireEffect: {
+                objectId: objectTarget.id,
+                reason: 'worn_or_carried'
+              }
+            }
+          }
+        ]
+      }
+    }
+
+    const fireEffect = buildActiveFireEffect({
+      spell: this.spell,
+      caster: this.caster,
+      createdObject: ignitionObject,
+      position: objectTarget.position,
+      currentTurn: state.turnState.currentTurn,
+      kind: 'ignited_object',
+      objectId: objectTarget.id,
+      objectName: objectTarget.name ?? selectedObject?.name,
+      damage: damageEffect.damage
+    })
+
+    return {
+      ...state,
+      activeFireEffects: [
+        ...(state.activeFireEffects || []),
+        fireEffect
+      ],
+      combatLog: [
+        ...state.combatLog,
+        {
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'status',
+          message: `${objectTarget.name ?? objectTarget.id} starts burning from ${this.spell.name}.`,
+          characterId: this.caster.id,
+          targetIds: [objectTarget.id],
+          data: {
+            spellId: this.spell.id,
+            fireEffect
+          }
+        }
+      ]
+    }
+  }
+
+  private resolveSpellAttackBonus(): number {
+    const explicitSpellAttackBonus = (this.caster as CombatCharacter & { spellAttackBonus?: number }).spellAttackBonus
+    if (typeof explicitSpellAttackBonus === 'number') {
+      return explicitSpellAttackBonus
+    }
+
+    const spellcastingAbility = this.caster.spellcastingAbility
+      ? this.caster.spellcastingAbility
+      : (this.caster.class?.spellcasting?.ability || 'Intelligence').toLowerCase()
+    const abilityScore = this.caster.stats[spellcastingAbility as keyof CombatCharacter['stats']] ?? 10
+
+    return getAbilityModifierValue(Number(abilityScore)) + calculateProficiencyBonus(this.caster.level || 1)
+  }
+
+  private resolveSpellAttackWeaponType(): 'melee' | 'ranged' {
+    if (this.spell.id === 'primal-savagery' || this.spell.attackType === 'melee' || this.spell.targeting.type === 'melee') {
+      return 'melee'
+    }
+
+    return 'ranged'
+  }
+
+  private resolvePrimaryDamageDice(): string | undefined {
+    const damageEffect = this.hitEffects.find(isDamageEffect)
+    return damageEffect?.damage.dice
+  }
+}
+
+class FireArtifactCommand implements SpellCommand {
+  public readonly id = generateId()
+  public readonly description: string
+  public readonly metadata: CommandMetadata
+
+  constructor(
+    private readonly spell: Spell,
+    private readonly caster: CombatCharacter,
+    private readonly context: CommandContext,
+    private readonly createdObject: CreatedObject,
+    private readonly damage?: { dice: string; type: string }
+  ) {
+    this.description = `${spell.name} creates a fire artifact`
+    this.metadata = {
+      spellId: spell.id,
+      spellName: spell.name,
+      casterId: caster.id,
+      casterName: caster.name,
+      targetIds: [],
+      effectType: 'fire_artifact',
+      timestamp: Date.now()
+    }
+  }
+
+  async execute(state: CombatState): Promise<CombatState> {
+    const point = this.context.selectedSpellTargets?.find(selectedTarget => selectedTarget.kind === 'point')
+    const position = point?.position ?? this.caster.position
+    const fireEffect = buildActiveFireEffect({
+      spell: this.spell,
+      caster: this.caster,
+      createdObject: this.createdObject,
+      position,
+      currentTurn: state.turnState.currentTurn,
+      kind: 'hazard',
+      damage: this.damage
+    })
+
+    return {
+      ...state,
+      activeFireEffects: [
+        ...(state.activeFireEffects || []),
+        fireEffect
+      ],
+      combatLog: [
+        ...state.combatLog,
+        {
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'status',
+          message: `${this.spell.name} creates ${this.createdObject.name} at (${position.x}, ${position.y}).`,
+          characterId: this.caster.id,
+          data: {
+            spellId: this.spell.id,
+            fireEffect
+          }
+        }
+      ]
+    }
+  }
+}
+
+class LightningLureBridgeCommand implements SpellCommand {
+  public readonly id = generateId()
+  public readonly description: string
+  public readonly metadata: CommandMetadata
+
+  constructor(
+    private readonly spell: Spell,
+    private readonly caster: CombatCharacter,
+    private readonly context: CommandContext,
+    public readonly movementEffect: MovementEffect,
+    public readonly damageEffect: DamageEffect
+  ) {
+    this.description = `${spell.name} pulls a target and follows up with lightning damage if close enough`
+    this.metadata = {
+      spellId: spell.id,
+      spellName: spell.name,
+      casterId: caster.id,
+      casterName: caster.name,
+      targetIds: context.targets.map(target => target.id),
+      effectType: 'lightning_lure_bridge',
+      timestamp: Date.now()
+    }
+  }
+
+  async execute(state: CombatState): Promise<CombatState> {
+    const target = this.resolveTarget(state)
+    if (!target) {
+      return state
+    }
+
+    const spellDc = calculateSpellDC(this.caster)
+    const saveResult = rollSavingThrow(target, 'Strength', spellDc, [])
+    let nextState: CombatState = {
+      ...state,
+      combatLog: [
+        ...state.combatLog,
+        {
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'status',
+          message: `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} Strength save (${saveResult.total} vs DC ${spellDc}) against ${this.spell.name}.`,
+          characterId: target.id,
+          targetIds: [target.id]
+        }
+      ]
+    }
+
+    if (saveResult.success) {
+      return nextState
+    }
+
+    const movementCommand = new MovementCommand(this.movementEffect, {
+      ...this.context,
+      targets: [target],
+      selectedSpellTargets: this.context.selectedSpellTargets?.filter(selectedTarget =>
+        selectedTarget.kind !== 'creature' || selectedTarget.id === target.id
+      ) ?? [
+        {
+          kind: 'creature',
+          id: target.id
+        }
+      ]
+    })
+
+    nextState = movementCommand.execute(nextState)
+
+    const movedTarget = nextState.characters.find(character => character.id === target.id)
+    if (!movedTarget) {
+      return nextState
+    }
+
+    if (getCharacterDistance(this.caster, movedTarget) > 1) {
+      return nextState
+    }
+
+    const damageCommand = new DamageCommand(
+      {
+        ...this.damageEffect,
+        condition: {
+          ...this.damageEffect.condition,
+          type: 'always'
+        }
+      },
+      {
+        ...this.context,
+        targets: [movedTarget],
+        selectedSpellTargets: [
+          {
+            kind: 'creature',
+            id: movedTarget.id
+          }
+        ]
+      }
+    )
+
+    return await damageCommand.execute(nextState)
+  }
+
+  private resolveTarget(state: CombatState): CombatCharacter | undefined {
+    return this.context.targets
+      .map(target => state.characters.find(character => character.id === target.id) ?? target)
+      .find(Boolean)
+  }
+}
+
+function resolveLightningLureDamageDice(effect: DamageEffect, casterLevel: number): string {
+  if (casterLevel >= 17) {
+    return '4d8'
+  }
+
+  if (casterLevel >= 11) {
+    return '3d8'
+  }
+
+  if (casterLevel >= 5) {
+    return '2d8'
+  }
+
+  return effect.damage.dice
+}
+
+function resolveLightningLurePullDistanceFeet(effect: MovementEffect): number {
+  if (typeof effect.distance === 'number' && effect.distance > 0) {
+    return effect.distance
+  }
+
+  const forcedMovementDistance = effect.forcedMovement?.maxDistance
+  if (typeof forcedMovementDistance === 'string') {
+    const parsedDistance = forcedMovementDistance.match(/(\d+)/)
+    if (parsedDistance) {
+      return Number(parsedDistance[1])
+    }
+  }
+
+  return 10
+}
+
+function buildActiveFireEffect(args: {
+  spell: Spell
+  caster: CombatCharacter
+  createdObject: CreatedObject
+  position: { x: number; y: number }
+  currentTurn: number
+  kind: ActiveFireEffect['kind']
+  objectId?: string
+  objectName?: string
+  damage?: { dice: string; type: string }
+}): ActiveFireEffect {
+  const { spell, caster, createdObject, position, currentTurn, kind, objectId, objectName, damage } = args
+  const expiresAtRound = createdObject.expiresWithSpell
+    ? currentTurn + resolveSpellDurationRounds(spell)
+    : undefined
+
+  return {
+    id: generateId(),
+    spellId: spell.id,
+    sourceName: spell.name,
+    casterId: caster.id,
+    position,
+    createdTurn: currentTurn,
+    expiresAtRound,
+    kind,
+    objectId,
+    objectName,
+    objectType: createdObject.objectType,
+    damage,
+    area: {
+      shape: createdObject.affectedVolumeShape,
+      sizeFeet: createdObject.affectedVolumeSizeFeet
+    },
+    ignitesTouchedObjects: createdObject.ignitesTouchedObjects === true,
+    excludesWornOrCarriedObjects: createdObject.excludesWornOrCarriedObjects === true
+  }
+}
+
+function resolveSpellDurationRounds(spell: Spell): number {
+  if (spell.duration.type !== 'timed') {
+    return 1
+  }
+
+  switch (spell.duration.unit) {
+    case 'round':
+      return spell.duration.value
+    case 'minute':
+      return spell.duration.value * 10
+    default:
+      return 1
+  }
 }
 
 export class SpellCommandFactory {
@@ -186,10 +897,91 @@ export class SpellCommandFactory {
       }
     }
 
-    // True Strike is the only spell in this slice that turns a self cast into a
-    // weapon attack during the cast itself. Keep that bridge ahead of the
-    // generic utility execution path so the spell does not fall through to a
-    // lingering log-only command.
+    // Booming Blade is a blade cantrip: the spell cast is only real if it
+    // creates a weapon attack first. Keep this bridge ahead of generic damage
+    // command creation so the thunder payload stays gated behind hit or miss.
+    if (spell.id === 'booming-blade' && hasBoomingBladeWeaponAttackBridge(spell)) {
+      const weaponSnapshot = resolveBoomingBladeWeaponSnapshot(caster)
+      const attackTarget = resolveBoomingBladeAttackTarget(selectedSpellTargets, targets, caster.id)
+      const validation = validateBoomingBladeWeaponSnapshot(caster, weaponSnapshot)
+
+      if (!weaponSnapshot || !attackTarget || !validation.valid) {
+        const reason = validation.reason ?? 'Booming Blade needs a valid melee weapon and a creature target.'
+        return [
+          new NarrativeCommand(reason, context)
+        ]
+      }
+
+      const builtAttack = buildBoomingBladeAttack(
+        spell,
+        caster,
+        weaponSnapshot,
+        attackTarget
+      )
+
+      const attackContext: CommandContext = {
+        ...context,
+        targets: [attackTarget],
+        selectedSpellTargets: [
+          {
+            kind: 'creature',
+            id: attackTarget.id
+          }
+        ],
+        weaponProperties: weaponSnapshot.properties,
+        isMagical: true
+      }
+
+      return [
+        new WeaponAttackCommand(builtAttack.attackAbility, caster, [attackTarget], attackContext)
+      ]
+    }
+
+    // Green-Flame Blade is the sibling blade cantrip with a secondary fire
+    // leap. Keep its hit gate separate from Booming Blade so the weapon attack
+    // can resolve first and the leap can spend only after a confirmed hit.
+    if (spell.id === 'green-flame-blade' && hasGreenFlameBladeWeaponAttackBridge(spell)) {
+      const weaponSnapshot = resolveGreenFlameBladeWeaponSnapshot(caster)
+      const attackTarget = resolveGreenFlameBladeAttackTarget(selectedSpellTargets, targets, caster.id)
+      const validation = validateGreenFlameBladeWeaponSnapshot(caster, weaponSnapshot)
+
+      if (!weaponSnapshot || !attackTarget || !validation.valid) {
+        const reason = validation.reason ?? 'Green-Flame Blade needs a valid melee weapon and a creature target.'
+        return [
+          new NarrativeCommand(reason, context)
+        ]
+      }
+
+      const builtAttack = buildGreenFlameBladeAttack(
+        spell,
+        caster,
+        weaponSnapshot,
+        attackTarget,
+        selectedSpellTargets,
+        targets
+      )
+
+      const attackContext: CommandContext = {
+        ...context,
+        targets: [attackTarget],
+        selectedSpellTargets: [
+          {
+            kind: 'creature',
+            id: attackTarget.id
+          }
+        ],
+        weaponProperties: weaponSnapshot.properties,
+        isMagical: true
+      }
+
+      return [
+        new WeaponAttackCommand(builtAttack.attackAbility, caster, [attackTarget], attackContext)
+      ]
+    }
+
+    // True Strike is a neighboring cast-time weapon-attack cantrip, but it has
+    // a different contract: the spell alters the weapon attack's ability and
+    // damage type instead of leaving a target-side movement rider.
     if (spell.id === 'true-strike') {
       const trueStrikeEffect = activeEffects.find(
         effect => isUtilityEffect(effect) && effect.attackAugments?.some(augment =>
@@ -239,6 +1031,48 @@ export class SpellCommandFactory {
           new WeaponAttackCommand(builtAttack.attackAbility, caster, [attackTarget], attackContext)
         ]
       }
+    }
+
+    if (spell.id === 'lightning-lure') {
+      const movementEffect = activeEffects.find((effect): effect is MovementEffect => effect.type === 'MOVEMENT')
+      const damageEffect = activeEffects.find((effect): effect is DamageEffect => effect.type === 'DAMAGE')
+
+      if (movementEffect && damageEffect) {
+        const scaledMovementEffect = this.applyScaling(movementEffect, spell.level, effectiveCastLevel, caster.level) as MovementEffect
+        const scaledDamageEffect = {
+          ...damageEffect,
+          damage: {
+            ...damageEffect.damage,
+            dice: resolveLightningLureDamageDice(damageEffect, caster.level)
+          }
+        } as DamageEffect
+        const bridgeMovementEffect: MovementEffect = {
+          ...scaledMovementEffect,
+          distance: resolveLightningLurePullDistanceFeet(scaledMovementEffect)
+        }
+
+        const bridge = new LightningLureBridgeCommand(
+          spell,
+          caster,
+          context,
+          bridgeMovementEffect,
+          scaledDamageEffect
+        )
+
+        return [bridge]
+      }
+    }
+
+    if (this.shouldUseSpellAttackCommand(spell, activeEffects)) {
+      const hitEffects = activeEffects.map(effect => this.applyScaling(effect, spell.level, effectiveCastLevel, caster.level))
+      return [
+        new SpellAttackCommand(spell, caster, targets, context, hitEffects, (effect, hitContext) => this.createCommand(effect, hitContext))
+      ]
+    }
+
+    const fireArtifactCommand = this.createFireArtifactCommand(spell, caster, context, activeEffects, effectiveCastLevel)
+    if (fireArtifactCommand) {
+      commands.push(fireArtifactCommand)
     }
 
     for (const effect of activeEffects) {
@@ -304,6 +1138,33 @@ export class SpellCommandFactory {
       !!spell.targeting.perTargetChoice &&
       !!choicesByTargetId &&
       Object.keys(choicesByTargetId).length > 0
+  }
+
+  private static shouldUseSpellAttackCommand(spell: Spell, activeEffects: SpellEffect[]): boolean {
+    const hasExplicitSpellAttackType = ['melee', 'ranged'].includes(spell.attackType ?? '')
+    const hasMeleeHitTargeting = spell.targeting.type === 'melee'
+    const isPrimalSavagery = spell.id === 'primal-savagery'
+    const hasObjectIgnitionHitRider = activeEffects.some(effect =>
+      isDamageEffect(effect) &&
+      effect.condition?.type === 'hit' &&
+      effect.createdObjects?.some(createdObject =>
+        createdObject.ignitesTouchedObjects === true &&
+        createdObject.appearsIn === 'target_object'
+      )
+    )
+
+    if (!hasExplicitSpellAttackType && !hasMeleeHitTargeting && !hasObjectIgnitionHitRider && !isPrimalSavagery) {
+      return false
+    }
+
+    if (activeEffects.length === 0) {
+      return false
+    }
+
+    return activeEffects.every(effect =>
+      effect.trigger.type === 'immediate' &&
+      effect.condition?.type === 'hit'
+    )
   }
 
   /**
@@ -468,19 +1329,12 @@ export class SpellCommandFactory {
 
     const diceMatch = bonusPerLevel.match(/\+(\d+)d(\d+)/)
 
-    if (diceMatch && isDamageEffect(effect)) {
+    if (diceMatch) {
       const [, count, size] = diceMatch
       const originalDice = effect.damage.dice || '0d0'
       const newDice = this.addDice(originalDice, `${count}d${size}`, levelsAbove)
 
-      return {
-        ...effect,
-        damage: {
-          ...effect.damage,
-          dice: newDice,
-          type: effect.damage.type
-        }
-      }
+      return this.applyScaledDamageDice(effect, newDice)
     }
 
     if (diceMatch && isHealingEffect(effect)) {
@@ -517,6 +1371,36 @@ export class SpellCommandFactory {
     return effect
   }
 
+  private static createFireArtifactCommand(
+    spell: Spell,
+    caster: CombatCharacter,
+    context: CommandContext,
+    activeEffects: SpellEffect[],
+    effectiveCastLevel: number
+  ): SpellCommand | null {
+    for (const effect of activeEffects) {
+      if (!isDamageEffect(effect)) {
+        continue
+      }
+
+      const createdObject = effect.createdObjects?.find(object =>
+        object.ignitesTouchedObjects === true &&
+        object.appearsIn === 'spell_area'
+      )
+
+      if (!createdObject) {
+        continue
+      }
+
+      const scaledEffect = this.applyScaling(effect, spell.level, effectiveCastLevel, caster.level)
+      const damage = isDamageEffect(scaledEffect) ? scaledEffect.damage : effect.damage
+
+      return new FireArtifactCommand(spell, caster, context, createdObject, damage)
+    }
+
+    return null
+  }
+
   /**
    * Apply character level scaling (cantrips)
    */
@@ -530,17 +1414,14 @@ export class SpellCommandFactory {
     if (tier === 0 || !effect.scaling) return effect
 
     const scalingTiers = effect.scaling.scalingTiers
-    if (scalingTiers && isDamageEffect(effect)) {
+    if (scalingTiers) {
       const tierKeys = Object.keys(scalingTiers).map(Number).sort((a, b) => a - b)
       const qualifiedTier = tierKeys.filter(l => casterLevel >= l).pop()
 
       if (qualifiedTier !== undefined) {
         const tierDice = scalingTiers[String(qualifiedTier)]
         if (tierDice && /^\d+d\d+$/.test(tierDice)) {
-          return {
-            ...effect,
-            damage: { ...effect.damage, dice: tierDice }
-          }
+          return this.applyScaledDamageDice(effect, tierDice)
         }
       }
     }
@@ -550,15 +1431,39 @@ export class SpellCommandFactory {
 
     const diceMatch = bonusPerLevel.match(/\+(\d+)d(\d+)/)
 
-    if (diceMatch && isDamageEffect(effect)) {
+    if (diceMatch) {
       const [, count, size] = diceMatch
       const originalDice = effect.damage.dice || '0d0'
       const newDice = this.addDice(originalDice, `${count}d${size}`, tier)
+      return this.applyScaledDamageDice(effect, newDice)
+    }
+
+    return effect
+  }
+
+  /**
+   * Preserve Frostbite-style nested damage riders when scaling cantrips.
+   * Top-level damage rows still scale the same way, but attack-roll modifier
+   * rows can carry their own damage payload and should not be left behind.
+   */
+  private static applyScaledDamageDice(effect: SpellEffect, dice: string): SpellEffect {
+    if (isDamageEffect(effect)) {
       return {
         ...effect,
         damage: {
           ...effect.damage,
-          dice: newDice,
+          dice,
+          type: effect.damage.type
+        }
+      }
+    }
+
+    if (isAttackRollModifierEffect(effect) && effect.damage) {
+      return {
+        ...effect,
+        damage: {
+          ...effect.damage,
+          dice,
           type: effect.damage.type
         }
       }

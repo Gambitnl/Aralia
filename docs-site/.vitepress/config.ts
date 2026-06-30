@@ -53,6 +53,7 @@ export default defineConfig({
     '.agent/**',
     '.claude/**',
     '.gemini/**',
+    'Aralia/**',
     '**/.vitepress/**',
   ],
 

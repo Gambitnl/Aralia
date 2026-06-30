@@ -27,3 +27,31 @@ export function consumeMapCenterOnPlayer(): boolean {
   pendingCenterOnPlayer = false;
   return wanted;
 }
+
+let pendingDrillToPlayerTown = false;
+let pendingDrillBurgId: number | null = null;
+
+/**
+ * Ask the next map open to drill straight to a town plan (World ▸ Region ▸
+ * Town), rather than the default fit-to-world atlas. Same one-shot
+ * module-singleton rationale as {@link requestMapCenterOnPlayer}: the 3D HUD
+ * sets it, MapPane consumes it on its fresh mount.
+ *
+ * `burgId` is the FMG burg the player's 3D world is showing — the town to drill
+ * to. It must be passed explicitly because the player often stands in an atlas
+ * cell ADJACENT to the town's own cell (the ground-world window spans several
+ * cells), so the town can't be re-derived from the player's cell alone.
+ */
+export function requestMapDrillToPlayerTown(burgId: number | null = null): void {
+  pendingDrillToPlayerTown = true;
+  pendingDrillBurgId = burgId;
+}
+
+/** Read-and-clear the drill-to-town request. `wanted` is true at most once per request. */
+export function consumeMapDrillToPlayerTown(): { wanted: boolean; burgId: number | null } {
+  const wanted = pendingDrillToPlayerTown;
+  const burgId = pendingDrillBurgId;
+  pendingDrillToPlayerTown = false;
+  pendingDrillBurgId = null;
+  return { wanted, burgId };
+}

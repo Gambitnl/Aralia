@@ -11,6 +11,9 @@ import { createMockCombatCharacter, createMockCombatState } from '@/utils/factor
 import { CommandContext } from '../../base/SpellCommand';
 import * as savingThrowUtils from '@/utils/savingThrowUtils';
 import { generateId } from '@/utils/combatUtils';
+import { BreakConcentrationCommand } from '../ConcentrationCommands';
+import { DamageCommand } from '../DamageCommand';
+import friends from '../../../../public/data/spells/level-0/friends.json';
 
 // We mock saving throws so we don't have to deal with RNG in tests
 vi.mock('@/utils/savingThrowUtils', () => ({
@@ -274,6 +277,336 @@ describe('StatusConditionCommand', () => {
       // Should also have interaction log
       const logs = newState.combatLog.filter(l => l.type === 'status');
       expect(logs.some(l => l.message.includes('elemental states reacted') && l.message.toLowerCase().includes('frozen'))).toBe(true);
+    });
+  });
+
+  describe('Friends lifecycle', () => {
+    const friendsEffect = (friends as { effects: StatusConditionEffect[] }).effects[0];
+
+    function buildFriendsContext(caster = state.characters[0], target = state.characters[1]): CommandContext {
+      return {
+        ...context,
+        caster,
+        targets: [target],
+        spellId: 'friends',
+        spellName: 'Friends'
+      };
+    }
+
+    it('applies Friends on a failed Wisdom save and records recast and awareness metadata', async () => {
+      vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+        total: 7,
+        success: false,
+        modifiersApplied: []
+      } as any);
+      const humanoidTarget = createMockCombatCharacter({
+        id: 'target',
+        name: 'Target',
+        team: 'player',
+        creatureTypes: ['Humanoid'],
+        conditions: [],
+        statusEffects: []
+      });
+      state = { ...state, characters: [state.characters[0], humanoidTarget] };
+
+      const command = new StatusConditionCommand(friendsEffect, buildFriendsContext(state.characters[0], humanoidTarget));
+      const result = await command.execute(state);
+      const updatedTarget = result.characters.find(character => character.id === humanoidTarget.id)!;
+
+      expect(updatedTarget.statusEffects[0]).toMatchObject({
+        name: 'Charmed',
+        source: 'Friends',
+        sourceCasterId: 'caster',
+        socialLifecycle: {
+          kind: 'friends_charm',
+          targetKnowsOnEnd: true,
+          recastMemoryDurationRounds: 14400
+        }
+      });
+      expect(updatedTarget.spellMemory?.[0]).toMatchObject({
+        spellId: 'friends',
+        spellName: 'Friends',
+        casterId: 'caster',
+        affectedTurn: 1,
+        expiresAtTurn: 14401,
+        kind: 'cast_by_caster'
+      });
+    });
+
+    it.each([
+      ['not_humanoid', { creatureTypes: ['Beast'], team: 'player' }],
+      ['fighting_caster_or_allies', { creatureTypes: ['Humanoid'], team: 'enemy' }],
+      ['recently_affected_by_spell', {
+        creatureTypes: ['Humanoid'],
+        team: 'player',
+        spellMemory: [{
+          spellId: 'friends',
+          spellName: 'Friends',
+          casterId: 'caster',
+          affectedTurn: 1,
+          expiresAtTurn: 20,
+          kind: 'cast_by_caster'
+        }]
+      }]
+    ])('auto-succeeds Friends for %s without applying Charmed', async (reason, targetPatch) => {
+      const autoTarget = createMockCombatCharacter({
+        id: 'target',
+        name: 'Target',
+        conditions: [],
+        statusEffects: [],
+        ...targetPatch
+      });
+      state = { ...state, characters: [state.characters[0], autoTarget] };
+
+      const command = new StatusConditionCommand(friendsEffect, buildFriendsContext(state.characters[0], autoTarget));
+      const result = await command.execute(state);
+      const updatedTarget = result.characters.find(character => character.id === autoTarget.id)!;
+
+      expect(savingThrowUtils.rollSavingThrow).not.toHaveBeenCalled();
+      expect(updatedTarget.statusEffects.some(effect => effect.name === 'Charmed')).toBe(false);
+      expect(updatedTarget.spellMemory?.some(memory => memory.spellId === 'friends' && memory.casterId === 'caster')).toBe(true);
+      expect(result.combatLog.some(entry =>
+        entry.data?.spellId === 'friends' &&
+        entry.data?.saveOutcomeOverride === reason
+      )).toBe(true);
+    });
+
+    it('records Friends post-charm awareness when concentration cleanup removes the charm', async () => {
+      const caster = createMockCombatCharacter({
+        id: 'caster',
+        name: 'Caster',
+        concentratingOn: {
+          spellId: 'friends',
+          spellName: 'Friends',
+          spellLevel: 0,
+          startedTurn: 1,
+          effectIds: ['test-id'],
+          canDropAsFreeAction: true
+        }
+      });
+      const charmedTarget = createMockCombatCharacter({
+        id: 'target',
+        name: 'Target',
+        conditions: [{ name: 'Charmed', duration: { type: 'minutes', value: 1 }, appliedTurn: 1, source: 'Friends', sourceCasterId: 'caster' }],
+        statusEffects: [{
+          id: 'test-id',
+          name: 'Charmed',
+          type: 'debuff',
+          duration: 10,
+          source: 'Friends',
+          sourceCasterId: 'caster',
+          socialLifecycle: { kind: 'friends_charm', targetKnowsOnEnd: true, recastMemoryDurationRounds: 14400 }
+        }]
+      });
+      const attacker = createMockCombatCharacter({
+        id: 'attacker',
+        name: 'Attacker',
+        conditions: [],
+        statusEffects: []
+      });
+      state = { ...state, characters: [caster, charmedTarget, attacker] };
+
+      const command = new BreakConcentrationCommand(buildFriendsContext(caster, charmedTarget));
+      const result = await command.execute(state);
+      const updatedTarget = result.characters.find(character => character.id === charmedTarget.id)!;
+
+      expect(result.characters.find(character => character.id === caster.id)?.concentratingOn).toBeUndefined();
+      expect(updatedTarget.statusEffects.some(effect => effect.name === 'Charmed')).toBe(false);
+      expect(updatedTarget.socialAwareness?.[0]).toMatchObject({
+        sourceSpellId: 'friends',
+        sourceSpellName: 'Friends',
+        casterId: 'caster',
+        learnedTurn: 1,
+        kind: 'post_charm_awareness',
+        targetKnows: 'it_was_Charmed_by_caster'
+      });
+    });
+
+    it('ends Friends early and records awareness when the charmed target takes damage', async () => {
+      const caster = createMockCombatCharacter({
+        id: 'caster',
+        name: 'Caster',
+        concentratingOn: {
+          spellId: 'friends',
+          spellName: 'Friends',
+          spellLevel: 0,
+          startedTurn: 1,
+          effectIds: ['test-id'],
+          canDropAsFreeAction: true
+        }
+      });
+      const charmedTarget = createMockCombatCharacter({
+        id: 'target',
+        name: 'Target',
+        currentHP: 10,
+        maxHP: 10,
+        conditions: [{ name: 'Charmed', duration: { type: 'minutes', value: 1 }, appliedTurn: 1, source: 'Friends', sourceCasterId: 'caster' }],
+        statusEffects: [{
+          id: 'test-id',
+          name: 'Charmed',
+          type: 'debuff',
+          duration: 10,
+          source: 'Friends',
+          sourceCasterId: 'caster',
+          socialLifecycle: { kind: 'friends_charm', targetKnowsOnEnd: true, recastMemoryDurationRounds: 14400 }
+        }]
+      });
+      const attacker = createMockCombatCharacter({
+        id: 'attacker',
+        name: 'Attacker',
+        conditions: [],
+        statusEffects: []
+      });
+      state = { ...state, characters: [caster, charmedTarget, attacker] };
+      const damageEffect = {
+        type: 'DAMAGE',
+        damage: { dice: '1d1', type: 'Force' },
+        trigger: { type: 'immediate' },
+        condition: { type: 'always' }
+      } as SpellEffect;
+
+      const command = new DamageCommand(damageEffect, {
+        ...context,
+        caster: attacker,
+        targets: [charmedTarget],
+        spellId: 'test-damage',
+        spellName: 'Test Damage'
+      });
+      const result = await command.execute(state);
+      const updatedTarget = result.characters.find(character => character.id === charmedTarget.id)!;
+
+      expect(result.characters.find(character => character.id === caster.id)?.concentratingOn).toBeUndefined();
+      expect(updatedTarget.statusEffects.some(effect => effect.name === 'Charmed')).toBe(false);
+      expect(updatedTarget.socialAwareness?.some(entry => entry.sourceSpellId === 'friends' && entry.casterId === 'caster')).toBe(true);
+      expect(result.combatLog.some(entry => entry.data?.earlyEndReason === 'target_takes_damage')).toBe(true);
+    });
+
+    it('ends Friends early when the caster deals damage', async () => {
+      const caster = createMockCombatCharacter({
+        id: 'caster',
+        name: 'Caster',
+        concentratingOn: {
+          spellId: 'friends',
+          spellName: 'Friends',
+          spellLevel: 0,
+          startedTurn: 1,
+          effectIds: ['test-id'],
+          canDropAsFreeAction: true
+        }
+      });
+      const friendTarget = createMockCombatCharacter({
+        id: 'friend-target',
+        name: 'Friend Target',
+        conditions: [{ name: 'Charmed', duration: { type: 'minutes', value: 1 }, appliedTurn: 1, source: 'Friends', sourceCasterId: 'caster' }],
+        statusEffects: [{
+          id: 'test-id',
+          name: 'Charmed',
+          type: 'debuff',
+          duration: 10,
+          source: 'Friends',
+          sourceCasterId: 'caster',
+          socialLifecycle: { kind: 'friends_charm', targetKnowsOnEnd: true, recastMemoryDurationRounds: 14400 }
+        }]
+      });
+      const damageTarget = createMockCombatCharacter({
+        id: 'damage-target',
+        name: 'Damage Target',
+        currentHP: 10,
+        maxHP: 10,
+        conditions: [],
+        statusEffects: []
+      });
+      state = { ...state, characters: [caster, friendTarget, damageTarget] };
+      const damageEffect = {
+        type: 'DAMAGE',
+        damage: { dice: '1d1', type: 'Force' },
+        trigger: { type: 'immediate' },
+        condition: { type: 'always' }
+      } as SpellEffect;
+
+      const command = new DamageCommand(damageEffect, {
+        ...context,
+        caster,
+        targets: [damageTarget],
+        spellId: 'test-damage',
+        spellName: 'Test Damage'
+      });
+      const result = await command.execute(state);
+      const updatedFriendTarget = result.characters.find(character => character.id === friendTarget.id)!;
+
+      expect(result.characters.find(character => character.id === caster.id)?.concentratingOn).toBeUndefined();
+      expect(updatedFriendTarget.statusEffects.some(effect => effect.name === 'Charmed')).toBe(false);
+      expect(updatedFriendTarget.socialAwareness?.some(entry => entry.sourceSpellId === 'friends' && entry.casterId === 'caster')).toBe(true);
+      expect(result.combatLog.some(entry => entry.data?.earlyEndReason === 'caster_deals_damage')).toBe(true);
+    });
+
+    it('ends Friends early when the caster forces a saving throw', async () => {
+      vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+        total: 7,
+        success: false,
+        modifiersApplied: []
+      } as any);
+      const caster = createMockCombatCharacter({
+        id: 'caster',
+        name: 'Caster',
+        concentratingOn: {
+          spellId: 'friends',
+          spellName: 'Friends',
+          spellLevel: 0,
+          startedTurn: 1,
+          effectIds: ['test-id'],
+          canDropAsFreeAction: true
+        }
+      });
+      const friendTarget = createMockCombatCharacter({
+        id: 'friend-target',
+        name: 'Friend Target',
+        conditions: [{ name: 'Charmed', duration: { type: 'minutes', value: 1 }, appliedTurn: 1, source: 'Friends', sourceCasterId: 'caster' }],
+        statusEffects: [{
+          id: 'test-id',
+          name: 'Charmed',
+          type: 'debuff',
+          duration: 10,
+          source: 'Friends',
+          sourceCasterId: 'caster',
+          socialLifecycle: { kind: 'friends_charm', targetKnowsOnEnd: true, recastMemoryDurationRounds: 14400 }
+        }]
+      });
+      const saveTarget = createMockCombatCharacter({
+        id: 'save-target',
+        name: 'Save Target',
+        conditions: [],
+        statusEffects: []
+      });
+      state = { ...state, characters: [caster, friendTarget, saveTarget] };
+      const saveEffect: StatusConditionEffect = {
+        type: 'STATUS_CONDITION',
+        statusCondition: {
+          name: 'Prone',
+          duration: { type: 'rounds', value: 1 }
+        },
+        condition: {
+          type: 'save',
+          saveType: 'Wisdom',
+          saveEffect: 'negates_condition'
+        } as any,
+        trigger: { type: 'immediate' } as any
+      };
+
+      const command = new StatusConditionCommand(saveEffect, {
+        ...context,
+        caster,
+        targets: [saveTarget],
+        spellId: 'test-save-spell',
+        spellName: 'Test Save Spell'
+      });
+      const result = await command.execute(state);
+      const updatedFriendTarget = result.characters.find(character => character.id === friendTarget.id)!;
+
+      expect(result.characters.find(character => character.id === caster.id)?.concentratingOn).toBeUndefined();
+      expect(updatedFriendTarget.statusEffects.some(effect => effect.name === 'Charmed')).toBe(false);
+      expect(updatedFriendTarget.socialAwareness?.some(entry => entry.sourceSpellId === 'friends' && entry.casterId === 'caster')).toBe(true);
+      expect(result.combatLog.some(entry => entry.data?.earlyEndReason === 'caster_forces_saving_throw')).toBe(true);
     });
   });
 });

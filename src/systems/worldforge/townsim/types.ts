@@ -17,8 +17,12 @@ export type LifeEventKind =
   | 'death'
   | 'inheritance'
   | 'came_of_age'
-  | 'role_succession';
-// economy / relationship / festival kinds are added by later plans.
+  | 'role_succession'
+  | 'courtship'
+  | 'marriage'
+  | 'economy'
+  | 'festival'
+  | 'disaster';
 
 /** One recorded fact in a town's history (a diary line). */
 export interface LifeEvent {
@@ -55,6 +59,10 @@ export interface LivingVillager {
   /** gameDay of death; undefined while alive. */
   diedDay?: number;
   spouseId?: number;
+  /** Current courtship partner (pre-marriage); cleared on marriage or partner death. */
+  courtingId?: number;
+  /** gameDay the current courtship began. */
+  courtshipStartDay?: number;
   parentIds: number[];
   childIds: number[];
   /** Institution held (key NPCs only). */
@@ -78,6 +86,13 @@ export interface TownSimState {
   /** Keyed by occupantId. Includes the dead (diedDay set) for genealogy. */
   villagers: Record<number, LivingVillager>;
   chronicle: TownChronicle;
+  /** Town prosperity meter (0–100, ~50 typical), nudged by annual economy events. */
+  prosperity?: number;
+  /**
+   * Cumulative lifetime tallies, never pruned. Lets population invariants be
+   * checked even after the chronicle's old events are trimmed by retention.
+   */
+  totals?: { births: number; deaths: number };
   /** Last gameDay this state has been advanced to. */
   lastSimDay: number;
   /** Next occupant id to allocate for newborns. */

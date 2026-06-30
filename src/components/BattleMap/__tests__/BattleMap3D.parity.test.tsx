@@ -227,6 +227,7 @@ describe('BattleMap3D parity proof', () => {
               affectedTiles: [{ x: 1, y: 1 }],
               ability: { id: 'misty-step', name: 'Misty Step', range: 30 } as any
             },
+            targetValidationReason: 'This spell can only target enemies.',
             pendingTeleportAssignment: {
               ability: { name: 'Misty Step' },
               destinationsByTargetId: {
@@ -252,6 +253,7 @@ describe('BattleMap3D parity proof', () => {
       actionMode: 'move'
     }));
     expect(mockCharacterActor).toHaveBeenCalled();
+    expect(document.body.textContent).toContain('This spell can only target enemies.');
 
     const enemyActorCall = mockCharacterActor.mock.calls.find(([props]) => (props as { character: CombatCharacter }).character.id === enemy.id);
     expect(enemyActorCall?.[0]).toEqual(expect.objectContaining({

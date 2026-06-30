@@ -24,6 +24,40 @@ import { CreatureTaxonomy } from '../../creatures/CreatureTaxonomy'
  */
 export class TargetValidationUtils {
   /**
+   * Read the target's consent marker when a spell requires a willing creature.
+   *
+   * Most combatants do not expose a willingness field yet, so unknown consent
+   * stays permissive to preserve existing ally-targeting flows. When a UI,
+   * scenario, or future agent marks a target as explicitly unwilling, willing-
+   * target spells can now reject that target instead of ignoring the spell text.
+   */
+  private static getExplicitWillingness(target: CombatCharacter): boolean | undefined {
+    const targetWithConsent = target as CombatCharacter & {
+      isWilling?: boolean
+      willing?: boolean
+      targetWillingness?: 'willing' | 'unwilling' | 'not_applicable'
+    }
+
+    if (typeof targetWithConsent.isWilling === 'boolean') {
+      return targetWithConsent.isWilling
+    }
+
+    if (typeof targetWithConsent.willing === 'boolean') {
+      return targetWithConsent.willing
+    }
+
+    if (targetWithConsent.targetWillingness === 'willing') {
+      return true
+    }
+
+    if (targetWithConsent.targetWillingness === 'unwilling') {
+      return false
+    }
+
+    return undefined
+  }
+
+  /**
    * Read all creature taxonomy labels from the combat character.
    *
    * Spell targeting is in a migration period: newer callers put taxonomy on
@@ -50,6 +84,21 @@ export class TargetValidationUtils {
 
     if (!CreatureTaxonomy.isValidTarget(targetTypes, filter)) {
       return false
+    }
+
+    // Willing target filters are a consent gate layered on top of normal ally,
+    // creature, and range checks. Unknown consent remains allowed for current
+    // combatants, but explicit unwilling markers block willing-only spells.
+    if (filter.willing && filter.willing !== 'not_applicable') {
+      const explicitWillingness = TargetValidationUtils.getExplicitWillingness(target)
+
+      if ((filter.willing === 'required' || filter.willing === 'willing') && explicitWillingness === false) {
+        return false
+      }
+
+      if (filter.willing === 'unwilling' && explicitWillingness === true) {
+        return false
+      }
     }
 
     // Size

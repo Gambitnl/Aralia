@@ -204,6 +204,67 @@ describe('TargetResolver', () => {
       expect(TargetResolver.isValidTarget(targeting, caster, enemyBlocked, mockGameState)).toBe(true)
     })
 
+    it('allows Vicious Mockery-style audible targets when sight is blocked', () => {
+      const hiddenButAudible = {
+        ...createMockChar('heckler', 'enemy', 15, 10),
+        audibleTo: [caster.id]
+      }
+      mockGameState.characters.push(hiddenButAudible)
+      mockMapData.tiles.set('12-10', createMockTile(12, 10, true))
+
+      const targeting: SpellTargeting = {
+        type: 'single',
+        range: 60,
+        validTargets: ['creatures'],
+        lineOfSight: true,
+        acquisition: { mode: 'sight_or_hearing' }
+      }
+
+      // Vicious Mockery can acquire a creature the caster can see or hear. The
+      // wall blocks normal line of sight here, so this passing result proves the
+      // spell-specific hearing route is being consumed.
+      expect(TargetResolver.isValidTarget(targeting, caster, hiddenButAudible, mockGameState)).toBe(true)
+    })
+
+    it('rejects Vicious Mockery-style hidden targets that are not audible', () => {
+      const hiddenAndSilent = createMockChar('silent-heckler', 'enemy', 15, 10)
+      mockGameState.characters.push(hiddenAndSilent)
+      mockMapData.tiles.set('12-10', createMockTile(12, 10, true))
+
+      const targeting: SpellTargeting = {
+        type: 'single',
+        range: 60,
+        validTargets: ['creatures'],
+        lineOfSight: true,
+        acquisition: { mode: 'sight_or_hearing' }
+      }
+
+      expect(TargetResolver.isValidTarget(targeting, caster, hiddenAndSilent, mockGameState)).toBe(false)
+      expect(TargetResolver.getTargetRejectionReason(targeting, caster, hiddenAndSilent, mockGameState)).toMatchObject({
+        code: 'line_of_sight_blocked'
+      })
+    })
+
+    it('keeps ordinary line-of-sight spells blocked even when the target is audible', () => {
+      const audibleBehindWall = {
+        ...createMockChar('audible-behind-wall', 'enemy', 15, 10),
+        audibleTo: [caster.id]
+      }
+      mockGameState.characters.push(audibleBehindWall)
+      mockMapData.tiles.set('12-10', createMockTile(12, 10, true))
+
+      const targeting: SpellTargeting = {
+        type: 'single',
+        range: 60,
+        validTargets: ['creatures'],
+        lineOfSight: true
+      }
+
+      // The hearing bridge is opt-in. Fire Bolt-style sight-only spells must
+      // not become legal through an unrelated audible signal.
+      expect(TargetResolver.isValidTarget(targeting, caster, audibleBehindWall, mockGameState)).toBe(false)
+    })
+
     it('rejects line-of-sight targets when map data is missing', () => {
       const targeting: SpellTargeting = {
         type: 'single',

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/06/2026, 13:41:53
+ * Dependents: systems/visibility/index.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file VisibilitySystem.ts
  * Core logic for calculating light levels and character visibility in the Underdark.
@@ -47,6 +63,7 @@ export class VisibilitySystem {
     for (const source of lightSources) {
       const sourcePos = source.position;
       if (!sourcePos) continue;
+      if (this.isSuppressedByOpaqueCover(source, mapData)) continue;
 
       // Convert Radius (Feet) to Grid Units
       const brightRadiusUnits = source.brightRadius / GRID_SCALE;
@@ -170,5 +187,24 @@ export class VisibilitySystem {
       }
     }
     return false;
+  }
+
+  /**
+   * Opaque cover is only meaningful for object-mounted light sources, so the
+   * visibility pass checks the map's explicit object records before spending
+   * the light budget on tiles.
+   */
+  private static isSuppressedByOpaqueCover(source: LightSource, mapData: BattleMapData): boolean {
+    if (!source.opaqueCoverBlocks || !source.position) {
+      return false;
+    }
+
+    const coveredObject = mapData.targetableObjects?.some(object =>
+      object.position.x === source.position.x &&
+      object.position.y === source.position.y &&
+      object.isCoveredByOpaqueMaterial === true
+    );
+
+    return coveredObject === true;
   }
 }

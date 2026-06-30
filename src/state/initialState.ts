@@ -224,6 +224,14 @@ export const initialGameState: GameState = {
     questLog: [],
     isQuestLogVisible: false,
 
+    // Town notice board (living-world news modal)
+    isNoticeBoardVisible: false,
+
+    // Town broadsheet (living-world newspaper modal)
+    isBroadsheetVisible: false,
+    // No frozen broadsheet keepsake is being read by default.
+    broadsheetSnapshot: undefined,
+
     // Notoriety System
     notoriety: {
         globalHeat: 0,
@@ -333,6 +341,10 @@ export const initialGameState: GameState = {
     mapSurface: 'classic' as const,
     playerWorldPos: null,
     entry3DAnchor: null,
+    // Canonical player presence (cell-native world, Stage 2). Source of truth for
+    // the player's atlas cell + Locale position; null until spawn. `currentLocationId`
+    // + `subMapCoordinates` remain the derived shadows readers use this stage.
+    playerCell: null,
     // Ground-mode resume anchor
     // This stays null until the 3D ground renderer reports tile-local meters.
     // It must remain separate from playerWorldPos, which stores continent meters.

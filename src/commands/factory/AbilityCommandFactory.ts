@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/06/2026, 10:33:22
- * Dependents: commands/index.ts
- * Imports: 16 files
+ * Last Sync: 29/06/2026, 17:34:21
+ * Dependents: commands/factory/SpellCommandFactory.ts, commands/index.ts
+ * Imports: 23 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,7 +32,7 @@
  * 
  * @file src/commands/factory/AbilityCommandFactory.ts
  */
-import { CombatCharacter, Ability, CombatState, AbilityEffect } from '@/types/combat';
+import { CombatCharacter, Ability, CombatState, AbilityEffect, SelectedSpellTarget } from '@/types/combat';
 import { GameState } from '@/types';
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
 import { DamageCommand } from '../effects/DamageCommand';
@@ -49,8 +49,14 @@ import { DismissFamiliarToPocketCommand, RecallFamiliarFromPocketCommand } from 
 import { FamiliarSharedSensesCommand } from '../effects/FamiliarSharedSensesCommand';
 import { CommandedSummonCommand } from '../effects/CommandedSummonCommand';
 import { GrantedActionCommand } from '../effects/GrantedActionCommand';
+import { breakFriendsConcentrationForCaster } from '../effects/ConcentrationCommands';
 import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidationUtils';
 import { combatEvents } from '@/systems/events/CombatEvents';
+import { createMovementDebuff, type MovementTriggerDebuff } from '@/systems/spells/effects/triggerHandler';
+import { isBoomingBladeRuntimeAbility } from './boomingBladeAttackBridge';
+import { isGreenFlameBladeRuntimeAbility } from './greenFlameBladeAttackBridge';
+
+type HeldWeaponAugment = NonNullable<NonNullable<NonNullable<CombatCharacter['activeEffects']>[number]['mechanics']>['heldWeaponAugment']>;
 
 // ============================================================================
 // Attack Classification Helpers
@@ -102,6 +108,18 @@ const getAttackEventClassification = (ability: Ability): {
   };
 };
 
+const isShockingGraspMetalArmorAdvantage = (ability: Ability, target: CombatCharacter): boolean => {
+  // Shocking Grasp has one special attack-roll rider: melee spell attacks
+  // against a creature wearing metal armor are made with advantage. Armor
+  // material is not yet a full item taxonomy, so this narrow bridge reads the
+  // combat-facing `hasMetalArmor` flag added for this spell slice.
+  const sourceSpellId = ability.sourceSpellId ?? ability.spell?.id ?? ability.id;
+  const isShockingGrasp = sourceSpellId === 'shocking-grasp';
+  const isMeleeSpellAttack = ability.attackType === 'spell' && (ability.range || 5) <= 5;
+
+  return isShockingGrasp && isMeleeSpellAttack && target.hasMetalArmor === true;
+};
+
 /**
  * Command for executing a weapon attack.
  * Handles attack rolls, critical hits, and reaction windows (conceptually).
@@ -138,12 +156,175 @@ export class WeaponAttackCommand implements SpellCommand {
     };
   }
 
+  private getLiveCaster(state: CombatState): CombatCharacter {
+    return state.characters.find(character => character.id === this.caster.id) || this.caster;
+  }
+
+  private getMatchingHeldWeaponAugment(state: CombatState): HeldWeaponAugment | null {
+    const liveCaster = this.getLiveCaster(state);
+    const abilityWeapon = this.ability.weapon;
+
+    if (!abilityWeapon) {
+      return null;
+    }
+
+    const abilityWeaponKey = `${abilityWeapon.id} ${abilityWeapon.name}`.toLowerCase();
+
+    const activeEffectAugments = liveCaster.activeEffects
+      ?.map(effect => effect.mechanics?.heldWeaponAugment) || [];
+    const itemEnchantmentAugments = (state.temporaryWeaponEnchantments || [])
+      .filter(enchantment =>
+        !enchantment.expiresAtRound ||
+        !state.turnState?.currentTurn ||
+        enchantment.expiresAtRound >= state.turnState.currentTurn
+      )
+      .map(enchantment => enchantment.heldWeaponAugment);
+
+    // Shillelagh is mirrored on the caster as an active effect and stored on
+    // CombatState as an item-owned enchantment. Checking both lets the original
+    // caster use the old combat path while also allowing a handed-off weapon to
+    // keep its spell metadata when another actor attacks with that item.
+    return [...activeEffectAugments, ...itemEnchantmentAugments]
+      .find((augment): augment is HeldWeaponAugment => {
+        if (!augment) return false;
+        if (
+          augment.attackType &&
+          augment.attackType !== 'melee_weapon' &&
+          augment.attackType !== 'weapon' &&
+          augment.attackType !== 'ranged_weapon'
+        ) return false;
+
+        const matchesRegisteredWeapon =
+          Boolean(augment.sourceWeaponId && augment.sourceWeaponId === abilityWeapon.id) ||
+          Boolean(augment.sourceWeaponName && augment.sourceWeaponName.toLowerCase() === abilityWeapon.name.toLowerCase());
+
+        const matchesEligibleFamily = (augment.eligibleWeaponTypes || []).some(type =>
+          abilityWeaponKey.includes(type.toLowerCase())
+        );
+
+        return matchesRegisteredWeapon || matchesEligibleFamily;
+      }) || null;
+  }
+
+  private getSpellcastingAbilityModifier(caster: CombatCharacter, augment?: HeldWeaponAugment | null): number {
+    if (typeof augment?.sourceSpellcastingAbilityModifier === 'number') {
+      return augment.sourceSpellcastingAbilityModifier;
+    }
+
+    const spellcastingAbility = ((caster as CombatCharacter & {
+      spellcastingAbility?: 'intelligence' | 'wisdom' | 'charisma'
+    }).spellcastingAbility || 'wisdom').toLowerCase() as keyof CombatCharacter['stats'];
+    const score = caster.stats[spellcastingAbility] || 10;
+
+    return Math.floor((score - 10) / 2);
+  }
+
+  private getHeldWeaponDamageDice(augment: HeldWeaponAugment): string {
+    const level = augment.sourceCasterLevel || this.caster.level || 1;
+    const diceByLevel = augment.damageDiceByLevel;
+
+    if (level >= 17 && diceByLevel?.level17) return diceByLevel.level17;
+    if (level >= 11 && diceByLevel?.level11) return diceByLevel.level11;
+    if (level >= 5 && diceByLevel?.level5) return diceByLevel.level5;
+
+    return diceByLevel?.base || this.ability.weapon?.damageDice || '1d4';
+  }
+
+  private applyHeldWeaponAugmentToDamageEffect(
+    spellEffect: SpellEffect,
+    augment: HeldWeaponAugment | null,
+    state: CombatState
+  ): SpellEffect {
+    if (!augment || !isDamageEffect(spellEffect)) {
+      return spellEffect;
+    }
+
+    const spellcastingDamageModifier = augment.useSpellcastingAbilityForDamage
+      ? this.getSpellcastingAbilityModifier(this.getLiveCaster(state), augment)
+      : 0;
+    const chosenDamageType = this.context.playerInput?.trim().toLowerCase();
+    const forceOption = augment.damageTypeChoice?.options.find(option =>
+      String(option).toLowerCase() === 'force'
+    );
+    const useForce = chosenDamageType === 'force' && Boolean(forceOption);
+    const weaponNormalType = this.ability.weapon?.damageType || spellEffect.damage.type;
+    const dice = this.getHeldWeaponDamageDice(augment);
+
+    // Keep Shillelagh as a normal damage command by translating its weapon
+    // override into the dice/type fields the shared damage engine already
+    // understands. That preserves resistance, temp HP, critical, and logging
+    // behavior instead of creating a spell-specific damage shortcut.
+    return {
+      ...spellEffect,
+      damage: {
+        ...spellEffect.damage,
+        dice: spellcastingDamageModifier
+          ? `${dice}${spellcastingDamageModifier > 0 ? '+' : ''}${spellcastingDamageModifier}`
+          : dice,
+        type: (useForce ? 'Force' : weaponNormalType) as typeof spellEffect.damage.type
+      }
+    };
+  }
+
+  private consumeOneShotHeldWeaponAugment(
+    state: CombatState,
+    augment: HeldWeaponAugment | null
+  ): CombatState {
+    if (!augment?.consumesOnAttackHitOrMiss) {
+      return state;
+    }
+
+    const spellId = augment.sourceSpellId || this.context.spellId;
+    const casterId = augment.sourceCasterId || this.context.caster.id;
+    const spellPebblePrefix = `${spellId || 'spell'}-pebble-`;
+
+    const spellCreatedInventoryItems = state.spellCreatedInventoryItems || [];
+    const temporaryWeaponEnchantments = state.temporaryWeaponEnchantments || [];
+
+    const nextSpellCreatedInventoryItemIndex = spellCreatedInventoryItems.findIndex(item =>
+      item.id.startsWith(spellPebblePrefix)
+    );
+    const nextTemporaryWeaponEnchantmentIndex = temporaryWeaponEnchantments.findIndex(enchantment =>
+      enchantment.spellId === spellId &&
+      enchantment.casterId === casterId &&
+      Boolean(enchantment.heldWeaponAugment.consumesOnAttackHitOrMiss)
+    );
+
+    if (nextSpellCreatedInventoryItemIndex < 0 && nextTemporaryWeaponEnchantmentIndex < 0) {
+      return state;
+    }
+
+    return {
+      ...state,
+      spellCreatedInventoryItems: nextSpellCreatedInventoryItemIndex >= 0
+        ? [
+            ...spellCreatedInventoryItems.slice(0, nextSpellCreatedInventoryItemIndex),
+            ...spellCreatedInventoryItems.slice(nextSpellCreatedInventoryItemIndex + 1)
+          ]
+        : spellCreatedInventoryItems,
+      temporaryWeaponEnchantments: nextTemporaryWeaponEnchantmentIndex >= 0
+        ? [
+            ...temporaryWeaponEnchantments.slice(0, nextTemporaryWeaponEnchantmentIndex),
+            ...temporaryWeaponEnchantments.slice(nextTemporaryWeaponEnchantmentIndex + 1)
+          ]
+        : temporaryWeaponEnchantments
+    };
+  }
+
   async execute(state: CombatState): Promise<CombatState> {
     let newState = { ...state };
     const riderSystem = new AttackRiderSystem();
 
     // 1. Process each target (Weapon attacks are usually single target, but could be cleave)
     for (const target of this.targets) {
+      newState = await breakFriendsConcentrationForCaster(
+        newState,
+        this.caster,
+        this.context,
+        'caster_makes_attack_roll',
+        this.ability.name
+      );
+
       // Clone target to modify
       let currentTarget = newState.characters.find(c => c.id === target.id) || target;
 
@@ -225,6 +406,13 @@ export class WeaponAttackCommand implements SpellCommand {
       if (currentTarget.conditions?.some(c => c.name === 'Invisible') && !invisibleBenefitSuppressed) {
         hasDisadvantage = true;
       }
+
+      // Shocking Grasp gets advantage against a metal-armored target. Keep the
+      // rule close to the rest of the attack-roll advantage calculation so it
+      // participates in the normal advantage/disadvantage cancellation logic.
+      if (isShockingGraspMetalArmorAdvantage(this.ability, currentTarget)) {
+        hasAdvantage = true;
+      }
       if (this.caster.conditions?.some(c => c.name === 'Invisible')) {
         hasAdvantage = true;
       }
@@ -259,10 +447,21 @@ export class WeaponAttackCommand implements SpellCommand {
       const weaponType = (this.ability.range || 5) <= 5 ? 'melee_weapon' : 'ranged_weapon';
       const resolvedAttackKind = this.ability.isMagical ? 'spell' : weaponType;
 
-      const processAttackRider = (activeEffect: any, direction: 'incoming' | 'outgoing') => {
-        if (!activeEffect.mechanics || activeEffect.mechanics.attackRollDirection !== direction) return;
+        const processAttackRider = (activeEffect: any, direction: 'incoming' | 'outgoing') => {
+         if (!activeEffect.mechanics || activeEffect.mechanics.attackRollDirection !== direction) return;
 
-        const kind = activeEffect.mechanics.attackRollKind;
+          // Some outgoing riders only apply against one named defender. Chill
+          // Touch's Undead rider is the current case: the Undead is worse at
+          // attacking the caster who hit it, not at attacking every creature.
+          if (
+            direction === 'outgoing' &&
+            activeEffect.mechanics.attackRollTargetId &&
+            activeEffect.mechanics.attackRollTargetId !== currentTarget.id
+          ) {
+            return;
+          }
+
+          const kind = activeEffect.mechanics.attackRollKind;
         if (kind && kind !== 'any' && kind !== 'weapon' && kind !== resolvedAttackKind) {
            if (kind === 'weapon' && (resolvedAttackKind === 'melee_weapon' || resolvedAttackKind === 'ranged_weapon')) {
               // matches
@@ -318,15 +517,23 @@ export class WeaponAttackCommand implements SpellCommand {
         rollStr += ` (Advantage and Disadvantage cancel out)`;
       }
 
+      const heldWeaponAugment = this.getMatchingHeldWeaponAugment(newState);
+      const liveCaster = this.getLiveCaster(newState);
       let modifiers: number;
       if (this.ability.attackBonus !== undefined) {
         modifiers = this.ability.attackBonus;
       } else {
-        const strMod = Math.floor((this.caster.stats.strength - 10) / 2);
-        const dexMod = Math.floor((this.caster.stats.dexterity - 10) / 2);
+        const strMod = Math.floor((liveCaster.stats.strength - 10) / 2);
+        const dexMod = Math.floor((liveCaster.stats.dexterity - 10) / 2);
         const isRanged = this.ability.range > 1 || this.ability.weapon?.properties?.includes('range');
-        const abilityMod = isRanged ? dexMod : strMod;
-        const pb = Math.ceil((this.caster.level || 1) / 4) + 1;
+        const useSpellcastingAttackMod = Boolean(
+          heldWeaponAugment?.useSpellcastingAbilityForAttack &&
+          (heldWeaponAugment.attackType === 'ranged_weapon' || !isRanged)
+        );
+        const abilityMod = useSpellcastingAttackMod
+          ? this.getSpellcastingAbilityModifier(liveCaster, heldWeaponAugment)
+          : (isRanged ? dexMod : strMod);
+        const pb = Math.ceil((liveCaster.level || 1) / 4) + 1;
         const proficiencyBonus = this.ability.isProficient ? pb : 0;
         modifiers = abilityMod + proficiencyBonus;
       }
@@ -367,6 +574,27 @@ export class WeaponAttackCommand implements SpellCommand {
         attackType: attackEventClassification.attackType,
         weaponType: attackEventClassification.weaponType
       });
+
+      // Frostbite-style outgoing riders live on the creature making the
+      // attack. Spend them after they have shaped this roll so the next weapon
+      // attack is penalized exactly once.
+      newState = this.consumeNextAttackRollRiders(
+        newState,
+        this.caster.id,
+        'outgoing',
+        attackEventClassification
+      );
+
+      // Incoming next-attack riders live on the creature being attacked. Keep
+      // this path for target-side smite-style or mark-style effects without
+      // confusing them with Frostbite's outgoing rider.
+      newState = this.consumeNextAttackRollRiders(
+        newState,
+        currentTarget.id,
+        'incoming',
+        attackEventClassification
+      );
+      currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
 
       // Log Attack Roll
       newState.combatLog.push({
@@ -442,6 +670,7 @@ export class WeaponAttackCommand implements SpellCommand {
             newState = riderSystem.consumeRiders(newState, this.caster.id, missRiders);
           }
         }
+        newState = this.consumeOneShotHeldWeaponAugment(newState, heldWeaponAugment);
         continue;
       }
 
@@ -467,15 +696,16 @@ export class WeaponAttackCommand implements SpellCommand {
       // 3. Apply Base Ability Effects
       if (!attackPayloadIsReplaced) {
         for (const abilityEffect of this.ability.effects) {
-          const spellEffect = AbilityEffectMapper.mapToSpellEffect(abilityEffect);
-          if (!spellEffect) continue;
+          const mappedSpellEffect = AbilityEffectMapper.mapToSpellEffect(abilityEffect);
+          if (!mappedSpellEffect) continue;
+          const spellEffect = this.applyHeldWeaponAugmentToDamageEffect(mappedSpellEffect, heldWeaponAugment, newState);
 
           const subContext: CommandContext = {
             ...this.context,
             targets: [currentTarget],
             isCritical,
             weaponProperties: this.ability.weapon?.properties,
-            isMagical: this.ability.isMagical,
+            isMagical: this.ability.isMagical || heldWeaponAugment?.isMagical,
           };
 
           let command: SpellCommand | null = null;
@@ -489,6 +719,55 @@ export class WeaponAttackCommand implements SpellCommand {
             newState = await command.execute(newState);
             // Refresh target
             currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
+          }
+        }
+
+        newState = this.consumeOneShotHeldWeaponAugment(newState, heldWeaponAugment);
+
+        if (isBoomingBladeRuntimeAbility(this.ability) && this.ability.boomingBladeMovementEffects?.length) {
+          // Booming Blade's delayed thunder damage belongs on the creature that
+          // was actually hit, not on every creature the spell originally
+          // targeted. Recording it here preserves the hit gate and gives the
+          // movement executor a normal MovementTriggerDebuff to consume later.
+          const movementDebuff = createMovementDebuff(
+            this.ability.sourceSpellId ?? 'booming-blade',
+            this.caster.id,
+            currentTarget.id,
+            this.ability.boomingBladeMovementEffects,
+            newState.turnState.currentTurn,
+            this.ability.boomingBladeDurationRounds ?? 1
+          );
+          const stateWithMovementDebuffs = newState as CombatState & { movementDebuffs?: MovementTriggerDebuff[] };
+          newState = {
+            ...newState,
+            movementDebuffs: [
+              ...(stateWithMovementDebuffs.movementDebuffs ?? []),
+              movementDebuff
+            ]
+          } as CombatState;
+        }
+
+        if (
+          isGreenFlameBladeRuntimeAbility(this.ability) &&
+          this.ability.greenFlameBladeSecondaryEffect &&
+          this.ability.greenFlameBladeSecondaryTargetId
+        ) {
+          const secondaryTarget = newState.characters.find(character =>
+            character.id === this.ability.greenFlameBladeSecondaryTargetId
+          );
+
+          if (secondaryTarget) {
+            // The leap spends only after the weapon hit lands, and it keeps the
+            // secondary damage on the chosen adjacent creature instead of the
+            // primary weapon target.
+            const secondaryCommand = new DamageCommand(this.ability.greenFlameBladeSecondaryEffect, {
+              ...this.context,
+              targets: [secondaryTarget],
+              isCritical,
+              isMagical: true
+            });
+
+            newState = await secondaryCommand.execute(newState);
           }
         }
       } else {
@@ -690,6 +969,70 @@ export class WeaponAttackCommand implements SpellCommand {
     return newState;
   }
 
+  /**
+   * Spend one-shot attack-roll riders only after a matching weapon attack is
+   * actually rolled. Outgoing riders live on the attacker, incoming riders live
+   * on the target; checking the direction keeps Frostbite and target-side
+   * attack marks from consuming each other.
+   */
+  private consumeNextAttackRollRiders(
+    state: CombatState,
+    characterId: string,
+    direction: 'incoming' | 'outgoing',
+    attackClassification: ReturnType<typeof getAttackEventClassification>
+  ): CombatState {
+    if (attackClassification.attackType !== 'weapon') {
+      return state;
+    }
+
+    const affectedCharacter = state.characters.find(character => character.id === characterId);
+    if (!affectedCharacter?.activeEffects?.length) {
+      return state;
+    }
+
+    const remainingEffects = affectedCharacter.activeEffects.filter(effect => {
+      const mechanics = effect.mechanics;
+      if (!mechanics || mechanics.attackRollDirection !== direction) {
+        return true;
+      }
+
+      if (
+        mechanics.attackRollConsumption !== 'next_attack' &&
+        mechanics.attackRollConsumption !== 'first_attack'
+      ) {
+        return true;
+      }
+
+      const kind = mechanics.attackRollKind;
+      if (!kind || kind === 'any' || kind === 'weapon') {
+        return false;
+      }
+
+      if (kind === 'melee_weapon') {
+        return attackClassification.weaponType !== 'melee';
+      }
+
+      if (kind === 'ranged_weapon') {
+        return attackClassification.weaponType !== 'ranged';
+      }
+
+      return true;
+    });
+
+    if (remainingEffects.length === affectedCharacter.activeEffects.length) {
+      return state;
+    }
+
+    return {
+      ...state,
+      characters: state.characters.map(character =>
+        character.id === characterId
+          ? { ...character, activeEffects: remainingEffects }
+          : character
+      )
+    };
+  }
+
   private getRiderAreaTargets(
     state: CombatState,
     centerTarget: CombatCharacter,
@@ -822,6 +1165,7 @@ export class AbilityCommandFactory {
     caster: CombatCharacter,
     targets: CombatCharacter[],
     gameState: GameState,
+    selectedSpellTargets?: SelectedSpellTarget[],
     requestReaction?: (attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_take_damage', options: any[]) => Promise<string | null>
   ): SpellCommand[] {
     const context: CommandContext = {
@@ -834,6 +1178,7 @@ export class AbilityCommandFactory {
       castAtLevel: 0,
       caster,
       targets,
+      selectedSpellTargets: selectedSpellTargets ?? targets.map(target => ({ kind: 'creature', id: target.id })),
       gameState
     };
 

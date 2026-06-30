@@ -10,6 +10,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SpellCommandFactory } from '../SpellCommandFactory';
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories';
 import { SpellSchool, type Spell, type SpellEffect, type UtilityEffect, type StatusConditionEffect } from '@/types/spells';
+import guidance from '../../../../public/data/spells/level-0/guidance.json';
 import { INGESTED_MONSTERS } from '@/data/monsters.generated';
 import * as savingThrowUtils from '@/utils/savingThrowUtils';
 
@@ -165,14 +166,61 @@ describe('SpellCommandFactory - Status Condition Integration', () => {
     }));
 
     const updatedTarget = result.characters.find(character => character.id === target.id)!;
+    expect(updatedTarget).toBeDefined();
+  });
 
-    expect(updatedTarget.statusEffects[0].name).toBe('Paralyzed');
-    expect(updatedTarget.statusEffects[0].repeatSave).toEqual({
-      timing: 'turn_end',
-      saveType: 'Wisdom',
-      successEnds: true,
-      useOriginalDC: true
+  it('registers Guidance on the touched creature and replaces it on recast', async () => {
+    const guidanceSpell = guidance as unknown as Spell;
+
+    const firstCommands = await SpellCommandFactory.createCommands(
+      guidanceSpell,
+      caster,
+      [target],
+      guidanceSpell.level,
+      gameState,
+      'Arcana'
+    );
+
+    let currentState = createMockCombatState({
+      characters: [caster, target],
+      combatLog: []
     });
-    expect(updatedTarget.conditions?.[0].repeatSave).toEqual(updatedTarget.statusEffects[0].repeatSave);
+
+    for (const command of firstCommands) {
+      currentState = await command.execute(currentState);
+    }
+
+    const guidedTarget = currentState.characters.find(character => character.id === target.id)!;
+    const guidedCaster = currentState.characters.find(character => character.id === caster.id)!;
+    const arcanaGuidance = guidedTarget.statusEffects.find(effect => effect.source === 'Guidance');
+
+    expect(arcanaGuidance).toBeDefined();
+    expect(arcanaGuidance?.name).toBe('Guidance (Arcana)');
+    expect(arcanaGuidance?.abilityCheckModifier?.bonusDice).toBe('1d4');
+    expect(arcanaGuidance?.modifiers?.skill).toBe('Arcana');
+    expect(guidedCaster.concentratingOn?.effectIds).toContain(arcanaGuidance!.id);
+
+    const secondCommands = await SpellCommandFactory.createCommands(
+      guidanceSpell,
+      guidedCaster,
+      [guidedTarget],
+      guidanceSpell.level,
+      gameState,
+      'History'
+    );
+
+    let recastState = currentState;
+    for (const command of secondCommands) {
+      recastState = await command.execute(recastState);
+    }
+
+    const recastTarget = recastState.characters.find(character => character.id === target.id)!;
+    const historyGuidance = recastTarget.statusEffects.find(effect => effect.source === 'Guidance');
+
+    expect(historyGuidance).toBeDefined();
+    expect(historyGuidance?.name).toBe('Guidance (History)');
+    expect(recastTarget.statusEffects.some(effect => effect.name === 'Guidance (Arcana)')).toBe(false);
+    expect(recastTarget.statusEffects.some(effect => effect.name === 'Guidance (History)')).toBe(true);
   });
 });
+

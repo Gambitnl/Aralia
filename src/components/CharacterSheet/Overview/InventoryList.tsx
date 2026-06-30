@@ -592,6 +592,15 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                           {isFood ? 'Eat' : 'Use'}
                         </button>
                       )}
+                      {child.readableContent && (
+                        /* Readable items (e.g. a pocketed broadsheet keepsake) open their frozen snapshot. */
+                        <button onClick={() => onAction({ type: 'READ_ITEM', label: `Read ${child.name}`, payload: { itemId: child.id } })}
+                          className="text-xs bg-amber-700 hover:bg-amber-600 text-white px-2 py-1 rounded transition-colors shadow-sm"
+                          aria-label={`Read ${child.name}`}
+                        >
+                          Read
+                        </button>
+                      )}
                       {isEquippableType && child.slot && (
                         <Tooltip content={canBeEquipped ? (cantEquipReason ? `Equip ${child.name}\n⚠️ ${cantEquipReason}` : `Equip ${child.name}`) : (cantEquipReason || "Cannot equip")}>
                           <button onClick={() => onAction({ type: 'EQUIP_ITEM', label: `Equip ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}

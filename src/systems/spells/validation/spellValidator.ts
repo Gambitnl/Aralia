@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 14/05/2026, 10:30:02
+ * Last Sync: 29/06/2026, 18:28:34
  * Dependents: components/Glossary/spellGateChecker/spellGateBucketDetails.ts, components/Glossary/spellGateChecker/spellGateSelectedRefresh.ts, components/Glossary/spellGateChecker/useSpellGateChecks.ts, data/summonTemplates.ts, utils/validation/spellAuditor.ts
  * Imports: 13 files
  *
@@ -778,6 +778,27 @@ export const SummonedEntityStatBlock = z.object({
   cr: z.union([z.number(), z.string()]).optional(),
 });
 
+const SummonedEntityLifecycle = z.object({
+  // Persistent summons need their end-state, repair, and recast behavior to
+  // survive validation so the structured packet remains useful to runtime.
+  hitPointMaximum: z.string().optional(),
+  repairOnly: z.string().optional(),
+  zeroHpEnding: z.string().optional(),
+  recastEnding: z.string().optional(),
+});
+
+const SummonedEntityControl = z.object({
+  // Control summaries keep ownership and obedience facts attached to the
+  // summon packet instead of flattening them into prose.
+  entityType: z.string().optional(),
+  source: z.string().optional(),
+  allegiance: z.string().optional(),
+  obedience: z.string().optional(),
+  initiative: z.string().optional(),
+  restrictions: z.array(z.string()).optional(),
+  destruction: z.string().optional(),
+});
+
 const SummonSpecialAction = z.object({
   name: z.string(),
   description: z.string(),
@@ -830,6 +851,8 @@ const SummoningEffect = BaseEffect.extend({
     // Stats
     statBlock: SummonedEntityStatBlock.optional(),
     objectDescription: z.string().optional(), // For simple objects like Disk
+    lifecycle: SummonedEntityLifecycle.optional(),
+    control: SummonedEntityControl.optional(),
 
     // Command Economy
     commandCost: z.enum(["action", "bonus_action", "free", "none"]),
@@ -1221,6 +1244,31 @@ const UtilityEffect = BaseEffect.extend({
   attackAugments: z.array(AttackAugment).optional(),
   abilityCheckModifier: AbilityCheckModifier.optional(),
   controlledEntity: ControlledEntity.optional(),
+  // Tiny Servant carries its object-reversion lifecycle and command packet on
+  // the utility effect so the live spell data keeps that control state after
+  // validation instead of losing it to unknown-key stripping.
+  animatedObjectState: z.object({
+    creatureType: z.literal("Construct"),
+    size: z.literal("Tiny"),
+    sourceObject: z.string(),
+    lifecycle: z.object({
+      hitPointEnding: z.string(),
+      reversion: z.string(),
+      damageCarryover: z.string(),
+    }),
+    control: z.string(),
+  }).optional(),
+  summonControl: z.object({
+    entityType: z.literal("Tiny Servant"),
+    source: z.string(),
+    commandAction: z.literal("Bonus Action"),
+    commandRangeFeet: z.number(),
+    multiCommand: z.string(),
+    commandOptions: z.string(),
+    noCommandBehavior: z.string(),
+    persistentOrder: z.string(),
+    lifecycle: z.string(),
+  }).optional(),
   createdObjects: z.array(CreatedObject).optional(),
   objectAccessChange: ObjectAccessChange.optional(),
   controlOptions: z.array(ControlOption).optional(),
@@ -1239,6 +1287,11 @@ const UtilityEffect = BaseEffect.extend({
     canBeCoveredOrHidden: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
     canBeSmotheredOrQuenched: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
   }).optional(),
+  // Starry Wisp is a sensory utility rider rather than an attack-roll rider,
+  // but it uses the same explicit "Invisible stops helping this target" payload
+  // as Shining Smite. Keep the shared shape valid here so the spell data does
+  // not have to hide that combat fact in prose.
+  invisibilitySuppression: InvisibilitySuppression.optional(),
 });
 
 const DamageReduction = z.object({

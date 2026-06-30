@@ -1,6 +1,6 @@
 ---
 schema_version: 1
-project: Scripts: Archive
+project: "Scripts: Archive"
 slug: scripts-archive
 category: Docs / Continuity
 main_category: Review / Archive

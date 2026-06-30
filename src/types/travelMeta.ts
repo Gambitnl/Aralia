@@ -21,6 +21,8 @@ export interface TravelProvisionEffect {
   note?: string | null;
 }
 
+import type { Entry3DAnchor } from './state';
+
 /** Per-trip metadata for a world-map move. */
 export interface TravelMeta {
   /** Real trip duration in seconds (advances the game clock). */
@@ -29,4 +31,13 @@ export interface TravelMeta {
   encounterMessage?: string | null;
   /** Provisioning effects to apply after the move (omitted when ungated). */
   provision?: TravelProvisionEffect;
+  /**
+   * Cell-native destination of the trip (Stage 4, cell-native world). When present,
+   * arrival sets the canonical `playerCell` to this EXACT cell (resetting Locale
+   * feet, which are meaningless in the new cell) and stamps the 3D-entry anchor so a
+   * later Enter-3D frames the destination town. Absent for legacy compass/static
+   * moves — those keep the Stage-2 tile-derived cell. Carries only an atlas cell id +
+   * graph-space anchor; no Locale feet cross this boundary (feet stay Locale-local).
+   */
+  destinationCell?: { cellId: number; anchor: Entry3DAnchor };
 }

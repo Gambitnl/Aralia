@@ -81,6 +81,7 @@ function listSpellFiles(root: string, extension: '.json' | '.md'): SpellFileEntr
 
     for (const fileName of fs.readdirSync(levelDir).sort((a, b) => a.localeCompare(b))) {
       if (!fileName.endsWith(extension)) continue;
+      if (extension === '.md' && fileName.endsWith('.scenarios.md')) continue;
 
       const absolutePath = path.join(levelDir, fileName);
       entries.push({

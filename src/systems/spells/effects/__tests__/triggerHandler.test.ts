@@ -443,4 +443,50 @@ describe('trigger source context', () => {
       saveDC: 18
     })
   })
+
+  it('triggers Booming Blade-style movement damage only for willing movement of at least 5 feet', () => {
+    // Booming Blade cares about the target choosing to move at least one
+    // five-foot tile. Forced movement, teleport, and zero-foot updates should
+    // leave the stored rider waiting instead of spending it.
+    const effect = {
+      type: 'DAMAGE',
+      trigger: { type: 'on_target_move', movementType: 'willing', frequency: 'once' },
+      condition: { type: 'always' },
+      damage: { dice: '2d8', type: 'Thunder' }
+    } as unknown as SpellEffect
+    const debuff: MovementTriggerDebuff = {
+      id: 'booming-rider',
+      spellId: 'booming-blade',
+      casterId: 'blade-caster',
+      targetId: 'target',
+      effects: [effect],
+      expiresAtRound: 3,
+      hasTriggered: false
+    }
+
+    expect(processMovementTriggers([debuff], makeCharacter({ x: 0, y: 0 }), 2, {
+      previousPosition: { x: 0, y: 0 },
+      movementType: 'willing'
+    })).toHaveLength(0)
+    expect(debuff.hasTriggered).toBe(false)
+
+    const forcedResults = processMovementTriggers([debuff], makeCharacter({ x: 1, y: 0 }), 2, {
+      previousPosition: { x: 0, y: 0 },
+      movementType: 'forced'
+    })
+    expect(forcedResults).toHaveLength(0)
+    expect(debuff.hasTriggered).toBe(false)
+
+    const willingResults = processMovementTriggers([debuff], makeCharacter({ x: 1, y: 0 }), 2, {
+      previousPosition: { x: 0, y: 0 },
+      movementType: 'willing'
+    })
+    expect(willingResults).toHaveLength(1)
+    expect(willingResults[0].effects[0]).toMatchObject({
+      type: 'damage',
+      dice: '2d8',
+      damageType: 'Thunder'
+    })
+    expect(debuff.hasTriggered).toBe(true)
+  })
 })

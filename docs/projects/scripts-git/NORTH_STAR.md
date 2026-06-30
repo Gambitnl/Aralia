@@ -1,6 +1,6 @@
 ---
 schema_version: 1
-project: Scripts: Git
+project: "Scripts: Git"
 slug: scripts-git
 category: Tools, Automation, and Infrastructure
 main_category: "Tools, Docs & Agents"

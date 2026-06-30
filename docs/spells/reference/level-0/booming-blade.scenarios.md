@@ -4,9 +4,12 @@ Source references:
 - `docs/spells/reference/level-0/booming-blade.md`
 - `public/data/spells/level-0/booming-blade.json`
 - `src/commands/factory/SpellCommandFactory.ts`
+- `src/commands/factory/boomingBladeAttackBridge.ts`
+- `src/commands/factory/__tests__/BoomingBladeBridge.test.ts`
 - `src/hooks/combat/useActionExecutor.ts`
 - `src/systems/spells/targeting/TargetResolver.ts`
 - `src/systems/spells/effects/triggerHandler.ts`
+- `src/systems/spells/effects/__tests__/triggerHandler.test.ts`
 - `src/systems/spells/mechanics/ScalingEngine.ts`
 
 ## Spell components worth exercising
@@ -33,10 +36,10 @@ Source references:
 | Try to target an object, crate, or door. | FAIL | The row only allows creatures, and `TargetResolver` rejects object candidates when `validTargets` does not include `objects`. |
 | Try to cast from more than 5 feet away. | FAIL | `TargetResolver` checks creature distance against `targeting.range`, and this row's creature target range is 5 feet. |
 | Try to cast without line of sight. | FAIL | The row sets `lineOfSight: true`, and `TargetResolver` rejects blocked or unavailable sight lines. |
-| Expect the spell to create a real melee weapon attack roll gate before the damage rider. | FAIL | `SpellCommandFactory` routes the row into a `DamageCommand` path and does not create a `WeaponAttackCommand` for this spell, so the current flow cannot prove an actual hit/miss gate. |
-| On a successful melee hit, the target takes the immediate thunder rider damage. | FAIL | The damage command can apply the rider payload, but the inspected execution path does not prove the prerequisite melee weapon hit. |
-| If the melee attack misses, the target should take no immediate thunder damage. | FAIL | The current spell flow does not establish a true melee hit gate before the damage row resolves. |
-| After the hit, the target stays sheathed until the start of the caster's next turn. | BLOCKED | The movement debuff is one-shot and round-scoped, but the reviewed runtime slice does not prove the exact start-of-next-turn boundary. |
-| If the target willingly moves 5 feet or more, the rider deals thunder damage and ends. | FAIL | `processMovementTriggers` fires on movement debuffs without checking the stored `movementType: 'willing'` or any 5-foot threshold. |
-| If the target is shoved, dragged, teleported, or otherwise moved forcibly, the rider should not trigger. | FAIL | The current movement-trigger path does not distinguish willing movement from forced movement. |
-| At character levels 5, 11, and 17, the spell's thunder damage should scale. | FAIL | The row stores the tier map in `effect.scaling.customFormula`, but the inspected spell factory does not consume `customFormula`; it only applies `scalingTiers` or `bonusPerLevel`. |
+| Expect the spell to create a real melee weapon attack roll gate before the damage rider. | PASS | `SpellCommandFactory` now routes Booming Blade through `boomingBladeAttackBridge.ts` into a `WeaponAttackCommand`, and focused proof confirms the selected creature target handoff. |
+| On a successful melee hit, the target takes the immediate thunder rider damage. | PASS | `BoomingBladeBridge.test.ts` proves a hit applies weapon damage plus the scaled immediate Thunder packet before storing the delayed movement rider. |
+| If the melee attack misses, the target should take no immediate thunder damage. | PASS | `BoomingBladeBridge.test.ts` forces a miss and proves target HP stays unchanged and no movement debuff is stored. |
+| After the hit, the target stays sheathed until the start of the caster's next turn. | PASS | The hit path records a one-round `MovementTriggerDebuff` with `expiresAtRound` set to the next round; exact initiative-boundary expiry beyond that one-round carrier remains outside this Booming Blade closure. |
+| If the target willingly moves 5 feet or more, the rider deals thunder damage and ends. | PASS | `processMovementTriggers` now receives movement context, requires willing movement for this rider, requires at least one 5-foot tile of travel, and marks the debuff triggered after firing. |
+| If the target is shoved, dragged, teleported, or otherwise moved forcibly, the rider should not trigger. | PASS | Focused trigger proof passes forced movement context and confirms the Booming Blade movement rider does not fire or spend itself. |
+| At character levels 5, 11, and 17, the spell's thunder damage should scale. | PASS | `boomingBladeAttackBridge.ts` resolves the live `customFormula` tiers for both the hit packet and the delayed movement packet; focused proof covers the level-17 hit/movement tiers and the level-5 movement tier. |

@@ -131,7 +131,15 @@ export type ActionType =
   // Village-specific actions (migrated from label-based custom actions)
   | 'EXIT_VILLAGE'
   | 'VISIT_GENERAL_STORE'
-  | 'VISIT_BLACKSMITH';
+  | 'VISIT_BLACKSMITH'
+  // Town notice board (opens the living-world news modal for the tracked town)
+  | 'OPEN_NOTICE_BOARD'
+  // Town broadsheet (opens the living-world newspaper for the tracked town)
+  | 'OPEN_BROADSHEET'
+  // Take a frozen broadsheet keepsake into inventory (snapshots the tracked town's news)
+  | 'TAKE_BROADSHEET'
+  // Read a readable inventory item (Book with readableContent) — opens its snapshot
+  | 'READ_ITEM';
 
 /**
  * Metadata for actions to control UI behavior like loading spinners.
@@ -323,6 +331,11 @@ export interface StartGameSuccessPayload {
   // atomically with the spawn so the first 3D entry frames the town. Null/omitted
   // ⇒ no exact anchor (dev/skip flows fall back to the legacy tile entry).
   entry3DAnchor?: import('./state.js').Entry3DAnchor | null;
+  // Canonical player presence (cell-native world, Stage 2): the chosen spawn's
+  // atlas cell + Locale position, threaded atomically with the spawn so the source
+  // of truth agrees with `entry3DAnchor` from frame one. Omitted ⇒ the reducer
+  // derives it from `initialLocationId` + `initialSubMapCoordinates`.
+  playerCell?: import('./state.js').PlayerCell | null;
 }
 
 export type Action =
@@ -411,4 +424,8 @@ export type Action =
   | { type: 'SET_DEV_MODE_ENABLED'; payload: { enabled: boolean }; label?: string }
   | { type: 'EXIT_VILLAGE'; payload?: never; label?: string }
   | { type: 'VISIT_GENERAL_STORE'; payload?: never; label?: string }
-  | { type: 'VISIT_BLACKSMITH'; payload?: never; label?: string };
+  | { type: 'VISIT_BLACKSMITH'; payload?: never; label?: string }
+  | { type: 'OPEN_NOTICE_BOARD'; payload?: never; label?: string }
+  | { type: 'OPEN_BROADSHEET'; payload?: never; label?: string }
+  | { type: 'TAKE_BROADSHEET'; payload?: never; label?: string }
+  | { type: 'READ_ITEM'; payload: { itemId: string }; label?: string };

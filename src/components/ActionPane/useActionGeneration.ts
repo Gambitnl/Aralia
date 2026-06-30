@@ -20,6 +20,8 @@ import { getSubmapTileInfo } from '../../utils/submapUtils';
 import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { canUseDevTools } from '../../utils/permissions';
 import { logger } from '../../utils/logger';
+import { useOptionalGameState } from '../../state/GameContext';
+import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
 
 interface UseActionGenerationProps {
   currentLocation: Location;
@@ -36,6 +38,11 @@ export const useActionGeneration = ({
   subMapCoordinates,
   worldSeed
 }: UseActionGenerationProps) => {
+  // Optional so the hook still works when rendered outside a GameProvider (e.g.
+  // isolated hook tests). When present, it lets us detect whether the player is
+  // standing in a tracked living-world town and surface the notice board.
+  const gameContext = useOptionalGameState();
+
   const generalActions = useMemo(() => {
     const actions: Action[] = [];
 
@@ -163,8 +170,28 @@ export const useActionGeneration = ({
       }
     });
 
+    // Town notice board: offered only when the player is standing in a tracked
+    // living-world town (resolveTownForLocation returns a town). The modal
+    // computes its own news live from gameState, so no payload is attached here.
+    const gs = gameContext?.state;
+    if (gs && resolveTownForLocation({
+      currentLocationId: gs.currentLocationId,
+      worldSeed: gs.worldSeed,
+      gridSize: gs.mapData?.gridSize,
+      townSim: gs.townSim,
+      gameTime: gs.gameTime,
+    })) {
+      actions.push({ type: 'OPEN_NOTICE_BOARD', label: 'Read the Notice Board' });
+      // The broadsheet draws from the same tracked town; offered alongside the
+      // notice board. The modal computes its own news live, so no payload here.
+      actions.push({ type: 'OPEN_BROADSHEET', label: 'Read the latest broadsheet' });
+      // Take a physical broadsheet keepsake: the handler freezes the town's
+      // current news into an inventory Book the player can read after leaving.
+      actions.push({ type: 'TAKE_BROADSHEET', label: 'Take a broadsheet' });
+    }
+
     return actions;
-  }, [currentLocation, npcsInLocation, itemsInLocation, subMapCoordinates, worldSeed]);
+  }, [currentLocation, npcsInLocation, itemsInLocation, subMapCoordinates, worldSeed, gameContext]);
 
   return { generalActions };
 };

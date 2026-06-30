@@ -36,7 +36,7 @@ Source references:
 | Attempt to cast it through blocked line of sight; the cast should be rejected. | PASS | `lineOfSight: true` is set, and the targeting layer rejects blocked or unavailable sight lines. |
 | Attempt to target an object or empty ground; the cast should be rejected. | PASS | The spell only allows creatures, so object and ground clicks are rejected instead of being coerced into legal targets. |
 | Cast it on an ally, an enemy, and a neutral creature. | PASS | No ally/enemy/self relation filter is declared, so any legal creature target remains valid regardless of team relation. |
-| Check for the spell's advantage against a target wearing metal armor. | FAIL | The structured spell row and reviewed runtime path do not model a metal-armor advantage bridge; the combat pipeline only exposes a generic melee spell attack here. |
+| Check for the spell's advantage against a target wearing metal armor. | PASS | `CombatCharacter.hasMetalArmor` now gives the combat attack path a bounded material signal, and `WeaponAttackCommand` grants Shocking Grasp advantage only for melee spell attacks against that flagged target. |
 | Resolve the melee spell attack as a hit. | PASS | The shared combat event path carries hit results forward, and the hit-conditioned damage/status rows resolve only on a confirmed hit. |
 | Resolve the melee spell attack as a miss. | BLOCKED | This review did not find a Shocking Grasp-specific miss executor in the spell slice, so the miss path is not proven end to end here. |
 | On a hit, deal 1d8 Lightning damage. | PASS | The damage row is Lightning damage with 1d8 base dice, and the shared damage command handles it normally. |

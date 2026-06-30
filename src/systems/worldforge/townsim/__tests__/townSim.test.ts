@@ -1,7 +1,8 @@
 import { SeededRandom } from '../../../../utils/random/seededRandom';
 import { initTownSimState, ageOf, rollTownDay, advanceTownDays } from '../townSim';
+import { advanceTown } from '../townSimRegistry';
 import type { TownSimState, LivingVillager } from '../types';
-import { DAYS_PER_YEAR } from '../constants';
+import { DAYS_PER_YEAR, RETENTION_YEARS } from '../constants';
 import { generateTownRoster } from '../../roster/generateTownRoster';
 import { assignFamilies } from '../../roster/family';
 import { makeSeedPath } from '../../seedPath';
@@ -178,6 +179,169 @@ describe('initTownSimState (real roster + families)', () => {
   });
 });
 
+describe('relationships: courtship → marriage', () => {
+  it('two unrelated single adults court and then marry', () => {
+    const a = villager({ occupantId: 1, bornDay: -25 * DAYS_PER_YEAR });
+    const b = villager({ occupantId: 2, bornDay: -26 * DAYS_PER_YEAR });
+    let s = stateOf([a, b]);
+    s = advanceTownDays(s, 0, DAYS_PER_YEAR * 6, new SeededRandom(7));
+    const kinds = s.chronicle.events.map((e) => e.kind);
+    expect(kinds).toContain('courtship');
+    expect(kinds).toContain('marriage');
+    expect(s.villagers[1].spouseId).toBe(2);
+    expect(s.villagers[2].spouseId).toBe(1);
+    expect(s.villagers[1].courtingId).toBeUndefined();
+  });
+
+  it('siblings never court or marry each other', () => {
+    // both children of the same (off-roster) parent → siblings
+    const a = villager({ occupantId: 1, bornDay: -25 * DAYS_PER_YEAR, parentIds: [99] });
+    const b = villager({ occupantId: 2, bornDay: -24 * DAYS_PER_YEAR, parentIds: [99] });
+    let s = stateOf([a, b]);
+    s = advanceTownDays(s, 0, DAYS_PER_YEAR * 15, new SeededRandom(7));
+    expect(s.chronicle.events.some((e) => e.kind === 'marriage')).toBe(false);
+    expect(s.villagers[1].spouseId).toBeUndefined();
+    expect(s.villagers[2].spouseId).toBeUndefined();
+  });
+
+  it('a courtship ends if the partner dies before marrying', () => {
+    // one young, one ancient: they may court, but the ancient dies mid-courtship
+    const young = villager({ occupantId: 1, bornDay: -25 * DAYS_PER_YEAR });
+    const old = villager({ occupantId: 2, bornDay: -59 * DAYS_PER_YEAR }); // within marriageable (<60.8), high death
+    let s = stateOf([young, old]);
+    s = advanceTownDays(s, 0, DAYS_PER_YEAR * 20, new SeededRandom(3));
+    // the young survivor must not be left dangling in a courtship with a corpse
+    if (s.villagers[2].diedDay !== undefined && s.villagers[1].spouseId === undefined) {
+      expect(s.villagers[1].courtingId).toBeUndefined();
+    }
+  });
+});
+
+describe('event-grained economy', () => {
+  it('emits economy events over the years, moves wealth, and keeps it non-negative', () => {
+    const a = villager({ occupantId: 1, bornDay: -25 * DAYS_PER_YEAR, wealth: 50, spouseId: 2 });
+    const b = villager({ occupantId: 2, bornDay: -25 * DAYS_PER_YEAR, wealth: 50, spouseId: 1 });
+    let s = stateOf([a, b]);
+    s = advanceTownDays(s, 0, DAYS_PER_YEAR * 30, new SeededRandom(2024));
+    const econ = s.chronicle.events.filter((e) => e.kind === 'economy');
+    expect(econ.length).toBeGreaterThan(0); // some years had economic events
+    expect(typeof s.prosperity).toBe('number');
+    expect(s.prosperity!).toBeGreaterThanOrEqual(0);
+    expect(s.prosperity!).toBeLessThanOrEqual(100);
+    for (const v of Object.values(s.villagers)) expect(v.wealth).toBeGreaterThanOrEqual(0);
+  });
+
+  it('economy events are town-level (no personal subject)', () => {
+    const a = villager({ occupantId: 1, bornDay: -25 * DAYS_PER_YEAR });
+    let s = stateOf([a]);
+    s = advanceTownDays(s, 0, DAYS_PER_YEAR * 20, new SeededRandom(2024));
+    for (const e of s.chronicle.events.filter((ev) => ev.kind === 'economy')) {
+      expect(e.subjectId).toBe(0);
+      expect(e.summary.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('relationships fix the demographic decline', () => {
+  it('a real town sustains births into its later decades', () => {
+    const { state: init } = realInit(4242, 200);
+    const s = advanceTownDays(init, 0, DAYS_PER_YEAR * 60, new SeededRandom(4242));
+    const marriages = s.chronicle.events.filter((e) => e.kind === 'marriage').length;
+    const lateBirths = s.chronicle.events.filter((e) => e.kind === 'birth' && e.day > DAYS_PER_YEAR * 40).length;
+    expect(marriages).toBeGreaterThan(0); // new couples form
+    expect(lateBirths).toBeGreaterThan(0); // population still reproducing after 40 years
+  });
+});
+
+describe('recurring festivals', () => {
+  it('emits town-level festival events that recur each year', () => {
+    const a = villager({ occupantId: 1, bornDay: -25 * DAYS_PER_YEAR });
+    let s = stateOf([a]);
+    s = advanceTownDays(s, 0, DAYS_PER_YEAR * 6, new SeededRandom(2024));
+    const fests = s.chronicle.events.filter((e) => e.kind === 'festival');
+    expect(fests.length).toBeGreaterThan(0);
+    for (const e of fests) {
+      expect(e.subjectId).toBe(0); // town-level
+      expect(e.summary.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('festival count grows roughly linearly with the number of years simulated', () => {
+    const make = () => stateOf([villager({ occupantId: 1, bornDay: -25 * DAYS_PER_YEAR })]);
+    const countOver = (years: number) => {
+      const s = advanceTownDays(make(), 0, DAYS_PER_YEAR * years, new SeededRandom(2024));
+      return s.chronicle.events.filter((e) => e.kind === 'festival').length;
+    };
+    const f4 = countOver(4);
+    const f8 = countOver(8);
+    expect(f4).toBeGreaterThan(0);
+    // ~doubling the years ~doubles the festivals (recurrence is annual & fixed).
+    expect(f8).toBe(f4 * 2);
+  });
+
+  it('adding festivals did not break determinism (same seed → identical state)', () => {
+    const run = () => {
+      const s = stateOf([
+        villager({ occupantId: 1, bornDay: -25 * DAYS_PER_YEAR, spouseId: 2 }),
+        villager({ occupantId: 2, bornDay: -25 * DAYS_PER_YEAR, spouseId: 1 }),
+      ]);
+      return advanceTownDays(s, 0, DAYS_PER_YEAR * 10, new SeededRandom(2024));
+    };
+    expect(JSON.stringify(run())).toBe(JSON.stringify(run()));
+  });
+});
+
+describe('town-scale events', () => {
+  // A multi-decade run on a real town will, with overwhelming probability, see
+  // at least one rare disaster. We assert the invariants disasters MUST respect:
+  // disaster deaths look exactly like natural ones (population conservation),
+  // institutions are still succeeded, and the whole run stays deterministic.
+  it('a long run suffers at least one disaster and conserves the ledger', () => {
+    const { roster, state: init } = realInit(2024, 200);
+    const run = () => advanceTownDays(init, 0, DAYS_PER_YEAR * 80, new SeededRandom(2024));
+    const a = run();
+    const b = run();
+    expect(JSON.stringify(a)).toBe(JSON.stringify(b)); // determinism
+
+    const disasters = a.chronicle.events.filter((e) => e.kind === 'disaster');
+    expect(disasters.length).toBeGreaterThan(0); // a disaster actually struck
+    for (const d of disasters) {
+      expect(d.subjectId).toBe(0); // town-level announcement
+      expect(d.summary.length).toBeGreaterThan(0);
+    }
+
+    // Population conservation still holds — disaster deaths emitted 'death'
+    // events, so nobody vanished off the books.
+    const births = a.chronicle.events.filter((e) => e.kind === 'birth').length;
+    const deaths = a.chronicle.events.filter((e) => e.kind === 'death').length;
+    const alive = Object.values(a.villagers).filter((v) => v.diedDay === undefined).length;
+    expect(Object.keys(a.villagers).length).toBe(roster.occupants.length + births);
+    expect(alive).toBe(roster.occupants.length + births - deaths);
+    for (const v of Object.values(a.villagers)) expect(v.wealth).toBeGreaterThanOrEqual(0);
+
+    // Institutions are never orphaned: because disaster deaths flow through the
+    // SAME killVillager path as natural deaths, succession ran for every death
+    // (disaster victims included), so no dead villager still holds a role.
+    for (const v of Object.values(a.villagers)) {
+      if (v.diedDay !== undefined) expect(v.role).toBeUndefined();
+    }
+  }, 20000); // multi-decade sim run twice (determinism) — needs headroom
+
+  it('a disaster death produces a death event indistinguishable from a natural one', () => {
+    // Smoke-check the disaster→killVillager wiring on a small, fast town: a
+    // disaster summary mentions the kind, and every 'death' event (disaster or
+    // natural) carries the standard shape (personal subject, no relatedIds).
+    const { state: init } = realInit(2024, 60);
+    const s = advanceTownDays(init, 0, DAYS_PER_YEAR * 80, new SeededRandom(2024));
+    const disasters = s.chronicle.events.filter((e) => e.kind === 'disaster');
+    expect(disasters.length).toBeGreaterThan(0);
+    for (const d of s.chronicle.events.filter((e) => e.kind === 'death')) {
+      expect(d.subjectId).toBeGreaterThan(0); // a real villager died
+      expect(d.relatedIds).toEqual([]);
+    }
+  }, 20000);
+});
+
 describe('20-year run: determinism + ledger conservation', () => {
   it('is reproducible and conserves the population ledger', () => {
     const { roster, state: init } = realInit(2024, 150);
@@ -190,6 +354,8 @@ describe('20-year run: determinism + ledger conservation', () => {
     const deaths = a.chronicle.events.filter((e) => e.kind === 'death').length;
     const alive = Object.values(a.villagers).filter((v) => v.diedDay === undefined).length;
 
+    // advanceTownDays does not prune, so cumulative totals match the event counts
+    expect(a.totals).toEqual({ births, deaths });
     // every birth created a registered villager; nobody vanished
     expect(Object.keys(a.villagers).length).toBe(roster.occupants.length + births);
     // alive = started + born - died
@@ -198,5 +364,26 @@ describe('20-year run: determinism + ledger conservation', () => {
     for (const v of Object.values(a.villagers)) expect(v.wealth).toBeGreaterThanOrEqual(0);
     // something actually happened over two decades
     expect(a.chronicle.events.length).toBeGreaterThan(0);
+  });
+});
+
+describe('chronicle retention (bounded save growth)', () => {
+  it('advanceTown prunes old events to the retention window but preserves cumulative totals', () => {
+    const { state: init } = realInit(909, 120);
+    // 25 years via the production (pruning) path.
+    const a = advanceTown(init, 909, DAYS_PER_YEAR * 25);
+
+    // No event older than the retention window survives...
+    const cutoff = DAYS_PER_YEAR * 25 - RETENTION_YEARS * DAYS_PER_YEAR;
+    expect(a.chronicle.events.every((e) => e.day >= cutoff)).toBe(true);
+    // ...yet there ARE recent events (the town didn't go silent).
+    expect(a.chronicle.events.length).toBeGreaterThan(0);
+    // Cumulative totals survive pruning and still satisfy the population ledger.
+    const alive = Object.values(a.villagers).filter((v) => v.diedDay === undefined).length;
+    const started = Object.keys(init.villagers).length;
+    expect(alive).toBe(started + a.totals!.births - a.totals!.deaths);
+    // Determinism preserved through pruning.
+    const b = advanceTown(init, 909, DAYS_PER_YEAR * 25);
+    expect(JSON.stringify(a)).toBe(JSON.stringify(b));
   });
 });

@@ -27,6 +27,7 @@ import {
     type GenerateOpeningSituationDeps,
 } from '../systems/gameEntry/generateOpeningSituation';
 import { situationNpcsToRichNpcs } from '../systems/gameEntry/situationNpcToRichNpc';
+import { buildOpeningQuest } from '../systems/gameEntry/openingQuest';
 import { buildOpeningScenePrompt } from '../systems/gameEntry/openingScenePrompt';
 import { generateSceneUrl } from '../services/SceneService';
 import { ENV } from '../config/env';
@@ -180,6 +181,12 @@ export function useOpeningSituation(
                 },
             });
             dispatch({ type: 'RESOLVE_OPENING_SITUATION', payload: situation });
+
+            // Give the predicament STAKES: log it as a real quest the moment the
+            // scene resolves, so the opening is something the player can act on and
+            // close (its objective completes when they engage the strangers — see
+            // handleTalk) instead of a conversation that leads nowhere.
+            dispatch({ type: 'ACCEPT_QUEST', payload: buildOpeningQuest(situation, location.name) });
 
             // Fire-and-forget the establishing illustration. It must NEVER block the
             // conversation: the player reads the predicament immediately and the

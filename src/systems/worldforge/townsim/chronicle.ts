@@ -14,7 +14,7 @@ export interface ChronicleRange {
 }
 
 /** Named, headline-worthy event kinds whose summaries appear verbatim. */
-const HEADLINE_KINDS = new Set<LifeEvent['kind']>(['death', 'role_succession']);
+const HEADLINE_KINDS = new Set<LifeEvent['kind']>(['death', 'role_succession', 'marriage', 'economy', 'disaster']);
 
 /**
  * One line per year that had events, e.g.:
@@ -40,9 +40,15 @@ export function summarizeChronicle(state: TownSimState, range: ChronicleRange = 
 
     const births = evs.filter((e) => e.kind === 'birth').length;
     const comingOfAge = evs.filter((e) => e.kind === 'came_of_age').length;
+    const courtships = evs.filter((e) => e.kind === 'courtship').length;
+    // Festivals recur every year, so they are counted in the tail rather than
+    // listed as headlines (which would flood the chronicle).
+    const festivals = evs.filter((e) => e.kind === 'festival').length;
     const tail: string[] = [];
     if (births) tail.push(`${births} ${births === 1 ? 'birth' : 'births'}`);
     if (comingOfAge) tail.push(`${comingOfAge} came of age`);
+    if (courtships) tail.push(`${courtships} new ${courtships === 1 ? 'courtship' : 'courtships'}`);
+    if (festivals) tail.push(`${festivals} ${festivals === 1 ? 'festival' : 'festivals'}`);
 
     let line = `Year ${year}: ${headlines.join(' ')}`;
     if (tail.length) line += `${headlines.length ? ' ' : ''}${tail.join(', ')}.`;

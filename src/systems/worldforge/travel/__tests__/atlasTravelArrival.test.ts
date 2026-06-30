@@ -1,0 +1,64 @@
+import { describe, it, expect } from 'vitest';
+import { getBridgeAtlas } from '../../bridge/legacySubmapBridge';
+import { snapToLandCell, entry3DAnchorForCell, atlasCellToLegacyGrid, legacyGridToAtlasCell } from '../../local/gridAtlasBridge';
+
+/**
+ * Stage 4 (cell-native world): atlas fast-travel as the world loop. A Travel-mode
+ * pick must carry the EXACT destination cell + its 3D-entry anchor through the trip
+ * commit so arrival lands that cell — NOT the cell reverse-derived from the lossy
+ * grid tile (the Stage-1 0/219 trap, now closed for the travel path).
+ *
+ * The reducer behaviour (resetting Locale feet + stamping the anchor) is covered in
+ * `src/state/__tests__/stage4AtlasTravelArrival.test.ts`. This suite proves the
+ * MapPane-side `destinationCell` construction against a REAL atlas: the same
+ * `snapToLandCell` + `entry3DAnchorForCell` helpers `handleWorldforgePick` calls.
+ */
+describe('Stage 4 — atlas-travel destinationCell construction', () => {
+  const SEED = 42;
+  const COLS = 30;
+  const ROWS = 20;
+
+  it('a burg cell pick yields a destinationCell carrying that EXACT cell + a town-framing anchor', () => {
+    const atlas = getBridgeAtlas(SEED);
+    // Find a settled (burg) cell — that is the interesting "arrive in the town" case.
+    const burgCellId = (() => {
+      const burgArr = (atlas.pack.cells as { burg?: ArrayLike<number> }).burg;
+      if (!burgArr) return -1;
+      for (let i = 0; i < burgArr.length; i++) if ((burgArr[i] ?? 0) > 0) return i;
+      return -1;
+    })();
+    expect(burgCellId).toBeGreaterThanOrEqual(0);
+
+    // This is exactly what MapPane.handleWorldforgePick now builds for the trip.
+    const destinationCell = {
+      cellId: snapToLandCell(atlas, burgCellId),
+      anchor: entry3DAnchorForCell(atlas, burgCellId),
+    };
+
+    // A burg cell is land, so the destination cell IS the picked cell — carried intact.
+    expect(destinationCell.cellId).toBe(burgCellId);
+    // The anchor frames the town (burg-centered ⇒ a centerPx override).
+    expect(destinationCell.anchor.centerPx).toBeDefined();
+  });
+
+  it('the destination cell survives intact where the lossy tile projection would lose it', () => {
+    const atlas = getBridgeAtlas(SEED);
+    // Sweep land cells; for any cell whose bookkeeping tile reverse-derives to a
+    // DIFFERENT cell, the cell-native destination must still be the cell itself.
+    let provedDivergence = false;
+    const h = atlas.pack.cells.h;
+    for (let i = 0; i < h.length; i += 37) {
+      if ((h[i] ?? 0) < 20) continue; // land only
+      const dest = snapToLandCell(atlas, i);
+      const bk = atlasCellToLegacyGrid(atlas, dest, { cols: COLS, rows: ROWS });
+      if (!bk) continue;
+      const reverse = legacyGridToAtlasCell(atlas, { x: bk.x, y: bk.y }, { cols: COLS, rows: ROWS });
+      // Cell-native arrival always recovers the destination cell exactly...
+      expect(dest).toBe(snapToLandCell(atlas, i));
+      // ...and we found at least one cell the lossy tile round-trip would NOT recover,
+      // proving the round-trip is genuinely lossy (so carrying the cell matters).
+      if (reverse !== dest) provedDivergence = true;
+    }
+    expect(provedDivergence).toBe(true);
+  }, 30000);
+});

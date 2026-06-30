@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 26/06/2026, 20:35:14
+ * Last Sync: 29/06/2026, 13:19:08
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 10 files
  *
@@ -761,7 +761,10 @@ export const useActionExecutor = ({
     updatedCharacter = await handleOpportunityAttacks(updatedCharacter, previousPosition, action.targetPosition, action.movementMode);
 
     // Movement-debuff triggers (e.g., Entangle)
-    const moveTriggerResults = processMovementTriggers(movementDebuffs, updatedCharacter, turnState.currentTurn);
+    const moveTriggerResults = processMovementTriggers(movementDebuffs, updatedCharacter, turnState.currentTurn, {
+      previousPosition,
+      movementType: 'willing'
+    });
     for (const result of moveTriggerResults) {
       if (result.triggered) {
         setMovementDebuffs(prev => prev.map(d => d.id === result.sourceId ? { ...d, hasTriggered: true } : d));
@@ -969,7 +972,11 @@ export const useActionExecutor = ({
             ?? ((ability.range || 0) <= 5 ? 'melee' : 'ranged')
         });
 
-        resolveOnTargetAttackReactiveEffects(action, updatedCharacter, targetId, ability);
+        // Hand the exact resolved result into the reactive resolver. Without
+        // this, command-backed or synthesized misses can still fall back to
+        // old ability-shape inference and make Armor of Agathys retaliate as
+        // though every attack-like action had hit.
+        resolveOnTargetAttackReactiveEffects(action, updatedCharacter, targetId, ability, resolvedAttackResult);
       });
     }
   }, [characters, resolveOnTargetAttackReactiveEffects]);

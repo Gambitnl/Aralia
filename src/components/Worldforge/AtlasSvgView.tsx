@@ -38,6 +38,12 @@ export interface AtlasSvgViewProps {
   height?: number;
   /** Always-on "you are here" marker, in graph coords (SP0 T7). */
   marker?: { x: number; y: number } | null;
+  /**
+   * Bump this to fire a short "look here!" pulse around the marker (e.g. when a
+   * town is selected on the start screen). Each new value restarts the pulse, so
+   * switching markers stops the old one and starts a fresh one at the new spot.
+   */
+  pulseToken?: number | null;
   /** Discovered-place pins, in graph coords (SP4 atlas pins). */
   markers?: Array<{ x: number; y: number; label?: string }>;
   /** Fired with the picked cell's traits on click (SP0 T7). */
@@ -172,6 +178,8 @@ const DEFAULT_AREA_MODE: AreaModeId = 'biomes';
 const LAYER_PREFS_KEY = 'aralia.atlas.layerPrefs.v1';
 /** Max named swatches shown in a discrete-coloring legend before "+N more". */
 const LEGEND_SWATCH_CAP = 14;
+/** How long the "look here!" marker pulse plays before it fades out (ms). */
+const PULSE_MS = 3000;
 
 // Settlement glyphs (screen-space, constant size). Parchment-map ink-on-cream so
 // they read as little towns rather than facet-sized dots on the Voronoi. Capitals
@@ -248,7 +256,7 @@ const SECTION_HEADER: React.CSSProperties = {
   letterSpacing: 0.5, marginBottom: 3,
 };
 
-const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], onPickCell, travelActive = false, planRoute, planMultiModalRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain' }) => {
+const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], pulseToken = null, onPickCell, travelActive = false, planRoute, planMultiModalRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain' }) => {
   const model = useMemo(() => buildAtlasSvgModel(atlas), [atlas]);
 
   // Map coloring is a single exclusive choice; feature layers are independent
@@ -358,10 +366,22 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   // Travel mode, would travel + close the map). Reset on each mousedown.
   const draggedRef = useRef(false);
   const svgRef = useRef<SVGSVGElement>(null);
+  // True once the player has manually zoomed/panned (or used Find Me). After that
+  // we stop auto-refitting on viewport-size changes, so toggling Travel↔Explore —
+  // which grows/shrinks the toolbar and therefore the measured map area — no
+  // longer snaps the player back out to the fully zoomed-out world. Cleared when
+  // the world itself changes (below), so a brand-new atlas still fits fresh.
+  const hasUserAdjustedRef = useRef(false);
+
+  // A genuinely different world should fit fresh, so forget any prior manual zoom.
+  useEffect(() => { hasUserAdjustedRef.current = false; }, [atlas]);
 
   useEffect(() => {
     // The parent MapPane measures the available panel space. Refit the atlas
-    // whenever that space changes so the SVG fills the visible window area.
+    // whenever that space changes so the SVG fills the visible window area — but
+    // only until the player has taken control of the view, so a layout change
+    // (e.g. the Travel/Explore toggle) preserves their current zoom and pan.
+    if (hasUserAdjustedRef.current) return;
     setView(fitView());
   }, [fitView]);
 
@@ -373,6 +393,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     if (!el) return;
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
+      hasUserAdjustedRef.current = true; // player took control of the zoom
       const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
       setView((v) => {
         const nextK = Math.max(0.05, Math.min(64, v.k * factor));
@@ -431,6 +452,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       const dp = downPos.current;
       if (dp && Math.hypot(e.clientX - dp.x, e.clientY - dp.y) > DRAG_SLOP) {
         draggedRef.current = true; // any real movement → this gesture is a pan
+        hasUserAdjustedRef.current = true; // player took control of the pan
       }
       // Capture the drag origin locally: the setView updater runs later, by which
       // time onUp/onLeave may have nulled drag.current (→ "reading 'x' of null").
@@ -523,6 +545,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   // the info panel (the red outline + readout answer "which cell am I at?").
   const centerOnPlayer = useCallback(() => {
     if (!marker) return;
+    hasUserAdjustedRef.current = true; // a deliberate view choice — keep it across layout changes
     const k = Math.min(64, Math.max(view.k, (8 * width) / model.width)); // ~1/8 of the map wide
     setView({ k, x: width / 2 - marker.x * k, y: height / 2 - marker.y * k });
     const i = findCellAtPoint(atlas, marker.x, marker.y);
@@ -543,6 +566,20 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       centerOnPlayer();
     }
   }, [marker, centerOnPlayer]);
+
+  // A short "look here!" pulse around the marker — the small yellow indicator is
+  // easy to lose on a fully zoomed-out world. The parent bumps `pulseToken` to
+  // (re)trigger it (town selected/changed, or a manual Locate button). A finite
+  // timer hides it after PULSE_MS; a new token clears the prior timer and
+  // restarts, so switching towns stops the old pulse and begins one at the new
+  // marker location.
+  const [pulseActive, setPulseActive] = useState(false);
+  useEffect(() => {
+    if (pulseToken == null) return;
+    setPulseActive(true);
+    const id = window.setTimeout(() => setPulseActive(false), PULSE_MS);
+    return () => window.clearTimeout(id);
+  }, [pulseToken]);
 
   // The biome softening filter lives INSIDE the zoom transform, so a fixed
   // map-unit blur magnifies with zoom and smears biomes when zoomed in. Scale
@@ -770,6 +807,17 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           style={{ pointerEvents: 'none' }}
           data-testid="atlas-player-marker"
         >
+          {/* "Look here!" pulse — an expanding, fading red ring drawn under the
+              yellow indicator. Keyed on pulseToken so each trigger remounts the
+              SMIL animation and restarts from frame 0. */}
+          {pulseActive ? (
+            <g key={pulseToken ?? 'pulse'} data-testid="atlas-marker-pulse">
+              <circle r={9} fill="none" stroke="#ef4444" strokeWidth={3}>
+                <animate attributeName="r" values="9;40" dur="1s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.85;0" dur="1s" repeatCount="indefinite" />
+              </circle>
+            </g>
+          ) : null}
           <circle r={9} fill="none" stroke="#f5c542" strokeWidth={2} opacity={0.9} />
           <circle r={3.5} fill="#f5c542" stroke="#5a3e00" strokeWidth={1} />
         </g>

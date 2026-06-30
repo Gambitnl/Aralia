@@ -1099,10 +1099,11 @@ describe('useActionExecutor', () => {
             }
         };
         const attacker: CombatCharacter = {
-            ...mockEnemy,
+            ...mockCharacter,
             id: 'oa_attacker',
             name: 'Opportunity Attacker',
             position: { x: 0, y: 0 },
+            team: 'enemy',
             abilities: [scimitar]
         };
         const moveAction: CombatAction = {
@@ -1113,6 +1114,19 @@ describe('useActionExecutor', () => {
             cost: { type: 'movement-only', movementCost: 10 },
             timestamp: Date.now()
         };
+
+        // Opportunity-attack proof needs the moving protected target to keep
+        // its Armor of Agathys temporary-HP source while the movement helper
+        // checks tile effects. The default mock returns the generic fixture,
+        // which would erase that spell-owned temp-HP state before the reactive
+        // trigger can evaluate the hit.
+        mockProcessTileEffects.mockImplementation((character) => character);
+        mockProcessRepeatSaves.mockImplementation((character) => character);
+        mockConsumeAction.mockImplementation((character) => character);
+        mockHandleDamage.mockImplementation((character: CombatCharacter, amount: number) => ({
+            ...character,
+            currentHP: character.currentHP - amount
+        }));
 
         const hitRoll = vi.spyOn(Math, 'random').mockReturnValue(0.95);
         const hitHarness = renderHook(() => useActionExecutor({

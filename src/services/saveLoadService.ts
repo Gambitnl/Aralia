@@ -44,6 +44,7 @@ import { logger } from '../utils/logger';
 import { simpleHash } from '../utils/hashUtils';
 import * as IDBStorage from './indexedDBStorageService';
 import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
+import { migratePlayerCell } from '@/state/migrations/playerCellMigration';
 import { countUnreadDiscoveryEntries, retainDiscoveryLogEntries } from '@/state/reducers/logReducer';
 
 //
@@ -393,6 +394,10 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     if (loadedState.mapData) {
       loadedState.mapData = migrateMapDataToWorldDataV2(loadedState.mapData, loadedState.worldSeed ?? 0);
     }
+    // Backfill the canonical player cell (cell-native world, Stage 2) on saves
+    // created before it existed. Idempotent; derives the cell from the legacy
+    // currentLocationId + subMapCoordinates via the existing golden mapping.
+    migratePlayerCell(loadedState);
     // Ensure new rest pacing fields exist when loading older saves.
     const restTrackerSeedTime = loadedState.gameTime instanceof Date
       ? loadedState.gameTime

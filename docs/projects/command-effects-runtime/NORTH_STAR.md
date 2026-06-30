@@ -12,7 +12,7 @@ confidence: high
 evidence: docs/projects/command-effects-runtime; docs/projects/DECISION_BLITZ_2026-06-10.md (D9)
 gap_signal: "2 parked gaps; G1 resolved for T2, G3/G5 remain parked after G2/G4 resolution"
 protocol: living project doc set
-next_step: Implement the G1 decision Ã¢â‚¬â€ expose a safe delegated-payload source-of-truth in the command context and let ReactiveEffectCommand rehydrate sibling effect commands on trigger; resume T2 with focused trigger-path tests.
+next_step: "Implement the G1 decision (DECISION D9): expose a safe delegated-payload source-of-truth in the command context and let ReactiveEffectCommand rehydrate sibling effect commands on trigger; resume T2 with focused trigger-path tests."
 agent_comments: "G1 cannot safely synthesize delegated payloads from the current command context; the missing source-of-truth needs a decision. Decided 2026-06-10: command context owns the delegated payload (DECISION_BLITZ D9)."
 required_docs:
   - NORTH_STAR.md

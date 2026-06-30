@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 26/06/2026, 19:28:02
+ * Last Sync: 29/06/2026, 13:41:53
  * Dependents: utils/character/index.ts, utils/combat/combatUtils.ts
  * Imports: 4 files
  *
@@ -277,6 +277,29 @@ const extractGrantedActions = (spell: Spell): AbilityGrantedAction[] => {
     });
 };
 
+const resolveSpellRangeFeet = (spell: Spell, caster: PlayerCharacter): number => {
+    const baseDistance = spell.range.distance ?? 0;
+
+    // Spare the Dying is a level-0 spell whose range changes with character
+    // level instead of spell-slot level. The spell data currently stores that
+    // rule in `higherLevels` prose, so this bridge turns the source-text tiers
+    // into the combat range used by target selection.
+    if (spell.id === 'spare-the-dying' && spell.level === 0) {
+        const casterLevel = caster?.level ?? 1;
+        if (casterLevel >= 17) {
+            return 120;
+        }
+        if (casterLevel >= 11) {
+            return 60;
+        }
+        if (casterLevel >= 5) {
+            return 30;
+        }
+    }
+
+    return baseDistance;
+};
+
 /**
  * Main Factory Function
  *
@@ -350,7 +373,7 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
         // spell.range is always a fully-typed Range object.
         // The Range interface uses 'ranged' for measured distances, 'touch', 'self', etc.
         const spellRangeType = spell.range.type.toLowerCase();
-        const spellRangeDist = spell.range.distance ?? 0;
+        const spellRangeDist = resolveSpellRangeFeet(spell, caster);
         if (spellRangeType === 'self') {
             rangeTiles = 0;
         } else if (spellRangeType === 'touch') {
@@ -428,7 +451,8 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
                                     brightRadius: jsonEffect.light.brightRadius,
                                     dimRadius: jsonEffect.light.dimRadius,
                                     attachedTo: jsonEffect.light.attachedTo || 'target',
-                                    color: jsonEffect.light.color
+                                    color: jsonEffect.light.color,
+                                    opaqueCoverBlocks: jsonEffect.light.opaqueCoverBlocks === true
                                 }
                             }
                         });

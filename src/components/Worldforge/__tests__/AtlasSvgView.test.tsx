@@ -109,6 +109,40 @@ describe('AtlasSvgView', () => {
     expect(container.querySelector('[data-testid="atlas-svg-view"]')).toBeTruthy();
   });
 
+  // The world content group is drawn as <g transform="translate(x,y) scale(k)">.
+  // Reading k back is how we assert the zoom level survived (or was refit).
+  const readScale = (container: HTMLElement): number | null => {
+    for (const g of Array.from(container.querySelectorAll('g'))) {
+      const m = /scale\(([-\d.]+)\)/.exec(g.getAttribute('transform') ?? '');
+      if (m) return parseFloat(m[1]);
+    }
+    return null;
+  };
+
+  it('preserves the user zoom across a viewport-size change (Travel/Explore toggle no longer resets it)', () => {
+    const { container, rerender } = render(<AtlasSvgView atlas={stub} width={300} height={300} />);
+    const svg = container.querySelector('[data-testid="atlas-svg-view"]')!;
+    const fitK = readScale(container)!;
+
+    // Player zooms in with the wheel.
+    fireEvent.wheel(svg, { deltaY: -100 });
+    const zoomedK = readScale(container)!;
+    expect(zoomedK).toBeGreaterThan(fitK);
+
+    // Toggling Travel↔Explore grows the toolbar, shrinking the measured map area.
+    // Simulate that height change: the zoom must be PRESERVED, not refit to fill.
+    rerender(<AtlasSvgView atlas={stub} width={300} height={240} />);
+    expect(readScale(container)!).toBeCloseTo(zoomedK, 5);
+  });
+
+  it('still auto-refits on a viewport change until the player takes control of the view', () => {
+    const { container, rerender } = render(<AtlasSvgView atlas={stub} width={300} height={300} />);
+    const k1 = readScale(container)!;
+    // No manual zoom yet → a genuine size change should refit to the new viewport.
+    rerender(<AtlasSvgView atlas={stub} width={600} height={600} />);
+    expect(readScale(container)!).toBeGreaterThan(k1);
+  });
+
   it('menu exposes a Map coloring section + an Info panel detail selector', () => {
     const { getByTestId, getByText, queryByTestId } = render(
       <AtlasSvgView atlas={stub} width={300} height={300} />,

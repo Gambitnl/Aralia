@@ -62,6 +62,8 @@ import { useHistorySync } from './hooks/useHistorySync';
 import { isWorldGenDeepLink, isDummyAutoStartDeepLink } from './routes';
 import { useCompanionCommentary } from './hooks/useCompanionCommentary';
 import { useCompanionBanter } from './hooks/useCompanionBanter';
+import { useTownCrierAnnouncements } from './hooks/useTownCrierAnnouncements';
+import { useOverheardGossip } from './hooks/useOverheardGossip';
 import { useMissingChoice } from './hooks/useMissingChoice';
 import { useOllamaCheck } from './hooks/useOllamaCheck';
 import { useAutoSave } from './hooks/useAutoSave';
@@ -82,6 +84,7 @@ import { NPCS } from './data/world/npcs';
 import { BIOMES } from './data/biomes';
 import { applyWfSpawnToMap } from '@/systems/worldforge/local/resolveSpawn';
 import { wfBiomeIndexToLegacyId } from '@/systems/worldforge/local/wfBiomeToLegacy';
+import { getTownTilesForGrid } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from './config/mapConfig';
 import { gridCellCenterToWorldMeters, getTerrainHeight } from './utils/worldCoords';
 import { canUseDevTools } from './utils/permissions';
@@ -264,6 +267,10 @@ const App: React.FC = () => {
     extendPlayerResponseDeadline,
     extendNpcLineDelay,
   } = useCompanionBanter(gameState, dispatch, isBanterPaused);
+  // Town Crier — periodic proclamation of the current town's recent headline.
+  useTownCrierAnnouncements(gameState, dispatch);
+  // Overheard public gossip — periodic light chatter about the current town's recent minor happenings.
+  useOverheardGossip(gameState, dispatch);
   // Ollama Dependency Check
   // Keep the check side-effect active; UI wiring can consume this state later.
   const {
@@ -750,7 +757,7 @@ const App: React.FC = () => {
         }
         newMapDataForDispatch = { ...newMapDataForDispatch, tiles: newTiles };
       }
-      dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: tile.locationId, newSubMapCoordinates, mapData: newMapDataForDispatch || undefined, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(tile.locationId, LOCATIONS) } });
+      dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: tile.locationId, newSubMapCoordinates, mapData: newMapDataForDispatch || undefined, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(tile.locationId, LOCATIONS), destinationCell: travelMeta?.destinationCell } });
       dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
       dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
       applyProvisionEffects();
@@ -768,7 +775,7 @@ const App: React.FC = () => {
           }
           newMapDataForDispatch = { ...newMapDataForDispatch, tiles: newTiles };
         }
-        dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: targetCoordId, newSubMapCoordinates, mapData: newMapDataForDispatch || undefined, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetCoordId, LOCATIONS) } });
+        dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: targetCoordId, newSubMapCoordinates, mapData: newMapDataForDispatch || undefined, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetCoordId, LOCATIONS), destinationCell: travelMeta?.destinationCell } });
         dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
         dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
         applyProvisionEffects();
@@ -789,7 +796,7 @@ const App: React.FC = () => {
   /**
    * Atlas "Enter 3D" mode: place the player in the streamed world at the clicked cell.
    */
-  const handleEnter3DAtCell = useCallback((x: number, y: number, tile: MapTile) => {
+  const handleEnter3DAtCell = useCallback((x: number, y: number, tile: MapTile, anchor?: import('./types/state').Entry3DAnchor) => {
     if (!tile.discovered) {
       addMessage('You cannot enter the 3D world in undiscovered areas.', 'system');
       return;
@@ -813,12 +820,27 @@ const App: React.FC = () => {
       type: 'SET_PLAYER_WORLD_POS',
       payload: { x: wx, y: terrainY, z: wz },
     });
+    // Cell-native 3D entry: carry the exact clicked cell (burg-centered when
+    // settled) so the ground frames that cell, not a coarse-grid neighbour.
+    if (anchor) {
+      dispatch({ type: 'SET_ENTRY_3D_ANCHOR', payload: anchor });
+    }
     dispatch({ type: 'SET_WORLD_VIEW_MODE', payload: '3d' });
     if (gameState.isMapVisible) {
       dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
     }
+
+    // Living-world sim (Plan D): if this cell holds a town, start tracking its
+    // multi-day history from now on. Idempotent in the reducer; only fires for
+    // real town tiles (wilderness 3D entry registers nothing).
+    const worldSeed = gameState.worldSeed ?? 0;
+    const townHere = getTownTilesForGrid(worldSeed, cols, rows).find((t) => t.x === x && t.y === y);
+    if (townHere) {
+      dispatch({ type: 'TOWNSIM_REGISTER_BURG', payload: { burgId: townHere.burgId } });
+    }
+
     addMessage(`Entering 3D world at map cell (${x}, ${y}).`, 'system');
-  }, [addMessage, dispatch, gameState.isMapVisible, gameState.mapData]);
+  }, [addMessage, dispatch, gameState.isMapVisible, gameState.mapData, gameState.worldSeed]);
 
   const handleOpenCharacterSheet = useCallback((character: PlayerCharacter) => {
     dispatch({ type: 'OPEN_CHARACTER_SHEET', payload: character });

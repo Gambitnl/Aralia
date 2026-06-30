@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/06/2026, 12:58:55
+ * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/DamageCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Applies spell status conditions to combat characters.
  *
@@ -7,7 +23,7 @@
  * spell payload remains executable after application.
  */
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
-import { CombatState, StatusEffect, ActiveCondition } from '../../types/combat';
+import { CombatState, StatusEffect, ActiveCondition, ActiveEffect } from '../../types/combat';
 import { isStatusConditionEffect, EffectDuration, ConditionName } from '../../types/spells';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import { generateId } from '../../utils/combatUtils';
@@ -15,9 +31,12 @@ import { STATUS_ICONS, DEFAULT_STATUS_ICON } from '@/config/statusIcons';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 import { ConditionToStateTag } from '../../types/elemental';
 import { applyStateToTags } from '../../systems/physics/ElementalInteractionSystem';
+import { breakFriendsConcentrationForCaster } from './ConcentrationCommands';
+
+const FRIENDS_MEMORY_DURATION_ROUNDS = 24 * 60 * 10;
 
 export class StatusConditionCommand extends BaseEffectCommand {
-  execute(state: CombatState): CombatState {
+  async execute(state: CombatState): Promise<CombatState> {
     let currentState = state;
 
     // Handle condition removal if the effect defines it.
@@ -75,6 +94,32 @@ export class StatusConditionCommand extends BaseEffectCommand {
       if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
         const caster = this.getCaster(currentState);
         const dc = calculateSpellDC(caster);
+        const friendsAutoSuccessReason = this.resolveFriendsAutoSuccessReason(target, currentState);
+
+        if (this.context.spellId !== 'friends') {
+          currentState = await breakFriendsConcentrationForCaster(
+            currentState,
+            caster,
+            this.context,
+            'caster_forces_saving_throw',
+            this.context.spellName || this.context.spellId
+          );
+        }
+
+        if (friendsAutoSuccessReason) {
+          currentState = this.rememberFriendsCast(currentState, target.id);
+          currentState = this.addLogEntry(currentState, {
+            type: 'status',
+            message: `${target.name} automatically succeeds against Friends (${friendsAutoSuccessReason}).`,
+            characterId: target.id,
+            targetIds: [target.id],
+            data: {
+              spellId: this.context.spellId,
+              saveOutcomeOverride: friendsAutoSuccessReason
+            }
+          });
+          continue;
+        }
 
         const savePenaltySystem = new SavePenaltySystem();
         const saveModifiers = savePenaltySystem.getActivePenalties(target);
@@ -98,6 +143,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
         });
 
         if (saveResult.success) {
+          currentState = this.rememberFriendsCast(currentState, target.id);
           currentState = this.addLogEntry(currentState, {
             type: 'status',
             message: `${target.name} resists the ${this.effect.statusCondition.name} condition`,
@@ -144,6 +190,10 @@ export class StatusConditionCommand extends BaseEffectCommand {
         conditions: updatedConditions,
         stateTags: finalStateTags
       });
+
+      currentState = this.rememberFriendsCast(currentState, target.id);
+
+      currentState = this.applyChillTouchUndeadAttackRider(currentState, target.id, durationRounds);
 
       currentState = this.addLogEntry(currentState, {
         type: 'status',
@@ -231,7 +281,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
    * Keeping the helper local avoids rebuilding those optional copies in each
    * mirror and makes the lossy-bridge decision easy to audit.
    */
-  private getStatusMetadata(): Pick<StatusEffect, 'repeatSave' | 'escapeCheck' | 'breakTriggers'> {
+  private getStatusMetadata(): Pick<StatusEffect, 'repeatSave' | 'escapeCheck' | 'breakTriggers' | 'hitPointState' | 'socialLifecycle'> {
     if (!isStatusConditionEffect(this.effect)) {
       return {};
     }
@@ -250,7 +300,128 @@ export class StatusConditionCommand extends BaseEffectCommand {
     return {
       ...(runtimeRepeatSave ? { repeatSave: runtimeRepeatSave } : {}),
       ...(escapeCheck ? { escapeCheck } : {}),
-      ...(breakTriggers ? { breakTriggers } : {})
+      ...(breakTriggers ? { breakTriggers } : {}),
+      // Chill Touch stores its "cannot regain Hit Points" rule as structured
+      // hit-point metadata on the status effect. Preserve that fact on both
+      // runtime mirrors so every healing path can check it without parsing text.
+      ...(this.effect.hitPointState ? { hitPointState: this.effect.hitPointState } : {}),
+      ...(this.isFriendsCharmedEffect()
+        ? {
+          socialLifecycle: {
+            kind: 'friends_charm',
+            targetKnowsOnEnd: true,
+            recastMemoryDurationRounds: FRIENDS_MEMORY_DURATION_ROUNDS
+          }
+        }
+        : {})
+    };
+  }
+
+  private isFriendsCharmedEffect(): boolean {
+    return this.context.spellId === 'friends' &&
+      isStatusConditionEffect(this.effect) &&
+      this.effect.statusCondition.name === 'Charmed';
+  }
+
+  private resolveFriendsAutoSuccessReason(target: { creatureTypes?: string[]; team?: string; spellMemory?: Array<{ spellId: string; casterId: string; expiresAtTurn: number }> }, state: CombatState): string | null {
+    if (!this.isFriendsCharmedEffect()) {
+      return null;
+    }
+
+    const caster = this.getCaster(state);
+    const creatureTypes = target.creatureTypes || [];
+    const isHumanoid = creatureTypes.some(type => type.toLowerCase() === 'humanoid');
+    if (creatureTypes.length > 0 && !isHumanoid) {
+      return 'not_humanoid';
+    }
+
+    if (target.team && caster.team && target.team !== caster.team) {
+      return 'fighting_caster_or_allies';
+    }
+
+    const recentlyAffected = (target.spellMemory || []).some(memory =>
+      memory.spellId === 'friends' &&
+      memory.casterId === caster.id &&
+      memory.expiresAtTurn > state.turnState.currentTurn
+    );
+
+    return recentlyAffected ? 'recently_affected_by_spell' : null;
+  }
+
+  private rememberFriendsCast(state: CombatState, targetId: string): CombatState {
+    if (!this.isFriendsCharmedEffect()) {
+      return state;
+    }
+
+    const target = state.characters.find(character => character.id === targetId);
+    if (!target) {
+      return state;
+    }
+
+    const retainedMemory = (target.spellMemory || []).filter(memory =>
+      !(memory.spellId === 'friends' && memory.casterId === this.context.caster.id)
+    );
+
+    return this.updateCharacter(state, targetId, {
+      spellMemory: [
+        ...retainedMemory,
+        {
+          spellId: 'friends',
+          spellName: this.context.spellName || 'Friends',
+          casterId: this.context.caster.id,
+          affectedTurn: state.turnState.currentTurn,
+          expiresAtTurn: state.turnState.currentTurn + FRIENDS_MEMORY_DURATION_ROUNDS,
+          kind: 'cast_by_caster'
+        }
+      ]
+    });
+  }
+
+  private applyChillTouchUndeadAttackRider(
+    state: CombatState,
+    targetId: string,
+    durationRounds: number
+  ): CombatState {
+    if (
+      this.context.spellId !== 'chill-touch' ||
+      this.effect.statusCondition.name !== 'Disadvantage on attacks vs. caster'
+    ) {
+      return state;
+    }
+
+    const target = state.characters.find(character => character.id === targetId);
+    if (!target) {
+      return state;
+    }
+
+    const rider: ActiveEffect = {
+      id: `chill-touch-undead-rider-${this.context.caster.id}-${targetId}`,
+      spellId: this.context.spellId,
+      casterId: this.context.caster.id,
+      sourceName: this.context.spellName || 'Chill Touch',
+      type: 'debuff',
+      duration: { type: 'rounds', value: durationRounds },
+      startTime: state.turnState.currentTurn,
+      mechanics: {
+        attackRollDirection: 'outgoing',
+        attackRollModifier: 'disadvantage',
+        attackRollKind: 'any',
+        attackRollConsumption: 'while_active',
+        attackRollTargetId: this.context.caster.id
+      }
+    };
+
+    const retainedEffects = (target.activeEffects || []).filter(effect =>
+      !(effect.spellId === rider.spellId && effect.casterId === rider.casterId)
+    );
+
+    return {
+      ...state,
+      characters: state.characters.map(character =>
+        character.id === targetId
+          ? { ...character, activeEffects: [...retainedEffects, rider] }
+          : character
+      )
     };
   }
 

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 26/06/2026, 20:46:03
- * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/CharacterActor.tsx, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/DistantTerrain.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/Submap/useQuickTravel.ts, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/planar/ShadowfellMechanics.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/submapActionContracts.ts, utils/spatial/targetingUtils.ts, utils/world/religionUtils.ts
+ * Last Sync: 29/06/2026, 18:36:45
+ * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/CharacterActor.tsx, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/DistantTerrain.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/Submap/useQuickTravel.ts, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/planar/ShadowfellMechanics.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/submapActionContracts.ts, utils/spatial/targetingUtils.ts, utils/world/religionUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -26,7 +26,7 @@ import type { MaterialType } from "./materials.js";
 // TODO(lint-intent): 'SavingThrowAbility' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import type { Spell, DamageType, SavingThrowAbility as _SavingThrowAbility, ConditionName, EffectDuration, SpellEffect, RepeatSave, EscapeCheck, ConditionBreakTrigger, TargetFilter } from './spells.js'; // Import Spell
+import type { Spell, DamageType, SavingThrowAbility as _SavingThrowAbility, ConditionName, EffectDuration, SpellEffect, RepeatSave, EscapeCheck, ConditionBreakTrigger, TargetFilter, AbilityCheckModifier, CreatedObject, IllusionMetadata, SensoryManifestation, TerrainManipulation } from './spells.js'; // Import Spell
 import { StateTag } from './elemental.js';
 import { Plane } from './planes.js';
 import { RitualState } from './ritual.js';
@@ -97,6 +97,12 @@ export interface StatusEffect {
     vulnerability?: DamageType[];
     immunity?: DamageType[];
   };
+  /**
+   * Spell-linked check riders such as Guidance keep their structured bonus here
+   * so the ability-check utility can read the same spell choice that the cast
+   * command stored on the target.
+   */
+  abilityCheckModifier?: AbilityCheckModifier;
   // Visual effects
   visualEffect?: string;
   light?: {
@@ -104,19 +110,43 @@ export interface StatusEffect {
     dimRadius?: number;
     attachedTo?: 'caster' | 'target' | 'point';
     color?: string;
+    opaqueCoverBlocks?: boolean;
   };
   savePenalty?: {
     dice: string;
     flat?: number;
     applies: 'next_save' | 'all_saves';
   };
+  /**
+   * Hit-point state riders such as Chill Touch's "No Healing" rule.
+   *
+   * These are not ordinary conditions in the rules text: they change how HP
+   * restoration behaves. Keeping them on the status mirror lets the shared
+   * healing helper block healing without hard-coding one spell name.
+   */
+  hitPointState?: HitPointStateRider;
+  /** Spell-specific social lifecycle metadata, currently used by Friends. */
+  socialLifecycle?: SocialSpellLifecycle;
+}
+
+export interface HitPointStateRider {
+  mode: "healing_lockout" | string;
+  duration?: string;
+  target?: string;
+  preventsHitPointRegain?: boolean;
+}
+
+export interface SocialSpellLifecycle {
+  kind: 'friends_charm' | string;
+  targetKnowsOnEnd?: boolean;
+  recastMemoryDurationRounds?: number;
 }
 
 /**
  * Represents an active, ongoing effect on a character (e.g., from a spell like Shield of Faith or Mage Armor).
  * These are distinct from Conditions (Prone, Stunned) as they often carry specific mechanics or durations.
  */
-export interface ActiveEffect {
+  export interface ActiveEffect {
   id: string;
   spellId: string;
   casterId: string;
@@ -141,7 +171,54 @@ export interface ActiveEffect {
     damageResistance?: DamageType[];
     damageImmunity?: DamageType[];
     damageVulnerability?: DamageType[];
+    /**
+     * Flat damage-reduction riders such as Resistance keep their dice, chosen
+     * damage type, and once-per-turn consumption marker here so the damage
+     * engine can spend the rider without flattening it into generic resistances.
+     */
+    damageReduction?: {
+      dice: string;
+      appliesTo: "damage_taken";
+      frequency: "once_per_turn" | "every_time";
+      damageType?: DamageType;
+      lastAppliedTurn?: number;
+    };
     attackBonus?: number;
+    /**
+     * Held-weapon spell augments, such as Shillelagh, are stored on the
+     * caster as active-effect mechanics because the current combat item model
+     * does not yet persist temporary enchantments directly on Item instances.
+     * The weapon attack command re-checks the live weapon before consuming this
+     * block so releasing or swapping away from the registered weapon naturally
+     * stops applying the buff without needing a separate inventory event hook.
+     */
+    heldWeaponAugment?: {
+      sourceWeaponId?: string;
+      sourceWeaponName?: string;
+      sourceSpellId?: string;
+      sourceCasterId?: string;
+      sourceSpellcastingAbilityModifier?: number;
+      sourceCasterLevel?: number;
+      isMagical?: boolean;
+      eligibleWeaponTypes?: string[];
+      attackType?: string;
+      useSpellcastingAbilityForAttack?: boolean;
+      useSpellcastingAbilityForDamage?: boolean;
+      consumesOnAttackHitOrMiss?: boolean;
+      damageDiceByLevel?: {
+        base: string;
+        level5?: string;
+        level11?: string;
+        level17?: string;
+      };
+      damageTypeChoice?: {
+        chooser?: string;
+        options: string[];
+        defaultType?: string;
+      };
+      endsOnRecast?: boolean;
+      endsIfReleased?: boolean;
+    };
     damageBonus?: {
       amount: number;
       type: DamageType;
@@ -175,6 +252,15 @@ export interface ActiveEffect {
     attackRollConsumption?: "next_attack" | "first_attack" | "while_active";
     attackRollValue?: number;
         attackRollDice?: string;
+    /**
+     * Optional target gate for outgoing attack-roll riders.
+     *
+     * Chill Touch's Undead rider only penalizes attacks against the caster who
+     * hit the Undead. Storing that caster id here lets the ordinary attack
+     * factory read the rider without making the affected Undead worse against
+     * every creature on the battlefield.
+     */
+    attackRollTargetId?: string;
     /**
      * Some attack-roll riders also shut off a condition's combat benefit.
      * Shining Smite is the current shared use: the target still may carry the
@@ -242,6 +328,28 @@ export interface ActiveCondition {
   repeatSave?: RepeatSave;
   escapeCheck?: EscapeCheck;
   breakTriggers?: ConditionBreakTrigger[];
+  /** Runtime-facing hit-point rider copied from the spell status payload. */
+  hitPointState?: HitPointStateRider;
+  /** Social aftermath metadata mirrored from statusEffects for non-lossy cleanup. */
+  socialLifecycle?: SocialSpellLifecycle;
+}
+
+export interface SpellMemoryEntry {
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  affectedTurn: number;
+  expiresAtTurn: number;
+  kind: 'cast_by_caster' | string;
+}
+
+export interface SocialAwarenessEntry {
+  sourceSpellId: string;
+  sourceSpellName?: string;
+  casterId: string;
+  learnedTurn: number;
+  kind: 'post_charm_awareness' | string;
+  targetKnows: string;
 }
 
 export interface CombatCharacter {
@@ -275,6 +383,23 @@ export interface CombatCharacter {
   initiative: number;
   statusEffects: StatusEffect[];
   conditions?: ActiveCondition[];
+  /**
+   * Long-lived spell interaction memory used for recast gates such as Friends'
+   * "cast on this target within 24 hours" auto-success rule.
+   */
+  spellMemory?: SpellMemoryEntry[];
+  /**
+   * Character-facing aftermath facts such as knowing a caster charmed them.
+   * This is intentionally factual state, not a full relationship system.
+   */
+  socialAwareness?: SocialAwarenessEntry[];
+  /**
+   * Character ids that can currently hear this creature well enough to use
+   * hearing-based target acquisition. This is intentionally narrow: it gives
+   * spells such as Vicious Mockery a runtime hook without pretending the full
+   * stealth/noise system already exists.
+   */
+  audibleTo?: string[];
   facing?: Direction; // For directional abilities
   actionEconomy: ActionEconomyState;
   spellbook?: SpellbookData;
@@ -310,19 +435,34 @@ export interface CombatCharacter {
     initiativePolicy?: 'immediate' | 'rolled' | 'shared';
     followDistance?: number;
     hoverHeight?: number;
-      telepathyRange?: number;
-      sharedSenses?: boolean;
-      sharedSensesCost?: 'action' | 'bonus_action' | 'free' | 'none';
-      actionPermissions?: {
-        canAttack?: boolean;
-        canDeliverTouchSpells?: boolean;
-        touchDeliveryRangeFeet?: number;
-        touchDeliveryCost?: 'reaction' | 'action' | 'bonus_action' | 'free' | 'none';
-        independentInitiative?: boolean;
-        obeysCasterCommands?: boolean;
-        notes?: string;
-      };
-      formTraits?: Array<{
+    telepathyRange?: number;
+    sharedSenses?: boolean;
+    sharedSensesCost?: 'action' | 'bonus_action' | 'free' | 'none';
+    lifecycle?: {
+      hitPointMaximum?: string;
+      repairOnly?: string;
+      zeroHpEnding?: string;
+      recastEnding?: string;
+    };
+    control?: {
+      entityType?: string;
+      source?: string;
+      allegiance?: string;
+      obedience?: string;
+      initiative?: string;
+      restrictions?: string[];
+      destruction?: string;
+    };
+    actionPermissions?: {
+      canAttack?: boolean;
+      canDeliverTouchSpells?: boolean;
+      touchDeliveryRangeFeet?: number;
+      touchDeliveryCost?: 'reaction' | 'action' | 'bonus_action' | 'free' | 'none';
+      independentInitiative?: boolean;
+      obeysCasterCommands?: boolean;
+      notes?: string;
+    };
+    formTraits?: Array<{
         name: string;
         appliesToForms?: string[];
         opportunityAttackPolicy?: 'does_not_provoke_when_flying_out_of_reach' | 'normal';
@@ -351,6 +491,14 @@ export interface CombatCharacter {
     spellName: string;
     casterId: string;
   };
+  /**
+   * Combat-facing armor material shortcut for spells that care about metal.
+   *
+   * Shocking Grasp is the pilot: the broader item system does not yet expose a
+   * canonical material taxonomy for every equipped item, so combat can carry
+   * this derived flag without forcing an inventory-wide migration first.
+   */
+  hasMetalArmor?: boolean;
   activeEffects?: ActiveEffect[];  // Active spell effects
   riders?: ActiveRider[];   // Active damage riders (smites, hex, etc)
   damagedThisTurn?: boolean; // Track if character took damage this turn (for concentration/repeat saves)
@@ -633,6 +781,21 @@ export interface SelectedSpellObjectTarget {
   isWornOrCarried?: boolean;
   isMagical?: boolean;
   isFixedToSurface?: boolean;
+  isCoveredByOpaqueMaterial?: boolean;
+  /** Optional damage facts preserved for Mending-style repair spells. */
+  damageState?: SelectedSpellObjectDamageState;
+}
+
+/**
+ * Optional damage facts preserved alongside a targetable object.
+ *
+ * The combat runtime does not yet track object HP, so this keeps the
+ * break-or-tear size and magic-item hints available without inventing a fake
+ * durability pool.
+ */
+export interface SelectedSpellObjectDamageState {
+  kind: 'break_or_tear' | 'broken' | 'torn' | string;
+  breakOrTearDimensionFeet?: number;
 }
 
 /**
@@ -769,8 +932,279 @@ export interface LightSource {
   attachedToCharacterId?: string;  // If attached to caster or target
   position?: Position;         // Fixed position if attachedTo is "point"
   color?: string;              // Optional color tint
+  opaqueCoverBlocks?: boolean; // Tracks object-mounted sources that should stop emitting when covered.
   createdTurn: number;         // Turn when this was created
   expiresAtRound?: number;     // Optional expiration (for concentration tracking)
+  /**
+   * Optional clustered-light metadata for spells whose "light source" is a
+   * movable created artifact rather than a single torch-like glow.
+   */
+  clusterId?: string;
+  clusterIndex?: number;
+  clusterSize?: number;
+  presentation?: "single" | "cluster_member" | "combined_humanoid";
+  hover?: boolean;
+  maxMoveDistanceFeet?: number;
+  leashDistanceFeet?: number;
+  vanishesBeyondRangeFeet?: number;
+  originPosition?: Position;
+  movementCost?: "action" | "bonus_action" | "reaction" | "free" | string;
+}
+
+/**
+ * Structured record for spell effects that hit map objects rather than
+ * creatures.
+ *
+ * Object targeting already preserves selected map-object refs, but combat
+ * state does not yet maintain object HP like creature HP. This impact trail
+ * keeps object damage, source spell, caster, position, and timing together so
+ * UI and future durability systems can consume real execution evidence instead
+ * of scraping combat-log prose.
+ */
+export interface SpellObjectImpact {
+  id: string;
+  objectId: string;
+  objectName?: string;
+  position: Position;
+  sourceSpellId: string;
+  sourceSpellName?: string;
+  casterId: string;
+  damage?: {
+    dice: string;
+    type: string;
+  };
+  createdTurn: number;
+  expiresAtRound?: number;
+}
+
+/**
+ * Structured record for spells that repair object damage.
+ *
+ * This is the repair-side counterpart to SpellObjectImpact. It keeps the
+ * object's selected metadata, the repair contract, and the validation outcome
+ * together so future object-state systems can inspect the same event without
+ * scraping combat text.
+ */
+export interface SpellObjectRepair {
+  id: string;
+  objectId: string;
+  objectName?: string;
+  position: Position;
+  sourceSpellId: string;
+  sourceSpellName?: string;
+  casterId: string;
+  createdTurn: number;
+  outcome: 'repaired' | 'no_damage' | 'too_large' | 'missing_target';
+  repairState: {
+    targetKind: 'object' | string;
+    repairLimit: 'single_break_or_tear' | string;
+    maxDamageDimensionFeet: number;
+    leavesNoTrace: boolean;
+    canPhysicallyRepairMagicItem: boolean;
+    restoresMagicToMagicItem: boolean;
+  };
+  damageState?: SelectedSpellObjectDamageState;
+  objectWasMagical?: boolean;
+}
+
+/**
+ * Private spell communication event produced by Message.
+ *
+ * Combat logs are visible narration, while Message's rules depend on exactly
+ * who heard the whisper and who can hear the reply. This record keeps the
+ * delivery facts structured until a richer messaging UI owns them.
+ */
+export interface SpellCommunicationExchange {
+  id: string;
+  sourceSpellId: string;
+  sourceSpellName?: string;
+  casterId: string;
+  targetId?: string;
+  deliveredText?: string;
+  replyText?: string;
+  privateRecipientIds: string[];
+  replyRecipientIds: string[];
+  createdTurn: number;
+  outcome: 'delivered' | 'blocked' | 'missing_target';
+  blockerReason?: string;
+  throughBarrier?: boolean;
+  familiarWithTarget?: boolean;
+  knowsTargetBeyondBarrier?: boolean;
+  authoredBlockers?: string[];
+}
+
+/**
+ * Active illusion artifact created by Minor Illusion.
+ *
+ * Illusions are not ordinary harmless utility objects: each creature can
+ * discern them independently, and image mode can be revealed by physical
+ * interaction. This record keeps those reveal facts explicit while a broader
+ * illusion UI and cleanup system are still future work.
+ */
+export interface ActiveIllusionEffect {
+  id: string;
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  mode: 'sound' | 'image' | string;
+  position: Position;
+  description: string;
+  createdTurn: number;
+  expiresAtRound?: number;
+  revealRules?: IllusionMetadata['revealRules'];
+  sensoryManifestation?: SensoryManifestation;
+  physicalInteractionReveals: boolean;
+  investigationReveal?: {
+    actionCost?: string;
+    ability?: string;
+    skill?: string;
+    dc?: string;
+  };
+  discernedState?: IllusionMetadata['discernedState'];
+  discernedByCreatureIds: string[];
+  faintToCreatureIds: string[];
+  recastGroup: string;
+  endsOnRecast: boolean;
+}
+
+/**
+ * First-class fire artifacts created or started by spells.
+ *
+ * Create Bonfire and Fire Bolt both have fire behavior that is more specific
+ * than ordinary damage: one creates a spell-duration hazard and the other can
+ * ignite a qualifying object. This record keeps that evidence structured while
+ * object HP, fuel consumption, and full environment spread remain future work.
+ */
+export interface ActiveFireEffect {
+  id: string;
+  spellId: string;
+  sourceName?: string;
+  casterId: string;
+  position: Position;
+  createdTurn: number;
+  expiresAtRound?: number;
+  kind: 'hazard' | 'ignited_object';
+  objectId?: string;
+  objectName?: string;
+  objectType?: string;
+  damage?: {
+    dice: string;
+    type: string;
+  };
+  area?: {
+    shape?: string;
+    sizeFeet?: number;
+  };
+  ignitesTouchedObjects: boolean;
+  excludesWornOrCarriedObjects: boolean;
+  suppressedReason?: 'worn_or_carried' | 'not_flammable';
+}
+
+export interface SpellWeaponEnchantment {
+  id: string;
+  spellId: string;
+  sourceName: string;
+  casterId: string;
+  itemId?: string;
+  itemName?: string;
+  createdTurn: number;
+  expiresAtRound?: number;
+  heldWeaponAugment: NonNullable<NonNullable<ActiveEffect['mechanics']>['heldWeaponAugment']>;
+}
+
+export type ShapeWaterMode = 'move_or_flow' | 'shape_and_animate' | 'color_or_opacity' | 'freeze';
+
+export interface ActiveShapeWaterEffect {
+  id: string;
+  spellId: string;
+  casterId: string;
+  mode: ShapeWaterMode;
+  position: Position;
+  targetObjectId?: string;
+  targetObjectName?: string;
+  volumeCubicFeet: number;
+  cubeSizeFeet: number;
+  createdTurn: number;
+  expiresAtRound?: number;
+  instantaneous: boolean;
+  noDamage: boolean;
+  dismissed?: boolean;
+}
+
+export type ThaumaturgyMode =
+  | 'altered_eyes'
+  | 'booming_voice'
+  | 'fire_play'
+  | 'invisible_hand'
+  | 'phantom_sound'
+  | 'tremors';
+
+export interface ActiveThaumaturgyEffect {
+  id: string;
+  spellId: string;
+  casterId: string;
+  mode: ThaumaturgyMode;
+  position: Position;
+  createdTurn: number;
+  expiresAtRound?: number;
+  instantaneous: boolean;
+  harmless: boolean;
+  sourceObjectType?: string;
+  targetObjectId?: string;
+  targetObjectName?: string;
+  appearanceChange?: string;
+  soundEmission?: string;
+  fireStateChange?: string[];
+  objectMotion?: string[];
+  groundMotion?: string;
+  abilityCheckModifier?: AbilityCheckModifier;
+}
+
+/**
+ * Generic harmless utility artifact created by cantrip modes.
+ *
+ * Druidcraft and Elementalism have many small environmental outcomes that are
+ * too concrete for a generic combat-log sentence but too harmless for damage,
+ * terrain, or inventory systems. This record preserves the selected mode,
+ * map position, object target, lifecycle, and data-authored created object so
+ * UI and exploration systems can render them without spell-specific prose
+ * parsing.
+ */
+export interface ActiveMinorUtilityEffect {
+  id: string;
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  mode: string;
+  position?: Position;
+  targetObjectId?: string;
+  targetObjectName?: string;
+  createdTurn: number;
+  expiresAtRound?: number;
+  instantaneous: boolean;
+  harmless: boolean;
+  createdObject: CreatedObject;
+  sensorState?: Record<string, unknown>;
+  aftermathState?: Record<string, unknown>;
+}
+
+/**
+ * Visible dirt-or-stone marking created by Mold Earth.
+ *
+ * This is intentionally Mold Earth-specific rather than a generic decoration
+ * system: it preserves the rules-authored cosmetic manipulation as a durable
+ * spell artifact while leaving broader map rendering and authored decals for a
+ * later UI consumer.
+ */
+export interface ActiveMoldEarthSurfaceMark {
+  id: string;
+  spellId: 'mold-earth' | string;
+  spellName?: string;
+  casterId: string;
+  position: Position;
+  createdTurn: number;
+  expiresAtRound?: number;
+  manipulation: TerrainManipulation;
 }
 
 // Battle Map Types
@@ -861,8 +1295,63 @@ export interface CombatState {
   combatLog: CombatLogEntry[];
   reactiveTriggers: ReactiveTrigger[];
   activeLightSources: LightSource[];    // Active light sources on the map
+  /** Spell effects that resolved against map objects instead of creatures. */
+  spellObjectImpacts?: SpellObjectImpact[];
+  /** Spell effects that repaired map objects instead of damaging them. */
+  spellObjectRepairs?: SpellObjectRepair[];
+  /** Private communication exchanges created by spells such as Message. */
+  spellCommunicationExchanges?: SpellCommunicationExchange[];
+  /** Active illusion artifacts created by spells such as Minor Illusion. */
+  activeIllusionEffects?: ActiveIllusionEffect[];
+  /** Spell-created fire hazards and object ignition state. */
+  activeFireEffects?: ActiveFireEffect[];
   /** Items created by spell commands that should be persisted to shared inventory. */
   spellCreatedInventoryItems?: Item[];
+  /**
+   * Hit-gated movement riders created during command execution.
+   *
+   * Booming Blade is the current pilot: the weapon attack command can only know
+   * whether the delayed thunder rider exists after the melee hit is resolved.
+   * The combat hook publishes these records into its live movement-debuff list
+   * after the command executor returns.
+   */
+  movementDebuffs?: Array<{
+    id: string;
+    spellId: string;
+    casterId: string;
+    targetId: string;
+    effects: SpellEffect[];
+    expiresAtRound: number;
+    hasTriggered: boolean;
+    saveDC?: number;
+  }>;
+  /**
+   * Temporary spell enchantments that belong to an item rather than only to the
+   * original caster. Shillelagh uses this bridge so the empowered club or
+   * quarterstaff can be handed to another wielder before the broader inventory
+   * system owns spell-duration item modifiers directly.
+   */
+  temporaryWeaponEnchantments?: SpellWeaponEnchantment[];
+  /**
+   * First-class Shape Water results. These records let combat, exploration,
+   * UI, and later cleanup code inspect deterministic water-state mutations
+   * instead of relying on generic narration text.
+   */
+  activeShapeWaterEffects?: ActiveShapeWaterEffect[];
+  /**
+   * First-class Thaumaturgy results. These records preserve the selected minor
+   * wonder, its point of origin, expiry, and mechanical riders such as Booming
+   * Voice's Intimidation advantage without asking downstream systems to parse
+   * generic combat-log text.
+   */
+  activeThaumaturgyEffects?: ActiveThaumaturgyEffect[];
+  /**
+   * First-class harmless utility cantrip outcomes such as Druidcraft omens,
+   * Bloom, Elementalism breezes, smoke, mist, and crude elemental shapes.
+   */
+  activeMinorUtilityEffects?: ActiveMinorUtilityEffect[];
+  /** Visible Mold Earth words, images, or patterns on dirt or stone. */
+  activeMoldEarthSurfaceMarks?: ActiveMoldEarthSurfaceMark[];
   mapData?: BattleMapData;
   currentPlane?: Plane; // NEW: The plane where combat is taking place
 }

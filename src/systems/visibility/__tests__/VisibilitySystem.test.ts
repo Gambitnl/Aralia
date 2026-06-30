@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { VisibilitySystem } from '../VisibilitySystem';
-import { BattleMapData, BattleMapTile, LightSource, CombatCharacter } from '../../../types/combat';
+import { BattleMapData, BattleMapTile, LightSource, CombatCharacter, TargetableMapObject } from '../../../types/combat';
 
 // Mock Data Generators
 function createMockMap(width: number, height: number): BattleMapData {
@@ -83,6 +83,40 @@ describe('VisibilitySystem', () => {
 
       // 25ft away (5 units).
       expect(lightMap.get('15-10')).toBe('darkness');
+    });
+
+    it('should suppress object-mounted light when the target object is covered by opaque material', () => {
+      const coveredObject: TargetableMapObject = {
+        id: 'covered-orb',
+        name: 'Covered Orb',
+        position: { x: 10, y: 10 },
+        size: 'Tiny',
+        weightPounds: 1,
+        isWornOrCarried: false,
+        isMagical: false,
+        isFixedToSurface: false,
+        isCoveredByOpaqueMaterial: true
+      };
+      const map = {
+        ...createMockMap(20, 20),
+        targetableObjects: [coveredObject]
+      };
+      const source: LightSource = {
+        id: 'l-covered',
+        sourceSpellId: 'spell-covered',
+        casterId: 'c1',
+        attachedTo: 'point',
+        position: { x: 10, y: 10 },
+        brightRadius: 20,
+        dimRadius: 20,
+        opaqueCoverBlocks: true,
+        createdTurn: 1
+      };
+
+      const lightMap = VisibilitySystem.calculateLightLevels(map, [source]);
+
+      expect(lightMap.get('10-10')).toBe('darkness');
+      expect(lightMap.get('12-10')).toBe('darkness');
     });
 
     it('should be blocked by walls (shadows)', () => {

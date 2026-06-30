@@ -41,6 +41,14 @@ Source references:
 | Resolve the ranged spell attack as a miss. | PASS | Missed attacks skip the hit-conditioned damage branch, so no damage is applied. |
 | Resolve the cantrip damage at character levels 5, 11, and 17. | PASS | The damage row carries character-level scaling, and the shared scaling bridge applies the 2d8/3d8/4d8 tiers. |
 | Hit a target with radiant resistance, immunity, or vulnerability. | PASS | `DamageCommand` routes radiant damage through the shared resistance calculator. |
-| On a hit, make the target shed Dim Light and lose Invisible benefit until the end of the caster's next turn. | FAIL | The reviewed runtime path only logs a generic sensory utility cast; `SpellCommandFactory` does not hand Starry Wisp to a sensory-light/invisibility executor, so no live light source or anti-Invisible rider is materialized. |
+| On a hit against a creature, make the target shed Dim Light and lose Invisible benefit until the end of the caster's next turn. | PASS | `SpellCommandFactory` now routes single-target spell attacks through a hit/miss gate, and `UtilityCommand` materializes Starry Wisp's sensory-light plus anti-Invisible rider only after a hit. |
+| On a miss against a creature, apply neither radiant damage nor the glow/anti-Invisible rider. | PASS | The focused factory proof forces a missed Starry Wisp attack and verifies the target keeps its HP, no `starry-wisp` light source appears, and no Invisible suppression status is added. |
+| On a hit against an object, apply the spell's object damage and object-attached glow. | PASS | `SpellCommandFactory` now accepts selected object refs for spell attacks, records a structured `spellObjectImpacts` object-damage entry, and attaches Starry Wisp's Dim Light to the object's map position. |
 | Use Starry Wisp in combat. | PASS | The reviewed spell path is combat-ready through the shared spell-command flow. |
 | Use Starry Wisp in exploration or outside combat. | BLOCKED | No separate exploration execution bridge was found in the reviewed runtime slice; the visible path is combat-oriented. |
+
+## Focused proof
+
+- `npx vitest run src/commands/factory/__tests__/SpellCommandFactorySpellAttack.test.ts src/commands/__tests__/UtilityCommand.test.ts -t "Starry Wisp"` passed on 2026-06-29 with 5 selected tests.
+- Direct JSON parse proof confirmed `public/data/spells/level-0/starry-wisp.json` carries target-attached 10-foot Dim Light and `invisibilitySuppression.suppressesConditionBenefit: "Invisible"`.
+- Dependency sync passed for `src/commands/factory/SpellCommandFactory.ts`, `src/commands/effects/UtilityCommand.ts`, `src/types/combat.ts`, `src/types/spells.ts`, and `src/systems/spells/validation/spellValidator.ts`.

@@ -264,6 +264,21 @@
           "lineOfSight": {
             "type": "boolean"
           },
+          "acquisition": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "line_of_sight",
+                  "sight_or_hearing"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
           "filter": {
             "type": "object",
             "properties": {

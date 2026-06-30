@@ -9,7 +9,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Ability, ActiveRider, CombatState } from '../../../types/combat';
 import { GameState } from '../../../types';
-import { createMockCombatCharacter } from '../../../utils/factories';
+import { createMockCombatCharacter, createMockCombatState } from '../../../utils/factories';
 import { AbilityCommandFactory, WeaponAttackCommand } from '../AbilityCommandFactory';
 import { SpellCommandFactory } from '../SpellCommandFactory';
 import { combatEvents } from '../../../systems/events/CombatEvents';
@@ -50,6 +50,82 @@ describe('AbilityCommandFactory', () => {
 
     expect(commands).toHaveLength(1);
     expect(commands[0]).toBeInstanceOf(WeaponAttackCommand);
+  });
+
+  it('ends Friends early when its caster makes a weapon attack roll', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    try {
+      const attacker = createMockCombatCharacter({
+        id: 'friends-caster',
+        name: 'Friends Caster',
+        concentratingOn: {
+          spellId: 'friends',
+          spellName: 'Friends',
+          spellLevel: 0,
+          startedTurn: 1,
+          effectIds: ['friends-charm-status'],
+          canDropAsFreeAction: true
+        }
+      });
+      const charmedTarget = createMockCombatCharacter({
+        id: 'friends-target',
+        name: 'Friends Target',
+        conditions: [{ name: 'Charmed', duration: { type: 'minutes', value: 1 }, appliedTurn: 1, source: 'Friends', sourceCasterId: attacker.id }],
+        statusEffects: [{
+          id: 'friends-charm-status',
+          name: 'Charmed',
+          type: 'debuff',
+          duration: 10,
+          source: 'Friends',
+          sourceCasterId: attacker.id,
+          socialLifecycle: { kind: 'friends_charm', targetKnowsOnEnd: true, recastMemoryDurationRounds: 14400 }
+        }]
+      });
+      const attackTarget = createMockCombatCharacter({
+        id: 'attack-target',
+        name: 'Attack Target',
+        armorClass: 30,
+        currentHP: 20,
+        maxHP: 20
+      });
+      const attack: Ability = {
+        id: 'basic_attack',
+        name: 'Basic Attack',
+        description: 'A normal melee strike.',
+        type: 'attack',
+        cost: { type: 'action' },
+        targeting: 'single_enemy',
+        range: 1,
+        effects: [{ type: 'damage', value: 4, damageType: 'physical' }]
+      };
+      const commands = AbilityCommandFactory.createCommands(attack, attacker, [attackTarget], {} as GameState);
+      const state = createMockCombatState({
+        characters: [attacker, charmedTarget, attackTarget],
+        turnState: {
+          currentTurn: 2,
+          turnOrder: [attacker.id, charmedTarget.id, attackTarget.id],
+          currentCharacterId: attacker.id,
+          phase: 'action',
+          actionsThisTurn: []
+        },
+        combatLog: []
+      });
+
+      const result = await commands[0].execute(state);
+      const updatedAttacker = result.characters.find(character => character.id === attacker.id);
+      const updatedCharmedTarget = result.characters.find(character => character.id === charmedTarget.id);
+
+      expect(updatedAttacker?.concentratingOn).toBeUndefined();
+      expect(updatedCharmedTarget?.statusEffects.some(effect => effect.name === 'Charmed')).toBe(false);
+      expect(updatedCharmedTarget?.socialAwareness?.some(entry =>
+        entry.sourceSpellId === 'friends' &&
+        entry.casterId === attacker.id
+      )).toBe(true);
+      expect(result.combatLog.some(entry => entry.data?.earlyEndReason === 'caster_makes_attack_roll')).toBe(true);
+    } finally {
+      randomSpy.mockRestore();
+    }
   });
 
   it('does not create an attack command for Dash movement', () => {
@@ -342,6 +418,91 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
     } finally {
       randomSpy.mockRestore();
       combatEvents.clearForTest();
+    }
+  });
+
+  it('gives Shocking Grasp advantage against a target wearing metal armor', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
+
+    try {
+      const caster = createMockCombatCharacter({ id: 'caster', name: 'Caster' });
+      const metalTarget = createMockCombatCharacter({
+        id: 'metal-target',
+        name: 'Metal Target',
+        armorClass: 10,
+        hasMetalArmor: true
+      });
+      const shockingGrasp: Ability = {
+        id: 'shocking-grasp-attack',
+        sourceSpellId: 'shocking-grasp',
+        name: 'Shocking Grasp',
+        description: 'A melee spell attack used to prove metal armor advantage.',
+        type: 'attack',
+        attackType: 'spell',
+        cost: { type: 'action' },
+        targeting: 'single_enemy',
+        range: 1,
+        attackBonus: 99,
+        effects: []
+      };
+
+      const command = new WeaponAttackCommand(shockingGrasp, caster, [metalTarget], {
+        spellId: 'shocking-grasp',
+        spellName: 'Shocking Grasp',
+        castAtLevel: 0,
+        caster,
+        targets: [metalTarget],
+        gameState: { characters: [caster, metalTarget], combatLog: [] } as unknown as GameState
+      });
+      const result = await command.execute({ characters: [caster, metalTarget], combatLog: [] } as any);
+
+      // The attack log is the player-visible proof surface for advantage.
+      // Metal armor should add advantage before the roll resolves.
+      expect(result.combatLog[0].message).toContain('with Advantage');
+    } finally {
+      randomSpy.mockRestore();
+    }
+  });
+
+  it('does not give Shocking Grasp advantage against a non-metal-armored target', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
+
+    try {
+      const caster = createMockCombatCharacter({ id: 'caster', name: 'Caster' });
+      const clothTarget = createMockCombatCharacter({
+        id: 'cloth-target',
+        name: 'Cloth Target',
+        armorClass: 10,
+        hasMetalArmor: false
+      });
+      const shockingGrasp: Ability = {
+        id: 'shocking-grasp-attack',
+        sourceSpellId: 'shocking-grasp',
+        name: 'Shocking Grasp',
+        description: 'A melee spell attack used to prove non-metal armor behavior.',
+        type: 'attack',
+        attackType: 'spell',
+        cost: { type: 'action' },
+        targeting: 'single_enemy',
+        range: 1,
+        attackBonus: 99,
+        effects: []
+      };
+
+      const command = new WeaponAttackCommand(shockingGrasp, caster, [clothTarget], {
+        spellId: 'shocking-grasp',
+        spellName: 'Shocking Grasp',
+        castAtLevel: 0,
+        caster,
+        targets: [clothTarget],
+        gameState: { characters: [caster, clothTarget], combatLog: [] } as unknown as GameState
+      });
+      const result = await command.execute({ characters: [caster, clothTarget], combatLog: [] } as any);
+
+      // Non-metal armor follows the ordinary melee spell attack path.
+      expect(result.combatLog[0].message).not.toContain('with Advantage');
+    } finally {
+      randomSpy.mockRestore();
     }
   });
 
@@ -914,6 +1075,132 @@ describe('next-attack rider data contracts', () => {
 // the attack target. These tests protect that shared rider behavior so future
 // next-attack spells can reuse it instead of becoming one-off weapon code.
 // ============================================================================
+
+describe('Frostbite next-weapon-attack rider', () => {
+  const createFrostbiteRider = () => ({
+    id: 'frostbite-rider',
+    spellId: 'frostbite',
+    casterId: 'caster',
+    sourceName: 'Frostbite',
+    type: 'debuff',
+    duration: { type: 'rounds', value: 2 },
+    startTime: 1,
+    mechanics: {
+      attackRollDirection: 'outgoing',
+      attackRollModifier: 'disadvantage' as const,
+      attackRollKind: 'weapon' as const,
+      attackRollConsumption: 'next_attack' as const
+    }
+  });
+
+  it('spends Frostbite when the target makes a matching weapon attack', async () => {
+    const attacker = createMockCombatCharacter({
+      id: 'attacker',
+      name: 'Attacker',
+      attackBonus: 99,
+      activeEffects: [createFrostbiteRider()]
+    });
+    const target = createMockCombatCharacter({
+      id: 'target',
+      name: 'Target'
+    });
+    const weaponAttack: Ability = {
+      id: 'weapon_attack',
+      name: 'Weapon Attack',
+      description: 'A weapon attack used to spend Frostbite.',
+      type: 'attack',
+      cost: { type: 'action' },
+      targeting: 'single_enemy',
+      range: 1,
+      isProficient: true,
+      attackBonus: 99,
+      effects: []
+    };
+
+    const [command] = AbilityCommandFactory.createCommands(weaponAttack, attacker, [target], {} as any);
+    const newState = await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+    const updatedAttacker = newState.characters.find(character => character.id === attacker.id);
+
+    expect(updatedAttacker?.activeEffects ?? []).toHaveLength(0);
+  });
+
+  it('keeps target-scoped outgoing disadvantage riders for attacks against other defenders', async () => {
+    const attacker = createMockCombatCharacter({
+      id: 'attacker',
+      name: 'Attacker',
+      attackBonus: 99,
+      activeEffects: [{
+        ...createFrostbiteRider(),
+        id: 'chill-touch-undead-rider',
+        spellId: 'chill-touch',
+        sourceName: 'Chill Touch',
+        mechanics: {
+          attackRollDirection: 'outgoing' as const,
+          attackRollModifier: 'disadvantage' as const,
+          attackRollKind: 'any' as const,
+          attackRollConsumption: 'while_active' as const,
+          attackRollTargetId: 'original-caster'
+        }
+      }]
+    });
+    const otherDefender = createMockCombatCharacter({
+      id: 'other-defender',
+      name: 'Other Defender'
+    });
+    const weaponAttack: Ability = {
+      id: 'weapon_attack',
+      name: 'Weapon Attack',
+      description: 'A weapon attack that should not consume the target-scoped Chill Touch rider.',
+      type: 'attack',
+      cost: { type: 'action' },
+      targeting: 'single_enemy',
+      range: 1,
+      isProficient: true,
+      attackBonus: 99,
+      effects: []
+    };
+
+    const [command] = AbilityCommandFactory.createCommands(weaponAttack, attacker, [otherDefender], {} as any);
+    const newState = await command.execute({ characters: [attacker, otherDefender], combatLog: [] } as any);
+    const updatedAttacker = newState.characters.find(character => character.id === attacker.id);
+
+    // Chill Touch's Undead rider is scoped to the caster who applied it. An
+    // attack against a different defender must not apply or consume that rider.
+    expect(updatedAttacker?.activeEffects?.some(effect => effect.id === 'chill-touch-undead-rider')).toBe(true);
+  });
+
+  it('keeps Frostbite intact on a spell attack so the rider only spends on weapons', async () => {
+    const attacker = createMockCombatCharacter({
+      id: 'attacker',
+      name: 'Attacker',
+      attackBonus: 99,
+      activeEffects: [createFrostbiteRider()]
+    });
+    const target = createMockCombatCharacter({
+      id: 'target',
+      name: 'Target'
+    });
+    const spellAttack: Ability = {
+      id: 'spell_attack',
+      name: 'Spell Attack',
+      description: 'A spell attack that should not spend Frostbite.',
+      type: 'attack',
+      cost: { type: 'action' },
+      targeting: 'single_enemy',
+      range: 12,
+      isProficient: true,
+      attackBonus: 99,
+      effects: [],
+      attackType: 'spell'
+    };
+
+    const [command] = AbilityCommandFactory.createCommands(spellAttack, attacker, [target], {} as any);
+    const newState = await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+    const updatedAttacker = newState.characters.find(character => character.id === attacker.id);
+
+    expect(updatedAttacker?.activeEffects?.some(effect => effect.spellId === 'frostbite')).toBe(true);
+  });
+});
 
 describe('WeaponAttackCommand: Lightning Arrow-style hit-or-miss riders', () => {
   const createLightningArrowRiders = (casterId: string): ActiveRider[] => [
