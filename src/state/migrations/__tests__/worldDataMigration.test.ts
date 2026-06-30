@@ -211,7 +211,7 @@ it('is a no-op when worldData already exists and is v2', () => {
   expect(after.worldData).toBe(seedWd);
 });
 
-it('adds missing world geography to saves that already have v2 worldData', () => {
+it('returns a v2-worldData save unchanged (worldGeography backfill retired)', () => {
   const cols = 4;
   const rows = 4;
   const worldData = {
@@ -238,13 +238,15 @@ it('adds missing world geography to saves that already have v2 worldData', () =>
 
   const after = migrateMapDataToWorldDataV2(before, 11);
 
-  expect(after).not.toBe(before);
+  // Grid retirement: a v2-worldData save is now returned unchanged. The
+  // worldGeography snapshot (a mapData.tiles-derived bridge nothing reads) is
+  // no longer backfilled.
+  expect(after).toBe(before);
   expect(after.worldData).toBe(worldData);
-  expect(after.worldGeography).toEqual(fromMapData(after));
-  expect(after.tiles).toBe(before.tiles);
+  expect(after.worldGeography).toBeUndefined();
 });
 
-it('persists a world geography snapshot while keeping legacy tiles readable', () => {
+it('migrates a legacy (pre-v2) save to v2 worldData while keeping legacy tiles readable', () => {
   const cols = 4;
   const rows = 3;
   const before: MapData = {
@@ -254,10 +256,10 @@ it('persists a world geography snapshot while keeping legacy tiles readable', ()
 
   const after = migrateMapDataToWorldDataV2(before, 314);
 
+  // Grid retirement: worldData heightfield still backfills for legacy saves
+  // (climate/relief), but the worldGeography snapshot is no longer attached.
   expect(after.worldData).toBeDefined();
-  expect(after.worldGeography).toEqual(fromMapData(after));
-  expect(after.worldGeography!.source).toBe('worlddata-v2');
-  expect(after.worldGeography!.points).toHaveLength(cols * rows);
+  expect(after.worldGeography).toBeUndefined();
   expect(after.gridSize).toEqual(before.gridSize);
   expect(after.tiles[0][0]).toMatchObject({
     x: 0,

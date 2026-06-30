@@ -37,19 +37,18 @@ import type { MapData } from '@/types/world';
 import { runWorldSim } from '@/services/worldSim';
 import { heightFromBiomes } from '@/services/worldSim/heightFromBiomes';
 import { climateFromBiomes } from '@/services/worldSim/climateFromBiomes';
-import { fromMapData } from '@/utils/world';
 
 /**
  * Migrates a MapData object to WorldData v2 if worldData is missing.
  */
 export function migrateMapDataToWorldDataV2(mapData: MapData, worldSeed: number): MapData {
-  // Idempotence check: if v2 and the geography bridge already exist, return
-  // the save payload immediately. Saves from the T11 transition may have v2
-  // `worldData` but still need the persisted `worldGeography` field below.
+  // Idempotence check: if v2 worldData already exists, the save is current.
+  // Grid retirement: the `worldGeography` snapshot is no longer backfilled — it
+  // was a mapData.tiles-derived compatibility bridge that nothing reads (the
+  // continent-3D path that needed it is deleted). Old saves keep the field
+  // harmlessly; new ones omit it.
   if (mapData.worldData && mapData.worldData.version === 2) {
-    return mapData.worldGeography
-      ? mapData
-      : { ...mapData, worldGeography: fromMapData(mapData) };
+    return mapData;
   }
 
   const { rows, cols } = mapData.gridSize;
@@ -86,11 +85,6 @@ export function migrateMapDataToWorldDataV2(mapData: MapData, worldSeed: number)
   });
 
   const migrated: MapData = { ...mapData, worldData };
-
-  // Persist the World geography compatibility snapshot beside the legacy tiles.
-  // This keeps old saves readable while giving future migration and 3D-entry
-  // work a durable contract to load instead of recomputing the bridge ad hoc.
-  migrated.worldGeography = fromMapData(migrated);
 
   // Record provenance only when we derived heights from biomes (no Azgaar terrain), and only if a
   // generator upstream (e.g. mapService legacy fallback) has not already recorded a more specific
