@@ -25,6 +25,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapData, MapTile as MapTileType } from '../types';
+import { MAP_GRID_SIZE } from '../config/mapConfig';
 import type { Item } from '@/types/items';
 import {
   daysOfFood,
@@ -182,32 +183,6 @@ function playerSubCellIndex(model: SubmapModel): number | null {
   return idx >= 0 ? idx : 0;
 }
 
-function hashText(seed: number, text: string): number {
-  let hash = seed;
-  for (let index = 0; index < text.length; index++) {
-    hash ^= text.charCodeAt(index);
-    hash = (hash * 16777619) >>> 0;
-  }
-  return hash;
-}
-
-function deriveWorldSeed(mapData: MapData): number {
-  let hash = 2166136261;
-  hash = hashText(hash, `${mapData.gridSize.rows}x${mapData.gridSize.cols}`);
-
-  for (let y = 0; y < mapData.tiles.length; y++) {
-    const row = mapData.tiles[y];
-    for (let x = 0; x < row.length; x++) {
-      const tile = row[x];
-      // Include only stable world layout data; exclude discovery/current flags.
-      hash = hashText(hash, `${tile.x},${tile.y},${tile.biomeId},${tile.locationId || ''};`);
-    }
-  }
-
-  const bounded = hash % 999_999_999;
-  return bounded > 0 ? bounded : bounded + 999_999_999;
-}
-
 // Grid retirement: the legacy "project mapData.tiles through the geography snapshot"
 // read adapter is removed — MapPane reads atlas cells directly (synthCellTile).
 
@@ -225,7 +200,9 @@ function synthCellTile(
 }
 
 const MapPane: React.FC<MapPaneProps> = ({
-  mapData,
+  // Grid retirement: mapData is no longer read by MapPane (atlas + MAP_GRID_SIZE
+  // bookkeeping replaced every tile/gridSize use). Prop kept on the interface
+  // until App stops passing it in the coord_X_Y/save cut.
   worldSeed,
   onTileClick,
   onEnter3DAtCell,
@@ -246,7 +223,10 @@ const MapPane: React.FC<MapPaneProps> = ({
   onSetSail,
   playerAtlasCellId = null,
 }) => {
-  const { gridSize } = mapData;
+  // Grid retirement: the legacy tile coords (tx,ty) MapPane hands back as
+  // bookkeeping are in the canonical 30x20 space; take the dims from the
+  // constant, not the soon-removed mapData grid.
+  const gridSize = MAP_GRID_SIZE;
   // Pre-game world-generation PREVIEW: the generation controls are shown but there
   // is no player to travel/enter-3D with. In this context the map is a pure world
   // viewer — there's no "me" to find, so the player marker + Find Me are meaningless
@@ -292,7 +272,10 @@ const MapPane: React.FC<MapPaneProps> = ({
   const worldforgeViewportRef = useRef<HTMLDivElement>(null);
   const [worldforgeViewportSize, setWorldforgeViewportSize] = useState({ width: 960, height: 540 });
 
-  const worldforgeSeed = useMemo(() => worldSeed ?? deriveWorldSeed(mapData), [mapData, worldSeed]);
+  // Grid retirement: the world seed is the one passed in (always set in the
+  // cell-native flow). The old `deriveWorldSeed(mapData)` fallback hashed the
+  // legacy 30x20 mapData.tiles grid — removed; null seed is an honest 0.
+  const worldforgeSeed = worldSeed ?? 0;
 
   // Native Worldforge SVG render-port (SP0). The 2D map and the 3D ground bake
   // MUST share ONE atlas, or a burgId means a different burg in each view and
