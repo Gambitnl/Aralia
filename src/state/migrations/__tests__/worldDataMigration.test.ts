@@ -1,14 +1,13 @@
 import type { MapData } from '@/types/world';
-import { fromMapData } from '@/utils/world';
 import { migrateMapDataToWorldDataV2 } from '../worldDataMigration';
 
 /**
  * These tests protect the loader-side world-data migration.
  *
  * Old saves arrive with legacy tile grids, optional Azgaar terrain, or already
- * migrated `WorldData`. The migration must keep those saves readable while
- * attaching the newer world-geography bridge that later movement, map, and 3D
- * work can consume.
+ * migrated `WorldData`. The migration must keep those saves readable. (Grid
+ * retirement: the old `worldGeography` snapshot backfill is removed — nothing
+ * read it — so these tests no longer assert it.)
  */
 
 const fakeTiles = (cols: number, rows: number) => {
@@ -240,10 +239,9 @@ it('returns a v2-worldData save unchanged (worldGeography backfill retired)', ()
 
   // Grid retirement: a v2-worldData save is now returned unchanged. The
   // worldGeography snapshot (a mapData.tiles-derived bridge nothing reads) is
-  // no longer backfilled.
+  // no longer backfilled (and the field is removed from MapData).
   expect(after).toBe(before);
   expect(after.worldData).toBe(worldData);
-  expect(after.worldGeography).toBeUndefined();
 });
 
 it('migrates a legacy (pre-v2) save to v2 worldData while keeping legacy tiles readable', () => {
@@ -257,9 +255,8 @@ it('migrates a legacy (pre-v2) save to v2 worldData while keeping legacy tiles r
   const after = migrateMapDataToWorldDataV2(before, 314);
 
   // Grid retirement: worldData heightfield still backfills for legacy saves
-  // (climate/relief), but the worldGeography snapshot is no longer attached.
+  // (climate/relief); the worldGeography snapshot field is gone entirely.
   expect(after.worldData).toBeDefined();
-  expect(after.worldGeography).toBeUndefined();
   expect(after.gridSize).toEqual(before.gridSize);
   expect(after.tiles[0][0]).toMatchObject({
     x: 0,
@@ -270,13 +267,13 @@ it('migrates a legacy (pre-v2) save to v2 worldData while keeping legacy tiles r
   });
 });
 
-it('preserves an existing world geography snapshot on already migrated saves', () => {
+it('returns an already-v2 save by reference (idempotent no-op)', () => {
   const cols = 3;
   const rows = 3;
   const worldData = {
     version: 2 as const,
     seed: 5,
-    templateId: 'saved-geography',
+    templateId: 'already-v2',
     gridSize: { rows, cols },
     heights: new Array(cols * rows).fill(30),
     temperatures: [],
@@ -289,21 +286,14 @@ it('preserves an existing world geography snapshot on already migrated saves', (
     lakes: [],
     biomeZones: [],
   };
-  const savedGeography = fromMapData({
-    gridSize: { rows, cols },
-    tiles: fakeTiles(cols, rows),
-    worldData,
-  });
   const before: MapData = {
     gridSize: { rows, cols },
     tiles: fakeTiles(cols, rows),
     worldData,
-    worldGeography: savedGeography,
   };
 
   const after = migrateMapDataToWorldDataV2(before, 5);
 
   expect(after).toBe(before);
   expect(after.worldData).toBe(worldData);
-  expect(after.worldGeography).toBe(savedGeography);
 });

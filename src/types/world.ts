@@ -21,7 +21,6 @@ import type { NPCMemory } from './memory.js'; // Added because NPC now carries o
 import type { AbilityScores } from './character.js';
 import type { EquipmentSlotType, Item } from './items.js';
 import type { WorldData } from '../services/worldSim/types';
-import type { WorldGeographySnapshot } from '../utils/world/worldGeographyAdapter';
 import type { Lock, Puzzle } from '../systems/puzzles/types.js';
 
 export type Position = CombatPosition;
@@ -297,13 +296,9 @@ export interface MapData {
   azgaarWorld?: AzgaarWorldRenderData;
   /** Rich world artifact — produced by worldSim. Required for new saves; populated by migration on load for old saves. */
   worldData?: WorldData;
-  /**
-   * Future geography contract persisted beside the legacy tile grid.
-   * It is optional during migration so old saves can still load, and it keeps the
-   * legacy fields readable until World, Travel, Submap, and 3D consumers finish
-   * their adapter proofs.
-   */
-  worldGeography?: WorldGeographySnapshot;
+  // Grid retirement (2026-06-30): the `worldGeography` snapshot field is removed
+  // — it was a legacy-tile-grid-derived "future geography contract" that nothing
+  // ever read; the worldGeographyAdapter that built it is deleted.
   /** How this world was generated (primary vs fallback). Surfaced in the DebugHUD. */
   generation?: WorldGenDiagnostics;
 }

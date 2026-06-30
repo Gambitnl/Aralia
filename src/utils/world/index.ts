@@ -32,4 +32,3 @@ export * from './provenanceUtils';
 export * from './memoryUtils';
 export * from './sceneUtils';
 export * from './dialogueUtils';
-export * from './worldGeographyAdapter';
