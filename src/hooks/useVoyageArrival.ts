@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import type { Dispatch } from 'react';
 import { AppAction } from '../state/actionTypes';
 import type { VoyageState } from '../types/naval';
-import { getTownTilesForGrid, getBridgeAtlas } from '../systems/worldforge/bridge/legacySubmapBridge';
-import { SUBMAP_DIMENSIONS, MAP_GRID_SIZE } from '../config/mapConfig';
+import { getBridgeAtlas } from '../systems/worldforge/bridge/legacySubmapBridge';
+import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { makeCellLocationId } from '../utils/location/cellLocationId';
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 import { LOCATIONS } from '../constants';
@@ -59,24 +59,9 @@ export function useVoyageArrival({
       return;
     }
 
-    // Grid retirement: the burg→tile map uses the canonical 30x20 bookkeeping dims.
-    const { cols, rows } = MAP_GRID_SIZE;
-    const townTiles = getTownTilesForGrid(worldSeed, cols, rows);
-    const tile = townTiles.find(t => t.burgId === destBurgId);
-
-    if (!tile) {
-      // Invariant violation: player sailed to a port that has no grid tile.
-      // Do NOT guess a tile or teleport to a wrong position.
-      console.error(
-        `[useVoyageArrival] No grid tile found for destination burgId ${destBurgId} (world seed ${worldSeed}, grid ${cols}×${rows}). ` +
-        `Player was not relocated. Clearing voyage so they are not stuck at sea.`,
-      );
-      dispatch({ type: 'NAVAL_CLEAR_VOYAGE' });
-      return;
-    }
-
-    // Grid retirement: arrive AT the destination burg's atlas cell (cell-native id),
-    // not a coord_X_Y tile. The grid tile above only validates the burg is on the map.
+    // Grid retirement: arrive AT the destination burg's atlas cell (cell-native id).
+    // The burg's own cell is the authoritative location + the on-map validation
+    // (no cell ⇒ not a real port ⇒ clear the voyage) — no grid-tile lookup needed.
     const burgCell = (getBridgeAtlas(worldSeed).pack.burgs?.[destBurgId] as { cell?: number } | undefined)?.cell;
     if (burgCell == null) {
       console.error(`[useVoyageArrival] Destination burg ${destBurgId} has no atlas cell — cannot relocate. Clearing voyage.`);

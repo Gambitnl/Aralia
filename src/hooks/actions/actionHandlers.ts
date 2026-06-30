@@ -50,7 +50,6 @@ import type {
   Faction,
 } from '../../types';
 import { GamePhase } from '../../types';
-import { gridCellCenterToWorldMeters } from '../../utils/worldCoords';
 import type { AppAction } from '../../state/actionTypes';
 import type { CastSpellPayload } from '../../types/actions';
 import { ITEMS, WEAPONS_DATA } from '../../constants';
@@ -87,7 +86,6 @@ import { handleCastSpell, handleUseLimitedAbility, handleTogglePreparedSpell, ha
 // Merchant handlers are implemented in src/hooks/actions/handleMerchantInteraction.ts.
 import { handleOpenDynamicMerchant, handleMerchantAction, validateMerchantTransaction } from './handleMerchantInteraction';
 // System/UI handlers are implemented in src/hooks/actions/handleSystemAndUi.ts.
-import { MAP_GRID_SIZE } from '../../config/mapConfig';
 import {
   handleSaveGame,
   handleGoToMainMenu,
@@ -309,19 +307,8 @@ export function buildActionHandlers({
     toggle_three_d: () => {
       // PLAYING: streamed world via worldViewMode (W3DUI-21/22). Other phases: legacy ThreeDModal.
       if (gameState.phase === GamePhase.PLAYING) {
-        const location = getCurrentLocation();
-        if (!gameState.playerWorldPos && location?.mapCoordinates) {
-          const { x: wx, z: wz } = gridCellCenterToWorldMeters(
-            location.mapCoordinates.x,
-            location.mapCoordinates.y,
-            MAP_GRID_SIZE.cols,
-            MAP_GRID_SIZE.rows,
-          );
-          dispatch({
-            type: 'SET_PLAYER_WORLD_POS',
-            payload: { x: wx, y: 0, z: wz },
-          });
-        }
+        // Grid retirement: 3D entry is cell-native; the streamed ground frames
+        // itself from the entry anchor. No grid-cell->world-meters seeding.
         dispatch({ type: 'SET_WORLD_VIEW_MODE', payload: '3d' });
         if (gameState.isMapVisible) {
           dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
@@ -382,7 +369,6 @@ export function buildActionHandlers({
         cellId: gameState.playerCell?.cellId ?? null,
         currentLocationId: gameState.currentLocationId,
         worldSeed: gameState.worldSeed,
-        gridSize: MAP_GRID_SIZE,
         townSim: gameState.townSim,
         gameTime: gameState.gameTime,
       });
