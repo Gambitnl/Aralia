@@ -45,8 +45,6 @@ interface ActionPaneProps {
   autoSaveEnabled?: boolean;
 
   hasNewRateLimitError: boolean;
-  subMapCoordinates?: { x: number; y: number };
-  worldSeed?: number;
 }
 
 const ActionPane: React.FC<ActionPaneProps> = ({
@@ -62,8 +60,6 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   party,
 
   hasNewRateLimitError,
-  subMapCoordinates,
-  worldSeed,
 }) => {
   const oracleInputRef = useRef<HTMLInputElement | null>(null);
   const [isOracleInputVisible, setIsOracleInputVisible] = useState(false);
@@ -75,8 +71,6 @@ const ActionPane: React.FC<ActionPaneProps> = ({
     currentLocation,
     npcsInLocation,
     itemsInLocation,
-    subMapCoordinates,
-    worldSeed
   });
 
   useEffect(() => {

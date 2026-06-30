@@ -136,8 +136,6 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                         unreadDiscoveryCount={unreadDiscoveryCount}
                         autoSaveEnabled={autoSaveEnabled}
                         hasNewRateLimitError={hasNewRateLimitError}
-                        subMapCoordinates={subMapCoordinates ?? undefined}
-                        worldSeed={worldSeed}
                     />
                 </ErrorBoundary>
             </div>

@@ -23,8 +23,6 @@ interface UseActionGenerationProps {
   currentLocation: Location;
   npcsInLocation: NPC[];
   itemsInLocation: Item[];
-  subMapCoordinates?: { x: number; y: number };
-  worldSeed?: number;
 }
 
 export const useActionGeneration = ({
