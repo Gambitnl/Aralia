@@ -304,11 +304,11 @@ export function useGameInitialization({
           },
         );
 
-        // Logical location = the spawn tile the marker now sits on. Mirror
-        // movement's rule (`tile.locationId || coord_<x>_<y>`) so the spawn id is
-        // identical to what the player would see after stepping onto that tile.
-        const spawnTile = mapDataToUse.tiles[spawn.gridCell.y]?.[spawn.gridCell.x];
-        spawnLocationId = spawnTile?.locationId || `coord_${spawn.gridCell.x}_${spawn.gridCell.y}`;
+        // Grid retirement: the logical location is the spawn's grid coord id
+        // (bookkeeping); the canonical position is playerCell (set from the chosen
+        // start cell). No mapData.tiles[].locationId read — wilderness spawns carry
+        // no static location and the named-place path is handled by LOCATIONS lookup.
+        spawnLocationId = `coord_${spawn.gridCell.x}_${spawn.gridCell.y}`;
       } catch (err) {
         console.error('[startGame] WF spawn resolution failed; using legacy start tile.', err);
       }
