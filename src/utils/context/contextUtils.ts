@@ -21,8 +21,6 @@
 import { GameState, PlayerCharacter, NPC, Location } from '../../types';
 import { QuestObjective } from '../../types/quests';
 import { BIOMES, ITEMS } from '../../constants';
-import { getSubmapTileInfo } from '../spatial/submapUtils';
-import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { getTimeModifiers, formatGameTime } from '../core/timeUtils';
 import { BACKGROUNDS } from '../../data/backgrounds';
 import { CLASSES_DATA } from '../../data/classes';
@@ -124,17 +122,9 @@ export function generateGeneralActionContext({
   const biomeName = BIOMES[currentLocation.biomeId]?.name || 'Unknown Biome';
   let locationDetails = `${currentLocation.name} (${biomeName})`;
 
-  // Submap Context
-  if (gameState.subMapCoordinates) {
-    const submapTileInfo = getSubmapTileInfo(gameState.worldSeed, currentLocation.mapCoordinates, currentLocation.biomeId, SUBMAP_DIMENSIONS, gameState.subMapCoordinates);
-    if (submapTileInfo) {
-      locationDetails += `\nImmediate Terrain: ${submapTileInfo.effectiveTerrainType}`;
-      const activeFeatureConfig = (submapTileInfo as any).activeFeatureConfig;
-      if (activeFeatureConfig) {
-         locationDetails += ` | Feature: ${activeFeatureConfig.name}`;
-      }
-    }
-  }
+  // Grid retirement: the 30x20 submap terrain context is removed (it read the
+  // legacy subMapCoordinates against the submap grid). Cell-native local terrain
+  // detail comes from the Locale/3D ground, not a coarse submap tile here.
 
   // Visible Items
   const itemsInLocationNames = currentLocation.itemIds?.map((id) => ITEMS[id]?.name).filter(Boolean).join(', ');
