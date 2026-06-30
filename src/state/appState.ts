@@ -405,7 +405,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 inventory: [],
                 gold: 50,
                 currentLocationId: STARTING_LOCATION_ID,
-                subMapCoordinates: { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) },
                 messages: [
                     { id: Date.now(), text: `A new party of adventurers emerges!`, sender: 'system', timestamp: new Date(initialGameState.gameTime.getTime()) },
                     { id: Date.now() + 1, text: initialLocation.baseDescription, sender: 'system', timestamp: new Date(initialGameState.gameTime.getTime()) }
@@ -460,7 +459,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 inventory: [...action.payload.initialInventory],
                 gold: 100, // Dummy gets some spending money
                 currentLocationId: STARTING_LOCATION_ID,
-                subMapCoordinates: { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) },
                 messages: [
                     { id: Date.now(), text: `Welcome, ${generatedParty[0].name} and party! Your adventure begins (Dev Mode).`, sender: 'system', timestamp: new Date(initialGameState.gameTime.getTime()) },
                     { id: Date.now() + 1, text: initialDummyLocation.baseDescription, sender: 'system', timestamp: new Date(initialGameState.gameTime.getTime()) }
@@ -578,10 +576,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 playerCell: restOfPayload.playerCell ?? derivePlayerCell(
                     restOfPayload.worldSeed ?? state.worldSeed,
                     restOfPayload.initialLocationId ?? STARTING_LOCATION_ID,
-                    restOfPayload.initialSubMapCoordinates,
+                    null, // Stage 6: no subMapCoordinates; Locale feet come from the ground session.
                     restOfPayload.mapData,
                 ),
-                subMapCoordinates: restOfPayload.initialSubMapCoordinates,
                 mapData: restOfPayload.mapData,
                 dynamicLocationItemIds: restOfPayload.dynamicLocationItemIds,
                 // Standard starts use the same bridge; if a caller omits the
@@ -777,13 +774,12 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 : derivePlayerCell(
                     state.worldSeed,
                     action.payload.newLocationId,
-                    action.payload.newSubMapCoordinates,
+                    null, // Stage 6: no subMapCoordinates; feet come from the ground session.
                     movedMapData,
                 );
             return {
                 ...state,
                 currentLocationId: action.payload.newLocationId,
-                subMapCoordinates: action.payload.newSubMapCoordinates,
                 // Record the canonical cell (cell-native world). Stage 2 derived it as a
                 // shadow of the legacy tile; Stage 4 makes the atlas-travel destination
                 // authoritative (carried intact, feet reset). The legacy fields above
@@ -815,13 +811,12 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     { id: Date.now() + Math.random(), text: `Welcome, ${state.party[0]!.name} and party! Your adventure begins (Dev Mode - Auto Start).`, sender: 'system', timestamp: new Date(dummyGameTime.getTime()) },
                     { id: Date.now() + Math.random() + 1, text: action.payload.initialLocationDescription, sender: 'system', timestamp: new Date(dummyGameTime.getTime()) }
                 ],
-                subMapCoordinates: action.payload.initialSubMapCoordinates,
                 // Keep the canonical cell self-consistent with the dev spawn's
                 // location (null for the static 'clearing' start tile).
                 playerCell: derivePlayerCell(
                     action.payload.worldSeed,
                     state.currentLocationId,
-                    action.payload.initialSubMapCoordinates,
+                    null, // Stage 6: no subMapCoordinates.
                     action.payload.mapData,
                 ),
                 isLoading: false, loadingMessage: null, isImageLoading: false,

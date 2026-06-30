@@ -226,7 +226,6 @@ export interface GameState {
   inventory: Item[];
   gold: number;
   currentLocationId: string;
-  subMapCoordinates: { x: number; y: number } | null;
   /**
    * The settlement the player chose at the Start Point Selection step (its name +
    * region). Names the opening scene and the player's "home" town. Optional:

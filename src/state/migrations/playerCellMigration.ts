@@ -39,10 +39,13 @@ export function migratePlayerCell(loadedState: GameState): GameState {
   }
 
   const gridSize = loadedState.mapData?.gridSize ?? MAP_GRID_SIZE;
+  // Legacy save field (Stage 6 removed subMapCoordinates from GameState); read it
+  // off the raw loaded save if an old save carries it, else null.
+  const legacySubmap = (loadedState as unknown as { subMapCoordinates?: { x: number; y: number } | null }).subMapCoordinates ?? null;
   loadedState.playerCell = derivePlayerCellForTile(
     loadedState.worldSeed ?? 0,
     tile,
-    loadedState.subMapCoordinates ?? null,
+    legacySubmap,
     { cols: gridSize.cols, rows: gridSize.rows },
   );
   return loadedState;

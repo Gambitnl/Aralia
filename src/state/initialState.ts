@@ -89,7 +89,6 @@ export const initialGameState: GameState = {
     inventory: [],
     gold: 10, // Default starting gold
     currentLocationId: STARTING_LOCATION_ID,
-    subMapCoordinates: null,
     messages: [],
     isLoading: false,
     loadingMessage: null,

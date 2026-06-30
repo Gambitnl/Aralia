@@ -342,7 +342,7 @@ const App: React.FC = () => {
       };
     }
 
-    if (currentId.startsWith('coord_') && gameState.mapData && gameState.subMapCoordinates) {
+    if (currentId.startsWith('coord_') && gameState.mapData) {
       const parts = currentId.split('_');
       const worldX = parseInt(parts[1]);
       const worldY = parseInt(parts[2]);
@@ -351,16 +351,13 @@ const App: React.FC = () => {
         const worldTile = gameState.mapData.tiles[worldY][worldX];
         const biome = BIOMES[worldTile.biomeId];
 
-        const subMapExits: { [direction: string]: string } = {};
-        Object.keys(canUseDevTools() ? {} : {}).forEach(dir => {
-          subMapExits[dir] = dir;
-        });
-
         return {
           id: currentId,
-          name: `${biome?.name || 'Unknown Biome'} sector (${worldX},${worldY}), sub-tile (${gameState.subMapCoordinates.x},${gameState.subMapCoordinates.y})`,
-          baseDescription: `You are at sub-tile (${gameState.subMapCoordinates.x},${gameState.subMapCoordinates.y}) within the ${biome?.name || 'unknown terrain'} world sector at (${worldX},${worldY}). ${biome?.description || ''}`,
-          exits: subMapExits,
+          // Grid retirement: no submap sub-tile; the cell-native Locale is where the
+          // player actually stands. This is a coarse wilderness sector label.
+          name: `${biome?.name || 'Unknown Biome'} sector (${worldX},${worldY})`,
+          baseDescription: `You are in the ${biome?.name || 'unknown terrain'} world sector at (${worldX},${worldY}). ${biome?.description || ''}`,
+          exits: {},
           itemIds: gameState.dynamicLocationItemIds[currentId] || [],
           npcIds: [],
           mapCoordinates: { x: worldX, y: worldY },
@@ -373,7 +370,7 @@ const App: React.FC = () => {
       ...fallbackLoc,
       itemIds: gameState.dynamicLocationItemIds[STARTING_LOCATION_ID] || fallbackLoc.itemIds || []
     };
-  }, [gameState.currentLocationId, gameState.mapData, gameState.subMapCoordinates, gameState.dynamicLocationItemIds]);
+  }, [gameState.currentLocationId, gameState.mapData, gameState.dynamicLocationItemIds]);
 
   const getCurrentNPCs = useCallback((): NPC[] => {
     const location = getCurrentLocation();
@@ -472,7 +469,6 @@ const App: React.FC = () => {
       phase: GamePhase[gameState.phase],
       worldViewMode: gameState.worldViewMode ?? null,
       currentLocationId: gameState.currentLocationId,
-      subMapCoordinates: gameState.subMapCoordinates,
       playerWorldPos: gameState.playerWorldPos ?? null,
       // Keep the chosen starting settlement visible to browser proof tests so
       // the post-creator flow can prove the selected village became live game
@@ -1390,7 +1386,7 @@ const App: React.FC = () => {
         />
       </ErrorBoundary>
     );
-  } else if (gameState.phase === GamePhase.PLAYING && gameState.party.length > 0 && gameState.subMapCoordinates) {
+  } else if (gameState.phase === GamePhase.PLAYING && gameState.party.length > 0) {
     // Render the Main Game Layout (Exploration Mode)
     // <GameLayout> extracts the complexity of the Compass, Action, World, and Minimap panes.
     // When worldViewMode === '3d', render the 3D world instead of the 2D atlas.
@@ -1411,7 +1407,6 @@ const App: React.FC = () => {
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
         <GameLayout
           currentLocation={currentLocationData}
-          subMapCoordinates={gameState.subMapCoordinates}
           mapData={gameState.mapData}
           gameTime={gameState.gameTime}
           messages={gameState.messages}

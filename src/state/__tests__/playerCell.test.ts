@@ -22,28 +22,25 @@ describe('playerCell canonical position model', () => {
     expect(initialGameState.playerCell).toBeNull();
   });
 
-  it('MOVE_PLAYER records the cell derived from a coord_X_Y tile + keeps legacy fields intact', () => {
+  it('MOVE_PLAYER (no destinationCell) derives the cell from the coord_X_Y tile; localeCoords null', () => {
     const base = createMockGameState({ worldSeed: SEED });
-    const newSubMapCoordinates = { x: 4, y: 7 };
     const next = appReducer(base, {
       type: 'MOVE_PLAYER',
       payload: {
         newLocationId: 'coord_15_10',
-        newSubMapCoordinates,
         mapData: base.mapData ?? undefined,
         activeDynamicNpcIds: null,
       },
     });
 
-    // Legacy fields unchanged (compat regression guard).
     expect(next.currentLocationId).toBe('coord_15_10');
-    expect(next.subMapCoordinates).toEqual(newSubMapCoordinates);
 
     // Canonical cell recorded as the golden derive of that tile.
     const expectedCell = deriveCellIdFromTile(SEED, 15, 10, COLS, ROWS);
     expect(next.playerCell).not.toBeNull();
     expect(next.playerCell!.cellId).toBe(expectedCell);
-    expect(next.playerCell!.localeCoords).toEqual(newSubMapCoordinates);
+    // Stage 6: no subMapCoordinates; Locale feet come from a ground session, so null here.
+    expect(next.playerCell!.localeCoords).toBeNull();
   });
 
   it('START_GAME_SUCCESS threads an explicit playerCell from its payload', () => {
@@ -87,6 +84,7 @@ describe('playerCell canonical position model', () => {
     const expectedCell = deriveCellIdFromTile(SEED, 15, 10, COLS, ROWS);
     expect(next.playerCell).not.toBeNull();
     expect(next.playerCell!.cellId).toBe(expectedCell);
-    expect(next.playerCell!.localeCoords).toEqual({ x: 2, y: 2 });
+    // Stage 6: no subMapCoordinates; the derive yields null Locale feet.
+    expect(next.playerCell!.localeCoords).toBeNull();
   });
 }, 30000);

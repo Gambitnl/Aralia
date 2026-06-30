@@ -360,29 +360,9 @@ const GameModals: React.FC<GameModalsProps> = ({
                 </div>
             )}
 
-            {/* Legacy submap 3D modal — not used in PLAYING (streamed world uses worldViewMode + TransitionController, W3DUI-22). */}
-            {gameState.phase !== GamePhase.PLAYING &&
-                gameState.isThreeDVisible &&
-                gameState.party[0] &&
-                gameState.subMapCoordinates &&
-                currentLocation.mapCoordinates && (
-                <Suspense key="threed" fallback={<LoadingSpinner />}>
-                    <ThreeDModal
-                        isOpen={gameState.isThreeDVisible}
-                        onClose={() => dispatch({ type: 'TOGGLE_THREE_D_VISIBILITY' })}
-                        worldSeed={gameState.worldSeed}
-                        biomeId={currentLocation.biomeId}
-                        gameTime={gameState.gameTime}
-                        playerSpeed={gameState.party[0].speed}
-                        partyMembers={gameState.party}
-                        parentWorldMapCoords={currentLocation.mapCoordinates}
-                        playerSubmapCoords={gameState.subMapCoordinates}
-                        onMove={(direction) => onAction({ type: 'move', payload: {}, targetId: direction, label: `Move ${direction}` })}
-                        isDevModeEnabled={gameState.isDevModeEnabled}
-                        devModelOverride={gameState.devModelOverride}
-                    />
-                </Suspense>
-            )}
+            {/* Grid retirement: the legacy submap 3D modal (30x20 grid, compass moves)
+                is removed. The streamed cell-native world renders via worldViewMode +
+                TransitionController. */}
 
             {/* Character Sheet Modal */}
             {isCharacterSheetModalOpen && gameState.characterSheetModal.character && (

@@ -50,9 +50,8 @@ describe('Stage 4 — MOVE_PLAYER cell-native arrival', () => {
     // Arrival sets up entry into the destination town/cell.
     expect(next.entry3DAnchor).toEqual(anchor);
 
-    // Legacy bookkeeping untouched (additive guarantee).
+    // Legacy bookkeeping: coord_X_Y still written (Stage 6 removed subMapCoordinates).
     expect(next.currentLocationId).toBe('coord_15_10');
-    expect(next.subMapCoordinates).toEqual({ x: 5, y: 5 });
   });
 
   it('without destinationCell is unchanged: Stage-2 tile-derived cell + null entry anchor', () => {
@@ -70,7 +69,8 @@ describe('Stage 4 — MOVE_PLAYER cell-native arrival', () => {
     const expectedCell = deriveCellIdFromTile(SEED, 15, 10, COLS, ROWS);
     expect(next.playerCell).not.toBeNull();
     expect(next.playerCell!.cellId).toBe(expectedCell);
-    expect(next.playerCell!.localeCoords).toEqual({ x: 4, y: 7 });
+    // Stage 6: no subMapCoordinates; derive yields null Locale feet.
+    expect(next.playerCell!.localeCoords).toBeNull();
     expect(next.entry3DAnchor).toBeNull();
     expect(next.currentLocationId).toBe('coord_15_10');
   });

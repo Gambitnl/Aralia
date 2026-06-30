@@ -465,22 +465,15 @@ describe('worldReducer', () => {
         expect(weatherSpy).not.toHaveBeenCalled();
     });
 
-    it('uses the current coordinate tile biome for environment progression', () => {
+    it('uses the cell-native resolved biome for environment progression (Stage 6: no grid tile biome)', () => {
+        // Grid retirement: resolveBiomeId no longer reads coord_X_Y -> mapData.tiles.
+        // With no canonical cell and a non-static (coord) location it resolves to the
+        // neutral 'plains' default; weather is driven by that resolved biome.
         const baseState = createMockGameState({
             gameTime: new Date('2024-01-01T12:00:00Z'),
             currentLocationId: 'coord_2_3',
-            mapData: {
-                gridSize: { rows: 8, cols: 8 },
-                tiles: Array.from({ length: 8 }, (_, y) =>
-                    Array.from({ length: 8 }, (_, x) => ({
-                        x,
-                        y,
-                        discovered: true,
-                        isPlayerCurrent: false,
-                        biomeId: y === 3 && x === 2 ? 'forest' : 'plains',
-                    }))
-                ),
-            },
+            playerCell: null,
+            mapData: null,
         });
         const weatherUpdate: WeatherState = {
             precipitation: 'light_rain',
@@ -502,7 +495,7 @@ describe('worldReducer', () => {
         expect(WeatherSystem.updateWeather).toHaveBeenCalledTimes(1);
         expect(WeatherSystem.updateWeather).toHaveBeenCalledWith(
             expect.anything(),
-            'forest',
+            'plains',
             expect.stringContaining('Day'),
             expect.anything()
         );

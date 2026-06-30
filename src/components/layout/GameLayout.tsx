@@ -39,8 +39,6 @@ import type { PlayerWorldPosition } from '../../types';
 interface GameLayoutProps {
     /** The current location data object, including name, description, and biome. */
     currentLocation: Location;
-    /** Coordinates of the player within the sub-regional map (if applicable). */
-    subMapCoordinates: { x: number; y: number } | null;
     /** The global map data, containing tile information for the entire world. */
     mapData: MapData | null;
     /** The current in-game date and time. */
@@ -86,7 +84,6 @@ interface GameLayoutProps {
  */
 const GameLayout: React.FC<GameLayoutProps> = ({
     currentLocation,
-    subMapCoordinates,
     mapData,
     gameTime,
     messages,
