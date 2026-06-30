@@ -4,8 +4,9 @@
  * Handles observation actions like 'look_around' and 'inspect_submap_tile'.
  */
 import React from 'react';
-import { GameState, Action, InspectSubmapTilePayload, UpdateInspectedTileDescriptionPayload } from '../../types';
+import { GameState, Action, InspectSubmapTilePayload, UpdateInspectedTileDescriptionPayload, MapTile } from '../../types';
 import { AppAction } from '../../state/actionTypes';
+import { biomeIdForCell } from '../../systems/worldforge/local/biomeForCell';
 import * as OllamaTextService from '../../services/ollamaTextService';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn, GetTileTooltipTextFn } from './actionHandlerTypes';
@@ -30,14 +31,16 @@ export async function handleLookAround({
   getTileTooltipText,
 }: HandleLookAroundProps): Promise<void> {
   let worldMapTileTooltipForGemini: string | null = null;
-  if (gameState.mapData && gameState.currentLocationId.startsWith('coord_')) {
+  // Grid retirement: the "look around" tile flavor comes from the player's
+  // canonical cell biome (cell-native world), synthesized into a tile shape for
+  // the existing tooltip formatter — NOT a read of the legacy 30x20 mapData.tiles.
+  if (gameState.playerCell?.cellId != null && gameState.currentLocationId.startsWith('coord_')) {
     const parts = gameState.currentLocationId.split('_');
     const worldX = parseInt(parts[1]);
     const worldY = parseInt(parts[2]);
-    const tile = gameState.mapData.tiles[worldY]?.[worldX];
-    if (tile) {
-      worldMapTileTooltipForGemini = getTileTooltipText(tile);
-    }
+    const biomeId = biomeIdForCell(gameState.worldSeed ?? 0, gameState.playerCell.cellId);
+    const synthTile = { x: worldX, y: worldY, biomeId, discovered: true, isPlayerCurrent: true } as MapTile;
+    worldMapTileTooltipForGemini = getTileTooltipText(synthTile);
   }
 
   const lookContext = `${generalActionContext}${worldMapTileTooltipForGemini ? ` | Tile: ${worldMapTileTooltipForGemini}` : ''}`;

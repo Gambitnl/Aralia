@@ -41,11 +41,15 @@ export async function handleGossipEvent(
   const allNpcIds = Object.keys(NPCS);
 
   const npcsByLocation: Record<string, string[]> = {};
-  for (const location of Object.values(gameState.mapData?.tiles.flat() || [])) {
-    if (location.locationId && LOCATIONS[location.locationId]?.npcIds) {
-      npcsByLocation[location.locationId] = [
-        ...(npcsByLocation[location.locationId] || []),
-        ...LOCATIONS[location.locationId].npcIds!,
+  // Grid retirement: gossip spreads among the authored LOCATIONS that have NPCs.
+  // Iterate those directly instead of scanning the legacy 30x20 mapData.tiles for
+  // placed locationIds — the static LOCATIONS ARE that set (and the cell-native
+  // world no longer guarantees a tile grid).
+  for (const [locationId, loc] of Object.entries(LOCATIONS)) {
+    if (loc.npcIds?.length) {
+      npcsByLocation[locationId] = [
+        ...(npcsByLocation[locationId] || []),
+        ...loc.npcIds,
       ];
     }
   }

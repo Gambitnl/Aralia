@@ -28,6 +28,7 @@ import * as OllamaTextService from '../../services/ollamaTextService';
 import * as GeminiService from '../../services/geminiService';
 import { getAbilityModifierValue } from '../../utils/characterUtils';
 import { INITIAL_QUESTS } from '../../data/quests';
+import { biomeIdForCell } from '../../systems/worldforge/local/biomeForCell';
 import { generateId } from '../../utils/core/idGenerator';
 import { forageWilderness } from '../../systems/exploration/forage';
 
@@ -145,7 +146,11 @@ export async function handleSearchArea({
   const [, xStr, yStr] = locId.split('_');
   const x = Number(xStr);
   const y = Number(yStr);
-  const biomeId = gameState.mapData?.tiles?.flat().find((t) => t.isPlayerCurrent)?.biomeId;
+  // Grid retirement: the forage biome comes from the player's canonical cell
+  // (cell-native world), not a scan of the legacy 30x20 mapData.tiles.
+  const biomeId = gameState.playerCell?.cellId != null
+    ? biomeIdForCell(gameState.worldSeed ?? 0, gameState.playerCell.cellId)
+    : undefined;
 
   const { itemIds } = forageWilderness({ worldSeed: gameState.worldSeed, x, y, biomeId });
   // Defend against a table id that no longer exists in the registry.

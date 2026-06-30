@@ -75,6 +75,7 @@ import type { PlayerWorldPosition } from '../../types';
  *     the authoritative spawn (not the continent-derived tile center).
  */
 import { WORLD3D_CONFIG, heightToMeters } from '../../systems/world3d/config';
+import { MAP_GRID_SIZE } from '../../config/mapConfig';
 import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
 // The worldforge bridge modules pull the entire FMG generation stack —
 // they are DYNAMICALLY imported inside the ground branch below so PLAYING's
@@ -213,8 +214,12 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
 
         const loc = LOCATIONS[state.currentLocationId];
         const wfSeed = WF_SEED ?? state.worldSeed;
-        const rows = state.mapData?.tiles?.length ?? 16;
-        const cols = state.mapData?.tiles?.[0]?.length ?? 25;
+        // Grid retirement: the non-anchor entry fallbacks (loc.mapCoordinates,
+        // clicked continent meters) live in the canonical 30x20 LOCATIONS grid
+        // space, so derive cols/rows from MAP_GRID_SIZE — NOT a mapData.tiles read.
+        // The real entry is the cell anchor below (no cols/rows needed).
+        const rows = MAP_GRID_SIZE.rows;
+        const cols = MAP_GRID_SIZE.cols;
         // Entry tile priority: explicit dev override → the tile the player
         // CLICKED on the atlas (Enter-3D-at-cell stores it as continent
         // meters in playerWorldPos) → the party's location tile.
