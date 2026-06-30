@@ -37,7 +37,8 @@ import {
 import { formatProvisionLine } from '@/systems/travel/travelReadout';
 import { decideTravelProvision } from '@/systems/travel/travelProvisionDecision';
 import { forage } from '@/systems/travel/forage';
-import { cellTraits } from './Worldforge/atlasSvg';
+import { cellTraits, findCellAtPoint } from './Worldforge/atlasSvg';
+import { wfBiomeIndexToLegacyId } from '@/systems/worldforge/local/wfBiomeToLegacy';
 import { SeededRandom } from '@/utils/random';
 import type { TravelMeta, TravelProvisionEffect } from '@/types/travelMeta';
 import { BIOMES } from '../constants';
@@ -795,11 +796,19 @@ const MapPane: React.FC<MapPaneProps> = ({
   // ordinary picks use) — for resolving a partial-stop's halt point to a move.
   const pointToTile = useCallback((gx: number, gy: number) => {
     if (!worldforgeAtlas) return null;
-    const tx = clampIndex(Math.floor((gx / worldforgeAtlas.graphWidth) * gridSize.cols), gridSize.cols);
-    const ty = clampIndex(Math.floor((gy / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows);
-    const tile = projectedTiles[ty]?.[tx];
-    return tile ? { tx, ty, tile } : null;
-  }, [worldforgeAtlas, gridSize.cols, gridSize.rows, projectedTiles]);
+    // Cell-native (Stage 6): the picked atlas cell at this graph point. The legacy
+    // tx,ty are bookkeeping derived from that cell (no mapData.tiles read); the tile
+    // is synthesized from the cell's biome and treated as explored (cell fog).
+    const cellId = findCellAtPoint(worldforgeAtlas, gx, gy);
+    if (cellId == null || cellId < 0) return null;
+    const grid = atlasCellToLegacyGrid(worldforgeAtlas, cellId, gridSize) ?? {
+      x: clampIndex(Math.floor((gx / worldforgeAtlas.graphWidth) * gridSize.cols), gridSize.cols),
+      y: clampIndex(Math.floor((gy / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows),
+    };
+    const biomeIdx = (worldforgeAtlas.pack.cells as unknown as { biome?: ArrayLike<number> }).biome?.[cellId];
+    const tile = { x: grid.x, y: grid.y, biomeId: wfBiomeIndexToLegacyId(biomeIdx), discovered: true, isPlayerCurrent: false } as MapTile;
+    return { tx: grid.x, ty: grid.y, tile };
+  }, [worldforgeAtlas, gridSize.cols, gridSize.rows]);
 
   // Resolve the player's choice on an underprovisioned trip. `half`/`push` commit
   // immediately; `forage` first rolls the biome-yield forage loop (extra food-days
