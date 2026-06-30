@@ -10,7 +10,7 @@
  */
 import { getGameDay } from '../../../utils/core';
 import { parseCoordinateLocationId } from '../../../utils/locationUtils';
-import { getTownTilesForGrid } from '../bridge/legacySubmapBridge';
+import { getTownTilesForGrid, getBridgeAtlas } from '../bridge/legacySubmapBridge';
 import { DAYS_PER_YEAR } from './constants';
 import { summarizeChronicle } from './chronicle';
 import type { TownSimRegistry } from './townSimRegistry';
@@ -20,8 +20,28 @@ export interface ChronicleForLocationInput {
   currentLocationId: string;
   worldSeed: number;
   gridSize?: { cols: number; rows: number };
+  /**
+   * Canonical player atlas cell (`playerCell.cellId`). When present it is the
+   * authoritative source for which burg the player stands in — the legacy
+   * `currentLocationId`/`gridSize` coord path below is only used when it's absent.
+   * GRID-RETIRE: BA-2 — flips this reader off the lossy 30×20 grid (Phase A1).
+   */
+  cellId?: number | null;
   townSim: TownSimRegistry;
   gameTime: Date;
+}
+
+/**
+ * The burgId whose seat is the given atlas cell, or undefined if no burg sits
+ * there. Cell-native and exact: FMG records the burg per cell (`cells.burg`), so
+ * "which town am I in?" needs no grid round-trip. This is the cell-native
+ * successor to the coord_X_Y town lookup (grid-retirement Phase A1).
+ */
+export function burgIdForCell(worldSeed: number, cellId: number): number | undefined {
+  const atlas = getBridgeAtlas(worldSeed);
+  const burgId = (atlas.pack.cells as unknown as { burg?: ArrayLike<number> }).burg?.[cellId];
+  // FMG: cells.burg is 0 for every cell that is not a burg's seat.
+  return burgId ? burgId : undefined;
 }
 
 /**
@@ -42,8 +62,13 @@ export function burgIdForLocation(input: {
   currentLocationId: string;
   worldSeed: number;
   gridSize?: { cols: number; rows: number };
+  /** Canonical player cell — preferred over the coord path when present. */
+  cellId?: number | null;
 }): number | undefined {
-  const { currentLocationId, worldSeed, gridSize } = input;
+  const { currentLocationId, worldSeed, gridSize, cellId } = input;
+  // GRID-RETIRE: BA-2 — the canonical cell is authoritative. The lossy coord_X_Y
+  // path below is legacy bookkeeping, used only until every caller threads a cell.
+  if (cellId != null) return burgIdForCell(worldSeed, cellId);
   if (!gridSize) return undefined;
   const coord = parseCoordinateLocationId(currentLocationId);
   if (!coord) return undefined;

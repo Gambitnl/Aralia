@@ -41,6 +41,18 @@ export function rootSeedPath(worldSeed: number): SeedPath {
   return `${ROOT_PREFIX}:${worldSeed >>> 0}`;
 }
 
+/**
+ * Recover the numeric world seed from any path's root segment (`wf:<seed>`).
+ * Stable across every artifact in the world — used where a generator needs the
+ * GLOBAL world seed (not its per-artifact path) so sibling artifacts share one
+ * world-position field (Stage 5 seamless terrain). Returns 0 for a malformed root.
+ */
+export function worldSeedFromPath(path: SeedPath): number {
+  const root = path.split(SEPARATOR, 1)[0]; // e.g. "wf:1337"
+  const n = Number(root.slice(ROOT_PREFIX.length + 1)); // after "wf:"
+  return Number.isFinite(n) ? n >>> 0 : 0;
+}
+
 /** Child path: append one segment (e.g. `cell:71-8`, `bldg:14`). */
 export function childSeedPath(parent: SeedPath, segment: string): SeedPath {
   assertValidSegment(segment);

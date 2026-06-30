@@ -48,6 +48,8 @@ export function useChronicleRumorsSync(
     () =>
       cols !== undefined && rows !== undefined
         ? resolveTownForLocation({
+            // GRID-RETIRE: BA-2 — prefer the canonical cell.
+            cellId: gameState.playerCell?.cellId ?? null,
             currentLocationId,
             worldSeed: gameState.worldSeed,
             gridSize: { cols, rows },
@@ -55,7 +57,7 @@ export function useChronicleRumorsSync(
             gameTime,
           })
         : undefined,
-    [currentLocationId, gameState.worldSeed, cols, rows, gameState.townSim, gameTime],
+    [currentLocationId, gameState.worldSeed, cols, rows, gameState.townSim, gameTime, gameState.playerCell?.cellId],
   );
 
   useEffect(() => {

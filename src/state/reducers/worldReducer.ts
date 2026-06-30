@@ -24,6 +24,8 @@ import { AppAction } from '../actionTypes';
 import { LOCATIONS } from '../../data/world/locations';
 import { getTimeOfDay, getGameDay } from '../../utils/core';
 import { groundPosToLocaleFeet } from '../../systems/worldforge/local/localePosition';
+import { biomeIdForCell } from '../../systems/worldforge/local/biomeForCell';
+import { nearBurgIdsForCell } from '../../systems/worldforge/local/burgProximity';
 import { advanceRegistry } from '../../systems/worldforge/townsim/townSimRegistry';
 import { buildTownSimStateForBurg } from '../../systems/worldforge/townsim/townSimRegistration';
 import { getTownTilesForGrid } from '../../systems/worldforge/bridge/legacySubmapBridge';
@@ -44,6 +46,9 @@ import { SeededRandom } from '@/utils/random';
 /** Distance-LOD: tracked towns within this many tiles of the player tick daily;
  * farther towns catch up on approach (identical result, deferred work). */
 const NEAR_SIM_RADIUS = 24;
+/** Cell-native LOD radius in atlas GRAPH units (≈ NEAR_SIM_RADIUS grid tiles on the
+ *  960-wide atlas). Perf-only; covers the player's town neighbourhood. */
+const NEAR_SIM_GRAPH_RADIUS = 720;
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 const MILLIS_PER_HOUR = 60 * 60 * 1000;
@@ -112,9 +117,18 @@ const removeExpiredPerishableInventory = (
   });
 };
 
-const resolveBiomeId = (state: GameState): string => {
+export const resolveBiomeId = (state: GameState): string => {
     const staticLocation = LOCATIONS[state.currentLocationId];
     if (staticLocation?.biomeId) return staticLocation.biomeId;
+
+    // GRID-RETIRE: BA-2 — prefer the canonical cell's own biome (cell-native,
+    // exact) over the coarse coord_X_Y grid tile, which can map to a neighbouring
+    // cell with a different biome. The tile path below survives only for saves
+    // without a recorded cell, until Stage 6.
+    if (state.playerCell?.cellId != null) {
+      const cellBiome = biomeIdForCell(state.worldSeed, state.playerCell.cellId);
+      if (cellBiome) return cellBiome;
+    }
 
     const coordMatch = /^coord_(\d+)_(\d+)$/.exec(state.currentLocationId);
     if (!coordMatch || !state.mapData) return 'plains';
@@ -155,6 +169,21 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         };
       }
       return slice;
+    }
+
+    case 'LOCALE_CROSS_TO_CELL': {
+      // Stage 5 (seamless edges): walking off a Locale edge re-anchors the
+      // canonical cell to the neighbour. Seat the player at the new Locale's entry
+      // feet and DROP the old cell's ground anchor (null = honest "unknown until
+      // the new cell's ground session reports a position", mirroring how the travel
+      // arrival resets feet on a cell change). The cell is the live continuous mover
+      // here; compass/grid stay untouched until Stage 6. No clock cost / encounter —
+      // this is movement, not a travel commit.
+      const { cellId, enterFeet } = action.payload;
+      return {
+        playerCell: { cellId, localeCoords: { x: enterFeet.x, y: enterFeet.y } },
+        playerGroundPos: null,
+      };
     }
 
     case 'REVEAL_HIDDEN_SITE': {
@@ -322,13 +351,21 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         // the player isn't on a world tile, advance all (conservative, correct).
         // No-op until a town is first tracked.
         if (nextState.townSim && Object.keys(nextState.townSim).length > 0) {
-          const here = parseCoordinateLocationId(nextState.currentLocationId);
           let nearBurgIds: number[] | undefined;
-          if (here && nextState.mapData) {
-            const { cols, rows } = nextState.mapData.gridSize;
-            nearBurgIds = getTownTilesForGrid(nextState.worldSeed, cols, rows)
-              .filter((t) => Math.abs(t.x - here.x) + Math.abs(t.y - here.y) <= NEAR_SIM_RADIUS)
-              .map((t) => t.burgId);
+          // GRID-RETIRE: BA-2 — distance-LOD by the canonical cell (graph units),
+          // not the coarse coord_X_Y grid tile. The grid path below is the legacy
+          // fallback for cell-less old saves, until Stage 6. (Perf-only: which
+          // towns tick early never changes game state.)
+          if (nextState.playerCell?.cellId != null) {
+            nearBurgIds = nearBurgIdsForCell(nextState.worldSeed, nextState.playerCell.cellId, NEAR_SIM_GRAPH_RADIUS);
+          } else {
+            const here = parseCoordinateLocationId(nextState.currentLocationId);
+            if (here && nextState.mapData) {
+              const { cols, rows } = nextState.mapData.gridSize;
+              nearBurgIds = getTownTilesForGrid(nextState.worldSeed, cols, rows)
+                .filter((t) => Math.abs(t.x - here.x) + Math.abs(t.y - here.y) <= NEAR_SIM_RADIUS)
+                .map((t) => t.burgId);
+            }
           }
           nextState = {
             ...nextState,

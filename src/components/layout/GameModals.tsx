@@ -287,6 +287,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 onTileClick={onTileClick}
                                 onEnter3DAtCell={onEnter3DAtCell}
                                 playerWorldPos={playerWorldPos}
+                                playerAtlasCellId={gameState.playerCell?.cellId ?? null}
                                 allow3DEntry={allow3DEntry}
                                 onClose={() => onAction({ type: 'toggle_map', label: 'Close Map' })}
                                 discoveredHiddenSites={gameState.discoveredHiddenSites}

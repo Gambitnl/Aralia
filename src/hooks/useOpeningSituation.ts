@@ -18,6 +18,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { LOCATIONS, STARTING_LOCATION_ID } from '../data/world/locations';
+import { biomeIdForCell } from '../systems/worldforge/local/biomeForCell';
 import { generateId } from '../utils/core/idGenerator';
 import { getTimeOfDay, getTimeModifiers } from '../utils/core/timeUtils';
 import type { ConversationMessage, ConversationNpcParticipant } from '../types/conversation';
@@ -78,9 +79,11 @@ export function buildSituationLocation(state: GameState): OpeningSituationLocati
     // game read 7 AM / sun high). gameTime may be a Date or an ISO string.
     const gameTime = state.gameTime ? new Date(state.gameTime) : null;
     const validTime = gameTime && !Number.isNaN(gameTime.getTime()) ? gameTime : null;
-    // Prefer the player's ACTUAL spawn tile biome (WF-derived spawn) over the
-    // static location's biome, so the opening matches where the player really is
-    // on the map instead of the hardcoded starting node's flavor.
+    // Prefer the player's ACTUAL spawn biome over the static location's, so the
+    // opening matches where the player really is on the map.
+    // GRID-RETIRE: BA-2 — read the biome from the canonical cell; the mapData.tiles
+    // scan below is the legacy fallback for cell-less old saves, until Stage 6.
+    const cellBiome = state.playerCell ? biomeIdForCell(state.worldSeed, state.playerCell.cellId) : undefined;
     const playerTile = state.mapData?.tiles?.flat().find((t) => t.isPlayerCurrent);
     // Prefer the town the player chose at Start Point Selection (+ its region) so
     // the opening scene is set in their actual settlement, not the static
@@ -90,7 +93,7 @@ export function buildSituationLocation(state: GameState): OpeningSituationLocati
         : (loc?.name ?? locId);
     return {
         name: placeName,
-        biome: playerTile?.biomeId ?? loc?.biomeId,
+        biome: cellBiome ?? playerTile?.biomeId ?? loc?.biomeId,
         timeOfDay: validTime ? getTimeOfDay(validTime) : undefined,
         weather: validTime ? getTimeModifiers(validTime).description : undefined,
     };

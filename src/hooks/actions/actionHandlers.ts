@@ -387,6 +387,8 @@ export function buildActionHandlers({
       // player can pocket and read later (even after leaving). Mirrors the
       // gating the in-town broadsheet/notice-board actions use.
       const town = resolveTownForLocation({
+        // GRID-RETIRE: BA-2 — prefer the canonical cell.
+        cellId: gameState.playerCell?.cellId ?? null,
         currentLocationId: gameState.currentLocationId,
         worldSeed: gameState.worldSeed,
         gridSize: gameState.mapData?.gridSize,

@@ -236,6 +236,8 @@ function buildConversationContext(state: GameState): BanterContext {
         timeOfDay,
         currentTask: activeQuest?.title,
         townChronicle: townChronicleForLocation({
+            // GRID-RETIRE: BA-2 — prefer the canonical cell.
+            cellId: state.playerCell?.cellId ?? null,
             currentLocationId: state.currentLocationId,
             worldSeed: state.worldSeed,
             gridSize: state.mapData?.gridSize,
@@ -451,6 +453,7 @@ export async function handleTalk({
 
     // Living-world sim: let townsfolk reference their own town's recent history.
     const townHistory = townChronicleForLocation({
+      cellId: gameState.playerCell?.cellId ?? null,
       currentLocationId: gameState.currentLocationId,
       worldSeed: gameState.worldSeed,
       gridSize: gameState.mapData?.gridSize,

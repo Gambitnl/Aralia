@@ -3,7 +3,7 @@
 exports[`generateLocal — golden snapshot (freeze at acceptance) > pins terrain hash and feature counts > local-golden 1`] = `
 {
   "featureCount": 2970,
-  "materialHash": 150625007,
+  "materialHash": 2229560753,
   "seedPath": "wf:42/cell:110/local:265200-77700",
   "treeCount": 1620,
 }

@@ -1,14 +1,50 @@
 import { getGameDay } from '../../../../utils/core';
 import { createMockGameState } from '../../../../utils/core/factories';
-import { getTownTilesForGrid } from '../../bridge/legacySubmapBridge';
+import { getTownTilesForGrid, getBridgeAtlas } from '../../bridge/legacySubmapBridge';
 import { buildTownSimStateForBurg } from '../townSimRegistration';
 import { advanceTown } from '../townSimRegistry';
-import { townChronicleForLocation, burgIdForLocation } from '../chronicleForLocation';
+import { townChronicleForLocation, burgIdForLocation, burgIdForCell } from '../chronicleForLocation';
 
 const SEED = 12345;
 const COLS = 96;
 const ROWS = 96;
 const firstTile = getTownTilesForGrid(SEED, COLS, ROWS)[0];
+/** The atlas cell the first town's burg sits on — its canonical seat cell. */
+const firstBurgCell = (getBridgeAtlas(SEED).pack.burgs as Array<{ cell?: number }>)[firstTile.burgId].cell!;
+
+describe('burgIdForCell (cell-native town reader — grid retirement Phase A1)', () => {
+  it('golden: a burg\'s own seat cell resolves back to that burg (matches the grid path)', () => {
+    // The cell-native reader must agree with the legacy grid path for the
+    // canonical case (player standing in their town) BEFORE we flip readers onto it.
+    expect(burgIdForCell(SEED, firstBurgCell)).toBe(firstTile.burgId);
+  });
+
+  it('returns undefined for a cell that holds no burg', () => {
+    // Cell 0 is the FMG border/no-burg cell; cells.burg there is 0.
+    expect(burgIdForCell(SEED, 0)).toBeUndefined();
+  });
+});
+
+describe('burgIdForLocation prefers the canonical cell when given one', () => {
+  it('resolves the burg from cellId alone — no gridSize/coord needed', () => {
+    expect(
+      burgIdForLocation({ currentLocationId: 'irrelevant', worldSeed: SEED, cellId: firstBurgCell }),
+    ).toBe(firstTile.burgId);
+  });
+
+  it('a non-burg cellId yields undefined even if the legacy coord WOULD match a town', () => {
+    // Proves the cell path is authoritative: the lossy coord could name a town,
+    // but the canonical cell says "no burg here", and the cell wins.
+    expect(
+      burgIdForLocation({
+        currentLocationId: `coord_${firstTile.x}_${firstTile.y}`,
+        worldSeed: SEED,
+        gridSize: { cols: COLS, rows: ROWS },
+        cellId: 0,
+      }),
+    ).toBeUndefined();
+  });
+});
 
 describe('burgIdForLocation', () => {
   it('resolves a town tile to its burgId regardless of tracking', () => {

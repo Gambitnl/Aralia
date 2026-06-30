@@ -31,13 +31,15 @@ const NoticeBoard: React.FC = () => {
   const town = useMemo(
     () =>
       resolveTownForLocation({
+        // GRID-RETIRE: BA-2 — prefer the canonical cell over the coarse grid coord.
+        cellId: state.playerCell?.cellId ?? null,
         currentLocationId: state.currentLocationId,
         worldSeed: state.worldSeed,
         gridSize: state.mapData?.gridSize,
         townSim: state.townSim,
         gameTime: state.gameTime,
       }),
-    [state.currentLocationId, state.worldSeed, state.mapData?.gridSize, state.townSim, state.gameTime],
+    [state.playerCell?.cellId, state.currentLocationId, state.worldSeed, state.mapData?.gridSize, state.townSim, state.gameTime],
   );
 
   const news = useMemo(

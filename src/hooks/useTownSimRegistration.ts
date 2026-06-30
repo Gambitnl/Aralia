@@ -26,16 +26,18 @@ export function useTownSimRegistration(
   dispatch: Dispatch<AppAction>,
 ): void {
   const { currentLocationId, worldSeed } = gameState;
+  // GRID-RETIRE: BA-2 — the canonical cell is the authoritative "which town am I
+  // in?"; burgIdForLocation prefers it and only falls back to the coarse grid
+  // coord when no cell is recorded (old saves mid-migration).
+  const cellId = gameState.playerCell?.cellId ?? null;
   const cols = gameState.mapData?.gridSize.cols;
   const rows = gameState.mapData?.gridSize.rows;
   // Memoized so getTownTilesForGrid (which clones its array) isn't re-run every render.
-  const burgId = useMemo(
-    () =>
-      cols !== undefined && rows !== undefined
-        ? burgIdForLocation({ currentLocationId, worldSeed, gridSize: { cols, rows } })
-        : undefined,
-    [currentLocationId, worldSeed, cols, rows],
-  );
+  const burgId = useMemo(() => {
+    const gridSize = cols !== undefined && rows !== undefined ? { cols, rows } : undefined;
+    if (cellId == null && !gridSize) return undefined;
+    return burgIdForLocation({ currentLocationId, worldSeed, cellId, gridSize });
+  }, [currentLocationId, worldSeed, cellId, cols, rows]);
   const alreadyTracked = burgId !== undefined && (gameState.townSim ?? {})[burgId] !== undefined;
 
   useEffect(() => {

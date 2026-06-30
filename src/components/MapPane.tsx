@@ -124,6 +124,18 @@ interface MapPaneProps {
    * the voyage and open the voyage UI. No teleport happens for ship travel.
    */
   onSetSail?: (destinationBurgId: number, seaMiles: number) => void;
+  /**
+   * The player's canonical atlas cell (`gameState.playerCell.cellId`) — the
+   * source-of-truth Voronoi cell they occupy. When present it drives the
+   * "you are here" pin EXACTLY, instead of reverse-deriving the cell from the
+   * coarse 30×20 grid tile. This matters at spawn: a chosen start town's exact
+   * cell is carried here, so the pin sits ON the town rather than drifting to a
+   * neighbouring cell (the grid-center round-trip rounds ~16 fine cells per grid
+   * square to whichever is nearest the square's centre). After grid movement the
+   * id is re-derived from the tile via the same mapping the pin would have used,
+   * so there is no post-spawn regression. Omit ⇒ fall back to the grid round-trip.
+   */
+  playerAtlasCellId?: number | null;
 }
 
 type WorldMapInteractionMode = 'pan' | 'travel' | 'enter3d';
@@ -260,6 +272,7 @@ const MapPane: React.FC<MapPaneProps> = ({
   partySurvivalModifier = 0,
   activeShip = null,
   onSetSail,
+  playerAtlasCellId = null,
 }) => {
   const { gridSize } = mapData;
   const geographySnapshot = useMemo(() => fromMapData(mapData), [mapData]);
@@ -406,15 +419,27 @@ const MapPane: React.FC<MapPaneProps> = ({
   // player's actual VORONOI CELL (the atlas cell's site) rather than the coarse
   // grid-cell-center projection — so the indicator sits inside the cell the
   // player occupies, not adrift near a coastline.
+  //
+  // PIN FIDELITY: when the canonical `playerAtlasCellId` (source of truth) is
+  // known, anchor on THAT cell's site directly. At spawn this is the chosen start
+  // town's EXACT cell, so the pin lands on the town instead of drifting ~1 cell
+  // to a neighbour (the 30×20 grid buckets ~16 fine cells per square and the
+  // grid-center round-trip rounds to whichever is nearest the square's centre).
+  // Only fall back to the grid round-trip when no canonical cell / site exists.
   const worldforgeMarker = useMemo(() => {
-    if (!worldforgeAtlas || !playerCell) return null;
+    if (!worldforgeAtlas) return null;
+    if (playerAtlasCellId != null) {
+      const site = worldforgeAtlas.pack.cells.p?.[playerAtlasCellId];
+      if (site) return { x: site[0], y: site[1] };
+    }
+    if (!playerCell) return null;
     const [x, y] = gridCellToAtlasSite(
       worldforgeAtlas,
       { x: playerCell.x, y: playerCell.y },
       { cols: gridSize.cols, rows: gridSize.rows },
     );
     return { x, y };
-  }, [worldforgeAtlas, playerCell, gridSize.cols, gridSize.rows]);
+  }, [worldforgeAtlas, playerAtlasCellId, playerCell, gridSize.cols, gridSize.rows]);
 
   // The FMG burg id of the port at the player's current atlas cell, or null if
   // the player is not standing at a port. Used as the embark-gate check for

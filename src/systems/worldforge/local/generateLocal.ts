@@ -22,7 +22,8 @@
  * Preserved: spine/fmg/region/adapter untouched (consumed read-only).
  */
 import { CELL_FT, LOCAL_SIZE_FT, type BoundsFt, type Feet } from '../units';
-import { childSeedPath, rngFromPath, streamPath, type SeedPath } from '../seedPath';
+import { childSeedPath, rngFromPath, streamPath, worldSeedFromPath, type SeedPath } from '../seedPath';
+import { makeWorldFeetNoise } from './worldFeetNoise';
 import {
   WORLDFORGE_SCHEMA_VERSION,
   type LocalArtifact,
@@ -89,32 +90,9 @@ const WATER_LEVEL = 0.2;
 /** Slopes steeper than this (rise over 5ft run, in normalized units) read as rock. */
 const ROCK_SLOPE = 0.0035;
 
-// ---------------------------------------------------------------------------
-// Coherent value noise (lattice-interpolated, 2 octaves) for 5ft detail.
-// Kept tiny: the macro relief comes from the region heightfield; this only
-// breaks up bilinear flatness between 100ft samples.
-// ---------------------------------------------------------------------------
-
-function makeLatticeNoise(seed: SeedPath, cellSpan: number, width: number, height: number) {
-  const rng = rngFromPath(seed);
-  const nodesX = Math.ceil(width / cellSpan) + 2;
-  const nodesY = Math.ceil(height / cellSpan) + 2;
-  const nodes = new Float32Array(nodesX * nodesY);
-  for (let i = 0; i < nodes.length; i++) nodes[i] = rng.next();
-  const smooth = (t: number) => t * t * (3 - 2 * t);
-  return (x: number, y: number): number => {
-    const gx = x / cellSpan;
-    const gy = y / cellSpan;
-    const x0 = Math.floor(gx);
-    const y0 = Math.floor(gy);
-    const tx = smooth(gx - x0);
-    const ty = smooth(gy - y0);
-    const n = (xi: number, yi: number) => nodes[Math.min(yi, nodesY - 1) * nodesX + Math.min(xi, nodesX - 1)];
-    const a = n(x0, y0) + (n(x0 + 1, y0) - n(x0, y0)) * tx;
-    const b = n(x0, y0 + 1) + (n(x0 + 1, y0 + 1) - n(x0, y0 + 1)) * tx;
-    return a + (b - a) * ty; // 0..1
-  };
-}
+// Fine 5ft detail now comes from `makeWorldFeetNoise` (a single per-world lattice
+// indexed by global world feet) instead of a per-Local lattice — see the
+// detail-noise block in generateLocal (Stage 5 S5.2, seamless cell boundaries).
 
 // ---------------------------------------------------------------------------
 // Generation
@@ -157,10 +135,17 @@ export function generateLocal(
     return a * (1 - ty) + b * ty;
   };
 
-  // Fine detail: two small lattice octaves (~60ft and ~25ft features), zeroed
-  // in/near water so shores stay clean.
-  const noiseA = makeLatticeNoise(streamPath(localPath, 'detail-a'), 12, widthCells, heightCells);
-  const noiseB = makeLatticeNoise(streamPath(localPath, 'detail-b'), 5, widthCells, heightCells);
+  // Fine detail: two small octaves (~60ft and ~25ft features), zeroed in/near
+  // water so shores stay clean.
+  // GRID-RETIRE / Stage 5 S5.2: index the detail by GLOBAL WORLD FEET via a single
+  // per-world lattice, NOT by this Local's own cell frame + per-local seed. fx,fy
+  // are global feet (region bounds = FMG px × FEET_PER_FMG_PIXEL), so two adjacent
+  // cells evaluate the same value at their shared edge — the terrain meets with no
+  // seam, by construction. (Was `makeLatticeNoise(streamPath(localPath,…))(cx,cy)`,
+  // which seeded per-local and indexed per-cell → a cliff at every cell boundary.)
+  const worldSeed = worldSeedFromPath(parentSeedPath);
+  const noiseA = makeWorldFeetNoise(worldSeed, 12 * CELL_FT); // ~60ft features
+  const noiseB = makeWorldFeetNoise(worldSeed, 5 * CELL_FT); //  ~25ft features
 
   const elevationFt = new Float32Array(widthCells * heightCells);
   const materialIndex = new Uint8Array(widthCells * heightCells);
@@ -175,7 +160,7 @@ export function generateLocal(
       const base = sampleRegion(fx, fy);
       const aboveWater = Math.max(0, base - WATER_LEVEL);
       // Detail amplitude scales with height above water (flat shores, rugged hills).
-      const detail = (noiseA(cx, cy) - 0.5) * 0.012 + (noiseB(cx, cy) - 0.5) * 0.005;
+      const detail = (noiseA(fx, fy) - 0.5) * 0.012 + (noiseB(fx, fy) - 0.5) * 0.005;
       const n = base + detail * Math.min(1, aboveWater * 8);
       normalized[i] = n;
       // Normalized 0..1 ≙ FMG 0..100 height; expose as feet of relief above

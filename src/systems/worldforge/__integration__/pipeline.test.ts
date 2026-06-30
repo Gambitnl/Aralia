@@ -361,9 +361,15 @@ describe('worldforge pipeline integration', () => {
       // Re-frozen 2026-06-12 (WF-G5): L1 river carving now follows the same
       // smoothed river band as the renderer, shifting the region heightfield
       // and the downstream local material classification along tight bends.
+      // Re-frozen 2026-06-30 (Stage 5 S5.2): the L2 fine-detail octaves now come
+      // from a GLOBAL world-feet lattice (makeWorldFeetNoise) instead of a
+      // per-Local lattice, so terrain is continuous across cell boundaries (no
+      // seam). Only localMaterialHash shifts (a few cells reclassify near slope
+      // thresholds); the atlas + region heightfield are byte-identical (this
+      // touches L2 detail only). Determinism + smoothness invariants still green.
       atlasCellCount: 6005,
       regionHeightfieldHash: 2605897242,
-      localMaterialHash: 2802789951,
+      localMaterialHash: 3332786709,
     });
   }, 60_000); // world gen now includes Military/Markers/Zones (stages 33-35)
 

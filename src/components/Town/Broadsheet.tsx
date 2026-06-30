@@ -54,13 +54,15 @@ const Broadsheet: React.FC = () => {
       snapshot
         ? undefined
         : resolveTownForLocation({
+            // GRID-RETIRE: BA-2 — prefer the canonical cell over the coarse grid coord.
+            cellId: state.playerCell?.cellId ?? null,
             currentLocationId: state.currentLocationId,
             worldSeed: state.worldSeed,
             gridSize: state.mapData?.gridSize,
             townSim: state.townSim,
             gameTime: state.gameTime,
           }),
-    [snapshot, state.currentLocationId, state.worldSeed, state.mapData?.gridSize, state.townSim, state.gameTime],
+    [snapshot, state.playerCell?.cellId, state.currentLocationId, state.worldSeed, state.mapData?.gridSize, state.townSim, state.gameTime],
   );
 
   // The town's display name: the snapshot's frozen name when reading a keepsake,

@@ -208,6 +208,12 @@ export type AppAction =
   // Ground positions are tile-local meter anchors for village ground mode. They
   // intentionally do not reuse playerWorldPos because that field uses continent meters.
   | { type: 'SET_PLAYER_GROUND_POS'; payload: { position: PlayerGroundPosition | null } }
+  // Stage 5 (seamless edges): the player walked off the current Locale's edge into
+  // an adjacent atlas cell. Re-anchor the canonical cell to the neighbour and seat
+  // the player at the entry feet of the new Locale (the opposite edge). The stale
+  // playerGroundPos (tied to the old cell) is cleared; the new ground session
+  // re-establishes it. NOT a travel commit — no clock cost, no encounter.
+  | { type: 'LOCALE_CROSS_TO_CELL'; payload: { cellId: number; enterFeet: { x: number; y: number } } }
   // SP4 discovery: mark a hidden off-map place revealed (deduped by id).
   | { type: 'REVEAL_HIDDEN_SITE'; payload: DiscoveredHiddenSite }
   // Gemini Intelligence Action

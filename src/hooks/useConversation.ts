@@ -98,6 +98,8 @@ export function useConversation(
             timeOfDay,
             currentTask: activeQuest?.title,
             townChronicle: townChronicleForLocation({
+                // GRID-RETIRE: BA-2 — prefer the canonical cell.
+                cellId: state.playerCell?.cellId ?? null,
                 currentLocationId: state.currentLocationId,
                 worldSeed: state.worldSeed,
                 gridSize: state.mapData?.gridSize,
