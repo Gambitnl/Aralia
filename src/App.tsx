@@ -83,6 +83,7 @@ import {
 import { NPCS } from './data/world/npcs';
 import { BIOMES } from './data/biomes';
 import { applyWfSpawnToMap } from '@/systems/worldforge/local/resolveSpawn';
+import { biomeIdForCell } from '@/systems/worldforge/local/biomeForCell';
 import { wfBiomeIndexToLegacyId } from '@/systems/worldforge/local/wfBiomeToLegacy';
 import { getTownTilesForGrid } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from './config/mapConfig';
@@ -342,35 +343,34 @@ const App: React.FC = () => {
       };
     }
 
-    if (currentId.startsWith('coord_') && gameState.mapData) {
+    if (currentId.startsWith('coord_')) {
       const parts = currentId.split('_');
       const worldX = parseInt(parts[1]);
       const worldY = parseInt(parts[2]);
 
-      if (gameState.mapData.tiles[worldY] && gameState.mapData.tiles[worldY][worldX]) {
-        const worldTile = gameState.mapData.tiles[worldY][worldX];
-        const biome = BIOMES[worldTile.biomeId];
+      // Cell-native (Stage 6): the wilderness biome is the player's atlas cell's
+      // biome, not a mapData.tiles lookup.
+      const cellId = gameState.playerCell?.cellId;
+      const biomeId = (cellId != null ? biomeIdForCell(gameState.worldSeed, cellId) : undefined) ?? 'plains';
+      const biome = BIOMES[biomeId];
 
-        return {
-          id: currentId,
-          // Grid retirement: no submap sub-tile; the cell-native Locale is where the
-          // player actually stands. This is a coarse wilderness sector label.
-          name: `${biome?.name || 'Unknown Biome'} sector (${worldX},${worldY})`,
-          baseDescription: `You are in the ${biome?.name || 'unknown terrain'} world sector at (${worldX},${worldY}). ${biome?.description || ''}`,
-          exits: {},
-          itemIds: gameState.dynamicLocationItemIds[currentId] || [],
-          npcIds: [],
-          mapCoordinates: { x: worldX, y: worldY },
-          biomeId: worldTile.biomeId,
-        };
-      }
+      return {
+        id: currentId,
+        name: `${biome?.name || 'Unknown Biome'} sector (${worldX},${worldY})`,
+        baseDescription: `You are in the ${biome?.name || 'unknown terrain'} world sector at (${worldX},${worldY}). ${biome?.description || ''}`,
+        exits: {},
+        itemIds: gameState.dynamicLocationItemIds[currentId] || [],
+        npcIds: [],
+        mapCoordinates: { x: worldX, y: worldY },
+        biomeId,
+      };
     }
     const fallbackLoc = LOCATIONS[STARTING_LOCATION_ID];
     return {
       ...fallbackLoc,
       itemIds: gameState.dynamicLocationItemIds[STARTING_LOCATION_ID] || fallbackLoc.itemIds || []
     };
-  }, [gameState.currentLocationId, gameState.mapData, gameState.dynamicLocationItemIds]);
+  }, [gameState.currentLocationId, gameState.playerCell?.cellId, gameState.worldSeed, gameState.dynamicLocationItemIds]);
 
   const getCurrentNPCs = useCallback((): NPC[] => {
     const location = getCurrentLocation();
