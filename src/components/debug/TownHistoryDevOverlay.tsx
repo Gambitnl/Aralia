@@ -5,6 +5,7 @@ import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronic
 import { selectTownNews, type NewsProminence } from '../../systems/worldforge/townsim/townNews';
 import { ageOf } from '../../systems/worldforge/townsim/townSim';
 import type { TownSimState, LivingVillager } from '../../systems/worldforge/townsim/types';
+import { MAP_GRID_SIZE } from '../../config/mapConfig';
 
 /**
  * Dev-only live overlay for the living-world town chronicle (sibling of
@@ -56,11 +57,11 @@ const TownHistoryDevOverlay: React.FC = () => {
       resolveTownForLocation({
         currentLocationId: state.currentLocationId,
         worldSeed: state.worldSeed,
-        gridSize: state.mapData?.gridSize,
+        gridSize: MAP_GRID_SIZE,
         townSim: state.townSim,
         gameTime: state.gameTime,
       }),
-    [state.currentLocationId, state.worldSeed, state.mapData?.gridSize, state.townSim, state.gameTime],
+    [state.currentLocationId, state.worldSeed, MAP_GRID_SIZE, state.townSim, state.gameTime],
   );
 
   const holders = useMemo(() => (town ? currentHolders(town, day) : []), [town, day]);

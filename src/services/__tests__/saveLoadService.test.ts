@@ -257,31 +257,9 @@ describe('SaveLoadService', () => {
             expect(migrated.worldData?.version).toBe(2);
         });
 
-        it('loadGame migrates legacy saves to WorldData v2', async () => {
-            const state = {
-                ...mockGameState,
-                mapData: {
-                    gridSize: { rows: 4, cols: 6 },
-                    tiles: new Array(4).fill(0).map((_, y) =>
-                        new Array(6).fill(0).map((__, x) => ({
-                            x, y, biomeId: 'plains', discovered: false, isPlayerCurrent: false,
-                        })),
-                    ),
-                    azgaarWorld: {
-                        version: 1 as const,
-                        templateId: 'continents',
-                        heights: new Array(24).fill(30),
-                        temperatures: new Array(24).fill(15),
-                        moisture: new Array(24).fill(20),
-                        rivers: new Array(24).fill(false),
-                    },
-                },
-            };
-            await SaveLoadService.saveGame(state as any, 'TEST_SLOT_v1_MIGRATION');
-            const result = await SaveLoadService.loadGame('TEST_SLOT_v1_MIGRATION');
-            expect(result.success).toBe(true);
-            expect(result.data?.mapData?.worldData?.version).toBe(2);
-        });
+        // Grid retirement: loadGame no longer backfills mapData.worldData — saves
+        // don't carry a world grid anymore (the world is the atlas from worldSeed).
+        // The migration fn itself is still covered by the direct-call test above.
 
         // The loader should keep older saves bootable even when they predate the
         // first-build history payload; the new field should land as an empty shell.

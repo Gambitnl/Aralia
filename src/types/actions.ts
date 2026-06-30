@@ -307,7 +307,6 @@ export interface QuickTravelPayload {
 
 export interface StartGameSuccessPayload {
   character: PlayerCharacter;
-  mapData: import('./world.js').MapData;
   dynamicLocationItemIds: Record<string, string[]>;
   initialLocationDescription: string;
   // The logical location id the player spawns at — the WF-derived spawn tile's

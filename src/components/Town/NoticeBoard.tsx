@@ -4,6 +4,7 @@ import { getGameDay } from '../../utils/core';
 import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
 import { selectTownNews, type NewsProminence } from '../../systems/worldforge/townsim/townNews';
 import { Z_INDEX } from '../../styles/zIndex';
+import { MAP_GRID_SIZE } from '../../config/mapConfig';
 
 /**
  * Player-facing TOWN NOTICE BOARD. Opened from the "Read the Notice Board" action
@@ -35,11 +36,11 @@ const NoticeBoard: React.FC = () => {
         cellId: state.playerCell?.cellId ?? null,
         currentLocationId: state.currentLocationId,
         worldSeed: state.worldSeed,
-        gridSize: state.mapData?.gridSize,
+        gridSize: MAP_GRID_SIZE,
         townSim: state.townSim,
         gameTime: state.gameTime,
       }),
-    [state.playerCell?.cellId, state.currentLocationId, state.worldSeed, state.mapData?.gridSize, state.townSim, state.gameTime],
+    [state.playerCell?.cellId, state.currentLocationId, state.worldSeed, MAP_GRID_SIZE, state.townSim, state.gameTime],
   );
 
   const news = useMemo(

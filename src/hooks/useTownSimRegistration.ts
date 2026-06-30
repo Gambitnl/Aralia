@@ -20,6 +20,7 @@ import type { Dispatch } from 'react';
 import { GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { burgIdForLocation } from '../systems/worldforge/townsim/chronicleForLocation';
+import { MAP_GRID_SIZE } from '../config/mapConfig';
 
 export function useTownSimRegistration(
   gameState: GameState,
@@ -30,8 +31,8 @@ export function useTownSimRegistration(
   // in?"; burgIdForLocation prefers it and only falls back to the coarse grid
   // coord when no cell is recorded (old saves mid-migration).
   const cellId = gameState.playerCell?.cellId ?? null;
-  const cols = gameState.mapData?.gridSize.cols;
-  const rows = gameState.mapData?.gridSize.rows;
+  const cols = MAP_GRID_SIZE.cols;
+  const rows = MAP_GRID_SIZE.rows;
   // Memoized so getTownTilesForGrid (which clones its array) isn't re-run every render.
   const burgId = useMemo(() => {
     const gridSize = cols !== undefined && rows !== undefined ? { cols, rows } : undefined;

@@ -38,7 +38,6 @@ describe('entry3DAnchor transport', () => {
       type: 'START_GAME_SUCCESS',
       payload: {
         character: createMockPlayerCharacter({ id: 'p1', name: 'Hero' }),
-        mapData: {} as never,
         dynamicLocationItemIds: {},
         initialLocationDescription: 'x',
         initialSubMapCoordinates: { x: 1, y: 1 },
@@ -56,7 +55,6 @@ describe('entry3DAnchor transport', () => {
       type: 'START_GAME_SUCCESS',
       payload: {
         character: createMockPlayerCharacter({ id: 'p1', name: 'Hero' }),
-        mapData: {} as never,
         dynamicLocationItemIds: {},
         initialLocationDescription: 'x',
         initialSubMapCoordinates: { x: 1, y: 1 },

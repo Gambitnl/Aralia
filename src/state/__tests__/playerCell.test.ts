@@ -28,7 +28,6 @@ describe('playerCell canonical position model', () => {
       type: 'MOVE_PLAYER',
       payload: {
         newLocationId: 'coord_15_10',
-        mapData: base.mapData ?? undefined,
         activeDynamicNpcIds: null,
       },
     });
@@ -48,7 +47,6 @@ describe('playerCell canonical position model', () => {
       type: 'START_GAME_SUCCESS',
       payload: {
         character: createMockPlayerCharacter({ id: 'p1', name: 'Hero' }),
-        mapData: {} as never,
         dynamicLocationItemIds: {},
         initialLocationDescription: 'x',
         initialLocationId: 'coord_3_4',
@@ -71,7 +69,6 @@ describe('playerCell canonical position model', () => {
       type: 'START_GAME_SUCCESS',
       payload: {
         character: createMockPlayerCharacter({ id: 'p1', name: 'Hero' }),
-        mapData: {} as never,
         dynamicLocationItemIds: {},
         initialLocationDescription: 'x',
         initialLocationId: 'coord_15_10',

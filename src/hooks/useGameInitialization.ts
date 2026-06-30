@@ -52,7 +52,7 @@
 // React core: useCallback memoizes the callbacks so they don't re-create on every render.
 import React, { useCallback } from 'react';
 // Game types used across this hook for typing characters, maps, items, and payloads.
-import { GamePhase, PlayerCharacter, MapData, Item, StartGameSuccessPayload } from '../types';
+import { GamePhase, PlayerCharacter, Item, StartGameSuccessPayload } from '../types';
 // Union type of all actions the game state reducer can handle.
 import { AppAction } from '../state/actionTypes';
 // Static game world data: the spawn location ID, all location definitions, and biome definitions.
@@ -61,7 +61,6 @@ import { BIOMES } from '../data/biomes';
 // Grid dimensions for the world map and the sub-map (local tile grid within a location).
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from '../config/mapConfig';
 // Procedural map generator that produces the world grid from locations, biomes, and a seed.
-import { generateMap } from '../services/mapService';
 // WF-derived spawn: place the player where the generated FMG world says, not a hardcoded tile.
 import { applyWfSpawnToMap } from '../systems/worldforge/local/resolveSpawn';
 import { wfBiomeIndexToLegacyId } from '../systems/worldforge/local/wfBiomeToLegacy';
@@ -87,21 +86,20 @@ function createBootstrapWorldHistory(worldSeed: number) {
   });
 }
 
-// Props interface for the hook. All three are provided by the consuming component (App.tsx).
-//  - dispatch:       Sends actions to the game state reducer.
-//  - addMessage:     Appends a message to the in-game chat/log.
-//  - currentMapData: The map generated during character creation (if any), so we don't regenerate it.
+// Props interface for the hook. Provided by the consuming component (App.tsx).
+//  - dispatch:   Sends actions to the game state reducer.
+//  - addMessage: Appends a message to the in-game chat/log.
+//  - worldSeed:  The current world seed (the world IS the atlas derived from it;
+//                grid retirement removed the pre-generated mapData grid).
 interface UseGameInitializationProps {
   dispatch: React.Dispatch<AppAction>;
   addMessage: AddMessageFn;
-  currentMapData: MapData | null;
   worldSeed: number;
 }
 
 export function useGameInitialization({
   dispatch,
   addMessage,
-  currentMapData,
   worldSeed: currentWorldSeed,
 }: UseGameInitializationProps) {
 
@@ -120,12 +118,10 @@ export function useGameInitialization({
       initialDynamicItems[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
     });
 
-    // Generate the world map grid using the seed for reproducibility.
-    const newMapData = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, newWorldSeed);
-
-    // Dispatch transitions the game phase to the character creator,
-    // passing along the pre-built map and item snapshot so they're ready when the player finishes.
-    dispatch({ type: 'START_NEW_GAME_SETUP', payload: { mapData: newMapData, dynamicLocationItemIds: initialDynamicItems, worldSeed: newWorldSeed } });
+    // Grid retirement: no 30x20 mapData grid — the world is the atlas from the
+    // seed. Dispatch transitions to the character creator with the seed + item
+    // snapshot ready.
+    dispatch({ type: 'START_NEW_GAME_SETUP', payload: { dynamicLocationItemIds: initialDynamicItems, worldSeed: newWorldSeed } });
   }, [dispatch]);
 
   // ── handleSkipCharacterCreator ─────────────────────────────────────────
@@ -177,12 +173,11 @@ export function useGameInitialization({
         throw new Error(`Failed to generate all party members. Generated ${generatedParty.length}/${partyConfigs.length}.`);
       }
 
-      // Build the same world data as handleNewGame: item snapshots + procedural map.
+      // Item snapshots (grid retirement: no procedural map — world = atlas from seed).
       const initialDynamicItems: Record<string, string[]> = {};
       Object.values(LOCATIONS).forEach(loc => {
         initialDynamicItems[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
       });
-      const newMapData = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, newWorldSeed);
 
       // Dev inventory pulls in the generated item registry, so load it inside
       // this dev-only quick-start path instead of the main reducer startup.
@@ -192,7 +187,6 @@ export function useGameInitialization({
       dispatch({
         type: 'START_GAME_FOR_DUMMY',
         payload: {
-          mapData: newMapData,
           dynamicLocationItemIds: initialDynamicItems,
           generatedParty,
           worldSeed: newWorldSeed,
@@ -270,44 +264,25 @@ export function useGameInitialization({
         initialDynamicItems[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
       });
 
-      // Re-use the map from character creation if it was already generated,
-      // otherwise generate a new one (e.g. if the flow skipped map pre-generation).
-      const mapDataToUse = currentMapData || generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, worldSeed);
-
-      // WF-derived spawn: relocate the start onto the FMG world's capital/burg
-      // cell (mapped to the grid via the atlas bridge), instead of a hardcoded
-      // tile. Kept walkable by forcing the start biome. The descriptive LOCATIONS
-      // node ('clearing') is the next migration; this makes the player's WORLD
-      // position come from the generated world. Guarded so a hiccup never bricks
-      // new-game boot.
-      // The logical location the player spawns at. Defaults to the legacy
-      // 'clearing' node and is upgraded to the WF spawn tile's id below, so the
-      // engine reports where the relocated world marker actually sits.
+      // WF-derived spawn: pick the FMG world's capital/burg cell (or the chosen
+      // start town). Grid retirement: no 30x20 mapData is generated — the world is
+      // the atlas (getBridgeAtlas(seed)); the spawn returns a cell + a grid-coord
+      // bookkeeping id. The logical location defaults to 'clearing' and is upgraded
+      // to the spawn's coord id below. Guarded so a hiccup never bricks new-game boot.
       let spawnLocationId: string = STARTING_LOCATION_ID;
 
       try {
-        // Keystone unification + WF-derived spawn (shared with reroll). Rewrites
-        // the whole grid's biomes from the WF world (land = WF biome, water =
-        // ocean, location anchors preserved) and relocates the start onto a
-        // land/burg cell, so the map is a downsampled view of the generated world
-        // and the player never starts on ocean.
         const spawn = applyWfSpawnToMap(
-          mapDataToUse,
           worldSeed,
           { cols: MAP_GRID_SIZE.cols, rows: MAP_GRID_SIZE.rows },
           {
-            biomeIndexToLegacyId: (idx) => wfBiomeIndexToLegacyId(idx),
-            fallbackBiomeId: initialLocation.biomeId,
-            isWalkable: (biomeId) => BIOMES[biomeId]?.passable ?? false,
             spawnAtlasCellId: startTown?.atlasCellId,
             spawnBurgName: startTown?.name,
           },
         );
 
-        // Grid retirement: the logical location is the spawn's grid coord id
-        // (bookkeeping); the canonical position is playerCell (set from the chosen
-        // start cell). No mapData.tiles[].locationId read — wilderness spawns carry
-        // no static location and the named-place path is handled by LOCATIONS lookup.
+        // The logical location is the spawn's grid coord id (bookkeeping); the
+        // canonical position is playerCell (derived from it, or the chosen town).
         spawnLocationId = `coord_${spawn.gridCell.x}_${spawn.gridCell.y}`;
       } catch (err) {
         console.error('[startGame] WF spawn resolution failed; using legacy start tile.', err);
@@ -325,7 +300,6 @@ export function useGameInitialization({
       const payload: StartGameSuccessPayload = {
         character,
         startingInventory,
-        mapData: mapDataToUse,
         dynamicLocationItemIds: initialDynamicItems,
         initialLocationDescription: initialLocation.baseDescription,
         initialLocationId: spawnLocationId,
@@ -364,7 +338,7 @@ export function useGameInitialization({
       // this, so resumed saves are untouched.
       dispatch({ type: 'BEGIN_OPENING_SITUATION' });
     },
-    [currentMapData, dispatch],
+    [dispatch],
   );
 
   // ── initializeDummyPlayerState ─────────────────────────────────────────
@@ -375,12 +349,8 @@ export function useGameInitialization({
     // Look up the starting location for its description.
     const initialLocation = LOCATIONS[STARTING_LOCATION_ID];
 
-    // Keep world generation and procedural systems aligned. If we already have a map,
-    // re-use its seed; otherwise generate a throwaway seed for previews.
-    const worldSeed = currentMapData ? currentWorldSeed : generateWorldSeed();
-
-    // Re-use existing map data if available, otherwise generate a throwaway one.
-    const mapToUse = currentMapData || generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, worldSeed);
+    // Re-use the current world seed if one is set, else a throwaway preview seed.
+    const worldSeed = currentWorldSeed && currentWorldSeed > 0 ? currentWorldSeed : generateWorldSeed();
 
     // Center the viewport on the sub-map.
     const initialSubMapCoords = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
@@ -403,7 +373,6 @@ export function useGameInitialization({
       type: 'INITIALIZE_DUMMY_PLAYER_STATE',
       payload: {
         worldSeed,
-        mapData: mapToUse,
         dynamicLocationItemIds: dynamicItemsToUse,
         initialLocationDescription: initialLocation.baseDescription,
         initialSubMapCoordinates: initialSubMapCoords,
@@ -411,7 +380,7 @@ export function useGameInitialization({
         initialInventory: initialInventoryForDummyCharacter,
       }
     });
-  }, [currentMapData, currentWorldSeed, dispatch]);
+  }, [currentWorldSeed, dispatch]);
 
   const handleLegacyDummyAutoStart = useCallback(async () => {
     // Legacy dev auto-start still exists, but the dummy party and its large
@@ -425,13 +394,11 @@ export function useGameInitialization({
       dynamicItemsToUse[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
     });
 
-    const worldSeed = currentMapData ? currentWorldSeed : generateWorldSeed();
-    const mapToUse = currentMapData || generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, worldSeed);
+    const worldSeed = currentWorldSeed && currentWorldSeed > 0 ? currentWorldSeed : generateWorldSeed();
 
     dispatch({
       type: 'START_GAME_FOR_DUMMY',
       payload: {
-        mapData: mapToUse,
         dynamicLocationItemIds: dynamicItemsToUse,
         generatedParty,
         worldSeed,
@@ -439,7 +406,7 @@ export function useGameInitialization({
         worldHistory: createBootstrapWorldHistory(worldSeed),
       }
     });
-  }, [currentMapData, currentWorldSeed, dispatch]);
+  }, [currentWorldSeed, dispatch]);
 
   // Expose all five flows to the consuming component.
   return {

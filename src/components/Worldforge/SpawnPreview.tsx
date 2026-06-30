@@ -58,7 +58,7 @@ interface SpawnAudit {
  */
 function resolveAndAudit(seed: number): { map: MapData; atlas: ReturnType<typeof getBridgeAtlas>; audit: SpawnAudit } {
   const map = generateMap(GRID.rows, GRID.cols, LOCATIONS, BIOMES, seed);
-  const spawn = applyWfSpawnToMap(map, seed, GRID, {
+  const spawn = applyWfSpawnToMap(seed, GRID, {
     biomeIndexToLegacyId: (idx) => wfBiomeIndexToLegacyId(idx),
     fallbackBiomeId: LOCATIONS[STARTING_LOCATION_ID].biomeId,
     isWalkable: (biomeId) => BIOMES[biomeId]?.passable ?? false,

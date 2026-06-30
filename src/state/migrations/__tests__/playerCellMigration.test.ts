@@ -25,7 +25,7 @@ describe('migratePlayerCell', () => {
     (state as unknown as { subMapCoordinates: { x: number; y: number } }).subMapCoordinates = { x: 3, y: 6 };
     // mapData.gridSize drives the grid dims; the mock factory provides a real grid.
     migratePlayerCell(state);
-    const expectedCell = deriveCellIdFromTile(SEED, 15, 10, state.mapData?.gridSize.cols ?? COLS, state.mapData?.gridSize.rows ?? ROWS);
+    const expectedCell = deriveCellIdFromTile(SEED, 15, 10, COLS, ROWS);
     expect(state.playerCell).not.toBeNull();
     expect(state.playerCell!.cellId).toBe(expectedCell);
     expect(state.playerCell!.localeCoords).toEqual({ x: 3, y: 6 });

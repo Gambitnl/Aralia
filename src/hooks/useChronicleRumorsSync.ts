@@ -29,6 +29,7 @@ import { getGameDay } from '../utils/core';
 import { resolveTownForLocation } from '../systems/worldforge/townsim/chronicleForLocation';
 import { selectTownNews } from '../systems/worldforge/townsim/townNews';
 import { chronicleNewsToRumors } from '../utils/world/chronicleNewsToRumors';
+import { MAP_GRID_SIZE } from '../config/mapConfig';
 
 export function useChronicleRumorsSync(
   gameState: GameState,
@@ -41,8 +42,8 @@ export function useChronicleRumorsSync(
   // rumors sync as soon as the town becomes TRACKED (registration lands after a
   // separate dispatch) — not only on the next move/day — and again whenever the
   // daily loop advances the town (new town ref → new chronicle to mine).
-  const cols = gameState.mapData?.gridSize.cols;
-  const rows = gameState.mapData?.gridSize.rows;
+  const cols = MAP_GRID_SIZE.cols;
+  const rows = MAP_GRID_SIZE.rows;
   // Memoized so getTownTilesForGrid (which clones its array) isn't re-run every render.
   const town = useMemo(
     () =>

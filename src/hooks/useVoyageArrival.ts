@@ -1,16 +1,14 @@
 import { useEffect } from 'react';
 import type { Dispatch } from 'react';
 import { AppAction } from '../state/actionTypes';
-import { MapData } from '../types';
 import type { VoyageState } from '../types/naval';
 import { getTownTilesForGrid } from '../systems/worldforge/bridge/legacySubmapBridge';
-import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
+import { SUBMAP_DIMENSIONS, MAP_GRID_SIZE } from '../config/mapConfig';
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 import { LOCATIONS } from '../constants';
 
 export interface UseVoyageArrivalArgs {
   worldSeed: number | null | undefined;
-  mapData: MapData | null | undefined;
   currentVoyage: VoyageState | null | undefined;
   dispatch: Dispatch<AppAction>;
 }
@@ -32,7 +30,6 @@ export interface UseVoyageArrivalArgs {
  */
 export function useVoyageArrival({
   worldSeed,
-  mapData,
   currentVoyage,
   dispatch,
 }: UseVoyageArrivalArgs): void {
@@ -43,15 +40,6 @@ export function useVoyageArrival({
 
   useEffect(() => {
     if (voyageStatus !== 'Docked') return;
-
-    // Guard: gridSize must be known to map burg → tile.
-    if (!mapData?.gridSize) {
-      console.error(
-        '[useVoyageArrival] Voyage docked but mapData.gridSize is absent — cannot relocate player. Clearing voyage.',
-      );
-      dispatch({ type: 'NAVAL_CLEAR_VOYAGE' });
-      return;
-    }
 
     // Guard: worldSeed must be present to look up town tiles for the world.
     if (worldSeed == null) {
@@ -70,7 +58,8 @@ export function useVoyageArrival({
       return;
     }
 
-    const { cols, rows } = mapData.gridSize;
+    // Grid retirement: the burg→tile map uses the canonical 30x20 bookkeeping dims.
+    const { cols, rows } = MAP_GRID_SIZE;
     const townTiles = getTownTilesForGrid(worldSeed, cols, rows);
     const tile = townTiles.find(t => t.burgId === destBurgId);
 

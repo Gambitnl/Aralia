@@ -15,7 +15,6 @@ describe('resolveBiomeId — cell-native biome (grid retirement Phase A2)', () =
       worldSeed: SEED,
       currentLocationId: 'coord_5_5', // a coord tile (non-static) → would hit the grid path
       playerCell: { cellId: burgCell, localeCoords: null },
-      mapData: null, // prove the cell path doesn't depend on mapData/tiles at all
     });
     expect(resolveBiomeId(state)).toBe(biomeIdForCell(SEED, burgCell));
   });
@@ -37,7 +36,6 @@ describe('resolveBiomeId — cell-native biome (grid retirement Phase A2)', () =
       worldSeed: SEED,
       currentLocationId: 'coord_1_1',
       playerCell: null,
-      mapData: null,
     });
     expect(resolveBiomeId(state)).toBe('plains');
   });

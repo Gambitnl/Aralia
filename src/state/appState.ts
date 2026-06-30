@@ -126,14 +126,14 @@ function derivePlayerCell(
   worldSeed: number,
   locationId: string,
   localeCoords: { x: number; y: number } | null,
-  mapData: _MapData | null,
 ): PlayerCell | null {
   const tile = locationIdToTile(locationId, LOCATIONS);
   if (!tile) return null;
-  const gridSize = mapData?.gridSize ?? MAP_GRID_SIZE;
+  // Grid retirement: the cell reverse-map uses the canonical 30x20 bookkeeping
+  // dims (MAP_GRID_SIZE), not a stored mapData grid.
   return derivePlayerCellForTile(worldSeed, tile, localeCoords, {
-    cols: gridSize.cols,
-    rows: gridSize.rows,
+    cols: MAP_GRID_SIZE.cols,
+    rows: MAP_GRID_SIZE.rows,
   });
 }
 
@@ -217,7 +217,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 phase: GamePhase.MAIN_MENU,
                 autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
                 worldSeed: state.worldSeed,
-                mapData: state.mapData,
                 // Always clear run-specific state regardless of how initialGameState was evaluated
                 party: [],
                 tempParty: null,
@@ -254,7 +253,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 worldSeed: action.payload.worldSeed,
                 // Preserve user preference across new-game resets.
                 autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
-                mapData: action.payload.mapData,
                 dynamicLocationItemIds: action.payload.dynamicLocationItemIds,
                 inventory: [],
                 currentLocationActiveDynamicNpcIds: determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS),
@@ -409,7 +407,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     { id: Date.now(), text: `A new party of adventurers emerges!`, sender: 'system', timestamp: new Date(initialGameState.gameTime.getTime()) },
                     { id: Date.now() + 1, text: initialLocation.baseDescription, sender: 'system', timestamp: new Date(initialGameState.gameTime.getTime()) }
                 ],
-                mapData: state.mapData,
                 dynamicLocationItemIds: state.dynamicLocationItemIds,
                 currentLocationActiveDynamicNpcIds: determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS),
                 isLoading: false,
@@ -426,7 +423,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         }
 
         case 'START_GAME_FOR_DUMMY': {
-            const { mapData, dynamicLocationItemIds, generatedParty, worldSeed, worldHistory } = action.payload;
+            const { dynamicLocationItemIds, generatedParty, worldSeed, worldHistory } = action.payload;
             if (!generatedParty || generatedParty.length === 0) return { ...state, error: "Dummy character data not available.", phase: GamePhase.MAIN_MENU, isLoading: false, loadingMessage: null };
             const initialDummyLocation = LOCATIONS[STARTING_LOCATION_ID];
 
@@ -463,7 +460,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     { id: Date.now(), text: `Welcome, ${generatedParty[0].name} and party! Your adventure begins (Dev Mode).`, sender: 'system', timestamp: new Date(initialGameState.gameTime.getTime()) },
                     { id: Date.now() + 1, text: initialDummyLocation.baseDescription, sender: 'system', timestamp: new Date(initialGameState.gameTime.getTime()) }
                 ],
-                mapData: mapData,
                 dynamicLocationItemIds: dynamicLocationItemIds,
                 // Preserve the generated founding story so the first save after
                 // bootstrap already carries a world-history payload.
@@ -577,9 +573,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     restOfPayload.worldSeed ?? state.worldSeed,
                     restOfPayload.initialLocationId ?? STARTING_LOCATION_ID,
                     null, // Stage 6: no subMapCoordinates; Locale feet come from the ground session.
-                    restOfPayload.mapData,
                 ),
-                mapData: restOfPayload.mapData,
                 dynamicLocationItemIds: restOfPayload.dynamicLocationItemIds,
                 // Standard starts use the same bridge; if a caller omits the
                 // seeded history, we still land on an explicit empty registry.
@@ -673,10 +667,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 typeof loadedPlayerWorldPos.z === 'number'
                 ? loadedPlayerWorldPos
                 : null;
-            const loadedGridSize =
-                (loadedState.mapData as { gridSize?: { cols: number; rows: number } } | null)?.gridSize
-                ?? { cols: 60, rows: 40 };
-            const worldDims = gridWorldDimensions(loadedGridSize.cols, loadedGridSize.rows);
+            // Grid retirement: saves no longer carry a mapData grid; clamp the
+            // resumed continent position against the canonical MAP_GRID_SIZE dims.
+            const worldDims = gridWorldDimensions(MAP_GRID_SIZE.cols, MAP_GRID_SIZE.rows);
             const validatedPlayerWorldPos = completePlayerWorldPos
                 ? {
                     x: Math.min(Math.max(completePlayerWorldPos.x, 0), worldDims.widthM),
@@ -759,37 +752,29 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         }
 
         case 'MOVE_PLAYER': {
-            const movedMapData = action.payload.mapData || state.mapData;
-            // GRID-RETIRE: BA-2 — Stage 4 cell-native arrival. A Travel-mode atlas pick
-            // carries the EXACT destination cell + anchor; arrival lands that cell
-            // intact (not the lossy `coord_X_Y` reverse-derive), RESETS Locale feet (the
-            // old Locale's feet are meaningless in the new cell — mirrors how this case
-            // nulls `entry3DAnchor`), and stamps the anchor so a later Enter-3D frames
-            // the destination town. The legacy `coord_X_Y`/`subMapCoordinates` below stay
-            // as bookkeeping (the surviving BA-2 compromise) until Stage 6. When
-            // `destinationCell` is absent (compass/static moves) behaviour is unchanged.
+            // Cell-native arrival. A Travel-mode atlas pick carries the EXACT
+            // destination cell + anchor; arrival lands that cell intact, RESETS
+            // Locale feet, and stamps the anchor so a later Enter-3D frames the
+            // destination town. Absent a destinationCell, the cell is reverse-derived
+            // from the coord_X_Y bookkeeping id. (Grid retirement: no mapData grid.)
             const dest = action.payload.destinationCell;
             const arrivalPlayerCell: PlayerCell | null = dest
                 ? { cellId: dest.cellId, localeCoords: null }
                 : derivePlayerCell(
                     state.worldSeed,
                     action.payload.newLocationId,
-                    null, // Stage 6: no subMapCoordinates; feet come from the ground session.
-                    movedMapData,
+                    null, // no subMapCoordinates; feet come from the ground session.
                 );
             return {
                 ...state,
                 currentLocationId: action.payload.newLocationId,
-                // Record the canonical cell (cell-native world). Stage 2 derived it as a
-                // shadow of the legacy tile; Stage 4 makes the atlas-travel destination
-                // authoritative (carried intact, feet reset). The legacy fields above
-                // are unchanged — every existing reader keeps using them this stage.
+                // Record the canonical cell (cell-native world): the atlas-travel
+                // destination is authoritative (carried intact, feet reset).
                 playerCell: arrivalPlayerCell,
                 // Moving invalidates a start-selection / click entry anchor so a later 3D
                 // entry doesn't snap back to the old town; an atlas-travel arrival
                 // instead stamps the destination's anchor so Enter-3D frames that town.
                 entry3DAnchor: dest ? dest.anchor : null,
-                mapData: action.payload.mapData || state.mapData,
                 currentLocationActiveDynamicNpcIds: action.payload.activeDynamicNpcIds,
                 geminiGeneratedActions: null,
                 lastInteractedNpcId: null,
@@ -816,11 +801,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 playerCell: derivePlayerCell(
                     action.payload.worldSeed,
                     state.currentLocationId,
-                    null, // Stage 6: no subMapCoordinates.
-                    action.payload.mapData,
+                    null, // no subMapCoordinates.
                 ),
                 isLoading: false, loadingMessage: null, isImageLoading: false,
-                mapData: action.payload.mapData,
                 dynamicLocationItemIds: action.payload.dynamicLocationItemIds,
                 inventory: [...action.payload.initialInventory],
                 gold: 100,

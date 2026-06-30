@@ -43,6 +43,7 @@ import { townChronicleForLocation } from '../systems/worldforge/townsim/chronicl
 import { ConversationMessage } from '../types/conversation';
 import { generateId } from '../utils/core/idGenerator';
 import { OPENING_QUEST_ID, OPENING_QUEST_OBJECTIVE_ID } from '../systems/gameEntry/openingQuest';
+import { MAP_GRID_SIZE } from '../config/mapConfig';
 
 export interface UseConversationResult {
     /** Start a new conversation with a companion */
@@ -102,7 +103,7 @@ export function useConversation(
                 cellId: state.playerCell?.cellId ?? null,
                 currentLocationId: state.currentLocationId,
                 worldSeed: state.worldSeed,
-                gridSize: state.mapData?.gridSize,
+                gridSize: MAP_GRID_SIZE,
                 townSim: state.townSim,
                 gameTime: state.gameTime,
             }),

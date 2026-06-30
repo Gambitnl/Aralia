@@ -24,7 +24,7 @@
  * discovery, and 3D-entry contracts during the Submap → Worldforge transition.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MapData, MapTile as MapTileType } from '../types';
+import { MapTile as MapTileType } from '../types';
 import { MAP_GRID_SIZE } from '../config/mapConfig';
 import type { Item } from '@/types/items';
 import {
@@ -76,7 +76,9 @@ import { shipSpeedMph } from '@/utils/naval/navalUtils';
 import type { Ship } from '@/types/naval';
 
 interface MapPaneProps {
-  mapData: MapData;
+  // Grid retirement: MapPane no longer takes mapData — it renders the cell-native
+  // atlas (getBridgeAtlas(worldSeed)) and uses MAP_GRID_SIZE for legacy tx,ty
+  // bookkeeping. worldSeed is the world identity.
   worldSeed?: number;
   onTileClick: (x: number, y: number, tile: MapTileType, travelMeta?: TravelMeta) => void;
   /** When set, clicking a discovered cell in Enter 3D mode starts streamed world entry. */

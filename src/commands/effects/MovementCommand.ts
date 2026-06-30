@@ -21,6 +21,7 @@
  */
 
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
+import { MAP_GRID_SIZE } from '../../config/mapConfig'
 import { CommandContext } from '../base/SpellCommand'
 import { MovementEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, Position, StatusEffect, ActiveCondition } from '@/types/combat'
@@ -642,15 +643,17 @@ export class MovementCommand extends BaseEffectCommand {
         let width: number | undefined
         let height: number | undefined
 
-        // 1. Try Battle Map
+        // 1. Try Battle Map (CombatState.mapData = BattleMapData)
         if (state.mapData) {
             width = state.mapData.dimensions.width
             height = state.mapData.dimensions.height
         }
-        // 2. Try World Map
-        else if (this.context.gameState?.mapData) {
-            width = this.context.gameState.mapData.gridSize.cols
-            height = this.context.gameState.mapData.gridSize.rows
+        // 2. Fall back to the canonical world dimensions. Grid retirement: the
+        // world no longer carries a 30x20 mapData grid; the overworld clamp uses
+        // the constant MAP_GRID_SIZE (the same bookkeeping basis as spawn/entry).
+        else {
+            width = MAP_GRID_SIZE.cols
+            height = MAP_GRID_SIZE.rows
         }
 
         // Mapless combat has no authoritative edge to clamp against. Keep the
@@ -674,7 +677,10 @@ export class MovementCommand extends BaseEffectCommand {
      * coordinate-unclamped rather than using guessed board edges.
      */
     private hasMapBounds(state: CombatState): boolean {
-        return Boolean(state.mapData || this.context.gameState?.mapData)
+        // Bounds come from the battle map. Grid retirement: the world no longer
+        // carries a mapData grid, so the old GameState.mapData fallback is gone —
+        // mapless combat stays range-bounded (the documented behavior).
+        return Boolean(state.mapData)
     }
 
     /**

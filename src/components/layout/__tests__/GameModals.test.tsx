@@ -100,11 +100,6 @@ const baseLocation: Location = {
     biomeId: 'plains',
 };
 
-const mapData = {
-    gridSize: { rows: 1, cols: 1 },
-    tiles: [[{ x: 0, y: 0, biomeId: 'plains', discovered: true, isPlayerCurrent: true }]],
-};
-
 type RenderOverrides = {
     dispatch?: ReturnType<typeof vi.fn>;
     onAction?: ReturnType<typeof vi.fn>;
@@ -173,7 +168,6 @@ const baseGameState = createMockGameState({
     isNpcTestModalVisible: false,
     isDevMenuVisible: false,
     characterSheetModal: { isOpen: false, character: null },
-    mapData: null,
 });
 
 const withOpenModal = (overrides: Partial<GameState>) => createMockGameState({
@@ -185,7 +179,7 @@ describe('GameModals focus-trap coverage', () => {
     beforeEach(() => vi.clearAllMocks());
 
     const wrapperCases: Array<{ name: string; testId: string; state: Partial<GameState> }> = [
-        { name: 'Map', testId: 'map-pane', state: { isMapVisible: true, mapData } },
+        { name: 'Map', testId: 'map-pane', state: { isMapVisible: true } },
         { name: 'Quest Log', testId: 'quest-first', state: { isQuestLogVisible: true } },
         { name: 'Character Sheet', testId: 'character-sheet-modal', state: { characterSheetModal: { isOpen: true, character: basePlayer } } },
         { name: 'Dev Menu', testId: 'dev-menu', state: { isDevMenuVisible: true } },
@@ -397,7 +391,6 @@ describe('GameModals focus-trap coverage', () => {
 
         createProps(withOpenModal({
             isMapVisible: true,
-            mapData,
             isQuestLogVisible: true,
         }));
 

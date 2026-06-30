@@ -23,6 +23,7 @@ import { CLASSES_DATA } from '@/constants'
 import { MONSTERS_DATA } from '../../data/monsters'
 import { generateId } from '../../utils/combatUtils'
 import { getSummonTemplate, type SummonTemplate } from '../../data/summonTemplates'
+import { MAP_GRID_SIZE } from '../../config/mapConfig'
 
 /**
  * This command creates temporary combat characters for spells that summon a creature,
@@ -227,15 +228,10 @@ export class SummoningCommand extends BaseEffectCommand {
             return pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height
         }
 
-        // 2. Try World Map (GameState fallback)
-        const worldMap = this.context.gameState?.mapData
-        if (worldMap) {
-            const { cols, rows } = worldMap.gridSize
-            return pos.x >= 0 && pos.x < cols && pos.y >= 0 && pos.y < rows
-        }
-
-        // 3. Assume infinite if no map data
-        return true
+        // 2. Fall back to the canonical world dimensions (grid retirement: no
+        // world mapData grid; bounds use the MAP_GRID_SIZE bookkeeping basis).
+        const { cols, rows } = MAP_GRID_SIZE
+        return pos.x >= 0 && pos.x < cols && pos.y >= 0 && pos.y < rows
     }
 
     private ensureFamiliarPocketAbilities(state: CombatState, casterId: string): CombatState {

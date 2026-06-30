@@ -103,7 +103,7 @@ describe('Start Point Selection end-to-end spawn contract (integration)', () => 
     for (const idx of [0, Math.floor(towns.length / 2), towns.length - 1]) {
       const town = towns[idx];
       const map = blankMap();
-      const spawn = applyWfSpawnToMap(map, seed, { cols: COLS, rows: ROWS }, {
+      const spawn = applyWfSpawnToMap(seed, { cols: COLS, rows: ROWS }, {
         biomeIndexToLegacyId: (i) => wfBiomeIndexToLegacyId(i),
         fallbackBiomeId: 'plains_meadow',
         isWalkable: (b) => b !== 'ocean',

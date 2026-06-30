@@ -139,7 +139,6 @@ export interface ApplyWfSpawnOptions {
  * callers until the coord_X_Y/save cut lands; they are intentionally unused here.
  */
 export function applyWfSpawnToMap(
-  _mapData: MapData,
   worldSeed: number,
   gridSize: GridSize,
   opts: ApplyWfSpawnOptions = {},

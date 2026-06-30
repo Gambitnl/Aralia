@@ -38,6 +38,7 @@ import type { RichNPC } from '../../types/world';
 import { evaluateRecruitOffer } from '../../systems/party/recruitConsent';
 import { npcToPartyMember, promoteCompanionToMember } from '../../systems/party/npcToPartyMember';
 import { isInParty } from '../../systems/party/recruitTypes';
+import { MAP_GRID_SIZE } from '../../config/mapConfig';
 
 interface BanterContext {
     locationName: string;
@@ -240,7 +241,7 @@ function buildConversationContext(state: GameState): BanterContext {
             cellId: state.playerCell?.cellId ?? null,
             currentLocationId: state.currentLocationId,
             worldSeed: state.worldSeed,
-            gridSize: state.mapData?.gridSize,
+            gridSize: MAP_GRID_SIZE,
             townSim: state.townSim,
             gameTime: state.gameTime,
         }),
@@ -456,7 +457,7 @@ export async function handleTalk({
       cellId: gameState.playerCell?.cellId ?? null,
       currentLocationId: gameState.currentLocationId,
       worldSeed: gameState.worldSeed,
-      gridSize: gameState.mapData?.gridSize,
+      gridSize: MAP_GRID_SIZE,
       townSim: gameState.townSim,
       gameTime: gameState.gameTime,
     });

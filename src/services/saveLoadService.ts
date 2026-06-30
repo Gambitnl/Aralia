@@ -43,7 +43,6 @@ import { safeJSONParse } from '../utils/securityUtils';
 import { logger } from '../utils/logger';
 import { simpleHash } from '../utils/hashUtils';
 import * as IDBStorage from './indexedDBStorageService';
-import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
 import { migratePlayerCell } from '@/state/migrations/playerCellMigration';
 import { countUnreadDiscoveryEntries, retainDiscoveryLogEntries } from '@/state/reducers/logReducer';
 
@@ -390,10 +389,8 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     // Legacy saves may predate the world-history bootstrap payload, so keep a
     // defined empty registry in place instead of forcing a rewrite of old slots.
     loadedState.worldHistory = loadedState.worldHistory || createEmptyHistory();
-    // Backfill rich WorldData v2 on saves created before worldSim existed.
-    if (loadedState.mapData) {
-      loadedState.mapData = migrateMapDataToWorldDataV2(loadedState.mapData, loadedState.worldSeed ?? 0);
-    }
+    // Grid retirement: saves no longer carry the 30x20 mapData grid; the old
+    // WorldData-v2 backfill is gone (the world is the atlas from worldSeed).
     // Backfill the canonical player cell (cell-native world, Stage 2) on saves
     // created before it existed. Idempotent; derives the cell from the legacy
     // currentLocationId + subMapCoordinates via the existing golden mapping.

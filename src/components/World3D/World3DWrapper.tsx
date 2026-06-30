@@ -801,7 +801,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
       <InWorldHUD
         isDevModeEnabled={isDevModeEnabled}
         worldData={null}
-        worldGen={state.mapData?.generation ?? null}
+        worldGen={null}
         chunkCount={chunkCount}
         fps={fps}
         playerPos={position}

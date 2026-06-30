@@ -91,7 +91,6 @@ describe('useVoyageArrival', () => {
     renderHook(() =>
       useVoyageArrival({
         worldSeed: 12345,
-        mapData: MOCK_MAP_DATA,
         currentVoyage: voyage,
         dispatch,
       }),
@@ -116,7 +115,6 @@ describe('useVoyageArrival', () => {
     renderHook(() =>
       useVoyageArrival({
         worldSeed: 12345,
-        mapData: MOCK_MAP_DATA,
         currentVoyage: makeDocketVoyage('7'), // burgId 7 → tile (10, 7) → coord_10_7
         dispatch,
       }),
@@ -129,7 +127,6 @@ describe('useVoyageArrival', () => {
     renderHook(() =>
       useVoyageArrival({
         worldSeed: 99999,
-        mapData: MOCK_MAP_DATA,
         currentVoyage: makeDocketVoyage('42'),
         dispatch,
       }),
@@ -145,7 +142,6 @@ describe('useVoyageArrival', () => {
     renderHook(() =>
       useVoyageArrival({
         worldSeed: 12345,
-        mapData: MOCK_MAP_DATA,
         currentVoyage: makeSailingVoyage('42'),
         dispatch,
       }),
@@ -158,7 +154,6 @@ describe('useVoyageArrival', () => {
     renderHook(() =>
       useVoyageArrival({
         worldSeed: 12345,
-        mapData: MOCK_MAP_DATA,
         currentVoyage: null,
         dispatch,
       }),
@@ -171,7 +166,6 @@ describe('useVoyageArrival', () => {
     renderHook(() =>
       useVoyageArrival({
         worldSeed: 12345,
-        mapData: MOCK_MAP_DATA,
         currentVoyage: undefined,
         dispatch,
       }),
@@ -189,7 +183,6 @@ describe('useVoyageArrival', () => {
     const { rerender } = renderHook(() =>
       useVoyageArrival({
         worldSeed: 12345,
-        mapData: MOCK_MAP_DATA,
         currentVoyage: voyage,
         dispatch,
       }),
@@ -215,7 +208,6 @@ describe('useVoyageArrival', () => {
     renderHook(() =>
       useVoyageArrival({
         worldSeed: 12345,
-        mapData: MOCK_MAP_DATA,
         currentVoyage: makeDocketVoyage('999'), // burgId 999 not in mock tile list
         dispatch,
       }),
@@ -240,7 +232,6 @@ describe('useVoyageArrival', () => {
     renderHook(() =>
       useVoyageArrival({
         worldSeed: 12345,
-        mapData: MOCK_MAP_DATA,
         currentVoyage: makeDocketVoyage('0'),
         dispatch,
       }),
@@ -261,7 +252,6 @@ describe('useVoyageArrival', () => {
     renderHook(() =>
       useVoyageArrival({
         worldSeed: 12345,
-        mapData: MOCK_MAP_DATA,
         currentVoyage: makeDocketVoyage(''),
         dispatch,
       }),
@@ -280,7 +270,6 @@ describe('useVoyageArrival', () => {
     renderHook(() =>
       useVoyageArrival({
         worldSeed: 12345,
-        mapData: MOCK_MAP_DATA,
         currentVoyage: voyage,
         dispatch,
       }),
@@ -292,26 +281,9 @@ describe('useVoyageArrival', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  // -------------------------------------------------------------------------
-  // 6. Absent mapData.gridSize → only NAVAL_CLEAR_VOYAGE
-  // -------------------------------------------------------------------------
-  it('dispatches only NAVAL_CLEAR_VOYAGE when mapData is null', () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-
-    renderHook(() =>
-      useVoyageArrival({
-        worldSeed: 12345,
-        mapData: null,
-        currentVoyage: makeDocketVoyage('42'),
-        dispatch,
-      }),
-    );
-
-    expect(mockDispatch).toHaveBeenCalledTimes(1);
-    expect(mockDispatch).toHaveBeenCalledWith({ type: 'NAVAL_CLEAR_VOYAGE' });
-
-    consoleErrorSpy.mockRestore();
-  });
+  // Grid retirement: the "absent mapData.gridSize → only NAVAL_CLEAR_VOYAGE"
+  // case is removed — there is no mapData grid anymore; the burg→tile map uses
+  // the canonical MAP_GRID_SIZE, so docking always resolves against the world.
 
   // -------------------------------------------------------------------------
   // 7. Absent worldSeed → only NAVAL_CLEAR_VOYAGE (no MOVE_PLAYER)
@@ -322,7 +294,6 @@ describe('useVoyageArrival', () => {
     renderHook(() =>
       useVoyageArrival({
         worldSeed: null,
-        mapData: MOCK_MAP_DATA,
         currentVoyage: makeDocketVoyage('42'),
         dispatch,
       }),

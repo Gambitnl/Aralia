@@ -95,7 +95,6 @@ export const initialGameState: GameState = {
     isImageLoading: false,
     error: null,
     worldSeed: Date.now(), // Default seed, will be overwritten on new game
-    mapData: null,
     isMapVisible: false,
     isLongRestModalVisible: false,
     isShortRestModalVisible: false,

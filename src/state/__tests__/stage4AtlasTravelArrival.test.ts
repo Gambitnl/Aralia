@@ -33,7 +33,6 @@ describe('Stage 4 — MOVE_PLAYER cell-native arrival', () => {
         // Lossy bookkeeping tile (coord_X_Y) — its reverse-derived cell is NOT 562.
         newLocationId: 'coord_15_10',
         newSubMapCoordinates: { x: 5, y: 5 },
-        mapData: base.mapData ?? undefined,
         activeDynamicNpcIds: null,
         destinationCell: { cellId: 562, anchor },
       },
@@ -61,7 +60,6 @@ describe('Stage 4 — MOVE_PLAYER cell-native arrival', () => {
       payload: {
         newLocationId: 'coord_15_10',
         newSubMapCoordinates: { x: 4, y: 7 },
-        mapData: base.mapData ?? undefined,
         activeDynamicNpcIds: null,
       },
     });

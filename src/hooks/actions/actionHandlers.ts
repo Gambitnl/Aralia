@@ -87,6 +87,7 @@ import { handleCastSpell, handleUseLimitedAbility, handleTogglePreparedSpell, ha
 // Merchant handlers are implemented in src/hooks/actions/handleMerchantInteraction.ts.
 import { handleOpenDynamicMerchant, handleMerchantAction, validateMerchantTransaction } from './handleMerchantInteraction';
 // System/UI handlers are implemented in src/hooks/actions/handleSystemAndUi.ts.
+import { MAP_GRID_SIZE } from '../../config/mapConfig';
 import {
   handleSaveGame,
   handleGoToMainMenu,
@@ -313,8 +314,8 @@ export function buildActionHandlers({
           const { x: wx, z: wz } = gridCellCenterToWorldMeters(
             location.mapCoordinates.x,
             location.mapCoordinates.y,
-            gameState.mapData?.gridSize.cols ?? 60,
-            gameState.mapData?.gridSize.rows ?? 40,
+            MAP_GRID_SIZE.cols,
+            MAP_GRID_SIZE.rows,
           );
           dispatch({
             type: 'SET_PLAYER_WORLD_POS',
@@ -381,7 +382,7 @@ export function buildActionHandlers({
         cellId: gameState.playerCell?.cellId ?? null,
         currentLocationId: gameState.currentLocationId,
         worldSeed: gameState.worldSeed,
-        gridSize: gameState.mapData?.gridSize,
+        gridSize: MAP_GRID_SIZE,
         townSim: gameState.townSim,
         gameTime: gameState.gameTime,
       });

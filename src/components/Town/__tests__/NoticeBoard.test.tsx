@@ -29,7 +29,6 @@ describe('NoticeBoard', () => {
       ...base,
       worldSeed: SEED,
       currentLocationId: 'clearing', // non-coordinate → not a tracked town
-      mapData: { gridSize: { cols: COLS, rows: ROWS }, tiles: [] },
       townSim: {},
       isNoticeBoardVisible: true,
     };
@@ -52,7 +51,6 @@ describe('NoticeBoard', () => {
       worldSeed: SEED,
       gameTime: advancedTime,
       currentLocationId: `coord_${firstTile.x}_${firstTile.y}`,
-      mapData: { gridSize: { cols: COLS, rows: ROWS }, tiles: [] },
       townSim: { [firstTile.burgId]: town },
       isNoticeBoardVisible: true,
     };

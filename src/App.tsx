@@ -445,7 +445,6 @@ const App: React.FC = () => {
   } = useGameInitialization({
     dispatch,
     addMessage,
-    currentMapData: gameState.mapData,
     worldSeed: gameState.worldSeed,
   });
 
@@ -760,7 +759,7 @@ const App: React.FC = () => {
       addMessage('That place lies beyond the known map — scout closer before you can travel there.', 'system');
     }
 
-  }, [gameState.currentLocationId, gameState.mapData, gameState.companions, addMessage, dispatch]);
+  }, [gameState.currentLocationId, gameState.companions, addMessage, dispatch]);
 
   /**
    * Atlas "Enter 3D" mode: place the player in the streamed world at the clicked cell.
@@ -802,7 +801,7 @@ const App: React.FC = () => {
     }
 
     addMessage(`Entering 3D world at map cell (${x}, ${y}).`, 'system');
-  }, [addMessage, dispatch, gameState.isMapVisible, gameState.mapData, gameState.worldSeed]);
+  }, [addMessage, dispatch, gameState.isMapVisible, gameState.worldSeed]);
 
   const handleOpenCharacterSheet = useCallback((character: PlayerCharacter) => {
     dispatch({ type: 'OPEN_CHARACTER_SHEET', payload: character });
@@ -843,28 +842,12 @@ const App: React.FC = () => {
 
   const createWorldFromSeed = useCallback((seed: number) => {
     const normalizedSeed = Number.isFinite(seed) && seed > 0 ? Math.floor(seed) : generateWorldSeed();
-    const nextMapData = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, normalizedSeed);
-    // WF-derived spawn: unify the grid's biomes to the regenerated FMG world and
-    // relocate the player onto a land/burg cell, so a reroll never strands the
-    // marker on an ocean tile. Mirrors startGame; guarded so a hiccup never bricks
-    // the reroll. (Bug fix: createWorldFromSeed previously left the old start tile.)
-    try {
-      applyWfSpawnToMap(
-        nextMapData,
-        normalizedSeed,
-        { cols: MAP_GRID_SIZE.cols, rows: MAP_GRID_SIZE.rows },
-        {
-          biomeIndexToLegacyId: (idx) => wfBiomeIndexToLegacyId(idx),
-          fallbackBiomeId: LOCATIONS[STARTING_LOCATION_ID].biomeId,
-          isWalkable: (biomeId) => BIOMES[biomeId]?.passable ?? false,
-        },
-      );
-    } catch (err) {
-      console.error('[createWorldFromSeed] WF spawn resolution failed; using legacy start tile.', err);
-    }
+    // Grid retirement: the world IS the atlas derived from the seed
+    // (`getBridgeAtlas(seed)`); there is no 30x20 mapData grid to generate or
+    // store. Setting the seed regenerates the map view (MapPane reads the atlas
+    // from worldSeed) and re-resolves the cell-native spawn at game start.
     dispatch({ type: 'SET_WORLD_SEED', payload: normalizedSeed });
-    dispatch({ type: 'SET_MAP_DATA', payload: nextMapData });
-    return { seed: normalizedSeed, mapData: nextMapData };
+    return { seed: normalizedSeed };
   }, [dispatch]);
 
   const handleRegenerateWorldMap = useCallback((requestedSeed?: number) => {
@@ -893,11 +876,10 @@ const App: React.FC = () => {
   }, [canRegenerateWorldMap, createWorldFromSeed, dispatch, worldGenerationLockedReason]);
 
   const handleOpenWorldGenerationFromMainMenu = useCallback(() => {
-    if (!gameState.mapData) {
-      const previewSeed = Number.isFinite(gameState.worldSeed) && gameState.worldSeed > 0
-        ? Math.floor(gameState.worldSeed)
-        : generateWorldSeed();
-      createWorldFromSeed(previewSeed);
+    // Grid retirement: "world generated yet?" is now "do we have a world seed?"
+    // (the atlas is derived from the seed; there is no mapData grid).
+    if (!(Number.isFinite(gameState.worldSeed) && gameState.worldSeed > 0)) {
+      createWorldFromSeed(generateWorldSeed());
     }
 
     if (!gameState.isMapVisible) {
@@ -917,7 +899,6 @@ const App: React.FC = () => {
     createWorldFromSeed,
     dispatch,
     gameState.isMapVisible,
-    gameState.mapData,
     gameState.worldSeed,
     worldGenerationLockedReason,
   ]);
@@ -936,11 +917,12 @@ const App: React.FC = () => {
   }, [gameState.phase, handleOpenWorldGenerationFromMainMenu]);
 
   const handleNewGame = useCallback(() => {
-    if (canRegenerateWorldMap && gameState.mapData) {
+    // Grid retirement: carry the previewed world by SEED (the atlas source), not a
+    // mapData grid. A seed present means the World Generation menu set one up.
+    if (canRegenerateWorldMap && Number.isFinite(gameState.worldSeed) && gameState.worldSeed > 0) {
       dispatch({
         type: 'START_NEW_GAME_SETUP',
         payload: {
-          mapData: gameState.mapData,
           dynamicLocationItemIds: buildDynamicLocationItemSnapshot(),
           worldSeed: gameState.worldSeed,
         },
@@ -953,7 +935,6 @@ const App: React.FC = () => {
     buildDynamicLocationItemSnapshot,
     canRegenerateWorldMap,
     dispatch,
-    gameState.mapData,
     gameState.worldSeed,
     initializeNewGame,
   ]);
@@ -1373,7 +1354,6 @@ const App: React.FC = () => {
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
         <GameLayout
           currentLocation={currentLocationData}
-          mapData={gameState.mapData}
           gameTime={gameState.gameTime}
           messages={gameState.messages}
           openingStatus={gameState.gameEntry?.status}

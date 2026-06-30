@@ -21,7 +21,6 @@ describe('buildSituationLocation — biome comes from the canonical cell (grid r
       playerCell: { cellId: BURG_CELL, localeCoords: null },
       // currentLocationId is a coord (non-static) so the static-loc biome doesn't pre-empt.
       currentLocationId: 'coord_5_5',
-      mapData: null,
     });
     expect(loc.biome).toBe(biomeIdForCell(SEED, BURG_CELL));
   });

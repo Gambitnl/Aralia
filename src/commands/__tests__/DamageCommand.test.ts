@@ -36,7 +36,6 @@ describe('DamageCommand', () => {
         ],
         currentLocationId: 'arena',
 
-        mapData: null
       })
     });
 
@@ -99,7 +98,6 @@ describe('DamageCommand', () => {
         ],
         currentLocationId: 'arena',
 
-        mapData: null
       })
     });
 

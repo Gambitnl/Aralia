@@ -56,8 +56,8 @@ export type AppAction =
   | { type: 'SET_GAME_PHASE'; payload: GamePhase }
   | { type: 'SET_AUTO_SAVE_ENABLED'; payload: boolean }
   | { type: 'ABANDON_RUN' }
-  | { type: 'START_NEW_GAME_SETUP'; payload: { mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; worldSeed: number; } }
-  | { type: 'START_GAME_FOR_DUMMY'; payload: { mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; generatedParty: PlayerCharacter[]; worldSeed: number; initialInventory: Item[]; worldHistory?: WorldHistory; } }
+  | { type: 'START_NEW_GAME_SETUP'; payload: { dynamicLocationItemIds: Record<string, string[]>; worldSeed: number; } }
+  | { type: 'START_GAME_FOR_DUMMY'; payload: { dynamicLocationItemIds: Record<string, string[]>; generatedParty: PlayerCharacter[]; worldSeed: number; initialInventory: Item[]; worldHistory?: WorldHistory; } }
   | { type: 'START_GAME_SUCCESS'; payload: StartGameSuccessPayload }
   | { type: 'LOAD_GAME_SUCCESS'; payload: GameState }
   | { type: 'SET_LOADING'; payload: { isLoading: boolean; message?: string | null } }
@@ -68,7 +68,7 @@ export type AppAction =
   // the EXACT destination cell + its 3D-entry anchor so arrival lands that cell (not
   // the lossy tile reverse-derive), resets Locale feet, and frames the destination
   // town on a later Enter-3D. Optional ⇒ legacy compass/static moves are unaffected.
-  | { type: 'MOVE_PLAYER'; payload: { newLocationId: string; newSubMapCoordinates?: { x: number; y: number }; mapData?: MapData; activeDynamicNpcIds: string[] | null; destinationCell?: { cellId: number; anchor: Entry3DAnchor } } }
+  | { type: 'MOVE_PLAYER'; payload: { newLocationId: string; newSubMapCoordinates?: { x: number; y: number }; activeDynamicNpcIds: string[] | null; destinationCell?: { cellId: number; anchor: Entry3DAnchor } } }
   | { type: 'APPLY_TAKE_ITEM_UPDATE'; payload: { item: Item; locationId: string; discoveryEntry: DiscoveryEntry } }
   // Places foraged items onto a (typically procedural coord_) tile and, by the
   // mere presence of the key, marks that tile as already searched so it cannot be
@@ -78,8 +78,7 @@ export type AppAction =
   | { type: 'TOGGLE_MINIMAP_VISIBILITY' }
   | { type: 'TOGGLE_THREE_D_VISIBILITY' }
   | { type: 'SET_WORLD_SEED'; payload: number }
-  | { type: 'SET_MAP_DATA'; payload: MapData }
-  | { type: 'INITIALIZE_DUMMY_PLAYER_STATE'; payload: { worldSeed: number; mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; initialLocationDescription: string; initialSubMapCoordinates: { x: number; y: number }, initialActiveDynamicNpcIds: string[] | null; initialInventory: Item[] } }
+  | { type: 'INITIALIZE_DUMMY_PLAYER_STATE'; payload: { worldSeed: number; dynamicLocationItemIds: Record<string, string[]>; initialLocationDescription: string; initialSubMapCoordinates: { x: number; y: number }, initialActiveDynamicNpcIds: string[] | null; initialInventory: Item[] } }
   | { type: 'SET_GEMINI_ACTIONS'; payload: Action[] | null }
   | { type: 'OPEN_CHARACTER_SHEET'; payload: PlayerCharacter }
   | { type: 'CLOSE_CHARACTER_SHEET' }

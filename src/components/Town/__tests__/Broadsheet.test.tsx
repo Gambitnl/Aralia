@@ -29,7 +29,6 @@ describe('Broadsheet', () => {
       ...base,
       worldSeed: SEED,
       currentLocationId: 'clearing', // non-coordinate → not a tracked town
-      mapData: { gridSize: { cols: COLS, rows: ROWS }, tiles: [] },
       townSim: {},
       isBroadsheetVisible: true,
     };
@@ -52,7 +51,6 @@ describe('Broadsheet', () => {
       worldSeed: SEED,
       gameTime: advancedTime,
       currentLocationId: `coord_${firstTile.x}_${firstTile.y}`,
-      mapData: { gridSize: { cols: COLS, rows: ROWS }, tiles: [] },
       townSim: { [firstTile.burgId]: town },
       isBroadsheetVisible: true,
     };
@@ -103,7 +101,6 @@ describe('Broadsheet', () => {
       ...base,
       worldSeed: SEED,
       currentLocationId: 'clearing',
-      mapData: { gridSize: { cols: COLS, rows: ROWS }, tiles: [] },
       townSim: {},
       isBroadsheetVisible: true,
       broadsheetSnapshot: '{ not valid json',

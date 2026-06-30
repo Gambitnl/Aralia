@@ -50,24 +50,7 @@ const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 const MILLIS_PER_HOUR = 60 * 60 * 1000;
 const MILLIS_PER_MINUTE = 60 * 1000;
 
-type SetMapDataPayload = Extract<AppAction, { type: 'SET_MAP_DATA' }>['payload'];
 type UpdateInspectedTileDescriptionPayload = Extract<AppAction, { type: 'UPDATE_INSPECTED_TILE_DESCRIPTION' }>['payload'];
-
-const resolveMinimapFocus = (
-  mapData: SetMapDataPayload,
-  currentFocus: GameState['minimapFocus']
-): GameState['minimapFocus'] => {
-  // The typed map contract exposes gridSize, not the old width/height placeholder.
-  // Keeping this helper local avoids turning G5 into a broader reducer refactor.
-  if (!mapData) {
-    return currentFocus;
-  }
-
-  return {
-    x: Math.floor(mapData.gridSize.cols / 2),
-    y: Math.floor(mapData.gridSize.rows / 2),
-  };
-};
 
 const hashStringToSeed = (value: string): number => {
   let hash = 2166136261;
@@ -197,12 +180,6 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       return {
         worldforgeDeltas: [...currentDeltas, action.payload.delta],
       };
-    }
-
-    case 'SET_MAP_DATA': {
-      const mapDataPayload: SetMapDataPayload = action.payload;
-      const minimapFocus = resolveMinimapFocus(mapDataPayload, state.minimapFocus);
-      return { mapData: mapDataPayload, minimapFocus };
     }
 
     case 'UPDATE_INSPECTED_TILE_DESCRIPTION': {

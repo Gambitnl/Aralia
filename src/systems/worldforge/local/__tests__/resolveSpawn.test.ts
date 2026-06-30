@@ -101,7 +101,7 @@ describe('applyWfSpawnToMap — reroll→find-me invariant (integration)', () =>
     const seeds = [1, 7, 42, 1234, 4321, 99999, 271828, 555000, 8675309, 31337];
     for (const seed of seeds) {
       const map = blankMap();
-      const spawn = applyWfSpawnToMap(map, seed, { cols: COLS, rows: ROWS }, {
+      const spawn = applyWfSpawnToMap(seed, { cols: COLS, rows: ROWS }, {
         biomeIndexToLegacyId: (idx) => wfBiomeIndexToLegacyId(idx),
         fallbackBiomeId: 'plains_meadow',
         isWalkable,
@@ -143,7 +143,7 @@ describe('applyWfSpawnToMap — player-chosen town (spawnAtlasCellId)', () => {
     const chosen = burgs.find((b: any) => !b.capital) ?? burgs[0];
 
     const map = blankMap();
-    const spawn = applyWfSpawnToMap(map, seed, { cols: COLS, rows: ROWS }, {
+    const spawn = applyWfSpawnToMap(seed, { cols: COLS, rows: ROWS }, {
       biomeIndexToLegacyId: (i) => wfBiomeIndexToLegacyId(i),
       fallbackBiomeId: 'plains_meadow',
       isWalkable: (b) => b !== 'ocean',

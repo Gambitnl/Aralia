@@ -194,7 +194,6 @@ const GameModals: React.FC<GameModalsProps> = ({
     // Idempotent — clears currentVoyage after dispatch so it cannot re-fire.
     useVoyageArrival({
       worldSeed: gameState.worldSeed,
-      mapData: gameState.mapData,
       currentVoyage: gameState.naval.currentVoyage,
       dispatch,
     });
@@ -238,7 +237,9 @@ const GameModals: React.FC<GameModalsProps> = ({
         return best;
     }, [gameState.party]);
 
-    const isMapModalOpen = Boolean(gameState.isMapVisible && gameState.mapData);
+    // Grid retirement: the world map is the atlas from worldSeed; visibility is
+    // the sole gate (no mapData grid to require).
+    const isMapModalOpen = gameState.isMapVisible;
     const isQuestLogModalOpen = gameState.isQuestLogVisible;
     const isCharacterSheetModalOpen = gameState.characterSheetModal.isOpen;
     const isDevMenuModalOpen = Boolean(gameState.isDevMenuVisible && canUseDevTools());
@@ -277,12 +278,11 @@ const GameModals: React.FC<GameModalsProps> = ({
     return (
         <AnimatePresence>
             {/* World Map Overlay */}
-            {isMapModalOpen && gameState.mapData && (
+            {isMapModalOpen && (
                 <div key="map" ref={mapPaneFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error displaying the World Map.">
                             <MapPane
-                                mapData={gameState.mapData}
                                 worldSeed={gameState.worldSeed}
                                 onTileClick={onTileClick}
                                 onEnter3DAtCell={onEnter3DAtCell}

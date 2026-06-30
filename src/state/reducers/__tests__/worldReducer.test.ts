@@ -113,32 +113,8 @@ describe('worldReducer', () => {
     // the exact key provided by the UI inspection flow.
     // ============================================================================
 
-    it('centers minimap focus from the typed MapData grid size', () => {
-        const mapData: MapData = {
-            gridSize: { rows: 8, cols: 12 },
-            tiles: Array.from({ length: 8 }, (_, y) =>
-                Array.from({ length: 12 }, (_, x) => ({
-                    x,
-                    y,
-                    discovered: y === 4 && x === 6,
-                    isPlayerCurrent: y === 4 && x === 6,
-                    biomeId: 'plains',
-                }))
-            ),
-        };
-        const baseState = createMockGameState({
-            minimapFocus: { x: 99, y: 99 },
-        });
-        const action: AppAction = {
-            type: 'SET_MAP_DATA',
-            payload: mapData,
-        };
-
-        const result = worldReducer(baseState, action);
-
-        expect(result.mapData).toBe(mapData);
-        expect(result.minimapFocus).toEqual({ x: 6, y: 4 });
-    });
+    // Grid retirement: the SET_MAP_DATA action + the minimap-focus-from-mapData
+    // test are removed — the 30x20 mapData grid no longer exists in game state.
 
     it('stores inspected tile descriptions at the typed tile key', () => {
         const baseState = createMockGameState({
@@ -473,7 +449,6 @@ describe('worldReducer', () => {
             gameTime: new Date('2024-01-01T12:00:00Z'),
             currentLocationId: 'coord_2_3',
             playerCell: null,
-            mapData: null,
         });
         const weatherUpdate: WeatherState = {
             precipitation: 'light_rain',
@@ -507,35 +482,11 @@ describe('worldReducer', () => {
             worldSeed: 24680,
             gameTime: new Date('2024-01-01T12:00:00Z'),
             currentLocationId: 'coord_2_3',
-            mapData: {
-                gridSize: { rows: 8, cols: 8 },
-                tiles: Array.from({ length: 8 }, (_, y) =>
-                    Array.from({ length: 8 }, (_, x) => ({
-                        x,
-                        y,
-                        discovered: true,
-                        isPlayerCurrent: false,
-                        biomeId: y === 3 && x === 2 ? 'forest' : 'plains',
-                    }))
-                ),
-            },
         });
         const baseStateB = createMockGameState({
             worldSeed: 24680,
             gameTime: new Date('2024-01-01T12:00:00Z'),
             currentLocationId: 'coord_2_3',
-            mapData: {
-                gridSize: { rows: 8, cols: 8 },
-                tiles: Array.from({ length: 8 }, (_, y) =>
-                    Array.from({ length: 8 }, (_, x) => ({
-                        x,
-                        y,
-                        discovered: true,
-                        isPlayerCurrent: false,
-                        biomeId: y === 3 && x === 2 ? 'forest' : 'plains',
-                    }))
-                ),
-            },
         });
 
         const action = {

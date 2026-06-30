@@ -92,7 +92,6 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
     })),
     currentLocationId: 'arena',
 
-    mapData: null
   }) as GameState
 });
 

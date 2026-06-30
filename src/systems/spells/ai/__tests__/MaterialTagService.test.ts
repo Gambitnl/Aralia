@@ -30,8 +30,7 @@ describe('MaterialTagService', () => {
   it('labels generated submap material as verified local context', () => {
     const gameState = createMockGameState({
       worldSeed: 12345,
-      currentLocationId: 'forest_clearing',
-      mapData: makeMapData(makeWorldTile({
+      currentLocationId: 'forest_clearing'(makeWorldTile({
         biomeId: 'forest',
         isPlayerCurrent: true
       }))
@@ -48,7 +47,6 @@ describe('MaterialTagService', () => {
   it('keeps biome fallback wording explicitly uncertain when no local tile exists', () => {
     const gameState = createMockGameState({
       currentLocationId: 'forest_clearing',
-      mapData: null
     });
 
     const description = MaterialTagService.describeNearbyMaterials({ x: 4, y: 4 }, gameState);
@@ -62,8 +60,7 @@ describe('MaterialTagService', () => {
   it('does not downgrade mixed concrete terrain to uncertain fallback language', () => {
     const gameState = createMockGameState({
       worldSeed: 98765,
-      currentLocationId: 'village_square',
-      mapData: makeMapData(makeWorldTile({
+      currentLocationId: 'village_square'(makeWorldTile({
         biomeId: 'village',
         isPlayerCurrent: true
       }))

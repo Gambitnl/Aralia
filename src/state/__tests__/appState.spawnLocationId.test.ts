@@ -16,7 +16,6 @@ function startWith(initialLocationId?: string) {
     type: 'START_GAME_SUCCESS',
     payload: {
       character: createMockPlayerCharacter({ id: 'player-1', name: 'Test Hero' }),
-      mapData: {} as never,
       dynamicLocationItemIds: {},
       initialLocationDescription: 'A quiet beginning.',
       initialSubMapCoordinates: { x: 1, y: 2 },

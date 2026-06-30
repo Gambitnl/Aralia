@@ -13,11 +13,9 @@ describe('MapPane', () => {
   it('renders the native Worldforge atlas as the sole map (no legacy grid, no Azgaar iframe)', () => {
     const onTileClick = vi.fn();
     const onClose = vi.fn();
-    const mapData = createMapData();
 
     render(
       <MapPane
-        mapData={mapData}
         onTileClick={onTileClick}
         onClose={onClose}
         allowTravel={false}
@@ -34,11 +32,9 @@ describe('MapPane', () => {
   it('exposes a sea-preference toggle in travel mode', async () => {
     const onTileClick = vi.fn();
     const onClose = vi.fn();
-    const mapData = createMapData();
 
     render(
       <MapPane
-        mapData={mapData}
         onTileClick={onTileClick}
         onClose={onClose}
         allowTravel
@@ -52,11 +48,9 @@ describe('MapPane', () => {
   it('keeps island-harbor generation default-off but exposes an explicit proof opt-in', () => {
     const onTileClick = vi.fn();
     const onClose = vi.fn();
-    const mapData = createMapData();
 
     const { rerender } = render(
       <MapPane
-        mapData={mapData}
         onTileClick={onTileClick}
         onClose={onClose}
         allowTravel
@@ -70,7 +64,6 @@ describe('MapPane', () => {
 
     rerender(
       <MapPane
-        mapData={mapData}
         onTileClick={onTileClick}
         onClose={onClose}
         allowTravel
@@ -101,7 +94,6 @@ describe('MapPane — ship sea-pref option', () => {
   it('renders the "Ship (owned)" option in the sea-pref select in travel mode', async () => {
     render(
       <MapPane
-        mapData={createMapData()}
         onTileClick={vi.fn()}
         onClose={vi.fn()}
         allowTravel
@@ -118,7 +110,6 @@ describe('MapPane — ship sea-pref option', () => {
   it('disables the "Ship (owned)" option when no activeShip is provided', async () => {
     render(
       <MapPane
-        mapData={createMapData()}
         onTileClick={vi.fn()}
         onClose={vi.fn()}
         allowTravel
@@ -136,7 +127,6 @@ describe('MapPane — ship sea-pref option', () => {
     const ship = createShip({ dockedPortBurgId: undefined });
     render(
       <MapPane
-        mapData={createMapData()}
         onTileClick={vi.fn()}
         onClose={vi.fn()}
         allowTravel
@@ -158,7 +148,6 @@ describe('MapPane — ship sea-pref option', () => {
     const ship = createShip({ dockedPortBurgId: 7 });
     render(
       <MapPane
-        mapData={createMapData()}
         onTileClick={vi.fn()}
         onClose={vi.fn()}
         allowTravel

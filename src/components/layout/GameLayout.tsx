@@ -38,8 +38,6 @@ import type { PlayerWorldPosition } from '../../types';
 interface GameLayoutProps {
     /** The current location data object, including name, description, and biome. */
     currentLocation: Location;
-    /** The global map data, containing tile information for the entire world. */
-    mapData: MapData | null;
     /** The current in-game date and time. */
     gameTime: Date;
     /** The list of narrative messages to display in the WorldPane. */

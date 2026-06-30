@@ -28,6 +28,7 @@ import { AppAction } from '../state/actionTypes';
 import { getGameDay } from '../utils/core';
 import { resolveTownForLocation } from '../systems/worldforge/townsim/chronicleForLocation';
 import { pickOverheardGossip, frameOverheardGossip } from '../systems/worldforge/townsim/townNews';
+import { MAP_GRID_SIZE } from '../config/mapConfig';
 
 // ============================================================================
 // Constants
@@ -61,7 +62,7 @@ export const useOverheardGossip = (
         cellId: state.playerCell?.cellId ?? null,
         currentLocationId: state.currentLocationId,
         worldSeed: state.worldSeed,
-        gridSize: state.mapData?.gridSize,
+        gridSize: MAP_GRID_SIZE,
         townSim: state.townSim,
         gameTime: state.gameTime,
       });

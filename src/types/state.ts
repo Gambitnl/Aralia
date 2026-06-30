@@ -239,7 +239,9 @@ export interface GameState {
   isImageLoading: boolean;
   error: string | null;
   worldSeed: number;
-  mapData: MapData | null;
+  // Grid retirement (2026-06-30): the 30x20 world `mapData` grid is removed from
+  // game state. The world is the cell-native atlas derived from `worldSeed`
+  // (`getBridgeAtlas`); position/biome/NPCs are cell-native (`playerCell`).
   /** Center point used by minimap consumers after map data changes. */
   minimapFocus?: { x: number; y: number };
   isMapVisible: boolean;

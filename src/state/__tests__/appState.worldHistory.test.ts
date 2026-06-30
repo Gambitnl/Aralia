@@ -13,7 +13,6 @@ describe('appState world history bootstrap', () => {
       type: 'START_GAME_SUCCESS',
       payload: {
         character: createMockPlayerCharacter({ id: 'player-1', name: 'Test Hero' }),
-        mapData: {} as never,
         dynamicLocationItemIds: {},
         initialLocationDescription: 'A quiet beginning.',
         initialSubMapCoordinates: { x: 1, y: 2 },
@@ -32,7 +31,6 @@ describe('appState world history bootstrap', () => {
     const result = appReducer(createMockGameState({ phase: GamePhase.MAIN_MENU }), {
       type: 'START_GAME_FOR_DUMMY',
       payload: {
-        mapData: {} as never,
         dynamicLocationItemIds: {},
         generatedParty: [createMockPlayerCharacter({ id: 'player-1', name: 'Test Hero' })],
         worldSeed: 1234,
