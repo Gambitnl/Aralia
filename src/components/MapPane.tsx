@@ -611,16 +611,13 @@ const MapPane: React.FC<MapPaneProps> = ({
 
   useEffect(() => { setSubmapStack([]); }, [worldforgeSeed]);
 
-  // An atlas cell is "explored" if the world tile under its centroid has been
-  // traveled into (tile.discovered). Drives the neighbourhood fog-of-war.
+  // Cell-native (Stage 6): land cells are explorable on the atlas. The legacy
+  // grid-tile fog (mapData.tiles[].discovered via a proportional projection) is
+  // removed; the owned atlas is the world view and drives the drill neighbourhood.
   const isExploredCell = useCallback((cellId: number): boolean => {
     if (!worldforgeAtlas) return false;
-    const p = worldforgeAtlas.pack.cells.p?.[cellId];
-    if (!p) return false;
-    const tx = clampIndex(Math.floor((p[0] / worldforgeAtlas.graphWidth) * gridSize.cols), gridSize.cols);
-    const ty = clampIndex(Math.floor((p[1] / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows);
-    return projectedTiles[ty]?.[tx]?.discovered === true;
-  }, [worldforgeAtlas, gridSize.cols, gridSize.rows, projectedTiles]);
+    return (worldforgeAtlas.pack.cells.h?.[cellId] ?? 0) >= 20;
+  }, [worldforgeAtlas]);
 
   // Build a region-tier neighbourhood centered on an atlas cell.
   const buildNeighbourTier = useCallback((cellId: number): DrillTier | null => {
