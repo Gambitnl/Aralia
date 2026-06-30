@@ -78,20 +78,9 @@ describe('listSelectableTowns — real FMG world (integration)', () => {
 });
 
 describe('Start Point Selection end-to-end spawn contract (integration)', () => {
-  const COLS = 30;
-  const ROWS = 20;
-  function blankMap(): MapData {
-    const tiles = Array.from({ length: ROWS }, (_, y) =>
-      Array.from({ length: COLS }, (_, x) => ({
-        x, y, biomeId: 'ocean', discovered: false, isPlayerCurrent: x === 0 && y === 0,
-      })),
-    );
-    return { gridSize: { rows: ROWS, cols: COLS }, tiles } as unknown as MapData;
-  }
-
   // The exact feature path: the player picks a town from the public list, and
-  // applyWfSpawnToMap (the same call startGame makes) must drop them at THAT town
-  // on land. Covers the chosen-town → spawn wiring that the live preview blocked.
+  // applyWfSpawnToMap (the same call startGame makes) must resolve THAT town's
+  // cell, on land. Covers the chosen-town → spawn wiring.
   it('spawns the player at whichever listed town they pick — on land, named', () => {
     const seed = 4321;
     const world = generateFmgWorld(String(seed));
@@ -102,16 +91,12 @@ describe('Start Point Selection end-to-end spawn contract (integration)', () => 
     // so the contract holds regardless of which the player chooses.
     for (const idx of [0, Math.floor(towns.length / 2), towns.length - 1]) {
       const town = towns[idx];
-      const map = blankMap();
-      const spawn = applyWfSpawnToMap(seed, { cols: COLS, rows: ROWS }, {
-        biomeIndexToLegacyId: (i) => wfBiomeIndexToLegacyId(i),
-        fallbackBiomeId: 'plains_meadow',
-        isWalkable: (b) => b !== 'ocean',
+      const spawn = applyWfSpawnToMap(seed, {
         spawnAtlasCellId: town.atlasCellId,
         spawnBurgName: town.name,
       });
 
-      // Grid retirement: the spawn IS the chosen town's cell (no grid mutation).
+      // The spawn IS the chosen town's cell.
       expect(spawn.atlasCellId, `town ${town.name}: cell`).toBe(town.atlasCellId);
       expect(spawn.burgName, `town ${town.name}: name`).toBe(town.name);
       // The chosen town's cell is on land (h >= sea level) — never an ocean spawn.

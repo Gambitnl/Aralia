@@ -20,24 +20,19 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AtlasSvgView from './AtlasSvgView';
-import { generateMap } from '../../services/mapService';
 import { getBridgeAtlas } from '../../systems/worldforge/bridge/legacySubmapBridge';
 import { applyWfSpawnToMap } from '../../systems/worldforge/local/resolveSpawn';
-import { legacyGridToAtlasCell } from '../../systems/worldforge/local/gridAtlasBridge';
 import { wfBiomeIndexToLegacyId } from '../../systems/worldforge/local/wfBiomeToLegacy';
-import { MAP_GRID_SIZE } from '../../config/mapConfig';
 import { LOCATIONS, STARTING_LOCATION_ID } from '../../data/world/locations';
 import { BIOMES } from '../../data/biomes';
 import { generateWorldSeed } from '../../utils/random/generateWorldSeed';
 import type { MapData } from '../../types';
 
 const LAND_THRESHOLD = 20;
-const GRID = { cols: MAP_GRID_SIZE.cols, rows: MAP_GRID_SIZE.rows };
 
 interface SpawnAudit {
   seed: number;
   /** Player grid cell (the relocated `isPlayerCurrent` tile). */
-  gridCell: { x: number; y: number };
   burg?: string;
   /** Atlas Voronoi cell the grid cell maps back to (same call as MapPane). */
   atlasCell: number | null;
@@ -56,26 +51,13 @@ interface SpawnAudit {
  * Run the full fix + the MapPane marker pipeline for one seed. Pure: returns the
  * resolved map, the atlas it was resolved against, and an audit verdict.
  */
-function resolveAndAudit(seed: number): { map: MapData; atlas: ReturnType<typeof getBridgeAtlas>; audit: SpawnAudit } {
-  const map = generateMap(GRID.rows, GRID.cols, LOCATIONS, BIOMES, seed);
-  const spawn = applyWfSpawnToMap(seed, GRID, {
-    biomeIndexToLegacyId: (idx) => wfBiomeIndexToLegacyId(idx),
-    fallbackBiomeId: LOCATIONS[STARTING_LOCATION_ID].biomeId,
-    isWalkable: (biomeId) => BIOMES[biomeId]?.passable ?? false,
-  });
-  // The rendered atlas uses the SAME canonical world MapPane would (`getBridgeAtlas`,
-  // i.e. "aralia-<seed>" + the fixed 960×540/10k/continents options), so the marker
-  // pipeline below is bit-for-bit what the live World Map computes — and the SAME world
-  // `applyWfSpawnToMap` resolved the spawn against (WM1 unification). Auditing against a
-  // bare `generateFmgWorld(String(seed))` here would re-introduce the world mismatch the
-  // harness is meant to catch.
+function resolveAndAudit(seed: number): { atlas: ReturnType<typeof getBridgeAtlas>; audit: SpawnAudit } {
+  // Grid retirement: the spawn is fully cell-native — resolve the spawn CELL and
+  // audit it directly against the SAME canonical world MapPane renders
+  // (`getBridgeAtlas(seed)`). No legacy 30x20 map generation, no grid cell.
+  const spawn = applyWfSpawnToMap(seed);
   const atlas = getBridgeAtlas(seed);
 
-  // ---- Cell-native spawn audit (grid retirement) ----
-  // The spawn no longer marks an isPlayerCurrent tile; audit the RESOLVED cell
-  // directly. atlasCell is the spawn's own cell; the grid cell + biome come from
-  // the resolved spawn, not a mapData.tiles scan.
-  const playerCell = spawn.gridCell;
   const atlasCell = spawn.atlasCellId;
   const site = atlasCell >= 0 ? atlas.pack.cells.p?.[atlasCell] : undefined;
   const marker = site ? { x: site[0], y: site[1] } : null;
@@ -83,11 +65,9 @@ function resolveAndAudit(seed: number): { map: MapData; atlas: ReturnType<typeof
   const startBiomeId = wfBiomeIndexToLegacyId(spawn.biomeIndex) ?? '(none)';
 
   return {
-    map,
     atlas,
     audit: {
       seed,
-      gridCell: playerCell ?? spawn.gridCell,
       burg: spawn.burgName,
       atlasCell: atlasCell ?? null,
       height,
@@ -203,7 +183,6 @@ const SpawnPreview: React.FC = () => {
         <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '6px 12px', fontSize: 13, margin: 0 }}>
           <dt style={{ color: '#94a3b8' }}>Seed</dt><dd style={{ margin: 0 }}>{audit.seed}</dd>
           <dt style={{ color: '#94a3b8' }}>Burg</dt><dd style={{ margin: 0 }}>{audit.burg ?? '—'}</dd>
-          <dt style={{ color: '#94a3b8' }}>Grid cell</dt><dd style={{ margin: 0 }}>{audit.gridCell.x}, {audit.gridCell.y}</dd>
           <dt style={{ color: '#94a3b8' }}>Atlas cell</dt><dd style={{ margin: 0 }}>{audit.atlasCell ?? '—'}</dd>
           <dt style={{ color: '#94a3b8' }}>Height</dt>
           <dd style={{ margin: 0, color: audit.land ? '#6ee7b7' : '#fecaca' }}>

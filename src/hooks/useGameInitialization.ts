@@ -59,7 +59,7 @@ import { AppAction } from '../state/actionTypes';
 import { STARTING_LOCATION_ID, LOCATIONS } from '../data/world/locations';
 import { BIOMES } from '../data/biomes';
 // Grid dimensions for the world map and the sub-map (local tile grid within a location).
-import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from '../config/mapConfig';
+import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 // Procedural map generator that produces the world grid from locations, biomes, and a seed.
 // WF-derived spawn: place the player where the generated FMG world says, not a hardcoded tile.
 import { applyWfSpawnToMap } from '../systems/worldforge/local/resolveSpawn';
@@ -273,14 +273,10 @@ export function useGameInitialization({
       let spawnLocationId: string = STARTING_LOCATION_ID;
 
       try {
-        const spawn = applyWfSpawnToMap(
-          worldSeed,
-          { cols: MAP_GRID_SIZE.cols, rows: MAP_GRID_SIZE.rows },
-          {
-            spawnAtlasCellId: startTown?.atlasCellId,
-            spawnBurgName: startTown?.name,
-          },
-        );
+        const spawn = applyWfSpawnToMap(worldSeed, {
+          spawnAtlasCellId: startTown?.atlasCellId,
+          spawnBurgName: startTown?.name,
+        });
 
         // Grid retirement: the logical location is the cell-native id of the
         // resolved atlas cell. The canonical position is playerCell (the same cell).
