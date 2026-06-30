@@ -22,7 +22,7 @@ import { createForgeAssetService } from '@/systems/worldforge/assets/forgeAssetS
 import { assetAddress } from '@/systems/worldforge/assets/assetKey';
 
 const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
-let _stubService;
+let _stubService: ReturnType<typeof createForgeAssetService> | undefined;
 if (urlParams.get('stubForgeAssets') === '1') {
   _stubService = createForgeAssetService({
     generator: {

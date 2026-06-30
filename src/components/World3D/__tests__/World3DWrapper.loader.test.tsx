@@ -57,23 +57,6 @@ vi.mock('../../../state/GameContext', () => ({
   }),
 }));
 
-const flatWorld = (): WorldData => ({
-  version: 2,
-  seed: 1,
-  templateId: 't',
-  gridSize: { rows: 4, cols: 4 },
-  heights: new Array(16).fill(10),
-  temperatures: [],
-  moisture: [],
-  biomeIds: [],
-  rivers: [],
-  roads: [],
-  sites: [],
-  coastlines: [],
-  lakes: [],
-  biomeZones: [],
-});
-
 describe('World3DWrapper chunk loader (W3DUI-1)', () => {
   beforeEach(() => {
     mockCreateWorkerChunkLoader.mockClear();
@@ -85,14 +68,8 @@ describe('World3DWrapper chunk loader (W3DUI-1)', () => {
 
   it('no-fallback: ground mode with no resolvable tile does NOT substitute the legacy worker loader', async () => {
     const World3DWrapper = (await import('../World3DWrapper')).default;
-    const world = flatWorld();
 
-    render(
-      <World3DWrapper
-        entryPosition={{ x: 0, y: 0, z: 0 }}
-        worldData={world}
-      />,
-    );
+    render(<World3DWrapper entryPosition={{ x: 0, y: 0, z: 0 }} />);
 
     // Ground mode is the default since 2026-06-12. No-fallback directive
     // (2026-06-15, WF-G6): a Worldforge ground entry that can't resolve a tile
@@ -103,15 +80,10 @@ describe('World3DWrapper chunk loader (W3DUI-1)', () => {
     expect(mockCreateWorkerChunkLoader).not.toHaveBeenCalled();
   }, 30000);
 
-  it('does not create a loader when worldData is null', async () => {
+  it('does not create the legacy worker loader (it was removed in grid retirement)', async () => {
     const World3DWrapper = (await import('../World3DWrapper')).default;
 
-    render(
-      <World3DWrapper
-        entryPosition={{ x: 0, y: 0, z: 0 }}
-        worldData={null}
-      />,
-    );
+    render(<World3DWrapper entryPosition={{ x: 0, y: 0, z: 0 }} />);
 
     expect(mockCreateWorkerChunkLoader).not.toHaveBeenCalled();
   });

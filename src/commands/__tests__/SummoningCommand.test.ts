@@ -92,7 +92,7 @@ describe('SummoningCommand', () => {
         castAtLevel: 1,
         caster: mockCaster,
         targets: [],
-        gameState: createMockGameState({ party: [mockCasterAsPlayer], currentLocationId: 'arena', subMapCoordinates: { x: 5, y: 5 }, mapData: null })
+        gameState: createMockGameState({ party: [mockCasterAsPlayer], currentLocationId: 'arena', mapData: null })
     }
 
     const initialState: CombatState = {
@@ -337,7 +337,7 @@ describe('SummoningCommand', () => {
             caster: mockCaster,
             targets: [],
             gameState: {
-                ...createMockGameState({ currentLocationId: 'arena', subMapCoordinates: { x: 5, y: 5 }, mapData: toWorldMapData(mapData) }),
+                ...createMockGameState({ currentLocationId: 'arena', mapData: toWorldMapData(mapData) }),
                 mapData: toWorldMapData(mapData)
             }
         })

@@ -18,9 +18,11 @@ describe('migratePlayerCell', () => {
     const state = createMockGameState({
       worldSeed: SEED,
       currentLocationId: 'coord_15_10',
-      subMapCoordinates: { x: 3, y: 6 },
       playerCell: null,
     });
+    // Stage 6 removed subMapCoordinates from GameState; an OLD save still carries
+    // it on the raw object, which the migration reads via cast. Mirror that here.
+    (state as unknown as { subMapCoordinates: { x: number; y: number } }).subMapCoordinates = { x: 3, y: 6 };
     // mapData.gridSize drives the grid dims; the mock factory provides a real grid.
     migratePlayerCell(state);
     const expectedCell = deriveCellIdFromTile(SEED, 15, 10, state.mapData?.gridSize.cols ?? COLS, state.mapData?.gridSize.rows ?? ROWS);
@@ -34,9 +36,9 @@ describe('migratePlayerCell', () => {
     const state = createMockGameState({
       worldSeed: SEED,
       currentLocationId: 'coord_15_10',
-      subMapCoordinates: { x: 3, y: 6 },
       playerCell: existing,
     });
+    (state as unknown as { subMapCoordinates: { x: number; y: number } }).subMapCoordinates = { x: 3, y: 6 };
     migratePlayerCell(state);
     expect(state.playerCell).toBe(existing);
   });
@@ -46,9 +48,9 @@ describe('migratePlayerCell', () => {
       worldSeed: SEED,
       // An id that is neither coord_X_Y nor a static LOCATIONS entry with coords.
       currentLocationId: 'unknown_nonexistent_place',
-      subMapCoordinates: { x: 0, y: 0 },
       playerCell: null,
     });
+    (state as unknown as { subMapCoordinates: { x: number; y: number } }).subMapCoordinates = { x: 0, y: 0 };
     expect(() => migratePlayerCell(state)).not.toThrow();
     expect(state.playerCell).toBeNull();
   });

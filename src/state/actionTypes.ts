@@ -68,7 +68,7 @@ export type AppAction =
   // the EXACT destination cell + its 3D-entry anchor so arrival lands that cell (not
   // the lossy tile reverse-derive), resets Locale feet, and frames the destination
   // town on a later Enter-3D. Optional ⇒ legacy compass/static moves are unaffected.
-  | { type: 'MOVE_PLAYER'; payload: { newLocationId: string; newSubMapCoordinates: { x: number; y: number }; mapData?: MapData; activeDynamicNpcIds: string[] | null; destinationCell?: { cellId: number; anchor: Entry3DAnchor } } }
+  | { type: 'MOVE_PLAYER'; payload: { newLocationId: string; newSubMapCoordinates?: { x: number; y: number }; mapData?: MapData; activeDynamicNpcIds: string[] | null; destinationCell?: { cellId: number; anchor: Entry3DAnchor } } }
   | { type: 'APPLY_TAKE_ITEM_UPDATE'; payload: { item: Item; locationId: string; discoveryEntry: DiscoveryEntry } }
   // Places foraged items onto a (typically procedural coord_) tile and, by the
   // mere presence of the key, marks that tile as already searched so it cannot be

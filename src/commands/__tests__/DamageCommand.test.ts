@@ -35,7 +35,7 @@ describe('DamageCommand', () => {
           createMockPlayerCharacter({ id: target.id, name: target.name })
         ],
         currentLocationId: 'arena',
-        subMapCoordinates: { x: 0, y: 0 },
+
         mapData: null
       })
     });
@@ -98,7 +98,7 @@ describe('DamageCommand', () => {
           createMockPlayerCharacter({ id: target.id, name: target.name })
         ],
         currentLocationId: 'arena',
-        subMapCoordinates: { x: 0, y: 0 },
+
         mapData: null
       })
     });

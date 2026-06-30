@@ -92,7 +92,7 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
       // TODO: when combat + overworld models merge, carry HP state through a shared shape instead of casting.
     })),
     currentLocationId: 'arena',
-    subMapCoordinates: { x: 0, y: 0 },
+
     mapData: null
   }) as GameState
 });

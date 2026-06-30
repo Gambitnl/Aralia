@@ -67,7 +67,6 @@ describe('LeverageSystem', () => {
             inventory: [],
             gold: 100,
             currentLocationId: 'town_1',
-            subMapCoordinates: null,
             messages: [],
             isLoading: false,
             loadingMessage: null,

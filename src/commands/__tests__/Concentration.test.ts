@@ -122,7 +122,7 @@ describe('Concentration System', () => {
                 createMockPlayerCharacter({ id: mockCaster.id, name: mockCaster.name }),
                 createMockPlayerCharacter({ id: mockTarget.id, name: mockTarget.name }),
             ];
-            const mockGameState = createMockGameState({ party: mockPlayers, currentEnemies: [mockTarget], currentLocationId: 'arena', subMapCoordinates: { x: 0, y: 0 }, mapData: null });
+            const mockGameState = createMockGameState({ party: mockPlayers, currentEnemies: [mockTarget], currentLocationId: 'arena', mapData: null });
 
             const command = new DamageCommand(damageEffect, {
                 spellId: spell.id,
@@ -156,7 +156,7 @@ describe('Concentration System', () => {
                 turnState: { ...baseTurnState, currentTurn: 5 },
                 combatLog: []
             });
-            const mockGameState = createMockGameState({ party: [mockPlayer], currentLocationId: 'arena', subMapCoordinates: { x: 0, y: 0 }, mapData: null });
+            const mockGameState = createMockGameState({ party: [mockPlayer], currentLocationId: 'arena', mapData: null });
 
             const command = new StartConcentrationCommand(spell, {
                 spellId: spell.id,
@@ -194,7 +194,7 @@ describe('Concentration System', () => {
                 name: mockTarget.name,
                 // TODO: maintain concentration flags in both combat + overworld models when we dedupe them.
             });
-            const mockGameState = createMockGameState({ party: [mockPlayer], currentLocationId: 'arena', subMapCoordinates: { x: 0, y: 0 }, mapData: null });
+            const mockGameState = createMockGameState({ party: [mockPlayer], currentLocationId: 'arena', mapData: null });
 
             const command = new BreakConcentrationCommand({
                 spellId: 'any',

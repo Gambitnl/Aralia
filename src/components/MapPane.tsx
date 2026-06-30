@@ -219,9 +219,9 @@ function synthCellTile(
   cellId: number,
   x: number,
   y: number,
-): MapTile {
+): MapTileType {
   const biomeIdx = (atlas.pack.cells as unknown as { biome?: ArrayLike<number> }).biome?.[cellId];
-  return { x, y, biomeId: wfBiomeIndexToLegacyId(biomeIdx), discovered: true, isPlayerCurrent: false } as MapTile;
+  return { x, y, biomeId: wfBiomeIndexToLegacyId(biomeIdx), discovered: true, isPlayerCurrent: false } as MapTileType;
 }
 
 const MapPane: React.FC<MapPaneProps> = ({
@@ -772,7 +772,7 @@ const MapPane: React.FC<MapPaneProps> = ({
       y: clampIndex(Math.floor((gy / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows),
     };
     const biomeIdx = (worldforgeAtlas.pack.cells as unknown as { biome?: ArrayLike<number> }).biome?.[cellId];
-    const tile = { x: grid.x, y: grid.y, biomeId: wfBiomeIndexToLegacyId(biomeIdx), discovered: true, isPlayerCurrent: false } as MapTile;
+    const tile = { x: grid.x, y: grid.y, biomeId: wfBiomeIndexToLegacyId(biomeIdx), discovered: true, isPlayerCurrent: false } as MapTileType;
     return { tx: grid.x, ty: grid.y, tile };
   }, [worldforgeAtlas, gridSize.cols, gridSize.rows]);
 
@@ -819,7 +819,7 @@ const MapPane: React.FC<MapPaneProps> = ({
         ...(conditions.length ? { conditions } : {}),
         note: forageNote,
       };
-      const target = pt.tile; // cell-synthesized tile from pointToTile (Stage 6)
+      const target = synthCellTile(worldforgeAtlas, pt.cellId, pt.tx, pt.ty); // cell-synthesized tile (Stage 6)
       // Cell-native arrival (Stage 4): the trip completes at the destination cell, so
       // carry it intact (same as the ungated commit). A partial-stop (below) halts at
       // an intermediate point that is NOT the picked cell, so it stays a legacy tile

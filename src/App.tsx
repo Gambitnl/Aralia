@@ -45,7 +45,6 @@
 // React hooks - useReducer for complex state management, useCallback for memoized functions,
 // useEffect for side effects
 import React, { useReducer, useCallback, useEffect, useRef, lazy, Suspense, useState } from 'react';
-import { resolveWorldDataFor3D } from './utils/mapDataToWorldData';
 import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase, Notification } from './types';
 import type { TravelMeta } from './types/travelMeta';
 import { buildProvisionActions } from './systems/travel/applyProvision';
@@ -87,7 +86,7 @@ import { biomeIdForCell } from '@/systems/worldforge/local/biomeForCell';
 import { wfBiomeIndexToLegacyId } from '@/systems/worldforge/local/wfBiomeToLegacy';
 import { getTownTilesForGrid } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { MAP_GRID_SIZE } from './config/mapConfig';
-import { gridCellCenterToWorldMeters, getTerrainHeight } from './utils/worldCoords';
+import { gridCellCenterToWorldMeters } from './utils/worldCoords';
 import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
 import { DiceOverlay } from './components/dice/DiceOverlay';
@@ -780,15 +779,11 @@ const App: React.FC = () => {
 
     const { cols, rows } = mapData.gridSize;
     const { x: wx, z: wz } = gridCellCenterToWorldMeters(x, y, cols, rows);
-    let terrainY = 0;
-    const worldDataForHeight = resolveWorldDataFor3D(mapData, gameState.worldSeed ?? 0);
-    if (worldDataForHeight) {
-      terrainY = getTerrainHeight(wx, wz, worldDataForHeight);
-    }
-
+    // Grid retirement: legacy-continent terrain height is gone; the cell-native
+    // ground derives its own surface from the entry anchor below. Entry y = 0.
     dispatch({
       type: 'SET_PLAYER_WORLD_POS',
-      payload: { x: wx, y: terrainY, z: wz },
+      payload: { x: wx, y: 0, z: wz },
     });
     // Cell-native 3D entry: carry the exact clicked cell (burg-centered when
     // settled) so the ground frames that cell, not a coarse-grid neighbour.
@@ -1422,10 +1417,10 @@ const App: React.FC = () => {
             onComplete={handleTransitionComplete}
             atlasContent={atlasContent}
             sceneContent={(
-              <World3DWrapper
-                entryPosition={entryPosition}
-                worldData={resolveWorldDataFor3D(gameState.mapData, gameState.worldSeed ?? 0)}
-              />
+              // Grid retirement: the legacy continent-3D terrain (derived from
+              // the 30x20 mapData) is gone; the streamed cell-native ground
+              // (getWorldforgeLocalForCell) is the world. No worldData prop.
+              <World3DWrapper entryPosition={entryPosition} />
             )}
           />
         </Suspense>

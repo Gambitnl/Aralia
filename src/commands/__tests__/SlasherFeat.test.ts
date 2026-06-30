@@ -98,7 +98,7 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[], option
     })],
     currentEnemies: targets,
     currentLocationId: 'arena',
-    subMapCoordinates: { x: 0, y: 0 },
+
     mapData: null
   }) as GameState,
   ...options

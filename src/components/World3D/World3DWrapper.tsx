@@ -35,7 +35,7 @@ import { createForgeAssetService } from '@/systems/worldforge/assets/forgeAssetS
 import { assetAddress } from '@/systems/worldforge/assets/assetKey';
 
 const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
-let _stubService;
+let _stubService: ReturnType<typeof createForgeAssetService> | undefined;
 if (urlParams.get('stubForgeAssets') === '1') {
   _stubService = createForgeAssetService({
     generator: {
@@ -54,14 +54,12 @@ import LocaleMovePane from './LocaleMovePane';
 import { localeFeetToGroundMeters } from '../../systems/worldforge/local/localePosition';
 import { requestMapCenterOnPlayer, requestMapDrillToPlayerTown } from '../Worldforge/mapFocusSignal';
 import { findCellAtPoint } from '../Worldforge/atlasSvg';
-import { createWorkerChunkLoader, type DisposableChunkLoader } from './createWorkerChunkLoader';
+import { type DisposableChunkLoader } from './createWorkerChunkLoader';
 import { usePlayerWorldPos, useWorldViewMode } from '../../hooks/useWorldViewMode';
-import { getTerrainHeight, gridWorldDimensions } from '../../utils/worldCoords';
 import { useGameState } from '../../state/GameContext';
 import { type SceneCastMember } from './SceneCast';
 import { scheduleClockFromGameTime } from '../../systems/worldforge/roster/gameClock';
 import { GamePhase } from '../../types/core';
-import type { WorldData } from '../../services/worldSim/types';
 import type { PlayerWorldPosition } from '../../types';
 
 /**
@@ -139,8 +137,6 @@ const WF_TOWN = wfParam('wf_town') === '1';
 interface World3DWrapperProps {
   /** Initial world position to start at. */
   entryPosition: { x: number; y: number; z: number };
-  /** WorldData for terrain height lookup and chunk loading. */
-  worldData: WorldData | null;
 }
 
 /** Throttle interval in ms (~10Hz) — see transitionTiming.ts for perf budget. */
@@ -149,7 +145,7 @@ const DISPATCH_INTERVAL_MS = POSITION_DISPATCH_INTERVAL_MS;
 /** FPS sampling window in ms. */
 const FPS_SAMPLE_MS = 1000;
 
-const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldData }) => {
+const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
   const { dispatch, state } = useGameState();
   const { setPosition, position } = usePlayerWorldPos();
   const { setMode } = useWorldViewMode();
@@ -189,30 +185,14 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
     let cancelled = false;
     let activeCleanup: (() => void) | null = null;
 
-    // Legacy continent path: synchronous, unchanged behavior.
-    const startLegacy = (): (() => void) | null => {
-      setWfGroundView(null);
-      if (!worldData) {
-        setLoader(undefined);
-        return null;
-      }
-      const built = createWorkerChunkLoader(
-        worldData,
-        WORLD3D_CONFIG.HEIGHTFIELD_RESOLUTION,
-        () => new Worker(new URL('./chunkWorker.ts', import.meta.url), { type: 'module' }),
-      );
-      setLoader(() => built);
-      return () => {
-        built.dispose();
-        setLoader(undefined);
-      };
-    };
-
+    // Grid retirement: the legacy continent streamer (createWorkerChunkLoader over
+    // the 30x20 mapData heightfield) is gone. Continent Mode (?wf_legacy=1) now
+    // renders nothing — the streamed cell-native ground below is the only world.
     if (!isGroundMode) {
-      activeCleanup = startLegacy();
+      setWfGroundView(null);
+      setLoader(undefined);
       return () => {
         cancelled = true;
-        activeCleanup?.();
       };
     }
 
@@ -447,10 +427,10 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
       cancelled = true;
       activeCleanup?.();
     };
-    // Re-run the effect if the world data, location, seed, or active mode scale changes.
+    // Re-run the effect if the location, seed, or active mode scale changes.
     // HOSTILE-1: also re-run on game phase change so the ground world rebuilds
     // after a return-from-combat (BATTLE_MAP_DEMO → PLAYING transition).
-  }, [worldData, state.currentLocationId, state.worldSeed, isGroundMode, state.phase, state.entry3DAnchor]);
+  }, [state.currentLocationId, state.worldSeed, isGroundMode, state.phase, state.entry3DAnchor]);
 
   // FPS tracking state.
   const [fps, setFps] = useState(0);
@@ -657,20 +637,6 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
   const handlePositionChange = useCallback((worldX: number, worldZ: number) => {
     const now = Date.now();
 
-    // Clamp to the world grid BEFORE anything persists. The free-roam camera
-    // can pan past the map edge; dispatching the raw coords let the autosave
-    // capture off-map positions (e.g. z=-881), and resuming such a save
-    // centered the chunk streamer outside the grid — the player came back to
-    // a featureless edge-clamped slab (resume-journey task 2).
-    if (worldData) {
-      const { widthM, heightM } = gridWorldDimensions(
-        worldData.gridSize.cols,
-        worldData.gridSize.rows,
-      );
-      worldX = Math.min(Math.max(worldX, 0), widthM);
-      worldZ = Math.min(Math.max(worldZ, 0), heightM);
-    }
-
     // Skip if throttled (less than DISPATCH_INTERVAL_MS since last dispatch).
     if (now - lastDispatchTime.current < DISPATCH_INTERVAL_MS) {
       return;
@@ -682,11 +648,10 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
       return;
     }
 
-    // Resolve terrain height (Y) from WorldData.
-    let terrainY = entryPosition.y; // Fallback to entry Y if WorldData unavailable.
-    if (worldData) {
-      terrainY = getTerrainHeight(worldX, worldZ, worldData);
-    }
+    // Grid retirement: continent-grid terrain height is gone. The cell-native
+    // ground reports its own surface via handleGroundPositionChange; this legacy
+    // continent path keeps the entry Y.
+    const terrainY = entryPosition.y;
 
     // Update throttle state.
     lastDispatchTime.current = now;
@@ -699,7 +664,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
       z: worldZ,
     };
     setPosition(position);
-  }, [setPosition, worldData, entryPosition.y]);
+  }, [setPosition, entryPosition.y]);
 
   // FREEZE the scene origin / spawn at the value present when 3D was entered.
   //
@@ -721,13 +686,10 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
   // carry y≈0 from before vertical exaggeration landed, which parked the
   // camera hundreds of meters UNDER the terrain — every face back-culled,
   // so PLAYING's 3D view rendered nothing but sky (the "light blue box").
-  const startSurfaceY = useMemo(() => {
-    if (!worldData) return frozenEntry.current.y;
-    const { cols, rows } = worldData.gridSize;
-    const gx = Math.max(0, Math.min(cols - 1, Math.round(frozenEntry.current.x / WORLD3D_CONFIG.METERS_PER_CELL)));
-    const gy = Math.max(0, Math.min(rows - 1, Math.round(frozenEntry.current.z / WORLD3D_CONFIG.METERS_PER_CELL)));
-    return heightToMeters(worldData.heights[gy * cols + gx] ?? 0);
-  }, [worldData]);
+  // Grid retirement: the continent heightfield is gone. The cell-native ground
+  // sets its own spawn surface (wfGroundView.surfaceY); this legacy entry keeps
+  // the frozen entry Y.
+  const startSurfaceY = useMemo(() => frozenEntry.current.y, []);
 
   // Staged cast for an in-world scene: the player + the dynamic NPCs actually
   // present at this location (the opening-situation strangers at spawn). Rendered
@@ -833,7 +795,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
       {/* InWorldHUD overlay — always mounted so exit controls work without a loader */}
       <InWorldHUD
         isDevModeEnabled={isDevModeEnabled}
-        worldData={worldData}
+        worldData={null}
         worldGen={state.mapData?.generation ?? null}
         chunkCount={chunkCount}
         fps={fps}

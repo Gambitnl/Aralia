@@ -91,7 +91,7 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
       // TODO: sync condition mirrors between player + combat actors when state shapes converge.
     })),
     currentLocationId: 'arena',
-    subMapCoordinates: { x: 0, y: 0 },
+
     mapData: null
   }) as GameState
 });
