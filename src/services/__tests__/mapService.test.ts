@@ -26,37 +26,13 @@ describe('mapService generateMap (Azgaar-source default)', () => {
     expect(differences).toBeGreaterThan(Math.floor(a.length * 0.1));
   });
 
-  it('anchors predefined locations onto their map coordinates', () => {
-    const mapData = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, 424242);
-
-    for (const location of Object.values(LOCATIONS)) {
-      const x = location.mapCoordinates.x;
-      const y = location.mapCoordinates.y;
-      if (x < 0 || y < 0 || x >= MAP_GRID_SIZE.cols || y >= MAP_GRID_SIZE.rows) continue;
-
-      const tile = mapData.tiles[y][x];
-      expect(tile.locationId).toBe(location.id);
-      expect(tile.biomeId).toBe(location.biomeId);
-    }
-  });
-
-  it('marks the starting location and adjacent tiles as discovered', () => {
-    const mapData = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, 4242);
+  // Grid retirement (2026-07-01): the "anchors predefined locations onto their map
+  // coordinates" + "marks the starting location discovered" tests are removed —
+  // authored LOCATIONS no longer carry grid mapCoordinates, so generateMap (now a
+  // dev-only generator) no longer anchors them onto a 30x20 tile grid.
+  it('authored LOCATIONS no longer carry grid mapCoordinates', () => {
     const start = LOCATIONS[STARTING_LOCATION_ID];
-    const sx = start.mapCoordinates.x;
-    const sy = start.mapCoordinates.y;
-
-    expect(mapData.tiles[sy][sx].isPlayerCurrent).toBe(true);
-    expect(mapData.tiles[sy][sx].discovered).toBe(true);
-
-    for (let dy = -1; dy <= 1; dy++) {
-      for (let dx = -1; dx <= 1; dx++) {
-        const nx = sx + dx;
-        const ny = sy + dy;
-        if (nx < 0 || ny < 0 || nx >= MAP_GRID_SIZE.cols || ny >= MAP_GRID_SIZE.rows) continue;
-        expect(mapData.tiles[ny][nx].discovered).toBe(true);
-      }
-    }
+    expect(start.mapCoordinates).toBeUndefined();
   });
 
   it('generateMap returns MapData with worldData v2 attached', () => {

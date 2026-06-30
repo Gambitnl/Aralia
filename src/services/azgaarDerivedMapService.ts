@@ -419,6 +419,8 @@ function pickBiomeFromPool(pool: Biome[], seed: number, x: number, y: number): B
 
 function applyLocationAnchors(tiles: MapTile[][], locations: Record<string, Location>, rows: number, cols: number): void {
   for (const location of Object.values(locations)) {
+    // Grid retirement: authored locations no longer carry grid coordinates.
+    if (!location.mapCoordinates) continue;
     const { x, y } = location.mapCoordinates;
     if (x < 0 || y < 0 || x >= cols || y >= rows) continue;
     tiles[y][x].locationId = location.id;
@@ -428,7 +430,7 @@ function applyLocationAnchors(tiles: MapTile[][], locations: Record<string, Loca
 
 function applyStartingDiscovery(tiles: MapTile[][], locations: Record<string, Location>): void {
   const start = locations[STARTING_LOCATION_ID];
-  if (!start) return;
+  if (!start?.mapCoordinates) return;
   const sx = start.mapCoordinates.x;
   const sy = start.mapCoordinates.y;
   if (!tiles[sy]?.[sx]) return;

@@ -143,8 +143,8 @@ export function useSubmapProceduralData({
     const isStartingLocationSubmap = 
         startingLocationData &&
         currentWorldBiomeId === startingLocationData.biomeId &&
-        parentWorldMapCoords.x === startingLocationData.mapCoordinates.x &&
-        parentWorldMapCoords.y === startingLocationData.mapCoordinates.y;
+        parentWorldMapCoords.x === startingLocationData.mapCoordinates?.x &&
+        parentWorldMapCoords.y === startingLocationData.mapCoordinates?.y;
 
     if (isStartingLocationSubmap) edgeChance = 100;
 
