@@ -38,6 +38,7 @@ import { canUseDevTools } from '../utils/permissions';
 import { SUBMAP_DIMENSIONS, MAP_GRID_SIZE } from '../config/mapConfig';
 import { derivePlayerCellForTile } from '../systems/worldforge/local/playerCellFromLegacy';
 import { locationIdToTile } from '../utils/locationUtils';
+import { parseCellLocationId } from '../utils/location/cellLocationId';
 import type { PlayerCell } from '../types/state';
 import { getGameDay, inGameTimestamp } from '../utils/core';
 import { gridWorldDimensions } from '../utils/worldCoords';
@@ -127,10 +128,13 @@ function derivePlayerCell(
   locationId: string,
   localeCoords: { x: number; y: number } | null,
 ): PlayerCell | null {
+  // Grid retirement: a cell-native `cell_<cellId>` id IS the cell — no reverse-map.
+  const directCell = parseCellLocationId(locationId);
+  if (directCell != null) return { cellId: directCell, localeCoords };
+  // Authored LOCATIONS (mapCoordinates) + legacy `coord_X_Y` saves: tile → cell
+  // via the golden bridge over the canonical 30x20 bookkeeping dims.
   const tile = locationIdToTile(locationId, LOCATIONS);
   if (!tile) return null;
-  // Grid retirement: the cell reverse-map uses the canonical 30x20 bookkeeping
-  // dims (MAP_GRID_SIZE), not a stored mapData grid.
   return derivePlayerCellForTile(worldSeed, tile, localeCoords, {
     cols: MAP_GRID_SIZE.cols,
     rows: MAP_GRID_SIZE.rows,

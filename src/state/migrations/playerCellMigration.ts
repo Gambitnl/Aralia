@@ -23,32 +23,36 @@ import { LOCATIONS } from '../../data/world/locations';
 import { MAP_GRID_SIZE } from '../../config/mapConfig';
 import { locationIdToTile } from '../../utils/locationUtils';
 import { derivePlayerCellForTile } from '../../systems/worldforge/local/playerCellFromLegacy';
+import { makeCellLocationId } from '../../utils/location/cellLocationId';
 
 /**
  * Backfills `loadedState.playerCell` in place when absent. No-op when already
  * present (idempotent). Returns the same state for convenience.
  */
 export function migratePlayerCell(loadedState: GameState): GameState {
-  // Idempotence: a save that already carries the canonical cell is untouched.
-  if (loadedState.playerCell) return loadedState;
-
-  const tile = locationIdToTile(loadedState.currentLocationId, LOCATIONS);
-  if (!tile) {
-    loadedState.playerCell = null;
-    return loadedState;
+  // Backfill the canonical cell on pre-Stage-2 saves (those without playerCell).
+  if (!loadedState.playerCell) {
+    const tile = locationIdToTile(loadedState.currentLocationId, LOCATIONS);
+    if (tile) {
+      // Grid retirement: saves carry no mapData grid; the cell reverse-map uses the
+      // canonical MAP_GRID_SIZE bookkeeping dims. subMapCoordinates is read off the
+      // raw old save if present (the field was removed from GameState).
+      const legacySubmap = (loadedState as unknown as { subMapCoordinates?: { x: number; y: number } | null }).subMapCoordinates ?? null;
+      loadedState.playerCell = derivePlayerCellForTile(
+        loadedState.worldSeed ?? 0,
+        tile,
+        legacySubmap,
+        { cols: MAP_GRID_SIZE.cols, rows: MAP_GRID_SIZE.rows },
+      );
+    } else {
+      loadedState.playerCell = null;
+    }
   }
 
-  // Grid retirement: saves no longer carry a mapData grid; the cell reverse-map
-  // uses the canonical MAP_GRID_SIZE bookkeeping dims.
-  const gridSize = MAP_GRID_SIZE;
-  // Legacy save field (Stage 6 removed subMapCoordinates from GameState); read it
-  // off the raw loaded save if an old save carries it, else null.
-  const legacySubmap = (loadedState as unknown as { subMapCoordinates?: { x: number; y: number } | null }).subMapCoordinates ?? null;
-  loadedState.playerCell = derivePlayerCellForTile(
-    loadedState.worldSeed ?? 0,
-    tile,
-    legacySubmap,
-    { cols: gridSize.cols, rows: gridSize.rows },
-  );
+  // Grid retirement: rewrite a legacy `coord_X_Y` currentLocationId to the
+  // cell-native `cell_<cellId>` form, so the loaded game holds no coord_ ids.
+  if (loadedState.currentLocationId?.startsWith('coord_') && loadedState.playerCell?.cellId != null) {
+    loadedState.currentLocationId = makeCellLocationId(loadedState.playerCell.cellId);
+  }
   return loadedState;
 }

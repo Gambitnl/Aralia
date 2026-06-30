@@ -21,6 +21,7 @@
 
 import { VillagePersonality } from '../../types/village';
 import { Location, GameState } from '../../types';
+import { isWildernessLocationId } from '../location/cellLocationId';
 
 export interface SettlementType {
   name: string;
@@ -208,7 +209,7 @@ export const createPersonalityFromSettlementType = (settlementType: SettlementTy
  */
 export const determineSettlementInfo = (location: Location, gameState: GameState): SettlementType => {
   // For predefined town locations, determine settlement type based on location name/id
-  if (!location.id.startsWith('coord_')) {
+  if (!isWildernessLocationId(location.id)) {
     const locationName = location.name.toLowerCase();
     const locationId = location.id.toLowerCase();
 

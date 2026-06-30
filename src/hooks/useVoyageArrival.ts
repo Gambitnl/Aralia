@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import type { Dispatch } from 'react';
 import { AppAction } from '../state/actionTypes';
 import type { VoyageState } from '../types/naval';
-import { getTownTilesForGrid } from '../systems/worldforge/bridge/legacySubmapBridge';
+import { getTownTilesForGrid, getBridgeAtlas } from '../systems/worldforge/bridge/legacySubmapBridge';
 import { SUBMAP_DIMENSIONS, MAP_GRID_SIZE } from '../config/mapConfig';
+import { makeCellLocationId } from '../utils/location/cellLocationId';
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 import { LOCATIONS } from '../constants';
 
@@ -74,7 +75,15 @@ export function useVoyageArrival({
       return;
     }
 
-    const newLocationId = `coord_${tile.x}_${tile.y}`;
+    // Grid retirement: arrive AT the destination burg's atlas cell (cell-native id),
+    // not a coord_X_Y tile. The grid tile above only validates the burg is on the map.
+    const burgCell = (getBridgeAtlas(worldSeed).pack.burgs?.[destBurgId] as { cell?: number } | undefined)?.cell;
+    if (burgCell == null) {
+      console.error(`[useVoyageArrival] Destination burg ${destBurgId} has no atlas cell — cannot relocate. Clearing voyage.`);
+      dispatch({ type: 'NAVAL_CLEAR_VOYAGE' });
+      return;
+    }
+    const newLocationId = makeCellLocationId(burgCell);
     const newSubMapCoordinates = {
       x: Math.floor(SUBMAP_DIMENSIONS.cols / 2),
       y: Math.floor(SUBMAP_DIMENSIONS.rows / 2),
@@ -88,7 +97,7 @@ export function useVoyageArrival({
       payload: {
         newLocationId,
         newSubMapCoordinates,
-        // mapData omitted — reducer falls back to current mapData (no tile reveal needed for port arrival)
+        destinationCell: { cellId: burgCell, anchor: { cellId: burgCell } },
         activeDynamicNpcIds,
       },
     });

@@ -10,12 +10,19 @@ import type { AppAction } from '../../state/actionTypes';
 // Mocks
 // ---------------------------------------------------------------------------
 
-vi.mock('../../systems/worldforge/bridge/legacySubmapBridge', () => ({
-  getTownTilesForGrid: vi.fn(() => [
-    { x: 5, y: 3, burgId: 42, name: 'Portville' },
-    { x: 10, y: 7, burgId: 7, name: 'Harborton' },
-  ]),
-}));
+vi.mock('../../systems/worldforge/bridge/legacySubmapBridge', () => {
+  // Burgs indexed by burgId; each carries its atlas cell (the cell-native arrival).
+  const burgs: Array<{ cell: number } | undefined> = [];
+  burgs[42] = { cell: 142 };
+  burgs[7] = { cell: 107 };
+  return {
+    getTownTilesForGrid: vi.fn(() => [
+      { x: 5, y: 3, burgId: 42, name: 'Portville' },
+      { x: 10, y: 7, burgId: 7, name: 'Harborton' },
+    ]),
+    getBridgeAtlas: vi.fn(() => ({ pack: { burgs } })),
+  };
+});
 
 vi.mock('@/utils/spatial', () => ({
   determineActiveDynamicNpcsForLocation: vi.fn((_locationId: string) => ['npc_guard_1', 'npc_merchant_2']),
@@ -101,7 +108,7 @@ describe('useVoyageArrival', () => {
     // First call: MOVE_PLAYER
     const moveCall = mockDispatch.mock.calls[0][0];
     expect(moveCall.type).toBe('MOVE_PLAYER');
-    expect(moveCall.payload.newLocationId).toBe('coord_5_3');
+    expect(moveCall.payload.newLocationId).toBe('cell_142'); // burg 42 → atlas cell 142
     expect(moveCall.payload.newSubMapCoordinates).toEqual({ x: 15, y: 10 }); // floor(30/2)=15, floor(20/2)=10
     expect(moveCall.payload.activeDynamicNpcIds).toEqual(['npc_guard_1', 'npc_merchant_2']);
     expect(moveCall.payload).not.toHaveProperty('mapData'); // not passed — reducer uses current
@@ -115,12 +122,12 @@ describe('useVoyageArrival', () => {
     renderHook(() =>
       useVoyageArrival({
         worldSeed: 12345,
-        currentVoyage: makeDocketVoyage('7'), // burgId 7 → tile (10, 7) → coord_10_7
+        currentVoyage: makeDocketVoyage('7'), // burgId 7 → atlas cell 107
         dispatch,
       }),
     );
 
-    expect(determineActiveDynamicNpcsForLocation).toHaveBeenCalledWith('coord_10_7', {});
+    expect(determineActiveDynamicNpcsForLocation).toHaveBeenCalledWith('cell_107', {});
   });
 
   it('passes worldSeed, cols, rows to getTownTilesForGrid', () => {

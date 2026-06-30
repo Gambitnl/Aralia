@@ -65,6 +65,7 @@ import { rollDice } from '../../utils/combat/combatUtils';
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { LOCATIONS as _LOCATIONS, ITEMS, CLASSES_DATA } from '../../constants';
 import { generateId } from '../../utils/core/idGenerator';
+import { isWildernessLocationId } from '../../utils/location/cellLocationId';
 
 // Helper for resetting limited uses
 const resolveMaxValue = (char: GameState['party'][0], ability: LimitedUseAbility): number => {
@@ -397,7 +398,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             if (!itemToDrop) return {};
 
             const newDynamicItems = { ...state.dynamicLocationItemIds };
-            if (!state.currentLocationId.startsWith('coord_')) {
+            if (!isWildernessLocationId(state.currentLocationId)) {
                 newDynamicItems[state.currentLocationId] = [...(newDynamicItems[state.currentLocationId] || []), itemToDrop.id];
             }
 

@@ -12,6 +12,7 @@ import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn, GetTileTooltipTextFn } from './actionHandlerTypes';
 import { DIRECTION_VECTORS } from '../../config/mapConfig';
 import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
+import { isWildernessLocationId } from '../../utils/location/cellLocationId';
 
 interface HandleLookAroundProps {
   gameState: GameState;
@@ -34,10 +35,12 @@ export async function handleLookAround({
   // Grid retirement: the "look around" tile flavor comes from the player's
   // canonical cell biome (cell-native world), synthesized into a tile shape for
   // the existing tooltip formatter — NOT a read of the legacy 30x20 mapData.tiles.
-  if (gameState.playerCell?.cellId != null && gameState.currentLocationId.startsWith('coord_')) {
-    const parts = gameState.currentLocationId.split('_');
-    const worldX = parseInt(parts[1]);
-    const worldY = parseInt(parts[2]);
+  if (gameState.playerCell?.cellId != null && isWildernessLocationId(gameState.currentLocationId)) {
+    // Grid retirement: x,y are display bookkeeping — a legacy coord_X_Y id keeps
+    // its coords; a cell_<id> id labels by cell id.
+    const legacy = /^coord_(\d+)_(\d+)$/.exec(gameState.currentLocationId);
+    const worldX = legacy ? Number(legacy[1]) : gameState.playerCell.cellId;
+    const worldY = legacy ? Number(legacy[2]) : 0;
     const biomeId = biomeIdForCell(gameState.worldSeed ?? 0, gameState.playerCell.cellId);
     const synthTile = { x: worldX, y: worldY, biomeId, discovered: true, isPlayerCurrent: true } as MapTile;
     worldMapTileTooltipForGemini = getTileTooltipText(synthTile);

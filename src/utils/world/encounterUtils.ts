@@ -23,6 +23,7 @@ import { XP_THRESHOLDS_BY_LEVEL, XP_BY_CR } from '../../data/dndData';
 import { LOCATIONS, BIOMES } from '../../constants';
 import { MONSTERS_DATA } from '../../data/monsters';
 import { SeededRandom } from '../random/seededRandom';
+import { isWildernessLocationId } from '../location/cellLocationId';
 
 type SeededRng = SeededRandom | null;
 
@@ -76,7 +77,7 @@ export function calculateEncounterParameters(
     if (biome) {
       themeTags.add(biome.id); // e.g., 'forest', 'cave'
     }
-  } else if(currentLocationId.startsWith('coord_')) {
+  } else if(isWildernessLocationId(currentLocationId)) {
       themeTags.add('wilderness');
   }
 

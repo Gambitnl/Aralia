@@ -18,6 +18,7 @@ import { useMemo } from 'react';
 import { Action, Location, NPC, Item } from '../../types';
 import { useOptionalGameState } from '../../state/GameContext';
 import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
+import { isWildernessLocationId } from '../../utils/location/cellLocationId';
 
 interface UseActionGenerationProps {
   currentLocation: Location;
@@ -61,7 +62,7 @@ export const useActionGeneration = ({
     // Wilderness foraging: only procedural coord_ tiles (named locations use their
     // authored loot). Always offered — the handler reports "already searched" if the
     // tile was foraged before, so a single tile cannot be farmed for repeat loot.
-    if (currentLocation.id.startsWith('coord_')) {
+    if (isWildernessLocationId(currentLocation.id)) {
       actions.push({ type: 'SEARCH_AREA', label: 'Search the Area' });
     }
 
@@ -77,7 +78,7 @@ export const useActionGeneration = ({
       currentLocation.id.toLowerCase().includes(keyword)
     );
 
-    if (isTownLocation && !currentLocation.id.startsWith('coord_')) {
+    if (isTownLocation && !isWildernessLocationId(currentLocation.id)) {
       actions.push({ type: 'ENTER_VILLAGE', label: 'Enter Town' });
       // Add contextually appropriate actions when at a town location
       actions.push({ type: 'OBSERVE_TOWN', label: 'Scout Town' });

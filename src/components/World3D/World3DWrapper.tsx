@@ -76,6 +76,7 @@ import type { PlayerWorldPosition } from '../../types';
  */
 import { WORLD3D_CONFIG, heightToMeters } from '../../systems/world3d/config';
 import { MAP_GRID_SIZE } from '../../config/mapConfig';
+import { makeCellLocationId } from '../../utils/location/cellLocationId';
 import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
 // The worldforge bridge modules pull the entire FMG generation stack —
 // they are DYNAMICALLY imported inside the ground branch below so PLAYING's
@@ -313,9 +314,11 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
                   const richNpc = generateNPC(npcConfig);
                   richNpc.businessId = bizId;
                   
+                  // Grid retirement: the business locationId is the town's cell-native id.
+                  const bizCell = (bridge.getBridgeAtlas(wfSeed).pack.burgs?.[t.burgId] as { cell?: number } | undefined)?.cell ?? 0;
                   const worldBiz = generateNpcBusiness(
                     richNpc,
-                    `coord_${coords.x}_${coords.y}`, // locationId matching the game coordinate
+                    makeCellLocationId(bizCell),
                     bizType,
                     getGameDay(state.gameTime),
                     rng

@@ -72,6 +72,7 @@ import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 import { getAllFactions } from '../utils/factionUtils';
 import { generateWorldSeed } from '../utils/random/generateWorldSeed';
 import { generateId } from '../utils/core/idGenerator';
+import { makeCellLocationId } from '../utils/location/cellLocationId';
 
 // Shorthand type for the chat message function passed in from the parent component.
 // Accepts message text and an optional sender tag for styling in the chat log.
@@ -281,9 +282,9 @@ export function useGameInitialization({
           },
         );
 
-        // The logical location is the spawn's grid coord id (bookkeeping); the
-        // canonical position is playerCell (derived from it, or the chosen town).
-        spawnLocationId = `coord_${spawn.gridCell.x}_${spawn.gridCell.y}`;
+        // Grid retirement: the logical location is the cell-native id of the
+        // resolved atlas cell. The canonical position is playerCell (the same cell).
+        spawnLocationId = makeCellLocationId(spawn.atlasCellId);
       } catch (err) {
         console.error('[startGame] WF spawn resolution failed; using legacy start tile.', err);
       }

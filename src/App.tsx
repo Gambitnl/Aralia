@@ -86,6 +86,8 @@ import { biomeIdForCell } from '@/systems/worldforge/local/biomeForCell';
 import { wfBiomeIndexToLegacyId } from '@/systems/worldforge/local/wfBiomeToLegacy';
 import { getTownTilesForGrid } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { MAP_GRID_SIZE } from './config/mapConfig';
+import { makeCellLocationId, parseCellLocationId, isWildernessLocationId } from './utils/location/cellLocationId';
+import { parseCoordinateLocationId } from './utils/locationUtils';
 import { gridCellCenterToWorldMeters } from './utils/worldCoords';
 import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
@@ -342,25 +344,24 @@ const App: React.FC = () => {
       };
     }
 
-    if (currentId.startsWith('coord_')) {
-      const parts = currentId.split('_');
-      const worldX = parseInt(parts[1]);
-      const worldY = parseInt(parts[2]);
-
-      // Cell-native (Stage 6): the wilderness biome is the player's atlas cell's
-      // biome, not a mapData.tiles lookup.
-      const cellId = gameState.playerCell?.cellId;
+    if (isWildernessLocationId(currentId)) {
+      // Cell-native (grid retirement): the wilderness location is the player's
+      // atlas cell. Biome from the cell; a legacy coord_X_Y id still yields its
+      // display coords, while a cell_<id> id labels by cell.
+      const cellId = gameState.playerCell?.cellId ?? parseCellLocationId(currentId) ?? undefined;
+      const legacyCoord = parseCoordinateLocationId(currentId);
       const biomeId = (cellId != null ? biomeIdForCell(gameState.worldSeed, cellId) : undefined) ?? 'plains';
       const biome = BIOMES[biomeId];
+      const where = legacyCoord ? `(${legacyCoord.x},${legacyCoord.y})` : `(cell ${cellId ?? '?'})`;
 
       return {
         id: currentId,
-        name: `${biome?.name || 'Unknown Biome'} sector (${worldX},${worldY})`,
-        baseDescription: `You are in the ${biome?.name || 'unknown terrain'} world sector at (${worldX},${worldY}). ${biome?.description || ''}`,
+        name: `${biome?.name || 'Unknown Biome'} sector ${where}`,
+        baseDescription: `You are in the ${biome?.name || 'unknown terrain'} world sector ${where}. ${biome?.description || ''}`,
         exits: {},
         itemIds: gameState.dynamicLocationItemIds[currentId] || [],
         npcIds: [],
-        mapCoordinates: { x: worldX, y: worldY },
+        mapCoordinates: legacyCoord ?? { x: 0, y: 0 },
         biomeId,
       };
     }
@@ -375,7 +376,7 @@ const App: React.FC = () => {
     const location = getCurrentLocation();
     let npcList: NPC[] = [];
 
-    if (location?.npcIds && !location.id.startsWith('coord_')) {
+    if (location?.npcIds && !isWildernessLocationId(location.id)) {
       npcList = location.npcIds.map((npcId) => NPCS[npcId]).filter(Boolean) as NPC[];
     }
 
@@ -740,10 +741,12 @@ const App: React.FC = () => {
       applyProvisionEffects();
       announceEncounter();
     } else if (tile.discovered && !tile.locationId) {
-      const targetCoordId = `coord_${x}_${y}`;
-      if (targetCoordId !== gameState.currentLocationId) {
-        // Grid retirement: no mapData tile mutation; the destinationCell is the arrival.
-        dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: targetCoordId, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetCoordId, LOCATIONS), destinationCell: travelMeta?.destinationCell } });
+      // Grid retirement: the wilderness location id is the cell-native id of the
+      // clicked atlas cell (carried by destinationCell), not a coord_X_Y tile.
+      const destCellId = travelMeta?.destinationCell?.cellId;
+      const targetLocId = destCellId != null ? makeCellLocationId(destCellId) : null;
+      if (targetLocId && targetLocId !== gameState.currentLocationId) {
+        dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: targetLocId, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetLocId, LOCATIONS), destinationCell: travelMeta?.destinationCell } });
         dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
         dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
         applyProvisionEffects();
@@ -1109,7 +1112,7 @@ const App: React.FC = () => {
   const itemsInCurrentLocation: Item[] = (() => {
     if (!itemsById) return [];
     const locId = currentLocationData.id;
-    const ids = locId.startsWith('coord_')
+    const ids = isWildernessLocationId(locId)
       ? gameState.dynamicLocationItemIds[locId] ?? []
       : currentLocationData.itemIds ?? [];
     return ids.map((id) => itemsById[id]).filter(Boolean) as Item[];

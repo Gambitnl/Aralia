@@ -31,6 +31,7 @@ import { INITIAL_QUESTS } from '../../data/quests';
 import { biomeIdForCell } from '../../systems/worldforge/local/biomeForCell';
 import { generateId } from '../../utils/core/idGenerator';
 import { forageWilderness } from '../../systems/exploration/forage';
+import { isWildernessLocationId } from '../../utils/location/cellLocationId';
 
 interface HandleTakeItemProps {
   action: Action;
@@ -100,7 +101,7 @@ export async function handleTakeItem({
         dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'find_map', isCompleted: true } });
       }
     }
-  } else if (currentLocId.startsWith('coord_')) {
+  } else if (isWildernessLocationId(currentLocId)) {
     addMessage(`There is nothing like that to take here.`, 'system');
   } else {
     addMessage(`Cannot take ${ITEMS[targetId]?.name || targetId}. It's not here or doesn't exist.`, 'system');
@@ -130,7 +131,7 @@ export async function handleSearchArea({
   addMessage,
 }: HandleSearchAreaProps): Promise<void> {
   const locId = gameState.currentLocationId;
-  if (!locId.startsWith('coord_')) {
+  if (!isWildernessLocationId(locId)) {
     addMessage('You can only forage out in the wilds.', 'system');
     dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
     return;
@@ -143,11 +144,11 @@ export async function handleSearchArea({
     return;
   }
 
-  const [, xStr, yStr] = locId.split('_');
-  const x = Number(xStr);
-  const y = Number(yStr);
-  // Grid retirement: the forage biome comes from the player's canonical cell
-  // (cell-native world), not a scan of the legacy 30x20 mapData.tiles.
+  // Grid retirement: forage is seeded by position. A legacy coord_X_Y id keeps its
+  // x,y; a cell_<id> id seeds off the cell id. Biome is cell-native.
+  const legacy = /^coord_(\d+)_(\d+)$/.exec(locId);
+  const x = legacy ? Number(legacy[1]) : (gameState.playerCell?.cellId ?? 0);
+  const y = legacy ? Number(legacy[2]) : 0;
   const biomeId = gameState.playerCell?.cellId != null
     ? biomeIdForCell(gameState.worldSeed ?? 0, gameState.playerCell.cellId)
     : undefined;
@@ -238,7 +239,7 @@ export async function handleHarvestResource({
   addMessage(`You attempt to harvest resources from the ${harvestContext || 'area'}... (${usedSkillName} check: ${roll} + ${bonus} = ${total})`, 'system');
 
   const biome = 'wilds';
-  if (gameState.currentLocationId.startsWith('coord_')) {
+  if (isWildernessLocationId(gameState.currentLocationId)) {
     // Logic to get biome from map data if needed
   }
 

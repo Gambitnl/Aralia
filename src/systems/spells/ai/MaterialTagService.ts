@@ -18,6 +18,7 @@ import { Position, GameState, MapTile } from '../../../types';
 import { getSubmapTileInfo } from '../../../utils/submapUtils';
 import { SUBMAP_DIMENSIONS } from '../../../config/mapConfig';
 import { biomeIdForCell } from '../../worldforge/local/biomeForCell';
+import { isWildernessLocationId } from '../../../utils/location/cellLocationId';
 
 /**
  * Service for tagging tiles/objects with materials based on biome and terrain.
@@ -41,10 +42,14 @@ export class MaterialTagService {
         // biomeIdForCell, coords from the coord_X_Y location id — NOT a scan of
         // the legacy 30x20 mapData.tiles.
         let currentWorldTile: MapTile | null = null;
-        if (gameState.playerCell?.cellId != null && gameState.currentLocationId?.startsWith('coord_')) {
-            const [, xStr, yStr] = gameState.currentLocationId.split('_');
+        if (gameState.playerCell?.cellId != null && isWildernessLocationId(gameState.currentLocationId)) {
+            // Grid retirement: the submap coords seed off the cell id (cell-native);
+            // a legacy coord_X_Y id still parses its x,y.
+            const legacy = /^coord_(\d+)_(\d+)$/.exec(gameState.currentLocationId);
+            const x = legacy ? Number(legacy[1]) : gameState.playerCell.cellId;
+            const y = legacy ? Number(legacy[2]) : 0;
             const biomeId = biomeIdForCell(gameState.worldSeed ?? 0, gameState.playerCell.cellId);
-            currentWorldTile = { x: Number(xStr), y: Number(yStr), biomeId, discovered: true, isPlayerCurrent: true } as MapTile;
+            currentWorldTile = { x, y, biomeId, discovered: true, isPlayerCurrent: true } as MapTile;
         }
 
         // If we resolved the world tile, we can generate the specific submap tile data
