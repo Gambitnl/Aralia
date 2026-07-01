@@ -88,7 +88,6 @@ describe('contextUtils', () => {
     inventory: [],
     gold: 0,
     currentLocationId: 'loc_1',
-    subMapCoordinates: null,
     messages: [
       { id: 1, text: 'Welcome to the game', sender: 'system', timestamp: new Date() },
       { id: 2, text: 'I look around', sender: 'player', timestamp: new Date() },

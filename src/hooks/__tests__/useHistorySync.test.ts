@@ -231,7 +231,6 @@ describe('useHistorySync', () => {
             ...gameState,
             phase: GamePhase.PLAYING,
             currentLocationId: 'loc_1',
-            subMapCoordinates: { x: 10, y: 20 }
         };
 
         renderHook(() => useHistorySync(playingState, dispatch));

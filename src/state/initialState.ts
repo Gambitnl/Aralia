@@ -335,7 +335,7 @@ export const initialGameState: GameState = {
     entry3DAnchor: null,
     // Canonical player presence (cell-native world, Stage 2). Source of truth for
     // the player's atlas cell + Locale position; null until spawn. `currentLocationId`
-    // + `subMapCoordinates` remain the derived shadows readers use this stage.
+    // remains the derived legacy shadow readers use this stage.
     playerCell: null,
     // Ground-mode resume anchor
     // This stays null until the 3D ground renderer reports tile-local meters.

@@ -98,10 +98,6 @@ export interface GameState {
     inventory: Item[];
     gold: number;
     currentLocationId: string;
-    subMapCoordinates: {
-        x: number;
-        y: number;
-    } | null;
     messages: GameMessage[];
     isLoading: boolean;
     loadingMessage: string | null;

@@ -3,7 +3,6 @@ import type { Dispatch } from 'react';
 import { AppAction } from '../state/actionTypes';
 import type { VoyageState } from '../types/naval';
 import { getBridgeAtlas } from '../systems/worldforge/bridge/legacySubmapBridge';
-import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { makeCellLocationId } from '../utils/location/cellLocationId';
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 import { LOCATIONS } from '../constants';
@@ -69,10 +68,6 @@ export function useVoyageArrival({
       return;
     }
     const newLocationId = makeCellLocationId(burgCell);
-    const newSubMapCoordinates = {
-      x: Math.floor(SUBMAP_DIMENSIONS.cols / 2),
-      y: Math.floor(SUBMAP_DIMENSIONS.rows / 2),
-    };
     const activeDynamicNpcIds = determineActiveDynamicNpcsForLocation(newLocationId, LOCATIONS);
 
     // React 18 batches these two dispatches into a single re-render, so there is
@@ -81,7 +76,6 @@ export function useVoyageArrival({
       type: 'MOVE_PLAYER',
       payload: {
         newLocationId,
-        newSubMapCoordinates,
         destinationCell: { cellId: burgCell, anchor: { cellId: burgCell } },
         activeDynamicNpcIds,
       },

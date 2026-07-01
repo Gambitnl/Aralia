@@ -73,7 +73,6 @@ vi.mock('../../state/appState', async () => {
       isLoading: false,
       loadingMessage: null,
       party: [{ name: 'Test', id: 'p1' }],
-      subMapCoordinates: { x: 5, y: 5 },
       mapData: { tiles: [], gridSize: { rows: 10, cols: 10 } },
       messages: [],
       dynamicLocationItemIds: {},

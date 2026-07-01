@@ -83,10 +83,6 @@ export type AppAction = {
     type: 'MOVE_PLAYER';
     payload: {
         newLocationId: string;
-        newSubMapCoordinates: {
-            x: number;
-            y: number;
-        };
         mapData?: MapData;
         activeDynamicNpcIds: string[] | null;
     };
@@ -122,10 +118,6 @@ export type AppAction = {
         mapData: MapData;
         dynamicLocationItemIds: Record<string, string[]>;
         initialLocationDescription: string;
-        initialSubMapCoordinates: {
-            x: number;
-            y: number;
-        };
         initialActiveDynamicNpcIds: string[] | null;
         initialInventory: Item[];
     };

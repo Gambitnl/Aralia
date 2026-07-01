@@ -393,7 +393,8 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     // WorldData-v2 backfill is gone (the world is the atlas from worldSeed).
     // Backfill the canonical player cell (cell-native world, Stage 2) on saves
     // created before it existed. Idempotent; derives the cell from the legacy
-    // currentLocationId + subMapCoordinates via the existing golden mapping.
+    // currentLocationId (a `cell_<id>` id recovers it directly; anything else
+    // loads with a null cell).
     migratePlayerCell(loadedState);
     // Ensure new rest pacing fields exist when loading older saves.
     const restTrackerSeedTime = loadedState.gameTime instanceof Date

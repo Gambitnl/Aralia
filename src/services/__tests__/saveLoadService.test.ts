@@ -20,7 +20,6 @@ const mockGameState: GameState = {
     inventory: [],
     gold: 100,
     currentLocationId: 'town_square',
-    subMapCoordinates: { x: 10, y: 10 },
     messages: [],
     isLoading: false,
     loadingMessage: null,

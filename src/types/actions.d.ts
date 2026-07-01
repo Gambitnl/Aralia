@@ -135,10 +135,6 @@ export interface StartGameSuccessPayload {
     dynamicLocationItemIds: Record<string, string[]>;
     initialLocationDescription: string;
     initialLocationId?: string;
-    initialSubMapCoordinates: {
-        x: number;
-        y: number;
-    };
     initialActiveDynamicNpcIds: string[] | null;
     startingInventory: Item[];
 }

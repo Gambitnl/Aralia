@@ -15,7 +15,6 @@ describe('appState world history bootstrap', () => {
         character: createMockPlayerCharacter({ id: 'player-1', name: 'Test Hero' }),
         dynamicLocationItemIds: {},
         initialLocationDescription: 'A quiet beginning.',
-        initialSubMapCoordinates: { x: 1, y: 2 },
         initialActiveDynamicNpcIds: null,
         startingInventory: [],
         worldHistory,

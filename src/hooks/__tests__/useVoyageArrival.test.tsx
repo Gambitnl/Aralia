@@ -109,7 +109,6 @@ describe('useVoyageArrival', () => {
     const moveCall = mockDispatch.mock.calls[0][0];
     expect(moveCall.type).toBe('MOVE_PLAYER');
     expect(moveCall.payload.newLocationId).toBe('cell_142'); // burg 42 → atlas cell 142
-    expect(moveCall.payload.newSubMapCoordinates).toEqual({ x: 15, y: 10 }); // floor(30/2)=15, floor(20/2)=10
     expect(moveCall.payload.activeDynamicNpcIds).toEqual(['npc_guard_1', 'npc_merchant_2']);
     expect(moveCall.payload).not.toHaveProperty('mapData'); // not passed — reducer uses current
 

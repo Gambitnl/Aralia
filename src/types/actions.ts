@@ -289,7 +289,6 @@ export interface StartGameSuccessPayload {
   // player actually stands (matching the relocated world marker) instead of the
   // generic legacy 'clearing'. Omitted by dev/skip flows ⇒ falls back to it.
   initialLocationId?: string;
-  initialSubMapCoordinates: { x: number; y: number };
   initialActiveDynamicNpcIds: string[] | null;
   startingInventory: Item[];
   worldHistory?: import('./history.js').WorldHistory;
@@ -308,7 +307,8 @@ export interface StartGameSuccessPayload {
   // Canonical player presence (cell-native world, Stage 2): the chosen spawn's
   // atlas cell + Locale position, threaded atomically with the spawn so the source
   // of truth agrees with `entry3DAnchor` from frame one. Omitted ⇒ the reducer
-  // derives it from `initialLocationId` + `initialSubMapCoordinates`.
+  // derives the cell from `initialLocationId` (with a null Locale position; feet
+  // come from the ground session).
   playerCell?: import('./state.js').PlayerCell | null;
 }
 

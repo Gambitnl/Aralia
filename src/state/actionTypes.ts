@@ -66,7 +66,7 @@ export type AppAction =
   // the EXACT destination cell + its 3D-entry anchor so arrival lands that cell (not
   // the lossy tile reverse-derive), resets Locale feet, and frames the destination
   // town on a later Enter-3D. Optional ⇒ legacy compass/static moves are unaffected.
-  | { type: 'MOVE_PLAYER'; payload: { newLocationId: string; newSubMapCoordinates?: { x: number; y: number }; activeDynamicNpcIds: string[] | null; destinationCell?: { cellId: number; anchor: Entry3DAnchor } } }
+  | { type: 'MOVE_PLAYER'; payload: { newLocationId: string; activeDynamicNpcIds: string[] | null; destinationCell?: { cellId: number; anchor: Entry3DAnchor } } }
   | { type: 'APPLY_TAKE_ITEM_UPDATE'; payload: { item: Item; locationId: string; discoveryEntry: DiscoveryEntry } }
   // Places foraged items onto a (typically procedural coord_) tile and, by the
   // mere presence of the key, marks that tile as already searched so it cannot be
@@ -76,7 +76,7 @@ export type AppAction =
   | { type: 'TOGGLE_MINIMAP_VISIBILITY' }
   | { type: 'TOGGLE_THREE_D_VISIBILITY' }
   | { type: 'SET_WORLD_SEED'; payload: number }
-  | { type: 'INITIALIZE_DUMMY_PLAYER_STATE'; payload: { worldSeed: number; dynamicLocationItemIds: Record<string, string[]>; initialLocationDescription: string; initialSubMapCoordinates: { x: number; y: number }, initialActiveDynamicNpcIds: string[] | null; initialInventory: Item[] } }
+  | { type: 'INITIALIZE_DUMMY_PLAYER_STATE'; payload: { worldSeed: number; dynamicLocationItemIds: Record<string, string[]>; initialLocationDescription: string; initialActiveDynamicNpcIds: string[] | null; initialInventory: Item[] } }
   | { type: 'SET_GEMINI_ACTIONS'; payload: Action[] | null }
   | { type: 'OPEN_CHARACTER_SHEET'; payload: PlayerCharacter }
   | { type: 'CLOSE_CHARACTER_SHEET' }

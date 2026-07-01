@@ -59,7 +59,6 @@ import { AppAction } from '../state/actionTypes';
 import { STARTING_LOCATION_ID, LOCATIONS } from '../data/world/locations';
 import { BIOMES } from '../data/biomes';
 // Grid dimensions for the world map and the sub-map (local tile grid within a location).
-import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 // Procedural map generator that produces the world grid from locations, biomes, and a seed.
 // WF-derived spawn: place the player where the generated FMG world says, not a hardcoded tile.
 import { applyWfSpawnToMap } from '../systems/worldforge/local/resolveSpawn';
@@ -285,9 +284,6 @@ export function useGameInitialization({
         console.error('[startGame] WF spawn resolution failed; using legacy start tile.', err);
       }
 
-      // Local position within the starting cell (vestigial submap center for now).
-      const initialSubMapCoords = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
-
       // Determine which dynamic NPCs should be present at the resolved spawn
       // location (coord_ tiles carry none statically; situation NPCs are added
       // afterward via PLACE_SITUATION_NPCS).
@@ -300,7 +296,6 @@ export function useGameInitialization({
         dynamicLocationItemIds: initialDynamicItems,
         initialLocationDescription: initialLocation.baseDescription,
         initialLocationId: spawnLocationId,
-        initialSubMapCoordinates: initialSubMapCoords,
         initialActiveDynamicNpcIds: initialActiveDynamicNpcs,
         worldHistory: createBootstrapWorldHistory(worldSeed),
         worldSeed,
@@ -315,9 +310,9 @@ export function useGameInitialization({
         // Canonical player presence (cell-native world, Stage 2): the chosen
         // start town's cell when picked (so the source of truth agrees with the
         // entry3DAnchor), else the reducer derives it from the spawn tile. The
-        // Locale-local position mirrors the legacy submap center for now.
+        // Locale-local position starts null; feet come from the ground session.
         playerCell: startTown
-          ? { cellId: startTown.atlasCellId, localeCoords: initialSubMapCoords }
+          ? { cellId: startTown.atlasCellId, localeCoords: null }
           : null,
       };
 
@@ -349,9 +344,6 @@ export function useGameInitialization({
     // Re-use the current world seed if one is set, else a throwaway preview seed.
     const worldSeed = currentWorldSeed && currentWorldSeed > 0 ? currentWorldSeed : generateWorldSeed();
 
-    // Center the viewport on the sub-map.
-    const initialSubMapCoords = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
-
     // Determine active NPCs at the starting location.
     const initialActiveDynamicNpcs = determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS);
 
@@ -372,7 +364,6 @@ export function useGameInitialization({
         worldSeed,
         dynamicLocationItemIds: dynamicItemsToUse,
         initialLocationDescription: initialLocation.baseDescription,
-        initialSubMapCoordinates: initialSubMapCoords,
         initialActiveDynamicNpcIds: initialActiveDynamicNpcs,
         initialInventory: initialInventoryForDummyCharacter,
       }

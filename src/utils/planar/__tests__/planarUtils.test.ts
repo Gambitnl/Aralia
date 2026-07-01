@@ -72,7 +72,6 @@ describe('Planar Utils', () => {
       inventory: [{ id: 'key1', name: 'Moonstone Key', type: ItemType.Key, description: 'A key' }],
       gold: 0,
       currentLocationId: 'loc1',
-      subMapCoordinates: null,
       messages: [],
       isLoading: false,
       loadingMessage: null,

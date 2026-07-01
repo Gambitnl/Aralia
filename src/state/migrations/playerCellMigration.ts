@@ -6,11 +6,11 @@
  *
  * Why this is built this way:
  * - Stage 2 makes `playerCell: { cellId, localeCoords }` the source of truth for
- *   the player's position; `currentLocationId` (coord_X_Y) + `subMapCoordinates`
- *   become derived shadows. Pre-Stage-2 saves only carry the legacy fields, so on
- *   load we derive the cell from them via the EXISTING golden reverse mapping
- *   (`legacyTileToAtlasCell`, the same one the 3D generator uses) — never a new or
- *   reimplemented mapping.
+ *   the player's position; `currentLocationId` (coord_X_Y) becomes the derived
+ *   legacy shadow. Pre-Stage-2 saves only carry the legacy field, so on load we
+ *   derive the cell from it (a `cell_<id>` id recovers it directly) — never a new
+ *   or reimplemented mapping. (The old `subMapCoordinates` shadow was removed in
+ *   grid-retirement slice 4a; nothing reads it off the raw save.)
  * - Mirrors the `migrateMapDataToWorldDataV2` pattern (idempotent, called from
  *   saveLoadService.loadGame after the other backfills).
  *

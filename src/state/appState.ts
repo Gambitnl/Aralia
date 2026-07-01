@@ -114,11 +114,10 @@ export { initialGameState, INITIAL_DIVINE_FAVOR };
  * relocation, or a generator hiccup) so the reducer never throws. Readers still
  * use the derived legacy fields this stage.
  *
- * GRID-RETIRE: BA-5 — dual `localeCoords` producer. This is the LEGACY tile path:
- * it writes `localeCoords` from the integer submap sub-tile (`subMapCoordinates`).
- * The ground path (`worldReducer` `SET_PLAYER_GROUND_POS`) writes continuous Locale
- * feet and wins whenever a ground/Locale session is active. Both producers survive
- * until Stage 6 deletes `subMapCoordinates` / this integer path, leaving feet sole.
+ * GRID-RETIRE: the dead `subMapCoordinates` integer shadow (slice 4a) is gone, so
+ * this path always passes a null Locale position. Continuous Locale feet are the
+ * sole `localeCoords` producer now — written by the ground path (`worldReducer`
+ * `SET_PLAYER_GROUND_POS`) whenever a ground/Locale session is active.
  */
 function derivePlayerCell(
   locationId: string,
@@ -565,7 +564,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // it from the resolved spawn tile (null if it's the static start).
                 playerCell: restOfPayload.playerCell ?? derivePlayerCell(
                     restOfPayload.initialLocationId ?? STARTING_LOCATION_ID,
-                    null, // no subMapCoordinates; Locale feet come from the ground session.
+                    null, // Locale feet come from the ground session.
                 ),
                 dynamicLocationItemIds: restOfPayload.dynamicLocationItemIds,
                 // Standard starts use the same bridge; if a caller omits the
@@ -748,7 +747,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ? { cellId: dest.cellId, localeCoords: null }
                 : derivePlayerCell(
                     action.payload.newLocationId,
-                    null, // no subMapCoordinates; feet come from the ground session.
+                    null, // feet come from the ground session.
                 );
             return {
                 ...state,
@@ -785,7 +784,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // location (null for the static 'clearing' start tile).
                 playerCell: derivePlayerCell(
                     state.currentLocationId,
-                    null, // no subMapCoordinates.
+                    null, // no Locale feet; static dev spawn.
                 ),
                 isLoading: false, loadingMessage: null, isImageLoading: false,
                 dynamicLocationItemIds: action.payload.dynamicLocationItemIds,

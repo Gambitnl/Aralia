@@ -175,18 +175,19 @@ export interface Entry3DAnchor {
 /**
  * Canonical player presence (cell-native world, Stage 2). The atlas Voronoi cell
  * the player occupies plus their Locale-local position. This is the SOURCE OF
- * TRUTH for where the player is; `currentLocationId` (`coord_X_Y`) and
- * `subMapCoordinates` are derived shadows kept for legacy-reader compat.
+ * TRUTH for where the player is; `currentLocationId` (`coord_X_Y`) is the derived
+ * legacy shadow kept for legacy-reader compat. (The old `subMapCoordinates`
+ * integer shadow was removed in grid-retirement slice 4a.)
  *
- * `localeCoords` in Stage 2 mirrors the legacy submap sub-tile `{x,y}` (the same
- * value as `subMapCoordinates`); Stage 3 (Locale movement) widens it to
- * continuous Locale feet backed by `playerGroundPos`. The structural type is kept
- * deliberately loose so that widening needs no second save migration.
+ * `localeCoords` is continuous Locale feet backed by `playerGroundPos` (Stage 3
+ * "Locale movement"), null until a ground session engages. The structural type is
+ * kept deliberately loose so the earlier submap-sub-tile widening needed no second
+ * save migration.
  */
 export interface PlayerCell {
   /** Atlas (FMG) Voronoi cell id the player occupies. */
   cellId: number;
-  /** Locale-local position (Stage 2: submap sub-tile, mirrors subMapCoordinates). */
+  /** Locale-local position — continuous Locale feet from the ground session, or null. */
   localeCoords: { x: number; y: number } | null;
 }
 
@@ -467,8 +468,8 @@ export interface GameState {
   /**
    * Canonical player presence (cell-native world, Stage 2): the atlas cell +
    * Locale-local position the player occupies. SOURCE OF TRUTH — `currentLocationId`
-   * (`coord_X_Y`) and `subMapCoordinates` are derived shadows kept for legacy-reader
-   * compat. Null before spawn / at the main menu (like `subMapCoordinates`). Recorded
+   * (`coord_X_Y`) is the derived legacy shadow kept for legacy-reader compat.
+   * Null before spawn / at the main menu. Recorded
    * at every position write (MOVE_PLAYER, START_GAME_SUCCESS, …) and backfilled on
    * load for pre-Stage-2 saves; readers are flipped onto it in Stage 3, not here.
    */
