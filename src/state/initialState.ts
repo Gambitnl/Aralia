@@ -246,10 +246,6 @@ export const initialGameState: GameState = {
     worldHistory: createEmptyHistory(),
     townSim: {}, // living-world town sim registry; towns added when first tracked
 
-    // Town Exploration
-    townState: null,
-    townEntryDirection: null,
-
     // Notification System
     notifications: [],
 

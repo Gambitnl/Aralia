@@ -39,7 +39,7 @@ export const MonsterSchema = z.object({
 // --- Custom Action Schema ---
 
 export const CustomActionSchema = z.object({
-  type: z.string().optional(), // e.g., 'ENTER_VILLAGE' or default to 'gemini_custom_action'
+  type: z.string().optional(), // legacy hint field; ignored — actions map to 'gemini_custom_action'
   label: z.string(),
   geminiPrompt: z.string().optional(),
   check: z.string().optional(),

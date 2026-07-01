@@ -89,11 +89,6 @@ export type ActionType =
   | 'ADD_LOCATION_RESIDUE'
   | 'REMOVE_LOCATION_RESIDUE'
   | 'QUICK_TRAVEL'
-  | 'ENTER_VILLAGE'
-  | 'APPROACH_VILLAGE'
-  | 'OBSERVE_VILLAGE'
-  | 'APPROACH_TOWN'
-  | 'OBSERVE_TOWN'
   | 'OPEN_MERCHANT'
   | 'CLOSE_MERCHANT'
   | 'BUY_ITEM'
@@ -128,10 +123,6 @@ export type ActionType =
   | 'UPDATE_DIALOGUE_SESSION'
   | 'END_DIALOGUE_SESSION'
   | 'SET_DEV_MODE_ENABLED'
-  // Village-specific actions (migrated from label-based custom actions)
-  | 'EXIT_VILLAGE'
-  | 'VISIT_GENERAL_STORE'
-  | 'VISIT_BLACKSMITH'
   // Town notice board (opens the living-world news modal for the tracked town)
   | 'OPEN_NOTICE_BOARD'
   // Town broadsheet (opens the living-world newspaper for the tracked town)
@@ -382,11 +373,6 @@ export type Action =
   | { type: 'ADD_LOCATION_RESIDUE'; payload: AddLocationResiduePayload; label?: string }
   | { type: 'REMOVE_LOCATION_RESIDUE'; payload: RemoveLocationResiduePayload; label?: string }
   | { type: 'QUICK_TRAVEL'; payload: { quickTravel: QuickTravelPayload }; label?: string }
-  | { type: 'ENTER_VILLAGE'; payload?: { entryDirection?: string }; label?: string }
-  | { type: 'APPROACH_VILLAGE'; payload?: never; label?: string }
-  | { type: 'OBSERVE_VILLAGE'; payload?: never; label?: string }
-  | { type: 'APPROACH_TOWN'; payload?: never; label?: string }
-  | { type: 'OBSERVE_TOWN'; payload?: never; label?: string }
   | { type: 'OPEN_MERCHANT'; payload: { merchantName: string; inventory: Item[]; economy?: import('./economy.js').EconomyState }; label?: string }
   | { type: 'CLOSE_MERCHANT'; payload?: unknown; label?: string }
   | { type: 'BUY_ITEM'; payload: MerchantActionPayload; label?: string }
@@ -421,9 +407,6 @@ export type Action =
   | { type: 'UPDATE_DIALOGUE_SESSION'; payload: { session: DialogueSession }; label?: string }
   | { type: 'END_DIALOGUE_SESSION'; payload?: never; label?: string }
   | { type: 'SET_DEV_MODE_ENABLED'; payload: { enabled: boolean }; label?: string }
-  | { type: 'EXIT_VILLAGE'; payload?: never; label?: string }
-  | { type: 'VISIT_GENERAL_STORE'; payload?: never; label?: string }
-  | { type: 'VISIT_BLACKSMITH'; payload?: never; label?: string }
   | { type: 'OPEN_NOTICE_BOARD'; payload?: never; label?: string }
   | { type: 'OPEN_BROADSHEET'; payload?: never; label?: string }
   | { type: 'TAKE_BROADSHEET'; payload?: never; label?: string }

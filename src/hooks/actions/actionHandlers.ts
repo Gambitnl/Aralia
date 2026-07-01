@@ -52,7 +52,6 @@ import type {
 import { GamePhase } from '../../types';
 import type { AppAction } from '../../state/actionTypes';
 import type { CastSpellPayload } from '../../types/actions';
-import { ITEMS, WEAPONS_DATA } from '../../constants';
 import { formatDuration, getGameDay } from '../../utils/core';
 import { ItemType } from '../../types/items';
 import { generateId } from '../../utils/core/idGenerator';
@@ -142,22 +141,12 @@ export function buildActionHandlers({
   const handlers: Record<ActionType, ActionHandler> = {
     // Grid retirement: the legacy 30x20 exploration movers (handleMovement.ts) are
     // deleted. Overland navigation is the cell-native World Map (atlas fast-travel);
-    // settlement entry is Enter-3D (ENTER_VILLAGE, kept). The grid-based move/quick-
-    // travel/approach/observe actions are retained as no-ops for ActionType
-    // completeness until the action union is pruned in a later step.
+    // settlement entry is Enter-3D. The grid-based move/quick-travel action types are
+    // retained as no-ops for ActionType completeness until the action union is fully
+    // pruned in a later step. The legacy 2D-village actions (ENTER_VILLAGE / APPROACH /
+    // OBSERVE) were removed with the retired village view (grid-retire slice 1b).
     move: async () => {},
     QUICK_TRAVEL: async () => {},
-    ENTER_VILLAGE: (action) => {
-      const entryDirection = (action.payload as { entryDirection?: string })?.entryDirection as 'north' | 'east' | 'south' | 'west' | undefined;
-      if (entryDirection) {
-        dispatch({ type: 'SET_TOWN_ENTRY_DIRECTION', payload: { direction: entryDirection } });
-      }
-      dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.VILLAGE_VIEW });
-    },
-    APPROACH_VILLAGE: async () => {},
-    APPROACH_TOWN: async () => {},
-    OBSERVE_VILLAGE: async () => {},
-    OBSERVE_TOWN: async () => {},
 
     // Observation and situational analysis (handleObservation.ts).
     look_around: async (_action) => {
@@ -433,30 +422,11 @@ export function buildActionHandlers({
       dispatch({ type: 'OPEN_PUZZLE_RUNTIME', payload: action.payload as Puzzle });
     },
 
-    // Village-specific actions (migrated from label-based custom actions).
-    // These handlers replace the legacy label-based branching in the 'custom' handler.
-    EXIT_VILLAGE: () => {
-      // Transition back to PLAYING phase to exit the village.
-      dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.PLAYING });
-      addMessage('You leave the village and return to your journey.', 'system');
-    },
-    VISIT_GENERAL_STORE: () => {
-      // Legacy general store with basic items.
-      const inventory: Item[] = [ITEMS['healing_potion'], ITEMS['rope_item'], ITEMS['torch_item']].filter(Boolean);
-      dispatch({ type: 'OPEN_MERCHANT', payload: { merchantName: "General Store (Legacy)", inventory } });
-      addMessage('You enter the General Store.', 'system');
-    },
-    VISIT_BLACKSMITH: () => {
-      // Legacy blacksmith with basic weapons/armor.
-      const inventory: Item[] = [WEAPONS_DATA['dagger'], ITEMS['shield_std']].filter(Boolean);
-      dispatch({ type: 'OPEN_MERCHANT', payload: { merchantName: "The Anvil (Legacy)", inventory } });
-      addMessage('You step into the sweltering heat of the Blacksmith.', 'system');
-    },
-
     // Custom and narrative actions.
-    // This handler now focuses on village context actions and generic custom actions.
-    // Label-based branching for specific village actions (Exit Village, Visit General Store, etc.)
-    // has been migrated to explicit action types (EXIT_VILLAGE, VISIT_GENERAL_STORE, etc.).
+    // This handler focuses on village-context actions (integration prompts) and
+    // generic custom actions. The legacy explicit village action types
+    // (EXIT_VILLAGE / VISIT_GENERAL_STORE / VISIT_BLACKSMITH) were removed with the
+    // retired 2D village view (grid-retire slice 1b).
     custom: (action) => {
       // Handle village context actions with integration prompts.
       const payload = action.payload as { villageContext?: VillageActionContext };

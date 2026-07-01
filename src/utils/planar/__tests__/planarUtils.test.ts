@@ -136,8 +136,6 @@ describe('Planar Utils', () => {
       isDialogueInterfaceOpen: false,
       banterCooldowns: {},
       isQuestLogVisible: false,
-      townState: null,
-      townEntryDirection: null,
       activeRumors: [],
       worldHistory: undefined,
       activeHeist: null,

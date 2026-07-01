@@ -24,7 +24,13 @@ export enum GamePhase {
   GAME_OVER,
   BATTLE_MAP_DEMO,
   LOAD_TRANSITION,
-  VILLAGE_VIEW,
+  /**
+   * Reserved ordinal slot — formerly VILLAGE_VIEW, the legacy 2D village screen
+   * (TownCanvas), retired in the grid-retirement program (slices 1a/1b). The
+   * member is kept as a placeholder so every phase after it keeps its numeric
+   * index and existing saves stay index-compatible. Do NOT reuse or reference.
+   */
+  RESERVED_RETIRED_VILLAGE_VIEW,
   COMBAT,
   NOT_FOUND,
   // DESIGN_PREVIEW removed - now a standalone tool at /Aralia/misc/design.html

@@ -55,7 +55,6 @@ type DevMenuActionType =
   | 'toggle_npc_test_plan'
   | 'inspect_noble_houses'
   | 'test_temple'
-  | 'test_village'
   | 'test_lockpicking'
   | 'test_dice_roller'
   | 'toggle_thieves_guild'
@@ -214,7 +213,6 @@ const DevMenu: React.FC<DevMenuProps> = ({
       title: 'Feature Testing',
       buttons: [
         { label: 'Test Temple UI', action: 'test_temple', style: 'bg-amber-600 hover:bg-amber-500', onClick: openTestTemple },
-        { label: 'Open Village Scene', action: 'test_village', style: 'bg-emerald-600 hover:bg-emerald-500' },
         { label: 'Test Lockpicking UI', action: 'test_lockpicking', style: 'bg-yellow-700 hover:bg-yellow-600 border border-yellow-500' },
         { label: '3D Dice Roller', action: 'test_dice_roller', style: 'bg-indigo-700 hover:bg-indigo-600 border border-indigo-500' },
         { label: 'Access Criminal Underworld', action: 'toggle_thieves_guild', style: 'bg-purple-900 hover:bg-purple-800 border border-purple-600' },

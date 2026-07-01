@@ -24,7 +24,7 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
 
   // Guard Logic Helper
   const safeNavigate = useCallback((targetPhase: GamePhase, silent: boolean = false) => {
-    const protectedPhases = [GamePhase.PLAYING, GamePhase.COMBAT, GamePhase.VILLAGE_VIEW, GamePhase.BATTLE_MAP_DEMO];
+    const protectedPhases = [GamePhase.PLAYING, GamePhase.COMBAT, GamePhase.BATTLE_MAP_DEMO];
     if (protectedPhases.includes(targetPhase) && gameState.party.length === 0) {
       if (!silent) {
         console.warn(`[Ranger] Blocked nav to ${GamePhase[targetPhase]} - no party.`);

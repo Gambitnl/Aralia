@@ -13,7 +13,6 @@ vi.mock('../../types', async (importOriginal) => {
         CHARACTER_CREATION: 1,
         PLAYING: 2,
         COMBAT: 3,
-        VILLAGE_VIEW: 4,
         BATTLE_MAP_DEMO: 5,
         GAME_OVER: 6,
         LOAD_TRANSITION: 7,
@@ -22,7 +21,6 @@ vi.mock('../../types', async (importOriginal) => {
         1: 'CHARACTER_CREATION',
         2: 'PLAYING',
         3: 'COMBAT',
-        4: 'VILLAGE_VIEW',
         5: 'BATTLE_MAP_DEMO',
         6: 'GAME_OVER',
         7: 'LOAD_TRANSITION',
@@ -35,7 +33,6 @@ vi.mock('../../types', async (importOriginal) => {
 vi.mock('../MainMenu', () => ({ default: () => <div data-testid="main-menu">Main Menu</div> }));
 vi.mock('../CharacterCreator/CharacterCreator', () => ({ default: () => <div>Character Creator</div> }));
 vi.mock('../Combat/CombatView', () => ({ default: () => <div>Combat View</div> }));
-vi.mock('../TownCanvas', () => ({ default: () => <div>Town Canvas</div> }));
 vi.mock('../BattleMapDemo', () => ({ default: () => <div>Battle Map</div> }));
 vi.mock('../SaveLoad', () => ({ LoadGameTransition: () => <div>Load Game</div> }));
 vi.mock('../NotFound', () => ({ default: () => <div>Not Found</div> }));

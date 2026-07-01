@@ -140,8 +140,6 @@ describe('LeverageSystem', () => {
             isInvestmentBoardVisible: false,
             isEconomyLedgerVisible: false,
             isCourierPouchVisible: false,
-            townState: null,
-            townEntryDirection: null,
             activeDialogueSession: null,
             isDialogueInterfaceOpen: false,
             isThievesGuildVisible: false,

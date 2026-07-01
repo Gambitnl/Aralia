@@ -250,7 +250,7 @@ export async function generateCustomActions(
   const systemInstruction = `You are a creative Dungeon Master suggesting actions.
     Based on the scene, suggest up to 3 brief, non-navigational, context-aware actions.
     Format as a valid JSON array of objects with keys: 'label', 'geminiPrompt'.
-    Optional keys: 'type' (e.g., 'ENTER_VILLAGE'), 'check' (skill name), 'targetNpcId', 'eventResidue' ({text, discoveryDc}), 'isEgregious' (boolean).
+    Optional keys: 'check' (skill name), 'targetNpcId', 'eventResidue' ({text, discoveryDc}), 'isEgregious' (boolean).
     Provide ONLY the JSON array.`;
   const prompt = `Scene: "${sceneDescription}"\nContext: ${context}`;
 
@@ -288,13 +288,6 @@ export async function generateCustomActions(
     const validatedActions = CustomActionSchema.array().parse(parsedActions);
 
     actions = validatedActions.map(a => {
-      if (a.type === 'ENTER_VILLAGE') {
-        return {
-          type: 'ENTER_VILLAGE',
-          label: a.label
-        };
-      }
-
       return {
         type: 'gemini_custom_action',
         label: a.label,

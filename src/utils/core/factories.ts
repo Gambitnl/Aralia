@@ -616,8 +616,6 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isBroadsheetVisible: false,
       broadsheetSnapshot: undefined,
 
-      townState: null,
-      townEntryDirection: null,
       worldViewMode: 'atlas',
       mapSurface: 'classic',
       playerWorldPos: null,
@@ -804,8 +802,6 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isNoticeBoardVisible: false,
       isBroadsheetVisible: false,
       broadsheetSnapshot: undefined,
-      townState: null,
-      townEntryDirection: null,
       worldViewMode: 'atlas',
       mapSurface: 'classic',
       playerWorldPos: null,

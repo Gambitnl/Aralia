@@ -259,13 +259,6 @@ export type AppAction =
   | { type: 'SET_NOTICE_BOARD_VISIBLE'; payload: boolean }
   // Town broadsheet visibility (living-world newspaper modal)
   | { type: 'SET_BROADSHEET_VISIBLE'; payload: boolean }
-  // Town Navigation Actions
-  | { type: 'ENTER_TOWN'; payload: { townMap: import('../types/town.js').TownState['townMap']; entryPoint: import('../types/town.js').TownState['entryPoint']; spawnPosition: import('../types/town.js').TownPosition } }
-  | { type: 'SET_TOWN_ENTRY_DIRECTION'; payload: { direction: 'north' | 'east' | 'south' | 'west' | null } }
-  | { type: 'MOVE_IN_TOWN'; payload: { direction: import('../types/town.js').TownDirection } }
-  | { type: 'STOP_MOVING_IN_TOWN' }
-  | { type: 'SET_TOWN_VIEWPORT'; payload: { center?: import('../types/town.js').TownPosition; zoom?: number } }
-  | { type: 'EXIT_TOWN' }
   // Notoriety Actions
   | { type: 'COMMIT_CRIME'; payload: { type: CrimeType; locationId: string; severity: number; witnessed: boolean } }
   | { type: 'LOWER_HEAT'; payload: { amount: number; locationId?: string } }

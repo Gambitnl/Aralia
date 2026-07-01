@@ -8,7 +8,7 @@ export declare enum GamePhase {
     GAME_OVER = 3,
     BATTLE_MAP_DEMO = 4,
     LOAD_TRANSITION = 5,
-    VILLAGE_VIEW = 6,
+    RESERVED_RETIRED_VILLAGE_VIEW = 6,
     COMBAT = 7,
     NOT_FOUND = 8,
     WORLD3D_DEMO = 9

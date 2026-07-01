@@ -406,10 +406,6 @@ export interface GameState {
 
   activeRitual?: RitualState | null;
 
-  townState: import('./town.js').TownState | null;
-
-  townEntryDirection: 'north' | 'east' | 'south' | 'west' | null;
-
   activeDialogueSession: import('./dialogue.js').DialogueSession | null;
   isDialogueInterfaceOpen: boolean;
 

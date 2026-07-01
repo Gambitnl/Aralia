@@ -11,8 +11,7 @@ const AUTO_SAVE_THROTTLE_MS = 10_000;
 // phases are eligible for the rolling autosave; combat is handled by a one-shot
 // pre-combat checkpoint (see useAutoSave) instead.
 const isGameplayPhase = (phase: GamePhase) =>
-  phase === GamePhase.PLAYING ||
-  phase === GamePhase.VILLAGE_VIEW;
+  phase === GamePhase.PLAYING;
 
 const isCombatPhase = (phase: GamePhase) =>
   phase === GamePhase.COMBAT ||

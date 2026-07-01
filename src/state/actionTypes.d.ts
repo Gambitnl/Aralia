@@ -612,33 +612,6 @@ export type AppAction = {
 } | {
     type: 'TOGGLE_QUEST_LOG';
 } | {
-    type: 'ENTER_TOWN';
-    payload: {
-        townMap: import('../types/town.js').TownState['townMap'];
-        entryPoint: import('../types/town.js').TownState['entryPoint'];
-        spawnPosition: import('../types/town.js').TownPosition;
-    };
-} | {
-    type: 'SET_TOWN_ENTRY_DIRECTION';
-    payload: {
-        direction: 'north' | 'east' | 'south' | 'west' | null;
-    };
-} | {
-    type: 'MOVE_IN_TOWN';
-    payload: {
-        direction: import('../types/town.js').TownDirection;
-    };
-} | {
-    type: 'STOP_MOVING_IN_TOWN';
-} | {
-    type: 'SET_TOWN_VIEWPORT';
-    payload: {
-        center?: import('../types/town.js').TownPosition;
-        zoom?: number;
-    };
-} | {
-    type: 'EXIT_TOWN';
-} | {
     type: 'COMMIT_CRIME';
     payload: {
         type: CrimeType;
