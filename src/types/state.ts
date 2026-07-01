@@ -197,14 +197,18 @@ export interface PlayerCell {
  */
 export interface DiscoveredHiddenSite {
   id: string;
-  tileX: number;
-  tileY: number;
+  /**
+   * Grid retirement (2026-07-01): the canonical atlas cell the discovery sits in
+   * (the player's cell at reveal time). Replaces the legacy `tileX/tileY` 30×20
+   * grid coords — the atlas pin is drawn straight at this cell's Voronoi site.
+   */
+  cellId: number;
   name?: string;
   kind?: string;
   /**
-   * Sub-tile position within the tile, each in [-0.5, 0.5] from the tile center
+   * Sub-cell position within the cell, each in [-0.5, 0.5] from the cell center
    * (derived from the site's ground-meter position at discovery). Lets the atlas
-   * pin sit where the place actually is inside its tile, not just at the cell
+   * pin sit where the place actually is inside its cell, not just at the cell
    * center. Optional + backward-compatible: pre-existing saves omit it and fall
    * back to the cell-center pin.
    */

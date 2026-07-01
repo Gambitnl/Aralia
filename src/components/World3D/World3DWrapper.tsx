@@ -536,7 +536,12 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
             const exZ = gwForDiscovery.extentMetersZ || 1;
             const offsetX = Math.max(-0.5, Math.min(0.5, hs.xM / exX - 0.5));
             const offsetY = Math.max(-0.5, Math.min(0.5, hs.zM / exZ - 0.5));
-            dispatch({ type: 'REVEAL_HIDDEN_SITE', payload: { id: hs.id, tileX: tile.x, tileY: tile.y, name: hs.name, kind: hs.kind, offsetX, offsetY } });
+            // Grid retirement: pin the discovery to the player's canonical atlas
+            // cell (the ground session IS this cell's local surface), not a 30×20
+            // grid tile. Need a cell to record it; skip if somehow unknown.
+            const siteCellId = state.playerCell?.cellId;
+            if (siteCellId == null) continue;
+            dispatch({ type: 'REVEAL_HIDDEN_SITE', payload: { id: hs.id, cellId: siteCellId, name: hs.name, kind: hs.kind, offsetX, offsetY } });
             // Surface the discovery in the game log (SP4 in-game message).
             dispatch({
               type: 'ADD_MESSAGE',

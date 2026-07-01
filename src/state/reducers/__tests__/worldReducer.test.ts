@@ -250,9 +250,9 @@ describe('worldReducer', () => {
         expect(result.playerCell ?? playerCell).toEqual(playerCell);
     });
 
-    it('REVEAL_HIDDEN_SITE records a discovered hidden place (with tile), deduped by id', () => {
-        const a = { id: 'hp:2', tileX: 3, tileY: 4, name: 'Cave', kind: 'cave' };
-        const b = { id: 'hp:5', tileX: 7, tileY: 1, name: 'Ruins', kind: 'ruin' };
+    it('REVEAL_HIDDEN_SITE records a discovered hidden place (by cell), deduped by id', () => {
+        const a = { id: 'hp:2', cellId: 34, name: 'Cave', kind: 'cave' };
+        const b = { id: 'hp:5', cellId: 71, name: 'Ruins', kind: 'ruin' };
         const baseState = createMockGameState({ discoveredHiddenSites: [] });
         const first = worldReducer(baseState, { type: 'REVEAL_HIDDEN_SITE', payload: a });
         expect(first.discoveredHiddenSites).toEqual([a]);

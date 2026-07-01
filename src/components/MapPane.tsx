@@ -521,26 +521,28 @@ const MapPane: React.FC<MapPaneProps> = ({
     return travelMmField?.to(toCell) ?? planAtlasRoute(toCell);
   }, [travelMmField, planAtlasRoute]);
 
-  // SP4 atlas pins: place each discovered hidden place at the Voronoi SITE of the
-  // atlas cell its grid tile maps to (the same grid↔atlas bridge the player marker
-  // uses), so a pin sits inside its actual cell instead of drifting near a coast.
-  // Falls back to the proportional grid-cell center if the cell/site is missing.
+  // Atlas pins: place each discovered hidden place at the Voronoi SITE of its
+  // canonical atlas cell (grid retirement: cell-native — the site stores `cellId`
+  // directly; no grid↔atlas bridge). The optional sub-cell offset nudges the pin
+  // off the exact site toward where the place actually sits inside its cell.
   const worldforgeDiscoveryPins = useMemo(() => {
     if (!worldforgeAtlas) return [];
-    const pins = discoveredHiddenSites.map((s) => {
-      const offset = s.offsetX != null && s.offsetY != null ? { x: s.offsetX, y: s.offsetY } : undefined;
-      const [x, y] = gridCellToAtlasSite(
-        worldforgeAtlas,
-        { x: s.tileX, y: s.tileY },
-        { cols: gridSize.cols, rows: gridSize.rows },
-        offset,
-      );
-      return { x, y, label: s.name };
-    });
-    // Several sites in one tile snap to the same Voronoi site — fan them out so
+    const cells = worldforgeAtlas.pack.cells as unknown as { p?: ArrayLike<[number, number]> };
+    const pins = discoveredHiddenSites
+      .map((s) => {
+        const site = s.cellId >= 0 ? cells.p?.[s.cellId] : undefined;
+        if (!site) return null;
+        const offX = s.offsetX != null ? s.offsetX : 0;
+        const offY = s.offsetY != null ? s.offsetY : 0;
+        // Nudge by a fraction of a typical cell span (offsets are −0.5..0.5).
+        const span = (worldforgeAtlas.graphWidth || 960) / 100;
+        return { x: site[0] + offX * span, y: site[1] + offY * span, label: s.name };
+      })
+      .filter((p): p is { x: number; y: number; label?: string } => p !== null);
+    // Several sites in one cell snap to the same Voronoi site — fan them out so
     // each discovered place stays individually visible/clickable on the atlas.
     return spreadColocatedPoints(pins);
-  }, [worldforgeAtlas, discoveredHiddenSites, gridSize.cols, gridSize.rows]);
+  }, [worldforgeAtlas, discoveredHiddenSites]);
 
   // Native-atlas cell pick → map the cell centroid to the legacy grid tile and
   // route to Enter-3D (preferred) or Travel to maintain travel contracts.
