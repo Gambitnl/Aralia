@@ -14,11 +14,12 @@
  */
 // @dependencies-end
 
-import { Position, GameState, MapTile } from '../../../types';
-import { getSubmapTileInfo } from '../../../utils/submapUtils';
-import { SUBMAP_DIMENSIONS } from '../../../config/mapConfig';
+import { Position, GameState } from '../../../types';
+import { BATTLE_MAP_DIMENSIONS } from '../../../config/mapConfig';
 import { biomeIdForCell } from '../../worldforge/local/biomeForCell';
-import { isWildernessLocationId } from '../../../utils/location/cellLocationId';
+import { getWorldforgeLocalForCell } from '../../worldforge/bridge/legacySubmapBridge';
+import { LOCALE_CELL_FT } from '../../worldforge/local/localePosition';
+import type { TerrainMaterial } from '../../worldforge/artifacts';
 
 /**
  * Service for tagging tiles/objects with materials based on biome and terrain.
@@ -32,52 +33,75 @@ import { isWildernessLocationId } from '../../../utils/location/cellLocationId';
 export class MaterialTagService {
     /**
      * Describes materials within a 5ft radius (1 tile) of the position.
+     *
+     * Grid retirement (slice 4b): the caster's local material is sampled from the
+     * CELL-NATIVE local terrain — `getWorldforgeLocalForCell` builds the parent-cell
+     * -inheriting `LocalTerrain.materialIndex` (height from the region heightfield +
+     * biome-driven surface classification) on demand from just (worldSeed, cellId),
+     * both in GameState. This replaces the retired 30x20 `SUBMAP_DIMENSIONS` grid +
+     * `getSubmapTileInfo`. The caster's Locale-feet position (`playerCell.localeCoords`,
+     * feet from the ground window's NW origin, 5ft cells) locates them in that
+     * terrain; their tactical battle-map offset (also 5ft cells, relative to the map
+     * centre) refines it per-combatant.
      */
     static describeNearbyMaterials(
         position: Position,
         gameState: GameState
     ): string {
-        // Grid retirement: the caster's world tile (for worldX/worldY + biome
-        // context) is synthesized from the canonical cell — biome via
-        // biomeIdForCell, coords from the coord_X_Y location id — NOT a scan of
-        // the legacy 30x20 mapData.tiles.
-        let currentWorldTile: MapTile | null = null;
-        if (gameState.playerCell?.cellId != null && isWildernessLocationId(gameState.currentLocationId)) {
-            // Grid retirement: the submap coords seed off the cell id (cell-native);
-            // a legacy coord_X_Y id still parses its x,y.
-            const legacy = /^coord_(\d+)_(\d+)$/.exec(gameState.currentLocationId);
-            const x = legacy ? Number(legacy[1]) : gameState.playerCell.cellId;
-            const y = legacy ? Number(legacy[2]) : 0;
-            const biomeId = biomeIdForCell(gameState.worldSeed ?? 0, gameState.playerCell.cellId);
-            currentWorldTile = { x, y, biomeId, discovered: true, isPlayerCurrent: true } as MapTile;
-        }
+        const cellId = gameState.playerCell?.cellId;
+        if (cellId != null) {
+            const biomeId = biomeIdForCell(gameState.worldSeed ?? 0, cellId) ?? 'plains';
+            const { local } = getWorldforgeLocalForCell(gameState.worldSeed ?? 0, cellId);
+            const { widthCells, heightCells, materialIndex, materials } = local.terrain;
 
-        // If we resolved the world tile, we can generate the specific submap tile data
-        if (currentWorldTile) {
-            const { x: worldX, y: worldY } = currentWorldTile;
+            // Base cell: the caster's Locale-feet position (feet from the window's
+            // NW origin, LOCALE_CELL_FT per cell). Null before a ground session
+            // engages → sample the window centre (the cell the window frames).
+            const feet = gameState.playerCell?.localeCoords;
+            let cx = feet ? Math.floor(feet.x / LOCALE_CELL_FT) : Math.floor(widthCells / 2);
+            let cy = feet ? Math.floor(feet.y / LOCALE_CELL_FT) : Math.floor(heightCells / 2);
 
-            // Check if the requested position is within bounds of the submap
-            if (position.x >= 0 && position.x < SUBMAP_DIMENSIONS.cols &&
-                position.y >= 0 && position.y < SUBMAP_DIMENSIONS.rows) {
-
-                const tileInfo = getSubmapTileInfo(
-                    gameState.worldSeed,
-                    { x: worldX, y: worldY },
-                    currentWorldTile.biomeId,
-                    SUBMAP_DIMENSIONS,
-                    { x: position.x, y: position.y }
-                );
-
-                const materials = this.getMaterialsFromTerrainType(tileInfo.effectiveTerrainType, currentWorldTile.biomeId);
-                return `Verified local material context. Biome: ${currentWorldTile.biomeId}. Terrain: ${tileInfo.effectiveTerrainType}. Materials present here: ${materials.join(', ')}.`;
+            // Tactical offset: a battle-map tile is 5ft = one local cell, so a
+            // combatant's position relative to the map centre nudges the sample so
+            // casters standing on different ground read different materials.
+            if (position) {
+                cx += position.x - Math.floor(BATTLE_MAP_DIMENSIONS.width / 2);
+                cy += position.y - Math.floor(BATTLE_MAP_DIMENSIONS.height / 2);
             }
+            cx = Math.max(0, Math.min(widthCells - 1, cx));
+            cy = Math.max(0, Math.min(heightCells - 1, cy));
+
+            const material = materials[materialIndex[cy * widthCells + cx]];
+            const terrainType = MaterialTagService.terrainTypeFromLocalMaterial(material);
+            const mats = this.getMaterialsFromTerrainType(terrainType, biomeId);
+            return `Verified local material context. Biome: ${biomeId}. Terrain: ${material}. Materials present here: ${mats.join(', ')}.`;
         }
 
-        // Fallback: Use global location context + biome if specific tile data is unavailable
+        // Fallback: global location context + biome when no cell is resolved (e.g.
+        // pre-spawn / menu). Stays clearly uncertain — part of the AI safety boundary.
         const biomeId = gameState.currentLocationId?.split('_')[0] || 'plains';
         const materials = this.inferMaterialsFromBiome(biomeId);
 
         return `Inferred biome fallback only; no verified local tile material is available. Biome guess: ${biomeId}. Possible materials nearby, not confirmed at the target point: ${materials.join(', ')}.`;
+    }
+
+    /**
+     * Map a cell-native `LocalTerrain` material to a spell terrain-type key that
+     * {@link getMaterialsFromTerrainType} understands. `grass`/`dirt` have no
+     * specific override there, so they resolve to biome-appropriate defaults.
+     */
+    private static terrainTypeFromLocalMaterial(material: TerrainMaterial): string {
+        switch (material) {
+            case 'water': return 'water';
+            case 'rock': return 'rocky_terrain';
+            case 'sand': return 'dunes';
+            case 'wetland': return 'dense_reeds';
+            case 'paved': return 'path';
+            case 'floor': return 'floor';
+            case 'grass':
+            case 'dirt':
+            default: return material;
+        }
     }
 
     private static getMaterialsFromTerrainType(terrainType: string, biomeId: string): string[] {

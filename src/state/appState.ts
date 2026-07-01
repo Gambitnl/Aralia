@@ -35,7 +35,6 @@ import { getAllFactions } from '../utils/factionUtils';
 import { DEITIES } from '../data/deities';
 import { TEMPLES } from '../data/temples';
 import { canUseDevTools } from '../utils/permissions';
-import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { parseCellLocationId } from '../utils/location/cellLocationId';
 import type { PlayerCell } from '../types/state';
 import { getGameDay, inGameTimestamp } from '../utils/core';

@@ -5,11 +5,11 @@
  */
 
 // General Map Configuration
-// Grid retirement (Cell-Native World): the legacy 30x20 world grid is gone.
-// MAP_GRID_SIZE has been removed — the world is Voronoi-cell-native now.
-// SUBMAP_DIMENSIONS (local submap tiling) and BATTLE_MAP_DIMENSIONS (tactical
-// combat map) are unrelated to the retired world grid and remain in use.
-export const SUBMAP_DIMENSIONS = { rows: 20, cols: 30 };
+// Grid retirement (Cell-Native World): the legacy 30x20 world grid is gone —
+// MAP_GRID_SIZE and SUBMAP_DIMENSIONS have both been removed. The world is
+// Voronoi-cell-native; local terrain/materials come from the cell-native local
+// layer (generateLocal / getWorldforgeLocalForCell). BATTLE_MAP_DIMENSIONS (the
+// tactical combat map) is unrelated to the retired world grid and remains.
 export const BATTLE_MAP_DIMENSIONS = { width: 40, height: 30 };
 export const TILE_SIZE_PX = 32;
 
