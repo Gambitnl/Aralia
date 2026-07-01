@@ -71,19 +71,9 @@ export const useActionGeneration = ({
     // detection are removed. Village/town entry comes from the predefined-location
     // check below (Method 2) and from Enter-3D on the map.
 
-    // Predefined town/settlement locations
-    const townKeywords = ['town', 'village', 'city', 'settlement', 'hamlet'];
-    const isTownLocation = townKeywords.some(keyword =>
-      currentLocation.name.toLowerCase().includes(keyword) ||
-      currentLocation.id.toLowerCase().includes(keyword)
-    );
-
-    if (isTownLocation && !isWildernessLocationId(currentLocation.id)) {
-      actions.push({ type: 'ENTER_VILLAGE', label: 'Enter Town' });
-      // Add contextually appropriate actions when at a town location
-      actions.push({ type: 'OBSERVE_TOWN', label: 'Scout Town' });
-      actions.push({ type: 'APPROACH_TOWN', label: 'Approach Cautiously' });
-    }
+    // Grid retirement: the legacy 2D village view is retired, so the
+    // "Enter Town" / "Scout Town" / "Approach" actions that routed into it are
+    // gone. Town entry is Enter-3D on the world map (the cell-native 3D town).
 
     currentLocation.interactableFeatures?.forEach((feature) => {
       if (feature.type === 'lock') {

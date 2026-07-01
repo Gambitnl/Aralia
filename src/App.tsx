@@ -66,7 +66,6 @@ import { useOverheardGossip } from './hooks/useOverheardGossip';
 import { useMissingChoice } from './hooks/useMissingChoice';
 import { useOllamaCheck } from './hooks/useOllamaCheck';
 import { useAutoSave } from './hooks/useAutoSave';
-import { determineSettlementInfo } from './utils/settlementGeneration';
 import { t } from './utils/i18n';
 
 // Utility functions
@@ -109,7 +108,8 @@ import { generateMap } from './services/mapService';
 import { generateWorldSeed } from './utils/random/generateWorldSeed';
 
 // Lazy load large components to reduce initial bundle size
-const TownCanvas = lazy(() => import('./components/Town/TownCanvas'));
+// Grid retirement: the legacy 2D village view (TownCanvas) is retired — town
+// entry is the cell-native 3D town (Enter-3D on the world map). No lazy import.
 const BattleMapDemo = lazy(() => import('./components/BattleMap/BattleMapDemo'));
 const CombatView = lazy(() => import('./components/Combat').then(module => ({ default: module.CombatView })));
 const CharacterCreator = lazy(() => import('./components/CharacterCreator/CharacterCreator'));
@@ -1277,48 +1277,6 @@ const App: React.FC = () => {
             } else {
               dispatch({ type: 'END_BATTLE' });
             }
-          }}
-        />
-      </ErrorBoundary>
-    );
-  } else if (gameState.phase === GamePhase.VILLAGE_VIEW) {
-    // Render the Town/Village View Canvas
-    const currentLocationData = getCurrentLocation();
-    const worldCoords = currentLocationData.mapCoordinates;
-    const biome = currentLocationData.biomeId || 'plains';
-
-    // Determine settlement characteristics for culturally appropriate generation
-    const settlementInfo = determineSettlementInfo(currentLocationData, gameState);
-
-    mainContent = (
-      <ErrorBoundary fallbackMessage="An error occurred in the Village Scene.">
-        <TownCanvas
-          worldSeed={gameState.worldSeed}
-          worldX={worldCoords?.x || 50}
-          worldY={worldCoords?.y || 50}
-          biome={biome}
-          settlementInfo={settlementInfo}
-          onAction={processAction}
-          gameTime={gameState.gameTime}
-          currentLocation={currentLocationData}
-          disabled={!isUIInteractive}
-          npcsInLocation={npcs}
-          itemsInLocation={itemsInCurrentLocation}
-          geminiGeneratedActions={gameState.geminiGeneratedActions || []}
-          isDevDummyActive={canUseDevTools()}
-          unreadDiscoveryCount={gameState.unreadDiscoveryCount}
-          hasNewRateLimitError={gameState.hasNewRateLimitError}
-          playerCharacter={gameState.party[0]}
-          // Player navigation props
-          // Only pass external handlers when townState exists (otherwise TownCanvas uses local state)
-          playerPosition={gameState.townState?.playerPosition}
-          entryDirection={gameState.townEntryDirection}
-          onPlayerMove={gameState.townState ? (direction) => {
-            dispatch({ type: 'MOVE_IN_TOWN', payload: { direction } });
-          } : undefined}
-          onExitTown={() => {
-            dispatch({ type: 'EXIT_TOWN' });
-            dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.PLAYING });
           }}
         />
       </ErrorBoundary>

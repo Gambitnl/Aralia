@@ -194,7 +194,7 @@ describe('ActionPane', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Menu$/i }));
   };
 
-  it('renders context-aware actions for NPCs, items, and town entry', () => {
+  it('renders context-aware actions for NPCs and items', () => {
     render(<ActionPane {...defaultProps} />);
 
     expect(screen.getByText('Talk to Ava')).toBeInTheDocument();
@@ -202,9 +202,12 @@ describe('ActionPane', () => {
     // Grid retirement: named-exit "Go <dir>" moves are gone (navigate via the World Map).
     expect(screen.queryByText('Go Market')).not.toBeInTheDocument();
     expect(screen.queryByText('Go North')).not.toBeInTheDocument();
-    expect(screen.getByText('Enter Town')).toBeInTheDocument();
-    expect(screen.getByText('Scout Town')).toBeInTheDocument();
-    expect(screen.getByText('Approach Cautiously')).toBeInTheDocument();
+    // Grid retirement: the legacy 2D village view is retired, so the "Enter Town"
+    // / "Scout Town" / "Approach" actions that routed into it are gone. Town entry
+    // is Enter-3D on the world map.
+    expect(screen.queryByText('Enter Town')).not.toBeInTheDocument();
+    expect(screen.queryByText('Scout Town')).not.toBeInTheDocument();
+    expect(screen.queryByText('Approach Cautiously')).not.toBeInTheDocument();
   });
 
   it('invokes onAction when an action button is clicked', () => {
@@ -219,20 +222,6 @@ describe('ActionPane', () => {
     expect(defaultProps.onAction).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'take_item', targetId: 'item-1' })
     );
-  });
-
-  it('invokes onAction when town context actions are clicked', () => {
-    const onAction = vi.fn();
-    render(<ActionPane {...defaultProps} onAction={onAction} />);
-
-    fireEvent.click(screen.getByText('Enter Town'));
-    expect(onAction).toHaveBeenCalledWith(expect.objectContaining({ type: 'ENTER_VILLAGE' }));
-
-    fireEvent.click(screen.getByText('Scout Town'));
-    expect(onAction).toHaveBeenCalledWith(expect.objectContaining({ type: 'OBSERVE_TOWN' }));
-
-    fireEvent.click(screen.getByText('Approach Cautiously'));
-    expect(onAction).toHaveBeenCalledWith(expect.objectContaining({ type: 'APPROACH_TOWN' }));
   });
 
   it('renders lockpicking actions for location interactable locks and routes payload to action', () => {
