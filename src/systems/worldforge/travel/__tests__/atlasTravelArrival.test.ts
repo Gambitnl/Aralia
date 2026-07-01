@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { getBridgeAtlas } from '../../bridge/legacySubmapBridge';
-import { snapToLandCell, entry3DAnchorForCell, atlasCellToLegacyGrid, legacyGridToAtlasCell } from '../../local/gridAtlasBridge';
+import { snapToLandCell, entry3DAnchorForCell } from '../../local/gridAtlasBridge';
 
 /**
  * Stage 4 (cell-native world): atlas fast-travel as the world loop. A Travel-mode
  * pick must carry the EXACT destination cell + its 3D-entry anchor through the trip
- * commit so arrival lands that cell — NOT the cell reverse-derived from the lossy
- * grid tile (the Stage-1 0/219 trap, now closed for the travel path).
+ * commit so arrival lands that cell. Grid retirement closed the old lossy tile
+ * round-trip entirely — there is no grid frame to reverse-derive a cell from now,
+ * so the destination cell is simply carried intact.
  *
  * The reducer behaviour (resetting Locale feet + stamping the anchor) is covered in
  * `src/state/__tests__/stage4AtlasTravelArrival.test.ts`. This suite proves the
@@ -15,8 +16,6 @@ import { snapToLandCell, entry3DAnchorForCell, atlasCellToLegacyGrid, legacyGrid
  */
 describe('Stage 4 — atlas-travel destinationCell construction', () => {
   const SEED = 42;
-  const COLS = 30;
-  const ROWS = 20;
 
   it('a burg cell pick yields a destinationCell carrying that EXACT cell + a town-framing anchor', () => {
     const atlas = getBridgeAtlas(SEED);
@@ -41,24 +40,15 @@ describe('Stage 4 — atlas-travel destinationCell construction', () => {
     expect(destinationCell.anchor.centerPx).toBeDefined();
   });
 
-  it('the destination cell survives intact where the lossy tile projection would lose it', () => {
+  it('land-snapping a land cell is a fixed point — the destination cell is carried intact', () => {
     const atlas = getBridgeAtlas(SEED);
-    // Sweep land cells; for any cell whose bookkeeping tile reverse-derives to a
-    // DIFFERENT cell, the cell-native destination must still be the cell itself.
-    let provedDivergence = false;
+    // Cell-native arrival always recovers the destination cell exactly: a land
+    // cell land-snaps to itself, so no lossy grid round-trip can displace it.
     const h = atlas.pack.cells.h;
     for (let i = 0; i < h.length; i += 37) {
       if ((h[i] ?? 0) < 20) continue; // land only
       const dest = snapToLandCell(atlas, i);
-      const bk = atlasCellToLegacyGrid(atlas, dest, { cols: COLS, rows: ROWS });
-      if (!bk) continue;
-      const reverse = legacyGridToAtlasCell(atlas, { x: bk.x, y: bk.y }, { cols: COLS, rows: ROWS });
-      // Cell-native arrival always recovers the destination cell exactly...
-      expect(dest).toBe(snapToLandCell(atlas, i));
-      // ...and we found at least one cell the lossy tile round-trip would NOT recover,
-      // proving the round-trip is genuinely lossy (so carrying the cell matters).
-      if (reverse !== dest) provedDivergence = true;
+      expect(dest).toBe(i);
     }
-    expect(provedDivergence).toBe(true);
   }, 30000);
 });

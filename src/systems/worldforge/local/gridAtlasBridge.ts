@@ -1,32 +1,27 @@
 /**
- * @file gridAtlasBridge.ts — legacy grid ↔ WF atlas-cell coordinate bridge.
+ * @file gridAtlasBridge.ts — WF atlas-cell spatial helpers (cell-native world).
  *
- * The legacy world model addresses places by a square grid coordinate
- * (`mapData.tiles[y][x]`, a.k.a. `parentWorldMapCoords` / `subMapCoordinates`),
- * while the owned WF atlas addresses them by Voronoi cell id over a graph of
- * `graphWidth × graphHeight`. This module is the missing bridge between the two
- * frames — the keystone both the WF-backed local content provider (Phase 3) and
- * SP4's atlas pins depend on.
+ * Grid retirement (Cell-Native World): the legacy square-grid ↔ atlas-cell
+ * coordinate bridge that used to live here is GONE. The world addresses places
+ * by Voronoi cell id over a graph of `graphWidth × graphHeight` — there is no
+ * 30×20 grid frame to translate to or from anymore.
  *
- * The mapping mirrors `worldforgeMarker` in MapPane: a grid cell maps to the
- * proportional point in graph space (cell-center), and the atlas cell is the
- * nearest Voronoi site to that point. Pure: no React/DOM.
+ * What remains are pure atlas-space helpers the owned map still depends on:
+ * land-snapping a cell, resolving a cell's 3D-entry anchor, and fanning out
+ * co-located map pins. Pure: no React/DOM.
  */
 import type { FmgAtlasResult } from '../fmg/generateAtlas';
 import type { Entry3DAnchor } from '../../../types/state';
 
-export interface GridCoord { x: number; y: number }
-export interface GridSize { cols: number; rows: number }
-
 /** Land threshold — a cell is land when its height ≥ this (mirrors FMG / the
- *  legacy tile→cell land rule). The ONE place this rule lives (bridge spec). */
+ *  atlas land rule). The ONE place this rule lives. */
 const LAND_H = 20;
 
 /**
  * Snap an atlas cell to the nearest LAND cell. A land cell returns itself; a
  * water/edge cell returns the nearest cell with height ≥ LAND_H (by site
  * distance). The single home for the land rule both the marker and 3D-entry
- * halves of the bridge share, so they stop naming different cells for a tile.
+ * halves share, so they stop naming different cells for a place.
  */
 export function snapToLandCell(atlas: FmgAtlasResult, cellId: number): number {
   const cells = atlas.pack.cells;
@@ -62,20 +57,6 @@ export function entry3DAnchorForCell(atlas: FmgAtlasResult, cellId: number): Ent
   return { cellId: snapToLandCell(atlas, cellId) };
 }
 
-/** Cell-center of a grid cell, projected into atlas graph coords. */
-export function gridCellToGraphPoint(
-  cell: GridCoord,
-  gridSize: GridSize,
-  atlas: Pick<FmgAtlasResult, 'graphWidth' | 'graphHeight'>,
-): [number, number] {
-  const cols = gridSize.cols || 1;
-  const rows = gridSize.rows || 1;
-  return [
-    ((cell.x + 0.5) / cols) * atlas.graphWidth,
-    ((cell.y + 0.5) / rows) * atlas.graphHeight,
-  ];
-}
-
 /** Nearest Voronoi cell id to a graph point (owned nearest-site lookup). */
 function nearestCell(atlas: FmgAtlasResult, gx: number, gy: number): number {
   const p = atlas.pack.cells.p;
@@ -92,48 +73,10 @@ function nearestCell(atlas: FmgAtlasResult, gx: number, gy: number): number {
   return best;
 }
 
-/** Map a legacy grid cell → the WF atlas cell id covering it (-1 if none). */
-export function legacyGridToAtlasCell(
-  atlas: FmgAtlasResult,
-  cell: GridCoord,
-  gridSize: GridSize,
-): number {
-  const [gx, gy] = gridCellToGraphPoint(cell, gridSize, atlas);
-  return nearestCell(atlas, gx, gy);
-}
-
-/**
- * Map a legacy grid cell → the graph-space point to draw a marker/pin at: the
- * Voronoi SITE of the atlas cell it maps to, so the marker sits inside its actual
- * cell rather than the proportional grid-center (which drifts near coastlines).
- * Falls back to the grid-center point if the cell or its site is unavailable.
- * Shared by the player "you are here" marker and SP4 discovered-place pins.
- */
-export function gridCellToAtlasSite(
-  atlas: FmgAtlasResult,
-  cell: GridCoord,
-  gridSize: GridSize,
-  /** Optional sub-tile offset in [-0.5, 0.5] per axis; nudges the point within
-   *  the tile (in graph units = tile-size) so a marker reflects where inside the
-   *  tile it actually sits. Kept small so the point stays near its land cell. */
-  offset?: { x: number; y: number },
-): [number, number] {
-  const cellId = legacyGridToAtlasCell(atlas, cell, gridSize);
-  const site = cellId >= 0 ? atlas.pack.cells.p?.[cellId] : undefined;
-  const base: [number, number] = site ? [site[0], site[1]] : gridCellToGraphPoint(cell, gridSize, atlas);
-  if (!offset) return base;
-  const cols = gridSize.cols || 1;
-  const rows = gridSize.rows || 1;
-  return [
-    base[0] + offset.x * (atlas.graphWidth / cols),
-    base[1] + offset.y * (atlas.graphHeight / rows),
-  ];
-}
-
 /**
  * Fan out points that resolve to the identical location so co-located markers
- * (e.g. several SP4 hidden places discovered in the same world tile, which all
- * snap to one Voronoi site) don't stack into one indistinguishable pin. Points
+ * (e.g. several SP4 hidden places discovered in the same place, which all snap
+ * to one Voronoi site) don't stack into one indistinguishable pin. Points
  * sharing a coordinate are spread on a small deterministic ring around it; unique
  * points pass through untouched. Order-stable (index-seeded), so it's frame-safe.
  */
@@ -160,19 +103,4 @@ export function spreadColocatedPoints<T extends { x: number; y: number }>(
     });
   }
   return out;
-}
-
-/** Map a WF atlas cell id → the legacy grid cell containing its site. */
-export function atlasCellToLegacyGrid(
-  atlas: FmgAtlasResult,
-  cellId: number,
-  gridSize: GridSize,
-): GridCoord | null {
-  const site = atlas.pack.cells.p[cellId];
-  if (!site) return null;
-  const cols = gridSize.cols || 1;
-  const rows = gridSize.rows || 1;
-  const x = Math.min(cols - 1, Math.max(0, Math.floor((site[0] / (atlas.graphWidth || 1)) * cols)));
-  const y = Math.min(rows - 1, Math.max(0, Math.floor((site[1] / (atlas.graphHeight || 1)) * rows)));
-  return { x, y };
 }
