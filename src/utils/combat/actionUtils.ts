@@ -92,9 +92,6 @@ export function getDiegeticPlayerActionMessage(
       }
       return `You try to pick something up.`;
 
-    case 'inspect_submap_tile':
-      return `You carefully examine the terrain nearby.`;
-
     case 'gemini_custom_action':
       if (action.label) {
         return `You decide to: ${action.label}.`;
@@ -142,7 +139,6 @@ export function getDiegeticPlayerActionMessage(
     case 'save_game':
     case 'go_to_main_menu':
     case 'toggle_dev_menu':
-    case 'UPDATE_INSPECTED_TILE_DESCRIPTION':
     case 'TOGGLE_DISCOVERY_LOG':
     case 'TOGGLE_GLOSSARY_VISIBILITY':
     case 'GENERATE_ENCOUNTER':

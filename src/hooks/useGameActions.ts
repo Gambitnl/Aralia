@@ -98,7 +98,7 @@ export function useGameActions({
 
       dispatch({ type: 'SET_ERROR', payload: null });
 
-      if (action.type !== 'talk' && action.type !== 'inspect_submap_tile') {
+      if (action.type !== 'talk') {
         if (gameState.lastInteractedNpcId !== null) {
           dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
         }

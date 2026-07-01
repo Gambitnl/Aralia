@@ -42,8 +42,6 @@ import { CrewRole, ShipType } from '../types/naval.js';
 import type { WorldDelta } from '../systems/worldforge/delta/types.js';
 import {
   CastSpellPayload,
-  InspectSubmapTilePayload,
-  UpdateInspectedTileDescriptionPayload,
   EquipItemPayload,
   UnequipItemPayload,
   UseItemPayload,
@@ -86,7 +84,6 @@ export type AppAction =
   | { type: 'RESET_NPC_INTERACTION_CONTEXT' }
   | { type: 'ADVANCE_TIME'; payload: { seconds: number } }
   | { type: 'TOWNSIM_REGISTER_BURG'; payload: { burgId: number } }
-  | { type: 'INSPECT_SUBMAP_TILE'; payload: { inspectTileDetails: InspectSubmapTilePayload } }
   | { type: 'SET_DEV_MODE_ENABLED'; payload: boolean }
   | { type: 'TOGGLE_DEV_MENU' }
   | { type: 'TOGGLE_PARTY_EDITOR_MODAL' }
@@ -94,7 +91,6 @@ export type AppAction =
   | { type: 'TOGGLE_GEMINI_LOG_VIEWER' }
   | { type: 'TOGGLE_NPC_TEST_MODAL' }
   | { type: 'TOGGLE_NOBLE_HOUSE_LIST' }
-  | { type: 'UPDATE_INSPECTED_TILE_DESCRIPTION'; payload: UpdateInspectedTileDescriptionPayload }
   // Discovery Journal Actions
   | { type: 'ADD_DISCOVERY_ENTRY'; payload: Partial<DiscoveryEntry> }
   | { type: 'MARK_DISCOVERY_READ'; payload: { entryId: string } }

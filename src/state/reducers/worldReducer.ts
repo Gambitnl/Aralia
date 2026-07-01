@@ -50,8 +50,6 @@ const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 const MILLIS_PER_HOUR = 60 * 60 * 1000;
 const MILLIS_PER_MINUTE = 60 * 1000;
 
-type UpdateInspectedTileDescriptionPayload = Extract<AppAction, { type: 'UPDATE_INSPECTED_TILE_DESCRIPTION' }>['payload'];
-
 const hashStringToSeed = (value: string): number => {
   let hash = 2166136261;
 
@@ -179,16 +177,6 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       // order in which gameplay systems accepted the edits.
       return {
         worldforgeDeltas: [...currentDeltas, action.payload.delta],
-      };
-    }
-
-    case 'UPDATE_INSPECTED_TILE_DESCRIPTION': {
-      const tilePayload: UpdateInspectedTileDescriptionPayload = action.payload;
-      return {
-        inspectedTileDescriptions: {
-          ...state.inspectedTileDescriptions,
-          [tilePayload.tileKey]: tilePayload.description,
-        },
       };
     }
 

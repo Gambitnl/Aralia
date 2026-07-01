@@ -493,8 +493,6 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       lastInteractedNpcId: null,
       lastNpcResponse: null,
 
-      inspectedTileDescriptions: {},
-
       discoveryLog: [],
       unreadDiscoveryCount: 0,
       isDiscoveryLogVisible: false,
@@ -728,7 +726,6 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       currentEnemies: null,
       lastInteractedNpcId: null,
       lastNpcResponse: null,
-      inspectedTileDescriptions: {},
       discoveryLog: [],
       unreadDiscoveryCount: 0,
       isDiscoveryLogVisible: false,

@@ -41,7 +41,6 @@ import type {
   Quest,
   GoalStatus,
   HitPointDiceSpendMap,
-  UpdateInspectedTileDescriptionPayload,
   AddLocationResiduePayload,
   RemoveLocationResiduePayload,
   GossipUpdatePayload,
@@ -70,7 +69,7 @@ import type {
 
 // Movement and travel handlers are implemented in src/hooks/actions/handleMovement.ts.
 // Observation handlers are implemented in src/hooks/actions/handleObservation.ts.
-import { handleLookAround, handleInspectSubmapTile, handleAnalyzeSituation } from './handleObservation';
+import { handleLookAround, handleAnalyzeSituation } from './handleObservation';
 // NPC interaction handlers are implemented in src/hooks/actions/handleNpcInteraction.ts.
 import { handleTalk, handleStartDialogue } from './handleNpcInteraction';
 // Item interaction handlers are implemented in src/hooks/actions/handleItemInteraction.ts.
@@ -154,9 +153,6 @@ export function buildActionHandlers({
     },
     ANALYZE_SITUATION: async (_action) => {
       await handleAnalyzeSituation({ gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
-    },
-    inspect_submap_tile: async (action) => {
-      await handleInspectSubmapTile({ action, gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
     },
 
     // NPC dialogue and narrative AI (handleNpcInteraction.ts, handleOracle.ts, handleGeminiCustom.ts).
@@ -461,9 +457,6 @@ export function buildActionHandlers({
       if (payload?.npcId) {
         dispatch({ type: 'ADD_MET_NPC', payload: { npcId: payload.npcId } });
       }
-    },
-    UPDATE_INSPECTED_TILE_DESCRIPTION: (action) => {
-      dispatch({ type: 'UPDATE_INSPECTED_TILE_DESCRIPTION', payload: (action.payload as any) });
     },
     ADD_LOCATION_RESIDUE: (action) => {
       dispatch({ type: 'ADD_LOCATION_RESIDUE', payload: (action.payload as any) });

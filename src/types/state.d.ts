@@ -158,7 +158,6 @@ export interface GameState {
     saveTimestamp?: number;
     lastInteractedNpcId: string | null;
     lastNpcResponse: string | null;
-    inspectedTileDescriptions: Record<string, string>;
     discoveryLog: DiscoveryEntry[];
     unreadDiscoveryCount: number;
     isDiscoveryLogVisible: boolean;

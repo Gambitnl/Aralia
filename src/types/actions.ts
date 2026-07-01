@@ -58,13 +58,11 @@ export type ActionType =
   | 'gemini_custom_action'
   | 'save_game'
   | 'go_to_main_menu'
-  | 'inspect_submap_tile'
   | 'toggle_dev_menu'
   | 'toggle_party_editor'
   | 'toggle_party_overlay'
   | 'toggle_gemini_log_viewer'
   | 'TOGGLE_NPC_TEST_MODAL'
-  | 'UPDATE_INSPECTED_TILE_DESCRIPTION'
   | 'TOGGLE_DISCOVERY_LOG'
   | 'TOGGLE_GLOSSARY_VISIBILITY'
   | 'TOGGLE_LOGBOOK'
@@ -201,20 +199,6 @@ export interface MerchantActionPayload {
   };
 }
 
-export interface InspectSubmapTilePayload {
-  tileX: number;
-  tileY: number;
-  effectiveTerrainType: string;
-  worldBiomeId: string;
-  parentWorldMapCoords: { x: number; y: number };
-  activeFeatureConfig?: { id: string; name?: string; icon: string; generatesEffectiveTerrainType?: string };
-}
-
-export interface UpdateInspectedTileDescriptionPayload {
-  tileKey: string;
-  description: string;
-}
-
 export interface EquipItemPayload {
   itemId: string;
   characterId: string;
@@ -343,13 +327,11 @@ export type Action =
   | { type: 'gemini_custom_action'; payload: { query?: string; geminiPrompt?: string; check?: string; targetNpcId?: string; eventResidue?: unknown; isEgregious?: boolean }; label?: string }
   | { type: 'save_game'; payload?: never; label?: string }
   | { type: 'go_to_main_menu'; payload?: never; label?: string }
-  | { type: 'inspect_submap_tile'; payload: { inspectTileDetails: InspectSubmapTilePayload }; label?: string }
   | { type: 'toggle_dev_menu'; payload?: never; label?: string }
   | { type: 'toggle_party_editor'; payload?: never; label?: string }
   | { type: 'toggle_party_overlay'; payload?: never; label?: string }
   | { type: 'toggle_gemini_log_viewer'; payload?: never; label?: string }
   | { type: 'TOGGLE_NPC_TEST_MODAL'; payload?: never; label?: string }
-  | { type: 'UPDATE_INSPECTED_TILE_DESCRIPTION'; payload: UpdateInspectedTileDescriptionPayload; label?: string }
   | { type: 'TOGGLE_DISCOVERY_LOG'; payload?: never; label?: string }
   | { type: 'TOGGLE_GLOSSARY_VISIBILITY'; payload?: { initialTermId?: string }; label?: string }
   | { type: 'TOGGLE_LOGBOOK'; payload?: never; label?: string }

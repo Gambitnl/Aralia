@@ -33,7 +33,7 @@ import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './
 import { DialogueSession } from '../types/dialogue.js';
 import { WorldHistoryEvent } from '../types/history.js';
 import { CrewRole } from '../types/naval.js';
-import { InspectSubmapTilePayload, UpdateInspectedTileDescriptionPayload, EquipItemPayload, UnequipItemPayload, UseItemPayload, DropItemPayload, ShowEncounterModalPayload, StartBattleMapEncounterPayload } from '../types/actions.js';
+import { EquipItemPayload, UnequipItemPayload, UseItemPayload, DropItemPayload, ShowEncounterModalPayload, StartBattleMapEncounterPayload } from '../types/actions.js';
 export type AppAction = {
     type: 'SET_GAME_PHASE';
     payload: GamePhase;
@@ -151,11 +151,6 @@ export type AppAction = {
         seconds: number;
     };
 } | {
-    type: 'INSPECT_SUBMAP_TILE';
-    payload: {
-        inspectTileDetails: InspectSubmapTilePayload;
-    };
-} | {
     type: 'SET_DEV_MODE_ENABLED';
     payload: boolean;
 } | {
@@ -170,9 +165,6 @@ export type AppAction = {
     type: 'TOGGLE_NPC_TEST_MODAL';
 } | {
     type: 'TOGGLE_NOBLE_HOUSE_LIST';
-} | {
-    type: 'UPDATE_INSPECTED_TILE_DESCRIPTION';
-    payload: UpdateInspectedTileDescriptionPayload;
 } | {
     type: 'ADD_DISCOVERY_ENTRY';
     payload: Partial<DiscoveryEntry>;

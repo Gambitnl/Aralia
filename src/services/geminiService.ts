@@ -4,7 +4,7 @@ import { generateText } from './gemini/core';
 import { GeminiHarvestData, GeminiInventoryData, GeminiTextData, StandardizedResult } from './gemini/types';
 
 export type { StandardizedResult, GeminiTextData };
-import { generateCharacterName as implGenerateCharacterName, generateCustomActions as implGenerateCustomActions, generateEncounter as implGenerateEncounter, generateOracleResponse as implGenerateOracleResponse, generateSocialCheckOutcome as implGenerateSocialCheckOutcome, generateTileInspectionDetails as implGenerateTileInspectionDetails } from './gemini/encounters';
+import { generateCharacterName as implGenerateCharacterName, generateCustomActions as implGenerateCustomActions, generateEncounter as implGenerateEncounter, generateOracleResponse as implGenerateOracleResponse, generateSocialCheckOutcome as implGenerateSocialCheckOutcome } from './gemini/encounters';
 import { generateGuideResponse as implGenerateGuideResponse, generateHarvestLoot as implGenerateHarvestLoot, generateMerchantInventory as implGenerateMerchantInventory } from './gemini/items';
 import { GoalStatus, NPCMemory, EconomyState } from '../types';
 
@@ -105,7 +105,6 @@ Generate a short dynamic event in 1-2 sentences.`;
 // Facades to keep API surface unchanged for existing imports
 export const generateOracleResponse = generateOracleResponseFacade;
 export const generateCharacterName = generateCharacterNameFacade;
-export const generateTileInspectionDetails = generateTileInspectionDetailsFacade;
 export const generateEncounter = generateEncounterFacade;
 export const generateCustomActions = generateCustomActionsFacade;
 export const generateSocialCheckOutcome = generateSocialCheckOutcomeFacade;
@@ -170,7 +169,6 @@ export async function generateGuideResponse(
 import {
   generateOracleResponse as generateOracleResponseFacade,
   generateCharacterName as generateCharacterNameFacade,
-  generateTileInspectionDetails as generateTileInspectionDetailsFacade,
   generateEncounter as generateEncounterFacade,
   generateCustomActions as generateCustomActionsFacade,
   generateSocialCheckOutcome as generateSocialCheckOutcomeFacade,

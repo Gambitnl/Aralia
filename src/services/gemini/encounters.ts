@@ -24,8 +24,7 @@ import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, COMPLEX_MODEL, FAST_MODEL } from "../
 import { MonsterSchema, CustomActionSchema, SocialOutcomeSchema } from "../geminiSchemas";
 import { chooseModelForComplexity, generateText } from "./core";
 import { ExtendedGenerationConfig, GeminiCustomActionData, GeminiEncounterData, GeminiMetadata, GeminiSocialCheckData, GeminiTextData, StandardizedResult } from "./types";
-import { Action, GoalStatus, GroundingChunk, InspectSubmapTilePayload, Monster, NPCMemory, TempPartyMember, VillageActionContext } from "../../types";
-import { SUBMAP_ICON_MEANINGS } from "../../data/glossaryData";
+import { Action, GoalStatus, GroundingChunk, Monster, NPCMemory, TempPartyMember, VillageActionContext } from "../../types";
 import { MAX_ENCOUNTER_MONSTER_COUNT } from "../../utils/world/encounterUtils";
 
 export async function generateOracleResponse(
@@ -68,41 +67,6 @@ export async function generateCharacterName(
     },
     error: null
   };
-}
-
-export async function generateTileInspectionDetails(
-  tileDetails: InspectSubmapTilePayload,
-  context: string,
-  devModelOverride: string | null = null
-): Promise<StandardizedResult<GeminiTextData>> {
-  const systemInstruction = `You are a Dungeon Master describing what a player character observes when they carefully inspect a nearby area in a fantasy RPG. Your response must be an evocative, 2-3 sentence description. CRITICAL: Do NOT use game jargon. Focus on sensory details. Use the Atmosphere and Location context to ground the description.`;
-
-  let featureContext = "no specific large feature.";
-  if (tileDetails.activeFeatureConfig) {
-    const feature = tileDetails.activeFeatureConfig;
-    featureContext = `a notable feature: a ${feature.name || feature.id}. This feature is represented visually by the icon '${feature.icon}'.`;
-    const iconMeaning = SUBMAP_ICON_MEANINGS[feature.icon];
-    if (iconMeaning) {
-      featureContext += ` (The icon '${feature.icon}' generally signifies: ${iconMeaning}).`;
-    }
-  }
-
-  let terrainContext = tileDetails.effectiveTerrainType;
-  if (terrainContext === 'path_adj') terrainContext = 'area immediately adjacent to a discernible path';
-  if (terrainContext === 'path') terrainContext = 'a discernible path';
-
-  const prompt = `${context}
-
-## INSPECTION TARGET
-The character is closely inspecting a specific spot nearby.
-- General Biome: ${tileDetails.worldBiomeId}
-- Terrain Type: ${terrainContext}
-- The spot contains: ${featureContext}
-
-## TASK
-Describe what the character sees, hears, or smells at this specific spot in 2-3 sentences. Ensure the description matches the Atmosphere & Environment described in the context (e.g. if it's raining, the spot is wet).`;
-
-  return await generateText(prompt, systemInstruction, false, 'generateTileInspectionDetails', devModelOverride);
 }
 
 export async function generateEncounter(

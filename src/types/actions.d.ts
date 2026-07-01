@@ -19,7 +19,7 @@ import { Faction } from './factions.js';
 import { DialogueSession } from './dialogue.js';
 import type { Lock, Puzzle } from '../systems/puzzles/types.js';
 import type { CombatCharacter, BattleMapData } from './combat.js';
-export type ActionType = 'move' | 'look_around' | 'talk' | 'take_item' | 'USE_ITEM' | 'custom' | 'ask_oracle' | 'toggle_map' | 'toggle_three_d' | 'toggle_auto_save' | 'gemini_custom_action' | 'save_game' | 'go_to_main_menu' | 'inspect_submap_tile' | 'toggle_dev_menu' | 'toggle_party_editor' | 'toggle_party_overlay' | 'toggle_gemini_log_viewer' | 'TOGGLE_NPC_TEST_MODAL' | 'UPDATE_INSPECTED_TILE_DESCRIPTION' | 'TOGGLE_DISCOVERY_LOG' | 'TOGGLE_GLOSSARY_VISIBILITY' | 'TOGGLE_LOGBOOK' | 'ADD_MET_NPC' | 'EQUIP_ITEM' | 'UNEQUIP_ITEM' | 'DROP_ITEM' | 'SET_LOADING' | 'GENERATE_ENCOUNTER' | 'SHOW_ENCOUNTER_MODAL' | 'HIDE_ENCOUNTER_MODAL' | 'START_BATTLE_MAP_ENCOUNTER' | 'END_BATTLE' | 'CAST_SPELL' | 'USE_LIMITED_ABILITY' | 'LONG_REST' | 'SHORT_REST' | 'TOGGLE_PREPARED_SPELL' | 'UPDATE_NPC_GOAL_STATUS' | 'PROCESS_GOSSIP_UPDATES' | 'ADD_LOCATION_RESIDUE' | 'REMOVE_LOCATION_RESIDUE' | 'QUICK_TRAVEL' | 'OPEN_MERCHANT' |'CLOSE_MERCHANT' | 'BUY_ITEM' | 'SELL_ITEM' | 'OPEN_DYNAMIC_MERCHANT' | 'OPEN_TEMPLE' | 'CLOSE_TEMPLE' | 'USE_TEMPLE_SERVICE' | 'OPEN_LOCKPICKING_MODAL' | 'OPEN_PUZZLE_RUNTIME' | 'HARVEST_RESOURCE' | 'SEARCH_AREA' | 'BARTER_ITEMS' | 'HAGGLE_ITEM' | 'ANALYZE_SITUATION' | 'wait' | 'TOGGLE_GAME_GUIDE' | 'UPDATE_CHARACTER_CHOICE' | 'ACCEPT_QUEST' | 'UPDATE_QUEST_OBJECTIVE' | 'COMPLETE_QUEST' | 'TOGGLE_QUEST_LOG' | 'PRAY' | 'AUTO_EQUIP' | 'TOGGLE_THIEVES_GUILD' | 'REGISTER_DYNAMIC_ENTITY' | 'START_DIALOGUE_SESSION' | 'UPDATE_DIALOGUE_SESSION' | 'END_DIALOGUE_SESSION' | 'SET_DEV_MODE_ENABLED' | 'ATTUNE_ITEM' |'UNATTUNE_ITEM' | 'TOGGLE_ITEM_JUNK' | 'SELL_ALL_JUNK';
+export type ActionType = 'move' | 'look_around' | 'talk' | 'take_item' | 'USE_ITEM' | 'custom' | 'ask_oracle' | 'toggle_map' | 'toggle_three_d' | 'toggle_auto_save' | 'gemini_custom_action' | 'save_game' | 'go_to_main_menu' | 'toggle_dev_menu' | 'toggle_party_editor' | 'toggle_party_overlay' | 'toggle_gemini_log_viewer' | 'TOGGLE_NPC_TEST_MODAL' | 'TOGGLE_DISCOVERY_LOG' | 'TOGGLE_GLOSSARY_VISIBILITY' | 'TOGGLE_LOGBOOK' | 'ADD_MET_NPC' | 'EQUIP_ITEM' | 'UNEQUIP_ITEM' | 'DROP_ITEM' | 'SET_LOADING' | 'GENERATE_ENCOUNTER' | 'SHOW_ENCOUNTER_MODAL' | 'HIDE_ENCOUNTER_MODAL' | 'START_BATTLE_MAP_ENCOUNTER' | 'END_BATTLE' | 'CAST_SPELL' | 'USE_LIMITED_ABILITY' | 'LONG_REST' | 'SHORT_REST' | 'TOGGLE_PREPARED_SPELL' | 'UPDATE_NPC_GOAL_STATUS' | 'PROCESS_GOSSIP_UPDATES' | 'ADD_LOCATION_RESIDUE' | 'REMOVE_LOCATION_RESIDUE' | 'QUICK_TRAVEL' | 'OPEN_MERCHANT' |'CLOSE_MERCHANT' | 'BUY_ITEM' | 'SELL_ITEM' | 'OPEN_DYNAMIC_MERCHANT' | 'OPEN_TEMPLE' | 'CLOSE_TEMPLE' | 'USE_TEMPLE_SERVICE' | 'OPEN_LOCKPICKING_MODAL' | 'OPEN_PUZZLE_RUNTIME' | 'HARVEST_RESOURCE' | 'SEARCH_AREA' | 'BARTER_ITEMS' | 'HAGGLE_ITEM' | 'ANALYZE_SITUATION' | 'wait' | 'TOGGLE_GAME_GUIDE' | 'UPDATE_CHARACTER_CHOICE' | 'ACCEPT_QUEST' | 'UPDATE_QUEST_OBJECTIVE' | 'COMPLETE_QUEST' | 'TOGGLE_QUEST_LOG' | 'PRAY' | 'AUTO_EQUIP' | 'TOGGLE_THIEVES_GUILD' | 'REGISTER_DYNAMIC_ENTITY' | 'START_DIALOGUE_SESSION' | 'UPDATE_DIALOGUE_SESSION' | 'END_DIALOGUE_SESSION' | 'SET_DEV_MODE_ENABLED' | 'ATTUNE_ITEM' |'UNATTUNE_ITEM' | 'TOGGLE_ITEM_JUNK' | 'SELL_ALL_JUNK';
 /**
  * Metadata for actions to control UI behavior like loading spinners.
  */
@@ -55,26 +55,6 @@ export interface MerchantActionPayload {
             goldOffset: number;
         };
     };
-}
-export interface InspectSubmapTilePayload {
-    tileX: number;
-    tileY: number;
-    effectiveTerrainType: string;
-    worldBiomeId: string;
-    parentWorldMapCoords: {
-        x: number;
-        y: number;
-    };
-    activeFeatureConfig?: {
-        id: string;
-        name?: string;
-        icon: string;
-        generatesEffectiveTerrainType?: string;
-    };
-}
-export interface UpdateInspectedTileDescriptionPayload {
-    tileKey: string;
-    description: string;
 }
 export interface EquipItemPayload {
     itemId: string;
@@ -244,12 +224,6 @@ export type Action = {
     payload?: never;
     label?: string;
 } | {
-    type: 'inspect_submap_tile';
-    payload: {
-        inspectTileDetails: InspectSubmapTilePayload;
-    };
-    label?: string;
-} | {
     type: 'toggle_dev_menu';
     payload?: never;
     label?: string;
@@ -268,10 +242,6 @@ export type Action = {
 } | {
     type: 'TOGGLE_NPC_TEST_MODAL';
     payload?: never;
-    label?: string;
-} | {
-    type: 'UPDATE_INSPECTED_TILE_DESCRIPTION';
-    payload: UpdateInspectedTileDescriptionPayload;
     label?: string;
 } | {
     type: 'TOGGLE_DISCOVERY_LOG';

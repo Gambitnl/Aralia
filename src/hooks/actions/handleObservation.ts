@@ -1,10 +1,10 @@
 
 /**
  * @file src/hooks/actions/handleObservation.ts
- * Handles observation actions like 'look_around' and 'inspect_submap_tile'.
+ * Handles observation actions like 'look_around' and 'analyze_situation'.
  */
 import React from 'react';
-import { GameState, Action, InspectSubmapTilePayload, UpdateInspectedTileDescriptionPayload, MapTile } from '../../types';
+import { GameState, MapTile } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { biomeIdForCell } from '../../systems/worldforge/local/biomeForCell';
 import * as OllamaTextService from '../../services/ollamaTextService';
@@ -92,64 +92,6 @@ export async function handleLookAround({
     addMessage("You look around, but nothing new catches your eye.", 'system');
     dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
   }
-  dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
-}
-
-interface HandleInspectSubmapTileProps {
-  action: Action;
-  gameState: GameState;
-  dispatch: React.Dispatch<AppAction>;
-  addMessage: AddMessageFn;
-  addGeminiLog: AddGeminiLogFn;
-  generalActionContext: string;
-}
-
-export async function handleInspectSubmapTile({
-  action,
-  gameState,
-  dispatch,
-  addMessage,
-  addGeminiLog,
-  generalActionContext,
-}: HandleInspectSubmapTileProps): Promise<void> {
-  if (!(action as any).payload?.inspectTileDetails || !gameState.party[0]) {
-    addMessage("Cannot inspect tile: missing details or character information.", "system");
-    return;
-  }
-
-  // Cast payload to bypass strict type checking against discriminated union
-  const payload = (action as any).payload;
-  const inspectTileDetails = payload?.inspectTileDetails as InspectSubmapTilePayload;
-
-  const inspectionResult = await OllamaTextService.generateTileInspectionDetails(
-    inspectTileDetails,
-    generalActionContext
-  );
-
-  addGeminiLog('generateTileInspectionDetails', inspectionResult.data?.promptSent || inspectionResult.metadata?.promptSent || "", inspectionResult.data?.rawResponse || inspectionResult.metadata?.rawResponse || inspectionResult.error || "");
-
-  if (inspectionResult.data?.rateLimitHit || inspectionResult.metadata?.rateLimitHit) {
-    dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
-  }
-
-  if (inspectionResult.data?.text) {
-    addMessage(inspectionResult.data.text, "system");
-
-    // Linker Coherence Check
-    await resolveAndRegisterEntities(inspectionResult.data.text, gameState, dispatch, addGeminiLog);
-
-    const tileKey = `${inspectTileDetails.parentWorldMapCoords.x}_${inspectTileDetails.parentWorldMapCoords.y}_${inspectTileDetails.tileX}_${inspectTileDetails.tileY}`;
-    const updatePayload: UpdateInspectedTileDescriptionPayload = {
-      tileKey,
-      description: inspectionResult.data.text,
-    };
-    dispatch({ type: 'UPDATE_INSPECTED_TILE_DESCRIPTION', payload: updatePayload });
-  } else {
-    addMessage("Your inspection reveals nothing new or an error occurred.", "system");
-  }
-
-  dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 300 } });
-  dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
   dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
 }
 

@@ -53,7 +53,6 @@ const mockGameState: GameState = {
     saveTimestamp: Date.now(),
     lastInteractedNpcId: null,
     lastNpcResponse: null,
-    inspectedTileDescriptions: {},
     discoveryLog: [],
     unreadDiscoveryCount: 0,
     isDiscoveryLogVisible: false,

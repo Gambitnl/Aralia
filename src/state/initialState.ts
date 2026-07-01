@@ -155,8 +155,6 @@ export const initialGameState: GameState = {
     lastInteractedNpcId: null,
     lastNpcResponse: null,
 
-    inspectedTileDescriptions: {},
-
     // Discovery Journal State
     discoveryLog: [],
     unreadDiscoveryCount: 0,

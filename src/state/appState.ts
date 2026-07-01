@@ -703,7 +703,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 gameTime: gameTimeFromLoad,
                 geminiInteractionLog: loadedState.geminiInteractionLog || [],
                 ollamaInteractionLog: loadedState.ollamaInteractionLog || [],
-                inspectedTileDescriptions: loadedState.inspectedTileDescriptions || {},
                 discoveryLog: loadedState.discoveryLog || [],
                 unreadDiscoveryCount: loadedState.unreadDiscoveryCount || 0,
                 metNpcIds: loadedState.metNpcIds || [],

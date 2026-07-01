@@ -236,32 +236,6 @@ Provide only the name, nothing else.`;
 }
 
 /**
- * Generate tile inspection details using Ollama.
- */
-export async function generateTileInspectionDetails(
-  tileDetails: any, // InspectSubmapTilePayload or string
-  context: string
-): Promise<StandardizedResult<OllamaTextData>> {
-  const systemInstruction = "You describe what a player discovers when closely inspecting terrain or objects in a high fantasy RPG. Keep descriptions atmospheric and discovery-focused.";
-
-  // Handle both string and object inputs
-  let tileType: string;
-  if (typeof tileDetails === 'string') {
-    tileType = tileDetails;
-  } else {
-    // It's an InspectSubmapTilePayload object
-    tileType = tileDetails.activeFeatureConfig?.name || tileDetails.activeFeatureConfig?.id || 'unknown feature';
-  }
-
-  const prompt = `Tile/Object: ${tileType}
-Context: ${context}
-
-Describe what the player discovers upon close inspection in 2-3 sentences.`;
-
-  return await generateText('tile_inspection', prompt, systemInstruction);
-}
-
-/**
  * Generate encounter description using Ollama.
  */
 export async function generateEncounter(

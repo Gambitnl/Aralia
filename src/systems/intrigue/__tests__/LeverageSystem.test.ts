@@ -102,7 +102,6 @@ describe('LeverageSystem', () => {
             currentEnemies: null,
             lastInteractedNpcId: null,
             lastNpcResponse: null,
-            inspectedTileDescriptions: {},
             discoveryLog: [],
             unreadDiscoveryCount: 0,
             isDiscoveryLogVisible: false,
@@ -169,7 +168,7 @@ describe('LeverageSystem', () => {
         };
 
         it('burns the secret on successful blackmail and adds gold', () => {
-            const stateWithIdentity = { ...baseState, playerIdentity: identityState } as GameState;
+            const stateWithIdentity = { ...baseState, playerIdentity: identityState } as unknown as GameState;
             const result = identityReducer(stateWithIdentity, {
                 type: 'APPLY_LEVERAGE',
                 payload: { secretId: 'sec_1', targetId: 'faction_1', goal: 'blackmail' }
@@ -184,7 +183,7 @@ describe('LeverageSystem', () => {
         });
 
         it('rejects leverage with an unknown secret', () => {
-            const stateWithIdentity = { ...baseState, playerIdentity: identityState } as GameState;
+            const stateWithIdentity = { ...baseState, playerIdentity: identityState } as unknown as GameState;
             const result = identityReducer(stateWithIdentity, {
                 type: 'APPLY_LEVERAGE',
                 payload: { secretId: 'unknown_secret', targetId: 'faction_1', goal: 'blackmail' }

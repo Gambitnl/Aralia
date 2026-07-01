@@ -108,7 +108,6 @@ describe('Planar Utils', () => {
       currentEnemies: null,
       lastInteractedNpcId: null,
       lastNpcResponse: null,
-      inspectedTileDescriptions: {},
       discoveryLog: [],
       unreadDiscoveryCount: 0,
       isDiscoveryLogVisible: false,

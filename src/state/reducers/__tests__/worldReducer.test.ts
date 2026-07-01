@@ -108,35 +108,10 @@ describe('worldReducer', () => {
     // ============================================================================
     // Reducer Payload Contracts
     // ============================================================================
-    // These checks prove the reducer consumes the typed action payloads directly.
-    // MapData centers from gridSize, while inspected-tile descriptions preserve
-    // the exact key provided by the UI inspection flow.
-    // ============================================================================
-
     // Grid retirement: the SET_MAP_DATA action + the minimap-focus-from-mapData
     // test are removed — the 30x20 mapData grid no longer exists in game state.
-
-    it('stores inspected tile descriptions at the typed tile key', () => {
-        const baseState = createMockGameState({
-            inspectedTileDescriptions: {
-                '1,1:grass': 'Old grass note.',
-            },
-        });
-        const action: AppAction = {
-            type: 'UPDATE_INSPECTED_TILE_DESCRIPTION',
-            payload: {
-                tileKey: '2,3:forest',
-                description: 'Dense roots and moss crowd the trail.',
-            },
-        };
-
-        const result = worldReducer(baseState, action);
-
-        expect(result.inspectedTileDescriptions).toEqual({
-            '1,1:grass': 'Old grass note.',
-            '2,3:forest': 'Dense roots and moss crowd the trail.',
-        });
-    });
+    // The inspected-tile-description test was removed with the legacy 2D submap
+    // view (UPDATE_INSPECTED_TILE_DESCRIPTION action + state field retired).
 
     // ============================================================================
     // Ground Position Persistence

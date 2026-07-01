@@ -161,12 +161,6 @@ const makeAction = (action: { type: string } & Record<string, unknown>): Action 
         .toBe('You take a moment to survey your surroundings.');
     });
 
-    it('should return inspect message for inspect_submap_tile', () => {
-        const action = makeAction({ type: 'inspect_submap_tile' });
-        expect(getDiegeticPlayerActionMessage(action, {}, {}, undefined))       
-          .toBe('You carefully examine the terrain nearby.');
-    });
-
     it('should return wait message', () => {
         const action = makeAction({ type: 'wait' });
         expect(getDiegeticPlayerActionMessage(action, {}, {}, undefined))       
