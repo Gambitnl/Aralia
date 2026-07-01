@@ -75,7 +75,6 @@ import type { PlayerWorldPosition } from '../../types';
  *     the authoritative spawn (not the continent-derived tile center).
  */
 import { WORLD3D_CONFIG, heightToMeters } from '../../systems/world3d/config';
-import { MAP_GRID_SIZE } from '../../config/mapConfig';
 import { makeCellLocationId } from '../../utils/location/cellLocationId';
 import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
 // The worldforge bridge modules pull the entire FMG generation stack —
@@ -123,18 +122,13 @@ function wfParam(name: string): string | null {
   return null;
 }
 const WF_GROUND = wfParam('wf_legacy') !== '1';
-const WF_TILE: { x: number; y: number } | null = (() => {
-  const raw = wfParam('wf_tile');
-  if (!raw) return null;
-  const [x, y] = raw.split(',').map(Number);
-  return Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null;
-})();
+// Grid retirement: the ?wf_tile / ?wf_town grid-coord dev overrides are gone —
+// 3D entry is cell-native (anchor cell or the player's canonical cell).
 const WF_SEED: number | null = (() => {
   const raw = wfParam('wf_seed');
   const n = raw === null ? NaN : Number(raw);
   return Number.isFinite(n) ? n : null;
 })();
-const WF_TOWN = wfParam('wf_town') === '1';
 
 interface World3DWrapperProps {
   /** Initial world position to start at. */
@@ -213,60 +207,33 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
         ]);
         if (cancelled) return;
 
-        const loc = LOCATIONS[state.currentLocationId];
         const wfSeed = WF_SEED ?? state.worldSeed;
-        // Grid retirement: the non-anchor entry fallbacks (loc.mapCoordinates,
-        // clicked continent meters) live in the canonical 30x20 LOCATIONS grid
-        // space, so derive cols/rows from MAP_GRID_SIZE — NOT a mapData.tiles read.
-        // The real entry is the cell anchor below (no cols/rows needed).
-        const rows = MAP_GRID_SIZE.rows;
-        const cols = MAP_GRID_SIZE.cols;
-        // Entry tile priority: explicit dev override → the tile the player
-        // CLICKED on the atlas (Enter-3D-at-cell stores it as continent
-        // meters in playerWorldPos) → the party's location tile.
-        const clicked = state.playerWorldPos
-          ? {
-              x: Math.max(0, Math.min(cols - 1, Math.floor(state.playerWorldPos.x / WORLD3D_CONFIG.METERS_PER_CELL))),
-              y: Math.max(0, Math.min(rows - 1, Math.floor(state.playerWorldPos.z / WORLD3D_CONFIG.METERS_PER_CELL))),
-            }
-          : null;
-        let coords = WF_TILE ?? clicked ?? loc?.mapCoordinates;
-        // Cell-native 3D entry (Stage 1): an exact anchor from start-selection /
-        // map click carries the chosen cell + the burg's position. It overrides
-        // the lossy grid resolution; coords is kept only for legacy bookkeeping.
+        // Grid retirement (2026-07-01): 3D entry is fully cell-native. The entry
+        // CELL is the anchor's cell (map click / start-selection / travel carry an
+        // Entry3DAnchor) or — for a toggle-to-3D from gameplay with no anchor — the
+        // player's canonical cell. There is no 30x20 grid tile resolution anymore.
+        // NOTE: this is the live 3D "walk into the world" entry; the logic is
+        // cell-native by construction but was not eyeballed in a running app this
+        // pass — verify the ground still loads on a toggle-to-3D before trusting it.
         const anchor = state.entry3DAnchor;
-        if (anchor?.centerPx && wfSeed != null && !coords) {
-          const atlas = bridge.getBridgeAtlas(wfSeed);
-          coords = {
-            x: Math.max(0, Math.min(cols - 1, Math.floor((anchor.centerPx[0] / (atlas.graphWidth || 1)) * cols))),
-            y: Math.max(0, Math.min(rows - 1, Math.floor((anchor.centerPx[1] / (atlas.graphHeight || 1)) * rows))),
-          };
+        let entryCellId: number | null = null;
+        if (anchor) {
+          entryCellId = anchor.centerPx && wfSeed != null
+            ? findCellAtPoint(bridge.getBridgeAtlas(wfSeed), anchor.centerPx[0], anchor.centerPx[1])
+            : anchor.cellId;
+        } else if (state.playerCell?.cellId != null) {
+          entryCellId = state.playerCell.cellId;
         }
-        if (WF_TOWN && !WF_TILE && wfSeed != null && !anchor) {
-          // Data-driven Enter Village: nearest burg-bearing tile to the party.
-          const townTiles = bridge.getTownTilesForGrid(wfSeed, cols, rows);
-          if (townTiles.length) {
-            const px = coords?.x ?? cols / 2;
-            const py = coords?.y ?? rows / 2;
-            coords = townTiles.reduce((best, t) =>
-              Math.hypot(t.x - px, t.y - py) < Math.hypot(best.x - px, best.y - py) ? t : best,
-            );
-            // eslint-disable-next-line no-console
-            console.info('[wf_town] entering nearest town tile', coords, 'of', townTiles.length, 'town tiles');
-          }
-        }
-        if (coords && wfSeed != null) {
-          // Exact cell-native entry when an anchor is present (the burg position
-          // centers the Locale so the chosen town renders); else the legacy tile path.
-          const bridged = anchor
-            ? bridge.getWorldforgeLocalForCell(
-                wfSeed,
-                anchor.centerPx
-                  ? findCellAtPoint(bridge.getBridgeAtlas(wfSeed), anchor.centerPx[0], anchor.centerPx[1])
-                  : anchor.cellId,
-                { centerPx: anchor.centerPx },
-              )
-            : bridge.getWorldforgeLocalForLocation(wfSeed, coords.x, coords.y, cols, rows);
+        // The ground session's tile identity is the entry cell (opaque {x: cellId,
+        // y: 0}) — cell-native, no grid coord. Feeds wfGroundView.tile + the
+        // ground-position save/restore below.
+        const coords = entryCellId != null ? { x: entryCellId, y: 0 } : null;
+        if (coords && wfSeed != null && entryCellId != null) {
+          const bridged = bridge.getWorldforgeLocalForCell(
+            wfSeed,
+            entryCellId,
+            { centerPx: anchor?.centerPx },
+          );
 
           // Generate/register any missing businesses/NPCs for the town(s) in the local area
           const helperGetBusinessTypeForPlot = (role: string, plotId: number): BusinessType => {
