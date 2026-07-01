@@ -100,11 +100,6 @@ export interface Location {
   npcIds?: string[];
   dynamicNpcConfig?: LocationDynamicNpcConfig;
   interactableFeatures?: Array<InteractableFeature | InteractablePuzzleFeature>;
-  // Grid retirement (2026-07-01): optional + vestigial. The 30x20 world grid is
-  // gone; authored locations no longer carry grid coordinates. Kept optional only
-  // so the legacy map generator (dev-only) and a few placeholder Location objects
-  // still type-check until they're retired.
-  mapCoordinates?: { x: number; y: number };
   biomeId: string;
   gossipLinks?: string[];
   planeId?: string; // Optional, defaults to 'material'

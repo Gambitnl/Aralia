@@ -24,7 +24,6 @@
  */
 
 import { Biome, Location, MapData, MapTile } from '../types';
-import { STARTING_LOCATION_ID } from '../constants';
 import { SeededRandom } from '@/utils/random';
 import { runWorldSim } from './worldSim';
 import type { WorldFeatureHints } from './worldSim/types';
@@ -417,33 +416,17 @@ function pickBiomeFromPool(pool: Biome[], seed: number, x: number, y: number): B
   return pool[pool.length - 1];
 }
 
-function applyLocationAnchors(tiles: MapTile[][], locations: Record<string, Location>, rows: number, cols: number): void {
-  for (const location of Object.values(locations)) {
-    // Grid retirement: authored locations no longer carry grid coordinates.
-    if (!location.mapCoordinates) continue;
-    const { x, y } = location.mapCoordinates;
-    if (x < 0 || y < 0 || x >= cols || y >= rows) continue;
-    tiles[y][x].locationId = location.id;
-    tiles[y][x].biomeId = location.biomeId;
-  }
+// Grid retirement (2026-07-01): both helpers below anchored authored locations
+// and starting-tile discovery onto 30x20 grid tiles via `Location.mapCoordinates`.
+// That field is gone; authored locations no longer carry grid coordinates, so
+// there is nothing to anchor. Kept as no-ops (this dev-only generator still
+// calls them) to preserve the call structure without the dead grid reads.
+function applyLocationAnchors(_tiles: MapTile[][], _locations: Record<string, Location>, _rows: number, _cols: number): void {
+  // No-op: authored locations no longer carry grid coordinates.
 }
 
-function applyStartingDiscovery(tiles: MapTile[][], locations: Record<string, Location>): void {
-  const start = locations[STARTING_LOCATION_ID];
-  if (!start?.mapCoordinates) return;
-  const sx = start.mapCoordinates.x;
-  const sy = start.mapCoordinates.y;
-  if (!tiles[sy]?.[sx]) return;
-  tiles[sy][sx].isPlayerCurrent = true;
-  tiles[sy][sx].discovered = true;
-  for (let dy = -1; dy <= 1; dy++) {
-    for (let dx = -1; dx <= 1; dx++) {
-      const nx = sx + dx;
-      const ny = sy + dy;
-      if (!tiles[ny]?.[nx]) continue;
-      tiles[ny][nx].discovered = true;
-    }
-  }
+function applyStartingDiscovery(_tiles: MapTile[][], _locations: Record<string, Location>): void {
+  // No-op: the starting location no longer carries a grid coordinate.
 }
 
 export function generateAzgaarDerivedMap(

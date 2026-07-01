@@ -254,7 +254,6 @@ export class EntityResolverService {
       name,
       baseDescription: `You have arrived at ${name}.`,
       exits: {},
-      mapCoordinates: { x: -1, y: -1 }, // Off-map / abstract location
       biomeId: 'plains' // Default biome
     };
   }

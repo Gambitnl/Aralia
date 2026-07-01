@@ -21,7 +21,7 @@
  * deterministic data.
  */
 import { SeededFeatureConfig, PathDetails } from '../../types';
-import { LOCATIONS, STARTING_LOCATION_ID, BIOMES } from '../../constants';
+import { BIOMES } from '../../constants';
 import { biomeVisualsConfig, defaultBiomeVisuals } from '../../config/submapVisualsConfig';
 import { CellularAutomataGenerator } from '../../services/cellularAutomataService';
 import { simpleHash as generalHash } from '../hashUtils';
@@ -185,12 +185,12 @@ const getPathDetails = (
     if (currentWorldBiomeId === 'swamp') pathChance = 30;
     if (currentWorldBiomeId === 'ocean') pathChance = 0;
 
-    const startingLocationData = LOCATIONS[STARTING_LOCATION_ID];
-    const isStartingLocationSubmap =
-        startingLocationData &&
-        currentWorldBiomeId === startingLocationData.biomeId &&
-        parentWorldMapCoords.x === startingLocationData.mapCoordinates?.x &&
-        parentWorldMapCoords.y === startingLocationData.mapCoordinates?.y;
+    // Grid retirement (2026-07-01): this once forced a guaranteed centred path
+    // for the starting-location submap by comparing `parentWorldMapCoords` to the
+    // start location's grid coord (`mapCoordinates`). That field is gone —
+    // authored locations no longer carry grid coordinates — so the comparison
+    // was already always false. Made explicit; the special-case path is retired.
+    const isStartingLocationSubmap = false;
 
     if (isStartingLocationSubmap) {
         pathChance = 100;

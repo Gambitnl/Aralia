@@ -359,7 +359,6 @@ const App: React.FC = () => {
         exits: {},
         itemIds: gameState.dynamicLocationItemIds[currentId] || [],
         npcIds: [],
-        mapCoordinates: legacyCoord ?? { x: 0, y: 0 },
         biomeId,
       };
     }

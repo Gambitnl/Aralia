@@ -55,7 +55,6 @@ describe('ActionPane', () => {
     name: 'Town Square',
     baseDescription: 'A busy hub',
     exits: { Market: 'market_1', North: 'coord_north' },
-    mapCoordinates: { x: 0, y: 0 },
     biomeId: 'plains',
   };
 

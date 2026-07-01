@@ -11,7 +11,6 @@ describe('HeistManager', () => {
         name: 'Grand Bank',
         baseDescription: 'A secure bank.',
         exits: {},
-        mapCoordinates: { x: 0, y: 0 },
         biomeId: 'city'
     };
 

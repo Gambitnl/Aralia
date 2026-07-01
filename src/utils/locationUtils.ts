@@ -19,20 +19,18 @@ export function parseCoordinateLocationId(
 }
 
 /**
- * Resolve a legacy location id to its world-map tile, using the static
- * `LOCATIONS` table's `mapCoordinates` for named places and the `coord_X_Y`
- * encoding for procedural tiles. Returns null when neither applies (e.g. the
- * static start node 'clearing', which has no world tile until spawn relocation).
+ * Resolve a legacy location id to its world-map tile via the `coord_X_Y`
+ * encoding for procedural tiles. Returns null for static `LOCATIONS` ids.
+ *
+ * Grid retirement (2026-07-01): the static-`LOCATIONS` `mapCoordinates` branch
+ * was removed — authored locations no longer carry grid coordinates, so that
+ * lookup could only ever return null. Only the legacy `coord_` back-compat
+ * parse (old saves) remains. The `locations` argument is retained for call-site
+ * compatibility but is no longer read.
  */
 export function locationIdToTile(
   locationId: string | null | undefined,
-  locations: Record<string, { mapCoordinates?: { x: number; y: number } }>,
+  _locations?: Record<string, unknown>,
 ): { x: number; y: number } | null {
-  const coord = parseCoordinateLocationId(locationId);
-  if (coord) return coord;
-  if (locationId && locations[locationId]?.mapCoordinates) {
-    const { x, y } = locations[locationId].mapCoordinates!;
-    return { x, y };
-  }
-  return null;
+  return parseCoordinateLocationId(locationId);
 }

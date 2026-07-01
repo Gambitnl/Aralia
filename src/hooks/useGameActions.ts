@@ -78,7 +78,6 @@ export function useGameActions({
           flags: [{ key: 'locationId', value: newLocation.id, label: newLocation.name }],
           isQuestRelated: false,
           associatedLocationId: newLocation.id,
-          worldMapCoordinates: newLocation.mapCoordinates,
         }
       });
     }

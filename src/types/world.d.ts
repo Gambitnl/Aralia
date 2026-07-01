@@ -74,10 +74,6 @@ export interface Location {
     npcIds?: string[];
     dynamicNpcConfig?: LocationDynamicNpcConfig;
     interactableFeatures?: Array<InteractableFeature | InteractablePuzzleFeature>;
-    mapCoordinates: {
-        x: number;
-        y: number;
-    };
     biomeId: string;
     gossipLinks?: string[];
     planeId?: string;

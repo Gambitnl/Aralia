@@ -33,11 +33,13 @@ describe('mapService generateMap (Azgaar-source default)', () => {
 
   // Grid retirement (2026-07-01): the "anchors predefined locations onto their map
   // coordinates" + "marks the starting location discovered" tests are removed —
-  // authored LOCATIONS no longer carry grid mapCoordinates, so generateMap (now a
-  // dev-only generator) no longer anchors them onto a 30x20 tile grid.
-  it('authored LOCATIONS no longer carry grid mapCoordinates', () => {
+  // authored LOCATIONS no longer carry grid mapCoordinates (the field itself was
+  // deleted from the Location type), so generateMap (now a dev-only generator) no
+  // longer anchors them onto a 30x20 tile grid.
+  it('authored LOCATIONS resolve without any grid mapCoordinates field', () => {
     const start = LOCATIONS[STARTING_LOCATION_ID];
-    expect(start.mapCoordinates).toBeUndefined();
+    expect(start).toBeDefined();
+    expect('mapCoordinates' in start).toBe(false);
   });
 
   it('generateMap returns MapData with worldData v2 attached', () => {

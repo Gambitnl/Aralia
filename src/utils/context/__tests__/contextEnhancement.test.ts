@@ -52,7 +52,6 @@ describe('contextUtils (Enhanced)', () => {
     name: 'Test Location',
     baseDescription: 'A test place.',
     exits: {},
-    mapCoordinates: { x: 0, y: 0 },
     biomeId: 'biome_1'
   };
 

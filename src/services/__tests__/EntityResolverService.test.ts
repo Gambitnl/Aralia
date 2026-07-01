@@ -70,10 +70,11 @@ describe('EntityResolverService', () => {
       expect(result.entity).toBeDefined();
       expect(result.entity?.name).toBe('Castle Ravenloft');
       expect(result.entity?.id).toContain('castle_ravenloft');
-      // Check default props
-      const createdLocation = result.entity as { mapCoordinates?: { x: number; y: number } };
-      // TODO(2026-01-03 pass 1 Codex-CLI): Stubbed location shape; align ensureEntityExists return type with Location once resolver schema is formalized.
-      expect(createdLocation?.mapCoordinates).toEqual({ x: -1, y: -1 });
+      // Check default props. Grid retirement (2026-07-01): created stubs no longer
+      // carry a grid `mapCoordinates` field (removed from the Location type).
+      const createdLocation = result.entity as { biomeId?: string; mapCoordinates?: unknown };
+      expect(createdLocation?.biomeId).toBe('plains');
+      expect(createdLocation?.mapCoordinates).toBeUndefined();
     });
 
     it('should check dynamic locations in state', async () => {

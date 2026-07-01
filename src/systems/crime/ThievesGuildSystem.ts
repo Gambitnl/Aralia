@@ -48,7 +48,6 @@ export class ThievesGuildSystem {
             name: r.name,
             // Mock other location props for now, or fetch real Location if linked
             baseDescription: `A wealthy region known for ${r.exports.join(', ')}.`,
-            mapCoordinates: { x: 0, y: 0 },
             biomeId: 'city',
             exits: {}
         } as Location));
@@ -64,7 +63,7 @@ export class ThievesGuildSystem {
 
             const targetLoc = allTargets.length > 0
                 ? rng.pick(allTargets)
-                : { id: 'loc_capital', name: 'The Capital', baseDescription: 'The seat of power.', mapCoordinates: { x: 0, y: 0 }, biomeId: 'city', exits: {} } as Location;
+                : { id: 'loc_capital', name: 'The Capital', baseDescription: 'The seat of power.', biomeId: 'city', exits: {} } as Location;
 
             jobs.push(this.createProceduralJob(guildId, difficulty, targetLoc, rng));
         }

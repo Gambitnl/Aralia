@@ -44,7 +44,6 @@ describe('Planar Utils', () => {
         name: 'Town',
         baseDescription: 'A town',
         exits: {},
-        mapCoordinates: { x: 0, y: 0 },
         biomeId: 'plains'
       };
       const plane = getCurrentPlane(location);
@@ -57,7 +56,6 @@ describe('Planar Utils', () => {
         name: 'Fey Glade',
         baseDescription: 'A glade',
         exits: {},
-        mapCoordinates: { x: 0, y: 0 },
         biomeId: 'forest',
         planeId: 'feywild'
       };

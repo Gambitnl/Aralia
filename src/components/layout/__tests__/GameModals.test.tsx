@@ -96,7 +96,6 @@ const baseLocation: Location = {
     name: 'Village Center',
     baseDescription: 'A training village.',
     exits: {},
-    mapCoordinates: { x: 0, y: 0 },
     biomeId: 'plains',
 };
 

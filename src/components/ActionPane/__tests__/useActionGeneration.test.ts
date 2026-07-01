@@ -16,7 +16,6 @@ const coordLocation = {
   baseDescription: 'A procedural wilderness tile.',
   exits: {},
   npcIds: [],
-  mapCoordinates: { x: 12, y: 34 },
   biomeId: 'forest',
 } as unknown as Location;
 

@@ -50,7 +50,6 @@ describe('Prompt Inspection', () => {
     name: 'The Rusty Anchor',
     biomeId: 'city',
     baseDescription: 'A tavern.',
-    mapCoordinates: { x: 0, y: 0 },
     exits: {},
   };
 

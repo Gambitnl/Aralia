@@ -19,7 +19,6 @@
  * This service module handles the generation of the world map for Aralia RPG.
  */
 import { MapData, MapTile, Location, Biome } from '../types';
-import { STARTING_LOCATION_ID } from '../data/world/locations';
 import { SeededRandom } from '@/utils/random';
 import { generateAzgaarDerivedMap } from './azgaarDerivedMapService';
 import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
@@ -103,32 +102,11 @@ function generateLegacyMap(
     }
   }
 
-  // Place predefined locations and use their biomes as seeds
-  Object.values(locations).forEach(loc => {
-    if (loc.mapCoordinates && loc.biomeId) {
-      const { x, y } = loc.mapCoordinates;
-      if (y >= 0 && y < rows && x >= 0 && x < cols) {
-        tiles[y][x].biomeId = loc.biomeId;
-        tiles[y][x].locationId = loc.id;
-        if (loc.id === STARTING_LOCATION_ID) {
-          tiles[y][x].isPlayerCurrent = true;
-          tiles[y][x].discovered = true; // Discover starting tile
-          // Discover adjacent tiles to starting location
-          for (let dy = -1; dy <= 1; dy++) {
-            for (let dx = -1; dx <= 1; dx++) {
-              if (dx === 0 && dy === 0) continue;
-              const adjY = y + dy;
-              const adjX = x + dx;
-              if (adjY >= 0 && adjY < rows && adjX >= 0 && adjX < cols) {
-                tiles[adjY][adjX].discovered = true;
-              }
-            }
-          }
-        }
-      }
-    }
-  });
-  
+  // Grid retirement (2026-07-01): authored locations no longer carry grid
+  // coordinates, so there is nothing to anchor onto tiles here. The old block
+  // seeded predefined-location biomes + starting-tile discovery from
+  // `loc.mapCoordinates`; that field is gone.
+
   // Basic biome clustering pass (simple iteration)
   // This is a very naive approach, more advanced algorithms (Perlin noise, cellular automata) would be better for real zones.
   // TODO(FEATURES): Replace naive clustering with richer biome generation (Perlin/cellular automata) for contiguous regions (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).

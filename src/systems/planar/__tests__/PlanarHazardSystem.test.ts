@@ -39,7 +39,6 @@ describe('PlanarHazardSystem', () => {
     name: 'Test Loc',
     baseDescription: 'Test',
     planeId: 'abyss',
-    mapCoordinates: { x: 0, y: 0 },
     exits: {},
     biomeId: 'test_biome'
   };

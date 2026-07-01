@@ -29,7 +29,6 @@ export function checkPlanarRestRules(gameState: GameState): RestOutcome {
     name: 'Unknown Location',
     baseDescription: '',
     exits: {},
-    mapCoordinates: { x: 0, y: 0 },
     biomeId: 'unknown',
     planeId: 'material'
   };

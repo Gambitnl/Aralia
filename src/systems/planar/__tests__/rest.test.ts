@@ -19,7 +19,6 @@ describe('checkPlanarRestRules', () => {
         name: 'Rest Site',
         baseDescription: 'Test location for rest',
         exits: {},
-        mapCoordinates: { x: 0, y: 0 },
         biomeId: 'test_biome',
         planeId: 'material'
     };

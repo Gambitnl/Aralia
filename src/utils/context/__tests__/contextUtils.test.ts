@@ -77,7 +77,6 @@ describe('contextUtils', () => {
     name: 'Old Ruins',
     baseDescription: 'Crumbling walls.',
     exits: {},
-    mapCoordinates: { x: 0, y: 0 },
     biomeId: 'biome_1',
     itemIds: ['item_1']
   };
