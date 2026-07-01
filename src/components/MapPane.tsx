@@ -25,7 +25,6 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapTile as MapTileType } from '../types';
-import { MAP_GRID_SIZE } from '../config/mapConfig';
 import type { Item } from '@/types/items';
 import {
   daysOfFood,
@@ -59,7 +58,7 @@ import { generateSubmap, submapCellToChildContext, polygonBounds, pointInPolygon
 import { type TownPlan } from '@/systems/worldforge/town/townEngine';
 import { getCanonicalTownPlan } from '@/systems/worldforge/town/canonicalTown';
 import { rootSeedPath } from '@/systems/worldforge/seedPath';
-import { gridCellToAtlasSite, spreadColocatedPoints, entry3DAnchorForCell, atlasCellToLegacyGrid, snapToLandCell } from '@/systems/worldforge/local/gridAtlasBridge';
+import { spreadColocatedPoints, entry3DAnchorForCell, snapToLandCell } from '@/systems/worldforge/local/gridAtlasBridge';
 import type { Entry3DAnchor } from '@/types/state';
 import { getBridgeAtlas } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { buildAtlasTravelGraph, atlasMilesPerUnit, nearestLandCell, transportMobility } from '@/systems/worldforge/travel/atlasTravelGraph';
@@ -165,11 +164,6 @@ function normalizeCtxScale(ctx: SubmapParentContext): SubmapParentContext {
   };
 }
 
-function clampIndex(value: number, maxExclusive: number): number {
-  if (maxExclusive <= 0) return 0;
-  return Math.max(0, Math.min(maxExclusive - 1, value));
-}
-
 /**
  * The sub-cell index a player occupies within a submap tier. The player spawns
  * at the burg, which the submap engine places (Bomnogorvan contract), so the
@@ -225,10 +219,9 @@ const MapPane: React.FC<MapPaneProps> = ({
   onSetSail,
   playerAtlasCellId = null,
 }) => {
-  // Grid retirement: the legacy tile coords (tx,ty) MapPane hands back as
-  // bookkeeping are in the canonical 30x20 space; take the dims from the
-  // constant, not the soon-removed mapData grid.
-  const gridSize = MAP_GRID_SIZE;
+  // Grid retirement: MapPane is fully cell-native — it renders the atlas
+  // (getBridgeAtlas(worldSeed)) and resolves picks by cellId. The onTileClick/
+  // onEnter3DAtCell x,y args it hands back are vestigial (App uses the cellId).
   // Pre-game world-generation PREVIEW: the generation controls are shown but there
   // is no player to travel/enter-3D with. In this context the map is a pure world
   // viewer — there's no "me" to find, so the player marker + Find Me are meaningless
@@ -528,17 +521,16 @@ const MapPane: React.FC<MapPaneProps> = ({
   const worldforgeDiscoveryPins = useMemo(() => {
     if (!worldforgeAtlas) return [];
     const cells = worldforgeAtlas.pack.cells as unknown as { p?: ArrayLike<[number, number]> };
-    const pins = discoveredHiddenSites
-      .map((s) => {
-        const site = s.cellId >= 0 ? cells.p?.[s.cellId] : undefined;
-        if (!site) return null;
-        const offX = s.offsetX != null ? s.offsetX : 0;
-        const offY = s.offsetY != null ? s.offsetY : 0;
-        // Nudge by a fraction of a typical cell span (offsets are −0.5..0.5).
-        const span = (worldforgeAtlas.graphWidth || 960) / 100;
-        return { x: site[0] + offX * span, y: site[1] + offY * span, label: s.name };
-      })
-      .filter((p): p is { x: number; y: number; label?: string } => p !== null);
+    // Nudge by a fraction of a typical cell span (sub-cell offsets are −0.5..0.5).
+    const span = (worldforgeAtlas.graphWidth || 960) / 100;
+    const pins: { x: number; y: number; label?: string }[] = [];
+    for (const s of discoveredHiddenSites) {
+      const site = s.cellId >= 0 ? cells.p?.[s.cellId] : undefined;
+      if (!site) continue;
+      const offX = s.offsetX ?? 0;
+      const offY = s.offsetY ?? 0;
+      pins.push({ x: site[0] + offX * span, y: site[1] + offY * span, label: s.name });
+    }
     // Several sites in one cell snap to the same Voronoi site — fan them out so
     // each discovered place stays individually visible/clickable on the atlas.
     return spreadColocatedPoints(pins);
@@ -662,19 +654,17 @@ const MapPane: React.FC<MapPaneProps> = ({
     if (!worldforgeAtlas) return;
     const p = worldforgeAtlas.pack.cells.p?.[info.i];
     if (!p) return;
-    let tx = clampIndex(Math.floor((p[0] / worldforgeAtlas.graphWidth) * gridSize.cols), gridSize.cols);
-    let ty = clampIndex(Math.floor((p[1] / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows);
+    // Grid retirement: the click is cell-native. The onTileClick/onEnter3DAtCell
+    // x,y args are vestigial bookkeeping (App resolves the location from the
+    // destinationCell/anchor cellId, never from x,y), so pass 0,0.
     if (interactionMode === 'enter3d' && allow3DEntry && onEnter3DAtCell) {
       // Cell-native entry: carry the EXACT clicked cell (burg-centered when the
-      // cell is settled, so the Locale frames the town instead of dropping the
-      // player in wilderness next to it). The grid tile is bookkeeping only,
-      // derived from the anchor cell — replaces the old getTownTilesForGrid snap hack.
+      // cell is settled, so the Locale frames the town instead of wilderness).
       const anchor = entry3DAnchorForCell(worldforgeAtlas, info.i);
-      const bk = atlasCellToLegacyGrid(worldforgeAtlas, anchor.cellId, gridSize) ?? { x: tx, y: ty };
-      onEnter3DAtCell(bk.x, bk.y, synthCellTile(worldforgeAtlas, anchor.cellId, bk.x, bk.y), anchor);
+      onEnter3DAtCell(0, 0, synthCellTile(worldforgeAtlas, anchor.cellId, 0, 0), anchor);
       return;
     }
-    const tile = synthCellTile(worldforgeAtlas, info.i, tx, ty);
+    const tile = synthCellTile(worldforgeAtlas, info.i, 0, 0);
     if (interactionMode === 'travel' && allowTravel) {
       // ── Ship voyage branch ────────────────────────────────────────────────
       // When the player is sailing an owned ship, clicking the map picks a
@@ -736,32 +726,28 @@ const MapPane: React.FC<MapPaneProps> = ({
         const provision: TravelProvisionEffect | undefined = partySize > 0
           ? { rationsToSpend: decision.rationsToSpend, waterToSpend: decision.waterToSpend }
           : undefined;
-        onTileClick(tx, ty, tile, { seconds: Math.round(route.minutes * 60), encounterMessage, provision, destinationCell });
+        onTileClick(0, 0, tile, { seconds: Math.round(route.minutes * 60), encounterMessage, provision, destinationCell });
         return;
       }
       // Underprovisioned → open the choice flow instead of moving.
-      setPendingTravel({ cellId: info.i, tx, ty, minutes: route.minutes, points: route.points });
+      setPendingTravel({ cellId: info.i, tx: 0, ty: 0, minutes: route.minutes, points: route.points });
     }
-  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, gridSize.cols, gridSize.rows, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planSelectedAtlasRoute, planAtlasMultiModal, worldforgeSeed, provisionInventory, partySize, seaPref, onSetSail, showMapNotice]);
+  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planSelectedAtlasRoute, planAtlasMultiModal, worldforgeSeed, provisionInventory, partySize, seaPref, onSetSail, showMapNotice]);
 
   // ── Underprovisioned travel choice resolution ──────────────────────────────
   // Map a graph-space point to a world grid tile (the same proportional bridge
   // ordinary picks use) — for resolving a partial-stop's halt point to a move.
   const pointToTile = useCallback((gx: number, gy: number) => {
     if (!worldforgeAtlas) return null;
-    // Cell-native (Stage 6): the picked atlas cell at this graph point. The legacy
-    // tx,ty are bookkeeping derived from that cell (no mapData.tiles read); the tile
-    // is synthesized from the cell's biome and treated as explored (cell fog).
+    // Cell-native: the picked atlas cell at this graph point. The tile is
+    // synthesized from the cell's biome and treated as explored (cell fog). The
+    // legacy tx,ty are vestigial bookkeeping (App resolves the arrival from the
+    // cellId, not x,y), so they are 0.
     const cellId = findCellAtPoint(worldforgeAtlas, gx, gy);
     if (cellId == null || cellId < 0) return null;
-    const grid = atlasCellToLegacyGrid(worldforgeAtlas, cellId, gridSize) ?? {
-      x: clampIndex(Math.floor((gx / worldforgeAtlas.graphWidth) * gridSize.cols), gridSize.cols),
-      y: clampIndex(Math.floor((gy / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows),
-    };
-    const biomeIdx = (worldforgeAtlas.pack.cells as unknown as { biome?: ArrayLike<number> }).biome?.[cellId];
-    const tile = { x: grid.x, y: grid.y, biomeId: wfBiomeIndexToLegacyId(biomeIdx), discovered: true, isPlayerCurrent: false } as MapTileType;
-    return { tx: grid.x, ty: grid.y, tile };
-  }, [worldforgeAtlas, gridSize.cols, gridSize.rows]);
+    const tile = synthCellTile(worldforgeAtlas, cellId, 0, 0);
+    return { tx: 0, ty: 0, tile };
+  }, [worldforgeAtlas]);
 
   // Resolve the player's choice on an underprovisioned trip. `half`/`push` commit
   // immediately; `forage` first rolls the biome-yield forage loop (extra food-days
@@ -806,7 +792,7 @@ const MapPane: React.FC<MapPaneProps> = ({
         ...(conditions.length ? { conditions } : {}),
         note: forageNote,
       };
-      const target = synthCellTile(worldforgeAtlas, pt.cellId, pt.tx, pt.ty); // cell-synthesized tile (Stage 6)
+      const target = synthCellTile(worldforgeAtlas, pt.cellId, 0, 0); // cell-synthesized tile (Stage 6)
       // Cell-native arrival (Stage 4): the trip completes at the destination cell, so
       // carry it intact (same as the ungated commit). A partial-stop (below) halts at
       // an intermediate point that is NOT the picked cell, so it stays a legacy tile
@@ -816,7 +802,7 @@ const MapPane: React.FC<MapPaneProps> = ({
         cellId: snapToLandCell(worldforgeAtlas, pt.cellId),
         anchor: entry3DAnchorForCell(worldforgeAtlas, pt.cellId),
       };
-      if (target) onTileClick(pt.tx, pt.ty, target, { seconds: Math.round(pt.minutes * 60 + extraSeconds), provision, destinationCell });
+      if (target) onTileClick(0, 0, target, { seconds: Math.round(pt.minutes * 60 + extraSeconds), provision, destinationCell });
       setPendingTravel(null);
       return;
     }
@@ -836,7 +822,7 @@ const MapPane: React.FC<MapPaneProps> = ({
       companionLoyaltyDelta: -15,
       note: `${forageNote ? forageNote + ' ' : ''}Your supplies run out on the road. The party halts, starving.`,
     };
-    onTileClick(target.tx, target.ty, target.tile, { seconds: haltSeconds, provision });
+    onTileClick(0, 0, target.tile, { seconds: haltSeconds, provision });
     setPendingTravel(null);
   }, [pendingTravel, worldforgeAtlas, provisionInventory, partySize, partySurvivalModifier, worldforgeSeed, onTileClick, pointToTile]);
 
@@ -860,14 +846,11 @@ const MapPane: React.FC<MapPaneProps> = ({
     const cellId = submapStack[0]?.neighbourhood?.focusCellId;
     if (cellId == null) return;
     // Cell-native entry: the focus cell IS a real atlas cell — anchor on it
-    // directly (burg-centered if settled) so the leaf enters exactly here.
+    // directly (burg-centered if settled) so the leaf enters exactly here. The
+    // x,y args are vestigial bookkeeping (App uses the anchor cellId), so pass 0,0.
     const anchor = entry3DAnchorForCell(worldforgeAtlas, cellId);
-    const bk = atlasCellToLegacyGrid(worldforgeAtlas, anchor.cellId, gridSize);
-    const fallbackP = worldforgeAtlas.pack.cells.p?.[cellId];
-    const tx = bk ? bk.x : clampIndex(Math.floor(((fallbackP?.[0] ?? 0) / worldforgeAtlas.graphWidth) * gridSize.cols), gridSize.cols);
-    const ty = bk ? bk.y : clampIndex(Math.floor(((fallbackP?.[1] ?? 0) / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows);
-    onEnter3DAtCell(tx, ty, synthCellTile(worldforgeAtlas, cellId, tx, ty), anchor);
-  }, [worldforgeAtlas, onEnter3DAtCell, submapStack, gridSize.cols, gridSize.rows]);
+    onEnter3DAtCell(0, 0, synthCellTile(worldforgeAtlas, cellId, 0, 0), anchor);
+  }, [worldforgeAtlas, onEnter3DAtCell, submapStack]);
 
   const handleSubmapDrill = useCallback((siteIndex: number) => {
     setSubmapStack((stack) => {
