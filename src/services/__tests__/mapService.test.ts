@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { generateMap } from '../mapService';
 import { BIOMES, LOCATIONS, STARTING_LOCATION_ID } from '../../constants';
-import { MAP_GRID_SIZE } from '../../config/mapConfig';
+
+// Grid retirement: the world no longer carries a 30x20 grid. The dev-only
+// generateMap generator still takes explicit dimensions, so the test fixes
+// them locally rather than reading a retired global constant.
+const GEN_ROWS = 20;
+const GEN_COLS = 30;
 
 function flattenBiomeIds(mapData: ReturnType<typeof generateMap>): string[] {
   return mapData.tiles.flat().map((tile) => tile.biomeId);
@@ -10,14 +15,14 @@ function flattenBiomeIds(mapData: ReturnType<typeof generateMap>): string[] {
 describe('mapService generateMap (Azgaar-source default)', () => {
   it('is deterministic for the same seed', () => {
     const seed = 123456789;
-    const mapA = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, seed);
-    const mapB = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, seed);
+    const mapA = generateMap(GEN_ROWS, GEN_COLS, LOCATIONS, BIOMES, seed);
+    const mapB = generateMap(GEN_ROWS, GEN_COLS, LOCATIONS, BIOMES, seed);
     expect(flattenBiomeIds(mapA)).toEqual(flattenBiomeIds(mapB));
   });
 
   it('changes output for different seeds', () => {
-    const mapA = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, 11111);
-    const mapB = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, 22222);
+    const mapA = generateMap(GEN_ROWS, GEN_COLS, LOCATIONS, BIOMES, 11111);
+    const mapB = generateMap(GEN_ROWS, GEN_COLS, LOCATIONS, BIOMES, 22222);
 
     const a = flattenBiomeIds(mapA);
     const b = flattenBiomeIds(mapB);

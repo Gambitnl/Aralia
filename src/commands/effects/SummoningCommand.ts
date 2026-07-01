@@ -23,7 +23,6 @@ import { CLASSES_DATA } from '@/constants'
 import { MONSTERS_DATA } from '../../data/monsters'
 import { generateId } from '../../utils/combatUtils'
 import { getSummonTemplate, type SummonTemplate } from '../../data/summonTemplates'
-import { MAP_GRID_SIZE } from '../../config/mapConfig'
 
 /**
  * This command creates temporary combat characters for spells that summon a creature,
@@ -222,16 +221,14 @@ export class SummoningCommand extends BaseEffectCommand {
     }
 
     private isWithinBounds(pos: Position, state: CombatState): boolean {
-        // 1. Try Battle Map (CombatState)
+        // Bounds come from the Battle Map. Grid retirement: the world no longer
+        // carries a 30x20 grid, so there is no world-grid fallback — mapless combat
+        // is unbounded here (range + occupied-space checks still apply).
         if (state.mapData) {
             const { width, height } = state.mapData.dimensions
             return pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height
         }
-
-        // 2. Fall back to the canonical world dimensions (grid retirement: no
-        // world mapData grid; bounds use the MAP_GRID_SIZE bookkeeping basis).
-        const { cols, rows } = MAP_GRID_SIZE
-        return pos.x >= 0 && pos.x < cols && pos.y >= 0 && pos.y < rows
+        return true
     }
 
     private ensureFamiliarPocketAbilities(state: CombatState, casterId: string): CombatState {
