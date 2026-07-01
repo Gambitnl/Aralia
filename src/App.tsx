@@ -1366,14 +1366,19 @@ const App: React.FC = () => {
       </div>
     );
 
-    // Entry position: use saved 3D position, or default to current location center.
-    // Grid → world meters uses METERS_PER_CELL (the chunk geometry's mapping);
-    // the old ×128 (CHUNK_WORLD_SIZE) constant put the camera at ~1/8 scale,
-    // spawning everyone in the map's top-left corner regardless of location.
+    // Entry position: use the saved 3D position, else seed from the player's
+    // CELL. Grid retirement: the old default read `location.mapCoordinates`
+    // (a 30x20 grid tile) — that field is gone. World3DWrapper enters on the
+    // player's atlas cell and treats cellId as the x axis (`coords = {x: cellId,
+    // y: 0}`), mapping to meters as `(cell + 0.5) * METERS_PER_CELL`; this seed
+    // mirrors that convention so the frozen scene origin agrees with it. The
+    // cell-native ground recenters on entry, and `playerWorldPos` overrides this
+    // once the camera moves, so it is only the first-frame origin hint.
+    const entryCellId = gameState.playerCell?.cellId ?? 0;
     const entryPosition = gameState.playerWorldPos ?? {
-      x: (currentLocationData.mapCoordinates?.x ?? 30) * WORLD3D_CONFIG.METERS_PER_CELL,
+      x: (entryCellId + 0.5) * WORLD3D_CONFIG.METERS_PER_CELL,
       y: 0,
-      z: (currentLocationData.mapCoordinates?.y ?? 20) * WORLD3D_CONFIG.METERS_PER_CELL,
+      z: 0.5 * WORLD3D_CONFIG.METERS_PER_CELL,
     };
 
     mainContent = (

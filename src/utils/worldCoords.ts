@@ -154,22 +154,6 @@ export function gridWorldDimensions(cols: number, rows: number): { widthM: numbe
 }
 
 /**
- * Center of a map grid cell in world meters (x east, z north).
- */
-export function gridCellCenterToWorldMeters(
-  cellX: number,
-  cellY: number,
-  cols: number,
-  rows: number,
-): { x: number; z: number } {
-  const { widthM, heightM } = gridWorldDimensions(cols, rows);
-  return {
-    x: ((cellX + 0.5) / cols) * widthM,
-    z: ((cellY + 0.5) / rows) * heightM,
-  };
-}
-
-/**
  * Normalized 0–1 atlas coordinates for a world-meter position on the gameplay grid.
  */
 export function worldMetersToGridNormalized(

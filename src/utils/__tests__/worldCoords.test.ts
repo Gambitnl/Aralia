@@ -4,7 +4,6 @@ import {
   DEFAULT_SVG_HEIGHT,
   DEFAULT_SVG_WIDTH,
   getTerrainHeight,
-  gridCellCenterToWorldMeters,
   svgToWorldCoords,
   worldMetersToGridNormalized,
   worldToSvgCoords,
@@ -26,12 +25,12 @@ describe('worldCoords', () => {
     expect(back.z).toBeCloseTo(wz, 5);
   });
 
-  it('maps grid cell center to world meters and back to normalized coords', () => {
+  it('maps a world-meter position back to normalized atlas coords', () => {
     const cols = 60;
     const rows = 40;
-    const { x, z } = gridCellCenterToWorldMeters(10, 5, cols, rows);
-    expect(x).toBeCloseTo((10.5 / cols) * cols * METERS_PER_CELL, 5);
-    expect(z).toBeCloseTo((5.5 / rows) * rows * METERS_PER_CELL, 5);
+    // A point 10.5/60 across and 5.5/40 down the world, in meters.
+    const x = 10.5 * METERS_PER_CELL;
+    const z = 5.5 * METERS_PER_CELL;
 
     const { normX, normY } = worldMetersToGridNormalized(x, z, cols, rows);
     expect(normX).toBeCloseTo(10.5 / cols, 5);
