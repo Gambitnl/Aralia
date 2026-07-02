@@ -220,7 +220,7 @@ test('GET /health returns ok:true and sensible counts', async () => {
   const h = await request('GET', '/health');
   assert.equal(h.status, 200);
   assert.equal(h.json.ok, true);
-  assert.equal(h.json.version, '0.1.0');
+  assert.equal(h.json.version, '0.2.0');
   assert.ok(typeof h.json.counts.agents === 'number');
   assert.ok(h.json.counts.agents >= 1);
   assert.ok(typeof h.json.lastSeq === 'number');

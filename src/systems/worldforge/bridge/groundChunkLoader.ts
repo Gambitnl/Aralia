@@ -52,7 +52,8 @@ import { generateHiddenPlaces, type HiddenPlaceKind } from "../discovery/hiddenP
 import type { Pt } from "../submap/submapEngine";
 import { localWithDeltas } from "./groundDeltas";
 import type { WorldDelta } from "../delta/types";
-import { getBurgNamer, getBridgeAtlas } from "./legacySubmapBridge";
+import { getBurgNamer, getBridgeAtlas, getBurgCultureType } from "./legacySubmapBridge";
+import { styleFamilyForCultureType, styledGatehouseForm, type StyleFamily, type GatehouseForm } from "../town/architectureStyle";
 import { SeededRandom } from "../../../utils/random/seededRandom";
 import { generateBusinessName } from "../../economy/NpcBusinessManager";
 import type { BusinessType, WorldBusiness } from "../../../types/business";
@@ -64,6 +65,8 @@ import { generateGroundHostiles } from "./groundHostiles";
 interface GroundPolyline {
   points: Array<{ x: number; z: number }>;
   widthM: number;
+  /** Optional tint (e.g. town-wall runs carry the style family's wallTint). */
+  colorHex?: string;
 }
 
 /** A filled town water body (river channel / harbour apron), ground meters. */
@@ -84,6 +87,12 @@ export interface GroundDeck {
    * bridge span — they must not share one identical slab material.
    */
   kind: 'dock' | 'bridge';
+  /**
+   * Style-family deck detailing (piling spacing / railing / bridge-arch rise),
+   * stamped from the burg's architecture family so a coastal-timber quay and a
+   * highland-stone bridge read differently in 3D.
+   */
+  detail?: { pilingSpacingM: number; railing: boolean; archRiseM: number };
 }
 
 /** A roster person resolved to the plot center where their figure is rendered. */
@@ -164,6 +173,8 @@ export interface GroundWorld {
   waterBodies: GroundWaterBody[];
   /** Town dock/bridge deck slabs, ground meters. */
   decks: GroundDeck[];
+  /** Town road-gate placements (ground meters) for gatehouse meshes (styled-architecture slice). */
+  gatehouses: Array<{ xM: number; zM: number; angleRad: number; gapHalfM: number; form: GatehouseForm; colorHex: string; burgId: number }>;
   /** Town sites overlapping the artifact, center in ground meters. */
   towns: Array<{ burgId: number; xM: number; zM: number; halfM: number }>;
   /** Town-plan building plots (C3 generateTownPlan), centers in meters. */
@@ -176,6 +187,12 @@ export interface GroundWorld {
     /** Building height, meters (storeys × 3). */
     heightM: number;
     role: string;
+    /** Architecture-style stamps (Task 7): absent on legacy/unstyled plans. */
+    wallColorHex?: string;
+    roofColorHex?: string;
+    roofForm?: 'gable' | 'hip' | 'steep' | 'flat';
+    /** The burg's style family builds chimneys. */
+    chimney?: boolean;
     /** Interior wall envelope, meters (≤ plot; roofs/floors fit THIS). */
     wallWidthM: number;
     wallDepthM: number;
@@ -448,6 +465,7 @@ export function makeGroundWorld(
     walls: townContent.planWalls,
     waterBodies: townContent.planWaterBodies,
     decks: townContent.planDecks,
+    gatehouses: townContent.planGatehouses,
     towns: townContent.towns,
     buildings: townContent.buildings,
     rosters: townContent.rosters,
@@ -631,31 +649,32 @@ function carveTownWaterBasins(
 
 /**
  * Split a closed wall ring (open vertex list, in ground meters) into OPEN runs
- * that skip a span of radius `gapHalfM` around each water-gate point (TG7). A
- * river crossing the ring leaves an arch gap there instead of clipping solid
- * stone. The ring is densified so a gate landing mid-segment (the common case —
- * the ring is a sparse scaled footprint) still carves a clean gap, and runs wrap
- * across the closing seam so a gate ON the seam still breaks cleanly.
+ * that skip a span of each gate's own radius `gapHalfM` around the gate point.
+ * Gates are both river water-gates (TG7 — the river passes through an arch gap
+ * instead of clipping solid stone) and road gatehouses (streets enter through
+ * an opening instead of dead-ending into the rampart). The ring is densified so
+ * a gate landing mid-segment (the common case — the ring is a sparse scaled
+ * footprint) still carves a clean gap, and runs wrap across the closing seam so
+ * a gate ON the seam still breaks cleanly.
  */
 function splitWallRingAtGates(
   ring: Array<{ x: number; z: number }>,
-  gates: Array<{ x: number; z: number }>,
-  gapHalfM: number,
+  gates: Array<{ x: number; z: number; gapHalfM: number }>,
 ): Array<Array<{ x: number; z: number }>> {
   if (ring.length < 3) return [ring];
-  const gapSq = gapHalfM * gapHalfM;
   const gated = (p: { x: number; z: number }): boolean => {
     for (const g of gates) {
       const dx = p.x - g.x;
       const dz = p.z - g.z;
-      if (dx * dx + dz * dz <= gapSq) return true;
+      if (dx * dx + dz * dz <= g.gapHalfM * g.gapHalfM) return true;
     }
     return false;
   };
 
   // Densify the closed loop: emit each edge subdivided into steps small relative
-  // to the gate gap so the gated/ungated boundary is resolved finely.
-  const step = Math.max(0.5, gapHalfM / 4);
+  // to the SMALLEST gate gap so every gated/ungated boundary is resolved finely.
+  const minGapHalf = gates.reduce((m, g) => Math.min(m, g.gapHalfM), Infinity);
+  const step = Math.max(0.5, minGapHalf / 4);
   const dense: Array<{ x: number; z: number }> = [];
   const flags: boolean[] = [];
   for (let i = 0; i < ring.length; i++) {
@@ -696,6 +715,18 @@ function splitWallRingAtGates(
     }
   }
   return runs;
+}
+
+/** Yaw of the wall at the ring point nearest to `p` (segment direction). */
+function wallTangentAt(ring: Array<{ x: number; z: number }>, p: { x: number; z: number }): number {
+  let best = 0, bestD = Infinity;
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i], b = ring[(i + 1) % ring.length];
+    const mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2;
+    const d = (mx - p.x) ** 2 + (mz - p.z) ** 2;
+    if (d < bestD) { bestD = d; best = Math.atan2(b.z - a.z, b.x - a.x); }
+  }
+  return best;
 }
 
 function buildingFootprintCells(
@@ -805,7 +836,7 @@ function getBusinessTypeForPlot(role: string, plotId: number): BusinessType {
 export function canonicalArtifactTownForSite(
   worldSeed: number,
   site: RegionTownSite,
-): AdaptedTownPlan {
+): AdaptedTownPlan & { family: StyleFamily } {
   const townAtlas = getBridgeAtlas(worldSeed);
   const enginePlan = getCanonicalTownPlan(townAtlas, worldSeed, site.burgId);
   const spanFt = townSpanFtForBurg(townAtlas, site.burgId);
@@ -813,7 +844,11 @@ export function canonicalArtifactTownForSite(
   const placeDx = site.envelope.x + site.envelope.width / 2;
   const placeDy = site.envelope.y + site.envelope.height / 2;
   const feetPlan = transformTownPlan(enginePlan, placeScale, placeDx, placeDy);
-  return toArtifactPlan(feetPlan, site.burgId);
+  // Architecture style: the burg's FMG culture TYPE picks the family; per-plot
+  // stamps are hashed frame-invariantly so the 2D map picks the same styles.
+  const family = styleFamilyForCultureType(getBurgCultureType(worldSeed, site.burgId));
+  const adapted = toArtifactPlan(feetPlan, site.burgId, family);
+  return { ...adapted, family };
 }
 
 /**
@@ -863,11 +898,15 @@ export function canonicalTownWaterAndDecks(
     surfaceY: 0,
   }));
 
+  // The burg's architecture family (same resolution as canonicalArtifactTownForSite)
+  // supplies the deck detailing — pilings/railings/arch — for docks AND bridges;
+  // the renderer decides what applies per kind.
+  const family = styleFamilyForCultureType(getBurgCultureType(worldSeed, site.burgId));
   const decks: GroundDeck[] = [];
   for (const c of feetPlan.civic) {
     if (c.kind !== 'dock' && c.kind !== 'bridge') continue;
     // Preserve the civic kind end-to-end (TG5) — it tints the deck downstream.
-    decks.push({ cornersM: c.polygon.map(([fx, fy]) => toM(fx, fy)), topY: 0, kind: c.kind });
+    decks.push({ cornersM: c.polygon.map(([fx, fy]) => toM(fx, fy)), topY: 0, kind: c.kind, detail: family.deckDetail });
   }
   return { waterBodies, decks };
 }
@@ -894,6 +933,7 @@ function groundTowns(
   planWalls: GroundPolyline[];
   planWaterBodies: GroundWaterBody[];
   planDecks: GroundDeck[];
+  planGatehouses: GroundWorld["gatehouses"];
   rosters: TownRoster[];
   occupants: GroundOccupantSite[];
   townPlans: Array<{ burgId: number; plan: TownPlan }>;
@@ -907,6 +947,7 @@ function groundTowns(
   const planWalls: GroundPolyline[] = [];
   const planWaterBodies: GroundWaterBody[] = [];
   const planDecks: GroundDeck[] = [];
+  const planGatehouses: GroundWorld["gatehouses"] = [];
   const rosters: TownRoster[] = [];
   const occupants: GroundOccupantSite[] = [];
   const townPlans: Array<{ burgId: number; plan: TownPlan }> = [];
@@ -950,31 +991,51 @@ function groundTowns(
       });
     }
     // Defensive wall ring → ground polyline runs (3D renders each as an extruded
-    // barrier). The ring is in region feet after the transform. TG7: where an
-    // inherited river crosses the ring, break the wall for a water-gate so the
-    // river passes through an arch gap instead of clipping solid stone — the ring
-    // is split into open runs that SKIP a span around each gate, rather than one
-    // continuous closed loop.
+    // barrier). The ring is in region feet after the transform. Two gate kinds
+    // break the ring into open runs: TG7 water-gates (an inherited river crosses
+    // the ring — the river passes through an arch gap instead of clipping solid
+    // stone) and ROAD gatehouses (streets enter through an opening instead of
+    // dead-ending into the rampart).
     if (adapted.walls.ring.length >= 3) {
       const ringM = adapted.walls.ring.map(([fx, fy]) => ({
         x: (fx - local.bounds.x) * FEET_TO_METERS,
         z: (fy - local.bounds.y) * FEET_TO_METERS,
       }));
+      // Water-gate gap wide enough to clear the river channel (channelHalfWidth
+      // = spanFt*0.03, so full width ~spanFt*0.06) plus a little arch shoulder.
+      const spanFt = townSpanFtForBurg(getBridgeAtlas(worldSeed), t.burgId);
+      const waterGapHalfM = Math.max(3, spanFt * 0.04 * FEET_TO_METERS);
       const gatesM = (adapted.walls.waterGates ?? []).map(([fx, fy]) => ({
         x: (fx - local.bounds.x) * FEET_TO_METERS,
         z: (fy - local.bounds.y) * FEET_TO_METERS,
+        gapHalfM: waterGapHalfM,
       }));
-      if (gatesM.length === 0) {
-        ringM.push(ringM[0]); // no river crossing — keep the ring closed
-        planWalls.push({ points: ringM, widthM: 1.2 });
+      const roadGatesM = (adapted.walls.gatehouses ?? []).map(([fx, fy]) => ({
+        x: (fx - local.bounds.x) * FEET_TO_METERS,
+        z: (fy - local.bounds.y) * FEET_TO_METERS,
+        gapHalfM: 4, // street ribbons are >= 2.5 m; 4 m half-gap clears them with shoulder
+      }));
+      const allGates = [...gatesM, ...roadGatesM];
+      if (allGates.length === 0) {
+        ringM.push(ringM[0]); // no gate — keep the ring closed
+        planWalls.push({ points: ringM, widthM: 1.2, colorHex: adapted.family.wallTint });
       } else {
-        // Gate gap wide enough to clear the river channel (channelHalfWidth =
-        // spanFt*0.03, so full width ~spanFt*0.06) plus a little arch shoulder.
-        const spanFt = townSpanFtForBurg(getBridgeAtlas(worldSeed), t.burgId);
-        const gapHalfM = Math.max(3, spanFt * 0.04 * FEET_TO_METERS);
-        for (const run of splitWallRingAtGates(ringM, gatesM, gapHalfM)) {
-          if (run.length >= 2) planWalls.push({ points: run, widthM: 1.2 });
+        for (const run of splitWallRingAtGates(ringM, allGates)) {
+          if (run.length >= 2) planWalls.push({ points: run, widthM: 1.2, colorHex: adapted.family.wallTint });
         }
+      }
+      // Record each road gate as a gatehouse placement (mesh task consumes
+      // these): position + wall yaw + styled form from the burg's family.
+      for (const [gi, g] of roadGatesM.entries()) {
+        planGatehouses.push({
+          xM: g.x,
+          zM: g.z,
+          angleRad: wallTangentAt(ringM, g),
+          gapHalfM: g.gapHalfM,
+          form: styledGatehouseForm(adapted.family, gi, t.burgId),
+          colorHex: adapted.family.wallTint,
+          burgId: t.burgId,
+        });
       }
     }
     // Occupants live where the floor plans say they can (ROSTER-1), and
@@ -1093,6 +1154,12 @@ function groundTowns(
         cornersM,
         heightM,
         role: p.role ?? 'house',
+        // Style stamps from the canonical plan plot (architectureStyle slice);
+        // the family flag says whether this burg's buildings get chimneys.
+        wallColorHex: p.wallColorHex,
+        roofColorHex: p.roofColorHex,
+        roofForm: p.roofForm,
+        chimney: adapted.family.chimneys,
         wallWidthM: interior.envelope.wallWidthM,
         wallDepthM: interior.envelope.wallDepthM,
         name: bizName,
@@ -1103,7 +1170,7 @@ function groundTowns(
     }
   }
 
-  return { towns, buildings, planStreets, planWalls, planWaterBodies, planDecks, rosters, occupants, townPlans };
+  return { towns, buildings, planStreets, planWalls, planWaterBodies, planDecks, planGatehouses, rosters, occupants, townPlans };
 }
 
 /** Encoded-height bilinear sample at world meters → true meters via heightToMeters. */
@@ -1325,9 +1392,22 @@ export function sampleGroundChunk(
       const clipped = clipPolygonToChunk(d.cornersM, cx, cy);
       // Carry the dock/bridge kind through (TG5) so the geometry tints each deck.
       return clipped.length >= 3
-        ? [{ points: clipped.map((p) => pseudoGrid(p.x, p.z)), topY: d.topY, kind: d.kind }]
+        ? [{ points: clipped.map((p) => pseudoGrid(p.x, p.z)), topY: d.topY, kind: d.kind, detail: d.detail }]
         : [];
     }),
+    // Road-gate gatehouses whose center falls in this chunk (sampler
+    // convention, same as sites). Positions ride the pseudo-grid trick; the
+    // meters→grid conversion is a UNIFORM scale (÷ METERS_PER_CELL on both
+    // axes), so angleRad passes through unchanged.
+    gatehouses: ground.gatehouses
+      .filter((g) => inChunk(g.xM, g.zM, cx, cy))
+      .map((g) => ({
+        ...pseudoGrid(g.xM, g.zM),
+        angleRad: g.angleRad,
+        gapHalfM: g.gapHalfM,
+        form: g.form,
+        colorHex: g.colorHex,
+      })),
     // Sites whose center falls in this chunk (sampler convention):
     // town markers (label + keep box) and the town plan's building plots
     // as small 'ruin' boxes. Positions ride the pseudo-grid trick.
@@ -1359,7 +1439,11 @@ export function sampleGroundChunk(
           population: undefined,
           surfaceY: groundSurfaceY(ground, b.xM, b.zM),
           heightM: b.heightM,
-          colorHex: b.role === 'market' ? '#c8923f' : '#b09a72',
+          role: b.role,
+          colorHex: b.wallColorHex ?? (b.role === 'market' ? '#c8923f' : '#b09a72'), // legacy-compat for unstyled producers, not a style fallback
+          roofForm: b.roofForm,
+          roofColorHex: b.roofColorHex,
+          chimney: b.chimney,
           // One label per settlement (the town marker) — not one per house.
           unlabeled: b.unlabeled ?? true,
           name: b.name,
@@ -1483,7 +1567,7 @@ function clipGroundPolylineToChunk(
   line: GroundPolyline,
   cx: number,
   cy: number,
-): Array<{ points: { x: number; y: number }[]; width: number[] }> {
+): Array<{ points: { x: number; y: number }[]; width: number[]; colorHex?: string }> {
   const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
   const M = WORLD3D_CONFIG.METERS_PER_CELL;
   const minX = cx * S;
@@ -1530,6 +1614,9 @@ function clipGroundPolylineToChunk(
   return [{
     points: out.map((p) => ({ x: p.x / M, y: p.z / M })),
     width: out.map(() => line.widthM / M),
+    // Style-family tint (e.g. wall runs) rides through so wallGeometry can
+    // vertex-color the extruded barrier per town.
+    colorHex: line.colorHex,
   }];
 }
 

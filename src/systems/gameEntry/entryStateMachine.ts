@@ -74,10 +74,14 @@ export function gameEntryTransition(
             return { ...state, status: 'generating', situation: null, error: null, sceneImage: INITIAL_SCENE_IMAGE_STATE };
 
         case 'SKIP':
-            // Let the player continue normal play when the optional generated
-            // opening cannot be made. This preserves the no-fallback rule: the
-            // game returns to ordinary play instead of pretending a scene exists.
-            if (state.status !== 'model-unavailable') return state;
+            // Two legitimate exits share this event:
+            //  - model-unavailable: the player dismisses a FAILED opening and
+            //    continues normal play (no-fallback: no scene is invented).
+            //  - in-situation: the opening CONCLUDED — the de-escalation flow
+            //    resolved a hostile standoff (talked down, snuck away, or the
+            //    fight started), so the situation and its threat must clear or
+            //    the conversation re-arms the same encounter forever.
+            if (state.status !== 'model-unavailable' && state.status !== 'in-situation') return state;
             return { ...INITIAL_GAME_ENTRY_STATE };
 
         case 'RESET':

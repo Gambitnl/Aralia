@@ -87,6 +87,7 @@
     "@takram/three-geospatial": "^0.7.1",
     "@types/axe-core": "^2.0.2",
     "alea": "^1.0.1",
+    "better-sqlite3": "^12.11.1",
     "delaunator": "^5.1.0",
     "dompurify": "^3.4.0",
     "dotenv": "^17.2.3",

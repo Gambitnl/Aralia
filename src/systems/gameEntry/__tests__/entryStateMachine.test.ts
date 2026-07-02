@@ -79,6 +79,21 @@ describe('gameEntryTransition', () => {
         expect(next).toEqual(INITIAL_GAME_ENTRY_STATE);
     });
 
+    it('in-situation -> idle on SKIP so a concluded standoff clears its threat', () => {
+        const inSituation = gameEntryTransition(
+            gameEntryTransition(INITIAL_GAME_ENTRY_STATE, { type: 'BEGIN' }),
+            { type: 'RESOLVED', situation: SITUATION },
+        );
+
+        // The de-escalation flow dispatches SKIP when the standoff resolves
+        // (success, attack, or failed check). Before this transition existed the
+        // dispatch was silently ignored and the SAME fight could be re-triggered
+        // from the still-armed conversation (live-verified).
+        const next = gameEntryTransition(inSituation, { type: 'SKIP' });
+
+        expect(next).toEqual(INITIAL_GAME_ENTRY_STATE);
+    });
+
     it('RESET returns to idle from any state', () => {
         const generating = gameEntryTransition(INITIAL_GAME_ENTRY_STATE, { type: 'BEGIN' });
         expect(gameEntryTransition(generating, { type: 'RESET' }).status).toBe('idle');

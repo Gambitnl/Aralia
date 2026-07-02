@@ -367,9 +367,22 @@ describe('worldforge pipeline integration', () => {
       // seam). Only localMaterialHash shifts (a few cells reclassify near slope
       // thresholds); the atlas + region heightfield are byte-identical (this
       // touches L2 detail only). Determinism + smoothness invariants still green.
+      // Re-frozen 2026-07-01 (open-region seam): the L1 region RELIEF noise now
+      // also comes from the world-feet lattice (world seed + octave) instead of
+      // per-region grid noise, so two adjacent regions meet with no ~350ft cliff
+      // at their shared border (see generateRegion cross-region seam test +
+      // .agent/scratch/seam-proof). Both the region heightfield AND the local
+      // material (downstream of it) shift. Smoothness + determinism still green.
+      // Re-frozen 2026-07-02 (open-region seam, IDW purity): the L1 IDW base is
+      // now a pure function of world position (per-sample fixed-radius cell
+      // neighborhood instead of per-region BFS membership), river carving
+      // smooths the FULL centerline before windowing, and the region window
+      // origin snaps to the 100 ft sample lattice — adjacent regions now agree
+      // EXACTLY at shared world points (seamProbe budget tightened <50 → <1 ft).
+      // Region heightfield + downstream local material shift.
       atlasCellCount: 6005,
-      regionHeightfieldHash: 2605897242,
-      localMaterialHash: 3332786709,
+      regionHeightfieldHash: 290541207,
+      localMaterialHash: 423127639,
     });
   }, 60_000); // world gen now includes Military/Markers/Zones (stages 33-35)
 

@@ -144,7 +144,15 @@ const DistantTerrain: React.FC<DistantTerrainProps> = ({ mapData }) => {
   );
 
   const geometry = useMemo(() => {
-    const p = RIDGE_PROFILES[biome] ?? RIDGE_PROFILES.forest;
+    const base = RIDGE_PROFILES[biome] ?? RIDGE_PROFILES.forest;
+    // Profiles were authored for the 40×30 map (half-diagonal 25). Push the
+    // band outward so it always clears the map corners (+ fringe) with the
+    // same band width, whatever the battlefield size.
+    const halfDiag = (Math.hypot(width, height) / 2) * TILE_WORLD_SIZE;
+    const minInner = halfDiag + 16;
+    const p = base.inner >= minInner
+      ? base
+      : { ...base, inner: minInner, outer: minInner + (base.outer - base.inner) };
     const seed = mapData.seed ?? 42;
     const fbm = makeFbm(seed);
 
@@ -203,7 +211,7 @@ const DistantTerrain: React.FC<DistantTerrainProps> = ({ mapData }) => {
     geo.setIndex(indices);
     geo.computeVertexNormals();
     return geo;
-  }, [biome, mapData.seed]);
+  }, [biome, mapData.seed, width, height]);
 
   // Dispose the generated geometry when biome/seed changes or on unmount.
   React.useEffect(() => () => geometry.dispose(), [geometry]);

@@ -179,6 +179,34 @@
   .task-title { font-weight: 600; }
   .task-sub { color: var(--text-faint); font-size: 11px; font-family: var(--mono); margin-top: 2px; display: flex; gap: 12px; flex-wrap: wrap; }
   .task-sub .who { color: var(--text-dim); }
+  .task-pri { display: inline-block; margin-left: 6px; padding: 0 5px; border-radius: 8px; font-size: 10px; font-family: var(--mono); background: #2a2f45; color: var(--text-dim); vertical-align: 1px; }
+  .task-refs { color: #7aa2f7; }
+  .task-waiting { color: #e0af68; }
+  .task-result { color: var(--text-dim); font-size: 11px; margin-top: 3px; font-style: italic; }
+
+  .lock-agentid { color: var(--text-faint); font-family: var(--mono); font-size: 10px; font-weight: 400; }
+
+  /* ---------- Task board categorization (tracker bridge) ---------- */
+  .task-cat-head { display: flex; gap: 8px; align-items: center; padding: 5px 11px;
+    background: rgba(103,232,249,.04); border-top: 1px solid var(--border);
+    font-size: 11px; font-weight: 600; color: var(--text-dim); }
+  .task-cat-head a { color: var(--cyan, #67e8f9); text-decoration: none; }
+  .task-cat-head a:hover { text-decoration: underline; }
+  .task-cat-head .ccount { margin-left: auto; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+  .task-gap { display: inline-block; margin-right: 7px; padding: 0 6px; border-radius: 8px;
+    font-size: 10.5px; font-family: var(--mono); font-weight: 400; vertical-align: 1px;
+    color: var(--cyan, #67e8f9); border: 1px solid rgba(103,232,249,.35); text-decoration: none; }
+  .task-gap:hover { border-color: var(--cyan, #67e8f9); }
+  .task-gap.unlinked { color: var(--text-faint); border-color: var(--border); }
+
+  /* ---------- Message feed archive ---------- */
+  .msg.archived { opacity: .45; }
+  .archive-toggle {
+    display: block; width: 100%; margin: 8px 0; padding: 6px 10px;
+    font-size: 11px; color: var(--text-dim); background: rgba(148,163,184,.06);
+    border: 1px dashed var(--border); border-radius: 8px; cursor: pointer; text-align: center;
+  }
+  .archive-toggle:hover { color: var(--cyan, #67e8f9); border-color: var(--cyan, #67e8f9); }
 
   /* ---------- Messages ---------- */
   .msg { padding: 6px 10px; border-radius: 8px; margin-bottom: 3px; }
@@ -196,6 +224,43 @@
   .msg-body { color: var(--text); font-size: 13px; word-break: break-word; }
 
   .ts-now { color: var(--text-faint); font-size: 11px; font-family: var(--mono); }
+
+  /* ---------- Docs side panel ---------- */
+  #docs-btn {
+    margin-left: 10px; font-size: 12px; color: var(--cyan, #67e8f9);
+    background: transparent; border: 1px solid rgba(148,163,184,.3); border-radius: 8px;
+    padding: 2px 8px; cursor: pointer; white-space: nowrap;
+  }
+  #docs-btn:hover { border-color: var(--cyan, #67e8f9); }
+  #docs-panel {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 340px; max-width: 90vw;
+    background: var(--panel, #10151f); border-left: 1px solid var(--border, #232a3a);
+    box-shadow: -8px 0 24px rgba(0,0,0,.45); z-index: 50;
+    transform: translateX(100%); transition: transform .18s ease-out;
+    display: flex; flex-direction: column;
+  }
+  #docs-panel.open { transform: translateX(0); }
+  .docs-head { display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; border-bottom: 1px solid var(--border, #232a3a); }
+  .docs-head h2 { margin: 0; font-size: 14px; }
+  #docs-close { background: transparent; border: none; color: var(--text-dim, #9aa4b2);
+    font-size: 14px; cursor: pointer; }
+  .docs-list { flex: 1; overflow-y: auto; padding: 10px 14px; }
+  .doc-row { border: 1px solid var(--border, #232a3a); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 10px; }
+  .doc-row .doc-name { font-weight: 600; margin-bottom: 2px; }
+  .doc-row .doc-name a { color: var(--cyan, #67e8f9); text-decoration: none; }
+  .doc-row .doc-path { color: var(--text-faint, #6b7280); font-family: var(--mono, monospace);
+    font-size: 10px; margin-bottom: 8px; word-break: break-all; }
+  .doc-row .doc-actions { display: flex; gap: 8px; }
+  .doc-row button {
+    font-size: 11px; color: var(--text-dim, #9aa4b2); background: rgba(148,163,184,.08);
+    border: 1px solid rgba(148,163,184,.25); border-radius: 6px; padding: 3px 9px; cursor: pointer;
+  }
+  .doc-row button:hover { border-color: var(--cyan, #67e8f9); color: var(--cyan, #67e8f9); }
+  .doc-row button.copied { color: #4ade80; border-color: #4ade80; }
+  .docs-foot { padding: 8px 14px; border-top: 1px solid var(--border, #232a3a);
+    color: var(--text-faint, #6b7280); font-size: 10px; }
 </style>
 </head>
 <body>
@@ -208,6 +273,8 @@
          style="margin-left:12px;font-size:12px;color:var(--cyan,#67e8f9);text-decoration:none;border:1px solid rgba(148,163,184,.3);border-radius:8px;padding:2px 8px;white-space:nowrap;">🛰️ Cockpit</a>
     </div>
     <div class="conn" id="conn"><span class="dot"></span><span id="conn-label">reconnecting</span></div>
+    <span class="meta" id="refresh-meta" title="Last successful data fetch · next scheduled poll (SSE events refresh instantly in between)"></span>
+    <button id="docs-btn" title="Coordination reference docs — protocol & orchestrator playbook">📚 Docs</button>
     <div class="counts" id="counts">
       <div class="count"><span class="n" id="c-agents">–</span><span class="l">agents</span></div>
       <div class="count"><span class="n" id="c-locks">–</span><span class="l">locks</span></div>
@@ -238,6 +305,16 @@
     </section>
   </main>
 
+  <!-- Right-hand reference-docs panel (toggled by the header 📚 Docs button). -->
+  <aside id="docs-panel" aria-hidden="true">
+    <div class="docs-head">
+      <h2>📚 Reference docs</h2>
+      <button id="docs-close" title="Close">✕</button>
+    </div>
+    <div class="docs-list" id="docs-list"><div class="empty">loading…</div></div>
+    <div class="docs-foot">Served read-only from <code>tools/agora/</code> by the daemon.</div>
+  </aside>
+
 <script>
 (() => {
   "use strict";
@@ -251,11 +328,51 @@
     health: null,
     seenMsgSeq: 0,
     autoScroll: true,
+    showArchived: false,
+    gapById: new Map(),   // lowercased "project:id" AND bare "id" -> gap row (tracker bridge)
   };
 
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+  function shortId(id) {
+    return id ? String(id).slice(0, 8) : "—";
+  }
+
+  // ---- tracker bridge: which project does a task belong to? ----
+  async function loadGapIndex() {
+    try {
+      const data = await getJSON("/gaps");
+      const map = new Map();
+      for (const g of data.gaps || []) {
+        map.set(`${g.project}:${g.id}`.toLowerCase(), g);
+        const bare = g.id.toLowerCase();
+        if (!map.has(bare)) map.set(bare, g);
+        else if (map.get(bare) && map.get(bare).project !== g.project) map.set(bare, "ambiguous");
+      }
+      ST.gapById = map;
+      renderTasks();
+    } catch (e) { /* board still renders uncategorized */ }
+  }
+
+  /** Category from task refs (preferred) or a gap-id-shaped token in the title,
+   *  resolved against the live gap index. */
+  function categoryOf(t) {
+    for (const ref of t.refs || []) {
+      const hit = ST.gapById.get(String(ref).toLowerCase());
+      if (hit && hit !== "ambiguous") return { project: hit.project, gapId: hit.id };
+      const m = /^([a-z0-9_\/-]+):(.+)$/i.exec(ref);
+      if (m) return { project: m[1], gapId: m[2] };
+    }
+    const tok = /\b([A-Z][A-Z0-9]{1,11}-G\d+|WF-G\d+|G\d+)\b/.exec(t.title || "");
+    if (tok) {
+      const hit = ST.gapById.get(tok[1].toLowerCase());
+      if (hit && hit !== "ambiguous") return { project: hit.project, gapId: hit.id };
+      return { project: null, gapId: tok[1] };
+    }
+    return null;
+  }
 
   // agentId -> handle resolution, fallback to short id slice.
   function handleOf(id) {
@@ -332,7 +449,7 @@
       return `<div class="lock-row ${cls}">
         <div class="lock-head">
           <span class="sdot online"></span>
-          <span class="lock-holder">${esc(handleOf(l.agentId))}</span>
+          <span class="lock-holder">${esc(handleOf(l.agentId))} <span class="lock-agentid" title="full agent id: ${esc(l.agentId)}">${esc(shortId(l.agentId))}</span></span>
           <span class="lock-countdown" data-expires="${l.expiresAt || 0}">${fmtDuration(remain)}</span>
         </div>
         <div class="lock-tokens">${toks || '<span class="tok">(no tokens)</span>'}</div>
@@ -349,46 +466,94 @@
     const el = $("tasks");
     $("b-tasks").textContent = ST.tasks.length;
     if (!ST.tasks.length) { el.innerHTML = '<div class="empty">No tasks yet</div>'; return; }
+    const byId = new Map(ST.tasks.map((x) => [x.id, x]));
+    const taskRow = (t, cat) => {
+      const waitingOn = (t.deps || []).filter((d) => (byId.get(d) || {}).state !== "done");
+      const gapChip = cat && cat.gapId
+        ? (cat.project
+          ? `<a class="task-gap" href="/gaps/view?project=${encodeURIComponent(cat.project)}" target="_blank" rel="noopener" title="open the ${esc(cat.project)} tracker card">${esc(cat.gapId)}</a>`
+          : `<span class="task-gap unlinked" title="gap id not found in the tracker index">${esc(cat.gapId)}</span>`)
+        : "";
+      return `<div class="task-row">
+        <div class="task-title">${gapChip}${esc(t.title)}${t.priority ? `<span class="task-pri">p${esc(String(t.priority))}</span>` : ""}</div>
+        <div class="task-sub">
+          ${t.claimedBy ? `<span class="who">▸ ${esc(handleOf(t.claimedBy))}</span>` : `<span>by ${esc(handleOf(t.createdBy))}</span>`}
+          <span>updated ${relTime(t.updatedAt)}</span>
+          ${waitingOn.length && t.state === "open" ? `<span class="task-waiting">⏳ waiting on ${waitingOn.length} dep(s)</span>` : ""}
+          ${(t.refs || []).length ? `<span class="task-refs">⛓ ${t.refs.map(esc).join(", ")}</span>` : ""}
+        </div>
+        ${t.state === "done" && t.result ? `<div class="task-result">✔ ${esc(t.result)}</div>` : ""}
+      </div>`;
+    };
+
     const groups = TASK_ORDER.map((stateKey) => {
       const list = ST.tasks.filter((t) => t.state === stateKey)
         .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
       if (!list.length) return "";
-      const rows = list.map((t) => `<div class="task-row">
-        <div class="task-title">${esc(t.title)}</div>
-        <div class="task-sub">
-          ${t.claimedBy ? `<span class="who">▸ ${esc(handleOf(t.claimedBy))}</span>` : `<span>by ${esc(handleOf(t.createdBy))}</span>`}
-          <span>updated ${relTime(t.updatedAt)}</span>
-        </div>
-      </div>`).join("");
+      // Categorize by owning project (tracker bridge): refs -> gap index -> title token.
+      const cats = new Map(); // label -> { project, rows: [] }
+      for (const t of list) {
+        const cat = categoryOf(t);
+        const label = cat && cat.project ? cat.project : "uncategorized";
+        if (!cats.has(label)) cats.set(label, { project: cat && cat.project, rows: [] });
+        cats.get(label).rows.push(taskRow(t, cat));
+      }
+      const catOrder = [...cats.keys()].sort((a, b) =>
+        (a === "uncategorized") - (b === "uncategorized") || a.localeCompare(b));
+      const body = catOrder.map((label) => {
+        const c = cats.get(label);
+        const head = c.project
+          ? `<a href="/gaps/view?project=${encodeURIComponent(c.project)}" target="_blank" rel="noopener" title="open the ${esc(label)} tracker card">📁 ${esc(label)}</a>`
+          : `📁 ${esc(label)}`;
+        return `<div class="task-cat"><div class="task-cat-head">${head}<span class="ccount">${c.rows.length}</span></div>${c.rows.join("")}</div>`;
+      }).join("");
       return `<div class="task-group">
         <h3><span class="gdot ${stateKey}"></span>${TASK_LABEL[stateKey]}<span class="gcount">${list.length}</span></h3>
-        ${rows}
+        ${body}
       </div>`;
     }).filter(Boolean).join("");
     el.innerHTML = `<div class="task-cols">${groups}</div>`;
+  }
+
+  // Feed shows NEWEST FIRST. Messages older than the live window "expire" into
+  // an archived state: retained on the daemon (and revealable), just not shown.
+  const MSG_ARCHIVE_MS = 60 * 60 * 1000; // 1h live window
+
+  function msgHtml(m, archived) {
+    const broadcast = m.to === "all" || !m.to;
+    const target = broadcast
+      ? `<span class="pill bcast">broadcast</span>`
+      : `<span class="pill direct">@${esc(handleOf(m.to))}</span>`;
+    return `<div class="msg${archived ? " archived" : ""}">
+      <div class="msg-head">
+        <span class="msg-from">${esc(handleOf(m.from))}</span>
+        <span class="arrow">→</span>
+        ${target}
+        <span class="msg-time">${clockTime(m.createdAt)}</span>
+      </div>
+      <div class="msg-body">${esc(m.body)}</div>
+    </div>`;
   }
 
   function renderFeed() {
     const el = $("feed");
     $("b-messages").textContent = ST.messages.length;
     if (!ST.messages.length) { el.innerHTML = '<div class="empty">No messages yet</div>'; return; }
-    const msgs = [...ST.messages].sort((a, b) => (a.seq || 0) - (b.seq || 0));
-    el.innerHTML = msgs.map((m) => {
-      const broadcast = m.to === "all" || !m.to;
-      const target = broadcast
-        ? `<span class="pill bcast">broadcast</span>`
-        : `<span class="pill direct">@${esc(handleOf(m.to))}</span>`;
-      return `<div class="msg">
-        <div class="msg-head">
-          <span class="msg-from">${esc(handleOf(m.from))}</span>
-          <span class="arrow">→</span>
-          ${target}
-          <span class="msg-time">${clockTime(m.createdAt)}</span>
-        </div>
-        <div class="msg-body">${esc(m.body)}</div>
-      </div>`;
-    }).join("");
-    if (ST.autoScroll) el.scrollTop = el.scrollHeight;
+    const cutoff = Date.now() - MSG_ARCHIVE_MS;
+    const msgs = [...ST.messages].sort((a, b) => (b.seq || 0) - (a.seq || 0)); // newest first
+    const live = msgs.filter((m) => (m.createdAt || 0) >= cutoff);
+    const archived = msgs.filter((m) => (m.createdAt || 0) < cutoff);
+
+    let html = live.map((m) => msgHtml(m, false)).join("");
+    if (!live.length) html += '<div class="empty">No messages in the last hour</div>';
+    if (archived.length) {
+      html += `<button class="archive-toggle" id="archive-toggle">📦 ${archived.length} archived message(s) older than 1h — ${ST.showArchived ? "hide" : "show"}</button>`;
+      if (ST.showArchived) html += archived.map((m) => msgHtml(m, true)).join("");
+    }
+    el.innerHTML = html;
+    const t = $("archive-toggle");
+    if (t) t.addEventListener("click", () => { ST.showArchived = !ST.showArchived; renderFeed(); });
+    if (ST.autoScroll) el.scrollTop = 0; // newest at top — pin to top
   }
 
   function renderHeader() {
@@ -413,6 +578,12 @@
   // Tick countdowns + relative times every second without full re-render churn.
   function tick() {
     const now = Date.now();
+    // Refresh telemetry: when data last landed (wall clock), when the next poll fires.
+    if (ST.lastRefreshAt) {
+      const nextIn = Math.max(0, Math.ceil(((ST.nextPollAt || now) - now) / 1000));
+      $("refresh-meta").textContent =
+        `refreshed at ${clockTime(ST.lastRefreshAt)} · next poll in ${nextIn}s`;
+    }
     document.querySelectorAll(".lock-countdown[data-expires]").forEach((node) => {
       const exp = Number(node.getAttribute("data-expires"));
       const remain = exp - now;
@@ -429,6 +600,8 @@
   async function getJSON(url) {
     const r = await fetch(url, { cache: "no-store" });
     if (!r.ok) throw new Error(url + " -> " + r.status);
+    // Any successful fetch = fresh data on screen.
+    ST.lastRefreshAt = Date.now();
     return r.json();
   }
 
@@ -490,6 +663,7 @@
       case "task.create":
       case "task.claim":
       case "task.state":
+      case "task.release": // dead-agent reap reopened a task
       case "task.handoff":
         onStructural("task"); break;
       case "message.post": {
@@ -536,7 +710,7 @@
     const NAMED = [
       "agent.register", "agent.touch", "agent.drop",
       "lock.acquire", "lock.release", "lock.expired",
-      "task.create", "task.claim", "task.state", "task.handoff",
+      "task.create", "task.claim", "task.state", "task.release", "task.handoff",
       "message.post",
     ];
     for (const name of NAMED) {
@@ -556,17 +730,102 @@
     };
   }
 
-  // Keep the feed pinned to bottom only when the user is already near the bottom.
+  // Newest-first feed: keep pinned to the TOP unless the user has scrolled
+  // down to read older messages.
   $("feed").addEventListener("scroll", () => {
-    const el = $("feed");
-    ST.autoScroll = (el.scrollHeight - el.scrollTop - el.clientHeight) < 40;
+    ST.autoScroll = $("feed").scrollTop < 40;
   });
+
+  // ----------------------------- docs panel -----------------------------
+  async function writeClipboard(text) {
+    // Clipboard API first; it EXISTS but rejects without focus/permission
+    // (e.g. unfocused windows), so rejection falls through to execCommand.
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* fall through */ }
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    ta.remove();
+    return ok;
+  }
+
+  async function copyText(btn, getText) {
+    try {
+      const text = await getText();
+      if (!(await writeClipboard(text))) throw new Error("clipboard unavailable");
+      const orig = btn.textContent;
+      btn.textContent = "✓ copied";
+      btn.classList.add("copied");
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove("copied"); }, 1400);
+    } catch (e) {
+      btn.textContent = "copy failed";
+      setTimeout(() => { btn.textContent = btn.getAttribute("data-label"); }, 1800);
+    }
+  }
+
+  let docsLoaded = false;
+  async function loadDocsPanel() {
+    if (docsLoaded) return;
+    try {
+      const data = await getJSON("/docs");
+      const list = $("docs-list");
+      list.innerHTML = "";
+      for (const doc of data.docs || []) {
+        const row = document.createElement("div");
+        row.className = "doc-row";
+        row.innerHTML = `
+          <div class="doc-name"><a href="/docs/${encodeURIComponent(doc.name)}" target="_blank" rel="noopener">${esc(doc.name)}</a></div>
+          <div class="doc-path">${esc(doc.path)}</div>
+          <div class="doc-actions">
+            <button class="copy-content" data-label="📋 Copy content">📋 Copy content</button>
+            <button class="copy-path" data-label="🔗 Copy path">🔗 Copy path</button>
+          </div>`;
+        row.querySelector(".copy-content").addEventListener("click", (ev) =>
+          copyText(ev.currentTarget, async () => {
+            // ?raw=1: copy the MARKDOWN, not the pretty-rendered HTML page.
+            const r = await fetch(`/docs/${encodeURIComponent(doc.name)}?raw=1`, { cache: "no-store" });
+            if (!r.ok) throw new Error("fetch failed");
+            return r.text();
+          }));
+        row.querySelector(".copy-path").addEventListener("click", (ev) =>
+          copyText(ev.currentTarget, async () => doc.path));
+        list.appendChild(row);
+      }
+      docsLoaded = true;
+    } catch (e) {
+      $("docs-list").innerHTML = '<div class="empty">docs endpoint unavailable — daemon predates v0.3? restart it</div>';
+    }
+  }
+
+  function toggleDocs(open) {
+    const panel = $("docs-panel");
+    const willOpen = open !== undefined ? open : !panel.classList.contains("open");
+    panel.classList.toggle("open", willOpen);
+    panel.setAttribute("aria-hidden", String(!willOpen));
+    if (willOpen) loadDocsPanel();
+  }
+  $("docs-btn").addEventListener("click", () => toggleDocs());
+  $("docs-close").addEventListener("click", () => toggleDocs(false));
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") toggleDocs(false); });
 
   // ----------------------------- boot -----------------------------
   fullRefresh();   // REST seed on load (also a fallback if SSE is slow)
+  loadGapIndex();  // tracker bridge (task categorization); refreshed with the poll
   connect();       // SSE primary
   setInterval(tick, 1000);              // countdowns / relative times
-  setInterval(() => { refreshHealth(); refreshAgents(); }, 15000); // presence freshness (agent.stale isn't emitted)
+  const POLL_MS = 60000;
+  ST.nextPollAt = Date.now() + POLL_MS;
+  setInterval(() => {
+    ST.nextPollAt = Date.now() + POLL_MS;
+    refreshHealth(); refreshAgents();
+    renderFeed(); // advance the 1h archive boundary even on a quiet board
+    loadGapIndex(); // tracker bridge stays fresh (server caches the walk)
+  }, POLL_MS); // presence freshness (agent.stale isn't emitted); SSE covers everything else live
 })();
 </script>
 </body>

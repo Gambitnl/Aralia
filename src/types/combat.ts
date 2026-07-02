@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 29/06/2026, 18:36:45
- * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/CharacterActor.tsx, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/DistantTerrain.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/Submap/useQuickTravel.ts, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/planar/ShadowfellMechanics.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/submapActionContracts.ts, utils/spatial/targetingUtils.ts, utils/world/religionUtils.ts
+ * Last Sync: 01/07/2026, 22:17:14
+ * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/CharacterActor.tsx, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/DistantTerrain.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/gameEntry/runDeEscalationCheck.ts, systems/logic/ConditionEvaluator.ts, systems/planar/ShadowfellMechanics.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/world/religionUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -26,7 +26,7 @@ import type { MaterialType } from "./materials.js";
 // TODO(lint-intent): 'SavingThrowAbility' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import type { Spell, DamageType, SavingThrowAbility as _SavingThrowAbility, ConditionName, EffectDuration, SpellEffect, RepeatSave, EscapeCheck, ConditionBreakTrigger, TargetFilter, AbilityCheckModifier, CreatedObject, IllusionMetadata, SensoryManifestation, TerrainManipulation } from './spells.js'; // Import Spell
+import type { Spell, DamageType, SavingThrowAbility as _SavingThrowAbility, ConditionName, EffectDuration, SpellEffect, RepeatSave, EscapeCheck, ConditionBreakTrigger, TargetFilter, AbilityCheckModifier, CreatedObject, IllusionMetadata, SensoryManifestation, TerrainManipulation, ConditionalEnding, BindingControl, DominationControl } from './spells.js'; // Import Spell
 import { StateTag } from './elemental.js';
 import { Plane } from './planes.js';
 import { RitualState } from './ritual.js';
@@ -77,6 +77,10 @@ export interface StatusEffect {
   repeatSaveProgress?: RepeatSaveProgressState;
   escapeCheck?: EscapeCheck;
   breakTriggers?: ConditionBreakTrigger[];
+  /** Existing-target command or service relationship created by spells such as Geas and Planar Binding. */
+  bindingControl?: BindingControl;
+  /** Existing-target domination relationship created by Dominate Beast/Person/Monster. */
+  dominationControl?: DominationControl;
   // Simple effect structure (for spellAbilityFactory compatibility)
   effect?: {
     type: 'stat_modifier' | 'damage_per_turn' | 'heal_per_turn' | 'skip_turn' | 'condition';
@@ -140,6 +144,9 @@ export interface SocialSpellLifecycle {
   kind: 'friends_charm' | string;
   targetKnowsOnEnd?: boolean;
   recastMemoryDurationRounds?: number;
+  durationDays?: number;
+  endsIfDamagedByCasterOrAllies?: boolean;
+  targetChoosesAttitudeOnEnd?: boolean;
 }
 
 /**
@@ -182,6 +189,22 @@ export interface SocialSpellLifecycle {
       frequency: "once_per_turn" | "every_time";
       damageType?: DamageType;
       lastAppliedTurn?: number;
+    };
+    /**
+     * Negative Energy Flood creates a delayed hostile Zombie when its damage
+     * kills a non-Undead creature. The pending record stays on the caster so
+     * turn-start logic can later raise the Zombie without re-reading the
+     * original damage log.
+     */
+    negativeEnergyFloodZombieRise?: {
+      targetId: string;
+      targetName: string;
+      targetCreatureTypes?: string[];
+      position: Position;
+      entityType: string;
+      timing: string;
+      behavior?: string;
+      statBlock?: string;
     };
     attackBonus?: number;
     /**
@@ -328,6 +351,10 @@ export interface ActiveCondition {
   repeatSave?: RepeatSave;
   escapeCheck?: EscapeCheck;
   breakTriggers?: ConditionBreakTrigger[];
+  /** Existing-target command or service relationship mirrored from statusEffects for non-lossy condition state. */
+  bindingControl?: BindingControl;
+  /** Existing-target domination relationship mirrored from statusEffects for non-lossy condition state. */
+  dominationControl?: DominationControl;
   /** Runtime-facing hit-point rider copied from the spell status payload. */
   hitPointState?: HitPointStateRider;
   /** Social aftermath metadata mirrored from statusEffects for non-lossy cleanup. */
@@ -435,14 +462,18 @@ export interface CombatCharacter {
     initiativePolicy?: 'immediate' | 'rolled' | 'shared';
     followDistance?: number;
     hoverHeight?: number;
+    carriedWeightPounds?: number;
     telepathyRange?: number;
     sharedSenses?: boolean;
     sharedSensesCost?: 'action' | 'bonus_action' | 'free' | 'none';
+    travelDetails?: Record<string, unknown>;
+    conditionalEndings?: ConditionalEnding[];
     lifecycle?: {
       hitPointMaximum?: string;
       repairOnly?: string;
       zeroHpEnding?: string;
       recastEnding?: string;
+      spellEnding?: string;
     };
     control?: {
       entityType?: string;
@@ -452,6 +483,12 @@ export interface CombatCharacter {
       initiative?: string;
       restrictions?: string[];
       destruction?: string;
+      bargainingRequired?: boolean;
+      noCompulsion?: boolean;
+      serviceLimit?: string;
+      return?: string;
+      bondLimit?: string;
+      noCommandBehavior?: string;
     };
     actionPermissions?: {
       canAttack?: boolean;
@@ -469,8 +506,9 @@ export interface CombatCharacter {
         movementModeRequired?: 'fly' | 'walk' | 'swim' | 'climb' | 'any';
         notes?: string;
       }>;
+      aftermathState?: Record<string, unknown>;
       durationRemaining?: number;
-      dismissable: boolean;
+      dismissable?: boolean;
     };
 
   // Defensive tracking (for DefensiveCommand)
@@ -565,7 +603,7 @@ export interface AreaOfEffect {
 }
 
 export interface AbilityEffect {
-  type: 'damage' | 'heal' | 'status' | 'movement' | 'teleport' | 'familiar_pocket' | 'familiar_shared_senses' | 'commanded_summon' | 'granted_action';
+  type: 'damage' | 'heal' | 'status' | 'movement' | 'teleport' | 'familiar_pocket' | 'familiar_shared_senses' | 'commanded_summon' | 'granted_action' | 'summon_dismiss' | 'summon_return_home';
   value?: number;
   dice?: string; // Dice formula (e.g. "1d8+2") to be rolled at execution time
   damageType?: 'physical' | 'bludgeoning' | 'piercing' | 'slashing' | 'magical' | 'fire' | 'ice' | 'lightning' | 'acid' | 'poison' | 'necrotic' | 'radiant' | 'force' | 'psychic' | 'thunder';
@@ -576,6 +614,9 @@ export interface AbilityEffect {
   sharedSensesAction?: 'activate';
   commandedSummonAction?: 'issue_command';
   summonCommandDescription?: string;
+  summonId?: string;
+  summonDismissAction?: 'dismiss';
+  summonReturnHomeAction?: 'no_agreement' | 'service_complete';
   grantedActionLabel?: string;
   grantedActionCost?: 'action' | 'bonus_action' | 'reaction';
   grantedActionFrequency?: 'once' | 'each_turn' | 'while_active';
@@ -1188,6 +1229,579 @@ export interface ActiveMinorUtilityEffect {
   aftermathState?: Record<string, unknown>;
 }
 
+// ============================================================================
+// Controlled Utility Helper Records
+// ============================================================================
+// Mage Hand-style helpers are not creatures and should not enter turn order, but
+// they still have map position, caster ownership, movement, object-use limits,
+// recast replacement, and distance-based cleanup. This runtime record keeps
+// those executable facts out of prose-only utility logs.
+// ============================================================================
+
+export interface ActiveSpellHelper {
+  id: string;
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  kind: 'mage_hand' | string;
+  entityType: string;
+  position: Position;
+  size: string;
+  creature: boolean;
+  occupiesSpace: boolean;
+  active: boolean;
+  createdTurn: number;
+  expiresAtRound?: number;
+  control?: {
+    actionType: string;
+    initialUseOnCast?: boolean;
+    laterControlTiming?: string;
+    movementDistanceFeet?: number;
+  };
+  restrictions?: {
+    canAttack?: boolean;
+    canActivateMagicItems?: boolean;
+    carryCapacityPounds?: number | 'not_applicable';
+    allowedInteractions?: string[];
+  };
+  separationEnding?: {
+    trigger: 'beyond_max_distance' | string;
+    scope: 'spell' | string;
+    maxDistanceFeet: number;
+  };
+  recastEnding?: {
+    trigger: 'end_on_recast' | string;
+    scope: 'spell' | string;
+  };
+}
+
+export interface ActiveSpellForce {
+  id: string;
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  kind: 'spiritual_weapon' | string;
+  entityType: string;
+  position: Position;
+  size?: string;
+  reachFeet: number;
+  moveDistanceFeet: number;
+  moveAction: string;
+  repeatAttack: string;
+  damage: string;
+  occupiesSpace: boolean;
+  active: boolean;
+  createdTurn: number;
+  expiresAtRound?: number;
+  placement?: {
+    requiresUnoccupiedSpace?: boolean;
+    lineOfSightRequired?: boolean;
+    rangeAnchor?: string;
+  };
+  durability?: {
+    armorClass?: number;
+    maxHitPoints?: number;
+    currentHitPoints?: number;
+    endsSpellAtZeroHitPoints?: boolean;
+  };
+  abilityScores?: {
+    strength?: number;
+    dexterity?: number;
+  };
+  commandModes?: string[];
+  forcedMovement?: Record<string, unknown>;
+  grantedAction?: {
+    action: string;
+    type: string;
+    frequency?: string;
+    rangeLimit?: number;
+    attackType?: string;
+    damageDice?: string;
+    damageType?: string;
+    damageAbilityModifier?: string;
+  };
+}
+
+export interface ActiveSpellGuardian {
+  id: string;
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  kind: 'guardian_of_faith' | string;
+  position: Position;
+  size: string;
+  occupiesSpace: boolean;
+  invulnerable: boolean;
+  threatRadiusFeet: number;
+  active: boolean;
+  createdTurn: number;
+  expiresAtRound?: number;
+  triggerPolicy: {
+    targets: 'enemy_creatures' | string;
+    onEnterFrequency?: string;
+    onEnterTrigger?: boolean;
+    turnStartTrigger?: boolean;
+    saveAbility?: string;
+    saveOutcome?: string;
+    damageAmount: number;
+    damageDice?: string;
+    damageType: string;
+  };
+  damageCap: {
+    maxTotalDamage: number;
+    dealtDamage: number;
+    vanishWhenReached: boolean;
+  };
+  watchdog?: {
+    visibleTo?: string;
+    intangible?: boolean;
+    truesightFeet?: number;
+    barkingAlarmRadiusFeet?: number;
+    barkTrigger?: string;
+    password?: string;
+    passwordPreventsBark?: boolean;
+  };
+  movement?: {
+    action?: string;
+    maxDistanceFeet?: number;
+  };
+  separationEnding?: {
+    trigger?: string;
+    scope?: string;
+    maxDistanceFeet?: number;
+  };
+  elementalSpirit?: {
+    origin?: string;
+    element?: string;
+    damageType?: string;
+    initialDamageDice?: string;
+    repeatDamageDice?: string;
+    intangible?: boolean;
+    restrainedTargetId?: string;
+  };
+}
+
+// ============================================================================
+// Spell Emanation Runtime Records
+// ============================================================================
+// Conjure Minor Elementals and Conjure Woodland Beings stay centered on the
+// caster and persist as shaped emanations rather than independent creatures.
+// This record keeps the following aura, damage rider, terrain, and bonus-action
+// facts available to combat cleanup and future map automation.
+// ============================================================================
+
+export interface ActiveSpellEmanation {
+  id: string;
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  kind: 'elemental_spirit_emanation' | 'nature_spirit_emanation' | string;
+  entityType: string;
+  radiusFeet: number;
+  combatEntity: false;
+  followsCaster: true;
+  active: boolean;
+  createdTurn: number;
+  expiresAtRound?: number;
+  damageRider?: {
+    trigger: 'on_attack_hit' | string;
+    dice: string;
+    damageTypeChoices: string[];
+    chosenDamageType?: string;
+    slotScaling?: string;
+  };
+  terrain?: {
+    terrainType: 'difficult' | string;
+    appliesTo: string;
+    followsCaster?: boolean;
+    createsDifficultTerrain?: boolean;
+  };
+  damageAura?: {
+    trigger: 'emanation_entry_or_turn_end' | string;
+    dice: string;
+    damageType: string;
+    saveAbility: string;
+    saveOutcome: 'half' | 'none' | string;
+    oncePerTurn: boolean;
+    slotScaling?: string;
+  };
+  grantedActions?: Array<{
+    type: string;
+    action: string;
+    frequency?: string;
+  }>;
+}
+
+// ============================================================================
+// Communication Control Runtime Records
+// ============================================================================
+// Speak-style spells create temporary question, command, and terrain interfaces
+// instead of combat actors. This record keeps those counters and limits visible
+// to runtime cleanup without pretending the corpse or plants are summons.
+// ============================================================================
+
+export interface ActiveCommunicationControl {
+  id: string;
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  kind: 'speak_with_dead' | 'speak_with_plants' | string;
+  entityType: string;
+  active: boolean;
+  createdTurn: number;
+  expiresAtRound?: number;
+  targetId?: string;
+  targetName?: string;
+  originPosition?: Position;
+  corpseInterrogation?: {
+    requiresMouth?: boolean;
+    failsIfCreatureWasUndeadWhenItDied?: boolean;
+    cooldownDays?: number;
+    questionLimit: number;
+    questionsRemaining: number;
+    answerWindowMinutes?: number;
+    corpseKnowsOnlyLifeKnowledge?: boolean;
+    includesKnownLanguages?: boolean;
+    cannotLearnNewInformation?: boolean;
+    cannotComprehendPostDeathEvents?: boolean;
+    cannotSpeculateAboutFuture?: boolean;
+    answersMayBeBriefCrypticOrRepetitive?: boolean;
+    noTruthCompulsionIfAntagonisticOrRecognizesEnemy?: boolean;
+  };
+  plantCommunication?: {
+    radiusFeet?: number;
+    areaShape?: string;
+    plantsGainLimitedSentience?: boolean;
+    plantsCanCommunicateWithCaster?: boolean;
+    plantsCanFollowSimpleCommands?: boolean;
+    canQuestionAboutPastDayEvents?: boolean;
+    plantCreaturesShareLanguageWithCaster?: boolean;
+    cannotUprootOrMove?: boolean;
+    allowedMotion?: string;
+    releasesEntangleRestrainedCreatures?: boolean;
+    terrainConversion?: {
+      canTurnPlantDifficultTerrainToOrdinary?: boolean;
+      canTurnOrdinaryPlantTerrainToDifficult?: boolean;
+      requiresPlantsPresent?: boolean;
+      conversions?: string[];
+    };
+  };
+}
+
+// ============================================================================
+// Environmental Control Runtime Records
+// ============================================================================
+// Wrath of Nature-style spells animate terrain features rather than creatures.
+// This record keeps the area, tree, root/vine, loose-rock, and cleanup facts
+// together so later automation can act on the controlled environment directly.
+// ============================================================================
+
+export interface ActiveEnvironmentalControl {
+  id: string;
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  kind: 'wrath_of_nature' | string;
+  entityType: string;
+  originPosition: Position;
+  active: boolean;
+  createdTurn: number;
+  expiresAtRound?: number;
+  area?: {
+    shape?: string;
+    sizeFeet?: number;
+    lineOfSightRequired?: boolean;
+  };
+  terrain?: {
+    difficultTerrainFor?: string;
+  };
+  treeAttacks?: {
+    triggerTiming?: string;
+    targetFilter?: string;
+    radiusFeet?: number;
+    saveAbility?: string;
+    saveOutcome?: string;
+    damageDice?: string;
+    damageType?: string;
+  };
+  rootsAndVines?: {
+    triggerTiming?: string;
+    targetFilter?: string;
+    saveAbility?: string;
+    saveOutcome?: string;
+    condition?: string;
+    escapeSkill?: string;
+  };
+  looseRocks?: {
+    actionCost?: string;
+    actionName?: string;
+    target?: string;
+    attackType?: string;
+    damageDice?: string;
+    damageType?: string;
+    followupSaveAbility?: string;
+    failedSaveCondition?: string;
+  };
+}
+
+// ============================================================================
+// Extradimensional Space Runtime Records
+// ============================================================================
+// Mansion-style spells create playable spaces behind a boundary instead of
+// normal map tiles. This record keeps the entrance, allowed entrants, floor
+// limit, and end-of-spell expulsion rule visible to runtime cleanup.
+// ============================================================================
+
+export interface ActiveExtradimensionalSpace {
+  id: string;
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  kind: 'magnificent_mansion' | string;
+  entrancePosition: Position;
+  entranceDimensions: {
+    widthFeet: number;
+    heightFeet: number;
+  };
+  doorState: 'open' | 'closed' | string;
+  imperceptibleWhenClosed: boolean;
+  designatedCreatureIds: string[];
+  floorPlan: {
+    maxCubes: number;
+    cubeSizeFeet: number;
+    contiguous: boolean;
+  };
+  expulsion: {
+    trigger?: string;
+    destinationPreference?: string;
+    requiresUnoccupiedSpace?: boolean;
+    appliesTo?: string[];
+  };
+  occupants?: {
+    creatureIds: string[];
+    objectIds: string[];
+  };
+  createdTurn: number;
+  expiresAtRound?: number;
+}
+
+// ============================================================================
+// Spell Structure Runtime Records
+// ============================================================================
+// Fortress-style spells create large, damageable structures that are not
+// creatures. This record keeps their footprint, section durability, safe
+// crumble behavior, and permanence cadence available to future map systems.
+// ============================================================================
+
+export interface ActiveSpellStructure {
+  id: string;
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  kind: 'mighty_fortress' | string;
+  originPosition: Position;
+  footprint: {
+    shape: 'square' | string;
+    sizeFeet: number;
+    placementRequirement?: string;
+  };
+  harmlessRiseCreatureIds: string[];
+  sectionDurability: {
+    armorClass: number;
+    hitPointsPerInch: number;
+    sectionSizeFeet: {
+      width: number;
+      height: number;
+    };
+    damageImmunities: string[];
+    collapseOnZeroHp: boolean;
+  };
+  lifecycle: {
+    durationDays: number;
+    crumblesSafely: boolean;
+    permanenceRequiredSameLocationCasts: number;
+    permanenceCadenceDays: number;
+    sameLocationRequired: boolean;
+    sameLocationCastCount: number;
+  };
+  sections?: Array<{
+    id: string;
+    currentHitPoints: number;
+    maxHitPoints: number;
+    destroyed: boolean;
+    damageType?: string;
+    collapseRisk?: string;
+  }>;
+  permanent?: boolean;
+  createdTurn: number;
+  expiresAtRound?: number;
+}
+
+// ============================================================================
+// Spell Ward Runtime Records
+// ============================================================================
+// Long-lived area wards can contain several spell-specific sub-effects. These
+// records keep the active ward, its bounds, and its cleanup rules visible to
+// combat and exploration systems without pretending every ward is a creature.
+// ============================================================================
+
+export interface ActiveSpellWard {
+  id: string;
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  kind: 'druid_grove' | string;
+  originPosition: Position;
+  active: boolean;
+  createdTurn: number;
+  expiresAtRound?: number;
+  area: {
+    shape: string;
+    minSizeFeet?: number;
+    maxSizeFeet?: number;
+    excludesBuildingsAndStructures?: boolean;
+    radiatesMagic?: boolean;
+  };
+  guardianTrees?: {
+    maxCount: number;
+    guardianIds: string[];
+    statBlock?: string;
+    cannotSpeak?: boolean;
+    barkMarked?: boolean;
+    cannotLeaveWardedArea?: boolean;
+    obeysSpokenCommandsInArea?: boolean;
+    intruderResponse?: string;
+    rerootsWhenSpellEndsIfPossible?: boolean;
+  };
+  ending?: {
+    trigger: 'spell_ends' | string;
+    dispelRemovesOneEffectOnly?: boolean;
+    endsWhenAllEffectsRemoved?: boolean;
+  };
+  aftermathState?: {
+    kind?: string;
+    recovery?: string;
+    [key: string]: unknown;
+  };
+}
+
+// ============================================================================
+// Animated Object Runtime Records
+// ============================================================================
+// Tiny Servant and Animate Objects turn map objects into temporary creatures,
+// then restore the original object when the spell ends or the creature hits 0
+// HP. This record keeps both sides of that identity together for later map,
+// damage, and cleanup systems.
+// ============================================================================
+
+export interface ActiveAnimatedObject {
+  id: string;
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  sourceObjectId: string;
+  sourceObjectName?: string;
+  sourceObjectPosition?: Position;
+  size: string;
+  sizeCost: number;
+  creatureType: string;
+  allegiance: 'ally' | 'enemy' | 'neutral' | string;
+  initiativePolicy: 'immediate' | 'rolled' | 'shared' | string;
+  armorClass: number;
+  maxHitPoints: number;
+  currentHitPoints: number;
+  speedFeet: number;
+  command?: {
+    action?: string;
+    rangeFeet?: number;
+    scope?: string;
+    noCommandBehavior?: string;
+  };
+  immunities?: {
+    damage?: string[];
+    conditions?: string[];
+  };
+  slam?: {
+    attackBonusSource?: string;
+    damage?: string;
+    slotScaling?: string;
+  };
+  lifecycle: {
+    hitPointEnding?: string;
+    reversion: string;
+    damageCarryover?: string;
+    revertedAtTurn?: number;
+    reversionReason?: string;
+    excessDamageCarriedOver?: number;
+  };
+  active: boolean;
+  createdTurn: number;
+  expiresAtRound?: number;
+}
+
+// ============================================================================
+// Awakened Creature Runtime Records
+// ============================================================================
+// Awaken permanently changes a Beast, Plant creature, or natural plant, then
+// leaves a 30-day social lifecycle behind. Keep those facts as combat state so
+// later relationship, map, and stat-profile systems do not need to infer them
+// from the utility log.
+// ============================================================================
+
+export interface ActiveAwakenedCreature {
+  id: string;
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  targetId: string;
+  targetName?: string;
+  creatureType: string;
+  intelligenceScore: number;
+  language?: string;
+  statProfile?: string;
+  naturalPlantBecameCreature: boolean;
+  movementParts?: string[];
+  humanlikeSenses?: boolean;
+  createdTurn: number;
+  charmedRelationship: {
+    condition: 'Charmed' | string;
+    durationDays: number;
+    endsIfDamagedByCasterOrAllies: boolean;
+    attitudeChosenAfterCharmEnds: boolean;
+    attitude?: string;
+    endReason?: string;
+  };
+}
+
+export interface ActiveTruePolymorphTransformation {
+  id: string;
+  mode?: 'object_to_creature' | 'creature_to_creature' | 'creature_to_object';
+  spellId: string;
+  spellName?: string;
+  casterId: string;
+  sourceObjectId?: string;
+  sourceObjectName?: string;
+  sourceObjectPosition?: Position;
+  sourceCreatureId?: string;
+  sourceCreatureName?: string;
+  sourceCreaturePosition?: Position;
+  transformedCreatureId?: string;
+  transformedFormName?: string;
+  transformedObjectName?: string;
+  temporaryHitPoints?: number;
+  retainedStatistics?: string;
+  actionAndSpeechLimits?: string;
+  gearMeld?: string;
+  noMemoryObjectForm?: string;
+  controlledUntilFullDuration?: boolean;
+  controlAfterOneHour?: string;
+  permanence?: string;
+  deathOrDestruction?: string;
+  statReplacement?: string;
+  transformationDuration?: string;
+  createdTurn: number;
+}
+
 /**
  * Visible dirt-or-stone marking created by Mold Earth.
  *
@@ -1350,6 +1964,30 @@ export interface CombatState {
    * Bloom, Elementalism breezes, smoke, mist, and crude elemental shapes.
    */
   activeMinorUtilityEffects?: ActiveMinorUtilityEffect[];
+  /** Active non-creature utility helpers created by spells such as Mage Hand. */
+  activeSpellHelpers?: ActiveSpellHelper[];
+  /** Active spell-created force objects such as Spiritual Weapon. */
+  activeSpellForces?: ActiveSpellForce[];
+  /** Active stationary guardian manifestations such as Guardian of Faith. */
+  activeSpellGuardians?: ActiveSpellGuardian[];
+  /** Active caster-following emanations such as Conjure Minor Elementals. */
+  activeSpellEmanations?: ActiveSpellEmanation[];
+  /** Active communication/control interfaces such as Speak with Dead and Speak with Plants. */
+  activeCommunicationControls?: ActiveCommunicationControl[];
+  /** Active controlled environmental areas such as Wrath of Nature. */
+  activeEnvironmentalControls?: ActiveEnvironmentalControl[];
+  /** Active extradimensional spaces such as Mordenkainen's Magnificent Mansion. */
+  activeExtradimensionalSpaces?: ActiveExtradimensionalSpace[];
+  /** Active spell-created structures such as Mighty Fortress. */
+  activeSpellStructures?: ActiveSpellStructure[];
+  /** Active persistent area wards such as Druid Grove. */
+  activeSpellWards?: ActiveSpellWard[];
+  /** Active object-to-creature records created by spells such as Tiny Servant and Animate Objects. */
+  activeAnimatedObjects?: ActiveAnimatedObject[];
+  /** Active Awaken transformation and post-charm relationship records. */
+  activeAwakenedCreatures?: ActiveAwakenedCreature[];
+  /** Active True Polymorph object-to-creature transformations and control boundaries. */
+  activeTruePolymorphTransformations?: ActiveTruePolymorphTransformation[];
   /** Visible Mold Earth words, images, or patterns on dirt or stone. */
   activeMoldEarthSurfaceMarks?: ActiveMoldEarthSurfaceMark[];
   mapData?: BattleMapData;
@@ -1473,7 +2111,7 @@ export interface CombatLogData {
 export interface CombatLogEntry {
   id: string;
   timestamp: number;
-  type: 'action' | 'damage' | 'heal' | 'status' | 'turn_start' | 'turn_end';
+  type: 'action' | 'damage' | 'heal' | 'status' | 'summon' | 'turn_start' | 'turn_end';
   message: string;
   characterId?: string;
   targetIds?: string[];

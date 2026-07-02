@@ -57,6 +57,9 @@ interface CameraControllerProps {
   cinematicEnabled?: boolean;
   /** Callback when camera wants to select a character (Tab/1-4 keys) */
   onCameraSelectCharacter?: (characterId: string) => void;
+  /** Max orbit zoom-out distance — derived from map size (fixed 35 could not
+   *  overview anything larger than the original 40×30 battlefield). */
+  maxDistance?: number;
 }
 
 type CameraMode = 'tactical' | 'panning' | 'cinematic' | 'returning';
@@ -72,6 +75,7 @@ const CameraController: React.FC<CameraControllerProps> = ({
   characters,
   cinematicEnabled = true,
   onCameraSelectCharacter,
+  maxDistance = 35,
 }) => {
   const { camera } = useThree();
   const controlsRef = useRef<any>(null);
@@ -306,7 +310,7 @@ const CameraController: React.FC<CameraControllerProps> = ({
       ref={controlsRef}
       target={[mapCenter[0], 0, mapCenter[2]]}
       minDistance={5}
-      maxDistance={35}
+      maxDistance={maxDistance}
       minPolarAngle={Math.PI * 0.15}   // ~27° from horizon
       maxPolarAngle={Math.PI * 0.42}    // ~75° from horizon
       enableDamping

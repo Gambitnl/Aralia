@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/05/2026, 03:25:09
+ * Last Sync: 01/07/2026, 13:31:48
  * Dependents: types/spells.ts
  * Imports: 1 files
  *
@@ -117,6 +117,36 @@ export interface AttackDamageTypeChoice {
 export interface AttackAugment {
   /** Which weapon attack family is affected. */
   attackType: "weapon" | "melee_weapon" | "ranged_weapon";
+  /** Attack bonus source for spell-created stat blocks such as Animated Object Slam. */
+  attackBonusSource?: string;
+  /** Size-keyed damage rows for spell-created attack stat blocks. */
+  damageBySize?: {
+    medium_or_smaller?: string;
+    large?: string;
+    huge?: string;
+  };
+  /** Size-keyed slot scaling rows for spell-created attack stat blocks. */
+  slotScaling?: {
+    medium_or_smaller?: string;
+    large?: string;
+    huge?: string;
+  };
+  /** Giant Insect and similar utility-side stat blocks use slot level for multiattack count. */
+  multiattack?: string;
+  /** Giant Spider-only ranged attack text preserved until monster attacks are fully normalized. */
+  webBoltSpiderOnly?: string;
+  /** Giant Centipede-only save effect text preserved until monster attacks are fully normalized. */
+  venomousSpewCentipedeOnly?: string;
+  /** Giant Spider movement trait text preserved with the stat-block action packet. */
+  spiderClimb?: string;
+  /** Giant Insect shared Poison Jab damage text. */
+  poisonJab?: string;
+  /** Danse Macabre-style bonus applied to attacks made by spell-created creatures. */
+  attackRollBonus?: string;
+  /** Danse Macabre-style bonus applied to damage made by spell-created creatures. */
+  damageRollBonus?: string;
+  /** Spell-created actor family that receives the attack augment. */
+  appliesTo?: string;
   /** Canonical weapon prerequisite for the attack or enchantment. */
   weaponRequirement?: AttackWeaponRequirement;
   /** Spell-granted attack made during casting or while the spell is active. */

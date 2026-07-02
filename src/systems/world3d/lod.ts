@@ -28,3 +28,11 @@ export function selectLodTier(chunkDistance: number): LodTier {
   if (chunkDistance <= LOD_RINGS.low) return 'low';
   return 'culled';
 }
+
+/** Detail order for tier comparisons (finer = more detail). */
+const LOD_RANK: Record<LodTier, number> = { culled: 0, low: 1, mid: 2, full: 3 };
+
+/** True when tier `a` carries strictly more mesh detail than tier `b`. */
+export function isFinerLod(a: LodTier, b: LodTier): boolean {
+  return LOD_RANK[a] > LOD_RANK[b];
+}

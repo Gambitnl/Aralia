@@ -1,0 +1,73 @@
+{
+  "comment": "Machine-readable Agent Matrix registry. THE source orchestrators consume programmatically (orchestrate.mjs validates plans against it; `orchestrate agents` prints it). Prose detail lives in the operator dashboard's onboarding contract (Aralia-operator-dashboard/docs/agent-matrix/sections/05-agent-offering-registration-contract.md) — when that changes, update this file. Statuses: ready | quota_limited | trial | deprecated | unknown. A packet agent must have role 'worker', status ready/quota_limited, and dispatch wiring (dispatch.command or type agent-tool) to pass validatePlan.",
+  "updated": "2026-07-01",
+  "agents": {
+    "claude": {
+      "label": "Claude subagent (Agent tool)",
+      "roles": ["worker", "orchestrator"],
+      "status": "ready",
+      "dispatch": { "type": "agent-tool" },
+      "notes": "Default worker. Dispatched by the orchestrator via the Agent tool with the prompt from `orchestrate prompt <plan> <packet>`; a script cannot spawn Claude subagents."
+    },
+    "codex": {
+      "label": "Codex CLI (gpt-5.5)",
+      "roles": ["orchestrator"],
+      "status": "ready",
+      "dispatch": {
+        "type": "cli",
+        "command": "codex",
+        "args": ["exec", "--dangerously-bypass-approvals-and-sandbox", "--skip-git-repo-check"]
+      },
+      "constraints": [
+        { "kind": "quota", "note": "usage quota resets ~2am — probe before dispatch" },
+        { "kind": "policy", "note": "reserved for orchestrator/supervisor role — do NOT dispatch as a worker lane" }
+      ],
+      "notes": "Proven orchestrator workhorse. Honors .gitignore — inline full specs in the prompt, never point it at .agent/scratch paths."
+    },
+    "gemini": {
+      "label": "Gemini CLI",
+      "roles": [],
+      "status": "deprecated",
+      "dispatch": { "type": "cli", "command": "gemini", "args": ["--approval-mode", "yolo", "-p"] },
+      "notes": "Deprecated for new coding-worker lanes (2026-06); historical sessions preserved for audit only."
+    },
+    "agy": {
+      "label": "Google Antigravity CLI",
+      "roles": ["worker"],
+      "status": "trial",
+      "dispatch": { "type": "cli", "command": null },
+      "notes": "Preferred Google-family lane per policy, but live auth + quota verification and orchestrate.mjs launch wiring are still pending."
+    },
+    "cursor": {
+      "label": "Cursor CLI",
+      "roles": ["worker"],
+      "status": "quota_limited",
+      "dispatch": { "type": "cli", "command": null },
+      "constraints": [
+        { "kind": "quota", "note": "free plan 100% used; use --model auto (Ask-mode) only", "expiresAt": "2026-07-10" }
+      ],
+      "notes": "trial-verified per onboarding contract, but no orchestrate.mjs launch spec yet — wire dispatch.command/args before first campaign use."
+    },
+    "kilo": {
+      "label": "Kilo CLI (@kilocode/cli)",
+      "roles": ["worker"],
+      "status": "ready",
+      "dispatch": { "type": "cli", "command": null },
+      "constraints": [
+        { "kind": "policy", "note": "free model kilo/kilo-auto/free ONLY — no paid/partner routes without operator approval" }
+      ],
+      "notes": "trial-verified per onboarding contract, but no orchestrate.mjs launch spec yet — wire dispatch.command/args before first campaign use."
+    },
+    "ollama": {
+      "label": "Ollama local runtime",
+      "roles": [],
+      "status": "trial",
+      "dispatch": { "type": "runtime" },
+      "notes": "A model runtime, not a coding agent — needs an external adapter (Kilo/Aider/OpenCode) to become a worker lane."
+    },
+    "devin": { "label": "Devin CLI", "roles": [], "status": "unknown", "dispatch": { "type": "cli", "command": null }, "notes": "Not installed locally; auth/launch/permissions unverified." },
+    "amp": { "label": "Amp CLI", "roles": [], "status": "unknown", "dispatch": { "type": "cli", "command": null }, "notes": "Not installed; charges credits — operator approval needed for paid routes." },
+    "poolside": { "label": "Poolside Agent CLI", "roles": [], "status": "unknown", "dispatch": { "type": "cli", "command": null }, "notes": "Not installed; preview/free claims unverified." },
+    "zcode": { "label": "ZCode native app", "roles": [], "status": "unknown", "dispatch": { "type": "app" }, "notes": "Desktop IDE, not a terminal CLI; Remote Control stream unproven." }
+  }
+}

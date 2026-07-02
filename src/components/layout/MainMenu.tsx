@@ -41,7 +41,7 @@ interface MainMenuProps {
   latestSaveTimestamp: number | null;
   isDevDummyActive: boolean; // Retained for now because other call sites/tests still document the old quick-start capability.
   onSkipCharacterCreator: () => void; // Retained for now because App still owns the quick-start action routed through the Dev Menu.
-  onClearAllSaves?: () => void; // New prop
+  onClearAllSaves?: () => void | Promise<void>; // New prop
   hasActiveRun?: boolean;
   onAbandonRun?: () => void;
   // Callback to trigger the developer menu from the main menu phase
@@ -174,9 +174,12 @@ const MainMenu: React.FC<MainMenuProps> = ({
     refreshSlots();
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (pendingConfirm === 'wipe') {
-      onClearAllSaves?.();
+      // Await the wipe before re-reading slots: the save service clears its
+      // slot-index cache only after the async IndexedDB wipe finishes, so a
+      // synchronous refresh would re-render the menu from stale data.
+      await onClearAllSaves?.();
       refreshSlots();
     } else if (pendingConfirm === 'abandon') {
       onAbandonRun?.();

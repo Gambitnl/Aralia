@@ -37,6 +37,45 @@
 <body class="bg-gray-900">
   <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root"></div>
+  <script>
+    // Cold-start guard: if the app hasn't mounted within 6s (e.g. the initial
+    // module request was aborted while the dev server was still warming up),
+    // show a notice and reload up to 2 times instead of staying black.
+    (function () {
+      var RETRY_KEY = 'aralia-mount-retries';
+      var LOG_KEY = 'aralia-mount-recovery-log';
+      // Persist recovery events to localStorage so the Dev Menu's Startup
+      // Recovery Log can show whether the guard ever fired (sessionStorage
+      // would vanish with the tab; the whole point is later visibility).
+      function logEvent(event, attempt) {
+        try {
+          var log = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
+          log.push({ time: new Date().toISOString(), event: event, attempt: attempt, url: location.pathname + location.search });
+          localStorage.setItem(LOG_KEY, JSON.stringify(log.slice(-50)));
+        } catch (_) { /* storage unavailable; guard still works without the log */ }
+      }
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          var root = document.getElementById('root');
+          var retries = Number(sessionStorage.getItem(RETRY_KEY) || '0');
+          if (root && root.childElementCount > 0) {
+            if (retries > 0) logEvent('recovered', retries);
+            sessionStorage.removeItem(RETRY_KEY);
+            return;
+          }
+          if (retries >= 2) {
+            logEvent('gave-up', retries);
+            root.innerHTML = '<p style="color:#e5e7eb;font-family:sans-serif;text-align:center;margin-top:40vh">Aralia failed to load after several attempts. Check the dev server and refresh.</p>';
+            return;
+          }
+          logEvent('retry', retries + 1);
+          sessionStorage.setItem(RETRY_KEY, String(retries + 1));
+          root.innerHTML = '<p style="color:#e5e7eb;font-family:sans-serif;text-align:center;margin-top:40vh">Still loading Aralia&hellip; retrying.</p>';
+          location.reload();
+        }, 6000);
+      });
+    })();
+  </script>
   <script type="module" src="/index.tsx"></script>
 </body>
 

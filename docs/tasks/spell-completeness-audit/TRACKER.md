@@ -1,7 +1,13 @@
 # Spell Completeness Audit Living Tracker
 
-Status: active
-Last updated: 2026-06-25
+Status: closed (historical evidence)
+Last updated: 2026-07-01
+
+This tracker is closed. All rows are done, superseded, or executed in the
+living nested packet at
+`docs/projects/spells/subprojects/spell-completeness-audit/` — that packet is
+the sole current owner of spell-completeness status and gaps. This file is
+preserved as historical evidence only.
 
 ## Status Vocabulary
 
@@ -13,28 +19,28 @@ Last updated: 2026-06-25
 - `superseded`
 - `out_of_scope`
 
-## Active Task Queue
+## Task Queue (Closed)
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Refresh project continuity surface for the audit scope and stale-drift handling. | Worker D | 2026-06-25 | `NORTH_STAR.md`; `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md`; registry and status links | Proceed to the next slice only after re-run decision is recorded. | `TRACKER.md` + `NORTH_STAR.md` consistency check |
-| T2 | active | Decide when to rerun coverage comparison with the current spell inventory and PHB list. | Worker D | 2026-05-31 | `output/LOCAL-INVENTORY.md`; `output/PHB-2024-REFERENCE.md`; `docs/spells/STATUS_LEVEL_*.md` | Recompute local-vs-PHB deltas and update `@SPELL-COMPLETENESS-REPORT.md` as a current report, or explicitly mark this as a planned rerun. | Live `public/data/spells` level counts and a fresh PHB source cross-check |
-| T3 | waiting | Align with spell migration lane before using any gap rows as implementation blockers. | Worker D | 2026-05-31 | `docs/tasks/spell-system-overhaul/NORTH_STAR.md`; `docs/tasks/spell-system-overhaul/LEVELS-1-9-MIGRATION-GUIDE.md` | Keep audit findings scoped to planning until migration confirmation for each flagged spell. | Spell command/validation completion notes in migration lane |
-| T4 | waiting | Sync handoff expectations with `docs/projects/spells` before closing any cross-project gap rows. | Worker D | 2026-05-31 | `docs/projects/spells/NORTH_STAR.md`; `docs/projects/spells/TRACKER.md`; `docs/projects/spells/GAPS.md` | Reconcile terminology and ownership so completeness findings are not duplicated or lost across projects. | Confirm references and owner linkage in both trackers |
+| T1 | done | Refresh project continuity surface for the audit scope and stale-drift handling. | Worker D | 2026-06-25 | `NORTH_STAR.md`; `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md`; registry and status links | None — lane closed. | `TRACKER.md` + `NORTH_STAR.md` consistency check |
+| T2 | done | Decide when to rerun coverage comparison with the current spell inventory and PHB list. | Worker D | 2026-07-01 | Executed in the nested packet: nested T5 done 2026-06-28 (`scripts/generateSpellCompletenessSnapshot.ts`, `npm run spells:completeness`, `SPELL_COMPLETENESS_COVERAGE_SNAPSHOT.md`); `@SPELL-COMPLETENESS-REPORT.md` 2026-06-28 redirect header | None — rerun executed as a maintained generated snapshot. | Snapshot regenerates cleanly via `npm run spells:completeness`. |
+| T3 | superseded | Align with spell migration lane before using any gap rows as implementation blockers. | Worker D | 2026-07-01 | `docs/projects/spells/subprojects/spell-completeness-audit/{TRACKER.md,GAPS.md}` | Superseded: the nested packet is the sole living owner of alignment and gating. | n/a — see nested packet. |
+| T4 | superseded | Sync handoff expectations with `docs/projects/spells` before closing any cross-project gap rows. | Worker D | 2026-07-01 | `docs/projects/spells/subprojects/spell-completeness-audit/{NORTH_STAR.md,TRACKER.md,GAPS.md}` | Superseded: ownership linkage now lives in the nested packet under `docs/projects/spells`. | n/a — see nested packet. |
 | T5 | done | Align this task-folder tracker with the living Spells subproject gap owner after old local `GAPS.md` retirement. | Codex | 2026-06-25 | `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md`; `docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md` | Closed: future gap work belongs in the nested Spells subproject packet, while this task folder preserves historical report/output evidence. | This tracker no longer points cold agents at the deleted task-folder `GAPS.md`. |
 
-## Gap Log
+## Gap Log (Closed)
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G001 | active | in_scope_now | Worker D | spell-system-overhaul / spell-completeness-audit | T2 decision | Audit report is historical and mismatched against current level counts. | `@SPELL-COMPLETENESS-REPORT.md`, `output/LOCAL-INVENTORY.md`, live `public/data/spells` count output | Can not claim current completeness status without re-run. | Recompute level sets and publish an updated report. | New `@SPELL-COMPLETENESS-REPORT.md` generated from live folders and PHB list |
-| G002 | active | support_needed_now | Worker D | docs/spells/STATUS_LEVEL_*.md | T2 decision | PHB-2024 source has not been freshly revalidated in this pass. | `output/PHB-2024-REFERENCE.md` | Source confidence is weak for publication-critical claims. | Reconfirm PHB list source and page citations before closing completeness claims. | Explicit source check log and updated report preamble |
+| G001 | done | in_scope_now | Worker D | spell-system-overhaul / spell-completeness-audit | T2 decision | Audit report was historical and mismatched against current level counts. | Nested T5 done 2026-06-28: `SPELL_COMPLETENESS_COVERAGE_SNAPSHOT.md` generated from live folders; `@SPELL-COMPLETENESS-REPORT.md` carries the redirect | Resolved: current completeness status is claimable from the maintained snapshot. | None — executed via nested packet (nested G1 resolved). | `npm run spells:completeness` regenerates the snapshot from live data. |
+| G002 | done | support_needed_now | Worker D | docs/spells/STATUS_LEVEL_*.md | T2 decision | PHB-2024 source had not been freshly revalidated. | Nested Canonical Source Gate in `SPELL_COMPLETENESS_COVERAGE_SNAPSHOT.md`; nested G3 resolved, nested G5 active (Guardian of Nature recapture) | Resolved as a lane: source-freshness is now structurally tracked by the nested packet's gates and gap rows. | None here — remaining canonical-recapture work is nested G5, owned by the nested packet. | Nested packet `GAPS.md` G5 row. |
 
 ## Update Rules
 
-- Keep active/blocked/waiting rows with owner, evidence, and next proof.
-- Use `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md` for durable findings that require follow-up beyond status signaling.
-- Keep this tracker scoped to this project; route unrelated issues to
-  `docs/projects/GLOBAL_GAPS.md`.
+- Do not add new rows here — this tracker is closed historical evidence.
+- All durable findings and follow-up belong in
+  `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md`.
+- Route unrelated issues to `docs/projects/GLOBAL_GAPS.md`.
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/TRACKER.md","sha256WithoutMarker":"7472c8aa96699bb586490ae53be02f0651633daa7c9e91f9b37603b566c397f4","markedAtUtc":"2026-06-25T22:29:38.620Z"} -->

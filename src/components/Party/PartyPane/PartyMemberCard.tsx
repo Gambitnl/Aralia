@@ -11,6 +11,7 @@
 import React, { useMemo } from 'react';
 import { PlayerCharacter, MissingChoice, HitDieSize, Companion, RelationshipLevel } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
+import { ConditionChips } from '../../ui/PartyConditionChips';
 import { GlossaryIcon } from '../../Glossary/IconRegistry';
 import { validateCharacterChoices } from '@/utils/character';
 import { getAbilityModifierValue, getAbilityModifierString } from '../../../utils/character/statUtils';
@@ -381,6 +382,13 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                         <span className="text-xs font-medium text-amber-500/80 uppercase tracking-wider block">
                             {raceClassName}
                         </span>
+                        {/* PRV6: active status conditions (starving / fatigued / poisoned
+                            from travel) — invisible in state before this surface. */}
+                        {(character.conditions?.length ?? 0) > 0 && (
+                            <div className="mt-1">
+                                <ConditionChips conditions={character.conditions ?? []} size="sm" />
+                            </div>
+                        )}
                         {companion && (
                             <div className="flex items-center gap-1.5 mt-1 text-[10px]">
                                 <span className="text-gray-400">Relationship:</span>

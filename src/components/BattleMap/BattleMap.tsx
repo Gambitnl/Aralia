@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 24/06/2026, 22:09:43
+ * Last Sync: 02/07/2026, 00:55:57
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
- * Imports: 12 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -44,7 +44,9 @@ import CharacterToken from './CharacterToken';
 import BattleMapOverlay from './BattleMapOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { UI_ID } from '../../styles/uiIds';
+import { Z_INDEX } from '../../styles/zIndex';
 import { selectVisibilityObserver } from './visibilityObserverPolicy';
+import type { SpellMapArtifacts } from './spellMapArtifacts';
 
 interface BattleMapProps {
   mapData: BattleMapData | null;
@@ -58,6 +60,8 @@ interface BattleMapProps {
     onObjectSelect: (objectId: string) => void;
     onObjectMove: (objectId: string, destination: Position) => void;
   };
+  /** Non-creature summon/control records rendered as explicit map artifacts. */
+  spellMapArtifacts?: SpellMapArtifacts;
   combatState: {
     turnManager: ReturnType<typeof useTurnManager>;
     turnState: ReturnType<typeof useTurnManager>['turnState'];
@@ -67,7 +71,7 @@ interface BattleMapProps {
   };
 }
 
-const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLabels = false, showLightSourceMarkers = true, showLineOfSightCone = false, objectInteraction, combatState }) => {
+const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLabels = false, showLightSourceMarkers = true, showLineOfSightCone = false, objectInteraction, spellMapArtifacts, combatState }) => {
   const { turnManager, turnState, abilitySystem, isCharacterTurn } = combatState;
 
   const battleMapState = useBattleMap(mapData, characters, turnManager, abilitySystem);
@@ -203,7 +207,10 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
   return (
     <div id={UI_ID.BATTLE_MAP} data-testid={UI_ID.BATTLE_MAP} className="relative">
       {visibilityObserverSelection.sharedSenses && (
-        <div className="absolute left-3 top-3 z-[var(--z-index-submap-overlay)] rounded-full border border-cyan-300/80 bg-slate-950/88 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.38)]">
+        <div
+          className="absolute left-3 top-3 rounded-full border border-cyan-300/80 bg-slate-950/88 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.38)]"
+          style={{ zIndex: Z_INDEX.COMBAT_OVERLAY }}
+        >
           {/* This label makes the 2D map's observer switch legible. Without it,
               shared senses would silently change fog-of-war math while leaving
               the player unsure whether they are seeing from the caster or the familiar. */}
@@ -369,6 +376,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
             lineOfSightOriginCharacterId={currentCharacter?.id ?? null}
             spellMovementVisuals={turnManager.spellMovementVisuals || []}
             spellDeliveryVisuals={turnManager.spellDeliveryVisuals || []}
+            spellMapArtifacts={spellMapArtifacts}
             aoePreview={abilitySystem.aoePreview}
             teleportDestinationPreview={abilitySystem.teleportDestinationPreview}
             assignedTeleportDestinations={assignedTeleportDestinations}

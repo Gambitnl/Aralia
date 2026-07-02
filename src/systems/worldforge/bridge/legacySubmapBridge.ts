@@ -121,6 +121,29 @@ export function getBurgNamer(
   }
 }
 
+/**
+ * FMG culture TYPE for a burg ('Highland' | 'Naval' | 'River' | 'Lake' |
+ * 'Nomadic' | 'Hunting' | 'Generic') — drives the architecture style family
+ * selected per town. No-fallback (project directive): throws if the burg or
+ * its culture can't be resolved, same posture as getBurgNamer above.
+ */
+export function getBurgCultureType(worldSeed: number, burgId: number): string {
+  const atlas = getBridgeAtlas(worldSeed);
+  const burg = atlas.pack.burgs?.[burgId] as Burg | undefined;
+  if (!burg) {
+    throw new Error(`Cannot resolve burg ${burgId} in world ${worldSeed}`);
+  }
+  const cultureId = burg.culture ?? 0;
+  const culture = atlas.pack.cultures?.[cultureId] as { type?: string } | undefined;
+  if (!culture) {
+    throw new Error(`Cannot resolve culture ${cultureId} for burg ${burgId} in world ${worldSeed}`);
+  }
+  if (!culture.type) {
+    throw new Error(`Culture ${cultureId} has no type (burg ${burgId}, world ${worldSeed})`);
+  }
+  return culture.type;
+}
+
 export function getBridgeAtlas(worldSeed: number): FmgWorldResult {
   const seedStr = worldforgeSeedString(worldSeed);
   let atlas = atlasCache.get(seedStr);

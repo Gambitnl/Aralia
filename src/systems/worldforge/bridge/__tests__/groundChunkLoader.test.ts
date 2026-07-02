@@ -47,6 +47,7 @@ function makeGroundWorldFixture(overrides: Partial<GroundWorld> = {}): GroundWor
     walls: [],
     waterBodies: [],
     decks: [],
+    gatehouses: [],
     towns: [],
     buildings: [],
     rosters: [],
@@ -397,6 +398,42 @@ describe('makeGroundWorld building terrain pads', () => {
     for (const a of agents) {
       expect(Number.isFinite(a.xM)).toBe(true);
       expect(Number.isFinite(a.zM)).toBe(true);
+    }
+  });
+
+  it('opens the wall ring at road gatehouses (not only water gates)', () => {
+    const local = makeLocalArtifact();
+    const region = makeRegionArtifact();
+    const ground = makeGroundWorld(local, 42, region);
+
+    // The canonical fixture town is walled with street-entry gatehouses; each
+    // becomes a placement record carrying its styled form + wall tint.
+    expect(ground.gatehouses.length).toBeGreaterThan(0);
+    for (const g of ground.gatehouses) {
+      expect(Number.isFinite(g.xM)).toBe(true);
+      expect(Number.isFinite(g.zM)).toBe(true);
+      expect(Number.isFinite(g.angleRad)).toBe(true);
+      expect(g.gapHalfM).toBeGreaterThan(0);
+      expect(['twinTowers', 'tunnelBlock', 'singleTower']).toContain(g.form);
+      expect(g.colorHex).toMatch(/^#/);
+      expect(g.burgId).toBe(7);
+    }
+
+    // The ring is split into multiple open runs (not one closed loop), and no
+    // wall point survives inside any gate's cleared gap. Other towns' walls
+    // are far from the gate, so the global sweep stays safe.
+    expect(ground.walls.length).toBeGreaterThan(1);
+    for (const g of ground.gatehouses) {
+      for (const run of ground.walls) {
+        for (const p of run.points) {
+          expect(Math.hypot(p.x - g.xM, p.z - g.zM)).toBeGreaterThan(g.gapHalfM * 0.99);
+        }
+      }
+    }
+
+    // Every wall run carries the style family's rampart tint.
+    for (const run of ground.walls) {
+      expect(run.colorHex).toMatch(/^#/);
     }
   });
 

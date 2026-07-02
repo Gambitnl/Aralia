@@ -1,9 +1,15 @@
 # Structured Spell Execution North Star
 
-Status: active
-Last updated: 2026-05-31
+Status: merged-reference archive (routing per `docs/projects/PROJECT_TRACKER.md`)
+Last updated: 2026-07-01
 Project display name: Structured Spell Execution
 Legacy name / folder slug: Spell System Overhaul (`docs/tasks/spell-system-overhaul`)
+
+> **THIS FOLDER IS A MERGED-REFERENCE ARCHIVE.** Per `docs/projects/PROJECT_TRACKER.md`,
+> this task folder is routed under `docs/projects/spells/subprojects/structured-spell-execution/`
+> as historical evidence. **Live work starts from `docs/projects/spells/SUBPROJECTS.md`** and the
+> relevant child `GAPS.md` files — not from this folder. The content below is preserved for
+> architecture anchors and evidence trail, with counts refreshed 2026-07-01.
 
 ## Why This Project Exists
 
@@ -15,21 +21,21 @@ This project used to be called "Spell System Overhaul." That name is preserved a
 
 Keep the project actionable by separating **what is currently implemented** from **what is still partial**, while preserving explicit uncertainties and reading order for a cold-start resume.
 
-## Current State Snapshot (as of 2026-05-31)
+## Current State Snapshot (counts refreshed 2026-07-01; prose baseline 2026-05-31)
 
-- This project is in-scope from `docs/projects/PROJECT_TRACKER.md` and should be treated as an active, partially-complete overhaul lane.
-- `public/data/spells` is levelized:
+- This project is routed from `docs/projects/PROJECT_TRACKER.md` into the Spells project's `structured-spell-execution` child lane; treat this folder as merged reference, not an active lane.
+- `public/data/spells` is levelized (verified 2026-07-01):
   - level-0: 43
   - level-1: 68
   - level-2: 65
-  - level-3: 67
-  - level-4: 46
-  - level-5: 58
-  - level-6: 44
-  - level-7: 26
-  - level-8: 22
+  - level-3: 69
+  - level-4: 50
+  - level-5: 62
+  - level-6: 46
+  - level-7: 27
+  - level-8: 23
   - level-9: 20
-- `public/data/spells_manifest.json` currently contains 459 entries.
+- `public/data/spells_manifest.json` currently contains 473 entries (473 spell files on disk; grown from the 459 quoted in earlier passes).
 - Validation/type surfaces are implemented:
   - `src/systems/spells/validation/spellValidator.ts`
   - `src/systems/spells/validation/SpellIntegrityValidator.ts`
@@ -53,8 +59,8 @@ Keep the project actionable by separating **what is currently implemented** from
 |---|---|
 | Task | Move the protocol-complete project surface into first implementation follow-through by tracking the current status, expanding source-backed gaps, and selecting the next bounded engine slice. |
 | Allowed scope | This refresh is docs/tracker only: `NORTH_STAR.md`, `TRACKER.md`, `TASK_SLICE.md`, and `GAPS.md`. The next slice may touch runtime/schema/source files only after the selected gap row is accepted. |
-| Current owner | Worker D |
-| Next action | Start with `SSO-ONMOVEINAREA-001` because it is the smallest high-leverage schema/runtime alignment gap; then continue into `SSO-AREA-ENTRY-EXIT-001` if the first-pass proof confirms trigger handling remains incomplete. |
+| Current owner | Worker D (historical) |
+| Next action | ~~Start with `SSO-ONMOVEINAREA-001`~~ — **DONE 2026-06-25** (see `TRACKER.md`). No next action is dispatched from this folder; pick up live work from `docs/projects/spells/SUBPROJECTS.md` and the child `GAPS.md` files. |
 | Verification done | Documentation evidence and bounded TODO/source marker search only; no runtime code or validation command was changed or executed in this pass. |
 
 ## Scope Boundaries
@@ -89,15 +95,14 @@ Keep the project actionable by separating **what is currently implemented** from
 - `docs/projects/spells/NORTH_STAR.md`
 - `docs/projects/spells/SUBPROJECTS.md`
 - `docs/tasks/spell-system-overhaul/gaps/GAP-CHOICE-SPELLS.md`
-- `docs/tasks/spell-system-overhaul/gaps/GAP-UNSPLIT-SPELL-EFFECTS.md`
+- `docs/archive/spell-system/GAP-UNSPLIT-SPELL-EFFECTS.md` (closed and archived 2026-07-01)
 - `docs/projects/spells/subprojects/targeting-object-area/GAPS.md`
 - `docs/architecture/SPELL_SYSTEM_ARCHITECTURE.md`
 
 ## Resume Path For A Cold Agent
 
-1. Read this file, then `TRACKER.md`, then `GAPS.md`.
-2. Read `TASK_SLICE.md` for the currently bounded action.
-3. Use `docs/projects/spells/SUBPROJECTS.md` and the relevant child `GAPS.md` file for the live priority surface.
+1. Start from `docs/projects/spells/SUBPROJECTS.md` and the relevant child `GAPS.md` file — that is the live priority surface.
+2. Read this file and `TRACKER.md` only for historical anchors. The old evidence log is archived at `docs/archive/spell-system/SSO-GAPS-EVIDENCE-LOG.md`; `TASK_SLICE.md` and `AUDIT_OR_PROOF.md` are archived under `docs/archive/spell-system/`.
 3. Confirm current code anchors in:
    - `src/systems/spells/validation/spellValidator.ts`
    - `src/systems/spells/validation/SpellIntegrityValidator.ts`
@@ -105,17 +110,17 @@ Keep the project actionable by separating **what is currently implemented** from
    - `src/systems/spells/targeting/AoECalculator.ts`
    - `src/systems/spells/effects/triggerHandler.ts`
    - `src/commands/factory/SpellCommandFactory.ts`
-4. Start from the first active row in `TRACKER.md` and use `GAPS.md` rows as source-backed acceptance criteria.
+4. Open SSO-* gap rows have been re-homed into the child lane `GAPS.md` files (2026-07-01); use those rows as source-backed acceptance criteria.
 
 ## Supporting Protocol Files
 
-- `TRACKER.md` — active queue, blockers, and gap ownership.
-- `TASK_SLICE.md` — bounded next action and stop condition.
-- `GAPS.md` — durable unresolved findings.
+- `TRACKER.md` — historical queue + gap log (slice-log tail archived at `docs/archive/spell-system/SSO-TRACKER-SLICE-LOG.md`).
+- `docs/archive/spell-system/SSO-TASK-SLICE.md` — archived slice log (formerly `TASK_SLICE.md`).
+- `docs/archive/spell-system/SSO-GAPS-EVIDENCE-LOG.md` — archived evidence log (formerly `GAPS.md`); open rows re-homed to child lane `GAPS.md` files.
 - `DECISIONS.md` — key project-level choices and alternatives.
-- `AUDIT_OR_PROOF.md` — verification notes and pass scope.
-- `RUNBOOK.md` — repeatable operator workflow.
-- `ARCHITECTURE_NOTE.md` — project-level architecture map for current ownership seams.
+- `docs/archive/spell-system/SSO-AUDIT-OR-PROOF.md` — archived verification log (formerly `AUDIT_OR_PROOF.md`).
+- `RUNBOOK.md` — historical operator workflow (pre-flight now starts from `docs/projects/spells/SUBPROJECTS.md`).
+- `docs/projects/spells/subprojects/structured-spell-execution/ARCHITECTURE_NOTE.md` — architecture map for ownership seams (relocated 2026-07-01).
 - `docs/projects/PROJECT_TRACKER.md` — registry row and cross-project routing.
 
 ## Uncertainties (Open, to verify before next engineering changes)

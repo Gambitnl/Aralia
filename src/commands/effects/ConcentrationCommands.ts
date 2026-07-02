@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/06/2026, 12:58:54
+ * Last Sync: 01/07/2026, 22:17:38
  * Dependents: commands/effects/DamageCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/StatusConditionCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/useAbilitySystem.ts
  * Imports: 6 files
  *
@@ -239,6 +239,47 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
                   ...updatedState,
                   activeLightSources: updatedState.activeLightSources.filter(
                       ls => ls.sourceSpellId !== previousSpellId && !trackedEffectIds.has(ls.id)
+                  )
+              };
+          }
+
+          if (updatedState.activeSpellForces) {
+              updatedState = {
+                  ...updatedState,
+                  activeSpellForces: updatedState.activeSpellForces.filter(
+                      force => force.spellId !== previousSpellId && !trackedEffectIds.has(force.id)
+                  )
+              };
+          }
+
+          if (updatedState.activeSpellGuardians) {
+              updatedState = {
+                  ...updatedState,
+                  activeSpellGuardians: updatedState.activeSpellGuardians.filter(
+                      guardian => guardian.spellId !== previousSpellId && !trackedEffectIds.has(guardian.id)
+                  )
+              };
+          }
+
+          // Spell emanations such as Conjure Minor Elementals and Conjure
+          // Woodland Beings are caster-following area records, not creatures,
+          // so they need direct spell-id cleanup when concentration breaks.
+          if (updatedState.activeSpellEmanations) {
+              updatedState = {
+                  ...updatedState,
+                  activeSpellEmanations: updatedState.activeSpellEmanations.filter(
+                      emanation => emanation.spellId !== previousSpellId && !trackedEffectIds.has(emanation.id)
+                  )
+              };
+          }
+
+          // Wrath of Nature animates terrain instead of summoning a creature.
+          // Drop the area control when its concentration owner lets the spell end.
+          if (updatedState.activeEnvironmentalControls) {
+              updatedState = {
+                  ...updatedState,
+                  activeEnvironmentalControls: updatedState.activeEnvironmentalControls.filter(
+                      control => control.spellId !== previousSpellId && !trackedEffectIds.has(control.id)
                   )
               };
           }

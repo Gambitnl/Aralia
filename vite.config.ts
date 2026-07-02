@@ -239,6 +239,9 @@ export default defineConfig(async ({ mode, command }) => {
       port,
       strictPort: isRoadmapOnlyDev || isHubOnlyDev,
       host: '0.0.0.0',
+      warmup: {
+        clientFiles: ['./index.tsx', './src/App.tsx']
+      },
       ...(isRoadmapOnlyDev
         ? {}
         : {

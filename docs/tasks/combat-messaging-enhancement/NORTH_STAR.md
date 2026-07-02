@@ -1,7 +1,7 @@
 # Combat Messaging Enhancement North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-07-01
 
 ## Why This Project Exists
 
@@ -56,16 +56,18 @@ This folder captures where combat messaging stands today: core infrastructure is
 
 ## Active Gaps
 
-- Event payload fields are not consistent across all emitters.
-- Some event kinds still rely on message-text heuristics to infer type.
-- Some message channels and rich metadata are defined but not yet fully surfaced in UI.
+- Resistance/vulnerability metadata is not emitted into log data (open remainder of CMB-GAP-002). The critical-hit half is closed: emitters attach `isCrit`/`isCritical` and the adapter reads it from structured data (see GAPS.md CMB-GAP-002 evidence).
+- Some event kinds still rely on message-text heuristics to infer type (CMB-GAP-003).
+- Some message channels and rich metadata are defined but not yet fully surfaced in UI (CMB-GAP-004).
+
+Closed since the last refresh: the payload-alias inconsistency (`damage` vs `damageAmount`, `heal` vs `healAmount`) closed as CMB-GAP-001 with adapter regression tests covering canonical and legacy keys.
 
 ## Next Checks
 
-- Audit all combat emitters that produce `CombatLogEntry` and align `data` fields to typed contracts.
+- Decide and add explicit resistance flags (`isResisted`, `resistanceApplied`) at the emitters, then extend the adapter and tests.
 - Verify how often `combatLogToMessageAdapter.ts` depends on string heuristics for status and action events.
 - Verify whether `MessageChannel` outputs are consumed beyond internal storage.
-- Add explicit tests for kill/critical/heal/status edge cases.
+- Add explicit tests for kill/status edge cases. (Critical and heal alias edge-case tests now exist in `src/utils/combat/__tests__/combatLogToMessageAdapter.test.ts`.)
 
 ## Tracking Links
 

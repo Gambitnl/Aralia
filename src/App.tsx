@@ -473,12 +473,21 @@ const App: React.FC = () => {
       startTownRegion: gameState.startTownRegion ?? null,
       partySize: gameState.party.length,
       partyNames: gameState.party.map(p => p.name),
+      // PRV9 verification surface: HP + active conditions per member, so the
+      // starvation drain / long-rest recovery can be proven headlessly.
+      partyVitals: gameState.party.map(p => ({
+        name: p.name,
+        hp: p.hp,
+        maxHp: p.maxHp,
+        conditions: p.conditions ?? [],
+      })),
       gold: gameState.gold,
       inventoryCount: gameState.inventory.length,
       gameTime: gameState.gameTime instanceof Date
         ? gameState.gameTime.toISOString()
         : String(gameState.gameTime),
       isMapVisible: gameState.isMapVisible,
+      isLongRestModalVisible: gameState.isLongRestModalVisible ?? false,
       isThreeDVisible: gameState.isThreeDVisible ?? false,
       saveTimestamp: gameState.saveTimestamp ?? null,
       error: gameState.error ?? null,
@@ -674,11 +683,11 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.CHARACTER_CREATION });
   }, [dispatch]);
 
-  const handleClearAllSaves = useCallback(() => {
-    SaveLoadService.clearAllSaves();
-    // Force a re-render of the Main Menu by updating a local state if necessary,
-    // or just rely on the fact that MainMenu calls refreshSlots which calls getSaveSlots.
-    // However, App needs to know that hasSaveGame might have changed.
+  const handleClearAllSaves = useCallback(async () => {
+    // Must be awaited: clearAllSaves only invalidates the slot-index cache after
+    // the async IndexedDB wipe, so refreshing the menu before completion shows
+    // the old saves and makes the wipe look like it needs two clicks.
+    await SaveLoadService.clearAllSaves();
     dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
   }, [dispatch]);
 
@@ -701,7 +710,11 @@ const App: React.FC = () => {
       const prov = travelMeta?.provision;
       if (!prov) return;
       const companionViews = Object.values(gameState.companions ?? {}).map(c => ({ id: c.id, loyalty: c.loyalty }));
-      for (const action of buildProvisionActions(prov, companionViews)) dispatch(action);
+      // PRV9: member HP views let a starving march apply its non-lethal HP drain.
+      const healthViews = gameState.party
+        .filter(pc => pc.id)
+        .map(pc => ({ id: pc.id as string, hp: pc.hp }));
+      for (const action of buildProvisionActions(prov, companionViews, healthViews)) dispatch(action);
       if (prov.note) addMessage(prov.note, 'system');
     };
 
@@ -759,7 +772,7 @@ const App: React.FC = () => {
       addMessage('That place lies beyond the known map — scout closer before you can travel there.', 'system');
     }
 
-  }, [gameState.currentLocationId, gameState.companions, addMessage, dispatch]);
+  }, [gameState.currentLocationId, gameState.companions, gameState.party, addMessage, dispatch]);
 
   /**
    * Atlas "Enter 3D" mode: place the player in the streamed world at the clicked cell.

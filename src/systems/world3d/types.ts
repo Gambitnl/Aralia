@@ -62,12 +62,24 @@ export interface ChunkData {
    * weathered-timber quay distinctly from a lighter bridge span — a dock and a
    * bridge must not look identical.
    */
-  decks?: { points: { x: number; y: number }[]; topY: number; kind: 'dock' | 'bridge' }[];
+  decks?: {
+    points: { x: number; y: number }[];
+    topY: number;
+    kind: 'dock' | 'bridge';
+    /**
+     * Style-family deck detailing (styled-architecture slice): support-piling
+     * spacing, edge railings, and parabolic bridge-arch rise. Absent decks
+     * keep the plain flat slab.
+     */
+    detail?: { pilingSpacingM: number; railing: boolean; archRiseM: number };
+  }[];
   /**
    * Lake polygons clipped to this chunk (grid space) with a shared flat water surface.
    * Lakes are filled meshes, not ribbons, so the builder can triangulate them directly.
    */
   lakes?: { points: { x: number; y: number }[]; surfaceY: number }[];
+  /** Town road-gate gatehouse placements in this chunk (grid space), meshed by gateGeometry. */
+  gatehouses?: Array<{ x: number; y: number; angleRad: number; gapHalfM: number; form: 'twinTowers' | 'tunnelBlock' | 'singleTower'; colorHex: string }>;
   /** Sites whose center falls within this chunk (grid space). */
   sites: {
     id: string;
@@ -99,6 +111,13 @@ export interface ChunkData {
     heightM?: number;
     /** Optional explicit render color (e.g. role tints from town plans). */
     colorHex?: string;
+    /** Explicit role for texture/label semantics (replaces colorHex sniffing). */
+    role?: string;
+    /** Styled-architecture roof (absent = legacy hip + default brown). */
+    roofForm?: 'gable' | 'hip' | 'steep' | 'flat';
+    roofColorHex?: string;
+    /** Family builds chimneys (solid-shell, non-flat roofs only). */
+    chimney?: boolean;
     /**
      * Suppress the HUD nameplate for this site. Town-plan building plots
      * arrive as dozens of 'ruin' sites per settlement — labeling each one
@@ -152,6 +171,11 @@ export interface ClippedPolyline {
   points: { x: number; y: number }[];
   /** Width in grid units, one per point (length === points.length). */
   width: number[];
+  /**
+   * Optional render tint. Town wall-ring runs carry their style family's
+   * wallTint (styled-architecture slice) so wallGeometry can vertex-color them.
+   */
+  colorHex?: string;
 }
 
 /** A site contained in a chunk, with chunk-local placement for geometry. */
@@ -186,6 +210,13 @@ export interface ChunkSite {
    * the kind-radius cube. All meters; rotationY in radians.
    */
   colorHex?: string;
+  /** Explicit role for texture/label semantics (replaces colorHex sniffing). */
+  role?: string;
+  /** Styled-architecture roof (absent = legacy hip + default brown). */
+  roofForm?: 'gable' | 'hip' | 'steep' | 'flat';
+  roofColorHex?: string;
+  /** Family builds chimneys (solid-shell, non-flat roofs only). */
+  chimney?: boolean;
   /** Suppress the HUD nameplate (see ChunkData.sites.unlabeled). */
   unlabeled?: boolean;
   /** Render no mesh — nameplate only (see ChunkData.sites.markerOnly). */
@@ -229,8 +260,17 @@ export interface ChunkMeshBundle {
   terrain: TerrainMesh;
   water?: ChunkGeometryArrays;
   roads?: ChunkGeometryArrays;
-  /** Extruded town wall-ring barriers (Worldforge Option B). */
-  walls?: ChunkGeometryArrays;
+  /**
+   * Extruded town wall-ring barriers (Worldforge Option B). Carries optional
+   * per-vertex `colors` (styled-architecture slice) so each town's ramparts
+   * take their style family's wall tint under one vertex-colored material.
+   */
+  walls?: ChunkGeometryArrays & { colors?: Float32Array };
+  /**
+   * Gatehouse models at town road-gate openings (styled-architecture slice),
+   * vertex-tinted with the burg's wall color like `walls`.
+   */
+  gates?: ChunkGeometryArrays & { colors?: Float32Array };
   /**
    * Town dock/bridge deck slabs over water (Worldforge Option B). Carries
    * per-vertex `colors` (TG5) so docks and bridges read distinctly under one

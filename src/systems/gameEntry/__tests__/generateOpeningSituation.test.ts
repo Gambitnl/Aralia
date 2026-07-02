@@ -64,6 +64,21 @@ const GOOD_RESPONSE = JSON.stringify({
     suggestedReplies: ['Let her go.', 'What is the toll?', 'Step aside.'],
 });
 
+/**
+ * Build a deps bundle whose stub client resolves the given raw JSON string as an
+ * `ok` model response, plus a deterministic id factory. Mirrors the inline stub
+ * pattern used by the other tests so new cases slot in without ceremony.
+ */
+function makeDeps(rawResponse: string) {
+    let n = 0;
+    const client = fakeClient(async () => ({
+        ok: true,
+        data: { response: rawResponse },
+        model: 'stub',
+    }));
+    return { client, idFactory: () => `npc-${n++}` };
+}
+
 describe('generateOpeningSituation', () => {
     it('builds a prompt grounded in the specific character and place', () => {
         const prompt = buildOpeningSituationPrompt(CHARACTER, LOCATION);
@@ -127,6 +142,42 @@ describe('generateOpeningSituation', () => {
         await expect(generateOpeningSituation(CHARACTER, LOCATION, { client })).rejects.toBeInstanceOf(
             OpeningSituationParseError,
         );
+    });
+
+    it('parses a valid threat block when the model flags the scene hostile', async () => {
+        const raw = JSON.stringify({
+            setting: { place: 'the toll bridge', timeOfDay: 'dusk', weather: 'cold drizzle' },
+            predicament: 'Two toll-collectors block the bridge, hands on their hilts.',
+            npcs: [{ name: 'Garrok', role: 'toll-collector', disposition: 'greedy', goal: 'shake you down' }],
+            openingLine: { speakerName: 'Garrok', text: 'Pay the toll — or bleed.' },
+            suggestedReplies: ['Pay up', 'Refuse'],
+            threat: {
+                hostile: true,
+                enemies: [{ name: 'Bandit', quantity: 2, cr: '1/8' }],
+                deEscalationDC: 13,
+                tension: 'toll-collectors itching to rob you',
+            },
+        });
+        const situation = await generateOpeningSituation(CHARACTER, LOCATION, makeDeps(raw));
+        expect(situation.threat).toEqual({
+            hostile: true,
+            enemies: [{ name: 'Bandit', quantity: 2, cr: '1/8' }],
+            deEscalationDC: 13,
+            tension: 'toll-collectors itching to rob you',
+        });
+    });
+
+    it('drops a malformed threat but keeps the (peaceful) scene', async () => {
+        const raw = JSON.stringify({
+            setting: { place: 'a plaza', timeOfDay: 'noon', weather: 'clear' },
+            predicament: 'A crowd parts around a shouting herald.',
+            npcs: [{ name: 'Herald', role: 'town crier', disposition: 'loud', goal: 'be heard' }],
+            openingLine: { speakerName: 'Herald', text: 'Hear ye!' },
+            threat: { hostile: true, enemies: [{ name: '', quantity: 0, cr: '' }], deEscalationDC: 999 },
+        });
+        const situation = await generateOpeningSituation(CHARACTER, LOCATION, makeDeps(raw));
+        expect(situation.threat).toBeUndefined();
+        expect(situation.predicament).toContain('herald');
     });
 
     it('THROWS when JSON parses but lacks required structure (no NPC / no line)', async () => {

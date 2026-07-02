@@ -17,7 +17,7 @@ import type { ChunkLoader, LoadedChunk } from './types';
 import { WORLD3D_CONFIG } from './config';
 import { chunkKey, parseChunkKey, worldToChunk } from './coords';
 import { computeChunkDiff } from './chunkManager';
-import { selectLodTier } from './lod';
+import { isFinerLod, selectLodTier } from './lod';
 
 export interface ChunkStreamerOptions {
   loadRadius?: number;
@@ -34,7 +34,9 @@ export class ChunkStreamer {
 
   private loaded = new Map<string, LoadedChunk>();
   private pending = new Set<string>();
-  private queue: Array<{ cx: number; cy: number }> = [];
+  private queue: Array<{ cx: number; cy: number; upgrade?: boolean }> = [];
+  /** Keys currently sitting in `queue` (dedupe guard for the per-move upgrade scan). */
+  private queuedKeys = new Set<string>();
   private centerCx = 0;
   private centerCy = 0;
   private listeners = new Set<() => void>();
@@ -58,7 +60,10 @@ export class ChunkStreamer {
     this.loader = loader;
     for (const key of [...this.pending]) {
       const { cx, cy } = parseChunkKey(key);
-      this.queue.unshift({ cx, cy });
+      // A pending key that is ALSO loaded was an in-flight LOD upgrade — keep
+      // the flag or pump() would drop the requeued entry as already loaded.
+      this.queue.unshift({ cx, cy, upgrade: this.loaded.has(key) });
+      this.queuedKeys.add(key);
     }
     this.pending.clear();
     this.pump();
@@ -84,7 +89,26 @@ export class ChunkStreamer {
     if (changed) this.notify();
 
     // Enqueue new load targets (computed nearest-first)
-    this.queue.push(...diff.toLoad);
+    for (const target of diff.toLoad) {
+      this.queue.push(target);
+      this.queuedKeys.add(chunkKey(target.cx, target.cy));
+    }
+
+    // LOD upgrade pass: a loaded chunk whose required tier is now FINER than
+    // the tier it was built at re-queues for a rebuild at the finer tier.
+    // Without this, pump() skips loaded keys forever and a stale low-res chunk
+    // sits next to full-res ones as the camera approaches. Upgrade-only by
+    // design: downgrades keep the finer (still watertight) mesh until the
+    // chunk unloads, which also prevents reload churn at tier boundaries.
+    for (const chunk of this.loaded.values()) {
+      const key = chunkKey(chunk.cx, chunk.cy);
+      if (this.pending.has(key) || this.queuedKeys.has(key)) continue;
+      const dist = Math.max(Math.abs(chunk.cx - cx), Math.abs(chunk.cy - cy));
+      if (isFinerLod(selectLodTier(dist), chunk.lod)) {
+        this.queue.push({ cx: chunk.cx, cy: chunk.cy, upgrade: true });
+        this.queuedKeys.add(key);
+      }
+    }
     this.pump();
 
     if (this.pending.size === 0 && this.queue.length === 0) {
@@ -95,9 +119,12 @@ export class ChunkStreamer {
   /** Processes the load queue, respecting concurrent worker-pool limitations. */
   private pump(): void {
     while (this.pending.size < this.maxConcurrent && this.queue.length > 0) {
-      const { cx, cy } = this.queue.shift()!;
+      const entry = this.queue.shift()!;
+      const { cx, cy } = entry;
       const key = chunkKey(cx, cy);
-      if (this.loaded.has(key) || this.pending.has(key)) continue;
+      this.queuedKeys.delete(key);
+      if (this.pending.has(key)) continue;
+      if (this.loaded.has(key) && !entry.upgrade) continue;
 
       this.pending.add(key);
       // Carry the requested LOD tier into the loader so it builds the chunk at
@@ -162,6 +189,7 @@ export class ChunkStreamer {
     this.loaded.clear();
     this.pending.clear();
     this.queue = [];
+    this.queuedKeys.clear();
     this.listeners.clear();
     this.resolveSettled();
   }

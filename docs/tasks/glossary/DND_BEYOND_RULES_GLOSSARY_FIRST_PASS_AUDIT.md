@@ -9,6 +9,33 @@ It focuses on rules that are meaningful for Aralia's gameplay, spell
 interpretation, and glossary cross-linking, not on every rule-adjacent catalog
 entry that happens to live in local glossary storage.
 
+## 2026-07-01 Resolution Addendum
+
+Re-verified against `public/data/glossary/entries/rules/` on 2026-07-01. Several
+findings recorded in the per-term judgments below have since been resolved; the
+judgment history is preserved as-is, so read it with these corrections:
+
+- **AoE-shape storage paths moved.** `cone_area.json`, `cube_area.json`,
+  `cylinder_area.json`, `emanation_area.json`, and `line_area.json` now live as
+  top-level files directly under `rules/` (verified present). The
+  `rules/spells/referenced/` subtree cited in the shape judgments below now
+  contains only `sphere_area.json`. Any note saying a shape entry "still lives
+  under the spell-referenced subtree" is stale.
+- **Armor Training placement resolved.** `armor_training.json` is now a
+  top-level `rules/` entry (verified); it is no longer filed under
+  `rules/equipment/armor/`, so the section-placement concern in that judgment
+  is closed.
+- **The "Relevant Referenced-Rule Gaps Already Known" list is resolved.** All
+  eleven terms in that list (`Cone`, `Cube`, `Cylinder`, `Difficult Terrain`,
+  `Emanation`, `Half Cover`, `Heavily Obscured`, `Lightly Obscured`, `Line`,
+  `Three-Quarters Cover`, `Total Cover`) now have glossary entries with real
+  rule text — e.g. `difficult_terrain.json`, `half_cover.json`,
+  `three_quarters_cover.json`, `total_cover.json`, `heavily_obscured.json`,
+  `lightly_obscured.json` all carry substantive XPHB-sourced text, and the five
+  shape entries carry substantive geometry text. No placeholder
+  ("Canonical rule text has not been captured yet") remains in any of them
+  (grep-verified 2026-07-01).
+
 ## Audit Standard
 
 For each D&D Beyond glossary term:
@@ -140,6 +167,10 @@ Rules Glossary page:
   - [attack_action.json](F:\Repos\Aralia\public\data\glossary\entries\rules\attack_action.json)
 
 ## Relevant Referenced-Rule Gaps Already Known
+
+> **Resolved 2026-07-01:** every term in this list now has a real glossary
+> entry with substantive rule text (see the resolution addendum at the top).
+> Preserved below as the original gap record.
 
 These spell-linked rules are already known to be represented incompletely:
 

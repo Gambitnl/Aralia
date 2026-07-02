@@ -26,7 +26,7 @@ describe('Z-Index Registry', () => {
       expect(Z_INDEX.MODAL_BACKGROUND).toBe(100);
       expect(Z_INDEX.MODAL_CONTENT).toBe(110);
       expect(Z_INDEX.MODAL_INTERACTIVE).toBe(120);
-      expect(Z_INDEX.DICE_OVERLAY).toBe(300);
+      expect(Z_INDEX.DICE_OVERLAY).toBe(1050);
       expect(Z_INDEX.TOOLTIP).toBe(1000);
       expect(Z_INDEX.MAXIMUM).toBe(9999);
     });
@@ -42,7 +42,10 @@ describe('Z-Index Registry', () => {
 
       // Higher-level features should be above modals
       expect(Z_INDEX.MODAL_INTERACTIVE).toBeLessThan(Z_INDEX.DICE_OVERLAY);
-      expect(Z_INDEX.DICE_OVERLAY).toBeLessThan(Z_INDEX.TOOLTIP);
+      // An active roll is a blocking moment: the tray must draw above
+      // always-on-top panels (the conversation panel sits at TOOLTIP level
+      // and is what triggers de-escalation skill rolls).
+      expect(Z_INDEX.TOOLTIP).toBeLessThan(Z_INDEX.DICE_OVERLAY);
 
       // Emergency override should be highest
       expect(Z_INDEX.TOOLTIP).toBeLessThan(Z_INDEX.MAXIMUM);
@@ -160,7 +163,10 @@ describe('Z-Index Registry', () => {
     it('should categorize layers correctly', () => {
       expect(debugInfo.layersByCategory.base).toContain('BASE');
       expect(debugInfo.layersByCategory.modal).toContain('MODAL_BACKGROUND');
-      expect(debugInfo.layersByCategory.overlays).toContain('DICE_OVERLAY');
+      expect(debugInfo.layersByCategory.overlays).toContain('COMBAT_OVERLAY');
+      // DICE_OVERLAY moved to the always-on-top band (1050) so an active roll
+      // draws above TOOLTIP-level panels like the conversation panel.
+      expect(debugInfo.layersByCategory.alwaysOnTop).toContain('DICE_OVERLAY');
       expect(debugInfo.layersByCategory.alwaysOnTop).toContain('TOOLTIP');
       expect(debugInfo.layersByCategory.emergency).toContain('MAXIMUM');
     });

@@ -13,27 +13,67 @@
  *   To hide it we drop a downward "skirt" wall around each rendered chunk's perimeter, so the seam
  *   shows skirt instead of void. The skirt is opt-in (skirtDepth>0); `buildTerrainMesh` enables it
  *   by default, while the raw `buildPlaceholderHeightfield` stays skirtless.
+ * - Resolutions that nest into the 4-segment anchor basis (see edgeWeld.ts) get a STITCHED border:
+ *   the outer ring is triangulated against only the 5 anchor vertices per edge, so every tier emits
+ *   the exact same 4-segment border edges and no T-vertex exists on any seam. T-vertices sit ON a
+ *   neighbour's long triangle edge mathematically, but the GPU interpolates the long edge's clip
+ *   coordinates while transforming the T-vertex directly — the last-ulp disagreement rasterizes as
+ *   a faint dotted hairline along chunk borders. The weld keeps the border polyline shape; the
+ *   stitch removes the redundant vertices from the triangulation (zero visual change otherwise).
  */
 
 import type { ChunkData, ChunkGeometryArrays, TerrainMesh } from './types';
 import { WORLD3D_CONFIG, heightToMeters } from './config';
+import { ANCHOR_SEGMENTS } from './edgeWeld';
 import { biomeColor } from './terrainColor';
 
 const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
 
+/** Whether a res×res grid border can be stitched to the shared anchor basis. */
+function stitchesBorder(res: number): boolean {
+  const segments = res - 1;
+  return segments >= ANCHOR_SEGMENTS && segments % ANCHOR_SEGMENTS === 0 && res >= 5;
+}
+
+/**
+ * How far below the surface a stitched chunk's skirt STARTS (meters). With
+ * bit-identical watertight seams the skirt is never legitimately visible, but
+ * a skirt that shares the border edge z-fights the neighbour's surface along
+ * the seam line — the flat-shaded (dark) wall wins depth ties by an ulp and
+ * rasterizes as a dotted hairline tracing chunk borders. Dropping the wall's
+ * top ring below the surface makes it lose every tie. 0.25 m exceeds the
+ * depth-buffer noise at the farthest streamed seam (~1.5 km with near=1) and
+ * subtends well under a pixel at the ~500 m window perimeter where a sliver
+ * of background could theoretically peek through.
+ */
+export const SKIRT_TOP_DROP_M = 0.25;
+
 /** Number of perimeter (skirt) vertices for a res×res grid. 0 when res<2. */
 export function skirtVertexCount(res: number): number {
-  return res >= 2 ? 4 * (res - 1) : 0;
+  if (res < 2) return 0;
+  // Stitched grids hang a DETACHED skirt from the anchor ring: an own top ring
+  // (dropped below the surface) plus the bottom ring. Uniform grids keep the
+  // legacy shared-top skirt (their seams have no watertightness guarantee, so
+  // the wall must touch the surface).
+  return stitchesBorder(res) ? 2 * 4 * ANCHOR_SEGMENTS : 4 * (res - 1);
 }
 
 /** Number of skirt triangles for a res×res grid (two per perimeter edge segment). */
 export function skirtTriangleCount(res: number): number {
-  return res >= 2 ? 4 * (res - 1) * 2 : 0;
+  return (stitchesBorder(res) ? 4 * ANCHOR_SEGMENTS : 4 * (res - 1)) * 2;
 }
 
 /** Total terrain vertices (base grid, plus skirt when present) for a res×res grid. */
 export function terrainVertexCount(res: number, withSkirt: boolean): number {
   return res * res + (withSkirt ? skirtVertexCount(res) : 0);
+}
+
+/** Number of top-surface triangles for a res×res grid (stitched or uniform). */
+export function baseTriangleCount(res: number): number {
+  if (!stitchesBorder(res)) return (res - 1) * (res - 1) * 2;
+  // Interior uniform quads + the border stitch band (one triangle per loop vertex).
+  const inner = res - 3;
+  return inner * inner * 2 + 4 * ANCHOR_SEGMENTS + 4 * inner;
 }
 
 /**
@@ -49,6 +89,62 @@ function perimeterRing(res: number): number[] {
   for (let i = res - 1; i > 0; i--) ring.push((res - 1) * res + i); // bottom row, right→left
   for (let j = res - 1; j > 0; j--) ring.push(j * res); // left col, bottom→top
   return ring;
+}
+
+/**
+ * The 16 anchor vertices around the perimeter (4 per edge, corners visited
+ * once), clockwise from the NW corner. This is the border loop every nesting
+ * tier shares — chunk seams and the skirt both triangulate against it.
+ */
+function anchorRing(res: number): number[] {
+  const q = (res - 1) / ANCHOR_SEGMENTS;
+  const ring: number[] = [];
+  for (let k = 0; k < 4; k++) ring.push(k * q); // north row, left→right
+  for (let k = 0; k < 4; k++) ring.push(k * q * res + (res - 1)); // east col, top→bottom
+  for (let k = 4; k > 0; k--) ring.push((res - 1) * res + k * q); // south row, right→left
+  for (let k = 4; k > 0; k--) ring.push(k * q * res); // west col, bottom→top
+  return ring;
+}
+
+/** Perimeter of the interior sub-grid [1..res-2]², clockwise from (1,1). */
+function innerRing(res: number): number[] {
+  const lo = 1;
+  const hi = res - 2;
+  const ring: number[] = [];
+  for (let i = lo; i < hi; i++) ring.push(lo * res + i); // top, left→right
+  for (let j = lo; j < hi; j++) ring.push(j * res + hi); // right, top→bottom
+  for (let i = hi; i > lo; i--) ring.push(hi * res + i); // bottom, right→left
+  for (let j = hi; j > lo; j--) ring.push(j * res + lo); // left, bottom→top
+  return ring;
+}
+
+/**
+ * Triangulate the one-cell border band between the anchor-only outer loop and
+ * the full-resolution inner loop by zipping the two closed loops in parameter
+ * order. Both loops are uniform squares walked clockwise from the NW corner, so
+ * comparing normalized loop position picks the advance that keeps triangles
+ * fat and the band watertight. Winding matches the uniform grid quads
+ * (negative signed area in the XZ plane).
+ */
+function stitchBandTriangles(res: number): number[] {
+  const outer = anchorRing(res);
+  const inner = innerRing(res);
+  const No = outer.length;
+  const Ni = inner.length;
+  const tris: number[] = [];
+  let o = 0;
+  let i = 0;
+  while (o < No || i < Ni) {
+    const advanceOuter = i >= Ni || (o < No && (o + 1) / No <= (i + 1) / Ni);
+    if (advanceOuter) {
+      tris.push(outer[o], inner[i % Ni], outer[(o + 1) % No]);
+      o++;
+    } else {
+      tris.push(outer[o % No], inner[i], inner[(i + 1) % Ni]);
+      i++;
+    }
+  }
+  return tris;
 }
 
 interface HeightfieldCore extends ChunkGeometryArrays {
@@ -84,9 +180,16 @@ function defaultSkirtDepth(data: ChunkData): number {
 function buildHeightfieldCore(data: ChunkData, skirtDepth: number): HeightfieldCore {
   const res = data.resolution;
   const baseVertCount = res * res;
+  const stitched = stitchesBorder(res);
   const useSkirt = skirtDepth > 0 && res >= 2;
-  const ring = useSkirt ? perimeterRing(res) : [];
-  const skirtCount = ring.length;
+  // Stitched grids hang the skirt from the anchor ring: its top edges then
+  // coincide exactly with the terrain's anchor-only border edges, so the skirt
+  // itself cannot reintroduce a T-junction against the border.
+  const ring = useSkirt ? (stitched ? anchorRing(res) : perimeterRing(res)) : [];
+  const ringLen = ring.length;
+  // Stitched skirts carry their own (dropped) top ring; legacy skirts share
+  // the border vertices as their top and only append the bottom ring.
+  const skirtCount = stitched ? ringLen * 2 : ringLen;
   const vertCount = baseVertCount + skirtCount;
 
   const positions = new Float32Array(vertCount * 3);
@@ -105,13 +208,17 @@ function buildHeightfieldCore(data: ChunkData, skirtDepth: number): HeightfieldC
     }
   }
 
-  // 2. Base index buffer: two triangles per grid cell quad.
-  const baseTriCount = (res - 1) * (res - 1) * 2;
-  const skirtTriCount = useSkirt ? skirtCount * 2 : 0;
+  // 2. Base index buffer. Stitched grids get uniform quads only in the
+  //    interior sub-grid plus the anchor stitch band around it; uniform grids
+  //    get two triangles per cell quad everywhere.
+  const baseTriCount = baseTriangleCount(res);
+  const skirtTriCount = useSkirt ? ringLen * 2 : 0;
   const indices = new Uint32Array((baseTriCount + skirtTriCount) * 3);
   let t = 0;
-  for (let j = 0; j < res - 1; j++) {
-    for (let i = 0; i < res - 1; i++) {
+  const quadLo = stitched ? 1 : 0;
+  const quadHi = stitched ? res - 2 : res - 1;
+  for (let j = quadLo; j < quadHi; j++) {
+    for (let i = quadLo; i < quadHi; i++) {
       const a = j * res + i;
       const b = j * res + i + 1;
       const c = (j + 1) * res + i;
@@ -123,6 +230,9 @@ function buildHeightfieldCore(data: ChunkData, skirtDepth: number): HeightfieldC
       indices[t++] = c;
       indices[t++] = d;
     }
+  }
+  if (stitched) {
+    for (const idx of stitchBandTriangles(res)) indices[t++] = idx;
   }
   const baseIndexCount = t;
 
@@ -158,13 +268,19 @@ function buildHeightfieldCore(data: ChunkData, skirtDepth: number): HeightfieldC
   }
 
   // 4. Skirt: lowered duplicates of the perimeter ring + connecting quads.
+  //    Stitched: an OWN top ring dropped SKIRT_TOP_DROP_M below the surface
+  //    (the wall must lose every depth tie against the neighbour's watertight
+  //    surface — see SKIRT_TOP_DROP_M) plus the bottom ring. Legacy: the wall
+  //    hangs straight off the shared border vertices.
   const skirtSource: number[] = [];
   if (useSkirt) {
+    const dropTop = stitched ? SKIRT_TOP_DROP_M : 0;
     for (let k = 0; k < skirtCount; k++) {
-      const src = ring[k];
+      const src = ring[k % ringLen];
       const sv = baseVertCount + k;
+      const drop = stitched && k < ringLen ? dropTop : skirtDepth;
       positions[sv * 3] = positions[src * 3];
-      positions[sv * 3 + 1] = positions[src * 3 + 1] - skirtDepth;
+      positions[sv * 3 + 1] = positions[src * 3 + 1] - drop;
       positions[sv * 3 + 2] = positions[src * 3 + 2];
       // Copy the source (top) normal so skirt lighting matches the edge.
       normals[sv * 3] = normals[src * 3];
@@ -172,11 +288,12 @@ function buildHeightfieldCore(data: ChunkData, skirtDepth: number): HeightfieldC
       normals[sv * 3 + 2] = normals[src * 3 + 2];
       skirtSource.push(src);
     }
-    for (let k = 0; k < skirtCount; k++) {
-      const a = ring[k];
-      const b = ring[(k + 1) % skirtCount];
-      const aDown = baseVertCount + k;
-      const bDown = baseVertCount + ((k + 1) % skirtCount);
+    for (let k = 0; k < ringLen; k++) {
+      const kNext = (k + 1) % ringLen;
+      const a = stitched ? baseVertCount + k : ring[k];
+      const b = stitched ? baseVertCount + kNext : ring[kNext];
+      const aDown = baseVertCount + (stitched ? ringLen : 0) + k;
+      const bDown = baseVertCount + (stitched ? ringLen : 0) + kNext;
       indices[t++] = a;
       indices[t++] = aDown;
       indices[t++] = b;

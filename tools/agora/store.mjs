@@ -170,6 +170,16 @@ export function createStore({
       const t = state.tasks.get(p.taskId);
       if (!t) return;
       t.state = p.state;
+      if (p.result !== undefined) t.result = p.result;
+      t.updatedAt = p.ts;
+      t.history.push(p.entry);
+    },
+    'task.release'(p) {
+      // Reopen a claimed/in-progress task (dead-agent reap or explicit release).
+      const t = state.tasks.get(p.taskId);
+      if (!t) return;
+      t.state = 'open';
+      t.claimedBy = null;
       t.updatedAt = p.ts;
       t.history.push(p.entry);
     },
@@ -386,11 +396,19 @@ export function createStore({
     return { ok: true, lock: { ...lock } };
   }
 
-  function releaseLock({ lockId, agentId } = {}) {
+  function releaseLock({ lockId, agentId, force } = {}) {
     const lock = state.locks.get(lockId);
     if (!lock) return { ok: false, error: 'lock not found' };
-    if (lock.agentId !== agentId) return { ok: false, error: 'only the holder may release' };
-    emit('lock.release', { lockId, agentId });
+    if (lock.agentId !== agentId) {
+      if (!force) return { ok: false, error: 'only the holder may release' };
+      // Force release: allowed only when the holder is stale or gone — a live
+      // agent's lock is never yanked out from under it.
+      const holder = state.agents.get(lock.agentId);
+      if (holder && now() - holder.lastSeen <= presenceTtlMs) {
+        return { ok: false, error: 'holder is online — force release refused' };
+      }
+    }
+    emit('lock.release', { lockId, agentId, forced: lock.agentId !== agentId || undefined });
     return { ok: true };
   }
 
@@ -401,8 +419,12 @@ export function createStore({
   // ===========================================================================
   // Task board
   // ===========================================================================
-  function createTask({ agentId, title, body } = {}) {
+  function createTask({ agentId, title, body, deps, priority, refs } = {}) {
     const ts = now();
+    const depIds = Array.isArray(deps) ? deps.filter(Boolean) : [];
+    for (const d of depIds) {
+      if (!state.tasks.has(d)) throw new Error('unknown dep: ' + d);
+    }
     const task = {
       id: genId(),
       title: title || '',
@@ -410,12 +432,36 @@ export function createStore({
       state: 'open',
       createdBy: agentId,
       claimedBy: null,
+      // Orchestration metadata: deps gate readiness, priority orders the ready
+      // queue, refs link out to tracker artifacts (gap IDs, doc paths).
+      deps: depIds,
+      priority: typeof priority === 'number' && Number.isFinite(priority) ? priority : 0,
+      refs: Array.isArray(refs) ? refs.filter((r) => typeof r === 'string') : [],
+      result: null,
       createdAt: ts,
       updatedAt: ts,
       history: [{ at: ts, by: agentId, action: 'created', state: 'open' }],
     };
     emit('task.create', { task });
     return JSON.parse(JSON.stringify(task));
+  }
+
+  /** A task is ready when it is open and every dep is done. Pre-upgrade tasks
+   *  have no deps field — they count as dep-free. */
+  function isTaskReady(t) {
+    if (t.state !== 'open') return false;
+    for (const d of t.deps || []) {
+      const dep = state.tasks.get(d);
+      if (!dep || dep.state !== 'done') return false;
+    }
+    return true;
+  }
+
+  function readyOrder(a, b) {
+    const pa = a.priority || 0;
+    const pb = b.priority || 0;
+    if (pb !== pa) return pb - pa; // higher priority first
+    return a.createdAt - b.createdAt; // then FIFO
   }
 
   function claimTask({ taskId, agentId } = {}) {
@@ -430,14 +476,25 @@ export function createStore({
     return { ok: true, task: JSON.parse(JSON.stringify(state.tasks.get(taskId))) };
   }
 
-  function setTaskState({ taskId, agentId, state: newState } = {}) {
+  function setTaskState({ taskId, agentId, state: newState, result } = {}) {
     const t = state.tasks.get(taskId);
     if (!t) return { ok: false, error: 'task not found' };
     if (!TASK_STATES.has(newState)) return { ok: false, error: 'invalid state: ' + newState };
     const ts = now();
     const entry = { at: ts, by: agentId, action: 'state', state: newState };
-    emit('task.state', { taskId, agentId, state: newState, ts, entry });
+    if (typeof result === 'string' && result) entry.result = result;
+    const payload = { taskId, agentId, state: newState, ts, entry };
+    if (typeof result === 'string' && result) payload.result = result;
+    emit('task.state', payload);
     return { ok: true, task: JSON.parse(JSON.stringify(state.tasks.get(taskId))) };
+  }
+
+  /** Atomically claim the highest-priority ready task (worker-pull model).
+   *  Returns { ok: true, task } or { ok: true, task: null } when nothing is ready. */
+  function claimNextReady({ agentId } = {}) {
+    const ready = [...state.tasks.values()].filter(isTaskReady).sort(readyOrder);
+    if (ready.length === 0) return { ok: true, task: null };
+    return claimTask({ taskId: ready[0].id, agentId });
   }
 
   function handoffTask({ taskId, agentId, toAgentId } = {}) {
@@ -450,9 +507,11 @@ export function createStore({
     return { ok: true, task: JSON.parse(JSON.stringify(state.tasks.get(taskId))) };
   }
 
-  function listTasks({ state: filterState } = {}) {
+  function listTasks({ state: filterState, ready } = {}) {
+    let source = [...state.tasks.values()];
+    if (ready) source = source.filter(isTaskReady).sort(readyOrder);
     const out = [];
-    for (const t of state.tasks.values()) {
+    for (const t of source) {
       if (filterState && t.state !== filterState) continue;
       out.push(JSON.parse(JSON.stringify(t)));
     }
@@ -506,7 +565,26 @@ export function createStore({
         emit('lock.expired', { lockId: lock.id, agentId: lock.agentId });
       }
     }
-    // Presence demotion/drop is computed lazily in listAgents(); nothing to mutate here.
+    // Reap dead agents: past the drop horizon an agent is presumed crashed —
+    // free its locks NOW (not at lock TTL), reopen its in-flight tasks so the
+    // wave can reassign them, and retire its record (token stops working;
+    // a returning agent re-registers). Presence demotion (online -> stale)
+    // stays lazy in listAgents().
+    for (const agent of [...state.agents.values()]) {
+      if (t - agent.lastSeen <= presenceDropMs) continue;
+      for (const lock of [...state.locks.values()]) {
+        if (lock.agentId === agent.id) {
+          emit('lock.release', { lockId: lock.id, agentId: agent.id, reaped: true });
+        }
+      }
+      for (const task of [...state.tasks.values()]) {
+        if (task.claimedBy === agent.id && (task.state === 'claimed' || task.state === 'in_progress')) {
+          const entry = { at: t, by: agent.id, action: 'reaped', state: 'open' };
+          emit('task.release', { taskId: task.id, ts: t, entry });
+        }
+      }
+      emit('agent.drop', { agentId: agent.id, reaped: true });
+    }
   }
 
   function close() {
@@ -531,6 +609,7 @@ export function createStore({
     // tasks
     createTask,
     claimTask,
+    claimNextReady,
     setTaskState,
     handoffTask,
     listTasks,

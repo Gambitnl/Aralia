@@ -26,10 +26,11 @@
  * 
  * It uses a responsive flexbox layout to adapt between mobile (column) and desktop (row) views.
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Location, MapData, GameMessage, Action, NPC, Item, PlayerCharacter } from '../../types';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { VersionDisplay } from '../ui/VersionDisplay';
+import { ConditionChips } from '../ui/PartyConditionChips';
 import ActionPane from '../ActionPane';
 import WorldPane from '../WorldPane';
 import { UI_ID } from '../../styles/uiIds';
@@ -99,12 +100,32 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     onAction,
 }) => {
     const openWorldMap = () => onAction({ type: 'toggle_map', label: 'Open World Map' });
+    // PRV6: union of every member's active conditions — travel consequences
+    // (starving / fatigued / poisoned) are party-wide, so surface them once at
+    // the top of the HUD instead of leaving them invisible in state.
+    const partyConditions = useMemo(
+        () => Array.from(new Set(party.flatMap(pc => pc.conditions ?? []))),
+        [party],
+    );
     return (
         <div id={UI_ID.GAME_LAYOUT} data-testid={UI_ID.GAME_LAYOUT} className="flex flex-col md:flex-row h-screen p-2 sm:p-4 gap-2 sm:gap-4 bg-gray-900 text-gray-200">
             <VersionDisplay position="game-screen" />
 
             {/* Left Column: Navigation and Actions */}
             <div id={UI_ID.LEFT_COLUMN} data-testid={UI_ID.LEFT_COLUMN} className="md:w-2/5 lg:w-1/3 flex flex-col gap-2 sm:gap-4 min-h-0 md:overflow-y-auto md:overflow-x-hidden md:pr-1">
+                {/* PRV6: active party conditions (starving / fatigued / poisoned from
+                    travel) — hidden entirely while the party is healthy. */}
+                {partyConditions.length > 0 && (
+                    <div
+                        data-testid="party-condition-strip"
+                        className="rounded-lg border border-red-500/30 bg-gray-800 px-3 py-2"
+                    >
+                        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-300">
+                            Party status
+                        </span>
+                        <ConditionChips conditions={partyConditions} />
+                    </div>
+                )}
                 {/* Grid retirement: the 30x20 compass is removed. Overland travel is
                     the cell-native World Map (atlas fast-travel); local movement is the
                     3D/Locale view. This is the sole overland navigation entry point. */}

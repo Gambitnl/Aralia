@@ -1,3 +1,5 @@
+> **ARCHIVED 2026-07-01 (doc-triage batch 1).** Project complete — 810 SVG assets verified on disk at `public/assets/icons/items/` and 810 registry references in `src/data/items/generatedGlossaryItems.ts`. Future art-direction passes may replace icons in place. Taxonomy questions live in `docs/projects/item_categorization/GAPS.md`.
+
 # Item Icons North Star
 
 Status: complete

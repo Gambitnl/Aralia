@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/06/2026, 02:10:44
+ * Last Sync: 01/07/2026, 14:42:32
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts
  * Imports: 11 files
  *
@@ -31,6 +31,12 @@ import { calculateMovementTotal } from '../../utils/combat/actionEconomyUtils'
 import { getTerrainHazards, getTerrainMovementCost } from '../../systems/environment/EnvironmentSystem'
 import { evaluateHazard } from '../../systems/environment/hazards'
 import { applyCommandAreaMovementEffects } from './commandAreaMovementEffects'
+
+interface TenserDiskRemoval {
+    disk: CombatCharacter;
+    condition: 'beyond_max_distance' | 'carried_weight_exceeds_limit';
+    data: Record<string, unknown>;
+}
 
 /**
  * Command responsible for applying movement effects to characters.
@@ -303,13 +309,102 @@ export class MovementCommand extends BaseEffectCommand {
             maxDistance: effect.distance ?? undefined
         }
 
-        return this.addLogEntry(landingState, {
+        const tenserState = this.applyTenserFloatingDiskMovementEndings(landingState, target.id, finalDestination)
+
+        return this.addLogEntry(tenserState, {
             type: 'action',
             message: `${target.name} teleports from (${origin.x}, ${origin.y}) to (${finalDestination.x}, ${finalDestination.y})${this.describeLandingTerrain(state, finalDestination)}`,
             characterId: target.id,
             // The log keeps the teleport budget contract inspectable without
             // changing how the command resolves movement.
             data: teleportLogData
+        })
+    }
+
+    private applyTenserFloatingDiskMovementEndings(
+        state: CombatState,
+        casterId: string,
+        casterPosition: Position
+    ): CombatState {
+        const removals = this.getTenserFloatingDiskRemovals(state, casterId, casterPosition)
+        if (removals.length === 0) {
+            return state
+        }
+
+        const removedIds = new Set(removals.map(removal => removal.disk.id))
+        const withoutRemovedDisks: CombatState = {
+            ...state,
+            characters: state.characters.filter(character => !removedIds.has(character.id)),
+            turnState: {
+                ...state.turnState,
+                turnOrder: state.turnState.turnOrder.filter(characterId => !removedIds.has(characterId))
+            }
+        }
+
+        return removals.reduce((nextState, removal) =>
+            this.addLogEntry(nextState, {
+                type: 'status',
+                message: `${removal.disk.name} disappears because ${removal.condition === 'beyond_max_distance' ? 'it is too far from its caster' : 'it is overloaded'}.`,
+                characterId: casterId,
+                targetIds: [removal.disk.id],
+                data: {
+                    spellId: removal.disk.summonMetadata?.spellId,
+                    summonCondition: removal.condition,
+                    removedSummonIds: [removal.disk.id],
+                    ...removal.data
+                }
+            }),
+            withoutRemovedDisks
+        )
+    }
+
+    private getTenserFloatingDiskRemovals(
+        state: CombatState,
+        casterId: string,
+        casterPosition: Position
+    ): TenserDiskRemoval[] {
+        return state.characters.flatMap(character => {
+            const metadata = character.summonMetadata
+            if (
+                !character.isSummon ||
+                metadata?.spellId !== 'tensers-floating-disk' ||
+                metadata.casterId !== casterId
+            ) {
+                return []
+            }
+
+            const travelDetails = metadata.travelDetails || {}
+            const maxLoadPounds = typeof travelDetails.maxLoadPounds === 'number' ? travelDetails.maxLoadPounds : 500
+            const carriedWeightPounds = metadata.carriedWeightPounds ?? 0
+            if (carriedWeightPounds > maxLoadPounds) {
+                return [{
+                    disk: character,
+                    condition: 'carried_weight_exceeds_limit' as const,
+                    data: {
+                        travelRule: 'maxLoadPounds',
+                        carriedWeightPounds,
+                        maxLoadPounds
+                    }
+                }]
+            }
+
+            const maxCasterSeparationFeet = typeof travelDetails.maxCasterSeparationFeet === 'number'
+                ? travelDetails.maxCasterSeparationFeet
+                : 100
+            const separationFeet = getDistance(casterPosition, character.position) * 5
+            if (separationFeet > maxCasterSeparationFeet) {
+                return [{
+                    disk: character,
+                    condition: 'beyond_max_distance' as const,
+                    data: {
+                        travelRule: 'maxCasterSeparationFeet',
+                        separationFeet,
+                        maxCasterSeparationFeet
+                    }
+                }]
+            }
+
+            return []
         })
     }
 

@@ -119,6 +119,68 @@
                   },
     "effects":  [
                     {
+                        "type":  "SUMMONING",
+                        "trigger":  {
+                                        "type":  "immediate"
+                                    },
+                        "condition":  {
+                                          "type":  "always"
+                                      },
+                        "summonType":  "creature",
+                        "count":  1,
+                        "duration":  {
+                                         "type":  "hours",
+                                         "value":  24
+                                     },
+                        "summon":  {
+                                       "entityType":  "undead",
+                                       "persistent":  true,
+                                       "count":  1,
+                                       "formOptions":  [
+                                                           "Skeleton",
+                                                           "Zombie"
+                                                       ],
+                                       "statBlock":  {
+                                                         "name":  "Skeleton",
+                                                         "type":  "Undead",
+                                                         "size":  "Medium",
+                                                         "ac":  13,
+                                                         "hp":  13,
+                                                         "speed":  30,
+                                                         "abilities":  {
+                                                                           "str":  10,
+                                                                           "dex":  14,
+                                                                           "con":  15,
+                                                                           "int":  6,
+                                                                           "wis":  8,
+                                                                           "cha":  5
+                                                                       }
+                                                     },
+                                       "commandCost":  "bonus_action",
+                                       "commandsPerTurn":  1,
+                                       "initiative":  "shared",
+                                       "control":  {
+                                                       "entityType":  "controlled_undead",
+                                                       "source":  "animate-dead",
+                                                       "allegiance":  "caster_controlled",
+                                                       "obedience":  "obeys_bonus_action_commands_within_60_feet",
+                                                       "restrictions":  [
+                                                                            "control_duration_24_hours",
+                                                                            "recast_before_expiry_to_reassert_control",
+                                                                            "same_command_to_multiple_controlled_undead"
+                                                                        ],
+                                                       "noCommandBehavior":  "Dodge and move only to avoid harm"
+                                                   },
+                                       "specialActions":  [
+                                                              {
+                                                                  "name":  "Mentally Command Animated Undead",
+                                                                  "description":  "Issue the same mental command to one or more undead animated by Animate Dead within 60 feet.",
+                                                                  "cost":  "bonus_action"
+                                                              }
+                                                          ]
+                                   }
+                    },
+                    {
                         "type":  "UTILITY",
                         "trigger":  {
                                         "type":  "immediate",
@@ -305,7 +367,7 @@
                                                                  0
                                                              ],
                                            "effectTypes":  [
-                                                               "UTILITY"
+                                                               "SUMMONING"
                                                            ],
                                            "duration":  "24 hours",
                                            "notes":  "Higher-level slots can animate additional Undead, each from a different pile of bones or corpse."
@@ -317,7 +379,7 @@
                                                                  0
                                                              ],
                                            "effectTypes":  [
-                                                               "UTILITY"
+                                                               "SUMMONING"
                                                            ],
                                            "duration":  "24 hours",
                                            "notes":  "Higher-level slots can animate additional Undead, each from a different corpse or pile of bones."
@@ -326,7 +388,7 @@
                                            "label":  "Reassert Control",
                                            "summary":  "Cast before the current 24-hour control period ends to renew control over existing Undead animated by this spell instead of animating a new one.",
                                            "effectIndices":  [
-                                                                 0
+                                                                 1
                                                              ],
                                            "effectTypes":  [
                                                                "UTILITY"

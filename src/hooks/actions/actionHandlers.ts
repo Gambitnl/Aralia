@@ -265,6 +265,12 @@ export function buildActionHandlers({
     LONG_REST: async () => {
       await handleLongRest({ gameState, dispatch, addMessage, addGeminiLog });
     },
+    // The HUD "Long Rest" button opens the confirm modal (GameModals renders it
+    // off the uiReducer flag). Without this route the button fell through to
+    // "Action type ... not recognized" — a dead rest button in the play screen.
+    TOGGLE_LONG_REST_MODAL: () => {
+      dispatch({ type: 'TOGGLE_LONG_REST_MODAL' });
+    },
     SHORT_REST: (action) => {
       // The short-rest UI supplies a spend map keyed by character id, which we pass to the handler.
       const restPayload = action.payload as { hitPointDiceSpend?: HitPointDiceSpendMap } | undefined;

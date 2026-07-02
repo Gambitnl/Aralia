@@ -18,6 +18,113 @@ import truePolymorph from '../../../public/data/spells/level-9/true-polymorph.js
  */
 
 describe('UtilityCommand live True Polymorph object-to-creature bridge', () => {
+  it('records creature-to-creature transformation state from the live packet', () => {
+    const utilityEffect = truePolymorph.effects.find(effect => effect.type === 'UTILITY') as unknown as UtilityEffect
+
+    expect(utilityEffect).toBeDefined()
+
+    const caster = createMockCombatCharacter({
+      id: 'true-polymorph-creature-caster',
+      name: 'True Polymorph Creature Caster',
+      position: { x: 4, y: 4 },
+      initiative: 15
+    }) as CombatCharacter
+    const target = createMockCombatCharacter({
+      id: 'true-polymorph-target',
+      name: 'Veteran Target',
+      position: { x: 5, y: 4 },
+      currentHP: 31,
+      maxHP: 58
+    }) as CombatCharacter
+    const selectedCreature: SelectedSpellTarget = {
+      kind: 'creature',
+      id: target.id
+    }
+
+    const command = new UtilityCommand(utilityEffect, {
+      spellId: truePolymorph.id,
+      spellName: truePolymorph.name,
+      castAtLevel: 9,
+      caster,
+      targets: [target],
+      playerInput: {
+        mode: 'Creature into creature',
+        formName: 'Young Silver Dragon',
+        formHitPoints: 168
+      },
+      selectedSpellTargets: [selectedCreature],
+      gameState: createMockGameState()
+    } as unknown as CommandContext)
+
+    const nextState = command.execute(createMockCombatState({
+      characters: [caster, target]
+    }))
+    const transformedTarget = nextState.characters.find(character => character.id === target.id)
+
+    expect(transformedTarget?.currentHP).toBe(31)
+    expect(transformedTarget?.tempHP).toBe(168)
+    expect(nextState.activeTruePolymorphTransformations?.[0]).toEqual(expect.objectContaining({
+      mode: 'creature_to_creature',
+      sourceCreatureId: target.id,
+      sourceCreatureName: target.name,
+      transformedFormName: 'Young Silver Dragon',
+      temporaryHitPoints: 168,
+      retainedStatistics: expect.stringContaining('Hit Points'),
+      actionAndSpeechLimits: expect.stringContaining('cannot speak or cast spells'),
+      gearMeld: expect.stringContaining('gear melds')
+    }))
+  })
+
+  it('records creature-to-object transformation state from the live packet', () => {
+    const utilityEffect = truePolymorph.effects.find(effect => effect.type === 'UTILITY') as unknown as UtilityEffect
+
+    expect(utilityEffect).toBeDefined()
+
+    const caster = createMockCombatCharacter({
+      id: 'true-polymorph-object-caster',
+      name: 'True Polymorph Object Caster',
+      position: { x: 4, y: 4 },
+      initiative: 15
+    }) as CombatCharacter
+    const target = createMockCombatCharacter({
+      id: 'true-polymorph-object-target',
+      name: 'Fallen Knight',
+      position: { x: 5, y: 4 }
+    }) as CombatCharacter
+    const selectedCreature: SelectedSpellTarget = {
+      kind: 'creature',
+      id: target.id
+    }
+
+    const command = new UtilityCommand(utilityEffect, {
+      spellId: truePolymorph.id,
+      spellName: truePolymorph.name,
+      castAtLevel: 9,
+      caster,
+      targets: [target],
+      playerInput: {
+        mode: 'Creature into object',
+        objectName: 'Marble Statue'
+      },
+      selectedSpellTargets: [selectedCreature],
+      gameState: createMockGameState()
+    } as unknown as CommandContext)
+
+    const nextState = command.execute(createMockCombatState({
+      characters: [caster, target]
+    }))
+
+    expect(nextState.characters.some(character => character.id === target.id)).toBe(true)
+    expect(nextState.activeTruePolymorphTransformations?.[0]).toEqual(expect.objectContaining({
+      mode: 'creature_to_object',
+      sourceCreatureId: target.id,
+      sourceCreatureName: target.name,
+      transformedObjectName: 'Marble Statue',
+      noMemoryObjectForm: expect.stringContaining('no memory'),
+      gearMeld: expect.stringContaining('worn/carried gear')
+    }))
+  })
+
   it('creates a controlled creature actor from the selected object target', () => {
     const utilityEffect = truePolymorph.effects.find(effect => effect.type === 'UTILITY') as unknown as UtilityEffect
 

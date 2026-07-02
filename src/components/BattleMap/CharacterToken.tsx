@@ -221,6 +221,7 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
               <span
                 className="w-6 h-6 rounded-full bg-gray-900 border border-white/40 flex items-center justify-center text-xs"
                 style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.45)' }}
+                aria-label={`${effect.name} status marker`}
               >
                 {getStatusEffectIcon(effect)}
               </span>
@@ -235,6 +236,7 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
           <div
             className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-purple-900 border border-purple-400 flex items-center justify-center text-xs shadow-md"
             style={{ animation: 'pulse 2s infinite', zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM }}
+            aria-label={`Concentrating on ${character.concentratingOn.spellName}`}
           >
             🔮
           </div>

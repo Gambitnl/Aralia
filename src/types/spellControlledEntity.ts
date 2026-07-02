@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/05/2026, 03:32:21
+ * Last Sync: 01/07/2026, 15:30:59
  * Dependents: types/spells.ts
  * Imports: None
  *
@@ -33,22 +33,37 @@
 // with it while the spell remains active.
 //==============================================================================
 
-/** Describes a persistent spell-created utility helper such as Mage Hand or Unseen Servant. */
+/** Describes a persistent spell-created utility helper such as Mage Hand, Unseen Servant, or Spiritual Weapon. */
 export interface ControlledEntity {
-  entityType: "spectral_hand" | "unseen_servant";
-  count: number;
-  appearsAt: "chosen_point";
-  durationScope: "spell_duration";
-  controlActionType: "magic_action" | "action" | "bonus_action";
-  initialUseOnCast: boolean;
-  laterControlTiming: "later_turns";
-  movementDistance: number;
-  movementUnit: "feet";
-  maxDistanceFromCaster: number;
-  canAttack: boolean;
-  canActivateMagicItems: boolean;
-  carryCapacityPounds: number | "not_applicable";
-  allowedInteractions: string[];
-  endingTriggers: ("caster_recasts" | "beyond_max_distance" | "drops_to_0_hp")[];
+  entityType: "spectral_hand" | "unseen_servant" | "spectral_force_weapon" | "Large force hand" | "elemental_spirit_eruption";
+  count?: number;
+  appearsAt?: "chosen_point";
+  durationScope?: "spell_duration";
+  controlActionType?: "magic_action" | "action" | "bonus_action";
+  initialUseOnCast?: boolean;
+  laterControlTiming?: "later_turns";
+  movementDistance?: number;
+  movementUnit?: "feet";
+  maxDistanceFromCaster?: number;
+  canAttack?: boolean;
+  canActivateMagicItems?: boolean;
+  carryCapacityPounds?: number | "not_applicable";
+  allowedInteractions?: string[];
+  endingTriggers?: ("caster_recasts" | "beyond_max_distance" | "drops_to_0_hp")[];
+  persistent?: boolean;
+  duration?: string;
+  position?: string;
+  reachFeet?: number;
+  moveAction?: string;
+  moveDistanceFeet?: number;
+  repeatAttack?: string;
+  damage?: string;
+  combatEntity?: boolean;
+  actionModes?: string[];
+  durability?: string;
+  origin?: string;
+  elementChoice?: string[];
+  mechanicalRole?: string;
+  control?: string;
   notes?: string;
 }

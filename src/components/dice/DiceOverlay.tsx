@@ -41,7 +41,10 @@ export const DiceOverlay: React.FC = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className={`fixed inset-0 z-[${Z_INDEX.DICE_OVERLAY}] pointer-events-none`}
+                    // Tailwind cannot compile a template-literal class (`z-[${…}]`
+                    // yields z-index:auto), so the layer must be set inline.
+                    style={{ zIndex: Z_INDEX.DICE_OVERLAY }}
+                    className="fixed inset-0 pointer-events-none"
                     aria-hidden={!isOverlayVisible}
                 >
                     {/* Semi-transparent backdrop - only clickable when not rolling */}

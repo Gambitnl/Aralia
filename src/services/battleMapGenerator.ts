@@ -83,7 +83,22 @@ export class BattleMapGenerator {
     let terrain: BattleMapTerrain = 'grass';
     // Elevation: smaller scale (x/8) for visible terrain undulation, higher multiplier
     const rawElev = this.elevationNoise.get(x / 8, y / 8);
-    const elevation = Math.max(0, Math.round(rawElev * 2.5 + 1.0)); // Range 0-3, centered around 1
+    let rawHeight = rawElev * 2.5 + 1.0; // Rolling base, range ~0-3 centered around 1
+
+    // Bluff layer (gap #28): the rolling base alone almost never exceeds the
+    // ~20° slope the terrain shader needs for rock faces, so high ground never
+    // reads. A second, offset noise field pushed through a hard ramp raises
+    // flat-topped plateaus with 2-3-step faces in open biomes. Perlin sampling
+    // is pure (no RNG consumed), so every other seeded stream — terrain types,
+    // decorations, obstacle placement — stays byte-identical for a given seed.
+    // Cave/dungeon keep gentle floors (enclosed mood); swamp stays low and flat
+    // by nature (its drama is water + mist).
+    if (biome === 'forest' || biome === 'desert') {
+      const bluffNoise = this.elevationNoise.get(x / 9 + 37.2, y / 9 + 91.7);
+      const t = Math.max(0, Math.min(1, (bluffNoise - 0.26) / 0.14));
+      rawHeight += t * t * (3 - 2 * t) * 4.0; // smoothstep ramp → +0..4 steps
+    }
+    const elevation = Math.max(0, Math.min(7, Math.round(rawHeight)));
 
     switch(biome) {
         case 'cave':

@@ -108,3 +108,43 @@ it('passes the requested LOD tier to the loader by chunk distance (W3D-G10 / T7)
   expect(requested.get('2,0')).toBe('mid');
   expect(requested.get('5,0')).toBe('low');
 });
+
+it('reloads a loaded chunk at a finer tier when the camera moves close (stale-LOD fix)', async () => {
+  const requests: Array<{ key: string; lod: string | undefined }> = [];
+  const recordingLoader: ChunkLoader = async (cx, cy, lod) => {
+    requests.push({ key: `${cx},${cy}`, lod });
+    return fakeBundle(cx, cy);
+  };
+  const streamer = new ChunkStreamer(recordingLoader, { loadRadius: 4, unloadRadius: 6, maxConcurrent: 16 });
+  streamer.update(0, 0);
+  await streamer.whenSettled();
+  // Chunk (4,0) was first built at distance 4 → 'low'.
+  expect(requests.find((r) => r.key === '4,0')?.lod).toBe('low');
+
+  // Walk the camera to (4,0): its required tier is now 'full' — it must rebuild.
+  streamer.update(S * 4, 0);
+  await streamer.whenSettled();
+  const reloads = requests.filter((r) => r.key === '4,0');
+  expect(reloads[reloads.length - 1].lod).toBe('full');
+  const chunk = streamer.getLoaded().find((c) => c.cx === 4 && c.cy === 0);
+  expect(chunk?.lod).toBe('full');
+});
+
+it('does not reload when the required tier gets coarser (no downgrade churn)', async () => {
+  const requests: string[] = [];
+  const recordingLoader: ChunkLoader = async (cx, cy) => {
+    requests.push(`${cx},${cy}`);
+    return fakeBundle(cx, cy);
+  };
+  const streamer = new ChunkStreamer(recordingLoader, { loadRadius: 4, unloadRadius: 6, maxConcurrent: 16 });
+  streamer.update(0, 0);
+  await streamer.whenSettled();
+  const loadsBefore = requests.filter((k) => k === '0,0').length;
+  // Step one chunk away and back: (0,0) flips full→mid→full requirements, but
+  // the loaded mesh is already full — no rebuild either way.
+  streamer.update(S * 2, 0);
+  await streamer.whenSettled();
+  streamer.update(0, 0);
+  await streamer.whenSettled();
+  expect(requests.filter((k) => k === '0,0').length).toBe(loadsBefore);
+});

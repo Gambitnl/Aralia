@@ -324,6 +324,100 @@
                                                     "direction":  "away_from_caster",
                                                     "objectSave":  "none"
                                                 }
+                    },
+                    {
+                        "type":  "MOVEMENT",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "forced",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Constitution",
+                                          "saveEffect":  "none",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "movementType":  "push",
+                        "forcedMovement":  {
+                                               "direction":  "away_from_caster",
+                                               "maxDistance":  "10 ft",
+                                               "usesReaction":  false
+                                           },
+                        "duration":  {
+                                         "type":  "instantaneous",
+                                         "value":  0
+                                     },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "distance":  10,
+                        "speedChange":  {
+                                            "stat":  "speed",
+                                            "value":  0,
+                                            "unit":  "feet"
+                                        },
+                        "description":  "On a failed Constitution save, each creature in the 15-foot Cube is pushed 10 feet away from the caster.",
+                        "conditionalEndings":  [
+
+                                               ]
                     }
                 ],
     "arbitrationType":  "mechanical",

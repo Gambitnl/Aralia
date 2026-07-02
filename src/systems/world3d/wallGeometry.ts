@@ -14,13 +14,20 @@ const M = WORLD3D_CONFIG.METERS_PER_CELL;
 const WALL_HEIGHT_M = 3.2;   // a touch over two storeys — reads as a town rampart
 const WALL_BASE_SINK_M = 0.4; // sink the footing so it meets sloped ground cleanly
 
-const EMPTY: ChunkGeometryArrays = {
+/** Legacy weathered-stone tint for wall runs that carry no style-family color. */
+const DEFAULT_WALL_HEX = '#9a9387';
+
+/** Wall meshes carry per-vertex colors so WallPiece renders with `vertexColors`. */
+type WallMesh = ChunkGeometryArrays & { colors: Float32Array };
+
+const EMPTY: WallMesh = {
   positions: new Float32Array(0),
   indices: new Uint32Array(0),
   normals: new Float32Array(0),
+  colors: new Float32Array(0),
 };
 
-export function buildWallMesh(data: ChunkData): ChunkGeometryArrays {
+export function buildWallMesh(data: ChunkData): WallMesh {
   // Each entry is an OPEN polyline run: consecutive points become wall segments
   // and NO closing segment is added. A walled town arrives either as one closed
   // run (first point repeated) or, where a river crosses the ring, as several
@@ -33,8 +40,16 @@ export function buildWallMesh(data: ChunkData): ChunkGeometryArrays {
   const positions: number[] = [];
   const indices: number[] = [];
   const normals: number[] = [];
+  const colors: number[] = [];
 
   for (const ring of rings) {
+    // Per-run style-family tint (styled-architecture slice) as vertex colors,
+    // mirroring deckGeometry's hex→rgb: each town's ramparts read in its own
+    // stone under one shared vertex-colored material.
+    const hex = ring.colorHex ?? DEFAULT_WALL_HEX;
+    const cr = parseInt(hex.slice(1, 3), 16) / 255;
+    const cg = parseInt(hex.slice(3, 5), 16) / 255;
+    const cb = parseInt(hex.slice(5, 7), 16) / 255;
     const pts = ring.points;
     for (let i = 0; i < pts.length - 1; i++) {
       const a = pts[i];
@@ -53,10 +68,10 @@ export function buildWallMesh(data: ChunkData): ChunkGeometryArrays {
 
       const base = positions.length / 3;
       // 4 verts: a-bottom, a-top, b-bottom, b-top.
-      positions.push(la.x, ya, la.z);                  normals.push(nx, 0, nz);
-      positions.push(la.x, ya + WALL_HEIGHT_M, la.z);  normals.push(nx, 0, nz);
-      positions.push(lb.x, yb, lb.z);                  normals.push(nx, 0, nz);
-      positions.push(lb.x, yb + WALL_HEIGHT_M, lb.z);  normals.push(nx, 0, nz);
+      positions.push(la.x, ya, la.z);                  normals.push(nx, 0, nz); colors.push(cr, cg, cb);
+      positions.push(la.x, ya + WALL_HEIGHT_M, la.z);  normals.push(nx, 0, nz); colors.push(cr, cg, cb);
+      positions.push(lb.x, yb, lb.z);                  normals.push(nx, 0, nz); colors.push(cr, cg, cb);
+      positions.push(lb.x, yb + WALL_HEIGHT_M, lb.z);  normals.push(nx, 0, nz); colors.push(cr, cg, cb);
       // Two triangles, emitted both windings so the barrier shows from inside
       // and outside the ring without back-face culling artifacts.
       indices.push(base, base + 1, base + 2, base + 2, base + 1, base + 3);
@@ -68,6 +83,7 @@ export function buildWallMesh(data: ChunkData): ChunkGeometryArrays {
     positions: new Float32Array(positions),
     indices: new Uint32Array(indices),
     normals: new Float32Array(normals),
+    colors: new Float32Array(colors),
   };
 }
 

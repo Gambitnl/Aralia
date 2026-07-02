@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/06/2026, 12:58:55
+ * Last Sync: 01/07/2026, 22:23:48
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/DamageCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 10 files
  *
@@ -23,8 +23,8 @@
  * spell payload remains executable after application.
  */
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
-import { CombatState, StatusEffect, ActiveCondition, ActiveEffect } from '../../types/combat';
-import { isStatusConditionEffect, EffectDuration, ConditionName } from '../../types/spells';
+import { CombatState, StatusEffect, ActiveCondition, ActiveEffect, ActiveEnvironmentalControl } from '../../types/combat';
+import { isStatusConditionEffect, EffectDuration, ConditionName, BindingControl, DominationControl, StatusCondition, StatusConditionEffect } from '../../types/spells';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import { generateId } from '../../utils/combatUtils';
 import { STATUS_ICONS, DEFAULT_STATUS_ICON } from '@/config/statusIcons';
@@ -34,6 +34,29 @@ import { applyStateToTags } from '../../systems/physics/ElementalInteractionSyst
 import { breakFriendsConcentrationForCaster } from './ConcentrationCommands';
 
 const FRIENDS_MEMORY_DURATION_ROUNDS = 24 * 60 * 10;
+
+type WrathOfNatureStatusMetadata = {
+  controlledEntity?: { entityType?: string };
+  areaTiming?: {
+    timing?: string;
+    targetFilter?: string;
+  };
+  condition: {
+    saveType?: string;
+    saveEffect?: string;
+  };
+  grantedActions?: Array<{
+    name?: string;
+    actionType?: string;
+    target?: string;
+    attackType?: string;
+    damage?: { dice?: string; type?: string };
+    followupSave?: {
+      saveType?: string;
+      failedSaveCondition?: string;
+    };
+  }>;
+};
 
 export class StatusConditionCommand extends BaseEffectCommand {
   async execute(state: CombatState): Promise<CombatState> {
@@ -73,14 +96,15 @@ export class StatusConditionCommand extends BaseEffectCommand {
       }
     }
 
-    if (!isStatusConditionEffect(this.effect) || this.effect.statusCondition.duration.value === 0) {
+    const statusCondition = this.getStatusConditionPayload();
+    if (!statusCondition || statusCondition.duration.value === 0) {
       return currentState;
     }
 
 
     for (const target of this.getTargets(currentState)) {
       // 1. Check Condition Immunity
-      const conditionName = this.effect.statusCondition.name as ConditionName;
+      const conditionName = statusCondition.name as ConditionName;
       if (target.conditionImmunities?.includes(conditionName)) {
         currentState = this.addLogEntry(currentState, {
           type: 'status',
@@ -146,17 +170,17 @@ export class StatusConditionCommand extends BaseEffectCommand {
           currentState = this.rememberFriendsCast(currentState, target.id);
           currentState = this.addLogEntry(currentState, {
             type: 'status',
-            message: `${target.name} resists the ${this.effect.statusCondition.name} condition`,
+            message: `${target.name} resists the ${statusCondition.name} condition`,
             characterId: target.id
           });
           continue;
         }
       }
 
-      const durationRounds = this.calculateDuration(this.effect.statusCondition.duration);
+      const durationRounds = this.calculateDuration(statusCondition.duration);
       const appliedCondition: ActiveCondition = {
-        name: this.effect.statusCondition.name,
-        duration: this.effect.statusCondition.duration,
+        name: statusCondition.name,
+        duration: statusCondition.duration,
         appliedTurn: currentState.turnState.currentTurn,
         source: this.context.spellName || this.context.spellId,
         sourceCasterId: this.context.caster.id,
@@ -168,11 +192,11 @@ export class StatusConditionCommand extends BaseEffectCommand {
       const { statusEffects, appliedStatus } = this.applyStatusEffect(
         target.statusEffects,
         durationRounds,
-        this.effect.statusCondition.name
+        statusCondition.name
       );
 
       let finalStateTags = target.stateTags || [];
-      const incomingStateTag = ConditionToStateTag[this.effect.statusCondition.name.toLowerCase()];
+      const incomingStateTag = ConditionToStateTag[statusCondition.name.toLowerCase()];
       if (incomingStateTag) {
         const { newStates, result } = applyStateToTags(finalStateTags, incomingStateTag);
         finalStateTags = newStates;
@@ -197,11 +221,16 @@ export class StatusConditionCommand extends BaseEffectCommand {
 
       currentState = this.addLogEntry(currentState, {
         type: 'status',
-        message: `${target.name} is now ${this.effect.statusCondition.name}`,
+        message: `${target.name} is now ${statusCondition.name}`,
         characterId: target.id,
         targetIds: [target.id],
         data: { statusId: appliedStatus.id, condition: appliedCondition }
       });
+    }
+
+    const controlledEntityType = (this.effect as unknown as WrathOfNatureStatusMetadata).controlledEntity?.entityType;
+    if (this.context.spellId === 'wrath-of-nature' && controlledEntityType === 'animated_nature_area') {
+      currentState = this.applyWrathOfNatureStatusMetadata(currentState);
     }
 
     return currentState;
@@ -246,10 +275,11 @@ export class StatusConditionCommand extends BaseEffectCommand {
 
     // We check if the input command had specific data in the effect definition.
     // StatusConditionCommand's 'effect' property is the SpellEffect input.
-    if (isStatusConditionEffect(this.effect) && this.effect.statusCondition.effect) {
+    const statusCondition = this.getStatusConditionPayload();
+    if (statusCondition?.effect) {
       // Pass through the mechanical effect if defined in the statusCondition object
       // The Slasher logic in DamageCommand injected `effect: { ... }` into the statusCondition object.
-      mechanicalEffect = this.effect.statusCondition.effect as StatusEffect['effect'];
+      mechanicalEffect = statusCondition.effect as StatusEffect['effect'];
     }
 
     const appliedStatus: StatusEffect = {
@@ -273,6 +303,73 @@ export class StatusConditionCommand extends BaseEffectCommand {
     return { statusEffects, appliedStatus };
   }
 
+  private applyWrathOfNatureStatusMetadata(state: CombatState): CombatState {
+    const effect = this.effect as unknown as WrathOfNatureStatusMetadata;
+    const controls = state.activeEnvironmentalControls || [];
+    const statusCondition = this.getStatusConditionPayload();
+    if (!statusCondition || controls.length === 0) {
+      return state;
+    }
+
+    const updatedControls = controls.map(control => {
+      if (control.spellId !== this.context.spellId || control.casterId !== this.context.caster.id) {
+        return control;
+      }
+
+      if (statusCondition.name === 'Restrained') {
+        return {
+          ...control,
+          rootsAndVines: {
+            triggerTiming: effect.areaTiming?.timing,
+            targetFilter: effect.areaTiming?.targetFilter,
+            saveAbility: effect.condition.saveType,
+            saveOutcome: effect.condition.saveEffect,
+            condition: statusCondition.name,
+            escapeSkill: statusCondition.escapeCheck?.skill
+          }
+        } satisfies ActiveEnvironmentalControl;
+      }
+
+      if (statusCondition.name === 'Prone') {
+        const action = effect.grantedActions?.[0];
+        return {
+          ...control,
+          looseRocks: {
+            actionCost: action?.actionType,
+            actionName: action?.name,
+            target: action?.target,
+            attackType: action?.attackType,
+            damageDice: action?.damage?.dice,
+            damageType: action?.damage?.type,
+            followupSaveAbility: action?.followupSave?.saveType,
+            failedSaveCondition: action?.followupSave?.failedSaveCondition
+          }
+        } satisfies ActiveEnvironmentalControl;
+      }
+
+      return control;
+    });
+
+    const changed = updatedControls.some((control, index) => control !== controls[index]);
+    if (!changed) {
+      return state;
+    }
+
+    return this.addLogEntry({
+      ...state,
+      activeEnvironmentalControls: updatedControls
+    }, {
+      type: 'status',
+      message: `${this.context.spellName || 'Wrath of Nature'} environmental control metadata is updated.`,
+      characterId: this.context.caster.id,
+      data: {
+        spellId: this.context.spellId,
+        environmentalControlSurface: 'wrath_of_nature',
+        statusCondition: statusCondition.name
+      }
+    });
+  }
+
   /**
    * Preserve status-condition metadata that comes from spell data.
    *
@@ -281,12 +378,16 @@ export class StatusConditionCommand extends BaseEffectCommand {
    * Keeping the helper local avoids rebuilding those optional copies in each
    * mirror and makes the lossy-bridge decision easy to audit.
    */
-  private getStatusMetadata(): Pick<StatusEffect, 'repeatSave' | 'escapeCheck' | 'breakTriggers' | 'hitPointState' | 'socialLifecycle'> {
-    if (!isStatusConditionEffect(this.effect)) {
+  private getStatusMetadata(): Pick<StatusEffect, 'repeatSave' | 'escapeCheck' | 'breakTriggers' | 'bindingControl' | 'dominationControl' | 'hitPointState' | 'socialLifecycle'> {
+    const statusCondition = this.getStatusConditionPayload();
+    if (!statusCondition) {
       return {};
     }
 
-    const { repeatSave, escapeCheck, breakTriggers } = this.effect.statusCondition;
+    const { repeatSave, escapeCheck } = statusCondition;
+    const breakTriggers = statusCondition.breakTriggers ?? this.getAwakenBreakTriggers();
+    const bindingControl = this.getBindingControlMetadata();
+    const dominationControl = this.getDominationControlMetadata();
     const runtimeRepeatSave = repeatSave
       ? {
         ...repeatSave,
@@ -301,6 +402,8 @@ export class StatusConditionCommand extends BaseEffectCommand {
       ...(runtimeRepeatSave ? { repeatSave: runtimeRepeatSave } : {}),
       ...(escapeCheck ? { escapeCheck } : {}),
       ...(breakTriggers ? { breakTriggers } : {}),
+      ...(bindingControl ? { bindingControl } : {}),
+      ...(dominationControl ? { dominationControl } : {}),
       // Chill Touch stores its "cannot regain Hit Points" rule as structured
       // hit-point metadata on the status effect. Preserve that fact on both
       // runtime mirrors so every healing path can check it without parsing text.
@@ -313,14 +416,142 @@ export class StatusConditionCommand extends BaseEffectCommand {
             recastMemoryDurationRounds: FRIENDS_MEMORY_DURATION_ROUNDS
           }
         }
+        : {}),
+      ...(this.isAwakenCharmedEffect()
+        ? {
+          socialLifecycle: {
+            kind: 'awaken_charm',
+            durationDays: this.effect.socialEffect?.durationDays ?? 30,
+            endsIfDamagedByCasterOrAllies: this.effect.socialEffect?.endsIfDamagedByCasterOrAllies === true,
+            targetChoosesAttitudeOnEnd: this.effect.socialEffect?.targetChoosesAttitudeAfterCharmedEnds === true
+          }
+        }
         : {})
+    };
+  }
+
+  /**
+   * Some controlled-target spells still store a Charmed status payload inside a
+   * utility/control row. Normalize that older shape here so Geas-style status
+   * rows and Dominate Person-style utility rows both write the same live
+   * condition mirrors.
+   */
+  private getStatusConditionPayload(): StatusCondition | undefined {
+    if (isStatusConditionEffect(this.effect)) {
+      return this.effect.statusCondition;
+    }
+
+    const embedded = (this.effect as { statusCondition?: { name?: string; condition?: string; duration?: EffectDuration | string } }).statusCondition;
+    const conditionName = embedded?.name ?? embedded?.condition;
+    if (!conditionName) {
+      return undefined;
+    }
+
+    const duration = typeof embedded.duration === 'object'
+      ? embedded.duration
+      : { type: 'special' as const };
+
+    return {
+      name: conditionName as ConditionName,
+      duration
+    };
+  }
+
+  /**
+   * Geas and Planar Binding use the same spell-data bucket as summoned actors
+   * because they create a control relationship, but the controlled creature is
+   * already on the battlefield. This normalizes the source fields into a live
+   * status payload so later systems can inspect the command, service, travel,
+   * and early-ending facts without reparsing the original JSON effect.
+   */
+  private getBindingControlMetadata(): BindingControl | undefined {
+    const effectWithControl = this.effect as { summonControl?: StatusConditionEffect["summonControl"] & { controlChannel?: string }; dominationControl?: StatusConditionEffect["dominationControl"]; communicationDetails?: StatusConditionEffect["communicationDetails"]; travelDetails?: StatusConditionEffect["travelDetails"]; conditionalEndings?: StatusConditionEffect["conditionalEndings"] };
+    if (!effectWithControl.summonControl || effectWithControl.dominationControl || effectWithControl.summonControl.controlChannel) {
+      return undefined;
+    }
+
+    const {
+      entityType,
+      controlType,
+      commandScope,
+      serviceDuration,
+      obedience,
+      hostileTwist,
+      sourceSpellExtension
+    } = effectWithControl.summonControl;
+
+    return {
+      ...(entityType ? { entityType } : {}),
+      ...(controlType ? { controlType } : {}),
+      ...(commandScope ? { commandScope } : {}),
+      ...(serviceDuration ? { serviceDuration } : {}),
+      ...(obedience ? { obedience } : {}),
+      ...(hostileTwist ? { hostileTwist } : {}),
+      ...(sourceSpellExtension ? { sourceSpellExtension } : {}),
+      ...(effectWithControl.communicationDetails ? { communication: effectWithControl.communicationDetails } : {}),
+      ...(effectWithControl.travelDetails ? { travel: effectWithControl.travelDetails } : {}),
+      ...(effectWithControl.conditionalEndings ? { conditionalEndings: effectWithControl.conditionalEndings } : {})
+    };
+  }
+
+  /**
+   * Domination spells control an existing Charmed target through telepathic
+   * orders rather than creating a summon. Keep that relationship separate from
+   * bindingControl because domination has same-plane command links, no-action
+   * orders, and caster-Reaction spending that later UI/AI work must distinguish.
+   */
+  private getDominationControlMetadata(): DominationControl | undefined {
+    const effectWithControl = this.effect as {
+      summonControl?: DominationControl;
+      dominationControl?: {
+        telepathicLink?: DominationControl["telepathicLink"];
+        reactionCommand?: DominationControl["reaction"];
+      };
+      conditionalEndings?: DominationControl["conditionalEndings"];
+    };
+
+    if (!effectWithControl.summonControl && !effectWithControl.dominationControl) {
+      return undefined;
+    }
+
+    const telepathicLink = effectWithControl.dominationControl?.telepathicLink ?? (effectWithControl.summonControl?.controlChannel
+      ? {
+        requiresSamePlane: effectWithControl.summonControl.controlChannel.includes('same-plane'),
+        actionCost: effectWithControl.summonControl.commandAction === 'no action on caster turn' ? 'none' : undefined
+      }
+      : undefined);
+    const reaction = effectWithControl.dominationControl?.reactionCommand ?? (effectWithControl.summonControl?.reactionCommand
+      ? { requiresCasterReaction: effectWithControl.summonControl.reactionCommand.toLowerCase().includes('reaction') }
+      : undefined);
+
+    return {
+      ...(effectWithControl.summonControl ?? {}),
+      ...(telepathicLink
+        ? { telepathicLink }
+        : {}),
+      ...(reaction
+        ? { reaction }
+        : {}),
+      ...(effectWithControl.conditionalEndings ? { conditionalEndings: effectWithControl.conditionalEndings } : {})
     };
   }
 
   private isFriendsCharmedEffect(): boolean {
     return this.context.spellId === 'friends' &&
-      isStatusConditionEffect(this.effect) &&
-      this.effect.statusCondition.name === 'Charmed';
+      this.getStatusConditionPayload()?.name === 'Charmed';
+  }
+
+  private isAwakenCharmedEffect(): boolean {
+    return this.context.spellId === 'awaken' &&
+      this.getStatusConditionPayload()?.name === 'Charmed';
+  }
+
+  private getAwakenBreakTriggers(): StatusEffect['breakTriggers'] | undefined {
+    if (!this.isAwakenCharmedEffect()) {
+      return undefined;
+    }
+
+    return this.effect.conditionalEndings as StatusEffect['breakTriggers'] | undefined;
   }
 
   private resolveFriendsAutoSuccessReason(target: { creatureTypes?: string[]; team?: string; spellMemory?: Array<{ spellId: string; casterId: string; expiresAtTurn: number }> }, state: CombatState): string | null {

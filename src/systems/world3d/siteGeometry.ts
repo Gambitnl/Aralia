@@ -84,6 +84,11 @@ export function buildSiteMeshes(data: ChunkData): ChunkSite[] {
       name: s.name,
       labelRangeM: s.labelRangeM,
       colorHex: s.colorHex,
+      // Styled-architecture fields (Task 7) pass through like colorHex/name.
+      role: s.role,
+      roofForm: s.roofForm,
+      roofColorHex: s.roofColorHex,
+      chimney: s.chimney,
       unlabeled: s.unlabeled,
       markerOnly: s.markerOnly,
       parts: s.parts,

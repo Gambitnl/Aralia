@@ -375,18 +375,20 @@ const DamageNumber: React.FC<{
   amount: number;
   damageType?: string;
   isCritical?: boolean;
+  durationMs?: number;
   onComplete: () => void;
-}> = ({ position, amount, damageType, isCritical, onComplete }) => {
+}> = ({ position, amount, damageType, isCritical, durationMs = 1200, onComplete }) => {
   const timeRef = useRef(0);
   const [offsetY, setOffsetY] = useState(0);
   const [opacity, setOpacity] = useState(1);
+  const durationSeconds = Math.max(0.3, durationMs / 1000);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     setOffsetY(timeRef.current * 0.8); // Float upward
-    setOpacity(Math.max(0, 1 - timeRef.current * 0.8)); // Fade out over ~1.2s
+    setOpacity(Math.max(0, 1 - timeRef.current / durationSeconds));
 
-    if (timeRef.current > 1.2) {
+    if (timeRef.current > durationSeconds) {
       onComplete();
     }
   });
@@ -1037,6 +1039,7 @@ const VFXSystem: React.FC<VFXSystemProps> = ({
           )}
           amount={damageNumber.value}
           damageType={damageNumber.type}
+          durationMs={damageNumber.duration}
           onComplete={() => undefined}
         />
       ))}

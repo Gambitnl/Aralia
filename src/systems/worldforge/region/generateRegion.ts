@@ -114,10 +114,10 @@ import {
 } from '../artifacts';
 import {
   childSeedPath,
-  rngFromPath,
-  streamPath,
+  worldSeedFromPath,
   type SeedPath,
 } from '../seedPath';
+import { makeWorldFeetNoise } from '../local/worldFeetNoise';
 import { BoundsFt, Feet, REGION_SIZE_FT } from '../units';
 import type { FmgAtlasResult } from '../fmg/generateAtlas';
 import type { FmgWorldResult } from '../fmg/generateWorld';
@@ -174,16 +174,30 @@ export function generateRegion(
 
   // ── Bounds: REGION_SIZE_FT window (WF-G4, scale-invariant), centered on the
   // anchor cell's site — or on an explicit point (e.g. a burg) when given.
-  const bounds = computeRegionBounds(anchorCellId, pack.cells.p, feetPerPixel, opts.windowCenterPx);
+  const bounds = computeRegionBounds(
+    anchorCellId,
+    pack.cells.p,
+    feetPerPixel,
+    opts.windowCenterPx,
+    resolutionFt,
+  );
 
   // ── Seed path for this region ─────────────────────────────────────────
   const regionPath = childSeedPath(worldSeedPath, `cell:${anchorCellId}`);
 
   // ── Heightfield: IDW base + multi-octave value noise ──────────────────
+  // Open-region seam purity (2026-07-02): the IDW base no longer samples the
+  // per-region BFS membership (which differed across adjacent windows and
+  // left a residual step at region handoffs). Each sample interpolates over
+  // ALL cells within a fixed world-feet radius of the SAMPLE POINT — a pure
+  // function of world position — so two regions agree exactly at shared
+  // world points. Membership below remains the locality context for rivers,
+  // civilization, and biome extraction only.
+  const idwRadiusFt = computeIdwRadiusFt(pack.cells.p, feetPerPixel);
   const heightfield = generateHeightfield(
-    memberCells,
     pack.cells.p,
     pack.cells.h,
+    idwRadiusFt,
     bounds,
     resolutionFt,
     feetPerPixel,
@@ -415,13 +429,20 @@ export function computeRegionBounds(
   // on the cell site would miss it; the caller passes the burg's position here
   // so the Locale window frames the town. Defaults to the cell's Voronoi site.
   centerPx?: readonly [number, number],
+  // Heightfield sample spacing, feet. The window origin snaps to this global
+  // lattice (seam purity, 2026-07-02): with every region's samples sitting on
+  // the SAME world-feet grid, adjacent regions share identical sample points,
+  // so bilinear reads at shared world points agree exactly. Unsnapped origins
+  // left a ~1 ft bilinear-reconstruction residual at region handoffs even
+  // with a world-pure continuous field. Shifts the window ≤ resolution/2.
+  resolutionFt = 100,
 ): BoundsFt {
   const [px, py] = centerPx ?? cellPoints[anchorCellId];
   const cx = px * feetPerPixel;
   const cy = py * feetPerPixel;
   return {
-    x: cx - REGION_SIZE_FT / 2,
-    y: cy - REGION_SIZE_FT / 2,
+    x: Math.round((cx - REGION_SIZE_FT / 2) / resolutionFt) * resolutionFt,
+    y: Math.round((cy - REGION_SIZE_FT / 2) / resolutionFt) * resolutionFt,
     width: REGION_SIZE_FT,
     height: REGION_SIZE_FT,
   };
@@ -459,13 +480,52 @@ function computeMemberBounds(
 }
 
 /**
+ * IDW neighborhood radius, world feet — a WORLD-level constant (depends only
+ * on the atlas point layout and feetPerPixel, never on the anchor or window),
+ * so every region computes the exact same per-sample neighborhood. Estimated
+ * as 4× the mean cell spacing: dense enough that every sample sees ~50
+ * surrounding cells (comparable context to the old BFS membership), and
+ * guaranteed non-empty (nearest cell is always ≤ ~1 spacing away).
+ * Exported for tests.
+ */
+export function computeIdwRadiusFt(
+  cellPoints: Array<[number, number]>,
+  feetPerPixel: number,
+): number {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let n = 0;
+  for (const p of cellPoints) {
+    if (!p) continue;
+    n++;
+    if (p[0] < minX) minX = p[0];
+    if (p[0] > maxX) maxX = p[0];
+    if (p[1] < minY) minY = p[1];
+    if (p[1] > maxY) maxY = p[1];
+  }
+  if (n === 0) throw new Error('[generateRegion] atlas has no cell points');
+  // Mean spacing of an n-point layout over its extent (≥1 px floor for
+  // degenerate single-point layouts).
+  const spacingPx = Math.max(1, Math.sqrt(((maxX - minX) * (maxY - minY)) / n));
+  return 4 * spacingPx * feetPerPixel;
+}
+
+/**
  * Generate the heightfield: IDW interpolation of pack cell heights, then
  * multi-octave value noise scaled by local relief. Enforce water discipline.
+ *
+ * Seam purity (2026-07-02): the base surface is a pure function of world
+ * position. Each sample interpolates over the cells within `idwRadiusFt` of
+ * the SAMPLE point (not a per-region member set), using a Franke–Little
+ * kernel ((R−d)/(R·d))² that behaves like 1/d² near cells and decays to
+ * exactly 0 at the radius — so the field is continuous as cells enter/leave
+ * the neighborhood, and two windows sum the identical nonzero contributions
+ * in the identical (ascending cell id) order at a shared world point,
+ * giving bit-equal results across region handoffs.
  */
 function generateHeightfield(
-  memberCells: number[],
   cellPoints: Array<[number, number]>,
   cellHeights: Uint8Array | Uint16Array | Uint32Array,
+  idwRadiusFt: number,
   bounds: BoundsFt,
   resolutionFt: number,
   feetPerPixel: number,
@@ -477,15 +537,24 @@ function generateHeightfield(
   // Track which samples are in water cells for post-noise re-clamping
   const isWaterCell = new Uint8Array(width * height);
 
-  // Pre-compute member cell positions + heights in feet space
-  const memberData = memberCells.map((id) => ({
-    x: cellPoints[id][0] * feetPerPixel,
-    y: cellPoints[id][1] * feetPerPixel,
-    h: cellHeights[id] / 100, // normalize 0..1
-  }));
+  // Candidate cells: everything whose center can reach any sample in this
+  // window (window expanded by the radius). Ascending cell id by construction
+  // — the iteration order (and thus FP summation order of the nonzero
+  // contributions) is identical for any window containing a given point.
+  const radiusSq = idwRadiusFt * idwRadiusFt;
+  const candData: Array<{ x: number; y: number; h: number }> = [];
+  for (let id = 0; id < cellPoints.length; id++) {
+    const p = cellPoints[id];
+    if (!p) continue;
+    const x = p[0] * feetPerPixel;
+    const y = p[1] * feetPerPixel;
+    if (
+      x < bounds.x - idwRadiusFt || x > bounds.x + bounds.width + idwRadiusFt ||
+      y < bounds.y - idwRadiusFt || y > bounds.y + bounds.height + idwRadiusFt
+    ) continue;
+    candData.push({ x, y, h: cellHeights[id] / 100 }); // normalize 0..1
+  }
 
-  // IDW power parameter
-  const IDW_POWER = 2;
   const WATER_THRESHOLD = 0.2;
 
   // Combined pass: IDW base + water check in one loop over samples.
@@ -496,19 +565,21 @@ function generateHeightfield(
     for (let col = 0; col < width; col++) {
       const sampleX = bounds.x + col * resolutionFt;
 
-      // IDW interpolation + nearest cell tracking
+      // Radius-limited IDW interpolation + nearest cell tracking
       let weightSum = 0;
       let valueSum = 0;
       let nearestDist = Infinity;
       let nearestH = 0;
 
-      for (let mi = 0; mi < memberData.length; mi++) {
-        const cell = memberData[mi];
+      for (let mi = 0; mi < candData.length; mi++) {
+        const cell = candData[mi];
         const dx = sampleX - cell.x;
         const dy = sampleY - cell.y;
         const distSq = dx * dx + dy * dy;
+        if (distSq >= radiusSq) continue; // outside the sample's neighborhood
 
-        // Track nearest cell for water discipline
+        // Track nearest cell for water discipline (strict < keeps the
+        // lowest-id winner on exact ties — same in every window)
         if (distSq < nearestDist) {
           nearestDist = distSq;
           nearestH = cell.h;
@@ -519,12 +590,23 @@ function generateHeightfield(
           valueSum = cell.h;
           break;
         }
-        const weight = 1 / Math.pow(distSq, IDW_POWER / 2);
+        // Franke–Little / local Shepard weight: ~1/d² near the cell, exactly
+        // 0 at the radius (continuous as cells cross the neighborhood edge).
+        const d = Math.sqrt(distSq);
+        const t = (idwRadiusFt - d) / (idwRadiusFt * d);
+        const weight = t * t;
         weightSum += weight;
         valueSum += weight * cell.h;
       }
 
-      let baseHeight = weightSum > 0 ? valueSum / weightSum : 0;
+      // No-fallback: the radius (4× mean spacing) guarantees a non-empty
+      // neighborhood; an empty one means the scale wiring is broken.
+      if (weightSum <= 0) {
+        throw new Error(
+          `[generateRegion] no cells within IDW radius ${idwRadiusFt} ft of sample (${sampleX}, ${sampleY})`,
+        );
+      }
+      let baseHeight = valueSum / weightSum;
 
       // Water discipline: if nearest cell is water, clamp immediately
       if (nearestH < WATER_THRESHOLD) {
@@ -547,7 +629,15 @@ function generateHeightfield(
   // each region carries a few connected ridge-and-valley landforms; octaves
   // 1-4 add standard value-noise detail underneath. Pre-release golden
   // regeneration recorded in the Worldforge tracker.
-  const reliefRng = rngFromPath(streamPath(regionPath, 'relief'));
+  //
+  // Open-region seam continuity (2026-07-01): the field is indexed by GLOBAL
+  // WORLD FEET via `makeWorldFeetNoise` and seeded from the WORLD seed + octave
+  // — NOT by this region's own grid frame + per-region seed (which gave each
+  // region an independent relief field, so the open-world streamer showed a
+  // ~350ft cliff wherever it handed off from one region to the next). Two
+  // adjacent regions now read the SAME value at a shared world point, so the
+  // relief meets with no seam across region boundaries, by construction —
+  // exactly the fix `worldFeetNoise.ts` already applied to the Local detail.
   const OCTAVES = 5;
   const LACUNARITY = 2;
   const PERSISTENCE = 0.5;
@@ -555,44 +645,27 @@ function generateHeightfield(
   // Coarsest noise lattice cell size in heightfield grid cells.
   // 80 cells at 100 ft resolution = 8,000 ft macro landforms (~3 per region).
   const BASE_CELL_SIZE = 80;
+  const worldSeed = worldSeedFromPath(regionPath);
+  // Macro-landform lattice spacing in WORLD FEET (resolution-independent).
+  const BASE_SPAN_FT = BASE_CELL_SIZE * resolutionFt;
 
   for (let octave = 0; octave < OCTAVES; octave++) {
     const freq = Math.pow(LACUNARITY, octave);
     const amp = BASE_AMPLITUDE * Math.pow(PERSISTENCE, octave);
-    const octaveRng = rngFromPath(streamPath(regionPath, `relief-o${octave}`));
     const ridged = octave === 0; // macro octave carries the landform skeleton
+    // Per-octave world-indexed field. Mixing the octave index into the seed
+    // decorrelates octaves while keeping the field a pure function of
+    // (worldSeed, octave, worldFeet) — never the region path.
+    const octaveSeed = (worldSeed ^ Math.imul(octave + 1, 0x9e3779b1)) >>> 0;
+    const octaveNoise = makeWorldFeetNoise(octaveSeed, BASE_SPAN_FT / freq);
 
-    // Lattice cell size for this octave (pixels in heightfield grid)
-    const cellSize = Math.max(2, Math.round(BASE_CELL_SIZE / freq));
-    const noiseW = Math.ceil(width / cellSize) + 2;
-    const noiseH = Math.ceil(height / cellSize) + 2;
-    const noiseGrid = new Float32Array(noiseW * noiseH);
-    for (let i = 0; i < noiseGrid.length; i++) {
-      noiseGrid[i] = octaveRng.next() * 2 - 1; // -1..1
-    }
-
-    // Bilinear interpolate from the coarse lattice onto every sample
     for (let row = 0; row < height; row++) {
+      const fy = bounds.y + row * resolutionFt;
       for (let col = 0; col < width; col++) {
-        const nx = col / cellSize;
-        const ny = row / cellSize;
-        const x0 = Math.floor(nx);
-        const y0 = Math.floor(ny);
-        // Smoothstep the lattice weights (2026-06-11 relief calibration):
-        // raw bilinear weights leave C1 seams along lattice edges that the
-        // strengthened hillshade renders as square patches.
-        const rx = nx - x0;
-        const ry = ny - y0;
-        const fx = rx * rx * (3 - 2 * rx);
-        const fy = ry * ry * (3 - 2 * ry);
-
-        const n00 = noiseGrid[y0 * noiseW + x0] ?? 0;
-        const n10 = noiseGrid[y0 * noiseW + (x0 + 1)] ?? 0;
-        const n01 = noiseGrid[(y0 + 1) * noiseW + x0] ?? 0;
-        const n11 = noiseGrid[(y0 + 1) * noiseW + (x0 + 1)] ?? 0;
-
-        let noise = (n00 * (1 - fx) + n10 * fx) * (1 - fy) +
-                    (n01 * (1 - fx) + n11 * fx) * fy;
+        const fx = bounds.x + col * resolutionFt;
+        // makeWorldFeetNoise returns [0,1] (smoothstep-interpolated); map to
+        // [-1,1] to match the ridge transform's zero-crossing crests.
+        let noise = octaveNoise(fx, fy) * 2 - 1;
 
         // Ridge transform: crests form along the lattice's zero-crossings,
         // turning blobs into connected ridge/valley lines.
@@ -661,9 +734,16 @@ function generateRiverBanks(
     banks.push({ riverId: river.i, centerline, widthFt });
 
     // WF-G5: carve the terrain under the same curved band the renderer draws.
-    // The artifact keeps the clipped raw path for traceability; both carve and
-    // draw derive the smoothed path from riverCenterlineSmoothing.ts.
-    carveRiverChannel(smoothRegionRiverCenterline(centerline), widthFt, heightfield, bounds);
+    // The artifact keeps the clipped raw path for traceability.
+    //
+    // Seam purity (2026-07-02): smooth the FULL unclipped centerline, not the
+    // window-clipped one — Chaikin bends a clipped line differently near its
+    // cut ends, so two windows carved slightly different channels at shared
+    // world points (~1.2 ft residual at the seam probe). The smoothed full
+    // line is a pure function of world data; carveRiverChannel prefilters
+    // segments that cannot reach this window, which never changes in-window
+    // results.
+    carveRiverChannel(smoothRegionRiverCenterline(fullLine), widthFt, heightfield, bounds);
   }
 
   return banks;
@@ -682,6 +762,26 @@ function carveRiverChannel(
   const CARVE_DEPTH = 0.04; // normalized depth; visible in hypsometric render
   const halfWidth = widthFt / 2;
 
+  // Perf-only segment prefilter: drop segments whose bounding box lies more
+  // than halfWidth outside the window — they cannot carve any in-window
+  // sample, so this never changes results (the centerline is the smoothed
+  // FULL river line since the 2026-07-02 seam-purity fix).
+  const rx0 = bounds.x - halfWidth;
+  const ry0 = bounds.y - halfWidth;
+  const rx1 = bounds.x + bounds.width + halfWidth;
+  const ry1 = bounds.y + bounds.height + halfWidth;
+  const segments: Array<[number, number, number, number]> = [];
+  for (let i = 0; i < centerline.length - 1; i++) {
+    const [ax, ay] = centerline[i];
+    const [bx, by] = centerline[i + 1];
+    if (
+      Math.max(ax, bx) < rx0 || Math.min(ax, bx) > rx1 ||
+      Math.max(ay, by) < ry0 || Math.min(ay, by) > ry1
+    ) continue;
+    segments.push([ax, ay, bx, by]);
+  }
+  if (segments.length === 0) return;
+
   // For each heightfield sample near the centerline, reduce height
   for (let row = 0; row < heightfield.height; row++) {
     const sampleY = bounds.y + row * heightfield.resolutionFt;
@@ -690,9 +790,7 @@ function carveRiverChannel(
 
       // Find minimum distance to any centerline segment
       let minDist = Infinity;
-      for (let i = 0; i < centerline.length - 1; i++) {
-        const [ax, ay] = centerline[i];
-        const [bx, by] = centerline[i + 1];
+      for (const [ax, ay, bx, by] of segments) {
         const dist = pointToSegmentDist(sampleX, sampleY, ax, ay, bx, by);
         minDist = Math.min(minDist, dist);
       }

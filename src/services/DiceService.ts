@@ -166,10 +166,29 @@ class DiceServiceClass {
             return result;
         }
 
+        // One roll at a time: pendingResolve is a single slot, so a second
+        // concurrent roll would orphan the first caller's promise forever.
+        if (this.pendingResolve) {
+            return Promise.reject(new Error('A dice roll is already in progress.'));
+        }
+
         onRollStart?.();
 
-        return new Promise<RollResult>((resolve) => {
+        return new Promise<RollResult>((resolve, reject) => {
+            // Watchdog: the physics promise resolves only when the dice settle.
+            // A lost WebGL context or a background-throttled tab can freeze the
+            // simulation, which previously hung every awaiting caller forever
+            // (observed live in the opening-standoff flow). Reject honestly so
+            // callers can surface a retry — never fabricate a result here.
+            const watchdog = window.setTimeout(() => {
+                if (this.pendingResolve) {
+                    this.pendingResolve = null;
+                    reject(new Error('The dice never settled (renderer stalled) — try again.'));
+                }
+            }, 30000);
+
             this.pendingResolve = (baseResult) => {
+                window.clearTimeout(watchdog);
                 const result: RollResult = {
                     ...baseResult,
                     total: baseResult.total + modifier,

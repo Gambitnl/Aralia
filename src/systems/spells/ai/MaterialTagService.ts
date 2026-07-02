@@ -162,8 +162,18 @@ export class MaterialTagService {
     private static inferMaterialsFromBiome(biomeId: string): string[] {
         const normalizedId = biomeId.toLowerCase();
 
+        // Glacier before mountain: 'mountain_glacier' should read icy, not rocky.
+        if (normalizedId.includes('glacier') || normalizedId.includes('snow') || normalizedId.includes('ice')) {
+            return ['Ice', 'Snow', 'Stone'];
+        }
         if (normalizedId.includes('mountain') || normalizedId.includes('cave') || normalizedId.includes('dungeon')) {
             return ['Stone', 'Rock', 'Mineral', 'Dirt'];
+        }
+        if (normalizedId.includes('tundra') || normalizedId.includes('permafrost')) {
+            return ['Frozen Earth', 'Stone', 'Lichen', 'Ice'];
+        }
+        if (normalizedId.includes('jungle')) {
+            return ['Wood', 'Plant Matter', 'Vines', 'Dirt'];
         }
         if (normalizedId.includes('forest') || normalizedId.includes('woods')) {
             return ['Wood', 'Dirt', 'Plant Matter', 'Leaves'];

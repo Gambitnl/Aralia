@@ -27,6 +27,7 @@ import type {
     OpeningSituationCharacter,
     OpeningSituationLocation,
     SituationNPC,
+    SituationThreat,
 } from './types';
 
 /** Thrown when the local model is unavailable (not running / no model installed). */
@@ -101,6 +102,15 @@ race, and background should matter) and exactly where they are. Be concrete, not
             : ''
     }
 
+## HOSTILITY (usually OMIT this)
+Most openings are NOT fights. But if the predicament is genuinely a standoff or
+ambush where violence is a real next beat, add a "threat" block: the enemies as
+REAL monster-manual names (bandit, wolf, goblin, cultist, thug, guard, etc.) with
+a "cr" (challenge rating string like "1/8", "1/4", "1", "2") and a whole-number
+"quantity"; a "deEscalationDC" chosen from this ladder by your toughest enemy's
+CR — CR<=1/8 -> 10, CR 1/4-1 -> 13, CR 2-4 -> 15, CR 5+ -> 18; and a short "tension"
+phrase. If the scene is peaceful, DO NOT include "threat".
+
 ## OUTPUT
 Output ONLY this JSON shape, nothing else:
 {
@@ -110,7 +120,8 @@ Output ONLY this JSON shape, nothing else:
     { "name": "string", "role": "string", "disposition": "string", "goal": "string" }
   ],
   "openingLine": { "speakerName": "name of the npc who speaks", "text": "what they say" },
-  "suggestedReplies": ["2 to 4 short things the player could say"]
+  "suggestedReplies": ["2 to 4 short things the player could say"],
+  "threat": { "hostile": true, "enemies": [{ "name": "string", "quantity": 1, "cr": "1/8" }], "deEscalationDC": 13, "tension": "string" }
 }`;
 }
 
@@ -192,6 +203,12 @@ interface RawSituation {
     npcs?: Array<Partial<{ name: string; role: string; disposition: string; goal: string }>>;
     openingLine?: Partial<{ speakerName: string; speakerId: string; text: string }>;
     suggestedReplies?: unknown;
+    threat?: {
+        hostile?: unknown;
+        enemies?: Array<Partial<{ name: string; quantity: number; cr: string }>>;
+        deEscalationDC?: unknown;
+        tension?: unknown;
+    };
 }
 
 /**
@@ -235,6 +252,23 @@ export async function generateOpeningSituation(
         );
     }
     return situation;
+}
+
+/** Validate a raw threat block. Returns undefined (peaceful scene) if malformed. */
+function mapThreat(raw: RawSituation['threat']): SituationThreat | undefined {
+    if (!raw || raw.hostile !== true) return undefined;
+    const enemies = (Array.isArray(raw.enemies) ? raw.enemies : [])
+        .filter((e) => e && typeof e.name === 'string' && e.name.trim().length > 0)
+        .map((e) => ({
+            name: (e.name as string).trim(),
+            quantity: Math.max(1, Math.min(8, Math.floor(Number(e.quantity) || 1))),
+            cr: typeof e.cr === 'string' && e.cr.trim() ? e.cr.trim() : '0',
+        }));
+    if (enemies.length === 0) return undefined;
+    const dc = Number(raw.deEscalationDC);
+    if (!Number.isFinite(dc) || dc < 5 || dc > 25) return undefined;
+    const tension = typeof raw.tension === 'string' ? raw.tension.trim() : '';
+    return { hostile: true, enemies, deEscalationDC: Math.round(dc), tension };
 }
 
 /**
@@ -297,5 +331,6 @@ function mapRawSituation(
         npcs,
         openingLine: { speakerId: speaker.id, text: lineText },
         suggestedReplies: suggestedReplies && suggestedReplies.length > 0 ? suggestedReplies : undefined,
+        threat: mapThreat(raw.threat),
     };
 }

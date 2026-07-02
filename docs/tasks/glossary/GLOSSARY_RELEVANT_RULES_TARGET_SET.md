@@ -79,52 +79,49 @@ their generated referenced-rule entries:
 - `Sphere`
 - `Temporary Hit Points`
 
-## Spell-Linked Relevant Rules Still Missing Real Glossary Text
+## Missing-Text Backlog: Completed 2026-07-01
 
-These are represented, but still incomplete because the local glossary surface
-does not yet provide a real captured rule description:
+An earlier revision of this note listed 19 spell-linked terms as "still missing
+real glossary text", with `difficult_terrain.json` called out as a concrete
+placeholder. That backlog is executed. All 19 terms were re-verified on
+2026-07-01 under `public/data/glossary/entries/rules/` and every one now has an
+entry with substantive rule text (no "Canonical rule text has not been
+captured yet" placeholders remain; grep-verified):
 
-- `Cone`
-- `Cube`
-- `curse`
-- `Cylinder`
-- `Difficult Terrain`
-- `Emanation`
-- `Friendly`
-- `Half Cover`
-- `Heavily Obscured`
-- `Hostile`
-- `Indifferent`
-- `Lightly Obscured`
-- `Line`
-- `Passive Perception`
-- `possessed`
-- `Shape-Shifting`
-- `Stable`
-- `Three-Quarters Cover`
-- `Total Cover`
+- `Cone` → `cone_area.json`
+- `Cube` → `cube_area.json`
+- `curse` → `curse.json`
+- `Cylinder` → `cylinder_area.json`
+- `Difficult Terrain` → `difficult_terrain.json` (real XPHB text; the old
+  placeholder path under `rules/spells/referenced/` no longer exists)
+- `Emanation` → `emanation_area.json`
+- `Friendly` → `friendly_attitude.json`
+- `Half Cover` → `half_cover.json`
+- `Heavily Obscured` → `heavily_obscured.json`
+- `Hostile` → `hostile_attitude.json`
+- `Indifferent` → `indifferent_attitude.json`
+- `Lightly Obscured` → `lightly_obscured.json`
+- `Line` → `line_area.json`
+- `Passive Perception` → `passive_perception.json`
+- `possessed` → `possessed.json` (plus parent `possession.json`)
+- `Shape-Shifting` → `shape_shifting.json`
+- `Stable` → `stable.json`
+- `Three-Quarters Cover` → `three_quarters_cover.json`
+- `Total Cover` → `total_cover.json`
 
-## Concrete Placeholder Example
+No terms from that list remain genuinely missing. The AoE-shape entries now
+live as top-level `rules/` files; only `sphere_area.json` remains under
+`rules/spells/referenced/`.
 
-This file exists, but it is still only a placeholder:
+## Practical Standard (Ongoing)
 
-- [difficult_terrain.json](F:\Repos\Aralia\public\data\glossary\entries\rules\spells\referenced\difficult_terrain.json)
-
-It currently says:
-
-- `Canonical rule text has not been captured yet.`
-
-So `Difficult Terrain` is present in navigation terms, but not yet complete as a
-real glossary rule.
-
-## Practical Next Standard
-
-The next glossary-rules coverage standard should be:
+The glossary-rules coverage standard remains:
 
 1. Use the spell-linked referenced-rule set as the primary relevant audit surface.
 2. Keep low-value incidental tooltip labels suppressed.
-3. Promote missing high-value referenced rules from placeholder entries into real
-   glossary entries with actual rule text.
+3. (Executed 2026-07-01) High-value referenced rules have been promoted from
+   placeholder entries into real glossary entries with actual rule text; apply
+   the same promotion standard to any newly captured referenced rules.
 4. Do not use the full `Rules Glossary` category size as proof of canonical rules
    coverage.
 

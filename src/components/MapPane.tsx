@@ -60,7 +60,8 @@ import { getCanonicalTownPlan } from '@/systems/worldforge/town/canonicalTown';
 import { rootSeedPath } from '@/systems/worldforge/seedPath';
 import { spreadColocatedPoints, entry3DAnchorForCell, snapToLandCell } from '@/systems/worldforge/local/gridAtlasBridge';
 import type { Entry3DAnchor } from '@/types/state';
-import { getBridgeAtlas } from '@/systems/worldforge/bridge/legacySubmapBridge';
+import { getBridgeAtlas, getBurgCultureType } from '@/systems/worldforge/bridge/legacySubmapBridge';
+import { styleFamilyForCultureType } from '@/systems/worldforge/town/architectureStyle';
 import { buildAtlasTravelGraph, atlasMilesPerUnit, nearestLandCell, transportMobility } from '@/systems/worldforge/travel/atlasTravelGraph';
 import { buildMultiModalAtlasGraph } from '@/systems/worldforge/travel/multiModalAtlasGraph';
 import { buildSubmapTravelGraph } from '@/systems/worldforge/travel/submapTravelGraph';
@@ -548,7 +549,9 @@ const MapPane: React.FC<MapPaneProps> = ({
   // focus cell's submap so deeper drilling flows through the same handler.
   type DrillTier = { ctx: SubmapParentContext; model?: SubmapModel; town?: TownPlan; neighbourhood?: AtlasNeighbourhood;
     /** Sub-cell index the player occupies in this tier (drill player indicator), or null if the player isn't on this drill path. */
-    playerCellIndex?: number | null };
+    playerCellIndex?: number | null;
+    /** FMG burg id for a town tier — resolves the culture-type architecture style family. */
+    burgId?: number };
   const [submapStack, setSubmapStack] = useState<DrillTier[]>([]);
 
   useEffect(() => { setSubmapStack([]); }, [worldforgeSeed]);
@@ -608,7 +611,7 @@ const MapPane: React.FC<MapPaneProps> = ({
     const childCtx = normalizeCtxScale(submapCellToChildContext(cell, regionTier.ctx));
     if (childCtx.polygon.length < 3) return null;
     const town = getCanonicalTownPlan(worldforgeAtlas, worldforgeSeed, cell.feature.id);
-    return [regionTier, { ctx: childCtx, town, playerCellIndex: 0 }];
+    return [regionTier, { ctx: childCtx, town, playerCellIndex: 0, burgId: cell.feature.id }];
   }, [worldforgeAtlas, worldforgeSeed, buildNeighbourTier]);
 
   // One-shot: when the 3D HUD's "Town Plan" button opens the map, drill straight
@@ -746,7 +749,7 @@ const MapPane: React.FC<MapPaneProps> = ({
     const cellId = findCellAtPoint(worldforgeAtlas, gx, gy);
     if (cellId == null || cellId < 0) return null;
     const tile = synthCellTile(worldforgeAtlas, cellId, 0, 0);
-    return { tx: 0, ty: 0, tile };
+    return { tx: 0, ty: 0, tile, cellId };
   }, [worldforgeAtlas]);
 
   // Resolve the player's choice on an underprovisioned trip. `half`/`push` commit
@@ -822,7 +825,14 @@ const MapPane: React.FC<MapPaneProps> = ({
       companionLoyaltyDelta: -15,
       note: `${forageNote ? forageNote + ' ' : ''}Your supplies run out on the road. The party halts, starving.`,
     };
-    onTileClick(0, 0, target.tile, { seconds: haltSeconds, provision });
+    // Cell-native halt (grid retirement): the wilderness arrival id is derived
+    // from destinationCell, so the halt MUST carry the halt point's cell or the
+    // move dead-ends in the "current world map area" no-op branch.
+    const haltCell = {
+      cellId: snapToLandCell(worldforgeAtlas, target.cellId),
+      anchor: entry3DAnchorForCell(worldforgeAtlas, target.cellId),
+    };
+    onTileClick(0, 0, target.tile, { seconds: haltSeconds, provision, destinationCell: haltCell });
     setPendingTravel(null);
   }, [pendingTravel, worldforgeAtlas, provisionInventory, partySize, partySurvivalModifier, worldforgeSeed, onTileClick, pointToTile]);
 
@@ -852,6 +862,15 @@ const MapPane: React.FC<MapPaneProps> = ({
     onEnter3DAtCell(0, 0, synthCellTile(worldforgeAtlas, cellId, 0, 0), anchor);
   }, [worldforgeAtlas, onEnter3DAtCell, submapStack]);
 
+  // Direct entry at the player's current position — no cell pick needed. Uses
+  // the same canonical playerAtlasCell as the "Find Me" marker, so the entry
+  // point always matches where the map says you are.
+  const handleEnter3DAtPlayer = useCallback(() => {
+    if (!worldforgeAtlas || !onEnter3DAtCell || playerAtlasCell == null) return;
+    const anchor = entry3DAnchorForCell(worldforgeAtlas, playerAtlasCell);
+    onEnter3DAtCell(0, 0, synthCellTile(worldforgeAtlas, anchor.cellId, 0, 0), anchor);
+  }, [worldforgeAtlas, onEnter3DAtCell, playerAtlasCell]);
+
   const handleSubmapDrill = useCallback((siteIndex: number) => {
     setSubmapStack((stack) => {
       // Cap drill depth at L3 (Locale 1): World → Region → Local → Locale 1 (stop).
@@ -878,7 +897,7 @@ const MapPane: React.FC<MapPaneProps> = ({
       // feature (l0Adapter sets it from the FMG burg).
       if (cell.feature?.kind === 'burg' && cell.feature.id != null) {
         const town = getCanonicalTownPlan(worldforgeAtlas, worldforgeSeed, cell.feature.id);
-        return [...stack, { ctx: childCtx, town, playerCellIndex: onPlayerPath ? 0 : null }];
+        return [...stack, { ctx: childCtx, town, playerCellIndex: onPlayerPath ? 0 : null, burgId: cell.feature.id }];
       }
       const childModel = generateSubmap(childCtx, { count: SUBMAP_COUNT });
       return [...stack, { model: childModel, ctx: childCtx, playerCellIndex: onPlayerPath ? playerSubCellIndex(childModel) : null }];
@@ -894,6 +913,15 @@ const MapPane: React.FC<MapPaneProps> = ({
   // Human tier name by drill depth (1-based): region → local → then locale.
   const tierName = (depth: number): string =>
     depth === 1 ? 'Region' : depth === 2 ? 'Local' : `Locale ${depth - 2}`;
+
+  // Architecture style family for the town at the top of the drill stack — same
+  // resolution the 3D ground bake uses (culture TYPE → family), so the 2D map
+  // paints the SAME buildings the SAME colors as the 3D town for this burg.
+  const topTownBurgId = submapStack[submapStack.length - 1]?.burgId;
+  const topTownStyleFamily = useMemo(() => {
+    if (topTownBurgId == null) return undefined;
+    return styleFamilyForCultureType(getBurgCultureType(worldforgeSeed, topTownBurgId));
+  }, [topTownBurgId, worldforgeSeed]);
 
   // Submap-tier travel: a route field over the drilled tier's Voronoi cells from
   // the player's sub-cell, so the same route preview works inside the drill.
@@ -1010,6 +1038,17 @@ const MapPane: React.FC<MapPaneProps> = ({
                 Enter 3D
               </button>
             )}
+            {allow3DEntry && onEnter3DAtCell && playerAtlasCell != null && (
+              <button
+                onClick={handleEnter3DAtPlayer}
+                className="px-2 py-1 rounded bg-rose-900 text-rose-100 hover:bg-rose-800"
+                type="button"
+                title="Enter the streamed 3D world at your current position"
+                data-testid="enter-3d-at-player"
+              >
+                3D at My Location
+              </button>
+            )}
             {(allowTravel && interactionMode === 'travel') || (allow3DEntry && interactionMode === 'enter3d') ? (
               <button
                 onClick={() => setShowPrecisionOverlay(current => !current)}
@@ -1076,6 +1115,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                     width={worldforgeViewportSize.width}
                     height={worldforgeViewportSize.height}
                     prefsScope={worldforgeSeed}
+                    styleFamily={topTownStyleFamily}
                   />
                 ) : submapStack[submapStack.length - 1].neighbourhood ? (
                   <NeighbourhoodSvgView

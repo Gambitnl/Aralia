@@ -11,6 +11,7 @@
  */
 import { generateTownPlan as generateVoronoiTown, polygonCentroid } from './townEngine';
 import { voronoiTownToArtifactPlan } from './voronoiTownAdapter';
+import { STYLE_FAMILIES } from './architectureStyle';
 import { generateSubmap, polygonBounds, type Pt } from '../submap/submapEngine';
 import { rootSeedPath } from '../seedPath';
 import type { TownPlan as ArtifactTownPlan } from '../artifacts';
@@ -56,7 +57,9 @@ export function buildDemoTownPlan(
   const population = opts.population ?? 700;
   const footprint = buildDemoCellFootprint(worldSeed);
   const town = generateVoronoiTown(footprint, rootSeedPath(worldSeed), { population });
-  const plan = voronoiTownToArtifactPlan(town, burgId);
+  // Demo towns have no atlas burg (so no FMG culture): pick the temperate
+  // family EXPLICITLY here — the adapter itself takes no default (no-fallback).
+  const plan = voronoiTownToArtifactPlan(town, burgId, STYLE_FAMILIES.temperateFrame);
   const b = polygonBounds(footprint);
   return {
     plan,

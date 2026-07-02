@@ -12,7 +12,7 @@
 
 import { ChunkStreamer } from '../chunkStreamer';
 import { handleChunkRequest } from '../chunkWorkerCore';
-import { terrainVertexCount, skirtTriangleCount } from '../chunkGeometry';
+import { terrainVertexCount, baseTriangleCount, skirtTriangleCount } from '../chunkGeometry';
 import { WORLD3D_CONFIG } from '../config';
 import type { ChunkLoader } from '../types';
 import type { WorldData } from '@/services/worldSim/types';
@@ -54,7 +54,7 @@ it('streams a full window of well-formed chunk geometry', async () => {
     // This inline loader ignores the LOD tier (always full res); terrain meshes
     // carry a perimeter skirt by default.
     expect(c.bundle.terrain.positions.length).toBe(terrainVertexCount(res, true) * 3);
-    expect(c.bundle.terrain.indices.length).toBe(((res - 1) * (res - 1) * 2 + skirtTriangleCount(res)) * 3);
+    expect(c.bundle.terrain.indices.length).toBe((baseTriangleCount(res) + skirtTriangleCount(res)) * 3);
     // No NaN in positions.
     for (const v of c.bundle.terrain.positions) expect(Number.isFinite(v)).toBe(true);
   }

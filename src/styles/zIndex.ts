@@ -25,9 +25,13 @@
  * - `MODAL_SPECIALIZED_OVERLAY` (220): Specialized modal overlays
  *
  * ### 300-499: Feature Overlays
- * - `DICE_OVERLAY` (300): Dice rolling animations
  * - `PARTY_OVERLAY` (350): Party member indicators
  * - `COMBAT_OVERLAY` (400): Combat system overlays
+ *
+ * (`DICE_OVERLAY` lives at 1050: an active roll is a blocking moment and must
+ * render above always-on-top panels like the conversation panel, which sits at
+ * TOOLTIP level — at its old 300 slot the tray drew BEHIND the very panel whose
+ * skill check triggered it.)
  *
  * ### 500-799: Interactive Elements
  * - `RESIZE_HANDLES_*` (500-510): Window resize handles
@@ -147,9 +151,6 @@ export const Z_INDEX = {
   // FEATURE OVERLAYS (300-499)
   // ============================================================================
 
-  /** Dice rolling overlay */
-  DICE_OVERLAY: 300,
-
   /** Party member overlays and indicators */
   PARTY_OVERLAY: 350,
 
@@ -191,6 +192,10 @@ export const Z_INDEX = {
 
   /** Tooltips and contextual help */
   TOOLTIP: 1000,
+
+  /** Dice rolling overlay — a roll in progress must draw above always-on-top
+   *  panels (the conversation panel sits at TOOLTIP level and triggers rolls). */
+  DICE_OVERLAY: 1050,
 
   /** System notifications and alerts */
   NOTIFICATION: 1100,

@@ -12,6 +12,7 @@ import type { TownPlan as EngineTownPlan, BuildingPlot, CivicKind } from './town
 import type { TownPlan as ArtifactTownPlan } from '../artifacts';
 import type { Pt } from '../submap/submapEngine';
 import { isResidential, type BuildingType } from './population';
+import { styledWallColor, styledRoof, styleFrameOf, type StyleFamily, type StyleFrame, type RoofForm } from './architectureStyle';
 
 export interface AdaptedTownPlan {
   plan: ArtifactTownPlan;
@@ -119,12 +120,32 @@ export function storeysForRole(role: string, poly: Pt[]): number {
 }
 
 /**
+ * Per-plot architecture-style stamps ({ wallColorHex, roofColorHex, roofForm })
+ * hashed from the plot polygon's NORMALIZED position in the plan footprint —
+ * frame-invariant, so the 2D map (normalized frame) and 3D bake (region feet)
+ * pick identical styles for the same building.
+ */
+function styleStamp(
+  fam: StyleFamily,
+  poly: Pt[],
+  frame: StyleFrame,
+): { wallColorHex: string; roofColorHex: string; roofForm: RoofForm } {
+  const roof = styledRoof(fam, poly, frame);
+  return { wallColorHex: styledWallColor(fam, poly, frame), roofColorHex: roof.color, roofForm: roof.form };
+}
+
+/**
  * Convert an engine TownPlan (any coord frame) into the artifact plan + walls.
  * Coordinates pass through unchanged — convert the frame BEFORE calling this
  * (see `transformTownPlanToFeet`).
+ *
+ * When `family` is given, each plot is stamped with deterministic architecture
+ * style fields. Styling NEVER changes plot ids/filters/footprints — the plot-ID
+ * identity between the 3D renderer and business registration is load-bearing.
  */
-export function toArtifactPlan(plan: EngineTownPlan, burgId: number): AdaptedTownPlan {
+export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: StyleFamily): AdaptedTownPlan {
   const plots: ArtifactTownPlan['plots'] = [];
+  const frame = family ? styleFrameOf(plan.footprint) : undefined;
   let id = 0;
 
   for (const ward of plan.wards) {
@@ -138,6 +159,7 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number): AdaptedTow
         footprint: quad,
         role,
         storeys: storeysForRole(role, pl.polygon),
+        ...(family && frame ? styleStamp(family, pl.polygon, frame) : {}),
       });
     }
   }
@@ -152,6 +174,7 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number): AdaptedTow
       footprint: orientedQuad(c.polygon),
       role,
       storeys: storeysForRole(role, c.polygon),
+      ...(family && frame ? styleStamp(family, c.polygon, frame) : {}),
     });
   }
 

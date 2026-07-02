@@ -1,7 +1,9 @@
+> **ARCHIVED 2026-07-01** — docs-only sweep complete, all gaps closed. Archived by doc-triage batch 1. Original location: `docs/tasks/architecture/NORTH_STAR.md`.
+
 # Architecture Sweep North Star
 
-Status: active
-Last updated: 2026-06-25
+Status: archived
+Last updated: 2026-07-01
 
 ## Why This Project Exists
 

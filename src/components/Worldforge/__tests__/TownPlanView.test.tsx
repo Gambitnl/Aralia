@@ -5,6 +5,7 @@ import TownPlanView from '../TownPlanView';
 import { generateTownPlan } from '../../../systems/worldforge/town/townEngine';
 import { rootSeedPath } from '../../../systems/worldforge/seedPath';
 import type { Pt } from '../../../systems/worldforge/submap/submapEngine';
+import { STYLE_FAMILIES } from '../../../systems/worldforge/town/architectureStyle';
 
 const footprint: Pt[] = [[0, 0], [120, 0], [140, 90], [70, 140], [0, 100]];
 
@@ -71,5 +72,32 @@ describe('TownPlanView', () => {
       fireEvent.mouseMove(svg, { clientX: 150, clientY: 140 });
       fireEvent.mouseLeave(svg);
     }).not.toThrow();
+  });
+
+  it('uses family wall palette when styleFamily is provided', () => {
+    const plan = generateTownPlan(footprint, rootSeedPath(42), { population: 4000 });
+    const fam = STYLE_FAMILIES.highlandStone;
+    const { container } = render(
+      <TownPlanView plan={plan} width={600} height={400} styleFamily={fam} />,
+    );
+    const fills = new Set(
+      Array.from(container.querySelectorAll('path'))
+        .map((el) => el.getAttribute('fill'))
+        .filter(Boolean),
+    );
+    expect(fam.wallPalette.some((c) => fills.has(c))).toBe(true);
+  });
+
+  it('keeps legacy type fills without styleFamily', () => {
+    const plan = generateTownPlan(footprint, rootSeedPath(42), { population: 4000 });
+    const fam = STYLE_FAMILIES.highlandStone;
+    const { container } = render(<TownPlanView plan={plan} width={600} height={400} />);
+    const fills = new Set(
+      Array.from(container.querySelectorAll('path'))
+        .map((el) => el.getAttribute('fill'))
+        .filter(Boolean),
+    );
+    // highlandStone's greys don't coincide with the legacy BUILDING_FILL / fallback palette.
+    expect(fam.wallPalette.some((c) => fills.has(c))).toBe(false);
   });
 });

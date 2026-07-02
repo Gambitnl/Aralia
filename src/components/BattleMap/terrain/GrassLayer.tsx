@@ -24,7 +24,8 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { BattleMapData } from '../../../types/combat';
+import { BattleMapData, BattleMapTile } from '../../../types/combat';
+import { makeTerrainHeightSampler } from './TerrainMesh';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -263,6 +264,22 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData }) => {
   // Total blade count
   const instanceCount = grassTiles.length * BLADES_PER_TILE;
 
+  // Same surface formula as the rendered mesh — blades root IN the ground by
+  // construction. Flat per-tile `elevation * 0.3` left blades hovering or
+  // buried beside elevation steps (task-71/79 grounding pattern; required
+  // once the gap-#28 bluff layer introduced 2-3-step faces).
+  const groundSampler = useMemo(() => {
+    const { width, height } = mapData.dimensions;
+    const grid: (BattleMapTile | null)[][] = [];
+    for (let y = 0; y < height; y++) {
+      grid[y] = [];
+      for (let x = 0; x < width; x++) {
+        grid[y][x] = mapData.tiles.get(`${x}-${y}`) ?? null;
+      }
+    }
+    return makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
+  }, [mapData]);
+
   // Blade geometry (shared by all instances)
   const bladeGeo = useMemo(() => createBladeGeometry(), []);
 
@@ -320,7 +337,7 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData }) => {
         const offsetZ = rand() * TILE_SIZE;
         const worldX = tile.x * TILE_SIZE + offsetX;
         const worldZ = tile.y * TILE_SIZE + offsetZ;
-        const worldY = tile.elevation * 0.3; // Match terrain ELEVATION_SCALE
+        const worldY = groundSampler(worldX, worldZ);
 
         // Skip extra blades in bare spots (still consume rand() calls for determinism)
         const rotY = rand() * Math.PI * 2;
@@ -370,7 +387,7 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData }) => {
 
     return { matrices: mats, tints: tintArr };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [grassTiles, instanceCount, mapData.seed]);
+  }, [grassTiles, instanceCount, mapData.seed, groundSampler]);
 
   // Shader material
   const shaderMaterial = useMemo(() => {

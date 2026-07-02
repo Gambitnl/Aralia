@@ -80,6 +80,7 @@ export type ActionType =
   | 'CAST_SPELL'
   | 'USE_LIMITED_ABILITY'
   | 'LONG_REST'
+  | 'TOGGLE_LONG_REST_MODAL'
   | 'SHORT_REST'
   | 'TOGGLE_PREPARED_SPELL'
   | 'UPDATE_NPC_GOAL_STATUS'
@@ -145,6 +146,7 @@ export interface ActionMetadata {
  */
 export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   toggle_map: { isUiToggle: true },
+  TOGGLE_LONG_REST_MODAL: { isUiToggle: true },
   toggle_three_d: { isUiToggle: true },
   toggle_auto_save: { isUiToggle: true },
   toggle_dev_menu: { isUiToggle: true },
@@ -348,6 +350,7 @@ export type Action =
   | { type: 'CAST_SPELL'; payload: CastSpellPayload; label?: string }
   | { type: 'USE_LIMITED_ABILITY'; payload: { characterId: string; abilityId: string }; label?: string }
   | { type: 'LONG_REST'; payload?: never; label?: string }
+  | { type: 'TOGGLE_LONG_REST_MODAL'; payload?: never; label?: string }
   | { type: 'SHORT_REST'; payload?: { hitPointDiceSpend?: HitPointDiceSpendMap }; label?: string }
   | { type: 'TOGGLE_PREPARED_SPELL'; payload: { characterId: string; spellId: string }; label?: string }
   | { type: 'UPDATE_NPC_GOAL_STATUS'; payload: { npcId: string; goalId: string; status: GoalStatus }; label?: string }

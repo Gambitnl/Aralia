@@ -10,7 +10,10 @@
 // Voronoi-cell-native; local terrain/materials come from the cell-native local
 // layer (generateLocal / getWorldforgeLocalForCell). BATTLE_MAP_DIMENSIONS (the
 // tactical combat map) is unrelated to the retired world grid and remains.
-export const BATTLE_MAP_DIMENSIONS = { width: 40, height: 30 };
+// 2026-07-01 (Remy): combat area quadrupled (40×30 → 80×60). The 2D map pans
+// and zooms to fit; the 3D map renders a non-playable fringe beyond this rect
+// so the battlefield no longer ends at a visible boundary.
+export const BATTLE_MAP_DIMENSIONS = { width: 80, height: 60 };
 export const TILE_SIZE_PX = 32;
 
 // Compass Direction Vectors

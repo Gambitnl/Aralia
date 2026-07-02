@@ -32,7 +32,7 @@ import React, { useState, useEffect, useCallback, useContext, useRef } from 'rea
 import BattleMap from '../BattleMap/BattleMap';
 import BattleMap3D from '../BattleMap/BattleMap3D';
 import { PlayerCharacter, Item } from '../../types';
-import { Ability, BattleMapData, CombatCharacter, CombatLogEntry, PocketedSummon } from '../../types/combat';
+import { Ability, ActiveAnimatedObject, ActiveExtradimensionalSpace, ActiveSpellEmanation, ActiveSpellForce, ActiveSpellGuardian, ActiveSpellHelper, ActiveSpellStructure, BattleMapData, CombatCharacter, CombatLogEntry, PocketedSummon } from '../../types/combat';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useCombatLog } from '../../hooks/combat/useCombatLog';
@@ -41,7 +41,6 @@ import { generateBattleSetup } from '../../hooks/useBattleMapGeneration';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID, WINDOW_KEYS } from '../../styles/uiIds';
 import { WindowFrame } from '../ui/WindowFrame';
-import { useSummons } from '../../hooks/combat/useSummons';
 import { useCombatAI } from '../../hooks/combat/useCombatAI';
 import InitiativeTracker from '../BattleMap/InitiativeTracker';
 import AbilityPalette from '../BattleMap/AbilityPalette';
@@ -100,8 +99,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // should survive HP changes and turn order updates, but it still needs a
   // stable boundary so a new encounter does not inherit the previous one.
   const combatLogStorageKey = React.useMemo(() => {
-    const serializeCombatant = (combatant: { id: string; name: string; level: number; maxHP: number }) =>
-      `${combatant.id}:${combatant.name}:${combatant.level}:${combatant.maxHP}`;
+    const serializeCombatant = (combatant: { id: string; name: string; level?: number; maxHP?: number; maxHp?: number }) =>
+      `${combatant.id}:${combatant.name}:${combatant.level ?? 0}:${combatant.maxHP ?? combatant.maxHp ?? 0}`;
 
     const partySignature = party
       .map(combatant => `player:${serializeCombatant(combatant)}`)
@@ -149,6 +148,33 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // caster. CombatView owns this off-map list until a broader combat-state
   // owner replaces the current character-array-first structure.
   const [pocketedSummons, setPocketedSummons] = useState<PocketedSummon[]>([]);
+  // Non-creature spell records are map-relevant state but not combatants. Keep
+  // them beside the visible roster until the combat-state owner grows a shared
+  // active-artifact store.
+  const [activeSpellHelpers, setActiveSpellHelpers] = useState<ActiveSpellHelper[]>([]);
+  const [activeSpellForces, setActiveSpellForces] = useState<ActiveSpellForce[]>([]);
+  const [activeSpellGuardians, setActiveSpellGuardians] = useState<ActiveSpellGuardian[]>([]);
+  const [activeAnimatedObjects, setActiveAnimatedObjects] = useState<ActiveAnimatedObject[]>([]);
+  const [activeSpellStructures, setActiveSpellStructures] = useState<ActiveSpellStructure[]>([]);
+  const [activeExtradimensionalSpaces, setActiveExtradimensionalSpaces] = useState<ActiveExtradimensionalSpace[]>([]);
+  const [activeSpellEmanations, setActiveSpellEmanations] = useState<ActiveSpellEmanation[]>([]);
+  const spellMapArtifacts = React.useMemo(() => ({
+    helpers: activeSpellHelpers,
+    forces: activeSpellForces,
+    guardians: activeSpellGuardians,
+    animatedObjects: activeAnimatedObjects,
+    structures: activeSpellStructures,
+    extradimensionalSpaces: activeExtradimensionalSpaces,
+    emanations: activeSpellEmanations
+  }), [
+    activeSpellHelpers,
+    activeSpellForces,
+    activeSpellGuardians,
+    activeAnimatedObjects,
+    activeSpellStructures,
+    activeExtradimensionalSpaces,
+    activeSpellEmanations
+  ]);
 
   // [2026-02-10] Ref for characters to avoid dependency churn in handleLogEntry.
   // The bridge adapter (convertLogEntryToMessage) needs the current characters array to look up
@@ -287,24 +313,6 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     }
   }, [characters, turnManager, messaging.clearMessages]);
 
-  // Handle Summoning Integration
-  // TODO(lint-intent): 'addSummon' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-  const { addSummon: _addSummon, removeSummon: _removeSummon, summonedEntities: _summonedEntities } = useSummons({
-    onSummonAdded: (summon) => {
-      setCharacters(prev => [...prev, summon]);
-      turnManager.joinCombat(summon, { initiative: summon.initiative }); // Use preset initiative if available (e.g. shared)
-    },
-    // TODO: Integrate summon removal directly into turn manager by calling turnManager.leaveCombat(summonId) to immediately remove from turn order instead of relying on HP checks
-    onSummonRemoved: (summonId) => {
-      setCharacters(prev => prev.filter(c => c.id !== summonId));
-      // TurnManager handles removal gracefully on next turn cycle usually, 
-      // but ideally we'd remove from turnOrder immediately.
-      // For now, rely on standard "HP > 0" checks or it's fine if they remain as "dead/gone".
-    }
-  });
-
   const handleRequestInput = useCallback((spell: Spell, onConfirm: (input: string) => void) => {
     setInputModalSpell(spell);
     // Wrap callback to ensure we set state correctly
@@ -343,6 +351,20 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     onActiveLightSourcesUpdate: turnManager.setActiveLightSources,
     pocketedSummons,
     onPocketedSummonsUpdate: setPocketedSummons,
+    activeSpellHelpers,
+    onActiveSpellHelpersUpdate: setActiveSpellHelpers,
+    activeSpellForces,
+    onActiveSpellForcesUpdate: setActiveSpellForces,
+    activeSpellGuardians,
+    onActiveSpellGuardiansUpdate: setActiveSpellGuardians,
+    activeAnimatedObjects,
+    onActiveAnimatedObjectsUpdate: setActiveAnimatedObjects,
+    activeSpellStructures,
+    onActiveSpellStructuresUpdate: setActiveSpellStructures,
+    activeExtradimensionalSpaces,
+    onActiveExtradimensionalSpacesUpdate: setActiveExtradimensionalSpaces,
+    activeSpellEmanations,
+    onActiveSpellEmanationsUpdate: setActiveSpellEmanations,
     onMapUpdate: setMapData,
     onAddSpellZone: turnManager.addSpellZone,
     spellZones: turnManager.spellZones,
@@ -548,6 +570,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
               <BattleMap3D
                 mapData={mapData}
                 characters={characters}
+                spellMapArtifacts={spellMapArtifacts}
                 combatState={{
                   turnManager: turnManager,
                   turnState: turnManager.turnState,
@@ -560,6 +583,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
               <BattleMap
                 mapData={mapData}
                 characters={characters}
+                spellMapArtifacts={spellMapArtifacts}
                 combatState={{
                   turnManager: turnManager,
                   turnState: turnManager.turnState,
@@ -661,6 +685,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                   <BattleMap3D
                     mapData={mapData}
                     characters={characters}
+                    spellMapArtifacts={spellMapArtifacts}
                     combatState={{
                       turnManager: turnManager,
                       turnState: turnManager.turnState,
@@ -673,6 +698,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                   <BattleMap
                     mapData={mapData}
                     characters={characters}
+                    spellMapArtifacts={spellMapArtifacts}
                     combatState={{
                       turnManager: turnManager,
                       turnState: turnManager.turnState,

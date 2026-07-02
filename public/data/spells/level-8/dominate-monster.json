@@ -142,6 +142,27 @@
       },
       "description": "While the Charmed target is on the same plane as you, you have a telepathic link and can issue no-action commands on your turn. The target obeys on its turn, acts self-protectively after completing orders, and you can spend your Reaction to command the target to take a Reaction.",
       "utilityType": "other",
+      "dominationControl": {
+        "telepathicLink": {
+          "requiresSamePlane": true,
+          "actionCost": "none",
+          "description": "While the target is Charmed and on the same plane, the caster can issue telepathic commands with no action on the caster's turn."
+        },
+        "reactionCommand": {
+          "requiresCasterReaction": true,
+          "description": "The caster can command the Charmed creature to take a Reaction only by spending the caster's own Reaction."
+        },
+        "defaultAfterCompletedOrder": "acts_and_moves_as_it_likes_focusing_on_self_protection"
+      },
+      "summonControl": {
+        "entityType": "dominated_creature_target",
+        "summonsNewEntity": false,
+        "controlChannel": "same-plane telepathic link",
+        "commandAction": "no action on caster turn",
+        "obedience": "target does its best to obey on its turn",
+        "idleBehavior": "acts and moves as it likes, focusing on self-protection, after completing command",
+        "reactionCommand": "caster can command Reaction by spending caster Reaction"
+      },
       "grantedActions": [
         {
           "type": "reaction",
@@ -300,6 +321,27 @@
           "successEnds": true,
           "useOriginalDC": true
         }
+      },
+      "dominationControl": {
+        "telepathicLink": {
+          "requiresSamePlane": true,
+          "actionCost": "none",
+          "description": "While the target is Charmed and on the same plane, the caster can issue telepathic commands with no action on the caster's turn."
+        },
+        "reactionCommand": {
+          "requiresCasterReaction": true,
+          "description": "The caster can command the Charmed creature to take a Reaction only by spending the caster's own Reaction."
+        },
+        "defaultAfterCompletedOrder": "acts_and_moves_as_it_likes_focusing_on_self_protection"
+      },
+      "summonControl": {
+        "entityType": "dominated_creature_target",
+        "summonsNewEntity": false,
+        "controlChannel": "same-plane telepathic link",
+        "commandAction": "no action on caster turn",
+        "obedience": "target does its best to obey on its turn",
+        "idleBehavior": "acts and moves as it likes, focusing on self-protection, after completing command",
+        "reactionCommand": "caster can command Reaction by spending caster Reaction"
       },
       "conditionalEndings": []
     }

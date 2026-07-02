@@ -19,14 +19,14 @@
  */
 import React, { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
-import { BattleMapData, BattleMapDecoration } from '../../../types/combat';
+import { BattleMapData, BattleMapDecoration, BattleMapTile } from '../../../types/combat';
+import { makeTerrainHeightSampler } from './TerrainMesh';
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
 const TILE_SIZE = 1.0;
-const ELEVATION_SCALE = 0.3;
 const POSITION_JITTER = 0.3;
 
 // ---------------------------------------------------------------------------
@@ -544,6 +544,22 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
     return groups;
   }, [mapData]);
 
+  // Same surface formula as the rendered mesh — props sit ON the ground by
+  // construction instead of at flat `tile.elevation * ELEVATION_SCALE`, which
+  // floated/sank items beside elevation steps (task-71/79 grounding pattern;
+  // required once the gap-#28 bluff layer introduced 2-3-step faces).
+  const groundSampler = useMemo(() => {
+    const { width, height } = mapData.dimensions;
+    const grid: (BattleMapTile | null)[][] = [];
+    for (let y = 0; y < height; y++) {
+      grid[y] = [];
+      for (let x = 0; x < width; x++) {
+        grid[y][x] = mapData.tiles.get(`${x}-${y}`) ?? null;
+      }
+    }
+    return makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
+  }, [mapData]);
+
   // Build instanced meshes for each decoration type
   const instancedGroups = useMemo(() => {
     const rand = seededRandom(mapData.seed ?? 42);
@@ -607,11 +623,9 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
         const tiltX = opts.tilt ? (vrand() - 0.5) * 0.22 : 0;
         const tiltZ = opts.tilt ? (vrand() - 0.5) * 0.22 : 0;
 
-        dummy.position.set(
-          tile.x * TILE_SIZE + 0.5 * TILE_SIZE + jitterX,
-          tile.elevation * ELEVATION_SCALE,
-          tile.y * TILE_SIZE + 0.5 * TILE_SIZE + jitterZ,
-        );
+        const wx = tile.x * TILE_SIZE + 0.5 * TILE_SIZE + jitterX;
+        const wz = tile.y * TILE_SIZE + 0.5 * TILE_SIZE + jitterZ;
+        dummy.position.set(wx, groundSampler(wx, wz), wz);
         dummy.rotation.set(tiltX, rotY, tiltZ);
         dummy.scale.set(
           scaleVariation * widthMul,
@@ -702,7 +716,7 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
     }
 
     return result;
-  }, [decorationGroups, mapData.seed]);
+  }, [decorationGroups, mapData.seed, groundSampler]);
 
   return (
     <group>

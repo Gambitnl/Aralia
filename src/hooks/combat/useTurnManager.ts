@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/06/2026, 19:15:30
+ * Last Sync: 01/07/2026, 15:14:38
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 12 files
  *
@@ -95,6 +95,70 @@ const removeRayOfFrostSlow = (character: CombatCharacter, sourceCasterId: string
     conditions: nextConditions
   };
 };
+
+const createNegativeEnergyFloodZombie = (
+  caster: CombatCharacter,
+  rise: NonNullable<NonNullable<CombatCharacter['activeEffects']>[number]['mechanics']>['negativeEnergyFloodZombieRise']
+): CombatCharacter => ({
+  id: `negative_energy_flood_zombie_${rise.targetId}_${generateId()}`,
+  name: `${rise.targetName} Zombie`,
+  level: 1,
+  class: caster.class,
+  position: rise.position,
+  stats: {
+    strength: 13,
+    dexterity: 6,
+    constitution: 16,
+    intelligence: 3,
+    wisdom: 6,
+    charisma: 5,
+    baseInitiative: -2,
+    speed: 20,
+    cr: 'zombie'
+  },
+  abilities: [],
+  team: 'enemy',
+  currentHP: 22,
+  maxHP: 22,
+  initiative: caster.initiative,
+  statusEffects: [],
+  actionEconomy: {
+    action: { used: false, remaining: 1 },
+    bonusAction: { used: false, remaining: 1 },
+    reaction: { used: false, remaining: 1 },
+    legendary: { used: 0, total: 0 },
+    movement: { used: 0, total: 20 },
+    freeActions: 1
+  },
+  creatureTypes: ['Undead'],
+  isSummon: true,
+  summonMetadata: {
+    casterId: caster.id,
+    spellId: 'negative-energy-flood',
+    entityType: rise.entityType,
+    sourceName: 'Negative Energy Flood',
+    persistent: true,
+    commandCost: 'none',
+    commandsPerTurn: 0,
+    commandsUsedThisTurn: 0,
+    initiativePolicy: 'immediate',
+    control: {
+      entityType: rise.entityType,
+      allegiance: 'uncontrolled_hostile',
+      obedience: 'pursues_closest_visible_creature'
+    },
+    aftermathState: {
+      kind: 'death_triggered_zombie_rise',
+      sourceTargetId: rise.targetId,
+      sourceTargetName: rise.targetName,
+      sourceTargetCreatureTypes: rise.targetCreatureTypes,
+      behavior: rise.behavior,
+      statBlock: rise.statBlock
+    },
+    dismissable: false
+  },
+  activeEffects: []
+});
 
 export const useTurnManager = ({
   characters,
@@ -293,6 +357,41 @@ export const useTurnManager = ({
     });
 
     let updatedChar = resetEconomy(character);
+
+    const pendingNegativeEnergyFloodRises = (updatedChar.activeEffects || [])
+      .map(effect => effect.mechanics?.negativeEnergyFloodZombieRise)
+      .filter((rise): rise is NonNullable<typeof rise> =>
+        rise?.timing === 'start_of_caster_next_turn'
+      );
+
+    if (pendingNegativeEnergyFloodRises.length > 0) {
+      pendingNegativeEnergyFloodRises.forEach(rise => {
+        const zombie = createNegativeEnergyFloodZombie(updatedChar, rise);
+        handleCharacterUpdateWrapped(zombie);
+        joinTurnOrder(zombie.id, updatedChar.id);
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'summon',
+          message: `${rise.targetName} rises as a Zombie from Negative Energy Flood.`,
+          characterId: updatedChar.id,
+          targetIds: [zombie.id],
+          data: {
+            spellId: 'negative-energy-flood',
+            pendingAftermath: 'negative_energy_flood_zombie_rise_consumed',
+            sourceTargetId: rise.targetId,
+            summonedId: zombie.id
+          }
+        });
+      });
+
+      updatedChar = {
+        ...updatedChar,
+        activeEffects: (updatedChar.activeEffects || []).filter(effect =>
+          !effect.mechanics?.negativeEnergyFloodZombieRise
+        )
+      };
+    }
 
     // Light sources are map-level spell artifacts, so they do not get ticked
     // through a character's `activeEffects` list. Remove timed lights at the
@@ -601,11 +700,19 @@ export const useTurnManager = ({
     const sharedInitiativeAnchor = readyChar.isSummon && readyChar.summonMetadata?.initiativePolicy === 'shared'
       ? readyChar.summonMetadata.casterId
       : undefined;
+    const immediateInitiativeAnchor = readyChar.isSummon && readyChar.summonMetadata?.initiativePolicy === 'immediate'
+      ? turnState.currentCharacterId || undefined
+      : undefined;
+    const turnOrderAnchor = sharedInitiativeAnchor ?? immediateInitiativeAnchor;
+    const rolledInitiative = readyChar.isSummon && readyChar.summonMetadata?.initiativePolicy === 'rolled'
+      ? initiative
+      : undefined;
 
     // Shared-initiative summons should enter immediately after the caster
-    // that called them. Everyone else keeps the generic append/join behavior
-    // handled by useTurnOrder.
-    joinTurnOrder(readyChar.id, sharedInitiativeAnchor);
+    // that called them, while immediate summons enter after the actor whose
+    // turn is already resolving. Rolled summons use their own initiative value,
+    // and ordinary late joiners keep the generic append behavior in useTurnOrder.
+    joinTurnOrder(readyChar.id, turnOrderAnchor, { initiative: rolledInitiative });
 
     onLogEntry({
       id: generateId(),
@@ -616,7 +723,7 @@ export const useTurnManager = ({
       data: { initiative }
     });
     // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
-  }, [handleCharacterUpdateWrapped, onLogEntry, rollInitiative, joinTurnOrder]);
+  }, [handleCharacterUpdateWrapped, onLogEntry, rollInitiative, joinTurnOrder, turnState.currentCharacterId]);
 
 
   // --- End of Turn Logic ---

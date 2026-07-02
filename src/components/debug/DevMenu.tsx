@@ -32,7 +32,7 @@
  * Depends on: GameContext for direct dispatch-only tools, App.tsx for high-level
  * dev actions, and the central UI reducer for the actual Dev Mode state.
  */
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from '../../config/geminiConfig';
 import { useGameState } from '../../state/GameContext';
 import { generateVillageTemple } from '../../utils/templeUtils';
@@ -40,6 +40,26 @@ import { GamePhase, VillageActionContext, VillagePersonality } from '../../types
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
 import StateViewer from './StateViewer';
+
+// Written by the cold-start guard script in index.html whenever the app fails
+// to mount and the page self-heals via reload. Read-only here; the Dev Menu is
+// the visibility surface for those otherwise-invisible recoveries.
+const MOUNT_RECOVERY_LOG_KEY = 'aralia-mount-recovery-log';
+
+interface MountRecoveryEntry {
+  time: string;
+  event: 'retry' | 'recovered' | 'gave-up';
+  attempt: number;
+  url: string;
+}
+
+function readMountRecoveryLog(): MountRecoveryEntry[] {
+  try {
+    return JSON.parse(localStorage.getItem(MOUNT_RECOVERY_LOG_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
 
 type DevMenuActionType =
   | 'main_menu'
@@ -89,6 +109,15 @@ const DevMenu: React.FC<DevMenuProps> = ({
   gamePhase,
 }) => {
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
+  // Re-read on every open so entries logged since the last open show up.
+  const [mountRecoveryLog, setMountRecoveryLog] = useState<MountRecoveryEntry[]>([]);
+  useEffect(() => {
+    if (isOpen) setMountRecoveryLog(readMountRecoveryLog());
+  }, [isOpen]);
+  const clearMountRecoveryLog = () => {
+    localStorage.removeItem(MOUNT_RECOVERY_LOG_KEY);
+    setMountRecoveryLog([]);
+  };
   // TODO(lint-intent): 'state' is declared but unused, suggesting an unfinished state/behavior hook in this block.
   // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
   // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
@@ -279,6 +308,47 @@ const DevMenu: React.FC<DevMenuProps> = ({
               {isDevModeEnabled ? 'Disable Dev Mode' : 'Enable Dev Mode'}
             </button>
           </div>
+        </div>
+
+        {/* Startup Recovery Log: surfaces the index.html cold-start guard's
+            self-heal events, which are otherwise invisible after the reload. */}
+        <div className="mb-6 rounded-lg border border-gray-700 bg-gray-900/60 p-4" data-testid="startup-recovery-log">
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <h3 className="text-sm uppercase tracking-wider text-gray-400 font-bold">
+              Startup Recovery Log
+            </h3>
+            {mountRecoveryLog.length > 0 && (
+              <button
+                onClick={clearMountRecoveryLog}
+                className="shrink-0 rounded-lg px-3 py-1 text-xs font-semibold bg-slate-600 text-white hover:bg-slate-500"
+              >
+                Clear Log
+              </button>
+            )}
+          </div>
+          {mountRecoveryLog.length === 0 ? (
+            <p className="text-sm text-gray-400">
+              No self-heal events recorded. The app has always mounted on the first try.
+            </p>
+          ) : (
+            <ul className="space-y-1 max-h-40 overflow-y-auto text-sm">
+              {[...mountRecoveryLog].reverse().map((entry, i) => (
+                <li key={`${entry.time}-${i}`} className="flex gap-2 items-baseline">
+                  <span className={
+                    entry.event === 'gave-up'
+                      ? 'text-red-400 font-semibold'
+                      : entry.event === 'recovered'
+                        ? 'text-emerald-400 font-semibold'
+                        : 'text-amber-400 font-semibold'
+                  }>
+                    {entry.event === 'retry' ? `Retry #${entry.attempt}` : entry.event === 'recovered' ? `Recovered (after ${entry.attempt} ${entry.attempt === 1 ? 'retry' : 'retries'})` : 'Gave up'}
+                  </span>
+                  <span className="text-gray-400">{new Date(entry.time).toLocaleString()}</span>
+                  <span className="text-gray-500 truncate">{entry.url}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="space-y-6 mb-6">

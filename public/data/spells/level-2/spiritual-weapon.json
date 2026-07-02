@@ -361,6 +361,10 @@
                                                    "actor":  "caster",
                                                    "actionKind":  "standard_action",
                                                    "rangeLimit":  20,
+                                                   "attackType":  "melee_spell_attack",
+                                                   "damageDice":  "1d8+spellcasting_mod",
+                                                   "damageType":  "force",
+                                                   "damageAbilityModifier":  "spellcasting_ability",
                                                    "notes":  "Move the force up to 20 feet and repeat the attack against a creature within 5 feet of it."
                                                }
                                            ],

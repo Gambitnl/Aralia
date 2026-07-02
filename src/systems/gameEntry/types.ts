@@ -42,6 +42,21 @@ export interface SituationNPC {
 }
 
 /**
+ * A hostile opening scene's combat data. Present only when the model flags the
+ * scene combat-capable; absent scenes behave exactly as a peaceful opening.
+ */
+export interface SituationThreat {
+    hostile: true;
+    /** Enemies as REAL bestiary monsters; mapped via createEnemyFromMonster.
+     *  `cr` is the monster's Challenge Rating string (e.g. "1/8", "2"). */
+    enemies: Array<{ name: string; quantity: number; cr: string }>;
+    /** De-escalation check DC, scaled by the toughest enemy's CR (5..25). */
+    deEscalationDC: number;
+    /** Short cue describing what the tension is, used to judge de-escalation. */
+    tension: string;
+}
+
+/**
  * A single structured opening situation. This is the contract the generator
  * returns and the entry orchestration consumes.
  */
@@ -59,6 +74,8 @@ export interface OpeningSituation {
     };
     /** Optional 2–4 suggested replies the UI may offer the player. */
     suggestedReplies?: string[];
+    /** Present when the scene is hostile/combat-capable. Omitted for peaceful openings. */
+    threat?: SituationThreat;
 }
 
 /**

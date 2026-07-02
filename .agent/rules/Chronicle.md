@@ -5,9 +5,17 @@ At the conclusion of a significant development session (adding features, fixing 
 
 ## Procedure
 1.  **Analyze the Session**: Review the tools used, files modified, and challenges encountered.
-2.  **Read Data**: Read the current `misc/chronicle_data.json` file.
-3.  **Generate Entry**: Create a new JSON object following the schema below.
-4.  **Append & Save**: Add the new object to the array and write the file back.
+2.  **Generate Entry**: Create a JSON object following the schema below and write it to a temp file (e.g. the scratchpad), or an array of objects for a multi-part session.
+3.  **Add via the helper** (do NOT hand-edit the JSON): run
+    `node scripts/chronicle/add.mjs <entry.json>` (or `... -` to read JSON from stdin).
+
+> **Storage:** the chronicle lives in a SQLite DB (`misc/chronicle/chronicle.db`, the source
+> of truth); the helper inserts your entry in a transaction and re-dumps
+> `misc/chronicle_data.json` for the static viewer. Because inserts are transactional, parallel
+> agents can't clobber each other — which the old "read the whole JSON, append, write it back"
+> procedure did. `id` and `date` are auto-filled if you omit them; re-using an `id` edits that
+> entry. Query the DB directly for reports, e.g. entries tagged X in the last two weeks:
+> `SELECT e.* FROM entries e, json_each(e.categories) j WHERE j.value='Spell System' AND e.date >= '2026-06-17'`.
 
 ## Schema
 ```json

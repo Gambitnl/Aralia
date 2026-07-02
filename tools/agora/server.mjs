@@ -24,11 +24,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createStore } from './store.mjs';
 import { attachActivityMirror } from './activityMirror.mjs';
+import { renderDocPage } from './mdRender.mjs';
+import { indexGaps } from './gapIndex.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 const DEFAULT_PORT = 4319;
 // Repo root is two levels up from tools/agora/server.mjs.
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
@@ -235,9 +237,13 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
   router.delete(
     '/locks/:id',
     withAuth(async (_req, res, ctx) => {
-      const result = store.releaseLock({ lockId: ctx.params.id, agentId: ctx.agent.id });
+      // ?force=1 lets a non-holder release a STALE/GONE holder's lock (the
+      // store refuses force against an online holder → 409).
+      const force = ctx.query.get('force') === '1' || ctx.query.get('force') === 'true';
+      const result = store.releaseLock({ lockId: ctx.params.id, agentId: ctx.agent.id, force });
       if (result.ok) return sendJson(res, 200, { ok: true });
       if (result.error === 'lock not found') return sendJson(res, 404, { error: result.error });
+      if (/online/.test(result.error || '')) return sendJson(res, 409, { error: result.error });
       return sendJson(res, 403, { error: result.error || 'forbidden' });
     }),
   );
@@ -255,8 +261,32 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       if (!body.title || typeof body.title !== 'string') {
         return sendJson(res, 400, { error: 'title (string) is required' });
       }
-      const task = store.createTask({ agentId: ctx.agent.id, title: body.title, body: body.body });
+      let task;
+      try {
+        task = store.createTask({
+          agentId: ctx.agent.id,
+          title: body.title,
+          body: body.body,
+          deps: Array.isArray(body.deps) ? body.deps : [],
+          priority: typeof body.priority === 'number' ? body.priority : undefined,
+          refs: Array.isArray(body.refs) ? body.refs : [],
+        });
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message }); // e.g. unknown dep
+      }
       sendJson(res, 201, { task });
+    }),
+  );
+
+  // Worker-pull: atomically claim the highest-priority ready task.
+  // 200 { task } — or 200 { task: null } when nothing is ready (not an error;
+  // a polling worker just idles).
+  router.post(
+    '/tasks/claim-next',
+    withAuth(async (_req, res, ctx) => {
+      const result = store.claimNextReady({ agentId: ctx.agent.id });
+      if (result.ok) return sendJson(res, 200, { task: result.task || null });
+      return sendJson(res, 409, { error: result.error });
     }),
   );
 
@@ -283,6 +313,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         taskId: ctx.params.id,
         agentId: ctx.agent.id,
         state: body.state,
+        result: typeof body.result === 'string' ? body.result : undefined,
       });
       if (result.ok) return sendJson(res, 200, { task: result.task });
       if (result.error === 'task not found') return sendJson(res, 404, { error: result.error });
@@ -312,7 +343,8 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
 
   router.get('/tasks', async (req, res, ctx) => {
     const state = ctx.query.get('state') || undefined;
-    sendJson(res, 200, { tasks: store.listTasks({ state }) });
+    const ready = ctx.query.get('ready') === '1' || ctx.query.get('ready') === 'true';
+    sendJson(res, 200, { tasks: store.listTasks({ state, ready }) });
   });
 
   // ============================== Messaging ==============================
@@ -348,6 +380,93 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       to = agent ? agent.id : undefined; // no token + me => treat as 'all'
     }
     sendJson(res, 200, { messages: store.getMessages({ since, to }) });
+  });
+
+  // ============================== Reference docs ==============================
+  // Whitelisted read-only serving of the coordination reference files so the
+  // dashboard's docs panel can offer copy-content/copy-path without a second
+  // static server. Strictly name-keyed — no path resolution from user input.
+  const DOC_FILES = ['PROTOCOL.md', 'ORCHESTRATOR.md', 'WORKFLOW_GAPS.md', 'COLD_START_ORCHESTRATOR_PROMPT.md'];
+
+  router.get('/docs', async (_req, res) => {
+    sendJson(res, 200, {
+      docs: DOC_FILES.map((name) => ({
+        name,
+        path: path.join(__dirname, name),
+        relPath: `tools/agora/${name}`,
+      })),
+    });
+  });
+
+  router.get('/docs/:name', async (_req, res, ctx) => {
+    const name = ctx.params.name;
+    if (!DOC_FILES.includes(name)) {
+      return sendJson(res, 404, { error: `unknown doc "${name}" (have: ${DOC_FILES.join(', ')})` });
+    }
+    // Default = pretty HTML for humans; ?raw=1 = the plain markdown (what the
+    // dashboard copy-content button and agents consume).
+    const raw = ctx.query.get('raw') === '1' || ctx.query.get('raw') === 'true';
+    fs.readFile(path.join(__dirname, name), 'utf8', (err, data) => {
+      if (err) return sendJson(res, 404, { error: 'doc unreadable: ' + err.message });
+      if (raw) {
+        res.writeHead(200, { 'Content-Type': 'text/markdown; charset=utf-8' });
+        return res.end(data);
+      }
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(renderDocPage(name, data, { docNames: DOC_FILES }));
+    });
+  });
+
+  // ============================== Gap index (tracker bridge) ==============================
+  // Serves the project tracker's GAPS registries as data + a browsable card
+  // view, so the dashboard can categorize tasks by owning project and link
+  // each one to its tracker card. Index is cached briefly (directory walk).
+  const GAPS_ROOTS = ['docs/projects', 'tools/agora'];
+  let gapsCache = null; // { at, gaps }
+  function getGapIndex() {
+    if (gapsCache && Date.now() - gapsCache.at < 60000) return gapsCache.gaps;
+    let gaps = [];
+    for (const root of GAPS_ROOTS) {
+      try {
+        gaps = gaps.concat(indexGaps({ root }));
+      } catch {
+        // a missing root (e.g. gitignored docs/projects absent) is not fatal
+      }
+    }
+    gapsCache = { at: Date.now(), gaps };
+    return gaps;
+  }
+
+  router.get('/gaps', async (_req, res, ctx) => {
+    let gaps = getGapIndex();
+    const project = ctx.query.get('project');
+    if (project) gaps = gaps.filter((g) => g.project === project);
+    if (ctx.query.get('open') === '1') {
+      const { OPEN_STATUSES } = await import('./gapIndex.mjs');
+      gaps = gaps.filter((g) => OPEN_STATUSES.has(g.status));
+    }
+    sendJson(res, 200, { gaps, count: gaps.length });
+  });
+
+  router.get('/gaps/view', async (_req, res, ctx) => {
+    const project = ctx.query.get('project');
+    const gaps = getGapIndex().filter((g) => !project || g.project === project);
+    const byProject = new Map();
+    for (const g of gaps) {
+      if (!byProject.has(g.project)) byProject.set(g.project, []);
+      byProject.get(g.project).push(g);
+    }
+    // Build markdown and reuse the doc-page renderer for a consistent look.
+    let md = `# Tracker gaps${project ? ` — ${project}` : ''}\n\n${gaps.length} gap(s)${project ? '' : ` across ${byProject.size} project(s)`}. Source: GAPS.md registries on disk.\n`;
+    for (const [proj, rows] of [...byProject.entries()].sort()) {
+      md += `\n## ${proj} (${rows.length})\n\n| Gap ID | Status | Severity | Gap | Next action |\n|---|---|---|---|---|\n`;
+      for (const r of rows) {
+        const clean = (s) => String(s || '').replace(/\|/g, '/');
+        md += `| ${clean(r.id)} | ${clean(r.status)} | ${clean(r.severity)} | ${clean(r.gap)} | ${clean(r.nextAction)} |\n`;
+      }
+    }
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(renderDocPage(`gaps${project ? `: ${project}` : ''}`, md, { docNames: [], rawHref: null }));
   });
 
   // ============================== Health ==============================

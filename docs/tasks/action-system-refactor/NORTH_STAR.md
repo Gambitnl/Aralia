@@ -23,7 +23,7 @@ Implemented:
 - `useGameActions` now orchestrates action execution in `src/hooks/useGameActions.ts`.
 - `buildActionHandlers` in `src/hooks/actions/actionHandlers.ts` is the central action registry.
 - Action handlers are split into:
-  - `handleMovement.ts`
+  - `handleMovement.ts` (removed 2026-07-01 by the grid-retirement program, commit `904ea31e`; `move`/`QUICK_TRAVEL` are now intentional no-ops in `actionHandlers.ts`)
   - `handleObservation.ts`
   - `handleNpcInteraction.ts`
   - `handleItemInteraction.ts`

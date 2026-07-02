@@ -41,12 +41,15 @@ import { BIOMES } from '@/constants';
 import { handleChunkRequest } from '@/systems/world3d/chunkWorkerCore';
 import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from '@/systems/world3d/config';
 import type { ChunkLoader } from '@/systems/world3d/types';
-import { getWorldforgeLocalForLocation } from '@/systems/worldforge/bridge/legacySubmapBridge';
+import { getWorldforgeLocalForLocation, getBridgeAtlas } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { createGroundChunkLoader } from '@/systems/worldforge/bridge/groundChunkLoader';
+import { pickSeamCellPair, buildSeamStitchedLocal } from '@/systems/worldforge/bridge/seamProbe';
 
 const DEMO_COLS = 60;
 const DEMO_ROWS = 40;
 const DEMO_SEED = 2026;
+/** Worldforge world seed for the ground/seam sandbox (matches the .agent probes). */
+const DEMO_WF_SEED = 42;
 
 const World3DDemo: React.FC = () => {
   // Worldforge GROUND MODE (?ground=1, slice 3b): stream an L2 LocalArtifact
@@ -68,8 +71,40 @@ const World3DDemo: React.FC = () => {
       // &hour= drives time-of-day occupant placement (default noon: workers
       // at their shops). The PLAYING integration will pass real game time.
       const hour = Number(params.get('hour') ?? 12);
-      const bridged = getWorldforgeLocalForLocation(42, gx, gy, 25, 16);
-      const { ground, loader: groundLoader } = createGroundChunkLoader(bridged.local, 42, bridged.region, { hour });
+
+      // SEAM PROBE (?ground=1&seam=1) — open-region seam-first slice: two
+      // ADJACENT atlas cells, each with its OWN region, one locale per side
+      // stitched across the shared boundary. Spawns ON the seam (the
+      // artifact's vertical centerline) so the region→region handoff is the
+      // thing on screen. Bare ground by design: no town/region content.
+      if (params.get('seam') === '1') {
+        const atlas = getBridgeAtlas(DEMO_WF_SEED);
+        const fpp = Number(params.get('seamFpp') ?? 1000);
+        const pair = pickSeamCellPair(atlas, fpp);
+        const seam = buildSeamStitchedLocal(atlas, DEMO_WF_SEED, { feetPerPixel: fpp, ...pair });
+        // Headless probes read this line for the empirical handoff residual.
+        // eslint-disable-next-line no-console
+        console.info(
+          `[seamProbe] cells=${seam.cellA}|${seam.cellB} seamWorldXFt=${Math.round(seam.seamWorldXFt)} ` +
+            `maxJoinDeltaFt=${seam.maxJoinDeltaFt.toFixed(2)}`,
+        );
+        const { ground, loader: seamLoader } = createGroundChunkLoader(seam.stitched, DEMO_WF_SEED, undefined, { hour });
+        const startX = ground.extentMetersX / 2; // the seam line
+        const startZ = ground.extentMetersZ / 2;
+        const sgx = Math.round(ground.cols / 2);
+        const sgy = Math.round(ground.rows / 2);
+        return {
+          loader: seamLoader as ChunkLoader,
+          start: [startX, 0, startZ] as const,
+          startSurfaceY: heightToMeters(ground.heights[sgy * ground.cols + sgx] ?? 0),
+        };
+      }
+
+      // &wfseed= overrides the Worldforge world for dev shoots (e.g. a world
+      // whose cultures cover more architecture-style families than seed 42's).
+      const wfSeed = Number(params.get('wfseed') ?? DEMO_WF_SEED);
+      const bridged = getWorldforgeLocalForLocation(wfSeed, gx, gy, 25, 16);
+      const { ground, loader: groundLoader } = createGroundChunkLoader(bridged.local, wfSeed, bridged.region, { hour });
 
       // Spawn at the artifact center, on the ground surface
       const startX = ground.extentMetersX / 2;
@@ -135,16 +170,25 @@ const World3DDemo: React.FC = () => {
   }, [groundMode]);
 
   return (
-    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px', height: '100%' }}>
+    // 100dvh (not height:100%): App's min-h-screen root has AUTO height, so a
+    // percentage chain from here collapses the R3F canvas to a ~150px strip —
+    // the same viewport-fill failure TransitionController hit (fixed 2026-06-29).
+    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px', height: '100dvh', boxSizing: 'border-box' }}>
       <h1 style={{ margin: 0, fontSize: '24px', fontFamily: 'Outfit, sans-serif', color: '#1a2a3a' }}>
-        {groundMode ? 'Worldforge Ground Mode â€” L2 terrain at walking scale' : 'World 3D Chunk Streaming Sandbox'}
+        {groundMode ? 'Worldforge Ground Mode — L2 terrain at walking scale' : 'World 3D Chunk Streaming Sandbox'}
       </h1>
       <p style={{ margin: 0, fontSize: '14px', color: '#4a5a6a' }}>
         Right-click and drag to pan the camera across the landscape. Chunks will stream in and out in real time!
       </p>
-      <World3DScene loader={loader} start={start} startSurfaceY={startSurfaceY} viewProfile={groundMode ? 'ground' : 'continent'}
-        forgeAssetService={_stubService}
-      />
+      {/* Absolute-inset slot: gives World3DScene's height:100% root a DEFINITE
+          height regardless of how the flex column resolves percentages. */}
+      <div style={{ flex: '1 1 auto', minHeight: '520px', position: 'relative' }}>
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <World3DScene loader={loader} start={start} startSurfaceY={startSurfaceY} viewProfile={groundMode ? 'ground' : 'continent'}
+            forgeAssetService={_stubService}
+          />
+        </div>
+      </div>
     </div>
   );
 };

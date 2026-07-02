@@ -222,6 +222,10 @@ export interface TownPlan {
     footprint: Array<[Feet, Feet]>;
     role: string;
     storeys: number;
+    /** Architecture-style stamps (2026-07-01). Optional: legacy plans omit them. */
+    wallColorHex?: string;
+    roofColorHex?: string;
+    roofForm?: 'gable' | 'hip' | 'steep' | 'flat';
   }>;
 }
 

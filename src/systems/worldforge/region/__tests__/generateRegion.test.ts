@@ -663,9 +663,14 @@ describe('generateRegion — WF-G4 canonical-scale contract', () => {
 
     expect(region.bounds.width).toBe(25_000);
     expect(region.bounds.height).toBe(25_000);
+    // Seam purity (2026-07-02): the window origin snaps to the 100 ft sample
+    // lattice so all regions share one world grid — the center may sit up to
+    // resolution/2 from the anchor site.
     const [px, py] = pack.cells.p[anchor];
-    expect(region.bounds.x + region.bounds.width / 2).toBeCloseTo(px * CANONICAL_FEET_PER_PIXEL, 4);
-    expect(region.bounds.y + region.bounds.height / 2).toBeCloseTo(py * CANONICAL_FEET_PER_PIXEL, 4);
+    expect(Math.abs(region.bounds.x + region.bounds.width / 2 - px * CANONICAL_FEET_PER_PIXEL)).toBeLessThanOrEqual(50);
+    expect(Math.abs(region.bounds.y + region.bounds.height / 2 - py * CANONICAL_FEET_PER_PIXEL)).toBeLessThanOrEqual(50);
+    expect(region.bounds.x % 100).toBe(0);
+    expect(region.bounds.y % 100).toBe(0);
   });
 
   it('heightfield is populated and non-flat at canonical scale (the black-canvas bug)', () => {
@@ -707,6 +712,91 @@ describe('generateRegion — WF-G4 canonical-scale contract', () => {
       const region = generateRegion(atlas, anchor, rootSeedPath(WORLD_SEED), { feetPerPixel: fpp });
       expect(region.bounds.width).toBe(25_000);
       expect(region.bounds.height).toBe(25_000);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Open-region seam continuity (2026-07-01): the relief noise must be a pure
+// function of WORLD position, so two regions anchored on adjacent cells produce
+// the SAME terrain height at a shared world point. Otherwise the open-world
+// streamer shows a cliff wherever it hands off from one region to the next.
+//
+// Isolation: a flat, all-equal-height atlas makes the IDW base identical
+// everywhere (weighted average of equal values), so any height difference at a
+// shared world point comes purely from the relief noise — exactly what this fix
+// targets.
+// ---------------------------------------------------------------------------
+describe('generateRegion — cross-region seam continuity', () => {
+  /** Grid of equal-height land cells with 4-neighbour adjacency. */
+  function makeFlatGridAtlas(cols: number, rows: number, spacingPx: number, h: number): FmgAtlasResult {
+    const n = cols * rows;
+    const p: Array<[number, number]> = [];
+    const c: number[][] = [];
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        p.push([(col + 1) * spacingPx, (row + 1) * spacingPx]);
+        const neigh: number[] = [];
+        if (col > 0) neigh.push(row * cols + (col - 1));
+        if (col < cols - 1) neigh.push(row * cols + (col + 1));
+        if (row > 0) neigh.push((row - 1) * cols + col);
+        if (row < rows - 1) neigh.push((row + 1) * cols + col);
+        c.push(neigh);
+      }
+    }
+    return {
+      seed: SEED,
+      grid: {} as FmgAtlasResult['grid'],
+      pack: {
+        cells: {
+          h: Uint8Array.from(new Array(n).fill(h)),
+          c,
+          p,
+          r: Uint16Array.from(new Array(n).fill(0)),
+        },
+        rivers: [],
+      },
+    } as unknown as FmgAtlasResult;
+  }
+
+  /** Bilinear sample of a region's normalized heightfield at a world point. */
+  function sampleAt(region: RegionArtifact, fx: number, fy: number): number {
+    const hf = region.heightfield;
+    const gx = Math.min(Math.max((fx - region.bounds.x) / hf.resolutionFt, 0), hf.width - 1.001);
+    const gy = Math.min(Math.max((fy - region.bounds.y) / hf.resolutionFt, 0), hf.height - 1.001);
+    const x0 = Math.floor(gx);
+    const y0 = Math.floor(gy);
+    const tx = gx - x0;
+    const ty = gy - y0;
+    const s = (xi: number, yi: number) => hf.samples[yi * hf.width + xi];
+    const a = s(x0, y0) * (1 - tx) + s(x0 + 1, y0) * tx;
+    const b = s(x0, y0 + 1) * (1 - tx) + s(x0 + 1, y0 + 1) * tx;
+    return a * (1 - ty) + b * ty;
+  }
+
+  it('adjacent regions agree on terrain height at shared world points', () => {
+    const atlas = makeFlatGridAtlas(11, 11, 10, 70);
+    const worldPath = rootSeedPath(WORLD_SEED);
+    const opts = { feetPerPixel: 1000 };
+
+    // Anchors on horizontally-adjacent cells (col5 and col6 of row5): their
+    // 25,000 ft windows overlap, so shared world points exist in both.
+    const regionA = generateRegion(atlas, 5 * 11 + 5, worldPath, opts);
+    const regionB = generateRegion(atlas, 5 * 11 + 6, worldPath, opts);
+
+    // Points inside the overlap of both windows (x∈[57500,72500], y∈[47500,72500]).
+    const sharedPoints: Array<[number, number]> = [
+      [65000, 60000],
+      [60000, 55000],
+      [70000, 65000],
+      [62000, 50000],
+      [68000, 70000],
+    ];
+
+    for (const [fx, fy] of sharedPoints) {
+      const hA = sampleAt(regionA, fx, fy);
+      const hB = sampleAt(regionB, fx, fy);
+      expect(Math.abs(hA - hB)).toBeLessThan(0.01);
     }
   });
 });

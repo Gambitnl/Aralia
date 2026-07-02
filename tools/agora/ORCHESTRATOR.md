@@ -101,10 +101,16 @@ a write, they only *signal*. So you pre-partition so locks rarely collide.
   feature's data + render span several files, either give one agent the whole chain or sequence
   the consumers after the producer.
 
-### Step C — Announce on the board
+### Step C — Seed the wave ONTO the board (v0.2: the board IS the plan)
 ```bash
-node tools/agora/client.mjs say "WAVE N dispatching: <packets>. Each agent lock-before-edit, own files only." --url http://localhost:4319
+node tools/agora/orchestrate.mjs seed <plan.json>
 ```
+`seed` now creates **one board task per packet** — packet `priority` orders the ready queue,
+packet `issues` become task `refs`, and packet `"after": ["PK-x"]` becomes a task dep so a
+wave-2 packet only surfaces in `tasks --ready` once its producer is `done`. The packet→task
+map lands in `.agent/scratch/orchestrate/seed-<wave>.json`, and `orchestrate prompt`/`dispatch`
+inject each packet's task id into the worker prompt automatically (the worker CLAIMS its
+seeded task instead of creating its own). The wave announcement is broadcast as before.
 
 ### Step D — Dispatch the fix agents (each dogfoods Agora)
 Every fix agent — Claude subagent OR external CLI — gets a prompt containing the **same
@@ -156,15 +162,26 @@ use the headless Playwright rigs in `.agent/3d-visual-quality/captures/` (battle
 
 ## 2. The agent matrix — dispatching external agents
 
-Claude subagents (the `Agent` tool, `model: opus`) are the reliable default. To **leverage the
-external fleet**, invoke their CLIs non-interactively from Bash (run in background, log to a
-file, poll/await):
+**The machine-readable registry is [`agents.json`](./agents.json)** — statuses, policy roles,
+dispatch wiring, and date-bound constraints for every known agent. Consume it programmatically:
+
+```
+node tools/agora/orchestrate.mjs agents      # print the registry + expired-constraint warnings
+```
+
+`validatePlan` ENFORCES it: a packet whose agent is deprecated (gemini), orchestrator-only by
+policy (codex), not supervision-ready, or not wired for dispatch **fails at plan time**, not
+mid-campaign. When the operator dashboard's onboarding contract changes an agent's status,
+update `agents.json` — it is the single source orchestrators trust.
+
+Claude subagents (the `Agent` tool, `model: opus`) are the reliable default worker. Historic
+CLI invocations (kept for reference; the registry carries the authoritative status):
 
 | Agent | Non-interactive invocation | Notes |
 |---|---|---|
-| **codex** | `codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "<prompt>"` | Proven workhorse. **Hits a usage quota** that resets ~2am — probe first; fall back when dry. |
-| **gemini** | `gemini --approval-mode yolo -p "<prompt>"` | Works for contained tasks. Do NOT also pass `-y` (conflicts with `--approval-mode`). Do NOT use `-w` (would make a worktree). |
-| qoder / agy / opencode / kilo / copilot | installed but not reliably non-interactive here | the matrix/cockpit can drive them; from a headless orchestrator, prefer codex/gemini. |
+| **codex** | `codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "<prompt>"` | **Orchestrator/supervisor role ONLY by policy.** Hits a usage quota that resets ~2am — probe first. |
+| **gemini** | `gemini --approval-mode yolo -p "<prompt>"` | **DEPRECATED for new lanes** — registry rejects it; historical sessions kept for audit. |
+| cursor / kilo / agy | onboarded per the dashboard contract, not yet wired into `orchestrate dispatch` | wire `dispatch.command/args` in agents.json + a `launchSpec` branch before first use. |
 
 **External-agent gotchas (learned the hard way):**
 - **Quota check before dispatch.** Codex returns "hit your usage limit" when dry. Probe with a
@@ -188,12 +205,45 @@ your peer-coordination events show up there alongside external dispatches automa
 
 ```
 register <handle> [--note]      whoami        agents
-lock <path...> [--ttl min]      unlock <id|path> | --mine       locks
-task new <title> [--id-only]    task claim <id>    task done <id>    task handoff <id> <to>    tasks
+lock <path...> [--ttl min]      unlock <id|path> | --mine | <id> --force       locks
+task new <title> [--dep <id>...] [--priority N] [--ref <gapId>...] [--id-only]
+task claim <id>    task next [--id-only]    task done <id> --result "<what+proof>"
+task handoff <id> <to>    tasks [--ready]
 say <body> | say --to <h> <body>     inbox [--since <seq>] [--mine]     watch     health
 ```
 - All client calls default to `http://localhost:4319` (the `--url` in examples is optional).
 - `AGORA_DIR` controls where THIS agent's identity is stored — it MUST be unique per agent.
+
+**Orchestration on the board (new in v0.2):**
+- **Sequencing lives on the daemon now**: create wave-2 packets with `--dep <wave1-taskId>` —
+  they only surface in `tasks --ready` / `task next` when every dep is `done`. `--priority`
+  orders the ready queue. No more hand-sequencing in plan JSON.
+- **Worker-pull waves**: instead of assigning packets, seed N prioritized tasks and tell each
+  worker to loop `task next` → work → `task done <id> --result "<files + proof>"`. The board
+  balances the load.
+- **Results live on tasks**: require `--result` in your worker prompts; read outcomes from
+  `tasks` (done tasks print their result) instead of scraping `say` messages.
+- **Crash recovery is automatic**: a worker silent past the drop horizon (60 min) is reaped —
+  locks freed, its claimed tasks reopened for the next `task next`. For a stale-but-not-dead
+  holder blocking a file, `unlock <lockId> --force` (refused while the holder is online).
+- **Tracker bridge**: tag tasks with `--ref <project>:<gapId>` (use the EXACT Gap ID from the
+  registry — e.g. world3d uses `W3D-G5`-style ids); intake work from the tracker with
+  `node tools/agora/gapIndex.mjs --open-only` (all open GAPS.md rows as JSON; `--summary`
+  for per-project counts). Close the loop after the wave:
+  `orchestrate reconcile <plan>` lists every done-task ref whose GAPS.md row is still open
+  (with the recorded result as evidence) — update those rows or dispute the result.
+- **Wave lifecycle**: `orchestrate watch <plan>` blocks until every seeded task is
+  done/blocked and prints the collected results; `orchestrate report <plan>` is the
+  retrospective (per-packet time-to-done, reap counts, results).
+- **Fresh agents**: point them at `client.mjs onboard <handle>` (one-shot registration +
+  situational briefing + the rules; `--gaps` adds tracker intake) — also now in AGENTS.md, so
+  even un-prompted agents can find the front door. Long workers keep presence with
+  `client.mjs heartbeat --every 600` in the background.
+- **Workflow friction goes in [`WORKFLOW_GAPS.md`](./WORKFLOW_GAPS.md)** — the durable,
+  structured registry for gaps in the workflow ITSELF (hard row schema in the file; same
+  table format as project GAPS.md, so `gapIndex.mjs --root tools/agora` parses it). A
+  `say "WORKFLOW: ..."` message that matters should ALSO become a row there; tag fixing
+  tasks with `--ref workflow:WF-G<n>`.
 
 ---
 

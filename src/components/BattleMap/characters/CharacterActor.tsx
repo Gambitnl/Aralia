@@ -242,7 +242,7 @@ const ConditionBadgeRow: React.FC<{ character: CombatCharacter }> = ({ character
 
   return (
     <Html
-      position={[0, 2.86, 0]}
+      position={[0, 1.7, 0]}
       center
       distanceFactor={10}
       style={{ pointerEvents: 'none' }}
@@ -1008,7 +1008,7 @@ const SelectionDecal: React.FC<{
     >
       {/* Thicker/brighter idle ring so EVERY unit has a clearly readable
           team-colored circle at tactical zoom (not just the selected one). */}
-      <ringGeometry args={[0.42, 0.60, 32]} />
+      <ringGeometry args={[0.32, 0.46, 32]} />
       <meshStandardMaterial
         color={color}
         emissive={color}
@@ -1097,7 +1097,7 @@ const TurnIndicator: React.FC<{ active: boolean }> = ({ active }) => {
 
       {/* Wide ground ring — enhanced for visibility */}
       <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.55, 0.80, 32]} />
+        <ringGeometry args={[0.43, 0.62, 32]} />
         <meshStandardMaterial
           color={0xfbbf24}
           emissive={0xfbbf24}
@@ -1297,9 +1297,9 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
           the unit faces (GOAL #9); rotates with the model's facing. */}
       {isAlive && (
         <group rotation={[0, facingRotation, 0]}>
-          <mesh position={[0, 0.03, 0.78]} rotation={[-Math.PI / 2, 0, 0]}>
+          <mesh position={[0, 0.03, 0.60]} rotation={[-Math.PI / 2, 0, 0]}>
             {/* thetaStart -π/2 puts the triangle's point outward (+Z = forward) */}
-            <circleGeometry args={[0.24, 3, -Math.PI / 2]} />
+            <circleGeometry args={[0.19, 3, -Math.PI / 2]} />
             <meshStandardMaterial
               color={teamColors.selection}
               emissive={teamColors.selection}
@@ -1332,16 +1332,18 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
           status story, below the HP pip. */}
       <ConditionBadgeRow character={character} />
 
-      {/* Character model — scaled up so the party reads as the focal point
-          rather than being dwarfed by terrain/trees (GOAL #3). Model meshes
-          get a fresnel rim (task 73, GOAL #7) so silhouettes separate from
-          terrain at tactical zoom; indicators outside this group stay clean. */}
+      {/* Character model — scaled to TRUE world proportions (Remy 2026-07-01:
+          "characters shouldn't be almost as big as a tree"). At 1 tile = 5 ft,
+          2.2× puts a human at ~1.4 units ≈ 7 ft — figures stand under the
+          canopy instead of rivaling it. Readability is carried by the team
+          rings, fresnel rim (task 73), and indicators, not by giant models
+          (the old 3.7× made characters near canopy height). */}
       <group
         ref={modelGroupRef}
         scale={[
-          3.7 * raceVisual.buildScale * sizeScale,
-          3.7 * raceVisual.heightScale * sizeScale,
-          3.7 * raceVisual.buildScale * sizeScale,
+          2.2 * raceVisual.buildScale * sizeScale,
+          2.2 * raceVisual.heightScale * sizeScale,
+          2.2 * raceVisual.buildScale * sizeScale,
         ]}
         rotation={[0, facingRotation, 0]}
       >
@@ -1401,8 +1403,8 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         />
       )}
 
-      {/* Always-visible HP pip — sphere + team ring, positioned above the 3.7× scaled model */}
-      <group position={[0, 3.05, 0]}>
+      {/* Always-visible HP pip — sphere + team ring, positioned above the 2.2× scaled model */}
+      <group position={[0, 1.85, 0]}>
         {/* HP color sphere — glows team-appropriate health color */}
         <mesh>
           <sphereGeometry args={[0.18, 10, 8]} />
@@ -1432,7 +1434,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
       {/* Nameplate — shown on hover, selection, or active turn (BG3 style) */}
       {(isSelected || isTurn || hovered) && (
         <Html
-          position={[0, 3.5, 0]}
+          position={[0, 2.15, 0]}
           center
           distanceFactor={10}
           style={{ pointerEvents: 'none' }}

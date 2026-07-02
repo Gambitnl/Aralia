@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 01/06/2026, 18:11:07
- * Dependents: components/Combat/CombatView.tsx
+ * Last Sync: 01/07/2026, 22:47:09
+ * Dependents: None (Orphan)
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -26,11 +26,12 @@ import { Class } from '../../types/character';
  *
  * The active spell-casting runtime currently creates combat summons through
  * `SummoningCommand`, not through this hook. We keep this hook aligned with the
- * command metadata shape because older UI/tests still reference it, but it is
- * not the authoritative summon owner until a future parity slice either wires
- * it into command execution or formally retires it.
+ * command metadata shape because older tests still reference it, but it is not
+ * the authoritative summon owner and production spell casting should not route
+ * through it unless a future parity slice deliberately changes that contract.
  *
- * Called by: CombatView as a currently parallel helper path.
+ * Called by: helper tests and any future preview-only UI that needs local summon
+ * state without claiming ownership of production spell-created actors.
  * Depends on: summon templates and CombatCharacter metadata.
  */
 

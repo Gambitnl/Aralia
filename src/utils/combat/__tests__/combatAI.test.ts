@@ -508,6 +508,49 @@ describe('combatAI', () => {
     expect(result.type).toBe('end_turn');
   });
 
+  it('should make an uncontrolled Summon Greater Demon target the nearest non-demon', () => {
+    const uncontrolledDemon = createMockCombatCharacter({
+      id: 'greater-demon',
+      name: 'Summoned Barlgura',
+      team: 'enemy',
+      position: { x: 0, y: 0 },
+      abilities: [basicAttack],
+      isSummon: true,
+      creatureTypes: ['Fiend', 'Demon'],
+      summonMetadata: {
+        casterId: 'wizard-caster',
+        spellId: 'summon-greater-demon',
+        entityType: 'chosen_demon',
+        sourceName: 'Summon Greater Demon',
+        control: {
+          entityType: 'chosen_demon',
+          allegiance: 'uncontrolled_hostile',
+          obedience: 'pursues_and_attacks_nearest_non_demons'
+        }
+      }
+    });
+    const caster = createMockCombatCharacter({
+      id: 'wizard-caster',
+      team: 'player',
+      position: { x: 0, y: 2 },
+      currentHP: 20
+    });
+    const otherDemon = createMockCombatCharacter({
+      id: 'other-demon',
+      team: 'enemy',
+      position: { x: 0, y: 1 },
+      currentHP: 20,
+      creatureTypes: ['Demon']
+    });
+
+    const result = evaluateCombatTurn(uncontrolledDemon, [uncontrolledDemon, caster, otherDemon], mapData);
+
+    // After control breaks, team allegiance no longer makes the caster safe,
+    // and other demons are not valid targets for this spell behavior.
+    expect(result.type).toBe('ability');
+    expect(result.targetCharacterIds).toEqual([caster.id]);
+  });
+
   it('should prioritize killing blow', () => {
     hero = createMockCombatCharacter({
       id: 'hero',

@@ -1,6 +1,6 @@
 ﻿# Summoning Runtime Boundary
 
-Status: active boundary note, created 2026-06-01 for `SSO-SUMMONING-RUNTIME-PARITY-001`.
+Status: active boundary note, created 2026-06-01 for `SSO-SUMMONING-RUNTIME-PARITY-001`; implemented/open tables refreshed 2026-07-01 against the current tree.
 
 This note prevents future agents from treating every summon-related file as the authoritative runtime. Aralia currently has two summon-shaped paths, but only one is production-fed by spell casting.
 
@@ -11,36 +11,37 @@ This note prevents future agents from treating every summon-related file as the 
 | `SummoningCommand` | Active command-runtime path for spell-created summons. | Spell command factory routes `SUMMONING` effects into command execution. |
 | `DamageCommand` | Command-runtime cleanup path for summons that reach 0 HP. | Removes `isSummon` actors from combat state when damage drops them to 0 HP. |
 | `CombatCharacter.summonMetadata` | Shared metadata envelope for command-created summons and hook-created helper summons. | Stores caster, spell, entity type, form name, source name, duration, and dismissability. |
-| `useSummons` | Parallel UI/helper hook, not authoritative production summon runtime. | Imported in `CombatView`, but combat spell casting is not currently fed through this hook. |
-| `CombatView` useSummons wiring | Placeholder/helper integration. | Does not make `useSummons` the production summon owner. |
+| `useSummons` | Helper/test-only hook, not authoritative production summon runtime. | No longer imported by `CombatView`; combat spell casting stays command-owned unless a future parity slice deliberately promotes the hook. |
 
 ## Contract for future changes
 
-1. Do not route new production summon behavior through `useSummons` unless the ownership decision is made explicitly.
+1. Do not route new production summon behavior through `useSummons` unless this boundary is reopened and updated explicitly.
 2. For active combat casting, treat `SummoningCommand` and command results as the current source of truth.
-3. Keep `useSummons` metadata aligned while it exists, because tests or helper UI may still inspect it.
-4. If `useSummons` is retained, document what it owns: helper state, preview state, side-panel state, or production summon state.
-5. If `useSummons` is retired, remove or archive its placeholder wiring only after confirming no tests or UI surfaces rely on it.
-6. Visual proof for summons should use command-created summons unless a later slice wires `useSummons` into production casting.
+3. Keep `useSummons` metadata aligned while it exists, because tests or future preview-only UI may still inspect it.
+4. If `useSummons` is promoted later, update this boundary first and prove commands and the hook share one creation/update/removal contract.
+5. Visual proof for summons should use command-created summons unless a later slice wires `useSummons` into production casting.
 
-## What is already implemented
+## What is already implemented (verified 2026-07-01)
 
 - Command-created summons are tagged with `isSummon`.
 - Command-created summons store `summonMetadata.casterId` and `spellId`.
 - Command-created summons now store `entityType`, `formName`, and `sourceName`.
-- `useSummons` helper-created summons now store the same identity fields.
+- `useSummons` helper-created summons now store the same identity fields, but the hook is retained for helper tests rather than production spell casting.
 - Recasting a familiar through `SummoningCommand` removes the existing familiar from the same caster/spell before creating the replacement.
 - Damage that drops an `isSummon` actor to 0 HP removes it from combat state and logs disappearance.
+- `src/commands/effects/CommandedSummonCommand.ts` — generic "command your summon" orders execute through the same combat-log/command pipeline as other spell actions (routed via `AbilityCommandFactory`).
+- `src/commands/effects/SummonDismissCommand.ts` — `dismissAction`/`dismissable` metadata is now an executable dismiss action for non-familiar summons (e.g. Find Steed), separate from the familiar pocket flow.
+- `src/commands/effects/SummonReturnHomeCommand.ts` — planar/service summons (no-agreement or service-complete) can be returned home through the command pipeline.
+- `src/types/spellControlledEntity.ts` — typed runtime shape for controllable utility entities (Mage Hand-style persistent helpers with movement/manipulation limits), referenced from `src/types/spells.ts`.
+- Familiar dismissal/pocket (`FamiliarPocketCommands.ts`), shared senses (`FamiliarSharedSensesCommand.ts` + `visibilityObserverPolicy.ts` observer delegation in both map modes), and touch-spell delivery (targeting bridge + reaction spend + 2D/3D delivery cue) all have implemented runtime paths — see the dated foothold sections below.
+- Extensive live-data test coverage exists under `src/commands/__tests__/SummoningCommand.*LiveData.test.ts` (~35 spells: Find Familiar, Conjure Fey/Animals/Elemental, Animate Dead, Spiritual Weapon, True Polymorph, Planar Ally, etc.), plus binding/domination-control live-data tests; some of these are uncommitted concurrent work as of 2026-07-01.
 
-## What remains open
+## What remains open (refreshed 2026-07-01)
 
 | Open work | Owning row |
 | --- | --- |
-| Decide whether `useSummons` should be retired, helper-only, or wired into command execution. | `SSO-SUMMONING-RUNTIME-PARITY-001` |
-| Add player/AI summon form, CR, and count choice. | `SSO-SUMMONING-FORM-SELECTION-001` |
-| Enforce summon initiative, command cost, control, obedience, hostility, and AI policy. | `SSO-SUMMONING-COMMAND-ECONOMY-001` |
 | Define 2D/3D map categories for creature summons, mounts, invisible servants, disks, objects, and guardian-style constructs. | `SSO-SUMMONING-MAP-VISUALS-001` |
-| Finish Find Familiar dismissal, pocket dimension, shared senses, touch spell delivery, and familiar AI/map behavior. | `SSO-LEVEL1-FAMILIAR-RUNTIME-001` |
+| Familiar dismissal, pocket dimension, shared senses, and touch spell delivery: runtime paths are all implemented (see footholds below). Recall placement, pocketed-familiar turn-order policy, and the shared-senses observer label now have focused proof. Failed-first rendered proof on 2026-07-02 found the overlay defect; the `Z_INDEX.COMBAT_OVERLAY` fix now renders the label legibly in both 2D and 3D. | `SSO-LEVEL1-FAMILIAR-RUNTIME-001` |
 | Capture rendered proof that summon tokens/actors appear, identify their type/form/source, and disappear cleanly. | `SSO-COMBAT-MAP-PRESENTATION-MATRIX-001` |
 
 ## Proof required before closing runtime parity
@@ -49,9 +50,28 @@ Runtime parity is not closed by comments or metadata alone. Closing it requires 
 
 Acceptable closure paths:
 
-1. `SummoningCommand` remains authoritative, and `useSummons` is formally retired or documented as helper-only with tests adjusted to that contract.
-2. `useSummons` becomes the production summon manager, and command execution delegates creation/update/removal into it or a shared service.
-3. Both paths delegate to a shared summon service, and tests prove they produce the same state shape and cleanup behavior.
+1. `SummoningCommand` remains authoritative for production spell-created summons.
+2. `useSummons` stays helper/test-only and must not become a production summon path without reopening this boundary.
+3. If a later design promotes `useSummons`, command execution must delegate creation/update/removal into it or a shared service with parity proof.
+
+## 2026-07-01 useSummons production wiring retirement
+
+- `CombatView` no longer imports `useSummons`, removing the unused placeholder callbacks that made the hook look like a second production summon owner.
+- `useSummons` remains covered by `src/systems/spells/effects/__tests__/SummoningSystem.test.ts` as helper/test-only state, preserving its metadata alignment without routing live spell casting through it.
+- Focused proof passed with `node node_modules\vitest\vitest.mjs run --dir src src\systems\spells\effects\__tests__\SummoningSystem.test.ts` (1 file / 7 tests), and an import-only search found `useSummons` imported only by that test file.
+
+## 2026-07-01 summon form/count routing refresh
+
+- Current summon-spirit form choices use the existing mode-choice input path, and `SummoningCommand` preserves the selected form on the created actor.
+- Focused proof passed with `node node_modules\vitest\vitest.mjs run --dir src src\commands\__tests__\SummoningCommand.summonBeastLiveData.test.ts src\commands\__tests__\SummoningCommand.conjureAnimalsLiveData.test.ts` (2 files / 4 tests).
+- The maintained Conjure Animals spell is the 2024 spectral-pack version, not a CR/count menu, and a current corpus scan found no spell JSON using `countByCR`. Future count-by-CR imports should open a fresh source-backed row instead of relying on the retired SSO form-selection row.
+
+## 2026-07-01 command-economy / hostility refresh
+
+- Visible verifier thread `019f1f7a-1712-7f20-8735-5c04d8947477` classified the command-economy row as still real: command counters existed, but Summon Greater Demon did not yet have a live actor bridge or AI hostility policy.
+- `UtilityCommand` now creates the live Summon Greater Demon actor from `public/data/spells/level-4/summon-greater-demon.json`, preserving no-action verbal commands, no-command behavior, control-save, true-name, control-break, blood-circle, lifecycle, and command-budget metadata on `summonMetadata`.
+- `combatAI` now treats an uncontrolled Summon Greater Demon as hostile to living non-demons, reusing the existing attack/movement planner rather than normal team allegiance.
+- Focused proof passed with `node node_modules\vitest\vitest.mjs run --dir src src\commands\__tests__\SummoningCommand.summonGreaterDemonLiveData.test.ts src\utils\combat\__tests__\combatAI.test.ts` (2 files / 23 tests), and the adjacent command-economy slice passed with 7 files / 33 tests. The older `useTurnManager.summonGrace.test.ts` still fails independently because the grace actor remains in hook state; that cleanup failure is not used as command-economy closure proof.
 
 Until one of those paths is implemented and proved, keep `SSO-SUMMONING-RUNTIME-PARITY-001` open.
 
@@ -63,7 +83,8 @@ Until one of those paths is implemented and proved, keep `SSO-SUMMONING-RUNTIME-
 ## 2026-06-01 familiar pocket-state foothold
 
 - `CombatState.pocketedSummons` and `FamiliarPocketCommands.ts` now provide the runtime state transition for dismissing and recalling a familiar.
-- This does not make the feature player-facing yet. Future work still needs action/UI wiring, recall placement validation, and rendered map proof.
+- 2026-07-02 focused scheduler proof in `src/hooks/combat/__tests__/useTurnOrder.familiarPocket.test.ts` confirms the turn-order contract: while the familiar is pocketed and absent from `characters`, the scheduler skips that id; after recall restores the actor, the familiar resumes its shared after-caster slot.
+- This does not make the feature player-facing complete yet. Action wiring, recall placement, and turn-order policy now have focused proof; rendered 2D/3D pocket/recall and shared-senses observer proof remains open.
 
 ## 2026-06-01 familiar pocket ability-factory foothold
 
@@ -78,13 +99,13 @@ Until one of those paths is implemented and proved, keep `SSO-SUMMONING-RUNTIME-
 ## 2026-06-01 familiar pocket caster actions
 
 - `SummoningCommand` now adds `Dismiss Familiar` and `Recall Familiar` abilities to the caster after creating a familiar.
-- These abilities use the command-owned `familiar_pocket` path; future work still needs proof, turn-order policy, placement validation, and rendered UI review.
+- These abilities use the command-owned `familiar_pocket` path; command proof, placement validation, turn-order policy, and rendered shared-senses observer review now have focused coverage.
 
 ## 2026-06-01 familiar shared-senses and touch-delivery split
 
 - `SSO-FAMILIAR-SHARED-SENSES-001` now owns shared-senses and telepathy behavior.
 - `SSO-FAMILIAR-TOUCH-DELIVERY-001` now owns routing eligible touch spells through the familiar.
-- Both are separate from pocket dismissal/recall, which now has runtime/action/UI-path footholds but still lacks proof.
+- Both are separate from pocket dismissal/recall, which now has runtime/action/UI-path footholds and focused command/scheduler proof but still needs passing rendered map proof.
 
 ## 2026-06-01 familiar shared-senses foothold
 
@@ -101,7 +122,7 @@ Until one of those paths is implemented and proved, keep `SSO-SUMMONING-RUNTIME-
 
 - `visibilityObserverPolicy.ts` now resolves a caster with active familiar shared senses to the familiar observer id.
 - `BattleMap.tsx` and `BattleMap3D.tsx` both use the shared policy and display a compact "Viewing through <familiar>" label when the observer is delegated.
-- This is still not rendered proof. Future work must run focused checks and inspect both map modes before closing `SSO-FAMILIAR-SHARED-SENSES-OBSERVER-001`.
+- This now has passing rendered proof. The 2026-07-02 scratch Playwright failed-first pass found `Viewing through Owl Familiar` in the DOM with no browser errors, but the 2D screenshot clipped/covered the label and the 3D screenshot did not show it. The follow-up `Z_INDEX.COMBAT_OVERLAY` fix produced passing ignored captures at `.agent/scratch/g7-fixed-2d-shared-full.png` and `.agent/scratch/g7-fixed-3d-shared-full.png`.
 
 ## 2026-06-01 familiar touch-delivery targeting foothold
 

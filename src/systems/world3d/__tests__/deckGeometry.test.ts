@@ -47,6 +47,70 @@ it('tints docks and bridges with distinct vertex colors (TG5)', () => {
   expect(sum(bridge.colors)).toBeGreaterThan(sum(dock.colors));
 });
 
+// pierQuad-wound rectangle (base→along-dir): long axis on edge 0→1, ~10.24 m
+// long × ~4.1 m wide at METERS_PER_CELL=1024. Small enough to keep post counts sane.
+const pierRect = [
+  { x: 0.0, y: 0.0 },   // nearL
+  { x: 0.01, y: 0.0 },  // farL (along dir → long edge)
+  { x: 0.01, y: 0.004 }, // farR
+  { x: 0.0, y: 0.004 },  // nearR
+];
+
+it('emits pilings below the deck when detail is present', () => {
+  const bare = buildDeckMesh({ ...baseChunk(), decks: [{ points: pierRect, topY: 5, kind: 'dock' }] });
+  const detailed = buildDeckMesh({
+    ...baseChunk(),
+    decks: [{ points: pierRect, topY: 5, kind: 'dock', detail: { pilingSpacingM: 2, railing: false, archRiseM: 0 } }],
+  });
+  expect(detailed.positions.length).toBeGreaterThan(bare.positions.length);
+  const ys: number[] = [];
+  for (let i = 1; i < detailed.positions.length; i += 3) ys.push(detailed.positions[i]);
+  // Posts descend PILING_DEPTH below the slab underside — well below topY - 1.
+  expect(Math.min(...ys)).toBeLessThan(5 - 1.0);
+  expect(detailed.colors).toHaveLength(detailed.positions.length);
+});
+
+it('adds railing geometry above the deck when detail.railing', () => {
+  const noRail = buildDeckMesh({
+    ...baseChunk(),
+    decks: [{ points: pierRect, topY: 5, kind: 'dock', detail: { pilingSpacingM: 2, railing: false, archRiseM: 0 } }],
+  });
+  const railed = buildDeckMesh({
+    ...baseChunk(),
+    decks: [{ points: pierRect, topY: 5, kind: 'dock', detail: { pilingSpacingM: 2, railing: true, archRiseM: 0 } }],
+  });
+  expect(railed.positions.length).toBeGreaterThan(noRail.positions.length);
+  const ys: number[] = [];
+  for (let i = 1; i < railed.positions.length; i += 3) ys.push(railed.positions[i]);
+  expect(Math.max(...ys)).toBeGreaterThan(5 + 0.5);
+});
+
+it('arches a bridge: mid-span top exceeds topY by ~archRiseM', () => {
+  const mesh = buildDeckMesh({
+    ...baseChunk(),
+    decks: [{ points: pierRect, topY: 5, kind: 'bridge', detail: { pilingSpacingM: 3, railing: false, archRiseM: 1.5 } }],
+  });
+  const ys: number[] = [];
+  for (let i = 1; i < mesh.positions.length; i += 3) ys.push(mesh.positions[i]);
+  expect(Math.max(...ys)).toBeGreaterThanOrEqual(5 + 1.0);
+  for (const v of mesh.positions) expect(Number.isFinite(v)).toBe(true);
+});
+
+it('railing on an arched bridge follows the arch instead of staying flat', () => {
+  // river/coastal/temperate styles pair railing:true with archRiseM>0, so this
+  // combo is the NORMAL case — a flat rail at topY would clip through the arch.
+  const topY = 5, archRiseM = 1.5;
+  const mesh = buildDeckMesh({
+    ...baseChunk(),
+    decks: [{ points: pierRect, topY, kind: 'bridge', detail: { pilingSpacingM: 3, railing: true, archRiseM } }],
+  });
+  const ys: number[] = [];
+  for (let i = 1; i < mesh.positions.length; i += 3) ys.push(mesh.positions[i]);
+  // Rail top near mid-span rides the lifted deck: >= topY + railHeight + ~0.8·rise.
+  expect(Math.max(...ys)).toBeGreaterThanOrEqual(topY + 1.0 + archRiseM * 0.8);
+  for (const v of mesh.positions) expect(Number.isFinite(v)).toBe(true);
+});
+
 it('ignores degenerate decks with fewer than 3 corners', () => {
   const data = baseChunk();
   data.decks = [{ points: [{ x: 0, y: 0 }, { x: 0.1, y: 0 }], topY: 5, kind: 'dock' }];

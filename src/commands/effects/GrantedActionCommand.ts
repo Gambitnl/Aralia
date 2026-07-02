@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 17:34:21
+ * Last Sync: 01/07/2026, 14:04:24
  * Dependents: commands/factory/AbilityCommandFactory.ts
  * Imports: 10 files
  *
@@ -96,6 +96,10 @@ export class GrantedActionCommand extends BaseEffectCommand {
       return this.executeDancingLightsMove(state, actor)
     }
 
+    if (this.context.spellId === 'conjure-fey' && actionLabel === 'teleport_fey_spirit_and_make_melee_spell_attack') {
+      return this.executeConjureFeyTeleport(state, actor, actionLabel)
+    }
+
     // The concrete mechanics for individual granted actions are intentionally
     // not invented here. Logging the execution gives the turn system and player
     // a real action record while keeping spell-specific payloads explicit gaps.
@@ -122,6 +126,114 @@ export class GrantedActionCommand extends BaseEffectCommand {
         grantedActionDamageAbilityModifier: this.options.damageAbilityModifier,
         grantedActionWallLengthReduction: this.options.wallLengthReduction,
         grantedActionEndsWhenLengthZero: this.options.endsWhenLengthZero,
+        notes: this.options.notes
+      }
+    })
+  }
+
+  private executeConjureFeyTeleport(
+    state: CombatState,
+    actor: CombatState['characters'][0],
+    actionLabel: string
+  ): CombatState {
+    const destination = this.context.selectedSpellTargets?.find(
+      (target): target is Extract<SelectedSpellTarget, { kind: 'point' }> => target.kind === 'point'
+    )
+    const activeSpirit = state.characters.find(character =>
+      character.isSummon &&
+      character.summonMetadata?.spellId === this.context.spellId &&
+      character.summonMetadata?.casterId === actor.id
+    )
+
+    if (!activeSpirit) {
+      return this.addLogEntry(state, {
+        type: 'status',
+        message: `${actor.name} has no Fey Spirit to teleport.`,
+        characterId: actor.id,
+        data: {
+          spellId: this.context.spellId,
+          grantedAction: actionLabel,
+          rejectedConjureFeyTeleport: 'no_active_spirit'
+        }
+      })
+    }
+
+    if (!destination) {
+      return this.addLogEntry(state, {
+        type: 'status',
+        message: `${actor.name} needs a visible unoccupied destination for the Fey Spirit.`,
+        characterId: actor.id,
+        data: {
+          spellId: this.context.spellId,
+          grantedAction: actionLabel,
+          rejectedConjureFeyTeleport: 'missing_destination'
+        }
+      })
+    }
+
+    const rangeLimit = this.options.rangeLimit ?? 30
+    if (this.distanceFeet(activeSpirit.position, destination.position) > rangeLimit) {
+      return this.addLogEntry(state, {
+        type: 'status',
+        message: `${actor.name} cannot teleport the Fey Spirit more than ${rangeLimit} feet.`,
+        characterId: actor.id,
+        data: {
+          spellId: this.context.spellId,
+          grantedAction: actionLabel,
+          rejectedConjureFeyTeleport: 'destination_out_of_range',
+          rangeLimit
+        }
+      })
+    }
+
+    const occupied = state.characters.some(character =>
+      character.id !== activeSpirit.id &&
+      character.position.x === destination.position.x &&
+      character.position.y === destination.position.y
+    )
+    if (occupied) {
+      return this.addLogEntry(state, {
+        type: 'status',
+        message: `${actor.name} cannot teleport the Fey Spirit into an occupied space.`,
+        characterId: actor.id,
+        data: {
+          spellId: this.context.spellId,
+          grantedAction: actionLabel,
+          rejectedConjureFeyTeleport: 'destination_occupied',
+          destination: destination.position
+        }
+      })
+    }
+
+    const nextState: CombatState = {
+      ...state,
+      characters: state.characters.map(character =>
+        character.id === activeSpirit.id
+          ? {
+              ...character,
+              position: destination.position
+            }
+          : character
+      )
+    }
+
+    // Conjure Fey's later turns move the spirit first, then let the caster make
+    // the same spirit-origin attack. The existing summon attack button owns the
+    // attack roll and command budget; this bridge preserves the missing
+    // teleport half so the live actor is actually in the new origin space.
+    return this.addLogEntry(nextState, {
+      type: 'action',
+      message: `${actor.name} teleports the Fey Spirit up to ${rangeLimit} feet and prepares its spirit attack.`,
+      characterId: actor.id,
+      targetIds: this.context.targets.map(target => target.id),
+      data: {
+        spellId: this.context.spellId,
+        grantedAction: actionLabel,
+        grantedActionCost: this.options.actionCost,
+        grantedActionFrequency: this.options.frequency,
+        grantedActionRangeLimit: rangeLimit,
+        teleportedSummonId: activeSpirit.id,
+        destination: destination.position,
         notes: this.options.notes
       }
     })

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 13:19:08
+ * Last Sync: 01/07/2026, 14:42:33
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 10 files
  *
@@ -58,6 +58,7 @@ export interface UseActionExecutorProps {
   turnState: TurnState;
   mapData: BattleMapData | null;
   onCharacterUpdate: (character: CombatCharacter) => void;
+  onCharacterRemove?: (characterId: string) => void;
   onLogEntry: (entry: CombatLogEntry) => void;
   endTurn: () => void | Promise<void>;
 
@@ -374,11 +375,67 @@ const getOccupyingCombatant = (
   });
 };
 
+const getGridDistanceFeet = (
+  from: { x: number; y: number },
+  to: { x: number; y: number }
+): number => Math.hypot(to.x - from.x, to.y - from.y) * 5;
+
+const getMapTileElevation = (
+  mapData: BattleMapData,
+  position: { x: number; y: number }
+): number | undefined => {
+  for (const tile of mapData.tiles.values()) {
+    if (tile.coordinates.x === position.x && tile.coordinates.y === position.y) {
+      return tile.elevation;
+    }
+  }
+
+  return undefined;
+};
+
+const crossesTenserElevationBarrier = (
+  mapData: BattleMapData,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  maxChangeFeet: number
+): boolean => {
+  const startElevation = getMapTileElevation(mapData, from);
+  const endElevation = getMapTileElevation(mapData, to);
+
+  if (startElevation === undefined || endElevation === undefined) {
+    return false;
+  }
+
+  return Math.abs(endElevation - startElevation) >= maxChangeFeet;
+};
+
+const getTenserFollowPosition = (
+  diskPosition: { x: number; y: number },
+  casterPosition: { x: number; y: number },
+  followDistanceFeet: number
+): { x: number; y: number } => {
+  const followTiles = Math.max(0, Math.floor(followDistanceFeet / 5));
+  const dx = casterPosition.x - diskPosition.x;
+  const dy = casterPosition.y - diskPosition.y;
+  const distanceTiles = Math.hypot(dx, dy);
+  const tilesToMove = Math.max(0, distanceTiles - followTiles);
+
+  if (distanceTiles === 0 || tilesToMove === 0) {
+    return diskPosition;
+  }
+
+  return {
+    x: diskPosition.x + Math.round((dx / distanceTiles) * tilesToMove),
+    y: diskPosition.y + Math.round((dy / distanceTiles) * tilesToMove)
+  };
+};
+
 export const useActionExecutor = ({
   characters,
   turnState,
   mapData,
   onCharacterUpdate,
+  onCharacterRemove,
   onLogEntry,
   endTurn,
   canAfford,
@@ -921,6 +978,86 @@ export const useActionExecutor = ({
     handleDamage, onLogEntry, addDamageNumber
   ]);
 
+  const processTenserFloatingDiskFollow = useCallback((
+    caster: CombatCharacter,
+    casterDestination: { x: number; y: number }
+  ): void => {
+    const disks = characters.filter(character =>
+      character.isSummon &&
+      character.summonMetadata?.spellId === 'tensers-floating-disk' &&
+      character.summonMetadata?.casterId === caster.id
+    );
+
+    for (const disk of disks) {
+      const metadata = disk.summonMetadata;
+      const travelDetails = metadata?.travelDetails || {};
+      const maxLoadPounds = typeof travelDetails.maxLoadPounds === 'number' ? travelDetails.maxLoadPounds : 500;
+      const carriedWeightPounds = metadata?.carriedWeightPounds ?? 0;
+
+      if (carriedWeightPounds > maxLoadPounds) {
+        onCharacterRemove?.(disk.id);
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'status',
+          message: `${disk.name} disappears because it is overloaded.`,
+          characterId: caster.id,
+          targetIds: [disk.id],
+          data: {
+            spellId: metadata?.spellId,
+            summonCondition: 'carried_weight_exceeds_limit',
+            travelRule: 'maxLoadPounds',
+            carriedWeightPounds,
+            maxLoadPounds,
+            removedSummonIds: [disk.id]
+          }
+        });
+        continue;
+      }
+
+      const cannotCrossElevationChangeFeet = typeof travelDetails.cannotCrossElevationChangeFeet === 'number'
+        ? travelDetails.cannotCrossElevationChangeFeet
+        : 10;
+      if (mapData && crossesTenserElevationBarrier(mapData, disk.position, casterDestination, cannotCrossElevationChangeFeet)) {
+        onCharacterRemove?.(disk.id);
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'status',
+          message: `${disk.name} cannot follow across the elevation change and disappears.`,
+          characterId: caster.id,
+          targetIds: [disk.id],
+          data: {
+            spellId: metadata?.spellId,
+            summonCondition: 'cannot_cross_elevation_change',
+            travelRule: 'cannotCrossElevationChangeFeet',
+            cannotCrossElevationChangeFeet,
+            removedSummonIds: [disk.id]
+          }
+        });
+        continue;
+      }
+
+      const followDistanceFeet = typeof travelDetails.followDistanceFeet === 'number'
+        ? travelDetails.followDistanceFeet
+        : metadata?.followDistance ?? 20;
+      const immobileWithinFeet = typeof travelDetails.immobileWithinFeet === 'number'
+        ? travelDetails.immobileWithinFeet
+        : 20;
+      const currentDistanceFeet = getGridDistanceFeet(disk.position, casterDestination);
+
+      if (currentDistanceFeet <= immobileWithinFeet) {
+        continue;
+      }
+
+      const nextPosition = getTenserFollowPosition(disk.position, casterDestination, followDistanceFeet);
+      onCharacterUpdate({
+        ...disk,
+        position: nextPosition
+      });
+    }
+  }, [characters, mapData, onCharacterRemove, onCharacterUpdate, onLogEntry]);
+
   // ============================================================================
   // Ability Event Emission (post-update side effects)
   // ============================================================================
@@ -1090,6 +1227,7 @@ export const useActionExecutor = ({
     // Movement: delegate to full movement handler
     if (action.type === 'move' && action.targetPosition) {
       updatedCharacter = await handleMoveExecution(updatedCharacter, action);
+      processTenserFloatingDiskFollow(updatedCharacter, action.targetPosition);
     }
 
     onCharacterUpdate(updatedCharacter);
@@ -1115,7 +1253,7 @@ export const useActionExecutor = ({
     characters, turnState, endTurn, canAfford, consumeAction,
     onCharacterUpdate, onLogEntry, recordAction,
     handleDamage, processRepeatSaves, reactiveTriggers,
-    handleMoveExecution, handleAbilityEvents
+    handleMoveExecution, handleAbilityEvents, processTenserFloatingDiskFollow
   ]);
 
   return { executeAction };

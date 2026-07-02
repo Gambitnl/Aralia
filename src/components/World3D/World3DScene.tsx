@@ -43,8 +43,11 @@ import World3DNameplates from './World3DNameplates';
 import GroundAgents from './GroundAgents';
 import SceneCast, { type SceneCastMember } from './SceneCast';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
-import type { ChunkLoader, LoadedChunk } from '@/systems/world3d/types';
-import { chunkOriginWorld } from '@/systems/world3d/coords';
+import type { ChunkCoord, ChunkLoader, LoadedChunk } from '@/systems/world3d/types';
+import { buildRoofGeometry } from '@/systems/world3d/buildingModels';
+import type { RoofForm } from '@/systems/worldforge/town/architectureStyle';
+import { chunkOriginWorld, worldToChunk } from '@/systems/world3d/coords';
+import { rebaseChunkPositions } from '@/systems/world3d/chunkRebase';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
 import type { PlayerWorldPosition } from '@/types';
@@ -129,12 +132,33 @@ function useDisposableGeometry(arr: {
   return geometry;
 }
 
-const TerrainPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
-  const geometry = useDisposableGeometry(chunk.bundle.terrain);
+/**
+ * Terrain renders under ONE shared transform: every chunk's positions are
+ * rebased by its exact chunk offset from the anchor chunk (multiples of 128 m
+ * — exact in float32) and the mesh sits at the ANCHOR's scene position. Two
+ * neighbours then reach clip space through bit-identical vertex values AND a
+ * bit-identical modelView matrix, so their shared border edges rasterize
+ * watertight. With per-chunk translations, the per-mesh matrix rounding
+ * disagreed in the last ulp and leaked a faint dotted hairline along seams.
+ */
+const TerrainPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin; anchor: ChunkCoord }> = ({
+  chunk,
+  origin,
+  anchor,
+}) => {
+  const terrain = chunk.bundle.terrain;
+  const rebased = useMemo(
+    () => ({
+      ...terrain,
+      positions: rebaseChunkPositions(terrain.positions, chunk.cx - anchor.cx, chunk.cy - anchor.cy),
+    }),
+    [terrain, chunk.cx, chunk.cy, anchor],
+  );
+  const geometry = useDisposableGeometry(rebased);
   const service = React.useContext(ForgeAssetContext);
   const tex = useForgeTexture(getSemanticAssetKey({ surface: 'ground' }), service);
   return (
-    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} receiveShadow={SHADOWS}>
+    <mesh geometry={geometry} position={chunkScenePos(anchor.cx, anchor.cy, origin)} receiveShadow={SHADOWS}>
       <meshStandardMaterial vertexColors flatShading map={tex || null} />
     </mesh>
   );
@@ -187,9 +211,27 @@ const WallPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
     walls ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
   );
   if (!walls) return null;
+  // Styled-architecture slice: each town's ramparts carry their style family's
+  // wall tint as per-vertex colors (buildWallMesh); the white base avoids
+  // re-tinting them. Runs without a tint bake the legacy #9a9387 stone.
   return (
     <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
-      <meshStandardMaterial color="#9a9387" roughness={0.95} side={THREE.DoubleSide} /> {/* weathered stone rampart */}
+      <meshStandardMaterial vertexColors color="#ffffff" roughness={0.95} side={THREE.DoubleSide} />
+    </mesh>
+  );
+};
+
+const GatePiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
+  const gates = chunk.bundle.gates;
+  const geometry = useDisposableGeometry(
+    gates ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
+  );
+  if (!gates) return null;
+  // Gatehouse towers/lintels at town road gates (buildGateMesh), vertex-tinted
+  // with the burg's wall color so they read as part of the same rampart.
+  return (
+    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
+      <meshStandardMaterial vertexColors color="#ffffff" roughness={0.95} side={THREE.DoubleSide} />
     </mesh>
   );
 };
@@ -241,6 +283,27 @@ function roofFootprint(s: LoadedChunk['bundle']['sites'][number]): { width: numb
   };
 }
 
+// Styled roof geometry (Task 7): buildings share BufferGeometries per
+// (form, rounded dims) so a town of near-identical houses allocates a
+// handful of geometries instead of one per building. Cache entries are
+// module-lifetime — tiny faceted meshes, bounded by the dim rounding.
+const roofGeomCache = new Map<string, THREE.BufferGeometry>();
+function useRoofGeometry(form: RoofForm, w: number, d: number, h: number): THREE.BufferGeometry {
+  return React.useMemo(() => {
+    const key = `${form}|${w.toFixed(1)}|${d.toFixed(1)}|${h.toFixed(1)}`;
+    let geo = roofGeomCache.get(key);
+    if (!geo) {
+      const a = buildRoofGeometry(form, w, d, h);
+      geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(a.positions, 3));
+      geo.setAttribute('normal', new THREE.BufferAttribute(a.normals, 3));
+      geo.setIndex(new THREE.BufferAttribute(a.indices, 1));
+      roofGeomCache.set(key, geo);
+    }
+    return geo;
+  }, [form, w, d, h]);
+}
+
 // Debug toggle: ?wf_roofless=1 hides roofs on interior-bearing buildings so
 // rooms/furnishings/occupants can be inspected (and captured) from above.
 const ROOFLESS =
@@ -260,7 +323,10 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
   const localCam = useRef(new THREE.Vector3());
 
   const service = React.useContext(ForgeAssetContext);
-  const role = s.colorHex === '#c8923f' ? 'market' : s.colorHex === '#b09a72' ? 'house' : s.kind;
+  // Explicit role wins (styled-architecture chunks carry it). The colorHex
+  // sniff survives ONLY as a legacy tail for old chunks minted before `role`
+  // existed — palette wall colors would break it, so it must never be primary.
+  const role = s.role ?? (s.colorHex === '#c8923f' ? 'market' : s.colorHex === '#b09a72' ? 'house' : s.kind);
   const wallTex = useForgeTexture(getSemanticAssetKey({ surface: 'wall', role }), service);
   const roofTex = useForgeTexture(getSemanticAssetKey({ surface: 'roof', role }), service);
 
@@ -287,6 +353,9 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
 
   const roof = roofFootprint(s);
   const rHeight = roofHeight(roof.width, roof.depth);
+  // Styled roof form from the burg's architecture family; absent = legacy hip.
+  const roofForm: RoofForm = s.roofForm ?? 'hip';
+  const roofGeom = useRoofGeometry(roofForm, roof.width, roof.depth, rHeight);
 
   return (
     <group ref={groupRef} position={[s.localX, s.surfaceY, s.localZ]} rotation={[0, s.rotationY ?? 0, 0]}>
@@ -311,19 +380,21 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
           <meshStandardMaterial color={s.colorHex ?? '#b09a72'} map={wallTex || null} />
         </mesh>
       )}
-      {/* Hip roof: a 4-segment cone is a pyramid whose base square is
-          45°-rotated, so the extra π/4 yaw realigns its edges with the walls.
-          visible is driven per-frame by the camera-inside test above. */}
-      <mesh
-        ref={roofRef}
-        position={[0, (s.boxHeight ?? 0) + rHeight * 0.5, 0]}
-        rotation={[0, Math.PI / 4, 0]}
-        scale={[roof.width, rHeight, roof.depth]}
-        castShadow={SHADOWS}
-      >
-        <coneGeometry args={[Math.SQRT1_2, 1, 4]} />
-        <meshStandardMaterial color="#7a4a32" flatShading side={THREE.DoubleSide} map={roofTex || null} />
+      {/* Styled roof (Task 7): real-size buildRoofGeometry mesh with its base
+          at y=0, placed at wall-top Y — no scale/yaw/half-rise offsets (those
+          were artifacts of the old 4-segment cone-as-pyramid). visible is
+          driven per-frame by the camera-inside test above. */}
+      <mesh ref={roofRef} position={[0, s.boxHeight ?? 0, 0]} geometry={roofGeom} castShadow={SHADOWS}>
+        <meshStandardMaterial color={s.roofColorHex ?? '#7a4a32'} flatShading side={THREE.DoubleSide} map={roofTex || null} />
       </mesh>
+      {/* Chimney: style-family flag, solid shells only (interior-parts buildings
+          would need a flue through the rooms), and never on flat parapet roofs. */}
+      {s.chimney && !s.parts && roofForm !== 'flat' && (
+        <mesh position={[roof.width * 0.3, (s.boxHeight ?? 0) + rHeight * 0.9, 0]} castShadow={SHADOWS}>
+          <boxGeometry args={[0.6, 1.4, 0.6]} />
+          <meshStandardMaterial color="#6e6c66" />
+        </mesh>
+      )}
       {/* Door slab + windows only dress the SOLID shell; with interior parts
           the entry gap in the perimeter wall is the door. */}
       {!s.parts && (
@@ -424,12 +495,17 @@ const VegetationPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = (
   );
 };
 
-const ChunkPieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => (
+const ChunkPieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin; anchor: ChunkCoord }> = ({
+  chunk,
+  origin,
+  anchor,
+}) => (
   <>
-    <TerrainPiece chunk={chunk} origin={origin} />
+    <TerrainPiece chunk={chunk} origin={origin} anchor={anchor} />
     <WaterPiece chunk={chunk} origin={origin} />
     <RoadPiece chunk={chunk} origin={origin} />
     <WallPiece chunk={chunk} origin={origin} />
+    <GatePiece chunk={chunk} origin={origin} />
     <DeckPiece chunk={chunk} origin={origin} />
     <SitePieces chunk={chunk} origin={origin} />
     <VegetationPiece chunk={chunk} origin={origin} />
@@ -474,6 +550,12 @@ const World3DScene: React.FC<World3DSceneProps> = ({
 
   // Fixed scene origin near the player; the scene is drawn relative to it (coords ~0).
   const sceneOrigin: SceneOrigin = useMemo(() => ({ x: start[0], z: start[2] }), [start]);
+  // Anchor chunk for the shared terrain transform (see TerrainPiece). Frozen
+  // with the scene origin so rebased coordinates stay small for the session.
+  const anchorChunk: ChunkCoord = useMemo(
+    () => worldToChunk(sceneOrigin.x, sceneOrigin.z),
+    [sceneOrigin],
+  );
 
   // Overhead "Town Cell" framing (HUD button). When frameTownCellNonce changes,
   // build a one-shot command that lifts the camera to fit the spawn town. The
@@ -521,7 +603,10 @@ const World3DScene: React.FC<World3DSceneProps> = ({
         shadows={SHADOWS}
         camera={{ fov: 55, near: 1, far: 60000, position: camPosition }}
         gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
-        onCreated={({ gl }) => {
+        onCreated={({ gl, scene }) => {
+          // Dev hook (like __wf3dSetPose): lets headless probes inspect the live
+          // scene graph — chunk mesh counts, geometry sizes, transforms.
+          (window as unknown as { __wf3dScene?: THREE.Scene }).__wf3dScene = scene;
           const el = gl.domElement;
           el.addEventListener(
             'webglcontextlost',
@@ -578,7 +663,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           playerWorldPos={playerWorldPos}
         />
         {loaded.map((c) => (
-          <ChunkPieces key={`${c.cx}|${c.cy}`} chunk={c} origin={sceneOrigin} />
+          <ChunkPieces key={`${c.cx}|${c.cy}`} chunk={c} origin={sceneOrigin} anchor={anchorChunk} />
         ))}
         <GroundAgents ground={groundWorld} clock={agentClock} sceneOrigin={sceneOrigin} />
         {sceneCast && sceneCast.length > 0 && (

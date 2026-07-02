@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 18:44:09
+ * Last Sync: 01/07/2026, 13:59:36
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 9 files
  *
@@ -113,6 +113,14 @@ export class SummoningCommand extends BaseEffectCommand {
             newState = this.ensureFamiliarSharedSensesAbility(newState, caster.id, effect)
         }
 
+        if (effect.summon?.dismissAction && effect.summon.dismissAction !== 'none' && !this.isFamiliarSummon(effect)) {
+            newState = this.ensureGenericDismissAbility(newState, caster.id, effect)
+        }
+
+        if (this.hasPlanarReturnHomeContract(effect)) {
+            newState = this.ensurePlanarReturnHomeAbilities(newState, caster.id)
+        }
+
         return newState
     }
 
@@ -122,6 +130,11 @@ export class SummoningCommand extends BaseEffectCommand {
 
     private shouldReplaceExistingPersistentSummon(effect: SummoningEffect): boolean {
         return effect.summon?.lifecycle?.recastEnding !== undefined
+    }
+
+    private hasPlanarReturnHomeContract(effect: SummoningEffect): boolean {
+        return effect.summon?.control?.entityType === 'planar_ally' &&
+            effect.summon?.travelDetails?.mode === 'ally_arrival_and_home_return'
     }
 
     private removeExistingFamiliar(state: CombatState, casterId: string): CombatState {
@@ -354,6 +367,113 @@ export class SummoningCommand extends BaseEffectCommand {
         }
     }
 
+    private ensureGenericDismissAbility(
+        state: CombatState,
+        casterId: string,
+        effect: SummoningEffect
+    ): CombatState {
+        const currentCaster = state.characters.find(character => character.id === casterId)
+
+        if (!currentCaster) {
+            return state
+        }
+
+        const abilityId = `summon_dismiss_${this.context.spellId}`
+        if ((currentCaster.abilities || []).some(ability => ability.id === abilityId)) {
+            return state
+        }
+
+        const dismissAbility: Ability = {
+            id: abilityId,
+            name: 'Dismiss Summon',
+            description: `Dismiss the active ${this.context.spellName || 'spell'} summon without using the familiar pocket-dimension flow.`,
+            type: 'utility',
+            cost: { type: this.toAbilityCostType(effect.summon?.dismissAction === 'none' ? 'action' : effect.summon?.dismissAction || 'action') },
+            sourceSpellId: this.context.spellId,
+            targeting: 'self',
+            range: 0,
+            effects: [{
+                type: 'summon_dismiss',
+                summonDismissAction: 'dismiss'
+            }],
+            tags: ['summon', 'dismiss', this.context.spellId]
+        }
+
+        // Non-familiar summons such as Find Steed dismiss outright. The ability
+        // is attached to the caster because the player controls the bond, while
+        // the command finds the matching live summon by caster and spell id.
+        return this.updateCharacter(state, casterId, {
+            abilities: [
+                ...(currentCaster.abilities || []),
+                dismissAbility
+            ]
+        })
+    }
+
+    private ensurePlanarReturnHomeAbilities(
+        state: CombatState,
+        casterId: string
+    ): CombatState {
+        const currentCaster = state.characters.find(character => character.id === casterId)
+
+        if (!currentCaster) {
+            return state
+        }
+
+        const returnHomeAbilities = this.createPlanarReturnHomeAbilities()
+        const existingAbilityIds = new Set((currentCaster.abilities || []).map(ability => ability.id))
+        const missingAbilities = returnHomeAbilities.filter(ability => !existingAbilityIds.has(ability.id))
+
+        if (missingAbilities.length === 0) {
+            return state
+        }
+
+        // Planar Ally is not commanded like a pet, but the spell has explicit
+        // return-home endings. These buttons give that lifecycle an executable
+        // path without pretending the ally is otherwise under caster control.
+        return this.updateCharacter(state, casterId, {
+            abilities: [
+                ...(currentCaster.abilities || []),
+                ...missingAbilities
+            ]
+        })
+    }
+
+    private createPlanarReturnHomeAbilities(): Ability[] {
+        return [
+            {
+                id: `summon_return_home_no_agreement_${this.context.spellId}`,
+                name: 'Return Home (No Agreement)',
+                description: 'Return the planar ally to its home plane because no service price was agreed.',
+                type: 'utility',
+                cost: { type: 'free' },
+                sourceSpellId: this.context.spellId,
+                targeting: 'self',
+                range: 0,
+                effects: [{
+                    type: 'summon_return_home',
+                    summonReturnHomeAction: 'no_agreement'
+                }],
+                tags: ['summon', 'planar-ally', 'return-home']
+            },
+            {
+                id: `summon_return_home_service_complete_${this.context.spellId}`,
+                name: 'Return Home (Service Complete)',
+                description: 'Return the planar ally to its home plane after the negotiated service is complete.',
+                type: 'utility',
+                cost: { type: 'free' },
+                sourceSpellId: this.context.spellId,
+                targeting: 'self',
+                range: 0,
+                effects: [{
+                    type: 'summon_return_home',
+                    summonReturnHomeAction: 'service_complete'
+                }],
+                tags: ['summon', 'planar-ally', 'return-home']
+            }
+        ]
+    }
+
     private createSummonedCharacter(
         effect: SummoningEffect,
         caster: CombatCharacter,
@@ -381,6 +501,16 @@ export class SummoningCommand extends BaseEffectCommand {
             }
         }
 
+        // Conjure Animals lets the caster choose a descriptive animal form
+        // such as wolves or serpents, but the packet does not enumerate those
+        // choices as strict form options. Preserve that player-facing choice on
+        // the actor so map labels and later command audits do not collapse the
+        // pack back to a generic rules description.
+        if (!chosenFormName && this.context.spellId === 'conjure-animals' && typeof this.context.playerInput === 'string') {
+            const freeformAnimalForm = this.context.playerInput.trim()
+            chosenFormName = freeformAnimalForm.length > 0 ? freeformAnimalForm : undefined
+        }
+
         const monsterData = MONSTERS_DATA?.[creatureId] // Optional chaining in case generic_summon missing
         const uniqueId = `summon_${creatureId}_${generateId()}`
 
@@ -395,12 +525,14 @@ export class SummoningCommand extends BaseEffectCommand {
         let stats = fallbackStats
         let maxHP = 10
         let abilities: CombatCharacter['abilities'] = []
+        let creatureTypes: string[] | undefined
 
         // Prefer the spell's inline stat block, then reusable summon templates,
         // then monster data. This keeps Package 15 spell JSON testable before
         // every summon has a full monster registry entry.
         if (effect.summon?.statBlock) {
             name = effect.summon.statBlock.name ?? effect.summon.objectDescription ?? effect.objectDescription ?? effect.summon.entityType ?? name
+            creatureTypes = effect.summon.statBlock.type ? [effect.summon.statBlock.type] : undefined
             const inlineStats = effect.summon.statBlock.abilities || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }
             stats = {
                 strength: inlineStats.str, dexterity: inlineStats.dex, constitution: inlineStats.con,
@@ -439,6 +571,12 @@ export class SummoningCommand extends BaseEffectCommand {
             class: CLASSES_DATA['fighter'], // Placeholder class
             position: position,
             stats: stats,
+            // Inline spell stat blocks name their creature family even when no
+            // monster-registry entry exists. Preserve that type on the live
+            // actor so targeting, AI, and later command proofs can treat the
+            // summon as a Beast, Fey, Fiend, or similar creature instead of a
+            // typeless generic token.
+            creatureTypes,
             // Keep any abilities supplied by the creature/template and append
             // spell-authored summon commands. This is what lets structured
             // summon data create an actor the player can actually command,
@@ -490,15 +628,28 @@ export class SummoningCommand extends BaseEffectCommand {
                 telepathyRange: effect.summon?.telepathyRange,
                 sharedSenses: effect.summon?.sharedSenses,
                 sharedSensesCost: effect.summon?.sharedSensesCost,
+                travelDetails: effect.summon?.travelDetails,
+                conditionalEndings: effect.conditionalEndings,
                 lifecycle: effect.summon?.lifecycle,
                 control: effect.summon?.control,
                 actionPermissions: effect.summon?.actionPermissions,
                 formTraits: effect.summon?.formTraits,
-                durationRemaining: typeof effect.duration?.value === 'number' ? effect.duration.value : undefined,
+                aftermathState: effect.aftermathState,
+                durationRemaining: this.getSummonDurationValue(effect),
                 dismissable: effect.summon?.dismissAction !== undefined || effect.summon?.entityType === 'familiar'
             },
             activeEffects: []
         }
+    }
+
+    private getSummonDurationValue(effect: SummoningEffect): number | undefined {
+        const durationValue = effect.duration?.value
+
+        // Summon metadata stores the authored duration amount, not a converted
+        // round count. Timed summon packets such as Conjure Animals need that
+        // amount available for later lifecycle proof even when the duration
+        // type is not the older numeric-only shape.
+        return typeof durationValue === 'number' ? durationValue : undefined
     }
 
     private createSummonSpecialActionAbilities(effect: SummoningEffect, creatureId: string): Ability[] {

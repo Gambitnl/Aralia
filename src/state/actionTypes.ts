@@ -156,6 +156,10 @@ export type AppAction =
   | { type: 'GRANT_EXPERIENCE'; payload: { amount: number } }
   | { type: 'MODIFY_PARTY_HEALTH'; payload: { amount: number; characterIds?: string[] } }
   | { type: 'CAST_SPELL'; payload: CastSpellPayload }
+  // Persist a spell/ability StatusEffect onto a party member OUTSIDE combat.
+  // The combat engine only mutates CombatState snapshots, so out-of-combat
+  // casts (e.g. the opening-standoff pre-roll buff offer) need this bridge.
+  | { type: 'APPLY_CHARACTER_STATUS_EFFECT'; payload: { characterId: string; statusEffect: import('../types/effects.js').StatusEffect } }
   | { type: 'USE_LIMITED_ABILITY'; payload: { characterId: string; abilityId: string } }
   | { type: 'TOGGLE_PREPARED_SPELL'; payload: { characterId: string; spellId: string } }
   | { type: 'LONG_REST'; payload?: { deniedCharacterIds?: string[]; racialRestChoices?: Record<string, Record<string, import('../types/character.js').RacialRestChoiceData>> } }

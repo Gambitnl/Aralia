@@ -22,6 +22,7 @@
 import type { TownPlan as ArtifactTownPlan } from '../artifacts';
 import type { TownPlan as VoronoiTownPlan, CivicKind } from './townEngine';
 import type { Pt } from '../submap/submapEngine';
+import { styledWallColor, styledRoof, styleFrameOf, type StyleFamily } from './architectureStyle';
 
 /** Civic kind → a role the roster/motion layer understands (omitted = skip). */
 const CIVIC_ROLE: Partial<Record<CivicKind, string>> = {
@@ -84,9 +85,23 @@ function wardEdgeStreets(wards: VoronoiTownPlan['wards']): Pt[][] {
 /**
  * Convert a Voronoi-ward town into the flat artifact plan the roster + motion
  * pipeline consume. Plot ids are assigned in a stable ward→civic order.
+ *
+ * When `family` is given, each plot is stamped with deterministic architecture
+ * style fields (wall/roof color, roof form) hashed frame-invariantly against
+ * the town footprint bbox — styling never touches ids or footprints.
  */
-export function voronoiTownToArtifactPlan(v: VoronoiTownPlan, burgId: number): ArtifactTownPlan {
+export function voronoiTownToArtifactPlan(
+  v: VoronoiTownPlan,
+  burgId: number,
+  family?: StyleFamily,
+): ArtifactTownPlan {
   const plots: ArtifactTownPlan['plots'] = [];
+  const frame = family ? styleFrameOf(v.footprint) : undefined;
+  const stampFor = (poly: Pt[]) => {
+    if (!family || !frame) return {};
+    const roof = styledRoof(family, poly, frame);
+    return { wallColorHex: styledWallColor(family, poly, frame), roofColorHex: roof.color, roofForm: roof.form };
+  };
   let id = 1;
   let buildingRun = 0;
 
@@ -94,14 +109,14 @@ export function voronoiTownToArtifactPlan(v: VoronoiTownPlan, burgId: number): A
     for (const p of ward.plots) {
       buildingRun++;
       const role = buildingRun % WORKSHOP_EVERY === 0 ? 'workshop' : 'house';
-      plots.push({ id: id++, footprint: p.polygon.map(([x, y]) => [x, y] as [number, number]), role, storeys: 1 });
+      plots.push({ id: id++, footprint: p.polygon.map(([x, y]) => [x, y] as [number, number]), role, storeys: 1, ...stampFor(p.polygon) });
     }
   }
 
   for (const c of v.civic) {
     const role = CIVIC_ROLE[c.kind];
     if (!role) continue;
-    plots.push({ id: id++, footprint: c.polygon.map(([x, y]) => [x, y] as [number, number]), role, storeys: CIVIC_STOREYS[c.kind] ?? 1 });
+    plots.push({ id: id++, footprint: c.polygon.map(([x, y]) => [x, y] as [number, number]), role, storeys: CIVIC_STOREYS[c.kind] ?? 1, ...stampFor(c.polygon) });
   }
 
   const streets = [...wardEdgeStreets(v.wards), ...v.streets].map((centerline, i) => ({

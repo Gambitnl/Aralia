@@ -14,18 +14,27 @@ const plan = {
   ],
 };
 
+// NOTE: the fixture keeps a gemini packet for buildPrompt's external-variant
+// coverage; validatePlan now REJECTS gemini (deprecated in the agent registry),
+// so validation tests use a policy-clean copy.
+function validPlan() {
+  const p = structuredClone(plan);
+  p.packets[1].agent = 'claude';
+  return p;
+}
+
 test('validatePlan accepts a disjoint plan', () => {
-  assert.equal(validatePlan(structuredClone(plan)), true);
+  assert.equal(validatePlan(validPlan()), true);
 });
 
 test('validatePlan REJECTS overlapping files (the safety invariant)', () => {
-  const bad = structuredClone(plan);
+  const bad = validPlan();
   bad.packets[1].files = ['src/a.tsx']; // same file as PK-a
   assert.throws(() => validatePlan(bad), /DISJOINTNESS VIOLATION/);
 });
 
 test('validatePlan rejects duplicate handles (identity collision)', () => {
-  const bad = structuredClone(plan);
+  const bad = validPlan();
   bad.packets[1].handle = 'fix-a';
   assert.throws(() => validatePlan(bad), /duplicate handle/);
 });

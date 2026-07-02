@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 23:58:58
+ * Last Sync: 01/07/2026, 23:05:12
  * Dependents: hooks/combat/useCombatAI.ts, hooks/combat/useTurnManager.ts, utils/combat/index.ts
  * Imports: 5 files
  *
@@ -140,8 +140,19 @@ export function evaluateCombatTurn(
   // Why: Allows the AI to make intelligent tactical decisions, such as ally healers prioritizing downed targets
   //      to revive them, and enemy attackers prioritizing active players over downed targets.
   // What was preserved: Base target filtering and path planning structure.
-  const activeEnemies = characters.filter(c => c.team !== character.team && c.currentHP > 0);
-  const downedEnemies = characters.filter(c => c.team !== character.team && c.currentHP === 0 && c.deathSaves);
+  let activeEnemies = characters.filter(c => c.team !== character.team && c.currentHP > 0);
+  let downedEnemies = characters.filter(c => c.team !== character.team && c.currentHP === 0 && c.deathSaves);
+  if (isUncontrolledSummonGreaterDemon(character)) {
+    // Summon Greater Demon stops using normal team allegiance after control
+    // breaks. Reuse the existing attack/movement planner, but feed it the
+    // spell-authored target set: nearest living non-demons.
+    activeEnemies = characters.filter(c =>
+      c.id !== character.id &&
+      c.currentHP > 0 &&
+      !isDemon(c)
+    );
+    downedEnemies = [];
+  }
   const allEnemies = [...activeEnemies, ...downedEnemies];
 
   const activeAllies = characters.filter(c => c.team === character.team && c.currentHP > 0);
@@ -332,6 +343,21 @@ function hasCommandSkipTurnDirective(character: CombatCharacter): boolean {
     status.effect?.type === 'skip_turn' &&
     status.duration > 0
   );
+}
+
+function isUncontrolledSummonGreaterDemon(character: CombatCharacter): boolean {
+  const metadata = character.summonMetadata;
+  return character.isSummon === true &&
+    metadata?.spellId === 'summon-greater-demon' &&
+    (
+      metadata.control?.allegiance === 'uncontrolled_hostile' ||
+      metadata.aftermathState?.kind === 'uncontrolled_demon_grace_period'
+    );
+}
+
+function isDemon(character: CombatCharacter): boolean {
+  return TargetValidationUtils.getCreatureTypes(character)
+    .some(creatureType => creatureType.toLowerCase() === 'demon');
 }
 
 function planCommandFleeMovement(

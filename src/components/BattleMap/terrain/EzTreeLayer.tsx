@@ -19,7 +19,8 @@
  */
 import React, { useMemo, useEffect } from 'react';
 import * as THREE from 'three';
-import { BattleMapData } from '../../../types/combat';
+import { BattleMapData, BattleMapTile } from '../../../types/combat';
+import { makeTerrainHeightSampler } from './TerrainMesh';
 
 // Vendored ez-tree — stub textures.js removes module-level TextureLoader side-effects.
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -99,7 +100,6 @@ const DEFAULT_BIOME_TREES = BIOME_TREES.forest;
 // ---------------------------------------------------------------------------
 
 const TILE_SIZE = 1.0;
-const ELEVATION_SCALE = 0.3;
 const POSITION_JITTER = 0.30;
 
 /** Stable deterministic float [0,1) from integers — no Math.random() */
@@ -150,6 +150,23 @@ const EzTreeLayer: React.FC<EzTreeLayerProps> = ({ mapData }) => {
     return tiles;
   }, [mapData]);
 
+  // Same surface formula as the rendered mesh (bicubic + micro-noise + water
+  // carve) so trunks sit ON the ground by construction. Flat
+  // `tile.elevation * ELEVATION_SCALE` floated/sank trees beside elevation
+  // steps — visibly so once the generator's bluff layer (gap #28) introduced
+  // 2-3-step faces. Mirrors the task-71/79 grounding pattern.
+  const groundSampler = useMemo(() => {
+    const { width, height } = mapData.dimensions;
+    const grid: (BattleMapTile | null)[][] = [];
+    for (let y = 0; y < height; y++) {
+      grid[y] = [];
+      for (let x = 0; x < width; x++) {
+        grid[y][x] = mapData.tiles.get(`${x}-${y}`) ?? null;
+      }
+    }
+    return makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
+  }, [mapData]);
+
   // --- Generate tree variant geometries (runs once per biome config change) ---
   const variantGeometries = useMemo(() => {
     return biomeConfig.variants.map((cfg) => {
@@ -159,6 +176,27 @@ const EzTreeLayer: React.FC<EzTreeLayerProps> = ({ mapData }) => {
       const presetData = (TreePreset as Record<string, unknown>)[cfg.preset] ?? TreePreset['Oak Medium'];
       const presetClone = JSON.parse(JSON.stringify(presetData)) as Record<string, unknown>;
       presetClone.seed = cfg.seed;
+      // Stock presets are hero-tree detail (~30-60k tris each from 3 branch
+      // recursion levels). The battle map instances trees by the hundred since
+      // the arena quadrupled (2026-07-01) — trim recursion and thicken leaf
+      // clusters on the remaining branches. Tactical-camera silhouette holds;
+      // triangle cost per tree drops ~4×.
+      const branch = presetClone.branch as { levels?: number; children?: Record<string, number> } | undefined;
+      if (branch) {
+        branch.levels = Math.min(branch.levels ?? 3, 2);
+        if (branch.children) {
+          branch.children = {
+            ...branch.children,
+            '0': Math.min(branch.children['0'] ?? 6, 5),
+            '1': Math.min(branch.children['1'] ?? 4, 3),
+          };
+        }
+      }
+      const leaves = presetClone.leaves as { count?: number; size?: number } | undefined;
+      if (leaves) {
+        leaves.count = Math.round((leaves.count ?? 18) * 2);
+        leaves.size = (leaves.size ?? 1) * 1.25;
+      }
       // Disable texture loading — our textures.js stub returns null anyway,
       // but this avoids the null assignment to material maps
       if (presetClone.bark && typeof presetClone.bark === 'object') {
@@ -245,11 +283,9 @@ const EzTreeLayer: React.FC<EzTreeLayerProps> = ({ mapData }) => {
         // Scale variation ±22%
         const sv = cfg.scale * (0.82 + stableRand(idx, vi + 4) * 0.40);
 
-        dummy.position.set(
-          tile.x * TILE_SIZE + 0.5 * TILE_SIZE + jx,
-          tile.elevation * ELEVATION_SCALE,
-          tile.y * TILE_SIZE + 0.5 * TILE_SIZE + jz,
-        );
+        const wx = tile.x * TILE_SIZE + 0.5 * TILE_SIZE + jx;
+        const wz = tile.y * TILE_SIZE + 0.5 * TILE_SIZE + jz;
+        dummy.position.set(wx, groundSampler(wx, wz), wz);
         dummy.rotation.set(0, rotY, 0);
         dummy.scale.setScalar(sv);
         dummy.updateMatrix();
@@ -274,7 +310,7 @@ const EzTreeLayer: React.FC<EzTreeLayerProps> = ({ mapData }) => {
     }
 
     return { branchMeshes, leafMeshes };
-  }, [treeTiles, biomeConfig, variantGeometries, variantMaterials]);
+  }, [treeTiles, biomeConfig, variantGeometries, variantMaterials, groundSampler]);
 
   // --- Dispose GPU resources on unmount / data change ---
   useEffect(() => {

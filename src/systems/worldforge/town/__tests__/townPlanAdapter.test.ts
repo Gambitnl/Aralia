@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { toArtifactPlan, storeysForRole } from '../townPlanAdapter';
+import { STYLE_FAMILIES } from '../architectureStyle';
 import type { TownPlan as EngineTownPlan } from '../townEngine';
 
 const sq = (x: number, y: number, s: number): [number, number][] =>
@@ -53,6 +54,39 @@ describe('toArtifactPlan', () => {
     expect(plan.streets[0].centerline.length).toBe(3);
     expect(walls.ring.length).toBe(4);
     expect(walls.gatehouses.length).toBe(1);
+  });
+
+  it('emits no style fields when no family is given (legacy shape)', () => {
+    for (const p of plan.plots) {
+      expect(p.wallColorHex).toBeUndefined();
+      expect(p.roofColorHex).toBeUndefined();
+      expect(p.roofForm).toBeUndefined();
+    }
+  });
+
+  it('stamps deterministic style fields when a family is provided', () => {
+    const fam = STYLE_FAMILIES.highlandStone;
+    const a = toArtifactPlan(makeEnginePlan(), 42, fam);
+    const b = toArtifactPlan(makeEnginePlan(), 42, fam);
+    expect(a.plan.plots.length).toBeGreaterThan(0);
+    for (const [i, plot] of a.plan.plots.entries()) {
+      expect(plot.wallColorHex).toBeTruthy();
+      expect(fam.wallPalette).toContain(plot.wallColorHex!);
+      expect(plot.roofColorHex).toBeTruthy();
+      expect(fam.roofPalette).toContain(plot.roofColorHex!);
+      expect(plot.roofForm && fam.roofForms.includes(plot.roofForm)).toBe(true);
+      expect(plot.wallColorHex).toBe(b.plan.plots[i].wallColorHex);
+      expect(plot.roofColorHex).toBe(b.plan.plots[i].roofColorHex);
+      expect(plot.roofForm).toBe(b.plan.plots[i].roofForm);
+    }
+  });
+
+  it('plot IDs are unchanged by styling (business-binding invariant)', () => {
+    const plain = toArtifactPlan(makeEnginePlan(), 42);
+    const styled = toArtifactPlan(makeEnginePlan(), 42, STYLE_FAMILIES.coastalTimber);
+    expect(styled.plan.plots.map((p) => p.id)).toEqual(plain.plan.plots.map((p) => p.id));
+    expect(styled.plan.plots.map((p) => p.footprint)).toEqual(plain.plan.plots.map((p) => p.footprint));
+    expect(styled.plan.plots.map((p) => p.role)).toEqual(plain.plan.plots.map((p) => p.role));
   });
 });
 

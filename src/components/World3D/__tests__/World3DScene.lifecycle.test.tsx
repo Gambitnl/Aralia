@@ -10,7 +10,18 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import World3DScene from '../World3DScene';
+import { buildRoofGeometry } from '@/systems/world3d/buildingModels';
 import type { ChunkLoader } from '@/systems/world3d/types';
+
+// Passthrough spy: the roof BufferGeometry is built from plain arrays and
+// memoized in a module cache, so its dimensions are not visible through the
+// JSDOM attribute serialization. Spying on the builder lets the proof assert
+// the envelope-derived dims it was asked for. NOT cleared in beforeEach —
+// the cache means the builder runs on whichever test renders the dims first.
+vi.mock('@/systems/world3d/buildingModels', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/systems/world3d/buildingModels')>();
+  return { ...actual, buildRoofGeometry: vi.fn(actual.buildRoofGeometry) };
+});
 
 const mockUpdate = vi.fn();
 const mockOnChunkUpdate = vi.fn();
@@ -199,14 +210,22 @@ describe('World3DScene lifecycle proof', () => {
 
     await waitFor(() => expect(mockUpdate).toHaveBeenCalledWith(512, 256));
 
-    const roofGeometry = container.querySelector('conegeometry[args="0.7071067811865476,1,4"]');
-    const roofMesh = roofGeometry?.parentElement;
-    const roofMaterial = roofMesh?.querySelector('meshstandardmaterial');
+    // The cone-as-pyramid roof is retired (Task 7): roofs are real-size
+    // buildRoofGeometry meshes with their base at wall-top Y — no scale/yaw.
+    expect(container.querySelector('conegeometry')).toBeNull();
 
     // Enterable buildings use a smaller interior wall envelope than the
     // reserved plot. The roof must cover that wall envelope plus a tight eave
-    // instead of spreading across the whole plot and leaving a visible gap.
-    expect(roofMesh).toHaveAttribute('scale', '6.9,2.95,5.9');
+    // (6+0.9 x 5+0.9 m) instead of spreading across the whole plot and leaving
+    // a visible gap; the rise is half the narrow span. No roofForm on the
+    // site means the legacy hip default.
+    expect(buildRoofGeometry).toHaveBeenCalledWith('hip', 6.9, 5.9, 2.95);
+
+    // The roof mesh sits at wall-top Y (boxHeight 4) with its base at y=0,
+    // and its underside stays lit for the look-up-from-inside moment.
+    const roofMesh = container.querySelector('mesh[position="0,4,0"]');
+    expect(roofMesh).not.toBeNull();
+    const roofMaterial = roofMesh?.querySelector('meshstandardmaterial');
     expect(roofMaterial).toHaveAttribute('side', String(THREE.DoubleSide));
   });
 });

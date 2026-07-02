@@ -499,6 +499,23 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             return { party: newParty, characterSheetModal: newCharacterSheetModalState };
         }
 
+        case 'APPLY_CHARACTER_STATUS_EFFECT': {
+            // Out-of-combat effect persistence (the combat engine only writes to
+            // CombatState snapshots). Mirrors the engine's same-source de-dup so
+            // re-casting replaces rather than stacks.
+            const { characterId, statusEffect } = action.payload;
+            return {
+                party: state.party.map(char => {
+                    if (char.id !== characterId) return char;
+                    const retained = (char.statusEffects ?? []).filter(existing =>
+                        existing.source !== statusEffect.source ||
+                        existing.sourceCasterId !== statusEffect.sourceCasterId,
+                    );
+                    return { ...char, statusEffects: [...retained, statusEffect] };
+                }),
+            };
+        }
+
         case 'CAST_SPELL': {
             const { characterId, spellLevel, spellId, castSource, materialComponentItemIdToConsume } = action.payload;
 
@@ -669,6 +686,27 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             const deniedIds = action.payload?.deniedCharacterIds || [];
             const racialChoices = action.payload?.racialRestChoices || {};
 
+            // PRV9 — overnight provisions: the party eats a proper meal during the
+            // rest only if EVERYONE can (1 ration + 1 water per member, all-or-
+            // nothing so a partial stock isn't silently nibbled away). Eating
+            // clears the travel hardships ('starving'/'fatigued'); a member who
+            // stays starving cannot recover HP from the rest. 'poisoned' is
+            // purged by the night's rest itself, food or not.
+            const need = state.party.length;
+            const heldInventory = state.inventory ?? [];
+            const rationsHeld = heldInventory.filter(i => i.id === 'rations').length;
+            const waterHeld = heldInventory.filter(i => i.id === 'water-day').length;
+            const partyEats = need > 0 && rationsHeld >= need && waterHeld >= need;
+            let newInventory = heldInventory;
+            if (partyEats) {
+                let rationsToEat = need, waterToDrink = need;
+                newInventory = heldInventory.filter(item => {
+                    if (item.id === 'rations' && rationsToEat > 0) { rationsToEat--; return false; }
+                    if (item.id === 'water-day' && waterToDrink > 0) { waterToDrink--; return false; }
+                    return true;
+                });
+            }
+
             const newParty = state.party.map(char => {
                 const charId = char.id;
                 if (charId && deniedIds.includes(charId)) {
@@ -757,8 +795,20 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                     charCopy.limitedUses = restoredUses;
                 }
 
-                // Restore HP
-                charCopy.hp = charCopy.maxHp;
+                // PRV9 — condition recovery: the night purges 'poisoned'; eating a
+                // proper meal (partyEats) clears 'starving' and 'fatigued'.
+                if (charCopy.conditions?.length) {
+                    charCopy.conditions = charCopy.conditions.filter(c =>
+                        c !== 'poisoned' && !(partyEats && (c === 'starving' || c === 'fatigued')),
+                    );
+                }
+                const stillStarving = (charCopy.conditions ?? []).includes('starving');
+
+                // Restore HP — unless the member is still starving (PRV9): you
+                // cannot recover on an empty stomach.
+                if (!stillStarving) {
+                    charCopy.hp = charCopy.maxHp;
+                }
 
                 // Reset flight status
                 charCopy.isFlying = false;
@@ -777,7 +827,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
                 return charCopy;
             });
-            return { party: newParty };
+            return { party: newParty, ...(partyEats ? { inventory: newInventory } : {}) };
         }
 
         case 'BUY_ITEM': {

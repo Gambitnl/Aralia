@@ -20,7 +20,7 @@
  * conditional rendering for all overlays (Map, Quest Log, Submap, Character Sheets).
  *
  * By extracting modal state management from App.tsx, we keep the main render 
- * loop lean and ensure a consistent stacking order (using AnimatePresence and z-index).
+ * loop lean and ensure a consistent stacking order (via z-index).
  *
  * Most components are lazy-loaded to optimize initial bundle size, as many 
  * modals (like Trade or Heist) are only accessed after significant gameplay.
@@ -41,7 +41,6 @@
  */
 import React, { lazy, Suspense, useEffect, useCallback, useMemo } from 'react';
 import { getAbilityModifierValue } from '../../utils/character/statUtils';
-import { AnimatePresence } from 'framer-motion';
 import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { STARTER_SHIP_COST } from '../../state/reducers/navalReducer';
@@ -276,7 +275,13 @@ const GameModals: React.FC<GameModalsProps> = ({
     }, [handleFallbackEscape]);
 
     return (
-        <AnimatePresence>
+        // NO AnimatePresence wrapper — retired 2026-07-02. Its exit tracking
+        // proved unreliable here: it retained an unmounted (keyed!) modal in
+        // the DOM forever (Long Rest — state flag false, modal still on
+        // screen), and it was the source of the long-standing "same key"
+        // warning flood. Modals animate their own entrance; on close they now
+        // unmount immediately and honestly.
+        <>
             {/* World Map Overlay */}
             {isMapModalOpen && (
                 <div key="map" ref={mapPaneFocusRef} tabIndex={-1}>
@@ -444,23 +449,6 @@ const GameModals: React.FC<GameModalsProps> = ({
                         </ErrorBoundary>
                     </Suspense>
                 </div>
-            )}
-
-            {/* Long Rest Modal */}
-            {gameState.isLongRestModalVisible && (
-                <Suspense key="longrest" fallback={<LoadingSpinner />}>
-                    <ErrorBoundary fallbackMessage="Error in Long Rest Modal.">
-                        <LongRestModal
-                            isOpen={gameState.isLongRestModalVisible}
-                            party={gameState.party}
-                            onClose={() => dispatch({ type: 'TOGGLE_LONG_REST_MODAL' })}
-                            onConfirm={(choices) => {
-                                dispatch({ type: 'LONG_REST', payload: { racialRestChoices: choices } });
-                                dispatch({ type: 'TOGGLE_LONG_REST_MODAL' });
-                            }}
-                        />
-                    </ErrorBoundary>
-                </Suspense>
             )}
 
             {/* Short Rest Modal */}
@@ -946,7 +934,25 @@ const GameModals: React.FC<GameModalsProps> = ({
                     </ErrorBoundary>
                 </Suspense>
             )}
-        </AnimatePresence>
+        {/* Long Rest Modal */}
+        {gameState.isLongRestModalVisible && (
+            <Suspense key="longrest" fallback={<LoadingSpinner />}>
+                <ErrorBoundary fallbackMessage="Error in Long Rest Modal.">
+                    <LongRestModal
+                        isOpen={gameState.isLongRestModalVisible}
+                        party={gameState.party}
+                        onClose={() => dispatch({ type: 'TOGGLE_LONG_REST_MODAL' })}
+                        onConfirm={(choices) => {
+                            // LongRestModal's confirm calls onClose itself, which
+                            // already toggles the modal flag — toggling here too
+                            // flipped it straight back open (stuck-open modal).
+                            dispatch({ type: 'LONG_REST', payload: { racialRestChoices: choices } });
+                        }}
+                    />
+                </ErrorBoundary>
+            </Suspense>
+        )}
+        </>
     );
 };
 

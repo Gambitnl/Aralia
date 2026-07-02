@@ -87,8 +87,22 @@ const MAT = Object.fromEntries(MATERIALS.map((m, i) => [m, i])) as Record<Terrai
 
 /** Water threshold in the region's normalized heightfield (FMG h<20 ≙ 0.2). */
 const WATER_LEVEL = 0.2;
-/** Slopes steeper than this (rise over 5ft run, in normalized units) read as rock. */
-const ROCK_SLOPE = 0.0035;
+/**
+ * Slopes steeper than this (rise over 5ft run, in normalized units) read as
+ * rock — scree/outcrops on the steepest ~1% of cells. Real 5ft gradients are
+ * detail-noise dominated at every altitude (p50≈6e-4, p99≈1.6e-3, max≈2.6e-3,
+ * measured 2026-07-01 over 10.8M cells); the old 0.0035 sat above the physical
+ * maximum and never fired.
+ */
+const ROCK_SLOPE = 0.0016;
+/** Above this normalized height (FMG h≈65) land is bare rock. */
+const ROCK_LINE = 0.65;
+/**
+ * Transition band below ROCK_LINE where rock mixes into the biome ground with
+ * increasing altitude, dithered by the ~60ft detail noise so it reads as
+ * coherent rock patches rather than per-cell speckle.
+ */
+const ROCK_BAND = 0.15;
 
 // Fine 5ft detail now comes from `makeWorldFeetNoise` (a single per-world lattice
 // indexed by global world feet) instead of a per-Local lattice — see the
@@ -180,7 +194,15 @@ export function generateLocal(
       const right = normalized[cy * widthCells + Math.min(cx + 1, widthCells - 1)];
       const down = normalized[Math.min(cy + 1, heightCells - 1) * widthCells + cx];
       const slope = Math.max(Math.abs(right - n), Math.abs(down - n));
-      if (slope > ROCK_SLOPE) { materialIndex[i] = MAT.rock; continue; }
+      // Rock: steepest outcrops anywhere, plus the altitude band — 0 rock at
+      // ROCK_LINE - ROCK_BAND rising to solid rock at ROCK_LINE and above.
+      const rockiness = (n - (ROCK_LINE - ROCK_BAND)) / ROCK_BAND;
+      if (slope > ROCK_SLOPE || rockiness >= 1) { materialIndex[i] = MAT.rock; continue; }
+      if (rockiness > 0) {
+        const fx = bounds.x + (cx + 0.5) * CELL_FT;
+        const fy = bounds.y + (cy + 0.5) * CELL_FT;
+        if (noiseA(fx, fy) < rockiness) { materialIndex[i] = MAT.rock; continue; }
+      }
       // Shoreline band: damp ground material near water.
       if (n < WATER_LEVEL + 0.012) {
         materialIndex[i] = profile.ground === 'sand' ? MAT.sand : MAT.dirt;

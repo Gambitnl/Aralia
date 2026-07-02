@@ -42,6 +42,13 @@ import { resolveTerrainTileCoordinates } from './terrainTileMapping';
 /** How many geometry subdivisions per tile (4x = smooth enough for BG3 feel) */
 const SUBDIVISIONS_PER_TILE = 4;
 
+// Non-playable visual run-out beyond the playable rect (world tiles per side).
+// The terrain continues here (edge-clamped types + heights) and rolls down to
+// the apron under the fog — replaces the old vertical perimeter skirt.
+const FRINGE_TILES = 12;
+// Must match the ground-apron plane Y in BattleMap3D (-0.15).
+const FRINGE_APRON_Y = -0.15;
+
 /** Vertical scale factor: elevation 1 → this many world units height */
 const ELEVATION_SCALE = 0.3;
 
@@ -446,15 +453,20 @@ const TERRAIN_COLOR_FRAGMENT = /* glsl */ `
   float _terrainIdx = texture2D(uTerrainTypeMap, _tileUV).r * 255.0;
   vec3 _terrainColor = getTerrainColor(_terrainIdx, vTerrainWorldPos.xz);
 
-  // Edge blending: soften transitions between different terrain types
+  // Edge blending: organic borders between terrain types (GOAL #23). The
+  // original straight, evenly-soft strip along tile edges read as a grid seam;
+  // FBM-jittered edge distance makes the boundary wander into ragged fingers,
+  // and the deeper mix reads as a real material border instead of a gradient.
   vec2 _tileFrac = fract(vTerrainWorldPos.xz);
-  float _edgeW = 0.18;
+  float _edgeW = 0.16;
   float _ex = min(_tileFrac.x, 1.0 - _tileFrac.x);
   float _ez = min(_tileFrac.y, 1.0 - _tileFrac.y);
   float _edgeDist = min(_ex, _ez);
+  float _eNoise = fbm4(vTerrainWorldPos.xz * 2.7 + vec2(7.3, 13.7));
+  _edgeDist = clamp(_edgeDist + (_eNoise - 0.5) * 0.24, 0.0, 1.0);
 
   if (_edgeDist < _edgeW) {
-    float _blend = 1.0 - smoothstep(0.0, _edgeW, _edgeDist);
+    float _blend = 1.0 - smoothstep(0.02, _edgeW, _edgeDist);
     vec2 _nOff = vec2(0.0);
     if (_ex < _ez) {
       _nOff.x = _tileFrac.x < 0.5 ? -1.0 : 1.0;
@@ -469,7 +481,7 @@ const TERRAIN_COLOR_FRAGMENT = /* glsl */ `
       float _nIdx = texture2D(uTerrainTypeMap, _nUV).r * 255.0;
       if (abs(_nIdx - _terrainIdx) > 0.5) {
         vec3 _nColor = getTerrainColor(_nIdx, vTerrainWorldPos.xz);
-        _terrainColor = mix(_terrainColor, _nColor, _blend * 0.5);
+        _terrainColor = mix(_terrainColor, _nColor, _blend * 0.85);
       }
     }
   }
@@ -482,7 +494,10 @@ const TERRAIN_COLOR_FRAGMENT = /* glsl */ `
     int _sType = int(_terrainIdx + 0.5);
     if (_sType == 0 || _sType == 2 || _sType == 3) {
       float _slope = 1.0 - clamp(vTerrainNormal.y, 0.0, 1.0);
-      float _rocky = smoothstep(0.12, 0.30, _slope);
+      // Onset ~24° / full ~40°: calibrated to the generator's bluff faces
+      // (gap #28 — the original 0.12/0.30 band asked for near-cliffs the
+      // generator never produces, so rock faces stayed invisible).
+      float _rocky = smoothstep(0.09, 0.24, _slope);
       if (_rocky > 0.001) {
         vec3 _rockC = getRockColor(vTerrainWorldPos.xz) * 0.92;
         float _streak = fbm4(vTerrainWorldPos.xz * vec2(0.9, 2.6) + vec2(31.0, 5.0));
@@ -593,109 +608,8 @@ function createTerrainMaterial(
     );
   };
 
-  mat.customProgramCacheKey = () => `terrain-pbr-v5-${mapWidth}-${mapHeight}-${seed}-${dapple}`;
+  mat.customProgramCacheKey = () => `terrain-pbr-v7-${mapWidth}-${mapHeight}-${seed}-${dapple}`;
   return mat;
-}
-
-// ---------------------------------------------------------------------------
-// Terrain skirt — vertical panels hanging from perimeter edges to hide void
-// ---------------------------------------------------------------------------
-
-/**
- * Builds a quad-strip geometry that seals the underside of the terrain.
- *
- * The main terrain mesh is a subdivided plane with per-vertex elevation. When
- * you orbit the camera you can see the hollow underside where the mesh rises
- * from sea level. This skirt hangs vertical panels from the four perimeter
- * edges down to `SKIRT_BOTTOM_Y`, covering the gap.
- *
- * Elevation sampling uses the same bicubicSample + smoothNoise formula as the
- * main geometry so the top edge of each skirt panel exactly matches the
- * corresponding terrain vertex.
- */
-
-const SKIRT_BOTTOM_Y = -1.0;
-
-function buildSkirtGeometry(
-  tileGrid: (BattleMapTile | null)[][],
-  width: number,
-  height: number,
-  seed: number,
-): THREE.BufferGeometry {
-  /** Matches the exact Y formula used in the main geometry useMemo. */
-  const getVertexY = makeTerrainHeightSampler(tileGrid, width, height, seed);
-
-  const segsX = width * SUBDIVISIONS_PER_TILE;
-  const segsZ = height * SUBDIVISIONS_PER_TILE;
-
-  const positions: number[] = [];
-  const indices: number[] = [];
-
-  /** Add a quad strip from an ordered list of top-edge points. Each pair of
-   *  adjacent points forms a quad down to SKIRT_BOTTOM_Y. */
-  function addStrip(pts: Array<[number, number, number]>) {
-    const base = positions.length / 3;
-    for (const [x, y, z] of pts) {
-      positions.push(x, y, z);               // top vertex
-      positions.push(x, SKIRT_BOTTOM_Y, z);  // bottom vertex
-    }
-    for (let i = 0; i < pts.length - 1; i++) {
-      const tl = base + i * 2;
-      const bl = base + i * 2 + 1;
-      const tr = base + (i + 1) * 2;
-      const br = base + (i + 1) * 2 + 1;
-      // DoubleSide material — winding order not critical, but keep consistent
-      indices.push(tl, bl, tr);
-      indices.push(bl, br, tr);
-    }
-  }
-
-  // North edge — z = 0, x from west to east
-  const northPts: Array<[number, number, number]> = [];
-  for (let i = 0; i <= segsX; i++) {
-    const tileX = i / SUBDIVISIONS_PER_TILE;
-    northPts.push([tileX * TILE_SIZE, getVertexY(tileX, 0), 0]);
-  }
-  addStrip(northPts);
-
-  // South edge — z = height, x from west to east
-  const southPts: Array<[number, number, number]> = [];
-  for (let i = 0; i <= segsX; i++) {
-    const tileX = i / SUBDIVISIONS_PER_TILE;
-    southPts.push([tileX * TILE_SIZE, getVertexY(tileX, height), height * TILE_SIZE]);
-  }
-  addStrip(southPts);
-
-  // West edge — x = 0, z from north to south
-  const westPts: Array<[number, number, number]> = [];
-  for (let j = 0; j <= segsZ; j++) {
-    const tileZ = j / SUBDIVISIONS_PER_TILE;
-    westPts.push([0, getVertexY(0, tileZ), tileZ * TILE_SIZE]);
-  }
-  addStrip(westPts);
-
-  // East edge — x = width, z from north to south
-  const eastPts: Array<[number, number, number]> = [];
-  for (let j = 0; j <= segsZ; j++) {
-    const tileZ = j / SUBDIVISIONS_PER_TILE;
-    eastPts.push([width * TILE_SIZE, getVertexY(width, tileZ), tileZ * TILE_SIZE]);
-  }
-  addStrip(eastPts);
-
-  // Bottom cap — thin horizontal plane at SKIRT_BOTTOM_Y sealing the base
-  const capBase = positions.length / 3;
-  positions.push(0,                  SKIRT_BOTTOM_Y, 0);
-  positions.push(width * TILE_SIZE,  SKIRT_BOTTOM_Y, 0);
-  positions.push(0,                  SKIRT_BOTTOM_Y, height * TILE_SIZE);
-  positions.push(width * TILE_SIZE,  SKIRT_BOTTOM_Y, height * TILE_SIZE);
-  indices.push(capBase, capBase + 2, capBase + 1);
-  indices.push(capBase + 2, capBase + 3, capBase + 1);
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
 }
 
 // ---------------------------------------------------------------------------
@@ -743,14 +657,21 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
     return grid;
   }, [mapData, width, height]);
 
-  // Generate the heightfield geometry (no vertex colors — shader handles color)
+  // Generate the heightfield geometry (no vertex colors — shader handles color).
+  // The plane extends FRINGE_TILES beyond the playable rect on every side: the
+  // bicubic sampler edge-clamps, so the battlefield's border terrain continues
+  // outward and rolls down into the apron under the fog instead of ending at a
+  // vertical mesa cliff (the old perimeter skirt). Remy 2026-07-01: "remove the
+  // outer boundaries" — the map should read as part of a landscape, not a slab.
   const geometry = useMemo(() => {
-    const segsX = width * SUBDIVISIONS_PER_TILE;
-    const segsZ = height * SUBDIVISIONS_PER_TILE;
+    const fringeW = width + FRINGE_TILES * 2;
+    const fringeH = height + FRINGE_TILES * 2;
+    const segsX = fringeW * SUBDIVISIONS_PER_TILE;
+    const segsZ = fringeH * SUBDIVISIONS_PER_TILE;
 
     const geo = new THREE.PlaneGeometry(
-      width * TILE_SIZE,
-      height * TILE_SIZE,
+      fringeW * TILE_SIZE,
+      fringeH * TILE_SIZE,
       segsX,
       segsZ,
     );
@@ -769,7 +690,24 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
       const tileX = (vx / TILE_SIZE) + width / 2;
       const tileZ = (vz / TILE_SIZE) + height / 2;
 
-      positions.setY(i, getVertexY(tileX, tileZ));
+      let vy = getVertexY(tileX, tileZ);
+
+      // Beyond the playable rect: continue the clamped edge height, then ease
+      // it down to the apron across the fringe, with low rolling noise so the
+      // run-out reads as continuing landscape rather than a flat shelf.
+      const dOutX = Math.max(0, -tileX, tileX - width);
+      const dOutZ = Math.max(0, -tileZ, tileZ - height);
+      const dOut = Math.hypot(dOutX, dOutZ);
+      if (dOut > 0) {
+        const t = Math.min(1, dOut / FRINGE_TILES);
+        const s = t * t * (3 - 2 * t);
+        const roll =
+          (smoothNoise(tileX * 0.3 + 17.7, tileZ * 0.3 + 41.3, seed) * 2 - 1) *
+          1.1 * Math.sin(Math.PI * s);
+        vy = vy * (1 - s) + FRINGE_APRON_Y * s + roll * s;
+      }
+
+      positions.setY(i, vy);
       positions.setX(i, vx + (width / 2) * TILE_SIZE);
       positions.setZ(i, vz + (height / 2) * TILE_SIZE);
     }
@@ -790,7 +728,7 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
     [mapData, width, height],
   );
 
-  // Biome drives the dapple strength and skirt tint
+  // Biome drives the dapple strength
   const biome = useMemo(() => {
     const m = mapData as BattleMapData & { biome?: string; theme?: string };
     return m.biome ?? m.theme ?? 'forest';
@@ -805,40 +743,9 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
     [terrainTypeTex, width, height, mapData.seed, dapple],
   );
 
-  // Skirt geometry — vertical panels sealing terrain perimeter edges
-  const skirtGeometry = useMemo(
-    () => buildSkirtGeometry(tileGrid, width, height, mapData.seed ?? 42),
-    [tileGrid, width, height, mapData.seed],
-  );
-
-  // Skirt material — solid earth/stone cliff face, DoubleSide to avoid winding
-  // issues. Tinted per biome so the perimeter cliff reads as the same ground the
-  // surface is made of (a uniform near-black band looked wrong under desert sand).
-  const skirtColor = useMemo(() => {
-    const palette: Record<string, number> = {
-      forest: 0x3a2a18,  // dark loam
-      swamp: 0x2a2618,   // dark peat
-      desert: 0x7a5836,  // sandstone — matches sand instead of a black band
-      cave: 0x2e2b29,    // dark stone
-      dungeon: 0x34302b, // dressed stone-grey
-    };
-    return palette[biome] ?? palette.forest;
-  }, [biome]);
-  const skirtMaterial = useMemo(
-    () => new THREE.MeshStandardMaterial({
-      color: skirtColor,
-      roughness: 0.95,
-      metalness: 0.0,
-      side: THREE.DoubleSide,
-    }),
-    [skirtColor],
-  );
-
   // Dispose GPU resources on change/unmount
   useEffect(() => () => { terrainTypeTex.dispose(); }, [terrainTypeTex]);
   useEffect(() => () => { material.dispose(); }, [material]);
-  useEffect(() => () => { skirtGeometry.dispose(); }, [skirtGeometry]);
-  useEffect(() => () => { skirtMaterial.dispose(); }, [skirtMaterial]);
 
   // Active path set for quick lookup
   const activePathSet = useMemo(() => {
@@ -904,8 +811,6 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
         }}
         onPointerMove={handlePointerMove}
       />
-      {/* Skirt — seals the underside visible when orbiting around map edges */}
-      <mesh geometry={skirtGeometry} material={skirtMaterial} receiveShadow />
     </>
   );
 };

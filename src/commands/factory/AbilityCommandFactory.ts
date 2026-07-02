@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 17:34:21
+ * Last Sync: 01/07/2026, 12:53:23
  * Dependents: commands/factory/SpellCommandFactory.ts, commands/index.ts
- * Imports: 23 files
+ * Imports: 25 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -49,6 +49,8 @@ import { DismissFamiliarToPocketCommand, RecallFamiliarFromPocketCommand } from 
 import { FamiliarSharedSensesCommand } from '../effects/FamiliarSharedSensesCommand';
 import { CommandedSummonCommand } from '../effects/CommandedSummonCommand';
 import { GrantedActionCommand } from '../effects/GrantedActionCommand';
+import { DismissSummonCommand } from '../effects/SummonDismissCommand';
+import { SummonReturnHomeCommand } from '../effects/SummonReturnHomeCommand';
 import { breakFriendsConcentrationForCaster } from '../effects/ConcentrationCommands';
 import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidationUtils';
 import { combatEvents } from '@/systems/events/CombatEvents';
@@ -1120,6 +1122,23 @@ export class AbilityCommandFactory {
     if (effect.type === 'commanded_summon') {
       return new CommandedSummonCommand(context, {
         description: effect.summonCommandDescription
+      });
+    }
+
+    // Generic non-familiar summon dismissal and Planar Ally return-home actions
+    // are spell-lifecycle commands, not damage/healing/status effects. Route
+    // them directly so generated caster buttons remove the matching summon from
+    // combat state through the same command pipeline as other abilities.
+    if (effect.type === 'summon_dismiss') {
+      return new DismissSummonCommand(context, {
+        summonId: effect.summonId
+      });
+    }
+
+    if (effect.type === 'summon_return_home') {
+      return new SummonReturnHomeCommand(context, {
+        summonId: effect.summonId,
+        summonReturnHomeAction: effect.summonReturnHomeAction
       });
     }
 

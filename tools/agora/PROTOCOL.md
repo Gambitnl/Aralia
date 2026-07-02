@@ -101,7 +101,7 @@ or `"stale"`. Agents not seen within the **drop** window are omitted entirely.
 |---|---|---|---|---|---|
 | POST | `/locks` | Bearer | `{ "paths"?: string[], "globs"?: string[], "reason"?: string, "ttlMs"?: number }` | `201 { lock }` | `409 { conflict }` on overlap; `400` if neither paths nor globs given; `401` |
 | GET | `/locks` | none | — | `200 { locks: [...] }` | — |
-| DELETE | `/locks/:id` | Bearer | — | `200 { ok: true }` | `404` if not found; `403` if you are not the holder; `401` |
+| DELETE | `/locks/:id` | Bearer | — (query `?force=1`) | `200 { ok: true }` | `404` if not found; `403` if you are not the holder (non-force); `409` if `force=1` but the holder is still online; `401` |
 
 - A lock is `{ id, paths[], globs[], agentId, reason, createdAt, expiresAt }`.
 - **Default TTL is 30 min** (1,800,000 ms); pass `ttlMs` to override. Locks auto-expire so a
@@ -111,24 +111,44 @@ or `"stale"`. Agents not seen within the **drop** window are omitted entirely.
 - **Overlap rules** (see `globToRegExp`/`tokensOverlap` in `store.mjs`): exact path == path;
   a glob (`*`, `**`, `?`) matched against a path; two **equal** globs. `**` crosses `/`;
   `*`/`?` do not. An agent may freely re-lock paths it **already holds** (no self-conflict).
-- **Only the holder may release** (`DELETE`). There is no admin override in the code despite
-  the spec's "holder or admin" wording (see discrepancies).
+- **Only the holder may release** (`DELETE`) — with one escape hatch: `DELETE /locks/:id?force=1`
+  lets any authenticated agent release a lock whose holder is **stale or gone** (no
+  authenticated call within the presence TTL). Force against an **online** holder is refused
+  with `409` — a live agent's lock is never yanked out from under it.
+- **Dead-agent reaping:** when an agent passes the presence **drop** horizon (60 min without
+  any authenticated call), the sweep releases all its locks immediately (no waiting out the
+  lock TTL), reopens its `claimed`/`in_progress` tasks (history entry `action: "reaped"`),
+  and deletes the agent record — its token stops working and a returning agent must
+  re-register. Long-running workers must heartbeat (any authenticated call) well inside the
+  drop window.
 
 ### Task board
 
 | Method | Path | Auth | Body | Success | Errors |
 |---|---|---|---|---|---|
-| POST | `/tasks` | Bearer | `{ "title": string, "body"?: string }` | `201 { task }` (state `open`) | `400` if `title` missing/not a string; `401` |
+| POST | `/tasks` | Bearer | `{ "title": string, "body"?: string, "deps"?: taskId[], "priority"?: number, "refs"?: string[] }` | `201 { task }` (state `open`) | `400` if `title` missing/not a string, or a dep id is unknown; `401` |
 | POST | `/tasks/:id/claim` | Bearer | — | `200 { task }` (state `claimed`) | `404` not found; `409` if already claimed by another agent; `401` |
-| POST | `/tasks/:id/state` | Bearer | `{ "state": "open"|"claimed"|"in_progress"|"blocked"|"done" }` | `200 { task }` | `404` not found; `400` invalid state; `401` |
+| POST | `/tasks/claim-next` | Bearer | — | `200 { task }` — the top-priority READY task, atomically claimed; `200 { task: null }` when nothing is ready | `401` |
+| POST | `/tasks/:id/state` | Bearer | `{ "state": "open"|"claimed"|"in_progress"|"blocked"|"done", "result"?: string }` | `200 { task }` | `404` not found; `400` invalid state; `401` |
 | POST | `/tasks/:id/handoff` | Bearer | `{ "toAgentId": string }` | `200 { task }` | `404` not found; `400` if `toAgentId` missing; `401` |
-| GET | `/tasks` | none | — (query `?state=`) | `200 { tasks: [...] }` | — |
+| GET | `/tasks` | none | — (query `?state=`, `?ready=1`) | `200 { tasks: [...] }` | — |
 
 - A task is
-  `{ id, title, body, state, createdBy, claimedBy, createdAt, updatedAt, history[] }`.
+  `{ id, title, body, state, createdBy, claimedBy, deps[], priority, refs[], result, createdAt, updatedAt, history[] }`.
 - `state` ∈ `open | claimed | in_progress | blocked | done`.
+- **`deps`** (task ids) gate readiness: a task is **ready** when it is `open` and every dep
+  is `done`. Creating a task with an unknown dep id → `400` (fail honestly, no dangling
+  references). **`priority`** (number, default 0, higher first) orders the ready queue.
+  **`refs`** (free strings, e.g. `spells:G12` or a doc path) link the task to project-tracker
+  artifacts — see `tools/agora/gapIndex.mjs` for the GAPS.md side of the bridge.
+- **`result`**: pass it with `state: "done"` to record WHAT was done (files touched, proof,
+  test counts) on the task itself — orchestrators read results from the board instead of
+  scraping chat messages. Stored on the task and in the history entry.
+- `GET /tasks?ready=1` returns only ready tasks, **sorted by priority desc, then FIFO** —
+  the dispatch queue view. `POST /tasks/claim-next` claims its head atomically (worker-pull
+  model: workers loop `claim-next` → work → `done` with result → repeat).
 - `history` entries look like `{ at, by, action, state, ... }` (`action` ∈
-  `created | claimed | state | handoff`).
+  `created | claimed | state | handoff | reaped`).
 - `GET /tasks?state=in_progress` filters by state.
 - Claiming a task already `claimed`/`in_progress` by **another** agent → `409`. Re-claiming
   your own is allowed.
@@ -165,7 +185,7 @@ event: hello
 data: {
   "lastSeq": <number>,
   "clientSince": <number|null>,   // your ?since / Last-Event-ID, echoed for diagnostics only
-  "version": "0.1.0",
+  "version": "0.2.0",
   "snapshot": {
     "agents": [...],   // == GET /agents
     "locks":  [...],   // == GET /locks
@@ -184,8 +204,8 @@ data: {
 id: <seq>
 event: <type>            // agent.register | agent.touch | agent.drop |
                          // lock.acquire | lock.release | lock.expired |
-                         // task.create | task.claim | task.state | task.handoff |
-                         // message.post
+                         // task.create | task.claim | task.state | task.release |
+                         // task.handoff | message.post
 data: { ...payload, "type": <type>, "ts": <ms>, "seq": <seq> }
 ```
 
@@ -200,6 +220,10 @@ a `client.mjs watch` session.)
 |---|---|---|---|
 | GET | `/health` | none | `200 { ok: true, version, uptime, port, counts: { agents, locks, tasks, messages }, lastSeq }` |
 | GET | `/` (also `/dashboard`, `/dashboard/<file>`) | none | `200` dashboard HTML (placeholder page until the dashboard slice ships) |
+| GET | `/docs` | none | `200 { docs: [{ name, path, relPath }] }` — the whitelisted reference docs (PROTOCOL, ORCHESTRATOR, WORKFLOW_GAPS, COLD_START_ORCHESTRATOR_PROMPT) |
+| GET | `/docs/:name` | none | `200` pretty HTML page; `?raw=1` returns the plain markdown (what agents/copy buttons consume). Unknown name → `404` |
+| GET | `/gaps` | none | `200 { gaps, count }` — the tracker gap index (docs/projects GAPS.md + the workflow registry) as JSON; `?project=` filters, `?open=1` open-only. Cached ~60s |
+| GET | `/gaps/view` | none | `200` browsable HTML of the gap registries; `?project=` shows one project's tracker card |
 
 ---
 
@@ -208,7 +232,8 @@ a `client.mjs watch` session.)
 ```
 Agent   { id, handle, token, registeredAt, lastSeen, status, note }
 Lock    { id, paths[], globs[], agentId, reason, createdAt, expiresAt }
-Task    { id, title, body, state, createdBy, claimedBy, createdAt, updatedAt, history[] }
+Task    { id, title, body, state, createdBy, claimedBy, deps[], priority, refs[],
+          result, createdAt, updatedAt, history[] }
 Message { id, seq, from, to, body, createdAt }     // to = agentId | "all"
 Event   { seq, type, payload, ts }                  // journal line + SSE envelope
 ```

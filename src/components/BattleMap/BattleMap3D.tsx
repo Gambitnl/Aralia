@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 18:57:37
+ * Last Sync: 02/07/2026, 00:56:24
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
- * Imports: 11 files
+ * Imports: 16 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -35,6 +35,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { canUseDevTools } from '../../utils/permissions';
+import { Z_INDEX } from '../../styles/zIndex';
 import { Canvas } from '@react-three/fiber';
 // MapControls now handled by CameraController
 import { ContactShadows } from '@react-three/drei';
@@ -53,6 +54,8 @@ import TargetingDecals from './TargetingDecals';
 import { CameraController } from './camera';
 import { VFXSystem, LivingWorld } from './vfx';
 import { selectVisibilityObserver } from './visibilityObserverPolicy';
+import { SpellArtifact3DMarker } from './SpellArtifact3DMarker';
+import { buildSpellMapArtifactMarkers, type SpellMapArtifacts } from './spellMapArtifacts';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -61,6 +64,8 @@ import { selectVisibilityObserver } from './visibilityObserverPolicy';
 interface BattleMap3DProps {
   mapData: BattleMapData | null;
   characters: CombatCharacter[];
+  /** Non-creature summon/control records rendered as explicit 3D markers. */
+  spellMapArtifacts?: SpellMapArtifacts;
   combatState: {
     turnManager: ReturnType<typeof useTurnManager>;
     turnState: ReturnType<typeof useTurnManager>['turnState'];
@@ -141,12 +146,17 @@ const BIOME_LIGHTING: Record<string, BiomeLighting> = {
 // Sub-components
 // ---------------------------------------------------------------------------
 
-/** Lighting rig driven by biome presets */
-const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, number, number] }> = ({ biome, mapCenter }) => {
+/** Lighting rig driven by biome presets. `shadowHalf` is the half-extent of
+ *  the shadow frustum in world units — derived from the map size so the whole
+ *  battlefield casts/receives shadows (a fixed ±25 silently cut shadows off
+ *  outside the center region once the map grew past 40×30). */
+const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, number, number]; shadowHalf?: number }> = ({ biome, mapCenter, shadowHalf = 25 }) => {
   const preset = BIOME_LIGHTING[biome] ?? BIOME_LIGHTING.forest;
   const directionalRef = useRef<THREE.DirectionalLight>(null);
   const cx = mapCenter?.[0] ?? 0;
   const cz = mapCenter?.[2] ?? 0;
+  // Accent point-light pools were laid out for a 40×30 map; spread them with it.
+  const accentSpread = shadowHalf / 25;
 
   // Point directional light at map center so shadow frustum covers the battlefield
   React.useEffect(() => {
@@ -170,19 +180,19 @@ const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, numb
         color={preset.sunColor}
         intensity={preset.sunIntensity}
         position={[
-          cx + (preset.sunPos?.[0] ?? 12),
-          preset.sunPos?.[1] ?? 16,
-          cz + (preset.sunPos?.[2] ?? 12),
+          cx + (preset.sunPos?.[0] ?? 12) * accentSpread,
+          (preset.sunPos?.[1] ?? 16) * accentSpread,
+          cz + (preset.sunPos?.[2] ?? 12) * accentSpread,
         ]}
         castShadow
         shadow-mapSize-width={4096}
         shadow-mapSize-height={4096}
         shadow-camera-near={0.5}
-        shadow-camera-far={60}
-        shadow-camera-left={-25}
-        shadow-camera-right={25}
-        shadow-camera-top={25}
-        shadow-camera-bottom={-25}
+        shadow-camera-far={Math.max(60, shadowHalf * 2.4)}
+        shadow-camera-left={-shadowHalf}
+        shadow-camera-right={shadowHalf}
+        shadow-camera-top={shadowHalf}
+        shadow-camera-bottom={-shadowHalf}
         shadow-bias={-0.0005}
         shadow-normalBias={0.02}
       />
@@ -207,7 +217,7 @@ const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, numb
             intensity={biome === 'dungeon' ? 9 : 7}
             distance={biome === 'dungeon' ? 13 : 15}
             decay={2}
-            position={[cx + ox, 2.6, cz + oz]}
+            position={[cx + ox * accentSpread, 2.6, cz + oz * accentSpread]}
           />
         ))}
     </>
@@ -310,7 +320,7 @@ const PostProcessingStack: React.FC = () => (
 // Main component
 // ---------------------------------------------------------------------------
 
-const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatState }) => {
+const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMapArtifacts, combatState }) => {
   const { turnManager, turnState, abilitySystem, isCharacterTurn } = combatState;
 
   // Use the SAME hooks as the 2D BattleMap — shared game logic
@@ -441,6 +451,24 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
     const m = mapData as BattleMapData & { biome?: string };
     return m.biome ?? m.theme ?? 'forest';
   }, [mapData]);
+  const spellArtifactMarkers = useMemo(
+    () => buildSpellMapArtifactMarkers(spellMapArtifacts, characters),
+    [characters, spellMapArtifacts]
+  );
+
+  // Half the map diagonal in world units — the single scale everything
+  // map-size-coupled derives from (shadow frustum, apron, fog, camera far).
+  // Hard-tuned constants from the 40×30 era (half-diag 25) silently broke when
+  // the battlefield quadrupled to 80×60 (half-diag 50).
+  const mapHalfDiag = useMemo(() => {
+    const w = mapData?.dimensions.width ?? 40;
+    const h = mapData?.dimensions.height ?? 30;
+    return (Math.hypot(w, h) / 2) * TILE_WORLD_SIZE;
+  }, [mapData]);
+  // Fog distances were authored for the 40×30 map; stretch them moderately with
+  // map size so the far half of a large battlefield stays readable while close
+  // combat keeps its atmosphere.
+  const fogScale = Math.max(1, mapHalfDiag / 36);
 
   if (!mapData) {
     return <div className="text-gray-400">Generating 3D battlefield...</div>;
@@ -455,7 +483,10 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
       style={{ flex: '1 1 0%' }}
     >
       {visibilityObserverSelection.sharedSenses && (
-        <div className="pointer-events-none absolute left-3 top-3 z-[var(--z-index-submap-overlay)] rounded-full border border-cyan-300/80 bg-slate-950/88 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.38)]">
+        <div
+          className="pointer-events-none absolute left-3 top-3 rounded-full border border-cyan-300/80 bg-slate-950/88 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.38)]"
+          style={{ zIndex: Z_INDEX.COMBAT_OVERLAY }}
+        >
           {/* This 3D overlay mirrors the 2D map label so render-mode switching
               does not hide the fact that visibility is currently being measured
               from the familiar instead of the caster. */}
@@ -478,8 +509,8 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
           fov: 50,
           near: 0.1,
           // Far plane pushed out so the enlarged sky dome and the distant-terrain
-          // ridge band (out to ~radius 92 around the map center) are not clipped.
-          far: 220,
+          // ridge band are not clipped; scales with the map.
+          far: Math.max(220, mapHalfDiag * 5.2),
           position: [
             cameraTarget[0] + 8,
             10,
@@ -516,7 +547,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
           rotation={[-Math.PI / 2, 0, 0]}
           renderOrder={-1}
         >
-          <planeGeometry args={[260, 260]} />
+          <planeGeometry args={[Math.max(260, mapHalfDiag * 10), Math.max(260, mapHalfDiag * 10)]} />
           <meshStandardMaterial
             color={BIOME_LIGHTING[biome]?.fogColor ?? 0x8fa07a}
             roughness={1}
@@ -529,13 +560,13 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
           attach="fog"
           args={[
             BIOME_LIGHTING[biome]?.fogColor ?? 0x8a9a7a,
-            BIOME_LIGHTING[biome]?.fogNear ?? 15,
-            BIOME_LIGHTING[biome]?.fogFar ?? 35,
+            (BIOME_LIGHTING[biome]?.fogNear ?? 15) * fogScale,
+            (BIOME_LIGHTING[biome]?.fogFar ?? 35) * fogScale,
           ]}
         />
 
         {/* Lighting rig */}
-        <SceneLighting biome={biome} mapCenter={cameraTarget} />
+        <SceneLighting biome={biome} mapCenter={cameraTarget} shadowHalf={mapHalfDiag + 8} />
 
         {/* Camera controller — BG3-style orbit with snap-to-character and cinematic cam */}
         <CameraController
@@ -544,6 +575,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
           selectedCharacter={selectedCharacter}
           characters={characters}
           cinematicEnabled={true}
+          maxDistance={Math.max(35, mapHalfDiag * 1.6)}
           onCameraSelectCharacter={handleCharacterClick ? (id) => {
             const char = characters.find(c => c.id === id);
             if (char) handleCharacterClick(char);
@@ -626,6 +658,19 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
         })}
 
         {/* VFX — spell zones, weapon trails, damage numbers, AoE preview */}
+        {/* Non-creature spell artifacts are not actors, but they still need a
+            spatial handle in 3D for helpers, animated servants/objects,
+            guardians, entrances, and caster-centered emanations. */}
+        {spellArtifactMarkers.map(marker => (
+          <SpellArtifact3DMarker
+            key={marker.id}
+            marker={marker}
+            groundY={groundSampler
+              ? groundSampler(marker.position.x + 0.5, marker.position.y + 0.5)
+              : 0}
+          />
+        ))}
+
         <VFXSystem
           mapData={mapData}
           characters={characters}

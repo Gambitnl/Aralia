@@ -9,7 +9,7 @@ import { generateRegion } from '../../region/generateRegion';
 import { generateLocal } from '../generateLocal';
 import { rootSeedPath } from '../../seedPath';
 import { boundsCenter } from '../../units';
-import type { RegionArtifact } from '../../artifacts';
+import { WORLDFORGE_SCHEMA_VERSION, type RegionArtifact } from '../../artifacts';
 
 const SEED = 'world-42';
 const WORLD_SEED = 42;
@@ -112,6 +112,51 @@ describe('generateLocal — structure & invariants', () => {
     expect(trees.length).toBeGreaterThan(300); // 1.8/10ksqft × 900 patches, rejection-limited
     const ids = new Set(local.features.map(f => f.id));
     expect(ids.size).toBe(local.features.length); // delta-layer key uniqueness
+  });
+});
+
+describe('generateLocal — altitude/slope rock classification', () => {
+  /** Flat synthetic region at a uniform normalized height (real gradients are
+   * near-zero at 5ft scale anyway — detail noise dominates, see the 2026-07-01
+   * rock-fraction measurement). */
+  function syntheticRegion(level: number): RegionArtifact {
+    const width = 40;
+    const height = 40;
+    const resolutionFt = 100;
+    return {
+      layer: 'region',
+      schemaVersion: WORLDFORGE_SCHEMA_VERSION,
+      seedPath: rootSeedPath(7),
+      bounds: { x: 0, y: 0, width: width * resolutionFt, height: height * resolutionFt },
+      heightfield: { width, height, resolutionFt, samples: new Float32Array(width * height).fill(level) },
+      rivers: [],
+      roads: [],
+      townSites: [],
+    };
+  }
+
+  function rockFraction(level: number, biomeId = 4): number {
+    const region = syntheticRegion(level);
+    const local = generateLocal(region, boundsCenter(region.bounds), region.seedPath, { biomeId });
+    const rockIdx = local.terrain.materials.indexOf('rock');
+    let rock = 0;
+    const m = local.terrain.materialIndex;
+    for (let i = 0; i < m.length; i++) if (m[i] === rockIdx) rock++;
+    return rock / m.length;
+  }
+
+  it('high mountains (FMG h≈80) read as mostly rock', () => {
+    expect(rockFraction(0.8)).toBeGreaterThan(0.9);
+  });
+
+  it('the mid-altitude band (FMG h≈58) mixes rock into the biome ground', () => {
+    const f = rockFraction(0.58);
+    expect(f).toBeGreaterThan(0.2);
+    expect(f).toBeLessThan(0.9);
+  });
+
+  it('lowlands (FMG h≈35) stay essentially rock-free', () => {
+    expect(rockFraction(0.35)).toBeLessThan(0.05);
   });
 });
 

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/06/2026, 17:32:53
+ * Last Sync: 01/07/2026, 22:23:42
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 15 files
  *
@@ -27,12 +27,13 @@
  * @file src/commands/effects/DamageCommand.ts
  */
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
-import { CombatState, CombatCharacter, StatusEffect, ActiveEffect } from '../../types/combat'
+import { CombatState, CombatCharacter, StatusEffect, ActiveEffect, ActiveEnvironmentalControl, ActiveSpellEmanation, ActiveSpellGuardian, Position, SelectedSpellTarget } from '../../types/combat'
 import { isDamageEffect } from '../../types/spells'
+import type { DamageEffect } from '../../types/spells'
 import { checkConcentration } from '../../utils/concentrationUtils';
 import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/savingThrowUtils';
 import type { SavingThrowModifier } from '../../utils/savingThrowUtils';
-import { rollDamage as rollDamageUtil, calculateCover } from '../../utils/combatUtils';
+import { rollDamage as rollDamageUtil, calculateCover, generateId } from '../../utils/combatUtils';
 import { BreakConcentrationCommand, breakFriendsConcentrationForCaster } from './ConcentrationCommands'
 import { ResistanceCalculator } from '../../utils/combat/resistanceUtils';
 import { getPlanarSpellModifier } from '../../utils/planarUtils';
@@ -82,6 +83,37 @@ export class DamageCommand extends BaseEffectCommand {
 
     let currentState = state
     const caster = this.getCaster(currentState);
+
+    if (this.context.spellId === 'guardian-of-faith' && this.effect.trigger?.type === 'on_enter_area') {
+      currentState = this.applyGuardianOfFaithState(currentState, caster);
+    }
+
+    if (this.context.spellId === 'mordenkainens-faithful-hound') {
+      currentState = this.applyFaithfulHoundState(currentState, caster);
+    }
+
+    if (this.context.spellId === 'conjure-elemental' && this.effect.controlledEntity?.entityType === 'elemental_spirit_eruption') {
+      currentState = this.applyConjureElementalState(currentState, caster);
+    }
+
+    // Conjure Minor Elementals and Conjure Woodland Beings are shaped
+    // caster-following emanations. Keep them as explicit area records so the
+    // later terrain and bonus-action rows can enrich the same runtime object.
+    const controlledEntityType = (this.effect.controlledEntity as { entityType?: string } | undefined)?.entityType;
+
+    if (this.context.spellId === 'conjure-minor-elementals' && controlledEntityType === 'elemental_spirit_emanation') {
+      currentState = this.applyConjureMinorElementalsState(currentState, caster);
+    }
+
+    if (this.context.spellId === 'conjure-woodland-beings' && controlledEntityType === 'nature_spirit_emanation') {
+      currentState = this.applyConjureWoodlandBeingsState(currentState, caster);
+    }
+
+    // Wrath of Nature creates a controlled terrain volume before any creature
+    // is selected for the recurring tree, root, or rock branches.
+    if (this.context.spellId === 'wrath-of-nature' && controlledEntityType === 'animated_nature_area') {
+      currentState = this.applyWrathOfNatureEnvironmentalControl(currentState, caster);
+    }
 
     // --- FEAT: Elemental Adept ---
     // If the caster has Elemental Adept for this damage type, treat 1s as 2s on damage dice.
@@ -360,6 +392,14 @@ export class DamageCommand extends BaseEffectCommand {
       // --- LOGGING ---
       currentState = this.logDamage(currentState, caster, target, finalDamage, planarModifier);
 
+      // Negative Energy Flood has a delayed death animation instead of an
+      // immediate summon. When its damage actually kills a non-Undead target,
+      // attach the pending Zombie rise to the caster so the next-turn bridge
+      // can resolve it from structured state.
+      if (this.shouldRecordNegativeEnergyFloodRise(target, updatedTarget, finalDamage)) {
+        currentState = this.recordNegativeEnergyFloodRise(currentState, caster, target);
+      }
+
       if (finalDamage > 0) {
         currentState = await breakFriendsConcentrationForCaster(
           currentState,
@@ -436,6 +476,512 @@ export class DamageCommand extends BaseEffectCommand {
     }
 
     return currentState
+  }
+
+  private shouldRecordNegativeEnergyFloodRise(
+    originalTarget: CombatCharacter,
+    updatedTarget: CombatCharacter,
+    finalDamage: number
+  ): boolean {
+    if (this.context.spellId !== 'negative-energy-flood' || finalDamage <= 0 || updatedTarget.currentHP > 0) {
+      return false;
+    }
+
+    return !originalTarget.creatureTypes?.some(type => type.toLowerCase() === 'undead');
+  }
+
+  private recordNegativeEnergyFloodRise(
+    state: CombatState,
+    caster: CombatCharacter,
+    target: CombatCharacter
+  ): CombatState {
+    const existingCaster = state.characters.find(character => character.id === caster.id) ?? caster;
+    const deathAnimation = this.effect.deathAnimationState;
+    const summonControl = this.effect.summonControl;
+    const activeEffect: ActiveEffect = {
+      id: `negative_energy_flood_zombie_rise_${generateId()}`,
+      spellId: this.context.spellId || 'negative-energy-flood',
+      casterId: caster.id,
+      sourceName: this.context.spellName || 'Negative Energy Flood',
+      type: 'utility',
+      duration: {
+        type: 'rounds',
+        value: 1
+      },
+      startTime: state.turnState.currentTurn,
+      mechanics: {
+        negativeEnergyFloodZombieRise: {
+          targetId: target.id,
+          targetName: target.name,
+          targetCreatureTypes: target.creatureTypes,
+          position: target.position,
+          entityType: summonControl?.entityType ?? 'zombie_from_killed_target',
+          timing: deathAnimation?.timing ?? 'start_of_caster_next_turn',
+          behavior: deathAnimation?.behavior ?? this.effect.aftermathState?.behavior,
+          statBlock: deathAnimation?.statBlock ?? summonControl?.statBlock
+        }
+      }
+    };
+
+    const withoutPreviousRise = (existingCaster.activeEffects || []).filter(effect =>
+      effect.mechanics?.negativeEnergyFloodZombieRise?.targetId !== target.id
+    );
+    const withPendingRise = this.updateCharacter(state, caster.id, {
+      activeEffects: [
+        ...withoutPreviousRise,
+        activeEffect
+      ]
+    });
+
+    return this.addLogEntry(withPendingRise, {
+      type: 'status',
+      message: `${target.name} is marked to rise as a Zombie at the start of ${caster.name}'s next turn.`,
+      characterId: caster.id,
+      targetIds: [target.id],
+      data: {
+        spellId: this.context.spellId,
+        pendingAftermath: 'negative_energy_flood_zombie_rise',
+        pendingRise: activeEffect.mechanics?.negativeEnergyFloodZombieRise
+      }
+    });
+  }
+
+  private applyGuardianOfFaithState(state: CombatState, caster: CombatCharacter): CombatState {
+    const position = this.resolvePointTarget() ?? caster.position;
+    const existingGuardians = state.activeSpellGuardians || [];
+    const retainedGuardians = existingGuardians.filter(guardian =>
+      guardian.spellId !== this.context.spellId ||
+      guardian.casterId !== caster.id
+    );
+    const guardian: ActiveSpellGuardian = {
+      id: `spell_guardian_guardian_of_faith_${generateId()}`,
+      spellId: this.context.spellId || 'guardian-of-faith',
+      spellName: this.context.spellName,
+      casterId: caster.id,
+      kind: 'guardian_of_faith',
+      position,
+      size: 'Large',
+      occupiesSpace: true,
+      invulnerable: true,
+      threatRadiusFeet: 10,
+      active: true,
+      createdTurn: state.turnState.currentTurn,
+      expiresAtRound: this.getEffectExpiryRound(state.turnState.currentTurn),
+      triggerPolicy: {
+        targets: 'enemy_creatures',
+        onEnterFrequency: this.effect.trigger?.frequency,
+        turnStartTrigger: true,
+        saveAbility: this.effect.condition.saveType,
+        saveOutcome: this.effect.condition.saveEffect,
+        damageAmount: Number(this.effect.damage.dice) || 20,
+        damageType: this.effect.damage.type
+      },
+      damageCap: {
+        maxTotalDamage: 60,
+        dealtDamage: 0,
+        vanishWhenReached: true
+      }
+    };
+
+    return this.addLogEntry({
+      ...state,
+      activeSpellGuardians: [...retainedGuardians, guardian]
+    }, {
+      type: 'summon',
+      message: `${this.context.spellName || 'Guardian of Faith'} appears at the chosen point.`,
+      characterId: caster.id,
+      data: {
+        spellGuardianSurface: 'guardian_of_faith',
+        spellGuardian: guardian,
+        removedRecastGuardians: existingGuardians.length - retainedGuardians.length
+      }
+    });
+  }
+
+  private applyFaithfulHoundState(state: CombatState, caster: CombatCharacter): CombatState {
+    const position = this.resolvePointTarget() ?? caster.position;
+    const existingGuardians = state.activeSpellGuardians || [];
+    const retainedGuardians = existingGuardians.filter(guardian =>
+      guardian.spellId !== this.context.spellId ||
+      guardian.casterId !== caster.id
+    );
+    const guardianObject = this.effect.createdObjects?.find(object => object.objectType === 'spectral_guardian');
+    const separationEnding = this.effect.conditionalEndings?.find(ending => ending.trigger === 'beyond_max_distance');
+    const guardian: ActiveSpellGuardian = {
+      id: `spell_guardian_faithful_hound_${generateId()}`,
+      spellId: this.context.spellId || 'mordenkainens-faithful-hound',
+      spellName: this.context.spellName,
+      casterId: caster.id,
+      kind: 'faithful_hound',
+      position,
+      size: 'Medium',
+      occupiesSpace: false,
+      invulnerable: guardianObject?.invulnerable ?? true,
+      threatRadiusFeet: 5,
+      active: true,
+      createdTurn: state.turnState.currentTurn,
+      expiresAtRound: this.getEffectExpiryRound(state.turnState.currentTurn),
+      triggerPolicy: {
+        targets: 'enemy_creatures',
+        onEnterTrigger: false,
+        turnStartTrigger: true,
+        saveAbility: this.effect.condition.saveType,
+        saveOutcome: this.effect.condition.saveEffect,
+        damageAmount: this.getDamageDiceCount(this.effect.damage.dice),
+        damageDice: this.effect.damage.dice,
+        damageType: this.effect.damage.type
+      },
+      damageCap: {
+        maxTotalDamage: Number.POSITIVE_INFINITY,
+        dealtDamage: 0,
+        vanishWhenReached: false
+      },
+      watchdog: {
+        visibleTo: this.normalizeFaithfulHoundVisibility(this.effect.visionLightSound?.houndVisibility),
+        intangible: guardianObject?.intangible ?? this.effect.visionLightSound?.houndPhysicality?.includes('intangible') ?? true,
+        truesightFeet: this.effect.visionLightSound?.truesightFeet,
+        barkingAlarmRadiusFeet: 30,
+        barkTrigger: this.effect.visionLightSound?.barkTrigger ?? this.effect.communicationDetails?.trigger,
+        password: this.extractKeyedPlayerInput('password'),
+        passwordPreventsBark: this.effect.visionLightSound?.passwordPreventsBark ?? this.effect.communicationDetails?.passwordSpecifiedAtCast
+      },
+      movement: {
+        action: 'Magic action',
+        maxDistanceFeet: 30
+      },
+      separationEnding: {
+        trigger: separationEnding?.trigger,
+        scope: separationEnding?.scope,
+        maxDistanceFeet: separationEnding?.distanceFeet
+      }
+    };
+
+    return this.addLogEntry({
+      ...state,
+      activeSpellGuardians: [...retainedGuardians, guardian]
+    }, {
+      type: 'summon',
+      message: `${this.context.spellName || "Mordenkainen's Faithful Hound"} appears at the chosen point.`,
+      characterId: caster.id,
+      data: {
+        spellGuardianSurface: 'faithful_hound',
+        spellGuardian: guardian,
+        removedRecastGuardians: existingGuardians.length - retainedGuardians.length
+      }
+    });
+  }
+
+  private applyConjureElementalState(state: CombatState, caster: CombatCharacter): CombatState {
+    const position = this.resolvePointTarget() ?? caster.position;
+    const existingGuardians = state.activeSpellGuardians || [];
+    const retainedGuardians = existingGuardians.filter(guardian =>
+      guardian.spellId !== this.context.spellId ||
+      guardian.casterId !== caster.id
+    );
+    const element = this.resolveConjureElementalChoice();
+    const damageType = this.resolveConjureElementalDamageType(element);
+    const repeatDamage = this.effect.recurringMechanics?.find(mechanic => mechanic.timing === 'turn_start')?.damage;
+    const guardian: ActiveSpellGuardian = {
+      id: `spell_guardian_conjure_elemental_${generateId()}`,
+      spellId: this.context.spellId || 'conjure-elemental',
+      spellName: this.context.spellName,
+      casterId: caster.id,
+      kind: 'conjure_elemental',
+      position,
+      size: 'Large',
+      occupiesSpace: false,
+      invulnerable: true,
+      threatRadiusFeet: 5,
+      active: true,
+      createdTurn: state.turnState.currentTurn,
+      expiresAtRound: this.getEffectExpiryRound(state.turnState.currentTurn),
+      triggerPolicy: {
+        targets: 'visible_creatures',
+        onEnterTrigger: true,
+        onEnterFrequency: this.effect.trigger?.frequency,
+        turnStartTrigger: true,
+        saveAbility: this.effect.condition.saveType,
+        saveOutcome: this.effect.condition.saveEffect,
+        damageAmount: this.getDamageDiceCount(this.effect.damage.dice),
+        damageDice: this.effect.damage.dice,
+        damageType
+      },
+      damageCap: {
+        maxTotalDamage: Number.POSITIVE_INFINITY,
+        dealtDamage: 0,
+        vanishWhenReached: false
+      },
+      elementalSpirit: {
+        origin: this.effect.controlledEntity.origin,
+        element,
+        damageType,
+        initialDamageDice: this.effect.damage.dice,
+        repeatDamageDice: repeatDamage?.dice,
+        intangible: true,
+        restrainedTargetId: undefined
+      }
+    };
+
+    return this.addLogEntry({
+      ...state,
+      activeSpellGuardians: [...retainedGuardians, guardian]
+    }, {
+      type: 'summon',
+      message: `${this.context.spellName || 'Conjure Elemental'} creates a ${element} spirit at the chosen point.`,
+      characterId: caster.id,
+      data: {
+        spellGuardianSurface: 'conjure_elemental',
+        spellGuardian: guardian,
+        removedRecastGuardians: existingGuardians.length - retainedGuardians.length
+      }
+    });
+  }
+
+  private applyConjureMinorElementalsState(state: CombatState, caster: CombatCharacter): CombatState {
+    const existingEmanations = state.activeSpellEmanations || [];
+    const retainedEmanations = existingEmanations.filter(emanation =>
+      emanation.spellId !== this.context.spellId ||
+      emanation.casterId !== caster.id
+    );
+    const createdObject = this.effect.createdObjects?.[0] as {
+      difficultTerrainAppliesTo?: string;
+      createsDifficultTerrain?: boolean;
+    } | undefined;
+    const damageRider = {
+      trigger: 'on_attack_hit' as const,
+      dice: this.effect.damage.dice,
+      damageTypeChoices: ['Acid', 'Cold', 'Fire', 'Lightning'],
+      chosenDamageType: this.resolveConjureMinorElementalsDamageType(),
+      slotScaling: this.effect.scaling?.bonusPerLevel
+    };
+    const terrain = {
+      terrainType: 'difficult' as const,
+      appliesTo: createdObject?.difficultTerrainAppliesTo ?? 'caster_enemies',
+      followsCaster: true,
+      createsDifficultTerrain: createdObject?.createsDifficultTerrain ?? true
+    };
+    const existingEmanation = existingEmanations.find(emanation =>
+      emanation.spellId === this.context.spellId &&
+      emanation.casterId === caster.id
+    );
+    const emanation: ActiveSpellEmanation = {
+      id: existingEmanation?.id ?? `spell_emanation_${this.context.spellId || 'conjure-minor-elementals'}_${caster.id}`,
+      spellId: this.context.spellId || 'conjure-minor-elementals',
+      spellName: this.context.spellName,
+      casterId: caster.id,
+      kind: 'elemental_spirit_emanation',
+      entityType: 'elemental_spirit_emanation',
+      radiusFeet: 15,
+      combatEntity: false,
+      followsCaster: true,
+      active: true,
+      createdTurn: state.turnState.currentTurn,
+      expiresAtRound: this.getEffectExpiryRound(state.turnState.currentTurn),
+      damageRider,
+      terrain: existingEmanation?.terrain ?? terrain
+    };
+
+    return {
+      ...state,
+      activeSpellEmanations: [...retainedEmanations, {
+        ...existingEmanation,
+        ...emanation
+      }]
+    };
+  }
+
+  private applyConjureWoodlandBeingsState(state: CombatState, caster: CombatCharacter): CombatState {
+    const existingEmanations = state.activeSpellEmanations || [];
+    const retainedEmanations = existingEmanations.filter(emanation =>
+      emanation.spellId !== this.context.spellId ||
+      emanation.casterId !== caster.id
+    );
+    const existingEmanation = existingEmanations.find(emanation =>
+      emanation.spellId === this.context.spellId &&
+      emanation.casterId === caster.id
+    );
+    const emanation: ActiveSpellEmanation = {
+      id: existingEmanation?.id ?? `spell_emanation_${this.context.spellId || 'conjure-woodland-beings'}_${caster.id}`,
+      spellId: this.context.spellId || 'conjure-woodland-beings',
+      spellName: this.context.spellName,
+      casterId: caster.id,
+      kind: 'nature_spirit_emanation',
+      entityType: 'nature_spirit_emanation',
+      radiusFeet: 10,
+      combatEntity: false,
+      followsCaster: true,
+      active: true,
+      createdTurn: state.turnState.currentTurn,
+      expiresAtRound: this.getEffectExpiryRound(state.turnState.currentTurn),
+      damageAura: {
+        trigger: 'emanation_entry_or_turn_end',
+        dice: this.effect.damage.dice,
+        damageType: this.effect.damage.type,
+        saveAbility: this.effect.condition.saveType || 'Wisdom',
+        saveOutcome: this.effect.condition.saveEffect || 'half',
+        oncePerTurn: this.effect.trigger?.oncePerTurn === true,
+        slotScaling: this.effect.scaling?.bonusPerLevel
+      },
+      grantedActions: this.effect.grantedActions?.length
+        ? this.effect.grantedActions.map(action => ({
+            type: action.type,
+            action: action.action,
+            frequency: action.frequency
+          }))
+        : existingEmanation?.grantedActions
+    };
+
+    return {
+      ...state,
+      activeSpellEmanations: [...retainedEmanations, {
+        ...existingEmanation,
+        ...emanation
+      }]
+    };
+  }
+
+  private applyWrathOfNatureEnvironmentalControl(state: CombatState, caster: CombatCharacter): CombatState {
+    const effect = this.effect as DamageEffect;
+    const position = this.resolvePointTarget() ?? caster.position;
+    const existingControls = state.activeEnvironmentalControls || [];
+    const retainedControls = existingControls.filter(control =>
+      control.spellId !== this.context.spellId ||
+      control.casterId !== caster.id
+    );
+    const createdArea = effect.createdObjects?.find(object => object.objectType === 'animated_nature_cube') ?? effect.createdObjects?.[0];
+    const environmentalControl: ActiveEnvironmentalControl = {
+      id: `environmental_control_wrath_of_nature_${generateId()}`,
+      spellId: this.context.spellId || 'wrath-of-nature',
+      spellName: this.context.spellName,
+      casterId: caster.id,
+      kind: 'wrath_of_nature',
+      entityType: effect.controlledEntity?.entityType ?? 'animated_nature_area',
+      originPosition: position,
+      active: true,
+      createdTurn: state.turnState.currentTurn,
+      expiresAtRound: this.getEffectExpiryRound(state.turnState.currentTurn),
+      area: {
+        shape: createdArea?.affectedVolumeShape ?? 'Cube',
+        sizeFeet: createdArea?.affectedVolumeSizeFeet ?? 60,
+        lineOfSightRequired: true
+      },
+      terrain: {
+        difficultTerrainFor: createdArea?.grassUndergrowthDifficultTerrainFor
+      },
+      treeAttacks: {
+        triggerTiming: effect.areaTiming?.timing,
+        targetFilter: effect.areaTiming?.targetFilter,
+        radiusFeet: createdArea?.treeAttackRadiusFeet,
+        saveAbility: effect.condition.saveType,
+        saveOutcome: effect.condition.saveEffect,
+        damageDice: effect.damage.dice,
+        damageType: effect.damage.type
+      }
+    };
+
+    return this.addLogEntry({
+      ...state,
+      activeEnvironmentalControls: [...retainedControls, environmentalControl]
+    }, {
+      type: 'summon',
+      message: `${this.context.spellName || 'Wrath of Nature'} animates the chosen terrain.`,
+      characterId: caster.id,
+      data: {
+        environmentalControlSurface: 'wrath_of_nature',
+        environmentalControl,
+        removedRecastEnvironmentalControls: existingControls.length - retainedControls.length
+      }
+    });
+  }
+
+  private resolveConjureElementalChoice(): string {
+    const rawInput = typeof this.context.playerInput === 'string'
+      ? this.context.playerInput.toLowerCase()
+      : '';
+    const keyedMatch = rawInput.match(/element\s*=\s*(air|earth|fire|water)/i);
+    if (keyedMatch) {
+      return keyedMatch[1].toLowerCase();
+    }
+
+    const directMatch = rawInput.match(/\b(air|earth|fire|water)\b/i);
+    return directMatch?.[1]?.toLowerCase() ?? this.effect.controlledEntity?.elementChoice?.[0] ?? 'air';
+  }
+
+  private resolveConjureMinorElementalsDamageType(): 'Acid' | 'Cold' | 'Fire' | 'Lightning' {
+    const rawInput = typeof this.context.playerInput === 'string'
+      ? this.context.playerInput.toLowerCase()
+      : '';
+
+    if (rawInput.includes('lightning')) return 'Lightning';
+    if (rawInput.includes('fire')) return 'Fire';
+    if (rawInput.includes('cold')) return 'Cold';
+    if (rawInput.includes('acid')) return 'Acid';
+
+    return 'Acid';
+  }
+
+  private resolveConjureElementalDamageType(element: string): string {
+    const damageByElement: Record<string, string> = {
+      air: 'Lightning',
+      earth: 'Thunder',
+      fire: 'Fire',
+      water: 'Cold'
+    };
+
+    return damageByElement[element] ?? this.effect.damage.type;
+  }
+
+  private normalizeFaithfulHoundVisibility(visibility: string | undefined): string {
+    return visibility?.toLowerCase().includes('caster')
+      ? 'caster_only'
+      : visibility ?? 'caster_only';
+  }
+
+  private getDamageDiceCount(dice: string): number {
+    const match = dice.match(/^(\d+)d/i);
+    return match ? Number(match[1]) : Number(dice) || 0;
+  }
+
+  private extractKeyedPlayerInput(key: string): string | undefined {
+    if (typeof this.context.playerInput !== 'string') {
+      return undefined;
+    }
+
+    const pattern = new RegExp(`${key}\\s*=\\s*([^;|,]+)`, 'i');
+    return this.context.playerInput.match(pattern)?.[1]?.trim();
+  }
+
+  private resolvePointTarget(): Position | undefined {
+    return this.context.selectedSpellTargets
+      ?.find((target): target is Extract<SelectedSpellTarget, { kind: 'point' }> => target.kind === 'point')
+      ?.position;
+  }
+
+  private getEffectExpiryRound(currentTurn: number): number | undefined {
+    const duration = this.context.effectDuration;
+    if (!duration?.value) {
+      return undefined;
+    }
+    if (duration.type === 'rounds') {
+      return currentTurn + Number(duration.value);
+    }
+    if (duration.type === 'minutes') {
+      return currentTurn + (Number(duration.value) * 10);
+    }
+    if ((duration as { type?: string; unit?: string }).type === 'timed') {
+      const timedDuration = duration as unknown as { type: 'timed'; value?: number | string; unit?: string };
+      if (timedDuration.unit === 'round' || timedDuration.unit === 'rounds') {
+        return currentTurn + Number(timedDuration.value || 0);
+      }
+      if (timedDuration.unit === 'minute' || timedDuration.unit === 'minutes') {
+        return currentTurn + (Number(timedDuration.value || 0) * 10);
+      }
+      if (timedDuration.unit === 'hour' || timedDuration.unit === 'hours') {
+        return currentTurn + (Number(timedDuration.value || 0) * 600);
+      }
+    }
+
+    return undefined;
   }
 
   private async breakFriendsWhenTargetTakesDamage(
@@ -910,4 +1456,277 @@ export class DamageCommand extends BaseEffectCommand {
       modifier.ignoredCover?.includes(coverGrade)
     );
   }
+}
+
+export function recordGuardianOfFaithDamage(
+  state: CombatState,
+  guardianId: string,
+  damageDealt: number,
+  options: {
+    targetId?: string;
+  } = {}
+): CombatState {
+  const guardian = state.activeSpellGuardians?.find(record => record.id === guardianId);
+
+  if (!guardian) {
+    return state;
+  }
+
+  const totalDamageDealt = guardian.damageCap.dealtDamage + damageDealt;
+  const shouldVanish = guardian.damageCap.vanishWhenReached &&
+    totalDamageDealt >= guardian.damageCap.maxTotalDamage;
+  const updatedGuardian: ActiveSpellGuardian = {
+    ...guardian,
+    active: !shouldVanish,
+    damageCap: {
+      ...guardian.damageCap,
+      dealtDamage: totalDamageDealt
+    }
+  };
+
+  if (shouldVanish) {
+    return {
+      ...state,
+      activeSpellGuardians: (state.activeSpellGuardians || []).filter(record => record.id !== guardianId),
+      combatLog: [
+        ...state.combatLog,
+        {
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'status',
+          message: `${guardian.spellName || 'Guardian of Faith'} vanishes after dealing ${totalDamageDealt} damage.`,
+          characterId: guardian.casterId,
+          targetIds: options.targetId ? [options.targetId] : undefined,
+          data: {
+            spellGuardianSurface: 'guardian_of_faith',
+            guardianId,
+            targetId: options.targetId,
+            damageDealt,
+            totalDamageDealt,
+            vanishReason: 'damage_cap_reached'
+          }
+        }
+      ]
+    };
+  }
+
+  return {
+    ...state,
+    activeSpellGuardians: (state.activeSpellGuardians || []).map(record =>
+      record.id === guardianId ? updatedGuardian : record
+    ),
+    combatLog: [
+      ...state.combatLog,
+      {
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'damage',
+        message: `${guardian.spellName || 'Guardian of Faith'} has dealt ${totalDamageDealt} total damage.`,
+        characterId: guardian.casterId,
+        targetIds: options.targetId ? [options.targetId] : undefined,
+        data: {
+          spellGuardianSurface: 'guardian_of_faith',
+          guardianId,
+          targetId: options.targetId,
+          damageDealt,
+          totalDamageDealt
+        }
+      }
+    ]
+  };
+}
+
+export function moveFaithfulHoundGuardian(
+  state: CombatState,
+  guardianId: string,
+  nextPosition: Position,
+  options: {
+    casterPosition: Position;
+  }
+): CombatState {
+  const guardian = state.activeSpellGuardians?.find(record => record.id === guardianId);
+
+  if (!guardian || guardian.kind !== 'faithful_hound') {
+    return state;
+  }
+
+  const maxDistanceFeet = guardian.separationEnding?.maxDistanceFeet ?? 300;
+  const distanceFromCasterFeet = getGridDistanceFeet(options.casterPosition, nextPosition);
+  if (distanceFromCasterFeet > maxDistanceFeet) {
+    return {
+      ...state,
+      activeSpellGuardians: (state.activeSpellGuardians || []).filter(record => record.id !== guardianId),
+      combatLog: [
+        ...state.combatLog,
+        {
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'status',
+          message: `${guardian.spellName || "Mordenkainen's Faithful Hound"} ends because it is too far from its caster.`,
+          characterId: guardian.casterId,
+          data: {
+            spellGuardianSurface: 'faithful_hound',
+            guardianId,
+            endingReason: 'beyond_max_distance',
+            distanceFromCasterFeet,
+            maxDistanceFeet
+          }
+        }
+      ]
+    };
+  }
+
+  const movedGuardian: ActiveSpellGuardian = {
+    ...guardian,
+    position: nextPosition
+  };
+
+  return {
+    ...state,
+    activeSpellGuardians: (state.activeSpellGuardians || []).map(record =>
+      record.id === guardianId ? movedGuardian : record
+    ),
+    combatLog: [
+      ...state.combatLog,
+      {
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'movement',
+        message: `${guardian.spellName || "Mordenkainen's Faithful Hound"} moves up to ${guardian.movement?.maxDistanceFeet ?? 30} feet.`,
+        characterId: guardian.casterId,
+        data: {
+          spellGuardianSurface: 'faithful_hound',
+          guardianId,
+          moveReason: 'magic_action',
+          position: nextPosition
+        }
+      }
+    ]
+  };
+}
+
+export function recordConjureElementalRestraint(
+  state: CombatState,
+  guardianId: string,
+  options: {
+    targetId: string;
+    failedSave: boolean;
+  }
+): CombatState {
+  const guardian = state.activeSpellGuardians?.find(record => record.id === guardianId);
+
+  if (!guardian || guardian.kind !== 'conjure_elemental' || !options.failedSave) {
+    return state;
+  }
+
+  const updatedGuardian: ActiveSpellGuardian = {
+    ...guardian,
+    elementalSpirit: {
+      ...guardian.elementalSpirit,
+      restrainedTargetId: options.targetId
+    }
+  };
+
+  return {
+    ...state,
+    activeSpellGuardians: (state.activeSpellGuardians || []).map(record =>
+      record.id === guardianId ? updatedGuardian : record
+    ),
+    combatLog: [
+      ...state.combatLog,
+      {
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'status',
+        message: `${guardian.spellName || 'Conjure Elemental'} restrains ${options.targetId}.`,
+        characterId: guardian.casterId,
+        targetIds: [options.targetId],
+        data: {
+          spellGuardianSurface: 'conjure_elemental',
+          guardianId,
+          restrainedTargetId: options.targetId,
+          damageDice: guardian.elementalSpirit?.initialDamageDice ?? guardian.triggerPolicy.damageDice,
+          damageType: guardian.elementalSpirit?.damageType ?? guardian.triggerPolicy.damageType
+        }
+      }
+    ]
+  };
+}
+
+export function resolveConjureElementalRepeatSave(
+  state: CombatState,
+  guardianId: string,
+  options: {
+    targetId: string;
+    failedSave: boolean;
+  }
+): CombatState {
+  const guardian = state.activeSpellGuardians?.find(record => record.id === guardianId);
+
+  if (!guardian || guardian.kind !== 'conjure_elemental') {
+    return state;
+  }
+
+  const repeatDamageDice = guardian.elementalSpirit?.repeatDamageDice ?? '4d8';
+  if (options.failedSave) {
+    return {
+      ...state,
+      combatLog: [
+        ...state.combatLog,
+        {
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'damage',
+          message: `${guardian.spellName || 'Conjure Elemental'} deals repeat damage to ${options.targetId}.`,
+          characterId: guardian.casterId,
+          targetIds: [options.targetId],
+          data: {
+            spellGuardianSurface: 'conjure_elemental',
+            guardianId,
+            repeatSaveOutcome: 'failed',
+            damageDice: repeatDamageDice,
+            damageType: guardian.elementalSpirit?.damageType ?? guardian.triggerPolicy.damageType
+          }
+        }
+      ]
+    };
+  }
+
+  const updatedGuardian: ActiveSpellGuardian = {
+    ...guardian,
+    elementalSpirit: {
+      ...guardian.elementalSpirit,
+      restrainedTargetId: undefined
+    }
+  };
+
+  return {
+    ...state,
+    activeSpellGuardians: (state.activeSpellGuardians || []).map(record =>
+      record.id === guardianId ? updatedGuardian : record
+    ),
+    combatLog: [
+      ...state.combatLog,
+      {
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'status',
+        message: `${options.targetId} is no longer restrained by ${guardian.spellName || 'Conjure Elemental'}.`,
+        characterId: guardian.casterId,
+        targetIds: [options.targetId],
+        data: {
+          spellGuardianSurface: 'conjure_elemental',
+          guardianId,
+          repeatSaveOutcome: 'succeeded',
+          releasedTargetId: options.targetId
+        }
+      }
+    ]
+  };
+}
+
+function getGridDistanceFeet(from: Position, to: Position): number {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  return Math.sqrt((dx * dx) + (dy * dy)) * 5;
 }

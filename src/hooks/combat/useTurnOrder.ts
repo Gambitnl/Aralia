@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 19:15:31
+ * Last Sync: 01/07/2026, 13:39:46
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 1 files
  *
@@ -44,7 +44,7 @@ interface TurnOrderResult {
   /**
    * Adds a character to the existing turn order dynamically.
    */
-  joinTurnOrder: (characterId: string, afterCharacterId?: string) => void;
+  joinTurnOrder: (characterId: string, afterCharacterId?: string, options?: { initiative?: number }) => void;
   /**
    * Checks if it is currently the given character's turn.
    */
@@ -90,17 +90,33 @@ export const useTurnOrder = ({ characters }: UseTurnOrderProps): TurnOrderResult
     });
   }, []);
 
-  const joinTurnOrder = useCallback((characterId: string, afterCharacterId?: string) => {
+  const joinTurnOrder = useCallback((characterId: string, afterCharacterId?: string, options: { initiative?: number } = {}) => {
     setTurnState(prev => {
       const newOrder = [...prev.turnOrder];
       if (!newOrder.includes(characterId)) {
         const anchorIndex = afterCharacterId ? newOrder.indexOf(afterCharacterId) : -1;
 
         // Shared-initiative summons need to land directly after the caster
-        // that created them. Normal late joiners keep the older append-only
-        // behavior so existing combat participation does not change.
+        // that created them. Rolled-initiative summons, such as Conjure
+        // Animals, use their rolled value to enter the existing initiative
+        // order. Normal late joiners keep the older append-only behavior so
+        // existing combat participation does not change.
         if (anchorIndex >= 0) {
           newOrder.splice(anchorIndex + 1, 0, characterId);
+        } else if (options.initiative !== undefined) {
+          const currentIndex = prev.currentCharacterId ? newOrder.indexOf(prev.currentCharacterId) : -1;
+          const firstFutureIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
+          const insertIndexOffset = newOrder.slice(firstFutureIndex).findIndex(existingId => {
+            const existingCharacter = characters.find(character => character.id === existingId);
+            return existingCharacter !== undefined && existingCharacter.initiative < options.initiative!;
+          });
+
+          if (insertIndexOffset >= 0) {
+            const insertIndex = firstFutureIndex + insertIndexOffset;
+            newOrder.splice(insertIndex, 0, characterId);
+          } else {
+            newOrder.push(characterId);
+          }
         } else {
           newOrder.push(characterId);
         }

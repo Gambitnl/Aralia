@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/07/2026, 14:29:58
+ * Dependents: commands/factory/AbilityCommandFactory.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { CombatState } from '../../types/combat'
@@ -20,6 +36,10 @@ import type { UtilityEffect } from '../../types/spells'
 
 export interface CommandedSummonOptions {
   description?: string;
+}
+
+export interface AnimateDeadControlWindowAdvance {
+  elapsedHours: number;
 }
 
 function createCommandedSummonEffect(description?: string): UtilityEffect {
@@ -66,6 +86,28 @@ export class CommandedSummonCommand extends BaseEffectCommand {
     const commandDescription = this.options.description ?? metadata.sourceName ?? this.context.spellName
     const commandsPerTurn = metadata.commandsPerTurn ?? 1
     const commandsUsedThisTurn = metadata.commandsUsedThisTurn ?? 0
+
+    // Persistent controlled undead stop obeying when their authored control
+    // window expires. Block the generic command button before spending the
+    // per-turn command counter so Create Undead and Animate Dead can share this
+    // expiry gate without each spell inventing its own command command.
+    if (metadata.control?.entityType === 'controlled_undead' && (metadata.durationRemaining ?? 1) <= 0) {
+      const expiredSourceName = metadata.sourceName ?? this.context.spellName
+      return this.addLogEntry(state, {
+        type: 'status',
+        message: `${actor.name}'s ${expiredSourceName} control has expired.`,
+        characterId: actor.id,
+        data: {
+          spellId: metadata.spellId ?? this.context.spellId,
+          casterId: metadata.casterId,
+          sourceName: metadata.sourceName,
+          commandSurface: 'controlled-summon',
+          controlState: 'expired',
+          durationRemaining: metadata.durationRemaining ?? 0,
+          commandsUsedThisTurn
+        }
+      })
+    }
 
     // The spell data says how many orders this helper can carry out each turn.
     // Enforce that counter on the summon itself so repeated button presses do
@@ -121,5 +163,85 @@ export class CommandedSummonCommand extends BaseEffectCommand {
 
   get description(): string {
     return `${this.context.caster.name} follows a controlled-summon command`
+  }
+}
+
+export function advanceAnimateDeadControlWindows(
+  state: CombatState,
+  advance: AnimateDeadControlWindowAdvance
+): CombatState {
+  const elapsedHours = Math.max(0, advance.elapsedHours)
+
+  // This helper is intentionally narrow: it advances Animate Dead's durable
+  // 24-hour control window without pretending the combat turn manager is a
+  // complete world-clock scheduler for every long-lived spell.
+  if (elapsedHours === 0) {
+    return state
+  }
+
+  let expiredActors: Array<{ id: string; name: string; casterId?: string; previousDuration: number }> = []
+  const characters = state.characters.map(character => {
+    const metadata = character.summonMetadata
+
+    if (
+      !character.isSummon ||
+      metadata?.spellId !== 'animate-dead' ||
+      metadata.control?.entityType !== 'controlled_undead' ||
+      typeof metadata.durationRemaining !== 'number'
+    ) {
+      return character
+    }
+
+    const nextDuration = Math.max(0, metadata.durationRemaining - elapsedHours)
+    if (metadata.durationRemaining > 0 && nextDuration === 0) {
+      expiredActors = [
+        ...expiredActors,
+        {
+          id: character.id,
+          name: character.name,
+          casterId: metadata.casterId,
+          previousDuration: metadata.durationRemaining
+        }
+      ]
+    }
+
+    return {
+      ...character,
+      summonMetadata: {
+        ...metadata,
+        durationRemaining: nextDuration
+      }
+    }
+  })
+
+  if (expiredActors.length === 0) {
+    return {
+      ...state,
+      characters
+    }
+  }
+
+  return {
+    ...state,
+    characters,
+    combatLog: [
+      ...state.combatLog,
+      ...expiredActors.map(actor => ({
+        id: `animate_dead_expiry_${actor.id}_${Date.now()}`,
+        timestamp: Date.now(),
+        type: 'status' as const,
+        message: `${actor.name}'s Animate Dead control window expires.`,
+        characterId: actor.id,
+        data: {
+          spellId: 'animate-dead',
+          casterId: actor.casterId,
+          commandSurface: 'controlled-summon',
+          controlState: 'expired_by_elapsed_time',
+          previousDuration: actor.previousDuration,
+          durationRemaining: 0,
+          elapsedHours
+        }
+      }))
+    ]
   }
 }

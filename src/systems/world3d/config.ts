@@ -19,16 +19,23 @@ export const WORLD3D_CONFIG = {
   /** How many world meters one WorldData grid cell spans. Must be a multiple of CHUNK_WORLD_SIZE. */
   METERS_PER_CELL: 1024,
   /** Vertices per chunk edge for the placeholder heightfield (Plan 3 refines per-LOD). */
-  HEIGHTFIELD_RESOLUTION: 16,
+  HEIGHTFIELD_RESOLUTION: 17,
   /**
    * Per-LOD-tier mesh resolution (vertices per chunk edge). Distant chunks use
    * a coarser grid so the GPU/worker cost drops with distance (W3D-G10 / T7).
    * `full` matches HEIGHTFIELD_RESOLUTION; `mid`/`low` step down. `culled` is
    * unreachable today (see W3D-G13) but kept defined for completeness.
-   * Skirt geometry (see SKIRT_MIN_DEPTH_M) hides the seams between tiers.
+   *
+   * INVARIANT (seam weld): every tier's segment count (res − 1) must be a
+   * multiple of 4, the coarsest tier's segment count. Chunk border heights are
+   * welded onto the piecewise-linear curve through the 5 anchor vertices all
+   * tiers then share (see edgeWeld.ts), which is what keeps neighboring chunks
+   * of ANY tier mix watertight. 16/8/4 segments nest; 15 (the old full=16) did
+   * not, and the resulting T-junction cracks showed as a grid of dark/white
+   * slivers between chunks.
    */
   LOD_RESOLUTION: {
-    full: 16,
+    full: 17,
     mid: 9,
     low: 5,
     culled: 5,

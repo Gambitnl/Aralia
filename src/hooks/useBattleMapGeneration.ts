@@ -28,16 +28,27 @@ import { SeededRandom } from '@/utils/random';
 
 type SpawnConfig = 'left-right' | 'top-bottom' | 'corners-tl-br' | 'corners-tr-bl';
 
+// Teams spawn inside a bounded engagement window centered in the arena, not at
+// the arena's far edges. When the battlefield quadrupled to 80×60 (2026-07-01)
+// percentage-of-map spawn strips put teams 40-70 tiles apart — many turns of
+// pure walking before first contact. The window keeps opening engagement range
+// at the proven 40×30-era pacing; the arena beyond it is maneuvering room.
+const SPAWN_WINDOW = { width: 48, height: 36 };
+
 const _getSpawnTiles = (mapData: BattleMapData, config: SpawnConfig, rng: SeededRandom): { playerTiles: BattleMapTile[], enemyTiles: BattleMapTile[] } => {
     const playerSpawnTiles: BattleMapTile[] = [];
     const enemySpawnTiles: BattleMapTile[] = [];
-    const { width, height } = mapData.dimensions;
+    const { width: mapW, height: mapH } = mapData.dimensions;
+    const width = Math.min(mapW, SPAWN_WINDOW.width);
+    const height = Math.min(mapH, SPAWN_WINDOW.height);
+    const ox = Math.floor((mapW - width) / 2);
+    const oy = Math.floor((mapH - height) / 2);
     // Wide corners ensure enough walkable tiles even in dense biomes
     const cornerSize = Math.floor(Math.min(width, height) * 0.35); // ~35% of shorter dimension
 
     const addTilesFromRect = (tiles: BattleMapTile[], x1: number, y1: number, x2: number, y2: number) => {
-        for (let y = y1; y < y2; y++) {
-            for (let x = x1; x < x2; x++) {
+        for (let y = y1 + oy; y < y2 + oy; y++) {
+            for (let x = x1 + ox; x < x2 + ox; x++) {
                 const tile = mapData.tiles.get(`${x}-${y}`);
                 if (tile && !tile.blocksMovement) tiles.push(tile);
             }

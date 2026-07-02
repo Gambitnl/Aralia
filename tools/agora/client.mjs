@@ -245,7 +245,14 @@ Global flags:
   --token <token>        bearer token override (default: stored identity)
 
 Commands:
+  onboard <handle> [--note "..."] [--gaps [root]]
+                                          START HERE if you are new: register + one-shot
+                                          briefing (peers, locks, ready tasks, rules;
+                                          --gaps adds the project-tracker open-gap summary)
   register <handle> [--note "..."]       register, store identity, print agentId+handle
+  heartbeat [--every <sec>] [--count N | --for <min>]
+                                          keep presence fresh during long work (run in bg;
+                                          silent >60min = reaped)
   whoami                                  print stored identity for the current base URL
   agents                                  list agents (status, handle, note, last-seen)
 
@@ -253,14 +260,17 @@ Commands:
                                           acquire an advisory lock (409 -> conflict + exit 1)
   unlock <lockId|path>                    release a lock you hold (by id OR file path)
   unlock --mine                           release ALL locks you hold
+  unlock <lockId> --force                 release a STALE/GONE holder's lock (refused if online)
   locks                                   list active locks
 
-  task new <title> [--body "..."]         create a task (state: open)
+  task new <title> [--body "..."] [--dep <taskId>...] [--priority N] [--ref <gapId|path>...]
+                                          create a task; deps gate readiness, priority orders it
   task claim <taskId>                     claim a task
+  task next [--id-only]                   claim the highest-priority READY task (worker pull)
   task state <taskId> <state>             set state (open|claimed|in_progress|blocked|done)
-  task done <taskId>                      shortcut for: task state <taskId> done
+  task done <taskId> [--result "..."]     mark done, recording WHAT was done (evidence)
   task handoff <taskId> <toAgentId>       reassign a task
-  tasks [--state s]                       show the board grouped by state
+  tasks [--state s] [--ready]             show the board (--ready: open tasks whose deps are done)
 
   say <body>                              broadcast a message to all (e.g. "WORKFLOW: ...")
   say --to <agentId|handle> <body>        direct message
@@ -371,10 +381,12 @@ async function cmdUnlock(out, parsed, env, baseUrl) {
   const arg = parsed._[0];
   const looksLikeId = arg && /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(arg);
 
-  // Fast path: an explicit lock id.
+  // Fast path: an explicit lock id. --force releases a stale/gone holder's
+  // lock (the daemon refuses force against an online holder).
   if (looksLikeId) {
-    const r = await api(baseUrl, 'DELETE', `/locks/${encodeURIComponent(arg)}`, { token });
-    if (r.status === 200) { out.log(`Released lock ${arg}`); return { code: 0 }; }
+    const forceQs = parsed.flags.force === true ? '?force=1' : '';
+    const r = await api(baseUrl, 'DELETE', `/locks/${encodeURIComponent(arg)}${forceQs}`, { token });
+    if (r.status === 200) { out.log(`Released lock ${arg}${forceQs ? ' (forced)' : ''}`); return { code: 0 }; }
     out.log(`unlock failed (${r.status}): ${r.json ? r.json.error : r.text}`);
     return { code: 1 };
   }
@@ -428,11 +440,19 @@ async function cmdTask(out, parsed, env, baseUrl) {
   if (sub === 'new') {
     const title = rest[0];
     if (!title) {
-      out.log('Usage: task new <title> [--body "..."]');
+      out.log('Usage: task new <title> [--body "..."] [--dep <taskId>...] [--priority N] [--ref <r>...]');
       return { code: 1 };
     }
     const body = { title };
     if (typeof parsed.flags.body === 'string') body.body = parsed.flags.body;
+    const deps = asArray(parsed.flags.dep).filter((d) => typeof d === 'string');
+    if (deps.length) body.deps = deps;
+    if (parsed.flags.priority !== undefined) {
+      const p = Number(parsed.flags.priority);
+      if (Number.isFinite(p)) body.priority = p;
+    }
+    const refs = asArray(parsed.flags.ref).filter((x) => typeof x === 'string');
+    if (refs.length) body.refs = refs;
     const r = await api(baseUrl, 'POST', '/tasks', { token, body });
     if (r.status === 201 && r.json && r.json.task) {
       // Iteration-2: --id-only prints just the task id (no grep needed).
@@ -456,6 +476,21 @@ async function cmdTask(out, parsed, env, baseUrl) {
       return { code: 0, task: r.json.task };
     }
     out.log(`task claim failed (${r.status}): ${r.json ? r.json.error : r.text}`);
+    return { code: 1 };
+  }
+
+  // Worker-pull: grab the top-priority ready task in one call.
+  if (sub === 'next') {
+    const r = await api(baseUrl, 'POST', '/tasks/claim-next', { token });
+    if (r.status === 200 && r.json) {
+      if (!r.json.task) { out.log('no ready tasks'); return { code: 0, task: null }; }
+      if (parsed.flags['id-only']) { out.log(r.json.task.id); return { code: 0, task: r.json.task }; }
+      out.log(`Claimed ${r.json.task.id}  "${r.json.task.title}"  [${r.json.task.state}]`);
+      if (r.json.task.body) out.log(`  ${r.json.task.body}`);
+      if ((r.json.task.refs || []).length) out.log(`  refs: ${r.json.task.refs.join(', ')}`);
+      return { code: 0, task: r.json.task };
+    }
+    out.log(`task next failed (${r.status}): ${r.json ? r.json.error : r.text}`);
     return { code: 1 };
   }
 
@@ -501,14 +536,16 @@ async function cmdTask(out, parsed, env, baseUrl) {
   // alias it (and `complete`) to the state transition so it just works.
   if (sub === 'done' || sub === 'complete') {
     const taskId = rest[0];
-    if (!taskId) { out.log('Usage: task done <taskId>'); return { code: 1 }; }
-    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(taskId)}/state`, { token, body: { state: 'done' } });
+    if (!taskId) { out.log('Usage: task done <taskId> [--result "what was done + proof"]'); return { code: 1 }; }
+    const body = { state: 'done' };
+    if (typeof parsed.flags.result === 'string') body.result = parsed.flags.result;
+    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(taskId)}/state`, { token, body });
     if (r.status === 200 && r.json && r.json.task) { out.log(`${r.json.task.id} -> [${r.json.task.state}]`); return { code: 0, task: r.json.task }; }
     out.log(`task done failed (${r.status}): ${r.json ? r.json.error : r.text}`);
     return { code: 1 };
   }
 
-  out.log(`unknown task subcommand "${sub}". Use: task new|claim|state|done|handoff`);
+  out.log(`unknown task subcommand "${sub}". Use: task new|claim|next|state|done|handoff`);
   return { code: 1 };
 }
 
@@ -516,14 +553,27 @@ const STATE_ORDER = ['open', 'claimed', 'in_progress', 'blocked', 'done'];
 
 async function cmdTasks(out, parsed, env, baseUrl) {
   const stateFilter = typeof parsed.flags.state === 'string' ? parsed.flags.state : undefined;
-  const qs = stateFilter ? `?state=${encodeURIComponent(stateFilter)}` : '';
+  const ready = parsed.flags.ready === true;
+  const params = [];
+  if (stateFilter) params.push(`state=${encodeURIComponent(stateFilter)}`);
+  if (ready) params.push('ready=1');
+  const qs = params.length ? `?${params.join('&')}` : '';
   const r = await api(baseUrl, 'GET', `/tasks${qs}`);
   const tasks = (r.json && r.json.tasks) || [];
   if (tasks.length === 0) {
-    out.log(stateFilter ? `no tasks in state "${stateFilter}"` : 'no tasks');
+    out.log(ready ? 'no ready tasks' : stateFilter ? `no tasks in state "${stateFilter}"` : 'no tasks');
     return { code: 0, tasks };
   }
   const map = await buildAgentMap(baseUrl);
+  if (ready) {
+    // Ready view: already priority-ordered by the daemon — show it as a queue.
+    for (const t of tasks) {
+      const pri = t.priority ? `  p${t.priority}` : '';
+      const refs = (t.refs || []).length ? `  refs: ${t.refs.join(', ')}` : '';
+      out.log(`${shortId(t.id)}  ${t.title}${pri}${refs}`);
+    }
+    return { code: 0, tasks };
+  }
   const groups = new Map();
   for (const t of tasks) {
     if (!groups.has(t.state)) groups.set(t.state, []);
@@ -534,7 +584,9 @@ async function cmdTasks(out, parsed, env, baseUrl) {
     out.log(`[${st}]`);
     for (const t of groups.get(st)) {
       const who = t.claimedBy ? `  @${handleFor(map, t.claimedBy)}` : '';
-      out.log(`  ${shortId(t.id)}  ${t.title}${who}`);
+      const blocked = (t.deps || []).length && t.state === 'open' ? `  (deps: ${t.deps.map(shortId).join(', ')})` : '';
+      out.log(`  ${shortId(t.id)}  ${t.title}${who}${blocked}`);
+      if (t.state === 'done' && t.result) out.log(`      result: ${t.result}`);
     }
   }
   return { code: 0, tasks };
@@ -743,6 +795,114 @@ async function cmdHealth(out, parsed, env, baseUrl) {
   return { code: 0, health: h };
 }
 
+// ---------------------------------------------------------------------------
+// onboard — the fresh-agent front door: register + one-shot situational
+// briefing (peers, locks, ready queue, optionally open tracker gaps) + the
+// coordination rules. One command instead of three prose docs.
+// ---------------------------------------------------------------------------
+const ONBOARD_RULES = `THE RULES (the whole contract):
+  1. Your AGORA_DIR must be UNIQUE to you (e.g. .agent/agora/ids/<your-handle>) — shared
+     dirs overwrite each other's identity.
+  2. lock BEFORE editing any shared file; a 409 CONFLICT is a HARD STOP on that file.
+  3. HEARTBEAT during long work (client.mjs heartbeat --every 600 in the background, or any
+     authed call at least every ~30 min). Silent >60 min = reaped: locks freed, your claimed
+     tasks reopened, token retired.
+  4. Pull work with \`task next\`; finish with \`task done <id> --result "<files + proof>"\` —
+     the result on the board is how the orchestrator learns what you did.
+  5. When done: \`unlock --mine\`, then \`say "WORKFLOW: <friction or none>"\` — and register
+     real workflow friction as a row in tools/agora/WORKFLOW_GAPS.md (schema in the file).
+  6. No git commits/resets/branches/worktrees unless YOUR task says so.
+Full API: tools/agora/PROTOCOL.md · campaign loop: tools/agora/ORCHESTRATOR.md ·
+agent fleet registry: node tools/agora/orchestrate.mjs agents`;
+
+async function cmdOnboard(out, parsed, env, baseUrl) {
+  const reg = await cmdRegister(out, parsed, env, baseUrl);
+  if (reg.code !== 0) return reg;
+  const token = resolveToken(parsed, env, baseUrl);
+  const map = await buildAgentMap(baseUrl);
+  const myId = reg.identity.agentId;
+
+  out.log('');
+  out.log('=== WHO IS HERE ===');
+  const ar = await api(baseUrl, 'GET', '/agents');
+  const others = ((ar.json && ar.json.agents) || []).filter((a) => a.id !== myId);
+  if (!others.length) out.log('  (you are alone)');
+  for (const a of others) out.log(`  ${statusDot(a.status)} ${a.handle.padEnd(20)} ${a.note || ''}`);
+
+  out.log('');
+  out.log('=== ACTIVE LOCKS (files you must NOT touch) ===');
+  const lr = await api(baseUrl, 'GET', '/locks');
+  const locks = (lr.json && lr.json.locks) || [];
+  if (!locks.length) out.log('  (none)');
+  for (const l of locks) {
+    out.log(`  ${handleFor(map, l.agentId).padEnd(20)} ${[...(l.paths || []), ...(l.globs || [])].join(', ')}  (${l.reason || 'no reason'})`);
+  }
+
+  out.log('');
+  out.log('=== READY TASKS (claim with: task next) ===');
+  const tr = await api(baseUrl, 'GET', '/tasks?ready=1', { token });
+  const ready = (tr.json && tr.json.tasks) || [];
+  if (!ready.length) out.log('  (queue is empty)');
+  for (const t of ready.slice(0, 8)) {
+    out.log(`  ${shortId(t.id)}  ${t.title}${t.priority ? `  p${t.priority}` : ''}${(t.refs || []).length ? `  refs: ${t.refs.join(', ')}` : ''}`);
+  }
+  if (ready.length > 8) out.log(`  … and ${ready.length - 8} more`);
+
+  // Tracker intake is optional (scanning docs/projects costs a moment).
+  if (parsed.flags.gaps !== undefined) {
+    const root = typeof parsed.flags.gaps === 'string' ? parsed.flags.gaps : 'docs/projects';
+    out.log('');
+    out.log(`=== OPEN GAPS (project tracker, ${root}) ===`);
+    try {
+      const { indexGaps, OPEN_STATUSES } = await import('./gapIndex.mjs');
+      const gaps = indexGaps({ root, openOnly: true });
+      const byProject = new Map();
+      for (const g of gaps) byProject.set(g.project, (byProject.get(g.project) || 0) + 1);
+      out.log(`  ${gaps.length} open gap(s) across ${byProject.size} project(s); top:`);
+      const top = [...byProject.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+      for (const [project, n] of top) out.log(`    ${String(n).padStart(3)}  ${project}`);
+      out.log('  Full intake: node tools/agora/gapIndex.mjs --open-only');
+      void OPEN_STATUSES; // (re-exported for callers; not needed here)
+    } catch (e) {
+      out.log(`  gap index unavailable: ${e.message}`);
+    }
+  }
+
+  out.log('');
+  out.log(ONBOARD_RULES);
+  return { code: 0, identity: reg.identity };
+}
+
+// ---------------------------------------------------------------------------
+// heartbeat — keep presence fresh during long work so the reaper (60 min
+// silent) never fires on a live agent. Run in the background:
+//   node tools/agora/client.mjs heartbeat --every 600 &
+// ---------------------------------------------------------------------------
+async function cmdHeartbeat(out, parsed, env, baseUrl) {
+  const token = needToken(out, parsed, env, baseUrl);
+  if (!token) return { code: 1 };
+  const everySec = Number(parsed.flags.every) > 0 ? Number(parsed.flags.every) : 600;
+  const count = Number(parsed.flags.count) > 0 ? Number(parsed.flags.count) : null;
+  const forMin = Number(parsed.flags.for) > 0 ? Number(parsed.flags.for) : null;
+  const endAt = forMin ? Date.now() + forMin * 60000 : null;
+
+  let beats = 0;
+  for (;;) {
+    const r = await api(baseUrl, 'POST', '/agents/heartbeat', { token });
+    if (r.status !== 200) {
+      out.log(`heartbeat failed (${r.status}): ${r.json ? r.json.error : r.text} — re-register if your token was reaped`);
+      return { code: 1, beats };
+    }
+    beats++;
+    if (count && beats >= count) break;
+    if (endAt && Date.now() >= endAt) break;
+    if (!count && !endAt && beats === 1) out.log(`heartbeating every ${everySec}s (Ctrl-C to stop)`);
+    await new Promise((resolve) => setTimeout(resolve, everySec * 1000));
+  }
+  out.log(`${beats} heartbeat(s) sent`);
+  return { code: 0, beats };
+}
+
 function friendlyUnreachable(baseUrl, detail) {
   return `Agora daemon not reachable at ${baseUrl} — is it running? (npm run agora)` + (detail ? `\n  (${detail})` : '');
 }
@@ -773,6 +933,12 @@ export async function run(argv, { env = process.env, baseUrl: baseOverride, watc
     switch (command) {
       case 'register':
         res = await cmdRegister(out, parsed, env, baseUrl);
+        break;
+      case 'onboard':
+        res = await cmdOnboard(out, parsed, env, baseUrl);
+        break;
+      case 'heartbeat':
+        res = await cmdHeartbeat(out, parsed, env, baseUrl);
         break;
       case 'agents':
         res = await cmdAgents(out, parsed, env, baseUrl);

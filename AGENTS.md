@@ -94,6 +94,26 @@ Good starting surfaces:
 3. roadmap/workflow docs when the task touches unfinished or planned capability
 4. the MemPalace memory system (see below)
 
+## Multi-Agent Coordination (Agora) — check in before you edit
+
+Multiple agents often work THIS shared checkout at the same time. Coordination runs through
+the **Agora daemon** (`http://localhost:4319`; start with `npm run agora` if down). If you
+were dispatched with a coordination contract in your prompt, follow it. If you are a fresh
+agent with no contract, run the one-command orientation FIRST:
+
+```bash
+AGORA_DIR=.agent/agora/ids/<your-unique-handle> node tools/agora/client.mjs onboard <your-unique-handle> --note "<what you are doing>"
+```
+
+It registers you and prints who else is working, which files are locked (do NOT touch
+those), the ready task queue, and the full coordination rules (lock-before-edit; heartbeat
+during long work or be reaped; finish tasks with `task done <id> --result "<proof>"`).
+
+- Full API: `tools/agora/PROTOCOL.md` · running campaigns: `tools/agora/ORCHESTRATOR.md`
+- Which AI agents may be dispatched (statuses/policy): `tools/agora/agents.json`
+  (`node tools/agora/orchestrate.mjs agents`)
+- Project-tracker work intake: `node tools/agora/gapIndex.mjs --open-only --summary`
+
 ## MemPalace (AI Memory System)
 
 This project has a local, persistent AI memory system called **MemPalace**. It contains 143,000+ searchable text chunks ("drawers") from:

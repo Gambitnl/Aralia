@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import BattleMap3D from '../BattleMap3D';
 import type { BattleMapData, CombatCharacter, LightLevel, LightSource } from '../../../types/combat';
@@ -11,28 +11,29 @@ import type { BattleMapData, CombatCharacter, LightLevel, LightSource } from '..
  * shared movement, target, overlay, and visibility state that the 2D map uses.
  */
 
-const mockUseBattleMap = vi.fn();
-const mockUseTargetSelection = vi.fn();
-const mockUseVisibility = vi.fn();
-const mockTerrainMesh = vi.fn(() => null);
-const mockGridOverlay = vi.fn(() => null);
-const mockGrassLayer = vi.fn(() => null);
-const mockWaterSystem = vi.fn(() => null);
-const mockDecorationProps = vi.fn(() => null);
-const mockGroundScatter = vi.fn(() => null);
-const mockEzTreeLayer = vi.fn(() => null);
-const mockCharacterActor = vi.fn(() => null);
-const mockCameraController = vi.fn(() => null);
-const mockVFXSystem = vi.fn(() => null);
-const mockLivingWorld = vi.fn(() => null);
-const mockTargetingDecals = vi.fn();
+const mockUseBattleMap = vi.fn<(...args: unknown[]) => unknown>();
+const mockUseTargetSelection = vi.fn<(...args: unknown[]) => unknown>();
+const mockUseVisibility = vi.fn<(...args: unknown[]) => unknown>();
+const mockTerrainMesh = vi.fn<(...args: unknown[]) => null>(() => null);
+const mockGridOverlay = vi.fn<(...args: unknown[]) => null>(() => null);
+const mockGrassLayer = vi.fn<(...args: unknown[]) => null>(() => null);
+const mockWaterSystem = vi.fn<(...args: unknown[]) => null>(() => null);
+const mockDecorationProps = vi.fn<(...args: unknown[]) => null>(() => null);
+const mockGroundScatter = vi.fn<(...args: unknown[]) => null>(() => null);
+const mockEzTreeLayer = vi.fn<(...args: unknown[]) => null>(() => null);
+const mockCharacterActor = vi.fn<(...args: unknown[]) => null>(() => null);
+const mockCameraController = vi.fn<(...args: unknown[]) => null>(() => null);
+const mockVFXSystem = vi.fn<(...args: unknown[]) => null>(() => null);
+const mockLivingWorld = vi.fn<(...args: unknown[]) => null>(() => null);
+const mockTargetingDecals = vi.fn<(props: unknown) => void>();
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-canvas">{children}</div>
 }));
 
 vi.mock('@react-three/drei', () => ({
-  ContactShadows: () => null
+  ContactShadows: () => null,
+  Html: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 vi.mock('@react-three/postprocessing', () => ({
@@ -181,6 +182,46 @@ describe('BattleMap3D parity proof', () => {
           seed: 1
         } as unknown as BattleMapData}
         characters={[hero, enemy]}
+        spellMapArtifacts={{
+          helpers: [{
+            id: 'mage-hand-marker',
+            spellId: 'mage-hand',
+            spellName: 'Mage Hand',
+            casterId: hero.id,
+            kind: 'mage_hand',
+            entityType: 'spectral hand',
+            position: { x: 1, y: 0 },
+            size: 'tiny',
+            creature: false,
+            occupiesSpace: false,
+            active: true,
+            createdTurn: 0
+          }],
+          guardians: [{
+            id: 'guardian-marker',
+            spellId: 'guardian-of-faith',
+            spellName: 'Guardian of Faith',
+            casterId: hero.id,
+            kind: 'guardian_of_faith',
+            position: { x: 1, y: 1 },
+            size: 'large',
+            occupiesSpace: false,
+            invulnerable: true,
+            threatRadiusFeet: 10,
+            active: true,
+            createdTurn: 0,
+            triggerPolicy: {
+              targets: 'enemy_creatures',
+              damageAmount: 60,
+              damageType: 'radiant'
+            },
+            damageCap: {
+              maxTotalDamage: 60,
+              dealtDamage: 0,
+              vanishWhenReached: true
+            }
+          }]
+        }}
         combatState={{
           turnManager: {
             turnState: {
@@ -290,5 +331,7 @@ describe('BattleMap3D parity proof', () => {
       ],
       targetingMode: true
     }));
+    expect(screen.getByTitle('Mage Hand helper: spectral hand')).toHaveTextContent('SH');
+    expect(screen.getByTitle('Guardian of Faith guardian, 10 ft threat')).toHaveTextContent('GO');
   });
 });

@@ -231,6 +231,7 @@
                                                              "followDistanceFeet":  20,
                                                              "immobileWithinFeet":  20,
                                                              "maxCasterSeparationFeet":  100,
+                                                             "maxLoadPounds":  500,
                                                              "cannotCrossElevationChangeFeet":  10,
                                                              "terrain":  "can move across uneven terrain, stairs, and slopes",
                                                              "overload":  "if over 500 pounds, spell ends and contents fall"

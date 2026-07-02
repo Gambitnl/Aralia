@@ -107,4 +107,33 @@ export interface StatusEffect {
     stat?: keyof CharacterStats;
   };
   icon?: string;
+  // ---------------------------------------------------------------------
+  // Rich fields shared with the combat engine's StatusEffect (types/combat.ts).
+  // Party members already carry these at runtime — check plumbing such as
+  // checkUtils.collectStructuredAbilityCheckBonuses and the opening-standoff
+  // getActiveCheckBoosts read them off PlayerCharacter.statusEffects — this
+  // type just lagged behind that reality. All optional, so legacy effects
+  // remain valid.
+  // ---------------------------------------------------------------------
+  /** Ability or spell name that applied this effect (engine de-dup key). */
+  source?: string;
+  /** Character id that applied this effect (engine de-dup key). */
+  sourceCasterId?: string;
+  description?: string;
+  /** Mechanical riders read by check/attack plumbing. */
+  modifiers?: {
+    skill?: string;
+    advantage?: ('attack' | 'save' | 'check')[];
+    [key: string]: unknown;
+  };
+  /** Guidance-style ability-check rider (see spell JSON abilityCheckModifier). */
+  abilityCheckModifier?: {
+    appliesTo?: string;
+    bonusDice?: string;
+    flatModifier?: string | number;
+    skillSelection?: string;
+    [key: string]: unknown;
+  };
+  /** Named visual for status markers ('guidance', 'enhance-ability', …). */
+  visualEffect?: string;
 }

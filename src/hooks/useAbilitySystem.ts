@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/06/2026, 17:57:00
+ * Last Sync: 01/07/2026, 23:48:11
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 26 files
  *
@@ -25,7 +25,7 @@
  *   Getters (isValidTarget) remain reactive to props for render correctness.
  */
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
-import { CombatCharacter, Position, CombatAction, BattleMapData, CombatState, CombatLogEntry, ReactiveTrigger, Ability, LightSource, PocketedSummon, SpellDeliveryVisual, SelectedSpellTarget } from '../types/combat';
+import { ActiveAnimatedObject, ActiveExtradimensionalSpace, ActiveSpellEmanation, ActiveSpellForce, ActiveSpellGuardian, ActiveSpellHelper, ActiveSpellStructure, CombatCharacter, Position, CombatAction, BattleMapData, CombatState, CombatLogEntry, ReactiveTrigger, Ability, LightSource, PocketedSummon, SpellDeliveryVisual, SelectedSpellTarget } from '../types/combat';
 
 import { SpellMovementVisualInput } from './movementUtils';
 export type { SpellMovementVisualInput };
@@ -447,6 +447,27 @@ interface UseAbilitySystemProps {
   pocketedSummons?: PocketedSummon[];
   /** Publishes familiar pocket-state changes created by command execution. */
   onPocketedSummonsUpdate?: (pocketedSummons: PocketedSummon[]) => void;
+  /** Live non-creature spell helpers, such as Mage Hand or Unseen Servant-style records. */
+  activeSpellHelpers?: ActiveSpellHelper[];
+  onActiveSpellHelpersUpdate?: (helpers: ActiveSpellHelper[]) => void;
+  /** Live spell forces, such as Spiritual Weapon or Bigby's Hand. */
+  activeSpellForces?: ActiveSpellForce[];
+  onActiveSpellForcesUpdate?: (forces: ActiveSpellForce[]) => void;
+  /** Live guardian constructs, such as Guardian of Faith. */
+  activeSpellGuardians?: ActiveSpellGuardian[];
+  onActiveSpellGuardiansUpdate?: (guardians: ActiveSpellGuardian[]) => void;
+  /** Live animated object records from Animate Objects or Tiny Servant. */
+  activeAnimatedObjects?: ActiveAnimatedObject[];
+  onActiveAnimatedObjectsUpdate?: (objects: ActiveAnimatedObject[]) => void;
+  /** Live spell-created structures that have a map footprint. */
+  activeSpellStructures?: ActiveSpellStructure[];
+  onActiveSpellStructuresUpdate?: (structures: ActiveSpellStructure[]) => void;
+  /** Live extradimensional entrances, such as Magnificent Mansion doors. */
+  activeExtradimensionalSpaces?: ActiveExtradimensionalSpace[];
+  onActiveExtradimensionalSpacesUpdate?: (spaces: ActiveExtradimensionalSpace[]) => void;
+  /** Live caster-following emanation records. */
+  activeSpellEmanations?: ActiveSpellEmanation[];
+  onActiveSpellEmanationsUpdate?: (emanations: ActiveSpellEmanation[]) => void;
   onMapUpdate?: (mapData: BattleMapData) => void;
   /** Registers persistent spell zones created by structured area-trigger effects. */
   onAddSpellZone?: (zone: ActiveSpellZone) => void;
@@ -501,6 +522,20 @@ export const useAbilitySystem = ({
   onActiveLightSourcesUpdate,
   pocketedSummons,
   onPocketedSummonsUpdate,
+  activeSpellHelpers,
+  onActiveSpellHelpersUpdate,
+  activeSpellForces,
+  onActiveSpellForcesUpdate,
+  activeSpellGuardians,
+  onActiveSpellGuardiansUpdate,
+  activeAnimatedObjects,
+  onActiveAnimatedObjectsUpdate,
+  activeSpellStructures,
+  onActiveSpellStructuresUpdate,
+  activeExtradimensionalSpaces,
+  onActiveExtradimensionalSpacesUpdate,
+  activeSpellEmanations,
+  onActiveSpellEmanationsUpdate,
   onMapUpdate,
   onAddSpellZone,
   spellZones,
@@ -623,6 +658,13 @@ export const useAbilitySystem = ({
   const reactiveTriggersRef = useRef(reactiveTriggers);
   const currentPlaneRef = useRef(currentPlane);
   const pocketedSummonsRef = useRef(pocketedSummons);
+  const activeSpellHelpersRef = useRef(activeSpellHelpers);
+  const activeSpellForcesRef = useRef(activeSpellForces);
+  const activeSpellGuardiansRef = useRef(activeSpellGuardians);
+  const activeAnimatedObjectsRef = useRef(activeAnimatedObjects);
+  const activeSpellStructuresRef = useRef(activeSpellStructures);
+  const activeExtradimensionalSpacesRef = useRef(activeExtradimensionalSpaces);
+  const activeSpellEmanationsRef = useRef(activeSpellEmanations);
 
   // Sync refs with props
   useEffect(() => {
@@ -631,7 +673,27 @@ export const useAbilitySystem = ({
     reactiveTriggersRef.current = reactiveTriggers;
     currentPlaneRef.current = currentPlane;
     pocketedSummonsRef.current = pocketedSummons;
-  }, [characters, mapData, reactiveTriggers, currentPlane, pocketedSummons]);
+    activeSpellHelpersRef.current = activeSpellHelpers;
+    activeSpellForcesRef.current = activeSpellForces;
+    activeSpellGuardiansRef.current = activeSpellGuardians;
+    activeAnimatedObjectsRef.current = activeAnimatedObjects;
+    activeSpellStructuresRef.current = activeSpellStructures;
+    activeExtradimensionalSpacesRef.current = activeExtradimensionalSpaces;
+    activeSpellEmanationsRef.current = activeSpellEmanations;
+  }, [
+    characters,
+    mapData,
+    reactiveTriggers,
+    currentPlane,
+    pocketedSummons,
+    activeSpellHelpers,
+    activeSpellForces,
+    activeSpellGuardians,
+    activeAnimatedObjects,
+    activeSpellStructures,
+    activeExtradimensionalSpaces,
+    activeSpellEmanations
+  ]);
 
   // --- Command Pattern Execution Logic (Actions - Stable) ---
   const executeSpell = useCallback(
@@ -752,6 +814,13 @@ export const useAbilitySystem = ({
         combatLog: [], // Start empty to capture new entries
         reactiveTriggers: currentTriggers || [], // Pass current triggers
         activeLightSources: activeLightSources || [],
+        activeSpellHelpers: activeSpellHelpersRef.current || [],
+        activeSpellForces: activeSpellForcesRef.current || [],
+        activeSpellGuardians: activeSpellGuardiansRef.current || [],
+        activeAnimatedObjects: activeAnimatedObjectsRef.current || [],
+        activeSpellStructures: activeSpellStructuresRef.current || [],
+        activeExtradimensionalSpaces: activeExtradimensionalSpacesRef.current || [],
+        activeSpellEmanations: activeSpellEmanationsRef.current || [],
         currentPlane: activePlane,
         mapData: currentMapData ?? undefined // Add mapData to context if needed by commands
       };
@@ -974,6 +1043,32 @@ export const useAbilitySystem = ({
             onSpellZonesUpdate((finalState.spellZones || []) as ActiveSpellZone[]);
           }
 
+          // Non-creature summon/control commands mutate typed CombatState
+          // buckets instead of the character roster. Publish them to CombatView
+          // so the map can render helpers, forces, guardians, objects, and
+          // entrances after the temporary command state is discarded.
+          if (onActiveSpellHelpersUpdate && finalState.activeSpellHelpers !== currentState.activeSpellHelpers) {
+            onActiveSpellHelpersUpdate(finalState.activeSpellHelpers || []);
+          }
+          if (onActiveSpellForcesUpdate && finalState.activeSpellForces !== currentState.activeSpellForces) {
+            onActiveSpellForcesUpdate(finalState.activeSpellForces || []);
+          }
+          if (onActiveSpellGuardiansUpdate && finalState.activeSpellGuardians !== currentState.activeSpellGuardians) {
+            onActiveSpellGuardiansUpdate(finalState.activeSpellGuardians || []);
+          }
+          if (onActiveAnimatedObjectsUpdate && finalState.activeAnimatedObjects !== currentState.activeAnimatedObjects) {
+            onActiveAnimatedObjectsUpdate(finalState.activeAnimatedObjects || []);
+          }
+          if (onActiveSpellStructuresUpdate && finalState.activeSpellStructures !== currentState.activeSpellStructures) {
+            onActiveSpellStructuresUpdate(finalState.activeSpellStructures || []);
+          }
+          if (onActiveExtradimensionalSpacesUpdate && finalState.activeExtradimensionalSpaces !== currentState.activeExtradimensionalSpaces) {
+            onActiveExtradimensionalSpacesUpdate(finalState.activeExtradimensionalSpaces || []);
+          }
+          if (onActiveSpellEmanationsUpdate && finalState.activeSpellEmanations !== currentState.activeSpellEmanations) {
+            onActiveSpellEmanationsUpdate(finalState.activeSpellEmanations || []);
+          }
+
           if (onSpellCreatedInventoryItems && finalState.spellCreatedInventoryItems?.length) {
             onSpellCreatedInventoryItems(finalState.spellCreatedInventoryItems);
           }
@@ -1132,7 +1227,7 @@ export const useAbilitySystem = ({
       }
       return true;
     },
-    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onActiveLightSourcesUpdate, onMapUpdate, onAddSpellZone, onSpellZonesUpdate, onSpellCreatedInventoryItems, onAddScheduledSpellEffect, onAddMovementDebuff, onAddSpellMovementVisual, activeLightSources, spellZones]
+    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onActiveLightSourcesUpdate, onActiveSpellHelpersUpdate, onActiveSpellForcesUpdate, onActiveSpellGuardiansUpdate, onActiveAnimatedObjectsUpdate, onActiveSpellStructuresUpdate, onActiveExtradimensionalSpacesUpdate, onActiveSpellEmanationsUpdate, onMapUpdate, onAddSpellZone, onSpellZonesUpdate, onSpellCreatedInventoryItems, onAddScheduledSpellEffect, onAddMovementDebuff, onAddSpellMovementVisual, activeLightSources, spellZones]
   );
 
 
@@ -1369,6 +1464,13 @@ export const useAbilitySystem = ({
       reactiveTriggers: currentTriggers || [],
       activeLightSources: activeLightSources || [],
       pocketedSummons: pocketedSummonsRef.current || [],
+      activeSpellHelpers: activeSpellHelpersRef.current || [],
+      activeSpellForces: activeSpellForcesRef.current || [],
+      activeSpellGuardians: activeSpellGuardiansRef.current || [],
+      activeAnimatedObjects: activeAnimatedObjectsRef.current || [],
+      activeSpellStructures: activeSpellStructuresRef.current || [],
+      activeExtradimensionalSpaces: activeExtradimensionalSpacesRef.current || [],
+      activeSpellEmanations: activeSpellEmanationsRef.current || [],
       currentPlane: activePlane,
       mapData: mapDataRef.current ?? undefined
     };
@@ -1438,6 +1540,28 @@ export const useAbilitySystem = ({
       // live encounter here so the next beam sees the shortened wall.
       if (onSpellZonesUpdate && result.finalState.spellZones !== currentState.spellZones) {
         onSpellZonesUpdate((result.finalState.spellZones || []) as ActiveSpellZone[]);
+      }
+
+      if (onActiveSpellHelpersUpdate && result.finalState.activeSpellHelpers !== currentState.activeSpellHelpers) {
+        onActiveSpellHelpersUpdate(result.finalState.activeSpellHelpers || []);
+      }
+      if (onActiveSpellForcesUpdate && result.finalState.activeSpellForces !== currentState.activeSpellForces) {
+        onActiveSpellForcesUpdate(result.finalState.activeSpellForces || []);
+      }
+      if (onActiveSpellGuardiansUpdate && result.finalState.activeSpellGuardians !== currentState.activeSpellGuardians) {
+        onActiveSpellGuardiansUpdate(result.finalState.activeSpellGuardians || []);
+      }
+      if (onActiveAnimatedObjectsUpdate && result.finalState.activeAnimatedObjects !== currentState.activeAnimatedObjects) {
+        onActiveAnimatedObjectsUpdate(result.finalState.activeAnimatedObjects || []);
+      }
+      if (onActiveSpellStructuresUpdate && result.finalState.activeSpellStructures !== currentState.activeSpellStructures) {
+        onActiveSpellStructuresUpdate(result.finalState.activeSpellStructures || []);
+      }
+      if (onActiveExtradimensionalSpacesUpdate && result.finalState.activeExtradimensionalSpaces !== currentState.activeExtradimensionalSpaces) {
+        onActiveExtradimensionalSpacesUpdate(result.finalState.activeExtradimensionalSpaces || []);
+      }
+      if (onActiveSpellEmanationsUpdate && result.finalState.activeSpellEmanations !== currentState.activeSpellEmanations) {
+        onActiveSpellEmanationsUpdate(result.finalState.activeSpellEmanations || []);
       }
 
       if (onSpellCreatedInventoryItems && result.finalState.spellCreatedInventoryItems?.length) {
@@ -1643,7 +1767,7 @@ export const useAbilitySystem = ({
 
     cancelTargeting();
   // TODO(lint-intent): Wire the ability-effect callback into the execution path if VFX hooks are needed.
-  }, [onExecuteAction, onCharacterUpdate, onCharactersReplace, onPocketedSummonsUpdate, cancelTargeting, executeSpell, requestReaction, onLogEntry, onNotification, onActiveLightSourcesUpdate, onSpellZonesUpdate, onSpellCreatedInventoryItems, onAddSpellDeliveryVisual, activeLightSources]); // Refs are stable, omitted
+  }, [onExecuteAction, onCharacterUpdate, onCharactersReplace, onPocketedSummonsUpdate, cancelTargeting, executeSpell, requestReaction, onLogEntry, onNotification, onActiveLightSourcesUpdate, onActiveSpellHelpersUpdate, onActiveSpellForcesUpdate, onActiveSpellGuardiansUpdate, onActiveAnimatedObjectsUpdate, onActiveSpellStructuresUpdate, onActiveExtradimensionalSpacesUpdate, onActiveSpellEmanationsUpdate, onSpellZonesUpdate, onSpellCreatedInventoryItems, onAddSpellDeliveryVisual, activeLightSources]); // Refs are stable, omitted
 
   const executeAbility = useCallback((...args: Parameters<typeof executeAbilityInternal>) => {
     return executeAbilityInternal(...args);
@@ -2015,7 +2139,14 @@ export const useAbilitySystem = ({
       validMoves: [],
       combatLog: [],
       reactiveTriggers: currentTriggers || [],
-      activeLightSources: activeLightSources || []
+      activeLightSources: activeLightSources || [],
+      activeSpellHelpers: activeSpellHelpersRef.current || [],
+      activeSpellForces: activeSpellForcesRef.current || [],
+      activeSpellGuardians: activeSpellGuardiansRef.current || [],
+      activeAnimatedObjects: activeAnimatedObjectsRef.current || [],
+      activeSpellStructures: activeSpellStructuresRef.current || [],
+      activeExtradimensionalSpaces: activeExtradimensionalSpacesRef.current || [],
+      activeSpellEmanations: activeSpellEmanationsRef.current || []
     };
 
     // Create Command manually (no Factory needed for simple drop)
@@ -2045,8 +2176,41 @@ export const useAbilitySystem = ({
       if (onActiveLightSourcesUpdate && result.finalState.activeLightSources !== currentState.activeLightSources) {
         onActiveLightSourcesUpdate(result.finalState.activeLightSources || []);
       }
+      if (onActiveSpellHelpersUpdate && result.finalState.activeSpellHelpers !== currentState.activeSpellHelpers) {
+        onActiveSpellHelpersUpdate(result.finalState.activeSpellHelpers || []);
+      }
+      if (onActiveSpellForcesUpdate && result.finalState.activeSpellForces !== currentState.activeSpellForces) {
+        onActiveSpellForcesUpdate(result.finalState.activeSpellForces || []);
+      }
+      if (onActiveSpellGuardiansUpdate && result.finalState.activeSpellGuardians !== currentState.activeSpellGuardians) {
+        onActiveSpellGuardiansUpdate(result.finalState.activeSpellGuardians || []);
+      }
+      if (onActiveAnimatedObjectsUpdate && result.finalState.activeAnimatedObjects !== currentState.activeAnimatedObjects) {
+        onActiveAnimatedObjectsUpdate(result.finalState.activeAnimatedObjects || []);
+      }
+      if (onActiveSpellStructuresUpdate && result.finalState.activeSpellStructures !== currentState.activeSpellStructures) {
+        onActiveSpellStructuresUpdate(result.finalState.activeSpellStructures || []);
+      }
+      if (onActiveExtradimensionalSpacesUpdate && result.finalState.activeExtradimensionalSpaces !== currentState.activeExtradimensionalSpaces) {
+        onActiveExtradimensionalSpacesUpdate(result.finalState.activeExtradimensionalSpaces || []);
+      }
+      if (onActiveSpellEmanationsUpdate && result.finalState.activeSpellEmanations !== currentState.activeSpellEmanations) {
+        onActiveSpellEmanationsUpdate(result.finalState.activeSpellEmanations || []);
+      }
     }
-  }, [onCharacterUpdate, onLogEntry, onActiveLightSourcesUpdate, activeLightSources]);
+  }, [
+    onCharacterUpdate,
+    onLogEntry,
+    onActiveLightSourcesUpdate,
+    onActiveSpellHelpersUpdate,
+    onActiveSpellForcesUpdate,
+    onActiveSpellGuardiansUpdate,
+    onActiveAnimatedObjectsUpdate,
+    onActiveSpellStructuresUpdate,
+    onActiveExtradimensionalSpacesUpdate,
+    onActiveSpellEmanationsUpdate,
+    activeLightSources
+  ]);
 
 
   // Expose API

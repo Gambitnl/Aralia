@@ -3,6 +3,7 @@ import { polygonBounds, pointInPolygon, type Pt } from '../../systems/worldforge
 import type { TownPlan, CivicKind, BuildingPlot } from '../../systems/worldforge/town/townEngine';
 import { generateHousehold } from '../../systems/worldforge/town/household';
 import { BUILDING_FILL, BUILDING_LABEL } from '../../systems/worldforge/town/buildingStyle';
+import { styledWallColor, styleFrameOf, type StyleFamily } from '../../systems/worldforge/town/architectureStyle';
 import type { SeedPath } from '../../systems/worldforge/seedPath';
 import { useTownLayers, TOWN_LAYER_DEFS } from './useDrillLayers';
 import DrillLayerPanel from './DrillLayerPanel';
@@ -15,6 +16,13 @@ export interface TownPlanViewProps {
   seedPath?: SeedPath;
   /** Per-save scope for the town layer toggles (pass the world seed). */
   prefsScope?: string | number;
+  /**
+   * Regional architecture style family (from the burg's FMG culture type) —
+   * when set, building-plot fills use the SAME frame-normalized centroid-hash
+   * palette pick the 3D ground bake uses, so a Highland stone town reads
+   * stone-grey on the map too. Omit for fixtures with no real burg/seed.
+   */
+  styleFamily?: StyleFamily;
 }
 
 const CIVIC_COLOR: Record<CivicKind, string> = {
@@ -90,9 +98,12 @@ interface HoverInfo {
  * fit-to-view + manual pan/zoom. Hovering a building or civic structure highlights
  * it and shows an inspector tooltip. This is the deepest 2D tier the drill reaches.
  */
-const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height = 560, seedPath, prefsScope }) => {
+const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height = 560, seedPath, prefsScope, styleFamily }) => {
   const { layers, toggle } = useTownLayers(prefsScope);
   const bounds = useMemo(() => polygonBounds(plan.footprint), [plan]);
+  // Same hashing reference frame the 3D bake uses (townPlanAdapter.toArtifactPlan) —
+  // the plan's footprint bbox — so per-plot palette picks land on the identical color.
+  const styleFrame = useMemo(() => (styleFamily ? styleFrameOf(plan.footprint) : undefined), [styleFamily, plan]);
   const fit = useMemo(() => {
     const w = bounds.maxX - bounds.minX || 1;
     const h = bounds.maxY - bounds.minY || 1;
@@ -331,7 +342,9 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
         ))}
         {layers.buildings && plan.wards.flatMap((w, wi) => w.plots.map((pl, pi) => (
           <path key={`p${wi}-${pi}`} d={poly(pl.polygon)}
-            fill={pl.buildingType ? BUILDING_FILL[pl.buildingType] : pl.kind === 'interior' ? '#b89a72' : '#9c7b54'}
+            fill={styleFamily && styleFrame
+              ? styledWallColor(styleFamily, pl.polygon, styleFrame)
+              : pl.buildingType ? BUILDING_FILL[pl.buildingType] : pl.kind === 'interior' ? '#b89a72' : '#9c7b54'}
             stroke="#5f4527" strokeWidth={0.5} vectorEffect="non-scaling-stroke"
             data-testid={pl.buildingType ? `town-building-${pl.buildingType}` : undefined} />
         )))}

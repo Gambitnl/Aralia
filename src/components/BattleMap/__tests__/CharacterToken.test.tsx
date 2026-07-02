@@ -104,3 +104,38 @@ describe('CharacterToken defense badges', () => {
     expect(screen.queryByTestId('defense-badge-immunity')).not.toBeInTheDocument();
   });
 });
+
+describe('CharacterToken status and concentration markers', () => {
+  it('renders named status and concentration markers for spell effects', () => {
+    render(
+      <CharacterToken
+        character={buildCharacter({
+          statusEffects: [{
+            id: 'enhance-ability-bear',
+            name: 'Enhance Ability: Bear',
+            type: 'buff',
+            duration: 10,
+            source: 'Enhance Ability'
+          }],
+          concentratingOn: {
+            spellId: 'enhance-ability',
+            spellName: 'Enhance Ability',
+            spellLevel: 2,
+            startedTurn: 3,
+            effectIds: ['enhance-ability-bear'],
+            canDropAsFreeAction: true
+          }
+        })}
+        position={{ x: 2, y: 1 }}
+        isSelected={false}
+        isTargetable={false}
+        targetingMode={false}
+        isTurn={false}
+        onCharacterClick={() => undefined}
+      />
+    );
+
+    expect(screen.getByLabelText('Enhance Ability: Bear status marker')).toBeInTheDocument();
+    expect(screen.getByLabelText('Concentrating on Enhance Ability')).toBeInTheDocument();
+  });
+});

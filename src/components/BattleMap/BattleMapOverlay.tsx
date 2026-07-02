@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 24/06/2026, 22:09:43
+ * Last Sync: 01/07/2026, 23:48:11
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
  * Imports: 8 files
  *
@@ -15,13 +15,13 @@
 // @dependencies-end
 
 import React, { useEffect, useState } from 'react';
-import { Ability, Animation, BattleMapData, CombatCharacter, DamageNumber, LightSource, Position, SpellDeliveryVisual, SpellEffectAnimationData, SpellMovementVisual } from '../../types/combat';
+import type { Ability, Animation, BattleMapData, CombatCharacter, DamageNumber, LightSource, Position, SpellDeliveryVisual, SpellEffectAnimationData, SpellMovementVisual } from '../../types/combat';
 import DamageNumberOverlay from './DamageNumberOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
-import { getStatusEffectIcon } from '../../utils/combatUtils';
 import { hasLineOfSight } from '../../utils/spatial/lineOfSight';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
+import { buildSpellMapArtifactMarkers, type SpellMapArtifacts } from './spellMapArtifacts';
 import {
   isPositionInArea,
   type ActiveSpellZone,
@@ -93,6 +93,22 @@ const getZoneVisualFamily = (zone: ActiveSpellZone): ZoneVisualFamily => {
   return 'fog';
 };
 
+const getOverlayStatusEffectIcon = (effect: CombatCharacter['statusEffects'][number]): string => {
+  if (effect.icon) return effect.icon;
+  switch (effect.type) {
+    case 'buff':
+      return '+';
+    case 'debuff':
+      return '!';
+    case 'dot':
+      return 'DOT';
+    case 'hot':
+      return 'HOT';
+    default:
+      return '?';
+  }
+};
+
 interface BattleMapOverlayProps {
   mapData: BattleMapData;
   characters: CombatCharacter[];
@@ -116,6 +132,8 @@ interface BattleMapOverlayProps {
   spellMovementVisuals?: SpellMovementVisual[];
   /** Controlled-entity touch spell delivery cues. */
   spellDeliveryVisuals?: SpellDeliveryVisual[];
+  /** Non-creature summon/control records that need explicit map markers. */
+  spellMapArtifacts?: SpellMapArtifacts;
   aoePreview?: { center: { x: number; y: number }; affectedTiles: { x: number; y: number }[]; ability: Ability } | null;
   /** Active teleport destination-pick state; labels which creature the blue destination tiles belong to. */
   teleportDestinationPreview?: { targetId: string; affectedTiles: { x: number; y: number }[]; ability: Ability } | null;
@@ -156,6 +174,7 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
   lineOfSightOriginCharacterId = null,
   spellMovementVisuals = [],
   spellDeliveryVisuals = [],
+  spellMapArtifacts,
   aoePreview,
   teleportDestinationPreview,
   assignedTeleportDestinations = [],
@@ -236,6 +255,10 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
     if (!position) return [];
     return [{ source, position }];
   });
+
+  // Non-creature summon and control records are not combatants, so they need
+  // their own map artifact path instead of relying on CharacterToken rendering.
+  const spellArtifactMarkers = buildSpellMapArtifactMarkers(spellMapArtifacts, characters);
 
   // The LoS cone is a teaching overlay only: it asks the real line-of-sight
   // helper which tiles are actually visible from the active actor, then clips
@@ -439,6 +462,46 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
         </div>
       ))}
 
+      {/* Non-creature summon/control artifacts */}
+      {spellArtifactMarkers.map((marker, index) => {
+        const centerX = marker.position.x * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+        const centerY = marker.position.y * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+        const radiusTiles = marker.radiusFeet ? Math.max(0.5, marker.radiusFeet / 5) : 0;
+
+        return (
+          <React.Fragment key={marker.id}>
+            {radiusTiles > 0 && (
+              <div
+                className="absolute rounded-full border border-emerald-100/45 bg-emerald-300/10 shadow-[0_0_18px_rgba(16,185,129,0.28)]"
+                title={`${marker.title} area`}
+                style={{
+                  left: centerX - radiusTiles * TILE_SIZE_PX,
+                  top: centerY - radiusTiles * TILE_SIZE_PX,
+                  width: radiusTiles * TILE_SIZE_PX * 2,
+                  height: radiusTiles * TILE_SIZE_PX * 2,
+                  zIndex: Z_INDEX.CONTENT_OVERLAY_LOW + 1,
+                }}
+              />
+            )}
+            <div
+              data-testid={`spell-map-artifact-${marker.family}`}
+              className="absolute flex min-h-6 min-w-6 max-w-[3rem] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded border border-emerald-100/85 bg-emerald-600/92 px-1 text-[9px] font-black leading-none text-white shadow-[0_0_14px_rgba(16,185,129,0.58)]"
+              title={marker.title}
+              style={{
+                left: centerX + (index % 3 - 1) * 8,
+                top: centerY + (Math.floor(index / 3) % 2) * 8,
+                zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM,
+              }}
+            >
+              {/* The marker is the readable handle for non-creature spell state:
+                  helpers, objects, guardians, and entrances do not have normal
+                  creature tokens but still occupy or affect map space. */}
+              {marker.label}
+            </div>
+          </React.Fragment>
+        );
+      })}
+
       {/* Active teleport destination assignment */}
       {activeTeleportTarget && teleportDestinationPreview && (
         <div
@@ -607,7 +670,7 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
                 transition: 'transform 150ms ease-out, opacity 150ms ease-out',
               }}
             >
-              {getStatusEffectIcon(effect)}
+              {getOverlayStatusEffectIcon(effect)}
             </span>
           ))}
         </div>

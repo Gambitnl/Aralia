@@ -19,7 +19,7 @@ Legacy name / folder slug: Spell System Overhaul (`docs/tasks/spell-system-overh
 
 - Do not shrink scope because files already exist but are incomplete.
 - Track future cross-project gaps in `docs/projects/GLOBAL_GAPS.md` when relevant.
-- Keep unresolved in-project behavior questions in `GAPS.md` and `TRACKER.md`.
+- Keep unresolved in-project behavior questions in the owning child lane `GAPS.md` under `docs/projects/spells/subprojects/` (this folder's `GAPS.md` was archived 2026-07-01 to `docs/archive/spell-system/SSO-GAPS-EVIDENCE-LOG.md`; `TRACKER.md` here is a historical index).
 
 ## DS-006 JSON schema part editing surface
 
