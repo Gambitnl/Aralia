@@ -15,6 +15,7 @@ import {
 import { AoECalculator } from '@/systems/spells/targeting/AoECalculator'
 import type { CombatCharacter, Position } from '@/types/combat'
 import type { SpellEffect } from '@/types/spells'
+import type { Class } from '@/types/character'
 
 const baseStats = {
   strength: 10,
@@ -36,12 +37,25 @@ const baseEconomy = {
   freeActions: 0
 }
 
+const mockClass: Class = {
+  id: 'wizard',
+  name: 'Wizard',
+  description: '',
+  hitDie: 8,
+  primaryAbility: ['Intelligence'],
+  savingThrowProficiencies: ['Intelligence', 'Wisdom'],
+  skillProficienciesAvailable: ['Arcana'],
+  numberOfSkillProficiencies: 2,
+  armorProficiencies: [],
+  weaponProficiencies: [],
+  features: []
+}
+
 const makeCharacter = (position: Position): CombatCharacter => ({
   id: 'target',
   name: 'Target',
   level: 1,
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  class: 'Wizard' as unknown,
+  class: mockClass,
   position,
   stats: { ...baseStats },
   abilities: [],
@@ -186,8 +200,7 @@ describe('processAreaEndTurnTriggers', () => {
       trigger: { type: 'on_end_turn_in_area', frequency: 'first_per_turn' },
       condition: { type: 'always' },
       damage: { dice: '1d6', type: 'Fire' }
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown as SpellEffect
+    }
 
     const zone = makeZone([effect])
     const occupant = makeCharacter({ x: 0, y: 0 })
@@ -300,8 +313,7 @@ describe('processAreaExitTriggers', () => {
       trigger: { type: 'on_exit_area', frequency: 'once_per_creature' },
       condition: { type: 'always' },
       damage: { dice: '1d4', type: 'Fire' }
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown as SpellEffect
+    }
 
     const zone = makeZone([effect])
     const mover = makeCharacter({ x: 0, y: 0 })
@@ -318,8 +330,7 @@ describe('processAreaExitTriggers', () => {
       trigger: { type: 'on_exit_area', frequency: 'once_per_creature' },
       condition: { type: 'always' },
       damage: { dice: '1d4', type: 'Fire' }
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown as SpellEffect
+    }
 
     const zone = makeZone([effect])
     const moverA = makeCharacter({ x: 0, y: 0 })
@@ -344,8 +355,7 @@ describe('processAreaExitTriggers', () => {
       trigger: { type: 'on_exit_area', frequency: 'once' },
       condition: { type: 'always' },
       damage: { dice: '1d4', type: 'Fire' }
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown as SpellEffect
+    }
 
     const zone = makeZone([effect])
     const moverA = makeCharacter({ x: 0, y: 0 })

@@ -137,7 +137,6 @@ export interface TargetAllocation {
     dice: string;
     sortOrder: 'ascending' | 'descending';
     strictLimit?: boolean;
-    // TODO(lint-intent): Hook scaling formulas into dice resolution when the system is fully wired.
     scaling?: ScalingFormula;
   };
 }

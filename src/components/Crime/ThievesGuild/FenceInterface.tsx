@@ -102,9 +102,8 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
                         
                         
                         {/*
-                          TODO(lint-intent): This text includes raw quotes/special characters that were likely meant as prose.
-                          TODO(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
-                          TODO(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
+                          TODO #60(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
+                          TODO #61(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
                         */}
                         <p className="text-xs text-gray-400">
                             &quot;I buy anything. No questions asked.&quot; (Cut: {Math.round((1 - payoutRatio) * 100)}%)
@@ -145,10 +144,6 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
                                 inventory.map(item => (
                                     
                                     
-                                    /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
-                                    TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
-                                    TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
-                                    */
                                     <div
                                         key={item.id}
                                         onClick={() => setSelectedItem(item)}

@@ -5,10 +5,7 @@
  * This service ensures that events like faction wars, political shifts, and major discoveries
  * are recorded with consistent metadata, impact scores, and tagging.
  */
-// TODO(lint-intent): 'HistoricalParticipant' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { WorldHistoryEvent, WorldHistoryEventType, HistoricalParticipant as _HistoricalParticipant } from '../../types/history';
+import { WorldHistoryEvent, WorldHistoryEventType } from '../../types/history';
 import { GameState } from '../../types';
 import { getGameDay } from '../../utils/core';
 

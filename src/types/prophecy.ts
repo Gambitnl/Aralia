@@ -172,4 +172,3 @@ export interface ProphecyInterpretation {
   isAccurate: boolean;
 }
 
-// TODO(Worldsmith): Implement the prophecy generation system in src/systems/knowledge/ProphecyGenerator.ts to populate these structures dynamically.

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/07/2026, 22:23:42
+ * Last Sync: 02/07/2026, 17:08:24
  * Dependents: types/spells.ts
  * Imports: 11 files
  *
@@ -25,6 +25,7 @@ import type { AbilityCheckModifier } from './spellCheckMetadata';
 import type { ConditionalEnding, EffectEndCleanup, SustainRequirement } from './spellLifecycleMetadata';
 import type { ScalingFormula } from './spellScalingMetadata';
 import type { BarrierDamagePrevention, DamageInteraction, DeathPrevention, LinkedDamage, ResistanceSuppression, SpellEffectPrevention } from './spellProtectionMetadata';
+import type { ConditionType } from './conditions';
 
 // Local types that used to be in spells.ts but are now in spellEffectTypes.ts
 
@@ -48,16 +49,8 @@ export type SpellEffect =
 /** The six primary ability scores used for saving throws. */
 export type SavingThrowAbility = "Strength" | "Dexterity" | "Constitution" | "Intelligence" | "Wisdom" | "Charisma";
 
-// TODO(Taxonomist): Refactor codebase to use ConditionType enum from ./conditions.ts strictly instead of ConditionName union.
-// This requires updating all references in combat logic, effect processing, and UI components.
-
-/** The fourteen status conditions in D&D 5e plus custom game conditions. */
-export type ConditionName =
-  | "Blinded" | "Charmed" | "Deafened" | "Exhaustion" | "Frightened"
-  | "Grappled" | "Incapacitated" | "Invisible" | "Paralyzed" | "Petrified"
-  | "Poisoned" | "Prone" | "Restrained" | "Stunned" | "Unconscious" | "Ignited"
-  // Custom conditions for game mechanics (e.g., feat effects)
-  | "Slowed" | "Slasher Slow";
+// ConditionName is normalized onto ConditionType while retaining custom domain conditions.
+export type ConditionName = ConditionType | "Slowed" | "Slasher Slow";
 
 /** Modifiers that adjust how a saving throw is made. */
 export interface SaveModifier {
@@ -333,7 +326,6 @@ export interface BaseEffect {
   resistanceSuppression?: ResistanceSuppression;
   /** Area or mode-based changes to damage interaction, such as Hallow resistance/vulnerability choices. */
   damageInteraction?: DamageInteraction;
-  // TODO(preserve-lint): SpellValidator requires descriptions; make this required once data is normalized.
   description?: string;
   areaOfEffect?: AreaOfEffect;
 }
@@ -1128,6 +1120,7 @@ export interface UtilityEffect extends BaseEffect {
     dimRadius?: number;     // Additional radius of dim light in feet
     attachedTo?: "caster" | "target" | "point";
     color?: string;         // e.g., "warm", "cold", "#RRGGBB"
+    opaqueCoverBlocks?: boolean | "not_applicable"; // Tracks if opaque cover blocks the light emission
   };
   /**
    * Runtime-facing movement contract for utility-created light artifacts.
@@ -1216,6 +1209,8 @@ export interface UtilityEffect extends BaseEffect {
     simpleCommands?: boolean;
     limitations?: string;
     notes?: string;
+    animatedTreesSpeech?: string;
+    visibleSymbols?: string;
   };
   /** Awaken's lasting transformation packet for Beast/Plant targets and natural plants. */
   plantInteraction?: {
@@ -1313,6 +1308,14 @@ export interface ObjectAccessChange {
     trigger: "on_cast" | "on_change";
     description: string;
   };
+  newState?: string;
+  nonmagicalUnlockBlocked?: boolean;
+  allowedOpeners?: string;
+  optionalPassword?: boolean;
+  passwordRangeFeet?: number;
+  passwordUnlockDuration?: string;
+  expiresWithSpell?: boolean;
+  notes?: string;
 }
 
 /** Machine-readable object stacks created by utility spells such as Goodberry. */
@@ -1892,7 +1895,6 @@ export interface DefensiveEffect extends BaseEffect {
 
 /**
  * Reactive triggers and sustain-style effects (e.g., Shield, Glyph of Warding).
- * TODO(preserve-lint): Formalize trigger/movement vocab and costs once reactive spells are data-driven.
  */
 export interface ReactiveEffect extends Omit<BaseEffect, 'trigger'> {
   type: "REACTIVE";

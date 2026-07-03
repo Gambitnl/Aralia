@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 13:41:53
+ * Last Sync: 02/07/2026, 11:21:04
  * Dependents: utils/character/index.ts, utils/combat/combatUtils.ts
  * Imports: 4 files
  *
@@ -31,7 +31,7 @@ import { Ability, AbilityCost, AbilityEffect, AbilityGrantedAction, AreaOfEffect
 import { getAbilityModifierValue, getRacialSpellGrantForSpell, resolveRacialSpellCastingAbility } from './characterUtils';
 import { logger } from '../core/logger';
 
-// TODO(FEATURES): Expand spell-to-ability translation coverage (conditions, multi-step effects, unique spell riders) so more spells execute without bespoke handlers (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+// TODO #1288(FEATURES): Expand spell-to-ability translation coverage (conditions, multi-step effects, unique spell riders) so more spells execute without bespoke handlers (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 // NOTE: UTILITY effects with custom fields (savePenalty, light sources, terrain manipulation) are not yet handled in the effects loop below.
 //   - light.json defines `light: { brightRadius, dimRadius }` for dynamic lighting (awaiting lighting system)
 //   - mind-sliver.json defines `savePenalty: { dice, applies, duration }` for save debuffs (needs schema + handler)
@@ -272,6 +272,10 @@ const extractGrantedActions = (spell: Spell): AbilityGrantedAction[] => {
     }
 
     return spell.effects.flatMap(effect => {
+        if (!effect || typeof effect !== 'object') {
+            return [];
+        }
+
         const grantedActions = (effect as { grantedActions?: AbilityGrantedAction[] }).grantedActions;
         return Array.isArray(grantedActions) ? grantedActions : [];
     });

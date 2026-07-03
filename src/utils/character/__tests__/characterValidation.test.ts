@@ -231,7 +231,6 @@ describe('validateCharacterChoices', () => {
     it('should NOT report class choices if selected', () => {
       const char = createTestChar('human', 'fighter');
       char.class.fightingStyles = [{ id: 'archery', name: 'Archery', description: '', levelAvailable: 1 }];
-      // TODO(2026-01-03 pass 4 Codex-CLI): fighting style selection cast until union includes string ids.
       char.selectedFightingStyle = 'archery' as unknown as typeof char.selectedFightingStyle;
 
       const issues = validateCharacterChoices(char);

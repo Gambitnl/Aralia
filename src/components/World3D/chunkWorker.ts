@@ -38,6 +38,11 @@ self.onmessage = (ev: MessageEvent) => {
       bundle.terrain.normals.buffer,
       bundle.terrain.colors.buffer,
     ];
+    if (bundle.terrain.skirts) {
+      for (const strip of Object.values(bundle.terrain.skirts)) {
+        transfer.push(strip.positions.buffer, strip.indices.buffer, strip.normals.buffer, strip.colors.buffer);
+      }
+    }
     if (bundle.water) transfer.push(bundle.water.positions.buffer, bundle.water.indices.buffer, bundle.water.normals.buffer);
     if (bundle.roads) transfer.push(bundle.roads.positions.buffer, bundle.roads.indices.buffer, bundle.roads.normals.buffer);
     if (bundle.vegetation) transfer.push(bundle.vegetation.positions.buffer, bundle.vegetation.scales.buffer, bundle.vegetation.rotations.buffer);

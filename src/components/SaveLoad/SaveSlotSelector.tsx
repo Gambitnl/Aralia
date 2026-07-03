@@ -84,7 +84,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
   };
 
   useEffect(() => {
-    // TODO(QOL): Add automated accessibility tests (axe) to verify focus trap and keyboard navigation in SaveSlotSelector (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
+    // TODO #128(QOL): Add automated accessibility tests (axe) to verify focus trap and keyboard navigation in SaveSlotSelector (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
     // The dependency axe-core is large, so we only want to load it in development.
     // NOTE: We explicitly use import.meta.env.DEV here instead of ENV.DEV.
     // ENV.DEV is an object property and cannot be statically analyzed by Vite for tree-shaking,

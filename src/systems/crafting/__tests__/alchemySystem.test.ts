@@ -18,14 +18,6 @@ const BLUE_LEAF: Item = {
   description: 'A reactive leaf',
   type: ItemType.CraftingMaterial
 };
-// TODO(lint-intent): 'DUST_GLOW' is unused in this test; use it in the assertion path or remove it.
-const _DUST_GLOW: Item = {
-  id: 'dust_glow',
-  name: 'Glow Dust',
-  description: 'Glowing dust',
-  type: ItemType.CraftingMaterial
-};
-
 // Mock Crafter
 const createMockCrafter = (rollResult: number): Crafter => ({
   id: 'player_1',

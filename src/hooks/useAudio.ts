@@ -5,10 +5,6 @@
  * Manages persisted volume settings and handles audio context lifecycle.
  */
 import { useRef, useCallback, useEffect } from 'react';
-// TODO(lint-intent): 'GameMessage' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { GameMessage as _GameMessage } from '../types';
 import { useLocalStorage } from './useLocalStorage';
 import { z } from 'zod';
 
@@ -88,7 +84,7 @@ export function useAudio(addMessage: AddMessageFn) {
     };
   }, []); // Empty dependency array means this runs once on mount
 
-  // TODO(FEATURES): Add ambient music and biome-based sound layers alongside TTS playback (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  // TODO #313(FEATURES): Add ambient music and biome-based sound layers alongside TTS playback (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   const playPcmAudio = useCallback(
     async (base64PcmData: string) => {
       if (!audioContextRef.current) {

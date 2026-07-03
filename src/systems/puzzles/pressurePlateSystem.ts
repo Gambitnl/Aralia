@@ -26,10 +26,7 @@ import { PlayerCharacter } from '../../types/character';
 import type { Item } from '../../types/items';
 import { rollDice } from '../../utils/combatUtils';
 import { getAbilityModifierValue } from '../../utils/statUtils';
-// TODO(lint-intent): 'TrapEffect' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { PressurePlate, PressurePlateResult, PressurePlateJamResult, SizeCategory, Trap, TrapEffect as _TrapEffect } from './types';
+import { PressurePlate, PressurePlateResult, PressurePlateJamResult, SizeCategory, Trap } from './types';
 import { getPuzzleCharacterStats } from './characterAbilityBridge';
 import { hasTool, hasToolProficiency } from './lockSystem';
 
@@ -148,9 +145,6 @@ export function detectPressurePlate(
 export function jamPressurePlate(
   character: PlayerCharacter,
   plate: PressurePlate,
-  // TODO(lint-intent): The any on 'inventory' hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
   inventory: Array<Pick<Item, 'id'>>
 ): PressurePlateJamResult {
   if (plate.isJammed) {
@@ -227,4 +221,4 @@ export function updatePressurePlateState(plate: PressurePlate): void {
     }
 }
 
-// TODO(Lockpick): Integrate pressure plate trigger zones into the BattleMap movement handler.
+// TODO #903(Lockpick): Integrate pressure plate trigger zones into the BattleMap movement handler.

@@ -1,8 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { FactionManager } from '../FactionManager';
-// TODO(lint-intent): 'Faction' is unused in this test; use it in the assertion path or remove it.
-import { GameState, GamePhase, Faction as _Faction } from '../../../types';
+import { GameState, GamePhase } from '../../../types';
 import { FACTIONS } from '../../../data/factions';
 import { createMockGameState } from '../../../utils/core/factories';
 
@@ -15,7 +14,6 @@ const mockState: GameState = createMockGameState({
     economy: {
         activeEvents: [],
         marketFactors: { scarcity: [], surplus: [] },
-        // TODO(2026-01-03 pass 4 Codex-CLI): prices stubbed for legacy assertions until economy typing expands.
         prices: {} as unknown as GameState['economy']['regionalWealth'],
         tradeRoutes: [],
         marketEvents: [],

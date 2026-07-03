@@ -39,7 +39,6 @@ vi.mock('../../../config/mapConfig', () => ({
 }));
 
 // Helper to build permissive actions for tests while keeping labels optional.
-// TODO(lint-intent): Replace with richer fixtures when action shapes are finalized.
 const makeAction = (action: { type: string } & Record<string, unknown>): Action =>
   action as Action;
 

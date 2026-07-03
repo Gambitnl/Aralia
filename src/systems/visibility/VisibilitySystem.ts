@@ -23,10 +23,6 @@
 
 import {
   BattleMapData,
-  // TODO(lint-intent): 'BattleMapTile' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-  BattleMapTile as _BattleMapTile,
   CombatCharacter,
   LightSource,
   LightLevel,
@@ -151,7 +147,7 @@ export class VisibilitySystem {
       }
 
       // 3. Light Level Check
-      const lightLevel = lightLevels.get(tileId) || 'darkness';
+        const lightLevel = lightLevels.get(tileId) || 'darkness';
 
       if (lightLevel === 'bright') {
         visibilityMap.set(tileId, 'visible');

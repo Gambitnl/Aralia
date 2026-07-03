@@ -282,4 +282,3 @@ export interface DeityAction {
   favorChange: number;
 }
 
-// TODO(Taxonomist): Update codebase to use Alignment enum instead of string literals

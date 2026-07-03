@@ -2,10 +2,7 @@
  * @file src/data/dev/dummyCharacter.ts
  * Defines the dummy character data for development and testing purposes.
  */
-// TODO(lint-intent): 'Race' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { PlayerCharacter, AbilityScores, Skill, LimitedUses, SpellSlots, SpellbookData, Item, Race as _Race, Class as _CharClass } from '../../types';
+import { PlayerCharacter, AbilityScores, Skill, LimitedUses, SpellSlots, SpellbookData, Item } from '../../types';
 import { getAbilityModifierValue, calculateArmorClass, calculateFixedRacialBonuses } from '../../utils/statUtils';
 import { buildHitPointDicePools } from '../../utils/characterUtils';
 import { FEATURES } from '../../config/features';

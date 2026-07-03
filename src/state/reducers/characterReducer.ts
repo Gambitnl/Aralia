@@ -33,10 +33,7 @@
  * @file src/state/reducers/characterReducer.ts
  * A slice reducer that handles character-related state changes (party, inventory, actions).
  */
-// TODO(lint-intent): 'DiscoveryType' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { GameState, LimitedUseAbility, SpellSlots, DiscoveryType as _DiscoveryType, Item, RacialSelectionData, LevelUpChoices, EquipmentSlotType, ArmorCategory, AbilityScoreName, Skill } from '../../types';
+import { GameState, LimitedUseAbility, SpellSlots, Item, RacialSelectionData, LevelUpChoices, EquipmentSlotType, ArmorCategory, AbilityScoreName, Skill } from '../../types';
 import { AppAction } from '../actionTypes';
 import { SKILLS_DATA } from '../../data/skills';
 import {
@@ -60,10 +57,7 @@ import {
 import { getMaxPreparedSpells } from '../../utils/character/getMaxPreparedSpells';
 import { isWeaponProficient } from '../../utils/weaponUtils';
 import { rollDice } from '../../utils/combat/combatUtils';
-// TODO(lint-intent): 'LOCATIONS' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { LOCATIONS as _LOCATIONS, ITEMS, CLASSES_DATA } from '../../constants';
+import { ITEMS, CLASSES_DATA } from '../../constants';
 import { generateId } from '../../utils/core/idGenerator';
 import { isWildernessLocationId } from '../../utils/location/cellLocationId';
 
@@ -125,7 +119,6 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
 
         case 'ADD_GENERATED_CHARACTER':
-            // TODO(FEATURES): Add explicit party recruitment/leave actions wired to gameplay (NPC join/leave flow), not just dev generation (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
             return {
                 party: [...state.party, action.payload],
             };
@@ -313,7 +306,6 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             // 1. Ability Scores (from magic items).
             // 2. Armor Class (Base AC + Dex Mod + Shield).
             // 3. Max HP (if Constitution changed).
-            // TODO(2026-01-03 pass 4 Codex-CLI): Equip payload is still loosely typed; tighten once action payloads are formalized.
             const payload = action.payload as { itemId?: string; characterId?: string };
             const itemId = payload.itemId;
             const characterId = payload.characterId;
@@ -357,7 +349,6 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'UNEQUIP_ITEM': {
-            // TODO(2026-01-03 pass 4 Codex-CLI): Unequip payload is still loosely typed; tighten once action payloads are formalized.
             const payload = action.payload as { slot?: EquipmentSlotType; characterId?: string };
             const { slot, characterId } = payload;
             if (!slot || !characterId) return {};
@@ -388,10 +379,6 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'DROP_ITEM': {
-            // TODO(lint-intent): 'characterId' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-            // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-            // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-            // TODO(2026-01-03 pass 4 Codex-CLI): Drop payload is still loosely typed; tighten once action payloads are formalized.
             const { itemId, characterId: _characterId } = action.payload as { itemId?: string; characterId?: string };
             if (!itemId) return {};
             const itemToDrop = state.inventory.find(item => item.id === itemId);
@@ -409,7 +396,6 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'USE_ITEM': {
-            // TODO(2026-01-03 pass 4 Codex-CLI): Use-item payload is still loosely typed; tighten once action payloads are formalized.
             const { itemId, characterId } = action.payload as { itemId?: string; characterId?: string };
             if (!itemId || !characterId) return {};
             const charIndex = state.party.findIndex(c => c.id === characterId);
@@ -714,11 +700,6 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 }
 
                 const charCopy = { ...char };
-                // TODO(lint-intent): 'hasChanged' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-                // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-                // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-                const _hasChanged = true; // Assume change for simplicity
-
                 // Process Racial Rest Choices
                 if (charId && racialChoices[charId]) {
                     const newChoicesForChar = racialChoices[charId];
@@ -1009,9 +990,6 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 else if (choiceType === 'gnome_subrace') updateRacialSelection('gnome', { choiceId });
                 else if (choiceType === 'goliath_ancestry') updateRacialSelection('goliath', { choiceId });
                 else if (choiceType === 'tiefling_legacy') updateRacialSelection('tiefling', { choiceId });
-                // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-                // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-                // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
                 else if (choiceType === 'racial_spell_ability') updateRacialSelection(charToUpdate.race.id, { spellAbility: choiceId as AbilityScoreName }); // choiceId here is the ability name
             }
 

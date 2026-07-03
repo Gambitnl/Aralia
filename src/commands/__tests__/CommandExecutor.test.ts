@@ -6,7 +6,6 @@ describe('CommandExecutor', () => {
   const mockState = { characters: [], combatLog: [] } as unknown as CombatState
 
   const makeMetadata = (idSuffix: string) => ({
-    // TODO(lint-intent): Flesh out richer metadata once spell commands log more context.
     spellId: `spell-${idSuffix}`,
     spellName: `Test Spell ${idSuffix}`,
     casterId: 'caster-1',

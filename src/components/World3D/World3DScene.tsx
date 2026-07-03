@@ -43,7 +43,7 @@ import World3DNameplates from './World3DNameplates';
 import GroundAgents from './GroundAgents';
 import SceneCast, { type SceneCastMember } from './SceneCast';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
-import type { ChunkCoord, ChunkLoader, LoadedChunk } from '@/systems/world3d/types';
+import type { ChunkCoord, ChunkLoader, LoadedChunk, TerrainEdgeSkirt } from '@/systems/world3d/types';
 import { buildRoofGeometry } from '@/systems/world3d/buildingModels';
 import type { RoofForm } from '@/systems/worldforge/town/architectureStyle';
 import { chunkOriginWorld, worldToChunk } from '@/systems/world3d/coords';
@@ -133,6 +133,40 @@ function useDisposableGeometry(arr: {
 }
 
 /**
+ * One frontier skirt strip. Mounted unconditionally (stable hooks); the mesh
+ * only renders while the strip's edge has no loaded neighbour. Interior seams
+ * are bit-identical watertight, so a wall there could only ever show as an
+ * MSAA dotted-hairline artifact — hence frontier-only.
+ */
+const FrontierSkirt: React.FC<{
+  strip: TerrainEdgeSkirt;
+  visible: boolean;
+  dcx: number;
+  dcy: number;
+  scenePos: [number, number, number];
+  tex: THREE.Texture | null;
+}> = ({ strip, visible, dcx, dcy, scenePos, tex }) => {
+  const rebased = useMemo(
+    () => ({ ...strip, positions: rebaseChunkPositions(strip.positions, dcx, dcy) }),
+    [strip, dcx, dcy],
+  );
+  const geometry = useDisposableGeometry(rebased);
+  if (!visible) return null;
+  return (
+    <mesh geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
+      <meshStandardMaterial vertexColors flatShading map={tex || null} />
+    </mesh>
+  );
+};
+
+const SKIRT_EDGES = [
+  { edge: 'north', dx: 0, dy: -1 },
+  { edge: 'east', dx: 1, dy: 0 },
+  { edge: 'south', dx: 0, dy: 1 },
+  { edge: 'west', dx: -1, dy: 0 },
+] as const;
+
+/**
  * Terrain renders under ONE shared transform: every chunk's positions are
  * rebased by its exact chunk offset from the anchor chunk (multiples of 128 m
  * — exact in float32) and the mesh sits at the ANCHOR's scene position. Two
@@ -141,11 +175,12 @@ function useDisposableGeometry(arr: {
  * watertight. With per-chunk translations, the per-mesh matrix rounding
  * disagreed in the last ulp and leaked a faint dotted hairline along seams.
  */
-const TerrainPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin; anchor: ChunkCoord }> = ({
-  chunk,
-  origin,
-  anchor,
-}) => {
+const TerrainPiece: React.FC<{
+  chunk: LoadedChunk;
+  origin: SceneOrigin;
+  anchor: ChunkCoord;
+  loadedKeys: Set<string>;
+}> = ({ chunk, origin, anchor, loadedKeys }) => {
   const terrain = chunk.bundle.terrain;
   const rebased = useMemo(
     () => ({
@@ -157,10 +192,25 @@ const TerrainPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin; anchor: 
   const geometry = useDisposableGeometry(rebased);
   const service = React.useContext(ForgeAssetContext);
   const tex = useForgeTexture(getSemanticAssetKey({ surface: 'ground' }), service);
+  const scenePos = chunkScenePos(anchor.cx, anchor.cy, origin);
   return (
-    <mesh geometry={geometry} position={chunkScenePos(anchor.cx, anchor.cy, origin)} receiveShadow={SHADOWS}>
-      <meshStandardMaterial vertexColors flatShading map={tex || null} />
-    </mesh>
+    <>
+      <mesh geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
+        <meshStandardMaterial vertexColors flatShading map={tex || null} />
+      </mesh>
+      {terrain.skirts &&
+        SKIRT_EDGES.map(({ edge, dx, dy }) => (
+          <FrontierSkirt
+            key={edge}
+            strip={terrain.skirts![edge]}
+            visible={!loadedKeys.has(`${chunk.cx + dx}|${chunk.cy + dy}`)}
+            dcx={chunk.cx - anchor.cx}
+            dcy={chunk.cy - anchor.cy}
+            scenePos={scenePos}
+            tex={tex ?? null}
+          />
+        ))}
+    </>
   );
 };
 
@@ -495,13 +545,14 @@ const VegetationPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = (
   );
 };
 
-const ChunkPieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin; anchor: ChunkCoord }> = ({
-  chunk,
-  origin,
-  anchor,
-}) => (
+const ChunkPieces: React.FC<{
+  chunk: LoadedChunk;
+  origin: SceneOrigin;
+  anchor: ChunkCoord;
+  loadedKeys: Set<string>;
+}> = ({ chunk, origin, anchor, loadedKeys }) => (
   <>
-    <TerrainPiece chunk={chunk} origin={origin} anchor={anchor} />
+    <TerrainPiece chunk={chunk} origin={origin} anchor={anchor} loadedKeys={loadedKeys} />
     <WaterPiece chunk={chunk} origin={origin} />
     <RoadPiece chunk={chunk} origin={origin} />
     <WallPiece chunk={chunk} origin={origin} />
@@ -556,6 +607,8 @@ const World3DScene: React.FC<World3DSceneProps> = ({
     () => worldToChunk(sceneOrigin.x, sceneOrigin.z),
     [sceneOrigin],
   );
+  // Loaded-chunk key set: frontier skirts draw only on edges with no neighbour.
+  const loadedKeys = useMemo(() => new Set(loaded.map((c) => `${c.cx}|${c.cy}`)), [loaded]);
 
   // Overhead "Town Cell" framing (HUD button). When frameTownCellNonce changes,
   // build a one-shot command that lifts the camera to fit the spawn town. The
@@ -663,7 +716,13 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           playerWorldPos={playerWorldPos}
         />
         {loaded.map((c) => (
-          <ChunkPieces key={`${c.cx}|${c.cy}`} chunk={c} origin={sceneOrigin} anchor={anchorChunk} />
+          <ChunkPieces
+            key={`${c.cx}|${c.cy}`}
+            chunk={c}
+            origin={sceneOrigin}
+            anchor={anchorChunk}
+            loadedKeys={loadedKeys}
+          />
         ))}
         <GroundAgents ground={groundWorld} clock={agentClock} sceneOrigin={sceneOrigin} />
         {sceneCast && sceneCast.length > 0 && (

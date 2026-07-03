@@ -1,9 +1,7 @@
-// TODO(lint-intent): 'beforeEach' is unused in this test; use it in the assertion path or remove it.
-import { describe, it, expect, vi, beforeEach as _beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import * as geminiService from '../geminiService';
 import { ai } from '../aiClient';
-// TODO(lint-intent): 'NPC' is unused in this test; use it in the assertion path or remove it.
-import { GameState, PlayerCharacter, Location, NPC as _NPC } from '../../types';
+import { GameState, PlayerCharacter, Location } from '../../types';
 import * as contextUtils from '../../utils/contextUtils';
 
 // Mock the AI client
@@ -31,12 +29,10 @@ describe('Prompt Inspection', () => {
   const mockPlayer: PlayerCharacter = {
     id: 'p1',
     name: 'Kaelen',
-    // TODO(2026-01-03 pass 1 Codex-CLI): Supply full race/class models when prompt inspector gets dedicated fixtures.
     race: { id: 'human', name: 'Human' } as unknown as PlayerCharacter['race'],
     class: { id: 'fighter', name: 'Fighter', hitDie: 10 } as unknown as PlayerCharacter['class'],
     hp: 10,
     maxHp: 10,
-    // TODO(2026-01-03 pass 1 Codex-CLI): ability scores kept minimal; extend once prompt inspector asserts on stat math.
     abilityScores: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
     finalAbilityScores: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
     skills: [],
@@ -75,7 +71,6 @@ describe('Prompt Inspection', () => {
       { id: 'm2', sender: 'player', text: 'I look around.', timestamp: new Date(2000) },
       { id: 'm3', sender: 'npc', text: 'What do you want?', timestamp: new Date(3000) },
     ]
-  // TODO(2026-01-03 pass 1 Codex-CLI): GameState is pared down to satisfy prompt context; extend when inspector asserts on more fields.
   } as unknown as GameState;
 
   it('inspects generateActionOutcome prompt', async () => {

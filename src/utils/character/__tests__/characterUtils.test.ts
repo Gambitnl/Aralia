@@ -12,8 +12,7 @@ import {
   resolveRacialSpellLimitedUseId,
 } from '../characterUtils';
 import { createMockPlayerCharacter, createMockItem } from '../../core/factories';
-// TODO(lint-intent): 'ArmorCategory' is unused in this test; use it in the assertion path or remove it.
-import { Item, ArmorCategory as _ArmorCategory, Feat, AbilityScoreName, Class } from '../../../types';
+import { Item, Feat, AbilityScoreName, Class } from '../../../types';
 import { DEEP_GNOME_DATA } from '../../../data/races/deep_gnome';
 // The module is mocked below, so we don't import the real data for use, but we might import types if needed.
 

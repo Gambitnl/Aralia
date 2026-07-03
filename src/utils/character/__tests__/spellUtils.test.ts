@@ -28,7 +28,6 @@ const createMockSpell = (id: string, name: string, level: number): Spell => ({
   subClasses: [],
   subClassesVerification: 'unverified',
   targeting: { type: 'single' } as any,
-  // TODO(2026-01-03 pass 4 Codex-CLI): effects placeholder for spell utils tests.
   effects: [] as any,
 });
 

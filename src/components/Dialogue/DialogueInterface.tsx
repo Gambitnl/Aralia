@@ -59,7 +59,7 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
         if (topic.skillCheck) {
             // Simplified: Use raw ability score or proficiency logic if available
             // For now, assuming raw score modifier: (Score - 10) / 2
-            // TODO: Use real skill system accessor
+            // TODO #79: Use real skill system accessor
             const charismaScore =
                 playerCharacter.abilityScores?.Charisma ??
                 playerCharacter.finalAbilityScores?.Charisma ??

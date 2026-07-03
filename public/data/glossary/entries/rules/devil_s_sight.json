@@ -6,12 +6,12 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "You can see normally in dim_light Light and darkness-both magical and nonmagical-within 120 feet of yourself....",
+  "excerpt": "You can see normally in dim_light Light and darkness—both magical and nonmagical—within 120 feet of yourself....",
   "aliases": [],
   "seeAlso": [
     "dim_light Light",
     "darkness"
   ],
   "filePath": "/data/glossary/entries/rules/devil_s_sight.json",
-  "markdown": "# Devil's Sight\n\nYou can see normally in [[dim_light Light]] and [[darkness]]-both magical and nonmagical-within 120 feet of yourself."
+  "markdown": "# Devil's Sight\n\nYou can see normally in [[dim_light Light]] and [[darkness]]—both magical and nonmagical—within 120 feet of yourself."
 }

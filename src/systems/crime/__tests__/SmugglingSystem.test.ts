@@ -2,8 +2,6 @@
 import { describe, it, expect } from 'vitest';
 import { SmugglingSystem } from '../SmugglingSystem';
 import { SmugglingRoute, ContrabandCategory, InspectionResult } from '../../../types/crime';
-// TODO(lint-intent): 'PlayerCharacter' is unused in this test; use it in the assertion path or remove it.
-import { PlayerCharacter as _PlayerCharacter } from '../../../types/character';
 import { createMockPlayerCharacter } from '../../../utils/factories';
 
 describe('SmugglingSystem', () => {
@@ -46,7 +44,6 @@ describe('SmugglingSystem', () => {
             intelligence: 10,
             wisdom: 10,
             charisma: 14, // +2 mod
-            // TODO(2026-01-03 pass 4 Codex-CLI): stats baseline stubbed for smuggling tests.
             baseInitiative: 0,
             speed: 30,
             cr: '1/4'

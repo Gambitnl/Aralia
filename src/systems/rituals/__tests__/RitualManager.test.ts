@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { startRitual, advanceRitual, checkRitualInterrupt, isRitualComplete } from '../RitualManager';
 import { CombatCharacter } from '../../../types/combat';
-import { Spell } from '../../../types/spells';
+import { Spell, SpellSchool } from '../../../types/spells';
 
 /**
  * These tests protect the ritual timing bridge between spell semantics and runtime math.
@@ -22,7 +22,7 @@ const mockCaster: CombatCharacter = {
   id: 'caster-1',
   name: 'Mage',
   level: 5,
-  // TODO(2026-01-03 pass 4 Codex-CLI): ritual test class stubbed; fill full class data from fixtures.
+  // TODO #942(2026-01-03 pass 4 Codex-CLI): ritual test class stubbed; fill full class data from fixtures.
   class: {
     id: 'wizard',
     name: 'Wizard',
@@ -51,8 +51,7 @@ const mockSpell: Spell = {
   id: 'identify',
   name: 'Identify',
   level: 1,
-  // TODO(2026-01-03 pass 4 Codex-CLI): spell school cast until test data aligns with enum casing.
-  school: 'Divination' as unknown as Spell['school'],
+  school: SpellSchool.Divination,
   classes: ['Wizard'],
   subClasses: [],
   subClassesVerification: 'unverified',

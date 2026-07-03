@@ -56,26 +56,32 @@ it('drops each skirt vertex exactly skirtDepth below its source edge vertex', ()
   }
 });
 
-it('every LOD tier produces a skirted mesh whose skirt clears the seam depth', () => {
+it('every LOD tier produces frontier skirt strips that clear the seam depth', () => {
   // Build a chunk at each tier's resolution. A flat chunk has zero relief, so the
   // adaptive skirt depth collapses to SKIRT_MIN_DEPTH_M — a known, checkable value.
+  // Stitched (production) tiers carry their skirts as per-edge frontier strips,
+  // not baked into the main geometry (interior seams are watertight; a wall
+  // there would only rasterize as an MSAA dotted-hairline artifact).
   const tiers = ['full', 'mid', 'low'] as const;
   let prevBaseVerts = Infinity;
   for (const tier of tiers) {
     const res = resolutionForLod(tier);
     const mesh = buildTerrainMesh(flatChunk(res, 40));
-    // Carries a skirt.
+    // Main geometry is skirtless for stitched tiers (helper agrees).
     expect(mesh.positions.length / 3).toBe(terrainVertexCount(res, true));
     // Coarser tiers have strictly fewer base vertices (the whole point of LOD).
     expect(res * res).toBeLessThan(prevBaseVerts);
     prevBaseVerts = res * res;
-    // Skirt bottom sits at least SKIRT_MIN_DEPTH_M below the (flat) surface, so a
-    // neighbor at any tier can't leave a visible gap above the skirt wall.
+    // Each frontier strip's bottom sits at least SKIRT_MIN_DEPTH_M below the
+    // (flat) surface, so the window frontier can't show a gap above the wall.
     const surfaceY = heightToMeters(40);
-    let minY = Infinity;
-    for (let v = 0; v < mesh.positions.length / 3; v++) {
-      minY = Math.min(minY, mesh.positions[v * 3 + 1]);
+    expect(mesh.skirts).toBeDefined();
+    for (const strip of Object.values(mesh.skirts!)) {
+      let minY = Infinity;
+      for (let v = 0; v < strip.positions.length / 3; v++) {
+        minY = Math.min(minY, strip.positions[v * 3 + 1]);
+      }
+      expect(surfaceY - minY).toBeGreaterThanOrEqual(WORLD3D_CONFIG.SKIRT_MIN_DEPTH_M - 1e-6);
     }
-    expect(surfaceY - minY).toBeGreaterThanOrEqual(WORLD3D_CONFIG.SKIRT_MIN_DEPTH_M - 1e-6);
   }
 });

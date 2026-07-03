@@ -1,8 +1,5 @@
-// TODO(lint-intent): 'vi' is unused in this test; use it in the assertion path or remove it.
-import { describe, it, expect, vi as _vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { TavernGossipSystem } from '../TavernGossipSystem';
-// TODO(lint-intent): 'GameState' is unused in this test; use it in the assertion path or remove it.
-import { GameState as _GameState } from '../../../types';
 import { createMockGameState } from '../../../utils/factories';
 
 describe('TavernGossipSystem', () => {

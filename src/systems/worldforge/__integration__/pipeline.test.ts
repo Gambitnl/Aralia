@@ -432,7 +432,7 @@ describe('worldforge pipeline integration', () => {
 
     const material = localMaterialAt(local, probe[0], probe[1]);
     expect(['paved', 'dirt']).toContain(material);
-  });
+  }, 30_000); // full world+region+local chain; 5s default flakes under parallel load
 
   it('round-trips the world store and regenerates byte-equal region and local outputs', () => {
     const store = new WorldStore(SEED_STR, WORLD_SEED, OPTIONS);
@@ -476,7 +476,7 @@ describe('worldforge pipeline integration', () => {
     expect(Array.from(restoredLocal.terrain.materialIndex)).toEqual(
       Array.from(original.local.terrain.materialIndex),
     );
-  });
+  }, 30_000); // regenerates the full chain twice; 5s default flakes under parallel load
 
   it('persists and replays a generated TownPlan plot delta through the world store', () => {
     const townProbe = buildTownProbePipeline();

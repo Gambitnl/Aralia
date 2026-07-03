@@ -27,7 +27,6 @@ vi.mock('../../utils/logger', () => ({
 }));
 
 describe('GeminiService - generateEncounter Fallback', () => {
-  // TODO(2026-01-03 pass 1 Codex-CLI): TempPartyMember minimal stub; expand with HP/equipment if encounter generation starts using them.
   const mockParty: TempPartyMember[] = [{
     id: '1',
     name: 'Test Fighter', // TempPartyMember requires a display name.

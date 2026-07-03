@@ -150,6 +150,26 @@ test('docs: /docs lists the whitelisted reference files; /docs/:name serves them
   assert.equal(nope.status, 404);
 });
 
+test('SSE: reconnect with ?since= replays the missed events from the ring (WF-G6)', async () => {
+  const a = await registerAgent('sse-agent');
+  const sinceSeq = (await request('GET', '/health')).json.lastSeq;
+  // Mutations AFTER the client's last-seen seq — these must be replayed.
+  await request('POST', '/tasks', { token: a.token, body: { title: 'sse-replay-probe' } });
+  await request('POST', '/messages', { token: a.token, body: { body: 'sse replay check' } });
+
+  const chunks = await new Promise((resolve, reject) => {
+    const req = http.get({ host: '127.0.0.1', port, path: `/events?since=${sinceSeq}` }, (res) => {
+      let buf = '';
+      res.on('data', (c) => { buf += c; });
+      setTimeout(() => { req.destroy(); resolve(buf); }, 700);
+    });
+    req.on('error', (e) => (String(e.message).includes('socket hang up') ? null : reject(e)));
+  });
+  assert.match(chunks, /event: hello/);
+  assert.match(chunks, /"replayed":true/);
+  assert.match(chunks, /sse-replay-probe/); // the missed task.create came through as an EVENT
+});
+
 test('locks: DELETE /locks/:id?force=1 refused while holder online (409)', async () => {
   const holder = await registerAgent('force-holder');
   const other = await registerAgent('force-other');

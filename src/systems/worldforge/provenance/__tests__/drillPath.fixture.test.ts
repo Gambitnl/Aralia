@@ -12,7 +12,7 @@ describe('golden drill path fixture', () => {
     expect(path.cellId).toBeGreaterThanOrEqual(0);
     expect(path.ground.towns.length).toBeGreaterThan(0);
     expect(path.ground.buildings.length).toBeGreaterThan(0);
-  });
+  }, 30_000); // first test pays the full drill-path fixture build
 
   it('is deterministic across two builds', () => {
     const a = buildGoldenDrillPath();

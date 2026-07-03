@@ -1068,7 +1068,6 @@ export interface DefensiveEffect extends BaseEffect {
 }
 /**
  * Reactive triggers and sustain-style effects (e.g., Shield, Glyph of Warding).
- * TODO(preserve-lint): Formalize trigger/movement vocab and costs once reactive spells are data-driven.
  */
 export interface ReactiveEffect extends Omit<BaseEffect, 'trigger'> {
     type: "REACTIVE";

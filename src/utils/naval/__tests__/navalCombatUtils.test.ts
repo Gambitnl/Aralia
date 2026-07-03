@@ -17,7 +17,6 @@ describe('Naval Combat Utils', () => {
     let ship2 = createShip('Black Pearl', 'Galleon');
 
     // Helper to add dummy crew
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
     const addDummyCrew = (ship: Ship, count: number) => {
         const newMembers: CrewMember[] = [];
         for (let i = 0; i < count; i++) {

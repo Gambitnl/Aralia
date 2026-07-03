@@ -136,10 +136,18 @@ test('reaping: a dropped agent frees its locks, reopens its tasks, and loses its
   const lock = store.acquireLock({ agentId: w.id, paths: ['src/foo.ts'], reason: 'packet-1' });
   assert.equal(lock.ok, true);
 
-  // Keep the orchestrator alive, let the worker die past the drop horizon.
+  // Keep the orchestrator alive, let the worker fall silent. Because the
+  // worker HOLDS an in-progress task, it gets DOUBLE the drop horizon
+  // (WF-G4 grace) — at 6000 (> drop 5000, < 2× 10000) it must survive.
   now.advance(4000);
   store.touch(orch.id);
-  now.advance(2000); // worker age 6000 > 5000 drop
+  now.advance(2000); // worker age 6000 — inside the working-agent grace
+  store.sweepExpired();
+  assert.equal(store.listLocks().length, 1, 'working agent NOT reaped inside the grace window');
+  assert.ok(store.getAgentByToken(w.token), 'token still valid inside grace');
+
+  now.advance(5000); // worker age 11000 > 2× drop — grace exhausted
+  store.touch(orch.id);
   store.sweepExpired();
 
   // Lock is gone even though its TTL (30 min default) hasn't elapsed.
@@ -172,6 +180,32 @@ test('reaping: done tasks are NOT reopened when their agent drops', () => {
   const after = store.listTasks().find((x) => x.id === t.id);
   assert.equal(after.state, 'done');
   assert.equal(after.result, 'shipped');
+  store.close();
+  rm(dir);
+});
+
+test('handoff authorization: only the claimant or the creator may reassign', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const orch = store.registerAgent({ handle: 'orch' });
+  const w1 = store.registerAgent({ handle: 'w1' });
+  const w2 = store.registerAgent({ handle: 'w2' });
+  const rogue = store.registerAgent({ handle: 'rogue' });
+
+  const t = store.createTask({ agentId: orch.id, title: 'seeded packet' });
+  store.claimTask({ taskId: t.id, agentId: w1.id });
+
+  // A third party may NOT reassign someone else's claimed task.
+  let r = store.handoffTask({ taskId: t.id, agentId: rogue.id, toAgentId: w2.id });
+  assert.equal(r.ok, false);
+  assert.match(r.error, /claimant or the task creator/);
+
+  // The creator (orchestrator) may; so may the claimant.
+  r = store.handoffTask({ taskId: t.id, agentId: orch.id, toAgentId: w2.id });
+  assert.equal(r.ok, true);
+  r = store.handoffTask({ taskId: t.id, agentId: w2.id, toAgentId: w1.id });
+  assert.equal(r.ok, true);
+
   store.close();
   rm(dir);
 });

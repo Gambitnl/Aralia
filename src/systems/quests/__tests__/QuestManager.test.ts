@@ -8,8 +8,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { checkQuestDeadlines } from '../QuestManager';
-// TODO(lint-intent): 'GameState' is unused in this test; use it in the assertion path or remove it.
-import { GameState as _GameState, Quest, QuestStatus } from '@/types';
+import { Quest, QuestStatus } from '@/types';
 import { createInitialJournalState } from '@/types/journal';
 import { createMockGameState } from '@/utils/factories';
 

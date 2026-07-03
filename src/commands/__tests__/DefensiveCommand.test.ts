@@ -89,12 +89,10 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
   castAtLevel: 1,
   caster,
   targets,
-  // TODO(lint-intent): Preserve stub until command context consumes more of GameState; supply minimal shape to keep intent visible.
   gameState: createMockGameState({
     party: [createMockPlayerCharacter({
       id: caster.id,
       name: caster.name,
-      // TODO: merge combat + overworld actor models so defensive buffs persist across modes.
     })],
     currentEnemies: targets,
     currentLocationId: 'arena',

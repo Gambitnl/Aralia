@@ -56,7 +56,7 @@ export const useCombatOutcome = ({ characters, initialEnemies }: UseCombatOutcom
 
     const loot = generateLoot(originalMonsters);
     // Simple XP calculation: 50 * enemy count
-    // TODO(Economist): Implement real XP calculation based on CR
+    // TODO #276(Economist): Implement real XP calculation based on CR
     const xp = initialEnemies.length * 50;
 
     return {

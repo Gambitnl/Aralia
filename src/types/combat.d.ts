@@ -7,6 +7,7 @@ import type { AbilityScoreName, CharacterStats } from './core.js';
 import type { Class, SpellbookData, SpellSlots, FeatChoice, HitPointDicePool } from './character.js';
 import type { Item } from './items.js';
 import type { Spell, DamageType, ConditionName, EffectDuration, SpellEffect, TargetFilter, RepeatSave, EscapeCheck, ConditionBreakTrigger, CreatedObject } from './spells.js';
+import type { CreatureType } from './creatures.js';
 import { StateTag } from './elemental.js';
 import { Plane } from './planes.js';
 import { RitualState } from './ritual.js';
@@ -201,9 +202,9 @@ export interface CombatCharacter {
     /**
      * Creature types for targeting (e.g., ['Humanoid', 'Elf']).
      * Used by spells like Charm Person or Hold Person.
-     * TODO(Taxonomist): Migrate string[] to CreatureType[] from src/types/creatures.ts
+     * Canonically typed by CreatureType enum for targeting and filtering.
      */
-    creatureTypes?: string[];
+    creatureTypes?: CreatureType[];
     alignment?: string;
     class: Class;
     savingThrowProficiencies?: AbilityScoreName[];

@@ -28,7 +28,6 @@ const makeTile = (
     elevation: 0,
     effects: [],
     ...overrides
-// TODO(lint-intent): Replace this cast once test map fixtures share the full BattleMapTile builder used by combat-map tests.
 } as BattleMapTile);
 
 const makeMap = (): BattleMapData => {
@@ -51,7 +50,6 @@ const makeMap = (): BattleMapData => {
         dimensions: { width: 5, height: 5 },
         theme: 'dungeon',
         seed: 7
-// TODO(lint-intent): Replace this cast once BattleMapData gets a compact public fixture builder.
     } as BattleMapData;
 };
 
@@ -67,7 +65,6 @@ const makeCharacter = (id: string, position: Position): CombatCharacter => ({
     actionEconomy: { action: {}, bonusAction: {}, reaction: {}, movement: {} },
     statusEffects: [],
     level: 5
-// TODO(lint-intent): Replace this cast once combat character test builders cover the full runtime shape.
 } as unknown as CombatCharacter);
 
 const makeMistyStepAbility = (): Ability => {
@@ -92,7 +89,6 @@ const makeMistyStepAbility = (): Ability => {
             trigger: { type: 'immediate' },
             condition: { type: 'always' }
         }]
-    // TODO(lint-intent): Replace this cast once migrated spell test fixtures expose the full union shape.
     } as unknown as Spell;
 
     return {
@@ -105,9 +101,27 @@ const makeMistyStepAbility = (): Ability => {
         range: 0,
         effects: [{ type: 'teleport', value: 2 }],
         spell
-    // TODO(lint-intent): Replace this cast once spell-backed ability fixtures are centralized.
     } as unknown as Ability;
 };
+
+const makeAreaAbility = (shape: string, size = 3): Ability => ({
+    id: `area-${shape}`,
+    name: `${shape} Preview`,
+    description: `Preview ${shape} area targeting.`,
+    type: 'spell',
+    cost: { type: 'action' },
+    targeting: 'area',
+    range: 12,
+    effects: [{ type: 'damage', value: 1 }],
+    areaOfEffect: {
+        shape,
+        size
+    }
+// Canonical spell data can arrive as cube/cylinder while the combat ability
+// type still names the legacy square/circle variants. The preview mapper
+// intentionally accepts both vocabularies, so this fixture keeps that bridge
+// under test instead of narrowing the runtime surface.
+} as unknown as Ability);
 
 // ============================================================================
 // Teleport Destination Preview
@@ -162,7 +176,6 @@ describe('useTargeting - teleport destination preview', () => {
             targeting: 'self',
             range: 0,
             effects: [{ type: 'heal', value: 5 }]
-        // TODO(lint-intent): Replace this cast once non-spell ability test builders are available.
         } as unknown as Ability;
 
         const { result } = renderHook(() => useTargeting({
@@ -175,5 +188,49 @@ describe('useTargeting - teleport destination preview', () => {
         });
 
         expect(result.current.teleportDestinationPreview).toBeNull();
+    });
+});
+
+// ============================================================================
+// Area Targeting Preview
+// ============================================================================
+// G62 tracks rendered proof for the combat-map preview matrix. This hook-level
+// proof protects the source state that both 2D and 3D renderers consume: every
+// supported area family must produce affected tiles before the player commits
+// the spell, including canonical cube/cylinder aliases from spell JSON.
+// ============================================================================
+
+describe('useTargeting - area targeting preview', () => {
+    it.each([
+        ['circle / sphere', makeAreaAbility('circle', 2), { x: 2, y: 2 }],
+        ['cone', makeAreaAbility('cone', 3), { x: 2, y: 0 }],
+        ['line', makeAreaAbility('line', 4), { x: 4, y: 2 }],
+        ['square / cube', makeAreaAbility('cube', 3), { x: 2, y: 2 }],
+        ['cylinder', makeAreaAbility('cylinder', 2), { x: 2, y: 2 }]
+    ])('previews affected tiles for %s shapes', (_label, ability, hoverPosition) => {
+        const caster = makeCharacter('caster', { x: 2, y: 2 });
+
+        const { result } = renderHook(() => useTargeting({
+            mapData: makeMap(),
+            characters: [caster]
+        }));
+
+        act(() => {
+            result.current.startTargeting(ability);
+        });
+        act(() => {
+            result.current.previewAoE(hoverPosition, caster);
+        });
+
+        const preview = result.current.aoePreview;
+
+        expect(preview).toEqual(expect.objectContaining({
+            center: hoverPosition,
+            ability
+        }));
+        expect(preview?.affectedTiles.length).toBeGreaterThan(0);
+        expect(
+            preview?.affectedTiles.some(tile => Number.isFinite(tile.x) && Number.isFinite(tile.y))
+        ).toBe(true);
     });
 });

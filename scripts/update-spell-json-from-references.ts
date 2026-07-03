@@ -209,6 +209,59 @@ type ParsedTargets = {
   filter?: { creatureTypes?: string[] };
 };
 
+type ReferenceEffectTriggerType = 'immediate' | 'after_primary';
+type ReferenceSaveType = ReturnType<typeof normalizeSaveType>;
+type ReferenceSaveEffect = 'none' | 'half' | 'negates_condition';
+type ReferenceEffectCondition =
+  | { type: 'always' }
+  | { type: 'hit' }
+  | { type: 'save'; saveType: NonNullable<ReferenceSaveType>; saveEffect: ReferenceSaveEffect };
+
+type ReferenceDamageEffect = {
+  type: 'DAMAGE';
+  trigger: { type: ReferenceEffectTriggerType };
+  condition: ReferenceEffectCondition;
+  damage: {
+    dice: string;
+    type: string;
+  };
+  scaling?: { type: 'slot_level'; bonusPerLevel: string };
+};
+
+type ReferenceHealingEffect = {
+  type: 'HEALING';
+  trigger: { type: ReferenceEffectTriggerType };
+  condition: { type: 'always' };
+  healing: {
+    dice: string;
+  };
+};
+
+type ReferenceStatusConditionEffect = {
+  type: 'STATUS_CONDITION';
+  trigger: { type: ReferenceEffectTriggerType };
+  condition: ReferenceEffectCondition;
+  statusCondition: {
+    name: string;
+    duration: ReturnType<typeof effectDurationFromSpellDuration>;
+  };
+};
+
+type ReferenceUtilityType = 'creation' | 'information' | 'communication' | 'sensory' | 'control' | 'other';
+type ReferenceUtilityEffect = {
+  type: 'UTILITY';
+  trigger: { type: ReferenceEffectTriggerType };
+  condition: { type: 'always' };
+  utilityType: ReferenceUtilityType;
+  description: string;
+};
+
+type ReferenceSpellEffect =
+  | ReferenceDamageEffect
+  | ReferenceHealingEffect
+  | ReferenceStatusConditionEffect
+  | ReferenceUtilityEffect;
+
 const parseValidTargets = (raw: string | undefined): ParsedTargets => {
   const base: Set<ParsedTargets['validTargets'][number]> = new Set();
   const creatureTypes: Set<string> = new Set();
@@ -348,7 +401,7 @@ const shouldRegenerateEffects = (spell: any) => {
   return false;
 };
 
-const buildEffectsFromReference = (vars: ReferenceVars) => {
+const buildEffectsFromReference = (vars: ReferenceVars): ReferenceSpellEffect[] => {
   const effectTypeRaw = vars['Effect Type'] ?? '';
   const effectTypes = splitCsvLike(effectTypeRaw).map(s => s.toUpperCase());
 
@@ -357,10 +410,7 @@ const buildEffectsFromReference = (vars: ReferenceVars) => {
   const attackRoll = isNilish(vars['Attack Roll']) ? undefined : normalizeWhitespace(vars['Attack Roll']).toLowerCase();
 
   const baseTrigger = { type: 'immediate' as const };
-  // TODO(lint-intent): The any on 'effects' hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-  const effects: unknown[] = [];
+  const effects: ReferenceSpellEffect[] = [];
 
   const makeCondition = () => {
     if (saveType) {
@@ -390,9 +440,7 @@ const buildEffectsFromReference = (vars: ReferenceVars) => {
 
     if (dice && damageType) {
       const scalingBonus = parseHigherLevelScalingBonus(vars['Higher Levels']);
-      // DEBT: Cast to any to allow dynamic construction of primary effect object from reference variables.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const primary: any = {
+      const primary: ReferenceDamageEffect = {
         type: 'DAMAGE',
         trigger: baseTrigger,
         condition: makeCondition(),
@@ -824,10 +872,9 @@ const updateSpellFromReference = (spell: any, vars: ReferenceVars) => {
   const status = isNilish(vars['Status']) ? undefined : normalizeWhitespace(vars['Status']).toLowerCase();
   if (status === 'complete') {
     spell.legacy = false;
-    // TODO(lint-intent): The any on 't' hides the intended shape of this data.
-    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-    if (Array.isArray(spell.tags)) spell.tags = spell.tags.filter((t: unknown) => t !== 'legacy');
+    if (Array.isArray(spell.tags)) {
+      spell.tags = spell.tags.filter((tag): tag is string => typeof tag === 'string' && tag !== 'legacy');
+    }
   }
 
   // Effects (conservative: only regenerate when clearly still legacy/placeholder)

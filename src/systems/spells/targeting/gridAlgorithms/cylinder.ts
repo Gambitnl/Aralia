@@ -14,13 +14,12 @@ import { getSphere } from './sphere'
 export function getCylinder(
   center: Position,
   radius: number,
-  // TODO(lint-intent): 'height' is an unused parameter, which suggests a planned input for this flow.
-  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+  // Height is intentionally ignored in the current 2D-only implementation.
   _height: number = Infinity
 ): Position[] {
   // In 2D grid combat, cylinder = sphere
   // Height is ignored (all combat on same plane)
-  // TODO(SPELL-OVERHAUL): Implement height checks once elevation is modeled (see docs/tasks/spell-system-overhaul/TODO.md; if this block is moved/refactored/modularized, update the TODO entry path).
+  // TODO #1035(SPELL-OVERHAUL): Implement height checks once elevation is modeled.
+  // TODO(SPELL-OVERHAUL): Policy and ownership are tracked in docs/tasks/spell-system-overhaul/TRACKER.md (SSO-GEOMETRY-CYLINDER-HEIGHT-001).
   return getSphere(center, radius)
 }

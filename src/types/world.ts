@@ -178,15 +178,13 @@ export interface NpcMemory {
   /** Optional lightweight fact list used by AI helpers (distinct from structured KnownFacts). */
   facts?: string[];
   lastInteractionTimestamp?: number;
-  // TODO(2026-01-03 pass 4 Codex-CLI): interactions placeholder until NPC interaction history is fully typed.
   interactions?: unknown[];
-  // TODO(2026-01-03 pass 4 Codex-CLI): attitude placeholder for future relationship modeling.
   attitude?: string | number;
-  // TODO(2026-01-03 pass 4 Codex-CLI): discussedTopics placeholder until conversation logging is formalized.
   discussedTopics?: Record<string, unknown>;
-  // TODO(2026-01-03 pass 4 Codex-CLI): lastInteractionDate placeholder until timestamps are standardized across NPC memory.
   lastInteractionDate?: string | number | Date | null;
 }
+
+export type ConsolidatedNpcMemory = NPCMemory | NpcMemory;
 
 export interface GossipUpdatePayload {
   [npcId: string]: {
@@ -207,8 +205,10 @@ export interface NPC {
   goals?: Goal[];
   knowledgeProfile?: NPCKnowledgeProfile;
   visual?: NPCVisualSpec;
-  // TODO(preserve-lint): Unify NpcMemory/NPCMemory once the memory systems converge.
-  memory?: NPCMemory | NpcMemory;
+  /**
+   * Supports both legacy and current memory payloads during migration to consolidated persistence.
+   */
+  memory?: ConsolidatedNpcMemory;
   businessId?: string;              // ID of owned WorldBusiness (if merchant)
 }
 
@@ -358,7 +358,7 @@ export interface Monster {
   quantity: number;
   cr: string;
   description: string;
-  // TODO(Schemer): Link to LootTable ID once loot tables are populated in src/data/lootTables.ts
+  /** Optional loot-table link when source data is available. */
   lootTableId?: string;
 }
 
@@ -370,9 +370,6 @@ export interface GameMessage {
   metadata?: {
     companionId?: string;
     reactionType?: string;
-    // TODO(lint-intent): The any on this value hides the intended shape of this data.
-    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
     [key: string]: unknown;
   };
 }

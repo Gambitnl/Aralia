@@ -100,7 +100,7 @@ for (const path in raceModules) {
 export const ALL_RACES_DATA: Record<string, Race> = racesData;
 
 // Import legacy data bundles that are still used by deprecated systems
-// TODO: These can be removed once deprecated race selection components are cleaned up
+// TODO #238: These can be removed once deprecated race selection components are cleaned up
 import { DRAGONBORN_ANCESTRIES_DATA } from './dragonborn.js';
 import { GIANT_ANCESTRY_BENEFITS_DATA } from './goliath.js';
 import { FIENDISH_LEGACIES_DATA } from './tiefling.js';

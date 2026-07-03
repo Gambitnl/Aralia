@@ -6,12 +6,13 @@ import type { Spell, SpellEffect, DamageEffect, DamageData, HealingEffect, Statu
 declare function getSpellEffect(): SpellEffect;
 
 // A mock function to get a specific damage effect
-// TODO(lint-intent): 'getDamageEffect' is unused in this test; use it in the assertion path or remove it.
 declare function _getDamageEffect(): DamageEffect;
 
 describe('Spell System Type-Level Tests', () => {
   it('should correctly narrow discriminated unions', () => {
     const effect = getSpellEffect();
+    const damageEffect = _getDamageEffect();
+    expectType<DamageEffect>(damageEffect);
 
     if (effect.type === 'DAMAGE') {
       expectType<DamageEffect>(effect);
@@ -51,7 +52,7 @@ describe('Spell System Type-Level Tests', () => {
         description: 'A bright streak flashes from your pointing finger...',
     };
     expectType<Spell>(validSpell);
-    // TODO(lint-intent): Keep invalid shape check to remind us to tighten Spell typing.
+    // Keep invalid-shape check active until spell declaration typing is fully stabilized.
     expectError(() => {
       const invalidSpell: Spell = { id: 'missing_fields' };
       return invalidSpell;

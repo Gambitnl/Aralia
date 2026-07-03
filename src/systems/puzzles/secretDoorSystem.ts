@@ -180,4 +180,4 @@ export function operateSecretDoor(
   };
 }
 
-// TODO(Lockpick): Integrate Secret Doors into BattleMap rendering to visually reveal them when state changes to 'detected' or 'open'.
+// TODO #911(Lockpick): Integrate Secret Doors into BattleMap rendering to visually reveal them when state changes to 'detected' or 'open'.

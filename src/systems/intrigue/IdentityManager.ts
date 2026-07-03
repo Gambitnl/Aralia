@@ -5,18 +5,7 @@
  * @file src/systems/intrigue/IdentityManager.ts
  * Manages player identity, disguises, and secret leverage.
  */
-// TODO(lint-intent): 'IntrigueCheckResult' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { PlayerIdentityState, Secret, Identity, Disguise, Alias, IntrigueCheckResult as _IntrigueCheckResult } from '../../types/identity';
-// TODO(lint-intent): 'Faction' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Faction as _Faction, PlayerFactionStanding as _PlayerFactionStanding } from '../../types/factions';
-// TODO(lint-intent): 'SeededRandom' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { SeededRandom as _SeededRandom } from '@/utils/random';
+import { PlayerIdentityState, Secret, Identity, Disguise, Alias } from '../../types/identity';
 
 export class IdentityManager {
 

@@ -19,7 +19,6 @@ import type { WorldDelta } from '../../../systems/worldforge/delta/types';
 
 // Mock WorldEventManager to avoid RNG and check integration
 vi.mock('../../../systems/world/WorldEventManager', () => ({
-    // TODO(lint-intent): 'daysPassed' is unused in this test; use it in the assertion path or remove it.
     processWorldEvents: vi.fn((state, _daysPassed) => ({
         state: {
             ...state,

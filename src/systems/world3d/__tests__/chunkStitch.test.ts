@@ -19,7 +19,7 @@
  * bit-identical seam vertices (the shared-transform half of the fix).
  */
 import { describe, it, expect } from 'vitest';
-import { buildTerrainMesh, baseTriangleCount, skirtVertexCount, SKIRT_TOP_DROP_M } from '../chunkGeometry';
+import { buildTerrainMesh, baseTriangleCount, skirtVertexCount } from '../chunkGeometry';
 import { rebaseChunkPositions } from '../chunkRebase';
 import { buildChunkBundle } from '../chunkBundle';
 import { WORLD3D_CONFIG, resolutionForLod } from '../config';
@@ -140,33 +140,43 @@ describe('stitched border triangulation', () => {
     }
   });
 
-  it('hangs a DETACHED skirt from the anchor ring, strictly below the surface', () => {
+  it('emits frontier skirts as four per-edge strips, none baked into the terrain geometry', () => {
     for (const tier of TIERS) {
       const res = resolutionForLod(tier);
-      const q = (res - 1) / 4;
-      const spacing = S / (res - 1);
       const mesh = buildTerrainMesh(chunkFromField(0, 0, res));
-      const skirtCount = skirtVertexCount(res);
-      expect(skirtCount).toBe(32); // own top ring (16) + bottom ring (16)
-      const base = res * res;
-      // Surface height lookup by border position, for the drop assertions.
-      const surfaceYAt = new Map<string, number>();
-      for (let v = 0; v < base; v++) {
-        surfaceYAt.set(`${mesh.positions[v * 3]}|${mesh.positions[v * 3 + 2]}`, mesh.positions[v * 3 + 1]);
-      }
-      for (let k = 0; k < skirtCount; k++) {
-        const x = mesh.positions[(base + k) * 3];
-        const y = mesh.positions[(base + k) * 3 + 1];
-        const z = mesh.positions[(base + k) * 3 + 2];
-        // Anchor positions are multiples of q*spacing along each border.
-        expect(x % (q * spacing), `tier ${tier}: skirt vert ${k} x`).toBe(0);
-        expect(z % (q * spacing), `tier ${tier}: skirt vert ${k} z`).toBe(0);
-        // The wall never touches the surface: top ring sits SKIRT_TOP_DROP_M
-        // below it (so it loses every depth tie instead of z-fighting the
-        // neighbour's surface into dotted hairlines), bottom ring deeper still.
-        const surfaceY = surfaceYAt.get(`${x}|${z}`)!;
-        const expectedDrop = k < 16 ? SKIRT_TOP_DROP_M : WORLD3D_CONFIG.SKIRT_MIN_DEPTH_M;
-        expect(surfaceY - y, `tier ${tier}: skirt vert ${k} drop`).toBeGreaterThanOrEqual(expectedDrop - 1e-6);
+      // Interior seams are watertight, so the main geometry carries NO skirt —
+      // a wall there could only rasterize as an MSAA dotted-hairline artifact.
+      expect(skirtVertexCount(res)).toBe(0);
+      expect(mesh.positions.length / 3, `tier ${tier}: no inline skirt verts`).toBe(res * res);
+      expect(mesh.indices.length, `tier ${tier}: surface triangles only`).toBe(baseTriangleCount(res) * 3);
+
+      // Four per-edge strips for the streaming frontier: 5 anchor tops + 5 bottoms.
+      expect(mesh.skirts).toBeDefined();
+      const q = (res - 1) / 4;
+      const edges = {
+        north: (k: number) => k * q,
+        east: (k: number) => k * q * res + (res - 1),
+        south: (k: number) => (res - 1) * res + (4 - k) * q,
+        west: (k: number) => (4 - k) * q * res,
+      } as const;
+      for (const [edge, at] of Object.entries(edges)) {
+        const strip = mesh.skirts![edge as keyof typeof edges];
+        expect(strip.positions.length / 3, `tier ${tier} ${edge}: strip verts`).toBe(10);
+        expect(strip.indices.length, `tier ${tier} ${edge}: strip tris`).toBe(8 * 3);
+        for (let k = 0; k <= 4; k++) {
+          const src = at(k) * 3;
+          // Top ring is bit-identical to the border anchors (the frontier wall
+          // must meet the surface exactly — nothing else covers that edge).
+          for (const d of [0, 1, 2]) {
+            expect(Object.is(strip.positions[k * 3 + d], mesh.positions[src + d]), `tier ${tier} ${edge}: top anchor ${k}.${d}`).toBe(true);
+          }
+          // Bottom ring hangs at least the configured minimum below.
+          expect(strip.positions[(5 + k) * 3]).toBe(mesh.positions[src]);
+          expect(strip.positions[(5 + k) * 3 + 2]).toBe(mesh.positions[src + 2]);
+          expect(mesh.positions[src + 1] - strip.positions[(5 + k) * 3 + 1]).toBeGreaterThanOrEqual(
+            WORLD3D_CONFIG.SKIRT_MIN_DEPTH_M - 1e-6,
+          );
+        }
       }
     }
   });

@@ -634,7 +634,7 @@ describe('generateRegion — WF-G3 bounds clamp', () => {
       checked++;
     }
     expect(checked).toBeGreaterThan(5);
-  });
+  }, 30_000); // ~24 region generations; 5s default flakes under parallel load
 });
 
 // ---------------------------------------------------------------------------

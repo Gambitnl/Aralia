@@ -149,9 +149,6 @@ const resolveIntrigue = (
     case 'SCANDAL_EXPOSURE': {
       // Target loses power, Relations Worsen significantly
       updateRelation(newFactions, initiator.id, target.id, -25);
-      // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
-      // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
-      // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
       const powerLoss = 5 + Math.floor(rng.next() * 5);
       newFactions[target.id] = {
           ...newFactions[target.id],
@@ -167,9 +164,6 @@ const resolveIntrigue = (
     case 'POWER_PLAY': {
       // Initiator gains power, Target loses power, Relations Worsen
       updateRelation(newFactions, initiator.id, target.id, -10);
-      // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
-      // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
-      // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
       const powerShift = 3 + Math.floor(rng.next() * 3);
 
       newFactions[initiator.id] = {

@@ -3,8 +3,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect } from 'vitest';
 import MerchantModal from '../MerchantModal';
-// TODO(lint-intent): 'EconomyState' is unused in this test; use it in the assertion path or remove it.
-import { Item, EconomyState as _EconomyState } from '../../../types';
+import { Item } from '../../../types';
 
 // Mock dependencies
 vi.mock('../../../state/GameContext', () => ({

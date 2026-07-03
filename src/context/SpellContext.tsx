@@ -19,10 +19,7 @@ import { Spell } from '../types';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ErrorOverlay } from '../components/ui/ErrorOverlay';
 import { fetchWithTimeout } from '../utils/networkUtils';
-// TODO(lint-intent): 'ENV' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { ENV as _ENV, assetUrl } from '../config/env';
+import { assetUrl } from '../config/env';
 
 export type SpellDataRecord = Record<string, Spell>;
 

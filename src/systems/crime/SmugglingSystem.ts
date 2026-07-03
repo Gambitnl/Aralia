@@ -3,11 +3,7 @@ import {
     SmugglingRoute,
     InspectionEvent,
     InspectionResult,
-    ContrabandDefinition,
-    // TODO(lint-intent): 'HeatLevel' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-    HeatLevel as _HeatLevel
+    ContrabandDefinition
 } from '../../types/crime';
 import { PlayerCharacter } from '../../types/character';
 import { SeededRandom } from '@/utils/random';
@@ -40,7 +36,6 @@ export class SmugglingSystem {
         }
 
         // Skill modifiers (Sleight of Hand / Deception implied via stats)      
-        // TODO(2026-01-03 pass 4 Codex-CLI): stats fallback until PlayerCharacter guarantees smuggling-relevant fields.
         const dexMod = Math.floor((((player.stats?.dexterity ?? 10) - 10) / 2));
         risk -= dexMod * 2;
 

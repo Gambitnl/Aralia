@@ -67,7 +67,6 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       return { isMapVisible: !state.isMapVisible, isThreeDVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false } };
 
     case 'TOGGLE_MINIMAP_VISIBILITY': {
-      // TODO(2026-01-03 pass 4 Codex-CLI): Minimap visibility is not part of GameState; casting placeholder until UI state is extended.
       const nextVisibility = !(state as unknown as { isMinimapVisible?: boolean }).isMinimapVisible;
       return { isMinimapVisible: nextVisibility } as Partial<GameState>;
     }
@@ -198,7 +197,6 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       let nextNavalState = state.naval;
 
       // Auto-inject mock ship if in Dev Mode and no ship exists
-      // TODO: Extract this auto-injection logic into a helper function (e.g., ensureDevShipState) or a dedicated thunk/saga.
       // Complex object creation and state traversal inside a reducer case makes the reducer bloated and harder to test.
       if (nextVisible && state.isDevModeEnabled && !activeShip) {
         activeShip = MOCK_SHIP_SLOOP;
@@ -308,10 +306,8 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
           isOpen: true,
           merchantName: action.payload.merchantName,
           merchantInventory: action.payload.inventory,
-          // TODO(2026-01-03 pass 4 Codex-CLI): economy stored on merchant modal as placeholder; align modal typing when UI supports it.
           economy: (action.payload as { economy?: GameState['economy'] }).economy // Persist economy state
         },
-        // TODO(2026-01-03 pass 4 Codex-CLI): carry economy separately from modal to satisfy GameState typing until modal includes it.
         economy: (action.payload as { economy?: GameState['economy'] }).economy || state.economy,
         // Close other potentially conflicting UIs
         isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false
@@ -323,7 +319,6 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
           isOpen: false,
           merchantName: '',
           merchantInventory: [],
-          // TODO(2026-01-03 pass 4 Codex-CLI): economy cleared placeholder; real modal typing should handle this.
           economy: undefined
         },
         economy: state.economy,

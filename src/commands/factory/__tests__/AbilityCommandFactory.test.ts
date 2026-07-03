@@ -52,6 +52,96 @@ describe('AbilityCommandFactory', () => {
     expect(commands[0]).toBeInstanceOf(WeaponAttackCommand);
   });
 
+  it('lets Shield turn a just-hit weapon attack into a miss before damage resolves', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.55);
+    const attacker = createMockCombatCharacter({
+      id: 'shield-attacker',
+      name: 'Shield Attacker',
+      stats: { strength: 10, dexterity: 10 } as any,
+      level: 1
+    });
+    const shieldSpell: Spell = {
+      id: 'shield',
+      name: 'Shield',
+      level: 1,
+      school: 'Abjuration',
+      classes: ['Wizard'],
+      description: 'A shimmering barrier appears.',
+      castingTime: { value: 1, unit: 'reaction' },
+      range: { type: 'self' },
+      components: { verbal: true, somatic: true, material: false },
+      duration: { type: 'timed', value: 1, unit: 'round', concentration: false },
+      targeting: { type: 'self', validTargets: ['self'] },
+      effects: [{
+        type: 'DEFENSIVE',
+        defenseType: 'ac_bonus',
+        acBonus: 5,
+        duration: { type: 'rounds', value: 1 },
+        trigger: { type: 'immediate' },
+        condition: { type: 'always' },
+        reactionTrigger: { event: 'when_hit' }
+      }]
+    } as Spell;
+    const defender = createMockCombatCharacter({
+      id: 'shield-defender',
+      name: 'Shield Defender',
+      armorClass: 12,
+      currentHP: 20,
+      maxHP: 20,
+      abilities: [{ id: 'shield-ability', type: 'spell', spell: shieldSpell } as any],
+      actionEconomy: {
+        action: { used: false },
+        bonusAction: { used: false },
+        reaction: { used: false },
+        movement: { used: 0, total: 30 }
+      } as any,
+      spellSlots: {
+        level_1: { current: 1, max: 1 }
+      } as any
+    });
+    const attack: Ability = {
+      id: 'borderline_strike',
+      name: 'Borderline Strike',
+      description: 'A hit that Shield can still stop.',
+      type: 'attack',
+      cost: { type: 'action' },
+      targeting: 'single_enemy',
+      range: 1,
+      attackBonus: 0,
+      effects: [{ type: 'damage', value: 4, damageType: 'slashing' }]
+    };
+    const requestReaction = vi.fn().mockResolvedValue('shield');
+    const commands = AbilityCommandFactory.createCommands(
+      attack,
+      attacker,
+      [defender],
+      {} as GameState,
+      undefined,
+      requestReaction
+    );
+
+    try {
+      const result = await commands[0].execute(createMockCombatState({
+        characters: [attacker, defender],
+        combatLog: []
+      }));
+      const updatedDefender = result.characters.find(character => character.id === defender.id);
+
+      // The attack roll is 12 against AC 12, so it initially hits. Shield
+      // raises the target to AC 17 before damage commands run, proving the
+      // defensive reaction changes the triggering hit outcome instead of only
+      // adding AC after damage has already landed.
+      expect(requestReaction).toHaveBeenCalledWith(attacker.id, defender.id, 'on_hit', [shieldSpell]);
+      expect(updatedDefender?.currentHP).toBe(20);
+      expect(updatedDefender?.armorClass).toBe(17);
+      expect(updatedDefender?.actionEconomy.reaction.used).toBe(true);
+      expect(updatedDefender?.spellSlots?.level_1.current).toBe(0);
+      expect(result.combatLog.some(entry => entry.message.includes('turns the hit into a miss'))).toBe(true);
+    } finally {
+      randomSpy.mockRestore();
+    }
+  });
+
   it('ends Friends early when its caster makes a weapon attack roll', async () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
 

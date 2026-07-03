@@ -182,7 +182,11 @@ export function legacyTileToAtlasCell(
 ): number {
   const px = ((worldMapX + 0.5) / Math.max(1, worldMapWidth)) * FMG_WIDTH;
   const py = ((worldMapY + 0.5) / Math.max(1, worldMapHeight)) * FMG_HEIGHT;
+  return nearestLandCellToPoint(atlas, px, py);
+}
 
+/** Nearest land cell to an atlas/graph pixel point (linear scan, land only). */
+function nearestLandCellToPoint(atlas: FmgAtlasResult, px: number, py: number): number {
   const { cells } = atlas.pack;
   let best = -1;
   let bestDist = Infinity;
@@ -199,6 +203,42 @@ export function legacyTileToAtlasCell(
     }
   }
   if (best < 0) throw new Error("Bridge: atlas has no land cells");
+  return best;
+}
+
+/**
+ * The live burg (if any) a legacy grid tile opens onto. A tile "contains" a
+ * burg when the burg's atlas position floor-projects into it (the algebraic
+ * inverse of the tile-center convention). When several burgs share a tile the
+ * one nearest the tile center wins (ties: lower id) — deterministic and purely
+ * spatial, so the 2D grid, the town-tile inverse, and 3D entry all agree.
+ */
+export function burgForTile(
+  atlas: FmgWorldResult,
+  worldMapX: number,
+  worldMapY: number,
+  worldMapWidth: number,
+  worldMapHeight: number,
+): LiveBurg | null {
+  const cols = Math.max(1, Math.floor(worldMapWidth));
+  const rows = Math.max(1, Math.floor(worldMapHeight));
+  const cxPx = ((worldMapX + 0.5) / cols) * FMG_WIDTH;
+  const cyPx = ((worldMapY + 0.5) / rows) * FMG_HEIGHT;
+
+  let best: LiveBurg | null = null;
+  let bestDist = Infinity;
+  for (const burg of atlas.pack.burgs ?? []) {
+    if (!isLiveBurg(burg)) continue;
+    const tile = projectedTileForAtlasPoint(burg.x, burg.y, cols, rows);
+    if (tile.x !== worldMapX || tile.y !== worldMapY) continue;
+    const dx = burg.x - cxPx;
+    const dy = burg.y - cyPx;
+    const d = dx * dx + dy * dy;
+    if (d < bestDist || (d === bestDist && best !== null && burg.i < best.i)) {
+      bestDist = d;
+      best = burg;
+    }
+  }
   return best;
 }
 
@@ -276,6 +316,22 @@ export function getWorldforgeLocalForLocation(
   worldMapHeight: number,
 ): BridgeLocalResult {
   const atlas = getBridgeAtlas(worldSeed);
+
+  // Burg-aware tile entry (2026-07-02): a tile that visually contains burgs
+  // opens onto the burg nearest its center, window centered ON the burg — the
+  // same settlement mode as WF_TOWN / cell-addressed entry. Without this, a
+  // burg rendered only when its own cell happened to be the tile's
+  // nearest-land anchor: the 25k-ft window vs ~70k-ft cell spacing made that a
+  // ~5% lottery, and whole culture families (every Highland burg in seeds 1234
+  // and 2026) had zero live towns in ground mode.
+  const burg = burgForTile(atlas, worldMapX, worldMapY, worldMapWidth, worldMapHeight);
+  if (burg) {
+    // Anchor on the cell actually at the burg's position — burg.cell can be
+    // stale (see cellAddressedEntry.test.ts).
+    const burgCellId = nearestLandCellToPoint(atlas, burg.x, burg.y);
+    return getWorldforgeLocalForCell(worldSeed, burgCellId, { centerPx: [burg.x, burg.y] });
+  }
+
   const anchorCellId = legacyTileToAtlasCell(
     atlas, worldMapX, worldMapY, worldMapWidth, worldMapHeight,
   );
@@ -408,6 +464,38 @@ export function getTownTilesForGrid(
   const neighborDistanceCache = new Map<number, number>();
   const verifiedTileAnchors = new Map<string, number>();
 
+  // Burg-claimed tiles (burg-aware forward path): every live burg projects
+  // into exactly one tile, and entering that tile opens burg-centered on the
+  // tile's winner. Winners mirror burgForTile exactly so the inverse never
+  // promises a town the forward path won't show.
+  const claimedTiles = new Map<string, LiveBurg>();
+  for (const burg of atlas.pack.burgs ?? []) {
+    if (!isLiveBurg(burg)) continue;
+    const tile = projectedTileForAtlasPoint(burg.x, burg.y, safeCols, safeRows);
+    const tileKey = `${tile.x},${tile.y}`;
+    const cxPx = ((tile.x + 0.5) / safeCols) * FMG_WIDTH;
+    const cyPx = ((tile.y + 0.5) / safeRows) * FMG_HEIGHT;
+    const dist = (burg.x - cxPx) ** 2 + (burg.y - cyPx) ** 2;
+    const current = claimedTiles.get(tileKey);
+    if (!current) {
+      claimedTiles.set(tileKey, burg);
+      continue;
+    }
+    const currentDist = (current.x - cxPx) ** 2 + (current.y - cyPx) ** 2;
+    if (dist < currentDist || (dist === currentDist && burg.i < current.i)) {
+      claimedTiles.set(tileKey, burg);
+    }
+  }
+  for (const [tileKey, winner] of claimedTiles) {
+    const [x, y] = tileKey.split(',').map(Number);
+    tileHits.set(`${tileKey}|${winner.i}`, {
+      x,
+      y,
+      burgId: winner.i,
+      name: winner.name ?? `Burg ${winner.i}`,
+    });
+  }
+
   for (const burg of atlas.pack.burgs ?? []) {
     if (!isLiveBurg(burg)) continue;
 
@@ -427,6 +515,9 @@ export function getTownTilesForGrid(
       for (let y = minY; y <= maxY; y++) {
         for (let x = minX; x <= maxX; x++) {
           const tileKey = `${x},${y}`;
+          // Claimed tiles open burg-centered on their winner — the anchor-site
+          // window this legacy pass verifies against no longer applies there.
+          if (claimedTiles.has(tileKey)) continue;
           let snappedAnchor = verifiedTileAnchors.get(tileKey);
           if (snappedAnchor === undefined) {
             snappedAnchor = legacyTileToAtlasCell(atlas, x, y, safeCols, safeRows);

@@ -125,7 +125,7 @@ export function evaluateCombatTurn(
   characters: CombatCharacter[],
   mapData: BattleMapData
 ): CombatAction {
-  // TODO(FEATURES): Extend AI planning to cover allied party members (auto-battle companions) with player-configurable tactics (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  // TODO #1307(FEATURES): Extend AI planning to cover allied party members (auto-battle companions) with player-configurable tactics (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 
   if (hasCommandSkipTurnDirective(character)) {
     // Halt and Grovel are magical control instructions, not tactical options.
@@ -1036,7 +1036,6 @@ function planMovement(
     return null;
   }
 
-  // TODO(2026-01-03 pass 4 Codex-CLI): Restore direct narrowing once reachableTiles typing no longer collapses.
   // Previously used bestTile.id directly; cast once to avoid the never narrowing error.
   const targetTile = bestTile as BattleMapTile;
   if (targetTile.id !== startTile.id && !occupiedTileIds.has(targetTile.id)) {

@@ -1038,12 +1038,17 @@ const MapPane: React.FC<MapPaneProps> = ({
                 Enter 3D
               </button>
             )}
-            {allow3DEntry && onEnter3DAtCell && playerAtlasCell != null && (
+            {allow3DEntry && onEnter3DAtCell && (
               <button
                 onClick={handleEnter3DAtPlayer}
-                className="px-2 py-1 rounded bg-rose-900 text-rose-100 hover:bg-rose-800"
+                disabled={playerAtlasCell == null}
+                className={playerAtlasCell != null
+                  ? 'px-2 py-1 rounded bg-rose-900 text-rose-100 hover:bg-rose-800'
+                  : 'px-2 py-1 rounded bg-gray-700 text-gray-400 cursor-not-allowed'}
                 type="button"
-                title="Enter the streamed 3D world at your current position"
+                title={playerAtlasCell != null
+                  ? 'Enter the streamed 3D world at your current position'
+                  : 'Your map position is unknown — travel via the map (or Enter 3D at a cell) once to establish it'}
                 data-testid="enter-3d-at-player"
               >
                 3D at My Location

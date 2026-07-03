@@ -76,7 +76,6 @@ export function validateEnchantmentConsistency(spell: Spell): ValidationIssue[] 
        // For now, we'll just log it as info if it's missing from target filters (though excludeCondition doesn't exist yet).
        // This might be a missing feature in the Schema itself!
        // "TargetConditionFilter" has "hasCondition" but not "excludeCondition".
-       // TODO: The schema might need update, but I can't do that now.
      }
   }
 

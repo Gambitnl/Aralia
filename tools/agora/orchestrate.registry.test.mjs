@@ -35,8 +35,9 @@ test('validatePlan: orchestrator-only agent (codex) is rejected for worker packe
   assert.throws(() => validatePlan(planWith('codex')), /orchestrator-only|not a worker/i);
 });
 
-test('validatePlan: onboarded-but-unwired agent (kilo) is rejected with a dispatch-wiring reason', () => {
-  assert.throws(() => validatePlan(planWith('kilo')), /dispatch|not wired/i);
+test('validatePlan: onboarded-but-unwired agent (cursor) is rejected with a dispatch-wiring reason', () => {
+  // kilo graduated to wired 2026-07-02 (verified PROBE_OK); cursor remains unwired.
+  assert.throws(() => validatePlan(planWith('cursor')), /dispatch|not wired/i);
 });
 
 test('validatePlan: unknown agent lists the known registry ids', () => {

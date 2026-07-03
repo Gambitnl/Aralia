@@ -295,6 +295,5 @@ export const useCompanionCommentary = (
     }
   }, [gameState.notoriety?.knownCrimes, evaluateReaction]);
 
-  // TODO(2026-01-03 pass 4 Codex-CLI): hook currently has side effects only; return value reserved for future manual triggers/cleanup.
   return null;
 };

@@ -11,15 +11,7 @@ import {
   CompanionGoal,
   PersonalityTraits,
   Relationship,
-  // TODO(lint-intent): 'RelationshipEvent' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-  RelationshipEvent as _RelationshipEvent,
   NPCIdentity,
-  // TODO(lint-intent): 'ApprovalEvent' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-  ApprovalEvent as _ApprovalEvent,
   CompanionReactionRule,
   RelationshipUnlock
 } from '../types/companions';
@@ -373,7 +365,6 @@ export const COMPANIONS: Record<string, Companion> = {
     loyalty: 50,
     approvalHistory: [],
     memories: [],
-    // TODO(2026-01-03 pass 6 Codex-CLI): Keep discoveredFacts as a placeholder until companion lore tracking is fully typed.
     discoveredFacts: [],
     reactionRules: KAELEN_REACTIONS
   },
@@ -389,7 +380,6 @@ export const COMPANIONS: Record<string, Companion> = {
     loyalty: 80, // Starts higher due to duty
     approvalHistory: [],
     memories: [],
-    // TODO(2026-01-03 pass 6 Codex-CLI): Keep discoveredFacts as a placeholder until companion lore tracking is fully typed.
     discoveredFacts: [],
     reactionRules: ELARA_REACTIONS
   }

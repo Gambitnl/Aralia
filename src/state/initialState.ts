@@ -132,7 +132,6 @@ export const initialGameState: GameState = {
     devModelOverride: null,
     isDevModeEnabled: false,
     banterDebugLog: [],
-    // TODO(2026-01-03 pass 5 Codex-CLI): archived banters placeholder until persistent banter logging stabilizes.
     archivedBanters: [],
 
     // Encounter Modal State
@@ -173,7 +172,6 @@ export const initialGameState: GameState = {
             knownFacts: [],
             suspicion: SuspicionLevel.Unaware,
             goals: npcData?.goals ? [...npcData.goals] : [],
-            // TODO(2026-01-03 pass 4 Codex-CLI): npcMemory interactions/attitude/discussedTopics placeholders until NPC logging is formalized.
             interactions: [],
             attitude: 0,
             discussedTopics: {},
@@ -233,7 +231,6 @@ export const initialGameState: GameState = {
         globalHeat: 0,
         localHeat: {},
         knownCrimes: [],
-        // TODO(2026-01-03 pass 4 Codex-CLI): bounties stubbed to satisfy NotorietyState; feed from crime system when available.
         bounties: [],
     },
 

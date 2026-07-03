@@ -12,7 +12,6 @@ describe('contract: travel and world helpers', () => {
     expect(good).toBe('Strength');
 
     const bad: any = 'strength';
-    // TODO(2026-01-03 pass 4 Codex-CLI): Explicitly casting to align with vitest type helper until overloads are clarified.
     expectTypeOf(bad as never).not.toMatchTypeOf<AbilityScoreName>();
   });
 
@@ -22,7 +21,7 @@ describe('contract: travel and world helpers', () => {
       description: 'Test',
       effect: { type: 'delay', amount: 1, description: 'one hour' },
       skillCheck: {
-        check: { skill: 'Athletics', dc: 10 } as any, // TODO(lint-intent): tighten to Skill once travel events use Skill typing
+        check: { skill: 'Athletics', dc: 10 },
         successEffect: { type: 'delay', amount: 0, description: 'none' },
         failureEffect: { type: 'delay', amount: 2, description: 'slowed' },
         successDescription: 'ok',

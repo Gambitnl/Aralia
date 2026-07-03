@@ -46,7 +46,6 @@ const mockRecipe: Recipe = {
   id: 'iron_sword_recipe',
   name: 'Iron Sword',
   description: 'Simple iron sword',
-  // TODO(2026-01-03 pass 4 Codex-CLI): station set to forge for test coverage; align with real recipe data if added.
   station: 'forge',
   timeMinutes: 60,
   inputs: [
@@ -54,8 +53,7 @@ const mockRecipe: Recipe = {
     { itemId: 'wood', quantity: 1, consumed: true }
   ],
   outputs: [
-    // TODO(2026-01-03 pass 4 Codex-CLI): qualityFromRoll cast until output typing captures roll-dependent quality.
-    { itemId: 'iron_sword', quantity: 1 } as unknown as Recipe['outputs'][number]
+    { itemId: 'iron_sword', quantity: 1 }
   ],
   skillCheck: {
     skill: 'athletics', // Using athletics as a proxy for smithing strength for this test
@@ -86,10 +84,9 @@ describe('Crafting System', () => {
 
   describe('checkMaterials', () => {
     it('should return true when all materials are present', () => {
-      // TODO(2026-01-03 pass 4 Codex-CLI): inventory cast to InventoryEntry[] placeholder for test.
       const inventory: InventoryEntry[] = [
-        { ...mockIronBar, quantity: 5 } as InventoryEntry,
-        { ...mockWood, quantity: 2 } as InventoryEntry
+        { ...mockIronBar, quantity: 5 },
+        { ...mockWood, quantity: 2 }
       ];
 
       const result = checkMaterials(inventory, mockRecipe.inputs);
@@ -100,7 +97,7 @@ describe('Crafting System', () => {
     // Keep the strict ID path separate so future fallback changes do not blur it.
     it('should still match exact item IDs even when other metadata differs', () => {
       const inventory: InventoryEntry[] = [
-        { ...mockExactMatchItem, quantity: 2 } as InventoryEntry
+        { ...mockExactMatchItem, quantity: 2 }
       ];
 
       const result = checkMaterials(inventory, [
@@ -128,10 +125,9 @@ describe('Crafting System', () => {
     });
 
     it('should return false when materials are missing', () => {
-      // TODO(2026-01-03 pass 4 Codex-CLI): inventory cast to InventoryEntry[] placeholder for test.
       const inventory: InventoryEntry[] = [
-        { ...mockIronBar, quantity: 1 } as InventoryEntry, // Need 2
-        { ...mockWood, quantity: 2 } as InventoryEntry
+        { ...mockIronBar, quantity: 1 },
+        { ...mockWood, quantity: 2 }
       ];
 
       const result = checkMaterials(inventory, mockRecipe.inputs);
@@ -142,7 +138,6 @@ describe('Crafting System', () => {
 
   describe('attemptCraft', () => {
     it('should fail if materials are missing', () => {
-      // TODO(2026-01-03 pass 4 Codex-CLI): inventory cast to InventoryEntry[] placeholder for test.
       const inventory: InventoryEntry[] = [];
       const result = attemptCraft(mockCrafter, mockRecipe, inventory);
 
@@ -151,10 +146,9 @@ describe('Crafting System', () => {
     });
 
     it('should succeed on good roll', () => {
-      // TODO(2026-01-03 pass 4 Codex-CLI): inventory cast to InventoryEntry[] placeholder for test.
       const inventory: InventoryEntry[] = [
-        { ...mockIronBar, quantity: 2 } as InventoryEntry,
-        { ...mockWood, quantity: 1 } as InventoryEntry
+        { ...mockIronBar, quantity: 2 },
+        { ...mockWood, quantity: 1 }
       ];
 
       // DC 15. Modifier +5. Roll needs to be 10+.
@@ -163,22 +157,16 @@ describe('Crafting System', () => {
       const result = attemptCraft(mockCrafter, mockRecipe, inventory);
 
       expect(result.success).toBe(true);
-      const crafted = result as unknown as typeof result & {
-        itemsCreated?: { itemId: string }[];
-        materialsConsumed?: { itemId: string; quantity: number }[];
-      };
-      // TODO(2026-01-03 pass 4 Codex-CLI): itemsCreated/materialsConsumed legacy expectations; using outputs/consumedMaterials while wiring test shape.
-      const outputs = crafted.itemsCreated ?? crafted.outputs;
+      const outputs = result.outputs;
       expect(outputs[0]?.itemId).toBe('iron_sword');
-      const consumed = crafted.materialsConsumed ?? crafted.consumedMaterials;
+      const consumed = result.consumedMaterials;
       expect(consumed).toHaveLength(2);
     });
 
     it('should fail on bad roll', () => {
-      // TODO(2026-01-03 pass 4 Codex-CLI): inventory cast to InventoryEntry[] placeholder for test.
       const inventory: InventoryEntry[] = [
-        { ...mockIronBar, quantity: 2 } as InventoryEntry,
-        { ...mockWood, quantity: 1 } as InventoryEntry
+        { ...mockIronBar, quantity: 2 },
+        { ...mockWood, quantity: 1 }
       ];
 
       // DC 15. Modifier +5. Roll needs to be 10+.
@@ -189,15 +177,14 @@ describe('Crafting System', () => {
       expect(result.success).toBe(false);
       expect(result.message).toContain('Crafting failed');
       // Should lose some materials
-      const consumed = (result as unknown as { materialsConsumed?: { quantity: number }[]; consumedMaterials?: { quantity: number }[] }).materialsConsumed ?? (result as { consumedMaterials: { quantity: number }[] }).consumedMaterials;
+      const consumed = result.consumedMaterials;
       expect(consumed.length).toBeGreaterThan(0);
     });
 
     it('should crit on high roll', () => {
-      // TODO(2026-01-03 pass 4 Codex-CLI): inventory cast to InventoryEntry[] placeholder for test.
       const inventory: InventoryEntry[] = [
-        { ...mockIronBar, quantity: 2 } as InventoryEntry,
-        { ...mockWood, quantity: 1 } as InventoryEntry
+        { ...mockIronBar, quantity: 2 },
+        { ...mockWood, quantity: 1 }
       ];
 
       // DC 15. Modifier +5. Crit needs +10 over DC (25+). Roll 20 + 5 = 25.

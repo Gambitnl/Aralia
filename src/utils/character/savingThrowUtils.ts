@@ -161,14 +161,10 @@ export function rollSavingThrow(
       // Add proficiency bonus if the character is proficient in this save
       // Proficiency can come from class (e.g., Fighters are proficient in Str/Con)
       // or from the character directly (e.g., Resilient feat grants proficiency)
-      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-      const classHasProficiency = target.class?.savingThrowProficiencies?.includes(ability as any) || target.class?.savingThrowProficiencies?.includes(ability as any);
-      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-      const charHasProficiency = target.savingThrowProficiencies?.includes(ability as any) || target.savingThrowProficiencies?.includes(ability as any);
+      const classHasProficiency = (target.class?.savingThrowProficiencies ?? [])
+        .some(proficiency => proficiency.toLowerCase() === ability.toLowerCase());
+      const charHasProficiency = (target.savingThrowProficiencies ?? [])
+        .some(proficiency => proficiency.toLowerCase() === ability.toLowerCase());
 
       // Note: SavingThrowAbility is "Strength", "Dexterity", etc.
       // Class.savingThrowProficiencies and target.savingThrowProficiencies are AbilityScoreName ("Strength", etc.)

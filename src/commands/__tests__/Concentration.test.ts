@@ -49,7 +49,6 @@ describe('Concentration System', () => {
             const mockPlayer: PlayerCharacter = createMockPlayerCharacter({
                 id: mockCaster.id,
                 name: mockCaster.name,
-                // TODO: keep combat + narrative characters in sync when we wire real data through the spell flow.
             });
             const mockGameState = createMockGameState({ party: [mockPlayer] });
 
@@ -77,7 +76,6 @@ describe('Concentration System', () => {
             const concentratingPlayer: PlayerCharacter = createMockPlayerCharacter({
                 id: casterConcentrating.id,
                 name: casterConcentrating.name,
-                // TODO: mirror concentration state into the player model when combat ↔ narrative models converge.
             });
             const mockGameState = createMockGameState({ party: [concentratingPlayer] });
 
@@ -148,7 +146,6 @@ describe('Concentration System', () => {
             const mockPlayer: PlayerCharacter = createMockPlayerCharacter({
                 id: mockCaster.id,
                 name: mockCaster.name,
-                // TODO: thread combat-specific fields like concentratingOn into the campaign character state for parity.
             });
             const baseTurnState = createMockCombatState().turnState;
             const mockState = createMockCombatState({
@@ -192,7 +189,6 @@ describe('Concentration System', () => {
             const mockPlayer: PlayerCharacter = createMockPlayerCharacter({
                 id: mockTarget.id,
                 name: mockTarget.name,
-                // TODO: maintain concentration flags in both combat + overworld models when we dedupe them.
             });
             const mockGameState = createMockGameState({ party: [mockPlayer], currentLocationId: 'arena' });
 

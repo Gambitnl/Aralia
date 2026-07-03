@@ -84,12 +84,10 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
   castAtLevel: 1,
   caster,
   targets,
-  // TODO(lint-intent): Provide minimal game state for now; future healing effects may need richer context.
   gameState: createMockGameState({
     party: [caster, ...targets].map(targetAsCompanion => createMockPlayerCharacter({
       id: targetAsCompanion.id,
       name: targetAsCompanion.name,
-      // TODO: when combat + overworld models merge, carry HP state through a shared shape instead of casting.
     })),
     currentLocationId: 'arena',
 

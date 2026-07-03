@@ -21,7 +21,6 @@ export interface VillageIntegrationProfile {
   tagline: string;
   culturalSignature: string;
   encounterHooks: string[];
-  // TODO(2026-01-03 Codex-CLI): AI-driven village flows reference richer prompts; surface optional fields until data schema is finalized.
   aiPrompt?: string;
   integrationPrompt?: string;
 }

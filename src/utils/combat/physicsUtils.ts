@@ -26,8 +26,8 @@
 import { DiceRoll } from '../../types/dice';
 import { Position } from '../../types/combat';
 
-// TODO(Mechanist): Integrate object AC/HP rules into combat targeting system (attacking doors/walls).
-// TODO(Mechanist): Wire up suffocation/breath rules into `useTurnManager.ts` to apply StatusEffect.Choking when breath runs out.
+// TODO #1320(Mechanist): Integrate object AC/HP rules into combat targeting system (attacking doors/walls).
+// TODO #1321(Mechanist): Wire up suffocation/breath rules into `useTurnManager.ts` to apply StatusEffect.Choking when breath runs out.
 export type ObjectSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan';
 export type ObjectMaterial = 'cloth' | 'paper' | 'rope' | 'crystal' | 'glass' | 'ice' | 'wood' | 'bone' | 'stone' | 'iron' | 'steel' | 'mithral' | 'adamantine';
 
@@ -224,7 +224,7 @@ export function calculateSuffocationRounds(conMod: number): number {
   return Math.max(1, conMod);
 }
 
-// TODO(Mechanist): Wire up throw distance calculation to the 'Throw' item action in useInventoryAction.ts.
+// TODO #1322(Mechanist): Wire up throw distance calculation to the 'Throw' item action in useInventoryAction.ts.
 /**
  * Calculates throwing distance based on Strength.
  * D&D 5e simplified: STR * 10 feet, weight penalty after 5 lbs.
@@ -290,7 +290,7 @@ export function calculateChebyshevDistance(a: Position, b: Position): number {
   return Math.max(dx, dy) * 5;
 }
 
-// TODO(Mechanist): Integrate `calculateLightLevel` into `BattleMap` rendering to dynamically visualize Fog of War.
+// TODO #1323(Mechanist): Integrate `calculateLightLevel` into `BattleMap` rendering to dynamically visualize Fog of War.
 /**
  * Calculates the light level at a specific target position relative to a light source.
  * D&D 5e Rules (PHB p. 183):

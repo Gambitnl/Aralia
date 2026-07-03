@@ -3,10 +3,7 @@
  * Experimental alchemy system allowing property-based ingredient mixing.
  * ALCHEMIST PHILOSOPHY: Creation should cost resources. Failure teaches.
  */
-// TODO(lint-intent): 'ItemType' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Item, ItemType as _ItemType } from '../../types/items';
+import { Item } from '../../types/items';
 import { Crafter } from './craftingSystem';
 import { CraftingResult } from './types';
 
@@ -264,5 +261,3 @@ export function attemptAlchemy(crafter: Crafter, reagents: Item[]): AlchemyResul
     discoveredProperties: inputProps // In a real system, filter to only properties that contributed
   };
 }
-
-// TODO(Architect): Integrate with `src/components/Crafting/AlchemyBench.tsx` to allow drag-and-drop experimentation.

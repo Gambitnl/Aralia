@@ -164,6 +164,15 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
   const router = makeRouter();
   // Track live SSE responses so we can end them on shutdown.
   const sseClients = new Set();
+  // Bounded recent-event ring (WF-G6): lets a reconnecting SSE client replay
+  // the gap (seq > its Last-Event-ID) instead of only resyncing from the
+  // hello snapshot. 300 events comfortably covers reconnect windows.
+  const EVENT_RING_MAX = 300;
+  const eventRing = [];
+  store.subscribe((ev) => {
+    eventRing.push(ev);
+    if (eventRing.length > EVENT_RING_MAX) eventRing.shift();
+  });
 
   // --- auth wrapper: resolves bearer -> agent, 401 if missing/invalid, touches presence ---
   function withAuth(handler) {
@@ -267,6 +276,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
           agentId: ctx.agent.id,
           title: body.title,
           body: body.body,
+          category: typeof body.category === 'string' ? body.category : undefined,
           deps: Array.isArray(body.deps) ? body.deps : [],
           priority: typeof body.priority === 'number' ? body.priority : undefined,
           refs: Array.isArray(body.refs) ? body.refs : [],
@@ -322,6 +332,27 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
   );
 
   router.post(
+    '/tasks/:id/categories',
+    withAuth(async (req, res, ctx) => {
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+      const result = store.setTaskCategories({
+        taskId: ctx.params.id,
+        agentId: ctx.agent.id,
+        categories: body.categories,
+        category: typeof body.category === 'string' ? body.category : undefined,
+      });
+      if (result.ok) return sendJson(res, 200, { task: result.task });
+      if (result.error === 'task not found') return sendJson(res, 404, { error: result.error });
+      return sendJson(res, 400, { error: result.error });
+    }),
+  );
+
+  router.post(
     '/tasks/:id/handoff',
     withAuth(async (req, res, ctx) => {
       let body;
@@ -344,7 +375,8 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
   router.get('/tasks', async (req, res, ctx) => {
     const state = ctx.query.get('state') || undefined;
     const ready = ctx.query.get('ready') === '1' || ctx.query.get('ready') === 'true';
-    sendJson(res, 200, { tasks: store.listTasks({ state, ready }) });
+    const category = ctx.query.get('category') || undefined;
+    sendJson(res, 200, { tasks: store.listTasks({ state, ready, category }) });
   });
 
   // ============================== Messaging ==============================
@@ -506,8 +538,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       res.write(`data: ${JSON.stringify(data)}\n\n`);
     }
 
-    // Resume handshake: the store cannot replay arbitrary past events, so we send
-    // a `hello` carrying the current lastSeq + a full snapshot for client re-sync.
+    // Resume handshake: hello carries lastSeq + a full snapshot for re-sync…
     writeEvent(store.lastSeq, 'hello', {
       lastSeq: store.lastSeq,
       clientSince,
@@ -518,6 +549,15 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         tasks: store.listTasks(),
       },
     });
+    // …and (WF-G6) the recent-event ring replays the gap when the client's
+    // since falls inside it — real event objects, not just the snapshot.
+    if (clientSince != null && Number.isFinite(clientSince)) {
+      for (const ev of eventRing) {
+        if (ev.seq > clientSince) {
+          writeEvent(ev.seq, ev.type, { ...ev.payload, type: ev.type, ts: ev.ts, seq: ev.seq, replayed: true });
+        }
+      }
+    }
 
     const unsubscribe = store.subscribe((event) => {
       // event = { seq, type, payload, ts }

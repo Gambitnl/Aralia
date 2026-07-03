@@ -42,7 +42,7 @@ vi.mock('../services/saveLoadService', () => ({
     getSaveSlots: vi.fn(() => []),
     deleteSaveGame: vi.fn(),
 }));
-// TODO: Add test case where getSaveSlots returns actual save data to verify
+// TODO #174: Add test case where getSaveSlots returns actual save data to verify
 // Continue button text formatting and latestSlot sorting logic.
 
 // ============================================================================

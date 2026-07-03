@@ -92,7 +92,7 @@ export const FEATS_DATA: Feat[] = [
     name: 'Healer',
     description: 'Battlefield medicine is an art, and you have mastered it under the worst possible conditions. When you use a Healer\'s Kit to stabilise or tend a creature, they may immediately roll one of their Hit Dice — and may reroll any die showing a 1.',
     // 2024 PHB: Healer is an ORIGIN feat — no ASI, no skill proficiency. Healer's Kit mechanics
-    // TODO(FEATURES): Implement Healer's Kit stabilise-and-roll-hit-die mechanic (see docs/FEATURES_TODO.md).
+    // TODO #204(FEATURES): Implement Healer's Kit stabilise-and-roll-hit-die mechanic (see docs/FEATURES_TODO.md).
   },
   {
     id: 'lucky',
@@ -114,7 +114,7 @@ export const FEATS_DATA: Feat[] = [
   },
   // Updated 2025-12-11: Changed from hardcoded Constitution to selectable ability score
   // Player chooses one of six abilities; gains +1 to that ability AND proficiency in that saving throw
-  // TODO(FEATURES): Implement UI for ability selection and logic to apply matching save proficiency (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  // TODO #205(FEATURES): Implement UI for ability selection and logic to apply matching save proficiency (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   {
     id: 'resilient',
     name: 'Resilient',
@@ -126,7 +126,7 @@ export const FEATS_DATA: Feat[] = [
     },
   },
   // Updated 2025-12-11: Changed from hardcoded skills to selectable
-  // TODO(FEATURES): Implement UI for selecting 3 skills from the full skill list (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  // TODO #206(FEATURES): Implement UI for selecting 3 skills from the full skill list (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   {
     id: 'skilled',
     name: 'Skilled',
@@ -185,7 +185,7 @@ export const FEATS_DATA: Feat[] = [
     },
   },
   // Updated 2025-12-11: Changed from giving both STR+1 and CON+1 to selecting one
-  // TODO(FEATURES): Implement UI for ability selection; also needs improvised weapon and unarmed strike mechanics (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  // TODO #207(FEATURES): Implement UI for ability selection; also needs improvised weapon and unarmed strike mechanics (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   {
     id: 'tavern_brawler',
     name: 'Tavern Brawler',
@@ -220,7 +220,7 @@ export const FEATS_DATA: Feat[] = [
     },
   },
   // Updated 2025-12-11: Added selectableDamageTypes for the elemental choice
-  // TODO(FEATURES): Implement UI for damage type selection and combat logic for ignoring resistance / treating 1s as 2s (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  // TODO #208(FEATURES): Implement UI for damage type selection and combat logic for ignoring resistance / treating 1s as 2s (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   {
     id: 'elemental_adept',
     name: 'Elemental Adept',
@@ -454,7 +454,7 @@ export const FEATS_DATA: Feat[] = [
   },
   // Updated 2025-12-11: Changed from giving both STR+1 and DEX+1 to selecting one
   // Combat mechanics implemented 2026-01-05: Speed reduction (once per turn) and crit disadvantage via ActiveEffect
-  // TODO(FEATURES): Implement UI for ability selection (STR or DEX) during feat selection.
+  // TODO #209(FEATURES): Implement UI for ability selection (STR or DEX) during feat selection.
   {
     id: 'slasher',
     name: 'Slasher',

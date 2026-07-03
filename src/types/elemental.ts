@@ -8,7 +8,6 @@
  * States can combine (wet + cold = frozen) or cancel (wet + fire = steam/null).
  */
 /**
- * @TODO Integration Point:
  * This system should be integrated into the damage pipeline (e.g., DamageCommand or a new ApplyEffectCommand).
  * When damage or an effect is applied:
  * 1. Check for incoming element types (Fire damage applying Burning, Water spell applying Wet).
@@ -68,8 +67,6 @@ export const StateInteractions: Record<string, StateTag | null> = {
   // Electrified interactions
   // (Placeholder for future: wet+electrified -> AoE damage)
 
-  // TODO(Simulator): Expand interaction system to support side-effects (e.g., wet+electrified dealing damage) and applied mechanics (e.g., smoke obscuring vision).
-  // TODO(Simulator): Implement 'spread' mechanic for wet+electrified interaction in ElementalInteractionSystem or a dedicated EffectSystem.
 };
 
 /**

@@ -139,5 +139,3 @@ export const CreatureSizeTraits: Record<CreatureSize, SizeTraits> = {
     description: "Gargantuan creatures control a space 20 by 20 feet or larger.",
   },
 };
-
-// TODO(Taxonomist): Update codebase to use CreatureSize enum instead of magic strings

@@ -3,10 +3,7 @@
  * Specific logic for the Enchanting system, extending standard crafting.
  * Includes "Critical Failure" mechanics as per Alchemist design.
  */
-// TODO(lint-intent): 'MaterialRequirement' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Recipe, CraftingResult, MaterialRequirement as _MaterialRequirement } from './types';
+import { Recipe, CraftingResult } from './types';
 import { Crafter, canCraft } from './craftingSystem';
 
 /**
@@ -157,5 +154,3 @@ export function attemptEnchant(crafter: Crafter, recipe: Recipe): EnchantingResu
     backlashEffect
   };
 }
-
-// TODO(Architect): Integrate with UI/Inventory System to allow selection of Base Item + Catalysts and display of Critical Failure warnings.

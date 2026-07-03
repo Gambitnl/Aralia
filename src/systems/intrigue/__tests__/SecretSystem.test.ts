@@ -10,8 +10,7 @@ import { describe, it, expect } from 'vitest';
 import { SecretGenerator } from '../SecretGenerator';
 import { IdentityManager } from '../IdentityManager';
 import { Faction } from '../../../types/factions';
-// TODO(lint-intent): 'PlayerIdentityState' is unused in this test; use it in the assertion path or remove it.
-import { PlayerIdentityState as _PlayerIdentityState, Secret } from '../../../types/identity';
+import { Secret } from '../../../types/identity';
 
 describe('SecretSystem', () => {
     // Mock factions

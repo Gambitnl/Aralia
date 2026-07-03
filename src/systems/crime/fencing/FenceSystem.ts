@@ -17,10 +17,6 @@
 import { StolenItem, Fence } from '../../../types/crime';
 import { PlayerCharacter } from '../../../types/character';
 import { Item } from '../../../types';
-// TODO(lint-intent): 'GameState' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { GameState as _GameState } from '../../../types';
 import { generateId } from '../../../utils/core/idGenerator';
 
 export interface FenceTransactionResult {
@@ -34,9 +30,6 @@ export class FenceSystem {
   /**
    * Generates a fence NPC for a given location.
    */
-  // TODO(lint-intent): 'locationName' is an unused parameter, which suggests a planned input for this flow.
-  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
   static generateFence(locationId: string, _locationName: string): Fence {
     const acceptedCategories = this.getRandomCategories();
     // Cut is between 20% and 50%
@@ -153,8 +146,7 @@ export class FenceSystem {
       return { updatedPlayer: player, updatedFence: fence, result };
     }
 
-    // Clone objects to avoid mutation
-    // TODO(2026-01-03 pass 4 Codex-CLI): PlayerCharacter doesn't own inventory; keep an ad-hoc inventory bridge until state flow is refactored.
+    // Clone objects to avoid mutation while adapting to player payloads that may be missing gold/inventory.
     const updatedPlayer: PlayerCharacter & { gold: number; inventory: Item[] } = {
       ...player,
       gold: (player as PlayerCharacter & { gold?: number }).gold ?? 0,
@@ -178,7 +170,7 @@ export class FenceSystem {
 
   private static calculateSocialBonus(player: PlayerCharacter): number {
     // Simple bonus: +2% per +1 CHA mod, max +20%
-    // TODO(2026-01-03 pass 4 Codex-CLI): fallback charisma until player stats are guaranteed.
+    // Fallback to default charisma for legacy player payloads that omit stats.
     const charisma = player.stats?.charisma ?? 10;
     const mod = Math.floor((charisma - 10) / 2);
     const bonus = Math.max(0, mod * 0.02);

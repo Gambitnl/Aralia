@@ -180,14 +180,13 @@ export function logReducer(state: GameState, action: AppAction): Partial<GameSta
       // Fill in a complete discovery entry even when older callers provide
       // partial data. The new entry starts unread because it represents fresh
       // information for the player.
-      const newEntryData: DiscoveryEntry = {
-        ...payload,
-        id: payload.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        timestamp: Date.now(),
-        type: payload.type || DiscoveryType.MISC_EVENT,
-        // TODO(2026-01-03 pass 4 Codex-CLI): placeholder gameTime/source/title/content/flags defaults to satisfy DiscoveryEntry; replace when caller guarantees full shape.
-        gameTime: payload.gameTime || new Date().toISOString(),
-        title: payload.title || 'Discovery',
+        const newEntryData: DiscoveryEntry = {
+          ...payload,
+          id: payload.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          timestamp: Date.now(),
+          type: payload.type || DiscoveryType.MISC_EVENT,
+          gameTime: payload.gameTime || new Date().toISOString(),
+          title: payload.title || 'Discovery',
         content: payload.content || '',
         source: payload.source || { type: 'SYSTEM' },
         flags: payload.flags || [],

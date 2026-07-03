@@ -19,10 +19,7 @@
  * Defines the state structure, initial state, actions, and the root reducer for the application.
  * The root reducer orchestrates calls to smaller "slice" reducers for better modularity.
  */
-// TODO(lint-intent): 'Item' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { GameState, GamePhase, PlayerCharacter, Item as _Item, MapData as _MapData, TempPartyMember as _TempPartyMember, StartGameSuccessPayload as _StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus as _QuestStatus, UnderdarkState, Companion, CompanionReactionRule, Relationship } from '../types';
+import { GameState, GamePhase, PlayerCharacter, SuspicionLevel, KnownFact, UnderdarkState, Companion, CompanionReactionRule, Relationship } from '../types';
 import { CompanionSoul } from '../types/companion';
 import type { DivineFavor, NavalState } from '../types';
 import { AppAction } from './actionTypes';
@@ -40,14 +37,12 @@ import type { PlayerCell } from '../types/state';
 import { getGameDay, inGameTimestamp } from '../utils/core';
 import * as SaveLoadService from '../services/saveLoadService';
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
-// TODO(lint-intent): 'createPlayerCharacterFromTemp' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { applyXpAndHandleLevelUps, canLevelUp, createPlayerCharacterFromTemp as _createPlayerCharacterFromTemp } from '../utils/characterUtils';
+import { applyXpAndHandleLevelUps, canLevelUp } from '../utils/characterUtils';
 import { logger } from '../utils/logger';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
 import { createEmptyHistory } from '../utils/historyUtils';
 import { generateId } from '../utils/core/idGenerator';
+import { MOCK_SHIP_SLOOP } from '../data/dev/mockShips';
 
 // Import slice reducers
 import { uiReducer } from './reducers/uiReducer';
@@ -145,9 +140,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return { ...state, worldSeed: action.payload, naval: { ...state.naval, knownPorts: [] } };
         }
         case 'SET_GAME_PHASE': {
-            // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
-            // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
-            // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
             let additionalUpdates: Partial<GameState> = {
                 loadingMessage: null,
                 previousPhase: state.phase !== action.payload ? state.phase : state.previousPhase, // Track previous phase
@@ -233,7 +225,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                         rankId: 'outsider',
                         favorsOwed: 0,
                         renown: 0,
-                        // TODO(2026-01-03 pass 4 Codex-CLI): history stubbed to satisfy PlayerFactionStanding; populate with real events when factions log changes.
                         history: [],
                     };
                 }
@@ -431,7 +422,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                         rankId: 'outsider',
                         favorsOwed: 0,
                         renown: 0,
-                        // TODO(2026-01-03 pass 4 Codex-CLI): history stubbed to satisfy PlayerFactionStanding; populate with real events when factions log changes.
                         history: [],
                     };
                 }
@@ -465,43 +455,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 factions: allFactions,
                 playerFactionStandings: factionStandings,
                 dynamicLocations: {},
-                // Grant a mock ship for dev testing
-                // TODO: Refactor to usage of MOCK_SHIP_SLOOP from src/data/dev/mockShips.ts
-                // Duplicate mock data definition. Should use the recently created centralized mock object to ensure consistency between Dev Mode auto-injection and "Dummy Game" start.
                 naval: {
-                    playerShips: [{
-                        id: 'mock_ship_1',
-                        name: 'The Rusty Tub',
-                        type: 'Sloop',
-                        size: 'Small',
-                        description: 'A weathered but reliable sloop.',
-                        stats: {
-                            hullPoints: 100,
-                            maxHullPoints: 100,
-                            speed: 40,
-                            maneuverability: 60,
-                            armorClass: 12,
-                            cargoCapacity: 50,
-                            crewMin: 2,
-                            crewMax: 10
-                        },
-                        cargo: {
-                            items: [],
-                            totalWeight: 0,
-                            capacityUsed: 0,
-                            supplies: { food: 10, water: 10 }
-                        },
-                        crew: {
-                            members: [],
-                            averageMorale: 80,
-                            unrest: 0,
-                            quality: 'Average'
-                        },
-                        modifications: [],
-                        weapons: [],
-                        flags: {}
-                    }],
-                    activeShipId: 'mock_ship_1',
+                    playerShips: [MOCK_SHIP_SLOOP],
+                    activeShipId: MOCK_SHIP_SLOOP.id,
                     currentVoyage: null,
                     knownPorts: []
                 }
@@ -597,9 +553,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 lastRestDay: loadedState.shortRestTracker?.lastRestDay ?? getGameDay(gameTimeFromLoad),
                 lastRestEndedAtMs: loadedState.shortRestTracker?.lastRestEndedAtMs ?? null,
             };
-            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
             const partyFromLoad = (loadedState.party && loadedState.party.length > 0)
                 ? loadedState.party
                 : loadedState.playerCharacter
@@ -1034,3 +987,4 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         }
     }
 }
+

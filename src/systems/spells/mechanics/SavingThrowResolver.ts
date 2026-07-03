@@ -115,9 +115,6 @@ export class SavingThrowResolver {
       case 'Charisma':
         return character.stats.charisma ?? 10
       default: {
-        // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
-        // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
-        // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
         const exhaustive: never = saveType
         throw new Error(`Unknown save type: ${exhaustive}`)
       }

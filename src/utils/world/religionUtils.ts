@@ -24,10 +24,7 @@ import {
     FavorRank
 } from '../../types/religion';
 import { DEITIES } from '../../data/deities';
-// TODO(lint-intent): 'BLESSING_EFFECTS' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { BLESSING_EFFECTS as _BLESSING_EFFECTS, getBlessingEffect, getBlessingDefinition, BlessingDefinition } from '../../data/religion/blessings';
+import { getBlessingEffect, getBlessingDefinition, BlessingDefinition } from '../../data/religion/blessings';
 import { StatusEffect } from '../../types/combat';
 
 /**
@@ -163,9 +160,6 @@ export const canAffordService = (
  */
 export const getAvailableServices = (
     temple: Temple,
-    // TODO(lint-intent): 'currentFavor' is an unused parameter, which suggests a planned input for this flow.
-    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
     _currentFavor: number
 ): TempleService[] => {
     // Filter services that are objects (not IDs)

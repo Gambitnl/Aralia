@@ -20,10 +20,7 @@
  */
 
 import { Spell, SpellSchool } from '../../types/spells';
-// TODO(lint-intent): 'SpellIconSpec' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { SpellIconSpec as _SpellIconSpec, VisualAsset } from '../../types/visuals';
+import { VisualAsset } from '../../types/visuals';
 
 /**
  * Standard color mappings for D&D 5e Spell Schools.
@@ -61,9 +58,6 @@ export const SCHOOL_ICONS: Record<SpellSchool, string> = {
  * @returns A VisualAsset object ready for UI rendering.
  */
 export function getSpellVisual(spell: Spell): VisualAsset {
-  // TODO(Materializer): Implement AI asset generation pipeline here.
-  // When a spell lacks a specific iconPath, we could query a generated asset index.
-
   const schoolColor = SCHOOL_COLORS[spell.school] || '#9ca3af'; // Default gray
   const schoolIcon = SCHOOL_ICONS[spell.school] || '✨';
 

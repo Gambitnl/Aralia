@@ -11,9 +11,6 @@ export interface SemanticIssue {
 /**
  * Framework for auditing logical/semantic gaps in Spell data that schema validation misses.
  * Specifically checks for "Implicit Rules" like Enchantment immunities.
- *
- * TODO(Auditor): Integrate this validator into the main build pipeline or the `validate-data` script
- * to prevent regression of these semantic rules.
  */
 export class LegacySpellValidator {
 
@@ -56,10 +53,9 @@ export class LegacySpellValidator {
       const validTargets = targeting.validTargets || [];
       const filter = targeting.filter;
 
-      // TODO: Fix TS2345 - 'humanoids' is not a valid member of TargetFilter. 
-      // This check handles legacy data that might still use it.
-      const explicitlyHumanoid = (validTargets as string[]).includes('humanoids') ||
-                                 filter?.creatureTypes?.includes('Humanoid');
+      const explicitlyHumanoid =
+        validTargets.some(target => target.toLowerCase() === 'humanoids') ||
+        filter?.creatureTypes?.includes('Humanoid');
 
       if (!explicitlyHumanoid) {
          issues.push({

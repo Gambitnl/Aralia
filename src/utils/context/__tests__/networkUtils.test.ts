@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { withRetry, fetchWithTimeout } from '../networkUtils';
 
 describe('fetchWithTimeout', () => {
@@ -13,8 +14,8 @@ describe('fetchWithTimeout', () => {
   });
 
   it('should return data on success', async () => {
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    (global.fetch as any).mockResolvedValue({
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({ data: 'test' }),
     });

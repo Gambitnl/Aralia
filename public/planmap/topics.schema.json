@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Aralia plan-map topics",
+  "type": "object",
+  "required": ["campaigns", "topics"],
+  "properties": {
+    "_readme": { "type": "string" },
+    "repoRoot": { "type": "string" },
+    "campaigns": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["label", "color"],
+        "properties": {
+          "label": { "type": "string" },
+          "color": { "enum": ["purple", "teal", "gray", "coral", "pink"] }
+        }
+      }
+    },
+    "topics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "campaign", "status"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+          "title": { "type": "string", "minLength": 1 },
+          "sub": { "type": "string" },
+          "campaign": { "type": "string" },
+          "status": { "enum": ["parked", "specced", "active", "done", "superseded"] },
+          "killed": {
+            "description": "One-line reason a superseded topic died — the why-we-didn't is worth keeping. Shown in the Graveyard strip.",
+            "type": "string"
+          },
+          "focus": {
+            "description": "At most ONE topic may carry focus: true — the thing actually being touched now (capacity-of-one shop). Validator warns on duplicates.",
+            "type": "boolean"
+          },
+          "link": { "type": "string" },
+          "deps": {
+            "description": "PRODUCT ordering (this topic requires that one), kind hard|chosen with a why. Distinct from Agora plan 'after' (execution scheduling within one wave) — never unify or derive one from the other. See tools/agora/PLANNING-STACK.md §4.",
+            "type": "array",
+            "items": {
+              "oneOf": [
+                { "type": "string" },
+                {
+                  "type": "object",
+                  "required": ["id"],
+                  "properties": {
+                    "id": { "type": "string" },
+                    "kind": { "enum": ["hard", "chosen"] },
+                    "why": { "type": "string" },
+                    "feature": {
+                      "description": "Optional edge-to-member: the slug (base slug() of the feature's title) of a specific feature inside the target topic. Present = the dependant requires that one feature, not the whole topic. Validator checks it resolves to a real feature of the dep target.",
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["title", "status"],
+              "properties": {
+                "title": { "type": "string", "minLength": 1 },
+                "status": { "enum": ["parked", "specced", "active", "done", "superseded"] },
+                "killed": { "type": "string" },
+                "link": { "type": "string" },
+                "open": {
+                  "description": "Mirror of the linked subspec's '## Open' bullet count (settledness axis). Counted from the doc, never guessed; recompute when the doc changes.",
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "spike": {
+                  "description": "true = research that could invalidate the approach (measure-don't-assume, unsolved design question) — rendered dashed with ⚠ so it doesn't masquerade as a build step.",
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

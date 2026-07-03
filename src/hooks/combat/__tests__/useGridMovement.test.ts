@@ -7,7 +7,6 @@ import { vi, describe, it, expect } from 'vitest';
 
 // Mock pathfinding
 vi.mock('../../../utils/pathfinding', () => ({
-  // TODO(lint-intent): 'mapData' is unused in this test; use it in the assertion path or remove it.
   findPath: vi.fn((start, end, _mapData) => {
     // Simple mock path: just start and end
     return [start, end];
@@ -181,8 +180,7 @@ describe('useGridMovement', () => {
   });
 
   it('should clear state (only active path, as validMoves is derived)', () => {
-    // TODO(lint-intent): 'rerender' is unused in this test; use it in the assertion path or remove it.
-    const { result, rerender: _rerender } = renderHook((props) => useGridMovement(props), {
+    const { result } = renderHook((props) => useGridMovement(props), {
         initialProps: {
             mapData: mockMapData,
             characterPositions: mockCharacterPositions,

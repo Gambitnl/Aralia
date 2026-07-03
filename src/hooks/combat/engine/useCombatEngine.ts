@@ -27,21 +27,13 @@ import {
     CombatState,
     BattleMapData,
     ReactiveTrigger,
-    Position,
-    // TODO(lint-intent): 'Animation' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-    Animation as _Animation
+    Position
 } from '../../../types/combat';
 import { MovementEffect } from '../../../types/spells';
 import {
     ActiveSpellZone,
     ScheduledSpellEffect,
     MovementTriggerDebuff,
-    // TODO(lint-intent): 'processMovementTriggers' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-    processMovementTriggers as _processMovementTriggers,
     convertSpellEffectToProcessed,
     resetZoneTurnTracking
 } from '../../../systems/spells/effects';
@@ -904,7 +896,7 @@ export const useCombatEngine = ({
 
         updatedCharacter = processTileEffects(updatedCharacter, updatedCharacter.position);
 
-        // TODO: `AreaEffectTracker` is instantiated fresh for each movement action (`new AreaEffectTracker(spellZones)`).
+        // TODO #269: `AreaEffectTracker` is instantiated fresh for each movement action (`new AreaEffectTracker(spellZones)`).
         // This is inefficient and loses any stateful tracking (though current impl doesn't hold state beyond zones).
         // If we add stateful behavior (e.g., caching position lookups), consider:
         // 1. Lifting `AreaEffectTracker` to a ref or context-level singleton.
@@ -946,13 +938,11 @@ export const useCombatEngine = ({
             }
             switch (effect.effect.type) {
                 case 'damage_per_turn': {
-                    // TODO(lint-intent): Consider centralizing per-turn damage tick logic for status effects.
                     const dmg = effect.effect.value || 0;
                     updatedCharacter = handleDamage(updatedCharacter, dmg, effect.name, 'necrotic');
                     break;
                 }
                 case 'heal_per_turn': {
-                    // TODO(lint-intent): Consider centralizing per-turn healing tick logic for status effects.
                     const heal = effect.effect.value || 0;
                     const updatedTarget = applyHealingAndRestore(updatedCharacter, heal);
                     updatedCharacter = {

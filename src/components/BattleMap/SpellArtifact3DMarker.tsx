@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/07/2026, 23:48:32
+ * Last Sync: 02/07/2026, 05:31:50
  * Dependents: components/BattleMap/BattleMap3D.tsx
  * Imports: 1 files
  *
@@ -26,25 +26,33 @@ const ARTIFACT_COLOR_BY_FAMILY: Record<SpellMapArtifactMarker['family'], string>
   'animated-object': '#f97316',
   structure: '#a78bfa',
   space: '#60a5fa',
-  emanation: '#fb7185'
+  emanation: '#fb7185',
+  'object-impact': '#f97316',
+  'object-repair': '#22c55e',
+  'object-access': '#eab308',
+  'fire-effect': '#ef4444',
+  transformation: '#38bdf8'
 };
 
 interface SpellArtifact3DMarkerProps {
   marker: SpellMapArtifactMarker;
   groundY: number;
+  offsetIndex?: number;
 }
 
 /**
  * Small 3D handle for non-creature spell artifacts. BattleMap3D owns placement;
  * this component only renders the readable marker, optional radius, and label.
  */
-export const SpellArtifact3DMarker: React.FC<SpellArtifact3DMarkerProps> = ({ marker, groundY }) => {
+export const SpellArtifact3DMarker: React.FC<SpellArtifact3DMarkerProps> = ({ marker, groundY, offsetIndex = 0 }) => {
   const color = ARTIFACT_COLOR_BY_FAMILY[marker.family];
   const radiusTiles = marker.radiusFeet ? Math.max(0.5, marker.radiusFeet / 5) : 0;
+  const offsetX = ((offsetIndex % 3) - 1) * 0.72;
+  const offsetZ = (Math.floor(offsetIndex / 3) % 2) * 0.34;
   const position: [number, number, number] = [
-    marker.position.x + 0.5,
+    marker.position.x + 0.5 + offsetX,
     groundY + 0.08,
-    marker.position.y + 0.5
+    marker.position.y + 0.5 + offsetZ
   ];
 
   return (

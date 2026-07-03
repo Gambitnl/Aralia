@@ -5,8 +5,7 @@ import { GameState } from '../../../types';
 import { AppAction } from '../../actionTypes';
 
 describe('npcReducer', () => {
-    const initialState: Partial<GameState> = {
-        // TODO(2026-01-03 pass 4 Codex-CLI): Casted npcMemory stub to satisfy NpcMemory shape until interaction history is fully typed.
+const initialState: Partial<GameState> = {
         npcMemory: {
             'npc-1': {
                 interactions: [],

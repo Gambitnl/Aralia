@@ -33,7 +33,7 @@ import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, Temp
 import type { Puzzle } from '../systems/puzzles/types.js';
 import type { RecruitPayload } from '../systems/party/recruitTypes.js';
 import { RitualState } from '../types/rituals.js';
-// TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
+// TODO #564(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
 import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload, ApplyLeveragePayload } from './payloads/identityPayloads.js';
 import { DialogueSession } from '../types/dialogue.js';
@@ -306,10 +306,7 @@ export type AppAction =
   // system is driving time can hand off its native unit without local guesswork.
   | { type: 'ADVANCE_RITUAL'; payload: { seconds?: number; minutes?: number; rounds?: number } }
   | { type: 'INTERRUPT_RITUAL'; payload: { event: RitualEvent } }
-  // TODO(lint-intent): The any on this value hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-  | { type: 'COMPLETE_RITUAL'; payload: { result?: unknown } }
+  | { type: 'COMPLETE_RITUAL'; payload?: { result?: { [key: string]: unknown } } }
   // Naval Actions
   | { type: 'NAVAL_INITIALIZE_FLEET' }
   | { type: 'NAVAL_PURCHASE_STARTER_SHIP'; payload?: { name?: string; type?: ShipType; cost?: number } }
@@ -402,3 +399,5 @@ export type AppAction =
   | { type: 'CLEAR_ENTRY_3D_ANCHOR' }
   | { type: 'SET_WORLD_VIEW_MODE'; payload: WorldViewMode }
   | { type: 'SET_MAP_SURFACE'; payload: MapSurface };
+
+

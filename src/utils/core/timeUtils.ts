@@ -153,7 +153,7 @@ export const getTimeOfDay = (date: Date): TimeOfDay => {
   return TimeOfDay.Night;
 };
 
-// TODO(FEATURES): Extend season/time modifiers beyond travel cost (encounters, visuals, resource yields) and surface them in UI (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+// TODO #1335(FEATURES): Extend season/time modifiers beyond travel cost (encounters, visuals, resource yields) and surface them in UI (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 export const getTimeModifiers = (date: Date): TimeModifiers => {
   // RALPH: Environmental Difficulty Engine.
   // Combines Season + Time of Day into a single cost multiplier.

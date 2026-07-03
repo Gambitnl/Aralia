@@ -25,6 +25,7 @@ import { z } from 'zod';
 // resolve correctly without suppression. Removing the directives 
 // restores full type checking for these imports within the script.
 import { SpellValidator } from '../src/systems/spells/validation/spellValidator';
+import { LegacySpellValidator } from '../src/systems/spells/validation/LegacySpellValidator';
 import type { Race } from '../src/types';
 import { checkFile, getCharsetTargetFiles } from './check-non-ascii.js';
 import { loadActiveRacesForValidation } from './load-race-data.js';
@@ -68,7 +69,21 @@ const validateSpells = (): void => {
     try {
       const spellContent = fs.readFileSync(spellFilePath, 'utf-8');
       const spellData = JSON.parse(spellContent);
-      SpellValidator.parse(spellData);
+      const parsedSpell = SpellValidator.parse(spellData);
+      const legacyIssues = LegacySpellValidator.validateSpell(parsedSpell);
+      const legacyErrors = legacyIssues.filter(issue => issue.severity === 'error');
+      const legacyWarnings = legacyIssues.filter(issue => issue.severity === 'warning');
+
+      if (legacyErrors.length > 0) {
+        legacyErrors.forEach(issue => console.error(`[Data Validation] Legacy semantic issue in ${id}: ${issue.message}`));
+        errorCount++;
+      }
+
+      if (legacyWarnings.length > 0) {
+        legacyWarnings.forEach(issue =>
+          console.warn(`[Data Validation] Legacy semantic warning in ${id}: ${issue.message}`)
+        );
+      }
     } catch (error: unknown) {
       console.error(`[Data Validation] Validation failed for spell ${id}:`);
       if (error instanceof z.ZodError) {

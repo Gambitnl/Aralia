@@ -24,38 +24,41 @@ const createTile = (id: string, x: number, y: number) => ({
 });
 
 describe('buildTileVisibilityOverlays', () => {
-  it('builds 3D masks for hidden, darkness, and dim tiles while leaving bright visible tiles clear', () => {
+  it('builds 3D masks for hidden, magical darkness, darkness, and dim tiles while leaving bright visible tiles clear', () => {
     const mapData: BattleMapData = {
-      dimensions: { width: 4, height: 1 },
+      dimensions: { width: 5, height: 1 },
       tiles: new Map([
         ['0-0', createTile('0-0', 0, 0)],
         ['1-0', createTile('1-0', 1, 0)],
         ['2-0', createTile('2-0', 2, 0)],
-        ['3-0', createTile('3-0', 3, 0)]
+        ['3-0', createTile('3-0', 3, 0)],
+        ['4-0', createTile('4-0', 4, 0)]
       ]),
       theme: 'dungeon',
       seed: 1
-    // TODO(lint-intent): Replace this fixture cast once map tile factories expose the full BattleMapData shape.
     } as unknown as BattleMapData;
     const lightLevels = new Map<string, LightLevel>([
       ['0-0', 'bright'],
       ['1-0', 'dim'],
       ['2-0', 'darkness'],
-      ['3-0', 'bright']
+      ['3-0', 'bright'],
+      ['4-0', 'magical_darkness']
     ]);
 
     const overlays = buildTileVisibilityOverlays(
       mapData,
       lightLevels,
-      new Set(['0-0', '1-0', '2-0'])
+      new Set(['0-0', '1-0', '2-0', '4-0'])
     );
 
     // Bright visible tiles stay clear. Dim and darkness get progressively
-    // stronger masks, and hidden tiles get the strongest fog-of-war mask.
+    // stronger masks, magical darkness remains distinct, and hidden tiles get
+    // the strongest fog-of-war mask.
     expect(overlays).toEqual([
       { id: '1-0', position: { x: 1, y: 0 }, color: '#0f172a', opacity: 0.24 },
       { id: '2-0', position: { x: 2, y: 0 }, color: '#020617', opacity: 0.42 },
-      { id: '3-0', position: { x: 3, y: 0 }, color: '#020617', opacity: 0.78 }
+      { id: '3-0', position: { x: 3, y: 0 }, color: '#020617', opacity: 0.78 },
+      { id: '4-0', position: { x: 4, y: 0 }, color: '#020617', opacity: 0.66 }
     ]);
   });
 });

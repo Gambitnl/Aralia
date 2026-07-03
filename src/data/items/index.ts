@@ -95,7 +95,7 @@ export const ITEMS: Record<string, Item> = {
 
   // --- Light Sources ---
   'torch': { id: 'torch', name: 'Torch', icon: '🔥', description: 'A wooden torch wrapped in cloth and pitch. Burns for 1 hour, providing bright light for 20 feet and dim light for another 20 feet.', type: 'consumable', weight: 1, cost: '1 CP' },
-  // TODO(preserve-lint): confirm whether lanterns should be consumable (fuel) or a dedicated light_source type.
+  // TODO #210(preserve-lint): confirm whether lanterns should be consumable (fuel) or a dedicated light_source type.
   'hooded_lantern': { id: 'hooded_lantern', name: 'Hooded Lantern', icon: '🏮', description: 'A metal lantern with shutters. Burns oil for 6 hours. Can be shuttered to reduce light.', type: 'light_source', weight: 2, cost: '5 GP' },
   'oil_flask': { id: 'oil_flask', name: 'Oil (flask)', icon: '🍶', description: 'A flask of oil. Can be used to fuel a lantern or as a weapon.', type: 'consumable', weight: 1, cost: '1 SP' },
 

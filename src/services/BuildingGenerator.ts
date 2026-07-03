@@ -135,9 +135,6 @@ export class BuildingGenerator {
             else if (distToCenter > 20 && this.rng.chance(0.15)) type = BuildingType.WINDMILL; // Outskirts
             else if (distToCenter < 12 && this.rng.chance(0.1)) type = BuildingType.JEWELER;
             else if (distToCenter < 15) {
-                // TODO(lint-intent): This no-dupe-else-if warning suggests unfinished intent in this block.
-                // TODO(lint-intent): Keep a single distance gate and sequence the random roll choices deliberately.
-                // TODO(lint-intent): If the probabilities should be weighted, extract a helper to make that intent explicit.
                 const roll = this.rng.next();
                 if (roll < 0.1) type = BuildingType.TAILOR;
                 else if (roll < 0.25) type = BuildingType.BAKERY;
@@ -396,8 +393,6 @@ export class BuildingGenerator {
         // Shuffle spots
         for (let i = spots.length - 1; i > 0; i--) {
             const j = Math.floor(this.rng.next() * (i + 1));
-            // TODO(lint-intent): If shuffle order needs to be deterministic across saves, funnel through a single RNG helper.
-            // TODO(lint-intent): If certain spots should be prioritized (e.g. avoid blocking paths), apply weights here.
             [spots[i], spots[j]] = [spots[j], spots[i]];
         }
 

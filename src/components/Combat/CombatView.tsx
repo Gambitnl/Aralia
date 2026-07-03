@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 06:46:56
+ * Last Sync: 02/07/2026, 05:57:31
  * Dependents: components/Combat/index.ts
  * Imports: 36 files
  *
@@ -32,7 +32,7 @@ import React, { useState, useEffect, useCallback, useContext, useRef } from 'rea
 import BattleMap from '../BattleMap/BattleMap';
 import BattleMap3D from '../BattleMap/BattleMap3D';
 import { PlayerCharacter, Item } from '../../types';
-import { Ability, ActiveAnimatedObject, ActiveExtradimensionalSpace, ActiveSpellEmanation, ActiveSpellForce, ActiveSpellGuardian, ActiveSpellHelper, ActiveSpellStructure, BattleMapData, CombatCharacter, CombatLogEntry, PocketedSummon } from '../../types/combat';
+import { Ability, ActiveAnimatedObject, ActiveExtradimensionalSpace, ActiveFireEffect, ActiveSpellEmanation, ActiveSpellForce, ActiveSpellGuardian, ActiveSpellHelper, ActiveSpellStructure, ActiveTruePolymorphTransformation, BattleMapData, CombatCharacter, CombatLogEntry, PocketedSummon, SpellObjectImpact, SpellObjectRepair, SpellObjectAccessChange } from '../../types/combat';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useCombatLog } from '../../hooks/combat/useCombatLog';
@@ -49,6 +49,7 @@ import ActionEconomyBar from '../BattleMap/ActionEconomyBar';
 import PartyDisplay from '../BattleMap/PartyDisplay';
 import CharacterSheetModal from '../CharacterSheet/CharacterSheetModal';
 import { CombatCharacterInspector } from '../BattleMap/CombatCharacterInspector';
+import MaplessTerrainSummary from './MaplessTerrainSummary';
 import { canUseDevTools } from '../../utils/permissions';
 import { logger } from '../../utils/logger';
 import { createPlayerCombatCharacter } from '../../utils/combatUtils';
@@ -158,6 +159,11 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   const [activeSpellStructures, setActiveSpellStructures] = useState<ActiveSpellStructure[]>([]);
   const [activeExtradimensionalSpaces, setActiveExtradimensionalSpaces] = useState<ActiveExtradimensionalSpace[]>([]);
   const [activeSpellEmanations, setActiveSpellEmanations] = useState<ActiveSpellEmanation[]>([]);
+  const [spellObjectImpacts, setSpellObjectImpacts] = useState<SpellObjectImpact[]>([]);
+  const [spellObjectRepairs, setSpellObjectRepairs] = useState<SpellObjectRepair[]>([]);
+  const [spellObjectAccessChanges, setSpellObjectAccessChanges] = useState<SpellObjectAccessChange[]>([]);
+  const [activeFireEffects, setActiveFireEffects] = useState<ActiveFireEffect[]>([]);
+  const [activeTruePolymorphTransformations, setActiveTruePolymorphTransformations] = useState<ActiveTruePolymorphTransformation[]>([]);
   const spellMapArtifacts = React.useMemo(() => ({
     helpers: activeSpellHelpers,
     forces: activeSpellForces,
@@ -165,7 +171,12 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     animatedObjects: activeAnimatedObjects,
     structures: activeSpellStructures,
     extradimensionalSpaces: activeExtradimensionalSpaces,
-    emanations: activeSpellEmanations
+    emanations: activeSpellEmanations,
+    objectImpacts: spellObjectImpacts,
+    objectRepairs: spellObjectRepairs,
+    objectAccessChanges: spellObjectAccessChanges,
+    fireEffects: activeFireEffects,
+    truePolymorphTransformations: activeTruePolymorphTransformations
   }), [
     activeSpellHelpers,
     activeSpellForces,
@@ -173,7 +184,12 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     activeAnimatedObjects,
     activeSpellStructures,
     activeExtradimensionalSpaces,
-    activeSpellEmanations
+    activeSpellEmanations,
+    spellObjectImpacts,
+    spellObjectRepairs,
+    spellObjectAccessChanges,
+    activeFireEffects,
+    activeTruePolymorphTransformations
   ]);
 
   // [2026-02-10] Ref for characters to avoid dependency churn in handleLogEntry.
@@ -184,9 +200,6 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // Using a ref lets handleLogEntry always read the latest characters without being a dependency.
   const charactersRef = useRef(characters);
   charactersRef.current = characters;
-  // TODO(lint-intent): 'selectedCharacterId' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
   const [_selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [inspectedCharId, setInspectedCharId] = useState<string | null>(null);
   const [isBattleMapExpanded, setIsBattleMapExpanded] = useState(false);
@@ -275,7 +288,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     onRoundElapsed,
     autoCharacters, // Pass auto characters to turn manager if needed, but easier to modify turnManager props to accept "isAuto" check
     onMapUpdate: setMapData,
-    // TODO: Feature: Bind difficulty to user settings or campaign state instead of hardcoding 'normal'.
+    // TODO #57: Feature: Bind difficulty to user settings or campaign state instead of hardcoding 'normal'.
     difficulty: 'normal',
     requestReaction: useCallback((
       attackerId: string,
@@ -365,6 +378,16 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     onActiveExtradimensionalSpacesUpdate: setActiveExtradimensionalSpaces,
     activeSpellEmanations,
     onActiveSpellEmanationsUpdate: setActiveSpellEmanations,
+    spellObjectImpacts,
+    onSpellObjectImpactsUpdate: setSpellObjectImpacts,
+    spellObjectRepairs,
+    onSpellObjectRepairsUpdate: setSpellObjectRepairs,
+    spellObjectAccessChanges,
+    onSpellObjectAccessChangesUpdate: setSpellObjectAccessChanges,
+    activeFireEffects,
+    onActiveFireEffectsUpdate: setActiveFireEffects,
+    activeTruePolymorphTransformations,
+    onActiveTruePolymorphTransformationsUpdate: setActiveTruePolymorphTransformations,
     onMapUpdate: setMapData,
     onAddSpellZone: turnManager.addSpellZone,
     spellZones: turnManager.spellZones,
@@ -613,7 +636,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
       )}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold text-red-500 font-cinzel">Combat Encounter</h1>
-        {/* TODO: Wrap debug buttons with process.env.NODE_ENV check to hide in production builds (e.g., {import.meta.env.DEV && <button>...}) */}
+        {/* TODO #58: Wrap debug buttons with process.env.NODE_ENV check to hide in production builds (e.g., {import.meta.env.DEV && <button>...}) */}
         <button
           onClick={() => forceOutcome('victory')} // Debug escape hatch
           className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg shadow text-sm"
@@ -709,7 +732,10 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                   />
                 )
               ) : (
-                <div className="text-gray-400">Preparing battlefield...</div>
+                <div className="flex w-full flex-col items-center gap-3 px-4">
+                  <MaplessTerrainSummary spellZones={turnManager.spellZones} />
+                  <div className="text-gray-400">Preparing battlefield...</div>
+                </div>
               )}
             </ErrorBoundary>
           </div>

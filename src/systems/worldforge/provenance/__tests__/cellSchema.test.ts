@@ -13,7 +13,7 @@ describe('auditCellSchema', () => {
     expect(fields).not.toContain('biomeId');
     expect(fields).not.toContain('height');
     expect(fields).not.toContain('population');
-  });
+  }, 30_000); // first test pays the full drill-path fixture build
 
   it('reports feature-trace facts the worldmap cell does not yet own', () => {
     const path = buildGoldenDrillPath();

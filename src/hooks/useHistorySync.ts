@@ -83,10 +83,6 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
     }
 
     // State -> URL Sync (User Action)
-    // TODO(lint-intent): 'stateSlug' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-    const _stateSlug = getPhaseSlug(gameState.phase);
     const shouldUpdatePhase = getPhaseFromSlug(params.get('phase')) !== gameState.phase;
 
     syncParams(params, gameState.phase);
@@ -99,7 +95,6 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
     if (currentSearch !== params.toString()) {
       window.history[method]({ phase: gameState.phase }, '', `${window.location.pathname}?${params.toString()}`);
     }
-    // TODO(lint-intent): If history sync needs to ignore some transitions, add an explicit guard for those phases.
   }, [
     dispatch,
     gameState.phase,
@@ -120,6 +115,5 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-    // TODO(lint-intent): If popstate should ignore deep links in some phases, add a guard for those phases.
   }, [dispatch, gameState.party.length, safeNavigate]);
 };

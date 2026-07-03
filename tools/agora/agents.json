@@ -18,6 +18,13 @@
         "command": "codex",
         "args": ["exec", "--dangerously-bypass-approvals-and-sandbox", "--skip-git-repo-check"]
       },
+      "quotaProbe": {
+        "command": "codex",
+        "args": ["exec", "--dangerously-bypass-approvals-and-sandbox", "--skip-git-repo-check", "Reply with exactly: PROBE_OK"],
+        "dryPattern": "usage limit|quota",
+        "dryReason": "usage limit / quota exhausted (resets ~2am)",
+        "timeoutMs": 60000
+      },
       "constraints": [
         { "kind": "quota", "note": "usage quota resets ~2am — probe before dispatch" },
         { "kind": "policy", "note": "reserved for orchestrator/supervisor role — do NOT dispatch as a worker lane" }
@@ -36,7 +43,7 @@
       "roles": ["worker"],
       "status": "trial",
       "dispatch": { "type": "cli", "command": null },
-      "notes": "Preferred Google-family lane per policy, but live auth + quota verification and orchestrate.mjs launch wiring are still pending."
+      "notes": "Preferred Google-family lane per policy. Probe 2026-07-02: `agy -p \"...\"` produced NO output in 90s — auth/quota unverified; stays unwired until a human verifies login."
     },
     "cursor": {
       "label": "Cursor CLI",
@@ -52,11 +59,12 @@
       "label": "Kilo CLI (@kilocode/cli)",
       "roles": ["worker"],
       "status": "ready",
-      "dispatch": { "type": "cli", "command": null },
+      "dispatch": { "type": "cli", "command": "kilo", "args": ["run", "-m", "kilo/kilo-auto/free"] },
+      "quotaProbe": { "command": "kilo", "args": ["--version"], "timeoutMs": 30000 },
       "constraints": [
         { "kind": "policy", "note": "free model kilo/kilo-auto/free ONLY — no paid/partner routes without operator approval" }
       ],
-      "notes": "trial-verified per onboarding contract, but no orchestrate.mjs launch spec yet — wire dispatch.command/args before first campaign use."
+      "notes": "VERIFIED 2026-07-02: `kilo run -m kilo/kilo-auto/free \"<prompt>\"` returned PROBE_OK (exit 0) on the free tier. First non-Claude worker lane."
     },
     "ollama": {
       "label": "Ollama local runtime",

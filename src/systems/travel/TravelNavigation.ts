@@ -111,5 +111,3 @@ export function checkNavigation(
     };
   }
 }
-
-// TODO(Navigator): Integrate checkNavigation into the main travel event loop in handleMovement.ts or TravelService to apply drift results.

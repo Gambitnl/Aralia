@@ -191,5 +191,3 @@ export function processRefiningBatch(crafter: Crafter, request: BatchRefineReque
     }
   };
 }
-
-// TODO(Architect): Integrate `processRefiningBatch` into the UI to allow "Craft All" functionality on the Refining station.

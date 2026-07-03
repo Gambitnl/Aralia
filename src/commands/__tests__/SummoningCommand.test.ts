@@ -31,7 +31,6 @@ vi.mock('@/constants', async (importOriginal) => {
 })
 
 vi.mock('@/data/monsters', () => ({
-    // TODO: keep the mock data aligned with the real monster registry when summon payloads expand.
     MONSTERS_DATA: {
         'goblin': {
             id: 'goblin',
@@ -49,11 +48,30 @@ describe('SummoningCommand', () => {
         dimensions?: { width: number; height: number };
         gridSize?: { cols: number; rows: number };
     };
-    // TODO(next-agent): Preserve behavior; replace these casts once battle/world map shapes are unified for summon bounds.
-    const toBattleMapData = (mapData?: SummoningMapData): BattleMapData | undefined =>
-        mapData ? (mapData as unknown as BattleMapData) : undefined;
-    const toWorldMapData = (mapData?: SummoningMapData): MapData | null =>
-        mapData ? (mapData as unknown as MapData) : null;
+    const toBattleMapData = (mapData?: SummoningMapData): BattleMapData | undefined => {
+        if (!mapData) return undefined;
+
+        const width = mapData.dimensions?.width ?? mapData.gridSize?.cols;
+        const height = mapData.dimensions?.height ?? mapData.gridSize?.rows;
+        if (!width || !height) return undefined;
+
+        return {
+            dimensions: { width, height },
+            tiles: new Map(),
+            targetableObjects: [],
+            theme: 'dungeon',
+            seed: 0
+        };
+    };
+
+    const toWorldMapData = (mapData?: SummoningMapData): MapData | null => {
+        if (!mapData?.gridSize) return null;
+
+        return {
+            gridSize: mapData.gridSize,
+            tiles: Array.from({ length: mapData.gridSize.rows }, () => [])
+        };
+    };
 
     const mockCaster: CombatCharacter = {
         id: 'caster-1',
@@ -83,7 +101,6 @@ describe('SummoningCommand', () => {
     const mockCasterAsPlayer = createMockPlayerCharacter({
         id: mockCaster.id,
         name: mockCaster.name,
-        // TODO: ensure summoned allies respect player-side permissions when we merge combat + narrative models.
     })
 
     const mockContext: CommandContext = {
@@ -338,6 +355,7 @@ describe('SummoningCommand', () => {
             targets: [],
             gameState: {
                 ...createMockGameState({ currentLocationId: 'arena' }),
+                mapData: toWorldMapData(mapData)
             }
         })
         const createMockState = (characters: CombatCharacter[] = [mockCaster], mapData?: SummoningMapData): CombatState => ({
@@ -358,6 +376,7 @@ describe('SummoningCommand', () => {
             combatLog: [],
             reactiveTriggers: [],
             activeLightSources: [],
+            mapData: toBattleMapData(mapData)
         })
 
         const mockEffect: SummoningEffect = {

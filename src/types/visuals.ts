@@ -6,10 +6,6 @@
  */
 
 import { SpellSchool, DamageType } from './spells.js';
-// TODO(lint-intent): 'Race' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Race as _Race } from './character.js';
 import { FactionType } from './factions.js';
 import { BattleMapTerrain, BattleMapDecoration } from './combat.js';
 
@@ -634,6 +630,3 @@ export function getDecorationVisual(decorationId: BattleMapDecoration): Decorati
   if (!decorationId) return DEFAULT_DECORATION_VISUAL;
   return DECORATION_VISUALS[decorationId] || DEFAULT_DECORATION_VISUAL;
 }
-
-// TODO(Materializer): Refactor `BattleMapTile` component to use `getTerrainVisual` and `getDecorationVisual` for consistent rendering across the app.
-// TODO(Illusionist): Implement a `SpellVisualRenderer` component that uses `SpellEffectVisualSpec` to render particles and animations.

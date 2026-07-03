@@ -99,6 +99,8 @@
  // @ts-ignore
  export * from './environment'; // Export WeatherState and related environment types
  // @ts-ignore
+ export * from './dungeon';
+// @ts-ignore
  export * from './journal'; // Export Journal system types
  
  export type { CombatCharacter, CharacterStats, Position, CombatState };

@@ -52,6 +52,7 @@ describe('BattleMapTile', () => {
   });
 
   it('calls onTileClick with the tile object when clicked', () => {
+    mockOnTileClick.mockClear();
     render(
       <BattleMapTile
         tile={mockTile}
@@ -70,6 +71,32 @@ describe('BattleMapTile', () => {
 
     expect(mockOnTileClick).toHaveBeenCalledTimes(1);
     expect(mockOnTileClick).toHaveBeenCalledWith(mockTile);
+  });
+
+  it('forwards otherwise illegal tile clicks while targeting so validation can explain rejection', () => {
+    mockOnTileClick.mockClear();
+    render(
+      <BattleMapTile
+        tile={mockTile}
+        isValidMove={false}
+        isInPath={false}
+        isTargetable={false}
+        isAoePreview={false}
+        isTeleportDestinationPreview={false}
+        targetingMode={true}
+        onTileClick={mockOnTileClick}
+      />
+    );
+
+    const tileElement = screen.getByRole('button', { name: 'Tile grass at 0, 0' });
+    fireEvent.click(tileElement);
+
+    // Invalid Misty Step destinations and other rejected spell targets are
+    // explained by the selection hook. The tile must therefore pass the click
+    // through while targeting, even when it is not highlighted as legal.
+    expect(mockOnTileClick).toHaveBeenCalledTimes(1);
+    expect(mockOnTileClick).toHaveBeenCalledWith(mockTile);
+    expect(tileElement).toHaveAttribute('aria-disabled', 'false');
   });
 
   it('shows overlay for valid move', () => {

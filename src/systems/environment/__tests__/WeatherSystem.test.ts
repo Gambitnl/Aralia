@@ -1,9 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
-// TODO(lint-intent): 'CLIMATES' is unused in this test; use it in the assertion path or remove it.
-import { updateWeather, getClimateForBiome, CLIMATES as _CLIMATES } from '../WeatherSystem';
-// TODO(lint-intent): 'Temperature' is unused in this test; use it in the assertion path or remove it.
-import { WeatherState, Temperature as _Temperature, VisibilityLevel as _VisibilityLevel } from '../../../types/environment';
+import { updateWeather, getClimateForBiome } from '../WeatherSystem';
+import { WeatherState } from '../../../types/environment';
 import { TimeOfDay } from '../../../utils/core';
 import { SeededRandom } from '../../../utils/random';
 

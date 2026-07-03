@@ -162,6 +162,53 @@ describe('MapPane — ship sea-pref option', () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// "3D at My Location" — direct entry at the player's current atlas cell
+// ---------------------------------------------------------------------------
+
+describe('MapPane — 3D at My Location', () => {
+  it('renders the button when 3D entry is allowed and the player cell is known, and clicking it enters at that cell', async () => {
+    const onEnter3DAtCell = vi.fn();
+    render(
+      <MapPane
+        onTileClick={vi.fn()}
+        onClose={vi.fn()}
+        allowTravel
+        allow3DEntry
+        onEnter3DAtCell={onEnter3DAtCell}
+        playerAtlasCellId={42}
+      />,
+    );
+    const button = await screen.findByTestId('enter-3d-at-player');
+    button.click();
+    expect(onEnter3DAtCell).toHaveBeenCalledTimes(1);
+    // The anchor must target the player's own cell (burg-snapped anchors keep
+    // the cellId when the cell itself is the anchor source).
+    const anchor = onEnter3DAtCell.mock.calls[0][3];
+    expect(anchor).toBeDefined();
+    expect(typeof anchor.cellId).toBe('number');
+  });
+
+  it('shows the button disabled (with an explanatory tooltip) when the player cell is unknown', async () => {
+    const onEnter3DAtCell = vi.fn();
+    render(
+      <MapPane
+        onTileClick={vi.fn()}
+        onClose={vi.fn()}
+        allowTravel
+        allow3DEntry
+        onEnter3DAtCell={onEnter3DAtCell}
+        playerAtlasCellId={null}
+      />,
+    );
+    const button = await screen.findByTestId('enter-3d-at-player');
+    expect(button).toBeDisabled();
+    expect(button.title).toMatch(/position is unknown/i);
+    button.click();
+    expect(onEnter3DAtCell).not.toHaveBeenCalled();
+  });
+});
+
 function createShip(overrides: Partial<Ship> = {}): Ship {
   return {
     id: 'test-ship',

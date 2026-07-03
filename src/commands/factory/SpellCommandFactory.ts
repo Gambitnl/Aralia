@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 14:19:13
+ * Last Sync: 02/07/2026, 12:03:05
  * Dependents: commands/index.ts
- * Imports: 30 files
+ * Imports: 31 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -932,14 +932,20 @@ export class SpellCommandFactory {
       currentPlane // Pass to context
     }
 
+    // Start with the full effect list, then let special bridges narrow it when
+    // one runtime owner must handle an effect exclusively. This avoids routing
+    // the same spell payload through two commands that can overwrite each
+    // other's target-state changes.
+    let activeEffects = spell.effects;
     const perTargetChoicesByTargetId = (spell as SpellWithPerTargetChoices).perTargetChoicesByTargetId
-    const enhanceAbilityEffect = spell.effects.find(isUtilityEffect)
+    const enhanceAbilityEffect = activeEffects.find(isUtilityEffect)
     if (enhanceAbilityEffect && this.isEnhanceAbilityPerTargetChoice(spell, perTargetChoicesByTargetId)) {
       // Enhance Ability is a utility spell in data, but it has a real combat
       // mechanic once the caster has assigned choices. Build one explicit
       // command before generic utility logging so each target receives the
       // chosen ability-check advantage.
       commands.push(new EnhanceAbilityCommand(enhanceAbilityEffect, context, perTargetChoicesByTargetId))
+      activeEffects = activeEffects.filter(effect => effect !== enhanceAbilityEffect)
     }
 
     if (spell.arbitrationType && spell.arbitrationType !== 'mechanical') {
@@ -1001,7 +1007,6 @@ export class SpellCommandFactory {
     // spellbook and creator can show the full menu. Combat should only turn the
     // selected option into commands, so the optional playerInput narrows the
     // effect list before command creation.
-    let activeEffects = spell.effects;
     if (spell.modeChoice && playerInput) {
       const chosenOption = spell.modeChoice.options.find(opt =>
         opt.label.toLowerCase() === playerInput.toLowerCase()
@@ -1049,9 +1054,9 @@ export class SpellCommandFactory {
         isMagical: true
       }
 
-      return [
+      return this.withConcentrationLifecycle([
         new WeaponAttackCommand(builtAttack.attackAbility, caster, [attackTarget], attackContext)
-      ]
+      ], spell, caster, context)
     }
 
     // Green-Flame Blade is the sibling blade cantrip with a secondary fire
@@ -1091,9 +1096,9 @@ export class SpellCommandFactory {
         isMagical: true
       }
 
-      return [
+      return this.withConcentrationLifecycle([
         new WeaponAttackCommand(builtAttack.attackAbility, caster, [attackTarget], attackContext)
-      ]
+      ], spell, caster, context)
     }
 
     // True Strike is a neighboring cast-time weapon-attack cantrip, but it has
@@ -1144,9 +1149,9 @@ export class SpellCommandFactory {
           isMagical: true
         }
 
-        return [
+        return this.withConcentrationLifecycle([
           new WeaponAttackCommand(builtAttack.attackAbility, caster, [attackTarget], attackContext)
-        ]
+        ], spell, caster, context)
       }
     }
 
@@ -1176,7 +1181,7 @@ export class SpellCommandFactory {
           scaledDamageEffect
         )
 
-        return [bridge]
+        return this.withConcentrationLifecycle([bridge], spell, caster, context)
       }
     }
 
@@ -1193,7 +1198,7 @@ export class SpellCommandFactory {
           distance: resolveThunderwavePushDistanceFeet(scaledMovementEffect)
         }
 
-        return [
+        return this.withConcentrationLifecycle([
           new ThunderwaveBridgeCommand(
             spell,
             caster,
@@ -1202,15 +1207,15 @@ export class SpellCommandFactory {
             scaledDamageEffect,
             utilityEffects.map(effect => this.applyScaling(effect, spell.level, effectiveCastLevel, caster.level) as UtilityEffect)
           )
-        ]
+        ], spell, caster, context)
       }
     }
 
     if (this.shouldUseSpellAttackCommand(spell, activeEffects)) {
       const hitEffects = activeEffects.map(effect => this.applyScaling(effect, spell.level, effectiveCastLevel, caster.level))
-      return [
+      return this.withConcentrationLifecycle([
         new SpellAttackCommand(spell, caster, targets, context, hitEffects, (effect, hitContext) => this.createCommand(effect, hitContext))
-      ]
+      ], spell, caster, context)
     }
 
     const fireArtifactCommand = this.createFireArtifactCommand(spell, caster, context, activeEffects, effectiveCastLevel)
@@ -1260,18 +1265,33 @@ export class SpellCommandFactory {
       }
     }
 
-    if (spell.duration.concentration && caster.concentratingOn) {
-      commands.unshift(new BreakConcentrationCommand(context))
-    }
-
-    if (spell.duration.concentration) {
-      commands.push(new StartConcentrationCommand(spell, context))
-    }
-
-    return commands
+    return this.withConcentrationLifecycle(commands, spell, caster, context)
   }
 
   // ... (rest of the file remains same)
+
+  private static withConcentrationLifecycle(
+    commands: SpellCommand[],
+    spell: Spell,
+    caster: CombatCharacter,
+    context: CommandContext
+  ): SpellCommand[] {
+    if (!spell.duration.concentration) {
+      return commands
+    }
+
+    // Concentration setup must wrap every successful spell command path, not
+    // only the generic effect loop. Spell attacks and bridge commands often
+    // return early after building a single runtime command, so they need the
+    // same break-then-start contract to avoid stale concentration artifacts.
+    const lifecycleCommands = [...commands]
+    if (caster.concentratingOn) {
+      lifecycleCommands.unshift(new BreakConcentrationCommand(context))
+    }
+
+    lifecycleCommands.push(new StartConcentrationCommand(spell, context))
+    return lifecycleCommands
+  }
 
   private static isEnhanceAbilityPerTargetChoice(
     spell: Spell,
@@ -1308,15 +1328,6 @@ export class SpellCommandFactory {
       effect.trigger.type === 'immediate' &&
       effect.condition?.type === 'hit'
     )
-  }
-
-  /**
-   * Check if a target matches the filter
-   * @deprecated Use TargetValidationUtils.matchesFilter instead
-   * TODO(Cleanup): Remove this deprecated wrapper. Call `TargetValidationUtils.matchesFilter(target, filter)` directly.
-   */
-  public static matchesFilter(target: CombatCharacter, filter: TargetConditionFilter): boolean {
-    return TargetValidationUtils.matchesFilter(target, filter)
   }
 
   /**
@@ -1358,10 +1369,9 @@ export class SpellCommandFactory {
         }
       }
 
-      // Create a new context with filtered targets if they changed
-      // TODO(BugRisk/Performance): We are creating a shallow copy of context here. Ensure this logic remains safe
-      // if deeply nested mutable properties are ever added to CommandContext.
-      // Consider passing `targets` explicitly to constructors instead of relying on mutable context if this complexity grows.
+      // Create a new context with filtered targets if they changed.
+      // This intentionally performs a shallow context copy so callers can observe
+      // only the filtered target set without mutating shared command state.
       if (filteredTargets.length !== context.targets.length) {
         context = {
           ...context,
@@ -1431,7 +1441,7 @@ export class SpellCommandFactory {
 
   /**
    * Apply scaling formulas to effect
-   * TODO(TechDebt): This manual scaling logic duplicates `resolveScalableNumber` from `src/types/spells.ts`.
+   * TODO #15(TechDebt): This manual scaling logic duplicates `resolveScalableNumber` from `src/types/spells.ts`.
    * We should refactor this to use the shared utility, especially for resolving numeric values.
    */
   private static applyScaling(
@@ -1617,12 +1627,11 @@ export class SpellCommandFactory {
 
   /**
    * Helper: Add dice notation
-   * TODO(Refactor): Move to `src/utils/diceUtils.ts`.
+   * TODO #16(Refactor): Move to `src/utils/diceUtils.ts`.
    * This dice notation parsing and addition logic is generic and should be reusable
-   * across the system (e.g. for item scaling or rider damage calculation) 
-   * instead of being private to this Factory.
-   * Original TODO: Move this dice string manipulation to `src/utils/diceUtils.ts`.
-   * It is generic logic that shouldn't be private to the factory.
+   * across the system (e.g. for item scaling or rider damage calculation).
+   * Consider sharing this logic via a shared utility if the same path appears
+   * in additional scaling or effects pipelines.
    */
   private static addDice(base: string, bonus: string, multiplier: number): string {
     const parseMatch = (s: string) => {

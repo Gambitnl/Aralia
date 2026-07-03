@@ -30,7 +30,6 @@ You are NOT done with a spell until **ALL** of the following are true.
 - Protocol item: **Companion Docs Verified Only If They Exist**: Do not assume there is a matching spell glossary markdown file. Verify the current repo structure before adding or updating any companion documentation.
 
 ### B. Deliverables
-<!-- TODO: Make `source` and `legacy` fields part of Deliverables to enforce 2024 PHB alignment and legacy tagging. -->
 - Protocol item: **JSON File Created**: `public/data/spells/level-{N}/{id}.json` exists (always nested by level; no flattened `public/data/spells/{id}.json` files).
 - Protocol item: **Companion Documentation Checked**: If the current repo has companion documentation for that spell or the active workflow explicitly requires it, update it in the correct location. Do not invent a `public/data/glossary/entries/spells/level-{N}/{id}.md` path.
 - Protocol item: **Class Spell Lists Updated**: If the spell is new, add its ID to the appropriate class spell list(s) in `src/data/classes/index.ts` (e.g., `DRUID_SPELL_LIST`, `WIZARD_SPELL_LIST`). The `classes` array in the JSON must match the lists the spell is added to.

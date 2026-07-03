@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 18:57:34
+ * Last Sync: 02/07/2026, 05:50:27
  * Dependents: components/BattleMap/vfx/index.ts
  * Imports: 2 files
  *
@@ -63,6 +63,7 @@ const ZONE_COLORS: Record<string, { color: number; emissive: number; lightColor:
   difficult_terrain: { color: 0x886644, emissive: 0x443322, lightColor: 0x886644 },
   web: { color: 0xcccccc, emissive: 0x888888, lightColor: 0xdddddd },
   fog: { color: 0x888899, emissive: 0x444455, lightColor: 0x999999 },
+  hazard: { color: 0xee3355, emissive: 0x771122, lightColor: 0xee5577 },
 };
 
 const getSpellZoneEffectType = (zone: ActiveSpellZone): EnvironmentalEffect['type'] => {
@@ -84,6 +85,7 @@ const getSpellZoneEffectType = (zone: ActiveSpellZone): EnvironmentalEffect['typ
       if (effect.damage?.type === 'fire') return 'fire';
       if (effect.damage?.type === 'cold') return 'ice';
       if (effect.damage?.type === 'poison' || effect.damage?.type === 'acid') return 'poison';
+      if (effect.terrainType === 'damaging') return 'hazard';
     }
 
     if (effect.type === 'STATUS_CONDITION') {
@@ -626,6 +628,8 @@ export const buildTileVisibilityOverlays = (
 
     if (!isVisible) {
       overlays.push({ id: tileId, position: tile.coordinates, color: '#020617', opacity: 0.78 });
+    } else if (level === 'magical_darkness') {
+      overlays.push({ id: tileId, position: tile.coordinates, color: '#020617', opacity: 0.66 });
     } else if (level === 'darkness') {
       overlays.push({ id: tileId, position: tile.coordinates, color: '#020617', opacity: 0.42 });
     } else if (level === 'dim') {

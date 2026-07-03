@@ -11,7 +11,7 @@ describe('terrain-biome provenance', () => {
     expect(v.kind).toBe('terrain-biome');
     expect(v.state).toBe('inherited');
     expect(v.severity).toBe('ok');
-  });
+  }, 30_000); // first test pays the full drill-path fixture build
 
   it('marks terrain orphaned when the submap biome differs from the cell biome', () => {
     const path = buildGoldenDrillPath();

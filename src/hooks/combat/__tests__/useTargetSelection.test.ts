@@ -24,11 +24,16 @@ describe('useTargetSelection', () => {
     });
 
     // Mock primitives
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
     const mockSelectedAbility = {
         id: 'ability-1',
+        name: 'Test ability',
+        description: 'Range-1 validation test ability',
+        type: 'spell',
+        cost: { type: 'action' },
+        targeting: 'self',
         range: 1,
-    } as any;
+        effects: []
+    };
     const mockAoePreview = {
         affectedTiles: [{ x: 1, y: 1 }]
     };

@@ -1,8 +1,7 @@
 
 import { renderHook, act } from '@testing-library/react';
 import { useCombatEngine } from './useCombatEngine';
-// TODO(lint-intent): 'Position' is unused in this test; use it in the assertion path or remove it.
-import { CombatCharacter, Position as _Position } from '../../../types/combat';
+import { CombatCharacter } from '../../../types/combat';
 import { vi, describe, it, expect } from 'vitest';
 
 describe('useCombatEngine', () => {
@@ -37,7 +36,6 @@ describe('useCombatEngine', () => {
              speed: 30,
              cr: "0"
         }
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
     } as any;
 
     const mockProps = {
@@ -80,7 +78,6 @@ describe('useCombatEngine', () => {
                     successEnds: true
                 }
             }]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
         } as any;
 
         const { result } = renderHook(() => useCombatEngine(mockProps));
@@ -94,7 +91,6 @@ describe('useCombatEngine', () => {
 
     it('should manage spell zones', () => {
         const { result } = renderHook(() => useCombatEngine(mockProps));
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
         const zone = { id: 'zone1' } as any;
 
         act(() => {

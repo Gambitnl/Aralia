@@ -30,7 +30,7 @@
 
 | Line | Snippet |
 |---|---|
-| 485 | `// TODO(Navigator): Use `calculateForcedMarchStatus` from `src/systems/travel/TravelCalculations.ts` to check if the party has traveled > 8 hours and ...` |
+| 485 | `// Pending: use `calculateForcedMarchStatus` from `src/systems/travel/TravelCalculations.ts` to check if the party has traveled > 8 hours and ...` |
 
 ### `src/hooks/combat/useCombatAI.ts`
 
@@ -205,4 +205,3 @@
 |---|---|
 | 105 | `"description": "You touch a creature and magically remove one of the following effects from it: 1 Exhaustion level; The Charmed or Petrified condition...` |
 | 141 | `"description": "You touch a creature and magically remove one of the following effects from it: 1 Exhaustion level; The Charmed or Petrified condition...` |
-

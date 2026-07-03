@@ -29,16 +29,7 @@
  */
 import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../../types/combat';
 import { PlayerCharacter, Item } from '../../types';
-// TODO(lint-intent): 'ConditionName' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-//
-// IMPROVEMENT OPPORTUNITY: This unused import suggests incomplete integration of condition handling.
-// Consider either:
-// 1. Implementing condition-based combat mechanics that utilize ConditionName type
-// 2. Removing the import to reduce module surface area and potential confusion
-// 3. Creating a dedicated conditions module that handles status effect processing
-import { Spell, DamageType, ConditionName } from '../../types/spells';
+import { Spell, DamageType } from '../../types/spells';
 import { createAbilityFromSpell } from '../character/spellAbilityFactory';
 import { isWeaponProficient } from '../character/weaponUtils';
 import { generateId } from '../core/idGenerator';
@@ -53,8 +44,8 @@ type DiceRandomSource = () => number;
 // Re-export for consumers
 export { createAbilityFromSpell, generateId, ResistanceCalculator };
 
-// TODO(Mechanist): Wire up physicsUtils (fall damage, jumping) into movement logic.
-// TODO(Mechanist): Wire up `calculateExhaustionEffects` from `physicsUtils.ts` to `createPlayerCombatCharacter` (apply speed/d20 penalties).
+// TODO #1312(Mechanist): Wire up physicsUtils (fall damage, jumping) into movement logic.
+// TODO #1313(Mechanist): Wire up `calculateExhaustionEffects` from `physicsUtils.ts` to `createPlayerCombatCharacter` (apply speed/d20 penalties).
 //
 // IMPROVEMENT OPPORTUNITY: Missing physics integration creates inconsistency between combat and exploration mechanics.
 // Current implementation lacks:
@@ -218,7 +209,7 @@ function rollDieGroup(
   minRoll: number = 1,
   random: DiceRandomSource = Math.random
 ): number {
-    // TODO(FEATURES): Route dice rolls through a secure or server-validated RNG to prevent client-side manipulation.
+    // TODO #1314(FEATURES): Route dice rolls through a secure or server-validated RNG to prevent client-side manipulation.
     // (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
     let subTotal = 0;
   for (let i = 0; i < count; i++) {
@@ -976,7 +967,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     // CombatCharacter, we allow the damage calculators and action 
     // handlers to apply bonus damage or special effects during a battle.
     feats: player.feats || [], // feat IDs (e.g. ['slasher', 'great_weapon_master'])
-    resistances: player.resistances ?? (player.race as any).resistance, // TODO(lint-intent): Align Race.resistances shape with DamageType[]
+    resistances: player.resistances ?? player.race?.resistance,
     immunities: player.immunities,
     vulnerabilities: player.vulnerabilities,
     modifiers: player.modifiers ? {
@@ -1039,7 +1030,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   }
 
   // Basic Darkvision inference
-  // TODO(Depthcrawler): Replace with robust feature mapping from Race traits
+  // TODO #1316(Depthcrawler): Replace with robust feature mapping from Race traits
   if (combatChar.stats.senses) {
       if (player.race.name.includes("Drow") || player.race.name.includes("Deep Gnome")) {
           combatChar.stats.senses.darkvision = 120;

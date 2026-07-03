@@ -9,7 +9,7 @@ describe('runCellProvenanceAudit', () => {
     const fails = report.verdicts.filter((v) => v.severity === 'fail');
     expect(fails).toEqual([]);
     expect(report.passed).toBe(true);
-  });
+  }, 30_000); // first test pays the full drill-path fixture build
 
   it('classifies the settlement and counts every ground entity', () => {
     const path = buildGoldenDrillPath();

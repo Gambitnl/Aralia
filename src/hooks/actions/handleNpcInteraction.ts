@@ -224,9 +224,6 @@ function buildConversationContext(state: GameState): BanterContext {
     const timeOfDay = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
 
     // WHAT CHANGED: Normalized dual-status checks for mixed save/runtime schemas.
-    // TODO(2026-01-03 pass 2 Codex-CLI): activeQuest typing changed casing across
-    // saves and runtime payloads; remove this cast once status is consistently
-    // one shape.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const activeQuest = state.questLog.find((q: any) => q.status === 'Active' || q.status === 'active');
 
@@ -425,7 +422,7 @@ export async function handleTalk({
       return;
     }
 
-    // TODO(FEATURES): Add quest-giver hooks so NPCs can offer/advance quests through dialogue outcomes (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+    // TODO #256(FEATURES): Add quest-giver hooks so NPCs can offer/advance quests through dialogue outcomes (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 
     // START DIALOGUE SESSION
     // Instead of immediately generating a generic response, we now open the Dialogue Interface.

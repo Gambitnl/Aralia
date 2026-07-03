@@ -66,7 +66,7 @@ export interface VillageLayout {
   integrationProfile: VillageIntegrationProfile;
 }
 
-// TODO(FEATURES): Emit town metadata (name, population, cultural tags) alongside layout for the Town Description System (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+// TODO #514(FEATURES): Emit town metadata (name, population, cultural tags) alongside layout for the Town Description System (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 interface GenerationOptions {
   worldSeed: number;
   worldX: number;
@@ -467,7 +467,6 @@ export const generateVillageLayout = ({
   // the same narrative cues without recomputing or duplicating logic.
   const integrationProfile = resolveVillageIntegrationProfile(personality);
   const normalizedIntegrationProfile: VillageIntegrationProfile = {
-    // TODO(2026-01-03 pass 1 Codex-CLI): Village profiles lack name/description in some paths; default to id/tagline to keep UI stable.
     // DEBT: Cast profile to any to probe dynamic response shapes from generation services.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     name: (integrationProfile as any).name ?? integrationProfile.id ?? 'Village Profile',
@@ -565,10 +564,6 @@ export const generateVillageLayout = ({
   // Residential districts radiate outward, size based on population / wealth
   const houseBudget = personality.population === 'large' ? 22 : personality.population === 'medium' ? 16 : 10;
   const wealthBias = personality.wealth === 'rich' ? 0.7 : personality.wealth === 'comfortable' ? 0.5 : 0.3;
-  // TODO(lint-intent): 'houseTypes' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-  const _houseTypes: VillageTileType[] = getHouseTypesForPersonality(personality);
 
   for (let i = 0; i < houseBudget; i++) {
     const typeRoll = rng();
@@ -707,3 +702,4 @@ export const describeBuilding = (building: VillageBuildingFootprint, personality
 
   return `${typeName[building.type] ?? 'Structure'} with ${cultureFlavor[personality.culture]}; the settlement feels ${wealthFlavor}.`;
 };
+

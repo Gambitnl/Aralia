@@ -6,7 +6,7 @@ import { UnderdarkState } from '../../types/underdark';
 describe('UnderdarkService', () => {
     const defaultState: UnderdarkState = {
         currentDepth: 1000,
-        // TODO(2026-01-03 Codex-CLI): Use a real biome id; fallback to cavern_standard to keep tests aligned with enum.
+
         currentBiomeId: 'cavern_standard',
         lightLevel: 'dim',
         activeLightSources: [],
@@ -145,3 +145,4 @@ describe('UnderdarkService', () => {
         });
     });
 });
+

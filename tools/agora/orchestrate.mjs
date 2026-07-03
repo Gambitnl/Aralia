@@ -23,7 +23,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn, execFileSync } from 'node:child_process';
 import { run as clientRun } from './client.mjs';
-import { OPEN_STATUSES } from './gapIndex.mjs';
+import { OPEN_STATUSES, CLOSED_STATUSES, indexGaps } from './gapIndex.mjs';
 
 const DEFAULT_URL = 'http://localhost:4319';
 const REPO = process.cwd();
@@ -73,15 +73,16 @@ function loadPlan(file) {
   if (!file) throw new Error('plan file required');
   const abs = path.isAbsolute(file) ? file : path.resolve(REPO, file);
   const plan = JSON.parse(fs.readFileSync(abs, 'utf8'));
-  validatePlan(plan);
+  validatePlan(plan, { onWarn: (m) => console.warn(`⚠ ${m}`) });
   plan.baseUrl = plan.baseUrl || DEFAULT_URL;
   return plan;
 }
 
-export function validatePlan(plan, { registry } = {}) {
+export function validatePlan(plan, { registry, onWarn } = {}) {
   if (!plan || typeof plan !== 'object') throw new Error('plan must be an object');
   if (!Array.isArray(plan.packets) || plan.packets.length === 0) throw new Error('plan.packets must be a non-empty array');
   const reg = registry || loadRegistry();
+  const warn = onWarn || (() => {});
   const seenFiles = new Map(); // file -> packetId (disjointness check)
   const seenHandles = new Set();
   for (const p of plan.packets) {
@@ -93,6 +94,10 @@ export function validatePlan(plan, { registry } = {}) {
     const def = reg.agents[p.agent];
     if (!def) throw new Error(`packet ${p.id}: unknown agent "${p.agent}" (registry has: ${Object.keys(reg.agents).join(', ')})`);
     assertDispatchableWorker(p.id, p.agent, def);
+    // WF-G14: expired date-bound constraints mean re-verify, not trust.
+    for (const c of staleConstraints(def)) {
+      warn(`packet ${p.id}: agent "${p.agent}" has an EXPIRED constraint (${c.expiresAt}): ${c.note} — re-verify before dispatch`);
+    }
     for (const a of p.after || []) {
       if (!plan.packets.some((x) => x.id === a)) {
         throw new Error(`packet ${p.id}: "after" references unknown packet "${a}"`);
@@ -118,9 +123,18 @@ const oneLine = (s) => String(s).replace(/\s+/g, ' ').trim().slice(0, 80);
  * Returns { packetId -> taskId }. Multi-pass creation honors dependency order;
  * an `after` cycle fails honestly.
  */
-export async function seedPlan(plan, { env = { ...process.env, AGORA_DIR: '.agent/agora/ids/orchestrator' } } = {}) {
+/** Per-wave orchestrator identity dir (WF-G10): two concurrent campaigns must
+ *  not share an identity file — last-write-wins clobbers the first one's token. */
+function orchIdentityDir(plan) {
+  const wave = String(plan.wave || 'unnamed').replace(/[^a-zA-Z0-9_-]/g, '_');
+  return `.agent/agora/ids/orchestrator-${wave}`;
+}
+
+export async function seedPlan(plan, { env } = {}) {
+  env = env || { ...process.env, AGORA_DIR: orchIdentityDir(plan) };
   const baseUrl = plan.baseUrl || DEFAULT_URL;
-  const reg = await clientRun(['register', 'orchestrator', '--note', `wave:${plan.wave || 'unnamed'} coordinator`], { env, baseUrl });
+  validateRefsAgainstIndex(plan); // WF-G12: fail on ambiguous refs, warn on unknown
+  const reg = await clientRun(['register', `orchestrator-${plan.wave || 'unnamed'}`, '--note', `wave:${plan.wave || 'unnamed'} coordinator`], { env, baseUrl });
   if (reg.code !== 0) throw new Error(`seed: orchestrator registration failed: ${(reg.lines || []).join(' / ')}`);
 
   const seeded = {};
@@ -150,11 +164,52 @@ function seedFilePath(plan) {
   return path.resolve(REPO, '.agent/scratch/orchestrate', `seed-${wave}.json`);
 }
 
+/** WF-G10: a MISSING seed map is a legitimate state (un-seeded wave → workers
+ *  create their own tasks) and gets a loud warning; a CORRUPT one is an error,
+ *  never a silent `{}` that quietly builds TID-less prompts. */
 function loadSeededMap(plan) {
-  try {
-    return JSON.parse(fs.readFileSync(seedFilePath(plan), 'utf8'));
-  } catch {
+  const file = seedFilePath(plan);
+  if (!fs.existsSync(file)) {
+    console.warn(`⚠ no seed map at ${file} — workers will create their own tasks. Run: orchestrate seed <plan> for board-tracked waves.`);
     return {};
+  }
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (e) {
+    throw new Error(`seed map ${file} exists but is unreadable (${e.message}) — re-run: orchestrate seed <plan>`);
+  }
+}
+
+/** WF-G12: resolve packet issue-refs against the gap index at seed time.
+ *  Ambiguous bare ids (same gap id in several projects) are ERRORS; unknown
+ *  refs are warnings (ad-hoc issue codes like M1 are legitimate). Index
+ *  unavailability skips validation (docs/projects may be absent). */
+function validateRefsAgainstIndex(plan) {
+  let gaps;
+  try {
+    gaps = indexGaps({ root: 'docs/projects' }).concat(indexGaps({ root: 'tools/agora' }));
+  } catch {
+    return;
+  }
+  const byBare = new Map();
+  const qualified = new Set();
+  for (const g of gaps) {
+    qualified.add(`${g.project}:${g.id}`.toLowerCase());
+    const bare = g.id.toLowerCase();
+    if (!byBare.has(bare)) byBare.set(bare, g.project);
+    else if (byBare.get(bare) !== g.project) byBare.set(bare, 'ambiguous');
+  }
+  for (const p of plan.packets) {
+    for (const ref of p.issues || []) {
+      const low = String(ref).toLowerCase();
+      if (low.includes(':')) {
+        if (!qualified.has(low)) console.warn(`⚠ packet ${p.id}: ref "${ref}" matches no indexed gap (typo? unindexed registry?)`);
+      } else if (byBare.get(low) === 'ambiguous') {
+        throw new Error(`packet ${p.id}: ref "${ref}" is AMBIGUOUS — that gap id exists in multiple projects; qualify it as <project>:${ref}`);
+      } else if (!byBare.has(low)) {
+        console.warn(`⚠ packet ${p.id}: ref "${ref}" matches no indexed gap (ok for ad-hoc issue codes; qualify as <project>:<id> for tracker gaps)`);
+      }
+    }
   }
 }
 
@@ -233,6 +288,7 @@ export function reconcileGaps(doneTasks, allGaps) {
   const alreadyClosed = [];
   const unmatchedRefs = [];
   const ambiguousRefs = [];
+  const unrecognizedStatus = [];
   for (const t of doneTasks) {
     if (t.state !== 'done') continue;
     for (const ref of t.refs || []) {
@@ -240,10 +296,11 @@ export function reconcileGaps(doneTasks, allGaps) {
       if (gap === 'ambiguous') { ambiguousRefs.push(ref); continue; }
       if (!gap) { unmatchedRefs.push(ref); continue; }
       if (OPEN_STATUSES.has(gap.status)) staleOpen.push({ ref, task: t, gap });
-      else alreadyClosed.push({ ref, task: t, gap });
+      else if (CLOSED_STATUSES.has(gap.status)) alreadyClosed.push({ ref, task: t, gap });
+      else unrecognizedStatus.push({ ref, task: t, gap }); // WF-G13: surface, don't swallow
     }
   }
-  return { staleOpen, alreadyClosed, unmatchedRefs, ambiguousRefs };
+  return { staleOpen, alreadyClosed, unmatchedRefs, ambiguousRefs, unrecognizedStatus };
 }
 
 // ---------------------------------------------------------------- prompt build
@@ -296,7 +353,7 @@ RETURN: per issue what you changed (file + concrete change), any cross-file foll
 
 // ---------------------------------------------------------------- board ops
 async function board(plan, argv) {
-  const env = { ...process.env, AGORA_DIR: '.agent/agora/ids/orchestrator' };
+  const env = { ...process.env, AGORA_DIR: orchIdentityDir(plan) };
   const res = await clientRun(argv, { env, baseUrl: plan.baseUrl });
   for (const l of res.lines || []) console.log(l);
   return res;
@@ -333,7 +390,7 @@ async function cmdFeedback(plan, since) {
 
 // ---------------------------------------------------------------- wave commands
 async function fetchTasks(plan) {
-  const env = { ...process.env, AGORA_DIR: '.agent/agora/ids/orchestrator' };
+  const env = { ...process.env, AGORA_DIR: orchIdentityDir(plan) };
   const res = await clientRun(['tasks'], { env, baseUrl: plan.baseUrl });
   return res.tasks || [];
 }
@@ -386,19 +443,41 @@ async function cmdReport(plan) {
   return 0;
 }
 
-async function cmdReconcile(plan, root = 'docs/projects') {
-  const { indexGaps } = await import('./gapIndex.mjs');
+async function cmdReconcile(plan, root = 'docs/projects', { apply = false } = {}) {
+  const { updateGapRow } = await import('./gapIndex.mjs');
   const tasks = (await fetchTasks(plan)).filter((t) => t.state === 'done' && (t.refs || []).length);
   // Always include the workflow registry so `workflow:WF-Gn` refs resolve.
   const gaps = indexGaps({ root }).concat(root === 'tools/agora' ? [] : indexGaps({ root: 'tools/agora' }));
   const rec = reconcileGaps(tasks, gaps);
-  console.log(`Reconcile (board done-tasks vs ${root} GAPS registries):`);
+  console.log(`Reconcile (board done-tasks vs ${root} GAPS registries)${apply ? ' — APPLYING row updates' : ''}:`);
   if (!rec.staleOpen.length) console.log('  ✅ no stale-open gaps — tracker matches the board.');
+  // --apply respects Agora locks: a registry file locked by another agent is skipped.
+  let heldPaths = [];
+  if (apply) {
+    const lr = await board(plan, ['locks']);
+    heldPaths = (lr.locks || []).flatMap((l) => [...(l.paths || []), ...(l.globs || [])]);
+  }
   for (const s of rec.staleOpen) {
     console.log(`  ⚠ ${s.ref} is DONE on the board but still "${s.gap.status}" in ${s.gap.file}`);
     console.log(`      task: ${s.task.title}`);
     if (s.task.result) console.log(`      evidence: ${s.task.result}`);
-    console.log(`      → update that GAPS.md row (status + evidence) or dispute the result.`);
+    if (apply) {
+      const locked = heldPaths.some((p) => s.gap.file.includes(p) || p.includes(s.gap.file));
+      if (locked) { console.log('      ⏭ SKIPPED — that registry file is Agora-locked by another agent.'); continue; }
+      const abs = path.resolve(REPO, s.gap.file);
+      const ok = updateGapRow(abs, s.gap.id, {
+        status: 'resolved',
+        appendEvidence: `board-reconciled 2026: task "${s.task.title}"${s.task.result ? ` — ${s.task.result}` : ''}`,
+      });
+      console.log(ok ? '      ✍ row updated → resolved (evidence appended).' : '      ✗ row not found in the file — update manually.');
+    } else {
+      console.log(`      → update that GAPS.md row (status + evidence), or re-run with --apply.`);
+    }
+  }
+  if (rec.unrecognizedStatus && rec.unrecognizedStatus.length) {
+    for (const u of rec.unrecognizedStatus) {
+      console.log(`  ？ ${u.ref}: gap status "${u.gap.status}" is neither open nor closed vocabulary — inspect ${u.gap.file}`);
+    }
   }
   if (rec.ambiguousRefs && rec.ambiguousRefs.length) {
     console.log(`  ⚠ AMBIGUOUS bare refs (same gap id in multiple projects — qualify as <project>:<id>): ${[...new Set(rec.ambiguousRefs)].join(', ')}`);
@@ -464,35 +543,46 @@ async function cmdDispatch(plan, packetId) {
 
   const { cmd, args } = launchSpec(pkt.agent, prompt);
   const logFd = fs.openSync(logFile, 'w');
-  const child = spawn(cmd, args, { cwd: REPO, detached: true, stdio: ['ignore', logFd, logFd] });
+  // WF-G1: external agents run no Claude hooks — prepend the git shim to their
+  // PATH so destructive git funnels through the same guard.
+  const shimDir = path.join(MODULE_DIR, 'git-shim');
+  const env = { ...process.env, PATH: `${shimDir}${path.delimiter}${process.env.PATH || ''}` };
+  const child = spawn(cmd, args, { cwd: REPO, detached: true, stdio: ['ignore', logFd, logFd], env });
   child.unref();
   console.log(`🚀 dispatched ${pkt.agent} packet "${pkt.id}" (pid ${child.pid}).`);
   console.log(`   prompt: ${promptFile}`);
   console.log(`   log:    ${logFile}   (tail it / await completion, then: orchestrate gate <plan>)`);
 }
 
-function probeAgent(agent) {
+// WF-G5: quota probes and launch specs are REGISTRY-DRIVEN — a new agent needs
+// only agents.json entries (dispatch.command/args + quotaProbe), zero code here.
+export function probeAgent(agent, registry = loadRegistry()) {
+  const def = registry.agents[agent];
+  const probe = def && def.quotaProbe;
+  if (!probe || !probe.command) return { ok: false, reason: `no quotaProbe defined for "${agent}" in agents.json` };
   try {
-    if (agent === 'codex') {
-      const out = execFileSync('codex', ['exec', '--dangerously-bypass-approvals-and-sandbox', '--skip-git-repo-check', 'Reply with exactly: PROBE_OK'], { cwd: REPO, timeout: 60000, encoding: 'utf8' });
-      if (/usage limit|quota/i.test(out)) return { ok: false, reason: 'usage limit / quota exhausted (resets ~2am)' };
-      return { ok: true };
+    const out = execFileSync(probe.command, probe.args || [], {
+      cwd: REPO,
+      timeout: probe.timeoutMs || 70000,
+      encoding: 'utf8',
+      // Shell only for bare command names (npm .cmd shims need it); absolute
+      // paths spawn directly so arg quoting stays intact.
+      shell: process.platform === 'win32' && !path.isAbsolute(probe.command),
+    });
+    if (probe.dryPattern && new RegExp(probe.dryPattern, 'i').test(out)) {
+      return { ok: false, reason: probe.dryReason || 'quota exhausted' };
     }
-    if (agent === 'gemini') {
-      const out = execFileSync('gemini', ['--approval-mode', 'yolo', '-p', 'Reply with exactly: PROBE_OK'], { cwd: REPO, timeout: 70000, encoding: 'utf8' });
-      if (/usage limit|quota|429/i.test(out) && !/PROBE_OK/.test(out)) return { ok: false, reason: 'quota / rate limited' };
-      return { ok: true };
-    }
+    return { ok: true };
   } catch (e) {
     return { ok: false, reason: String(e.message || e).split('\n')[0] };
   }
-  return { ok: false, reason: 'unknown agent' };
 }
 
-function launchSpec(agent, prompt) {
-  if (agent === 'codex') return { cmd: 'codex', args: ['exec', '--dangerously-bypass-approvals-and-sandbox', '--skip-git-repo-check', prompt] };
-  if (agent === 'gemini') return { cmd: 'gemini', args: ['--approval-mode', 'yolo', '-p', prompt] };
-  throw new Error(`no launch spec for ${agent}`);
+export function launchSpec(agent, prompt, registry = loadRegistry()) {
+  const def = registry.agents[agent];
+  const d = def && def.dispatch;
+  if (d && d.command) return { cmd: d.command, args: [...(d.args || []), prompt] };
+  throw new Error(`no launch spec for ${agent} (agents.json dispatch.command missing)`);
 }
 
 // ---------------------------------------------------------------- gate
@@ -545,7 +635,7 @@ const HELP = `Agora Orchestrator — drive a multi-agent campaign wave.
   node tools/agora/orchestrate.mjs gate     <plan.json> [--exclude <regex>] [--only <id,id>]   (--only = gate ONE wave's packets)
   node tools/agora/orchestrate.mjs watch    <plan.json> [--interval s] [--timeout min]   block until every seeded task is done/blocked
   node tools/agora/orchestrate.mjs report   <plan.json>                                  wave retrospective (timings, reaps, results)
-  node tools/agora/orchestrate.mjs reconcile <plan.json> [--root docs/projects]          done tasks vs still-open GAPS.md rows
+  node tools/agora/orchestrate.mjs reconcile <plan.json> [--root docs/projects] [--apply]   done tasks vs still-open GAPS.md rows (--apply writes status+evidence into the rows, honoring Agora locks)
   node tools/agora/orchestrate.mjs status   <plan.json>
   node tools/agora/orchestrate.mjs feedback <plan.json> [--since N]
 See tools/agora/ORCHESTRATOR.md for the full loop.`;
@@ -578,7 +668,10 @@ async function main() {
     return;
   }
   if (cmd === 'report') { process.exitCode = await cmdReport(plan); return; }
-  if (cmd === 'reconcile') { process.exitCode = await cmdReconcile(plan, getFlag(process.argv, '--root') || 'docs/projects'); return; }
+  if (cmd === 'reconcile') {
+    process.exitCode = await cmdReconcile(plan, getFlag(process.argv, '--root') || 'docs/projects', { apply: process.argv.includes('--apply') });
+    return;
+  }
   if (cmd === 'gate') process.exitCode = cmdGate(plan, getFlag(process.argv, '--exclude'), getFlag(process.argv, '--only'));
   else { console.log(`unknown command "${cmd}"\n\n${HELP}`); process.exitCode = 1; }
 }

@@ -60,4 +60,4 @@ export const NPCS: Record<string, NPC> = {
   }
 };
 
-// TODO(Materializer): Update existing NPCs to include 'visual' specs for AI portrait generation (see src/types/visuals.ts)
+// TODO #248(Materializer): Update existing NPCs to include 'visual' specs for AI portrait generation (see src/types/visuals.ts)

@@ -125,7 +125,6 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
 
     return (
         <>
-            {/* TODO: Refactor the inline <style> block into a dedicated CSS file */}
             <style>
                 {`
                     .dice-box-canvas, 

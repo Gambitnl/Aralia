@@ -2,10 +2,8 @@
 import { describe, it, expect } from 'vitest';
 import { SpellCommandFactory } from '../../../commands/factory/SpellCommandFactory';
 import { DamageCommand } from '../../../commands/effects/DamageCommand';
-// TODO(lint-intent): 'SpellEffect' is unused in this test; use it in the assertion path or remove it.
-import { Spell, SpellEffect as _SpellEffect, SpellSchool } from '../../../types/spells';
-// TODO(lint-intent): 'CombatCharacter' is unused in this test; use it in the assertion path or remove it.
-import { CombatCharacter as _CombatCharacter, CombatState } from '../../../types/combat';
+import { Spell, SpellSchool } from '../../../types/spells';
+import { CombatState } from '../../../types/combat';
 import { GameState } from '../../../types';
 import { PLANES } from '../../../data/planes';
 import { createMockCombatCharacter } from '../../../utils/factories';

@@ -159,7 +159,6 @@ export interface Spell {
   aliases?: string[];
   level: number; // 0 for Cantrip
   school: SpellSchool;
-  // TODO(preserve-lint): Align required metadata with SpellValidator once schema/typing are unified.
   source?: string;
   legacy?: boolean;
   classes: string[];
@@ -286,12 +285,6 @@ export interface Spell {
   arbitrationType?: ArbitrationType;
   aiContext?: AIContext;
 
-  // --- Legacy/Convenience Fields ---
-  // TODO(Taxonomist): Remove these once all spell data uses the new targeting/effects structure
-  /** @deprecated Use targeting.areaOfEffect instead */
-  areaOfEffect?: AreaOfEffect;
-  /** @deprecated Use effects[].damage.type instead */
-  damageType?: DamageType;
 }
 /**
  * Defines the time required to cast a spell.

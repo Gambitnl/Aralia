@@ -54,7 +54,6 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
 
   if (!isOpen || !missingChoice) return null;
 
-  // TODO(lint-intent): If selection should persist per missing choice, store it in a map keyed by missingChoice.id.
   const selectedOptionId = selectedOption?.choiceId === missingChoice.id ? selectedOption.optionId : null;
   const autoSelectedId =
     missingChoice.options.length === 1
@@ -137,4 +136,3 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
 };
 
 export default MissingChoiceModal;
-

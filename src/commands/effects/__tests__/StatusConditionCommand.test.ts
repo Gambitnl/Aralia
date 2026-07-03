@@ -5,7 +5,7 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { StatusConditionCommand } from '../StatusConditionCommand';
-import { CombatState } from '@/types/combat';
+import { BattleMapData, CombatState } from '@/types/combat';
 import { StatusConditionEffect, SpellEffect } from '@/types/spells';
 import { createMockCombatCharacter, createMockCombatState } from '@/utils/factories';
 import { CommandContext } from '../../base/SpellCommand';
@@ -14,6 +14,7 @@ import { generateId } from '@/utils/combatUtils';
 import { BreakConcentrationCommand } from '../ConcentrationCommands';
 import { DamageCommand } from '../DamageCommand';
 import friends from '../../../../public/data/spells/level-0/friends.json';
+import type { ActiveSpellZone } from '@/systems/spells/effects';
 
 // We mock saving throws so we don't have to deal with RNG in tests
 vi.mock('@/utils/savingThrowUtils', () => ({
@@ -420,6 +421,90 @@ describe('StatusConditionCommand', () => {
         kind: 'post_charm_awareness',
         targetKnows: 'it_was_Charmed_by_caster'
       });
+    });
+
+    it('removes concentration-owned spell zones while preserving unrelated zones', async () => {
+      const caster = createMockCombatCharacter({
+        id: 'caster',
+        name: 'Caster',
+        concentratingOn: {
+          spellId: 'grease',
+          spellName: 'Grease',
+          spellLevel: 1,
+          startedTurn: 1,
+          effectIds: ['grease-zone'],
+          canDropAsFreeAction: true
+        }
+      });
+      const greaseZone: ActiveSpellZone = {
+        id: 'grease-zone',
+        spellId: 'grease',
+        casterId: 'caster',
+        position: { x: 2, y: 2 },
+        areaOfEffect: { shape: 'square', size: 10 },
+        effects: [],
+        triggeredThisTurn: new Set(),
+        triggeredEver: new Set()
+      };
+      const webZone: ActiveSpellZone = {
+        ...greaseZone,
+        id: 'web-zone',
+        spellId: 'web'
+      };
+      const terrainTile = {
+        id: '2-2',
+        coordinates: { x: 2, y: 2 },
+        position: { x: 2, y: 2 },
+        terrain: 'floor',
+        movementCost: 2,
+        blocksMovement: false,
+        blocksLoS: false,
+        elevation: 0,
+        environmentalEffects: [
+          {
+            id: 'grease-difficult',
+            type: 'difficult_terrain',
+            duration: 10,
+            sourceSpellId: 'grease',
+            casterId: 'caster',
+            effect: { id: 'grease-status', name: 'Difficult Terrain', type: 'debuff', duration: 10, effect: { type: 'condition' } }
+          },
+          {
+            id: 'web-difficult',
+            type: 'difficult_terrain',
+            duration: 10,
+            sourceSpellId: 'web',
+            casterId: 'caster',
+            effect: { id: 'web-status', name: 'Difficult Terrain', type: 'debuff', duration: 10, effect: { type: 'condition' } }
+          }
+        ]
+      } as BattleMapData['tiles'] extends Map<string, infer Tile> ? Tile : never;
+      const mapData = {
+        tiles: new Map([['2-2', terrainTile]]),
+        dimensions: { width: 3, height: 3 },
+        theme: 'dungeon'
+      } as BattleMapData;
+      state = {
+        ...state,
+        characters: [caster, state.characters[1]],
+        spellZones: [greaseZone, webZone],
+        mapData
+      };
+
+      const command = new BreakConcentrationCommand({
+        ...context,
+        caster,
+        targets: [],
+        spellId: 'grease',
+        spellName: 'Grease'
+      });
+      const result = await command.execute(state);
+
+      expect(result.spellZones).toEqual([webZone]);
+      const cleanedTile = result.mapData?.tiles.get('2-2');
+      expect(cleanedTile?.environmentalEffects?.map(effect => effect.id)).toEqual(['web-difficult']);
+      expect(cleanedTile?.movementCost).toBe(2);
+      expect(result.characters.find(character => character.id === caster.id)?.concentratingOn).toBeUndefined();
     });
 
     it('ends Friends early and records awareness when the charmed target takes damage', async () => {

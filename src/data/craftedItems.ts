@@ -1,6 +1,6 @@
 /**
  * Craftable item definitions (potions, oils, poisons, bombs).
- * Costs use rough rarity-based defaults; TODO(preserve-lint): revisit values and mechanical details during balance pass.
+ * Costs use rough rarity-based defaults; TODO #193(preserve-lint): revisit values and mechanical details during balance pass.
  */
 import { Item, ItemEffect, ItemRarity, ItemType } from '../types';
 
@@ -20,7 +20,7 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '50',
     weight: 1,
     rarity: ItemRarity.Common,
-    // TODO(preserve-lint): model ongoing burn/Extinguish action instead of single damage roll.
+    // TODO #194(preserve-lint): model ongoing burn/Extinguish action instead of single damage roll.
     effect: damageEffect('fire', '1d4'),
   },
   smokebomb: {
@@ -43,7 +43,7 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '75',
     weight: 0.5,
     rarity: ItemRarity.Common,
-    // TODO(preserve-lint): encode save DC and combined charge scaling once bomb mechanics are formalized.
+    // TODO #195(preserve-lint): encode save DC and combined charge scaling once bomb mechanics are formalized.
     effect: damageEffect('bludgeoning', '3d6'),
   },
   potion_of_climbing: {
@@ -99,7 +99,7 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '50',
     weight: 0.25,
     rarity: ItemRarity.Common,
-    // TODO(preserve-lint): move to a status-effect representation when saves/conditions are formalized.
+    // TODO #196(preserve-lint): move to a status-effect representation when saves/conditions are formalized.
     effect: utilityEffect('Advantage on poison saves for one hour.'),
   },
   basic_poison: {
@@ -146,7 +146,7 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '200',
     weight: 0.5,
     rarity: ItemRarity.Uncommon,
-    // TODO(preserve-lint): support limited charges; for now capture the damage profile.
+    // TODO #197(preserve-lint): support limited charges; for now capture the damage profile.
     effect: damageEffect('fire', '4d6'),
   },
   potion_of_growth: {
@@ -237,7 +237,7 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '1000',
     weight: 0.5,
     rarity: ItemRarity.Rare,
-    // TODO(preserve-lint): formalize creature-type bonus damage instead of narrative utility.
+    // TODO #198(preserve-lint): formalize creature-type bonus damage instead of narrative utility.
     effect: utilityEffect('Adds significant bonus damage vs Dragons for one hour.'),
   },
   potion_of_gaseous_form: {
@@ -293,7 +293,7 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '1000',
     weight: 0.5,
     rarity: ItemRarity.Rare,
-    // TODO(preserve-lint): split temp HP and Bless bonuses explicitly.
+    // TODO #199(preserve-lint): split temp HP and Bless bonuses explicitly.
     effect: buffEffect(10, 60),
   },
   potion_of_mind_reading: {

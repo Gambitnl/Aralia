@@ -174,7 +174,8 @@ describe('spellAbilityFactory', () => {
                 brightRadius: 20,
                 dimRadius: 20,
                 attachedTo: 'target',
-                color: undefined
+                color: undefined,
+                opaqueCoverBlocks: false
             });
             expect(ability.effects[1].statusEffect?.savePenalty).toEqual({
                 dice: '1d4',

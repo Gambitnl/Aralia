@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { getWeatherModifiers, getTerrainMovementCost, getTerrainHazards, TERRAIN_RULES as ENVIRONMENT_TERRAIN_RULES } from '../EnvironmentSystem';
 import { getTerrainMovementCost as getCanonicalTerrainMovementCost, TERRAIN_RULES as CANONICAL_TERRAIN_RULES } from '../TerrainSystem';
 import { WeatherState } from '../../../types/environment';
-import { Spell } from '../../../types/spells';
+import { Spell, SpellSchool } from '../../../types/spells';
 
 describe('EnvironmentSystem', () => {
   describe('getWeatherModifiers', () => {
@@ -11,8 +11,7 @@ describe('EnvironmentSystem', () => {
       id: 'fire-bolt',
       name: 'Fire Bolt',
       level: 0,
-      // TODO(2026-01-03 pass 4 Codex-CLI): cast spell school to enum until test helpers supply real enum value.
-      school: 'Evocation' as unknown as Spell['school'],
+      school: SpellSchool.Evocation,
       classes: ['Wizard'],
       subClasses: [],
       subClassesVerification: 'unverified',

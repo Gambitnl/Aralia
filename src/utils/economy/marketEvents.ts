@@ -68,19 +68,6 @@ export const MARKET_EVENT_TEMPLATES = [
   }
 ];
 
-// Interface for the templates used above
-// TODO(lint-intent): 'MarketEventTemplate' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-// TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-// TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-interface _MarketEventTemplate {
-  name: string;
-  description: string;
-  affectedCategories: string[];
-  priceModifier: number;
-  durationDays: number;
-  type: MarketEventType;
-}
-
 /**
  * Helper interface for events that includes the template data needed for calculation
  */

@@ -284,9 +284,6 @@ export class CrewManager {
   /**
    * Modifies loyalty for all crew members.
    */
-  // TODO(lint-intent): 'reason' is an unused parameter, which suggests a planned input for this flow.
-  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
   static modifyCrewLoyalty(crew: Crew, amount: number, _reason?: string): void {
       crew.members.forEach(member => {
           const modifiedAmount = amount;

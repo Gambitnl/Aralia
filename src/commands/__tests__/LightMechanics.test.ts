@@ -85,7 +85,6 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
     caster,
     targets,
     gameState: createMockGameState({
-        // TODO: keep combat + overworld actors aligned; using player stubs to satisfy GameState.
         party: [caster, ...targets].map(character => createMockPlayerCharacter({ id: character.id, name: character.name }))
     })
 });

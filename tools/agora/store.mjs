@@ -17,6 +17,150 @@ import crypto from 'node:crypto';
 
 const TASK_STATES = new Set(['open', 'claimed', 'in_progress', 'blocked', 'done']);
 
+const UNCATEGORIZED_TASK_CATEGORY = 'uncategorized';
+
+function normalizeCategoryInput(category) {
+  if (typeof category !== 'string') return '';
+  const v = category.trim().toLowerCase();
+  if (!v) return '';
+  return v.replace(/[^a-z0-9:_-]/g, ' ').replace(/\s+/g, '-');
+}
+
+function normalizeCategoryList(categories = []) {
+  const input = Array.isArray(categories) ? categories : [categories];
+  const out = [];
+  const seen = new Set();
+  for (const raw of input) {
+    const n = normalizeCategoryInput(raw);
+    if (!n || seen.has(n)) continue;
+    seen.add(n);
+    out.push(n);
+  }
+  return out;
+}
+
+function normalizeTaskPath(raw) {
+  if (!raw) return '';
+  let p = String(raw).trim().replace(/\\/g, '/');
+  // Normalize absolute Windows / mixed paths into repo-relative style.
+  const lower = p.toLowerCase();
+  const marker = '/repos/aralia/';
+  const markerPos = lower.indexOf(marker);
+  if (markerPos >= 0) {
+    p = p.slice(markerPos + marker.length);
+  }
+  p = p.replace(/^[a-z]:\//, '');
+  p = p.replace(/^\/+/, '').replace(/\/+$/, '');
+  return p;
+}
+
+function categoryFromPath(raw) {
+  const p = normalizeTaskPath(raw);
+  if (!p) return UNCATEGORIZED_TASK_CATEGORY;
+  const lower = p.toLowerCase();
+  if (lower.startsWith('.github/')) return 'github';
+  if (lower.startsWith('docs/projects/')) {
+    const parts = lower.split('/');
+    const project = parts[2] || 'docs-project';
+    return `project:${project}`;
+  }
+  if (lower.startsWith('docs/')) return 'docs';
+  if (lower.startsWith('src/')) return 'src';
+  if (lower.startsWith('tools/')) return 'tools';
+  if (lower.startsWith('scripts/')) return 'scripts';
+  if (lower.startsWith('tests/')) return 'tests';
+  if (lower.startsWith('misc/')) return 'misc';
+  return UNCATEGORIZED_TASK_CATEGORY;
+}
+
+function firstPathFromRefs(refs = []) {
+  for (const ref of refs) {
+    if (typeof ref !== 'string') continue;
+    const match = ref.match(/([^:]+):\d+$/);
+    const rawPath = match ? match[1] : ref;
+    const category = categoryFromPath(rawPath);
+    if (category !== UNCATEGORIZED_TASK_CATEGORY) return category;
+  }
+  return '';
+}
+
+function inferTodoCategoryFromBody(body) {
+  if (typeof body !== 'string') return '';
+  const match = /TODO\(\s*([^)]+)\s*\)/i.exec(body);
+  if (!match) return '';
+
+  const rawTag = match[1].trim().toLowerCase();
+  const normalizedTag = normalizeCategoryInput(rawTag);
+  if (!normalizedTag) return '';
+
+  if (/^\d{4}-\d{2}-\d{2}/.test(normalizedTag)) return 'todo:cleanup';
+  if (/\blint\b/.test(rawTag) || /lint-intent/.test(normalizedTag)) return 'todo:lint';
+  if (/next-agent/.test(normalizedTag)) return 'todo:next-agent';
+  if (/navigator/.test(normalizedTag)) return 'todo:navigator';
+  if (/spell/.test(rawTag)) return 'todo:spells';
+  if (/docs|documentation/.test(rawTag)) return 'todo:docs';
+  if (/test/.test(rawTag)) return 'todo:tests';
+  if (/pass|sweep|cleanup|refactor/.test(rawTag)) return 'todo:cleanup';
+  if (/work|task|ticket/.test(rawTag)) return 'todo:work';
+  return `todo:${normalizedTag}`;
+}
+
+function inferWorkTypeCategoryFromBody(body) {
+  const todo = inferTodoCategoryFromBody(body);
+  if (!todo) return '';
+  return todo.startsWith('todo:') ? todo : `work:${todo}`;
+}
+
+function normalizeCategoryPath(raw) {
+  const category = categoryFromPath(raw);
+  if (category === UNCATEGORIZED_TASK_CATEGORY) return '';
+  return `domain:${category}`;
+}
+
+function inferTaskCategories(task = {}) {
+  const explicitList = normalizeCategoryList(task.categories || []);
+  const explicitPrimary = normalizeCategoryInput(task.category);
+  const out = [];
+  const seen = new Set();
+  const add = (v) => {
+    const n = normalizeCategoryInput(v);
+    if (!n || seen.has(n)) return;
+    seen.add(n);
+    out.push(n);
+  };
+
+  if (explicitPrimary) add(explicitPrimary);
+  for (const c of explicitList) add(c);
+
+  const fromTodo = inferWorkTypeCategoryFromBody(task.body);
+  if (fromTodo) add(fromTodo);
+
+  const fromRefs = firstPathFromRefs(task.refs || []);
+  const fromPath = normalizeCategoryPath(fromRefs);
+  if (fromPath) add(fromPath);
+
+  if (typeof task.body === 'string') {
+    const fileMatch = /File:\s*([^\r\n]+)/i.exec(task.body);
+    const bodyPath = normalizeCategoryPath(fileMatch ? fileMatch[1] : '');
+    if (bodyPath) add(bodyPath);
+  }
+
+  if (!out.length) {
+    add(UNCATEGORIZED_TASK_CATEGORY);
+  }
+
+  return out;
+}
+
+function inferTaskCategory(task = {}) {
+  return inferTaskCategories(task)[0] || UNCATEGORIZED_TASK_CATEGORY;
+}
+
+function withCategory(task) {
+  const categories = inferTaskCategories(task);
+  return { ...JSON.parse(JSON.stringify(task)), category: categories[0], categories };
+}
+
 /**
  * Translate a glob pattern (`*`, `**`, `?`) into a RegExp anchored full-string.
  * Semantics (POSIX-ish, '/' as separator):
@@ -187,6 +331,14 @@ export function createStore({
       const t = state.tasks.get(p.taskId);
       if (!t) return;
       t.claimedBy = p.toAgentId;
+      t.updatedAt = p.ts;
+      t.history.push(p.entry);
+    },
+    'task.categories'(p) {
+      const t = state.tasks.get(p.taskId);
+      if (!t) return;
+      t.category = normalizeCategoryInput(p.category || '');
+      t.categories = normalizeCategoryList(p.categories);
       t.updatedAt = p.ts;
       t.history.push(p.entry);
     },
@@ -419,7 +571,7 @@ export function createStore({
   // ===========================================================================
   // Task board
   // ===========================================================================
-  function createTask({ agentId, title, body, deps, priority, refs } = {}) {
+  function createTask({ agentId, title, body, deps, priority, refs, category } = {}) {
     const ts = now();
     const depIds = Array.isArray(deps) ? deps.filter(Boolean) : [];
     for (const d of depIds) {
@@ -429,6 +581,7 @@ export function createStore({
       id: genId(),
       title: title || '',
       body: body || '',
+      category: normalizeCategoryInput(category),
       state: 'open',
       createdBy: agentId,
       claimedBy: null,
@@ -501,19 +654,42 @@ export function createStore({
     const t = state.tasks.get(taskId);
     if (!t) return { ok: false, error: 'task not found' };
     if (!toAgentId) return { ok: false, error: 'toAgentId required' };
+    // Authorization (WF-G11): only the current claimant or the task's creator
+    // (the orchestrator, for seeded tasks) may reassign it.
+    if (t.claimedBy && t.claimedBy !== agentId && t.createdBy !== agentId) {
+      return { ok: false, error: 'only the claimant or the task creator may handoff' };
+    }
     const ts = now();
     const entry = { at: ts, by: agentId, action: 'handoff', to: toAgentId, state: t.state };
     emit('task.handoff', { taskId, agentId, toAgentId, ts, entry });
     return { ok: true, task: JSON.parse(JSON.stringify(state.tasks.get(taskId))) };
   }
 
-  function listTasks({ state: filterState, ready } = {}) {
+  function setTaskCategories({ taskId, agentId, categories, category } = {}) {
+    const t = state.tasks.get(taskId);
+    if (!t) return { ok: false, error: 'task not found' };
+    const merged = normalizeCategoryList([
+      ...(typeof category === 'string' ? [category] : []),
+      ...normalizeCategoryList(categories),
+    ]);
+    if (!merged.length) return { ok: false, error: 'at least one category is required' };
+
+    const ts = now();
+    const entry = { at: ts, by: agentId, action: 'categories', state: t.state };
+    emit('task.categories', { taskId, agentId, categories: merged, category: merged[0], ts, entry });
+    return { ok: true, task: JSON.parse(JSON.stringify(state.tasks.get(taskId))) };
+  }
+
+  function listTasks({ state: filterState, ready, category } = {}) {
     let source = [...state.tasks.values()];
     if (ready) source = source.filter(isTaskReady).sort(readyOrder);
+    const normalizedCategory = category == null ? '' : normalizeCategoryInput(category);
     const out = [];
     for (const t of source) {
+      const row = withCategory(t);
+      if (normalizedCategory && !row.categories.includes(normalizedCategory)) continue;
       if (filterState && t.state !== filterState) continue;
-      out.push(JSON.parse(JSON.stringify(t)));
+      out.push(row);
     }
     return out;
   }
@@ -571,7 +747,14 @@ export function createStore({
     // a returning agent re-registers). Presence demotion (online -> stale)
     // stays lazy in listAgents().
     for (const agent of [...state.agents.values()]) {
-      if (t - agent.lastSeen <= presenceDropMs) continue;
+      // Grace for agents mid-work (WF-G4): an agent holding a claimed/
+      // in-progress task gets DOUBLE the silence horizon before reaping —
+      // quiet-but-alive workers deep in an edit are the false-positive case.
+      const holdsWork = [...state.tasks.values()].some(
+        (task) => task.claimedBy === agent.id && (task.state === 'claimed' || task.state === 'in_progress'),
+      );
+      const horizon = holdsWork ? presenceDropMs * 2 : presenceDropMs;
+      if (t - agent.lastSeen <= horizon) continue;
       for (const lock of [...state.locks.values()]) {
         if (lock.agentId === agent.id) {
           emit('lock.release', { lockId: lock.id, agentId: agent.id, reaped: true });
@@ -611,6 +794,7 @@ export function createStore({
     claimTask,
     claimNextReady,
     setTaskState,
+    setTaskCategories,
     handoffTask,
     listTasks,
     // messaging

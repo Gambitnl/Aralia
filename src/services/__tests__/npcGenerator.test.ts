@@ -27,7 +27,7 @@ describe('NPC Generator', () => {
     expect(npc.role).toBe('guard');
     expect(npc.initialPersonalityPrompt).toContain('guard');
     expect(npc.memory).toBeDefined();
-    // TODO(preserve-lint): npc.memory uses NpcMemory until the unified memory model lands.
+    // TODO #538(preserve-lint): npc.memory uses NpcMemory until the unified memory model lands.
     const memory = npc.memory as NpcMemory | undefined;
     expect(memory?.disposition).toBe(50);
   });
@@ -47,7 +47,7 @@ describe('NPC Generator', () => {
     const npc = generateNPC(config);
 
     expect(npc.name).toBe('Test Merchant');
-    // TODO(preserve-lint): npc.memory uses NpcMemory until the unified memory model lands.
+    // TODO #539(preserve-lint): npc.memory uses NpcMemory until the unified memory model lands.
     const memory = npc.memory as NpcMemory | undefined;
     expect(memory?.disposition).toBe(80);
     expect(npc.faction).toBe('Merchants Guild');

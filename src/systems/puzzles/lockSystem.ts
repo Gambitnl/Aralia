@@ -222,4 +222,4 @@ export function disarmTrap(
    };
 }
 
-// TODO(Lockpick): Integrate this system with the Dungeon Map generation (Submap) to place locked doors and trapped chests.
+// TODO #895(Lockpick): Integrate this system with the Dungeon Map generation (Submap) to place locked doors and trapped chests.

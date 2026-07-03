@@ -34,10 +34,7 @@ import { NavalState, Ship } from './naval.js';
 import { CraftingState } from './crafting.js';
 import { JournalState } from './journal.js';
 import type { WorldDelta } from '../systems/worldforge/delta/types.js';
-// TODO(lint-intent): 'Notification' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Notification } from './ui.js';
+import type { Notification } from './ui.js';
 import { PlayerIdentityState } from './identity.js';
 
 // -----------------------------------------------------------------------------
@@ -351,9 +348,6 @@ export interface GameState {
    * broadsheet" action). Cleared on open-live and on close.
    */
   broadsheetSnapshot?: string;
-  // TODO(lint-intent): The any on 'notifications' hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
   notifications: Notification[];
 
   factions: Record<string, Faction>;
@@ -370,8 +364,6 @@ export interface GameState {
   fences: Record<string, Fence>;
   thievesGuild?: GuildMembership;
   activeHeist?: HeistPlan | null;
-  // TODO(lint-intent): 'activeContracts' uses 'unknown[]' because the contract shape isn't fully defined/exported yet.
-  // TODO(lint-intent): Replace with 'Contract[]' once the contract type is available in a shared module.
   activeContracts?: unknown[];
 
   dynamicLocations: Record<string, Location>;
@@ -425,7 +417,6 @@ export interface GameState {
   isOllamaDependencyModalVisible: boolean;
 
   banterCooldowns: Record<string, number>;
-  // TODO(lint-intent): naval ship state is optional and currently typed loosely; define Ship shape and wire it here.
   ship?: Ship;
 
   // Crafting system state

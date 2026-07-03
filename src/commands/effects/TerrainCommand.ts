@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 16:51:25
+ * Last Sync: 02/07/2026, 05:50:27
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 7 files
  *
@@ -57,10 +57,10 @@ export class TerrainCommand extends BaseEffectCommand {
              newMapData.tiles = newTiles
              newState.mapData = newMapData
         }
-        // TODO: When map data is absent, persist a lightweight terrain zone so the effect survives beyond logging (e.g., for battle map-less encounters).
+        // TODO #9: When map data is absent, persist a lightweight terrain zone so the effect survives beyond logging (e.g., for battle map-less encounters).
 
         // Handle structured manipulation logging if present
-        if (effect.manipulation) {
+        if (this.hasIntentionalManipulation(effect)) {
             return this.executeManipulation(newState, effect, affectedTiles)
         }
 
@@ -86,7 +86,7 @@ export class TerrainCommand extends BaseEffectCommand {
         }
 
         // Handle explicit manipulation (e.g. Mold Earth)
-        if (effect.manipulation) {
+        if (this.hasIntentionalManipulation(effect)) {
             switch (effect.manipulation.type) {
                 case 'difficult':
                     this.applyDifficultTerrain(tile, effect.duration)
@@ -133,6 +133,20 @@ export class TerrainCommand extends BaseEffectCommand {
                 break
             case 'obscuring':
                 tile.blocksLoS = true
+                this.addEnvironmentalEffect(tile, {
+                    id: `fog-terrain-${Date.now()}-${Math.random()}`,
+                    type: 'fog',
+                    duration: effect.duration ? this.resolveDuration(effect.duration) : 10,
+                    effect: {
+                        id: `fog-terrain-status-${Date.now()}`,
+                        name: 'Heavily Obscuring Fog',
+                        type: 'neutral',
+                        duration: effect.duration ? this.resolveDuration(effect.duration) : 10,
+                        effect: { type: 'condition' }
+                    },
+                    sourceSpellId: this.context.spellId,
+                    casterId: this.context.caster.id
+                })
                 break
             case 'damaging':
                 if (effect.damage) {
@@ -230,11 +244,34 @@ export class TerrainCommand extends BaseEffectCommand {
         tile.environmentalEffects = [...currentEffects, effect]
     }
 
-    private mapDamageToEnvType(damageType: DamageType): 'fire' | 'ice' | 'poison' | undefined {
+    private hasIntentionalManipulation(effect: TerrainEffect): effect is TerrainEffect & { manipulation: NonNullable<TerrainEffect['manipulation']> } {
+        if (!effect.manipulation) {
+            return false
+        }
+
+        // Some live spell data carries a zero-volume cosmetic scaffold while
+        // the actual mechanic is still `terrainType`. Only Mold Earth-style
+        // cosmetic choices should bypass the terrain switch.
+        if (effect.manipulation.type === 'cosmetic') {
+            return this.context.spellId === 'mold-earth'
+        }
+
+        return true
+    }
+
+    private mapDamageToEnvType(damageType: DamageType): EnvironmentalEffect['type'] | undefined {
         switch (damageType) {
             case 'Fire': return 'fire'
             case 'Cold': return 'ice'
             case 'Poison': return 'poison'
+            case 'Piercing':
+            case 'Slashing':
+            case 'Bludgeoning':
+                // Spike Growth and similar physical hazards are not elemental,
+                // but they still need a durable map marker so players can see
+                // where the damaging ground is distinct from plain difficult
+                // terrain.
+                return 'hazard'
             default: return undefined
         }
     }

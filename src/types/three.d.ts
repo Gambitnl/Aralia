@@ -1,4 +1,3 @@
-// TODO(2026-01-15 Codex-CLI): Replace this shim with upstream three typings once available in this repo.
 /*
 declare module 'three' {
   export class Object3D { [key: string]: any; }

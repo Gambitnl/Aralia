@@ -21,10 +21,7 @@
  * @file src/systems/naval/VoyageManager.ts
  * Logic for managing sea voyages, including daily progression and event resolution.
  */
-// TODO(lint-intent): 'VoyageEvent' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Ship, VoyageState, VoyageEvent as _VoyageEvent, RationingLevel as _RationingLevel } from '../../types/naval';
+import { Ship, VoyageState } from '../../types/naval';
 import { VOYAGE_EVENTS } from '../../data/naval/voyageEvents';
 import { CrewManager } from './CrewManager';
 import { WeatherState } from '../../types/environment';
@@ -135,8 +132,6 @@ export class VoyageManager {
 
         // Simple weighted choice
         const eventRoll = randomSource.next();
-        let _eventResult = null;
-
         if (eventRoll < 0.4 && possibleEvents.length > 0) {
             const eventIndex = Math.floor(randomSource.next() * possibleEvents.length);
             const event = possibleEvents[eventIndex];
@@ -145,10 +140,6 @@ export class VoyageManager {
                  const result = event.effect(state, currentShip, () => randomSource.next());
                  dailyLog = result.log;
                  dailyLogType = result.type;
-                 // TODO(lint-intent): '_eventResult' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-                 // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-                 // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-                 _eventResult = event;
             }
         }
 

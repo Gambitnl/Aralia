@@ -86,7 +86,6 @@ export class ConditionEvaluator {
   }
 
   private static evaluateCreatureType(condition: import('../../types/logic').CreatureTypeCondition, character: CombatCharacter): boolean {
-    // TODO(Analyst): Populate creatureTypes on characters during initialization from Race/Class data.
     // Currently, this check relies on the property being present, but it may be undefined for legacy data.
     if (!character.creatureTypes || character.creatureTypes.length === 0) {
       return false;
@@ -110,15 +109,30 @@ export class ConditionEvaluator {
   }
 
   private static getStatValue(character: CombatCharacter, stat: string): number {
-      // stats are typically stored in character.stats[stat]
-      // Mapping 'strength' -> 'str', etc. might be needed
-      const key = stat.toLowerCase();
-      // Assuming stats are flattened or accessible via abilities
-      // CombatCharacter has 'abilities' { strength: 10... }
-      // TODO(2026-01-03 pass 4 Codex-CLI): Replace loose stat lookup with an explicit key map once ConditionAttributes are typed.
-      // Was a direct CharacterStats->Record cast; now cast through unknown to satisfy TS index-signature mismatch.
-      const stats = character.stats as unknown as Record<string, number>;
-      return typeof stats[key] === 'number' ? stats[key] : 0;
+    const normalizedStat = stat.toLowerCase();
+    const statMap: Record<string, keyof CombatCharacter['stats']> = {
+      strength: 'strength',
+      str: 'strength',
+      dexterity: 'dexterity',
+      dex: 'dexterity',
+      constitution: 'constitution',
+      con: 'constitution',
+      intelligence: 'intelligence',
+      int: 'intelligence',
+      wisdom: 'wisdom',
+      wis: 'wisdom',
+      charisma: 'charisma',
+      cha: 'charisma',
+      speed: 'speed',
+      movement: 'speed',
+      baseinitiative: 'baseInitiative',
+    };
+
+    const mappedKey = statMap[normalizedStat];
+    if (!mappedKey) return 0;
+
+    const value = character.stats[mappedKey];
+    return typeof value === 'number' ? value : 0;
   }
 
   private static compare(actual: number, op: import('../../types/logic').ComparisonOperator, target: number): boolean {

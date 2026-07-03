@@ -74,7 +74,7 @@ half of G2. Resolve the resulting state through `applyStateToTags`.
 
 Acceptance criteria:
 Use the active TRACKER.md T5 row. Done when condition-to-state mapping exists in
-`StatusConditionCommand`, the elemental TODO(Simulator) at line ~147 is
+`StatusConditionCommand`, the elemental follow-up item at line ~147 is
 addressed, a regression test covers at least one condition that maps to a
 StateTag, and the handoff records the proof source. If T5 is blocked, record the
 blocker and pick the next actionable item (G3 tile-effect schema unify is the

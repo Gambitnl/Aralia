@@ -14,7 +14,7 @@
  */
 // @dependencies-end
 
-import { GameState, DeityAction, DivineFavor, ReligionState } from '../../types';
+import { GameState, DeityAction, DivineFavor, ReligionState, StatusEffect, Blessing } from '../../types';
 import { AppAction } from '../actionTypes';
 import { calculateFavorChange, getDeity, evaluateAction, grantBlessing, resolveBlessingDefinition } from '../../utils/religionUtils';
 import { DEITIES } from '../../data/deities';
@@ -264,12 +264,12 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
 
                     // 2. Add Blessing to Favor Record
                     const existing = favorUpdates[deityId] || getFavorRecord(religionState, state.divineFavor, deityId);
-                    const blessingRecord = {
+                    const blessingRecord: Blessing = {
                         id: blessingId,
                         name: name,
                         description: description,
                         effect: statusEffect
-                    } as unknown as import('../../types').Blessing; // TODO(2026-01-03 pass 4 Codex-CLI): cast blessing until MechanicalEffect wiring is in place.
+                    };
 
                     favorUpdates[deityId] = grantBlessing(existing, blessingRecord);
 
@@ -282,7 +282,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                 }
             }
 
-            const partyWithEffects = party as GameState['party']; // TODO(2026-01-03 pass 4 Codex-CLI): cast party after effect application until status effect typing is unified.
+            const partyWithEffects = party;
 
             return {
                 gold: newGold,

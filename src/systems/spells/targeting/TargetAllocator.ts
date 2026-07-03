@@ -19,10 +19,7 @@
  * Provides logic for complex target allocation strategies, such as the HP pool mechanics
  * used by "Sleep" and "Color Spray".
  */
-// TODO(lint-intent): 'Spell' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { TargetAllocation, Spell as _Spell, ScalingFormula } from '../../../types/spells';
+import { TargetAllocation, ScalingFormula } from '../../../types/spells';
 import { CombatCharacter } from '../../../types/combat';
 import { rollDice } from '../../../utils/combatUtils';
 
@@ -82,7 +79,7 @@ export class TargetAllocator {
       return this.processPoolAllocation(candidates, allocation.pool, context, logs);
     }
 
-    // TODO: Implement 'random' and 'choice' strategies when needed.
+    // Non-pool strategies are intentionally unsupported in this allocator pass.
     logs.push(`Unsupported allocation type: ${allocation.type}`);
     return { selectedTargets: candidates, logs };
   }
@@ -158,8 +155,8 @@ export class TargetAllocator {
   private static getResourceValue(character: CombatCharacter, resource: 'hp' | 'hit_dice'): number {
     if (resource === 'hp') {
       // Some callers provide a loose combat stub with `hp`; fall back to `currentHP`.
-      // TODO(lint-intent): Normalize on `currentHP` across combat helpers.
-      return (character as unknown as { hp?: number }).hp ?? character.currentHP ?? 0;
+      const stubHp = (character as { hp?: number }).hp
+      return stubHp ?? character.currentHP ?? 0;
     }
     if (resource === 'hit_dice') {
       if (character.hitPointDice && character.hitPointDice.length > 0) {

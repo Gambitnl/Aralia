@@ -148,9 +148,6 @@ const GameModals: React.FC<GameModalsProps> = ({
     currentLocation,
     npcsInLocation,
     itemsInLocation,
-    // TODO(lint-intent): 'isUIInteractive' is an unused parameter, which suggests a planned input for this flow.
-    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
     isUIInteractive: _isUIInteractive,
     missingChoiceModal,
     onCloseMissingChoice,
@@ -759,7 +756,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                         </ErrorBoundary>
                     </Suspense>
                 ) : (
-                    // TODO: Extract this inline "No Data" error UI into a reusable <ModalErrorState message="" /> component.
+                    // TODO #93: Extract this inline "No Data" error UI into a reusable <ModalErrorState message="" /> component.
                     // Similar error states (missing data, loading failures) will likely be needed for other dashboards (Treasure, Trade, etc.) as we expand.
                     <div key="naval" className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/80">
                         <div className="bg-gray-800 p-6 rounded border border-sky-600 text-center shadow-xl max-w-md">

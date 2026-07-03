@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/07/2026, 22:23:48
+ * Last Sync: 02/07/2026, 11:25:18
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/DamageCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 10 files
  *
@@ -187,7 +187,9 @@ export class StatusConditionCommand extends BaseEffectCommand {
         ...this.getStatusMetadata()
       };
 
-      // TODO: Wire ActiveCondition durations into the turn cleanup pipeline so these expire and log when they end (see structured-spell-execution-G7 in docs/projects/spells/subprojects/structured-spell-execution/GAPS.md).
+      // The turn manager owns condition expiry because it can clean both the
+      // visible status label and the rules-facing condition mirror at the same
+      // turn boundary. This command only writes the paired records.
       const updatedConditions = this.applyCondition(target.conditions, appliedCondition);
       const { statusEffects, appliedStatus } = this.applyStatusEffect(
         target.statusEffects,
@@ -240,7 +242,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
    * Apply or refresh a condition entry on the character. Re-applying the same condition name
    * refreshes duration/turn so downstream systems don't stack duplicates.
    */
-  // TODO(Simulator): Integrate StateSystem.applyStateToTags when applying elemental conditions (e.g. mapping 'Ignited' condition to 'Burning' state).
+  // TODO #7(Simulator): Integrate StateSystem.applyStateToTags when applying elemental conditions (e.g. mapping 'Ignited' condition to 'Burning' state).
   private applyCondition(
     existing: ActiveCondition[] | undefined,
     condition: ActiveCondition
@@ -666,7 +668,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
       case 'special':
         return val;
       default:
-        // TODO(lint-intent): Legacy durations like 'hours'/'instantaneous' should be normalized before calling this command.
+        // TODO #8(lint-intent): Legacy durations like 'hours'/'instantaneous' should be normalized before calling this command.
         return val;
     }
   }

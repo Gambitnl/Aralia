@@ -113,6 +113,10 @@ during long work or be reaped; finish tasks with `task done <id> --result "<proo
 - Which AI agents may be dispatched (statuses/policy): `tools/agora/agents.json`
   (`node tools/agora/orchestrate.mjs agents`)
 - Project-tracker work intake: `node tools/agora/gapIndex.mjs --open-only --summary`
+- ⚠️ **Hook rollouts are partial until sessions restart**: new hooks in `.claude/settings.json`
+  (e.g. the destructive-git guard) do NOT load into already-running Claude sessions whose
+  settings watcher predates the file. After a hook rollout is announced on the Agora board,
+  restart your session (or reload settings) before relying on the protection.
 
 ## MemPalace (AI Memory System)
 

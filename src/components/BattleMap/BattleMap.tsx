@@ -200,7 +200,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
     return <div>Generating map...</div>;
   }
 
-  // TODO(Ritualist): Implement ritual progress visualization in the map overlay or UI panel.
+  // TODO #33(Ritualist): Implement ritual progress visualization in the map overlay or UI panel.
   // The 'activeRitual' state is now available in GameState. Render a progress bar if activeRitual is present and !isComplete.
   // Ensure the progress bar clearly shows interruption conditions (e.g., "Damage breaks concentration").
 
@@ -255,9 +255,6 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
       )}
 
       {/*
-        TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
-        TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
-        TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
       */}
       <div className={`battle-map-container bg-gray-800 p-2 rounded-lg shadow-lg ${abilitySystem.targetingMode ? 'cursor-crosshair' : ''}`}
           style={{

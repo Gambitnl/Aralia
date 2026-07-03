@@ -140,7 +140,6 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
     case 'INTERRUPT_RITUAL': {
       if (!state.activeRitual) return {};
 
-      // TODO(2026-01-03 pass 4 Codex-CLI): Cast ritual interrupt payload until event shape is fully typed.
       const event = action.payload.event as { type: 'damage' | 'movement' | 'condition'; value?: unknown; conditionName?: string } | undefined;
       if (!event) return {};
       // Fixed: Unpack the event object to match checkRitualInterrupt signature (ritual, type, value, name)
@@ -160,16 +159,10 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
              interruptionReason: interruptResult.reason || 'External disturbance'
          };
 
-         // const backlashEffects = RitualManager.getBacklashOnFailure(updatedRitual);
-         // TODO(lint-intent): The any on 'backlashEffects' hides the intended shape of this data.
-         // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-         // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-        const backlashEffects: unknown[] = [];
+          // const backlashEffects = RitualManager.getBacklashOnFailure(updatedRitual);
+         const backlashEffects: unknown[] = [];
 
         const backlashMessage = backlashEffects.length > 0
-            // TODO(lint-intent): The any on 'b' hides the intended shape of this data.
-            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
             ? `Backlash: ${backlashEffects.map((b: unknown) => (b as { description?: string })?.description || 'effect').join(' ')}`
             : 'The magic dissipates harmlessly.';
 

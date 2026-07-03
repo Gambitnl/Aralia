@@ -4,7 +4,7 @@
  * such as checking prerequisites, environmental factors, or complex ability interactions.
  */
 
-import { CombatCharacter, Ability, /* TODO: Position, */ BattleMapData } from '../../types/combat';
+import { CombatCharacter, Ability, BattleMapData } from '../../types/combat';
 
 export const useCombatValidation = (_characters: CombatCharacter[], _mapData: BattleMapData | null) => {
     // This hook is a placeholder for future, more complex validation logic.

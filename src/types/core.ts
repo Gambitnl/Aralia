@@ -143,8 +143,8 @@ export interface CharacterStats {
   crLair?: string;
   xpLair?: number;
   size?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
-  alignment?: string; // TODO(preserve-lint): Monster data still carries alignment text; unify with Alignment enum when combat AI needs it.
-  creatureTypes?: string[]; // TODO(preserve-lint): legacy monster data annotates taxonomy here; reconcile with creature metadata model.
+  alignment?: string;
+  creatureTypes?: string[];
   senses?: CharacterSenses;
   legendaryActionsPerRound?: number;
   /**

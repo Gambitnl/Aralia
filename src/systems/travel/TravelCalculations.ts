@@ -63,9 +63,6 @@ export interface ForcedMarchStatus {
  */
 export function calculateForcedMarchStatus(hoursTraveled: number): ForcedMarchStatus {
   const SAFE_TRAVEL_HOURS = 8;
-  // TODO(lint-intent): 'isForcedMarch' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
   const _isForcedMarch = hoursTraveled > SAFE_TRAVEL_HOURS;
 
   // RALPH: Exhaustion Risk Calculation.
@@ -85,11 +82,6 @@ export function calculateForcedMarchStatus(hoursTraveled: number): ForcedMarchSt
   // 9 hours -> 1 hour over -> DC 10 + 1 = 11.
   // 8.5 hours -> 0.5 hours over. If we check at the END of the hour, we haven't triggered the DC 11 check yet.
   // We will treat hoursOverLimit as the integer count of full hours past 8.
-  // TODO(lint-intent): 'hoursOverLimit' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-  const _hoursOverLimit = Math.floor(Math.max(0, hoursTraveled - SAFE_TRAVEL_HOURS));
-
   // PHB: "The DC is 10 + 1 for each hour of past 8 hours."
   // If we have traveled > 8 hours, it is a forced march.
   // But if hoursOverLimit is 0 (e.g. 8.5 hours), strict reading might imply no check or DC 10.
@@ -127,7 +119,6 @@ export function calculateEncumbrance(
   // Calculate total weight
   // Note: Coin weight is often ignored or calculated separately, standard 5e is 50 coins = 1 lb.
   // We'll focus on item weight for now.
-  // TODO(lint-intent): quantity is optional on Item; assume 1 when absent so encumbrance math remains conservative.
   const totalWeight = inventory.reduce((sum, item) => sum + (item.weight || 0) * ((item as any).quantity ?? 1), 0);
 
   const strScore = (character.finalAbilityScores as any).Strength || 10;
@@ -230,10 +221,7 @@ export function calculateGroupTravelStats(
   const baseMph = minSpeed / 10;
 
   // 3. Apply Pace Modifier
-  // TODO(lint-intent): Confirm the ts-expect-error is still needed or align the pace modifiers type contract.
-  // TODO(lint-intent): If backward compatibility is required, codify a guard or schema for speedMultiplier.
-  // @ts-expect-error - Backward compatibility for types if speedMultiplier was used
-  const paceMod = PACE_MODIFIERS[pace].speedModifier || PACE_MODIFIERS[pace].speedMultiplier;
+  const paceMod = PACE_MODIFIERS[pace].speedModifier;
 
   // 4. Apply Terrain Modifier
   // Water vehicles (rowboat, keelboat) generally ignore land terrain penalties but might have water equivalents.

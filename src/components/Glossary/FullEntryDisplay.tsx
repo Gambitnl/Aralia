@@ -95,7 +95,7 @@ const stripMainHeading = (markdownContent: string): string => {
   const yamlFrontmatterRegex = /^\s*---([\s\S]*?)---(?:\r?\n|\r|$)/;
   let content = markdownContent.replace(yamlFrontmatterRegex, '').trimStart();
 
-  // TODO: Improve heading removal to support alternate Markdown H1 syntax (e.g., 'Title\n===') or use a Markdown AST parser to remove the first heading node safely, ensuring consistent rendering regardless of source formatting.
+  // TODO #81: Improve heading removal to support alternate Markdown H1 syntax (e.g., 'Title\n===') or use a Markdown AST parser to remove the first heading node safely, ensuring consistent rendering regardless of source formatting.
   // Remove the first H1 heading (e.g., "# Heading") as we now render it separately
   const h1Regex = /^#\s+.+$/m;
   content = content.replace(h1Regex, '').trimStart();

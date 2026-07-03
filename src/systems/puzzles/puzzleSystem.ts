@@ -48,13 +48,7 @@ export function attemptPuzzleInput(
       puzzle.currentInputSequence.push(input);
 
       // Check if the sequence so far matches the solution prefix
-      // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
-      // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
-      // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
       const currentIndex = puzzle.currentInputSequence.length - 1;
-      // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
-      // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
-      // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
       const expected = puzzle.solutionSequence?.[currentIndex];
 
       if (input === expected) {
@@ -137,7 +131,7 @@ export function attemptPuzzleInput(
     return result;
   }
 
-// TODO(Lockpick): Integrate this system with the Dungeon Map generation (Submap) to place puzzles.
+// TODO #910(Lockpick): Integrate this system with the Dungeon Map generation (Submap) to place puzzles.
 }
 
 /**

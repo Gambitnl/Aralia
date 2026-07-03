@@ -1280,7 +1280,7 @@ export const applyFeatToCharacter = (
   }
 
   // Lucky (2024): Creates a luck_points pool = Proficiency Bonus, resets on Long Rest.
-  // TODO(FEATURES): Wire luck point spending into attack rolls, skill checks, and saving throws
+  // TODO #1279(FEATURES): Wire luck point spending into attack rolls, skill checks, and saving throws
   //   (spend to gain Advantage on a d20 test; force attacker re-roll when targeted).
   if (benefit?.luckyPoints) {
     // WHAT CHANGED: Added luck_points to limitedUses.
@@ -1604,7 +1604,7 @@ export const performLevelUp = (
     }
   }
 
-  // TODO(FEATURES): Grant class abilities/spells on level-up (beyond ASI/feats) and persist new spellbook entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  // TODO #1280(FEATURES): Grant class abilities/spells on level-up (beyond ASI/feats) and persist new spellbook entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   // Recalculate derived scores after ASI/feat adjustments.
   updatedCharacter = applyRacialSpellGrantsByLevel(updatedCharacter, newLevel);
   updatedCharacter.finalAbilityScores = calculateFinalAbilityScores(updatedCharacter.abilityScores, updatedCharacter.race, updatedCharacter.equippedItems);

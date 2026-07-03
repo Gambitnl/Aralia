@@ -21,14 +21,6 @@
  * @file src/systems/puzzles/types.ts
  * Defines types for Locks, Traps, Puzzles, and Pressure Plates.
  */
-// TODO(lint-intent): 'CharacterStats' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { CharacterStats as _CharacterStats } from '../../types/combat.js';
-// TODO(lint-intent): 'Item' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Item as _Item } from '../../types/items.js';
 import { AbilityScoreName } from '../../types/core.js';
 
 export type DamageType =
@@ -55,7 +47,7 @@ export interface TrapEffect {
   saveType?: AbilityScoreName;
   /**
    * Legacy discriminator carried by earlier trap implementations (e.g., teleport/condition/restrain).
-   * TODO(lint-preserve): Replace this loose string with a refined union once trap effects are standardized.
+   * TODO #924(lint-preserve): Replace this loose string with a refined union once trap effects are standardized.
    */
   type?: string;
 }

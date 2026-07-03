@@ -1,8 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
 import { generateNobleHouse, generateRegionalPolitics } from '../nobleHouseGenerator';
-// TODO(lint-intent): 'Faction' is unused in this test; use it in the assertion path or remove it.
-import { Faction as _Faction } from '../../../types/factions';
 
 describe('nobleHouseGenerator', () => {
   describe('generateNobleHouse', () => {

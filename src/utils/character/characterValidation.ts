@@ -45,7 +45,7 @@ export const validateCharacterChoices = (character: PlayerCharacter): MissingCho
         const skillOptions = Object.entries(SKILLS_DATA).map(([id, skill]) => ({
           id,
           label: skill.name,
-          description: '' // Skill type has no description field yet (see src/data/skills/index.ts TODO)
+          description: skill.description?.trim() || 'No skill description is currently available.'
         }));
 
         missingChoices.push({

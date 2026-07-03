@@ -40,9 +40,42 @@ background heartbeat running for yourself (`node tools/agora/client.mjs heartbea
 — agents silent >60min are reaped (locks freed, tasks reopened, token dead).
 Every `orchestrate <cmd>` below means `node tools/agora/orchestrate.mjs <cmd>`.
 
+## Grill the human BEFORE dispatching anything
+
+Nobody knows exactly what they want at first — a campaign built on an unexamined ask wastes
+an entire fleet. Before partitioning any work, interview the human about their goal
+(method per mattpocock/skills "grilling"):
+
+- **Question ZERO is always the intake decision, grounded in the live board.** Pull the
+  actual open work first — `node tools/agora/client.mjs tasks --state open` (plus
+  `tasks --ready` and the open-gap summary from onboard) — then ask the human ONE
+  question: **continue one of these, or start something new?** List the real open
+  tasks/gaps as the options (title + who created it + how stale), with your recommendation
+  first. Never make the human recall what's on the board — show them. If they pick an
+  existing task, its title/refs seed the rest of the grill; if "new thing", grill from
+  scratch AND ask whether any stale open task it supersedes should be closed.
+- **One question at a time.** Multiple simultaneous questions are bewildering. Ask, wait
+  for the answer, then ask the next.
+- **Every question carries your recommended answer** — present concrete options with your
+  pick marked "(Recommended)" first, never an open-ended "what do you want?".
+- **Explore instead of asking** when the answer is discoverable: the board (`onboard`
+  showed it), the gap index, the tracker docs, and the code can answer scope/state
+  questions — only the human can answer intent/priority/taste questions.
+- **Walk every branch of the decision tree** until you reach shared understanding:
+  the OBJECTIVE (what changes for the player/user when this is done), the SCOPE boundary
+  (what is explicitly OUT), the CONSTRAINTS (files/systems to avoid, policies), and the
+  ACCEPTANCE PROOF (which tests, which numbers, which rendered eyeball).
+- **Stop grilling when you can state the plan in one paragraph and the human says
+  "yes, that".** Write that paragraph into the plan JSON's wave scope and each packet's
+  `guidance` — the workers inherit the shared understanding, not the vague ask.
+
+Skip the grill ONLY when the human's ask already pins objective, scope, and proof — and
+say so in one line ("ask is fully specified; dispatching").
+
 ## The campaign loop
 
-1. **Pick work** from the human's ask, or from `gapIndex --open-only` for the target project.
+1. **Pick work** from the grilled-out objective, or from `gapIndex --open-only` for the
+   target project.
 2. **Partition into disjoint-file packets** — no two packets share a file, one owner per hot
    file. Write your plan JSON to `.agent/scratch/orchestrate/<wave>.json` (shape:
    `tools/agora/example-plan.json`; packet fields: `id, handle, agent, scope, files, issues,

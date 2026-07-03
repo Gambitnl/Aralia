@@ -24,7 +24,6 @@ const mockCharacterWithDex = (dexScore: number): PlayerCharacter => {
         proficiencyBonus: 2,
         darkvisionRange: 0,
         transportMode: "foot"
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
     } as unknown as PlayerCharacter;
 };
 

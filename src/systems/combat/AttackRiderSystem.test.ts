@@ -44,8 +44,7 @@ const createMeleeWeaponRider = (): ActiveRider => ({
     condition: {
       type: 'always'
     }
-  // TODO(lint-intent): Replace this broad payload cast when compact spell-effect fixtures expose every required default.
-  } as unknown as ActiveRider['effect'],
+    } as unknown as ActiveRider['effect'],
   consumption: 'first_hit',
   attackFilter: {
     attackType: 'weapon',
@@ -79,12 +78,10 @@ const createLegacyRangedWeaponRider = (): ActiveRider => ({
     condition: {
       type: 'always'
     }
-  // TODO(lint-intent): Replace this broad payload cast when compact spell-effect fixtures expose every required default.
   } as unknown as ActiveRider['effect'],
   consumption: 'per_instance_hit_or_miss',
-  // TODO(lint-intent): Older spell adapters emitted `ranged_weapon`; keep this
-  // fixture intentionally legacy-shaped until all rider JSON has one canonical
-  // weapon-type label.
+  // Fixture keeps the legacy `ranged_weapon` label while canonical migration is
+  // ongoing in rider JSON producers and consumers.
   attackFilter: {
     attackType: 'weapon',
     weaponType: 'ranged_weapon'
@@ -105,7 +102,6 @@ const createStateWithRider = (rider: ActiveRider): CombatState => ({
     maxHP: 10,
     position: { x: 0, y: 0 },
     riders: [rider]
-  // TODO(lint-intent): Replace this broad character cast when a minimal combat-state fixture exists for rider tests.
   } as unknown as CombatState['characters'][number]],
   currentTurn: 1,
   round: 1,
@@ -114,7 +110,6 @@ const createStateWithRider = (rider: ActiveRider): CombatState => ({
   combatLog: [],
   reactiveTriggers: [],
   activeLightSources: []
-// TODO(lint-intent): Replace this broad combat-state cast when test builders cover every optional combat field.
 } as unknown as CombatState);
 
 // ============================================================================

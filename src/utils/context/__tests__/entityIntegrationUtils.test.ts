@@ -2,8 +2,7 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { resolveAndRegisterEntities } from '../entityIntegrationUtils';
 import { EntityResolverService } from '../../../services/EntityResolverService';
-// TODO(lint-intent): 'Faction' is unused in this test; use it in the assertion path or remove it.
-import { GameState, Location, Faction as _Faction, NPC as _NPC } from '../../../types';
+import { GameState, Location } from '../../../types';
 
 // NOTE: Mock path matches the specifier used by entityIntegrationUtils.
 vi.mock('../../../services/EntityResolverService');

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/07/2026, 22:17:38
+ * Last Sync: 02/07/2026, 05:06:19
  * Dependents: commands/effects/DamageCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/StatusConditionCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/useAbilitySystem.ts
  * Imports: 6 files
  *
@@ -71,7 +71,7 @@ export class StartConcentrationCommand extends BaseEffectCommand {
             const statusId = typeof data.statusId === 'string' ? data.statusId : null;
             if (statusId && condition && typeof condition === 'object' && 'source' in condition) {
                 const source = (condition as { source?: string }).source;
-                // TODO: formalize combat log data shapes so we don't have to duck-type log entries here.
+                // TODO #4: formalize combat log data shapes so we don't have to duck-type log entries here.
                 if (source === spellId || source === this.context.spellName) {
                     effectIds.push(statusId);
                 }
@@ -294,6 +294,74 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
                       fire => fire.spellId !== previousSpellId && !trackedEffectIds.has(fire.id)
                   )
               };
+          }
+
+          // Area zones are the persistent hazard/control records that drive
+          // map markers and entry/end-turn triggers. They are not character
+          // effects, so concentration cleanup has to remove the shared zone
+          // records directly when their owning spell ends.
+          if (updatedState.spellZones) {
+              updatedState = {
+                  ...updatedState,
+                  spellZones: updatedState.spellZones.filter(
+                      zone => zone.spellId !== previousSpellId && !trackedEffectIds.has(zone.id)
+                  )
+              };
+          }
+
+          // Terrain commands write tile-level environmental effects for map
+          // readability. Remove only effects explicitly owned by the ending
+          // concentration spell; permanent terrain and other spells stay intact.
+          if (updatedState.mapData?.tiles) {
+              let mapModified = false;
+              const nextTiles = new Map(updatedState.mapData.tiles);
+
+              for (const [key, tile] of nextTiles.entries()) {
+                  const environmentalEffects = tile.environmentalEffects || [];
+                  const retainedEnvironmentalEffects = environmentalEffects.filter(effect =>
+                      effect.sourceSpellId !== previousSpellId || effect.casterId !== caster.id
+                  );
+                  const singleEnvironmentalEffect = (tile as { environmentalEffect?: { sourceSpellId?: string; casterId?: string; type?: string } }).environmentalEffect;
+                  const shouldRemoveSingleEffect = Boolean(singleEnvironmentalEffect) &&
+                      singleEnvironmentalEffect?.sourceSpellId === previousSpellId &&
+                      singleEnvironmentalEffect?.casterId === caster.id;
+
+                  if (
+                      retainedEnvironmentalEffects.length !== environmentalEffects.length ||
+                      shouldRemoveSingleEffect
+                  ) {
+                      const nextTile = {
+                          ...tile,
+                          environmentalEffects: retainedEnvironmentalEffects
+                      };
+
+                      if (shouldRemoveSingleEffect) {
+                          (nextTile as { environmentalEffect?: unknown }).environmentalEffect = undefined;
+                      }
+
+                      const baseMovementCost = ['difficult', 'water', 'mud'].includes(nextTile.terrain) ? 2 : 1;
+                      const stillHasDifficultEffect = retainedEnvironmentalEffects.some(effect =>
+                          effect.type === 'difficult_terrain' || effect.type === 'web'
+                      );
+
+                      if (!stillHasDifficultEffect) {
+                          nextTile.movementCost = baseMovementCost;
+                      }
+
+                      nextTiles.set(key, nextTile);
+                      mapModified = true;
+                  }
+              }
+
+              if (mapModified) {
+                  updatedState = {
+                      ...updatedState,
+                      mapData: {
+                          ...updatedState.mapData,
+                          tiles: nextTiles
+                      }
+                  };
+              }
           }
 
           // 4. Remove direct active-effect mirrors written by concentration spells.

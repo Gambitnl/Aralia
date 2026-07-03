@@ -38,12 +38,25 @@ const baseEconomy = {
     freeActions: 0
 }
 
+const testClass: Class = {
+    id: 'wizard',
+    name: 'Wizard',
+    description: 'Minimal test class for zone behavior.',
+    hitDie: 6,
+    primaryAbility: ['Intelligence'],
+    savingThrowProficiencies: ['Intelligence', 'Wisdom'],
+    skillProficienciesAvailable: [],
+    numberOfSkillProficiencies: 0,
+    armorProficiencies: [],
+    weaponProficiencies: [],
+    features: []
+}
+
 const makeCharacter = (position: Position): CombatCharacter => ({
     id: 'target',
     name: 'Target',
     level: 1,
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    class: 'Wizard' as unknown as Class,
+    class: testClass,
     position,
     stats: { ...baseStats },
     abilities: [],
@@ -109,8 +122,7 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_enter_area' },
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown as SpellEffect
+        }
 
         const tracker = new AreaEffectTracker([makeZone([effect])])
         const character = makeCharacter({ x: 0, y: 0 })
@@ -129,8 +141,7 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_enter_area', frequency: 'first_per_turn' },
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown as SpellEffect
+        }
 
         const zone = makeZone([effect])
         const tracker = new AreaEffectTracker([zone])
@@ -171,8 +182,7 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_exit_area' },
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown as SpellEffect
+        }
 
         const tracker = new AreaEffectTracker([makeZone([effect])])
         const character = makeCharacter({ x: 0, y: 0 })
@@ -191,8 +201,7 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_end_turn_in_area' },
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown as SpellEffect
+        }
 
         const tracker = new AreaEffectTracker([makeZone([effect])])
         const character = makeCharacter({ x: 0, y: 0 })
@@ -208,8 +217,7 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_move_in_area' },
             condition: { type: 'always' },
             damage: { dice: '1d4', type: 'Piercing' }
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown as SpellEffect
+        }
 
         // A 30ft cube gives enough interior space for a three-tile movement
         // while keeping both the old and new positions inside the same zone.
@@ -230,8 +238,7 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_move_in_area' },
             condition: { type: 'always' },
             damage: { dice: '1d4', type: 'Piercing' }
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown as SpellEffect
+        }
 
         const tracker = new AreaEffectTracker([
             makeZone([effect], { x: 0, y: 0 }, { shape: 'cube', size: 30 })
@@ -249,8 +256,7 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_move_in_area' },
             condition: { type: 'always' },
             damage: { dice: '1d4', type: 'Piercing' }
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown as SpellEffect
+        }
 
         const tracker = new AreaEffectTracker([
             makeZone([effect], { x: 0, y: 0 }, { shape: 'cube', size: 30 })
@@ -268,8 +274,7 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_move_in_area', frequency: 'first_per_turn' },
             condition: { type: 'always' },
             damage: { dice: '1d4', type: 'Piercing' }
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown as SpellEffect
+        }
 
         const tracker = new AreaEffectTracker([
             makeZone([effect], { x: 0, y: 0 }, { shape: 'cube', size: 30 })

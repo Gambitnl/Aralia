@@ -40,26 +40,15 @@ import { GamePhase, VillageActionContext, VillagePersonality } from '../../types
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
 import StateViewer from './StateViewer';
+import { clearDebugLog, readDebugLog, type DebugLogEntry } from '../../utils/debugLog';
 
-// Written by the cold-start guard script in index.html whenever the app fails
-// to mount and the page self-heals via reload. Read-only here; the Dev Menu is
-// the visibility surface for those otherwise-invisible recoveries.
-const MOUNT_RECOVERY_LOG_KEY = 'aralia-mount-recovery-log';
-
-interface MountRecoveryEntry {
-  time: string;
-  event: 'retry' | 'recovered' | 'gave-up';
-  attempt: number;
-  url: string;
-}
-
-function readMountRecoveryLog(): MountRecoveryEntry[] {
-  try {
-    return JSON.parse(localStorage.getItem(MOUNT_RECOVERY_LOG_KEY) || '[]');
-  } catch {
-    return [];
-  }
-}
+// Badge colors for known Debug Log categories (unknown categories get gray).
+// The Debug Log records rare invisible engine actions — startup self-heal
+// reloads (written by the index.html guard), save auto-anchoring, etc.
+const DEBUG_LOG_BADGE: Record<string, string> = {
+  'startup-recovery': 'bg-amber-900 text-amber-200',
+  'auto-anchor': 'bg-sky-900 text-sky-200',
+};
 
 type DevMenuActionType =
   | 'main_menu'
@@ -110,17 +99,14 @@ const DevMenu: React.FC<DevMenuProps> = ({
 }) => {
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
   // Re-read on every open so entries logged since the last open show up.
-  const [mountRecoveryLog, setMountRecoveryLog] = useState<MountRecoveryEntry[]>([]);
+  const [debugLog, setDebugLog] = useState<DebugLogEntry[]>([]);
   useEffect(() => {
-    if (isOpen) setMountRecoveryLog(readMountRecoveryLog());
+    if (isOpen) setDebugLog(readDebugLog());
   }, [isOpen]);
-  const clearMountRecoveryLog = () => {
-    localStorage.removeItem(MOUNT_RECOVERY_LOG_KEY);
-    setMountRecoveryLog([]);
+  const handleClearDebugLog = () => {
+    clearDebugLog();
+    setDebugLog([]);
   };
-  // TODO(lint-intent): 'state' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
   const { dispatch, state: _state } = useGameState();
 
   useEffect(() => {
@@ -172,9 +158,6 @@ const DevMenu: React.FC<DevMenuProps> = ({
       biomeStyle: 'temperate',
       governingBody: 'council',
     };
-    // TODO(lint-intent): 'temple' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
     const _temple = generateVillageTemple('dev_test', testPersonality, 12345);
 
     const villageContext: VillageActionContext & { personality?: VillagePersonality } = {
@@ -310,41 +293,37 @@ const DevMenu: React.FC<DevMenuProps> = ({
           </div>
         </div>
 
-        {/* Startup Recovery Log: surfaces the index.html cold-start guard's
-            self-heal events, which are otherwise invisible after the reload. */}
-        <div className="mb-6 rounded-lg border border-gray-700 bg-gray-900/60 p-4" data-testid="startup-recovery-log">
+        {/* Debug Log: rare invisible engine actions (startup self-heal reloads,
+            save auto-anchoring, ...) recorded via src/utils/debugLog.ts so they
+            leave a visible trace instead of happening silently. */}
+        <div className="mb-6 rounded-lg border border-gray-700 bg-gray-900/60 p-4" data-testid="debug-log">
           <div className="flex items-center justify-between gap-4 mb-2">
             <h3 className="text-sm uppercase tracking-wider text-gray-400 font-bold">
-              Startup Recovery Log
+              Debug Log
             </h3>
-            {mountRecoveryLog.length > 0 && (
+            {debugLog.length > 0 && (
               <button
-                onClick={clearMountRecoveryLog}
+                onClick={handleClearDebugLog}
                 className="shrink-0 rounded-lg px-3 py-1 text-xs font-semibold bg-slate-600 text-white hover:bg-slate-500"
               >
                 Clear Log
               </button>
             )}
           </div>
-          {mountRecoveryLog.length === 0 ? (
+          {debugLog.length === 0 ? (
             <p className="text-sm text-gray-400">
-              No self-heal events recorded. The app has always mounted on the first try.
+              No debug events recorded. Self-heal reloads, save auto-anchoring, and similar
+              behind-the-scenes actions will show up here.
             </p>
           ) : (
             <ul className="space-y-1 max-h-40 overflow-y-auto text-sm">
-              {[...mountRecoveryLog].reverse().map((entry, i) => (
+              {[...debugLog].reverse().map((entry, i) => (
                 <li key={`${entry.time}-${i}`} className="flex gap-2 items-baseline">
-                  <span className={
-                    entry.event === 'gave-up'
-                      ? 'text-red-400 font-semibold'
-                      : entry.event === 'recovered'
-                        ? 'text-emerald-400 font-semibold'
-                        : 'text-amber-400 font-semibold'
-                  }>
-                    {entry.event === 'retry' ? `Retry #${entry.attempt}` : entry.event === 'recovered' ? `Recovered (after ${entry.attempt} ${entry.attempt === 1 ? 'retry' : 'retries'})` : 'Gave up'}
+                  <span className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-semibold ${DEBUG_LOG_BADGE[entry.category] ?? 'bg-gray-700 text-gray-300'}`}>
+                    {entry.category}
                   </span>
-                  <span className="text-gray-400">{new Date(entry.time).toLocaleString()}</span>
-                  <span className="text-gray-500 truncate">{entry.url}</span>
+                  <span className="text-gray-200">{entry.message}</span>
+                  <span className="text-gray-500 shrink-0">{new Date(entry.time).toLocaleString()}</span>
                 </li>
               ))}
             </ul>

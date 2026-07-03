@@ -23,7 +23,6 @@ const createMockCompanion = (
     race: 'Human',
     class: 'Fighter',
     background: 'Soldier',
-    // TODO(2026-01-03 pass 4 Codex-CLI): identity placeholders for tests; fill from companion data when available.
     sex: 'unknown',
     age: 0,
     physicalDescription: 'Test identity'

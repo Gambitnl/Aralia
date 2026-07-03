@@ -149,7 +149,7 @@ const CombatMessagingDemo = lazy(() => import('./components/demo/CombatMessaging
 // -------------------------------------------
 
 
-// TODO: Add AI model OPTIONALITY settings to allow players to choose between local (Ollama) or cloud (Gemini) models
+// TODO #1: Add AI model OPTIONALITY settings to allow players to choose between local (Ollama) or cloud (Gemini) models
 // PROGRESS: Most AI functions (location descriptions, NPC interactions, etc.) now use local Ollama instead of Gemini,
 // significantly reducing internet dependency. Players should be able to configure their preferred AI model in settings
 // and have the system gracefully fall back between local and cloud models based on availability and preference.
@@ -422,8 +422,8 @@ const App: React.FC = () => {
     return tooltip;
   }, []);
 
-  // TODO(QOL): If re-render hotspots appear, profile callback dependencies here and in useGameActions/useGameInitialization (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
-// TODO(FEATURES): Add AI model optionality settings to allow players to choose between local (Ollama) or cloud (Gemini) models in settings, with graceful fallback between models based on availability and preference.
+  // TODO #2(QOL): If re-render hotspots appear, profile callback dependencies here and in useGameActions/useGameInitialization (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
+// TODO #3(FEATURES): Add AI model optionality settings to allow players to choose between local (Ollama) or cloud (Gemini) models in settings, with graceful fallback between models based on availability and preference.
   const { processAction } = useGameActions({
     gameState,
     dispatch,

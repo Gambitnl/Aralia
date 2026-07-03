@@ -287,7 +287,7 @@ export class DamageCommand extends BaseEffectCommand {
       // resistances, we ensure the flat reduction applies to the final 
       // calculated damage, making it a powerful tool for heavily armored 
       // survivors.
-      // TODO(FEATURES): Also gate on target wearing Heavy Armor once armor-type tracking exists.
+      // TODO #5(FEATURES): Also gate on target wearing Heavy Armor once armor-type tracking exists.
       const physicalDamageTypes = ['bludgeoning', 'piercing', 'slashing', 'physical'];
       if (
         target.feats?.includes('heavy_armor_master') &&
@@ -1382,10 +1382,6 @@ export class DamageCommand extends BaseEffectCommand {
    * Cover only affects Dexterity saves in the 5e rules this command is modeling.
    * The map already knows how to calculate half-cover and three-quarters-cover
    * bonuses for attacks, so this helper reuses that signal for spell saves.
-   *
-   * TODO(next-agent): Total cover is not represented by `calculateCover` yet.
-   * When total-cover geometry exists, route it through this helper instead of
-   * treating it as another flat bonus.
    */
   private getCoverSaveModifier(
     state: CombatState,

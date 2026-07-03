@@ -4,10 +4,7 @@
  * @file src/data/classes/index.ts
  * Defines all class data for the Aralia RPG.
  */
-// TODO(lint-intent): 'ClassFeature' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Class as CharClass, FightingStyle, ClassFeature as _ClassFeature, AbilityScoreName as _AbilityScoreName, SelectableClass, DivineOrderOption as _DivineOrderOption, PrimalOrderOption as _PrimalOrderOption, WarlockPatronOption as _WarlockPatronOption } from '../../types/index.js';
+import { Class as CharClass, FightingStyle, SelectableClass } from '../../types/index.js';
 
 const FIGHTING_STYLES_DATA: Record<string, FightingStyle> = {
   'archery': { id: 'archery', name: 'Archery', description: '+2 bonus to attack rolls with ranged weapons.', levelAvailable: 1 },
@@ -34,7 +31,7 @@ const CLERIC_SPELL_LIST = [
   // Level 3
   'nondetection',
 ];
-// TODO: Automate generation of these spell lists from spell JSON 'classes' fields to prevent sync drift.
+// TODO #184: Automate generation of these spell lists from spell JSON 'classes' fields to prevent sync drift.
 const DRUID_SPELL_LIST = [
   // Cantrips
   'druidcraft', 'elementalism', 'frostbite', 'guidance', 'magic-stone', 'mending', 'message', 'poison-spray', 'produce-flame', 'resistance', 'shape-water', 'shillelagh', 'spare-the-dying', 'starry-wisp', 'thorn-whip', 'thunderclap',

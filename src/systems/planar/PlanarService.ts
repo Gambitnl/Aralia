@@ -6,10 +6,6 @@ import {
 } from '../../data/planes';
 import { Plane, PlanarEffect } from '../../types/planes';
 import { GameState } from '../../types/index';
-// TODO(lint-intent): 'logger' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { logger as _logger } from '../../utils/logger';
 
 /**
  * Service to manage planar mechanics, effect retrieval, and plane transitions.
@@ -33,7 +29,6 @@ export class PlanarService {
         // Let's implement a heuristic: check if any location ID starts with 'fey_', 'shadow_', etc.
         // Or better, assume GameState has a helper or we just use Material for now until we integrate location data.
 
-        // TODO: Integrate with Location system properly.
         // For this task, we will allow an explicit override or default.
 
         // Temporary: check if we are in a known planar ID directly (if stored in locationId for simple maps)

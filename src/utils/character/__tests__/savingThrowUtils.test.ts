@@ -7,7 +7,6 @@ import * as combatUtils from '../../combat/combatUtils';
 // Mock rollDice
 // We need to spy on it to change return values per test
 vi.mock('../../combat/combatUtils', async (importOriginal) => {
-  // TODO(2026-01-03 pass 4 Codex-CLI): align mock import typing with combat utils module path.
   const actual = await importOriginal<typeof import('../../combat/combatUtils')>();
   return {
     ...actual,
@@ -72,7 +71,6 @@ describe('savingThrowUtils', () => {
     it('defaults to Intelligence if class has no spellcasting ability', () => {
       const fighter = createMockCombatCharacter({
         level: 1,
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
         class: { id: 'fighter', name: 'Fighter', description: '', hitDie: 10, primaryAbility: ['Strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] } as any, // No spellcasting prop
         stats: {
             strength: 16, dexterity: 10, constitution: 10,

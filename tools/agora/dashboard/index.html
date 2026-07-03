@@ -183,6 +183,32 @@
   .task-refs { color: #7aa2f7; }
   .task-waiting { color: #e0af68; }
   .task-result { color: var(--text-dim); font-size: 11px; margin-top: 3px; font-style: italic; }
+  .task-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel-2);
+  }
+  .task-toolbar .label {
+    color: var(--text-faint);
+    font-size: 11px;
+  }
+  .task-toolbar select {
+    color: var(--text);
+    background: #0f1520;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+  .task-toolbar .muted {
+    margin-left: auto;
+    color: var(--text-faint);
+    font-size: 11px;
+  }
 
   .lock-agentid { color: var(--text-faint); font-family: var(--mono); font-size: 10px; font-weight: 400; }
 
@@ -261,6 +287,168 @@
   .doc-row button.copied { color: #4ade80; border-color: #4ade80; }
   .docs-foot { padding: 8px 14px; border-top: 1px solid var(--border, #232a3a);
     color: var(--text-faint, #6b7280); font-size: 10px; }
+
+  /* ---------- Visual refresh: task board / controls ---------- */
+  :root {
+    --bg: radial-gradient(1150px 520px at 10% -20%, #1f2b4d, transparent 56%), #080d1b;
+    --panel: linear-gradient(150deg, rgba(22, 32, 52, 0.94), rgba(19, 26, 45, 0.94));
+    --panel-2: linear-gradient(180deg, rgba(36, 49, 77, 0.95), rgba(23, 32, 52, 0.95));
+    --panel-3: rgba(11, 17, 32, 0.68);
+    --border: #2f3d5e;
+    --border-soft: rgba(116, 181, 255, 0.18);
+    --text: #edf2ff;
+    --text-dim: #aab7d2;
+    --text-faint: #7f8ea8;
+    --accent: #87bbff;
+    --accent-2: #6de3ff;
+    --mono: "IBM Plex Mono", "SFMono-Regular", "Cascadia Code", Consolas, monospace;
+    --sans: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
+  }
+
+  body { font-family: var(--sans); letter-spacing: 0.1px; }
+  header { box-shadow: 0 8px 24px rgba(0, 0, 0, .28); background: linear-gradient(180deg, #141d39, #0d1327); }
+  .conn, .count {
+    backdrop-filter: blur(4px);
+    background: rgba(18, 28, 49, 0.78);
+  }
+  .count { border-color: var(--border-soft); box-shadow: inset 0 0 0 1px rgba(116,181,255,0.08); }
+  .count .l { color: var(--text-faint); letter-spacing: 0.8px; }
+
+  main { gap: 14px; padding: 16px 18px 28px; }
+  .panel {
+    border-radius: 14px;
+    border: 1px solid var(--border-soft);
+    background: var(--panel);
+    box-shadow: 0 20px 35px rgba(0,0,0,.28);
+  }
+  .panel > h2 {
+    padding-top: 11px;
+    padding-bottom: 11px;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .panel > h2 .badge {
+    background: rgba(116,181,255,.14);
+    border-radius: 999px;
+    border: 1px solid rgba(116,181,255,.25);
+  }
+
+  .task-toolbar {
+    padding: 10px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: linear-gradient(90deg, rgba(22, 32, 53, 0.95), rgba(19, 26, 44, 0.85));
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .task-toolbar .label {
+    font-size: 11px;
+    letter-spacing: .45px;
+    text-transform: uppercase;
+    color: #94a5d2;
+    font-weight: 700;
+  }
+  .task-toolbar select {
+    min-width: 220px;
+    padding: 5px 28px 5px 10px;
+    border-radius: 9px;
+    border: 1px solid var(--border-soft);
+    background-color: #0c1628;
+    box-shadow: inset 0 0 0 1px rgba(116,181,255,.18);
+    color: var(--text);
+    background-image:
+      linear-gradient(45deg, transparent 50%, currentColor 50%, currentColor 53%, transparent 53%),
+      linear-gradient(135deg, transparent 50%, currentColor 50%, currentColor 53%, transparent 53%);
+    background-position: right 9px top 13px, right 5px top 13px;
+    background-size: 6px 6px;
+    background-repeat: no-repeat;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .task-toolbar select:focus-visible {
+    outline: 2px solid rgba(116,181,255,.5);
+    outline-offset: 2px;
+  }
+  .task-toolbar .muted { font-size: 11px; color: var(--text-faint); }
+
+  .task-cols { gap: 12px; }
+  .task-group {
+    border-radius: 11px;
+    overflow: hidden;
+    border-color: rgba(116,181,255,.18);
+    background: rgba(12, 18, 34, 0.58);
+    animation: riseIn .24s ease both;
+  }
+  .task-group > h3 {
+    padding: 9px 12px;
+    font-size: 11px;
+    background: linear-gradient(90deg, rgba(34, 50, 80, .94), rgba(22, 31, 52, .94));
+  }
+  .task-group > h3 .gdot {
+    width: 8px; height: 8px; border-radius: 99px;
+  }
+  .task-cat { border-top: 1px solid var(--border-soft); }
+  .task-cat:first-child { border-top: 0; }
+  .task-cat-head {
+    background: rgba(118, 214, 255, 0.08);
+    border-bottom: 1px solid rgba(116,181,255,.18);
+    border-top: 1px solid rgba(116,181,255,.14);
+  }
+  .task-gap {
+    border-radius: 10px;
+    border-color: rgba(103,232,249,.45);
+    color: #95e6fb;
+  }
+  .task-row {
+    padding: 10px 12px;
+    border-top: 1px solid rgba(116,181,255,.12);
+    transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    position: relative;
+  }
+  .task-row::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(116,181,255,.2), transparent);
+    pointer-events: none;
+  }
+  .task-row:first-child::before { display: none; }
+  .task-row:hover {
+    background: rgba(116,181,255,.08);
+    transform: translateX(2px);
+    border-left: 2px solid rgba(116,181,255,.7);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.02), inset 0 -1px 0 rgba(255,255,255,.02);
+  }
+  .task-title { font-weight: 700; letter-spacing: .1px; }
+  .task-sub { gap: 10px; color: #9eb0d4; }
+  .task-pri {
+    border-radius: 9px;
+    border: 1px solid rgba(116,181,255,.28);
+    padding: 0 6px;
+    background: rgba(15, 24, 41, .7);
+  }
+
+  .msg:hover, .agent-row:hover, .lock-row:hover, .doc-row:hover { background: rgba(116,181,255,0.07); }
+  .empty { padding-top: 22px; padding-bottom: 22px; }
+
+  #docs-btn, #docs-close, .archive-toggle, .doc-row button {
+    transition: border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  #docs-btn:hover, #docs-close:hover { color: var(--accent-2); border-color: var(--accent-2); }
+  .archive-toggle:hover { color: var(--accent); border-color: var(--accent); background: rgba(116,181,255,.12); }
+
+  @keyframes riseIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (max-width: 920px) {
+    .task-toolbar { position: static; }
+    .task-toolbar .muted { width: 100%; margin: 0; }
+    .task-toolbar select { min-width: 0; }
+  }
 </style>
 </head>
 <body>
@@ -296,6 +484,13 @@
 
     <section class="panel">
       <h2>📋 Task Board <span class="badge" id="b-tasks">0</span></h2>
+      <div class="task-toolbar">
+        <span class="label">Category:</span>
+        <select id="task-category-filter" title="View tasks by category (optional)">
+          <option value="all">All categories</option>
+        </select>
+        <span class="muted" id="task-category-summary"></span>
+      </div>
       <div class="body" id="tasks"></div>
     </section>
 
@@ -329,6 +524,7 @@
     seenMsgSeq: 0,
     autoScroll: true,
     showArchived: false,
+    categoryFilter: "all", // Optional task view filter.
     gapById: new Map(),   // lowercased "project:id" AND bare "id" -> gap row (tracker bridge)
   };
 
@@ -356,22 +552,91 @@
     } catch (e) { /* board still renders uncategorized */ }
   }
 
-  /** Category from task refs (preferred) or a gap-id-shaped token in the title,
-   *  resolved against the live gap index. */
+  const UNCATEGORIZED_TASK_CATEGORY = "uncategorized";
+
+  function normalizeTaskCategory(raw) {
+    if (typeof raw !== "string") return "";
+    const value = raw.trim().toLowerCase();
+    if (!value) return "";
+    return value;
+  }
+
+  function normalizeTaskCategoryList(raw = []) {
+    const list = Array.isArray(raw) ? raw : [];
+    const out = [];
+    const seen = new Set();
+    for (const c of list) {
+      const n = normalizeTaskCategory(c);
+      if (!n || seen.has(n)) continue;
+      seen.add(n);
+      out.push(n);
+    }
+    return out;
+  }
+
+  function taskCategoryValues(t) {
+    const explicit = normalizeTaskCategoryList(t.categories || []);
+    const primary = normalizeTaskCategory(t.category);
+    if (explicit.length) {
+      if (primary && !explicit.includes(primary)) explicit.push(primary);
+      return explicit;
+    }
+    if (primary) return [primary];
+    return [UNCATEGORIZED_TASK_CATEGORY];
+  }
+
+  function taskHasCategory(t, category) {
+    const target = normalizeTaskCategory(category);
+    if (!target || target === "all") return true;
+    return taskCategoryValues(t).includes(target);
+  }
+
+  function normalizeTaskPath(raw) {
+    let p = String(raw || "").trim().replace(/\\/g, "/");
+    const marker = "/repos/aralia/";
+    const lower = p.toLowerCase();
+    const markerPos = lower.indexOf(marker);
+    if (markerPos >= 0) p = p.slice(markerPos + marker.length);
+    p = p.replace(/^[a-z]:\//i, "").replace(/^\/+/, "").replace(/\/+$/, "");
+    return p;
+  }
+
+  /** Category from explicit task category -> gap metadata -> ref/file path.
+   *  Existing TODO tasks usually include file refs, so location-based categories
+   *  work even for legacy tasks created before this feature.
+   */
   function categoryOf(t) {
+    const explicit = normalizeTaskCategory(t.category);
+    if (explicit) return { key: explicit, label: explicit, kind: "explicit" };
+
+    // Existing tracker links (e.g. docs/projects/*/GAP entries).
     for (const ref of t.refs || []) {
       const hit = ST.gapById.get(String(ref).toLowerCase());
-      if (hit && hit !== "ambiguous") return { project: hit.project, gapId: hit.id };
+      if (hit && hit !== "ambiguous") return { key: `project:${hit.project}`, label: hit.project, kind: "project" };
       const m = /^([a-z0-9_\/-]+):(.+)$/i.exec(ref);
-      if (m) return { project: m[1], gapId: m[2] };
+      if (m) return { key: `project:${m[1]}`, label: m[1], kind: "project" };
     }
-    const tok = /\b([A-Z][A-Z0-9]{1,11}-G\d+|WF-G\d+|G\d+)\b/.exec(t.title || "");
-    if (tok) {
-      const hit = ST.gapById.get(tok[1].toLowerCase());
-      if (hit && hit !== "ambiguous") return { project: hit.project, gapId: hit.id };
-      return { project: null, gapId: tok[1] };
+
+    const pathFromTitle = /File:\s*([^\r\n]+)/i.exec(String(t.body || ""));
+    const candidates = [];
+    if (pathFromTitle) candidates.push(pathFromTitle[1]);
+    for (const r of t.refs || []) candidates.push(r);
+    for (const candidate of candidates) {
+      const normalized = normalizeTaskPath(candidate);
+      const lower = normalized.toLowerCase();
+      if (lower.startsWith(".github/")) return { key: "github", label: "github", kind: "path" };
+      if (lower.startsWith("docs/projects/")) {
+        const parts = lower.split("/");
+        return { key: `project:${parts[2] || "docs"}`, label: `project:${parts[2] || "docs"}`, kind: "path" };
+      }
+      if (lower.startsWith("docs/")) return { key: "docs", label: "docs", kind: "path" };
+      if (lower.startsWith("src/")) return { key: "src", label: "src", kind: "path" };
+      if (lower.startsWith("tools/")) return { key: "tools", label: "tools", kind: "path" };
+      if (lower.startsWith("scripts/")) return { key: "scripts", label: "scripts", kind: "path" };
+      if (lower.startsWith("tests/")) return { key: "tests", label: "tests", kind: "path" };
+      if (lower.startsWith("misc/")) return { key: "misc", label: "misc", kind: "path" };
     }
-    return null;
+    return { key: UNCATEGORIZED_TASK_CATEGORY, label: UNCATEGORIZED_TASK_CATEGORY, kind: "path" };
   }
 
   // agentId -> handle resolution, fallback to short id slice.
@@ -465,8 +730,45 @@
   function renderTasks() {
     const el = $("tasks");
     $("b-tasks").textContent = ST.tasks.length;
-    if (!ST.tasks.length) { el.innerHTML = '<div class="empty">No tasks yet</div>'; return; }
+    const categorySet = new Set();
+    for (const t of ST.tasks) {
+      for (const c of taskCategoryValues(t)) categorySet.add(c);
+    }
+    const options = ['<option value="all">All categories</option>'];
+    const sortedCategories = [...categorySet].sort((a, b) => {
+      if (a === UNCATEGORIZED_TASK_CATEGORY) return 1;
+      if (b === UNCATEGORIZED_TASK_CATEGORY) return -1;
+      return a.localeCompare(b);
+    });
+    for (const c of sortedCategories) {
+      options.push(`<option value="${esc(c)}"${ST.categoryFilter === c ? ' selected' : ""}>${esc(c)}</option>`);
+    }
+    $("task-category-filter").innerHTML = options.join("");
+    $("task-category-filter").value = ST.categoryFilter;
+
+    if (!ST.tasks.length) {
+      $("task-category-summary").textContent = "No tasks available";
+      el.innerHTML = '<div class="empty">No tasks yet</div>';
+      return;
+    }
+
+    if (ST.categoryFilter !== "all" && !categorySet.has(ST.categoryFilter)) {
+      ST.categoryFilter = "all";
+      $("task-category-filter").value = "all";
+    }
+    const visible = ST.tasks.filter((t) => taskHasCategory(t, ST.categoryFilter));
     const byId = new Map(ST.tasks.map((x) => [x.id, x]));
+
+    if (!visible.length) {
+      $("task-category-summary").textContent = ST.categoryFilter === "all"
+        ? "No tasks match this board state."
+        : `No tasks in category ${JSON.stringify(ST.categoryFilter)}`;
+      el.innerHTML = '<div class="empty">No tasks match this category filter</div>';
+      return;
+    }
+    $("task-category-summary").textContent =
+      ST.categoryFilter === "all" ? `${visible.length} task(s)` : `${visible.length} / ${ST.tasks.length} task(s) in ${ST.categoryFilter}`;
+
     const taskRow = (t, cat) => {
       const waitingOn = (t.deps || []).filter((d) => (byId.get(d) || {}).state !== "done");
       const gapChip = cat && cat.gapId
@@ -487,7 +789,7 @@
     };
 
     const groups = TASK_ORDER.map((stateKey) => {
-      const list = ST.tasks.filter((t) => t.state === stateKey)
+      const list = visible.filter((t) => t.state === stateKey)
         .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
       if (!list.length) return "";
       // Categorize by owning project (tracker bridge): refs -> gap index -> title token.
@@ -665,6 +967,7 @@
       case "task.state":
       case "task.release": // dead-agent reap reopened a task
       case "task.handoff":
+      case "task.categories":
         onStructural("task"); break;
       case "message.post": {
         // Incremental append from payload; resolve handles from current agents.
@@ -807,10 +1110,15 @@
     const willOpen = open !== undefined ? open : !panel.classList.contains("open");
     panel.classList.toggle("open", willOpen);
     panel.setAttribute("aria-hidden", String(!willOpen));
+    panel.toggleAttribute("inert", !willOpen);
     if (willOpen) loadDocsPanel();
   }
   $("docs-btn").addEventListener("click", () => toggleDocs());
   $("docs-close").addEventListener("click", () => toggleDocs(false));
+  $("task-category-filter").addEventListener("change", () => {
+    ST.categoryFilter = $("task-category-filter").value || "all";
+    renderTasks();
+  });
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") toggleDocs(false); });
 
   // ----------------------------- boot -----------------------------

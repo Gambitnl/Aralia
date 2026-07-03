@@ -20,7 +20,7 @@ import * as combatUtils from '../../../utils/combatUtils';
 vi.mock('../../../utils/combatUtils', () => ({
   rollDice: vi.fn()
 }));
-// TODO(lint-intent): Keep this stub aligned with the PlayerCharacter contract once puzzle flows migrate off the legacy stats field.
+// TODO #925(lint-intent): Keep this stub aligned with the PlayerCharacter contract once puzzle flows migrate off the legacy stats field.
 const mockCharacter: PlayerCharacter = {
   id: 'char-1',
   name: 'Test Rogue',

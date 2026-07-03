@@ -6,8 +6,7 @@
 import { Crafter, attemptCraft } from './craftingSystem';
 import { Recipe, CraftingResult, MaterialRequirement } from './types';
 
-// Mock Tag Database (In a real system, this would be on the Item definitions)
-// TODO(Alchemist): Move these tags to the Item definitions in src/data/items/ or src/types/items.ts
+// Mock Tag Database used for ingredient matching by ID.
 export const INGREDIENT_TAGS: Record<string, string[]> = {
   'venison': ['meat', 'protein'],
   'raw_beef': ['meat', 'protein'],

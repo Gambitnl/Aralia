@@ -98,8 +98,8 @@ export async function handleGeminiCustom({
     addMessage(`(DC ${finalDc}) You attempt to ${skill.name}... Rolled ${totalRoll} (${d20Roll} + ${abilityModifier} + ${proficiencyBonus})`, "system");
 
     const outcomeResult = await GeminiService.generateSocialCheckOutcome(
-      npcMemory as any, // TODO(preserve-lint): reconcile NpcMemory vs NPCMemory shape
-      null, // TODO(preserve-lint): thread real village context if available
+      npcMemory as any,
+      null,
       wasSuccess ? `${skill.name} success` : `${skill.name} fail`,
       gameState.devModelOverride ?? null,
     );
@@ -195,7 +195,7 @@ export async function handleGeminiCustom({
       // --- Linker Coherence Check ---
       await resolveAndRegisterEntities(outcomeResult.data.text, gameState, dispatch, addGeminiLog);
 
-      // TODO(Linker): Enhance entity creation by linking new NPCs to the current location (e.g. location.npcIds.push(newNpc.id)) and establishing relationships.
+      // TODO #252(Linker): Enhance entity creation by linking new NPCs to the current location (e.g. location.npcIds.push(newNpc.id)) and establishing relationships.
       // -----------------------------
 
     } else {

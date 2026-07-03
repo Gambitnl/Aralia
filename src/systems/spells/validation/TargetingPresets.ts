@@ -59,8 +59,6 @@ export const TARGET_FILTERS = {
  * Helper to check if a spell JSON matches a known preset pattern.
  * Useful for validation scripts.
  */
-// TODO(Auditor): Apply these presets to the Level 1 spell JSON files identified in docs/audits/level-1-targeting-audit.md
-
 export function matchTargetFilter(description: string): TargetConditionFilter | null {
   const lowerDesc = description.toLowerCase();
 

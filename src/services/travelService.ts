@@ -61,7 +61,7 @@ export class TravelService {
       const travelTimeHours = calculateTravelTimeHours(distanceMiles, groupStats);
 
       // 4. Encounter Checks (Standard: 1 per 4 hours)
-      // TODO(Navigator): Integrate with dynamic map data to auto-detect terrain type for route segments.
+      // TODO #506(Navigator): Integrate with dynamic map data to auto-detect terrain type for route segments.
       const encounterChecks = Math.ceil(travelTimeHours / 4);
 
       return {

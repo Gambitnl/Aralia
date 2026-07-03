@@ -447,7 +447,7 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
 
   const voice = config.voice || DEFAULT_VOICES[randomInt(DEFAULT_VOICES.length)];
 
-  // TODO(preserve-lint): Replace NpcMemory with the structured NPCMemory when memory models merge.
+  // TODO #452(preserve-lint): Replace NpcMemory with the structured NPCMemory when memory models merge.
   const initialMemory: NpcMemory = {
     disposition: config.initialDisposition ?? 50,
     knownFacts: [],

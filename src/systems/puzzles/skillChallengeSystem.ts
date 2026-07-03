@@ -11,7 +11,7 @@ import { rollDice } from '../../utils/combatUtils';
 import { getAbilityModifierValue } from '../../utils/statUtils';
 import { SkillChallenge, SkillChallengeResult, ChallengeSkill } from './types';
 
-// TODO(Lockpick): Integrate Skill Challenges into the Dialogue System for social boss fights.
+// TODO #912(Lockpick): Integrate Skill Challenges into the Dialogue System for social boss fights.
 
 /**
  * Creates a new skill challenge instance.
@@ -98,9 +98,6 @@ export function attemptSkillChallenge(
 
   // 2. Determine DC and Validity
   let dc = challenge.baseDC;
-  // TODO(lint-intent): This binding never reassigns, so the intended mutability is unclear.
-  // TODO(lint-intent): If it should stay stable, switch to const and treat it as immutable.
-  // TODO(lint-intent): If mutation was intended, add the missing update logic to reflect that intent.
   const skillDef = challenge.availableSkills.find(s => s.skillName === skillName);
 
   if (!skillDef) {
@@ -136,7 +133,7 @@ export function attemptSkillChallenge(
   const score = character.abilityScores[abilityName];
   const mod = getAbilityModifierValue(score);
 
-  // TODO: Add proficiency bonus if character is proficient in the skill.
+  // TODO #916: Add proficiency bonus if character is proficient in the skill.
   // For now, we rely on ability mod.
 
   const d20 = rollDice('1d20');

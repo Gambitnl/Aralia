@@ -19,7 +19,6 @@ describe('contract: spells and abilities', () => {
       classes: ['Wizard'],
       subClasses: [],
       subClassesVerification: 'unverified',
-      // TODO(2026-01-03 Codex-CLI): Align contract targeting shape with production spell targeting union; using numeric range for compatibility.
       targeting: { type: 'single', range: 0, validTargets: ['creatures'] },
       effects: [
         {
@@ -84,7 +83,6 @@ describe('contract: spells and abilities', () => {
         classes: ['Wizard'],
         subClasses: [],
         subClassesVerification: 'unverified',
-        // TODO(2026-01-03 Codex-CLI): Align contract targeting shape with production spell targeting union; using numeric range for compatibility.
         targeting: { type: 'single', range: 0, validTargets: ['creatures'] },
         effects: [
           {

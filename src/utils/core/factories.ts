@@ -588,7 +588,6 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       worldBusinesses: {},
       activeRitual: null,
       banterCooldowns: {},
-      // TODO(2026-01-03 pass 4 Codex-CLI): banter debug log placeholder; surface real logs when conversational banter system wires through state.
       banterDebugLog: [],
       isLockpickingModalVisible: false,
       activeLock: null,
@@ -630,7 +629,6 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       // SP4 discovery: no hidden places revealed yet.
       discoveredHiddenSites: [],
 
-      // TODO: Fix TS2322 - missing or incompatible archivedBanters
       archivedBanters: [],
 
       // Parity block: these fields are initialized in src/state/initialState.ts and
@@ -787,7 +785,6 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       worldBusinesses: {},
       activeRitual: null,
       banterCooldowns: {},
-      // TODO: Fix TS2741 - missing archivedBanters in fallback
       archivedBanters: [],
       banterDebugLog: [],
       isLockpickingModalVisible: false,

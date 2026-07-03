@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/07/2026, 00:56:24
+ * Last Sync: 02/07/2026, 04:53:16
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
  * Imports: 16 files
  *
@@ -38,11 +38,11 @@ import { canUseDevTools } from '../../utils/permissions';
 import { Z_INDEX } from '../../styles/zIndex';
 import { Canvas } from '@react-three/fiber';
 // MapControls now handled by CameraController
-import { ContactShadows } from '@react-three/drei';
+import { ContactShadows, Html } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
-import { BattleMapData, BattleMapTile, CombatCharacter, CombatState, LightSource } from '../../types/combat';
+import { BattleMapData, BattleMapTile, CombatCharacter, CombatState, LightSource, TargetableMapObject } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
 import { useVisibility } from '../../hooks/combat/useVisibility';
@@ -77,6 +77,52 @@ interface BattleMap3DProps {
 
 // Tile size in world units (1 tile = 1 unit in 3D space)
 const TILE_WORLD_SIZE = 1.0;
+
+interface TargetableObject3DMarkerProps {
+  targetObject: TargetableMapObject;
+  isTargetable: boolean;
+  groundY: number;
+}
+
+const TargetableObject3DMarker: React.FC<TargetableObject3DMarkerProps> = ({ targetObject, isTargetable, groundY }) => {
+  const color = isTargetable ? '#facc15' : '#94a3b8';
+  const position: [number, number, number] = [
+    targetObject.position.x + 0.5,
+    groundY + 0.1,
+    targetObject.position.y + 0.5
+  ];
+
+  return (
+    <group position={position}>
+      {isTargetable && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+          <ringGeometry args={[0.34, 0.48, 36]} />
+          <meshBasicMaterial color={color} transparent opacity={0.52} side={THREE.DoubleSide} depthWrite={false} />
+        </mesh>
+      )}
+      <mesh position={[0, 0.22, 0]}>
+        <boxGeometry args={[0.38, 0.34, 0.38]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={isTargetable ? 0.42 : 0.12} roughness={0.64} />
+      </mesh>
+      <Html center distanceFactor={12} position={[0, 0.74, 0]} zIndexRange={[58, 18]}>
+        {/* Registered targetable objects need their own 3D handle because they
+            are not actors or spell artifacts, but object-targeting spells still
+            need visible selectable things on the map. */}
+        <div
+          data-testid={`targetable-object-3d-${targetObject.id}`}
+          title={`${targetObject.name ?? targetObject.id} object${isTargetable ? ' - valid spell target' : ''}`}
+          className={`pointer-events-none rounded border px-1.5 py-0.5 text-[10px] font-black leading-none shadow-[0_0_10px_rgba(15,23,42,0.8)] ${
+            isTargetable
+              ? 'border-yellow-100 bg-amber-300 text-amber-950'
+              : 'border-slate-200/70 bg-slate-950/88 text-slate-100'
+          }`}
+        >
+          OBJ
+        </div>
+      </Html>
+    </group>
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Per-biome lighting presets
@@ -661,15 +707,31 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
         {/* Non-creature spell artifacts are not actors, but they still need a
             spatial handle in 3D for helpers, animated servants/objects,
             guardians, entrances, and caster-centered emanations. */}
-        {spellArtifactMarkers.map(marker => (
+        {spellArtifactMarkers.map((marker, index) => (
           <SpellArtifact3DMarker
             key={marker.id}
             marker={marker}
+            offsetIndex={index}
             groundY={groundSampler
               ? groundSampler(marker.position.x + 0.5, marker.position.y + 0.5)
               : 0}
           />
         ))}
+
+        {(mapData.targetableObjects ?? []).map(targetObject => {
+          const targetTileId = `${targetObject.position.x}-${targetObject.position.y}`;
+
+          return (
+            <TargetableObject3DMarker
+              key={`targetable-object-3d-${targetObject.id}`}
+              targetObject={targetObject}
+              isTargetable={validTargetSet.has(targetTileId)}
+              groundY={groundSampler
+                ? groundSampler(targetObject.position.x + 0.5, targetObject.position.y + 0.5)
+                : 0}
+            />
+          );
+        })}
 
         <VFXSystem
           mapData={mapData}

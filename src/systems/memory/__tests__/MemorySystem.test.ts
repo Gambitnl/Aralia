@@ -4,7 +4,6 @@ import { NPC } from '../../../types';
 import { MemoryInteractionType, MemoryImportance, NPCMemory } from '../../../types/memory'; // Added NPCMemory for typed helper.
 
 describe('MemorySystem', () => {
-  // TODO(2026-01-03 pass 4 Codex-CLI): NPC memory remains out-of-band; cast until NPCs carry memory directly.
   const mockNPC = {
     id: 'npc-123',
     name: 'Test NPC',

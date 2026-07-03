@@ -3,10 +3,8 @@
  * This component displays a guided test plan for the "Living NPC" system.
  */
 import React, { useState, useEffect, useRef } from 'react';
-// TODO(lint-intent): 'AnimatePresence' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { motion, AnimatePresence as _AnimatePresence, MotionProps } from 'framer-motion';
+// TODO #76(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+import { motion, MotionProps } from 'framer-motion';
 import { Action } from '../types';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';

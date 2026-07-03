@@ -19,7 +19,8 @@ export function getCube(center: Position, size: number): Position[] {
   // Calculate offset to center the cube on the target tile as best as possible.
   // Ideally, for odd sizes, it's perfectly centered.
   // For even sizes, it biases slightly (top-left in this implementation).
-  // TODO(SPELL-OVERHAUL): Align cube centering for odd vs even sizes to match 5e corner/center rules (see docs/tasks/spell-system-overhaul/TODO.md; if this block is moved/refactored/modularized, update the TODO entry path).
+  // TODO #1029(SPELL-OVERHAUL): Align cube centering for odd vs even sizes to match 5e corner/center rules.
+  // TODO(SPELL-OVERHAUL): Policy and ownership are tracked in docs/tasks/spell-system-overhaul/TRACKER.md (SSO-GEOMETRY-CUBE-CENTERING-001).
   const offset = Math.floor(sizeInTiles / 2)
 
   for (let dx = 0; dx < sizeInTiles; dx++) {

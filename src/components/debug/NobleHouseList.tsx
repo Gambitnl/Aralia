@@ -96,10 +96,8 @@ const HeraldryDisplay: React.FC<{ heraldry: Heraldry; size?: number }> = ({ hera
 
 const NobleHouseList: React.FC<NobleHouseListProps> = ({ worldSeed, onClose }) => {
     const factions = getAllFactions(worldSeed);
-    // TODO(lint-intent): The type assertion '(f): f is NobleHouse' helps TS narrow Faction -> NobleHouse.
-    // TODO(lint-intent): However, ensure the runtime check 'f.type === NOBLE_HOUSE' strictly matches the type definition.
-    // TODO(lint-intent): If NobleHouse adds required fields (heraldry, seat), legacy saves/generators might yield incomplete objects.
-    // TODO(lint-intent): consider a robust guard functions that checks for 'heraldry' existence before narrowing.
+    // TODO #73(lint-intent): If NobleHouse adds required fields (heraldry, seat), legacy saves/generators might yield incomplete objects.
+    // TODO #74(lint-intent): consider a robust guard functions that checks for 'heraldry' existence before narrowing.
     const nobleHouses = Object.values(factions)
         .filter((f): f is NobleHouse => f.type === 'NOBLE_HOUSE');
 

@@ -36,7 +36,7 @@ export function useTargetSelection({
     teleportDestinationPreview,
     currentCharacter,
     mapData,
-    characters: _characters
+    characters
 }: UseTargetSelectionProps) {
     // 1. AoE Set: Validates if a tile is in the AoE preview
     const aoeSet = useMemo(() => {
@@ -88,13 +88,13 @@ export function useTargetSelection({
             }
         }
         return set;
-    // TODO(lint-intent): If target validation depends on other actors, ensure isValidTarget is memoized against them.
     }, [
         targetingMode,
         selectedAbility,
         currentCharacter,
         mapData,
-        isValidTarget // Now a stable dependency from useTargetValidator        
+        isValidTarget,
+        characters
     ]);
 
     return {

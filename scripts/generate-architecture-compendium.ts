@@ -110,10 +110,8 @@ function parseImports(filePath: string): string[] {
     let content: string;
     try {
         content = fs.readFileSync(filePath, 'utf-8');
-    // TODO(lint-intent): Capture and log the underlying error if this script needs richer diagnostics.
-    // TODO(lint-intent): Consider surfacing read failures in the output report when expanding the audit.
-    } catch {
-        console.warn(`Warning: Could not read file ${filePath}`);
+    } catch (error) {
+        console.warn(`Warning: Could not read file ${filePath}. ${(error as Error).message}`);
         return [];
     }
 

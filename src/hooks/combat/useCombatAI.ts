@@ -24,7 +24,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { CombatCharacter, CombatAction, BattleMapData } from '../../types/combat';
 import { evaluateCombatTurn } from '../../utils/combat/combatAI';
-// TODO: Refactor: Move 'AI_THINKING_DELAY_MS' into a dynamic 'AIConfigContext' to support per-monster personalities and user overrides.
+// TODO #275: Refactor: Move 'AI_THINKING_DELAY_MS' into a dynamic 'AIConfigContext' to support per-monster personalities and user overrides.
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 
 const MAX_AI_ACTIONS_PER_TURN = 3;

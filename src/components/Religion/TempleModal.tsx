@@ -1,17 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-// TODO(lint-intent): 'Item' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Action, Item as _Item } from '../../types';
+import { Action } from '../../types';
 import { Temple, TempleService } from '../../types/religion';
 import { useGameState } from '../../state/GameContext';
 import { formatGpAsCoins } from '../../utils/coinPurseUtils';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-// TODO(lint-intent): 'Tooltip' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import _Tooltip from '../ui/Tooltip';
 import { DEITIES } from '../../data/deities';
 import { getDivineStanding } from '../../utils/religionUtils';
 import { WindowFrame } from '../ui/WindowFrame';
@@ -42,7 +35,7 @@ const TempleModal: React.FC<TempleModalProps> = ({
     const templeServices = useMemo(
         () => temple.services.filter((s): s is TempleService => typeof s !== 'string'),
         [temple.services]
-    ); // TODO(lint-intent): Resolve string service IDs to concrete objects once the data hook is available.
+    );
 
     const handleService = (service: TempleService) => {
         const cost = service.costGp ?? 0;
@@ -192,10 +185,6 @@ const TempleModal: React.FC<TempleModalProps> = ({
                                 {deity.commandments.map((c, i) => (
 
 
-                                    /* TODO(lint-intent): This text includes raw quotes/special characters that were likely meant as prose.
-                                    TODO(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
-                                    TODO(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
-                                    */
                                     <li key={i} className="text-gray-300 text-sm italic border-l-2 border-amber-800/30 pl-3">
                                         &quot;{c}&quot;
                                     </li>

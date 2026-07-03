@@ -1,30 +1,64 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { TargetResolver } from '../TargetResolver'
 import * as combatUtils from '../../../../utils/combatUtils'
-// TODO(lint-intent): 'Position' is unused in this test; use it in the assertion path or remove it.
 import type { SpellTargeting } from '@/types/spells'
-import type { BattleMapTile , CombatCharacter, CombatState, Position as _Position, BattleMapData, TurnState } from '@/types/combat'
+import type { ActionEconomyState, BattleMapTile, CombatCharacter, CombatState, BattleMapData, TurnState } from '@/types/combat'
+import type { CharacterStats as CoreCharacterStats } from '@/types/core'
+import type { Class } from '@/types/character'
 
+
+const mockClass: Class = {
+  id: 'fighter',
+  name: 'Fighter',
+  description: 'Minimal test class for target resolution fixtures.',
+  hitDie: 10,
+  primaryAbility: ['Strength'],
+  savingThrowProficiencies: ['Strength'],
+  skillProficienciesAvailable: [],
+  numberOfSkillProficiencies: 0,
+  armorProficiencies: [],
+  weaponProficiencies: [],
+  features: []
+}
+
+const mockStats: CoreCharacterStats = {
+  strength: 10,
+  dexterity: 10,
+  constitution: 10,
+  intelligence: 10,
+  wisdom: 10,
+  charisma: 10,
+  baseInitiative: 0,
+  speed: 30,
+  cr: '0'
+}
+
+const mockActionEconomy: ActionEconomyState = {
+  action: { used: false, remaining: 1 },
+  bonusAction: { used: false, remaining: 1 },
+  reaction: { used: false, remaining: 1 },
+  legendary: { used: 0, total: 0 },
+  movement: { used: 0, total: 30 },
+  freeActions: 0
+}
 
 // Mock Character
 const createMockChar = (id: string, team: 'player' | 'enemy', x: number, y: number): CombatCharacter => ({
   id,
   name: id,
+  level: 1,
   team,
   position: { x, y },
   // Stub other required fields
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  class: {} as unknown,
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  stats: {} as unknown,
+  class: mockClass,
+  stats: mockStats,
   abilities: [],
   currentHP: 10,
   maxHP: 10,
   initiative: 10,
   statusEffects: [],
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  actionEconomy: {} as unknown
-} as unknown as CombatCharacter)
+  actionEconomy: { ...mockActionEconomy },
+})
 
 const createMockTile = (x: number, y: number, blocksLoS: boolean = false): BattleMapTile => ({
   id: `${x}-${y}`,
@@ -44,7 +78,6 @@ describe('TargetResolver', () => {
   let enemyClose: CombatCharacter
   let enemyFar: CombatCharacter
   let mockGameState: CombatState
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
   let mockMapData: BattleMapData
 
   beforeEach(() => {
@@ -72,7 +105,6 @@ describe('TargetResolver', () => {
     mockGameState = {
       characters: [caster, ally, enemyClose, enemyFar],
       isActive: true,
-      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       turnState: {} as unknown as TurnState,
       selectedCharacterId: null,
       selectedAbilityId: null,

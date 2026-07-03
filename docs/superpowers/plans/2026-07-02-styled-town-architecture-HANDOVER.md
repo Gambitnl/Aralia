@@ -58,8 +58,9 @@ Plan (all 9 tasks executed): `docs/superpowers/plans/2026-07-01-styled-town-arch
    slabs themselves are dark-timber-on-dark-channel at topY 0.4 m — very low visual contrast
    from any distance. VERDICT: geometry+color proven by data; a true pilings close-up needs an
    in-game walk-up, and consider a contrast/polish pass (lighter deck rim or lighter water)
-   so quays read at overview distance. NOTE: probes died mid-session when a CONCURRENT agent
-   broke `generateRegion.ts` (`computeIdwRadiusFt is not defined`) — re-run once their edit lands.
+   so quays read at overview distance. (A concurrent agent's in-flight `generateRegion.ts` edit
+   briefly broke the probes; re-ran clean afterwards — Manim: 3 dark-timber docks + 3 pale
+   gatehouses [1 twinTowers + 2 tunnelBlock, wall tint #a09680], all data-verified.)
 2. **Highland family live** — NO Highland burg lands in a ground window as a town site in any
    scanned seed (42/7/99/123/1234/2026): mountain burgs seem to never yield region townSites.
    highlandStone renders only via unit tests so far. This smells like a systemic

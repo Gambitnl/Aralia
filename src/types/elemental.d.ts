@@ -7,12 +7,8 @@
  * States can combine (wet + cold = frozen) or cancel (wet + fire = steam/null).
  */
 /**
- * @TODO Integration Point:
- * This system should be integrated into the damage pipeline (e.g., DamageCommand or a new ApplyEffectCommand).
- * When damage or an effect is applied:
- * 1. Check for incoming element types (Fire damage applying Burning, Water spell applying Wet).
- * 2. Call `applyStateToTags(target.stateTags, newState)` to resolve interactions.
- * 3. Update the target's stateTags and apply any resulting mechanics (e.g., Frozen prevents movement).
+ * Elemental state effects are sourced from effects and combat systems and resolved
+ * through shared utilities in the elemental pipeline.
  */
 export declare enum StateTag {
     Wet = "wet",

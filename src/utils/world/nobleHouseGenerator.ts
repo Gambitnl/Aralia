@@ -358,9 +358,6 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): NobleH
   }
 
   // Generate Personal Secrets
-  // TODO(lint-intent): 'idx' is an unused parameter, which suggests a planned input for this flow.
-  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
   members.forEach((member, _idx) => {
     // 30% chance of a personal secret
     if (rng.next() > 0.7) {

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/07/2026, 13:39:46
+ * Last Sync: 02/07/2026, 11:54:58
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 1 files
  *
@@ -45,6 +45,11 @@ interface TurnOrderResult {
    * Adds a character to the existing turn order dynamically.
    */
   joinTurnOrder: (characterId: string, afterCharacterId?: string, options?: { initiative?: number }) => void;
+  /**
+   * Removes a character from the initiative order when a spell-created actor
+   * leaves combat outside the normal death flow.
+   */
+  removeFromTurnOrder: (characterId: string) => void;
   /**
    * Checks if it is currently the given character's turn.
    */
@@ -128,8 +133,25 @@ export const useTurnOrder = ({ characters }: UseTurnOrderProps): TurnOrderResult
     });
   }, []);
 
+  const removeFromTurnOrder = useCallback((characterId: string) => {
+    setTurnState(prev => {
+      const nextOrder = prev.turnOrder.filter(existingId => existingId !== characterId);
+      const removedCurrentActor = prev.currentCharacterId === characterId;
+
+      // Spell-created actors can vanish at round boundaries. If the removed
+      // actor was somehow still marked current, move the pointer to the next
+      // available initiative id so the turn loop never points at a missing
+      // combatant.
+      return {
+        ...prev,
+        turnOrder: nextOrder,
+        currentCharacterId: removedCurrentActor ? (nextOrder[0] ?? null) : prev.currentCharacterId
+      };
+    });
+  }, []);
+
   const advanceTurn = useCallback(() => {
-    // TODO(FEATURES): Capture/replay turn-order transitions after initiative changes to diagnose combat log anomalies (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+    // TODO #289(FEATURES): Capture/replay turn-order transitions after initiative changes to diagnose combat log anomalies (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
     // Calculate next state based on CURRENT turnState
     // We access turnState directly from the closure (which is fresh on every render)
     const prev = turnState;
@@ -219,6 +241,7 @@ export const useTurnOrder = ({ characters }: UseTurnOrderProps): TurnOrderResult
     initializeTurnOrder,
     advanceTurn,
     joinTurnOrder,
+    removeFromTurnOrder,
     isCharacterTurn,
     setCurrentCharacter,
     recordAction,

@@ -94,8 +94,15 @@ describe('ThievesGuildSystem', () => {
             const plan: HeistPlan = {
                 ...basePlan,
                 targetLocationId: 'loc_wrong',
-                // TODO(2026-01-03 pass 4 Codex-CLI): lootSecured cast until stolen item typing is shared with tests.
-                lootSecured: [{ id: 'item_1', value: 50 } as unknown as HeistPlan['lootSecured'][number]],
+                lootSecured: [{
+                    id: 'item_1',
+                    name: 'Stolen Coin',
+                    description: 'A coin from the heist.',
+                    type: 'treasure',
+                    value: 50,
+                    originalOwnerId: 'npc_1',
+                    stolenAt: 0,
+                }],
                 alertLevel: 0
             };
 
@@ -119,8 +126,15 @@ describe('ThievesGuildSystem', () => {
         it('should succeed with loot and reduce reward based on alert', () => {
             const plan: HeistPlan = {
                 ...basePlan,
-                // TODO(2026-01-03 pass 4 Codex-CLI): lootSecured cast until stolen item typing is shared with tests.
-                lootSecured: [{ id: 'item_1', value: 50 } as unknown as HeistPlan['lootSecured'][number]],
+                lootSecured: [{
+                    id: 'item_1',
+                    name: 'Stolen Coin',
+                    description: 'A coin from the heist.',
+                    type: 'treasure',
+                    value: 50,
+                    originalOwnerId: 'npc_1',
+                    stolenAt: 0,
+                }],
                 alertLevel: 20 // Should trigger penalty
             };
 

@@ -115,7 +115,6 @@ describe('SpellIntegrityValidator', () => {
         id: 'test',
         duration: { concentration: true },
         tags: ['damage']
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -128,7 +127,6 @@ describe('SpellIntegrityValidator', () => {
         id: 'test',
         duration: { concentration: true },
         tags: ['damage', 'concentration']
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       expect(SpellIntegrityValidator.validate(goodSpell)).toHaveLength(0);
@@ -149,7 +147,6 @@ describe('SpellIntegrityValidator', () => {
         ritual: true,
         duration: { concentration: false },
         tags: ['utility']
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -162,7 +159,6 @@ describe('SpellIntegrityValidator', () => {
         ritual: true,
         duration: { concentration: false },
         tags: ['utility', 'ritual']
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       expect(SpellIntegrityValidator.validate(goodSpell)).toHaveLength(0);
@@ -197,7 +193,6 @@ describe('SpellIntegrityValidator', () => {
             notes: 'Invalid trigger for regression coverage.'
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -223,7 +218,6 @@ describe('SpellIntegrityValidator', () => {
             notes: 'Repeated casting must identify what stays the same.'
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -249,7 +243,6 @@ describe('SpellIntegrityValidator', () => {
             notes: 'The progression says full concentration, but the spell does not.'
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -287,7 +280,6 @@ describe('SpellIntegrityValidator', () => {
             notes: 'Maintaining concentration for the full duration makes this permanent.'
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       expect(SpellIntegrityValidator.validate(goodSpell)).toHaveLength(0);
@@ -317,7 +309,6 @@ describe('SpellIntegrityValidator', () => {
             { label: 'Only Option', summary: 'Only one option remains.' }
           ]
         }
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -344,7 +335,6 @@ describe('SpellIntegrityValidator', () => {
             { label: 'Missing Effect', summary: 'Points outside effects.', effectIndices: [1] }
           ]
         }
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -383,7 +373,6 @@ describe('SpellIntegrityValidator', () => {
         aiContext: {
           playerInputRequired: true
         }
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       expect(SpellIntegrityValidator.validate(goodSpell)).toHaveLength(0);
@@ -416,7 +405,6 @@ describe('SpellIntegrityValidator', () => {
         aiContext: {
           playerInputRequired: false
         }
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       // Command-style spells can have structurally valid controlOptions but
@@ -451,7 +439,6 @@ describe('SpellIntegrityValidator', () => {
         duration: { concentration: false },
         tags: [],
         effects: []
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -484,7 +471,6 @@ describe('SpellIntegrityValidator', () => {
             }
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -520,7 +506,6 @@ describe('SpellIntegrityValidator', () => {
             ]
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -561,7 +546,6 @@ describe('SpellIntegrityValidator', () => {
             ]
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       expect(SpellIntegrityValidator.validate(goodSpell)).toHaveLength(0);
@@ -591,7 +575,6 @@ describe('SpellIntegrityValidator', () => {
             condition: { type: 'always' }
           }
         ]
-        // TODO(lint-intent): Replace unknown cast with a minimal test spell builder once this validator suite is decomposed.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -617,7 +600,6 @@ describe('SpellIntegrityValidator', () => {
             }
           }
         ]
-        // TODO(lint-intent): Replace unknown cast with a minimal test spell builder once this validator suite is decomposed.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -644,7 +626,6 @@ describe('SpellIntegrityValidator', () => {
             }
           }
         ]
-        // TODO(lint-intent): Replace unknown cast with a minimal test spell builder once this validator suite is decomposed.
       } as unknown as Spell;
 
       expect(SpellIntegrityValidator.validate(goodSpell)).toHaveLength(0);
@@ -671,7 +652,6 @@ describe('SpellIntegrityValidator', () => {
             description: '   '
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -691,7 +671,6 @@ describe('SpellIntegrityValidator', () => {
             description: 'See description.'
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -711,7 +690,6 @@ describe('SpellIntegrityValidator', () => {
             description: 'Deals 3d8 Radiant damage on the row\'s current hit-based resolution.'
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -731,7 +709,6 @@ describe('SpellIntegrityValidator', () => {
             description: 'Applies Charmed; save modifiers are preserved from the current row.'
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -755,7 +732,6 @@ describe('SpellIntegrityValidator', () => {
             description: 'Choose one of several transformation options. The first option changes movement and breathing, the second changes appearance, and the third creates natural weapons. This whole menu should not be copied onto every individual effect row.'
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -781,7 +757,6 @@ describe('SpellIntegrityValidator', () => {
             description: 'Leaves acidic residue as the non-damage companion effect.'
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -2873,7 +2848,6 @@ describe('SpellIntegrityValidator', () => {
             }
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
@@ -2927,7 +2901,6 @@ describe('SpellIntegrityValidator', () => {
             }
           }
         ]
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(sizeEquivalentSpell);
@@ -5411,8 +5384,3 @@ describe('SpellIntegrityValidator', () => {
     });
   });
 });
-
-
-
-
-

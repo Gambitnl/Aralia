@@ -11,7 +11,6 @@ describe('CrimeSystem', () => {
             globalHeat: 0,
             localHeat: {},
             knownCrimes: [],
-            // TODO(2026-01-03 pass 4 Codex-CLI): notoriety bounties stub for test coverage.
             bounties: []
         };
 
@@ -25,7 +24,6 @@ describe('CrimeSystem', () => {
             globalHeat: 0,
             localHeat: { 'loc_1': 50 }, // 50 heat * 0.5 = +25 risk
             knownCrimes: [],
-            // TODO(2026-01-03 pass 4 Codex-CLI): notoriety bounties stub for test coverage.
             bounties: []
         };
 

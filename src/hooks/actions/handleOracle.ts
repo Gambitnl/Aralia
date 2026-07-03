@@ -54,7 +54,7 @@ export async function handleOracle({
 
     // The Oracle's response can now also trigger goal updates if the information
     // it provides is directly relevant to an NPC's objective.
-    // TODO(lint-intent): Oracle responses should use a dedicated generator; for now reuse social outcome with a generic prompt.
+    // TODO #257(lint-intent): Oracle responses should use a dedicated generator; for now reuse social outcome with a generic prompt.
     const oracleResponseResult = await GeminiService.generateSocialCheckOutcome(
       null,
       null,

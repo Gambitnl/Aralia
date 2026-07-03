@@ -30,6 +30,7 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const REPO_ROOT = path.resolve(path.dirname(__filename), '..', '..');
 const DEFAULT_BASE_URL = 'http://localhost:4319';
+const UNCATEGORIZED_TASK_CATEGORY = 'uncategorized';
 
 // ---------------------------------------------------------------------------
 // argv parsing — supports `--flag value`, `--flag=value`, and bare positionals.
@@ -263,14 +264,16 @@ Commands:
   unlock <lockId> --force                 release a STALE/GONE holder's lock (refused if online)
   locks                                   list active locks
 
-  task new <title> [--body "..."] [--dep <taskId>...] [--priority N] [--ref <gapId|path>...]
+  task new <title> [--body "..."] [--dep <taskId>...] [--priority N] [--ref <gapId|path>...] [--category <name>]
                                           create a task; deps gate readiness, priority orders it
   task claim <taskId>                     claim a task
   task next [--id-only]                   claim the highest-priority READY task (worker pull)
   task state <taskId> <state>             set state (open|claimed|in_progress|blocked|done)
   task done <taskId> [--result "..."]     mark done, recording WHAT was done (evidence)
   task handoff <taskId> <toAgentId>       reassign a task
-  tasks [--state s] [--ready]             show the board (--ready: open tasks whose deps are done)
+  tasks [--state s] [--ready] [--category <name>] [--group-by-category]
+                                          show the board (--ready: open tasks whose deps are done);
+                                          --group-by-category shows optional visual sections by category
 
   say <body>                              broadcast a message to all (e.g. "WORKFLOW: ...")
   say --to <agentId|handle> <body>        direct message
@@ -440,7 +443,7 @@ async function cmdTask(out, parsed, env, baseUrl) {
   if (sub === 'new') {
     const title = rest[0];
     if (!title) {
-      out.log('Usage: task new <title> [--body "..."] [--dep <taskId>...] [--priority N] [--ref <r>...]');
+      out.log('Usage: task new <title> [--body "..."] [--dep <taskId>...] [--priority N] [--ref <r>...] [--category <name>]');
       return { code: 1 };
     }
     const body = { title };
@@ -453,6 +456,7 @@ async function cmdTask(out, parsed, env, baseUrl) {
     }
     const refs = asArray(parsed.flags.ref).filter((x) => typeof x === 'string');
     if (refs.length) body.refs = refs;
+    if (typeof parsed.flags.category === 'string') body.category = parsed.flags.category;
     const r = await api(baseUrl, 'POST', '/tasks', { token, body });
     if (r.status === 201 && r.json && r.json.task) {
       // Iteration-2: --id-only prints just the task id (no grep needed).
@@ -553,10 +557,13 @@ const STATE_ORDER = ['open', 'claimed', 'in_progress', 'blocked', 'done'];
 
 async function cmdTasks(out, parsed, env, baseUrl) {
   const stateFilter = typeof parsed.flags.state === 'string' ? parsed.flags.state : undefined;
+  const categoryFilter = typeof parsed.flags.category === 'string' ? parsed.flags.category : undefined;
+  const groupByCategory = parsed.flags['group-by-category'] === true;
   const ready = parsed.flags.ready === true;
   const params = [];
   if (stateFilter) params.push(`state=${encodeURIComponent(stateFilter)}`);
   if (ready) params.push('ready=1');
+  if (categoryFilter) params.push(`category=${encodeURIComponent(categoryFilter)}`);
   const qs = params.length ? `?${params.join('&')}` : '';
   const r = await api(baseUrl, 'GET', `/tasks${qs}`);
   const tasks = (r.json && r.json.tasks) || [];
@@ -565,12 +572,34 @@ async function cmdTasks(out, parsed, env, baseUrl) {
     return { code: 0, tasks };
   }
   const map = await buildAgentMap(baseUrl);
+  const order = [...STATE_ORDER];
   if (ready) {
+    if (groupByCategory) {
+      const groups = new Map();
+      for (const t of tasks) {
+        const cat = t.category || UNCATEGORIZED_TASK_CATEGORY || 'uncategorized';
+        if (!groups.has(cat)) groups.set(cat, []);
+        groups.get(cat).push(t);
+      }
+      const categoryOrder = [...groups.keys()].sort();
+      for (const cat of categoryOrder) {
+        out.log(`[${cat}]`);
+        for (const t of groups.get(cat)) {
+          const pri = t.priority ? `  p${t.priority}` : '';
+          const refs = (t.refs || []).length ? `  refs: ${t.refs.join(', ')}` : '';
+          const catLabel = t.category ? `  category: ${t.category}` : '';
+          out.log(`  ${shortId(t.id)}  ${t.title}${pri}${refs}${catLabel}`);
+        }
+      }
+      return { code: 0, tasks };
+    }
+
     // Ready view: already priority-ordered by the daemon — show it as a queue.
     for (const t of tasks) {
       const pri = t.priority ? `  p${t.priority}` : '';
       const refs = (t.refs || []).length ? `  refs: ${t.refs.join(', ')}` : '';
-      out.log(`${shortId(t.id)}  ${t.title}${pri}${refs}`);
+      const cat = t.category ? `  category: ${t.category}` : '';
+      out.log(`${shortId(t.id)}  ${t.title}${pri}${refs}${cat}`);
     }
     return { code: 0, tasks };
   }
@@ -579,13 +608,47 @@ async function cmdTasks(out, parsed, env, baseUrl) {
     if (!groups.has(t.state)) groups.set(t.state, []);
     groups.get(t.state).push(t);
   }
-  const order = [...STATE_ORDER.filter((s) => groups.has(s)), ...[...groups.keys()].filter((s) => !STATE_ORDER.includes(s))];
-  for (const st of order) {
+  if (groupByCategory) {
+    const grouped = new Map();
+    for (const st of order) {
+      const tasksByState = groups.get(st) || [];
+      for (const t of tasksByState) {
+        const cat = t.category || UNCATEGORIZED_TASK_CATEGORY || 'uncategorized';
+        if (!grouped.has(cat)) grouped.set(cat, []);
+        grouped.get(cat).push(t);
+      }
+    }
+    const categoryOrder = [...grouped.keys()].sort();
+    for (const cat of categoryOrder) {
+      out.log(`[${cat}]`);
+      const byState = new Map();
+      for (const s of order) byState.set(s, []);
+      for (const t of grouped.get(cat) || []) {
+        const arr = byState.get(t.state);
+        if (arr) arr.push(t);
+      }
+      for (const st of order) {
+        const section = byState.get(st);
+        if (!section || !section.length) continue;
+        out.log(`  [${st}]`);
+        for (const t of section) {
+          const who = t.claimedBy ? `  @${handleFor(map, t.claimedBy)}` : '';
+          const blocked = (t.deps || []).length && t.state === 'open' ? `  (deps: ${t.deps.map(shortId).join(', ')})` : '';
+          const category = t.category ? `  category: ${t.category}` : '';
+          out.log(`    ${shortId(t.id)}  ${t.title}${who}${blocked}${category}`);
+        }
+      }
+    }
+    return { code: 0, tasks };
+  }
+  const filteredOrder = [...STATE_ORDER.filter((s) => groups.has(s)), ...[...groups.keys()].filter((s) => !STATE_ORDER.includes(s))];
+  for (const st of filteredOrder) {
     out.log(`[${st}]`);
     for (const t of groups.get(st)) {
       const who = t.claimedBy ? `  @${handleFor(map, t.claimedBy)}` : '';
       const blocked = (t.deps || []).length && t.state === 'open' ? `  (deps: ${t.deps.map(shortId).join(', ')})` : '';
-      out.log(`  ${shortId(t.id)}  ${t.title}${who}${blocked}`);
+      const category = t.category ? `  category: ${t.category}` : '';
+      out.log(`  ${shortId(t.id)}  ${t.title}${who}${blocked}${category}`);
       if (t.state === 'done' && t.result) out.log(`      result: ${t.result}`);
     }
   }

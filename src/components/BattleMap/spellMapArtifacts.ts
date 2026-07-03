@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/07/2026, 23:48:32
+ * Last Sync: 02/07/2026, 05:31:50
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/SpellArtifact3DMarker.tsx
  * Imports: 1 files
  *
@@ -18,12 +18,17 @@ import type {
   ActiveAnimatedObject,
   ActiveExtradimensionalSpace,
   ActiveSpellEmanation,
+  ActiveFireEffect,
   ActiveSpellForce,
   ActiveSpellGuardian,
   ActiveSpellHelper,
   ActiveSpellStructure,
+  ActiveTruePolymorphTransformation,
   CombatCharacter,
-  Position
+  Position,
+  SpellObjectImpact,
+  SpellObjectRepair,
+  SpellObjectAccessChange
 } from '../../types/combat';
 
 export interface SpellMapArtifacts {
@@ -34,11 +39,16 @@ export interface SpellMapArtifacts {
   structures?: ActiveSpellStructure[];
   extradimensionalSpaces?: ActiveExtradimensionalSpace[];
   emanations?: ActiveSpellEmanation[];
+  objectImpacts?: SpellObjectImpact[];
+  objectRepairs?: SpellObjectRepair[];
+  objectAccessChanges?: SpellObjectAccessChange[];
+  fireEffects?: ActiveFireEffect[];
+  truePolymorphTransformations?: ActiveTruePolymorphTransformation[];
 }
 
 export interface SpellMapArtifactMarker {
   id: string;
-  family: 'helper' | 'force' | 'guardian' | 'animated-object' | 'structure' | 'space' | 'emanation';
+  family: 'helper' | 'force' | 'guardian' | 'animated-object' | 'structure' | 'space' | 'emanation' | 'object-impact' | 'object-repair' | 'object-access' | 'fire-effect' | 'transformation';
   label: string;
   title: string;
   position: Position;
@@ -150,6 +160,67 @@ export const buildSpellMapArtifactMarkers = (
       title: `${sourceName(emanation.spellName, emanation.spellId)} emanation, ${emanation.radiusFeet} ft radius`,
       position: caster.position,
       radiusFeet: emanation.radiusFeet
+    });
+  }
+
+  for (const impact of artifacts?.objectImpacts ?? []) {
+    markers.push({
+      id: `object-impact-${impact.id}`,
+      family: 'object-impact',
+      label: impact.damage?.type === 'fire' ? 'BURN' : 'HIT',
+      title: `${sourceName(impact.sourceSpellName, impact.sourceSpellId)} hit ${impact.objectName ?? impact.objectId}${impact.damage ? ` for ${impact.damage.dice} ${impact.damage.type}` : ''}`,
+      position: impact.position
+    });
+  }
+
+  for (const repair of artifacts?.objectRepairs ?? []) {
+    markers.push({
+      id: `object-repair-${repair.id}`,
+      family: 'object-repair',
+      label: repair.outcome === 'repaired' ? 'MEND' : 'CHECK',
+      title: `${sourceName(repair.sourceSpellName, repair.sourceSpellId)} ${repair.outcome.replace(/_/g, ' ')}: ${repair.objectName ?? repair.objectId}`,
+      position: repair.position
+    });
+  }
+
+  for (const accessChange of artifacts?.objectAccessChanges ?? []) {
+    markers.push({
+      id: `object-access-${accessChange.id}`,
+      family: 'object-access',
+      label: accessChange.outcome === 'magically_locked'
+        ? 'LOCK'
+        : accessChange.outcome === 'suppressed_magical_lock'
+          ? 'SUPP'
+          : 'OPEN',
+      title: `${sourceName(accessChange.sourceSpellName, accessChange.sourceSpellId)} ${accessChange.outcome.replace(/_/g, ' ')}: ${accessChange.objectName ?? accessChange.objectId}`,
+      position: accessChange.position
+    });
+  }
+
+  for (const fireEffect of artifacts?.fireEffects ?? []) {
+    markers.push({
+      id: `fire-effect-${fireEffect.id}`,
+      family: 'fire-effect',
+      label: fireEffect.kind === 'ignited_object' ? 'FIRE' : 'HAZ',
+      title: `${sourceName(fireEffect.sourceName, fireEffect.spellId)} ${fireEffect.kind.replace(/_/g, ' ')}${fireEffect.objectName ? `: ${fireEffect.objectName}` : ''}`,
+      position: fireEffect.position,
+      radiusFeet: fireEffect.area?.sizeFeet
+    });
+  }
+
+  for (const transformation of artifacts?.truePolymorphTransformations ?? []) {
+    const position = transformation.sourceObjectPosition ?? transformation.sourceCreaturePosition;
+    if (!position) continue;
+
+    const transformedName = transformation.transformedCreatureId
+      ? 'creature'
+      : transformation.transformedObjectName ?? transformation.transformedFormName ?? 'form';
+    markers.push({
+      id: `transformation-${transformation.id}`,
+      family: 'transformation',
+      label: transformation.mode === 'object_to_creature' ? 'OBJ>CR' : transformation.mode === 'creature_to_object' ? 'CR>OBJ' : 'FORM',
+      title: `${sourceName(transformation.spellName, transformation.spellId)} transformation: ${transformation.sourceObjectName ?? transformation.sourceCreatureName ?? 'target'} into ${transformedName}`,
+      position
     });
   }
 

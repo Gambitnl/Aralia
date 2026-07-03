@@ -191,7 +191,6 @@ function convertRumorToTopic(rumor: WorldRumor): ConversationTopic {
     label: `Hear anything about ${rumor.text.substring(0, 20)}...?`, // Shorten for label
     category: 'rumor',
     playerPrompt: `I heard whispers about ${rumor.text}. What do you know?`,
-    // TODO(lint-preserve): If we want NPCs to parrot/expand the rumor automatically, thread this through an NPC response prompt.
     isGlobal: false, // It's generated specifically for this context
     isOneTime: false,
   };
@@ -420,4 +419,4 @@ export function processTopicSelection(
   };
 }
 
-// TODO(Dialogist): Integrate with AI service to generate dynamic responses based on NPC Knowledge Profile.
+// TODO #416(Dialogist): Integrate with AI service to generate dynamic responses based on NPC Knowledge Profile.

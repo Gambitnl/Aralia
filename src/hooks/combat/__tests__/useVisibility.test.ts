@@ -1,5 +1,4 @@
-// TODO(lint-intent): 'vi' is unused in this test; use it in the assertion path or remove it.
-import { describe, it, expect, vi as _vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useVisibility } from '../useVisibility';
 import { CombatState, BattleMapData, LightSource, CombatCharacter } from '../../../types/combat';
@@ -109,5 +108,41 @@ describe('useVisibility', () => {
 
         expect(result.current.visibleTiles.size).toBe(0);
         expect(result.current.lightLevels.size).toBe(0);
+    });
+
+    it('applies active Darkness spell zones before observer visibility so darkvision cannot see through them', () => {
+        const state = createMockState();
+        state.mapData!.theme = 'forest';
+        state.activeLightSources = [];
+        state.characters[0].stats.senses = {
+            darkvision: 60,
+            blindsight: 0,
+            tremorsense: 0,
+            truesight: 0
+        };
+        state.spellZones = [{
+            id: 'zone-darkness-proof',
+            spellId: 'darkness',
+            casterId: 'hero',
+            position: { x: 5, y: 5 },
+            areaOfEffect: { shape: 'Sphere', size: 15 },
+            effects: [{
+                type: 'UTILITY',
+                perceptionState: { kind: 'magical_darkness_block' }
+            } as unknown as NonNullable<CombatState['spellZones']>[number]['effects'][number]],
+            triggeredThisTurn: new Set(),
+            triggeredEver: new Set()
+        }];
+
+        const { result } = renderHook(() => useVisibility({
+            combatState: state,
+            viewerId: 'hero'
+        }));
+
+        expect(result.current.lightLevels.get('5-5')).toBe('magical_darkness');
+        expect(result.current.visibleTiles.has('5-5')).toBe(false);
+        expect(result.current.canSeeTile('5-5')).toBe(false);
+        expect(result.current.getLightLevel('9-9')).toBe('bright');
+        expect(result.current.visibleTiles.has('9-9')).toBe(true);
     });
 });

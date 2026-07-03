@@ -47,8 +47,6 @@ vi.mock('../../config/geminiConfig', () => ({
   FAST_MODEL: 'gemini-test-model',
   COMPLEX_MODEL: 'gemini-test-model',
 }));
-
-// TODO(2026-01-03 Codex-CLI): Centralize AI client mocks to a helper once more service tests are added.
 type VitestMock = ReturnType<typeof vi.fn>;
 const mockGenerateContent = ai.models.generateContent as unknown as VitestMock; 
 
@@ -64,7 +62,6 @@ const stubEconomy: EconomyState = {
 };
 
 const stubNpcMemory: NPCMemory = {
-  // TODO(2026-01-03 pass 2 Codex-CLI): NPCMemory is richer in runtime; minimal stub with cast keeps social checks testable.
   interactions: [],
   knownFacts: [],
   // WHAT CHANGED: Added 'any' casts and eslint-disables for 'attitude' and 'lastInteractionDate'.
@@ -100,7 +97,6 @@ vi.mock('../../utils/networkUtils', async () => {
   return {
     // Keep original exports
     ...mod,
-    // TODO(2026-01-03 pass 1 Codex-CLI): withRetry is overridden to drop timer logic for deterministic tests; restore real retry semantics once test harness can await them.
     withRetry: vi.fn().mockImplementation((fn, _options) => fn()),
   };
 });
@@ -120,7 +116,6 @@ describe('geminiService', () => {
     const mockContext = "World is at peace.";
 
     it('should return fallback inventory when JSON parsing fails', async () => {
-      // TODO(2026-01-03 Codex-CLI): Replace any with typed StandardizedResult once gemini client mocks are formalized.
       mockGenerateContent.mockResolvedValue({
         text: 'This is not JSON',
       });
@@ -133,7 +128,6 @@ describe('geminiService', () => {
     });
 
     it('varies fallback inventory when a seed key is provided', async () => {
-      // TODO(2026-01-03 Codex-CLI): Replace any with typed StandardizedResult once gemini client mocks are formalized.
       mockGenerateContent.mockResolvedValue({
         text: 'This is not JSON',
       });
@@ -152,7 +146,6 @@ describe('geminiService', () => {
 
   describe('generateSocialCheckOutcome', () => {
     it('should return fallback outcome when JSON parsing fails', async () => {
-      // TODO(2026-01-03 Codex-CLI): Replace any with typed StandardizedResult once gemini client mocks are formalized.
       mockGenerateContent.mockResolvedValue({
         text: 'Invalid JSON',
       });
@@ -168,7 +161,6 @@ describe('geminiService', () => {
 
     describe('generateCustomActions', () => {
     it('should return fallback actions when JSON parsing fails', async () => {
-      // TODO(2026-01-03 Codex-CLI): Replace any with typed StandardizedResult once gemini client mocks are formalized.
       mockGenerateContent.mockResolvedValue({
         text: 'Invalid JSON',
       });
@@ -184,7 +176,6 @@ describe('geminiService', () => {
 
     describe('generateHarvestLoot', () => {
     it('should return empty/fallback loot when JSON parsing fails', async () => {
-      // TODO(2026-01-03 Codex-CLI): Replace any with typed StandardizedResult once gemini client mocks are formalized.
       mockGenerateContent.mockResolvedValue({
         text: 'Invalid JSON',
       });
@@ -213,7 +204,6 @@ describe('geminiService', () => {
   describe('Timeout Handling', () => {
     it('should time out if the API call takes too long', async () => {
         vi.useFakeTimers();
-        // TODO(2026-01-03 Codex-CLI): Replace any with the minimal test shape so the behavior stays explicit.
 
         // Mock implementation that never resolves (hangs)
         mockGenerateContent.mockImplementation(() => new Promise(() => {}));

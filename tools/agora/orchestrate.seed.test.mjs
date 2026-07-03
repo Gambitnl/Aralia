@@ -36,8 +36,9 @@ function makePlan() {
     wave: 'seed-test',
     baseUrl,
     packets: [
-      { id: 'PK-a', handle: 'w-a', agent: 'claude', scope: 'prep shared types', files: ['src/t.ts'], issues: ['G1'], priority: 9 },
-      { id: 'PK-b', handle: 'w-b', agent: 'claude', scope: 'build on the types', files: ['src/u.ts'], issues: ['G2'], after: ['PK-a'] },
+      // Qualified refs — bare ids are ambiguity-checked against the REAL index at seed time.
+      { id: 'PK-a', handle: 'w-a', agent: 'claude', scope: 'prep shared types', files: ['src/t.ts'], issues: ['seedtest:X1'], priority: 9 },
+      { id: 'PK-b', handle: 'w-b', agent: 'claude', scope: 'build on the types', files: ['src/u.ts'], issues: ['seedtest:X2'], after: ['PK-a'] },
     ],
   };
 }
@@ -61,7 +62,7 @@ test('seedPlan creates one board task per packet with priority/refs/deps wired',
   const b = tasks.find((t) => t.id === seeded['PK-b']);
   assert.match(a.title, /PK-a: prep shared types/);
   assert.equal(a.priority, 9);
-  assert.deepEqual(a.refs, ['G1']);
+  assert.deepEqual(a.refs, ['seedtest:X1']);
   assert.deepEqual(b.deps, [a.id], 'after: [PK-a] became a task dep');
 
   // The dependency actually gates the board: only PK-a is ready.

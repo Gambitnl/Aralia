@@ -22,8 +22,6 @@
  * System for managing NPC memories, facts, and attitude changes.
  */
 
-// TODO(Vector): Wire up Spell/Combat systems to call MemorySystem.recordInteraction when spells like Charm Person end.
-
 import type { NPC } from '../../types';
 import {
   Interaction,
@@ -31,9 +29,6 @@ import {
   NPCMemory,
   MemoryInteractionType,
   GameDate,
-  // TODO(lint-intent): 'MemoryImportance' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
   MemoryImportance as _MemoryImportance
 } from '../../types/memory';
 import { generateId } from '../../utils/core/idGenerator';
@@ -44,8 +39,6 @@ import { generateId } from '../../utils/core/idGenerator';
  */
 export class MemorySystem {
 
-  // TODO(2026-01-03 pass 4 Codex-CLI): NPC doesn't yet carry memory fields; use a local bridge type until the model is unified.
-  private static readonly _memoryNpcTag = Symbol('memory-npc');
   private static asMemoryNpc(npc: NPC): NPC & { memory?: NPCMemory } {
     return npc as NPC & { memory?: NPCMemory };
   }
@@ -113,9 +106,6 @@ export class MemorySystem {
 
     // Check if fact is already known
     const existingFactIndex = memory.knownFacts.findIndex((f: Fact) => f.id === fact.id);
-    // TODO(lint-intent): This binding never reassigns, so the intended mutability is unclear.
-    // TODO(lint-intent): If it should stay stable, switch to const and treat it as immutable.
-    // TODO(lint-intent): If mutation was intended, add the missing update logic to reflect that intent.
     const updatedFacts = [...memory.knownFacts];
 
     const newFact: Fact = {

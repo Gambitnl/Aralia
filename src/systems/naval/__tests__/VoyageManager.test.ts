@@ -111,7 +111,6 @@ describe('VoyageManager', () => {
 
     it('should consume supplies from ship cargo', () => {
         const ship = createMockShip();
-        // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
         const voyage = VoyageManager.startVoyage(ship, 500);
         const crewCount = ship.crew.members.length;
         const initialFood = ship.cargo.supplies.food;
@@ -134,7 +133,6 @@ describe('VoyageManager', () => {
         // starvation check compares against the actual crew state instead of a
         // fixed baseline that only applies to trait-neutral crew.
         const startingMorale = ship.crew.averageMorale;
-        // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
         const voyage = VoyageManager.startVoyage(ship, 500);
         const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000, noEventRng);
         const updatedShip = result.updatedShip;
@@ -150,7 +148,6 @@ describe('VoyageManager', () => {
 
     it('should finish voyage when distance is reached', () => {
         const ship = createMockShip();
-        // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
         const voyage = VoyageManager.startVoyage(ship, 50); // Short trip
         const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000, noEventRng);
 

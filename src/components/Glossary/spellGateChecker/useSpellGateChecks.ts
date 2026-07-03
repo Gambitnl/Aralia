@@ -109,9 +109,8 @@ export const useSpellGateChecks = (
             const artifactEntry = gateArtifact?.spells?.[id];
 
             try {
-              // TODO(lint-intent): The any on this value hides the intended shape of this data.
-              // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-              // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+              // TODO #87(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+              // TODO #88(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
               const spell = await fetchWithTimeout<unknown>(assetUrl(entry.path), { timeoutMs: 15000 });
               fetchedSpell = spell;
 

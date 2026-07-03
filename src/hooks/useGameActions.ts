@@ -148,7 +148,6 @@ export function useGameActions({
         generalActionContext,
       });
 
-      // TODO: Wrap handler dispatches in a centralized try/finally that clears loading/error state (Reason: thrown handlers can leave the global spinner stuck; Expectation: UI returns to idle even when an action aborts mid-flow).
       try {
         const handler = handlers[action.type];
         if (handler) {

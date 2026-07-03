@@ -132,8 +132,6 @@ const EquippedItemVisual: React.FC<{ item: Item }> = ({ item }) => {
     return () => img.removeEventListener('error', handleError);
   }, [visual.src, imgError]);
 
-  // TODO(lint-intent): If this image needs interactive affordances, wrap it in a semantic control.
-  // TODO(lint-intent): If it stays decorative, keep the fallback logic here and move styling to a shared helper.
   if (visual.src && !imgError) {
     return (
       <img

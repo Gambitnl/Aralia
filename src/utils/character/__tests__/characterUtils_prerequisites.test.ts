@@ -1,8 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evaluateFeatPrerequisites } from '../characterUtils';
-// TODO(lint-intent): 'AbilityScores' is unused in this test; use it in the assertion path or remove it.
-import { Feat, FeatPrerequisiteContext, AbilityScores as _AbilityScores } from '../../../types';
+import { Feat, FeatPrerequisiteContext } from '../../../types';
 
 describe('evaluateFeatPrerequisites', () => {
   const defaultContext: FeatPrerequisiteContext = {
@@ -27,7 +26,6 @@ describe('evaluateFeatPrerequisites', () => {
     description: 'A test feat',
     prerequisites: {},
     benefits: {},
-    // TODO(2026-01-03 pass 4 Codex-CLI): feat source cast until type includes source metadata.
     ...overrides,
   } as unknown as Feat);
 

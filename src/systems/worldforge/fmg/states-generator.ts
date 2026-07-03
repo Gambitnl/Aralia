@@ -11,8 +11,8 @@
  * preserved on the shared seeded stream.
  *
  * UPSTREAM QUIRK PRESERVED: in generateDiplomacy's attacker-ally-vassal
- * branch upstream has a `// TODO: I think here is a bug, it should be ap
- * instead of dp` — the code DOES add to `ap` (the TODO comment upstream is
+ * branch upstream says this was a bug (`ap` vs `dp`), but the ported implementation
+ * intentionally keeps behavior and does add to `ap`.
  * stale); ported as-is.
  *
  * Adaptations (cosmetic only): DOM inputs became context values (sizeVariety,
@@ -639,10 +639,9 @@ export class StatesModule {
           .filter((d: number) => d)
           .forEach((v: number) => {
             attackers.push(v);
-            // TODO: I think here is a bug, it should be ap instead of dp
             ap += states[v].area! * states[v].expansionism;
             war.push(
-              `${states[d].name}'s vassal ${states[v].name} joined the war on attackers side`,
+                `${states[d].name}'s vassal ${states[v].name} joined the war on attackers side`,
             );
           });
       });
@@ -653,7 +652,6 @@ export class StatesModule {
           states[a].diplomacy![d] = states[d].diplomacy![a] = "Enemy";
         });
       });
-      // TODO: record war in chronicle to keep state interface clean
       chronicle.push(war as any); // add a record to diplomatical history
     }
   }

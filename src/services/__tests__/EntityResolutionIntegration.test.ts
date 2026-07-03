@@ -30,8 +30,6 @@ describe('Linker Gap Verification: Entity Resolution Integration', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // TODO(2026-01-03 Codex-CLI): Replace broad mocks with typed fixtures once entity resolution inputs are formalized.
     mockedResolveEntities.mockReturnValue([]);
     mockedEnsureEntity.mockResolvedValue({ created: false, entity: null });
   });
@@ -39,7 +37,6 @@ describe('Linker Gap Verification: Entity Resolution Integration', () => {
   it('verifies that handleGeminiCustom NOW resolves entities from AI text', async () => {
     // 1. Mock AI output mentioning a new location
     const aiText = "You travel to the city of Silverdale.";
-    // TODO(2026-01-03 Codex-CLI): Use typed StandardizedResult once Gemini service test helpers are formalized.
     mockedGenerateOutcome.mockResolvedValue({
       data: { text: aiText },
       error: null
@@ -48,7 +45,6 @@ describe('Linker Gap Verification: Entity Resolution Integration', () => {
     // 2. Mock Entity Resolver to find it
     const mockReference = { type: 'location', normalizedName: 'Silverdale', exists: false };
     const mockCreationResult = { entity: { id: 'silverdale', name: 'Silverdale' }, created: true, type: 'location' };
-    // TODO(2026-01-03 Codex-CLI): Narrow these to real EntityReference/creation results once types are exported to tests.
     mockedResolveEntities.mockReturnValue([mockReference]);
     mockedEnsureEntity.mockResolvedValue(mockCreationResult);
 

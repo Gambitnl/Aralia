@@ -20,10 +20,7 @@
  * Handles execution of spell effect triggers based on game events.
  * Supports the new trigger types: on_enter_area, on_exit_area, on_end_turn_in_area, on_target_move
  */
-// TODO(lint-intent): 'EffectCondition' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import type { AreaOfEffect, SpellEffect, TerrainEffect, EffectTrigger, EffectCondition as _EffectCondition, TargetConditionFilter, TargetFilter } from '../../../types/spells';
+import type { AreaOfEffect, SpellEffect, TerrainEffect, EffectTrigger, TargetConditionFilter, TargetFilter } from '../../../types/spells';
 import type { CombatCharacter, Position } from '../../../types/combat';
 import type { RepeatSave, EscapeCheck, ConditionBreakTrigger } from '../../../types/spells';
 import type { AoEParams } from '../../../utils/combat/aoeCalculations';
@@ -98,22 +95,6 @@ export interface MovementTriggerContext {
 }
 
 /**
- * Context for evaluating trigger conditions
- */
-// TODO(lint-intent): 'TriggerContext' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-// TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-// TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-interface _TriggerContext {
-    round: number;
-    movingCharacter?: CombatCharacter;
-    enteredPosition?: Position;
-    previousPosition?: Position;
-}
-
-// TODO: `_TriggerContext` and the unused `_round` parameters in `processAreaEntryTriggers`/`processAreaEndTurnTriggers` suggest abandoned or future-planned logic.
-// Either fully implement the context passing to support complex triggers (e.g. time-sensitive scaling) or remove these artifacts to reduce noise.
-
-/**
  * Result of processing a trigger
  */
 export interface TriggerResult {
@@ -160,17 +141,14 @@ export function matchesTargetFilter(
 ): boolean {
     if (!filter) return true; // No filter means effect applies to all
 
-    // TODO: The `target` is currently cast to `any` or a partial shape because `CombatCharacter` lacks `creatureType`, `size`, and `alignment`.
-    // This makes target filtering fragile. Update the `CombatCharacter` interface in `src/types/combat.ts` to explicitly include these properties.
-    // TODO(2026-01-03 pass 4 Codex-CLI): target details cast until CombatCharacter exposes creatureType/size/alignment.
-    const targetDetails = target as Partial<CombatCharacter> & { creatureType?: string; size?: string; alignment?: string };
+    const targetTypes = [
+        ...(target.creatureTypes ?? []),
+        ...(target.stats?.creatureTypes ?? [])
+    ].filter((type): type is string => Boolean(type));
 
     // Check creature type
     if (filter.creatureType && filter.creatureType.length > 0) {
-        // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-        const targetType = targetDetails.creatureType || 'Humanoid';
+        const targetType = targetTypes[0] || 'Humanoid';
         if (!filter.creatureType.includes(targetType)) {
             return false;
         }
@@ -178,10 +156,7 @@ export function matchesTargetFilter(
 
     // Check size (if target has size property)
     if (filter.size && filter.size.length > 0) {
-        // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-        const targetSize = targetDetails.size || 'Medium';
+        const targetSize = target.stats?.size || 'Medium';
         if (!filter.size.includes(targetSize)) {
             return false;
         }
@@ -189,10 +164,7 @@ export function matchesTargetFilter(
 
     // Check alignment (if target has alignment property)
     if (filter.alignment && filter.alignment.length > 0) {
-        // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-        const targetAlignment = targetDetails.alignment;
+        const targetAlignment = target.alignment || target.stats?.alignment;
         if (targetAlignment && !filter.alignment.includes(targetAlignment)) {
             return false;
         }
@@ -265,11 +237,11 @@ export function isPositionInArea(
         }, direction);
     }
 
-    // TODO: The current Line and Cone checks are direction-agnostic (checking distance only).
+    // TODO #977: The current Line and Cone checks are direction-agnostic (checking distance only).
     // This is incorrect for directionless spells. Preserve direction data from the casting path so `AoECalculator`
     // can delegate to the canonical `src/utils/combat/aoeCalculations.ts` geometry for Cones and Lines.
 
-    // TODO(SPELL-OVERHAUL): Replace simplified line/cone checks with direction-aware AoE math (see docs/tasks/spell-system-overhaul/TODO.md; if this block is moved/refactored/modularized, update the TODO entry path).
+    // TODO #978(SPELL-OVERHAUL): Replace simplified line/cone checks with direction-aware AoE math (see docs/tasks/spell-system-overhaul/TODO #979.md; if this block is moved/refactored/modularized, update the TODO #980 entry path).
     const dx = Math.abs(position.x - zonePosition.x);
     const dy = Math.abs(position.y - zonePosition.y);
     const sizeInTiles = Math.ceil(areaOfEffect.size / 5); // Convert feet to tiles
@@ -332,9 +304,6 @@ export function processAreaEntryTriggers(
     character: CombatCharacter,
     newPosition: Position,
     previousPosition: Position,
-    // TODO(lint-intent): 'round' is an unused parameter, which suggests a planned input for this flow.
-    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
     _round: number
 ): TriggerResult[] {
     const results: TriggerResult[] = [];
@@ -634,39 +603,15 @@ export function convertSpellEffectToProcessed(
 ): ProcessedEffect[] {
     const processed: ProcessedEffect[] = [];
 
-    // TODO: The function relies on double-casting `effect as unknown as ...` which bypasses type safety.
-    // Use TypeScript type guards (e.g., `isDamageEffect(effect)`) to safely narrow the `SpellEffect` union before accessing specific properties like `damage.dice`.
-
-    // TODO(2026-01-03 pass 4 Codex-CLI): SpellEffect detail casting until spell data schema is formalized.
-    const effectDetails = effect as unknown as {
-        damage?: { dice?: string; type?: string };
-        healing?: { dice?: string };
-        condition?: { type?: string; saveType?: string; saveEffect?: string };
-    };
-
-    // TODO: Include source metadata (spellId, casterId, optional saveDC) on ProcessedEffect 
-    // to avoid downstream guesswork in handlers. Currently, handlers must re-lookup the 
-    // caster to calculate spell DC, which is fragile if the caster has left combat.
-
-    // TODO: `ProcessedEffect` currently lacks `sourceSpellId` and `casterId`. 
-    // This forces downstream systems to guess or look up values for Save DC calculations.
-    // 1. Extend `ProcessedEffect` to include `context: { spellId: string; casterId: string; saveDC?: number }`.
-    // 2. Populate this from the `ActiveSpellZone` or `MovementTriggerDebuff` when converting.
     switch (effect.type) {
         case 'DAMAGE':
             processed.push({
                 type: 'damage',
-                // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-                // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-                // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-                dice: effectDetails.damage?.dice,
-                // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-                // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-                // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-                damageType: effectDetails.damage?.type,
-                requiresSave: effectDetails.condition?.type === 'save',
-                saveType: effectDetails.condition?.saveType,
-                saveEffect: effectDetails.condition?.saveEffect,
+                dice: effect.damage?.dice,
+                damageType: effect.damage?.type,
+                requiresSave: effect.condition?.type === 'save',
+                saveType: effect.condition?.saveType,
+                saveEffect: effect.condition?.saveEffect,
                 sourceContext
             });
             break;
@@ -674,53 +619,26 @@ export function convertSpellEffectToProcessed(
         case 'HEALING':
             processed.push({
                 type: 'heal',
-                // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-                // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-                // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-                dice: effectDetails.healing?.dice,
+                dice: effect.healing?.dice,
                 sourceContext
             });
             break;
 
         case 'STATUS_CONDITION': {
-            // TODO(2026-01-03 pass 4 Codex-CLI): SpellEffect.statusCondition typing is loose; casting for now.
-            const statusEffect = effect as unknown as {
-                statusCondition?: {
-                    name?: string;
-                    repeatSave?: RepeatSave;
-                    escapeCheck?: EscapeCheck;
-                    breakTriggers?: ConditionBreakTrigger[];
-                    duration?: SpellEffect['duration'];
-                };
-                condition?: {
-                    type?: string;
-                    saveType?: string;
-                    saveEffect?: string;
-                    repeatSave?: RepeatSave;
-                    escapeCheck?: EscapeCheck;
-                    breakTriggers?: ConditionBreakTrigger[];
-                };
-                repeatSave?: RepeatSave;
-                escapeCheck?: EscapeCheck;
-                breakTriggers?: ConditionBreakTrigger[];
-            };
             processed.push({
                 type: 'status_condition',
-                // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-                // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-                // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-                statusName: statusEffect.statusCondition?.name,
-                duration: statusEffect.statusCondition?.duration ?? effect.duration,
-                requiresSave: statusEffect.condition?.type === 'save',
-                saveType: statusEffect.condition?.saveType,
-                saveEffect: statusEffect.condition?.saveEffect,
+                statusName: effect.statusCondition?.name,
+                duration: effect.statusCondition?.duration,
+                requiresSave: effect.condition?.type === 'save',
+                saveType: effect.condition?.saveType,
+                saveEffect: effect.condition?.saveEffect,
                 // Status-condition metadata appears in more than one declaration
                 // shape while the spell-data migration is still in flight. Preserve
                 // all known locations so delayed effects and area triggers keep the
                 // ongoing-resolution rules that immediate status commands already use.
-                repeatSave: statusEffect.repeatSave ?? statusEffect.statusCondition?.repeatSave ?? statusEffect.condition?.repeatSave,
-                escapeCheck: statusEffect.escapeCheck ?? statusEffect.statusCondition?.escapeCheck ?? statusEffect.condition?.escapeCheck,
-                breakTriggers: statusEffect.breakTriggers ?? statusEffect.statusCondition?.breakTriggers ?? statusEffect.condition?.breakTriggers,
+                repeatSave: effect.statusCondition?.repeatSave,
+                escapeCheck: effect.statusCondition?.escapeCheck,
+                breakTriggers: effect.statusCondition?.breakTriggers,
                 sourceContext
             });
             break;

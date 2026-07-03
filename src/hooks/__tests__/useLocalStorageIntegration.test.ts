@@ -1,5 +1,4 @@
-// TODO(lint-intent): 'act' is unused in this test; use it in the assertion path or remove it.
-import { renderHook, act as _act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { useLocalStorage } from '../useLocalStorage';
 import { z } from 'zod';
 import { SafeStorage } from '../../utils/storageUtils';

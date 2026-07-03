@@ -2303,7 +2303,11 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
           className={`rounded-xl px-4 py-3 shadow-xl border backdrop-blur-md ${isDark ? 'bg-slate-900/72 border-slate-700/90' : 'bg-white/88 border-slate-300'}`}
           style={{ width: glanceCardWidth }}
         >
-          <div className={`text-[10px] uppercase tracking-[0.2em] mb-2 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>At A Glance</div>
+          {/* Honesty label (2026-07-02, planning-stack review): this tool is a coverage
+              INVENTORY — its done/active/planned counters are known status-rotted and
+              must not be read as progress. Forward planning lives in the plan-map
+              (public/planmap). See tools/agora/PLANNING-STACK.md. */}
+          <div className={`text-[10px] uppercase tracking-[0.2em] mb-2 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Inventory — presence, not progress</div>
           <div className={`mb-2 grid gap-2 ${isCompactViewport ? 'grid-cols-1' : 'grid-cols-3'}`}>
             <div className={`rounded border px-2 py-1.5 ${isDark ? 'bg-emerald-950/40 border-emerald-800' : 'bg-emerald-50 border-emerald-200'}`}><div className={`text-[9px] uppercase ${isDark ? 'text-emerald-300' : 'text-emerald-600'}`}>Done</div><div className={`text-lg leading-none font-bold ${isDark ? 'text-emerald-200' : 'text-emerald-700'}`}>{summaryStats.done}</div></div>
             <div className={`rounded border px-2 py-1.5 ${isDark ? 'bg-amber-950/40 border-amber-800' : 'bg-amber-50 border-amber-200'}`}><div className={`text-[9px] uppercase ${isDark ? 'text-amber-300' : 'text-amber-600'}`}>Active</div><div className={`text-lg leading-none font-bold ${isDark ? 'text-amber-200' : 'text-amber-700'}`}>{summaryStats.active}</div></div>

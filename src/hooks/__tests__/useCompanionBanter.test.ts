@@ -52,7 +52,6 @@ vi.mock('../../services/ollama', () => ({
         generateEscalationLine: vi.fn(),
         summarizeConversation: vi.fn()
     },
-    // TODO(lint-intent): Add a non-empty fact payload when banter fact extraction is exercised in tests.
     extractDiscoveredFacts: vi.fn().mockResolvedValue({ success: true, data: [] })
 }));
 

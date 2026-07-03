@@ -8,17 +8,10 @@
  */
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-// TODO(lint-intent): 'GameState' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { GameState as _GameState, Action, Item } from '../../../types';
+import { Action, Item } from '../../../types';
 import { TavernGossipSystem, PurchaseableRumor } from '../../../systems/intrigue/TavernGossipSystem';
 import { useGameState } from '../../../state/GameContext';
 import { formatGpAsCoins } from '../../../utils/coinPurseUtils';
-// TODO(lint-intent): 'Secret' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Secret as _Secret } from '../../../types/identity';
 
 interface RumorMillProps {
     merchantName: string;
@@ -30,7 +23,6 @@ interface RumorMillProps {
 export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, playerInventory, onAction }) => {
     const { state } = useGameState();
 
-  // TODO(lint-intent): If rumor availability becomes expensive, move this lookup into a memoized selector.
   const availableRumors = TavernGossipSystem.getAvailableRumors(state, merchantName);
 
     // Track purchased rumors by checking inventory for the unique items we create
@@ -55,7 +47,7 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
         const serviceItem: Item = {
             id: `rumor_${rumor.id}`, // Unique ID linking back to the rumor
             name: rumor.type === 'secret' ? 'Secret Info' : rumor.type === 'lead' ? 'Lead' : 'Rumor',
-            type: 'note', // TODO(Intriguer): Promote to a dedicated "service" item type once taxonomy expands.
+            type: 'note', // TODO #137(Intriguer): Promote to a dedicated "service" item type once taxonomy expands.
             cost: '0', // Resell value is 0 (info degrades)
             description: `Purchased from ${merchantName}: "${rumor.content}"`, // Store content here!
             weight: 0,
@@ -72,7 +64,7 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
         // Log specific event for intrigue system hook (optional, handled by BUY_ITEM logs generally)
         // [Sentinel] Removed console.log that exposed secret payload
 
-        // TODO(Intriguer): If type is 'lead', trigger a QUEST_START or add a map marker here via custom action.
+        // TODO #138(Intriguer): If type is 'lead', trigger a QUEST_START or add a map marker here via custom action.
     };
 
     return (
@@ -81,11 +73,6 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
                 <h3 className="text-xl font-cinzel text-amber-500">The Rumor Mill</h3>
                 
                 
-                {/*
-                  TODO(lint-intent): This text includes raw quotes/special characters that were likely meant as prose.
-                  TODO(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
-                  TODO(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
-                */}
                 <p className="text-sm text-gray-400 italic">&quot;Information is the only currency that matters...&quot;</p>
             </div>
 
@@ -111,10 +98,6 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
                                         {isPurchased ? (
                                             
                                             
-                                            /* TODO(lint-intent): This text includes raw quotes/special characters that were likely meant as prose.
-                                            TODO(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
-                                            TODO(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
-                                            */
                                             <motion.p
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
@@ -153,11 +136,6 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
 
                 {availableRumors.length === 0 && (
                     
-                    
-                    /* TODO(lint-intent): This text includes raw quotes/special characters that were likely meant as prose.
-                    TODO(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
-                    TODO(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
-                    */
                     <p className="text-center text-gray-500 mt-10">
                         &quot;Quiet night. Nobody&apos;s talking.&quot;
                     </p>

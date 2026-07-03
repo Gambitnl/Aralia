@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/07/2026, 15:14:38
+ * Last Sync: 02/07/2026, 11:54:58
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 12 files
  *
@@ -49,6 +49,7 @@ interface UseTurnManagerProps {
   onCharacterUpdate: (character: CombatCharacter) => void;
   onLogEntry: (entry: CombatLogEntry) => void;
   onRoundElapsed?: (seconds: number) => void;
+  onCharacterRemove?: (characterId: string) => void;
   autoCharacters?: Set<string>;
   onMapUpdate?: (mapData: BattleMapData) => void;
   requestReaction?: (
@@ -166,6 +167,7 @@ export const useTurnManager = ({
   onCharacterUpdate,
   onLogEntry,
   onRoundElapsed,
+  onCharacterRemove,
   autoCharacters,
   onMapUpdate,
   difficulty = 'normal',
@@ -179,6 +181,7 @@ export const useTurnManager = ({
     initializeTurnOrder,
     advanceTurn: advanceTurnOrder,
     joinTurnOrder,
+    removeFromTurnOrder,
     isCharacterTurn: checkIsCharacterTurn,
     setCurrentCharacter,
     recordAction
@@ -654,7 +657,6 @@ export const useTurnManager = ({
       message: `${character.name}'s turn.`,
       characterId: character.id
     });
-    // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
   }, [characters, handleCharacterUpdateWrapped, onLogEntry, processRepeatSaves, processScheduledSpellEffects, turnState.currentTurn]);
 
   const initializeCombat = useCallback((initialCharacters: CombatCharacter[]) => {
@@ -687,7 +689,6 @@ export const useTurnManager = ({
       message: `Combat begins! Turn order: ${sorted.map(c => c.name).join(' → ')}`,
       data: { turnOrder: sorted.map(c => c.id), initiatives: sorted.map(c => ({ id: c.id, initiative: c.initiative })) }
     });
-    // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
   }, [handleCharacterUpdateWrapped, onLogEntry, rollInitiative, startTurnFor, initializeTurnOrder]);
 
   const joinCombat = useCallback((character: CombatCharacter, options: { initiative?: number } = {}) => {
@@ -722,7 +723,6 @@ export const useTurnManager = ({
       characterId: readyChar.id,
       data: { initiative }
     });
-    // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
   }, [handleCharacterUpdateWrapped, onLogEntry, rollInitiative, joinTurnOrder, turnState.currentCharacterId]);
 
 
@@ -749,6 +749,43 @@ export const useTurnManager = ({
       onRoundElapsed?.(ROUND_DURATION_SECONDS);
 
       updateRoundBasedEffects(turnState.currentTurn);
+
+      // Concentration-ending aftermath can leave a summon on the board for a
+      // short grace period instead of deleting it immediately. When that grace
+      // period expires, remove the visible actor and its initiative entry in
+      // the same round-boundary pass so combat cannot schedule a missing summon.
+      characters.forEach(character => {
+        const aftermathState = character.summonMetadata?.aftermathState;
+        if (!character.isSummon ||
+            aftermathState?.kind !== 'uncontrolled_demon_grace_period') {
+          return;
+        }
+
+        const remainingRounds = aftermathState.remainingRounds ?? 0;
+        if (remainingRounds <= 1) {
+          onCharacterRemove?.(character.id);
+          removeFromTurnOrder(character.id);
+          onLogEntry({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'status',
+            message: `${character.name} disappears as its uncontrolled grace period ends`,
+            characterId: character.id
+          });
+          return;
+        }
+
+        onCharacterUpdate({
+          ...character,
+          summonMetadata: {
+            ...character.summonMetadata,
+            aftermathState: {
+              ...aftermathState,
+              remainingRounds: remainingRounds - 1
+            }
+          }
+        });
+      });
 
       onLogEntry({
         id: generateId(),
@@ -796,7 +833,7 @@ export const useTurnManager = ({
 
       // Fix for stale closure: If the next character is the one we just processed (e.g. solo combat),
       // use the updated state returned from processEndOfTurnEffects instead of the stale one from 'characters'.
-      // TODO(Stability): Refactor this Stale Closure Workaround.
+      // TODO #282(Stability): Refactor this Stale Closure Workaround.
       // Instead of patching `nextCharacter` with `processedChar` based on ID match,
       // `processEndOfTurnEffects` should return the definitive state or `useTurnOrder` 
       // should manage the "active" character reference more robustly to avoid race conditions.
@@ -804,7 +841,7 @@ export const useTurnManager = ({
       // return the updated character ID alongside the updated character, or use a ref to track the latest
       // character state. This workaround will break if processEndOfTurnEffects ever returns a different
       // character (e.g., summoned creature).
-      // TODO(Stability): Fix Stale Closure Workaround
+      // TODO #283(Stability): Fix Stale Closure Workaround
       // This block patches `nextCharacter` with `processedChar` to handle cases where `processEndOfTurnEffects` updates state that `characters` array doesn't reflect yet.
       // This is fragile. `processEndOfTurnEffects` should ideally return a comprehensive state update or we should ensure `characters` is fresh using a ref or correct dependency flow.
       if (nextCharacter && processedChar && nextCharacter.id === processedChar.id) {
@@ -816,7 +853,7 @@ export const useTurnManager = ({
       }
     }
 
-  }, [turnState, characters, mapData, processEndOfTurnEffects, expireSavePenaltiesForCaster, onLogEntry, onRoundElapsed, startTurnFor, advanceTurnOrder, updateRoundBasedEffects]);
+  }, [turnState, characters, mapData, processEndOfTurnEffects, expireSavePenaltiesForCaster, onLogEntry, onRoundElapsed, onCharacterRemove, onCharacterUpdate, removeFromTurnOrder, startTurnFor, advanceTurnOrder, updateRoundBasedEffects]);
 
 
   const skipToCharacter = useCallback((characterId: string) => {
@@ -863,7 +900,7 @@ export const useTurnManager = ({
     turnState,
     initializeCombat,
     joinCombat,
-    // TODO(Refactor): Extract Reactive Trigger Processing
+    // TODO #284(Refactor): Extract Reactive Trigger Processing
     // The logic for filtering and executing `reactiveTriggers` is duplicated/inlined across 'sustain', 'move', and 'attack'.
     // Create a dedicated helper `processReactiveTriggers(type, context, state)` to centralize this logic, ensuring consistent logging, damage application, and error handling.
     executeAction,

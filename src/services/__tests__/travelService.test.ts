@@ -107,7 +107,6 @@ describe('TravelService', () => {
 
   describe('generateTravelSummary', () => {
     it('formats message correctly', () => {
-      // TODO(2026-01-03 Codex-CLI): Keep this aligned with TravelResult shape when summary formatting expands.
       const result = {
         distanceMiles: 10.5,
         travelTimeHours: 3.5,
@@ -121,3 +120,4 @@ describe('TravelService', () => {
     });
   });
 });
+

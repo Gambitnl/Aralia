@@ -5,12 +5,8 @@ import {
     recruitMember,
     purchaseOrgUpgrade,
     processDailyOrgUpdate,
-    // TODO(lint-intent): 'ORG_UPGRADE_CATALOG' is unused in this test; use it in the assertion path or remove it.
-    ORG_UPGRADE_CATALOG as _ORG_UPGRADE_CATALOG,
     startMission
 } from '../organizationService';
-// TODO(lint-intent): 'Organization' is unused in this test; use it in the assertion path or remove it.
-import { Organization as _Organization } from '../../types/organizations';
 
 describe('Organization Service', () => {
 
@@ -40,7 +36,6 @@ describe('Organization Service', () => {
     });
 
     it('should fail if prerequisites not met', () => {
-        // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
         const org = createOrganization('Merchants', 'guild', 'player-1');
         org.resources.connections = 50;
         org.resources.gold = 5000;
@@ -50,7 +45,6 @@ describe('Organization Service', () => {
     });
 
     it('should fail if type requirements not met', () => {
-        // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
         const org = createOrganization('Knights', 'order', 'player-1');
         org.resources.gold = 5000;
         org.resources.influence = 50;
@@ -87,7 +81,6 @@ describe('Organization Service', () => {
     });
 
     it('should handle rival actions', () => {
-        // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
         const org = createOrganization('Targets', 'guild', 'player-1');
         org.rivalOrgIds = ['rival-1'];
         org.members.push({
@@ -153,3 +146,5 @@ describe('Organization Service', () => {
         });
     });
 });
+
+

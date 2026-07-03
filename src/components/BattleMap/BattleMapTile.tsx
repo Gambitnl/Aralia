@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 21/06/2026, 15:26:40
+ * Last Sync: 02/07/2026, 05:50:27
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
  * Imports: 1 files
  *
@@ -94,6 +94,11 @@ const ENVIRONMENTAL_EFFECT_VISUALS: Record<EnvironmentalEffect['type'], Environm
     label: 'FOG',
     overlayClass: 'bg-slate-300/25',
     textClass: 'text-slate-50 bg-slate-700/85 border-slate-100/60'
+  },
+  hazard: {
+    label: 'HAZ',
+    overlayClass: 'bg-rose-500/30',
+    textClass: 'text-rose-50 bg-rose-950/85 border-rose-200/70'
   }
 };
 
@@ -202,16 +207,18 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
   // communicate that tactical sight is limited.
   const visibilityOverlayClass = !isVisible
     ? 'bg-black/85'
-    : lightLevel === 'darkness'
+    : lightLevel === 'magical_darkness'
+      ? 'bg-black/70'
+      : lightLevel === 'darkness'
       ? 'bg-black/45'
-      : lightLevel === 'dim'
-        ? 'bg-slate-950/25'
-        : '';
+        : lightLevel === 'dim'
+          ? 'bg-slate-950/25'
+          : '';
   
-  // Teleport destination tiles are selectable even when the spell's real target
-  // is the caster. This keeps Misty Step-style destination picking distinct
-  // from normal enemy/ally targeting.
-  const isInteractive = isValidMove || isTargetable || isTeleportDestinationPreview || isObjectMoveDestination;
+  // Targeting mode must send every tile click to the validation layer. Legal
+  // tiles still get bright overlays, while illegal tiles can now produce the
+  // existing "why this cannot be targeted" banner instead of doing nothing.
+  const isInteractive = targetingMode || isValidMove || isTargetable || isTeleportDestinationPreview || isObjectMoveDestination;
 
   const handleActivate = () => {
     if (!isInteractive) return;

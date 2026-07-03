@@ -81,10 +81,7 @@ export function attemptHarvest(crafter: Crafter, resource: GatherableResource, t
     // Optional rule: same time bonus logic
     const bonus = Math.min((timeSpentMultiplier - 1) * 3, 6);
 
-    // TODO: Add "Potion Making Level" modifier if that system is ever implemented.
-    const potionMakingMod = 0;
-
-    const totalRoll = baseRoll + bonus + potionMakingMod;
+    const totalRoll = baseRoll + bonus;
     const dc = resource.harvestDC;
 
     if (totalRoll >= dc) {

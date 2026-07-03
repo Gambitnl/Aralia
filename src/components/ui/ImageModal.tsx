@@ -29,10 +29,6 @@ const ImageModal: React.FC<ImageModalProps> = ({ src, alt, onClose }) => {
   const titleId = 'image-modal-title';
 
   return (
-    /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
-    TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
-    TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
-    */
     <motion.div
       ref={modalRef}
       {...modalMotion}

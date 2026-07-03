@@ -65,9 +65,7 @@ export function filterSpellsForRequirement(
   requirement: FeatSpellRequirement,
   selectedSpellSource?: string
 ): Spell[] {
-  // SpellContext stores values as unknown, so cast to Spell for filtering while keeping the shape intact.
-  // TODO: Firm up SpellDataRecord typing so this cast is no longer necessary.
-  const spellsArray = Object.values(allSpells) as Spell[];
+  const spellsArray = Object.values(allSpells);
 
   return spellsArray
     .filter((spell) => {

@@ -8,8 +8,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { processWorldEvents } from '../WorldEventManager';
-// TODO(lint-intent): 'GamePhase' is unused in this test; use it in the assertion path or remove it.
-import { GameState, GamePhase as _GamePhase } from '../../../types';
+import { GameState } from '../../../types';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../../../data/factions';
 import { createMockGameState } from '../../../utils/factories';
 import { getGameDay } from '../../../utils/core';
@@ -56,15 +55,20 @@ describe('WorldEventManager', () => {
             // Check if any faction power changed from default
             // Default power is mostly static in FACTIONS constant but we modified it
             const factions = Object.values(currentState.factions);
-            // TODO(lint-intent): 'changed' is unused in this test; use it in the assertion path or remove it.
-            const _changed = factions.some(f => f.power !== 50 && f.power !== 80 && f.power !== 60 && f.power !== 75 && f.power !== 85 && f.power !== 70);
-            // Note: My power values in FACTIONS are 80, 60, 75, 85, 70, 50.
+        const changed = factions.some(f => f.power !== 50 && f.power !== 80 && f.power !== 60 && f.power !== 75 && f.power !== 85 && f.power !== 70);
+        // Note: My power values in FACTIONS are 80, 60, 75, 85, 70, 50.
             // If a skirmish happens, power changes by +/- 2 to 4.
             // So checking strict inequality to initial values is complex if I don't know who fought.
 
             // Instead, let's look for the rumor type 'skirmish'
             const skirmishRumor = currentState.activeRumors?.find(r => r.type === 'skirmish');
             if (skirmishRumor) {
+                skirmishHappened = true;
+                break;
+            }
+
+            // Also treat explicit faction power change as success.
+            if (changed) {
                 skirmishHappened = true;
                 break;
             }

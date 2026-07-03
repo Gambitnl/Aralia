@@ -125,7 +125,6 @@ const normalizeEconomyState = (incoming: Partial<EconomyState> | undefined, fall
 
 const normalizeItemType = (raw: unknown): Item['type'] => {
   const candidate = raw as ItemType;
-  // TODO(2026-01-03 Codex-CLI): Harden Gemini item typing so we don't have to coerce to ItemType; this keeps AI outputs usable meanwhile.
   return Object.values(ItemType).includes(candidate) ? candidate : ItemType.Consumable;
 };
 
@@ -139,7 +138,6 @@ const normalizeItemRarity = (raw: unknown): Item['rarity'] => {
     very_rare: ItemRarity.VeryRare,
     legendary: ItemRarity.Legendary,
   };
-  // TODO(2026-01-03 pass 1 Codex-CLI): Only map known rarity strings; drop unknowns to keep ItemRarity strict.
   return map[normalized];
 };
 
@@ -182,7 +180,6 @@ Economy State: ${JSON.stringify(economyState)}`;
     const normalizedInventory: Item[] = (validated.inventory ?? []).map(item => {
       const source = item as unknown as Partial<Item>;
       const normalizedCost = typeof source.cost === 'number' ? String(source.cost) : source.cost;
-      // TODO(2026-01-03 pass 1 Codex-CLI): Shape AI items fully once schema stabilizes; coercing to Item keeps flows working now.
       const normalized = {
         id: source.id ?? uuidv4(),
         name: source.name ?? 'Unknown item',
@@ -191,7 +188,6 @@ Economy State: ${JSON.stringify(economyState)}`;
         type: normalizeItemType(source.type),
         rarity: normalizeItemRarity(source.rarity) ?? ItemRarity.Common,
         weight: source.weight ?? 1,
-        // TODO(2026-01-03 pass 3 Codex-CLI): AI items sometimes return singular `effect` instead of effects array; preserve as-is until schema aligns.
         effect: (source as any).effect,
         value: source.value,
         quantity: source.quantity,
@@ -259,7 +255,6 @@ Return a concise loot list.`;
     const normalizedItems: Item[] = validated.map(item => {
       const source = item as unknown as Partial<Item>;
       const normalizedCost = typeof source.cost === 'number' ? String(source.cost) : source.cost;
-      // TODO(2026-01-03 pass 1 Codex-CLI): AI loot lacks strict typing; coerce to Item while preserving fields for future expansion.
       const normalized = {
         id: source.id ?? uuidv4(),
         name: source.name ?? 'Unknown item',
@@ -268,7 +263,6 @@ Return a concise loot list.`;
         type: normalizeItemType(source.type),
         rarity: normalizeItemRarity(source.rarity) ?? ItemRarity.Common,
         weight: source.weight ?? 1,
-        // TODO(2026-01-03 pass 3 Codex-CLI): AI loot may omit full effects; carry through any `effect` field for now.
         effect: (source as any).effect,
         value: source.value,
         quantity: source.quantity,

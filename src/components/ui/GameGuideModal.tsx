@@ -4,10 +4,7 @@
  *
  * @component-owner Narrative Team / Core UI
  */
-// TODO(lint-intent): 'useContext' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import React, { useState, useRef, useEffect, useContext as _useContext } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, MotionProps } from 'framer-motion';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
@@ -113,9 +110,6 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                 if (hasJsonBlock) {
                     const cleanedJson = cleanAIJSON(responseText);
                     // Use safeJSONParse to avoid crashes
-                    // TODO(lint-intent): The any on this value hides the intended shape of this data.
-                    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-                    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
                     const toolData = safeJSONParse<GuideToolData | null>(cleanedJson);
 
                     if (toolData && toolData.tool === 'create_character' && toolData.config) {
@@ -137,8 +131,6 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
             } else {
                 setResponse(t('game_guide.error_connection'));
             }
-        // TODO(lint-intent): Capture and surface error details here if the guide needs richer diagnostics.
-        // TODO(lint-intent): Consider logging the failure to telemetry when expanding the guide workflow.
         } catch {
             setResponse(t('game_guide.error_general'));
         } finally {

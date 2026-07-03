@@ -21,10 +21,7 @@ import {
   getDisplayUnitForSeconds,
   getSpellCastingDurationSeconds
 } from '../../utils/core/spellTimeUtils';
-// TODO(lint-intent): 'TimeOfDay' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { TimeOfDay as _TimeOfDay, getTimeOfDay } from '../../utils/core';
+import { getTimeOfDay } from '../../utils/core';
 
 // ============================================================================
 // Ritual Runtime Display Translation
@@ -112,7 +109,7 @@ export function canStartRitual(
   // If spell has no specific requirements property (yet), we assume it's valid.
   // In a real implementation, we'd check `spell.ritualRequirements`.
   // Since `Spell` type might not have `ritualRequirements` yet, this is future-proofing.
-  // TODO(2026-01-03 pass 4 Codex-CLI): ritualRequirements cast placeholder until spells carry explicit ritual requirement schema.
+  // TODO #935(2026-01-03 pass 4 Codex-CLI): ritualRequirements cast placeholder until spells carry explicit ritual requirement schema.
   const requirements: RitualRequirement[] = ((spell as unknown as { ritualRequirements?: RitualRequirement[] }).ritualRequirements) || [];
 
   if (requirements.length === 0) {
@@ -201,13 +198,10 @@ export function checkRitualInterrupt(
 /**
  * Returns potential backlash effects if a ritual fails catastrophically.
  */
-// TODO(lint-intent): 'ritual' is an unused parameter, which suggests a planned input for this flow.
-// TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-// TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
 export function getBacklashOnFailure(_ritual: RitualState): { description: string }[] {
     // Placeholder logic for wild magic or ritual backlash
     // Could depend on spell level, ritual type, etc.
-    // TODO(Ritualist): Implement full RitualBacklash evaluation based on ritual.backlash definitions
+    // TODO #939(Ritualist): Implement full RitualBacklash evaluation based on ritual.backlash definitions
     return [];
 }
 

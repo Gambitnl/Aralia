@@ -53,7 +53,6 @@ export const DivineFavorPanel: React.FC<DivineFavorPanelProps> = ({ isOpen, onCl
       const favor = state.religion?.divineFavor[id];
       return { def, favor };
     })
-    // TODO: tighten these types once deity discovery/favor flows are modeled; right now we allow partial data to still render.
     .filter((item) => item.def) as { def: import('../../types/religion').Deity; favor: import('../../types/religion').DivineFavor | undefined }[];
 
   if (!isOpen) return null;

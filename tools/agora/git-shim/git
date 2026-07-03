@@ -1,0 +1,3 @@
+#!/bin/sh
+# POSIX-shell twin of git.cmd (external agents that spawn bash).
+exec node "$(dirname "$0")/git-shim.mjs" "$@"

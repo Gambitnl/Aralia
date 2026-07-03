@@ -5,10 +5,8 @@
  * This module defines all types related to town navigation, NPCs,
  * events, and the living world simulation.
  */
-// TODO(lint-intent): 'Tile' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { TownMap, Tile as _Tile, Building as _Building, TileType } from './realmsmith.js';
+import { TownMap, TileType } from './realmsmith.js';
+import type { NPCMemory } from './memory';
 
 // ============================================================================
 // CORE TOWN STATE
@@ -168,8 +166,8 @@ export interface TownNPC {
     /** Path they're currently following (if moving) */
     currentPath?: TownPosition[];
 
-    // TODO(Schemer): Wire up NPCMemory here.
-    // memory?: import('./memory').NPCMemory;
+    /** Optional memory scratchpad for NPC interpersonal/context history. */
+    memory?: NPCMemory;
 }
 
 // ============================================================================

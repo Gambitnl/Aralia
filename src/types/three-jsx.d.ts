@@ -14,7 +14,6 @@
  */
 // @dependencies-end
 
-// TODO(2026-01-15 Codex-CLI): Replace these JSX shims with real @react-three/fiber element types once typings are resolved.
 import 'react';
 
 declare module 'react' {

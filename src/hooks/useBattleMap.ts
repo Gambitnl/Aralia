@@ -103,7 +103,6 @@ export function useBattleMap(
   // mode. This preserves the existing auto-selection of the current player,
   // but stops the map from treating a target click as movement while an
   // ability is waiting for a target.
-  // TODO(lint-intent): If turn-based selection should persist across turns, store selections keyed by turn id.
 
   // Derived state: Map of character IDs to their positions
   // IMPROVEMENT OPPORTUNITY: This recreates the entire Map on every character change

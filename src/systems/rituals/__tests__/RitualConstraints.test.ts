@@ -2,14 +2,10 @@
 import { describe, it, expect } from 'vitest';
 import { validateRitualRequirements } from '../RitualManager';
 import { RitualRequirement, RitualContext } from '../../../types/rituals';
-// TODO(lint-intent): 'TimeOfDay' is unused in this test; use it in the assertion path or remove it.
-import { TimeOfDay as _TimeOfDay } from '../../../utils/core';
 
 describe('RitualConstraints', () => {
   // Setup standard dates for testing
   // Dawn: ~6am, Day: ~12pm, Dusk: ~6pm, Night: ~10pm
-  // TODO(lint-intent): 'dateDawn' is unused in this test; use it in the assertion path or remove it.
-  const _dateDawn = new Date(Date.UTC(2025, 0, 1, 6, 0));
   const dateDay = new Date(Date.UTC(2025, 0, 1, 12, 0));
   const dateDusk = new Date(Date.UTC(2025, 0, 1, 18, 0));
   const dateNight = new Date(Date.UTC(2025, 0, 1, 22, 0));

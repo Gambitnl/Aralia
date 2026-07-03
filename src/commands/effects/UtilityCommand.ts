@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/07/2026, 22:08:21
+ * Last Sync: 02/07/2026, 05:31:50
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 8 files
  *
@@ -18,7 +18,7 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { UtilityEffect, RepairState } from '@/types/spells'
 import { Item } from '@/types/items'
-import { CombatState, CombatCharacter, StatusEffect, LightSource, Ability, SelectedSpellTarget, ShapeWaterMode, ThaumaturgyMode, Position, ActiveMinorUtilityEffect, SpellObjectRepair, SpellCommunicationExchange, ActiveIllusionEffect, ActiveSpellEmanation, ActiveCommunicationControl, ActiveExtradimensionalSpace, ActiveSpellHelper, ActiveSpellForce, ActiveSpellStructure, ActiveSpellWard, ActiveAnimatedObject, ActiveAwakenedCreature, ActiveTruePolymorphTransformation } from '@/types/combat'
+import { CombatState, CombatCharacter, StatusEffect, LightSource, Ability, SelectedSpellTarget, ShapeWaterMode, ThaumaturgyMode, Position, ActiveMinorUtilityEffect, SpellObjectRepair, SpellObjectAccessChange, SpellCommunicationExchange, ActiveIllusionEffect, ActiveSpellEmanation, ActiveCommunicationControl, ActiveExtradimensionalSpace, ActiveSpellHelper, ActiveSpellForce, ActiveSpellStructure, ActiveSpellWard, ActiveAnimatedObject, ActiveAwakenedCreature, ActiveTruePolymorphTransformation } from '@/types/combat'
 import { generateId } from '../../utils/idGenerator'
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem'
 import { applyCommandAreaMovementEffects } from './commandAreaMovementEffects'
@@ -257,7 +257,7 @@ export class UtilityCommand extends BaseEffectCommand {
         // Conjure Woodland Beings keeps a single caster-following emanation
         // record so the damage aura and later bonus-action rider can stay tied
         // to the same runtime object.
-        if (this.context.spellId === 'conjure-woodland-beings' && effect.controlledEntity?.entityType === 'nature_spirit_emanation') {
+        if (this.context.spellId === 'conjure-woodland-beings' && (effect.controlledEntity?.entityType as string) === 'nature_spirit_emanation') {
             newState = this.applyConjureWoodlandBeingsEmanation(newState, effect)
         }
 
@@ -278,14 +278,14 @@ export class UtilityCommand extends BaseEffectCommand {
         // Speak with Dead creates a bounded corpse-question interface, not a
         // creature summon. Store the target, question counter, eligibility, and
         // knowledge limits as runtime state so the interrogation can expire.
-        if (this.context.spellId === 'speak-with-dead' && effect.controlledEntity?.entityType === 'animated_corpse_spirit_interface') {
+        if (this.context.spellId === 'speak-with-dead' && (effect.controlledEntity?.entityType as string) === 'animated_corpse_spirit_interface') {
             return this.applySpeakWithDeadControl(newState, effect)
         }
 
         // Speak with Plants turns nearby plants into a temporary communication,
         // simple-command, and terrain-control surface. Keep the area and
         // terrain toggles explicit for cleanup and later map automation.
-        if (this.context.spellId === 'speak-with-plants' && effect.controlledEntity?.entityType === 'limited_sentient_plants') {
+        if (this.context.spellId === 'speak-with-plants' && (effect.controlledEntity?.entityType as string) === 'limited_sentient_plants') {
             return this.applySpeakWithPlantsControl(newState, effect)
         }
 
@@ -504,6 +504,13 @@ export class UtilityCommand extends BaseEffectCommand {
         // can consume the same structured evidence.
         if (effect.repairState?.targetKind === 'object') {
             newState = this.applyObjectRepair(newState, effect)
+        }
+
+        // Knock and Arcane Lock change whether a selected object can be opened
+        // or bypassed. Keep that state map-visible instead of leaving it as
+        // prose in the combat log.
+        if (effect.objectAccessChange) {
+            newState = this.applyObjectAccessChange(newState, effect)
         }
 
         // Guidance-style utility spells need the chosen skill preserved on the
@@ -762,7 +769,7 @@ export class UtilityCommand extends BaseEffectCommand {
         const raw = rawInput ?? ''
 
         return {
-            messageText: this.extractMessageOption(raw, 'message') ?? rawInput ?? this.effect.description,
+            messageText: this.extractMessageOption(raw, 'message') ?? rawInput ?? this.effect.description ?? '',
             replyText: this.extractMessageOption(raw, 'reply'),
             blocker: this.extractMessageOption(raw, 'blocker'),
             blockerReason: this.extractMessageOption(raw, 'blocked'),
@@ -911,7 +918,7 @@ export class UtilityCommand extends BaseEffectCommand {
 
         const damageState = selectedObject.object?.damageState
         const damageDimensionFeet = damageState?.breakOrTearDimensionFeet
-        const objectWasMagical = selectedObject.object?.isMagical ?? selectedObject.isMagical
+        const objectWasMagical = selectedObject.object?.isMagical ?? false
 
         if (typeof damageDimensionFeet !== 'number' || Number.isNaN(damageDimensionFeet) || damageDimensionFeet <= 0) {
             return this.recordObjectRepair(state, selectedObject, repairState, {
@@ -998,6 +1005,96 @@ export class UtilityCommand extends BaseEffectCommand {
         })
     }
 
+    private applyObjectAccessChange(state: CombatState, effect: UtilityEffect): CombatState {
+        const accessChange = effect.objectAccessChange
+        if (!accessChange) {
+            return state
+        }
+
+        const selectedObject = this.resolveObjectTarget()
+        if (!selectedObject) {
+            return this.addLogEntry(state, {
+                type: 'status',
+                message: `${this.context.spellName || 'The spell'} needs an object target to change access.`,
+                characterId: this.context.caster.id,
+                data: {
+                    sourceSpellId: this.context.spellId,
+                    rejectedObjectAccessChange: 'missing_object_target'
+                }
+            })
+        }
+
+        const record: SpellObjectAccessChange = {
+            id: generateId(),
+            objectId: selectedObject.id,
+            objectName: selectedObject.object?.name ?? selectedObject.name,
+            position: selectedObject.position,
+            sourceSpellId: this.context.spellId,
+            sourceSpellName: this.context.spellName,
+            casterId: this.context.caster.id,
+            createdTurn: state.turnState.currentTurn,
+            outcome: this.resolveObjectAccessOutcome(accessChange),
+            mundaneStateChanges: accessChange.mundaneStateChanges,
+            suppressesMagicalClosure: accessChange.suppressesMagicalClosure,
+            suppressionDuration: accessChange.suppressionDuration,
+            targetOperableDuringSuppression: accessChange.targetOperableDuringSuppression,
+            soundEmission: accessChange.soundEmission,
+            nonmagicalUnlockBlocked: accessChange.nonmagicalUnlockBlocked,
+            allowedOpeners: accessChange.allowedOpeners,
+            optionalPassword: accessChange.optionalPassword,
+            passwordRangeFeet: accessChange.passwordRangeFeet,
+            passwordUnlockDuration: accessChange.passwordUnlockDuration,
+            expiresWithSpell: accessChange.expiresWithSpell,
+            notes: accessChange.notes
+        }
+
+        const nextState: CombatState = {
+            ...state,
+            spellObjectAccessChanges: [
+                ...(state.spellObjectAccessChanges || []),
+                record
+            ]
+        }
+
+        return this.addLogEntry(nextState, {
+            type: 'status',
+            message: this.describeObjectAccessChange(record),
+            characterId: this.context.caster.id,
+            targetIds: [selectedObject.id],
+            data: {
+                sourceSpellId: this.context.spellId,
+                objectAccessChange: record
+            }
+        })
+    }
+
+    private resolveObjectAccessOutcome(accessChange: NonNullable<UtilityEffect['objectAccessChange']>): SpellObjectAccessChange['outcome'] {
+        if (accessChange.suppressesMagicalClosure) {
+            return 'suppressed_magical_lock'
+        }
+        if (accessChange.newState === 'magically_locked' || accessChange.nonmagicalUnlockBlocked) {
+            return 'magically_locked'
+        }
+
+        const mundaneState = accessChange.mundaneStateChanges?.[0]
+        if (mundaneState === 'unlock') return 'unlocked'
+        if (mundaneState === 'unstick') return 'unstuck'
+        if (mundaneState === 'unbar') return 'unbarred'
+        return 'access_changed'
+    }
+
+    private describeObjectAccessChange(record: SpellObjectAccessChange): string {
+        const objectName = record.objectName ?? record.objectId
+        const spellName = record.sourceSpellName || 'The spell'
+        if (record.outcome === 'magically_locked') {
+            return `${spellName} magically locks ${objectName}.`
+        }
+        if (record.outcome === 'suppressed_magical_lock') {
+            return `${spellName} suppresses ${record.suppressesMagicalClosure || 'the magical lock'} on ${objectName}.`
+        }
+        return `${spellName} changes access on ${objectName}: ${record.outcome.replace(/_/g, ' ')}.`
+    }
+
     private isDancingLightsHumanoidForm(): boolean {
         return this.context.playerInput?.trim().toLowerCase() === 'humanoid form'
     }
@@ -1038,7 +1135,7 @@ export class UtilityCommand extends BaseEffectCommand {
         }
 
         const statusName = `${this.context.spellName || 'Spell'} ${suppressedCondition} Suppression`
-        const status: StatusEffect = {
+        const status: StatusEffect & { suppressedConditionBenefit?: string } = {
             id: generateId(),
             name: statusName,
             type: 'debuff',
@@ -1055,7 +1152,7 @@ export class UtilityCommand extends BaseEffectCommand {
                 ...(liveTarget.statusEffects || []).filter(existing =>
                     existing.source !== status.source ||
                     existing.sourceCasterId !== status.sourceCasterId ||
-                    existing.suppressedConditionBenefit !== status.suppressedConditionBenefit
+                    (existing as any).suppressedConditionBenefit !== status.suppressedConditionBenefit
                 ),
                 status
             ]
@@ -1615,7 +1712,7 @@ export class UtilityCommand extends BaseEffectCommand {
                     options: (augment.damageTypeChoice.options || []).map(option =>
                         typeof option === 'string'
                             ? option
-                            : option.damageType || option.type || option.id || option.name || 'weapon_normal'
+                            : option.type || 'weapon_normal'
                     ),
                     defaultType: 'weapon_normal'
                 } : undefined,
@@ -2150,12 +2247,12 @@ export class UtilityCommand extends BaseEffectCommand {
             guardianTrees: {
                 maxCount: wardObject.groveGuardians?.maxTrees ?? 4,
                 guardianIds: guardianTargets.map(target => target.id),
-                statBlock: wardObject.groveGuardians?.stats ?? effect.controlledEntity?.statBlock,
+                statBlock: wardObject.groveGuardians?.stats ?? (effect.controlledEntity as any)?.statBlock,
                 cannotSpeak: effect.communicationDetails?.animatedTreesSpeech?.toLowerCase().includes('cannot speak') ?? true,
                 barkMarked: effect.communicationDetails?.visibleSymbols?.toLowerCase().includes('bark') ?? true,
                 cannotLeaveWardedArea: wardObject.groveGuardians?.cannotLeaveWardedArea ?? true,
                 obeysSpokenCommandsInArea: wardObject.groveGuardians?.obeysSpokenCommandsInArea ?? true,
-                intruderResponse: effect.controlledEntity?.trigger,
+                intruderResponse: (effect.controlledEntity as any)?.trigger,
                 rerootsWhenSpellEndsIfPossible: wardObject.groveGuardians?.rerootsWhenSpellEndsIfPossible ?? true
             },
             ending: {
@@ -3150,8 +3247,8 @@ export class UtilityCommand extends BaseEffectCommand {
                 lifecycle: {
                     zeroHpEnding: effect.summonLifecycle?.hitPointEnding,
                     spellEnding: effect.summonLifecycle?.spellEnding,
-                    concentrationBreak: effect.summonLifecycle?.concentrationBreak
-                },
+                    concentrationBreak: (effect.summonLifecycle as any)?.concentrationBreak
+                } as any,
                 control: {
                     entityType: effect.summon?.entityType,
                     source: this.context.spellId,
@@ -3170,10 +3267,10 @@ export class UtilityCommand extends BaseEffectCommand {
                     maxChallengeRating: effect.summon?.maxCR,
                     trueNameSpoken: input.trueNameSpoken === true,
                     bloodCircleUsed: input.useBloodCircle === true,
-                    controlSave: effect.summon?.controlSave,
-                    controlBreak: effect.summon?.controlBreak,
+                    controlSave: (effect.summon as any)?.controlSave,
+                    controlBreak: (effect.summon as any)?.controlBreak,
                     uncontrolledObedience: 'pursues_and_attacks_nearest_non_demons',
-                    earlyConcentrationEnding: effect.summon?.concentrationBreak,
+                    earlyConcentrationEnding: (effect.summon as any)?.concentrationBreak,
                     materialComponentConsumption: effect.materialComponentLifecycle?.conditionalConsumption
                 },
                 dismissable: false
@@ -3772,7 +3869,7 @@ export class UtilityCommand extends BaseEffectCommand {
         )
 
         return [{
-            name: attackAugment?.name ?? 'Danse Macabre undead bonus',
+            name: (attackAugment as any)?.name ?? 'Danse Macabre undead bonus',
             appliesToForms: ['Skeleton', 'Zombie'],
             notes: `Attack bonus: ${attackBonus}; damage bonus: ${damageBonus}.`
         }]
@@ -4197,7 +4294,7 @@ export class UtilityCommand extends BaseEffectCommand {
     ): CombatState {
         const liveCaster = this.getCaster(state)
         const sourceName = this.context.spellName || this.context.spellId || 'Spell'
-        const pebbleCount = Math.max(1, Math.min(3, effect.targeting?.instanceAllocation?.baseCount || 3))
+        const pebbleCount = Math.max(1, Math.min(3, (effect as any).targeting?.instanceAllocation?.baseCount || 3))
         const expiresAtRound = this.getEffectExpiryRound(state.turnState.currentTurn)
         const attackAugment = effect.attackAugments?.[0]
         const spellcastingModifier = this.getSpellcastingAbilityModifier(liveCaster)
@@ -4281,7 +4378,7 @@ export class UtilityCommand extends BaseEffectCommand {
         const spellcastingAbility = ((caster as CombatCharacter & {
             spellcastingAbility?: 'intelligence' | 'wisdom' | 'charisma'
         }).spellcastingAbility || 'wisdom').toLowerCase() as keyof CombatCharacter['stats']
-        const score = caster.stats[spellcastingAbility] || 10
+        const score = (caster.stats[spellcastingAbility] as number) || 10
 
         return Math.floor((score - 10) / 2)
     }
@@ -4567,7 +4664,7 @@ export class UtilityCommand extends BaseEffectCommand {
             quantity: 1,
             effect: {
                 type: 'heal',
-                value: createdObject.healingPerItem
+                value: createdObject.healingPerItem || 0
             },
             isConsumed: true,
             perishable: createdObject.perishable ?? createdObject.expiresWithSpell,
@@ -4862,7 +4959,7 @@ export class UtilityCommand extends BaseEffectCommand {
     }
 
     private applyTaunt(state: CombatState, target: CombatCharacter, effect: UtilityEffect): CombatState {
-        // TODO: Enforce taunt effects (disadvantage vs others, leash distance, break conditions) instead of only tagging a status with placeholder duration.
+        // TODO #10: Enforce taunt effects (disadvantage vs others, leash distance, break conditions) instead of only tagging a status with placeholder duration.
         const status: StatusEffect = {
             id: generateId(),
             name: 'Taunted',
@@ -5057,7 +5154,7 @@ export function moveMageHandHelper(
             {
                 id: generateId(),
                 timestamp: Date.now(),
-                type: 'movement',
+                type: 'action',
                 message: `${helper.spellName || 'Mage Hand'} moves.`,
                 characterId: helper.casterId,
                 data: {

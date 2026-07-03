@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
-// TODO(lint-intent): 'OrgType' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Organization, OrgType as _OrgType } from '../../types/organizations';
+import { Organization } from '../../types/organizations';
 import OrgOverview from './OrgOverview';
 import OrgMembersList from './OrgMembersList';
 import OrgUpgradesList from './OrgUpgradesList';

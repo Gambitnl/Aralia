@@ -9,14 +9,10 @@
  * responses to satisfy the internal result validation.
  */
 import React from 'react';
-// TODO(lint-intent): 'waitFor' is unused in this test; use it in the assertion path or remove it.
-import { render, screen, fireEvent, waitFor as _waitFor } from '@testing-library/react';
-// TODO(lint-intent): 'expect' is unused in this test; use it in the assertion path or remove it.
-import { vi, describe, it, expect as _expect } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { vi, describe, it } from 'vitest';
 import GameGuideModal from '../ui/GameGuideModal';
 import * as ollamaService from '../../services/ollamaTextService';
-// TODO(lint-intent): 't' is unused in this test; use it in the assertion path or remove it.
-import { t as _t } from '../../utils/i18n';
 
 // Mock ollamaService
 vi.mock('../../services/ollamaTextService', () => ({
@@ -26,8 +22,6 @@ const mockGenerateGuideResponse = ollamaService.generateGuideResponse as unknown
 
 // Mock i18n
 vi.mock('../../utils/i18n', () => ({
-  // TODO(lint-intent): 'params' is unused in this test; use it in the assertion path or remove it.
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
   t: (key: string, _params?: Record<string, unknown>) => key,
 }));
 
@@ -60,7 +54,6 @@ describe('GameGuideModal Security Tests', () => {
       { "tool": "create_character", "config": { "name": "Hack" }
       \`\`\`
     `; // Missing closing brace
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
     mockGenerateGuideResponse.mockResolvedValue({        
       success: true,
       data: { text: maliciousPayload }
@@ -84,7 +77,6 @@ describe('GameGuideModal Security Tests', () => {
       { "tool": "create_character", "config": null }
       \`\`\`
     `;
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
     mockGenerateGuideResponse.mockResolvedValue({        
       success: true,
       data: { text: nullConfigPayload }

@@ -135,8 +135,6 @@ describe('BattleMap visibility handoff', () => {
             movementDebuffs: [],
             spellMovementVisuals: [],
             canAffordAction: vi.fn(() => false)
-          // TODO(lint-intent): Replace this broad turn-manager cast with a
-          // compact BattleMap test fixture once one exists.
           } as any,
           turnState: {
             currentTurn: 0,
@@ -144,8 +142,6 @@ describe('BattleMap visibility handoff', () => {
             currentCharacterId: hero.id,
             phase: 'action',
             actionsThisTurn: []
-          // TODO(lint-intent): Replace this broad turn-state cast with the
-          // shared turn-state fixture once BattleMap tests have one.
           } as any,
           abilitySystem: {
             targetingMode: false,
@@ -157,8 +153,6 @@ describe('BattleMap visibility handoff', () => {
             isValidTarget: vi.fn(),
             cancelTargeting: vi.fn(),
             startTargeting: vi.fn()
-          // TODO(lint-intent): Replace this broad ability-system cast with a
-          // compact BattleMap test fixture once one exists.
           } as any,
           isCharacterTurn: vi.fn(() => false),
           onCharacterUpdate: vi.fn()

@@ -1,8 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-// TODO(lint-intent): 'BattleOutcome' is unused in this test; use it in the assertion path or remove it.
-import { useCombatOutcome, BattleOutcome as _BattleOutcome } from '../useCombatOutcome';
+import { useCombatOutcome } from '../useCombatOutcome';
 import { CombatCharacter } from '../../../types/combat';
 import { generateLoot } from '../../../services/lootService';
 

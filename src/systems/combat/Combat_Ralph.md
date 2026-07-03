@@ -18,7 +18,7 @@ This folder contains the core logic for the Combat System, handling attack resol
 - **Status:** CONFIRMED - Import aliased as `_CombatCharacter` at line 4, never referenced
 - **Also affects:** `SustainActionSystem.ts` (same pattern at line 4)
 - **Root Cause:** Files use local type inference (`const caster = state.characters.find(...)`) without explicit type annotations
-- **Fix:** Remove unused import. Files already contain TODO comments acknowledging this.
+- **Fix:** Remove unused import. `_CombatCharacter` is now unused in `AttackRiderSystem.ts` and `SustainActionSystem.ts`.
 
 **Issue 2: High Coupling with `@/types/combat`**
 - **Status:** CONFIRMED - Both `ActiveRider` and `CombatState` imported from 540-line monolithic types file

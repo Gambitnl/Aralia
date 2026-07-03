@@ -80,8 +80,22 @@ if (Object.keys(duplicateIds).length > 0) {
     console.error('Each spell must have a unique ID across all spell files.\n');
 }
 
-// TODO(safety): Consider diffing old vs new manifest and warning if spells were removed.
-// A spell disappearing could indicate an accidental deletion or file rename issue.
+// If a previously known spell ID disappeared, warn for review before accepting the manifest change.
+if (fs.existsSync(manifestPath)) {
+    try {
+        const oldManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as Record<string, ManifestEntry>;
+        const removedSpellIds = Object.keys(oldManifest).filter(spellId => !sortedManifest[spellId]);
+        if (removedSpellIds.length > 0) {
+            console.warn(`Warning: ${removedSpellIds.length} spell ID(s) would be removed from manifest:`);
+            removedSpellIds.forEach(spellId => {
+                console.warn(`  - ${spellId}`);
+            });
+        }
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`Could not diff existing manifest at ${manifestPath}: ${message}`);
+    }
+}
 fs.writeFileSync(manifestPath, JSON.stringify(sortedManifest, null, 2));
 console.log(`Generated manifest with ${Object.keys(sortedManifest).length} spells.`);
 

@@ -5,13 +5,7 @@
  * This module defines the structure for branching, multi-stage quests with
  * diverse objective types, prerequisites, and failure conditions.
  */
-// TODO(lint-intent): 'Item' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import type { Item as _Item } from './items.js';
-// TODO(lint-intent): 'NPC' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import type { NPC as _NPC } from './world.js';
 
 /**
@@ -195,7 +189,6 @@ export interface QuestDefinition {
 
 /**
  * Legacy/lightweight quest shape used by the current UI and reducers.
- * TODO(QuestMigration): Replace with QuestDefinition once the richer quest system is wired through the app.
  */
 export interface QuestObjectiveProgress {
   id: string;
@@ -228,7 +221,6 @@ export interface Quest {
   deadline?: number;
   /**
    * Optional consequence when a deadline is missed.
-   * TODO(lint-preserve): Replace this lightweight shape with a richer consequence model once quest scripting is formalized.
    */
   deadlineConsequence?: {
     action: 'fail_quest' | 'fail_with_note' | 'log_only';

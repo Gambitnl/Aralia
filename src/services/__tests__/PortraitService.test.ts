@@ -15,7 +15,6 @@ describe('PortraitService', () => {
 
     it('generatePortraitUrl should return url from dev portrait API', async () => {
         const fetchMock = global.fetch as unknown as FetchMock;
-        // TODO(2026-01-03 Codex-CLI): Replace loose fetch mock with typed helper once PortraitService stabilizes.
         fetchMock.mockResolvedValue({
             ok: true,
             json: async () => ({ url: 'assets/images/portraits/generated/portrait.png' })
@@ -31,7 +30,6 @@ describe('PortraitService', () => {
 
     it('generatePortraitUrl should throw server error message when request fails', async () => {
         const fetchMock = global.fetch as unknown as FetchMock;
-        // TODO(2026-01-03 Codex-CLI): Replace loose fetch mock with typed helper once PortraitService stabilizes.
         fetchMock.mockResolvedValue({
             ok: false,
             status: 500,

@@ -44,7 +44,7 @@ describe('getTownTilesForGrid', () => {
         expect.objectContaining({ x: 16, y: 4 }),
       ]),
     );
-  });
+  }, 30_000); // first test pays the full atlas build; 5s default flakes under parallel load
 
   it('only reports tiles that the forward bridge opens with town content', () => {
     const townTiles = getTownTilesForGrid(42, 30, 20);

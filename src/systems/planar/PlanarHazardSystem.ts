@@ -1,23 +1,9 @@
-// TODO(lint-intent): 'PlayerCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { GameState, Location, PlayerCharacter as _PlayerCharacter } from '../../types';
-// TODO(lint-intent): 'Plane' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { PlanarHazard, Plane as _Plane } from '../../types/planes';
+import { GameState, Location } from '../../types';
+import { PlanarHazard } from '../../types/planes';
 import { LOCATIONS } from '../../constants';
 import { getCurrentPlane } from '../../utils/planarUtils';
 import { rollDice , createPlayerCombatCharacter } from '../../utils/combatUtils';
 import { rollSavingThrow } from '../../utils/savingThrowUtils';
-// TODO(lint-intent): 'generateId' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { generateId as _generateId } from '../../utils/idGenerator';
-// TODO(lint-intent): 'logger' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { logger as _logger } from '../../utils/logger';
 
 export interface HazardEvent {
   characterId: string;
@@ -70,9 +56,7 @@ export class PlanarHazardSystem {
       if (damage > 0) {
         outcome.globalMessages.push(`The intense pressure of ${plane.name} assaults your mind.`);
         gameState.party.forEach(char => {
-            // TODO(2026-01-03 pass 4 Codex-CLI): Enforce PlayerCharacter ids so hazard events never need fallbacks.
-            // Previously used char.id directly; now default to a placeholder to satisfy optional id.
-            const characterId = char.id ?? 'unknown-character';
+            const characterId = char.id;
             outcome.events.push({
                 characterId,
                 hazardName: 'Planar Pressure',
@@ -107,12 +91,10 @@ export class PlanarHazardSystem {
   }
 
   private static processSingleHazard(hazard: PlanarHazard, gameState: GameState, outcome: HazardOutcome, triggers: number) {
-    // If hazard has a Save DC, we roll for each character
+        // If hazard has a Save DC, we roll for each character
     if (hazard.saveDC > 0) {
         gameState.party.forEach(char => {
-            // TODO(2026-01-03 pass 4 Codex-CLI): Enforce PlayerCharacter ids so hazard events never need fallbacks.
-            // Previously used char.id directly; now default to a placeholder to satisfy optional id.
-            const characterId = char.id ?? 'unknown-character';
+            const characterId = char.id;
             let failures = 0;
             let totalDamage = 0;
             let damageType = 'physical';
@@ -155,9 +137,7 @@ export class PlanarHazardSystem {
         // No save, automatic effect (e.g. constant damage or environment change)
         if (hazard.damage) {
              gameState.party.forEach(char => {
-                // TODO(2026-01-03 pass 4 Codex-CLI): Enforce PlayerCharacter ids so hazard events never need fallbacks.
-                // Previously used char.id directly; now default to a placeholder to satisfy optional id.
-                const characterId = char.id ?? 'unknown-character';
+                const characterId = char.id;
                 let totalDamage = 0;
                 let damageType = 'physical';
                 const parts = hazard.damage!.split(' ');

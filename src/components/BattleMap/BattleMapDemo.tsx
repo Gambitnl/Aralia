@@ -20,7 +20,7 @@
  * It allows selecting a biome and seed to generate and display a procedural battle map.
  * It now accepts the characters for the battle as a prop.
  */
-// TODO: Add ARIA labels, keyboard navigation, and screen reader support for interactive elements in battle maps and UI components
+// TODO #37: Add ARIA labels, keyboard navigation, and screen reader support for interactive elements in battle maps and UI components
 import React, { useState, useMemo, useEffect, useCallback, useRef, useContext } from 'react';
 import BattleMap from './BattleMap';
 import BattleMap3D from './BattleMap3D';
@@ -135,7 +135,6 @@ function makeCreatureLineup(spells: Record<string, Spell>): CombatCharacter[] {
   });
   return out;
 }
-
 
 // Dev-only verification harness: one human per class archetype (fighter /
 // caster / rogue) as the player team, so class-silhouette readability can be
@@ -300,8 +299,6 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   const [characters, setCharacters] = useState<CombatCharacter[]>(initialSetup.positionedCharacters);
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
   const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
-  // TODO(next-agent): Preserve behavior; wire selection state into BattleMap interactions when the demo UI expands.
-  const [_selectedCharacterId, _setSelectedCharacterId] = useState<string | null>(null);
 
   const biomeRef = useRef(biome);
   useEffect(() => {

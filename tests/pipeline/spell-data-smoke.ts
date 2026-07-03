@@ -22,6 +22,14 @@ const allowedCastingUnits = new Set(['action', 'bonus_action', 'reaction', 'minu
 // Define the valid effect types (must be UPPERCASE)
 const allowedEffectTypes = new Set(['DAMAGE', 'HEALING', 'DEFENSIVE', 'STATUS_CONDITION', 'MOVEMENT', 'SUMMONING', 'TERRAIN', 'UTILITY'])
 
+type SpellEffectRecord = {
+  type?: unknown;
+  [key: string]: unknown;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object'
+
 function main() {
   // First, verify that the spells directory exists
   if (!fs.existsSync(spellsDir)) {
@@ -85,8 +93,14 @@ function main() {
       // Check 3: Verify the effects array and its contents
       if (Array.isArray(json.effects)) {
         // Loop through each effect in the effects array
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        json.effects.forEach((e: unknown, idx: number) => {
+        json.effects.forEach((candidateEffect: unknown, idx: number) => {
+          if (!isRecord(candidateEffect)) {
+            issues.push(`effects[${idx}] expected object`)
+            return
+          }
+
+          const e: SpellEffectRecord = candidateEffect
+
           // Check that each effect has all required fields
           for (const key of requiredEffectFields) {
             if (!(key in e)) issues.push(`effects[${idx}] missing ${key}`)
@@ -106,10 +120,10 @@ function main() {
         results.push({ file, issues })
       }
 
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
     } catch (err: unknown) {
       // If the JSON file couldn't be parsed, record that as an issue
-      results.push({ file, issues: [`failed to parse JSON: ${err.message}`] })
+      const message = err instanceof Error ? err.message : String(err)
+      results.push({ file, issues: [`failed to parse JSON: ${message}`] })
     }
   }
 

@@ -1,13 +1,6 @@
-// TODO(lint-intent): 'PlayerCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { GameState, Location, PlayerCharacter as _PlayerCharacter } from '../../types';
+import { GameState, Location } from '../../types';
 import { getCurrentPlane } from '../../utils/planarUtils';
 import { rollSavingThrow } from '../../utils/savingThrowUtils';
-// TODO(lint-intent): 'logger' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { logger as _logger } from '../../utils/logger';
 import { createPlayerCombatCharacter } from '../../utils/combatUtils';
 import { LOCATIONS } from '../../constants';
 
@@ -48,9 +41,7 @@ export function checkPlanarRestRules(gameState: GameState): RestOutcome {
   // Check if Long Rest is allowed at all
   if (!restRules.longRestAllowed) {
     outcome.messages.push(`Long rests are not possible in ${plane.name}.`);
-    // TODO(2026-01-03 pass 4 Codex-CLI): Require PlayerCharacter ids before rest checks run.
-    // Previously mapped c.id directly; now default to a placeholder to satisfy optional id.
-    outcome.deniedCharacterIds = gameState.party.map(c => c.id ?? 'unknown-character');
+    outcome.deniedCharacterIds = gameState.party.map(c => c.id);
     return outcome;
   }
 
@@ -73,10 +64,7 @@ export function checkPlanarRestRules(gameState: GameState): RestOutcome {
         const usedTotal = save1.total < save2.total ? save1.total : save2.total;
 
         if (!passed) {
-            // TODO(2026-01-03 pass 4 Codex-CLI): Require PlayerCharacter ids before rest checks run.
-            // Previously pushed character.id directly; now default to a placeholder to satisfy optional id.
-            const characterId = character.id ?? 'unknown-character';
-            outcome.deniedCharacterIds.push(characterId);
+            outcome.deniedCharacterIds.push(character.id);
             outcome.messages.push(`${character.name} succumbs to despair (Rolled ${usedTotal} vs DC 15) and finds no rest.`);
         } else {
             outcome.messages.push(`${character.name} resists the gloom.`);

@@ -80,14 +80,13 @@ export const useDialogueSystem = (
         const currentGameTime = Number(gameState?.gameTime ?? Date.now());
 
         // 0. Persist Topic Memory
-        // Ensure this topic is remembered in the NPC's long-term memory        
+        // Ensure this topic is remembered in the NPC's long-term memory
         dispatch({
             type: 'DISCUSS_TOPIC',
             payload: {
                 topicId,
                 npcId: session.npcId,
-        // TODO(2026-01-03 pass 2 Codex-CLI): State shape mixes Date/number for timestamps; store number for reducers, migrate to Date once state shape is unified.
-        date: currentGameTime
+                date: currentGameTime
             }
         });
 
@@ -115,8 +114,7 @@ export const useDialogueSystem = (
                     id: Date.now(),
                     text: `${NPCS[session.npcId]?.name || 'NPC'} ${direction} of your words.`,
                     sender: 'system',
-        // TODO(2026-01-03 Codex-CLI): Normalize GameMessage timestamp typing; reducers currently expect number in some flows.
-        timestamp: new Date(currentGameTime) as unknown as Date
+                    timestamp: new Date(currentGameTime) as unknown as Date
                 }
             });
         }
@@ -157,7 +155,7 @@ export const useDialogueSystem = (
                 // Current implementation mostly relies on the session state update in the reducer,
                 // but if we need persistent cross-NPC unlocks, we'd add a KnownFact here.
 
-                // TODO(Dialogist): Implement cross-NPC topic propagation via ADD_NPC_KNOWN_FACT or Discovery Log.
+                // TODO #324(Dialogist): Implement cross-NPC topic propagation via ADD_NPC_KNOWN_FACT or Discovery Log.
             });
         }
 

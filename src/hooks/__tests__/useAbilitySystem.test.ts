@@ -1,10 +1,10 @@
-// TODO(lint-intent): 'waitFor' is unused in this test; use it in the assertion path or remove it.
 import { renderHook, act, waitFor as _waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { materializeAfterHitReactionSpell, useAbilitySystem } from '../useAbilitySystem';
-import { CombatCharacter, Ability, BattleMapData, LightSource, SelectedSpellTarget } from '../../types/combat';
+import { ActiveTruePolymorphTransformation, CombatCharacter, Ability, BattleMapData, LightSource, SelectedSpellTarget, SpellObjectAccessChange } from '../../types/combat';
 import { Spell } from '../../types/spells';
 import { Item } from '../../types';
+import type { ActiveSpellZone } from '../../systems/spells/effects';
 import * as savingThrowUtils from '../../utils/savingThrowUtils';
 import { combatEvents } from '../../systems/events/CombatEvents';
 import * as combatUtils from '../../utils/combatUtils';
@@ -141,7 +141,6 @@ const shieldSpell: Spell = {
         condition: { type: 'always' },
         reactionTrigger: { event: 'when_hit' }
     }]
-// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
 } as Spell;
 
 const attacker: CombatCharacter = {
@@ -156,7 +155,6 @@ const attacker: CombatCharacter = {
     actionEconomy: { reaction: { remaining: 1, used: false }, action: {}, bonusAction: {}, movement: {} },
     statusEffects: [],
     level: 1
-// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
 } as unknown as CombatCharacter;
 
 const defender: CombatCharacter = {
@@ -168,12 +166,10 @@ const defender: CombatCharacter = {
     maxHP: 10,
     armorClass: 10, // Low AC to ensure hit
     stats: { dexterity: 10 },
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
     abilities: [{ id: 'shield-ab', spell: shieldSpell, type: 'spell' } as unknown],
     actionEconomy: { reaction: { remaining: 1, used: false }, action: {}, bonusAction: {}, movement: {} },
     statusEffects: [],
     level: 1
-// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
 } as unknown as CombatCharacter;
 
 const swordItem: Item = {
@@ -200,7 +196,6 @@ const basicAttack: Ability = {
     cost: { type: 'action' },
     isProficient: true,
     weapon: swordItem
-// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
 } as Ability;
 
 describe('useAbilitySystem - Reactions', () => {
@@ -241,15 +236,15 @@ describe('useAbilitySystem - Reactions', () => {
     it('should execute command via AbilityCommandFactory', async () => {
          const { result } = renderHook(() => useAbilitySystem({
             characters: [attacker, defender],
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-            // TODO(lint-intent): Map tiles simplified; keep shape explicit for future combat map refinements.
             mapData: {
                 tiles: new Map([
                     ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'plain', decoration: null, blocksMovement: false, blocksVision: false, movementCost: 1, elevation: 0 }],
                     ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'plain', decoration: null, blocksMovement: false, blocksVision: false, movementCost: 1, elevation: 0 }]
                 ]),
-                dimensions: { width: 10, height: 10 }
-            } as any,
+                dimensions: { width: 10, height: 10 },
+                theme: 'dungeon',
+                seed: 1
+            } as BattleMapData,
             onExecuteAction: mockExecuteAction,
             onCharacterUpdate: mockCharacterUpdate,
             onLogEntry: mockLogEntry,
@@ -257,8 +252,7 @@ describe('useAbilitySystem - Reactions', () => {
         }));
 
         await act(async () => {
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-            (result.current.executeAbility as any)(
+            result.current.executeAbility(
                 basicAttack,
                 attacker,
                 defender.position,
@@ -376,27 +370,25 @@ describe('useAbilitySystem - Reactions', () => {
                 },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once compact reaction-spell fixtures expose the full migrated spell union.
         } as unknown as Spell;
         const smitingAttacker: CombatCharacter = {
             ...attacker,
             id: 'smiting-attacker',
             name: 'Smiting Attacker',
             team: 'player',
-            abilities: [{
+            abilities: [({
                 id: 'shining-smite-like-ability',
                 name: 'Shining Smite Like',
                 type: 'spell',
                 spell: smiteSpell
-            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
-            } as unknown as Ability],
+            } as unknown as Ability)],
             actionEconomy: {
                 ...attacker.actionEconomy,
                 reaction: { used: false, remaining: 1 }
             },
             spellSlots: {
                 level_2: { current: 1, max: 1 }
-            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            // TODO #342(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
             } as unknown as CombatCharacter['spellSlots']
         };
         const hitTarget: CombatCharacter = {
@@ -433,7 +425,7 @@ describe('useAbilitySystem - Reactions', () => {
                     reactiveTriggers: [],
                     activeLightSources: []
                 }
-            // TODO(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
+            // TODO #343(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
             } as any;
         });
 
@@ -448,7 +440,7 @@ describe('useAbilitySystem - Reactions', () => {
 
         let executionPromise: Promise<void>;
         await act(async () => {
-            executionPromise = (result.current.executeAbility as any)(
+            executionPromise = result.current.executeAbility(
                 basicAttack,
                 smitingAttacker,
                 hitTarget.position,
@@ -531,7 +523,7 @@ describe('useAbilitySystem - Reactions', () => {
                 },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once compact reaction-spell fixtures expose the full migrated spell union.
+        // TODO #344(lint-intent): Replace this cast once compact reaction-spell fixtures expose the full migrated spell union.
         } as unknown as Spell;
         const smitingAttacker: CombatCharacter = {
             ...attacker,
@@ -543,7 +535,6 @@ describe('useAbilitySystem - Reactions', () => {
                 name: 'Blinding Smite Like',
                 type: 'spell',
                 spell: meleeOnlySmite
-            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
             } as unknown as Ability],
             actionEconomy: {
                 ...attacker.actionEconomy,
@@ -551,7 +542,7 @@ describe('useAbilitySystem - Reactions', () => {
             },
             spellSlots: {
                 level_3: { current: 1, max: 1 }
-            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            // TODO #346(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
             } as unknown as CombatCharacter['spellSlots']
         };
         const hitTarget: CombatCharacter = {
@@ -589,7 +580,7 @@ describe('useAbilitySystem - Reactions', () => {
                     reactiveTriggers: [],
                     activeLightSources: []
                 }
-            // TODO(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
+            // TODO #347(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
             } as any;
         });
 
@@ -603,7 +594,7 @@ describe('useAbilitySystem - Reactions', () => {
         }));
 
         await act(async () => {
-            await (result.current.executeAbility as any)(
+            await result.current.executeAbility(
                 basicAttack,
                 smitingAttacker,
                 hitTarget.position,
@@ -661,7 +652,6 @@ describe('useAbilitySystem - Reactions', () => {
                 },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once compact reaction-spell fixtures expose the full migrated spell union.
         } as unknown as Spell;
         const smitingAttacker: CombatCharacter = {
             ...attacker,
@@ -673,7 +663,6 @@ describe('useAbilitySystem - Reactions', () => {
                 name: 'Legacy Melee Smite Like',
                 type: 'spell',
                 spell: legacyMeleeSmite
-            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
             } as unknown as Ability],
             actionEconomy: {
                 ...attacker.actionEconomy,
@@ -681,7 +670,6 @@ describe('useAbilitySystem - Reactions', () => {
             },
             spellSlots: {
                 level_2: { current: 1, max: 1 }
-            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
             } as unknown as CombatCharacter['spellSlots']
         };
         const hitTarget: CombatCharacter = {
@@ -718,7 +706,7 @@ describe('useAbilitySystem - Reactions', () => {
                     reactiveTriggers: [],
                     activeLightSources: []
                 }
-            // TODO(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
+            // TODO #351(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
             } as any;
         });
 
@@ -733,7 +721,7 @@ describe('useAbilitySystem - Reactions', () => {
 
         let executionPromise: Promise<void>;
         await act(async () => {
-            executionPromise = (result.current.executeAbility as any)(
+            executionPromise = result.current.executeAbility(
                 basicAttack,
                 smitingAttacker,
                 hitTarget.position,
@@ -796,7 +784,7 @@ describe('useAbilitySystem - Reactions', () => {
                 },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once compact reaction-spell fixtures expose the full migrated spell union.
+        // TODO #352(lint-intent): Replace this cast once compact reaction-spell fixtures expose the full migrated spell union.
         } as unknown as Spell;
         const smitingAttacker: CombatCharacter = {
             ...attacker,
@@ -808,7 +796,6 @@ describe('useAbilitySystem - Reactions', () => {
                 name: 'Shining Smite Unarmed Like',
                 type: 'spell',
                 spell: unarmedSmite
-            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
             } as unknown as Ability],
             actionEconomy: {
                 ...attacker.actionEconomy,
@@ -816,7 +803,6 @@ describe('useAbilitySystem - Reactions', () => {
             },
             spellSlots: {
                 level_2: { current: 1, max: 1 }
-            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
             } as unknown as CombatCharacter['spellSlots']
         };
         const hitTarget: CombatCharacter = {
@@ -851,7 +837,7 @@ describe('useAbilitySystem - Reactions', () => {
                     reactiveTriggers: [],
                     activeLightSources: []
                 }
-            // TODO(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
+            // TODO #355(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
             } as any;
         });
 
@@ -866,7 +852,7 @@ describe('useAbilitySystem - Reactions', () => {
 
         let executionPromise: Promise<void>;
         await act(async () => {
-            executionPromise = (result.current.executeAbility as any)(
+            executionPromise = result.current.executeAbility(
                 basicAttack,
                 smitingAttacker,
                 hitTarget.position,
@@ -910,7 +896,7 @@ describe('useAbilitySystem - Reactions', () => {
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
+        // TODO #356(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
         } as unknown as Spell;
         const enemyCounterspell: Spell = {
             id: 'enemy-counterspell',
@@ -935,7 +921,7 @@ describe('useAbilitySystem - Reactions', () => {
             duration: { type: 'instantaneous', concentration: false },
             targeting: { type: 'single', validTargets: ['creatures'] },
             effects: []
-        // TODO(lint-intent): Replace this cast once compact Counterspell fixtures expose the full migrated spell union.
+            
         } as unknown as Spell;
         const playerCounterspell: Spell = {
             ...enemyCounterspell,
@@ -952,7 +938,6 @@ describe('useAbilitySystem - Reactions', () => {
                 name: 'Player Counterspell',
                 type: 'spell',
                 spell: playerCounterspell
-            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
             } as unknown as Ability],
             actionEconomy: {
                 ...defender.actionEconomy,
@@ -960,7 +945,6 @@ describe('useAbilitySystem - Reactions', () => {
             },
             spellSlots: {
                 level_3: { current: 2, max: 2 }
-            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
             } as unknown as CombatCharacter['spellSlots']
         };
         const enemyReactor: CombatCharacter = {
@@ -973,7 +957,6 @@ describe('useAbilitySystem - Reactions', () => {
                 name: 'Enemy Counterspell',
                 type: 'spell',
                 spell: enemyCounterspell
-            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
             } as unknown as Ability],
             actionEconomy: {
                 ...attacker.actionEconomy,
@@ -981,7 +964,6 @@ describe('useAbilitySystem - Reactions', () => {
             },
             spellSlots: {
                 level_3: { current: 1, max: 1 }
-            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
             } as unknown as CombatCharacter['spellSlots']
         };
 
@@ -1064,7 +1046,7 @@ describe('useAbilitySystem - Reactions', () => {
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
+        // TODO #362(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
         } as unknown as Spell;
         const enemyCounterspell: Spell = {
             id: 'enemy-counterspell',
@@ -1089,7 +1071,6 @@ describe('useAbilitySystem - Reactions', () => {
             duration: { type: 'instantaneous', concentration: false },
             targeting: { type: 'single', validTargets: ['creatures'] },
             effects: []
-        // TODO(lint-intent): Replace this cast once compact Counterspell fixtures expose the full migrated spell union.
         } as unknown as Spell;
         const originalCaster: CombatCharacter = {
             ...defender,
@@ -1104,7 +1085,7 @@ describe('useAbilitySystem - Reactions', () => {
             },
             spellSlots: {
                 level_3: { current: 1, max: 1 }
-            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            // TODO #364(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
             } as unknown as CombatCharacter['spellSlots']
         };
         const enemyReactor: CombatCharacter = {
@@ -1117,7 +1098,7 @@ describe('useAbilitySystem - Reactions', () => {
                 name: 'Enemy Counterspell',
                 type: 'spell',
                 spell: enemyCounterspell
-            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
+            // TODO #365(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
             } as unknown as Ability],
             actionEconomy: {
                 ...attacker.actionEconomy,
@@ -1125,7 +1106,6 @@ describe('useAbilitySystem - Reactions', () => {
             },
             spellSlots: {
                 level_3: { current: 1, max: 1 }
-            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
             } as unknown as CombatCharacter['spellSlots']
         };
         const fireballAbility: Ability = {
@@ -1138,7 +1118,6 @@ describe('useAbilitySystem - Reactions', () => {
             range: 30,
             effects: [],
             spell: originalSpell
-        // TODO(lint-intent): Replace this broad ability cast once spell-backed abilities have a compact shared test builder.
         } as unknown as Ability;
         const onCharacterUpdate = vi.fn();
 
@@ -1160,7 +1139,7 @@ describe('useAbilitySystem - Reactions', () => {
 
         let executionPromise: Promise<void>;
         await act(async () => {
-            executionPromise = (result.current.executeAbility as any)(
+            executionPromise = result.current.executeAbility(
                 fireballAbility,
                 originalCaster,
                 enemyReactor.position,
@@ -1223,7 +1202,6 @@ describe('useAbilitySystem - Reactions', () => {
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
         } as unknown as Spell;
         const enemyCounterspell: Spell = {
             id: 'enemy-counterspell-success-path',
@@ -1248,7 +1226,6 @@ describe('useAbilitySystem - Reactions', () => {
             duration: { type: 'instantaneous', concentration: false },
             targeting: { type: 'single', validTargets: ['creatures'] },
             effects: []
-        // TODO(lint-intent): Replace this cast once compact Counterspell fixtures expose the full migrated spell union.
         } as unknown as Spell;
         const originalCaster: CombatCharacter = {
             ...defender,
@@ -1262,7 +1239,6 @@ describe('useAbilitySystem - Reactions', () => {
             },
             spellSlots: {
                 level_3: { current: 1, max: 1 }
-            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
             } as unknown as CombatCharacter['spellSlots']
         };
         const enemyReactor: CombatCharacter = {
@@ -1275,7 +1251,6 @@ describe('useAbilitySystem - Reactions', () => {
                 name: 'Enemy Counterspell Success Path',
                 type: 'spell',
                 spell: enemyCounterspell
-            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
             } as unknown as Ability],
             actionEconomy: {
                 ...attacker.actionEconomy,
@@ -1283,7 +1258,6 @@ describe('useAbilitySystem - Reactions', () => {
             },
             spellSlots: {
                 level_3: { current: 1, max: 1 }
-            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
             } as unknown as CombatCharacter['spellSlots']
         };
 
@@ -1356,7 +1330,6 @@ describe('useAbilitySystem - Reactions', () => {
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
         } as unknown as Spell;
         const enemyCounterspell: Spell = {
             id: 'enemy-counterspell-out-of-range',
@@ -1381,7 +1354,6 @@ describe('useAbilitySystem - Reactions', () => {
             duration: { type: 'instantaneous', concentration: false },
             targeting: { type: 'single', validTargets: ['creatures'] },
             effects: []
-        // TODO(lint-intent): Replace this cast once compact Counterspell fixtures expose the full migrated spell union.
         } as unknown as Spell;
         const originalCaster: CombatCharacter = {
             ...defender,
@@ -1395,7 +1367,6 @@ describe('useAbilitySystem - Reactions', () => {
             },
             spellSlots: {
                 level_3: { current: 1, max: 1 }
-            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
             } as unknown as CombatCharacter['spellSlots']
         };
         const enemyReactor: CombatCharacter = {
@@ -1408,7 +1379,6 @@ describe('useAbilitySystem - Reactions', () => {
                 name: 'Enemy Counterspell Out Of Range',
                 type: 'spell',
                 spell: enemyCounterspell
-            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
             } as unknown as Ability],
             actionEconomy: {
                 ...attacker.actionEconomy,
@@ -1416,7 +1386,6 @@ describe('useAbilitySystem - Reactions', () => {
             },
             spellSlots: {
                 level_3: { current: 1, max: 1 }
-            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
             } as unknown as CombatCharacter['spellSlots']
         };
 
@@ -2142,7 +2111,6 @@ describe('useAbilitySystem - target-move debuff registration', () => {
                 trigger: { type: 'on_target_move', frequency: 'once', movementType: 'any' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace any with the minimal spell shape once test fixtures expose migrated spell unions.
         } as unknown as Spell;
         const boomingAbility: Ability = {
             id: 'booming-blade-ability',
@@ -2154,7 +2122,6 @@ describe('useAbilitySystem - target-move debuff registration', () => {
             cost: { type: 'action' },
             effects: [],
             spell: boomingSpell
-        // TODO(lint-intent): Replace any with the minimal ability shape once spell-backed abilities are typed for tests.
         } as unknown as Ability;
         const { result } = renderHook(() => useAbilitySystem({
             characters: [attacker, defender],
@@ -2225,7 +2192,6 @@ describe('useAbilitySystem - command game-state context', () => {
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace any with the minimal spell shape once utility-effect fixtures are strongly typed.
         } as unknown as Spell;
         const contextAbility: Ability = {
             id: 'context-sensitive-ability',
@@ -2237,7 +2203,6 @@ describe('useAbilitySystem - command game-state context', () => {
             cost: { type: 'action' },
             effects: [],
             spell: contextSpell
-        // TODO(lint-intent): Replace any with the minimal ability shape once spell-backed abilities are typed for tests.
         } as unknown as Ability;
         const { result } = renderHook(() => useAbilitySystem({
             characters: [attacker, defender],
@@ -2264,6 +2229,99 @@ describe('useAbilitySystem - command game-state context', () => {
         expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[4]).toEqual(
             expect.objectContaining({ mapData })
         );
+    });
+
+    it('registers scheduled turn effects after command creation owns the immediate cast', async () => {
+        const { CommandExecutor } = await import('../../commands');
+        const onAddScheduledSpellEffect = vi.fn();
+        const scheduledSpell: Spell = {
+            id: 'scheduled-proof-spell',
+            name: 'Scheduled Proof Spell',
+            level: 2,
+            school: 'Enchantment',
+            classes: ['Wizard'],
+            description: 'Stores delayed turn effects after the immediate cast resolves.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 60 },
+            components: { verbal: true, somatic: true, material: false },
+            duration: { type: 'timed', value: 1, unit: 'minute', concentration: true },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: [
+                {
+                    type: 'DAMAGE',
+                    damage: { dice: '1d6', type: 'psychic' },
+                    trigger: { type: 'turn_start' },
+                    condition: { type: 'always' }
+                },
+                {
+                    type: 'STATUS_CONDITION',
+                    statusCondition: { name: 'Dazed', duration: { type: 'rounds', value: 1 } },
+                    trigger: { type: 'turn_end' },
+                    condition: { type: 'always' }
+                }
+            ]
+        } as unknown as Spell;
+        const scheduledAbility: Ability = {
+            id: 'scheduled-proof-ability',
+            name: 'Scheduled Proof Spell',
+            description: 'Uses delayed turn effects.',
+            type: 'spell',
+            range: 60,
+            targeting: 'single_enemy',
+            cost: { type: 'action' },
+            effects: [],
+            spell: scheduledSpell
+        } as unknown as Ability;
+
+        vi.mocked(CommandExecutor.execute).mockReturnValueOnce({
+            success: true,
+            finalState: {
+                characters: [attacker, defender],
+                combatLog: [],
+                turnState: { currentTurn: 3 }
+            }
+        } as any);
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [attacker, defender],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn(),
+            onAddScheduledSpellEffect
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                scheduledAbility,
+                attacker,
+                defender.position,
+                [defender.id]
+            );
+        });
+
+        // The hook is the orchestrator for delayed turn effects: the command
+        // factory deliberately skips bare scheduled triggers during immediate
+        // command creation, then this post-command branch registers durable
+        // records for the turn manager/combat engine to resolve later.
+        expect(onAddScheduledSpellEffect).toHaveBeenCalledTimes(2);
+        expect(onAddScheduledSpellEffect).toHaveBeenCalledWith(expect.objectContaining({
+            spellId: scheduledSpell.id,
+            casterId: attacker.id,
+            targetId: defender.id,
+            timing: 'turn_start',
+            saveDC: 17,
+            effects: [expect.objectContaining({ trigger: expect.objectContaining({ type: 'turn_start' }) })]
+        }));
+        expect(onAddScheduledSpellEffect).toHaveBeenCalledWith(expect.objectContaining({
+            spellId: scheduledSpell.id,
+            casterId: attacker.id,
+            targetId: defender.id,
+            timing: 'turn_end',
+            saveDC: 17,
+            effects: [expect.objectContaining({ trigger: expect.objectContaining({ type: 'turn_end' }) })]
+        }));
     });
 });
 
@@ -2578,6 +2636,107 @@ describe('useAbilitySystem - selected object target refs', () => {
         expect(result.current.getValidTargets(objectAbility, caster)).toContainEqual(looseStone.position);
     });
 
+    it('surfaces object-specific rejection text when a registered map object fails spell eligibility', async () => {
+        vi.clearAllMocks();
+        const caster = {
+            id: 'object-rejection-caster',
+            name: 'Object Rejection Caster',
+            team: 'player',
+            position: { x: 0, y: 0 },
+            actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
+            spellSlots: { 1: { used: 0, total: 1 } },
+            statusEffects: []
+        } as unknown as CombatCharacter;
+        const fixedDoor = {
+            id: 'fixed-door',
+            name: 'Fixed Door',
+            position: { x: 1, y: 0 },
+            size: 'Medium',
+            weightPounds: 120,
+            isWornOrCarried: false,
+            isMagical: false,
+            isFixedToSurface: true
+        };
+        const mapData: BattleMapData = {
+            dimensions: { width: 3, height: 3 },
+            tiles: new Map([
+                ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'floor', decoration: null, blocksMovement: false, blocksLoS: false, movementCost: 1, elevation: 0, effects: [] }],
+                ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'floor', decoration: null, blocksMovement: false, blocksLoS: false, movementCost: 1, elevation: 0, effects: [] }]
+            ]),
+            theme: 'dungeon',
+            seed: 19,
+            targetableObjects: [fixedDoor]
+        };
+        const objectSpell: Spell = {
+            id: 'catapult-fixed-object-rejection-test',
+            name: 'Catapult Fixed Object Rejection Test',
+            level: 1,
+            school: 'Transmutation',
+            classes: ['Wizard'],
+            description: 'Rejects fixed objects without falling back to creature-only text.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 60 },
+            components: { verbal: false, somatic: true, material: false },
+            duration: { type: 'instantaneous' },
+            targeting: {
+                type: 'single',
+                range: 60,
+                validTargets: ['objects'],
+                lineOfSight: false,
+                filter: {
+                    objectEligibility: {
+                        fixedToSurface: 'excluded'
+                    }
+                }
+            },
+            effects: [{
+                type: 'UTILITY',
+                utilityType: 'object_interaction',
+                description: 'Launches the selected object.',
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        } as unknown as Spell;
+        const objectAbility = {
+            id: objectSpell.id,
+            name: objectSpell.name,
+            type: 'spell',
+            targeting: 'single_any',
+            range: 60,
+            cost: { type: 'action' },
+            effects: [],
+            spell: objectSpell
+        } as unknown as Ability;
+        const onNotification = vi.fn();
+        const onLogEntry = vi.fn();
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [caster],
+            mapData,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry,
+            onNotification,
+            onAbilityEffect: vi.fn()
+        }));
+
+        act(() => {
+            result.current.startTargeting(objectAbility, caster);
+        });
+
+        let didSelect = true;
+        await act(async () => {
+            didSelect = result.current.selectTarget(fixedDoor.position, caster);
+        });
+
+        expect(didSelect).toBe(false);
+        expect(result.current.targetValidationReason).toBe('This spell cannot target an object fixed to a surface.');
+        expect(onNotification).toHaveBeenCalledWith('This spell cannot target an object fixed to a surface.', 'error');
+        expect(onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            message: 'This spell cannot target an object fixed to a surface.'
+        }));
+    });
+
 });
 
 // ============================================================================
@@ -2656,7 +2815,6 @@ describe('useAbilitySystem - immediate forced-movement repeat saves', () => {
                 trigger: { type: 'immediate', frequency: 'once', movementType: 'forced' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace any with the minimal movement spell fixture once test builders expose migrated spell unions.
         } as unknown as Spell;
         const forceAbility: Ability = {
             id: 'immediate-force-ability',
@@ -3164,7 +3322,6 @@ describe('useAbilitySystem - self-teleport destination selection', () => {
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once test fixtures expose the full migrated spell union shape.
         } as unknown as Spell;
         const mistyStepAbility: Ability = {
             id: 'misty-step-ability',
@@ -3176,7 +3333,6 @@ describe('useAbilitySystem - self-teleport destination selection', () => {
             cost: { type: 'bonus' },
             effects: [{ type: 'teleport', value: 6 }],
             spell: mistyStepSpell
-        // TODO(lint-intent): Replace this cast once spell-backed abilities have a compact shared test builder.
         } as unknown as Ability;
         const onExecuteAction = vi.fn(() => true);
         const { result } = renderHook(() => useAbilitySystem({
@@ -3236,7 +3392,6 @@ describe('useAbilitySystem - self-teleport destination selection', () => {
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once test fixtures expose the full migrated spell union shape.
         } as unknown as Spell;
         const mistyStepAbility: Ability = {
             id: 'misty-step-ability',
@@ -3248,7 +3403,6 @@ describe('useAbilitySystem - self-teleport destination selection', () => {
             cost: { type: 'bonus' },
             effects: [{ type: 'teleport', value: 6 }],
             spell: mistyStepSpell
-        // TODO(lint-intent): Replace this cast once spell-backed abilities have a compact shared test builder.
         } as unknown as Ability;
         const onExecuteAction = vi.fn(() => true);
         const onLogEntry = vi.fn();
@@ -3339,7 +3493,6 @@ describe('useAbilitySystem - multi-target teleport assignment guard', () => {
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once test fixtures expose the full migrated spell union shape.
         } as unknown as Spell;
         const scatterAbility: Ability = {
             id: 'scatter-ability',
@@ -3351,7 +3504,6 @@ describe('useAbilitySystem - multi-target teleport assignment guard', () => {
             cost: { type: 'action' },
             effects: [{ type: 'teleport', value: 24 }],
             spell: scatterSpell
-        // TODO(lint-intent): Replace this cast once spell-backed abilities have a compact shared test builder.
         } as unknown as Ability;
         const onExecuteAction = vi.fn(() => true);
         const onNotification = vi.fn();
@@ -3432,7 +3584,6 @@ describe('useAbilitySystem - multi-target teleport assignment guard', () => {
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once test fixtures expose the full migrated spell union shape.
         } as unknown as Spell;
         const scatterAbility: Ability = {
             id: 'scatter-ability',
@@ -3444,7 +3595,6 @@ describe('useAbilitySystem - multi-target teleport assignment guard', () => {
             cost: { type: 'action' },
             effects: [{ type: 'teleport', value: 24 }],
             spell: scatterSpell
-        // TODO(lint-intent): Replace this cast once spell-backed abilities have a compact shared test builder.
         } as unknown as Ability;
         const onExecuteAction = vi.fn(() => true);
         const onLogEntry = vi.fn();
@@ -3532,7 +3682,6 @@ describe('useAbilitySystem - active light source live-state bridge', () => {
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once utility-light spell fixtures expose a compact shared shape.
         } as unknown as Spell;
         const lightAbility: Ability = {
             id: 'light-ability',
@@ -3544,7 +3693,6 @@ describe('useAbilitySystem - active light source live-state bridge', () => {
             cost: { type: 'action' },
             effects: [],
             spell: lightSpell
-        // TODO(lint-intent): Replace this cast once spell-backed abilities have a compact shared test builder.
         } as unknown as Ability;
         const onActiveLightSourcesUpdate = vi.fn();
 
@@ -3556,7 +3704,6 @@ describe('useAbilitySystem - active light source live-state bridge', () => {
                 reactiveTriggers: [],
                 activeLightSources: [createdLight]
             }
-        // TODO(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
         } as any);
 
         const { result } = renderHook(() => useAbilitySystem({
@@ -3614,7 +3761,6 @@ describe('useAbilitySystem - active light source live-state bridge', () => {
                 reactiveTriggers: [],
                 activeLightSources: []
             }
-        // TODO(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
         } as any);
 
         const { result } = renderHook(() => useAbilitySystem({
@@ -3638,6 +3784,199 @@ describe('useAbilitySystem - active light source live-state bridge', () => {
             activeLightSources: [existingLight]
         }));
         expect(onActiveLightSourcesUpdate).toHaveBeenCalledWith([]);
+    });
+
+    it('starts concentration cleanup from current spell zones and publishes zone removal', async () => {
+        const { CommandExecutor } = await import('../../commands');
+        const existingZone: ActiveSpellZone = {
+            id: 'grease-zone',
+            spellId: 'grease',
+            casterId: defender.id,
+            position: { x: 2, y: 2 },
+            areaOfEffect: { shape: 'square', size: 10 },
+            effects: [],
+            triggeredThisTurn: new Set(),
+            triggeredEver: new Set()
+        };
+        const concentratingDefender: CombatCharacter = {
+            ...defender,
+            concentratingOn: {
+                spellId: 'grease',
+                spellName: 'Grease',
+                spellLevel: 1,
+                startedTurn: 0,
+                effectIds: ['grease-zone'],
+                canDropAsFreeAction: true
+            }
+        };
+        const onSpellZonesUpdate = vi.fn();
+        const mapData = {
+            tiles: new Map(),
+            dimensions: { width: 3, height: 3 },
+            theme: 'dungeon'
+        } as BattleMapData;
+        const cleanedMapData = {
+            ...mapData,
+            tiles: new Map()
+        } as BattleMapData;
+        const onMapUpdate = vi.fn();
+
+        vi.mocked(CommandExecutor.execute).mockReturnValueOnce({
+            success: true,
+            finalState: {
+                characters: [{ ...concentratingDefender, concentratingOn: undefined }],
+                combatLog: [],
+                reactiveTriggers: [],
+                spellZones: [],
+                mapData: cleanedMapData
+            }
+        
+        } as any);
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [concentratingDefender],
+            mapData,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn(),
+            spellZones: [existingZone],
+            onSpellZonesUpdate,
+            onMapUpdate
+        }));
+
+        await act(async () => {
+            await result.current.dropConcentration(concentratingDefender);
+        });
+
+        expect(vi.mocked(CommandExecutor.execute).mock.calls.at(-1)?.[1]).toEqual(expect.objectContaining({
+            spellZones: [existingZone],
+            mapData
+        }));
+        expect(onSpellZonesUpdate).toHaveBeenCalledWith([]);
+        expect(onMapUpdate).toHaveBeenCalledWith(cleanedMapData);
+    });
+
+    it('publishes object result records from command execution for map markers', async () => {
+        const { CommandExecutor } = await import('../../commands');
+        const objectImpact = {
+            id: 'impact-1',
+            objectId: 'dry-crate',
+            objectName: 'Dry Crate',
+            position: { x: 2, y: 1 },
+            sourceSpellId: 'fire-bolt',
+            sourceSpellName: 'Fire Bolt',
+            casterId: defender.id,
+            damage: { dice: '1d10', type: 'fire' },
+            createdTurn: 0
+        };
+        const fireEffect = {
+            id: 'fire-1',
+            spellId: 'fire-bolt',
+            sourceName: 'Fire Bolt',
+            casterId: defender.id,
+            position: { x: 2, y: 1 },
+            createdTurn: 0,
+            kind: 'ignited_object',
+            objectId: 'dry-crate',
+            objectName: 'Dry Crate',
+            damage: { dice: '1d10', type: 'fire' },
+            ignitesTouchedObjects: true,
+            excludesWornOrCarriedObjects: true
+        };
+        const objectRepair = {
+            id: 'repair-1',
+            objectId: 'cracked-vase',
+            objectName: 'Cracked Vase',
+            position: { x: 3, y: 1 },
+            sourceSpellId: 'mending',
+            sourceSpellName: 'Mending',
+            casterId: defender.id,
+            createdTurn: 0,
+            outcome: 'repaired',
+            repairState: {
+                targetKind: 'object',
+                repairLimit: 'single_break_or_tear',
+                maxDamageDimensionFeet: 1,
+                leavesNoTrace: true,
+                canPhysicallyRepairMagicItem: true,
+                restoresMagicToMagicItem: false
+            }
+        };
+        const transformation: ActiveTruePolymorphTransformation = {
+            id: 'true-polymorph-transformation-1',
+            mode: 'object_to_creature',
+            spellId: 'true-polymorph',
+            spellName: 'True Polymorph',
+            casterId: defender.id,
+            sourceObjectId: 'loose-boulder',
+            sourceObjectName: 'Loose Boulder',
+            sourceObjectPosition: { x: 4, y: 1 },
+            transformedCreatureId: 'loose-boulder-creature',
+            controlledUntilFullDuration: true,
+            createdTurn: 0
+        };
+        const objectAccessChange: SpellObjectAccessChange = {
+            id: 'access-1',
+            objectId: 'locked-door',
+            objectName: 'Locked Door',
+            position: { x: 5, y: 1 },
+            sourceSpellId: 'knock',
+            sourceSpellName: 'Knock',
+            casterId: defender.id,
+            createdTurn: 0,
+            outcome: 'suppressed_magical_lock',
+            suppressesMagicalClosure: 'arcane-lock',
+            targetOperableDuringSuppression: true
+        };
+        const onSpellObjectImpactsUpdate = vi.fn();
+        const onSpellObjectRepairsUpdate = vi.fn();
+        const onSpellObjectAccessChangesUpdate = vi.fn();
+        const onActiveFireEffectsUpdate = vi.fn();
+        const onActiveTruePolymorphTransformationsUpdate = vi.fn();
+
+        vi.mocked(CommandExecutor.execute).mockReturnValueOnce({
+            success: true,
+            finalState: {
+                characters: [defender],
+                combatLog: [],
+                reactiveTriggers: [],
+                spellObjectImpacts: [objectImpact],
+                spellObjectRepairs: [objectRepair],
+                spellObjectAccessChanges: [objectAccessChange],
+                activeFireEffects: [fireEffect],
+                activeTruePolymorphTransformations: [transformation]
+            }
+        } as any);
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [defender],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn(),
+            onSpellObjectImpactsUpdate,
+            onSpellObjectRepairsUpdate,
+            onSpellObjectAccessChangesUpdate,
+            onActiveFireEffectsUpdate,
+            onActiveTruePolymorphTransformationsUpdate
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                basicAttack,
+                defender,
+                defender.position,
+                [defender.id]
+            );
+        });
+
+        expect(onSpellObjectImpactsUpdate).toHaveBeenCalledWith([objectImpact]);
+        expect(onSpellObjectRepairsUpdate).toHaveBeenCalledWith([objectRepair]);
+        expect(onSpellObjectAccessChangesUpdate).toHaveBeenCalledWith([objectAccessChange]);
+        expect(onActiveFireEffectsUpdate).toHaveBeenCalledWith([fireEffect]);
+        expect(onActiveTruePolymorphTransformationsUpdate).toHaveBeenCalledWith([transformation]);
     });
 });
 
@@ -3676,13 +4015,11 @@ describe('useAbilitySystem - free-form player input target bridge', () => {
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once compact illusion spell test fixtures expose the full migrated union shape.
         } as unknown as Spell;
         const selectedSpellTargets: SelectedSpellTarget[] = [{
             kind: 'point',
             position: { x: 3, y: 3 },
             purpose: 'ground_target'
-        // TODO(lint-intent): Replace this cast once selected-target fixtures cover point targeting metadata.
         } as unknown as SelectedSpellTarget];
         let confirmInput: ((input: string) => void) | null = null;
         const onRequestInput = vi.fn((_spell: Spell, onConfirm: (input: string) => void) => {
@@ -3750,7 +4087,6 @@ describe('Counterspell nested interruption outcome', () => {
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }
             }]
-        // TODO(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
         } as unknown as Spell;
         const counterspellFixture: Spell = {
             id: 'counterspell-fixture',
@@ -3775,7 +4111,6 @@ describe('Counterspell nested interruption outcome', () => {
             duration: { type: 'instantaneous', concentration: false },
             targeting: { type: 'single', validTargets: ['creatures'] },
             effects: []
-        // TODO(lint-intent): Replace this cast once compact Counterspell fixtures expose the full migrated spell union.
         } as unknown as Spell;
         const enemyCounterspell: Spell = {
             ...counterspellFixture,

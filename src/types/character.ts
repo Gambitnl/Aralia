@@ -20,6 +20,7 @@ import type { AbilityScoreName, AbilityScores, CharacterStats, Skill } from './c
 import type { EquipmentSlotType, Item } from './items.js';
 import type { RaceVisualSpec } from './visuals.js';
 import type { FamilyMember } from './world.js';
+import type { Language } from './languages.js';
 
 /**
  * ARCHITECTURAL CONTEXT:
@@ -200,7 +201,6 @@ export interface Race {
   /** @deprecated Use visual.illustrationPath instead */
   imageUrl?: string;
   visual?: RaceVisualSpec;
-  // TODO(Materializer): Migrate `imageUrl` to `visual.illustrationPath` in all src/data/races/*.ts files.
   racialSpellChoice?: {
     traitName: string;
     traitDescription: string;
@@ -208,7 +208,7 @@ export interface Race {
   spellsOfTheMark?: { minLevel: number; spells: string[] }[];
   knownSpells?: RacialSpell[];
   modernizationStatus?: 'official_2024' | 'modified_legacy';
-  // TODO(Taxonomist): Add languages: Language[] to Race interface once usage is confirmed
+  languages?: Language[];
 }
 
 
@@ -353,7 +353,7 @@ export interface Feat {
 
     // Skill proficiency options
     skillProficiencies?: string[];
-    /** Number of skills player must choose (e.g., Skilled = 3). TODO(FEATURES): Implement skill selection UI in character builder (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path). */
+    /** Number of skills player must choose (e.g., Skilled = 3). */
     selectableSkillCount?: number;
 
     // Saving throw proficiency options
@@ -361,7 +361,7 @@ export interface Feat {
     /** If true, saving throw proficiency matches the selected ability score (for Resilient feat). */
     savingThrowLinkedToAbility?: boolean;
 
-    /** Damage types player can choose from (e.g., Elemental Adept). TODO(FEATURES): Implement damage type selection UI (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path). */
+    /** Damage types player can choose from (e.g., Elemental Adept). */
     selectableDamageTypes?: string[];
 
     speedIncrease?: number;
@@ -410,9 +410,6 @@ export interface FeatChoice {
   selectedWeapons?: string[];
   selectedTools?: string[];
   selectedDamageType?: string;
-  // TODO(lint-intent): The any on this value hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
   [key: string]: unknown; // Allow for future choice types
 }
 
@@ -538,7 +535,6 @@ export interface PlayerCharacter {
   };
   /**
    * Legacy multiclass/backup class list used by older systems (puzzles/skill checks).
-   * TODO(lint-preserve): Migrate those systems to the primary `class` field and remove this fallback.
    */
   classes?: Class[];
   /**
@@ -550,7 +546,6 @@ export interface PlayerCharacter {
   finalAbilityScores: AbilityScores;
   /**
    * Legacy statline kept for puzzle/lock/plate systems that still rely on lowercase ability keys.
-   * TODO(lint-preserve): Consolidate callers onto `finalAbilityScores` and drop this shim once migrated.
    */
   stats?: CharacterStats;
   skills: Skill[];
@@ -587,7 +582,7 @@ export interface PlayerCharacter {
   limitedUses?: LimitedUses;
   activeEffects?: ActiveEffect[]; // For temporary spell effects (e.g. Shield, Mage Armor)
   statusEffects: StatusEffect[]; // Required for status effects
-  conditions?: string[]; // TODO(lint-intent): replace with richer condition model once defined
+  conditions?: string[];
   selectedFightingStyle?: FightingStyle;
   selectedDivineOrder?: 'Protector' | 'Thaumaturge';
   selectedDruidOrder?: 'Magician' | 'Warden';
@@ -643,9 +638,6 @@ export interface MissingChoiceOption {
   id: string;
   label: string;
   description?: string;
-  // TODO(lint-intent): The any on this value hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
   [key: string]: unknown;
 }
 

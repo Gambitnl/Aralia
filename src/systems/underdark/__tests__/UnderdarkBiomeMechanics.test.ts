@@ -2,13 +2,13 @@
 import { describe, it, expect } from 'vitest';
 import { UnderdarkMechanics } from '../UnderdarkMechanics';
 import { GameState, UnderdarkState } from '../../../types';
-// TODO(lint-intent): 'UNDERDARK_BIOMES' is unused in this test; use it in the assertion path or remove it.
-import { UNDERDARK_BIOMES as _UNDERDARK_BIOMES } from '../../../data/underdark/biomes';
 
 describe('Underdark Biome Mechanics', () => {
     // Mock State Factory
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    const createMockState = (biomeId: unknown, lightLevel: unknown = 'darkness'): GameState => ({
+    const createMockState = (
+        biomeId: string,
+        lightLevel: GameState['underdark']['lightLevel'] = 'darkness',
+    ): GameState => ({
         gameTime: new Date(),
         underdark: {
             currentDepth: 5000,

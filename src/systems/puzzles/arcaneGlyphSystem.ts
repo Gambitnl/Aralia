@@ -176,4 +176,4 @@ export function identifyGlyphSchool(
     return null;
 }
 
-// TODO(Lockpick): Integrate Arcane Glyphs with the Spell System to allow 'Dispel Magic' to automatically trigger disarmGlyph.
+// TODO #894(Lockpick): Integrate Arcane Glyphs with the Spell System to allow 'Dispel Magic' to automatically trigger disarmGlyph.

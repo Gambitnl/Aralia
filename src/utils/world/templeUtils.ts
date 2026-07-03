@@ -139,7 +139,5 @@ const generateServicesForDeity = (_deityId: string): TempleService[] => {
         }
     ];
 
-    // TODO: Add deity-specific services (e.g., Kord = "Blessing of Strength", Pelor = "Blessing of Light")
-
     return baseServices;
 };

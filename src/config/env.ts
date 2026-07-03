@@ -16,17 +16,16 @@ interface EnvConfig {
 
 // Access raw environment variables
 // Strategy: Prefer strict Vite env vars (VITE_GEMINI_API_KEY).
-// Fallback: Use process.env shims (defined in vite.config.ts) for legacy support or non-Vite contexts.
-// TODO: Avoid shipping API_KEY to the client bundle; route AI calls through a server/proxy and leave ENV.API_KEY empty in browser builds.
+// Fallback: Use process.env only outside browser contexts for legacy support or non-Vite runtimes.
 
 const getApiKey = () => {
   // 1. Try modern Vite env var
   if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
     return import.meta.env.VITE_GEMINI_API_KEY;
   }
-  // 2. Try legacy shim (process.env.API_KEY or process.env.GEMINI_API_KEY)
+  // 2. In non-browser runtimes, use legacy shims (process.env.API_KEY / process.env.GEMINI_API_KEY)
   // Note: verify shim existence before access to avoid ReferenceError in strict ESM if shim is missing
-  if (typeof process !== 'undefined' && process.env) {
+  if (typeof window === 'undefined' && typeof process !== 'undefined' && process.env) {
     return process.env.API_KEY || process.env.GEMINI_API_KEY || '';
   }
   return '';

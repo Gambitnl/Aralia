@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/07/2026, 23:48:11
+ * Last Sync: 02/07/2026, 12:03:05
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 26 files
  *
@@ -25,7 +25,7 @@
  *   Getters (isValidTarget) remain reactive to props for render correctness.
  */
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
-import { ActiveAnimatedObject, ActiveExtradimensionalSpace, ActiveSpellEmanation, ActiveSpellForce, ActiveSpellGuardian, ActiveSpellHelper, ActiveSpellStructure, CombatCharacter, Position, CombatAction, BattleMapData, CombatState, CombatLogEntry, ReactiveTrigger, Ability, LightSource, PocketedSummon, SpellDeliveryVisual, SelectedSpellTarget } from '../types/combat';
+import { ActiveAnimatedObject, ActiveExtradimensionalSpace, ActiveFireEffect, ActiveSpellEmanation, ActiveSpellForce, ActiveSpellGuardian, ActiveSpellHelper, ActiveSpellStructure, ActiveTruePolymorphTransformation, CombatCharacter, Position, CombatAction, BattleMapData, CombatState, CombatLogEntry, ReactiveTrigger, Ability, LightSource, PocketedSummon, SpellDeliveryVisual, SelectedSpellTarget, SpellObjectImpact, SpellObjectRepair, SpellObjectAccessChange } from '../types/combat';
 
 import { SpellMovementVisualInput } from './movementUtils';
 export type { SpellMovementVisualInput };
@@ -468,6 +468,18 @@ interface UseAbilitySystemProps {
   /** Live caster-following emanation records. */
   activeSpellEmanations?: ActiveSpellEmanation[];
   onActiveSpellEmanationsUpdate?: (emanations: ActiveSpellEmanation[]) => void;
+  /** Live object-result records that feed non-creature map markers. */
+  spellObjectImpacts?: SpellObjectImpact[];
+  onSpellObjectImpactsUpdate?: (impacts: SpellObjectImpact[]) => void;
+  spellObjectRepairs?: SpellObjectRepair[];
+  onSpellObjectRepairsUpdate?: (repairs: SpellObjectRepair[]) => void;
+  spellObjectAccessChanges?: SpellObjectAccessChange[];
+  onSpellObjectAccessChangesUpdate?: (accessChanges: SpellObjectAccessChange[]) => void;
+  activeFireEffects?: ActiveFireEffect[];
+  onActiveFireEffectsUpdate?: (effects: ActiveFireEffect[]) => void;
+  /** Live transformation records that need object/form markers after True Polymorph resolves. */
+  activeTruePolymorphTransformations?: ActiveTruePolymorphTransformation[];
+  onActiveTruePolymorphTransformationsUpdate?: (transformations: ActiveTruePolymorphTransformation[]) => void;
   onMapUpdate?: (mapData: BattleMapData) => void;
   /** Registers persistent spell zones created by structured area-trigger effects. */
   onAddSpellZone?: (zone: ActiveSpellZone) => void;
@@ -536,6 +548,16 @@ export const useAbilitySystem = ({
   onActiveExtradimensionalSpacesUpdate,
   activeSpellEmanations,
   onActiveSpellEmanationsUpdate,
+  spellObjectImpacts,
+  onSpellObjectImpactsUpdate,
+  spellObjectRepairs,
+  onSpellObjectRepairsUpdate,
+  spellObjectAccessChanges,
+  onSpellObjectAccessChangesUpdate,
+  activeFireEffects,
+  onActiveFireEffectsUpdate,
+  activeTruePolymorphTransformations,
+  onActiveTruePolymorphTransformationsUpdate,
   onMapUpdate,
   onAddSpellZone,
   spellZones,
@@ -665,6 +687,11 @@ export const useAbilitySystem = ({
   const activeSpellStructuresRef = useRef(activeSpellStructures);
   const activeExtradimensionalSpacesRef = useRef(activeExtradimensionalSpaces);
   const activeSpellEmanationsRef = useRef(activeSpellEmanations);
+  const spellObjectImpactsRef = useRef(spellObjectImpacts);
+  const spellObjectRepairsRef = useRef(spellObjectRepairs);
+  const spellObjectAccessChangesRef = useRef(spellObjectAccessChanges);
+  const activeFireEffectsRef = useRef(activeFireEffects);
+  const activeTruePolymorphTransformationsRef = useRef(activeTruePolymorphTransformations);
 
   // Sync refs with props
   useEffect(() => {
@@ -680,6 +707,11 @@ export const useAbilitySystem = ({
     activeSpellStructuresRef.current = activeSpellStructures;
     activeExtradimensionalSpacesRef.current = activeExtradimensionalSpaces;
     activeSpellEmanationsRef.current = activeSpellEmanations;
+    spellObjectImpactsRef.current = spellObjectImpacts;
+    spellObjectRepairsRef.current = spellObjectRepairs;
+    spellObjectAccessChangesRef.current = spellObjectAccessChanges;
+    activeFireEffectsRef.current = activeFireEffects;
+    activeTruePolymorphTransformationsRef.current = activeTruePolymorphTransformations;
   }, [
     characters,
     mapData,
@@ -692,7 +724,12 @@ export const useAbilitySystem = ({
     activeAnimatedObjects,
     activeSpellStructures,
     activeExtradimensionalSpaces,
-    activeSpellEmanations
+    activeSpellEmanations,
+    spellObjectImpacts,
+    spellObjectRepairs,
+    spellObjectAccessChanges,
+    activeFireEffects,
+    activeTruePolymorphTransformations
   ]);
 
   // --- Command Pattern Execution Logic (Actions - Stable) ---
@@ -821,6 +858,11 @@ export const useAbilitySystem = ({
         activeSpellStructures: activeSpellStructuresRef.current || [],
         activeExtradimensionalSpaces: activeExtradimensionalSpacesRef.current || [],
         activeSpellEmanations: activeSpellEmanationsRef.current || [],
+        spellObjectImpacts: spellObjectImpactsRef.current || [],
+        spellObjectRepairs: spellObjectRepairsRef.current || [],
+        spellObjectAccessChanges: spellObjectAccessChangesRef.current || [],
+        activeFireEffects: activeFireEffectsRef.current || [],
+        activeTruePolymorphTransformations: activeTruePolymorphTransformationsRef.current || [],
         currentPlane: activePlane,
         mapData: currentMapData ?? undefined // Add mapData to context if needed by commands
       };
@@ -1068,6 +1110,21 @@ export const useAbilitySystem = ({
           if (onActiveSpellEmanationsUpdate && finalState.activeSpellEmanations !== currentState.activeSpellEmanations) {
             onActiveSpellEmanationsUpdate(finalState.activeSpellEmanations || []);
           }
+          if (onSpellObjectImpactsUpdate && finalState.spellObjectImpacts !== currentState.spellObjectImpacts) {
+            onSpellObjectImpactsUpdate(finalState.spellObjectImpacts || []);
+          }
+          if (onSpellObjectRepairsUpdate && finalState.spellObjectRepairs !== currentState.spellObjectRepairs) {
+            onSpellObjectRepairsUpdate(finalState.spellObjectRepairs || []);
+          }
+          if (onSpellObjectAccessChangesUpdate && finalState.spellObjectAccessChanges !== currentState.spellObjectAccessChanges) {
+            onSpellObjectAccessChangesUpdate(finalState.spellObjectAccessChanges || []);
+          }
+          if (onActiveFireEffectsUpdate && finalState.activeFireEffects !== currentState.activeFireEffects) {
+            onActiveFireEffectsUpdate(finalState.activeFireEffects || []);
+          }
+          if (onActiveTruePolymorphTransformationsUpdate && finalState.activeTruePolymorphTransformations !== currentState.activeTruePolymorphTransformations) {
+            onActiveTruePolymorphTransformationsUpdate(finalState.activeTruePolymorphTransformations || []);
+          }
 
           if (onSpellCreatedInventoryItems && finalState.spellCreatedInventoryItems?.length) {
             onSpellCreatedInventoryItems(finalState.spellCreatedInventoryItems);
@@ -1227,7 +1284,7 @@ export const useAbilitySystem = ({
       }
       return true;
     },
-    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onActiveLightSourcesUpdate, onActiveSpellHelpersUpdate, onActiveSpellForcesUpdate, onActiveSpellGuardiansUpdate, onActiveAnimatedObjectsUpdate, onActiveSpellStructuresUpdate, onActiveExtradimensionalSpacesUpdate, onActiveSpellEmanationsUpdate, onMapUpdate, onAddSpellZone, onSpellZonesUpdate, onSpellCreatedInventoryItems, onAddScheduledSpellEffect, onAddMovementDebuff, onAddSpellMovementVisual, activeLightSources, spellZones]
+    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onActiveLightSourcesUpdate, onActiveSpellHelpersUpdate, onActiveSpellForcesUpdate, onActiveSpellGuardiansUpdate, onActiveAnimatedObjectsUpdate, onActiveSpellStructuresUpdate, onActiveExtradimensionalSpacesUpdate, onActiveSpellEmanationsUpdate, onSpellObjectImpactsUpdate, onSpellObjectRepairsUpdate, onSpellObjectAccessChangesUpdate, onActiveFireEffectsUpdate, onActiveTruePolymorphTransformationsUpdate, onMapUpdate, onAddSpellZone, onSpellZonesUpdate, onSpellCreatedInventoryItems, onAddScheduledSpellEffect, onAddMovementDebuff, onAddSpellMovementVisual, activeLightSources, spellZones]
   );
 
 
@@ -1471,6 +1528,11 @@ export const useAbilitySystem = ({
       activeSpellStructures: activeSpellStructuresRef.current || [],
       activeExtradimensionalSpaces: activeExtradimensionalSpacesRef.current || [],
       activeSpellEmanations: activeSpellEmanationsRef.current || [],
+      spellObjectImpacts: spellObjectImpactsRef.current || [],
+      spellObjectRepairs: spellObjectRepairsRef.current || [],
+      spellObjectAccessChanges: spellObjectAccessChangesRef.current || [],
+      activeFireEffects: activeFireEffectsRef.current || [],
+      activeTruePolymorphTransformations: activeTruePolymorphTransformationsRef.current || [],
       currentPlane: activePlane,
       mapData: mapDataRef.current ?? undefined
     };
@@ -1562,6 +1624,21 @@ export const useAbilitySystem = ({
       }
       if (onActiveSpellEmanationsUpdate && result.finalState.activeSpellEmanations !== currentState.activeSpellEmanations) {
         onActiveSpellEmanationsUpdate(result.finalState.activeSpellEmanations || []);
+      }
+      if (onSpellObjectImpactsUpdate && result.finalState.spellObjectImpacts !== currentState.spellObjectImpacts) {
+        onSpellObjectImpactsUpdate(result.finalState.spellObjectImpacts || []);
+      }
+      if (onSpellObjectRepairsUpdate && result.finalState.spellObjectRepairs !== currentState.spellObjectRepairs) {
+        onSpellObjectRepairsUpdate(result.finalState.spellObjectRepairs || []);
+      }
+      if (onSpellObjectAccessChangesUpdate && result.finalState.spellObjectAccessChanges !== currentState.spellObjectAccessChanges) {
+        onSpellObjectAccessChangesUpdate(result.finalState.spellObjectAccessChanges || []);
+      }
+      if (onActiveFireEffectsUpdate && result.finalState.activeFireEffects !== currentState.activeFireEffects) {
+        onActiveFireEffectsUpdate(result.finalState.activeFireEffects || []);
+      }
+      if (onActiveTruePolymorphTransformationsUpdate && result.finalState.activeTruePolymorphTransformations !== currentState.activeTruePolymorphTransformations) {
+        onActiveTruePolymorphTransformationsUpdate(result.finalState.activeTruePolymorphTransformations || []);
       }
 
       if (onSpellCreatedInventoryItems && result.finalState.spellCreatedInventoryItems?.length) {
@@ -1766,8 +1843,7 @@ export const useAbilitySystem = ({
     }
 
     cancelTargeting();
-  // TODO(lint-intent): Wire the ability-effect callback into the execution path if VFX hooks are needed.
-  }, [onExecuteAction, onCharacterUpdate, onCharactersReplace, onPocketedSummonsUpdate, cancelTargeting, executeSpell, requestReaction, onLogEntry, onNotification, onActiveLightSourcesUpdate, onActiveSpellHelpersUpdate, onActiveSpellForcesUpdate, onActiveSpellGuardiansUpdate, onActiveAnimatedObjectsUpdate, onActiveSpellStructuresUpdate, onActiveExtradimensionalSpacesUpdate, onActiveSpellEmanationsUpdate, onSpellZonesUpdate, onSpellCreatedInventoryItems, onAddSpellDeliveryVisual, activeLightSources]); // Refs are stable, omitted
+  }, [onExecuteAction, onCharacterUpdate, onCharactersReplace, onPocketedSummonsUpdate, cancelTargeting, executeSpell, requestReaction, onLogEntry, onNotification, onActiveLightSourcesUpdate, onActiveSpellHelpersUpdate, onActiveSpellForcesUpdate, onActiveSpellGuardiansUpdate, onActiveAnimatedObjectsUpdate, onActiveSpellStructuresUpdate, onActiveExtradimensionalSpacesUpdate, onActiveSpellEmanationsUpdate, onSpellObjectImpactsUpdate, onSpellObjectRepairsUpdate, onSpellObjectAccessChangesUpdate, onActiveFireEffectsUpdate, onActiveTruePolymorphTransformationsUpdate, onSpellZonesUpdate, onSpellCreatedInventoryItems, onAddSpellDeliveryVisual, activeLightSources]); // Refs are stable, omitted
 
   const executeAbility = useCallback((...args: Parameters<typeof executeAbilityInternal>) => {
     return executeAbilityInternal(...args);
@@ -1969,34 +2045,39 @@ export const useAbilitySystem = ({
       const selectedObjectTarget = selectedSpellTargets.find((target): target is Extract<SelectedSpellTarget, { kind: 'object' }> =>
         target.kind === 'object'
       );
-    const objectTargetIsValid = !!selectedObjectTarget?.object && !!selectedAbility.spell && TargetResolver.isValidObjectTarget(
-      selectedAbility.spell.targeting,
-      caster,
-      selectedObjectTarget.object,
-      {
-        isActive: true,
-        characters: charactersRef.current,
-        turnState: {
-          currentTurn: 0,
-          turnOrder: [],
-          currentCharacterId: null,
-          phase: 'planning',
-          actionsThisTurn: []
-        },
-        selectedCharacterId: null,
-        selectedAbilityId: null,
-        actionMode: 'select',
-        validTargets: [],
-        validMoves: [],
-        combatLog: [],
-        reactiveTriggers: reactiveTriggersRef.current || [],
-        activeLightSources: activeLightSources || [],
-        mapData: mapDataRef.current ?? undefined
-      }
-    );
+    const objectTargetState: CombatState = {
+      isActive: true,
+      characters: charactersRef.current,
+      turnState: {
+        currentTurn: 0,
+        turnOrder: [],
+        currentCharacterId: null,
+        phase: 'planning',
+        actionsThisTurn: []
+      },
+      selectedCharacterId: null,
+      selectedAbilityId: null,
+      actionMode: 'select',
+      validTargets: [],
+      validMoves: [],
+      combatLog: [],
+      reactiveTriggers: reactiveTriggersRef.current || [],
+      activeLightSources: activeLightSources || [],
+      mapData: mapDataRef.current ?? undefined
+    };
+    const objectTargetRejection = selectedObjectTarget?.object && selectedAbility.spell
+      ? TargetResolver.getObjectTargetRejectionReason(
+          selectedAbility.spell.targeting,
+          caster,
+          selectedObjectTarget.object,
+          objectTargetState
+        )
+      : null;
 
-    const validation = objectTargetIsValid
-      ? { isValid: true }
+    const validation = selectedObjectTarget?.object && selectedAbility.spell
+      ? objectTargetRejection
+        ? { isValid: false, reason: objectTargetRejection.message }
+        : { isValid: true }
       : getTargetValidation(selectedAbility, caster, targetPosition);
     if (!validation.isValid) {
       setTargetValidationReason(validation.reason ?? null);
@@ -2138,6 +2219,7 @@ export const useAbilitySystem = ({
       validTargets: [],
       validMoves: [],
       combatLog: [],
+      spellZones: spellZones ?? [],
       reactiveTriggers: currentTriggers || [],
       activeLightSources: activeLightSources || [],
       activeSpellHelpers: activeSpellHelpersRef.current || [],
@@ -2146,7 +2228,13 @@ export const useAbilitySystem = ({
       activeAnimatedObjects: activeAnimatedObjectsRef.current || [],
       activeSpellStructures: activeSpellStructuresRef.current || [],
       activeExtradimensionalSpaces: activeExtradimensionalSpacesRef.current || [],
-      activeSpellEmanations: activeSpellEmanationsRef.current || []
+      activeSpellEmanations: activeSpellEmanationsRef.current || [],
+      spellObjectImpacts: spellObjectImpactsRef.current || [],
+      spellObjectRepairs: spellObjectRepairsRef.current || [],
+      spellObjectAccessChanges: spellObjectAccessChangesRef.current || [],
+      activeFireEffects: activeFireEffectsRef.current || [],
+      activeTruePolymorphTransformations: activeTruePolymorphTransformationsRef.current || [],
+      mapData: mapDataRef.current ?? undefined
     };
 
     // Create Command manually (no Factory needed for simple drop)
@@ -2197,6 +2285,27 @@ export const useAbilitySystem = ({
       if (onActiveSpellEmanationsUpdate && result.finalState.activeSpellEmanations !== currentState.activeSpellEmanations) {
         onActiveSpellEmanationsUpdate(result.finalState.activeSpellEmanations || []);
       }
+      if (onSpellObjectImpactsUpdate && result.finalState.spellObjectImpacts !== currentState.spellObjectImpacts) {
+        onSpellObjectImpactsUpdate(result.finalState.spellObjectImpacts || []);
+      }
+      if (onSpellObjectRepairsUpdate && result.finalState.spellObjectRepairs !== currentState.spellObjectRepairs) {
+        onSpellObjectRepairsUpdate(result.finalState.spellObjectRepairs || []);
+      }
+      if (onSpellObjectAccessChangesUpdate && result.finalState.spellObjectAccessChanges !== currentState.spellObjectAccessChanges) {
+        onSpellObjectAccessChangesUpdate(result.finalState.spellObjectAccessChanges || []);
+      }
+      if (onActiveFireEffectsUpdate && result.finalState.activeFireEffects !== currentState.activeFireEffects) {
+        onActiveFireEffectsUpdate(result.finalState.activeFireEffects || []);
+      }
+      if (onActiveTruePolymorphTransformationsUpdate && result.finalState.activeTruePolymorphTransformations !== currentState.activeTruePolymorphTransformations) {
+        onActiveTruePolymorphTransformationsUpdate(result.finalState.activeTruePolymorphTransformations || []);
+      }
+      if (onSpellZonesUpdate && result.finalState.spellZones !== currentState.spellZones) {
+        onSpellZonesUpdate((result.finalState.spellZones || []) as ActiveSpellZone[]);
+      }
+      if (onMapUpdate && result.finalState.mapData && result.finalState.mapData !== currentState.mapData) {
+        onMapUpdate(result.finalState.mapData);
+      }
     }
   }, [
     onCharacterUpdate,
@@ -2209,7 +2318,15 @@ export const useAbilitySystem = ({
     onActiveSpellStructuresUpdate,
     onActiveExtradimensionalSpacesUpdate,
     onActiveSpellEmanationsUpdate,
-    activeLightSources
+    onSpellObjectImpactsUpdate,
+    onSpellObjectRepairsUpdate,
+    onSpellObjectAccessChangesUpdate,
+    onActiveFireEffectsUpdate,
+    onActiveTruePolymorphTransformationsUpdate,
+    onSpellZonesUpdate,
+    onMapUpdate,
+    activeLightSources,
+    spellZones
   ]);
 
 
@@ -2261,4 +2378,3 @@ export const useAbilitySystem = ({
 };
 
 export type AbilitySystem = ReturnType<typeof useAbilitySystem>;
-

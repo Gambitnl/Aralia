@@ -273,12 +273,12 @@ export interface Feat {
         abilityScoreIncrease?: Partial<AbilityScores>;
         selectableAbilityScores?: AbilityScoreName[];
         skillProficiencies?: string[];
-        /** Number of skills player must choose (e.g., Skilled = 3). TODO(FEATURES): Implement skill selection UI in character builder (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path). */
+        /** Number of skills player must choose (e.g., Skilled = 3). */
         selectableSkillCount?: number;
         savingThrowProficiencies?: AbilityScoreName[];
         /** If true, saving throw proficiency matches the selected ability score (for Resilient feat). */
         savingThrowLinkedToAbility?: boolean;
-        /** Damage types player can choose from (e.g., Elemental Adept). TODO(FEATURES): Implement damage type selection UI (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path). */
+        /** Damage types player can choose from (e.g., Elemental Adept). */
         selectableDamageTypes?: string[];
         speedIncrease?: number;
         initiativeBonus?: number;
@@ -367,13 +367,9 @@ export interface PlayerCharacter {
     level?: number;
     xp?: number;
     proficiencyBonus?: number;
-    race: Race;
-    class: Class;
-    /**
-     * Legacy multiclass/backup class list used by older systems (puzzles/skill checks).
-     * TODO(lint-preserve): Migrate those systems to the primary `class` field and remove this fallback.
-     */
-    classes?: Class[];
+  race: Race;
+  class: Class;
+  classes?: Class[];
     /**
      * Optional class-level breakdown used for multiclass features (e.g., Hit Dice pools).
      * When absent, systems assume the full level belongs to `class`.
@@ -381,11 +377,7 @@ export interface PlayerCharacter {
     classLevels?: Record<string, number>;
     abilityScores: AbilityScores;
     finalAbilityScores: AbilityScores;
-    /**
-     * Legacy statline kept for puzzle/lock/plate systems that still rely on lowercase ability keys.
-     * TODO(lint-preserve): Consolidate callers onto `finalAbilityScores` and drop this shim once migrated.
-     */
-    stats?: CharacterStats;
+  stats?: CharacterStats;
     skills: Skill[];
     savingThrowProficiencies?: AbilityScoreName[];
     feats?: string[];

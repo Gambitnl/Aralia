@@ -36,7 +36,7 @@ describe('TradeRouteSystem', () => {
   });
 
   it('increases profitability during Shortage events (High Prices)', () => {
-    const warEvent = {
+    const warEvent: MarketEvent = {
       id: 'war',
       type: MarketEventType.SHORTAGE,
       name: 'War shortage',
@@ -50,14 +50,13 @@ describe('TradeRouteSystem', () => {
     };
 
     const profitNormal = TradeRouteSystem.calculateProfitability(mockRoute, []);
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    const profitWar = TradeRouteSystem.calculateProfitability(mockRoute, [warEvent as unknown as MarketEvent]);
+    const profitWar = TradeRouteSystem.calculateProfitability(mockRoute, [warEvent]);
 
     expect(profitWar).toBeGreaterThan(profitNormal);
   });
 
   it('increases risk during dangerous events', () => {
-    const banditEvent = {
+    const banditEvent: MarketEvent = {
       id: 'bandits',
       type: MarketEventType.BUST,
       name: 'Bandit Activity',
@@ -70,8 +69,7 @@ describe('TradeRouteSystem', () => {
     };
 
     const riskNormal = TradeRouteSystem.calculateRisk(mockRoute, []);
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    const riskBandits = TradeRouteSystem.calculateRisk(mockRoute, [banditEvent as unknown as MarketEvent]);
+    const riskBandits = TradeRouteSystem.calculateRisk(mockRoute, [banditEvent]);
 
     expect(riskBandits).toBeGreaterThan(riskNormal);
   });

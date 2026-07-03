@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/07/2026, 12:53:23
+ * Last Sync: 02/07/2026, 11:39:15
  * Dependents: commands/factory/SpellCommandFactory.ts, commands/index.ts
- * Imports: 25 files
+ * Imports: 27 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,17 +32,18 @@
  * 
  * @file src/commands/factory/AbilityCommandFactory.ts
  */
-import { CombatCharacter, Ability, CombatState, AbilityEffect, SelectedSpellTarget } from '@/types/combat';
+import { CombatCharacter, Ability, CombatState, AbilityEffect, SelectedSpellTarget, AbilityCost } from '@/types/combat';
 import { GameState } from '@/types';
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
 import { DamageCommand } from '../effects/DamageCommand';
 import { HealingCommand } from '../effects/HealingCommand';
 import { MovementCommand } from '../effects/MovementCommand';
 import { StatusConditionCommand } from '../effects/StatusConditionCommand';
+import { DefensiveCommand } from '../effects/DefensiveCommand';
 import { AttackRollModifierCommand } from '../effects/AttackRollModifierCommand';
 import { AbilityEffectMapper } from './AbilityEffectMapper';
 import { generateId, calculateCover, resolveAttack, getDistance, rollD20, rollDice } from '@/utils/combatUtils';
-import { SpellEffect, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, isMovementEffect, isStatusConditionEffect } from '@/types/spells';
+import { SpellEffect, Spell, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, isMovementEffect, isStatusConditionEffect } from '@/types/spells';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
 import { VisibilitySystem } from '@/systems/visibility';
 import { DismissFamiliarToPocketCommand, RecallFamiliarFromPocketCommand } from '../effects/FamiliarPocketCommands';
@@ -57,6 +58,7 @@ import { combatEvents } from '@/systems/events/CombatEvents';
 import { createMovementDebuff, type MovementTriggerDebuff } from '@/systems/spells/effects/triggerHandler';
 import { isBoomingBladeRuntimeAbility } from './boomingBladeAttackBridge';
 import { isGreenFlameBladeRuntimeAbility } from './greenFlameBladeAttackBridge';
+import { canAffordActionCost, consumeActionCost } from '@/utils/combat/actionEconomyUtils';
 
 type HeldWeaponAugment = NonNullable<NonNullable<NonNullable<CombatCharacter['activeEffects']>[number]['mechanics']>['heldWeaponAugment']>;
 
@@ -313,6 +315,125 @@ export class WeaponAttackCommand implements SpellCommand {
     };
   }
 
+  private async applyDefensiveHitReaction(
+    state: CombatState,
+    attacker: CombatCharacter,
+    target: CombatCharacter,
+    attackRoll: number,
+    coverBonus: number
+  ): Promise<{ state: CombatState; target: CombatCharacter; targetAC: number; isHit: boolean }> {
+    if (!this.context.requestReaction) {
+      return {
+        state,
+        target,
+        targetAC: (target.armorClass || 10) + coverBonus,
+        isHit: true
+      };
+    }
+
+    const reactionSpells = (target.abilities || [])
+      .map(abilityOption => abilityOption.spell)
+      .filter((spellOption): spellOption is Spell => {
+        if (!spellOption) return false;
+        const reactionCost: AbilityCost = {
+          type: 'reaction',
+          spellSlotLevel: Math.max(spellOption.level || 0, 0)
+        };
+
+        return String(spellOption.castingTime?.unit ?? '').toLowerCase().includes('reaction') &&
+          spellOption.effects.some(effect =>
+            effect.type === 'DEFENSIVE' &&
+            effect.reactionTrigger?.event === 'when_hit'
+          ) &&
+          canAffordActionCost(target, reactionCost);
+      });
+
+    if (reactionSpells.length === 0) {
+      return {
+        state,
+        target,
+        targetAC: (target.armorClass || 10) + coverBonus,
+        isHit: true
+      };
+    }
+
+    const selectedReactionId = await this.context.requestReaction(
+      attacker.id,
+      target.id,
+      'on_hit',
+      reactionSpells
+    );
+    const selectedReactionSpell = reactionSpells.find(spellOption => spellOption.id === selectedReactionId);
+
+    if (!selectedReactionSpell) {
+      return {
+        state,
+        target,
+        targetAC: (target.armorClass || 10) + coverBonus,
+        isHit: true
+      };
+    }
+
+    const reactionCost: AbilityCost = {
+      type: 'reaction',
+      spellSlotLevel: Math.max(selectedReactionSpell.level || 0, 0)
+    };
+    const targetAfterCost = consumeActionCost(target, reactionCost);
+    let reactionState: CombatState = {
+      ...state,
+      characters: state.characters.map(character =>
+        character.id === targetAfterCost.id ? targetAfterCost : character
+      )
+    };
+
+    // Shield-style cancellation needs the defensive AC change before damage
+    // commands run. Apply only defensive when-hit spell rows here; broader
+    // reaction spell orchestration remains owned by the hook-level prompt lane.
+    for (const effect of selectedReactionSpell.effects) {
+      if (effect.type !== 'DEFENSIVE' || effect.reactionTrigger?.event !== 'when_hit') {
+        continue;
+      }
+
+      const liveTarget = reactionState.characters.find(character => character.id === target.id) || targetAfterCost;
+      const command = new DefensiveCommand(effect, {
+        ...this.context,
+        spellId: selectedReactionSpell.id,
+        spellName: selectedReactionSpell.name,
+        caster: liveTarget,
+        targets: [liveTarget]
+      });
+      reactionState = command.execute(reactionState);
+    }
+
+    const defendedTarget = reactionState.characters.find(character => character.id === target.id) || targetAfterCost;
+    const defendedTargetAC = (defendedTarget.armorClass || 10) + coverBonus;
+    const stillHits = attackRoll >= defendedTargetAC;
+
+    if (!stillHits) {
+      reactionState = {
+        ...reactionState,
+        combatLog: [
+          ...(reactionState.combatLog || []),
+          {
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'action',
+            message: `${defendedTarget.name}'s ${selectedReactionSpell.name} raises AC to ${defendedTargetAC} and turns the hit into a miss.`,
+            characterId: defendedTarget.id,
+            targetIds: [defendedTarget.id]
+          }
+        ]
+      };
+    }
+
+    return {
+      state: reactionState,
+      target: defendedTarget,
+      targetAC: defendedTargetAC,
+      isHit: stillHits
+    };
+  }
+
   async execute(state: CombatState): Promise<CombatState> {
     let newState = { ...state };
     const riderSystem = new AttackRiderSystem();
@@ -553,11 +674,27 @@ export class WeaponAttackCommand implements SpellCommand {
 
       // Determine Target AC
       const baseAC = currentTarget.armorClass || 10;
-      const targetAC = baseAC + coverBonus;
+      let targetAC = baseAC + coverBonus;
 
       // Resolve Attack
-      const { isHit, isCritical, isAutoMiss } = resolveAttack(d20, modifiers, targetAC);
+      const preliminaryAttack = resolveAttack(d20, modifiers, targetAC);
+      let isHit = preliminaryAttack.isHit;
+      const isCritical = preliminaryAttack.isCritical;
+      const isAutoMiss = preliminaryAttack.isAutoMiss;
       const attackRoll = d20 + modifiers;
+      if (isHit && !isCritical) {
+        const reactionResult = await this.applyDefensiveHitReaction(
+          newState,
+          liveCaster,
+          currentTarget,
+          attackRoll,
+          coverBonus
+        );
+        newState = reactionResult.state;
+        currentTarget = reactionResult.target;
+        targetAC = reactionResult.targetAC;
+        isHit = reactionResult.isHit;
+      }
 
       // Publish the structured attack result at the same point the command
       // knows the real hit/miss outcome. Reactive systems and future action
@@ -1198,7 +1335,8 @@ export class AbilityCommandFactory {
       caster,
       targets,
       selectedSpellTargets: selectedSpellTargets ?? targets.map(target => ({ kind: 'creature', id: target.id })),
-      gameState
+      gameState,
+      requestReaction
     };
 
     // Spell-created summons can have both a normal action cost and a

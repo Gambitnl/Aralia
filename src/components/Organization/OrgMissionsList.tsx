@@ -49,9 +49,8 @@ const OrgMissionsList: React.FC<OrgMissionsListProps> = ({ organization, onStart
             <h4 className="text-lg text-white mb-2">Plan Operation</h4>
 
             {/*
-              TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
-              TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
-              TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+              TODO #106(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+              TODO #107(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
             */}
             <div className="mb-3">
                 
@@ -87,9 +86,8 @@ const OrgMissionsList: React.FC<OrgMissionsListProps> = ({ organization, onStart
                     {availableMembers.map(m => (
                         
                         
-                        /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
-                        TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
-                        TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+                        /* TODO #109(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+                        TODO #110(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
                         */
                         <div
                             key={m.id}

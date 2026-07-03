@@ -124,7 +124,6 @@ interface CombatEventListenerRegistration {
 }
 
 export class CombatEventEmitter {
-    // TODO(2026-01-03 pass 4 Codex-CLI): listeners typed to AllCombatEvents until per-event generic storage is formalized.
     private listeners: Map<string, CombatEventListenerRegistration[]> = new Map();
     private listenerOrder = 0;
     private dispatchLog: CombatEventTraceEntry[] = [];

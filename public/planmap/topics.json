@@ -1,0 +1,443 @@
+{
+  "$schema": "./topics.schema.json",
+  "_readme": "Plan-map data. One entry per topic. Ten-second capture: append {id,title,campaign,status} — wire deps/links later. Viewer: /Aralia/planmap/index.html on any dev server. status: parked | specced | active | done. deps: ids this topic REQUIRES. A dep may also carry `feature: <slug>` to narrow the arrow to ONE feature of the target topic (slug = that feature's title run through the same slugifier as the ids); the `why` still explains the edge, the pointer is now structural. link: repo-relative spec doc path (opened via the dev server's /@fs bridge using repoRoot). Truth-ownership + promotion rules (who owns statuses/decisions/deps; gaps flow UP by human curation only, plan flows DOWN via planmap-to-wave): tools/agora/PLANNING-STACK.md. `open`: integer mirror of the linked subspec's '## Open' bullet count (recompute when the doc changes — it is NOT invented, it is counted). `spike: true`: research that could invalidate the approach (dashed ⚠ tile). status also allows 'superseded' (dead decision — drops to the Graveyard strip; add a one-line `killed` reason). `focus: true` on at most ONE topic = what Remy is actually touching now (★ FOCUS).",
+  "repoRoot": "F:/Repos/Aralia",
+  "campaigns": {
+    "world": {
+      "label": "World",
+      "color": "purple"
+    },
+    "combat": {
+      "label": "Combat",
+      "color": "teal"
+    },
+    "tooling": {
+      "label": "Tooling",
+      "color": "gray"
+    },
+    "travel": {
+      "label": "Travel & Sim",
+      "color": "coral"
+    },
+    "character": {
+      "label": "Character",
+      "color": "pink"
+    }
+  },
+  "topics": [
+    {
+      "id": "world-props",
+      "title": "Beautification wave",
+      "sub": "beauty first, perf later · anchor: BG3 · realism climbs everywhere",
+      "campaign": "world",
+      "status": "specced",
+      "focus": true,
+      "deps": [
+        {
+          "id": "webgpu-migration",
+          "kind": "chosen",
+          "why": "CHOSEN, mixed-grain: only the TSL code lifts (trees/grass/wind/clouds/sky/GI from fable5-world-demo, MIT) hard-require the new renderer — props/catalogs are renderer-agnostic — but building every visual packet once, on the final renderer, beats building twice"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-02-world-beautification-wave.md",
+      "features": [
+        {
+          "title": "Prop schema + placement engine",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/beautification--prop-schema-placement-engine.md",
+          "open": 3
+        },
+        {
+          "title": "Owned rock + prop generators (ecosystem gap)",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/beautification--owned-generators.md",
+          "open": 2
+        },
+        {
+          "title": "Town + wilderness catalogs (full referee data)",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/beautification--prop-catalogs.md",
+          "open": 2
+        },
+        {
+          "title": "Vegetation migration (EzTree + grass)",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/beautification--vegetation-migration.md",
+          "open": 3
+        },
+        {
+          "title": "Lighting/atmosphere migration",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/beautification--lighting-migration.md",
+          "open": 2
+        }
+      ]
+    },
+    {
+      "id": "perf-campaign",
+      "title": "World performance pass",
+      "sub": "instancing/LOD/entry-FPS after beautification (consciously deferred)",
+      "campaign": "world",
+      "status": "parked",
+      "deps": [
+        {
+          "id": "world-props",
+          "kind": "hard",
+          "why": "Nothing to optimize before the props, trees and lighting exist — this pass instances/LODs what the wave adds"
+        }
+      ]
+    },
+    {
+      "id": "building-generator",
+      "title": "Building generator",
+      "sub": "separate project; contract-first, emits data not meshes",
+      "campaign": "world",
+      "status": "parked",
+      "deps": []
+    },
+    {
+      "id": "fip-slice1",
+      "title": "Fight in place — slice 1",
+      "sub": "kill the teleport — combat renders in the streamed world",
+      "campaign": "combat",
+      "status": "specced",
+      "deps": [
+        {
+          "id": "world-props",
+          "kind": "chosen",
+          "why": "CHOSEN order, not a technical block: Remy ruled the world must be worth fighting in before combat moves into it (slice 1 would run on ugly ground)"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-02-fight-in-place-combat-design.md",
+      "features": [
+        {
+          "title": "Context-sized referee patch",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/fip--referee-patch-sizing.md",
+          "open": 2
+        },
+        {
+          "title": "3D ground picking",
+          "status": "parked",
+          "link": "docs/superpowers/specs/subspecs/fip--ground-picking.md",
+          "open": 2
+        },
+        {
+          "title": "In-scene turn HUD",
+          "status": "parked",
+          "link": "docs/superpowers/specs/subspecs/fip--turn-hud.md",
+          "open": 2
+        },
+        {
+          "title": "Tactical orbit + free-toggle camera",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/fip--combat-camera.md",
+          "open": 2
+        },
+        {
+          "title": "Edge = escape (no walls)",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/fip--edge-escape.md",
+          "open": 2
+        },
+        {
+          "title": "Full-freedom initiation (attack anyone)",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/fip--full-freedom-initiation.md",
+          "open": 2
+        }
+      ]
+    },
+    {
+      "id": "ambush-generation",
+      "title": "Ambush sites + dressing",
+      "sub": "ambush-worthy site selection along routes + seeded justified props",
+      "campaign": "combat",
+      "status": "parked",
+      "deps": [
+        {
+          "id": "world-props",
+          "kind": "hard",
+          "feature": "prop-schema-placement-engine",
+          "why": "Set dressing IS props: ambush dressing places entries through the prop schema + placement engine (with referee data) — no prop system, no dressing"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-02-fight-in-place-combat-design.md"
+    },
+    {
+      "id": "mesh-los-cover",
+      "title": "Mesh LOS + cover",
+      "sub": "multi-point raycasts → 5e cover tiers; LOCKED as single LOS oracle",
+      "campaign": "combat",
+      "status": "specced",
+      "deps": [
+        {
+          "id": "fip-slice1",
+          "kind": "chosen",
+          "why": "Could technically be built today against the battle map — sequenced after slice 1 so the oracle is tested against the real streamed scene it's designed for"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-02-fight-in-place-combat-design.md"
+    },
+    {
+      "id": "battlemap-retirement",
+      "title": "Battle-map retirement",
+      "sub": "after in-place passes the presentation-parity matrix",
+      "campaign": "combat",
+      "status": "parked",
+      "deps": [
+        {
+          "id": "fip-slice1",
+          "kind": "hard",
+          "why": "The arena can only retire once in-place combat passes the presentation-parity matrix — it stays as the fallback until then"
+        },
+        {
+          "id": "ambush-generation",
+          "kind": "hard",
+          "why": "Placeless fights (travel ambushes, story encounters) need their streamed-real-spot replacement before the conjured arena dies"
+        }
+      ]
+    },
+    {
+      "id": "world-reactions",
+      "title": "Combat world reactions",
+      "sub": "the world answers for every fight",
+      "campaign": "combat",
+      "status": "parked",
+      "deps": [
+        {
+          "id": "fip-slice1",
+          "kind": "hard",
+          "why": "Bystander disposition, death cascades and cleanup all react to fights happening IN the streamed world — they presume in-place combat exists"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-02-fight-in-place-combat-design.md",
+      "features": [
+        {
+          "title": "Relationship × courage bystander disposition",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/reactions--bystander-disposition.md",
+          "open": 3
+        },
+        {
+          "title": "Permanent cascading NPC death",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/reactions--npc-death-cascade.md",
+          "open": 3
+        },
+        {
+          "title": "Non-lethal damage toggle",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/reactions--non-lethal-toggle.md",
+          "open": 3
+        },
+        {
+          "title": "Post-fight cleanup (bodies, loot, sim resume)",
+          "status": "parked",
+          "link": "docs/superpowers/specs/subspecs/reactions--post-fight-cleanup.md",
+          "open": 1
+        }
+      ]
+    },
+    {
+      "id": "ai-arbiter",
+      "title": "AI arbiter (embodied DM)",
+      "sub": "full DM authority by thinking AS the NPC",
+      "campaign": "combat",
+      "status": "specced",
+      "deps": [
+        {
+          "id": "fip-slice1",
+          "kind": "chosen",
+          "why": "Thematic sequencing only: the arbiter's first named powers are combat story-hooks, but NPC embodiment itself is bigger than combat and could start independently"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-02-ai-arbiter-npc-embodiment.md",
+      "features": [
+        {
+          "title": "Hidden-controls NPC action API",
+          "status": "parked"
+        },
+        {
+          "title": "Perception feed: state vs vision (open)",
+          "status": "parked",
+          "spike": true
+        },
+        {
+          "title": "NPC embodiment (think as the NPC)",
+          "status": "specced"
+        },
+        {
+          "title": "Story-hook powers (authoring beats)",
+          "status": "specced"
+        }
+      ]
+    },
+    {
+      "id": "crossfire-override",
+      "title": "Crossfire protection + arbiter override",
+      "sub": "civilians can't die by accident; only the arbiter may author a death as a story hook",
+      "campaign": "combat",
+      "status": "specced",
+      "deps": [
+        {
+          "id": "world-reactions",
+          "kind": "hard",
+          "feature": "relationship-courage-bystander-dispositi",
+          "why": "The protection rule is an exception INSIDE bystander disposition — who counts as a protected civilian is exactly what that feature decides, so it must exist first"
+        },
+        {
+          "id": "ai-arbiter",
+          "kind": "hard",
+          "feature": "npc-embodiment-think-as-the-npc",
+          "why": "The override half IS an arbiter power: authoring a civilian death requires the embodied-DM machinery (this used to hide as a feature in BOTH parents — split out 2026-07-02 because the map showed them as parallel when they are coupled)"
+        }
+      ],
+      "link": "docs/superpowers/specs/subspecs/reactions--crossfire-protection.md",
+      "open": 3,
+      "features": [
+        {
+          "title": "Crossfire immunity rule (referee-side)",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/reactions--crossfire-protection.md",
+          "open": 3
+        },
+        {
+          "title": "Arbiter death-authoring override",
+          "status": "specced",
+          "link": "docs/superpowers/specs/subspecs/reactions--crossfire-protection.md",
+          "open": 3
+        }
+      ]
+    },
+    {
+      "id": "planmap",
+      "title": "Plan-map (this)",
+      "sub": "tech-tree roadmap: ten-second topic capture + dependency view",
+      "campaign": "tooling",
+      "status": "active",
+      "deps": []
+    },
+    {
+      "id": "webgpu-migration",
+      "title": "WebGPURenderer migration",
+      "sub": "three.js WebGPU + TSL; unlocks MIT code lifts from fable5-world-demo; WASM = escape hatch for CPU kernels only",
+      "campaign": "world",
+      "status": "parked",
+      "deps": []
+    },
+    {
+      "id": "wf-interiors",
+      "title": "Worldforge interiors (L4)",
+      "sub": "enterable buildings; BSP rooms + multi-storey wired & rendered — only an in-3D eyeball left",
+      "campaign": "world",
+      "status": "active",
+      "deps": []
+    },
+    {
+      "id": "neighbour-streaming",
+      "title": "Dynamic neighbour streaming",
+      "sub": "stream neighbours in PLAYING + canonical-scale window tiling (seams already exact)",
+      "campaign": "world",
+      "status": "specced",
+      "deps": [],
+      "link": "docs/superpowers/specs/2026-06-30-stage5-seamless-edges-design.md"
+    },
+    {
+      "id": "agent-sim-deepening",
+      "title": "Agent sim deepening",
+      "sub": "behaviour-only mode · deepen-over-time · real-game wiring · spatial believability",
+      "campaign": "travel",
+      "status": "parked",
+      "deps": []
+    },
+    {
+      "id": "maritime-remainder",
+      "title": "Maritime travel remainder",
+      "sub": "owned-ship lifecycle built; left: sea-encounter roll for voyages (3D), visual proof, Plans 4-6",
+      "campaign": "travel",
+      "status": "active",
+      "deps": [],
+      "link": "docs/superpowers/plans/2026-06-30-maritime-travel-status.md"
+    },
+    {
+      "id": "character-aging",
+      "title": "Player-character aging",
+      "sub": "birthdate-derived age · perk bundle · non-lethal frailty floor · per-race age table",
+      "campaign": "character",
+      "status": "specced",
+      "deps": [],
+      "link": "docs/superpowers/specs/2026-06-29-player-character-aging-design.md"
+    },
+    {
+      "id": "doc-triage",
+      "title": "Doc sprawl triage",
+      "sub": "spec + pilot batch 1 done 2026-07-01; ~1,522 uncovered docs remain to triage",
+      "campaign": "tooling",
+      "status": "active",
+      "deps": [],
+      "link": "docs/superpowers/specs/2026-07-01-doc-sprawl-triage-design.md"
+    },
+    {
+      "id": "image-gen",
+      "title": "Image generation",
+      "sub": "scene-gen API exists (/api/scenes/generate), display pending; portrait backend broken",
+      "campaign": "tooling",
+      "status": "active",
+      "deps": []
+    },
+    {
+      "id": "shipped-grid-retirement",
+      "title": "Grid retirement",
+      "sub": "legacy 30×20 world grid entirely gone from live code (10 commits)",
+      "campaign": "world",
+      "status": "done",
+      "deps": [],
+      "link": "docs/superpowers/plans/2026-07-01-grid-2d-view-retirement-plan.md"
+    },
+    {
+      "id": "shipped-seam-slice",
+      "title": "Seam-first open-region slice",
+      "sub": "world-pure IDW handoff, chunk-seam hairlines fully fixed — seams exact 2026-07-02",
+      "campaign": "world",
+      "status": "done",
+      "deps": [],
+      "link": "docs/superpowers/specs/2026-06-29-open-region-wilderness-design.md"
+    },
+    {
+      "id": "shipped-cartography",
+      "title": "Worldforge cartography (SP0–SP4)",
+      "sub": "owned SVG atlas, recursive submaps, clean-room Voronoi town gen, leaf→3D, hidden places",
+      "campaign": "world",
+      "status": "done",
+      "deps": [],
+      "link": "docs/projects/worldforge/SPEC.md"
+    },
+    {
+      "id": "shipped-styled-town",
+      "title": "Canonical town styled architecture",
+      "sub": "5 culture-keyed style families, road gates, dock pilings, 2D/3D palette parity",
+      "campaign": "world",
+      "status": "done",
+      "deps": [],
+      "link": "docs/superpowers/specs/2026-07-01-styled-town-architecture-design.md"
+    },
+    {
+      "id": "shipped-living-world",
+      "title": "Living-world town sim",
+      "sub": "100% complete: life-events, key NPCs, economy, festivals, disasters, dialogue — 158 tests green",
+      "campaign": "travel",
+      "status": "done",
+      "deps": []
+    },
+    {
+      "id": "shipped-combat-opening",
+      "title": "Combat-oriented opening",
+      "sub": "feature-complete 2026-07-02: free-text→intent→dice check, pre-roll buff offer, 125 tests green",
+      "campaign": "combat",
+      "status": "done",
+      "deps": [],
+      "link": "docs/superpowers/specs/2026-06-29-combat-oriented-opening-scenario-design.md"
+    }
+  ]
+}

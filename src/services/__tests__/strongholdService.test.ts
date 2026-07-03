@@ -9,12 +9,8 @@ import {
     getAvailableUpgrades,
     purchaseUpgrade,
     calculateDefense,
-    // TODO(lint-intent): 'generateThreat' is unused in this test; use it in the assertion path or remove it.
-    generateThreat as _generateThreat,
     resolveThreat,
-    startMission,
-    // TODO(lint-intent): 'UPGRADE_CATALOG' is unused in this test; use it in the assertion path or remove it.
-    UPGRADE_CATALOG as _UPGRADE_CATALOG
+    startMission
 } from '../strongholdService';
 import { Stronghold, ActiveThreat, DailyUpdateSummary } from '../../types/stronghold';
 
@@ -645,3 +641,5 @@ describe('processDailyUpkeep - edge cases', () => {
         }
     });
 });
+
+

@@ -22,7 +22,7 @@
  *   stitch removes the redundant vertices from the triangulation (zero visual change otherwise).
  */
 
-import type { ChunkData, ChunkGeometryArrays, TerrainMesh } from './types';
+import type { ChunkData, ChunkGeometryArrays, TerrainMesh, TerrainEdgeSkirt, TerrainSkirts } from './types';
 import { WORLD3D_CONFIG, heightToMeters } from './config';
 import { ANCHOR_SEGMENTS } from './edgeWeld';
 import { biomeColor } from './terrainColor';
@@ -36,31 +36,23 @@ function stitchesBorder(res: number): boolean {
 }
 
 /**
- * How far below the surface a stitched chunk's skirt STARTS (meters). With
- * bit-identical watertight seams the skirt is never legitimately visible, but
- * a skirt that shares the border edge z-fights the neighbour's surface along
- * the seam line — the flat-shaded (dark) wall wins depth ties by an ulp and
- * rasterizes as a dotted hairline tracing chunk borders. Dropping the wall's
- * top ring below the surface makes it lose every tie. 0.25 m exceeds the
- * depth-buffer noise at the farthest streamed seam (~1.5 km with near=1) and
- * subtends well under a pixel at the ~500 m window perimeter where a sliver
- * of background could theoretically peek through.
+ * Number of perimeter (skirt) vertices baked into the MAIN terrain geometry.
+ * Stitched grids carry NO inline skirt: their seams are bit-identical
+ * watertight, so an interior wall could only ever show up as an artifact —
+ * MSAA samples in the sub-pixel band at the seam line pick up the flat-shaded
+ * (dark) wall as a dotted hairline tracing chunk borders. Their skirts are
+ * emitted as four per-edge sub-geometries instead (see buildTerrainMesh), and
+ * the scene draws each ONLY while that edge has no loaded neighbour (the
+ * streaming-window frontier), where a wall is genuinely load-bearing.
  */
-export const SKIRT_TOP_DROP_M = 0.25;
-
-/** Number of perimeter (skirt) vertices for a res×res grid. 0 when res<2. */
 export function skirtVertexCount(res: number): number {
-  if (res < 2) return 0;
-  // Stitched grids hang a DETACHED skirt from the anchor ring: an own top ring
-  // (dropped below the surface) plus the bottom ring. Uniform grids keep the
-  // legacy shared-top skirt (their seams have no watertightness guarantee, so
-  // the wall must touch the surface).
-  return stitchesBorder(res) ? 2 * 4 * ANCHOR_SEGMENTS : 4 * (res - 1);
+  if (res < 2 || stitchesBorder(res)) return 0;
+  return 4 * (res - 1);
 }
 
-/** Number of skirt triangles for a res×res grid (two per perimeter edge segment). */
+/** Number of skirt triangles in the MAIN terrain geometry (see skirtVertexCount). */
 export function skirtTriangleCount(res: number): number {
-  return (stitchesBorder(res) ? 4 * ANCHOR_SEGMENTS : 4 * (res - 1)) * 2;
+  return skirtVertexCount(res) * 2;
 }
 
 /** Total terrain vertices (base grid, plus skirt when present) for a res×res grid. */
@@ -181,15 +173,12 @@ function buildHeightfieldCore(data: ChunkData, skirtDepth: number): HeightfieldC
   const res = data.resolution;
   const baseVertCount = res * res;
   const stitched = stitchesBorder(res);
-  const useSkirt = skirtDepth > 0 && res >= 2;
-  // Stitched grids hang the skirt from the anchor ring: its top edges then
-  // coincide exactly with the terrain's anchor-only border edges, so the skirt
-  // itself cannot reintroduce a T-junction against the border.
-  const ring = useSkirt ? (stitched ? anchorRing(res) : perimeterRing(res)) : [];
+  // Stitched grids never bake a skirt into the main geometry — their skirts
+  // are separate per-edge strips drawn only at the streaming frontier.
+  const useSkirt = skirtDepth > 0 && res >= 2 && !stitched;
+  const ring = useSkirt ? perimeterRing(res) : [];
   const ringLen = ring.length;
-  // Stitched skirts carry their own (dropped) top ring; legacy skirts share
-  // the border vertices as their top and only append the bottom ring.
-  const skirtCount = stitched ? ringLen * 2 : ringLen;
+  const skirtCount = ringLen;
   const vertCount = baseVertCount + skirtCount;
 
   const positions = new Float32Array(vertCount * 3);
@@ -267,20 +256,15 @@ function buildHeightfieldCore(data: ChunkData, skirtDepth: number): HeightfieldC
     normals[o + 2] /= len;
   }
 
-  // 4. Skirt: lowered duplicates of the perimeter ring + connecting quads.
-  //    Stitched: an OWN top ring dropped SKIRT_TOP_DROP_M below the surface
-  //    (the wall must lose every depth tie against the neighbour's watertight
-  //    surface — see SKIRT_TOP_DROP_M) plus the bottom ring. Legacy: the wall
-  //    hangs straight off the shared border vertices.
+  // 4. Skirt (legacy path only): lowered duplicates of the perimeter ring +
+  //    connecting quads hanging straight off the shared border vertices.
   const skirtSource: number[] = [];
   if (useSkirt) {
-    const dropTop = stitched ? SKIRT_TOP_DROP_M : 0;
-    for (let k = 0; k < skirtCount; k++) {
-      const src = ring[k % ringLen];
+    for (let k = 0; k < ringLen; k++) {
+      const src = ring[k];
       const sv = baseVertCount + k;
-      const drop = stitched && k < ringLen ? dropTop : skirtDepth;
       positions[sv * 3] = positions[src * 3];
-      positions[sv * 3 + 1] = positions[src * 3 + 1] - drop;
+      positions[sv * 3 + 1] = positions[src * 3 + 1] - skirtDepth;
       positions[sv * 3 + 2] = positions[src * 3 + 2];
       // Copy the source (top) normal so skirt lighting matches the edge.
       normals[sv * 3] = normals[src * 3];
@@ -290,10 +274,10 @@ function buildHeightfieldCore(data: ChunkData, skirtDepth: number): HeightfieldC
     }
     for (let k = 0; k < ringLen; k++) {
       const kNext = (k + 1) % ringLen;
-      const a = stitched ? baseVertCount + k : ring[k];
-      const b = stitched ? baseVertCount + kNext : ring[kNext];
-      const aDown = baseVertCount + (stitched ? ringLen : 0) + k;
-      const bDown = baseVertCount + (stitched ? ringLen : 0) + kNext;
+      const a = ring[k];
+      const b = ring[kNext];
+      const aDown = baseVertCount + k;
+      const bDown = baseVertCount + kNext;
       indices[t++] = a;
       indices[t++] = aDown;
       indices[t++] = b;
@@ -304,6 +288,54 @@ function buildHeightfieldCore(data: ChunkData, skirtDepth: number): HeightfieldC
   }
 
   return { positions, indices, normals, baseVertCount, skirtSource };
+}
+
+/**
+ * One frontier skirt strip: the edge's 5 anchor vertices duplicated as a top
+ * ring (exactly ON the surface — the strip only draws where there is no
+ * neighbour, so nothing competes with it) and a bottom ring `skirtDepth`
+ * below, joined by outward-facing quads.
+ */
+function buildEdgeSkirt(
+  edgeVerts: number[],
+  positions: Float32Array,
+  normals: Float32Array,
+  colors: Float32Array,
+  skirtDepth: number,
+): TerrainEdgeSkirt {
+  const n = edgeVerts.length;
+  const pos = new Float32Array(n * 2 * 3);
+  const nor = new Float32Array(n * 2 * 3);
+  const col = new Float32Array(n * 2 * 3);
+  for (let k = 0; k < n; k++) {
+    const src = edgeVerts[k] * 3;
+    for (const [dst, drop] of [
+      [k, 0],
+      [n + k, skirtDepth],
+    ] as const) {
+      pos[dst * 3] = positions[src];
+      pos[dst * 3 + 1] = positions[src + 1] - drop;
+      pos[dst * 3 + 2] = positions[src + 2];
+      // Copy the source (top) normal so wall lighting matches the edge.
+      nor[dst * 3] = normals[src];
+      nor[dst * 3 + 1] = normals[src + 1];
+      nor[dst * 3 + 2] = normals[src + 2];
+      col[dst * 3] = colors[src];
+      col[dst * 3 + 1] = colors[src + 1];
+      col[dst * 3 + 2] = colors[src + 2];
+    }
+  }
+  const idx = new Uint32Array((n - 1) * 2 * 3);
+  let t = 0;
+  for (let k = 0; k < n - 1; k++) {
+    idx[t++] = k;
+    idx[t++] = n + k;
+    idx[t++] = k + 1;
+    idx[t++] = k + 1;
+    idx[t++] = n + k;
+    idx[t++] = n + k + 1;
+  }
+  return { positions: pos, indices: idx, normals: nor, colors: col };
 }
 
 /**
@@ -357,5 +389,23 @@ export function buildTerrainMesh(data: ChunkData, opts: { skirtDepth?: number } 
     colors[sv * 3 + 2] = colors[src * 3 + 2];
   }
 
-  return { positions: core.positions, indices: core.indices, normals: core.normals, colors };
+  // Stitched grids carry frontier skirts as four per-edge strips instead of an
+  // inline ring (see skirtVertexCount for why).
+  const res = data.resolution;
+  let skirts: TerrainSkirts | undefined;
+  if (stitchesBorder(res) && skirtDepth > 0) {
+    const q = (res - 1) / ANCHOR_SEGMENTS;
+    const edge = (at: (k: number) => number): number[] =>
+      Array.from({ length: ANCHOR_SEGMENTS + 1 }, (_, k) => at(k));
+    const build = (verts: number[]): TerrainEdgeSkirt =>
+      buildEdgeSkirt(verts, core.positions, core.normals, colors, skirtDepth);
+    skirts = {
+      north: build(edge((k) => k * q)), // j = 0, west→east
+      east: build(edge((k) => k * q * res + (res - 1))), // i = res-1, north→south
+      south: build(edge((k) => (res - 1) * res + (ANCHOR_SEGMENTS - k) * q)), // j = res-1, east→west
+      west: build(edge((k) => (ANCHOR_SEGMENTS - k) * q * res)), // i = 0, south→north
+    };
+  }
+
+  return { positions: core.positions, indices: core.indices, normals: core.normals, colors, skirts };
 }

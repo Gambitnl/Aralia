@@ -22,7 +22,7 @@
  * Logic for resolving naval combat maneuvers and state updates.
  */
 
-import { Ship, /* TODO: ShipStats */ } from '../../types/naval';
+import { Ship } from '../../types/naval';
 import {
     NavalCombatState,
     NavalManeuver,

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/07/2026, 23:48:11
+ * Last Sync: 02/07/2026, 04:53:15
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
  * Imports: 8 files
  *
@@ -488,8 +488,8 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
               className="absolute flex min-h-6 min-w-6 max-w-[3rem] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded border border-emerald-100/85 bg-emerald-600/92 px-1 text-[9px] font-black leading-none text-white shadow-[0_0_14px_rgba(16,185,129,0.58)]"
               title={marker.title}
               style={{
-                left: centerX + (index % 3 - 1) * 8,
-                top: centerY + (Math.floor(index / 3) % 2) * 8,
+                left: centerX + (index % 3 - 1) * 18,
+                top: centerY + (Math.floor(index / 3) % 2) * 14,
                 zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM,
               }}
             >

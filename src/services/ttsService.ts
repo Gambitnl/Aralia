@@ -34,9 +34,9 @@ export async function synthesizeSpeech(
       rateLimitHit: false,
     };
   }
-  // TODO(lint-intent): The any on 'lastError' hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  // TODO #507(lint-intent): The any on 'lastError' hides the intended shape of this data.
+  // TODO #508(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO #509(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
   let lastError: unknown = null;
   let rateLimitHitInChain = false;
 

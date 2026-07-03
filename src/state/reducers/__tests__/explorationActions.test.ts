@@ -1,16 +1,11 @@
 
 import { describe, it, expect } from 'vitest';
 import { characterReducer } from '../characterReducer';
-import { GameState, Item } from '../../../types';
+import { GameState } from '../../../types';
 import { AppAction } from '../../actionTypes';
 import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
 
 // Mock ITEMS manually
-// TODO(lint-intent): 'ITEMS' is unused in this test; use it in the assertion path or remove it.
-const _ITEMS = {
-    'torch': { id: 'torch', name: 'Torch' } as Item
-};
-
 // We need a minimal GameState
 const mockState: GameState = {
     ...createMockGameState(),

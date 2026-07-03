@@ -29,7 +29,6 @@ export function generateLoot(monsters: Monster[]): LootResult {
       // DEBT: Cast monster to any to probe for optional id property on dynamic monster objects.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const monsterId = (monster as any).id ?? 'unknown_monster';
-      // TODO(2026-01-03 Codex-CLI): Monster typings lack stable IDs; synthesize for logging until data/model carries identifiers.
 
       // 1. Gold generation based on CR
       let baseGold = 0;
@@ -43,8 +42,6 @@ export function generateLoot(monsters: Monster[]): LootResult {
           const parsedCr = parseInt(monster.cr, 10);
           baseGold = isNaN(parsedCr) ? 0 : parsedCr * 10;
         }
-      // TODO(lint-intent): Capture and log the parsing error if we need richer loot diagnostics.
-      // TODO(lint-intent): Consider validating CR upstream to avoid runtime fallbacks here.
       } catch {
         logger.warn("Error parsing monster CR for gold", { cr: monster.cr, id: monsterId });
         baseGold = 0;

@@ -1,13 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { FenceSystem } from '../FenceSystem';
-// TODO(lint-intent): 'CrimeType' is unused in this test; use it in the assertion path or remove it.
-import { Fence, StolenItem, CrimeType as _CrimeType } from '../../../../types/crime';
-// TODO(lint-intent): 'PlayerCharacter' is unused in this test; use it in the assertion path or remove it.
-import { PlayerCharacter as _PlayerCharacter } from '../../../../types/character';
-// TODO(lint-intent): 'GameState' is unused in this test; use it in the assertion path or remove it.
-import { GameState as _GameState } from '../../../../types';
-import { createMockPlayerCharacter, createMockGameState } from '../../../../utils/factories';
+import { Fence, StolenItem } from '../../../../types/crime';
+import { createMockPlayerCharacter } from '../../../../utils/factories';
 import { ItemType, ItemRarity } from '../../../../types/items';
 
 describe('FenceSystem', () => {
@@ -20,12 +15,11 @@ describe('FenceSystem', () => {
       intelligence: 10,
       wisdom: 10,
       charisma: 16, // +3 Mod -> +6% bonus
-      // TODO(2026-01-03 pass 4 Codex-CLI): stats baseline stubbed for fencing tests.
       baseInitiative: 0,
       speed: 30,
       cr: '1/4'
     }
-  } as unknown as Partial<_PlayerCharacter>);
+  });
 
   const mockFence: Fence = {
     id: 'fence-1',
@@ -51,8 +45,7 @@ describe('FenceSystem', () => {
     description: 'A shiny cup',
     isEquipped: false
   } as unknown as StolenItem;
-  // TODO(lint-intent): 'mockGameState' is unused in this test; use it in the assertion path or remove it.
-  const _mockGameState = createMockGameState();
+  
 
   it('generates a valid fence', () => {
     const fence = FenceSystem.generateFence('loc-1', 'Test Location');

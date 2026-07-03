@@ -2,8 +2,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { NavalCombatSystem } from '../NavalCombatSystem';
 import { createShip } from '../../../utils/navalUtils';
-// TODO(lint-intent): 'NAVAL_MANEUVERS' is unused in this test; use it in the assertion path or remove it.
-import { NAVAL_MANEUVERS as _NAVAL_MANEUVERS } from '../../../data/navalManeuvers';
 
 describe('NavalCombatSystem', () => {
     let system: NavalCombatSystem;
@@ -55,8 +53,8 @@ describe('NavalCombatSystem', () => {
         // Since `beforeEach` resets the system, we are clean.
 
         // Initial distance is 2000 (Medium). Broadside allows Medium.
-        // TODO(lint-intent): 'result' is unused in this test; use it in the assertion path or remove it.
-        const _result = system.executeManeuver(ship1.id, 'BROADSIDE', ship2.id);
+        const result = system.executeManeuver(ship1.id, 'BROADSIDE', ship2.id);
+        expect(result).toBeDefined();
 
         // The first execution might put it on cooldown!
         // So we can't test "range failure" with the SAME ship immediately if we successfully fired.

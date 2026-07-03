@@ -30,9 +30,6 @@ export class PortalSystem {
     switch (req.type) {
       case 'item': {
         // Check inventory
-        // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
-        // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
-        // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
         const hasItem = gameState.inventory.some(item => item.name === req.value || item.id === req.value);
         if (!hasItem) return { met: false, reason: `Requires ${req.value}` };
         return { met: true };
@@ -42,9 +39,6 @@ export class PortalSystem {
         if (!gameState.gameTime) {
              return { met: false, reason: "Time is undefined." };
         }
-        // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
-        // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
-        // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
         const timeOfDay = getTimeOfDay(gameState.gameTime);
 
         if (req.value === 'Night') {

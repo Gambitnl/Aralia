@@ -333,11 +333,3 @@ export function updateWeather(
         baseVisibility: baseVisibility
     };
 }
-
-// TODO(Ecologist): Integrate this system into useTurnManager.ts to update environment on round start.
-// Example:
-// if (isNewRound) {
-//    const timeOfDay = getTimeOfDay(currentState.time);
-//    const newWeather = updateWeather(currentWeather, currentBiomeId, timeOfDay);
-//    if (newWeather !== currentWeather) updateEnvironmentState(newWeather);
-// }

@@ -21,7 +21,7 @@
  * Manages entry, exit, and end-of-turn triggers for area effects.
  * Emits combat events for zone interactions.
  */
-// TODO: `processEntry`/`processExit`/`processEndTurn` in this class **duplicate** the logic
+// TODO #951: `processEntry`/`processExit`/`processEndTurn` in this class **duplicate** the logic
 // found in `processAreaEntryTriggers`/`processAreaExitTriggers`/`processAreaEndTurnTriggers`
 // in `triggerHandler.ts`. This violates DRY and risks drift.
 // Options:
@@ -93,7 +93,7 @@ export class AreaEffectTracker {
     /**
      * Process triggers when a character moves within an area.
      * Used by spells like Spike Growth that damage "for every 5 feet traveled within the area".
-     * TODO(Analyst): Migrate Spike Growth and similar spells from simple 'TERRAIN' effects to use this 'on_move_in_area' Zone capability.
+     * TODO #952(Analyst): Migrate Spike Growth and similar spells from simple 'TERRAIN' effects to use this 'on_move_in_area' Zone capability.
      */
     public processMovementWithin(
         character: CombatCharacter,
@@ -115,9 +115,6 @@ export class AreaEffectTracker {
         character: CombatCharacter,
         newPosition: Position,
         previousPosition: Position,
-        // TODO(lint-intent): 'currentRound' is an unused parameter, which suggests a planned input for this flow.
-        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
         _currentRound: number
     ): TriggerResult[] {
         const results: TriggerResult[] = [];
@@ -188,9 +185,6 @@ export class AreaEffectTracker {
      */
     public processEndTurn(
         character: CombatCharacter,
-        // TODO(lint-intent): 'currentRound' is an unused parameter, which suggests a planned input for this flow.
-        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
         _currentRound: number
     ): TriggerResult[] {
         // End-turn zone effects have no tracker-specific event to emit today,

@@ -115,7 +115,6 @@ describe('BattleMap3D visibility handoff', () => {
       ]),
       theme: 'dungeon',
       seed: 1
-    // TODO(lint-intent): Replace this fixture cast once map tile factories expose the full BattleMapData shape.
     } as unknown as BattleMapData;
     const hero: CombatCharacter = {
       id: 'hero',
@@ -172,7 +171,6 @@ describe('BattleMap3D visibility handoff', () => {
             scheduledSpellEffects: [],
             movementDebuffs: [],
             spellMovementVisuals: []
-          // TODO(lint-intent): Replace this broad turn-manager cast with a compact BattleMap3D fixture once one exists.
           } as any,
           turnState: {
             currentTurn: 0,
@@ -180,7 +178,6 @@ describe('BattleMap3D visibility handoff', () => {
             currentCharacterId: hero.id,
             phase: 'action',
             actionsThisTurn: []
-          // TODO(lint-intent): Replace this broad turn-state cast with the shared turn-state fixture once BattleMap3D tests have one.
           } as any,
           abilitySystem: {
             targetingMode: false,
@@ -189,7 +186,6 @@ describe('BattleMap3D visibility handoff', () => {
             teleportDestinationPreview: null,
             pendingTeleportAssignment: null,
             isValidTarget: vi.fn()
-          // TODO(lint-intent): Replace this broad ability-system cast with a compact BattleMap3D fixture once one exists.
           } as any,
           isCharacterTurn: vi.fn(() => false),
           onCharacterUpdate: vi.fn()

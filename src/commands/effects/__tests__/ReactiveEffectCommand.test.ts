@@ -21,7 +21,7 @@ import type { EffectCondition } from '../../../types/spells';
  */
 
 // Mock logger
-// TODO: Consider mocking MovementEventEmitter/AttackEventEmitter and emitting events so we can verify triggers instead of relying solely on the logger call.
+// TODO #11: Consider mocking MovementEventEmitter/AttackEventEmitter and emitting events so we can verify triggers instead of relying solely on the logger call.
 vi.mock('../../utils/logger', () => ({
     logger: {
         info: vi.fn(),

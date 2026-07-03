@@ -3,8 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { PortalSystem } from '../PortalSystem';
 import { Portal } from '../../../types/planes';
 import { ItemType } from '../../../types/items'; // Added to replace legacy string item type.
-// TODO(lint-intent): 'GamePhase' is unused in this test; use it in the assertion path or remove it.
-import { GameState, GamePhase as _GamePhase } from '../../../types/index';
+import { GameState } from '../../../types/index';
 import { createMockGameState } from '../../../utils/factories';
 
 describe('PortalSystem', () => {

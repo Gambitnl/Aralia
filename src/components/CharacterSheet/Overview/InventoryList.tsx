@@ -73,7 +73,7 @@ const isContainerItem = (item: InventoryEntry): item is ItemContainer =>
   typeof item.capacitySlots === 'number' ||
   typeof item.capacityWeight === 'number';
 
-// TODO(FEATURES): Add container browsing UI and item comparison panels for inventory entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+// TODO #53(FEATURES): Add container browsing UI and item comparison panels for inventory entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 // ============================================================================
 // Item Tooltip Generator
 // ============================================================================

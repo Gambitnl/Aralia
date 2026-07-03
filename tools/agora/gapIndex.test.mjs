@@ -54,16 +54,16 @@ test('parseGapsMarkdown extracts rows from the Gap ID table only', () => {
   assert.equal(rows[2].classification, 'blocked_human_decision');
 });
 
-test('gapIndex.workflowGaps: the real WORKFLOW_GAPS.md registry parses through the same pipeline', () => {
-  // Index the actual tools/agora registry — schema drift in the real file fails here.
+test('gapIndex.workflowGaps: the real WORKFLOW_GAPS.md parses; archive rows are NOT indexed', () => {
+  // The live Registry table indexes (currently empty — all WF-G1..14 resolved
+  // and moved to the archive 2026-07-02); any row that appears must be a
+  // well-formed WF-G id tagged with project 'workflow'. Schema drift fails here.
   const gaps = indexGaps({ root: 'tools/agora' });
-  assert.ok(gaps.length >= 8, `expected the seeded WF-G rows, got ${gaps.length}`);
-  assert.ok(gaps.every((g) => /^WF-G\d+$/.test(g.id)), 'all ids are WF-G<n>');
-  const g7 = gaps.find((g) => g.id === 'WF-G7');
-  assert.equal(g7.status, 'resolved');
-  const open = indexGaps({ root: 'tools/agora', openOnly: true });
-  assert.ok(open.every((g) => g.id !== 'WF-G7'), 'resolved rows drop out of open-only');
-  assert.ok(open.length >= 7);
+  assert.ok(Array.isArray(gaps), 'registry parses without error');
+  assert.ok(gaps.every((g) => /^WF-G\d+$/.test(g.id) && g.project === 'workflow'),
+    `unexpected rows: ${JSON.stringify(gaps.map((g) => g.project + ':' + g.id))}`);
+  // Archived resolutions must NOT leak into the machine index.
+  assert.ok(gaps.every((g) => g.id !== 'WF-G7'), 'archive table is not indexed');
 });
 
 test('indexGaps walks GAPS.md files, tags project paths, and filters open-only', () => {

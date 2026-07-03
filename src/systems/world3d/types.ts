@@ -164,6 +164,26 @@ export type LodTier = 'full' | 'mid' | 'low' | 'culled';
 export interface TerrainMesh extends ChunkGeometryArrays {
   /** 3 floats (r,g,b) per vertex, parallel to positions. */
   colors: Float32Array;
+  /**
+   * Per-edge skirt strips (stitched grids only). Interior seams are
+   * bit-identical watertight, so a wall there can only ever rasterize as an
+   * MSAA dotted-hairline artifact — the scene draws each strip ONLY while
+   * that edge has no loaded neighbour (the streaming-window frontier).
+   */
+  skirts?: TerrainSkirts;
+}
+
+/** One skirt wall strip hanging from a chunk edge's anchor vertices. */
+export interface TerrainEdgeSkirt extends ChunkGeometryArrays {
+  colors: Float32Array;
+}
+
+/** The four per-edge skirt strips of a stitched terrain chunk. */
+export interface TerrainSkirts {
+  north: TerrainEdgeSkirt;
+  east: TerrainEdgeSkirt;
+  south: TerrainEdgeSkirt;
+  west: TerrainEdgeSkirt;
 }
 
 /** A polyline (grid-space) clipped to a chunk, carrying per-point width in grid units. */

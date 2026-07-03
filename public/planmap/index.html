@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aralia Plan-Map</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body { height: 100%; }
+  body { margin: 0; background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; }
+  header { padding: 14px 22px; border-bottom: 1px solid #1e293b; display: flex; align-items: baseline; gap: 14px; }
+  header h1 { font-size: 18px; margin: 0; color: #fbbf24; letter-spacing: 0.04em; }
+  header .hint { font-size: 12px; color: #64748b; }
+  /* Validation banner (item 6) — hidden unless a check fails on load. */
+  #validation { display: none; margin: 0; padding: 10px 22px; background: #450a0a; border-bottom: 1px solid #7f1d1d; color: #fecaca; font-size: 12px; line-height: 1.5; }
+  #validation.show { display: block; }
+  #validation b { color: #fca5a5; }
+  #validation ul { margin: 6px 0 0; padding-left: 20px; }
+  #legend { padding: 8px 22px; font-size: 12px; color: #94a3b8; display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  /* Legend filter chips (item 4) — clickable toggles that dim non-matches. */
+  #legend .chip { cursor: pointer; user-select: none; padding: 2px 6px; border-radius: 4px; border: 1px solid transparent; }
+  #legend .chip:hover { background: #1e293b; }
+  #legend .chip.on { border-color: #475569; background: #1e293b; color: #e2e8f0; }
+  #legend #clearfilter { cursor: pointer; color: #7dd3fc; display: none; }
+  #legend #clearfilter.show { display: inline; }
+  /* Zoom/pan toolbar (item 3). */
+  #maptools { padding: 4px 22px 6px; display: flex; gap: 6px; align-items: center; font-size: 12px; color: #64748b; }
+  #maptools button { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; font-size: 12px; padding: 3px 9px; border-radius: 5px; cursor: pointer; }
+  #maptools button:hover { background: #334155; }
+  #maptools .zlabel { min-width: 46px; text-align: center; color: #94a3b8; }
+  /* The canvas is the flex remainder of the page; the SVG fills it and the
+     shipped/graveyard strips sit below it inside the same column. */
+  #canvas { overflow: hidden; position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  #canvas svg { display: block; cursor: grab; touch-action: none; flex: 1; min-height: 0; width: 100%; }
+  #canvas svg.panning { cursor: grabbing; }
+  svg { display: block; }
+  .node { cursor: pointer; }
+  .node rect { rx: 6; }
+  .node .title { font-size: 13px; font-weight: 600; }
+  .node .sub { font-size: 11px; opacity: 0.75; }
+  .node .status { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; }
+  .lane-bg { fill: #ffffff; fill-opacity: 0.022; }
+  .lane-label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; }
+  .edge { fill: none; stroke: #475569; stroke-width: 1.25; opacity: 0.75; }
+  .edge-hit { fill: none; stroke: transparent; stroke-width: 14; cursor: pointer; }
+  .edgeg:hover .edge { stroke: #cbd5e1; opacity: 1; stroke-width: 2; }
+  svg.focus .node:not(.lit), svg.focus .edgeg:not(.lit) { opacity: 0.12; }
+  /* Legend-filter dimming (item 4) — independent of hover focus. */
+  .node.dimmed, .edgeg.dimmed { opacity: 0.15; }
+  /* Pinned node/edge outline (item 1). */
+  .node.pinned > rect:first-of-type { stroke: #fbbf24 !important; stroke-width: 3.5 !important; }
+  .edgeg.pinned .edge { stroke: #fbbf24; opacity: 1; stroke-width: 2.5; }
+  /* Feature-anchored ("member") edges — read as pointing INTO a feature tile:
+     lighter/thinner stroke + a small hollow circle at the feature end. */
+  .edgeg.member .edge { stroke: #64748b; stroke-width: 1; opacity: 0.6; }
+  .edgeg.member .member-end { fill: #0f172a; stroke: #94a3b8; stroke-width: 1.25; }
+  .edgeg.member:hover .member-end, .edgeg.member.pinned .member-end { stroke: #fbbf24; }
+  .node, .edgeg { transition: none; }
+  #invariants { padding: 0 22px 8px; font-size: 11px; color: #64748b; }
+  #invariants b { color: #94a3b8; }
+  /* Shipped/Graveyard strips: chip rows, not prose runs. */
+  #shipped, #graveyard { padding: 8px 22px; font-size: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-top: 1px solid #1e293b; }
+  #shipped .strip-label, #graveyard .strip-label { font-weight: 700; letter-spacing: 0.05em; font-size: 10px; text-transform: uppercase; }
+  #shipped .strip-label { color: #4ade80; }
+  #graveyard .strip-label { color: #9a3412; }
+  .strip-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; white-space: nowrap; }
+  #shipped .strip-chip { border-color: rgba(74,222,128,0.35); }
+  #graveyard .strip-chip { border-color: rgba(154,52,18,0.55); color: #a8998b; }
+  .strip-chip .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  #shipped .strip-chip .dot { background: #4ade80; }
+  #graveyard .strip-chip .dot { background: #9a3412; }
+  .strip-chip i { color: #64748b; font-size: 11px; }
+  .strip-chip a { color: #7dd3fc; text-decoration: none; opacity: 0.8; }
+  .strip-chip a:hover { opacity: 1; }
+  a { color: #7dd3fc; }
+  /* Detail side panel (item 1) — pins on click, dismissible. */
+  #detail { position: fixed; top: 0; right: 0; width: 380px; max-width: 92vw; height: 100vh; overflow-y: auto;
+    background: #0b1120; border-left: 1px solid #1e293b; box-shadow: -8px 0 30px rgba(0,0,0,0.5);
+    transform: translateX(100%); transition: transform 0.15s ease; z-index: 900; padding: 0; }
+  #detail.open { transform: translateX(0); }
+  #detail-close { position: absolute; top: 12px; right: 14px; background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 4px; }
+  #detail-close:hover { color: #e2e8f0; background: #1e293b; }
+  #detail-body { padding: 22px 24px 40px; }
+  #detail-body h2 { font-size: 17px; margin: 0 30px 4px 0; color: #f1f5f9; }
+  #detail-body .d-sub { font-size: 12px; color: #94a3b8; margin: 0 0 12px; line-height: 1.5; }
+  #detail-body .d-meta { font-size: 11px; margin: 0 0 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  #detail-body .d-tag { padding: 2px 8px; border-radius: 10px; background: #1e293b; border: 1px solid #334155; }
+  #detail-body h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin: 20px 0 8px; border-bottom: 1px solid #1e293b; padding-bottom: 5px; }
+  #detail-body .feat { border: 1px solid #1e293b; border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; background: rgba(30,41,59,0.35); }
+  #detail-body .feat .ft { font-size: 12px; font-weight: 600; color: #e2e8f0; }
+  #detail-body .feat .fm { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+  #detail-body .dep { border-left: 2px solid #334155; padding: 4px 0 4px 10px; margin-bottom: 8px; font-size: 12px; }
+  #detail-body .dep .dn { font-weight: 600; color: #e2e8f0; }
+  #detail-body .dep .dk { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #fbbf24; margin-left: 6px; }
+  #detail-body .dep .dw { font-size: 11px; color: #94a3b8; margin-top: 2px; line-height: 1.45; }
+  #detail-body .dep.clk { cursor: pointer; }
+  #detail-body .dep.clk:hover { border-left-color: #7dd3fc; }
+  #detail-body a { color: #7dd3fc; }
+  #detail-body .empty { color: #475569; font-size: 11px; font-style: italic; }
+  #glossary-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
+  #glossary-backdrop.open { display: flex; }
+  #glossary-panel { position: relative; width: 90%; max-width: 760px; max-height: 85vh; overflow-y: auto; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 28px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  #glossary-close { position: absolute; top: 14px; right: 16px; background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 4px; }
+  #glossary-close:hover { color: #e2e8f0; background: #1e293b; }
+  #glossary-body h1 { color: #fbbf24; font-size: 20px; margin: 0 0 14px; }
+  #glossary-body h2 { color: #fbbf24; font-size: 15px; margin: 26px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #1e293b; }
+  #glossary-body h2:first-child { margin-top: 0; }
+  #glossary-body p { color: #e2e8f0; line-height: 1.55; margin: 0 0 12px; }
+  #glossary-body ul { margin: 0 0 14px; padding-left: 20px; }
+  #glossary-body li { color: #e2e8f0; line-height: 1.55; margin-bottom: 8px; }
+  #glossary-body li b { color: #fbbf24; }
+  #glossary-body code { background: #1e293b; color: #e2e8f0; padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+  #glossary-body a { color: #7dd3fc; }
+  #glossary-body .err { color: #f87171; }
+  #glossary-body .muted { color: #94a3b8; }
+  #glossary-body blockquote { margin: 0 0 14px; padding: 8px 14px; border-left: 3px solid #fbbf24; color: #94a3b8; background: rgba(30,41,59,0.5); }
+  #glossary-body pre { background: #1e293b; padding: 10px 14px; border-radius: 6px; overflow-x: auto; margin: 0 0 14px; }
+  #glossary-body pre code { background: none; padding: 0; }
+  .copybtn { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; font-size: 12px; padding: 5px 12px; border-radius: 5px; cursor: pointer; }
+  .copybtn:hover { background: #334155; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ARALIA PLAN-MAP</h1>
+  <span class="hint">solid arrow = hard prerequisite · dashed = chosen order · click any node or arrow to pin details · edit <code>public/planmap/topics.json</code> · no dates, only order</span>
+  <span class="hint" style="margin-left: auto;" id="header-links">
+    <a id="grillprompt-link" href="#">🤖 Grill prompt</a> ·
+    <a id="glossary-link" href="#">📖 Glossary</a> ·
+    <a id="agora-link" href="http://localhost:4319/">🏛️ Agora board</a> ·
+    <a id="tree-link" href="http://localhost:3010/">🌳 Feature tree</a> ·
+    <a id="game-link" href="#">🎲 Game</a>
+  </span>
+</header>
+<!-- Validation banner: populated + shown by JS only when a check fails. -->
+<div id="validation"></div>
+<div id="legend"></div>
+<!-- Cross-cutting concerns are deliberately NOT graph nodes (aspect-nodes spaghetti a DAG) — they live here as prose. -->
+<div id="invariants"><b>Invariants (apply to every node):</b> seed-determinism · feet-canon · BattleMapTile referee vocabulary · save-compat</div>
+<div id="maptools">
+  <button id="zoom-out">−</button>
+  <span class="zlabel" id="zoom-label">100%</span>
+  <button id="zoom-in">+</button>
+  <button id="zoom-fit">Fit</button>
+  <span style="margin-left:8px;">wheel = zoom · drag = pan · Esc = unpin</span>
+</div>
+<div id="canvas"></div>
+<!-- Detail side panel (item 1). -->
+<aside id="detail" aria-label="Detail panel">
+  <button id="detail-close" aria-label="Close">✕</button>
+  <div id="detail-body"></div>
+</aside>
+<div id="glossary-backdrop">
+  <div id="glossary-panel" role="dialog" aria-modal="true" aria-label="Document">
+    <button id="glossary-close" aria-label="Close">✕</button>
+    <div id="glossary-tools" style="display:none; gap:8px; margin-bottom:14px;">
+      <button class="copybtn" id="copy-path">📋 Copy path</button>
+      <button class="copybtn" id="copy-content">📋 Copy content</button>
+    </div>
+    <div id="glossary-body"><p class="muted">Loading…</p></div>
+  </div>
+</div>
+<script>
+const COLORS = {
+  purple: { fill: '#2e1065', stroke: '#a78bfa', title: '#ede9fe', sub: '#c4b5fd' },
+  teal:   { fill: '#042f2e', stroke: '#2dd4bf', title: '#ccfbf1', sub: '#5eead4' },
+  gray:   { fill: '#1e293b', stroke: '#94a3b8', title: '#f1f5f9', sub: '#cbd5e1' },
+  coral:  { fill: '#431407', stroke: '#fb923c', title: '#ffedd5', sub: '#fdba74' },
+  pink:   { fill: '#500724', stroke: '#f472b6', title: '#fce7f3', sub: '#f9a8d4' }
+};
+const STATUS = { parked: '#94a3b8', specced: '#fbbf24', active: '#38bdf8', done: '#4ade80', superseded: '#9a3412' };
+const NODE_W = 230, BASE_H = 78, FEAT_H = 30, FEAT_GAP = 6, COL_GAP = 90, ROW_GAP = 26, PAD = 40;
+const LANE_GAP = 34, LANE_LABEL_H = 22; // vertical breathing room between campaign lanes (item 2)
+const nodeH = t => BASE_H + (t.features ? t.features.length * (FEAT_H + FEAT_GAP) + 4 : 0);
+
+// ---- Portability (item 5): derive the /@fs base prefix from the URL ----
+// The page is served at <base>/planmap/index.html; the /@fs bridge lives at
+// <base>/@fs/. Strip "/planmap/..." off location.pathname to recover <base>
+// instead of hardcoding "/Aralia". Falls back to "/Aralia" if the path is odd.
+const APP_BASE = (() => {
+  const m = location.pathname.match(/^(.*?)\/planmap\//);
+  return (m && m[1]) || '/Aralia';
+})();
+
+fetch('./topics.json').then(r => r.json()).then(data => {
+  const topics = data.topics;
+  const byId = Object.fromEntries(topics.map(t => [t.id, t]));
+  const repoRoot = data.repoRoot || '';
+  // Repo docs aren't under public/ — open them through Vite's /@fs bridge
+  // (mounted under the app base, derived from the URL, not hardcoded).
+  const docHref = link => APP_BASE + '/@fs/' + repoRoot + '/' + link;
+  window.docHref = docHref;
+  window.repoRoot = repoRoot;
+
+  // ---- Wire header links off repoRoot / APP_BASE (item 5) --------------
+  // The two doc links open in the modal (handled below); still give them a
+  // real href so middle-click / degraded-JS paths land somewhere sane.
+  const setHref = (id, href) => { const el = document.getElementById(id); if (el) el.href = href; };
+  setHref('grillprompt-link', docHref('tools/agora/PLANMAP-GRILL-PROMPT.md'));
+  setHref('glossary-link', docHref('tools/agora/GLOSSARY.md'));
+  setHref('game-link', APP_BASE + '/');
+  // Feature-tree port link degrades gracefully — derive its path off APP_BASE.
+  setHref('tree-link', 'http://localhost:3010' + APP_BASE + '/devtools/roadmap/roadmap.html');
+
+  // Deps may be plain ids or {id, kind, why, feature} objects — normalize.
+  // A dep may carry `feature: "<slug>"` — it then requires that ONE feature
+  // inside the target topic, not the whole topic.
+  const depList = t => (t.deps || []).map(d => typeof d === 'string' ? { id: d, kind: 'hard' } : d);
+  // "Dead" = out of the live graph: done (Shipped strip) or superseded (Graveyard).
+  const isDead = t => t.status === 'done' || t.status === 'superseded';
+
+  // Feature slug — MUST match tools/agora/validate-planmap.mjs's slug() exactly
+  // (lowercase → non-alphanumeric runs to '-' → trim '-' → cap 40 chars).
+  const slug = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  // Resolve a dep's `feature` slug to the actual feature object of its target.
+  // Returns null (with no side effect) when there is no feature slug; returns
+  // undefined-marker via {feature:null} handled by callers when it doesn't resolve.
+  const featureOf = (targetId, featureSlug) => {
+    if (!featureSlug) return null;
+    const t = byId[targetId];
+    return (t && (t.features || []).find(f => slug(f.title) === featureSlug)) || undefined;
+  };
+  // A feature-level dep is "satisfied" when THAT feature is done/superseded.
+  const featureDead = f => f && (f.status === 'done' || f.status === 'superseded');
+
+  // ================= In-page validation (item 6) =====================
+  // Lightweight structural checks, mirroring validate-planmap.mjs but run in
+  // the browser so a broken topics.json shows a red banner instead of a silent
+  // console error. Defensive: another agent may be mid-edit on topics.json.
+  const problems = [];
+  (() => {
+    const seen = new Set();
+    topics.forEach(t => {
+      if (!t.id) { problems.push('A topic is missing an "id".'); return; }
+      if (seen.has(t.id)) problems.push(`Duplicate topic id: "${t.id}".`);
+      seen.add(t.id);
+    });
+    const campKeys = new Set(Object.keys(data.campaigns || {}));
+    const okStatus = new Set([...Object.keys(STATUS)]);
+    topics.forEach(t => {
+      if (t.campaign && !campKeys.has(t.campaign))
+        problems.push(`Topic "${t.id}" has unknown campaign "${t.campaign}".`);
+      if (t.status && !okStatus.has(t.status))
+        problems.push(`Topic "${t.id}" has unknown status "${t.status}".`);
+      depList(t).forEach(d => {
+        if (!byId[d.id]) problems.push(`Topic "${t.id}" depends on missing id "${d.id}".`);
+      });
+    });
+    const focusCount = topics.filter(t => t.focus).length;
+    if (focusCount > 1) problems.push(`${focusCount} topics claim focus — at most one is allowed.`);
+    // Dependency-cycle detection (DFS with a recursion stack).
+    const color = {}; // 0 = unvisited, 1 = on stack, 2 = done
+    const cyclic = [];
+    const dfs = id => {
+      color[id] = 1;
+      for (const d of depList(byId[id] || {})) {
+        if (!byId[d.id]) continue;
+        if (color[d.id] === 1) { cyclic.push(`${id} → ${d.id}`); }
+        else if (!color[d.id]) dfs(d.id);
+      }
+      color[id] = 2;
+    };
+    topics.forEach(t => { if (t.id && !color[t.id]) dfs(t.id); });
+    if (cyclic.length) problems.push(`Dependency cycle(s) detected: ${cyclic.join(', ')}.`);
+  })();
+  if (problems.length) {
+    const banner = document.getElementById('validation');
+    banner.innerHTML = `<b>⚠ topics.json validation failed (${problems.length}):</b>` +
+      '<ul>' + problems.map(p => `<li>${p.replace(/</g, '&lt;')}</li>`).join('') + '</ul>';
+    banner.classList.add('show');
+    console.error('plan-map validation problems:', problems);
+  }
+
+  // Column = longest dependency chain length (topological depth).
+  const depth = {};
+  const depthOf = (id, seen = new Set()) => {
+    if (depth[id] != null) return depth[id];
+    if (seen.has(id)) { // cycle guard — validate-planmap.mjs should have caught this
+      console.error(`plan-map: dependency cycle detected through "${id}" — columns will be wrong; fix topics.json deps`);
+      return 0;
+    }
+    seen.add(id);
+    const t = byId[id];
+    // Done deps are retired to the Shipped strip, superseded ones to the
+    // Graveyard — BOTH are excluded from depth so live chains collapse left.
+    // Semantics: a dep on a superseded topic is treated exactly like a dep on
+    // a done one — non-blocking, invisible. Rationale: a dead decision can't
+    // gate anything; if the dependant STILL needs that capability, the need
+    // must be re-expressed as a dep on whatever replaced it (human curation),
+    // not inherited from a corpse.
+    const ids = depList(t).map(d => d.id).filter(x => byId[x] && !isDead(byId[x]));
+    const d = ids.length ? 1 + Math.max(...ids.map(x => depthOf(x, seen))) : 0;
+    depth[id] = d;
+    return d;
+  };
+  topics.forEach(t => depthOf(t.id));
+
+  // Done nodes retire to the compact "Shipped" strip below the map — they
+  // keep their history (and links) without occupying layout space forever.
+  const live = topics.filter(t => !isDead(t));
+  const shipped = topics.filter(t => t.status === 'done');
+  // Reversed decisions go to the Graveyard, not the delete key — the
+  // why-we-didn't ("killed") is often worth more than the why-we-did.
+  const graveyard = topics.filter(t => t.status === 'superseded');
+
+  // Actionable = you could start this TODAY: alive, and every HARD dep is
+  // dead (done or superseded — chosen-order deps don't block). Computed,
+  // never stored — can't rot.
+  // A feature-targeted hard dep is satisfied when THAT feature is dead, not the
+  // whole target topic. If the slug doesn't resolve, fall back to whole-topic.
+  const isActionable = t => !isDead(t) &&
+    depList(t).every(d => {
+      if (d.kind === 'chosen' || !byId[d.id]) return true;
+      if (d.feature) {
+        const f = featureOf(d.id, d.feature);
+        if (f) return featureDead(f);
+        // slug didn't resolve (data race / typo) — fall back to whole topic.
+      }
+      return isDead(byId[d.id]);
+    });
+
+  // ============= Stable campaign-lane layout (item 2) ================
+  // Horizontal band per campaign (in campaigns-object order); x = dependency
+  // depth; within a lane, stable sort by array order (NOT by readiness) so a
+  // node never jumps rows between visits. Edges cross lanes freely.
+  const campOrder = Object.keys(data.campaigns || {});
+  // Topic array index = stable within-lane sort key.
+  const orderIndex = {};
+  topics.forEach((t, i) => { orderIndex[t.id] = i; });
+  // Lane assignment: known campaigns in object order, then any unknown/absent
+  // campaign appended (defensive — another agent may add a campaign key any
+  // time, or a topic may reference one not yet declared).
+  const laneKeys = [...campOrder];
+  live.forEach(t => { const c = t.campaign || '(none)'; if (!laneKeys.includes(c)) laneKeys.push(c); });
+  const laneIndex = Object.fromEntries(laneKeys.map((k, i) => [k, i]));
+
+  const nCols = Math.max(0, ...Object.values(depth)) + 1;
+  const colX = c => PAD + c * (NODE_W + COL_GAP);
+
+  // Group live nodes by lane, sort each lane by stable order key.
+  const byLane = {};
+  live.forEach(t => { const c = t.campaign || '(none)'; (byLane[c] = byLane[c] || []).push(t); });
+  laneKeys.forEach(k => (byLane[k] || []).sort((a, b) => orderIndex[a.id] - orderIndex[b.id]));
+
+  // Lay each lane out as its own vertical band. Within a lane, place nodes into
+  // their depth column and stack them; the band height is the tallest column.
+  const pos = {};
+  const laneRects = []; // {y, h, key} for the faint lane backgrounds + labels
+  let laneTop = PAD;
+  laneKeys.forEach(key => {
+    const list = byLane[key] || [];
+    if (!list.length) return; // don't draw an empty lane band
+    const bandTop = laneTop + LANE_LABEL_H;
+    const colY = {}; // running y per column within this lane
+    list.forEach(t => {
+      const c = depth[t.id];
+      const y = (colY[c] == null) ? bandTop : colY[c];
+      pos[t.id] = { x: colX(c), y };
+      colY[c] = y + nodeH(t) + ROW_GAP;
+    });
+    const bandBottom = Math.max(bandTop, ...Object.values(colY)) ; // tallest column
+    const bandH = bandBottom - laneTop;
+    laneRects.push({ y: laneTop, h: bandH, key, label: (data.campaigns[key] || {}).label || key });
+    laneTop = laneTop + bandH + LANE_GAP;
+  });
+  const maxY = laneTop;
+  const W = PAD * 2 + nCols * NODE_W + (nCols - 1) * COL_GAP;
+  const H = maxY + PAD;
+
+  // Covers element content AND double-quoted attribute values — every
+  // JSON-controlled string flows through here (ids land in data-* attributes).
+  const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const S = [];
+  // No width/height attributes — CSS makes the SVG fill the canvas flex cell,
+  // so the drawing scales with the window instead of a fixed pixel box.
+  S.push(`<svg id="plansvg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`);
+  S.push(`<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker></defs>`);
+
+  // Lane backgrounds + labels drawn first, behind everything (item 2).
+  laneRects.forEach(l => {
+    S.push(`<rect class="lane-bg" x="${PAD - 16}" y="${l.y}" width="${W - (PAD - 16) * 2}" height="${l.h}" rx="8"/>`);
+    S.push(`<text class="lane-label" x="${PAD - 6}" y="${l.y + 15}" fill="#e2e8f0">${esc(l.label)}</text>`);
+  });
+
+  // Feature mini-tile geometry (must mirror the node render loop below):
+  // fy = p.y + BASE_H - 18 + i * (FEAT_H + FEAT_GAP); left edge = p.x + 10.
+  // Keyed by `${topicId}|${slug}` → { x (left edge), y (y-center) }.
+  const featPos = {};
+  live.forEach(t => {
+    const p = pos[t.id]; if (!p) return;
+    (t.features || []).forEach((f, i) => {
+      const fy = p.y + BASE_H - 18 + i * (FEAT_H + FEAT_GAP);
+      featPos[`${t.id}|${slug(f.title)}`] = { x: p.x + 10, y: fy + FEAT_H / 2 };
+    });
+  });
+
+  // Edge routing: multiple edges leaving (or entering) one node fan out along
+  // its side instead of stacking on the midpoint — kills the spaghetti read.
+  const edges = [];
+  live.forEach(t => depList(t).forEach(d => {
+    if (!pos[d.id] || !pos[t.id]) return;
+    let feature = null; // resolved feature-anchor key when a valid feature dep
+    if (d.feature) {
+      const fp = featPos[`${d.id}|${d.feature}`];
+      if (fp) feature = d.feature;
+      else console.warn(`plan-map: dep "${t.id}" → "${d.id}" references feature "${d.feature}" that doesn't resolve to a feature of "${d.id}" — falling back to whole-node port`);
+    }
+    edges.push({ from: d.id, to: t.id, kind: d.kind || 'hard', why: d.why, feature });
+  }));
+  const outPort = {}, inPort = {};
+  const assignPorts = (list, key, node, portMap) => {
+    list.sort((e1, e2) => pos[e1[key === 'out' ? 'to' : 'from']].y - pos[e2[key === 'out' ? 'to' : 'from']].y);
+    const h = nodeH(byId[node]);
+    list.forEach((e, i) => {
+      const frac = list.length === 1 ? 0.5 : 0.25 + (0.5 * i) / (list.length - 1);
+      portMap[`${e.from}|${e.to}`] = pos[node].y + h * frac;
+    });
+  };
+  const byFrom = {}, byTo = {};
+  edges.forEach(e => {
+    (byFrom[e.from] = byFrom[e.from] || []).push(e);
+    (byTo[e.to] = byTo[e.to] || []).push(e);
+  });
+  Object.entries(byFrom).forEach(([n, list]) => assignPorts(list, 'out', n, outPort));
+  Object.entries(byTo).forEach(([n, list]) => assignPorts(list, 'in', n, inPort));
+  edges.forEach(e => {
+    const a = pos[e.from], b = pos[e.to];
+    const dash = e.kind === 'chosen' ? ' stroke-dasharray="6 4"' : '';
+    // The required feature lives in the DEP TARGET topic (e.from). A valid
+    // feature dep anchors the edge's ARROWHEAD at that feature's mini-tile
+    // (its left-edge y-center) inside e.from, so the arrow points into the
+    // specific required feature. Arrowhead sits just outside the tile.
+    const fp = e.feature ? featPos[`${e.from}|${e.feature}`] : null;
+    let d, endX, endY;
+    if (fp) {
+      // Start from e.to on the side facing e.from; terminate at the feature
+      // tile's left edge in e.from.
+      endX = fp.x; endY = fp.y;
+      const toRightOfFrom = b.x >= a.x;
+      const x1 = toRightOfFrom ? b.x : b.x + NODE_W; // e.to side facing e.from
+      const y1 = inPort[`${e.from}|${e.to}`];
+      const mx = x1 + (endX - x1) * 0.5;
+      d = `M${x1},${y1} C${mx},${y1} ${mx},${endY} ${endX - 4},${endY}`;
+    } else {
+      const x1 = a.x + NODE_W, y1 = outPort[`${e.from}|${e.to}`];
+      endX = b.x; endY = inPort[`${e.from}|${e.to}`];
+      const mx = x1 + (endX - x1) * 0.5;
+      d = `M${x1},${y1} C${mx},${y1} ${mx},${endY} ${endX - 4},${endY}`;
+    }
+    const featTitle = fp ? ((byId[e.from].features || []).find(f => slug(f.title) === e.feature) || {}).title : null;
+    const tip = `${byId[e.from].title} → ${byId[e.to].title}` +
+      (featTitle ? ` · feature: ${featTitle}` : '') +
+      (e.kind === 'chosen' ? ' [chosen order]'
+        : featTitle ? ` [hard prerequisite (feature: ${featTitle})]` : ' [hard prerequisite]') +
+      (e.why ? `: ${e.why}` : '');
+    // A wide invisible twin path makes the thin edge hoverable/clickable; the
+    // <g>'s <title> is the browser-native tooltip for both.
+    // Feature-anchored edges get a subtle "member edge" look: lighter stroke +
+    // a small hollow circle at the feature end (see legend).
+    const memberCls = fp ? ' member' : '';
+    const endMark = fp ? `<circle class="member-end" cx="${endX - 4}" cy="${endY}" r="3"/>` : '';
+    S.push(`<g class="edgeg${memberCls}" data-from="${esc(e.from)}" data-to="${esc(e.to)}"${fp ? ` data-feature="${esc(e.feature)}"` : ''}><title>${esc(tip)}</title>` +
+      `<path class="edge-hit" d="${d}"/>` +
+      `<path class="edge" marker-end="url(#arr)"${dash} d="${d}"/>${endMark}</g>`);
+  });
+
+  const wrap = (s, n) => { // naive 2-line wrap for subtitles
+    if (!s || s.length <= n) return [s || ''];
+    const cut = s.lastIndexOf(' ', n);
+    return [s.slice(0, cut > 0 ? cut : n), s.slice(cut > 0 ? cut + 1 : n).slice(0, n) + (s.length - n > n ? '…' : '')];
+  };
+  live.forEach(t => {
+    const p = pos[t.id];
+    const h = nodeH(t);
+    const c = COLORS[(data.campaigns[t.campaign] || {}).color] || COLORS.gray;
+    const go = isActionable(t);
+    const sub = wrap(t.sub, 36);
+    S.push(`<g class="node" data-id="${esc(t.id)}" data-campaign="${esc(t.campaign || '')}" data-status="${esc(t.status || '')}">`);
+    S.push(`<rect x="${p.x}" y="${p.y}" width="${NODE_W}" height="${h}" rx="6" fill="${c.fill}" stroke="${go ? '#4ade80' : c.stroke}" stroke-width="${go ? 3 : 1.5}"/>`);
+    // Top-right badge stack: READY (possibility) and FOCUS (what's actually
+    // in hand — at most one topic, validator-enforced) are different claims.
+    const badges = [];
+    if (go) badges.push(['▶ READY', '#4ade80']);
+    if (t.focus) badges.push(['★ FOCUS', '#fbbf24']);
+    badges.forEach(([txt, col], bi) =>
+      S.push(`<text class="status" x="${p.x + NODE_W - 12}" y="${p.y + 20 + bi * 13}" text-anchor="end" fill="${col}">${txt}</text>`));
+    S.push(`<text class="title" x="${p.x + 12}" y="${p.y + 22}" fill="${c.title}">${esc(t.title)}</text>`);
+    sub.forEach((line, i) =>
+      S.push(`<text class="sub" x="${p.x + 12}" y="${p.y + 39 + i * 13}" fill="${c.sub}">${esc(line)}</text>`));
+    // Sub-features: compound-node mini-tiles nested inside the parent card,
+    // each with its own border + status dot (flowchart-in-a-node).
+    (t.features || []).forEach((f, i) => {
+      const fy = p.y + BASE_H - 18 + i * (FEAT_H + FEAT_GAP);
+      const dead = f.status === 'superseded';
+      // Spike = research that could invalidate the approach — dashed border so
+      // it never masquerades as a settled build step.
+      const spikeAttrs = f.spike ? ` stroke-dasharray="4 3" stroke-opacity="0.9"` : ` stroke-opacity="0.45"`;
+      S.push(`<rect x="${p.x + 10}" y="${fy}" width="${NODE_W - 20}" height="${FEAT_H}" rx="4" fill="rgba(15,23,42,0.55)" stroke="${dead ? STATUS.superseded : c.stroke}"${spikeAttrs} stroke-width="1"/>`);
+      // Flow: list order IS the intra-node build sequence — number the steps
+      // and stitch consecutive tiles with a short connector stub.
+      if (i > 0) S.push(`<line x1="${p.x + 22}" y1="${fy - FEAT_GAP}" x2="${p.x + 22}" y2="${fy}" stroke="${c.stroke}" stroke-opacity="0.5" stroke-width="1"/>`);
+      S.push(`<circle cx="${p.x + 22}" cy="${fy + FEAT_H / 2}" r="3.5" fill="${STATUS[f.status] || '#94a3b8'}"/>`);
+      S.push(`<text class="status" x="${p.x + 34}" y="${fy + FEAT_H / 2 + 4}" fill="${c.sub}">${i + 1}</text>`);
+      // Right margin reserves: 📄 icon, then the ?n open-questions marker.
+      const openN = (typeof f.open === 'number' && f.open > 0) ? f.open : 0;
+      const budget = (f.link ? 27 : 30) - (openN ? 3 : 0) - (f.spike ? 2 : 0);
+      const rawTitle = (f.spike ? '⚠ ' : '') + f.title;
+      const ftitle = rawTitle.length > budget ? rawTitle.slice(0, budget - 1) + '…' : rawTitle;
+      const deco = dead ? ' text-decoration="line-through"' : '';
+      S.push(`<text class="sub" x="${p.x + 44}" y="${fy + FEAT_H / 2 + 4}" fill="${dead ? STATUS.superseded : c.title}"${deco}><title>${esc(f.title)}${f.status ? ` [${f.status}]` : ''}${f.spike ? ' [spike — could invalidate the approach]' : ''}${openN ? ` — ${openN} open question(s) in the subspec` : ''}${dead && f.killed ? ` — killed: ${esc(f.killed)}` : ''}</title>${esc(ftitle)}</text>`);
+      // Settledness marker: how many "## Open" bullets the linked subspec still
+      // carries. ?0 is never shown — settled decisions stay quiet.
+      if (openN) S.push(`<text class="status" x="${p.x + NODE_W - (f.link ? 34 : 16)}" y="${fy + FEAT_H / 2 + 4}" text-anchor="end" fill="#fbbf24"><title>${openN} open question(s) in ${esc(f.link || 'the subspec')}</title>?${openN}</text>`);
+      if (f.link) S.push(`<a href="${esc(docHref(f.link))}" target="_blank"><text class="sub" x="${p.x + NODE_W - 16}" y="${fy + FEAT_H / 2 + 4}" text-anchor="end" fill="${c.sub}"><title>${esc(f.link)}</title>📄</text></a>`);
+    });
+    S.push(`<circle cx="${p.x + 16}" cy="${p.y + h - 12}" r="4" fill="${STATUS[t.status] || '#94a3b8'}"/>`);
+    S.push(`<text class="status" x="${p.x + 26}" y="${p.y + h - 8}" fill="${STATUS[t.status] || '#94a3b8'}">${esc((t.status || '').toUpperCase())}</text>`);
+    if (t.link) S.push(`<a href="${esc(docHref(t.link))}" target="_blank"><text class="sub" x="${p.x + NODE_W - 12}" y="${p.y + h - 8}" text-anchor="end" fill="${c.sub}">📄 spec</text></a>`);
+    S.push(`</g>`);
+  });
+  S.push(`</svg>`);
+  const shippedHtml = shipped.length
+    ? `<div id="shipped"><span class="strip-label">Shipped · ${shipped.length}</span>` + shipped.map(t =>
+        `<span class="strip-chip"><span class="dot"></span>${esc(t.title)}${t.link ? ` <a href="${esc(docHref(t.link))}" target="_blank" title="${esc(t.link)}">📄</a>` : ''}</span>`
+      ).join('') + `</div>`
+    : '';
+  // Graveyard: superseded topics keep their title, link and one-line "killed"
+  // reason — dead decisions are history, not garbage.
+  const graveyardHtml = graveyard.length
+    ? `<div id="graveyard"><span class="strip-label">Graveyard · ${graveyard.length}</span>` + graveyard.map(t =>
+        `<span class="strip-chip" title="${esc(t.killed || '')}"><span class="dot"></span>${esc(t.title)}${t.killed ? ` <i>— ${esc(t.killed)}</i>` : ''}${t.link ? ` <a href="${esc(docHref(t.link))}" target="_blank" title="${esc(t.link)}">📄</a>` : ''}</span>`
+      ).join('') + `</div>`
+    : '';
+  document.getElementById('canvas').innerHTML = S.join('');
+  // Shipped/Graveyard strips live outside #canvas so they don't scale/pan.
+  document.getElementById('canvas').insertAdjacentHTML('afterend', shippedHtml + graveyardHtml);
+
+  const svgEl = document.querySelector('#canvas svg');
+
+  // Hover a node → light up its full dependency chain (both directions),
+  // dim everything else. Instant class swap, no animation.
+  const fwd = {}, rev = {};
+  edges.forEach(e => {
+    (fwd[e.from] = fwd[e.from] || []).push(e.to);
+    (rev[e.to] = rev[e.to] || []).push(e.from);
+  });
+  const chainOf = id => {
+    const set = new Set([id]);
+    const walk = (n, map) => (map[n] || []).forEach(m => { if (!set.has(m)) { set.add(m); walk(m, map); } });
+    walk(id, fwd); walk(id, rev);
+    return set;
+  };
+  svgEl.querySelectorAll('.node').forEach(g => {
+    g.addEventListener('mouseenter', () => {
+      const lit = chainOf(g.dataset.id);
+      svgEl.classList.add('focus');
+      svgEl.querySelectorAll('.node').forEach(n => n.classList.toggle('lit', lit.has(n.dataset.id)));
+      svgEl.querySelectorAll('.edgeg').forEach(eg =>
+        eg.classList.toggle('lit', lit.has(eg.dataset.from) && lit.has(eg.dataset.to)));
+    });
+    g.addEventListener('mouseleave', () => svgEl.classList.remove('focus'));
+  });
+
+  // ================= Detail side panel (item 1) ======================
+  const detail = document.getElementById('detail');
+  const detailBody = document.getElementById('detail-body');
+  let pinnedNode = null, pinnedEdge = null;
+  const clearPins = () => {
+    svgEl.querySelectorAll('.node.pinned, .edgeg.pinned').forEach(el => el.classList.remove('pinned'));
+    pinnedNode = pinnedEdge = null;
+  };
+  const closeDetail = () => { detail.classList.remove('open'); clearPins(); };
+
+  const campLabel = key => (data.campaigns[key] || {}).label || key || '—';
+  const statusTag = s => s ? `<span class="d-tag" style="color:${STATUS[s] || '#94a3b8'}">${esc(s)}</span>` : '';
+
+  const renderTopicDetail = (t) => {
+    const ins = edges.filter(e => e.to === t.id);   // incoming deps (what t requires)
+    const outs = edges.filter(e => e.from === t.id); // outgoing (what requires t)
+    const go = isActionable(t);
+    let html = `<h2>${esc(t.title)}</h2>`;
+    if (t.sub) html += `<p class="d-sub">${esc(t.sub)}</p>`;
+    html += `<div class="d-meta">` +
+      `<span class="d-tag">${esc(campLabel(t.campaign))}</span>` +
+      statusTag(t.status) +
+      (go ? `<span class="d-tag" style="color:#4ade80">▶ READY</span>` : '') +
+      (t.focus ? `<span class="d-tag" style="color:#fbbf24">★ FOCUS</span>` : '') +
+      `</div>`;
+    if (t.link) html += `<p><a href="${esc(docHref(t.link))}" target="_blank">📄 ${esc(t.link)}</a></p>`;
+
+    if (t.features && t.features.length) {
+      html += `<h3>Features (${t.features.length})</h3>`;
+      t.features.forEach((f, i) => {
+        const bits = [];
+        if (f.status) bits.push(`<span style="color:${STATUS[f.status] || '#94a3b8'}">${esc(f.status)}</span>`);
+        if (f.spike) bits.push(`<span style="color:#fbbf24">⚠ spike (could invalidate)</span>`);
+        if (typeof f.open === 'number' && f.open > 0) bits.push(`<span style="color:#fbbf24">?${f.open} open question(s)</span>`);
+        if (f.status === 'superseded' && f.killed) bits.push(`killed: ${esc(f.killed)}`);
+        html += `<div class="feat"><div class="ft">${i + 1}. ${esc(f.title)}</div>` +
+          (bits.length ? `<div class="fm">${bits.join(' · ')}</div>` : '') +
+          (f.link ? `<div class="fm"><a href="${esc(docHref(f.link))}" target="_blank">📄 ${esc(f.link)}</a></div>` : '') +
+          `</div>`;
+      });
+    }
+
+    const depBlock = (list, dir) => {
+      // dir 'in' → requirements of t (endpoint = e.from); 'out' → dependants (endpoint = e.to).
+      if (!list.length) return `<div class="empty">none</div>`;
+      return list.map(e => {
+        const otherId = dir === 'in' ? e.from : e.to;
+        const other = byId[otherId] || { title: otherId };
+        // Feature-targeted dep: the anchored feature always lives in the dep
+        // TARGET topic (e.from — the required thing), regardless of which
+        // direction we're listing. Show "TopicTitle · FeatureTitle"; clicking
+        // still jumps to the topic.
+        const featTitle = e.feature ? ((byId[e.from].features || []).find(f => slug(f.title) === e.feature) || {}).title : null;
+        // The feature is in e.from. In "Requires" (dir='in') other IS e.from, so
+        // append the feature. In "Unblocks" (dir='out') the feature belongs to
+        // the current topic (e.from = t), not `other` — show it as "· needs: X".
+        const featSuffix = featTitle
+          ? (dir === 'in' ? ` <span style="color:#94a3b8;">· ${esc(featTitle)}</span>`
+                          : ` <span style="color:#94a3b8;">· needs feature: ${esc(featTitle)}</span>`)
+          : '';
+        const name = esc(other.title) + featSuffix;
+        return `<div class="dep clk" data-jump="${esc(otherId)}">` +
+          `<span class="dn">${name}</span>` +
+          `<span class="dk">${e.kind === 'chosen' ? 'chosen order' : (featTitle ? 'hard · feature' : 'hard')}</span>` +
+          (e.why ? `<div class="dw">${esc(e.why)}</div>` : '') +
+          `</div>`;
+      }).join('');
+    };
+    html += `<h3>Requires (${ins.length})</h3>${depBlock(ins, 'in')}`;
+    html += `<h3>Unblocks (${outs.length})</h3>${depBlock(outs, 'out')}`;
+    detailBody.innerHTML = html;
+    // Clicking a dep row jumps the pin to that topic.
+    detailBody.querySelectorAll('.dep[data-jump]').forEach(el =>
+      el.addEventListener('click', () => { const id = el.dataset.jump; if (byId[id]) pinNode(id); }));
+  };
+
+  const renderEdgeDetail = (e) => {
+    const from = byId[e.from], to = byId[e.to];
+    // The required feature (when present) lives in the dep TARGET = e.from.
+    const featTitle = e.feature ? ((from.features || []).find(f => slug(f.title) === e.feature) || {}).title : null;
+    let html = `<h2>Dependency</h2>`;
+    html += `<div class="d-meta"><span class="d-tag" style="color:#fbbf24">${e.kind === 'chosen' ? 'chosen order' : (featTitle ? `hard prerequisite (feature)` : 'hard prerequisite')}</span></div>`;
+    html += `<div class="dep clk" data-jump="${esc(e.from)}"><span class="dn">${esc(from.title)}${featTitle ? ` <span style="color:#94a3b8;">· ${esc(featTitle)}</span>` : ''}</span><div class="dw">is required by ↓</div></div>`;
+    html += `<div class="dep clk" data-jump="${esc(e.to)}"><span class="dn">${esc(to.title)}</span></div>`;
+    if (e.why) html += `<h3>Why</h3><p class="d-sub">${esc(e.why)}</p>`;
+    detailBody.innerHTML = html;
+    detailBody.querySelectorAll('.dep[data-jump]').forEach(el =>
+      el.addEventListener('click', () => { const id = el.dataset.jump; if (byId[id]) pinNode(id); }));
+  };
+
+  const pinNode = (id) => {
+    clearPins();
+    const g = svgEl.querySelector(`.node[data-id="${CSS.escape(id)}"]`);
+    if (g) g.classList.add('pinned');
+    pinnedNode = id;
+    renderTopicDetail(byId[id]);
+    detail.classList.add('open');
+  };
+  const pinEdge = (g) => {
+    clearPins();
+    g.classList.add('pinned');
+    pinnedEdge = g;
+    const e = edges.find(x => x.from === g.dataset.from && x.to === g.dataset.to);
+    if (e) renderEdgeDetail(e);
+    detail.classList.add('open');
+  };
+
+  svgEl.querySelectorAll('.node').forEach(g => {
+    g.addEventListener('click', ev => {
+      // Let real <a> spec links do their thing.
+      if (ev.target.closest('a')) return;
+      ev.stopPropagation();
+      pinNode(g.dataset.id);
+    });
+  });
+  svgEl.querySelectorAll('.edgeg').forEach(g => {
+    g.addEventListener('click', ev => { ev.stopPropagation(); pinEdge(g); });
+  });
+  document.getElementById('detail-close').addEventListener('click', closeDetail);
+  // Click empty SVG background unpins; Esc unpins (also handled by glossary Esc).
+  svgEl.addEventListener('click', ev => { if (ev.target === svgEl || ev.target.classList.contains('lane-bg')) closeDetail(); });
+  document.addEventListener('keydown', ev => {
+    if (ev.key === 'Escape' && detail.classList.contains('open') &&
+        !document.getElementById('glossary-backdrop').classList.contains('open')) closeDetail();
+  });
+
+  // ================= Zoom / fit / pan (item 3) =======================
+  // viewBox manipulation on the existing SVG. Keep the intrinsic width/height
+  // as the reference frame; pan/zoom just move the viewBox window over it.
+  const view = { x: 0, y: 0, w: W, h: H };
+  const applyView = () => {
+    svgEl.setAttribute('viewBox', `${view.x} ${view.y} ${view.w} ${view.h}`);
+    const z = W / view.w;
+    document.getElementById('zoom-label').textContent = Math.round(z * 100) + '%';
+  };
+  const fit = () => {
+    // Fit the whole diagram into the SVG's live on-screen box (CSS-sized),
+    // honoring its aspect — no attribute surgery, resize-safe.
+    const box = svgEl.getBoundingClientRect();
+    const vw = box.width || W, vh = box.height || H;
+    const scale = Math.min(vw / W, vh / H);
+    view.w = vw / scale; view.h = vh / scale;
+    view.x = (W - view.w) / 2; view.y = (H - view.h) / 2;
+    applyView();
+  };
+  window.addEventListener('resize', () => {
+    // Keep the current zoom level but re-match the viewBox aspect to the new
+    // on-screen box so the drawing never letterboxes or distorts.
+    const box = svgEl.getBoundingClientRect();
+    if (!box.width || !box.height) return;
+    const cx = view.x + view.w / 2, cy = view.y + view.h / 2;
+    view.h = view.w * (box.height / box.width);
+    view.x = cx - view.w / 2; view.y = cy - view.h / 2;
+    applyView();
+  });
+  const zoomBy = (factor, cx, cy) => {
+    // Zoom around (cx,cy) in viewBox coords so the point under the cursor stays put.
+    const nw = Math.min(W * 4, Math.max(W / 12, view.w / factor));
+    const nh = nw * (view.h / view.w);
+    view.x += (cx - view.x) * (1 - nw / view.w);
+    view.y += (cy - view.y) * (1 - nh / view.h);
+    view.w = nw; view.h = nh;
+    applyView();
+  };
+  const toViewCoords = (clientX, clientY) => {
+    const r = svgEl.getBoundingClientRect();
+    return { x: view.x + (clientX - r.left) / r.width * view.w,
+             y: view.y + (clientY - r.top) / r.height * view.h };
+  };
+  svgEl.addEventListener('wheel', ev => {
+    ev.preventDefault();
+    const pt = toViewCoords(ev.clientX, ev.clientY);
+    zoomBy(ev.deltaY < 0 ? 1.15 : 1 / 1.15, pt.x, pt.y);
+  }, { passive: false });
+  document.getElementById('zoom-in').addEventListener('click', () => zoomBy(1.25, view.x + view.w / 2, view.y + view.h / 2));
+  document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1 / 1.25, view.x + view.w / 2, view.y + view.h / 2));
+  document.getElementById('zoom-fit').addEventListener('click', fit);
+  // Drag-to-pan (mouse). A tiny threshold keeps click-to-pin working.
+  let panning = false, panStart = null, moved = false;
+  svgEl.addEventListener('mousedown', ev => {
+    if (ev.button !== 0) return;
+    panning = true; moved = false;
+    panStart = { x: ev.clientX, y: ev.clientY, vx: view.x, vy: view.y };
+  });
+  window.addEventListener('mousemove', ev => {
+    if (!panning) return;
+    const r = svgEl.getBoundingClientRect();
+    const dx = (ev.clientX - panStart.x) / r.width * view.w;
+    const dy = (ev.clientY - panStart.y) / r.height * view.h;
+    if (Math.abs(ev.clientX - panStart.x) + Math.abs(ev.clientY - panStart.y) > 4) { moved = true; svgEl.classList.add('panning'); }
+    view.x = panStart.vx - dx; view.y = panStart.vy - dy;
+    applyView();
+  });
+  window.addEventListener('mouseup', () => { panning = false; svgEl.classList.remove('panning'); });
+  // Swallow the click that ends a drag so it doesn't unpin/pin unexpectedly.
+  svgEl.addEventListener('click', ev => { if (moved) { ev.stopPropagation(); moved = false; } }, true);
+  fit();
+
+  // ================= Legend + filters (item 4) =======================
+  const allStatuses = [...topics, ...topics.flatMap(t => t.features || [])];
+  const counts = Object.keys(STATUS)
+    .map(k => `${allStatuses.filter(x => x.status === k).length} ${k}`)
+    .join(' · ');
+  // Leverage rank: among READY nodes, the top pick is the one that transitively
+  // unblocks the most downstream nodes (reuses the fwd edge map) — turns READY
+  // from "what's possible" into "what's worth touching tonight".
+  const downCount = id => {
+    const s = new Set();
+    const walk = n => (fwd[n] || []).forEach(m => { if (!s.has(m)) { s.add(m); walk(m); } });
+    walk(id);
+    return s.size;
+  };
+  const readyNodes = live.filter(isActionable)
+    .sort((a, b) => downCount(b.id) - downCount(a.id));
+  const readyCount = readyNodes.length;
+  // Campaign chips are filter toggles (data-filter-camp); status chips too
+  // (data-filter-status). Union semantics across selected chips.
+  const leg = Object.entries(data.campaigns || {}).map(([k, c]) =>
+    `<span class="chip" data-filter-camp="${esc(k)}"><span class="sw" style="background:${(COLORS[c.color] || COLORS.gray).stroke}"></span>${esc(c.label)}</span>`);
+  leg.push(...Object.entries(STATUS).map(([k, v]) =>
+    `<span class="chip" data-filter-status="${esc(k)}"><span class="sw" style="background:${v}; border-radius: 50%;"></span>${k}</span>`));
+  leg.push(`<span><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#94a3b8" stroke-width="1.5"/></svg> hard</span>`);
+  leg.push(`<span><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/></svg> chosen</span>`);
+  leg.push(`<span><svg width="26" height="10"><line x1="0" y1="5" x2="19" y2="5" stroke="#64748b" stroke-width="1"/><circle cx="21" cy="5" r="3" fill="#0f172a" stroke="#94a3b8" stroke-width="1.25"/></svg> requires a feature</span>`);
+  leg.push(`<span style="color:#fbbf24;">?n = open questions in subspec</span>`);
+  leg.push(`<span>⚠ dashed = spike (could invalidate)</span>`);
+  leg.push(`<span style="color:#4ade80;">▶ ${readyCount} ready${readyNodes.length ? ` · top: ${esc(readyNodes[0].title)} (unblocks ${downCount(readyNodes[0].id)})` : ''}</span>`);
+  leg.push(`<span id="clearfilter">✕ clear filters</span>`);
+  leg.push(`<span style="margin-left:auto;">${counts}</span>`);
+  document.getElementById('legend').innerHTML = leg.join('');
+
+  // Filter state: sets of selected campaigns + statuses. A node matches if it
+  // satisfies EVERY active dimension (campaign-set AND status-set); within a
+  // dimension it's a union. Empty selection = everything shown.
+  const selCamp = new Set(), selStatus = new Set();
+  const applyFilter = () => {
+    const active = selCamp.size || selStatus.size;
+    document.getElementById('clearfilter').classList.toggle('show', !!active);
+    const nodeMatches = g => {
+      const cOk = !selCamp.size || selCamp.has(g.dataset.campaign);
+      const sOk = !selStatus.size || selStatus.has(g.dataset.status);
+      return cOk && sOk;
+    };
+    const shown = new Set();
+    svgEl.querySelectorAll('.node').forEach(g => {
+      const ok = !active || nodeMatches(g);
+      g.classList.toggle('dimmed', active && !ok);
+      if (ok) shown.add(g.dataset.id);
+    });
+    // An edge stays lit only if BOTH endpoints are shown.
+    svgEl.querySelectorAll('.edgeg').forEach(eg =>
+      eg.classList.toggle('dimmed', active && !(shown.has(eg.dataset.from) && shown.has(eg.dataset.to))));
+  };
+  document.getElementById('legend').querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (chip.dataset.filterCamp != null) {
+        const k = chip.dataset.filterCamp;
+        selCamp.has(k) ? selCamp.delete(k) : selCamp.add(k);
+      } else if (chip.dataset.filterStatus != null) {
+        const k = chip.dataset.filterStatus;
+        selStatus.has(k) ? selStatus.delete(k) : selStatus.add(k);
+      }
+      chip.classList.toggle('on');
+      applyFilter();
+    });
+  });
+  document.getElementById('clearfilter').addEventListener('click', () => {
+    selCamp.clear(); selStatus.clear();
+    document.getElementById('legend').querySelectorAll('.chip.on').forEach(c => c.classList.remove('on'));
+    applyFilter();
+  });
+}).catch(e => {
+  document.getElementById('canvas').innerHTML =
+    `<p style="padding: 20px; color: #f87171;">Failed to load topics.json: ${e.message}</p>`;
+});
+
+// ---- Doc overlay (glossary + agent prompts) ---------------------------
+(() => {
+  // Registry: header link id → repo-relative doc path + whether the copy
+  // toolbar shows (prompts get it — they exist to be handed to agents).
+  const DOCS = {
+    'glossary-link':    { path: 'tools/agora/GLOSSARY.md',             copy: false },
+    'grillprompt-link': { path: 'tools/agora/PLANMAP-GRILL-PROMPT.md', copy: true },
+  };
+  const backdrop = document.getElementById('glossary-backdrop');
+  const panel = document.getElementById('glossary-panel');
+  const body = document.getElementById('glossary-body');
+  const closeBtn = document.getElementById('glossary-close');
+  const tools = document.getElementById('glossary-tools');
+  const escGlossary = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const cache = {}; // path → { html, raw }
+  let current = null; // the DOCS entry currently shown
+
+  // Portability (item 5): same /@fs base derivation as the main script, so no
+  // hardcoded /Aralia or F:/Repos/Aralia when the main script hasn't run yet.
+  const appBase = (() => {
+    const m = location.pathname.match(/^(.*?)\/planmap\//);
+    return (m && m[1]) || '/Aralia';
+  })();
+
+  // Small hand-rolled markdown -> HTML converter, covering only what
+  // GLOSSARY.md actually uses: # / ## headings, **bold**, `code`, bullet
+  // lists (with multi-line continuation), and paragraphs.
+  const inline = raw => escGlossary(raw)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+
+  const mdToHtml = md => {
+    const lines = md.replace(/\r\n/g, '\n').split('\n');
+    const out = [];
+    let i = 0;
+    let listOpen = false;
+    const closeList = () => { if (listOpen) { out.push('</ul>'); listOpen = false; } };
+    while (i < lines.length) {
+      const line = lines[i];
+      if (/^\s*$/.test(line)) { i++; continue; }
+      // Fenced code blocks (```), rendered verbatim.
+      if (/^```/.test(line)) {
+        closeList();
+        const code = [];
+        i++;
+        while (i < lines.length && !/^```/.test(lines[i])) { code.push(lines[i]); i++; }
+        i++; // closing fence
+        out.push(`<pre><code>${escGlossary(code.join('\n'))}</code></pre>`);
+        continue;
+      }
+      // Blockquotes (> ...), consecutive lines merged.
+      if (/^>\s?/.test(line)) {
+        closeList();
+        const quote = [];
+        while (i < lines.length && /^>\s?/.test(lines[i])) {
+          quote.push(lines[i].replace(/^>\s?/, ''));
+          i++;
+        }
+        out.push(`<blockquote>${inline(quote.join(' '))}</blockquote>`);
+        continue;
+      }
+      const h1 = line.match(/^#\s+(.*)$/);
+      const h2 = line.match(/^##\s+(.*)$/);
+      const bullet = line.match(/^-\s+(.*)$/);
+      if (h1) {
+        closeList();
+        out.push(`<h1>${inline(h1[1])}</h1>`);
+        i++;
+      } else if (h2) {
+        closeList();
+        out.push(`<h2>${inline(h2[1])}</h2>`);
+        i++;
+      } else if (bullet) {
+        if (!listOpen) { out.push('<ul>'); listOpen = true; }
+        let text = bullet[1];
+        i++;
+        // Continuation lines: indented (or plain) non-blank lines that
+        // aren't the start of a new bullet/heading belong to this item.
+        while (i < lines.length && /\S/.test(lines[i]) &&
+               !/^\s*-\s+/.test(lines[i]) && !/^#{1,2}\s+/.test(lines[i])) {
+          text += ' ' + lines[i].trim();
+          i++;
+        }
+        out.push(`<li>${inline(text)}</li>`);
+      } else {
+        closeList();
+        let text = line;
+        i++;
+        while (i < lines.length && /\S/.test(lines[i]) &&
+               !/^\s*-\s+/.test(lines[i]) && !/^#{1,2}\s+/.test(lines[i])) {
+          text += ' ' + lines[i].trim();
+          i++;
+        }
+        out.push(`<p>${inline(text)}</p>`);
+      }
+    }
+    closeList();
+    return out.join('');
+  };
+
+  const docUrl = path => (window.docHref
+    ? window.docHref(path)
+    : appBase + '/@fs/' + (window.repoRoot || 'F:/Repos/Aralia') + '/' + path);
+  // Windows absolute path, for handing to an agent ("read this file").
+  const absPath = path => ((window.repoRoot || 'F:/Repos/Aralia') + '/' + path).replace(/\//g, '\\');
+
+  const loadDoc = (doc) => {
+    if (cache[doc.path]) return Promise.resolve(cache[doc.path]);
+    if (doc._pending) return doc._pending;
+    const url = docUrl(doc.path);
+    doc._pending = fetch(url).then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.text();
+    }).then(text => {
+      cache[doc.path] = { html: mdToHtml(text), raw: text };
+      return cache[doc.path];
+    }).finally(() => { doc._pending = null; });
+    return doc._pending;
+  };
+
+  const openModal = (doc) => {
+    current = doc;
+    backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    tools.style.display = doc.copy ? 'flex' : 'none';
+    const hit = cache[doc.path];
+    if (hit) { body.innerHTML = hit.html; return; }
+    body.innerHTML = '<p class="muted">Loading…</p>';
+    loadDoc(doc).then(entry => {
+      if (current === doc) body.innerHTML = entry.html;
+    }).catch(e => {
+      if (current !== doc) return;
+      body.innerHTML = `<p class="err">Failed to load document: ${escGlossary(e.message)}</p>` +
+        `<p><a href="${escGlossary(docUrl(doc.path))}" target="_blank">Open raw file</a></p>`;
+    });
+  };
+
+  // The first /@fs fetch after a page load is SLOW (several seconds through
+  // the dev middleware) — prefetch both docs in the background so the first
+  // click opens instantly from cache.
+  setTimeout(() => { for (const doc of Object.values(DOCS)) loadDoc(doc).catch(() => {}); }, 1200);
+
+  const closeModal = () => {
+    backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  const flash = (btn, ok) => {
+    const old = btn.textContent;
+    btn.textContent = ok ? '✓ Copied' : '✗ Copy failed';
+    setTimeout(() => { btn.textContent = old; }, 1500);
+  };
+  document.getElementById('copy-path').addEventListener('click', e => {
+    if (!current) return;
+    navigator.clipboard.writeText(absPath(current.path))
+      .then(() => flash(e.target, true), () => flash(e.target, false));
+  });
+  document.getElementById('copy-content').addEventListener('click', e => {
+    if (!current) return;
+    const hit = cache[current.path];
+    if (!hit) { flash(e.target, false); return; }
+    navigator.clipboard.writeText(hit.raw)
+      .then(() => flash(e.target, true), () => flash(e.target, false));
+  });
+
+  for (const [id, doc] of Object.entries(DOCS)) {
+    const link = document.getElementById(id);
+    if (!link) continue;
+    link.addEventListener('click', e => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; // let middle/modified clicks through
+      e.preventDefault();
+      openModal(doc);
+    });
+  }
+  closeBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && backdrop.classList.contains('open')) closeModal();
+  });
+})();
+</script>
+</body>
+</html>

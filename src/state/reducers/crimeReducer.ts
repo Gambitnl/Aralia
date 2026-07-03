@@ -33,7 +33,6 @@ const getGuildMembershipOrDefault = (guild: GameState['thievesGuild'] | undefine
         servicesUnlocked: [],
     };
     if (!guild) {
-        // TODO(2026-01-03 pass 4 Codex-CLI): placeholder guild membership to satisfy type expectations; replace once thieves guild state is guaranteed before these actions.
         return fallback;
     }
     return {

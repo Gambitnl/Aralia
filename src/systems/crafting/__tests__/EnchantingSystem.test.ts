@@ -3,8 +3,7 @@
  * Tests for the Enchanting System mechanics.
  */
 import { describe, it, expect } from 'vitest';
-// TODO(lint-intent): 'EnchantingResult' is unused in this test; use it in the assertion path or remove it.
-import { attemptEnchant, EnchantingResult as _EnchantingResult } from '../EnchantingSystem';
+import { attemptEnchant } from '../EnchantingSystem';
 import { Recipe } from '../types';
 import { Crafter } from '../craftingSystem';
 

@@ -84,11 +84,9 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
   castAtLevel: 1,
   caster,
   targets,
-  // TODO(lint-intent): Provide minimal game state; expand when condition effects need richer world data.
   gameState: createMockGameState({
     party: [caster, ...targets].map(character => ({
       ...createMockPlayerCharacter({ id: character.id, name: character.name }),
-      // TODO: sync condition mirrors between player + combat actors when state shapes converge.
     })),
     currentLocationId: 'arena',
 

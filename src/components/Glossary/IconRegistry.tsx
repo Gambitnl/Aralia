@@ -132,7 +132,7 @@ export type GlossaryIconName =
     | 'emoticon_kiss' | 'emoticon_kiss_outline'
     | 'emoticon_devil' | 'emoticon_devil_outline'
     | 'settings_heart' | 'sparkle' | 'creation' | 'terrain'
-    // TODO: The following condition icons are in this type but have no SVG definitions in the icons object.
+    // TODO #82: The following condition icons are in this type but have no SVG definitions in the icons object.
     // Either add the actual SVG paths from MDI, or remove them from this type to prevent fallback rendering.
     | 'eye_off' | 'ear_hearing_off' | 'hand_back_right' | 'wheelchair_accessibility'
     | 'eye_outline' | 'flash_off' | 'account_box_outline' | 'human_prone' | 'speedometer_slow'

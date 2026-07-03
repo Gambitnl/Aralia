@@ -17,7 +17,7 @@ describe('hostile provenance', () => {
       expect(hasAnchorSource).toBe(true);
       expect(verdicts.every((v) => v.state === 'inherited')).toBe(true);
     }
-  });
+  }, 30_000); // first test pays the full drill-path fixture build
 });
 
 describe('feature provenance', () => {

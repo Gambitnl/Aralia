@@ -2,6 +2,7 @@ import type { AbilityScoreName, AbilityScores } from './core.js';
 import type { MagicItemProperties } from './magicItems.js';
 import type { ItemProvenance } from './provenance.js';
 import type { ItemVisualSpec } from './visuals.js';
+import type { DamageType } from './spellDamageMetadata.js';
 /**
  * Equipment and inventory focused types.
  */
@@ -60,6 +61,7 @@ export declare enum ItemType {
     Book = "book",
     Map = "map",
     Scroll = "scroll",
+    Reagent = "reagent",
     Key = "key",
     SpellComponent = "spell_component",
     CraftingMaterial = "crafting_material",
@@ -86,7 +88,7 @@ export type ItemEffect = {
     duration?: number;
 } | {
     type: 'damage';
-    damageType: string;
+    damageType: DamageType;
     dice: string;
     value?: number;
 } | {
@@ -108,10 +110,8 @@ export interface Item {
     /**
      * The classification of the item.
      * Prefer using ItemType enum values.
-     *
-     * // TODO(Taxonomist): Refactor codebase to strictly use ItemType enum and remove magic strings
      */
-    type: ItemType | 'weapon' | 'armor' | 'accessory' | 'clothing' | 'consumable' | 'potion' | 'food_drink' | 'poison_toxin' | 'tool' | 'light_source' | 'ammunition' | 'trap' | 'note' | 'book' | 'map' | 'scroll' | 'key' | 'spell_component' | 'reagent' | 'crafting_material' | 'treasure';
+    type: ItemType;
     /**
      * The rarity of the item.
      * Controls value, color coding, and availability.
@@ -144,7 +144,7 @@ export interface Item {
     stealthDisadvantage?: boolean;
     armorClassBonus?: number;
     damageDice?: string;
-    damageType?: string;
+    damageType?: DamageType;
     properties?: string[];
     isMartial?: boolean;
     donTime?: string;

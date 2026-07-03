@@ -103,7 +103,7 @@ export function operateMechanism(
     message = `You activate the ${mechanism.name}.`;
   }
 
-  // TODO(Lockpick): Connect this mechanism system to the Submap tile interaction layer so players can click levers in the dungeon.
+  // TODO #896(Lockpick): Connect this mechanism system to the Submap tile interaction layer so players can click levers in the dungeon.
 
   return {
     success: true,

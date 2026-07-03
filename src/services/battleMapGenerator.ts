@@ -163,7 +163,6 @@ export class BattleMapGenerator {
     for (let i = 0; i < numObstacles && i < validTilesForObstacles.length; i++) {
         const tile = validTilesForObstacles[i];
         const obstacleType = config.types[Math.floor(this.random.next() * config.types.length)];
-        // TODO(2026-01-03 Codex-CLI): Add a proper obstacle config type; cast for now to keep generator stable under strict typing.
         this.addObstacle(tile, obstacleType as BattleMapDecoration);
     }
   }

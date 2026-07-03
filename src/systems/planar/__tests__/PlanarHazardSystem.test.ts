@@ -1,12 +1,9 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-// TODO(lint-intent): 'HazardOutcome' is unused in this test; use it in the assertion path or remove it.
-import { PlanarHazardSystem, HazardOutcome as _HazardOutcome } from '../PlanarHazardSystem';
+import { PlanarHazardSystem } from '../PlanarHazardSystem';
 import { CombatCharacter, GameState, Location, PlayerCharacter } from '../../../types';
 import { Plane } from '../../../types/planes';
 import { getCurrentPlane } from '../../../utils/planarUtils';
-// TODO(lint-intent): 'createPlayerCombatCharacter' is unused in this test; use it in the assertion path or remove it.
-import { createPlayerCombatCharacter as _createPlayerCombatCharacter } from '../../../utils/combatUtils';
 import { rollSavingThrow } from '../../../utils/savingThrowUtils';
 import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
 
@@ -20,7 +17,6 @@ vi.mock('../../../utils/combatUtils', async (importOriginal) => {
     return {
         ...actual,
         rollDice: vi.fn().mockReturnValue(3), // Fixed roll for predictability
-        // TODO(2026-01-03 pass 4 Codex-CLI): Mocked combat character is partial; tighten once hazards require more fields.
         createPlayerCombatCharacter: vi.fn().mockReturnValue({
             id: 'p1',
             stats: { wisdom: 10, constitution: 10 }
@@ -120,7 +116,6 @@ describe('PlanarHazardSystem', () => {
     });
 
     // Mock failed save
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
     vi.mocked(rollSavingThrow).mockReturnValue(makeSaveResult(false, 10));
 
     const result = PlanarHazardSystem.processPeriodicHazards(mockGameState, 1);
@@ -148,7 +143,6 @@ describe('PlanarHazardSystem', () => {
     });
 
     // Mock successful save
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
     vi.mocked(rollSavingThrow).mockReturnValue(makeSaveResult(true, 20));
 
     const result = PlanarHazardSystem.processPeriodicHazards(mockGameState, 1);

@@ -43,15 +43,20 @@
     // show a notice and reload up to 2 times instead of staying black.
     (function () {
       var RETRY_KEY = 'aralia-mount-retries';
-      var LOG_KEY = 'aralia-mount-recovery-log';
-      // Persist recovery events to localStorage so the Dev Menu's Startup
-      // Recovery Log can show whether the guard ever fired (sessionStorage
-      // would vanish with the tab; the whole point is later visibility).
+      // The Dev Menu's shared Debug Log — key + entry shape must stay in sync
+      // with src/utils/debugLog.ts (this script runs pre-modules, no imports).
+      // Persisted to localStorage so the Dev Menu can show whether the guard
+      // ever fired (sessionStorage would vanish with the tab; the whole point
+      // is later visibility).
+      var DEBUG_LOG_KEY = 'aralia-debug-log';
       function logEvent(event, attempt) {
         try {
-          var log = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
-          log.push({ time: new Date().toISOString(), event: event, attempt: attempt, url: location.pathname + location.search });
-          localStorage.setItem(LOG_KEY, JSON.stringify(log.slice(-50)));
+          var message = event === 'retry' ? 'App failed to mount — self-heal retry #' + attempt
+            : event === 'recovered' ? 'App recovered after ' + attempt + (attempt === 1 ? ' retry' : ' retries')
+            : 'App failed to mount after ' + attempt + ' retries — gave up';
+          var dbg = JSON.parse(localStorage.getItem(DEBUG_LOG_KEY) || '[]');
+          dbg.push({ time: new Date().toISOString(), category: 'startup-recovery', message: message, data: { event: event, attempt: attempt, url: location.pathname + location.search } });
+          localStorage.setItem(DEBUG_LOG_KEY, JSON.stringify(dbg.slice(-100)));
         } catch (_) { /* storage unavailable; guard still works without the log */ }
       }
       window.addEventListener('load', function () {

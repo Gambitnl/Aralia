@@ -2,8 +2,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { generateGeneralActionContext } from '../contextUtils';
 import { GameState, PlayerCharacter, NPC, Location, GamePhase } from '../../../types';
-// TODO(lint-intent): 'BIOMES' is unused in this test; use it in the assertion path or remove it.
-import { BIOMES as _BIOMES, ITEMS as _ITEMS } from '../../../constants';
+import { ITEMS as _ITEMS } from '../../../constants';
 
 // Mock constants
 vi.mock('../../../constants', () => ({

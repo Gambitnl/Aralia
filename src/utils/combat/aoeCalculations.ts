@@ -41,16 +41,7 @@
  */
 
 import { Position } from '../../types/combat';
-// TODO(lint-intent): 'normalizeAngle' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-//
-// IMPROVEMENT OPPORTUNITY: Unused import suggests incomplete angle normalization implementation.
-// Consider:
-// 1. Implementing angle normalization for consistent directional calculations
-// 2. Removing the import to reduce module complexity
-// 3. Adding angle normalization utilities for better directional consistency
-import { compassToMathAngle, degreesToRadians, normalizeAngle as _normalizeAngle, getAngleBetweenPositions } from '../spatial/geometry';
+import { compassToMathAngle, degreesToRadians, getAngleBetweenPositions } from '../spatial/geometry';
 
 export type AoEShape = "Sphere" | "Cone" | "Cube" | "Line" | "Cylinder";
 
@@ -124,7 +115,7 @@ const TILE_SIZE = 5; // feet
  * });
  */
 export function calculateAffectedTiles(params: AoEParams): Position[] {
-    // TODO: Future: Support gridless (Euclidean) AoE for non-tile maps by returning a polygon instead of tile list.
+    // TODO #1306: Future: Support gridless (Euclidean) AoE for non-tile maps by returning a polygon instead of tile list.
     switch (params.shape) {
         case 'Sphere':
         case 'Cylinder': // 2D projection of Cylinder is a Circle/Sphere

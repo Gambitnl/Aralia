@@ -1,10 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
 import { PlanarService } from '../PlanarService';
-// TODO(lint-intent): 'PLANES' is unused in this test; use it in the assertion path or remove it.
-import { PLANES as _PLANES } from '../../../data/planes';
-// TODO(lint-intent): 'GameState' is unused in this test; use it in the assertion path or remove it.
-import { GameState as _GameState } from '../../../types/index';
 import { createMockGameState } from '../../../utils/factories';
 
 describe('PlanarService', () => {

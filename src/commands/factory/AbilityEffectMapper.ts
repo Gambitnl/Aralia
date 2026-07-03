@@ -1,5 +1,6 @@
 import { AbilityEffect } from '@/types/combat';
 import { SpellEffect, DamageType, ConditionName } from '@/types/spells';
+import { ConditionType } from '@/types/conditions';
 
 // This mapper is the bridge between lightweight battle-map abilities and the
 // shared spell-effect command pipeline. Monster attacks and simple combat
@@ -17,6 +18,16 @@ const getEffectMagnitudeFormula = (abilityEffect: AbilityEffect): string => {
   // whose magnitude is supplied by a later mechanic. This keeps old scaffolding
   // mappable without pretending missing damage data is valid damage.
   return '0';
+};
+
+const KNOWN_CONDITION_NAMES: ReadonlySet<ConditionName> = new Set([
+  ...Object.values(ConditionType),
+  'Slowed',
+  'Slasher Slow',
+]);
+
+const normalizeConditionName = (name: string): ConditionName | undefined => {
+  return KNOWN_CONDITION_NAMES.has(name as ConditionName) ? (name as ConditionName) : undefined;
 };
 
 export class AbilityEffectMapper {
@@ -43,13 +54,16 @@ export class AbilityEffectMapper {
         };
       case 'status':
         if (!abilityEffect.statusEffect) return null;
+
+        const statusConditionName = normalizeConditionName(abilityEffect.statusEffect.name);
+        if (!statusConditionName) return null;
+
         return {
           type: 'STATUS_CONDITION',
           trigger: { type: 'immediate' },
           condition: { type: 'always' },
           statusCondition: {
-            // TODO(next-agent): Preserve behavior; enforce ConditionName at the AbilityEffect source to remove this cast.
-            name: abilityEffect.statusEffect.name as ConditionName,
+            name: statusConditionName,
             duration: { type: 'rounds', value: abilityEffect.statusEffect.duration },
           },
         };

@@ -223,9 +223,6 @@ const applyImmediateAbilityTurnEffects = (
 
   // Disengage is represented as a one-turn status marker because the existing
   // opportunity-attack detector already checks statusEffects for this flag.
-  // TODO(next-agent): Replace this marker with a first-class condition once
-  // reaction prevention, forced movement, and teleport movement all share one
-  // movement-event model.
   if (isDisengageAbility(ability)) {
     const alreadyDisengaged = updatedCharacter.statusEffects.some(effect => effect.id === 'disengage' || effect.name === 'Disengage');
 
@@ -1064,7 +1061,7 @@ export const useActionExecutor = ({
   // Emits combat events and resolves reactive triggers (e.g., on_target_attack)
   // that fire after an ability is used. Kept separate from the resource-spending
   // path so reactive logic doesn't inflate the main coordinator.
-  // TODO(Ritualist): Check if ability has ritual tag or long casting time.
+  // TODO #273(Ritualist): Check if ability has ritual tag or long casting time.
   //   If so, do not execute immediately. Instead, call startRitual() and assign
   //   to updatedCharacter.currentRitual. See src/systems/rituals/RitualManager.ts
   // ============================================================================
@@ -1124,7 +1121,7 @@ export const useActionExecutor = ({
   // Validates, spends resources, applies immediate effects, then delegates to
   // the appropriate handler. Each handler is independently testable and carries
   // its own focused dependency set.
-  // TODO(lint-intent): If map data can churn frequently, wrap executeAction with
+  // TODO #274(lint-intent): If map data can churn frequently, wrap executeAction with
   //   a map snapshot to reduce recalculations.
   // ============================================================================
   const executeAction = useCallback(async (action: CombatAction): Promise<boolean> => {

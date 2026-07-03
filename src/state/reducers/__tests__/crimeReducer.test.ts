@@ -1,8 +1,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { crimeReducer } from '../crimeReducer';
-// TODO(lint-intent): 'GamePhase' is unused in this test; use it in the assertion path or remove it.
-import { GameState, CrimeType, GamePhase as _GamePhase } from '../../../types';
+import { GameState, CrimeType } from '../../../types';
 import { initialGameState } from '../../appState';
 
 describe('crimeReducer', () => {

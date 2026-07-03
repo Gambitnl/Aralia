@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-// TODO(lint-intent): 'ArbitrationRequest' is unused in this test; use it in the assertion path or remove it.
-import { aiSpellArbitrator, ArbitrationRequest as _ArbitrationRequest } from '../AISpellArbitrator';
+import { aiSpellArbitrator } from '../AISpellArbitrator';
 import { Spell, SpellSchool } from '@/types/spells';
 import { CombatCharacter, CombatState } from '@/types/combat';
 import { GameState } from '@/types';
@@ -39,20 +38,17 @@ describe('AISpellArbitrator', () => {
     position: { x: 10, y: 10 },
     stats: { currentHP: 10, maxHP: 10 },
     team: 'player'
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
   } as unknown as CombatCharacter;
 
   const mockGameState: GameState = {
     currentLocation: 'forest_clearing',
     timeOfDay: 'day',
     weather: 'clear'
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
   } as unknown as GameState;
 
   const mockCombatState: CombatState = {
     turnState: { currentTurn: 1 },
     characters: [mockCaster]
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
   } as unknown as CombatState;
 
   beforeEach(() => {

@@ -14,8 +14,6 @@
  */
 // @dependencies-end
 
-// TODO: Add comprehensive unit and integration tests for combat mechanics, attack resolution, and damage calculation
-
 /**
  * This file implements the event emitter for all attack-related actions in combat.
  *
@@ -162,7 +160,6 @@ export class AttackEventEmitter {
 }
 
 export const attackEvents = AttackEventEmitter.getInstance();
-
 
 
 

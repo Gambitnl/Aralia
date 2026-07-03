@@ -53,7 +53,7 @@ const Tooltip: React.FC<TooltipProps> = ({
 
   const tooltipId = useId();
 
-  // TODO(QOL): Exercise extreme edge/corner placements and refine margin/flip rules if any clipping persists (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
+  // TODO #164(QOL): Exercise extreme edge/corner placements and refine margin/flip rules if any clipping persists (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
   const calculateAndSetPosition = useCallback(() => {
     if (!triggerRef.current || !tooltipRef.current) {
       setIsVisible(false);

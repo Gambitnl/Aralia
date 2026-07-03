@@ -32,6 +32,14 @@ export const OPEN_STATUSES = new Set([
   'design_decision_deferred',
 ]);
 
+/** Statuses that mean "no further work owed HERE" (done, declined, or moved).
+ *  Anything in neither set is UNRECOGNIZED — callers must surface it, not
+ *  silently bucket it (WF-G13: `routed` etc. were invisible to reconcile). */
+export const CLOSED_STATUSES = new Set([
+  'resolved', 'done', 'complete', 'closed', 'wont_fix', 'out_of_scope',
+  'routed', 'merged-reference', 'archived',
+]);
+
 // Loose header matching: lowercase, strip non-alphanumerics, then prefix-match.
 function normHeader(h) {
   return String(h).toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -163,6 +171,40 @@ export function indexGaps({ root, openOnly = false, onError } = {}) {
     }
   }
   return gaps;
+}
+
+/**
+ * Rewrite ONE gap row in a GAPS.md registry (the tracker close-loop's write
+ * half, WF-G3): set its status cell and append evidence to the evidence cell.
+ * Column positions come from that file's own header (orders vary per project).
+ * Returns true if the row was found and rewritten; false if the id is absent.
+ */
+export function updateGapRow(file, gapId, { status, appendEvidence } = {}) {
+  const raw = fs.readFileSync(file, 'utf8');
+  const lines = raw.split(/\r?\n/);
+  let cols = null;
+  let changed = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!/^\s*\|/.test(line)) { if (cols) break; continue; }
+    const cells = splitRow(line);
+    if (!cols) {
+      const candidate = mapColumns(cells);
+      if (candidate.id !== undefined && candidate.status !== undefined) cols = candidate;
+      continue;
+    }
+    if (isDividerRow(cells)) continue;
+    if ((cells[cols.id] || '').trim() !== gapId) continue;
+    if (status && cols.status !== undefined) cells[cols.status] = status;
+    if (appendEvidence && cols.evidence !== undefined) {
+      cells[cols.evidence] = `${cells[cols.evidence] || ''}${cells[cols.evidence] ? '; ' : ''}${appendEvidence}`.trim();
+    }
+    lines[i] = `| ${cells.join(' | ')} |`;
+    changed = true;
+    break;
+  }
+  if (changed) fs.writeFileSync(file, lines.join('\n'));
+  return changed;
 }
 
 // ---------------------------------------------------------------- CLI

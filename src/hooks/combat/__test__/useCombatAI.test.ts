@@ -1,5 +1,4 @@
-// TODO(lint-intent): 'waitFor' is unused in this test; use it in the assertion path or remove it.
-import { renderHook, act, waitFor as _waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useCombatAI } from '../useCombatAI';
 import { CombatCharacter, BattleMapData } from '../../../types/combat';

@@ -38,7 +38,6 @@ export interface Faction {
   description: string;
   type: FactionType;
   motto?: string;
-  // TODO(Materializer): Refactor Faction interface to integrate FactionVisualSpec for standardized asset handling.
   symbolIcon?: string; // Icon name
   colors: {
     primary: string;
@@ -93,8 +92,6 @@ export interface PlayerFactionStanding {
   renown: number; // General fame within the faction
   history: ReputationEvent[]; // Chronological log of reputation changes
 }
-
-// TODO(Intriguer): Display this reputation history in the Faction Detail UI.
 
 export interface FactionReputationChange {
   factionId: string;

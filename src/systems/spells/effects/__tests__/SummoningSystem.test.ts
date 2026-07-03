@@ -7,6 +7,20 @@ import { Spell, SpellSchool } from '../../../../types/spells';
 import { Class } from '../../../../types/character';
 type SummonEffectInput = Parameters<ReturnType<typeof useSummons>['addSummon']>[2];
 
+const mockClass: Class = {
+    id: 'wizard',
+    name: 'Wizard',
+    description: '',
+    hitDie: 8,
+    primaryAbility: ['Intelligence'],
+    savingThrowProficiencies: ['Intelligence', 'Wisdom'],
+    skillProficienciesAvailable: ['Arcana'],
+    numberOfSkillProficiencies: 2,
+    armorProficiencies: [],
+    weaponProficiencies: [],
+    features: []
+}
+
 // Mock dependencies
 const mockCaster: CombatCharacter = {
     id: 'caster-1',
@@ -27,8 +41,7 @@ const mockCaster: CombatCharacter = {
     statusEffects: [],
     conditions: [],
     level: 5,
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    class: 'Wizard' as unknown as Class,
+    class: mockClass,
     initiative: 12,
     actionEconomy: {
       action: { used: false, remaining: 1 },

@@ -33,7 +33,6 @@ export const useCharacterProficiencies = (character: PlayerCharacter | null): Ch
     if (character.background && BACKGROUNDS[character.background]) {
       const bg = BACKGROUNDS[character.background] as { toolProficiencies?: unknown; languages?: unknown };
       const bgTools: string[] = Array.isArray(bg.toolProficiencies) ? bg.toolProficiencies : [];
-      // TODO(2026-01-03 Codex-CLI): BACKGROUNDS data typing is loose; normalize to string[] until schemas are strict.
       const bgLangs: string[] = Array.isArray(bg.languages) ? (bg.languages as string[]) : [];
       bgTools.forEach((t: string) => toolProfs.add(t.replace(/_/g, ' ')));
       (bgLangs ?? []).forEach((lang: string) => langProfs.add(lang));
@@ -49,17 +48,12 @@ export const useCharacterProficiencies = (character: PlayerCharacter | null): Ch
         const selectedLanguages: string[] = Array.isArray(choices.selectedLanguages)
           ? choices.selectedLanguages
           : Object.values(choices.selectedLanguages ?? {}) as string[];
-        // TODO(2026-01-03 Codex-CLI): featChoices shape is uneven across feats; normalize to arrays in data layer.
         selectedTools.forEach((t: string) => toolProfs.add(t));
         selectedLanguages.forEach((l: string) => langProfs.add(l));
       }
       
       // Fixed benefits from feats (not choices)
-      // TODO(lint-intent): 'feat' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-      // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-      // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-      const _feat = FEATS_DATA.find(f => f.id === featId);
-      // TODO: add logic for fixed feat tool/lang benefits if any added to data
+      // TODO #320: add logic for fixed feat tool/lang benefits if any added to data
     });
 
     // 3. Tools from Class Features

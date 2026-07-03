@@ -28,7 +28,6 @@ Migrate these spells (Level {N}):
 - Template item: {spell-3}
 - Template item: {spell-4}
 - Template item: {spell-5}
-<!-- TODO: Add an explicit step to update class spell lists in src/data/classes/index.ts when new spells are introduced, mirroring acceptance criteria. -->
 
 ---
 

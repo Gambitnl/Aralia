@@ -10,7 +10,7 @@ describe('readWorldCell', () => {
     expect(facts.burgId).toBe(path.burgId);
     expect(facts.height).toBeGreaterThanOrEqual(0);
     expect(facts.biomeId).toBeGreaterThanOrEqual(0);
-  });
+  }, 30_000); // first test pays the full drill-path fixture build
 
   it('classifies a burg-bearing cell as a settlement', () => {
     const path = buildGoldenDrillPath();

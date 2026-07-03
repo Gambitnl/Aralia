@@ -185,7 +185,7 @@ export async function handleOpenDynamicMerchant({
         id: resolvedBuildingId, // Use building ID as NPC ID for simple 1-to-1 mapping
         role: 'merchant',
         occupation: merchantType.replace('shop_', '').replace('_', ' '), // e.g. shop_blacksmith -> blacksmith
-        // TODO: In future, derive race/level from Town data (wealth/biome)
+        // TODO #254: In future, derive race/level from Town data (wealth/biome)
       };
 
       npc = generateNPC(config);

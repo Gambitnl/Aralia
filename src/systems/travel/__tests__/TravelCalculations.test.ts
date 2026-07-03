@@ -1,22 +1,15 @@
 
 import { describe, it, expect } from 'vitest';
-import {
-  calculateEncumbrance,
-  calculateGroupTravelStats,
-  calculateForcedMarchStatus,
-  // TODO(lint-intent): 'PACE_MODIFIERS' is unused in this test; use it in the assertion path or remove it.
-  PACE_MODIFIERS as _PACE_MODIFIERS
-} from '../TravelCalculations';
+import { calculateEncumbrance, calculateGroupTravelStats, calculateForcedMarchStatus } from '../TravelCalculations';
 import { Item } from '../../../types/items';
 import { PlayerCharacter, AbilityScores, AbilityScoreName } from '../../../types/character';
-// TODO(lint-intent): 'TravelVehicle' is unused in this test; use it in the assertion path or remove it.
-import { TravelVehicle as _TravelVehicle, STANDARD_VEHICLES } from '../../../types/travel';
+// TODO #1102(lint-intent): 'TravelVehicle' is unused in this test; use it in the assertion path or remove it.
+import { STANDARD_VEHICLES } from '../../../types/travel';
 
 // Mock character creation directly to avoid path issues and dependency on other files during this task
 const mockChar = (id: string, strength: number, speed: number = 30): PlayerCharacter => ({
   id,
   name: `Char_${id}`,
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
   finalAbilityScores: { Strength: strength, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 } as AbilityScores,
   abilityScores: { Strength: strength, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 } as AbilityScores,
   speed,
@@ -38,7 +31,6 @@ const mockItem = (weight: number): Item => ({
   description: 'It is heavy.',
   type: 'treasure',
   weight,
-  // TODO(lint-intent): quantity is added to satisfy encumbrance math; replace with richer inventory mock if available.
   quantity: 1,
 });
 

@@ -28,7 +28,7 @@ import * as NpcBehaviorConfig from '../../config/npcBehaviorConfig';
 import { formatGameTime } from '../../utils/core';
 import { generateId } from '../../utils/core/idGenerator';
 
-// TODO(FEATURES): Add NPC daily routines and faction-driven schedules to world events (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+// TODO #258(FEATURES): Add NPC daily routines and faction-driven schedules to world events (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 
 /**
  * Simulates the spread of information (gossip) between NPCs.

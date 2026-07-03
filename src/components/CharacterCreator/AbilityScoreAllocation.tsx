@@ -231,7 +231,7 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
             </div>
           }
           preview={
-            // TODO: Extract this Stat Snapshot visualization into a reusable component (e.g., <CharacterStatBlock />).
+            // TODO #47: Extract this Stat Snapshot visualization into a reusable component (e.g., <CharacterStatBlock />).
             <div className="flex flex-col h-full">
               <div className="border-b border-gray-700 pb-4 mb-6">
                 <h2 className="text-3xl font-bold text-amber-400 font-cinzel">Ability Snapshot</h2>

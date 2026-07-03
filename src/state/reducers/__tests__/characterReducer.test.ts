@@ -1,8 +1,6 @@
-// TODO(lint-intent): 'vi' is unused in this test; use it in the assertion path or remove it.
-import { describe, it, expect, vi as _vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { characterReducer } from '../characterReducer';
-// TODO(lint-intent): 'PlayerCharacter' is unused in this test; use it in the assertion path or remove it.
-import { GameState, PlayerCharacter as _PlayerCharacter, AbilityScoreName, Class, Item } from '../../../types';
+import { GameState, AbilityScoreName, Class, Item } from '../../../types';
 import { AppAction } from '../../actionTypes';
 import { createMockPlayerCharacter } from '../../../utils/factories';
 import { DEEP_GNOME_DATA } from '../../../data/races/deep_gnome';

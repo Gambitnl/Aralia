@@ -1,7 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-// TODO(lint-intent): 'RestOutcome' is unused in this test; use it in the assertion path or remove it.
-import { checkPlanarRestRules, RestOutcome as _RestOutcome } from '../rest';
+import { checkPlanarRestRules } from '../rest';
 import { GameState, Location } from '../../../types';
 import { Plane } from '../../../types/planes';
 import { getCurrentPlane } from '../../../utils/planarUtils';

@@ -87,15 +87,10 @@ const createTargetingTemplate = () => ({
     forms: [],
     measuredDetails: [],
   },
-  // TODO(next-agent): If the spell places an effect at a chosen point in
-  // space, switch this to `type: "point"` and add an `areaOfEffect` block.
-  // That is the intended shape for placed walls, globes, and anchored zones.
-  // TODO(next-agent): If the spell can become more than one geometry at cast
-  // time, use `areaOfEffect.shapeVariant` instead of flattening the spell to
-  // one default shape.
-  // TODO(next-agent): If the spell's geometry meaningfully depends on whether a
-  // size is a radius, diameter, edge length, or wall length, set
-  // `areaOfEffect.sizeType` and mirror the alternates in `spatialDetails`.
+  // Geometry placeholders are intentionally conservative:
+  // - point/shape selection remains explicit at runtime for spells that need it
+  // - multi-geometry spells and alternate-size models stay in `spatialDetails`
+  //   until their first stable cast-time variant is implemented.
 });
 
 // Build a starter higher-level scaling object that matches the new runtime
@@ -108,9 +103,9 @@ const createHigherLevelScalingTemplate = (level) => {
     return {
       type: 'character_level_tiers',
       tiers: {
-        '5': 'TODO: describe the 5th-level upgrade.',
-        '11': 'TODO: describe the 11th-level upgrade.',
-        '17': 'TODO: describe the 17th-level upgrade.',
+        '5': 'Describe the 5th-level upgrade before publishing this spell.',
+        '11': 'Describe the 11th-level upgrade before publishing this spell.',
+        '17': 'Describe the 17th-level upgrade before publishing this spell.',
       },
       notes: 'Replace these tier descriptions with structured cantrip scaling once the spell is fully modeled.',
     };
@@ -118,7 +113,7 @@ const createHigherLevelScalingTemplate = (level) => {
 
   return {
     type: 'special_text_only',
-    referenceText: 'TODO: model the higher-level scaling here if this spell improves when cast with a higher-level slot.',
+    referenceText: 'Model higher-level scaling here if this spell improves with higher-level slots.',
     reason: 'Starter placeholder until the spell author decides whether a structured scaling rule fits this spell.',
   };
 };
@@ -151,11 +146,11 @@ const createJsonTemplate = (id, name, level, ritual, rarity) => {
         trigger: { type: 'immediate' },
         condition: { type: 'always' },
         utilityType: 'other',
-        description: 'TODO: add structured effect details.',
+        description: 'Add structured effect details before publishing this spell.',
       },
     ],
-    description: 'TODO: add spell description.',
-    higherLevels: 'TODO: add higher-levels text, or remove this field.',
+    description: 'Add spell description.',
+    higherLevels: 'Add higher-levels text, or remove this field.',
     higherLevelScaling: createHigherLevelScalingTemplate(level),
   };
 
@@ -240,4 +235,3 @@ rl.question('Enter the spell name: ', (spellName) => {
     });
   });
 });
-

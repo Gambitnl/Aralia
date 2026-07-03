@@ -61,6 +61,28 @@ export interface TransportOption {
   vehicle?: TravelVehicle; // Required if method is 'mounted' or 'vehicle' (unless vehicle speed is 0/dependent)
 }
 
+export interface TravelPartyMember {
+  /** Optional identifier used by systems that resolve travelers to character entities. */
+  id?: string;
+  /** Human-readable label when available. */
+  name?: string;
+  /** Group-specific role or responsibility for UI/UX surfaces. */
+  role?: string;
+  /** Catch-all extension to avoid forcing upstream migration before schema settles. */
+  [key: string]: unknown;
+}
+
+export interface TravelInventoryItem {
+  /** Optional item identifier to allow explicit inventory schema migration. */
+  id?: string;
+  /** Optional stack size when this data is inventory-like. */
+  quantity?: number;
+  /** Catch-all extension for item metadata. */
+  [key: string]: unknown;
+}
+
+export type TravelInventoryMap = Record<string, TravelInventoryItem[]>;
+
 export interface TravelParameters {
   origin: { x: number; y: number };
   destination: { x: number; y: number };
@@ -76,14 +98,8 @@ export interface TravelParameters {
 export interface GroupTravelParameters {
   origin: { x: number; y: number };
   destination: { x: number; y: number };
-  // TODO(lint-intent): The any on 'travelers' hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-  travelers: unknown[]; // Avoid circular dependency on PlayerCharacter, cast in service
-  // TODO(lint-intent): The any on this value hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-  inventories: Record<string, unknown[]>; // Avoid circular dependency on Item
+  travelers: TravelPartyMember[];
+  inventories: TravelInventoryMap;
   pace: TravelPace;
   /** Terrain type for the journey (defaults to 'open') */
   terrain?: TravelTerrain;

@@ -134,7 +134,7 @@ Workflow gaps reviewed: 2026-06-18
 - `npcMemory[npcId].discussedTopics` IS persisted through save/load as part of full `npcMemory` state.
 - `DISCUSS_TOPIC` in `npcReducer` correctly updates both `activeDialogueSession.discussedTopicIds` and `npcMemory[npcId].discussedTopics[topicId]` in a single action.
 - `handleTopicOutcome` in `useDialogueSystem.ts` dispatches `DISCUSS_TOPIC`, then `GRANT_EXPERIENCE`, `UPDATE_NPC_DISPOSITION`, `MODIFY_GOLD`, `REMOVE_ITEM` as side effects.
-- Unlock propagation (step 4 in `handleTopicOutcome`) is stubbed: the `result.unlocks` forEach body is empty with a `TODO(Dialogist)` marker.
+- Unlock propagation (step 4 in `handleTopicOutcome`) is still stubbed: the `result.unlocks` forEach body is empty and currently logs are deferred to a future global-fact task.
 
 ## Next checks for continuation
 1. Verify whether dialogue outcomes should write shared/global unlock facts instead of session-only memory updates.

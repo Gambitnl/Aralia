@@ -3,7 +3,7 @@
  * Centralized configuration for status condition icons.
  */
 
-// TODO(Materializer): Deprecate this file in favor of `STATUS_VISUALS` and `getStatusVisual` in `src/types/visuals.ts`.
+// TODO #177(Materializer): Deprecate this file in favor of `STATUS_VISUALS` and `getStatusVisual` in `src/types/visuals.ts`.
 // The new system provides color, description, and structured data beyond just the icon.
 
 export const STATUS_ICONS: Record<string, string> = {

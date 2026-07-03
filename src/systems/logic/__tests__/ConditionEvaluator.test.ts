@@ -29,7 +29,6 @@ const baseActionEconomy = {
 };
 
 // Mock character factory for the evaluator; keep only fields it reads.
-// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
 const createMockCharacter = (id: string, currentHP: number, statusEffects: { name: string }[] = []): CombatCharacter => ({
   id,
   name: 'Mock',
@@ -46,7 +45,6 @@ const createMockCharacter = (id: string, currentHP: number, statusEffects: { nam
   statusEffects,
   conditions: [], // Add required conditions property
   actionEconomy: baseActionEconomy
-// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
 } as unknown as CombatCharacter);
 
 describe('ConditionEvaluator', () => {
