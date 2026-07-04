@@ -58,6 +58,7 @@ for (const t of topics) {
     if (f.status === 'superseded' && !f.killed) warn(`${where} / "${f.title}": superseded but no "killed" reason`);
     if (f.open != null && (!Number.isInteger(f.open) || f.open < 0)) warn(`${where} / "${f.title}": "open" must be an integer >= 0 (got ${JSON.stringify(f.open)})`);
     if (f.spike != null && typeof f.spike !== 'boolean') warn(`${where} / "${f.title}": "spike" must be boolean`);
+    if (f.parallel != null && typeof f.parallel !== 'boolean') warn(`${where} / "${f.title}": "parallel" must be boolean`);
     // Base-slug collisions get -2/-3 suffixes in to-wave/reconcile, but the
     // suffix depends on array order — flag them so authors rename instead.
     const s = slug(f.title);

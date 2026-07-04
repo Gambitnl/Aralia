@@ -438,6 +438,126 @@
       "status": "done",
       "deps": [],
       "link": "docs/superpowers/specs/2026-06-29-combat-oriented-opening-scenario-design.md"
+    },
+    {
+      "id": "shipped-travel-provisioning",
+      "title": "Travel provisioning v1.1 core",
+      "sub": "food/water gate live-verified 2026-07-02: rings, choice flow, forage, partial-stop, HUD condition chips, cures + starvation HP bite, desertion",
+      "campaign": "travel",
+      "status": "done",
+      "deps": [],
+      "link": "docs/superpowers/specs/2026-06-25-travel-provisioning-design.md"
+    },
+    {
+      "id": "provisioning-remainder",
+      "title": "Travel provisioning remainder",
+      "sub": "Fork-3 wiring audit (terrain-burn ring, weight↔speed, caches) · mounts as consumers · NPC travel consent · vendor-rapport resupply",
+      "campaign": "travel",
+      "status": "parked",
+      "deps": [
+        {
+          "id": "shipped-travel-provisioning",
+          "kind": "hard",
+          "why": "extends the shipped v1.1 gate — the pure cores (reach/encumbrance/cache) already pass tests, only the map wiring + deferred consumers remain"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-06-25-travel-provisioning-design.md"
+    },
+    {
+      "id": "doc-inventory-explorer",
+      "title": "Doc inventory explorer",
+      "sub": "folder-tree of every .md + dead/unused confidence model (consumption / linkage / recency / lifecycle) + duplicates, inside the Doc Library",
+      "campaign": "tooling",
+      "status": "specced",
+      "deps": [
+        {
+          "id": "doc-triage",
+          "kind": "chosen",
+          "why": "extends the doc-sprawl effort with a per-doc usage/staleness picture"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-03-doc-inventory-explorer-design.md",
+      "features": [
+        {
+          "title": "Usage scanner API + tests",
+          "status": "specced"
+        },
+        {
+          "title": "Folder-tree + badges UI",
+          "status": "specced"
+        },
+        {
+          "title": "Filters + confidence surfacing",
+          "status": "specced"
+        }
+      ]
+    },
+    {
+      "id": "task-harvest",
+      "title": "Plan-doc task harvest",
+      "sub": "extract still-open tasks from old plan docs -> bucket by domain/type -> roadmap tiles in sequence; deprecate the spent remainder",
+      "campaign": "tooling",
+      "status": "parked",
+      "deps": [
+        {
+          "id": "doc-inventory-explorer",
+          "kind": "hard",
+          "why": "needs A's per-doc open-task count + Atlas role classification"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-03-doc-inventory-explorer-design.md"
+    },
+    {
+      "id": "doc-tool-launchers",
+      "title": "Smart doc-tool buttons",
+      "sub": "plan-map atlas/doc-library buttons poll-then-start their dev server (reuse launcher API); static links already added",
+      "campaign": "tooling",
+      "status": "specced",
+      "deps": [
+        {
+          "id": "planmap",
+          "kind": "chosen",
+          "why": "extends the plan-map header link row"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-03-doc-inventory-explorer-design.md"
+    },
+    {
+      "id": "planmap-date-tracker",
+      "title": "Plan-map date progression tracker",
+      "sub": "retrospective only: momentum bars, staleness heat, time-travel replay (git-derived, daily)",
+      "campaign": "tooling",
+      "status": "specced",
+      "deps": [
+        {
+          "id": "planmap",
+          "kind": "hard",
+          "why": "the tracker is three history views layered onto the plan-map viewer — no viewer, nothing to layer onto"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-04-planmap-date-progression-tracker-design.md",
+      "features": [
+        {
+          "title": "History generator (git to history.json)",
+          "status": "specced"
+        },
+        {
+          "title": "renderMap refactor (draw from any snapshot)",
+          "status": "specced"
+        },
+        {
+          "title": "Timeline bar + momentum",
+          "status": "specced"
+        },
+        {
+          "title": "Playhead replay + play",
+          "status": "specced"
+        },
+        {
+          "title": "Staleness heat overlay",
+          "status": "specced"
+        }
+      ]
     }
   ]
 }

@@ -129,13 +129,23 @@ interface AgentSession {
   flushTimer: ReturnType<typeof setTimeout> | null;
 }
 
+// Retains the WebSocketServer from the previous dev-server pass so a Vite
+// restart can tear it down instead of leaking one OS handle per restart. Agent
+// sessions are already per-configureServer (they do not survive a restart), so
+// closing the stale socket server here changes no live behavior.
+let _prevAgentWss: WebSocketServer | null = null;
+
 export const agentSessionManager = () => ({
   name: 'agent-session-manager',
   configureServer(server: any) {
     const sessions = new Map<string, AgentSession>();
     let wsPort: number | null = null;
 
+    if (_prevAgentWss) {
+      try { _prevAgentWss.close(); } catch { /* already closed */ }
+    }
     const wss = new WebSocketServer({ port: 0 });
+    _prevAgentWss = wss;
     wss.on('error', (err: Error) => {
       server.config.logger.error(`[agent-sessions] WS server error: ${err.message}`);
     });

@@ -29,6 +29,19 @@ process.on('uncaughtException', (err, origin) => {
 });
 
 process.on('unhandledRejection', (reason) => {
+  // Vite's dev-server restart is not re-entrant: when two config-dependency
+  // changes land close together (common in this shared, multi-agent checkout),
+  // the second restart calls httpServer.listen() before the first finished,
+  // throwing ERR_SERVER_ALREADY_LISTEN. Node's default turns that benign race
+  // into a fatal unhandledRejection and kills the dev server (exit 1). The
+  // server is already listening and serving, so swallow this specific error and
+  // keep the process alive; the next real change triggers a clean restart.
+  const code = reason && reason.code;
+  const msg = reason && reason.message ? reason.message : String(reason);
+  if (code === 'ERR_SERVER_ALREADY_LISTEN' || /Listen method has been called more than once/.test(msg)) {
+    append('unhandledRejection:swallowed', `benign Vite restart race: ${msg}`);
+    return; // do NOT exit — the already-listening server stays up
+  }
   append('unhandledRejection', reason && reason.stack ? reason.stack : String(reason));
   // mirror Node's default --unhandled-rejections=throw fatal behavior
   process.exitCode = 1;

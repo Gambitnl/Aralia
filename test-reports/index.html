@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aralia Test Report</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { font-family: Arial, Helvetica, sans-serif; background: #111722; color: #dbe3ea; padding: 24px; }
+    h1, h2, h3 { color: #f8fafc; }
+    .suite { border: 1px solid #2b3444; border-radius: 8px; padding: 12px; margin-bottom: 12px; background: #161f2e; }
+    .pass { color: #7ee787; }
+    .fail { color: #ff7b72; }
+    pre { background: #0b111b; padding: 10px; border-radius: 8px; overflow: auto; max-height: 220px; }
+    .muted { color: #a6b6c8; }
+    a { color: #74b9ff; }
+  </style>
+</head>
+<body>
+  <h1>Aralia Test Report</h1>
+  <p class="muted">Generated: 07/03/2026 15:29:59</p>
+  <p class="muted">Suites: 4014/4578 passed; Tests: 9700/9934 passed; Pending tests: 23. Failures: 564 suites / 211 tests.</p>
+  <h2>Command-level Suites</h2>
+  <div class='suite'>
+    <h3 class='fail'>vitest: FAIL (exit 1)</h3>
+    <p><a href='F:\Repos\Aralia\test-reports\vitest.log'>Raw log</a></p>
+    <p><a href='test-reports/vitest-report.json'>Vitest JSON artifact</a></p>
+    <pre>+     ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:26720) Ex...nge at any time:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-warnings ...` to show where the warning was created)
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+(node:20212) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+JSON report written to F:/Repos/Aralia/vitest-results.json
+</pre>
+  </div>
+  <div class='suite'>
+    <h3 class='fail'>test-types: FAIL (exit 1)</h3>
+    <p><a href='F:\Repos\Aralia\test-reports\test-types.log'>Raw log</a></p>
+    <pre>  ×  48:37  Type "Exhaustion" is not assignable to type ConditionName.   
+  ×  48:51  Type "Frightened" is not assignable to type ConditionName.   
+  ×  48:65  Type "Paralyzed" is not assignable to type ConditionName.    
+  ×  48:78  Type "Petrified" is not assignable to type ConditionName.    
+  ×  48:91  Type "Poisoned" is not assignable to type ConditionName.     
+  ×  56:26  Type "Exhaustion" is not assignable to type ConditionName.   
+  ×  56:40  Type "Paralyzed" is not assignable to type ConditionName.    
+  ×  56:53  Type "Petrified" is not assignable to type ConditionName.    
+  ×  56:66  Type "Poisoned" is not assignable to type ConditionName.     
+  ×  56:78  Type "Unconscious" is not assignable to type ConditionName.  
+  ×  75:26  Type "Blinded" is not assignable to type ConditionName.      
+  ×  75:37  Type "Charmed" is not assignable to type ConditionName.      
+  ×  75:48  Type "Deafened" is not assignable to type ConditionName.     
+  ×  75:60  Type "Exhaustion" is not assignable to type ConditionName.   
+  ×  75:74  Type "Frightened" is not assignable to type ConditionName.   
+  ×  75:88  Type "Prone" is not assignable to type ConditionName.        
+  ×  83:26  Type "Poisoned" is not assignable to type ConditionName.     
+
+  18 errors
+
+</pre>
+  </div>
+  <div class='suite'>
+    <h3 class='fail'>test-mcp: FAIL (exit 1)</h3>
+    <p><a href='F:\Repos\Aralia\test-reports\test-mcp.log'>Raw log</a></p>
+    <pre>operable program or batch file.
+
+
+? image-gen
+   Server connection failed
+   Error: Command failed: "F:\Repos\Aralia\node_modules\.bin\mcp-cli.cmd" --config "F:\Repos\Aralia\.mcp.json" image-gen -d
+'"F:\Repos\Aralia\node_modules\.bin\mcp-cli.cmd"' is not recognized as an internal or external command,
+operable program or batch file.
+
+
+? stitch
+   Server connection failed
+   Error: Command failed: "F:\Repos\Aralia\node_modules\.bin\mcp-cli.cmd" --config "F:\Repos\Aralia\.mcp.json" stitch -d
+'"F:\Repos\Aralia\node_modules\.bin\mcp-cli.cmd"' is not recognized as an internal or external command,
+operable program or batch file.
+
+
+============================================================
+Results: 0/4 servers passed
+============================================================
+</pre>
+  </div>
+  <h2>Top failing Vitest suites</h2>
+  <div class='suite'>
+    <div class='muted'>&#x2022; <strong>ground-render-truth.test.ts</strong> &mdash; 10 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>ground-sweep.test.ts</strong> &mdash; 3 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>spawn-mismatch.test.ts</strong> &mdash; 7 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>why-tiny-burg.test.ts</strong> &mdash;  failed assertions</div>
+    <div class='muted'>&#x2022; <strong>activityMirror.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>client.onboard.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>client.orchestration.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>client.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>gapIndex.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>guardGit.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>mdRender.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>orchestrate.registry.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>orchestrate.seed.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>orchestrate.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>orchestrate.wave.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>resolution.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>server.orchestration.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>server.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>store.orchestration.test.mjs</strong> &mdash; 0 failed assertions</div>
+    <div class='muted'>&#x2022; <strong>store.test.mjs</strong> &mdash; 0 failed assertions</div>
+  </div>
+</body>
+</html>

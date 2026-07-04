@@ -77,6 +77,10 @@
                 "spike": {
                   "description": "true = research that could invalidate the approach (measure-don't-assume, unsolved design question) — rendered dashed with ⚠ so it doesn't masquerade as a build step.",
                   "type": "boolean"
+                },
+                "parallel": {
+                  "description": "true = this step does NOT wait for the previous step; it branches straight off the parent tile instead of chaining. Absent/false = sequential (default): the step chains off the one before it. Only affects the plan-map's step-tile arrows.",
+                  "type": "boolean"
                 }
               }
             }

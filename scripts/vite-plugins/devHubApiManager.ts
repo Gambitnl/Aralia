@@ -8,6 +8,7 @@ import {
   type SpellFieldInventory,
 } from '../spellFieldInventory';
 import { toProjectDisplayName, projectSlugFromNorthStarPath, toProjectSlug, stripMarkdownInline } from './utils';
+import { buildDocUsage } from './docUsage/buildDocUsage';
 
 /**
  * This file adds local-only API routes to the Vite development server.
@@ -18,6 +19,7 @@ import { toProjectDisplayName, projectSlugFromNorthStarPath, toProjectSlug, stri
  * directly and return small status signals that shared browser components turn
  * into visual cards.
  */
+let _docUsageCache: { generatedAt: string; payload: unknown } | null = null;
 export const devHubApiManager = () => ({
   name: 'devhub-api-manager',
   configureServer(server: any) {
@@ -1181,6 +1183,20 @@ export const devHubApiManager = () => ({
             chain: 'tidy-up',
           }));
           json({ rules: readMdFiles('rules'), skills, workflows: [...workflows, ...chainExtras], conductor });
+        } catch (e) {
+          json({ error: String(e) }, 500);
+        }
+        return;
+      }
+
+      if (urlPath === '/api/docs/usage') {
+        try {
+          const refresh = /[?&]refresh=1\b/.test(req.url || '');
+          if (refresh || !_docUsageCache) {
+            const payload = buildDocUsage(process.cwd());
+            _docUsageCache = { generatedAt: payload.generatedAt, payload };
+          }
+          json(_docUsageCache.payload);
         } catch (e) {
           json({ error: String(e) }, 500);
         }

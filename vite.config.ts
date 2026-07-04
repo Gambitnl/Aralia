@@ -25,7 +25,6 @@ import {
 } from './scripts/vite-plugins/devHubLauncherManager';
 
 import { codexRunManager, codexChatManager } from './scripts/vite-plugins/codexManagers';
-import { ptyTerminalManager, shellTerminalManager } from './scripts/vite-plugins/ptyTerminalManager';
 
 // Lazy wrapper: keeps agentUsageProbe.ts OUT of vite's config-dependency watch
 // list, so editing probe recipes doesn't restart the dev server (and kill PTY
@@ -55,6 +54,27 @@ const patVaultManager = () => ({
   async configureServer(server: unknown) {
     const mod = await import('./scripts/vite-plugins/patVaultManager');
     return (mod.patVaultManager() as { configureServer: (s: unknown) => void }).configureServer(server);
+  },
+});
+
+// Same lazy pattern: the sticky PTY + shell terminals hold live node-pty
+// processes and WebSocket servers. Keeping them OUT of the config-dependency
+// watch list means editing the manager no longer triggers a full server
+// restart (which used to kill the live terminals — and, when a restart raced a
+// second config-dep change, crashed the whole dev server with
+// ERR_SERVER_ALREADY_LISTEN).
+const ptyTerminalManager = () => ({
+  name: 'pty-terminal-manager-lazy',
+  async configureServer(server: unknown) {
+    const mod = await import('./scripts/vite-plugins/ptyTerminalManager');
+    return (mod.ptyTerminalManager() as { configureServer: (s: unknown) => void }).configureServer(server);
+  },
+});
+const shellTerminalManager = () => ({
+  name: 'shell-terminal-manager-lazy',
+  async configureServer(server: unknown) {
+    const mod = await import('./scripts/vite-plugins/ptyTerminalManager');
+    return (mod.shellTerminalManager() as { configureServer: (s: unknown) => void }).configureServer(server);
   },
 });
 import { portraitApiManager } from './scripts/vite-plugins/portraitApiManager';
@@ -111,14 +131,38 @@ function addProxyDiagnostics(
   };
 }
 
+const PLANMAP_DEV_PORT = 5183;
+
+// Dedicated "planmap" dev server: a lean static server (no React, no app
+// plugins) that serves public/planmap through Vite's built-in static + /@fs
+// bridge — so the map, its spec links, and the glossary all keep working — and
+// redirects the app root to the plan-map so the preview panel lands there.
+const planmapRedirect = () => ({
+  name: 'planmap-redirect',
+  configureServer(server: { middlewares: { use: (fn: (req: { url?: string }, res: ServerResponse, next: () => void) => void) => void } }) {
+    server.middlewares.use((req, res, next) => {
+      const p = (req.url || '').split('?')[0];
+      if (p === '/' || p === '/Aralia' || p === '/Aralia/') {
+        res.statusCode = 302;
+        res.setHeader('Location', '/Aralia/planmap/index.html');
+        res.end();
+        return;
+      }
+      next();
+    });
+  },
+});
+
 export default defineConfig(async ({ mode, command }) => {
   const env = loadEnv(mode, '.', '');
   const isDevServer = command === 'serve';
   const isRoadmapMode = mode === 'roadmap';
   const isHubMode = mode === 'hub';
+  const isPlanmapMode = mode === 'planmap';
 
   const isRoadmapOnlyDev = isDevServer && isRoadmapMode;
   const isHubOnlyDev = isDevServer && isHubMode;
+  const isPlanmapOnlyDev = isDevServer && isPlanmapMode;
 
   const roadmapServer = isRoadmapOnlyDev ? await getRoadmapDevServerStatus() : null;
   const devHubServer = isHubOnlyDev ? await getDevHubDevServerStatus() : null;
@@ -197,7 +241,11 @@ export default defineConfig(async ({ mode, command }) => {
     agentSessionManager()
   ];
 
-  const plugins = isRoadmapOnlyDev ? roadmapOnlyPlugins : isHubOnlyDev ? hubOnlyPlugins : mainPlugins;
+  const planmapOnlyPlugins = [planmapRedirect()];
+  const plugins = isRoadmapOnlyDev ? roadmapOnlyPlugins
+    : isHubOnlyDev ? hubOnlyPlugins
+    : isPlanmapOnlyDev ? planmapOnlyPlugins
+    : mainPlugins;
 
   const includeRoadmapBuildEntries = isRoadmapMode;
 
@@ -220,6 +268,10 @@ export default defineConfig(async ({ mode, command }) => {
       console.info('[dev] Mode: hub-only (isolated from main app HMR).');
       console.info(`[dev] DevHub server port: ${DEVHUB_DEV_PORT}`);
       console.info(`[dev] Open: ${DEVHUB_DEV_OPEN_PATH}`);
+    } else if (isPlanmapOnlyDev) {
+      console.info('[dev] Mode: planmap-only (static plan-map, no app HMR).');
+      console.info(`[dev] Planmap server port: ${PLANMAP_DEV_PORT}`);
+      console.info('[dev] Open: /Aralia/planmap/index.html (root redirects here)');
     } else {
       console.info('[dev] Mode: main-app (roadmap APIs and roadmap watch paths are disabled).');
       console.info('[dev] Proxy routes:');
@@ -232,17 +284,18 @@ export default defineConfig(async ({ mode, command }) => {
   let port = 3000;
   if (isRoadmapOnlyDev) port = ROADMAP_DEV_PORT;
   if (isHubOnlyDev) port = DEVHUB_DEV_PORT;
+  if (isPlanmapOnlyDev) port = PLANMAP_DEV_PORT;
 
   return {
     base: '/Aralia/',
     server: {
       port,
-      strictPort: isRoadmapOnlyDev || isHubOnlyDev,
+      strictPort: isRoadmapOnlyDev || isHubOnlyDev || isPlanmapOnlyDev,
       host: '0.0.0.0',
-      warmup: {
-        clientFiles: ['./index.tsx', './src/App.tsx']
-      },
-      ...(isRoadmapOnlyDev
+      // The planmap server is static — don't warm the React entry (no react
+      // plugin in that mode, so transforming index.tsx would just error).
+      ...(isPlanmapOnlyDev ? {} : { warmup: { clientFiles: ['./index.tsx', './src/App.tsx'] } }),
+      ...(isRoadmapOnlyDev || isPlanmapOnlyDev
         ? {}
         : {
             watch: {

@@ -1,6 +1,10 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import * as pty from 'node-pty';
 
+type ViteLogger = { info: (m: string) => void; warn: (m: string) => void; error: (m: string) => void };
+
+let _ptyWss: WebSocketServer | null = null;
+let _ptyLogger: ViteLogger = console;
 let _ptyWssPort: number | null = null;
 let _stickyPtyProc: ReturnType<typeof pty.spawn> | null = null;
 let _ptyClients: Set<WebSocket> = new Set();
@@ -10,17 +14,9 @@ const PTY_BUFFER_CHARS = 200_000;
 export const ptyTerminalManager = () => ({
   name: 'pty-terminal-manager',
   configureServer(server: any) {
-    const wss = new WebSocketServer({ port: 0 });
-
-    wss.on('error', (err: Error) => {
-      server.config.logger.error(`[pty] WebSocket server error: ${err.message}`);
-    });
-
-    wss.on('listening', () => {
-      const addr = wss.address() as { port: number };
-      _ptyWssPort = addr.port;
-      server.config.logger.info(`[pty] WebSocket server ready on port ${_ptyWssPort}`);
-    });
+    // Refreshed every (re)start so buffered log lines reach the LIVE server's
+    // logger even though the WebSocketServer/handlers below are created once.
+    _ptyLogger = server.config.logger;
 
     const spawnStickyPty = () => {
       const cmd = process.platform === 'win32' ? 'cmd.exe' : 'bash';
@@ -33,9 +29,9 @@ export const ptyTerminalManager = () => ({
           cwd: process.cwd(),
           env: process.env as Record<string, string>,
         });
-        server.config.logger.info(`[pty:${sid}] spawned sticky "${cmd}"`);
+        _ptyLogger.info(`[pty:${sid}] spawned sticky "${cmd}"`);
       } catch (err: any) {
-        server.config.logger.error(`[pty:${sid}] spawn failed: ${err.message}`);
+        _ptyLogger.error(`[pty:${sid}] spawn failed: ${err.message}`);
         return;
       }
 
@@ -52,7 +48,7 @@ export const ptyTerminalManager = () => ({
       });
 
       _stickyPtyProc.onExit(({ exitCode }: { exitCode: number }) => {
-        server.config.logger.info(`[pty:${sid}] exited with code ${exitCode}`);
+        _ptyLogger.info(`[pty:${sid}] exited with code ${exitCode}`);
         _stickyPtyProc = null;
         _ptyOutputBuffer = '';
         for (const client of _ptyClients) {
@@ -62,35 +58,55 @@ export const ptyTerminalManager = () => ({
       });
     };
 
-    wss.on('connection', (ws: WebSocket, _req: any) => {
-      if (!_stickyPtyProc) spawnStickyPty();
+    // Create the WebSocket server ONCE and reuse it across Vite dev-server
+    // restarts. Vite re-runs configureServer on every restart; creating a fresh
+    // WebSocketServer each time leaked an orphaned WSS (holding an OS handle)
+    // per restart. The sticky PTY is already a module-level singleton, so the
+    // live terminal survives restarts untouched.
+    if (!_ptyWss) {
+      const wss = new WebSocketServer({ port: 0 });
+      _ptyWss = wss;
 
-      _ptyClients.add(ws);
+      wss.on('error', (err: Error) => {
+        _ptyLogger.error(`[pty] WebSocket server error: ${err.message}`);
+      });
 
-      if (_ptyOutputBuffer.length > 0) {
-        ws.send(_ptyOutputBuffer);
-      }
+      wss.on('listening', () => {
+        const addr = wss.address() as { port: number };
+        _ptyWssPort = addr.port;
+        _ptyLogger.info(`[pty] WebSocket server ready on port ${_ptyWssPort}`);
+      });
 
-      ws.on('message', (msg: Buffer) => {
-        if (!_stickyPtyProc) return;
-        try {
-          const d = JSON.parse(msg.toString());
-          if (d.type === 'input')  _stickyPtyProc.write(d.data);
-          if (d.type === 'resize') _stickyPtyProc.resize(Math.max(2, d.cols), Math.max(2, d.rows));
-        } catch {
-          try { _stickyPtyProc.write(msg.toString()); } catch { /* pty already dead */ }
+      wss.on('connection', (ws: WebSocket, _req: any) => {
+        if (!_stickyPtyProc) spawnStickyPty();
+
+        _ptyClients.add(ws);
+
+        if (_ptyOutputBuffer.length > 0) {
+          ws.send(_ptyOutputBuffer);
         }
-      });
 
-      ws.on('error', (err: Error) => {
-        server.config.logger.warn(`[pty] client socket error: ${err.message}`);
-        _ptyClients.delete(ws);
-      });
+        ws.on('message', (msg: Buffer) => {
+          if (!_stickyPtyProc) return;
+          try {
+            const d = JSON.parse(msg.toString());
+            if (d.type === 'input')  _stickyPtyProc.write(d.data);
+            if (d.type === 'resize') _stickyPtyProc.resize(Math.max(2, d.cols), Math.max(2, d.rows));
+          } catch {
+            try { _stickyPtyProc.write(msg.toString()); } catch { /* pty already dead */ }
+          }
+        });
 
-      ws.on('close', () => {
-        _ptyClients.delete(ws);
+        ws.on('error', (err: Error) => {
+          _ptyLogger.warn(`[pty] client socket error: ${err.message}`);
+          _ptyClients.delete(ws);
+        });
+
+        ws.on('close', () => {
+          _ptyClients.delete(ws);
+        });
       });
-    });
+    }
 
     server.middlewares.use((req: any, res: any, next: any) => {
       if ((req.url || '').split('?')[0] === '/api/pty/port') {
@@ -103,6 +119,8 @@ export const ptyTerminalManager = () => ({
   },
 });
 
+let _shellPtyWss: WebSocketServer | null = null;
+let _shellPtyLogger: ViteLogger = console;
 let _shellPtyWssPort: number | null = null;
 let _stickyShellPtyProc: ReturnType<typeof pty.spawn> | null = null;
 let _shellPtyClients: Set<WebSocket> = new Set();
@@ -111,17 +129,7 @@ let _shellPtyOutputBuffer = '';
 export const shellTerminalManager = () => ({
   name: 'shell-terminal-manager',
   configureServer(server: any) {
-    const wss = new WebSocketServer({ port: 0 });
-
-    wss.on('error', (err: Error) => {
-      server.config.logger.error(`[shell-pty] WebSocket server error: ${err.message}`);
-    });
-
-    wss.on('listening', () => {
-      const addr = wss.address() as { port: number };
-      _shellPtyWssPort = addr.port;
-      server.config.logger.info(`[shell-pty] WebSocket server ready on port ${_shellPtyWssPort}`);
-    });
+    _shellPtyLogger = server.config.logger;
 
     const spawnStickyShell = () => {
       const cmd = process.platform === 'win32' ? 'cmd.exe' : 'bash';
@@ -134,9 +142,9 @@ export const shellTerminalManager = () => ({
           cwd: process.cwd(),
           env: process.env as Record<string, string>,
         });
-        server.config.logger.info(`[shell-pty:${sid}] spawned sticky "${cmd}"`);
+        _shellPtyLogger.info(`[shell-pty:${sid}] spawned sticky "${cmd}"`);
       } catch (err: any) {
-        server.config.logger.error(`[shell-pty:${sid}] spawn failed: ${err.message}`);
+        _shellPtyLogger.error(`[shell-pty:${sid}] spawn failed: ${err.message}`);
         return;
       }
 
@@ -153,7 +161,7 @@ export const shellTerminalManager = () => ({
       });
 
       _stickyShellPtyProc.onExit(({ exitCode }: { exitCode: number }) => {
-        server.config.logger.info(`[shell-pty:${sid}] exited with code ${exitCode}`);
+        _shellPtyLogger.info(`[shell-pty:${sid}] exited with code ${exitCode}`);
         _stickyShellPtyProc = null;
         _shellPtyOutputBuffer = '';
         for (const client of _shellPtyClients) {
@@ -163,35 +171,50 @@ export const shellTerminalManager = () => ({
       });
     };
 
-    wss.on('connection', (ws: WebSocket, _req: any) => {
-      if (!_stickyShellPtyProc) spawnStickyShell();
+    if (!_shellPtyWss) {
+      const wss = new WebSocketServer({ port: 0 });
+      _shellPtyWss = wss;
 
-      _shellPtyClients.add(ws);
+      wss.on('error', (err: Error) => {
+        _shellPtyLogger.error(`[shell-pty] WebSocket server error: ${err.message}`);
+      });
 
-      if (_shellPtyOutputBuffer.length > 0) {
-        ws.send(_shellPtyOutputBuffer);
-      }
+      wss.on('listening', () => {
+        const addr = wss.address() as { port: number };
+        _shellPtyWssPort = addr.port;
+        _shellPtyLogger.info(`[shell-pty] WebSocket server ready on port ${_shellPtyWssPort}`);
+      });
 
-      ws.on('message', (msg: Buffer) => {
-        if (!_stickyShellPtyProc) return;
-        try {
-          const d = JSON.parse(msg.toString());
-          if (d.type === 'input')  _stickyShellPtyProc.write(d.data);
-          if (d.type === 'resize') _stickyShellPtyProc.resize(Math.max(2, d.cols), Math.max(2, d.rows));
-        } catch {
-          try { _stickyShellPtyProc.write(msg.toString()); } catch { /* pty already dead */ }
+      wss.on('connection', (ws: WebSocket, _req: any) => {
+        if (!_stickyShellPtyProc) spawnStickyShell();
+
+        _shellPtyClients.add(ws);
+
+        if (_shellPtyOutputBuffer.length > 0) {
+          ws.send(_shellPtyOutputBuffer);
         }
-      });
 
-      ws.on('error', (err: Error) => {
-        server.config.logger.warn(`[shell-pty] client socket error: ${err.message}`);
-        _shellPtyClients.delete(ws);
-      });
+        ws.on('message', (msg: Buffer) => {
+          if (!_stickyShellPtyProc) return;
+          try {
+            const d = JSON.parse(msg.toString());
+            if (d.type === 'input')  _stickyShellPtyProc.write(d.data);
+            if (d.type === 'resize') _stickyShellPtyProc.resize(Math.max(2, d.cols), Math.max(2, d.rows));
+          } catch {
+            try { _stickyShellPtyProc.write(msg.toString()); } catch { /* pty already dead */ }
+          }
+        });
 
-      ws.on('close', () => {
-        _shellPtyClients.delete(ws);
+        ws.on('error', (err: Error) => {
+          _shellPtyLogger.warn(`[shell-pty] client socket error: ${err.message}`);
+          _shellPtyClients.delete(ws);
+        });
+
+        ws.on('close', () => {
+          _shellPtyClients.delete(ws);
+        });
       });
-    });
+    }
 
     server.middlewares.use((req: any, res: any, next: any) => {
       if ((req.url || '').split('?')[0] === '/api/shell-terminal/port') {

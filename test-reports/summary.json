@@ -1,0 +1,20 @@
+[
+    {
+        "name":  "vitest",
+        "status":  "fail",
+        "exitCode":  1,
+        "log":  "F:\\Repos\\Aralia\\test-reports\\vitest.log"
+    },
+    {
+        "name":  "test-types",
+        "status":  "fail",
+        "exitCode":  1,
+        "log":  "F:\\Repos\\Aralia\\test-reports\\test-types.log"
+    },
+    {
+        "name":  "test-mcp",
+        "status":  "fail",
+        "exitCode":  1,
+        "log":  "F:\\Repos\\Aralia\\test-reports\\test-mcp.log"
+    }
+]

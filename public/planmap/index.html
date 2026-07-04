@@ -28,7 +28,11 @@
   #maptools { padding: 4px 22px 6px; display: flex; gap: 6px; align-items: center; font-size: 12px; color: #64748b; }
   #maptools button { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; font-size: 12px; padding: 3px 9px; border-radius: 5px; cursor: pointer; }
   #maptools button:hover { background: #334155; }
+  #maptools button[aria-pressed="true"] { background: #334155; border-color: #fbbf24; color: #fbbf24; }
   #maptools .zlabel { min-width: 46px; text-align: center; color: #94a3b8; }
+  /* Staleness heat legend (Task 6) — only shown while heatOn. */
+  #heat-legend { display: flex; gap: 12px; align-items: center; margin-left: 10px; font-size: 11px; color: #94a3b8; }
+  #heat-legend .hsw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
   /* The canvas is the flex remainder of the page; the SVG fills it and the
      shipped/graveyard strips sit below it inside the same column. */
   #canvas { overflow: hidden; position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -44,18 +48,28 @@
   .lane-label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; }
   .edge { fill: none; stroke: #475569; stroke-width: 1.25; opacity: 0.75; }
   .edge-hit { fill: none; stroke: transparent; stroke-width: 14; cursor: pointer; }
-  .edgeg:hover .edge { stroke: #cbd5e1; opacity: 1; stroke-width: 2; }
-  svg.focus .node:not(.lit), svg.focus .edgeg:not(.lit) { opacity: 0.12; }
+  /* Per-type hover highlight — each arrow type lights in its own color. The
+     type classes (.hard/.chosen on cross-topic edges, .member on feature edges)
+     out-specify the resting `.edgeg.member .edge` rule, so hover always wins.
+     Arrowheads follow via the marker's fill="context-stroke". */
+  .edgeg.hard:hover .edge   { stroke: #f87171; opacity: 1; stroke-width: 2.5; }
+  .edgeg.chosen:hover .edge { stroke: #fbbf24; opacity: 1; stroke-width: 2.5; }
+  .edgeg.member:hover .edge { stroke: #c084fc; opacity: 1; stroke-width: 2.5; }
+  .stepedge:hover .edge     { stroke: #22d3ee; opacity: 1; stroke-width: 2; }
+  /* Internal step edges (parent→step, step→step) — lighter than cross-topic. */
+  .stepedge .edge { stroke: #64748b; stroke-width: 1; opacity: 0.55; }
+  svg.focus .node:not(.lit), svg.focus .edgeg:not(.lit), svg.focus .stepedge:not(.lit) { opacity: 0.12; }
   /* Legend-filter dimming (item 4) — independent of hover focus. */
-  .node.dimmed, .edgeg.dimmed { opacity: 0.15; }
+  .node.dimmed, .edgeg.dimmed, .stepedge.dimmed { opacity: 0.15; }
   /* Pinned node/edge outline (item 1). */
   .node.pinned > rect:first-of-type { stroke: #fbbf24 !important; stroke-width: 3.5 !important; }
-  .edgeg.pinned .edge { stroke: #fbbf24; opacity: 1; stroke-width: 2.5; }
+  .edgeg.pinned .edge, .edgeg.member.pinned .edge { stroke: #fbbf24; opacity: 1; stroke-width: 2.5; }
   /* Feature-anchored ("member") edges — read as pointing INTO a feature tile:
      lighter/thinner stroke + a small hollow circle at the feature end. */
   .edgeg.member .edge { stroke: #64748b; stroke-width: 1; opacity: 0.6; }
   .edgeg.member .member-end { fill: #0f172a; stroke: #94a3b8; stroke-width: 1.25; }
-  .edgeg.member:hover .member-end, .edgeg.member.pinned .member-end { stroke: #fbbf24; }
+  .edgeg.member:hover .member-end { stroke: #c084fc; }
+  .edgeg.member.pinned .member-end { stroke: #fbbf24; }
   .node, .edgeg { transition: none; }
   #invariants { padding: 0 22px 8px; font-size: 11px; color: #64748b; }
   #invariants b { color: #94a3b8; }
@@ -73,6 +87,11 @@
   .strip-chip i { color: #64748b; font-size: 11px; }
   .strip-chip a { color: #7dd3fc; text-decoration: none; opacity: 0.8; }
   .strip-chip a:hover { opacity: 1; }
+  /* Shipped strip grouped by campaign category: each group is a labeled cluster
+     with a subtle divider, so done work reads within its lane's category. */
+  .strip-group { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .strip-group + .strip-group { border-left: 1px solid #1e293b; padding-left: 12px; }
+  .strip-group-label { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.9; }
   a { color: #7dd3fc; }
   /* Detail side panel (item 1) — pins on click, dismissible. */
   #detail { position: fixed; top: 0; right: 0; width: 380px; max-width: 92vw; height: 100vh; overflow-y: auto;
@@ -119,15 +138,30 @@
   #glossary-body pre code { background: none; padding: 0; }
   .copybtn { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; font-size: 12px; padding: 5px 12px; border-radius: 5px; cursor: pointer; }
   .copybtn:hover { background: #334155; }
+  /* Date-progression timeline (Task 4): momentum bars + playhead readout,
+     sitting below the map/Shipped/Graveyard strips. Absent entirely when
+     history.json or window.PlanmapHistory isn't available (no error). */
+  #timeline { padding: 6px 22px 10px; border-top: 1px solid #1e293b; min-height: 54px; touch-action: none; }
+  #timeline svg { width: 100%; height: 54px; display: block; }
+  #timeline .tl-bar { fill: #4ade80; }
+  #timeline .tl-axis { stroke: #334155; stroke-width: 1; }
+  #timeline .tl-tick { font-size: 10px; fill: #64748b; }
+  #timeline .tl-play { fill: #1e293b; stroke: #334155; cursor: pointer; }
+  #timeline .tl-play.playing { fill: #334155; stroke: #fbbf24; }
+  #timeline .tl-playhead { stroke: #fbbf24; stroke-width: 2; }
+  #timeline .tl-knob { fill: #fbbf24; cursor: ew-resize; }
+  #timeline .tl-readout { font-size: 11px; fill: #94a3b8; }
 </style>
 </head>
 <body>
 <header>
   <h1>ARALIA PLAN-MAP</h1>
-  <span class="hint">solid arrow = hard prerequisite · dashed = chosen order · click any node or arrow to pin details · edit <code>public/planmap/topics.json</code> · no dates, only order</span>
+  <span class="hint">solid arrow = hard prerequisite · dashed = chosen order · steps branch off their parent tile (chained = sequential) · click any tile or arrow to pin details · edit <code>public/planmap/topics.json</code> · no dates, only order</span>
   <span class="hint" style="margin-left: auto;" id="header-links">
     <a id="grillprompt-link" href="#">🤖 Grill prompt</a> ·
     <a id="glossary-link" href="#">📖 Glossary</a> ·
+    <a id="atlas-link" href="#">🗺️ Doc atlas</a> ·
+    <a id="doclib-link" href="#">📚 Doc library</a> ·
     <a id="agora-link" href="http://localhost:4319/">🏛️ Agora board</a> ·
     <a id="tree-link" href="http://localhost:3010/">🌳 Feature tree</a> ·
     <a id="game-link" href="#">🎲 Game</a>
@@ -143,9 +177,19 @@
   <span class="zlabel" id="zoom-label">100%</span>
   <button id="zoom-in">+</button>
   <button id="zoom-fit">Fit</button>
+  <button id="heat-toggle" aria-pressed="false">Age heat</button>
+  <span id="heat-legend" style="display:none;">
+    <span><span class="hsw" style="background:#22d3ee;"></span>≤2d</span>
+    <span><span class="hsw" style="background:#fbbf24;"></span>≤7d</span>
+    <span><span class="hsw" style="background:#fb923c;"></span>≤21d</span>
+    <span><span class="hsw" style="background:#f87171;"></span>&gt;21d</span>
+  </span>
   <span style="margin-left:8px;">wheel = zoom · drag = pan · Esc = unpin</span>
 </div>
 <div id="canvas"></div>
+<!-- Date-progression timeline (Task 4): momentum bars + playhead, at module
+     scope hidden (left empty) when history.json/window.PlanmapHistory is absent. -->
+<div id="timeline" aria-label="History timeline"></div>
 <!-- Detail side panel (item 1). -->
 <aside id="detail" aria-label="Detail panel">
   <button id="detail-close" aria-label="Close">✕</button>
@@ -161,6 +205,10 @@
     <div id="glossary-body"><p class="muted">Loading…</p></div>
   </div>
 </div>
+<!-- Pure history-derivation module (momentum + staleness). Attaches
+     window.PlanmapHistory; absent/failed load just means the timeline
+     feature is skipped below (guarded, no error). -->
+<script type="module" src="./history-derive.mjs"></script>
 <script>
 const COLORS = {
   purple: { fill: '#2e1065', stroke: '#a78bfa', title: '#ede9fe', sub: '#c4b5fd' },
@@ -170,9 +218,31 @@ const COLORS = {
   pink:   { fill: '#500724', stroke: '#f472b6', title: '#fce7f3', sub: '#f9a8d4' }
 };
 const STATUS = { parked: '#94a3b8', specced: '#fbbf24', active: '#38bdf8', done: '#4ade80', superseded: '#9a3412' };
-const NODE_W = 230, BASE_H = 78, FEAT_H = 30, FEAT_GAP = 6, COL_GAP = 90, ROW_GAP = 26, PAD = 40;
+const NODE_W = 230, BASE_H = 78, COL_GAP = 90, ROW_GAP = 26, PAD = 40;
 const LANE_GAP = 34, LANE_LABEL_H = 22; // vertical breathing room between campaign lanes (item 2)
-const nodeH = t => BASE_H + (t.features ? t.features.length * (FEAT_H + FEAT_GAP) + 4 : 0);
+// Exploded step tiles: each parent's features render as their OWN child tiles
+// to the right, instead of stacked rows inside the parent card.
+const STEP_W = 190, STEP_H = 30, STEP_GAP_X = 30, STEP_GAP_Y = 8, PARENT_STEP_GAP = 44;
+const featList = t => t.features || [];
+// A step is SEQUENTIAL (chains off the previous step) unless flagged
+// `parallel: true` (branches straight off the parent). Array order is preserved
+// and the display number is the 1-based list index either way.
+const chainSteps = t => featList(t).map((f, i) => ({ f, i })).filter(x => !x.f.parallel);
+const paraSteps  = t => featList(t).map((f, i) => ({ f, i })).filter(x =>  x.f.parallel);
+// Horizontal room the chain needs (parallels tuck under the first step column).
+const chainWidth = t => {
+  const c = chainSteps(t).length;
+  if (c > 0) return c * STEP_W + (c - 1) * STEP_GAP_X;
+  return paraSteps(t).length ? STEP_W : 0;
+};
+// A parent's "bay" = the parent tile plus its whole step sub-flow to the right.
+const bayWidth = t => NODE_W + (chainWidth(t) ? PARENT_STEP_GAP + chainWidth(t) : 0);
+const bayHeight = t => {
+  const pc = paraSteps(t).length;
+  // Parallel steps stack BELOW the parent; the chain row sits inside BASE_H.
+  const paraBottom = pc ? BASE_H + STEP_GAP_Y + pc * STEP_H + (pc - 1) * STEP_GAP_Y : 0;
+  return Math.max(BASE_H, paraBottom);
+};
 
 // ---- Portability (item 5): derive the /@fs base prefix from the URL ----
 // The page is served at <base>/planmap/index.html; the /@fs bridge lives at
@@ -183,9 +253,113 @@ const APP_BASE = (() => {
   return (m && m[1]) || '/Aralia';
 })();
 
+// Persistent module-level pan/zoom state — declared once, above buildAndShow,
+// so it survives a rebuild (Task 5's replay / Task 6's heat toggle redraw the
+// map from a different topics array without resetting the reader's view).
+let view = null;
+// The current build's closeDetail, stashed here so the module-scope
+// detail-close/Escape listeners below (bound ONCE) always act on the latest
+// rebuild's closure — same indirection pattern as window.__planmapResize.
+let closeDetailCurrent = null;
+// svgEl and the drag-to-pan state also live at module scope: buildAndShow
+// reassigns svgEl each rebuild, and the WINDOW-level mousemove/mouseup
+// listeners below are bound exactly ONCE (not re-bound per build, which would
+// stack duplicate handlers on `window` every time the map is rebuilt for
+// replay/heat-toggle). They read whatever the latest buildAndShow stashed here.
+let svgEl = null;
+let panning = false, panStart = null, moved = false;
+// The resize listener is bound ONCE here (not re-bound per build); it reads
+// whatever buildAndShow last stashed on window.__planmapResize (the current
+// build's applyView), so it always acts on the live svgEl/W/H/view.
+window.addEventListener('resize', () => {
+  if (window.__planmapResize) window.__planmapResize();
+});
+// Detail-close click + Escape, bound ONCE here (not re-bound per build, which
+// would stack duplicate handlers on `document` every rebuild — replay/heat
+// steps would then fire closeDetail N times). Reads whatever the latest
+// buildAndShow stashed on closeDetailCurrent.
+document.getElementById('detail-close').addEventListener('click', () => { if (closeDetailCurrent) closeDetailCurrent(); });
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape' && document.getElementById('detail').classList.contains('open') &&
+      !document.getElementById('glossary-backdrop').classList.contains('open')) { if (closeDetailCurrent) closeDetailCurrent(); }
+});
+// Drag-to-pan (mouse), bound once. `panning`/`panStart`/`moved` are set by the
+// svgEl-bound mousedown handler inside buildAndShow (re-bound per rebuild
+// since svgEl itself is recreated each build).
+window.addEventListener('mousemove', ev => {
+  if (!panning || !svgEl || !view) return;
+  const r = svgEl.getBoundingClientRect();
+  const dx = (ev.clientX - panStart.x) / r.width * view.w;
+  const dy = (ev.clientY - panStart.y) / r.height * view.h;
+  if (Math.abs(ev.clientX - panStart.x) + Math.abs(ev.clientY - panStart.y) > 4) { moved = true; svgEl.classList.add('panning'); }
+  view.x = panStart.vx - dx; view.y = panStart.vy - dy;
+  if (window.__planmapApplyView) window.__planmapApplyView();
+});
+window.addEventListener('mouseup', () => { panning = false; if (svgEl) svgEl.classList.remove('panning'); });
+
+// Date-progression timeline state (Task 4), module scope so Task 5's
+// goToDay()/drag/play can reach the same timeline/momentum/dayIndex without
+// re-fetching history.json. `timeline` stays null (feature absent) if
+// history.json or window.PlanmapHistory isn't available.
+let timeline = null, momentum = null, dayIndex = 0;
+// Staleness heat overlay (Task 6) — off by default; toggled by #heat-toggle,
+// read inside buildAndShow so every rebuild (replay, filter, resize) reflects
+// the current on/off state and the currently-selected day.
+let heatOn = false;
+
+// Slug — MUST match the one inside buildAndShow / tools/agora/validate-planmap.mjs.
+const tlSlug = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+const tlEsc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+// ================= buildTimeline: momentum bars + playhead =================
+// Renders an SVG into #timeline: axis, one .tl-bar per day with count > 0
+// (height ∝ count), a few date ticks, a play button (inert until Task 5), a
+// playhead line+knob at activeIndex, and a readout of the active day (or
+// "Now" for the last index). x(i) maps a day index to a pixel column.
+function buildTimeline(tl, mom, activeIndex) {
+  const el = document.getElementById('timeline');
+  if (!tl || !tl.length) { el.innerHTML = ''; return; }
+  const W = el.clientWidth || el.getBoundingClientRect().width || 900, H = 54;
+  const PADX = 34, PADY_TOP = 6, AXIS_Y = H - 18, BAR_MAX = AXIS_Y - PADY_TOP;
+  const n = tl.length;
+  const x = i => n <= 1 ? PADX : PADX + i * (W - 2 * PADX) / (n - 1);
+  const maxCount = Math.max(1, ...mom.map(d => d.count));
+
+  const S = [];
+  S.push(`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`);
+  // Play button (inert for Task 4 — wired in Task 5).
+  S.push(`<rect class="tl-play" data-role="play" x="4" y="${AXIS_Y - 12}" width="20" height="20" rx="4"/>`);
+  S.push(`<path d="M12,${AXIS_Y - 8} L12,${AXIS_Y + 4} L21,${AXIS_Y - 2} Z" fill="#94a3b8" pointer-events="none"/>`);
+  // Axis.
+  S.push(`<line class="tl-axis" x1="${PADX}" y1="${AXIS_Y}" x2="${W - PADX}" y2="${AXIS_Y}"/>`);
+  // Momentum bars, one per day with count > 0.
+  mom.forEach((d, i) => {
+    if (!d.count) return;
+    const bh = Math.max(3, Math.min(BAR_MAX, (d.count / maxCount) * BAR_MAX));
+    const bx = x(i) - 4;
+    const titles = (d.shipped || []).map(s => tlEsc(s.title)).join(', ');
+    S.push(`<g><title>${tlEsc(d.date)} — shipped ${d.count}: ${titles}</title>` +
+      `<rect class="tl-bar" x="${bx}" y="${AXIS_Y - bh}" width="8" height="${bh}" rx="1.5"/></g>`);
+  });
+  // Date ticks: first, last, and up to 3 evenly-spaced interior days.
+  const tickIdx = new Set([0, n - 1]);
+  const interior = Math.min(3, Math.max(0, n - 2));
+  for (let k = 1; k <= interior; k++) tickIdx.add(Math.round((k * (n - 1)) / (interior + 1)));
+  [...tickIdx].sort((a, b) => a - b).forEach(i => {
+    S.push(`<text class="tl-tick" x="${x(i)}" y="${AXIS_Y + 12}" text-anchor="middle">${tlEsc(tl[i].date.slice(5))}</text>`);
+  });
+  // Playhead (static at Now for Task 4; draggable from Task 5).
+  const px = x(activeIndex);
+  S.push(`<line class="tl-playhead" x1="${px}" y1="${PADY_TOP}" x2="${px}" y2="${AXIS_Y}"/>`);
+  S.push(`<circle class="tl-knob" data-role="knob" cx="${px}" cy="${AXIS_Y}" r="6"/>`);
+  // Readout: active day's date, or "Now" when at the last index (live data).
+  const readoutText = activeIndex === n - 1 ? 'Now' : tl[activeIndex].date;
+  S.push(`<text class="tl-readout" x="${W - PADX}" y="${PADY_TOP + 9}" text-anchor="end">${tlEsc(readoutText)}</text>`);
+  S.push(`</svg>`);
+  el.innerHTML = S.join('');
+}
+
 fetch('./topics.json').then(r => r.json()).then(data => {
-  const topics = data.topics;
-  const byId = Object.fromEntries(topics.map(t => [t.id, t]));
   const repoRoot = data.repoRoot || '';
   // Repo docs aren't under public/ — open them through Vite's /@fs bridge
   // (mounted under the app base, derived from the URL, not hardcoded).
@@ -199,9 +373,33 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   const setHref = (id, href) => { const el = document.getElementById(id); if (el) el.href = href; };
   setHref('grillprompt-link', docHref('tools/agora/PLANMAP-GRILL-PROMPT.md'));
   setHref('glossary-link', docHref('tools/agora/GLOSSARY.md'));
+  // Doc-tool links — relative to APP_BASE so they open on whichever dev server
+  // hosts the plan-map (main app / devhub build these misc entries). The
+  // planned Doc Inventory Explorer lives inside the Doc Library, so no third
+  // link is needed until it ships as its own view.
+  setHref('atlas-link', APP_BASE + '/misc/aralia_atlas.html');
+  setHref('doclib-link', APP_BASE + '/misc/md_library.html');
   setHref('game-link', APP_BASE + '/');
   // Feature-tree port link degrades gracefully — derive its path off APP_BASE.
   setHref('tree-link', 'http://localhost:3010' + APP_BASE + '/devtools/roadmap/roadmap.html');
+
+  // ============ buildAndShow: rebuilds the whole map from a topics array =====
+  // Everything from here through the legend/filter wiring is now a function of
+  // `topics` (not a closure over `data.topics`), so replay (Task 5) and the
+  // heat overlay (Task 6) can redraw the map from a different snapshot without
+  // re-fetching or resetting the reader's zoom/pan (`opts.preserveView`).
+  function buildAndShow(topics, opts = {}) {
+  const byId = Object.fromEntries(topics.map(t => [t.id, t]));
+
+  // ================= Staleness heat overlay (Task 6) ===================
+  // Reads the CURRENTLY SELECTED day (timeline sliced up to dayIndex, dated
+  // at that day), so heat is correct even while scrubbed into the past via
+  // replay. `heat` stays null when the toggle is off or history hasn't
+  // loaded yet — callers below just skip drawing the tint.
+  const heat = (heatOn && timeline)
+    ? window.PlanmapHistory.stalenessDays(timeline.slice(0, dayIndex + 1), timeline[dayIndex].date)
+    : null;
+  const HEAT = d => d <= 2 ? '#22d3ee' : d <= 7 ? '#fbbf24' : d <= 21 ? '#fb923c' : '#f87171';
 
   // Deps may be plain ids or {id, kind, why, feature} objects — normalize.
   // A dep may carry `feature: "<slug>"` — it then requires that ONE feature
@@ -264,12 +462,16 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     topics.forEach(t => { if (t.id && !color[t.id]) dfs(t.id); });
     if (cyclic.length) problems.push(`Dependency cycle(s) detected: ${cyclic.join(', ')}.`);
   })();
-  if (problems.length) {
+  {
     const banner = document.getElementById('validation');
-    banner.innerHTML = `<b>⚠ topics.json validation failed (${problems.length}):</b>` +
-      '<ul>' + problems.map(p => `<li>${p.replace(/</g, '&lt;')}</li>`).join('') + '</ul>';
-    banner.classList.add('show');
-    console.error('plan-map validation problems:', problems);
+    banner.classList.toggle('show', problems.length > 0);
+    if (problems.length) {
+      banner.innerHTML = `<b>⚠ topics.json validation failed (${problems.length}):</b>` +
+        '<ul>' + problems.map(p => `<li>${p.replace(/</g, '&lt;')}</li>`).join('') + '</ul>';
+      console.error('plan-map validation problems:', problems);
+    } else {
+      banner.innerHTML = '';
+    }
   }
 
   // Column = longest dependency chain length (topological depth).
@@ -335,8 +537,16 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   live.forEach(t => { const c = t.campaign || '(none)'; if (!laneKeys.includes(c)) laneKeys.push(c); });
   const laneIndex = Object.fromEntries(laneKeys.map((k, i) => [k, i]));
 
-  const nCols = Math.max(0, ...Object.values(depth)) + 1;
-  const colX = c => PAD + c * (NODE_W + COL_GAP);
+  // Each depth column is as wide as the widest BAY in it (parent + its step
+  // chain), so a parent's rightward steps never collide with the next column.
+  const maxDepth = Math.max(0, ...Object.values(depth));
+  const colWidth = [];
+  for (let c = 0; c <= maxDepth; c++) {
+    const bays = live.filter(t => depth[t.id] === c).map(bayWidth);
+    colWidth[c] = bays.length ? Math.max(NODE_W, ...bays) : NODE_W;
+  }
+  const colX = [PAD];
+  for (let c = 1; c <= maxDepth; c++) colX[c] = colX[c - 1] + colWidth[c - 1] + COL_GAP;
 
   // Group live nodes by lane, sort each lane by stable order key.
   const byLane = {};
@@ -344,7 +554,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   laneKeys.forEach(k => (byLane[k] || []).sort((a, b) => orderIndex[a.id] - orderIndex[b.id]));
 
   // Lay each lane out as its own vertical band. Within a lane, place nodes into
-  // their depth column and stack them; the band height is the tallest column.
+  // their depth column and stack them by BAY height; the band is the tallest column.
   const pos = {};
   const laneRects = []; // {y, h, key} for the faint lane backgrounds + labels
   let laneTop = PAD;
@@ -356,8 +566,8 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     list.forEach(t => {
       const c = depth[t.id];
       const y = (colY[c] == null) ? bandTop : colY[c];
-      pos[t.id] = { x: colX(c), y };
-      colY[c] = y + nodeH(t) + ROW_GAP;
+      pos[t.id] = { x: colX[c], y };
+      colY[c] = y + bayHeight(t) + ROW_GAP;
     });
     const bandBottom = Math.max(bandTop, ...Object.values(colY)) ; // tallest column
     const bandH = bandBottom - laneTop;
@@ -365,7 +575,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     laneTop = laneTop + bandH + LANE_GAP;
   });
   const maxY = laneTop;
-  const W = PAD * 2 + nCols * NODE_W + (nCols - 1) * COL_GAP;
+  const W = colX[maxDepth] + colWidth[maxDepth] + PAD;
   const H = maxY + PAD;
 
   // Covers element content AND double-quoted attribute values — every
@@ -375,7 +585,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   // No width/height attributes — CSS makes the SVG fill the canvas flex cell,
   // so the drawing scales with the window instead of a fixed pixel box.
   S.push(`<svg id="plansvg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`);
-  S.push(`<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker></defs>`);
+  S.push(`<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs>`);
 
   // Lane backgrounds + labels drawn first, behind everything (item 2).
   laneRects.forEach(l => {
@@ -383,17 +593,40 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     S.push(`<text class="lane-label" x="${PAD - 6}" y="${l.y + 15}" fill="#e2e8f0">${esc(l.label)}</text>`);
   });
 
-  // Feature mini-tile geometry (must mirror the node render loop below):
-  // fy = p.y + BASE_H - 18 + i * (FEAT_H + FEAT_GAP); left edge = p.x + 10.
-  // Keyed by `${topicId}|${slug}` → { x (left edge), y (y-center) }.
+  // ---- Exploded step tiles: features become their own child nodes ----------
+  // Chain (sequential) steps flow right at the parent's mid-row; parallel steps
+  // fan straight off the parent, stacked below it. featPos (left-edge y-center,
+  // keyed `${topicId}|${slug}`) still drives feature-anchored cross-topic
+  // arrows — they now terminate on the real step tile.
+  const stepId = (topicId, f) => `${topicId}::${slug(f.title)}`;
   const featPos = {};
+  const stepNodes = []; // { id, topicId, x, y, f, num }
+  const stepEdges = []; // { from, to, topicId, kind: 'chain' | 'branch' }
   live.forEach(t => {
     const p = pos[t.id]; if (!p) return;
-    (t.features || []).forEach((f, i) => {
-      const fy = p.y + BASE_H - 18 + i * (FEAT_H + FEAT_GAP);
-      featPos[`${t.id}|${slug(f.title)}`] = { x: p.x + 10, y: fy + FEAT_H / 2 };
+    const sx0 = p.x + NODE_W + PARENT_STEP_GAP; // first step column
+    const cy = p.y + BASE_H / 2;                // chain row center
+    let prevId = null;
+    chainSteps(t).forEach((x, k) => {
+      const sx = sx0 + k * (STEP_W + STEP_GAP_X);
+      const id = stepId(t.id, x.f);
+      stepNodes.push({ id, topicId: t.id, x: sx, y: cy - STEP_H / 2, f: x.f, num: x.i + 1 });
+      featPos[`${t.id}|${slug(x.f.title)}`] = { x: sx, y: cy };
+      stepEdges.push(prevId
+        ? { from: prevId, to: id, topicId: t.id, kind: 'chain' }
+        : { from: t.id,   to: id, topicId: t.id, kind: 'branch' });
+      prevId = id;
+    });
+    const paraTop = p.y + BASE_H + STEP_GAP_Y;
+    paraSteps(t).forEach((x, j) => {
+      const sy = paraTop + j * (STEP_H + STEP_GAP_Y);
+      const id = stepId(t.id, x.f);
+      stepNodes.push({ id, topicId: t.id, x: sx0, y: sy, f: x.f, num: x.i + 1 });
+      featPos[`${t.id}|${slug(x.f.title)}`] = { x: sx0, y: sy + STEP_H / 2 };
+      stepEdges.push({ from: t.id, to: id, topicId: t.id, kind: 'branch' });
     });
   });
+  const stepById = Object.fromEntries(stepNodes.map(n => [n.id, n]));
 
   // Edge routing: multiple edges leaving (or entering) one node fan out along
   // its side instead of stacking on the midpoint — kills the spaghetti read.
@@ -411,7 +644,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   const outPort = {}, inPort = {};
   const assignPorts = (list, key, node, portMap) => {
     list.sort((e1, e2) => pos[e1[key === 'out' ? 'to' : 'from']].y - pos[e2[key === 'out' ? 'to' : 'from']].y);
-    const h = nodeH(byId[node]);
+    const h = BASE_H;
     list.forEach((e, i) => {
       const frac = list.length === 1 ? 0.5 : 0.25 + (0.5 * i) / (list.length - 1);
       portMap[`${e.from}|${e.to}`] = pos[node].y + h * frac;
@@ -443,7 +676,9 @@ fetch('./topics.json').then(r => r.json()).then(data => {
       const mx = x1 + (endX - x1) * 0.5;
       d = `M${x1},${y1} C${mx},${y1} ${mx},${endY} ${endX - 4},${endY}`;
     } else {
-      const x1 = a.x + NODE_W, y1 = outPort[`${e.from}|${e.to}`];
+      // Whole-topic edges leave from the RIGHT OF THE BAY (past e.from's steps)
+      // so the arrow flows out of the parent's finished sub-flow into e.to.
+      const x1 = a.x + bayWidth(byId[e.from]), y1 = outPort[`${e.from}|${e.to}`];
       endX = b.x; endY = inPort[`${e.from}|${e.to}`];
       const mx = x1 + (endX - x1) * 0.5;
       d = `M${x1},${y1} C${mx},${y1} ${mx},${endY} ${endX - 4},${endY}`;
@@ -457,12 +692,20 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     // A wide invisible twin path makes the thin edge hoverable/clickable; the
     // <g>'s <title> is the browser-native tooltip for both.
     // Feature-anchored edges get a subtle "member edge" look: lighter stroke +
-    // a small hollow circle at the feature end (see legend).
+    // a hollow circle at the feature end (see legend) and NO arrowhead — the
+    // circle alone marks "points into this one step", so a stacked arrowhead
+    // would be redundant. Whole-topic edges keep the arrowhead.
+    // Type class drives the per-type hover color. Feature edges are `.member`
+    // (purple) regardless of kind; whole-topic edges are `.hard` (red) or
+    // `.chosen` (amber). Only non-member edges carry the kind class, so a member
+    // edge never matches a .hard/.chosen hover rule.
     const memberCls = fp ? ' member' : '';
+    const kindCls = fp ? '' : (e.kind === 'chosen' ? ' chosen' : ' hard');
     const endMark = fp ? `<circle class="member-end" cx="${endX - 4}" cy="${endY}" r="3"/>` : '';
-    S.push(`<g class="edgeg${memberCls}" data-from="${esc(e.from)}" data-to="${esc(e.to)}"${fp ? ` data-feature="${esc(e.feature)}"` : ''}><title>${esc(tip)}</title>` +
+    const markerAttr = fp ? '' : ' marker-end="url(#arr)"';
+    S.push(`<g class="edgeg${memberCls}${kindCls}" data-from="${esc(e.from)}" data-to="${esc(e.to)}"${fp ? ` data-feature="${esc(e.feature)}"` : ''}><title>${esc(tip)}</title>` +
       `<path class="edge-hit" d="${d}"/>` +
-      `<path class="edge" marker-end="url(#arr)"${dash} d="${d}"/>${endMark}</g>`);
+      `<path class="edge"${markerAttr}${dash} d="${d}"/>${endMark}</g>`);
   });
 
   const wrap = (s, n) => { // naive 2-line wrap for subtitles
@@ -470,13 +713,42 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     const cut = s.lastIndexOf(' ', n);
     return [s.slice(0, cut > 0 ? cut : n), s.slice(cut > 0 ? cut + 1 : n).slice(0, n) + (s.length - n > n ? '…' : '')];
   };
+  // --- Internal step edges (drawn UNDER the tiles): parent→step branch and
+  // step→step chain. Lighter than cross-topic edges; lit/dimmed with the parent.
+  stepEdges.forEach(se => {
+    const b = stepById[se.to]; if (!b) return;
+    let ax, ay;
+    if (se.kind === 'chain') {
+      const a = stepById[se.from]; if (!a) return;
+      ax = a.x + STEP_W; ay = a.y + STEP_H / 2;
+    } else {
+      const p = pos[se.topicId]; if (!p) return;
+      ax = p.x + NODE_W; ay = p.y + BASE_H / 2;
+    }
+    const bx = b.x, by = b.y + STEP_H / 2;
+    const mx = ax + (bx - ax) * 0.5;
+    const d = `M${ax},${ay} C${mx},${ay} ${mx},${by} ${bx - 4},${by}`;
+    // Tooltip + wide invisible hit path so the step arrow is hoverable (turns
+    // cyan) like the cross-topic edges.
+    const sTip = se.kind === 'chain'
+      ? `${byId[se.topicId].title}: step ${stepById[se.from]?.num} → step ${b.num} (sequential)`
+      : `${byId[se.topicId].title}: → step ${b.num} (${b.f.parallel ? 'parallel' : 'first step'})`;
+    S.push(`<g class="stepedge" data-topic="${esc(se.topicId)}" data-from="${esc(se.from)}" data-to="${esc(se.to)}"><title>${esc(sTip)}</title>` +
+      `<path class="edge-hit" d="${d}"/>` +
+      `<path class="edge" marker-end="url(#arr)" d="${d}"/></g>`);
+  });
+
+  // --- Parent campaign tiles: title / status / spec link only (steps now live
+  // in their own tiles to the right).
   live.forEach(t => {
     const p = pos[t.id];
-    const h = nodeH(t);
+    const h = BASE_H;
     const c = COLORS[(data.campaigns[t.campaign] || {}).color] || COLORS.gray;
     const go = isActionable(t);
     const sub = wrap(t.sub, 36);
-    S.push(`<g class="node" data-id="${esc(t.id)}" data-campaign="${esc(t.campaign || '')}" data-status="${esc(t.status || '')}">`);
+    S.push(`<g class="node" data-id="${esc(t.id)}" data-topic="${esc(t.id)}" data-campaign="${esc(t.campaign || '')}" data-status="${esc(t.status || '')}">`);
+    const hk = heat && heat.get(t.id);
+    if (hk) S.push(`<rect x="${p.x}" y="${p.y}" width="${NODE_W}" height="${h}" rx="6" fill="${HEAT(hk.days)}" fill-opacity="0.28" pointer-events="none"/>`);
     S.push(`<rect x="${p.x}" y="${p.y}" width="${NODE_W}" height="${h}" rx="6" fill="${c.fill}" stroke="${go ? '#4ade80' : c.stroke}" stroke-width="${go ? 3 : 1.5}"/>`);
     // Top-right badge stack: READY (possibility) and FOCUS (what's actually
     // in hand — at most one topic, validator-enforced) are different claims.
@@ -488,42 +760,58 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     S.push(`<text class="title" x="${p.x + 12}" y="${p.y + 22}" fill="${c.title}">${esc(t.title)}</text>`);
     sub.forEach((line, i) =>
       S.push(`<text class="sub" x="${p.x + 12}" y="${p.y + 39 + i * 13}" fill="${c.sub}">${esc(line)}</text>`));
-    // Sub-features: compound-node mini-tiles nested inside the parent card,
-    // each with its own border + status dot (flowchart-in-a-node).
-    (t.features || []).forEach((f, i) => {
-      const fy = p.y + BASE_H - 18 + i * (FEAT_H + FEAT_GAP);
-      const dead = f.status === 'superseded';
-      // Spike = research that could invalidate the approach — dashed border so
-      // it never masquerades as a settled build step.
-      const spikeAttrs = f.spike ? ` stroke-dasharray="4 3" stroke-opacity="0.9"` : ` stroke-opacity="0.45"`;
-      S.push(`<rect x="${p.x + 10}" y="${fy}" width="${NODE_W - 20}" height="${FEAT_H}" rx="4" fill="rgba(15,23,42,0.55)" stroke="${dead ? STATUS.superseded : c.stroke}"${spikeAttrs} stroke-width="1"/>`);
-      // Flow: list order IS the intra-node build sequence — number the steps
-      // and stitch consecutive tiles with a short connector stub.
-      if (i > 0) S.push(`<line x1="${p.x + 22}" y1="${fy - FEAT_GAP}" x2="${p.x + 22}" y2="${fy}" stroke="${c.stroke}" stroke-opacity="0.5" stroke-width="1"/>`);
-      S.push(`<circle cx="${p.x + 22}" cy="${fy + FEAT_H / 2}" r="3.5" fill="${STATUS[f.status] || '#94a3b8'}"/>`);
-      S.push(`<text class="status" x="${p.x + 34}" y="${fy + FEAT_H / 2 + 4}" fill="${c.sub}">${i + 1}</text>`);
-      // Right margin reserves: 📄 icon, then the ?n open-questions marker.
-      const openN = (typeof f.open === 'number' && f.open > 0) ? f.open : 0;
-      const budget = (f.link ? 27 : 30) - (openN ? 3 : 0) - (f.spike ? 2 : 0);
-      const rawTitle = (f.spike ? '⚠ ' : '') + f.title;
-      const ftitle = rawTitle.length > budget ? rawTitle.slice(0, budget - 1) + '…' : rawTitle;
-      const deco = dead ? ' text-decoration="line-through"' : '';
-      S.push(`<text class="sub" x="${p.x + 44}" y="${fy + FEAT_H / 2 + 4}" fill="${dead ? STATUS.superseded : c.title}"${deco}><title>${esc(f.title)}${f.status ? ` [${f.status}]` : ''}${f.spike ? ' [spike — could invalidate the approach]' : ''}${openN ? ` — ${openN} open question(s) in the subspec` : ''}${dead && f.killed ? ` — killed: ${esc(f.killed)}` : ''}</title>${esc(ftitle)}</text>`);
-      // Settledness marker: how many "## Open" bullets the linked subspec still
-      // carries. ?0 is never shown — settled decisions stay quiet.
-      if (openN) S.push(`<text class="status" x="${p.x + NODE_W - (f.link ? 34 : 16)}" y="${fy + FEAT_H / 2 + 4}" text-anchor="end" fill="#fbbf24"><title>${openN} open question(s) in ${esc(f.link || 'the subspec')}</title>?${openN}</text>`);
-      if (f.link) S.push(`<a href="${esc(docHref(f.link))}" target="_blank"><text class="sub" x="${p.x + NODE_W - 16}" y="${fy + FEAT_H / 2 + 4}" text-anchor="end" fill="${c.sub}"><title>${esc(f.link)}</title>📄</text></a>`);
-    });
     S.push(`<circle cx="${p.x + 16}" cy="${p.y + h - 12}" r="4" fill="${STATUS[t.status] || '#94a3b8'}"/>`);
     S.push(`<text class="status" x="${p.x + 26}" y="${p.y + h - 8}" fill="${STATUS[t.status] || '#94a3b8'}">${esc((t.status || '').toUpperCase())}</text>`);
     if (t.link) S.push(`<a href="${esc(docHref(t.link))}" target="_blank"><text class="sub" x="${p.x + NODE_W - 12}" y="${p.y + h - 8}" text-anchor="end" fill="${c.sub}">📄 spec</text></a>`);
     S.push(`</g>`);
   });
+
+  // --- Step tiles: one per feature, each its own clickable node. They carry
+  // data-topic so hover/pin/filter treat them as part of the parent.
+  stepNodes.forEach(sn => {
+    const t = byId[sn.topicId];
+    const c = COLORS[(data.campaigns[t.campaign] || {}).color] || COLORS.gray;
+    const f = sn.f;
+    const dead = f.status === 'superseded';
+    const spikeAttrs = f.spike ? ` stroke-dasharray="4 3" stroke-opacity="0.95"` : '';
+    S.push(`<g class="node stepnode" data-id="${esc(sn.id)}" data-topic="${esc(sn.topicId)}" data-campaign="${esc(t.campaign || '')}" data-status="${esc(f.status || '')}">`);
+    const shk = heat && heat.get(sn.id);
+    if (shk) S.push(`<rect x="${sn.x}" y="${sn.y}" width="${STEP_W}" height="${STEP_H}" rx="6" fill="${HEAT(shk.days)}" fill-opacity="0.28" pointer-events="none"/>`);
+    S.push(`<rect x="${sn.x}" y="${sn.y}" width="${STEP_W}" height="${STEP_H}" rx="4" fill="${c.fill}" fill-opacity="0.55" stroke="${dead ? STATUS.superseded : c.stroke}"${spikeAttrs} stroke-width="1.5"/>`);
+    S.push(`<circle cx="${sn.x + 13}" cy="${sn.y + STEP_H / 2}" r="3.5" fill="${STATUS[f.status] || '#94a3b8'}"/>`);
+    S.push(`<text class="status" x="${sn.x + 24}" y="${sn.y + STEP_H / 2 + 4}" fill="${c.sub}">${sn.num}</text>`);
+    const openN = (typeof f.open === 'number' && f.open > 0) ? f.open : 0;
+    const budget = 26 - (openN ? 3 : 0) - (f.link ? 2 : 0) - (f.spike ? 2 : 0);
+    const rawTitle = (f.spike ? '⚠ ' : '') + f.title;
+    const ftitle = rawTitle.length > budget ? rawTitle.slice(0, budget - 1) + '…' : rawTitle;
+    const deco = dead ? ' text-decoration="line-through"' : '';
+    S.push(`<text class="sub" x="${sn.x + 34}" y="${sn.y + STEP_H / 2 + 4}" fill="${dead ? STATUS.superseded : c.title}"${deco}><title>${esc(f.title)}${f.status ? ` [${f.status}]` : ''}${f.parallel ? ' [parallel — branches off the parent]' : ''}${f.spike ? ' [spike — could invalidate the approach]' : ''}${openN ? ` — ${openN} open question(s) in the subspec` : ''}${dead && f.killed ? ` — killed: ${esc(f.killed)}` : ''}</title>${esc(ftitle)}</text>`);
+    if (openN) S.push(`<text class="status" x="${sn.x + STEP_W - (f.link ? 30 : 12)}" y="${sn.y + STEP_H / 2 + 4}" text-anchor="end" fill="#fbbf24"><title>${openN} open question(s) in ${esc(f.link || 'the subspec')}</title>?${openN}</text>`);
+    if (f.link) S.push(`<a href="${esc(docHref(f.link))}" target="_blank"><text class="sub" x="${sn.x + STEP_W - 12}" y="${sn.y + STEP_H / 2 + 4}" text-anchor="end" fill="${c.sub}"><title>${esc(f.link)}</title>📄</text></a>`);
+    S.push(`</g>`);
+  });
   S.push(`</svg>`);
+  // Shipped tiles are grouped by their campaign category (canonical campaigns
+  // in object order first, then any campaign not in the registry — created on
+  // the fly so a shipped topic never drops just because its category is new).
+  // Each group's label + chip dots take the lane color, so a reader sees at a
+  // glance which category finished what.
+  const shipByCamp = {};
+  shipped.forEach(t => { const k = t.campaign || '(none)'; (shipByCamp[k] = shipByCamp[k] || []).push(t); });
+  const shipCampKeys = [
+    ...campOrder.filter(k => shipByCamp[k]),
+    ...Object.keys(shipByCamp).filter(k => !campOrder.includes(k)),
+  ];
   const shippedHtml = shipped.length
-    ? `<div id="shipped"><span class="strip-label">Shipped · ${shipped.length}</span>` + shipped.map(t =>
-        `<span class="strip-chip"><span class="dot"></span>${esc(t.title)}${t.link ? ` <a href="${esc(docHref(t.link))}" target="_blank" title="${esc(t.link)}">📄</a>` : ''}</span>`
-      ).join('') + `</div>`
+    ? `<div id="shipped"><span class="strip-label">Shipped · ${shipped.length}</span>` +
+      shipCampKeys.map(k => {
+        const camp = data.campaigns[k] || {};
+        const col = (COLORS[camp.color] || COLORS.gray).stroke;
+        const chips = shipByCamp[k].map(t =>
+          `<span class="strip-chip"><span class="dot" style="background:${col}"></span>${esc(t.title)}${t.link ? ` <a href="${esc(docHref(t.link))}" target="_blank" title="${esc(t.link)}">📄</a>` : ''}</span>`
+        ).join('');
+        return `<span class="strip-group"><span class="strip-group-label" style="color:${col}">${esc(camp.label || k)}</span>${chips}</span>`;
+      }).join('') + `</div>`
     : '';
   // Graveyard: superseded topics keep their title, link and one-line "killed"
   // reason — dead decisions are history, not garbage.
@@ -534,9 +822,17 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     : '';
   document.getElementById('canvas').innerHTML = S.join('');
   // Shipped/Graveyard strips live outside #canvas so they don't scale/pan.
+  // buildAndShow re-runs on every rebuild (timeline scrub, filter, resize) and
+  // these strips are siblings of #canvas, so resetting #canvas.innerHTML above
+  // does NOT clear them. Remove any prior strips before inserting the fresh
+  // pair — otherwise each rebuild stacks another #shipped/#graveyard (duplicate
+  // ids, growing page height, broken scroll).
+  document.querySelectorAll('#shipped, #graveyard').forEach(el => el.remove());
   document.getElementById('canvas').insertAdjacentHTML('afterend', shippedHtml + graveyardHtml);
 
-  const svgEl = document.querySelector('#canvas svg');
+  // Module-scope svgEl reassigned each build (the element itself is recreated
+  // by the innerHTML swap above); the module-scope pan listeners read this.
+  svgEl = document.querySelector('#canvas svg');
 
   // Hover a node → light up its full dependency chain (both directions),
   // dim everything else. Instant class swap, no animation.
@@ -553,11 +849,14 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   };
   svgEl.querySelectorAll('.node').forEach(g => {
     g.addEventListener('mouseenter', () => {
-      const lit = chainOf(g.dataset.id);
+      // Step tiles carry data-topic; light the whole dependency chain of the
+      // owning topic (both a parent and its steps share that topic id).
+      const lit = chainOf(g.dataset.topic || g.dataset.id); // set of topic ids
       svgEl.classList.add('focus');
-      svgEl.querySelectorAll('.node').forEach(n => n.classList.toggle('lit', lit.has(n.dataset.id)));
+      svgEl.querySelectorAll('.node').forEach(n => n.classList.toggle('lit', lit.has(n.dataset.topic || n.dataset.id)));
       svgEl.querySelectorAll('.edgeg').forEach(eg =>
         eg.classList.toggle('lit', lit.has(eg.dataset.from) && lit.has(eg.dataset.to)));
+      svgEl.querySelectorAll('.stepedge').forEach(se => se.classList.toggle('lit', lit.has(se.dataset.topic)));
     });
     g.addEventListener('mouseleave', () => svgEl.classList.remove('focus'));
   });
@@ -571,6 +870,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     pinnedNode = pinnedEdge = null;
   };
   const closeDetail = () => { detail.classList.remove('open'); clearPins(); };
+  closeDetailCurrent = closeDetail;
 
   const campLabel = key => (data.campaigns[key] || {}).label || key || '—';
   const statusTag = s => s ? `<span class="d-tag" style="color:${STATUS[s] || '#94a3b8'}">${esc(s)}</span>` : '';
@@ -674,49 +974,43 @@ fetch('./topics.json').then(r => r.json()).then(data => {
       // Let real <a> spec links do their thing.
       if (ev.target.closest('a')) return;
       ev.stopPropagation();
-      pinNode(g.dataset.id);
+      // Clicking a step tile pins its parent topic (steps share data-topic).
+      pinNode(g.dataset.topic || g.dataset.id);
     });
   });
   svgEl.querySelectorAll('.edgeg').forEach(g => {
     g.addEventListener('click', ev => { ev.stopPropagation(); pinEdge(g); });
   });
-  document.getElementById('detail-close').addEventListener('click', closeDetail);
-  // Click empty SVG background unpins; Esc unpins (also handled by glossary Esc).
+  // Click empty SVG background unpins (Esc unpins via the module-scope
+  // listener above buildAndShow, which reads closeDetailCurrent).
   svgEl.addEventListener('click', ev => { if (ev.target === svgEl || ev.target.classList.contains('lane-bg')) closeDetail(); });
-  document.addEventListener('keydown', ev => {
-    if (ev.key === 'Escape' && detail.classList.contains('open') &&
-        !document.getElementById('glossary-backdrop').classList.contains('open')) closeDetail();
-  });
 
   // ================= Zoom / fit / pan (item 3) =======================
   // viewBox manipulation on the existing SVG. Keep the intrinsic width/height
   // as the reference frame; pan/zoom just move the viewBox window over it.
-  const view = { x: 0, y: 0, w: W, h: H };
+  // `view` is module-scope (declared above buildAndShow) so it survives a
+  // rebuild: fit() (re)initializes it from the NEW W/H on first render (or an
+  // explicit reset); applyView() re-applies the EXISTING view to the fresh
+  // svgEl otherwise (opts.preserveView).
   const applyView = () => {
     svgEl.setAttribute('viewBox', `${view.x} ${view.y} ${view.w} ${view.h}`);
     const z = W / view.w;
     document.getElementById('zoom-label').textContent = Math.round(z * 100) + '%';
   };
+  // Stash this build's applyView so the module-scope (bound-once) mousemove
+  // listener can re-apply the viewBox during a drag without re-binding itself
+  // per rebuild. Same pattern as window.__planmapResize below.
+  window.__planmapApplyView = applyView;
   const fit = () => {
     // Fit the whole diagram into the SVG's live on-screen box (CSS-sized),
     // honoring its aspect — no attribute surgery, resize-safe.
     const box = svgEl.getBoundingClientRect();
     const vw = box.width || W, vh = box.height || H;
     const scale = Math.min(vw / W, vh / H);
-    view.w = vw / scale; view.h = vh / scale;
+    view = { x: 0, y: 0, w: vw / scale, h: vh / scale };
     view.x = (W - view.w) / 2; view.y = (H - view.h) / 2;
     applyView();
   };
-  window.addEventListener('resize', () => {
-    // Keep the current zoom level but re-match the viewBox aspect to the new
-    // on-screen box so the drawing never letterboxes or distorts.
-    const box = svgEl.getBoundingClientRect();
-    if (!box.width || !box.height) return;
-    const cx = view.x + view.w / 2, cy = view.y + view.h / 2;
-    view.h = view.w * (box.height / box.width);
-    view.x = cx - view.w / 2; view.y = cy - view.h / 2;
-    applyView();
-  });
   const zoomBy = (factor, cx, cy) => {
     // Zoom around (cx,cy) in viewBox coords so the point under the cursor stays put.
     const nw = Math.min(W * 4, Math.max(W / 12, view.w / factor));
@@ -731,6 +1025,22 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     return { x: view.x + (clientX - r.left) / r.width * view.w,
              y: view.y + (clientY - r.top) / r.height * view.h };
   };
+  // Re-match the viewBox aspect to the on-screen box on window resize, keeping
+  // the current zoom level so the drawing never letterboxes or distorts. The
+  // actual `window.resize` listener is bound ONCE at module scope (above
+  // buildAndShow); it just calls whatever this build stashed here, so a
+  // rebuild's resize handling always targets the CURRENT svgEl/W/H/view.
+  window.__planmapResize = () => {
+    const box = svgEl.getBoundingClientRect();
+    if (!box.width || !box.height) return;
+    const cx = view.x + view.w / 2, cy = view.y + view.h / 2;
+    view.h = view.w * (box.height / box.width);
+    view.x = cx - view.w / 2; view.y = cy - view.h / 2;
+    applyView();
+  };
+  // These listeners are bound to `svgEl` and the zoom-toolbar buttons, both of
+  // which are re-created (innerHTML swap / same nodes) or re-queried on every
+  // buildAndShow call, so they're re-bound here each time rather than once.
   svgEl.addEventListener('wheel', ev => {
     ev.preventDefault();
     const pt = toViewCoords(ev.clientX, ev.clientY);
@@ -740,25 +1050,20 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1 / 1.25, view.x + view.w / 2, view.y + view.h / 2));
   document.getElementById('zoom-fit').addEventListener('click', fit);
   // Drag-to-pan (mouse). A tiny threshold keeps click-to-pin working.
-  let panning = false, panStart = null, moved = false;
+  // `panning`/`panStart`/`moved` are module-scope (declared once, above
+  // buildAndShow) so the module-scope (bound-once) mousemove/mouseup listeners
+  // can read them; only the mousedown listener needs re-binding per rebuild
+  // since svgEl itself is recreated each build.
   svgEl.addEventListener('mousedown', ev => {
     if (ev.button !== 0) return;
     panning = true; moved = false;
     panStart = { x: ev.clientX, y: ev.clientY, vx: view.x, vy: view.y };
   });
-  window.addEventListener('mousemove', ev => {
-    if (!panning) return;
-    const r = svgEl.getBoundingClientRect();
-    const dx = (ev.clientX - panStart.x) / r.width * view.w;
-    const dy = (ev.clientY - panStart.y) / r.height * view.h;
-    if (Math.abs(ev.clientX - panStart.x) + Math.abs(ev.clientY - panStart.y) > 4) { moved = true; svgEl.classList.add('panning'); }
-    view.x = panStart.vx - dx; view.y = panStart.vy - dy;
-    applyView();
-  });
-  window.addEventListener('mouseup', () => { panning = false; svgEl.classList.remove('panning'); });
   // Swallow the click that ends a drag so it doesn't unpin/pin unexpectedly.
   svgEl.addEventListener('click', ev => { if (moved) { ev.stopPropagation(); moved = false; } }, true);
-  fit();
+  // First render (or an explicit reset) fits the whole diagram; a rebuild that
+  // asks to preserve the view re-applies the existing `view` to the fresh svgEl.
+  if (!view || !opts.preserveView) { fit(); } else { applyView(); }
 
   // ================= Legend + filters (item 4) =======================
   const allStatuses = [...topics, ...topics.flatMap(t => t.features || [])];
@@ -786,12 +1091,18 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   leg.push(`<span><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#94a3b8" stroke-width="1.5"/></svg> hard</span>`);
   leg.push(`<span><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/></svg> chosen</span>`);
   leg.push(`<span><svg width="26" height="10"><line x1="0" y1="5" x2="19" y2="5" stroke="#64748b" stroke-width="1"/><circle cx="21" cy="5" r="3" fill="#0f172a" stroke="#94a3b8" stroke-width="1.25"/></svg> requires a feature</span>`);
+  leg.push(`<span><svg width="26" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="#64748b" stroke-width="1"/></svg> parent→step / step→step (sequential)</span>`);
   leg.push(`<span style="color:#fbbf24;">?n = open questions in subspec</span>`);
   leg.push(`<span>⚠ dashed = spike (could invalidate)</span>`);
   leg.push(`<span style="color:#4ade80;">▶ ${readyCount} ready${readyNodes.length ? ` · top: ${esc(readyNodes[0].title)} (unblocks ${downCount(readyNodes[0].id)})` : ''}</span>`);
   leg.push(`<span id="clearfilter">✕ clear filters</span>`);
   leg.push(`<span style="margin-left:auto;">${counts}</span>`);
   document.getElementById('legend').innerHTML = leg.join('');
+
+  // Heat legend visibility follows heatOn (element is static markup in
+  // #maptools, just shown/hidden — no need to rebuild it per topics array).
+  const heatLegendEl = document.getElementById('heat-legend');
+  if (heatLegendEl) heatLegendEl.style.display = heatOn ? 'flex' : 'none';
 
   // Filter state: sets of selected campaigns + statuses. A node matches if it
   // satisfies EVERY active dimension (campaign-set AND status-set); within a
@@ -814,6 +1125,9 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     // An edge stays lit only if BOTH endpoints are shown.
     svgEl.querySelectorAll('.edgeg').forEach(eg =>
       eg.classList.toggle('dimmed', active && !(shown.has(eg.dataset.from) && shown.has(eg.dataset.to))));
+    // Step edges follow their parent topic's visibility.
+    svgEl.querySelectorAll('.stepedge').forEach(se =>
+      se.classList.toggle('dimmed', active && !shown.has(se.dataset.topic)));
   };
   document.getElementById('legend').querySelectorAll('.chip').forEach(chip => {
     chip.addEventListener('click', () => {
@@ -833,6 +1147,115 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     document.getElementById('legend').querySelectorAll('.chip.on').forEach(c => c.classList.remove('on'));
     applyFilter();
   });
+  } // end buildAndShow
+
+  buildAndShow(data.topics);   // live map, first render → fits
+
+  // ================= Staleness heat overlay toggle (Task 6) ==============
+  // Flips module-scope heatOn and rebuilds from the CURRENTLY SELECTED day
+  // (timeline[dayIndex] when history has loaded, otherwise the live topics),
+  // preserving the reader's zoom/pan.
+  document.getElementById('heat-toggle').addEventListener('click', e => {
+    heatOn = !heatOn;
+    e.currentTarget.setAttribute('aria-pressed', String(heatOn));
+    const topics = timeline ? timeline[dayIndex].topics : data.topics;
+    buildAndShow(topics, { preserveView: true });
+  });
+
+  // ================= Time-travel replay (Task 5) =========================
+  // goToDay(i) re-renders the map from timeline[i]'s topics (the last index
+  // holds the LIVE topics, i.e. `data.topics`, not a historical snapshot) and
+  // preserves the reader's zoom/pan via buildAndShow's opts.preserveView.
+  function goToDay(i) {
+    dayIndex = Math.max(0, Math.min(timeline.length - 1, i));
+    const topics = timeline[dayIndex].topics; // live topics when dayIndex is the last index
+    buildAndShow(topics, { preserveView: true }); // keep zoom/pan
+    buildTimeline(timeline, momentum, dayIndex);
+  }
+  window.__goToDay = goToDay;
+
+  // Drag-to-scrub + play button. Wired once history/timeline are loaded.
+  let playTimer = null;
+  function stopPlay() {
+    if (playTimer) { clearInterval(playTimer); playTimer = null; }
+    const playBtn = document.querySelector('#timeline .tl-play');
+    if (playBtn) playBtn.classList.remove('playing');
+  }
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (dayIndex >= timeline.length - 1) goToDay(0); // restart from day 0 if at Now
+    const playBtn = document.querySelector('#timeline .tl-play');
+    if (playBtn) playBtn.classList.add('playing');
+    playTimer = setInterval(() => {
+      goToDay(dayIndex + 1);
+      if (dayIndex >= timeline.length - 1) stopPlay(); // rests at Now/live
+    }, 700);
+  }
+
+  // clientX -> nearest day index; inverse of buildTimeline's x(i) mapping
+  // (PADX + i*(W-2*PADX)/(n-1)), read from the live #timeline SVG's geometry.
+  function dayIndexFromClientX(svg, clientX) {
+    const rect = svg.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
+    const W = vb && vb.width ? vb.width : rect.width;
+    const PADX = 34;
+    const localX = (clientX - rect.left) * (W / rect.width);
+    const n = timeline.length;
+    if (n <= 1) return 0;
+    const frac = (localX - PADX) / (W - 2 * PADX);
+    return Math.max(0, Math.min(n - 1, Math.round(frac * (n - 1))));
+  }
+
+  function wireTimelineControls() {
+    const container = document.getElementById('timeline');
+    if (!container) return;
+    let dragging = false;
+    // Delegate from the container so re-renders of the inner <svg> (every
+    // buildTimeline call) don't need re-binding — the listener lives on the
+    // stable #timeline element, not the SVG that gets replaced via innerHTML.
+    container.addEventListener('pointerdown', e => {
+      const svg = container.querySelector('svg');
+      if (!svg) return;
+      if (e.target.closest('[data-role="play"]')) { togglePlay(); return; }
+      const onKnobOrBg = e.target.closest('[data-role="knob"]') || e.target.closest('svg');
+      if (!onKnobOrBg) return;
+      dragging = true;
+      stopPlay();
+      container.setPointerCapture(e.pointerId);
+      goToDay(dayIndexFromClientX(svg, e.clientX));
+    });
+    container.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const svg = container.querySelector('svg');
+      if (!svg) return;
+      goToDay(dayIndexFromClientX(svg, e.clientX));
+    });
+    const endDrag = e => {
+      if (!dragging) return;
+      dragging = false;
+      try { container.releasePointerCapture(e.pointerId); } catch {}
+    };
+    container.addEventListener('pointerup', endDrag);
+    container.addEventListener('pointercancel', endDrag);
+  }
+
+  // ================= Date-progression timeline (Task 4) ==================
+  // Momentum bars over history.json + a static-at-Now playhead readout. Both
+  // history.json (generated by tools/agora/planmap-history.mjs) and
+  // window.PlanmapHistory (attached by the module script above) are optional —
+  // if either is missing, the timeline feature is simply absent, no error.
+  // `timeline`/`momentum` stay reachable at module scope for Task 5's replay.
+  const todayISO = new Date().toISOString().slice(0, 10);
+  fetch('./history.json').then(r => r.ok ? r.json() : null).then(hist => {
+    const H = window.PlanmapHistory;
+    if (!hist || !H) return; // no history yet, or derive module failed to load
+    timeline = [...hist.days, { date: todayISO, topics: data.topics }];
+    momentum = H.momentumByDay(timeline);
+    dayIndex = timeline.length - 1; // playhead static at Now for Task 4
+    window.__timeline = timeline; // expose for replay verification, now that it's populated
+    buildTimeline(timeline, momentum, dayIndex);
+    wireTimelineControls(); // Task 5: drag-to-scrub + play, now that `timeline` exists
+  }).catch(() => {});
 }).catch(e => {
   document.getElementById('canvas').innerHTML =
     `<p style="padding: 20px; color: #f87171;">Failed to load topics.json: ${e.message}</p>`;
