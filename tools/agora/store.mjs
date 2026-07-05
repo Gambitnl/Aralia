@@ -458,16 +458,21 @@ export function createStore({
   // ===========================================================================
   // Presence
   // ===========================================================================
-  function registerAgent({ handle, note } = {}) {
+  function registerAgent({ handle, note, model, sessionId } = {}) {
     const ts = now();
     const agent = {
       id: genId(),
       handle: handle || 'agent',
       token: genId(),
-      registeredAt: ts,
-      lastSeen: ts,
+      registeredAt: ts, // the "checked in" moment
+      lastSeen: ts, // "last touched"; refreshed by every authed call + heartbeat
       status: 'online',
       note: note || '',
+      // Optional provenance: which model this agent is (usually stamped by the
+      // orchestrator at launch) and its own harness conversation/thread id (so an
+      // agent can look up and report which session it is).
+      model: typeof model === 'string' ? model : '',
+      sessionId: typeof sessionId === 'string' ? sessionId : '',
     };
     emit('agent.register', { agent });
     return { ...agent };
@@ -491,6 +496,20 @@ export function createStore({
       out.push({ ...agent, status: computeStatus(agent, t) });
     }
     return out;
+  }
+
+  // Find a live (online-or-stale, i.e. not yet dropped) agent holding this handle.
+  // Used to enforce handle-claim uniqueness at register: a name may be reclaimed
+  // once its previous holder is reaped, but not while it's still active.
+  function findLiveAgentByHandle(handle) {
+    if (!handle) return null;
+    const t = now();
+    for (const agent of state.agents.values()) {
+      if (agent.handle !== handle) continue;
+      if (t - agent.lastSeen > presenceDropMs) continue; // dropped -> reclaimable
+      return { ...agent, status: computeStatus(agent, t) };
+    }
+    return null;
   }
 
   function getAgentByToken(token) {
@@ -785,6 +804,7 @@ export function createStore({
     touch,
     listAgents,
     getAgentByToken,
+    findLiveAgentByHandle,
     // locks
     acquireLock,
     releaseLock,

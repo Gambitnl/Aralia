@@ -14,6 +14,7 @@ import {
 import { EconomyState } from '../../types/economy';
 import { Faction } from '../../types/factions';
 import { BUSINESS_TEMPLATES } from '../../data/economy/businessTemplates';
+import { generateBusinessStock } from '../../data/economy/businessStock';
 import { calculateSupplyChainHealth } from './BusinessSimulation';
 import { SeededRandom } from '@/utils/random';
 
@@ -83,6 +84,26 @@ export const pickBusinessTypeForMerchant = (rng: SeededRandom): BusinessType => 
     return 'general_store';
 };
 
+/**
+ * Derive a business type (which decides the shop's stock) from the building /
+ * merchant type, so a blacksmith building sells weapons and armor rather than a
+ * random grab-bag. Falls to a general store for unrecognized types (a sensible,
+ * deterministic default — not a random pick). Keyword-matched and order-sensitive
+ * (specific trades before the generic "shop"/"store").
+ */
+export const businessTypeForMerchantType = (merchantType: string): BusinessType => {
+    const t = (merchantType || '').toLowerCase();
+    if (/smith|blacksmith|forge|weapon|armor|armour|weaponsmith/.test(t)) return 'smithy';
+    if (/alchemist|apothecary|herbalist|potion|remed/.test(t)) return 'apothecary';
+    if (/enchant|arcane|wizard|mage|magic/.test(t)) return 'enchanter_shop';
+    if (/tavern|inn|pub|alehouse|drink|brewery/.test(t)) return 'tavern';
+    if (/farm|orchard|grange/.test(t)) return 'farm';
+    if (/mine|miner|quarry/.test(t)) return 'mine';
+    if (/trad|market|caravan|import|export|merchant guild/.test(t)) return 'trading_company';
+    // Generic goods sellers and anything unrecognized → a general store.
+    return 'general_store';
+};
+
 // --- NPC Business Profile Generation ---
 
 interface MinimalNpc {
@@ -124,6 +145,11 @@ export const generateNpcBusiness = (
 
     const name = generateBusinessName(businessType, rng);
 
+    // Persisted, owned shop stock — deterministic from the same rng so a given
+    // (world, business) always opens with the same shelves. Storefront-less
+    // types (mine) yield an empty list.
+    const stock = generateBusinessStock(businessType, rng);
+
     return {
         // WorldBusiness fields
         id: `biz_${npc.id}_${rng.nextInt(1000, 10000)}`,
@@ -131,6 +157,7 @@ export const generateNpcBusiness = (
         locationId,
         ownerId: npc.id,
         ownerType: 'npc',
+        stock,
         daysSinceManaged: 0,
         managerEfficiency: businessSkill,
         foundedDay: gameDay,

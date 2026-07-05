@@ -132,7 +132,10 @@ export abstract class BaseEffectCommand implements SpellCommand {
     return {
       ...state,
       combatLog: [
-        ...state.combatLog,
+        // Default to an empty log so an effect can record its first entry even
+        // when the incoming state has no combatLog yet (guards against a crash:
+        // "state.combatLog is not iterable").
+        ...(state.combatLog ?? []),
         {
           ...entry,
           id: generateId(),

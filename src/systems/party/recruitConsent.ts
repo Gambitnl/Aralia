@@ -44,10 +44,25 @@ export const RELATIONSHIP_JOIN_THRESHOLD: RelationshipLevel = 'friend';
 
 /**
  * Minimum NPC disposition (NpcMemory scale, -100..100) at which a first-time
- * recruit — one with no `Companion` record — consents to join. 50 is the
- * "Friendly" tier used elsewhere (socialUtils/contextUtils treat >50 as warm).
+ * recruit — one with no `Companion` record — consents to join for FREE.
+ *
+ * TUNING (2026-07-04): raised from 50 to 65. NpcMemory records default to
+ * disposition 50, so at 50 a complete stranger the player had never charmed
+ * auto-joined the party ("likes you well enough") — seen live with a roster
+ * merchant. 65 requires warmth the player has actually EARNED above the
+ * neutral default before a stranger throws in their lot with the party.
+ * Paid hires use {@link DISPOSITION_HIRE_THRESHOLD} instead.
  */
-export const DISPOSITION_JOIN_THRESHOLD = 50;
+export const DISPOSITION_JOIN_THRESHOLD = 65;
+
+/**
+ * Minimum disposition for a PAID hire (`opts.hire`, the tavern-hire surface).
+ * Coin is its own persuasion: a neutral stranger (default disposition 50)
+ * legitimately signs on when the player is paying, so the hire gate keeps the
+ * old neutral-friendly bar. Below 50 (soured/hostile) they still refuse — no
+ * amount of ale money buys a companion who dislikes you.
+ */
+export const DISPOSITION_HIRE_THRESHOLD = 50;
 
 /**
  * Numeric ordering of relationship levels (mirrors RelationshipManager's internal
@@ -75,6 +90,12 @@ export interface RecruitOfferOptions {
    * Used by the encounter-rescue trigger for a grateful rescuee (decision #3).
    */
   autoAccept?: boolean;
+  /**
+   * When true, the offer is a PAID hire (tavern-hire surface). The disposition
+   * gate uses {@link DISPOSITION_HIRE_THRESHOLD} (neutral-or-better) instead of
+   * the stricter free-join {@link DISPOSITION_JOIN_THRESHOLD}.
+   */
+  hire?: boolean;
 }
 
 /**
@@ -184,12 +205,16 @@ export function evaluateRecruitOffer(
     };
   }
 
-  // 3. First-time recruit → disposition gate.
+  // 3. First-time recruit → disposition gate. A paid hire clears at neutral;
+  // a free join demands warmth earned above the neutral default.
   const disposition = readDisposition(npc, state);
-  if (disposition >= DISPOSITION_JOIN_THRESHOLD) {
+  const threshold = opts.hire ? DISPOSITION_HIRE_THRESHOLD : DISPOSITION_JOIN_THRESHOLD;
+  if (disposition >= threshold) {
     return {
       willJoin: true,
-      reason: `${name} likes you well enough and agrees to join the party.`,
+      reason: opts.hire
+        ? `${name} accepts your coin and agrees to join the party.`
+        : `${name} likes you well enough and agrees to join the party.`,
     };
   }
 

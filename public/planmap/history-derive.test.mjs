@@ -34,6 +34,13 @@ describe('momentumByDay', () => {
     ];
     expect(momentumByDay(timeline).map(d => d.count)).toEqual([0, 1, 1]);
   });
+  it('treats the first recorded day as a baseline (0) even if items are already done', () => {
+    const timeline = [
+      { date: '2026-07-01', topics: [T('a', 'done'), T('b', 'done')] },
+      { date: '2026-07-02', topics: [T('a', 'done'), T('b', 'done'), T('c', 'done')] },
+    ];
+    expect(momentumByDay(timeline).map(d => d.count)).toEqual([0, 1]);
+  });
 });
 
 describe('stalenessDays', () => {

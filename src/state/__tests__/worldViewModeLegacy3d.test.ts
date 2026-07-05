@@ -54,9 +54,12 @@ describe('worldViewMode vs legacy ThreeDModal (W3DUI-22)', () => {
     expect(next.isThreeDVisible).toBe(false);
   });
 
-  it('LOAD_GAME_SUCCESS clamps off-map playerWorldPos into the world grid (resume-journey task 2)', () => {
+  it('LOAD_GAME_SUCCESS preserves playerWorldPos as-is (grid retirement: no world grid to clamp into)', () => {
     const state = makeState();
-    // Mirrors the audited autosave: z negative (off the north edge), x in-bounds.
+    // Formerly clamped z into the legacy 30×20 world grid (resume-journey
+    // task 2). The grid-retirement campaign removed that clamp: the value is
+    // vestigial — the cell-native ground frames itself from the entry anchor,
+    // not this position — so a complete position passes through unchanged.
     const action = {
       type: 'LOAD_GAME_SUCCESS',
       payload: {
@@ -66,7 +69,7 @@ describe('worldViewMode vs legacy ThreeDModal (W3DUI-22)', () => {
       },
     } as AppAction;
     const next = appReducer(state, action);
-    expect(next.playerWorldPos).toEqual({ x: 2072.76, y: 0, z: 0 });
+    expect(next.playerWorldPos).toEqual({ x: 2072.76, y: 0, z: -881.94 });
   });
 
   it('LOAD_GAME_SUCCESS leaves in-bounds playerWorldPos untouched', () => {

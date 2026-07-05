@@ -89,6 +89,15 @@ export interface WorldBusiness extends Omit<BusinessState, 'strongholdId'> {
   burgId?: number;                  // ID of the Azgaar burg/town if generated
   plotId?: number;                  // ID of the TownPlan building plot if generated
 
+  /**
+   * Persisted, owned shop inventory. Generated deterministically at registration
+   * from `businessType` (see generateBusinessStock). When present, the merchant
+   * browse flow builds its item list from this stock instead of an LLM call, and
+   * purchases decrement quantities. Absent on simulation-only businesses (mines,
+   * farms) that don't run a storefront.
+   */
+  stock?: BusinessStockEntry[];
+
   npcOwnerProfile?: NpcBusinessProfile;
 
   // Management tracking
@@ -100,6 +109,18 @@ export interface WorldBusiness extends Omit<BusinessState, 'strongholdId'> {
   acquisitionType?: AcquisitionType;
   partnershipTerms?: PartnershipTerms;
   foundedDay?: number;
+}
+
+/**
+ * A single line of persisted, owned shop stock: a catalog item id, how many are
+ * on the shelf, and an optional flat GP price override. When `priceOverride` is
+ * absent the sale price is derived at browse time from the item's base cost via
+ * `calculatePrice` × the business's `priceMultiplier` (see businessStock.ts).
+ */
+export interface BusinessStockEntry {
+  itemId: string;        // key into ALL_ITEMS
+  quantity: number;      // units currently on the shelf (>= 0)
+  priceOverride?: number; // optional flat GP price; bypasses the derived formula
 }
 
 export interface NpcBusinessProfile {

@@ -38,6 +38,39 @@ import type { RichNPC } from '../../types/world';
 import { evaluateRecruitOffer } from '../../systems/party/recruitConsent';
 import { npcToPartyMember, promoteCompanionToMember } from '../../systems/party/npcToPartyMember';
 import { isInParty } from '../../systems/party/recruitTypes';
+import { isWatchRole, isWantedInTown } from '../../systems/social/watchReaction';
+import { handleStartBattleMapEncounter } from './handleEncounter';
+
+/**
+ * Guard confrontation (item 1): when the player is WANTED in this town and tries
+ * to talk to a member of the town watch, the guard does not chat — they move to
+ * arrest, which resolves into the same tactical combat the hostile opening uses.
+ *
+ * Returns true when it handled the interaction (a confrontation was started or a
+ * refusal posted), so the caller stops before opening any dialogue session.
+ */
+async function tryWatchConfrontation(
+  npcRole: string | undefined,
+  npcName: string,
+  gameState: GameState,
+  dispatch: React.Dispatch<AppAction>,
+  addMessage: AddMessageFn,
+): Promise<boolean> {
+  if (!isWatchRole(npcRole)) return false;
+  const wanted = isWantedInTown(gameState.notoriety?.knownCrimes, gameState.currentLocationId);
+  if (!wanted) return false;
+
+  addMessage(
+    `${npcName} levels a spear at you. "You're wanted. Surrender or fall." There is no talking your way out now.`,
+    'system',
+  );
+  dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
+  // Reuse the hostile-opening → tactical-combat handoff: confront with guards.
+  await handleStartBattleMapEncounter(dispatch, {
+    monsters: [{ name: 'Guard', quantity: 2, cr: '1/8', description: 'Town watch · CR 1/8' }],
+  });
+  return true;
+}
 
 interface BanterContext {
     locationName: string;
@@ -400,6 +433,11 @@ export async function handleTalk({
 
   const npc = NPCS[targetId];
   if (npc) {
+    // Guard confrontation: a wanted player cannot talk their way past the watch.
+    if (await tryWatchConfrontation(npc.role, npc.name, gameState, dispatch, addMessage)) {
+      return;
+    }
+
     // Add NPC to met list on first successful interaction
     if (!gameState.metNpcIds.includes(npc.id)) {
       const metFact: KnownFact = {
@@ -459,6 +497,14 @@ export async function handleTalk({
       fullPrompt += `\nRecent happenings in this town (you may reference them naturally): ${townHistory.join(' ')}`;
     }
 
+    // Post-combat acknowledgment: if a fight just broke out here (the opening
+    // strangers were beaten), the NPC should react to the aftermath — not greet
+    // the player as if nothing happened. This is the same generation path the
+    // opening used, now given fight-aware context instead of a replayed line.
+    if ((gameState.defeatedNpcIds?.length ?? 0) > 0) {
+      fullPrompt += `\nA fight just ended moments ago right here — the aftermath is fresh. React to that (wary, shaken, or curious), do NOT ignore it.`;
+    }
+
     fullPrompt += `\n\nYour EXTREMELY BRIEF response (1-2 sentences MAX):`;
 
     // 3. Call the refactored geminiService function
@@ -508,8 +554,9 @@ export async function handleTalk({
         } else if (ttsResult.error) {
           throw ttsResult.error;
         }
-      } catch {
-        addMessage(`(TTS Error: Could not synthesize speech for ${npc.name})`, 'system');
+      } catch (err) {
+        // TTS is a nice-to-have: never leak its failures into the game log.
+        console.warn(`[TTS] Could not synthesize speech for ${npc.name}:`, err);
       }
     } else {
       addMessage(`${npc.name} seems unresponsive or an error occurred.`, 'system');
@@ -522,6 +569,28 @@ export async function handleTalk({
     // so a fresh player can actually talk to the people the opening placed —
     // instead of hitting the "no one named X" dead-end below.
     const generated = gameState.generatedNpcs[targetId];
+
+    // Post-combat gate: a stranger the party has already BEATEN in combat (e.g. a
+    // hostile opening guard put down in the fight they started) does not cheerfully
+    // replay their pre-fight threat line. Give an honest flavor line and stop —
+    // never re-open the seeded conversation. END_BATTLE records the defeat.
+    if (gameState.defeatedNpcIds?.includes(generated.id)) {
+      addMessage(`${generated.name} is in no state to talk.`, 'system');
+      dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
+      return;
+    }
+
+    // Guard confrontation: a wanted player who approaches a (still-standing)
+    // watch NPC is arrested into combat rather than given a conversation.
+    if (await tryWatchConfrontation(
+      (generated as { role?: string }).role,
+      generated.name,
+      gameState,
+      dispatch,
+      addMessage,
+    )) {
+      return;
+    }
 
     if (!gameState.metNpcIds.includes(generated.id)) {
       const metFact: KnownFact = {

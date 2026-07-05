@@ -27,6 +27,7 @@ import { AppAction } from '../actionTypes';
 import { RelationshipManager } from '../../systems/companions/RelationshipManager';
 import { inGameTimestamp } from '../../utils/core/timeUtils';
 import { isOverSoftCap } from '../../systems/party/partyConstants';
+import { appendAdventureLogEntry } from '../../systems/adventureLog/adventureLog';
 
 export function companionReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -76,6 +77,13 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
           [companion.id]: { ...companion, inParty: true },
         },
         messages,
+        ...(alreadyInParty
+          ? {}
+          : appendAdventureLogEntry(state, {
+              kind: 'met-npc',
+              summary: `${companion.identity.name} joined the party.`,
+              npcIds: [companion.id],
+            })),
       };
     }
 

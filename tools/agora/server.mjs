@@ -200,8 +200,33 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     if (!body.handle || typeof body.handle !== 'string') {
       return sendJson(res, 400, { error: 'handle (string) is required' });
     }
-    const agent = store.registerAgent({ handle: body.handle, note: body.note });
-    sendJson(res, 201, { agentId: agent.id, token: agent.token, handle: agent.handle });
+    // Handle-claim uniqueness: refuse a name a still-live agent already holds, so
+    // two agents can't silently share an identity (opt out with unique:false for
+    // legacy flows that intentionally re-register). A reaped/dropped name is free
+    // to reclaim.
+    if (body.unique !== false) {
+      const holder = store.findLiveAgentByHandle(body.handle);
+      if (holder) {
+        return sendJson(res, 409, {
+          error: `handle "${body.handle}" is already claimed by a live agent — pick another`,
+          conflict: { handle: body.handle, heldBy: holder.id, status: holder.status },
+        });
+      }
+    }
+    // Accept the agent's own conversation/thread id under any of the common names.
+    const sessionId = typeof body.sessionId === 'string' ? body.sessionId
+      : typeof body.threadId === 'string' ? body.threadId
+      : typeof body.conversationId === 'string' ? body.conversationId
+      : undefined;
+    const agent = store.registerAgent({ handle: body.handle, note: body.note, model: body.model, sessionId });
+    sendJson(res, 201, {
+      agentId: agent.id,
+      token: agent.token,
+      handle: agent.handle,
+      registeredAt: agent.registeredAt,
+      model: agent.model,
+      sessionId: agent.sessionId,
+    });
   });
 
   router.post(

@@ -30,11 +30,13 @@ import {
   LimitedUses,
   Item,
 } from '../../../types';
-import { WEAPONS_DATA, RACES_DATA, TIEFLING_LEGACIES } from '../../../constants';
+import { RACES_DATA, TIEFLING_LEGACIES } from '../../../constants';
 import { SKILLS_DATA } from '../../../data/skills';
 import { BACKGROUNDS } from '../../../data/backgrounds';
-import { ITEMS } from '../../../data/items';
 import { getRacialSpellCastingAbilityChoicesForRace } from '../../../data/races';
+import { calculateArmorClass } from '../../../utils/character/statUtils';
+import { buildStartingLoadout } from '../../../systems/character/buildStartingLoadout';
+import { spellSlotsForClassLevel } from '../../../systems/character/spellSlotProgression';
 import { CharacterCreationState } from '../state/characterCreatorState';
 import {
   getAbilityModifierValue,
@@ -485,19 +487,9 @@ function assembleCastingProperties(state: CharacterCreationState): {
       | undefined
     : undefined;
 
-  let spellSlots: SpellSlots | undefined = undefined;
-  if (['cleric', 'wizard', 'sorcerer', 'artificer', 'paladin', 'druid', 'bard', 'warlock', 'ranger'].includes(selectedClass.id)) {
-    spellSlots = {
-      level_1: { current: 2, max: 2 },
-      level_2: { current: 0, max: 0 }, level_3: { current: 0, max: 0 },
-      level_4: { current: 0, max: 0 }, level_5: { current: 0, max: 0 },
-      level_6: { current: 0, max: 0 }, level_7: { current: 0, max: 0 },
-      level_8: { current: 0, max: 0 }, level_9: { current: 0, max: 0 },
-    };
-    if (selectedClass.id === 'warlock') {
-      spellSlots.level_1 = { current: 1, max: 1 };
-    }
-  }
+  // Spell slots come from the canonical progression table (level 1 at creation),
+  // so they match what the character will grow into on level-up.
+  const spellSlots: SpellSlots | undefined = spellSlotsForClassLevel(selectedClass.id, 1);
 
   return { spellbook, spellSlots, spellcastingAbility: classAbility ?? selectedRaceSpellAbility, limitedUses };
 }
@@ -661,6 +653,19 @@ export function assemblePlayerCharacter(currentState: CharacterCreationState, cu
 
     assembledCharacter = applyRacialSpellGrantsByLevel(assembledCharacter, assembledCharacter.level || 1);
 
+    // Grant the class + background starting loadout: equip armor/shield/primary
+    // weapon, then recompute AC from the equipped armor and record starting gold.
+    // Before this, every character left creation unarmored at AC 10 with no class
+    // gear (and mastery-less casters left unarmed).
+    const loadout = buildStartingLoadout({
+      classId: finalClass.id,
+      background: currentState.selectedBackground,
+      weaponMasteryIds: currentState.selectedWeaponMasteries || [],
+    });
+    assembledCharacter.equippedItems = loadout.equippedItems;
+    assembledCharacter.startingGold = loadout.gold;
+    assembledCharacter.armorClass = calculateArmorClass(assembledCharacter);
+
     return assembledCharacter;
 }
 
@@ -681,13 +686,14 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
   const assembleAndSubmitCharacter = useCallback((currentState: CharacterCreationState, name: string): boolean => {
     const character = generatePreviewCharacter(currentState, name);
     if (character) {
-      const startingInventory: Item[] = [
-        ...(currentState.selectedWeaponMasteries
-          ?.map(id => WEAPONS_DATA[id])
-          .filter((item): item is Item => !!item) || []),
-        { ...ITEMS['rations'], quantity: 5 },
-        { ...ITEMS['water-day'], quantity: 5 },
-      ];
+      // The assembled character already carries its equipped gear + starting gold
+      // (set in assemblePlayerCharacter); build the matching inventory (backup
+      // weapons, packs, ammunition, provisions, background keepsakes) to hand over.
+      const { inventory: startingInventory } = buildStartingLoadout({
+        classId: character.class.id,
+        background: currentState.selectedBackground,
+        weaponMasteryIds: currentState.selectedWeaponMasteries || [],
+      });
 
       onCharacterCreate(character, startingInventory);
       return true;

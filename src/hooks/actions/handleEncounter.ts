@@ -49,12 +49,17 @@ export function handleGenerateEncounter({ dispatch }: HandleGenerateEncounterPro
 export async function handleTriggerAiEncounter({ gameState, dispatch }: HandleGenerateEncounterProps): Promise<void> {
     dispatch({ type: 'TRIGGER_AI_ENCOUNTER' });
     try {
-        const partyForEncounter: TempPartyMember[] = gameState.tempParty ?? gameState.party.map(p => ({
-            id: p.id!,
-            name: p.name,
-            level: p.level || 1,
-            classId: p.class.id,
-        }));
+        // Scale the encounter to the LIVE party (including recruited companions).
+        // tempParty is a snapshot frozen at game start and never updated on recruit,
+        // so preferring it made encounters ignore anyone who joined the party.
+        const partyForEncounter: TempPartyMember[] = gameState.party.length > 0
+            ? gameState.party.map(p => ({
+                id: p.id!,
+                name: p.name,
+                level: p.level || 1,
+                classId: p.class.id,
+            }))
+            : (gameState.tempParty ?? []);
         if (partyForEncounter.length === 0) {
             throw new Error("Cannot generate encounter for an empty party.");
         }

@@ -59,6 +59,7 @@ import { type TownPlan } from '@/systems/worldforge/town/townEngine';
 import { getCanonicalTownPlan } from '@/systems/worldforge/town/canonicalTown';
 import { rootSeedPath } from '@/systems/worldforge/seedPath';
 import { spreadColocatedPoints, entry3DAnchorForCell, snapToLandCell } from '@/systems/worldforge/local/gridAtlasBridge';
+import { describeCell } from '@/systems/worldforge/cellInfo';
 import type { Entry3DAnchor } from '@/types/state';
 import { getBridgeAtlas, getBurgCultureType } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { styleFamilyForCultureType } from '@/systems/worldforge/town/architectureStyle';
@@ -69,6 +70,7 @@ import { planRoutesFrom, transportSpeedMph } from '@/systems/travel/routePlannin
 import { segmentRoute } from '@/systems/travel/multiModalRoute';
 import { availableTransports } from '@/systems/travel/availableTransports';
 import { rollTravelEncounter } from '@/systems/travel/travelEncounter';
+import { pickTravelEncounterMonsters } from '@/systems/travel/travelEncounterMonsters';
 import { formatTravelTime } from '@/systems/travel/travelReadout';
 import { generateFmgWorld } from '@/systems/worldforge/fmg/generateWorld';
 import { shipTravelAvailability, shipVoyageFromDestination } from '@/systems/worldforge/travel/shipEmbark';
@@ -704,6 +706,9 @@ const MapPane: React.FC<MapPaneProps> = ({
         return;
       }
       const roll = rollTravelEncounter(route, rootSeedPath(worldforgeSeed));
+      const encounter = roll.encounter
+        ? { monsters: pickTravelEncounterMonsters(route, rootSeedPath(worldforgeSeed)) }
+        : undefined;
       const encounterMessage = roll.encounter
         ? `After ${formatTravelTime(route.minutes)} on the road, danger finds you — an encounter!`
         : `You travel for ${formatTravelTime(route.minutes)} and arrive without incident.`;
@@ -712,9 +717,13 @@ const MapPane: React.FC<MapPaneProps> = ({
       // Locale feet, and frames the destination town on a later Enter-3D. The tx/ty
       // above stay lossy bookkeeping only. Reuses the protected Stage-1 helpers; no new
       // mapping, no cell→tile→cell round-trip.
+      const destCellId = snapToLandCell(worldforgeAtlas, info.i);
       const destinationCell = {
-        cellId: snapToLandCell(worldforgeAtlas, info.i),
+        cellId: destCellId,
         anchor: entry3DAnchorForCell(worldforgeAtlas, info.i),
+        // Name the destination when it's a burg so arrival reads "Traveled to
+        // <Town>." instead of the anti-immersive "Traveled to a new place."
+        name: describeCell(worldforgeAtlas, destCellId)?.burg?.name,
       };
       // Provisioning gate: does the party carry enough food + water for the trip?
       const decision = decideTravelProvision({
@@ -729,7 +738,7 @@ const MapPane: React.FC<MapPaneProps> = ({
         const provision: TravelProvisionEffect | undefined = partySize > 0
           ? { rationsToSpend: decision.rationsToSpend, waterToSpend: decision.waterToSpend }
           : undefined;
-        onTileClick(0, 0, tile, { seconds: Math.round(route.minutes * 60), encounterMessage, provision, destinationCell });
+        onTileClick(0, 0, tile, { seconds: Math.round(route.minutes * 60), encounterMessage, encounter, provision, destinationCell });
         return;
       }
       // Underprovisioned → open the choice flow instead of moving.

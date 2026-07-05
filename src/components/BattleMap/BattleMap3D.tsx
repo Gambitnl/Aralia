@@ -56,6 +56,11 @@ import { VFXSystem, LivingWorld } from './vfx';
 import { selectVisibilityObserver } from './visibilityObserverPolicy';
 import { SpellArtifact3DMarker } from './SpellArtifact3DMarker';
 import { buildSpellMapArtifactMarkers, type SpellMapArtifacts } from './spellMapArtifacts';
+import { isWebGpuBattleMapEnabled } from './webgpuBattleMapFlag';
+
+// Experimental WebGPU render path (opt-in via ?gpu=1). Lazily imported so
+// `three/webgpu` + TSL are never pulled onto the default WebGL battle-map path.
+const BattleMap3DGpuScene = React.lazy(() => import('./BattleMap3DGpuScene'));
 
 // ---------------------------------------------------------------------------
 // Types
@@ -231,8 +236,12 @@ const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, numb
           cz + (preset.sunPos?.[2] ?? 12) * accentSpread,
         ]}
         castShadow
-        shadow-mapSize-width={4096}
-        shadow-mapSize-height={4096}
+        // 2048² shadow map: A/B-captured against 4096² on the SAME generated
+        // scene at the tactical orbit pose (.agent/scratch/ab-shadow-{4096,2048}.png)
+        // — shadow edges are visually identical at this zoom, but the per-frame
+        // shadow raster cost drops ~4×.
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
         shadow-camera-near={0.5}
         shadow-camera-far={Math.max(60, shadowHalf * 2.4)}
         shadow-camera-left={-shadowHalf}
@@ -383,6 +392,19 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
 
   const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
   const selectedCharacter = characters.find(c => c.id === selectedCharacterId) ?? null;
+
+  // WebGPU opt-in held in STATE (not read per-render) so the error panel's
+  // "Use WebGL instead" button can remount the WebGL scene in place. The
+  // callback also strips gpu=1 from the URL so a reload stays on WebGL.
+  const [gpuMode, setGpuMode] = React.useState<boolean>(isWebGpuBattleMapEnabled);
+  const handleUseWebGL = useCallback(() => {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('gpu');
+      window.history.replaceState(window.history.state, '', url.toString());
+    } catch { /* URL manipulation is cosmetic; the remount below is the real switch */ }
+    setGpuMode(false);
+  }, []);
   // The viewer policy is shared with the 2D map so the same spell-lit battlefield
   // does not reveal different tiles purely because the player changed render mode.
   const visibilityObserverSelection = selectVisibilityObserver({
@@ -518,6 +540,34 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
 
   if (!mapData) {
     return <div className="text-gray-400">Generating 3D battlefield...</div>;
+  }
+
+  // Opt-in WebGPU render path (?gpu=1). WebGL is the default and is NOT changed
+  // by this slice. Game logic above (shared hooks) is fully reused; only the
+  // render layer swaps. FAIL-FAST: with gpu=1 and no real WebGPU adapter the GPU
+  // scene shows an error panel (never a silent WebGL2 fallback); its
+  // "Use WebGL instead" button is the one explicit USER action that remounts
+  // this WebGL scene. See BattleMap3DGpuScene for the documented parity gaps.
+  if (gpuMode) {
+    return (
+      <React.Suspense fallback={<div className="text-gray-400">Loading WebGPU battlefield…</div>}>
+        <BattleMap3DGpuScene
+          mapData={mapData}
+          characters={characters}
+          activeCharacter={currentCharacter ?? null}
+          selectedCharacter={selectedCharacter}
+          validMoves={validMoves}
+          activePath={activePath}
+          actionMode={actionMode}
+          aoeSet={aoeSet}
+          onCameraSelectCharacter={handleCharacterClick ? (id) => {
+            const char = characters.find(c => c.id === id);
+            if (char) handleCharacterClick(char);
+          } : undefined}
+          onUseWebGL={handleUseWebGL}
+        />
+      </React.Suspense>
+    );
   }
 
   // The combat view supplies the available windowpane size; this wrapper fills

@@ -19,13 +19,12 @@
  * Handles 'ask_oracle' actions.
  */
 import React from 'react';
-import { GameState, Action, GoalStatus, KnownFact } from '../../types';
+import { GameState, Action } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as OllamaTextService from '../../services/ollamaTextService';
-import * as GeminiService from '../../services/geminiService';
+import { buildOraclePrompt } from '../../systems/adventureLog/oraclePrompt';
 import { synthesizeSpeech } from '../../services/ttsService';
 import { AddMessageFn, AddGeminiLogFn, PlayPcmAudioFn } from './actionHandlerTypes';
-import { generateId } from '../../utils/core/idGenerator';
 
 interface HandleOracleProps {
   action: Action;
@@ -52,17 +51,20 @@ export async function handleOracle({
     addMessage(`You approach the Oracle and ask: "${playerQuery}"`, 'player');
     dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 3600 } });
 
-    // The Oracle's response can now also trigger goal updates if the information
-    // it provides is directly relevant to an NPC's objective.
-    // TODO #257(lint-intent): Oracle responses should use a dedicated generator; for now reuse social outcome with a generic prompt.
-    const oracleResponseResult = await GeminiService.generateSocialCheckOutcome(
-      null,
-      null,
-      `oracle response: ${playerQuery} | context: ${generalActionContext}`,
-      gameState.devModelOverride ?? null,
-    );
+    // The Oracle IS the Dungeon Master: build a grounded prompt from the runtime
+    // adventure log (story so far), active quests, the current town, and the
+    // people/places the party actually knows, then route it through the SAME
+    // local-model path the opening scene uses (ollamaTextService). No Gemini key
+    // is required. An honest error surfaces only when the model is unreachable.
+    void generalActionContext; // superseded by the grounded Oracle prompt below.
+    const oraclePrompt = buildOraclePrompt(gameState, playerQuery);
+    const oracleResponseResult = await OllamaTextService.generateOracleDmResponse(oraclePrompt);
 
-    addGeminiLog('generateSocialCheckOutcome (oracle)', oracleResponseResult.data?.promptSent || oracleResponseResult.metadata?.promptSent || "", oracleResponseResult.data?.rawResponse || oracleResponseResult.metadata?.rawResponse || oracleResponseResult.error || "");
+    addGeminiLog(
+      'generateOracleDmResponse (oracle)',
+      oracleResponseResult.data?.promptSent || oracleResponseResult.metadata?.promptSent || oraclePrompt,
+      oracleResponseResult.data?.rawResponse || oracleResponseResult.metadata?.rawResponse || oracleResponseResult.error || '',
+    );
 
     if (oracleResponseResult.data?.rateLimitHit || oracleResponseResult.metadata?.rateLimitHit) {
       dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
@@ -71,26 +73,6 @@ export async function handleOracle({
     if (oracleResponseResult.data?.text) {
       const responseText = oracleResponseResult.data.text;
       addMessage(`Oracle: "${responseText}"`, 'system');
-
-      if (oracleResponseResult.data.goalUpdate) {
-        const { npcId, goalId, newStatus } = oracleResponseResult.data.goalUpdate;
-        dispatch({ type: 'UPDATE_NPC_GOAL_STATUS', payload: { npcId, goalId, newStatus } });
-
-        const goalFact: KnownFact = {
-          id: generateId(),
-          text: oracleResponseResult.data.memoryFactText,
-          source: 'direct',
-          isPublic: true,
-          timestamp: gameState.gameTime.getTime(),
-          strength: 10,
-          lifespan: 9999,
-        };
-        dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId, fact: goalFact } });
-
-        const dispositionBoost = newStatus === GoalStatus.Completed ? 50 : -50;
-        dispatch({ type: 'UPDATE_NPC_DISPOSITION', payload: { npcId, amount: dispositionBoost } });
-        addMessage(`This information seems vital! An NPC's goal has been updated to: ${newStatus}. Their disposition towards you changes dramatically.`, 'system');
-      }
 
       try {
         const ttsResult = await synthesizeSpeech(responseText, 'Charon', gameState.devModelOverride);
@@ -102,11 +84,16 @@ export async function handleOracle({
         } else if (ttsResult.error) {
           throw ttsResult.error;
         }
-      } catch {
-        addMessage(`(TTS Error: Could not synthesize speech for Oracle)`, 'system');
+      } catch (err) {
+        // TTS is a nice-to-have: never leak its failures into the game log.
+        console.warn('[TTS] Could not synthesize speech for Oracle:', err);
       }
     } else {
-      addMessage("The Oracle remains silent, or an error prevented their response.", 'system');
+      // Honest failure: only reached when the local model is genuinely
+      // unreachable / returned nothing. Surface the real reason so the player
+      // (and logs) know it's an infrastructure issue, not narrative silence.
+      const reason = oracleResponseResult.error || 'the Oracle could not be reached';
+      addMessage(`The Oracle remains silent — ${reason}.`, 'system');
     }
   } else {
     addMessage('You ponder, but ask nothing of the Oracle.', 'system');

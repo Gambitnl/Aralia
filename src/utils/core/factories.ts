@@ -493,6 +493,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       lastInteractedNpcId: null,
       lastNpcResponse: null,
 
+      adventureLog: [],
       discoveryLog: [],
       unreadDiscoveryCount: 0,
       isDiscoveryLogVisible: false,
@@ -556,6 +557,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       dynamicLocations: {},
       dynamicNPCs: {},
       generatedNpcs: {}, // Generated NPC registry for test state parity.
+      defeatedNpcIds: [],
       environment: {
         precipitation: 'none',
         temperature: 'temperate',
@@ -724,6 +726,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       currentEnemies: null,
       lastInteractedNpcId: null,
       lastNpcResponse: null,
+      adventureLog: [],
       discoveryLog: [],
       unreadDiscoveryCount: 0,
       isDiscoveryLogVisible: false,
@@ -755,6 +758,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       dynamicLocations: {},
       dynamicNPCs: {},
       generatedNpcs: {},
+      defeatedNpcIds: [],
       environment: {
         precipitation: 'none',
         temperature: 'temperate',

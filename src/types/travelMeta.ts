@@ -29,6 +29,12 @@ export interface TravelMeta {
   seconds: number;
   /** Pre-rolled "danger on the road" message, if an encounter was rolled. */
   encounterMessage?: string | null;
+  /**
+   * The foes for a rolled road ambush. When present, arrival starts a real fight
+   * (via handleStartBattleMapEncounter) instead of only printing the message.
+   * Lightweight monster stubs; the bestiary resolves them at battle start.
+   */
+  encounter?: { monsters: Array<{ name: string; quantity: number; cr: string; description: string }> };
   /** Provisioning effects to apply after the move (omitted when ungated). */
   provision?: TravelProvisionEffect;
   /**
@@ -39,5 +45,5 @@ export interface TravelMeta {
    * moves — those keep the Stage-2 tile-derived cell. Carries only an atlas cell id +
    * graph-space anchor; no Locale feet cross this boundary (feet stay Locale-local).
    */
-  destinationCell?: { cellId: number; anchor: Entry3DAnchor };
+  destinationCell?: { cellId: number; anchor: Entry3DAnchor; name?: string };
 }

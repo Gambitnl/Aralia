@@ -1,0 +1,20 @@
+<!--
+  Aralia combat icon: cult caster enemy.
+  Used for cult magus/cultist tokens until portrait generation lands.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Cult caster token</title>
+  <desc id="desc">A hooded cult caster portrait with a red arcane mark.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="62%">
+      <stop offset="0" stop-color="#4c1d95"/>
+      <stop offset="1" stop-color="#0b0613"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="32" fill="url(#bg)"/>
+  <path d="M17 58c2-17 8-31 15-45 8 14 14 28 15 45z" fill="#1f2937" stroke="#7f1d1d" stroke-width="2"/>
+  <path d="M23 31c2-8 5-12 9-12s8 4 10 12c-5 4-14 4-19 0z" fill="#111827" stroke="#9ca3af" stroke-width="1.5"/>
+  <path d="M25 36h14l-4 8h-6z" fill="#78350f"/>
+  <path d="M28 29h2M35 29h2" stroke="#fca5a5" stroke-width="3" stroke-linecap="round"/>
+  <path d="M32 45l4 7h-8z" fill="#ef4444"/>
+</svg>

@@ -80,7 +80,7 @@ describe('useCombatOutcome', () => {
     expect(result.current.rewards).toEqual({
       gold: 50,
       items: [],
-      xp: 50 // 1 enemy * 50 xp
+      xp: 200 // 1 enemy at CR 1 (level acts as CR) → 200 XP per the 5e table
     });
   });
 

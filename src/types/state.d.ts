@@ -193,6 +193,8 @@ export interface GameState {
     dynamicNPCs?: Record<string, NPC>;
     /** Registry of procedurally generated NPCs, keyed by their ID. */
     generatedNpcs: Record<string, RichNPC>;
+    /** IDs of NPCs the party has defeated in combat; gates their talk/conversation. */
+    defeatedNpcIds: string[];
     playerIdentity?: PlayerIdentityState;
     legacy?: PlayerLegacy;
     strongholds?: Record<string, Stronghold>;

@@ -77,7 +77,7 @@ const CameraController: React.FC<CameraControllerProps> = ({
   onCameraSelectCharacter,
   maxDistance = 35,
 }) => {
-  const { camera } = useThree();
+  const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
 
   // Camera state
@@ -245,9 +245,105 @@ const CameraController: React.FC<CameraControllerProps> = ({
       poseAt(tx: number, tz: number, distance: number, polarDeg: number, azimuthDeg: number) {
         return poseAround(tx, tz, distance, polarDeg, azimuthDeg);
       },
+      // Dev profiling: renderer.info snapshot for headless FPS/draw-call capture.
+      // render.calls/triangles reset each frame, so force one explicit render
+      // with autoReset off to read a full, stable frame's draw stats.
+      info() {
+        const r = gl.info;
+        const prevAuto = r.autoReset;
+        r.autoReset = false;
+        r.reset();
+        gl.render(scene, camera);
+        const snap = {
+          calls: r.render?.calls ?? null,
+          triangles: r.render?.triangles ?? null,
+          textures: r.memory?.textures ?? null,
+          geometries: r.memory?.geometries ?? null,
+          programs: r.programs?.length ?? null,
+        };
+        r.autoReset = prevAuto;
+        return snap;
+      },
+      // Dev profiling: attribute draw calls by counting renderable objects in
+      // the scene graph, grouped by constructor type. Helps pin what emits the
+      // most draw calls (instanced vs plain meshes vs points).
+      sceneBreakdown() {
+        const byType: Record<string, number> = {};
+        let instanced = 0;
+        let plainMeshes = 0;
+        let points = 0;
+        scene.traverse((o) => {
+          const anyO = o as unknown as { isMesh?: boolean; isInstancedMesh?: boolean; isPoints?: boolean; visible?: boolean; count?: number };
+          if (!anyO.visible) return;
+          if (anyO.isInstancedMesh) { instanced++; byType['InstancedMesh(' + (anyO.count ?? 0) + ')'] = (byType['InstancedMesh'] ?? 0) + 1; }
+          else if (anyO.isMesh) { plainMeshes++; }
+          else if (anyO.isPoints) { points++; }
+          const t = o.constructor?.name ?? 'unknown';
+          byType[t] = (byType[t] ?? 0) + 1;
+        });
+        // Attribute plain meshes to their nearest named ancestor / top-level child.
+        const perRoot: Record<string, number> = {};
+        const rootOf = (o: THREE.Object3D): string => {
+          let cur: THREE.Object3D | null = o;
+          let last = o;
+          while (cur && cur.parent && !(cur.parent as unknown as { isScene?: boolean }).isScene) {
+            last = cur; cur = cur.parent;
+          }
+          return (last.name || last.type || 'unnamed') + '#' + (last.uuid?.slice(0, 4) ?? '');
+        };
+        scene.traverse((o) => {
+          const anyO = o as unknown as { isMesh?: boolean; isInstancedMesh?: boolean; visible?: boolean };
+          if (anyO.isMesh && !anyO.isInstancedMesh && anyO.visible) {
+            const rk = rootOf(o);
+            perRoot[rk] = (perRoot[rk] ?? 0) + 1;
+          }
+        });
+        const topRoots = Object.entries(perRoot).sort((a, b) => b[1] - a[1]).slice(0, 12);
+        return { plainMeshes, instanced, points, byType, topRoots };
+      },
+      // Dev profiling: force a render and read the canvas immediately (same tick,
+      // before the drawing buffer is cleared) so the headless rig can capture the
+      // always-loop R3F scene, which Playwright's screenshot cannot.
+      capture() {
+        gl.render(scene, camera);
+        try { return gl.domElement.toDataURL('image/png'); } catch { return null; }
+      },
+      // Dev profiling: swap the sun's shadow-map resolution at runtime so the rig
+      // can A/B two resolutions against the SAME generated scene (page reloads
+      // regenerate the battlefield, defeating a pixel-diff). Disposes the old
+      // shadow render target so the new size takes effect on the next render.
+      setSunShadowMapSize(n: number) {
+        let done = false;
+        scene.traverse((o) => {
+          const light = o as unknown as THREE.DirectionalLight;
+          if (light.isDirectionalLight && light.castShadow && !done) {
+            light.shadow.mapSize.set(n, n);
+            light.shadow.map?.dispose();
+            (light.shadow as unknown as { map: unknown }).map = null;
+            done = true;
+          }
+        });
+        gl.render(scene, camera);
+        return done;
+      },
+      // Dev profiling: average wall-time of N explicit gl.render() calls. Under
+      // software raster the absolute ms is inflated, but the BEFORE/AFTER RATIO
+      // (e.g. static-shadow win) is meaningful since both share the same rasterizer.
+      renderTiming(n = 40) {
+        const times: number[] = [];
+        for (let i = 0; i < n; i++) {
+          const t0 = performance.now();
+          gl.render(scene, camera);
+          times.push(performance.now() - t0);
+        }
+        times.sort((a, b) => a - b);
+        const drop = times.slice(2, n - 2); // trim outliers
+        const mean = drop.reduce((s, x) => s + x, 0) / drop.length;
+        return { n, meanMs: mean, medianMs: times[Math.floor(n / 2)], minMs: times[0] };
+      },
     };
     return () => { delete (window as unknown as { __bm3dCam?: unknown }).__bm3dCam; };
-  }, [camera, mapCenter, characters]);
+  }, [camera, gl, scene, mapCenter, characters]);
 
   // Frame update: smooth camera transitions
   useFrame((_, delta) => {

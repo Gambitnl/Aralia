@@ -52,6 +52,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useKnownPortsSync } from '../../hooks/useKnownPortsSync';
 import { useChronicleRumorsSync } from '../../hooks/useChronicleRumorsSync';
 import { useTownSimRegistration } from '../../hooks/useTownSimRegistration';
+import { useTownMerchantRegistration } from '../../hooks/useTownMerchantRegistration';
 import { useVoyageArrival } from '../../hooks/useVoyageArrival';
 
 import ErrorBoundary from '../ui/ErrorBoundary';
@@ -181,6 +182,12 @@ const GameModals: React.FC<GameModalsProps> = ({
     // it starts accruing a persisted chronicle. Runs before the rumor sync so the
     // town is tracked by the time rumors are mined from it.
     useTownSimRegistration(gameState, dispatch);
+    // Living-world: populate the town with interactable shop/tavern keepers on any
+    // arrival (2D map travel as well as 3D entry), so a town reached by the map is
+    // a living place with merchants to talk to and shops to browse — not an empty
+    // shell. Uses the same plot-keyed ids as the 3D bake, so the keepers are the
+    // SAME in both views (identical-towns invariant).
+    useTownMerchantRegistration(gameState, dispatch);
     // Living-world: while in a tracked town, its substantial recent chronicle news
     // becomes WorldRumors the TavernGossipSystem surfaces for purchase. Idempotent
     // — the ADD_RUMORS reducer dedups by stable rumor id.
@@ -380,6 +387,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 onClose={handleCloseCharacterSheet}
                                 onAction={onAction}
                                 onNavigateToGlossary={handleNavigateToGlossaryFromTooltip}
+                                party={gameState.party}
                             />
                         </ErrorBoundary>
                     </Suspense>

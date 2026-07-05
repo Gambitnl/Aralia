@@ -33,6 +33,7 @@ import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, Temp
 import type { Puzzle } from '../systems/puzzles/types.js';
 import type { RecruitPayload } from '../systems/party/recruitTypes.js';
 import { RitualState } from '../types/rituals.js';
+import type { CombatPartySnapshotEntry } from '../types/combat.js';
 // TODO #564(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
 import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload, ApplyLeveragePayload } from './payloads/identityPayloads.js';
@@ -130,7 +131,7 @@ export type AppAction =
   // Battle Map Actions
   | { type: 'SETUP_BATTLE_MAP_DEMO' }
   | { type: 'START_BATTLE_MAP_ENCOUNTER'; payload: { startBattleMapEncounterData: StartBattleMapEncounterPayload } }
-  | { type: 'END_BATTLE'; payload?: { rewards?: { gold: number; items: Item[]; xp: number } } }
+  | { type: 'END_BATTLE'; payload?: { rewards?: { gold: number; items: Item[]; xp: number }; finalPartyState?: CombatPartySnapshotEntry[] } }
   // Party Editor
   | { type: 'TOGGLE_PARTY_EDITOR_MODAL' }
   | { type: 'SET_PARTY_COMPOSITION'; payload: TempPartyMember[] }
@@ -336,6 +337,7 @@ export type AppAction =
   | { type: 'CANCEL_SUPPLY_CONTRACT'; payload: { businessId: string; contractId: string } }
   // World Business Actions (NPC-owned & acquisition)
   | { type: 'REGISTER_WORLD_BUSINESS'; payload: { business: import('../types/business.js').WorldBusiness } }
+  | { type: 'DEBIT_BUSINESS_STOCK'; payload: { businessId: string; itemId: string; quantity?: number } }
   | { type: 'PURCHASE_BUSINESS'; payload: { businessId: string; negotiatedPrice: number } }
   | { type: 'COERCE_BUSINESS_SALE'; payload: { businessId: string; discountPercent: number } }
   | { type: 'CREATE_PARTNERSHIP'; payload: { businessId: string; investmentAmount: number; playerSharePercent: number } }

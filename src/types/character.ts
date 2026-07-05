@@ -418,6 +418,8 @@ export interface LevelUpChoices {
   classId?: string;
   abilityScoreIncreases?: Partial<AbilityScores>;
   featId?: string;
+  /** Subclass chosen at the level-3 milestone (id from SUBCLASSES[classId]). */
+  subclassId?: string;
   featChoices?: {
     // Store choices made for feats during level-up (e.g., selected ability score, spells, etc.)
     [featId: string]: FeatChoice;
@@ -510,6 +512,14 @@ export interface PlayerCharacter {
   background?: string; // Background ID
   level?: number;
   xp?: number;
+  /** The subclass chosen at level 3 (id from SUBCLASSES[class.id]). */
+  subclassId?: string;
+  /**
+   * Starting gold handed off from character creation to the new game (class
+   * package + background coin). Consumed by START_GAME_SUCCESS to seed
+   * state.gold, then stripped — it is not persisted on the live character.
+   */
+  startingGold?: number;
   proficiencyBonus?: number;
   race: Race;
   class: Class;

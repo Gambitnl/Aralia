@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aralia · Ollama Status Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Outfit:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================================================
+           Design Tokens & Root Variables
+           ============================================================================ */
+        :root {
+            --bg-dark: #090d16;
+            --bg-card: rgba(17, 24, 39, 0.6);
+            --bg-card-hover: rgba(23, 37, 84, 0.4);
+            --border-glow: rgba(99, 102, 241, 0.15);
+            --border-glow-active: rgba(99, 102, 241, 0.4);
+            --primary: #818cf8; /* Light Indigo */
+            --primary-glow: rgba(129, 140, 248, 0.2);
+            --success: #34d399; /* Vibrant Green */
+            --success-glow: rgba(52, 211, 153, 0.15);
+            --warning: #fbbf24; /* Amber Warning */
+            --warning-glow: rgba(251, 191, 36, 0.15);
+            --danger: #fb7185; /* Soft Rose Danger */
+            --danger-glow: rgba(251, 113, 133, 0.15);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dark: #64748b;
+            --font-display: 'Outfit', sans-serif;
+            --font-title: 'Cinzel Decorative', cursive;
+            --font-mono: 'Roboto Mono', monospace;
+        }
+
+        /* ============================================================================
+           Base Styling & Layout
+           ============================================================================ */
+        * {
+            box-sizing: border-box;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at 50% 0%, #111827 0%, var(--bg-dark) 100%);
+            color: var(--text-main);
+            font-family: var(--font-display);
+            padding: 2rem 1.5rem 4rem;
+            display: flex;
+            justify-content: center;
+            overflow-y: scroll;
+        }
+
+        .container {
+            width: 100%;
+            /* Removed max-width bound so the container width scales fluidly and is */
+            /* dynamically decided by the size of the active browser viewport window. */
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* ============================================================================
+           Header & Global Actions
+           ============================================================================ */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 1.5rem;
+        }
+
+        .header-title-area h1 {
+            margin: 0 0 0.5rem;
+            font-family: var(--font-title);
+            color: var(--primary);
+            font-size: clamp(2rem, 5vw, 3rem);
+            text-shadow: 0 0 20px rgba(129, 140, 248, 0.25);
+            letter-spacing: 0.05em;
+        }
+
+        .header-title-area p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 300;
+        }
+
+        .global-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Custom Toggle Switch for Auto-Polling */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .toggle-container:hover {
+            border-color: var(--primary-glow);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 38px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+        }
+
+        .toggle-container.active .toggle-switch {
+            background: var(--success);
+        }
+
+        .toggle-container.active .toggle-switch::after {
+            transform: translateX(18px);
+        }
+
+        .btn {
+            font-family: var(--font-display);
+            font-weight: 500;
+            font-size: 0.88rem;
+            color: white;
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.15), rgba(99, 102, 241, 0.05));
+            border: 1px solid rgba(129, 140, 248, 0.3);
+            padding: 0.6rem 1.2rem;
+            border-radius: 999px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.25), rgba(99, 102, 241, 0.15));
+            box-shadow: 0 0 15px var(--primary-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Back to Matrix button */
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            box-shadow: none;
+        }
+
+        /* ============================================================================
+           Status Overview Metrics
+           ============================================================================ */
+        .metrics-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 1.25rem;
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .metric-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* Metric states */
+        .metric-card.active .metric-icon {
+            background: var(--success-glow);
+            border-color: rgba(52, 211, 153, 0.3);
+            color: var(--success);
+        }
+        .metric-card.inactive .metric-icon {
+            background: var(--danger-glow);
+            border-color: rgba(251, 113, 133, 0.3);
+            color: var(--danger);
+        }
+
+        /* ============================================================================
+           Grid Section & Individual Check Cards
+           ============================================================================ */
+        .grid-panels {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+
+        .panel {
+            grid-column: span 6;
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 20px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .panel:hover {
+            border-color: var(--border-glow);
+            background: var(--bg-card-hover);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.05);
+        }
+
+        /* Glowing Border Accents */
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--border-glow), transparent);
+            opacity: 0.5;
+        }
+
+        .panel.running::before {
+            background: linear-gradient(90deg, transparent, var(--success), transparent);
+        }
+        
+        .panel.offline::before {
+            background: linear-gradient(90deg, transparent, var(--danger), transparent);
+        }
+
+        .panel-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title-area {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .panel-icon {
+            font-size: 1.25rem;
+        }
+
+        .panel-badge {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            letter-spacing: 0.03em;
+            border: 1px solid transparent;
+        }
+
+        .badge-success {
+            color: var(--success);
+            background: var(--success-glow);
+            border-color: rgba(52, 211, 153, 0.2);
+        }
+
+        .badge-danger {
+            color: var(--danger);
+            background: var(--danger-glow);
+            border-color: rgba(251, 113, 133, 0.2);
+        }
+
+        .badge-warn {
+            color: var(--warning);
+            background: var(--warning-glow);
+            border-color: rgba(251, 191, 36, 0.2);
+        }
+
+        .panel-body {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-height: 220px;
+        }
+
+        /* Refresh Buttons per Panel */
+        .btn-mini {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.35rem 0.65rem;
+            font-size: 0.75rem;
+            font-family: var(--font-display);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .btn-mini:hover {
+            border-color: var(--primary);
+            color: white;
+            background: rgba(129, 140, 248, 0.08);
+        }
+
+        /* Tab Switcher Layout */
+        .tab-group {
+            display: flex;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 2px;
+            gap: 2px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-muted);
+            padding: 0.35rem 0.75rem;
+            font-size: 0.72rem;
+            font-family: var(--font-display);
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .tab-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), rgba(99, 102, 241, 0.6));
+            color: white;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+        }
+
+        /* Loader Animation */
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================================================================
+           Data Display Layouts & Code Blocks
+           ============================================================================ */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .data-item {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+        }
+
+        .data-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.2rem;
+        }
+
+        .data-value {
+            font-size: 0.92rem;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .data-value.mono {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--primary);
+        }
+
+        /* Table formats for connections / models */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-muted);
+            font-weight: 500;
+            padding: 0.65rem 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.03em;
+        }
+
+        td {
+            padding: 0.65rem 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            font-family: var(--font-mono);
+            color: #cbd5e1;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+            color: white;
+        }
+
+        /* Large panels like Logs */
+        .panel-full {
+            grid-column: span 12;
+        }
+
+        /* ============================================================================
+           Logs Card & Console Output
+           ============================================================================ */
+        .log-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex-grow: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            color: white;
+            font-family: var(--font-display);
+            font-size: 0.82rem;
+            padding: 0.5rem 1rem 0.5rem 2.2rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(129, 140, 248, 0.15);
+            background: rgba(0, 0, 0, 0.45);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dark);
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+
+        .log-terminal {
+            background: #040711;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+            max-height: 380px;
+            overflow-y: auto;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .log-line {
+            white-space: pre-wrap;
+            word-break: break-all;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        /* Log Line Highlighting */
+        .log-line.error { color: #f87171; background: rgba(239, 68, 68, 0.08); }
+        .log-line.warn { color: #fbbf24; background: rgba(245, 158, 11, 0.05); }
+        .log-line.info { color: #38bdf8; }
+        .log-line.success { color: #34d399; }
+        .log-line.highlight { background: rgba(129, 140, 248, 0.2); border-left: 2px solid var(--primary); }
+
+        .empty-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 0.5rem;
+            height: 100%;
+            min-height: 140px;
+            color: var(--text-dark);
+            font-size: 0.85rem;
+            text-align: center;
+            border: 1px dashed rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-placeholder span {
+            font-size: 1.5rem;
+        }
+
+        .pulse {
+            animation: pulse-glow 2s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            from { opacity: 0.6; }
+            to { opacity: 1; }
+        }
+
+        footer {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            color: var(--text-dark);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding-top: 1rem;
+        }
+
+        footer code {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ============================================================================
+             Dashboard Header Block
+             ============================================================================ -->
+        <header>
+            <div class="header-title-area">
+                <h1>👾 Ollama Status</h1>
+                <p>Real-time orchestrator diagnostics, local connections, and engine runtime logs.</p>
+            </div>
+            <div class="global-controls">
+                <a class="btn btn-secondary" href="/Aralia/misc/dev_hub.html">← Dev Hub</a>
+                <div class="toggle-container" id="auto-poll-toggle">
+                    <span class="toggle-switch"></span>
+                    <span style="font-size: 0.82rem; font-weight: 500;">Auto-Poll (5s)</span>
+                </div>
+                <button class="btn" id="btn-poll-all">
+                    <span>↻</span>
+                    <span>Poll All Checks</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ============================================================================
+             Overall Health Metrics Row
+             ============================================================================ -->
+        <section class="metrics-bar">
+            <div class="metric-card" id="metric-ollama-status">
+                <div class="metric-icon">🤖</div>
+                <div class="metric-info">
+                    <span class="metric-label">Ollama Engine</span>
+                    <span class="metric-value" id="val-engine-status">Checking...</span>
+                </div>
+            </div>
+            <div class="metric-card" id="metric-connection-status">
+                <div class="metric-icon">🔌</div>
+                <div class="metric-info">
+                    <span class="metric-label">TCP Sockets (11434)</span>
+                    <span class="metric-value" id="val-sockets-count">0 Active</span>
+                </div>
+            </div>
+            <div class="metric-card" id="metric-model-status">
+                <div class="metric-icon">🧠</div>
+                <div class="metric-info">
+                    <span class="metric-label">Loaded Models</span>
+                    <span class="metric-value" id="val-loaded-models">0 In Memory</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================================
+             Diagnostics Grid Panels
+             ============================================================================ -->
+        <main class="grid-panels">
+            
+            <!-- Panel 1: Process Auditor -->
+            <section class="panel" id="panel-process">
+                <div class="panel-header">
+                    <div class="panel-title-area">
+                        <span class="panel-icon">⚙️</span>
+                        <h2 class="panel-title">Ollama Process</h2>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span class="panel-badge" id="badge-process">Unknown</span>
+                        <button class="btn-mini" onclick="pollProcess()">↻ Poll</button>
+                    </div>
+                </div>
+                <div class="panel-body" id="body-process">
+                    <div class="empty-placeholder">
+                        <span>⏳</span>
+                        <p>Awaiting process status poll...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Panel 2: Sockets and Port Senders -->
+            <section class="panel" id="panel-port">
+                <div class="panel-header">
+                    <div class="panel-title-area">
+                        <span class="panel-icon">🌐</span>
+                        <h2 class="panel-title">Port Sockets (11434)</h2>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span class="panel-badge" id="badge-port">Unknown</span>
+                        <button class="btn-mini" onclick="pollPort()">↻ Poll</button>
+                    </div>
+                </div>
+                <div class="panel-body" id="body-port">
+                    <div class="empty-placeholder">
+                        <span>⏳</span>
+                        <p>Awaiting port connections poll...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Panel 3: Loaded Model Memory Cache -->
+            <section class="panel" id="panel-models">
+                <div class="panel-header">
+                    <div class="panel-title-area">
+                        <span class="panel-icon">🧠</span>
+                        <h2 class="panel-title">Loaded LLM Cache</h2>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span class="panel-badge" id="badge-models">Unknown</span>
+                        <button class="btn-mini" onclick="pollModels()">↻ Poll</button>
+                    </div>
+                </div>
+                <div class="panel-body" id="body-models">
+                    <div class="empty-placeholder">
+                        <span>⏳</span>
+                        <p>Awaiting loaded model registry query...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Panel 4: System App Logs -->
+            <section class="panel panel-full" id="panel-logs">
+                <div class="panel-header">
+                    <div class="panel-title-area">
+                        <span class="panel-icon">📄</span>
+                        <h2 class="panel-title">Ollama Console Logs</h2>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <div class="tab-group" id="log-tabs" style="margin-right: 0.5rem;">
+                            <button class="tab-btn active" id="tab-log-app" onclick="switchLogTab('app')">App Logs</button>
+                            <button class="tab-btn" id="tab-log-server" onclick="switchLogTab('server')">Server Logs</button>
+                        </div>
+                        <span class="panel-badge" id="badge-logs">Unknown</span>
+                        <button class="btn-mini" onclick="pollLogs()">↻ Poll</button>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="log-controls">
+                        <div class="search-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" class="search-input" id="log-search" placeholder="Filter log entries..." oninput="filterLogs()">
+                        </div>
+                        <span style="font-size: 0.72rem; color: var(--text-dark);" id="log-info-label">Showing last 0 lines</span>
+                    </div>
+                    <div class="log-terminal" id="log-console">
+                        <div class="empty-placeholder">
+                            <span>⏳</span>
+                            <p>Awaiting console log stream poll...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- ============================================================================
+             Footer
+             ============================================================================ -->
+        <footer>
+            <span>Aralia Development Hub · local diagnostic utilities</span>
+            <span id="footer-log-path">Logs location: <code>%LOCALAPPDATA%\Ollama\app.log</code></span>
+        </footer>
+    </div>
+
+    <!-- ============================================================================
+         Interactive Control Logic & Polling Code
+         ============================================================================ -->
+    <script>
+        // State variables
+        let autoPollIntervalId = null;
+        let isPollingAll = false;
+        let cachedLogLines = [];
+        let currentLogTab = 'app'; // Can be 'app' or 'server'
+
+        // Global DOM Elements
+        const btnPollAll = document.getElementById('btn-poll-all');
+        const autoPollToggle = document.getElementById('auto-poll-toggle');
+        const logSearchInput = document.getElementById('log-search');
+
+        // Setup Event Listeners
+        btnPollAll.addEventListener('click', pollAll);
+        autoPollToggle.addEventListener('click', toggleAutoPoll);
+
+        // ============================================================================
+        // Polling Coordinators
+        // ============================================================================
+        
+        // Triggers all status checks in parallel and updates buttons with loaders
+        async function pollAll() {
+            if (isPollingAll) return;
+            isPollingAll = true;
+            
+            // Add visual loading state
+            btnPollAll.disabled = true;
+            const originalHtml = btnPollAll.innerHTML;
+            btnPollAll.innerHTML = `<span class="spinner"></span> <span>Polling all...</span>`;
+
+            try {
+                // Run all 4 checks in parallel
+                await Promise.all([
+                    pollProcess(),
+                    pollPort(),
+                    pollModels(),
+                    pollLogs()
+                ]);
+            } catch (e) {
+                console.error("Error during global polling:", e);
+            } finally {
+                // Restore button states
+                btnPollAll.disabled = false;
+                btnPollAll.innerHTML = originalHtml;
+                isPollingAll = false;
+            }
+        }
+
+        // Toggle automatic polling schedule
+        function toggleAutoPoll() {
+            if (autoPollIntervalId) {
+                clearInterval(autoPollIntervalId);
+                autoPollIntervalId = null;
+                autoPollToggle.classList.remove('active');
+            } else {
+                pollAll(); // Run immediately on enable
+                autoPollIntervalId = setInterval(pollAll, 5000);
+                autoPollToggle.classList.add('active');
+            }
+        }
+
+        // Helper to format memory sizes (Bytes to human readable)
+        function formatBytes(bytes) {
+            if (!bytes || isNaN(bytes)) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // ============================================================================
+        // Individual Poll Functions
+        // ============================================================================
+
+        // 1. Process Auditor Check
+        async function pollProcess() {
+            const container = document.getElementById('body-process');
+            const badge = document.getElementById('badge-process');
+            const valEngine = document.getElementById('val-engine-status');
+            const cardEngine = document.getElementById('metric-ollama-status');
+
+            try {
+                const res = await fetch('/api/ollama-check/process');
+                const data = await res.json();
+
+                if (data.running) {
+                    badge.textContent = "Running";
+                    badge.className = "panel-badge badge-success";
+                    valEngine.textContent = "Online";
+                    cardEngine.className = "metric-card active";
+
+                    // Handle single or multiple processes
+                    const p = data.process;
+                    const pid = p.Id || p.id || 'N/A';
+                    const name = p.ProcessName || p.name || 'ollama';
+                    const cpu = p.CPU !== null && p.CPU !== undefined ? p.CPU.toFixed(1) + 's' : 'N/A';
+                    const ram = formatBytes(p.WorkingSet || p.workingSet);
+                    const handles = p.Handles || 'N/A';
+                    const pathVal = p.Path || 'N/A';
+
+                    container.innerHTML = `
+                        <div class="data-grid">
+                            <div class="data-item">
+                                <div class="data-label">Process Name</div>
+                                <div class="data-value">${name}</div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-label">PID</div>
+                                <div class="data-value mono">${pid}</div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-label">Memory Usage</div>
+                                <div class="data-value">${ram}</div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-label">CPU Time</div>
+                                <div class="data-value">${cpu}</div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-label">Active Handles</div>
+                                <div class="data-value">${handles}</div>
+                            </div>
+                            <div class="data-item" style="grid-column: span 2;">
+                                <div class="data-label">Installation Path</div>
+                                <div class="data-value mono" style="font-size: 0.72rem;">${pathVal}</div>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('panel-process').className = "panel running";
+                } else {
+                    badge.textContent = "Stopped";
+                    badge.className = "panel-badge badge-danger";
+                    valEngine.textContent = "Offline";
+                    cardEngine.className = "metric-card inactive";
+
+                    container.innerHTML = `
+                        <div class="empty-placeholder" style="border-color: rgba(251, 113, 133, 0.2);">
+                            <span style="color: var(--danger);">🔴</span>
+                            <p style="color: var(--text-muted); font-weight: 500;">Ollama process is not running.</p>
+                            <span style="font-size: 0.72rem; color: var(--text-dark);">Start the Ollama application to run checks.</span>
+                        </div>
+                    `;
+                    document.getElementById('panel-process').className = "panel offline";
+                }
+            } catch (err) {
+                badge.textContent = "Error";
+                badge.className = "panel-badge badge-danger";
+                container.innerHTML = `<div class="data-value" style="color: var(--danger);">Failed to query api: ${err.message}</div>`;
+            }
+        }
+
+        // 2. Network Sockets Check
+        async function pollPort() {
+            const container = document.getElementById('body-port');
+            const badge = document.getElementById('badge-port');
+            const valSockets = document.getElementById('val-sockets-count');
+            const cardSockets = document.getElementById('metric-connection-status');
+
+            try {
+                const res = await fetch('/api/ollama-check/port');
+                const data = await res.json();
+                const conns = data.connections || [];
+
+                if (conns.length > 0) {
+                    const established = conns.filter(c => c.State === 5 || c.State === 'Established').length;
+                    const listening = conns.some(c => c.State === 2 || c.State === 'Listen');
+                    
+                    badge.textContent = listening ? "Active" : "Closed";
+                    badge.className = listening ? "panel-badge badge-success" : "panel-badge badge-warn";
+                    
+                    valSockets.textContent = `${conns.length} Sockets (${established} Active)`;
+                    cardSockets.className = "metric-card active";
+
+                    let rows = conns.map(c => {
+                        const local = `${c.LocalAddress}:${c.LocalPort}`;
+                        const remote = c.RemoteAddress === '0.0.0.0' ? '*' : `${c.RemoteAddress}:${c.RemotePort}`;
+                        const stateStr = c.State === 2 || c.State === 'Listen' ? 'Listen' :
+                                       c.State === 5 || c.State === 'Established' ? 'Established' : String(c.State);
+                        const stateClass = stateStr === 'Listen' ? 'badge-warn' : 'badge-success';
+                        
+                        return `
+                            <tr>
+                                <td>${local}</td>
+                                <td>${remote}</td>
+                                <td><span class="panel-badge ${stateClass}" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;">${stateStr}</span></td>
+                                <td>${c.OwningProcess || 'N/A'}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    container.innerHTML = `
+                        <div class="table-wrapper">
+                            <table>
+                               <thead>
+                                   <tr>
+                                       <th>Local Socket</th>
+                                       <th>Remote Socket</th>
+                                       <th>State</th>
+                                       <th>PID</th>
+                                   </tr>
+                               </thead>
+                               <tbody>
+                                   ${rows}
+                               </tbody>
+                            </table>
+                        </div>
+                    `;
+                    document.getElementById('panel-port').className = "panel running";
+                } else {
+                    badge.textContent = "Closed";
+                    badge.className = "panel-badge badge-danger";
+                    valSockets.textContent = "0 Sockets";
+                    cardSockets.className = "metric-card";
+
+                    container.innerHTML = `
+                        <div class="empty-placeholder">
+                            <span>🚫</span>
+                            <p>No active port connections found.</p>
+                            <span style="font-size: 0.72rem; color: var(--text-dark);">Port 11434 is closed. No listener active.</span>
+                        </div>
+                    `;
+                    document.getElementById('panel-port').className = "panel offline";
+                }
+            } catch (err) {
+                badge.textContent = "Error";
+                badge.className = "panel-badge badge-danger";
+                container.innerHTML = `<div class="data-value" style="color: var(--danger);">Failed to inspect port: ${err.message}</div>`;
+            }
+        }
+
+        // 3. Loaded Models Memory Audit
+        async function pollModels() {
+            const container = document.getElementById('body-models');
+            const badge = document.getElementById('badge-models');
+            const valModels = document.getElementById('val-loaded-models');
+            const cardModels = document.getElementById('metric-model-status');
+
+            try {
+                const res = await fetch('/api/ollama-check/models');
+                const data = await res.json();
+
+                if (data.offline) {
+                    badge.textContent = "Offline";
+                    badge.className = "panel-badge badge-danger";
+                    valModels.textContent = "Unreachable";
+                    cardModels.className = "metric-card";
+
+                    container.innerHTML = `
+                        <div class="empty-placeholder">
+                            <span>⚠️</span>
+                            <p>API Endpoint Unreachable</p>
+                            <span style="font-size: 0.72rem; color: var(--text-dark);">Could not query Ollama API. Model state unknown.</span>
+                        </div>
+                    `;
+                    document.getElementById('panel-models').className = "panel offline";
+                } else {
+                    const modelsList = data.models || [];
+                    
+                    valModels.textContent = `${modelsList.length} In Memory`;
+                    badge.textContent = modelsList.length > 0 ? "Active Model" : "Idle";
+                    badge.className = modelsList.length > 0 ? "panel-badge badge-success" : "panel-badge badge-warn";
+                    cardModels.className = modelsList.length > 0 ? "metric-card active" : "metric-card";
+
+                    if (modelsList.length > 0) {
+                        let rows = modelsList.map(m => {
+                            const size = formatBytes(m.size);
+                            const name = m.name || 'Unnamed';
+                            const proc = m.details?.parent_model || m.processor || 'GPU/CPU';
+                            const expires = m.expires_at ? new Date(m.expires_at).toLocaleTimeString() : 'Never';
+                            
+                            return `
+                                <tr>
+                                    <td style="color: var(--primary); font-weight: 500;">${name}</td>
+                                    <td>${size}</td>
+                                    <td>${proc}</td>
+                                    <td>${expires}</td>
+                                </tr>
+                            `;
+                        }).join('');
+
+                        container.innerHTML = `
+                            <div class="table-wrapper">
+                                <table>
+                                   <thead>
+                                       <tr>
+                                           <th>Model Name</th>
+                                           <th>Size in RAM</th>
+                                           <th>Family</th>
+                                           <th>Loaded Until</th>
+                                       </tr>
+                                   </thead>
+                                   <tbody>
+                                       ${rows}
+                                   </tbody>
+                                </table>
+                            </div>
+                        `;
+                        document.getElementById('panel-models').className = "panel running";
+                    } else {
+                        container.innerHTML = `
+                            <div class="empty-placeholder">
+                                <span>💤</span>
+                                <p>No models resident in RAM.</p>
+                                <span style="font-size: 0.72rem; color: var(--text-dark);">Models unload automatically after a duration of inactivity.</span>
+                            </div>
+                        `;
+                        document.getElementById('panel-models').className = "panel running";
+                    }
+                }
+            } catch (err) {
+                badge.textContent = "Error";
+                badge.className = "panel-badge badge-danger";
+                container.innerHTML = `<div class="data-value" style="color: var(--danger);">Failed to query models: ${err.message}</div>`;
+            }
+        }
+
+        // Tab switcher action to toggle between app and server logs
+        function switchLogTab(type) {
+            if (currentLogTab === type) return;
+            currentLogTab = type;
+            
+            // Toggle active classes on tab buttons
+            document.getElementById('tab-log-app').classList.toggle('active', type === 'app');
+            document.getElementById('tab-log-server').classList.toggle('active', type === 'server');
+            
+            // Reset logs search filter input
+            logSearchInput.value = '';
+            
+            // Re-poll the selected log tail immediately
+            pollLogs();
+        }
+
+        // 4. App Log Streams Reader
+        async function pollLogs() {
+            const terminal = document.getElementById('log-console');
+            const badge = document.getElementById('badge-logs');
+            const footerPath = document.getElementById('footer-log-path');
+
+            try {
+                const res = await fetch(`/api/ollama-check/logs?type=${currentLogTab}`);
+                const data = await res.json();
+
+                if (data.exists) {
+                    badge.textContent = "Streaming";
+                    badge.className = "panel-badge badge-success";
+                    footerPath.innerHTML = `Logs location: <code style="color: var(--success);">${data.path}</code>`;
+
+                    cachedLogLines = data.lines || [];
+                    filterLogs(); // Display lines matching current filter query
+                    document.getElementById('panel-logs').className = "panel panel-full running";
+                } else {
+                    badge.textContent = "No Log File";
+                    badge.className = "panel-badge badge-warn";
+                    cachedLogLines = [];
+
+                    terminal.innerHTML = `
+                        <div class="empty-placeholder">
+                            <span>📄</span>
+                            <p>No Ollama log file detected at the target path.</p>
+                            <span style="font-size: 0.72rem; color: var(--text-dark);">${data.error || 'AppData\\Local\\Ollama\\app.log does not exist.'}</span>
+                        </div>
+                    `;
+                    document.getElementById('log-info-label').textContent = "Showing last 0 lines";
+                    document.getElementById('panel-logs').className = "panel panel-full";
+                }
+            } catch (err) {
+                badge.textContent = "Error";
+                badge.className = "panel-badge badge-danger";
+                terminal.innerHTML = `<div class="data-value" style="color: var(--danger);">Failed to load logs: ${err.message}</div>`;
+            }
+        }
+
+        // Filters cached log output lines against search queries in real time
+        function filterLogs() {
+            const terminal = document.getElementById('log-console');
+            const query = logSearchInput.value.toLowerCase().trim();
+            const label = document.getElementById('log-info-label');
+
+            if (cachedLogLines.length === 0) {
+                terminal.innerHTML = `<div style="color: var(--text-dark); text-align: center; padding: 2rem;">No logs available.</div>`;
+                label.textContent = "Showing last 0 lines";
+                return;
+            }
+
+            let filtered = cachedLogLines;
+            if (query) {
+                filtered = cachedLogLines.filter(line => line.toLowerCase().includes(query));
+            }
+
+            if (filtered.length === 0) {
+                terminal.innerHTML = `<div style="color: var(--text-dark); text-align: center; padding: 2rem;">No logs match search query "${query}".</div>`;
+                label.textContent = `Showing 0 of ${cachedLogLines.length} lines`;
+                return;
+            }
+
+            const html = filtered.map(line => {
+                let cl = 'log-line';
+                // Detect error levels and flag visual tags
+                if (line.includes('error') || line.includes('ERR') || line.includes('fail')) cl += ' error';
+                else if (line.includes('warning') || line.includes('WARN')) cl += ' warn';
+                else if (line.includes('info') || line.includes('INFO')) cl += ' info';
+                else if (line.includes('success')) cl += ' success';
+
+                // Highlight search keywords
+                let displayLine = line;
+                if (query) {
+                    const regex = new RegExp(`(${query})`, 'gi');
+                    displayLine = line.replace(regex, '<span class="log-line highlight">$1</span>');
+                }
+
+                return `<div class="${cl}">${displayLine}</div>`;
+            }).join('');
+
+            terminal.innerHTML = html;
+            
+            // Auto scroll console to bottom to mimic terminal behaviour
+            terminal.scrollTop = terminal.scrollHeight;
+
+            if (query) {
+                label.textContent = `Filtered: ${filtered.length} of ${cachedLogLines.length} lines`;
+            } else {
+                label.textContent = `Showing last ${cachedLogLines.length} lines`;
+            }
+        }
+
+        // Initialize dashboard: run a single poll on launch
+        window.addEventListener('DOMContentLoaded', () => {
+            pollAll();
+        });
+    </script>
+</body>
+</html>

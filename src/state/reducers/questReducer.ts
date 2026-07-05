@@ -32,6 +32,7 @@ import { AppAction } from '../actionTypes';
 import { ITEMS } from '../../constants';
 import { generateId } from '../../utils/core/idGenerator';
 import { appendQuestJournalEvent, createQuestJournalEvent } from '../../systems/quests/questJournal';
+import { appendAdventureLogEntry } from '../../systems/adventureLog/adventureLog';
 
 type NotificationTuple = Pick<GameState, 'notifications'>;
 
@@ -109,12 +110,19 @@ const applyQuestCompletion = (
     description: `Completed "${completedQuest.title}" and claimed its rewards.`,
   });
 
+  const isOpening = /situation in|opening/i.test(completedQuest.title) || completedQuest.questType === 'Main';
+
   return {
     questLog: newQuestLog,
     gold: updatedGold,
     inventory: updatedInventory,
     party: updatedParty,
     ...appendQuestJournalEvent(state, completionJournalEvent),
+    ...appendAdventureLogEntry(state, {
+      kind: isOpening ? 'opening' : 'quest',
+      summary: `Completed the quest "${completedQuest.title}".`,
+      npcIds: completedQuest.giverId ? [completedQuest.giverId] : undefined,
+    }),
     ...pushNotification(state, `Quest Completed: ${completedQuest.title}`, 'success', 5000),
   };
 };

@@ -92,6 +92,12 @@
   .strip-group { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .strip-group + .strip-group { border-left: 1px solid #1e293b; padding-left: 12px; }
   .strip-group-label { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.9; }
+  /* Shipped tiles rendered inside their lane on the shared date axis. */
+  .ship-label { font-size: 11px; }
+  .ship-doc { font-size: 11px; text-decoration: none; }
+  .ship-tick { font-size: 10px; letter-spacing: 0.03em; }
+  .shipnode { opacity: 0.9; }
+  .shipnode:hover { opacity: 1; }
   a { color: #7dd3fc; }
   /* Detail side panel (item 1) — pins on click, dismissible. */
   #detail { position: fixed; top: 0; right: 0; width: 380px; max-width: 92vw; height: 100vh; overflow-y: auto;
@@ -553,14 +559,45 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   live.forEach(t => { const c = t.campaign || '(none)'; (byLane[c] = byLane[c] || []).push(t); });
   laneKeys.forEach(k => (byLane[k] || []).sort((a, b) => orderIndex[a.id] - orderIndex[b.id]));
 
+  // ============= Shipped-in-lane, placed by completion date ==========
+  // Done topics live INSIDE their campaign lane on a SHARED date axis: the date
+  // is parsed from the linked spec's YYYY-MM-DD ("date created"). Same date =
+  // same column across every lane. Undated done topics (no dated link) get a
+  // labeled leftmost column instead of being hidden.
+  const SHIP_COL_W = 172, SHIP_CHIP_H = 24, SHIP_ROW_GAP = 6, SHIP_AREA_TOP = 10;
+  const shipDateOf = t => { const m = (t.link || '').match(/\d{4}-\d{2}-\d{2}/); return m ? m[0] : null; };
+  const shipByLaneKey = {};
+  shipped.forEach(t => { const k = t.campaign || '(none)'; (shipByLaneKey[k] = shipByLaneKey[k] || []).push(t); });
+  const distinctShipDates = [...new Set(shipped.map(shipDateOf).filter(Boolean))].sort();
+  const shipDateRank = Object.fromEntries(distinctShipDates.map((d, i) => [d, i]));
+  const hasUndatedShip = shipped.some(t => !shipDateOf(t));
+  const shipColBase = hasUndatedShip ? 1 : 0;                 // col 0 reserved for undated
+  const shipColOf = t => { const d = shipDateOf(t); return d == null ? 0 : shipColBase + shipDateRank[d]; };
+  const shipColCount = shipColBase + distinctShipDates.length;
+  // Per-lane vertical stacking: multiple done topics sharing a column stack down.
+  const shipPlace = {};      // id -> {col, stackRow}
+  const shipLaneRows = {};   // laneKey -> max stack rows in that lane
+  laneKeys.forEach(key => {
+    const list = shipByLaneKey[key] || [];
+    const colStack = {}; let maxRows = 0;
+    list.slice().sort((a, b) => shipColOf(a) - shipColOf(b)).forEach(t => {
+      const col = shipColOf(t); const row = colStack[col] || 0; colStack[col] = row + 1;
+      shipPlace[t.id] = { col, stackRow: row }; maxRows = Math.max(maxRows, row + 1);
+    });
+    if (list.length) shipLaneRows[key] = maxRows;
+  });
+  const shipAreaH = key => shipLaneRows[key] ? SHIP_AREA_TOP + shipLaneRows[key] * (SHIP_CHIP_H + SHIP_ROW_GAP) : 0;
+
   // Lay each lane out as its own vertical band. Within a lane, place nodes into
   // their depth column and stack them by BAY height; the band is the tallest column.
   const pos = {};
   const laneRects = []; // {y, h, key} for the faint lane backgrounds + labels
+  const shipRowTop = {}; // laneKey -> y of the lane's shipped sub-row
   let laneTop = PAD;
   laneKeys.forEach(key => {
     const list = byLane[key] || [];
-    if (!list.length) return; // don't draw an empty lane band
+    const sList = shipByLaneKey[key] || [];
+    if (!list.length && !sList.length) return; // truly empty lane — skip
     const bandTop = laneTop + LANE_LABEL_H;
     const colY = {}; // running y per column within this lane
     list.forEach(t => {
@@ -569,14 +606,18 @@ fetch('./topics.json').then(r => r.json()).then(data => {
       pos[t.id] = { x: colX[c], y };
       colY[c] = y + bayHeight(t) + ROW_GAP;
     });
-    const bandBottom = Math.max(bandTop, ...Object.values(colY)) ; // tallest column
+    let bandBottom = list.length ? Math.max(bandTop, ...Object.values(colY)) : bandTop; // tallest column
+    if (shipLaneRows[key]) { shipRowTop[key] = bandBottom + SHIP_AREA_TOP; bandBottom += shipAreaH(key); }
     const bandH = bandBottom - laneTop;
     laneRects.push({ y: laneTop, h: bandH, key, label: (data.campaigns[key] || {}).label || key });
     laneTop = laneTop + bandH + LANE_GAP;
   });
   const maxY = laneTop;
-  const W = colX[maxDepth] + colWidth[maxDepth] + PAD;
-  const H = maxY + PAD;
+  const liveW = colX[maxDepth] + colWidth[maxDepth] + PAD;
+  const shipW = shipColCount ? PAD + shipColCount * SHIP_COL_W + PAD : 0;
+  const W = Math.max(liveW, shipW);
+  const DATE_AXIS_H = (distinctShipDates.length || hasUndatedShip) ? 26 : 0;
+  const H = maxY + DATE_AXIS_H + PAD;
 
   // Covers element content AND double-quoted attribute values — every
   // JSON-controlled string flows through here (ids land in data-* attributes).
@@ -592,6 +633,46 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     S.push(`<rect class="lane-bg" x="${PAD - 16}" y="${l.y}" width="${W - (PAD - 16) * 2}" height="${l.h}" rx="8"/>`);
     S.push(`<text class="lane-label" x="${PAD - 6}" y="${l.y + 15}" fill="#e2e8f0">${esc(l.label)}</text>`);
   });
+
+  // ---- Shipped tiles inside their lane, on the shared date axis ------------
+  // Each done topic is a small dimmed chip at x = its date-column, y = its
+  // lane's shipped sub-row (stacked when several share a date). A date ruler at
+  // the very bottom labels each column. Faint column guides tie them together.
+  const shipChipX = col => PAD + col * SHIP_COL_W;
+  if (shipColCount) {
+    // Faint vertical guides per column, spanning the full drawing height.
+    for (let c = 0; c < shipColCount; c++) {
+      const gx = shipChipX(c) + (SHIP_COL_W - 12) / 2 + 4;
+      S.push(`<line x1="${gx}" y1="${PAD}" x2="${gx}" y2="${maxY}" stroke="#1e293b" stroke-opacity="0.5" stroke-dasharray="2 6"/>`);
+    }
+    laneKeys.forEach(key => {
+      const list = shipByLaneKey[key] || [];
+      if (!list.length || shipRowTop[key] == null) return;
+      const cc = COLORS[(data.campaigns[key] || {}).color] || COLORS.gray;
+      list.forEach(t => {
+        const pl = shipPlace[t.id];
+        const x = shipChipX(pl.col) + 4;
+        const y = shipRowTop[key] + pl.stackRow * (SHIP_CHIP_H + SHIP_ROW_GAP);
+        const w = SHIP_COL_W - 12;
+        const d = shipDateOf(t);
+        const raw = t.title;
+        const disp = raw.length > 20 ? raw.slice(0, 19) + '…' : raw;
+        S.push(`<g class="shipnode" data-id="${esc(t.id)}" data-campaign="${esc(key)}">`);
+        S.push(`<rect x="${x}" y="${y}" width="${w}" height="${SHIP_CHIP_H}" rx="12" fill="${cc.fill}" fill-opacity="0.4" stroke="${cc.stroke}" stroke-opacity="0.5"/>`);
+        S.push(`<circle cx="${x + 11}" cy="${y + SHIP_CHIP_H / 2}" r="3.5" fill="${cc.stroke}"/>`);
+        S.push(`<text class="ship-label" x="${x + 20}" y="${y + SHIP_CHIP_H / 2 + 4}" fill="${cc.title}"><title>${esc(raw)} — shipped ${esc(d || '(undated)')}</title>${esc(disp)}</text>`);
+        if (t.link) S.push(`<a href="${esc(docHref(t.link))}" target="_blank"><text class="ship-doc" x="${x + w - 9}" y="${y + SHIP_CHIP_H / 2 + 4}" text-anchor="end" fill="${cc.sub}"><title>${esc(t.link)}</title>📄</text></a>`);
+        S.push(`</g>`);
+      });
+    });
+    // Date ruler along the bottom: one tick per distinct completion date (+undated).
+    const rulerY = maxY + 6;
+    S.push(`<line class="ship-axis" x1="${PAD - 6}" y1="${rulerY}" x2="${W - PAD + 6}" y2="${rulerY}" stroke="#334155"/>`);
+    if (hasUndatedShip) S.push(`<text class="ship-tick" x="${shipChipX(0) + 4}" y="${rulerY + 16}" fill="#64748b">undated</text>`);
+    distinctShipDates.forEach((d, i) => {
+      S.push(`<text class="ship-tick" x="${shipChipX(shipColBase + i) + 4}" y="${rulerY + 16}" fill="#94a3b8">${esc(d.slice(5))}</text>`);
+    });
+  }
 
   // ---- Exploded step tiles: features become their own child nodes ----------
   // Chain (sequential) steps flow right at the parent's mid-row; parallel steps
@@ -791,28 +872,10 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     S.push(`</g>`);
   });
   S.push(`</svg>`);
-  // Shipped tiles are grouped by their campaign category (canonical campaigns
-  // in object order first, then any campaign not in the registry — created on
-  // the fly so a shipped topic never drops just because its category is new).
-  // Each group's label + chip dots take the lane color, so a reader sees at a
-  // glance which category finished what.
-  const shipByCamp = {};
-  shipped.forEach(t => { const k = t.campaign || '(none)'; (shipByCamp[k] = shipByCamp[k] || []).push(t); });
-  const shipCampKeys = [
-    ...campOrder.filter(k => shipByCamp[k]),
-    ...Object.keys(shipByCamp).filter(k => !campOrder.includes(k)),
-  ];
-  const shippedHtml = shipped.length
-    ? `<div id="shipped"><span class="strip-label">Shipped · ${shipped.length}</span>` +
-      shipCampKeys.map(k => {
-        const camp = data.campaigns[k] || {};
-        const col = (COLORS[camp.color] || COLORS.gray).stroke;
-        const chips = shipByCamp[k].map(t =>
-          `<span class="strip-chip"><span class="dot" style="background:${col}"></span>${esc(t.title)}${t.link ? ` <a href="${esc(docHref(t.link))}" target="_blank" title="${esc(t.link)}">📄</a>` : ''}</span>`
-        ).join('');
-        return `<span class="strip-group"><span class="strip-group-label" style="color:${col}">${esc(camp.label || k)}</span>${chips}</span>`;
-      }).join('') + `</div>`
-    : '';
+  // Shipped topics now render INSIDE their campaign lane on the shared date
+  // axis (see the "Shipped tiles inside their lane" block above), so the old
+  // bottom Shipped strip is retired.
+  const shippedHtml = '';
   // Graveyard: superseded topics keep their title, link and one-line "killed"
   // reason — dead decisions are history, not garbage.
   const graveyardHtml = graveyard.length

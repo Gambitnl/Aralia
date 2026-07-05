@@ -270,6 +270,40 @@ describe('handleTalk quest handoff', () => {
     expect(mockAddMessage.mock.calls.some(([msg]) => /there is no one named/i.test(msg))).toBe(false);
   });
 
+  it('gates a DEFEATED generated NPC: flavor line, no dialogue session, no replayed threat', async () => {
+    // A hostile opening guard the party has beaten in combat (id now in
+    // defeatedNpcIds) must NOT re-open dialogue and replay its pre-fight line.
+    const stateWithDefeated = {
+      ...mockGameState,
+      metNpcIds: ['situation-npc-guard'],
+      generatedNpcs: {
+        'situation-npc-guard': { id: 'situation-npc-guard', name: 'Corwin Dain', role: 'guard' },
+      },
+      defeatedNpcIds: ['situation-npc-guard'],
+    } as unknown as GameState;
+
+    const action: Action = {
+      type: 'talk',
+      payload: { targetNpcId: 'situation-npc-guard' },
+      targetId: 'situation-npc-guard',
+    } as Action;
+
+    await handleTalk({
+      action,
+      gameState: stateWithDefeated,
+      dispatch: mockDispatch as unknown as Dispatch<AppAction>,
+      addMessage: mockAddMessage,
+      addGeminiLog: mockAddGeminiLog,
+      playPcmAudio: mockPlayPcmAudio,
+      playerContext: 'Test adventurer',
+      generalActionContext: 'Testing defeated NPC gate',
+    });
+
+    // Honest flavor line, and crucially NO dialogue session opened.
+    expect(mockAddMessage.mock.calls.some(([msg]) => /in no state to talk/i.test(msg))).toBe(true);
+    expect(mockDispatch.mock.calls.some(([d]) => d.type === 'START_DIALOGUE_SESSION')).toBe(false);
+  });
+
   it('keeps ordinary static NPC talk dialogue-only when no quest offer is present', async () => {
     // This guards the existing behavior: talking to an NPC still opens dialogue
     // and updates social memory, but does not start a quest by default.

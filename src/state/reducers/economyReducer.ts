@@ -257,6 +257,30 @@ export function economyReducer(state: GameState, action: AppAction): Partial<Gam
             };
         }
 
+        case 'DEBIT_BUSINESS_STOCK': {
+            // Decrement persisted owned stock when a stocked item is purchased.
+            // Removes the line when it hits zero. No-op if the business or line
+            // is absent (e.g. an LLM-generated inventory with no owned stock).
+            const { businessId, itemId, quantity = 1 } = action.payload;
+            const wb = state.worldBusinesses?.[businessId];
+            if (!wb || !wb.stock) return {};
+
+            const idx = wb.stock.findIndex(s => s.itemId === itemId);
+            if (idx === -1) return {};
+
+            const nextQty = wb.stock[idx].quantity - quantity;
+            const newStock = nextQty > 0
+                ? wb.stock.map((s, i) => (i === idx ? { ...s, quantity: nextQty } : s))
+                : wb.stock.filter((_, i) => i !== idx);
+
+            return {
+                worldBusinesses: {
+                    ...state.worldBusinesses,
+                    [businessId]: { ...wb, stock: newStock },
+                },
+            };
+        }
+
         case 'MANAGE_BUSINESS': {
             const { businessId } = action.payload;
             const wb = state.worldBusinesses?.[businessId];

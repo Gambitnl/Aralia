@@ -22,6 +22,8 @@ import { GameState } from '../../types';
 import { withLegacyWeatherBridge } from '../../types/environment';
 import { AppAction } from '../actionTypes';
 import { LOCATIONS } from '../../data/world/locations';
+import { NPCS } from '../../data/world/npcs';
+import { appendAdventureLogEntry } from '../../systems/adventureLog/adventureLog';
 import { getTimeOfDay, getGameDay } from '../../utils/core';
 import { groundPosToLocaleFeet } from '../../systems/worldforge/local/localePosition';
 import { biomeIdForCell } from '../../systems/worldforge/local/biomeForCell';
@@ -479,8 +481,18 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       if (state.metNpcIds.includes(npcId)) {
         return {}; // Already met, no state change
       }
+      const metName =
+        NPCS[npcId]?.name ||
+        state.generatedNpcs?.[npcId]?.name ||
+        state.dynamicNPCs?.[npcId]?.name ||
+        'someone new';
       return {
         metNpcIds: [...state.metNpcIds, npcId],
+        ...appendAdventureLogEntry(state, {
+          kind: 'met-npc',
+          summary: `Met ${metName}.`,
+          npcIds: [npcId],
+        }),
       };
     }
 

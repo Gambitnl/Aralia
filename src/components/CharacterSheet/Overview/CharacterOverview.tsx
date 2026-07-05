@@ -20,6 +20,7 @@ import Tooltip from '../../ui/Tooltip';
 import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString, buildHitPointDicePools } from '../../../utils/characterUtils';
 import { calculatePassiveScore } from '../../../utils/statUtils';
 import { FEATS_DATA } from '../../../data/feats/featsData';
+import { classFeaturesForLevel } from '../../../data/classes/classFeatureProgression';
 import { useCharacterProficiencies } from '../../../hooks/useCharacterProficiencies';
 
 /**
@@ -475,7 +476,7 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                 {/* 8. Features & Traits (COLLAPSIBLE, collapsed by default) */}
                 <CollapsibleSection title="Features & Traits" icon="📜" defaultCollapsed={true}>
                     <ul className="space-y-2 text-sm text-gray-300">
-                        {character.class.features.map(feature => (
+                        {classFeaturesForLevel(character.class, character.level ?? 1, character.subclassId).map(feature => (
                             <li key={feature.id}>
                                 <Tooltip content={feature.description}>
                                     <span className="font-medium text-amber-200 cursor-help border-b border-dotted border-amber-200/50">{feature.name}</span>

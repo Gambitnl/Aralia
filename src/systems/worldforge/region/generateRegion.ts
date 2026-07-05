@@ -125,6 +125,9 @@ import type { Burg } from '../fmg/burgs-generator';
 import type { Route } from '../fmg/routes-generator';
 import { smoothRegionRiverCenterline } from './riverCenterlineSmoothing';
 
+/** Normalized waterline: FMG cell h<20 ≙ height < 0.2 in the refined field. */
+const WATER_THRESHOLD = 0.2;
+
 export interface GenerateRegionOptions {
   /** Feet per FMG pixel (Lane B's canonical converter; pass any plausible value for tests). */
   feetPerPixel: number;
@@ -194,6 +197,22 @@ export function generateRegion(
   // world points. Membership below remains the locality context for rivers,
   // civilization, and biome extraction only.
   const idwRadiusFt = computeIdwRadiusFt(pack.cells.p, feetPerPixel);
+  // Settlement dry-land guarantee (2026-07-04): a burg is placed on genuine land
+  // (FMG h≥20) but a low-lying coastal one (h at/just above 20, ringed by ocean
+  // cells) interpolates to a surface at/just below the 0.2 waterline — so the
+  // whole town window floods to `water` biome (the "town sitting in water" bug).
+  // When we enter a settlement (windowCenterPx given), we anchor a dry floor at
+  // the burg point so the town center — and everything above it — stays land.
+  // This is a single standalone Locale window (not seam-streamed), so a local
+  // floor here does not affect open-world region handoffs.
+  const settlementFloor = opts.windowCenterPx
+    ? {
+        x: opts.windowCenterPx[0] * feetPerPixel,
+        y: opts.windowCenterPx[1] * feetPerPixel,
+        // Just above the waterline: the town reads as low coastal land, not sea.
+        minHeight: WATER_THRESHOLD + 0.03,
+      }
+    : undefined;
   const heightfield = generateHeightfield(
     pack.cells.p,
     pack.cells.h,
@@ -202,6 +221,7 @@ export function generateRegion(
     resolutionFt,
     feetPerPixel,
     regionPath,
+    settlementFloor,
   );
 
   // ── Rivers: banks for rivers passing through member cells ─────────────
@@ -530,11 +550,18 @@ function generateHeightfield(
   resolutionFt: number,
   feetPerPixel: number,
   regionPath: SeedPath,
+  settlementFloor?: { x: number; y: number; minHeight: number },
 ): RegionHeightfield {
   const width = Math.ceil(bounds.width / resolutionFt);
   const height = Math.ceil(bounds.height / resolutionFt);
   const samples = new Float32Array(width * height);
-  // Track which samples are in water cells for post-noise re-clamping
+  // Settlement floor lift, in world feet + a per-sample falloff radius: the town
+  // center is lifted to `minHeight`, tapering to 0 by the window's half-extent so
+  // genuine offshore water near the window edge stays wet.
+  const floorReachFt = Math.min(bounds.width, bounds.height) / 2;
+  const floorReachSq = floorReachFt * floorReachFt;
+  // Track which samples are genuine water (interpolated surface below the
+  // waterline) for post-noise re-clamping — see the water-discipline note below.
   const isWaterCell = new Uint8Array(width * height);
 
   // Candidate cells: everything whose center can reach any sample in this
@@ -555,8 +582,6 @@ function generateHeightfield(
     candData.push({ x, y, h: cellHeights[id] / 100 }); // normalize 0..1
   }
 
-  const WATER_THRESHOLD = 0.2;
-
   // Combined pass: IDW base + water check in one loop over samples.
   // Track nearest cell per sample to enforce water discipline without a
   // second full scan.
@@ -565,11 +590,9 @@ function generateHeightfield(
     for (let col = 0; col < width; col++) {
       const sampleX = bounds.x + col * resolutionFt;
 
-      // Radius-limited IDW interpolation + nearest cell tracking
+      // Radius-limited IDW interpolation.
       let weightSum = 0;
       let valueSum = 0;
-      let nearestDist = Infinity;
-      let nearestH = 0;
 
       for (let mi = 0; mi < candData.length; mi++) {
         const cell = candData[mi];
@@ -577,13 +600,6 @@ function generateHeightfield(
         const dy = sampleY - cell.y;
         const distSq = dx * dx + dy * dy;
         if (distSq >= radiusSq) continue; // outside the sample's neighborhood
-
-        // Track nearest cell for water discipline (strict < keeps the
-        // lowest-id winner on exact ties — same in every window)
-        if (distSq < nearestDist) {
-          nearestDist = distSq;
-          nearestH = cell.h;
-        }
 
         if (distSq < 0.01) {
           weightSum = 1;
@@ -608,9 +624,34 @@ function generateHeightfield(
       }
       let baseHeight = valueSum / weightSum;
 
-      // Water discipline: if nearest cell is water, clamp immediately
-      if (nearestH < WATER_THRESHOLD) {
-        baseHeight = Math.min(baseHeight, WATER_THRESHOLD - 0.01);
+      // Settlement dry-land floor: lift the town center to `minHeight`, tapering
+      // to no lift by the window half-extent so genuine offshore water near the
+      // edge stays wet. Applied to the base (pre-noise) surface so the low, flat
+      // coastal town reads as land instead of a flooded blue slab, while relief
+      // shape is preserved above the floor.
+      if (settlementFloor) {
+        const fdx = sampleX - settlementFloor.x;
+        const fdy = sampleY - settlementFloor.y;
+        const fdSq = fdx * fdx + fdy * fdy;
+        if (fdSq < floorReachSq) {
+          const falloff = 1 - Math.sqrt(fdSq) / floorReachFt; // 1 at center → 0 at reach
+          const target = settlementFloor.minHeight * falloff;
+          if (baseHeight < target) baseHeight = target;
+        }
+      }
+
+      // Water discipline (2026-07-04 flood fix): a sample is water when the
+      // INTERPOLATED surface sits below the waterline — the physically correct
+      // coastline. The prior rule keyed off the single NEAREST cell, so a
+      // sample on a thin land spit (its interpolated height well above water,
+      // but with an ocean cell marginally nearer than the land cells around it)
+      // was force-clamped underwater. Coastal burgs — placed on genuine land
+      // (FMG h≥20) yet ringed by water cells — had their whole window flooded to
+      // 100% `water` biome (the "town sitting in water" report). Deciding on the
+      // interpolated height keeps genuine ocean below the line, keeps shorelines
+      // crisp (IDW crosses 0.2 at the true shore), stops flooding coastal land,
+      // and stays a pure function of world position (seam-safe).
+      if (baseHeight < WATER_THRESHOLD) {
         isWaterCell[row * width + col] = 1;
       }
 

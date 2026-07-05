@@ -102,14 +102,19 @@ were dispatched with a coordination contract in your prompt, follow it. If you a
 agent with no contract, run the one-command orientation FIRST:
 
 ```bash
-AGORA_DIR=.agent/agora/ids/<your-unique-handle> node tools/agora/client.mjs onboard <your-unique-handle> --note "<what you are doing>"
+AGORA_AGENT_ID=<your-unique-handle> node tools/agora/client.mjs onboard <your-unique-handle> --note "<what you are doing>"
 ```
+
+Set `AGORA_AGENT_ID` on EVERY client call (export it once in your session). It scopes your
+stored identity to you; without it, concurrent agents in this shared checkout share one
+identity and `unlock --mine` from one agent releases the OTHER agent's locks. (A unique
+`AGORA_DIR` per agent also works, but `AGORA_AGENT_ID` is the preferred, lighter form.)
 
 It registers you and prints who else is working, which files are locked (do NOT touch
 those), the ready task queue, and the full coordination rules (lock-before-edit; heartbeat
 during long work or be reaped; finish tasks with `task done <id> --result "<proof>"`).
 
-- Full API: `tools/agora/PROTOCOL.md` · running campaigns: `tools/agora/ORCHESTRATOR.md`
+- Single-agent guide: `tools/agora/AGENT.md` · Full API: `tools/agora/PROTOCOL.md` · running campaigns: `tools/agora/ORCHESTRATOR.md`
 - Which AI agents may be dispatched (statuses/policy): `tools/agora/agents.json`
   (`node tools/agora/orchestrate.mjs agents`)
 - Project-tracker work intake: `node tools/agora/gapIndex.mjs --open-only --summary`

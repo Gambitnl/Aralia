@@ -126,24 +126,23 @@ export function frameOverheardGossip(item: TownNewsItem): string {
  * deaths, inheritances) — the headline-tier news belongs to the town crier and
  * the notice-tier to the boards, so this channel never overlaps with them.
  *
- * Returns the most recent gossip-tier item, skipping the one just overheard (so
- * the chatter doesn't repeat itself back-to-back). If only one gossip item
- * exists it may be returned again; null when the town has no gossip-tier news.
+ * Returns the most recent gossip-tier item NOT in `recentlyHeardIds` — the ids
+ * the player has already overheard within the caller's cooldown window. When
+ * every gossip-tier item was recently heard, returns null: silence beats
+ * repetition (previously only the immediately-previous id was skipped, so a
+ * two-item pool alternated the same two lines forever).
  *
- * Pure and deterministic — rotation comes from recency + lastAnnouncedId, never
- * from Math.random.
+ * Pure and deterministic — rotation comes from recency + the caller's heard
+ * set, never from Math.random.
  */
 export function pickOverheardGossip(
   town: TownSimState,
   currentDay: number,
-  lastAnnouncedId?: number,
+  recentlyHeardIds?: ReadonlySet<number>,
 ): TownNewsItem | null {
   const gossip = selectTownNews(town, currentDay, { max: 24 }).filter(
     (i) => i.prominence === 'gossip',
   );
-  if (gossip.length === 0) return null;
-  // Most recent that isn't the immediately-previous overheard line.
-  const fresh = gossip.find((g) => g.id !== lastAnnouncedId);
-  // If the only gossip item equals lastAnnouncedId, repeat it rather than stay silent.
-  return fresh ?? gossip[0];
+  const fresh = gossip.find((g) => !recentlyHeardIds?.has(g.id));
+  return fresh ?? null;
 }

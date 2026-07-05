@@ -37,7 +37,7 @@
  *
  * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md — "VFX System" section
  */
-import React, { useMemo, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
@@ -641,6 +641,73 @@ export const buildTileVisibilityOverlays = (
 };
 
 /**
+ * Instanced renderer for the tactical visibility masks.
+ *
+ * Previously each dim/dark/hidden tile was its own <mesh> (plane + material +
+ * draw call). On large maps with sparse lighting that is thousands of tiles →
+ * thousands of draw calls every frame, which dominated the 3D battle-map frame
+ * cost. There are only ever four distinct (color, opacity) visibility classes,
+ * so we bucket overlays by class and emit ONE InstancedMesh per class: same
+ * planes, same colors, same opacities, same positions — identical pixels, but
+ * the ~4k draw calls collapse to at most 4. A shared unit plane geometry and a
+ * per-class material keep memory flat regardless of tile count.
+ */
+const VISIBILITY_PLANE = new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE).rotateX(-Math.PI / 2);
+
+const TileVisibilityMasks: React.FC<{ overlays: TileVisibilityOverlay[] }> = ({ overlays }) => {
+  const groups = useMemo(() => {
+    const byClass = new Map<string, { color: string; opacity: number; positions: Position[] }>();
+    for (const o of overlays) {
+      const key = `${o.color}|${o.opacity}`;
+      let g = byClass.get(key);
+      if (!g) { g = { color: o.color, opacity: o.opacity, positions: [] }; byClass.set(key, g); }
+      g.positions.push(o.position);
+    }
+    return [...byClass.entries()].map(([key, g]) => ({ key, ...g }));
+  }, [overlays]);
+
+  return (
+    <group>
+      {groups.map(g => (
+        <VisibilityMaskInstances key={g.key} color={g.color} opacity={g.opacity} positions={g.positions} />
+      ))}
+    </group>
+  );
+};
+
+const VisibilityMaskInstances: React.FC<{ color: string; opacity: number; positions: Position[] }> = ({ color, opacity, positions }) => {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const material = useMemo(
+    () => new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false, side: THREE.DoubleSide }),
+    [color, opacity]
+  );
+  useEffect(() => () => material.dispose(), [material]);
+
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const dummy = new THREE.Object3D();
+    positions.forEach((p, i) => {
+      dummy.position.set(p.x * TILE_SIZE + TILE_SIZE / 2, 0.085, p.y * TILE_SIZE + TILE_SIZE / 2);
+      dummy.rotation.set(0, 0, 0);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    });
+    mesh.count = positions.length;
+    mesh.instanceMatrix.needsUpdate = true;
+  }, [positions]);
+
+  if (positions.length === 0) return null;
+  return (
+    <instancedMesh
+      ref={meshRef}
+      args={[VISIBILITY_PLANE, material, positions.length]}
+      frustumCulled={false}
+    />
+  );
+};
+
+/**
  * Live light-source glow for the 3D combat map.
  */
 const LightSourceVisual: React.FC<{ source: LightSource; position: Position }> = ({ source, position }) => {
@@ -936,27 +1003,11 @@ const VFXSystem: React.FC<VFXSystemProps> = ({
         <LightSourceVisual key={`light-${source.id}`} source={source} position={position} />
       ))}
 
-      {/* Tactical visibility masks */}
-      {tileVisibilityOverlays.map(overlay => (
-        <mesh
-          key={`visibility-${overlay.id}`}
-          position={[
-            overlay.position.x * TILE_SIZE + TILE_SIZE / 2,
-            0.085,
-            overlay.position.y * TILE_SIZE + TILE_SIZE / 2,
-          ]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        >
-          <planeGeometry args={[TILE_SIZE, TILE_SIZE]} />
-          <meshBasicMaterial
-            color={overlay.color}
-            transparent
-            opacity={overlay.opacity}
-            depthWrite={false}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      ))}
+      {/* Tactical visibility masks — one InstancedMesh per (color, opacity)
+          class instead of a mesh+draw-call per tile (collapses ~thousands of
+          draw calls to at most four on large, sparsely-lit maps). */}
+      <TileVisibilityMasks overlays={tileVisibilityOverlays} />
+
 
       {/* Teleport destination preview */}
       {targetingMode && teleportDestinationPreviewTiles && teleportDestinationPreviewTiles.size > 0 && (

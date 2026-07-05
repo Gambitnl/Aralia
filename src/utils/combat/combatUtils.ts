@@ -705,7 +705,11 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     intelligence: player.finalAbilityScores.Intelligence,
     wisdom: player.finalAbilityScores.Wisdom,
     charisma: player.finalAbilityScores.Charisma,
-    baseInitiative: getAbilityModifierValue(player.finalAbilityScores.Dexterity) + (player.initiativeBonus || 0) + (player.initiativeProficiency ? (player.proficiencyBonus || 2) : 0),
+    // baseInitiative is the NON-Dex part of the initiative bonus (feats/bonuses +
+    // optional proficiency). rollInitiative adds the Dex modifier on top, so Dex
+    // must NOT be included here — doing so double-counted Dex for players while
+    // monsters (whose baseInitiative is the proficiency part only) were correct.
+    baseInitiative: (player.initiativeBonus || 0) + (player.initiativeProficiency ? (player.proficiencyBonus || 2) : 0),
     speed: player.speed,
     cr: 'N/A',
     senses: { darkvision: 0, blindsight: 0, tremorsense: 0, truesight: 0 },
@@ -824,12 +828,23 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     abilities.push(ability);
   };
 
-  if (player.class.id === 'rogue') {
+  if (player.class.id === 'rogue' && (player.level || 1) >= 2) {
+    // Cunning Action is a level-2 rogue feature (was incorrectly granted at level 1).
     abilities.push({ id: 'cunning_dash', name: 'Cunning Dash', description: 'Dash as a bonus action.', type: 'movement', cost: { type: 'bonus' }, targeting: 'self', range: 0, effects: [{ type: 'movement', value: stats.speed }], icon: '🏃' });
+  }
+
+  // Steady Aim (rogue level 3+): forgo movement to gain advantage on your next attack.
+  if (player.class.id === 'rogue' && (player.level || 1) >= 3) {
+    abilities.push({ id: 'steady_aim', name: 'Steady Aim', description: 'Forgo movement this turn to gain advantage on your next attack.', type: 'utility', cost: { type: 'bonus' }, targeting: 'self', range: 0, effects: [], icon: '🎯' });
   }
 
   if (player.class.id === 'fighter') {
     abilities.push({ id: 'second_wind', name: 'Second Wind', description: 'Regain hit points.', type: 'utility', cost: { type: 'bonus', limitations: { oncePerTurn: true } }, targeting: 'self', range: 0, effects: [{ type: 'heal', value: 10 + (player.level || 1) }], icon: '➕' });
+  }
+
+  // Action Surge (fighter level 2+): once per rest, take one additional action.
+  if (player.class.id === 'fighter' && (player.level || 1) >= 2) {
+    abilities.push({ id: 'action_surge', name: 'Action Surge', description: 'Take one additional action on your turn (once per rest).', type: 'utility', cost: { type: 'free' }, targeting: 'self', range: 0, effects: [], icon: '⚡', maxUses: 1, usesRemaining: 1 });
   }
 
   if (player.class.id === 'barbarian') {
@@ -846,45 +861,102 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     }, 'rage');
   }
 
+  // Reckless Attack (barbarian level 2+): advantage on your Strength melee
+  // attacks this turn, but attacks against you have advantage until your next turn.
+  if (player.class.id === 'barbarian' && (player.level || 1) >= 2) {
+    abilities.push({ id: 'reckless_attack', name: 'Reckless Attack', description: 'Gain advantage on melee attacks this turn; attacks against you have advantage until your next turn.', type: 'utility', cost: { type: 'free' }, targeting: 'self', range: 0, effects: [], icon: '⚔️' });
+  }
+
+  // Channel Divinity: Turn Undead (cleric level 2+): a creature that can see the
+  // cleric must save or be Frightened and flee. Uses the standard 'status' effect
+  // → STATUS_CONDITION('Frightened') pipeline (with a save), no special-case needed.
+  if (player.class.id === 'cleric' && (player.level || 1) >= 2) {
+    abilities.push({
+      id: 'channel_divinity_turn_undead',
+      name: 'Channel Divinity: Turn Undead',
+      description: 'A creature that can see you must succeed on a Wisdom saving throw or be Frightened, forced to flee for 1 minute.',
+      type: 'utility',
+      cost: { type: 'action' },
+      targeting: 'single_enemy',
+      range: 6,
+      effects: [{ type: 'status', statusEffect: { id: 'frightened', name: 'Frightened', type: 'debuff', duration: 10, effect: { type: 'condition' } } }],
+      icon: '✨',
+      maxUses: 1,
+      usesRemaining: 1,
+    });
+  }
+
+  // Flurry of Blows (monk level 2+): a bonus-action unarmed strike (a real attack
+  // that rolls to hit and deals martial-arts-die damage), rather than an inert
+  // button. Uses the monk's better of Strength/Dexterity (Martial Arts).
   if (player.class.id === 'monk' && (player.level || 1) >= 2) {
-    addClassFeatureAbility({
+    const martialArtsMod = Math.max(getAbilityModifierValue(stats.strength), getAbilityModifierValue(stats.dexterity));
+    abilities.push({
       id: 'flurry_of_blows',
       name: 'Flurry of Blows',
-      description: 'Use a bonus action to make additional unarmed strikes.',
-      type: 'utility',
+      description: 'Make an unarmed strike as a bonus action.',
+      type: 'attack',
       cost: { type: 'bonus' },
-      targeting: 'self',
-      range: 0,
-      effects: [],
+      targeting: 'single_enemy',
+      range: 1,
+      effects: [{ type: 'damage', value: 0, dice: `1d6+${martialArtsMod}`, damageType: 'bludgeoning' }],
       icon: '👊'
     });
   }
 
+  // Bardic Inspiration (bard): as a bonus action, inspire an ally — they gain
+  // the Inspired condition (advantage on their next attack). Applied to the ally
+  // through the standard 'status' → STATUS_CONDITION('Inspired') pipeline.
   if (player.class.id === 'bard') {
-    addClassFeatureAbility({
+    // Bardic Inspiration is a limited resource (Charisma-mod uses per rest).
+    const bardicUse = player.limitedUses?.bardic_inspiration;
+    const bardicMax = typeof bardicUse?.max === 'number' ? bardicUse.max : Math.max(1, getAbilityModifierValue(stats.charisma));
+    const bardicRemaining = typeof bardicUse?.current === 'number' ? bardicUse.current : bardicMax;
+    abilities.push({
       id: 'bardic_inspiration',
       name: 'Bardic Inspiration',
-      description: 'Grant inspiration dice as a bonus action.',
+      description: 'Inspire an ally with a stirring word — they gain advantage on their next attack.',
       type: 'utility',
       cost: { type: 'bonus' },
-      targeting: 'self',
-      range: 0,
-      effects: [],
-      icon: '🎶'
-    }, 'bardic_inspiration');
+      targeting: 'single_ally',
+      range: 12,
+      effects: [{ type: 'status', statusEffect: { id: 'inspired', name: 'Inspired', type: 'buff', duration: 10, effect: { type: 'condition' } } }],
+      icon: '🎶',
+      maxUses: bardicMax,
+      usesRemaining: bardicRemaining,
+    });
   }
 
-  if (player.class.id === 'paladin' && (player.level || 1) >= 2) {
-    addClassFeatureAbility({
+  // Lay on Hands (paladin level 1): touch a creature to restore hit points. Uses
+  // the working 'heal' effect pipeline (like Second Wind).
+  if (player.class.id === 'paladin') {
+    abilities.push({ id: 'lay_on_hands', name: 'Lay on Hands', description: 'Touch a creature to restore hit points from your pool of divine healing.', type: 'utility', cost: { type: 'action' }, targeting: 'single_ally', range: 1, effects: [{ type: 'heal', value: 5 }], icon: '✋', maxUses: 3, usesRemaining: 3 });
+  }
+
+  // Divine Smite (paladin level 2+): a melee weapon strike that expends divine
+  // power for extra radiant damage. Built as a real weapon attack + a 2d8 radiant
+  // damage effect (the same weapon-attack-plus-extra-damage shape Booming Blade
+  // uses), so it actually rolls to hit and deals both damages, instead of being
+  // an inert button.
+  const smiteWeapon = player.equippedItems?.MainHand;
+  if (player.class.id === 'paladin' && (player.level || 1) >= 2 && smiteWeapon) {
+    abilities.push({
       id: 'divine_smite',
       name: 'Divine Smite',
-      description: 'Augment your next melee weapon hit with radiant damage.',
-      type: 'utility',
-      cost: { type: 'bonus' },
-      targeting: 'self',
-      range: 0,
-      effects: [],
-      icon: '✨'
+      description: 'Strike with your weapon and channel divine power for an extra 2d8 radiant damage.',
+      type: 'attack',
+      cost: { type: 'action' },
+      targeting: 'single_enemy',
+      range: (smiteWeapon.properties?.some(p => p === 'reach')) ? 2 : 1,
+      effects: [
+        { type: 'damage', value: 0, dice: smiteWeapon.damageDice || '1d8', damageType: 'physical' },
+        { type: 'damage', value: 0, dice: '2d8', damageType: 'radiant' },
+      ],
+      weapon: smiteWeapon,
+      isProficient: isWeaponProficient(player, smiteWeapon),
+      icon: '✨',
+      maxUses: 2,
+      usesRemaining: 2,
     });
   }
 
@@ -947,6 +1019,9 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     maxHP: player.maxHp,
     armorClass: player.armorClass || 10,
     baseAC: player.armorClass || 10,
+    // Champion fighters (Improved Critical, level 3) score critical hits on a 19
+    // or 20; everyone else on a natural 20.
+    critThreshold: (player.subclassId === 'champion' && (player.level || 1) >= 3) ? 19 : 20,
     // Carry Hit Dice pools into combat so pool-based targeting can use them.
     hitPointDice: buildHitPointDicePools(player),
     initiative: 0,
@@ -993,6 +1068,23 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     initiativeProficiency: player.initiativeProficiency,
     ignoreDifficultTerrain: player.ignoreDifficultTerrain,
   };
+
+  // Danger Sense (barbarian level 2+): advantage on Dexterity saving throws. The
+  // save resolver matches advantage modifiers by text, so this string grants the
+  // feature mechanically (dodging traps, breath weapons, fireballs, etc.).
+  if (combatChar.class?.id === 'barbarian' && (player.level || 1) >= 2) {
+    if (!combatChar.modifiers) {
+      combatChar.modifiers = { advantage: [], disadvantage: [], bonuses: [] };
+    }
+    combatChar.modifiers.advantage.push('Advantage on Dexterity saving throws');
+  }
+
+  // Unarmored Movement (monk level 2+): +10 ft speed while wearing no armor and
+  // wielding no shield. Boosts the combat movement budget directly.
+  if (combatChar.class?.id === 'monk' && (player.level || 1) >= 2 && !player.equippedItems?.Torso && !player.equippedItems?.OffHand) {
+    combatChar.stats.speed += 10;
+    combatChar.actionEconomy.movement.total = combatChar.stats.speed;
+  }
 
   // Add Breath Weapon as a Combat Ability
   if (player.modifiers?.breathWeapon) {

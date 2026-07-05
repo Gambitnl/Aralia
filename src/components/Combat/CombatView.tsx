@@ -32,7 +32,7 @@ import React, { useState, useEffect, useCallback, useContext, useRef } from 'rea
 import BattleMap from '../BattleMap/BattleMap';
 import BattleMap3D from '../BattleMap/BattleMap3D';
 import { PlayerCharacter, Item } from '../../types';
-import { Ability, ActiveAnimatedObject, ActiveExtradimensionalSpace, ActiveFireEffect, ActiveSpellEmanation, ActiveSpellForce, ActiveSpellGuardian, ActiveSpellHelper, ActiveSpellStructure, ActiveTruePolymorphTransformation, BattleMapData, CombatCharacter, CombatLogEntry, PocketedSummon, SpellObjectImpact, SpellObjectRepair, SpellObjectAccessChange } from '../../types/combat';
+import { Ability, ActiveAnimatedObject, ActiveExtradimensionalSpace, ActiveFireEffect, ActiveSpellEmanation, ActiveSpellForce, ActiveSpellGuardian, ActiveSpellHelper, ActiveSpellStructure, ActiveTruePolymorphTransformation, BattleMapData, CombatCharacter, CombatLogEntry, CombatPartySnapshotEntry, PocketedSummon, SpellObjectImpact, SpellObjectRepair, SpellObjectAccessChange } from '../../types/combat';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useCombatLog } from '../../hooks/combat/useCombatLog';
@@ -79,7 +79,7 @@ interface CombatViewProps {
   enemies: CombatCharacter[];
   biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp';
   onRoundElapsed?: (seconds: number) => void;
-  onBattleEnd: (result: 'victory' | 'defeat', rewards?: { gold: number; items: Item[]; xp: number }) => void;
+  onBattleEnd: (result: 'victory' | 'defeat', rewards?: { gold: number; items: Item[]; xp: number }, finalPartyState?: CombatPartySnapshotEntry[]) => void;
   currentPlane?: Plane;
 }
 
@@ -506,7 +506,20 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             )}
 
             <button
-              onClick={() => onBattleEnd(battleState, rewards || undefined)}
+              onClick={() => {
+                // Carry each surviving party member's post-combat resources back
+                // to the persistent character so HP, spent spell slots, and used
+                // abilities stick instead of resetting on the transient copies.
+                const finalPartyState: CombatPartySnapshotEntry[] = characters
+                  .filter(c => c.team === 'player')
+                  .map(c => ({
+                    id: c.id,
+                    currentHP: c.currentHP,
+                    spellSlots: c.spellSlots,
+                    limitedUses: c.limitedUses,
+                  }));
+                onBattleEnd(battleState, rewards || undefined, finalPartyState);
+              }}
               className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg shadow-lg transition-colors"
             >
               {battleState === 'victory' ? 'Collect & Continue' : 'Return to Title'}

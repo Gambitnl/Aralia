@@ -185,3 +185,105 @@ test('watch connects, receives the hello event, then disconnects', { timeout: 80
   assert.ok(res.events >= 1, 'received at least the hello event');
   assert.match(res.lines.join('\n'), /connected/);
 });
+
+test('AGORA_AGENT_ID scopes identity: unlock --mine cannot release another agent\'s locks from the same checkout', async () => {
+  // Two concurrent agents share ONE checkout (same AGORA_DIR) but set distinct
+  // AGORA_AGENT_ID values. Regression for 2026-07-04: with a shared identity
+  // file, `unlock --mine` from agent B released agent A's locks mid-edit.
+  const sharedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-shared-'));
+  const envA = { AGORA_DIR: sharedDir, AGORA_AGENT_ID: 'prop-agent' };
+  const envB = { AGORA_DIR: sharedDir, AGORA_AGENT_ID: 'veg-agent' };
+  try {
+    const regA = await run(['register', 'prop-agent'], { env: envA, baseUrl });
+    const regB = await run(['register', 'veg-agent'], { env: envB, baseUrl });
+    assert.equal(regA.code, 0);
+    assert.equal(regB.code, 0);
+
+    // Separate identity files, separate agentIds.
+    assert.ok(fs.existsSync(path.join(sharedDir, 'client-identity.prop-agent.json')));
+    assert.ok(fs.existsSync(path.join(sharedDir, 'client-identity.veg-agent.json')));
+    assert.notEqual(regA.identity.agentId, regB.identity.agentId);
+
+    // B registering did NOT clobber A: A's whoami still resolves to A.
+    const whoA = await run(['whoami'], { env: envA, baseUrl });
+    assert.equal(whoA.identity.agentId, regA.identity.agentId);
+
+    // A locks a file; B runs `unlock --mine` — A's lock must survive.
+    const lockA = await run(['lock', 'src/props.ts', '--reason', 'prop placement'], { env: envA, baseUrl });
+    assert.equal(lockA.code, 0);
+    const unlockB = await run(['unlock', '--mine'], { env: envB, baseUrl });
+    assert.equal(unlockB.code, 0);
+    assert.match(unlockB.lines.join('\n'), /no locks held by you/);
+
+    const locksAfter = await fetch(`${baseUrl}/locks`).then((r) => r.json());
+    assert.ok(locksAfter.locks.some((l) => l.id === lockA.lock.id), "A's lock survived B's unlock --mine");
+
+    // A can still release its own lock.
+    const unlockA = await run(['unlock', '--mine'], { env: envA, baseUrl });
+    assert.equal(unlockA.code, 0);
+    assert.match(unlockA.lines.join('\n'), new RegExp(lockA.lock.id));
+  } finally {
+    fs.rmSync(sharedDir, { recursive: true, force: true });
+  }
+});
+
+test('handle-claim uniqueness: registering a live agent\'s handle -> 409; --random auto-claims a free name', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-claim-'));
+  try {
+    // First agent claims "solo-worker".
+    const first = await run(['register', 'solo-worker'], { env: { AGORA_DIR: dir, AGORA_AGENT_ID: 'first' }, baseUrl });
+    assert.equal(first.code, 0);
+
+    // A second agent trying the SAME live handle is refused (no silent shared identity).
+    const clash = await run(['register', 'solo-worker'], { env: { AGORA_DIR: dir, AGORA_AGENT_ID: 'second' }, baseUrl });
+    assert.equal(clash.code, 1);
+    assert.match(clash.lines.join('\n'), /already claimed/);
+
+    // --random claims a distinct, unique handle instead.
+    const rnd = await run(['register', '--random', 'solo-worker'], { env: { AGORA_DIR: dir, AGORA_AGENT_ID: 'second' }, baseUrl });
+    assert.equal(rnd.code, 0);
+    assert.notEqual(rnd.identity.handle, 'solo-worker');
+    assert.match(rnd.identity.handle, /^solo-worker-[0-9a-f]{6}$/);
+    assert.notEqual(rnd.identity.agentId, first.identity.agentId);
+
+    // --allow-duplicate opts out of the claim check (legacy escape hatch).
+    const dup = await run(['register', 'solo-worker', '--allow-duplicate'], { env: { AGORA_DIR: dir, AGORA_AGENT_ID: 'third' }, baseUrl });
+    assert.equal(dup.code, 0);
+    assert.equal(dup.identity.handle, 'solo-worker');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('agent provenance: register stamps model + session id; whoami and agents surface them', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-prov-'));
+  const e = { AGORA_DIR: dir, AGORA_AGENT_ID: 'prov' };
+  try {
+    const reg = await run(
+      ['register', 'prov-agent', '--model', 'claude-opus-4-8', '--session', 'conv-abc123'],
+      { env: e, baseUrl },
+    );
+    assert.equal(reg.code, 0);
+    assert.equal(reg.identity.model, 'claude-opus-4-8');
+    assert.equal(reg.identity.sessionId, 'conv-abc123');
+    assert.ok(reg.identity.registeredAt, 'checkout timestamp returned');
+
+    // The identity file persists them so the agent can query itself offline.
+    const who = await run(['whoami'], { env: e, baseUrl });
+    assert.equal(who.code, 0);
+    const w = who.lines.join('\n');
+    assert.match(w, /model:\s+claude-opus-4-8/);
+    assert.match(w, /sessionId:\s+conv-abc123/);
+    assert.match(w, /checkedIn:\s+\d{4}-\d{2}-\d{2}T/);
+
+    // The roster shows the model + how long ago each agent checked in.
+    const agents = await run(['agents'], { env: e, baseUrl });
+    const holder = agents.agents.find((a) => a.handle === 'prov-agent');
+    assert.ok(holder, 'agent present in roster');
+    assert.equal(holder.model, 'claude-opus-4-8');
+    assert.ok(holder.registeredAt, 'registeredAt exposed on the roster');
+    assert.match(agents.lines.join('\n'), /\[claude-opus-4-8\]/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

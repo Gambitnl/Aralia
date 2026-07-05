@@ -24,6 +24,9 @@ const KNOWN_CONDITION_NAMES: ReadonlySet<ConditionName> = new Set([
   ...Object.values(ConditionType),
   'Slowed',
   'Slasher Slow',
+  // Beneficial buff applied by Bardic Inspiration; the attack resolver grants an
+  // Inspired creature advantage on its next attack (approximating the die).
+  'Inspired' as ConditionName,
 ]);
 
 const normalizeConditionName = (name: string): ConditionName | undefined => {

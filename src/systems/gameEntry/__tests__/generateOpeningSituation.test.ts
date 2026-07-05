@@ -18,11 +18,13 @@ import {
     buildOpeningSituationPrompt,
     joinNarrationFragments,
     composeOpeningNarration,
+    filterPlayerEchoNpcs,
     OpeningSituationUnavailableError,
     OpeningSituationParseError,
 } from '../generateOpeningSituation';
 import type { OllamaClient } from '../../../services/ollama/client';
 import type {
+    OpeningSituation,
     OpeningSituationCharacter,
     OpeningSituationLocation,
 } from '../types';
@@ -225,5 +227,40 @@ describe('opening-narration glue normalisation (G4/X4)', () => {
         expect(composeOpeningNarration({ place: 'Sih', timeOfDay: 'Day' }, 'A scream.')).toBe(
             'Sih — Day. A scream.',
         );
+    });
+});
+
+describe('filterPlayerEchoNpcs', () => {
+    const npc = (id: string, name: string): OpeningSituation['npcs'][number] => ({
+        id, name, role: 'stranger', disposition: 'neutral', goal: '',
+    });
+    const base: OpeningSituation = {
+        setting: { place: 'Sih', timeOfDay: 'Day', weather: 'still air' },
+        predicament: 'A scream.',
+        npcs: [npc('n1', 'Ivor Eldridge'), npc('n2', 'Mara')],
+        openingLine: { speakerId: 'n2', text: 'Help!' },
+    };
+
+    it('drops a generated NPC whose name matches a party member (case-insensitive)', () => {
+        const out = filterPlayerEchoNpcs(base, ['ivor eldridge']);
+        expect(out.npcs.map((n) => n.id)).toEqual(['n2']);
+        expect(out.openingLine.speakerId).toBe('n2'); // speaker untouched
+    });
+
+    it('reassigns the opening line when the filtered echo was the speaker', () => {
+        const echoSpeaker = { ...base, openingLine: { speakerId: 'n1', text: 'Hello me!' } };
+        const out = filterPlayerEchoNpcs(echoSpeaker, ['Ivor Eldridge']);
+        expect(out.npcs.map((n) => n.id)).toEqual(['n2']);
+        expect(out.openingLine).toEqual({ speakerId: 'n2', text: 'Hello me!' });
+    });
+
+    it('returns the situation unchanged when no NPC matches or party is empty', () => {
+        expect(filterPlayerEchoNpcs(base, ['Brannoch'])).toBe(base);
+        expect(filterPlayerEchoNpcs(base, [])).toBe(base);
+    });
+
+    it('keeps the situation intact when EVERY NPC is a player echo (never an empty scene)', () => {
+        const out = filterPlayerEchoNpcs(base, ['Ivor Eldridge', 'Mara']);
+        expect(out).toBe(base);
     });
 });

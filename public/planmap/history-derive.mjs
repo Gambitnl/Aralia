@@ -21,8 +21,10 @@ export function diffDone(prevTopics, nextTopics) {
 export function momentumByDay(timeline) {
   const out = [];
   for (let i = 0; i < timeline.length; i++) {
-    const prev = i === 0 ? [] : timeline[i - 1].topics;
-    const shipped = diffDone(prev, timeline[i].topics);
+    // The first recorded day is a BASELINE, not a shipping day: items already
+    // done then were finished before history-tracking began, so momentum is 0.
+    // A bar therefore only ever means "became done on a day we were watching".
+    const shipped = i === 0 ? [] : diffDone(timeline[i - 1].topics, timeline[i].topics);
     out.push({ date: timeline[i].date, count: shipped.length, shipped });
   }
   return out;

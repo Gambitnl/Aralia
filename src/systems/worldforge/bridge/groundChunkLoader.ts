@@ -60,6 +60,8 @@ import type { BusinessType, WorldBusiness } from "../../../types/business";
 import type { RichNPC } from "../../../types/world";
 import type { BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration } from "@/types/combat";
 import { generateGroundHostiles } from "./groundHostiles";
+import { buildGroundProps, imprintPropOnTile } from "./groundProps";
+import type { PropInstance } from "../props/propSchema";
 
 /** A polyline in ground world-meters with a uniform width (meters). */
 interface GroundPolyline {
@@ -160,6 +162,12 @@ export interface GroundWorld {
   extentMetersZ: number;
   /** The artifact's OWN placed features (trees/bushes/boulders…), meters. */
   features: GroundFeature[];
+  /**
+   * WAVE-1 beautification props (crates/stalls/barrels/boulders…), a SEPARATE
+   * layer from `features` — each carries FULL combat-referee data via its catalog
+   * def. Positions in ground meters (xM/zM). Deterministic per world+window.
+   */
+  props: PropInstance[];
   /** Hostile monsters placed deterministically on the ground map. */
   hostiles: GroundHostile[];
   /** SP4 hidden places (off-map, revealed by 3D proximity), ground meters. */
@@ -176,7 +184,7 @@ export interface GroundWorld {
   /** Town road-gate placements (ground meters) for gatehouse meshes (styled-architecture slice). */
   gatehouses: Array<{ xM: number; zM: number; angleRad: number; gapHalfM: number; form: GatehouseForm; colorHex: string; burgId: number }>;
   /** Town sites overlapping the artifact, center in ground meters. */
-  towns: Array<{ burgId: number; xM: number; zM: number; halfM: number }>;
+  towns: Array<{ burgId: number; name: string; xM: number; zM: number; halfM: number }>;
   /** Town-plan building plots (C3 generateTownPlan), centers in meters. */
   buildings: Array<{
     id: string;
@@ -446,7 +454,7 @@ export function makeGroundWorld(
     hiddenSites.push(...scattered);
   }
 
-  return {
+  const world: GroundWorld = {
     cols: wd.gridSize.cols,
     rows: wd.gridSize.rows,
     heights: wd.heights,
@@ -454,6 +462,7 @@ export function makeGroundWorld(
     extentMetersX: extentX,
     extentMetersZ: extentZ,
     features,
+    props: [], // filled below once the world view is assembled
     hostiles,
     hiddenSites,
     rivers: region ? regionPolylinesToGround(region.rivers, local) : [],
@@ -473,6 +482,13 @@ export function makeGroundWorld(
     townPlans: townContent.townPlans,
     boundsFeet: { x: local.bounds.x, y: local.bounds.y },
   };
+
+  // WAVE-1 props: deterministic dressing (market stalls, dock crates, wilderness
+  // cover) derived from the assembled world's own plots/decks/roads/biomes. Rooted
+  // at the region's seed path when present so props share the town's identity.
+  world.props = buildGroundProps(world, seed, region?.seedPath, opts.worldBusinesses);
+
+  return world;
 }
 
 /**
@@ -958,7 +974,10 @@ function groundTowns(
     const halfM = (Math.max(t.envelope.width, t.envelope.height) / 2) * FEET_TO_METERS;
     if (xM < -halfM || xM > exX + halfM || zM < -halfM || zM > exZ + halfM) continue;
 
-    towns.push({ burgId: t.burgId, xM, zM, halfM });
+    // Real burg name from the bridge atlas so 3D surfaces (nameplates) can
+    // show "Stren" instead of the internal "Town - wf-town-15" id.
+    const burgName = getBridgeAtlas(worldSeed).pack.burgs?.[t.burgId]?.name ?? `Burg ${t.burgId}`;
+    towns.push({ burgId: t.burgId, name: burgName, xM, zM, halfM });
 
     // CANONICAL town (Worldforge Option B): the SAME (atlas, burgId) plan the
     // 2D map drill renders — generated once in the normalized frame, then
@@ -1417,6 +1436,8 @@ export function sampleGroundChunk(
         .map((t) => ({
           id: `wf-town-${t.burgId}`,
           kind: "town" as const,
+          // Nameplates prefer `name` over the "Town - <id>" fallback text.
+          name: t.name,
           position: pseudoGrid(t.xM, t.zM),
           footprint: [],
           walled: false,
@@ -1666,14 +1687,23 @@ export function extractLocalTerrainPatch(
   playerZ: number,
   biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp',
   seed: number,
+  // Fight-in-place slice 1: the referee patch is CONTEXT-SIZED at extraction
+  // (fip--referee-patch-sizing subspec). Dense town fights keep the compact
+  // 40×30 default (200×150 ft); open/ranged encounters extract larger — up to
+  // ~120×120 cells (600×600 ft) so longbow + spell ranges fit. Referee data
+  // stays tiny at any size; the 2D board pans/zooms. The player always sits at
+  // the geometric center tile, so callers may pass any positive dimensions.
+  dimensions?: { width: number; height: number },
 ): BattleMapData {
-  const width = 40;
-  const height = 30;
+  const width = dimensions?.width ?? 40;
+  const height = dimensions?.height ?? 30;
   const tiles = new Map<string, BattleMapTile>();
 
-  // The player is placed at the center tile coordinate (20, 15) of the BattleMap.
-  const centerX = 20;
-  const centerY = 15;
+  // The player is placed at the center tile of the BattleMap. For the default
+  // 40×30 patch this is (20, 15) — the historic center — and it scales with any
+  // context-sized patch so the fight always frames the player's spot.
+  const centerX = Math.floor(width / 2);
+  const centerY = Math.floor(height / 2);
 
   for (let ty = 0; ty < height; ty++) {
     for (let tx = 0; tx < width; tx++) {
@@ -1731,6 +1761,13 @@ export function extractLocalTerrainPatch(
           blocksLoS = true;
         }
       }
+
+      // 3b. WAVE-1 props: a placed prop whose footprint covers this tile imprints
+      // its FULL referee data (blocksMovement / blocksLoS / cover / material +
+      // thickness / a fitting decoration). This is where a crate is BORN combat-
+      // legible. We stage the referee flags on the tile below (after building the
+      // base tile) via imprintPropOnTile so a prop can also raise cover/material
+      // fields the natural-obstacle pass above doesn't set.
 
       // 4. Buildings and interior parts: If the tile overlaps a building plot footprint,
       // it becomes a floor tile. If it overlaps a wall part, it blocks movement and LoS.
@@ -1791,7 +1828,7 @@ export function extractLocalTerrainPatch(
         }
       }
 
-      tiles.set(tileId, {
+      const tile: BattleMapTile = {
         id: tileId,
         coordinates: { x: tx, y: ty },
         terrain,
@@ -1801,7 +1838,18 @@ export function extractLocalTerrainPatch(
         blocksMovement,
         decoration,
         effects: [],
-      });
+      };
+
+      // Prop imprint (step 3b): stamp referee data from any WAVE-1 prop covering
+      // this tile. Runs AFTER the building pass so a plot's floor doesn't erase a
+      // prop's block/cover, and props inside a building (crate on a shop floor)
+      // still read as cover. A building WALL already set material, so the guard in
+      // imprintPropOnTile keeps the heavier structural material.
+      for (const prop of ground.props || []) {
+        imprintPropOnTile(tile, prop, wx, wz);
+      }
+
+      tiles.set(tileId, tile);
     }
   }
 

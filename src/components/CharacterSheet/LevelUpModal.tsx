@@ -22,6 +22,7 @@ import {
   getAbilityScoreImprovementBudget,
 } from '../../utils/characterUtils';
 import FeatSelection from '../CharacterCreator/FeatSelection';
+import { subclassesForClass } from '../../data/classes/subclasses';
 import type { FeatChoiceState, FeatChoiceValue } from '../CharacterCreator/state/characterCreatorState';
 
 interface LevelUpModalProps {
@@ -87,6 +88,15 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
   const [abilityScoreIncreases, setAbilityScoreIncreases] = useState<Partial<AbilityScores>>({});
   const [selectedFeatId, setSelectedFeatId] = useState<string>('');
   const [featChoices, setFeatChoices] = useState<Record<string, FeatChoiceState>>({});
+  const [selectedSubclassId, setSelectedSubclassId] = useState<string>('');
+
+  // The level-3 subclass milestone: offer the class's subclasses when the
+  // character is advancing to level 3 and hasn't already chosen one.
+  const subclassOptions = useMemo(() => {
+    if (!character || nextLevel < 3 || character.subclassId) return [];
+    return subclassesForClass(selectedClassId || character.class?.id || '');
+  }, [character, nextLevel, selectedClassId]);
+  const needsSubclassChoice = subclassOptions.length > 0;
 
   useEffect(() => {
     if (!isOpen || !character) return;
@@ -96,6 +106,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
     setAbilityScoreIncreases({});
     setSelectedFeatId('');
     setFeatChoices({});
+    setSelectedSubclassId('');
     setStep(asiBudget > 0 ? 'choice' : 'base');
   }, [isOpen, character?.id, asiBudget, classOptions, character]);
 
@@ -169,6 +180,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
       abilityScoreIncreases: payloadStep === 'asi' ? abilityScoreIncreases : undefined,
       featId: payloadStep === 'feat' ? selectedFeatId || undefined : undefined,
       featChoices: payloadStep === 'feat' ? (featChoices as Record<string, FeatChoice>) : undefined,
+      subclassId: needsSubclassChoice ? (selectedSubclassId || undefined) : undefined,
     };
     onConfirm(choices);
     onClose();
@@ -351,10 +363,41 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
 
           {asiBudget === 0 && step === 'base' && (
             <div className="border border-gray-700 rounded-lg p-4 bg-gray-900/40 space-y-3">
-              <h3 className="text-sm font-semibold text-amber-200">Confirm level up</h3>
-              <p className="text-xs text-gray-400">
-                This level does not grant an Ability Score Improvement or feat choice.
-              </p>
+              {needsSubclassChoice ? (
+                <>
+                  <h3 className="text-sm font-semibold text-amber-200">Choose your subclass</h3>
+                  <p className="text-xs text-gray-400">
+                    At level 3 you commit to a specialization — the defining choice of your career.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {subclassOptions.map((sub) => (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => setSelectedSubclassId(sub.id)}
+                        className={`p-3 rounded border text-left transition-colors ${
+                          selectedSubclassId === sub.id
+                            ? 'bg-amber-700/30 border-amber-500 text-white'
+                            : 'bg-gray-700/50 border-gray-600 text-gray-200 hover:bg-gray-700'
+                        }`}
+                      >
+                        <div className="font-semibold">{sub.name}</div>
+                        <div className="text-xs text-gray-400 mt-1">{sub.description}</div>
+                        <div className="text-xs text-amber-200/80 mt-1">
+                          Grants: {sub.features.filter((feat) => feat.levelAvailable === 3).map((feat) => feat.name).join(', ')}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-sm font-semibold text-amber-200">Confirm level up</h3>
+                  <p className="text-xs text-gray-400">
+                    This level does not grant an Ability Score Improvement or feat choice.
+                  </p>
+                </>
+              )}
               <div className="flex gap-3 pt-3">
                 <button
                   type="button"
@@ -366,7 +409,8 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
                 <button
                   type="button"
                   onClick={() => handleConfirm('base')}
-                  className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2 rounded-lg"
+                  disabled={needsSubclassChoice && !selectedSubclassId}
+                  className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2 rounded-lg disabled:bg-gray-600 disabled:cursor-not-allowed"
                 >
                   Confirm Level Up
                 </button>

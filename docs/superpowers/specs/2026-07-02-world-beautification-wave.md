@@ -80,6 +80,47 @@ AND (later) combat.
    (erosion sim, mass pathfinding) IF profiling ever demands it.
    Pending decision: adopting the demo's LAAS verification practices (ranked
    DELTA loop, scripted visual checks, banned-outcomes list, DEVIATIONS.md).
+
+   **§8 migration status (updated 2026-07-04):**
+   - DONE — WebGPU probe on the streamed ground world (`?phase=webgpuprobe`);
+     material parity fix (root cause: R3F scene lights don't drive the node-path
+     `LightsNode`, three #30044 / r3f #2853 → black terrain; fixed by baking
+     hemisphere+sun Lambert into unlit `MeshBasicNodeMaterial` colorNodes).
+   - ACTIVE — **Battle-map WebGPU render path** behind an opt-in (`?gpu=1`;
+     `WEBGPU_BATTLE_MAP_DEFAULT=false` — WebGL is unchanged as the default this
+     slice). `BattleMap3D` delegates to a self-contained `BattleMap3DGpuScene`
+     (sibling of `WebGPUProbeScene`) that renders the SAME shared `mapData` /
+     `characters` through the proven baked-TSL pattern. Game logic untouched
+     (shared combat hooks stay in `BattleMap3D`). Lighting mirrors
+     `World3DLighting` / `BattleMap3D`'s warm-key + cool-sky/warm-ground
+     hemisphere split.
+     **FAIL-FAST, no fallback backend:** with `?gpu=1` the scene probes
+     `navigator.gpu.requestAdapter()` BEFORE mounting; if WebGPU is unavailable
+     (or the renderer would still come up on a non-WebGPU backend — that
+     throws) it renders NO scene. Instead an error panel states the reason
+     ("WebGPU unavailable: …") and offers one explicit "Use WebGL instead"
+     button that remounts the WebGL scene and strips `gpu=1` from the URL. The
+     USER makes the switch; the system never auto-falls-back. The on-screen
+     "WebGPU" badge exists ONLY in the genuine-WebGPU success case.
+     Proof so far: the baked-TSL material pattern is validated on the probe's
+     node path; headless battle-map capture (no WebGPU adapter) shows the
+     fail-fast error panel — the CORRECT behavior
+     (`.agent/scratch/bm3d-webgl-baseline.png` = WebGL scene, `bm3d-webgpu.png`
+     = error panel, `bm3d-webgpu-after-usewebgl.png` = WebGL after the button
+     click; error panel + button remount live-verified headlessly). The
+     rendered WebGPU-backend battlefield itself can now only be eyeballed on
+     real WebGPU hardware — Remy's RTX 2070S via `?gpu=1` is the open
+     verification.
+     Documented parity GAPS (WebGL-only for now — honest omissions, NO silent
+     fallbacks): real-time shadows on node materials, postprocessing bloom +
+     vignette (`@react-three/postprocessing` is WebGL `EffectComposer`),
+     procedural GLSL terrain texturing (`onBeforeCompile`, no node-path
+     equivalent — replaced by a baked per-tile palette), the grid
+     movement/path/AoE shader overlay + targeting decals, VFX, grass/tree
+     instancing, drei `<Html>` nameplates, and the animated `CharacterActor`
+     rig (tokens are simple lit capsules). These are the next port items before
+     any default flip.
+   - PARKED — modal (non-battle) combat scenes; default flip + WebGL retirement.
 9. **Reproducibility is non-negotiable.** All placement seeded from the
    existing seed-path discipline: same world + same town → same props,
    forever. Placement is rule-driven (dock → crates/nets, smithy → woodpile,

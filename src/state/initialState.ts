@@ -130,7 +130,10 @@ export const initialGameState: GameState = {
     hasNewRateLimitError: false,
     isOllamaDependencyModalVisible: false,
     devModelOverride: null,
-    isDevModeEnabled: false,
+    // Dev builds (npm run dev) start with dev mode ON so debug surfaces are one
+    // click away; production builds still start with it off. Vitest also sets
+    // DEV=true — tests that need it off should override explicitly.
+    isDevModeEnabled: import.meta.env.DEV === true,
     banterDebugLog: [],
     archivedBanters: [],
 
@@ -153,6 +156,9 @@ export const initialGameState: GameState = {
     // NPC interaction context
     lastInteractedNpcId: null,
     lastNpcResponse: null,
+
+    // Runtime adventure log (Oracle-DM substrate)
+    adventureLog: [],
 
     // Discovery Journal State
     discoveryLog: [],
@@ -281,6 +287,8 @@ export const initialGameState: GameState = {
     dynamicLocations: {},
     // Registry for procedurally generated NPCs.
     generatedNpcs: {},
+    // NPCs the party has defeated in combat; gates their talk/conversation.
+    defeatedNpcIds: [],
 
     // Depthcrawler: Underdark System
     // Identity System (initialized lazily or on demand)

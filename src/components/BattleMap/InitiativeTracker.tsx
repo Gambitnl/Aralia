@@ -7,6 +7,7 @@ import { CombatCharacter, TurnState } from '../../types/combat';
 import Tooltip from '../Tooltip';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+import { getCreatureTokenVisual } from '../../utils/visuals/combatIconVisuals';
 
 interface InitiativeTrackerProps {
   characters: CombatCharacter[];
@@ -35,6 +36,7 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
         const hpPct     = Math.max(0, Math.round((char.currentHP / char.maxHP) * 100));
         const initial   = char.name[0].toUpperCase();
         const canSkip   = !!onSkipToCharacter && !isCurrent;
+        const visual    = getCreatureTokenVisual(char);
 
         return (
           <Tooltip
@@ -67,12 +69,19 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
                 {index + 1}
               </span>
 
-              {/* Avatar */}
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
+              {/* Avatar: use the same combat SVG identity as map tokens so the
+                  turn strip, side roster, and grid speak the same visual
+                  language. Player characters still fall back to initials until
+                  dedicated party portraits exist. */}
+              <div className={`w-6 h-6 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold
                 ${isPlayer ? 'bg-sky-700 text-sky-100' : 'bg-red-800 text-red-100'}
                 ${isCurrent ? 'ring-1 ring-amber-400' : ''}
               `}>
-                {initial}
+                {visual.src ? (
+                  <img src={visual.src} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  initial
+                )}
               </div>
 
               {/* Name */}

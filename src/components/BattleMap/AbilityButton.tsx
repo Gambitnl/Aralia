@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 07/05/2026, 00:02:27
+ * Last Sync: 04/07/2026, 21:55:28
  * Dependents: components/BattleMap/AbilityPalette.tsx
  * Imports: 3 files
  *
@@ -22,7 +22,7 @@ import React, { useMemo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Ability } from '../../types/combat';
 import Tooltip from '../Tooltip';
-import { getSpellVisual } from '../../utils/visuals/spellVisuals';
+import { getAbilityIconVisual } from '../../utils/visuals/combatIconVisuals';
 
 interface AbilityButtonProps {
     ability: Ability;
@@ -66,23 +66,11 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
     
     const costBadgeColor = costColors[ability.cost.type] || 'bg-gray-500';
 
-    // Resolve visuals: Prefer ability.icon, then spell-based visual, then default fallback.
+    // Resolve visuals from the combat icon pack. The helper understands
+    // native attacks, movement buttons, spell buttons, and generated follow-up
+    // actions so this component can stay focused on rendering the tile.
     const visual = useMemo(() => {
-        if (ability.icon) {
-            return {
-                fallbackContent: ability.icon,
-                primaryColor: 'transparent', // Let button background handle it
-                label: ability.name
-            };
-        }
-        if (ability.spell) {
-            return getSpellVisual(ability.spell);
-        }
-        return {
-            fallbackContent: '✨',
-            primaryColor: 'transparent',
-            label: ability.name
-        };
+        return getAbilityIconVisual(ability);
     }, [ability]);
 
     // Apply primary color from visual spec if it's not transparent/default, to give hint of school.
@@ -173,7 +161,7 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
             >
                 <span className="text-2xl flex-grow flex items-center drop-shadow-md">
                     {visual.src ? (
-                        <img src={visual.src} alt="" className="w-8 h-8 object-contain" />
+                        <img src={visual.src} alt="" className="w-9 h-9 object-contain" />
                     ) : (
                         visual.fallbackContent
                     )}

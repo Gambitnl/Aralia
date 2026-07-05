@@ -43,33 +43,53 @@
       "features": [
         {
           "title": "Prop schema + placement engine",
-          "status": "specced",
+          "status": "done",
           "link": "docs/superpowers/specs/subspecs/beautification--prop-schema-placement-engine.md",
           "open": 3
         },
         {
           "title": "Owned rock + prop generators (ecosystem gap)",
-          "status": "specced",
+          "status": "done",
           "link": "docs/superpowers/specs/subspecs/beautification--owned-generators.md",
-          "open": 2
+          "open": 0
         },
         {
           "title": "Town + wilderness catalogs (full referee data)",
-          "status": "specced",
+          "status": "done",
           "link": "docs/superpowers/specs/subspecs/beautification--prop-catalogs.md",
           "open": 2
         },
         {
           "title": "Vegetation migration (EzTree + grass)",
-          "status": "specced",
+          "status": "done",
           "link": "docs/superpowers/specs/subspecs/beautification--vegetation-migration.md",
           "open": 3
         },
         {
           "title": "Lighting/atmosphere migration",
-          "status": "specced",
+          "status": "done",
           "link": "docs/superpowers/specs/subspecs/beautification--lighting-migration.md",
           "open": 2
+        },
+        {
+          "title": "Props wired into GroundWorld + combat extraction",
+          "status": "done"
+        },
+        {
+          "title": "Placement tuning: stall-in-building overlap + wilderness density explosion (130k/window)",
+          "status": "done"
+        },
+        {
+          "title": "Full-catalog bridge flip (placement draws the 105-def catalog, density governed)",
+          "status": "done"
+        },
+        {
+          "title": "PropPlacementContext enrichment: tavern / wealthy / gate / ruin / riverbank / defile contexts fire",
+          "status": "done"
+        },
+        {
+          "title": "Scatter de-gridding: grass tufts drop dotted-row artifact (decorrelated jitter + patchy noise density)",
+          "status": "done"
         }
       ]
     },
@@ -78,12 +98,19 @@
       "title": "World performance pass",
       "sub": "instancing/LOD/entry-FPS after beautification (consciously deferred)",
       "campaign": "world",
-      "status": "parked",
+      "status": "active",
       "deps": [
         {
           "id": "world-props",
           "kind": "hard",
           "why": "Nothing to optimize before the props, trees and lighting exist — this pass instances/LODs what the wave adds"
+        }
+      ],
+      "features": [
+        {
+          "title": "Combat-map FPS lift",
+          "status": "done",
+          "open": 0
         }
       ]
     },
@@ -321,10 +348,36 @@
     {
       "id": "webgpu-migration",
       "title": "WebGPURenderer migration",
-      "sub": "three.js WebGPU + TSL; unlocks MIT code lifts from fable5-world-demo; WASM = escape hatch for CPU kernels only",
+      "sub": "three.js WebGPU + TSL; unlocks MIT code lifts from fable5-world-demo; VALIDATED on the RTX 2070S (37fps headless, 15.5M tris)",
       "campaign": "world",
       "status": "parked",
-      "deps": []
+      "deps": [],
+      "link": "docs/superpowers/research/2026-07-04-webgpu-probe-report.md",
+      "features": [
+        {
+          "title": "WebGPU probe: streamed ground scene on WebGPURenderer",
+          "status": "done"
+        },
+        {
+          "title": "Material parity pass (terrain, water, buildings)",
+          "status": "done",
+          "note": "Root cause: R3F-mounted scene lights don't drive the WebGPU LightsNode (three #30044 / r3f #2853) -> zero irradiance -> black terrain. Fixed by baking hemisphere+sun Lambert into unlit MeshBasicNodeMaterial colorNodes (no scene lights). Verified on WebGL2-fallback node path; real-GPU eyeball still pending. Sky = fog+CSS backdrop (fine); postprocessing = backlog."
+        },
+        {
+          "title": "Probe full-stack parity",
+          "status": "done",
+          "note": "WHY (dep on the material parity pass): parity was proven only on flat terrain + building boxes while the ground world now ships trees, grass, the full prop set, styled roofs, walls/roads/decks. The probe (?phase=webgpuprobe) now renders the SAME full stack the live scene does at the same seed/pose, reusing the game's data (chunk bundles + GroundWorld.props) with the baked-TSL Lambert path. FAIL-FAST aligned with the battle map: pre-checks navigator.gpu + requestAdapter() before mounting; no adapter OR a non-WebGPU backend -> NO scene, an error pane ('WebGPU unavailable: <reason>') with one explicit 'View this scene in WebGL instead' button (routes to ?phase=world3d&ground=1 at the same pose; user-driven, never auto-fallback). Green 'WebGPU' + live FPS badge only on genuine success. Documented MISSING (WebGL-only, shown on-screen): real-time shadows on the node path (no LightsNode consumes a shadow map when lighting is baked into colorNode). Key node-path gotcha found + fixed: on InstancedMesh the InstanceNode multiplies instanceColor into the color pipeline UNCONDITIONALLY, so a dark per-instance scatter tint crushed lit trees/bushes to black — proven in isolation on a real WebGPU backend ([0,19,0] with dark instanceColor vs [109,158,88] without) and fixed by leaving instanceColor null (trees keep geometry leaf-green; bushes use a solid green). Headless capture correctly shows the error pane (no WebGPU adapter in headless Chromium); rendered WebGPU full-stack needs the real-GPU eyeball (RTX 2070S)."
+        },
+        {
+          "title": "Battle-map + modal scenes migration",
+          "status": "active",
+          "note": "Battle-map WebGPU render path BUILT behind ?gpu=1 (WebGL default unchanged): BattleMap3D delegates to BattleMap3DGpuScene, same shared combat hooks/data, baked-TSL Lambert on terrain/water/grid/character tokens. FAIL-FAST: probes navigator.gpu.requestAdapter() before mounting; no adapter -> NO scene, an error panel with reason + one explicit 'Use WebGL instead' button (remounts WebGL, strips gpu=1; user-driven, never auto-fallback); gl factory throws on a non-WebGPU backend. WebGPU badge only in the genuine success case. 7/7 tests incl. fail-fast suite; error panel + button remount live-verified headlessly; rendered WebGPU battlefield needs the real-GPU eyeball via ?gpu=1 (RTX 2070S). Documented parity GAPS (WebGL-only, no faking): real-time shadows, postprocessing bloom/vignette, procedural GLSL terrain texturing, grid movement/path/AoE overlay + targeting decals, VFX, grass/tree instancing, drei nameplates, animated CharacterActor rig. Modal (non-battle) scenes still parked."
+        },
+        {
+          "title": "Default flip + WebGL retirement decision",
+          "status": "parked"
+        }
+      ]
     },
     {
       "id": "wf-interiors",
@@ -556,6 +609,84 @@
         {
           "title": "Staleness heat overlay",
           "status": "specced"
+        }
+      ]
+    },
+    {
+      "id": "early-game-playable",
+      "title": "Early game playable (L1-3)",
+      "sub": "GOAL: creator → town → living world; companions findable, travel works, shops have logical stock + prices; every L1-3 mechanic usable",
+      "campaign": "travel",
+      "status": "active",
+      "deps": [],
+      "features": [
+        {
+          "title": "Opening dialogue choice buttons dead (free text works)",
+          "status": "done"
+        },
+        {
+          "title": "Town header shows raw id (wf-town-15)",
+          "status": "done"
+        },
+        {
+          "title": "Player avatar visible in 3D world",
+          "status": "done"
+        },
+        {
+          "title": "Shop entry + trade UI at wf towns (NO path exists)",
+          "status": "done"
+        },
+        {
+          "title": "Roster townsfolk talkable (only opening NPC reachable)",
+          "status": "done"
+        },
+        {
+          "title": "Player listed as talk-to-self NPC",
+          "status": "done"
+        },
+        {
+          "title": "Post-combat NPC state stale (beaten guard chats normally)",
+          "status": "done"
+        },
+        {
+          "title": "Companion encounters reachable in early game",
+          "status": "done"
+        },
+        {
+          "title": "Oracle = DM voice: story-so-far recap from runtime adventure log (currently errors silently)",
+          "status": "done"
+        },
+        {
+          "title": "Rumor stream repeats same 2 lines every minute",
+          "status": "done"
+        },
+        {
+          "title": "Shop stock + owned pricing (persisted, deterministic)",
+          "status": "done"
+        },
+        {
+          "title": "Recruit consent depth: strangers at disposition 50 auto-join (too easy)",
+          "status": "done"
+        },
+        {
+          "title": "Oracle must answer the player's actual question (generic recap suspected)",
+          "status": "done"
+        },
+        {
+          "title": "TTS error text leaks into game log",
+          "status": "done"
+        },
+        {
+          "title": "Arrival message leaks vestigial (0,0) coords",
+          "status": "done"
+        },
+        {
+          "title": "Terrain renders water-blue around towns (reproducible in ground demo)",
+          "status": "done"
+        },
+        {
+          "title": "Ollama modal promises fallback dialogue (contradicts no-fallback)",
+          "status": "parked"
         }
       ]
     }

@@ -276,11 +276,12 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
         inputRef.current?.focus();
     }, [inputText]);
 
-    // Handle send
-    const handleSend = useCallback(async () => {
-        if (!inputText.trim() || isInteractionLocked || !conversation || !isPlayerTurn) return;
+    // Shared submit path: free-text Send and suggested-reply chips both land
+    // here, so a chip click behaves exactly like typing the line and sending.
+    const submitPlayerText = useCallback(async (raw: string) => {
+        const text = raw.trim();
+        if (!text || isInteractionLocked || !conversation || !isPlayerTurn) return;
 
-        const text = inputText.trim();
         setInputText('');
         setShowMentionMenu(false);
 
@@ -292,7 +293,12 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
         }
 
         await sendPlayerMessage(text);
-    }, [inputText, isInteractionLocked, conversation, isPlayerTurn, sendPlayerMessage, threat, handleHostileSubmit]);
+    }, [isInteractionLocked, conversation, isPlayerTurn, sendPlayerMessage, threat, handleHostileSubmit]);
+
+    // Handle send
+    const handleSend = useCallback(async () => {
+        await submitPlayerText(inputText);
+    }, [inputText, submitPlayerText]);
 
     // Handle key press
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -398,7 +404,7 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                             key={`${i}-${reply}`}
                             type="button"
                             data-testid="reply-chip"
-                            onClick={() => setInputText(reply)}
+                            onClick={() => void submitPlayerText(reply)}
                             className="px-2 py-1 rounded-full border border-gray-600 bg-gray-800 text-gray-200 text-xs hover:bg-gray-700"
                         >
                             {reply}

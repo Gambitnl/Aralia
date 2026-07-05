@@ -312,7 +312,7 @@ export function buildPrompt(plan, pkt, { taskId } = {}) {
 
   const hardRules = external
     ? `You are external fix-agent "${pkt.handle}" in a coordinated multi-agent fleet on the Aralia repo. You are ALREADY in the repo root (F:\\Repos\\Aralia). Other agents edit OTHER files in this SAME checkout right now.
-HARD RULES: No git commands (no commit/reset/checkout/branch). No worktrees. Do NOT run builds/tsc/tests. Separate shell calls do NOT share env vars on this PowerShell host — set AGORA_DIR inline on each call or chain with ';'.`
+HARD RULES: No git commands (no commit/reset/checkout/branch). No worktrees. Do NOT run builds/tsc/tests. Separate shell calls do NOT share env vars on this PowerShell host — set AGORA_AGENT_ID inline on each call or chain with ';'.`
     : `You are fix-agent **${pkt.handle}** in a coordinated multi-agent UX-fix fleet (Aralia, cwd F:\\Repos\\Aralia, Windows; Bash tool). ALL agents share ONE checkout — NO worktrees/branches/commits. Edit ONLY your owned files.`;
 
   return `${hardRules}
@@ -320,10 +320,12 @@ HARD RULES: No git commands (no commit/reset/checkout/branch). No worktrees. Do 
 Packet **${pkt.id}** — ${pkt.scope}${pkt.issues && pkt.issues.length ? ` (issues: ${pkt.issues.join(', ')})` : ''}.
 Owned files (edit ONLY these): ${ownedList}.
 ${pkt.guidance ? `\nGuidance:\n${pkt.guidance}\n` : ''}
-STEP 1 — Join Agora (run via shell; set AGORA_DIR each call — shell state does not persist):
-  export AGORA_DIR=.agent/agora/ids/${pkt.handle}
+STEP 1 — Join Agora (run via shell; set AGORA_AGENT_ID each call — shell state does not persist).
+Your identity "${pkt.handle}" is ASSIGNED to you by the orchestrator and is unique across the fleet — always use it, never invent your own:
+  export AGORA_AGENT_ID=${pkt.handle}
   B=${B}
-  node tools/agora/client.mjs register ${pkt.handle} --note "${oneLine(pkt.scope)}" --url $B
+  node tools/agora/client.mjs register ${pkt.handle} --note "${oneLine(pkt.scope)}" --model ${pkt.model || pkt.agent} --url $B
+  #  (optional) add --session <your conversation/thread id> so peers can trace which session you are
 ${taskId
     ? `  TID=${taskId}
   node tools/agora/client.mjs task claim "$TID" --url $B`
@@ -336,7 +338,7 @@ If work will take >20 minutes, keep presence alive in the background (silent >60
 FAILURE HANDLING:
 - task claim fails (409 = someone else claimed it): say "409 on task ${pkt.id} — standing down" and STOP; do not create a replacement task.
 - lock returns CONFLICT/409: do NOT edit that file; say "409 CONFLICT: <file> held by <holder>" and skip that file.
-- any call returns 401 mid-work: you were reaped (too long silent). Re-register with the SAME handle, then re-claim "$TID" and re-lock before continuing.
+- any call returns 401 mid-work: you were reaped (too long silent). Re-register with the SAME handle (add --allow-duplicate in case your old record lingers), then re-claim "$TID" and re-lock before continuing.
 
 STEP 2 — Fix the issue(s) in ONLY your owned (successfully-locked) files, matching surrounding style. If a fix needs a file you don't own, do NOT edit it — report it as a cross-file follow-up.
 

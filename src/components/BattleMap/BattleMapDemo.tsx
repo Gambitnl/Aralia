@@ -254,8 +254,18 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
     return Date.now();
   });
   const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
-  // [2026-05-21] 3D render mode toggle
-  const [renderMode, setRenderMode] = useState<'2d' | '3d'>('2d');
+  // [2026-05-21] 3D render mode toggle. Dev-only `?render=3d` URL param starts in
+  // 3D so the headless capture rig (and WebGPU `?gpu=1` path) can be reached
+  // without a toggle click. Production default stays 2D.
+  const [renderMode, setRenderMode] = useState<'2d' | '3d'>(() => {
+    if (typeof window !== 'undefined' && canUseDevTools()) {
+      try {
+        const p = new URLSearchParams(window.location.search).get('render');
+        if (p === '3d') return '3d';
+      } catch { /* ignore malformed URLs */ }
+    }
+    return '2d';
+  });
 
   const allSpells = useContext(SpellContext);
   const spellsRecord = useMemo(

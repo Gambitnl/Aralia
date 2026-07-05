@@ -625,6 +625,24 @@ export class WeaponAttackCommand implements SpellCommand {
         if (dis.toLowerCase().includes('attack')) hasDisadvantage = true;
       });
 
+      // Temporary attack advantage/disadvantage from active status effects
+      // (e.g. Reckless Attack, Steady Aim). Mirrors the save resolver, which
+      // already reads statusEffects[].modifiers, so status-based attack buffs work.
+      this.caster.statusEffects?.forEach(se => {
+        if (se.modifiers?.advantage?.includes('attack')) hasAdvantage = true;
+        if (se.modifiers?.disadvantage?.includes('attack')) hasDisadvantage = true;
+      });
+      // Reckless Attack downside: a creature that has attacked recklessly grants
+      // advantage on attack rolls made against it until its next turn.
+      if (currentTarget.conditions?.some(c => c.name === 'Reckless')) {
+        hasAdvantage = true;
+      }
+      // Bardic Inspiration: an Inspired creature has advantage on its next attack
+      // (this engine approximates the inspiration die with advantage).
+      if (this.caster.conditions?.some(c => c.name === 'Inspired')) {
+        hasAdvantage = true;
+      }
+
       // Use centralized rollD20 with integrated advantage/disadvantage handling
       const d20 = rollD20({
         advantage: hasAdvantage && !hasDisadvantage,
@@ -649,13 +667,20 @@ export class WeaponAttackCommand implements SpellCommand {
         const strMod = Math.floor((liveCaster.stats.strength - 10) / 2);
         const dexMod = Math.floor((liveCaster.stats.dexterity - 10) / 2);
         const isRanged = this.ability.range > 1 || this.ability.weapon?.properties?.includes('range');
+        // Finesse weapons may use Dexterity instead of Strength for the attack
+        // (RAW: the wielder's choice → take the better modifier). Catalog weapon
+        // properties are capitalized ('Finesse'), so compare case-insensitively.
+        const isFinesse = Boolean(
+          this.ability.weapon?.properties?.some(p => p.toLowerCase() === 'finesse')
+        );
+        const meleeMod = isFinesse ? Math.max(strMod, dexMod) : strMod;
         const useSpellcastingAttackMod = Boolean(
           heldWeaponAugment?.useSpellcastingAbilityForAttack &&
           (heldWeaponAugment.attackType === 'ranged_weapon' || !isRanged)
         );
         const abilityMod = useSpellcastingAttackMod
           ? this.getSpellcastingAbilityModifier(liveCaster, heldWeaponAugment)
-          : (isRanged ? dexMod : strMod);
+          : (isRanged ? dexMod : meleeMod);
         const pb = Math.ceil((liveCaster.level || 1) / 4) + 1;
         const proficiencyBonus = this.ability.isProficient ? pb : 0;
         modifiers = abilityMod + proficiencyBonus;
@@ -677,7 +702,7 @@ export class WeaponAttackCommand implements SpellCommand {
       let targetAC = baseAC + coverBonus;
 
       // Resolve Attack
-      const preliminaryAttack = resolveAttack(d20, modifiers, targetAC);
+      const preliminaryAttack = resolveAttack(d20, modifiers, targetAC, liveCaster.critThreshold ?? 20);
       let isHit = preliminaryAttack.isHit;
       const isCritical = preliminaryAttack.isCritical;
       const isAutoMiss = preliminaryAttack.isAutoMiss;
@@ -940,9 +965,9 @@ export class WeaponAttackCommand implements SpellCommand {
       const isRogue = this.caster.class.id === 'rogue' || this.caster.feats?.includes('sneak_attack');
       const hasUsedSneakAttack = this.caster.featUsageThisTurn?.includes('sneak_attack');
       
-      const isFinesse = this.ability.weapon?.properties?.includes('finesse');
-      const isRanged = this.ability.range > 1 || 
-                       this.ability.weapon?.properties?.includes('range') || 
+      const isFinesse = this.ability.weapon?.properties?.some(p => p.toLowerCase() === 'finesse');
+      const isRanged = this.ability.range > 1 ||
+                       this.ability.weapon?.properties?.includes('range') ||
                        this.ability.weapon?.category?.toLowerCase().includes('ranged');
       const isEligibleWeapon = isFinesse || isRanged;
 

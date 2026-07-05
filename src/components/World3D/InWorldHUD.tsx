@@ -8,10 +8,11 @@
  * Sub-components:
  * - HUDControlPanel: dropdown menu with "Open Map", "Exit to Menu"
  * - ViewModeToggle: switch between 3D/Atlas modes
- * - DebugHUD: dev-only overlays (chunk count, FPS, coords, streamer stats)
+ * - DebugHUD: dev-only technical readout (chunk count, FPS, coords, streamer
+ *   stats) — hosted inside the "3D World View" title dropdown when dev mode is on
  */
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import HUDControlPanel from './HUDControlPanel';
 import ViewModeToggle from './ViewModeToggle';
 import DebugHUD from './DebugHUD';
@@ -65,6 +66,83 @@ interface InWorldHUDProps {
   onOpenTownPlan?: () => void;
 }
 
+/**
+ * Top-left title pill. With dev mode off it is the plain "3D World View" label.
+ * With dev mode on it becomes a disclosure button (same interaction pattern as
+ * the Controls dropdown) whose panel hosts the DebugHUD technical readout —
+ * the debug overlay no longer floats permanently over the scene.
+ */
+const WorldViewTitle: React.FC<{
+  isDevModeEnabled: boolean;
+  children: React.ReactNode;
+}> = ({ isDevModeEnabled, children }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isOpen]);
+
+  const pillStyle: React.CSSProperties = {
+    fontSize: '14px',
+    fontWeight: 600,
+    // D2: the title sat as light-gray text directly over the bright sky and
+    // was nearly invisible. Dark translucent pill backing + text-shadow keep
+    // it legible over any 3D background.
+    color: '#ffffff',
+    backgroundColor: 'rgba(15, 23, 33, 0.66)',
+    padding: '4px 10px',
+    borderRadius: '6px',
+    textShadow: '0 1px 2px rgba(0, 0, 0, 0.9)',
+    fontFamily: 'Outfit, sans-serif',
+  };
+
+  if (!isDevModeEnabled) {
+    return <div style={pillStyle}>3D World View</div>;
+  }
+
+  return (
+    <div ref={panelRef} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        data-testid="hud-world-view-info"
+        onClick={() => setIsOpen(!isOpen)}
+        title="Technical details (dev mode)"
+        style={{
+          ...pillStyle,
+          border: '1px solid var(--border-color, #3a4a5a)',
+          cursor: 'pointer',
+        }}
+      >
+        3D World View {isOpen ? '▲' : '▼'}
+      </button>
+      {isOpen && (
+        <div
+          data-testid="hud-world-view-info-panel"
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            marginTop: '4px',
+            // Above canvas chrome, mirroring the Controls dropdown (D5).
+            zIndex: 1000,
+          }}
+        >
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const InWorldHUD: React.FC<InWorldHUDProps> = ({
   isDevModeEnabled,
   worldData,
@@ -109,24 +187,15 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           pointerEvents: 'auto', // Re-enable pointer events for interactive elements
         }}
       >
-        <div
-          style={{
-            fontSize: '14px',
-            fontWeight: 600,
-            // D2: the title sat as light-gray text directly over the bright sky and
-            // was nearly invisible. Give it a dark translucent pill backing + a
-            // text-shadow so it stays legible over any 3D background (light sky or
-            // dark terrain), not just the dark surface the token assumes.
-            color: '#ffffff',
-            backgroundColor: 'rgba(15, 23, 33, 0.66)',
-            padding: '4px 10px',
-            borderRadius: '6px',
-            textShadow: '0 1px 2px rgba(0, 0, 0, 0.9)',
-            fontFamily: 'Outfit, sans-serif',
-          }}
-        >
-          3D World View
-        </div>
+        <WorldViewTitle isDevModeEnabled={isDevModeEnabled}>
+          <DebugHUD
+            chunkCount={chunkCount ?? 0}
+            fps={fps ?? 0}
+            playerPos={playerPos ?? null}
+            streamerStats={streamerStats}
+            worldGen={worldGen}
+          />
+        </WorldViewTitle>
         <HUDControlPanel onOpenMap={onOpenMap} onExitToMenu={onExitToMenu} />
       </div>
 
@@ -289,25 +358,6 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
         <World3DMinimap worldData={worldData ?? null} playerWorldPos={playerPos ?? null} />
       </div>
 
-      {/* Debug overlay (dev-only) */}
-      {isDevModeEnabled && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '40px',
-            left: '12px',
-            pointerEvents: 'auto',
-          }}
-        >
-          <DebugHUD
-            chunkCount={chunkCount ?? 0}
-            fps={fps ?? 0}
-            playerPos={playerPos ?? null}
-            streamerStats={streamerStats}
-            worldGen={worldGen}
-          />
-        </div>
-      )}
     </div>
   );
 };

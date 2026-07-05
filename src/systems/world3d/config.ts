@@ -67,8 +67,14 @@ export const WORLD3D_CONFIG = {
   MAX_CONCURRENT_LOADS: 4,
   /** Hard cap on vegetation instances emitted per chunk (perf guard). */
   MAX_VEGETATION_PER_CHUNK: 60,
-  /** Whether the streamed world casts/receives real-time shadows (off = much cheaper). */
-  STREAMED_WORLD_SHADOWS: false,
+  /**
+   * Whether the streamed world casts/receives real-time shadows. Enabled by the
+   * beautification-wave lighting lift: the shadow pass is now GATED to the
+   * walking-scale 'ground' view profile and uses a small camera-following
+   * frustum (World3DLighting), so it no longer spans dozens of km-scale chunks
+   * (the historical stall/context-loss cause). Continent profile stays shadowless.
+   */
+  STREAMED_WORLD_SHADOWS: true,
 } as const;
 
 /** Derived: number of chunks spanning one grid cell along each axis. */

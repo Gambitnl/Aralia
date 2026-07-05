@@ -19,16 +19,21 @@
  * Handles resource management actions like spellcasting and ability usage.
  */
 import React from 'react';
-import { GameState, HitPointDiceSpendMap, HitPointDicePool } from '../../types';
+import { GameState, HitPointDiceSpendMap, HitPointDicePool, Spell, SpellSlots } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { handleGossipEvent, handleResidueChecks, handleLongRestWorldEvents } from './handleWorldEvents'; // Import the new world event handlers.
 import { checkPlanarRestRules } from '../../systems/planar/rest';
-import { buildHitPointDicePools, getAbilityModifierValue } from '../../utils/characterUtils';
+import { buildHitPointDicePools, getAbilityModifierValue, getRacialSpellGrantForSpell } from '../../utils/characterUtils';
 import { rollDice } from '../../utils/combatUtils';
 import { formatDuration, getGameDay } from '../../utils/core';
 import { CastSpellPayload } from '../../types/actions';
 import { spellService } from '../../services/SpellService';
+import {
+    applyPostCastToCharacter,
+    buildOutOfCombatStatusEffect,
+    rollOutOfCombatHealing,
+} from '../../utils/spells/outOfCombatCasting';
 
 interface HandleRestProps {
     gameState: GameState; // Pass full gameState for context
@@ -104,10 +109,101 @@ export async function handleCastSpell(
             }
         }
 
+        // Out-of-combat spellbook cast: pre-check the slot, deduct it through the
+        // normal CAST_SPELL reducer, then apply the spell's downtime effects.
+        // Runs inside its own catch so a failure here can never fall through to
+        // the outer fallback and dispatch CAST_SPELL a second time.
+        if (payload.outOfCombat) {
+            try {
+                handleOutOfCombatSpellbookCast(dispatch, payload, spell, gameState, addMessage);
+            } catch {
+                addMessage(`Casting ${spell.name} failed unexpectedly.`, "system");
+            }
+            return;
+        }
+
         dispatch({ type: 'CAST_SPELL', payload });
     } catch (error) {
         // Fallback to standard casting if the spell database lookup fails, to prevent soft-locks.
         dispatch({ type: 'CAST_SPELL', payload });
+    }
+}
+
+/**
+ * Resolves a spellbook cast made OUTSIDE combat (the combat engine has its own
+ * SpellCommand pipeline). The CAST_SPELL reducer only deducts the slot, so the
+ * downtime effects are applied here:
+ * - immediate healing -> MODIFY_PARTY_HEALTH on the chosen party member
+ * - lasting buffs/utility -> APPLY_CHARACTER_STATUS_EFFECT (same-source replace)
+ * - if the caster's sheet is open, its snapshot character is refreshed so the
+ *   slot pips update immediately (the CAST_SPELL reducer does not sync it).
+ */
+export function handleOutOfCombatSpellbookCast(
+    dispatch: React.Dispatch<AppAction>,
+    payload: CastSpellPayload,
+    spell: Spell,
+    gameState: GameState,
+    addMessage: AddMessageFn
+): void {
+    const caster = gameState.party.find(member => member.id === payload.characterId);
+    if (!caster) {
+        addMessage(`Unable to cast ${spell.name}: caster not found in the party.`, "system");
+        return;
+    }
+    const target = gameState.party.find(member => member.id === payload.outOfCombat!.targetCharacterId) ?? caster;
+
+    // Racial spell grants may consume a limited use instead of a slot; the
+    // reducer owns that branch, so skip the plain-slot pre-check (and the
+    // sheet resync, which only mirrors the plain-slot deduction).
+    const racialGrant = getRacialSpellGrantForSpell(caster, spell.id);
+
+    if (spell.level > 0 && !racialGrant) {
+        const slotKey = `level_${payload.spellLevel}` as keyof SpellSlots;
+        const slot = caster.spellSlots?.[slotKey];
+        if (!slot || slot.current <= 0) {
+            addMessage(`${caster.name} has no level ${payload.spellLevel} spell slots left to cast ${spell.name}.`, "system");
+            return;
+        }
+    }
+
+    // Deduct the slot (and consume any material component) via the normal reducer.
+    dispatch({ type: 'CAST_SPELL', payload });
+
+    // Immediate healing (Cure Wounds, Healing Word).
+    const healing = target.id ? rollOutOfCombatHealing(spell, caster) : 0;
+    if (healing > 0 && target.id) {
+        dispatch({ type: 'MODIFY_PARTY_HEALTH', payload: { amount: healing, characterIds: [target.id] } });
+    }
+
+    // Lasting buffs/utility (Mage Armor, Guidance, Detect Magic).
+    const statusEffect = buildOutOfCombatStatusEffect(spell, caster.id ?? payload.characterId);
+    if (statusEffect && target.id) {
+        dispatch({ type: 'APPLY_CHARACTER_STATUS_EFFECT', payload: { characterId: target.id, statusEffect } });
+    }
+
+    const isSelfCast = target.id === caster.id;
+    const targetSuffix = isSelfCast ? '' : ` on ${target.name}`;
+    if (healing > 0) {
+        addMessage(`${caster.name} casts ${spell.name}${targetSuffix}, restoring ${healing} HP.`, "system");
+    } else if (statusEffect) {
+        addMessage(`${caster.name} casts ${spell.name}${targetSuffix}.`, "system");
+    } else {
+        addMessage(`${caster.name} casts ${spell.name}.`, "system");
+    }
+
+    // Refresh the open character sheet's snapshot so slot pips (and self-cast
+    // HP/effects) update immediately. Racial-grant casts skip this because the
+    // reducer may deduct a limited use rather than the slot mirrored here.
+    if (
+        !racialGrant &&
+        gameState.characterSheetModal?.isOpen &&
+        gameState.characterSheetModal.character?.id === caster.id
+    ) {
+        const refreshed = applyPostCastToCharacter(caster, spell.level > 0 ? payload.spellLevel : 0, {
+            selfHealing: isSelfCast ? healing : 0,
+            statusEffect: isSelfCast ? statusEffect : null,
+        });
+        dispatch({ type: 'OPEN_CHARACTER_SHEET', payload: refreshed });
     }
 }
 

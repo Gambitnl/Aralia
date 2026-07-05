@@ -54,8 +54,15 @@ interface SiteLabel {
   position: [number, number, number];
   /** Cached squared distance used for stable nearest-first sorting. */
   distanceSq: number;
+  /** Distance-fade opacity in [0, 1] (1 = fully visible, fades near range edge). */
+  opacity: number;
   /** Site type, also available for test/diagnostic selectors. */
   kind: ChunkSite['kind'];
+  /**
+   * Occupant/hostile plates exist to be read up close — they skip the near-hide
+   * gate and the cluster declutter (a keeper standing by their shop must label).
+   */
+  declutterExempt: boolean;
 }
 
 /** Conservative defaults for an in-world label system. */
@@ -64,6 +71,23 @@ const NAMEPLATE_CONFIG: NameplateConfig = {
   maxWorldDistance: WORLD3D_CONFIG.CHUNK_WORLD_SIZE * WORLD3D_CONFIG.LOAD_RADIUS,
   maxVisible: 12,
 };
+
+/**
+ * Hide a plate when the player is essentially AT the site: inside this range
+ * the building itself is identification enough, and a world-anchored label
+ * this close fills the frame.
+ */
+export const NAMEPLATE_MIN_DISTANCE_M = 15;
+
+/**
+ * Screen-space declutter: when several labeled sites cluster (a business row),
+ * only the nearest label within this world separation shows. Prevents plate
+ * pile-ups where 4-5 chips stack over one block.
+ */
+export const NAMEPLATE_MIN_SEPARATION_M = 18;
+
+/** Distance fade: plates fade out over the last fraction of their range. */
+const FADE_START_FRACTION = 0.75;
 
 /** Keep building labels above the roof volume instead of buried in the slab. */
 const ROOF_CLEAR = 3.5;
@@ -132,6 +156,11 @@ function makeNameplates(
         ? maxDistanceSq
         : siteMaxDistance * siteMaxDistance;
       if (distanceSq > siteMaxDistanceSq) continue;
+      // Inside the near gate the building itself is identification enough —
+      // and a plate this close would dominate the frame. Occupant markers and
+      // hostiles are EXEMPT: those plates exist to be read at conversation range.
+      const exempt = site.markerOnly === true || site.kind === 'monster';
+      if (!exempt && distanceSq < NAMEPLATE_MIN_DISTANCE_M * NAMEPLATE_MIN_DISTANCE_M) continue;
 
       const sceneX = worldPos.x - sceneOrigin.x;
       const sceneZ = worldPos.z - sceneOrigin.z;
@@ -142,18 +171,49 @@ function makeNameplates(
         typeof site.boxHeight === 'number'
           ? site.surfaceY + site.boxHeight + ROOF_CLEAR
           : site.surfaceY + site.radius;
+      // Fade out over the tail of the range so plates never pop in/out hard.
+      const distance = Math.sqrt(distanceSq);
+      const fadeStart = siteMaxDistance * FADE_START_FRACTION;
+      const fadeSpan = Math.max(1, siteMaxDistance - fadeStart);
+      const opacity = clamp01(1 - (distance - fadeStart) / fadeSpan);
       candidates.push({
         key: `${chunk.cx}|${chunk.cy}|${site.id}`,
         text: site.name ?? buildSiteLabelText(site.kind, site.id),
         position: [sceneX, labelY, sceneZ],
         distanceSq,
+        opacity,
         kind: site.kind,
+        declutterExempt: exempt,
       });
     }
   }
 
   candidates.sort((a, b) => a.distanceSq - b.distanceSq);
-  return candidates.slice(0, config.maxVisible);
+  // Declutter clustered sites (business rows): nearest-first, drop any label
+  // within NAMEPLATE_MIN_SEPARATION_M of an already-accepted label.
+  const minSepSq = NAMEPLATE_MIN_SEPARATION_M * NAMEPLATE_MIN_SEPARATION_M;
+  const accepted: SiteLabel[] = [];
+  for (const c of candidates) {
+    if (accepted.length >= config.maxVisible) break;
+    let crowded = false;
+    if (!c.declutterExempt) {
+      for (const a of accepted) {
+        if (a.declutterExempt) continue;
+        const dx = c.position[0] - a.position[0];
+        const dz = c.position[2] - a.position[2];
+        if (dx * dx + dz * dz < minSepSq) {
+          crowded = true;
+          break;
+        }
+      }
+    }
+    if (!crowded) accepted.push(c);
+  }
+  return accepted;
+}
+
+function clamp01(v: number): number {
+  return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 
 /** --------------------------------------------------------------------- */
@@ -182,13 +242,12 @@ const World3DNameplates: React.FC<World3DNameplatesProps> = ({
   return (
     <>
       {nameplates.map((site) => (
-        <Html
-          key={site.key}
-          center
-          position={site.position}
-          transform
-          distanceFactor={20}
-        >
+        // SIZE-BLOWUP FIX (2026-07-04): `transform` put the plate on a plane in
+        // WORLD space (distanceFactor as world scale), so walking up to a
+        // business scaled its plate without bound — screenshots showed one chip
+        // covering ~30% of the frame. Screen-space Html (no transform, no
+        // distanceFactor) renders at constant pixel size: a hard max, always sane.
+        <Html key={site.key} center position={site.position} zIndexRange={[40, 0]}>
           {/* data-* attributes live on the INNER element: putting them on
               <Html> routes them through R3F's applyProps, which parses
               "data-testid" as a dashed pier path (data.testid) on the three
@@ -198,8 +257,8 @@ const World3DNameplates: React.FC<World3DNameplatesProps> = ({
             data-kind={site.kind}
             data-testid={`world-3d-site-label-${site.key}`}
             style={{
-              position: 'absolute',
               pointerEvents: 'none',
+              opacity: site.opacity,
               userSelect: 'none',
               whiteSpace: 'nowrap',
               color: 'white',

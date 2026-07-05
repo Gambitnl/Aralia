@@ -31,6 +31,50 @@ import CoinPurseDisplay from '../ui/CoinPurseDisplay';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { RumorMill } from '../Town/Intrigue/RumorMill';
 import { UI_ID } from '../../styles/uiIds';
+import { resolveItemVisual } from '../../utils/visuals/visualUtils';
+import { assetUrl } from '../../config/env';
+
+/**
+ * Renders an item's glyph: an <img> when the item has a real icon asset
+ * (persisted business stock stores paths like "/assets/icons/items/dagger.svg"),
+ * otherwise the emoji/text glyph older items used. Never renders a raw path string.
+ */
+const ItemGlyph: React.FC<{ item: Item }> = ({ item }) => {
+    const visual = resolveItemVisual(item);
+    const [broken, setBroken] = React.useState(false);
+    if (visual.src && !broken) {
+        return (
+            <img
+                src={assetUrl(visual.src)}
+                alt=""
+                className="w-8 h-8 object-contain flex-shrink-0"
+                loading="lazy"
+                aria-hidden="true"
+                onError={() => setBroken(true)}
+            />
+        );
+    }
+    // Emoji/text fallback — guard against a path string leaking into fallbackContent
+    const glyph = visual.fallbackContent && !visual.fallbackContent.startsWith('/')
+        ? visual.fallbackContent
+        : '📦';
+    return <span className="text-2xl" aria-hidden="true">{glyph}</span>;
+};
+
+/** Human-readable list: ['food','ingredients'] → "food and ingredients". */
+const listTags = (tags: string[]): string => {
+    const pretty = tags.map(t => (t === 'all' ? 'goods of all kinds' : t.replace(/_/g, ' ')));
+    if (pretty.length <= 1) return pretty[0] ?? '';
+    return `${pretty.slice(0, -1).join(', ')} and ${pretty[pretty.length - 1]}`;
+};
+
+/** One short flavor line for market conditions, or null when the market is calm. */
+const marketFlavorLine = (surplus: string[], scarcity: string[]): string | null => {
+    const parts: string[] = [];
+    if (surplus.length > 0) parts.push(`Plenty of ${listTags(surplus)} this season — prices are down.`);
+    if (scarcity.length > 0) parts.push(`${listTags(scarcity).replace(/^./, c => c.toUpperCase())} ${scarcity.length > 1 ? 'are' : 'is'} scarce — prices are up.`);
+    return parts.length > 0 ? parts.join(' ') : null;
+};
 
 interface MerchantModalProps {
     isOpen: boolean;
@@ -107,14 +151,17 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
     const handleBuy = (item: Item) => {
         const { finalPrice } = calculatePrice(item, economy, 'buy', regionId, priceContext);
         if (finalPrice > 0 && playerGold >= finalPrice) {
-            onAction({ type: 'BUY_ITEM', label: `Buy ${item.name}`, payload: { item, cost: finalPrice } as any });
+            // handleMerchantAction expects the transaction-wrapped shape; a flat
+            // { item, cost } was silently ignored (payload.transaction was undefined),
+            // which is why every Buy click did nothing.
+            onAction({ type: 'BUY_ITEM', label: `Buy ${item.name}`, payload: { transaction: { buy: { item, cost: finalPrice } } } as any });
         }
     };
 
     const handleSell = (item: Item) => {
         const { finalPrice } = calculatePrice(item, economy, 'sell', regionId, priceContext);
         if (finalPrice > 0) {
-            onAction({ type: 'SELL_ITEM', label: `Sell ${item.name}`, payload: { itemId: item.id, value: finalPrice } as any });
+            onAction({ type: 'SELL_ITEM', label: `Sell ${item.name}`, payload: { transaction: { sell: { itemId: item.id, value: finalPrice } } } as any });
         }
     };
 
@@ -155,14 +202,12 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                                 ))}
                                             </div>
                                         ) : null}
-                                        <div className="flex gap-4 mt-1 text-xs uppercase tracking-wider font-bold">
-                                            <span className={economy.marketFactors.surplus.length > 0 ? "text-green-400" : "text-gray-300"}>
-                                                Surplus: {economy.marketFactors.surplus.join(', ') || 'None'}
-                                            </span>
-                                            <span className={economy.marketFactors.scarcity.length > 0 ? "text-red-400" : "text-gray-300"}>
-                                                Scarcity: {economy.marketFactors.scarcity.join(', ') || 'None'}
-                                            </span>
-                                        </div>
+                                        {(() => {
+                                            const flavor = marketFlavorLine(economy.marketFactors.surplus, economy.marketFactors.scarcity);
+                                            return flavor ? (
+                                                <span className="italic text-gray-300 mt-1">{flavor}</span>
+                                            ) : null;
+                                        })()}
                                     </>
                                 ) : <span>Standard Prices</span>}
                             </div>
@@ -223,7 +268,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                         return (
                                             <div key={`${item.id}-${idx}`} className="bg-gray-700 p-3 rounded-lg flex justify-between items-center shadow-sm">
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-2xl" aria-hidden="true">{item.icon || '📦'}</span>
+                                                    <ItemGlyph item={item} />
                                                     <Tooltip content={`${item.description}\nType: ${item.type}`}>
                                                         <div>
                                                             <p className="font-semibold text-gray-200">{item.name}</p>
@@ -285,7 +330,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                         return (
                                             <div key={`${item.id}-${idx}`} className="bg-gray-700/50 p-3 rounded-lg flex justify-between items-center border border-gray-600/50">
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-2xl" aria-hidden="true">{item.icon || '📦'}</span>
+                                                    <ItemGlyph item={item} />
                                                     <div>
                                                         <p className="font-semibold text-gray-300">{item.name}</p>
                                                         <p className="text-xs text-gray-400">Value: {formatGpAsCoins(finalPrice)}</p>

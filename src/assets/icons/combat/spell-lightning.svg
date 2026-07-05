@@ -1,0 +1,17 @@
+<!--
+  Aralia combat icon: lightning spell.
+  Used for lightning, thunder, and fast arcane strike buttons.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Lightning spell icon</title>
+  <desc id="desc">A jagged violet lightning bolt over storm clouds.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="65%">
+      <stop offset="0" stop-color="#4c1d95"/>
+      <stop offset="1" stop-color="#0b1020"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="10" fill="url(#bg)"/>
+  <path d="M38 5L16 36h14l-5 23 23-33H34z" fill="#fef08a" stroke="#fde047" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M14 18c7-5 12-5 19-1M31 49c8 3 14 2 20-3" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+</svg>

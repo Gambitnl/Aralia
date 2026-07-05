@@ -216,6 +216,20 @@ Provide an oracle's cryptic guidance in 1-2 sentences.`;
 }
 
 /**
+ * Oracle-as-Dungeon-Master response. Takes a fully-formed, grounded prompt
+ * (built by src/systems/adventureLog/oraclePrompt.buildOraclePrompt, which
+ * already embeds the DM system instruction + the story-so-far briefing) and
+ * routes it through the local model. The prompt is passed verbatim so the
+ * grounding rules and the "don't invent names" instruction reach the model.
+ */
+export async function generateOracleDmResponse(
+  fullPrompt: string,
+  overrides?: ModelParams
+): Promise<StandardizedResult<OllamaTextData>> {
+  return await generateText('oracle_response', fullPrompt, undefined, overrides);
+}
+
+/**
  * Generate character name using Ollama.
  */
 export async function generateCharacterName(

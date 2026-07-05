@@ -25,6 +25,7 @@
  */
 import { GameState, DiscoveryEntry, DiscoveryType } from '../../types';
 import { AppAction } from '../actionTypes';
+import { appendAdventureLogEntry } from '../../systems/adventureLog/adventureLog';
 
 // ============================================================================
 // Discovery Log Retention Policy
@@ -195,9 +196,25 @@ export function logReducer(state: GameState, action: AppAction): Partial<GameSta
       if (hasDuplicateDiscoveryEntry(state.discoveryLog, newEntryData)) return {};
 
       const retainedDiscoveryLog = retainDiscoveryLogEntries([newEntryData, ...state.discoveryLog]);
+      // Mirror genuinely NEW discoveries into the party adventure log for the
+      // Oracle recap. Quest-related discoveries are skipped here: quest events
+      // are already recorded at their own completion point (questReducer), so
+      // logging them again would double-count the "story so far".
+      const isQuestDiscovery =
+        newEntryData.isQuestRelated === true || Boolean(newEntryData.questId);
+      const adventureLogUpdate = isQuestDiscovery
+        ? {}
+        : appendAdventureLogEntry(state, {
+            kind: 'discovery',
+            summary: newEntryData.title,
+            ...(newEntryData.associatedLocationId
+              ? { placeIds: [newEntryData.associatedLocationId] }
+              : {}),
+          });
       return {
         discoveryLog: retainedDiscoveryLog,
         unreadDiscoveryCount: countUnreadDiscoveryEntries(retainedDiscoveryLog),
+        ...adventureLogUpdate,
       };
     }
 

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 07/05/2026, 00:03:59
+ * Last Sync: 04/07/2026, 21:56:03
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -39,6 +39,7 @@ import { TILE_SIZE_PX } from '../../config/mapConfig';
 import Tooltip from '../Tooltip';
 import { getStatusEffectIcon, getCharacterSizeMultiplier } from '../../utils/combatUtils';
 import { Z_INDEX } from '../../styles/zIndex';
+import { getCreatureTokenVisual } from '../../utils/visuals/combatIconVisuals';
 
 interface CharacterTokenProps {
   character: CombatCharacter;
@@ -49,15 +50,6 @@ interface CharacterTokenProps {
   isTurn: boolean;
   onCharacterClick: (char: CombatCharacter) => void;
 }
-
-const getClassIcon = (classId: string) => {
-  switch (classId) {
-    case 'fighter': return '⚔️';
-    case 'wizard': return '🧙';
-    case 'cleric': return '✝️';
-    default: return '●';
-  }
-};
 
 type DefenseBadgeKind = 'resistance' | 'vulnerability' | 'immunity';
 
@@ -140,6 +132,7 @@ const DefenseBadge: React.FC<DefenseBadgeConfig> = ({ kind, label, tooltip, posi
 const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, position, isSelected, isTargetable, targetingMode, isTurn, onCharacterClick }) => {
   const multiplier = getCharacterSizeMultiplier(character.stats.size);
   const defenseBadges = buildDefenseBadges(character);
+  const tokenVisual = useMemo(() => getCreatureTokenVisual(character), [character]);
 
   // Memoized container style: only recalculates when position, size, or interaction
   // state changes — prevents redundant style-object allocation on unrelated renders.
@@ -168,6 +161,7 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
       borderRadius: '50%',
       border: `3px solid ${borderColor}`,
       backgroundColor: '#1F2937',
+      overflow: 'hidden',
       boxShadow: isSelected
         ? '0 0 10px #FBBF24, 0 0 20px #FBBF24'
         : isTargetable
@@ -178,7 +172,6 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
     };
   }, [character.team, isSelected, isTargetable, isTurn]);
 
-  const icon = getClassIcon(character.class.id);
   const handleActivate = () => onCharacterClick(character);
 
   return (
@@ -201,7 +194,15 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
           style={tokenStyle}
           className="flex items-center justify-center font-bold text-white text-lg"
         >
-          {icon}
+          {tokenVisual.src ? (
+            <img
+              src={tokenVisual.src}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            tokenVisual.fallbackContent
+          )}
         </div>
       </Tooltip>
 

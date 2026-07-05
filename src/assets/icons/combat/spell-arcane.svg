@@ -1,0 +1,19 @@
+<!--
+  Aralia combat icon: generic arcane spell.
+  Used when a specific spell has no dedicated SVG but should not fall back to emoji.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Arcane spell icon</title>
+  <desc id="desc">A blue arcane sigil over a dark tile.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="62%">
+      <stop offset="0" stop-color="#164e63"/>
+      <stop offset="1" stop-color="#07131f"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="10" fill="url(#bg)"/>
+  <circle cx="32" cy="32" r="18" fill="none" stroke="#67e8f9" stroke-width="2"/>
+  <circle cx="32" cy="32" r="7" fill="#22d3ee" opacity=".85"/>
+  <path d="M32 10v12M32 42v12M10 32h12M42 32h12M18 18l8 8M38 38l8 8M46 18l-8 8M26 38l-8 8" stroke="#e0f2fe" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M32 18l5 9 9 5-9 5-5 9-5-9-9-5 9-5z" fill="none" stroke="#a5f3fc" stroke-width="1.8"/>
+</svg>

@@ -72,6 +72,11 @@ import { getAllFactions } from '../utils/factionUtils';
 import { generateWorldSeed } from '../utils/random/generateWorldSeed';
 import { generateId } from '../utils/core/idGenerator';
 import { makeCellLocationId } from '../utils/location/cellLocationId';
+// Authored companions (Kaelen, Elara) are seeded into state.companions but placed
+// NOWHERE — so a fresh player can never meet them. Build placeable RichNPC shells
+// from their authored data and drop them into the opening scene.
+import { COMPANIONS } from '../data/companions';
+import { authoredCompanionsToRichNpcs } from '../systems/party/authoredCompanionToRichNpc';
 
 // Shorthand type for the chat message function passed in from the parent component.
 // Accepts message text and an optional sender tag for styling in the chat log.
@@ -321,6 +326,21 @@ export function useGameInitialization({
         type: 'START_GAME_SUCCESS',
         payload: payload
       });
+
+      // COMPANION-FINDABILITY (2026-07-04): make the authored companions Kaelen &
+      // Elara actually meetable. They live in state.companions but nothing placed
+      // them in the world, so no "Talk to" / "Ask to join" action ever surfaced.
+      // Build placeable RichNPC shells from their AUTHORED identity+personality and
+      // register them at the spawn via PLACE_SITUATION_NPCS — the same mechanism
+      // the opening-situation strangers use (adds them to generatedNpcs AND the
+      // current location's active dynamic NPC list). The recruit path already
+      // promotes authored companions via promoteCompanionToMember (handleRecruitOffer
+      // checks state.companions before generatedNpcs), so their real personality and
+      // relationship record come through — this shell is presence only.
+      const placeableCompanions = authoredCompanionsToRichNpcs(Object.values(COMPANIONS));
+      if (placeableCompanions.length > 0) {
+        dispatch({ type: 'PLACE_SITUATION_NPCS', payload: { npcs: placeableCompanions } });
+      }
 
       // GAME-ENTRY-SITUATION (additive, 2026-06-16): a brand-new game does not
       // spawn into the static clearing description — it kicks off generation of a

@@ -84,6 +84,7 @@ import { applyWfSpawnToMap } from '@/systems/worldforge/local/resolveSpawn';
 import { biomeIdForCell } from '@/systems/worldforge/local/biomeForCell';
 import { wfBiomeIndexToLegacyId } from '@/systems/worldforge/local/wfBiomeToLegacy';
 import { burgIdForCell } from '@/systems/worldforge/townsim/chronicleForLocation';
+import { townMerchantNpcsForCell } from '@/systems/worldforge/townsim/npcsForCell';
 import { makeCellLocationId, parseCellLocationId, isWildernessLocationId } from './utils/location/cellLocationId';
 import { parseCoordinateLocationId } from './utils/locationUtils';
 import { canUseDevTools } from './utils/permissions';
@@ -117,6 +118,7 @@ const GameLayout = lazy(() => import('./components/layout/GameLayout'));
 const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(module => ({ default: module.LoadGameTransition })));
 const NotFound = lazy(() => import('./components/ui/NotFound'));
 const World3DDemo = lazy(() => import('./components/World3D/World3DDemo'));
+const WebGPUProbe = lazy(() => import('./components/World3D/WebGPUProbe'));
 const StartPointSelection = lazy(() => import('./components/Worldforge/StartPointSelection'));
 const NotificationSystem = lazy(() => import('./components/ui/NotificationSystem').then(module => ({ default: module.NotificationSystem })));
 const CompanionReaction = lazy(() => import('./components/ui/CompanionReaction').then(module => ({ default: module.CompanionReaction })));
@@ -386,6 +388,20 @@ const App: React.FC = () => {
       npcList = [...npcList, ...dynamicNpcs];
     }
 
+    // Worldforge town keepers: when the player stands in a tracked burg, merge in
+    // the registered shop/tavern merchants (npc_burg_<burg>_plot_*) whose linked
+    // business sits in this burg. World3DWrapper registers them into
+    // generatedNpcs/worldBusinesses but nothing re-adds them to the active talk
+    // list — this is the cell-native successor to the retired 2D-village triggers.
+    // Bounded by the selector so a large town never floods the action pane.
+    const townKeepers = townMerchantNpcsForCell({
+      worldSeed: gameState.worldSeed,
+      cellId: gameState.playerCell?.cellId ?? null,
+      generatedNpcs: gameState.generatedNpcs,
+      worldBusinesses: gameState.worldBusinesses,
+    });
+    npcList = [...npcList, ...townKeepers];
+
     const uniqueNpcList = npcList.reduce((acc, current) => {
       if (!acc.find(item => item.id === current.id)) {
         acc.push(current);
@@ -394,7 +410,7 @@ const App: React.FC = () => {
     }, [] as NPC[]);
 
     return uniqueNpcList;
-  }, [getCurrentLocation, gameState.currentLocationActiveDynamicNpcIds, gameState.generatedNpcs]);
+  }, [getCurrentLocation, gameState.currentLocationActiveDynamicNpcIds, gameState.generatedNpcs, gameState.worldBusinesses, gameState.worldSeed, gameState.playerCell?.cellId]);
 
   const getTileTooltipText = useCallback((worldMapTile: MapTile): string => {
     const biome = BIOMES[worldMapTile.biomeId];
@@ -487,6 +503,16 @@ const App: React.FC = () => {
         ? gameState.gameTime.toISOString()
         : String(gameState.gameTime),
       isMapVisible: gameState.isMapVisible,
+      // World identity, so a browser rig can pick a real burg cell to travel to
+      // and prove town-merchant registration on arrival.
+      worldSeed: gameState.worldSeed,
+      playerCellId: gameState.playerCell?.cellId ?? null,
+      // Interactive-NPC proof surface: lets a browser rig confirm that clicking
+      // "Talk to <npc>" actually opened a dialogue session with that NPC, not
+      // just that the action button existed.
+      isDialogueInterfaceOpen: gameState.isDialogueInterfaceOpen ?? false,
+      activeDialogueNpcId: gameState.activeDialogueSession?.npcId ?? null,
+      activeConversationIds: gameState.activeConversation?.participants ?? null,
       isLongRestModalVisible: gameState.isLongRestModalVisible ?? false,
       isThreeDVisible: gameState.isThreeDVisible ?? false,
       saveTimestamp: gameState.saveTimestamp ?? null,
@@ -703,6 +729,21 @@ const App: React.FC = () => {
     const announceEncounter = () => {
       if (travelMeta?.encounterMessage) addMessage(travelMeta.encounterMessage, 'system');
     };
+    // A rolled road ambush now starts a REAL fight on arrival (it used to only
+    // print the message and nothing happened). Fired after the move so combat
+    // resolves at the destination; the handler pulls in the bestiary lazily.
+    const triggerTravelEncounter = () => {
+      const enc = travelMeta?.encounter;
+      if (!enc?.monsters?.length) return;
+      void (async () => {
+        try {
+          const { handleStartBattleMapEncounter } = await import('./hooks/actions/handleEncounter');
+          await handleStartBattleMapEncounter(dispatch, { monsters: enc.monsters });
+        } catch (err) {
+          console.error('[travel encounter] failed to start battle:', err);
+        }
+      })();
+    };
     // Apply the trip's provisioning consequences (food/water spend, starvation,
     // companion morale). MapPane resolved these against the route + supplies; here
     // we just execute them after the move so the move and its cost stay atomic.
@@ -750,6 +791,7 @@ const App: React.FC = () => {
       dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
       applyProvisionEffects();
       announceEncounter();
+      triggerTravelEncounter();
     } else if (tile.discovered && !tile.locationId) {
       // Grid retirement: the wilderness location id is the cell-native id of the
       // clicked atlas cell (carried by destinationCell), not a coord_X_Y tile.
@@ -762,10 +804,17 @@ const App: React.FC = () => {
         applyProvisionEffects();
         announceEncounter();
       } else {
-        addMessage(`This is your current world map area: ${targetBiome.name} at (${x},${y}).`, 'system');
+        // Grid retirement: no coordinates in player-facing text — name the place.
+        const settlementName = tile.locationId ? LOCATIONS[tile.locationId]?.name : undefined;
+        addMessage(
+          settlementName
+            ? `You arrive at ${settlementName}.`
+            : `You arrive in ${targetBiome.name.toLowerCase()}.`,
+          'system',
+        );
       }
     } else if (tile.discovered) {
-      addMessage(`This is the ${targetBiome.name} at world coordinates (${x},${y}). ${targetBiome.description}`, 'system');
+      addMessage(`This is ${targetBiome.name.toLowerCase()} country. ${targetBiome.description}`, 'system');
     } else {
       // Travel failure mode: a pick landed on an unexplored cell. Never silently
       // no-op — tell the player why the trip didn't happen.
@@ -1204,6 +1253,14 @@ const App: React.FC = () => {
         <World3DDemo />
       </ErrorBoundary>
     );
+  } else if (gameState.phase === GamePhase.WEBGPU_PROBE) {
+    // WebGPU render probe (?phase=webgpuprobe): the streamed ground world drawn
+    // through three.js WebGPURenderer to prove the migration path.
+    mainContent = (
+      <ErrorBoundary fallbackMessage="An error occurred in the WebGPU Probe.">
+        <WebGPUProbe />
+      </ErrorBoundary>
+    );
   } else if (gameState.phase === GamePhase.WORLDFORGE_DEMO) {
     // Worldforge atlas cartographer (?phase=worldforge): the native
     // ported-FMG map surface (docs/projects/worldforge, orchestration Lane A).
@@ -1279,10 +1336,11 @@ const App: React.FC = () => {
           enemies={gameState.currentEnemies || []}
           biome={combatBiome}
           onRoundElapsed={handleCombatRoundElapsed}
-          onBattleEnd={(result, rewards) => {
+          onBattleEnd={(result, rewards, finalPartyState) => {
             addMessage(result === 'victory' ? 'Victory! The enemies are defeated.' : 'Defeat! The party has fallen.', 'system');
             if (result === 'victory' && rewards) {
-              dispatch({ type: 'END_BATTLE', payload: { rewards } });
+              // finalPartyState carries post-combat HP/slots/uses so attrition persists.
+              dispatch({ type: 'END_BATTLE', payload: { rewards, finalPartyState } });
             } else {
               dispatch({ type: 'END_BATTLE' });
             }

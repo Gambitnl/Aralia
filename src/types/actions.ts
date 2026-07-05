@@ -42,6 +42,12 @@ export interface CastSpellPayload {
   spellId?: string;
   castSource?: CastSpellSource;
   materialComponentItemIdToConsume?: string;
+  /**
+   * Present when the cast comes from the spellbook OUTSIDE combat.
+   * The CAST_SPELL handler then applies the spell's out-of-combat effects
+   * (healing, buffs) to the named party member after deducting the slot.
+   */
+  outOfCombat?: { targetCharacterId: string };
 }
 
 export type ActionType =

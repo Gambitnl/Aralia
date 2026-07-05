@@ -377,6 +377,19 @@ export interface SocialAwarenessEntry {
   targetKnows: string;
 }
 
+/**
+ * Post-combat snapshot of a party member's mutable resources. Combat runs on
+ * transient CombatCharacter copies; when a battle ends this carries each surviving
+ * player's final HP, spent spell slots, and used limited-use abilities back to the
+ * persistent PlayerCharacter so attrition sticks instead of resetting every fight.
+ */
+export interface CombatPartySnapshotEntry {
+  id: string;
+  currentHP: number;
+  spellSlots?: SpellSlots;
+  limitedUses?: LimitedUses;
+}
+
 export interface CombatCharacter {
   id: string;
   name: string;
@@ -396,6 +409,8 @@ export interface CombatCharacter {
   team: 'player' | 'enemy';
   currentHP: number;
   maxHP: number;
+  /** Minimum d20 roll for a critical hit (default 20; 19 for Champion fighters). */
+  critThreshold?: number;
   /** Optional death saving throw tracking for downed player characters (at 0 HP). */
   deathSaves?: {
     successes: number;

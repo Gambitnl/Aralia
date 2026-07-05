@@ -1,0 +1,19 @@
+<!--
+  Aralia combat icon: nature spell.
+  Used for roots, vines, growth, and druidic combat actions.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Nature spell icon</title>
+  <desc id="desc">Green leaves curling around a glowing seed.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="65%">
+      <stop offset="0" stop-color="#14532d"/>
+      <stop offset="1" stop-color="#06130b"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="10" fill="url(#bg)"/>
+  <path d="M31 48c-2-18 1-31 17-37 3 14-3 25-17 37z" fill="#22c55e" stroke="#bbf7d0" stroke-width="2"/>
+  <path d="M29 48c2-14-3-24-17-30-2 14 5 24 17 30z" fill="#16a34a" stroke="#86efac" stroke-width="2"/>
+  <path d="M32 48c5-12 11-20 22-25" stroke="#dcfce7" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="32" cy="35" r="7" fill="#bef264" opacity=".95"/>
+</svg>

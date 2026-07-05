@@ -53,39 +53,46 @@ describe('pickOverheardGossip', () => {
       ev({ id: 6, kind: 'festival', day: 1006, summary: 'Harvest festival.' }),
     ]);
 
-    let lastId: number | undefined;
-    for (let i = 0; i < 5; i++) {
-      const item = pickOverheardGossip(town, currentDay, lastId);
+    const heard = new Set<number>();
+    for (let i = 0; i < 2; i++) {
+      const item = pickOverheardGossip(town, currentDay, heard);
       expect(item).not.toBeNull();
       expect(NON_GOSSIP_KINDS).not.toContain(item!.kind);
-      lastId = item!.id;
+      heard.add(item!.id);
     }
   });
 
-  it('skips the immediately-previous item to avoid back-to-back repeats', () => {
+  it('skips recently-heard items instead of alternating them', () => {
     const town = townWith([
       ev({ id: 5, kind: 'birth', day: 1005, summary: 'C was born.' }),
       ev({ id: 6, kind: 'festival', day: 1006, summary: 'Harvest festival.' }),
     ]);
 
-    const first = pickOverheardGossip(town, currentDay);
+    const first = pickOverheardGossip(town, currentDay, new Set());
     expect(first).not.toBeNull();
     expect(first!.id).toBe(6); // most recent gossip item
 
-    const second = pickOverheardGossip(town, currentDay, first!.id);
+    const second = pickOverheardGossip(town, currentDay, new Set([6]));
     expect(second).not.toBeNull();
-    expect(second!.id).not.toBe(first!.id); // no immediate repeat
     expect(second!.id).toBe(5);
   });
 
-  it('returns the only gossip item even when it equals lastAnnouncedId', () => {
+  it('goes silent (null) when every gossip item was recently heard — no endless repeats', () => {
     const town = townWith([
-      ev({ id: 1, kind: 'disaster', day: 1000, summary: 'A fire swept the town.' }),
+      ev({ id: 5, kind: 'birth', day: 1005, summary: 'C was born.' }),
+      ev({ id: 8, kind: 'came_of_age', day: 1008, summary: 'D came of age.' }),
+    ]);
+    expect(pickOverheardGossip(town, currentDay, new Set([5, 8]))).toBeNull();
+  });
+
+  it('reopens the pool once the cooldown set no longer contains an id', () => {
+    const town = townWith([
       ev({ id: 8, kind: 'birth', day: 1008, summary: 'C was born.' }),
     ]);
-    const item = pickOverheardGossip(town, currentDay, 8);
-    expect(item).not.toBeNull();
-    expect(item!.id).toBe(8);
+    expect(pickOverheardGossip(town, currentDay, new Set([8]))).toBeNull();
+    const again = pickOverheardGossip(town, currentDay, new Set());
+    expect(again).not.toBeNull();
+    expect(again!.id).toBe(8);
   });
 
   it('returns null when the town has no gossip-tier events', () => {

@@ -60,7 +60,7 @@ const World3DDemo: React.FC = () => {
     [],
   );
 
-  const { loader, start, startSurfaceY } = useMemo(() => {
+  const { loader, start, startSurfaceY, ground: demoGround } = useMemo(() => {
     if (groundMode) {
       // Location is URL-tunable: ?ground=1&gx=17&gy=4 → river window;
       // default (16,4) spawns at a town site. Scans: find-river/find-town
@@ -97,6 +97,7 @@ const World3DDemo: React.FC = () => {
           loader: seamLoader as ChunkLoader,
           start: [startX, 0, startZ] as const,
           startSurfaceY: heightToMeters(ground.heights[sgy * ground.cols + sgx] ?? 0),
+          ground,
         };
       }
 
@@ -112,10 +113,14 @@ const World3DDemo: React.FC = () => {
       const cgx = Math.round(ground.cols / 2);
       const cgy = Math.round(ground.rows / 2);
       const centerH = ground.heights[cgy * ground.cols + cgx] ?? 0;
+      // Dev hook (like __wf3dScene/__wf3dSetPose): headless capture rigs read
+      // the streamed ground world (prop/building positions) to frame shots.
+      (window as unknown as { __wfGroundWorld?: unknown }).__wfGroundWorld = ground;
       return {
         loader: groundLoader as ChunkLoader,
         start: [startX, 0, startZ] as const,
         startSurfaceY: heightToMeters(centerH),
+        ground,
       };
     }
     // Run the real world-generation pipeline so the demo renders authentic rivers, roads,
@@ -166,7 +171,7 @@ const World3DDemo: React.FC = () => {
     // so the scene can frame the camera on the actual ground, not Y=0.
     const startSurfaceY = heightToMeters(heightAtCell(startGridX, startGridY));
 
-    return { loader: inlineLoader, start: [startX, 0, startZ] as const, startSurfaceY };
+    return { loader: inlineLoader, start: [startX, 0, startZ] as const, startSurfaceY, ground: null };
   }, [groundMode]);
 
   return (
@@ -186,6 +191,10 @@ const World3DDemo: React.FC = () => {
         <div style={{ position: 'absolute', inset: 0 }}>
           <World3DScene loader={loader} start={start} startSurfaceY={startSurfaceY} viewProfile={groundMode ? 'ground' : 'continent'}
             forgeAssetService={_stubService}
+            // Player-avatar sandbox: the demo has no game state, so stand a
+            // demo-identity body at the spawn (groundPos null → spawn anchor).
+            groundWorld={demoGround ?? null}
+            playerIdentity={groundMode ? { id: 'demo-player', name: 'Demo Player' } : null}
           />
         </div>
       </div>

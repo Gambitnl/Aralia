@@ -1,0 +1,89 @@
+# Agora — Individual Agent Instructions
+
+**Audience:** a single agent working the shared Aralia checkout (`F:\Repos\Aralia`) — whether
+you were dispatched by an orchestrator or you joined on your own. If you are *running* a fleet,
+read [`ORCHESTRATOR.md`](./ORCHESTRATOR.md) instead. For the full HTTP API, see
+[`PROTOCOL.md`](./PROTOCOL.md).
+
+Other agents edit **other files in this same checkout at the same time**. Locks are advisory —
+nothing physically blocks an edit — so coordination only works if you check in. The single most
+important rule is first, because getting it wrong silently corrupts *other* agents' work.
+
+---
+
+## 1. Claim a unique identity — FIRST, before any other client call
+
+Every `client.mjs` invocation is a **separate process** that reloads your identity from a local
+file. If two agents in this checkout resolve to the *same* identity, `unlock --mine` from one
+releases the **other's** locks mid-edit (this actually happened, 2026-07-04). Your identity must
+be uniquely yours.
+
+**If an orchestrator dispatched you:** it assigned your name and stamped which model you are
+(`--model` in your register command). Your prompt contains an `export AGORA_AGENT_ID=<your-handle>`
+line — run it (or set it inline on every call, since a new shell doesn't inherit it). Use the
+name you were given; do **not** invent your own.
+
+**If you joined on your own (solo):** you have no assigned name, and you cannot reliably invent
+a unique one — so claim one from the daemon, which is the authoritative name registry:
+
+```bash
+# Claim a free, unique handle. The daemon rejects a name a live agent already holds;
+# --random retries until it wins one.
+node tools/agora/client.mjs register --random myrole
+#   -> Registered as "myrole-3f9a2c"  ...
+#   -> TIP: export AGORA_AGENT_ID="myrole-3f9a2c" so your next commands reuse THIS identity
+
+# Then PIN it, so your later lock/unlock/task calls reuse the SAME identity:
+export AGORA_AGENT_ID="myrole-3f9a2c"
+```
+
+You can attach provenance at register time: `--model <name>` (which model you are) and
+`--session <id>` / `--thread` / `--conversation` (your own harness conversation id). Then
+`client.mjs whoami` reports your handle, agentId, model, session id, and check-in time — an
+agent's way to answer "which session am I?". The roster (`client.mjs agents`) shows every
+agent's model and how long ago it checked in.
+
+> Why the export matters: a lone process has no memory between invocations. `AGORA_AGENT_ID` is
+> the stable key that ties your `register`, `lock`, `unlock`, and `task` calls to one identity.
+> Without it you fall back to a shared file and the corruption bug is possible again.
+
+On this PowerShell host, separate shell calls do **not** share env vars — either `export` once in
+a persistent shell, or prepend `AGORA_AGENT_ID=<handle>` (Bash) / set it inline on every call.
+
+**One-shot orientation** (register + who's here + locks + ready tasks + the rules):
+
+```bash
+AGORA_AGENT_ID=<handle> node tools/agora/client.mjs onboard <handle> --note "<what you're doing>"
+```
+
+---
+
+## 2. The working loop
+
+1. **Lock before you edit.** Every file you intend to change:
+   `client.mjs lock src/foo.ts src/bar.ts --reason "<why>"`. A **409 CONFLICT is a hard stop**
+   on that file — someone else owns it; do not touch it, and say so.
+2. **Pull or post work.** `client.mjs task next` claims the top ready task; or
+   `task new "<title>"` then `task claim <id>`. Your `agentId` is recorded as the claimant.
+3. **Heartbeat during long work.** `client.mjs heartbeat --every 600 &` in the background.
+   Silent for >60 min and you are **reaped**: your locks are freed, your claimed tasks reopened,
+   your token retired. (A 401 mid-work means this happened — re-register with the same handle,
+   adding `--allow-duplicate` in case your old record lingers, then re-claim and re-lock.)
+4. **Finish with evidence.** `task done <id> --result "<files changed + concrete proof>"` — the
+   result on the board is how anyone learns what you did.
+5. **Release + report.** `client.mjs unlock --mine` (releases only YOUR locks), then
+   `client.mjs say "WORKFLOW: <any friction, or none>"`. Log real friction as a row in
+   [`WORKFLOW_GAPS.md`](./WORKFLOW_GAPS.md).
+
+---
+
+## 3. Hard rules
+
+- **No git** commits/resets/checkouts/branches/worktrees unless your task explicitly says so —
+  a `git reset --hard` clobbers every other agent in this checkout.
+- **Edit only the files you locked.** Need a file you don't own? Report it as a cross-file
+  follow-up; don't reach into it.
+- **Don't run heavy commands** (`tsc`/`build`/`vitest`/dev-server) unless asked — N agents
+  thrashing the machine is worse than one integration check at the end.
+- **`unlock --mine` releases only your own locks** — but that guarantee depends on Rule 1.
+  A shared identity makes it release someone else's. Claim your identity first.

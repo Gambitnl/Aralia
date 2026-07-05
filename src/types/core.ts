@@ -87,6 +87,12 @@ export enum GamePhase {
    * URL slug: 'livingworld'.
    */
   LIVING_WORLD_PREVIEW,
+  /**
+   * WebGPU render probe (?phase=webgpuprobe). Renders the streamed ground world
+   * through three.js WebGPURenderer to prove the WebGPU migration path. Dev
+   * harness only; appended LAST (save-index compatible). URL slug: 'webgpuprobe'.
+   */
+  WEBGPU_PROBE,
 }
 
 // Core D&D attributes

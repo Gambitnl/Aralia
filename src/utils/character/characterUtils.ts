@@ -52,6 +52,8 @@ import {
 import { RacialFeatureTrait, RacialResourceMechanic, RacialModifierBuckets } from '../../data/races/racialTraits';
 import { ALL_RACES_DATA as RACES_DATA, RACE_DATA_BUNDLE, getRacialTraitLibrary } from '../../data/races';
 import { CLASSES_DATA } from '../../data/classes';
+import { growSpellSlots } from '../../systems/character/spellSlotProgression';
+import { subclassesForClass } from '../../data/classes/subclasses';
 import { SKILLS_DATA } from '../../data/skills';
 
 const {
@@ -1604,7 +1606,26 @@ export const performLevelUp = (
     }
   }
 
-  // TODO #1280(FEATURES): Grant class abilities/spells on level-up (beyond ASI/feats) and persist new spellbook entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  // Grow spell slots to the new level (preserving already-spent slots). Before
+  // this, slots were frozen at their level-1 values, so a level-3 caster could
+  // never cast a 2nd-level spell despite the spells being implemented.
+  const spellcastingClassId = choices?.classId || updatedCharacter.class?.id || '';
+  const grownSlots = growSpellSlots(updatedCharacter.spellSlots, spellcastingClassId, newLevel);
+  if (grownSlots) {
+    updatedCharacter.spellSlots = grownSlots;
+  }
+
+  // Level 3 is the subclass milestone. Apply the chosen subclass (defaulting to
+  // the class's first option if none was chosen) so the defining tier-1 choice
+  // actually lands and its features surface on the sheet.
+  if (newLevel >= 3 && !updatedCharacter.subclassId) {
+    const chosenSubclass = choices?.subclassId ?? subclassesForClass(spellcastingClassId)[0]?.id;
+    if (chosenSubclass) {
+      updatedCharacter.subclassId = chosenSubclass;
+    }
+  }
+
+  // TODO #1280(FEATURES): Grant class abilities/spells on level-up (beyond ASI/feats/slots) and persist new spellbook entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   // Recalculate derived scores after ASI/feat adjustments.
   updatedCharacter = applyRacialSpellGrantsByLevel(updatedCharacter, newLevel);
   updatedCharacter.finalAbilityScores = calculateFinalAbilityScores(updatedCharacter.abilityScores, updatedCharacter.race, updatedCharacter.equippedItems);

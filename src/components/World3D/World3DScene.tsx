@@ -34,14 +34,18 @@
 
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Sky } from '@react-three/drei';
 import * as THREE from 'three';
+import World3DLighting from './World3DLighting';
 import FreeRoamCameraController, { type CameraFrameRequest } from './FreeRoamCameraController';
 import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
+import { VegetationTrees } from './vegetation/VegetationTrees';
+import { GrassLayer } from './vegetation/GrassLayer';
 import { useChunkStreaming } from './useChunkStreaming';
 import World3DNameplates from './World3DNameplates';
 import GroundAgents from './GroundAgents';
+import GroundProps from './GroundProps';
 import SceneCast, { type SceneCastMember } from './SceneCast';
+import PlayerAvatar from './PlayerAvatar';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import type { ChunkCoord, ChunkLoader, LoadedChunk, TerrainEdgeSkirt } from '@/systems/world3d/types';
 import { buildRoofGeometry } from '@/systems/world3d/buildingModels';
@@ -97,13 +101,22 @@ interface World3DSceneProps {
    * once the opening is over.
    */
   sceneCast?: SceneCastMember[];
+  /**
+   * Ground mode: the player's LOGICAL position (tile-local ground meters,
+   * `playerGroundPos`) — drives the visible player avatar. Camera walk and
+   * Locale-map click-to-move both write this state, so the body follows both.
+   */
+  playerGroundPos?: { xM: number; zM: number } | null;
+  /** Ground mode: identity for the player avatar body + nameplate. */
+  playerIdentity?: { id?: string; name?: string; raceName?: string } | null;
+  /**
+   * Fractional hour driving the sun/sky/fog model (World3DLighting). Plumbed
+   * for the game clock; defaults to a pleasant fixed late-morning.
+   */
+  timeOfDayHours?: number;
 }
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
-
-// Sun direction shared by the atmospheric sky and the directional light so the
-// lit side of terrain/buildings matches where the sun visibly sits in the sky.
-const SUN_DIRECTION: [number, number, number] = [120, 150, 80];
 
 // --- per-chunk rendering ---
 
@@ -249,7 +262,7 @@ const RoadPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   );
   if (!roads) return null;
   return (
-    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
+    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} receiveShadow={SHADOWS}>
       <meshStandardMaterial color="#a08b62" /> {/* packed dirt: light enough to read against grass at walking scale (shot-1 review) */}
     </mesh>
   );
@@ -418,6 +431,7 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
             key={`part-${i}`}
             position={[p.x, (p.baseY ?? 0) + p.h * 0.5, p.z * -(s.doorZSign ?? -1)]}
             castShadow={SHADOWS}
+            receiveShadow={SHADOWS}
           >
             <boxGeometry args={[p.w, p.h, p.d]} />
             {/* Apply wall texture only to tall perimeter/interior walls (h >= 2.0) */}
@@ -425,7 +439,7 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
           </mesh>
         ))
       ) : (
-        <mesh position={[0, (s.boxHeight ?? 0) * 0.5, 0]} castShadow={SHADOWS}>
+        <mesh position={[0, (s.boxHeight ?? 0) * 0.5, 0]} castShadow={SHADOWS} receiveShadow={SHADOWS}>
           <boxGeometry args={[s.boxWidth, s.boxHeight, s.boxDepth]} />
           <meshStandardMaterial color={s.colorHex ?? '#b09a72'} map={wallTex || null} />
         </mesh>
@@ -501,21 +515,12 @@ const SitePieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chu
 const VegetationPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
   const veg = chunk.bundle.vegetation;
   const bushes = chunk.bundle.bushes;
-  const treeRef = useRef<THREE.InstancedMesh>(null);
   const bushRef = useRef<THREE.InstancedMesh>(null);
-  // Track the last payload keys so identical worker-cloned scatters do not
-  // rewrite every instance matrix again (W3D-G25). Trees and bushes are
-  // separate instanced layers (variety dispatch 2026-06-12): distinct
-  // geometry + per-instance palette colors, one draw call per kind.
-  const lastTreeCacheKey = useRef<string | null>(null);
+  // Track the last payload key so identical worker-cloned scatters do not
+  // rewrite every instance matrix again (W3D-G25). Trees moved to the
+  // procedural VegetationTrees layer (vegetation lift 2026-07-04); bushes
+  // remain a single instanced sphere layer with palette colors.
   const lastBushCacheKey = useRef<string | null>(null);
-  useEffect(() => {
-    if (!veg || !treeRef.current) {
-      lastTreeCacheKey.current = null;
-      return;
-    }
-    syncVegetationInstanceMatrices(treeRef.current, veg, lastTreeCacheKey, 'tree');
-  }, [veg?.cacheKey]);
   useEffect(() => {
     if (!bushes || !bushRef.current) {
       lastBushCacheKey.current = null;
@@ -528,13 +533,9 @@ const VegetationPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = (
   if (treeCount === 0 && bushCount === 0) return null;
   return (
     <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-      {treeCount > 0 && (
-        <instancedMesh ref={treeRef} args={[undefined, undefined, treeCount]} castShadow={SHADOWS}>
-          <coneGeometry args={[1, 1, 8]} />
-          {/* White base: per-instance palette colors multiply against it. */}
-          <meshStandardMaterial color="#ffffff" flatShading />
-        </instancedMesh>
-      )}
+      {/* Vegetation lift (beautification wave): procedural instanced trees
+          replace the old placeholder cones. Same scatter positions, new look. */}
+      {treeCount > 0 && veg && <VegetationTrees scatter={veg} castShadow={SHADOWS} />}
       {bushCount > 0 && (
         <instancedMesh ref={bushRef} args={[undefined, undefined, bushCount]} castShadow={SHADOWS}>
           <sphereGeometry args={[1, 6, 4]} />
@@ -560,6 +561,9 @@ const ChunkPieces: React.FC<{
     <DeckPiece chunk={chunk} origin={origin} />
     <SitePieces chunk={chunk} origin={origin} />
     <VegetationPiece chunk={chunk} origin={origin} />
+    {/* Near-camera instanced grass (vegetation lift): only chunks near the
+        anchor mount a grass mesh — cheap distance falloff. */}
+    <GrassLayer chunk={chunk} anchor={anchor} position={chunkScenePos(chunk.cx, chunk.cy, origin)} />
   </>
 );
 
@@ -576,6 +580,9 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   agentClock,
   frameTownCellNonce = 0,
   sceneCast,
+  playerGroundPos = null,
+  playerIdentity = null,
+  timeOfDayHours,
 }) => {
   const { loaded, update } = useChunkStreaming(loader);
 
@@ -653,7 +660,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
     <div style={{ width: '100%', height: '100%', minHeight: '520px', flex: '1 1 auto', background: '#cdd9e6', borderRadius: '12px', overflow: 'hidden' }}>
       <ForgeAssetContext.Provider value={forgeAssetService}>
       <Canvas
-        shadows={SHADOWS}
+        shadows={SHADOWS && viewProfile === 'ground' ? 'soft' : false}
         camera={{ fov: 55, near: 1, far: 60000, position: camPosition }}
         gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
         onCreated={({ gl, scene }) => {
@@ -680,24 +687,9 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           );
         }}
       >
-        {/* Atmospheric sky dome (Preetham scattering) — sun aligned to the
-            directional light so highlights match the visible sun. Replaces the
-            flat background colour with a real graduated sky + horizon haze. */}
-        <Sky
-          distance={45000}
-          sunPosition={SUN_DIRECTION}
-          turbidity={6}
-          rayleigh={1.2}
-          mieCoefficient={0.005}
-          mieDirectionalG={0.8}
-        />
-        {/* Cool sky / warm bounce hemisphere fill + a warm sun key light. */}
-        <hemisphereLight args={[0xbcd6ff, 0x6b6048, 0.75]} />
-        <directionalLight position={SUN_DIRECTION} intensity={1.9} color={0xfff1da} />
-        {/* Ground profile pulls the fog in to meet the artifact-edge haze;
-            continent keeps the km-scale falloff. Warm horizon haze matches the
-            sky so distant terrain dissolves into it instead of a flat wall. */}
-        <fog attach="fog" args={viewProfile === 'ground' ? [0xcdd9e6, 450, 2000] : [0xcdd9e6, 1100, 5200]} />
+        {/* Sun + sky + hemisphere fill + distance fog + soft follow-frustum
+            shadows (ground profile). Time-of-day plumbed, fixed late-morning. */}
+        <World3DLighting viewProfile={viewProfile} timeOfDayHours={timeOfDayHours} />
         <FreeRoamCameraController
           initialTarget={[0, startSurfaceY, 0]}
           sceneOrigin={sceneOrigin}
@@ -725,8 +717,25 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           />
         ))}
         <GroundAgents ground={groundWorld} clock={agentClock} sceneOrigin={sceneOrigin} />
+        {viewProfile === 'ground' && (
+          <GroundProps ground={groundWorld} sceneOrigin={sceneOrigin} />
+        )}
         {sceneCast && sceneCast.length > 0 && (
           <SceneCast cast={sceneCast} surfaceY={startSurfaceY} />
+        )}
+        {/* The player's own body at the logical ground position. Skipped while
+            the staged opening cast is up — that already renders a player figure
+            at the spawn cluster, and two bodies would double-expose. */}
+        {viewProfile === 'ground' && !(sceneCast && sceneCast.some((m) => m.isPlayer)) && (
+          <PlayerAvatar
+            groundPos={playerGroundPos}
+            ground={groundWorld}
+            sceneOrigin={sceneOrigin}
+            startSurfaceY={startSurfaceY}
+            playerName={playerIdentity?.name}
+            playerId={playerIdentity?.id}
+            raceName={playerIdentity?.raceName}
+          />
         )}
       </Canvas>
       </ForgeAssetContext.Provider>

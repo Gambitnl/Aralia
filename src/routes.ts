@@ -31,6 +31,7 @@ export const PHASE_SLUG_OVERRIDES: Partial<Record<GamePhase, string>> = {
   [GamePhase.AGENTSIM_3D_PREVIEW]: 'agentsim3d',
   [GamePhase.START_POINT_SELECTION]: 'startselect',
   [GamePhase.LIVING_WORLD_PREVIEW]: 'livingworld',
+  [GamePhase.WEBGPU_PROBE]: 'webgpuprobe',
 };
 
 // Reverse lookup: clean slug -> phase. Derived from the overrides so the two

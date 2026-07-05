@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:35:03
- * Dependents: AbilityButton.tsx, visuals/index.ts
- * Imports: 2 files
+ * Last Sync: 04/07/2026, 21:54:48
+ * Dependents: utils/visuals/index.ts
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -21,6 +21,7 @@
 
 import { Spell, SpellSchool } from '../../types/spells';
 import { VisualAsset } from '../../types/visuals';
+import { getSpellIconAsset } from './combatIconVisuals';
 
 /**
  * Standard color mappings for D&D 5e Spell Schools.
@@ -60,6 +61,7 @@ export const SCHOOL_ICONS: Record<SpellSchool, string> = {
 export function getSpellVisual(spell: Spell): VisualAsset {
   const schoolColor = SCHOOL_COLORS[spell.school] || '#9ca3af'; // Default gray
   const schoolIcon = SCHOOL_ICONS[spell.school] || '✨';
+  const staticIcon = getSpellIconAsset(spell);
 
   // Determine fallback content (could be damage type based in future)
   const fallback = schoolIcon;
@@ -69,7 +71,9 @@ export function getSpellVisual(spell: Spell): VisualAsset {
   }
 
   return {
-    src: undefined, // No static assets yet
+    // Use the reusable SVG icon pack for combat buttons while keeping the
+    // school glyph as a fallback for any renderer that cannot load images.
+    src: staticIcon,
     fallbackContent: fallback,
     primaryColor: schoolColor,
     secondaryColor: '#ffffff',

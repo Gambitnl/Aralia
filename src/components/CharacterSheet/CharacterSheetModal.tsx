@@ -67,6 +67,8 @@ interface CharacterSheetModalProps {
   onNavigateToGlossary?: (termId: string) => void;
   quests?: Quest[];
   journal?: JournalState;
+  /** Full party, used by the spellbook's out-of-combat cast target picker. */
+  party?: PlayerCharacter[];
 }
 
 type SheetTab = 'overview' | 'skills' | 'details' | 'family' | 'spellbook' | 'crafting' | 'journal';
@@ -82,6 +84,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   onNavigateToGlossary,
   quests = [],
   journal,
+  party,
 }) => {
   const [activeTab, setActiveTab] = useState<SheetTab>('overview');
   const [filterBySlot, setFilterBySlot] = useState<EquipmentSlotType | null>(null);
@@ -261,7 +264,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
             <FamilyTreeTab character={character} />
           )}
           {activeTab === 'spellbook' && (
-            <SpellbookTab character={character} onAction={onAction} />
+            <SpellbookTab character={character} onAction={onAction} party={party} />
           )}
           {activeTab === 'crafting' && (
             <CraftingTab />

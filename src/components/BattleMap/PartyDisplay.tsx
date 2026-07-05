@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 07/05/2026, 00:04:07
- * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx
- * Imports: 2 files
+ * Last Sync: 04/07/2026, 21:56:57
+ * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -24,6 +24,7 @@ import { CombatCharacter } from '../../types/combat';
 import Tooltip from '../Tooltip';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+import { getCreatureTokenVisual } from '../../utils/visuals/combatIconVisuals';
 
 interface PartyMemberDisplayProps {
   character: CombatCharacter;
@@ -72,6 +73,27 @@ const renderActionEconomy = (character: CombatCharacter) => {
   );
 };
 
+const CombatantPortrait: React.FC<{ character: CombatCharacter; tone: 'player' | 'enemy' }> = ({ character, tone }) => {
+  const visual = getCreatureTokenVisual(character);
+
+  return (
+    <div
+      className={`h-10 w-10 shrink-0 overflow-hidden rounded-md border bg-gray-900 shadow-inner ${
+        tone === 'enemy' ? 'border-red-500/60' : 'border-sky-500/60'
+      }`}
+      aria-hidden="true"
+    >
+      {visual.src ? (
+        <img src={visual.src} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-sm font-black text-gray-200">
+          {visual.fallbackContent}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onClick, onInspect, isTurn, isAuto, onToggleAuto }) => {
   const healthPercentage = (character.currentHP / character.maxHP) * 100;
 
@@ -82,8 +104,12 @@ const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onCl
           className="w-full text-left focus:outline-none"
           aria-label={`Select ${character.name}`}
       >
-          <div className="flex justify-between items-center mb-1.5 pr-16">
-          <p className="text-md font-semibold text-amber-300 truncate">{character.name}</p>
+          {/* The roster portrait uses the same visual resolver as map tokens, so
+              future generated enemy/player portraits can land in one helper
+              instead of each combat panel inventing its own fallback. */}
+          <div className="mb-1.5 flex items-center gap-2 pr-16">
+          <CombatantPortrait character={character} tone="player" />
+          <p className="min-w-0 text-md font-semibold text-amber-300 truncate">{character.name}</p>
           </div>
           <Tooltip content={`${character.name} - ${character.class.name} (Hit Points: ${character.currentHP}/${character.maxHP})`}>
             <div className="w-full bg-gray-900 rounded-full h-5 shadow-inner overflow-hidden relative border border-gray-500">
@@ -138,8 +164,12 @@ const EnemyMemberDisplay: React.FC<EnemyMemberDisplayProps> = ({ character, onCl
           className="w-full text-left focus:outline-none"
           aria-label={`Select ${character.name}`}
       >
-          <div className="flex justify-between items-center mb-1.5">
-          <p className="text-md font-semibold text-red-400 truncate">{character.name}</p>
+          {/* Enemy roster cards now show the combat SVG identity used by map
+              tokens, matching the mockup direction without changing HP or
+              turn-selection behavior. */}
+          <div className="mb-1.5 flex items-center gap-2 pr-8">
+          <CombatantPortrait character={character} tone="enemy" />
+          <p className="min-w-0 text-md font-semibold text-red-400 truncate">{character.name}</p>
           </div>
           <Tooltip content={`${character.name} - (Hit Points: ${character.currentHP}/${character.maxHP})`}>
             <div className="w-full bg-gray-900 rounded-full h-5 shadow-inner overflow-hidden relative border border-gray-500">

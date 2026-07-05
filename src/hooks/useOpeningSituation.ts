@@ -25,6 +25,7 @@ import type { ConversationMessage, ConversationNpcParticipant } from '../types/c
 import {
     generateOpeningSituation,
     composeOpeningNarration,
+    filterPlayerEchoNpcs,
     type GenerateOpeningSituationDeps,
 } from '../systems/gameEntry/generateOpeningSituation';
 import { situationNpcsToRichNpcs } from '../systems/gameEntry/situationNpcToRichNpc';
@@ -163,7 +164,14 @@ export function useOpeningSituation(
         // the RAW response there even when the JSON below fails to parse, so the
         // unparseable output is always inspectable in the in-app viewer.
         try {
-            const situation = await generate(character, location);
+            const generated = await generate(character, location);
+            // The model occasionally echoes the PLAYER back as a scene NPC
+            // ("Talk to <yourself>"); drop any generated NPC whose name matches
+            // a party member before placement and conversation seeding.
+            const situation = filterPlayerEchoNpcs(
+                generated,
+                (gameState.party ?? []).map((p) => p.name),
+            );
 
             // Place the generated strangers into the scene as real, interactable
             // NPCs (not just chat voices) before opening the conversation.

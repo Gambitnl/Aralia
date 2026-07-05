@@ -16,6 +16,7 @@ import { describe, it, expect } from 'vitest';
 import {
   evaluateRecruitOffer,
   DISPOSITION_JOIN_THRESHOLD,
+  DISPOSITION_HIRE_THRESHOLD,
   RELATIONSHIP_JOIN_THRESHOLD,
   LEVEL_WEIGHT,
 } from '../recruitConsent';
@@ -114,6 +115,43 @@ describe('evaluateRecruitOffer', () => {
       const npc = makeNpc('ghost', 'Vex');
       const state = makeState();
       expect(evaluateRecruitOffer(npc, state).willJoin).toBe(false);
+    });
+
+    it('REFUSES a neutral stranger at the default disposition of 50 (2026-07-04 tuning)', () => {
+      // Live-play regression: an NpcMemory record defaults to disposition 50,
+      // so a complete stranger auto-joined for free. 50 must now decline.
+      const npc = makeNpc('stranger', 'Bren');
+      const state = makeState({ npcMemory: { stranger: { disposition: 50 } } });
+      const v = evaluateRecruitOffer(npc, state);
+      expect(v.willJoin).toBe(false);
+      expect(v.reason).toMatch(/Bren/);
+    });
+
+    it('accepts a warmed-up acquaintance at disposition 70 (above earned threshold)', () => {
+      const npc = makeNpc('stranger', 'Bren');
+      const state = makeState({ npcMemory: { stranger: { disposition: 70 } } });
+      expect(evaluateRecruitOffer(npc, state).willJoin).toBe(true);
+    });
+  });
+
+  describe('paid hire (tavern surface, opts.hire)', () => {
+    it('accepts a neutral stranger (disposition 50) when the player is paying', () => {
+      const npc = makeNpc('barkeep', 'Tam');
+      const state = makeState({ npcMemory: { barkeep: { disposition: DISPOSITION_HIRE_THRESHOLD } } });
+      const v = evaluateRecruitOffer(npc, state, { hire: true });
+      expect(v.willJoin).toBe(true);
+      expect(v.reason).toMatch(/coin/i);
+    });
+
+    it('still refuses a hire from an NPC who dislikes you', () => {
+      const npc = makeNpc('barkeep', 'Tam');
+      const state = makeState({ npcMemory: { barkeep: { disposition: 20 } } });
+      expect(evaluateRecruitOffer(npc, state, { hire: true }).willJoin).toBe(false);
+    });
+
+    it('free-join threshold is strictly above the hire threshold and the neutral default', () => {
+      expect(DISPOSITION_JOIN_THRESHOLD).toBeGreaterThan(DISPOSITION_HIRE_THRESHOLD);
+      expect(DISPOSITION_JOIN_THRESHOLD).toBeGreaterThan(50);
     });
   });
 

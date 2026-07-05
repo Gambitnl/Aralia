@@ -12,16 +12,22 @@ import { Z_INDEX } from '../../../styles/zIndex';
 import { FullEntryDisplay } from '../../Glossary/FullEntryDisplay';
 import { findGlossaryEntryAndPath } from '../../../utils/glossaryUtils';
 import SpellSlotDisplay from './SpellSlotDisplay';
+import CastSpellControls from './CastSpellControls';
 import { getPreparedSpellsAffectingLimit, isRacialSpellLockedForPreparation, getMaxPreparedSpells } from '../../../utils/character/characterUtils';
+
+// Casters that pick spells permanently (no daily preparation step).
+const KNOWN_CASTER_CLASS_IDS = ['bard', 'sorcerer', 'warlock', 'ranger'];
 
 interface SpellbookOverlayProps {
   isOpen: boolean;
   character: PlayerCharacter;
   onClose: () => void;
   onAction: (action: Action) => void;
+  /** Full party, used by the out-of-combat cast target picker. */
+  party?: PlayerCharacter[];
 }
 
-const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, onClose, onAction }) => {
+const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, onClose, onAction, party }) => {
   const [currentLevel, setCurrentLevel] = useState(0);
   const [selectedSpellId, setSelectedSpellId] = useState<string | null>(null);
   const [showAllPossibleSpells, setShowAllPossibleSpells] = useState(false);
@@ -107,6 +113,33 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
     const { entry } = findGlossaryEntryAndPath(selectedSpellId, glossaryEntries);
     return entry;
   }, [selectedSpellId, glossaryEntries]);
+
+  // Full spell record (with effects) for the out-of-combat cast controls.
+  const selectedSpell = useMemo(() => {
+    if (!selectedSpellId || !allSpellsData) return null;
+    return allSpellsData[selectedSpellId] || null;
+  }, [selectedSpellId, allSpellsData]);
+
+  // Readiness gate for the out-of-combat Cast button: cantrips must be known;
+  // leveled spells must be prepared (or simply known for known-spell casters).
+  const castReadiness = useMemo(() => {
+    if (!selectedSpell) return { ready: false as const, reason: undefined as string | undefined };
+    if (selectedSpell.level === 0) {
+      return knownSpellIds.has(selectedSpell.id)
+        ? { ready: true as const, reason: undefined }
+        : { ready: false as const, reason: 'Not a known cantrip.' };
+    }
+    const isKnownCaster = KNOWN_CASTER_CLASS_IDS.includes(character.class.id.toLowerCase());
+    const alwaysPrepared =
+      isRacialSpellLockedForPreparation(character, selectedSpell.id) ||
+      (character.class.id === 'druid' && selectedSpell.id === 'speak-with-animals');
+    const ready = isKnownCaster
+      ? knownSpellIds.has(selectedSpell.id)
+      : preparedSpellIds.has(selectedSpell.id) || alwaysPrepared;
+    return ready
+      ? { ready: true as const, reason: undefined }
+      : { ready: false as const, reason: isKnownCaster ? 'Not a known spell.' : 'Not prepared.' };
+  }, [selectedSpell, character, knownSpellIds, preparedSpellIds]);
 
   if (!isOpen || !allSpellsData || !character.spellbook) {
     return null;
@@ -274,6 +307,18 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
                 </div>
               </label>
             </div>
+
+            {/* Out-of-combat casting bar for the selected spell */}
+            {selectedSpell && (
+              <CastSpellControls
+                spell={selectedSpell}
+                character={character}
+                party={party}
+                isReadyToCast={castReadiness.ready}
+                notReadyReason={castReadiness.reason}
+                onAction={onAction}
+              />
+            )}
 
             {/* Spell Detail Pane */}
             <div className="flex-1 overflow-y-auto p-6 scrollable-content">

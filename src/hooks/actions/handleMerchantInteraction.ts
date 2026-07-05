@@ -10,12 +10,89 @@ import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { calculatePrice } from '../../utils/economy/economyUtils';
 import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
-import { generateNpcBusiness, pickBusinessTypeForMerchant } from '../../systems/economy/NpcBusinessManager';
+import { generateNpcBusiness, businessTypeForMerchantType } from '../../systems/economy/NpcBusinessManager';
 import { SeededRandom } from '@/utils/random';
 import { getGameDay } from '../../utils/core';
 import type { RichNPC } from '../../types/world';
 import { evaluateRecruitOffer } from '../../systems/party/recruitConsent';
 import { npcToPartyMember } from '../../systems/party/npcToPartyMember';
+import { priceStockItem, backfillBusinessStock } from '../../data/economy/businessStock';
+import { ALL_ITEMS } from '../../data/items';
+import type { Item } from '../../types';
+import type { WorldBusiness } from '../../types/business';
+
+/**
+ * Resolve the WorldBusiness backing a merchant NPC, if any. The merchant NPC's
+ * `businessId` links to a registered WorldBusiness which may carry persisted,
+ * owned `stock`.
+ */
+function resolveMerchantBusiness(
+  gameState: GameState,
+  npcId: string | undefined,
+): WorldBusiness | undefined {
+  if (!npcId) return undefined;
+  const businessId = gameState.generatedNpcs?.[npcId]?.businessId;
+  if (businessId && gameState.worldBusinesses?.[businessId]) {
+    return gameState.worldBusinesses[businessId];
+  }
+  // Fallback for saves where the NPC record predates the businessId link:
+  // find the registered business this NPC owns.
+  return Object.values(gameState.worldBusinesses ?? {}).find(b => b.ownerId === npcId);
+}
+
+/**
+ * Ensure a resolved business has owned stock, lazily backfilling it for
+ * businesses persisted in saves that predate the stock field. The backfill is
+ * deterministic per (worldSeed, business.id) — see stockSeedForBusiness — so
+ * every browse/save/reload of the same shop reproduces the same shelves. When a
+ * backfill happens, the updated business is persisted via REGISTER_WORLD_BUSINESS
+ * (a full-record upsert, reusing the existing action) and the patched copy is
+ * returned for immediate use in this browse.
+ */
+export function ensureBusinessStock(
+  business: WorldBusiness,
+  worldSeed: number,
+  dispatch: React.Dispatch<AppAction>,
+): WorldBusiness {
+  if (business.stock && business.stock.length > 0) return business;
+  const stock = backfillBusinessStock(business.businessType, worldSeed, business.id);
+  if (!stock) return business; // storefront-less type — nothing to backfill
+  const patched: WorldBusiness = { ...business, stock };
+  dispatch({ type: 'REGISTER_WORLD_BUSINESS', payload: { business: patched } });
+  return patched;
+}
+
+/**
+ * Build a merchant inventory from a business's persisted, owned stock.
+ *
+ * Each stock line becomes a catalog Item priced through the shared economy
+ * engine (calculatePrice) × the business's own priceMultiplier — see
+ * priceStockItem. The per-unit price is stamped onto `costInGp`/`cost` so the
+ * downstream MerchantModal and calculatePrice display it consistently, and the
+ * on-shelf quantity is carried on `quantity`. Lines whose item id is unknown or
+ * whose quantity is zero are dropped.
+ */
+export function buildInventoryFromStock(
+  business: WorldBusiness,
+  economy: GameState['economy'] | undefined,
+  regionId?: string,
+): Item[] {
+  if (!business.stock || business.stock.length === 0) return [];
+  const out: Item[] = [];
+  for (const line of business.stock) {
+    if (line.quantity <= 0) continue;
+    const base = ALL_ITEMS[line.itemId];
+    if (!base) continue;
+    const price = priceStockItem(base, business.priceMultiplier, economy, regionId, line.priceOverride);
+    out.push({
+      ...base,
+      cost: `${price} GP`,
+      costInGp: price,
+      quantity: line.quantity,
+    });
+  }
+  return out;
+}
 
 function clampNumber(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -53,7 +130,10 @@ export function offerTavernHire(
   dispatch: React.Dispatch<AppAction>,
   addMessage: AddMessageFn,
 ): void {
-  const verdict = evaluateRecruitOffer(npc, gameState);
+  // `hire: true` — this is the paid tavern-hire surface, so consent clears at
+  // neutral disposition (DISPOSITION_HIRE_THRESHOLD) rather than the stricter
+  // free-join bar.
+  const verdict = evaluateRecruitOffer(npc, gameState, { hire: true });
 
   if (!verdict.willJoin) {
     // Decline in-fiction, matching the merchant-voice style used elsewhere in
@@ -64,9 +144,18 @@ export function offerTavernHire(
     return;
   }
 
+  // Paid hire costs coin up front, scaled by the keeper's experience (they were
+  // running a business, after all). Before this, "hire" recruited for free.
+  const hireCost = 15 * Math.max(1, npc.biography?.level ?? 1);
+  if ((gameState.gold ?? 0) < hireCost) {
+    addMessage(`"I'd take up the sword again — for ${hireCost} gold. Come back when your purse is heavier."`, 'system');
+    return;
+  }
+
   const payload = npcToPartyMember(npc, 'tavern');
   dispatch({ type: 'RECRUIT_COMPANION', payload });
-  addMessage(`${npc.name} hangs up their apron and joins your party.`, 'system');
+  dispatch({ type: 'MODIFY_GOLD', payload: { amount: -hireCost } });
+  addMessage(`You pay ${hireCost} gold and ${npc.name} hangs up their apron to join your party.`, 'system');
   addMessage(verdict.reason, 'system');
 }
 
@@ -193,9 +282,14 @@ export async function handleOpenDynamicMerchant({
       // Persist to state
       dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc } });
 
-      // Generate NPC's business and link it
-      const bizRng = new SeededRandom((gameState.worldSeed || 42) + resolvedBuildingId.length);
-      const bizType = pickBusinessTypeForMerchant(bizRng);
+      // Generate NPC's business and link it. The business TYPE now derives from
+      // the building/merchant type (a blacksmith sells weapons & armor, not a
+      // random grab-bag). The RNG (for stock rolls + shop name) is seeded from a
+      // hash of the FULL building id — the old `+ id.length` seed gave every
+      // building whose id had the same length an identical shop.
+      const idHash = [...resolvedBuildingId].reduce((h, c) => ((h * 31 + c.charCodeAt(0)) >>> 0), 7);
+      const bizRng = new SeededRandom((gameState.worldSeed || 42) + idHash);
+      const bizType = businessTypeForMerchantType(merchantType);
       const locationId = gameState.currentLocationId || 'unknown';
       const gameDay = getGameDay(gameState.gameTime);
       const npcBusiness = generateNpcBusiness(npc, locationId, bizType, gameDay, bizRng);
@@ -208,8 +302,14 @@ export async function handleOpenDynamicMerchant({
       addMessage(`You recognize ${npc.name}.`, 'system');
     }
 
-    // Use the generated name for the UI
-    merchantName = `${npc.name} (${merchantType})`;
+    // Use the generated name for the UI. When the merchant has a linked
+    // WorldBusiness with a proper shop name (e.g. "The Gilded Blade"), lead with
+    // that rather than the raw building type ("shop_blacksmith") — a linked shop
+    // is a named place, not a debug token.
+    const linkedForName = resolveMerchantBusiness(gameState, resolvedBuildingId);
+    merchantName = linkedForName?.name
+      ? `${linkedForName.name} — ${npc.name}`
+      : `${npc.name} (${merchantType})`;
 
     // Tavern/inn hire affordance: the keeper of a drinking house can be invited
     // to join the party. An explicit `hire` intent (a "Hire <name>" affordance)
@@ -222,7 +322,6 @@ export async function handleOpenDynamicMerchant({
     }
   }
 
-  // 1. Generate inventory using Gemini
   const contextForPrompt = villageContext as VillageActionContext | undefined;
   if (contextForPrompt) {
     addMessage(
@@ -230,6 +329,37 @@ export async function handleOpenDynamicMerchant({
       'system'
     );
   }
+
+  // 0. Prefer the merchant's persisted, owned stock when it exists. A registered
+  //    WorldBusiness carries a deterministic, type-appropriate inventory priced
+  //    through the shared economy engine — no LLM call, stable across visits, and
+  //    decremented on purchase. Falls through to Gemini generation only when the
+  //    merchant has no linked business stock (e.g. ad-hoc merchants).
+  const resolvedBusiness = resolveMerchantBusiness(gameState, resolvedBuildingId);
+  // Saves that predate the stock field carry businesses without stock; backfill
+  // deterministically and persist so the shop behaves like a fresh registration.
+  const linkedBusiness = resolvedBusiness
+    ? ensureBusinessStock(resolvedBusiness, gameState.worldSeed || 42, dispatch)
+    : undefined;
+  if (linkedBusiness?.stock && linkedBusiness.stock.length > 0) {
+    const regionId = (gameState as { currentRegionId?: string }).currentRegionId;
+    const stockInventory = buildInventoryFromStock(linkedBusiness, gameState.economy, regionId);
+    if (stockInventory.length > 0) {
+      dispatch({
+        type: 'OPEN_MERCHANT',
+        payload: {
+          merchantName,
+          inventory: stockInventory,
+          economy: gameState.economy,
+        },
+      });
+      addMessage(`You browse the wares at ${linkedBusiness.name}.`, 'system');
+      dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
+      return;
+    }
+  }
+
+  // 1. Generate inventory using Gemini (no owned stock on this merchant)
 
   // TownCanvas interactions often provide `buildingId` but not a full VillageActionContext.
   // We still want deterministic fallback inventories per-building (when AI is off / fails),
@@ -439,7 +569,20 @@ export async function handleMerchantAction({
     const finalCost = roundToCopper(cost * activePriceMultiplier);
     const validation = validateMerchantTransaction('buy', { item, cost: finalCost }, gameState);
     if (validation.valid) {
-      dispatch({ type: 'BUY_ITEM', payload: { item, cost: finalCost } });
+      // Buy ONE unit for the single-unit price. Stocked items carry a stack
+      // quantity (e.g. 30 rations); inserting the whole stack for one unit's
+      // cost was a duplication/infinite-money exploit once buying worked.
+      dispatch({ type: 'BUY_ITEM', payload: { item: { ...item, quantity: 1 }, cost: finalCost } });
+      // If this merchant owns persisted stock and the bought item is one of its
+      // stock lines, decrement the owned quantity so the shelf depletes across
+      // visits (BUY_ITEM only trims the transient modal inventory).
+      const merchantBusiness = resolveMerchantBusiness(gameState, merchantId);
+      if (merchantBusiness?.stock?.some(s => s.itemId === item.id)) {
+        dispatch({
+          type: 'DEBIT_BUSINESS_STOCK',
+          payload: { businessId: merchantBusiness.id, itemId: item.id, quantity: 1 },
+        });
+      }
       addMessage(
         `You purchased ${item.name} for ${finalCost} gold${activePriceMultiplier < 1 ? ' (discounted)' : activePriceMultiplier > 1 ? ' (increased)' : ''}.`,
         'system'

@@ -13,6 +13,10 @@
 // JSON file (default `.agent/agora/client-identity.json`, dir configurable via
 // AGORA_DIR). Shape: { "<baseUrl>": { agentId, handle, token } }. `register` writes
 // it; other commands read the token from it (or accept `--token`).
+// Set AGORA_AGENT_ID=<unique key> to scope the file per agent
+// (`client-identity.<key>.json`) so concurrent agents in one checkout don't share
+// an identity — a shared identity means `unlock --mine` releases the OTHER
+// agent's locks.
 //
 // Base URL precedence: --url > AGORA_URL > http://localhost:4319.
 //
@@ -23,6 +27,7 @@
 
 import http from 'node:http';
 import https from 'node:https';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -87,8 +92,17 @@ function identityDir(env) {
   return path.join(REPO_ROOT, '.agent', 'agora');
 }
 
+// Per-agent identity scoping: two concurrent agents in ONE checkout used to share
+// client-identity.json, so `unlock --mine` from one released the OTHER's locks
+// (observed 2026-07-04). Set AGORA_AGENT_ID to any unique string (session id,
+// PID+suffix, handle) and this process gets its own identity file. Unset = the
+// legacy shared path, so single-agent use is unchanged.
 function identityPath(env) {
-  return path.join(identityDir(env), 'client-identity.json');
+  const agentKey = typeof env.AGORA_AGENT_ID === 'string' && env.AGORA_AGENT_ID.trim()
+    ? env.AGORA_AGENT_ID.trim().replace(/[^A-Za-z0-9._-]/g, '_')
+    : null;
+  const file = agentKey ? `client-identity.${agentKey}.json` : 'client-identity.json';
+  return path.join(identityDir(env), file);
 }
 
 function loadIdentities(env) {
@@ -245,12 +259,23 @@ Global flags:
   --url <baseUrl>        daemon base URL (default http://localhost:4319, or AGORA_URL)
   --token <token>        bearer token override (default: stored identity)
 
+Env:
+  AGORA_AGENT_ID         unique per-agent key; scopes the stored identity file so
+                         concurrent agents in one checkout don't share locks/identity
+  AGORA_DIR              identity dir override (default .agent/agora)
+  AGORA_URL              daemon base URL override
+
 Commands:
   onboard <handle> [--note "..."] [--gaps [root]]
                                           START HERE if you are new: register + one-shot
                                           briefing (peers, locks, ready tasks, rules;
                                           --gaps adds the project-tracker open-gap summary)
-  register <handle> [--note "..."]       register, store identity, print agentId+handle
+  register <handle> [--note "..."] [--model <m>] [--session <id>]
+                                          register, store identity, print agentId+handle
+                                          (409 if a live agent already holds <handle>);
+                                          --model = which model you are (orchestrator stamps it),
+                                          --session/--thread/--conversation = your own thread id
+  register --random [base] [--note "..."] auto-claim a free unique handle (solo agents)
   heartbeat [--every <sec>] [--count N | --for <min>]
                                           keep presence fresh during long work (run in bg;
                                           silent >60min = reaped)
@@ -283,22 +308,72 @@ Commands:
   health                                  probe the daemon
   help                                    this message`;
 
+// A collision-resistant handle for a solo agent that has no name assigned to it
+// (`register --random` / bare `register`). The daemon still enforces uniqueness;
+// the random suffix just makes a clash astronomically unlikely on the first try.
+function randomHandle(base) {
+  const suffix = crypto.randomBytes(3).toString('hex');
+  return `${(base && String(base)) || 'agent'}-${suffix}`;
+}
+
 async function cmdRegister(out, parsed, env, baseUrl) {
-  const handle = parsed._[0];
-  if (!handle) {
-    out.log('Usage: register <handle> [--note "..."]');
+  // Solo agents can't reliably invent a unique name, so `--random` (or omitting
+  // the handle) lets the client generate one and CLAIM it against the daemon,
+  // retrying if some other agent grabbed it first. Orchestrated workers still
+  // pass an explicit handle their parent allocated.
+  const wantRandom = parsed.flags.random === true || parsed._[0] === undefined;
+  const base = typeof parsed.flags.random === 'string' ? parsed.flags.random : parsed._[0];
+  if (!wantRandom && !parsed._[0]) {
+    out.log('Usage: register <handle> [--note "..."]   |   register --random [base]');
     return { code: 1 };
   }
   const note = typeof parsed.flags.note === 'string' ? parsed.flags.note : undefined;
-  const r = await api(baseUrl, 'POST', '/agents/register', { body: { handle, note } });
-  if (r.status !== 201 || !r.json) {
-    out.log(`register failed (${r.status}): ${r.json ? r.json.error : r.text}`);
-    return { code: 1 };
+  // `--allow-duplicate` opts out of the daemon's handle-claim check (legacy flows).
+  const unique = parsed.flags['allow-duplicate'] === true ? false : undefined;
+  // Optional provenance. --model is usually stamped by the orchestrator at launch;
+  // the agent's own conversation/thread id accepts several flag names.
+  const model = typeof parsed.flags.model === 'string' ? parsed.flags.model
+    : (typeof env.AGORA_MODEL === 'string' && env.AGORA_MODEL) ? env.AGORA_MODEL : undefined;
+  const sessionId = typeof parsed.flags.session === 'string' ? parsed.flags.session
+    : typeof parsed.flags.thread === 'string' ? parsed.flags.thread
+    : typeof parsed.flags.conversation === 'string' ? parsed.flags.conversation
+    : (typeof env.AGORA_SESSION_ID === 'string' && env.AGORA_SESSION_ID) ? env.AGORA_SESSION_ID : undefined;
+
+  const maxTries = wantRandom ? 6 : 1;
+  let last = null;
+  for (let attempt = 0; attempt < maxTries; attempt++) {
+    const handle = wantRandom ? randomHandle(base) : parsed._[0];
+    const r = await api(baseUrl, 'POST', '/agents/register', { body: { handle, note, unique, model, sessionId } });
+    last = r;
+    if (r.status === 201 && r.json) {
+      saveIdentity(env, baseUrl, {
+        agentId: r.json.agentId,
+        handle: r.json.handle,
+        token: r.json.token,
+        registeredAt: r.json.registeredAt,
+        model: r.json.model || '',
+        sessionId: r.json.sessionId || '',
+      });
+      out.log(`Registered as "${r.json.handle}"  agentId=${r.json.agentId}`);
+      out.log(`Identity saved to ${identityPath(env)} for ${baseUrl}`);
+      // A stable per-session key is what ties this agent's LATER cli invocations
+      // to this identity. If the caller didn't set one, tell them to pin it — the
+      // daemon-claimed name is the natural value.
+      if (!(typeof env.AGORA_AGENT_ID === 'string' && env.AGORA_AGENT_ID.trim())) {
+        out.log(`TIP: export AGORA_AGENT_ID="${r.json.handle}" so your next commands reuse THIS identity`);
+      }
+      return { code: 0, identity: r.json };
+    }
+    if (r.status === 409) {
+      if (wantRandom) continue; // name got taken between tries — spin a new one
+      out.log(`register failed: ${r.json ? r.json.error : 'handle already claimed'}`);
+      out.log('  Pick a different handle, or `register --random` to auto-claim a free one.');
+      return { code: 1, conflict: r.json && r.json.conflict };
+    }
+    break; // non-409 error: stop and report below
   }
-  saveIdentity(env, baseUrl, { agentId: r.json.agentId, handle: r.json.handle, token: r.json.token });
-  out.log(`Registered as "${r.json.handle}"  agentId=${r.json.agentId}`);
-  out.log(`Identity saved to ${identityPath(env)} for ${baseUrl}`);
-  return { code: 0, identity: r.json };
+  out.log(`register failed (${last ? last.status : '?'}): ${last && last.json ? last.json.error : last ? last.text : 'no response'}`);
+  return { code: 1 };
 }
 
 function cmdWhoami(out, parsed, env, baseUrl) {
@@ -307,10 +382,13 @@ function cmdWhoami(out, parsed, env, baseUrl) {
     out.log(`not registered for ${baseUrl}`);
     return { code: 1 };
   }
-  out.log(`handle:  ${id.handle}`);
-  out.log(`agentId: ${id.agentId}`);
-  out.log(`baseUrl: ${baseUrl}`);
-  out.log(`token:   ${id.token}`);
+  out.log(`handle:    ${id.handle}`);
+  out.log(`agentId:   ${id.agentId}`);
+  out.log(`baseUrl:   ${baseUrl}`);
+  if (id.model) out.log(`model:     ${id.model}`);
+  if (id.sessionId) out.log(`sessionId: ${id.sessionId}`);
+  if (id.registeredAt) out.log(`checkedIn: ${new Date(id.registeredAt).toISOString()}`);
+  out.log(`token:     ${id.token}`);
   return { code: 0, identity: id };
 }
 
@@ -323,8 +401,10 @@ async function cmdAgents(out, parsed, env, baseUrl) {
   }
   const now = Date.now();
   for (const a of agents) {
+    const model = a.model ? `  [${a.model}]` : '';
+    const inFor = a.registeredAt ? `  in ${relativeTime(a.registeredAt, now)}` : '';
     const note = a.note ? `  — ${a.note}` : '';
-    out.log(`${statusDot(a.status)} ${a.handle.padEnd(16)} ${shortId(a.id)}  seen ${relativeTime(a.lastSeen, now)}${note}`);
+    out.log(`${statusDot(a.status)} ${a.handle.padEnd(16)} ${shortId(a.id)}${model}  seen ${relativeTime(a.lastSeen, now)}${inFor}${note}`);
   }
   return { code: 0, agents };
 }
@@ -864,8 +944,10 @@ async function cmdHealth(out, parsed, env, baseUrl) {
 // coordination rules. One command instead of three prose docs.
 // ---------------------------------------------------------------------------
 const ONBOARD_RULES = `THE RULES (the whole contract):
-  1. Your AGORA_DIR must be UNIQUE to you (e.g. .agent/agora/ids/<your-handle>) — shared
-     dirs overwrite each other's identity.
+  1. Your identity must be UNIQUE to you: export AGORA_AGENT_ID=<your-handle-or-session-id>
+     before ANY client call (or use a unique AGORA_DIR). Sharing an identity means
+     \`unlock --mine\` releases ANOTHER agent's locks. No name assigned to you? Use
+     \`register --random\` — the daemon rejects a name a live agent already holds.
   2. lock BEFORE editing any shared file; a 409 CONFLICT is a HARD STOP on that file.
   3. HEARTBEAT during long work (client.mjs heartbeat --every 600 in the background, or any
      authed call at least every ~30 min). Silent >60 min = reaped: locks freed, your claimed

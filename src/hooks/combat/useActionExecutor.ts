@@ -184,7 +184,7 @@ const applySentinelStop = (character: CombatCharacter): CombatCharacter => {
   };
 };
 
-const applyImmediateAbilityTurnEffects = (
+export const applyImmediateAbilityTurnEffects = (
   character: CombatCharacter,
   ability: Ability,
   currentTurn: number
@@ -284,6 +284,139 @@ const applyImmediateAbilityTurnEffects = (
       timestamp: Date.now(),
       type: 'action',
       message: `${updatedCharacter.name} stands up, removing the Prone condition.`,
+      characterId: updatedCharacter.id,
+      data: { abilityName: ability.name, currentTurn }
+    });
+  }
+
+  // ------------------------------------------------------------------
+  // Rage (barbarian) — enter a battle rage
+  // ------------------------------------------------------------------
+  // Activating Rage applies a "Raging" status effect granting RESISTANCE to
+  // physical damage — the iconic barbarian benefit (ResistanceCalculator reads
+  // statusEffects[].modifiers.resistance, see resistanceUtils.ts) — plus
+  // advantage on Strength saves and checks. Toggle: re-using Rage while already
+  // raging is a no-op rather than stacking.
+  if (ability.id === 'rage') {
+    const alreadyRaging = updatedCharacter.statusEffects.some(e => e.id === 'raging');
+    if (!alreadyRaging) {
+      const ragingStatus = {
+        id: 'raging',
+        name: 'Raging',
+        type: 'buff' as const,
+        duration: 10,
+        source: 'Rage',
+        icon: '🔥',
+        modifiers: {
+          resistance: ['physical', 'bludgeoning', 'piercing', 'slashing'],
+          advantage: ['save', 'check'] as ('attack' | 'save' | 'check')[],
+        },
+      };
+      updatedCharacter = {
+        ...updatedCharacter,
+        statusEffects: [...updatedCharacter.statusEffects, ragingStatus],
+      };
+      followUpLogs.push({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'status',
+        message: `${updatedCharacter.name} flies into a Rage — resistant to physical damage!`,
+        characterId: updatedCharacter.id,
+        data: { abilityName: ability.name, currentTurn }
+      });
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Reckless Attack (barbarian level 2+) — advantage on your melee attacks this
+  // turn, at the cost of granting attackers advantage against you (a 'Reckless'
+  // condition the attack resolver checks) until your next turn.
+  // ------------------------------------------------------------------
+  if (ability.id === 'reckless_attack') {
+    const already = updatedCharacter.statusEffects.some(e => e.id === 'reckless');
+    if (!already) {
+      const recklessStatus = {
+        id: 'reckless',
+        name: 'Reckless',
+        type: 'buff' as const,
+        duration: 1,
+        source: 'Reckless Attack',
+        icon: '⚔️',
+        modifiers: { advantage: ['attack'] as ('attack' | 'save' | 'check')[] },
+      };
+      updatedCharacter = {
+        ...updatedCharacter,
+        statusEffects: [...updatedCharacter.statusEffects, recklessStatus],
+        conditions: [
+          ...(updatedCharacter.conditions || []),
+          { name: 'Reckless', duration: { type: 'rounds' as const, value: 1 }, appliedTurn: currentTurn, source: 'reckless_attack' },
+        ],
+      };
+      followUpLogs.push({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'status',
+        message: `${updatedCharacter.name} attacks recklessly — advantage on attacks, but exposed!`,
+        characterId: updatedCharacter.id,
+        data: { abilityName: ability.name, currentTurn }
+      });
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Steady Aim (rogue level 3+) — forgo movement for advantage on next attack.
+  // ------------------------------------------------------------------
+  if (ability.id === 'steady_aim') {
+    const already = updatedCharacter.statusEffects.some(e => e.id === 'steady_aim');
+    if (!already) {
+      const aimStatus = {
+        id: 'steady_aim',
+        name: 'Steady Aim',
+        type: 'buff' as const,
+        duration: 1,
+        source: 'Steady Aim',
+        icon: '🎯',
+        modifiers: { advantage: ['attack'] as ('attack' | 'save' | 'check')[] },
+      };
+      updatedCharacter = {
+        ...updatedCharacter,
+        statusEffects: [...updatedCharacter.statusEffects, aimStatus],
+        // Forgo the rest of this turn's movement (the cost of Steady Aim).
+        actionEconomy: {
+          ...updatedCharacter.actionEconomy,
+          movement: { ...updatedCharacter.actionEconomy.movement, used: updatedCharacter.actionEconomy.movement.total },
+        },
+      };
+      followUpLogs.push({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'status',
+        message: `${updatedCharacter.name} takes Steady Aim — advantage on the next attack.`,
+        characterId: updatedCharacter.id,
+        data: { abilityName: ability.name, currentTurn }
+      });
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Action Surge (fighter level 2+) — gain one additional action this turn.
+  // ------------------------------------------------------------------
+  if (ability.id === 'action_surge') {
+    updatedCharacter = {
+      ...updatedCharacter,
+      actionEconomy: {
+        ...updatedCharacter.actionEconomy,
+        action: {
+          ...updatedCharacter.actionEconomy.action,
+          remaining: (updatedCharacter.actionEconomy.action.remaining ?? 0) + 1,
+        },
+      },
+    };
+    followUpLogs.push({
+      id: generateId(),
+      timestamp: Date.now(),
+      type: 'action',
+      message: `${updatedCharacter.name} uses Action Surge — an extra action this turn!`,
       characterId: updatedCharacter.id,
       data: { abilityName: ability.name, currentTurn }
     });

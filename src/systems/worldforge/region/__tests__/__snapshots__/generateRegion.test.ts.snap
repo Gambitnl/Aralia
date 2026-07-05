@@ -18,9 +18,9 @@ exports[`generateRegion > matches FROZEN golden values for anchor cell > region-
   "boundsWidth": 25000,
   "gridHeight": 250,
   "gridWidth": 250,
-  "heightfieldHash": 1035742348,
+  "heightfieldHash": 3762171421,
   "riverBankCount": 2,
 }
 `;
 
-exports[`generateRegion > smoothness invariant: heightfield is lattice-smooth, not white-noise speckle > smoothness-laplacian 1`] = `0.000293035672528865`;
+exports[`generateRegion > smoothness invariant: heightfield is lattice-smooth, not white-noise speckle > smoothness-laplacian 1`] = `0.0002842182925278195`;

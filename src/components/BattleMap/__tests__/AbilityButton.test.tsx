@@ -36,23 +36,34 @@ describe('AbilityButton', () => {
         }
     };
 
-    it('renders with spell visual fallback when icon is missing', () => {
-        render(<AbilityButton ability={mockAbility} onSelect={mockOnSelect} isDisabled={false} />);
+    it('renders a generated SVG spell visual when icon is missing', () => {
+        const { container } = render(<AbilityButton ability={mockAbility} onSelect={mockOnSelect} isDisabled={false} />);
 
-        // Should find the fallback icon for Evocation (Fire)
-        expect(screen.getByText('🔥')).toBeInTheDocument();
+        // Spell buttons now use the combat SVG pack instead of relying on an
+        // emoji fallback. The empty alt keeps the decorative image out of the
+        // accessible name, which still comes from the button label.
+        const icon = container.querySelector('img');
+        expect(icon).toBeInTheDocument();
+        expect(icon?.getAttribute('src')).toContain('data:image/svg+xml');
 
         // Should have accessible label matching the updated format "Label (School), Cost cost"
         // Note: AbilityButton adds visual label which includes school
         expect(screen.getByLabelText(/Fireball \(Evocation\), Action cost/)).toBeInTheDocument();
     });
 
-    it('uses provided icon if present', () => {
-        const iconAbility = { ...mockAbility, icon: '🧨' };
+    it('keeps a provided icon for a custom non-spell utility', () => {
+        const iconAbility: Ability = {
+            ...mockAbility,
+            id: 'custom_tool',
+            name: 'Custom Tool',
+            type: 'utility',
+            spell: undefined,
+            icon: '🧨',
+            effects: []
+        };
         render(<AbilityButton ability={iconAbility} onSelect={mockOnSelect} isDisabled={false} />);
 
         expect(screen.getByText('🧨')).toBeInTheDocument();
-        expect(screen.queryByText('🔥')).not.toBeInTheDocument();
     });
 
     it('calls onSelect when clicked', () => {

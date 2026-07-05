@@ -7,6 +7,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { CombatCharacter } from '../../types/combat';
 import { Item, Monster } from '../../types';
 import { generateLoot } from '../../services/lootService';
+import { xpForChallengeRating } from '../../utils/combat/xpForChallengeRating';
 
 export interface CombatRewards {
   gold: number;
@@ -55,9 +56,12 @@ export const useCombatOutcome = ({ characters, initialEnemies }: UseCombatOutcom
     }));
 
     const loot = generateLoot(originalMonsters);
-    // Simple XP calculation: 50 * enemy count
-    // TODO #276(Economist): Implement real XP calculation based on CR
-    const xp = initialEnemies.length * 50;
+    // CR-driven XP: sum each defeated enemy's XP by its Challenge Rating (the
+    // CombatCharacter carries CR on stats.cr, falling back to its level field).
+    const xp = initialEnemies.reduce(
+      (total, enemy) => total + xpForChallengeRating(enemy.stats?.cr ?? enemy.level ?? 0),
+      0,
+    );
 
     return {
       gold: loot.gold,

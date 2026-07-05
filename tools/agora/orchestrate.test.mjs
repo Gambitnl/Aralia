@@ -50,7 +50,7 @@ test('buildPrompt (claude) carries owned files + the full coordination contract'
   const p = buildPrompt(plan, plan.packets[0]);
   assert.match(p, /fix-a/);
   assert.match(p, /Owned files \(edit ONLY these\): `src\/a\.tsx`/);
-  assert.match(p, /AGORA_DIR=\.agent\/agora\/ids\/fix-a/);      // unique identity dir
+  assert.match(p, /AGORA_AGENT_ID=fix-a/);                      // unique orchestrator-assigned identity
   assert.match(p, /client\.mjs lock src\/a\.tsx --reason "PK-a"/); // lock-before-edit
   assert.match(p, /CONFLICT\/409/);                              // 409 = hard stop
   assert.match(p, /task done "\$TID"/);

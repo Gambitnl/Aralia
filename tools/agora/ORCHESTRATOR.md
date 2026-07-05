@@ -5,7 +5,8 @@ multi-agent fix/build campaign across the Aralia repo using **three systems toge
 
 1. **Agora board** (`tools/agora/`) — the peer-coordination bus: presence, file **locks**,
    task board, messaging. This is how a fleet of agents works the SAME checkout without
-   clobbering each other. API: [`PROTOCOL.md`](./PROTOCOL.md). Worker loop:
+   clobbering each other. API: [`PROTOCOL.md`](./PROTOCOL.md). Single-agent instructions:
+   [`AGENT.md`](./AGENT.md). Worker loop:
    [`.claude/skills/agora-coordination/SKILL.md`](../../.claude/skills/agora-coordination/SKILL.md).
 2. **Agent matrix** — the heterogeneous fleet you dispatch: in-process Claude subagents
    (the `Agent` tool) **plus** external CLIs (codex, gemini, …). The live operator cockpit
@@ -30,10 +31,24 @@ npm run agora                       # node tools/agora/server.mjs, port 4319
 curl -s http://localhost:4319/health        # {"ok":true,...}
 #    Dashboard:  http://localhost:4319/      (presence / locks / tasks / message feed)
 #    Cockpit:    http://127.0.0.1:3040/agent_matrix.html  (external fleet + the Agora activity bridge)
-# 3. Register yourself as the orchestrator (own identity dir so you don't clobber a worker's)
-export AGORA_DIR=.agent/agora/ids/orchestrator
+# 3. Register yourself as the orchestrator (own identity key so you don't clobber a worker's)
+export AGORA_AGENT_ID=orchestrator
 node tools/agora/client.mjs register orchestrator --note "campaign coordinator" --url http://localhost:4319
 ```
+
+**You own identity allocation for the fleet.** Every worker you dispatch MUST get a
+unique `AGORA_AGENT_ID` — use its packet handle (`validatePlan` already enforces
+handle uniqueness, and the daemon 409s a duplicate live handle, so this is belt-and-braces).
+A worker never invents its own name; you hand it one. This is what stops two workers in the
+one shared checkout from sharing an identity and having `unlock --mine` free each other's
+locks. `orchestrate.mjs`'s generated prompts already bake `export AGORA_AGENT_ID=<handle>`
+into STEP 1 — if you hand-write a worker prompt, include it yourself.
+
+**Stamp the model at launch.** You know which model each worker is before it starts, so its
+register line carries `--model <model>` (generated prompts use `pkt.model || pkt.agent`). That
+puts the model on the roster (`client.mjs agents` shows `[model]`) so a human — or you — can see
+what each lane is running. A worker may also self-report its own conversation id with
+`--session <id>`; both surface in `whoami` and `GET /agents`.
 
 `.agent/agora/` (the daemon's snapshot/journal + per-agent identity files) is **gitignored**
 so a sibling's `git reset --hard` can't nuke live coordination state.
@@ -116,7 +131,7 @@ seeded task instead of creating its own). The wave announcement is broadcast as 
 Every fix agent — Claude subagent OR external CLI — gets a prompt containing the **same
 coordination contract**:
 ```bash
-export AGORA_DIR=.agent/agora/ids/<unique-handle>     # MUST be unique per agent (see gotchas)
+export AGORA_AGENT_ID=<unique-handle>     # MUST be unique per agent (see gotchas)
 B=http://localhost:4319
 node tools/agora/client.mjs register <handle> --note "<scope>" --url $B
 TID=$(node tools/agora/client.mjs task new "<scope>" --id-only --url $B)   # --id-only = bare id, no grep
@@ -190,7 +205,7 @@ CLI invocations (kept for reference; the registry carries the authoritative stat
   gitignored `.agent/scratch/` (e.g. `ISSUES.md`, `FIX_PLAN.md`). **Inline the full spec** in
   the prompt instead of pointing them at a scratch file.
 - **PowerShell host:** separate Bash calls don't share env vars, and `$(...)` is awkward — tell
-  external agents to set `AGORA_DIR` inline on each call or chain with `;`.
+  external agents to set `AGORA_AGENT_ID` inline on each call or chain with `;`.
 - They still must follow the Agora contract (register/lock/release/WORKFLOW) — give them the
   same coordination block, and **scope them to isolated single-purpose files** (lower blast
   radius if they stray). **Verify their output yourself** (typecheck + diff review) — they're
@@ -212,7 +227,8 @@ task handoff <id> <to>    tasks [--ready]
 say <body> | say --to <h> <body>     inbox [--since <seq>] [--mine]     watch     health
 ```
 - All client calls default to `http://localhost:4319` (the `--url` in examples is optional).
-- `AGORA_DIR` controls where THIS agent's identity is stored — it MUST be unique per agent.
+- `AGORA_AGENT_ID` (or a unique `AGORA_DIR`) scopes THIS agent's stored identity — it MUST be
+  unique per agent, or `unlock --mine` releases another agent's locks.
 
 **Orchestration on the board (new in v0.2):**
 - **Sequencing lives on the daemon now**: create wave-2 packets with `--dep <wave1-taskId>` —
@@ -251,8 +267,12 @@ say <body> | say --to <h> <body>     inbox [--since <seq>] [--mine]     watch   
 
 - **Shared tree, no worktrees/branches** (when that's the directive): the disjoint-file
   partition + lock-before-edit is the ONLY thing preventing clobber. Honor it religiously.
-- **Unique `AGORA_DIR` per agent.** The identity file is keyed by daemon URL, so two agents
-  sharing `AGORA_DIR` overwrite each other's token. Use `.agent/agora/ids/<handle>`.
+- **Unique identity per agent.** The identity file is keyed by daemon URL only, so two agents
+  sharing it overwrite each other's token AND `unlock --mine` from one releases the other's
+  locks (bit us 2026-07-04: a vegetation agent released a prop agent's 5 locks mid-edit).
+  Preferred fix: export `AGORA_AGENT_ID=<handle>` — the client then stores identity in
+  `client-identity.<handle>.json`. A unique `AGORA_DIR` per agent
+  (`.agent/agora/ids/<handle>`) also still works.
 - **Locks are advisory** (no Claude-Code hooks): nothing physically blocks an edit. Value comes
   from agents choosing to lock-and-check + the human dashboard catching collisions.
 - **`node --test tools/agora/` is broken** on Node 22.19 — use the glob: `node --test "tools/agora/*.test.mjs"`.

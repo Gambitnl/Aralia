@@ -60,6 +60,7 @@ import { rollDice } from '../../utils/combat/combatUtils';
 import { ITEMS, CLASSES_DATA } from '../../constants';
 import { generateId } from '../../utils/core/idGenerator';
 import { isWildernessLocationId } from '../../utils/location/cellLocationId';
+import { appendAdventureLogEntry } from '../../systems/adventureLog/adventureLog';
 
 // Helper for resetting limited uses
 const resolveMaxValue = (char: GameState['party'][0], ability: LimitedUseAbility): number => {
@@ -808,7 +809,16 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
                 return charCopy;
             });
-            return { party: newParty, ...(partyEats ? { inventory: newInventory } : {}) };
+            return {
+                party: newParty,
+                ...(partyEats ? { inventory: newInventory } : {}),
+                ...appendAdventureLogEntry(state, {
+                    kind: 'rest',
+                    summary: partyEats
+                        ? 'The party took a long rest and a proper meal.'
+                        : 'The party took a long rest.',
+                }),
+            };
         }
 
         case 'BUY_ITEM': {

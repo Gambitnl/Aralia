@@ -42,6 +42,11 @@ import { logger } from '../utils/logger';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
 import { createEmptyHistory } from '../utils/historyUtils';
 import { generateId } from '../utils/core/idGenerator';
+import { appendAdventureLogEntry } from '../systems/adventureLog/adventureLog';
+import { gameEntryTransition } from '../systems/gameEntry/entryStateMachine';
+import { deriveWatchReaction } from '../systems/social/watchReaction';
+import { CrimeSystem } from '../systems/crime/CrimeSystem';
+import { INITIAL_GAME_ENTRY_STATE } from '../systems/gameEntry/types';
 import { MOCK_SHIP_SLOOP } from '../data/dev/mockShips';
 
 // Import slice reducers
@@ -467,8 +472,10 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         case 'START_GAME_SUCCESS': {
             const { startingInventory, ...restOfPayload } = action.payload;
             const worldHistory = action.payload.worldHistory ?? createEmptyHistory();
-            // Convert any legacy coin items in starting inventory to gold value
-            let startingGold = 10; // Base starting gold
+            // Seed gold from the character's creation loadout (class package +
+            // background coin); fall back to 10 only for dev/skip flows that never
+            // ran the loadout builder. Legacy coin items still convert on top.
+            let startingGold = restOfPayload.character.startingGold ?? 10;
             const filteredInventory = startingInventory.filter(item => {
                 if (item.id === 'shiny_coin') {
                     startingGold += 1;
@@ -485,7 +492,12 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // Prefer the seed the world was actually generated with (carried
                 // in the payload); fall back to the seed set during new-game setup.
                 worldSeed: restOfPayload.worldSeed ?? state.worldSeed,
-                party: [{ ...restOfPayload.character, equippedItems: restOfPayload.character.equippedItems || {} }],
+                // startingGold is a creation→game handoff hint only; consume it
+                // into state.gold (above) and drop it from the live character.
+                party: (() => {
+                    const { startingGold: _startingGold, ...characterForParty } = restOfPayload.character;
+                    return [{ ...characterForParty, equippedItems: characterForParty.equippedItems || {} }];
+                })(),
                 inventory: filteredInventory,
                 gold: startingGold,
                 // The opening-situation conversation (triggered by the
@@ -701,9 +713,19 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     action.payload.newLocationId,
                     null, // feet come from the ground session.
                 );
+            const arrivalPlaceName =
+                (dest && (dest as { name?: string }).name) ||
+                LOCATIONS[action.payload.newLocationId]?.name ||
+                state.dynamicLocations?.[action.payload.newLocationId]?.name ||
+                'a new place';
             return {
                 ...state,
                 currentLocationId: action.payload.newLocationId,
+                ...appendAdventureLogEntry(state, {
+                    kind: 'travel',
+                    summary: `Traveled to ${arrivalPlaceName}.`,
+                    placeIds: [action.payload.newLocationId],
+                }),
                 // Record the canonical cell (cell-native world): the atlas-travel
                 // destination is authoritative (carried intact, feet reset).
                 playerCell: arrivalPlayerCell,
@@ -832,10 +854,30 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             };
 
             if (rewards && typeof rewards.xp === 'number') {
-                // Distribute XP evenly to all party members and process any resulting level ups.
-                const updatedParty = state.party.map((member) =>
-                    applyXpAndHandleLevelUps(member, rewards.xp / state.party.length)
+                // Persist post-combat attrition, THEN award XP/level-ups so any HP
+                // gained on level-up stacks on the damaged total (performLevelUp adds
+                // an HP delta to current hp, it does not heal to full).
+                const finalById = new Map(
+                    (action.payload?.finalPartyState ?? []).map(s => [s.id, s] as const)
                 );
+                const updatedParty = state.party.map((member) => {
+                    const snapshot = finalById.get(member.id);
+                    let afterCombat = member;
+                    if (snapshot) {
+                        const maxHp = member.maxHp ?? member.hp ?? snapshot.currentHP;
+                        // A member who ended a WON battle at 0 HP is stabilized — they
+                        // come to after the fight — so floor at 1 rather than leaving
+                        // them unconscious in the overworld with no handler.
+                        const persistedHp = Math.max(1, Math.min(snapshot.currentHP, maxHp));
+                        afterCombat = {
+                            ...member,
+                            hp: persistedHp,
+                            spellSlots: snapshot.spellSlots ?? member.spellSlots,
+                            limitedUses: snapshot.limitedUses ?? member.limitedUses,
+                        };
+                    }
+                    return applyXpAndHandleLevelUps(afterCombat, rewards.xp / state.party.length);
+                });
 
                 // Capture celebratory messages for characters who leveled up.
                 const levelUpMessages: GameState['messages'] = updatedParty
@@ -895,7 +937,11 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                         victoryMessage,
                         ...levelUpMessages,
                         ...pendingLevelUpMessages,
-                    ]
+                    ],
+                    ...appendAdventureLogEntry(newState, {
+                        kind: 'combat',
+                        summary: `Won a battle, gaining ${rewards.xp} XP${rewards.gold ? ` and ${rewards.gold} gold` : ''}.`,
+                    }),
                 };
             } else {
                 const endMessage: GameState['messages'][number] = {
@@ -909,6 +955,111 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     messages: [...newState.messages, endMessage],
                 };
             }
+
+            // Post-combat NPC state: a battle that grew out of a hostile opening
+            // situation ends with those strangers BEATEN. Mark them defeated so
+            // the talk path no longer replays the pre-fight threat line, and tear
+            // down the lingering opening (conversation + threat banner + entry
+            // status) that would otherwise re-open as if nothing happened.
+            const situation = state.gameEntry?.situation;
+            const openingWasHostile =
+                !!situation?.threat?.hostile && state.gameEntry?.status === 'in-situation';
+            if (openingWasHostile && situation) {
+                const alreadyDefeated = new Set(newState.defeatedNpcIds ?? []);
+                for (const npc of situation.npcs) alreadyDefeated.add(npc.id);
+                newState = {
+                    ...newState,
+                    defeatedNpcIds: [...alreadyDefeated],
+                    // Clear the pre-fight standoff. `activeConversation: null` drops
+                    // the seeded threat panel; SKIPping the entry machine retires the
+                    // opening for good (mirrors useDeEscalation's clearThreat, which
+                    // fires on the peaceful/flee routes but NOT on a fight-to-victory).
+                    activeConversation: null,
+                    // Invalidate the seeded pre-fight utterance: DialogueInterface
+                    // initializes its first line from `lastNpcResponse`, so leaving
+                    // the opening threat line here made EVERY surviving/other NPC
+                    // replay it post-combat. Clearing it lets the next talk generate
+                    // a fresh, fight-aware line instead.
+                    lastNpcResponse: null,
+                    lastInteractedNpcId: null,
+                    gameEntry: gameEntryTransition(
+                        state.gameEntry ?? INITIAL_GAME_ENTRY_STATE,
+                        { type: 'SKIP' },
+                    ),
+                };
+
+                // Watch reaction (item 1): if the strangers the party just beat were
+                // the town WATCH, the town notices. The player becomes wanted here (a
+                // witnessed crime keyed to this town), every townsperson's disposition
+                // drops, and the log records it. Scope is one town — no faction webs.
+                const watchTownId = state.currentLocationId;
+                const watchReaction = deriveWatchReaction(situation, watchTownId, {
+                    openingWasHostile: true,
+                    // A won battle leaves the watch beaten, not confirmed dead; treat
+                    // as Assault. Per-NPC lethality tracking is a deferred nuance.
+                    watchNpcDied: false,
+                });
+                if (watchReaction) {
+                    // Record the crime the same way COMMIT_CRIME does, so bounty +
+                    // "wanted" semantics stay consistent with the crime system.
+                    const normalizedSeverity = CrimeSystem.normalizeSeverity(watchReaction.crime.severity);
+                    const newCrime = {
+                        id: generateId(),
+                        type: watchReaction.crime.type,
+                        locationId: watchReaction.crime.locationId,
+                        timestamp: state.gameTime.getTime(),
+                        severity: normalizedSeverity,
+                        witnessed: true,
+                        victimId: watchReaction.crime.victimId,
+                    };
+                    const heatIncrease = CrimeSystem.calculateCrimeHeat(normalizedSeverity, true);
+                    const currentLocalHeat = newState.notoriety.localHeat[watchReaction.crime.locationId] || 0;
+                    const newBounty = CrimeSystem.generateBounty(newCrime);
+
+                    // Drop the disposition of every townsperson the player has met
+                    // (they now see an outlaw who fought the watch).
+                    const loweredMemory: GameState['npcMemory'] = { ...newState.npcMemory };
+                    for (const npcId of Object.keys(loweredMemory)) {
+                        const mem = loweredMemory[npcId];
+                        if (!mem) continue;
+                        loweredMemory[npcId] = {
+                            ...mem,
+                            disposition: Math.max(-100, mem.disposition + watchReaction.dispositionPenalty),
+                        };
+                    }
+
+                    newState = {
+                        ...newState,
+                        npcMemory: loweredMemory,
+                        notoriety: {
+                            ...newState.notoriety,
+                            globalHeat: Math.min(100, newState.notoriety.globalHeat + heatIncrease * 0.1),
+                            localHeat: {
+                                ...newState.notoriety.localHeat,
+                                [watchReaction.crime.locationId]: Math.min(100, currentLocalHeat + heatIncrease),
+                            },
+                            knownCrimes: [...newState.notoriety.knownCrimes, newCrime],
+                            bounties: newBounty
+                                ? [...(newState.notoriety.bounties || []), newBounty]
+                                : newState.notoriety.bounties,
+                        },
+                        messages: [
+                            ...newState.messages,
+                            {
+                                id: Date.now() + 5,
+                                text: `The watch is beaten, but witnesses saw everything. You are now wanted in ${watchTownId}.`,
+                                sender: 'system',
+                                timestamp: inGameTimestamp(state.gameTime),
+                            },
+                        ],
+                        ...appendAdventureLogEntry(newState, {
+                            kind: 'combat',
+                            summary: watchReaction.logSummary,
+                        }),
+                    };
+                }
+            }
+
             return newState;
         }
 

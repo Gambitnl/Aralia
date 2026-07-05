@@ -179,6 +179,7 @@ export const ITEMS: Record<string, Item> = {
 // Import gatherable items and merge them
 import { GATHERABLE_ITEMS } from '../gatherableItems.js';
 import { GENERATED_GLOSSARY_ITEMS } from './generatedGlossaryItems.js';
+import { ADVENTURING_GEAR } from './adventuringGear.js';
 
 // Combined ITEMS export including all gatherable ingredients
 // GENERATED_GLOSSARY_ITEMS is spread last so that ingested PHB items override legacy hardcoded ones.
@@ -195,10 +196,25 @@ const CANONICAL_PROVISIONS: Record<string, Item> = {
   'water-day': ITEMS['water-day'],
 };
 
+// CANONICAL EQUIPMENT (same rationale as CANONICAL_PROVISIONS): the bulk-ingested
+// glossary redefines many hand-authored gear ids with mechanically-incomplete
+// versions — e.g. it strips `addsDexterityModifier`/`maxDexterityBonus` off armor
+// (so a chain shirt stops adding Dex) and drops `damageDice`/`mastery` off weapons.
+// Because the glossary is spread after the authored data, those stripped versions
+// would win and silently break AC and attack math game-wide. We re-assert the
+// authored weapons and armor AFTER the glossary so real combat stats always win;
+// the glossary still fills in ids the authored data doesn't define.
+const CANONICAL_ARMOR: Record<string, Item> = Object.fromEntries(
+  Object.entries(ITEMS).filter(([, item]) => item.type === 'armor'),
+);
+
 export const ALL_ITEMS: Record<string, Item> = {
   ...ITEMS,
   ...WEAPONS_DATA,
+  ...ADVENTURING_GEAR,
   ...GATHERABLE_ITEMS,
   ...GENERATED_GLOSSARY_ITEMS,
+  ...WEAPONS_DATA,
+  ...CANONICAL_ARMOR,
   ...CANONICAL_PROVISIONS,
 };

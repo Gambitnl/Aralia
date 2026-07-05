@@ -56,6 +56,53 @@ describe('burg-aware grid-tile entry', () => {
     expect(shownTiles).toContainEqual(tile);
   }, 60_000);
 
+  it('a coastal port town window does NOT render as flat water (flood regression)', () => {
+    // Regression for the "town sitting in water" bug (2026-07-04): a coastal
+    // burg is placed on genuine land (FMG h≥20) but is ringed by ocean cells.
+    // The region heightfield's water-discipline once keyed off the single
+    // NEAREST cell, so every sample whose nearest cell was one of the
+    // interspersed ocean cells got force-clamped underwater — flooding the whole
+    // window to 100% `water` biome (blue streets/floor). The fix decides water
+    // on the INTERPOLATED height, so a land spit stays land.
+    const seed = 42;
+    const world = getBridgeAtlas(seed);
+    const town = listSelectableTowns(world)
+      .filter((t) => t.isPort)
+      .sort((a, b) => a.population - b.population)[0];
+    const burgs = world.pack.burgs as Burg[];
+    const burg = burgs[town.burgIndex]!;
+    const tile = tileOf(burg.x, burg.y);
+
+    const { local, region } = getWorldforgeLocalForLocation(seed, tile.x, tile.y, COLS, ROWS);
+    const ground = makeGroundWorld(local, seed, region);
+
+    // The window must not be a flooded blue slab: the vast majority of terrain
+    // cells must be land, not the `water` biome.
+    const total = ground.biomeIds.length;
+    const waterCells = ground.biomeIds.filter((b) => b === 'water' || b === 'ocean').length;
+    expect(waterCells / total).toBeLessThan(0.5);
+
+    // And directly under the rendered town, streets/plaza cells must read as
+    // land — a town center standing in open water is the exact reported bug.
+    const GMPC = 1.524; // GROUND_METERS_PER_CELL
+    for (const t of ground.towns) {
+      let under = 0;
+      let underWater = 0;
+      for (let row = 0; row < ground.rows; row++) {
+        for (let col = 0; col < ground.cols; col++) {
+          const xM = (col + 0.5) * GMPC;
+          const zM = (row + 0.5) * GMPC;
+          if (Math.abs(xM - t.xM) <= t.halfM && Math.abs(zM - t.zM) <= t.halfM) {
+            under++;
+            const b = ground.biomeIds[row * ground.cols + col];
+            if (b === 'water' || b === 'ocean') underWater++;
+          }
+        }
+      }
+      if (under > 0) expect(underWater / under).toBeLessThan(0.1);
+    }
+  }, 60_000);
+
   it('getTownTilesForGrid lists every burg-bearing tile', () => {
     const seed = 42;
     const world = getBridgeAtlas(seed);

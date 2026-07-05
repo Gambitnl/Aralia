@@ -61,8 +61,61 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
     expect(combatChar.maxHP).toBe(30);
     expect(combatChar.stats.strength).toBe(16);
     expect(combatChar.stats.dexterity).toBe(14);
-    // Base initiative should be Dex mod: (14-10)/2 = 2
-    expect(combatChar.stats.baseInitiative).toBe(2);
+    // baseInitiative is the NON-Dex part (no bonuses/proficiency here → 0).
+    // Dex is added by rollInitiative; baking it in here double-counted it.
+    expect(combatChar.stats.baseInitiative).toBe(0);
+  });
+
+  it('gives an unarmored monk +10 speed (Unarmored Movement) at level 2+', () => {
+    const baseSpeed = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['monk'], level: 1, equippedItems: {} }),
+    ).stats.speed;
+    const l2Monk = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['monk'], level: 2, equippedItems: {} }),
+    );
+    expect(l2Monk.stats.speed).toBe(baseSpeed + 10);
+    expect(l2Monk.actionEconomy.movement.total).toBe(l2Monk.stats.speed);
+  });
+
+  it('gives a barbarian Danger Sense (Dex-save advantage) at level 2+, not level 1', () => {
+    const hasDangerSense = (c: ReturnType<typeof createPlayerCombatCharacter>) =>
+      (c.modifiers?.advantage ?? []).some(a => /dexterity saving throw/i.test(a));
+    const l1 = createPlayerCombatCharacter(createMockPlayerCharacter({ class: CLASSES_DATA['barbarian'], level: 1 }));
+    const l2 = createPlayerCombatCharacter(createMockPlayerCharacter({ class: CLASSES_DATA['barbarian'], level: 2 }));
+    const fighter = createPlayerCombatCharacter(createMockPlayerCharacter({ class: CLASSES_DATA['fighter'], level: 2 }));
+    expect(hasDangerSense(l1)).toBe(false);
+    expect(hasDangerSense(l2)).toBe(true);
+    expect(hasDangerSense(fighter)).toBe(false);
+  });
+
+  it('gives a level-3 Champion an Improved Critical threshold of 19', () => {
+    const champion = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['fighter'], level: 3, subclassId: 'champion' }),
+    );
+    expect(champion.critThreshold).toBe(19);
+  });
+
+  it('leaves the crit threshold at 20 for non-Champions and low-level Champions', () => {
+    const plainFighter = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['fighter'], level: 3, subclassId: 'battle_master' }),
+    );
+    const youngChampion = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['fighter'], level: 1, subclassId: 'champion' }),
+    );
+    expect(plainFighter.critThreshold).toBe(20);
+    expect(youngChampion.critThreshold).toBe(20);
+  });
+
+  it('grants rogue Cunning Dash only at level 2+, not level 1', () => {
+    const rogueClass = CLASSES_DATA['rogue'];
+    const lvl1 = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: rogueClass, level: 1 }),
+    );
+    const lvl2 = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: rogueClass, level: 2 }),
+    );
+    expect(lvl1.abilities.some(a => a.id === 'cunning_dash')).toBe(false);
+    expect(lvl2.abilities.some(a => a.id === 'cunning_dash')).toBe(true);
   });
 
   it('should generate unarmed strike when no weapons are equipped', () => {
@@ -126,6 +179,7 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
 
   it('should include class features like Cunning Dash for Rogues', () => {
     const player = createMockPlayerCharacter({
+      level: 2, // Cunning Action / Cunning Dash is a level-2 rogue feature
       class: {
         id: 'rogue',
         name: 'Rogue',
@@ -210,11 +264,15 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
       class: CLASSES_DATA.paladin,
       classLevels: { paladin: 2 },
       level: 2,
+      // Divine Smite is now a real weapon attack, so it needs an equipped weapon
+      // (paladins get one from their starting loadout).
+      equippedItems: { MainHand: { id: 'longsword', name: 'Longsword', type: 'weapon', damageDice: '1d8', slot: 'MainHand' } as never },
     });
     const paladinCombat = createPlayerCombatCharacter(paladin);
     const divineSmite = paladinCombat.abilities.find(a => a.id === 'divine_smite');
 
     expect(divineSmite).toBeDefined();
+    expect(divineSmite?.type).toBe('attack'); // rolls to hit + adds radiant, not inert
 
     const warlock = createMockPlayerCharacter({
       class: CLASSES_DATA.warlock,

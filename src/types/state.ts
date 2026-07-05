@@ -96,6 +96,44 @@ export interface DiscoveryEntry {
   associatedLocationId?: string;
 }
 
+/**
+ * The kind of runtime event an adventure-log entry records. Kept small and
+ * closed so the Oracle DM can group / prioritize the "story so far".
+ */
+export type AdventureLogKind =
+  | 'opening'
+  | 'quest'
+  | 'combat'
+  | 'travel'
+  | 'met-npc'
+  | 'discovery'
+  | 'rest';
+
+/**
+ * A single, append-only record of something that happened to THIS party, in
+ * play order. Summaries are generated from game data (never from an LLM) and
+ * kept to one short sentence so the Oracle can recap the story cheaply.
+ *
+ * This is the runtime "adventure log" substrate that lets the Oracle act as a
+ * Dungeon Master: recap what has happened and point at real people/places.
+ */
+export interface AdventureLogEntry {
+  id: string;
+  /** In-game day number (1-based) when the event resolved. */
+  day: number;
+  /** In-game clock label, e.g. "14:30". */
+  time: string;
+  /** Wall-clock timestamp (ms) for stable ordering across a session. */
+  timestamp: number;
+  kind: AdventureLogKind;
+  /** One short, data-derived sentence describing what happened. */
+  summary: string;
+  /** IDs of NPCs referenced by this event (for follow-up suggestions). */
+  npcIds?: string[];
+  /** IDs of places/locations referenced by this event. */
+  placeIds?: string[];
+}
+
 export interface GeminiLogEntry {
   timestamp: Date;
   functionName: string;
@@ -298,6 +336,14 @@ export interface GameState {
   discoveryLog: DiscoveryEntry[];
   unreadDiscoveryCount: number;
   isDiscoveryLogVisible: boolean;
+
+  /**
+   * Append-only runtime record of what happened to THIS party, in play order.
+   * The substrate the Oracle uses to act as a Dungeon Master (recap the story
+   * so far, point at real people/places). Populated by reducers where events
+   * resolve; see src/systems/adventureLog/. Serializes with saves.
+   */
+  adventureLog: AdventureLogEntry[];
   isGlossaryVisible: boolean;
   selectedGlossaryTermForModal?: string;
 
@@ -370,6 +416,13 @@ export interface GameState {
   dynamicNPCs?: Record<string, NPC>;
   /** Registry of procedurally generated NPCs, keyed by their ID. */
   generatedNpcs: Record<string, RichNPC>;
+  /**
+   * IDs of NPCs the party has defeated in combat (e.g. hostile opening-situation
+   * strangers beaten in the fight they started). A defeated NPC must not cheerfully
+   * replay its pre-fight threat line: the talk path gates on this, and the opening
+   * conversation/threat banner is cleared when the set grows. Serialized with saves.
+   */
+  defeatedNpcIds: string[];
   playerIdentity?: PlayerIdentityState;
 
   legacy?: PlayerLegacy;

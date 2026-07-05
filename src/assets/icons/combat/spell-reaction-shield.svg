@@ -1,0 +1,19 @@
+<!--
+  Aralia combat icon: reaction shield.
+  Used for defensive reaction and Shield-like ability tiles.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Reaction shield icon</title>
+  <desc id="desc">Blue shield with a quick reaction arc.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="65%">
+      <stop offset="0" stop-color="#1e3a8a"/>
+      <stop offset="1" stop-color="#06111f"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="10" fill="url(#bg)"/>
+  <path d="M32 7l20 7v16c0 13-8 22-20 27-12-5-20-14-20-27V14z" fill="#2563eb" stroke="#bfdbfe" stroke-width="2.5"/>
+  <path d="M32 12v38c8-4 14-11 14-20V18z" fill="#60a5fa" opacity=".7"/>
+  <path d="M48 18c6 9 5 20-2 28" fill="none" stroke="#93c5fd" stroke-width="3" stroke-linecap="round"/>
+  <path d="M49 18l1 9-8-4" fill="none" stroke="#93c5fd" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

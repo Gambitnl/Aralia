@@ -40,6 +40,7 @@ function makeGroundWorldFixture(overrides: Partial<GroundWorld> = {}): GroundWor
     extentMetersX: cols,
     extentMetersZ: rows,
     features: [],
+    props: [],
     hostiles: [],
     hiddenSites: [],
     rivers: [],
@@ -644,5 +645,72 @@ describe('extractLocalTerrainPatch', () => {
     expect(buildingTile).toBeDefined();
     // It should be mapped to floor or wall
     expect(['floor', 'wall']).toContain(buildingTile?.terrain);
+  });
+
+  // ==========================================================================
+  // Fight-in-place slice 1: the world-derived referee grid must carry the props
+  // the 3D scene draws AS COVER. A prop placed at the player's spot imprints its
+  // catalog referee data (cover / blocks-sight / blocks-move) onto the tile —
+  // this is the invisible 5-ft referee reading the SAME world the player sees.
+  // ==========================================================================
+  it('imprints a placed cover prop (barrel) onto the referee tile at the player position', () => {
+    const cols = 100;
+    const rows = 100;
+    const ground = makeGroundWorldFixture({
+      cols,
+      rows,
+      heights: new Array(cols * rows).fill(0),
+      biomeIds: new Array(cols * rows).fill('plains'),
+      extentMetersX: cols * GROUND_METERS_PER_CELL,
+      extentMetersZ: rows * GROUND_METERS_PER_CELL,
+      // A barrel from the catalog: cover 'half', blocksLoS + blocksMovement.
+      // Place it exactly on the player's spot so it lands on the center tile.
+      props: [{ defId: 'barrel', xM: 40, zM: 40, rotationRad: 0, variation: { scale: 1, variant: 0 } }],
+    });
+
+    const patch = extractLocalTerrainPatch(ground, 40, 40, 'forest', 42);
+    const centerTile = patch.tiles.get('20-15');
+    expect(centerTile).toBeDefined();
+    // The prop is born combat-legible: the referee tile now grants cover and
+    // blocks sight + movement, exactly as the catalog barrel def declares.
+    expect(centerTile?.providesCover).toBe(true);
+    expect(centerTile?.blocksLoS).toBe(true);
+    expect(centerTile?.blocksMovement).toBe(true);
+
+    // A tile far from the barrel stays open — the imprint is footprint-bounded,
+    // not global. (5 tiles east ≈ 7.6 m, well outside the barrel footprint.)
+    const openTile = patch.tiles.get('25-15');
+    expect(openTile?.providesCover).toBeFalsy();
+    expect(openTile?.blocksMovement).toBe(false);
+  });
+
+  // ==========================================================================
+  // Fight-in-place slice 1: context-sized patch (fip--referee-patch-sizing).
+  // An open/ranged encounter extracts a larger referee patch; the player stays
+  // centered and the referee data stays a plain Map at any size.
+  // ==========================================================================
+  it('extracts a context-sized (larger) patch with the player still centered', () => {
+    const cols = 200;
+    const rows = 200;
+    const ground = makeGroundWorldFixture({
+      cols,
+      rows,
+      heights: new Array(cols * rows).fill(0),
+      biomeIds: new Array(cols * rows).fill('plains'),
+      extentMetersX: cols * GROUND_METERS_PER_CELL,
+      extentMetersZ: rows * GROUND_METERS_PER_CELL,
+      features: [{ id: 7, kind: 'tree', xM: 120, zM: 120 }],
+    });
+
+    const patch = extractLocalTerrainPatch(ground, 120, 120, 'forest', 42, { width: 120, height: 120 });
+    expect(patch.dimensions).toEqual({ width: 120, height: 120 });
+    expect(patch.tiles.size).toBe(120 * 120);
+
+    // Player sits at the geometric center (60, 60); the tree at the player's
+    // meters lands on that center tile.
+    const centerTile = patch.tiles.get('60-60');
+    expect(centerTile).toBeDefined();
+    expect(centerTile?.decoration).toBe('tree');
+    expect(centerTile?.blocksMovement).toBe(true);
   });
 });

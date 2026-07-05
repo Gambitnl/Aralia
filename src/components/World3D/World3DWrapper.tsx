@@ -471,11 +471,18 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
   const combatTriggered = useRef(false);
   // SP4: ids of hidden places the player has already revealed this session.
   const discoveredHiddenRef = useRef<Set<string>>(new Set());
+  // Fight-in-place slice 1: the latest ground meters the player stands on, so a
+  // dev entry (window.__fipTestFight / ?fipfight) can start a test fight at the
+  // player's exact 3D location without walking into a hostile.
+  const lastGroundXZ = useRef<{ x: number; z: number }>({ x: 0, z: 0 });
 
   const handleGroundPositionChange = useCallback(
     (x: number, z: number) => {
       const tile = wfGroundView?.tile;
       if (!tile) return;
+      // Fight-in-place dev entry: always track the freshest ground position,
+      // even on throttled frames, so a test fight starts exactly where we stand.
+      lastGroundXZ.current = { x, z };
       const now = Date.now();
       if (now - lastGroundDispatch.current < DISPATCH_INTERVAL_MS) return;
       lastGroundDispatch.current = now;
@@ -609,6 +616,76 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
     [dispatch, wfGroundView?.tile, state.worldSeed],
   );
 
+  // ==========================================================================
+  // Fight-in-place slice 1 — DEV ENTRY.
+  // Start a test fight at the player's exact 3D location, deriving the referee
+  // grid from the local terrain patch (props → cover/LoS/movement). Reuses the
+  // SAME extraction + encounter path as the hostile-proximity trigger, so the
+  // world-derived grid renders on the always-available 2D board (the easiest
+  // correctness surface). The context picker decides in-place vs arena; a live
+  // ground world routes in-place and derives the patch from the world.
+  //
+  // Cut line (documented in the spec status): full in-scene 3D combat rendering
+  // (actors/turn-HUD/tactical-orbit camera in the ground scene) and 3D ground
+  // picking are LATER slices. This slice delivers world-derived combat on the
+  // 2D board + the routing decision — no fake in-scene stubs.
+  //
+  // Trigger: window.__fipTestFight() from the console, or spawn with ?fipfight.
+  // ==========================================================================
+  const startFightInPlace = useCallback(async () => {
+    const ground = groundRef.current;
+    const extractPatch = extractPatchRef.current;
+    if (!ground || !extractPatch) {
+      // eslint-disable-next-line no-console
+      console.warn('[fip dev] no live ground world yet — enter 3D first');
+      return;
+    }
+    const { pickCombatSurface } = await import('../../systems/combat/fightInPlace/combatSurfacePicker');
+    const decision = pickCombatSurface({ worldLive: true });
+    // eslint-disable-next-line no-console
+    console.info(`[fip dev] surface=${decision.surface} deriveFromWorld=${decision.deriveFromWorld} — ${decision.reason}`);
+
+    const { x, z } = lastGroundXZ.current;
+    const bx = Math.max(0, Math.min(ground.cols - 1, Math.round(x / 1.524)));
+    const by = Math.max(0, Math.min(ground.rows - 1, Math.round(z / 1.524)));
+    const groundBiome = (ground.biomeIds[by * ground.cols + bx] ?? '').toLowerCase();
+    const theme: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp' =
+      groundBiome.includes('desert') ? 'desert'
+        : (groundBiome.includes('swamp') || groundBiome.includes('wetland')) ? 'swamp'
+          : 'forest';
+
+    const extractedMap = decision.deriveFromWorld
+      ? extractPatch(ground, x, z, theme, state.worldSeed ?? 42)
+      : undefined;
+
+    // Persist the fight position so return-from-combat spawns us back here.
+    const tile = wfGroundView?.tile;
+    if (tile) {
+      dispatch({ type: 'SET_PLAYER_GROUND_POS', payload: { position: { tileX: tile.x, tileY: tile.y, xM: x, zM: z } } });
+    }
+
+    const { handleStartBattleMapEncounter } = await import('../../hooks/actions/handleEncounter');
+    combatTriggered.current = true;
+    await handleStartBattleMapEncounter(dispatch, {
+      monsters: [{ name: 'Test Brigand', quantity: 1, cr: '1/4', description: 'Dev fight-in-place test combatant' }],
+      extractedBattleMap: extractedMap,
+    });
+  }, [dispatch, wfGroundView?.tile, state.worldSeed]);
+
+  useEffect(() => {
+    (window as unknown as { __fipTestFight?: () => void }).__fipTestFight = () => { void startFightInPlace(); };
+    // ?fipfight — auto-start a test fight shortly after the ground world loads,
+    // so a headless probe can capture the world-derived grid on the 2D board.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('fipfight')) {
+      timer = setTimeout(() => { void startFightInPlace(); }, 2500);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+      delete (window as unknown as { __fipTestFight?: () => void }).__fipTestFight;
+    };
+  }, [startFightInPlace]);
+
   /**
    * Called by FreeRoamCameraController (via World3DScene) when the camera moves.
    * Receives world X/Z coordinates, resolves terrain height Y, and dispatches
@@ -737,6 +814,26 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
           agentClock={state.gameTime instanceof Date ? scheduleClockFromGameTime(state.gameTime) : undefined}
           frameTownCellNonce={frameTownCellNonce}
           sceneCast={wfGroundView ? sceneCast : undefined}
+          // Player avatar: the body follows the ONE movement state
+          // (playerGroundPos) when it belongs to this tile; else it stands at
+          // the spawn until the first move dispatch stamps the tile.
+          playerGroundPos={
+            wfGroundView &&
+            state.playerGroundPos &&
+            state.playerGroundPos.tileX === wfGroundView.tile.x &&
+            state.playerGroundPos.tileY === wfGroundView.tile.y
+              ? { xM: state.playerGroundPos.xM, zM: state.playerGroundPos.zM }
+              : null
+          }
+          playerIdentity={
+            wfGroundView && state.party?.[0]
+              ? {
+                  id: state.party[0].id,
+                  name: state.party[0].name,
+                  raceName: state.party[0].race?.name,
+                }
+              : null
+          }
         />
       ) : (
         <div

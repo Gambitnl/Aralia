@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Blobfolk — seamless toon critters</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#bfe8ff;font-family:system-ui,sans-serif}
+  #app{position:fixed;inset:0}
+  .hud{position:fixed;left:14px;top:12px;color:#1c3b52;user-select:none;pointer-events:none}
+  .hud h1{margin:0;font-size:20px;letter-spacing:.5px}
+  .hud p{margin:2px 0 0;font-size:12px;opacity:.75}
+  .legend{position:fixed;left:14px;bottom:12px;font-size:12px;color:#1c3b52;user-select:none;pointer-events:none}
+  .legend div{display:flex;align-items:center;gap:6px;margin-top:3px}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;border:1.5px solid rgba(0,0,0,.25)}
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div class="hud">
+  <h1>BLOBFOLK</h1>
+  <p>one metaball body per critter &middot; fully procedural gaits &middot; drag to orbit</p>
+</div>
+<div class="legend" id="legend"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { MarchingCubes } from 'three/addons/objects/MarchingCubes.js';
+
+// ---------- renderer / scene ----------
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+document.getElementById('app').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xbfe8ff);
+scene.fog = new THREE.Fog(0xbfe8ff, 14, 34);
+
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(7.5, 4.6, 7.5);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0.7, 0);
+controls.enableDamping = true;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.5;
+controls.maxPolarAngle = Math.PI * 0.49;
+controls.minDistance = 3; controls.maxDistance = 20;
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x7fa06a, 1.15));
+const sun = new THREE.DirectionalLight(0xfff2d9, 1.6);
+sun.position.set(5, 9, 4);
+scene.add(sun);
+
+// 3-step toon ramp
+const gradTex = new THREE.DataTexture(new Uint8Array([90, 180, 255]), 3, 1, THREE.RedFormat);
+gradTex.minFilter = gradTex.magFilter = THREE.NearestFilter;
+gradTex.needsUpdate = true;
+
+// ---------- ground + dressing ----------
+const ground = new THREE.Mesh(
+  new THREE.CircleGeometry(11, 48),
+  new THREE.MeshToonMaterial({ color: 0x8fce6e, gradientMap: gradTex })
+);
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+
+function outlineMaterial(color, thickness = 0.03) {
+  return new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    uniforms: { uC: { value: new THREE.Color(color).multiplyScalar(0.22) }, uT: { value: thickness } },
+    vertexShader: `
+      uniform float uT;
+      void main() {
+        vec3 p = position + normalize(normal) * uT;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+      }`,
+    fragmentShader: `
+      uniform vec3 uC;
+      void main() { gl_FragColor = vec4(uC, 1.0); }`
+  });
+}
+
+function addProp(geo, color, x, z, s, ry = 0) {
+  const m = new THREE.Mesh(geo, new THREE.MeshToonMaterial({ color, gradientMap: gradTex }));
+  m.position.set(x, 0, z); m.scale.setScalar(s); m.rotation.y = ry;
+  const o = new THREE.Mesh(geo, outlineMaterial(color, 0.05));
+  m.add(o);
+  scene.add(m);
+}
+const coneGeo = new THREE.ConeGeometry(0.5, 1.4, 7); coneGeo.translate(0, 0.7, 0);
+const bushGeo = new THREE.IcosahedronGeometry(0.5, 1); bushGeo.translate(0, 0.35, 0);
+addProp(coneGeo, 0x3f9e63, -7.2, -3.5, 1.5); addProp(coneGeo, 0x3f9e63, 6.8, -5.6, 1.9, 1.2);
+addProp(coneGeo, 0x53b06f, 7.6, 3.9, 1.2, 2.1); addProp(coneGeo, 0x53b06f, -6.4, 6.2, 1.7, 0.5);
+addProp(bushGeo, 0x6fc25f, -8.1, 1.4, 1.1); addProp(bushGeo, 0x6fc25f, 4.9, 7.4, 0.9);
+addProp(bushGeo, 0x6fc25f, 1.5, -8.2, 1.3);
+
+// blob shadow texture
+function radialTex(inner, outer) {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const grad = g.createRadialGradient(64, 64, 8, 64, 64, 62);
+  grad.addColorStop(0, inner); grad.addColorStop(1, outer);
+  g.fillStyle = grad; g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+const shadowTex = radialTex('rgba(20,45,25,0.45)', 'rgba(20,45,25,0)');
+const dustTex = radialTex('rgba(255,255,255,0.9)', 'rgba(255,255,255,0)');
+
+// dust puff pool
+const dust = [];
+for (let i = 0; i < 24; i++) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: dustTex, transparent: true, depthWrite: false, opacity: 0 }));
+  s.visible = false; scene.add(s);
+  dust.push({ s, t: 1, vel: new THREE.Vector3() });
+}
+function puff(pos, n = 6, spread = 0.35) {
+  for (let i = 0; i < n; i++) {
+    const d = dust.find(d => d.t >= 1); if (!d) return;
+    d.t = 0;
+    const a = Math.random() * Math.PI * 2;
+    d.s.position.set(pos.x + Math.cos(a) * 0.12, 0.08, pos.z + Math.sin(a) * 0.12);
+    d.vel.set(Math.cos(a) * spread, 0.35 + Math.random() * 0.3, Math.sin(a) * spread);
+    d.s.visible = true;
+  }
+}
+function updateDust(dt) {
+  for (const d of dust) {
+    if (d.t >= 1) continue;
+    d.t += dt / 0.6;
+    d.s.position.addScaledVector(d.vel, dt);
+    d.vel.y -= 0.4 * dt;
+    const u = Math.min(d.t, 1);
+    d.s.material.opacity = 0.7 * (1 - u);
+    d.s.scale.setScalar(0.18 + u * 0.5);
+    if (d.t >= 1) d.s.visible = false;
+  }
+}
+
+// ---------- helpers ----------
+const V = () => new THREE.Vector3();
+const tmpA = V(), tmpB = V(), tmpC = V(), tmpD = V();
+// scratch vectors reserved for build() callers (never touched by solveKnee)
+const vHip = V(), vFoot = V(), vKnee = V(), vBend = V(), vHand = V();
+const smooth = s => s * s * (3 - 2 * s);
+
+// two-bone IK in character-local space. Returns knee position.
+const ikA = V(), ikB = V();
+function solveKnee(hip, foot, l1, l2, bendDir, out) {
+  ikA.subVectors(foot, hip);
+  let d = ikA.length();
+  const maxL = l1 + l2 - 1e-4;
+  if (d > maxL) d = maxL;
+  if (d < 1e-5) d = 1e-5;
+  const dir = ikA.normalize();
+  const a = (l1 * l1 - l2 * l2 + d * d) / (2 * d);
+  const h = Math.sqrt(Math.max(0, l1 * l1 - a * a));
+  ikB.copy(bendDir).addScaledVector(dir, -bendDir.dot(dir));
+  if (ikB.lengthSq() < 1e-8) ikB.set(0, 0, 1);
+  ikB.normalize();
+  return out.copy(hip).addScaledVector(dir, a).addScaledVector(ikB, h);
+}
+
+// phase-based procedural leg (stance = pinned foot, swing = arc to predicted plant)
+class Leg {
+  constructor(char, restLocal, phaseOff, opts = {}) {
+    this.char = char;
+    this.rest = restLocal.clone();
+    this.off = phaseOff;
+    this.duty = opts.duty ?? 0.62;
+    this.liftH = opts.liftH ?? 0.11;
+    this.pos = V(); this.plant = V(); this.liftFrom = V(); this.target = V();
+    this.planted = false; this.wasStance = false; this.init = false;
+  }
+  update(t) {
+    const c = this.char;
+    const ph = ((c.gaitPhase + this.off) % 1 + 1) % 1;
+    if (!this.init) {
+      c.restWorld(this.rest, this.pos); this.plant.copy(this.pos); this.target.copy(this.pos);
+      this.init = true;
+    }
+    const stance = ph < this.duty;
+    if (stance) {
+      if (!this.wasStance) { this.plant.copy(this.target); if (c.onStep) c.onStep(this.plant); }
+      this.pos.copy(this.plant); this.pos.y = 0;
+    } else {
+      if (this.wasStance) {
+        this.liftFrom.copy(this.pos);
+        const dtEnd = (1 - ph) / c.cadence;
+        c.predictRestWorld(t + dtEnd, this.rest, this.target);
+      }
+      const s = (ph - this.duty) / (1 - this.duty);
+      this.pos.lerpVectors(this.liftFrom, this.target, smooth(s));
+      this.pos.y = Math.sin(Math.PI * Math.min(s, 1)) * this.liftH;
+    }
+    this.wasStance = stance;
+  }
+}
+
+// ---------- base critter ----------
+const SUBTRACT = 12, ISO = 80;
+class Critter {
+  constructor({ name, kind, color, R, w, a0 = 0, S = 1.1, cy = 0.55, res = 44 }) {
+    Object.assign(this, { name, kind, color, R, w, a0, S, cy });
+    this.group = new THREE.Group(); scene.add(this.group);
+    this.mat = new THREE.MeshToonMaterial({ color, gradientMap: gradTex });
+    this.mc = new MarchingCubes(res, this.mat, false, false, 30000);
+    this.mc.isolation = ISO;
+    this.mc.scale.setScalar(S);
+    this.mc.position.y = cy; // field centered on the body, not the ground
+    this.mc.frustumCulled = false;
+    this.group.add(this.mc);
+    this.outline = new THREE.Mesh(this.mc.geometry, outlineMaterial(color, 0.028 / S));
+    this.outline.scale.setScalar(S);
+    this.outline.position.y = cy;
+    this.outline.frustumCulled = false;
+    this.group.add(this.outline);
+
+    // eyes
+    this.eyeL = this.makeEye(); this.eyeR = this.makeEye();
+    this.blinkT = 2 + Math.random() * 3;
+
+    // blob shadow
+    this.shadow = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false })
+    );
+    this.shadow.rotation.x = -Math.PI / 2; this.shadow.position.y = 0.02;
+    scene.add(this.shadow);
+
+    this.gaitPhase = 0; this.cadence = 2;
+    this.heading = V().set(0, 0, 1);
+    this._inv = new THREE.Matrix4();
+    this._pq = new THREE.Quaternion();
+  }
+  makeEye() {
+    const e = new THREE.Mesh(
+      new THREE.SphereGeometry(0.055, 12, 10),
+      new THREE.MeshBasicMaterial({ color: 0xffffff })
+    );
+    const pupil = new THREE.Mesh(
+      new THREE.SphereGeometry(0.028, 10, 8),
+      new THREE.MeshBasicMaterial({ color: 0x1a1a22 })
+    );
+    pupil.position.z = 0.04; e.add(pupil);
+    this.group.add(e);
+    return e;
+  }
+  // world-space rest position of a local offset, y projected to ground
+  restWorld(rest, out) {
+    out.copy(rest).applyMatrix4(this.group.matrixWorld); out.y = 0; return out;
+  }
+  pathPose(t, outPos, outYawQ) {
+    const a = this.a0 + this.w * t;
+    outPos.set(Math.cos(a) * this.R, 0, Math.sin(a) * this.R);
+    // tangent direction of travel
+    tmpC.set(-Math.sin(a), 0, Math.cos(a)).multiplyScalar(Math.sign(this.w));
+    if (outYawQ) outYawQ.setFromAxisAngle(tmpD.set(0, 1, 0), Math.atan2(tmpC.x, tmpC.z));
+    return tmpC;
+  }
+  predictRestWorld(t, rest, out) {
+    const dir = this.pathPose(t, tmpA, this._pq);
+    out.copy(rest).applyQuaternion(this._pq).add(tmpA); out.y = 0;
+  }
+  updatePath(t) {
+    const dir = this.pathPose(t, this.group.position, this.group.quaternion);
+    this.heading.copy(dir);
+    this.speed = Math.abs(this.w) * this.R;
+    this.gaitPhase = t * this.cadence;
+  }
+  ball(x, y, z, r) {
+    const S2 = 2 * this.S;
+    const strength = (SUBTRACT + ISO) * (r / S2) * (r / S2);
+    this.mc.addBall(x / S2 + 0.5, (y - this.cy) / S2 + 0.5, z / S2 + 0.5, strength, SUBTRACT);
+  }
+  chain(a, b, n, r0, r1) {
+    for (let i = 0; i < n; i++) {
+      const u = n === 1 ? 0.5 : i / (n - 1);
+      this.ball(
+        a.x + (b.x - a.x) * u, a.y + (b.y - a.y) * u, a.z + (b.z - a.z) * u,
+        r0 + (r1 - r0) * u
+      );
+    }
+  }
+  toLocal(worldV, out) { return out.copy(worldV).applyMatrix4(this._inv); }
+  setEyes(headLocal, headR, spread = 0.42, up = 0.1, fwdTilt = 0) {
+    for (const [e, sgn] of [[this.eyeL, -1], [this.eyeR, 1]]) {
+      e.position.set(
+        headLocal.x + sgn * headR * spread,
+        headLocal.y + headR * up,
+        headLocal.z + headR * 0.78
+      );
+      e.rotation.x = fwdTilt;
+    }
+  }
+  updateBlink(dt) {
+    this.blinkT -= dt;
+    let sy = 1;
+    if (this.blinkT < 0.12) sy = Math.max(0.08, Math.abs(this.blinkT / 0.06 - 1));
+    if (this.blinkT <= 0) { this.blinkT = 1.8 + Math.random() * 3.2; sy = 1; }
+    this.eyeL.scale.y = this.eyeR.scale.y = sy;
+  }
+  updateShadow(clearance = 0, size = 0.9) {
+    const k = Math.max(0.25, 1 - clearance * 0.35);
+    this.shadow.position.x = this.group.position.x;
+    this.shadow.position.z = this.group.position.z;
+    this.shadow.scale.setScalar(size * k);
+    this.shadow.material.opacity = k;
+  }
+  update(t, dt) {
+    this.updatePath(t);
+    this.group.updateMatrixWorld(true);
+    this._inv.copy(this.group.matrixWorld).invert();
+    this.mc.reset();
+    this.build(t, dt);
+    this.mc.update();
+    this.updateBlink(dt);
+  }
+  build() {} // subclass
+}
+
+// ---------- biped ----------
+class Biped extends Critter {
+  constructor(o) {
+    super(o);
+    this.cadence = 1.9;
+    this.legs = [
+      new Leg(this, new THREE.Vector3(-0.14, 0, 0.02), 0.0, { liftH: 0.13 }),
+      new Leg(this, new THREE.Vector3(0.14, 0, 0.02), 0.5, { liftH: 0.13 }),
+    ];
+    this.head = V();
+  }
+  build(t, dt) {
+    const bob = Math.sin(this.gaitPhase * Math.PI * 2 * 2) * 0.028;
+    const sway = Math.sin(this.gaitPhase * Math.PI * 2) * 0.02;
+    const py = 0.52 + bob;
+    // torso stack
+    this.ball(sway, py, 0, 0.135);
+    this.ball(sway * 0.6, py + 0.13, 0.01, 0.15);
+    this.ball(0, py + 0.27, 0.02, 0.155);
+    this.head.set(0, py + 0.52, 0.05);
+    this.ball(this.head.x, this.head.y, this.head.z, 0.165);
+    // arms (counter-swing to legs)
+    for (const sgn of [-1, 1]) {
+      const sw = Math.sin((this.gaitPhase + (sgn < 0 ? 0.5 : 0)) * Math.PI * 2) * 0.55;
+      const sh = tmpA.set(sgn * 0.22, py + 0.33, 0.02);
+      const hand = tmpB.set(sgn * 0.28, py + 0.02, Math.sin(sw) * 0.22);
+      solveKnee(sh, hand, 0.2, 0.2, tmpD.set(sgn, 0, -0.4).normalize(), tmpC);
+      this.chain(sh, tmpC, 3, 0.062, 0.056);
+      this.chain(tmpC, hand, 3, 0.056, 0.078);
+    }
+    // legs
+    for (const leg of this.legs) {
+      leg.update(t);
+      const foot = this.toLocal(leg.pos, tmpB);
+      const hip = tmpA.set(leg.rest.x * 0.8, py - 0.08, 0);
+      solveKnee(hip, foot, 0.28, 0.28, tmpD.set(0, 0, 1), tmpC);
+      this.chain(hip, tmpC, 3, 0.07, 0.065);
+      this.chain(tmpC, foot, 3, 0.065, 0.085);
+    }
+    this.setEyes(this.head, 0.165);
+    this.updateShadow(0, 1.0);
+  }
+}
+
+// ---------- quadruped ----------
+class Quad extends Critter {
+  constructor(o) {
+    super(o);
+    this.cadence = 2.2;
+    const x = 0.15, zf = 0.27, zb = -0.27;
+    this.legs = [
+      new Leg(this, new THREE.Vector3(-x, 0, zf), 0.0, { liftH: 0.09 }),
+      new Leg(this, new THREE.Vector3(x, 0, zb), 0.0, { liftH: 0.09 }),
+      new Leg(this, new THREE.Vector3(x, 0, zf), 0.5, { liftH: 0.09 }),
+      new Leg(this, new THREE.Vector3(-x, 0, zb), 0.5, { liftH: 0.09 }),
+    ];
+    this.head = V();
+  }
+  build(t, dt) {
+    const bob = Math.sin(this.gaitPhase * Math.PI * 4) * 0.02;
+    const by = 0.42 + bob;
+    // horizontal body
+    this.ball(0, by, -0.26, 0.16);
+    this.ball(0, by + 0.02, 0, 0.17);
+    this.ball(0, by + 0.04, 0.26, 0.16);
+    this.head.set(0, by + 0.22, 0.48);
+    this.ball(this.head.x, this.head.y, this.head.z, 0.15);
+    // ears
+    this.ball(-0.1, this.head.y + 0.15, 0.44, 0.065);
+    this.ball(0.1, this.head.y + 0.15, 0.44, 0.065);
+    // wagging tail
+    const wag = Math.sin(t * 9) * 0.16;
+    this.ball(wag, by + 0.12, -0.45, 0.075);
+    this.ball(wag * 1.7, by + 0.2, -0.56, 0.06);
+    for (const leg of this.legs) {
+      leg.update(t);
+      const foot = this.toLocal(leg.pos, tmpB);
+      const hip = tmpA.set(leg.rest.x * 0.75, by - 0.02, leg.rest.z * 0.95);
+      const bend = leg.rest.z > 0 ? tmpD.set(0, 0, 1) : tmpD.set(0, 0, -1);
+      solveKnee(hip, foot, 0.22, 0.24, bend, tmpC);
+      this.chain(hip, tmpC, 3, 0.075, 0.065);
+      this.chain(tmpC, foot, 3, 0.065, 0.08);
+    }
+    this.setEyes(this.head, 0.15, 0.5, 0.25);
+    this.updateShadow(0, 1.15);
+  }
+}
+
+// ---------- hexapod ----------
+class Hexa extends Critter {
+  constructor(o) {
+    super(o);
+    this.cadence = 3.0;
+    this.legs = [];
+    const zs = [0.24, 0, -0.24];
+    for (let i = 0; i < 3; i++) {
+      for (const sgn of [-1, 1]) {
+        const phase = ((i + (sgn > 0 ? 1 : 0)) % 2) * 0.5; // tripod gait
+        this.legs.push(new Leg(this, new THREE.Vector3(sgn * 0.36, 0, zs[i]), phase, { duty: 0.55, liftH: 0.09 }));
+      }
+    }
+    this.head = V();
+  }
+  build(t, dt) {
+    const bob = Math.sin(this.gaitPhase * Math.PI * 4) * 0.012;
+    const by = 0.24 + bob;
+    this.ball(0, by, -0.2, 0.13);
+    this.ball(0, by + 0.01, 0, 0.145);
+    this.ball(0, by + 0.02, 0.2, 0.13);
+    this.head.set(0, by + 0.08, 0.36);
+    this.ball(this.head.x, this.head.y, this.head.z, 0.12);
+    // antennae
+    const twitch = Math.sin(t * 7) * 0.03;
+    this.ball(-0.07 + twitch, this.head.y + 0.15, 0.42, 0.05);
+    this.ball(0.07 - twitch, this.head.y + 0.15, 0.42, 0.05);
+    for (const leg of this.legs) {
+      leg.update(t);
+      const foot = this.toLocal(leg.pos, tmpB);
+      const sgn = Math.sign(leg.rest.x);
+      const hip = tmpA.set(sgn * 0.13, by + 0.05, leg.rest.z);
+      solveKnee(hip, foot, 0.24, 0.26, tmpD.set(sgn, 0.9, 0).normalize(), tmpC);
+      this.chain(hip, tmpC, 3, 0.052, 0.046);
+      this.chain(tmpC, foot, 4, 0.046, 0.052);
+    }
+    this.setEyes(this.head, 0.12, 0.55, 0.3);
+    this.updateShadow(0, 1.05);
+  }
+}
+
+// ---------- hopper (no legs — squash & stretch) ----------
+class Hopper extends Critter {
+  constructor(o) {
+    super(o);
+    this.angle = o.a0;
+    this.hopT = Math.random(); this.hopPeriod = 1.25;
+    this.hopH = 0.85; this.hopArc = 0.5; // radians advanced per hop
+    this.squash = 0; this.airY = 0; this.wasAir = false;
+    this.head = V();
+  }
+  updatePath(t) {
+    // overridden: angle only advances mid-air
+    this.hopT += this._dt / this.hopPeriod;
+    if (this.hopT >= 1) this.hopT -= 1;
+    const u = this.hopT;
+    const AIR0 = 0.38, AIR1 = 0.82;
+    let s = 0, air = 0, pitch = 0;
+    if (u < 0.26) s = smooth(u / 0.26) * 0.38;                    // crouch (anticipation)
+    else if (u < AIR0) s = 0.38 - smooth((u - 0.26) / (AIR0 - 0.26)) * 0.75; // launch stretch
+    else if (u < AIR1) {                                          // airborne
+      const v = (u - AIR0) / (AIR1 - AIR0);
+      air = Math.sin(Math.PI * v);
+      s = -0.32 * (1 - v * 0.6);
+      pitch = (0.5 - v) * 0.5;
+      this.angle += this._dt / (this.hopPeriod * (AIR1 - AIR0)) * this.hopArc * Math.sign(this.w);
+    } else {                                                       // landing recovery
+      const v = (u - AIR1) / (1 - AIR1);
+      s = 0.45 * Math.exp(-4 * v) * Math.cos(v * 9);
+      if (!this.landedThisCycle) {
+        puff(this.group.position, 7, 0.4);
+        this.landedThisCycle = true;
+      }
+    }
+    if (u < AIR1) this.landedThisCycle = false;
+    this.squash = s;
+    this.airY = air * this.hopH;
+    const a = this.angle;
+    this.group.position.set(Math.cos(a) * this.R, this.airY, Math.sin(a) * this.R);
+    this.heading.set(-Math.sin(a), 0, Math.cos(a)).multiplyScalar(Math.sign(this.w));
+    this.group.quaternion.setFromEuler(new THREE.Euler(pitch, Math.atan2(this.heading.x, this.heading.z), 0, 'YXZ'));
+  }
+  build(t, dt) {
+    const s = this.squash;
+    const ky = 1 - s * 0.55, kxz = 1 + s * 0.45;
+    const B = (x, y, z, r) => this.ball(x * kxz, 0.02 + (y - 0.02) * ky, z * kxz * 0.6 + z * 0.4, r * (1 + s * 0.08));
+    B(0, 0.2, 0, 0.2);
+    B(0, 0.42, 0.01, 0.17);
+    this.head.set(0, 0.02 + (0.6 - 0.02) * ky, 0.03);
+    B(0, 0.6, 0.03, 0.15);
+    // stubby lagging arms
+    const lag = Math.sin(t * 6 - 1.2) * 0.06 - s * 0.1;
+    for (const sgn of [-1, 1]) {
+      B(sgn * 0.2, 0.36 + lag, 0.06, 0.07);
+      B(sgn * 0.24, 0.28 + lag * 1.6, 0.1, 0.06);
+    }
+    this.setEyes(this.head, 0.15, 0.5, 0.25);
+    this.updateShadow(this.airY, 0.85);
+  }
+  update(t, dt) { this._dt = dt; super.update(t, dt); }
+}
+
+// ---------- flyer ----------
+class Flyer extends Critter {
+  constructor(o) {
+    super(o);
+    this.flyH = 1.55;
+    this.head = V();
+  }
+  updatePath(t) {
+    const dir = this.pathPose(t, this.group.position, this.group.quaternion);
+    this.heading.copy(dir);
+    const flap = Math.sin(t * 9);
+    this.bobY = Math.sin(t * 9 - Math.PI / 2) * 0.05;
+    this.flap = flap;
+    this.group.position.y = this.flyH + this.bobY + Math.sin(t * 0.9) * 0.12;
+    // bank into the turn
+    const roll = -Math.sign(this.w) * 0.22;
+    const e = new THREE.Euler(0, Math.atan2(dir.x, dir.z), roll, 'YXZ');
+    this.group.quaternion.setFromEuler(e);
+  }
+  build(t, dt) {
+    this.ball(0, 0, -0.02, 0.15);
+    this.ball(0, 0.02, 0.13, 0.13);
+    this.head.set(0, 0.14, 0.26);
+    this.ball(this.head.x, this.head.y, this.head.z, 0.13);
+    // tail feathers
+    this.ball(0, 0.02, -0.2, 0.09);
+    this.ball(0, 0.05, -0.32, 0.07);
+    // flapping wings
+    const ang = this.flap * 0.65;
+    for (const sgn of [-1, 1]) {
+      for (let i = 1; i <= 5; i++) {
+        const d = 0.06 + i * 0.12;
+        // wing curls: outer segments flap slightly harder
+        const curl = ang * (1 + i * 0.09);
+        this.ball(sgn * d * Math.cos(curl), 0.05 + d * Math.sin(curl), -0.03 - i * 0.03, 0.095 - i * 0.007);
+      }
+    }
+    // dangling little arms/feet
+    const dang = Math.sin(t * 9 + 1.4) * 0.03;
+    for (const sgn of [-1, 1]) {
+      this.ball(sgn * 0.09, -0.14 + dang, 0.08, 0.065);
+      this.ball(sgn * 0.1, -0.22 + dang * 1.8, 0.06, 0.055);
+    }
+    this.setEyes(this.head, 0.13, 0.5, 0.25);
+    this.updateShadow(this.group.position.y, 0.8);
+  }
+}
+
+// ---------- cast ----------
+const cast = [
+  new Biped({ name: 'Trotter', kind: 'two legs + arms', color: 0xff7d66, R: 3.1, w: 0.32, a0: 0.3, cy: 0.6 }),
+  new Quad({ name: 'Waggle', kind: 'four legs', color: 0x36b8a8, R: 4.3, w: -0.26, a0: 2.4, cy: 0.5 }),
+  new Hexa({ name: 'Skitter', kind: 'six legs', color: 0xa06ae8, R: 5.3, w: 0.24, a0: 4.4, cy: 0.3, S: 0.85, res: 48 }),
+  new Hopper({ name: 'Boing', kind: 'no legs — hops', color: 0xd7cc3c, R: 2.1, w: 0.5, a0: 3.6, cy: 0.5 }),
+  new Flyer({ name: 'Flit', kind: 'flies + arms', color: 0x5aa9ff, R: 3.9, w: -0.42, a0: 1.2, cy: 0, S: 0.95, res: 48 }),
+];
+
+const legend = document.getElementById('legend');
+for (const c of cast) {
+  const row = document.createElement('div');
+  row.innerHTML = `<span class="dot" style="background:#${c.color.toString(16).padStart(6, '0')}"></span><b>${c.name}</b>&nbsp;— ${c.kind}`;
+  legend.appendChild(row);
+}
+
+// ---------- loop ----------
+const clock = new THREE.Clock();
+let elapsed = 0;
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  elapsed += dt;
+  for (const c of cast) c.update(elapsed, dt);
+  updateDust(dt);
+  controls.update();
+  renderer.render(scene, camera);
+});
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// deterministic capture hook for headless screenshots
+window.__blobfolk = { scene, camera, renderer, cast, controls };
+</script>
+</body>
+</html>

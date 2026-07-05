@@ -84,13 +84,28 @@ unhandled handler error returns **`500`** `{ "error": "internal error: ..." }`.
 
 | Method | Path | Auth | Body | Success | Errors |
 |---|---|---|---|---|---|
-| POST | `/agents/register` | none | `{ "handle": string, "note"?: string }` | `201 { agentId, token, handle }` | `400` if `handle` missing/not a string |
+| POST | `/agents/register` | none | `{ "handle": string, "note"?, "unique"?, "model"?, "sessionId"? }` | `201 { agentId, token, handle, registeredAt, model, sessionId }` | `400` if `handle` missing; `409` if a live agent already holds `handle` |
 | POST | `/agents/heartbeat` | Bearer | — | `200 { ok: true }` | `401` |
 | GET | `/agents` | none | — | `200 { agents: [...] }` | — |
 
 `GET /agents` returns each active agent as
-`{ id, handle, token, registeredAt, lastSeen, status, note }` where `status` is `"online"`
-or `"stale"`. Agents not seen within the **drop** window are omitted entirely.
+`{ id, handle, token, registeredAt, lastSeen, status, note, model, sessionId }` where `status`
+is `"online"` or `"stale"`. `registeredAt` is the check-in moment; `lastSeen` is last-touched
+(refreshed by every authed call). `model` and `sessionId` are optional provenance: which model
+the agent is (usually stamped by the orchestrator at launch via `--model`) and the agent's own
+harness conversation/thread id (`--session`/`--thread`/`--conversation`, so an agent can query
+which session it is via `whoami`). Agents not seen within the **drop** window are omitted.
+
+**Handle-claim uniqueness (2026-07-04):** register **refuses a handle a still-live agent
+already holds** — `409 { error, conflict: { handle, heldBy, status } }`. This is the daemon
+acting as the name registry: an agent can't silently adopt another's identity. A name is
+reclaimable once its previous holder is reaped (dropped). Pass `"unique": false` to opt out
+(legacy re-register). Solo agents that have no assigned name should `register --random` — the
+client generates a unique candidate and claims it, retrying on the rare clash. Because the
+daemon already assigns a unique `agentId`+`token` and records `claimedBy`/`history` by
+`agentId` on every task and lock, identity and task-ownership are authoritative server-side;
+the client-side `AGORA_AGENT_ID` only decides which local file caches your token between
+invocations.
 
 > Note: the registration `token` IS returned in the `GET /agents` payload (the store does
 > not strip it). Treat the local daemon as trusted; tokens are not secrets across agents.
@@ -334,6 +349,14 @@ node tools/agora/client.mjs watch                    # GET  /events  (SSE stream
 
 If a command name differs once `client.mjs` lands, the raw curl calls above are the ground
 truth — every command maps onto the HTTP API in this document.
+
+**Per-agent identity (`AGORA_AGENT_ID`)**: the client persists its registration
+(agentId + token) in `.agent/agora/client-identity.json`, keyed by daemon URL. Two
+concurrent agents in one checkout would share that file — and `unlock --mine` from one
+would release the other's locks (observed 2026-07-04). Export `AGORA_AGENT_ID=<unique
+handle or session id>` before any client call: identity then lands in
+`client-identity.<id>.json`, fully isolating agents. Unset, the legacy shared path is
+used (fine for single-agent use).
 
 ---
 

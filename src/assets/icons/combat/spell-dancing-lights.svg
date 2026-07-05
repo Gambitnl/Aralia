@@ -1,0 +1,27 @@
+<!--
+  Aralia combat icon: Dancing Lights and light-follow-up actions.
+  The four sparks mirror the spell's movable lights and the cyan ring marks a follow-up action.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Dancing Lights icon</title>
+  <desc id="desc">Four golden motes orbiting a cyan follow-up ring.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="65%">
+      <stop offset="0" stop-color="#78350f"/>
+      <stop offset="1" stop-color="#111827"/>
+    </radialGradient>
+    <radialGradient id="star" cx="50%" cy="50%" r="55%">
+      <stop offset="0" stop-color="#fff7ad"/>
+      <stop offset=".55" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#f97316" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="10" fill="url(#bg)"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#06b6d4" stroke-width="2.4" stroke-dasharray="8 5"/>
+  <path d="M32 14l3 9 9 3-9 3-3 9-3-9-9-3 9-3z" fill="url(#star)" stroke="#fde68a" stroke-width="1.1"/>
+  <path d="M18 37l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="url(#star)" stroke="#fde68a" stroke-width="1"/>
+  <path d="M46 37l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="url(#star)" stroke="#fde68a" stroke-width="1"/>
+  <path d="M32 38l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="url(#star)" stroke="#fde68a" stroke-width="1"/>
+  <path d="M47 17c4 3 6 7 6 12" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M52 18l1 10-8-5" fill="none" stroke="#22d3ee" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

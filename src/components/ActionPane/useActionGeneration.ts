@@ -19,6 +19,29 @@ import { Action, Location, NPC, Item } from '../../types';
 import { useOptionalGameState } from '../../state/GameContext';
 import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
 import { isWildernessLocationId } from '../../utils/location/cellLocationId';
+import type { BusinessType, WorldBusiness } from '../../types/business';
+
+/**
+ * Map a worldforge business type to the closest legacy merchant-type string the
+ * MerchantModal chain understands. `handleOpenDynamicMerchant` treats merchantType
+ * as a free label (it feeds the tavern-hire substring check and the deterministic
+ * inventory generator), so the returned string must (a) carry "tavern"/"inn" for
+ * drinking houses and (b) be a stable, type-appropriate shop key. Explicit map,
+ * no silent fallback — an unmapped type routes to the general store on purpose.
+ */
+export function merchantTypeForBusiness(businessType: BusinessType): string {
+  switch (businessType) {
+    case 'tavern': return 'shop_tavern';
+    case 'smithy': return 'shop_blacksmith';
+    case 'apothecary': return 'shop_apothecary';
+    case 'enchanter_shop': return 'shop_enchanter';
+    case 'general_store':
+    case 'trading_company':
+    case 'mine':
+    case 'farm':
+      return 'shop_general';
+  }
+}
 
 interface UseActionGenerationProps {
   currentLocation: Location;
@@ -45,8 +68,61 @@ export const useActionGeneration = ({
     // surface a Talk action for each — including on procedural coord_ tiles,
     // where the opening situation places its strangers. Without this a fresh
     // player can see those NPCs in the scene but has no way to talk to them.
+    // Index the player's town businesses by owner so per-NPC shop/recruit
+    // affordances can resolve their linked business in O(1). Populated only when
+    // rendered inside a GameProvider; empty for isolated hook tests.
+    const gsForNpcs = gameContext?.state;
+    const businessByOwner = new Map<string, WorldBusiness>();
+    if (gsForNpcs?.worldBusinesses) {
+      for (const biz of Object.values(gsForNpcs.worldBusinesses)) {
+        businessByOwner.set(biz.ownerId, biz);
+      }
+    }
+
     npcsInLocation.forEach((npc) => {
       actions.push({ type: 'talk', label: `Talk to ${npc.name}`, payload: { targetNpcId: npc.id }, targetId: npc.id });
+
+      const business = businessByOwner.get(npc.id);
+
+      // Packet B — Browse Goods: a talk-target who owns a business gets a second
+      // action that revives the whole MerchantModal chain (NPC reuse → inventory
+      // → OPEN_MERCHANT → buy/sell/haggle) with a single OPEN_DYNAMIC_MERCHANT
+      // dispatch. merchantType maps the wf business type to the legacy shop key
+      // the handler + deterministic inventory generator expect; buildingId is the
+      // NPC id (1:1 registry key); seedKey is the business id (stable inventory).
+      if (business) {
+        const merchantType = merchantTypeForBusiness(business.businessType);
+        actions.push({
+          type: 'OPEN_DYNAMIC_MERCHANT',
+          label: `Browse Goods — ${business.name}`,
+          payload: { merchantType, buildingId: npc.id, seedKey: business.id },
+        });
+
+        // Packet D(1) — tavern/inn keepers can be hired into the party. Routes
+        // through the SAME dynamic-merchant handler with hire:true, which
+        // short-circuits into the shared recruit pipeline (consent → convert →
+        // RECRUIT_COMPANION). Consent may still refuse; that is correct.
+        if (business.businessType === 'tavern') {
+          actions.push({
+            type: 'OPEN_DYNAMIC_MERCHANT',
+            label: `Hire ${npc.name}`,
+            payload: { merchantType, buildingId: npc.id, seedKey: business.id, hire: true },
+          });
+        }
+      }
+
+      // Packet D(2) — any generated NPC (town keeper or opening stranger) can be
+      // invited to join. This is a talk action carrying a recruitOffer, consumed
+      // up front by handleTalk → handleRecruitOffer. evaluateRecruitOffer gates on
+      // disposition and can decline, so the offer is safe to surface broadly.
+      if (gsForNpcs?.generatedNpcs?.[npc.id]) {
+        actions.push({
+          type: 'talk',
+          label: `Ask ${npc.name} to join you`,
+          payload: { targetNpcId: npc.id, recruitOffer: { targetNpcId: npc.id } },
+          targetId: npc.id,
+        });
+      }
     });
 
     // Take actions for items present at the location. itemsInLocation is the

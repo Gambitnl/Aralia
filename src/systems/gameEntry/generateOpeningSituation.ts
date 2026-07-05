@@ -92,7 +92,9 @@ settlement, the scene is inside that settlement, among its streets and people${
 ## TASK
 Invent a fresh, specific predicament that is ALREADY HAPPENING as the player arrives —
 something that demands a response in the next breath, set in the fixed Location above.
-Place 1 to 3 strangers (not the player's allies) in the scene. One of them speaks first,
+Place 1 to 3 strangers (not the player's allies) in the scene. The player character,
+${character.name}, is NOT an NPC — never include them in "npcs" and never write lines
+spoken as them. One of them speaks first,
 directly drawing the player in. Make it grounded in who this character is (their class,
 race, and background should matter) and exactly where they are. Be concrete, not generic.${
         location.timeOfDay || location.weather
@@ -195,6 +197,41 @@ export function composeOpeningNarration(
     const header =
         place && timeOfDay ? `${place} — ${timeOfDay}` : place || timeOfDay || '';
     return joinNarrationFragments([header, setting.weather, predicament]);
+}
+
+/**
+ * Drop generated situation NPCs that are really the PLAYER echoed back.
+ *
+ * The opening-situation model sometimes lists the player character themselves
+ * as one of the scene's "strangers", which surfaced as a "Talk to <the
+ * player>" action (talking to yourself). Any NPC whose name case-insensitively
+ * matches a party member's name is removed BEFORE placement/conversation
+ * seeding. If the filtered speaker was the echo, the opening line is
+ * reassigned to the first surviving NPC. If EVERY generated NPC is a player
+ * echo we keep the situation unchanged (a self-echo scene beats a crash — the
+ * prompt-side "the player is NOT an NPC" instruction makes this vanishingly
+ * rare).
+ */
+export function filterPlayerEchoNpcs(
+    situation: OpeningSituation,
+    partyNames: readonly string[],
+): OpeningSituation {
+    const names = new Set(
+        partyNames.map((n) => n.trim().toLowerCase()).filter((n) => n.length > 0),
+    );
+    if (names.size === 0) return situation;
+
+    const kept = situation.npcs.filter((n) => !names.has(n.name.trim().toLowerCase()));
+    if (kept.length === situation.npcs.length || kept.length === 0) return situation;
+
+    const speakerSurvives = kept.some((n) => n.id === situation.openingLine.speakerId);
+    return {
+        ...situation,
+        npcs: kept,
+        openingLine: speakerSurvives
+            ? situation.openingLine
+            : { ...situation.openingLine, speakerId: kept[0].id },
+    };
 }
 
 interface RawSituation {
