@@ -85,6 +85,11 @@ jobs:
           node-version: '22'
           cache: 'npm'
       
+      # GitHub's node 22 image ships npm 10, but the lockfile is generated with
+      # npm 11; align to npm 11 so `npm ci` accepts the committed lockfile.
+      - name: Use npm 11 (align with lockfile generator)
+        run: npm install -g npm@11
+
       - name: Install dependencies
         run: npm ci
       
@@ -107,6 +112,11 @@ jobs:
           node-version: '22'
           cache: 'npm'
       
+      # GitHub's node 22 image ships npm 10, but the lockfile is generated with
+      # npm 11; align to npm 11 so `npm ci` accepts the committed lockfile.
+      - name: Use npm 11 (align with lockfile generator)
+        run: npm install -g npm@11
+
       - name: Install dependencies
         run: npm ci
       
@@ -128,6 +138,11 @@ jobs:
           node-version: '22'
           cache: 'npm'
       
+      # GitHub's node 22 image ships npm 10, but the lockfile is generated with
+      # npm 11; align to npm 11 so `npm ci` accepts the committed lockfile.
+      - name: Use npm 11 (align with lockfile generator)
+        run: npm install -g npm@11
+
       - name: Install dependencies
         run: npm ci
       
@@ -160,6 +175,11 @@ jobs:
           node-version: '22'
           cache: 'npm'
       
+      # GitHub's node 22 image ships npm 10, but the lockfile is generated with
+      # npm 11; align to npm 11 so `npm ci` accepts the committed lockfile.
+      - name: Use npm 11 (align with lockfile generator)
+        run: npm install -g npm@11
+
       - name: Install dependencies
         run: npm ci
       

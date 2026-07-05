@@ -36,6 +36,13 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      # GitHub's node 22 image ships npm 10, but the lockfile is generated with
+      # npm 11 (the daily-snapshot machine), and the two resolve the nested
+      # @docsearch react-18 peer differently. Align to npm 11 so `npm ci` accepts
+      # the committed lockfile instead of failing with "missing … from lock file".
+      - name: Use npm 11 (align with lockfile generator)
+        run: npm install -g npm@11
+
       - name: Install dependencies
         run: npm ci
 
