@@ -150,7 +150,7 @@
     "protobufjs": "^7.5.8",
     "qs": "^6.15.2",
     "vitepress": {
-      "vite": "6.4.2"
+      "vite": "6.4.3"
     }
   },
   "gemini": {
