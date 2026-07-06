@@ -331,10 +331,11 @@ export default defineConfig(async ({ mode, command }) => {
           })
     },
     plugins,
-    define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-    },
+    // SECURITY: do NOT inject the Gemini API key into the client bundle. GitHub Pages is a
+    // public static host, so anything `define`d here is extractable from the shipped JS
+    // (a real leak happened this way). The browser reads the key only from
+    // `import.meta.env.VITE_GEMINI_API_KEY` (set locally via .env for dev); the public
+    // build ships no key and simply gates AI features off. See src/config/env.ts getApiKey().
     resolve: {
       dedupe: ['three', '@react-three/fiber', '@react-three/drei'],
       alias: {

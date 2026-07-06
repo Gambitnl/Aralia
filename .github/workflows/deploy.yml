@@ -1,10 +1,8 @@
-# WARNING: GitHub Pages deployment is PUBLIC. The GEMINI_API_KEY is embedded
-# in the built JS bundle and accessible to anyone who views source.
-# Mitigations:
-#   - Restrict the API key to specific referrers in Google AI Studio: https://aistudio.google.com/apikey
-#   - Use Vercel/Netlify with password protection instead
-#   - Disable this workflow if you don't need public hosting
-# See session notes from 2025-11-26 for full discussion.
+# GitHub Pages deployment is PUBLIC. As of 2026-07-06 the build NO LONGER embeds the
+# GEMINI_API_KEY: vite.config.ts stopped `define`-ing it into the bundle, so AI features
+# are gated off on the public site (they run locally via a VITE_GEMINI_API_KEY in .env).
+# Do NOT re-add a key secret to this build, or it becomes extractable from the shipped JS.
+# If the public site needs live AI, proxy the calls through a server that holds the key.
 
 name: Deploy to GitHub Pages
 
@@ -47,10 +45,9 @@ jobs:
         run: npm ci
 
       # Currently deploys without verifying code quality or catching type errors.
+      # No GEMINI_API_KEY is passed here on purpose — the client build must not embed a
+      # key into the public bundle (see the header note and vite.config.ts).
       - name: Build
-        env:
-          # Anyone can extract it from the deployed JS. Restrict via Google AI Studio referrer settings.
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: npm run build
 
       - name: Upload artifact
