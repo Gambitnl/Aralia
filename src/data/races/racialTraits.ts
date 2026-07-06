@@ -773,7 +773,10 @@ const extractChoicesFromTrait = (
 
   // 1. Spell Choice Detection
   // Pattern: "one of the following cantrips of your choice: Dancing Lights, Light, or Sacred Flame"
-  const spellChoiceMatch = trait.match(/one of the following (?:cantrips|spells) of your choice:?\s*([a-z0-9_' -]+?(?:\s*,\s*[a-z0-9_' -]+?)*\s*(?:or|and)\s*[a-z0-9_' -]+)/i);
+  // Linear single-run capture (no nested quantifier) — ReDoS-safe (CodeQL js/redos).
+  // Grabs the whole "a, b, or c" list up to the sentence period; splitSpellNames()
+  // handles the , / and / or separators and filters invalid tokens.
+  const spellChoiceMatch = trait.match(/one of the following (?:cantrips|spells) of your choice:?\s*([a-z0-9_', -]+)/i);
   let availableSpellIds: string[] | undefined;
   if (spellChoiceMatch) {
     availableSpellIds = splitSpellNames(spellChoiceMatch[1]);
@@ -833,7 +836,11 @@ const extractChoicesFromTrait = (
     
     // Extract available skill list if present
     let availableSkillIds: string[] | undefined;
-    const skillListMatch = trait.match(/of the following skills of your choice:?\s*([a-z0-9_' -]+?(?:\s*,\s*[a-z0-9_' -]+?)*\s*(?:or|and)\s*[a-z0-9_' -]+)/i);
+    // Linear single-run capture (no nested quantifier) — ReDoS-safe (CodeQL js/redos).
+    // Also fixes a latent under-capture in the old lazy pattern, which returned only the
+    // first skill (e.g. just "Animal Handling") for multi-skill choices; the split below
+    // handles , / and / or.
+    const skillListMatch = trait.match(/of the following skills of your choice:?\s*([a-z0-9_', -]+)/i);
     if (skillListMatch) {
       availableSkillIds = skillListMatch[1].split(/,|\band\b|\bor\b/).map(s => s.trim().toLowerCase().replace(/\s+/g, '_')).filter(Boolean);
     }
