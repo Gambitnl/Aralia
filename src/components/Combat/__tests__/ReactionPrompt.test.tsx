@@ -125,6 +125,8 @@ describe('ReactionPrompt', () => {
         expect(dialog).toBeInTheDocument();
         expect(dialog).toHaveAttribute('aria-modal', 'true');
         expect(dialog).toHaveAttribute('aria-labelledby', 'reaction-title');
+        // aria-describedby is wired through the shared ModalDialog via its
+        // `ariaDescribedBy` prop, so the description is still announced.
         expect(dialog).toHaveAttribute('aria-describedby', 'reaction-description');
     });
 

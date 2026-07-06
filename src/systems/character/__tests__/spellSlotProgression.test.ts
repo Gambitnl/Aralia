@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { spellSlotsForClassLevel, growSpellSlots } from '../spellSlotProgression';
+import { spellSlotsForClassLevel, growSpellSlots, cantripsKnownForClassLevel } from '../spellSlotProgression';
 
 const max = (slots: ReturnType<typeof spellSlotsForClassLevel>, lvl: number) =>
   (slots as Record<string, { max: number }>)[`level_${lvl}`]?.max ?? 0;
@@ -53,5 +53,30 @@ describe('growSpellSlots (preserves spent slots)', () => {
 
   it('leaves non-casters untouched', () => {
     expect(growSpellSlots(undefined, 'fighter', 3)).toBeUndefined();
+  });
+});
+
+describe('cantripsKnownForClassLevel', () => {
+  it('grows a wizard cantrip count across level milestones', () => {
+    expect(cantripsKnownForClassLevel('wizard', 1)).toBe(3);
+    expect(cantripsKnownForClassLevel('wizard', 4)).toBe(4); // gains one at level 4
+    expect(cantripsKnownForClassLevel('wizard', 10)).toBe(5);
+  });
+
+  it('gives a sorcerer four cantrips at level 1, five at level 4', () => {
+    expect(cantripsKnownForClassLevel('sorcerer', 1)).toBe(4);
+    expect(cantripsKnownForClassLevel('sorcerer', 4)).toBe(5);
+  });
+
+  it('is case-insensitive and clamps out-of-range levels', () => {
+    expect(cantripsKnownForClassLevel('Bard', 1)).toBe(2);
+    expect(cantripsKnownForClassLevel('bard', 0)).toBe(2); // clamps up to 1
+    expect(cantripsKnownForClassLevel('bard', 99)).toBe(4); // clamps down to 20
+  });
+
+  it('returns 0 for classes with no cantrip progression', () => {
+    expect(cantripsKnownForClassLevel('paladin', 5)).toBe(0);
+    expect(cantripsKnownForClassLevel('ranger', 5)).toBe(0);
+    expect(cantripsKnownForClassLevel('fighter', 5)).toBe(0);
   });
 });

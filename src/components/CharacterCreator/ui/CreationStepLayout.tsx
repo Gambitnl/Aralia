@@ -48,14 +48,23 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
     <div className={`flex flex-col h-full w-full ${className}`}>
       {/* Header with Navigation */}
       <div className="flex-shrink-0 p-4 sm:p-6 pb-2">
-        <div className="flex items-center justify-between gap-4">
+        {/* The creator often sits beside the progress rail, so the content pane can
+            be narrower than the viewport. Stack the title above the navigation
+            actions until there is enough horizontal room for the three-part row. */}
+        <div
+          className="grid grid-cols-2 gap-3 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-center"
+          data-testid="creation-step-header"
+        >
           {/* Left: Back Button */}
-          <div className="flex-1 flex justify-start">
+          <div className="order-2 min-w-0 flex justify-start xl:order-1">
             {onBack && (
+              // The header buttons sit at the edge of a scrollable creator pane, so
+              // they keep the same 44px hit target as the main creator controls.
               <Button
                 variant="secondary"
                 size="md"
                 onClick={onBack}
+                className="min-h-11"
               >
                 {backLabel}
               </Button>
@@ -63,20 +72,22 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
           </div>
 
           {/* Center: Title */}
-          <div className="text-center flex-shrink-0">
-            <h2 id="creation-step-title" className="text-2xl sm:text-3xl text-sky-300 font-cinzel font-bold tracking-wide drop-shadow-sm">
+          <div className="order-1 col-span-2 min-w-0 text-center xl:order-2 xl:col-span-1">
+            <h2 id="creation-step-title" className="text-2xl sm:text-3xl text-sky-300 font-cinzel font-bold tracking-wide drop-shadow-sm break-words">
               {title}
             </h2>
             <div className="h-0.5 w-24 sm:w-32 bg-gradient-to-r from-transparent via-sky-500/50 to-transparent mx-auto mt-2" aria-hidden="true" />
           </div>
 
           {/* Right: Next Button or Custom Button + Utility Actions */}
-          <div className="flex-1 flex justify-end items-center gap-2">
+          <div className="order-3 min-w-0 flex justify-end items-center gap-2 xl:order-3">
             {headerActions}
             
             {customNextButton ? (
               customNextButton
             ) : onNext ? (
+              // Step advancement is a primary player action; keep it large enough
+              // to survive narrow panes, browser zoom, and translated labels.
               <Button
                 variant="primary"
                 size="md"
@@ -84,6 +95,7 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
                 disabled={!canProceed}
                 aria-label={nextLabel}
                 title={!canProceed && blockedReason ? blockedReason : nextLabel}
+                className="min-h-11"
               >
                 {nextLabel}
               </Button>

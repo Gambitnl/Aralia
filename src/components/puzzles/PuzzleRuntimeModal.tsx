@@ -88,13 +88,15 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={puzzle.name}>
-      <WindowFrame
-        title={puzzle.name}
-        onClose={onClose}
-        storageKey={WINDOW_KEYS.PUZZLE_RUNTIME_MODAL}
-      >
-        <div className="flex h-full flex-col bg-slate-950 text-slate-100">
+    // WindowFrame already provides the named dialog surface for this puzzle.
+    // Avoid wrapping it in a second zero-height dialog, because browsers and
+    // assistive tools will find the hidden wrapper before the visible window.
+    <WindowFrame
+      title={puzzle.name}
+      onClose={onClose}
+      storageKey={WINDOW_KEYS.PUZZLE_RUNTIME_MODAL}
+    >
+        <div className="flex h-full min-h-0 flex-col bg-slate-950 text-slate-100">
           <div className="border-b border-slate-700 bg-slate-900 px-6 py-4">
             <div className="flex items-center gap-3 text-amber-300">
               <ScrollText className="h-5 w-5" aria-hidden="true" />
@@ -103,7 +105,7 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
             <h2 className="mt-2 text-xl font-bold text-white">{puzzle.name}</h2>
           </div>
 
-          <div className="flex flex-1 flex-col gap-5 p-6">
+          <div className="scrollable-content flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 sm:p-6">
             <p className="rounded border border-slate-700 bg-slate-900/70 p-4 text-sm leading-6 text-slate-200">
               {puzzle.description}
             </p>
@@ -132,8 +134,7 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
             </div>
           </div>
         </div>
-      </WindowFrame>
-    </div>
+    </WindowFrame>
   );
 };
 

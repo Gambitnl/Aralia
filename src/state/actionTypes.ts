@@ -311,13 +311,14 @@ export type AppAction =
   // Naval Actions
   | { type: 'NAVAL_INITIALIZE_FLEET' }
   | { type: 'NAVAL_PURCHASE_STARTER_SHIP'; payload?: { name?: string; type?: ShipType; cost?: number } }
-  | { type: 'NAVAL_START_VOYAGE'; payload: { destinationId: string; distance: number } }
+  | { type: 'NAVAL_START_VOYAGE'; payload: { destinationId: string; distance: number; danger?: number } }
   | { type: 'NAVAL_ADVANCE_VOYAGE' }
   | { type: 'NAVAL_RECRUIT_CREW'; payload: { role: CrewRole } }
   | { type: 'NAVAL_REPAIR_SHIP'; payload: { amount: number; cost: number } }
   | { type: 'NAVAL_SET_ACTIVE_SHIP'; payload: { shipId: string } }
   | { type: 'NAVAL_SET_KNOWN_PORTS'; payload: { ports: string[] } }
   | { type: 'NAVAL_CLEAR_VOYAGE' }
+  | { type: 'NAVAL_CLEAR_SEA_ENCOUNTER' }
   | { type: 'TOGGLE_NAVAL_DASHBOARD' }
   | { type: 'TOGGLE_TRADE_ROUTE_DASHBOARD' }
   | { type: 'TOGGLE_INVESTMENT_BOARD' }

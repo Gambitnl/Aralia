@@ -53,6 +53,13 @@ export interface GenerateOpeningSituationDeps {
     client?: OllamaClient;
     /** Id factory for NPC ids (injected in tests). Defaults to {@link generateId}. */
     idFactory?: () => string;
+    /**
+     * Dev-only mood override (from `?openingMood=peaceful|hostile`). It steers the
+     * model's HOSTILITY choice so QA can reliably land a peaceful (or hostile)
+     * opening for live verification. It does NOT invent a scene — the model still
+     * writes the whole situation; this only fixes whether a `threat` block appears.
+     */
+    moodHint?: 'peaceful' | 'hostile';
 }
 
 const SYSTEM_INSTRUCTION =
@@ -68,7 +75,14 @@ const SYSTEM_INSTRUCTION =
 export function buildOpeningSituationPrompt(
     character: OpeningSituationCharacter,
     location: OpeningSituationLocation,
+    moodHint?: 'peaceful' | 'hostile',
 ): string {
+    const moodOverride =
+        moodHint === 'peaceful'
+            ? `\n\n## MOOD OVERRIDE (MANDATORY)\nThis opening MUST be PEACEFUL. Do NOT include a "threat" block. No violence is imminent — the predicament is social, mysterious, or opportunistic, resolvable by talking.`
+            : moodHint === 'hostile'
+              ? `\n\n## MOOD OVERRIDE (MANDATORY)\nThis opening MUST be a STANDOFF where violence is the real next beat. You MUST include a valid "threat" block.`
+              : '';
     return `## CHARACTER (ground the situation in THIS person)
 Name: ${character.name}
 Race: ${character.race}
@@ -124,7 +138,7 @@ Output ONLY this JSON shape, nothing else:
   "openingLine": { "speakerName": "name of the npc who speaks", "text": "what they say" },
   "suggestedReplies": ["2 to 4 short things the player could say"],
   "threat": { "hostile": true, "enemies": [{ "name": "string", "quantity": 1, "cr": "1/8" }], "deEscalationDC": 13, "tension": "string" }
-}`;
+}${moodOverride}`;
 }
 
 /**
@@ -262,7 +276,7 @@ export async function generateOpeningSituation(
     const client = deps.client ?? getDefaultClient();
     const idFactory = deps.idFactory ?? generateId;
 
-    const prompt = `${SYSTEM_INSTRUCTION}\n\n${buildOpeningSituationPrompt(character, location)}`;
+    const prompt = `${SYSTEM_INSTRUCTION}\n\n${buildOpeningSituationPrompt(character, location, deps.moodHint)}`;
 
     const result = await client.generateForTask({
         taskType: 'opening_situation',

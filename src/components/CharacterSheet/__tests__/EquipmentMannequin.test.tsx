@@ -93,4 +93,24 @@ describe('EquipmentMannequin', () => {
 
     expect(onSlotClick).toHaveBeenCalledWith('Head', undefined);
   });
+
+  it('sizes the paper-doll frame and slots from the available column width', () => {
+    render(<EquipmentMannequin character={mockCharacter} />);
+
+    const headSlot = screen.getByLabelText(/Empty Head Slot/i);
+    const mannequinFrame = headSlot.closest('[data-testid="equipment-mannequin-frame"]');
+
+    expect(mannequinFrame).toHaveClass('w-full');
+    expect(mannequinFrame).toHaveClass('max-w-[340px]');
+    expect(mannequinFrame).toHaveClass('h-[480px]');
+    expect(headSlot).toHaveClass('w-full');
+    expect(headSlot).toHaveClass('aspect-square');
+    expect(headSlot).toHaveClass('max-w-20');
+  });
+
+  it('keeps auto-equip large enough to tap in narrow character sheets', () => {
+    render(<EquipmentMannequin character={mockCharacter} onAutoEquip={vi.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'Auto-equip best gear based on proficiencies' })).toHaveClass('min-h-11');
+  });
 });

@@ -166,6 +166,12 @@ export interface VoyageState {
   daysAtSea: number;
   distanceTraveled: number; // Miles
   distanceToDestination: number; // Miles
+  /**
+   * Aggregate sea-danger of the route in [0,1] (Plan 3A tiers: lane/coastal/open),
+   * carried from the multi-modal route at embark. Drives the per-day sea-encounter
+   * roll. Optional so pre-existing saves without it default to a calm crossing.
+   */
+  routeDanger?: number;
   currentWeather: string; // e.g., 'Calm', 'Storm', 'Fog'
   suppliesConsumed: {
     food: number;
@@ -198,9 +204,26 @@ export interface VoyageEvent {
 // STATE DEFINITIONS
 // ============================================================================
 
+/**
+ * A hostile sea encounter awaiting resolution on the tactical battle map.
+ * Produced by NAVAL_ADVANCE_VOYAGE when the per-day sea-encounter roll comes up
+ * hostile; consumed by the useSeaEncounter hook, which hands the monsters to the
+ * existing battle-map flow and then clears this field (idempotent, like arrival).
+ */
+export interface PendingSeaEncounter {
+  /** Table outcome id (e.g. 'pirates', 'sea_beast') — for logging/dedup. */
+  id: string;
+  /** Combat foes, in the shared TravelEncounterMonster stub shape. */
+  monsters: { name: string; quantity: number; cr: string; description: string }[];
+  /** The one-line summary already shown in the voyage/adventure log. */
+  summary: string;
+}
+
 export interface NavalState {
   playerShips: Ship[];
   activeShipId: string | null;
   currentVoyage: VoyageState | null;
   knownPorts: string[];
+  /** Set when a day at sea rolls a hostile encounter; null otherwise. */
+  pendingSeaEncounter?: PendingSeaEncounter | null;
 }

@@ -16,6 +16,8 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 
 const TASK_STATES = new Set(['open', 'claimed', 'in_progress', 'blocked', 'done']);
+const CAMPAIGN_STATES = new Set(['active', 'blocked', 'done']);
+const CAMPAIGN_ROLES = new Set(['lead', 'deputy']);
 
 const UNCATEGORIZED_TASK_CATEGORY = 'uncategorized';
 
@@ -161,6 +163,48 @@ function withCategory(task) {
   return { ...JSON.parse(JSON.stringify(task)), category: categories[0], categories };
 }
 
+// Turn a human campaign name into a stable board id. This keeps plan-provided
+// names usable in URLs, snapshot files, and task metadata without requiring a
+// separate slug field in every plan.
+function normalizeCampaignId(raw) {
+  if (typeof raw !== 'string') return '';
+  return raw.trim().replace(/[^A-Za-z0-9:_-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+}
+
+// Clean campaign path/glob lists while preserving the exact token text the
+// orchestrator claimed. These tokens are compared with the same overlap rules
+// used by advisory locks.
+function normalizePathList(raw = []) {
+  const input = Array.isArray(raw) ? raw : [raw];
+  const out = [];
+  const seen = new Set();
+  for (const value of input) {
+    if (typeof value !== 'string') continue;
+    const trimmed = value.trim();
+    if (!trimmed || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    out.push(trimmed);
+  }
+  return out;
+}
+
+// Campaign scopes use the same path+glob token model as locks, but at the
+// orchestrator-supervision level instead of the worker-edit level.
+function campaignTokens(campaign) {
+  return [...(campaign.paths || []), ...(campaign.globs || [])];
+}
+
+// Find the first requested token that collides with a claimed campaign domain.
+// Returning the token makes conflict messages actionable before a wave is seeded.
+function campaignOverlap(requestTokens, campaign) {
+  for (const r of requestTokens) {
+    for (const h of campaignTokens(campaign)) {
+      if (tokensOverlap(r, h)) return r;
+    }
+  }
+  return null;
+}
+
 /**
  * Translate a glob pattern (`*`, `**`, `?`) into a RegExp anchored full-string.
  * Semantics (POSIX-ish, '/' as separator):
@@ -252,6 +296,7 @@ export function createStore({
     agents: new Map(), // id -> Agent (raw stored fields)
     locks: new Map(), // id -> Lock
     tasks: new Map(), // id -> Task
+    campaigns: new Map(), // id -> Campaign, the active governance domains claimed by orchestrators
     messages: [], // Message[] (ordered by seq)
     seq: 0, // last assigned event seq
     messageSeq: 0, // last assigned message seq
@@ -342,6 +387,16 @@ export function createStore({
       t.updatedAt = p.ts;
       t.history.push(p.entry);
     },
+    'campaign.claim'(p) {
+      state.campaigns.set(p.campaign.id, JSON.parse(JSON.stringify(p.campaign)));
+    },
+    'campaign.state'(p) {
+      const c = state.campaigns.get(p.campaignId);
+      if (!c) return;
+      c.state = p.state;
+      c.updatedAt = p.ts;
+      c.history.push(p.entry);
+    },
     'message.post'(p) {
       state.messages.push({ ...p.message });
       if (p.message.seq > state.messageSeq) state.messageSeq = p.message.seq;
@@ -392,6 +447,7 @@ export function createStore({
       agents: [...state.agents.values()],
       locks: [...state.locks.values()],
       tasks: [...state.tasks.values()],
+      campaigns: [...state.campaigns.values()],
       messages: state.messages,
     };
   }
@@ -424,6 +480,7 @@ export function createStore({
     for (const a of snap.agents || []) state.agents.set(a.id, a);
     for (const l of snap.locks || []) state.locks.set(l.id, l);
     for (const t of snap.tasks || []) state.tasks.set(t.id, t);
+    for (const c of snap.campaigns || []) state.campaigns.set(c.id, c);
     state.messages = snap.messages || [];
     return state.seq;
   }
@@ -588,19 +645,151 @@ export function createStore({
   }
 
   // ===========================================================================
+  // Campaign Governance
+  // ===========================================================================
+  // Orchestrator campaigns reserve broad supervisory domains before a wave is
+  // seeded. This deliberately mirrors advisory locks: the board warns or refuses
+  // unsafe orchestration overlap, while individual workers still lock concrete
+  // files before editing.
+  // ===========================================================================
+  function isLiveAgent(agentId, t = now()) {
+    const agent = state.agents.get(agentId);
+    return Boolean(agent && t - agent.lastSeen <= presenceDropMs);
+  }
+
+  function activeCampaigns(t = now()) {
+    return [...state.campaigns.values()].filter(
+      (campaign) => campaign.state === 'active' && isLiveAgent(campaign.agentId, t),
+    );
+  }
+
+  function activeLeadCampaign(id) {
+    const campaign = state.campaigns.get(id);
+    if (!campaign || campaign.role !== 'lead' || campaign.state !== 'active') return null;
+    return isLiveAgent(campaign.agentId) ? campaign : null;
+  }
+
+  function claimCampaign({
+    agentId,
+    campaignId,
+    role = 'lead',
+    leadCampaignId,
+    scope,
+    paths = [],
+    globs = [],
+    wave,
+  } = {}) {
+    const id = normalizeCampaignId(campaignId || '');
+    if (!id) return { ok: false, error: 'campaign id is required' };
+    const normalizedRole = CAMPAIGN_ROLES.has(role) ? role : 'lead';
+    const claimPaths = normalizePathList(paths);
+    const claimGlobs = normalizePathList(globs);
+    const requestTokens = [...claimPaths, ...claimGlobs];
+    if (!requestTokens.length) return { ok: false, error: 'campaign must declare at least one path or glob' };
+
+    const t = now();
+    const existing = state.campaigns.get(id);
+    if (existing && existing.agentId !== agentId && existing.state === 'active' && isLiveAgent(existing.agentId, t)) {
+      return {
+        ok: false,
+        error: `campaign "${id}" is already active`,
+        conflict: { campaign: JSON.parse(JSON.stringify(existing)) },
+      };
+    }
+
+    const normalizedLeadId = normalizeCampaignId(leadCampaignId || '');
+    if (normalizedRole === 'deputy' && !activeLeadCampaign(normalizedLeadId)) {
+      return { ok: false, error: 'deputy campaign must name an active lead campaign' };
+    }
+
+    for (const campaign of activeCampaigns(t)) {
+      if (campaign.id === id) continue;
+      if (campaign.role !== 'lead') continue;
+      const overlap = campaignOverlap(requestTokens, campaign);
+      if (!overlap) continue;
+      const allowedDeputyJoin = normalizedRole === 'deputy' && campaign.id === normalizedLeadId;
+      if (!allowedDeputyJoin) {
+        return {
+          ok: false,
+          error: `campaign "${id}" overlaps active lead campaign "${campaign.id}" on "${overlap}"`,
+          conflict: { path: overlap, campaign: JSON.parse(JSON.stringify(campaign)) },
+        };
+      }
+    }
+
+    const warnings = [];
+    if (normalizedRole === 'deputy') {
+      const lead = activeLeadCampaign(normalizedLeadId);
+      const overlapsLead = lead ? requestTokens.some((token) => campaignOverlap([token], lead)) : false;
+      if (!overlapsLead) warnings.push(`deputy campaign "${id}" does not overlap lead "${normalizedLeadId}"`);
+      for (const campaign of activeCampaigns(t)) {
+        if (campaign.id === id || campaign.role !== 'deputy') continue;
+        if (campaign.leadCampaignId !== normalizedLeadId) continue;
+        const overlap = campaignOverlap(requestTokens, campaign);
+        if (overlap) warnings.push(`deputy campaign "${id}" overlaps deputy "${campaign.id}" on "${overlap}"`);
+      }
+    }
+
+    const campaign = {
+      id,
+      role: normalizedRole,
+      leadCampaignId: normalizedRole === 'deputy' ? normalizedLeadId : '',
+      agentId,
+      scope: typeof scope === 'string' ? scope.trim() : '',
+      paths: claimPaths,
+      globs: claimGlobs,
+      wave: typeof wave === 'string' ? wave.trim() : '',
+      state: 'active',
+      warnings,
+      createdAt: existing ? existing.createdAt : t,
+      updatedAt: t,
+      history: [
+        ...((existing && existing.history) || []),
+        { at: t, by: agentId, action: 'claimed', state: 'active', role: normalizedRole },
+      ],
+    };
+    emit('campaign.claim', { campaign });
+    return { ok: true, campaign: JSON.parse(JSON.stringify(campaign)), warnings };
+  }
+
+  function setCampaignState({ campaignId, agentId, state: newState } = {}) {
+    const id = normalizeCampaignId(campaignId || '');
+    const campaign = state.campaigns.get(id);
+    if (!campaign) return { ok: false, error: 'campaign not found' };
+    if (!CAMPAIGN_STATES.has(newState)) return { ok: false, error: 'invalid campaign state: ' + newState };
+    if (campaign.agentId !== agentId) return { ok: false, error: 'only the campaign owner may change state' };
+    const ts = now();
+    const entry = { at: ts, by: agentId, action: 'state', state: newState };
+    emit('campaign.state', { campaignId: id, agentId, state: newState, ts, entry });
+    return { ok: true, campaign: JSON.parse(JSON.stringify(state.campaigns.get(id))) };
+  }
+
+  function listCampaigns({ state: filterState } = {}) {
+    return [...state.campaigns.values()]
+      .filter((campaign) => !filterState || campaign.state === filterState)
+      .map((campaign) => JSON.parse(JSON.stringify(campaign)));
+  }
+
+  // ===========================================================================
   // Task board
   // ===========================================================================
-  function createTask({ agentId, title, body, deps, priority, refs, category } = {}) {
+  function createTask({ agentId, title, body, deps, priority, refs, category, campaignId, wave } = {}) {
     const ts = now();
     const depIds = Array.isArray(deps) ? deps.filter(Boolean) : [];
     for (const d of depIds) {
       if (!state.tasks.has(d)) throw new Error('unknown dep: ' + d);
+    }
+    const normalizedCampaignId = normalizeCampaignId(campaignId || '');
+    if (normalizedCampaignId && !state.campaigns.has(normalizedCampaignId)) {
+      throw new Error('unknown campaign: ' + normalizedCampaignId);
     }
     const task = {
       id: genId(),
       title: title || '',
       body: body || '',
       category: normalizeCategoryInput(category),
+      campaignId: normalizedCampaignId,
+      wave: typeof wave === 'string' ? wave.trim() : '',
       state: 'open',
       createdBy: agentId,
       claimedBy: null,
@@ -809,6 +998,10 @@ export function createStore({
     acquireLock,
     releaseLock,
     listLocks,
+    // campaigns
+    claimCampaign,
+    setCampaignState,
+    listCampaigns,
     // tasks
     createTask,
     claimTask,

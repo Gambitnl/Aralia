@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import AbilityPalette from '../AbilityPalette';
 import { Ability, CombatCharacter } from '../../../types/combat';
@@ -83,5 +83,41 @@ describe('AbilityPalette generated granted-action abilities', () => {
       targeting: 'single_enemy',
       range: 12
     }));
+  });
+
+  it('keeps the popout trigger large enough for cramped combat rails', () => {
+    const character = {
+      id: 'fighter',
+      name: 'Fighter',
+      abilities: [{
+        id: 'strike',
+        name: 'Strike',
+        description: 'A basic attack.',
+        type: 'weapon',
+        cost: { type: 'action' },
+        targeting: 'single_enemy',
+        range: 1,
+        effects: []
+      }]
+    } as unknown as CombatCharacter;
+
+    render(
+      <AbilityPalette
+        character={character}
+        onSelectAbility={vi.fn()}
+        canAffordAction={() => true}
+      />
+    );
+
+    const popoutButton = screen.getByRole('button', {
+      name: /pop out abilities into resizable window/i,
+    });
+
+    // The popout button sits in the narrow command rail during 2D combat, so it
+    // needs the same touch target floor as the other combat panel controls.
+    expect(popoutButton).toHaveClass('h-11');
+    expect(popoutButton).toHaveClass('w-11');
+    expect(popoutButton).toHaveClass('items-center');
+    expect(popoutButton).toHaveClass('justify-center');
   });
 });

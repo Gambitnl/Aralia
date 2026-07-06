@@ -197,6 +197,20 @@ function convertRumorToTopic(rumor: WorldRumor): ConversationTopic {
 }
 
 /**
+ * Upper bound on how many rumor-derived ("Hear anything about…?") topics a
+ * single NPC will surface at once.
+ *
+ * The living-world chronicle can accumulate dozens of buyable rumors in a busy
+ * town (every marriage / succession / disaster syncs one), and each becomes a
+ * near-identical dynamic topic. Left uncapped, they bury the authored core
+ * topics (Who are you?, Show me your wares., Heard any rumors?, I need
+ * directions., Invite to party). We keep only the top few — ranked by
+ * prominence (virality) then recency — so the Topics list stays readable while
+ * the "Heard any rumors?" flow still fronts the town's freshest talk.
+ */
+export const MAX_DYNAMIC_RUMOR_TOPICS = 3;
+
+/**
  * Generates dynamic topics based on active rumors in the game state.
  * NPCs will gossip about things relevant to their faction or location.
  */
@@ -243,7 +257,16 @@ export function getDynamicRumorTopics(
     return false;
   });
 
-  return relevantRumors.map(convertRumorToTopic);
+  // Cap the flood: keep only the most prominent / most recent rumors so they
+  // don't bury the authored core topics. Rank by virality (how loudly the news
+  // travels) then by recency (higher timestamp = more recent game day).
+  const ranked = [...relevantRumors].sort(
+    (a, b) =>
+      (b.virality || 0) - (a.virality || 0) ||
+      (b.timestamp || 0) - (a.timestamp || 0),
+  );
+
+  return ranked.slice(0, MAX_DYNAMIC_RUMOR_TOPICS).map(convertRumorToTopic);
 }
 
 /**

@@ -3,7 +3,8 @@ import { useGameState } from '../../state/GameContext';
 import { getGameDay } from '../../utils/core';
 import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
 import { selectTownNews, type NewsProminence } from '../../systems/worldforge/townsim/townNews';
-import { Z_INDEX } from '../../styles/zIndex';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 /**
  * Player-facing TOWN NOTICE BOARD. Opened from the "Read the Notice Board" action
@@ -49,57 +50,47 @@ const NoticeBoard: React.FC = () => {
   const close = () => dispatch({ type: 'SET_NOTICE_BOARD_VISIBLE', payload: false });
 
   return (
-    <div
-      data-testid="notice-board"
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 p-4"
-      style={{ zIndex: Z_INDEX.MODAL_BACKGROUND }}
+    <WindowFrame
+      title="Notice Board"
+      onClose={close}
+      storageKey={WINDOW_KEYS.NOTICE_BOARD}
+      initialMaximized={false}
     >
-      <div
-        className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-gray-900 border-2 border-amber-700 rounded-lg shadow-2xl p-6 text-amber-100 font-serif"
-        style={{ zIndex: Z_INDEX.MODAL_CONTENT }}
-      >
-        <button
-          onClick={close}
-          className="absolute top-4 right-4 text-amber-500 hover:text-amber-300 text-xl font-bold"
-          aria-label="Close notice board"
-        >
-          X
-        </button>
-
-        <h2 className="text-3xl font-bold mb-1 text-center text-amber-500 border-b border-amber-800 pb-2">
-          Notice Board
-        </h2>
-        <p className="text-center text-sm text-gray-400 mb-6">
+      <div data-testid="notice-board" className="flex flex-col h-full bg-gray-900 text-amber-100 font-serif">
+        {/* Subtitle banner (was a header subtitle). */}
+        <p className="shrink-0 text-center text-sm text-gray-400 px-6 py-2 border-b border-amber-800/40">
           {town ? `Recent word about town · day ${day}` : 'Recent word about town'}
         </p>
 
-        {news.length === 0 ? (
-          <p data-testid="notice-board-empty" className="text-gray-400 italic text-center py-8">
-            There&apos;s nothing posted on the board.
-          </p>
-        ) : (
-          <ul data-testid="notice-board-news" className="space-y-3">
-            {news.map((item) => {
-              const badge = PROMINENCE_BADGE[item.prominence];
-              return (
-                <li
-                  key={item.id}
-                  className="flex items-start gap-3 bg-gray-800/60 border border-gray-700 rounded-md p-3"
-                >
-                  <span
-                    className="flex-shrink-0 text-xs font-semibold uppercase tracking-wide rounded px-2 py-0.5"
-                    style={{ color: badge.color, border: `1px solid ${badge.color}` }}
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
+          {news.length === 0 ? (
+            <p data-testid="notice-board-empty" className="text-gray-400 italic text-center py-8">
+              There&apos;s nothing posted on the board.
+            </p>
+          ) : (
+            <ul data-testid="notice-board-news" className="space-y-3">
+              {news.map((item) => {
+                const badge = PROMINENCE_BADGE[item.prominence];
+                return (
+                  <li
+                    key={item.id}
+                    className="flex items-start gap-3 bg-gray-800/60 border border-gray-700 rounded-md p-3"
                   >
-                    {badge.label}
-                  </span>
-                  <span className="text-amber-100 leading-snug">{item.text}</span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                    <span
+                      className="flex-shrink-0 text-xs font-semibold uppercase tracking-wide rounded px-2 py-0.5"
+                      style={{ color: badge.color, border: `1px solid ${badge.color}` }}
+                    >
+                      {badge.label}
+                    </span>
+                    <span className="text-amber-100 leading-snug">{item.text}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       </div>
-    </div>
+    </WindowFrame>
   );
 };
 

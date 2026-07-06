@@ -132,7 +132,7 @@ describe('shipVoyageFromDestination', () => {
     };
     const route = makeRoute(120);
     const result = shipVoyageFromDestination(1, pack, route);
-    expect(result).toEqual({ destinationBurgId: 4, seaMiles: 120 });
+    expect(result).toEqual({ destinationBurgId: 4, seaMiles: 120, danger: 0.2 });
   });
 
   it('seaMiles in result matches the segmented route seaMiles exactly', () => {

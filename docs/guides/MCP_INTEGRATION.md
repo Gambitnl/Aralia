@@ -10,7 +10,7 @@ This pass confirmed these repo anchors:
 - scripts/mcp-util.ts
 - scripts/test-mcp-servers.ts
 - scripts/workflows/gemini/image-gen/generate-race-images.ts
-- package scripts in package.json for mcp, test:mcp, stitch:init, stitch:doctor, and generate:race-images
+- package scripts in package.json for mcp, test:mcp, and generate:race-images
 
 ## Configured Servers
 
@@ -18,7 +18,6 @@ The current .mcp.json file defines these server entries:
 - chrome-devtools
 - github
 - image-gen
-- stitch
 
 That file is the practical source of truth for which MCP servers are configured locally.
 
@@ -27,11 +26,9 @@ That file is the practical source of truth for which MCP servers are configured 
 The verified npm scripts for MCP work are:
 - npm run mcp
 - npm run test:mcp
-- npm run stitch:init
-- npm run stitch:doctor
 - npm run generate:race-images
 
-Use those scripts as the supported entry points before inventing custom wrappers.
+Use those scripts as the supported entry points before inventing custom wrappers. The old design-generation MCP provider is no longer a configured repo tool; any references to it should be treated as historical until a new supported design-generation workflow is chosen.
 
 ## What scripts/mcp-util.ts Actually Does
 

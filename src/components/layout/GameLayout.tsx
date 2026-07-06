@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 02:11:18
+ * Last Sync: 05/07/2026, 07:17:04
  * Dependents: App.tsx
- * Imports: 9 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -74,6 +74,8 @@ interface GameLayoutProps {
     onAction: (action: Action) => void;
     /** Last known streamed-world position — drives always-visible atlas strip (W3DUI-23). */
     playerWorldPos?: PlayerWorldPosition | null;
+    /** Optional sibling control for switching between the available 2D map surfaces. */
+    surfaceToggle?: React.ReactNode;
 }
 
 /**
@@ -98,6 +100,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     autoSaveEnabled,
     disabled,
     onAction,
+    surfaceToggle,
 }) => {
     const openWorldMap = () => onAction({ type: 'toggle_map', label: 'Open World Map' });
     // PRV6: union of every member's active conditions — travel consequences
@@ -107,8 +110,11 @@ const GameLayout: React.FC<GameLayoutProps> = ({
         () => Array.from(new Set(party.flatMap(pc => pc.conditions ?? []))),
         [party],
     );
+    // Mobile stacks the action pane above the log, so it needs natural page
+    // height. Keeping `h-screen` there made the later log column overlap
+    // overflowing action controls and steal clicks from visible buttons.
     return (
-        <div id={UI_ID.GAME_LAYOUT} data-testid={UI_ID.GAME_LAYOUT} className="flex flex-col md:flex-row h-screen p-2 sm:p-4 gap-2 sm:gap-4 bg-gray-900 text-gray-200">
+        <div id={UI_ID.GAME_LAYOUT} data-testid={UI_ID.GAME_LAYOUT} className="flex min-h-screen flex-col gap-2 overflow-y-auto bg-gray-900 p-2 text-gray-200 sm:gap-4 sm:p-4 md:h-screen md:flex-row md:overflow-hidden">
             <VersionDisplay position="game-screen" />
 
             {/* Left Column: Navigation and Actions */}
@@ -128,16 +134,24 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                 )}
                 {/* Grid retirement: the 30x20 compass is removed. Overland travel is
                     the cell-native World Map (atlas fast-travel); local movement is the
-                    3D/Locale view. This is the sole overland navigation entry point. */}
-                <button
-                    type="button"
-                    onClick={openWorldMap}
-                    disabled={disabled}
-                    data-testid="open-world-map"
-                    className="w-full rounded-lg border border-amber-600/60 bg-gray-800 px-4 py-3 text-sm font-semibold text-amber-200 hover:bg-gray-700 disabled:opacity-50"
-                >
-                    Open World Map
-                </button>
+                    3D/Locale view. The optional surface switcher shares this header
+                    row so phone layouts never stack it over the map entry point. */}
+                <div className="flex items-stretch gap-2">
+                    <button
+                        type="button"
+                        onClick={openWorldMap}
+                        disabled={disabled}
+                        data-testid="open-world-map"
+                        className="min-w-0 flex-1 rounded-lg border border-amber-600/60 bg-gray-800 px-3 py-3 text-sm font-semibold text-amber-200 hover:bg-gray-700 disabled:opacity-50 sm:px-4"
+                    >
+                        Open World Map
+                    </button>
+                    {surfaceToggle && (
+                        <div className="flex shrink-0 items-center">
+                            {surfaceToggle}
+                        </div>
+                    )}
+                </div>
                 <ErrorBoundary fallbackMessage="Error in Action Pane.">
                     <ActionPane
                         currentLocation={currentLocation}

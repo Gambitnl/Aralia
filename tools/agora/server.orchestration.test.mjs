@@ -127,6 +127,54 @@ test('tasks: POST /tasks/claim-next claims by priority; 200 with task:null when 
   assert.equal(r.json.task, null);
 });
 
+test('campaigns: API claims lead scopes, rejects overlapping leads, and namespaces tasks', async () => {
+  const lead = await registerAgent('campaign-lead');
+  const rival = await registerAgent('campaign-rival');
+
+  // Lead campaign claims are first-class board records, not just chat messages.
+  const claimed = await request('POST', '/campaigns', {
+    token: lead.token,
+    body: {
+      id: 'governance-api',
+      role: 'lead',
+      scope: 'tools/agora governance API',
+      globs: ['tools/agora/**'],
+      wave: 'governance-api-wave',
+    },
+  });
+  assert.equal(claimed.status, 201);
+  assert.equal(claimed.json.campaign.id, 'governance-api');
+
+  // A competing lead gets a clear stop before seeding overlapping work.
+  const blocked = await request('POST', '/campaigns', {
+    token: rival.token,
+    body: {
+      id: 'governance-api-rival',
+      role: 'lead',
+      scope: 'competing Agora wave',
+      paths: ['tools/agora/store.mjs'],
+    },
+  });
+  assert.equal(blocked.status, 409);
+  assert.match(blocked.json.error, /overlaps active lead campaign/);
+
+  const task = await request('POST', '/tasks', {
+    token: lead.token,
+    body: {
+      title: 'PK-api: board namespace',
+      campaignId: 'governance-api',
+      wave: 'governance-api-wave',
+    },
+  });
+  assert.equal(task.status, 201);
+  assert.equal(task.json.task.campaignId, 'governance-api');
+  assert.equal(task.json.task.wave, 'governance-api-wave');
+
+  const campaigns = await request('GET', '/campaigns');
+  assert.equal(campaigns.status, 200);
+  assert.ok(campaigns.json.campaigns.some((c) => c.id === 'governance-api'));
+});
+
 test('docs: /docs lists the whitelisted reference files; /docs/:name serves them; others 404', async () => {
   const list = await request('GET', '/docs');
   assert.equal(list.status, 200);

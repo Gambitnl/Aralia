@@ -4,10 +4,8 @@
  * @component-owner Gameplay Team / Core UI
  */
 import React, { useEffect, useState } from 'react';
-import { motion, MotionProps } from 'framer-motion';
 import { PlayerCharacter, RacialRestChoiceData } from '../../types';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { Z_INDEX } from '../../styles/zIndex';
+import { ModalDialog } from './ModalDialog';
 
 interface LongRestModalProps {
   isOpen: boolean;
@@ -16,29 +14,14 @@ interface LongRestModalProps {
   onConfirm: (choices: Record<string, Record<string, RacialRestChoiceData>>) => void;
 }
 
-const overlayMotion: MotionProps = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-};
-
-const modalMotion: MotionProps = {
-  initial: { y: -20, opacity: 0 },
-  animate: { y: 0, opacity: 1 },
-  exit: { y: -20, opacity: 0 },
-};
-
 const LongRestModal: React.FC<LongRestModalProps> = ({ isOpen, party, onClose, onConfirm }) => {
   const [choices, setChoices] = useState<Record<string, Record<string, RacialRestChoiceData>>>({});
-  const titleId = 'long-rest-title';
 
   useEffect(() => {
     if (isOpen) {
       setChoices({});
     }
   }, [isOpen]);
-
-  const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
   const updateChoice = (charId: string, choiceId: string, data: Partial<RacialRestChoiceData>) => {
     setChoices(prev => {
@@ -59,43 +42,37 @@ const LongRestModal: React.FC<LongRestModalProps> = ({ isOpen, party, onClose, o
     onClose();
   };
 
-  if (!isOpen) return null;
-
-  const charactersNeedingChoice = party.filter(c => 
+  const charactersNeedingChoice = party.filter(c =>
     c.race?.restChoices && c.race.restChoices.length > 0
   );
 
   return (
-    <motion.div
-      {...overlayMotion}
-      className={`fixed inset-0 z-[${Z_INDEX.MODAL_INTERACTIVE}] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4`}
-      onClick={onClose}
-    >
-      <motion.div
-        ref={modalRef}
-        {...modalMotion}
-        className="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-      >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-900/40">
-          <h2 id={titleId} className="text-xl font-semibold text-amber-300">
-            Long Rest
-          </h2>
+    <ModalDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Long Rest"
+      size="xl"
+      id="long-rest"
+      footer={
+        <>
           <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
-            aria-label="Cancel long rest"
             type="button"
+            onClick={onClose}
+            className="min-h-11 px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors"
           >
-            x
+            Cancel
           </button>
-        </div>
-
-        <div className="px-6 py-4 text-sm text-gray-300 border-b border-gray-700 bg-gray-900/30">
+          <button
+            type="button"
+            onClick={handleConfirm}
+            className="min-h-11 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded font-medium transition-colors disabled:opacity-50"
+          >
+            Confirm Long Rest
+          </button>
+        </>
+      }
+    >
+        <div className="mb-4 text-sm text-gray-300">
           A long rest takes 8 hours. You will recover all Hit Points, Hit Point Dice, and Spell Slots.
           {charactersNeedingChoice.length > 0 && (
              <div className="mt-2 text-amber-200">
@@ -104,7 +81,7 @@ const LongRestModal: React.FC<LongRestModalProps> = ({ isOpen, party, onClose, o
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollable-content px-6 py-4 space-y-6">
+        <div className="space-y-6">
           {charactersNeedingChoice.map((member) => {
             const charId = member.id;
             if (!charId) return null;
@@ -121,7 +98,7 @@ const LongRestModal: React.FC<LongRestModalProps> = ({ isOpen, party, onClose, o
                           Select {opt.type} Proficiency
                         </label>
                         <select
-                          className="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-gray-200"
+                          className="min-h-11 w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm text-gray-200"
                           value={
                             (opt.type === 'skill' ? choices[charId]?.[choice.id]?.skillIds?.[0] : 
                              opt.type === 'tool' || opt.type === 'weapon' ? (choices[charId]?.[choice.id]?.toolIds?.[0] || choices[charId]?.[choice.id]?.weaponIds?.[0]) : 
@@ -193,25 +170,7 @@ const LongRestModal: React.FC<LongRestModalProps> = ({ isOpen, party, onClose, o
              <div className="text-gray-400 italic">No special choices are required for this rest.</div>
           )}
         </div>
-
-        <div className="p-4 border-t border-gray-700 bg-gray-900/50 flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleConfirm}
-            className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded font-medium transition-colors disabled:opacity-50"
-          >
-            Confirm Long Rest
-          </button>
-        </div>
-      </motion.div>
-    </motion.div>
+    </ModalDialog>
   );
 };
 

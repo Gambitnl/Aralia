@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X, Activity } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { useGameState } from '../../state/GameContext';
 import { DEITIES } from '../../data/deities';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 interface DivineFavorPanelProps {
   isOpen: boolean;
@@ -58,29 +60,16 @@ export const DivineFavorPanel: React.FC<DivineFavorPanelProps> = ({ isOpen, onCl
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-gray-900 border border-gray-700 rounded-lg shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col overflow-hidden"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700 bg-gray-800/50">
-          <div className="flex items-center gap-3">
-            <Activity className="w-6 h-6 text-yellow-500" />
-            <h2 className="text-xl font-bold text-gray-100 font-serif tracking-wide">Divine Favor</h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-full transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
+    <WindowFrame
+      title="Divine Favor"
+      onClose={onClose}
+      storageKey={WINDOW_KEYS.DIVINE_FAVOR}
+      initialMaximized={false}
+      headerActions={<Activity className="w-6 h-6 text-yellow-500 self-center" />}
+    >
+      <div className="flex flex-col h-full bg-gray-900">
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-6">
           {displayDeities.length === 0 ? (
             <div className="text-center py-20 text-gray-500 italic">
               <p>The gods are silent. You have not yet drawn the gaze of the divine.</p>
@@ -159,7 +148,7 @@ export const DivineFavorPanel: React.FC<DivineFavorPanelProps> = ({ isOpen, onCl
             </div>
           )}
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </WindowFrame>
   );
 };

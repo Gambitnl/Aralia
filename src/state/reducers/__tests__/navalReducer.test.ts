@@ -315,4 +315,73 @@ describe('navalReducer', () => {
     expect(normalizeVoyage(advancedA.naval.currentVoyage!)).toEqual(normalizeVoyage(advancedB.naval.currentVoyage!));
     expect(advancedA.naval.playerShips.map(normalizeShip)).toEqual(advancedB.naval.playerShips.map(normalizeShip));
   });
+
+  // ── Plan 3D: per-day sea-encounter roll ──────────────────────────────────
+  const startLongVoyage = (worldSeed: number, danger: number) => {
+    let state = navalReducer(createMockGameState({ worldSeed }), { type: 'NAVAL_INITIALIZE_FLEET' });
+    state = navalReducer(state, {
+      type: 'NAVAL_START_VOYAGE',
+      // Huge distance so the voyage never arrives across the sampled days.
+      payload: { destinationId: '7', distance: 10_000_000, danger },
+    });
+    return state;
+  };
+
+  it('NAVAL_START_VOYAGE persists the clamped route danger', () => {
+    const state = startLongVoyage(1, 5); // out-of-range danger clamps to 1
+    expect(state.naval.currentVoyage?.routeDanger).toBe(1);
+  });
+
+  it('rolls sea encounters over a dangerous open-water voyage (log + hostile marker)', () => {
+    let state = startLongVoyage(12345, 1); // max danger → encounters likely
+    let sawLogEntry = false;
+    let sawHostile = false;
+    let sawSalvage = false;
+    const goldBefore = state.gold;
+
+    for (let day = 0; day < 200; day++) {
+      const before = state.gold;
+      state = navalReducer(state, { type: 'NAVAL_ADVANCE_VOYAGE' });
+      if ((state.adventureLog?.length ?? 0) > 0) sawLogEntry = true;
+      if (state.naval.pendingSeaEncounter) {
+        sawHostile = true;
+        expect(state.naval.pendingSeaEncounter.monsters.length).toBeGreaterThan(0);
+        // Consume it like the hook does, so the next day can produce a new one.
+        state = navalReducer(state, { type: 'NAVAL_CLEAR_SEA_ENCOUNTER' });
+        expect(state.naval.pendingSeaEncounter).toBeNull();
+      }
+      if (state.gold > before) sawSalvage = true;
+    }
+
+    expect(sawLogEntry).toBe(true);
+    expect(sawHostile).toBe(true);
+    // Peaceful salvage adds gold at least once over 60 max-danger days.
+    expect(sawSalvage).toBe(true);
+    expect(state.gold).toBeGreaterThanOrEqual(goldBefore);
+  });
+
+  it('never rolls a sea encounter on a danger-free route', () => {
+    let state = startLongVoyage(999, 0);
+    for (let day = 0; day < 40; day++) {
+      state = navalReducer(state, { type: 'NAVAL_ADVANCE_VOYAGE' });
+      expect(state.naval.pendingSeaEncounter ?? null).toBeNull();
+    }
+    // No encounter → no combat/discovery adventure-log entries from this voyage.
+    expect(state.adventureLog ?? []).toHaveLength(0);
+  });
+
+  it('sea-encounter rolls are deterministic for identical seeded voyages', () => {
+    let a = startLongVoyage(555, 1);
+    let b = startLongVoyage(555, 1);
+    for (let day = 0; day < 30; day++) {
+      a = navalReducer(a, { type: 'NAVAL_ADVANCE_VOYAGE' });
+      b = navalReducer(b, { type: 'NAVAL_ADVANCE_VOYAGE' });
+      expect(a.naval.pendingSeaEncounter?.id ?? null).toBe(b.naval.pendingSeaEncounter?.id ?? null);
+      if (a.naval.pendingSeaEncounter) {
+        a = navalReducer(a, { type: 'NAVAL_CLEAR_SEA_ENCOUNTER' });
+        b = navalReducer(b, { type: 'NAVAL_CLEAR_SEA_ENCOUNTER' });
+      }
+      expect(a.gold).toBe(b.gold);
+    }
+  });
 });

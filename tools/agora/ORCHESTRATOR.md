@@ -55,6 +55,42 @@ so a sibling's `git reset --hard` can't nuke live coordination state.
 
 ---
 
+## 0b. Multi-orchestrator governance
+
+Before authoring a wave, inspect active campaign ownership:
+
+```bash
+node tools/agora/client.mjs campaigns
+```
+
+If no active lead owns your file domain, `orchestrate seed <plan>` claims a lead campaign for
+you before it creates packet tasks. If an active lead already overlaps your scope, either stop
+and coordinate with that lead, or create a deputy plan with explicit boundaries:
+
+```json
+{
+  "wave": "ui-deputy-window-frame",
+  "campaign": {
+    "id": "ui-deputy-window-frame",
+    "role": "deputy",
+    "leadCampaignId": "ui-playtest",
+    "scope": "WindowFrame-only follow-up lane",
+    "paths": ["src/components/ui/WindowFrame.tsx"]
+  },
+  "packets": [
+    {
+      "id": "PK-window-frame",
+      "handle": "window-frame-deputy",
+      "agent": "claude",
+      "scope": "Fix WindowFrame lane only",
+      "files": ["src/components/ui/WindowFrame.tsx"]
+    }
+  ]
+}
+```
+
+Deputies may overlap their named lead. Rival leads over the same files fail at seed time.
+
 ## The runnable harness — `orchestrate.mjs`
 
 The deterministic mechanics of the loop below are codified in
@@ -77,9 +113,10 @@ node tools/agora/orchestrate.mjs feedback plan.json        # dump the WORKFLOW: 
 PLAN shape (see [`example-plan.json`](./example-plan.json)):
 ```json
 { "wave": "name", "baseUrl": "http://localhost:4319", "baseline": 219,
+  "campaign": { "id": "optional-non-roadmap-override", "role": "lead", "scope": "one-line orchestrator scope" },
   "packets": [
     { "id": "PK-x", "handle": "fix-x", "agent": "claude|codex|gemini",
-      "scope": "one-line", "files": ["src/a.ts"], "issues": ["X1"], "guidance": "optional extra instructions" } ] }
+      "scope": "one-line", "files": ["src/a.ts"], "refs": ["planmap:topic-id/feature-slug"], "guidance": "optional extra instructions" } ] }
 ```
 
 **How it maps to the loop:** Step B (partition) produces the PLAN — the harness *enforces*
@@ -120,6 +157,16 @@ a write, they only *signal*. So you pre-partition so locks rarely collide.
 ```bash
 node tools/agora/orchestrate.mjs seed <plan.json>
 ```
+`seed` first claims a campaign governance record, then creates packet tasks. For roadmap work,
+packet refs like `planmap:<topic>/<feature>` are the preferred source: seed reads
+`public/planmap/topics.json` and derives campaign id/scope from the topic's campaign key,
+campaign label, title, and subtext. Explicit `plan.campaign.id` or `plan.campaignId` still
+override for non-roadmap waves; packet files become the campaign paths unless
+`plan.campaign.paths` or `plan.campaign.globs` broadens the scope. If another live lead
+campaign overlaps, seed fails with a conflict and creates no packet tasks. To cooperate under
+an existing lead, set `campaign.role` to `"deputy"` and name the lead with
+`campaign.leadCampaignId`.
+
 `seed` now creates **one board task per packet** — packet `priority` orders the ready queue,
 packet `issues` become task `refs`, and packet `"after": ["PK-x"]` becomes a task dep so a
 wave-2 packet only surfaces in `tasks --ready` once its producer is `done`. The packet→task
@@ -221,7 +268,9 @@ your peer-coordination events show up there alongside external dispatches automa
 ```
 register <handle> [--note]      whoami        agents
 lock <path...> [--ttl min]      unlock <id|path> | --mine | <id> --force       locks
-task new <title> [--dep <id>...] [--priority N] [--ref <gapId>...] [--id-only]
+campaign claim <id> [--role lead|deputy] [--lead <id>] [--path <p>...] [--glob <g>...]
+campaign state <id> done|blocked|active     campaigns [--state active]
+task new <title> [--dep <id>...] [--priority N] [--ref <gapId>...] [--campaign <id>] [--id-only]
 task claim <id>    task next [--id-only]    task done <id> --result "<what+proof>"
 task handoff <id> <to>    tasks [--ready]
 say <body> | say --to <h> <body>     inbox [--since <seq>] [--mine]     watch     health
@@ -231,6 +280,9 @@ say <body> | say --to <h> <body>     inbox [--since <seq>] [--mine]     watch   
   unique per agent, or `unlock --mine` releases another agent's locks.
 
 **Orchestration on the board (new in v0.2):**
+- **Campaign ownership lives on the daemon now**: inspect `campaigns` before planning, and let
+  `orchestrate seed` claim a lead/deputy campaign before packet tasks are created. Rival lead
+  overlap fails before seeding; deputies must name the lead they are joining.
 - **Sequencing lives on the daemon now**: create wave-2 packets with `--dep <wave1-taskId>` —
   they only surface in `tasks --ready` / `task next` when every dep is `done`. `--priority`
   orders the ready queue. No more hand-sequencing in plan JSON.
@@ -267,6 +319,9 @@ say <body> | say --to <h> <body>     inbox [--since <seq>] [--mine]     watch   
 
 - **Shared tree, no worktrees/branches** (when that's the directive): the disjoint-file
   partition + lock-before-edit is the ONLY thing preventing clobber. Honor it religiously.
+- **Claim campaign scope before seeding.** A second lead over the same files must stop on the
+  campaign conflict or join as a deputy with explicit boundaries; do not bypass the conflict by
+  renaming the wave.
 - **Unique identity per agent.** The identity file is keyed by daemon URL only, so two agents
   sharing it overwrite each other's token AND `unlock --mine` from one releases the other's
   locks (bit us 2026-07-04: a vegetation agent released a prop agent's 5 locks mid-edit).

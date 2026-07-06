@@ -46,6 +46,7 @@ import GroundAgents from './GroundAgents';
 import GroundProps from './GroundProps';
 import SceneCast, { type SceneCastMember } from './SceneCast';
 import PlayerAvatar from './PlayerAvatar';
+import GroundMovePlane from './GroundMovePlane';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import type { ChunkCoord, ChunkLoader, LoadedChunk, TerrainEdgeSkirt } from '@/systems/world3d/types';
 import { buildRoofGeometry } from '@/systems/world3d/buildingModels';
@@ -102,6 +103,18 @@ interface World3DSceneProps {
    */
   sceneCast?: SceneCastMember[];
   /**
+   * Click-to-talk: called with an NPC figure's id when the player clicks it in
+   * the 3D world. Wired to the same `talk` action the 2D action pane uses, so
+   * the conversation/dialogue opens with full bookkeeping.
+   */
+  onSelectNpc?: (npcId: string) => void;
+  /**
+   * Click-to-move (interactive-3D locomotion): called with a clicked ground
+   * destination in tile/world meters when the player clicks open ground. Wired
+   * to `SET_PLAYER_GROUND_POS`, the same movement state the camera walk drives.
+   */
+  onGroundPick?: (xM: number, zM: number) => void;
+  /**
    * Ground mode: the player's LOGICAL position (tile-local ground meters,
    * `playerGroundPos`) — drives the visible player avatar. Camera walk and
    * Locale-map click-to-move both write this state, so the body follows both.
@@ -114,6 +127,19 @@ interface World3DSceneProps {
    * for the game clock; defaults to a pleasant fixed late-morning.
    */
   timeOfDayHours?: number;
+  /**
+   * Fight-in-place slice 2: extra R3F content mounted INSIDE the Canvas after
+   * the world/agents/avatar — the combat token layer, reachable-area disc, and
+   * ground-pick plane. Rendered as-is so the combat surface can draw its actors
+   * on the streamed terrain without World3DScene knowing anything about combat.
+   */
+  combatLayer?: React.ReactNode;
+  /**
+   * Fight-in-place slice 2: one-shot camera framing forwarded to the camera
+   * controller (same mechanism as the "Town Cell" nonce, but caller-built so a
+   * fight can frame its own combat area on initiative start).
+   */
+  cameraFrameRequest?: CameraFrameRequest | null;
 }
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
@@ -580,9 +606,13 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   agentClock,
   frameTownCellNonce = 0,
   sceneCast,
+  onSelectNpc,
+  onGroundPick,
   playerGroundPos = null,
   playerIdentity = null,
   timeOfDayHours,
+  combatLayer,
+  cameraFrameRequest = null,
 }) => {
   const { loaded, update } = useChunkStreaming(loader);
 
@@ -656,6 +686,25 @@ const World3DScene: React.FC<World3DSceneProps> = ({
     }
   }, [update, onPositionChangeOverride]);
 
+  // Dev hook (sibling to FreeRoamCameraController's __wf3dSetPose): drive the
+  // click-to-talk path deterministically from a headless probe — a real 3D
+  // mesh-click can't be pixel-simulated and R3F screenshots hang, so this lets
+  // verification confirm click → talk → dialogue-opens end to end.
+  React.useEffect(() => {
+    const w = window as unknown as { __wf3dClickNpc?: (npcId: string) => void };
+    w.__wf3dClickNpc = (npcId: string) => onSelectNpc?.(npcId);
+    return () => { delete w.__wf3dClickNpc; };
+  }, [onSelectNpc]);
+
+  // Dev hook: drive click-to-move from a headless probe (a real ground raycast
+  // needs WebGL, which the preview can't init). Takes tile/world meters — the
+  // same values the pick plane would produce from a click.
+  React.useEffect(() => {
+    const w = window as unknown as { __wf3dMoveTo?: (xM: number, zM: number) => void };
+    w.__wf3dMoveTo = (xM: number, zM: number) => onGroundPick?.(xM, zM);
+    return () => { delete w.__wf3dMoveTo; };
+  }, [onGroundPick]);
+
   return (
     <div style={{ width: '100%', height: '100%', minHeight: '520px', flex: '1 1 auto', background: '#cdd9e6', borderRadius: '12px', overflow: 'hidden' }}>
       <ForgeAssetContext.Provider value={forgeAssetService}>
@@ -700,7 +749,9 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           // Ground ceiling raised to 1500 m so the "Town Cell" overhead framing
           // (up to ~1400 m for a big capital) isn't clamped by MapControls.update().
           maxDistance={viewProfile === 'ground' ? 1500 : 2000}
-          frameRequest={townFrameRequest}
+          // A fight's own framing request (combat start) takes precedence over
+          // the HUD "Town Cell" overhead nonce when both are present.
+          frameRequest={cameraFrameRequest ?? townFrameRequest}
         />
         <World3DNameplates
           loaded={loaded}
@@ -721,7 +772,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           <GroundProps ground={groundWorld} sceneOrigin={sceneOrigin} />
         )}
         {sceneCast && sceneCast.length > 0 && (
-          <SceneCast cast={sceneCast} surfaceY={startSurfaceY} />
+          <SceneCast cast={sceneCast} surfaceY={startSurfaceY} onSelectNpc={onSelectNpc} />
         )}
         {/* The player's own body at the logical ground position. Skipped while
             the staged opening cast is up — that already renders a player figure
@@ -737,6 +788,15 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             raceName={playerIdentity?.raceName}
           />
         )}
+        {/* Click-to-move locomotion (ground mode): invisible pick plane over the
+            tile. Rendered before the combat layer so a fight's own pick plane
+            takes precedence while combat is active. */}
+        {viewProfile === 'ground' && (
+          <GroundMovePlane ground={groundWorld} sceneOrigin={sceneOrigin} onGroundPick={onGroundPick} />
+        )}
+        {/* Fight-in-place slice 2: the combat surface (tokens, reachable disc,
+            ground-pick plane) drawn on the same streamed terrain. */}
+        {combatLayer}
       </Canvas>
       </ForgeAssetContext.Provider>
     </div>

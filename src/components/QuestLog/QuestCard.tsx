@@ -2,6 +2,16 @@ import React from 'react';
 import { Quest, QuestStatus } from '../../types';
 import { formatQuestDate } from './questUtils';
 
+/**
+ * This file renders one quest inside the Quest Log.
+ *
+ * QuestLog groups active, completed, and failed quests, while this card owns
+ * the per-quest title, status badge, progress bar, rewards, objectives, and
+ * date trail. Procedural quest names and rewards can be long, so the layout
+ * deliberately gives narrow cards a stacked reading order before restoring the
+ * denser desktop arrangement.
+ */
+
 const statusBadgeStyles: Record<QuestStatus, string> = {
   [QuestStatus.Unknown]: 'bg-gray-800 text-gray-200 border-gray-700',
   [QuestStatus.Available]: 'bg-sky-900/40 text-sky-200 border-sky-500',
@@ -49,9 +59,12 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest }) => {
     <div className="bg-gray-800 p-4 rounded border border-gray-700 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
         <div>
-          <h4 className="text-lg font-bold text-amber-300 flex items-center gap-2">
+          {/* Long generated quest titles should read as a full headline first.
+              The status badge drops below on cramped cards instead of stealing
+              horizontal space and forcing the title into a one-word column. */}
+          <h4 className="flex flex-col items-start gap-2 text-lg font-bold text-amber-300 sm:flex-row sm:items-center">
             {quest.title}
-            <span className={`text-[10px] uppercase px-2 py-1 rounded-full border ${statusBadgeStyles[quest.status]}`}>
+            <span className={`shrink-0 text-[10px] uppercase px-2 py-1 rounded-full border ${statusBadgeStyles[quest.status]}`}>
               {statusText[quest.status]}
             </span>
           </h4>
@@ -75,8 +88,8 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest }) => {
       </div>
       <div className="mt-3 space-y-1">
         {quest.objectives.map(obj => (
-          <div key={obj.id} className="flex items-center text-sm">
-            <span className={`mr-2 ${obj.isCompleted ? 'text-green-500' : 'text-gray-400'}`}>
+          <div key={obj.id} className="flex items-start text-sm">
+            <span className={`mr-2 mt-0.5 shrink-0 ${obj.isCompleted ? 'text-green-500' : 'text-gray-400'}`}>
               {obj.isCompleted ? '☑' : '☐'}
             </span>
             <span className={obj.isCompleted ? 'line-through text-gray-500' : 'text-gray-300'}>

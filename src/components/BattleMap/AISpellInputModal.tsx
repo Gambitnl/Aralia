@@ -17,6 +17,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Spell, UtilityEffect } from '../../types/spells';
 import { detectSuspiciousInput } from '../../utils/securityUtils';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 /**
  * This modal collects the missing player decision before a spell command runs.
@@ -105,15 +107,13 @@ const AISpellInputModal: React.FC<AISpellInputModalProps> = ({ spell, onSubmit, 
     };
 
     return (
-        <div
-            className="fixed inset-0 bg-black/70 z-[var(--z-index-modal-background)] flex items-center justify-center p-4"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="ai-spell-input-modal-title"
+        <WindowFrame
+            title={`Cast ${spell.name}`}
+            onClose={onCancel}
+            storageKey={WINDOW_KEYS.AI_SPELL_INPUT}
+            initialMaximized={false}
         >
-            <div className="bg-gray-800 border-2 border-amber-500 rounded-lg p-6 max-w-lg w-full shadow-2xl">
-                <h2 id="ai-spell-input-modal-title" className="text-2xl font-cinzel text-amber-500 mb-4">Cast {spell.name}</h2>
-
+            <div className="flex flex-col h-full overflow-y-auto scrollable-content p-6">
                 <p className="text-gray-300 mb-4 italic">
                     {perTargetChoicePromptTargetName
                         ? `Choose the option for ${perTargetChoicePromptTargetName}. ${perTargetChoice?.notes || ''}`
@@ -173,7 +173,7 @@ const AISpellInputModal: React.FC<AISpellInputModalProps> = ({ spell, onSubmit, 
                     )}
                 </div>
             </div>
-        </div>
+        </WindowFrame>
     );
 };
 

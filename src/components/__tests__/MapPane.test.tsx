@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { MapData } from '@/types/world';
 import type { Ship } from '@/types/naval';
@@ -45,6 +45,28 @@ describe('MapPane', () => {
     expect(seaPreference).toHaveValue('none');
   });
 
+  it('keeps world map toolbar controls touch-sized in the floating window', async () => {
+    render(
+      <MapPane
+        onTileClick={vi.fn()}
+        onClose={vi.fn()}
+        allowTravel
+        allow3DEntry
+        onEnter3DAtCell={vi.fn()}
+        playerAtlasCellId={null}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Explore' })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: 'Travel' })).toHaveClass('min-h-11');
+    expect(screen.getByLabelText('Transport')).toHaveClass('min-h-11');
+    expect(await screen.findByTestId('travel-sea-pref')).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: 'Enter 3D' })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: 'Precision' })).toHaveClass('min-h-11');
+    expect(screen.getByTestId('enter-3d-at-player')).toHaveClass('min-h-11');
+    expect(screen.getByTestId('worldforge-map-viewport')).toHaveClass('min-h-[220px]', 'md:min-h-0');
+  });
+
   it('keeps island-harbor generation default-off but exposes an explicit proof opt-in', () => {
     const onTileClick = vi.fn();
     const onClose = vi.fn();
@@ -75,6 +97,68 @@ describe('MapPane', () => {
       'data-island-harbors-enabled',
       'true',
     );
+  });
+
+  it('sizes the atlas to the actual narrow viewport width instead of forcing overflow', async () => {
+    const originalRect = HTMLElement.prototype.getBoundingClientRect;
+    HTMLElement.prototype.getBoundingClientRect = function getNarrowRect() {
+      return {
+        x: 0,
+        y: 0,
+        width: 287,
+        height: 260,
+        top: 0,
+        right: 287,
+        bottom: 260,
+        left: 0,
+        toJSON: () => {},
+      } as DOMRect;
+    };
+
+    try {
+      render(
+        <MapPane
+          onTileClick={vi.fn()}
+          onClose={vi.fn()}
+          allowTravel
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('atlas-svg-view')).toHaveAttribute('width', '287');
+      });
+    } finally {
+      HTMLElement.prototype.getBoundingClientRect = originalRect;
+    }
+  });
+
+  it('renders locked generation controls as read-only and inert', async () => {
+    const onRegenerateWorld = vi.fn();
+    render(
+      <MapPane
+        onTileClick={vi.fn()}
+        onClose={vi.fn()}
+        allowTravel={false}
+        showGenerationControls
+        canRegenerateWorld={false}
+        generationLockedReason="World generation is locked while an active game session is in memory."
+        onRegenerateWorld={onRegenerateWorld}
+      />,
+    );
+
+    // The locked preview can still be inspected, but seed entry and generation
+    // buttons must not imply that a new world can be applied during an active run.
+    const seedInput = screen.getByLabelText('World Seed');
+    expect(seedInput).toHaveAttribute('readonly');
+
+    const applySeed = screen.getByRole('button', { name: 'Apply Seed' });
+    const rerollWorld = screen.getByRole('button', { name: 'Reroll World' });
+    expect(applySeed).toBeDisabled();
+    expect(rerollWorld).toBeDisabled();
+
+    applySeed.click();
+    rerollWorld.click();
+    expect(onRegenerateWorld).not.toHaveBeenCalled();
   });
 });
 

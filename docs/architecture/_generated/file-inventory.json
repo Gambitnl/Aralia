@@ -1,7 +1,7 @@
 {
   "meta": {
     "generatedAt": "2026-06-22T21:37:13.530Z",
-    "totalFiles": 4394,
+    "totalFiles": 4384,
     "byExtension": {
       ".json": 2086,
       ".ts": 1687,
@@ -10835,11 +10835,6 @@
       "sizeBytes": 2178
     },
     {
-      "path": "scripts/fetch_stitch.cjs",
-      "extension": ".cjs",
-      "sizeBytes": 598
-    },
-    {
       "path": "scripts/fix_cantrip_inconsistencies.cjs",
       "extension": ".cjs",
       "sizeBytes": 2494
@@ -10983,16 +10978,6 @@
       "path": "scripts/inspect_site.ts",
       "extension": ".ts",
       "sizeBytes": 588
-    },
-    {
-      "path": "scripts/inspect_stitch.d.ts",
-      "extension": ".ts",
-      "sizeBytes": 11
-    },
-    {
-      "path": "scripts/inspect_stitch.ts",
-      "extension": ".ts",
-      "sizeBytes": 14023
     },
     {
       "path": "scripts/interact_chat.d.ts",
@@ -11218,41 +11203,6 @@
       "path": "scripts/splitSpellTemplatePart.ts",
       "extension": ".ts",
       "sizeBytes": 4266
-    },
-    {
-      "path": "scripts/stitch_screen_export.json",
-      "extension": ".json",
-      "sizeBytes": 398
-    },
-    {
-      "path": "scripts/stitch_screen_output_utf8.json",
-      "extension": ".json",
-      "sizeBytes": 138
-    },
-    {
-      "path": "scripts/stitch_screen_output.json",
-      "extension": ".json",
-      "sizeBytes": 268
-    },
-    {
-      "path": "scripts/stitch_screen_output2_utf8.json",
-      "extension": ".json",
-      "sizeBytes": 144
-    },
-    {
-      "path": "scripts/stitch_screen_output2.json",
-      "extension": ".json",
-      "sizeBytes": 280
-    },
-    {
-      "path": "scripts/stitch_screen_test_utf8.json",
-      "extension": ".json",
-      "sizeBytes": 138
-    },
-    {
-      "path": "scripts/stitch_screen_test.json",
-      "extension": ".json",
-      "sizeBytes": 268
     },
     {
       "path": "scripts/sync-glossary-races-with-character-creator.d.ts",

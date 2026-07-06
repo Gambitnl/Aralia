@@ -6,7 +6,8 @@ import {
   processTopicSelection,
   getAvailableTopics,
   getDynamicRumorTopics,
-  getTopic
+  getTopic,
+  MAX_DYNAMIC_RUMOR_TOPICS
 } from '../dialogueService';
 import { ConversationTopic, DialogueSession, NPCKnowledgeProfile } from '../../types/dialogue';
 import { GameState, SuspicionLevel, Item, NPC, WorldRumor } from '../../types/index';
@@ -326,6 +327,69 @@ describe('Dialogue Service', () => {
          const result = processTopicSelection('rumor_rumor_war', mockGameState, mockSession);
          expect(result.status).toBe('neutral');
          expect(result.responsePrompt).toContain('War is coming');
+    });
+
+    it('should CAP the number of rumor-derived topics to avoid a gossip flood', () => {
+        // Simulate a busy living-world town: dozens of local chronicle rumors
+        // (marriages / births) all relevant to the NPC's current location.
+        const floodRumors: WorldRumor[] = Array.from({ length: 40 }, (_, i) => ({
+            id: `chronicle-loc_1-${i}`,
+            text: `Person${i} married Other${i} in the town square.`,
+            type: 'misc',
+            timestamp: 100 - i, // earlier index = more recent
+            expiration: 200,
+            locationId: 'loc_1',
+            virality: 0.3,
+        }));
+        const state = { ...mockGameState, activeRumors: floodRumors } as unknown as GameState;
+
+        const neutralNPC = createMockNPC('npc_neutral');
+        const topics = getDynamicRumorTopics(state, neutralNPC);
+
+        // Bounded, not one-per-event.
+        expect(topics.length).toBeLessThanOrEqual(MAX_DYNAMIC_RUMOR_TOPICS);
+    });
+
+    it('should keep the most recent / highest-virality rumors when capping', () => {
+        const rumors: WorldRumor[] = [
+            { id: 'a', text: 'Quiet news A.', type: 'misc', timestamp: 90, expiration: 200, locationId: 'loc_1', virality: 0.2 },
+            { id: 'b', text: 'Loud recent news B.', type: 'misc', timestamp: 99, expiration: 200, locationId: 'loc_1', virality: 0.9 },
+            { id: 'c', text: 'Loud older news C.', type: 'misc', timestamp: 60, expiration: 200, locationId: 'loc_1', virality: 0.9 },
+            { id: 'd', text: 'Quiet old news D.', type: 'misc', timestamp: 55, expiration: 200, locationId: 'loc_1', virality: 0.1 },
+            { id: 'e', text: 'Mid news E.', type: 'misc', timestamp: 70, expiration: 200, locationId: 'loc_1', virality: 0.5 },
+        ];
+        const state = { ...mockGameState, activeRumors: rumors } as unknown as GameState;
+
+        const topics = getDynamicRumorTopics(state, createMockNPC('npc_neutral'));
+
+        // Top 3 by (virality desc, then recency desc): b (0.9/99), c (0.9/60), e (0.5).
+        expect(topics.map(t => t.id)).toEqual(['rumor_b', 'rumor_c', 'rumor_e']);
+    });
+
+    it('should not let capped rumors evict the authored core topics', () => {
+        const floodRumors: WorldRumor[] = Array.from({ length: 40 }, (_, i) => ({
+            id: `chronicle-loc_1-${i}`,
+            text: `Person${i} married Other${i}.`,
+            type: 'misc',
+            timestamp: 100 - i,
+            expiration: 200,
+            locationId: 'loc_1',
+            virality: 0.3,
+        }));
+        const state = { ...mockGameState, activeRumors: floodRumors } as unknown as GameState;
+        const neutralNPC = createMockNPC('npc_neutral');
+
+        const available = getAvailableTopics(state, 'npc_1', mockSession, neutralNPC);
+        const ids = available.map(t => t.id);
+
+        // Core authored topics survive the flood.
+        expect(ids).toContain('global_who_are_you');
+        expect(ids).toContain('global_rumors');
+        expect(ids).toContain('global_directions');
+
+        // Rumor-derived topics remain bounded.
+        const rumorTopics = ids.filter(id => id.startsWith('rumor_'));
+        expect(rumorTopics.length).toBeLessThanOrEqual(MAX_DYNAMIC_RUMOR_TOPICS);
     });
   });
 

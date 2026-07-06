@@ -1,11 +1,26 @@
 import React, { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
 import { DialogueSession, ConversationTopic } from '../../types/dialogue';
 import { GameState, NPC, PlayerCharacter } from '../../types';
 import { getAvailableTopics, processTopicSelection, ProcessTopicResult } from '../../services/dialogueService';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { UI_ID } from '../../styles/uiIds';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
+/**
+ * This file renders the conversation window players use when talking to an NPC.
+ *
+ * The game opens it from GameModals after START_DIALOGUE_SESSION creates an
+ * active dialogue session. It reads available topics from dialogueService,
+ * sends selected topics back through reducer callbacks, and uses WindowFrame
+ * for the draggable/resizable outer window.
+ */
+
+// ============================================================================
+// Component Contract
+// ============================================================================
+// The parent owns the active session and reducer callbacks. This component owns
+// the immediate conversation layout, pending-response state, and topic buttons
+// that the player sees inside the shared WindowFrame shell.
+// ============================================================================
 interface DialogueInterfaceProps {
     isOpen: boolean;
     session: DialogueSession | null;
@@ -36,8 +51,6 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     onGenerateResponse,
     onInvite
 }) => {
-    const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
-
     const [currentResponse, setCurrentResponse] = useState<string | null>(gameState.lastNpcResponse || `"${npc.name} greets you."`);
     const [isThinking, setIsThinking] = useState(false);
     const [lastTopicResult, setLastTopicResult] = useState<ProcessTopicResult | null>(null);
@@ -94,108 +107,111 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
 
     if (!isOpen || !session) return null;
 
+    const disposition = gameState.npcMemory[npc.id]?.disposition || 0;
+
     return (
-        <div id={UI_ID.DIALOGUE_INTERFACE} data-testid={UI_ID.DIALOGUE_INTERFACE} className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true">
-            <motion.div
-                ref={modalRef}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="w-full max-w-4xl h-[80vh] flex flex-col bg-stone-900 border border-stone-700 shadow-2xl rounded-lg overflow-hidden"
-            >
-                {/* Header */}
-                <div className="p-4 bg-stone-950 border-b border-stone-800 flex justify-between items-center">
-                    <h2 className="text-xl font-serif text-amber-500">{npc.name}</h2>
-                    <div className="text-stone-400 text-sm">
-                        Disposition: {gameState.npcMemory[npc.id]?.disposition || 0}
+        <WindowFrame
+            title={npc.name}
+            onClose={onClose}
+            storageKey={WINDOW_KEYS.DIALOGUE}
+            initialMaximized={false}
+            headerActions={
+                <span className="self-center text-gray-400 text-sm whitespace-nowrap">Disposition: {disposition}</span>
+            }
+        >
+            <div className="flex h-full min-h-0 flex-col overflow-hidden md:flex-row">
+                {/* NPC identity: on wide windows this sits beside the dialogue.
+                    On cramped windows it becomes a compact top band so the
+                    response and choices keep enough horizontal room to read. */}
+                <div className="flex max-h-[24%] shrink-0 flex-row items-center gap-3 overflow-y-auto border-b border-gray-700 bg-gray-900/40 p-3 md:max-h-none md:w-1/3 md:flex-col md:gap-0 md:border-b-0 md:border-r md:p-6">
+                    <div className="mb-0 flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-gray-600 bg-gray-800 md:mb-4 md:h-32 md:w-32">
+                        <span className="text-3xl">👤</span>
                     </div>
+                    <p className="min-w-0 text-left text-xs italic text-gray-400 md:text-center md:text-sm">{npc.baseDescription}</p>
                 </div>
 
-                {/* Main Content Area */}
-                <div className="flex-1 flex overflow-hidden">
-                    {/* Left: NPC View / Portrait (Placeholder) */}
-                    <div className="w-1/3 bg-stone-925 border-r border-stone-800 p-6 flex flex-col items-center justify-start">
-                        <div className="w-32 h-32 bg-stone-800 rounded-full mb-4 border-2 border-stone-600 flex items-center justify-center overflow-hidden">
-                             {/* Placeholder for NPC Avatar */}
-                             <span className="text-3xl">👤</span>
+                {/* Conversation body: the response, topics, and footer each get
+                    their own space so long text and long topic lists scroll
+                    without hiding the conversation exit. */}
+                <div className="flex min-h-0 flex-1 flex-col md:w-2/3">
+                    {/* NPC response — capped so a one-line greeting never dwarfs the choices. */}
+                    <div className="max-h-[30%] shrink-0 overflow-y-auto p-3 md:max-h-[40%] md:p-6">
+                        <div className="rounded-lg border border-gray-700 bg-gray-900/60 p-3 md:p-6">
+                            <p className="text-base leading-relaxed text-gray-200 md:text-lg">
+                                {isThinking ? (
+                                    <span className="animate-pulse text-gray-500">Thinking...</span>
+                                ) : (
+                                    currentResponse
+                                )}
+                            </p>
                         </div>
-                        <p className="text-stone-400 text-center italic text-sm">{npc.baseDescription}</p>
 
-                        {/* Status / Mood Indicators could go here */}
+                        {/* Skill Check Result Feedback */}
+                        {lastTopicResult && lastTopicResult.status !== 'neutral' && (
+                            <div className={`mt-4 text-sm font-bold ${lastTopicResult.status === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                                [{lastTopicResult.status.toUpperCase()}]
+                                {lastTopicResult.dispositionChange ? ` Disposition ${lastTopicResult.dispositionChange > 0 ? '+' : ''}${lastTopicResult.dispositionChange}` : ''}
+                            </div>
+                        )}
                     </div>
 
-                    {/* Right: Dialogue Flow */}
-                    <div className="w-2/3 flex flex-col bg-stone-900">
-                        {/* NPC Response Area */}
-                        <div className="flex-1 p-6 overflow-y-auto">
-                            <div className="bg-stone-800/50 p-6 rounded-lg border border-stone-700/50">
-                                <p className="text-lg text-stone-200 leading-relaxed font-serif">
-                                    {isThinking ? (
-                                        <span className="animate-pulse text-stone-500">Thinking...</span>
-                                    ) : (
-                                        currentResponse
+                    {/* Topics — fill the remaining height, scroll only when truly long. */}
+                    <div className="flex-1 min-h-0 overflow-y-auto border-t border-gray-700 bg-gray-900/50 p-3 md:p-4">
+                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Topics</h3>
+                        <div className="grid grid-cols-1 gap-2">
+                            {availableTopics.map(topic => (
+                                <button
+                                    key={topic.id}
+                                    onClick={() => handleTopicSelect(topic)}
+                                    disabled={isThinking}
+                                    className="w-full rounded border border-gray-700 bg-gray-800 p-2.5 text-left transition-colors hover:border-amber-700/50 hover:bg-gray-700 disabled:opacity-50 group flex items-center justify-between md:p-3"
+                                >
+                                    <span className="text-gray-300 group-hover:text-amber-100 font-medium">
+                                        {topic.label}
+                                    </span>
+                                    {topic.skillCheck && (
+                                        <span className="text-xs px-2 py-1 rounded bg-gray-900 text-gray-500 border border-gray-700">
+                                            {typeof topic.skillCheck.skill === 'string'
+                                                ? topic.skillCheck.skill
+                                                : topic.skillCheck.skill.name}{' '}
+                                            (DC {topic.skillCheck.dc})
+                                        </span>
                                     )}
-                                </p>
-                            </div>
-
-                            {/* Skill Check Result Feedback */}
-                            {lastTopicResult && lastTopicResult.status !== 'neutral' && (
-                                <div className={`mt-4 text-sm font-bold ${lastTopicResult.status === 'success' ? 'text-green-500' : 'text-red-500'}`}>
-                                    [{lastTopicResult.status.toUpperCase()}]
-                                    {lastTopicResult.dispositionChange ? ` Disposition ${lastTopicResult.dispositionChange > 0 ? '+' : ''}${lastTopicResult.dispositionChange}` : ''}
-                                </div>
+                                </button>
+                            ))}
+                            {onInvite && (
+                                <button
+                                    type="button"
+                                    data-testid="dialogue-invite-to-party"
+                                    onClick={() => onInvite(npc.id)}
+                                    disabled={isThinking}
+                                    className="w-full rounded border border-amber-800/40 bg-gray-800 p-2.5 text-left transition-colors hover:border-amber-600/60 hover:bg-amber-900/20 disabled:opacity-50 group flex items-center justify-between md:p-3"
+                                >
+                                    <span className="text-amber-200 group-hover:text-amber-100 font-medium">
+                                        Invite to party
+                                    </span>
+                                    <span className="text-lg" aria-hidden="true">🤝</span>
+                                </button>
                             )}
                         </div>
+                    </div>
 
-                        {/* Player Choices Area */}
-                        <div className="p-4 bg-stone-950 border-t border-stone-800 max-h-64 overflow-y-auto">
-                            <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-3">Topics</h3>
-                            <div className="grid grid-cols-1 gap-2">
-                                {availableTopics.map(topic => (
-                                    <button
-                                        key={topic.id}
-                                        onClick={() => handleTopicSelect(topic)}
-                                        disabled={isThinking}
-                                        className="w-full text-left p-3 rounded bg-stone-900 border border-stone-800 hover:bg-stone-800 hover:border-amber-700/50 transition-colors group flex items-center justify-between"
-                                    >
-                                        <span className="text-stone-300 group-hover:text-amber-100 font-medium">
-                                            {topic.label}
-                                        </span>
-                                        {topic.skillCheck && (
-                                            <span className="text-xs px-2 py-1 rounded bg-stone-800 text-stone-500 border border-stone-700">
-                                                {typeof topic.skillCheck.skill === 'string'
-                                                    ? topic.skillCheck.skill
-                                                    : topic.skillCheck.skill.name}{' '}
-                                                (DC {topic.skillCheck.dc})
-                                            </span>
-                                        )}
-                                    </button>
-                                ))}
-                                {onInvite && (
-                                    <button
-                                        type="button"
-                                        data-testid="dialogue-invite-to-party"
-                                        onClick={() => onInvite(npc.id)}
-                                        disabled={isThinking}
-                                        className="w-full text-left p-3 rounded bg-stone-900 border border-amber-800/40 hover:bg-amber-900/20 hover:border-amber-600/60 transition-colors group flex items-center justify-between"
-                                    >
-                                        <span className="text-amber-200 group-hover:text-amber-100 font-medium">
-                                            Invite to party
-                                        </span>
-                                        <span className="text-lg" aria-hidden="true">🤝</span>
-                                    </button>
-                                )}
-                                <button
-                                    onClick={onClose}
-                                    className="w-full text-left p-3 rounded hover:bg-red-900/20 text-stone-500 hover:text-red-400 transition-colors mt-2 border border-transparent hover:border-red-900/30"
-                                >
-                                    End Conversation
-                                </button>
-                            </div>
-                        </div>
+                    {/* This footer stays outside the scrolling topic list so
+                        the player always has a visible way to leave dialogue,
+                        even when the topic list is long or the window is
+                        resized very small. */}
+                    <div className="shrink-0 border-t border-gray-700 bg-gray-950/70 p-3">
+                        <button
+                            type="button"
+                            data-testid="dialogue-end-conversation"
+                            onClick={onClose}
+                            className="w-full rounded border border-transparent p-3 text-left text-gray-400 transition-colors hover:border-red-900/30 hover:bg-red-900/20 hover:text-red-400"
+                        >
+                            End Conversation
+                        </button>
                     </div>
                 </div>
-            </motion.div>
-        </div>
+            </div>
+        </WindowFrame>
     );
 };

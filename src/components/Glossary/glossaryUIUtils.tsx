@@ -193,10 +193,13 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
   onNavigateToParent,
 }) => {
   return (
+    // Breadcrumb buttons can be tapped directly in cramped glossary windows, so
+    // keep the clickable area larger than the compact text label.
     <nav className="flex items-center gap-1 text-xs text-gray-400 mb-3 flex-wrap" aria-label="Breadcrumb">
       <button
+        type="button"
         onClick={onNavigateToCategory}
-        className="hover:text-sky-300 transition-colors flex items-center gap-1"
+        className="min-h-11 px-2 py-2 hover:text-sky-300 transition-colors inline-flex items-center gap-1 rounded"
       >
         {getCategoryIcon(category)}
         <span>{category}</span>
@@ -206,8 +209,9 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
         <React.Fragment key={index}>
           <span className="text-gray-600 mx-0.5">/</span>
           <button
+            type="button"
             onClick={() => onNavigateToParent?.(index)}
-            className="hover:text-sky-300 transition-colors truncate max-w-[150px]"
+            className="min-h-11 px-2 py-2 hover:text-sky-300 transition-colors truncate max-w-[150px] rounded"
             title={parent}
           >
             {parent}

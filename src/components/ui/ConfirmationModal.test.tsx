@@ -1,7 +1,17 @@
+/**
+ * This test file protects the shared confirmation dialog used for risky player
+ * actions like deleting save slots or overwriting records.
+ *
+ * These checks focus on the visible contract: the dialog appears only when
+ * requested, traps focus through the shared hook, calls the right callbacks, and
+ * stays above resizable game windows so confirmations do not blend into the
+ * surface that opened them.
+ */
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ConfirmationModal } from './ConfirmationModal';
+import { Z_INDEX } from '../../styles/zIndex';
 
 describe('ConfirmationModal', () => {
     const onClose = vi.fn();
@@ -21,6 +31,7 @@ describe('ConfirmationModal', () => {
     it('renders correctly when open', () => {
         render(<ConfirmationModal {...defaultProps} />);
         expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(screen.getByTestId('confirmation-modal')).toHaveStyle({ zIndex: String(Z_INDEX.CONFIRMATION_MODAL) });
         expect(screen.getByText('Confirm Action')).toBeInTheDocument();
         expect(screen.getByText('Are you sure?')).toBeInTheDocument();
         expect(screen.getByText('Confirm')).toBeInTheDocument();

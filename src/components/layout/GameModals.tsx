@@ -39,7 +39,7 @@
  * quick-start action should appear instead of the main menu rendering a separate
  * developer-only launch button.
  */
-import React, { lazy, Suspense, useEffect, useCallback, useMemo } from 'react';
+import React, { lazy, Suspense, useEffect, useCallback, useMemo, useRef } from 'react';
 import { getAbilityModifierValue } from '../../utils/character/statUtils';
 import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
@@ -54,6 +54,7 @@ import { useChronicleRumorsSync } from '../../hooks/useChronicleRumorsSync';
 import { useTownSimRegistration } from '../../hooks/useTownSimRegistration';
 import { useTownMerchantRegistration } from '../../hooks/useTownMerchantRegistration';
 import { useVoyageArrival } from '../../hooks/useVoyageArrival';
+import { useSeaEncounter } from '../../hooks/useSeaEncounter';
 
 import ErrorBoundary from '../ui/ErrorBoundary';
 
@@ -201,6 +202,12 @@ const GameModals: React.FC<GameModalsProps> = ({
       dispatch,
     });
 
+    // Naval (Plan 3D): a hostile day-at-sea roll starts a battle-map fight.
+    useSeaEncounter({
+      pendingSeaEncounter: gameState.naval.pendingSeaEncounter,
+      dispatch,
+    });
+
     // G8 fix: Fallback Escape handler for modals that don't bind their own close key.
     // When a child modal's useFocusTrap or own handler calls preventDefault() on the
     // Escape event, this handler sees defaultPrevented and does nothing — preserving
@@ -243,6 +250,29 @@ const GameModals: React.FC<GameModalsProps> = ({
     // Grid retirement: the world map is the atlas from worldSeed; visibility is
     // the sole gate (no mapData grid to require).
     const isMapModalOpen = gameState.isMapVisible;
+    const previousMapOpenRef = useRef(isMapModalOpen);
+    const mapReturnScrollRef = useRef({ x: 0, y: 0 });
+    const previousBackgroundLockRef = useRef(false);
+    const backgroundReturnScrollRef = useRef({ x: 0, y: 0 });
+
+    useEffect(() => {
+        const wasMapOpen = previousMapOpenRef.current;
+
+        if (isMapModalOpen && !wasMapOpen) {
+            // WindowFrame is fixed, but focus and pointer work inside the map can
+            // still move the underlying mobile page; closing should return the
+            // player to the play surface position they had before opening it.
+            mapReturnScrollRef.current = { x: window.scrollX, y: window.scrollY };
+        }
+
+        if (!isMapModalOpen && wasMapOpen) {
+            const { x, y } = mapReturnScrollRef.current;
+            requestAnimationFrame(() => window.scrollTo(x, y));
+        }
+
+        previousMapOpenRef.current = isMapModalOpen;
+    }, [isMapModalOpen]);
+
     const isQuestLogModalOpen = gameState.isQuestLogVisible;
     const isCharacterSheetModalOpen = gameState.characterSheetModal.isOpen;
     const isDevMenuModalOpen = Boolean(gameState.isDevMenuVisible && canUseDevTools());
@@ -250,6 +280,7 @@ const GameModals: React.FC<GameModalsProps> = ({
     const isDossierModalOpen = gameState.isLogbookVisible;
     const isDiscoveryLogModalOpen = gameState.isDiscoveryLogVisible;
     const isGlossaryModalOpen = gameState.isGlossaryVisible;
+    const isGameGuideModalOpen = gameState.isGameGuideVisible;
     const isEncounterModalOpen = gameState.isEncounterModalVisible;
     const isDiceRollerModalOpen = gameState.isDiceRollerVisible;
     const isGeminiLogViewerOpen = gameState.isGeminiLogViewerVisible;
@@ -257,6 +288,79 @@ const GameModals: React.FC<GameModalsProps> = ({
     const isNpcTestModalOpen = gameState.isNpcTestModalVisible;
     const isInvestmentBoardModalOpen = gameState.isInvestmentBoardVisible;
     const isCombatActive = Boolean(gameState.currentEnemies?.length);
+    const shouldLockBackgroundScroll = Boolean(
+        isMapModalOpen ||
+        isQuestLogModalOpen ||
+        isCharacterSheetModalOpen ||
+        isDevMenuModalOpen ||
+        isPartyOverlayModalOpen ||
+        isDossierModalOpen ||
+        isDiscoveryLogModalOpen ||
+        isGlossaryModalOpen ||
+        isGameGuideModalOpen ||
+        isEncounterModalOpen ||
+        isDiceRollerModalOpen ||
+        isGeminiLogViewerOpen ||
+        isUnifiedDebugLogViewerOpen ||
+        isNpcTestModalOpen ||
+        isInvestmentBoardModalOpen ||
+        missingChoiceModal.isOpen ||
+        gameState.isLongRestModalVisible ||
+        gameState.isShortRestModalVisible ||
+        gameState.isNoticeBoardVisible ||
+        gameState.isBroadsheetVisible ||
+        gameState.isEconomyLedgerVisible ||
+        gameState.isCourierPouchVisible
+    );
+    const backgroundLockKey = [
+        isMapModalOpen && 'map',
+        isQuestLogModalOpen && 'quest-log',
+        isCharacterSheetModalOpen && 'character-sheet',
+        isDevMenuModalOpen && 'dev-menu',
+        isPartyOverlayModalOpen && 'party',
+        isDossierModalOpen && 'dossier',
+        isDiscoveryLogModalOpen && 'discovery',
+        isGlossaryModalOpen && 'glossary',
+        isGameGuideModalOpen && 'game-guide',
+        isEncounterModalOpen && 'encounter',
+        isDiceRollerModalOpen && 'dice-roller',
+        isGeminiLogViewerOpen && 'gemini-log',
+        isUnifiedDebugLogViewerOpen && 'unified-log',
+        isNpcTestModalOpen && 'npc-test',
+        isInvestmentBoardModalOpen && 'investment',
+        missingChoiceModal.isOpen && 'missing-choice',
+        gameState.isLongRestModalVisible && 'long-rest',
+        gameState.isShortRestModalVisible && 'short-rest',
+        gameState.isNoticeBoardVisible && 'notice-board',
+        gameState.isBroadsheetVisible && 'broadsheet',
+        gameState.isEconomyLedgerVisible && 'ledger',
+        gameState.isCourierPouchVisible && 'courier',
+    ].filter(Boolean).join('|');
+
+    useEffect(() => {
+        if (!shouldLockBackgroundScroll) return;
+
+        const previousBodyOverflow = document.body.style.overflow;
+        const previousRootOverscroll = document.documentElement.style.overscrollBehavior;
+        // Window-backed modals handle their own internal scrolling. Locking the
+        // page beneath them keeps phone wheel/touch scroll from stranding the
+        // main play controls under closed logbook or map overlays.
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overscrollBehavior = 'contain';
+
+        return () => {
+            document.body.style.overflow = previousBodyOverflow;
+            document.documentElement.style.overscrollBehavior = previousRootOverscroll;
+        };
+    }, [shouldLockBackgroundScroll]);
+
+    useEffect(() => {
+        const wasLocked = previousBackgroundLockRef.current;
+        if (shouldLockBackgroundScroll && !wasLocked) {
+            backgroundReturnScrollRef.current = { x: window.scrollX, y: window.scrollY };
+        }
+        previousBackgroundLockRef.current = shouldLockBackgroundScroll;
+    }, [shouldLockBackgroundScroll]);
 
     const mapPaneFocusRef = useFocusTrap<HTMLDivElement>(isMapModalOpen);
     const questLogFocusRef = useFocusTrap<HTMLDivElement>(isQuestLogModalOpen);
@@ -272,6 +376,29 @@ const GameModals: React.FC<GameModalsProps> = ({
     const unifiedDebugLogFocusRef = useFocusTrap<HTMLDivElement>(isUnifiedDebugLogViewerOpen);
     const npcInteractionTestFocusRef = useFocusTrap<HTMLDivElement>(isNpcTestModalOpen);
     const investmentBoardFocusRef = useFocusTrap<HTMLDivElement>(isInvestmentBoardModalOpen);
+
+    useEffect(() => {
+        if (!shouldLockBackgroundScroll) return;
+
+        const restoreBackgroundScroll = () => {
+            const { x, y } = backgroundReturnScrollRef.current;
+            if (window.scrollX !== x || window.scrollY !== y) {
+                window.scrollTo(x, y);
+            }
+        };
+
+        // Run after modal focus traps so focusing the first field/button inside
+        // a logbook surface cannot leave the page scrolled under the overlay.
+        // Also rerun when modal ownership changes while the lock remains active
+        // (for example Party Overlay -> Character Sheet from a party card).
+        restoreBackgroundScroll();
+        const raf = requestAnimationFrame(restoreBackgroundScroll);
+        const timeout = window.setTimeout(restoreBackgroundScroll, 0);
+        return () => {
+            cancelAnimationFrame(raf);
+            window.clearTimeout(timeout);
+        };
+    }, [shouldLockBackgroundScroll, backgroundLockKey]);
 
     useEffect(() => {
         document.addEventListener('keydown', handleFallbackEscape, true);
@@ -313,7 +440,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                         s => s.id === gameState.naval.activeShipId
                                     ) ?? null
                                 }
-                                onSetSail={(destinationBurgId, seaMiles) => {
+                                onSetSail={(destinationBurgId, seaMiles, danger) => {
                                     // Don't start a new voyage while one is already at sea —
                                     // a double-click or re-navigation must not overwrite it.
                                     if (gameState.naval.currentVoyage) return;
@@ -322,6 +449,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                         payload: {
                                             destinationId: String(destinationBurgId),
                                             distance: seaMiles,
+                                            danger,
                                         },
                                     });
                                     dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' });

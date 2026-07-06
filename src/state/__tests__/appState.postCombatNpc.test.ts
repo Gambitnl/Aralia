@@ -106,4 +106,66 @@ describe('END_BATTLE post-combat NPC state', () => {
     expect(guardCount).toBe(1);
     expect(next.defeatedNpcIds).toContain('situation-npc-bystander');
   });
+
+  it('clears the stale pre-fight line so it cannot replay in the next dialogue', () => {
+    const base = hostileOpeningState();
+    base.lastNpcResponse = 'Step away from the goods and come with us.';
+    base.lastInteractedNpcId = 'situation-npc-guard';
+    const next = appReducer(base, { type: 'END_BATTLE' });
+    expect(next.lastNpcResponse).toBeNull();
+    expect(next.lastInteractedNpcId).toBeNull();
+  });
+});
+
+// The scene's antagonist is a "city guard" (WATCH_ROLE), so beating them is
+// fighting the town watch — a consequence-bearing crime.
+describe('END_BATTLE watch reaction (item 1)', () => {
+  it('marks the player wanted in this town via a witnessed crime keyed to currentLocationId', () => {
+    const state = hostileOpeningState();
+    state.currentLocationId = 'oakhaven';
+    const next = appReducer(state, { type: 'END_BATTLE', payload: { rewards: { gold: 0, items: [], xp: 10 } } });
+    const crimes = next.notoriety.knownCrimes;
+    expect(crimes.length).toBeGreaterThan(0);
+    const crime = crimes[crimes.length - 1];
+    expect(crime.locationId).toBe('oakhaven');
+    expect(crime.witnessed).toBe(true);
+    // A bounty-worthy crime is issued for fighting the watch.
+    expect(next.notoriety.bounties.length).toBeGreaterThan(0);
+  });
+
+  it('drops the disposition of every townsperson the player has met', () => {
+    const state = hostileOpeningState();
+    state.npcMemory = {
+      villager_a: { disposition: 20, knownFacts: [], goals: [] } as never,
+      villager_b: { disposition: 0, knownFacts: [], goals: [] } as never,
+    };
+    const next = appReducer(state, { type: 'END_BATTLE' });
+    expect(next.npcMemory.villager_a.disposition).toBeLessThan(20);
+    expect(next.npcMemory.villager_b.disposition).toBeLessThan(0);
+  });
+
+  it('records the fight in the adventure log', () => {
+    const state = hostileOpeningState();
+    const beforeLen = state.adventureLog?.length ?? 0;
+    const next = appReducer(state, { type: 'END_BATTLE' });
+    expect((next.adventureLog?.length ?? 0)).toBeGreaterThan(beforeLen);
+    const last = next.adventureLog?.[next.adventureLog.length - 1];
+    expect(last?.summary).toMatch(/watch|wanted/i);
+  });
+
+  it('does NOT flag wanted when the beaten strangers were not the watch (e.g. bandits)', () => {
+    const banditSituation: OpeningSituation = {
+      ...HOSTILE_SITUATION,
+      npcs: [
+        { id: 'situation-npc-bandit', name: 'Cutter', role: 'bandit', disposition: 'hostile', goal: 'rob you' },
+      ],
+    };
+    const state = createMockGameState({
+      phase: GamePhase.COMBAT,
+      gameEntry: inSituationEntry(banditSituation),
+      generatedNpcs: {},
+    });
+    const next = appReducer(state, { type: 'END_BATTLE' });
+    expect(next.notoriety.knownCrimes).toEqual([]);
+  });
 });

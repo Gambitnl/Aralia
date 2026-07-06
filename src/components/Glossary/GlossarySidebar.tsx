@@ -190,7 +190,7 @@ const GlossaryEntryNode: React.FC<{
                         <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); onToggleParentEntry(entry.id); }}
-                            className={`p-1 text-xs text-gray-400 group-hover:text-sky-300 transition-transform transform ${isExpanded ? 'rotate-90' : ''}`}
+                            className={`min-h-11 min-w-11 text-xs text-gray-400 group-hover:text-sky-300 transition-transform transform ${isExpanded ? 'rotate-90' : ''}`}
                             aria-label={isExpanded ? `Collapse ${entry.title}` : `Expand ${entry.title}`}
                         >
                             ▶
@@ -202,7 +202,7 @@ const GlossaryEntryNode: React.FC<{
                     <button
                         type="button"
                         onClick={() => onEntrySelect(entry)}
-                        className={`w-full text-left px-2 py-1.5 ${indentClass} ${isParent && !isExpanded && selectedEntry?.id === entry.id ? 'font-semibold' : ''} ${!isParent && selectedEntry?.id === entry.id ? 'font-semibold' : ''}`}
+                        className={`w-full min-h-11 text-left px-2 py-2 ${indentClass} ${isParent && !isExpanded && selectedEntry?.id === entry.id ? 'font-semibold' : ''} ${!isParent && selectedEntry?.id === entry.id ? 'font-semibold' : ''}`}
                         disabled={disabled}
                         title={gateLabel || entry.title}
                     >
@@ -285,10 +285,12 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
     // Determine if there are no entries to display (empty search results)
     const hasNoResults = Object.keys(groupedEntries).length === 0;
 
-    // Render the sidebar container with categories and entries
+    // Render the sidebar container with categories and entries.
+    // On narrow windows, cap the sidebar height so the selected entry panel
+    // stays reachable below it instead of being pushed outside the frame.
     return (
         <div
-            className="md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-y-auto scrollable-content flex-shrink-0 glossary-list-container"
+            className="md:w-1/3 max-md:w-full max-md:max-h-[45%] border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-y-auto scrollable-content md:flex-shrink-0 max-md:flex-shrink glossary-list-container"
             style={{ transition: isColumnResizing ? 'none' : 'width 0.2s ease' }}
         >
             {/* Search Section - Pinned at the top of the sidebar */}
@@ -313,7 +315,7 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
                             placeholder="Search glossary..."
                             value={searchTerm}
                             onChange={(e) => onSearchChange(e.target.value)}
-                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 text-sm focus:ring-1 focus:ring-sky-500 focus:border-sky-500 outline-none"
+                            className="w-full min-h-11 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 text-sm focus:ring-1 focus:ring-sky-500 focus:border-sky-500 outline-none"
                             aria-label="Search glossary terms"
                             autoFocus
                         />
@@ -329,7 +331,7 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
                 <p className="text-gray-400 italic text-center py-4">No terms match your search.</p>
             )}
 
-            {/* Render each category with its entries (stub singletons hidden — GL5) */}
+            {/* Render each category with its entries. Entry rows stay touch-sized for cramped in-game glossary windows. */}
             {visibleCategories.map(category => {
                 // Check if this category is currently expanded
                 const isExpanded = expandedCategories.has(category);

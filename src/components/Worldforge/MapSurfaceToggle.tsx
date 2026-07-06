@@ -17,21 +17,18 @@ const OPTIONS: Array<{ value: MapSurface; label: string }> = [
   { value: 'worldforge', label: 'Worldforge' },
 ];
 
+const COMPACT_LABELS: Record<MapSurface, string> = {
+  classic: '2D',
+  worldforge: 'Forge',
+};
+
 const MapSurfaceToggle: React.FC = () => {
   const { surface, setSurface } = useMapSurface();
 
   return (
     <div
       data-testid="map-surface-toggle"
-      style={{
-        display: 'flex',
-        gap: '4px',
-        padding: '4px',
-        backgroundColor: 'var(--bg-surface-alt, #1e2e3e)',
-        border: '1px solid var(--border-color, #3a4a5a)',
-        borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-      }}
+      className="flex gap-1 rounded-md border border-gray-600 bg-gray-800 p-1 shadow-[0_2px_8px_rgba(0,0,0,0.4)]"
     >
       {OPTIONS.map(({ value, label }) => {
         const active = surface === value;
@@ -41,20 +38,18 @@ const MapSurfaceToggle: React.FC = () => {
             type="button"
             data-testid={`map-surface-${value}`}
             aria-pressed={active}
+            aria-label={`Switch to ${label} map surface`}
+            title={label}
             onClick={() => setSurface(value)}
-            style={{
-              padding: '6px 12px',
-              fontSize: '12px',
-              fontFamily: 'Outfit, sans-serif',
-              fontWeight: active ? 600 : 400,
-              color: active ? 'var(--text-primary, #e8e8e8)' : 'var(--text-secondary, #8a9aaa)',
-              backgroundColor: active ? 'var(--bg-active, #3a5a7a)' : 'transparent',
-              border: 'none',
-              borderRadius: '3px',
-              cursor: 'pointer',
-            }}
+            className={`flex min-h-11 min-w-11 items-center justify-center rounded px-2 font-outfit text-[11px] transition-colors sm:px-3 sm:text-xs ${
+              active
+                ? 'bg-slate-600 font-semibold text-gray-100'
+                : 'bg-transparent font-normal text-gray-400 hover:text-gray-200'
+            }`}
           >
-            {label}
+            {/* Phone-width play screens keep the toggle compact so it does not cover the primary map button. */}
+            <span className="sm:hidden">{COMPACT_LABELS[value]}</span>
+            <span className="hidden sm:inline">{label}</span>
           </button>
         );
       })}

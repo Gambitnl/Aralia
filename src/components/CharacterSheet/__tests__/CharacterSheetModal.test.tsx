@@ -126,6 +126,28 @@ describe('CharacterSheetModal', () => {
     expect(screen.getByTestId('inventory-list')).toBeInTheDocument();
   });
 
+  it('lets the narrow overview tab scroll as one sheet instead of three clipped panes', () => {
+    render(<CharacterSheetModal {...defaultProps} />);
+
+    const overviewPanel = screen.getByTestId('character-overview').parentElement;
+    const overviewLayout = overviewPanel?.parentElement;
+
+    expect(overviewLayout).toHaveClass('max-lg:overflow-y-auto');
+    expect(overviewLayout).toHaveClass('lg:h-full');
+    expect(overviewPanel).toHaveClass('max-lg:overflow-visible');
+  });
+
+  it('keeps character sheet tabs large enough to tap in narrow windows', () => {
+    render(<CharacterSheetModal {...defaultProps} />);
+
+    expect(screen.getByRole('tab', { name: 'Overview' })).toHaveClass('min-h-11');
+    expect(screen.getByRole('tab', { name: 'Skills' })).toHaveClass('min-h-11');
+    expect(screen.getByRole('tab', { name: 'Details' })).toHaveClass('min-h-11');
+    expect(screen.getByRole('tab', { name: 'Spellbook' })).toHaveClass('min-h-11');
+    expect(screen.getByRole('tab', { name: 'Crafting' })).toHaveClass('min-h-11');
+    expect(screen.getByRole('tab', { name: 'Journal' })).toHaveClass('min-h-11');
+  });
+
   // The below test has been removed because the text content is now rendered inside
   // CharacterOverview (which is mocked in this test suite).
   // CharacterOverview has its own dedicated test file (CharacterOverview.test.tsx).

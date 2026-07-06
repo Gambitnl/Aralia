@@ -5,6 +5,8 @@ import type { Action, GameState } from '../../../types';
 import type { AppAction } from '../../../state/actionTypes';
 import { evaluateRecruitOffer } from '../../../systems/party/recruitConsent';
 import { npcToPartyMember, promoteCompanionToMember } from '../../../systems/party/npcToPartyMember';
+import { handleStartBattleMapEncounter } from '../handleEncounter';
+import { CrimeType } from '../../../types/crime';
 
 /**
  * This file protects NPC interaction behavior at the action-handler boundary.
@@ -66,7 +68,21 @@ vi.mock('../../../constants', () => ({
       dialoguePromptSeed: 'The villager nods.',
       voice: { name: 'Aoede' },
     },
+    town_guard: {
+      id: 'town_guard',
+      name: 'Sergeant Vane',
+      role: 'guard',
+      initialPersonalityPrompt: 'A stern town watchman.',
+      dialoguePromptSeed: 'The guard eyes you.',
+      voice: { name: 'Aoede' },
+    },
   },
+}));
+
+// Guard confrontation reuses the battle-map encounter launcher; stub it so the
+// test asserts the WIRING (combat started, no dialogue opened) deterministically.
+vi.mock('../handleEncounter', () => ({
+  handleStartBattleMapEncounter: vi.fn(async () => undefined),
 }));
 
 vi.mock('../../../services/npcGenerator', () => ({
@@ -461,5 +477,71 @@ describe('handleTalk recruit handoff', () => {
 
     expect(vi.mocked(evaluateRecruitOffer)).not.toHaveBeenCalled();
     expect(dispatchedTypes(mockDispatch as unknown as DispatchMock)).not.toContain('RECRUIT_COMPANION');
+  });
+});
+
+// ============================================================================
+// Guard confrontation for a WANTED player (item 1)
+// ============================================================================
+describe('handleTalk guard confrontation', () => {
+  const gameTime = new Date(Date.UTC(2026, 6, 4, 10, 0, 0));
+  const mockDispatch = vi.fn<(action: AppAction) => void>();
+  const mockAddMessage = vi.fn<(text: string, sender?: 'system' | 'player' | 'npc') => void>();
+  const mockAddGeminiLog = vi.fn();
+  const mockPlayPcmAudio = vi.fn(async () => undefined);
+
+  const wantedCrime = {
+    id: 'c1', type: CrimeType.Assault, locationId: 'oakhaven', timestamp: 0, severity: 60, witnessed: true,
+  };
+
+  function baseState(overrides: Partial<GameState> = {}): GameState {
+    return {
+      gameTime,
+      currentLocationId: 'oakhaven',
+      metNpcIds: ['town_guard'],
+      npcMemory: { town_guard: { disposition: 0, goals: [], knownFacts: [] } },
+      lastInteractedNpcId: null,
+      lastNpcResponse: null,
+      questLog: [],
+      companions: {},
+      generatedNpcs: {},
+      activeConversation: null,
+      activeDialogueSession: null,
+      notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [], bounties: [] },
+      ...overrides,
+    } as unknown as GameState;
+  }
+
+  function runTalk(state: GameState) {
+    return handleTalk({
+      action: { type: 'talk', payload: { targetNpcId: 'town_guard' }, targetId: 'town_guard' } as unknown as Action,
+      gameState: state,
+      dispatch: mockDispatch as unknown as Dispatch<AppAction>,
+      addMessage: mockAddMessage,
+      addGeminiLog: mockAddGeminiLog,
+      playPcmAudio: mockPlayPcmAudio,
+      playerContext: 'Test adventurer',
+      generalActionContext: 'Testing guard confrontation',
+    });
+  }
+
+  beforeEach(() => vi.clearAllMocks());
+
+  it('confronts a wanted player into combat instead of opening dialogue', async () => {
+    await runTalk(baseState({ notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [wantedCrime], bounties: [] } }));
+    expect(vi.mocked(handleStartBattleMapEncounter)).toHaveBeenCalled();
+    expect(mockDispatch.mock.calls.some(([d]) => d.type === 'START_DIALOGUE_SESSION')).toBe(false);
+    expect(mockAddMessage.mock.calls.some(([m]) => /wanted|surrender/i.test(m))).toBe(true);
+  });
+
+  it('talks normally to a guard when the player is NOT wanted here', async () => {
+    await runTalk(baseState());
+    expect(vi.mocked(handleStartBattleMapEncounter)).not.toHaveBeenCalled();
+  });
+
+  it('does not confront when the crime is in a DIFFERENT town', async () => {
+    const elsewhere = { ...wantedCrime, locationId: 'far-city' };
+    await runTalk(baseState({ notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [elsewhere], bounties: [] } }));
+    expect(vi.mocked(handleStartBattleMapEncounter)).not.toHaveBeenCalled();
   });
 });

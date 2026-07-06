@@ -84,6 +84,47 @@ describe('Steady Aim mechanic (rogue)', () => {
   });
 });
 
+describe('Rage of the Wilds — bear boon (Path of the Wild Heart barbarian)', () => {
+  const bearRage = { id: 'rage', name: 'Rage (Bear Spirit)', type: 'utility', cost: { type: 'bonus' }, targeting: 'self', range: 0, effects: [], tags: ['wild_heart_bear'] } as unknown as Ability;
+
+  it('a bear-spirit raging barbarian resists ALL damage except psychic', () => {
+    const { character } = applyImmediateAbilityTurnEffects(barbarian(), bearRage, 1);
+    const raging = character.statusEffects.find(s => s.id === 'raging');
+    expect(raging?.modifiers?.resistance).toContain('fire');
+    expect(raging?.modifiers?.resistance).toContain('cold');
+    expect(raging?.modifiers?.resistance).toContain('necrotic');
+    // Fire damage is halved.
+    expect(ResistanceCalculator.applyResistances(10, 'fire' as never, character)).toBe(5);
+    // Psychic is the one exception — full damage.
+    expect(raging?.modifiers?.resistance).not.toContain('psychic');
+    expect(ResistanceCalculator.applyResistances(10, 'psychic' as never, character)).toBe(10);
+  });
+
+  it('a plain (untagged) Rage still resists only physical damage, not fire', () => {
+    const { character } = applyImmediateAbilityTurnEffects(barbarian(), rageAbility, 1);
+    expect(ResistanceCalculator.applyResistances(10, 'fire' as never, character)).toBe(10);
+    expect(ResistanceCalculator.applyResistances(10, 'physical' as never, character)).toBe(5);
+  });
+});
+
+describe('Vow of Enmity mechanic (Oath of Vengeance paladin)', () => {
+  const vow = { id: 'vow_of_enmity', name: 'Vow of Enmity (Channel Divinity)', type: 'utility', cost: { type: 'bonus' }, targeting: 'self', range: 0, effects: [] } as unknown as Ability;
+
+  it('applies a Vow of Enmity status granting attack advantage', () => {
+    const { character, followUpLogs } = applyImmediateAbilityTurnEffects(barbarian(), vow, 1);
+    const status = character.statusEffects.find(s => s.id === 'vow_of_enmity');
+    // WeaponAttackCommand reads statusEffects[].modifiers.advantage for 'attack'.
+    expect(status?.modifiers?.advantage).toContain('attack');
+    expect(followUpLogs.some(l => /Vow of Enmity/i.test(l.message))).toBe(true);
+  });
+
+  it('does not stack when re-used', () => {
+    const { character: once } = applyImmediateAbilityTurnEffects(barbarian(), vow, 1);
+    const { character: twice } = applyImmediateAbilityTurnEffects(once, vow, 2);
+    expect(twice.statusEffects.filter(s => s.id === 'vow_of_enmity').length).toBe(1);
+  });
+});
+
 describe('Action Surge mechanic (fighter)', () => {
   const actionSurge = { id: 'action_surge', name: 'Action Surge', type: 'utility', cost: { type: 'free' }, targeting: 'self', range: 0, effects: [] } as unknown as Ability;
   const fighter = (): CombatCharacter => withEconomy('ftr-1', 'Roland');

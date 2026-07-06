@@ -207,10 +207,10 @@ describe('BattleMap parity proof', () => {
     const aoeTile = screen.getByRole('button', { name: 'Tile floor at 0, 1' });
     const teleportTile = screen.getByRole('button', { name: 'Tile floor at 1, 1' });
 
-    expect(moveTile.querySelector('.bg-blue-500\\/40')).toBeInTheDocument();
-    expect(pathTile.querySelector('.bg-yellow-500\\/50')).toBeInTheDocument();
-    expect(targetTile.querySelector('.bg-red-500\\/40')).toBeInTheDocument();
-    expect(aoeTile.querySelector('.bg-red-500\\/60')).toBeInTheDocument();
+    expect(moveTile.querySelector('.bg-emerald-400\\/20')).toBeInTheDocument();
+    expect(pathTile.querySelector('.bg-emerald-300\\/60')).toBeInTheDocument();
+    expect(targetTile.querySelector('.bg-rose-500\\/40')).toBeInTheDocument();
+    expect(aoeTile.querySelector('.bg-orange-500\\/55')).toBeInTheDocument();
     expect(teleportTile.querySelector('.bg-sky-400\\/55')).toBeInTheDocument();
     expect(screen.getByText('This spell can only target enemies.')).toBeInTheDocument();
 

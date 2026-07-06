@@ -24,11 +24,12 @@ export const CraftingTab: React.FC<CraftingTabProps> = ({ disabled = false }) =>
                 </div>
             )}
 
-            {/* Alchemy Bench Modal Overlay */}
+            {/* Alchemy Bench: AlchemyBenchPanel is a WindowFrame — it positions itself
+                at the document root and needs no dimming backdrop wrapper (that would
+                double-chrome it, unlike the non-WindowFrame GatheringPanel above which
+                relies on its overlay to center). */}
             {isAlchemyBenchOpen && (
-                <div className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                    <AlchemyBenchPanel onClose={() => setIsAlchemyBenchOpen(false)} />
-                </div>
+                <AlchemyBenchPanel onClose={() => setIsAlchemyBenchOpen(false)} />
             )}
 
             <div className="h-full flex flex-col gap-6 p-4">

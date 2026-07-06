@@ -52,7 +52,7 @@ import {
 import { RacialFeatureTrait, RacialResourceMechanic, RacialModifierBuckets } from '../../data/races/racialTraits';
 import { ALL_RACES_DATA as RACES_DATA, RACE_DATA_BUNDLE, getRacialTraitLibrary } from '../../data/races';
 import { CLASSES_DATA } from '../../data/classes';
-import { growSpellSlots } from '../../systems/character/spellSlotProgression';
+import { growSpellSlots, cantripsKnownForClassLevel } from '../../systems/character/spellSlotProgression';
 import { subclassesForClass } from '../../data/classes/subclasses';
 import { SKILLS_DATA } from '../../data/skills';
 
@@ -70,6 +70,7 @@ import { FEATS_DATA } from '../../data/feats/featsData';
  */
 export { getAbilityModifierValue, calculateFinalAbilityScores, getAbilityModifierString } from './statUtils';
 export { getMaxPreparedSpells } from './getMaxPreparedSpells';
+import { getMaxPreparedSpells as computeMaxPreparedSpells } from './getMaxPreparedSpells';
 import { getAbilityModifierValue, calculateFinalAbilityScores, calculateFixedRacialBonuses, calculateArmorClass } from './statUtils';
 import {
   isWeaponProficient,
@@ -1542,6 +1543,98 @@ export const normalizeCharacterRaceData = (character: PlayerCharacter): PlayerCh
 };
 
 /**
+ * The spellcasting learning allowance for a caster at a given level: how many
+ * class cantrips they should know and how many leveled spells they may have
+ * prepared/known. Non-casters return zeroed capacity. This is derived (pure
+ * function of class + level), so it recomputes automatically on level-up; the
+ * UI uses it to surface "you may learn N new cantrips / prepare N spells"
+ * rather than inventing picks.
+ */
+export interface SpellcastingAllowance {
+  /** Class cantrips the character should know at this level. */
+  maxCantrips: number;
+  /** Cantrips still unfilled (maxCantrips minus cantrips already on the sheet). */
+  cantripsToLearn: number;
+  /** Leveled spells that may be prepared/known, or null if not applicable. */
+  maxPreparedSpells: number | null;
+}
+
+export const getSpellcastingAllowance = (character: PlayerCharacter): SpellcastingAllowance => {
+  const classId = character.class?.id ?? '';
+  const level = character.level ?? 1;
+  const maxCantrips = cantripsKnownForClassLevel(classId, level);
+  const knownCantrips = character.spellbook?.cantrips?.length ?? 0;
+  const maxPreparedSpells = computeMaxPreparedSpells(character);
+  return {
+    maxCantrips,
+    cantripsToLearn: Math.max(0, maxCantrips - knownCantrips),
+    maxPreparedSpells,
+  };
+};
+
+/**
+ * Applies the caster's spell learning for a level-up: adds any player-chosen
+ * cantrips / known spells (deterministically, deduped, capped at the derived
+ * capacity). Never auto-picks — if the player made no choice, the spellbook is
+ * unchanged and the allowance is surfaced via getSpellcastingAllowance so the
+ * UI can prompt. Returns a new character (or the same one if nothing to do).
+ */
+const applyLevelUpSpellLearning = (
+  character: PlayerCharacter,
+  choices?: LevelUpChoices,
+): PlayerCharacter => {
+  const classId = character.class?.id ?? '';
+  const level = character.level ?? 1;
+  const maxCantrips = cantripsKnownForClassLevel(classId, level);
+
+  const chosenCantrips = choices?.selectedCantrips ?? [];
+  const chosenKnownSpells = choices?.selectedKnownSpells ?? [];
+  if (chosenCantrips.length === 0 && chosenKnownSpells.length === 0) {
+    return character;
+  }
+
+  const spellbook = character.spellbook
+    ? {
+        knownSpells: [...(character.spellbook.knownSpells || [])],
+        preparedSpells: [...(character.spellbook.preparedSpells || [])],
+        cantrips: [...(character.spellbook.cantrips || [])],
+        racialSpellGrants: character.spellbook.racialSpellGrants
+          ? [...character.spellbook.racialSpellGrants]
+          : undefined,
+      }
+    : { knownSpells: [] as string[], preparedSpells: [] as string[], cantrips: [] as string[] };
+
+  // Add chosen cantrips up to the derived class cantrip capacity.
+  const cantripSet = new Set(spellbook.cantrips);
+  for (const cantripId of chosenCantrips) {
+    if (cantripSet.size >= maxCantrips) break;
+    if (!cantripSet.has(cantripId)) {
+      cantripSet.add(cantripId);
+    }
+  }
+  spellbook.cantrips = Array.from(cantripSet);
+
+  // Add chosen leveled spells to the known-spells list (deduped). Preparation
+  // capacity is enforced separately at prep time via getMaxPreparedSpells.
+  // GATE: only spellcasting classes may accrue leveled known spells. Mirror the
+  // capacity signals getSpellcastingAllowance derives — a caster has either a
+  // non-null prepared-spell capacity OR a positive cantrip count. Without this,
+  // a non-caster (e.g. Fighter) handed selectedKnownSpells would bank leveled
+  // spells it can never cast. Cantrips are already capped at maxCantrips above
+  // (0 for non-casters), so that path needs no extra gate.
+  const isSpellcaster = computeMaxPreparedSpells(character) !== null || maxCantrips > 0;
+  if (isSpellcaster) {
+    const knownSet = new Set(spellbook.knownSpells);
+    for (const spellId of chosenKnownSpells) {
+      knownSet.add(spellId);
+    }
+    spellbook.knownSpells = Array.from(knownSet);
+  }
+
+  return { ...character, spellbook };
+};
+
+/**
  * Performs a full level up on a character, honoring ability score improvements
  * and optional feat selections. Defaults to an auto-allocation when no choice
  * data is supplied so simulation loops can still progress.
@@ -1625,7 +1718,15 @@ export const performLevelUp = (
     }
   }
 
-  // TODO #1280(FEATURES): Grant class abilities/spells on level-up (beyond ASI/feats/slots) and persist new spellbook entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  // Grow the caster's spell learning capacity. Leveled prepared/known capacity
+  // is derived (getMaxPreparedSpells / getSpellcastingAllowance) so it tracks
+  // the new level automatically. Cantrips-known capacity also grows here; any
+  // player-chosen cantrips/known spells are applied (capped, deduped) but we
+  // never auto-pick — unfilled capacity is surfaced via getSpellcastingAllowance
+  // for the UI to prompt.
+  // TODO #1280(FEATURES): Grant class abilities (non-spell class features) on level-up (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  updatedCharacter = applyLevelUpSpellLearning(updatedCharacter, choices);
+
   // Recalculate derived scores after ASI/feat adjustments.
   updatedCharacter = applyRacialSpellGrantsByLevel(updatedCharacter, newLevel);
   updatedCharacter.finalAbilityScores = calculateFinalAbilityScores(updatedCharacter.abilityScores, updatedCharacter.race, updatedCharacter.equippedItems);

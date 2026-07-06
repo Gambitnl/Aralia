@@ -6,6 +6,7 @@
  */
 // TODO #150: Enhance ErrorBoundary component to capture and report error details, stack traces, and user context for better debugging
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Z_INDEX } from '../../styles/zIndex';
 
 interface Props {
   children: ReactNode;
@@ -47,7 +48,10 @@ class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       // You can render any custom fallback UI
       return (
-        <div className="bg-gray-800 text-red-400 p-6 rounded-lg shadow-xl border border-red-600 text-center m-4">
+        <div
+          className="relative bg-gray-800 text-red-400 p-6 rounded-lg shadow-xl border border-red-600 text-center m-4"
+          style={{ zIndex: Z_INDEX.ERROR_OVERLAY }}
+        >
           <h2 className="text-2xl font-bold text-red-300 mb-4 font-cinzel">
             Oops! Something went wrong.
           </h2>

@@ -8,7 +8,7 @@
  * visible rule that the main menu only exposes one developer entry point.
  */
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import MainMenu from '../layout/MainMenu';
 
@@ -105,6 +105,58 @@ describe('MainMenu', () => {
         expect(screen.getByText('Lore & Rules')).toBeInTheDocument();
     });
 
+    it('keeps the title screen scrollable and compact for cramped return flows', () => {
+        // Returning to the title screen from an active run can show extra actions
+        // such as Back, locked World Generation, and Abandon Run. The menu shell
+        // must scroll instead of centering a tall card with lower controls hidden.
+        render(
+            <MainMenu
+                {...defaultProps}
+                canGoBack
+                onGoBack={vi.fn()}
+                hasActiveRun
+                onAbandonRun={vi.fn()}
+                onOpenWorldGeneration={vi.fn()}
+                isWorldGenerationLocked
+                worldGenerationLockedReason="World generation is locked while an active game session is in memory."
+            />,
+        );
+
+        const menuShell = screen.getByTestId('main-menu');
+        expect(menuShell).toHaveClass('justify-start');
+        expect(menuShell).toHaveClass('overflow-y-auto');
+        expect(screen.getByRole('button', { name: /Begin a new legend/i })).toHaveClass('min-h-11');
+        expect(screen.getByRole('button', { name: /World Generation/i })).toHaveClass('min-h-11');
+    });
+
+    it('scrolls destructive confirmations into view after they expand the menu', async () => {
+        // The confirmation panel is taller than the Abandon Run button it replaces.
+        // On cramped screens it must pull itself into view so Confirm and Cancel do
+        // not appear partly below the fold after the player's click.
+        const scrollIntoView = vi.fn();
+        const originalScrollIntoView = Element.prototype.scrollIntoView;
+        Element.prototype.scrollIntoView = scrollIntoView;
+
+        try {
+            render(
+                <MainMenu
+                    {...defaultProps}
+                    hasActiveRun
+                    onAbandonRun={vi.fn()}
+                />,
+            );
+
+            fireEvent.click(screen.getByRole('button', { name: /Abandon Run/i }));
+
+            expect(await screen.findByTestId('main-menu-abandon-confirm')).toBeInTheDocument();
+            await waitFor(() => {
+                expect(scrollIntoView).toHaveBeenCalledWith({ block: 'end', inline: 'nearest' });
+            });
+        } finally {
+            Element.prototype.scrollIntoView = originalScrollIntoView;
+        }
+    });
+
     it('calls onNewGame when Begin Legend button is clicked', () => {
         render(<MainMenu {...defaultProps} />);
         fireEvent.click(screen.getByText('Begin Legend'));
@@ -146,5 +198,39 @@ describe('MainMenu', () => {
         render(<MainMenu {...defaultProps} />);
         fireEvent.click(screen.getByText('Chronicle Journey'));
         expect(screen.getByRole('dialog', { name: 'Chronicle Journey Selector' })).toBeInTheDocument();
+    });
+
+    it('explains why Chronicle Journey is unavailable without an active save handler', () => {
+        // A disabled save action should not feel like a dead button on the
+        // player-facing menu; it needs the same unavailable-state affordance as
+        // the disabled resume action.
+        render(<MainMenu {...defaultProps} onSaveGame={undefined} />);
+
+        const button = screen.getByRole('button', { name: /Chronicle Journey unavailable/i });
+        expect(button).toBeDisabled();
+        expect(button).toHaveAttribute('title', 'Chronicle Journey is unavailable until a run is active.');
+        fireEvent.click(button);
+        expect(screen.queryByRole('dialog', { name: 'Chronicle Journey Selector' })).not.toBeInTheDocument();
+    });
+
+    it('disables World Generation when an active run or save lock is present', () => {
+        // A locked world-generation entry should look and behave unavailable.
+        // The player can inspect their current in-game map elsewhere, but this
+        // menu action is specifically for generating a new world seed.
+        const onOpenWorldGeneration = vi.fn();
+        render(
+            <MainMenu
+                {...defaultProps}
+                onOpenWorldGeneration={onOpenWorldGeneration}
+                isWorldGenerationLocked
+                worldGenerationLockedReason="World generation is locked while an active game session is in memory."
+            />,
+        );
+
+        const button = screen.getByRole('button', { name: 'World Generation' });
+        expect(button).toBeDisabled();
+        fireEvent.click(button);
+        expect(onOpenWorldGeneration).not.toHaveBeenCalled();
+        expect(screen.getByText('World generation is locked while an active game session is in memory.')).toBeInTheDocument();
     });
 });

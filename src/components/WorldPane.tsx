@@ -34,6 +34,11 @@ interface WorldPaneProps {
 const WorldPane: React.FC<WorldPaneProps> = ({ messages, openingStatus }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const glossaryEntries = useContext(GlossaryContext);
+  // Whether the reader is (near) the bottom of the log. Updated on every scroll,
+  // read when new messages arrive: we only auto-follow when they were already at
+  // the bottom, so scrolling UP to read history is never yanked back down by the
+  // living-world sim's frequent banter. Defaults true so the first render sticks.
+  const isAtBottomRef = useRef(true);
 
   /**
    * Scrolls the message container to the bottom.
@@ -47,7 +52,21 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages, openingStatus }) => {
     }
   };
 
-  useEffect(scrollToBottom, [messages]); // Scroll when messages change
+  /** Recompute "is the reader at the bottom?" whenever they scroll. */
+  const handleScroll = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    // ~120px slack so being a line or two off the bottom still counts as
+    // "following", but any deliberate scroll-up to read history does not.
+    isAtBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+  };
+
+  // Follow new messages ONLY when the reader is already at the bottom. When they
+  // have scrolled up to read, new banter appends silently below without stealing
+  // their place.
+  useEffect(() => {
+    if (isAtBottomRef.current) scrollToBottom();
+  }, [messages]);
 
   /**
    * Determines the CSS class for a message based on its sender.
@@ -133,9 +152,12 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages, openingStatus }) => {
             key={`${keyPrefix}-${part}-${index}-tooltip`}
             content={entry.excerpt || entry.title}
           >
+            {/* Glossary terms are real player actions inside the prose. Keep
+                them inline, but give each term a touch-sized target so wrapped
+                log text remains usable on phone-width play surfaces. */}
             <button
               type="button"
-              className="text-sky-400 underline decoration-sky-500/70 decoration-dotted cursor-help bg-transparent border-0 p-0"
+              className="inline-flex min-h-11 items-center rounded px-1 text-sky-400 underline decoration-sky-500/70 decoration-dotted cursor-help bg-transparent border-0 align-middle"
             >
               {part}
             </button>
@@ -171,6 +193,7 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages, openingStatus }) => {
       id={UI_ID.WORLD_PANE}
       data-testid={UI_ID.WORLD_PANE}
       ref={scrollContainerRef}
+      onScroll={handleScroll}
       className="flex-grow bg-gray-800 p-6 rounded-lg shadow-xl overflow-y-auto scrollable-content border border-gray-700 min-h-0"
     >
       {' '}

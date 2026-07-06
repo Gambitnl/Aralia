@@ -708,12 +708,13 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
         </div>
       </div>
 
-      {/* Zoom Controls Overlay (Right) */}
+      {/* Zoom Controls Overlay (Right). Keep icon-only map controls at the
+          shared 44px target size so the compact atlas remains playable by touch. */}
       <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 bg-gray-900/80 backdrop-blur-md p-1.5 rounded-lg border border-gray-800 shadow-lg">
         <button
           type="button"
           onClick={() => zoomAtCenter(true)}
-          className="p-1.5 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
           title="Zoom In"
         >
           <ZoomIn size={18} />
@@ -721,7 +722,7 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
         <button
           type="button"
           onClick={resetView}
-          className="p-1.5 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
           title="Recenter / Fit Map"
         >
           <Maximize size={18} />
@@ -729,7 +730,7 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
         <button
           type="button"
           onClick={() => zoomAtCenter(false)}
-          className="p-1.5 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
           title="Zoom Out"
         >
           <ZoomOut size={18} />

@@ -282,6 +282,61 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     }),
   );
 
+  // ============================== Campaign Governance ==============================
+  // Campaign records let several orchestrators announce their supervisory domains
+  // before they seed waves. They are advisory like locks, but lead overlap is a
+  // hard pre-seed failure so two orchestrators do not unknowingly own the same files.
+  router.post(
+    '/campaigns',
+    withAuth(async (req, res, ctx) => {
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+      const result = store.claimCampaign({
+        agentId: ctx.agent.id,
+        campaignId: body.id || body.campaignId,
+        role: body.role,
+        leadCampaignId: body.leadCampaignId,
+        scope: body.scope,
+        paths: Array.isArray(body.paths) ? body.paths : [],
+        globs: Array.isArray(body.globs) ? body.globs : [],
+        wave: body.wave,
+      });
+      if (result.ok) return sendJson(res, 201, { campaign: result.campaign, warnings: result.warnings || [] });
+      if (result.conflict) return sendJson(res, 409, { error: result.error, conflict: result.conflict });
+      return sendJson(res, 400, { error: result.error || 'bad campaign request' });
+    }),
+  );
+
+  router.get('/campaigns', async (_req, res, ctx) => {
+    const state = ctx.query.get('state') || undefined;
+    sendJson(res, 200, { campaigns: store.listCampaigns({ state }) });
+  });
+
+  router.post(
+    '/campaigns/:id/state',
+    withAuth(async (req, res, ctx) => {
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+      const result = store.setCampaignState({
+        campaignId: ctx.params.id,
+        agentId: ctx.agent.id,
+        state: body.state,
+      });
+      if (result.ok) return sendJson(res, 200, { campaign: result.campaign });
+      if (result.error === 'campaign not found') return sendJson(res, 404, { error: result.error });
+      if (/owner/.test(result.error || '')) return sendJson(res, 403, { error: result.error });
+      return sendJson(res, 400, { error: result.error || 'bad campaign state request' });
+    }),
+  );
+
   // ============================== Tasks ==============================
   router.post(
     '/tasks',
@@ -302,6 +357,8 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
           title: body.title,
           body: body.body,
           category: typeof body.category === 'string' ? body.category : undefined,
+          campaignId: typeof body.campaignId === 'string' ? body.campaignId : undefined,
+          wave: typeof body.wave === 'string' ? body.wave : undefined,
           deps: Array.isArray(body.deps) ? body.deps : [],
           priority: typeof body.priority === 'number' ? body.priority : undefined,
           refs: Array.isArray(body.refs) ? body.refs : [],
@@ -537,6 +594,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         agents: store.listAgents().length,
         locks: store.listLocks().length,
         tasks: store.listTasks().length,
+        campaigns: store.listCampaigns().length,
         messages: store.getMessages({ since: 0 }).length,
       },
       lastSeq: store.lastSeq,
@@ -572,6 +630,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         agents: store.listAgents(),
         locks: store.listLocks(),
         tasks: store.listTasks(),
+        campaigns: store.listCampaigns(),
       },
     });
     // …and (WF-G6) the recent-event ring replays the gap when the client's

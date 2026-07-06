@@ -21,16 +21,15 @@
  * Now includes Tavern Gossip support!
  */
 import React, { useMemo, useState } from 'react';
-import { motion, MotionProps } from 'framer-motion';
 import { Item, Action, EconomyState, MarketEvent } from '../../types';
 import Tooltip from '../Tooltip';
 import { useGameState } from '../../state/GameContext';
 import { calculatePrice } from '../../utils/economy/economyUtils';
 import { formatGpAsCoins } from '../../utils/coinPurseUtils';
 import CoinPurseDisplay from '../ui/CoinPurseDisplay';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { WindowFrame } from '../ui/WindowFrame';
 import { RumorMill } from '../Town/Intrigue/RumorMill';
-import { UI_ID } from '../../styles/uiIds';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import { resolveItemVisual } from '../../utils/visuals/visualUtils';
 import { assetUrl } from '../../config/env';
 
@@ -88,18 +87,6 @@ interface MerchantModalProps {
     regionId?: string; // Optional region to apply import/export modifiers
 }
 
-const overlayMotion: MotionProps = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
-};
-
-const modalMotion: MotionProps = {
-    initial: { y: -20, opacity: 0 },
-    animate: { y: 0, opacity: 1 },
-    exit: { y: 20, opacity: 0 },
-};
-
 type Tab = 'trade' | 'gossip';
 
 const MerchantModal: React.FC<MerchantModalProps> = ({
@@ -126,9 +113,6 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
     // Determine if this is a tavern-like establishment
     const isTavern = merchantName.toLowerCase().includes('tavern') || merchantName.toLowerCase().includes('inn');
     const [activeTab, setActiveTab] = useState<Tab>('trade');
-
-    // UX: Use focus trap for accessible modal behavior (traps tab, handles escape, restores focus)
-    const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
     const sellableItems = useMemo(() => {
         // Allow selling anything that can be priced.
@@ -167,84 +151,54 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
 
     if (!isOpen) return null;
 
-    return (
-        <motion.div
-            id={UI_ID.MERCHANT_MODAL}
-            data-testid={UI_ID.MERCHANT_MODAL}
-            {...overlayMotion}
-            className="fixed inset-0 bg-black bg-opacity-85 flex items-center justify-center z-[var(--z-index-modal-background)] p-4"
-            onClick={onClose}
-        >
-            <motion.div
-                ref={modalRef}
-                role="dialog"
-                aria-modal="true"
-                aria-label={`Trading with ${merchantName}`}
-                {...modalMotion}
-                className="bg-gray-800 border border-gray-600 rounded-xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col focus:outline-none"
-                onClick={(e) => e.stopPropagation()}
-                tabIndex={-1}
+    const marketFlavor = economy ? marketFlavorLine(economy.marketFactors.surplus, economy.marketFactors.scarcity) : null;
+    const marketEvents: MarketEvent[] = economy?.activeEvents ?? [];
+
+    // Tavern trade/rumors tabs ride in the WindowFrame title bar.
+    const headerTabs = isTavern ? (
+        <div className="flex bg-gray-900 rounded p-1 gap-1">
+            <button
+                onClick={() => setActiveTab('trade')}
+                className={`px-4 py-1.5 rounded text-sm font-bold uppercase tracking-wider transition-colors
+                    ${activeTab === 'trade' ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
             >
-                {/* Header */}
-                <div className="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-900/50 rounded-t-xl">
-                    <div className="flex items-center gap-4">
-                        <div>
-                            <h2 className="text-2xl font-cinzel text-amber-400">{merchantName}</h2>
-                            <div className="flex flex-col gap-1 text-sm text-gray-400 mt-1">
-                                {economy ? (
-                                    <>
-                                        {economy.activeEvents && economy.activeEvents.length > 0 ? (
-                                            <div className="flex flex-col gap-1 mb-1">
-                                                {economy.activeEvents.map((marketEvent: MarketEvent) => (
-                                                    <div key={marketEvent.id} className="text-amber-200 flex items-center gap-2">
-                                                        <span>📢 {marketEvent.name}: {marketEvent.description}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : null}
-                                        {(() => {
-                                            const flavor = marketFlavorLine(economy.marketFactors.surplus, economy.marketFactors.scarcity);
-                                            return flavor ? (
-                                                <span className="italic text-gray-300 mt-1">{flavor}</span>
-                                            ) : null;
-                                        })()}
-                                    </>
-                                ) : <span>Standard Prices</span>}
-                            </div>
-                        </div>
+                Trade
+            </button>
+            <button
+                onClick={() => setActiveTab('gossip')}
+                className={`px-4 py-1.5 rounded text-sm font-bold uppercase tracking-wider transition-colors
+                    ${activeTab === 'gossip' ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+            >
+                Rumors
+            </button>
+        </div>
+    ) : undefined;
 
-                        {/* Tabs */}
-                        {isTavern && (
-                            <div className="flex bg-gray-900 rounded p-1 gap-1 ml-8">
-                                <button
-                                    onClick={() => setActiveTab('trade')}
-                                    className={`px-4 py-1.5 rounded text-sm font-bold uppercase tracking-wider transition-colors
-                                        ${activeTab === 'trade' ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}
-                                    `}
-                                >
-                                    Trade
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('gossip')}
-                                    className={`px-4 py-1.5 rounded text-sm font-bold uppercase tracking-wider transition-colors
-                                        ${activeTab === 'gossip' ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}
-                                    `}
-                                >
-                                    Rumors
-                                </button>
-                            </div>
-                        )}
+    return (
+        <WindowFrame
+            title={merchantName}
+            onClose={onClose}
+            storageKey={WINDOW_KEYS.MERCHANT}
+            initialMaximized={false}
+            headerActions={headerTabs}
+        >
+            <div className="flex flex-col h-full">
+                {/* Market conditions banner (was a header subtitle). */}
+                {(marketEvents.length > 0 || marketFlavor) && (
+                    <div className="shrink-0 px-4 py-2 border-b border-gray-700 bg-gray-900/40 text-sm text-gray-400 flex flex-col gap-1">
+                        {marketEvents.map((marketEvent) => (
+                            <div key={marketEvent.id} className="text-amber-200">📢 {marketEvent.name}: {marketEvent.description}</div>
+                        ))}
+                        {marketFlavor && <span className="italic text-gray-300">{marketFlavor}</span>}
                     </div>
-
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-white text-3xl"
-                        aria-label="Close shop"
-                    >&times;</button>
-                </div>
+                )}
 
                 {/* Main Content */}
-                <div className="flex-grow flex overflow-hidden">
+                {/* Narrow WindowFrames do not have enough room for buy and sell
+                    panes side by side. The trade body becomes one scrollable
+                    stack there, while desktop windows keep the familiar
+                    two-column shop counter with independent list scrolling. */}
+                <div className="flex-grow min-h-0 overflow-y-auto scrollable-content md:flex md:overflow-hidden">
                     {activeTab === 'gossip' ? (
                         // Gossip View
                         <div className="w-full p-6">
@@ -259,14 +213,14 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                         // Trade View (Standard)
                         <>
                             {/* Merchant Column */}
-                            <div className="w-1/2 p-4 border-r border-gray-700 flex flex-col bg-gray-800/30">
+                            <div className="w-full p-4 border-b border-gray-700 flex flex-col bg-gray-800/30 md:w-1/2 md:border-b-0 md:border-r">
                                 <h3 className="text-lg font-bold text-sky-300 mb-3 sticky top-0">For Sale</h3>
-                                <div className="flex-grow overflow-y-auto scrollable-content space-y-2 pr-2">
+                                <div className="space-y-2 pr-1 md:flex-grow md:overflow-y-auto md:scrollable-content md:pr-2">
                                     {merchantInventory.map((item, idx) => {
                                         const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'buy', regionId, priceContext);
                                         const canAfford = playerGold >= finalPrice;
                                         return (
-                                            <div key={`${item.id}-${idx}`} className="bg-gray-700 p-3 rounded-lg flex justify-between items-center shadow-sm">
+                                            <div key={`${item.id}-${idx}`} className="bg-gray-700 p-3 rounded-lg flex flex-col items-stretch gap-3 shadow-sm sm:flex-row sm:justify-between sm:items-center">
                                                 <div className="flex items-center gap-3">
                                                     <ItemGlyph item={item} />
                                                     <Tooltip content={`${item.description}\nType: ${item.type}`}>
@@ -276,12 +230,12 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                                         </div>
                                                     </Tooltip>
                                                 </div>
-                                                <div className="flex flex-col items-end gap-1">
+                                                <div className="flex flex-col items-stretch gap-1 sm:items-end">
                                                     <button
                                                         onClick={() => handleBuy(item)}
                                                         disabled={!canAfford}
                                                         aria-label={`Buy ${item.name} for ${formatGpAsCoins(finalPrice)}`}
-                                                        className={`px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1
+                                                        className={`min-h-11 justify-center px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1
                                             ${canAfford ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}
                                         `}
                                                     >
@@ -301,8 +255,8 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                             </div>
 
                             {/* Player Column */}
-                            <div className="w-1/2 p-4 flex flex-col bg-gray-900/30">
-                                <div className="flex justify-between items-center mb-3 sticky top-0 bg-gray-900/10 py-1">
+                            <div className="w-full p-4 flex flex-col bg-gray-900/30 md:w-1/2">
+                                <div className="flex flex-col items-stretch gap-2 mb-3 sticky top-0 bg-gray-900/10 py-1 sm:flex-row sm:justify-between sm:items-center">
                                     <h3 className="text-lg font-bold text-amber-300">Your Inventory</h3>
                                     {junkItems.length > 0 && (
                                         <button
@@ -317,18 +271,18 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                                     payload: { items: itemsPayload }
                                                 });
                                             }}
-                                            className="px-2 py-1 bg-amber-700 hover:bg-amber-600 text-white rounded text-xs font-semibold shadow-sm transition-colors"
+                                            className="min-h-11 px-2 py-1 bg-amber-700 hover:bg-amber-600 text-white rounded text-xs font-semibold shadow-sm transition-colors"
                                         >
                                             Sell All Junk ({formatGpAsCoins(junkValue)})
                                         </button>
                                     )}
                                 </div>
-                                <div className="flex-grow overflow-y-auto scrollable-content space-y-2 pr-2">
+                                <div className="space-y-2 pr-1 md:flex-grow md:overflow-y-auto md:scrollable-content md:pr-2">
                                     {sellableItems.map((item, idx) => {
                                         const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'sell', regionId, priceContext);
                                         const canSell = finalPrice > 0;
                                         return (
-                                            <div key={`${item.id}-${idx}`} className="bg-gray-700/50 p-3 rounded-lg flex justify-between items-center border border-gray-600/50">
+                                            <div key={`${item.id}-${idx}`} className="bg-gray-700/50 p-3 rounded-lg flex flex-col items-stretch gap-3 border border-gray-600/50 sm:flex-row sm:justify-between sm:items-center">
                                                 <div className="flex items-center gap-3">
                                                     <ItemGlyph item={item} />
                                                     <div>
@@ -336,12 +290,12 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                                         <p className="text-xs text-gray-400">Value: {formatGpAsCoins(finalPrice)}</p>
                                                     </div>
                                                 </div>
-                                                <div className="flex flex-col items-end gap-1">
+                                                <div className="flex flex-col items-stretch gap-1 sm:items-end">
                                                     <button
                                                         onClick={() => handleSell(item)}
                                                         disabled={!canSell}
                                                         aria-label={`Sell ${item.name} for ${formatGpAsCoins(finalPrice)}`}
-                                                        className={`px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1
+                                                        className={`min-h-11 justify-center px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1
                                             ${canSell ? 'bg-yellow-600 hover:bg-yellow-500 text-white' : 'bg-gray-600 text-gray-500 cursor-not-allowed'}
                                         `}
                                                     >
@@ -364,21 +318,20 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-gray-700 bg-gray-900 rounded-b-xl flex justify-between items-center">
+                <div className="shrink-0 p-4 border-t border-gray-700 bg-gray-900 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
                     <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-400 mr-1">Your Coin Purse:</span>
                         <CoinPurseDisplay goldValue={playerGold} />
                     </div>
                     <button
                         onClick={onClose}
-                        className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow-md transition-colors"
+                        className="min-h-11 w-full bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow-md transition-colors sm:w-auto"
                     >
                         Leave {activeTab === 'gossip' ? 'Tavern' : 'Shop'}
                     </button>
                 </div>
-
-            </motion.div>
-        </motion.div>
+            </div>
+        </WindowFrame>
     );
 };
 

@@ -348,6 +348,16 @@ export default defineConfig(async ({ mode, command }) => {
         '@react-three/drei',
         '@react-three/postprocessing',
       ],
+      // three's TSL BloomNode example imports `PostProcessingUtils`, which the
+      // installed three build does not export, so esbuild can't pre-bundle it and
+      // the whole dep-optimize pass fails (taking the combat chunk down with it).
+      // It is only reached via a lazy dynamic import inside the WebGPU battle-map
+      // scene, so excluding it from pre-bundling lets it load on demand without
+      // poisoning optimization. Remove once three's TSL display modules match the
+      // installed core build.
+      exclude: [
+        'three/examples/jsm/tsl/display/BloomNode.js',
+      ],
     },
     build: {
       rollupOptions: {

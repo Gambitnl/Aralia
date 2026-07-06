@@ -5,23 +5,11 @@
  * Sorted by arrival day. Gives the medieval feel of information trickling in.
  */
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence, MotionProps } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useGameState } from '../../state/GameContext';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import { PendingCourier } from '../../types/economy';
-
-const overlayMotion: MotionProps = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
-};
-
-const pouchMotion: MotionProps = {
-    initial: { y: 30, opacity: 0 },
-    animate: { y: 0, opacity: 1 },
-    exit: { y: 30, opacity: 0 },
-    transition: { type: 'spring', damping: 25 }
-};
 
 interface CourierPouchProps {
     isOpen: boolean;
@@ -32,7 +20,6 @@ interface CourierPouchProps {
 const CourierPouch: React.FC<CourierPouchProps> = ({ isOpen, onClose, deliveredMessages }) => {
     const { state } = useGameState();
     const [openedIds, setOpenedIds] = useState<Set<string>>(new Set());
-    const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
     // Combine delivered messages (from props or state)
     const messages = useMemo(() => {
@@ -49,63 +36,38 @@ const CourierPouch: React.FC<CourierPouchProps> = ({ isOpen, onClose, deliveredM
     if (!isOpen) return null;
 
     return (
-        <AnimatePresence>
-            <motion.div
-                {...overlayMotion}
-                className="fixed inset-0 bg-black/80 flex items-center justify-center z-[var(--z-index-modal-background)] p-4"
-                onClick={onClose}
-            >
-                <motion.div
-                    ref={modalRef}
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Courier Pouch"
-                    {...pouchMotion}
-                    className="bg-amber-950/95 border-2 border-amber-800/50 rounded-lg shadow-2xl w-full max-w-2xl max-h-[70vh] flex flex-col focus:outline-none"
-                    onClick={(e) => e.stopPropagation()}
-                    tabIndex={-1}
-                >
-                    {/* Header */}
-                    <div className="flex justify-between items-center px-6 py-4 border-b-2 border-amber-700/40">
-                        <div className="flex items-center gap-3">
-                            <span className="text-3xl">📨</span>
-                            <div>
-                                <h2 className="text-xl font-cinzel text-amber-300">Courier Pouch</h2>
-                                <p className="text-xs text-amber-600/70 italic">
-                                    {messages.length} message{messages.length !== 1 ? 's' : ''} received
-                                </p>
-                            </div>
+        <WindowFrame
+            title="Courier Pouch"
+            onClose={onClose}
+            storageKey={WINDOW_KEYS.COURIER_POUCH}
+            initialMaximized={false}
+            headerActions={
+                <span className="self-center text-xs text-amber-600/70 italic whitespace-nowrap">
+                    {messages.length} message{messages.length !== 1 ? 's' : ''} received
+                </span>
+            }
+        >
+            <div className="flex flex-col h-full bg-amber-950/20">
+                {/* Messages */}
+                <div className="flex-grow min-h-0 overflow-y-auto p-4 space-y-3 scrollable-content">
+                    {messages.length === 0 ? (
+                        <div className="text-center py-12">
+                            <span className="text-4xl block mb-4">📭</span>
+                            <p className="text-amber-500/60 italic">No messages. Your courier pouch is empty.</p>
                         </div>
-                        <button
-                            onClick={onClose}
-                            className="text-amber-600 hover:text-amber-300 text-2xl transition-colors"
-                            aria-label="Close courier pouch"
-                        >
-                            ✕
-                        </button>
-                    </div>
-
-                    {/* Messages */}
-                    <div className="flex-grow overflow-y-auto p-4 space-y-3 scrollable-content">
-                        {messages.length === 0 ? (
-                            <div className="text-center py-12">
-                                <span className="text-4xl block mb-4">📭</span>
-                                <p className="text-amber-500/60 italic">No messages. Your courier pouch is empty.</p>
-                            </div>
-                        ) : (
-                            messages.map(msg => (
-                                <CourierMessage
-                                    key={msg.id}
-                                    message={msg}
-                                    isOpened={openedIds.has(msg.id)}
-                                    onOpen={() => handleOpenMessage(msg.id)}
-                                />
-                            ))
-                        )}
-                    </div>
-                </motion.div>
-            </motion.div>
-        </AnimatePresence>
+                    ) : (
+                        messages.map(msg => (
+                            <CourierMessage
+                                key={msg.id}
+                                message={msg}
+                                isOpened={openedIds.has(msg.id)}
+                                onOpen={() => handleOpenMessage(msg.id)}
+                            />
+                        ))
+                    )}
+                </div>
+            </div>
+        </WindowFrame>
     );
 };
 
@@ -132,40 +94,59 @@ const CourierMessage: React.FC<{
 
     const icon = typeIcons[message.type] || '📜';
     const borderColor = typeColors[message.type] || 'border-amber-800/40';
+    const sourceLabel = message.sourceRegionId.replace(/_/g, ' ');
+    const cardClasses = `border rounded-lg overflow-hidden ${borderColor} ${
+        isOpened ? 'bg-amber-900/20' : 'bg-amber-900/40'
+    }`;
 
-    return (
-        <motion.div
-            layout
-            className={`border rounded-lg overflow-hidden ${borderColor} ${
-                isOpened ? 'bg-amber-900/20' : 'bg-amber-900/40 cursor-pointer'
-            }`}
-            onClick={!isOpened ? onOpen : undefined}
-        >
-            <div className="flex items-center gap-3 px-4 py-3">
-                <span className="text-xl">{isOpened ? icon : '🔒'}</span>
-                <div className="flex-grow">
-                    {isOpened ? (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.1 }}
-                        >
-                            <p className="text-sm text-amber-200">{message.messageText}</p>
-                            <div className="flex gap-4 mt-2 text-xs text-amber-600/50">
-                                <span>From: {message.sourceRegionId.replace(/_/g, ' ')}</span>
-                                {message.accuracy < 0.8 && (
-                                    <span className="text-amber-500/40 italic">(rumor — accuracy uncertain)</span>
-                                )}
-                            </div>
-                        </motion.div>
-                    ) : (
-                        <div className="flex items-center justify-between">
+    if (!isOpened) {
+        return (
+            <motion.button
+                layout
+                type="button"
+                className={`${cardClasses} w-full cursor-pointer text-left transition-colors hover:bg-amber-900/55 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-950`}
+                onClick={onOpen}
+                aria-label={`Open sealed ${message.type.replace(/_/g, ' ')} message from ${sourceLabel}`}
+            >
+                <div className="flex items-center gap-3 px-4 py-3">
+                    <span className="text-xl" aria-hidden="true">🔒</span>
+                    <div className="flex-grow">
+                        <div className="flex items-center justify-between gap-3">
                             <p className="text-sm text-amber-400 font-cinzel">Sealed Message</p>
                             <span className="text-xs text-amber-600/50">
                                 Click to break seal
                             </span>
                         </div>
-                    )}
+                    </div>
+                </div>
+            </motion.button>
+        );
+    }
+
+    // Opened messages stop behaving like controls so keyboard focus only lands
+    // on scrolls the player can still reveal. The visual card stays the same
+    // size and color family as the sealed state to preserve the pouch metaphor.
+    return (
+        <motion.div
+            layout
+            className={cardClasses}
+        >
+            <div className="flex items-center gap-3 px-4 py-3">
+                <span className="text-xl" aria-hidden="true">{icon}</span>
+                <div className="flex-grow">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                    >
+                        <p className="text-sm text-amber-200">{message.messageText}</p>
+                        <div className="flex gap-4 mt-2 text-xs text-amber-600/50">
+                            <span>From: {sourceLabel}</span>
+                            {message.accuracy < 0.8 && (
+                                <span className="text-amber-500/40 italic">(rumor — accuracy uncertain)</span>
+                            )}
+                        </div>
+                    </motion.div>
                 </div>
             </div>
         </motion.div>

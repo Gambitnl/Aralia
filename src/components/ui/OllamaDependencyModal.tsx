@@ -45,13 +45,16 @@ interface OllamaDependencyModalProps {
   onDontShowAgain: (value: boolean) => void;
 }
 
+const shouldUseCompactPane = (): boolean =>
+  typeof window !== 'undefined' && (window.innerWidth < 640 || window.innerHeight < 720);
+
 export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
   isOpen,
   onClose,
   onDontShowAgain,
 }) => {
   const [dontShowAgain, setDontShowAgain] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => shouldUseCompactPane());
 
   // The pane starts in the top-right corner and stays anchored there while collapsing.
   // This avoids an intermediate jump from center-right to top-right when the user minimizes it.
@@ -64,6 +67,9 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
   // The title bar is slightly tighter in the collapsed state so the remaining tab is compact
   // while preserving the same expand and close controls for recovery.
   const titleBarClass = isCollapsed ? 'px-3 py-2' : 'px-5 py-3';
+  const titleHeadingClass = isCollapsed
+    ? 'min-w-0 flex-1 truncate text-base font-bold text-amber-300'
+    : 'min-w-0 basis-full text-lg font-bold text-amber-300 sm:basis-auto sm:flex-1 sm:truncate';
 
   // Collapse should feel deliberate without letting the frame sweep across the play area.
   // A shared duration keeps the body and arrow from finishing at different moments.
@@ -91,6 +97,22 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, dontShowAgain]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const collapseForCompactViewport = () => {
+      if (shouldUseCompactPane()) {
+        setIsCollapsed(true);
+      }
+    };
+
+    // In phone-width or short desktop windows, the expanded non-modal pane can cover
+    // menu controls. Start compact there, but still let the player expand it deliberately.
+    collapseForCompactViewport();
+    window.addEventListener('resize', collapseForCompactViewport);
+    return () => window.removeEventListener('resize', collapseForCompactViewport);
+  }, [isOpen]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -113,7 +135,7 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
           >
             {/* Window-frame title bar — always visible; click to collapse/expand. */}
             <div
-              className={`flex items-center justify-between gap-2 ${titleBarClass} border-b border-amber-500/20 bg-gray-900/80 cursor-pointer select-none`}
+              className={`flex flex-wrap items-center justify-between gap-2 ${titleBarClass} border-b border-amber-500/20 bg-gray-900/80 cursor-pointer select-none shrink-0`}
               onClick={() => setIsCollapsed((c) => !c)}
               role="button"
               aria-expanded={!isCollapsed}
@@ -126,15 +148,15 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                 }
               }}
             >
-              <h2 id="ollama-modal-title" className="text-lg font-bold text-amber-300 truncate">
+              <h2 id="ollama-modal-title" className={titleHeadingClass}>
                 Ollama Dependency
               </h2>
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="ml-auto flex items-center gap-1 shrink-0">
                 <button
                   type="button"
                   aria-label={isCollapsed ? 'Expand pane' : 'Collapse pane'}
                   title={isCollapsed ? 'Expand' : 'Collapse'}
-                  className="p-1.5 rounded text-gray-400 hover:text-amber-200 hover:bg-gray-800 transition-colors"
+                  className="flex h-11 w-11 items-center justify-center rounded text-gray-400 hover:text-amber-200 hover:bg-gray-800 transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsCollapsed((c) => !c);
@@ -159,7 +181,7 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                   type="button"
                   aria-label="Close pane"
                   title="Close"
-                  className="p-1.5 rounded text-gray-400 hover:text-amber-200 hover:bg-gray-800 transition-colors"
+                  className="flex h-11 w-11 items-center justify-center rounded text-gray-400 hover:text-amber-200 hover:bg-gray-800 transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleClose();
@@ -193,13 +215,15 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: collapseAnimationDurationSeconds, ease: 'easeOut' }}
-                  className="overflow-y-auto"
+                  className="min-h-0 flex-1 flex flex-col overflow-hidden"
                 >
-                  <div className="p-5">
+                  {/* The explanation and preference control are the only scrolling content.
+                      The footer below stays visible so players can always dismiss the pane. */}
+                  <div data-testid="ollama-pane-scroll" className="min-h-0 flex-1 overflow-y-auto p-5 pb-4">
                     <div className="space-y-4 text-sm text-gray-300 leading-relaxed mb-6">
                       <p>
-                        Aralia uses <strong>Ollama</strong>, a local AI service, to power dynamic companion commentary and AI-generated dialogue.
-                        This enriches the roleplay experience with contextual reactions and banter from your party members.
+                        Aralia uses <strong>Ollama</strong>, a local AI service, to write dialogue and scenes on the fly.
+                        Several core parts of the game <strong>do not work</strong> without it — Ollama is not optional for those.
                       </p>
 
                       <div className="bg-gray-800/50 border-l-4 border-amber-500/40 p-4 rounded">
@@ -211,20 +235,29 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                       </div>
 
                       <div>
-                        <h3 className="text-amber-200 font-semibold mb-2">Features requiring Ollama:</h3>
+                        <h3 className="text-red-300 font-semibold mb-2">Without Ollama, these DON'T work:</h3>
                         <ul className="list-disc list-inside space-y-1 ml-2">
-                          <li>AI-generated companion reactions to events (loot, crimes, discoveries)</li>
-                          <li>Dynamic companion banter and dialogue</li>
-                          <li>Character-specific response generation</li>
+                          <li>The opening scene of a new game (it will stop and ask you to start Ollama)</li>
+                          <li>Talking to NPCs — their replies are generated live</li>
+                          <li>Live conversations with your companions</li>
                         </ul>
                       </div>
 
                       <div>
-                        <h3 className="text-amber-200 font-semibold mb-2">Without Ollama:</h3>
+                        <h3 className="text-amber-200 font-semibold mb-2">What still works without it:</h3>
                         <p>
-                          The game will function normally—companions will simply use pre-written dialogue and reactions instead of AI-generated ones.
-                          The roleplay experience is fully intact, just without the dynamic AI enhancement.
+                          Companions still react to events (loot, crimes, discoveries) using pre-written lines — just not
+                          freshly-written ones. Everything mechanical (combat, travel, inventory, leveling) is unaffected.
                         </p>
+                      </div>
+
+                      <div>
+                        <h3 className="text-amber-200 font-semibold mb-2">To start Ollama:</h3>
+                        <ol className="list-decimal list-inside space-y-1 ml-2">
+                          <li>Install it from <span className="text-amber-300">ollama.ai</span> (see Learn More below).</li>
+                          <li>Pull a model once, e.g. <code className="bg-gray-800 px-1 rounded">ollama pull llama3</code>.</li>
+                          <li>Make sure it is running (it serves on <code className="bg-gray-800 px-1 rounded">localhost:11434</code>), then retry.</li>
+                        </ol>
                       </div>
                     </div>
 
@@ -237,15 +270,17 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                       />
                     </div>
 
-                    {/* Action buttons */}
-                    <div className="flex justify-end space-x-3">
-                      <Button onClick={handleLearnMore} variant="secondary" size="md">
-                        Learn More
-                      </Button>
-                      <Button onClick={handleClose} variant="action" size="md">
-                        Continue
-                      </Button>
-                    </div>
+                  </div>
+
+                  {/* Action footer stays outside the scroll area so short viewports
+                      never hide the dismissal buttons below the pane edge. */}
+                  <div data-testid="ollama-pane-footer" className="shrink-0 border-t border-amber-500/20 bg-gray-900/95 p-4 flex justify-end space-x-3">
+                    <Button onClick={handleLearnMore} variant="secondary" size="md" className="min-h-11">
+                      Learn More
+                    </Button>
+                    <Button onClick={handleClose} variant="action" size="md" className="min-h-11">
+                      Continue
+                    </Button>
                   </div>
                 </motion.div>
               )}

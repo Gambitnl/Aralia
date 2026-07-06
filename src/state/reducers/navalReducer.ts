@@ -26,6 +26,8 @@ import { VoyageManager } from '../../systems/naval/VoyageManager';
 import { CrewManager } from '../../systems/naval/CrewManager';
 import { createShip } from '../../utils/navalUtils';
 import { SeededRandom } from '@/utils/random';
+import { rollSeaEncounter } from '../../systems/naval/seaEncounter';
+import { appendAdventureLogEntry } from '../../systems/adventureLog/adventureLog';
 
 /**
  * Default price of the starter sloop offered from the naval dashboard's
@@ -94,13 +96,19 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
       const shipId = state.naval.activeShipId;
       if (!shipId) return state;
 
-      const { destinationId, distance } = action.payload;
+      const { destinationId, distance, danger } = action.payload;
       const ship = state.naval.playerShips.find(s => s.id === shipId);
       if (!ship) return state;
 
       // Bridge: persist the destination port burg id on the voyage so arrival
-      // can dock the ship at the correct FMG burg (decision #10).
-      const newVoyage: VoyageState = { ...VoyageManager.startVoyage(ship, distance), destinationId };
+      // can dock the ship at the correct FMG burg (decision #10). Also carry the
+      // route's aggregate sea-danger (Plan 3A tiers) so each day at sea can roll a
+      // danger-scaled sea encounter (Plan 3D).
+      const newVoyage: VoyageState = {
+        ...VoyageManager.startVoyage(ship, distance),
+        destinationId,
+        routeDanger: Math.max(0, Math.min(1, danger ?? 0)),
+      };
 
       return {
         ...state,
@@ -148,7 +156,8 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
 
       // Check for arrival
       let arrivedShip = updatedShip;
-      if (updatedVoyage.distanceTraveled >= updatedVoyage.distanceToDestination) {
+      const arrived = updatedVoyage.distanceTraveled >= updatedVoyage.distanceToDestination;
+      if (arrived) {
          updatedVoyage.status = 'Docked';
          updatedVoyage.log.push({
              day: updatedVoyage.daysAtSea,
@@ -165,11 +174,58 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
          }
       }
 
+      // ── Plan 3D: per-day sea-encounter roll ────────────────────────────────
+      // Roll ONCE for the day just sailed, scaled by the route's sea-danger. We
+      // skip the roll on the arrival day (docking takes precedence — no ambush
+      // as you make port). Deterministic off a stable per-voyage signature + day.
+      let pendingSeaEncounter = state.naval.pendingSeaEncounter ?? null;
+      let logUpdate: Partial<GameState> = {};
+      let salvageGold = 0;
+      if (!arrived) {
+        // Sig excludes the ship's RANDOM runtime id (differs per save/mock);
+        // uses ship index + name/type like the movement seed above so the roll
+        // is reproducible from the world seed alone.
+        const voyageSig = `${state.worldSeed}|${voyageShipIndex}|${ship.name}|${ship.type}|${state.naval.currentVoyage.destinationId ?? ''}|${Math.round(state.naval.currentVoyage.distanceToDestination)}`;
+        const roll = rollSeaEncounter({
+          danger: state.naval.currentVoyage.routeDanger ?? 0,
+          dayAtSea: updatedVoyage.daysAtSea,
+          voyageSig,
+        });
+        if (roll.encounter && roll.outcome) {
+          const outcome = roll.outcome;
+          // Surface the beat in the voyage log (in-dashboard) AND the adventure log.
+          updatedVoyage.log.push({
+            day: updatedVoyage.daysAtSea,
+            event: outcome.summary,
+            type: outcome.hostile ? 'Combat' : 'Discovery',
+          });
+          logUpdate = appendAdventureLogEntry(state, {
+            kind: outcome.hostile ? 'combat' : 'discovery',
+            summary: outcome.summary,
+          });
+          if (outcome.hostile && outcome.monsters?.length) {
+            // Hand the fight to the existing battle-map flow (placeless arena)
+            // via a pending marker the useSeaEncounter hook consumes.
+            pendingSeaEncounter = {
+              id: outcome.id,
+              monsters: outcome.monsters,
+              summary: outcome.summary,
+            };
+          } else if (!outcome.hostile && outcome.salvageGold) {
+            // Peaceful discovery salvage → existing gold store, no new subsystem.
+            salvageGold = outcome.salvageGold;
+          }
+        }
+      }
+
       return {
         ...state,
+        ...logUpdate,
+        gold: state.gold + salvageGold,
         naval: {
           ...state.naval,
           currentVoyage: updatedVoyage,
+          pendingSeaEncounter,
           playerShips: state.naval.playerShips.map(s => s.id === arrivedShip.id ? arrivedShip : s)
         },
       };
@@ -240,6 +296,19 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
         naval: {
           ...state.naval,
           currentVoyage: null,
+        },
+      };
+    }
+
+    case 'NAVAL_CLEAR_SEA_ENCOUNTER': {
+      // Consumed by useSeaEncounter after it hands the fight to the battle map,
+      // so the hostile marker cannot re-fire the same combat.
+      if (!state.naval.pendingSeaEncounter) return state;
+      return {
+        ...state,
+        naval: {
+          ...state.naval,
+          pendingSeaEncounter: null,
         },
       };
     }

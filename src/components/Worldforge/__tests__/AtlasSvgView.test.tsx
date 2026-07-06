@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
-import AtlasSvgView from '../AtlasSvgView';
+import AtlasSvgView, { labelBudgetForViewport } from '../AtlasSvgView';
 import { requestMapCenterOnPlayer, consumeMapCenterOnPlayer } from '../mapFocusSignal';
 import type { MultiModalRoute } from '../../../systems/travel/multiModalRoute';
 
@@ -45,6 +45,7 @@ describe('AtlasSvgView', () => {
     rerender(<AtlasSvgView atlas={stub} width={300} height={300} marker={{ x: 5, y: 5 }} />);
     const findMe = getByTestId('atlas-center-player');
     expect(findMe).toBeTruthy();
+    expect(findMe).toHaveStyle({ minHeight: '44px' });
     fireEvent.click(findMe);
     // Clicking resolves the player's cell → info panel appears (which cell am I at).
     expect(container.querySelector('[data-testid="atlas-cell-info"]')).toBeTruthy();
@@ -144,17 +145,186 @@ describe('AtlasSvgView', () => {
   });
 
   it('menu exposes a Map coloring section + an Info panel detail selector', () => {
-    const { getByTestId, getByText, queryByTestId } = render(
+    const { getByLabelText, getByTestId, getByText, queryByTestId } = render(
       <AtlasSvgView atlas={stub} width={300} height={300} />,
     );
     expect(queryByTestId('atlas-info-verbosity')).toBeNull(); // panel closed initially
-    fireEvent.click(getByTestId('atlas-layers-toggle'));
+    const toggle = getByTestId('atlas-layers-toggle');
+    expect(toggle).toHaveStyle({ minHeight: '44px' });
+    fireEvent.click(toggle);
+    const panel = getByTestId('atlas-layers-panel');
+    expect(panel).toHaveStyle({ maxHeight: '248px', overflowY: 'auto' });
     expect(getByText('Map coloring')).toBeTruthy();
     expect(getByText('Info panel')).toBeTruthy();
+    // The native inputs span their 44px rows so the visible layer choices are
+    // playable in cramped atlas panes, not just technically selectable by label.
+    expect(getByLabelText('Biomes')).toHaveStyle({ position: 'absolute', width: '100%', height: '100%' });
+    expect(panel.querySelector('input[type="checkbox"]')).toHaveStyle({ position: 'absolute', width: '100%', height: '100%' });
     const select = getByTestId('atlas-info-verbosity') as HTMLSelectElement;
+    expect(select).toHaveStyle({ minHeight: '44px' });
     expect(select.value).toBe('standard');
     fireEvent.change(select, { target: { value: 'full' } });
     expect(select.value).toBe('full');
+    expect(getByTestId('atlas-layers-reset')).toHaveStyle({ minHeight: '44px' });
+  });
+
+  it('dismisses the layer menu with Escape or an outside pointer press', () => {
+    const { getByTestId, queryByTestId } = render(
+      <AtlasSvgView atlas={stub} width={300} height={300} />,
+    );
+    const outerEscapeHandler = vi.fn();
+    document.addEventListener('keydown', outerEscapeHandler, true);
+
+    try {
+      fireEvent.click(getByTestId('atlas-layers-toggle'));
+      expect(queryByTestId('atlas-layers-panel')).toBeTruthy();
+      fireEvent.keyDown(document, { key: 'Escape', bubbles: true, cancelable: true });
+      expect(queryByTestId('atlas-layers-panel')).toBeNull();
+      expect(outerEscapeHandler).not.toHaveBeenCalled();
+
+      fireEvent.click(getByTestId('atlas-layers-toggle'));
+      expect(queryByTestId('atlas-layers-panel')).toBeTruthy();
+      fireEvent.pointerDown(document.body);
+      expect(queryByTestId('atlas-layers-panel')).toBeNull();
+    } finally {
+      document.removeEventListener('keydown', outerEscapeHandler, true);
+    }
+  });
+
+  it('caps the layer menu to the viewport space below its trigger', () => {
+    const originalInnerHeight = window.innerHeight;
+    const originalVisualViewport = window.visualViewport;
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 640 });
+    Object.defineProperty(window, 'visualViewport', { configurable: true, value: undefined });
+
+    try {
+      const { getByTestId } = render(
+        <AtlasSvgView atlas={stub} width={300} height={240} />,
+      );
+      const toggle = getByTestId('atlas-layers-toggle');
+      toggle.getBoundingClientRect = () => ({
+        x: 220,
+        y: 190,
+        width: 62,
+        height: 30,
+        top: 190,
+        right: 282,
+        bottom: 220,
+        left: 220,
+        toJSON: () => ({}),
+      });
+
+      fireEvent.click(toggle);
+      const panel = getByTestId('atlas-layers-panel');
+      expect(panel).toHaveStyle({
+        position: 'fixed',
+        top: '224px',
+      });
+      expect(panel.style.overflowY).toBe('auto');
+      expect(Number.parseFloat(panel.style.maxHeight)).toBeLessThanOrEqual(548);
+    } finally {
+      Object.defineProperty(window, 'innerHeight', { configurable: true, value: originalInnerHeight });
+      Object.defineProperty(window, 'visualViewport', { configurable: true, value: originalVisualViewport });
+    }
+  });
+
+  it('opens the layer menu upward when the trigger is near the viewport bottom', () => {
+    const originalInnerHeight = window.innerHeight;
+    const originalInnerWidth = window.innerWidth;
+    const originalVisualViewport = window.visualViewport;
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 640 });
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 320 });
+    Object.defineProperty(window, 'visualViewport', { configurable: true, value: undefined });
+
+    try {
+      const { getByTestId } = render(
+        <AtlasSvgView atlas={stub} width={300} height={240} />,
+      );
+      const toggle = getByTestId('atlas-layers-toggle');
+      toggle.getBoundingClientRect = () => ({
+        x: 220,
+        y: 462,
+        width: 62,
+        height: 44,
+        top: 462,
+        right: 282,
+        bottom: 506,
+        left: 220,
+        toJSON: () => ({}),
+      });
+
+      fireEvent.click(toggle);
+
+      // A small map inside a floating window can put the layer trigger near the
+      // viewport bottom. The panel should escape the clipped atlas viewport and
+      // sit in the available space above the trigger instead of exposing only
+      // the first few rows.
+      expect(getByTestId('atlas-layers-panel')).toHaveStyle({
+        position: 'fixed',
+        top: '270px',
+        right: '38px',
+        maxHeight: '188px',
+        overflowY: 'auto',
+      });
+    } finally {
+      Object.defineProperty(window, 'innerHeight', { configurable: true, value: originalInnerHeight });
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalInnerWidth });
+      Object.defineProperty(window, 'visualViewport', { configurable: true, value: originalVisualViewport });
+    }
+  });
+
+  it('opens clicked town details as a mobile overlay above the map help area', () => {
+    const burgStub = {
+      graphWidth: 100,
+      graphHeight: 100,
+      biomesData: { color: ['#000', '#11aa33'], name: ['Ocean', 'Grassland'] },
+      pack: {
+        vertices: { p: [[40, 40], [60, 40], [60, 60], [40, 60]] },
+        cells: {
+          h: [50],
+          v: [[0, 1, 2, 3]],
+          biome: [1],
+          p: [[50, 50]],
+          burg: [1],
+        },
+        burgs: [null, { i: 1, name: 'Oakleigh', x: 50, y: 50, cell: 0, population: 20 }],
+      },
+    } as any;
+    const { getByTestId } = render(
+      <AtlasSvgView atlas={burgStub} width={220} height={160} onPickCell={() => {}} />,
+    );
+    const svg = getByTestId('atlas-svg-view');
+    svg.getBoundingClientRect = () => ({
+      x: 0,
+      y: 0,
+      left: 0,
+      top: 0,
+      right: 220,
+      bottom: 160,
+      width: 220,
+      height: 160,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.click(svg, { clientX: 110, clientY: 80 });
+
+    expect(getByTestId('atlas-town-card')).toHaveStyle({
+      left: '8px',
+      right: '8px',
+      overflowY: 'auto',
+      zIndex: '60',
+      background: 'rgb(28, 20, 12)',
+    });
+    expect(getByTestId('atlas-town-card').querySelector('button[aria-label="Close town details"]')).toHaveStyle({
+      minHeight: '44px',
+      minWidth: '44px',
+    });
+  });
+
+  it('budgets only one overview label in phone-sized map panes', () => {
+    expect(labelBudgetForViewport(300, 220)).toBe(1);
+    expect(labelBudgetForViewport(246, 228)).toBe(1);
+    expect(labelBudgetForViewport(640, 360)).toBeUndefined();
   });
 
   it('map coloring is an exclusive radio: picking "None" replaces biomes with the neutral land base', () => {

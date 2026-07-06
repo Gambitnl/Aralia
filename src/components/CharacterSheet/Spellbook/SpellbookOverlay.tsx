@@ -8,7 +8,8 @@ import { PlayerCharacter, Spell, Action } from '../../../types';
 import SpellContext from '../../../context/SpellContext';
 import GlossaryContext from '../../../context/GlossaryContext';
 import { CLASSES_DATA } from '../../../constants';
-import { Z_INDEX } from '../../../styles/zIndex';
+import { WindowFrame } from '../../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../../styles/uiIds';
 import { FullEntryDisplay } from '../../Glossary/FullEntryDisplay';
 import { findGlossaryEntryAndPath } from '../../../utils/glossaryUtils';
 import SpellSlotDisplay from './SpellSlotDisplay';
@@ -145,43 +146,21 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
     return null;
   }
 
-  const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
-  };
-
   const pageTitle = currentLevel === 0 ? "Cantrips" : `Level ${currentLevel} Spells`;
   const preparedCount = getPreparedSpellsAffectingLimit(character).size;
   const maxPrepared = getMaxPreparedSpells(character);
   const isAtPrepLimit = maxPrepared !== null && preparedCount >= maxPrepared;
 
   return (
-    <div
-      className={`fixed inset-0 z-[${Z_INDEX.MODAL_SPECIALIZED_OVERLAY}] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4`}
-      onClick={handleOverlayClick}
+    <WindowFrame
+      title="Spellbook"
+      onClose={onClose}
+      storageKey={WINDOW_KEYS.SPELLBOOK_OVERLAY}
+      initialMaximized={false}
     >
-      <div
-        className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-800/50">
-          <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-            <span className="material-symbols-outlined text-purple-400">auto_stories</span>
-            Spellbook
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
-            aria-label="Close Spellbook"
-          >
-            <span className="material-symbols-outlined">close</span>
-          </button>
-        </div>
-
+      <div className="flex flex-col h-full">
         {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 min-h-0 flex overflow-hidden">
           {/* Left Column - Spell List */}
           <div className="w-80 flex-shrink-0 border-r border-slate-700 flex flex-col bg-slate-800/30">
             {/* Level Tabs */}
@@ -343,7 +322,7 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
           </div>
         </div>
       </div>
-    </div>
+    </WindowFrame>
   );
 };
 

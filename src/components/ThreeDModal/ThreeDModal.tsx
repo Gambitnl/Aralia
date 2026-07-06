@@ -7,7 +7,8 @@ import Scene3D from './Scene3D';
 import type { SceneEntity } from './sceneEntities';
 import { simpleHash } from '../../utils/spatial/submapUtils';
 import { Z_INDEX } from '../../styles/zIndex';
-import { UI_ID } from '../../styles/uiIds';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 interface ThreeDModalProps {
   isOpen: boolean;
@@ -196,14 +197,15 @@ const ThreeDModal = ({
   const activeNpc = activeNpcId ? localNpcRegistryRef.current[activeNpcId] ?? null : null;
 
   return (
-    <div
-      id={UI_ID.THREE_D_MODAL}
-      data-testid={UI_ID.THREE_D_MODAL}
-      className={`fixed inset-0 z-[${Z_INDEX.MODAL_IMMERSIVE_BACKGROUND}] bg-black`}
-      role="dialog"
-      aria-modal="true"
-      aria-label="3D Exploration"
+    <WindowFrame
+      title="3D Exploration"
+      onClose={onClose}
+      storageKey={WINDOW_KEYS.THREE_D_VIEW}
+      // A 3D world viewer wants the near-fullscreen immersive framing it had as a
+      // blocking modal; still the shared WindowFrame chrome, just opened maximized.
+      initialMaximized={true}
     >
+      <div className="relative h-full w-full bg-black overflow-hidden">
       <div className="absolute inset-0">
         <Scene3D
           key={`${biomeId}:${submapSeed}`}
@@ -380,13 +382,6 @@ const ThreeDModal = ({
             {isDevTurbo ? 'Turbo Speed On' : 'Turbo Speed Off'}
           </button>
         )}
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-3 py-1.5 text-xs font-semibold rounded bg-red-600 hover:bg-red-500 text-white"
-        >
-          Exit 3D
-        </button>
       </div>
 
       {isSocialOpen && activeNpc && (
@@ -468,7 +463,8 @@ const ThreeDModal = ({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </WindowFrame>
   );
 };
 

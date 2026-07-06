@@ -19,8 +19,14 @@ export function gitAgeDays(
   let remaining = want.size;
   if (remaining === 0) return out;
   try {
+    // Scope to commits that touched a .md file (pathspec `*.md`). Without it,
+    // `git log --name-only` streams EVERY file of EVERY commit across the whole
+    // repo history (100s of MB, minutes of parsing) — which blocked the dev
+    // server. With the pathspec, git walks only .md-touching commits and lists
+    // only the .md paths, so the output is a small fraction. All callers pass
+    // .md paths, so this never drops a wanted file.
     const raw = execFileSync(
-      'git', ['log', '--format=%ct', '--name-only', '--no-renames'],
+      'git', ['log', '--format=%ct', '--name-only', '--no-renames', '--', '*.md'],
       { cwd: rootDir, encoding: 'utf-8', maxBuffer: 1024 * 1024 * 512, stdio: ['ignore', 'pipe', 'ignore'] },
     );
     let currentSec: number | null = null;

@@ -33,6 +33,7 @@ beforeEach(() => {
   // jsdom lacks ResizeObserver.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (globalThis as any).ResizeObserver = class { observe() {} disconnect() {} unobserve() {} };
+  Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 });
 });
 
 describe('StartPointSelection', () => {
@@ -106,5 +107,28 @@ describe('StartPointSelection', () => {
     const list = screen.getByTestId('start-town-list');
     fireEvent.doubleClick(within(list).getByText('Aldermoor').closest('button')!);
     expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({ name: 'Aldermoor' }));
+  });
+
+  it('stacks the atlas above the selection panel on cramped viewports', () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 480 });
+
+    render(<StartPointSelection worldSeed={123} onConfirm={vi.fn()} onBack={vi.fn()} />);
+
+    expect(screen.getByTestId('start-select-layout')).toHaveStyle({ flexDirection: 'column' });
+    expect(screen.getByTestId('start-select-map')).toHaveStyle({ flex: '0 0 32vh', width: '100%' });
+    expect(screen.getByTestId('start-select-panel')).toHaveStyle({ width: '100%' });
+    expect(screen.getByTestId('start-select-panel')).toHaveStyle({ borderTop: '1px solid #1e293b' });
+    // The final start decision stays visible in the short stacked panel, but
+    // sits above the town list so it does not cover selectable rows.
+    expect(screen.getByTestId('start-action-bar')).toHaveStyle({ order: '1' });
+    expect(screen.getByTestId('start-town-list')).toHaveStyle({ order: '2' });
+    // Rendered mobile play found these controls under the 44px touch target
+    // floor; keep the compact layout playable without removing any choices.
+    expect(screen.getByTestId('start-search')).toHaveStyle({ minHeight: '44px' });
+    expect(screen.getByTestId('start-region-filter')).toHaveStyle({ minHeight: '44px' });
+    expect(screen.getAllByTestId('start-town-row')[0]).toHaveStyle({ minHeight: '44px' });
+    expect(screen.getByRole('button', { name: 'Back' })).toHaveStyle({ minHeight: '44px' });
+    expect(screen.getByTestId('start-surprise')).toHaveStyle({ minHeight: '44px' });
+    expect(screen.getByTestId('start-confirm')).toHaveStyle({ minHeight: '44px' });
   });
 });

@@ -60,23 +60,23 @@ describe('MerchantModal', () => {
   it('renders correctly when open', () => {
     render(<MerchantModal {...defaultProps} />);
 
-    const dialog = screen.getByRole('dialog', { name: /Trading with Test Merchant/i });
-    expect(dialog).toBeInTheDocument();
-    expect(dialog).toHaveAttribute('aria-modal', 'true');
-    expect(screen.getByLabelText(/Trading with Test Merchant/i)).toBeInTheDocument();
+    // Now rendered inside the shared WindowFrame (data-testid window-<key>), with
+    // the merchant name as the window title.
+    const windowEl = screen.getByTestId('window-merchant-window');
+    expect(windowEl).toBeInTheDocument();
     expect(screen.getByText('Test Merchant')).toBeInTheDocument();
   });
 
   it('does not render when closed', () => {
     render(<MerchantModal {...defaultProps} isOpen={false} />);
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('window-merchant-window')).not.toBeInTheDocument();
   });
 
   it('calls onClose when close button is clicked', () => {
     render(<MerchantModal {...defaultProps} />);
 
-    // Find close button by aria-label
-    const closeButton = screen.getByLabelText('Close shop');
+    // WindowFrame's shared close control.
+    const closeButton = screen.getByLabelText('Close');
     fireEvent.click(closeButton);
 
     expect(mockOnClose).toHaveBeenCalled();
@@ -173,7 +173,7 @@ describe('MerchantModal', () => {
     // No raw path text anywhere
     expect(screen.queryByText('/assets/icons/items/dagger.svg')).not.toBeInTheDocument();
     // An <img> whose src resolves to the asset
-    const dialog = screen.getByRole('dialog');
+    const dialog = screen.getByTestId('window-merchant-window');
     const img = dialog.querySelector('img');
     expect(img).not.toBeNull();
     expect(img!.getAttribute('src')).toMatch(/assets\/icons\/items\/dagger\.svg$/);

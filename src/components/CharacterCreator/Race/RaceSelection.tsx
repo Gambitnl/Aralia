@@ -336,8 +336,12 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
                                   : null;
 
   const customConfirmButton = selectedRace ? (
+    // The race step supplies its own header confirm action so it can collect
+    // race-specific choices before advancing, but it still needs the shared
+    // creator hit-area floor used by the default Next button.
     <Button
       variant="primary"
+      className="min-h-11"
       onClick={() => {
         const choices: RacialChoiceData = {};
         if (selectedSpellAbility) {

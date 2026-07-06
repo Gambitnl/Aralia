@@ -63,6 +63,28 @@ describe('NotificationSystem', () => {
     });
   });
 
+  it('uses a touch-sized close target and keeps mobile toasts away from the action pane', () => {
+    const notifications = [createNotification('1', 'Test 1')];
+
+    render(<NotificationSystem notifications={notifications} dispatch={mockDispatch} />);
+
+    const toastRoot = screen.getByTestId('notification-system');
+    expect(toastRoot).toHaveClass('justify-end');
+    expect(toastRoot).toHaveClass('pb-0');
+    expect(toastRoot).toHaveClass('pt-20');
+    expect(toastRoot).toHaveClass('sm:p-6');
+    expect(toastRoot).toHaveClass('sm:justify-start');
+    expect(toastRoot).toHaveClass('z-[var(--z-index-content-overlay-top)]');
+
+    const toast = screen.getByTestId('notification-toast');
+    expect(toast).toHaveClass('max-w-[13.5rem]');
+    expect(toast).toHaveClass('sm:max-w-sm');
+
+    const closeButton = screen.getByRole('button', { name: /close/i });
+    expect(closeButton).toHaveClass('min-h-11');
+    expect(closeButton).toHaveClass('min-w-11');
+  });
+
   it('caps the number of active toasts to 5', () => {
     const notifications: Notification[] = [];
     for (let i = 1; i <= 10; i++) {

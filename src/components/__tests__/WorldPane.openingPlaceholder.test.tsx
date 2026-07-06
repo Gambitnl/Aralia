@@ -10,7 +10,8 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, beforeAll } from 'vitest';
 import WorldPane from '../WorldPane';
-import type { GameMessage } from '../../types';
+import GlossaryContext from '../../context/GlossaryContext';
+import type { GameMessage, GlossaryEntry } from '../../types';
 
 // jsdom does not implement Element.scrollTo, which WorldPane's auto-scroll effect
 // calls on mount/update. Stub it so rendering doesn't throw.
@@ -25,6 +26,15 @@ const msg = (text: string): GameMessage => ({
   sender: 'system',
   timestamp: Date.now(),
 });
+
+const glossaryEntries: GlossaryEntry[] = [
+  {
+    id: 'adventure',
+    title: 'adventure',
+    category: 'world',
+    excerpt: 'A player-facing journey or expedition.',
+  },
+];
 
 describe('WorldPane opening-situation placeholder', () => {
   it('shows the placeholder when the log is empty and the opening is generating', () => {
@@ -46,5 +56,15 @@ describe('WorldPane opening-situation placeholder', () => {
   it('does NOT show the placeholder when status is undefined', () => {
     render(<WorldPane messages={[]} />);
     expect(screen.queryByTestId('world-pane-opening-generating')).not.toBeInTheDocument();
+  });
+
+  it('keeps inline glossary terms touch-sized inside log prose', () => {
+    render(
+      <GlossaryContext.Provider value={glossaryEntries}>
+        <WorldPane messages={[msg('Your adventure begins.')]} />
+      </GlossaryContext.Provider>
+    );
+
+    expect(screen.getByRole('button', { name: 'adventure' })).toHaveClass('min-h-11');
   });
 });

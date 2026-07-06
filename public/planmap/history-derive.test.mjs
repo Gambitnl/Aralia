@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { flatNodes, diffDone, momentumByDay, stalenessDays } from './history-derive.mjs';
+import { flatNodes, diffDone, momentumByDay, stalenessDays, stateAt, synthesizeTimeline } from './history-derive.mjs';
 
 const T = (id, status, features = []) => ({ id, title: id, status, features });
 const F = (title, status) => ({ title, status });
@@ -63,5 +63,34 @@ describe('stalenessDays', () => {
   it('excludes done and superseded nodes', () => {
     const timeline = [{ date: '2026-07-01', topics: [T('a', 'done'), T('b', 'superseded')] }];
     expect(stalenessDays(timeline, '2026-07-02').size).toBe(0);
+  });
+});
+
+const TH = (id, status, history) => ({ id, title: id, status, features: [], history });
+
+describe('stateAt (back-dating)', () => {
+  it('is absent before designed, in-design between, done after built', () => {
+    const live = [TH('a', 'done', { designed: '2026-05-13', built: '2026-06-29' })];
+    expect(stateAt('2026-05-01', live, null)).toEqual([]);                       // before designed
+    expect(stateAt('2026-06-01', live, null).map(t => t.status)).toEqual(['specced']); // in design
+    expect(stateAt('2026-07-01', live, null).map(t => t.status)).toEqual(['done']);     // after built
+  });
+  it('undated nodes fall back to the git snapshot for that day', () => {
+    const live = [T('u', 'active')];
+    const gitSnap = { date: '2026-07-03', topics: [T('u', 'parked')] };
+    expect(stateAt('2026-07-03', live, gitSnap).map(t => t.status)).toEqual(['parked']);
+    expect(stateAt('2026-07-03', live, null)).toEqual([]); // no git → absent
+  });
+});
+
+describe('synthesizeTimeline', () => {
+  it('spans manual dates + git days + today, and momentum lands on the real built date', () => {
+    const live = [TH('a', 'done', { designed: '2026-05-13', built: '2026-06-29' })];
+    const tl = synthesizeTimeline([], live, '2026-07-04');
+    expect(tl.map(d => d.date)).toEqual(['2026-05-13', '2026-06-29', '2026-07-04']);
+    // baseline day 0, a bar on the real built date, 0 today
+    expect(momentumByDay(tl).map(d => d.count)).toEqual([0, 1, 0]);
+    // final point is the live map verbatim
+    expect(tl[tl.length - 1].topics).toBe(live);
   });
 });

@@ -40,6 +40,7 @@
  * ### 800-999: Advanced UI Features
  * - `WINDOW_FRAME` (800): Resizable window frames
  * - `LOADING_TRANSITION` (850): Loading screens
+ * - `CONFIRMATION_MODAL` (875): Blocking confirmations above active windows
  * - `ERROR_OVERLAY` (900): Error notifications
  *
  * ### 1000+: Always-on-Top
@@ -179,6 +180,9 @@ export const Z_INDEX = {
 
   /** Loading transitions and progress indicators */
   LOADING_TRANSITION: 850,
+
+  /** Blocking confirmation dialogs that must sit above resizable WindowFrames */
+  CONFIRMATION_MODAL: 875,
 
   /** Error states and notifications */
   ERROR_OVERLAY: 900,

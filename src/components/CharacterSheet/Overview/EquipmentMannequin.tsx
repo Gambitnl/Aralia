@@ -162,14 +162,14 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
   const charMaxProficiencyValue = getArmorCategoryHierarchy(characterMaxProficiencyLevel.charAt(0).toUpperCase() + characterMaxProficiencyLevel.slice(1) as ArmorCategory);
 
   return (
-    <div className="flex flex-col items-center font-quattrocento">
-      <div className="flex items-center gap-3 mb-2">
+    <div className="flex w-full max-w-full flex-col items-center font-quattrocento">
+      <div className="flex flex-wrap items-center justify-center gap-3 mb-2">
         <h3 className="text-xl font-semibold text-amber-400 font-cinzel">Equipment</h3>
         {onAutoEquip && (
           <Tooltip content="Automatically equips the best available gear from your inventory based on your proficiencies. Only items you are proficient with will be equipped.">
             <button
               onClick={onAutoEquip}
-              className="px-2 py-1 text-xs bg-teal-700 hover:bg-teal-600 text-white rounded shadow transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="min-h-11 px-3 py-2 text-xs bg-teal-700 hover:bg-teal-600 text-white rounded shadow transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400"
               aria-label="Auto-equip best gear based on proficiencies"
             >
               ⚡ Auto-Equip
@@ -179,7 +179,11 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
       </div>
 
       {/* Mannequin Container */}
-      <div className="relative w-[340px] h-[480px] bg-gray-900/50 rounded-xl border border-gray-700 shadow-2xl overflow-hidden">
+      {/* The paper-doll keeps its authored height while shrinking horizontally to fit narrow Character Sheet columns. */}
+      <div
+        data-testid="equipment-mannequin-frame"
+        className="relative w-full max-w-[340px] h-[480px] bg-gray-900/50 rounded-xl border border-gray-700 shadow-2xl overflow-hidden"
+      >
 
         {/* Background Silhouette */}
         <div className="absolute inset-0 flex items-center justify-center top-4">
@@ -197,7 +201,7 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
               "wrists legs hands"
               "ring1 feet ring2"
             `,
-            gridTemplateColumns: '1fr 1fr 1fr',
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
             gridTemplateRows: 'auto auto auto auto auto',
           }}
         >
@@ -291,7 +295,7 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
                   style={{ gridArea: slotInfo.gridArea }}
                   className={`
                     relative flex flex-col items-center justify-center
-                    w-20 h-20 rounded-lg border-2
+                    w-full max-w-20 aspect-square rounded-lg border-2
                     transition-all duration-200
                     ${slotStyle}
                     ${onSlotClick && equippedItem ? 'hover:border-amber-400 hover:shadow-[0_0_10px_rgba(251,191,36,0.3)] cursor-pointer' : ''}
@@ -306,7 +310,7 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
                     {equippedItem ? (
                       <EquippedItemVisual item={equippedItem} />
                     ) : (
-                      <div className={`w-10 h-10 opacity-40 ${iconColor}`}>
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 opacity-40 ${iconColor}`}>
                         <DynamicMannequinSlotIcon
                           characterProficiency={characterMaxProficiencyLevel}
                           slotType={slotInfo.id}

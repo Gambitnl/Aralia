@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 25/06/2026, 08:54:42
+ * Last Sync: 05/07/2026, 08:10:30
  * Dependents: App.tsx
  * Imports: 43 files
  *
@@ -637,7 +637,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
             onClick={handleAutoFillRandom}
             disabled={!allSpells}
             title={allSpells ? 'Auto-fill the creator with legal random choices' : 'Loading spell data — available in a moment…'}
-            className="border border-amber-500/40 bg-amber-900/20 text-amber-200 hover:bg-amber-800/30 hover:text-amber-100"
+            className="min-h-11 border border-amber-500/40 bg-amber-900/20 text-amber-200 hover:bg-amber-800/30 hover:text-amber-100"
           >
             Auto-Fill (Random)
           </Button>
@@ -646,13 +646,17 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
             size="sm"
             onClick={() => setShowSidebar(!showSidebar)}
             title={showSidebar ? 'Hide Sidebar' : 'Show Sidebar'}
+            className="min-h-11 min-w-11"
           >
             {showSidebar ? '◧' : '☐'}
           </Button>
         </div>
       }
     >
-      <div className="flex h-full bg-gray-900 text-gray-200">
+      <div
+        data-testid="character-creator-layout"
+        className="flex h-full min-h-0 flex-col overflow-y-auto bg-gray-900 text-gray-200 sm:flex-row sm:overflow-hidden"
+      >
         {/* Sidebar */}
         {showSidebar && (
           <CreationSidebar
@@ -664,8 +668,11 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         )}
 
         {/* Main content area */}
-        <div className="flex-1 flex flex-col min-w-0 bg-gray-800">
-          <div className="flex-grow overflow-hidden relative">
+        <div className="flex min-h-[34rem] shrink-0 flex-col bg-gray-800 sm:min-h-0 sm:flex-1 sm:shrink min-w-0">
+          {/* Mobile stacks the progress rail above the active step, so this
+              wrapper must let the step extend into the creator's scroll area.
+              Desktop keeps the fixed-height wizard pane with internal scrollers. */}
+          <div className="relative flex-grow overflow-visible sm:overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={state.step}
@@ -673,7 +680,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
                 transition={{ duration: 0.2 }}
-                className="h-full"
+                className="min-h-full sm:h-full"
               >
                 {renderStep()}
               </motion.div>

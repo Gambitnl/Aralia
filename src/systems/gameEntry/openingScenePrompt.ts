@@ -11,7 +11,7 @@
  *
  * This is a pure function (no I/O) so it can be unit-tested and reused by both
  * the client SceneService and any tooling. The actual generation is done by the
- * Stitch-backed `/api/scenes/generate` endpoint (see sceneApiManager).
+ * local browser-image `/api/scenes/generate` endpoint (see sceneApiManager).
  *
  * NO FALLBACK: there is no templated/canned scene art. If generation fails the
  * UI shows an honest "illustration unavailable" state — it never substitutes a

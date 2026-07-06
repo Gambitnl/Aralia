@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aralia Plan-Map</title>
+<!--
+  This page renders Aralia's roadmap as a dependency map.
+
+  It exists so agents and the project owner can see which plans depend on each
+  other, which work is ready, and which decisions have been parked or shipped.
+  The page is intentionally self-contained: topics.json provides the roadmap
+  data, history.json provides optional timeline snapshots, and this file builds
+  the SVG map, detail panel, filters, timeline, and document links.
+-->
 <style>
   :root { color-scheme: dark; }
   html, body { height: 100%; }
@@ -52,24 +61,24 @@
      type classes (.hard/.chosen on cross-topic edges, .member on feature edges)
      out-specify the resting `.edgeg.member .edge` rule, so hover always wins.
      Arrowheads follow via the marker's fill="context-stroke". */
-  .edgeg.hard:hover .edge   { stroke: #f87171; opacity: 1; stroke-width: 2.5; }
-  .edgeg.chosen:hover .edge { stroke: #fbbf24; opacity: 1; stroke-width: 2.5; }
-  .edgeg.member:hover .edge { stroke: #c084fc; opacity: 1; stroke-width: 2.5; }
-  .stepedge:hover .edge     { stroke: #22d3ee; opacity: 1; stroke-width: 2; }
+  .edgeg.hard .edge { stroke: #f87171; opacity: 0.42; }
+  .edgeg.chosen .edge { stroke: #fbbf24; opacity: 0.48; }
+  .edgeg.member .edge { stroke: #c084fc; stroke-width: 1; opacity: 0.52; }
+  .stepedge .edge { stroke: #22d3ee; stroke-width: 1; opacity: 0.42; }
+  .edgeg.hard.lit .edge, .edgeg.hard.pinned .edge, .edgeg.hard:hover .edge { stroke: #f87171; opacity: 1; stroke-width: 2.5; }
+  .edgeg.chosen.lit .edge, .edgeg.chosen.pinned .edge, .edgeg.chosen:hover .edge { stroke: #fbbf24; opacity: 1; stroke-width: 2.5; }
+  .edgeg.member.lit .edge, .edgeg.member.pinned .edge, .edgeg.member:hover .edge { stroke: #c084fc; opacity: 1; stroke-width: 2.5; }
+  .stepedge.lit .edge, .stepedge:hover .edge { stroke: #22d3ee; opacity: 1; stroke-width: 2; }
   /* Internal step edges (parent→step, step→step) — lighter than cross-topic. */
-  .stepedge .edge { stroke: #64748b; stroke-width: 1; opacity: 0.55; }
   svg.focus .node:not(.lit), svg.focus .edgeg:not(.lit), svg.focus .stepedge:not(.lit) { opacity: 0.12; }
   /* Legend-filter dimming (item 4) — independent of hover focus. */
   .node.dimmed, .edgeg.dimmed, .stepedge.dimmed { opacity: 0.15; }
   /* Pinned node/edge outline (item 1). */
   .node.pinned > rect:first-of-type { stroke: #fbbf24 !important; stroke-width: 3.5 !important; }
-  .edgeg.pinned .edge, .edgeg.member.pinned .edge { stroke: #fbbf24; opacity: 1; stroke-width: 2.5; }
   /* Feature-anchored ("member") edges — read as pointing INTO a feature tile:
      lighter/thinner stroke + a small hollow circle at the feature end. */
-  .edgeg.member .edge { stroke: #64748b; stroke-width: 1; opacity: 0.6; }
-  .edgeg.member .member-end { fill: #0f172a; stroke: #94a3b8; stroke-width: 1.25; }
-  .edgeg.member:hover .member-end { stroke: #c084fc; }
-  .edgeg.member.pinned .member-end { stroke: #fbbf24; }
+  .edgeg.member .member-end { fill: #0f172a; stroke: #c084fc; stroke-width: 1.25; opacity: 0.7; }
+  .edgeg.member.lit .member-end, .edgeg.member:hover .member-end, .edgeg.member.pinned .member-end { stroke: #c084fc; opacity: 1; stroke-width: 2; }
   .node, .edgeg { transition: none; }
   #invariants { padding: 0 22px 8px; font-size: 11px; color: #64748b; }
   #invariants b { color: #94a3b8; }
@@ -96,8 +105,11 @@
   .ship-label { font-size: 11px; }
   .ship-doc { font-size: 11px; text-decoration: none; }
   .ship-tick { font-size: 10px; letter-spacing: 0.03em; }
+  .ship-axis-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
   .shipnode { opacity: 0.9; }
   .shipnode:hover { opacity: 1; }
+  /* Ready outline legend: the same green frame used on actionable parent tiles. */
+  .ready-outline-swatch { display: inline-block; width: 18px; height: 11px; border: 2px solid #4ade80; border-radius: 4px; margin-right: 5px; vertical-align: -2px; background: rgba(74,222,128,0.08); }
   a { color: #7dd3fc; }
   /* Detail side panel (item 1) — pins on click, dismissible. */
   #detail { position: fixed; top: 0; right: 0; width: 380px; max-width: 92vw; height: 100vh; overflow-y: auto;
@@ -224,11 +236,51 @@ const COLORS = {
   pink:   { fill: '#500724', stroke: '#f472b6', title: '#fce7f3', sub: '#f9a8d4' }
 };
 const STATUS = { parked: '#94a3b8', specced: '#fbbf24', active: '#38bdf8', done: '#4ade80', superseded: '#9a3412' };
-const NODE_W = 230, BASE_H = 78, COL_GAP = 90, ROW_GAP = 26, PAD = 40;
+const NODE_W = 300, BASE_H = 78, COL_GAP = 90, ROW_GAP = 26, PAD = 40;
 const LANE_GAP = 34, LANE_LABEL_H = 22; // vertical breathing room between campaign lanes (item 2)
 // Exploded step tiles: each parent's features render as their OWN child tiles
 // to the right, instead of stacked rows inside the parent card.
 const STEP_W = 190, STEP_H = 30, STEP_GAP_X = 30, STEP_GAP_Y = 8, PARENT_STEP_GAP = 44;
+const stepLabelText = f => (f.spike ? '! ' : '') + (f.title || '');
+const stepWidth = f => {
+  const openN = (typeof f.open === 'number' && f.open > 0) ? f.open : 0;
+  const rightTools = (openN ? 28 : 0) + (f.link ? 22 : 0);
+  return Math.max(STEP_W, Math.ceil(44 + stepLabelText(f).length * 6.8 + rightTools));
+};
+// Parent tiles are allowed to grow vertically so roadmap labels remain readable.
+// These wrappers are approximate, but they keep all text inside the tile instead
+// of chopping titles or subtitles to make the old fixed-height card work.
+const PARENT_TITLE_CHARS = 26, PARENT_SUB_CHARS = 40;
+const wrapWords = (value, maxChars) => {
+  const text = String(value || '').trim();
+  if (!text) return [''];
+  const words = text.split(/\s+/);
+  const lines = [];
+  let line = '';
+  words.forEach(word => {
+    if (!line) {
+      line = word;
+    } else if ((line + ' ' + word).length <= maxChars) {
+      line += ' ' + word;
+    } else {
+      lines.push(line);
+      line = word;
+    }
+    while (line.length > maxChars) {
+      lines.push(line.slice(0, maxChars));
+      line = line.slice(maxChars);
+    }
+  });
+  if (line) lines.push(line);
+  return lines.length ? lines : [''];
+};
+const parentTitleLines = t => wrapWords(t.title, PARENT_TITLE_CHARS);
+const parentSubLines = t => t.sub ? wrapWords(t.sub, PARENT_SUB_CHARS) : [];
+const parentHeight = t => {
+  const titleRows = parentTitleLines(t).length;
+  const subRows = parentSubLines(t).length;
+  return Math.max(BASE_H, 22 + titleRows * 15 + 2 + subRows * 13 + 18);
+};
 const featList = t => t.features || [];
 // A step is SEQUENTIAL (chains off the previous step) unless flagged
 // `parallel: true` (branches straight off the parent). Array order is preserved
@@ -237,17 +289,19 @@ const chainSteps = t => featList(t).map((f, i) => ({ f, i })).filter(x => !x.f.p
 const paraSteps  = t => featList(t).map((f, i) => ({ f, i })).filter(x =>  x.f.parallel);
 // Horizontal room the chain needs (parallels tuck under the first step column).
 const chainWidth = t => {
-  const c = chainSteps(t).length;
-  if (c > 0) return c * STEP_W + (c - 1) * STEP_GAP_X;
-  return paraSteps(t).length ? STEP_W : 0;
+  const chain = chainSteps(t);
+  if (chain.length > 0) return chain.reduce((sum, x, i) => sum + stepWidth(x.f) + (i ? STEP_GAP_X : 0), 0);
+  const parallel = paraSteps(t);
+  return parallel.length ? Math.max(...parallel.map(x => stepWidth(x.f))) : 0;
 };
 // A parent's "bay" = the parent tile plus its whole step sub-flow to the right.
 const bayWidth = t => NODE_W + (chainWidth(t) ? PARENT_STEP_GAP + chainWidth(t) : 0);
 const bayHeight = t => {
   const pc = paraSteps(t).length;
-  // Parallel steps stack BELOW the parent; the chain row sits inside BASE_H.
-  const paraBottom = pc ? BASE_H + STEP_GAP_Y + pc * STEP_H + (pc - 1) * STEP_GAP_Y : 0;
-  return Math.max(BASE_H, paraBottom);
+  const ph = parentHeight(t);
+  // Parallel steps stack BELOW the parent; the chain row sits inside the parent.
+  const paraBottom = pc ? ph + STEP_GAP_Y + pc * STEP_H + (pc - 1) * STEP_GAP_Y : 0;
+  return Math.max(ph, paraBottom);
 };
 
 // ---- Portability (item 5): derive the /@fs base prefix from the URL ----
@@ -665,9 +719,13 @@ fetch('./topics.json').then(r => r.json()).then(data => {
         S.push(`</g>`);
       });
     });
-    // Date ruler along the bottom: one tick per distinct completion date (+undated).
+    // Date ruler along the bottom: one tick per distinct completion date
+    // (+undated). The label makes clear that this is not a work queue; it is
+    // a reference axis for the already-shipped chips sitting above it.
     const rulerY = maxY + 6;
-    S.push(`<line class="ship-axis" x1="${PAD - 6}" y1="${rulerY}" x2="${W - PAD + 6}" y2="${rulerY}" stroke="#334155"/>`);
+    S.push(`<g class="ship-axis"><title>Shipped date axis: completed topics above this line are grouped by their completion/spec date.</title>` +
+      `<line x1="${PAD - 6}" y1="${rulerY}" x2="${W - PAD + 6}" y2="${rulerY}" stroke="#334155"/>` +
+      `<text class="ship-axis-label" x="${PAD - 6}" y="${rulerY - 6}" fill="#64748b">shipped dates</text></g>`);
     if (hasUndatedShip) S.push(`<text class="ship-tick" x="${shipChipX(0) + 4}" y="${rulerY + 16}" fill="#64748b">undated</text>`);
     distinctShipDates.forEach((d, i) => {
       S.push(`<text class="ship-tick" x="${shipChipX(shipColBase + i) + 4}" y="${rulerY + 16}" fill="#94a3b8">${esc(d.slice(5))}</text>`);
@@ -686,28 +744,69 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   live.forEach(t => {
     const p = pos[t.id]; if (!p) return;
     const sx0 = p.x + NODE_W + PARENT_STEP_GAP; // first step column
-    const cy = p.y + BASE_H / 2;                // chain row center
+    const cy = p.y + parentHeight(t) / 2;       // chain row center
     let prevId = null;
+    let chainX = sx0;
     chainSteps(t).forEach((x, k) => {
-      const sx = sx0 + k * (STEP_W + STEP_GAP_X);
+      const sx = chainX;
+      const sw = stepWidth(x.f);
       const id = stepId(t.id, x.f);
-      stepNodes.push({ id, topicId: t.id, x: sx, y: cy - STEP_H / 2, f: x.f, num: x.i + 1 });
+      stepNodes.push({ id, topicId: t.id, x: sx, y: cy - STEP_H / 2, w: sw, f: x.f, num: x.i + 1 });
       featPos[`${t.id}|${slug(x.f.title)}`] = { x: sx, y: cy };
       stepEdges.push(prevId
         ? { from: prevId, to: id, topicId: t.id, kind: 'chain' }
         : { from: t.id,   to: id, topicId: t.id, kind: 'branch' });
       prevId = id;
+      chainX += sw + STEP_GAP_X;
     });
-    const paraTop = p.y + BASE_H + STEP_GAP_Y;
+    const paraTop = p.y + parentHeight(t) + STEP_GAP_Y;
     paraSteps(t).forEach((x, j) => {
       const sy = paraTop + j * (STEP_H + STEP_GAP_Y);
       const id = stepId(t.id, x.f);
-      stepNodes.push({ id, topicId: t.id, x: sx0, y: sy, f: x.f, num: x.i + 1 });
+      stepNodes.push({ id, topicId: t.id, x: sx0, y: sy, w: stepWidth(x.f), f: x.f, num: x.i + 1 });
       featPos[`${t.id}|${slug(x.f.title)}`] = { x: sx0, y: sy + STEP_H / 2 };
       stepEdges.push({ from: t.id, to: id, topicId: t.id, kind: 'branch' });
     });
   });
   const stepById = Object.fromEntries(stepNodes.map(n => [n.id, n]));
+
+  // Tile clearance mask: dependency lines can cross the open map, but they
+  // should never visibly cut through a roadmap tile. Build one mask from every
+  // parent, step, and shipped tile rectangle, then apply it to all edge groups.
+  const EDGE_TILE_CLEARANCE = 4;
+  const edgeBlockers = [];
+  const edgeShieldBlockers = [];
+  live.forEach(t => {
+    const p = pos[t.id];
+    if (!p) return;
+    const blocker = { x: p.x, y: p.y, w: NODE_W, h: parentHeight(t), r: 7 };
+    edgeBlockers.push(blocker);
+    edgeShieldBlockers.push(blocker);
+  });
+  stepNodes.forEach(sn => {
+    const blocker = { x: sn.x, y: sn.y, w: sn.w, h: STEP_H, r: 5 };
+    edgeBlockers.push(blocker);
+    edgeShieldBlockers.push(blocker);
+  });
+  shipped.forEach(t => {
+    const pl = shipPlace[t.id];
+    const laneTopForShip = shipRowTop[t.campaign || '(none)'];
+    if (!pl || laneTopForShip == null) return;
+    edgeBlockers.push({
+      x: shipChipX(pl.col) + 4,
+      y: laneTopForShip + pl.stackRow * (SHIP_CHIP_H + SHIP_ROW_GAP),
+      w: SHIP_COL_W - 12,
+      h: SHIP_CHIP_H,
+      r: 13
+    });
+  });
+  S.push(`<defs><mask id="edge-clearance" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}">` +
+    `<rect x="0" y="0" width="${W}" height="${H}" fill="white"/>` +
+    edgeBlockers.map(b => {
+      const pad = EDGE_TILE_CLEARANCE;
+      return `<rect x="${b.x - pad}" y="${b.y - pad}" width="${b.w + pad * 2}" height="${b.h + pad * 2}" rx="${b.r + pad}" fill="black"/>`;
+    }).join('') +
+    `</mask></defs>`);
 
   // Edge routing: multiple edges leaving (or entering) one node fan out along
   // its side instead of stacking on the midpoint — kills the spaghetti read.
@@ -725,7 +824,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   const outPort = {}, inPort = {};
   const assignPorts = (list, key, node, portMap) => {
     list.sort((e1, e2) => pos[e1[key === 'out' ? 'to' : 'from']].y - pos[e2[key === 'out' ? 'to' : 'from']].y);
-    const h = BASE_H;
+    const h = parentHeight(byId[node]);
     list.forEach((e, i) => {
       const frac = list.length === 1 ? 0.5 : 0.25 + (0.5 * i) / (list.length - 1);
       portMap[`${e.from}|${e.to}`] = pos[node].y + h * frac;
@@ -784,16 +883,11 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     const kindCls = fp ? '' : (e.kind === 'chosen' ? ' chosen' : ' hard');
     const endMark = fp ? `<circle class="member-end" cx="${endX - 4}" cy="${endY}" r="3"/>` : '';
     const markerAttr = fp ? '' : ' marker-end="url(#arr)"';
-    S.push(`<g class="edgeg${memberCls}${kindCls}" data-from="${esc(e.from)}" data-to="${esc(e.to)}"${fp ? ` data-feature="${esc(e.feature)}"` : ''}><title>${esc(tip)}</title>` +
+    S.push(`<g class="edgeg${memberCls}${kindCls}" mask="url(#edge-clearance)" data-from="${esc(e.from)}" data-to="${esc(e.to)}"${fp ? ` data-feature="${esc(e.feature)}"` : ''}><title>${esc(tip)}</title>` +
       `<path class="edge-hit" d="${d}"/>` +
       `<path class="edge"${markerAttr}${dash} d="${d}"/>${endMark}</g>`);
   });
 
-  const wrap = (s, n) => { // naive 2-line wrap for subtitles
-    if (!s || s.length <= n) return [s || ''];
-    const cut = s.lastIndexOf(' ', n);
-    return [s.slice(0, cut > 0 ? cut : n), s.slice(cut > 0 ? cut + 1 : n).slice(0, n) + (s.length - n > n ? '…' : '')];
-  };
   // --- Internal step edges (drawn UNDER the tiles): parent→step branch and
   // step→step chain. Lighter than cross-topic edges; lit/dimmed with the parent.
   stepEdges.forEach(se => {
@@ -801,10 +895,10 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     let ax, ay;
     if (se.kind === 'chain') {
       const a = stepById[se.from]; if (!a) return;
-      ax = a.x + STEP_W; ay = a.y + STEP_H / 2;
+      ax = a.x + a.w; ay = a.y + STEP_H / 2;
     } else {
       const p = pos[se.topicId]; if (!p) return;
-      ax = p.x + NODE_W; ay = p.y + BASE_H / 2;
+      ax = p.x + NODE_W; ay = p.y + parentHeight(byId[se.topicId]) / 2;
     }
     const bx = b.x, by = b.y + STEP_H / 2;
     const mx = ax + (bx - ax) * 0.5;
@@ -814,19 +908,29 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     const sTip = se.kind === 'chain'
       ? `${byId[se.topicId].title}: step ${stepById[se.from]?.num} → step ${b.num} (sequential)`
       : `${byId[se.topicId].title}: → step ${b.num} (${b.f.parallel ? 'parallel' : 'first step'})`;
-    S.push(`<g class="stepedge" data-topic="${esc(se.topicId)}" data-from="${esc(se.from)}" data-to="${esc(se.to)}"><title>${esc(sTip)}</title>` +
+    S.push(`<g class="stepedge" mask="url(#edge-clearance)" data-topic="${esc(se.topicId)}" data-from="${esc(se.from)}" data-to="${esc(se.to)}"><title>${esc(sTip)}</title>` +
       `<path class="edge-hit" d="${d}"/>` +
       `<path class="edge" marker-end="url(#arr)" d="${d}"/></g>`);
+  });
+
+  // Edge shields are the visible fallback for translucent LIVE tiles that are
+  // painted after the edges. Shipped chips are painted earlier and use only the
+  // invisible mask above; drawing visible shields for them would cover the chip
+  // content and leave unexplained dark rounded spots in empty lane space.
+  edgeShieldBlockers.forEach(b => {
+    const pad = EDGE_TILE_CLEARANCE;
+    S.push(`<rect class="edge-shield" x="${b.x - pad}" y="${b.y - pad}" width="${b.w + pad * 2}" height="${b.h + pad * 2}" rx="${b.r + pad}" fill="#101a2d" pointer-events="none"/>`);
   });
 
   // --- Parent campaign tiles: title / status / spec link only (steps now live
   // in their own tiles to the right).
   live.forEach(t => {
     const p = pos[t.id];
-    const h = BASE_H;
+    const h = parentHeight(t);
     const c = COLORS[(data.campaigns[t.campaign] || {}).color] || COLORS.gray;
     const go = isActionable(t);
-    const sub = wrap(t.sub, 36);
+    const titleRows = parentTitleLines(t);
+    const subRows = parentSubLines(t);
     S.push(`<g class="node" data-id="${esc(t.id)}" data-topic="${esc(t.id)}" data-campaign="${esc(t.campaign || '')}" data-status="${esc(t.status || '')}">`);
     const hk = heat && heat.get(t.id);
     if (hk) S.push(`<rect x="${p.x}" y="${p.y}" width="${NODE_W}" height="${h}" rx="6" fill="${HEAT(hk.days)}" fill-opacity="0.28" pointer-events="none"/>`);
@@ -838,9 +942,14 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     if (t.focus) badges.push(['★ FOCUS', '#fbbf24']);
     badges.forEach(([txt, col], bi) =>
       S.push(`<text class="status" x="${p.x + NODE_W - 12}" y="${p.y + 20 + bi * 13}" text-anchor="end" fill="${col}">${txt}</text>`));
-    S.push(`<text class="title" x="${p.x + 12}" y="${p.y + 22}" fill="${c.title}">${esc(t.title)}</text>`);
-    sub.forEach((line, i) =>
-      S.push(`<text class="sub" x="${p.x + 12}" y="${p.y + 39 + i * 13}" fill="${c.sub}">${esc(line)}</text>`));
+    // Draw every wrapped title and subtitle row. The tile height was already
+    // computed from these same rows, so text stays inside the card instead of
+    // being clipped or replaced by ellipses.
+    titleRows.forEach((line, i) =>
+      S.push(`<text class="title" x="${p.x + 12}" y="${p.y + 22 + i * 15}" fill="${c.title}">${i === 0 ? `<title>${esc(t.title)}</title>` : ''}${esc(line)}</text>`));
+    const subStartY = p.y + 22 + titleRows.length * 15 + 2;
+    subRows.forEach((line, i) =>
+      S.push(`<text class="sub" x="${p.x + 12}" y="${subStartY + i * 13}" fill="${c.sub}">${i === 0 ? `<title>${esc(t.sub || '')}</title>` : ''}${esc(line)}</text>`));
     S.push(`<circle cx="${p.x + 16}" cy="${p.y + h - 12}" r="4" fill="${STATUS[t.status] || '#94a3b8'}"/>`);
     S.push(`<text class="status" x="${p.x + 26}" y="${p.y + h - 8}" fill="${STATUS[t.status] || '#94a3b8'}">${esc((t.status || '').toUpperCase())}</text>`);
     if (t.link) S.push(`<a href="${esc(docHref(t.link))}" target="_blank"><text class="sub" x="${p.x + NODE_W - 12}" y="${p.y + h - 8}" text-anchor="end" fill="${c.sub}">📄 spec</text></a>`);
@@ -857,18 +966,16 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     const spikeAttrs = f.spike ? ` stroke-dasharray="4 3" stroke-opacity="0.95"` : '';
     S.push(`<g class="node stepnode" data-id="${esc(sn.id)}" data-topic="${esc(sn.topicId)}" data-campaign="${esc(t.campaign || '')}" data-status="${esc(f.status || '')}">`);
     const shk = heat && heat.get(sn.id);
-    if (shk) S.push(`<rect x="${sn.x}" y="${sn.y}" width="${STEP_W}" height="${STEP_H}" rx="6" fill="${HEAT(shk.days)}" fill-opacity="0.28" pointer-events="none"/>`);
-    S.push(`<rect x="${sn.x}" y="${sn.y}" width="${STEP_W}" height="${STEP_H}" rx="4" fill="${c.fill}" fill-opacity="0.55" stroke="${dead ? STATUS.superseded : c.stroke}"${spikeAttrs} stroke-width="1.5"/>`);
+    if (shk) S.push(`<rect x="${sn.x}" y="${sn.y}" width="${sn.w}" height="${STEP_H}" rx="6" fill="${HEAT(shk.days)}" fill-opacity="0.28" pointer-events="none"/>`);
+    S.push(`<rect x="${sn.x}" y="${sn.y}" width="${sn.w}" height="${STEP_H}" rx="4" fill="${c.fill}" fill-opacity="0.55" stroke="${dead ? STATUS.superseded : c.stroke}"${spikeAttrs} stroke-width="1.5"/>`);
     S.push(`<circle cx="${sn.x + 13}" cy="${sn.y + STEP_H / 2}" r="3.5" fill="${STATUS[f.status] || '#94a3b8'}"/>`);
     S.push(`<text class="status" x="${sn.x + 24}" y="${sn.y + STEP_H / 2 + 4}" fill="${c.sub}">${sn.num}</text>`);
     const openN = (typeof f.open === 'number' && f.open > 0) ? f.open : 0;
-    const budget = 26 - (openN ? 3 : 0) - (f.link ? 2 : 0) - (f.spike ? 2 : 0);
-    const rawTitle = (f.spike ? '⚠ ' : '') + f.title;
-    const ftitle = rawTitle.length > budget ? rawTitle.slice(0, budget - 1) + '…' : rawTitle;
+    const rawTitle = stepLabelText(f);
     const deco = dead ? ' text-decoration="line-through"' : '';
-    S.push(`<text class="sub" x="${sn.x + 34}" y="${sn.y + STEP_H / 2 + 4}" fill="${dead ? STATUS.superseded : c.title}"${deco}><title>${esc(f.title)}${f.status ? ` [${f.status}]` : ''}${f.parallel ? ' [parallel — branches off the parent]' : ''}${f.spike ? ' [spike — could invalidate the approach]' : ''}${openN ? ` — ${openN} open question(s) in the subspec` : ''}${dead && f.killed ? ` — killed: ${esc(f.killed)}` : ''}</title>${esc(ftitle)}</text>`);
-    if (openN) S.push(`<text class="status" x="${sn.x + STEP_W - (f.link ? 30 : 12)}" y="${sn.y + STEP_H / 2 + 4}" text-anchor="end" fill="#fbbf24"><title>${openN} open question(s) in ${esc(f.link || 'the subspec')}</title>?${openN}</text>`);
-    if (f.link) S.push(`<a href="${esc(docHref(f.link))}" target="_blank"><text class="sub" x="${sn.x + STEP_W - 12}" y="${sn.y + STEP_H / 2 + 4}" text-anchor="end" fill="${c.sub}"><title>${esc(f.link)}</title>📄</text></a>`);
+    S.push(`<text class="sub" x="${sn.x + 34}" y="${sn.y + STEP_H / 2 + 4}" fill="${dead ? STATUS.superseded : c.title}"${deco}><title>${esc(f.title)}${f.status ? ` [${f.status}]` : ''}${f.parallel ? ' [parallel — branches off the parent]' : ''}${f.spike ? ' [spike — could invalidate the approach]' : ''}${openN ? ` — ${openN} open question(s) in the subspec` : ''}${dead && f.killed ? ` — killed: ${esc(f.killed)}` : ''}</title>${esc(rawTitle)}</text>`);
+    if (openN) S.push(`<text class="status" x="${sn.x + sn.w - (f.link ? 30 : 12)}" y="${sn.y + STEP_H / 2 + 4}" text-anchor="end" fill="#fbbf24"><title>${openN} open question(s) in ${esc(f.link || 'the subspec')}</title>?${openN}</text>`);
+    if (f.link) S.push(`<a href="${esc(docHref(f.link))}" target="_blank"><text class="sub" x="${sn.x + sn.w - 12}" y="${sn.y + STEP_H / 2 + 4}" text-anchor="end" fill="${c.sub}"><title>${esc(f.link)}</title>📄</text></a>`);
     S.push(`</g>`);
   });
   S.push(`</svg>`);
@@ -921,7 +1028,10 @@ fetch('./topics.json').then(r => r.json()).then(data => {
         eg.classList.toggle('lit', lit.has(eg.dataset.from) && lit.has(eg.dataset.to)));
       svgEl.querySelectorAll('.stepedge').forEach(se => se.classList.toggle('lit', lit.has(se.dataset.topic)));
     });
-    g.addEventListener('mouseleave', () => svgEl.classList.remove('focus'));
+    g.addEventListener('mouseleave', () => {
+      svgEl.classList.remove('focus');
+      svgEl.querySelectorAll('.node.lit, .edgeg.lit, .stepedge.lit').forEach(el => el.classList.remove('lit'));
+    });
   });
 
   // ================= Detail side panel (item 1) ======================
@@ -1151,14 +1261,17 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     `<span class="chip" data-filter-camp="${esc(k)}"><span class="sw" style="background:${(COLORS[c.color] || COLORS.gray).stroke}"></span>${esc(c.label)}</span>`);
   leg.push(...Object.entries(STATUS).map(([k, v]) =>
     `<span class="chip" data-filter-status="${esc(k)}"><span class="sw" style="background:${v}; border-radius: 50%;"></span>${k}</span>`));
-  leg.push(`<span><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#94a3b8" stroke-width="1.5"/></svg> hard</span>`);
-  leg.push(`<span><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3"/></svg> chosen</span>`);
-  leg.push(`<span><svg width="26" height="10"><line x1="0" y1="5" x2="19" y2="5" stroke="#64748b" stroke-width="1"/><circle cx="21" cy="5" r="3" fill="#0f172a" stroke="#94a3b8" stroke-width="1.25"/></svg> requires a feature</span>`);
-  leg.push(`<span><svg width="26" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="#64748b" stroke-width="1"/></svg> parent→step / step→step (sequential)</span>`);
+  leg.push(`<span style="color:#f87171"><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#f87171" stroke-width="1.8"/></svg> hard</span>`);
+  leg.push(`<span style="color:#fbbf24"><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#fbbf24" stroke-width="1.8" stroke-dasharray="5 3"/></svg> chosen</span>`);
+  leg.push(`<span style="color:#c084fc"><svg width="26" height="10"><line x1="0" y1="5" x2="19" y2="5" stroke="#c084fc" stroke-width="1.4"/><circle cx="21" cy="5" r="3" fill="#0f172a" stroke="#c084fc" stroke-width="1.5"/></svg> requires a feature</span>`);
+  leg.push(`<span style="color:#22d3ee"><svg width="26" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="#22d3ee" stroke-width="1.4"/></svg> parent→step / step→step (sequential)</span>`);
   leg.push(`<span style="color:#fbbf24;">?n = open questions in subspec</span>`);
   leg.push(`<span>⚠ dashed = spike (could invalidate)</span>`);
   leg.push(`<span style="color:#4ade80;">▶ ${readyCount} ready${readyNodes.length ? ` · top: ${esc(readyNodes[0].title)} (unblocks ${downCount(readyNodes[0].id)})` : ''}</span>`);
   leg.push(`<span id="clearfilter">✕ clear filters</span>`);
+  // Ready tiles get a green outline because all hard blockers are finished.
+  // Show the same outline in the legend so the frame has an explicit meaning.
+  leg.push(`<span style="color:#4ade80;"><span class="ready-outline-swatch"></span>green outline = actionable now</span>`);
   leg.push(`<span style="margin-left:auto;">${counts}</span>`);
   document.getElementById('legend').innerHTML = leg.join('');
 
@@ -1311,8 +1424,12 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   const todayISO = new Date().toISOString().slice(0, 10);
   fetch('./history.json').then(r => r.ok ? r.json() : null).then(hist => {
     const H = window.PlanmapHistory;
-    if (!hist || !H) return; // no history yet, or derive module failed to load
-    timeline = [...hist.days, { date: todayISO, topics: data.topics }];
+    if (!H) return; // derive module failed to load → no timeline (no error)
+    // Blend git snapshots with manual back-dates (history: {designed, built} on
+    // topics/features) so the timeline reaches into the pre-git past. Works even
+    // with no history.json — back-dates alone can build the timeline.
+    const gitDays = (hist && hist.days) || [];
+    timeline = H.synthesizeTimeline(gitDays, data.topics, todayISO);
     momentum = H.momentumByDay(timeline);
     dayIndex = timeline.length - 1; // playhead static at Now for Task 4
     window.__timeline = timeline; // expose for replay verification, now that it's populated

@@ -5,26 +5,14 @@
  * The primary in-world interface for the player's financial life.
  */
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence, MotionProps } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useGameState } from '../../state/GameContext';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import { formatGpAsCoins } from '../../utils/coinPurseUtils';
 import CoinPurseDisplay from '../ui/CoinPurseDisplay';
 
 type LedgerTab = 'treasury' | 'investments' | 'businesses' | 'debts';
-
-const overlayMotion: MotionProps = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
-};
-
-const bookMotion: MotionProps = {
-    initial: { scale: 0.9, opacity: 0, rotateY: -10 },
-    animate: { scale: 1, opacity: 1, rotateY: 0 },
-    exit: { scale: 0.9, opacity: 0, rotateY: 10 },
-    transition: { type: 'spring', damping: 20 }
-};
 
 interface LedgerBookProps {
     isOpen: boolean;
@@ -34,7 +22,6 @@ interface LedgerBookProps {
 const LedgerBook: React.FC<LedgerBookProps> = ({ isOpen, onClose }) => {
     const { state } = useGameState();
     const [activeTab, setActiveTab] = useState<LedgerTab>('treasury');
-    const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
     const investments = useMemo(() => state.playerInvestments || [], [state.playerInvestments]);
     const businesses = useMemo(() => state.businesses || {}, [state.businesses]);
@@ -51,94 +38,69 @@ const LedgerBook: React.FC<LedgerBookProps> = ({ isOpen, onClose }) => {
     ];
 
     return (
-        <AnimatePresence>
-            <motion.div
-                {...overlayMotion}
-                className="fixed inset-0 bg-black/80 flex items-center justify-center z-[var(--z-index-modal-background)] p-4"
-                onClick={onClose}
-            >
-                <motion.div
-                    ref={modalRef}
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Economy Ledger"
-                    {...bookMotion}
-                    className="bg-amber-950/95 border-2 border-amber-800/60 rounded-lg shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col focus:outline-none"
-                    style={{
-                        backgroundImage: 'linear-gradient(135deg, rgba(120,53,15,0.3) 0%, rgba(60,20,5,0.5) 100%)',
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    tabIndex={-1}
-                >
-                    {/* Book Cover Header */}
-                    <div className="flex justify-between items-center px-6 py-4 border-b-2 border-amber-700/50">
-                        <div className="flex items-center gap-3">
-                            <span className="text-3xl">📖</span>
-                            <div>
-                                <h2 className="text-2xl font-cinzel text-amber-300 tracking-wide">Enchanted Ledger</h2>
-                                <p className="text-xs text-amber-600/80 italic">Magically updated. Mostly accurate.</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <CoinPurseDisplay goldValue={state.gold} />
-                            <button
-                                onClick={onClose}
-                                className="text-amber-600 hover:text-amber-300 text-2xl transition-colors"
-                                aria-label="Close ledger"
-                            >
-                                ✕
-                            </button>
-                        </div>
-                    </div>
+        <WindowFrame
+            title="Enchanted Ledger"
+            onClose={onClose}
+            storageKey={WINDOW_KEYS.LEDGER_BOOK}
+            initialMaximized={false}
+            headerActions={<CoinPurseDisplay goldValue={state.gold} />}
+        >
+            <div className="flex flex-col h-full bg-amber-950/20">
+                {/* Flavor line (was a header subtitle). */}
+                <div className="shrink-0 px-6 py-1 text-xs text-amber-600/80 italic border-b border-amber-800/30">
+                    Magically updated. Mostly accurate.
+                </div>
 
-                    {/* Bookmark Tabs */}
-                    <div className="flex border-b border-amber-800/40 bg-amber-900/30">
-                        {tabs.map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex-1 py-3 px-4 text-sm font-cinzel transition-colors flex items-center justify-center gap-2
-                                    ${activeTab === tab.id
-                                        ? 'text-amber-200 bg-amber-800/40 border-b-2 border-amber-400'
-                                        : 'text-amber-600 hover:text-amber-400 hover:bg-amber-800/20'
-                                    }`}
-                                aria-selected={activeTab === tab.id}
-                                role="tab"
-                            >
-                                <span aria-hidden="true">{tab.icon}</span>
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
+                {/* Bookmark Tabs */}
+                {/* Ledger pages must all remain reachable in a narrow WindowFrame.
+                    The tabs use a two-by-two grid there, then return to the
+                    wide bookmark row once the frame has enough horizontal room. */}
+                <div className="shrink-0 grid grid-cols-2 border-b border-amber-800/40 bg-amber-900/30 sm:flex">
+                    {tabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`min-h-11 py-3 px-3 text-sm font-cinzel transition-colors flex items-center justify-center gap-2 sm:flex-1 sm:px-4
+                                ${activeTab === tab.id
+                                    ? 'text-amber-200 bg-amber-800/40 border-b-2 border-amber-400'
+                                    : 'text-amber-600 hover:text-amber-400 hover:bg-amber-800/20'
+                                }`}
+                            aria-selected={activeTab === tab.id}
+                            role="tab"
+                        >
+                            <span aria-hidden="true">{tab.icon}</span>
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
 
-                    {/* Page Content */}
-                    <div className="flex-grow overflow-y-auto p-6 scrollable-content">
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={activeTab}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                {activeTab === 'treasury' && (
-                                    <TreasuryPage gold={state.gold} investments={investments} businesses={businesses} />
-                                )}
-                                {activeTab === 'investments' && (
-                                    <InvestmentsPage investments={activeInvestments} />
-                                )}
-                                {activeTab === 'businesses' && (
-                                    <BusinessesPage businesses={businesses} />
-                                )}
-                                {activeTab === 'debts' && (
-                                    <DebtsPage loans={loans} />
-                                )}
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
-                </motion.div>
-            </motion.div>
-        </AnimatePresence>
+                {/* Page Content */}
+                <div className="flex-grow min-h-0 overflow-y-auto p-6 scrollable-content">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            {activeTab === 'treasury' && (
+                                <TreasuryPage gold={state.gold} investments={investments} businesses={businesses} />
+                            )}
+                            {activeTab === 'investments' && (
+                                <InvestmentsPage investments={activeInvestments} />
+                            )}
+                            {activeTab === 'businesses' && (
+                                <BusinessesPage businesses={businesses} />
+                            )}
+                            {activeTab === 'debts' && (
+                                <DebtsPage loans={loans} />
+                            )}
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </div>
+        </WindowFrame>
     );
 };
 

@@ -49,36 +49,24 @@ const ActionEconomyBar: React.FC<ActionEconomyBarProps> = ({ character, onExecut
   const showSustainButton = concentratingOn && concentratingOn.sustainCost && !concentratingOn.sustainedThisTurn;
   const sustainCostLabel = concentratingOn?.sustainCost?.actionType === 'bonus_action' ? 'Bonus Action' : 'Action';
 
-  return (
-    <div className="bg-gray-800/80 p-3 rounded-lg backdrop-blur-sm shadow-lg border border-gray-700 space-y-2">
-      <h3 className="text-center text-sm font-bold text-amber-300 mb-2">Actions</h3>
+  const econItem = (used: boolean, icon: string, label: string, ariaLabel: string, remaining: string, color: string) => (
+    <div className={`flex flex-1 flex-col items-center gap-0.5 rounded-lg border border-slate-700/70 bg-slate-800/60 py-1.5 transition-opacity ${used ? 'opacity-40' : 'opacity-100'}`}>
+      <span className="text-xl leading-none" role="img" aria-label={ariaLabel}>{icon}</span>
+      <span className={`text-[10px] font-bold uppercase tracking-wide ${used ? 'text-slate-500 line-through' : color}`}>{label}</span>
+      <span className="text-[9px] font-semibold text-slate-400">{remaining}</span>
+    </div>
+  );
 
-      {/* Action, Bonus, Reaction */}
-      <div className="flex justify-around text-center">
-        <Tooltip content="Action">
-          <div className={`p-1 flex flex-col items-center transition-opacity ${actionEconomy.action.used ? 'opacity-40' : 'opacity-100'}`}>
-            <span className="text-2xl" role="img" aria-label="Action">⚔️</span>
-            <span className={`text-xs font-bold ${actionEconomy.action.used ? 'text-gray-400 line-through' : 'text-red-400'}`}>Action</span>
-          </div>
-        </Tooltip>
-        <Tooltip content="Bonus Action">
-          <div className={`p-1 flex flex-col items-center transition-opacity ${actionEconomy.bonusAction.used ? 'opacity-40' : 'opacity-100'}`}>
-            <span className="text-2xl" role="img" aria-label="Bonus Action">⭐</span>
-            <span className={`text-xs font-bold ${actionEconomy.bonusAction.used ? 'text-gray-400 line-through' : 'text-yellow-400'}`}>Bonus</span>
-          </div>
-        </Tooltip>
-        <Tooltip content="Reaction">
-          <div className={`p-1 flex flex-col items-center transition-opacity ${actionEconomy.reaction.used ? 'opacity-40' : 'opacity-100'}`}>
-            <span className="text-2xl" role="img" aria-label="Reaction">🛡️</span>
-            <span className={`text-xs font-bold ${actionEconomy.reaction.used ? 'text-gray-400 line-through' : 'text-blue-400'}`}>Reaction</span>
-          </div>
-        </Tooltip>
-        <Tooltip content="Free Object Interaction">
-          <div className={`p-1 flex flex-col items-center transition-opacity ${actionEconomy.freeActions <= 0 ? 'opacity-40' : 'opacity-100'}`}>
-            <span className="text-2xl" role="img" aria-label="Free Object Interaction">🖐️</span>
-            <span className={`text-xs font-bold ${actionEconomy.freeActions <= 0 ? 'text-gray-400 line-through' : 'text-green-400'}`}>Free</span>
-          </div>
-        </Tooltip>
+  return (
+    <div className="rounded-xl border border-amber-900/40 bg-slate-900/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_30px_rgba(0,0,0,0.45)] backdrop-blur-sm p-3 space-y-2">
+      <h3 className="text-[11px] font-bold uppercase tracking-[0.22em] text-amber-400/90 mb-2">Actions</h3>
+
+      {/* Action, Bonus, Reaction, Free */}
+      <div className="flex gap-1.5 text-center">
+        <Tooltip content="Action">{econItem(actionEconomy.action.used, '⚔', 'Action', 'Action', actionEconomy.action.used ? '0/1' : '1/1', 'text-rose-300')}</Tooltip>
+        <Tooltip content="Bonus Action">{econItem(actionEconomy.bonusAction.used, '★', 'Bonus', 'Bonus Action', actionEconomy.bonusAction.used ? '0/1' : '1/1', 'text-amber-300')}</Tooltip>
+        <Tooltip content="Reaction">{econItem(actionEconomy.reaction.used, '🛡', 'Reaction', 'Reaction', actionEconomy.reaction.used ? '0/1' : '1/1', 'text-sky-300')}</Tooltip>
+        <Tooltip content="Free Object Interaction">{econItem(actionEconomy.freeActions <= 0, '🖐', 'Free', 'Free Object Interaction', '∞', 'text-emerald-300')}</Tooltip>
       </div>
 
       {/* Sustain Button */}
@@ -100,10 +88,10 @@ const ActionEconomyBar: React.FC<ActionEconomyBarProps> = ({ character, onExecut
       <div className="pt-2">
         <Tooltip content={`Movement: ${actionEconomy.movement.total - actionEconomy.movement.used} / ${actionEconomy.movement.total} ft remaining`}>
           <div>
-            <span className="text-xs font-bold text-green-400 text-center block mb-1">Movement</span>
-            <div className="w-full bg-gray-600 rounded-full h-4 shadow-inner overflow-hidden relative border border-gray-500">
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300 text-center block mb-1">Movement</span>
+            <div className="w-full bg-slate-950 rounded-full h-4 shadow-inner overflow-hidden relative border border-slate-700">
               <motion.div
-                className="bg-green-500 h-full rounded-full"
+                className="bg-gradient-to-r from-emerald-600 to-emerald-400 h-full rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${movementPercentage}%` }}
                 transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.5, ease: "easeOut" }}

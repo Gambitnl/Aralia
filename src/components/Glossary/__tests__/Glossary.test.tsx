@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Glossary from '../Glossary';
 import GlossaryContext from '../../../context/GlossaryContext';
@@ -120,6 +120,12 @@ describe('Glossary', () => {
     expect(container.firstChild).toBeNull();
   });
 
+  it('keeps the glossary diagnostics header action large enough to tap', () => {
+    renderGlossary();
+
+    expect(screen.getByRole('button', { name: 'Re-check spells' })).toHaveClass('h-11', 'w-11');
+  });
+
   it('navigates to see-also targets and expands nested parents', () => {
     renderGlossary();
 
@@ -224,5 +230,47 @@ describe('Glossary', () => {
 
     await waitFor(() => {});
     expect(fetchWithTimeoutMock).not.toHaveBeenCalledWith('/api/glossary/rebuild-index', expect.any(Object));
+  });
+
+  it('keeps the narrow stacked layout inside the window with two scrollable panels', () => {
+    const { container } = renderGlossary();
+
+    // The rendered playtest found that the glossary stacks sidebar above entry
+    // content on cramped viewports. The outer container must divide the fixed
+    // window height between those two panels instead of letting the sidebar
+    // grow to its full category-list height and push the entry below the frame.
+    const mainContainer = container.querySelector('.glossary-main-container');
+    expect(mainContainer).toHaveClass('max-md:overflow-y-auto');
+    expect(mainContainer).toHaveClass('max-md:pr-1');
+
+    // The sidebar should only refuse shrinking in the desktop row layout. On
+    // narrow screens it needs a bounded max height and normal shrinking so the
+    // selected entry panel remains reachable in the same window.
+    const sidebar = container.querySelector('.glossary-list-container');
+    expect(sidebar).toHaveClass('md:flex-shrink-0');
+    expect(sidebar).toHaveClass('max-md:flex-shrink');
+    expect(sidebar).toHaveClass('max-md:max-h-[45%]');
+
+    // The column resize affordance only has meaning when the panels sit in a
+    // desktop row. It must not leave a stray vertical grabber in the stacked
+    // narrow layout between the list and the selected-entry panel.
+    const columnGrabber = screen.getByRole('button', { name: /resize glossary columns/i });
+    expect(columnGrabber).toHaveClass('hidden');
+    expect(columnGrabber).toHaveClass('md:flex');
+  });
+
+  it('keeps glossary navigation controls touch-sized in the cramped window layout', () => {
+    renderGlossary();
+
+    // The rendered playtest found compact 32px entry rows and a tiny breadcrumb
+    // category button in the narrow Glossary window. These are primary
+    // navigation controls, so their minimum size is part of the product surface.
+    expect(screen.getByRole('button', { name: 'Entry A' })).toHaveClass('min-h-11');
+
+    const breadcrumb = screen.getByLabelText('Breadcrumb');
+    expect(within(breadcrumb).getByRole('button', { name: /Alpha/ })).toHaveClass('min-h-11');
+
+    fireEvent.click(screen.getByText(/Search/));
+    expect(screen.getByLabelText('Search glossary terms')).toHaveClass('min-h-11');
   });
 });

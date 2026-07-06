@@ -210,6 +210,7 @@ describe('PartyMemberCard', () => {
   it('calls onMoreClick when character sheet button is clicked', () => {
     render(<PartyMemberCard {...mockProps} />);
     const button = screen.getByRole('button', { name: /More options for Aethelgard/i });
+    expect(button).toHaveClass('h-11', 'w-11');
     fireEvent.click(button);
     expect(mockProps.onMoreClick).toHaveBeenCalled();
   });
@@ -220,6 +221,7 @@ describe('PartyMemberCard', () => {
 
     const warningButton = screen.getByLabelText('Fix missing character selection');
     expect(warningButton).toBeInTheDocument();
+    expect(warningButton).toHaveClass('h-11', 'w-11');
 
     fireEvent.click(warningButton);
     expect(mockProps.onMissingChoiceClick).toHaveBeenCalledWith(
@@ -237,6 +239,8 @@ describe('PartyMemberCard', () => {
 
     expect(featButton).toBeInTheDocument();
     expect(skillButton).toBeInTheDocument();
+    expect(featButton).toHaveClass('min-h-11');
+    expect(skillButton).toHaveClass('min-h-11');
 
     fireEvent.click(skillButton);
     expect(mockProps.onMissingChoiceClick).toHaveBeenCalledWith(
@@ -272,6 +276,7 @@ describe('PartyMemberCard', () => {
 
     const dismissButton = screen.getByRole('button', { name: /Dismiss Aethelgard from the party/i });
     expect(dismissButton).toBeInTheDocument();
+    expect(dismissButton).toHaveClass('min-h-11');
 
     fireEvent.click(dismissButton);
     expect(onDismiss).toHaveBeenCalledWith('char1');

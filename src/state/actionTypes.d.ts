@@ -804,6 +804,7 @@ export type AppAction = {
     payload: {
         destinationId: string;
         distance: number;
+        danger?: number;
     };
 } | {
     type: 'NAVAL_ADVANCE_VOYAGE';
@@ -830,6 +831,8 @@ export type AppAction = {
     };
 } | {
     type: 'NAVAL_CLEAR_VOYAGE';
+} | {
+    type: 'NAVAL_CLEAR_SEA_ENCOUNTER';
 } | {
     type: 'TOGGLE_NAVAL_DASHBOARD';
 } | {

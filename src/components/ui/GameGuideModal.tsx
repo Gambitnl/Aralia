@@ -164,11 +164,14 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
         <div
             id={UI_ID.GAME_GUIDE_MODAL}
             data-testid={UI_ID.GAME_GUIDE_MODAL}
-            className={`fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[${Z_INDEX.MODAL_CONTENT}] p-4`}
+            // Keep the guide above the play surface with a concrete registry
+            // value; Tailwind cannot generate dynamic z-index classes here.
+            style={{ zIndex: Z_INDEX.MODAL_CONTENT }}
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 p-4"
         >
             <div
                 ref={modalRef}
-                className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-blue-500/50 w-full max-w-lg flex flex-col max-h-[90vh] focus:outline-none"
+                className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-blue-500/50 w-full max-w-lg flex flex-col max-h-[90vh] overflow-y-auto scrollable-content focus:outline-none"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
@@ -180,7 +183,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-white text-3xl"
+                        className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md text-3xl text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
                         aria-label="Close guide"
                     >
                         &times;
@@ -191,7 +194,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                     <p>{t('game_guide.intro')}</p>
                     <button
                         onClick={() => setShowCreationTools(!showCreationTools)}
-                        className="text-sky-400 text-xs hover:underline mt-2 flex items-center gap-1"
+                        className="mt-2 inline-flex min-h-11 items-center gap-1 rounded px-1 text-xs text-sky-400 hover:underline focus:outline-none focus:ring-2 focus:ring-sky-400"
                     >
                         {showCreationTools ? t('game_guide.toggle_tools_hide') : t('game_guide.toggle_tools_show')}
                     </button>
@@ -204,13 +207,14 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                             className="mb-4 overflow-hidden bg-gray-900/50 p-3 rounded-lg border border-gray-700"
                         >
                             <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">{t('game_guide.quick_creator_title')}</h3>
+                            {/* Keep the optional hero-creation rites playable at phone width instead of shrinking them into desktop-only picker controls. */}
                             <div className="grid grid-cols-2 gap-2 mb-3">
                                 <div>
                                     <label className="block text-[10px] text-gray-400 mb-1">{t('game_guide.label_race')}</label>
                                     <select
                                         value={quickRace}
                                         onChange={(e) => setQuickRace(e.target.value)}
-                                        className="w-full bg-gray-800 border border-gray-600 text-white text-xs rounded p-1 focus:ring-1 focus:ring-blue-500 outline-none"
+                                        className="min-h-11 w-full rounded border border-gray-600 bg-gray-800 px-2 py-2 text-sm text-white outline-none focus:ring-1 focus:ring-blue-500 sm:text-xs"
                                     >
                                         {Object.values(RACES_DATA).sort((a, b) => a.name.localeCompare(b.name)).map(race => (
                                             <option key={race.id} value={race.id}>{race.name}</option>
@@ -222,7 +226,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                                     <select
                                         value={quickClass}
                                         onChange={(e) => setQuickClass(e.target.value)}
-                                        className="w-full bg-gray-800 border border-gray-600 text-white text-xs rounded p-1 focus:ring-1 focus:ring-blue-500 outline-none"
+                                        className="min-h-11 w-full rounded border border-gray-600 bg-gray-800 px-2 py-2 text-sm text-white outline-none focus:ring-1 focus:ring-blue-500 sm:text-xs"
                                     >
                                         {AVAILABLE_CLASSES.sort((a, b) => a.name.localeCompare(b.name)).map(cls => (
                                             <option key={cls.id} value={cls.id}>{cls.name}</option>
@@ -233,7 +237,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                             <button
                                 onClick={handleQuickGenerate}
                                 disabled={loading}
-                                className="w-full bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold py-2 rounded shadow-sm transition-colors disabled:bg-gray-600"
+                                className="min-h-11 w-full rounded bg-purple-700 px-3 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-purple-600 disabled:bg-gray-600 sm:text-xs"
                             >
                                 {t('game_guide.button_generate')}
                             </button>
@@ -242,19 +246,20 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                 </AnimatePresence>
 
                 <form onSubmit={handleSubmit} className="mb-4">
-                    <div className="flex gap-2">
+                    {/* The Oracle prompt stacks on phone-width modals so the submit control cannot overrun the frame. */}
+                    <div className="flex flex-col gap-2 sm:flex-row">
                         <input
                             ref={inputRef}
                             type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder={t('game_guide.placeholder_query')}
-                            className="flex-grow px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="min-h-11 min-w-0 w-full flex-grow rounded-lg border border-gray-600 bg-gray-900 px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <button
                             type="submit"
                             disabled={loading || !query.trim()}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-white font-semibold rounded-lg transition-colors"
+                            className="min-h-11 w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-500 disabled:bg-gray-600 sm:w-auto sm:flex-shrink-0"
                         >
                             {loading ? t('game_guide.button_thinking') : t('game_guide.button_ask')}
                         </button>

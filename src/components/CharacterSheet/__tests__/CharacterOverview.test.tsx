@@ -47,4 +47,15 @@ describe('CharacterOverview', () => {
     // Save DC: 8 + 3 (prof) + 3 (mod) = 14
     expect(screen.getByText('14')).toBeDefined();
   });
+
+  it('keeps overview collapsible rows large enough to tap', () => {
+    const character = createMockPlayerCharacter();
+
+    render(
+      <CharacterOverview character={character} />
+    );
+
+    expect(screen.getByRole('button', { name: /Senses/i })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: /Proficiencies/i })).toHaveClass('min-h-11');
+  });
 });

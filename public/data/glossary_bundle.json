@@ -19408,7 +19408,7 @@
       "source:xphb",
       "variantrule"
     ],
-    "excerpt": "An ability check is a [[d20_test Test]] that represents using one of the six abilities—or a specific skill associated with an ability—to overcome a ch...",
+    "excerpt": "An ability check is a [[d20_test Test]] that represents using one of the six abilities-or a specific skill associated with an ability-to overcome a ch...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/ability_check.json"
@@ -19461,7 +19461,7 @@
       "source:xphb",
       "variantrule"
     ],
-    "excerpt": "A creature has six ability scores—Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma—each of which has a corresponding modifier. Ad...",
+    "excerpt": "A creature has six ability scores-Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma-each of which has a corresponding modifier. Ad...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/ability_score_and_modifier.json"
@@ -19961,7 +19961,7 @@
       "source:xphb",
       "variantrule"
     ],
-    "excerpt": "Some magic items require a creature to form a bond—called Attunement—with them before the creature can use an item's magical properties. A creature ca...",
+    "excerpt": "Some magic items require a creature to form a bond-called Attunement-with them before the creature can use an item's magical properties. A creature ca...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/attunement.json"
@@ -23092,7 +23092,7 @@
       "source:xphb",
       "variantrule"
     ],
-    "excerpt": "A Long Rest is a period of extended downtime—at least 8 hours—available to any creature. During a Long Rest, you sleep for at least 6 hours and perfor...",
+    "excerpt": "A Long Rest is a period of extended downtime-at least 8 hours-available to any creature. During a Long Rest, you sleep for at least 6 hours and perfor...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/long_rest.json"
@@ -24527,7 +24527,7 @@
       "source:xphb",
       "variantrule"
     ],
-    "excerpt": "A saving throw—also called a save—represents an attempt to avoid or resist a threat. You normally make a saving throw only when a rule requires you to...",
+    "excerpt": "A saving throw-also called a save-represents an attempt to avoid or resist a threat. You normally make a saving throw only when a rule requires you to...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/saving_throw.json"
@@ -24684,7 +24684,7 @@
       "source:xphb",
       "variantrule"
     ],
-    "excerpt": "If two or more things happen at the same time on a turn, the person at the game table—player or DM whose turn it is decides the order in which those t...",
+    "excerpt": "If two or more things happen at the same time on a turn, the person at the game table-player or DM whose turn it is decides the order in which those t...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/simultaneous_effects.json"
@@ -29121,8 +29121,32 @@
         "hasSpellJson": true
       },
       {
+        "id": "summon-fey",
+        "title": "Summon Fey",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
         "id": "summon-lesser-demons",
         "title": "Summon Lesser Demons",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "summon-undead",
+        "title": "Summon Undead",
         "category": "Spells",
         "tags": [
           "level 3"
@@ -29502,6 +29526,18 @@
         "hasSpellJson": true
       },
       {
+        "id": "fount-of-moonlight",
+        "title": "Fount of Moonlight",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
         "id": "freedom-of-movement",
         "title": "Freedom of Movement",
         "category": "Spells",
@@ -29761,6 +29797,42 @@
           "level 4"
         ],
         "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "summon-aberration",
+        "title": "Summon Aberration",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "summon-construct",
+        "title": "Summon Construct",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "summon-elemental",
+        "title": "Summon Elemental",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -30219,6 +30291,20 @@
         "hasSpellJson": true
       },
       {
+        "id": "jallarzis-storm-of-radiance",
+        "title": "Jallarzi's Storm of Radiance",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [
+          "Jallarzi's Storm of Radiance"
+        ],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
         "id": "legend-lore",
         "title": "Legend Lore",
         "category": "Spells",
@@ -30399,6 +30485,30 @@
         "hasSpellJson": true
       },
       {
+        "id": "summon-celestial",
+        "title": "Summon Celestial",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "summon-dragon",
+        "title": "Summon Dragon",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
         "id": "swift-quiver",
         "title": "Swift Quiver",
         "category": "Spells",
@@ -30515,6 +30625,20 @@
         ],
         "excerpt": "Evocation spell",
         "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "yolandes-regal-presence",
+        "title": "Yolande's Regal Presence",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [
+          "Yolande's Regal Presence"
+        ],
         "filePath": null,
         "hasSpellJson": true
       }
@@ -30960,6 +31084,18 @@
         "hasSpellJson": true
       },
       {
+        "id": "summon-fiend",
+        "title": "Summon Fiend",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
         "id": "sunbeam",
         "title": "Sunbeam",
         "category": "Spells",
@@ -30968,6 +31104,20 @@
         ],
         "excerpt": "Evocation spell",
         "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "tashas-bubbling-cauldron",
+        "title": "Tasha's Bubbling Cauldron",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [
+          "Tasha's Bubbling Cauldron"
+        ],
         "filePath": null,
         "hasSpellJson": true
       },
@@ -31235,6 +31385,18 @@
         "hasSpellJson": true
       },
       {
+        "id": "power-word-fortify",
+        "title": "Power Word Fortify",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
         "id": "power-word-pain",
         "title": "Power Word Pain",
         "category": "Spells",
@@ -31426,6 +31588,18 @@
       {
         "id": "antipathy-sympathy",
         "title": "Antipathy/Sympathy",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "befuddlement",
+        "title": "Befuddlement",
         "category": "Spells",
         "tags": [
           "level 8"

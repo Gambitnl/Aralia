@@ -475,6 +475,12 @@ export interface DeclutterOptions {
    * labels are spaced apart rather than allowed to touch. Defaults to 2.
    */
   pad?: number;
+  /**
+   * Maximum number of labels to keep after priority sorting and collision
+   * checks. Small map panes use this to avoid filling the viewport with state
+   * names before the player has zoomed in.
+   */
+  maxLabels?: number;
 }
 
 /**
@@ -505,6 +511,7 @@ export function declutterLabels(
   const townMin = opts.townMinScale ?? 2.0;
   const pad = opts.pad ?? 2;
   const bounds = opts.bounds;
+  const maxLabels = opts.maxLabels ?? Infinity;
   const visible = labels.filter((l) =>
     l.kind === 'state'
     || (l.kind === 'capital' && view.k >= capMin)
@@ -549,6 +556,7 @@ export function declutterLabels(
     if (hit) continue;
     placed.push(box);
     out.push({ ...l, sx, sy, fontSize });
+    if (out.length >= maxLabels) break;
   }
   return out;
 }

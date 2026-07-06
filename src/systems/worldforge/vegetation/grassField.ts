@@ -151,17 +151,23 @@ export function buildGrassField(
       terrain.positions[idx11 * 3 + 1] * fx * fz;
 
     positions.push(u * S, y, v * S);
-    scales.push(0.6 + hash01(n, salt, 7) * 0.8);
+    // Wider height spread so a tuft reads as mixed blade lengths, not a uniform
+    // brush. Blade geometry bakes a base→tip darkening gradient, so the tint
+    // here is the TIP color (the base is multiplied down in the mesh).
+    scales.push(0.55 + hash01(n, salt, 7) * 0.9);
     rotations.push(hash01(n, salt, 11) * Math.PI);
-    // Keep tints at-or-below the terrain color: brighter-than-ground blades
-    // read as washed-out white streaks against the painted grass.
-    // At-or-below the terrain color (brighter-than-ground blades read as
-    // washed-out streaks); renderer treats these floats as sRGB.
-    const vary = 0.75 + hash01(n, salt, 13) * 0.22;
+    // Tip tint: a lighter, faintly yellow-green highlight sampled from the
+    // ground color. The blade's baked base→tip gradient (0.72 → 1.0) keeps the
+    // root matched to the terrain while the tip catches this brighter green, so
+    // near grass reads as sunlit grass rather than dark stubble. Green is
+    // lifted slightly above ground; red gets a small warm push for the
+    // sun-bleached tip; the renderer treats these floats as sRGB.
+    const vary = 0.82 + hash01(n, salt, 13) * 0.18;
+    const gTip = Math.min(1, g * (1.02 + hash01(n, salt, 17) * 0.16));
     tints.push(
-      r * vary,
-      g * (0.8 + hash01(n, salt, 17) * 0.22),
-      b * vary,
+      Math.min(1, r * (vary + 0.12)),
+      gTip,
+      b * vary * 0.9,
     );
   }
 

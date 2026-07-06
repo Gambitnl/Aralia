@@ -420,6 +420,17 @@ export interface LevelUpChoices {
   featId?: string;
   /** Subclass chosen at the level-3 milestone (id from SUBCLASSES[classId]). */
   subclassId?: string;
+  /**
+   * Cantrips the player chose to learn this level (spell ids). Only applied up
+   * to the class's derived cantrip capacity; never auto-picked. Absent means the
+   * player has not chosen yet and the allowance should be surfaced instead.
+   */
+  selectedCantrips?: string[];
+  /**
+   * Leveled spells the player chose to learn this level, for known-casters that
+   * add to a fixed spells-known list (spell ids). Never auto-picked.
+   */
+  selectedKnownSpells?: string[];
   featChoices?: {
     // Store choices made for feats during level-up (e.g., selected ability score, spells, etc.)
     [featId: string]: FeatChoice;

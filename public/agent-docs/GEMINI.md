@@ -25,7 +25,6 @@ Advanced capabilities extending standard model tools, located in `.agent/skills/
 
 | Skill | Description |
 | :--- | :--- |
-| [stitch-ui-generation](file:///C:/Users/gambi/Documents/Git/AraliaV4/Aralia/.agent/skills/stitch_ui_generation/SKILL.md) | High-fidelity UI generation using Google Stitch MCP. |
 | [maintain_icon_system](file:///C:/Users/gambi/Documents/Git/AraliaV4/Aralia/.agent/skills/maintain_icon_system/SKILL.md) | Auditing, sourcing, and configuring MDI icons via Design Preview. |
 | [manage_icons](file:///C:/Users/gambi/Documents/Git/AraliaV4/Aralia/.agent/skills/manage_icons/SKILL.md) | standard instructions for adding/updating icons in the codebase. |
 
@@ -35,8 +34,6 @@ Manual procedures triggered via slash commands (e.g., `/extract-terminal-learnin
 | Command | Workflow Description |
 | :--- | :--- |
 | [/extract-terminal-learnings](workflows/extract-terminal-learnings.md) | Scans history to update `Terminal.md` with new CLI insights. |
-| [/stitch-generate](workflows/stitch-generate.md) | Steps for generating UI screens from text prompts via Stitch. |
-| [/stitch-prompt](workflows/stitch-prompt.md) | Helper for crafting effective prompts for UI generation. |
 | [/maintain-icons](workflows/maintain-icons.md) | End-to-end icon audit and update procedure. |
 | [/check-doc-naming](workflows/check-doc-naming.md) | Enforces naming conventions before creating documentation. |
 

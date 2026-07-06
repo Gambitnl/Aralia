@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 09:06:27
+ * Last Sync: 05/07/2026, 10:07:46
  * Dependents: App.tsx
- * Imports: 13 files
+ * Imports: 15 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -60,6 +60,33 @@ import { type OverlayMarker } from "./overlay";
 // ============================================================================
 // Main Dashboard Component
 // ============================================================================
+
+/**
+ * Convert the measured Worldforge workspace into a canvas size. Width follows
+ * the real container so phone viewports do not receive a 480px-wide canvas that
+ * spills offscreen; height keeps a small floor so hidden/initial measurements
+ * still produce a drawable surface.
+ */
+export function measureAtlasDemoMapSize(rect: { width: number; height: number }): { width: number; height: number } {
+  return {
+    width: Math.max(1, Math.floor(rect.width)),
+    height: Math.max(260, Math.floor(rect.height)),
+  };
+}
+
+/**
+ * Shared breadcrumb overlay classes. Phone layouts need explicit left and
+ * right bounds plus wrapping because local-view coordinates can be longer than
+ * the available map width; desktop keeps the original compact top-right strip.
+ */
+export const atlasDemoBreadcrumbClassName =
+  "absolute top-20 left-2 right-2 z-20 flex max-w-[calc(100%-1rem)] flex-col items-start gap-1 px-3 py-2 bg-gray-900/85 backdrop-blur-md border border-gray-800 rounded-lg text-xs select-none shadow-xl sm:top-3 sm:left-auto sm:right-3 sm:max-w-[calc(100%-1.5rem)] sm:flex-row sm:items-center sm:gap-4";
+
+export const atlasDemoBreadcrumbIdentityClassName =
+  "flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 font-mono text-gray-400";
+
+export const atlasDemoBreadcrumbHintClassName =
+  "flex max-w-full items-start gap-1.5 text-[10px] text-gray-500 sm:items-center";
 
 const AtlasDemo: React.FC = () => {
   // Navigation & View Mode — the full zoom chain: L0 atlas → L1 region → L2 local
@@ -128,10 +155,7 @@ const AtlasDemo: React.FC = () => {
     if (!el) return;
     const measure = () => {
       const rect = el.getBoundingClientRect();
-      setMapSize({
-        width: Math.max(480, Math.floor(rect.width)),
-        height: Math.max(320, Math.floor(rect.height)),
-      });
+      setMapSize(measureAtlasDemoMapSize(rect));
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -394,20 +418,20 @@ const AtlasDemo: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {/* Header Bar */}
-      <header className="border-b border-gray-900 bg-gray-950/80 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-3">
+      {/* Header Bar: on phone widths, stack the title and readouts while reserving room for the floating surface toggle. */}
+      <header className="sticky top-0 z-20 flex flex-col gap-3 border-b border-gray-900 bg-gray-950/80 px-4 py-4 pr-28 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex min-w-0 items-center gap-3">
           <div className="bg-indigo-600/20 text-indigo-400 p-2 rounded-lg border border-indigo-500/30">
             <Map size={20} />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
               {viewMode === "region" && (
                 <span className="text-xs font-mono font-bold bg-indigo-900/60 text-indigo-300 px-2 py-0.5 rounded border border-indigo-700/40">
                   L1 REGION
                 </span>
               )}
-              <h1 className="text-lg font-bold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+              <h1 className="text-lg font-bold leading-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
                 Worldforge Atlas Cartographer
               </h1>
             </div>
@@ -420,7 +444,7 @@ const AtlasDemo: React.FC = () => {
         </div>
 
         {/* Readout Strip */}
-        <div className="flex items-center gap-6 bg-gray-900/40 border border-gray-800/60 px-4 py-1.5 rounded-lg">
+        <div className="flex w-full max-w-full flex-wrap items-center gap-3 rounded-lg border border-gray-800/60 bg-gray-900/40 px-3 py-1.5 sm:w-auto sm:flex-nowrap sm:gap-6 sm:px-4">
           {viewMode === "atlas" ? (
             atlas && (
               <>
@@ -431,7 +455,7 @@ const AtlasDemo: React.FC = () => {
                     <span className="font-mono font-bold text-emerald-400">{genTimeMs.toFixed(1)}ms</span>
                   </div>
                 </div>
-                <div className="h-4 w-[1px] bg-gray-800" />
+                <div className="hidden h-4 w-[1px] bg-gray-800 sm:block" />
                 <div className="flex items-center gap-2">
                   <Layers size={14} className="text-blue-400" />
                   <div className="text-xs">
@@ -441,7 +465,7 @@ const AtlasDemo: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <div className="h-4 w-[1px] bg-gray-800" />
+                <div className="hidden h-4 w-[1px] bg-gray-800 sm:block" />
                 <div className="flex items-center gap-2">
                   <Sparkles size={14} className="text-purple-400" />
                   <div className="text-xs">
@@ -453,7 +477,7 @@ const AtlasDemo: React.FC = () => {
                 </div>
                 {atlas.pack.states && (
                   <>
-                    <div className="h-4 w-[1px] bg-gray-800" />
+                    <div className="hidden h-4 w-[1px] bg-gray-800 sm:block" />
                     <div className="flex items-center gap-2">
                       <div className="text-xs">
                         <span className="text-gray-500 mr-1">States:</span>
@@ -462,7 +486,7 @@ const AtlasDemo: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="h-4 w-[1px] bg-gray-800" />
+                    <div className="hidden h-4 w-[1px] bg-gray-800 sm:block" />
                     <div className="flex items-center gap-2">
                       <div className="text-xs">
                         <span className="text-gray-500 mr-1">Burgs:</span>
@@ -487,7 +511,7 @@ const AtlasDemo: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <div className="h-4 w-[1px] bg-gray-800" />
+                <div className="hidden h-4 w-[1px] bg-gray-800 sm:block" />
                 <div className="flex items-center gap-2">
                   <Sparkles size={14} className="text-purple-400" />
                   <div className="text-xs">
@@ -507,11 +531,11 @@ const AtlasDemo: React.FC = () => {
           over it Azgaar-style (Remy, 2026-06-11) */}
       <main ref={workspaceRef} className="flex-1 relative bg-gray-950 overflow-hidden">
         {/* Foldable Options Panel — pinned top-left INSIDE the viewport */}
-        <section className="absolute top-3 left-3 z-30 flex flex-col gap-2 w-80 max-h-[calc(100%-1.5rem)] pointer-events-none">
+        <section className="absolute top-2 left-2 right-2 z-30 flex max-h-[calc(100%-1rem)] flex-col gap-2 pointer-events-none sm:top-3 sm:left-3 sm:right-auto sm:w-80 sm:max-h-[calc(100%-1.5rem)]">
           <button
             type="button"
             onClick={() => setPanelOpen((o) => !o)}
-            className="pointer-events-auto self-start flex items-center gap-2 bg-gray-900/85 backdrop-blur-md border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white px-3 py-2 rounded-lg shadow-xl transition-all active:scale-95"
+            className="pointer-events-auto self-start flex min-h-11 items-center gap-2 bg-gray-900/85 backdrop-blur-md border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white px-3 py-2 rounded-lg shadow-xl transition-all active:scale-95"
             title={panelOpen ? "Collapse options" : "Expand options"}
           >
             {panelOpen ? <PanelLeftClose size={16} /> : <Menu size={16} />}
@@ -519,17 +543,17 @@ const AtlasDemo: React.FC = () => {
           </button>
 
           {panelOpen && (
-            <div className="pointer-events-auto flex flex-col gap-3 overflow-y-auto pr-1 pb-1">
+            <div className="pointer-events-auto flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1 pb-16 sm:pb-1">
           {viewMode === "atlas" ? (
             <>
               {/* L0 Generation Panel */}
-              <div className="bg-gray-900/85 backdrop-blur-md border border-gray-800 rounded-xl p-5 flex flex-col gap-4 shadow-xl">
-                <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
+              <div className="bg-gray-900/85 backdrop-blur-md border border-gray-800 rounded-xl p-3 flex flex-col gap-2 shadow-xl sm:p-5 sm:gap-4">
+                <div className="flex items-center gap-2 border-b border-gray-800 pb-2 sm:pb-3">
                   <Settings size={16} className="text-indigo-400" />
                   <h2 className="text-sm font-bold tracking-wide text-gray-300">WORLD GENERATOR</h2>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-1 sm:gap-1.5">
                   <label htmlFor="seedInput" className="text-xs font-semibold text-gray-400">World Seed</label>
                   <div className="flex gap-2">
                     <input
@@ -537,13 +561,13 @@ const AtlasDemo: React.FC = () => {
                       type="text"
                       value={seed}
                       onChange={(e) => setSeed(e.target.value)}
-                      className="flex-1 bg-gray-950 border border-gray-800 rounded-lg px-3 py-1.5 text-sm font-mono text-indigo-300 focus:outline-none focus:border-indigo-500 transition-colors"
+                      className="min-h-11 flex-1 bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm font-mono text-indigo-300 focus:outline-none focus:border-indigo-500 transition-colors"
                       placeholder="Enter seed..."
                     />
                     <button
                       type="button"
                       onClick={randomizeSeed}
-                      className="bg-gray-800 border border-gray-700 hover:bg-gray-700 text-gray-300 hover:text-white p-2 rounded-lg transition-all active:scale-95"
+                      className="flex min-h-11 min-w-11 items-center justify-center bg-gray-800 border border-gray-700 hover:bg-gray-700 text-gray-300 hover:text-white p-2 rounded-lg transition-all active:scale-95"
                       title="Randomize Seed"
                     >
                       <Dices size={16} />
@@ -551,13 +575,13 @@ const AtlasDemo: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-1 sm:gap-1.5">
                   <label htmlFor="templateSelect" className="text-xs font-semibold text-gray-400">Heightmap Template</label>
                   <select
                     id="templateSelect"
                     value={template}
                     onChange={(e) => setTemplate(e.target.value)}
-                    className="bg-gray-950 border border-gray-800 rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+                    className="min-h-11 bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
                   >
                     {Object.entries(heightmapTemplates).map(([key, t]) => (
                       <option key={key} value={key}>
@@ -567,13 +591,13 @@ const AtlasDemo: React.FC = () => {
                   </select>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-1 sm:gap-1.5">
                   <span className="text-xs font-semibold text-gray-400">Cell Density</span>
                   <div className="grid grid-cols-2 gap-2 bg-gray-950 p-1 rounded-lg border border-gray-800">
                     <button
                       type="button"
                       onClick={() => setCellsDesired(1000)}
-                      className={`py-1 text-xs font-mono font-bold rounded-md transition-all ${
+                      className={`min-h-11 py-2 text-xs font-mono font-bold rounded-md transition-all ${
                         cellsDesired === 1000
                           ? "bg-indigo-600 text-white shadow-md"
                           : "text-gray-500 hover:text-gray-300 hover:bg-gray-900/50"
@@ -584,7 +608,7 @@ const AtlasDemo: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setCellsDesired(10000)}
-                      className={`py-1 text-xs font-mono font-bold rounded-md transition-all ${
+                      className={`min-h-11 py-2 text-xs font-mono font-bold rounded-md transition-all ${
                         cellsDesired === 10000
                           ? "bg-indigo-600 text-white shadow-md"
                           : "text-gray-500 hover:text-gray-300 hover:bg-gray-900/50"
@@ -599,7 +623,7 @@ const AtlasDemo: React.FC = () => {
                   type="button"
                   onClick={handleGenerate}
                   disabled={isGenerating}
-                  className="w-full mt-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 active:from-indigo-700 active:to-indigo-800 disabled:opacity-50 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full min-h-11 mt-1 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 active:from-indigo-700 active:to-indigo-800 disabled:opacity-50 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer sm:mt-2"
                 >
                   {isGenerating ? (
                     <>
@@ -849,8 +873,8 @@ const AtlasDemo: React.FC = () => {
 
           {/* Breadcrumb Navigation Strip — floats top-right over the map */}
           {atlas && (
-            <div className="absolute top-3 right-3 z-20 flex items-center gap-4 px-3 py-2 bg-gray-900/85 backdrop-blur-md border border-gray-800 rounded-lg text-xs select-none shadow-xl">
-              <div className="flex items-center gap-2 font-mono text-gray-400">
+            <div className={atlasDemoBreadcrumbClassName}>
+              <div className={atlasDemoBreadcrumbIdentityClassName}>
                 <span className="text-indigo-400 font-semibold">Seed:</span> {seed}
                 {viewMode !== "atlas" && (
                   <>
@@ -867,9 +891,9 @@ const AtlasDemo: React.FC = () => {
                   </>
                 )}
               </div>
-              <div className="text-[10px] text-gray-500 flex items-center gap-1.5">
-                <HelpCircle size={12} />
-                <span>
+              <div className={atlasDemoBreadcrumbHintClassName}>
+                <HelpCircle size={12} className="mt-0.5 shrink-0 sm:mt-0" />
+                <span className="min-w-0">
                   {viewMode === "atlas"
                     ? "Click any land cell to zoom-descend into region details"
                     : viewMode === "region"
@@ -896,7 +920,7 @@ const AtlasDemo: React.FC = () => {
               data-testid="worldforge-travel-toggle"
               aria-pressed={travelMode}
               onClick={() => setTravelMode((t) => !t)}
-              className={`absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold shadow-xl transition-all active:scale-95 border ${
+              className={`absolute top-3 left-1/2 -translate-x-1/2 z-20 flex min-h-11 items-center gap-2 px-4 py-2 rounded-full text-xs font-bold shadow-xl transition-all active:scale-95 border ${
                 travelMode
                   ? "bg-rose-600 hover:bg-rose-500 text-white border-rose-400"
                   : "bg-gray-900/85 backdrop-blur-md hover:bg-gray-800 text-gray-200 border-gray-700"

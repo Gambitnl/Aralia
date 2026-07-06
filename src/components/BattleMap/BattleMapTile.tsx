@@ -25,7 +25,7 @@
  * mutate the map.
  */
 import React from 'react';
-import { BattleMapTile as BattleMapTileData, BattleMapDecoration, EnvironmentalEffect, LightLevel } from '../../types/combat';
+import { BattleMapTile as BattleMapTileData, EnvironmentalEffect, LightLevel } from '../../types/combat';
 
 interface BattleMapTileProps {
   tile: BattleMapTileData;
@@ -35,6 +35,10 @@ interface BattleMapTileProps {
   isAoePreview: boolean;
   isTeleportDestinationPreview: boolean;
   isObjectMoveDestination?: boolean;
+  /** Which edges of this tile form the outer boundary of the reachable-move
+   *  region. The perimeter gets a crisp stroke so "how far can I go" is a
+   *  single readable outline instead of a shapeless wash. */
+  moveEdges?: { top: boolean; right: boolean; bottom: boolean; left: boolean };
   isVisible?: boolean;
   lightLevel?: LightLevel;
   showCoverLabel?: boolean;
@@ -150,69 +154,74 @@ function getCoverTileVisual(tile: BattleMapTileData): CoverTileVisual | null {
   return null;
 }
 
-const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, isTeleportDestinationPreview, isObjectMoveDestination = false, isVisible = true, lightLevel = 'bright', showCoverLabel = false, targetingMode, onTileClick, onTileHover }) => {
+const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, isTeleportDestinationPreview, isObjectMoveDestination = false, moveEdges, isVisible = true, lightLevel = 'bright', showCoverLabel = false, targetingMode, onTileClick, onTileHover }) => {
   // Terrain color is the underlying ground. Spell-mutated environmental effects
   // are layered later so they can appear on grass, stone, water, or any biome.
+  // Muted, low-chroma terrain tones so the translucent move/attack/AoE overlays
+  // read clearly on top (the ornate mockup relies on that contrast). Grass is a
+  // deep forest green rather than a bright mid-green so the emerald move-range
+  // highlight stands out against it.
   const getTerrainColor = (terrain: string) => {
     switch (terrain) {
-      case 'grass': return 'bg-green-800';
+      case 'grass': return 'bg-[#1c3524]';
       case 'rock':
       case 'floor':
-      case 'stone': return 'bg-gray-600';
-      case 'water': return 'bg-blue-700';
-      case 'difficult': return 'bg-yellow-700';
-      case 'wall': return 'bg-gray-900';
-      case 'sand': return 'bg-yellow-600';
-      case 'mud': return 'bg-stone-700';
-      default: return 'bg-black';
+      case 'stone': return 'bg-slate-600';
+      case 'water': return 'bg-sky-900';
+      case 'difficult': return 'bg-amber-900';
+      case 'wall': return 'bg-slate-900';
+      case 'sand': return 'bg-yellow-800';
+      case 'mud': return 'bg-stone-800';
+      default: return 'bg-[#0e1a13]';
     }
   };
 
-  const getDecoration = (decoration: BattleMapDecoration) => {
-    switch (decoration) {
-      case 'tree': return '🌳';
-      case 'boulder': return '🪨';
-      case 'stalagmite': return 'ʌ';
-      case 'pillar': return '🏛️';
-      case 'cactus': return '🌵';
-      case 'mangrove': return '🌿';
-      default: return null;
-    }
-  };
-  
-  const tileBaseClasses = 'w-full h-full flex items-center justify-center border border-gray-700/50';
+  // Tiles are transparent so the painted ground canvas (BattleMapGroundCanvas)
+  // shows through; a faint terrain tint keeps type legibility and gives the
+  // move/attack overlays something to sit on. Trees/rocks are drawn on the
+  // canvas now, so the tile no longer renders emoji decorations.
+  // Warm low-alpha ink line instead of flat gray, so the grid sits IN the
+  // painted illustration rather than on top of it like a spreadsheet.
+  const tileBaseClasses = 'w-full h-full flex items-center justify-center border border-[#8a6b42]/10';
   const terrainColor = getTerrainColor(tile.terrain);
-  const decoration = getDecoration(tile.decoration);
   const environmentalVisual = getEnvironmentalEffectVisual(tile);
   const coverVisual = showCoverLabel ? getCoverTileVisual(tile) : null;
   const environmentalSummary = tile.environmentalEffects?.map(effect => effect.type).join(', ') ?? 'none';
 
+  // Overlay palette matches the map legend: green = reachable movement, a
+  // brighter green = the chosen destination/path, red = attack/targetable,
+  // orange = area effect. Keeping these in sync with the legend is what makes
+  // the tactical read match the mockup.
   let overlayClass = '';
   if (isTeleportDestinationPreview) {
       overlayClass = 'bg-sky-400/55';
   } else if (isAoePreview) {
-      overlayClass = 'bg-red-500/60';
+      overlayClass = 'bg-orange-500/55';
   } else if (isTargetable) {
-      overlayClass = 'bg-red-500/40';
+      overlayClass = 'bg-rose-500/40';
   } else if (isInPath) {
-    overlayClass = 'bg-yellow-500/50';
+    overlayClass = 'bg-emerald-300/60';
   } else if (isValidMove) {
-    overlayClass = 'bg-blue-500/40';
+    // Quiet interior — the perimeter stroke (moveEdges) carries the boundary,
+    // so the fill can drop low enough to keep the terrain art readable.
+    overlayClass = 'bg-emerald-400/20';
   } else if (isObjectMoveDestination) {
     overlayClass = 'bg-amber-400/20';
   }
 
-  // Visibility is separate from targeting and movement overlays. Hidden tiles
-  // get the strongest mask, while dim/dark tiles remain readable but clearly
-  // communicate that tactical sight is limited.
+  // Visibility is separate from targeting and movement overlays. The masks are
+  // deliberately light now that a painted ground sits underneath: hidden and
+  // dark tiles still read as "limited sight" but the battlefield art stays
+  // visible instead of being crushed to solid black (which turned the whole map
+  // into a dark checkerboard).
   const visibilityOverlayClass = !isVisible
-    ? 'bg-black/85'
+    ? 'bg-black/55'
     : lightLevel === 'magical_darkness'
-      ? 'bg-black/70'
-      : lightLevel === 'darkness'
       ? 'bg-black/45'
+      : lightLevel === 'darkness'
+      ? 'bg-black/25'
         : lightLevel === 'dim'
-          ? 'bg-slate-950/25'
+          ? 'bg-slate-950/15'
           : '';
   
   // Targeting mode must send every tile click to the validation layer. Legal
@@ -227,7 +236,7 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
 
   return (
     <div
-      className={`${tileBaseClasses} ${terrainColor} relative transition-colors duration-150`}
+      className={`${tileBaseClasses} group relative transition-colors duration-150`}
       onClick={handleActivate}
       onMouseEnter={() => onTileHover?.(tile)}
       onKeyDown={(event) => {
@@ -243,12 +252,30 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
       style={{ cursor: targetingMode ? 'crosshair' : (isInteractive ? 'pointer' : 'default') }}
       title={`(${tile.coordinates.x}, ${tile.coordinates.y}) - ${tile.terrain}${coverVisual ? ` - ${coverVisual.description}` : ''} - Elev: ${tile.elevation} - ${isVisible ? lightLevel : 'hidden'} - Effects: ${environmentalSummary}`}
     >
-      {tile.elevation > 0 && (
-        <div className="absolute top-0 right-1 text-xs font-bold text-gray-400/50 pointer-events-none filter drop-shadow(0 1px 1px black)">
+      {/* Faint terrain tint over the painted ground, for type legibility and to
+          give the move/attack overlays a base. */}
+      <div className={`absolute inset-0 ${terrainColor} opacity-20 pointer-events-none`} />
+      {/* Elevation is hover-only: always-on digits across the board read as a
+          debug overlay, not a battle map. The number appears on the tile under
+          the cursor (and stays in the title tooltip). */}
+      {tile.elevation > 1 && (
+        <div className="absolute top-0 right-0.5 text-[9px] font-bold text-slate-200/70 opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
           {tile.elevation}
         </div>
       )}
-      {decoration && <span className="text-lg pointer-events-none">{decoration}</span>}
+      {/* Crisp perimeter stroke around the outer boundary of the reachable
+          move region — the core "how far can I go" read. */}
+      {moveEdges && (moveEdges.top || moveEdges.right || moveEdges.bottom || moveEdges.left) && (
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            borderTop: moveEdges.top ? '2px solid rgba(52,211,153,0.9)' : undefined,
+            borderRight: moveEdges.right ? '2px solid rgba(52,211,153,0.9)' : undefined,
+            borderBottom: moveEdges.bottom ? '2px solid rgba(52,211,153,0.9)' : undefined,
+            borderLeft: moveEdges.left ? '2px solid rgba(52,211,153,0.9)' : undefined,
+          }}
+        />
+      )}
       {environmentalVisual && (
         <>
           <div className={`absolute inset-0 ${environmentalVisual.overlayClass} pointer-events-none`}></div>

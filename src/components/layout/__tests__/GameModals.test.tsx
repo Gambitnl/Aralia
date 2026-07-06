@@ -81,6 +81,7 @@ vi.mock('../../Economy/LedgerBook', () => ({ default: () => <div data-testid="le
 vi.mock('../../Economy/CourierPouch', () => ({ default: () => <div data-testid="courier-pouch" /> }));
 vi.mock('../../ui/LongRestModal', () => ({ default: () => <div data-testid="long-rest-modal" /> }));
 vi.mock('../../ui/RestModal', () => ({ default: () => <div data-testid="rest-modal" /> }));
+vi.mock('../../ui/GameGuideModal', () => ({ default: () => <div data-testid="game-guide-modal" /> }));
 
 let GameModals: ComponentType<React.ComponentProps<typeof import('../GameModals').default>>;
 
@@ -106,6 +107,12 @@ type RenderOverrides = {
 };
 
 const createProps = (gameState: GameState, overrides: RenderOverrides = {}) => {
+    const props = createGameModalsProps(gameState, overrides);
+
+    return render(<GameModals {...props} />);
+};
+
+const createGameModalsProps = (gameState: GameState, overrides: RenderOverrides = {}) => {
     const props = {
         gameState,
         dispatch: vi.fn(),
@@ -143,14 +150,12 @@ const createProps = (gameState: GameState, overrides: RenderOverrides = {}) => {
         onRegenerateWorldMap: vi.fn(),
     };
 
-    return render(
-        <GameModals
-            {...props}
-            dispatch={overrides.dispatch ?? props.dispatch}
-            onAction={overrides.onAction ?? props.onAction}
-            onCloseMissingChoice={overrides.handleCloseMissingChoice ?? props.onCloseMissingChoice}
-        />
-    );
+    return {
+        ...props,
+        dispatch: overrides.dispatch ?? props.dispatch,
+        onAction: overrides.onAction ?? props.onAction,
+        onCloseMissingChoice: overrides.handleCloseMissingChoice ?? props.onCloseMissingChoice,
+    };
 };
 
 const baseGameState = createMockGameState({
@@ -235,6 +240,104 @@ describe('GameModals focus-trap coverage', () => {
         firstButton.focus();
         fireEvent.keyDown(firstButton, { key: 'Tab', code: 'Tab', shiftKey: true });
         expect(secondButton).toHaveFocus();
+    });
+
+    it('restores the play-screen scroll position after the World Map closes', () => {
+        const scrollTo = vi.fn((x: number, y: number) => {
+            Object.defineProperty(window, 'scrollX', { configurable: true, value: x });
+            Object.defineProperty(window, 'scrollY', { configurable: true, value: y });
+        });
+        const raf = vi.fn((callback: FrameRequestCallback) => {
+            callback(0);
+            return 1;
+        });
+        vi.stubGlobal('requestAnimationFrame', raf);
+        vi.stubGlobal('scrollTo', scrollTo);
+        Object.defineProperty(window, 'scrollX', { configurable: true, value: 0 });
+        Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
+
+        const rendered = render(
+            <GameModals {...createGameModalsProps(withOpenModal({ isMapVisible: false }))} />,
+        );
+
+        rendered.rerender(
+            <GameModals {...createGameModalsProps(withOpenModal({ isMapVisible: true }))} />,
+        );
+
+        Object.defineProperty(window, 'scrollX', { configurable: true, value: 0 });
+        Object.defineProperty(window, 'scrollY', { configurable: true, value: 285 });
+
+        rendered.rerender(
+            <GameModals {...createGameModalsProps(withOpenModal({ isMapVisible: false }))} />,
+        );
+
+        expect(scrollTo).toHaveBeenCalledWith(0, 0);
+
+        vi.unstubAllGlobals();
+    });
+
+    it('locks background page scroll while modal overlays are open', () => {
+        const rendered = render(
+            <GameModals {...createGameModalsProps(withOpenModal({ isDiscoveryLogVisible: false }))} />,
+        );
+
+        expect(document.body.style.overflow).toBe('');
+
+        rendered.rerender(
+            <GameModals {...createGameModalsProps(withOpenModal({ isDiscoveryLogVisible: true }))} />,
+        );
+
+        expect(document.body.style.overflow).toBe('hidden');
+        expect(document.documentElement.style.overscrollBehavior).toBe('contain');
+
+        rendered.rerender(
+            <GameModals {...createGameModalsProps(withOpenModal({ isDiscoveryLogVisible: false, isGameGuideVisible: true }))} />,
+        );
+
+        expect(document.body.style.overflow).toBe('hidden');
+        expect(document.documentElement.style.overscrollBehavior).toBe('contain');
+
+        rendered.rerender(
+            <GameModals {...createGameModalsProps(withOpenModal({ isDiscoveryLogVisible: false, isGameGuideVisible: false }))} />,
+        );
+
+        expect(document.body.style.overflow).toBe('');
+        expect(document.documentElement.style.overscrollBehavior).toBe('');
+    });
+
+    it('restores background scroll when focus moves between modal surfaces', () => {
+        const scrollTo = vi.fn((x: number, y: number) => {
+            Object.defineProperty(window, 'scrollX', { configurable: true, value: x });
+            Object.defineProperty(window, 'scrollY', { configurable: true, value: y });
+        });
+        const raf = vi.fn((callback: FrameRequestCallback) => {
+            callback(0);
+            return 1;
+        });
+        vi.stubGlobal('requestAnimationFrame', raf);
+        vi.stubGlobal('scrollTo', scrollTo);
+        Object.defineProperty(window, 'scrollX', { configurable: true, value: 0 });
+        Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
+
+        const rendered = render(
+            <GameModals {...createGameModalsProps(withOpenModal({ isPartyOverlayVisible: true }))} />,
+        );
+
+        Object.defineProperty(window, 'scrollX', { configurable: true, value: 0 });
+        Object.defineProperty(window, 'scrollY', { configurable: true, value: 285 });
+
+        rendered.rerender(
+            <GameModals
+                {...createGameModalsProps(withOpenModal({
+                    isPartyOverlayVisible: false,
+                    characterSheetModal: { isOpen: true, character: basePlayer },
+                }))}
+            />,
+        );
+
+        expect(scrollTo).toHaveBeenCalledWith(0, 0);
+
+        vi.unstubAllGlobals();
     });
 
     // The party rebuild path must preserve the character id bridge so the sheet

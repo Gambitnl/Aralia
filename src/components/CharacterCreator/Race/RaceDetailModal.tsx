@@ -5,6 +5,8 @@
  */
 import React, { useState, useMemo } from 'react';
 import ImageModal from '../../ImageModal';
+import { WindowFrame } from '../../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../../styles/uiIds';
 // Race details can deep-link into the shared glossary modal
 import SingleGlossaryEntryModal from '../../Glossary/SingleGlossaryEntryModal';
 
@@ -147,19 +149,6 @@ const RaceDetailModal: React.FC<RaceDetailModalProps> = ({ race, onSelect, onClo
   const [isImageExpanded, setIsImageExpanded] = useState(false);
   const [infoSpellId, setInfoSpellId] = useState<string | null>(null);
 
-  const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
-  };
-
-  const handleBackdropKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      onClose();
-    }
-  };
-
   React.useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -178,28 +167,15 @@ const RaceDetailModal: React.FC<RaceDetailModalProps> = ({ race, onSelect, onClo
 
   return (
     <>
-      <div
-        className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[var(--z-index-modal-background)] p-4"
-        onClick={handleBackdropClick}
-        onKeyDown={handleBackdropKeyDown}
-        role="button"
-        aria-label="Close race details"
-        tabIndex={0}
+      <WindowFrame
+        title={race.name}
+        onClose={onClose}
+        storageKey={WINDOW_KEYS.RACE_DETAIL}
+        initialMaximized={false}
       >
-        <div
-          className="bg-gray-900 text-gray-300 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-5xl max-h-[90vh] flex flex-col"
-          aria-modal="true"
-          role="dialog"
-          aria-labelledby={`race-modal-title-${race.id}`}
-        >
-          {/* Header */}
-          <div className="flex justify-between items-center mb-4 flex-shrink-0">
-            <h2 id={`race-modal-title-${race.id}`} className="text-4xl font-bold text-amber-400 font-cinzel">{race.name}</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white text-3xl transition-colors" aria-label="Close race details">&times;</button>
-          </div>
-
+        <div className="flex flex-col h-full text-gray-300 p-6">
           {/* Main Content */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 flex-grow overflow-y-auto scrollable-content pr-4 -mr-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 flex-1 min-h-0 overflow-y-auto scrollable-content pr-4 -mr-4">
             {/* Left Column (Image & Stats) */}
             <div className="md:col-span-2 space-y-4">
               {race.image && (
@@ -243,12 +219,12 @@ const RaceDetailModal: React.FC<RaceDetailModalProps> = ({ race, onSelect, onClo
           </div>
           
           {/* Footer */}
-          <div className="mt-6 flex gap-4 pt-4 border-t border-gray-700 flex-shrink-0">
+          <div className="mt-6 flex gap-4 pt-4 border-t border-gray-700 shrink-0">
             <button onClick={onClose} className="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors">Back to List</button>
             <button onClick={() => onSelect(race.id)} className="flex-1 bg-green-600 hover:bg-green-500 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors">Select {race.name}</button>
           </div>
         </div>
-      </div>
+      </WindowFrame>
       {isImageExpanded && race.image && (
           <ImageModal src={race.image} alt={`${race.name} illustration`} onClose={() => setIsImageExpanded(false)} />
       )}

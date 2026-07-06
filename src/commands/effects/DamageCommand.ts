@@ -378,6 +378,21 @@ export class DamageCommand extends BaseEffectCommand {
         damagedThisTurn: updatedTarget.damagedThisTurn
       });
 
+      // --- Step 5a: Dark One's Blessing (Fiend warlock, level 3) ---
+      // When the caster carries Dark One's Blessing and this damage just dropped
+      // a non-summon creature from positive HP to 0, the caster gains temporary
+      // hit points. This is the faithful trigger point: the exact moment a target
+      // is reduced to 0 HP by the caster's damage.
+      if (
+        caster.darkOnesBlessingTempHp &&
+        caster.id !== target.id &&
+        targetAfterResistance.currentHP > 0 &&
+        updatedTarget.currentHP === 0 &&
+        !target.isSummon
+      ) {
+        currentState = this.applyDarkOnesBlessing(currentState, caster);
+      }
+
       // --- Step 5b: Apply elemental state transition ---
       // Elemental damage contacts the target and resolves against its existing
       // stateTags (e.g. Wet + Cold -> Frozen, Wet + Fire -> Smoke). This is the
@@ -1059,6 +1074,55 @@ export class DamageCommand extends BaseEffectCommand {
     }
 
     return this.effect.damage.dice;
+  }
+
+  /**
+   * Grants the caster their Dark One's Blessing temporary hit points after they
+   * reduce a creature to 0 HP.
+   *
+   * The amount was resolved once at combat-character construction
+   * (Charisma modifier + warlock level, minimum 1) and stored on
+   * `darkOnesBlessingTempHp`. Temporary hit points do not stack in 5e, so the
+   * caster keeps the larger of their current temp HP and the fresh blessing
+   * value rather than summing them.
+   */
+  private applyDarkOnesBlessing(
+    state: CombatState,
+    caster: CombatCharacter
+  ): CombatState {
+    // Read the freshest caster snapshot so a temp HP grant earlier this
+    // resolution is respected by the no-stack comparison below.
+    const liveCaster = state.characters.find(character => character.id === caster.id) ?? caster;
+    const blessingAmount = liveCaster.darkOnesBlessingTempHp ?? caster.darkOnesBlessingTempHp;
+
+    if (!blessingAmount || blessingAmount <= 0) {
+      return state;
+    }
+
+    const currentTempHp = liveCaster.tempHP ?? 0;
+    if (blessingAmount <= currentTempHp) {
+      // The caster already has equal or greater temporary hit points, so the new
+      // (non-stacking) grant would be strictly worse. Leave the stronger pool in
+      // place and skip the log noise.
+      return state;
+    }
+
+    const nextState = this.updateCharacter(state, caster.id, {
+      tempHP: blessingAmount,
+      temporaryHitPointSource: {
+        spellId: 'dark_ones_blessing',
+        spellName: "Dark One's Blessing",
+        casterId: caster.id
+      }
+    });
+
+    return this.addLogEntry(nextState, {
+      type: 'status',
+      message: `${caster.name} gains ${blessingAmount} temporary hit points from Dark One's Blessing.`,
+      characterId: caster.id,
+      targetIds: [caster.id],
+      data: { feature: 'dark_ones_blessing', tempHp: blessingAmount }
+    });
   }
 
   /**

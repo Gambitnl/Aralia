@@ -51,6 +51,13 @@ if (urlParams.get('stubForgeAssets') === '1') {
 
 import InWorldHUD from './InWorldHUD';
 import LocaleMovePane from './LocaleMovePane';
+import { groundSurfaceYM } from './PlayerAvatar';
+import {
+  cameraMayWriteGroundPos,
+  hasArrivedAtIntent,
+  isIntentOnTile,
+  type ClickMoveIntent,
+} from './clickMoveAuthority';
 import { localeFeetToGroundMeters } from '../../systems/worldforge/local/localePosition';
 import { requestMapCenterOnPlayer, requestMapDrillToPlayerTown } from '../Worldforge/mapFocusSignal';
 import { findCellAtPoint } from '../Worldforge/atlasSvg';
@@ -133,6 +140,12 @@ const WF_SEED: number | null = (() => {
 interface World3DWrapperProps {
   /** Initial world position to start at. */
   entryPosition: { x: number; y: number; z: number };
+  /**
+   * Click-to-talk: called with an NPC figure's id when the player clicks a
+   * townsperson/stranger in the 3D world. App wires this to the same `talk`
+   * action the 2D action pane runs, so the dialogue opens with full bookkeeping.
+   */
+  onTalkToNpc?: (npcId: string) => void;
 }
 
 /** Throttle interval in ms (~10Hz) — see transitionTiming.ts for perf budget. */
@@ -141,7 +154,7 @@ const DISPATCH_INTERVAL_MS = POSITION_DISPATCH_INTERVAL_MS;
 /** FPS sampling window in ms. */
 const FPS_SAMPLE_MS = 1000;
 
-const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
+const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkToNpc }) => {
   const { dispatch, state } = useGameState();
   const { setPosition, position } = usePlayerWorldPos();
   const { setMode } = useWorldViewMode();
@@ -476,10 +489,67 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
   // player's exact 3D location without walking into a hostile.
   const lastGroundXZ = useRef<{ x: number; z: number }>({ x: 0, z: 0 });
 
+  // CLICK-MOVE AUTHORITY (camera↔click decoupling). `playerGroundPos` has two
+  // writers: the camera controller (reports its pan target ~10Hz) and a ground
+  // click. Without a referee, a pan right after a click overwrites the clicked
+  // destination and the avatar never reaches it. Chosen model: a ground click
+  // ARMS this intent; while it is armed the camera's position reports are IGNORED
+  // for the walk state (the camera is still free to orbit/look — it just can't
+  // hijack the walk target). The latch releases when the avatar arrives at the
+  // intent (see clickMoveAuthority.ts); a fresh click re-arms it. Tune the
+  // arrival radius via CLICK_MOVE_ARRIVE_EPSILON_M there.
+  const clickMoveIntent = useRef<ClickMoveIntent>(null);
+
+  // NIT fix: mirror `playerGroundPos` into a ref so handleGroundPositionChange
+  // can read the authoritative avatar position WITHOUT `state.playerGroundPos`
+  // in its deps — that field churns ~10Hz as the avatar glides, which would
+  // recreate the callback every frame. The ref keeps the callback identity
+  // stable while still seeing the freshest position.
+  const playerGroundPosRef = useRef(state.playerGroundPos);
+  useEffect(() => {
+    playerGroundPosRef.current = state.playerGroundPos;
+  }, [state.playerGroundPos]);
+
   const handleGroundPositionChange = useCallback(
     (x: number, z: number) => {
       const tile = wfGroundView?.tile;
       if (!tile) return;
+
+      // CLICK-MOVE AUTHORITY: if a click-move is in progress, the clicked
+      // destination is authoritative — a camera pan must NOT clobber the walk
+      // target. Consult the pure referee; when the avatar has arrived, the latch
+      // clears and the camera resumes writing. The avatar's real position (what
+      // PlayerAvatar glides toward) is read via a ref so arrival is measured
+      // against it, not the camera's look-at target `(x, z)`.
+      const intent = clickMoveIntent.current;
+      if (intent) {
+        // TILE-CROSSING GUARD: an intent armed on a prior tile can never be
+        // "arrived at" once the active tile differs (positions are tile-scoped),
+        // so the arrival latch would stick forever and kill camera-walk. Retire
+        // the stale intent on a crossing and let the camera resume writing.
+        if (!isIntentOnTile(intent, tile.x, tile.y)) {
+          clickMoveIntent.current = null;
+        } else {
+          const pgp = playerGroundPosRef.current;
+          const current =
+            pgp && pgp.tileX === tile.x && pgp.tileY === tile.y
+              ? { xM: pgp.xM, zM: pgp.zM }
+              : null;
+          if (hasArrivedAtIntent(intent, current)) {
+            // Arrived — release the latch so subsequent camera pans move again.
+            clickMoveIntent.current = null;
+          }
+          if (!cameraMayWriteGroundPos(intent, current)) {
+            // Camera yields the walk target this frame. Still keep the
+            // fight-in-place tracker pointed at the AUTHORITATIVE avatar position
+            // (the click target), not the roaming camera, so a test fight starts
+            // where the player actually is.
+            if (current) lastGroundXZ.current = { x: current.xM, z: current.zM };
+            return;
+          }
+        }
+      }
+
       // Fight-in-place dev entry: always track the freshest ground position,
       // even on throttled frames, so a test fight starts exactly where we stand.
       lastGroundXZ.current = { x, z };
@@ -658,19 +728,44 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
       ? extractPatch(ground, x, z, theme, state.worldSeed ?? 42)
       : undefined;
 
+    // Fight-in-place slice 2: hand the live world across the phase change so
+    // CombatView can render the fight IN this town (World3DScene + combat layer)
+    // instead of the teleport-to-diorama. The loader is a closure over the built
+    // world, so it survives World3DWrapper unmounting. Scene origin matches
+    // World3DScene's (the spawn/start point of the ground session).
+    if (decision.deriveFromWorld && loader && wfGroundView) {
+      const { setFightInPlaceHandoff } = await import('../../systems/combat/fightInPlace/fightInPlaceHandoff');
+      setFightInPlaceHandoff({
+        ground,
+        loader,
+        sceneOrigin: { x: wfGroundView.start[0], z: wfGroundView.start[2] },
+        anchor: { playerXM: x, playerZM: z },
+        surfaceY: groundSurfaceYM(ground, x, z),
+        worldSeed: state.worldSeed ?? 42,
+      });
+    }
+
     // Persist the fight position so return-from-combat spawns us back here.
     const tile = wfGroundView?.tile;
     if (tile) {
       dispatch({ type: 'SET_PLAYER_GROUND_POS', payload: { position: { tileX: tile.x, tileY: tile.y, xM: x, zM: z } } });
     }
 
-    const { handleStartBattleMapEncounter } = await import('../../hooks/actions/handleEncounter');
-    combatTriggered.current = true;
-    await handleStartBattleMapEncounter(dispatch, {
-      monsters: [{ name: 'Test Brigand', quantity: 1, cr: '1/4', description: 'Dev fight-in-place test combatant' }],
-      extractedBattleMap: extractedMap,
-    });
-  }, [dispatch, wfGroundView?.tile, state.worldSeed]);
+    try {
+      const { handleStartBattleMapEncounter } = await import('../../hooks/actions/handleEncounter');
+      combatTriggered.current = true;
+      await handleStartBattleMapEncounter(dispatch, {
+        monsters: [{ name: 'Test Brigand', quantity: 1, cr: '1/4', description: 'Dev fight-in-place test combatant' }],
+        extractedBattleMap: extractedMap,
+      });
+      // eslint-disable-next-line no-console
+      console.info('[fip dev] encounter dispatched — phase should be COMBAT');
+    } catch (err) {
+      combatTriggered.current = false;
+      // eslint-disable-next-line no-console
+      console.error('[fip dev] failed to start fight:', err);
+    }
+  }, [dispatch, wfGroundView, state.worldSeed, loader]);
 
   useEffect(() => {
     (window as unknown as { __fipTestFight?: () => void }).__fipTestFight = () => { void startFightInPlace(); };
@@ -789,6 +884,32 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
       const tile = wfGroundView?.tile;
       if (!tile) return;
       const { xM, zM } = localeFeetToGroundMeters({ x: feetX, y: feetY });
+      // Arm click-move authority — a 2D Locale click is a discrete destination
+      // too, so it must survive a subsequent camera pan just like a 3D click.
+      // Record the tile it was armed on so a tile crossing can retire it.
+      clickMoveIntent.current = { xM, zM, tileX: tile.x, tileY: tile.y };
+      dispatch({
+        type: 'SET_PLAYER_GROUND_POS',
+        payload: { position: { tileX: tile.x, tileY: tile.y, xM, zM } },
+      });
+    },
+    [dispatch, wfGroundView?.tile],
+  );
+
+  // Interactive-3D locomotion: a click on open ground in the 3D world walks the
+  // avatar there. GroundMovePlane already converted the raycast hit to tile/world
+  // meters (the SAME convention the camera walk uses), so this is a discrete
+  // dispatch of the ONE movement state — the body follows, exactly like a camera
+  // walk or a 2D Locale-map click.
+  const handleGroundClickMove = useCallback(
+    (xM: number, zM: number) => {
+      const tile = wfGroundView?.tile;
+      if (!tile) return;
+      // ARM click-move authority: this destination is now authoritative and the
+      // camera's pan reports won't clobber it until the avatar arrives (or the
+      // next click re-arms). Record the tile it was armed on so a tile crossing
+      // can retire it. See clickMoveAuthority.ts / handleGroundPositionChange.
+      clickMoveIntent.current = { xM, zM, tileX: tile.x, tileY: tile.y };
       dispatch({
         type: 'SET_PLAYER_GROUND_POS',
         payload: { position: { tileX: tile.x, tileY: tile.y, xM, zM } },
@@ -814,6 +935,8 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition }) => {
           agentClock={state.gameTime instanceof Date ? scheduleClockFromGameTime(state.gameTime) : undefined}
           frameTownCellNonce={frameTownCellNonce}
           sceneCast={wfGroundView ? sceneCast : undefined}
+          onSelectNpc={onTalkToNpc}
+          onGroundPick={wfGroundView ? handleGroundClickMove : undefined}
           // Player avatar: the body follows the ONE movement state
           // (playerGroundPos) when it belongs to this tile; else it stands at
           // the spawn until the first move dispatch stamps the tile.

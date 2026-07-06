@@ -138,6 +138,26 @@ export const WINDOW_KEYS = {
   PARTY_DISPLAY: 'party-display-window',
   INITIATIVE_TRACKER: 'initiative-tracker-window',
   BATTLE_MAP_WINDOW: 'battle-map-window',
+  DIALOGUE: 'dialogue-window',
+  // Content panels migrated from bespoke overlays onto the shared WindowFrame.
+  MERCHANT: 'merchant-window',
+  QUEST_LOG: 'quest-log-window',
+  LEDGER_BOOK: 'ledger-book-window',
+  INVESTMENT_BOARD: 'investment-board-window',
+  COURIER_POUCH: 'courier-pouch-window',
+  SPELLBOOK_OVERLAY: 'spellbook-window',
+  LEVEL_UP: 'level-up-window',
+  NOTICE_BOARD: 'notice-board-window',
+  BROADSHEET: 'broadsheet-window',
+  ORGANIZATION_DASHBOARD: 'organization-window',
+  DIVINE_FAVOR: 'divine-favor-window',
+  FENCE: 'fence-window',
+  DOSSIER: 'dossier-window',
+  RACE_DETAIL: 'race-detail-window',
+  THREE_D_VIEW: 'three-d-view-window',
+  LOAD_GAME: 'load-game-window',
+  SAVE_SLOT: 'save-slot-window',
+  AI_SPELL_INPUT: 'ai-spell-input-window',
 } as const;
 
 // =============================================================================

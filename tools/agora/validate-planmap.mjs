@@ -40,8 +40,22 @@ const topics = Array.isArray(data.topics) ? data.topics : [];
 const campaigns = data.campaigns || {};
 const ids = new Set();
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+// Back-dating stamps: designed/built must be YYYY-MM-DD, and designed <= built.
+function checkHistory(where, h) {
+  if (h == null) return;
+  if (typeof h !== 'object') { warn(`${where}: "history" must be an object`); return; }
+  for (const k of ['designed', 'built']) {
+    if (h[k] != null && !DATE_RE.test(h[k])) warn(`${where}: history.${k} must be YYYY-MM-DD (got ${JSON.stringify(h[k])})`);
+  }
+  if (h.builtApprox != null && typeof h.builtApprox !== 'boolean') warn(`${where}: history.builtApprox must be boolean`);
+  if (DATE_RE.test(h.designed ?? '') && DATE_RE.test(h.built ?? '') && h.designed > h.built)
+    warn(`${where}: history.designed (${h.designed}) is after history.built (${h.built})`);
+}
+
 for (const t of topics) {
   const where = `topic "${t.id ?? t.title ?? '?'}"`;
+  checkHistory(where, t.history);
   if (!t.id) warn(`${where}: missing id`);
   else if (!ID_RE.test(t.id)) warn(`${where}: id violates pattern ^[a-z0-9][a-z0-9-]*$ (breaks planmap:<id>/<slug> refs and the viewer)`);
   else if (ids.has(t.id)) warn(`duplicate topic id "${t.id}"`);
@@ -59,6 +73,7 @@ for (const t of topics) {
     if (f.open != null && (!Number.isInteger(f.open) || f.open < 0)) warn(`${where} / "${f.title}": "open" must be an integer >= 0 (got ${JSON.stringify(f.open)})`);
     if (f.spike != null && typeof f.spike !== 'boolean') warn(`${where} / "${f.title}": "spike" must be boolean`);
     if (f.parallel != null && typeof f.parallel !== 'boolean') warn(`${where} / "${f.title}": "parallel" must be boolean`);
+    checkHistory(`${where} / "${f.title}"`, f.history);
     // Base-slug collisions get -2/-3 suffixes in to-wave/reconcile, but the
     // suffix depends on array order — flag them so authors rename instead.
     const s = slug(f.title);

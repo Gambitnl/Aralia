@@ -300,15 +300,23 @@ export const applyImmediateAbilityTurnEffects = (
   if (ability.id === 'rage') {
     const alreadyRaging = updatedCharacter.statusEffects.some(e => e.id === 'raging');
     if (!alreadyRaging) {
+      // Path of the Wild Heart "bear" boon (Rage of the Wilds, level 3): the Rage
+      // ability is tagged 'wild_heart_bear' by the combat-character factory. When
+      // present, the raging barbarian resists ALL damage types except psychic,
+      // rather than only the base physical resistance.
+      const isBearRage = ability.tags?.includes('wild_heart_bear') === true;
+      const resistance = isBearRage
+        ? ['physical', 'bludgeoning', 'piercing', 'slashing', 'acid', 'cold', 'fire', 'force', 'lightning', 'necrotic', 'poison', 'radiant', 'thunder']
+        : ['physical', 'bludgeoning', 'piercing', 'slashing'];
       const ragingStatus = {
         id: 'raging',
-        name: 'Raging',
+        name: isBearRage ? 'Raging (Bear Spirit)' : 'Raging',
         type: 'buff' as const,
         duration: 10,
         source: 'Rage',
         icon: '🔥',
         modifiers: {
-          resistance: ['physical', 'bludgeoning', 'piercing', 'slashing'],
+          resistance,
           advantage: ['save', 'check'] as ('attack' | 'save' | 'check')[],
         },
       };
@@ -392,6 +400,41 @@ export const applyImmediateAbilityTurnEffects = (
         timestamp: Date.now(),
         type: 'status',
         message: `${updatedCharacter.name} takes Steady Aim — advantage on the next attack.`,
+        characterId: updatedCharacter.id,
+        data: { abilityName: ability.name, currentTurn }
+      });
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Vow of Enmity (Oath of Vengeance paladin, level 3) — advantage on your
+  // attack rolls against a sworn foe. Modeled as a self-buff granting attack
+  // advantage (the same statusEffects[].modifiers.advantage mechanism Reckless
+  // Attack and Steady Aim use, which WeaponAttackCommand reads). We do not model
+  // the "single chosen target" restriction because combat advantage is applied
+  // per attack roll; the mechanical benefit (advantage on attacks) is faithful.
+  // ------------------------------------------------------------------
+  if (ability.id === 'vow_of_enmity') {
+    const already = updatedCharacter.statusEffects.some(e => e.id === 'vow_of_enmity');
+    if (!already) {
+      const vowStatus = {
+        id: 'vow_of_enmity',
+        name: 'Vow of Enmity',
+        type: 'buff' as const,
+        duration: 10,
+        source: 'Vow of Enmity',
+        icon: '👁️',
+        modifiers: { advantage: ['attack'] as ('attack' | 'save' | 'check')[] },
+      };
+      updatedCharacter = {
+        ...updatedCharacter,
+        statusEffects: [...updatedCharacter.statusEffects, vowStatus],
+      };
+      followUpLogs.push({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'status',
+        message: `${updatedCharacter.name} swears a Vow of Enmity — advantage on attacks against their foe!`,
         characterId: updatedCharacter.id,
         data: { abilityName: ability.name, currentTurn }
       });

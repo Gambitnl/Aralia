@@ -328,6 +328,7 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                     onClick={handleEndConversation}
                     disabled={isInteractionLocked}
                     title="End Conversation"
+                    aria-label="End conversation"
                 >
                     ✕
                 </button>
@@ -405,7 +406,10 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                             type="button"
                             data-testid="reply-chip"
                             onClick={() => void submitPlayerText(reply)}
-                            className="px-2 py-1 rounded-full border border-gray-600 bg-gray-800 text-gray-200 text-xs hover:bg-gray-700"
+                            // Suggested replies are real submissions, not tags; keep
+                            // them full-height so they remain reliable in the
+                            // opening scene overlay.
+                            className="inline-flex min-h-11 items-center rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-left text-xs text-gray-200 hover:bg-gray-700"
                         >
                             {reply}
                         </button>
@@ -427,7 +431,7 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                                 type="button"
                                 data-testid={`buff-cast-${offer.spellId}`}
                                 onClick={() => void handleCastBuff(offer)}
-                                className="w-full text-left px-3 py-2 rounded border border-amber-500/40 bg-amber-900/20 text-amber-100 text-xs hover:bg-amber-900/40"
+                                className="min-h-11 w-full rounded border border-amber-500/40 bg-amber-900/20 px-3 py-2 text-left text-xs text-amber-100 hover:bg-amber-900/40"
                             >
                                 Cast {offer.spellName} — {offer.kind === 'advantage' ? 'advantage' : `+${offer.bonusDice}`} ({offer.costLabel})
                             </button>
@@ -440,7 +444,7 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                                 setPendingBuffOffer(null);
                                 void runFlowSafely(intent);
                             }}
-                            className="w-full text-left px-3 py-2 rounded border border-gray-600 bg-gray-800 text-gray-300 text-xs hover:bg-gray-700"
+                            className="min-h-11 w-full rounded border border-gray-600 bg-gray-800 px-3 py-2 text-left text-xs text-gray-300 hover:bg-gray-700"
                         >
                             Just roll
                         </button>
@@ -496,7 +500,7 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                         type="button"
                         data-testid="opening-attack"
                         onClick={() => void runFlowSafely({ kind: 'attack' })}
-                        className="w-full px-3 py-2 rounded bg-red-800 hover:bg-red-700 text-red-100 text-sm font-semibold"
+                        className="min-h-11 w-full rounded bg-red-800 px-3 py-2 text-sm font-semibold text-red-100 hover:bg-red-700"
                     >
                         ⚔ Attack
                     </button>

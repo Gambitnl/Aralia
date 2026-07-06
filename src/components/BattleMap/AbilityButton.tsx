@@ -57,10 +57,10 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
     const grantedActions = ability.grantedActions ?? [];
 
     const costColors: Record<string, string> = {
-        action: 'bg-red-600',
-        bonus: 'bg-yellow-600',
-        reaction: 'bg-blue-600',
-        free: 'bg-green-600',
+        action: 'bg-rose-600',
+        bonus: 'bg-amber-500',
+        reaction: 'bg-sky-600',
+        free: 'bg-emerald-600',
         'movement-only': 'bg-teal-600',
     };
     
@@ -155,8 +155,8 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                 whileHover={isDisabled ? undefined : { scale: shouldReduceMotion ? 1 : 1.05 }}
                 whileTap={isDisabled ? undefined : { scale: shouldReduceMotion ? 1 : 0.95 }}
                 transition={{ duration: 0.1 }}
-                className={`relative w-16 h-16 rounded-lg flex flex-col items-center justify-center p-1 text-white border-2 outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800
-                    ${isDisabled ? 'bg-gray-600/50 border-gray-500 cursor-not-allowed opacity-60' : hasWeaponProficiencyWarning ? 'bg-amber-950 hover:bg-amber-900 border-amber-400 cursor-pointer' : 'bg-sky-700 hover:bg-sky-600 border-sky-500 cursor-pointer'}
+                className={`relative w-16 h-[4.5rem] rounded-lg flex flex-col items-center justify-center p-1 text-white border-2 outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900
+                    ${isDisabled ? 'bg-slate-800/50 border-slate-600 cursor-not-allowed opacity-60' : hasWeaponProficiencyWarning ? 'bg-amber-950 hover:bg-amber-900 border-amber-400 cursor-pointer' : 'bg-slate-800 hover:bg-slate-700 border-slate-600 cursor-pointer'}
                 `}
             >
                 <span className="text-2xl flex-grow flex items-center drop-shadow-md">
@@ -166,7 +166,12 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                         visual.fallbackContent
                     )}
                 </span>
-                
+                {/* The ability NAME on the face — colored glyphs alone are
+                    unreadable at a glance; the tooltip keeps the full text. */}
+                <span className="w-full truncate text-center text-[9px] font-semibold leading-tight text-slate-200">
+                    {ability.name}
+                </span>
+
                 {/* Cost Badge */}
                 <div className={`absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full shadow-md ${costBadgeColor}`}>
                     {costText}

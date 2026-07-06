@@ -17,6 +17,9 @@ uncommitted work.
 **Agora** is a small local daemon that is the single source of truth for four coordination
 primitives among co-equal peer agents:
 
+Campaign governance is the orchestrator-level layer on top of those peer primitives: it records
+which lead or deputy orchestrator owns a broad wave scope before packet tasks are seeded.
+
 - **Presence** — who is currently working the tree.
 - **Locks (advisory)** — which files/globs an agent has claimed before editing.
 - **Task board** — work items that can be posted, claimed, transitioned, and handed off.
@@ -137,11 +140,38 @@ invocations.
   re-register. Long-running workers must heartbeat (any authenticated call) well inside the
   drop window.
 
+### Campaign governance
+
+Campaigns are first-class board records for orchestrators. They are advisory like locks, but
+lead-vs-lead overlap is a hard pre-seed failure so two orchestrators do not unknowingly launch
+waves over the same file domain. Deputies can join an existing lead campaign when they name the
+lead explicitly and declare their own bounded paths/globs.
+
+| Method | Path | Auth | Body | Success | Errors |
+|---|---|---|---|---|---|
+| POST | `/campaigns` | Bearer | `{ "id"|"campaignId": string, "role"?: "lead"|"deputy", "leadCampaignId"?, "scope"?, "paths"?: string[], "globs"?: string[], "wave"? }` | `201 { campaign, warnings }` | `400` for missing id/scope tokens or invalid deputy lead; `409` on active lead overlap; `401` |
+| GET | `/campaigns` | none | query `?state=` | `200 { campaigns: [...] }` | - |
+| POST | `/campaigns/:id/state` | Bearer | `{ "state": "active"|"blocked"|"done" }` | `200 { campaign }` | `404` unknown campaign; `403` non-owner; `400` invalid state; `401` |
+
+- A campaign is `{ id, role, leadCampaignId, agentId, scope, paths[], globs[], wave, state,
+  warnings[], createdAt, updatedAt, history[] }`.
+- `role: "lead"` is the default. A lead claim fails with `409` if any requested path/glob
+  overlaps another live active lead campaign.
+- `role: "deputy"` requires `leadCampaignId` naming a live active lead. Deputies may overlap
+  that lead; overlaps with unrelated active leads still fail. Overlaps with sibling deputies
+  return warnings so the lead can coordinate boundaries.
+- `orchestrate seed <plan>` claims a campaign before creating tasks. If packet refs include
+  `planmap:<topic>/<feature>`, the campaign id/scope are extracted from
+  `public/planmap/topics.json` (`planmap:<campaign-key>:<topic-id>` plus the campaign label and
+  topic title). Explicit `plan.campaign.id` or `plan.campaignId` still override for non-roadmap
+  waves. Packet files become campaign paths unless `plan.campaign.paths` or
+  `plan.campaign.globs` add broader scope.
+
 ### Task board
 
 | Method | Path | Auth | Body | Success | Errors |
 |---|---|---|---|---|---|
-| POST | `/tasks` | Bearer | `{ "title": string, "body"?: string, "deps"?: taskId[], "priority"?: number, "refs"?: string[] }` | `201 { task }` (state `open`) | `400` if `title` missing/not a string, or a dep id is unknown; `401` |
+| POST | `/tasks` | Bearer | `{ "title": string, "body"?: string, "deps"?: taskId[], "priority"?: number, "refs"?: string[], "campaignId"?, "wave"? }` | `201 { task }` (state `open`) | `400` if `title` missing/not a string, a dep id is unknown, or campaignId is unknown; `401` |
 | POST | `/tasks/:id/claim` | Bearer | — | `200 { task }` (state `claimed`) | `404` not found; `409` if already claimed by another agent; `401` |
 | POST | `/tasks/claim-next` | Bearer | — | `200 { task }` — the top-priority READY task, atomically claimed; `200 { task: null }` when nothing is ready | `401` |
 | POST | `/tasks/:id/state` | Bearer | `{ "state": "open"|"claimed"|"in_progress"|"blocked"|"done", "result"?: string }` | `200 { task }` | `404` not found; `400` invalid state; `401` |
@@ -149,7 +179,7 @@ invocations.
 | GET | `/tasks` | none | — (query `?state=`, `?ready=1`) | `200 { tasks: [...] }` | — |
 
 - A task is
-  `{ id, title, body, state, createdBy, claimedBy, deps[], priority, refs[], result, createdAt, updatedAt, history[] }`.
+  `{ id, title, body, campaignId, wave, state, createdBy, claimedBy, deps[], priority, refs[], result, createdAt, updatedAt, history[] }`.
 - `state` ∈ `open | claimed | in_progress | blocked | done`.
 - **`deps`** (task ids) gate readiness: a task is **ready** when it is `open` and every dep
   is `done`. Creating a task with an unknown dep id → `400` (fail honestly, no dangling
@@ -202,9 +232,10 @@ data: {
   "clientSince": <number|null>,   // your ?since / Last-Event-ID, echoed for diagnostics only
   "version": "0.2.0",
   "snapshot": {
-    "agents": [...],   // == GET /agents
-    "locks":  [...],   // == GET /locks
-    "tasks":  [...]    // == GET /tasks
+    "agents":    [...],   // == GET /agents
+    "locks":     [...],   // == GET /locks
+    "tasks":     [...],   // == GET /tasks
+    "campaigns": [...]    // == GET /campaigns
   }
 }
 ```
@@ -219,6 +250,7 @@ data: {
 id: <seq>
 event: <type>            // agent.register | agent.touch | agent.drop |
                          // lock.acquire | lock.release | lock.expired |
+                         // campaign.claim | campaign.state |
                          // task.create | task.claim | task.state | task.release |
                          // task.handoff | message.post
 data: { ...payload, "type": <type>, "ts": <ms>, "seq": <seq> }
@@ -233,7 +265,7 @@ a `client.mjs watch` session.)
 
 | Method | Path | Auth | Success |
 |---|---|---|---|
-| GET | `/health` | none | `200 { ok: true, version, uptime, port, counts: { agents, locks, tasks, messages }, lastSeq }` |
+| GET | `/health` | none | `200 { ok: true, version, uptime, port, counts: { agents, locks, tasks, campaigns, messages }, lastSeq }` |
 | GET | `/` (also `/dashboard`, `/dashboard/<file>`) | none | `200` dashboard HTML (placeholder page until the dashboard slice ships) |
 | GET | `/docs` | none | `200 { docs: [{ name, path, relPath }] }` — the whitelisted reference docs (PROTOCOL, ORCHESTRATOR, WORKFLOW_GAPS, COLD_START_ORCHESTRATOR_PROMPT) |
 | GET | `/docs/:name` | none | `200` pretty HTML page; `?raw=1` returns the plain markdown (what agents/copy buttons consume). Unknown name → `404` |
@@ -247,7 +279,9 @@ a `client.mjs watch` session.)
 ```
 Agent   { id, handle, token, registeredAt, lastSeen, status, note }
 Lock    { id, paths[], globs[], agentId, reason, createdAt, expiresAt }
-Task    { id, title, body, state, createdBy, claimedBy, deps[], priority, refs[],
+Campaign { id, role, leadCampaignId, agentId, scope, paths[], globs[], wave, state,
+           warnings[], createdAt, updatedAt, history[] }
+Task    { id, title, body, campaignId, wave, state, createdBy, claimedBy, deps[], priority, refs[],
           result, createdAt, updatedAt, history[] }
 Message { id, seq, from, to, body, createdAt }     // to = agentId | "all"
 Event   { seq, type, payload, ts }                  // journal line + SSE envelope
@@ -314,6 +348,12 @@ curl -s -X POST http://localhost:4319/locks \
 # 3. See who/what is active (open) — check before a risky reset
 curl -s http://localhost:4319/agents
 curl -s http://localhost:4319/locks
+curl -s http://localhost:4319/campaigns
+
+# 3b. Orchestrators claim a campaign before seeding overlapping wave work
+curl -s -X POST http://localhost:4319/campaigns \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"id":"world3d-wave","role":"lead","scope":"World3D repair wave","paths":["src/components/World3D/World3DScene.tsx"],"globs":["src/components/World3D/**"],"wave":"world3d-wave"}'
 
 # 4. Post a task, then claim it
 curl -s -X POST http://localhost:4319/tasks \
@@ -342,6 +382,8 @@ curl -s -X DELETE http://localhost:4319/locks/<lockId> -H "Authorization: Bearer
 ```bash
 node tools/agora/client.mjs register <handle>        # POST /agents/register
 node tools/agora/client.mjs lock src/foo.ts          # POST /locks
+node tools/agora/client.mjs campaign claim wave-a --role lead --path src/foo.ts
+node tools/agora/client.mjs campaigns                # GET /campaigns
 node tools/agora/client.mjs tasks                    # GET  /tasks (board)
 node tools/agora/client.mjs say "editing src/foo.ts" # POST /messages (to=all)
 node tools/agora/client.mjs watch                    # GET  /events  (SSE stream)
@@ -368,7 +410,7 @@ they differ, **this document follows the code**:
 1. **Lock release authority.** Spec: `DELETE /locks/:id` allowed for "holder **or admin**."
    Code: **holder only** — a non-holder gets `403`; there is no admin override.
 2. **`GET /health` shape.** Spec lists `{ ok, version, uptime, counts }`. Code additionally
-   returns `port` and `lastSeq`. `counts` is `{ agents, locks, tasks, messages }`.
+   returns `port` and `lastSeq`. `counts` is `{ agents, locks, tasks, campaigns, messages }`.
 3. **SSE resume.** Spec implies `?since=` lets a client "resume." Code **cannot replay** the
    gap — `?since`/`Last-Event-ID` are only echoed in `hello.clientSince`; the client
    re-syncs from the `hello.snapshot` (which covers agents/locks/tasks but **not**

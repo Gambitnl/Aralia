@@ -128,10 +128,10 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
   const expandButton = (
     <button
       onClick={() => setIsExpanded(true)}
-      className="shrink-0 text-gray-400 hover:text-white p-1 rounded hover:bg-gray-700 transition-colors"
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
       title="Pop out into resizable window"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
       </svg>
     </button>
@@ -139,8 +139,8 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
 
   return (
     <>
-      <div className="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg px-3 py-2 flex items-center gap-1 shrink-0">
-        <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest shrink-0 mr-1">
+      <div className="rounded-xl border border-amber-900/40 bg-slate-900/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_30px_rgba(0,0,0,0.45)] backdrop-blur-sm px-3 py-2 flex items-center gap-1 shrink-0">
+        <span className="text-[10px] font-bold text-amber-400/90 uppercase tracking-[0.22em] shrink-0 mr-1">
           Turn Order
         </span>
         {isExpanded ? (

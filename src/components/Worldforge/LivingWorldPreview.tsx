@@ -96,7 +96,7 @@ const LivingWorldPreview: React.FC = () => {
   }, [seed, stats, chronicle.length, holders.length]);
 
   return (
-    <div style={{ padding: 20, color: '#e5e7eb', background: '#0b0f1a', minHeight: '100vh', fontFamily: 'ui-sans-serif, system-ui' }}>
+    <div style={{ padding: 'clamp(12px, 4vw, 20px)', boxSizing: 'border-box', overflowX: 'hidden', color: '#e5e7eb', background: '#0b0f1a', minHeight: '100vh', fontFamily: 'ui-sans-serif, system-ui' }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Living-World Town Sim — Preview</h1>
       <p style={{ color: '#9ca3af', marginBottom: 16, fontSize: 13 }}>
         A demo town aged {years} years: deaths, inheritance, role succession, births, coming-of-age.
@@ -112,8 +112,8 @@ const LivingWorldPreview: React.FC = () => {
           <input type="number" value={population} min={50} step={50} onChange={(e) => setPopulation(Math.max(50, Number(e.target.value) || 50))}
             style={{ width: 90, background: '#1f2937', color: '#fff', border: '1px solid #374151', borderRadius: 4, padding: '2px 6px' }} />
         </label>
-        <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>Years: {years}
-          <input type="range" min={0} max={120} value={years} onChange={(e) => setYears(Number(e.target.value))} style={{ width: 220 }} />
+        <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', maxWidth: '100%' }}>Years: {years}
+          <input type="range" min={0} max={120} value={years} onChange={(e) => setYears(Number(e.target.value))} style={{ width: 'min(220px, 100%)' }} />
         </label>
         <button onClick={() => setSeed((s) => s + 1)}
           style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 12px', cursor: 'pointer', fontSize: 13 }}>
@@ -140,7 +140,7 @@ const LivingWorldPreview: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <div style={{ flex: '0 0 280px' }}>
+        <div style={{ flex: '1 1 260px', minWidth: 0, maxWidth: '100%' }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>Institution-holders now</h2>
           {holders.length === 0 && <div style={{ color: '#6b7280', fontSize: 13 }}>None (small town).</div>}
           {holders.map((v) => (
@@ -151,7 +151,7 @@ const LivingWorldPreview: React.FC = () => {
           ))}
         </div>
 
-        <div style={{ flex: '1 1 480px', minWidth: 360 }}>
+        <div style={{ flex: '1 1 480px', minWidth: 0, maxWidth: '100%' }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>Town Chronicle</h2>
           <div data-testid="chronicle" style={{ background: '#111827', border: '1px solid #1f2937', borderRadius: 8, padding: 12, maxHeight: 520, overflowY: 'auto', fontSize: 13, lineHeight: 1.6 }}>
             {chronicle.length === 0 && <div style={{ color: '#6b7280' }}>Nothing happened yet — raise the years.</div>}

@@ -74,7 +74,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">
             <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="w-full flex items-center justify-between text-left"
+                className="flex min-h-11 w-full items-center justify-between gap-3 rounded px-1 text-left"
             >
                 <h4 className={`text-lg font-semibold font-cinzel ${accentColor} flex items-center gap-2`}>
                     <span className="text-sm">{icon}</span> {title}

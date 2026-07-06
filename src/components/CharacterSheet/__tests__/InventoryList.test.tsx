@@ -78,4 +78,32 @@ describe('InventoryList food expiration', () => {
     expect(within(freshRow!).getByRole('button', { name: 'Eat Fresh Apple' })).toBeEnabled();
     expect(within(expiredRow!).getByRole('button', { name: 'Eat Old Bread' })).toBeDisabled();
   });
+
+  it('keeps inventory filters and row actions large enough to tap', () => {
+    const character = createMockPlayerCharacter({ id: 'inventory-tester' });
+    const weapon: Item = {
+      id: 'test_sword',
+      name: 'Test Sword',
+      description: 'A simple test weapon.',
+      type: 'weapon',
+      slot: 'MainHand',
+      damageDice: '1d6',
+    };
+    const onAction = vi.fn();
+
+    render(
+      <InventoryList
+        inventory={[weapon]}
+        gold={0}
+        character={character}
+        onAction={onAction}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Filter by All' })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: 'Filter by Weapons' })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: 'Equip Test Sword' })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: 'Toggle junk status for Test Sword' })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: 'Drop Test Sword' })).toHaveClass('min-h-11');
+  });
 });

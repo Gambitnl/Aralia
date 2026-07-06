@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { getGameDay } from '../../../utils/core';
 import { createMockGameState } from '../../../utils/core/factories';
 import { GameProvider } from '../../../state/GameContext';
-import { getTownTilesForGrid } from '../../../systems/worldforge/bridge/legacySubmapBridge';
+import { getTownTilesForGrid, getBridgeAtlas } from '../../../systems/worldforge/bridge/legacySubmapBridge';
 import { buildTownSimStateForBurg } from '../../../systems/worldforge/townsim/townSimRegistration';
 import { advanceTown } from '../../../systems/worldforge/townsim/townSimRegistry';
 import type { GameState } from '../../../types';
@@ -13,6 +13,10 @@ const SEED = 12345;
 const COLS = 96;
 const ROWS = 96;
 const firstTile = getTownTilesForGrid(SEED, COLS, ROWS)[0];
+// Town readers resolve the town from `playerCell.cellId` (grid-retirement made
+// them cell-only), so a "tracked town" test seats the player on the burg's cell.
+const firstTileBurgCell =
+  (getBridgeAtlas(SEED).pack.burgs?.[firstTile.burgId] as { cell?: number } | undefined)?.cell ?? 0;
 
 function renderBroadsheet(state: GameState) {
   return render(
@@ -51,6 +55,7 @@ describe('Broadsheet', () => {
       worldSeed: SEED,
       gameTime: advancedTime,
       currentLocationId: `coord_${firstTile.x}_${firstTile.y}`,
+      playerCell: { cellId: firstTileBurgCell, localeCoords: null },
       townSim: { [firstTile.burgId]: town },
       isBroadsheetVisible: true,
     };

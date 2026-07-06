@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { SaveSlotSummary } from '../../services/saveLoadService';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
-import { UI_ID } from '../../styles/uiIds';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 interface LoadGameModalProps {
   slots: SaveSlotSummary[];
@@ -76,55 +77,45 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
   );
 
   return (
-    <div
-      id={UI_ID.LOAD_GAME_MODAL}
-      data-testid={UI_ID.LOAD_GAME_MODAL}
-      className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[var(--z-index-modal-background)]"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="load-game-modal-title"
+    <WindowFrame
+      title="Resume Journey"
+      onClose={onClose}
+      storageKey={WINDOW_KEYS.LOAD_GAME}
+      initialMaximized={false}
     >
-      <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-3xl p-6 text-gray-100 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 id="load-game-modal-title" className="text-2xl font-bold text-sky-300">Resume Journey</h2>
-            <p className="text-sm text-gray-400">Choose a moment in time to return to.</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-200"
-            aria-label="Close load game dialog"
-          >
-            ✕
-          </button>
+      <div className="flex flex-col h-full text-gray-100">
+        <div className="shrink-0 px-6 pt-6 pb-3">
+          <p className="text-sm text-gray-400">Choose a moment in time to return to.</p>
         </div>
 
-        {autoSlots.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold text-sky-200">Echoes (Auto-Saves)</h3>
-              <span className="text-xs text-gray-400">Moments preserved automatically by the Weave.</span>
-            </div>
-            <div className="space-y-3">
-              {autoSlots.map(renderSlotCard)}
-            </div>
-          </div>
-        )}
-
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-amber-200">Chronicles</h3>
-            <span className="text-xs text-gray-400">Permanent records of your legend.</span>
-          </div>
-          {manualSlots.length > 0 ? (
-            <div className="space-y-3">
-              {manualSlots.map(renderSlotCard)}
-            </div>
-          ) : (
-            <div className="border border-dashed border-gray-700 rounded-lg p-6 text-center text-gray-400 italic">
-              The archives are silent. Begin your journey and use &quot;Chronicle Journey&quot; to chronicle your deeds.
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-6">
+          {autoSlots.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold text-sky-200">Echoes (Auto-Saves)</h3>
+                <span className="text-xs text-gray-400">Moments preserved automatically by the Weave.</span>
+              </div>
+              <div className="space-y-3">
+                {autoSlots.map(renderSlotCard)}
+              </div>
             </div>
           )}
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-amber-200">Chronicles</h3>
+              <span className="text-xs text-gray-400">Permanent records of your legend.</span>
+            </div>
+            {manualSlots.length > 0 ? (
+              <div className="space-y-3">
+                {manualSlots.map(renderSlotCard)}
+              </div>
+            ) : (
+              <div className="border border-dashed border-gray-700 rounded-lg p-6 text-center text-gray-400 italic">
+                The archives are silent. Begin your journey and use &quot;Chronicle Journey&quot; to chronicle your deeds.
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -143,7 +134,7 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
           This timeline will be lost to the void. This action cannot be undone.
         </p>
       </ConfirmationModal>
-    </div>
+    </WindowFrame>
   );
 };
 

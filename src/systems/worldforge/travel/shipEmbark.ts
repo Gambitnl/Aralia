@@ -75,6 +75,8 @@ export function shipTravelAvailability(
 export interface VoyageDestination {
   destinationBurgId: number;
   seaMiles: number;
+  /** Aggregate sea-danger of the route in [0,1] (Plan 3A tiers), for the encounter roll. */
+  danger: number;
 }
 
 /**
@@ -109,5 +111,6 @@ export function shipVoyageFromDestination(
   return {
     destinationBurgId: burgId,
     seaMiles: segmentedRoute.seaMiles,
+    danger: segmentedRoute.danger,
   };
 }

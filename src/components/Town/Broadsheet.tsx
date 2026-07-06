@@ -3,7 +3,8 @@ import { useGameState } from '../../state/GameContext';
 import { getGameDay } from '../../utils/core';
 import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
 import { selectTownNews, type TownNewsItem } from '../../systems/worldforge/townsim/townNews';
-import { Z_INDEX } from '../../styles/zIndex';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 /**
  * Player-facing TOWN BROADSHEET. Opened in two modes:
@@ -107,25 +108,18 @@ const Broadsheet: React.FC = () => {
   const close = () => dispatch({ type: 'SET_BROADSHEET_VISIBLE', payload: false });
 
   return (
-    <div
-      data-testid="broadsheet"
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 p-4"
-      style={{ zIndex: Z_INDEX.MODAL_BACKGROUND }}
+    <WindowFrame
+      title={paperName}
+      onClose={close}
+      storageKey={WINDOW_KEYS.BROADSHEET}
+      initialMaximized={false}
     >
       <div
-        className="relative w-full max-w-3xl max-h-[88vh] overflow-y-auto bg-stone-100 border-4 border-stone-800 rounded-sm shadow-2xl p-8 text-stone-900 font-serif"
-        style={{ zIndex: Z_INDEX.MODAL_CONTENT }}
+        data-testid="broadsheet"
+        className="flex flex-col h-full overflow-y-auto bg-stone-100 p-8 text-stone-900 font-serif"
       >
-        <button
-          onClick={close}
-          className="absolute top-3 right-3 text-stone-600 hover:text-stone-900 text-xl font-bold"
-          aria-label="Close broadsheet"
-        >
-          X
-        </button>
-
         {/* Masthead */}
-        <header className="text-center border-y-4 border-double border-stone-800 py-3 mb-5">
+        <header className="shrink-0 text-center border-y-4 border-double border-stone-800 py-3 mb-5">
           <h2 className="text-4xl font-black tracking-tight uppercase">{paperName}</h2>
           <p className="text-xs uppercase tracking-[0.3em] text-stone-600 mt-1">
             Day {day} &middot; Price: one copper
@@ -188,7 +182,7 @@ const Broadsheet: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </WindowFrame>
   );
 };
 

@@ -1,6 +1,5 @@
 import path from 'path';
-import fs from 'fs';
-import { spawn, exec, execSync } from 'child_process';
+import { spawn, exec } from 'child_process';
 import type { ProxyOptions } from 'vite';
 
 export const MCP_CLI = path.resolve(process.cwd(), 'node_modules/.bin/mcp-cli');
@@ -9,8 +8,6 @@ export const MCP_CLI_ENTRY = path.resolve(process.cwd(), 'node_modules', 'mcp-cl
 export const BUN_BIN = process.platform === 'win32'
   ? path.resolve(process.cwd(), 'node_modules', '.bin', 'bun.exe')
   : 'bun';
-export const STITCH_TOOL_OVERRIDE = (process.env.STITCH_IMAGE_TOOL || '').trim();
-export const STITCH_EXTRA_ARGS = (process.env.STITCH_IMAGE_ARGS || '').trim();
 
 export const PORTRAIT_OUTPUT_DIR = path.resolve(
   process.cwd(),
@@ -30,9 +27,6 @@ export const SCENE_OUTPUT_DIR = path.resolve(
   'scenes',
   'generated'
 );
-export const STITCH_GCLOUD_CONFIG = process.env.CLOUDSDK_CONFIG
-  || (process.env.USERPROFILE ? path.join(process.env.USERPROFILE, '.stitch-mcp', 'config') : '');
-
 export const formatProxyTarget = (target: ProxyOptions['target']): string => {
   if (!target) return 'unknown';
   if (typeof target === 'string') return target;

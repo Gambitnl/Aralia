@@ -75,9 +75,21 @@ export function sunFromTime(hours: number): SunState {
 /** Pleasant late-morning default (spec: plumbed, fixed, no UI). */
 export const DEFAULT_TIME_OF_DAY_H = 10.5;
 
-/** Half-extent (m) of the follow shadow frustum — covers the walking-scale neighbourhood. */
+/** Half-extent (m) of the NEAR follow shadow frustum — walking-scale neighbourhood. */
 const SHADOW_HALF_M = 220;
 const SHADOW_MAP_SIZE = 2048;
+/**
+ * Coarse SECOND cascade: a much larger frustum on a lower-res map so shadows
+ * stay legible out to town-overview distance instead of ending at ~220 m. One
+ * extra shadow-casting light (three.js has no native multi-cascade per light);
+ * the sun's key intensity is SPLIT between the two so total scene brightness is
+ * unchanged and both cast. Far map is deliberately low-res — it only needs to
+ * read as "there are shadows over there," not crisp edges.
+ */
+const FAR_SHADOW_HALF_M = 850;
+const FAR_SHADOW_MAP_SIZE = 1024;
+/** Fraction of the sun key carried by the far cascade light. */
+const FAR_SHADOW_INTENSITY_SHARE = 0.35;
 /** Sun distance from the frustum center along the sun direction. */
 const SUN_DIST_M = 900;
 
@@ -87,6 +99,7 @@ const World3DLighting: React.FC<{
 }> = ({ viewProfile, timeOfDayHours = DEFAULT_TIME_OF_DAY_H }) => {
   const sun = useMemo(() => sunFromTime(timeOfDayHours), [timeOfDayHours]);
   const lightRef = useRef<THREE.DirectionalLight>(null);
+  const farLightRef = useRef<THREE.DirectionalLight>(null);
   const castShadows = viewProfile === 'ground';
 
   // Sky wants a far-away sun position; scale the unit direction up.
@@ -101,6 +114,7 @@ const World3DLighting: React.FC<{
   useEffect(() => {
     // `.shadow` is absent on the mocked light in the jsdom test environment.
     lightRef.current?.shadow?.camera?.updateProjectionMatrix();
+    farLightRef.current?.shadow?.camera?.updateProjectionMatrix();
   }, [castShadows]);
 
   // Follow the camera with the shadow frustum, snapped to shadow-map texels so
@@ -108,20 +122,28 @@ const World3DLighting: React.FC<{
   // single cascade). Without this a static frustum either misses the player or
   // has to span the whole streamed window at mush resolution.
   useFrame(({ camera }) => {
-    const light = lightRef.current;
-    if (!light || !castShadows) return;
-    const texel = (SHADOW_HALF_M * 2) / SHADOW_MAP_SIZE;
-    const tx = Math.round(camera.position.x / texel) * texel;
-    const tz = Math.round(camera.position.z / texel) * texel;
-    // Center the frustum under the camera at terrain-ish height; generous
-    // near/far absorb the vertical-exaggeration height range.
-    light.target.position.set(tx, 0, tz);
-    light.target.updateMatrixWorld();
-    light.position.set(
-      tx + sun.direction[0] * SUN_DIST_M,
-      sun.direction[1] * SUN_DIST_M,
-      tz + sun.direction[2] * SUN_DIST_M,
-    );
+    if (!castShadows) return;
+    const followFrustum = (
+      light: THREE.DirectionalLight | null,
+      halfM: number,
+      mapSize: number,
+    ) => {
+      if (!light) return;
+      const texel = (halfM * 2) / mapSize;
+      const tx = Math.round(camera.position.x / texel) * texel;
+      const tz = Math.round(camera.position.z / texel) * texel;
+      // Center the frustum under the camera at terrain-ish height; generous
+      // near/far absorb the vertical-exaggeration height range.
+      light.target.position.set(tx, 0, tz);
+      light.target.updateMatrixWorld();
+      light.position.set(
+        tx + sun.direction[0] * SUN_DIST_M,
+        sun.direction[1] * SUN_DIST_M,
+        tz + sun.direction[2] * SUN_DIST_M,
+      );
+    };
+    followFrustum(lightRef.current, SHADOW_HALF_M, SHADOW_MAP_SIZE);
+    followFrustum(farLightRef.current, FAR_SHADOW_HALF_M, FAR_SHADOW_MAP_SIZE);
   });
 
   return (
@@ -138,12 +160,14 @@ const World3DLighting: React.FC<{
       />
       {/* Cool sky / warm ground-bounce hemisphere fill. */}
       <hemisphereLight args={[sun.hemiSkyColor, sun.hemiGroundColor, sun.hemiIntensity]} />
-      {/* Warm sun key. Bias pair tuned against acne (bias) and peter-panning
-          (normalBias kept small in meters — buildings are ~5 m tall). */}
+      {/* Warm sun key — NEAR cascade. Carries the majority of the key so the
+          walking-scale neighbourhood gets crisp, high-res shadows. Bias pair
+          tuned against acne (bias) and peter-panning (normalBias kept small in
+          meters — buildings are ~5 m tall). */}
       <directionalLight
         ref={lightRef}
         position={[sun.direction[0] * SUN_DIST_M, sun.direction[1] * SUN_DIST_M, sun.direction[2] * SUN_DIST_M]}
-        intensity={sun.sunIntensity}
+        intensity={sun.sunIntensity * (1 - FAR_SHADOW_INTENSITY_SHARE)}
         color={sun.sunColor}
         castShadow={castShadows}
         shadow-mapSize-width={SHADOW_MAP_SIZE}
@@ -157,6 +181,31 @@ const World3DLighting: React.FC<{
         shadow-bias={-0.0004}
         shadow-normalBias={0.6}
       />
+      {/* Coarse FAR cascade — same sun direction, much larger frustum on a
+          low-res map. Carries the remaining key share and casts the distant
+          shadows that the near cascade's ~220 m frustum drops, so wide town
+          overviews are no longer shadowless past the neighbourhood. Larger
+          biases absorb the coarse texel size (a far texel spans several meters).
+          Ground profile only. */}
+      {castShadows && (
+        <directionalLight
+          ref={farLightRef}
+          position={[sun.direction[0] * SUN_DIST_M, sun.direction[1] * SUN_DIST_M, sun.direction[2] * SUN_DIST_M]}
+          intensity={sun.sunIntensity * FAR_SHADOW_INTENSITY_SHARE}
+          color={sun.sunColor}
+          castShadow
+          shadow-mapSize-width={FAR_SHADOW_MAP_SIZE}
+          shadow-mapSize-height={FAR_SHADOW_MAP_SIZE}
+          shadow-camera-near={10}
+          shadow-camera-far={SUN_DIST_M + FAR_SHADOW_HALF_M * 4}
+          shadow-camera-left={-FAR_SHADOW_HALF_M}
+          shadow-camera-right={FAR_SHADOW_HALF_M}
+          shadow-camera-top={FAR_SHADOW_HALF_M}
+          shadow-camera-bottom={-FAR_SHADOW_HALF_M}
+          shadow-bias={-0.0006}
+          shadow-normalBias={1.5}
+        />
+      )}
       {/* Distance fog tinted to the sky horizon. Ground profile pulls it in to
           meet the artifact-edge haze; continent keeps the km-scale falloff.
           Near distances stay generous so the midground never grays out. */}

@@ -161,6 +161,64 @@ describe('CharacterCreator Flow', () => {
     expect(await screen.findByRole('heading', { name: /Choose Your Class/i }, { timeout: 8000 })).toBeInTheDocument();
   }, 25000); // Allow for async step transitions + animations during full-suite runs.
 
+  it('keeps creation step title and actions wrapped inside narrowed panes', () => {
+    render(
+      <TestWrapper>
+        <CharacterCreator
+          onCharacterCreate={mockOnCharacterCreate}
+          onExitToMainMenu={mockOnExitToMainMenu}
+          dispatch={mockDispatch}
+        />
+      </TestWrapper>
+    );
+
+    // The frame can now fit very narrow viewports, so the creator itself must
+    // stop treating the sidebar as a permanent left rail at those widths while
+    // still reserving enough vertical space for a readable progress list.
+    expect(screen.getByTestId('character-creator-layout')).toHaveClass('flex-col');
+    expect(screen.getByTestId('character-creator-layout')).toHaveClass('sm:flex-row');
+    expect(screen.getByTestId('character-creator-layout')).toHaveClass('overflow-y-auto');
+    expect(screen.getByTestId('character-creator-layout')).toHaveClass('sm:overflow-hidden');
+    expect(screen.getByLabelText('Character creation progress')).toHaveClass('h-[52%]');
+    expect(screen.getByLabelText('Character creation progress')).toHaveClass('min-h-56');
+    expect(screen.getByLabelText('Character creation progress')).toHaveClass('sm:w-64');
+    // The phone-width rendered creator keeps utility and progress controls
+    // touch-sized even when the sidebar stacks above the active step.
+    expect(screen.getByRole('button', { name: /Auto-Fill \(Random\)/i })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: /1\. Race/i })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: /Start over/i })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: /Main Menu/i })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: /^Confirm /i })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: /^light$/i })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: /^light$/i })).toHaveClass('min-w-11');
+
+    // The rendered playtest found that mobile split panes inherited desktop
+    // full-height behavior, clipping the race list and detail pane below the
+    // window. Stacked panes now scroll as a single surface, while each pane
+    // regains fixed-height scrollers at desktop breakpoints.
+    expect(screen.getByTestId('split-pane-layout')).toHaveClass('overflow-y-auto');
+    expect(screen.getByTestId('split-pane-layout')).toHaveClass('md:overflow-hidden');
+    expect(screen.getByTestId('split-pane-controls')).toHaveClass('max-h-72');
+    expect(screen.getByTestId('split-pane-controls')).toHaveClass('md:h-full');
+    expect(screen.getByTestId('split-pane-preview')).toHaveClass('min-h-[24rem]');
+    expect(screen.getByTestId('split-pane-preview')).toHaveClass('md:h-full');
+    expect(screen.getByTestId('race-detail-dual-images')).toHaveClass('grid');
+    expect(screen.getByTestId('race-detail-dual-images')).toHaveClass('grid-cols-2');
+
+    // The rendered playtest found that the race-step title and confirm action
+    // could exceed the pane when the sidebar left less horizontal room than the
+    // viewport suggested. The header should stack into a two-column wrapped
+    // grid until wide screens can support the three-part row.
+    const header = screen.getByTestId('creation-step-header');
+    expect(header).toHaveClass('grid');
+    expect(header).toHaveClass('grid-cols-2');
+    expect(header).toHaveClass('xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]');
+
+    const title = screen.getByRole('heading', { name: /Choose Your Race/i });
+    expect(title.parentElement).toHaveClass('col-span-2');
+    expect(title).toHaveClass('break-words');
+  });
+
   it('renders centralized lock text when race selection is missing', () => {
     renderCreatorWithDraft({ step: CreationStep.AgeSelection });
 

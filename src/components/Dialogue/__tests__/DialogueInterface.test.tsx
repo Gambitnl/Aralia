@@ -68,6 +68,7 @@ describe('DialogueInterface - Invite to party', () => {
     it('renders the Invite to party button when onInvite is provided', () => {
         render(<DialogueInterface {...baseProps} onInvite={vi.fn()} />);
         expect(screen.getByTestId('dialogue-invite-to-party')).toBeInTheDocument();
+        expect(screen.getByTestId('dialogue-end-conversation')).toBeInTheDocument();
     });
 
     it('calls onInvite with the NPC id when clicked', () => {

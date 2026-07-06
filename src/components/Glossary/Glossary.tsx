@@ -510,7 +510,7 @@ const Glossary: React.FC<GlossaryProps> = ({
         type="button"
         onClick={handleRefreshGlossaryDiagnostics}
         disabled={isCheckingSpells}
-        className={`p-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors ${
+        className={`flex h-11 w-11 items-center justify-center rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors ${
           isCheckingSpells
             ? 'text-emerald-400 animate-pulse cursor-wait'
             : 'text-gray-500 hover:text-emerald-400'
@@ -540,7 +540,7 @@ const Glossary: React.FC<GlossaryProps> = ({
     >
       <div className="flex flex-col h-full p-6 bg-gray-900 text-gray-200">
         {/* Main content area */}
-        <div className="flex-grow flex flex-col md:flex-row gap-4 overflow-hidden min-h-0 glossary-main-container">
+        <div className="flex-grow flex flex-col md:flex-row gap-4 overflow-hidden max-md:overflow-y-auto max-md:pr-1 min-h-0 glossary-main-container">
           {/* Sidebar with categories and entries */}
           <GlossarySidebar
             sortedCategories={sortedCategories}
@@ -561,11 +561,12 @@ const Glossary: React.FC<GlossaryProps> = ({
             isDevModeEnabled={isDevModeEnabled && showSpellGateChecks}
           />
 
-          {/* Column resize grabber */}
+          {/* The column grabber only belongs to the desktop row layout. In the
+              stacked narrow layout it reads as stray chrome between panels. */}
           <button
             type="button"
             aria-label="Resize glossary columns"
-            className="w-1 cursor-col-resize self-stretch flex items-center justify-center group"
+            className="hidden md:flex w-1 cursor-col-resize self-stretch items-center justify-center group"
             onMouseDown={handleColumnResizeStart}
             title="Drag to resize columns"
           >

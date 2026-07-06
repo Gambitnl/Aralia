@@ -44,10 +44,11 @@ describe('BattleMapTile', () => {
       />
     );
 
-    // It should render a div with terrain color
+    // The tile itself is transparent (the painted ground canvas shows through);
+    // terrain is conveyed by a faint tint layer using the deep forest-green tone.
     const tileElement = screen.getByRole('button', { name: 'Tile grass at 0, 0' });
     expect(tileElement).toBeInTheDocument();
-    expect(tileElement).toHaveClass('bg-green-800');
+    expect(tileElement.querySelector('.bg-\\[\\#1c3524\\]')).toBeInTheDocument();
     expect(tileElement).toHaveAttribute('title', expect.stringContaining('(0, 0) - grass - Elev: 0 - bright'));
   });
 
@@ -137,7 +138,7 @@ describe('BattleMapTile', () => {
     // Hidden tiles should stay on the grid but receive the strongest visual
     // mask, making fog-of-war visible without deleting terrain context.
     expect(screen.getByRole('button', { name: 'Tile grass at 0, 0' })).toHaveAttribute('title', expect.stringContaining('(0, 0) - grass - Elev: 0 - hidden'));
-    expect(container.querySelector('.bg-black\\/85')).toBeInTheDocument();
+    expect(container.querySelector('.bg-black\\/55')).toBeInTheDocument();
   });
 
   it('shows a softer mask for dim visible tiles', () => {
@@ -159,7 +160,7 @@ describe('BattleMapTile', () => {
     // Dim tiles are visible, but they still need a map treatment distinct from
     // bright light so light spells change tactical readability.
     expect(screen.getByRole('button', { name: 'Tile grass at 0, 0' })).toHaveAttribute('title', expect.stringContaining('(0, 0) - grass - Elev: 0 - dim'));
-    expect(container.querySelector('.bg-slate-950\\/25')).toBeInTheDocument();
+    expect(container.querySelector('.bg-slate-950\\/15')).toBeInTheDocument();
   });
 
   it('shows a short cover badge when cover labels are enabled', () => {

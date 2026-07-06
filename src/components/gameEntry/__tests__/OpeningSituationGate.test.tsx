@@ -6,8 +6,8 @@
  *
  * Tests the visible opening-situation gate controls. The gate is the small
  * overlay that appears when a fresh, generated opening cannot be written by the
- * local model; these tests make sure the player can either retry generation or
- * dismiss the failed opening and keep playing.
+ * local model; these tests make sure the player can retry generation without
+ * being offered a false bypass into a broken main view.
  */
 
 import { fireEvent, render, screen, within } from '@testing-library/react';
@@ -17,7 +17,7 @@ import { createMockGameState } from '../../../utils/factories';
 import type { AppAction } from '../../../state/actionTypes';
 
 describe('OpeningSituationGate', () => {
-    it('dispatches a skip action from the failed-opening dismiss button', () => {
+    it('keeps the failed-opening blocker honest and exposes retry only', () => {
         const dispatch = vi.fn<[AppAction], void>();
         const state = {
             ...createMockGameState(),
@@ -26,11 +26,16 @@ describe('OpeningSituationGate', () => {
 
         render(<OpeningSituationGate gameState={state} dispatch={dispatch} />);
 
-        // The dismiss button lives on the failed-opening card itself, separate
-        // from the explanatory Ollama pane, so it is available at the blocker.
+        // The opening scene is not currently optional in the live main view.
+        // A Dismiss button used to clear this blocker, then the game crashed
+        // into the generic error boundary with no recovery actions.
         const blocker = screen.getByTestId('opening-situation-unavailable');
-        fireEvent.click(within(blocker).getByTestId('opening-situation-dismiss'));
+        expect(within(blocker).queryByTestId('opening-situation-dismiss')).toBeNull();
 
-        expect(dispatch).toHaveBeenCalledWith({ type: 'SKIP_OPENING_SITUATION' });
+        const retry = within(blocker).getByTestId('opening-situation-retry');
+        expect(retry).toHaveClass('min-h-11');
+        fireEvent.click(retry);
+
+        expect(dispatch).toHaveBeenCalledWith({ type: 'BEGIN_OPENING_SITUATION' });
     });
 });

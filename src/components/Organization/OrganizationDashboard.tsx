@@ -11,6 +11,8 @@ import {
     purchaseOrgUpgrade,
     startMission
 } from '../../services/organizationService';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 interface OrganizationDashboardProps {
   initialOrganization: Organization;
@@ -72,27 +74,16 @@ const OrganizationDashboard: React.FC<OrganizationDashboardProps> = ({ initialOr
         };
 
   return (
-    <div className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black bg-opacity-75 p-4">
-      <div className="bg-gray-900 w-full max-w-4xl max-h-[90vh] rounded-xl shadow-2xl flex flex-col border border-gray-700">
-
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-800 rounded-t-xl">
-            <h1 className="text-2xl font-bold text-white tracking-wider flex items-center gap-2">
-                🏰 Organization Management
-            </h1>
-            {onClose && (
-                <button
-                    onClick={onClose}
-                    className="text-gray-400 hover:text-white transition-colors text-2xl"
-                    aria-label="Close"
-                >
-                    &times;
-                </button>
-            )}
-        </div>
+    <WindowFrame
+      title="🏰 Organization Management"
+      onClose={onClose}
+      storageKey={WINDOW_KEYS.ORGANIZATION_DASHBOARD}
+      initialMaximized={false}
+    >
+      <div className="flex flex-col h-full bg-gray-900">
 
         {/* Navigation */}
-        <div className="flex border-b border-gray-700 bg-gray-800">
+        <div className="shrink-0 flex border-b border-gray-700 bg-gray-800">
             <NavButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')}>Overview</NavButton>
             <NavButton active={activeTab === 'members'} onClick={() => setActiveTab('members')}>Members ({organization.members.length})</NavButton>
             <NavButton active={activeTab === 'missions'} onClick={() => setActiveTab('missions')}>Missions ({organization.missions.length})</NavButton>
@@ -101,14 +92,14 @@ const OrganizationDashboard: React.FC<OrganizationDashboardProps> = ({ initialOr
 
         {/* Error Message */}
         {error && (
-            <div className="bg-red-900/50 border-b border-red-800 text-red-200 px-4 py-2 text-sm flex justify-between items-center">
+            <div className="shrink-0 bg-red-900/50 border-b border-red-800 text-red-200 px-4 py-2 text-sm flex justify-between items-center">
                 <span>⚠️ {error}</span>
                 <button onClick={() => setError(null)} className="text-red-300 hover:text-white">&times;</button>
             </div>
         )}
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-gray-900">
             {activeTab === 'overview' && <OrgOverview organization={organization} />}
 
             {activeTab === 'members' && (
@@ -136,7 +127,7 @@ const OrganizationDashboard: React.FC<OrganizationDashboardProps> = ({ initialOr
         </div>
 
       </div>
-    </div>
+    </WindowFrame>
   );
 };
 

@@ -65,6 +65,37 @@ const HALF_CASTER_TABLE: SlotRow[] = [
   { 1: 4, 2: 3, 3: 3, 4: 3, 5: 2 },
 ];
 
+/**
+ * Cantrips-known by character level (2024 PHB). Casters that never learn
+ * cantrips (paladin, ranger) are absent and resolve to 0. These are the class
+ * cantrip counts; subclass/feat cantrips are additive elsewhere.
+ * Index = character level (1-20).
+ */
+const CANTRIPS_KNOWN_TABLE: Record<string, number[]> = {
+  // Full casters
+  bard:     [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+  cleric:   [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+  druid:    [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+  sorcerer: [4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+  wizard:   [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+  // Warlock (Pact Magic caster) learns cantrips too
+  warlock:  [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+  // Artificer full-progression cantrips
+  artificer:[2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4],
+};
+
+/**
+ * The number of class cantrips a caster of the given level knows.
+ * Returns 0 for classes with no cantrip progression (e.g. paladin, ranger,
+ * fighter). Deterministic; clamps level to 1-20.
+ */
+export function cantripsKnownForClassLevel(classId: string, level: number): number {
+  const table = CANTRIPS_KNOWN_TABLE[classId.toLowerCase()];
+  if (!table) return 0;
+  const clamped = Math.max(1, Math.min(20, Math.floor(level)));
+  return table[clamped - 1] ?? 0;
+}
+
 /** Warlock Pact Magic: all slots are the same (highest) level. Returns [slotLevel, count]. */
 function warlockPactSlots(level: number): SlotRow {
   if (level < 1) return {};

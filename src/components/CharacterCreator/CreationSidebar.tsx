@@ -102,7 +102,7 @@ const SidebarStepRow: React.FC<{
       onClick={handleClick}
       disabled={!canNavigate}
       className={`
-        w-full flex items-center gap-3 py-2 px-3 rounded-md text-left transition-colors
+        w-full min-h-11 flex items-center gap-3 py-2 px-3 rounded-md text-left transition-colors
         ${isNested ? 'ml-4' : ''}
         ${isCurrent ? 'bg-gray-700/50' : ''}
         ${canNavigate ? 'hover:bg-gray-700/70 cursor-pointer' : 'cursor-default'}
@@ -153,6 +153,8 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
   onNavigateToStep,
   onStartOver,
 }) => {
+  const currentStepRowRef = React.useRef<HTMLDivElement | null>(null);
+  const stepListRef = React.useRef<HTMLElement | null>(null);
   // Get visible steps
   const visibleSteps = SIDEBAR_STEPS.filter(step => step.isVisible(state));
   // Progress should reflect the route the player has actually reached. Several
@@ -182,9 +184,32 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
     onStartOver?.();
   };
 
+  React.useEffect(() => {
+    // Auto-Fill can jump from the first step to review, adding optional steps
+    // along the way. Keep the active step visible in the scrollable progress
+    // list without asking the browser to scroll any outer window ancestors.
+    const currentRow = currentStepRowRef.current;
+    const stepList = stepListRef.current;
+    if (!currentRow || !stepList) return;
+
+    // offsetTop can be measured against an outer positioned creator panel
+    // instead of this nav. Subtract the nav's own top edge so the scroll math
+    // only considers the row's position inside the progress list viewport.
+    const rowTop = Math.max(0, currentRow.offsetTop - stepList.offsetTop);
+    const rowBottom = rowTop + currentRow.offsetHeight;
+    const visibleTop = stepList.scrollTop;
+    const visibleBottom = visibleTop + stepList.clientHeight;
+
+    if (rowTop < visibleTop) {
+      stepList.scrollTop = rowTop;
+    } else if (rowBottom > visibleBottom) {
+      stepList.scrollTop = Math.max(0, rowBottom - stepList.clientHeight);
+    }
+  }, [currentStep, visibleSteps.length]);
+
   return (
     <aside
-      className="w-64 bg-gray-850 border-r border-gray-700 flex flex-col h-full"
+      className="flex h-[52%] min-h-56 w-full shrink-0 flex-col border-b border-gray-700 bg-gray-850 sm:h-full sm:min-h-0 sm:w-64 sm:border-b-0 sm:border-r"
       aria-label="Character creation progress"
     >
       {/* Header */}
@@ -193,16 +218,21 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
       </div>
 
       {/* Step list */}
-      <nav className="flex-1 overflow-y-auto p-2 space-y-1">
+      <nav ref={stepListRef} className="flex-1 overflow-y-auto p-2 space-y-1" data-testid="creation-sidebar-steps">
         {visibleSteps.map((stepConfig, index) => (
-          <SidebarStepRow
+          <div
             key={stepConfig.step}
-            config={stepConfig}
-            currentStep={currentStep}
-            state={state}
-            onNavigate={onNavigateToStep}
-            index={index + 1}
-          />
+            ref={stepConfig.step === currentStep ? currentStepRowRef : null}
+            data-testid={stepConfig.step === currentStep ? 'creation-sidebar-current-step' : undefined}
+          >
+            <SidebarStepRow
+              config={stepConfig}
+              currentStep={currentStep}
+              state={state}
+              onNavigate={onNavigateToStep}
+              index={index + 1}
+            />
+          </div>
         ))}
       </nav>
 
@@ -215,7 +245,7 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
           <button
             type="button"
             onClick={handleStartOverClick}
-            className={`w-full text-xs rounded-md px-2 py-1.5 border transition-colors ${
+            className={`w-full min-h-11 text-xs rounded-md px-2 py-2 border transition-colors ${
               confirmingReset
                 ? 'bg-red-900/50 border-red-500 text-red-200 hover:bg-red-800/60'
                 : 'bg-transparent border-gray-600 text-gray-400 hover:border-red-500/60 hover:text-red-300'

@@ -40,9 +40,14 @@ describe('DossierPane', () => {
 
     const listPane = screen.getByTestId('dossier-npc-list');
 
+    // Now the shared WindowFrame close control (still a 44px touch target).
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('h-11', 'w-11');
     expect(within(listPane).getByText('NPC 1')).toBeInTheDocument();
     expect(within(listPane).queryByText('NPC 26')).not.toBeInTheDocument();
     expect(within(listPane).getByText('Page 1 of 2')).toBeInTheDocument();
+    expect(within(listPane).getByRole('button', { name: 'NPC 1' })).toHaveClass('min-h-11');
+    expect(within(listPane).getByRole('button', { name: 'Previous' })).toHaveClass('min-h-11');
+    expect(within(listPane).getByRole('button', { name: 'Next' })).toHaveClass('min-h-11');
 
     fireEvent.click(within(listPane).getByRole('button', { name: 'Next' }));
 

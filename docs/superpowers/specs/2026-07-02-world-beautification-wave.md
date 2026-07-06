@@ -1,8 +1,13 @@
 # World Beautification Wave — Design Spec (2026-07-02)
 
-**Status:** grilled out in session (Remy + Fable), not yet built. This wave is
-the head of the dependency chain — it lands BEFORE fight-in-place combat
-slice 1 (see `2026-07-02-fight-in-place-combat-design.md`).
+**Status:** BUILT 2026-07-04/05 (props, catalogs, owned generators, vegetation,
+lighting, placement tuning, de-gridding, wind sway, far shadow cascade all
+shipped and screenshot-verified). The WebGPU-renderer tail (`webgpu-migration`
+topic) is the only remainder: battle-map port is active, default flip + WebGL
+retirement still parked pending Remy's real-GPU eyeball. This wave was the head
+of the dependency chain — it landed BEFORE fight-in-place combat slice 1 (see
+`2026-07-02-fight-in-place-combat-design.md`), which is now also built (slices
+1+2).
 
 ## Goal (player-visible)
 
@@ -111,15 +116,27 @@ AND (later) combat.
      rendered WebGPU-backend battlefield itself can now only be eyeballed on
      real WebGPU hardware — Remy's RTX 2070S via `?gpu=1` is the open
      verification.
-     Documented parity GAPS (WebGL-only for now — honest omissions, NO silent
-     fallbacks): real-time shadows on node materials, postprocessing bloom +
-     vignette (`@react-three/postprocessing` is WebGL `EffectComposer`),
-     procedural GLSL terrain texturing (`onBeforeCompile`, no node-path
-     equivalent — replaced by a baked per-tile palette), the grid
-     movement/path/AoE shader overlay + targeting decals, VFX, grass/tree
-     instancing, drei `<Html>` nameplates, and the animated `CharacterActor`
-     rig (tokens are simple lit capsules). These are the next port items before
-     any default flip.
+     **Visual parity port (2026-07-05, rungs 1–4 SHIPPED + rung 5 wired):**
+     the interim scene's parity gaps are now largely closed. (1) Procedural
+     terrain texturing — the `onBeforeCompile` GLSL is TRANSLATED to a TSL node
+     graph (`gpu/terrainColorNode.ts`: per-type palettes, FBM/voronoi noise
+     hierarchy, organic edge blend, slope-rock, wet banks, dapple), NOT a flat
+     palette. (2) Instanced grass + ground scatter (placement mirrors
+     `GrassLayer`/`GroundScatter`). (3) Grid + movement/path/**AoE** overlay
+     translated to TSL (`gpu/gridOverlayNodes.ts`), fade-lerped, terrain-
+     conforming; BattleMap3D passes `validMoves`/`activePath`/`actionMode`/
+     `aoeSet` through. (4) Tokens gained team color + HP fade + selection/active
+     rings. (5) A node `PostProcessing` bloom+vignette pipeline is wired
+     (dynamic-imported, real-GPU-gated). Node-graph construction is unit-tested
+     without a GPU (5 new tests); battle-map suites 12/8 green; tsc clean.
+     Remaining documented parity GAPS (WebGL-only, honest, shown on-screen in a
+     red MISSING list): real-time shadows on node materials (no `LightsNode`
+     consumes a shadow map when lighting is baked into `colorNode`), the full
+     animated `CharacterActor` rig + drei `<Html>` nameplates (1,491-line drei/
+     AnimationMixer stack — tokens are lit capsules + rings), and GPU wind sway
+     on grass (blades are static). These are the last items before any default
+     flip. Captures: `.agent/scratch/bm3d-port-webgl-ref.png` (target look) +
+     `bm3d-port-webgpu.png` (headless fail-fast pane, correct with no adapter).
    - PARKED — modal (non-battle) combat scenes; default flip + WebGL retirement.
 9. **Reproducibility is non-negotiable.** All placement seeded from the
    existing seed-path discipline: same world + same town → same props,

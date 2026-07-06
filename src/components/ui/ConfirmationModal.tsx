@@ -1,13 +1,17 @@
 /**
  * @file ConfirmationModal.tsx
  *
+ * This file renders the shared yes/no confirmation dialog used when a player is
+ * about to erase, overwrite, abandon, or otherwise commit to a risky action.
+ * It can be opened from plain page content or from a resizable WindowFrame, so
+ * it owns its own blocking overlay and focus trap instead of relying on the
+ * caller's layout.
+ *
  * @component-owner UI Team / Core UI
  */
 import React from 'react';
 import { Button } from './Button';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
-import { Z_INDEX } from '../../styles/zIndex';
+import { ModalDialog } from './ModalDialog';
 import { UI_ID } from '../../styles/uiIds';
 
 interface ConfirmationModalProps {
@@ -20,6 +24,12 @@ interface ConfirmationModalProps {
   children: React.ReactNode;
 }
 
+/**
+ * The shared yes/no confirmation dialog. Now a thin wrapper over the shared
+ * {@link ModalDialog} blocking-dialog shell — this component only supplies the
+ * confirm/cancel button row; the portal, dim backdrop, focus trap, and centered
+ * panel all live in ModalDialog.
+ */
 export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isOpen,
   onClose,
@@ -28,65 +38,25 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   children,
-}) => {
-  // Use the standard hook for focus trapping
-  // This automatically handles:
-  // 1. Initial focus (first button)
-  // 2. Trapping Tab/Shift+Tab
-  // 3. Handling Escape key
-  // 4. Restoring focus on close
-  const dialogRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
-  const titleId = 'confirmation-modal-title';
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          id={UI_ID.CONFIRMATION_MODAL}
-          data-testid={UI_ID.CONFIRMATION_MODAL}
-          className={`fixed inset-0 bg-black/70 flex items-center justify-center z-[${Z_INDEX.MODAL_BACKGROUND}] p-4`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
-        >
-          <motion.div
-            ref={dialogRef}
-            className="bg-gray-900 border border-amber-500/60 rounded-xl shadow-xl max-w-md w-full p-6 text-gray-100 focus:outline-none"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-            tabIndex={-1}
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-          >
-            <h3 id={titleId} className="text-xl font-bold text-amber-300 mb-3">
-              {title}
-            </h3>
-            <div className="text-sm text-gray-300 leading-relaxed">
-              {children}
-            </div>
-            <div className="mt-4 flex justify-end space-x-3">
-              <Button
-                onClick={onClose}
-                variant="secondary"
-                size="md"
-              >
-                {cancelLabel}
-              </Button>
-              <Button
-                onClick={onConfirm}
-                variant="action"
-                size="md"
-              >
-                {confirmLabel}
-              </Button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
+}) => (
+  <ModalDialog
+    isOpen={isOpen}
+    onClose={onClose}
+    title={title}
+    size="md"
+    id={UI_ID.CONFIRMATION_MODAL}
+    testId={UI_ID.CONFIRMATION_MODAL}
+    footer={
+      <>
+        <Button onClick={onClose} variant="secondary" size="md">
+          {cancelLabel}
+        </Button>
+        <Button onClick={onConfirm} variant="action" size="md">
+          {confirmLabel}
+        </Button>
+      </>
+    }
+  >
+    {children}
+  </ModalDialog>
+);

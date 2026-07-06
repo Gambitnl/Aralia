@@ -134,21 +134,23 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                 `}
             </style>
             <AnimatePresence>
-                <div role="dialog" aria-modal="true" aria-label="Dice Roller">
-                    <WindowFrame
-                        key="dice-roller-window"
-                        title="Dice Roller"
-                        onClose={onClose}
-                        storageKey={WINDOW_KEYS.DICE_ROLLER}
-                        headerActions={<Dice6 className="w-5 h-5 text-amber-400" />}
-                    >
+                <WindowFrame
+                    key="dice-roller-window"
+                    title="Dice Roller"
+                    onClose={onClose}
+                    storageKey={WINDOW_KEYS.DICE_ROLLER}
+                    headerActions={<Dice6 className="w-5 h-5 text-amber-400" />}
+                >
+                    {/* WindowFrame already exposes the named dialog. Dice Roller
+                        keeps only the tray and controls here so screen readers
+                        and tests do not encounter a hidden duplicate dialog. */}
                     <div
-                        className="flex flex-col h-full bg-gray-900"
+                        className="flex h-full min-h-0 flex-col bg-gray-900"
                         onKeyDown={handleKeyDown}
                         tabIndex={-1}
                     >
                         {/* Dice Canvas Container (The Tray) */}
-                        <div className="relative flex-grow min-h-0 p-2 bg-black/40 overflow-hidden">
+                        <div className="relative min-h-[120px] flex-1 overflow-hidden bg-black/40 p-2">
                             <div
                                 id="dice-roller-canvas"
                                 ref={containerRef}
@@ -159,21 +161,26 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
 
                             {error && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-gray-900/90">
-                                    <p className="text-red-400">Error: {error}</p>
+                                    <p className="max-w-full break-words px-4 text-center text-sm text-red-400">Error: {error}</p>
                                 </div>
                             )}
                             {!isReady && !error && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-gray-900/90">
-                                    <p className="text-gray-400 animate-pulse">Loading dice...</p>
+                                    <p className="animate-pulse px-4 text-center text-gray-400">Loading dice...</p>
                                 </div>
                             )}
                         </div>
 
-                        {/* Controls - Single Row: Scale Slider | Dice Pool | Roll Controls */}
-                        <div className="p-3 border-t border-gray-700 bg-gray-800/80 flex-shrink-0 relative z-[var(--z-index-content-overlay-low)]">
-                            <div className="flex gap-3 items-center">
+                        {/* Controls: the dice pool can wrap independently from
+                            roll actions, keeping every die and command reachable
+                            in narrow or zoomed windows. */}
+                        <div
+                            data-testid="dice-roller-controls"
+                            className="relative z-[var(--z-index-content-overlay-low)] max-h-[70%] flex-shrink-0 overflow-y-auto border-t border-gray-700 bg-gray-800/80 p-3"
+                        >
+                            <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,1fr)_1px_minmax(220px,auto)] lg:items-center">
                                 {/* Scale Slider */}
-                                <div className="flex-shrink-0">
+                                <div className="min-w-0">
                                     <DiceScaleSlider
                                         value={diceScale}
                                         min={5}
@@ -183,7 +190,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                                 </div>
 
                                 {/* Dice Pool Buttons */}
-                                <div className="flex gap-1 flex-shrink-0">
+                                <div className="grid min-w-0 grid-cols-[repeat(auto-fit,minmax(58px,1fr))] gap-2">
                                     {DIE_TYPES.map((die) => {
                                         const count = dicePool[die];
                                         return (
@@ -241,17 +248,17 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                                 </div>
 
                                 {/* Separator */}
-                                <div className="w-px h-16 bg-gray-600 flex-shrink-0" />
+                                <div className="hidden h-16 w-px flex-shrink-0 bg-gray-600 lg:block" />
 
                                 {/* Notation (read-only from pool) + Mod + Roll + Result + Clear */}
-                                <div className="flex gap-2 items-center flex-1">
-                                    <div className="relative flex-1 min-w-[80px]">
+                                <div className="grid min-w-0 grid-cols-[64px_minmax(0,1fr)_42px] items-center gap-2 lg:grid-cols-[minmax(120px,1fr)_64px_auto_auto_auto]">
+                                    <div className="relative col-span-3 min-w-0 lg:col-span-1">
                                         <div className="w-full px-2 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white text-center text-sm min-h-[38px] flex items-center justify-center">
                                             {poolNotation || <span className="text-gray-400 italic">Click dice to add</span>}
                                         </div>
                                         <span className="absolute -top-2 left-1 bg-gray-800 px-1 text-[9px] text-gray-400 uppercase font-bold">Pool</span>
                                     </div>
-                                    <div className="relative w-14">
+                                    <div className="relative min-w-0">
                                         <input
                                             type="number"
                                             value={modifier}
@@ -264,7 +271,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                                     <button
                                         onClick={handleRoll}
                                         disabled={!isReady || isRolling || !hasPoolDice}
-                                        className="flex items-center justify-center gap-1 px-3 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow-lg transition-all active:scale-95"
+                                        className="flex min-h-[42px] items-center justify-center gap-1 rounded-lg bg-amber-600 px-3 py-2 font-bold text-white shadow-lg transition-all hover:bg-amber-500 active:scale-95 disabled:cursor-not-allowed disabled:bg-gray-600"
                                     >
                                         <Dice6 className="w-5 h-5" />
                                         {isRolling ? '...' : 'Roll'}
@@ -272,7 +279,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
 
                                     {/* Inline Result Display */}
                                     {lastResult && (
-                                        <div className="flex items-center gap-2 px-3 py-2 bg-gray-900 rounded-lg border border-amber-600/50 min-w-[80px] justify-center">
+                                        <div className="col-span-3 flex min-w-[80px] items-center justify-center gap-2 rounded-lg border border-amber-600/50 bg-gray-900 px-3 py-2 lg:col-span-1">
                                             <span className="text-2xl font-bold text-amber-400">{lastResult.total}</span>
                                             {modifier !== 0 && (
                                                 <>
@@ -287,7 +294,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                                     <button
                                         onClick={clearPool}
                                         disabled={!isReady}
-                                        className="px-2 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-gray-200 rounded-lg transition-colors border border-gray-600"
+                                        className="flex min-h-[42px] items-center justify-center rounded-lg border border-gray-600 bg-gray-700 px-2 py-2 text-gray-200 transition-colors hover:bg-gray-600 disabled:bg-gray-800"
                                         title="Clear pool and dice"
                                     >
                                         <RefreshCcw className="w-4 h-4" />
@@ -296,8 +303,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                             </div>
                         </div>
                     </div>
-                    </WindowFrame>
-                </div>
+                </WindowFrame>
             </AnimatePresence>
         </>
     );

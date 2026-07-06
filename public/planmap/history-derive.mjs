@@ -47,6 +47,52 @@ export function stalenessDays(timeline, today) {
   return res;
 }
 
+// --- Back-dating: blend manual designed/built dates with git snapshots -------
+// A topic or feature may carry `history: { designed, built }` (YYYY-MM-DD) —
+// real dates for work that predates git-tracking. nodeStatusAt derives its
+// status on day D from those dates; undated nodes fall back to the git snapshot.
+export function nodeStatusAt(node, D, gitStatus) {
+  const h = node.history;
+  if (h && (h.built || h.designed)) {
+    if (h.built && D >= h.built) return 'done';
+    if (h.designed && D >= h.designed) return 'specced';
+    return null; // before it was designed → not on the map yet
+  }
+  return gitStatus ?? null; // undated: track git (absent if not in that snapshot)
+}
+
+// Reconstruct the full topics array as it stood on day D: dated nodes from their
+// dates, undated nodes from the latest git snapshot on or before D.
+export function stateAt(D, liveTopics, gitSnap) {
+  const gm = new Map();
+  if (gitSnap) for (const n of flatNodes(gitSnap.topics)) gm.set(n.key, n.status);
+  const out = [];
+  for (const t of liveTopics) {
+    const ts = nodeStatusAt(t, D, gm.get(t.id));
+    if (!ts) continue;
+    const features = [];
+    for (const f of t.features || []) {
+      const fs = nodeStatusAt(f, D, gm.get(`${t.id}::${slug(f.title)}`));
+      if (fs) features.push({ ...f, status: fs });
+    }
+    out.push({ ...t, status: ts, features });
+  }
+  return out;
+}
+
+// Build one {date, topics} entry per distinct date (git days + every manual
+// designed/built date + today), so momentum/staleness/replay reach into the
+// pre-git past. The final point (today) is the live map verbatim.
+export function synthesizeTimeline(gitDays, liveTopics, today) {
+  const dates = new Set([today]);
+  for (const g of gitDays) dates.add(g.date);
+  const addH = h => { if (h) { if (h.designed) dates.add(h.designed); if (h.built) dates.add(h.built); } };
+  for (const t of liveTopics) { addH(t.history); for (const f of t.features || []) addH(f.history); }
+  const sorted = [...dates].filter(Boolean).sort();
+  const gitAt = D => { let s = null; for (const g of gitDays) { if (g.date <= D) s = g; } return s; };
+  return sorted.map(D => ({ date: D, topics: D === today ? liveTopics : stateAt(D, liveTopics, gitAt(D)) }));
+}
+
 if (typeof window !== 'undefined') {
-  window.PlanmapHistory = { slug, flatNodes, diffDone, momentumByDay, stalenessDays };
+  window.PlanmapHistory = { slug, flatNodes, diffDone, momentumByDay, stalenessDays, nodeStatusAt, stateAt, synthesizeTimeline };
 }

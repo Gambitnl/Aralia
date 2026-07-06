@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 05/07/2026, 07:57:19
+ * Dependents: App.tsx, components/DesignPreview/steps/PreviewComponents.tsx
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * ARCHITECTURAL CONTEXT:
  * This component is the primary UI interface for the 'Banter System'.
@@ -73,6 +89,12 @@ interface CollapsibleBanterPanelProps {
    * toggle); without it the badge is a read-only status pill.
    */
   onToggleBanterPause?: () => void;
+  /**
+   * Hides only the ambient collapsed launcher while another modal owns focus.
+   * Expanded/floating chat state is preserved so active conversations are not
+   * discarded just because the player opened a logbook or glossary window.
+   */
+  suppressCollapsedTab?: boolean;
 }
 
 type PanelMode = 'COLLAPSED' | 'EXPANDED' | 'FLOATING';
@@ -97,6 +119,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
   onExtendNpcDelay,
   isBanterPaused = false,
   onToggleBanterPause,
+  suppressCollapsedTab = false,
 }) => {
   const [mode, setMode] = useState<PanelMode>('COLLAPSED');
   const [activeTab, setActiveTab] = useState<Tab>('LIVE');
@@ -153,7 +176,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
         type="button"
         data-testid="banter-mode-indicator"
         onClick={onToggleBanterPause}
-        className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded border whitespace-nowrap transition-colors hover:brightness-125 cursor-pointer ${badgeColors}`}
+        className={`min-h-11 px-3 py-2 text-xs font-semibold uppercase tracking-wider rounded border whitespace-nowrap transition-colors hover:brightness-125 cursor-pointer ${badgeColors}`}
         title={isBanterPaused
           ? 'Ambient party banter is paused — click to resume'
           : 'Ambient party banter is on — click to pause'}
@@ -193,7 +216,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
             <span>💬</span>
             <span className="font-medium">{generatingSpeakerName || 'Companion'} spoke to you</span>
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 [&>button]:inline-flex [&>button]:min-h-11 [&>button]:min-w-11 [&>button]:items-center [&>button]:justify-center">
             <span className={`tabular-nums font-semibold ${playerResponseDeadlineSeconds <= 30 ? 'animate-pulse' : ''}`}>
               ⏱ {playerResponseDeadlineSeconds}s
             </span>
@@ -395,7 +418,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
       <div className="flex border-b border-gray-700 mb-2">
         <button
           onClick={() => { setActiveTab('LIVE'); setSelectedMomentId(null); }}
-          className={`flex-1 py-2 text-sm font-medium transition-colors ${activeTab === 'LIVE' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-400 hover:text-gray-300'}`}
+          className={`min-h-11 flex-1 py-2 text-sm font-medium transition-colors ${activeTab === 'LIVE' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-400 hover:text-gray-300'}`}
         >
           Live Chat{' '}
           {isActive && (
@@ -404,7 +427,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
         </button>
         <button
           onClick={() => setActiveTab('MEMORIES')}
-          className={`flex-1 py-2 text-sm font-medium transition-colors ${activeTab === 'MEMORIES' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-400 hover:text-gray-300'}`}
+          className={`min-h-11 flex-1 py-2 text-sm font-medium transition-colors ${activeTab === 'MEMORIES' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-400 hover:text-gray-300'}`}
         >
           Memories
         </button>
@@ -423,11 +446,11 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
         title="Party Member Banter"
         onClose={() => setMode('COLLAPSED')}
         headerActions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 [&>button]:inline-flex [&>button]:min-h-11 [&>button]:min-w-11 [&>button]:items-center [&>button]:justify-center">
             {devBanterBadge}
             <button
               onClick={() => setMode('EXPANDED')}
-              className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+              className="flex h-11 w-11 items-center justify-center rounded text-gray-400 hover:bg-gray-700 hover:text-white"
               title="Dock to side"
             >
               ⇲
@@ -445,13 +468,15 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
   // ─── Mode: SIDE PANEL (EXPANDED) ──────────────────────────────────────────
   if (mode === 'EXPANDED') {
     return (
+      // Phone-width drawers use the full viewport so the header actions and
+      // title do not clip offscreen; wider screens keep the side-panel shape.
       <motion.div
         id={UI_ID.BANTER_PANEL_EXPANDED}
         data-testid={UI_ID.BANTER_PANEL_EXPANDED}
         initial={{ x: '100%' }}
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
-        className={`fixed right-0 top-1/4 bottom-1/4 w-96 bg-gray-800 shadow-2xl z-[var(--z-index-content-overlay-medium)] flex flex-col
+        className={`fixed left-0 right-0 top-1/4 bottom-1/4 w-auto bg-gray-800 shadow-2xl z-40 flex flex-col sm:left-auto sm:w-96
           ${isPlayerDirected && isWaitingForPlayerResponse
             ? 'border-l border-y border-amber-500/70'
             : 'border-l border-amber-500/50'
@@ -467,7 +492,10 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
                 : 'Party Member Banter'}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          {/* The expanded drawer has its own header outside WindowFrame, so its
+              badge and icon actions need the same touch target floor as the
+              floating window controls. */}
+          <div className="flex items-center gap-2 [&>button]:inline-flex [&>button]:min-h-11 [&>button]:min-w-11 [&>button]:items-center [&>button]:justify-center">
             {devBanterBadge}
             <button onClick={() => setMode('FLOATING')} className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Pop out">⇱</button>
             <button onClick={() => setMode('COLLAPSED')} className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Collapse">→</button>
@@ -484,6 +512,9 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
 
   // ─── Mode: COLLAPSED TAB ──────────────────────────────────────────────────
   const isNudging = isActive && isPlayerDirected && isWaitingForPlayerResponse;
+  if (suppressCollapsedTab) {
+    return null;
+  }
 
   return (
     <motion.div
@@ -491,18 +522,30 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
       data-testid={UI_ID.BANTER_PANEL_COLLAPSED}
       initial={{ x: '100%' }}
       animate={{ x: 0 }}
-      className="fixed right-0 top-1/3 z-[var(--z-index-content-overlay-medium)]"
+      // The collapsed tab is an ambient entrypoint, not the active surface.
+      // Keep it below opened menus and modals so it cannot cover player
+      // controls, while the expanded chat drawer still uses the overlay tier.
+      // Phone-width play surfaces scroll the action pane and log as one page,
+      // so a mid-screen fixed launcher can cover narrative prose. Keep the
+      // compact icon on the bottom-right viewport edge, outside the log text
+      // column and below the stacked action buttons.
+      className="fixed right-0 top-1/3 z-10 max-[480px]:bottom-2 max-[480px]:right-2 max-[480px]:top-auto"
     >
       <button
         onClick={() => setMode('EXPANDED')}
-        className={`flex items-center gap-2 pl-3 pr-2 py-3 bg-gray-800 border-l border-y rounded-l-xl shadow-lg hover:bg-gray-700 transition-all group
+        aria-label="Open party chat"
+        title="Open party chat"
+        className={`flex items-center gap-1 px-2 py-3 bg-gray-800 border-l border-y rounded-l-xl shadow-lg hover:bg-gray-700 transition-all group max-[480px]:h-11 max-[480px]:w-11 max-[480px]:justify-center max-[480px]:rounded-lg max-[480px]:border max-[480px]:p-0 sm:gap-2 sm:pl-3 sm:pr-2
           ${isNudging
             ? 'border-amber-400/80 shadow-amber-500/30 ring-2 ring-amber-400/50 animate-pulse'
             : 'border-amber-500/30'
           }`}
       >
         <span className="text-amber-400 text-lg group-hover:scale-110 transition-transform">💬</span>
-        <div className="flex flex-col items-start">
+        {/* On phone-width play surfaces the full side tab overlaps action
+            buttons. Keep the chat entrypoint available, but compact the label
+            until there is enough horizontal room for the descriptive text. */}
+        <div className="hidden flex-col items-start sm:flex">
           <span className="text-xs font-bold text-gray-300 uppercase tracking-wider whitespace-nowrap">Party Chat</span>
           {isNudging && (
             <span className="text-[10px] text-amber-300 font-medium whitespace-nowrap">

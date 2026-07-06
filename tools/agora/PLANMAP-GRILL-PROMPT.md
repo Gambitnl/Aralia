@@ -34,9 +34,18 @@ at `/Aralia/planmap/index.html` on any dev server. Rules of the house:
 - **Feature** = a tile inside a topic. Tile list order = intended build order.
 - **Edges** between topics: `hard` (real technical prerequisite) or `chosen`
   (an order Remy picked). EVERY edge needs a `why` — one honest sentence.
-  If your `why` names one specific feature of the target topic, that is a
-  sign the edge is wrong-grained: consider splitting that feature into its
-  own topic instead.
+  If the dependency truly points at one specific feature inside the target
+  topic, set `feature` to that feature slug instead of pretending the whole
+  topic is required. Use a feature-targeted edge when the target topic should
+  stay grouped but one child tile is the real prerequisite. Split the feature
+  into its own topic only when it has become large enough to plan around as a
+  separate roadmap box.
+- **Visual language** in the viewer: hard edges are red, chosen-order edges
+  are amber, feature-targeted edges are purple with a hollow endpoint, and
+  parent/step sequence edges are cyan. Hovering a parent tile highlights its
+  child tiles and relationship lines; hovering a child tile highlights the
+  parent and sibling chain. A green tile outline means "actionable now" because
+  all hard blockers are done.
 - **Statuses**: parked (captured, not designed), specced (grilled out, spec
   exists), active (being built), done (shipped), superseded (decision
   reversed — add a one-line `killed` reason; never delete dead decisions).
@@ -80,5 +89,7 @@ Then fill in the `why` on any dep you added (the CLI leaves a TODO).
 3. Summarize to Remy in plain language: what was decided, what was captured
    where (topic ids, spec paths), and what questions remain open.
 
-Reference reading if confused: `tools/agora/GLOSSARY.md` (all the jargon),
+Reference reading if confused: `tools/agora/PLANMAP-AGENT-GUIDE.md` (how an
+agent reads/updates the map — schema, statuses, the reconcile loop, every CLI
+command), `tools/agora/GLOSSARY.md` (all the jargon),
 `tools/agora/PLANNING-STACK.md` (which layer owns which fact).

@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 25/06/2026, 18:30:09
- * Dependents: components/MapPane.tsx, components/Worldforge/SpawnPreview.tsx
- * Imports: 6 files
+ * Last Sync: 05/07/2026, 09:48:09
+ * Dependents: components/DesignPreview/steps/PreviewStartSelect.tsx, components/MapPane.tsx, components/Worldforge/SpawnPreview.tsx, components/Worldforge/StartPointSelection.tsx
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -176,6 +176,20 @@ const DEFAULT_FEATURES: Record<FeatureLayerId, boolean> = {
 };
 const DEFAULT_AREA_MODE: AreaModeId = 'biomes';
 const LAYER_PREFS_KEY = 'aralia.atlas.layerPrefs.v1';
+const MIN_LAYER_PANEL_HEIGHT = 120;
+const LAYER_PANEL_BELOW_COMFORT_PX = 240;
+/**
+ * Phone-sized atlas panes cannot carry multiple state labels over dense burg
+ * glyphs. Keep one orienting overview label at the smallest sizes, then let the
+ * normal declutterer expand as soon as the map has enough room.
+ */
+export function labelBudgetForViewport(width: number, height: number): number | undefined {
+  if (width < 360 || height < 260) return 1;
+  if (width < 420 || height < 320) {
+    return Math.max(2, Math.floor((width * height) / 36_000));
+  }
+  return undefined;
+}
 /** Max named swatches shown in a discrete-coloring legend before "+N more". */
 const LEGEND_SWATCH_CAP = 14;
 /** How long the "look here!" marker pulse plays before it fades out (ms). */
@@ -255,6 +269,40 @@ const SECTION_HEADER: React.CSSProperties = {
   color: '#94a3b8', fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
   letterSpacing: 0.5, marginBottom: 3,
 };
+const LAYER_CHOICE_ROW_STYLE: React.CSSProperties = {
+  position: 'relative',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  minHeight: 44,
+  fontSize: 12,
+  padding: '8px 6px',
+  borderRadius: 4,
+};
+// Keep native radios/checkboxes in the form tree while expanding their hit area
+// across each row, so the cramped atlas menu remains usable without losing state.
+const LAYER_CHOICE_INPUT_STYLE: React.CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  width: '100%',
+  height: '100%',
+  margin: 0,
+  opacity: 0,
+  cursor: 'inherit',
+};
+const LAYER_CHOICE_TEXT_STYLE: React.CSSProperties = {
+  position: 'relative',
+  zIndex: 1,
+};
+const LAYER_CHOICE_MARK_STYLE: React.CSSProperties = {
+  position: 'relative',
+  zIndex: 1,
+  width: 16,
+  height: 16,
+  flex: '0 0 16px',
+  border: '1px solid #94a3b8',
+  background: 'rgba(15,23,42,0.9)',
+};
 
 const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], pulseToken = null, onPickCell, travelActive = false, planRoute, planMultiModalRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain' }) => {
   const model = useMemo(() => buildAtlasSvgModel(atlas), [atlas]);
@@ -294,8 +342,78 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   }, [mapMode, features]);
 
   const [layersOpen, setLayersOpen] = useState(false);
+  const [layersViewportFit, setLayersViewportFit] = useState<{
+    maxHeight: number;
+    top: number;
+    right: number;
+  } | null>(null);
+  const layersMenuRef = useRef<HTMLDivElement>(null);
   const toggleFeature = (id: FeatureLayerId) => setFeatures((f) => ({ ...f, [id]: !f[id] }));
   const resetLayers = () => { setMapMode(DEFAULT_AREA_MODE); setFeatures({ ...DEFAULT_FEATURES }); };
+
+  const updateLayersViewportMaxHeight = useCallback(() => {
+    const menu = layersMenuRef.current;
+    const toggle = menu?.querySelector('[data-testid="atlas-layers-toggle"]') as HTMLElement | null;
+    if (!toggle) return;
+
+    // The atlas may be embedded below other controls inside a floating window.
+    // Anchor the open menu in viewport coordinates so it can escape the atlas
+    // viewport's overflow clipping while staying aligned to the trigger.
+    const toggleRect = toggle.getBoundingClientRect();
+    const viewportHeight = Math.floor(Math.min(window.innerHeight, window.visualViewport?.height ?? window.innerHeight));
+    const viewportWidth = Math.floor(Math.min(window.innerWidth, window.visualViewport?.width ?? window.innerWidth));
+    const availableBelow = Math.floor(viewportHeight - toggleRect.bottom - 12);
+    const availableAbove = Math.floor(toggleRect.top - 12);
+    const shouldOpenAbove = availableBelow < LAYER_PANEL_BELOW_COMFORT_PX && availableAbove > availableBelow;
+    const nominalMaxHeight = Math.max(MIN_LAYER_PANEL_HEIGHT, height - 52);
+    const sideMaxHeight = Math.max(MIN_LAYER_PANEL_HEIGHT, shouldOpenAbove ? availableAbove : availableBelow);
+    const maxHeight = Math.min(nominalMaxHeight, sideMaxHeight);
+    setLayersViewportFit({
+      maxHeight,
+      top: shouldOpenAbove ? Math.max(12, Math.floor(toggleRect.top - maxHeight - 4)) : Math.floor(toggleRect.bottom + 4),
+      right: Math.max(12, Math.floor(viewportWidth - toggleRect.right)),
+    });
+  }, [height]);
+
+  useEffect(() => {
+    if (!layersOpen) return;
+
+    updateLayersViewportMaxHeight();
+    const frame = window.requestAnimationFrame(updateLayersViewportMaxHeight);
+    window.addEventListener('resize', updateLayersViewportMaxHeight);
+    window.visualViewport?.addEventListener('resize', updateLayersViewportMaxHeight);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('resize', updateLayersViewportMaxHeight);
+      window.visualViewport?.removeEventListener('resize', updateLayersViewportMaxHeight);
+    };
+  }, [layersOpen, updateLayersViewportMaxHeight]);
+
+  useEffect(() => {
+    if (!layersOpen) return;
+
+    // The atlas layer menu is a transient overlay. Let players dismiss it with
+    // Escape or by clicking/tapping away so it does not stay stacked over other
+    // start-town or map controls after focus has moved elsewhere.
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopPropagation();
+      setLayersOpen(false);
+    };
+    const handlePointerDown = (event: PointerEvent) => {
+      const menu = layersMenuRef.current;
+      if (!menu || menu.contains(event.target as Node)) return;
+      setLayersOpen(false);
+    };
+
+    window.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [layersOpen]);
 
   // How many features each potentially-empty layer actually has — drives the
   // "(none on this map)" affordance so toggling an empty layer isn't read as a bug.
@@ -328,6 +446,13 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   }), [mapMode, features]);
 
   const activeMode = AREA_MODES.find((m) => m.id === mapMode) ?? AREA_MODES[0];
+  // Phone-sized atlas panes cannot carry every state name at the default zoom:
+  // labels crowd into town glyphs and each other. Keep the labels toggle on, but
+  // give the declutterer a viewport-based budget until the player zooms in or
+  // opens the map in a larger WindowFrame.
+  const smallLabelViewport = width < 420 || height < 320;
+  const labelBudget = labelBudgetForViewport(width, height);
+  const labelPad = smallLabelViewport ? (labelBudget === 1 ? 12 : 8) : 2;
   // Named swatches for the active discrete coloring (which color = which group).
   const discreteLegend = useMemo<AtlasLegendEntry[]>(() => {
     if (activeMode.legend !== 'discrete' || !activeMode.legendKey) return [];
@@ -609,6 +734,54 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   // Quantize to 0.25-unit steps (0.05 floor preserved) so the raster is stable
   // across pans and micro-zooms.
   const softenStdDev = zoomedIn ? 0 : Math.max(0.05, Math.round(rawStd * 4) / 4);
+  // The layer menu is positioned inside the atlas viewport. Its wrapper is
+  // auto-sized, so percentage max-heights do not resolve reliably; derive a
+  // concrete cap from the atlas height and from the chosen viewport side so
+  // cramped previews keep a scrollable menu instead of clipping controls.
+  const nominalLayersPanelMaxHeight = Math.max(MIN_LAYER_PANEL_HEIGHT, height - 52);
+  const layersPanelMaxHeight = Math.max(
+    MIN_LAYER_PANEL_HEIGHT,
+    Math.min(nominalLayersPanelMaxHeight, layersViewportFit?.maxHeight ?? nominalLayersPanelMaxHeight),
+  );
+  const layersPanelPositionStyle: React.CSSProperties = layersViewportFit
+    ? { position: 'fixed', top: layersViewportFit.top, right: layersViewportFit.right, zIndex: 80 }
+    : { marginTop: 4 };
+  const compactTownCard = width < 300 || height < 220;
+  const selectedTownCardStyle: React.CSSProperties = compactTownCard
+    ? {
+        position: 'absolute',
+        top: 8,
+        left: 8,
+        right: 8,
+        maxHeight: Math.max(180, Math.min(320, height + 120)),
+        background: 'rgb(28,20,12)',
+        border: '1px solid #b3892f',
+        borderRadius: 5,
+        padding: '8px 10px',
+        fontFamily: 'sans-serif',
+        fontSize: 12,
+        color: '#f5ecd8',
+        boxShadow: '0 4px 14px rgba(0,0,0,0.45)',
+        pointerEvents: 'auto',
+        overflowY: 'auto',
+        zIndex: 60,
+      }
+    : {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        width: 210,
+        background: 'rgb(28,20,12)',
+        border: '1px solid #b3892f',
+        borderRadius: 5,
+        padding: '8px 10px',
+        fontFamily: 'sans-serif',
+        fontSize: 12,
+        color: '#f5ecd8',
+        boxShadow: '0 4px 14px rgba(0,0,0,0.45)',
+        pointerEvents: 'auto',
+        zIndex: 60,
+      };
 
   return (
     <div style={{ position: 'relative', width, height }}>
@@ -712,7 +885,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       {/* Labels overlay — screen space (constant size), zoom-thresholded + decluttered (T5c).
           Burg names (capital/town) are nudged below their point so the settlement
           glyph (drawn after this block) sits ABOVE the name without overlapping. */}
-      {visible.labels ? declutterLabels(model.labels ?? [], view, { bounds: { width, height } }).map((l, i) => (
+      {visible.labels ? declutterLabels(model.labels ?? [], view, { bounds: { width, height }, pad: labelPad, maxLabels: labelBudget }).map((l, i) => (
         <text
           key={`lb${i}`}
           x={l.sx}
@@ -837,7 +1010,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
         style={{
           position: 'absolute', top: 8, left: 8, fontFamily: 'sans-serif',
           background: 'rgba(15,30,45,0.85)', color: '#f5c542', border: '1px solid #475569',
-          borderRadius: 4, padding: '4px 8px', fontSize: 12, cursor: 'pointer',
+          borderRadius: 4, minHeight: 44, padding: '8px 12px', fontSize: 12, cursor: 'pointer',
         }}
       >
         ⌖ Find Me
@@ -893,13 +1066,16 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       </div>
     ) : null}
     {/* Layers panel — owned atlas's equivalent of Azgaar's Layers toggle menu. */}
-    <div style={{ position: 'absolute', top: 8, right: 8, fontFamily: 'sans-serif' }}>
+    <div ref={layersMenuRef} style={{ position: 'absolute', top: 8, right: 8, fontFamily: 'sans-serif' }}>
       <button
         type="button"
-        onClick={() => setLayersOpen((o) => !o)}
+        onClick={() => {
+          if (!layersOpen) updateLayersViewportMaxHeight();
+          setLayersOpen((o) => !o);
+        }}
         style={{
           background: 'rgba(15,30,45,0.85)', color: '#e2e8f0', border: '1px solid #475569',
-          borderRadius: 4, padding: '4px 8px', fontSize: 12, cursor: 'pointer',
+          borderRadius: 4, minHeight: 44, padding: '8px 12px', fontSize: 12, cursor: 'pointer',
         }}
         data-testid="atlas-layers-toggle"
       >
@@ -908,8 +1084,9 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       {layersOpen ? (
         <div
           style={{
-            marginTop: 4, background: 'rgba(15,30,45,0.92)', border: '1px solid #475569',
-            borderRadius: 4, padding: '8px 10px', minWidth: 184, maxHeight: 460, overflowY: 'auto',
+            ...layersPanelPositionStyle,
+            background: 'rgba(15,30,45,0.92)', border: '1px solid #475569',
+            borderRadius: 4, padding: '8px 10px', minWidth: 184, maxHeight: layersPanelMaxHeight, overflowY: 'auto',
           }}
           data-testid="atlas-layers-panel"
         >
@@ -917,14 +1094,32 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           <div style={SECTION_HEADER}>Map coloring</div>
           {AREA_MODES.map((m) => {
             const empty = (layerCounts.area[m.id] ?? Infinity) === 0;
+            const selected = mapMode === m.id;
             return (
               <label
                 key={m.id}
                 title={empty ? `${m.desc} (no data on this map)` : m.desc}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '2px 0', cursor: empty ? 'not-allowed' : 'pointer', color: empty ? '#64748b' : '#e2e8f0' }}
+                style={{ ...LAYER_CHOICE_ROW_STYLE, cursor: empty ? 'not-allowed' : 'pointer', color: empty ? '#64748b' : '#e2e8f0' }}
               >
-                <input type="radio" name="atlas-map-mode" checked={mapMode === m.id} disabled={empty} onChange={() => setMapMode(m.id)} />
-                <span>{m.label}{empty ? ' — none' : ''}</span>
+                <input
+                  type="radio"
+                  name="atlas-map-mode"
+                  checked={selected}
+                  disabled={empty}
+                  onChange={() => setMapMode(m.id)}
+                  style={LAYER_CHOICE_INPUT_STYLE}
+                />
+                <span
+                  aria-hidden="true"
+                  style={{
+                    ...LAYER_CHOICE_MARK_STYLE,
+                    borderRadius: 999,
+                    borderColor: selected ? '#7dd3fc' : '#94a3b8',
+                    boxShadow: selected ? 'inset 0 0 0 4px rgba(15,23,42,0.95)' : undefined,
+                    background: selected ? '#38bdf8' : 'rgba(15,23,42,0.9)',
+                  }}
+                />
+                <span style={LAYER_CHOICE_TEXT_STYLE}>{m.label}{empty ? ' — none' : ''}</span>
               </label>
             );
           })}
@@ -936,14 +1131,34 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
               <div style={SECTION_HEADER}>{group}</div>
               {FEATURE_LAYERS.filter((l) => l.group === group).map((layer) => {
                 const empty = (layerCounts.feat[layer.id] ?? Infinity) === 0;
+                const selected = !!features[layer.id] && !empty;
                 return (
                   <label
                     key={layer.id}
                     title={empty ? `${layer.desc} (none on this map)` : layer.desc}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '2px 0', cursor: empty ? 'not-allowed' : 'pointer', color: empty ? '#64748b' : '#e2e8f0' }}
+                    style={{ ...LAYER_CHOICE_ROW_STYLE, cursor: empty ? 'not-allowed' : 'pointer', color: empty ? '#64748b' : '#e2e8f0' }}
                   >
-                    <input type="checkbox" checked={!!features[layer.id] && !empty} disabled={empty} onChange={() => toggleFeature(layer.id)} />
-                    <span>{layer.label}{empty ? ' — none' : ''}</span>
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      disabled={empty}
+                      onChange={() => toggleFeature(layer.id)}
+                      style={LAYER_CHOICE_INPUT_STYLE}
+                    />
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        ...LAYER_CHOICE_MARK_STYLE,
+                        borderRadius: 3,
+                        borderColor: selected ? '#7dd3fc' : '#94a3b8',
+                        background: selected ? '#38bdf8' : 'rgba(15,23,42,0.9)',
+                      }}
+                    >
+                      {selected ? (
+                        <span style={{ display: 'block', color: '#0f172a', fontSize: 12, lineHeight: '14px', textAlign: 'center', fontWeight: 800 }}>✓</span>
+                      ) : null}
+                    </span>
+                    <span style={LAYER_CHOICE_TEXT_STYLE}>{layer.label}{empty ? ' — none' : ''}</span>
                   </label>
                 );
               })}
@@ -952,12 +1167,12 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
 
           <div style={{ height: 1, background: '#475569', margin: '7px 0 5px' }} />
           <div style={SECTION_HEADER}>Info panel</div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#e2e8f0', fontSize: 12 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 44, color: '#e2e8f0', fontSize: 12 }}>
             Detail
             <select
               value={infoVerbosity}
               onChange={(e) => setInfoVerbosity(e.target.value as InfoVerbosity)}
-              style={{ background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 4, fontSize: 12, padding: '2px 4px' }}
+              style={{ minHeight: 44, background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 4, fontSize: 12, padding: '8px 10px' }}
               data-testid="atlas-info-verbosity"
             >
               {INFO_VERBOSITY_OPTIONS.map((o) => (
@@ -969,7 +1184,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           <button
             type="button"
             onClick={resetLayers}
-            style={{ marginTop: 8, width: '100%', background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 4, padding: '4px 6px', fontSize: 12, cursor: 'pointer' }}
+            style={{ marginTop: 8, width: '100%', minHeight: 44, background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 4, padding: '8px 10px', fontSize: 12, cursor: 'pointer' }}
             data-testid="atlas-layers-reset"
           >
             ↺ Reset to defaults
@@ -1051,12 +1266,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
         the hover readout and actionable (go here / close). */}
     {selectedBurgInfo ? (
       <div
-        style={{
-          position: 'absolute', top: 8, right: 8, width: 210,
-          background: 'rgba(28,20,12,0.96)', border: '1px solid #b3892f', borderRadius: 5,
-          padding: '8px 10px', fontFamily: 'sans-serif', fontSize: 12, color: '#f5ecd8',
-          boxShadow: '0 4px 14px rgba(0,0,0,0.45)', pointerEvents: 'auto',
-        }}
+        style={selectedTownCardStyle}
         data-testid="atlas-town-card"
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -1069,7 +1279,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
             aria-label="Close town details"
             style={{
               background: 'transparent', border: 'none', color: '#cdb588', cursor: 'pointer',
-              fontSize: 16, lineHeight: 1, padding: 0,
+              fontSize: 16, lineHeight: 1, minWidth: 44, minHeight: 44, padding: 0,
             }}
           >×</button>
         </div>
@@ -1082,7 +1292,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
               setSelectedBurg(null);
             }}
             style={{
-              marginTop: 8, width: '100%', padding: '5px 0', cursor: 'pointer',
+              marginTop: 8, width: '100%', minHeight: 44, padding: '8px 12px', cursor: 'pointer',
               background: '#b3892f', border: 'none', borderRadius: 4,
               color: '#1c1409', fontWeight: 700, fontSize: 12,
             }}

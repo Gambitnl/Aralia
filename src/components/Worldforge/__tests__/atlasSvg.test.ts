@@ -325,6 +325,18 @@ describe('declutterLabels', () => {
     const r = declutterLabels(labels, { k: 3, x: 0, y: 0 }).map((l) => l.text).sort();
     expect(r).toEqual(['A', 'C']); // B overlaps A (state wins), C is far away
   });
+  it('honors a label budget so cramped maps do not fill with state names', () => {
+    const crowdedStateLabels = [
+      { x: 0, y: 0, text: 'North Realm', kind: 'state' as const },
+      { x: 500, y: 0, text: 'South Realm', kind: 'state' as const },
+      { x: 1000, y: 0, text: 'East Realm', kind: 'state' as const },
+      { x: 1500, y: 0, text: 'West Realm', kind: 'state' as const },
+    ];
+
+    expect(
+      declutterLabels(crowdedStateLabels, { k: 1, x: 0, y: 0 }, { maxLabels: 2 }).map((l) => l.text),
+    ).toHaveLength(2);
+  });
 });
 
 describe('findCellAtPoint + cellTraits', () => {

@@ -5,24 +5,12 @@
  * Styled as a wooden notice board with pinned notices.
  */
 import React, { useMemo } from 'react';
-import { motion, AnimatePresence, MotionProps } from 'framer-motion';
 import { useGameState } from '../../state/GameContext';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import { getAvailableLenders } from '../../systems/economy/LoanSystem';
 import { TradeRoute, LoanOffer } from '../../types/economy';
 import { formatGpAsCoins } from '../../utils/coinPurseUtils';
-
-const overlayMotion: MotionProps = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
-};
-
-const boardMotion: MotionProps = {
-    initial: { y: -20, opacity: 0 },
-    animate: { y: 0, opacity: 1 },
-    exit: { y: 20, opacity: 0 },
-};
 
 interface InvestmentBoardProps {
     isOpen: boolean;
@@ -38,7 +26,6 @@ const InvestmentBoard: React.FC<InvestmentBoardProps> = ({
     onTakeLoan
 }) => {
     const { state } = useGameState();
-    const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
     const activeRoutes = useMemo(
         () => (state.economy?.tradeRoutes || []).filter(r => r.status === 'active'),
@@ -53,45 +40,23 @@ const InvestmentBoard: React.FC<InvestmentBoardProps> = ({
     if (!isOpen) return null;
 
     return (
-        <AnimatePresence>
-            <motion.div
-                {...overlayMotion}
-                className="fixed inset-0 bg-black/80 flex items-center justify-center z-[var(--z-index-modal-background)] p-4"
-                onClick={onClose}
-            >
-                <motion.div
-                    ref={modalRef}
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Investment Notice Board"
-                    {...boardMotion}
-                    className="bg-amber-900/95 border-4 border-amber-800 rounded shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col focus:outline-none"
-                    style={{
-                        backgroundImage: 'linear-gradient(180deg, rgba(101,67,33,0.9) 0%, rgba(62,39,16,0.95) 100%)',
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    tabIndex={-1}
-                >
-                    {/* Board Header */}
-                    <div className="flex justify-between items-center px-6 py-4 border-b-2 border-amber-700/40">
-                        <div className="flex items-center gap-3">
-                            <span className="text-3xl">📋</span>
-                            <div>
-                                <h2 className="text-xl font-cinzel text-amber-200">Notice Board</h2>
-                                <p className="text-xs text-amber-600/60 italic">Investment opportunities & loan offers</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={onClose}
-                            className="text-amber-600 hover:text-amber-300 text-2xl transition-colors"
-                            aria-label="Close notice board"
-                        >
-                            ✕
-                        </button>
-                    </div>
+        <WindowFrame
+            // This title deliberately includes "Investment" so players and
+            // assistive tech can distinguish the economy board from the town
+            // notice board that uses the same in-world prop.
+            title="Investment Notice Board"
+            onClose={onClose}
+            storageKey={WINDOW_KEYS.INVESTMENT_BOARD}
+            initialMaximized={false}
+        >
+            <div className="flex flex-col h-full bg-amber-900/20">
+                {/* Flavor line (was a header subtitle). */}
+                <div className="shrink-0 px-6 py-1 text-xs text-amber-600/60 italic border-b border-amber-700/30">
+                    Investment opportunities &amp; loan offers
+                </div>
 
-                    {/* Content */}
-                    <div className="flex-grow overflow-y-auto p-6 space-y-6 scrollable-content">
+                {/* Content */}
+                <div className="flex-grow min-h-0 overflow-y-auto p-6 space-y-6 scrollable-content">
                         {/* Caravan Investments */}
                         <section>
                             <h3 className="text-lg font-cinzel text-amber-300 mb-3 flex items-center gap-2">
@@ -132,10 +97,9 @@ const InvestmentBoard: React.FC<InvestmentBoardProps> = ({
                                 </div>
                             )}
                         </section>
-                    </div>
-                </motion.div>
-            </motion.div>
-        </AnimatePresence>
+                </div>
+            </div>
+        </WindowFrame>
     );
 };
 

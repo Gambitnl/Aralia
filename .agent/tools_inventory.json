@@ -99,13 +99,6 @@
   },
   {
     "category": "Agent Workflows",
-    "name": "Stitch Generate",
-    "command": "/stitch-generate",
-    "description": "Workflow to generate UI using Google Stitch.",
-    "path": "public/agent-docs/workflows/stitch-generate.md"
-  },
-  {
-    "category": "Agent Workflows",
     "name": "Extract Terminal Learnings",
     "command": "/extract-terminal-learnings",
     "description": "Scans history to update Terminal.md rules.",

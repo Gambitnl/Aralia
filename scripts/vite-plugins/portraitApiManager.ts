@@ -1,10 +1,10 @@
 import path from 'path';
 import fs from 'fs';
-import { PORTRAIT_OUTPUT_DIR, readBody, sanitizePromptText, STITCH_GCLOUD_CONFIG } from './utils';
+import { PORTRAIT_OUTPUT_DIR, readBody, sanitizePromptText } from './utils';
 
-// Wait, the portrait manager imports from `gemini/core/image-gen-mcp.ts` and uses stitching. Let me copy the necessary code exactly.
-// I will need generatePortraitWithStitch and generatePortraitWithImageGen
-// I'll put them in this file to keep it self-contained or import them if they're in utils.
+// Portrait generation stays behind this local Vite endpoint so the browser UI
+// can request a portrait without importing browser-automation tooling into the
+// shipped client bundle.
 
 export const portraitApiManager = () => ({
   name: 'portrait-api-manager',
@@ -107,8 +107,7 @@ export const portraitApiManager = () => ({
         ].filter(Boolean).join(' ');
 
         // Generate via the shared image-gen driver — the SAME engine the working
-        // scene endpoint (sceneApiManager) uses. The driver tries Stitch then
-        // image-gen internally, so one call covers both providers. This replaces
+        // scene endpoint (sceneApiManager) uses. This replaces
         // the dynamic import of `core/generate-portrait`, a module that was never
         // created — which left this endpoint dead at runtime ("missing
         // generate-portrait module"). Path held in a variable + @vite-ignore so
@@ -141,18 +140,6 @@ export const portraitApiManager = () => ({
         return;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        if (/\[Gcloud\] Token fetch failed/i.test(message) || /Failed to retrieve initial access token/i.test(message)) {
-          const configHint = STITCH_GCLOUD_CONFIG ? `CLOUDSDK_CONFIG=\"${STITCH_GCLOUD_CONFIG}\" ` : '';
-          json({
-            error: [
-              'Stitch is not authenticated on this machine.',
-              `Run: ${configHint}gcloud.cmd auth application-default login`,
-              'Then retry portrait generation. (This endpoint will also attempt an image-gen fallback if configured.)'
-            ].join(' ')
-          }, 500);
-          return;
-        }
-
         if (/Could not connect to Chrome DevTools/i.test(message) || /npm run mcp:chrome/i.test(message)) {
           json({
             error: [

@@ -189,12 +189,18 @@ function buildBroadleaf(rng: () => number): TreeGeometryData {
     parts.push({ geom, matrix: m, color: BARK });
   }
   // Clustered canopy blobs, top of the cluster pinned at y=1.
+  // Canopy radius + lateral spread are deliberately capped: a broadleaf at the
+  // max instance scale (1.5 × 7 m ≈ 10.5 m) would, with the old 0.30-unit blob
+  // radius and 0.22-unit offset, throw a ~5.5 m canopy edge that overhangs and
+  // visually swallows an adjacent ~5 m town roof. Clamping the widest blob to
+  // 0.22 unit and the offset to 0.13 unit keeps the worst-case canopy edge
+  // near ~3.3 m at max scale — full and leafy, but no roof-swallowing.
   const blobs = 3 + Math.floor(rng() * 3);
   const cy = 0.72;
   for (let b = 0; b < blobs; b++) {
-    const r = 0.16 + rng() * 0.14;
+    const r = 0.15 + rng() * 0.07;
     const ang = (b / blobs) * Math.PI * 2 + rng();
-    const dist = b === 0 ? 0 : 0.08 + rng() * 0.14;
+    const dist = b === 0 ? 0 : 0.06 + rng() * 0.07;
     const y = b === 0 ? cy + 0.08 : cy - 0.04 + rng() * 0.16;
     parts.push(blobPart(rng, r, Math.cos(ang) * dist, Math.min(y, 1 - r * 0.85), Math.sin(ang) * dist, rng()));
   }

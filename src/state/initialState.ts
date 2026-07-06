@@ -64,6 +64,7 @@ const INITIAL_NAVAL_STATE: NavalState = {
     activeShipId: null,
     currentVoyage: null,
     knownPorts: [],
+    pendingSeaEncounter: null,
 };
 
 export const INITIAL_DIVINE_FAVOR: Record<string, DivineFavor> = DEITIES.reduce((acc, deity) => {

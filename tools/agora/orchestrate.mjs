@@ -130,12 +130,124 @@ function orchIdentityDir(plan) {
   return `.agent/agora/ids/orchestrator-${wave}`;
 }
 
-export async function seedPlan(plan, { env } = {}) {
+// Read the Plan Map tracker lazily so normal non-roadmap plans keep working even
+// if the roadmap file is temporarily absent in a stripped checkout.
+function loadPlanMapData() {
+  const file = path.join(REPO, 'public', 'planmap', 'topics.json');
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+// Packet authors historically used `issues`; planmap-to-wave emits `refs`.
+// Seed treats both as durable task references so board->tracker reconciliation
+// can see every roadmap link.
+function packetRefs(pkt) {
+  return [...new Set([...(pkt.issues || []), ...(pkt.refs || [])].filter((ref) => typeof ref === 'string' && ref.trim()))];
+}
+
+// Find every roadmap topic named by the plan itself or by packet refs of the
+// form `planmap:<topic>/<feature>`. The topic ids drive campaign extraction.
+function collectPlanMapTopicIds(plan) {
+  const ids = [];
+  const add = (id) => {
+    if (typeof id !== 'string' || !id.trim()) return;
+    if (!ids.includes(id.trim())) ids.push(id.trim());
+  };
+  add(plan.topicId);
+  add(plan.planMapTopic);
+  if (plan.planMap && typeof plan.planMap === 'object') {
+    add(plan.planMap.topicId);
+    for (const id of plan.planMap.topicIds || plan.planMap.topics || []) add(id);
+  }
+  for (const pkt of plan.packets || []) {
+    for (const ref of packetRefs(pkt)) {
+      const match = /^planmap:([a-z0-9-]+)(?:\/|$)/i.exec(ref);
+      if (match) add(match[1]);
+    }
+  }
+  return ids;
+}
+
+// Convert Plan Map topic metadata into the Agora campaign governance record.
+// The Plan Map owns campaign labels, topic titles, and status; Agora only mirrors
+// enough of that context to prevent unsafe orchestrator overlap.
+function planMapCampaignForPlan(plan, planMapData = loadPlanMapData()) {
+  const topicIds = collectPlanMapTopicIds(plan);
+  if (!topicIds.length) return null;
+  if (!planMapData || !Array.isArray(planMapData.topics)) {
+    throw new Error(`plan-map data unavailable while resolving topic(s): ${topicIds.join(', ')}`);
+  }
+  const byId = new Map(planMapData.topics.map((topic) => [topic.id, topic]));
+  const topics = topicIds.map((id) => {
+    const topic = byId.get(id);
+    if (!topic) throw new Error(`plan-map topic "${id}" not found in public/planmap/topics.json`);
+    return topic;
+  });
+  const campaignKeys = [...new Set(topics.map((topic) => topic.campaign || 'uncategorized'))];
+  const campaignKey = campaignKeys.length === 1 ? campaignKeys[0] : 'mixed';
+  const campaignLabel = campaignKeys.length === 1
+    ? ((planMapData.campaigns && planMapData.campaigns[campaignKey] && planMapData.campaigns[campaignKey].label) || campaignKey)
+    : 'Mixed Plan Map';
+  const topicTitles = topics.map((topic) => topic.title || topic.id).join(' + ');
+  const singleSub = topics.length === 1 && topics[0].sub ? ` - ${topics[0].sub}` : '';
+  return {
+    id: `planmap:${campaignKey}:${topicIds.join('-')}`,
+    scope: `${campaignLabel}: ${topicTitles}${singleSub}`,
+  };
+}
+
+function campaignIdForPlan(plan, planMapCampaign) {
+  const raw = (plan.campaign && plan.campaign.id) || plan.campaignId || plan.wave || 'unnamed';
+  if (!((plan.campaign && plan.campaign.id) || plan.campaignId) && planMapCampaign && planMapCampaign.id) {
+    return planMapCampaign.id;
+  }
+  return String(raw).replace(/[^A-Za-z0-9:_-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'unnamed';
+}
+
+function campaignScopeForPlan(plan, planMapCampaign) {
+  if (plan.campaign && plan.campaign.scope) return String(plan.campaign.scope);
+  if (planMapCampaign && planMapCampaign.scope) return planMapCampaign.scope;
+  return `wave:${plan.wave || 'unnamed'} coordinator`;
+}
+
+function campaignRoleForPlan(plan) {
+  return plan.campaign && plan.campaign.role === 'deputy' ? 'deputy' : 'lead';
+}
+
+function campaignLeadForPlan(plan) {
+  return (plan.campaign && (plan.campaign.leadCampaignId || plan.campaign.lead)) || '';
+}
+
+function campaignPathsForPlan(plan) {
+  const explicit = plan.campaign && Array.isArray(plan.campaign.paths) ? plan.campaign.paths : [];
+  const packetFiles = plan.packets.flatMap((p) => p.files || []);
+  return [...new Set([...explicit, ...packetFiles])];
+}
+
+export async function seedPlan(plan, { env, planMapData } = {}) {
   env = env || { ...process.env, AGORA_DIR: orchIdentityDir(plan) };
   const baseUrl = plan.baseUrl || DEFAULT_URL;
+  const planMapCampaign = planMapCampaignForPlan(plan, planMapData);
   validateRefsAgainstIndex(plan); // WF-G12: fail on ambiguous refs, warn on unknown
   const reg = await clientRun(['register', `orchestrator-${plan.wave || 'unnamed'}`, '--note', `wave:${plan.wave || 'unnamed'} coordinator`], { env, baseUrl });
   if (reg.code !== 0) throw new Error(`seed: orchestrator registration failed: ${(reg.lines || []).join(' / ')}`);
+
+  const campaignId = campaignIdForPlan(plan, planMapCampaign);
+  const campaignArgs = [
+    'campaign', 'claim', campaignId,
+    '--role', campaignRoleForPlan(plan),
+    '--scope', campaignScopeForPlan(plan, planMapCampaign),
+    '--wave', String(plan.wave || campaignId),
+  ];
+  const leadCampaignId = campaignLeadForPlan(plan);
+  if (leadCampaignId) campaignArgs.push('--lead', leadCampaignId);
+  for (const p of campaignPathsForPlan(plan)) campaignArgs.push('--path', p);
+  for (const g of (plan.campaign && plan.campaign.globs) || []) campaignArgs.push('--glob', g);
+  const campaign = await clientRun(campaignArgs, { env, baseUrl });
+  if (campaign.code !== 0) throw new Error(`seed: campaign claim failed: ${(campaign.lines || []).join(' / ')}`);
 
   const seeded = {};
   let remaining = [...plan.packets];
@@ -147,8 +259,9 @@ export async function seedPlan(plan, { env } = {}) {
     for (const pkt of creatable) {
       const argv = ['task', 'new', `${pkt.id}: ${pkt.scope}`, '--id-only'];
       if (pkt.files && pkt.files.length) argv.push('--body', `files: ${pkt.files.join(', ')}`);
+      argv.push('--campaign', campaignId, '--wave', String(plan.wave || campaignId));
       if (typeof pkt.priority === 'number') argv.push('--priority', String(pkt.priority));
-      for (const ref of pkt.issues || []) argv.push('--ref', ref);
+      for (const ref of packetRefs(pkt)) argv.push('--ref', ref);
       for (const a of pkt.after || []) argv.push('--dep', seeded[a]);
       const r = await clientRun(argv, { env, baseUrl });
       if (r.code !== 0 || !r.task) throw new Error(`seed: task creation for ${pkt.id} failed: ${(r.lines || []).join(' / ')}`);
@@ -200,8 +313,9 @@ function validateRefsAgainstIndex(plan) {
     else if (byBare.get(bare) !== g.project) byBare.set(bare, 'ambiguous');
   }
   for (const p of plan.packets) {
-    for (const ref of p.issues || []) {
+    for (const ref of packetRefs(p)) {
       const low = String(ref).toLowerCase();
+      if (low.startsWith('planmap:')) continue;
       if (low.includes(':')) {
         if (!qualified.has(low)) console.warn(`⚠ packet ${p.id}: ref "${ref}" matches no indexed gap (typo? unindexed registry?)`);
       } else if (byBare.get(low) === 'ambiguous') {
@@ -309,6 +423,7 @@ export function buildPrompt(plan, pkt, { taskId } = {}) {
   const files = pkt.files.join(' ');
   const ownedList = pkt.files.map((f) => '`' + f + '`').join(', ');
   const external = pkt.agent === 'codex' || pkt.agent === 'gemini';
+  const refs = packetRefs(pkt);
 
   const hardRules = external
     ? `You are external fix-agent "${pkt.handle}" in a coordinated multi-agent fleet on the Aralia repo. You are ALREADY in the repo root (F:\\Repos\\Aralia). Other agents edit OTHER files in this SAME checkout right now.
@@ -317,7 +432,7 @@ HARD RULES: No git commands (no commit/reset/checkout/branch). No worktrees. Do 
 
   return `${hardRules}
 
-Packet **${pkt.id}** — ${pkt.scope}${pkt.issues && pkt.issues.length ? ` (issues: ${pkt.issues.join(', ')})` : ''}.
+Packet **${pkt.id}** — ${pkt.scope}${refs.length ? ` (refs: ${refs.join(', ')})` : ''}.
 Owned files (edit ONLY these): ${ownedList}.
 ${pkt.guidance ? `\nGuidance:\n${pkt.guidance}\n` : ''}
 STEP 1 — Join Agora (run via shell; set AGORA_AGENT_ID each call — shell state does not persist).

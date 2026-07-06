@@ -848,17 +848,48 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   }
 
   if (player.class.id === 'barbarian') {
+    // Path of the Wild Heart (level 3): the Rage of the Wilds "bear" boon makes a
+    // raging character resistant to ALL damage except psychic (rather than just
+    // the base Rage physical resistance). We tag the Rage ability so the rage
+    // executor can widen the resistance list when the barbarian activates it.
+    const isWildHeart = player.subclassId === 'wild_heart' && (player.level || 1) >= 3;
     addClassFeatureAbility({
       id: 'rage',
-      name: 'Rage',
-      description: 'Enter a Rage as a bonus action.',
+      name: isWildHeart ? 'Rage (Bear Spirit)' : 'Rage',
+      description: isWildHeart
+        ? 'Enter a Rage channeling the bear spirit — resistant to all damage except psychic.'
+        : 'Enter a Rage as a bonus action.',
       type: 'utility',
       cost: { type: 'bonus' },
       targeting: 'self',
       range: 0,
       effects: [],
-      icon: '🔥'
+      icon: '🔥',
+      ...(isWildHeart ? { tags: ['wild_heart_bear'] } : {}),
     }, 'rage');
+  }
+
+  // Frenzy (Path of the Berserker barbarian, level 3): while raging you can make a
+  // single melee weapon attack as a bonus action. Built as a real weapon attack
+  // (rolls to hit, deals the equipped weapon's damage) that flows through the
+  // normal WeaponAttackCommand path, just like Flurry of Blows.
+  const frenzyWeapon = player.equippedItems?.MainHand;
+  if (player.class.id === 'barbarian' && player.subclassId === 'berserker' && (player.level || 1) >= 3 && frenzyWeapon) {
+    abilities.push({
+      id: 'frenzy_attack',
+      name: 'Frenzy',
+      description: 'While raging, make a single melee weapon attack as a bonus action.',
+      type: 'attack',
+      cost: { type: 'bonus' },
+      targeting: 'single_enemy',
+      range: (frenzyWeapon.properties?.some(p => p === 'reach')) ? 2 : 1,
+      effects: [
+        { type: 'damage', value: 0, dice: frenzyWeapon.damageDice || '1d8', damageType: 'physical' },
+      ],
+      weapon: frenzyWeapon,
+      isProficient: isWeaponProficient(player, frenzyWeapon),
+      icon: '⚔️',
+    });
   }
 
   // Reckless Attack (barbarian level 2+): advantage on your Strength melee
@@ -931,6 +962,27 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   // the working 'heal' effect pipeline (like Second Wind).
   if (player.class.id === 'paladin') {
     abilities.push({ id: 'lay_on_hands', name: 'Lay on Hands', description: 'Touch a creature to restore hit points from your pool of divine healing.', type: 'utility', cost: { type: 'action' }, targeting: 'single_ally', range: 1, effects: [{ type: 'heal', value: 5 }], icon: '✋', maxUses: 3, usesRemaining: 3 });
+  }
+
+  // Vow of Enmity (Oath of Vengeance paladin, level 3 — Channel Divinity): gain
+  // advantage on attack rolls against a chosen foe. Modeled as a self-buff that
+  // grants attack advantage (same status-effect advantage mechanic Reckless
+  // Attack and Steady Aim use, which WeaponAttackCommand reads), applied by the
+  // executor's vow_of_enmity handler.
+  if (player.class.id === 'paladin' && player.subclassId === 'oath_of_vengeance' && (player.level || 1) >= 3) {
+    abilities.push({
+      id: 'vow_of_enmity',
+      name: 'Vow of Enmity (Channel Divinity)',
+      description: 'Speak a vow against a foe — gain advantage on your attack rolls.',
+      type: 'utility',
+      cost: { type: 'bonus' },
+      targeting: 'self',
+      range: 0,
+      effects: [],
+      icon: '👁️',
+      maxUses: 1,
+      usesRemaining: 1,
+    });
   }
 
   // Divine Smite (paladin level 2+): a melee weapon strike that expends divine
@@ -1077,6 +1129,33 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       combatChar.modifiers = { advantage: [], disadvantage: [], bonuses: [] };
     }
     combatChar.modifiers.advantage.push('Advantage on Dexterity saving throws');
+  }
+
+  // Draconic Resilience (Draconic Sorcery, level 3): while not wearing armor the
+  // sorcerer's AC becomes 10 + Dexterity modifier + Charisma modifier, and their
+  // hit point maximum increases (1 per sorcerer level; +3 at level 3). We apply
+  // the unarmored AC only when it beats the character's current AC so a shield or
+  // Mage Armor is never downgraded, and bump both maxHP and currentHP.
+  if (combatChar.class?.id === 'sorcerer' && player.subclassId === 'draconic' && (player.level || 1) >= 3 && !player.equippedItems?.Torso) {
+    const dracAC = 10 + getAbilityModifierValue(stats.dexterity) + getAbilityModifierValue(stats.charisma);
+    if (dracAC > (combatChar.armorClass ?? 10)) {
+      combatChar.armorClass = dracAC;
+      combatChar.baseAC = dracAC;
+    }
+    const hpBonus = player.level || 1;
+    combatChar.maxHP += hpBonus;
+    combatChar.currentHP += hpBonus;
+  }
+
+  // Dark One's Blessing (Fiend warlock, level 3): whenever the warlock reduces a
+  // hostile creature to 0 HP, they gain temporary hit points equal to their
+  // Charisma modifier + warlock level (minimum 1). We resolve the amount once
+  // here so the damage engine can grant it at the kill point without re-deriving
+  // subclass/level state. The actual grant lives in DamageCommand, which owns the
+  // moment a target's HP drops to 0.
+  if (combatChar.class?.id === 'warlock' && player.subclassId === 'fiend' && (player.level || 1) >= 3) {
+    const blessingTempHp = Math.max(1, getAbilityModifierValue(stats.charisma) + (player.level || 1));
+    combatChar.darkOnesBlessingTempHp = blessingTempHp;
   }
 
   // Unarmored Movement (monk level 2+): +10 ft speed while wearing no armor and

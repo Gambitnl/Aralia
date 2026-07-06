@@ -1,6 +1,10 @@
 /**
  * Lightweight toast system that replaces browser alerts and provides
  * non-blocking feedback to the player.
+ *
+ * On compact play screens, notifications sit in a smaller lower-left stack so
+ * stacked quest feedback does not cover the main action buttons. Desktop keeps
+ * the broader top-corner treatment.
  * @component-owner UI Team / Core UI
  */
 import React, { useEffect, useCallback } from 'react';
@@ -51,19 +55,19 @@ const NotificationToast: React.FC<{ notification: Notification; onDismiss: (id: 
       layout={!shouldReduceMotion}
       {...animations}
       className={`
-        pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 ${bgColor} text-white
+        pointer-events-auto w-fit max-w-[13.5rem] overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 sm:w-full sm:max-w-sm ${bgColor} text-white
       `}
       role="alert"
     >
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         <div className="flex items-start">
           <div className="flex-1">
-             <p className="text-sm font-medium">{notification.message}</p>
+             <p className="text-xs font-medium sm:text-sm">{notification.message}</p>
           </div>
           <div className="ml-4 flex flex-shrink-0">
             <button
               type="button"
-              className="inline-flex rounded-md bg-transparent text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-transparent text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
               onClick={() => onDismiss(notification.id)}
             >
               <span className="sr-only">Close</span>
@@ -84,6 +88,9 @@ export const NotificationSystem: React.FC<NotificationSystemProps> = ({ notifica
   }, [dispatch]);
 
   // Mounted at the App root so every pane can dispatch notifications instead of using blocking alerts.
+  // Mobile toasts avoid the central action pane; desktop keeps the standard top corner stack.
+  // Keep the stack below modal backdrops: toast feedback should float over gameplay,
+  // but a blocking logbook, character sheet, or save dialog must visually own focus.
   // Cap at 5 notifications to prevent layout thrash
   const visibleNotifications = notifications.slice(-5);
 
@@ -92,9 +99,9 @@ export const NotificationSystem: React.FC<NotificationSystemProps> = ({ notifica
       id={UI_ID.NOTIFICATION_SYSTEM}
       data-testid={UI_ID.NOTIFICATION_SYSTEM}
       aria-live="assertive"
-      className="pointer-events-none fixed inset-0 flex flex-col items-end px-4 py-6 sm:items-start sm:p-6 z-[var(--z-index-modal-background)] gap-2"
+      className="pointer-events-none fixed inset-0 flex flex-col justify-end px-3 pb-0 pt-20 sm:items-start sm:justify-start sm:p-6 z-[var(--z-index-content-overlay-top)] gap-2"
     >
-      <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+      <div className="flex w-full flex-col items-start gap-1 sm:items-end sm:gap-4">
         <AnimatePresence mode="popLayout" initial={false}>
           {visibleNotifications.map((notification) => (
             <NotificationToast

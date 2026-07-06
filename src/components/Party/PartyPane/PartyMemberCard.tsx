@@ -350,10 +350,13 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                                  e.stopPropagation();
                                  onMissingChoiceClick(character, missingChoices[0]);
                              }}
-                             className="absolute -top-1 -right-1 w-5 h-5 bg-red-900/90 rounded-full flex items-center justify-center border border-red-500/50 text-red-200 shadow-md animate-pulse hover:scale-110 transition-transform"
+                             className="absolute -right-3 -top-3 flex h-11 w-11 items-start justify-end rounded-full text-red-200 transition-transform hover:scale-105"
                              aria-label="Fix missing character selection"
                         >
-                            <span className="text-[10px]">{missingChoices.length > 1 ? missingChoices.length : '!'}</span>
+                            {/* The button target is finger-sized, but the red badge stays visually compact on the portrait. */}
+                            <span className="mr-2 mt-2 flex h-5 w-5 items-center justify-center rounded-full border border-red-500/50 bg-red-900/90 text-[10px] shadow-md animate-pulse">
+                                {missingChoices.length > 1 ? missingChoices.length : '!'}
+                            </span>
                         </button>
                     </Tooltip>
                 )}
@@ -413,6 +416,7 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                                             key={`${missing.type}-${label}`}
                                             content={`Missing Selection: ${label}. Click to fix.`}
                                         >
+                                            {/* Each warning chip is a direct repair action, so keep the target touch-sized even when the chip text stays compact. */}
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
@@ -420,7 +424,7 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                                                     e.stopPropagation();
                                                     onMissingChoiceClick(character, missing);
                                                 }}
-                                                className="inline-flex max-w-full items-center gap-1 rounded border border-red-500/40 bg-red-950/70 px-2 py-0.5 text-[10px] font-semibold text-red-100 hover:border-red-300 hover:bg-red-900/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
+                                                className="inline-flex min-h-11 max-w-full items-center gap-1 rounded border border-red-500/40 bg-red-950/70 px-3 py-2 text-[11px] font-semibold text-red-100 hover:border-red-300 hover:bg-red-900/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
                                                 aria-label={`Fix ${label}`}
                                             >
                                                 <span aria-hidden="true">!</span>
@@ -549,7 +553,7 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                 <Tooltip content="View Character Sheet">
                     <button
                         onClick={onMoreClick}
-                        className="w-8 h-8 flex items-center justify-center rounded hover:bg-white/10 text-gray-400 hover:text-amber-400 transition-colors"
+                        className="flex h-11 w-11 items-center justify-center rounded hover:bg-white/10 text-gray-400 hover:text-amber-400 transition-colors"
                         aria-label={`More options for ${character.name}`}
                     >
                         <svg
@@ -566,6 +570,7 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                 {/* Dismiss control - never shown for the party leader (`player`) */}
                 {canDismiss && (
                     <Tooltip content={`Dismiss ${character.name} from the party`}>
+                        {/* Dismiss is rare but destructive; keep the control deliberate and easy to hit. */}
                         <button
                             type="button"
                             onClick={(e) => {
@@ -573,7 +578,7 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                                 e.stopPropagation();
                                 onDismiss?.(character.id);
                             }}
-                            className="inline-flex items-center gap-1 rounded border border-red-500/40 bg-red-950/70 px-2 py-0.5 text-[11px] font-semibold text-red-100 hover:border-red-300 hover:bg-red-900/80 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
+                            className="inline-flex min-h-11 items-center gap-1 rounded border border-red-500/40 bg-red-950/70 px-3 py-2 text-[11px] font-semibold text-red-100 hover:border-red-300 hover:bg-red-900/80 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
                             aria-label={`Dismiss ${character.name} from the party`}
                         >
                             Dismiss

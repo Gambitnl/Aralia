@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { useGameState } from '../../../state/GameContext';
 import { GuildService } from '../../../types/crime';
 import { Item, ItemRarity, ItemRarityDefinitions } from '../../../types/items';
-import { Z_INDEX } from '../../../styles/zIndex';
+import { WindowFrame } from '../../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../../styles/uiIds';
 
 /**
  * FenceInterface is the Thieves' Guild selling screen for suspicious goods.
@@ -90,30 +91,25 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
     });
 
     return (
-        <div className={`fixed inset-0 bg-black/90 flex items-center justify-center z-[${Z_INDEX.MODAL_BACKGROUND}] p-4`}>
-            <div className="bg-gray-900 border border-amber-900/50 rounded-lg max-w-2xl w-full h-[70vh] flex flex-col shadow-2xl overflow-hidden relative">
+        <WindowFrame
+            title={`🕵️ ${service.name}`}
+            onClose={onClose}
+            storageKey={WINDOW_KEYS.FENCE}
+            initialMaximized={false}
+        >
+            <div className="flex flex-col h-full bg-gray-900">
 
-                {/* Header */}
-                <div className="bg-gray-800 p-4 border-b border-gray-700 flex justify-between items-center">
-                    <div>
-                        <h2 className="text-xl font-bold text-amber-500 flex items-center gap-2">
-                            <span>🕵️</span> {service.name}
-                        </h2>
-                        
-                        
-                        {/*
-                          TODO #60(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
-                          TODO #61(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
-                        */}
-                        <p className="text-xs text-gray-400">
-                            &quot;I buy anything. No questions asked.&quot; (Cut: {Math.round((1 - payoutRatio) * 100)}%)
-                        </p>
-                    </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl">&times;</button>
-                </div>
+                {/* Flavor banner (was a header subtitle). */}
+                {/*
+                  TODO #60(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
+                  TODO #61(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
+                */}
+                <p className="shrink-0 bg-gray-800 px-4 py-2 border-b border-gray-700 text-xs text-gray-400">
+                    &quot;I buy anything. No questions asked.&quot; (Cut: {Math.round((1 - payoutRatio) * 100)}%)
+                </p>
 
                 {/* Main Content Area */}
-                <div className="flex flex-1 overflow-hidden">
+                <div className="flex flex-1 min-h-0 overflow-hidden">
 
                     {/* Inventory List */}
                     <div className="w-1/2 border-r border-gray-700 flex flex-col bg-gray-900/50">
@@ -205,11 +201,11 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
                 </div>
 
                 {/* Footer */}
-                <div className="bg-gray-800 p-2 border-t border-gray-700 text-xs text-center text-gray-400">
+                <div className="shrink-0 bg-gray-800 p-2 border-t border-gray-700 text-xs text-center text-gray-400">
                     Your Gold: <span className="text-yellow-500">{state.gold} gp</span>
                 </div>
             </div>
-        </div>
+        </WindowFrame>
     );
 };
 

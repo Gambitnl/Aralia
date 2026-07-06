@@ -70,10 +70,8 @@ import {
   positionWorld,
   uv,
   smoothstep,
-  pass,
   normalize as tslNormalize,
 } from 'three/tsl';
-import { bloom } from 'three/examples/jsm/tsl/display/BloomNode.js';
 import type { BattleMapData, BattleMapTile, CombatCharacter } from '../../types/combat';
 import { CameraController } from './camera';
 import { makeTerrainHeightSampler } from './terrain/TerrainMesh';
@@ -550,27 +548,38 @@ const PostFx: React.FC<{ onMissing: (label: string) => void }> = ({ onMissing })
   const postRef = useRef<THREE.PostProcessing | null>(null);
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const renderer = gl as unknown as THREE.WebGPURenderer & { isWebGPURenderer?: boolean };
+    let cancelled = false;
+    const renderer = gl as unknown as THREE.WebGPURenderer;
     if (!renderer || typeof (renderer as { setAnimationLoop?: unknown }).setAnimationLoop !== 'function') {
       onMissing('Post-processing bloom + vignette (renderer unsupported)');
       return;
     }
-    try {
-      const post = new THREE.PostProcessing(renderer as unknown as THREE.WebGPURenderer);
-      // pass() → scene color; bloom on bright areas; then a soft vignette.
-      const scenePass = pass(scene, camera);
-      const bloomPass = bloom(scenePass, 0.42, 0.4, 0.85);
-      const d = uv().sub(0.5).length();
-      const vignette = smoothstep(0.85, 0.35, d);
-      post.outputNode = scenePass.add(bloomPass).mul(tslMin(1.0, vignette.add(0.35)));
-      postRef.current = post;
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error('[bm3d-webgpu] post-processing unavailable:', e);
-      onMissing('Post-processing bloom + vignette (node pipeline threw)');
-    }
+    // Load pass/bloom lazily so the display addon (which pulls a second three
+    // instance) never touches module eval — keeps the fail-fast probe path clean.
+    (async () => {
+      try {
+        const [{ pass }, { bloom }] = await Promise.all([
+          import('three/tsl'),
+          import('three/examples/jsm/tsl/display/BloomNode.js'),
+        ]);
+        if (cancelled) return;
+        const post = new THREE.PostProcessing(renderer);
+        // pass() → scene color; bloom on bright areas; then a soft vignette.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const scenePass: TSLNode = (pass as any)(scene, camera);
+        const bloomPass = bloom(scenePass, 0.42, 0.4, 0.85);
+        const d = uv().sub(0.5).length();
+        const vignette = smoothstep(0.85, 0.35, d);
+        post.outputNode = scenePass.add(bloomPass).mul(tslMin(1.0, vignette.add(0.35)));
+        postRef.current = post;
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('[bm3d-webgpu] post-processing unavailable:', e);
+        if (!cancelled) onMissing('Post-processing bloom + vignette (node pipeline threw)');
+      }
+    })();
     return () => {
+      cancelled = true;
       postRef.current?.dispose?.();
       postRef.current = null;
     };

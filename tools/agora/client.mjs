@@ -289,7 +289,14 @@ Commands:
   unlock <lockId> --force                 release a STALE/GONE holder's lock (refused if online)
   locks                                   list active locks
 
-  task new <title> [--body "..."] [--dep <taskId>...] [--priority N] [--ref <gapId|path>...] [--category <name>]
+  campaign claim <id> [--role lead|deputy] [--lead <id>] [--scope "..."] [--path <p>...] [--glob <g>...] [--wave <name>]
+                                          declare an orchestrator campaign before seeding a wave;
+                                          overlapping lead domains fail before tasks are created
+  campaign state <id> <active|blocked|done>
+                                          update a campaign lifecycle state
+  campaigns [--state active|blocked|done] list campaign governance records
+
+  task new <title> [--body "..."] [--dep <taskId>...] [--priority N] [--ref <gapId|path>...] [--category <name>] [--campaign <id>] [--wave <name>]
                                           create a task; deps gate readiness, priority orders it
   task claim <taskId>                     claim a task
   task next [--id-only]                   claim the highest-priority READY task (worker pull)
@@ -514,6 +521,83 @@ async function cmdLocks(out, parsed, env, baseUrl) {
   return { code: 0, locks };
 }
 
+async function cmdCampaign(out, parsed, env, baseUrl) {
+  const sub = parsed._[0];
+  const rest = parsed._.slice(1);
+  const token = needToken(out, parsed, env, baseUrl);
+  if (!token) return { code: 1 };
+
+  if (sub === 'claim') {
+    const campaignId = rest[0];
+    if (!campaignId) {
+      out.log('Usage: campaign claim <id> [--role lead|deputy] [--lead <id>] [--scope "..."] [--path <p>...] [--glob <g>...] [--wave <name>]');
+      return { code: 1 };
+    }
+    const body = { id: campaignId };
+    if (typeof parsed.flags.role === 'string') body.role = parsed.flags.role;
+    if (typeof parsed.flags.lead === 'string') body.leadCampaignId = parsed.flags.lead;
+    if (typeof parsed.flags.scope === 'string') body.scope = parsed.flags.scope;
+    if (typeof parsed.flags.wave === 'string') body.wave = parsed.flags.wave;
+    const paths = [...rest.slice(1), ...asArray(parsed.flags.path)].filter((x) => typeof x === 'string');
+    const globs = asArray(parsed.flags.glob).filter((x) => typeof x === 'string');
+    if (paths.length) body.paths = paths;
+    if (globs.length) body.globs = globs;
+    const r = await api(baseUrl, 'POST', '/campaigns', { token, body });
+    if (r.status === 201 && r.json && r.json.campaign) {
+      const campaign = r.json.campaign;
+      out.log(`Campaign claimed: ${campaign.id}  [${campaign.role}]  ${campaign.scope || '(no scope note)'}`);
+      for (const warning of r.json.warnings || []) out.log(`  warning: ${warning}`);
+      return { code: 0, campaign, warnings: r.json.warnings || [] };
+    }
+    out.log(`campaign claim failed (${r.status}): ${r.json ? r.json.error : r.text}`);
+    if (r.json && r.json.conflict && r.json.conflict.campaign) {
+      out.log(`  conflict: ${r.json.conflict.campaign.id} (${r.json.conflict.campaign.scope || 'no scope'})`);
+    }
+    return { code: 1, conflict: r.json && r.json.conflict };
+  }
+
+  if (sub === 'state') {
+    const campaignId = rest[0];
+    const state = rest[1];
+    if (!campaignId || !state) {
+      out.log('Usage: campaign state <id> <active|blocked|done>');
+      return { code: 1 };
+    }
+    const r = await api(baseUrl, 'POST', `/campaigns/${encodeURIComponent(campaignId)}/state`, { token, body: { state } });
+    if (r.status === 200 && r.json && r.json.campaign) {
+      out.log(`${r.json.campaign.id} -> [${r.json.campaign.state}]`);
+      return { code: 0, campaign: r.json.campaign };
+    }
+    out.log(`campaign state failed (${r.status}): ${r.json ? r.json.error : r.text}`);
+    return { code: 1 };
+  }
+
+  out.log(`unknown campaign subcommand "${sub}". Use: campaign claim|state`);
+  return { code: 1 };
+}
+
+async function cmdCampaigns(out, parsed, _env, baseUrl) {
+  const params = [];
+  if (typeof parsed.flags.state === 'string') params.push(`state=${encodeURIComponent(parsed.flags.state)}`);
+  const qs = params.length ? `?${params.join('&')}` : '';
+  const r = await api(baseUrl, 'GET', `/campaigns${qs}`);
+  const campaigns = (r.json && r.json.campaigns) || [];
+  if (!campaigns.length) {
+    out.log('no campaigns');
+    return { code: 0, campaigns };
+  }
+  const map = await buildAgentMap(baseUrl);
+  for (const c of campaigns) {
+    const targets = [...(c.paths || []), ...(c.globs || [])].join(', ');
+    const lead = c.leadCampaignId ? `  lead:${c.leadCampaignId}` : '';
+    const wave = c.wave ? `  wave:${c.wave}` : '';
+    out.log(`${c.id}  [${c.state}/${c.role}]  @${handleFor(map, c.agentId)}${lead}${wave}  ${c.scope || '(no scope note)'}`);
+    if (targets) out.log(`  scope files: ${targets}`);
+    for (const warning of c.warnings || []) out.log(`  warning: ${warning}`);
+  }
+  return { code: 0, campaigns };
+}
+
 async function cmdTask(out, parsed, env, baseUrl) {
   const sub = parsed._[0];
   const rest = parsed._.slice(1);
@@ -523,7 +607,7 @@ async function cmdTask(out, parsed, env, baseUrl) {
   if (sub === 'new') {
     const title = rest[0];
     if (!title) {
-      out.log('Usage: task new <title> [--body "..."] [--dep <taskId>...] [--priority N] [--ref <r>...] [--category <name>]');
+      out.log('Usage: task new <title> [--body "..."] [--dep <taskId>...] [--priority N] [--ref <r>...] [--category <name>] [--campaign <id>] [--wave <name>]');
       return { code: 1 };
     }
     const body = { title };
@@ -537,6 +621,8 @@ async function cmdTask(out, parsed, env, baseUrl) {
     const refs = asArray(parsed.flags.ref).filter((x) => typeof x === 'string');
     if (refs.length) body.refs = refs;
     if (typeof parsed.flags.category === 'string') body.category = parsed.flags.category;
+    if (typeof parsed.flags.campaign === 'string') body.campaignId = parsed.flags.campaign;
+    if (typeof parsed.flags.wave === 'string') body.wave = parsed.flags.wave;
     const r = await api(baseUrl, 'POST', '/tasks', { token, body });
     if (r.status === 201 && r.json && r.json.task) {
       // Iteration-2: --id-only prints just the task id (no grep needed).
@@ -824,6 +910,10 @@ function summarizeEvent(type, data, map) {
       return `${h(data.agentId)} set task ${shortId(data.taskId)} -> ${data.state}`;
     case 'task.handoff':
       return `${h(data.agentId)} handed task ${shortId(data.taskId)} to ${h(data.toAgentId)}`;
+    case 'campaign.claim':
+      return `${h(data.campaign && data.campaign.agentId)} claimed campaign ${data.campaign ? data.campaign.id : '?'}`;
+    case 'campaign.state':
+      return `${h(data.agentId)} set campaign ${data.campaignId} -> ${data.state}`;
     case 'message.post':
       return `${h(data.message && data.message.from)} -> ${data.message && data.message.to === 'all' ? 'all' : h(data.message && data.message.to)}: ${data.message ? data.message.body : ''}`;
     default:
@@ -1096,6 +1186,12 @@ export async function run(argv, { env = process.env, baseUrl: baseOverride, watc
         break;
       case 'locks':
         res = await cmdLocks(out, parsed, env, baseUrl);
+        break;
+      case 'campaign':
+        res = await cmdCampaign(out, parsed, env, baseUrl);
+        break;
+      case 'campaigns':
+        res = await cmdCampaigns(out, parsed, env, baseUrl);
         break;
       case 'task':
         res = await cmdTask(out, parsed, env, baseUrl);

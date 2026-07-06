@@ -1,7 +1,8 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary, getSlotStorageKey } from '../../services/saveLoadService';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
-import { UI_ID } from '../../styles/uiIds';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 interface SaveSlotSelectorProps {
   slots: SaveSlotSummary[];
@@ -115,22 +116,18 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
   );
 
   return (
-    <div ref={rootRef} id={UI_ID.SAVE_SLOT_SELECTOR} data-testid={UI_ID.SAVE_SLOT_SELECTOR} className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[var(--z-index-modal-background)]">
-      <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl p-6 text-gray-100">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-2xl font-bold text-amber-300">Chronicle Journey</h2>
-            <p className="text-sm text-gray-400">Preserve your current state in the archives.</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-200"
-            aria-label="Close save slot selector"
-          >
-            ✕
-          </button>
+    <WindowFrame
+      title="Chronicle Journey"
+      onClose={onClose}
+      storageKey={WINDOW_KEYS.SAVE_SLOT}
+      initialMaximized={false}
+    >
+      <div ref={rootRef} className="flex flex-col h-full text-gray-100">
+        <div className="shrink-0 px-6 pt-6 pb-3">
+          <p className="text-sm text-gray-400">Preserve your current state in the archives.</p>
         </div>
 
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-6">
         {isSavingDisabled && (
           <div className="bg-red-900/40 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-4">
             The ink is dry. You cannot chronicle your journey at this moment.
@@ -220,6 +217,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
             Cancel
           </button>
         </div>
+        </div>
       </div>
 
       <ConfirmationModal
@@ -238,7 +236,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
           replace the existing save data for that slot. This action cannot be undone.
         </p>
       </ConfirmationModal>
-    </div>
+    </WindowFrame>
   );
 };
 

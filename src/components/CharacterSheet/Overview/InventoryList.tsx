@@ -427,7 +427,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
           <div className="flex items-center gap-2">
             {containerItem ? (
               <button
-                className="text-amber-400 hover:text-amber-200 transition-colors p-0.5 rounded focus:ring-1 focus:ring-amber-400/50"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded text-amber-400 transition-colors hover:text-amber-200 focus:ring-1 focus:ring-amber-400/50"
                 onClick={() => setCollapsedContainers(prev => ({ ...prev, [bucketId]: !prev[bucketId] }))}
                 aria-label={isCollapsed ? `Expand ${containerName}` : `Collapse ${containerName}`}
               >
@@ -505,8 +505,8 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
 
               return (
                 <React.Fragment key={key}>
-                  <li className={`p-2 rounded-md border flex items-center justify-between transition-colors ${rowStyle}`}>
-                    <div className="flex items-center gap-2 min-w-0">
+                  <li className={`flex flex-col gap-2 rounded-md border p-2 transition-colors sm:flex-row sm:items-center sm:justify-between ${rowStyle}`}>
+                    <div className="flex min-w-0 items-center gap-2">
                       {(childIconSrc || childFallbackIcon) && (
                         <span className="w-6 h-6 text-xl text-center flex items-center justify-center flex-shrink-0 filter drop-shadow-sm">
                           {childIconSrc ? (
@@ -566,10 +566,10 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         </div>
                       </Tooltip>
                     </div>
-                    <div className="flex gap-1.5 items-center">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
                       {containerEntries.length > 0 && (
                         <select
-                          className="text-xs bg-gray-800 border border-gray-600 text-gray-200 rounded px-1 py-0.5"
+                          className="min-h-11 rounded border border-gray-600 bg-gray-800 px-2 py-1 text-xs text-gray-200"
                           value={containerAssignments[child.instanceId] || ROOT_CONTAINER_ID}
                           onChange={e => handleMoveToContainer(child.instanceId, e.target.value)}
                           aria-label={`Move ${child.name} to container`}
@@ -586,7 +586,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         /* Normalize consumable/use actions to the uppercase reducer contract used everywhere else. */
                         <button onClick={() => onAction({ type: 'USE_ITEM', label: isFood ? `Eat ${child.name}` : `Use ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
                           disabled={isExpired}
-                          className="text-xs bg-green-700 hover:bg-green-600 text-white px-2 py-1 rounded disabled:bg-gray-600 transition-colors shadow-sm"
+                          className="min-h-11 rounded bg-green-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-green-600 disabled:bg-gray-600"
                           aria-label={isFood ? `Eat ${child.name}` : `Use ${child.name}`}
                         >
                           {isFood ? 'Eat' : 'Use'}
@@ -595,7 +595,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                       {child.readableContent && (
                         /* Readable items (e.g. a pocketed broadsheet keepsake) open their frozen snapshot. */
                         <button onClick={() => onAction({ type: 'READ_ITEM', label: `Read ${child.name}`, payload: { itemId: child.id } })}
-                          className="text-xs bg-amber-700 hover:bg-amber-600 text-white px-2 py-1 rounded transition-colors shadow-sm"
+                          className="min-h-11 rounded bg-amber-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-amber-600"
                           aria-label={`Read ${child.name}`}
                         >
                           Read
@@ -605,7 +605,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         <Tooltip content={canBeEquipped ? (cantEquipReason ? `Equip ${child.name}\n⚠️ ${cantEquipReason}` : `Equip ${child.name}`) : (cantEquipReason || "Cannot equip")}>
                           <button onClick={() => onAction({ type: 'EQUIP_ITEM', label: `Equip ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
                             disabled={!canBeEquipped}
-                            className="text-xs bg-sky-700 hover:bg-sky-600 text-white px-2 py-1 rounded disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors shadow-sm"
+                            className="min-h-11 rounded bg-sky-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-gray-600"
                             aria-label={`Equip ${child.name}`}
                           >
                             Equip
@@ -613,7 +613,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         </Tooltip>
                       )}
                       <button onClick={() => onAction({ type: 'TOGGLE_ITEM_JUNK', label: `Toggle Junk ${child.name}`, payload: { itemId: child.id } })}
-                        className={`text-xs px-2 py-1 rounded transition-colors shadow-sm ${
+                        className={`min-h-11 rounded px-3 py-2 text-xs shadow-sm transition-colors ${
                           child.isJunk
                             ? 'bg-amber-700 hover:bg-amber-600 text-white'
                             : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
@@ -623,7 +623,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         {child.isJunk ? 'Junk' : 'Mark Junk'}
                       </button>
                       <button onClick={() => onAction({ type: 'DROP_ITEM', label: `Drop ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
-                        className="text-xs bg-red-800 hover:bg-red-700 text-white px-2 py-1 rounded transition-colors shadow-sm"
+                        className="min-h-11 rounded bg-red-800 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-red-700"
                         aria-label={`Drop ${child.name}`}
                       >
                         Drop
@@ -685,7 +685,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         label: `Unattune ${item.name}`,
                         payload: { characterId: character.id!, itemId: item.id }
                       })}
-                      className="px-2 py-1 bg-purple-750 hover:bg-purple-650 text-white rounded text-[10px] font-medium transition-colors shadow-sm"
+                      className="min-h-11 rounded bg-purple-750 px-3 py-2 text-[10px] font-medium text-white shadow-sm transition-colors hover:bg-purple-650"
                     >
                       Attuned
                     </button>
@@ -697,7 +697,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         payload: { characterId: character.id!, itemId: item.id }
                       })}
                       disabled={totalAttunedCount >= 3}
-                      className="px-2 py-1 bg-gray-700 hover:bg-purple-800 text-purple-200 hover:text-white rounded disabled:opacity-50 disabled:bg-gray-800 disabled:text-gray-500 text-[10px] font-medium transition-all shadow-sm"
+                      className="min-h-11 rounded bg-gray-700 px-3 py-2 text-[10px] font-medium text-purple-200 shadow-sm transition-all hover:bg-purple-800 hover:text-white disabled:bg-gray-800 disabled:text-gray-500 disabled:opacity-50"
                     >
                       Attune
                     </button>
@@ -719,7 +719,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
           <button
             type="button"
             onClick={onClearFilter}
-            className="flex items-center gap-1 text-xs bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded transition-colors shadow-sm focus:ring-1 focus:ring-gray-400"
+            className="flex min-h-11 items-center gap-1 rounded bg-gray-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-gray-600 focus:ring-1 focus:ring-gray-400"
             aria-label="Clear filter"
           >
             <FilterX size={12} />
@@ -752,7 +752,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                 type="button"
                 onClick={() => setActiveTypeFilter(filter.id)}
                 className={`
-                  flex items-center gap-1 px-2 py-1 text-xs rounded-md border transition-all
+                  flex min-h-11 items-center gap-1 rounded-md border px-3 py-2 text-xs transition-all
                   ${isActive
                     ? 'bg-sky-700 border-sky-500 text-white shadow-md'
                     : 'bg-gray-800/70 border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500'

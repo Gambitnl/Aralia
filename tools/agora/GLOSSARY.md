@@ -15,22 +15,33 @@ like "Beautification wave" or "Fight in place — slice 1".
 
 **Feature (sub-feature, tile)** — one small card inside a topic's box. A part
 of the topic with its own status and its own mini spec document. The numbers
-on the tiles are the intended build order.
+on the tiles are the intended build order. Hovering a topic also lights its
+feature tiles; hovering a feature lights the owning topic and nearby feature
+chain so parent/child context stays visible.
 
 **Campaign** — the color grouping of topics: World (purple), Combat (teal),
 Tooling (gray). Just a category, nothing more.
 
-**Edge (arrow)** — a line between two topics meaning "the pointed-at topic
-needs the other one first". Two kinds:
-- **Hard** (solid line) — a real technical requirement. You cannot build X
+**Edge (arrow)** — a colored relationship line. Cross-topic arrows mean "the
+pointed-at topic needs the other one first"; feature and step lines describe
+structure inside a topic. The colors are part of the language:
+- **Hard** (red solid line) — a real technical requirement. You cannot build X
   before Y exists.
-- **Chosen** (dashed line) — an order Remy picked on purpose. You *could*
-  build X first, but decided not to.
-Every arrow carries a **why** — hover it to read the reason.
+- **Chosen** (amber dashed line) — an order Remy picked on purpose. You
+  *could* build X first, but decided not to.
+- **Feature-targeted** (purple line with a hollow endpoint) — a dependency on
+  one feature tile inside a topic, not the whole topic.
+- **Parent/step** (cyan line) — a topic-to-feature or feature-to-feature build
+  sequence inside one topic. It shows order, not an outside prerequisite.
+Every cross-topic arrow carries a **why** — hover it to read the reason.
 
-**READY (the green badge)** — this topic could be started today: nothing
-hard blocks it. Computed fresh every time the page loads, never stored, so
-it cannot go stale.
+**Lit / highlighted chain** — the viewer highlight state for a selected or
+hovered topic, feature, or edge. It should light both the related tiles and
+the relationship lines, so the active path is readable without guessing.
+
+**READY / actionable outline** — the green outline and READY label mean this
+topic could be started today: nothing hard blocks it. Computed fresh every
+time the page loads, never stored, so it cannot go stale.
 
 **?n (open count)** — how many unanswered questions the feature's spec
 document still lists. Counted from the document, never guessed.
@@ -114,17 +125,18 @@ that first". The map keeps them separate on purpose: boxes contain, arrows
 depend.
 
 **Edge-to-cluster vs edge-to-member** — an arrow pointing at a whole box
-versus an arrow pointing at one tile inside a box. The map only supports
-the first kind today.
+versus an arrow pointing at one tile inside a box. The map can show both:
+cluster edges for whole-topic prerequisites, member edges for `deps[].feature`
+dependencies on one target tile.
 
-**Member-edge costume** — the warning sign that the map's shape is starting
+**Member-edge costume** — the warning sign that the map's data is starting
 to lie: an arrow officially points at a whole topic, but its written "why"
-admits it really needs just one feature inside it. The validator flags
-these.
+admits it really needs just one feature inside it. Prefer a real
+feature-targeted dependency instead of leaving the costume in place.
 
-**Threshold signal** — the agreed tripwire for upgrading the map's model:
-three member-edge costumes at once means the simple model no longer fits
-and arrows need to be able to point at single features.
+**Threshold signal** — the agreed tripwire for splitting a topic or tightening
+its feature-level dependencies: three member-edge costumes at once means the
+simple whole-topic model no longer fits.
 
 **Black-box condition** — the test for whether pointing an arrow at a whole
 box is honest: it is, if the outside world only cares that the box is

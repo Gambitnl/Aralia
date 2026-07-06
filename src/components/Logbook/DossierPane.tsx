@@ -3,11 +3,17 @@
  * @file DossierPane.tsx
  * This component displays the player's "Dossier" (formerly Logbook),
  * showing details about NPCs they have met and their relationships.
+ *
+ * The logbook modal opens this pane when the player wants to review social
+ * memory: who they have met, what those people want, and what facts each NPC
+ * remembers. It keeps long NPC lists paged so the game can grow without making
+ * the dossier unusable, and it preserves a split-pane reading layout on wide
+ * screens while giving cramped windows a single scroll path.
  */
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, MotionProps } from 'framer-motion';
 import { GameState, NPC, SuspicionLevel, GoalStatus } from '../../types';
-import { UI_ID } from '../../styles/uiIds';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 interface DossierPaneProps {
   isOpen: boolean;
@@ -16,18 +22,6 @@ interface DossierPaneProps {
   npcMemory: GameState['npcMemory'];
   allNpcs: Record<string, NPC>;
 }
-
-const overlayMotion: MotionProps = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-};
-
-const panelMotion: MotionProps = {
-  initial: { y: -30, opacity: 0 },
-  animate: { y: 0, opacity: 1 },
-  exit: { y: -30, opacity: 0 },
-};
 
 const DOSSIER_LIST_PAGE_SIZE = 25;
 
@@ -61,6 +55,8 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
   const [selectedNpcId, setSelectedNpcId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const mainContainerRef = useRef<HTMLDivElement>(null);
+  const detailPaneRef = useRef<HTMLDivElement>(null);
 
   const metNpcs = useMemo(() => {
     return metNpcIds.map(id => allNpcs[id]).filter((npc): npc is NPC => !!npc);
@@ -98,6 +94,27 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
 
+  const handleNpcSelect = (npcId: string) => {
+    setSelectedNpcId(npcId);
+
+    // Cramped windows stack the NPC list above the detail card. Move the shared
+    // scroll container to the detail card after a player chooses someone so the
+    // selection has immediate visible feedback instead of staying buried below
+    // the list.
+    if (window.innerWidth < 768) {
+      window.requestAnimationFrame(() => {
+        const mainContainer = mainContainerRef.current;
+        const detailPane = detailPaneRef.current;
+
+        if (!mainContainer || !detailPane) return;
+
+        mainContainer.scrollTo({
+          top: detailPane.offsetTop - mainContainer.offsetTop,
+          behavior: 'smooth',
+        });
+      });
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -105,31 +122,20 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
   const selectedNpcMemory = selectedNpcId ? npcMemory[selectedNpcId] : null;
 
   return (
-    <motion.div
-      id={UI_ID.DOSSIER_PANE}
-      data-testid={UI_ID.DOSSIER_PANE}
-      {...overlayMotion}
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[var(--z-index-modal-background)] p-4"
-      onClick={onClose}
-      aria-modal="true" role="dialog" aria-labelledby="dossier-title"
+    <WindowFrame
+      title="Dossiers"
+      onClose={onClose}
+      storageKey={WINDOW_KEYS.DOSSIER}
+      initialMaximized={false}
     >
-      <motion.div
-        {...panelMotion}
-        className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-4xl h-[90vh] flex flex-col"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-700">
-          <div className="flex gap-4 items-baseline">
-              <h2 id="dossier-title" className="text-3xl font-bold text-amber-400 font-cinzel">Dossiers</h2>
-          </div>
-          <button ref={closeButtonRef} onClick={onClose} className="text-gray-400 hover:text-gray-200 text-3xl p-1 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400" aria-label="Close Dossier">&times;</button>
-        </div>
-
+      <div className="flex flex-col h-full p-6">
         {/* Main Content */}
-        <div className="flex-grow flex flex-col md:flex-row gap-4 overflow-hidden min-h-0">
+        <div
+          ref={mainContainerRef}
+          className="flex-grow flex flex-col md:flex-row gap-4 overflow-y-auto pb-28 pr-1 scrollable-content md:overflow-hidden md:pb-0 md:pr-0 min-h-0"
+        >
           {/* Left Pane: NPC List */}
-          <div data-testid="dossier-npc-list" className="md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-hidden flex-shrink-0 flex flex-col min-h-0">
+          <div data-testid="dossier-npc-list" className="md:w-1/3 max-h-72 md:max-h-none border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-hidden flex-shrink-0 flex flex-col min-h-0">
             {metNpcs.length === 0 ? (
                 <p className="text-gray-400 italic text-center py-4">You haven&apos;t spoken to anyone yet.</p>
             ) : (
@@ -138,8 +144,8 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
                   {pagedNpcs.map(npc => (
                       <li key={npc.id}>
                       <button
-                          onClick={() => setSelectedNpcId(npc.id)}
-                          className={`w-full text-left p-2.5 rounded-md transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-400
+                          onClick={() => handleNpcSelect(npc.id)}
+                          className={`min-h-11 w-full rounded-md p-2.5 text-left text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-sky-400
                                       ${selectedNpcId === npc.id ? 'bg-sky-700 text-white shadow-md' : 'bg-gray-700 hover:bg-gray-600/70 text-gray-300'}`}
                       >
                           <span className="font-semibold">{npc.name}</span>
@@ -153,7 +159,7 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
                         type="button"
                         onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
                         disabled={currentPage === 1}
-                        className="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="min-h-11 rounded bg-gray-700 px-3 py-2 hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         Previous
                       </button>
@@ -162,7 +168,7 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
                         type="button"
                         onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
                         disabled={currentPage === totalPages}
-                        className="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="min-h-11 rounded bg-gray-700 px-3 py-2 hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         Next
                       </button>
@@ -173,10 +179,13 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
           </div>
 
           {/* Right Pane: Dossier Detail */}
-          <div className="flex-grow md:w-2/3 border border-gray-700 rounded-lg bg-gray-800/50 p-4 overflow-y-auto scrollable-content">
+          <div
+            ref={detailPaneRef}
+            className="flex-shrink-0 md:flex-grow md:w-2/3 border border-gray-700 rounded-lg bg-gray-800/50 p-4 overflow-visible md:overflow-y-auto scrollable-content"
+          >
             {selectedNpc && selectedNpcMemory ? (
               <article>
-                <h3 className="text-2xl font-semibold text-amber-300 mb-2 font-cinzel">{selectedNpc.name}</h3>
+                <h3 className="text-xl sm:text-2xl font-semibold text-amber-300 mb-2 font-cinzel break-words leading-snug">{selectedNpc.name}</h3>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm mb-4">
                     <p><strong>Disposition:</strong> <span className={`font-bold ${getDispositionDetails(selectedNpcMemory.disposition).colorClass}`}>{getDispositionDetails(selectedNpcMemory.disposition).label}</span></p>
                     <p><strong>Suspicion:</strong> <span className={`font-bold ${getSuspicionDetails(selectedNpcMemory.suspicion).colorClass}`}>{getSuspicionDetails(selectedNpcMemory.suspicion).label}</span></p>
@@ -226,12 +235,8 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-6 pt-4 border-t border-gray-700 flex justify-end">
-            <button onClick={onClose} className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow">Close</button>
-        </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </WindowFrame>
   );
 };
 

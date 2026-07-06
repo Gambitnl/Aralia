@@ -24,8 +24,15 @@
  * main menu and folds that action into the shared Dev Menu modal instead. This keeps
  * developer-only entry points grouped together instead of splitting them across the
  * main menu surface.
+ *
+ * The 2026-07-05 layout pass keeps the same menu choices but gives phone-height
+ * viewports tighter spacing and their own scroll area. Players who return from an
+ * active run should not land on a title screen where lower options are half hidden.
+ * Confirmation panels now also scroll themselves into view when opened, preserving
+ * the existing destructive-action safeguards without making cramped players hunt
+ * for Confirm and Cancel below the fold.
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { LoadGameModal, SaveSlotSelector } from '../SaveLoad';
 import { deleteSaveGame, getSaveSlots, SaveSlotSummary } from '../../services/saveLoadService';
 import { VersionDisplay } from '../ui/VersionDisplay';
@@ -62,7 +69,7 @@ interface MainMenuProps {
  * rainbow of unrelated hues where every button competed for attention.
  */
 const BTN_BASE =
-  'w-full font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform focus:outline-none focus:ring-2 focus:ring-opacity-75';
+  'w-full min-h-11 font-bold py-2.5 px-4 rounded-lg shadow-md text-base sm:py-3 sm:px-6 sm:text-xl transition-all duration-150 ease-in-out transform focus:outline-none focus:ring-2 focus:ring-opacity-75';
 
 /** The single primary call-to-action. */
 const BTN_PRIMARY =
@@ -133,12 +140,28 @@ const MainMenu: React.FC<MainMenuProps> = ({
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [saveSlots, setSaveSlots] = useState<SaveSlotSummary[]>([]);
   const [pendingConfirm, setPendingConfirm] = useState<'abandon' | 'wipe' | null>(null);
+  const pendingConfirmRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // Load slot metadata up front so the menu can render previews and continue targets.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSaveSlots(getSaveSlots());
   }, []);
+
+  useEffect(() => {
+    if (!pendingConfirm || !pendingConfirmRef.current) return;
+
+    // Destructive confirmations replace a normal button with a taller panel.
+    // On short screens that can push Confirm/Cancel below the visible viewport,
+    // so keep the newly opened decision point and the next menu boundary in view
+    // instead of leaving a half-visible button at the viewport edge.
+    const frame = window.requestAnimationFrame(() => {
+      const scrollTarget = pendingConfirmRef.current?.nextElementSibling ?? pendingConfirmRef.current;
+      scrollTarget?.scrollIntoView({ block: 'end', inline: 'nearest' });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [pendingConfirm]);
 
   const refreshSlots = () => {
     setSaveSlots(getSaveSlots());
@@ -197,15 +220,15 @@ const MainMenu: React.FC<MainMenuProps> = ({
   };
 
   return (
-    <main id={UI_ID.MAIN_MENU} data-testid={UI_ID.MAIN_MENU} className="min-h-screen bg-gray-900 text-gray-200 flex flex-col items-center justify-center p-8">
-      <div className="bg-gray-800 p-8 md:p-12 rounded-xl shadow-2xl border border-gray-700 w-full max-w-md text-center">
-        <h1 className="text-5xl font-bold text-amber-400 mb-12 font-cinzel tracking-wider">
+    <main id={UI_ID.MAIN_MENU} data-testid={UI_ID.MAIN_MENU} className="min-h-screen bg-gray-900 text-gray-200 flex flex-col items-center justify-start overflow-y-auto p-4 py-5 sm:justify-center sm:p-8">
+      <div className="w-full max-w-md rounded-xl border border-gray-700 bg-gray-800 p-5 text-center shadow-2xl sm:p-8 md:p-12">
+        <h1 className="mb-6 text-4xl font-bold text-amber-400 font-cinzel tracking-wider sm:mb-12 sm:text-5xl">
           {t('main_menu.title')}
         </h1>
         {canGoBack && onGoBack && (
           <button
             onClick={onGoBack}
-            className="w-full mb-4 bg-slate-700 hover:bg-slate-600 text-gray-100 font-bold py-2 px-4 rounded-lg shadow-md text-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-opacity-75 flex items-center justify-center gap-2"
+            className="mb-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-slate-700 px-4 py-2 text-base font-bold text-gray-100 shadow-md transition-all duration-150 ease-in-out transform hover:scale-105 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-opacity-75 sm:mb-4 sm:text-lg"
             aria-label={t('main_menu.back_aria')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -214,7 +237,11 @@ const MainMenu: React.FC<MainMenuProps> = ({
             {t('main_menu.back')}
           </button>
         )}
-        <div className="space-y-4">
+        {/* The menu can grow when an active run locks world generation and exposes
+            return/abandon actions. Compact spacing on small screens keeps the
+            first viewport readable while the page remains scrollable if more
+            options appear later. */}
+        <div className="space-y-2 sm:space-y-4">
           {(hasSaveGame || !!latestSlot) && (
             <button
               onClick={() => handleLoadSlot(latestSlot?.slotId)}
@@ -240,13 +267,14 @@ const MainMenu: React.FC<MainMenuProps> = ({
             <>
               <button
                 onClick={onOpenWorldGeneration}
+                disabled={isWorldGenerationLocked}
                 className={btnSecondary(isWorldGenerationLocked)}
                 title={isWorldGenerationLocked && worldGenerationLockedReason ? worldGenerationLockedReason : 'Open world generation setup'}
               >
                 World Generation
               </button>
               {isWorldGenerationLocked && worldGenerationLockedReason && (
-                <p className="text-xs text-amber-300 text-left px-1">
+                <p className="px-1 text-left text-xs text-amber-300">
                   {worldGenerationLockedReason}
                 </p>
               )}
@@ -256,6 +284,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
             onClick={() => setIsSaveModalOpen(true)}
             disabled={!onSaveGame}
             className={btnSecondary(!onSaveGame)}
+            title={onSaveGame ? t('main_menu.save_to_slot') : 'Chronicle Journey is unavailable until a run is active.'}
+            aria-label={onSaveGame ? t('main_menu.save_to_slot') : 'Chronicle Journey unavailable: start or resume a run first.'}
           >
             {t('main_menu.save_to_slot')}
           </button>
@@ -289,11 +319,11 @@ const MainMenu: React.FC<MainMenuProps> = ({
           </button>
           {hasActiveRun && onAbandonRun && (
             pendingConfirm === 'abandon' ? (
-              <div className="w-full bg-gray-700 rounded-lg p-3 space-y-2">
+              <div ref={pendingConfirmRef} data-testid="main-menu-abandon-confirm" className="w-full scroll-mb-4 rounded-lg bg-gray-700 p-3 space-y-2">
                 <p className="text-sm text-amber-300 text-center">{t('main_menu.abandon_run_confirm')}</p>
                 <div className="flex gap-2">
-                  <button onClick={handleConfirm} className="flex-1 bg-red-700 hover:bg-red-600 text-red-50 font-bold py-2 px-3 rounded-lg text-sm transition-colors">Confirm</button>
-                  <button onClick={() => setPendingConfirm(null)} className="flex-1 bg-slate-600 hover:bg-slate-500 text-gray-100 font-bold py-2 px-3 rounded-lg text-sm transition-colors">Cancel</button>
+                  <button onClick={handleConfirm} className="min-h-11 flex-1 rounded-lg bg-red-700 px-3 py-2 text-sm font-bold text-red-50 transition-colors hover:bg-red-600">Confirm</button>
+                  <button onClick={() => setPendingConfirm(null)} className="min-h-11 flex-1 rounded-lg bg-slate-600 px-3 py-2 text-sm font-bold text-gray-100 transition-colors hover:bg-slate-500">Cancel</button>
                 </div>
               </div>
             ) : (
@@ -307,11 +337,11 @@ const MainMenu: React.FC<MainMenuProps> = ({
           )}
           {(hasSaveGame || saveSlots.length > 0) && (
             pendingConfirm === 'wipe' ? (
-              <div className="w-full bg-gray-700 rounded-lg p-3 space-y-2">
+              <div ref={pendingConfirmRef} data-testid="main-menu-wipe-confirm" className="w-full scroll-mb-4 rounded-lg bg-gray-700 p-3 space-y-2">
                 <p className="text-sm text-red-300 text-center">{t('main_menu.clear_save_confirm')}</p>
                 <div className="flex gap-2">
-                  <button onClick={handleConfirm} className="flex-1 bg-red-700 hover:bg-red-600 text-red-50 font-bold py-2 px-3 rounded-lg text-sm transition-colors">Confirm</button>
-                  <button onClick={() => setPendingConfirm(null)} className="flex-1 bg-slate-600 hover:bg-slate-500 text-gray-100 font-bold py-2 px-3 rounded-lg text-sm transition-colors">Cancel</button>
+                  <button onClick={handleConfirm} className="min-h-11 flex-1 rounded-lg bg-red-700 px-3 py-2 text-sm font-bold text-red-50 transition-colors hover:bg-red-600">Confirm</button>
+                  <button onClick={() => setPendingConfirm(null)} className="min-h-11 flex-1 rounded-lg bg-slate-600 px-3 py-2 text-sm font-bold text-gray-100 transition-colors hover:bg-slate-500">Cancel</button>
                 </div>
               </div>
             ) : (

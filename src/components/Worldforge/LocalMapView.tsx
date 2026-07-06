@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 05/07/2026, 10:13:14
+ * Dependents: components/Worldforge/AtlasDemo.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useRef, useEffect, useState } from "react";
 import { ZoomIn, ZoomOut, Maximize } from "lucide-react";
 import { drawLocalFeatures, rasterizeLocalTerrain } from "./localDraw";
@@ -24,6 +40,14 @@ export interface LocalMapViewProps {
   /** Atlas biome hue — carries the L0→L1→L2 coherence chain (localDraw). */
   biomeColor?: string;
 }
+
+/**
+ * L2 map readout placement. The Worldforge shell owns the top-left mobile
+ * controls, so the local identity chip drops below that stack on phone widths
+ * while preserving the original top-left position on desktop.
+ */
+export const localMapInfoChipClassName =
+  "absolute top-40 left-2 right-2 z-10 bg-gray-900/80 backdrop-blur-md px-3 py-2 rounded-lg border border-gray-800 pointer-events-none select-none font-mono sm:top-4 sm:left-4 sm:right-auto";
 
 interface LocalView {
   offsetX: number;
@@ -223,7 +247,7 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
       />
 
       {/* Info chip — L2 identity */}
-      <div className="absolute top-4 left-4 z-10 bg-gray-900/80 backdrop-blur-md px-3 py-2 rounded-lg border border-gray-800 pointer-events-none select-none font-mono">
+      <div className={localMapInfoChipClassName}>
         <div className="text-xs text-gray-400">
           Local Area: <span className="text-white font-bold">{Math.round(local.bounds.width).toLocaleString()} × {Math.round(local.bounds.height).toLocaleString()} ft</span>
         </div>
@@ -236,12 +260,13 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
         Press <span className="text-indigo-400 font-bold bg-gray-950 px-1 py-0.5 rounded border border-gray-800">ESC</span> or zoom out past floor to ascend
       </div>
 
-      {/* Zoom controls */}
+      {/* Zoom controls. Keep icon-only map controls at the shared 44px target
+          size so cramped panes remain usable without changing map behavior. */}
       <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 bg-gray-900/80 backdrop-blur-md p-1.5 rounded-lg border border-gray-800 shadow-lg">
         <button
           type="button"
           onClick={() => zoomAtCenter(true)}
-          className="p-1.5 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
           title="Zoom In"
         >
           <ZoomIn size={18} />
@@ -249,7 +274,7 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
         <button
           type="button"
           onClick={resetView}
-          className="p-1.5 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
           title="Recenter / Fit Map"
         >
           <Maximize size={18} />
@@ -257,7 +282,7 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
         <button
           type="button"
           onClick={() => zoomAtCenter(false)}
-          className="p-1.5 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
           title="Zoom Out"
         >
           <ZoomOut size={18} />

@@ -196,7 +196,9 @@ describe('ActionPane', () => {
   it('renders context-aware actions for NPCs and items', () => {
     render(<ActionPane {...defaultProps} />);
 
-    expect(screen.getByText('Talk to Ava')).toBeInTheDocument();
+    // People are now grouped: the person's name shows once ("💬 Ava") with the
+    // full "Talk to Ava" as its accessible name.
+    expect(screen.getByRole('button', { name: 'Talk to Ava' })).toBeInTheDocument();
     expect(screen.getByText('Take Ancient Coin')).toBeInTheDocument();
     // Grid retirement: named-exit "Go <dir>" moves are gone (navigate via the World Map).
     expect(screen.queryByText('Go Market')).not.toBeInTheDocument();
@@ -212,7 +214,7 @@ describe('ActionPane', () => {
   it('invokes onAction when an action button is clicked', () => {
     render(<ActionPane {...defaultProps} />);
 
-    fireEvent.click(screen.getByText('Talk to Ava'));
+    fireEvent.click(screen.getByRole('button', { name: 'Talk to Ava' }));
     expect(defaultProps.onAction).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'talk', targetId: 'npc-1' })
     );
@@ -272,8 +274,18 @@ describe('ActionPane', () => {
     render(<ActionPane {...defaultProps} />);
 
     fireEvent.click(screen.getByText('Ask the Oracle'));
-    fireEvent.change(screen.getByPlaceholderText('Ask your question...'), { target: { value: 'What now?' } });
-    fireEvent.click(screen.getByText('Submit'));
+    const oracleInput = screen.getByPlaceholderText('Ask your question...');
+    const submitButton = screen.getByText('Submit');
+    const cancelButton = screen.getByText('Cancel');
+
+    // The Oracle prompt appears inside the narrow ActionPane, so its controls
+    // need explicit touch-sized targets instead of relying on compact defaults.
+    expect(oracleInput).toHaveClass('min-h-11');
+    expect(submitButton).toHaveClass('min-h-11');
+    expect(cancelButton).toHaveClass('min-h-11');
+
+    fireEvent.change(oracleInput, { target: { value: 'What now?' } });
+    fireEvent.click(submitButton);
 
     expect(defaultProps.onAction).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -349,6 +361,47 @@ describe('ActionPane', () => {
     });
 
     expect(onAction).toHaveBeenCalledTimes(menuCases.length);
+  });
+
+  it('restores window scroll after the system menu focus trap opens', () => {
+    let deferredRestore: FrameRequestCallback | null = null;
+    const scrollTo = vi.fn((x: number, y: number) => {
+      Object.defineProperty(window, 'scrollX', { configurable: true, value: x });
+      Object.defineProperty(window, 'scrollY', { configurable: true, value: y });
+    });
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      deferredRestore = callback;
+      return 1;
+    });
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    vi.stubGlobal('scrollTo', scrollTo);
+    Object.defineProperty(window, 'scrollX', { configurable: true, value: 0 });
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
+
+    render(<ActionPane {...defaultProps} />);
+
+    openSystemMenu();
+    Object.defineProperty(window, 'scrollX', { configurable: true, value: 0 });
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 285 });
+    deferredRestore?.(0);
+
+    expect(scrollTo).toHaveBeenCalledWith(0, 0);
+
+    vi.unstubAllGlobals();
+  });
+
+  it('locks page scrolling while the system menu is open', () => {
+    render(<ActionPane {...defaultProps} />);
+
+    openSystemMenu();
+
+    expect(document.body.style.overflow).toBe('hidden');
+    expect(document.documentElement.style.overscrollBehavior).toBe('contain');
+
+    fireEvent.click(screen.getByRole('button', { name: /^Menu$/i }));
+
+    expect(document.body.style.overflow).toBe('');
+    expect(document.documentElement.style.overscrollBehavior).toBe('');
   });
 
   it('emits dev-menu actions when dev mode is active', () => {

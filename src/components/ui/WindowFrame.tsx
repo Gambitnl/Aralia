@@ -1,6 +1,11 @@
 /**
  * @file WindowFrame.tsx
- * A generic, resizable, draggable window frame similar to the Glossary modal.
+ * This file renders the shared floating window shell for major 2D panels.
+ *
+ * Map, glossary, party, character sheet, creator, combat, and debug panes use
+ * this frame for consistent drag, resize, maximize, reset, and close controls.
+ * It depends on useResizableWindow for geometry and ResizeHandles for edge
+ * controls, then wraps each caller's content in the same title-bar chrome.
  * @component-owner UI Team / Core UI
  */
 import React, { useRef } from 'react';
@@ -9,6 +14,12 @@ import Tooltip from './Tooltip';
 import { ResizeHandles } from './ResizeHandles';
 import { Z_INDEX } from '../../styles/zIndex';
 
+// ============================================================================
+// Component Contract
+// ============================================================================
+// Callers provide a title, content, and optional title-bar actions. WindowFrame
+// owns the outer chrome and keeps the controls reachable on cramped viewports.
+// ============================================================================
 interface WindowFrameProps {
     title: string;
     children: React.ReactNode;
@@ -26,6 +37,8 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
     headerActions,
     initialMaximized = true
 }) => {
+    // The hook owns persisted size, drag state, resize state, and viewport
+    // clamping. The frame uses those values directly as fixed-position chrome.
     const windowRef = useRef<HTMLDivElement>(null);
     const {
         size,
@@ -39,7 +52,8 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
         handleReset
     } = useResizableWindow(windowRef, storageKey, { initialMaximized });
 
-    // If position isn't calculated yet, don't render or render hidden to avoid jump
+    // If position is not calculated yet, center the frame temporarily so the
+    // first paint does not jump from a corner to the stored or clamped position.
     const style: React.CSSProperties = {
         width: `${size.width}px`,
         height: `${size.height}px`,
@@ -54,35 +68,51 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
 
     return (
         <div className="fixed inset-0 pointer-events-none" style={{ zIndex: Z_INDEX.WINDOW_FRAME }}>
-            {/* Window Container */}
+            {/* The outer window keeps pointer events enabled while the backdrop
+                remains transparent to game surfaces behind it. */}
             <div
                 ref={windowRef}
                 id={`window-${storageKey}`}
                 data-testid={`window-${storageKey}`}
+                // WindowFrame panels are modal-like 2D surfaces: the app locks
+                // background scroll and focuses the owning wrapper while they
+                // are open. Exposing the shared shell as a named dialog lets
+                // players using assistive tech and tests find the active window
+                // by the same title sighted players see in the title bar.
+                role="dialog"
+                aria-modal="true"
+                aria-label={title}
                 className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl flex flex-col overflow-hidden pointer-events-auto"
                 style={style}
             >
                 <ResizeHandles onResizeStart={handleResizeStart} />
 
-                {/* Header (Draggable) */}
+                {/* The title bar is draggable, but it also wraps. This prevents
+                    custom header actions from pushing reset, maximize, or close
+                    controls offscreen in phone-width WindowFrames. */}
                 <div
+                    data-testid="window-frame-header"
                     className={`
-                        flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700
+                        flex flex-wrap items-start justify-between gap-2 px-4 py-3 bg-gray-800 border-b border-gray-700
                         ${dragState.isDragging ? 'cursor-grabbing' : 'cursor-grab'}
 `}
                     onMouseDown={handleDragStart}
                 >
-                    <h2 className="text-xl font-cinzel font-bold text-amber-400 select-none pointer-events-none">
+                    <h2 className="min-w-0 basis-full flex-1 break-words text-lg leading-tight font-cinzel font-bold text-amber-400 select-none pointer-events-none sm:basis-auto sm:text-xl">
                         {title}
                     </h2>
 
-                    <div className="flex items-center gap-3" onMouseDown={e => e.stopPropagation()}>
+                    <div
+                        data-testid="window-frame-header-actions"
+                        className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2"
+                        onMouseDown={e => e.stopPropagation()}
+                    >
                         {headerActions}
 
                         <button
                             type="button"
                             onClick={handleReset}
-                            className="text-gray-500 hover:text-amber-400 p-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors"
+                            className="flex h-11 w-11 shrink-0 items-center justify-center text-gray-500 hover:text-amber-400 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors"
                             aria-label="Reset layout"
                             title="Reset to default size and position"
                         >
@@ -94,7 +124,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
                         <button
                             type="button"
                             onClick={handleMaximize}
-                            className="text-gray-500 hover:text-amber-400 p-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors"
+                            className="flex h-11 w-11 shrink-0 items-center justify-center text-gray-500 hover:text-amber-400 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors"
                             aria-label={isMaximized ? 'Restore window' : 'Maximize window'}
                             title={isMaximized ? 'Restore to default size' : 'Maximize to fit window'}
                         >
@@ -115,7 +145,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="text-gray-400 hover:text-gray-200 text-3xl p-1 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400 leading-none"
+                                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-3xl leading-none text-gray-400 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-400"
                                 aria-label="Close"
                             >
                                 ×

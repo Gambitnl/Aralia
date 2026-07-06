@@ -1,7 +1,9 @@
 /**
  * @file AbilityPalette.tsx
  * Displays the abilities for the currently selected character.
- * Supports pop-out into a draggable/resizable WindowFrame modal.
+ * Supports pop-out into a draggable/resizable WindowFrame modal. The embedded
+ * trigger uses a full touch-sized target so the combat command rail remains
+ * usable when the 2D layout collapses into a narrow column.
  */
 import React, { useState } from 'react';
 import { CombatCharacter, Ability, AbilityCost } from '../../types/combat';
@@ -155,15 +157,16 @@ const AbilityPalette: React.FC<AbilityPaletteProps> = ({ character, onSelectAbil
 
   return (
     <>
-      <div className="bg-gray-800/80 rounded-lg backdrop-blur-sm shadow-lg border border-gray-700">
-        <div className="flex items-center justify-between px-3 pt-2 pb-1 border-b border-gray-700/50">
-          <h3 className="text-sm font-bold text-amber-300">{character.name}{"'"}s Abilities</h3>
+      <div className="rounded-xl border border-amber-900/40 bg-slate-900/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_30px_rgba(0,0,0,0.45)] backdrop-blur-sm">
+        <div className="flex items-center justify-between px-3 pt-2 pb-1.5 border-b border-amber-900/40">
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.22em] text-amber-400/90">Abilities</h3>
           <button
             onClick={() => setIsExpanded(true)}
-            className="text-gray-400 hover:text-white p-1 rounded hover:bg-gray-700 transition-colors"
+            className="flex h-11 w-11 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-700 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
             title="Pop out into resizable window"
+            aria-label="Pop out Abilities into resizable window"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
             </svg>
           </button>

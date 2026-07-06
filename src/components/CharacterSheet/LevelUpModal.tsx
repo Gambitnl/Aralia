@@ -3,8 +3,8 @@
  * Modal UI for confirming level-ups, including class selection and ASI/feat choices.
  */
 import React, { useEffect, useMemo, useState } from 'react';
-import { motion, MotionProps } from 'framer-motion';
-import { Z_INDEX } from '../../styles/zIndex';
+import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import {
   AbilityScoreName,
   AbilityScores,
@@ -15,7 +15,6 @@ import {
 } from '../../types';
 import { CLASSES_DATA } from '../../constants';
 import { FEATS_DATA } from '../../data/feats/featsData';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
 import {
   canLevelUp,
   evaluateFeatPrerequisites,
@@ -32,18 +31,6 @@ interface LevelUpModalProps {
   onConfirm: (choices: LevelUpChoices) => void;
 }
 
-const overlayMotion: MotionProps = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-};
-
-const modalMotion: MotionProps = {
-  initial: { y: -20, opacity: 0 },
-  animate: { y: 0, opacity: 1 },
-  exit: { y: -20, opacity: 0 },
-};
-
 type LevelUpStep = 'choice' | 'asi' | 'feat' | 'base';
 type FeatOption = Feat & { isEligible: boolean; unmet: string[] };
 
@@ -57,8 +44,6 @@ const ABILITY_ORDER: AbilityScoreName[] = [
 ];
 
 const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose, onConfirm }) => {
-  const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
-
   // Resolve the next level and ASI budget up front for consistent rendering.
   const nextLevel = (character?.level ?? 1) + 1;
   const asiBudget = getAbilityScoreImprovementBudget(nextLevel);
@@ -193,41 +178,21 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
   }
 
   return (
-    <motion.div
-      {...overlayMotion}
-      className={`fixed inset-0 z-[${Z_INDEX.MODAL_INTERACTIVE}] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4`}
-      onClick={onClose}
-      aria-modal="true"
-      role="dialog"
-      aria-labelledby="level-up-title"
+    <WindowFrame
+      title="Level Up"
+      onClose={onClose}
+      storageKey={WINDOW_KEYS.LEVEL_UP}
+      initialMaximized={false}
     >
-      <motion.div
-        ref={modalRef}
-        {...modalMotion}
-        className="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-        tabIndex={-1}
-      >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-900/40">
-          <div>
-            <h2 id="level-up-title" className="text-xl font-semibold text-amber-300">
-              Level Up
-            </h2>
-            <p className="text-xs text-gray-400">
-              {character.name} advances to level {nextLevel}.
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
-            aria-label="Close level up"
-            type="button"
-          >
-            x
-          </button>
+      <div className="flex flex-col h-full">
+        {/* Advancement subtitle (was a header subtitle). */}
+        <div className="shrink-0 px-6 py-2 border-b border-gray-700 bg-gray-900/40">
+          <p className="text-xs text-gray-400">
+            {character.name} advances to level {nextLevel}.
+          </p>
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollable-content px-6 py-4 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto scrollable-content px-6 py-4 space-y-4">
           {/* Class selection stays visible for all steps when multiple classes are present. */}
           {classOptions.length > 1 && (
             <div className="border border-gray-700 rounded-lg p-4 bg-gray-900/40">
@@ -418,8 +383,8 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
             </div>
           )}
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </WindowFrame>
   );
 };
 

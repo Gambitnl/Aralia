@@ -10,6 +10,7 @@ import {
   isRacialSpellCastLevelAllowed,
   isRacialSpellLockedForPreparation,
   resolveRacialSpellLimitedUseId,
+  getSpellcastingAllowance,
 } from '../characterUtils';
 import { createMockPlayerCharacter, createMockItem } from '../../core/factories';
 import { Item, Feat, AbilityScoreName, Class } from '../../../types';
@@ -491,6 +492,246 @@ describe('characterUtils', () => {
       // Total: 22 + 8 + 6 = 36
       // Verification: 4 levels * (6 + 2) + level 1 bonus (4) = 32 + 4 = 36. Correct.
       expect(leveled.maxHp).toBe(36);
+    });
+
+    it('grows a known-caster cantrip capacity on level-up (sorcerer 3 -> 4)', () => {
+      const sorcererClass: Class = {
+        id: 'sorcerer',
+        name: 'Sorcerer',
+        hitDie: 6,
+        primaryAbility: ['Charisma'],
+        savingThrowProficiencies: ['Constitution', 'Charisma'],
+        skillProficienciesAvailable: [],
+        numberOfSkillProficiencies: 2,
+        armorProficiencies: [],
+        weaponProficiencies: [],
+        features: [],
+        description: 'Sorcerer',
+      };
+      const scores = {
+        Strength: 10, Dexterity: 10, Constitution: 10,
+        Intelligence: 10, Wisdom: 10, Charisma: 14,
+      };
+      // Level 3 sorcerer with 4 cantrips already; leveling to 4 opens a 5th cantrip.
+      const character = createMockPlayerCharacter({
+        level: 3,
+        xp: 2700, // enough for level 4
+        class: sorcererClass,
+        classLevels: { sorcerer: 3 },
+        abilityScores: scores,
+        finalAbilityScores: scores,
+        spellbook: {
+          knownSpells: [],
+          preparedSpells: [],
+          cantrips: ['fire-bolt', 'light', 'mage-hand', 'prestidigitation'],
+        },
+      });
+
+      // Before level-up: at capacity (4/4).
+      const before = getSpellcastingAllowance(character);
+      expect(before.maxCantrips).toBe(4);
+      expect(before.cantripsToLearn).toBe(0);
+
+      // Level up with a player-chosen new cantrip; capacity opens to 5.
+      const leveled = performLevelUp(character, { selectedCantrips: ['shocking-grasp'] });
+      expect(leveled.level).toBe(4);
+      const after = getSpellcastingAllowance(leveled);
+      expect(after.maxCantrips).toBe(5);
+      // The chosen cantrip was learned (5 total), and capacity is now filled.
+      expect(leveled.spellbook?.cantrips).toContain('shocking-grasp');
+      expect(leveled.spellbook?.cantrips.length).toBe(5);
+      expect(after.cantripsToLearn).toBe(0);
+    });
+
+    it('surfaces new cantrip allowance without auto-picking when no choice is made', () => {
+      const sorcererClass: Class = {
+        id: 'sorcerer',
+        name: 'Sorcerer',
+        hitDie: 6,
+        primaryAbility: ['Charisma'],
+        savingThrowProficiencies: ['Constitution', 'Charisma'],
+        skillProficienciesAvailable: [],
+        numberOfSkillProficiencies: 2,
+        armorProficiencies: [],
+        weaponProficiencies: [],
+        features: [],
+        description: 'Sorcerer',
+      };
+      const scores = {
+        Strength: 10, Dexterity: 10, Constitution: 10,
+        Intelligence: 10, Wisdom: 10, Charisma: 14,
+      };
+      const character = createMockPlayerCharacter({
+        level: 3,
+        xp: 2700,
+        class: sorcererClass,
+        classLevels: { sorcerer: 3 },
+        abilityScores: scores,
+        finalAbilityScores: scores,
+        spellbook: {
+          knownSpells: [],
+          preparedSpells: [],
+          cantrips: ['fire-bolt', 'light', 'mage-hand', 'prestidigitation'],
+        },
+      });
+
+      const leveled = performLevelUp(character); // no spell choices
+      // Cantrips are NOT auto-picked; still 4 on the sheet.
+      expect(leveled.spellbook?.cantrips.length).toBe(4);
+      // But the allowance surfaces that one more may be learned.
+      const allowance = getSpellcastingAllowance(leveled);
+      expect(allowance.maxCantrips).toBe(5);
+      expect(allowance.cantripsToLearn).toBe(1);
+    });
+
+    it('does not grow spell capacity for a martial (fighter) on level-up', () => {
+      const scores = {
+        Strength: 14, Dexterity: 10, Constitution: 12,
+        Intelligence: 10, Wisdom: 10, Charisma: 10,
+      };
+      const character = createMockPlayerCharacter({
+        level: 3,
+        xp: 2700,
+        class: {
+          id: 'fighter',
+          name: 'Fighter',
+          hitDie: 10,
+          primaryAbility: ['Strength'] as AbilityScoreName[],
+          savingThrowProficiencies: ['Strength', 'Constitution'],
+          skillProficienciesAvailable: [],
+          numberOfSkillProficiencies: 2,
+          armorProficiencies: [],
+          weaponProficiencies: [],
+          features: [],
+          description: 'Fighter',
+        },
+        classLevels: { fighter: 3 },
+        abilityScores: scores,
+        finalAbilityScores: scores,
+      });
+
+      const before = getSpellcastingAllowance(character);
+      expect(before.maxCantrips).toBe(0);
+      expect(before.maxPreparedSpells).toBeNull();
+
+      const leveled = performLevelUp(character);
+      expect(leveled.level).toBe(4);
+      const after = getSpellcastingAllowance(leveled);
+      expect(after.maxCantrips).toBe(0);
+      expect(after.cantripsToLearn).toBe(0);
+      expect(after.maxPreparedSpells).toBeNull();
+      // No spellbook cantrips were invented.
+      expect(leveled.spellbook?.cantrips ?? []).toHaveLength(0);
+    });
+
+    it('recomputes prepared-caster capacity as level rises (cleric 3 -> 4)', () => {
+      const clericClass: Class = {
+        id: 'cleric',
+        name: 'Cleric',
+        hitDie: 8,
+        primaryAbility: ['Wisdom'],
+        savingThrowProficiencies: ['Wisdom', 'Charisma'],
+        skillProficienciesAvailable: [],
+        numberOfSkillProficiencies: 2,
+        armorProficiencies: [],
+        weaponProficiencies: [],
+        features: [],
+        description: 'Cleric',
+      };
+      const scores = {
+        Strength: 10, Dexterity: 10, Constitution: 12,
+        Intelligence: 10, Wisdom: 14, Charisma: 10,
+      };
+      const character = createMockPlayerCharacter({
+        level: 3,
+        xp: 2700,
+        class: clericClass,
+        classLevels: { cleric: 3 },
+        abilityScores: scores,
+        finalAbilityScores: scores,
+        spellbook: { knownSpells: [], preparedSpells: [], cantrips: ['sacred-flame', 'guidance', 'light'] },
+      });
+
+      // Cleric prepared table: L3 = 6, L4 = 7.
+      expect(getSpellcastingAllowance(character).maxPreparedSpells).toBe(6);
+      const leveled = performLevelUp(character);
+      expect(getSpellcastingAllowance(leveled).maxPreparedSpells).toBe(7);
+    });
+
+    it('does NOT bank leveled known spells for a non-caster (fighter) handed selectedKnownSpells', () => {
+      const scores = {
+        Strength: 14, Dexterity: 10, Constitution: 12,
+        Intelligence: 10, Wisdom: 10, Charisma: 10,
+      };
+      const character = createMockPlayerCharacter({
+        level: 3,
+        xp: 2700,
+        class: {
+          id: 'fighter',
+          name: 'Fighter',
+          hitDie: 10,
+          primaryAbility: ['Strength'] as AbilityScoreName[],
+          savingThrowProficiencies: ['Strength', 'Constitution'],
+          skillProficienciesAvailable: [],
+          numberOfSkillProficiencies: 2,
+          armorProficiencies: [],
+          weaponProficiencies: [],
+          features: [],
+          description: 'Fighter',
+        },
+        classLevels: { fighter: 3 },
+        abilityScores: scores,
+        finalAbilityScores: scores,
+        spellbook: { knownSpells: [], preparedSpells: [], cantrips: [] },
+      });
+
+      // A non-caster has no caster capacity — the gate must skip the known-spells apply.
+      const leveled = performLevelUp(character, { selectedKnownSpells: ['fireball'] });
+      expect(leveled.level).toBe(4);
+      expect(leveled.spellbook?.knownSpells ?? []).not.toContain('fireball');
+      expect(leveled.spellbook?.knownSpells ?? []).toHaveLength(0);
+    });
+
+    it('learns a chosen known spell for a caster, deduping against an already-known one', () => {
+      const wizardClass: Class = {
+        id: 'wizard',
+        name: 'Wizard',
+        hitDie: 6,
+        primaryAbility: ['Intelligence'],
+        savingThrowProficiencies: ['Intelligence', 'Wisdom'],
+        skillProficienciesAvailable: [],
+        numberOfSkillProficiencies: 2,
+        armorProficiencies: [],
+        weaponProficiencies: [],
+        features: [],
+        description: 'Wizard',
+      };
+      const scores = {
+        Strength: 10, Dexterity: 10, Constitution: 12,
+        Intelligence: 14, Wisdom: 10, Charisma: 10,
+      };
+      const character = createMockPlayerCharacter({
+        level: 3,
+        xp: 2700,
+        class: wizardClass,
+        classLevels: { wizard: 3 },
+        abilityScores: scores,
+        finalAbilityScores: scores,
+        // Already knows 'magic-missile'; leveling adds 'fireball' and re-selects
+        // 'magic-missile' (must dedup, not duplicate).
+        spellbook: { knownSpells: ['magic-missile'], preparedSpells: [], cantrips: ['fire-bolt'] },
+      });
+
+      const leveled = performLevelUp(character, {
+        selectedKnownSpells: ['fireball', 'magic-missile'],
+      });
+      expect(leveled.level).toBe(4);
+      const known = leveled.spellbook?.knownSpells ?? [];
+      expect(known).toContain('fireball');
+      expect(known).toContain('magic-missile');
+      // Deduped: magic-missile appears exactly once.
+      expect(known.filter((s) => s === 'magic-missile')).toHaveLength(1);
+      expect(known).toHaveLength(2);
     });
   });
 

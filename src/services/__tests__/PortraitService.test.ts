@@ -33,13 +33,13 @@ describe('PortraitService', () => {
         fetchMock.mockResolvedValue({
             ok: false,
             status: 500,
-            json: async () => ({ error: 'Stitch is not authenticated.' })
+            json: async () => ({ error: 'Image generation is not authenticated.' })
         });
 
         await expect(generatePortraitUrl({
             description: 'Test prompt',
             race: 'Elf',
             className: 'Wizard'
-        })).rejects.toThrow('Stitch is not authenticated.');
+        })).rejects.toThrow('Image generation is not authenticated.');
     });
 });

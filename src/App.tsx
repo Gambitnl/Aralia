@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 24/06/2026, 14:57:44
+ * Last Sync: 05/07/2026, 08:24:03
  * Dependents: None (Orphan)
- * Imports: 61 files
+ * Imports: 75 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -507,6 +507,9 @@ const App: React.FC = () => {
       // and prove town-merchant registration on arrival.
       worldSeed: gameState.worldSeed,
       playerCellId: gameState.playerCell?.cellId ?? null,
+      // Interactive-3D locomotion proof: the live ground-move state a click-to-walk
+      // (or camera walk) writes, so a rig can confirm a 3D ground click moved the player.
+      playerGroundPos: gameState.playerGroundPos ?? null,
       // Interactive-NPC proof surface: lets a browser rig confirm that clicking
       // "Talk to <npc>" actually opened a dialogue session with that NPC, not
       // just that the action button existed.
@@ -1354,6 +1357,9 @@ const App: React.FC = () => {
     // When worldViewMode === '3d', render the 3D world instead of the 2D atlas.
     // mapSurface ('classic' | 'worldforge') swaps the 2D surface between the
     // legacy GameLayout and the native ported-FMG Worldforge cartographer.
+    const openingGateOwnsMainView =
+      gameState.gameEntry?.status === 'generating' ||
+      gameState.gameEntry?.status === 'model-unavailable';
     const useWorldforgeSurface = (gameState.mapSurface ?? 'classic') === 'worldforge';
 
     const atlasContent = useWorldforgeSurface ? (
@@ -1366,7 +1372,7 @@ const App: React.FC = () => {
         </div>
       </div>
     ) : (
-      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <div className="relative h-full w-full">
         <GameLayout
           currentLocation={currentLocationData}
           gameTime={gameState.gameTime}
@@ -1384,10 +1390,8 @@ const App: React.FC = () => {
           disabled={!isUIInteractive}
           onAction={processAction}
           playerWorldPos={gameState.playerWorldPos}
+          surfaceToggle={<MapSurfaceToggle />}
         />
-        <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 40 }}>
-          <MapSurfaceToggle />
-        </div>
       </div>
     );
 
@@ -1406,7 +1410,13 @@ const App: React.FC = () => {
       z: 0.5 * WORLD3D_CONFIG.METERS_PER_CELL,
     };
 
-    mainContent = (
+    mainContent = openingGateOwnsMainView ? (
+      // The opening gate is the honest entry blocker while the local model is
+      // generating or unavailable. Do not render the normal game panes underneath:
+      // they require the opening context and would throw into the generic error
+      // boundary, visually competing with the real blocker.
+      <div data-testid="opening-gate-backdrop" className="min-h-screen bg-gray-950" />
+    ) : (
       <ErrorBoundary fallbackMessage="An error occurred in the main game view.">
         <Suspense fallback={<LoadingSpinner />}>
           <TransitionController
@@ -1416,7 +1426,17 @@ const App: React.FC = () => {
             // Grid retirement: the legacy continent-3D terrain (derived from the
             // 30x20 mapData) is gone; the streamed cell-native ground
             // (getWorldforgeLocalForCell) is the world. No worldData prop.
-            sceneContent={<World3DWrapper entryPosition={entryPosition} />}
+            sceneContent={(
+              <World3DWrapper
+                entryPosition={entryPosition}
+                // Interactive 3D: clicking a townsperson/stranger in the world runs
+                // the SAME talk action as the 2D "Talk to X" button, so the
+                // conversation opens with full met/disposition/recruit bookkeeping.
+                onTalkToNpc={(npcId) =>
+                  processAction({ type: 'talk', label: 'Talk', payload: { targetNpcId: npcId }, targetId: npcId })
+                }
+              />
+            )}
           />
         </Suspense>
       </ErrorBoundary>
@@ -1446,6 +1466,62 @@ const App: React.FC = () => {
   const notifications = (gameState.notifications as Notification[]) || [];
   const shouldLoadGlossaryData = gameState.phase !== GamePhase.MAIN_MENU || gameState.isGlossaryVisible;
   const shouldLoadSpellData = gameState.phase !== GamePhase.MAIN_MENU;
+  const areNotificationsSuppressed = Boolean(
+    // Blocking modal surfaces should own visual focus. Keep toast state intact,
+    // but do not paint the stack through translucent logbook/glossary/window
+    // backdrops where it competes with the player's current task.
+    gameState.isMapVisible ||
+    gameState.isQuestLogVisible ||
+    gameState.characterSheetModal.isOpen ||
+    (gameState.isDevMenuVisible && canUseDevTools()) ||
+    gameState.isPartyOverlayVisible ||
+    gameState.isLogbookVisible ||
+    gameState.isDiscoveryLogVisible ||
+    gameState.isGlossaryVisible ||
+    gameState.isGameGuideVisible ||
+    gameState.isEncounterModalVisible ||
+    gameState.isDiceRollerVisible ||
+    gameState.isGeminiLogViewerVisible ||
+    gameState.isUnifiedLogViewerVisible ||
+    gameState.isNpcTestModalVisible ||
+    gameState.isInvestmentBoardVisible ||
+    missingChoiceModal.isOpen ||
+    gameState.isLongRestModalVisible ||
+    gameState.isShortRestModalVisible ||
+    gameState.isNoticeBoardVisible ||
+    gameState.isBroadsheetVisible ||
+    gameState.isEconomyLedgerVisible ||
+    gameState.isCourierPouchVisible
+  );
+  const isBanterCollapsedTabSuppressed = Boolean(
+    // Modal windows claim the visual focus layer. The collapsed party-chat tab
+    // remains available on the normal play surface, but it should not peek out
+    // around logbook/glossary/window edges while a modal is open.
+    gameState.isMapVisible ||
+    gameState.isQuestLogVisible ||
+    gameState.characterSheetModal.isOpen ||
+    (gameState.isDevMenuVisible && canUseDevTools()) ||
+    gameState.isPartyOverlayVisible ||
+    gameState.isLogbookVisible ||
+    gameState.isDiscoveryLogVisible ||
+    gameState.isGlossaryVisible ||
+    gameState.isGameGuideVisible ||
+    gameState.isEncounterModalVisible ||
+    gameState.isDiceRollerVisible ||
+    gameState.isGeminiLogViewerVisible ||
+    gameState.isUnifiedLogViewerVisible ||
+    gameState.isNpcTestModalVisible ||
+    gameState.isInvestmentBoardVisible ||
+    missingChoiceModal.isOpen ||
+    gameState.isLongRestModalVisible ||
+    gameState.isShortRestModalVisible ||
+    gameState.isNoticeBoardVisible ||
+    gameState.isBroadsheetVisible ||
+    gameState.isEconomyLedgerVisible ||
+    gameState.isCourierPouchVisible ||
+    gameState.gameEntry?.status === 'generating' ||
+    gameState.gameEntry?.status === 'model-unavailable'
+  );
 
   // --- Root Render ---
   // Wraps the application in <AppProviders> for context access.
@@ -1455,7 +1531,10 @@ const App: React.FC = () => {
       <GameProvider state={gameState} dispatch={dispatch}>
         <div className="App min-h-screen bg-gray-900">
           <Suspense fallback={null}>
-            <NotificationSystem notifications={notifications} dispatch={dispatch} />
+            <NotificationSystem
+              notifications={areNotificationsSuppressed ? [] : notifications}
+              dispatch={dispatch}
+            />
           </Suspense>
 
           {/* Global Loading Spinner */}
@@ -1559,6 +1638,7 @@ const App: React.FC = () => {
               onExtendNpcDelay={extendNpcLineDelay}
               isBanterPaused={isBanterPaused}
               onToggleBanterPause={() => setIsBanterPaused(prev => !prev)}
+              suppressCollapsedTab={isBanterCollapsedTabSuppressed}
             />
           )}
 

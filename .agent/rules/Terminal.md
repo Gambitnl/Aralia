@@ -50,7 +50,6 @@ This guide tracks common issues encountered when running terminal commands and p
   - **Solution:** Use `Out-File -Encoding utf8` or `Set-Content -Encoding utf8` if the file must be read by environment tools, or use `Get-Content` to view it in the terminal.
 - **Execution Policy:** If scripts fail to run, check the PowerShell Execution Policy (`Get-ExecutionPolicy`).
 - **Spawning Shell Processes:** When using Node's `child_process.spawn` or `exec` on Windows to run commands like `npx`, always set `{ shell: true }` in the options. This ensures that `.cmd` and `.ps1` wrappers are correctly handled by the system shell.
-  - **Stitch MCP Specific:** The `@_davideast/stitch-mcp` library fails on Windows with `spawn EINVAL` because it lacks this handling. Patching `cli.js` to wrap commands in `cmd.exe /c` or setting `{ shell: true }` is required.
 
 ## Execution Best Practices
 

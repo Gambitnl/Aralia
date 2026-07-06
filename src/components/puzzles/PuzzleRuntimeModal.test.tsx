@@ -28,7 +28,9 @@ vi.mock('framer-motion', () => ({
 
 vi.mock('../ui/WindowFrame', () => ({
   WindowFrame: ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <section aria-label={title}>{children}</section>
+    <section role="dialog" aria-label={title} data-testid="window-puzzle-runtime-window">
+      {children}
+    </section>
   ),
 }));
 
@@ -143,6 +145,7 @@ describe('PuzzleRuntimeModal', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Ask for Hint' }));
 
+    expect(screen.getAllByRole('dialog', { name: 'Moon Gate Riddle' })).toHaveLength(1);
     expect(requestPuzzleHintMock).toHaveBeenCalledWith({ character: character.stats, puzzle });
     expect(screen.getByText('Think about moonlight.')).toBeInTheDocument();
   });

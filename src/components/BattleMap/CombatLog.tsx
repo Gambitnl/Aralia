@@ -1,6 +1,6 @@
 /**
  * @file CombatLog.tsx
- * @modified 2026-05-03
+ * @modified 2026-07-05
  *
  * Displays a scrollable log of combat events in the right sidebar of CombatView.
  *
@@ -18,7 +18,8 @@
  *   - Inline resize: Drag the top edge to make the embedded panel taller or shorter.
  *     The height persists in localStorage so it survives page refreshes.
  *   - Pop-out window: Click the expand icon to open the log in a draggable, resizable
- *     WindowFrame modal. Click close to collapse it back into the sidebar.
+ *     WindowFrame modal. The sidebar trigger keeps a full touch-sized hit target so
+ *     the combat rail remains usable in narrow 2D layouts.
  *
  * IMPORTANT: Do not remove inline comments from this file unless the associated code is modified.
  * If code changes, update the comment with the new date and a description of the change.
@@ -276,7 +277,7 @@ const CombatLog: React.FC<CombatLogProps> = ({ logEntries, richMessages, useRich
   return (
     <>
       <div
-        className={`bg-gray-800/80 p-3 rounded-lg backdrop-blur-sm shadow-lg border border-gray-700 flex flex-col overflow-hidden relative`}
+        className={`rounded-xl border border-amber-900/40 bg-slate-900/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_30px_rgba(0,0,0,0.45)] p-3 backdrop-blur-sm flex flex-col overflow-hidden relative`}
         style={{ height: isExpanded ? 64 : logHeight }}
       >
         {/* Resize handle — a thin bar at the top edge that the user can drag
@@ -293,15 +294,16 @@ const CombatLog: React.FC<CombatLogProps> = ({ logEntries, richMessages, useRich
           </div>
         )}
 
-        <div className="flex justify-between items-center mb-2 sticky top-0 bg-gray-800/90 py-1 z-10 border-b border-gray-700/50">
-            <h3 className="text-center text-sm font-bold text-amber-300">Combat Log</h3>
+        <div className="flex justify-between items-center mb-2 sticky top-0 bg-slate-900/90 py-1 z-10 border-b border-amber-900/40">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.22em] text-amber-400/90">Combat Log</h3>
             {!isExpanded && (
                 <button
                     onClick={() => setIsExpanded(true)}
-                    className="text-gray-400 hover:text-white p-1 rounded hover:bg-gray-700 transition-colors"
+                    className="flex h-11 w-11 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-700 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
                     title="Pop out into resizable window"
+                    aria-label="Pop out Combat Log into resizable window"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                     </svg>
                 </button>

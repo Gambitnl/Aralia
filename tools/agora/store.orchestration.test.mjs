@@ -210,6 +210,91 @@ test('handoff authorization: only the claimant or the creator may reassign', () 
   rm(dir);
 });
 
+// --- multi-orchestrator governance ------------------------------------------
+
+test('campaigns: overlapping leads are refused; a deputy may join the named lead', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const lead = store.registerAgent({ handle: 'lead-orch' });
+  const rival = store.registerAgent({ handle: 'rival-orch' });
+  const deputy = store.registerAgent({ handle: 'deputy-orch' });
+
+  // A lead campaign reserves an advisory file domain for the wave it supervises.
+  const first = store.claimCampaign({
+    agentId: lead.id,
+    campaignId: 'ui-playtest',
+    role: 'lead',
+    scope: '2D UI playtest fixes',
+    paths: ['src/components/MapPane.tsx'],
+    globs: ['src/components/ui/**'],
+    wave: 'ui-wave-1',
+  });
+  assert.equal(first.ok, true);
+
+  // A second lead cannot seed an overlapping domain without coordinating first.
+  const blocked = store.claimCampaign({
+    agentId: rival.id,
+    campaignId: 'rival-ui',
+    role: 'lead',
+    scope: 'parallel UI wave',
+    paths: ['src/components/ui/WindowFrame.tsx'],
+  });
+  assert.equal(blocked.ok, false);
+  assert.match(blocked.error, /overlaps active lead campaign/);
+  assert.equal(blocked.conflict.campaign.id, 'ui-playtest');
+
+  // A deputy may explicitly join the lead campaign and declare a bounded lane.
+  const joined = store.claimCampaign({
+    agentId: deputy.id,
+    campaignId: 'ui-playtest-deputy',
+    role: 'deputy',
+    leadCampaignId: 'ui-playtest',
+    scope: 'window-frame lane only',
+    paths: ['src/components/ui/WindowFrame.tsx'],
+  });
+  assert.equal(joined.ok, true);
+  assert.equal(joined.campaign.role, 'deputy');
+  assert.equal(joined.campaign.leadCampaignId, 'ui-playtest');
+
+  store.close();
+  rm(dir);
+});
+
+test('campaigns: tasks can be namespaced to a claimed campaign and survive restart', () => {
+  const dir = tmpDir();
+  let store = createStore({ dir });
+  const orch = store.registerAgent({ handle: 'governance-orch' });
+
+  store.claimCampaign({
+    agentId: orch.id,
+    campaignId: 'governance',
+    role: 'lead',
+    scope: 'tools/agora governance',
+    globs: ['tools/agora/**'],
+    wave: 'governance-wave',
+  });
+  const task = store.createTask({
+    agentId: orch.id,
+    title: 'PK-governance: seed safe board state',
+    campaignId: 'governance',
+    wave: 'governance-wave',
+  });
+  assert.equal(task.campaignId, 'governance');
+  assert.equal(task.wave, 'governance-wave');
+  store.close();
+
+  // Snapshot/replay keeps both the campaign ownership and task namespace.
+  store = createStore({ dir });
+  const campaigns = store.listCampaigns();
+  assert.equal(campaigns.length, 1);
+  assert.equal(campaigns[0].id, 'governance');
+  const restored = store.listTasks().find((t) => t.id === task.id);
+  assert.equal(restored.campaignId, 'governance');
+  assert.equal(restored.wave, 'governance-wave');
+  store.close();
+  rm(dir);
+});
+
 // --- stale-holder force release ----------------------------------------------
 
 test('locks: force release works only when the holder is stale or gone', () => {

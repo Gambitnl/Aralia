@@ -6,6 +6,33 @@
 /* === Custom Fonts === */
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quattrocento:wght@400;700&family=Dancing+Script:wght@500&display=swap');
 
+/* === Character Sheet Journal Layout === */
+/* The Journal tab lives inside a resizable character sheet, not a full page.
+   These wrappers keep the quest list and page spread in a desktop two-column
+   layout while giving small sheet windows a CSS hook to stack them cleanly. */
+.journal-tab-shell {
+  min-width: 0;
+}
+
+/* The quest sidebar owns the party's quest filters. The wrapper constrains the
+   fixed-width sidebar so it can become full-width at phone sizes. */
+.journal-tab-quest-column {
+  flex: 0 0 18rem;
+  min-width: 0;
+}
+
+/* QuestLogSidebar declares its own width, so the Journal tab wrapper normalizes
+   it to the pane width instead of letting it push the journal pages offscreen. */
+.journal-tab-quest-column > aside {
+  width: 100%;
+}
+
+/* The journal content pane is the flexible side of the sheet. min-width: 0 lets
+   the pane shrink before the responsive breakpoint takes over. */
+.journal-tab-content-column {
+  min-width: 0;
+}
+
 /* === Journal Spread Container === */
 .journal-spread {
   display: flex;
@@ -406,4 +433,95 @@
 
 .journal-page::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 60, 30, 0.5);
+}
+
+/* === Narrow Character Sheet Layout === */
+/* At phone-width sheet sizes, a quest sidebar plus a two-page spread leaves the
+   journal unreadable. Stack the quest list above a single-column page spread so
+   both records remain usable without removing either system. */
+@media (max-width: 640px) {
+  .journal-tab-shell {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .journal-tab-quest-column {
+    flex: 0 0 auto;
+    width: 100%;
+    max-height: 16rem;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.7);
+  }
+
+  .journal-tab-quest-column > aside {
+    height: auto;
+    max-height: 16rem;
+    border-right: 0;
+  }
+
+  .journal-tab-content-column {
+    flex: 0 0 auto;
+    align-items: stretch;
+    overflow: visible;
+    padding: 1rem;
+  }
+
+  .journal-spread {
+    flex-direction: column;
+    min-height: auto;
+    max-width: 100%;
+    border-width: 4px;
+  }
+
+  .journal-ribbon {
+    left: auto;
+    right: 16px;
+    height: 56px;
+    transform: none;
+  }
+
+  .journal-page {
+    min-height: 320px;
+    padding: 20px;
+    overflow: visible;
+  }
+
+  .journal-page-left,
+  .journal-page-right {
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .journal-page-left {
+    border-bottom: 1px solid rgba(100, 60, 30, 0.18);
+  }
+
+  .journal-binding {
+    display: none;
+  }
+
+  .journal-page-header {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .journal-date-info {
+    text-align: left;
+  }
+
+  .journal-page-title {
+    font-size: 1.25rem;
+  }
+
+  .journal-page-number {
+    position: static;
+    margin-top: 16px;
+  }
+
+  .journal-page-navigation {
+    position: static;
+    justify-content: flex-end;
+    margin-top: auto;
+    padding-top: 16px;
+  }
 }

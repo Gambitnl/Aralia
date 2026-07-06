@@ -1,4 +1,21 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 05/07/2026, 07:59:58
+ * Dependents: components/ActionPane/index.tsx
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useRef, useState, useEffect, useLayoutEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { Action } from '../../types';
@@ -30,6 +47,7 @@ const MENU_ITEM_DANGER =
   'bg-red-700 hover:bg-red-600 text-white border border-red-600 focus:ring-red-400';
 const MENU_ITEM_DEV =
   'bg-gray-800 hover:bg-gray-700 text-gray-400 border border-gray-700 focus:ring-gray-600';
+const MENU_VIEWPORT_GAP = 8;
 
 /** Map an action to its semantic menu-item color classes. */
 const menuItemColorFor = (action: Action): string => {
@@ -65,17 +83,24 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
   autoSaveEnabled,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [menuAnchorStyle, setMenuAnchorStyle] = useState<{
+    right: number;
+    bottom: number;
+    maxHeight: number;
+  } | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuContainerRef = useRef<HTMLDivElement>(null);
   // MENU3 — captured scroll positions of scrollable ancestors at open time, so
   // we can undo the browser's "scroll focused element into view" jump that
   // useFocusTrap triggers when it focuses the first dropdown item.
   const scrollSnapshotRef = useRef<{ el: Element; top: number; left: number }[]>([]);
+  const windowScrollSnapshotRef = useRef({ x: 0, y: 0 });
 
   // Record the scrollTop/Left of every scrollable ancestor of the menu trigger.
   // Called right before the menu opens (and thus before the focus trap fires).
   const snapshotAncestorScroll = useCallback(() => {
     const snap: { el: Element; top: number; left: number }[] = [];
+    windowScrollSnapshotRef.current = { x: window.scrollX, y: window.scrollY };
     let node: HTMLElement | null = triggerRef.current?.parentElement ?? null;
     while (node) {
       const style = window.getComputedStyle(node);
@@ -91,31 +116,78 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
     scrollSnapshotRef.current = snap;
   }, []);
 
+  const updateMenuAnchor = useCallback(() => {
+    if (!triggerRef.current) return;
+
+    const rect = triggerRef.current.getBoundingClientRect();
+    const availableAbove = Math.max(160, rect.top - MENU_VIEWPORT_GAP * 2);
+
+    // The dropdown portals to the document root so root-level widgets like
+    // Party Chat cannot cover it. Anchor it to the rendered trigger instead of
+    // relying on parent stacking contexts that differ across layouts.
+    setMenuAnchorStyle({
+      right: Math.max(MENU_VIEWPORT_GAP, window.innerWidth - rect.right),
+      bottom: Math.max(MENU_VIEWPORT_GAP, window.innerHeight - rect.top + MENU_VIEWPORT_GAP),
+      maxHeight: availableAbove,
+    });
+  }, []);
+
+  const restoreCapturedScroll = useCallback(() => {
+    for (const { el, top, left } of scrollSnapshotRef.current) {
+      if (el.scrollTop !== top) el.scrollTop = top;
+      if (el.scrollLeft !== left) el.scrollLeft = left;
+    }
+    const { x, y } = windowScrollSnapshotRef.current;
+    if (window.scrollX !== x || window.scrollY !== y) {
+      window.scrollTo(x, y);
+    }
+  }, []);
+
   // After the dropdown mounts and the focus trap has moved focus (which can
   // scroll the left HUD column and push the date/weather header out of view),
   // restore the captured scroll positions so the header stays put and the
   // dropdown stays anchored to its button.
   useLayoutEffect(() => {
     if (!isMenuOpen) return;
-    const restore = () => {
-      for (const { el, top, left } of scrollSnapshotRef.current) {
-        if (el.scrollTop !== top) el.scrollTop = top;
-        if (el.scrollLeft !== left) el.scrollLeft = left;
-      }
-    };
+    updateMenuAnchor();
     // Restore now and once more next frame: useFocusTrap focuses on its own
     // effect (synchronously) and the browser may also adjust scroll async.
-    restore();
-    const raf = requestAnimationFrame(restore);
+    restoreCapturedScroll();
+    const raf = requestAnimationFrame(restoreCapturedScroll);
     return () => cancelAnimationFrame(raf);
-  }, [isMenuOpen]);
+  }, [isMenuOpen, restoreCapturedScroll, updateMenuAnchor]);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousRootOverscroll = document.documentElement.style.overscrollBehavior;
+    // The system menu is a fixed popover, but on phones the wheel/touch scroll
+    // was moving the play page underneath it and leaving the menu anchored
+    // partly offscreen. Keep page scroll locked while the dropdown owns focus;
+    // the dropdown itself remains independently scrollable.
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overscrollBehavior = 'contain';
+    window.addEventListener('resize', updateMenuAnchor);
+    window.addEventListener('scroll', updateMenuAnchor, true);
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overscrollBehavior = previousRootOverscroll;
+      window.removeEventListener('resize', updateMenuAnchor);
+      window.removeEventListener('scroll', updateMenuAnchor, true);
+    };
+  }, [isMenuOpen, updateMenuAnchor]);
 
   const handleToggleMenu = useCallback(() => {
     setIsMenuOpen((open) => {
-      if (!open) snapshotAncestorScroll();
+      if (!open) {
+        snapshotAncestorScroll();
+        updateMenuAnchor();
+      }
       return !open;
     });
-  }, [snapshotAncestorScroll]);
+  }, [snapshotAncestorScroll, updateMenuAnchor]);
 
   const handleCloseMenu = () => {
     setIsMenuOpen(false);
@@ -126,6 +198,20 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
   };
 
   const focusTrapRef = useFocusTrap<HTMLDivElement>(isMenuOpen, handleCloseMenu);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    // useFocusTrap is declared just above this effect, so this post-open pass
+    // runs after it focuses the first menu item and can undo the page-level
+    // scroll jump that strands phone users below the play controls.
+    restoreCapturedScroll();
+    const raf = requestAnimationFrame(restoreCapturedScroll);
+    const timeout = window.setTimeout(restoreCapturedScroll, 0);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(timeout);
+    };
+  }, [isMenuOpen, restoreCapturedScroll]);
 
   // RALPH: Logic Extraction.
   // Uses the centralized keyboard nav hook to handle ArrowUp/ArrowDown within the menu.
@@ -173,7 +259,10 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       // Check if click is outside the entire menu container (trigger + dropdown)
-      if (menuContainerRef.current && !menuContainerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedTrigger = menuContainerRef.current?.contains(target);
+      const clickedDropdown = focusTrapRef.current?.contains(target);
+      if (!clickedTrigger && !clickedDropdown) {
         setIsMenuOpen(false);
       }
     };
@@ -186,15 +275,20 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMenuOpen]);
+  }, [focusTrapRef, isMenuOpen]);
 
   return (
-    <div id={UI_ID.SYSTEM_MENU} data-testid={UI_ID.SYSTEM_MENU} className="mt-6 pt-4 border-t border-gray-700 flex justify-end relative" ref={menuContainerRef}>
+    <div
+      id={UI_ID.SYSTEM_MENU}
+      data-testid={UI_ID.SYSTEM_MENU}
+      className={`mt-6 flex justify-end border-t border-gray-700 pt-4 relative ${isMenuOpen ? 'z-[var(--z-index-content-overlay-top)]' : 'z-auto'}`}
+      ref={menuContainerRef}
+    >
       <button
         ref={triggerRef}
         onClick={handleToggleMenu}
         disabled={disabled}
-        className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg shadow transition-colors"
+        className="flex min-h-11 items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg shadow transition-colors"
         aria-haspopup="menu"
         aria-expanded={isMenuOpen}
       >
@@ -205,39 +299,44 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
         )}
       </button>
 
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            ref={focusTrapRef}
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute bottom-full right-0 mb-2 w-56 bg-gray-800 border border-gray-600 rounded-lg shadow-xl overflow-hidden z-[var(--z-index-submap-overlay)] flex flex-col p-2 gap-2"
-            role="menu"
-            onKeyDown={handleMenuKeyDown}
-          >
-            {systemMenuActions.map(({ action, badgeCount, hasNotification }, idx) => (
-              <React.Fragment key={`${action.type}-${idx}`}>
-                {idx === 6 && <div className="h-px bg-gray-600 my-1" aria-hidden="true"></div>}
-                <ActionButton
-                  className={`w-full text-left ${menuItemColorFor(action)}`}
-                  action={action}
-                  onClick={(a) => {
-                    onAction(a);
-                    handleCloseMenu();
-                  }}
-                  disabled={disabled}
-                  badgeCount={badgeCount}
-                  hasNotification={hasNotification}
-                  role="menuitem"
-                  tabIndex={0}
-                />
-              </React.Fragment>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {isMenuOpen && menuAnchorStyle && (
+            <motion.div
+              ref={focusTrapRef}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.15 }}
+              style={menuAnchorStyle}
+              className="fixed flex w-56 flex-col gap-1 overflow-y-auto rounded-lg border border-gray-600 bg-gray-800 p-2 shadow-xl z-[var(--z-index-content-overlay-top)] custom-scrollbar"
+              role="menu"
+              onKeyDown={handleMenuKeyDown}
+            >
+              {systemMenuActions.map(({ action, badgeCount, hasNotification }, idx) => (
+                <React.Fragment key={`${action.type}-${idx}`}>
+                  {idx === 6 && <div className="h-px bg-gray-600 my-1" aria-hidden="true"></div>}
+                  <ActionButton
+                    className={`!h-11 w-full !px-4 !py-2 text-left !text-base ${menuItemColorFor(action)}`}
+                    action={action}
+                    onClick={(a) => {
+                      onAction(a);
+                      handleCloseMenu();
+                    }}
+                    disabled={disabled}
+                    badgeCount={badgeCount}
+                    hasNotification={hasNotification}
+                    role="menuitem"
+                    tabIndex={0}
+                    style={{ minHeight: 44 }}
+                  />
+                </React.Fragment>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
     </div>
   );
 };

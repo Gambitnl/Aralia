@@ -3,13 +3,15 @@
  * @file MissingChoiceModal.tsx
  * A modal that prompts the user to make a specific missing choice for a character.
  *
+ * Now a thin wrapper over the shared {@link ModalDialog} blocking-dialog shell —
+ * this component only supplies the choice body and the confirm/cancel button row;
+ * the portal, dim backdrop, focus trap, and centered panel all live in ModalDialog.
+ *
  * @component-owner Gameplay Team / Core UI
  */
 import React, { useState } from 'react';
-import { motion, MotionProps } from 'framer-motion';
 import { MissingChoice } from '../types';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { Z_INDEX } from '../../styles/zIndex';
+import { ModalDialog } from './ModalDialog';
 import { UI_ID } from '../../styles/uiIds';
 
 interface MissingChoiceModalProps {
@@ -20,37 +22,17 @@ interface MissingChoiceModalProps {
   onConfirm: (choiceId: string, extraData?: unknown) => void;
 }
 
-const overlayMotion: MotionProps = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-};
-
-const modalMotion: MotionProps = {
-  initial: { y: 20, opacity: 0 },
-  animate: { y: 0, opacity: 1 },
-  exit: { y: 20, opacity: 0 },
-};
-
-const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  characterName, 
-  missingChoice, 
-  onConfirm 
+const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
+  isOpen,
+  onClose,
+  characterName,
+  missingChoice,
+  onConfirm,
 }) => {
-  const titleId = 'missing-choice-title';
-
   const [selectedOption, setSelectedOption] = useState<{
     choiceId: string;
     optionId: string;
   } | null>(null);
-
-  // We use useFocusTrap to capture keyboard focus within the modal.
-  // This automatically keeps focus inside the modal, supports Tab/Shift+Tab wrapping,
-  // and closes the modal on Escape press. We pass `isOpen && !!missingChoice` to ensure
-  // the trap is only active when the modal is fully ready and displayed.
-  const modalRef = useFocusTrap<HTMLDivElement>(isOpen && !!missingChoice, onClose);
 
   if (!isOpen || !missingChoice) return null;
 
@@ -69,69 +51,56 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
     }
   };
 
+  const title = (
+    <div>
+      <h3 className="text-lg font-bold text-amber-400 font-cinzel">
+        Incomplete Character
+      </h3>
+      <p className="text-sm text-amber-200/70">{characterName} is missing a vital trait or spell.</p>
+    </div>
+  );
+
   return (
-    <motion.div
+    <ModalDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      size="lg"
       id={UI_ID.MISSING_CHOICE_MODAL}
-      data-testid={UI_ID.MISSING_CHOICE_MODAL}
-      {...overlayMotion}
-      className={`fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[${Z_INDEX.MODAL_CONTENT}] p-4`}
-      onClick={onClose}
+      testId={UI_ID.MISSING_CHOICE_MODAL}
+      footer={
+        <>
+          <button onClick={onClose} className="px-4 py-2 text-gray-400 hover:text-white">Cancel</button>
+          <button
+            onClick={handleConfirm}
+            disabled={!resolvedSelectedOptionId}
+            className="px-6 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow"
+          >
+            Confirm
+          </button>
+        </>
+      }
     >
-      <motion.div
-        ref={modalRef}
-        {...modalMotion}
-        className="bg-gray-800 border border-amber-500/50 rounded-xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden focus:outline-none"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-      >
-        <div className="bg-amber-900/30 p-4 border-b border-amber-500/30 flex justify-between items-center">
-             <div>
-                <h3 id={titleId} className="text-lg font-bold text-amber-400 font-cinzel">
-                  Incomplete Character
-                </h3>
-                <p className="text-sm text-amber-200/70">{characterName} is missing a vital trait or spell.</p>
-             </div>
-             <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl">&times;</button>
-        </div>
-        
-        <div className="p-6 max-h-[60vh] overflow-y-auto scrollable-content">
-             <h4 className="text-xl font-semibold text-white mb-2">{missingChoice.label}</h4>
-             <p className="text-sm text-gray-400 mb-4">{missingChoice.description}</p>
-             
-             <div className="space-y-2">
-                {missingChoice.options.map(option => (
-                    <button
-                        key={option.id}
-                        onClick={() => setSelectedOption({ choiceId: missingChoice.id, optionId: option.id })}
-                        className={`w-full text-left p-3 rounded-lg border transition-all ${
-                            resolvedSelectedOptionId === option.id
-                            ? 'bg-amber-600/30 border-amber-500 ring-1 ring-amber-500'
-                            : 'bg-gray-700/50 border-gray-600 hover:bg-gray-700'
-                        }`}
-                    >
-                        <div className="font-bold text-gray-200">{option.label}</div>
-                        {option.description && <div className="text-xs text-gray-400 mt-1">{option.description}</div>}
-                    </button>
-                ))}
-             </div>
-        </div>
+      <h4 className="text-xl font-semibold text-white mb-2">{missingChoice.label}</h4>
+      <p className="text-sm text-gray-400 mb-4">{missingChoice.description}</p>
 
-        <div className="p-4 border-t border-gray-700 bg-gray-900/50 flex justify-end gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-gray-400 hover:text-white">Cancel</button>
-            <button
-                onClick={handleConfirm}
-                disabled={!resolvedSelectedOptionId}
-                className="px-6 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow"
-            >
-                Confirm
-            </button>
-        </div>
-
-      </motion.div>
-    </motion.div>
+      <div className="space-y-2">
+        {missingChoice.options.map(option => (
+          <button
+            key={option.id}
+            onClick={() => setSelectedOption({ choiceId: missingChoice.id, optionId: option.id })}
+            className={`w-full text-left p-3 rounded-lg border transition-all ${
+              resolvedSelectedOptionId === option.id
+                ? 'bg-amber-600/30 border-amber-500 ring-1 ring-amber-500'
+                : 'bg-gray-700/50 border-gray-600 hover:bg-gray-700'
+            }`}
+          >
+            <div className="font-bold text-gray-200">{option.label}</div>
+            {option.description && <div className="text-xs text-gray-400 mt-1">{option.description}</div>}
+          </button>
+        ))}
+      </div>
+    </ModalDialog>
   );
 };
 

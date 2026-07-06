@@ -41,6 +41,8 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
   const listContainerRef = useRef<HTMLDivElement>(null);
+  const mainContainerRef = useRef<HTMLDivElement>(null);
+  const detailPaneRef = useRef<HTMLDivElement>(null);
 
   const filteredAndSortedEntries = useMemo(() => {
     let processedEntries = [...entries];
@@ -120,6 +122,28 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
     if (!entry.isRead) {
       onMarkRead(entry.id);
     }
+
+    // In the compact stacked layout, the list sits above the detail pane. After
+    // a player chooses an entry, move the detail pane into view so the click has
+    // immediate readable feedback instead of leaving the selected content below
+    // the fold behind the modal footer.
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(max-width: 767px)').matches
+    ) {
+      window.requestAnimationFrame(() => {
+        const mainContainer = mainContainerRef.current;
+        const detailPane = detailPaneRef.current;
+
+        if (mainContainer && detailPane) {
+          mainContainer.scrollTo({
+            top: detailPane.offsetTop - mainContainer.offsetTop,
+            behavior: 'auto',
+          });
+        }
+      });
+    }
   };
 
   useEffect(() => {
@@ -188,23 +212,23 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
       role="dialog"
       aria-labelledby="discovery-log-title"
     >
-      <div className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-4xl h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-700">
-          <h2 id="discovery-log-title" className="text-3xl font-bold text-amber-400 font-cinzel">
+      <div className="flex h-[calc(100dvh-2rem)] max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-gray-700 bg-gray-800 p-6 shadow-2xl sm:h-[90vh]">
+        {/* Header keeps the journal title readable on phone-width WindowFrames while reserving a fixed close target. */}
+        <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-gray-700">
+          <h2 id="discovery-log-title" className="min-w-0 flex-1 pr-1 text-2xl sm:text-3xl leading-tight font-bold text-amber-400 font-cinzel break-words">
             Discovery Log
           </h2>
           <button
             ref={firstFocusableElementRef}
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 text-2xl focus:outline-none focus:ring-2 focus:ring-sky-400 rounded-md"
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md text-2xl text-gray-400 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-400"
             aria-label="Close journal"
           >
             &times;
           </button>
         </div>
 
-        {/* Controls: Search, Filter, Sort */}
+        {/* Controls: Search, Filter, Sort. These are primary journal navigation controls, so keep them touch-sized in compact modals. */}
         <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
           <div className="md:col-span-2">
             <label htmlFor="journalSearch" className="block text-sm font-medium text-sky-300 mb-1">Search</label>
@@ -214,7 +238,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
               placeholder="Search entries..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 outline-none"
+              className="w-full min-h-11 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 outline-none"
             />
           </div>
           <div>
@@ -223,7 +247,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
               id="journalFilterType"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as DiscoveryType | 'ALL')}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 outline-none scrollable-content"
+              className="w-full min-h-11 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 outline-none scrollable-content"
             >
               <option value="ALL">All Types</option>
               {discoveryTypeOptions.map(type => (
@@ -237,7 +261,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
               id="journalSortOrder"
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as SortOrder)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 outline-none"
+              className="w-full min-h-11 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 outline-none"
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
@@ -248,10 +272,11 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
         </div>
 
 
-        {/* Main Content: List and Detail Panes */}
-        <div className="flex-grow flex flex-col md:flex-row gap-4 overflow-hidden min-h-0">
+        {/* Main Content: List and Detail Panes. The footer stays reachable while this middle region owns phone-height overflow.
+            Compact mode keeps extra bottom room so a selected detail card can scroll above the footer instead of stopping half-hidden. */}
+        <div ref={mainContainerRef} data-testid="discovery-log-main" className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-48 pr-1 scrollable-content md:flex-row md:overflow-hidden md:pb-0">
           {/* Left Pane: Entry List */}
-          <div ref={listContainerRef} data-testid="discovery-log-entry-list" className="md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-hidden flex-shrink-0 flex flex-col min-h-0">
+          <div ref={listContainerRef} data-testid="discovery-log-entry-list" className="min-h-28 md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-hidden flex-shrink-0 flex flex-col md:min-h-0">
             {filteredAndSortedEntries.length === 0 ? (
               <p className="text-gray-400 italic text-center py-4">No entries match your criteria.</p>
             ) : (
@@ -261,7 +286,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                     <li key={entry.id}>
                       <button
                         onClick={() => handleEntrySelect(entry)}
-                        className={`w-full text-left p-2.5 rounded-md transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-400
+                        className={`w-full min-h-11 text-left p-2.5 rounded-md transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-400
                                       ${selectedEntry?.id === entry.id ? 'bg-sky-700 text-white shadow-md' : 'bg-gray-700 hover:bg-gray-600/70 text-gray-300'}`}
                       >
                         <div className="flex items-center">
@@ -283,7 +308,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                       type="button"
                       onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
                       disabled={currentPage === 1}
-                      className="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="min-h-11 px-3 py-2 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Previous
                     </button>
@@ -292,7 +317,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                       type="button"
                       onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
                       disabled={currentPage === totalPages}
-                      className="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="min-h-11 px-3 py-2 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Next
                     </button>
@@ -303,10 +328,10 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
           </div>
 
           {/* Right Pane: Entry Detail */}
-          <div className="flex-grow md:w-2/3 border border-gray-700 rounded-lg bg-gray-800/50 p-4 overflow-y-auto scrollable-content">
+          <div ref={detailPaneRef} className="flex-shrink-0 border border-gray-700 rounded-lg bg-gray-800/50 p-4 overflow-visible scrollable-content md:w-2/3 md:flex-grow md:overflow-y-auto">
             {selectedEntry ? (
               <article>
-                <h3 className="text-2xl font-semibold text-amber-300 mb-2 font-cinzel tracking-wide">{selectedEntry.title}</h3>
+                <h3 className="mb-2 break-words font-cinzel text-xl font-semibold leading-snug tracking-wide text-amber-300 sm:text-2xl">{selectedEntry.title}</h3>
                 <div className="text-xs text-gray-400 mb-3 space-x-3">
                   <span><strong className="text-gray-400">Type:</strong> {selectedEntry.type}</span>
                   <span><strong className="text-gray-400">Logged:</strong> {formatGameDateTime(new Date(selectedEntry.timestamp))}</span>
@@ -363,17 +388,17 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="mt-6 pt-4 border-t border-gray-700 flex justify-between items-center">
+        <div className="mt-4 flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-gray-700 pt-4">
           <button
             onClick={onMarkAllRead}
             disabled={entries.every(e => e.isRead)}
-            className="px-4 py-2 text-sm bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-md shadow disabled:opacity-50 disabled:cursor-not-allowed"
+            className="min-h-11 px-4 py-2 text-sm bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-md shadow disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Mark All as Read
           </button>
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow"
+            className="min-h-11 whitespace-nowrap px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow sm:px-6"
           >
             Close Log
           </button>

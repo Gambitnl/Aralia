@@ -10,7 +10,7 @@
  */
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { vi, describe, it } from 'vitest';
+import { vi, describe, expect, it } from 'vitest';
 import GameGuideModal from '../ui/GameGuideModal';
 import * as ollamaService from '../../services/ollamaTextService';
 
@@ -45,6 +45,42 @@ describe('GameGuideModal Security Tests', () => {
     devModelOverride: null,
     onAction: mockOnAction
   };
+
+  it('keeps the Oracle prompt controls inside compact modal widths', () => {
+    render(<GameGuideModal {...defaultProps} />);
+
+    const input = screen.getByPlaceholderText('game_guide.placeholder_query');
+    const submit = screen.getByRole('button', { name: 'game_guide.button_ask' });
+    const close = screen.getByRole('button', { name: 'Close guide' });
+    const promptRow = input.parentElement;
+
+    expect(promptRow).toHaveClass('flex-col', 'sm:flex-row');
+    expect(input).toHaveClass('min-w-0', 'w-full');
+    expect(submit).toHaveClass('w-full', 'sm:w-auto', 'sm:flex-shrink-0');
+    expect(close).toHaveClass('h-11', 'w-11');
+  });
+
+  it('keeps expanded Oracle rites controls large enough for cramped play', () => {
+    render(<GameGuideModal {...defaultProps} />);
+
+    const toolsToggle = screen.getByRole('button', { name: 'game_guide.toggle_tools_show' });
+    fireEvent.click(toolsToggle);
+
+    const expandedToggle = screen.getByRole('button', { name: 'game_guide.toggle_tools_hide' });
+    const [raceSelect, classSelect] = screen.getAllByRole('combobox');
+    const generateButton = screen.getByRole('button', { name: 'game_guide.button_generate' });
+    const input = screen.getByPlaceholderText('game_guide.placeholder_query');
+    const submit = screen.getByRole('button', { name: 'game_guide.button_ask' });
+
+    // Phone players need the same practical target size in the optional rites
+    // panel as they get from the core prompt and close controls.
+    expect(expandedToggle).toHaveClass('min-h-11');
+    expect(raceSelect).toHaveClass('min-h-11');
+    expect(classSelect).toHaveClass('min-h-11');
+    expect(generateButton).toHaveClass('min-h-11');
+    expect(input).toHaveClass('min-h-11');
+    expect(submit).toHaveClass('min-h-11');
+  });
 
   it('handles malicious JSON payload gracefully', async () => {
     // Malformed JSON that would crash JSON.parse

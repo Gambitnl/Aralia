@@ -56,6 +56,18 @@ export interface UseOpeningSituationOptions {
 }
 
 /**
+ * Read the dev-only `?openingMood=peaceful|hostile` QA knob. Returns undefined
+ * outside dev, when the param is absent, or when it is not a recognized value —
+ * so production and normal play are never steered.
+ */
+export function readOpeningMoodHint(): 'peaceful' | 'hostile' | undefined {
+    if (!import.meta.env?.DEV) return undefined;
+    if (typeof window === 'undefined') return undefined;
+    const value = new URLSearchParams(window.location.search).get('openingMood');
+    return value === 'peaceful' || value === 'hostile' ? value : undefined;
+}
+
+/**
  * Build the character context fed to the generator from the player party head.
  */
 export function buildSituationCharacter(state: GameState): OpeningSituationCharacter | null {
@@ -164,7 +176,16 @@ export function useOpeningSituation(
         // the RAW response there even when the JSON below fails to parse, so the
         // unparseable output is always inspectable in the in-app viewer.
         try {
-            const generated = await generate(character, location);
+            // Dev-only QA knob: `?openingMood=peaceful|hostile` forces the model's
+            // hostility choice so a peaceful (or hostile) opening can be reliably
+            // reproduced for live verification. Import.meta.env.DEV gates it out of
+            // production; it steers the prompt only — it never invents a scene.
+            const moodHint = readOpeningMoodHint();
+            const generated = await generate(
+                character,
+                location,
+                moodHint ? { moodHint } : undefined,
+            );
             // The model occasionally echoes the PLAYER back as a scene NPC
             // ("Talk to <yourself>"); drop any generated NPC whose name matches
             // a party member before placement and conversation seeding.

@@ -124,6 +124,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
   const allSpells = useContext(SpellContext);
   const isGeneratingPortrait = portrait.status === 'requesting' || portrait.status === 'polling';
   const hasSeededDescriptionRef = useRef(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   const fallbackPortraitGlyph = useMemo(() => {
     switch (charClass.id) {
@@ -173,6 +174,12 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
     hasSeededDescriptionRef.current = true;
     onVisualDescriptionChange(suggestedVisualDescription);
   }, [onVisualDescriptionChange, portraitsEnabled, suggestedVisualDescription, visualDescription]);
+
+  useEffect(() => {
+    // Keep the quick name-entry flow without letting the browser scroll nested
+    // creator panes and hide the final review actions on cramped viewports.
+    nameInputRef.current?.focus({ preventScroll: true });
+  }, []);
   
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
@@ -317,12 +324,11 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                   Character Name
                 </label>
                 <input
+                  ref={nameInputRef}
                   type="text"
                   id="characterName"
                   value={name}
                   onChange={handleNameChange}
-                  // TODO #48(lint): autoFocus is discouraged for accessibility, but essential for the rapid-name flow here.
-                  autoFocus
                   className={`w-full px-4 py-3 bg-gray-800 border rounded-xl text-white focus:ring-2 outline-none transition-all shadow-inner ${
                     validationError
                       ? 'border-red-500/50 focus:ring-red-500/20'

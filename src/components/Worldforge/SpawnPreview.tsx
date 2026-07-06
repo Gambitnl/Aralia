@@ -128,14 +128,14 @@ const SpawnPreview: React.FC = () => {
   const pass = audit.land && audit.passableBiome;
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', background: '#0b1220', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}>
+    <div className="flex h-[100dvh] w-screen flex-col overflow-hidden md:flex-row" style={{ background: '#0b1220', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}>
       {/* Map */}
-      <div ref={mapRef} style={{ flex: 1, position: 'relative', minWidth: 0 }} data-testid="spawn-preview-map">
+      <div ref={mapRef} className="relative min-h-[45dvh] min-w-0 flex-[1_1_auto] md:min-h-0" data-testid="spawn-preview-map">
         <AtlasSvgView atlas={atlas} marker={audit.marker} width={mapSize.width} height={mapSize.height} />
       </div>
 
       {/* Readout / controls */}
-      <aside style={{ width: 360, padding: 20, borderLeft: '1px solid #1e293b', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <aside className="flex max-h-[55dvh] w-full flex-col gap-4 overflow-y-auto border-t border-slate-800 p-4 md:max-h-none md:w-[360px] md:border-l md:border-t-0 md:p-5">
         <div>
           <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Spawn-on-Land Preview</h1>
           <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>

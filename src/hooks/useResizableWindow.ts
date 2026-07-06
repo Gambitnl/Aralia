@@ -83,15 +83,26 @@ function getWorkspaceBounds(): WindowWorkspaceBounds {
     return {
         minLeft: WINDOW_MARGIN,
         minTop,
-        maxWidth: Math.max(MIN_WIDTH, window.innerWidth - (WINDOW_MARGIN * 2)),
-        maxHeight: Math.max(MIN_HEIGHT, window.innerHeight - minTop - WINDOW_MARGIN),
+        maxWidth: Math.max(1, window.innerWidth - (WINDOW_MARGIN * 2)),
+        maxHeight: Math.max(1, window.innerHeight - minTop - WINDOW_MARGIN),
+    };
+}
+
+function getResponsiveMinimumSize(bounds: WindowWorkspaceBounds): WindowSize {
+    return {
+        width: Math.min(MIN_WIDTH, bounds.maxWidth),
+        height: Math.min(MIN_HEIGHT, bounds.maxHeight),
     };
 }
 
 function clampSizeToWorkspace(size: WindowSize, bounds: WindowWorkspaceBounds): WindowSize {
+    // Keep the normal desktop minimums, but let the frame shrink to the available
+    // workspace on cramped viewports so title-bar controls and primary actions stay reachable.
+    const minimumSize = getResponsiveMinimumSize(bounds);
+
     return {
-        width: Math.min(Math.max(size.width, MIN_WIDTH), bounds.maxWidth),
-        height: Math.min(Math.max(size.height, MIN_HEIGHT), bounds.maxHeight),
+        width: Math.min(Math.max(size.width, minimumSize.width), bounds.maxWidth),
+        height: Math.min(Math.max(size.height, minimumSize.height), bounds.maxHeight),
     };
 }
 
@@ -265,19 +276,20 @@ export function useResizableWindow(
             const bounds = getWorkspaceBounds();
             const maxWidth = bounds.maxWidth;
             const maxHeight = bounds.maxHeight;
+            const minimumSize = getResponsiveMinimumSize(bounds);
 
-            if (handle?.includes('right')) newWidth = Math.min(Math.max(startWidth + deltaX, MIN_WIDTH), maxWidth);
+            if (handle?.includes('right')) newWidth = Math.min(Math.max(startWidth + deltaX, minimumSize.width), maxWidth);
             if (handle?.includes('left')) {
                 const widthChange = startWidth - deltaX;
-                if (widthChange >= MIN_WIDTH && widthChange <= maxWidth) {
+                if (widthChange >= minimumSize.width && widthChange <= maxWidth) {
                     newWidth = widthChange;
                     newLeft = Math.max(bounds.minLeft, startLeft + deltaX);
                 }
             }
-            if (handle?.includes('bottom')) newHeight = Math.min(Math.max(startHeight + deltaY, MIN_HEIGHT), maxHeight);
+            if (handle?.includes('bottom')) newHeight = Math.min(Math.max(startHeight + deltaY, minimumSize.height), maxHeight);
             if (handle?.includes('top')) {
                 const heightChange = startHeight - deltaY;
-                if (heightChange >= MIN_HEIGHT && heightChange <= maxHeight) {
+                if (heightChange >= minimumSize.height && heightChange <= maxHeight) {
                     newHeight = heightChange;
                     newTop = Math.max(bounds.minTop, startTop + deltaY);
                 }

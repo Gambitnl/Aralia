@@ -37,6 +37,7 @@ export interface StartPointSelectionProps {
 const ALL_REGIONS = '__all__';
 /** Cap the rendered rows so an unfiltered 700+ town world stays responsive. */
 const MAX_VISIBLE_TOWNS = 150;
+const COMPACT_LAYOUT_MAX_WIDTH = 640;
 /**
  * S3: the world atlas is a fixed 16:9 (960×540) image. The left pane at common
  * desktop sizes (e.g. 1440×900 → ~1060×900) is taller than 16:9, so handing the
@@ -85,6 +86,19 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
   const [regionFilter, setRegionFilter] = useState<string>(ALL_REGIONS);
   const [search, setSearch] = useState<string>('');
   const [selectedIndex, setSelectedIndex] = useState<number | null>(() => towns[0]?.burgIndex ?? null);
+  const [isCompactLayout, setIsCompactLayout] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? window.innerWidth < COMPACT_LAYOUT_MAX_WIDTH : false,
+  );
+
+  useEffect(() => {
+    // The start picker combines map context and town decision controls. On
+    // cramped viewports, stack them so the fixed-width panel does not shove the
+    // map into a competing sliver beside the form.
+    const updateLayout = () => setIsCompactLayout(window.innerWidth < COMPACT_LAYOUT_MAX_WIDTH);
+    updateLayout();
+    window.addEventListener('resize', updateLayout);
+    return () => window.removeEventListener('resize', updateLayout);
+  }, []);
 
   // Bumped to fire the map's "look here!" pulse around the selected town. The
   // tiny yellow marker is hard to spot on a fully zoomed-out world, so we pulse
@@ -202,13 +216,58 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   ), [world, markerKey, mapSize.width, mapSize.height, handlePickCell, pulseToken]);
 
+  const rootStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: isCompactLayout ? 'column' : 'row',
+    height: '100vh',
+    width: '100vw',
+    background: '#0b1220',
+    color: '#e2e8f0',
+    fontFamily: 'system-ui, sans-serif',
+  };
+
+  const mapPaneStyle: React.CSSProperties = isCompactLayout
+    ? {
+        flex: '0 0 32vh',
+        minHeight: 160,
+        maxHeight: 220,
+        width: '100%',
+        position: 'relative',
+        minWidth: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderBottom: '1px solid #1e293b',
+      }
+    : {
+        flex: 1,
+        position: 'relative',
+        minWidth: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      };
+
+  const panelStyle: React.CSSProperties = {
+    width: isCompactLayout ? '100%' : 380,
+    flex: isCompactLayout ? '1 1 auto' : undefined,
+    minHeight: isCompactLayout ? 0 : undefined,
+    padding: isCompactLayout ? 16 : 20,
+    borderLeft: isCompactLayout ? 'none' : '1px solid #1e293b',
+    borderTop: isCompactLayout ? '1px solid #1e293b' : 'none',
+    overflowY: 'auto',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
+  };
+
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', background: '#0b1220', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}>
+    <div data-testid="start-select-layout" style={rootStyle}>
       {/* Atlas — the 16:9 map box is centered in the pane so the atlas fills it
           edge-to-edge instead of letterboxing with dark-blue margins (S3). */}
       <div
         ref={mapRef}
-        style={{ flex: 1, position: 'relative', minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        style={mapPaneStyle}
         data-testid="start-select-map"
       >
         <div style={{ width: mapSize.width, height: mapSize.height, position: 'relative' }} data-testid="start-select-map-box">
@@ -217,7 +276,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
       </div>
 
       {/* Selection panel */}
-      <aside style={{ width: 380, padding: 20, borderLeft: '1px solid #1e293b', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <aside data-testid="start-select-panel" style={panelStyle}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Choose your starting town</h1>
           <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
@@ -232,7 +291,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search towns or regions…"
-          style={{ padding: '8px 10px', borderRadius: 6, background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155' }}
+          style={{ minHeight: 44, boxSizing: 'border-box', padding: '8px 10px', borderRadius: 6, background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155' }}
         />
 
         {/* Region filter */}
@@ -242,7 +301,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
             data-testid="start-region-filter"
             value={regionFilter}
             onChange={(e) => setRegionFilter(e.target.value)}
-            style={{ padding: '8px', borderRadius: 6, background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155' }}
+            style={{ minHeight: 44, boxSizing: 'border-box', padding: '8px', borderRadius: 6, background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155' }}
           >
             <option value={ALL_REGIONS}>All regions ({towns.length} towns)</option>
             {regions.map((r) => (
@@ -268,7 +327,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
         </div>
 
         {/* Town list */}
-        <div data-testid="start-town-list" style={{ flex: 1, minHeight: 120, overflowY: 'auto', border: '1px solid #1e293b', borderRadius: 8 }}>
+        <div data-testid="start-town-list" style={{ order: isCompactLayout ? 2 : undefined, flex: 1, minHeight: 120, overflowY: 'auto', border: '1px solid #1e293b', borderRadius: 8 }}>
           {visibleTowns.length === 0 && (
             <p style={{ padding: 12, fontSize: 13, color: '#94a3b8', margin: 0 }}>No towns in this region.</p>
           )}
@@ -282,7 +341,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
                 onClick={() => { selectTown(t); triggerPulse(); }}
                 onDoubleClick={() => { selectTown(t); onConfirm(t); }}
                 style={{
-                  width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', cursor: 'pointer',
+                  width: '100%', minHeight: 44, textAlign: 'left', padding: '8px 12px', border: 'none', cursor: 'pointer',
                   background: isSel ? '#1d4ed8' : 'transparent', color: isSel ? 'white' : '#cbd5e1',
                   borderBottom: '1px solid #14203a', display: 'flex', justifyContent: 'space-between', gap: 8,
                 }}
@@ -307,7 +366,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
 
         {/* Selected town detail */}
         {selected && (
-          <div data-testid="start-selected-detail" style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: 12, fontSize: 13 }}>
+          <div data-testid="start-selected-detail" style={{ order: isCompactLayout ? 3 : undefined, background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: 12, fontSize: 13 }}>
             <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>
               {selected.name}
               {selected.isCapital && <span style={{ color: '#fbbf24', marginLeft: 6 }}>★ capital</span>}
@@ -321,7 +380,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
               onClick={triggerPulse}
               title="Flash this town's location on the map"
               style={{
-                marginTop: 10, padding: '6px 10px', borderRadius: 6, border: '1px solid #7f1d1d',
+                marginTop: 10, minHeight: 44, padding: '8px 10px', borderRadius: 6, border: '1px solid #7f1d1d',
                 background: '#1f2937', color: '#fca5a5', cursor: 'pointer', fontSize: 12, fontWeight: 600,
               }}
             >
@@ -331,11 +390,26 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
         )}
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div
+          data-testid="start-action-bar"
+          style={{
+            display: isCompactLayout ? 'grid' : 'flex',
+            gap: 8,
+            gridTemplateColumns: isCompactLayout ? (onBack ? 'minmax(0, 1fr) minmax(0, 1fr)' : '1fr') : undefined,
+            // On phone-width layouts, place the real "begin here" decision
+            // above the long town list so it stays visible without covering
+            // town rows. Desktop keeps the natural bottom-of-panel order.
+            order: isCompactLayout ? 1 : undefined,
+            zIndex: isCompactLayout ? 2 : undefined,
+            paddingTop: isCompactLayout ? 8 : undefined,
+            background: isCompactLayout ? '#0b1220' : undefined,
+            borderTop: isCompactLayout ? '1px solid #1e293b' : undefined,
+          }}
+        >
           {onBack && (
             <button
               onClick={onBack}
-              style={{ padding: '10px 14px', borderRadius: 6, background: '#334155', color: 'white', border: 'none', cursor: 'pointer' }}
+              style={{ minHeight: 44, padding: isCompactLayout ? '8px 10px' : '10px 14px', borderRadius: 6, background: '#334155', color: 'white', border: 'none', cursor: 'pointer', minWidth: 0 }}
             >
               Back
             </button>
@@ -344,7 +418,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
             data-testid="start-surprise"
             onClick={surpriseMe}
             title="Pick a random town"
-            style={{ padding: '10px 14px', borderRadius: 6, background: '#334155', color: 'white', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            style={{ minHeight: 44, padding: isCompactLayout ? '8px 10px' : '10px 14px', borderRadius: 6, background: '#334155', color: 'white', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', minWidth: 0 }}
           >
             🎲 Surprise me
           </button>
@@ -353,9 +427,12 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
             onClick={confirm}
             disabled={!selected}
             style={{
-              flex: 1, padding: '10px 14px', borderRadius: 6, border: 'none', fontWeight: 700,
+              flex: 1, minHeight: 44, padding: isCompactLayout ? '8px 10px' : '10px 14px', borderRadius: 6, border: 'none', fontWeight: 700,
               background: selected ? '#16a34a' : '#1e293b', color: selected ? 'white' : '#64748b',
               cursor: selected ? 'pointer' : 'not-allowed',
+              gridColumn: isCompactLayout ? '1 / -1' : undefined,
+              gridRow: isCompactLayout ? 1 : undefined,
+              minWidth: 0,
             }}
           >
             {selected ? `Begin in ${selected.name} →` : 'Select a town'}

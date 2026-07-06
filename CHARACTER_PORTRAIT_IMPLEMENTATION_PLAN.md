@@ -1,11 +1,11 @@
-# Character Creator TODO Plan: Generate Portrait (Stitch/AI)
+# Character Creator TODO Plan: Generate Portrait (AI)
 
 ## Identified TODO (Anchor)
 
 The Character Creator flow contains an explicit TODO to add portrait generation in the final step:
 
 - `src/components/CharacterCreator/NameAndReview.tsx:108`:
-  - `TODO: Add "Generate Portrait" button here using the Stitch/AI backend to create a custom avatar based on race/class/description.`
+  - `TODO: Add "Generate Portrait" button here using the AI backend to create a custom avatar based on race/class/description.`
 
 ## Context Snapshot (What Exists Today)
 
@@ -18,8 +18,7 @@ The Character Creator flow contains an explicit TODO to add portrait generation 
   - `src/components/CharacterCreator/CharacterCreator.tsx` (`SafeStorage` with key `aralia_character_creation_state`)
 - There is an existing portrait generation service, but it is not wired into the UI:
   - `src/services/PortraitService.ts` (requests via `http://localhost:8000/api/messages`, then polls for `#portrait_ready`)
-- Stitch/MCP tooling exists in repo docs/scripts (primarily for pipelines and CLI usage):
-  - `docs/MCP_INTEGRATION.md`
+- The old design-generation MCP tooling has been removed. Use the current browser/image-generation service boundary instead of reintroducing provider-specific code.
 
 ## Goal
 
@@ -46,7 +45,7 @@ In `src/components/CharacterCreator/NameAndReview.tsx`:
 - Add a secondary button (only when a portrait exists): `Regenerate`.
 - Add a tertiary action (only when generating): `Cancel`.
 - Add a small disclosure line under the button:
-  - “Portrait generation requires local AI tooling (Stitch/Agent).”
+  - “Portrait generation requires local AI tooling.”
   - If the backend is unavailable, show an inline actionable error (“Start local server” link to docs section).
 
 ### 2. Description Input (Prompt Control)
@@ -156,8 +155,7 @@ Define explicit limits:
 Create a small service boundary, so the UI doesn’t care if the portrait comes from:
 
 1. Existing “Agent Uplink” (`PortraitService.ts`) via `localhost:8000`.
-2. Stitch MCP (via a local node service that calls `mcp-cli`).
-3. image-gen fallback (same approach as Stitch).
+2. image-gen fallback or another future provider behind the same backend interface.
 
 Proposed interface:
 
@@ -174,7 +172,7 @@ export interface PortraitBackend {
 Then implement:
 
 - `AgentUplinkPortraitBackend` (wrapping `requestPortrait()` + `pollForPortrait()`)
-- `StitchPortraitBackend` (future) calling a local `/api/portraits` endpoint
+- Future provider-specific backends, if needed, calling a local `/api/portraits` endpoint
 
 ### 2. Fix JSON/Prompt Safety in Portrait Requests
 
@@ -189,10 +187,10 @@ In implementation, ensure:
 
 Add a dev-only local server endpoint (Node/Express or Vite dev server middleware) to:
 
-- Start a Stitch job
+- Start a portrait-generation job
 - Store/serve the generated image under a stable URL (so state stores only the URL)
 
-This aligns with the TODO’s “Stitch/AI backend” phrasing and avoids pushing MCP concerns into the browser.
+This aligns with the TODO’s AI-backend intent and avoids pushing provider concerns into the browser.
 
 ## UI Polish Opportunities (Optional Enhancements)
 

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:27:04
- * Dependents: CharacterCreator.tsx, RaceSelection.tsx
- * Imports: 8 files
+ * Last Sync: 05/07/2026, 08:10:30
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/Race/RaceSelection.tsx, components/CharacterCreator/randomizeCreation.ts
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -315,12 +315,14 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row gap-6 mb-6">
                     {/* Images Section */}
-                    <div className="flex-shrink-0 mx-auto md:mx-0">
+                    <div className="w-full max-w-[19rem] flex-shrink-0 mx-auto md:w-auto md:mx-0">
                         {hasDualImages ? (
-                            /* Male/Female dual image layout */
-                            <div className="flex gap-3">
+                            /* Male/Female dual image layout. The grid keeps both
+                               portrait controls inside narrow creator panes instead
+                               of letting fixed-width thumbnails clip off-screen. */
+                            <div className="grid w-full grid-cols-2 gap-3" data-testid="race-detail-dual-images">
                                 {/* Male Image */}
-                                <div className="w-36 md:w-32 lg:w-36">
+                                <div className="min-w-0">
                                     {race.maleImage ? (
                                         <button
                                             type="button"
@@ -342,7 +344,7 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
                                     )}
                                 </div>
                                 {/* Female Image */}
-                                <div className="w-36 md:w-32 lg:w-36">
+                                <div className="min-w-0">
                                     {race.femaleImage ? (
                                         <button
                                             type="button"

@@ -35,7 +35,7 @@ still read "in progress").
 
 | Piece | Spec subsystem | Plan | State |
 |---|---|---|---|
-| **Sea-danger encounter roll for owned-ship voyages** (Plan 3D) | 5 | Plan 3, subtask 3D | **Not built.** `MapPane.tsx`'s `seaPref === 'ship'` branch calls `onSetSail` and returns (line ~777) *before* reaching the `rollTravelEncounter` call (line ~791) that ferries/land trips use — so owned-ship voyages never roll a pre-departure encounter. `VoyageManager.advanceDay` (the per-day naval sim) only applies weather to movement speed; despite its header comment ("rolls for random encounters"), no danger-tier-driven encounter logic was found in it. Ferries already get encounters via the existing generic path, informed by 3A's danger tiers — only owned ships are missing this. |
+| **Sea-danger encounter roll for owned-ship voyages** (Plan 3D) | 5 | Plan 3, subtask 3D | **BUILT 2026-07-05.** Per-day-at-sea seeded roll, danger-scaled by the route's aggregate sea-danger (Plan 3A lane/coastal/open tiers, threaded onto the voyage at embark). Mirrors the land road-ambush architecture: `src/systems/naval/seaEncounter.ts` (pure roll + 5-entry table: pirates, sea beast, drifting wreck/salvage, merchant vessel, squall) → `navalReducer` `NAVAL_ADVANCE_VOYAGE` (rolls once per non-arrival day, writes voyage log + adventure log, applies salvage gold via the existing store) → hostile outcomes set `naval.pendingSeaEncounter`, consumed by `useSeaEncounter` which hands the foes to the SAME `handleStartBattleMapEncounter` placeless battle-map flow land ambushes use. Deterministic per (worldSeed, ship, destination, day); save-safe (`routeDanger?`/`pendingSeaEncounter?` optional, default calm). Tests: `seaEncounter.test.ts` (8), `navalReducer.test.ts` sea block (+7), `useSeaEncounter.test.tsx` (3), `shipEmbark.test.ts` danger thread. Visual proof: `.agent/scratch/sea-encounter.png`. **Peaceful=narrative/log+salvage; hostile=combat.** |
 | **Plan 4** — dock tiers + tender legs (oversized ship at a small dock anchors offshore) | 3 | none written | **Not started.** No `dockTiers.ts`, no `dockClass`/`dockSize` fields found. |
 | **Plan 5** — ferry fares + later living-ferry-economy | 4 | none written | **Not started.** No `ferryFare.ts`. |
 | **Plan 6** — weather/seasons surfaced on the map, piracy as playable encounters | 5 (extended) | none written | **Not started** beyond the dormant naval sim's own weather model, which isn't yet fed by 3A's sea-danger tiers. |
@@ -44,11 +44,18 @@ still read "in progress").
 
 ## Recommended next step
 
-The owned-ship lifecycle is functionally complete except for the encounter roll on
-sea voyages (3D) and the visual-proof eyeball. Both are small, scoped pieces — not a
-new architecture. Plans 4–6 (dock tiers, ferry fares, weather/piracy) are genuinely
-unstarted backlog and should stay deferred until 3D lands and the visual proof is done,
-per the project's risk-ordered build-order convention.
+Plan 3D (sea-encounter roll) **landed 2026-07-05** with a deterministic proof
+(`.agent/scratch/sea-encounter.png`). The owned-ship lifecycle is now
+functionally complete end to end. Remaining maritime work:
+
+- **In-app visual eyeball** of a real mainland→island voyage that fires a live
+  battle-map fight (the reducer + headless proof are done; a driven in-browser
+  playthrough capture is still worth doing).
+- **Plans 4–6** — dock tiers + tender legs (Plan 4), ferry fares (Plan 5),
+  weather/seasons surfaced on the map + piracy depth (Plan 6). Genuinely
+  unstarted backlog; keep deferred per the risk-ordered build convention.
+- **Tuning pass** on `PER_DAY_AT_MAX_DANGER` (0.12) + the 5-entry table once
+  playtested against real voyage lengths.
 
 ## Doc hygiene follow-up
 

@@ -17,6 +17,7 @@
  */
 import React, { useMemo } from 'react';
 import { Html } from '@react-three/drei';
+import type { ThreeEvent } from '@react-three/fiber';
 
 export interface SceneCastMember {
   id: string;
@@ -31,6 +32,12 @@ interface SceneCastProps {
   cast: SceneCastMember[];
   /** Scene-space Y (m) of the ground at the spawn; figures stand on it. */
   surfaceY?: number;
+  /**
+   * Click-to-talk: invoked with an NPC figure's id when the player clicks it in
+   * the 3D world. The player's own figure is never clickable. When omitted the
+   * figures are inert (e.g. a non-interactive diorama / test render).
+   */
+  onSelectNpc?: (npcId: string) => void;
 }
 
 const PLAYER_COLOR = '#3b82f6'; // steel blue — the player reads as "you"
@@ -39,6 +46,16 @@ const SPEAKER_COLOR = '#d9a441'; // warm amber — the one addressing you
 
 const BODY_HEIGHT = 1.35;
 const HEAD_RADIUS = 0.2;
+
+/**
+ * Whether a cast figure is click-to-talk interactive: only NPC figures, and only
+ * when a select handler is wired. The player's own figure is NEVER clickable —
+ * you don't open a conversation with yourself. Pure so the contract is testable
+ * without an R3F render.
+ */
+export function figureIsInteractive(member: SceneCastMember, hasHandler: boolean): boolean {
+  return hasHandler && !member.isPlayer;
+}
 
 /**
  * Lay the cast out as a small face-to-face cluster: the player at the near edge
@@ -65,17 +82,53 @@ export function layoutCast(cast: SceneCastMember[]): Array<SceneCastMember & { p
 const Figure: React.FC<{
   member: SceneCastMember & { pos: [number, number, number] };
   surfaceY: number;
-}> = ({ member, surfaceY }) => {
+  onSelectNpc?: (npcId: string) => void;
+}> = ({ member, surfaceY, onSelectNpc }) => {
   const color = member.isPlayer ? PLAYER_COLOR : member.isSpeaker ? SPEAKER_COLOR : NPC_COLOR;
   const [x, , z] = member.pos;
   // Face the cluster centre so the group reads as "in conversation".
   const facing = Math.atan2(-x, -z);
+
+  // Click-to-talk: only NPC figures are interactive, and only when a handler is
+  // wired. The player's own figure is inert (you don't talk to yourself).
+  const interactive = figureIsInteractive(member, typeof onSelectNpc === 'function');
+  const handlePointerDown = interactive
+    ? (e: ThreeEvent<PointerEvent>) => {
+        // Stop the event reaching MapControls so a talk-click never also pans
+        // the camera.
+        e.stopPropagation();
+        onSelectNpc!(member.id);
+      }
+    : undefined;
+  const handlePointerOver = interactive
+    ? (e: ThreeEvent<PointerEvent>) => {
+        e.stopPropagation();
+        if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+      }
+    : undefined;
+  const handlePointerOut = interactive
+    ? () => {
+        if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+      }
+    : undefined;
+
   return (
-    <group position={[x, surfaceY, z]} rotation={[0, facing, 0]}>
+    <group
+      position={[x, surfaceY, z]}
+      rotation={[0, facing, 0]}
+      onPointerDown={handlePointerDown}
+      onPointerOver={handlePointerOver}
+      onPointerOut={handlePointerOut}
+    >
       {/* Body — a tapered cylinder standing on the ground. */}
       <mesh position={[0, BODY_HEIGHT / 2, 0]} castShadow>
         <cylinderGeometry args={[0.16, 0.26, BODY_HEIGHT, 10]} />
-        <meshStandardMaterial color={color} roughness={0.8} />
+        <meshStandardMaterial
+          color={color}
+          roughness={0.8}
+          emissive={interactive ? color : '#000000'}
+          emissiveIntensity={interactive ? 0.12 : 0}
+        />
       </mesh>
       {/* Head. */}
       <mesh position={[0, BODY_HEIGHT + HEAD_RADIUS * 0.9, 0]} castShadow>
@@ -100,7 +153,7 @@ const Figure: React.FC<{
             border: '1px solid rgba(148, 163, 184, 0.5)',
           }}
         >
-          {member.isPlayer ? `${member.name} (you)` : member.name}
+          {member.isPlayer ? `${member.name} (you)` : interactive ? `💬 ${member.name}` : member.name}
         </div>
       </Html>
     </group>
@@ -111,13 +164,13 @@ const Figure: React.FC<{
  * Render the staged cast. Returns null when there's no one to stage (the normal
  * case once the opening is over and the player wanders off).
  */
-const SceneCast: React.FC<SceneCastProps> = ({ cast, surfaceY = 0 }) => {
+const SceneCast: React.FC<SceneCastProps> = ({ cast, surfaceY = 0, onSelectNpc }) => {
   const placed = useMemo(() => layoutCast(cast), [cast]);
   if (placed.length === 0) return null;
   return (
     <group data-testid="scene-cast">
       {placed.map((m) => (
-        <Figure key={m.id} member={m} surfaceY={surfaceY} />
+        <Figure key={m.id} member={m} surfaceY={surfaceY} onSelectNpc={onSelectNpc} />
       ))}
     </group>
   );

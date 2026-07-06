@@ -124,7 +124,7 @@ interface MapPaneProps {
    * destination port burg id and the sea-miles distance) so the caller can start
    * the voyage and open the voyage UI. No teleport happens for ship travel.
    */
-  onSetSail?: (destinationBurgId: number, seaMiles: number) => void;
+  onSetSail?: (destinationBurgId: number, seaMiles: number, danger: number) => void;
   /**
    * The player's canonical atlas cell (`gameState.playerCell.cellId`) — the
    * source-of-truth Voronoi cell they occupy. When present it drives the
@@ -293,7 +293,10 @@ const MapPane: React.FC<MapPaneProps> = ({
     const measureViewport = () => {
       const rect = viewport.getBoundingClientRect();
       const nextSize = {
-        width: Math.max(320, Math.floor(rect.width)),
+        // Phone-sized WindowFrames can leave less than 320px for the atlas body.
+        // Respect the real width so AtlasSvgView controls stay inside the map
+        // viewport instead of overflowing and clipping against the frame.
+        width: Math.max(1, Math.floor(rect.width)),
         height: Math.max(240, Math.floor(rect.height)),
       };
 
@@ -689,7 +692,7 @@ const MapPane: React.FC<MapPaneProps> = ({
           return;
         }
         if (onSetSail) {
-          onSetSail(voyage.destinationBurgId, voyage.seaMiles);
+          onSetSail(voyage.destinationBurgId, voyage.seaMiles, voyage.danger);
         }
         return;
       }
@@ -946,6 +949,10 @@ const MapPane: React.FC<MapPaneProps> = ({
   const planSubmapRoute = useCallback((idx: number) => submapTravelField?.to(idx) ?? null, [submapTravelField]);
 
   const handleRegenerateWithSeed = useCallback(() => {
+    // Locked previews can still be reached from deep links or old UI state.
+    // Keep the handler defensive so a disabled-looking control can never
+    // regenerate a world behind an active run or existing save.
+    if (!canRegenerateWorld) return;
     if (!onRegenerateWorld) return;
     const parsedSeed = Number.parseInt(seedInput.trim(), 10);
     if (Number.isFinite(parsedSeed)) {
@@ -953,12 +960,21 @@ const MapPane: React.FC<MapPaneProps> = ({
       return;
     }
     onRegenerateWorld();
-  }, [onRegenerateWorld, seedInput]);
+  }, [canRegenerateWorld, onRegenerateWorld, seedInput]);
 
   const handleRerollSeed = useCallback(() => {
+    // Match the same player-facing lock as the Apply Seed button. This preserves
+    // preview browsing while preventing a locked reroll from doing hidden work.
+    if (!canRegenerateWorld) return;
     if (!onRegenerateWorld) return;
     onRegenerateWorld();
-  }, [onRegenerateWorld]);
+  }, [canRegenerateWorld, onRegenerateWorld]);
+
+  // The world map toolbar is often used inside a narrow WindowFrame. Keep all
+  // mode, transport, and generation controls at a real touch target size.
+  const toolbarButtonClass = 'min-h-11 px-3 py-2 rounded';
+  const toolbarSelectClass = 'min-h-11 px-3 py-2 rounded bg-gray-700 text-gray-100 border border-gray-500';
+  const toolbarInputClass = 'min-h-11 w-40 rounded border border-gray-500 px-3 py-2 text-gray-900';
 
   return (
     <WindowFrame
@@ -967,14 +983,14 @@ const MapPane: React.FC<MapPaneProps> = ({
       storageKey={WINDOW_KEYS.WORLD_MAP}
     >
       <div
-        className="bg-gray-800 p-4 md:p-6 flex flex-col h-full w-full"
+        className="bg-gray-800 p-4 md:p-6 flex h-full w-full flex-col overflow-y-auto scrollable-content"
         style={{ backgroundImage: `url(${oldPaperBg})`, backgroundSize: 'cover' }}
       >
         <div className="mb-3 space-y-2 text-xs">
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => { userPickedModeRef.current = true; setInteractionMode('pan'); }}
-              className={`px-2 py-1 rounded ${interactionMode === 'pan' ? 'bg-emerald-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+              className={`${toolbarButtonClass} ${interactionMode === 'pan' ? 'bg-emerald-700 text-white' : 'bg-gray-600 text-gray-100'}`}
               type="button"
               title="Click a cell to drill into its submap"
             >
@@ -983,7 +999,7 @@ const MapPane: React.FC<MapPaneProps> = ({
             {allowTravel && (
               <button
                 onClick={() => { userPickedModeRef.current = true; setInteractionMode('travel'); }}
-                className={`px-2 py-1 rounded ${interactionMode === 'travel' ? 'bg-amber-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+                className={`${toolbarButtonClass} ${interactionMode === 'travel' ? 'bg-amber-700 text-white' : 'bg-gray-600 text-gray-100'}`}
                 type="button"
               >
                 Travel
@@ -993,7 +1009,7 @@ const MapPane: React.FC<MapPaneProps> = ({
               <select
                 value={transportId}
                 onChange={(e) => setTransportId(e.target.value)}
-                className="px-2 py-1 rounded bg-gray-700 text-gray-100 border border-gray-500"
+                className={toolbarSelectClass}
                 title="Transport for this trip — affects travel time"
                 aria-label="Transport"
               >
@@ -1007,7 +1023,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                 data-testid="travel-sea-pref"
                 value={seaPref}
                 onChange={(e) => setSeaPref(e.target.value as SeaPreference)}
-                className="px-2 py-1 rounded bg-gray-700 text-gray-100 border border-gray-500"
+                className={toolbarSelectClass}
                 title="Sea travel: hire a ferry or sail your own ship"
                 aria-label="Sea travel"
               >
@@ -1031,7 +1047,7 @@ const MapPane: React.FC<MapPaneProps> = ({
             {allowTravel && interactionMode === 'travel' && noProvisions && (
               <span
                 data-testid="travel-no-provisions"
-                className="px-2 py-1 rounded bg-rose-900/80 text-rose-100 border border-rose-600 font-semibold"
+                className="inline-flex min-h-11 items-center px-3 py-2 rounded bg-rose-900/80 text-rose-100 border border-rose-600 font-semibold"
                 title="Your party carries no rations or water — stock up before a long journey."
               >
                 ⚠ No provisions — can't sustain travel
@@ -1040,7 +1056,7 @@ const MapPane: React.FC<MapPaneProps> = ({
             {allow3DEntry && (
               <button
                 onClick={() => { userPickedModeRef.current = true; setInteractionMode('enter3d'); }}
-                className={`px-2 py-1 rounded ${interactionMode === 'enter3d' ? 'bg-rose-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+                className={`${toolbarButtonClass} ${interactionMode === 'enter3d' ? 'bg-rose-700 text-white' : 'bg-gray-600 text-gray-100'}`}
                 type="button"
                 title="Click a discovered cell to enter the streamed 3D world there"
               >
@@ -1052,8 +1068,8 @@ const MapPane: React.FC<MapPaneProps> = ({
                 onClick={handleEnter3DAtPlayer}
                 disabled={playerAtlasCell == null}
                 className={playerAtlasCell != null
-                  ? 'px-2 py-1 rounded bg-rose-900 text-rose-100 hover:bg-rose-800'
-                  : 'px-2 py-1 rounded bg-gray-700 text-gray-400 cursor-not-allowed'}
+                  ? `${toolbarButtonClass} bg-rose-900 text-rose-100 hover:bg-rose-800`
+                  : `${toolbarButtonClass} bg-gray-700 text-gray-400 cursor-not-allowed`}
                 type="button"
                 title={playerAtlasCell != null
                   ? 'Enter the streamed 3D world at your current position'
@@ -1066,7 +1082,7 @@ const MapPane: React.FC<MapPaneProps> = ({
             {(allowTravel && interactionMode === 'travel') || (allow3DEntry && interactionMode === 'enter3d') ? (
               <button
                 onClick={() => setShowPrecisionOverlay(current => !current)}
-                className={`px-2 py-1 rounded ${showPrecisionOverlay ? 'bg-cyan-800 text-white' : 'bg-gray-600 text-gray-100'}`}
+                className={`${toolbarButtonClass} ${showPrecisionOverlay ? 'bg-cyan-800 text-white' : 'bg-gray-600 text-gray-100'}`}
                 type="button"
                 title="Show cell targeting overlays for precise travel"
               >
@@ -1088,11 +1104,15 @@ const MapPane: React.FC<MapPaneProps> = ({
                 type="number"
                 value={seedInput}
                 onChange={(event) => setSeedInput(event.target.value)}
-                className="w-40 rounded border border-gray-500 bg-white/90 px-2 py-1 text-gray-900"
+                readOnly={!canRegenerateWorld}
+                aria-readonly={!canRegenerateWorld}
+                title={canRegenerateWorld ? 'World seed to generate' : generationLockedReason || 'Generation is currently locked'}
+                className={`${toolbarInputClass} ${canRegenerateWorld ? 'bg-white/90' : 'bg-gray-200 text-gray-600 cursor-not-allowed'}`}
               />
               <button
                 onClick={handleRegenerateWithSeed}
-                className={`px-2 py-1 rounded text-white ${canRegenerateWorld ? 'bg-indigo-700 hover:bg-indigo-600' : 'bg-gray-500'}`}
+                disabled={!canRegenerateWorld}
+                className={`${toolbarButtonClass} text-white ${canRegenerateWorld ? 'bg-indigo-700 hover:bg-indigo-600' : 'bg-gray-500 cursor-not-allowed opacity-70'}`}
                 type="button"
                 title={canRegenerateWorld ? 'Generate world using this seed' : generationLockedReason || 'Generation is currently locked'}
               >
@@ -1100,7 +1120,8 @@ const MapPane: React.FC<MapPaneProps> = ({
               </button>
               <button
                 onClick={handleRerollSeed}
-                className={`px-2 py-1 rounded text-white ${canRegenerateWorld ? 'bg-violet-700 hover:bg-violet-600' : 'bg-gray-500'}`}
+                disabled={!canRegenerateWorld}
+                className={`${toolbarButtonClass} text-white ${canRegenerateWorld ? 'bg-violet-700 hover:bg-violet-600' : 'bg-gray-500 cursor-not-allowed opacity-70'}`}
                 type="button"
                 title={canRegenerateWorld ? 'Generate a fresh random world seed' : generationLockedReason || 'Generation is currently locked'}
               >
@@ -1115,7 +1136,7 @@ const MapPane: React.FC<MapPaneProps> = ({
 
         <div
           ref={worldforgeViewportRef}
-          className="relative min-h-0 overflow-hidden flex-grow rounded bg-slate-950 border border-slate-700"
+          className="relative min-h-[220px] flex-grow overflow-hidden rounded bg-slate-950 border border-slate-700 md:min-h-0"
           data-testid="worldforge-map-viewport"
           data-island-harbors-enabled={enableIslandHarbors ? 'true' : 'false'}
         >
@@ -1159,7 +1180,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                   <div className="flex items-center gap-1 flex-wrap">
                     <button
                       onClick={handleAscend}
-                      className="px-2 py-1 rounded bg-slate-800/90 text-slate-100 text-xs border border-slate-600 hover:bg-slate-700"
+                      className="min-h-11 px-3 py-2 rounded bg-slate-800/90 text-slate-100 text-xs border border-slate-600 hover:bg-slate-700"
                       type="button"
                     >
                       ◀ Ascend
@@ -1169,7 +1190,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                       && isExploredCell(submapStack[0].neighbourhood!.focusCellId) && (
                       <button
                         onClick={handleEnter3DHere}
-                        className="px-2 py-1 rounded bg-rose-700 text-white text-xs border border-rose-900 hover:bg-rose-600"
+                        className="min-h-11 px-3 py-2 rounded bg-rose-700 text-white text-xs border border-rose-900 hover:bg-rose-600"
                         type="button"
                         title="Enter the streamed 3D world at this region"
                       >
@@ -1177,11 +1198,11 @@ const MapPane: React.FC<MapPaneProps> = ({
                       </button>
                     )}
                     {/* Breadcrumb: World ▸ Region ▸ Local … — click a crumb to ascend to it. */}
-                    <nav className="flex items-center gap-0.5 px-2 py-1 rounded bg-black/60 text-xs" aria-label="Submap tier path">
+                    <nav className="flex items-center gap-1 px-2 py-1 rounded bg-black/60 text-xs" aria-label="Submap tier path">
                       <button
                         type="button"
                         onClick={() => handleAscendTo(0)}
-                        className="text-sky-300 hover:underline"
+                        className="min-h-11 px-2 py-2 text-sky-300 hover:underline"
                       >
                         World
                       </button>
@@ -1205,7 +1226,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleAscendTo(depth)}
-                                className="text-sky-300 hover:underline"
+                                className="min-h-11 px-2 py-2 text-sky-300 hover:underline"
                               >
                                 {label}
                               </button>
@@ -1275,7 +1296,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                   type="button"
                   data-testid="prov-risk-info-ack"
                   onClick={dismissRiskInfo}
-                  style={{ width: '100%', padding: '7px 0', cursor: 'pointer', background: '#eab308', color: '#1c1409', border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700 }}
+                  style={{ width: '100%', minHeight: 44, padding: '8px 12px', cursor: 'pointer', background: '#eab308', color: '#1c1409', border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700 }}
                 >
                   Got it — show my options
                 </button>
@@ -1302,19 +1323,19 @@ const MapPane: React.FC<MapPaneProps> = ({
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   <button type="button" data-testid="prov-turn-back" onClick={() => setPendingTravel(null)}
-                    style={{ flex: '1 1 auto', padding: '6px 10px', cursor: 'pointer', background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 5, fontSize: 12, fontWeight: 600 }}>
+                    style={{ flex: '1 1 auto', minHeight: 44, padding: '8px 12px', cursor: 'pointer', background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 5, fontSize: 12, fontWeight: 600 }}>
                     Turn back
                   </button>
                   <button type="button" data-testid="prov-half" onClick={() => resolvePendingTravel('half')}
-                    style={{ flex: '1 1 auto', padding: '6px 10px', cursor: 'pointer', background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 5, fontSize: 12, fontWeight: 600 }}>
+                    style={{ flex: '1 1 auto', minHeight: 44, padding: '8px 12px', cursor: 'pointer', background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 5, fontSize: 12, fontWeight: 600 }}>
                     Half rations
                   </button>
                   <button type="button" data-testid="prov-forage" onClick={() => resolvePendingTravel('forage')}
-                    style={{ flex: '1 1 auto', padding: '6px 10px', cursor: 'pointer', background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 5, fontSize: 12, fontWeight: 600 }}>
+                    style={{ flex: '1 1 auto', minHeight: 44, padding: '8px 12px', cursor: 'pointer', background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 5, fontSize: 12, fontWeight: 600 }}>
                     Forage en route
                   </button>
                   <button type="button" data-testid="prov-push" onClick={() => resolvePendingTravel('push')}
-                    style={{ flex: '1 1 auto', padding: '6px 10px', cursor: 'pointer', background: '#7f1d1d', color: '#fee2e2', border: '1px solid #b91c1c', borderRadius: 5, fontSize: 12, fontWeight: 700 }}>
+                    style={{ flex: '1 1 auto', minHeight: 44, padding: '8px 12px', cursor: 'pointer', background: '#7f1d1d', color: '#fee2e2', border: '1px solid #b91c1c', borderRadius: 5, fontSize: 12, fontWeight: 700 }}>
                     Push on
                   </button>
                 </div>

@@ -246,20 +246,22 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
     const canBreak = (lockState.breakDC || lockState.breakHP) && lockState.isLocked;
 
     return (
-        <div role="dialog" aria-modal="true" aria-label="Lockpicking">
-            <WindowFrame
-                title="Lockpicking"
-                onClose={onClose}
-                storageKey={WINDOW_KEYS.LOCKPICKING_MODAL}
-            >
-            <div className="flex flex-col h-full bg-gray-900 text-gray-200">
+        // WindowFrame already exposes the named dialog shell. Keep this component
+        // from adding a second nested "Lockpicking" dialog so focus tools and
+        // screen readers have one clear modal surface to target.
+        <WindowFrame
+            title="Lockpicking"
+            onClose={onClose}
+            storageKey={WINDOW_KEYS.LOCKPICKING_MODAL}
+        >
+            <div ref={focusTrapRef} className="flex h-full min-h-0 flex-col bg-gray-900 text-gray-200">
                 {/* Header / Info Bar */}
-                <div className="px-6 py-4 bg-gray-800 border-b border-gray-700 flex justify-between items-center shrink-0">
-                    <div className="flex items-center space-x-4">
-                        <div className={`px-3 py-1 rounded text-sm font-bold ${difficulty.colorClass}`}>
+                <div className="shrink-0 border-b border-gray-700 bg-gray-800 px-4 py-4 sm:px-6">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className={`whitespace-nowrap rounded px-3 py-1 text-sm font-bold ${difficulty.colorClass}`}>
                             {difficulty.label} (DC {lockState.dc})
                         </div>
-                        <div className="h-6 w-px bg-gray-700"></div>
+                        <div className="hidden h-6 w-px bg-gray-700 sm:block"></div>
                         <div className="flex items-center gap-2">
                             {lockState.isLocked ? <Lock className="w-4 h-4 text-amber-500" /> : <Key className="w-4 h-4 text-green-500" />}
                             <span className={lockState.isLocked ? "text-amber-500" : "text-green-500"}>
@@ -285,7 +287,10 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-grow flex flex-col items-center justify-center p-8 space-y-6 bg-gray-900">
+                {/* The command area scrolls inside the window. Lockpicking can
+                    add result banners above the action grid, and cramped
+                    windows still need every action button to remain reachable. */}
+                <div className="scrollable-content flex min-h-0 flex-1 flex-col items-center justify-start space-y-6 overflow-y-auto bg-gray-900 p-4 sm:p-8 lg:justify-center">
 
                     {/* Result Display */}
                     {result && (
@@ -313,6 +318,7 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg">
                         {/* 1. Detect Traps */}
                         <button
+                            ref={firstFocusableRef}
                             onClick={handleDetectTrap}
                             disabled={isRolling || !lockState.isLocked || trapDetected !== null}
                             className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${trapDetected !== null
@@ -369,8 +375,7 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
                     </div>
                 </div>
             </div>
-            </WindowFrame>
-        </div>
+        </WindowFrame>
     );
 };
 

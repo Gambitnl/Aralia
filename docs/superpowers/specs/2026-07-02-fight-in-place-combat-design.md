@@ -1,6 +1,42 @@
 # Fight-in-Place Combat — Design Spec (2026-07-02)
 
-**Status:** design agreed in session (Remy + Fable), not yet built. No slices started.
+**Status:** slice 1 + slice 2 DELIVERED / shipped (2026-07-05); slices 3–5 remain.
+Slice 1 delivered: the invisible referee grid is DERIVED from the live streamed
+world at the player's spot — `extractLocalTerrainPatch` is context-sizable
+(fip--referee-patch-sizing) and imprints placed props as cover/blocks-sight/
+blocks-move onto the referee tiles (TDD). The context picker
+(`combatSurfacePicker.ts`, decision #3) routes live world → in-place vs placeless
+→ themed arena. Dev entry `window.__fipTestFight()` / `?fipfight`.
+
+**Slice 2 DELIVERED (2026-07-05) — "kill the teleport":** an in-place fight now
+renders INSIDE the streamed world; the camera never cuts to a diorama. On a
+world-derived fight, `World3DWrapper` hands the live ground world across the
+phase change (`fightInPlaceHandoff.ts`), and CombatView gains a third render
+mode `'inplace'` (default when the handoff is present) that mounts the SAME
+`World3DScene` (same town, buildings, townsfolk) with a combat overlay
+(`InPlaceCombatLayer`): combatant tokens planted on the real ground (PlayerAvatar
+recipe + `groundSurfaceYM`), an active-turn ring, a soft BG3-style reachable-area
+disc (no visible grid — decision #2), and an invisible ground-pick plane. A
+ground click routes through the invisible referee (`inSceneMovement.ts`:
+world-meters → 5-ft tile → legality via a pure BFS port of the 2D board's
+reachability, TDD 11 tests), and a legal move commits through the SAME
+`turnManager.executeAction` the board uses (movement deducted identically). The
+combat MACHINERY (turn manager, ability system, reducers, spell corpus) is
+untouched. The always-available 2D board stays one toggle away and now DEFAULTS
+correctly for world-derived fights (closing slice 1's black-canvas gap — those
+fights previously defaulted to the empty BattleMap3D). Live headless proof:
+`.agent/scratch/fip-slice2-{inscene,move,2dboard}.png` — the fight visibly runs
+in the town, the reachable disc shows, click-to-move logs "X moves." and deducts
+movement, and the 2D board renders the same referee grid cleanly.
+
+**CUT (honest slice-2 line, documented — no fake stubs):** in-scene ABILITY /
+attack TARGETING (AoE decals, target picking) is NOT yet drawn on the ground
+surface — that is slice 3 (spell-presentation port). For this slice, abilities
+resolve via the 2D-board toggle; movement + turn flow are live in-scene.
+Tactical-orbit camera polish (auto-refocus per turn) is deferred: slice 2 frames
+the fight once on start and keeps the existing ground MapControls. Terrain-
+conforming (per-vertex) reachable disc is deferred; slice 2 uses a flat soft
+disc. Bystander reactions / hostiles-joining are slice 4.
 
 **Interview addendum (same day, grilling session):**
 - **Sequencing decision: WORLD PROPS FIRST.** The streamed world is too visually
@@ -146,13 +182,16 @@ scene) is replaced whenever a streamed world is live.
 
 ## Slice order (each slice live-eyeballed before the next)
 
-1. **Kill the teleport.** Trigger keeps building the same patch + encounter,
-   but the phase stays in the world: render actors + a minimal turn HUD
-   in-scene, resolve turns with the existing reducer. Old battle-map flow
-   remains behind a toggle as fallback. Proof: a fight starts and ends in the
-   town with the camera never cutting away.
-2. **Movement, gridless.** Ground picking + feet-radius ring + path preview +
-   glide animation (referee BFS underneath). Proof: walk-up attack in-place.
+1. **Kill the teleport. ✅ DONE (2026-07-05).** Fight renders in-scene (tokens +
+   active ring + minimal turn HUD over the streamed world), resolved with the
+   existing reducer; 2D board remains the always-available toggle. Proof: the
+   fight starts in the town, camera never cuts away (fip-slice2-inscene.png).
+2. **Movement, gridless. ✅ DONE (2026-07-05, folded into slice 2).** Ground
+   pick (invisible plane raycast → world meters → referee tile) + soft feet-
+   radius reachable disc + token glide; referee BFS underneath validates and
+   the move commits through `turnManager.executeAction`. Proof: click-to-move
+   logs "X moves." and deducts movement (fip-slice2-move.png). NOT yet done:
+   walked-path preview line (a small polish carry into slice 3).
 3. **Spell presentation port.** Zones/AoE previews/labels on the ground
    surface, verified row-by-row against the presentation matrix.
 4. **World reactions.** Bystander policy, hostiles joining mid-fight,

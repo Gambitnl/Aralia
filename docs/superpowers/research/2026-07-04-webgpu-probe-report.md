@@ -245,3 +245,90 @@ On the WebGPU node path, `InstanceNode` multiplies `instanceColor` into the mate
 
 ### Addendum — owned town-prop forms mirrored (2026-07-04, latest)
 The town-prop generators agent graduated 13 defs (gravestone, tomb, stone-cross, statue, milestone, wayside-shrine, lantern-post, tavern-sign, fingerpost, anvil, grindstone, scarecrow, brazier) from RENDER_VARIANT primitive reuse to owned vertex-colored meshes (`townPropForms.ts`, frozen-seed variant cache). The probe now mirrors this: those 13 ids are removed from the probe's `RENDER_VARIANT` and render via `buildTownPropForms()` as one instanced mesh per (def, variant) — identity base, yLift 0, lit `vertexColor()` node material with smooth normals, and **instanceColor left null** (the InstanceNode instanceColor-crushes-vertex-color bug documented above). Verified: tsc clean on the probe files, props suite 104/104 green, headless capture unchanged (fail-fast error pane on the probe as expected; WebGL-reference world still renders at the same pose — no regression).
+
+---
+
+## Battle-map visual parity port (2026-07-05, webgpu-bm3d-port agent)
+
+The battle-map WebGPU scene (`BattleMap3DGpuScene.tsx`) advanced from
+"terrain + grid lines + capsule tokens" to a **real visual parity pass** with
+the WebGL battle map. Four rungs shipped; the cut line is documented honestly
+(on-screen MISSING list + here). WebGL remains the default (`?gpu=1` opt-in,
+`WEBGPU_BATTLE_MAP_DEFAULT=false`); the fail-fast/no-fallback contract is
+preserved exactly.
+
+### Rungs SHIPPED
+1. **Procedural terrain texturing (rung 1).** The WebGL `onBeforeCompile` GLSL
+   (per-type palettes for grass/rock/dirt/sand/water-bed/wall/floor, the 3-scale
+   FBM+voronoi noise hierarchy, organic FBM-jittered edge blending toward the
+   neighbour type, slope-exposed rock on grass/dirt/sand, shoreline wet banks,
+   canopy dapple) is **translated to a TSL node graph** in
+   `src/components/BattleMap/gpu/terrainColorNode.ts` (Fn/Loop/If, `texture()`
+   sampling a per-tile type DataTexture). This is a genuine translation of the
+   GLSL, NOT the flat per-tile palette the interim scene shipped. The baked
+   hemisphere+sun Lambert multiplies on top (unlit `MeshBasicNodeMaterial`).
+2. **Vegetation + props (rung 2).** Instanced grass (placement mirrors
+   `GrassLayer.tsx`: per-grass-tile blades, seeded, height-varied, base→tip
+   gradient + fake-AO baked into `colorNode`) and instanced ground scatter
+   (pebble clusters + twigs, placement mirrors `GroundScatter.tsx`). All
+   instanced (matching the WebGL perf pass — never per-tile meshes).
+3. **Grid + movement/path/AoE overlay (rung 3).** TSL translation of
+   `GridOverlay.tsx`'s `ShaderMaterial` in
+   `src/components/BattleMap/gpu/gridOverlayNodes.ts` — a per-tile RGBA state
+   DataTexture (R=validMove, G=activePath, B=blocked, **A=aoe**) drives
+   `colorNode` + `opacityNode`; the scene lerps a `uniform` opacity for the same
+   200ms fade. Terrain-conforming mesh. BattleMap3D now passes `validMoves` /
+   `activePath` / `actionMode` / `aoeSet` into the GPU scene.
+4. **Actors (rung 4, partial).** Tokens upgraded to team-colored lit capsules
+   with HP fade (dead → gray), a selection ring, an active-turn ring, and a
+   gentle idle sway. The full **animated `CharacterActor` rig is DEFERRED** (see
+   cut line).
+
+### Rung 5 (post-processing) — WIRED, real-GPU-gated
+A three node `PostProcessing` pipeline (`pass()` → `bloom()` + a TSL vignette)
+is constructed inside a `useFrame(priority 1)` render loop (R3F hands the render
+to the highest-priority frame callback, so post owns the frame). `pass`/`bloom`
+are **dynamically imported** so the display addon never touches module eval
+(that was breaking the fail-fast path in jsdom). If the node pipeline throws it
+is reported on the on-screen MISSING list, not faked. Whether bloom/vignette
+actually composite can only be confirmed on real WebGPU hardware.
+
+### Cut line (honest — shown on-screen in the red MISSING list too)
+- **Real-time shadows** — baked `colorNode` lighting has no `LightsNode` to
+  consume a shadow map on the node path (three 0.170). Same gap as the probe.
+- **Animated CharacterActor rig + drei `<Html>` nameplates** — the WebGL rig is
+  1,491 lines of drei `<Html>` / AnimationMixer state machine / fresnel-rim
+  MeshStandard material; it does not translate 1:1 and would balloon this slice.
+  Tokens keep the battlefield legible (team color, HP, selection/active rings).
+- **GPU wind sway on grass** — the WebGL grass animates blades in its vertex
+  shader; here the blades are static. The meadow reads; the sway does not.
+
+### Verification (no real-GPU claim faked)
+- **TSL node-graph construction is unit-tested WITHOUT a GPU** (the one thing CI
+  can prove for a node translation): `gpu/__tests__/terrainColorNode.test.ts`
+  (3) + `gpu/__tests__/gridOverlayNodes.test.ts` (2) build the graphs and wire
+  them onto materials — vitest's jsdom provides `self`, so `three/webgpu`+TSL
+  import and the Fn/Loop/If builders execute for real.
+- **Battle-map suites green:** `BattleMap3DGpuScene.failfast` (2),
+  `BattleMap3D.parity`, `.visibility`, `.objectTargets`, plus the 2 new node
+  suites — **12 tests / 8 files, all passing**. `tsc` clean on every touched
+  file (`BattleMap3DGpuScene.tsx`, `gpu/terrainColorNode.ts`,
+  `gpu/gridOverlayNodes.ts`, `BattleMap3D.tsx`; repo-wide baseline of unrelated
+  pre-existing test-file errors unchanged).
+- **Captures (`.agent/scratch/`):**
+  - `bm3d-port-webgl-ref.png` — the WebGL battle map at the standard pose
+    (`window.__bm3dCam.pose(33,74,35)`): the forest battlefield with procedural
+    terrain, trees, grass, scatter, water — **the target look for `?gpu=1`**.
+  - `bm3d-port-webgpu.png` — the `?gpu=1` path in headless Chromium. Headless has
+    `navigator.gpu` (Vulkan flags) but `requestAdapter()` returns null, so the
+    **fail-fast error panel + "Use WebGL instead" button** render — no scene, no
+    silent fallback. This is the CORRECT no-adapter behavior.
+- **Open (unchanged from the probe):** the rendered WebGPU battlefield needs
+  Remy's RTX 2070S eyeball at `?gpu=1`. What he should see: the corner **WebGPU**
+  badge, a forest battlefield matching `bm3d-port-webgl-ref.png` (procedurally
+  textured terrain — distinct grass/rock/dirt/sand, wet water banks, ragged type
+  borders — plus grass, pebble/twig scatter, and the movement grid + green
+  valid-move / blue path / amber AoE highlights when a token acts), team-colored
+  tokens with selection/active rings, and a bottom-left **red MISSING list**
+  naming exactly what is NOT yet ported. If bloom/vignette failed to construct,
+  that line appears in the list.

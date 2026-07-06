@@ -77,8 +77,15 @@ describe('QuestLog Component', () => {
   it('calls onClose when close button is clicked', () => {
     const onClose = vi.fn();
     render(<QuestLog isOpen={true} onClose={onClose} quests={mockQuests} />);
-    screen.getByLabelText('Close quest log').click();
+    screen.getByLabelText('Close').click();
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('uses a touch-sized close target', () => {
+    render(<QuestLog isOpen={true} onClose={vi.fn()} quests={mockQuests} />);
+    const closeButton = screen.getByLabelText('Close');
+    expect(closeButton).toHaveClass('h-11');
+    expect(closeButton).toHaveClass('w-11');
   });
 
   it('renders "No active quests" when none are active', () => {

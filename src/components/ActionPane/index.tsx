@@ -31,6 +31,69 @@ import { useActionGeneration } from './useActionGeneration';
 import { SystemMenu } from './SystemMenu';
 import RestModal from '../ui/RestModal';
 import { UI_ID } from '../../styles/uiIds';
+import { groupActionPaneActions, shortPersonActionLabel, type PersonGroup } from './actionPaneGrouping';
+
+/**
+ * A single person present at the location: their name is shown once as a
+ * primary "talk" button, with secondary actions (invite to party, hire) tucked
+ * behind a chevron so a crowded town stays compact.
+ */
+const PersonRow: React.FC<{
+  group: PersonGroup;
+  onAction: (action: Action) => void;
+  disabled: boolean;
+  expanded: boolean;
+  onToggle: () => void;
+}> = ({ group, onAction, disabled, expanded, onToggle }) => {
+  const hasSecondary = group.secondary.length > 0;
+  return (
+    <div className="rounded-lg border border-slate-700 overflow-hidden">
+      <div className="flex">
+        {group.talk ? (
+          <button
+            type="button"
+            onClick={() => group.talk && onAction(group.talk)}
+            disabled={disabled}
+            aria-label={group.talk.label}
+            className="flex-1 text-left px-4 py-2 bg-slate-700 hover:bg-slate-600 text-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            💬 {group.name}
+          </button>
+        ) : (
+          <span className="flex-1 px-4 py-2 bg-slate-700 text-gray-100">{group.name}</span>
+        )}
+        {hasSecondary && (
+          <button
+            type="button"
+            onClick={onToggle}
+            disabled={disabled}
+            aria-expanded={expanded}
+            aria-label={`${expanded ? 'Hide' : 'Show'} more options for ${group.name}`}
+            className="px-3 bg-slate-800 hover:bg-slate-700 text-gray-300 disabled:opacity-40 transition-colors"
+          >
+            {expanded ? '▾' : '▸'}
+          </button>
+        )}
+      </div>
+      {expanded && hasSecondary && (
+        <div className="flex flex-wrap gap-2 p-2 bg-slate-800/50">
+          {group.secondary.map((action, i) => (
+            <button
+              key={`sec-${i}`}
+              type="button"
+              onClick={() => onAction(action)}
+              disabled={disabled}
+              aria-label={action.label}
+              className="px-3 py-1 text-sm rounded bg-slate-700 hover:bg-slate-600 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              {shortPersonActionLabel(action)}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface ActionPaneProps {
   currentLocation: Location;
@@ -72,6 +135,19 @@ const ActionPane: React.FC<ActionPaneProps> = ({
     npcsInLocation,
     itemsInLocation,
   });
+
+  // Group the flat action list so a busy town shows compact People / Shops /
+  // Other sections instead of ~15 near-identical buttons.
+  const { people, shops, other } = groupActionPaneActions(generalActions, npcsInLocation);
+  // Which people have their secondary options (invite / hire) revealed.
+  const [expandedPeople, setExpandedPeople] = useState<Set<string>>(new Set());
+  const togglePerson = (npcId: string) =>
+    setExpandedPeople((prev) => {
+      const next = new Set(prev);
+      if (next.has(npcId)) next.delete(npcId);
+      else next.add(npcId);
+      return next;
+    });
 
   useEffect(() => {
     if (isOracleInputVisible) {
@@ -117,7 +193,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
         />
       </div>
 
-      {/* Oracle Input */}
+      {/* Oracle Input: keep prompt controls touch-sized so the inline panel remains usable on narrow play screens. */}
       {isOracleInputVisible && (
         <div className="mb-4 p-3 border border-purple-500 rounded-lg bg-gray-700/50">
           <input
@@ -125,14 +201,14 @@ const ActionPane: React.FC<ActionPaneProps> = ({
             value={oracleQuery}
             onChange={(e) => setOracleQuery(e.target.value)}
             placeholder="Ask your question..."
-            className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md text-gray-200 focus:ring-1 focus:ring-purple-500 outline-none mb-2"
+            className="w-full min-h-11 px-3 py-2 bg-gray-900 border border-gray-600 rounded-md text-gray-200 focus:ring-1 focus:ring-purple-500 outline-none mb-2"
             onKeyDown={(e) => e.key === 'Enter' && handleOracleSubmit()}
             ref={oracleInputRef}
             aria-label="Ask the Oracle"
           />
           <div className="flex gap-2">
-            <button onClick={handleOracleSubmit} disabled={disabled || !oracleQuery.trim()} className="flex-1 bg-green-600 text-white py-1 rounded hover:bg-green-500">Submit</button>
-            <button onClick={() => setIsOracleInputVisible(false)} className="flex-1 bg-gray-500 text-white py-1 rounded hover:bg-gray-400">Cancel</button>
+            <button onClick={handleOracleSubmit} disabled={disabled || !oracleQuery.trim()} className="flex-1 min-h-11 bg-green-600 text-white px-3 py-2 rounded hover:bg-green-500">Submit</button>
+            <button onClick={() => setIsOracleInputVisible(false)} className="flex-1 min-h-11 bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-400">Cancel</button>
           </div>
         </div>
       )}
@@ -157,17 +233,55 @@ const ActionPane: React.FC<ActionPaneProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Standard Context Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-        {generalActions.map((action, index) => (
-          <ActionButton
-            key={`gen-${index}`}
-            action={action}
-            onClick={onAction}
-            disabled={disabled || isOracleInputVisible}
-          />
-        ))}
-      </div>
+      {/* People present — name shown once; talk is one click, invite/hire behind a chevron. */}
+      {people.length > 0 && (
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-amber-300 mb-2">People here</h3>
+          <div className="grid grid-cols-1 gap-2">
+            {people.map((group) => (
+              <PersonRow
+                key={`person-${group.npcId}`}
+                group={group}
+                onAction={onAction}
+                disabled={disabled || isOracleInputVisible}
+                expanded={expandedPeople.has(group.npcId)}
+                onToggle={() => togglePerson(group.npcId)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Shops — browse a specific store's goods. */}
+      {shops.length > 0 && (
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-amber-300 mb-2">Shops</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {shops.map((action, index) => (
+              <ActionButton
+                key={`shop-${index}`}
+                action={action}
+                onClick={onAction}
+                disabled={disabled || isOracleInputVisible}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Everything else here — take items, search, notice board, locks, … */}
+      {other.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          {other.map((action, index) => (
+            <ActionButton
+              key={`other-${index}`}
+              action={action}
+              onClick={onAction}
+              disabled={disabled || isOracleInputVisible}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Rest Actions */}
       <div className="mb-4">

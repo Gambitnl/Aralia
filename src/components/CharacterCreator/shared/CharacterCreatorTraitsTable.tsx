@@ -248,7 +248,9 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
                                                                         <button
                                                                             onClick={() => onSpellClick(toKebabCase(spell.name))}
                                                                             title={broken ? 'Glossary entry unavailable' : undefined}
-                                                                            className={`underline transition-colors ${
+                                                                            // Spell links open glossary detail modals, so keep their hit area
+                                                                            // as usable as the surrounding creator buttons even inside tables.
+                                                                            className={`-my-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded px-2 py-2 underline transition-colors ${
                                                                                 broken
                                                                                     ? 'text-red-400 hover:text-red-300'
                                                                                     : 'text-sky-400 hover:text-sky-200'

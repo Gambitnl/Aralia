@@ -18,7 +18,9 @@
  * move this body. Ground elevation is resampled from the ground-world
  * heightfield each move so the figure stays planted on the terrain.
  */
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
+import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import type { SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
@@ -95,18 +97,38 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
     };
   }, [playerId, raceName, playerName]);
 
-  if (!ground) return null;
+  const groupRef = useRef<THREE.Group>(null);
 
-  // Logical position → scene space (scene origin sits on the spawn point).
+  // Logical position → scene space (scene origin sits on the spawn point). This
+  // is the TARGET; the body glides toward it (below) so a click-to-move walks
+  // rather than teleports, and a camera walk stays smooth.
   const xM = groundPos?.xM ?? sceneOrigin.x;
   const zM = groundPos?.zM ?? sceneOrigin.z;
-  const surfaceY = groundPos ? groundSurfaceYM(ground, xM, zM) : startSurfaceY;
+  const targetSurfaceY = groundPos && ground ? groundSurfaceYM(ground, xM, zM) : startSurfaceY;
   const sx = xM - sceneOrigin.x;
   const sz = zM - sceneOrigin.z;
 
+  // Ease the visible body toward the logical position each frame, resampling the
+  // terrain height under the CURRENT (interpolated) footfall so it stays planted
+  // while crossing relief. Distance-proportional alpha eases in and arrives
+  // promptly regardless of how far the click was. `ground` is captured here; the
+  // hook order is stable because this runs before the early `!ground` return.
+  useFrame((_, delta) => {
+    const g = groupRef.current;
+    if (!g || !ground) return;
+    const a = Math.min(1, delta * 6);
+    g.position.x += (sx - g.position.x) * a;
+    g.position.z += (sz - g.position.z) * a;
+    const curXM = g.position.x + sceneOrigin.x;
+    const curZM = g.position.z + sceneOrigin.z;
+    g.position.y = groundPos ? groundSurfaceYM(ground, curXM, curZM) : startSurfaceY;
+  });
+
+  if (!ground) return null;
+
   const bodyH = dims.heightM - dims.headM * 2; // body carries the frame, head tops it up
   return (
-    <group position={[sx, surfaceY, sz]} data-testid="player-avatar">
+    <group ref={groupRef} position={[sx, targetSurfaceY, sz]} data-testid="player-avatar">
       {/* Body — the SceneCast tapered-cylinder silhouette, sized by generateBody. */}
       <mesh position={[0, bodyH / 2, 0]} castShadow>
         <cylinderGeometry args={[dims.radiusM * 0.65, dims.radiusM, bodyH, 10]} />

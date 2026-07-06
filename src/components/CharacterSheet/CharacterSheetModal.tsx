@@ -143,10 +143,17 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
       <div className="flex flex-col h-full">
         {/* Tab Bar */}
         {/* Main character sheet tab navigation, rendered using a premium serif font for immersive D&D theme. */}
-        <div className="flex border-b border-gray-700 bg-gray-800/50 px-4">
+        {/* Narrow WindowFrames use a two-row grid so late tabs like Journal
+            remain visible without overlapping the sheet content; wider sheets
+            keep a single scrollable tab row. */}
+        <div
+          className="grid grid-cols-3 items-stretch border-b border-gray-700 bg-gray-800/50 px-2 sm:flex sm:min-h-11 sm:flex-nowrap sm:overflow-x-auto sm:overflow-y-hidden sm:px-4"
+          role="tablist"
+          aria-label="Character sheet sections"
+        >
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'overview' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+            className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'overview' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'overview'}
           >
@@ -154,7 +161,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('skills')}
-            className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'skills' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+            className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'skills' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'skills'}
           >
@@ -162,7 +169,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('details')}
-            className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'details' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+            className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'details' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'details'}
           >
@@ -171,7 +178,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           {hasFamily && (
             <button
               onClick={() => setActiveTab('family')}
-              className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'family' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+              className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'family' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
               role="tab"
               aria-selected={activeTab === 'family'}
             >
@@ -181,7 +188,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           {hasSpells && (
             <button
               onClick={() => setActiveTab('spellbook')}
-              className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'spellbook' ? 'border-b-2 border-purple-400 text-purple-300' : 'text-gray-400 hover:text-white'}`}
+              className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'spellbook' ? 'border-b-2 border-purple-400 text-purple-300' : 'text-gray-400 hover:text-white'}`}
               role="tab"
               aria-selected={activeTab === 'spellbook'}
             >
@@ -190,7 +197,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           )}
           <button
             onClick={() => setActiveTab('crafting')}
-            className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'crafting' ? 'border-b-2 border-green-400 text-green-300' : 'text-gray-400 hover:text-white'}`}
+            className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'crafting' ? 'border-b-2 border-green-400 text-green-300' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'crafting'}
           >
@@ -198,7 +205,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('journal')}
-            className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'journal' ? 'border-b-2 border-amber-500 text-amber-400' : 'text-gray-400 hover:text-white'}`}
+            className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'journal' ? 'border-b-2 border-amber-500 text-amber-400' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'journal'}
           >
@@ -208,7 +215,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
             <div className="ml-auto flex items-center">
               <button
                 onClick={() => setIsLevelUpOpen(true)}
-                className="px-3 py-1.5 text-xs font-semibold rounded-full bg-emerald-600/80 hover:bg-emerald-500 text-white"
+                className="min-h-11 px-3 py-1.5 text-xs font-semibold rounded-full bg-emerald-600/80 hover:bg-emerald-500 text-white"
                 aria-label={`Level up ${character.name}`}
               >
                 Level Up
@@ -221,14 +228,18 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
         {/* Embeds all inner tabs. Formatted to use a classical, highly-readable RPG body serif font (Quattrocento) across all tabs. */}
         <div className="flex-grow overflow-hidden min-h-0 flex flex-col p-4 font-quattrocento font-medium">
           {activeTab === 'overview' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-4 h-full overflow-hidden">
+            <div className="grid grid-cols-1 gap-y-4 max-lg:overflow-y-auto scrollable-content pr-2 lg:grid-cols-3 lg:gap-x-6 lg:h-full lg:overflow-hidden lg:pr-0">
               {/* Column 1: Core Stats & Features */}
-              <div className="lg:col-span-1 h-full overflow-hidden">
+              {/* The core stat stack can be taller than the sheet on normal
+                  desktop windows, so it needs its own scroll lane just like
+                  equipment and inventory. This keeps lower expandable panels
+                  reachable instead of clipping them under the WindowFrame edge. */}
+              <div className="max-lg:overflow-visible lg:col-span-1 lg:h-full lg:overflow-y-auto lg:scrollable-content lg:pr-2">
                 <CharacterOverview character={character} />
               </div>
 
               {/* Column 2: Equipment */}
-              <div className="lg:col-span-1 space-y-4 p-1 flex flex-col items-center justify-start overflow-y-auto scrollable-content h-full">
+              <div className="space-y-4 p-1 flex flex-col items-center justify-start max-lg:overflow-visible lg:col-span-1 lg:overflow-y-auto lg:scrollable-content lg:h-full">
                 <EquipmentMannequin
                   character={character}
                   onSlotClick={handleSlotClick}
@@ -242,7 +253,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
               </div>
 
               {/* Column 3: Inventory */}
-              <div className="lg:col-span-1 space-y-4 overflow-y-auto scrollable-content p-1 pr-2 h-full">
+              <div className="space-y-4 p-1 max-lg:overflow-visible lg:col-span-1 lg:overflow-y-auto lg:scrollable-content lg:pr-2 lg:h-full">
                 <InventoryList
                   inventory={inventory}
                   gold={gold}

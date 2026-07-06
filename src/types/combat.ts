@@ -411,6 +411,14 @@ export interface CombatCharacter {
   maxHP: number;
   /** Minimum d20 roll for a critical hit (default 20; 19 for Champion fighters). */
   critThreshold?: number;
+  /**
+   * Dark One's Blessing (Fiend warlock, level 3): when this character reduces a
+   * hostile creature to 0 HP, they gain temporary hit points equal to this
+   * value (Charisma modifier + warlock level, minimum 1). Set once at combat
+   * character construction so the damage engine can grant the temp HP without
+   * re-deriving subclass/level state mid-combat.
+   */
+  darkOnesBlessingTempHp?: number;
   /** Optional death saving throw tracking for downed player characters (at 0 HP). */
   deathSaves?: {
     successes: number;

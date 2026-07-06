@@ -32,7 +32,7 @@
  * - Grid rendering recalculates all tiles even when only positions change
  * - No texture atlas consolidation for sprite batching
  */
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { BattleMapData, CombatCharacter, BattleMapTile as BattleMapTileData, CombatState, LightSource, Position } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
@@ -42,11 +42,38 @@ import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import BattleMapTile from './BattleMapTile';
 import CharacterToken from './CharacterToken';
 import BattleMapOverlay from './BattleMapOverlay';
+import BattleMapGroundCanvas from './BattleMapGroundCanvas';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { UI_ID } from '../../styles/uiIds';
 import { Z_INDEX } from '../../styles/zIndex';
 import { selectVisibilityObserver } from './visibilityObserverPolicy';
 import type { SpellMapArtifacts } from './spellMapArtifacts';
+
+// Width of the row-letter gutter to the left of the grid; the column ruler uses
+// the same value as a leading offset so numbers sit centered over their columns.
+const RULER_GUTTER_PX = 20;
+const COLUMN_RULER_HEIGHT_PX = 16;
+
+// Spreadsheet-style row labels: A..Z, then AA, AB, … for taller maps.
+const rowLabel = (index: number): string => {
+  let n = index;
+  let label = '';
+  do {
+    label = String.fromCharCode(65 + (n % 26)) + label;
+    n = Math.floor(n / 26) - 1;
+  } while (n >= 0);
+  return label;
+};
+
+const LEGEND_ITEMS: Array<{ swatch: string; label: string; dashed?: boolean }> = [
+  { swatch: 'bg-emerald-500/60', label: 'Move Range' },
+  { swatch: 'bg-emerald-300/80', label: 'Destination' },
+  { swatch: 'bg-rose-500/60', label: 'Attack Range' },
+  { swatch: 'bg-orange-500/60', label: 'Area Effect' },
+  { swatch: 'border border-dashed border-slate-300', label: 'Line of Sight', dashed: true },
+];
+
+const MIN_USABLE_BOARD_SCALE = 0.7;
 
 interface BattleMapProps {
   mapData: BattleMapData | null;
@@ -194,7 +221,106 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
     return set;
   }, [activePath]);
 
+  // Coordinate set of the reachable-move region, for drawing a crisp perimeter
+  // stroke around its outer boundary (instead of a shapeless per-tile wash).
+  const validMoveCoordSet = useMemo(() => {
+    const set = new Set<string>();
+    if (!mapData) return set;
+    mapData.tiles.forEach(tile => {
+      if (validMoves.has(tile.id)) set.add(`${tile.coordinates.x},${tile.coordinates.y}`);
+    });
+    return set;
+  }, [mapData, validMoves]);
+
   // --- OPTIMIZATION END ---
+
+  // Fit-to-container scaling. Procedural battle maps are frequently larger than
+  // the center pane, so normal layouts show the whole framed board. If fitting
+  // would make combatants too tiny to select, keep a usable minimum scale and
+  // let the board scroll instead of shrinking the tactical surface into pixels.
+  const fitWrapRef = useRef<HTMLDivElement>(null);
+  const fitFrameRef = useRef<HTMLDivElement>(null);
+  const [fitScale, setFitScale] = useState(1);
+  const [frameSize, setFrameSize] = useState({ w: 0, h: 0 });
+  // User zoom sits on top of auto-fit: null means "auto" (fit the pane, but
+  // never below the usable minimum), a number is an explicit zoom the player
+  // chose via the controls or ctrl+wheel.
+  const [userZoom, setUserZoom] = useState<number | null>(null);
+  const autoScale = fitScale < MIN_USABLE_BOARD_SCALE ? 1 : fitScale;
+  const boardScale = userZoom ?? autoScale;
+  // Slack on the comparison: scrollbar appearance/disappearance nudges the
+  // measured fit scale, so demand a real overshoot before switching the pane
+  // into scroll mode (otherwise "Fit" can land left-anchored instead of centered).
+  const isBoardScrollable = boardScale > fitScale * 1.02;
+  useLayoutEffect(() => {
+    const recompute = () => {
+      const wrap = fitWrapRef.current;
+      const frame = fitFrameRef.current;
+      if (!wrap || !frame) return;
+      const fw = frame.offsetWidth;
+      const fh = frame.offsetHeight;
+      if (fw === 0 || fh === 0) return;
+      setFrameSize(prev => (prev.w === fw && prev.h === fh ? prev : { w: fw, h: fh }));
+      const s = Math.min(wrap.clientWidth / fw, wrap.clientHeight / fh, 1);
+      setFitScale(s > 0 && Number.isFinite(s) ? s : 1);
+    };
+    recompute();
+    const ro = new ResizeObserver(recompute);
+    if (fitWrapRef.current) ro.observe(fitWrapRef.current);
+    return () => ro.disconnect();
+  }, [mapData?.dimensions.width, mapData?.dimensions.height]);
+  const clampZoom = (z: number) => Math.min(2, Math.max(0.25, z));
+  const zoomBy = useCallback((factor: number) => {
+    setUserZoom(prev => clampZoom((prev ?? boardScale) * factor));
+  }, [boardScale]);
+  // Ctrl+wheel zoom. Attached natively because React's onWheel is passive and
+  // cannot preventDefault the browser's own page zoom.
+  useEffect(() => {
+    const wrap = fitWrapRef.current;
+    if (!wrap) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      zoomBy(e.deltaY < 0 ? 1.15 : 1 / 1.15);
+    };
+    wrap.addEventListener('wheel', onWheel, { passive: false });
+    return () => wrap.removeEventListener('wheel', onWheel);
+  }, [zoomBy]);
+  useLayoutEffect(() => {
+    // Leaving scroll mode (e.g. pressing Fit) must clear any leftover scroll
+    // offset: overflow-hidden keeps the stale scroll position and would leave
+    // the fitted board shifted out of view.
+    if (!isBoardScrollable && typeof fitWrapRef.current?.scrollTo === 'function') {
+      fitWrapRef.current.scrollTo(0, 0);
+    }
+    if (!mapData || !isBoardScrollable || !currentCharacter || !fitWrapRef.current) return;
+
+    const wrap = fitWrapRef.current;
+    const targetLeft =
+      (RULER_GUTTER_PX +
+        currentCharacter.position.x * TILE_SIZE_PX +
+        TILE_SIZE_PX / 2) * boardScale -
+      wrap.clientWidth / 2;
+    const targetTop =
+      (COLUMN_RULER_HEIGHT_PX +
+        currentCharacter.position.y * TILE_SIZE_PX +
+        TILE_SIZE_PX / 2) * boardScale -
+      wrap.clientHeight / 2;
+
+    // A scrollable tactical board should open on the active combatant, not the
+    // empty top-left corner of a large generated map.
+    window.requestAnimationFrame(() => {
+      wrap.scrollTo({
+        left: Math.max(0, targetLeft),
+        top: Math.max(0, targetTop),
+      });
+    });
+  }, [
+    currentCharacter,
+    isBoardScrollable,
+    boardScale,
+    mapData,
+  ]);
 
   if (!mapData) {
     return <div>Generating map...</div>;
@@ -203,9 +329,8 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
   // TODO #33(Ritualist): Implement ritual progress visualization in the map overlay or UI panel.
   // The 'activeRitual' state is now available in GameState. Render a progress bar if activeRitual is present and !isComplete.
   // Ensure the progress bar clearly shows interruption conditions (e.g., "Damage breaks concentration").
-
   return (
-    <div id={UI_ID.BATTLE_MAP} data-testid={UI_ID.BATTLE_MAP} className="relative">
+    <div id={UI_ID.BATTLE_MAP} data-testid={UI_ID.BATTLE_MAP} className="relative flex h-full w-full flex-col items-center justify-center">
       {visibilityObserverSelection.sharedSenses && (
         <div
           className="absolute left-3 top-3 rounded-full border border-cyan-300/80 bg-slate-950/88 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.38)]"
@@ -228,7 +353,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
       )}
        {/* UI for current turn actions */}
        {currentCharacter && isCharacterTurn(currentCharacter.id) && (
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-gray-700 p-2 rounded-md shadow-lg flex gap-2 z-[var(--z-index-submap-overlay)]">
+        <div className="absolute -top-14 left-1/2 z-[var(--z-index-submap-overlay)] flex -translate-x-1/2 gap-2 rounded-md bg-gray-700 p-2 shadow-lg">
           <button 
             onClick={() => {
               // Switching back to movement should leave any half-started attack
@@ -237,7 +362,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
               abilitySystem.cancelTargeting();
               setActionMode('move');
             }}
-            className={`px-3 py-1 text-sm rounded transition-colors ${actionMode === 'move' ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-gray-600 hover:bg-gray-500'}`}
+            className={`min-h-11 rounded px-3 py-2 text-sm font-semibold transition-colors ${actionMode === 'move' ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-gray-600 hover:bg-gray-500'}`}
           >Move</button>
           <button
             onClick={() => {
@@ -249,20 +374,70 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
               abilitySystem.startTargeting(primaryAttack, currentCharacter);
             }}
             disabled={!canUsePrimaryAttack}
-            className={`px-3 py-1 text-sm rounded transition-colors ${!canUsePrimaryAttack ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : actionMode === 'ability' ? 'bg-red-600 text-white ring-2 ring-red-300' : 'bg-gray-600 hover:bg-gray-500'}`}
+            className={`min-h-11 rounded px-3 py-2 text-sm font-semibold transition-colors ${!canUsePrimaryAttack ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : actionMode === 'ability' ? 'bg-red-600 text-white ring-2 ring-red-300' : 'bg-gray-600 hover:bg-gray-500'}`}
           >Attack</button>
         </div>
       )}
 
-      {/*
-      */}
-      <div className={`battle-map-container bg-gray-800 p-2 rounded-lg shadow-lg ${abilitySystem.targetingMode ? 'cursor-crosshair' : ''}`}
-          style={{
-              width: `${mapData.dimensions.width * TILE_SIZE_PX + 2}px`,
-              height: `${mapData.dimensions.height * TILE_SIZE_PX + 2}px`,
-          }}>
-        
-        
+      {/* Gold-framed grid with spreadsheet rulers (A–P down, 1–20 across) and a
+          legend, matching the tactical battle-map mockup. The frame is scaled to
+          fit its pane so the whole board stays in view. */}
+      <div
+        ref={fitWrapRef}
+        className={`relative flex min-h-0 w-full flex-1 ${
+          isBoardScrollable ? 'items-start justify-start overflow-auto' : 'items-center justify-center overflow-hidden'
+        }`}
+      >
+      {/* The spacer always takes the SCALED footprint: it gives the wrap real
+          scrollbars when zoomed past the pane (a CSS transform alone does not
+          affect scroll layout) and a correctly-sized box to flex-center when
+          the board fits. */}
+      <div
+        style={
+          frameSize.w > 0
+            ? { width: frameSize.w * boardScale, height: frameSize.h * boardScale, flexShrink: 0, minWidth: 0, minHeight: 0, overflow: 'visible' }
+            : undefined
+        }
+      >
+      <div
+        ref={fitFrameRef}
+        style={{
+          transform: `scale(${boardScale})`,
+          transformOrigin: 'top left',
+        }}
+        className="inline-block rounded-xl border-2 border-amber-800/50 bg-slate-950/70 p-2 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+        {/* Column ruler */}
+        <div className="flex" style={{ paddingLeft: RULER_GUTTER_PX }}>
+          {Array.from({ length: mapData.dimensions.width }).map((_, i) => (
+            <div
+              key={`col-${i}`}
+              style={{ width: TILE_SIZE_PX }}
+              className="text-center text-[10px] font-semibold leading-4 text-amber-200/50"
+            >
+              {i + 1}
+            </div>
+          ))}
+        </div>
+        <div className="flex">
+          {/* Row ruler */}
+          <div className="flex flex-col" style={{ width: RULER_GUTTER_PX }}>
+            {Array.from({ length: mapData.dimensions.height }).map((_, i) => (
+              <div
+                key={`row-${i}`}
+                style={{ height: TILE_SIZE_PX }}
+                className="flex items-center justify-center text-[10px] font-semibold text-amber-200/50"
+              >
+                {rowLabel(i)}
+              </div>
+            ))}
+          </div>
+          <div className={`battle-map-container relative ${abilitySystem.targetingMode ? 'cursor-crosshair' : ''}`}
+              style={{
+                  width: `${mapData.dimensions.width * TILE_SIZE_PX + 2}px`,
+                  height: `${mapData.dimensions.height * TILE_SIZE_PX + 2}px`,
+              }}>
+        {/* Painted forest ground beneath the interactive grid. */}
+        <BattleMapGroundCanvas mapData={mapData} tileSize={TILE_SIZE_PX} className="pointer-events-none absolute inset-0 h-full w-full" />
         <div
           className="battle-map-grid"
           style={{
@@ -270,6 +445,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
             gridTemplateColumns: `repeat(${mapData.dimensions.width}, ${TILE_SIZE_PX}px)`,
             gridTemplateRows: `repeat(${mapData.dimensions.height}, ${TILE_SIZE_PX}px)`,
             position: 'relative',
+            zIndex: 1,
             border: '1px solid #4A5568',
           }}
         >
@@ -285,12 +461,22 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
             const isValidMove = actionMode === 'move' && validMoves.has(tile.id);
             const isInPath = activePathSet.has(tile.id);
             const isObjectMoveDestination = Boolean(activeObject && !tile.blocksMovement);
-          
+            const { x: tx, y: ty } = tile.coordinates;
+            const moveEdges = isValidMove
+              ? {
+                  top: !validMoveCoordSet.has(`${tx},${ty - 1}`),
+                  right: !validMoveCoordSet.has(`${tx + 1},${ty}`),
+                  bottom: !validMoveCoordSet.has(`${tx},${ty + 1}`),
+                  left: !validMoveCoordSet.has(`${tx - 1},${ty}`),
+                }
+              : undefined;
+
             return (
               <BattleMapTile
                 key={tile.id}
                 tile={tile}
                 isValidMove={isValidMove}
+                moveEdges={moveEdges}
                 isInPath={isInPath}
                 isTargetable={isTargetable}
                 isAoePreview={isAoePreview}
@@ -379,6 +565,53 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
             assignedTeleportDestinations={assignedTeleportDestinations}
           />
         </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      </div>
+      {/* Zoom controls — user zoom over the auto-fit. "Fit" returns to auto. */}
+      <div
+        className="absolute bottom-10 right-3 flex items-center gap-1 rounded-md border border-amber-800/50 bg-slate-950/85 p-1 shadow-lg"
+        style={{ zIndex: Z_INDEX.COMBAT_OVERLAY }}
+      >
+        <button
+          type="button"
+          aria-label="Zoom out"
+          onClick={() => zoomBy(1 / 1.25)}
+          className="h-7 w-7 rounded bg-slate-800 text-sm font-bold text-slate-200 hover:bg-slate-700"
+        >−</button>
+        <span className="min-w-[3rem] text-center text-xs font-semibold tabular-nums text-slate-300">
+          {Math.round(boardScale * 100)}%
+        </span>
+        <button
+          type="button"
+          aria-label="Zoom in"
+          onClick={() => zoomBy(1.25)}
+          className="h-7 w-7 rounded bg-slate-800 text-sm font-bold text-slate-200 hover:bg-slate-700"
+        >+</button>
+        <button
+          type="button"
+          aria-label="Fit map to view"
+          onClick={() => setUserZoom(fitScale)}
+          className={`h-7 rounded px-2 text-xs font-semibold ${userZoom !== null && Math.abs(boardScale - fitScale) < 0.001 ? 'bg-amber-700 text-amber-50' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}`}
+        >Fit</button>
+        <button
+          type="button"
+          aria-label="Reset zoom to automatic"
+          onClick={() => setUserZoom(null)}
+          className={`h-7 rounded px-2 text-xs font-semibold ${userZoom === null ? 'bg-amber-700 text-amber-50' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}`}
+        >Auto</button>
+      </div>
+      {/* Legend — rendered outside the scaled frame so it stays readable
+          regardless of how far the board is scaled to fit. */}
+      <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-1 text-xs text-slate-300">
+        {LEGEND_ITEMS.map(item => (
+          <div key={item.label} className="flex items-center gap-1.5">
+            <span className={`inline-block h-3 w-3 rounded-sm ${item.swatch}`} />
+            <span>{item.label}</span>
+          </div>
+        ))}
       </div>
     </div>
   );

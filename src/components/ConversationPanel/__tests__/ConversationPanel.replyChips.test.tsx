@@ -77,7 +77,12 @@ describe('ConversationPanel suggested-reply chips', () => {
   it('clicking a chip submits the line through the de-escalation flow', async () => {
     render(<ConversationPanel gameState={makeState()} dispatch={vi.fn()} />);
 
-    fireEvent.click(screen.getAllByTestId('reply-chip')[0]);
+    const firstChip = screen.getAllByTestId('reply-chip')[0];
+    expect(firstChip).toHaveClass('min-h-11');
+    expect(screen.getByTestId('opening-attack')).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: /End conversation/i })).toHaveClass('conversation-close-btn');
+
+    fireEvent.click(firstChip);
 
     await waitFor(() => {
       expect(resolveDeEscalationIntent).toHaveBeenCalledWith(

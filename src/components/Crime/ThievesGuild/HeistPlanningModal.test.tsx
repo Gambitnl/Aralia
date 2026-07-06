@@ -53,6 +53,7 @@ describe('HeistPlanningModal', () => {
             />
         );
 
+        expect(screen.getAllByRole('dialog', { name: 'Heist Planning' })).toHaveLength(1);
         expect(screen.getByText(/Target: loc_bank/)).toBeDefined();
         expect(screen.getByText('Guards change shifts at midnight.')).toBeDefined();
     });

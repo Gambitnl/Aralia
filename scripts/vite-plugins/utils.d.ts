@@ -3,11 +3,8 @@ export declare const MCP_CLI: string;
 export declare const MCP_CONFIG: string;
 export declare const MCP_CLI_ENTRY: string;
 export declare const BUN_BIN: string;
-export declare const STITCH_TOOL_OVERRIDE: string;
-export declare const STITCH_EXTRA_ARGS: string;
 export declare const PORTRAIT_OUTPUT_DIR: string;
 export declare const SCENE_OUTPUT_DIR: string;
-export declare const STITCH_GCLOUD_CONFIG: string;
 export declare const formatProxyTarget: (target: ProxyOptions["target"]) => string;
 export declare const execAsync: (cmd: string, opts: any) => Promise<{
     stdout: string;

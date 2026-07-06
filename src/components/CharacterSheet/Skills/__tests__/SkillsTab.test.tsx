@@ -26,7 +26,7 @@ describe('SkillsTab', () => {
 
     render(<SkillsTab character={character} />);
 
-    const stealthRow = screen.getByText('Stealth').closest('tr');
+    const stealthRow = within(screen.getByTestId('skills-table-scroll')).getByText('Stealth').closest('tr');
 
     expect(stealthRow).not.toBeNull();
     if (!stealthRow) {
@@ -39,5 +39,32 @@ describe('SkillsTab', () => {
     expect(within(stealthRow).getByText('+2')).toBeInTheDocument();
     expect(within(stealthRow).getByText('+5')).toBeInTheDocument();
     expect(stealthRow.children[3]).toHaveTextContent('-');
+  });
+
+  it('uses compact skill cards on phone-width sheets and keeps the table scrollable on wider sheets', () => {
+    const character = createMockPlayerCharacter({
+      finalAbilityScores: {
+        Strength: 10,
+        Dexterity: 16,
+        Constitution: 10,
+        Intelligence: 10,
+        Wisdom: 10,
+        Charisma: 10,
+      },
+      proficiencyBonus: 2,
+      skills: [
+        { id: 'stealth', name: 'Stealth', ability: 'Dexterity' },
+      ],
+    });
+
+    render(<SkillsTab character={character} />);
+
+    const compactList = screen.getByTestId('skills-compact-list');
+    const tableScroll = screen.getByTestId('skills-table-scroll');
+
+    expect(compactList).toHaveClass('min-[521px]:hidden');
+    expect(tableScroll).toHaveClass('max-[520px]:hidden', 'overflow-x-auto');
+    expect(within(compactList).getByText('Stealth', { exact: false })).toBeInTheDocument();
+    expect(within(compactList).getByText('+5')).toBeInTheDocument();
   });
 });

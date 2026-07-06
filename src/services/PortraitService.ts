@@ -20,10 +20,8 @@
  *
  * NOTE:
  * The recommended path is to call the local dev API (`/api/portraits/generate`), which
- * can be backed by Stitch (MCP) and returns a URL to a locally served image.
+ * uses the local browser-based image generator and returns a URL to a locally served image.
  */
-
-import { safeJSONParse } from '../utils/securityUtils';
 
 export interface PortraitGenerateRequest {
   description: string;

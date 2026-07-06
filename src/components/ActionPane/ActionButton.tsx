@@ -13,6 +13,15 @@ interface ActionButtonProps {
   hasNotification?: boolean;
   role?: string;
   tabIndex?: number;
+  /** Optional inline styles for callers that need layout guarantees beyond shared button sizing. */
+  style?: React.CSSProperties;
+  /**
+   * Optional shorter text to SHOW instead of `action.label` (e.g. "Talk" under a
+   * person's name, where the name is already the group header). The full
+   * `action` — including its real label — is still what gets dispatched, so log
+   * messages and handlers are unaffected.
+   */
+  displayLabel?: string;
 }
 
 export const ActionButton: React.FC<ActionButtonProps> = ({
@@ -24,7 +33,9 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   badgeCount,
   hasNotification,
   role,
-  tabIndex
+  tabIndex,
+  style,
+  displayLabel,
 }) => {
   const baseClasses = `${BTN_BASE} ${BTN_SIZE_LG}`;
 
@@ -105,13 +116,14 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
       onClick={handleClick}
       disabled={disabled}
       className={`${baseClasses} ${colorClasses} ${className}`}
+      style={style}
       aria-label={action.label}
       type="button"
       aria-disabled={disabled}
       role={role}
       tabIndex={tabIndex}
     >
-      {action.label}
+      {displayLabel ?? action.label}
       {badgeCount !== undefined && badgeCount > 0 && (
         <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
           {badgeCount > 99 ? '99+' : badgeCount}

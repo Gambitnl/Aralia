@@ -286,6 +286,112 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
     expect(pactMagic?.type).toBe('utility');
   });
 
+  it('gives a level-3 Draconic sorcerer an unarmored AC of 10 + Dex + Cha (Draconic Resilience)', () => {
+    // Dex 16 (+3), Cha 18 (+4) -> unarmored AC 10 + 3 + 4 = 17, HP max +3 (level).
+    const draconic = createPlayerCombatCharacter(
+      createMockPlayerCharacter({
+        class: CLASSES_DATA['sorcerer'], level: 3, subclassId: 'draconic',
+        equippedItems: {},
+        maxHp: 20, hp: 20,
+        finalAbilityScores: { Strength: 8, Dexterity: 16, Constitution: 14, Intelligence: 10, Wisdom: 10, Charisma: 18 },
+      }),
+    );
+    expect(draconic.armorClass).toBe(17);
+    expect(draconic.baseAC).toBe(17);
+    expect(draconic.maxHP).toBe(23); // 20 + level(3)
+    expect(draconic.currentHP).toBe(23);
+  });
+
+  it('does not grant Draconic Resilience to a Wild Magic sorcerer or a low-level Draconic sorcerer', () => {
+    const wildMagic = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['sorcerer'], level: 3, subclassId: 'wild_magic', equippedItems: {}, armorClass: 10 }),
+    );
+    const youngDraconic = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['sorcerer'], level: 1, subclassId: 'draconic', equippedItems: {}, armorClass: 10 }),
+    );
+    expect(wildMagic.armorClass).toBe(10);
+    expect(youngDraconic.armorClass).toBe(10);
+  });
+
+  it('grants an Oath of Vengeance paladin the Vow of Enmity ability at level 3', () => {
+    const vengeance = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['paladin'], level: 3, subclassId: 'oath_of_vengeance' }),
+    );
+    const devotion = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['paladin'], level: 3, subclassId: 'oath_of_devotion' }),
+    );
+    const vow = vengeance.abilities.find(a => a.id === 'vow_of_enmity');
+    expect(vow).toBeDefined();
+    expect(vow?.cost.type).toBe('bonus');
+    expect(devotion.abilities.some(a => a.id === 'vow_of_enmity')).toBe(false);
+  });
+
+  it('grants a Berserker barbarian the Frenzy bonus-action weapon attack at level 3', () => {
+    const weapon = { id: 'greataxe', name: 'Greataxe', type: 'weapon', damageDice: '1d12', category: 'Martial Weapon', slot: 'MainHand' } as unknown as Item;
+    const berserker = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['barbarian'], level: 3, subclassId: 'berserker', equippedItems: { MainHand: weapon } }),
+    );
+    const wildHeart = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['barbarian'], level: 3, subclassId: 'wild_heart', equippedItems: { MainHand: weapon } }),
+    );
+    const frenzy = berserker.abilities.find(a => a.id === 'frenzy_attack');
+    expect(frenzy).toBeDefined();
+    expect(frenzy?.type).toBe('attack'); // rolls to hit + weapon damage, not inert
+    expect(frenzy?.cost.type).toBe('bonus');
+    expect(frenzy?.effects[0].dice).toBe('1d12');
+    // Wild Heart barbarian does NOT get Frenzy.
+    expect(wildHeart.abilities.some(a => a.id === 'frenzy_attack')).toBe(false);
+  });
+
+  it('tags a Wild Heart barbarian Rage with the bear-spirit boon at level 3', () => {
+    const wildHeart = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['barbarian'], level: 3, subclassId: 'wild_heart' }),
+    );
+    const berserker = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['barbarian'], level: 3, subclassId: 'berserker' }),
+    );
+    const wildHeartRage = wildHeart.abilities.find(a => a.id === 'rage');
+    expect(wildHeartRage?.tags).toContain('wild_heart_bear');
+    // A different subclass's Rage is untagged (base physical resistance only).
+    expect(berserker.abilities.find(a => a.id === 'rage')?.tags ?? []).not.toContain('wild_heart_bear');
+  });
+
+  it("resolves a level-3 Fiend warlock's Dark One's Blessing temp HP (Cha mod + warlock level)", () => {
+    // Cha 16 (+3) + warlock level 3 = 6 temporary hit points on each kill.
+    const fiend = createPlayerCombatCharacter(
+      createMockPlayerCharacter({
+        class: CLASSES_DATA['warlock'], level: 3, subclassId: 'fiend',
+        finalAbilityScores: { Strength: 8, Dexterity: 14, Constitution: 14, Intelligence: 10, Wisdom: 10, Charisma: 16 },
+      }),
+    );
+    expect(fiend.darkOnesBlessingTempHp).toBe(6);
+  });
+
+  it("floors Dark One's Blessing at a minimum of 1 temp HP when the Charisma modifier is negative", () => {
+    // Cha 8 (-1) + warlock level 3 = 2, still positive; use Cha 6 (-2) + a
+    // hypothetical low level is impossible (level 3 min), so verify the floor
+    // holds by construction with a very low Charisma at exactly level 3:
+    // Cha 4 (-3) + 3 = 0 -> clamped to 1.
+    const fiend = createPlayerCombatCharacter(
+      createMockPlayerCharacter({
+        class: CLASSES_DATA['warlock'], level: 3, subclassId: 'fiend',
+        finalAbilityScores: { Strength: 8, Dexterity: 14, Constitution: 14, Intelligence: 10, Wisdom: 10, Charisma: 4 },
+      }),
+    );
+    expect(fiend.darkOnesBlessingTempHp).toBe(1);
+  });
+
+  it("does not grant Dark One's Blessing to a non-Fiend warlock or a low-level Fiend warlock", () => {
+    const archfey = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['warlock'], level: 3, subclassId: 'archfey' }),
+    );
+    const youngFiend = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ class: CLASSES_DATA['warlock'], level: 1, subclassId: 'fiend' }),
+    );
+    expect(archfey.darkOnesBlessingTempHp).toBeUndefined();
+    expect(youngFiend.darkOnesBlessingTempHp).toBeUndefined();
+  });
+
   it('should convert prepared spells into abilities', () => {
      const player = createMockPlayerCharacter({
          spellbook: {

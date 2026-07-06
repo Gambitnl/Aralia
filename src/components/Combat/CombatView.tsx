@@ -28,9 +28,14 @@
  * IMPORTANT: Do not remove inline comments from this file unless the associated code is modified.
  * If code changes, update the comment with the new date and a description of the change.
  */
-import React, { useState, useEffect, useCallback, useContext, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useContext, useRef, lazy, Suspense } from 'react';
 import BattleMap from '../BattleMap/BattleMap';
-import BattleMap3D from '../BattleMap/BattleMap3D';
+// The 3D surfaces (R3F + three.js, a large chunk) are only needed when the
+// player switches the combat map into a 3D mode. Loading them lazily keeps the
+// default 2D combat map — the correctness surface and the reskin target — off
+// the heavy three.js graph, so the 2D board loads without pulling WebGPU/TSL
+// modules onto its critical path.
+const BattleMap3D = lazy(() => import('../BattleMap/BattleMap3D'));
 import { PlayerCharacter, Item } from '../../types';
 import { Ability, ActiveAnimatedObject, ActiveExtradimensionalSpace, ActiveFireEffect, ActiveSpellEmanation, ActiveSpellForce, ActiveSpellGuardian, ActiveSpellHelper, ActiveSpellStructure, ActiveTruePolymorphTransformation, BattleMapData, CombatCharacter, CombatLogEntry, CombatPartySnapshotEntry, PocketedSummon, SpellObjectImpact, SpellObjectRepair, SpellObjectAccessChange } from '../../types/combat';
 import ErrorBoundary from '../ui/ErrorBoundary';
@@ -47,6 +52,8 @@ import AbilityPalette from '../BattleMap/AbilityPalette';
 import CombatLog from '../BattleMap/CombatLog';
 import ActionEconomyBar from '../BattleMap/ActionEconomyBar';
 import PartyDisplay from '../BattleMap/PartyDisplay';
+import { CombatIntentPreview } from '../BattleMap/CombatIntentPreview';
+import { COMBAT_BTN_BASE, COMBAT_BTN_NEUTRAL, COMBAT_BTN_GREEN, COMBAT_BTN_ORANGE, COMBAT_BTN_INDIGO, COMBAT_BTN_RED } from '../BattleMap/combatUiTheme';
 import CharacterSheetModal from '../CharacterSheet/CharacterSheetModal';
 import { CombatCharacterInspector } from '../BattleMap/CombatCharacterInspector';
 import MaplessTerrainSummary from './MaplessTerrainSummary';
@@ -73,6 +80,10 @@ import { Plane } from '../../types/planes';
 import { useCombatOutcome } from '../../hooks/combat/useCombatOutcome';
 import { CreatureHarvestPanel } from '../Crafting/CreatureHarvestPanel';
 import { HARVESTABLE_CREATURES } from '../../systems/crafting/creatureHarvestData';
+// Fight-in-place slice 2: the in-scene combat surface + the World3D → CombatView
+// world handoff. When present, the fight renders IN the streamed world.
+const InPlaceCombatScene = lazy(() => import('./InPlaceCombatScene'));
+import { getFightInPlaceHandoff, clearFightInPlaceHandoff } from '../../systems/combat/fightInPlace/fightInPlaceHandoff';
 
 interface CombatViewProps {
   party: PlayerCharacter[];
@@ -82,6 +93,23 @@ interface CombatViewProps {
   onBattleEnd: (result: 'victory' | 'defeat', rewards?: { gold: number; items: Item[]; xp: number }, finalPartyState?: CombatPartySnapshotEntry[]) => void;
   currentPlane?: Plane;
 }
+
+// Biome pill labels/icons for the toolbar.
+const BIOME_META: Record<string, { icon: string; label: string }> = {
+  forest: { icon: '🌲', label: 'Forest' },
+  cave: { icon: '🕳️', label: 'Cave' },
+  dungeon: { icon: '🏰', label: 'Dungeon' },
+  desert: { icon: '🏜️', label: 'Desert' },
+  swamp: { icon: '🥀', label: 'Swamp' },
+};
+
+// Shown while the lazy 3D combat surfaces (R3F + three.js) stream in. The 2D
+// board never renders this — it stays on the light 2D path.
+const Battle3DLoadingFallback: React.FC = () => (
+  <div className="flex h-full w-full items-center justify-center text-sm italic text-slate-400">
+    Loading 3D battle view…
+  </div>
+);
 
 const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundElapsed, onBattleEnd, currentPlane }) => {
   // NEW: Get spell data to hydrate combat abilities
@@ -200,12 +228,40 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // Using a ref lets handleLogEntry always read the latest characters without being a dependency.
   const charactersRef = useRef(characters);
   charactersRef.current = characters;
+  const combatViewRef = useRef<HTMLDivElement>(null);
+  const battlefieldSectionRef = useRef<HTMLDivElement>(null);
   const [_selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [inspectedCharId, setInspectedCharId] = useState<string | null>(null);
   const [isBattleMapExpanded, setIsBattleMapExpanded] = useState(false);
   // [2026-05-21] 3D combat map toggle — renders BattleMap3D (R3F scene) instead of 2D grid.
-  // Default to 3D mode if combat was entered via a pre-extracted ground mode map.
-  const [renderMode, setRenderMode] = useState<'2d' | '3d'>(state.extractedBattleMap ? '3d' : '2d');
+  // [2026-07-05] Fight-in-place slice 2 — a third mode, 'inplace', renders the
+  // fight INSIDE the streamed world (World3DScene + combat layer) instead of the
+  // separate diorama. It's the default when a fight-in-place handoff is present
+  // (the fight started from the live ground world); the 2D board stays one toggle
+  // away and is the always-available correctness surface.
+  const hasInPlaceHandoff = React.useMemo(() => getFightInPlaceHandoff() != null, []);
+  // The in-place world handoff is consumed for the lifetime of this fight; clear
+  // it when CombatView unmounts so a later placeless fight never mis-renders
+  // in-place with stale world context.
+  useEffect(() => () => { clearFightInPlaceHandoff(); }, []);
+  const [renderMode, setRenderMode] = useState<'2d' | '3d' | 'inplace'>(
+    hasInPlaceHandoff ? 'inplace' : state.extractedBattleMap ? '2d' : '2d',
+  );
+
+  useEffect(() => {
+    // The 2D board fits itself after mount; keep the root anchored to the
+    // tactical toolbar instead of letting browser scroll anchoring jump down
+    // into the roster panels while the map settles.
+    const resetScroll = () => combatViewRef.current?.scrollTo({ top: 0, left: 0 });
+    resetScroll();
+    const frameId = window.requestAnimationFrame(resetScroll);
+    const timeoutId = window.setTimeout(resetScroll, 300);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [mapData?.dimensions.width, mapData?.dimensions.height]);
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
 
   // Battle State managed by hook
@@ -433,6 +489,26 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // We can pass `autoCharacters` to `useTurnManager` and it will react if we put it in dependencies.
   // Let's check `useTurnManager.ts` again.
 
+  // Regenerate the battlefield terrain and reposition the current combatants on
+  // it. Roster and HP are preserved (the same character objects are re-placed),
+  // so this is a "reshuffle the map" affordance rather than a combat reset.
+  const handleNewMap = useCallback(() => {
+    const setup = generateBattleSetup(biome, Date.now(), characters, state.extractedBattleMap || undefined);
+    setMapData(setup.mapData);
+    setCharacters(setup.positionedCharacters);
+  }, [biome, characters, state.extractedBattleMap]);
+
+  const handleAbilitySelect = useCallback((ability: Ability, character: CombatCharacter) => {
+    abilitySystem.startTargeting(ability, character);
+
+    // On stacked combat layouts the command rail sits far below the tactical
+    // board. Bring the board back into view after choosing an ability so the
+    // player sees the targetable surface instead of a detached button state.
+    if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+      battlefieldSectionRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+  }, [abilitySystem]);
+
   const handleCharacterSelect = (charId: string) => {
     setSelectedCharacterId(charId);
   }
@@ -466,14 +542,23 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   });
 
   return (
-    <div id={UI_ID.COMBAT_VIEW} data-testid={UI_ID.COMBAT_VIEW} className="bg-gray-900 text-white h-screen flex flex-col p-4 relative overflow-hidden">
+    <div
+      ref={combatViewRef}
+      id={UI_ID.COMBAT_VIEW}
+      data-testid={UI_ID.COMBAT_VIEW}
+      className="bg-gray-900 text-white h-screen flex flex-col p-4 relative overflow-y-auto xl:overflow-hidden"
+      style={{ overflowAnchor: 'none' }}
+    >
       {/* Victory / Defeat Modal */}
       {battleState !== 'active' && (
-        <div className="absolute inset-0 bg-black/80 z-[var(--z-index-modal-background)] flex items-center justify-center">
+        <div
+          data-testid="combat-outcome-modal"
+          className="fixed inset-0 bg-black/80 z-[var(--z-index-modal-background)] flex items-center justify-center overflow-y-auto p-4"
+        >
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-gray-800 p-8 rounded-xl border-2 border-amber-500 max-w-md w-full text-center"
+            className="bg-gray-800 p-8 rounded-xl border-2 border-amber-500 max-h-[calc(100vh-2rem)] max-w-md w-full overflow-y-auto text-center"
           >
             <h2 className={`text-4xl font-cinzel mb-4 ${battleState === 'victory' ? 'text-amber-400' : 'text-red-500'}`}>
               {battleState === 'victory' ? 'Victory!' : 'Defeat!'}
@@ -597,24 +682,26 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             {/* [2026-05-21] 2D/3D toggle in pop-out window */}
             <button
               onClick={() => setRenderMode(renderMode === '2d' ? '3d' : '2d')}
-              className="absolute top-2 right-2 z-10 text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-gray-700/80 bg-gray-800/60 transition-colors text-xs font-bold"
+              className="absolute top-2 right-2 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded bg-gray-800/60 px-3 py-2 text-sm font-bold text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white"
               title={`Switch to ${renderMode === '2d' ? '3D' : '2D'} view`}
             >
               {renderMode === '2d' ? '3D' : '2D'}
             </button>
             {renderMode === '3d' ? (
-              <BattleMap3D
-                mapData={mapData}
-                characters={characters}
-                spellMapArtifacts={spellMapArtifacts}
-                combatState={{
-                  turnManager: turnManager,
-                  turnState: turnManager.turnState,
-                  abilitySystem: abilitySystem,
-                  isCharacterTurn: turnManager.isCharacterTurn,
-                  onCharacterUpdate: handleCharacterUpdate
-                }}
-              />
+              <Suspense fallback={<Battle3DLoadingFallback />}>
+                <BattleMap3D
+                  mapData={mapData}
+                  characters={characters}
+                  spellMapArtifacts={spellMapArtifacts}
+                  combatState={{
+                    turnManager: turnManager,
+                    turnState: turnManager.turnState,
+                    abilitySystem: abilitySystem,
+                    isCharacterTurn: turnManager.isCharacterTurn,
+                    onCharacterUpdate: handleCharacterUpdate
+                  }}
+                />
+              </Suspense>
             ) : (
               <BattleMap
                 mapData={mapData}
@@ -647,20 +734,59 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
           }}
         />
       )}
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold text-red-500 font-cinzel">Combat Encounter</h1>
-        {/* TODO #58: Wrap debug buttons with process.env.NODE_ENV check to hide in production builds (e.g., {import.meta.env.DEV && <button>...}) */}
+      {/* Battle-map toolbar: title, biome pill, and the map/turn controls,
+          matching the tactical mockup's header row. */}
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <h1 className="font-cinzel text-2xl font-bold tracking-wide text-amber-300">
+          <span className="text-amber-500">⚜</span> Battle Map <span className="text-amber-500">⚜</span>
+        </h1>
+        <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600/70 bg-slate-800/80 px-3 py-1.5 text-sm font-semibold text-slate-200">
+          {BIOME_META[biome]?.icon ?? '🗺'} {BIOME_META[biome]?.label ?? biome}
+        </span>
         <button
-          onClick={() => forceOutcome('victory')} // Debug escape hatch
-          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg shadow text-sm"
+          onClick={() => {
+            // Rerolling the battlefield mid-fight is destructive to the tactical
+            // situation; a mis-click should not silently discard positioning.
+            if (window.confirm('Generate a new battlefield? Combatants will be repositioned.')) handleNewMap();
+          }}
+          className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_GREEN}`}
         >
-          Debug: Auto-Win
+          <span>🗺</span> New Map
+        </button>
+        <button
+          onClick={turnManager.endTurn}
+          disabled={!currentCharacter || !turnManager.isCharacterTurn(currentCharacter.id)}
+          className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_ORANGE} disabled:cursor-not-allowed disabled:opacity-40`}
+        >
+          <span>⚔</span> End Turn
+        </button>
+        <button
+          onClick={() => setRenderMode(renderMode === '2d' ? (hasInPlaceHandoff ? 'inplace' : '3d') : '2d')}
+          className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_INDIGO}`}
+        >
+          <span>🎲</span> {renderMode === '2d' ? '3D View' : '2D View'}
+        </button>
+        {/* TODO #58: Wrap debug buttons with process.env.NODE_ENV check to hide in production builds. */}
+        <button
+          onClick={() => {
+            if (window.confirm('End the battle now? Remaining enemies will be discarded.')) forceOutcome('victory');
+          }}
+          className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_RED} ml-auto`}
+        >
+          End Battle
         </button>
       </div>
 
-      <div className="flex-grow min-h-0 grid grid-cols-1 xl:grid-cols-[200px_1fr_200px] gap-4 overflow-hidden">
+      {/* Below the desktop three-column layout, show the battlefield first.
+          Small screens use one normal page scroll so roster cards cannot be
+          clipped by nested rail scrolling; the xl desktop rail keeps its
+          bounded scroll behavior inside the tactical shell. */}
+      <div className="grid flex-grow grid-cols-1 gap-4 overflow-visible xl:min-h-0 xl:grid-cols-[230px_1fr_300px] xl:overflow-hidden">
         {/* Left Pane */}
-        <div className="flex flex-col gap-4 overflow-y-auto scrollable-content p-1">
+        <div
+          data-testid="combat-roster-rail"
+          className="order-2 flex min-h-[18rem] max-h-none flex-col gap-4 overflow-visible scrollable-content p-1 xl:order-none xl:min-h-0 xl:max-h-none xl:overflow-y-auto"
+        >
           <PartyDisplay
             characters={characters}
             onCharacterSelect={handleCharacterSelect}
@@ -671,43 +797,52 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
           />
         </div>
 
-        {/* Center Pane */}
-        <div className="flex min-h-0 flex-col gap-2 overflow-hidden p-1">
-          <InitiativeTracker
-            characters={characters}
-            turnState={turnManager.turnState}
-            onCharacterSelect={handleSheetOpen}
-            onSkipToCharacter={turnManager.skipToCharacter}
-          />
-          {/*
-            The map pane owns the remaining combat-center space. min-h-0 keeps
-            the surrounding grid/flex layout from forcing a scroll-sized child,
-            while the framed 3D mode gives the canvas a stable box to measure.
-          */}
+        {/* Center Pane — the map owns the whole center space; the turn order now
+            lives in the right rail (matching the mockup). min-h-0 keeps the
+            surrounding grid/flex layout from forcing a scroll-sized child. */}
+        <div
+          ref={battlefieldSectionRef}
+          className="order-1 flex h-[26rem] shrink-0 flex-col gap-2 overflow-hidden p-1 xl:order-none xl:h-auto xl:min-h-0 xl:shrink"
+        >
           <div
-            className={`relative flex min-h-0 flex-1 items-center justify-center ${
-              renderMode === '3d'
-                ? 'overflow-hidden rounded-lg border border-sky-500/35 bg-slate-950 shadow-[0_0_0_1px_rgba(15,23,42,0.85),0_18px_50px_rgba(0,0,0,0.35)]'
-                : 'overflow-auto'
+            className={`relative flex min-h-0 flex-1 items-center justify-center overflow-hidden ${
+              renderMode !== '2d'
+                ? 'rounded-lg border border-sky-500/35 bg-slate-950 shadow-[0_0_0_1px_rgba(15,23,42,0.85),0_18px_50px_rgba(0,0,0,0.35)]'
+                : ''
             }`}
           >
-            {/* Map controls: 2D/3D toggle + Pop-out */}
+            {/* Intent preview: shows what the selected ability will do while the
+                player is picking a target on the grid. */}
+            {renderMode === '2d' && abilitySystem.targetingMode && abilitySystem.selectedAbility && (
+              <CombatIntentPreview
+                ability={abilitySystem.selectedAbility}
+                casterName={currentCharacter?.name}
+              />
+            )}
+            {/* Map controls: view toggle + Pop-out */}
             {!isBattleMapExpanded && (
-              <div className="absolute top-2 right-2 z-10 flex gap-1">
-                {/* [2026-05-21] 2D/3D render mode toggle */}
+              <div className="absolute top-2 right-2 z-10 flex gap-2">
+                {/* [2026-05-21] render-mode toggle.
+                    [2026-07-05] In an in-place fight the toggle flips between the
+                    in-world surface ('inplace') and the always-available 2D board;
+                    otherwise it's the classic 2D/3D swap. */}
                 <button
-                  onClick={() => setRenderMode(renderMode === '2d' ? '3d' : '2d')}
-                  className="text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-gray-700/80 bg-gray-800/60 transition-colors text-xs font-bold"
-                  title={`Switch to ${renderMode === '2d' ? '3D' : '2D'} view`}
+                  onClick={() =>
+                    setRenderMode(
+                      renderMode === '2d' ? (hasInPlaceHandoff ? 'inplace' : '3d') : '2d',
+                    )
+                  }
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded bg-gray-800/60 px-3 py-2 text-sm font-bold text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white"
+                  title={`Switch to ${renderMode === '2d' ? (hasInPlaceHandoff ? 'in-world' : '3D') : '2D'} view`}
                 >
-                  {renderMode === '2d' ? '3D' : '2D'}
+                  {renderMode === '2d' ? (hasInPlaceHandoff ? 'World' : '3D') : '2D'}
                 </button>
                 <button
                   onClick={() => setIsBattleMapExpanded(true)}
-                  className="text-gray-400 hover:text-white p-1 rounded hover:bg-gray-700/80 bg-gray-800/60 transition-colors"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded bg-gray-800/60 text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white"
                   title="Pop out battle map into resizable window"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                   </svg>
                 </button>
@@ -717,19 +852,33 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
               {isBattleMapExpanded ? (
                 <div className="text-gray-400 text-sm italic">Battle map is popped out.</div>
               ) : characters.length > 0 && mapData ? (
-                renderMode === '3d' ? (
-                  <BattleMap3D
-                    mapData={mapData}
-                    characters={characters}
-                    spellMapArtifacts={spellMapArtifacts}
-                    combatState={{
-                      turnManager: turnManager,
-                      turnState: turnManager.turnState,
-                      abilitySystem: abilitySystem,
-                      isCharacterTurn: turnManager.isCharacterTurn,
-                      onCharacterUpdate: handleCharacterUpdate
-                    }}
-                  />
+                renderMode === 'inplace' ? (
+                  <Suspense fallback={<Battle3DLoadingFallback />}>
+                    <InPlaceCombatScene
+                      characters={characters}
+                      mapData={mapData}
+                      currentCharacterId={turnManager.turnState.currentCharacterId}
+                      onCommitMove={(action) => { void turnManager.executeAction(action); }}
+                      onNotify={(message) =>
+                        dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now().toString(), message, type: 'warning', duration: 2500 } })
+                      }
+                    />
+                  </Suspense>
+                ) : renderMode === '3d' ? (
+                  <Suspense fallback={<Battle3DLoadingFallback />}>
+                    <BattleMap3D
+                      mapData={mapData}
+                      characters={characters}
+                      spellMapArtifacts={spellMapArtifacts}
+                      combatState={{
+                        turnManager: turnManager,
+                        turnState: turnManager.turnState,
+                        abilitySystem: abilitySystem,
+                        isCharacterTurn: turnManager.isCharacterTurn,
+                        onCharacterUpdate: handleCharacterUpdate
+                      }}
+                    />
+                  </Suspense>
                 ) : (
                   <BattleMap
                     mapData={mapData}
@@ -754,12 +903,46 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
           </div>
         </div>
 
-        {/* Right Pane */}
-        <div className="flex flex-col gap-4 overflow-y-auto scrollable-content p-1">
+        {/* Right Pane — turn order, action economy, abilities, and the log, in
+            the same top-to-bottom order as the mockup's right rail. */}
+        <div
+          data-testid="combat-command-rail"
+          className="order-3 flex min-h-[18rem] max-h-none flex-col gap-3 overflow-visible scrollable-content p-1 xl:order-none xl:min-h-0 xl:max-h-none xl:overflow-y-auto"
+        >
+          <InitiativeTracker
+            characters={characters}
+            turnState={turnManager.turnState}
+            onCharacterSelect={handleSheetOpen}
+            onSkipToCharacter={turnManager.skipToCharacter}
+          />
+          {currentCharacter && currentCharacter.team === 'player' && (
+            <>
+              {/* WHO the command rail belongs to: without this banner the
+                  Actions/Abilities panels are anonymous. */}
+              <div className="flex items-center gap-2 rounded-lg border border-amber-700/50 bg-slate-900/80 px-3 py-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-amber-400 bg-slate-800 text-sm font-black text-amber-200">
+                  {currentCharacter.name.charAt(0)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-bold text-amber-100">{currentCharacter.name}</div>
+                  <div className="text-[11px] font-semibold text-slate-300">
+                    HP {currentCharacter.currentHP}/{currentCharacter.maxHP}
+                  </div>
+                </div>
+                <span className="rounded bg-amber-700/60 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-100">
+                  Your turn
+                </span>
+              </div>
+              <ActionEconomyBar
+                character={currentCharacter}
+                onExecuteAction={turnManager.executeAction}
+              />
+            </>
+          )}
           {currentCharacter && currentCharacter.team === 'player' && (
             <AbilityPalette
               character={currentCharacter}
-              onSelectAbility={(ability) => abilitySystem.startTargeting(ability, currentCharacter)}
+              onSelectAbility={(ability) => handleAbilitySelect(ability, currentCharacter)}
               canAffordAction={(cost) => turnManager.canAffordAction(currentCharacter, cost)}
             />
           )}
@@ -770,16 +953,6 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                 color coding (via getMessageColor) and priority-based left borders.
                 Set to false to revert to the original simple text display. */}
           <CombatLog logEntries={combatLog} richMessages={messaging.messages} useRichDisplay={true} />
-
-          <div className="mt-auto">
-            <button
-              onClick={turnManager.endTurn}
-              disabled={!currentCharacter || !turnManager.isCharacterTurn(currentCharacter.id)}
-              className="w-full px-5 py-3 bg-orange-600 hover:bg-orange-500 rounded-lg shadow disabled:bg-gray-600 font-bold text-lg"
-            >
-              End Turn
-            </button>
-          </div>
         </div>
       </div>
     </div>

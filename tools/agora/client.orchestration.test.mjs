@@ -82,3 +82,47 @@ test('orchestration flow: deps + priority + next + done --result + ready view', 
   assert.equal(dry.task, null);
   assert.match(dry.lines.join('\n'), /no ready tasks/);
 });
+
+test('campaign commands: lead claims, overlap conflicts, list view, and task namespace', async () => {
+  const leadEnv = { ...env, AGORA_AGENT_ID: 'campaign-cli-lead' };
+  const rivalEnv = { ...env, AGORA_AGENT_ID: 'campaign-cli-rival' };
+  const leadCli = (argv) => run(argv, { env: leadEnv, baseUrl });
+  const rivalCli = (argv) => run(argv, { env: rivalEnv, baseUrl });
+
+  await leadCli(['register', 'campaign-cli-lead']);
+  await rivalCli(['register', 'campaign-cli-rival']);
+
+  // The lead command records the owning scope on the board.
+  const claim = await leadCli([
+    'campaign', 'claim', 'cli-governance',
+    '--role', 'lead',
+    '--scope', 'Agora CLI governance',
+    '--glob', 'tools/agora/**',
+    '--wave', 'cli-wave',
+  ]);
+  assert.equal(claim.code, 0);
+  assert.equal(claim.campaign.id, 'cli-governance');
+
+  // A rival lead sees a hard conflict before any tasks are seeded.
+  const conflict = await rivalCli([
+    'campaign', 'claim', 'cli-rival',
+    '--role', 'lead',
+    '--scope', 'competing CLI wave',
+    '--path', 'tools/agora/client.mjs',
+  ]);
+  assert.equal(conflict.code, 1);
+  assert.match(conflict.lines.join('\n'), /overlaps active lead campaign/);
+
+  const task = await leadCli([
+    'task', 'new', 'campaign-scoped task',
+    '--campaign', 'cli-governance',
+    '--wave', 'cli-wave',
+  ]);
+  assert.equal(task.code, 0);
+  assert.equal(task.task.campaignId, 'cli-governance');
+
+  const listed = await leadCli(['campaigns']);
+  assert.equal(listed.code, 0);
+  assert.match(listed.lines.join('\n'), /cli-governance/);
+  assert.match(listed.lines.join('\n'), /lead/);
+});

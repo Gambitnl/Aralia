@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 05/07/2026, 08:20:56
+ * Dependents: App.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -31,9 +47,6 @@ export const OpeningSituationGate: React.FC<OpeningSituationGateProps> = ({ game
     useOpeningSituation(gameState, dispatch, options);
 
     const status = gameState.gameEntry?.status ?? 'idle';
-    // This shared dismiss path removes only the failed opening overlay. It keeps
-    // the no-fallback promise intact because no substitute scene is created.
-    const skipOpening = () => dispatch({ type: 'SKIP_OPENING_SITUATION' });
 
     // While the gate owns the entry screen (generating / model-unavailable) it is
     // the single Ollama-status surface. Clear any co-occurring GLOBAL
@@ -86,19 +99,15 @@ export const OpeningSituationGate: React.FC<OpeningSituationGateProps> = ({ game
                         </p>
                     )}
                     <div className="flex justify-end gap-3">
-                        <button
-                            type="button"
-                            data-testid="opening-situation-dismiss"
-                            onClick={skipOpening}
-                            className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold transition-colors"
-                        >
-                            Dismiss
-                        </button>
+                        {/* The live play surface still requires a real generated
+                            opening context. Do not offer a "Dismiss" bypass here:
+                            it removes this honest blocker and strands the player
+                            on the generic error boundary instead. */}
                         <button
                             type="button"
                             data-testid="opening-situation-retry"
                             onClick={() => dispatch({ type: 'BEGIN_OPENING_SITUATION' })}
-                            className="px-4 py-2 rounded bg-amber-600 hover:bg-amber-500 text-gray-900 font-semibold transition-colors"
+                            className="min-h-11 px-4 py-2 rounded bg-amber-600 hover:bg-amber-500 text-gray-900 font-semibold transition-colors"
                         >
                             Retry
                         </button>

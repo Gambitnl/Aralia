@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/06/2026, 09:47:18
+ * Last Sync: 05/07/2026, 10:13:14
  * Dependents: components/Worldforge/AtlasDemo.tsx
  * Imports: 3 files
  *
@@ -55,6 +55,14 @@ interface RegionCacheView {
   seedPath: string;
   biomeColor?: string;
 }
+
+/**
+ * L1 map readout placement. On cramped map panes the global Worldforge
+ * controls occupy the top-left corner, so this chip moves below them without
+ * changing the desktop placement.
+ */
+export const regionMapInfoChipClassName =
+  "absolute top-40 left-2 right-2 z-10 bg-gray-900/80 backdrop-blur-md px-3 py-2 rounded-lg border border-gray-800 pointer-events-none select-none font-mono sm:top-4 sm:left-4 sm:right-auto";
 
 const RegionMapView: React.FC<RegionMapViewProps> = ({
   region,
@@ -345,7 +353,7 @@ const RegionMapView: React.FC<RegionMapViewProps> = ({
       />
 
       {/* Floating Info Overlay (Left) */}
-      <div className="absolute top-4 left-4 z-10 bg-gray-900/80 backdrop-blur-md px-3 py-2 rounded-lg border border-gray-800 pointer-events-none select-none font-mono">
+      <div className={regionMapInfoChipClassName}>
         <div className="text-xs text-gray-400">
           Region Size: <span className="text-white font-bold">{Math.round(region.bounds.width).toLocaleString()} × {Math.round(region.bounds.height).toLocaleString()} ft</span>
         </div>
@@ -358,12 +366,13 @@ const RegionMapView: React.FC<RegionMapViewProps> = ({
         Press <span className="text-indigo-400 font-bold bg-gray-950 px-1 py-0.5 rounded border border-gray-800">ESC</span> or zoom out past floor to ascend
       </div>
 
-      {/* Zoom Controls Overlay (Right) */}
+      {/* Zoom Controls Overlay (Right). These are touch targets in cramped
+          map panes, so keep icon-only controls at the shared 44px floor. */}
       <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 bg-gray-900/80 backdrop-blur-md p-1.5 rounded-lg border border-gray-800 shadow-lg">
         <button
           type="button"
           onClick={() => zoomAtCenter(true)}
-          className="p-1.5 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
           title="Zoom In"
         >
           <ZoomIn size={18} />
@@ -371,7 +380,7 @@ const RegionMapView: React.FC<RegionMapViewProps> = ({
         <button
           type="button"
           onClick={resetView}
-          className="p-1.5 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
           title="Reset View"
         >
           <Maximize size={18} />
@@ -379,7 +388,7 @@ const RegionMapView: React.FC<RegionMapViewProps> = ({
         <button
           type="button"
           onClick={() => zoomAtCenter(false)}
-          className="p-1.5 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
           title="Zoom Out"
         >
           <ZoomOut size={18} />
