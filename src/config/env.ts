@@ -12,6 +12,16 @@ interface EnvConfig {
   DEV: boolean;
   VITE_ENABLE_DEV_TOOLS: boolean;
   VITE_ENABLE_PORTRAITS: boolean;
+  /**
+   * Public Google OAuth 2.0 client ID used for the optional "Sign in with
+   * Google" path to the Gemini fallback. This is NOT a secret and NOT an API
+   * key — it only identifies this deployment of Aralia to Google's consent
+   * screen. When empty, the OAuth button is hidden and players use the
+   * API-key path instead. Set via VITE_GOOGLE_CLIENT_ID by whoever deploys.
+   */
+  GOOGLE_CLIENT_ID: string;
+  /** OAuth scopes requested when signing in with Google (space-separated). */
+  GOOGLE_OAUTH_SCOPE: string;
 }
 
 // Access raw environment variables
@@ -60,9 +70,38 @@ const getImageApiKey = () => {
   return getApiKey();
 };
 
+const getGoogleClientId = (): string => {
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+    return import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  }
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '';
+  }
+  return '';
+};
+
+// Default scope for calling the Gemini (Generative Language) API on behalf of
+// the signed-in user. `cloud-platform` authorizes generateContent when the
+// user's Google Cloud project has the Generative Language API enabled; the
+// `userinfo.email` scope is only used to label the connected account in the UI.
+const DEFAULT_GOOGLE_OAUTH_SCOPE =
+  'https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/userinfo.email';
+
+const getGoogleOAuthScope = (): string => {
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GOOGLE_OAUTH_SCOPE) {
+    return import.meta.env.VITE_GOOGLE_OAUTH_SCOPE;
+  }
+  if (typeof process !== 'undefined' && process.env && process.env.VITE_GOOGLE_OAUTH_SCOPE) {
+    return process.env.VITE_GOOGLE_OAUTH_SCOPE;
+  }
+  return DEFAULT_GOOGLE_OAUTH_SCOPE;
+};
+
 const RAW_ENV = {
   API_KEY: getApiKey(),
   IMAGE_API_KEY: getImageApiKey(),
+  GOOGLE_CLIENT_ID: getGoogleClientId(),
+  GOOGLE_OAUTH_SCOPE: getGoogleOAuthScope(),
   BASE_URL: (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.BASE_URL : '/',
   DEV: (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.DEV : true,
 
@@ -88,6 +127,8 @@ const normalizedBaseUrl = RAW_ENV.BASE_URL.endsWith('/')
 export const ENV: EnvConfig = {
   API_KEY: RAW_ENV.API_KEY,
   IMAGE_API_KEY: RAW_ENV.IMAGE_API_KEY,
+  GOOGLE_CLIENT_ID: RAW_ENV.GOOGLE_CLIENT_ID,
+  GOOGLE_OAUTH_SCOPE: RAW_ENV.GOOGLE_OAUTH_SCOPE,
   BASE_URL: normalizedBaseUrl,
   DEV: RAW_ENV.DEV,
   // If not explicitly set, fall back to DEV to mirror previous “always on in dev” behavior.
