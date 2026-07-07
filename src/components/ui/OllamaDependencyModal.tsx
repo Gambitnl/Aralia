@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/06/2026, 01:11:44
+ * Last Sync: 08/07/2026, 01:10:13
  * Dependents: components/DesignPreview/steps/PreviewComponents.tsx, components/layout/GameModals.tsx
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -36,6 +36,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './Button';
 import { Checkbox, Input } from './Input';
+import { GeminiFallbackSettings } from './GeminiFallbackSettings';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
 import {
@@ -342,6 +343,10 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                           <li>Make sure it is running (it serves on <code className="bg-gray-800 px-1 rounded">localhost:11434</code>), then retry.</li>
                         </ol>
                       </div>
+
+                      {/* Cloud alternative: let players who don't want a local model
+                          supply their own Google Gemini credential instead. */}
+                      <GeminiFallbackSettings />
                     </div>
 
                     {/* --- Groq cloud provider toggle --------------------------------
