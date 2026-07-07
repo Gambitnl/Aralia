@@ -76,6 +76,8 @@ interface GameLayoutProps {
     playerWorldPos?: PlayerWorldPosition | null;
     /** Optional sibling control for switching between the available 2D map surfaces. */
     surfaceToggle?: React.ReactNode;
+    /** Opens the glossary at a term — used by the party-condition chips' rule links. */
+    onNavigateToGlossary?: (termId: string) => void;
 }
 
 /**
@@ -101,6 +103,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     disabled,
     onAction,
     surfaceToggle,
+    onNavigateToGlossary,
 }) => {
     const openWorldMap = () => onAction({ type: 'toggle_map', label: 'Open World Map' });
     // PRV6: union of every member's active conditions — travel consequences
@@ -129,7 +132,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-300">
                             Party status
                         </span>
-                        <ConditionChips conditions={partyConditions} />
+                        <ConditionChips conditions={partyConditions} onNavigateToGlossary={onNavigateToGlossary} />
                     </div>
                 )}
                 {/* Grid retirement: the 30x20 compass is removed. Overland travel is

@@ -27,12 +27,45 @@ import type {
 } from '../../types/ollama';
 import { emitOllamaLog } from '../ollama/ollamaLogSink';
 import { generateId } from '../../utils/core/idGenerator';
-import { getAiTextProvider, getGroqApiKey, getGroqModel } from './aiProviderSettings';
+import {
+  getAiTextProvider,
+  getGroqApiKey,
+  getGroqModel,
+  getGroqKeyStorage,
+  getGroqProxyUrl,
+} from './aiProviderSettings';
 import { groqGenerateForTask, groqChatForTask } from './groqTextProvider';
+import type { GroqCallContext } from './groqTextProvider';
 
 /** True when the active provider is Groq (drives whether the client delegates). */
 export function isGroqActive(): boolean {
   return getAiTextProvider() === 'groq';
+}
+
+/**
+ * Build the Groq call context from the persisted key-handling settings, and
+ * report the one missing prerequisite (if any) so the router can fail honestly
+ * BEFORE any network call:
+ *   - local/session — a key must be present, else `NO_GROQ_KEY`.
+ *   - proxy         — no browser key is needed; a proxy URL must resolve, else
+ *                     `NO_GROQ_PROXY_URL` (getGroqProxyUrl always returns a
+ *                     default, so this is defensive only).
+ */
+function buildGroqContext(): { ctx: GroqCallContext; missing?: string } {
+  const keyStorage = getGroqKeyStorage();
+  const model = getGroqModel();
+  if (keyStorage === 'proxy') {
+    const proxyUrl = getGroqProxyUrl();
+    return {
+      ctx: { apiKey: '', model, keyStorage, proxyUrl },
+      missing: proxyUrl ? undefined : 'NO_GROQ_PROXY_URL',
+    };
+  }
+  const apiKey = getGroqApiKey();
+  return {
+    ctx: { apiKey, model, keyStorage },
+    missing: apiKey ? undefined : 'NO_GROQ_KEY',
+  };
 }
 
 /**
@@ -52,14 +85,14 @@ export async function routeGenerateForTask(options: {
   const logId = generateId();
   emitOllamaLog({ id: logId, phase: 'start', taskType: options.taskType, prompt: options.prompt });
 
-  const apiKey = getGroqApiKey();
-  const model = getGroqModel();
-  if (!apiKey) {
-    emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, model, error: 'NO_GROQ_KEY' });
-    return { ok: false, error: 'NO_GROQ_KEY', model };
+  const { ctx, missing } = buildGroqContext();
+  const model = ctx.model;
+  if (missing) {
+    emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, model, error: missing });
+    return { ok: false, error: missing, model };
   }
 
-  const result = await groqGenerateForTask({ apiKey, model }, options);
+  const result = await groqGenerateForTask(ctx, options);
   if (!result.ok) {
     emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, model: result.model ?? model, error: result.error });
     return result;
@@ -86,14 +119,14 @@ export async function routeChatForTask(options: {
   const promptForLog = options.messages.map((m) => `[${m.role}] ${m.content}`).join('\n\n');
   emitOllamaLog({ id: logId, phase: 'start', taskType: options.taskType, prompt: promptForLog });
 
-  const apiKey = getGroqApiKey();
-  const model = getGroqModel();
-  if (!apiKey) {
-    emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, model, error: 'NO_GROQ_KEY' });
-    return { ok: false, error: 'NO_GROQ_KEY', model };
+  const { ctx, missing } = buildGroqContext();
+  const model = ctx.model;
+  if (missing) {
+    emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, model, error: missing });
+    return { ok: false, error: missing, model };
   }
 
-  const result = await groqChatForTask({ apiKey, model }, options);
+  const result = await groqChatForTask(ctx, options);
   if (!result.ok) {
     emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, model: result.model ?? model, error: result.error });
     return result;

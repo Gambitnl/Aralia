@@ -6,6 +6,7 @@
  */
 
 import {
+  buildInterior,
   buildInteriorParts,
   buildBlueprintParts,
   ROOF_PART_TAG,
@@ -427,6 +428,129 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     expect(buildBlueprintParts(bp, 3, PERIMETER_WALL_COLORS.house, false))
       .toEqual(buildBlueprintParts(bp, 3, PERIMETER_WALL_COLORS.house, false));
   });
+});
+
+// ── Roof seating regression (BGv2 Phase 1B, 2026-07-07). The town bake (the
+// REAL path: groundChunkLoader → buildInterior with shellHeightM = storeys×3)
+// must land the solved roof's EAVE on the above-grade envelope top for every
+// storey count, with and without a basement — otherwise tall buildings render
+// as open-topped boxes with the roof sunk a storey below the wall tops. This
+// asserts straight off the bridge output (buildInterior's roof group in
+// METERS), the real defect's oracle: the roof's lowest vertex (the eave) sits
+// at the above-grade wall/ceiling top, allowing only the pitch eave overhang
+// (~0.5 ft = 0.152 m) below it and never a whole storey.
+describe('roof eave seats on the above-grade wall top (town bake)', () => {
+  const FT_M = 0.3048;
+  const METERS_PER_STOREY = 3; // groundChunkLoader: heightM = storeys * 3
+  const EAVE_OVERHANG_M = 0.6 * FT_M; // roof eave dips ≤ ~0.5 ft below wall top
+
+  // A styled house plot (style ⇒ the plan resolves a solved roof).
+  const stylePlot = (storeys: number): InteriorPlotInput => ({
+    id: 7,
+    footprint: [[1000, 2000], [1060, 2000], [1060, 2045], [1000, 2045]],
+    role: 'house',
+    storeys,
+    style: { cultureType: 'Generic', climate: 'temperate', wealth: 'common', ageBand: 'new' },
+  });
+
+  const roofMinY = (roof: { positions: Float32Array }): number => {
+    let m = Infinity;
+    for (let i = 1; i < roof.positions.length; i += 3) m = Math.min(m, roof.positions[i]);
+    return m;
+  };
+
+  for (const storeys of [1, 2, 3]) {
+    it(`${storeys}-storey: roof eave at the above-grade envelope top`, () => {
+      const plot = stylePlot(storeys);
+      const shellHeightM = storeys * METERS_PER_STOREY;
+      const built = buildInterior(plot, SEED_PATH, shellHeightM);
+      expect(built.roof).toBeDefined();
+      // The above-grade envelope top = storeys × per-storey height (all floors
+      // are above grade for these plots), in meters.
+      const wallTopM = storeys * (shellHeightM / storeys); // == shellHeightM
+      const eaveY = roofMinY(built.roof!);
+      // The eave sits at the wall top, dipping only the pitch overhang below it —
+      // never a whole storey (which would be the open-topped defect).
+      expect(eaveY).toBeGreaterThan(wallTopM - EAVE_OVERHANG_M - 1e-6);
+      expect(eaveY).toBeLessThanOrEqual(wallTopM + 1e-6);
+      // Hard guard against the reported symptom: the eave is NOT a storey low.
+      expect(wallTopM - eaveY).toBeLessThan(shellHeightM / storeys);
+    });
+  }
+
+  it('roof eave still seats correctly WITH a basement (below-grade floor ignored)', () => {
+    // A tavern almost always digs a cellar (BASEMENT_CHANCE). The below-grade
+    // floor must NOT push the roof down: the eave stays on the ABOVE-grade top.
+    const plot: InteriorPlotInput = {
+      id: 9,
+      footprint: [[1000, 2000], [1060, 2000], [1060, 2045], [1000, 2045]],
+      role: 'tavern',
+      storeys: 2,
+      style: { cultureType: 'Generic', climate: 'temperate', wealth: 'common', ageBand: 'new' },
+    };
+    const shellHeightM = 2 * METERS_PER_STOREY; // above-grade storeys only
+    const built = buildInterior(plot, SEED_PATH, shellHeightM);
+    expect(built.roof).toBeDefined();
+    const eaveY = roofMinY(built.roof!);
+    expect(eaveY).toBeGreaterThan(shellHeightM - EAVE_OVERHANG_M - 1e-6);
+    expect(eaveY).toBeLessThanOrEqual(shellHeightM + 1e-6);
+  });
+});
+
+// ── Roof eave must OVERHANG the exterior wall (BGv2 Phase 1B, 2026-07-07).
+// The solver sets the eave `eaveOverhangFt` (1 ft) beyond the footprint grid
+// line, but the OUTER walls grow OUTWARD `OUTER_THICKNESS_FT` (1.5 ft) beyond
+// that same line — so the roof eave lands 0.5 ft INSIDE the outer wall face,
+// leaving the wall top exposed as a thin rim all around. On tall buildings that
+// exposed rim reads as an "open-topped box" (the roof looks recessed a storey).
+// The eave must reach AT LEAST the outer wall face (ideally overhang it), so the
+// roof caps the wall with no exposed rim.
+describe('roof eave overhangs the exterior wall (no exposed rim)', () => {
+  const FT_M = 0.3048;
+  const PERIM = new Set(Object.values(PERIMETER_WALL_COLORS));
+
+  const stylePlot = (storeys: number, role = 'house'): InteriorPlotInput => ({
+    id: 3,
+    footprint: [[1000, 2000], [1060, 2000], [1060, 2045], [1000, 2045]],
+    role,
+    storeys,
+    style: { cultureType: 'Generic', climate: 'temperate', wealth: 'common', ageBand: 'new' },
+  });
+
+  // Half-extent (max |coord| + half-size) of the perimeter walls vs the roof
+  // eave ring (roof vertices at the minimum Y), in the shared site-local frame.
+  const extents = (built: ReturnType<typeof buildInterior>) => {
+    let wallX = -Infinity, wallZ = -Infinity;
+    for (const p of built.parts) {
+      if (!PERIM.has(p.colorHex)) continue;
+      if ((p.baseY ?? 0) < -0.01) continue;
+      wallX = Math.max(wallX, Math.abs(p.x) + p.w / 2);
+      wallZ = Math.max(wallZ, Math.abs(p.z) + p.d / 2);
+    }
+    const pos = built.roof!.positions;
+    let eaveY = Infinity;
+    for (let i = 1; i < pos.length; i += 3) eaveY = Math.min(eaveY, pos[i]);
+    let eaveX = -Infinity, eaveZ = -Infinity;
+    for (let i = 0; i < pos.length; i += 3) {
+      if (Math.abs(pos[i + 1] - eaveY) < 0.05) {
+        eaveX = Math.max(eaveX, Math.abs(pos[i]));
+        eaveZ = Math.max(eaveZ, Math.abs(pos[i + 2]));
+      }
+    }
+    return { wallX, wallZ, eaveX, eaveZ };
+  };
+
+  for (const storeys of [1, 2, 3]) {
+    it(`${storeys}-storey: roof eave reaches beyond the outer wall face`, () => {
+      const built = buildInterior(stylePlot(storeys), SEED_PATH, storeys * 3);
+      expect(built.roof).toBeDefined();
+      const { wallX, wallZ, eaveX, eaveZ } = extents(built);
+      // The eave must cover the wall top — reach AT LEAST the outer face (a hair
+      // of tolerance), so no exposed wall rim rings the roof.
+      expect(eaveX).toBeGreaterThanOrEqual(wallX - 1e-6);
+      expect(eaveZ).toBeGreaterThanOrEqual(wallZ - 1e-6);
+    });
+  }
 });
 
 describe('multi-storey parts', () => {

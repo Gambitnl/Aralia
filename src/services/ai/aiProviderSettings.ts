@@ -10,14 +10,32 @@
  * there is exactly one place that knows the localStorage keys and defaults.
  *
  * SECURITY (locked decision, 2026-07-06): the Groq API key is USER-ENTERED and
- * lives ONLY in this browser's localStorage. It is NEVER read from
- * import.meta.env, a Vite `define`, or any build-time constant — that class of
- * mistake leaked the Gemini key. Nothing in this module (or the Groq provider)
- * touches the bundle for the key; grep for `import.meta.env` here returns
- * nothing on purpose.
+ * NEVER read from import.meta.env, a Vite `define`, or any build-time constant
+ * — that class of mistake leaked the Gemini key. Nothing in this module (or the
+ * Groq provider) touches the bundle for the key; grep for `import.meta.env`
+ * here returns nothing on purpose.
+ *
+ * The player picks HOW the key is handled ({@link GroqKeyStorage}): persist it
+ * in localStorage (`local`), keep it in sessionStorage only (`session`), or
+ * never store it in the browser and route through a local proxy (`proxy`). The
+ * key accessors read/write from the store the active mode selects.
  */
 
 export type AiTextProvider = 'ollama' | 'groq';
+
+/**
+ * How the Groq API key is handled — the player picks the trade-off:
+ *   - `local`   — key in localStorage (persists across sessions; current default).
+ *                 Convenient, but readable by any script that runs in the page,
+ *                 so an XSS compromise of the app could exfiltrate it.
+ *   - `session` — key in sessionStorage (cleared when the tab closes). Same
+ *                 XSS surface while the tab is open, but a much smaller theft
+ *                 window and nothing left on disk.
+ *   - `proxy`   — NO key in the browser at all. Requests go to a local
+ *                 OpenAI-compatible proxy ({@link getGroqProxyUrl}) that injects
+ *                 the key server-side. XSS-proof for the key.
+ */
+export type GroqKeyStorage = 'local' | 'session' | 'proxy';
 
 /** Default Groq model — a fast, capable OpenAI-compatible chat model. */
 export const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
@@ -25,39 +43,63 @@ export const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 /** Default provider — local Ollama, matching the pre-Groq behavior. */
 export const DEFAULT_AI_TEXT_PROVIDER: AiTextProvider = 'ollama';
 
+/** Default key-handling mode — persistent localStorage (prior behavior). */
+export const DEFAULT_GROQ_KEY_STORAGE: GroqKeyStorage = 'local';
+
+/**
+ * Default local-proxy base URL (OpenAI-compatible). The provider appends
+ * `/chat/completions`. Points at a localhost proxy (the agent-matrix
+ * free-router serves this shape); the game never runs the proxy itself.
+ */
+export const DEFAULT_GROQ_PROXY_URL = 'http://localhost:8787/v1';
+
 /** localStorage keys. Namespaced so they don't collide with other prefs. */
 const LS_PROVIDER = 'aralia.ai.textProvider';
 const LS_GROQ_KEY = 'aralia.ai.groqApiKey';
 const LS_GROQ_MODEL = 'aralia.ai.groqModel';
+const LS_GROQ_KEY_STORAGE = 'aralia.ai.groqKeyStorage';
+const LS_GROQ_PROXY_URL = 'aralia.ai.groqProxyUrl';
+
+type WebStorageKind = 'local' | 'session';
 
 /**
- * Guarded localStorage access. SSR / test / private-mode safe: any environment
- * without a usable localStorage behaves as "no settings stored" rather than
- * throwing.
+ * Resolve the requested Web Storage, or null when it is unavailable (SSR /
+ * test / private-mode). Callers treat null as "no settings stored".
  */
-function readItem(key: string): string | null {
+function getStore(kind: WebStorageKind): Storage | null {
   try {
-    if (typeof window === 'undefined' || !window.localStorage) return null;
-    return window.localStorage.getItem(key);
+    if (typeof window === 'undefined') return null;
+    return kind === 'session' ? window.sessionStorage : window.localStorage;
   } catch {
     return null;
   }
 }
 
-function writeItem(key: string, value: string): void {
+/**
+ * Guarded Web Storage read. SSR / test / private-mode safe: any environment
+ * without a usable store behaves as "no settings stored" rather than throwing.
+ * Defaults to localStorage; the key accessors pass `session` for session mode.
+ */
+function readItem(key: string, kind: WebStorageKind = 'local'): string | null {
   try {
-    if (typeof window === 'undefined' || !window.localStorage) return;
-    window.localStorage.setItem(key, value);
+    return getStore(kind)?.getItem(key) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function writeItem(key: string, value: string, kind: WebStorageKind = 'local'): void {
+  try {
+    getStore(kind)?.setItem(key, value);
   } catch {
     // Storage may be full or blocked (private mode). A failed write is not
     // fatal — the caller simply keeps the previous (or default) setting.
   }
 }
 
-function removeItem(key: string): void {
+function removeItem(key: string, kind: WebStorageKind = 'local'): void {
   try {
-    if (typeof window === 'undefined' || !window.localStorage) return;
-    window.localStorage.removeItem(key);
+    getStore(kind)?.removeItem(key);
   } catch {
     /* no-op — see writeItem */
   }
@@ -73,26 +115,90 @@ export function setAiTextProvider(provider: AiTextProvider): void {
   writeItem(LS_PROVIDER, provider === 'groq' ? 'groq' : 'ollama');
 }
 
-/** The user-entered Groq API key, or '' if none is stored. */
-export function getGroqApiKey(): string {
-  return (readItem(LS_GROQ_KEY) ?? '').trim();
+/**
+ * The current Groq key-handling mode (defaults to `local`). The mode itself is
+ * a preference, not a secret, so it always lives in localStorage.
+ */
+export function getGroqKeyStorage(): GroqKeyStorage {
+  const stored = readItem(LS_GROQ_KEY_STORAGE);
+  return stored === 'session' || stored === 'proxy' || stored === 'local'
+    ? stored
+    : DEFAULT_GROQ_KEY_STORAGE;
 }
 
 /**
- * Store (or clear) the Groq API key. An empty/whitespace value removes it so
- * `hasGroqApiKey()` correctly reports unavailable.
+ * Persist the key-handling mode. Switching AWAY from a key-bearing mode does
+ * NOT auto-migrate the key between stores — the caller re-enters/saves the key
+ * for the newly-selected store, and `proxy` intentionally keeps no key at all.
  */
-export function setGroqApiKey(key: string): void {
-  const trimmed = (key ?? '').trim();
+export function setGroqKeyStorage(mode: GroqKeyStorage): void {
+  writeItem(
+    LS_GROQ_KEY_STORAGE,
+    mode === 'session' || mode === 'proxy' ? mode : 'local'
+  );
+}
+
+/** The local proxy base URL for `proxy` mode (defaults to {@link DEFAULT_GROQ_PROXY_URL}). */
+export function getGroqProxyUrl(): string {
+  const stored = (readItem(LS_GROQ_PROXY_URL) ?? '').trim();
+  return stored || DEFAULT_GROQ_PROXY_URL;
+}
+
+/** Persist a proxy-URL override; empty value restores the default. */
+export function setGroqProxyUrl(url: string): void {
+  const trimmed = (url ?? '').trim();
   if (trimmed) {
-    writeItem(LS_GROQ_KEY, trimmed);
+    writeItem(LS_GROQ_PROXY_URL, trimmed);
   } else {
-    removeItem(LS_GROQ_KEY);
+    removeItem(LS_GROQ_PROXY_URL);
   }
 }
 
-/** True when a non-empty Groq key is stored — the availability signal. */
+/**
+ * Which Web Storage backs the key for a given mode. `proxy` never stores a key,
+ * so this is only meaningful for `local`/`session`; we map it to localStorage
+ * defensively (reads/writes are no-ops for proxy since the UI never calls them).
+ */
+function keyStoreFor(mode: GroqKeyStorage): WebStorageKind {
+  return mode === 'session' ? 'session' : 'local';
+}
+
+/**
+ * The user-entered Groq API key for the ACTIVE mode, or '' if none is stored.
+ * `local` reads localStorage, `session` reads sessionStorage, `proxy` never
+ * carries a key in the browser (always '').
+ */
+export function getGroqApiKey(): string {
+  const mode = getGroqKeyStorage();
+  if (mode === 'proxy') return '';
+  return (readItem(LS_GROQ_KEY, keyStoreFor(mode)) ?? '').trim();
+}
+
+/**
+ * Store (or clear) the Groq API key in the store selected by the active mode.
+ * An empty/whitespace value removes it so `hasGroqApiKey()` correctly reports
+ * unavailable. No-op in `proxy` mode (the browser must hold no key there).
+ */
+export function setGroqApiKey(key: string): void {
+  const mode = getGroqKeyStorage();
+  if (mode === 'proxy') return;
+  const store = keyStoreFor(mode);
+  const trimmed = (key ?? '').trim();
+  if (trimmed) {
+    writeItem(LS_GROQ_KEY, trimmed, store);
+  } else {
+    removeItem(LS_GROQ_KEY, store);
+  }
+}
+
+/**
+ * The availability signal for the active mode:
+ *   - `local`/`session` — a non-empty key is stored in the matching store.
+ *   - `proxy`           — always true; the browser holds no key, the proxy does.
+ *                         (A truly unreachable proxy fails honestly on first call.)
+ */
 export function hasGroqApiKey(): boolean {
+  if (getGroqKeyStorage() === 'proxy') return true;
   return getGroqApiKey().length > 0;
 }
 
@@ -119,6 +225,8 @@ export interface AiProviderSettings {
   provider: AiTextProvider;
   groqApiKey: string;
   groqModel: string;
+  groqKeyStorage: GroqKeyStorage;
+  groqProxyUrl: string;
   hasGroqKey: boolean;
 }
 
@@ -128,6 +236,8 @@ export function getAiProviderSettings(): AiProviderSettings {
     provider: getAiTextProvider(),
     groqApiKey,
     groqModel: getGroqModel(),
-    hasGroqKey: groqApiKey.length > 0,
+    groqKeyStorage: getGroqKeyStorage(),
+    groqProxyUrl: getGroqProxyUrl(),
+    hasGroqKey: hasGroqApiKey(),
   };
 }

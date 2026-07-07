@@ -203,5 +203,10 @@ describe('simulateHistory', () => {
     // Not every corpus must contain a failed tunnel; only assert the flag shape
     // when one appears. (If none appear the test is a no-op, which is honest.)
     expect(typeof sawFailed).toBe('boolean');
-  });
+    // testTimeout raised 5000 → 20000 (Remy ROOM-SIZE ×2, 2026-07-07): this sweep
+    // build+simulates up to 5 themes × 120 seeds until it finds one failed tunnel.
+    // Room area doubled → ~2× the cells per build+simulate → the sweep now brushes
+    // the 5 s default under parallel-file contention (it runs ~4 s ALONE). Expected
+    // 2× cost, not a runaway.
+  }, 20000);
 });

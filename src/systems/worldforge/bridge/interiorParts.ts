@@ -18,6 +18,7 @@ import { blueprintForPlot, generateInterior, type InteriorPlotInput } from '../i
 import { EXTERIOR, type InteriorRoom, type InteriorPlan } from '../interior/types';
 import type { BlueprintPlan } from '../interior/blueprintTypes';
 import { HEARTH_KINDS } from '../interior/occupancy';
+import { OUTER_THICKNESS_FT } from '../interior/walls';
 import { buildBuildingMeshData, buildRoofMeshData, type MeshBox } from '../../world3d/buildingModels';
 import type { ChunkGeometryArrays } from '../../world3d/types';
 import type { SeedPath } from '../seedPath';
@@ -61,6 +62,9 @@ export interface RoofPartGroup {
 const FT = 0.3048;
 /** Wall thickness, meters. */
 const WALL_T = 0.3;
+/** Extra roof-eave overhang past the outer wall face, feet — a small readable
+ *  eave so the roof caps the wall top instead of stopping flush/inside it. */
+const EAVE_CLEAR_FT = 0.5;
 /** Doorway clear width, feet (one 5 ft cell). */
 const DOOR_FT = 5;
 /** Single worn-plank floor color shared by every generated interior. */
@@ -338,18 +342,42 @@ function blueprintRoof(
   // the wallTopFt the roof solver used (generateBuilding: storeys * storeyFt).
   const storeyFt = storeyHeightM / FT;
   const aboveGradeStoreys = bp.floors.filter((f) => f.level >= 0).length;
-  const rm = buildRoofMeshData(bp.roof, aboveGradeStoreys * storeyFt);
+  const wallTopFt = aboveGradeStoreys * storeyFt;
+  const rm = buildRoofMeshData(bp.roof, wallTopFt);
 
   // Roof geometry group: plan feet → meters. The mesh Y axis is vertical, so a
   // MeshBox-frame (x, Y, z) point maps to the site frame the same way the box
   // parts do — center on the footprint (x−W/2, z−D/2) and scale by FT; Y is the
   // world-up baseY offset the renderer applies. Positions are [x, Y, z] triples.
+  //
+  // Eave-overhang fix (BGv2 Phase 1B): the solver sets the eave `eaveOverhangFt`
+  // (1 ft temperate) beyond the footprint grid line, but the OUTER walls grow
+  // OUTWARD `OUTER_THICKNESS_FT` (1.5 ft) beyond that same line — so a bare eave
+  // lands INSIDE the outer wall face, leaving the wall top exposed as a rim (on
+  // tall buildings that rim reads as an open-topped box). Push the EAVE ring
+  // (the roof's lowest vertices) OUTWARD from the footprint center so it clears
+  // the outer wall face by EAVE_CLEAR_FT. Only the eave ring moves — ridge/apex
+  // (higher Y) are untouched, so the pitch profile above the eave is unchanged.
   const src = rm.tris.positions;
+  // Eave = the roof's lowest plane vertices (in plan feet, before the FT scale).
+  let eaveZFt = Infinity;
+  for (let i = 1; i < src.length; i += 3) eaveZFt = Math.min(eaveZFt, src[i]);
+  const eaveOverhangFt = bp.roof.eaveOverhangFt;
+  // Feet to push the eave outward past its solved position so it reaches the
+  // outer wall face plus a small visible overhang.
+  const pushFt = Math.max(0, OUTER_THICKNESS_FT - eaveOverhangFt) + EAVE_CLEAR_FT;
   const positions = new Float32Array(src.length);
   for (let i = 0; i < src.length; i += 3) {
-    positions[i] = (src[i] - W / 2) * FT;       // x, centered
-    positions[i + 1] = src[i + 1] * FT;         // Y (already includes wallTopFt)
-    positions[i + 2] = (src[i + 2] - D / 2) * FT; // z, centered
+    let cx = src[i] - W / 2;       // centered plan feet (x)
+    let cz = src[i + 2] - D / 2;   // centered plan feet (z)
+    // Push only eave-level vertices outward, away from center on each axis.
+    if (pushFt > 0 && Math.abs(src[i + 1] - eaveZFt) < 1e-3) {
+      if (cx !== 0) cx += Math.sign(cx) * pushFt;
+      if (cz !== 0) cz += Math.sign(cz) * pushFt;
+    }
+    positions[i] = cx * FT;                 // x, centered (+ eave overhang)
+    positions[i + 1] = src[i + 1] * FT;     // Y (already includes wallTopFt)
+    positions[i + 2] = cz * FT;             // z, centered (+ eave overhang)
   }
   const roofColor = bp.styleResolved?.roofColor ?? perimeterColor;
   const trimColor = bp.styleResolved?.trimColor ?? perimeterColor;

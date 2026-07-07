@@ -43,6 +43,11 @@ import {
   setAiTextProvider,
   getGroqApiKey,
   setGroqApiKey,
+  getGroqKeyStorage,
+  setGroqKeyStorage,
+  getGroqProxyUrl,
+  setGroqProxyUrl,
+  type GroqKeyStorage,
 } from '../../services/ai/aiProviderSettings';
 
 interface OllamaDependencyModalProps {
@@ -75,22 +80,48 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
   const [groqKeyInput, setGroqKeyInput] = useState<string>(() =>
     typeof window !== 'undefined' ? getGroqApiKey() : ''
   );
+  // How the key is handled — the player's explicit choice of the security
+  // trade-off (persistent vs session-only vs never-in-browser proxy).
+  const [groqKeyStorage, setGroqKeyStorageState] = useState<GroqKeyStorage>(() =>
+    typeof window !== 'undefined' ? getGroqKeyStorage() : 'local'
+  );
+  const [groqProxyUrlInput, setGroqProxyUrlInput] = useState<string>(() =>
+    typeof window !== 'undefined' ? getGroqProxyUrl() : ''
+  );
   const [currentProvider, setCurrentProvider] = useState<'ollama' | 'groq'>(() =>
     typeof window !== 'undefined' ? getAiTextProvider() : 'ollama'
   );
 
-  // Keep the local view of provider/key in sync whenever the pane (re)opens,
-  // in case the setting changed elsewhere while it was closed.
+  // Keep the local view of provider/key/mode in sync whenever the pane
+  // (re)opens, in case a setting changed elsewhere while it was closed.
   useEffect(() => {
     if (!isOpen) return;
     setCurrentProvider(getAiTextProvider());
+    setGroqKeyStorageState(getGroqKeyStorage());
     setGroqKeyInput(getGroqApiKey());
+    setGroqProxyUrlInput(getGroqProxyUrl());
   }, [isOpen]);
 
+  // Switching mode persists the choice immediately, then re-reads the key from
+  // whichever store the new mode selects (proxy carries no key, so it clears).
+  const handleSelectKeyStorage = (mode: GroqKeyStorage) => {
+    setGroqKeyStorage(mode);
+    setGroqKeyStorageState(mode);
+    setGroqKeyInput(getGroqApiKey());
+  };
+
+  // In proxy mode there is no key in the browser: only a reachable proxy URL is
+  // required. Otherwise a key must be present. This gates the "Use Groq" button.
+  const canActivateGroq =
+    groqKeyStorage === 'proxy' ? groqProxyUrlInput.trim().length > 0 : groqKeyInput.trim().length > 0;
+
   const handleUseGroq = () => {
-    const key = groqKeyInput.trim();
-    if (!key) return; // The button is disabled without a key; guard anyway.
-    setGroqApiKey(key);
+    if (!canActivateGroq) return; // The button is disabled otherwise; guard anyway.
+    if (groqKeyStorage === 'proxy') {
+      setGroqProxyUrl(groqProxyUrlInput.trim());
+    } else {
+      setGroqApiKey(groqKeyInput.trim());
+    }
     setAiTextProvider('groq');
     setCurrentProvider('groq');
     if (onProviderChanged) {
@@ -325,26 +356,88 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                     >
                       <h3 className="text-sky-200 font-semibold mb-2">☁️ Use Groq cloud instead</h3>
                       <p className="text-sm text-gray-300 leading-relaxed mb-3">
-                        No local Ollama? Bring your own <strong>Groq</strong> API key and run the game's
-                        AI text on Groq's fast cloud models. Your key is stored only in this browser
-                        (never sent anywhere but Groq) and you can switch back to Ollama anytime.
+                        No local Ollama? Run the game's AI text on <strong>Groq</strong>'s fast cloud
+                        models. Choose how your key is handled below, then switch — you can go back to
+                        Ollama anytime.
                       </p>
-                      <Input
-                        type="password"
-                        label="Groq API key"
-                        placeholder="gsk_..."
-                        value={groqKeyInput}
-                        data-testid="groq-api-key-input"
-                        onChange={(e) => setGroqKeyInput(e.target.value)}
-                        autoComplete="off"
-                      />
+
+                      {/* Key-handling mode selector. Each option is a real
+                          security trade-off the player picks, with a one-line
+                          plain-English safety note. */}
+                      <fieldset data-testid="groq-key-mode" className="mb-3">
+                        <legend className="text-xs font-semibold text-sky-200 mb-1">How to handle your key</legend>
+                        <div className="flex flex-col gap-1">
+                          {([
+                            {
+                              mode: 'local' as const,
+                              title: 'Persistent',
+                              note: 'Saved in this browser; stays after you close the tab — but readable if the app is ever compromised (XSS).',
+                            },
+                            {
+                              mode: 'session' as const,
+                              title: 'Session-only',
+                              note: 'Kept only until you close the tab, then wiped. Smaller theft window; nothing left on disk.',
+                            },
+                            {
+                              mode: 'proxy' as const,
+                              title: 'Local proxy',
+                              note: 'Key never enters the browser — a local proxy holds it and adds it server-side. Safest.',
+                            },
+                          ]).map(({ mode, title, note }) => (
+                            <label
+                              key={mode}
+                              className={`flex items-start gap-2 rounded p-2 cursor-pointer border ${
+                                groqKeyStorage === mode
+                                  ? 'border-sky-500/60 bg-sky-500/10'
+                                  : 'border-transparent hover:bg-gray-800/60'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="groq-key-mode"
+                                value={mode}
+                                checked={groqKeyStorage === mode}
+                                onChange={() => handleSelectKeyStorage(mode)}
+                                data-testid={`groq-key-mode-${mode}`}
+                                className="mt-1 accent-sky-500"
+                              />
+                              <span className="min-w-0">
+                                <span className="block text-sm font-medium text-gray-100">{title}</span>
+                                <span className="block text-xs text-gray-400 leading-snug">{note}</span>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </fieldset>
+
+                      {groqKeyStorage === 'proxy' ? (
+                        <Input
+                          type="text"
+                          label="Local proxy URL"
+                          placeholder="http://localhost:8787/v1"
+                          value={groqProxyUrlInput}
+                          data-testid="groq-proxy-url-input"
+                          onChange={(e) => setGroqProxyUrlInput(e.target.value)}
+                          autoComplete="off"
+                        />
+                      ) : (
+                        <Input
+                          type="password"
+                          label="Groq API key"
+                          placeholder="gsk_..."
+                          value={groqKeyInput}
+                          data-testid="groq-api-key-input"
+                          onChange={(e) => setGroqKeyInput(e.target.value)}
+                          autoComplete="off"
+                        />
+                      )}
                       <div className="mt-3 flex flex-wrap items-center gap-2">
                         <Button
                           onClick={handleUseGroq}
                           variant="action"
                           size="sm"
                           className="min-h-11"
-                          disabled={!groqKeyInput.trim()}
+                          disabled={!canActivateGroq}
                           data-testid="groq-use-button"
                         >
                           {currentProvider === 'groq' ? 'Save key & retry' : 'Use Groq cloud'}

@@ -82,18 +82,24 @@ const MAUSOLEUM: ArchetypeData = {
   ],
   titlePatterns: ['The {N} Crypt', 'The {N} Mausoleum', 'The {N} Vaults', 'The Tomb of House {N}'],
   core: [
-    { purpose: 'stair', w: [3, 4], h: [4, 6], shape: 'rect', anchor: 'entry', dir: 'flow', corridor: [0, 0] },
-    { purpose: 'antechamber', w: [5, 7], h: [4, 6], shape: 'rect', anchor: 'prev', dir: 'flow', corridor: [0, 1] },
+    // ROOM-SIZE ×2 (Remy 2026-07-07): every dimension range is scaled ≈×1.4 so the
+    // interior FLOOR AREA of each room roughly DOUBLES — the crypt reads as grand
+    // burial HALLS, not cramped cells, and furniture (coffins/pews) sits as
+    // distinct pieces with aisle space rather than a packed 2-cell lattice. Cells
+    // stay 5 ft (feet-canon); the rooms are physically bigger. The small-vs-large
+    // hierarchy is preserved (a stair is still small next to the chapel hall).
+    { purpose: 'stair', w: [4, 6], h: [6, 8], shape: 'rect', anchor: 'entry', dir: 'flow', corridor: [0, 0] },
+    { purpose: 'antechamber', w: [7, 10], h: [6, 8], shape: 'rect', anchor: 'prev', dir: 'flow', corridor: [0, 1] },
     // The chapel is the DOMINANT central shape — biggest room on the plan, a large
     // octagon the entrance procession (stair → antechamber → chapel) reads toward.
     // Gallery wings spread around and behind it (see placeRepeats).
-    { purpose: 'chapel', w: [11, 14], h: [11, 14], shape: 'octagon', anchor: 'prev', dir: 'flow', corridor: [0, 1] },
+    { purpose: 'chapel', w: [15, 19], h: [15, 19], shape: 'octagon', anchor: 'prev', dir: 'flow', corridor: [0, 1] },
     // Treasury opens DIRECTLY off the chapel through a shared-wall door (no hall).
-    { purpose: 'treasury', w: [4, 6], h: [4, 6], shape: 'rect', anchor: 'chapel', dir: 'right', corridor: [0, 0] },
+    { purpose: 'treasury', w: [6, 8], h: [6, 8], shape: 'rect', anchor: 'chapel', dir: 'right', corridor: [0, 0] },
     // The spine itself is a corridor run the builder carves behind the chapel
     // (Task 3); the ossuary caps its far end.
-    { purpose: 'ossuary', w: [6, 8], h: [5, 7], shape: 'rect', anchor: 'spine', dir: 'flow', corridor: [0, 1] },
-    { purpose: 'embalming', w: [5, 7], h: [4, 6], shape: 'rect', anchor: 'antechamber', dir: 'left', corridor: [0, 0] },
+    { purpose: 'ossuary', w: [8, 11], h: [7, 10], shape: 'rect', anchor: 'spine', dir: 'flow', corridor: [0, 1] },
+    { purpose: 'embalming', w: [7, 10], h: [6, 8], shape: 'rect', anchor: 'antechamber', dir: 'left', corridor: [0, 0] },
   ],
   repeat: [
     // Galleries form room-through-room CHAINS: the first gallery of a wing attaches
@@ -101,7 +107,9 @@ const MAUSOLEUM: ArchetypeData = {
     // one through a shared-wall door (corridor 0-1). The player walks the spine a
     // little, then moves gallery → gallery → gallery without a hall. corridor
     // [0,1] is the chain door; the builder (placeRepeats) drives the chaining.
-    { purpose: 'burial-gallery', w: [6, 9], h: [7, 11], shape: 'rect', anchor: 'spine', dir: 'any', corridor: [0, 1] },
+    // ×2 size: a burial gallery is now ~8-13 × 10-15 cells (≈40 → ≈110 floor
+    // cells), a spacious hall of DISTINCT coffins with a real processional aisle.
+    { purpose: 'burial-gallery', w: [8, 13], h: [10, 15], shape: 'rect', anchor: 'spine', dir: 'any', corridor: [0, 1] },
   ],
   floodable: ['ossuary', 'burial-gallery'],
   eventWeights: {
@@ -146,18 +154,21 @@ const MINE: ArchetypeData = {
     'The Drowned {N} Workings',
   ],
   core: [
+    // ROOM-SIZE ×2 (Remy 2026-07-07): dimension ranges scaled ≈×1.4 → ≈2× floor
+    // area per chamber. The workings read as substantial caverns; the wide vein
+    // size band is preserved so it stays varied, not an egg carton.
     // The adit is the narrow entry corridor-room driven in from the surface.
-    { purpose: 'adit', w: [2, 3], h: [6, 9], shape: 'rect', anchor: 'entry', dir: 'flow', corridor: [0, 0] },
-    { purpose: 'hoist', w: [7, 9], h: [7, 9], shape: 'rect', anchor: 'prev', dir: 'flow', corridor: [1, 3] },
-    { purpose: 'tool-store', w: [4, 6], h: [4, 6], shape: 'rect', anchor: 'hoist', dir: 'left', corridor: [0, 1] },
-    { purpose: 'barracks', w: [6, 8], h: [6, 8], shape: 'rect', anchor: 'hoist', dir: 'right', corridor: [0, 1] },
+    { purpose: 'adit', w: [3, 4], h: [8, 13], shape: 'rect', anchor: 'entry', dir: 'flow', corridor: [0, 0] },
+    { purpose: 'hoist', w: [10, 13], h: [10, 13], shape: 'rect', anchor: 'prev', dir: 'flow', corridor: [1, 3] },
+    { purpose: 'tool-store', w: [6, 8], h: [6, 8], shape: 'rect', anchor: 'hoist', dir: 'left', corridor: [0, 1] },
+    { purpose: 'barracks', w: [8, 11], h: [8, 11], shape: 'rect', anchor: 'hoist', dir: 'right', corridor: [0, 1] },
     // The sump is the LAST room the builder places — after all repeat units —
     // so it lands at the lowest point of the vein chase (Task 3 ordering).
-    { purpose: 'sump', w: [5, 7], h: [5, 7], shape: 'ellipse', anchor: 'prev', dir: 'flow', corridor: [1, 3] },
+    { purpose: 'sump', w: [7, 10], h: [7, 10], shape: 'ellipse', anchor: 'prev', dir: 'flow', corridor: [1, 3] },
   ],
   repeat: [
     // DEFECT B (egg monotony): vein-galleries span a WIDE size band — small
-    // pockets (5-6) through large chambers (12-16) — so the read is varied cave
+    // pockets (7-9) through large chambers (18-22) — so the read is varied cave
     // workings, not an egg carton. The builder additionally rolls an occasional
     // 'compound' chamber and a rectilinear timbered store-room mid-depth (see
     // buildIntact placeRepeats), so shape varies too, not just size.
@@ -165,8 +176,8 @@ const MINE: ArchetypeData = {
     // door (corridor 0-2) butts the next chamber against the previous one, so the
     // player walks THROUGH the workings rather than down a hall poking into each.
     // The diagonal down-right descent still reads because each drift steps its
-    // axis; the occasional longer gap is what a decline would be.
-    { purpose: 'vein-gallery', w: [5, 16], h: [5, 16], shape: 'ellipse', anchor: 'prev', dir: 'flow', corridor: [0, 2] },
+    // axis; the occasional longer gap is what a decline would be. (×2 size band.)
+    { purpose: 'vein-gallery', w: [7, 22], h: [7, 22], shape: 'ellipse', anchor: 'prev', dir: 'flow', corridor: [0, 2] },
   ],
   floodable: ['vein-gallery', 'sump'],
   eventWeights: {
@@ -201,21 +212,24 @@ const FORTRESS: ArchetypeData = {
   ],
   titlePatterns: ['The Fall of the {N}', 'The {N} Hold', '{N} Keep', 'The Ruin of the {N}'],
   core: [
-    { purpose: 'gatehouse', w: [6, 8], h: [6, 8], shape: 'rect', anchor: 'entry', dir: 'flow', corridor: [0, 0] },
-    { purpose: 'great-hall', w: [10, 14], h: [9, 12], shape: 'rect', anchor: 'prev', dir: 'flow', corridor: [1, 2] },
-    { purpose: 'barracks', w: [6, 8], h: [5, 7], shape: 'rect', anchor: 'great-hall', dir: 'left', corridor: [0, 1] },
-    { purpose: 'armory', w: [5, 7], h: [4, 6], shape: 'rect', anchor: 'barracks', dir: 'flow', corridor: [0, 1] },
-    { purpose: 'granary', w: [5, 7], h: [5, 7], shape: 'rect', anchor: 'great-hall', dir: 'right', corridor: [0, 1] },
-    { purpose: 'kitchen', w: [5, 7], h: [4, 6], shape: 'rect', anchor: 'granary', dir: 'flow', corridor: [0, 1] },
-    { purpose: 'chapel-wing', w: [7, 9], h: [6, 8], shape: 'rect', anchor: 'great-hall', dir: 'back', corridor: [3, 5] },
-    { purpose: 'cellar', w: [5, 7], h: [5, 7], shape: 'rect', anchor: 'kitchen', dir: 'right', corridor: [1, 2] },
+    // ROOM-SIZE ×2 (Remy 2026-07-07): dimension ranges scaled ≈×1.4 → ≈2× floor
+    // area. The great hall becomes a genuine baronial hall; service wings stay
+    // proportionally smaller (hierarchy preserved). Cells stay 5 ft.
+    { purpose: 'gatehouse', w: [8, 11], h: [8, 11], shape: 'rect', anchor: 'entry', dir: 'flow', corridor: [0, 0] },
+    { purpose: 'great-hall', w: [14, 19], h: [13, 17], shape: 'rect', anchor: 'prev', dir: 'flow', corridor: [1, 2] },
+    { purpose: 'barracks', w: [8, 11], h: [7, 10], shape: 'rect', anchor: 'great-hall', dir: 'left', corridor: [0, 1] },
+    { purpose: 'armory', w: [7, 10], h: [6, 8], shape: 'rect', anchor: 'barracks', dir: 'flow', corridor: [0, 1] },
+    { purpose: 'granary', w: [7, 10], h: [7, 10], shape: 'rect', anchor: 'great-hall', dir: 'right', corridor: [0, 1] },
+    { purpose: 'kitchen', w: [7, 10], h: [6, 8], shape: 'rect', anchor: 'granary', dir: 'flow', corridor: [0, 1] },
+    { purpose: 'chapel-wing', w: [10, 13], h: [8, 11], shape: 'rect', anchor: 'great-hall', dir: 'back', corridor: [3, 5] },
+    { purpose: 'cellar', w: [7, 10], h: [7, 10], shape: 'rect', anchor: 'kitchen', dir: 'right', corridor: [1, 2] },
   ],
   repeat: [
     // 'prev' here means "any already-placed core room" — the builder picks
     // one seeded-at-random rather than strictly the last placed (Task 3).
     // Wing rooms interconnect room-to-room through a shared-wall door (corridor
     // 0-1), so a wing reads as a suite of adjoining chambers, not hall-fed cells.
-    { purpose: 'passage-room', w: [4, 7], h: [4, 7], shape: 'rect', anchor: 'prev', dir: 'any', corridor: [0, 1] },
+    { purpose: 'passage-room', w: [6, 10], h: [6, 10], shape: 'rect', anchor: 'prev', dir: 'any', corridor: [0, 1] },
   ],
   floodable: ['cellar'],
   eventWeights: {
@@ -252,18 +266,23 @@ const WATERWORKS: ArchetypeData = {
     'The {T} Undercity',
   ],
   core: [
-    { purpose: 'ladder-shaft', w: [3, 4], h: [3, 4], shape: 'rect', anchor: 'entry', dir: 'flow', corridor: [0, 0] },
+    // ROOM-SIZE ×2 (Remy 2026-07-07): chamber dimension ranges scaled ≈×1.4 → ≈2×
+    // floor area (junction hall + round cisterns become cathedral-scale basins).
+    // The maintenance-walk stays 3 cells WIDE — it is the channel-side corridor-
+    // room, not a furniture chamber; only its LENGTH grows. Its fixed h==3 also
+    // keeps the gozzysBlend skip + the drawer's wet-channel read intact.
+    { purpose: 'ladder-shaft', w: [4, 6], h: [4, 6], shape: 'rect', anchor: 'entry', dir: 'flow', corridor: [0, 0] },
     // Corridor-like room, 3 cells wide, running alongside the channel.
-    { purpose: 'maintenance-walk', w: [6, 10], h: [3, 3], shape: 'rect', anchor: 'prev', dir: 'flow', corridor: [0, 0] },
-    { purpose: 'junction', w: [9, 12], h: [9, 12], shape: 'octagon', anchor: 'prev', dir: 'flow', corridor: [0, 1] },
+    { purpose: 'maintenance-walk', w: [9, 14], h: [3, 3], shape: 'rect', anchor: 'prev', dir: 'flow', corridor: [0, 0] },
+    { purpose: 'junction', w: [13, 17], h: [13, 17], shape: 'octagon', anchor: 'prev', dir: 'flow', corridor: [0, 1] },
     // Two cisterns anchor the ends, reached by long channels in opposite dirs.
-    { purpose: 'cistern', w: [9, 12], h: [9, 12], shape: 'ellipse', anchor: 'junction', dir: 'left', corridor: [4, 7] },
-    { purpose: 'cistern', w: [9, 12], h: [9, 12], shape: 'ellipse', anchor: 'junction', dir: 'right', corridor: [4, 7] },
-    { purpose: 'outfall', w: [3, 5], h: [4, 6], shape: 'rect', anchor: 'junction', dir: 'back', corridor: [2, 4] },
+    { purpose: 'cistern', w: [13, 17], h: [13, 17], shape: 'ellipse', anchor: 'junction', dir: 'left', corridor: [4, 7] },
+    { purpose: 'cistern', w: [13, 17], h: [13, 17], shape: 'ellipse', anchor: 'junction', dir: 'right', corridor: [4, 7] },
+    { purpose: 'outfall', w: [5, 7], h: [6, 8], shape: 'rect', anchor: 'junction', dir: 'back', corridor: [2, 4] },
   ],
   repeat: [
-    { purpose: 'maintenance-walk', w: [6, 10], h: [3, 3], shape: 'rect', anchor: 'prev', dir: 'flow', corridor: [0, 1] },
-    { purpose: 'passage-room', w: [4, 7], h: [4, 7], shape: 'rect', anchor: 'prev', dir: 'any', corridor: [1, 2] },
+    { purpose: 'maintenance-walk', w: [9, 14], h: [3, 3], shape: 'rect', anchor: 'prev', dir: 'flow', corridor: [0, 1] },
+    { purpose: 'passage-room', w: [6, 10], h: [6, 10], shape: 'rect', anchor: 'prev', dir: 'any', corridor: [1, 2] },
   ],
   floodable: ['cistern', 'maintenance-walk', 'junction', 'outfall'],
   eventWeights: {
@@ -299,27 +318,50 @@ export const THEME_ARCHETYPE: Record<DungeonTheme, BuilderArchetype> = {
  * Purpose-driven furniture: what an intact room contains, placed for use.
  * `countPerCells` = one item per this many floor cells; 0 = exactly one item
  * regardless of room size (centerpiece convention).
+ * `scale` = the drawn footprint multiplier the drawer applies to the glyph
+ * (PreviewDungeon renders each piece at `cell * scale`). Default 1.
+ *
+ * ROOM-SIZE ×2 tuning (Remy 2026-07-07): after the room dimensions doubled in
+ * area, furniture would otherwise just get PROPORTIONALLY MORE tiny pieces and
+ * stay cramped. So the row/wall furniture that reads as a "packed 2-cell lattice"
+ * (coffins, pews, tables, bunks, racks) gets BOTH a HIGHER countPerCells (fewer,
+ * spread out — a spacious gallery with a real aisle) AND a LARGER scale (~1.6-1.9
+ * → each coffin/pew occupies ~2-3 cells and reads as ONE distinct object). Scatter
+ * clutter (grain-jars) and centerpieces keep their look.
  */
 export const FURNITURE: Readonly<
-  Partial<Record<RoomPurpose, readonly { kind: string; layout: 'rows' | 'walls' | 'center' | 'scatter'; countPerCells: number }[]>>
+  Partial<Record<RoomPurpose, readonly {
+    kind: string;
+    layout: 'rows' | 'walls' | 'center' | 'scatter';
+    countPerCells: number;
+    /** Drawn glyph footprint multiplier (default 1). Bigger = one distinct piece. */
+    scale?: number;
+  }[]>>
 > = {
-  'burial-gallery': [{ kind: 'sarcophagus', layout: 'rows', countPerCells: 8 }],
+  // A burial gallery is now ~110 floor cells; at countPerCells 12 that is ~8-9
+  // coffins, which the pitch-4 rows grid seats as 2 flanking FILES (central file
+  // culled for the processional aisle) with a clear gap between each — a hall of
+  // nameable sarcophagi, not a chained-segment carpet. scale 1.5 → each coffin is
+  // ~2.5 cells long (Remy's "distinct piece occupying ~2-3 cells"), NOT so long it
+  // touches its neighbour (which re-created the chained look at scale 1.9).
+  'burial-gallery': [{ kind: 'sarcophagus', layout: 'rows', countPerCells: 12, scale: 1.5 }],
   chapel: [
-    { kind: 'altar', layout: 'center', countPerCells: 0 },
-    { kind: 'pew', layout: 'rows', countPerCells: 6 },
+    { kind: 'altar', layout: 'center', countPerCells: 0, scale: 1.6 },
+    { kind: 'pew', layout: 'rows', countPerCells: 12, scale: 1.5 },
   ],
-  ossuary: [{ kind: 'bone-niche', layout: 'walls', countPerCells: 5 }],
-  treasury: [{ kind: 'chest', layout: 'center', countPerCells: 0 }],
-  embalming: [{ kind: 'stone-slab', layout: 'center', countPerCells: 0 }],
-  barracks: [{ kind: 'bunk', layout: 'walls', countPerCells: 6 }],
-  armory: [{ kind: 'weapon-rack', layout: 'walls', countPerCells: 5 }],
-  granary: [{ kind: 'grain-jar', layout: 'scatter', countPerCells: 4 }],
+  ossuary: [{ kind: 'bone-niche', layout: 'walls', countPerCells: 7, scale: 1.4 }],
+  treasury: [{ kind: 'chest', layout: 'center', countPerCells: 0, scale: 1.6 }],
+  embalming: [{ kind: 'stone-slab', layout: 'center', countPerCells: 0, scale: 1.7 }],
+  barracks: [{ kind: 'bunk', layout: 'walls', countPerCells: 9, scale: 1.5 }],
+  armory: [{ kind: 'weapon-rack', layout: 'walls', countPerCells: 7, scale: 1.4 }],
+  granary: [{ kind: 'grain-jar', layout: 'scatter', countPerCells: 6, scale: 1.3 }],
   'great-hall': [
-    { kind: 'long-table', layout: 'rows', countPerCells: 12 },
-    { kind: 'hearth', layout: 'walls', countPerCells: 40 },
+    // A long-table is genuinely elongated; scale 1.8 reads as a refectory board.
+    { kind: 'long-table', layout: 'rows', countPerCells: 22, scale: 1.8 },
+    { kind: 'hearth', layout: 'walls', countPerCells: 60, scale: 1.6 },
   ],
-  hoist: [{ kind: 'hoist-wheel', layout: 'center', countPerCells: 0 }],
-  'tool-store': [{ kind: 'tool-rack', layout: 'walls', countPerCells: 5 }],
+  hoist: [{ kind: 'hoist-wheel', layout: 'center', countPerCells: 0, scale: 1.7 }],
+  'tool-store': [{ kind: 'tool-rack', layout: 'walls', countPerCells: 7, scale: 1.4 }],
   // Cisterns are built empty — water, not furniture.
   cistern: [],
 };

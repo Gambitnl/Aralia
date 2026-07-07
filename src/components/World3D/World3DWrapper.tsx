@@ -50,6 +50,8 @@ if (urlParams.get('stubForgeAssets') === '1') {
 }
 
 import InWorldHUD from './InWorldHUD';
+import WorldGenLoadingScreen, { type WorldGenLoadingStage } from './WorldGenLoadingScreen';
+import type { DisposableWorldGenClient } from './createWorldGenClient';
 import LocaleMovePane from './LocaleMovePane';
 import { groundSurfaceYM } from './PlayerAvatar';
 import {
@@ -91,6 +93,7 @@ import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
 // same reason AtlasDemo is lazy. Only types may be imported statically.
 import type { WorldDelta } from '../../systems/worldforge/delta/types';
 import type { GroundWorld } from '../../systems/worldforge/bridge/groundChunkLoader';
+import type { RegionArtifact } from '../../systems/worldforge/artifacts';
 import { dungeonNameForEntrance } from '../../systems/worldforge/bridge/dungeonEntrances';
 import { LOCATIONS } from '../../data/world/locations';
 import { getBurgNamer } from '../../systems/worldforge/bridge/legacySubmapBridge';
@@ -180,6 +183,14 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
   // streamer bound to a worker that StrictMode had already terminated → it posted forever to a dead
   // worker and never loaded a chunk (the empty/flat 3D world). See createWorkerChunkLoader.
   const [loader, setLoader] = useState<DisposableChunkLoader | undefined>(undefined);
+  // Staged 3D entry: which loading-stage label to show while the world assembles
+  // off-thread (null once the scene can render), plus an honest error if the
+  // worker failed. See WorldGenLoadingScreen + createWorldGenClient.
+  const [worldGenStage, setWorldGenStage] = useState<WorldGenLoadingStage | null>(null);
+  const [worldGenError, setWorldGenError] = useState<string | null>(null);
+  // Bumped when Stage B patches props into the live ground, so the scene re-renders
+  // the prop layer. Only the setter is used — any state change forces the re-read.
+  const [, setGroundNonce] = useState(0);
   // Set when WF_GROUND succeeds: walking-scale spawn + camera profile +
   // the resolved tile (the unit-scope for persisted ground positions).
   const [wfGroundView, setWfGroundView] = useState<{
@@ -195,6 +206,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
   useEffect(() => {
     let cancelled = false;
     let activeCleanup: (() => void) | null = null;
+    let client: DisposableWorldGenClient | null = null;
 
     // Grid retirement: the legacy continent streamer (createWorkerChunkLoader over
     // the 30x20 mapData heightfield) is gone. Continent Mode (?wf_legacy=1) now
@@ -202,6 +214,8 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
     if (!isGroundMode) {
       setWfGroundView(null);
       setLoader(undefined);
+      setWorldGenStage(null);
+      setWorldGenError(null);
       return () => {
         cancelled = true;
       };
@@ -215,10 +229,16 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
     // silently substituting the legacy continent streamer — one real path.
     (async () => {
       try {
-        const [bridge, loaderMod, adapter] = await Promise.all([
+        // Only the light main-thread bits load here (entry-cell resolution, the
+        // shop/NPC registration helpers, the combat-patch extractor). The heavy
+        // world assembly runs in the world-gen worker (createWorldGenClient), so
+        // this dynamic import keeps the FMG stack off PLAYING's initial chunk.
+        const [bridge, loaderMod, adapter, clientMod, groundLoaderMod] = await Promise.all([
           import('../../systems/worldforge/bridge/legacySubmapBridge'),
           import('../../systems/worldforge/bridge/groundChunkLoader'),
           import('../../systems/worldforge/bridge/groundWorldAdapter'),
+          import('./createWorldGenClient'),
+          import('./createGroundWorkerChunkLoader'),
         ]);
         if (cancelled) return;
 
@@ -227,9 +247,6 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
         // CELL is the anchor's cell (map click / start-selection / travel carry an
         // Entry3DAnchor) or — for a toggle-to-3D from gameplay with no anchor — the
         // player's canonical cell. There is no 30x20 grid tile resolution anymore.
-        // NOTE: this is the live 3D "walk into the world" entry; the logic is
-        // cell-native by construction but was not eyeballed in a running app this
-        // pass — verify the ground still loads on a toggle-to-3D before trusting it.
         const anchor = state.entry3DAnchor;
         let entryCellId: number | null = null;
         if (anchor) {
@@ -243,14 +260,18 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
         // y: 0}) — cell-native, no grid coord. Feeds wfGroundView.tile + the
         // ground-position save/restore below.
         const coords = entryCellId != null ? { x: entryCellId, y: 0 } : null;
-        if (coords && wfSeed != null && entryCellId != null) {
-          const bridged = bridge.getWorldforgeLocalForCell(
-            wfSeed,
-            entryCellId,
-            { centerPx: anchor?.centerPx },
-          );
+        if (!(coords && wfSeed != null && entryCellId != null)) return;
 
-          // Generate/register any missing businesses/NPCs for the town(s) in the local area
+        const hour =
+          state.gameTime instanceof Date ? state.gameTime.getHours() : 12;
+        const deltas =
+          (state as { worldforgeDeltas?: WorldDelta[] }).worldforgeDeltas ?? [];
+
+        // Register the town's shops/NPCs into game state. Deterministic + idempotent
+        // (guards on existing ids). Deferred to idle after Stage A so it never blocks
+        // the first paint — buildings already read correct names via the same seed
+        // fallback the renderer uses (staged-entry design doc, Stage C invariant).
+        const registerTownContent = (region: RegionArtifact | undefined) => {
           const helperGetBusinessTypeForPlot = (role: string, plotId: number): BusinessType => {
             const types: BusinessType[] = role === 'market'
               ? ['general_store', 'tavern', 'apothecary', 'trading_company', 'enchanter_shop']
@@ -259,33 +280,31 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
             return types[index];
           };
 
-          for (const t of bridged.region?.townSites ?? []) {
-            // CANONICAL plan (shared with the 3D renderer below via
-            // groundChunkLoader): business/NPC IDs are keyed by plot id, so this
-            // MUST be the same plan createGroundChunkLoader bakes — otherwise the
-            // registered shops bind to plot IDs the rendered town doesn't have.
+          for (const t of region?.townSites ?? []) {
+            // CANONICAL plan (shared with the 3D renderer via groundChunkLoader):
+            // business/NPC IDs are keyed by plot id, so this MUST be the same plan
+            // the renderer bakes — otherwise registered shops bind to plot IDs the
+            // rendered town doesn't have.
             const plan = loaderMod.canonicalArtifactTownForSite(wfSeed, t).plan;
-            // No-fallback directive (2026-06-15): getBurgNamer throws if the
-            // culture can't resolve — no syllable substitute.
+            // No-fallback directive: getBurgNamer throws if the culture can't
+            // resolve — no syllable substitute.
             const nameFor = getBurgNamer(wfSeed, t.burgId);
-            const roster = generateTownRoster(plan, bridged.region.seedPath, { nameFor });
-            
+            const roster = generateTownRoster(plan, region!.seedPath, { nameFor });
+
             for (const p of plan.plots) {
               if (p.role === 'market' || p.role === 'workshop') {
                 const npcId = `npc_burg_${t.burgId}_plot_${p.id}`;
                 const bizId = `biz_burg_${t.burgId}_plot_${p.id}`;
-                
-                // If not in state, generate and dispatch
+
                 if (!state.generatedNpcs?.[npcId] || !state.worldBusinesses?.[bizId]) {
                   const seedValue = wfSeed + t.burgId + p.id;
                   const rng = new SeededRandom(seedValue);
                   const bizType = helperGetBusinessTypeForPlot(p.role, p.id);
                   const bizName = generateBusinessName(bizType, rng);
-                  
-                  // Find the roster occupant assigned to this plot
+
                   const occupant = roster.occupants.find(o => o.workPlotId === p.id);
                   const finalNpcName = occupant?.name ?? nameFor(rng);
-                  
+
                   const npcConfig: NPCGenerationConfig = {
                     id: npcId,
                     name: finalNpcName,
@@ -295,8 +314,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
                   };
                   const richNpc = generateNPC(npcConfig);
                   richNpc.businessId = bizId;
-                  
-                  // Grid retirement: the business locationId is the town's cell-native id.
+
                   const bizCell = (bridge.getBridgeAtlas(wfSeed).pack.burgs?.[t.burgId] as { cell?: number } | undefined)?.cell ?? 0;
                   const worldBiz = generateNpcBusiness(
                     richNpc,
@@ -305,14 +323,12 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
                     getGameDay(state.gameTime),
                     rng
                   );
-                  // Override properties to match our deterministic ones
                   worldBiz.id = bizId;
                   worldBiz.name = bizName;
                   worldBiz.ownerId = npcId;
                   (worldBiz as any).burgId = t.burgId;
                   (worldBiz as any).plotId = p.id;
-                  
-                  // Dispatch actions to register them!
+
                   if (!state.generatedNpcs?.[npcId]) {
                     dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc: richNpc } });
                   }
@@ -323,98 +339,110 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
               }
             }
           }
+        };
 
-          const hour =
-            state.gameTime instanceof Date ? state.gameTime.getHours() : 12;
-          const deltas =
-            (state as { worldforgeDeltas?: WorldDelta[] }).worldforgeDeltas ?? [];
-          const { ground, loader: groundLoader } = loaderMod.createGroundChunkLoader(
-            bridged.local, wfSeed, bridged.region, { 
-              hour, 
-              deltas,
-              worldBusinesses: state.worldBusinesses,
-              generatedNpcs: state.generatedNpcs
+        // Off-thread staged assembly. The loading screen animates while the worker
+        // builds terrain + town (Stage A), then props (Stage B). No-fallback: a
+        // worker failure surfaces plainly instead of a silent legacy substitute.
+        setWorldGenError(null);
+        setWorldGenStage('land');
+        client = clientMod.createWorldGenClient();
+        client.generate(
+          { wfSeed, entryCellId, centerPx: anchor?.centerPx, hour, deltas },
+          {
+            onProgress: (stage) => {
+              if (!cancelled && stage === 'town') setWorldGenStage('town');
             },
-          );
+            onError: (message) => {
+              if (!cancelled) setWorldGenError(message);
+            },
+            onStageA: ({ ground, region }) => {
+              if (cancelled) return;
+              // Store refs so handleGroundPositionChange / combat handoff can read
+              // the live world and the extraction helper.
+              groundRef.current = ground;
+              extractPatchRef.current = loaderMod.extractLocalTerrainPatch;
+              combatTriggered.current = false;
+              // Dev hook: resolved entry anchor + rendered town burg ids for probes.
+              (window as unknown as { __wfEntry?: unknown }).__wfEntry = {
+                anchor: anchor ?? null,
+                usedCellEntry: !!anchor,
+                groundTownBurgs: (ground.towns ?? []).map((t) => t.burgId),
+              };
 
-          // Store references to the active ground world and the extraction helper
-          // to make them accessible inside handleGroundPositionChange callback.
-          groundRef.current = ground;
-          extractPatchRef.current = loaderMod.extractLocalTerrainPatch;
-          combatTriggered.current = false;
-          // Dev hook: expose the resolved entry anchor + rendered town burg ids so a
-          // headless probe can assert the chosen town actually renders at the spawn.
-          (window as unknown as { __wfEntry?: unknown }).__wfEntry = {
-            anchor: anchor ?? null,
-            usedCellEntry: !!anchor,
-            groundTownBurgs: (ground.towns ?? []).map((t) => t.burgId),
-          };
-
-          if (cancelled) return;
-          // Spawn at the SAVED ground position when it belongs to this tile
-          // (WF-STORE-2 contract item 3); else the artifact center.
-          const saved = (state as { playerGroundPos?: { tileX: number; tileY: number; xM: number; zM: number } | null }).playerGroundPos;
-          // SP3 leaf→3D handoff contract: spawn on the inherited burg when this
-          // leaf is settled (the town the player saw in 2D), else the artifact
-          // center. The burg town sites already ride on the ground world.
-          const burgSpawn = ground.towns && ground.towns.length > 0
-            ? { x: ground.towns[0].xM, z: ground.towns[0].zM }
-            : { x: ground.extentMetersX / 2, z: ground.extentMetersZ / 2 };
-          const spawn =
-            saved && saved.tileX === coords.x && saved.tileY === coords.y
-              ? { x: saved.xM, z: saved.zM }
-              : burgSpawn;
-          const cell = adapter.GROUND_METERS_PER_CELL;
-          const sgx = Math.max(0, Math.min(ground.cols - 1, Math.round(spawn.x / cell)));
-          const sgy = Math.max(0, Math.min(ground.rows - 1, Math.round(spawn.z / cell)));
-          setWfGroundView({
-            start: [spawn.x, 0, spawn.z],
-            surfaceY: heightToMeters(ground.heights[sgy * ground.cols + sgx] ?? 0),
-            tile: { x: coords.x, y: coords.y },
-            // Cell-native world, Stage 3: the Locale extent the 2D LocaleMovePane
-            // draws (cols×5 ft by rows×5 ft) matches the ground world the 3D view
-            // renders — one Locale, two synced views.
-            localeExtent: { cols: ground.cols, rows: ground.rows },
-          });
-          const disposable: DisposableChunkLoader = Object.assign(
-            (cx: number, cy: number) => groundLoader(cx, cy),
-            { dispose: () => {} },
-          );
-          setLoader(() => disposable);
-          const exitTile = { x: coords.x, y: coords.y };
-          activeCleanup = () => {
-            setLoader(undefined);
-            // Clear ground and extractor references to avoid memory leaks or stale state checks.
-            groundRef.current = null;
-            extractPatchRef.current = null;
-            // HOSTILE-1: when the player enters combat, skip the continent
-            // position override — their saved playerGroundPos is the return
-            // point. The combat handoff sets combatTriggered before the
-            // phase changes to BATTLE_MAP_DEMO, so this cleanup sees it.
-            if (!combatTriggered.current) {
-              // Exit coherence (contract item 4): the continent view resumes
-              // at this tile's center; the two position fields never mix units.
-              setPosition({
-                x: (exitTile.x + 0.5) * WORLD3D_CONFIG.METERS_PER_CELL,
-                y: 0,
-                z: (exitTile.y + 0.5) * WORLD3D_CONFIG.METERS_PER_CELL,
+              // Spawn at the SAVED ground position when it belongs to this tile
+              // (WF-STORE-2 contract item 3); else the inherited burg / artifact center.
+              const saved = (state as { playerGroundPos?: { tileX: number; tileY: number; xM: number; zM: number } | null }).playerGroundPos;
+              const burgSpawn = ground.towns && ground.towns.length > 0
+                ? { x: ground.towns[0].xM, z: ground.towns[0].zM }
+                : { x: ground.extentMetersX / 2, z: ground.extentMetersZ / 2 };
+              const spawn =
+                saved && saved.tileX === coords.x && saved.tileY === coords.y
+                  ? { x: saved.xM, z: saved.zM }
+                  : burgSpawn;
+              const cell = adapter.GROUND_METERS_PER_CELL;
+              const sgx = Math.max(0, Math.min(ground.cols - 1, Math.round(spawn.x / cell)));
+              const sgy = Math.max(0, Math.min(ground.rows - 1, Math.round(spawn.z / cell)));
+              setWfGroundView({
+                start: [spawn.x, 0, spawn.z],
+                surfaceY: heightToMeters(ground.heights[sgy * ground.cols + sgx] ?? 0),
+                tile: { x: coords.x, y: coords.y },
+                localeExtent: { cols: ground.cols, rows: ground.rows },
               });
-            }
-            combatTriggered.current = false;
-          };
-          return;
-        }
+              // Mesh ground chunks OFF the main thread so walking stays smooth.
+              // The worker is init'd with the Stage A ground (props empty) — meshing
+              // never reads props, so Stage B never re-inits it. Self-healing loader
+              // (survives StrictMode double-mount); disposed in cleanup below.
+              const disposable = groundLoaderMod.createGroundWorkerChunkLoader(ground);
+              setLoader(() => disposable);
+              // Terrain + town are up — the loading screen gives way to the scene.
+              setWorldGenStage(null);
+
+              // Wire shops/NPCs in idle time so registration never blocks the paint.
+              const ric = (window as unknown as {
+                requestIdleCallback?: (cb: () => void) => number;
+              }).requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 0));
+              ric(() => { if (!cancelled) registerTownContent(region); });
+
+              const exitTile = { x: coords.x, y: coords.y };
+              activeCleanup = () => {
+                disposable.dispose(); // terminate the ground mesh worker
+                setLoader(undefined);
+                groundRef.current = null;
+                extractPatchRef.current = null;
+                // HOSTILE-1: entering combat keeps the saved playerGroundPos as the
+                // return point, so skip the continent position override.
+                if (!combatTriggered.current) {
+                  setPosition({
+                    x: (exitTile.x + 0.5) * WORLD3D_CONFIG.METERS_PER_CELL,
+                    y: 0,
+                    z: (exitTile.y + 0.5) * WORLD3D_CONFIG.METERS_PER_CELL,
+                  });
+                }
+                combatTriggered.current = false;
+              };
+            },
+            onStageB: (ground) => {
+              if (cancelled) return;
+              // Props are patched into `ground`; swap to a fresh identity + bump a
+              // nonce so World3DScene re-renders the prop layer over the live world.
+              groundRef.current = { ...ground };
+              setGroundNonce((n) => n + 1);
+            },
+          },
+        );
       } catch (err) {
-        // No-fallback directive (2026-06-15): surface the failure loudly
-        // instead of masking it with the legacy continent loader.
-        throw new Error(
-          `[wf_ground] village entry failed: ${err instanceof Error ? err.message : String(err)}`,
+        // No-fallback directive: surface the failure plainly, never a silent
+        // legacy substitute.
+        setWorldGenError(
+          `village entry failed: ${err instanceof Error ? err.message : String(err)}`,
         );
       }
     })();
 
     return () => {
       cancelled = true;
+      client?.dispose();
       activeCleanup?.();
     };
     // Re-run the effect if the location, seed, or active mode scale changes.
@@ -1010,6 +1038,35 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
               : null
           }
         />
+      ) : worldGenError ? (
+        // No-fallback: a failed world build says so plainly instead of a blank view.
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            minHeight: '520px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            padding: '32px',
+            boxSizing: 'border-box',
+            background: 'var(--bg-surface-alt, #2a1418)',
+            color: 'var(--text-secondary, #f2b8c0)',
+            fontFamily: 'ui-monospace, Menlo, monospace',
+            fontSize: '14px',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color, #5a3a42)',
+          }}
+        >
+          <div style={{ fontWeight: 700 }}>The world could not be built.</div>
+          <div style={{ opacity: 0.85 }}>{worldGenError}</div>
+        </div>
+      ) : worldGenStage ? (
+        // Staged assembly is running off-thread — honest, animated progress.
+        <WorldGenLoadingScreen stage={worldGenStage} />
       ) : (
         <div
           style={{

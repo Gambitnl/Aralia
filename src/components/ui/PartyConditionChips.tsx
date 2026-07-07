@@ -10,6 +10,7 @@
  * what the condition means AND how to recover from it.
  */
 import React from 'react';
+import GlossaryTooltip from '../Glossary/GlossaryTooltip';
 
 export interface ConditionInfo {
     /** Player-facing name. */
@@ -20,6 +21,14 @@ export interface ConditionInfo {
     chipClass: string;
     /** Plain-language: what it means + how to recover. Used as the chip title. */
     description: string;
+    /**
+     * Glossary entry id, when this condition is also a canonical rules term.
+     * Set it and the chip links to the live glossary entry (hover excerpt +
+     * click-through) instead of relying on the hardcoded `description`, so the
+     * copy can never drift out of sync with the rulebook. Homebrew travel
+     * conditions (starving, fatigued) have no entry and stay plain chips.
+     */
+    glossaryTermId?: string;
 }
 
 /** Copy + styling for every condition the travel gate can apply. */
@@ -44,6 +53,7 @@ export const CONDITION_INFO: Record<string, ConditionInfo> = {
         chipClass: 'bg-green-950/80 border-green-500/50 text-green-200',
         description:
             'Something tainted was eaten or drunk — foraged food is not always safe. Weakens the party until it is cured or rested off.',
+        glossaryTermId: 'poisoned_condition',
     },
 };
 
@@ -60,13 +70,23 @@ interface ConditionChipsProps {
     conditions: string[];
     /** Compact chips for dense card layouts. */
     size?: 'sm' | 'md';
+    /**
+     * Opens the full glossary entry for a linked condition. When omitted, a
+     * linked chip still shows the live glossary excerpt on hover but does not
+     * navigate on click.
+     */
+    onNavigateToGlossary?: (termId: string) => void;
 }
 
 /**
  * A row of labeled status chips, one per active condition. Renders nothing
  * when the list is empty so callers can include it unconditionally.
  */
-export const ConditionChips: React.FC<ConditionChipsProps> = ({ conditions, size = 'md' }) => {
+export const ConditionChips: React.FC<ConditionChipsProps> = ({
+    conditions,
+    size = 'md',
+    onNavigateToGlossary,
+}) => {
     const unique = Array.from(new Set(conditions));
     if (unique.length === 0) return null;
     const sizing = size === 'sm' ? 'px-1.5 py-0 text-[10px]' : 'px-2 py-0.5 text-xs';
@@ -74,9 +94,8 @@ export const ConditionChips: React.FC<ConditionChipsProps> = ({ conditions, size
         <div className="flex flex-wrap gap-1.5" data-testid="condition-chips" aria-label="Active party conditions">
             {unique.map((condition) => {
                 const info = CONDITION_INFO[condition] ?? fallbackInfo(condition);
-                return (
+                const chip = (
                     <span
-                        key={condition}
                         title={info.description}
                         className={`inline-flex cursor-help items-center gap-1 rounded-full border font-semibold ${sizing} ${info.chipClass}`}
                     >
@@ -84,6 +103,21 @@ export const ConditionChips: React.FC<ConditionChipsProps> = ({ conditions, size
                         <span>{info.label}</span>
                     </span>
                 );
+                // Canonical rules conditions link to the live glossary entry so
+                // their copy stays in sync with the rulebook; homebrew travel
+                // conditions have no entry and render as the plain chip above.
+                if (info.glossaryTermId) {
+                    return (
+                        <GlossaryTooltip
+                            key={condition}
+                            termId={info.glossaryTermId}
+                            onNavigateToGlossary={onNavigateToGlossary}
+                        >
+                            {chip}
+                        </GlossaryTooltip>
+                    );
+                }
+                return <React.Fragment key={condition}>{chip}</React.Fragment>;
             })}
         </div>
     );

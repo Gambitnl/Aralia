@@ -32,7 +32,7 @@
  * edge values (flat continuation), mirroring chunkSampler's clamping.
  */
 import type { ChunkData, ChunkMeshBundle, VegetationScatter, LodTier } from "../../world3d/types";
-import { buildChunkBundle } from "../../world3d/chunkBundle";
+import { handleGroundChunkRequest } from "./groundChunkWorkerCore";
 import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from "../../world3d/config";
 import { biomeColor } from "../../world3d/terrainColor";
 import type { LocalArtifact, RegionArtifact, RegionTownSite, RegionMarker } from "../artifacts";
@@ -1864,22 +1864,12 @@ export function createGroundChunkLoader(
 export function buildGroundLoaderFromWorld(
   ground: GroundWorld,
 ): (cx: number, cy: number, lod?: LodTier) => Promise<ChunkMeshBundle> {
-  return async (cx: number, cy: number, lod?: LodTier): Promise<ChunkMeshBundle> => {
-    // Honor the requested LOD tier's mesh resolution (W3D-G10 / T7); distant
-    // ground chunks build coarser, near ones stay full-detail.
-    const bundle = buildChunkBundle(
-      sampleGroundChunk(ground, cx, cy, resolutionForLod(lod)),
-    );
-    // Artifact features replace the generic per-vertex scatter (see
-    // buildGroundVegetation — determinism + no lattice banding). Trees
-    // and bushes are separate instanced layers (variety dispatch).
-    const { trees, bushes } = buildGroundVegetation(ground, cx, cy);
-    return {
-      ...bundle,
-      vegetation: trees.positions.length > 0 ? trees : undefined,
-      bushes: bushes.positions.length > 0 ? bushes : undefined,
-    };
-  };
+  // Delegates to handleGroundChunkRequest — the SAME core the ground mesh worker
+  // runs — so the inline (main-thread) mesh and the worker mesh are identical.
+  // Honors the requested LOD tier's resolution (W3D-G10 / T7): distant chunks
+  // build coarser, near ones stay full-detail.
+  return async (cx: number, cy: number, lod?: LodTier): Promise<ChunkMeshBundle> =>
+    handleGroundChunkRequest(ground, { cx, cy, resolution: resolutionForLod(lod) });
 }
 
 // ============================================================================

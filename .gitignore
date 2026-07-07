@@ -155,6 +155,7 @@ src/components/DesignPreview/*
 !src/components/DesignPreview/steps/
 src/components/DesignPreview/steps/*
 !src/components/DesignPreview/steps/PreviewSpellDataFlow.tsx
+!src/components/DesignPreview/steps/PreviewDungeon.tsx
 src/design-preview.tsx
 src/components/SpellPipelineAtlas/
 src/spell-pipeline-atlas.tsx

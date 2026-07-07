@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import BattleMap from '../BattleMap';
 import type { BattleMapData, CombatCharacter, LightSource, LightLevel } from '../../../types/combat';
@@ -15,6 +15,7 @@ import type { BattleMapData, CombatCharacter, LightSource, LightLevel } from '..
  */
 
 const mockUseVisibility = vi.fn();
+const mockBattleMapOverlay = vi.fn();
 
 vi.mock('../../../hooks/useBattleMap', () => ({
   useBattleMap: () => ({
@@ -48,7 +49,10 @@ vi.mock('../CharacterToken', () => ({
 }));
 
 vi.mock('../BattleMapOverlay', () => ({
-  default: () => <div data-testid="battle-map-overlay" />
+  default: (props: { showLineOfSightCone?: boolean }) => {
+    mockBattleMapOverlay(props);
+    return <div data-testid="battle-map-overlay" data-los-visible={String(props.showLineOfSightCone)} />;
+  }
 }));
 
 const createTile = (id: string, x: number, y: number) => ({
@@ -175,5 +179,98 @@ describe('BattleMap visibility handoff', () => {
 
     expect(dimTile).toHaveAttribute('title', expect.stringContaining('(0, 0) - floor - Elev: 0 - dim'));
     expect(hiddenTile).toHaveAttribute('title', expect.stringContaining('(1, 0) - floor - Elev: 0 - hidden'));
+  });
+
+  it('lets the player hide the line-of-sight overlay from the map legend', () => {
+    const mapData: BattleMapData = {
+      dimensions: { width: 2, height: 1 },
+      tiles: new Map([
+        ['0-0', createTile('0-0', 0, 0)],
+        ['1-0', createTile('1-0', 1, 0)]
+      ]),
+      theme: 'dungeon',
+      seed: 1
+    } as unknown as BattleMapData;
+    const hero: CombatCharacter = {
+      id: 'hero',
+      name: 'Hero',
+      team: 'player',
+      position: { x: 0, y: 0 },
+      currentHP: 10,
+      maxHP: 10,
+      abilities: [],
+      statusEffects: [],
+      stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, speed: 30, baseInitiative: 0 },
+      actionEconomy: { action: {}, bonusAction: {}, reaction: {}, movement: {} }
+    } as unknown as CombatCharacter;
+
+    mockUseVisibility.mockReturnValue({
+      lightLevels: new Map<string, LightLevel>([
+        ['0-0', 'bright'],
+        ['1-0', 'bright']
+      ]),
+      visibleTiles: new Set(['0-0', '1-0']),
+      canSeeTile: () => true,
+      getLightLevel: () => 'bright'
+    });
+
+    render(
+      <BattleMap
+        mapData={mapData}
+        characters={[hero]}
+        showLineOfSightCone
+        combatState={{
+          turnManager: {
+            turnState: {
+              currentTurn: 0,
+              turnOrder: [hero.id],
+              currentCharacterId: hero.id,
+              phase: 'action',
+              actionsThisTurn: []
+            },
+            activeLightSources: [],
+            reactiveTriggers: [],
+            damageNumbers: [],
+            animations: [],
+            spellZones: [],
+            scheduledSpellEffects: [],
+            movementDebuffs: [],
+            spellMovementVisuals: [],
+            canAffordAction: vi.fn(() => false)
+          } as any,
+          turnState: {
+            currentTurn: 0,
+            turnOrder: [hero.id],
+            currentCharacterId: hero.id,
+            phase: 'action',
+            actionsThisTurn: []
+          } as any,
+          abilitySystem: {
+            targetingMode: false,
+            selectedAbility: null,
+            aoePreview: null,
+            teleportDestinationPreview: null,
+            pendingTeleportAssignment: null,
+            previewAoE: vi.fn(),
+            isValidTarget: vi.fn(),
+            cancelTargeting: vi.fn(),
+            startTargeting: vi.fn()
+          } as any,
+          isCharacterTurn: vi.fn(() => false),
+          onCharacterUpdate: vi.fn()
+        }}
+      />
+    );
+
+    // The legend toggle gives players a direct way to hide the teaching overlay
+    // when it gets in the way of reading the tactical board.
+    const toggle = screen.getByRole('button', { name: 'Hide line of sight overlay' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('battle-map-overlay')).toHaveAttribute('data-los-visible', 'true');
+
+    fireEvent.click(toggle);
+
+    expect(screen.getByRole('button', { name: 'Show line of sight overlay' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByTestId('battle-map-overlay')).toHaveAttribute('data-los-visible', 'false');
   });
 });

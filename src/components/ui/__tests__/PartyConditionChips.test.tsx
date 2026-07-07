@@ -7,8 +7,22 @@
  */
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { ConditionChips, CONDITION_INFO } from '../PartyConditionChips';
+import GlossaryContext from '../../../context/GlossaryContext';
+import type { GlossaryEntry } from '../../../types';
+
+const POISONED_ENTRY = {
+    id: 'poisoned_condition',
+    title: 'Poisoned',
+    category: 'Rules Glossary',
+    excerpt: 'A poisoned creature has Disadvantage on attack rolls and ability checks.',
+    filePath: '/data/glossary/entries/rules/conditions/poisoned_condition.json',
+} as unknown as GlossaryEntry;
+
+const withGlossary = (ui: React.ReactNode, entries: GlossaryEntry[] = [POISONED_ENTRY]) => (
+    <GlossaryContext.Provider value={entries}>{ui}</GlossaryContext.Provider>
+);
 
 describe('ConditionChips (PRV6)', () => {
     it('renders a labeled chip per known condition', () => {
@@ -40,5 +54,32 @@ describe('ConditionChips (PRV6)', () => {
         for (const key of ['starving', 'fatigued', 'poisoned']) {
             expect(CONDITION_INFO[key]?.description).toBeTruthy();
         }
+    });
+
+    it('links a condition that has a glossary entry, so its copy is not a stale hardcoded duplicate', () => {
+        expect(CONDITION_INFO.poisoned?.glossaryTermId).toBe('poisoned_condition');
+        render(withGlossary(<ConditionChips conditions={['poisoned']} />));
+        // GlossaryTooltip marks the trigger as a link to the full entry.
+        const chip = screen.getByText('Poisoned').closest('[role="link"]');
+        expect(chip).not.toBeNull();
+    });
+
+    it('does NOT link homebrew travel conditions with no glossary entry', () => {
+        render(withGlossary(<ConditionChips conditions={['starving', 'fatigued']} />));
+        expect(screen.getByText('Starving').closest('[role="link"]')).toBeNull();
+        expect(screen.getByText('Fatigued').closest('[role="link"]')).toBeNull();
+    });
+
+    it('navigates to the glossary entry when a linked chip is clicked', () => {
+        const onNavigate = vi.fn();
+        render(
+            withGlossary(
+                <ConditionChips conditions={['poisoned']} onNavigateToGlossary={onNavigate} />,
+            ),
+        );
+        screen.getByText('Poisoned').closest('[role="link"]')!.dispatchEvent(
+            new MouseEvent('click', { bubbles: true }),
+        );
+        expect(onNavigate).toHaveBeenCalledWith('poisoned_condition');
     });
 });

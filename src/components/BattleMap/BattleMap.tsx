@@ -66,12 +66,12 @@ const rowLabel = (index: number): string => {
   return label;
 };
 
-const LEGEND_ITEMS: Array<{ swatch: string; label: string; dashed?: boolean }> = [
+const LEGEND_ITEMS: Array<{ swatch: string; label: string; dashed?: boolean; toggle?: 'lineOfSight' }> = [
   { swatch: 'bg-emerald-500/60', label: 'Move Range' },
   { swatch: 'bg-emerald-300/80', label: 'Destination' },
   { swatch: 'bg-rose-500/60', label: 'Attack Range' },
   { swatch: 'bg-orange-500/60', label: 'Area Effect' },
-  { swatch: 'border border-dashed border-slate-300', label: 'Line of Sight', dashed: true },
+  { swatch: 'border border-dashed border-slate-300', label: 'Line of Sight', dashed: true, toggle: 'lineOfSight' },
 ];
 
 const MIN_USABLE_BOARD_SCALE = 0.7;
@@ -101,6 +101,14 @@ interface BattleMapProps {
 
 const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLabels = false, showLightSourceMarkers = true, showLineOfSightCone = false, objectInteraction, spellMapArtifacts, combatState }) => {
   const { turnManager, turnState, abilitySystem, isCharacterTurn } = combatState;
+  const [lineOfSightOverlayVisible, setLineOfSightOverlayVisible] = useState(showLineOfSightCone);
+
+  // Keep the local overlay toggle aligned if a parent view changes the starting
+  // line-of-sight teaching overlay, while still letting the player hide it in
+  // the map itself when it gets in the way.
+  useEffect(() => {
+    setLineOfSightOverlayVisible(showLineOfSightCone);
+  }, [showLineOfSightCone]);
 
   const battleMapState = useBattleMap(mapData, characters, turnManager, abilitySystem);
 
@@ -641,7 +649,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
             movementDebuffs={turnManager.movementDebuffs || []}
             activeLightSources={(turnManager.activeLightSources || []) as LightSource[]}
             showLightSourceMarkers={showLightSourceMarkers}
-            showLineOfSightCone={showLineOfSightCone}
+            showLineOfSightCone={lineOfSightOverlayVisible}
             lineOfSightOriginCharacterId={currentCharacter?.id ?? null}
             spellMovementVisuals={turnManager.spellMovementVisuals || []}
             spellDeliveryVisuals={turnManager.spellDeliveryVisuals || []}
@@ -692,12 +700,32 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
       {/* Legend — rendered outside the scaled frame so it stays readable
           regardless of how far the board is scaled to fit. */}
       <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-1 text-xs text-slate-300">
-        {LEGEND_ITEMS.map(item => (
-          <div key={item.label} className="flex items-center gap-1.5">
-            <span className={`inline-block h-3 w-3 rounded-sm ${item.swatch}`} />
-            <span>{item.label}</span>
-          </div>
-        ))}
+        {LEGEND_ITEMS.map(item => {
+          if (item.toggle === 'lineOfSight') {
+            return (
+              /* eslint-disable-next-line no-restricted-syntax -- This is a tiny legend swatch toggle; the shared Button component is too large for the map footer. */
+              <button
+                key={item.label}
+                type="button"
+                aria-label={`${lineOfSightOverlayVisible ? 'Hide' : 'Show'} line of sight overlay`}
+                aria-pressed={lineOfSightOverlayVisible}
+                onClick={() => setLineOfSightOverlayVisible(visible => !visible)}
+                className={`flex items-center gap-1.5 rounded px-1.5 py-1 transition-colors ${lineOfSightOverlayVisible ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-800/70 hover:text-slate-300'}`}
+                title={`${lineOfSightOverlayVisible ? 'Hide' : 'Show'} line-of-sight overlay`}
+              >
+                <span className={`inline-block h-3 w-3 rounded-sm ${item.swatch} ${lineOfSightOverlayVisible ? '' : 'opacity-40'}`} />
+                <span>{item.label}</span>
+              </button>
+            );
+          }
+
+          return (
+            <div key={item.label} className="flex items-center gap-1.5">
+              <span className={`inline-block h-3 w-3 rounded-sm ${item.swatch}`} />
+              <span>{item.label}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

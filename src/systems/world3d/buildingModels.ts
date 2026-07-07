@@ -249,6 +249,17 @@ export function buildBuildingMeshData(
     const baseZ = floor.level * storeyFt;
     const boxes: MeshBox[] = [];
 
+    // z-fight fix (BGv2 Phase 1B): the TOP level caps itself with a ceiling slab
+    // spanning [storeyTop − SLAB_FT, storeyTop]. If the walls also rose to
+    // storeyTop, their top face would be COPLANAR with the ceiling's top face —
+    // z-fighting shimmer, and the wall thickness pokes nubs through the flat
+    // roof (visible with Style=None). So on the top level the walls (and their
+    // window heads / door lintels) stop at the ceiling UNDERSIDE and the slab
+    // caps them cleanly. Lower levels are capped by the NEXT floor's slab (its
+    // underside IS the storey top), so they keep the full storey — no gap.
+    const capsSelf = floor.level === topLevel;
+    const wallColFt = capsSelf ? storeyFt - SLAB_FT : storeyFt;
+
     // ── Floor slab from footprintCells, with a stair HOLE where a stair
     // rises from the level below (basement stair pierces the ground slab).
     const holeKeys = new Set<string>();
@@ -320,15 +331,17 @@ export function buildBuildingMeshData(
       for (const at of wins) {
         const a = at - WINDOW_FT / 2;
         const b = at + WINDOW_FT / 2;
-        if (a > cursor) boxes.push({ ...runBox(r, cursor, a, baseZ, storeyFt, 'wall'), wallKind: run.kind });
+        if (a > cursor) boxes.push({ ...runBox(r, cursor, a, baseZ, wallColFt, 'wall'), wallKind: run.kind });
         // Vertical 3-box split: sill below, head above, glazed pane in the void.
+        // The head fills from the window head up to the wall cap (ceiling
+        // underside on the top level, storey top below) — never past it.
         boxes.push({ ...runBox(r, a, b, baseZ, sillFt, 'sill'), wallKind: run.kind });
-        boxes.push({ ...runBox(r, a, b, baseZ + winHeadFt, storeyFt - winHeadFt, 'window-head'), wallKind: run.kind });
+        boxes.push({ ...runBox(r, a, b, baseZ + winHeadFt, wallColFt - winHeadFt, 'window-head'), wallKind: run.kind });
         boxes.push({ ...runBox(r, a, b, baseZ + sillFt, winHeadFt - sillFt, 'window-pane', run.thicknessFt * 0.4), wallKind: run.kind });
         windowOpenings += 1;
         cursor = b;
       }
-      if (hi > cursor) boxes.push({ ...runBox(r, cursor, hi, baseZ, storeyFt, 'wall'), wallKind: run.kind });
+      if (hi > cursor) boxes.push({ ...runBox(r, cursor, hi, baseZ, wallColFt, 'wall'), wallKind: run.kind });
     }
 
     // ── Door cells: runs already break at doors (door edges emit no wall),
@@ -375,9 +388,11 @@ export function buildBuildingMeshData(
         : { axis: 'x' as const, thicknessFt, nx: 0, ny: sign, line };
       const a = along - DOOR_CLEAR_FT / 2;
       const b = along + DOOR_CLEAR_FT / 2;
-      boxes.push({ ...runBox(r, a - DOOR_JAMB_FT, a, baseZ, storeyFt, 'jamb'), wallKind });
-      boxes.push({ ...runBox(r, b, b + DOOR_JAMB_FT, baseZ, storeyFt, 'jamb'), wallKind });
-      boxes.push({ ...runBox(r, a, b, baseZ + headFt, storeyFt - headFt, 'door-lintel'), wallKind });
+      // Jambs + lintel cap at the wall column top (ceiling underside on the top
+      // level) so they never poke through the ceiling slab (z-fight fix).
+      boxes.push({ ...runBox(r, a - DOOR_JAMB_FT, a, baseZ, wallColFt, 'jamb'), wallKind });
+      boxes.push({ ...runBox(r, b, b + DOOR_JAMB_FT, baseZ, wallColFt, 'jamb'), wallKind });
+      boxes.push({ ...runBox(r, a, b, baseZ + headFt, wallColFt - headFt, 'door-lintel'), wallKind });
     }
 
     // ── Stair flight rising FROM this level toward the next. A real straight

@@ -1369,6 +1369,7 @@ const App: React.FC = () => {
           gameTime={gameState.gameTime}
           messages={gameState.messages}
           openingStatus={gameState.gameEntry?.status}
+          onNavigateToGlossary={handleNavigateToGlossaryFromTooltip}
           npcsInLocation={npcs}
           itemsInLocation={itemsInCurrentLocation}
           party={gameState.party}

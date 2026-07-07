@@ -483,7 +483,7 @@ function furnishAndStamp(
         const target = f.countPerCells === 0
           ? 1
           : Math.max(1, Math.floor(cells.length / f.countPerCells));
-        placeByLayout(r, cells, f.kind, f.layout, target, W, grid, roomOf, nearWall, blocked, occupied, props);
+        placeByLayout(r, cells, f.kind, f.layout, target, W, grid, roomOf, nearWall, blocked, occupied, props, f.scale ?? 1);
       }
     }
 
@@ -675,11 +675,13 @@ function placeByLayout(
   blocked: (x: number, y: number) => boolean,
   occupied: Set<number>,
   props: DungeonProp[],
+  /** Drawn footprint multiplier per piece (bigger = one distinct object). */
+  scale = 1,
 ): void {
   const push = (x: number, y: number): boolean => {
     if (blocked(x, y)) return false;
     occupied.add(gi(x, y, W));
-    props.push({ kind, x, y, rot: 0, scale: 1, roomId: r.id });
+    props.push({ kind, x, y, rot: 0, scale, roomId: r.id });
     return true;
   };
 
@@ -704,10 +706,18 @@ function placeByLayout(
   }
 
   if (layout === 'rows') {
-    // Coarse interior grid, inset one cell from the box edge.
+    // Coarse interior grid, inset one cell from the box edge. The stride widens
+    // with the piece footprint (ROOM-SIZE ×2): a scaled coffin/pew/table glyph is
+    // ~1.6×scale cells long, so its neighbours need a pitch WIDER than that or the
+    // pieces touch and re-read as one long "chained segment" bench (exactly the
+    // pre-×2 complaint). A pitch of 4 for scaled furniture leaves a clear ≥1-cell
+    // gap between pieces AND across rows, so a gallery reads as ranks of DISTINCT
+    // coffins with breathing space. `target` (density) still caps how many land,
+    // and the drawer culls the central file for a processional aisle.
+    const pitch = scale >= 1.4 ? 4 : 2;
     let placed = 0;
-    for (let y = r.y0 + 1; y <= r.y0 + r.h - 2 && placed < target; y += 2) {
-      for (let x = r.x0 + 1; x <= r.x0 + r.w - 2 && placed < target; x += 2) {
+    for (let y = r.y0 + 1; y <= r.y0 + r.h - 2 && placed < target; y += pitch) {
+      for (let x = r.x0 + 1; x <= r.x0 + r.w - 2 && placed < target; x += pitch) {
         if (roomOf[gi(x, y, W)] !== r.id) continue;
         if (push(x, y)) placed++;
       }

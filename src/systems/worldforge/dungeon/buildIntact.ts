@@ -151,16 +151,20 @@ export const DIRS: ReadonlyArray<readonly [number, number]> = [[0, -1], [1, 0], 
 // from reading as a one-dimensional worm (DEFECT 1). SPINE_SEGMENT_CELLS is
 // sized so the last usable gallery anchor (2 + cursor*STRIDE) sits inside the
 // segment for ~5 pairs, plus a two-cell lead-in.
-export const SPINE_STRIDE = 6;
+// ROOM-SIZE ×2 (Remy 2026-07-07): burial galleries are now ~10-15 cells tall
+// (was 7-11), so the stride between spine anchors must grow so adjacent gallery
+// wings on the same flank clear each other. Raised 6 → 8.
+export const SPINE_STRIDE = 8;
 /** Gallery PAIRS per straight trunk before the spine branches perpendicular. */
 export const SPINE_PAIRS_PER_SEGMENT = 5;
-export const SPINE_SEGMENT_CELLS = 2 + SPINE_PAIRS_PER_SEGMENT * SPINE_STRIDE; // 32
+export const SPINE_SEGMENT_CELLS = 2 + SPINE_PAIRS_PER_SEGMENT * SPINE_STRIDE; // 42
 /**
  * Perpendicular jog between processional lanes — wide enough that the next
- * lane's galleries clear the previous lane's (a gallery reaches ~9 cells to a
- * flank plus its connector). Keeps parallel lanes from cross-colliding.
+ * lane's galleries clear the previous lane's (a ×2-scale gallery reaches ~13
+ * cells to a flank plus its connector). Keeps parallel lanes from cross-colliding.
+ * Raised 16 → 22 for the bigger galleries.
  */
-export const SPINE_LANE_GAP = 16;
+export const SPINE_LANE_GAP = 22;
 
 export const gi = (x: number, y: number, W: number): number => y * W + x;
 
@@ -250,10 +254,13 @@ function sprawlElbow(st: IntactState, rng: Rng, corLen: number): boolean {
 
 // ─── Gozzys blend (size contrast + focal shapes, at all sprawl levels) ────────
 
+// ROOM-SIZE ×2 (Remy 2026-07-07): the Gozzys focal footprints scale with the
+// rest so the size CONTRAST (huge hall vs closet) stays proportionally the same
+// against the now-bigger baseline rooms.
 /** An oversized hall — the "huge hall next to a closet" contrast. */
-const GOZZYS_HALL = { w: [14, 18], h: [14, 18] } as const;
-/** A tiny closet. */
-const GOZZYS_CLOSET = { w: [3, 4], h: [3, 4] } as const;
+const GOZZYS_HALL = { w: [18, 24], h: [18, 24] } as const;
+/** A tiny closet (still small, ~×1.4 the old closet — a real closet beside a hall). */
+const GOZZYS_CLOSET = { w: [4, 6], h: [4, 6] } as const;
 
 /**
  * Occasionally override a repeat spec into a Gozzys focal room — an oversized
@@ -276,8 +283,8 @@ function gozzysBlend(spec: RoomSpec, ordinal: number): RoomSpec {
   if (isCloset) return { ...spec, w: GOZZYS_CLOSET.w, h: GOZZYS_CLOSET.h, shape: 'rect' };
   if (isFocal) {
     const shape: RoomShape = ordinal % 18 === 4 ? 'diamond' : 'octagon';
-    // Focal rooms want a squarish mid-large footprint so the shape reads.
-    return { ...spec, w: [8, 11], h: [8, 11], shape };
+    // Focal rooms want a squarish mid-large footprint so the shape reads (×2 size).
+    return { ...spec, w: [11, 15], h: [11, 15], shape };
   }
   return spec;
 }
@@ -670,9 +677,15 @@ export function buildIntact(
   // base factor is already very generous (its spine needs LENGTH), so it gets a
   // gentler sprawl bump than the spread archetypes — otherwise its huge grid
   // makes the O(side²) history/loop passes blow the perf budget at full sprawl.
+  // ROOM-SIZE ×2 (Remy 2026-07-07): rooms now hold ≈2× the floor cells, so the
+  // per-room area budget here is roughly DOUBLED (1600→3200 mausoleum, 640→1280
+  // others) and the floors raised (160→200, 140→180). Undersizing the grid would
+  // make the bigger rooms fail the no-touch placement and drop out (or the whole
+  // build return null at 60 rooms); growing `side` is the sanctioned lever and the
+  // grid is cropped to the used extent afterward, so the slack is transient RAM.
   const side = archetype === 'mausoleum'
-    ? Math.max(160, Math.ceil(Math.sqrt(roomCount * 1600 * (1 + 0.15 * sprawlClamped))))
-    : Math.max(140, Math.ceil(Math.sqrt(roomCount * 640 * (1 + 0.8 * sprawlClamped))));
+    ? Math.max(200, Math.ceil(Math.sqrt(roomCount * 3200 * (1 + 0.15 * sprawlClamped))))
+    : Math.max(180, Math.ceil(Math.sqrt(roomCount * 1280 * (1 + 0.8 * sprawlClamped))));
 
   const flowByArch: Record<BuilderArchetype, readonly [number, number]> = {
     mausoleum: [0, -1],

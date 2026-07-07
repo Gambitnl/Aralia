@@ -358,11 +358,18 @@ async function cmdRegister(out, parsed, env, baseUrl) {
   // themselves to unlock the command channel.
   const role = typeof parsed.flags.role === 'string' ? parsed.flags.role : undefined;
 
+  // Identity provenance (Wave 1). Usually stamped by the spawner at launch; a root
+  // agent (a person-opened chat) sets its own.
+  const type = typeof parsed.flags.type === 'string' ? parsed.flags.type : undefined;
+  const spawnedBy = typeof parsed.flags['spawned-by'] === 'string' ? parsed.flags['spawned-by'] : undefined;
+  const campaign = typeof parsed.flags.campaign === 'string' ? parsed.flags.campaign : undefined;
+  const cwd = typeof parsed.flags.cwd === 'string' ? parsed.flags.cwd : undefined;
+
   const maxTries = wantRandom ? 6 : 1;
   let last = null;
   for (let attempt = 0; attempt < maxTries; attempt++) {
     const handle = wantRandom ? randomHandle(base) : parsed._[0];
-    const r = await api(baseUrl, 'POST', '/agents/register', { body: { handle, note, unique, model, sessionId, role } });
+    const r = await api(baseUrl, 'POST', '/agents/register', { body: { handle, note, unique, model, sessionId, role, type, spawnedBy, campaign, cwd } });
     last = r;
     if (r.status === 201 && r.json) {
       saveIdentity(env, baseUrl, {
@@ -426,6 +433,124 @@ async function cmdAgents(out, parsed, env, baseUrl) {
     out.log(`${statusDot(a.status)} ${a.handle.padEnd(16)} ${shortId(a.id)}${model}  seen ${relativeTime(a.lastSeen, now)}${inFor}${note}`);
   }
   return { code: 0, agents };
+}
+
+// whois <handle> — show one agent's full identity record.
+async function cmdWhois(out, parsed, _env, baseUrl) {
+  const handle = parsed._[0];
+  if (!handle) {
+    out.log('Usage: whois <handle>');
+    return { code: 1 };
+  }
+  const r = await api(baseUrl, 'GET', '/agents');
+  const agents = (r.json && r.json.agents) || [];
+  const a = agents.find((x) => x.handle === handle);
+  if (!a) {
+    out.log(`no agent with handle "${handle}"`);
+    return { code: 1 };
+  }
+  const row = (label, value, fallback) => out.log(`${label.padEnd(11)} ${value || fallback}`);
+  row('handle:', a.handle, '');
+  row('type:', a.type, '(unset)');
+  row('role:', a.role, '(unset)');
+  row('model:', a.model, '(unset)');
+  row('spawnedBy:', a.spawnedBy, '(root)');
+  row('campaign:', a.campaign, '(unset)');
+  row('sessionId:', a.sessionId, '(unset)');
+  row('cwd:', a.cwd, '(unset)');
+  row('status:', a.status, '');
+  row('handle ok:', a.handleValid ? 'yes' : 'no', '');
+  row('agentId:', a.id, '');
+  return { code: 0, agent: a };
+}
+
+// lineage <handle> — walk spawnedBy up to the root and print it root-first.
+async function cmdLineage(out, parsed, _env, baseUrl) {
+  const handle = parsed._[0];
+  if (!handle) {
+    out.log('Usage: lineage <handle>');
+    return { code: 1 };
+  }
+  const r = await api(baseUrl, 'GET', '/agents');
+  const agents = (r.json && r.json.agents) || [];
+  const byHandle = new Map(agents.map((a) => [a.handle, a]));
+  const start = byHandle.get(handle);
+  if (!start) {
+    out.log(`no agent with handle "${handle}"`);
+    return { code: 1 };
+  }
+  const chain = [];
+  const seen = new Set();
+  let cur = start;
+  while (cur && !seen.has(cur.handle)) {
+    seen.add(cur.handle);
+    chain.push(cur);
+    const parent = cur.spawnedBy;
+    if (!parent) break;
+    const next = byHandle.get(parent);
+    if (!next) {
+      chain.push({ handle: parent, gone: true });
+      break;
+    }
+    cur = next;
+  }
+  chain.reverse(); // root first
+  chain.forEach((a, i) => {
+    const arrow = i === 0 ? '' : `${'  '.repeat(i)}└─ `;
+    const tag = a.gone ? ' (gone — not on roster)' : a.type ? ` [${a.type}]` : '';
+    out.log(`${arrow}${a.handle}${tag}`);
+  });
+  return { code: 0, chain };
+}
+
+// tree — the fleet as a spawn tree, grouped by campaign.
+async function cmdTree(out, _parsed, _env, baseUrl) {
+  const r = await api(baseUrl, 'GET', '/agents');
+  const agents = (r.json && r.json.agents) || [];
+  if (agents.length === 0) {
+    out.log('no agents registered');
+    return { code: 0 };
+  }
+  const byCampaign = new Map();
+  for (const a of agents) {
+    const c = a.campaign || '(no campaign)';
+    if (!byCampaign.has(c)) byCampaign.set(c, []);
+    byCampaign.get(c).push(a);
+  }
+  for (const [campaign, members] of byCampaign) {
+    out.log(`# ${campaign}`);
+    const inCampaign = new Set(members.map((m) => m.handle));
+    const childrenOf = new Map();
+    const roots = [];
+    for (const m of members) {
+      if (m.spawnedBy && inCampaign.has(m.spawnedBy)) {
+        if (!childrenOf.has(m.spawnedBy)) childrenOf.set(m.spawnedBy, []);
+        childrenOf.get(m.spawnedBy).push(m);
+      } else {
+        roots.push(m);
+      }
+    }
+    const printNode = (a, depth) => {
+      out.log(`${'  '.repeat(depth + 1)}${a.handle}${a.type ? ` [${a.type}]` : ''}`);
+      for (const child of childrenOf.get(a.handle) || []) printNode(child, depth + 1);
+    };
+    for (const root of roots) printNode(root, 0);
+  }
+  return { code: 0 };
+}
+
+// retire — clean voluntary exit for the current agent.
+async function cmdRetire(out, parsed, env, baseUrl) {
+  const token = needToken(out, parsed, env, baseUrl);
+  if (!token) return { code: 1 };
+  const note = typeof parsed.flags.note === 'string' ? parsed.flags.note : undefined;
+  const r = await api(baseUrl, 'POST', '/agents/retire', { token, body: { note } });
+  if (r.status === 200) {
+    out.log('retired — locks released, in-flight tasks reopened, removed from the roster');
+    return { code: 0 };
+  }
+  out.log(`retire failed: ${(r.json && r.json.error) || r.status}`);
+  return { code: 1 };
 }
 
 async function cmdLock(out, parsed, env, baseUrl) {
@@ -1281,6 +1406,18 @@ export async function run(argv, { env = process.env, baseUrl: baseOverride, watc
         break;
       case 'agents':
         res = await cmdAgents(out, parsed, env, baseUrl);
+        break;
+      case 'whois':
+        res = await cmdWhois(out, parsed, env, baseUrl);
+        break;
+      case 'lineage':
+        res = await cmdLineage(out, parsed, env, baseUrl);
+        break;
+      case 'tree':
+        res = await cmdTree(out, parsed, env, baseUrl);
+        break;
+      case 'retire':
+        res = await cmdRetire(out, parsed, env, baseUrl);
         break;
       case 'lock':
         res = await cmdLock(out, parsed, env, baseUrl);

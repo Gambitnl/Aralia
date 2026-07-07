@@ -1,7 +1,9 @@
 # Staged, off-thread 3D world entry
 
 **Date:** 2026-07-06
-**Status:** Design — approved by Remy, pending spec review
+**Status:** BUILT + verified 2026-07-07 (both spikes passed; worker pipeline proven
+end-to-end in a real browser). One gap: full in-game visual eyeball of the loading
+screen is gated behind the game-entry flow. See progress note at the bottom.
 
 ## The problem
 
@@ -190,3 +192,40 @@ before writing more code.
    world for every fixed seed tested.
 5. Both feasibility spikes passed before the full build landed.
 6. No change to `?phase=webgpuprobe` behavior.
+
+## Progress note — 2026-07-07 (built)
+
+All infrastructure built test-first and wired into the live PLAYING 3D entry.
+
+**Files:**
+- `src/systems/worldforge/bridge/groundChunkLoader.ts` — added `skipProps` option,
+  exported `computeGroundProps` (the Stage B pass) and `buildGroundLoaderFromWorld`
+  (rebuild the loader closure from an assembled `ground`).
+- `src/components/World3D/worldGenCore.ts` — pure two-stage orchestration + progress.
+- `src/components/World3D/worldGenWorker.ts` — worker entry (thin glue).
+- `src/components/World3D/createWorldGenClient.ts` — host client: owns the worker,
+  streams stages, correlates by id, supersedes, self-heals, disposes.
+- `src/components/World3D/WorldGenLoadingScreen.tsx` — staged loading view.
+- `src/components/World3D/World3DWrapper.tsx` — ground `useEffect` now drives the
+  worker client; registration deferred to idle after Stage A; props patched on
+  Stage B; error-looking placeholder replaced by the loading screen.
+
+**Verification:**
+- 15 new unit tests + 2 feasibility spikes green.
+- 165 worldforge/bridge regression tests green (split is behavior-preserving).
+- 0 type errors, 0 lint errors in the changed files.
+- All modules (incl. the worker) transform through Vite; the real worker runs
+  end-to-end in a browser: progress → Stage A (terrain+town, loader rebuilt,
+  props=0) → Stage B (props populated), all off the main thread.
+
+**Open gap:** the in-game visual eyeball (character creation → spawn → Enter 3D →
+see the loading screen give way to the world, props popping in) was not run — it
+needs the full game-entry flow (and, per project notes, Ollama for the opening).
+Everything up to that boundary is proven.
+
+## Open
+
+- Live in-game freeze-frame of the loading screen on a cold entry. The staged
+  path runs live in the real game (proven via `window.__wfEntry` + a rendered
+  scene, no errors), but the loading-label frames themselves were not captured —
+  Stage A completes sub-second on a warm atlas.

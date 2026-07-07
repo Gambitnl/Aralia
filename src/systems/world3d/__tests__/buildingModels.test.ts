@@ -350,6 +350,77 @@ describe('buildBuildingMeshData', () => {
       }
     });
   });
+
+  // ── z-fight fix (BGv2 Phase 1B, 2026-07-07): the top-level walls must NOT
+  // top out coplanar with the ceiling slab's TOP face — that coincidence
+  // z-fights and pokes wall nubs through the flat roof. Walls stop at the
+  // ceiling slab's UNDERSIDE (storeyFt − SLAB_FT) so the slab caps them.
+  describe('wall / ceiling coplanar z-fight fix', () => {
+    const SLAB_FT = 0.4;
+
+    it('top-level wall boxes stop at the ceiling underside, not the ceiling top', () => {
+      const p = plan(); // 2-storey manor + basement (levels -1, 0, 1)
+      const data = buildBuildingMeshData(p);
+      const storeyFt = data.storeyHeightFt;
+      const topLevel = Math.max(...data.floors.map((f) => f.level));
+      const top = data.floors.find((f) => f.level === topLevel)!;
+      const ceilTop = top.baseZFt + storeyFt; // ceiling slab TOP
+      const ceilUnderside = ceilTop - SLAB_FT;
+
+      const wallBoxes = top.boxes.filter((b) => b.kind === 'wall');
+      expect(wallBoxes.length).toBeGreaterThan(0);
+      for (const b of wallBoxes) {
+        // No wall top is coplanar with the ceiling TOP...
+        expect(b.z0 + b.h).not.toBeCloseTo(ceilTop, 6);
+        // ...they cap at the ceiling UNDERSIDE instead.
+        expect(b.z0 + b.h).toBeCloseTo(ceilUnderside, 6);
+      }
+    });
+
+    it('no wall-family box top is coplanar with any ceiling-slab TOP (any storey count)', () => {
+      const types = ['cottage', 'shop', 'manor'] as const;
+      for (let seed = 1; seed <= 12; seed++) {
+        for (const type of types) {
+          for (const storeys of [1, 2, 3]) {
+            const p = generateBuilding({
+              buildingId: seed, type,
+              seedPath: rootSeedPath(seed), storeys, basement: seed % 2 === 0,
+            });
+            const data = buildBuildingMeshData(p);
+            const ceilTops = new Set(
+              data.floors.flatMap((f) => f.boxes)
+                .filter((b) => b.kind === 'ceiling')
+                .map((b) => +(b.z0 + b.h).toFixed(4)),
+            );
+            const wallTops = data.floors.flatMap((f) => f.boxes)
+              .filter((b) => b.kind === 'wall')
+              .map((b) => +(b.z0 + b.h).toFixed(4));
+            for (const wt of wallTops) {
+              expect(ceilTops.has(wt),
+                `${type} seed ${seed} storeys ${storeys}: wall top ${wt} coplanar with a ceiling top`,
+              ).toBe(false);
+            }
+          }
+        }
+      }
+    });
+
+    it('lower-level walls still span the full storey (no floor-to-ceiling gap)', () => {
+      const p = plan(); // levels -1, 0, 1
+      const data = buildBuildingMeshData(p);
+      const storeyFt = data.storeyHeightFt;
+      const topLevel = Math.max(...data.floors.map((f) => f.level));
+      for (const floor of data.floors) {
+        if (floor.level === topLevel) continue; // capped by ceiling (tested above)
+        const walls = floor.boxes.filter((b) => b.kind === 'wall');
+        for (const b of walls) {
+          // Lower levels are capped by the NEXT floor's slab (bottom at the full
+          // storey top), so they keep their full height — no open slot.
+          expect(b.z0 + b.h).toBeCloseTo(floor.baseZFt + storeyFt, 6);
+        }
+      }
+    });
+  });
 });
 
 // ── Task 5 (BGv2 Phase 1B): raise the solved roof. buildRoofMeshData turns a

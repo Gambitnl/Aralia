@@ -154,8 +154,23 @@
           "title": "Combat-map draw-call phase 2 (character-mesh instancing + contact-shadow demand-invalidate)",
           "status": "parked",
           "open": 1
+        },
+        {
+          "title": "3D-entry freeze fixed — off-thread staged world generation + loading screen",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-06-staged-offthread-3d-world-entry-design.md",
+          "open": 1
+        },
+        {
+          "title": "Walking stutter fixed — off-thread ground chunk meshing",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-07-offthread-ground-chunk-meshing-design.md",
+          "open": 1
         }
-      ]
+      ],
+      "history": {
+        "built": "2026-07-07"
+      }
     },
     {
       "id": "building-generator",
@@ -1294,20 +1309,20 @@
     {
       "id": "agent-identity",
       "title": "Agent identity & provenance",
-      "sub": "every agent self-IDs richly — type/role/model/spawnedBy/campaign + structured handles (master.desktop, orch.planmap/glossary; opaque agent-16d417 names rejected) + whois/lineage/tree views. Hybrid stamping: spawner stamps provenance, root chats self-declare. The foundation that makes retrace + the master orchestrator legible. Specced 2026-07-06; not built",
+      "sub": "Wave 1 BUILT + GREEN 2026-07-06 (store/server/client, 121 agora tests): type/spawnedBy/campaign/cwd/handleValid + validateHandle on registerAgent (on top of fable’s role) + whois/lineage/tree + clean retire (retireAgent + POST /agents/retire + `retire` cmd). Goes live on next daemon restart. Remaining: PROTOCOL.md doc + spawner stamping in orchestrate dispatch. Foundation for retrace/ping/escalation/master",
       "campaign": "agents",
-      "status": "specced",
+      "status": "active",
       "link": "docs/superpowers/plans/2026-07-06-agent-identity-provenance-plan.md",
       "deps": [],
       "features": [
         {
           "title": "Rich identity record: add type/role/spawnedBy/campaign/cwd to the agent + validate structured handles",
-          "status": "specced",
+          "status": "done",
           "link": "docs/superpowers/plans/2026-07-06-agent-identity-provenance-plan.md"
         },
         {
           "title": "Provenance views: whois <handle>, lineage (walk spawnedBy to root), tree (fleet spawn tree by campaign)",
-          "status": "specced",
+          "status": "done",
           "link": "docs/superpowers/plans/2026-07-06-agent-identity-provenance-plan.md"
         },
         {
@@ -1323,9 +1338,9 @@
     {
       "id": "agent-retrace",
       "title": "Agent retrace",
-      "sub": "recover a dead worker's WORK, not just reopen its task: preserve-on-reap dossier (identity + files held + say-tail + checkpoint) + `retrace <id>` shows the partial git diff; the successor reads it before continuing, never blind-restarts; reapCount escalates cursed tasks to the master. Specced 2026-07-06; not built",
+      "sub": "Store-core BUILT+GREEN 2026-07-06 (125 agora tests): preserve-on-reap dossier (identity + filesHeld + sayTail + checkpoint) + reapCount + checkpointTask (latest-wins) in sweepExpired; a clean retire stays clean (no crash dossier). Remaining: `retrace <id>` command (dossier + git diff) + task checkpoint command/endpoint + successor-flag on claim. Depends on agent-identity (built).",
       "campaign": "agents",
-      "status": "specced",
+      "status": "active",
       "link": "docs/superpowers/plans/2026-07-06-agent-retrace-plan.md",
       "deps": [
         {
@@ -1337,12 +1352,12 @@
       "features": [
         {
           "title": "Preserve-on-reap: build the retrace record in sweepExpired before freeing locks + dropping the agent",
-          "status": "specced",
+          "status": "done",
           "link": "docs/superpowers/plans/2026-07-06-agent-retrace-plan.md"
         },
         {
           "title": "task checkpoint --did --next --files (latest-wins resumable note) + reapCount escalation",
-          "status": "specced",
+          "status": "done",
           "link": "docs/superpowers/plans/2026-07-06-agent-retrace-plan.md"
         },
         {
@@ -1679,13 +1694,17 @@
         {
           "title": "Shell corner joints + window corner clearance (viewer-found geometry bugs)",
           "status": "done"
+        },
+        {
+          "title": "Wall/ceiling z-fight fix (cap walls at slab underside — viewer-found)",
+          "status": "active"
         }
       ]
     },
     {
       "id": "glossary-structured-content",
       "title": "Glossary structured content layer (typed model, one link primitive, build-time gate)",
-      "sub": "spec APPROVED 2026-07-06 (one bundle file; gate fails on everything day one, no grandfathered baseline; source files get fixed, not permanently auto-repaired): replace the regex + dangerouslySetInnerHTML string pipeline with a build-time compiler that parses each of the ~2,000 entries once into typed blocks, precomputes the cross-reference graph, and fails CI on broken links/malformed tables/content-less targets; one GlossaryLink primitive replaces five clickable-term implementations. Stretch (design-only): rules surface live game-state clauses via the graph. SLICE 1 DONE 2026-07-06: compiler+graph+gate live in glossary:rebuild and vitest; root-cause ingest pipe-corruption fixed; ~850 entries source-cleaned; gate green over all 1,571 entries.",
+      "sub": "spec APPROVED 2026-07-06 (one bundle file; gate fails on everything day one, no grandfathered baseline; source files get fixed, not permanently auto-repaired): replace the regex + dangerouslySetInnerHTML string pipeline with a build-time compiler that parses each of the ~2,000 entries once into typed blocks, precomputes the cross-reference graph, and fails CI on broken links/malformed tables/content-less targets; one GlossaryLink primitive replaces five clickable-term implementations. Stretch (design-only): rules surface live game-state clauses via the graph. SLICE 1 DONE 2026-07-06: compiler+graph+gate live in glossary:rebuild and vitest; root-cause ingest pipe-corruption fixed; ~850 entries source-cleaned; gate green over all 1,571 entries. CROSS-SURFACE AUDIT 2026-07-07: spellbook/spell UI already clean (structured JSON, no dangerouslySetInnerHTML/markdown-at-render); only fragile render-time markdown left is a dev-only tool (PreviewMdLibrary, single terminal DOMPurify — not actually vulnerable). Down-payments landed: item registry now strips 5eTools {@item} tags at generation (0 leaked); party-condition chips (poisoned) now link to the live glossary entry via GlossaryTooltip instead of hardcoded copy (early slice-4).",
       "campaign": "ui",
       "status": "active",
       "link": "docs/superpowers/specs/2026-07-06-glossary-structured-content-design.md",
@@ -1706,7 +1725,7 @@
           "link": "docs/superpowers/specs/2026-07-06-glossary-structured-content-design.md"
         },
         {
-          "title": "GlossaryLink primitive unifies all five link surfaces",
+          "title": "GlossaryLink primitive unifies all five link surfaces (started: condition chips + skills reuse GlossaryTooltip)",
           "status": "specced",
           "link": "docs/superpowers/specs/2026-07-06-glossary-structured-content-design.md"
         },
@@ -1766,25 +1785,29 @@
       "title": "Groq inference toggle",
       "sub": "player-toggled Groq cloud text when Ollama is down; user-entered key in localStorage (no bundle leak); covers every Ollama text call",
       "campaign": "tooling",
-      "status": "specced",
+      "status": "done",
       "deps": [],
       "link": "docs/superpowers/specs/2026-07-06-groq-inference-toggle-design.md",
       "features": [
         {
-          "title": "User-entered Groq key in localStorage (never in bundle; avoids the Gemini-leak class)",
-          "status": "specced"
+          "title": "Key-handling the user picks: persistent localStorage / session-only / local-proxy (key never in the browser) — none in the bundle",
+          "status": "done"
         },
         {
           "title": "Groq OpenAI-compatible text provider adapting to the Ollama client return shapes",
-          "status": "specced"
+          "status": "done"
         },
         {
           "title": "Provider router at the ollama-client facade (aiTextProvider ollama|groq)",
-          "status": "specced"
+          "status": "done"
         },
         {
           "title": "Toggle on the Ollama-unavailable message: enter key + switch provider",
-          "status": "specced"
+          "status": "done"
+        },
+        {
+          "title": "CSP connect-src allows api.groq.com (Groq fetch was blocked); localhost:* already covers the proxy option",
+          "status": "done"
         }
       ]
     },

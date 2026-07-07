@@ -218,7 +218,10 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       : typeof body.threadId === 'string' ? body.threadId
       : typeof body.conversationId === 'string' ? body.conversationId
       : undefined;
-    const agent = store.registerAgent({ handle: body.handle, note: body.note, model: body.model, sessionId, role: body.role });
+    const agent = store.registerAgent({
+      handle: body.handle, note: body.note, model: body.model, sessionId, role: body.role,
+      type: body.type, spawnedBy: body.spawnedBy, campaign: body.campaign, cwd: body.cwd,
+    });
     sendJson(res, 201, {
       agentId: agent.id,
       token: agent.token,
@@ -227,6 +230,11 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       model: agent.model,
       sessionId: agent.sessionId,
       role: agent.role,
+      type: agent.type,
+      spawnedBy: agent.spawnedBy,
+      campaign: agent.campaign,
+      cwd: agent.cwd,
+      handleValid: agent.handleValid,
     });
   });
 
@@ -241,6 +249,25 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
   router.get('/agents', async (_req, res) => {
     sendJson(res, 200, { agents: store.listAgents() });
   });
+
+  // Clean voluntary exit. The agent retires itself with its own token; the store
+  // frees its locks, reopens its in-flight tasks (marked "retired", not "reaped"),
+  // and drops it from the roster. Body is optional; `note` is a final handoff line.
+  router.post(
+    '/agents/retire',
+    withAuth(async (req, res, ctx) => {
+      let note;
+      try {
+        const body = await readJsonBody(req);
+        note = typeof body.note === 'string' ? body.note : undefined;
+      } catch {
+        note = undefined;
+      }
+      const result = store.retireAgent(ctx.agent.id, { note });
+      if (!result.ok) return sendJson(res, 404, { error: result.error });
+      sendJson(res, 200, { ok: true, agentId: ctx.agent.id });
+    }),
+  );
 
   // ============================== Locks ==============================
   router.post(

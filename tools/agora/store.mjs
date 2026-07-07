@@ -21,6 +21,25 @@ const CAMPAIGN_ROLES = new Set(['lead', 'deputy']);
 
 const UNCATEGORIZED_TASK_CATEGORY = 'uncategorized';
 
+// Structured, provenance-encoding handle grammar: lowercase role.domain[/child...],
+// e.g. "master.desktop", "orch.planmap/glossary". Opaque auto-names ("agent-16d417")
+// and bare single-segment names ("alice") are rejected so the handle itself carries
+// provenance. See docs/superpowers/plans/2026-07-06-agent-identity-provenance-plan.md.
+const HANDLE_RE = /^[a-z][a-z0-9]*(\.[a-z0-9][a-z0-9-]*)+(\/[a-z0-9][a-z0-9-]*)*$/;
+
+export function validateHandle(handle) {
+  if (typeof handle !== 'string' || handle.length === 0) {
+    return { ok: false, reason: 'handle is required' };
+  }
+  if (!HANDLE_RE.test(handle)) {
+    return {
+      ok: false,
+      reason: 'handle must be lowercase role.domain[/child], e.g. "orch.planmap/glossary" — not an opaque name like "agent-16d417"',
+    };
+  }
+  return { ok: true };
+}
+
 function normalizeCategoryInput(category) {
   if (typeof category !== 'string') return '';
   const v = category.trim().toLowerCase();
@@ -383,6 +402,18 @@ export function createStore({
       t.claimedBy = null;
       t.updatedAt = p.ts;
       t.history.push(p.entry);
+      // A reap carries a retrace dossier (agent-retrace, Wave 2). A clean retire
+      // does not, so it neither stamps a crash dossier nor bumps reapCount.
+      if (p.retrace) {
+        t.retrace = p.retrace;
+        t.reapCount = (t.reapCount || 0) + 1;
+      }
+    },
+    'task.checkpoint'(p) {
+      const t = state.tasks.get(p.taskId);
+      if (!t) return;
+      t.checkpoint = p.checkpoint; // latest-wins resumable note
+      t.updatedAt = p.ts;
     },
     'task.handoff'(p) {
       const t = state.tasks.get(p.taskId);
@@ -534,7 +565,7 @@ export function createStore({
   const AGENT_ROLES = ['worker', 'orchestrator', 'master', 'human'];
   // Roles allowed to post on (and expected to read) the command channel.
   const COMMAND_CHANNEL_ROLES = ['orchestrator', 'master', 'human'];
-  function registerAgent({ handle, note, model, sessionId, role } = {}) {
+  function registerAgent({ handle, note, model, sessionId, role, type, spawnedBy, campaign, cwd } = {}) {
     const ts = now();
     const agent = {
       id: genId(),
@@ -552,9 +583,41 @@ export function createStore({
       // Coordination role: workers do the tasks; orchestrator/master/human may
       // also use the command channel. Self-declared (local-trust model).
       role: AGENT_ROLES.includes(role) ? role : 'worker',
+      // Identity and provenance (fleet-coordination Wave 1), on top of fable's role.
+      // `type` is the runtime kind. `spawnedBy`, `campaign`, and `cwd` say where the
+      // agent came from. The spawner usually sets these; a root agent self-declares.
+      type: typeof type === 'string' ? type : '',
+      spawnedBy: typeof spawnedBy === 'string' ? spawnedBy : '',
+      campaign: typeof campaign === 'string' ? campaign : '',
+      cwd: typeof cwd === 'string' ? cwd : '',
+      // Whether the handle follows the structured grammar. A flag, not a block.
+      handleValid: validateHandle(handle || '').ok,
     };
     emit('agent.register', { agent });
     return { ...agent };
+  }
+
+  // Clean voluntary exit — the counterpart to reap (see `sweepExpired`). It releases
+  // the agent's locks. It reopens the agent's in-flight tasks with a `retired` marker,
+  // not the crash marker `reaped`, plus an optional final note. It then drops the agent.
+  function retireAgent(agentId, { note } = {}) {
+    const agent = state.agents.get(agentId);
+    if (!agent) return { ok: false, error: 'unknown agent' };
+    const t = now();
+    for (const lock of [...state.locks.values()]) {
+      if (lock.agentId === agentId) {
+        emit('lock.release', { lockId: lock.id, agentId, retired: true });
+      }
+    }
+    for (const task of [...state.tasks.values()]) {
+      if (task.claimedBy === agentId && (task.state === 'claimed' || task.state === 'in_progress')) {
+        const entry = { at: t, by: agentId, action: 'retired', state: 'open' };
+        if (typeof note === 'string' && note) entry.note = note;
+        emit('task.release', { taskId: task.id, ts: t, entry });
+      }
+    }
+    emit('agent.drop', { agentId, retired: true });
+    return { ok: true, agentId };
   }
 
   function touch(agentId) {
@@ -1025,6 +1088,28 @@ export function createStore({
     return { ok: true, task: JSON.parse(JSON.stringify(state.tasks.get(taskId))) };
   }
 
+  // Leave a resumable checkpoint on a task (agent-retrace, Wave 2). Latest-wins: the
+  // newest checkpoint replaces the last. Captured into the retrace dossier on reap.
+  function checkpointTask({ taskId, agentId, did, next, files } = {}) {
+    const t = state.tasks.get(taskId);
+    if (!t) return { ok: false, error: 'task not found' };
+    const ts = now();
+    const list = Array.isArray(files)
+      ? files
+      : typeof files === 'string' && files
+        ? files.split(',').map((s) => s.trim()).filter(Boolean)
+        : [];
+    const checkpoint = {
+      at: ts,
+      by: agentId,
+      did: typeof did === 'string' ? did : '',
+      next: typeof next === 'string' ? next : '',
+      files: list,
+    };
+    emit('task.checkpoint', { taskId, checkpoint, ts });
+    return { ok: true, checkpoint };
+  }
+
   function listTasks({ state: filterState, ready, category } = {}) {
     let source = [...state.tasks.values()];
     if (ready) source = source.filter(isTaskReady).sort(readyOrder);
@@ -1119,6 +1204,38 @@ export function createStore({
       );
       const horizon = holdsWork ? presenceDropMs * 2 : presenceDropMs;
       if (t - agent.lastSeen <= horizon) continue;
+      // Preserve-on-reap (agent-retrace, Wave 2): capture WHO died and what it was
+      // doing BEFORE freeing its locks and dropping it, so a successor can retrace it.
+      const filesHeld = [];
+      for (const lock of state.locks.values()) {
+        if (lock.agentId === agent.id) {
+          filesHeld.push({
+            paths: [...(lock.paths || [])],
+            globs: [...(lock.globs || [])],
+            reason: lock.reason || '',
+            lockedAt: lock.createdAt,
+          });
+        }
+      }
+      const sayTail = state.messages
+        .filter((m) => m.from === agent.id)
+        .slice(-8)
+        .map((m) => ({ at: m.createdAt, body: m.body, channel: m.channel }));
+      const dossier = {
+        reapedAt: t,
+        lastSeenAt: agent.lastSeen,
+        agent: {
+          handle: agent.handle,
+          type: agent.type || '',
+          role: agent.role || '',
+          model: agent.model || '',
+          spawnedBy: agent.spawnedBy || '',
+          campaign: agent.campaign || '',
+          sessionId: agent.sessionId || '',
+        },
+        filesHeld,
+        sayTail,
+      };
       for (const lock of [...state.locks.values()]) {
         if (lock.agentId === agent.id) {
           emit('lock.release', { lockId: lock.id, agentId: agent.id, reaped: true });
@@ -1132,7 +1249,8 @@ export function createStore({
       for (const task of [...state.tasks.values()]) {
         if (task.claimedBy === agent.id && (task.state === 'claimed' || task.state === 'in_progress')) {
           const entry = { at: t, by: agent.id, action: 'reaped', state: 'open' };
-          emit('task.release', { taskId: task.id, ts: t, entry });
+          const retrace = { ...dossier, checkpoint: task.checkpoint || null };
+          emit('task.release', { taskId: task.id, ts: t, entry, retrace });
         }
       }
       emit('agent.drop', { agentId: agent.id, reaped: true });
@@ -1151,6 +1269,7 @@ export function createStore({
   return {
     // presence
     registerAgent,
+    retireAgent,
     touch,
     listAgents,
     getAgentByToken,
@@ -1173,6 +1292,7 @@ export function createStore({
     claimNextReady,
     setTaskState,
     setTaskCategories,
+    checkpointTask,
     handoffTask,
     listTasks,
     // messaging

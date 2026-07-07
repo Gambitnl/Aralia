@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { strip5eToolsMarkup } from '../src/data/adapters/5eTools/shared';
 
 const ENTRIES_BASE = path.join(process.cwd(), 'public/data/glossary/entries');
 const EQUIPMENT_DIR = path.join(ENTRIES_BASE, 'equipment');
@@ -193,7 +194,11 @@ for (const file of allFiles) {
         isIdentified: true,
         attunement: {
           required: true,
-          requirements: meta.reqAttune
+          // reqAttune arrives with raw 5eTools tags (e.g.
+          // "{@item Belt of Dwarvenkind|XDMG}"). requirements renders as plain
+          // text in the inventory, so resolve the tags to their display text
+          // here rather than leaking markup into the shipped registry.
+          requirements: strip5eToolsMarkup(meta.reqAttune)
         }
       };
     }

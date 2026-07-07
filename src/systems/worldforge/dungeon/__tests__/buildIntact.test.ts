@@ -310,7 +310,12 @@ describe('buildIntact', () => {
         }
       }
     }
-  });
+    // testTimeout raised 5000 → 20000 (Remy ROOM-SIZE ×2, 2026-07-07): this sweep
+    // runs 4 archetypes × 3 counts × 5 seeds full builds, each with an O(side²)
+    // dead-end scan. Room area doubled → ~2× the cells per build → the sweep now
+    // brushes the 5 s default under parallel-file CPU contention (it runs ~4 s
+    // ALONE). Not a runaway, just the deliberate 2× size cost.
+  }, 20000);
   it('opens ≥1 BUILT loop at loopChance 0.25 for every archetype and seed (DEFECT A)', () => {
     // Built circulation: the intact structure is never a pure tree. At the default
     // density every archetype must open at least one built cross-cut (isLoop edge,
@@ -363,7 +368,10 @@ describe('buildIntact', () => {
       const classes = new Set<string>();
       for (const g of galleries) {
         const a = g.area;
-        classes.add(a <= 45 ? 'small' : a <= 90 ? 'medium' : 'large');
+        // ROOM-SIZE ×2 (2026-07-07): gallery areas roughly doubled, so the class
+        // thresholds scale with them (45/90 → 90/180). Still asserts the vein band
+        // spans ≥2 distinct size classes — small pockets through large chambers.
+        classes.add(a <= 90 ? 'small' : a <= 180 ? 'medium' : 'large');
       }
       expect(classes.size, `seed ${seed} distinct size classes {${[...classes].join(',')}}`)
         .toBeGreaterThanOrEqual(2);

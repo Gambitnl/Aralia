@@ -1,7 +1,7 @@
 # Groq inference toggle — design
 
-Status: specced (build starting)
-Date: 2026-07-06
+Status: built; extended with user-chosen key-handling modes + CSP fix (2026-07-07)
+Date: 2026-07-06 (extended 2026-07-07)
 
 ## Problem
 
@@ -25,8 +25,26 @@ Two decisions locked with Remy (2026-07-06):
 - **Logging**: route Groq calls through the same central AI-log sink the Ollama client uses (do not double-log at call sites).
 - **Toggle UI** on `OllamaDependencyModal`: a "Use Groq cloud instead" control that takes/holds the key (localStorage), flips the provider to `groq`, and dismisses/retries. A way to switch back to Ollama. (This file lives under `src/components/**`, the 2D-UI fleet's territory — lock it via Agora before editing; 409 = coordinate.)
 
-## To resolve during build
+## Extension (2026-07-07): user-chosen key-handling modes
 
-- Exact response-shape adaptation between Groq's OpenAI schema and each Ollama client return type (resolved by reading the real interface during build).
+Remy's decision: don't pick one storage strategy for the player — **offer all of them** and let the player choose the security trade-off. Added `groqKeyStorage: 'local' | 'session' | 'proxy'` (default `local`) plus `groqProxyUrl` (default `http://localhost:8787/v1`) to `aiProviderSettings.ts`.
+
+- **local** — key in `localStorage`. Persists across sessions (prior behavior). Convenient, but XSS-readable if the app is ever compromised.
+- **session** — key in `sessionStorage`. Cleared when the tab closes; smaller theft window, nothing on disk.
+- **proxy** — **no key in the browser at all.** `groqTextProvider` POSTs keyless (no `Authorization` header) to `${groqProxyUrl}/chat/completions`; a local OpenAI-compatible proxy injects the key server-side. XSS-proof for the key. The game only points at a URL — it never runs the proxy (the agent-matrix free-router serves this shape).
+
+Mechanics:
+- The key accessors (`getGroqApiKey`/`setGroqApiKey`) read/write from the store the active mode selects; proxy mode holds no key (always `''`) and its setter is a no-op.
+- `hasGroqApiKey()` (the availability signal) is `true` in proxy mode regardless of any browser key; local/session require a stored key.
+- `groqTextProvider.resolveEndpoint()` branches the URL + headers on mode. No-fallback preserved: local/session with no key → `NO_GROQ_KEY`; proxy with no URL → `NO_GROQ_PROXY_URL`; an unreachable proxy fails honestly on the real call. Never a silent swap back to Ollama.
+- Modal (`OllamaDependencyModal.tsx`): a Persistent / Session-only / Local proxy radio selector, showing a key field for local/session or a proxy-URL field for proxy, each with a one-line plain-English safety note.
+
+## CSP fix (2026-07-07)
+
+`index.html`'s CSP `connect-src` allowed Gemini + `localhost:*` but not Groq's host, so the direct (local/session) Groq fetch was blocked. Added `https://api.groq.com` to the `connect-src` allowlist (tight — no other directive weakened; `localhost:*` already covers the proxy option).
+
+## Resolved during build
+
+- Exact response-shape adaptation between Groq's OpenAI schema and each Ollama client return type (resolved by reading the real interface).
 - Where the "switch back to Ollama" and "current provider" indicator best live beyond the modal (dev menu / settings) — modal-only is enough for slice 1.
 </content>

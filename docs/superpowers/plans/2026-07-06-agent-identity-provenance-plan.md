@@ -1,106 +1,116 @@
-# Agent identity & provenance — plan
+# Agent identity and provenance — plan
 
-**Date:** 2026-07-06
-**Status:** specced (approved in shape; not built)
+**Date:** 2026-07-06 (re-scoped the same day, after the command-channel feature shipped)
+**Status:** specced. Partly built.
 **Campaign:** Tooling (Agora)
-**Foundation for:** agent-retrace, master-orchestrator
+**Builds on:** fable's role-gated command channel (shipped 2026-07-06)
+**Needed by:** agent-retrace, agent-ping, agent-escalation, master-orchestrator
 
-## What it is
+## What this is
 
-A rich, standardized identity for every agent on the Agora daemon, so you can always tell **which
-agent is which and where it came from**. Today an agent's whole identity is a self-chosen handle
-plus an optional model tag. That is why a running fleet of two dozen agents is illegible — cryptic
-names like `agent-16d417` with no indication of what they are or who started them.
+Every agent should say who it is and where it came from.
 
-## Why now
+Today an agent has only a handle and a few optional fields. That is why a running fleet is hard to
+read. It bit us this session. When the agent `fable` changed `store.mjs`, finding out who did it
+meant grepping the raw journal, because the live roster had already dropped `fable`. Provenance
+should not live only in a log you have to search.
 
-This is the root gap under two other pieces. A retrace dossier is worthless if the dead agent was
-just `agent-16d417`; the master orchestrator's roster and conflict views are only readable once
-agents carry real identities. Fix identity first, and both of those become legible for free.
+## What already exists — do not rebuild it
 
-## The model — three parts
+fable shipped the role-gated command channel on 2026-07-06. It already covers part of this work.
 
-**1. Who I am**
-- `handle` — unique, structured name (see grammar below).
-- `type` — the runtime kind: `claude-session` (a desktop chat), `claude-subagent` (spawned via the
-  Agent tool), `codex`, `gemini`, `human`.
-- `role` — what it does: `worker`, `orchestrator`, `master`, `playtester`.
-- `model` — `opus-4.8`, `fable-5`, `gpt-5.5`, etc.
+- Every agent has a `role`: `worker`, `orchestrator`, `master`, or `human`. It defaults to
+  `worker`. The role sets what an agent may do. Only an orchestrator, master, or human can post on
+  the command channel.
+- Messages have a `channel`: `main` or `command`. The role limits who can post to `command`.
+  Reading is open.
+- The server, the client, and `PROTOCOL.md` all support this.
 
-**2. Where I came from (provenance)**
-- `spawnedBy` — the parent agent's handle. These links form a chain: any agent walks back up to the
-  human at the root, and any orchestrator can list its children. This is what makes "which agent
-  from where" answerable by construction instead of by guessing at names.
-- `sessionId` — the CCD session id or conversation id.
-- `campaign` — the campaign it serves.
-- `cwd` — which checkout/worktree it runs in (matters in a shared tree).
-- `startedAt` — registration time.
+Reuse it. This plan does not change `role`, the roles list, or the command channel. Two points
+follow.
 
-**3. How to reach me** (derived from `type`)
-- `claude-session` → `send_message(sessionId)`.
-- `claude-subagent` → `SendMessage(agentId)`.
-- `codex`/`gemini` → its background process / log path.
+- The command channel is the channel orchestrators use to run the fleet. The master and the
+  escalation queue will post on it. It is a part of this epic that already shipped.
+- `role` and the new `type` field are separate. `role` says what an agent may do. `type` says what
+  kind of program it is. They sit side by side. A person-run master session is `role: master`,
+  `type: claude-session`.
 
-Retrace and the master use this to **contact the source** rather than hitting a dead end.
+## What this plan adds
 
-### Worked example — the master session, self-described
+**Who the agent is.** A new `type` field: `claude-session`, `claude-subagent`, `codex`, `gemini`,
+or `human`. The `handle`, `role`, and `model` fields already exist.
+
+**Where it came from.** New `spawnedBy`, `campaign`, and `cwd` fields. `spawnedBy` holds the
+parent's handle. These links form a chain back to the person at the top. The `sessionId` field
+already exists.
+
+**How to reach it.** Worked out from `type`. Reach a `claude-session` with `send_message`. Reach a
+`claude-subagent` with `SendMessage`. Reach a `codex` or `gemini` agent through its process or log.
+
+### Example — the master session describing itself
 
 ```
-handle:     master.desktop
-type:       claude-session
-role:       master
-model:      opus-4.8
-spawnedBy:  remy (root)
-sessionId:  local_1aa4a366-c689-4296-8211-055c54394b24
-cwd:        F:/Repos/Aralia
+handle:      master.desktop
+type:        claude-session   (new)
+role:        master           (exists)
+model:       opus-4.8         (exists)
+spawnedBy:   remy (root)      (new)
+campaign:    agora-fleet      (new)
+sessionId:   local_1aa4a366-c689-4296-8211-055c54394b24   (exists)
+cwd:         F:/Repos/Aralia  (new)
+handleValid: true             (new)
 ```
 
-## Handle grammar (structured, validated)
+## Handle format
 
-Names encode provenance: `<role>.<domain>[/<child>]`.
+A handle reads `role.domain`, with optional `/child` parts, all lowercase. For example:
+`master.desktop`, `orch.planmap/glossary`, `worker.combat-view`.
 
-- `master.desktop`, `orch.planmap`, `orch.planmap/glossary`, `worker.combat-view`.
-- Validated at registration; opaque auto-names (`agent-16d417`) are **rejected**.
-- The name alone tells you role + domain + parent, before you even query the record.
+The daemon rejects opaque names like `agent-16d417` and bare names like `alice`. The check is
+`validateHandle(handle)`, which is already in `store.mjs`. `registerAgent` records the result as
+`handleValid`. For now this is a flag, not a block. Blocking bad handles would reject the current
+live fleet, so that waits for a migration.
 
-## Who stamps it — hybrid
+## Who sets the identity
 
-- **Spawner stamps provenance.** Whoever launches an agent sets its `type`, `role`, `model`,
-  `spawnedBy`, and `campaign`. This extends the existing orchestrator rule ("you own identity
-  allocation for the fleet; a worker never invents its own name, you hand it one") from just the
-  handle to the full descriptor. `orchestrate dispatch` and the Agent-tool prompt already bake
-  `AGORA_AGENT_ID` + `--model`; they gain `--type` / `--role` / `--spawned-by` / `--campaign`.
-- **Root agents self-declare.** A chat a human opens directly has no spawner, so it self-declares
-  its identity on first Agora touch. (Honest limit: identity is honor-system like locks — the token
-  authenticates, the descriptor is trusted, not cryptographically proven.)
+- The spawner sets provenance. Whoever starts an agent sets its `type`, `spawnedBy`, and `campaign`,
+  plus the existing `role` and `model`. This extends the current rule that the spawner hands out the
+  handle.
+- A root agent sets its own. A chat a person opens has no spawner, so it describes itself.
 
-## Daemon change (additive)
+## Changes to the daemon
 
-The agent record already carries `handle`, `model`, `sessionId`, `note`, `registeredAt`,
-`lastSeen`, `status`. Add: `type`, `role`, `spawnedBy`, `campaign`, `cwd`. Plus handle validation
-and three read-only views:
+`registerAgent` already stores `handle`, `note`, `model`, `sessionId`, and `role`. Add `type`,
+`spawnedBy`, `campaign`, `cwd`, and `handleValid`. Pass the new fields through the server `register`
+endpoint, and add client flags, the same way fable added `--role`.
 
-- `whois <handle>` — the full identity record.
-- `lineage <handle>` — walk `spawnedBy` up to the root.
-- `tree` — the whole fleet as a spawn tree, grouped by campaign.
+Add three read-only commands.
 
-`whoami` is extended to echo the full descriptor. No new persistent entity — this is fields on the
-existing agent record (`store.mjs` agent shape, and `register` in `client.mjs`).
+- `whois <handle>` shows one agent's full record.
+- `lineage <handle>` walks `spawnedBy` up to the root.
+- `tree` shows the fleet as a spawn tree, grouped by campaign.
 
-## Testing
+Extend `whoami` to show the full record.
 
-Follow the existing `tools/agora/*.test.mjs` pattern:
-- Handle validation: reject opaque names, require `role.domain[/child]`.
-- Lineage: a 3-deep spawn chain walks to the root.
-- Tree: agents group under their campaign and parent.
+Add `retireAgent(agentId, { note })` for a clean exit. It releases the agent's locks. It reopens the
+agent's in-flight tasks with a `retired` marker, not the crash marker `reaped`, plus an optional
+note. It then drops the agent.
+
+## Tests
+
+`store.identity.test.mjs` already holds the failing tests for `validateHandle`, the new fields, and
+`retireAgent`. One fix from the re-scope: the "defaults to empty strings" test must not check
+`role`, because `role` now defaults to `worker`. Do not repeat the command-channel tests fable
+already wrote.
 
 ## Out of scope
 
-Cross-machine identity, cryptographic anti-spoofing (identity stays honor-system, guarded only by
-the existing bearer token), and any UI beyond the CLI views.
+`role`, the command channel, the roles list, and the posting limits. All shipped. Identity across
+machines, and any anti-spoofing beyond the current token.
 
 ## Build order
 
-1. Add the identity fields + handle validation to the agent record and `register`.
-2. `whois` / `lineage` / `tree` views + extend `whoami`.
-3. Spawner stamping in `orchestrate dispatch` and the Agent-tool prompt; root self-declare path.
+1. Keep `validateHandle`. Fix the role test. Record `handleValid` in `registerAgent`.
+2. Add `type`, `spawnedBy`, `campaign`, and `cwd` to the record, the server, and the client.
+3. Add `whois`, `lineage`, and `tree`. Extend `whoami`.
+4. Add `retireAgent` and its command.

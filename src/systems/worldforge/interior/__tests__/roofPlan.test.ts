@@ -458,6 +458,84 @@ describe('purity', () => {
   });
 });
 
+// ── Roof-solver determinism sweep (BGv2 Phase 1B Task 8) ─────────────────────
+//
+// The solver is RNG-FREE, so the same input MUST reduce to a byte-identical
+// RoofPlan every time. This sweep is the durable guard on that guarantee at
+// scale: 200 seeds × the 5 roof-BEARING types (the types genFootprint gives
+// wings and/or towers — manor/temple/keep get a corner tower + wings, tavern/inn
+// always get a wing), each solved TWICE and deep-equal-compared, under all three
+// sloped forms. It also asserts every emitted coordinate is finite (no NaN /
+// Infinity leaking out of a degenerate mass or a divide-by-near-zero) and that
+// coverage still holds (every footprint cell center sits under a plane or a
+// tower cap — the same oracle the smaller coverage sweep above uses).
+const ROOF_BEARING_TYPES: BuildingType[] = ['manor', 'temple', 'keep', 'tavern', 'inn'];
+
+// Every finite-number coordinate the RoofPlan carries, flattened for scanning.
+const allRoofCoords = (plan: ReturnType<typeof solveRoof>): number[] => {
+  const out: number[] = [];
+  for (const p of plan.planes) for (const [x, y, z] of p.pts) out.push(x, y, z);
+  for (const r of plan.ridges) out.push(r.x1, r.y1, r.x2, r.y2, r.zFt);
+  for (const v of plan.valleys) out.push(v.x1, v.y1, v.x2, v.y2);
+  for (const c of plan.chimneys) out.push(c.x, c.y, c.topFt);
+  for (const d of plan.dormers) out.push(d.x, d.y, d.nx, d.ny);
+  for (const t of plan.towerCaps) out.push(t.x, t.y, t.w, t.d, t.apexFt);
+  out.push(plan.pitchRiseFt, plan.eaveOverhangFt);
+  return out;
+};
+
+describe('roof-solver determinism sweep: 200 seeds × 5 roof-bearing types', () => {
+  for (const roofForm of ['gable', 'hip', 'steep'] as const) {
+    it(`${roofForm}: double-solve deep-equal, all coords finite, coverage holds`, () => {
+      for (let seed = 1; seed <= 200; seed++) {
+        for (const type of ROOF_BEARING_TYPES) {
+          const fp = genFootprint(rootSeedPath(seed), type);
+          // Feed hearths + a dormer candidate so chimneys/dormers exercise the
+          // finite-coordinate scan too (both are style-independent geometry).
+          const mkOne = (): ReturnType<typeof solveRoof> =>
+            solveRoof(mkInput({
+              masses: fp.masses,
+              hearths: [{ x: fp.cols * CELL_FT * 0.5, y: fp.rows * CELL_FT * 0.5 }],
+              windowlessUpperRooms: [{ cx: 0, cy: 0 }],
+              style: baseStyle(roofForm),
+            }));
+          const a = mkOne();
+          const b = mkOne();
+
+          // 1. Determinism: identical input ⇒ byte-identical plan.
+          expect(a, `seed ${seed} ${type} ${roofForm}`).toEqual(b);
+
+          // 2. No NaN / Infinity in ANY emitted coordinate.
+          for (const n of allRoofCoords(a)) {
+            if (!Number.isFinite(n)) {
+              throw new Error(
+                `seed ${seed} ${type} ${roofForm}: non-finite roof coord ${n}`,
+              );
+            }
+          }
+
+          // 3. Coverage oracle (reused): every footprint cell center is under a
+          //    roof plane or a tower cap.
+          for (const c of fp.cells) {
+            const px = c.cx * CELL_FT + CELL_FT / 2;
+            const py = c.cy * CELL_FT + CELL_FT / 2;
+            const underPlane = coveredBySomePlane(px, py, a.planes);
+            const underCap = a.towerCaps.some(
+              (t) => px >= t.x && px <= t.x + t.w && py >= t.y && py <= t.y + t.d,
+            );
+            if (!underPlane && !underCap) {
+              throw new Error(
+                `seed ${seed} ${type} ${roofForm}: cell (${c.cx},${c.cy}) center ` +
+                `(${px},${py}) uncovered by plane or cap`,
+              );
+            }
+          }
+        }
+      }
+    }, 30_000);
+  }
+});
+
 // smoke: private helpers surface exists
 describe('__private', () => {
   it('exposes tested helpers', () => {

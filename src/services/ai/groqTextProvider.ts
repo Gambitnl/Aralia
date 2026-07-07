@@ -16,11 +16,19 @@
  *                     |  { ok: false; error: string; model?; statusCode? }
  *
  * NO-FALLBACK: when the player has chosen Groq, failures (missing key, 401,
- * rate limit, no network) surface honestly through the same `{ ok: false }`
- * error path — this module NEVER silently swaps back to Ollama.
+ * rate limit, no network, unreachable proxy) surface honestly through the same
+ * `{ ok: false }` error path — this module NEVER silently swaps back to Ollama.
  *
- * SECURITY: the API key is passed in by the router from localStorage
- * (aiProviderSettings). It is never read from import.meta.env or the bundle.
+ * KEY-HANDLING MODES (chosen by the player, passed in via GroqCallContext):
+ *   - local/session — the key comes from the browser store; we send it as
+ *     `Authorization: Bearer <key>` to Groq's own endpoint.
+ *   - proxy — the browser holds NO key; we POST keyless (no Authorization
+ *     header) to a local OpenAI-compatible proxy URL, which injects the key
+ *     server-side. XSS-proof for the key.
+ *
+ * SECURITY: the API key is passed in by the router from the browser store
+ * (aiProviderSettings). It is never read from import.meta.env or the bundle,
+ * and in proxy mode it never touches the browser at all.
  */
 
 import type {
@@ -46,13 +54,57 @@ interface OpenAiChatCompletion {
 }
 
 export interface GroqCallContext {
+  /**
+   * The API key for `local`/`session` modes. In `proxy` mode this is empty and
+   * unused — the proxy injects the real key server-side.
+   */
   apiKey: string;
   model: string;
   timeoutMs?: number;
+  /**
+   * Key-handling mode. Defaults to a direct Bearer call when omitted (matching
+   * the original behavior). `proxy` sends a keyless request to {@link proxyUrl}.
+   */
+  keyStorage?: 'local' | 'session' | 'proxy';
+  /**
+   * Base URL of the local OpenAI-compatible proxy, used only in `proxy` mode.
+   * `/chat/completions` is appended.
+   */
+  proxyUrl?: string;
 }
 
 /** Default request timeout (mirrors DEFAULT_OLLAMA_CONFIG.timeoutMs). */
 const DEFAULT_TIMEOUT_MS = 90000;
+
+/**
+ * Resolve the endpoint URL and request headers for a call, branching on the
+ * key-handling mode:
+ *   - proxy — `${proxyUrl}/chat/completions`, NO Authorization header.
+ *   - local/session (or unset) — Groq's own endpoint with `Bearer <apiKey>`.
+ * Returns an error string when a mode's prerequisite is missing (no key for a
+ * key-bearing mode, or no proxy URL for proxy mode) so the caller can fail
+ * honestly without a network round-trip.
+ */
+export function resolveEndpoint(
+  ctx: GroqCallContext
+): { ok: true; url: string; headers: Record<string, string> } | { ok: false; error: string } {
+  const baseHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (ctx.keyStorage === 'proxy') {
+    const proxyUrl = (ctx.proxyUrl ?? '').trim().replace(/\/+$/, '');
+    if (!proxyUrl) {
+      return { ok: false, error: 'NO_GROQ_PROXY_URL' };
+    }
+    return { ok: true, url: `${proxyUrl}/chat/completions`, headers: baseHeaders };
+  }
+  if (!ctx.apiKey) {
+    return { ok: false, error: 'NO_GROQ_KEY' };
+  }
+  return {
+    ok: true,
+    url: GROQ_CHAT_COMPLETIONS_URL,
+    headers: { ...baseHeaders, Authorization: `Bearer ${ctx.apiKey}` },
+  };
+}
 
 /**
  * Extract the assistant text from an OpenAI-compatible completion. Exported so
@@ -140,8 +192,9 @@ async function postChatCompletion(
   | { ok: true; json: OpenAiChatCompletion }
   | { ok: false; error: string; statusCode?: number }
 > {
-  if (!ctx.apiKey) {
-    return { ok: false, error: 'NO_GROQ_KEY' };
+  const endpoint = resolveEndpoint(ctx);
+  if (!endpoint.ok) {
+    return { ok: false, error: endpoint.error };
   }
 
   const body: Record<string, unknown> = {
@@ -158,13 +211,10 @@ async function postChatCompletion(
   let res: Response;
   try {
     res = await fetchWithTimeout(
-      GROQ_CHAT_COMPLETIONS_URL,
+      endpoint.url,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${ctx.apiKey}`,
-        },
+        headers: endpoint.headers,
         body: JSON.stringify(body),
       },
       ctx.timeoutMs ?? DEFAULT_TIMEOUT_MS
