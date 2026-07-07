@@ -9,6 +9,8 @@
 
 import { getDefaultClient } from './ollama/client';
 import type { OllamaResult, TaskType, ModelParams } from './ollama';
+import { isGeminiFallbackReady } from './ai/aiCredentials';
+import { generateText as generateGeminiText } from './gemini/core';
 
 // Types matching Gemini service interface
 export interface OllamaTextData {
@@ -30,11 +32,72 @@ export interface StandardizedResult<T> {
 }
 
 /**
+ * When Ollama cannot serve a narrative call, redirect it to Google Gemini —
+ * but only if the player has opted in and supplied their OWN credential (API
+ * key or Google sign-in; see ./ai/aiCredentials.ts). Returns a mapped
+ * StandardizedResult on success, or null when the fallback is not available or
+ * itself fails, so the caller can surface the original Ollama error.
+ *
+ * The same `prompt` + `systemInstruction` are forwarded verbatim, so each
+ * task keeps its tuned wording regardless of which backend answers.
+ */
+async function tryGeminiFallback(
+  taskType: TaskType,
+  prompt: string,
+  systemInstruction: string | undefined
+): Promise<StandardizedResult<OllamaTextData> | null> {
+  if (!isGeminiFallbackReady()) {
+    return null;
+  }
+
+  const gemini = await generateGeminiText(
+    prompt,
+    systemInstruction,
+    false,
+    `ollamaFallback:${taskType}`
+  );
+
+  if (gemini.data?.text) {
+    return {
+      success: true,
+      data: {
+        text: gemini.data.text.trim(),
+        promptSent: prompt,
+        rawResponse: gemini.data.rawResponse,
+        rateLimitHit: gemini.data.rateLimitHit
+      },
+      metadata: {
+        promptSent: prompt,
+        rawResponse: gemini.data.rawResponse,
+        rateLimitHit: gemini.data.rateLimitHit
+      }
+    };
+  }
+
+  // Gemini was configured but did not produce usable text; report its error so
+  // it is visible in the log, but let the caller decide what to show.
+  return {
+    success: false,
+    error: gemini.error || 'Gemini fallback produced no text',
+    data: null,
+    metadata: {
+      promptSent: prompt,
+      rawResponse: gemini.metadata?.rawResponse || gemini.error || 'Gemini fallback failed',
+      rateLimitHit: gemini.metadata?.rateLimitHit ?? false
+    }
+  };
+}
+
+/**
  * Generate text using Ollama with standardized error handling.
  *
  * Routes by TaskType so each narrative call gets the model/params matched to
  * its category (see docs/ai/local-llm-model-routing.md). Per-call overrides
  * are accepted for cases where the caller needs to tune sampling.
+ *
+ * If Ollama is unavailable (no local model / network error) and the player has
+ * enabled the Gemini fallback with their own credential, the call is
+ * transparently redirected to Gemini instead.
  */
 async function generateText(
   taskType: TaskType,
@@ -57,6 +120,13 @@ async function generateText(
     });
 
     if (!result.ok) {
+      // Ollama could not serve the request — redirect to Gemini if the player
+      // configured that fallback; otherwise surface the Ollama error.
+      const fallback = await tryGeminiFallback(taskType, prompt, systemInstruction);
+      if (fallback) {
+        return fallback;
+      }
+
       const errorMessage = result.error === 'NO_MODEL'
         ? 'No Ollama model available'
         : result.error;
@@ -85,9 +155,16 @@ async function generateText(
         rateLimitHit: false
       }
     };
-  } catch (error: any) {
     // DEBT: Cast error to any to access message property on unknown catch variable.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    // A thrown error usually means Ollama is unreachable; try Gemini before
+    // giving up so an offline local server doesn't block narrative generation.
+    const fallback = await tryGeminiFallback(taskType, prompt, systemInstruction);
+    if (fallback) {
+      return fallback;
+    }
+
     return {
       success: false,
       error: error.message || 'Unknown error in Ollama text generation',
