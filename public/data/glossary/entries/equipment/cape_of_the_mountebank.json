@@ -7,15 +7,15 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This cape smells faintly of brimstone. While wearing it, you can use it to cast dimension_door Door as a magic action. This property can't be used aga...",
+  "excerpt": "This cape smells faintly of brimstone. While wearing it, you can use it to cast dimension_door|Dimension Door as a magic|Magic action. This property c...",
   "aliases": [],
   "seeAlso": [
-    "dimension_door Door",
+    "dimension-door",
     "magic",
-    "lightly_obscured Obscured"
+    "lightly_obscured"
   ],
   "filePath": "/data/glossary/entries/equipment/cape_of_the_mountebank.json",
-  "markdown": "# Cape of the Mountebank\n\nThis cape smells faintly of brimstone. While wearing it, you can use it to cast [[dimension_door Door]] as a [[magic]] action. This property can't be used again until the next dawn.\n\nWhen you teleport with that spell, you leave behind a cloud of smoke. The space you left is [[lightly_obscured Obscured]] by that smoke until the end of your next turn.",
+  "markdown": "# Cape of the Mountebank\n\nThis cape smells faintly of brimstone. While wearing it, you can use it to cast [[dimension-door|Dimension Door]] as a [[magic]] action. This property can't be used again until the next dawn.\n\nWhen you teleport with that spell, you leave behind a cloud of smoke. The space you left is [[lightly_obscured]] by that smoke until the end of your next turn.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Rare"

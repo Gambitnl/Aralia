@@ -7,13 +7,13 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "While wearing this circlet, you can cast scorching_ray Ray with it (+5 to hit). The circlet can't cast this spell again until the next dawn....",
+  "excerpt": "While wearing this circlet, you can cast scorching_ray|Scorching Ray with it (+5 to hit). The circlet can't cast this spell again until the next dawn....",
   "aliases": [],
   "seeAlso": [
-    "scorching_ray Ray"
+    "scorching-ray"
   ],
   "filePath": "/data/glossary/entries/equipment/circlet_of_blasting.json",
-  "markdown": "# Circlet of Blasting\n\nWhile wearing this circlet, you can cast [[scorching_ray Ray]] with it (+5 to hit). The circlet can't cast this spell again until the next dawn.",
+  "markdown": "# Circlet of Blasting\n\nWhile wearing this circlet, you can cast [[scorching-ray|Scorching Ray]] with it (+5 to hit). The circlet can't cast this spell again until the next dawn.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon"

@@ -13,10 +13,10 @@
     "magic",
     "rowboat",
     "keelboat",
-    "hit_points Points"
+    "hit_points"
   ],
   "filePath": "/data/glossary/entries/equipment/folding_boat.json",
-  "markdown": "# Folding Boat\n\nThis object appears as a wooden box that measures 12 inches long, 6 inches wide, and 6 inches deep. It weighs 4 pounds and floats. It can be opened to store items inside. This item also has three command words, each requiring a [[magic]] action to use:\n\n- **First Command Word:** The box unfolds into a Rowboat.\n- **Second Command Word:** The box unfolds into a Keelboat.\n- **Third Command Word:** The Folding Boat folds back into a box if no creatures are aboard. Any objects in the vessel that can't fit inside the box remain outside the box as it folds. Any objects in the vessel that can fit inside the box do so.\n\nWhen the box becomes a vessel, its weight becomes that of a normal vessel its size, and anything that was stored in the box remains in the boat.\n\nStatistics for the [[rowboat]] and [[keelboat]] appear in the Player's Handbook. If either vessel is reduced to 0 [[hit_points Points]], the Folding Boat is destroyed.",
+  "markdown": "# Folding Boat\n\nThis object appears as a wooden box that measures 12 inches long, 6 inches wide, and 6 inches deep. It weighs 4 pounds and floats. It can be opened to store items inside. This item also has three command words, each requiring a [[magic]] action to use:\n\n- **First Command Word:** The box unfolds into a Rowboat.\n- **Second Command Word:** The box unfolds into a Keelboat.\n- **Third Command Word:** The Folding Boat folds back into a box if no creatures are aboard. Any objects in the vessel that can't fit inside the box remain outside the box as it folds. Any objects in the vessel that can fit inside the box do so.\n\nWhen the box becomes a vessel, its weight becomes that of a normal vessel its size, and anything that was stored in the box remains in the boat.\n\nStatistics for the [[rowboat]] and [[keelboat]] appear in the Player's Handbook. If either vessel is reduced to 0 [[hit_points]], the Folding Boat is destroyed.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Rare",

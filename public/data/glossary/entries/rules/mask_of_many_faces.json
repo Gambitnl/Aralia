@@ -6,11 +6,11 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "You can cast disguise_self Self without expending a spell slot....",
+  "excerpt": "You can cast disguise_self|Disguise Self without expending a spell slot....",
   "aliases": [],
   "seeAlso": [
-    "disguise_self Self"
+    "disguise-self"
   ],
   "filePath": "/data/glossary/entries/rules/mask_of_many_faces.json",
-  "markdown": "# Mask of Many Faces\n\nYou can cast [[disguise_self Self]] without expending a spell slot."
+  "markdown": "# Mask of Many Faces\n\nYou can cast [[disguise-self|Disguise Self]] without expending a spell slot."
 }

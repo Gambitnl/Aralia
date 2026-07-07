@@ -7,13 +7,11 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A map_or_scroll_case or Scroll Case holds up to 10 sheets of paper or 5 sheets of parchment....",
+  "excerpt": "A map_or_scroll_case|Map or Scroll Case holds up to 10 sheets of paper or 5 sheets of parchment....",
   "aliases": [],
-  "seeAlso": [
-    "map_or_scroll_case or Scroll Case"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/map_or_scroll_case.json",
-  "markdown": "# Map or Scroll Case\n\nA [[map_or_scroll_case or Scroll Case]] holds up to 10 sheets of paper or 5 sheets of parchment.",
+  "markdown": "# Map or Scroll Case\n\nA [[map_or_scroll_case]] holds up to 10 sheets of paper or 5 sheets of parchment.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

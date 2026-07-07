@@ -7,7 +7,7 @@
     "item",
     "itemType:Wand"
   ],
-  "excerpt": "This wand has 7 charges. While holding it, you can expend no more than 3 charges to cast fireball (save DC 15) from it. For 1 charge, you cast the lev...",
+  "excerpt": "This wand has 7 charges. While holding it, you can expend no more than 3 charges to cast fireball|Fireball (save DC 15) from it. For 1 charge, you cas...",
   "aliases": [],
   "seeAlso": [
     "fireball"

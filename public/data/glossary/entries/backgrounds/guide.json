@@ -6,20 +6,20 @@
     "source:xphb",
     "background"
   ],
-  "excerpt": "- Ability Scores:: Dexterity, Constitution, Wisdom - Feat:: magic_initiate Initiate (Druid) - Skill Proficiencies:: stealth, survival - Tool Proficien...",
+  "excerpt": "- Ability Scores: Dexterity, Constitution, Wisdom - Feat: magic_initiate|Magic Initiate (Druid) - Skill Proficiencies: stealth|Stealth, survival|Survi...",
   "aliases": [],
   "seeAlso": [
-    "magic_initiate Initiate",
+    "magic_initiate",
     "stealth",
     "survival",
-    "cartographer_s_tools's Tools",
+    "cartographer_s_tools",
     "shortbow",
-    "arrow Arrows",
+    "arrow",
     "bedroll",
     "quiver",
     "tent",
-    "traveler_s_clothes's Clothes"
+    "traveler_s_clothes"
   ],
   "filePath": "/data/glossary/entries/backgrounds/guide.json",
-  "markdown": "# Guide\n\n- **Ability Scores::** Dexterity, Constitution, Wisdom\n- **Feat::** [[magic_initiate Initiate]] (Druid)\n- **Skill Proficiencies::** [[stealth]], [[survival]]\n- **Tool Proficiency::** [[cartographer_s_tools's Tools]]\n- **Equipment::** Choose A or B: (A) [[shortbow]], [[arrow Arrows]], [[cartographer_s_tools's Tools]], [[bedroll]], [[quiver]], [[tent]], [[traveler_s_clothes's Clothes]], 3 GP; or (B) 50 GP"
+  "markdown": "# Guide\n\n- **Ability Scores:** Dexterity, Constitution, Wisdom\n- **Feat:** [[magic_initiate]] (Druid)\n- **Skill Proficiencies:** [[stealth]], [[survival]]\n- **Tool Proficiency:** [[cartographer_s_tools|Cartographer's Tools]]\n- **Equipment:** Choose A or B: (A) [[shortbow]], [[arrow|20 Arrows]], [[cartographer_s_tools|Cartographer's Tools]], [[bedroll]], [[quiver]], [[tent]], [[traveler_s_clothes|Traveler's Clothes]], 3 GP; or (B) 50 GP"
 }

@@ -7,7 +7,7 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A Book contains fiction or nonfiction. If you consult an accurate nonfiction Book about its topic, you gain a +5 bonus to Intelligence (arcana, histor...",
+  "excerpt": "A Book contains fiction or nonfiction. If you consult an accurate nonfiction Book about its topic, you gain a +5 bonus to Intelligence (arcana|Arcana,...",
   "aliases": [],
   "seeAlso": [
     "arcana",

@@ -14,8 +14,12 @@
  * rotated group — same convention the exterior door mesh already uses.
  */
 
-import { generateInterior, type InteriorPlotInput } from '../interior/generateInterior';
+import { blueprintForPlot, generateInterior, type InteriorPlotInput } from '../interior/generateInterior';
 import { EXTERIOR, type InteriorRoom, type InteriorPlan } from '../interior/types';
+import type { BlueprintPlan } from '../interior/blueprintTypes';
+import { HEARTH_KINDS } from '../interior/occupancy';
+import { buildBuildingMeshData, buildRoofMeshData, type MeshBox } from '../../world3d/buildingModels';
+import type { ChunkGeometryArrays } from '../../world3d/types';
 import type { SeedPath } from '../seedPath';
 
 /** One renderable box, site-local meters (y sits on the ground). */
@@ -29,6 +33,29 @@ export interface SitePart {
   /** Base elevation in meters (default 0 = on the floor). Lets a part float
    * above the ground — e.g. an occupant's head atop their body. */
   baseY?: number;
+  /** When set, the renderer lights this part's material with this emissive hex
+   * (a warm glow). Drives the LIVING overlay's lit hearth (BGv2 Task 14): the
+   * hearth furnishing glows after dusk when the family is home. */
+  emissiveHex?: string;
+  /** Optional classification tag. ROOF_PART_TAG marks the solved-roof dressing
+   * (chimney flues, dormer masses) so consumers/tests can separate roof parts
+   * from the wall/floor structure without a color sniff (BGv2 Task 5). */
+  tag?: string;
+}
+
+/** Tag stamped on solved-roof dressing parts (chimney/dormer boxes). */
+export const ROOF_PART_TAG = 'roof';
+
+/** The triangulated solved roof (planes + tower caps) as ONE geometry group,
+ *  site-local METERS, ready for a single BufferGeometry. Separate from the box
+ *  `parts` because roof planes are arbitrary triangles, not axis-aligned boxes
+ *  (BGv2 Task 5). Absent when the plan carries no solved roof. */
+export interface RoofPartGroup {
+  positions: Float32Array;
+  indices: Uint32Array;
+  normals: Float32Array;
+  /** Resolved roof tint (plan.styleResolved.roofColor). */
+  colorHex: string;
 }
 
 const FT = 0.3048;
@@ -72,6 +99,7 @@ export const PERIMETER_WALL_COLORS: Record<string, string> = {
 const FURNITURE: Record<string, { w: number; d: number; h: number; colorHex: string }> = {
   table: { w: 1.6, d: 0.9, h: 0.8, colorHex: '#c8a24a' },
   hearth: { w: 1.4, d: 0.7, h: 1.4, colorHex: '#b5552e' },
+  'forge-hearth': { w: 1.6, d: 0.9, h: 1.2, colorHex: '#5a4636' },
   counter: { w: 2.2, d: 0.7, h: 1.0, colorHex: '#c8a24a' },
   shelf: { w: 1.8, d: 0.4, h: 1.8, colorHex: '#9a8458' },
   barrel: { w: 0.7, d: 0.7, h: 1.0, colorHex: '#8a6a42' },
@@ -79,7 +107,25 @@ const FURNITURE: Record<string, { w: number; d: number; h: number; colorHex: str
   chest: { w: 1.0, d: 0.6, h: 0.6, colorHex: '#a07c4a' },
   crate: { w: 0.8, d: 0.8, h: 0.8, colorHex: '#8a6a42' },
   workbench: { w: 2.0, d: 0.8, h: 0.9, colorHex: '#b08968' },
+  bench: { w: 1.5, d: 0.4, h: 0.45, colorHex: '#a5824f' },
+  altar: { w: 1.4, d: 0.8, h: 1.1, colorHex: '#b8b2a4' },
+  desk: { w: 1.4, d: 0.7, h: 0.78, colorHex: '#8f6b45' },
+  chair: { w: 0.5, d: 0.5, h: 0.9, colorHex: '#9c7a4e' },
+  'weapon-rack': { w: 1.2, d: 0.4, h: 1.7, colorHex: '#6f5a3e' },
 };
+
+/** Stair flight tint (worn timber). */
+export const STAIR_COLOR = '#7a5a36';
+
+/** Warm emissive tint painted on a LIT hearth's furnishing box. */
+export const HEARTH_GLOW_HEX = '#ff8a3c';
+
+/** Warm emissive tint painted on window panes when the building is lit from
+ * within at dusk/night (interior-lighting slice). Slightly lighter/cooler than
+ * the hearth glow so a lit window reads as lamplight spilling through glass
+ * rather than an open flame. Emissive-only — the pane itself glows; no light is
+ * cast, so this reads town-wide from the street at zero light cost. */
+export const WINDOW_GLOW_HEX = '#ffb066';
 
 /** A 1-D wall run [lo, hi] on a fixed line, in feet. */
 interface Run {
@@ -146,6 +192,13 @@ export interface OccupantFigure {
    * every roster occupant has an identity, so there is one real path and no
    * fallback to uniform crates. */
   body: OccupantBody;
+  /** LIVING overlay station (BGv2 Task 14): the exact PLAN-FEET position + floor
+   * this figure stands at for the current game hour, from occupancy.ts (via the
+   * bridge's occupancyForPlot). When present it OVERRIDES the room-cycling
+   * heuristic below, so a figure lands at its real station — the smith at the
+   * forge, a sleeper at their bed. Feet in the blueprint frame (0 = min corner),
+   * mapped through the same toX/toZ as every other part. */
+  station?: { xFt: number; yFt: number; level: number };
 }
 
 /**
@@ -161,12 +214,172 @@ export function buildInterior(
   seedPath: SeedPath,
   shellHeightM: number,
   occupants: OccupantFigure[] = [],
-): { envelope: { wallWidthM: number; wallDepthM: number }; parts: SitePart[] } {
+  // LIVING overlay (BGv2 Task 14): light the hearth furnishing when the family
+  // is home in a hearth window. Defaults false so briefless / daytime bakes are
+  // byte-identical to before.
+  hearthLit = false,
+  // Interior-lighting slice: light the window panes (emissive glow) when the
+  // building is occupied at a dusk/night bake hour. Decided by the caller from
+  // occupancy; defaults false so daytime / briefless bakes are unchanged.
+  litWindows = false,
+): { envelope: { wallWidthM: number; wallDepthM: number }; parts: SitePart[]; roof?: RoofPartGroup } {
   const plan = generateInterior(plot, seedPath);
+  const blueprint = blueprintForPlot(plot, seedPath);
+  const parts = buildInteriorParts(plot, seedPath, shellHeightM, occupants, plan, blueprint, hearthLit, litWindows);
+  // Solved roof (BGv2 Task 5): when the blueprint carries plan.roof (a style
+  // context was resolved), raise the triangulated roof group + chimney/dormer
+  // dressing so the town building gets the solved roof instead of the legacy
+  // whole-rect prism. Absent (roof undefined) when no style resolved — the
+  // renderer then keeps the legacy prism, and the part list is unchanged.
+  const storeyHeightM = shellHeightM / Math.max(1, plan.storeys);
+  const perimeterColor = PERIMETER_WALL_COLORS[plot.role] ?? PERIMETER_WALL_COLORS.house;
+  const { dressing, roof } = blueprint
+    ? blueprintRoof(blueprint, storeyHeightM, perimeterColor)
+    : { dressing: [] as SitePart[], roof: undefined };
+  parts.push(...dressing);
   return {
     envelope: { wallWidthM: plan.widthFt * FT, wallDepthM: plan.depthFt * FT },
-    parts: buildInteriorParts(plot, seedPath, shellHeightM, occupants, plan),
+    parts,
+    ...(roof ? { roof } : {}),
   };
+}
+
+/**
+ * Blueprint structure → SiteParts (Task 12). Converts the pure
+ * buildBuildingMeshData boxes (plan feet) into site-local meter parts:
+ * per-level floor/ceiling slabs with stair holes, thickness-true walls
+ * following the irregular shell along each run's outward normal, window
+ * voids (sill + head + glazed pane), door jamb reveals + lintels, and
+ * stair flights — for every level of the plan.
+ */
+function blueprintStructureParts(
+  bp: BlueprintPlan,
+  storeyHeightM: number,
+  perimeterColor: string,
+  // Interior-lighting slice: when true, window panes glow with WINDOW_GLOW_HEX
+  // so the building reads as lit from within (lamplight through the glass) at
+  // dusk/night. Emissive-only — no light cast. Deterministic (the flag is
+  // decided from occupancy at the bake hour by the caller).
+  litWindows = false,
+): SitePart[] {
+  const md = buildBuildingMeshData(bp, { storeyHeightFt: storeyHeightM / FT });
+  const W = bp.widthFt;
+  const D = bp.depthFt;
+  const colorFor = (b: MeshBox): string => {
+    switch (b.kind) {
+      case 'floor': return FLOOR_COLOR;
+      case 'ceiling': return CEILING_COLOR;
+      case 'stair': return STAIR_COLOR;
+      case 'door-lintel': return DOOR_LINTEL_COLOR;
+      case 'window-pane': return WINDOW_PANE_COLOR;
+      default: return b.wallKind === 'outer' ? perimeterColor : INTERIOR_WALL_COLOR;
+    }
+  };
+  const parts: SitePart[] = [];
+  for (const floor of md.floors) {
+    for (const b of floor.boxes) {
+      parts.push({
+        x: (b.x - W / 2) * FT,
+        z: (b.y - D / 2) * FT,
+        w: b.w * FT,
+        d: b.d * FT,
+        h: b.h * FT,
+        colorHex: colorFor(b),
+        ...(b.z0 !== 0 ? { baseY: b.z0 * FT } : {}),
+        ...(litWindows && b.kind === 'window-pane' ? { emissiveHex: WINDOW_GLOW_HEX } : {}),
+      });
+    }
+  }
+  return parts;
+}
+
+/**
+ * Blueprint → structure parts PLUS the solved roof (BGv2 Task 5). When the plan
+ * carries `plan.roof` (populated only when a StyleContext was resolved), this
+ * raises the solved roof on top of the wall-true structure:
+ *   - `roof`: the triangulated roof planes + tower cap fans as ONE geometry
+ *     group in site-local meters, colored `plan.styleResolved.roofColor`.
+ *   - chimney flues (trim color) and dormer masses (roof color) as tagged
+ *     SiteParts appended to `parts`.
+ * When `plan.roof` is absent the structure walk is UNCHANGED and `roof` is
+ * undefined — a roofless plan is byte-identical to the pre-Task-5 output.
+ *
+ * Structure parts are byte-stable either way: the roof arrives as a separate
+ * group + dressing, never perturbing the wall/floor/stair boxes.
+ */
+export function buildBlueprintParts(
+  bp: BlueprintPlan,
+  storeyHeightM: number,
+  perimeterColor: string,
+  litWindows = false,
+): { parts: SitePart[]; roof?: RoofPartGroup } {
+  const parts = blueprintStructureParts(bp, storeyHeightM, perimeterColor, litWindows);
+  const { dressing, roof } = blueprintRoof(bp, storeyHeightM, perimeterColor);
+  parts.push(...dressing);
+  return roof ? { parts, roof } : { parts };
+}
+
+/**
+ * The solved roof for a BlueprintPlan (BGv2 Task 5): the triangle group (planes
+ * + tower caps, site-local meters) plus chimney/dormer dressing as tagged box
+ * SiteParts. Empty (`roof` undefined, no dressing) when the plan carries no
+ * solved roof, so roofless plans stay byte-identical. Shared by
+ * buildBlueprintParts and buildInterior so both raise the SAME roof.
+ */
+function blueprintRoof(
+  bp: BlueprintPlan,
+  storeyHeightM: number,
+  perimeterColor: string,
+): { dressing: SitePart[]; roof?: RoofPartGroup } {
+  if (!bp.roof) return { dressing: [] };
+  const W = bp.widthFt;
+  const D = bp.depthFt;
+  // Wall top = built (above-grade) storeys × storey height, in FEET — matches
+  // the wallTopFt the roof solver used (generateBuilding: storeys * storeyFt).
+  const storeyFt = storeyHeightM / FT;
+  const aboveGradeStoreys = bp.floors.filter((f) => f.level >= 0).length;
+  const rm = buildRoofMeshData(bp.roof, aboveGradeStoreys * storeyFt);
+
+  // Roof geometry group: plan feet → meters. The mesh Y axis is vertical, so a
+  // MeshBox-frame (x, Y, z) point maps to the site frame the same way the box
+  // parts do — center on the footprint (x−W/2, z−D/2) and scale by FT; Y is the
+  // world-up baseY offset the renderer applies. Positions are [x, Y, z] triples.
+  const src = rm.tris.positions;
+  const positions = new Float32Array(src.length);
+  for (let i = 0; i < src.length; i += 3) {
+    positions[i] = (src[i] - W / 2) * FT;       // x, centered
+    positions[i + 1] = src[i + 1] * FT;         // Y (already includes wallTopFt)
+    positions[i + 2] = (src[i + 2] - D / 2) * FT; // z, centered
+  }
+  const roofColor = bp.styleResolved?.roofColor ?? perimeterColor;
+  const trimColor = bp.styleResolved?.trimColor ?? perimeterColor;
+  const roof: RoofPartGroup = {
+    positions,
+    indices: rm.tris.indices,
+    normals: rm.tris.normals,
+    colorHex: roofColor,
+  };
+
+  // Chimney flues (trim) + dormer masses (roof), as tagged box SiteParts. Their
+  // MeshBox x/y are footprint feet; z0/h are FEET above ground (already include
+  // wallTopFt), so baseY = z0*FT and the renderer lifts them onto the roof.
+  const dressing: SitePart[] = [];
+  for (const c of rm.chimneyBoxes) {
+    dressing.push({
+      x: (c.x - W / 2) * FT, z: (c.y - D / 2) * FT,
+      w: c.w * FT, d: c.d * FT, h: c.h * FT,
+      baseY: c.z0 * FT, colorHex: trimColor, tag: ROOF_PART_TAG,
+    });
+  }
+  for (const dm of rm.dormerBoxes) {
+    dressing.push({
+      x: (dm.x - W / 2) * FT, z: (dm.y - D / 2) * FT,
+      w: dm.w * FT, d: dm.d * FT, h: dm.h * FT,
+      baseY: dm.z0 * FT, colorHex: roofColor, tag: ROOF_PART_TAG,
+    });
+  }
+
+  return { dressing, roof };
 }
 
 export function buildInteriorParts(
@@ -178,8 +391,23 @@ export function buildInteriorParts(
   // envelope (the 3D bake) generate the interior ONCE and reuse it here rather
   // than regenerating. Defaults to generating from (plot, seedPath).
   precomputedPlan?: InteriorPlan,
+  // Optional precomputed BlueprintPlan (Task 12): when present, ALL structure
+  // (slabs, walls, windows, door reveals, stairs, ceiling) is raised from the
+  // blueprint via buildBuildingMeshData instead of the legacy room-rect walk.
+  // On the default path (no precomputedPlan) the blueprint is derived here;
+  // callers that inject a synthetic legacy plan keep the legacy geometry.
+  precomputedBlueprint?: BlueprintPlan,
+  // LIVING overlay (BGv2 Task 14): when true, the hearth furnishing part is
+  // tagged with a warm emissiveHex so the renderer glows it. False = cold.
+  hearthLit = false,
+  // Interior-lighting slice: when true, every window pane is tagged with a warm
+  // emissiveHex so the shell reads as lit from within at dusk/night. False = dark
+  // glass (daytime, or an unoccupied/civic building at night).
+  litWindows = false,
 ): SitePart[] {
   const plan = precomputedPlan ?? generateInterior(plot, seedPath);
+  const blueprint =
+    precomputedBlueprint ?? (precomputedPlan ? undefined : blueprintForPlot(plot, seedPath));
   const W = plan.widthFt;
   const D = plan.depthFt;
   const toX = (fx: number): number => (fx - W / 2) * FT;
@@ -188,6 +416,35 @@ export function buildInteriorParts(
   const wallH = Math.min(shellHeightM, 3);
   // Vertical spacing between floors (the shell is divided evenly by storey).
   const storeyHeightM = shellHeightM / Math.max(1, plan.storeys);
+  const perimeterColor = PERIMETER_WALL_COLORS[plot.role] ?? PERIMETER_WALL_COLORS.house;
+
+  // ── Blueprint path (Task 12): the WHOLE structure — per-level floor slabs
+  // with stair holes, thickness-true walls on the irregular shell, window
+  // voids, door jamb reveals, stair flights and the top ceiling — is raised
+  // from the BlueprintPlan. The legacy room-rect walk below is skipped.
+  if (blueprint) {
+    parts.push(...blueprintStructureParts(blueprint, storeyHeightM, perimeterColor, litWindows));
+    // Basement furnishings come straight from the blueprint: the legacy
+    // InteriorPlan cannot represent level -1, so below-grade furniture (like
+    // the structure above) is raised from the BlueprintPlan directly, sunk a
+    // full storey via negative baseY. The generator guarantees basements
+    // have NO windows; the below-grade slab/walls arrive via
+    // blueprintStructureParts (MeshBox z0 < 0 → negative baseY).
+    for (const fl of blueprint.floors) {
+      if (fl.level >= 0) continue;
+      const baseY = fl.level * storeyHeightM;
+      for (const f of fl.furnishings) {
+        const spec = FURNITURE[f.kind];
+        if (!spec) continue;
+        const rotated = f.rotation === 90 || f.rotation === 270;
+        parts.push({
+          x: toX(f.x), z: toZ(f.y),
+          w: rotated ? spec.d : spec.w, d: rotated ? spec.w : spec.d,
+          h: spec.h, colorHex: spec.colorHex, baseY,
+        });
+      }
+    }
+  } else {
 
   // Emit the full-envelope floor before walls, furniture, or people. The
   // renderer places part bottoms on local ground, so this thin plank slab
@@ -247,7 +504,6 @@ export function buildInteriorParts(
 
   // Runs → boxes. Perimeter walls rise to the shell height and carry the
   // plot-role tint; interior walls stop at wallH in lime plaster.
-  const perimeterColor = PERIMETER_WALL_COLORS[plot.role] ?? PERIMETER_WALL_COLORS.house;
   for (const [key, runs] of lines) {
     const horizontal = key.startsWith('h:');
     const lineAt = Number(key.slice(2));
@@ -266,6 +522,7 @@ export function buildInteriorParts(
       }
     }
   }
+  } // end legacy structure path
 
   // ── Door + windows (IN1). Without these the entry is a bare rectangular hole
   // in the perimeter wall and the shell has no glazing — town houses read as
@@ -278,12 +535,12 @@ export function buildInteriorParts(
     // Entry doorway sits on h:0 (street wall) at door.x, axis x. Map to part
     // frame: x = toX(door.x), z on the toZ(0) perimeter line.
     const isX = entry.axis === 'x';
-    // The entry always sits on a perimeter ORIGIN line (h:0 for axis 'x', v:0
-    // for axis 'y'), so the fixed coordinate is 0; the door slides along the
-    // other axis at its position.
-    const doorPosFt = isX ? entry.x : entry.y;
-    const dx = isX ? toX(doorPosFt) : toX(0);
-    const dz = isX ? toZ(0) : toZ(doorPosFt);
+    // The entry sits on an outer wall of its room — since the blueprint
+    // generator (Task 10 adapter) that can be ANY side of the building, not
+    // just the h:0 street line. entry.x/entry.y carry the full position for
+    // both axes (one is the wall line, the other the position along it).
+    const dx = toX(entry.x);
+    const dz = toZ(entry.y);
     const leafLen = DOOR_LEAF_FT * FT;
     // Door leaf: thin slab filling the gap, slightly thicker than the wall so
     // it shows from both faces. Spans x (h:0) or z (v:0) depending on axis.
@@ -313,8 +570,9 @@ export function buildInteriorParts(
   // Windows: recessed dark panes on the perimeter walls. Place a pair on each
   // long perimeter face, inset from the corners and clear of the entry door, so
   // the shell reads as a glazed building rather than a blank box. Deterministic
-  // (fixed fractions), so a re-bake yields identical parts.
-  {
+  // (fixed fractions), so a re-bake yields identical parts. Legacy path only:
+  // the blueprint carries REAL windows (voids + panes from the plan).
+  if (!blueprint) {
     const entryX = entry && entry.axis === 'x' ? entry.x : null;
     // Front (street, h:0) + back (h:D) faces span along x; left/right (v:0,v:W)
     // span along z. Use interior fractions; skip any pane that lands on the door.
@@ -333,6 +591,7 @@ export function buildInteriorParts(
           h: WINDOW_H,
           colorHex: WINDOW_PANE_COLOR,
           baseY: WINDOW_SILL_M,
+          ...(litWindows ? { emissiveHex: WINDOW_GLOW_HEX } : {}),
         });
       }
     }
@@ -350,6 +609,7 @@ export function buildInteriorParts(
           h: WINDOW_H,
           colorHex: WINDOW_PANE_COLOR,
           baseY: WINDOW_SILL_M,
+          ...(litWindows ? { emissiveHex: WINDOW_GLOW_HEX } : {}),
         });
       }
     }
@@ -360,7 +620,7 @@ export function buildInteriorParts(
   // ground room with a thin ceiling slab at the shell top. Multi-storey
   // buildings already get this enclosure from their upper-floor slab, so emit
   // the ceiling only when there are no upper floors.
-  if (plan.upperFloors.length === 0) {
+  if (!blueprint && plan.upperFloors.length === 0) {
     parts.push({
       x: 0,
       z: 0,
@@ -383,6 +643,7 @@ export function buildInteriorParts(
       d: rotated ? spec.w : spec.d,
       h: spec.h,
       colorHex: spec.colorHex,
+      ...(hearthLit && HEARTH_KINDS.has(f.kind) ? { emissiveHex: HEARTH_GLOW_HEX } : {}),
     });
   }
 
@@ -407,6 +668,22 @@ export function buildInteriorParts(
   const residentPool: Placeable[] = [...groundResidents, ...upperResidents];
   const entryPlaceable: Placeable = { room: entryRoom, baseY: 0, key: `0:${entryRoom?.id ?? 0}` };
 
+  // Blueprint room anchors (Task 12): an L-shaped room's bbox center can sit
+  // ON a blueprint wall (the bbox is a loose bound), so occupants stand at the
+  // room's anchor — a cell GUARANTEED inside the room — when the blueprint is
+  // known. Keyed `${level}:${roomId}` to match Placeable.key.
+  const anchorByKey = new Map<string, { x: number; y: number }>();
+  if (blueprint) {
+    for (const fl of blueprint.floors) {
+      for (const r of fl.rooms) {
+        anchorByKey.set(`${fl.level}:${r.id}`, {
+          x: (r.anchor.cx + 0.5) * 5,
+          y: (r.anchor.cy + 0.5) * 5,
+        });
+      }
+    }
+  }
+
   const placeFor: Placeable[] = occupants.map((occupant, index) => {
     if (occupant.atWork && entryRoom) return entryPlaceable;
     const choices = residentPool.length > 0 ? residentPool : [entryPlaceable];
@@ -416,19 +693,37 @@ export function buildInteriorParts(
   for (const p of placeFor) perKey.set(p.key, (perKey.get(p.key) ?? 0) + 1);
   const placedPerKey = new Map<string, number>();
   occupants.forEach((o, k) => {
-    const placeable = placeFor[k] ?? entryPlaceable;
-    const room = placeable.room;
-    const totalInRoom = perKey.get(placeable.key) ?? 1;
-    const slotInRoom = placedPerKey.get(placeable.key) ?? 0;
-    placedPerKey.set(placeable.key, slotInRoom + 1);
-    const centerX = room.x + room.w / 2;
-    const centerY = room.y + room.d / 2;
-    const ringRadiusM = totalInRoom > 1 ? 0.6 : 0;
-    const angle = (Math.PI * 2 * slotInRoom) / totalInRoom + room.id * 0.37;
-    const offsetXFt = (Math.cos(angle) * ringRadiusM) / FT;
-    const offsetYFt = (Math.sin(angle) * ringRadiusM) / FT;
-    const px = toX(centerX + offsetXFt);
-    const pz = toZ(centerY + offsetYFt);
+    let px: number;
+    let pz: number;
+    let baseYForBody: number;
+    if (o.station) {
+      // LIVING overlay (BGv2 Task 14): stand at the exact occupancy station in
+      // PLAN FEET — the forge, a bed, the shared table — on its storey. This is
+      // the authoritative placement; the room-cycling below is the roster
+      // fallback for figures that carry no station.
+      px = toX(o.station.xFt);
+      pz = toZ(o.station.yFt);
+      baseYForBody = Math.max(0, o.station.level) * storeyHeightM;
+    } else {
+      const placeable = placeFor[k] ?? entryPlaceable;
+      const room = placeable.room;
+      const totalInRoom = perKey.get(placeable.key) ?? 1;
+      const slotInRoom = placedPerKey.get(placeable.key) ?? 0;
+      placedPerKey.set(placeable.key, slotInRoom + 1);
+      const anchor = anchorByKey.get(placeable.key);
+      const centerX = anchor ? anchor.x : room.x + room.w / 2;
+      const centerY = anchor ? anchor.y : room.y + room.d / 2;
+      // Anchor cells are 5 ft; a tighter ring keeps the crowd clear of the
+      // real-thickness blueprint walls (an inner wall protrudes its full
+      // 0.5 ft into the neighbor cell: 0.762 − 0.2 − 0.1524 ≈ 0.41 m clear).
+      const ringRadiusM = totalInRoom > 1 ? (anchor ? 0.2 : 0.6) : 0;
+      const angle = (Math.PI * 2 * slotInRoom) / totalInRoom + room.id * 0.37;
+      const offsetXFt = (Math.cos(angle) * ringRadiusM) / FT;
+      const offsetYFt = (Math.sin(angle) * ringRadiusM) / FT;
+      px = toX(centerX + offsetXFt);
+      pz = toZ(centerY + offsetYFt);
+      baseYForBody = placeable.baseY;
+    }
     // A villager reads as a person, not a crate: a clothed body box under a
     // skin-toned head. Dimensions and palette come from the occupant's
     // parametric BodyPlan (BODY-1) — height, build, skin and clothing all vary
@@ -445,7 +740,7 @@ export function buildInteriorParts(
       h: bodyH,
       colorHex: body.clothingHex,
       // Omit baseY on the ground floor so the part shape is unchanged there.
-      ...(placeable.baseY > 0 ? { baseY: placeable.baseY } : {}),
+      ...(baseYForBody > 0 ? { baseY: baseYForBody } : {}),
     });
     parts.push({
       x: px,
@@ -453,7 +748,7 @@ export function buildInteriorParts(
       w: body.headSizeM * 0.85,
       d: body.headSizeM * 0.8,
       h: headH,
-      baseY: placeable.baseY + bodyH,
+      baseY: baseYForBody + bodyH,
       colorHex: body.skinToneHex,
     });
   });
@@ -468,6 +763,21 @@ export function buildInteriorParts(
     const upperWallH = Math.min(storeyHeightM, 3);
     for (const floor of plan.upperFloors) {
       const baseY = floor.level * storeyHeightM;
+      // Blueprint path: slabs, walls and stairs already came from the
+      // blueprint structure — only the furniture is emitted per upper floor.
+      if (blueprint) {
+        for (const f of floor.furnishings) {
+          const spec = FURNITURE[f.kind];
+          if (!spec) continue;
+          const rotated = f.rotation === 90 || f.rotation === 270;
+          parts.push({
+            x: toX(f.x), z: toZ(f.y),
+            w: rotated ? spec.d : spec.w, d: rotated ? spec.w : spec.d,
+            h: spec.h, colorHex: spec.colorHex, baseY,
+          });
+        }
+        continue;
+      }
       parts.push({ x: 0, z: 0, w: W * FT, d: D * FT, h: FLOOR_H, colorHex: FLOOR_COLOR, baseY });
 
       const fLines = new Map<string, Run[]>();
@@ -519,11 +829,14 @@ export function buildInteriorParts(
       }
     }
     // Stair flight: one wood box per gap, rising a full storey at the shaft.
-    for (const s of plan.stairs) {
-      parts.push({
-        x: toX(s.x), z: toZ(s.y), w: DOOR_FT * FT, d: DOOR_FT * FT,
-        h: storeyHeightM, colorHex: '#7a5a36', baseY: s.fromFloor * storeyHeightM,
-      });
+    // Legacy only — the blueprint structure already carries stair flights.
+    if (!blueprint) {
+      for (const s of plan.stairs) {
+        parts.push({
+          x: toX(s.x), z: toZ(s.y), w: DOOR_FT * FT, d: DOOR_FT * FT,
+          h: storeyHeightM, colorHex: STAIR_COLOR, baseY: s.fromFloor * storeyHeightM,
+        });
+      }
     }
   }
 

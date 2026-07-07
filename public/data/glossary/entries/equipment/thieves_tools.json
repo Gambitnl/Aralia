@@ -7,11 +7,11 @@
     "item",
     "itemType:Tool"
   ],
-  "excerpt": "- Ability:: Dexterity - Utilize:: Pick a lock (DC 15), or disarm a trap (DC 15)...",
+  "excerpt": "- Ability: Dexterity - Utilize: Pick a lock (DC 15), or disarm a trap (DC 15)...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/thieves_tools.json",
-  "markdown": "# Thieves' Tools\n\n- **Ability::** Dexterity\n- **Utilize::** Pick a lock (DC 15), or disarm a trap (DC 15)",
+  "markdown": "# Thieves' Tools\n\n- **Ability:** Dexterity\n- **Utilize:** Pick a lock (DC 15), or disarm a trap (DC 15)",
   "itemMetadata": {
     "type": "Tool",
     "rarity": "None",

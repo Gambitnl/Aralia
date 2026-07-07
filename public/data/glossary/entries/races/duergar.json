@@ -56,10 +56,7 @@
     "gray dwarf"
   ],
   "seeAlso": [
-    "dwarf",
-    "darkvision",
-    "duergar_magic",
-    "psionic_fortitude"
+    "darkvision"
   ],
   "filePath": "/data/glossary/entries/races/duergar.json",
   "maleImageUrl": "/assets/images/races/Duergar_Male.png",

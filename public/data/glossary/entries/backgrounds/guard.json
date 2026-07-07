@@ -6,21 +6,20 @@
     "source:xphb",
     "background"
   ],
-  "excerpt": "- Ability Scores:: Strength, Intelligence, Wisdom - Feat:: alert - Skill Proficiencies:: athletics, perception - Tool Proficiency:: Choose one kind of...",
+  "excerpt": "- Ability Scores: Strength, Intelligence, Wisdom - Feat: alert|Alert - Skill Proficiencies: athletics|Athletics, perception|Perception - Tool Proficie...",
   "aliases": [],
   "seeAlso": [
     "alert",
     "athletics",
     "perception",
-    "gaming_set Set",
     "spear",
-    "light_crossbow Crossbow",
+    "light_crossbow",
     "bolt",
-    "hooded_lantern Lantern",
+    "hooded_lantern",
     "manacles",
     "quiver",
-    "traveler_s_clothes's Clothes"
+    "traveler_s_clothes"
   ],
   "filePath": "/data/glossary/entries/backgrounds/guard.json",
-  "markdown": "# Guard\n\n- **Ability Scores::** Strength, Intelligence, Wisdom\n- **Feat::** [[alert]]\n- **Skill Proficiencies::** [[athletics]], [[perception]]\n- **Tool Proficiency::** Choose one kind of [[gaming_set Set]]\n- **Equipment::** Choose A or B: (A) [[spear]], [[light_crossbow Crossbow]], 20 [[bolt]], [[gaming_set Set]] (same as above), [[hooded_lantern Lantern]], [[manacles]], [[quiver]], [[traveler_s_clothes's Clothes]], 12 GP; or (B) 50 GP"
+  "markdown": "# Guard\n\n- **Ability Scores:** Strength, Intelligence, Wisdom\n- **Feat:** [[alert]]\n- **Skill Proficiencies:** [[athletics]], [[perception]]\n- **Tool Proficiency:** Choose one kind of Gaming Set\n- **Equipment:** Choose A or B: (A) [[spear]], [[light_crossbow]], 20 [[bolt|Bolts]], Gaming Set (same as above), [[hooded_lantern]], [[manacles]], [[quiver]], [[traveler_s_clothes|Traveler's Clothes]], 12 GP; or (B) 50 GP"
 }

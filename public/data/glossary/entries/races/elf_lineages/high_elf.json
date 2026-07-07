@@ -44,11 +44,10 @@
     "moon elf"
   ],
   "seeAlso": [
-    "elf",
     "cantrip",
     "prestidigitation",
-    "detect_magic",
-    "misty_step"
+    "detect-magic",
+    "misty-step"
   ],
   "filePath": "/data/glossary/entries/races/elf_lineages/high_elf.json",
   "maleImageUrl": "/assets/images/races/Elf_High_Male.png",

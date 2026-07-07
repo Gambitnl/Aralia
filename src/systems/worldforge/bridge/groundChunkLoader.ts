@@ -37,7 +37,11 @@ import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from "../../world3d/
 import { biomeColor } from "../../world3d/terrainColor";
 import type { LocalArtifact, RegionArtifact, RegionTownSite, RegionMarker } from "../artifacts";
 import { localArtifactToWorldData, GROUND_METERS_PER_CELL } from "./groundWorldAdapter";
-import { getCanonicalTownPlan, transformTownPlan, townSpanFtForBurg, CANON_TOWN_SPAN, getCanonicalTownWaterFeatures } from "../town/canonicalTown";
+import { getCanonicalTownPlan, transformTownPlan, townSpanFtForBurg, CANON_TOWN_SPAN, getCanonicalTownWaterFeatures, canonicalTownSeedPath } from "../town/canonicalTown";
+import { briefForPlot } from "../town/householdBrief";
+import { occupancyForPlot } from "./buildingOccupancy";
+import type { TownPlotPopulation } from "../town/townEngine";
+import type { InteriorPlotInput } from "../interior/generateInterior";
 import { buildTownWaterBodies } from "../town/townWaterBodies";
 import { toArtifactPlan, type AdaptedTownPlan } from "../town/townPlanAdapter";
 import type { TownPlan } from "../artifacts";
@@ -53,15 +57,18 @@ import type { Pt } from "../submap/submapEngine";
 import { localWithDeltas } from "./groundDeltas";
 import type { WorldDelta } from "../delta/types";
 import { getBurgNamer, getBridgeAtlas, getBurgCultureType } from "./legacySubmapBridge";
-import { styleFamilyForCultureType, styledGatehouseForm, type StyleFamily, type GatehouseForm } from "../town/architectureStyle";
+import { styleFamilyForCultureType, styledGatehouseForm, climateForBiomeId, type StyleFamily, type GatehouseForm } from "../town/architectureStyle";
+import type { StyleContext } from "../interior/blueprintTypes";
 import { SeededRandom } from "../../../utils/random/seededRandom";
 import { generateBusinessName } from "../../economy/NpcBusinessManager";
 import type { BusinessType, WorldBusiness } from "../../../types/business";
 import type { RichNPC } from "../../../types/world";
-import type { BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration } from "@/types/combat";
+import type { BattleMapBiome, BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration } from "@/types/combat";
 import { generateGroundHostiles } from "./groundHostiles";
 import { buildGroundProps, imprintPropOnTile } from "./groundProps";
 import type { PropInstance } from "../props/propSchema";
+import type { EntranceKind } from "../dungeon/world/dungeonSites";
+import { dungeonEntrancesForWindow } from "./dungeonEntrances";
 
 /** A polyline in ground world-meters with a uniform width (meters). */
 interface GroundPolyline {
@@ -151,6 +158,30 @@ export interface GroundHiddenSite {
   discoveryRadiusM: number;
 }
 
+/**
+ * A world-grown dungeon ENTRANCE surfaced in the 3D ground world (Pillar 2,
+ * Task 6). Each is a sealed door / mouth / stair the player can walk up to and
+ * DISCOVER — the interior itself is Pillar 3 (no fake interiors here). The
+ * entrance is anchored to a real {@link DungeonSite} (marker/temple/sewer/civ
+ * origin) whose `sitePath` names the dungeon deterministically; the derived
+ * name ("The Wrenfield Crypt") is resolved lazily at discovery time via
+ * `generateDungeonForSite` (cached per sitePath) so world assembly stays cheap.
+ */
+export interface GroundDungeonEntrance {
+  /** Stable per-window id (sitePath-derived) — the REVEAL_HIDDEN_SITE key. */
+  id: string;
+  /** The frozen site seed path (serialized) — names the dungeon on discovery. */
+  sitePath: string;
+  /** Atlas cell the site anchors to (for the map-pane pin, not the player's cell). */
+  cellId: number;
+  entranceKind: EntranceKind;
+  /** Window-local ground meters (origin = artifact NW), like every ground piece. */
+  xM: number;
+  zM: number;
+  /** Proximity radius (meters) within which the player discovers it. */
+  discoveryRadiusM: number;
+}
+
 export interface GroundWorld {
   cols: number;
   rows: number;
@@ -172,6 +203,12 @@ export interface GroundWorld {
   hostiles: GroundHostile[];
   /** SP4 hidden places (off-map, revealed by 3D proximity), ground meters. */
   hiddenSites: GroundHiddenSite[];
+  /**
+   * World-grown dungeon entrances inside this window (Pillar 2): sealed doors /
+   * cave mouths / temple stairs / sewer grates the player discovers by 3D
+   * proximity. Empty when no dungeon site falls in the window.
+   */
+  dungeonEntrances: GroundDungeonEntrance[];
   /** River/road centerlines crossing the artifact, ground meters. */
   rivers: GroundPolyline[];
   roads: GroundPolyline[];
@@ -206,6 +243,9 @@ export interface GroundWorld {
     wallDepthM: number;
     /** L4 interior: walls + furnishings as site-local boxes (seamless). */
     parts: SitePart[];
+    /** Solved roof group, site-local meters (BGv2 Task 5); undefined until a
+     *  style resolves. When set, the renderer skips the legacy roof prism. */
+    solvedRoof?: { positions: Float32Array; indices: Uint32Array; normals: Float32Array; colorHex: string };
     name?: string;
     unlabeled?: boolean;
     labelRangeM?: number;
@@ -354,6 +394,28 @@ export interface MakeGroundWorldOptions {
   deltas?: WorldDelta[];
   worldBusinesses?: Record<string, WorldBusiness>;
   generatedNpcs?: Record<string, RichNPC>;
+  /**
+   * Staged 3D world entry (Stage A): skip the WAVE-1 props pass so terrain +
+   * town assemble as fast as possible. A world built this way has `props: []`
+   * and is otherwise identical to a full build; the props are added afterward by
+   * a separate `computeGroundProps` call (Stage B). Default false = full build.
+   */
+  skipProps?: boolean;
+}
+
+/**
+ * The WAVE-1 props pass, factored out so it can run on its own (staged 3D entry
+ * Stage B) OR inside `makeGroundWorld` (full build). Both routes call THIS, so
+ * the staged props are byte-identical to the full-build props. Pure and
+ * deterministic per world + window.
+ */
+export function computeGroundProps(
+  world: GroundWorld,
+  seed: number,
+  region?: RegionArtifact,
+  opts: MakeGroundWorldOptions = {},
+): PropInstance[] {
+  return buildGroundProps(world, seed, region?.seedPath, opts.worldBusinesses);
 }
 
 export function makeGroundWorld(
@@ -454,6 +516,13 @@ export function makeGroundWorld(
     hiddenSites.push(...scattered);
   }
 
+  // Pillar 2 (Task 6): world-grown dungeon ENTRANCES inside this window. The
+  // dungeon-flavored FMG markers that used to feed surface hostiles now surface
+  // as sealed doors here (the seam fix — groundHostiles skips those types), and
+  // temple/sewer/civ sites surface the same way. Pure clip-and-rebase over the
+  // seed's cached site list; empty when no site falls in the window.
+  const dungeonEntrances = dungeonEntrancesForWindow(seed, local);
+
   const world: GroundWorld = {
     cols: wd.gridSize.cols,
     rows: wd.gridSize.rows,
@@ -465,6 +534,7 @@ export function makeGroundWorld(
     props: [], // filled below once the world view is assembled
     hostiles,
     hiddenSites,
+    dungeonEntrances,
     rivers: region ? regionPolylinesToGround(region.rivers, local) : [],
     // Region routes + the town plan's own streets ride the same ribbon path
     roads: [
@@ -486,7 +556,9 @@ export function makeGroundWorld(
   // WAVE-1 props: deterministic dressing (market stalls, dock crates, wilderness
   // cover) derived from the assembled world's own plots/decks/roads/biomes. Rooted
   // at the region's seed path when present so props share the town's identity.
-  world.props = buildGroundProps(world, seed, region?.seedPath, opts.worldBusinesses);
+  // Staged 3D entry: Stage A skips this so terrain + town appear fast; Stage B
+  // fills props in via computeGroundProps (the SAME call), keeping them identical.
+  world.props = opts.skipProps ? [] : computeGroundProps(world, seed, region, opts);
 
   return world;
 }
@@ -1104,6 +1176,42 @@ function groundTowns(
       byPlot.set(placeAt, [...(byPlot.get(placeAt) ?? []), { ...o, atWork, resolvedPlotId: placeAt, activity: block.activity }]);
     }
 
+    // Founding-household briefs (BGv2 Task 11): each building generates FROM the
+    // family the town names for it. The town seed MUST match the one the 2D
+    // tooltips key households on — canonicalTownSeedPath(worldSeed, burgId), the
+    // same seed getCanonicalTownPlan feeds generateTownPlan (population pass) —
+    // so the family in the 3D house IS the tooltip family. `pops` is the set of
+    // population-tagged plots briefForPlot resolves workplace/proprietor
+    // cross-references against; unpopulated towns carry no `pop`, so it is empty
+    // and every building generates briefless exactly as before.
+    const townSeed = canonicalTownSeedPath(worldSeed, t.burgId);
+    const pops: TownPlotPopulation[] = plan.plots
+      .map((pl) => pl.pop)
+      .filter((pop): pop is TownPlotPopulation => pop !== undefined);
+
+    // Architecture style context (BGv2 Task 7): the burg-level half of every
+    // plot's StyleContext, resolved ONCE per town. cultureType is the SAME FMG
+    // culture the styled EXTERIOR path already uses (getBurgCultureType, the
+    // source feeding styleFamilyForCultureType at canonicalArtifactTownForSite),
+    // so the solved-roof family matches the 2D map's family. climate comes from
+    // the burg's own cell biome (atlas.pack.cells.biome[burg.cell]) mapped
+    // through the closed BIOME_TO_CLIMATE table. Both throw on an unresolvable
+    // burg / unknown biome (no-fallback). The per-plot wealth + ageBand are
+    // folded in inside the plot loop. Populated towns always have a resolvable
+    // burg + biome; this is the one real path, no style-less shortcut for them.
+    const styleAtlas = getBridgeAtlas(worldSeed);
+    const styleBurg = styleAtlas.pack.burgs?.[t.burgId] as { cell?: number } | undefined;
+    const burgCultureType = getBurgCultureType(worldSeed, t.burgId);
+    const burgBiomeId =
+      styleBurg?.cell !== undefined ? styleAtlas.pack.cells.biome?.[styleBurg.cell] : undefined;
+    if (burgBiomeId === undefined) {
+      throw new Error(
+        `groundChunkLoader: cannot resolve biome for burg ${t.burgId} in world ${worldSeed} ` +
+        `(cell ${styleBurg?.cell ?? 'none'}) — required for the building StyleContext.`,
+      );
+    }
+    const burgClimate = climateForBiomeId(burgBiomeId);
+
     for (const p of plan.plots) {
       const cx = p.footprint.reduce((a, q) => a + q[0], 0) / p.footprint.length;
       const cy = p.footprint.reduce((a, q) => a + q[1], 0) / p.footprint.length;
@@ -1149,23 +1257,102 @@ function groundTowns(
         });
       }
 
-      const plotInput = { id: p.id, footprint: p.footprint, role: p.role ?? 'house', storeys: p.storeys ?? 1 };
-      // Each occupant gets a parametric body (BODY-1) from its own seed path, so
-      // villagers vary in height/build/palette deterministically.
-      const occFigures = (byPlot.get(p.id) ?? []).map((o) => ({
-        id: o.id,
-        ageBand: o.ageBand,
-        atWork: o.atWork,
-        body: bodyPlanToOccupantBody(
-          generateBody(o, childSeedPath(region!.seedPath, `occ:${o.id}`)),
-        ),
-      }));
+      // v2 (BGv2 Task 11): when the population pass tagged this plot, carry its
+      // concrete building type (WINS over the role mapping) and its founding
+      // household brief so the interior is designed for the real family. A plot
+      // with no `pop` (unpopulated town) yields no type override and no brief —
+      // briefless generation, byte-identical to before.
+      const household = p.pop ? briefForPlot(p.pop, pops, townSeed) : undefined;
+      // Style context (BGv2 Task 7): burg culture + climate (resolved once above)
+      // plus this plot's ward wealth (WardWealth from the population pass, common
+      // when no district was tagged) and the Phase-3 age stub. Attached so the
+      // building raises its solved roof (dropping the legacy prism). Plots keep
+      // the SAME conditional-spread pattern as buildingType/household.
+      const style: StyleContext = {
+        cultureType: burgCultureType,
+        climate: burgClimate,
+        wealth: p.pop?.district ?? 'common',
+        ageBand: 'new',
+      };
+      const plotInput: InteriorPlotInput = {
+        id: p.id,
+        footprint: p.footprint,
+        role: p.role ?? 'house',
+        storeys: p.storeys ?? 1,
+        ...(p.pop?.buildingType ? { buildingType: p.pop.buildingType } : {}),
+        ...(household ? { household } : {}),
+        style,
+      };
+      // LIVING overlay (BGv2 Task 14): a populated building shows its OWN family
+      // standing at their hourly stations — the smith at the forge, the spouse
+      // in the house, everyone abed at night — and lights the hearth after dusk.
+      // This is the 3D twin of the 2D blueprint overlay: it resolves the SAME
+      // household briefForPlot designs the house for, so the family in the house
+      // IS the family the house was built for. Members who are OUT this hour get
+      // no body. Unpopulated plots (no `p.pop`) fall back to the roster figures
+      // (the agent-sim commuters), byte-identical to before.
+      const living = p.pop
+        ? occupancyForPlot(p.pop, pops, plotInput, region!.seedPath, townSeed, hour)
+        : undefined;
+      let occFigures;
+      let hearthLit = false;
+      // Interior-lighting slice: window panes glow when the family is home at a
+      // dusk/night bake hour (living.litWindows). Reads town-wide from the
+      // street; emissive-only, no light cast. Daytime / unpopulated → dark glass.
+      let litWindows = false;
+      if (living) {
+        hearthLit = living.hearthLit;
+        litWindows = living.litWindows;
+        occFigures = living.stations.map((st) => {
+          // Synthesize the parametric body from the household member's identity
+          // (BODY-1): a stable per-member seed keeps a family's bodies constant.
+          const member = living.household.members[st.memberIndex];
+          // Map the family member's free-text trade onto the body system's
+          // closed Occupation set (drives clothing palette). Breadwinners read as
+          // shopkeeper/artisan by trade keyword; everyone else is a resident.
+          const trade = (member?.occupation ?? '').toLowerCase();
+          const occupation =
+            member?.role === 'head' || member?.role === 'spouse'
+              ? /keep|shop|innkeep|tavern|clerk|official|merchant/.test(trade)
+                ? 'shopkeeper'
+                : /smith|artisan|wright|journey|apprentice|craft|brew|forge/.test(trade)
+                  ? 'artisan'
+                  : 'resident'
+              : 'resident';
+          const occLike = {
+            id: p.id * 100 + st.memberIndex,
+            name: member?.name ?? st.name,
+            ageBand: member?.ageBand ?? 'adult',
+            homePlotId: p.id,
+            occupation: occupation as 'resident' | 'shopkeeper' | 'artisan',
+          };
+          return {
+            id: occLike.id,
+            ageBand: occLike.ageBand,
+            body: bodyPlanToOccupantBody(
+              generateBody(occLike, childSeedPath(townSeed, `member:${p.id}:${st.memberIndex}`)),
+            ),
+            station: { xFt: st.x, yFt: st.y, level: st.level },
+          };
+        });
+      } else {
+        // Each occupant gets a parametric body (BODY-1) from its own seed path, so
+        // villagers vary in height/build/palette deterministically.
+        occFigures = (byPlot.get(p.id) ?? []).map((o) => ({
+          id: o.id,
+          ageBand: o.ageBand,
+          atWork: o.atWork,
+          body: bodyPlanToOccupantBody(
+            generateBody(o, childSeedPath(region!.seedPath, `occ:${o.id}`)),
+          ),
+        }));
+      }
       // Wall envelope (≤ plot footprint) AND seamless interior parts (L4) from ONE
       // interior generation — the envelope sizes roofs/floors so eaves don't float
       // past the walls (construction v2); the parts use the same seed path as the
       // town plan so plan, shell, rooms AND household all agree. (Was two
       // generateInterior calls per plot — wasteful for large capitals.)
-      const interior = buildInterior(plotInput, region!.seedPath, heightM, occFigures);
+      const interior = buildInterior(plotInput, region!.seedPath, heightM, occFigures, hearthLit, litWindows);
       buildings.push({
         id: `wf-plot-${t.burgId}-${p.id}`,
         xM,
@@ -1185,6 +1372,9 @@ function groundTowns(
         unlabeled: !isBiz,
         labelRangeM: 20,
         parts: interior.parts,
+        // Solved roof (BGv2 Task 5): undefined unless the blueprint resolved a
+        // style — then the renderer draws it and skips the legacy roof prism.
+        solvedRoof: interior.roof,
       });
     }
   }
@@ -1474,6 +1664,9 @@ export function sampleGroundChunk(
           parts: b.parts,
           wallWidthM: b.wallWidthM,
           wallDepthM: b.wallDepthM,
+          // Solved roof (BGv2 Task 5): present only when the plan resolved a
+          // style; when set, the renderer draws it and skips the legacy prism.
+          solvedRoof: b.solvedRoof,
         })),
       // Mapped occupants (NPCs): these show where keepers or townsfolk are
       // standing inside their buildings during working/home hours. We guard this
@@ -1654,22 +1847,38 @@ export function createGroundChunkLoader(
   const ground = makeGroundWorld(local, seed, region, opts);
   return {
     ground,
-    loader: async (cx: number, cy: number, lod?: LodTier): Promise<ChunkMeshBundle> => {
-      // Honor the requested LOD tier's mesh resolution (W3D-G10 / T7); distant
-      // ground chunks build coarser, near ones stay full-detail.
-      const bundle = buildChunkBundle(
-        sampleGroundChunk(ground, cx, cy, resolutionForLod(lod)),
-      );
-      // Artifact features replace the generic per-vertex scatter (see
-      // buildGroundVegetation — determinism + no lattice banding). Trees
-      // and bushes are separate instanced layers (variety dispatch).
-      const { trees, bushes } = buildGroundVegetation(ground, cx, cy);
-      return {
-        ...bundle,
-        vegetation: trees.positions.length > 0 ? trees : undefined,
-        bushes: bushes.positions.length > 0 ? bushes : undefined,
-      };
-    },
+    loader: buildGroundLoaderFromWorld(ground),
+  };
+}
+
+/**
+ * Build the per-chunk mesh loader for an ALREADY-assembled GroundWorld.
+ *
+ * Split out of `createGroundChunkLoader` for staged 3D entry: a worker assembles
+ * the `ground` data (which crosses the worker boundary as plain structured-clone
+ * data) and the main thread rebuilds this cheap closure from it. The closure
+ * captures only `ground`; both `sampleGroundChunk` and `buildGroundVegetation`
+ * are pure functions of it, so a rebuilt loader is identical to the one
+ * `createGroundChunkLoader` returns.
+ */
+export function buildGroundLoaderFromWorld(
+  ground: GroundWorld,
+): (cx: number, cy: number, lod?: LodTier) => Promise<ChunkMeshBundle> {
+  return async (cx: number, cy: number, lod?: LodTier): Promise<ChunkMeshBundle> => {
+    // Honor the requested LOD tier's mesh resolution (W3D-G10 / T7); distant
+    // ground chunks build coarser, near ones stay full-detail.
+    const bundle = buildChunkBundle(
+      sampleGroundChunk(ground, cx, cy, resolutionForLod(lod)),
+    );
+    // Artifact features replace the generic per-vertex scatter (see
+    // buildGroundVegetation — determinism + no lattice banding). Trees
+    // and bushes are separate instanced layers (variety dispatch).
+    const { trees, bushes } = buildGroundVegetation(ground, cx, cy);
+    return {
+      ...bundle,
+      vegetation: trees.positions.length > 0 ? trees : undefined,
+      bushes: bushes.positions.length > 0 ? bushes : undefined,
+    };
   };
 }
 
@@ -1685,7 +1894,7 @@ export function extractLocalTerrainPatch(
   ground: GroundWorld,
   playerX: number,
   playerZ: number,
-  biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp',
+  biome: BattleMapBiome,
   seed: number,
   // Fight-in-place slice 1: the referee patch is CONTEXT-SIZED at extraction
   // (fip--referee-patch-sizing subspec). Dense town fights keep the compact
@@ -1810,7 +2019,13 @@ export function extractLocalTerrainPatch(
             // upper-floor slabs — sit entirely above the walker and must NOT block
             // the tile beneath them, or the new dressing would seal the doorway.
             const partBaseY = p.baseY ?? 0;
-            const intrudesWalkBand = partBaseY < COMBAT_HEAD_CLEARANCE_M;
+            // Below-grade parts (basement walls/stairs top out AT the ground
+            // slab, baseY = -storeyHeight) sit entirely under the walker and
+            // must not block the ground tile above them — require the part's
+            // TOP to rise above the floor as well as its base to sit below
+            // head height.
+            const intrudesWalkBand =
+              partBaseY < COMBAT_HEAD_CLEARANCE_M && partBaseY + p.h > 0.05;
             // The door leaf fills the entry gap but is the door itself — a doorway
             // must stay passable in tactical combat, so it never blocks movement.
             const isDoorLeaf = p.colorHex === DOOR_LEAF_COLOR;

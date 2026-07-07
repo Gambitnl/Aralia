@@ -6,15 +6,15 @@
     "source:xphb",
     "feat"
   ],
-  "excerpt": "You gain the following benefits.  Pole Strike Immediately after you take the attack action and attack with a quarterstaff, a spear, or a weapon that h...",
+  "excerpt": "You gain the following benefits.  Pole Strike Immediately after you take the attack|Attack action and attack with a quarterstaff|Quarterstaff, a spear...",
   "aliases": [],
   "seeAlso": [
     "attack",
     "quarterstaff",
     "spear",
-    "bonus_action Action",
+    "bonus_action",
     "reaction"
   ],
   "filePath": "/data/glossary/entries/feats/polearm_master.json",
-  "markdown": "# Polearm Master\n\nYou gain the following benefits.\n\n## Pole Strike\n\nImmediately after you take the [[attack]] action and attack with a [[quarterstaff]], a [[spear]], or a weapon that has the Heavy and Reach properties, you can use a [[bonus_action Action]] to make a melee attack with the opposite end of the weapon. The weapon deals Bludgeoning damage, and the weapon's damage die for this attack is a d4.\n\n## Reactive Strike\n\nWhile you're holding a [[quarterstaff]], a [[spear]], or a weapon that has the Heavy and Reach properties, you can take a [[reaction]] to make one melee attack against a creature that enters the reach you have with that weapon."
+  "markdown": "# Polearm Master\n\nYou gain the following benefits.\n\n## Pole Strike\n\nImmediately after you take the [[attack]] action and attack with a [[quarterstaff]], a [[spear]], or a weapon that has the Heavy and Reach properties, you can use a [[bonus_action]] to make a melee attack with the opposite end of the weapon. The weapon deals Bludgeoning damage, and the weapon's damage die for this attack is a d4.\n\n## Reactive Strike\n\nWhile you're holding a [[quarterstaff]], a [[spear]], or a weapon that has the Heavy and Reach properties, you can take a [[reaction]] to make one melee attack against a creature that enters the reach you have with that weapon."
 }

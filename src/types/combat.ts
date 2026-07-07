@@ -1909,6 +1909,16 @@ export interface BattleMapTile {
   thicknessInches?: number;
 }
 
+/**
+ * Every biome the battle-map generator can roll. ONE list — the generator,
+ * the painter, the biome pill, and the dev override all derive from it.
+ */
+export const BATTLE_MAP_BIOMES = [
+  'forest', 'cave', 'dungeon', 'desert', 'swamp',
+  'snow', 'jungle', 'coast', 'ruins', 'volcanic',
+] as const;
+export type BattleMapBiome = (typeof BATTLE_MAP_BIOMES)[number];
+
 export interface BattleMapData {
   dimensions: { width: number; height: number };
   tiles: Map<string, BattleMapTile>;
@@ -1918,7 +1928,7 @@ export interface BattleMapData {
    * magical status, worn/carried status, or fixed-to-surface rules.
    */
   targetableObjects?: TargetableMapObject[];
-  theme: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp';
+  theme: BattleMapBiome;
   seed: number;
 }
 

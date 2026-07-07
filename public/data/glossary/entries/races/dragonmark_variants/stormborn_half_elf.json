@@ -75,9 +75,7 @@
     "lyrandar"
   ],
   "seeAlso": [
-    "half_elf",
-    "humanoid",
-    "lightning_damage"
+    "half_elf"
   ],
   "filePath": "/data/glossary/entries/races/dragonmark_variants/stormborn_half_elf.json",
   "spellsOfTheMark": [

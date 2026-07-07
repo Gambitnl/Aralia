@@ -51,11 +51,10 @@
     "draconblood"
   ],
   "seeAlso": [
-    "dragonborn",
     "ravenite_dragonborn",
     "thaumaturgy",
-    "comprehend_languages",
-    "detect_magic"
+    "comprehend-languages",
+    "detect-magic"
   ],
   "filePath": "/data/glossary/entries/races/dragonborn_ancestries/draconblood.json",
   "maleImageUrl": "/assets/images/races/Dragonborn_Draconblood_Male.png",

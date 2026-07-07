@@ -65,9 +65,6 @@
   ],
   "aliases": [],
   "seeAlso": [
-    "ooze",
-    "acid_damage",
-    "poison_damage",
     "poisoned"
   ],
   "filePath": "/data/glossary/entries/races/plasmoid.json",

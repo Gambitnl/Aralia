@@ -7,7 +7,7 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A creature that ingests Midnight Tears suffers no effect until the stroke of midnight. Any effect that ends the poisoned condition neutralizes this po...",
+  "excerpt": "A creature that ingests Midnight Tears suffers no effect until the stroke of midnight. Any effect that ends the poisoned|Poisoned condition neutralize...",
   "aliases": [],
   "seeAlso": [
     "poisoned"

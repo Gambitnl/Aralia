@@ -7,15 +7,15 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A Pole is 10 feet long. You can use it to touch something up to 10 feet away. If you must make a Strength (athletics) check as part of a High or long_...",
+  "excerpt": "A Pole is 10 feet long. You can use it to touch something up to 10 feet away. If you must make a Strength (athletics|Athletics) check as part of a Hig...",
   "aliases": [],
   "seeAlso": [
     "athletics",
-    "long_jump Jump",
+    "long_jump",
     "advantage"
   ],
   "filePath": "/data/glossary/entries/equipment/pole.json",
-  "markdown": "# Pole\n\nA Pole is 10 feet long. You can use it to touch something up to 10 feet away. If you must make a Strength ([[athletics]]) check as part of a High or [[long_jump Jump]], you can use the Pole to vault, giving yourself [[advantage]] on the check.",
+  "markdown": "# Pole\n\nA Pole is 10 feet long. You can use it to touch something up to 10 feet away. If you must make a Strength ([[athletics]]) check as part of a High or [[long_jump]], you can use the Pole to vault, giving yourself [[advantage]] on the check.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

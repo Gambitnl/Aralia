@@ -6,20 +6,19 @@
     "source:xphb",
     "background"
   ],
-  "excerpt": "- Ability Scores:: Strength, Dexterity, Constitution - Feat:: savage_attacker Attacker - Skill Proficiencies:: athletics, intimidation - Tool Proficie...",
+  "excerpt": "- Ability Scores: Strength, Dexterity, Constitution - Feat: savage_attacker|Savage Attacker - Skill Proficiencies: athletics|Athletics, intimidation|I...",
   "aliases": [],
   "seeAlso": [
-    "savage_attacker Attacker",
+    "savage_attacker",
     "athletics",
     "intimidation",
-    "gaming_set Set",
     "spear",
     "shortbow",
-    "arrow Arrows",
-    "healer_s_kit's Kit",
+    "arrow",
+    "healer_s_kit",
     "quiver",
-    "traveler_s_clothes's Clothes"
+    "traveler_s_clothes"
   ],
   "filePath": "/data/glossary/entries/backgrounds/soldier.json",
-  "markdown": "# Soldier\n\n- **Ability Scores::** Strength, Dexterity, Constitution\n- **Feat::** [[savage_attacker Attacker]]\n- **Skill Proficiencies::** [[athletics]], [[intimidation]]\n- **Tool Proficiency::** Choose one kind of [[gaming_set Set]]\n- **Equipment::** Choose A or B: (A) [[spear]], [[shortbow]], [[arrow Arrows]], [[gaming_set Set]] (same as above), [[healer_s_kit's Kit]], [[quiver]], [[traveler_s_clothes's Clothes]], 14 GP; or (B) 50 GP"
+  "markdown": "# Soldier\n\n- **Ability Scores:** Strength, Dexterity, Constitution\n- **Feat:** [[savage_attacker]]\n- **Skill Proficiencies:** [[athletics]], [[intimidation]]\n- **Tool Proficiency:** Choose one kind of Gaming Set\n- **Equipment:** Choose A or B: (A) [[spear]], [[shortbow]], [[arrow|20 Arrows]], Gaming Set (same as above), [[healer_s_kit|Healer's Kit]], [[quiver]], [[traveler_s_clothes|Traveler's Clothes]], 14 GP; or (B) 50 GP"
 }

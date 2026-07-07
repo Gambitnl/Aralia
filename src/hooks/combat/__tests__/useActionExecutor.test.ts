@@ -173,44 +173,50 @@ describe('useActionExecutor', () => {
             currentHP: character.currentHP - amount
         }));
 
-        const { result } = renderHook(() => useActionExecutor({
-            ...defaultProps,
-            characters: [attacker, protectedCaster],
-            reactiveTriggers: [{
-                id: 'armor-of-agathys-retaliation',
-                sourceEffect: armorRetaliation,
-                casterId: protectedCaster.id,
-                targetId: protectedCaster.id,
-                createdTurn: 1
-            }]
-        }));
+        const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.99);
 
-        const action: CombatAction = {
-            id: 'claw-protected-caster',
-            characterId: attacker.id,
-            type: 'ability',
-            abilityId: meleeAttack.id,
-            targetCharacterIds: [protectedCaster.id],
-            targetPosition: protectedCaster.position,
-            cost: { type: 'action' },
-            timestamp: Date.now()
-        };
+        try {
+            const { result } = renderHook(() => useActionExecutor({
+                ...defaultProps,
+                characters: [attacker, protectedCaster],
+                reactiveTriggers: [{
+                    id: 'armor-of-agathys-retaliation',
+                    sourceEffect: armorRetaliation,
+                    casterId: protectedCaster.id,
+                    targetId: protectedCaster.id,
+                    createdTurn: 1
+                }]
+            }));
 
-        const success = await result.current.executeAction(action);
+            const action: CombatAction = {
+                id: 'claw-protected-caster',
+                characterId: attacker.id,
+                type: 'ability',
+                abilityId: meleeAttack.id,
+                targetCharacterIds: [protectedCaster.id],
+                targetPosition: protectedCaster.position,
+                cost: { type: 'action' },
+                timestamp: Date.now()
+            };
 
-        expect(success).toBe(true);
-        expect(mockHandleDamage).toHaveBeenCalledWith(
-            expect.objectContaining({ id: attacker.id }),
-            5,
-            'reactive effect',
-            'Cold'
-        );
-        expect(mockHandleDamage).not.toHaveBeenCalledWith(
-            expect.objectContaining({ id: protectedCaster.id }),
-            expect.any(Number),
-            'reactive effect',
-            'Cold'
-        );
+            const success = await result.current.executeAction(action);
+
+            expect(success).toBe(true);
+            expect(mockHandleDamage).toHaveBeenCalledWith(
+                expect.objectContaining({ id: attacker.id }),
+                5,
+                'reactive effect',
+                'Cold'
+            );
+            expect(mockHandleDamage).not.toHaveBeenCalledWith(
+                expect.objectContaining({ id: protectedCaster.id }),
+                expect.any(Number),
+                'reactive effect',
+                'Cold'
+            );
+        } finally {
+            randomSpy.mockRestore();
+        }
     });
 
     it('should not trigger melee-filtered on-target-attack damage for a ranged attack', async () => {
@@ -938,6 +944,76 @@ describe('useActionExecutor', () => {
             'zone effect',
             'Piercing'
         );
+    });
+
+    it('should refresh spell-zone status conditions instead of stacking duplicates', async () => {
+        const zoneStatusEffect: SpellEffect = {
+            type: 'STATUS_CONDITION',
+            statusCondition: { name: 'Restrained' },
+            condition: { type: 'always' },
+            trigger: { type: 'on_enter_area' }
+        } as unknown as SpellEffect;
+        const zone: ActiveSpellZone = {
+            id: 'zone-restrain',
+            spellId: 'entangling-zone',
+            casterId: 'caster',
+            position: { x: 1, y: 1 },
+            areaOfEffect: { shape: 'cube', size: 10 },
+            effects: [zoneStatusEffect],
+            triggeredThisTurn: new Set(),
+            triggeredEver: new Set()
+        };
+        const restrainedMover: CombatCharacter = {
+            ...mockCharacter,
+            position: { x: 0, y: 0 },
+            statusEffects: [{
+                id: 'existing-restrained',
+                name: 'Restrained',
+                type: 'debuff',
+                duration: 3,
+                source: 'old-vines'
+            }],
+            conditions: [{
+                name: 'Restrained',
+                duration: { type: 'rounds', value: 3 },
+                appliedTurn: 0,
+                source: 'old-vines'
+            }]
+        };
+        mockConsumeAction.mockReturnValue(restrainedMover);
+        mockProcessTileEffects.mockImplementation((char) => char);
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [restrainedMover],
+            spellZones: [zone]
+        }));
+        const action = {
+            id: 'move-into-restraining-zone',
+            characterId: restrainedMover.id,
+            type: 'move' as const,
+            targetPosition: { x: 1, y: 1 },
+            cost: { type: 'movement-only' as const, movementCost: 5 },
+            timestamp: Date.now()
+        } as CombatAction;
+
+        const success = await result.current.executeAction(action);
+
+        expect(success).toBe(true);
+        const movedUpdate = mockOnCharacterUpdate.mock.calls
+            .map(call => call[0] as CombatCharacter)
+            .find(character => character.id === restrainedMover.id);
+
+        expect(movedUpdate?.statusEffects.filter(effect => effect.name === 'Restrained')).toHaveLength(1);
+        expect(movedUpdate?.statusEffects[0]).toMatchObject({
+            id: 'existing-restrained',
+            duration: 1
+        });
+        expect(movedUpdate?.conditions?.filter(condition => condition.name === 'Restrained')).toHaveLength(1);
+        expect(movedUpdate?.conditions?.[0]).toMatchObject({
+            appliedTurn: mockTurnState.currentTurn,
+            source: 'zone_effect'
+        });
     });
 
     it('should let Dash spend an action and add current-turn movement without making an attack', async () => {

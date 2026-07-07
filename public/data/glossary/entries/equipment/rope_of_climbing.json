@@ -7,17 +7,16 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This 60-foot length of rope can hold up to 3,000 pounds. While holding one end of the rope, you can take a magic action to command the other end of th...",
+  "excerpt": "This 60-foot length of rope can hold up to 3,000 pounds. While holding one end of the rope, you can take a magic|Magic action to command the other end...",
   "aliases": [],
   "seeAlso": [
     "magic",
     "advantage",
     "immunity",
-    "hit_points Point",
-    "hit_points Points"
+    "hit_points"
   ],
   "filePath": "/data/glossary/entries/equipment/rope_of_climbing.json",
-  "markdown": "# Rope of Climbing\n\nThis 60-foot length of rope can hold up to 3,000 pounds. While holding one end of the rope, you can take a [[magic]] action to command the other end of the rope to animate and move toward a destination you choose, up to the rope's length away from you. That end moves 10 feet on your turn when you first command it and 10 feet at the start of each of your subsequent turns until reaching its destination or until you tell it to stop. You can also tell the rope to fasten itself securely to an object or to unfasten itself, to knot or unknot itself, or to coil itself for carrying.\n\nIf you tell the rope to knot, large knots appear at 1-foot intervals along the rope. While knotted, the rope shortens to a 50-foot length and grants [[advantage]] on ability checks made to climb using the rope.\n\nThe rope has AC 20, HP 20, and [[immunity]] to Poison and Psychic damage. It regains 1 [[hit_points Point]] every 5 minutes as long as it has at least 1 [[hit_points Point]]. If the rope drops to 0 [[hit_points Points]], it is destroyed.",
+  "markdown": "# Rope of Climbing\n\nThis 60-foot length of rope can hold up to 3,000 pounds. While holding one end of the rope, you can take a [[magic]] action to command the other end of the rope to animate and move toward a destination you choose, up to the rope's length away from you. That end moves 10 feet on your turn when you first command it and 10 feet at the start of each of your subsequent turns until reaching its destination or until you tell it to stop. You can also tell the rope to fasten itself securely to an object or to unfasten itself, to knot or unknot itself, or to coil itself for carrying.\n\nIf you tell the rope to knot, large knots appear at 1-foot intervals along the rope. While knotted, the rope shortens to a 50-foot length and grants [[advantage]] on ability checks made to climb using the rope.\n\nThe rope has AC 20, HP 20, and [[immunity]] to Poison and Psychic damage. It regains 1 [[hit_points|Hit Point]] every 5 minutes as long as it has at least 1 [[hit_points|Hit Point]]. If the rope drops to 0 [[hit_points]], it is destroyed.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon"

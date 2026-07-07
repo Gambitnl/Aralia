@@ -7,13 +7,13 @@
     "item",
     "itemType:Explosive"
   ],
-  "excerpt": "{itemEntry Grenade} Each creature in the sphere_area_of_effect makes a DC 15 Dexterity saving throw, taking 17 (5d6) Piercing damage on a failed save ...",
+  "excerpt": "{itemEntry Grenade} Each creature in the sphere_area_of_effect|Sphere makes a DC 15 Dexterity saving throw, taking 17 (5d6) Piercing damage on a faile...",
   "aliases": [],
   "seeAlso": [
     "sphere_area_of_effect"
   ],
   "filePath": "/data/glossary/entries/equipment/fragmentation_grenade.json",
-  "markdown": "# Fragmentation Grenade\n\n{#itemEntry Grenade}\n\nEach creature in the [[sphere_area_of_effect]] makes a DC 15 Dexterity saving throw, taking 17 (5d6) Piercing damage on a failed save or half as much damage on a successful one.",
+  "markdown": "# Fragmentation Grenade\n\n{#itemEntry Grenade}\n\nEach creature in the [[sphere_area_of_effect|Sphere]] makes a DC 15 Dexterity saving throw, taking 17 (5d6) Piercing damage on a failed save or half as much damage on a successful one.",
   "itemMetadata": {
     "type": "Explosive",
     "rarity": "None",

@@ -7,7 +7,7 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "When rung as a utilize action, a Bell produces a sound that can be heard up to 60 feet away....",
+  "excerpt": "When rung as a utilize|Utilize action, a Bell produces a sound that can be heard up to 60 feet away....",
   "aliases": [],
   "seeAlso": [
     "utilize"

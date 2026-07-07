@@ -7,7 +7,7 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "String is 10 feet long. You can tie a knot in it as a utilize action....",
+  "excerpt": "String is 10 feet long. You can tie a knot in it as a utilize|Utilize action....",
   "aliases": [],
   "seeAlso": [
     "utilize"

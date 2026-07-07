@@ -7,16 +7,16 @@
     "item",
     "itemType:Melee Weapon"
   ],
-  "excerpt": "You have resistance to Fire damage while you hold this staff.  Spells The staff has 10 charges. While holding the staff, you can cast one of the spell...",
+  "excerpt": "You have resistance|Resistance to Fire damage while you hold this staff.  Spells The staff has 10 charges. While holding the staff, you can cast one o...",
   "aliases": [],
   "seeAlso": [
     "resistance",
-    "burning_hands Hands",
+    "burning-hands",
     "fireball",
-    "wall_of_fire of Fire"
+    "wall-of-fire"
   ],
   "filePath": "/data/glossary/entries/equipment/staff_of_fire.json",
-  "markdown": "# Staff of Fire\n\nYou have [[resistance]] to Fire damage while you hold this staff.\n\n## Spells\n\nThe staff has 10 charges. While holding the staff, you can cast one of the spells on the following table from it, using your spell save DC. The table indicates how many charges you must expend to cast the spell.\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[burning_hands Hands]] | 1 |\n| [[fireball]] | 3 |\n| [[wall_of_fire of Fire]] | 4 |\n\n## Regaining Charges\n\nThe staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff crumbles into cinders and is destroyed.",
+  "markdown": "# Staff of Fire\n\nYou have [[resistance]] to Fire damage while you hold this staff.\n\n## Spells\n\nThe staff has 10 charges. While holding the staff, you can cast one of the spells on the following table from it, using your spell save DC. The table indicates how many charges you must expend to cast the spell.\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[burning-hands|Burning Hands]] | 1 |\n| [[fireball]] | 3 |\n| [[wall-of-fire|Wall of Fire]] | 4 |\n\n## Regaining Charges\n\nThe staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff crumbles into cinders and is destroyed.",
   "itemMetadata": {
     "type": "Melee Weapon",
     "rarity": "Very rare",

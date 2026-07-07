@@ -6,15 +6,15 @@
     "source:xphb",
     "feat"
   ],
-  "excerpt": "You gain the following benefits.  Battle Medic If you have a healer_s_kit's Kit, you can expend one use of it and tend to a creature within 5 feet of ...",
+  "excerpt": "You gain the following benefits.  Battle Medic If you have a healer_s_kit|Healer's Kit, you can expend one use of it and tend to a creature within 5 f...",
   "aliases": [],
   "seeAlso": [
-    "healer_s_kit's Kit",
+    "healer_s_kit",
     "utilize",
-    "hit_point_dice Point Dice",
-    "hit_points Points",
-    "proficiency Bonus"
+    "hit_point_dice",
+    "hit_points",
+    "proficiency"
   ],
   "filePath": "/data/glossary/entries/feats/healer.json",
-  "markdown": "# Healer\n\nYou gain the following benefits.\n\n## Battle Medic\n\nIf you have a [[healer_s_kit's Kit]], you can expend one use of it and tend to a creature within 5 feet of yourself as a [[utilize]] action. That creature can expend one of its [[hit_point_dice Point Dice]], and you then roll that die. The creature regains a number of [[hit_points Points]] equal to the roll plus your [[proficiency Bonus]].\n\n## Healing Rerolls\n\nWhenever you roll a die to determine the number of [[hit_points Points]] you restore with a spell or with this feat's Battle Medic benefit, you can reroll the die if it rolls a 1, and you must use the new roll."
+  "markdown": "# Healer\n\nYou gain the following benefits.\n\n## Battle Medic\n\nIf you have a [[healer_s_kit|Healer's Kit]], you can expend one use of it and tend to a creature within 5 feet of yourself as a [[utilize]] action. That creature can expend one of its [[hit_point_dice]], and you then roll that die. The creature regains a number of [[hit_points]] equal to the roll plus your [[proficiency|Proficiency Bonus]].\n\n## Healing Rerolls\n\nWhenever you roll a die to determine the number of [[hit_points]] you restore with a spell or with this feat's Battle Medic benefit, you can reroll the die if it rolls a 1, and you must use the new roll."
 }

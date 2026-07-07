@@ -43,13 +43,44 @@ const BIOME_HOSTILITY: Record<number, number> = {
   12: 0.26, // Wetland
 };
 
+/**
+ * One dungeon site's danger contribution (Pillar 2, Task 8). A site whose apex
+ * occupation is still UNCLEARED radiates a modest LOCAL danger bump around its
+ * cell — a den that raids the neighbourhood, not a war that engulfs a province.
+ * Cleared sites contribute nothing. `strength` overrides the default per-site
+ * bump (0..1 at the site's own cell); omit for the standard local threat.
+ */
+export interface DungeonDangerSite {
+  cellId: number;
+  cleared: boolean;
+  /** Peak danger at the site cell (0..1). Defaults to DUNGEON_SITE_STRENGTH. */
+  strength?: number;
+}
+
 export interface DangerFieldOptions {
   /** How far (cell rings) zone threat bleeds outward; each ring decays by `falloff`. */
   spreadRings?: number;
   falloff?: number;
   /** Per-ring zone weight multiplier applied before falloff (tunes overall intensity). */
   intensity?: number;
+  /**
+   * Dungeon sites (Pillar 2, Task 8). Each UNCLEARED site adds a BFS-bled local
+   * danger bump around its cell (same ring-bleed as zones, but a shorter reach
+   * and a modest weight — a local threat, not a war). OMITTING this leaves the
+   * output byte-identical to the pre-Task-8 field (flag-gated; the function
+   * stays pure). Cleared sites are ignored.
+   */
+  dungeonSites?: ReadonlyArray<DungeonDangerSite>;
 }
+
+/** Default peak danger at an uncleared dungeon site's own cell (0..1). Modest:
+ * a den bleeds the neighbourhood, it does not saturate a region like a war. */
+export const DUNGEON_SITE_STRENGTH = 0.45;
+/** How many cell rings a dungeon site's danger bleeds — shorter than a zone's,
+ * because a dungeon's menace is local. */
+const DUNGEON_SPREAD_RINGS = 2;
+/** Per-ring decay for a dungeon site's bleed (each ring = this × the last). */
+const DUNGEON_FALLOFF = 0.45;
 
 /**
  * Compute a per-cell danger scalar in [0,1], indexed by FMG cell id. Land cells
@@ -99,6 +130,40 @@ export function computeDangerField(atlas: FmgAtlasResult, opts: DangerFieldOptio
         }
       }
       frontier = next;
+    }
+  }
+
+  // 3. Dungeon sites (Task 8) — each UNCLEARED site bleeds a modest LOCAL bump
+  // around its cell, exactly the same BFS ring-bleed as zones but with a shorter
+  // reach and lower weight. Gated on `opts.dungeonSites`: when it is absent this
+  // whole block is skipped, so the field is byte-identical to the pre-Task-8
+  // output for every caller that does not pass site states.
+  const dungeonSites = opts.dungeonSites;
+  if (dungeonSites && neighbors) {
+    for (const site of dungeonSites) {
+      if (site.cleared) continue; // cleared sites radiate nothing
+      const i0 = site.cellId;
+      if (i0 < 0 || i0 >= n || !isLand(i0)) continue;
+      const w = (site.strength ?? DUNGEON_SITE_STRENGTH) * intensity;
+      let frontier = [i0];
+      const visited = new Set<number>(frontier);
+      for (let ring = 0; ring <= DUNGEON_SPREAD_RINGS; ring++) {
+        const ringWeight = w * Math.pow(DUNGEON_FALLOFF, ring);
+        for (const i of frontier) {
+          if (!isLand(i)) continue;
+          // Combine probabilistically, like zones, so a site near a war saturates
+          // toward 1 rather than overwriting the higher of the two.
+          danger[i] = 1 - (1 - danger[i]) * (1 - ringWeight);
+        }
+        if (ring === DUNGEON_SPREAD_RINGS) break;
+        const nextFrontier: number[] = [];
+        for (const i of frontier) {
+          for (const j of neighbors[i] ?? []) {
+            if (!visited.has(j)) { visited.add(j); nextFrontier.push(j); }
+          }
+        }
+        frontier = nextFrontier;
+      }
     }
   }
 

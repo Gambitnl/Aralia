@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/opportunity_attack.json",
-  "markdown": "# Opportunity Attack\n\nYou can make an Opportunity Attack when a creature that you can see leaves your reach using its action, its [[bonus_action Action]], its [[reaction]], or one of its speeds. To make the Opportunity Attack, take a [[reaction]] to make one melee attack with a weapon or an [[unarmed_strike Strike]] against the provoking creature. The attack occurs right before the creature leaves your reach."
+  "markdown": "# Opportunity Attack\n\nYou can make an Opportunity Attack when a creature that you can see leaves your reach using its action, its [[bonus_action]], its [[reaction]], or one of its speeds. To make the Opportunity Attack, take a [[reaction]] to make one melee attack with a weapon or an [[unarmed_strike]] against the provoking creature. The attack occurs right before the creature leaves your reach."
 }

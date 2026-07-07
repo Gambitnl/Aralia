@@ -6,7 +6,7 @@
     "source:xphb",
     "itemMastery"
   ],
-  "excerpt": "If you hit a creature with this weapon, that creature has disadvantage on its next attack roll before the start of your next turn....",
+  "excerpt": "If you hit a creature with this weapon, that creature has disadvantage|Disadvantage on its next attack roll before the start of your next turn....",
   "aliases": [],
   "seeAlso": [
     "disadvantage"

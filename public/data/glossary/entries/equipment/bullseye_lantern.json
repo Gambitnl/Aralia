@@ -7,14 +7,14 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A Bullseye Lantern burns Oil as fuel to cast bright_light Light in a 60-foot Cone and dim_light Light for an additional 60 feet....",
+  "excerpt": "A Bullseye Lantern burns Oil as fuel to cast bright_light|Bright Light in a 60-foot Cone and dim_light|Dim Light for an additional 60 feet....",
   "aliases": [],
   "seeAlso": [
-    "bright_light Light",
-    "dim_light Light"
+    "bright_light",
+    "dim_light"
   ],
   "filePath": "/data/glossary/entries/equipment/bullseye_lantern.json",
-  "markdown": "# Bullseye Lantern\n\nA Bullseye Lantern burns Oil as fuel to cast [[bright_light Light]] in a 60-foot Cone and [[dim_light Light]] for an additional 60 feet.",
+  "markdown": "# Bullseye Lantern\n\nA Bullseye Lantern burns Oil as fuel to cast [[bright_light]] in a 60-foot Cone and [[dim_light]] for an additional 60 feet.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

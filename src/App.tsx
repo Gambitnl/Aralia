@@ -47,6 +47,7 @@
 import React, { useReducer, useCallback, useEffect, useRef, lazy, Suspense, useState } from 'react';
 import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase, Notification } from './types';
 import type { TravelMeta } from './types/travelMeta';
+import { BATTLE_MAP_BIOMES, type BattleMapBiome } from './types/combat';
 import { buildProvisionActions } from './systems/travel/applyProvision';
 import { loadMonstersData } from './data/monsters';
 // State management - appReducer handles all state updates via actions, initialGameState provides defaults
@@ -111,7 +112,6 @@ import { generateWorldSeed } from './utils/random/generateWorldSeed';
 // Lazy load large components to reduce initial bundle size
 // Grid retirement: the legacy 2D village view (TownCanvas) is retired — town
 // entry is the cell-native 3D town (Enter-3D on the world map). No lazy import.
-const BattleMapDemo = lazy(() => import('./components/BattleMap/BattleMapDemo'));
 const CombatView = lazy(() => import('./components/Combat').then(module => ({ default: module.CombatView })));
 const CharacterCreator = lazy(() => import('./components/CharacterCreator/CharacterCreator'));
 const GameLayout = lazy(() => import('./components/layout/GameLayout'));
@@ -461,10 +461,6 @@ const App: React.FC = () => {
     addMessage,
     worldSeed: gameState.worldSeed,
   });
-
-  const handleBattleMapDemo = useCallback(() => {
-    dispatch({ type: 'SETUP_BATTLE_MAP_DEMO' });
-  }, [dispatch]);
 
   useEffect(() => {
     return () => {
@@ -1061,9 +1057,7 @@ const App: React.FC = () => {
         dispatch({ type: 'TOGGLE_UNIFIED_LOG_VIEWER' });
         break;
       // 'design_preview' removed - access via /Aralia/misc/design.html
-      case 'battle_map_demo':
-        handleBattleMapDemo();
-        break;
+      // 'battle_map_demo' moved to the design preview - misc/design.html?step=battlemap
       case 'combat_messaging_demo':
         dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.COMBAT_MESSAGING_DEMO });
         break;
@@ -1120,7 +1114,7 @@ const App: React.FC = () => {
         dispatch({ type: 'TOGGLE_DICE_ROLLER' });
         break;
     }
-  }, [dispatch, handleNewGame, processAction, handleLoadGameFlow, handleBattleMapDemo, handleSkipCharacterCreator]);
+  }, [dispatch, handleNewGame, processAction, handleLoadGameFlow, handleSkipCharacterCreator]);
 
   const handleModelChange = useCallback((model: string | null) => {
     dispatch({ type: 'SET_DEV_MODEL_OVERRIDE', payload: model });
@@ -1238,17 +1232,6 @@ const App: React.FC = () => {
         />
       </ErrorBoundary>
     );
-  } else if (gameState.phase === GamePhase.BATTLE_MAP_DEMO) {
-    // Render the standalone Battle Map Demo
-    mainContent = (
-      <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
-        <BattleMapDemo
-          onExit={() => dispatch({ type: 'END_BATTLE' })}
-          initialCharacters={gameState.currentEnemies || []}
-          party={gameState.party}
-        />
-      </ErrorBoundary>
-    );
   } else if (gameState.phase === GamePhase.WORLD3D_DEMO) {
     // Render the 3D Sandbox Demo
     mainContent = (
@@ -1327,10 +1310,18 @@ const App: React.FC = () => {
     );
   } else if (gameState.phase === GamePhase.COMBAT) {
     // Render the full Combat View
-    const allowedBiomes: Array<'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp'> = ['forest', 'cave', 'dungeon', 'desert', 'swamp'];
-    const combatBiome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp' = (currentLocationData.biomeId && allowedBiomes.includes(currentLocationData.biomeId as typeof allowedBiomes[number]))
-      ? (currentLocationData.biomeId as typeof allowedBiomes[number])
-      : 'forest';
+    const allowedBiomes: readonly BattleMapBiome[] = BATTLE_MAP_BIOMES;
+    // Dev-only override (?biome=swamp) so headless proofs can shoot every
+    // painted biome without needing a save located in one.
+    const devBiomeParam = canUseDevTools()
+      ? new URLSearchParams(window.location.search).get('biome')
+      : null;
+    const combatBiome: BattleMapBiome =
+      (devBiomeParam && allowedBiomes.includes(devBiomeParam as typeof allowedBiomes[number]))
+        ? (devBiomeParam as typeof allowedBiomes[number])
+        : (currentLocationData.biomeId && allowedBiomes.includes(currentLocationData.biomeId as typeof allowedBiomes[number]))
+          ? (currentLocationData.biomeId as typeof allowedBiomes[number])
+          : 'forest';
 
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred during Combat.">

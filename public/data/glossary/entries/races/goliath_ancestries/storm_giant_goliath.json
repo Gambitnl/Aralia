@@ -53,9 +53,7 @@
     "storm_giant"
   ],
   "seeAlso": [
-    "goliath",
-    "reaction",
-    "thunder_damage"
+    "reaction"
   ],
   "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant_goliath.json",
   "maleImageUrl": "/assets/images/races/Goliath_Storm Giant_Male.png",

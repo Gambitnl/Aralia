@@ -112,7 +112,10 @@ const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onCl
           {/* The roster portrait uses the same visual resolver as map tokens, so
               future generated enemy/player portraits can land in one helper
               instead of each combat panel inventing its own fallback. */}
-          <div className="mb-2 flex items-center gap-2 pr-24">
+          {/* Full card width for the name — the inspect/AI controls live on
+              their own row below, so the primary identifier is never the
+              first thing sacrificed to truncation. */}
+          <div className="mb-2 flex items-center gap-2">
           <CombatantPortrait character={character} tone="player" />
           <div className="min-w-0 leading-tight">
             <p className="truncate text-sm font-bold text-amber-200">{firstName}</p>
@@ -137,23 +140,22 @@ const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onCl
       </button>
 
       {renderActionEconomy(character)}
-
-      <div className="absolute top-2 right-2 flex items-center gap-1 z-[var(--z-index-content-overlay-low)]">
-        <button
-            onClick={(e) => { e.stopPropagation(); onInspect(); }}
-            className="flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-sm text-slate-300 transition-colors hover:border-sky-500 hover:text-sky-300"
-            title="Inspect character"
-            aria-label={`Inspect ${character.name}`}
-        >
-            ⓘ
-        </button>
-        <button
-            onClick={onToggleAuto}
-            className={`min-h-11 rounded border px-2 text-[10px] font-bold uppercase tracking-wider ${isAuto ? 'bg-purple-600/90 border-purple-400 text-white' : 'bg-slate-900/70 border-slate-600 text-slate-300'} transition-colors hover:bg-opacity-80`}
-            title="Toggle AI Control"
-        >
-            {isAuto ? 'AI ON' : 'AI OFF'}
-        </button>
+      <div className="mt-1.5 flex items-center justify-end gap-1">
+          <button
+              onClick={(e) => { e.stopPropagation(); onInspect(); }}
+              className="flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-sm text-slate-300 transition-colors hover:border-sky-500 hover:text-sky-300"
+              title="Inspect character"
+              aria-label={`Inspect ${character.name}`}
+          >
+              ⓘ
+          </button>
+          <button
+              onClick={onToggleAuto}
+              className={`min-h-11 rounded border px-2 text-[10px] font-bold uppercase tracking-wider ${isAuto ? 'bg-purple-600/90 border-purple-400 text-white' : 'bg-slate-900/70 border-slate-600 text-slate-300'} transition-colors hover:bg-opacity-80`}
+              title="Toggle AI Control"
+          >
+              {isAuto ? 'AI ON' : 'AI OFF'}
+          </button>
       </div>
     </div>
   );
@@ -292,7 +294,7 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
             </button>
           </div>
         ) : (
-          <div className="flex flex-col gap-4 flex-1 overflow-hidden relative">
+          <div className="flex flex-col gap-4 flex-1 overflow-hidden relative sm:grid sm:grid-cols-2 sm:items-start lg:flex lg:flex-col">
             <button
               onClick={() => setIsExpanded(true)}
               className="absolute top-2 right-2 z-10 flex h-11 w-11 items-center justify-center rounded text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white"
@@ -304,7 +306,7 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
               <h3 className={`${COMBAT_LABEL} mb-3 flex items-center gap-2 border-b border-amber-900/40 pb-2`}>
                 <span className="text-amber-400">⚜</span> Party
               </h3>
-              <div className="space-y-2.5">
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
                 {playerCharacters.map(char => (
                   <PartyMemberDisplay
                     key={char.id}
@@ -324,7 +326,7 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
                 <h3 className="text-[11px] font-bold uppercase tracking-[0.22em] text-rose-400/90 mb-3 flex items-center gap-2 border-b border-rose-900/40 pb-2">
                   <span className="text-rose-400">☠</span> Enemies
                 </h3>
-                <div className="space-y-2.5">
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
                   {enemyCharacters.map(char => (
                     <EnemyMemberDisplay
                       key={char.id}

@@ -2,7 +2,7 @@
  * @file battleMapGenerator.ts
  * Service for procedurally generating battle maps.
  */
-import { BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration, TargetableMapObject } from '../types/combat';
+import { BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration, BattleMapBiome, TargetableMapObject } from '../types/combat';
 import { PerlinNoise } from '../utils/perlinNoise';
 import { SeededRandom } from '@/utils/random';
 
@@ -45,16 +45,17 @@ export class BattleMapGenerator {
     this.height = height;
   }
 
-  public generate(biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp', seed: number): BattleMapData {
+  public generate(biome: BattleMapBiome, seed: number): BattleMapData {
     this.tiles.clear();
     this.targetableObjects = [];
     this.random = new SeededRandom(seed);
     this.elevationNoise = new PerlinNoise(this.random.next());
-    
+
     this.generateBaseTerrain(biome);
     this.placeObstacles(biome);
-    
-    if (biome === 'cave' || biome === 'dungeon') {
+
+    // Every biome that generates walls needs the walkability guarantee.
+    if (biome === 'cave' || biome === 'dungeon' || biome === 'ruins') {
         this.ensureConnectivity();
     }
     
@@ -67,7 +68,7 @@ export class BattleMapGenerator {
     };
   }
   
-  private generateBaseTerrain(biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp') {
+  private generateBaseTerrain(biome: BattleMapBiome) {
     const noise = new PerlinNoise(this.random.next());
 
     for (let y = 0; y < this.height; y++) {
@@ -79,7 +80,7 @@ export class BattleMapGenerator {
     }
   }
 
-  private createBaseTile(x: number, y: number, biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp', noiseValue: number): BattleMapTile {
+  private createBaseTile(x: number, y: number, biome: BattleMapBiome, noiseValue: number): BattleMapTile {
     let terrain: BattleMapTerrain = 'grass';
     // Elevation: smaller scale (x/8) for visible terrain undulation, higher multiplier
     const rawElev = this.elevationNoise.get(x / 8, y / 8);
@@ -93,7 +94,7 @@ export class BattleMapGenerator {
     // decorations, obstacle placement — stays byte-identical for a given seed.
     // Cave/dungeon keep gentle floors (enclosed mood); swamp stays low and flat
     // by nature (its drama is water + mist).
-    if (biome === 'forest' || biome === 'desert') {
+    if (biome === 'forest' || biome === 'desert' || biome === 'snow' || biome === 'volcanic') {
       const bluffNoise = this.elevationNoise.get(x / 9 + 37.2, y / 9 + 91.7);
       const t = Math.max(0, Math.min(1, (bluffNoise - 0.26) / 0.14));
       rawHeight += t * t * (3 - 2 * t) * 4.0; // smoothstep ramp → +0..4 steps
@@ -113,6 +114,41 @@ export class BattleMapGenerator {
             terrain = 'mud';
             if (noiseValue > 0.2) terrain = 'water';
             else if (noiseValue < -0.3) terrain = 'difficult'; // thick mud/roots
+            break;
+        case 'snow':
+            // Snowfield with deep drifts; the coldest hollows hold frozen ponds.
+            if (noiseValue > 0.45) terrain = 'difficult'; // deep drifts
+            else if (noiseValue < -0.55) terrain = 'water'; // frozen pond
+            else terrain = 'grass'; // snowfield
+            break;
+        case 'jungle':
+            // Denser underbrush than forest, with warm pools in the hollows.
+            if (noiseValue > 0.25) terrain = 'difficult'; // dense growth
+            else if (noiseValue < -0.55) terrain = 'water';
+            else terrain = 'grass';
+            break;
+        case 'coast': {
+            // The sea claims the east edge: bias the water threshold by x so
+            // the shoreline is a ragged band, not scattered ponds.
+            const seaBias = (x / this.width - 0.62) * 1.8;
+            if (noiseValue + seaBias > 0.25) terrain = 'water';
+            else if (noiseValue > 0.5) terrain = 'grass'; // dune grass
+            else terrain = 'sand';
+            break;
+        }
+        case 'ruins':
+            // Broken walls over old paving, half-reclaimed by growth.
+            if (noiseValue > 0.55) terrain = 'wall';
+            else if (noiseValue > 0.2) terrain = 'grass'; // overgrowth
+            else if (noiseValue < -0.5) terrain = 'difficult'; // rubble
+            else terrain = 'floor';
+            break;
+        case 'volcanic':
+            // Basalt field cut by lava. Lava reuses the water terrain: same
+            // rules (impassable, no LoS block) — the paint says what it is.
+            terrain = 'rock';
+            if (noiseValue < -0.45) terrain = 'water'; // lava
+            else if (noiseValue > 0.5) terrain = 'difficult'; // ash and scree
             break;
         case 'forest':
         default:
@@ -136,13 +172,18 @@ export class BattleMapGenerator {
     };
   }
 
-  private placeObstacles(biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp') {
-    const obstacleConfig = {
+  private placeObstacles(biome: BattleMapBiome) {
+    const obstacleConfig: Record<BattleMapBiome, { types: string[]; density: number }> = {
       forest: { types: ['tree', 'tree', 'boulder', 'bush', 'stump', 'fallen_log'], density: 0.15 },
       cave: { types: ['stalagmite', 'boulder', 'boulder'], density: 0.1 },
       dungeon: { types: ['pillar', 'pillar', 'boulder'], density: 0.07 },
       desert: { types: ['cactus', 'boulder', 'boulder'], density: 0.08 },
       swamp: { types: ['mangrove', 'boulder', 'bush', 'stump'], density: 0.15 },
+      snow: { types: ['tree', 'tree', 'boulder', 'stump'], density: 0.12 },
+      jungle: { types: ['tree', 'tree', 'tree', 'bush', 'bush', 'fallen_log'], density: 0.22 },
+      coast: { types: ['boulder', 'fallen_log', 'bush'], density: 0.06 },
+      ruins: { types: ['pillar', 'pillar', 'boulder', 'bush'], density: 0.1 },
+      volcanic: { types: ['boulder', 'boulder', 'stalagmite'], density: 0.09 },
     };
     
     const config = obstacleConfig[biome];

@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/immunity.json",
-  "markdown": "# Immunity\n\nIf you have Immunity to a [[damage_types type]] or a [[condition]], it doesn't affect you in any way."
+  "markdown": "# Immunity\n\nIf you have Immunity to a [[damage_types]] or a [[condition]], it doesn't affect you in any way."
 }

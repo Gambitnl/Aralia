@@ -155,8 +155,7 @@
     "seeAlso": [
       "one_thing_at_a_time",
       "bonus_actions",
-      "reactions",
-      "combat"
+      "reactions"
     ],
     "filePath": "/data/glossary/entries/rules/actions.json"
   },
@@ -322,7 +321,7 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "When you make a Dexterity (stealth) check or an initiative roll, you can expend one Superiority Die and add the die to the roll, unless you have the i...",
+    "excerpt": "When you make a Dexterity (stealth|Stealth) check or an initiative|Initiative roll, you can expend one Superiority Die and add the die to the roll, un...",
     "aliases": [],
     "seeAlso": [
       "stealth",
@@ -441,10 +440,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You can cast mage_armor Armor on yourself without expending a spell slot....",
+    "excerpt": "You can cast mage_armor|Mage Armor on yourself without expending a spell slot....",
     "aliases": [],
     "seeAlso": [
-      "mage_armor Armor"
+      "mage-armor"
     ],
     "filePath": "/data/glossary/entries/rules/armor_of_shadows.json"
   },
@@ -479,7 +478,7 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You can cast levitate on yourself without expending a spell slot....",
+    "excerpt": "You can cast levitate|Levitate on yourself without expending a spell slot....",
     "aliases": [],
     "seeAlso": [
       "levitate"
@@ -603,7 +602,7 @@
     "aliases": [],
     "seeAlso": [
       "incapacitated",
-      "opportunity_attack Attacks"
+      "opportunity_attack"
     ],
     "filePath": "/data/glossary/entries/rules/bait_and_switch.json"
   },
@@ -625,7 +624,7 @@
       "source:xphb",
       "itemProperty"
     ],
-    "excerpt": "Burst Fire As an action, you can expend 10 pieces of a Burst Fire weapon's ammunition to spray shots in a 10-foot cube_area_of_effect within the weapo...",
+    "excerpt": "Burst Fire As an action, you can expend 10 pieces of a Burst Fire weapon's ammunition to spray shots in a 10-foot cube_area_of_effect|Cube within the ...",
     "aliases": [],
     "seeAlso": [
       "cube_area_of_effect"
@@ -672,7 +671,7 @@
     "excerpt": "If you have Blindsight, you can see within a specific range without relying on physical sight. Within that range, you can see anything that isn't behi...",
     "aliases": [],
     "seeAlso": [
-      "cover Cover",
+      "cover",
       "blinded",
       "darkness",
       "invisible"
@@ -985,7 +984,6 @@
     ],
     "seeAlso": [
       "wisdom",
-      "intelligence",
       "ability_check"
     ],
     "filePath": "/data/glossary/entries/rules/charisma.json"
@@ -1106,12 +1104,12 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "When you take the attack action on your turn, you can replace one of your attacks to direct one of your companions to strike. When you do so, choose a...",
+    "excerpt": "When you take the attack|Attack action on your turn, you can replace one of your attacks to direct one of your companions to strike. When you do so, c...",
     "aliases": [],
     "seeAlso": [
       "attack",
       "reaction",
-      "unarmed_strike Strike"
+      "unarmed_strike"
     ],
     "filePath": "/data/glossary/entries/rules/commander_s_strike.json"
   },
@@ -1123,7 +1121,7 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "When you make a Charisma (intimidation, performance, or persuasion) check, you can expend one Superiority Die and add that die to the roll....",
+    "excerpt": "When you make a Charisma (intimidation|Intimidation, performance|Performance, or persuasion|Persuasion) check, you can expend one Superiority Die and ...",
     "aliases": [],
     "seeAlso": [
       "intimidation",
@@ -1583,11 +1581,11 @@
       "source:xphb",
       "sense"
     ],
-    "excerpt": "If you have Darkvision, you can see in dim_light Light within a specified range as if it were bright_light Light and in darkness within that range as ...",
+    "excerpt": "If you have Darkvision, you can see in dim_light|Dim Light within a specified range as if it were bright_light|Bright Light and in darkness|Darkness w...",
     "aliases": [],
     "seeAlso": [
-      "dim_light Light",
-      "bright_light Light",
+      "dim_light",
+      "bright_light",
       "darkness"
     ],
     "filePath": "/data/glossary/entries/rules/darkvision.json"
@@ -1648,10 +1646,10 @@
       "source:xphb",
       "hazard"
     ],
-    "excerpt": "A dead magic zone is an area where the fabric of magic is torn. The effect is the same as the antimagic_field Field spell, except that it is permanent...",
+    "excerpt": "A dead magic zone is an area where the fabric of magic is torn. The effect is the same as the antimagic_field|Antimagic Field spell, except that it is...",
     "aliases": [],
     "seeAlso": [
-      "antimagic_field Field"
+      "antimagic-field"
     ],
     "filePath": "/data/glossary/entries/rules/dead_magic_zone.json"
   },
@@ -1759,10 +1757,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You can see normally in dim_light Light and darkness—both magical and nonmagical—within 120 feet of yourself....",
+    "excerpt": "You can see normally in dim_light|Dim Light and darkness|Darkness—both magical and nonmagical—within 120 feet of yourself....",
     "aliases": [],
     "seeAlso": [
-      "dim_light Light",
+      "dim_light",
       "darkness"
     ],
     "filePath": "/data/glossary/entries/rules/devil_s_sight.json"
@@ -2058,7 +2056,7 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You have advantage on Constitution saving throws that you make to maintain Concentration....",
+    "excerpt": "You have advantage|Advantage on Constitution saving throws that you make to maintain Concentration....",
     "aliases": [],
     "seeAlso": [
       "advantage"
@@ -2258,10 +2256,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "As a bonus_action Action, you can expend one Superiority Die and take the disengage action. You also roll the die and add the number rolled to your AC...",
+    "excerpt": "As a bonus_action|Bonus Action, you can expend one Superiority Die and take the disengage|Disengage action. You also roll the die and add the number r...",
     "aliases": [],
     "seeAlso": [
-      "bonus_action Action",
+      "bonus_action",
       "disengage"
     ],
     "filePath": "/data/glossary/entries/rules/evasive_footwork.json"
@@ -2420,10 +2418,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "As a bonus_action Action, you can expend one Superiority Die to feint, choosing one creature within 5 feet of yourself as your target. You have advant...",
+    "excerpt": "As a bonus_action|Bonus Action, you can expend one Superiority Die to feint, choosing one creature within 5 feet of yourself as your target. You have ...",
     "aliases": [],
     "seeAlso": [
-      "bonus_action Action",
+      "bonus_action",
       "advantage"
     ],
     "filePath": "/data/glossary/entries/rules/feinting_attack.json"
@@ -2436,11 +2434,11 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You can cast false_life Life on yourself without expending a spell slot. When you cast the spell with this feature, you don't roll the die for the tem...",
+    "excerpt": "You can cast false_life|False Life on yourself without expending a spell slot. When you cast the spell with this feature, you don't roll the die for t...",
     "aliases": [],
     "seeAlso": [
-      "false_life Life",
-      "temporary_hit_points Hit Points"
+      "false-life",
+      "temporary_hit_points"
     ],
     "filePath": "/data/glossary/entries/rules/fiendish_vigor.json"
   },
@@ -2472,11 +2470,11 @@
       "source:xphb",
       "hazard"
     ],
-    "excerpt": "A fireball fungus is a Small, inanimate mushroom that can grow anywhere fungi are found in abundance. Its luminous, orange cap sheds bright_light Ligh...",
+    "excerpt": "A fireball fungus is a Small, inanimate mushroom that can grow anywhere fungi are found in abundance. Its luminous, orange cap sheds bright_light|Brig...",
     "aliases": [],
     "seeAlso": [
-      "bright_light Light",
-      "dim_light Light",
+      "bright_light",
+      "dim_light",
       "immunity",
       "fireball"
     ],
@@ -2585,10 +2583,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You can use a bonus_action Action to touch a willing creature and perceive through its senses until the end of your next turn. As long as the creature...",
+    "excerpt": "You can use a bonus_action|Bonus Action to touch a willing creature and perceive through its senses until the end of your next turn. As long as the cr...",
     "aliases": [],
     "seeAlso": [
-      "bonus_action Action"
+      "bonus_action"
     ],
     "filePath": "/data/glossary/entries/rules/gaze_of_two_minds.json"
   },
@@ -2613,13 +2611,13 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You can breathe underwater, and you gain a swim_speed Speed equal to your speed. You can also cast water_breathing Breathing once without expending a ...",
+    "excerpt": "You can breathe underwater, and you gain a swim_speed|Swim Speed equal to your speed|Speed. You can also cast water_breathing|Water Breathing once wit...",
     "aliases": [],
     "seeAlso": [
-      "swim_speed Speed",
+      "swim_speed",
       "speed",
-      "water_breathing Breathing",
-      "long_rest Rest"
+      "water-breathing",
+      "long_rest"
     ],
     "filePath": "/data/glossary/entries/rules/gift_of_the_depths.json"
   },
@@ -2634,9 +2632,8 @@
     "excerpt": "A new page appears in your Book of Shadows when you conjure it. With your permission, a creature can take an action to write its name on that page, wh...",
     "aliases": [],
     "seeAlso": [
-      "hit_points Points",
-      "hit_points Point",
-      "long_rest Rest",
+      "hit_points",
+      "long_rest",
       "magic"
     ],
     "filePath": "/data/glossary/entries/rules/gift_of_the_protectors.json"
@@ -2792,7 +2789,7 @@
       "source:xphb",
       "itemProperty"
     ],
-    "excerpt": "Heavy You have disadvantage on attack rolls with a Heavy weapon if it's a Melee weapon and your Strength score isn't at least 13 or if it's a Ranged w...",
+    "excerpt": "Heavy You have disadvantage|Disadvantage on attack rolls with a Heavy weapon if it's a Melee weapon and your Strength score isn't at least 13 or if it...",
     "aliases": [],
     "seeAlso": [
       "disadvantage"
@@ -2900,10 +2897,10 @@
       "source:xphb",
       "hazard"
     ],
-    "excerpt": "Everything within an area of heavy rain or heavy snowfall is lightly_obscured Obscured, and creatures in the area have disadvantage on all Wisdom (per...",
+    "excerpt": "Everything within an area of heavy rain or heavy snowfall is lightly_obscured|Lightly Obscured, and creatures in the area have disadvantage|Disadvanta...",
     "aliases": [],
     "seeAlso": [
-      "lightly_obscured Obscured",
+      "lightly_obscured",
       "disadvantage",
       "perception"
     ],
@@ -2917,7 +2914,7 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "When you cast a spell that forces a creature to make a saving throw, you can spend 2 Sorcery Points to give one target of the spell disadvantage on sa...",
+    "excerpt": "When you cast a spell that forces a creature to make a saving throw, you can spend 2 Sorcery Points to give one target of the spell disadvantage|Disad...",
     "aliases": [],
     "seeAlso": [
       "disadvantage"
@@ -3187,7 +3184,7 @@
     "excerpt": "The Improvising Damage table gives guidelines for determining damage on the fly. Improvising Damage | Damage | Examples | | --- | --- | | 1d10 | Burne...",
     "aliases": [],
     "seeAlso": [
-      "hit_points Points"
+      "hit_points"
     ],
     "filePath": "/data/glossary/entries/rules/improvised_damage.json"
   },
@@ -3406,13 +3403,13 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "When you cast find_familiar Familiar, you infuse the summoned familiar with a measure of your eldritch power, granting the creature the following bene...",
+    "excerpt": "When you cast find_familiar|Find Familiar, you infuse the summoned familiar with a measure of your eldritch power, granting the creature the following...",
     "aliases": [],
     "seeAlso": [
-      "find_familiar Familiar",
-      "fly_speed Speed",
-      "swim_speed Speed",
-      "bonus_action Action",
+      "find-familiar",
+      "fly_speed",
+      "swim_speed",
+      "bonus_action",
       "attack",
       "reaction",
       "resistance"
@@ -3492,11 +3489,11 @@
       "source:xphb",
       "itemProperty"
     ],
-    "excerpt": "Light When you take the attack action on your turn and attack with a Light weapon, you can make one extra attack as a bonus_action Action later on the...",
+    "excerpt": "Light When you take the attack|Attack action on your turn and attack with a Light weapon, you can make one extra attack as a bonus_action|Bonus Action...",
     "aliases": [],
     "seeAlso": [
       "attack",
-      "bonus_action Action",
+      "bonus_action",
       "shortsword",
       "dagger"
     ],
@@ -3520,10 +3517,10 @@
       "source:xphb",
       "itemProperty"
     ],
-    "excerpt": "Loading You can fire only one piece of ammunition from a Loading weapon when you use an action, a bonus_action Action, or a reaction to fire it, regar...",
+    "excerpt": "Loading You can fire only one piece of ammunition from a Loading weapon when you use an action, a bonus_action|Bonus Action, or a reaction|Reaction to...",
     "aliases": [],
     "seeAlso": [
-      "bonus_action Action",
+      "bonus_action",
       "reaction"
     ],
     "filePath": "/data/glossary/entries/rules/ld.json"
@@ -3562,9 +3559,8 @@
     "excerpt": "Once per turn when you hit a creature with your pact weapon, you can deal an extra 1d6 Necrotic, Psychic, or Radiant damage (your choice) to the creat...",
     "aliases": [],
     "seeAlso": [
-      "hit_point_dice Point Dice",
-      "hit_points Points",
-      "hit_points Point"
+      "hit_point_dice",
+      "hit_points"
     ],
     "filePath": "/data/glossary/entries/rules/lifedrinker.json"
   },
@@ -3730,10 +3726,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "As a bonus_action Action, you can expend one Superiority Die and take the dash action. If you move at least 5 feet in a straight line immediately befo...",
+    "excerpt": "As a bonus_action|Bonus Action, you can expend one Superiority Die and take the dash|Dash action. If you move at least 5 feet in a straight line immed...",
     "aliases": [],
     "seeAlso": [
-      "bonus_action Action",
+      "bonus_action",
       "dash",
       "attack"
     ],
@@ -3808,7 +3804,7 @@
     "excerpt": "A creature needs an amount of food per day based on its size, as shown in the Food Needs per Day table. A creature that eats but consumes less than ha...",
     "aliases": [],
     "seeAlso": [
-      "saving_throw throw",
+      "saving_throw",
       "exhaustion"
     ],
     "filePath": "/data/glossary/entries/rules/malnutrition.json"
@@ -3826,7 +3822,7 @@
     "seeAlso": [
       "reaction",
       "speed",
-      "opportunity_attack Attack"
+      "opportunity_attack"
     ],
     "filePath": "/data/glossary/entries/rules/maneuvering_attack.json"
   },
@@ -3838,10 +3834,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You can cast disguise_self Self without expending a spell slot....",
+    "excerpt": "You can cast disguise_self|Disguise Self without expending a spell slot....",
     "aliases": [],
     "seeAlso": [
-      "disguise_self Self"
+      "disguise-self"
     ],
     "filePath": "/data/glossary/entries/rules/mask_of_many_faces.json"
   },
@@ -3863,10 +3859,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You can cast alter_self Self without expending a spell slot....",
+    "excerpt": "You can cast alter_self|Alter Self without expending a spell slot....",
     "aliases": [],
     "seeAlso": [
-      "alter_self Self"
+      "alter-self"
     ],
     "filePath": "/data/glossary/entries/rules/master_of_myriad_forms.json"
   },
@@ -3916,10 +3912,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You can cast silent_image Image without expending a spell slot....",
+    "excerpt": "You can cast silent_image|Silent Image without expending a spell slot....",
     "aliases": [],
     "seeAlso": [
-      "silent_image Image"
+      "silent-image"
     ],
     "filePath": "/data/glossary/entries/rules/misty_visions.json"
   },
@@ -4017,11 +4013,11 @@
       "source:xphb",
       "itemMastery"
     ],
-    "excerpt": "When you make the extra attack of the Light property, you can make it as part of the attack action instead of as a bonus_action Action. You can make t...",
+    "excerpt": "When you make the extra attack of the Light property, you can make it as part of the attack|Attack action instead of as a bonus_action|Bonus Action. Y...",
     "aliases": [],
     "seeAlso": [
       "attack",
-      "bonus_action Action"
+      "bonus_action"
     ],
     "filePath": "/data/glossary/entries/rules/nick.json"
   },
@@ -4121,10 +4117,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "While you're in an area of dim_light Light or darkness, you can cast invisibility on yourself without expending a spell slot....",
+    "excerpt": "While you're in an area of dim_light|Dim Light or darkness|Darkness, you can cast invisibility|Invisibility on yourself without expending a spell slot...",
     "aliases": [],
     "seeAlso": [
-      "dim_light Light",
+      "dim_light",
       "darkness",
       "invisibility"
     ],
@@ -4174,7 +4170,7 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You can cast jump on yourself without expending a spell slot....",
+    "excerpt": "You can cast jump|Jump on yourself without expending a spell slot....",
     "aliases": [],
     "seeAlso": [
       "jump"
@@ -4189,11 +4185,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "As a bonus_action Action, you can conjure a pact weapon in your hand—a Simple or Martial Melee weapon of your choice with which you bond—or create a b...",
+    "excerpt": "As a bonus_action|Bonus Action, you can conjure a pact weapon in your hand—a Simple or Martial Melee weapon of your choice with which you bond—or crea...",
     "aliases": [],
     "seeAlso": [
-      "bonus_action Action",
-      "spellcasting_focus Focus"
+      "bonus_action"
     ],
     "filePath": "/data/glossary/entries/rules/pact_of_the_blade.json"
   },
@@ -4205,10 +4200,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You learn the find_familiar Familiar spell and can cast it as a magic action without expending a spell slot. When you cast the spell, you choose one o...",
+    "excerpt": "You learn the find_familiar|Find Familiar spell and can cast it as a magic|Magic action without expending a spell slot. When you cast the spell, you c...",
     "aliases": [],
     "seeAlso": [
-      "find_familiar Familiar",
+      "find-familiar",
       "magic",
       "attack",
       "reaction"
@@ -4223,13 +4218,12 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "Stitching together strands of shadow, you conjure forth a book in your hand at the end of a short_rest or long_rest Rest. This Book of Shadows (you de...",
+    "excerpt": "Stitching together strands of shadow, you conjure forth a book in your hand at the end of a short_rest|Short or long_rest|Long Rest. This Book of Shad...",
     "aliases": [],
     "seeAlso": [
       "short_rest",
-      "long_rest Rest",
-      "ritual",
-      "spellcasting_focus Focus"
+      "long_rest",
+      "ritual"
     ],
     "filePath": "/data/glossary/entries/rules/pact_of_the_tome.json"
   },
@@ -4291,7 +4285,7 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "When another creature damages you with a melee attack roll, you can take a reaction and expend one Superiority Die to reduce the damage by the number ...",
+    "excerpt": "When another creature damages you with a melee attack roll, you can take a reaction|Reaction and expend one Superiority Die to reduce the damage by th...",
     "aliases": [],
     "seeAlso": [
       "reaction"
@@ -4414,12 +4408,12 @@
     "excerpt": "Certain planes of existence—and areas on the Material Plane affected by them—have supernatural effects on creatures within them. Several examples are ...",
     "aliases": [],
     "seeAlso": [
-      "temporary_hit_points Hit Points",
+      "temporary_hit_points",
       "immunity",
       "frightened",
       "poisoned",
       "bless",
-      "lesser_restoration Restoration",
+      "lesser-restoration",
       "invisible",
       "exhaustion"
     ],
@@ -4511,7 +4505,7 @@
     "seeAlso": [
       "cube_area_of_effect",
       "disadvantage",
-      "death_saving_throw Saving Throws"
+      "death_saving_throw"
     ],
     "filePath": "/data/glossary/entries/rules/poisonous_gas.json"
   },
@@ -4633,7 +4627,6 @@
     ],
     "seeAlso": [
       "proficiency",
-      "character_level",
       "challenge_rating",
       "d20_test",
       "expertise"
@@ -4720,10 +4713,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "When you hit a creature with an attack roll using a weapon or an unarmed_strike Strike, you can expend one Superiority Die to attempt to drive the tar...",
+    "excerpt": "When you hit a creature with an attack roll using a weapon or an unarmed_strike|Unarmed Strike, you can expend one Superiority Die to attempt to drive...",
     "aliases": [],
     "seeAlso": [
-      "unarmed_strike Strike"
+      "unarmed_strike"
     ],
     "filePath": "/data/glossary/entries/rules/pushing_attack.json"
   },
@@ -4735,10 +4728,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "When you cast a spell that has a casting time of an action, you can spend 2 Sorcery Points to change the casting time to a bonus_action Action for thi...",
+    "excerpt": "When you cast a spell that has a casting time of an action, you can spend 2 Sorcery Points to change the casting time to a bonus_action|Bonus Action f...",
     "aliases": [],
     "seeAlso": [
-      "bonus_action Action"
+      "bonus_action"
     ],
     "filePath": "/data/glossary/entries/rules/quickened_spell.json"
   },
@@ -4767,10 +4760,10 @@
       "source:xphb",
       "itemProperty"
     ],
-    "excerpt": "Reach A Reach weapon adds 5 feet to your reach when you attack with it, as well as when determining your reach for opportunity_attack Attacks with it....",
+    "excerpt": "Reach A Reach weapon adds 5 feet to your reach when you attack with it, as well as when determining your reach for opportunity_attack|Opportunity Atta...",
     "aliases": [],
     "seeAlso": [
-      "opportunity_attack Attacks"
+      "opportunity_attack"
     ],
     "filePath": "/data/glossary/entries/rules/r.json"
   },
@@ -4782,11 +4775,11 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "As a bonus_action Action, you can expend one Superiority Die to bolster the resolve of a companion. Choose an ally of yours within 30 feet of yourself...",
+    "excerpt": "As a bonus_action|Bonus Action, you can expend one Superiority Die to bolster the resolve of a companion. Choose an ally of yours within 30 feet of yo...",
     "aliases": [],
     "seeAlso": [
-      "bonus_action Action",
-      "temporary_hit_points Hit Points"
+      "bonus_action",
+      "temporary_hit_points"
     ],
     "filePath": "/data/glossary/entries/rules/rally.json"
   },
@@ -5000,11 +4993,11 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "When a creature misses you with a melee attack roll, you can take a reaction and expend one Superiority Die to make a melee attack roll with a weapon ...",
+    "excerpt": "When a creature misses you with a melee attack roll, you can take a reaction|Reaction and expend one Superiority Die to make a melee attack roll with ...",
     "aliases": [],
     "seeAlso": [
       "reaction",
-      "unarmed_strike Strike"
+      "unarmed_strike"
     ],
     "filePath": "/data/glossary/entries/rules/riposte.json"
   },
@@ -5033,7 +5026,7 @@
     "aliases": [],
     "seeAlso": [
       "magic",
-      "greater_restoration Restoration",
+      "greater-restoration",
       "heal",
       "wish"
     ],
@@ -5047,10 +5040,10 @@
       "source:xphb",
       "itemProperty"
     ],
-    "excerpt": "Reload You can make a limited number of shots with a Reload weapon. You must then reload the weapon as an action or a bonus_action Action....",
+    "excerpt": "Reload You can make a limited number of shots with a Reload weapon. You must then reload the weapon as an action or a bonus_action|Bonus Action....",
     "aliases": [],
     "seeAlso": [
-      "bonus_action Action"
+      "bonus_action"
     ],
     "filePath": "/data/glossary/entries/rules/rld.json"
   },
@@ -5066,7 +5059,7 @@
     "aliases": [],
     "seeAlso": [
       "prone",
-      "difficult_terrain Terrain",
+      "difficult_terrain",
       "restrained",
       "athletics",
       "exhaustion"
@@ -5124,7 +5117,7 @@
       "source:xphb",
       "itemMastery"
     ],
-    "excerpt": "If you hit a creature with this weapon, that creature has disadvantage on its next attack roll before the start of your next turn....",
+    "excerpt": "If you hit a creature with this weapon, that creature has disadvantage|Disadvantage on its next attack roll before the start of your next turn....",
     "aliases": [],
     "seeAlso": [
       "disadvantage"
@@ -5353,8 +5346,7 @@
     "excerpt": "Represents training in a skill, allowing a character to add their Proficiency Bonus to ability checks involving that skill.",
     "aliases": [],
     "seeAlso": [
-      "proficiency",
-      "skills_list"
+      "proficiency"
     ],
     "filePath": "/data/glossary/entries/rules/skill_proficiencies.json"
   },
@@ -5379,10 +5371,10 @@
       "source:xphb",
       "hazard"
     ],
-    "excerpt": "Slippery ice is difficult_terrain Terrain. A creature that moves onto slippery ice for the first time on a turn or starts its turn there must succeed ...",
+    "excerpt": "Slippery ice is difficult_terrain|Difficult Terrain. A creature that moves onto slippery ice for the first time on a turn or starts its turn there mus...",
     "aliases": [],
     "seeAlso": [
-      "difficult_terrain Terrain",
+      "difficult_terrain",
       "prone"
     ],
     "filePath": "/data/glossary/entries/rules/slippery_ice.json"
@@ -5395,7 +5387,7 @@
       "source:xphb",
       "itemMastery"
     ],
-    "excerpt": "If you hit a creature with this weapon and deal damage to it, you can reduce its speed by 10 feet until the start of your next turn. If the creature i...",
+    "excerpt": "If you hit a creature with this weapon and deal damage to it, you can reduce its speed|Speed by 10 feet until the start of your next turn. If the crea...",
     "aliases": [],
     "seeAlso": [
       "speed"
@@ -5548,7 +5540,6 @@
       "spell_components_rules",
       "spell_duration_rules",
       "spell_effects_rules",
-      "spell_scroll",
       "magic_action"
     ],
     "filePath": "/data/glossary/entries/rules/spells_chapter.json"
@@ -5643,7 +5634,7 @@
       "source:xphb",
       "hazard"
     ],
-    "excerpt": "Strong wind imposes disadvantage on ranged attack rolls with weapons. It also extinguishes open flames and disperses fog. A flying creature in a stron...",
+    "excerpt": "Strong wind imposes disadvantage|Disadvantage on ranged attack rolls with weapons. It also extinguishes open flames and disperses fog. A flying creatu...",
     "aliases": [],
     "seeAlso": [
       "disadvantage",
@@ -5785,10 +5776,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "When you hit a creature with a melee attack roll using a weapon or an unarmed_strike Strike, you can expend one Superiority Die to attempt to damage a...",
+    "excerpt": "When you hit a creature with a melee attack roll using a weapon or an unarmed_strike|Unarmed Strike, you can expend one Superiority Die to attempt to ...",
     "aliases": [],
     "seeAlso": [
-      "unarmed_strike Strike"
+      "unarmed_strike"
     ],
     "filePath": "/data/glossary/entries/rules/sweeping_attack.json"
   },
@@ -5862,7 +5853,7 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "When you make an Intelligence (history or investigation) check or a Wisdom (insight) check, you can expend one Superiority Die and add that die to the...",
+    "excerpt": "When you make an Intelligence (history|History or investigation|Investigation) check or a Wisdom (insight|Insight) check, you can expend one Superiori...",
     "aliases": [],
     "seeAlso": [
       "history",
@@ -6085,7 +6076,7 @@
     "excerpt": "If you hit a creature with this weapon, you can force the creature to make a Constitution saving throw (DC 8 plus the ability modifier used to make th...",
     "aliases": [],
     "seeAlso": [
-      "proficiency Bonus",
+      "proficiency",
       "prone"
     ],
     "filePath": "/data/glossary/entries/rules/topple.json"
@@ -6196,10 +6187,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "When you hit a creature with an attack roll using a weapon or an unarmed_strike Strike, you can expend one Superiority Die and add the die to the atta...",
+    "excerpt": "When you hit a creature with an attack roll using a weapon or an unarmed_strike|Unarmed Strike, you can expend one Superiority Die and add the die to ...",
     "aliases": [],
     "seeAlso": [
-      "unarmed_strike Strike",
+      "unarmed_strike",
       "prone"
     ],
     "filePath": "/data/glossary/entries/rules/trip_attack.json"
@@ -6217,7 +6208,7 @@
     "seeAlso": [
       "darkness",
       "invisible",
-      "saving_throw throws"
+      "saving_throw"
     ],
     "filePath": "/data/glossary/entries/rules/truesight.json"
   },
@@ -6229,10 +6220,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "When you cast a spell, such as charm_person Person, that can be cast with a higher-level spell slot to target an additional creature, you can spend 1 ...",
+    "excerpt": "When you cast a spell, such as charm_person|Charm Person, that can be cast with a higher-level spell slot to target an additional creature, you can sp...",
     "aliases": [],
     "seeAlso": [
-      "charm_person Person"
+      "charm-person"
     ],
     "filePath": "/data/glossary/entries/rules/twinned_spell.json"
   },
@@ -6395,7 +6386,7 @@
       "source:xphb",
       "itemMastery"
     ],
-    "excerpt": "If you hit a creature with this weapon and deal damage to the creature, you have advantage on your next attack roll against that creature before the e...",
+    "excerpt": "If you hit a creature with this weapon and deal damage to the creature, you have advantage|Advantage on your next attack roll against that creature be...",
     "aliases": [],
     "seeAlso": [
       "advantage"
@@ -6415,7 +6406,7 @@
     "seeAlso": [
       "grappled",
       "influence",
-      "speak_with_plants with Plants",
+      "speak-with-plants",
       "persuasion"
     ],
     "filePath": "/data/glossary/entries/rules/vicious_vine.json"
@@ -6461,10 +6452,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You can cast arcane_eye Eye without expending a spell slot....",
+    "excerpt": "You can cast arcane_eye|Arcane Eye without expending a spell slot....",
     "aliases": [],
     "seeAlso": [
-      "arcane_eye Eye"
+      "arcane-eye"
     ],
     "filePath": "/data/glossary/entries/rules/visions_of_distant_realms.json"
   },
@@ -6565,10 +6556,10 @@
       "source:xphb",
       "hazard"
     ],
-    "excerpt": "Giant spiders weave thick, sticky webs across passages and at the bottom of pits to snare prey. These web-filled areas are difficult_terrain Terrain. ...",
+    "excerpt": "Giant spiders weave thick, sticky webs across passages and at the bottom of pits to snare prey. These web-filled areas are difficult_terrain|Difficult...",
     "aliases": [],
     "seeAlso": [
-      "difficult_terrain Terrain",
+      "difficult_terrain",
       "restrained",
       "athletics",
       "acrobatics",
@@ -6598,10 +6589,10 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You can cast speak_with_dead with Dead without expending a spell slot....",
+    "excerpt": "You can cast speak_with_dead|Speak with Dead without expending a spell slot....",
     "aliases": [],
     "seeAlso": [
-      "speak_with_dead with Dead"
+      "speak-with-dead"
     ],
     "filePath": "/data/glossary/entries/rules/whispers_of_the_grave.json"
   },
@@ -6632,7 +6623,6 @@
       "WIS"
     ],
     "seeAlso": [
-      "intelligence",
       "charisma",
       "ability_check"
     ],
@@ -6646,7 +6636,7 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You have truesight with a range of 30 feet....",
+    "excerpt": "You have truesight|Truesight with a range of 30 feet....",
     "aliases": [],
     "seeAlso": [
       "truesight"

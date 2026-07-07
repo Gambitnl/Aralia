@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/death_saving_throw.json",
-  "markdown": "# Death Saving Throw\n\nA [[player_character character]] must make a Death Saving Throw (also called a Death Save) if they start their turn with 0 [[hit_points Points]]."
+  "markdown": "# Death Saving Throw\n\nA [[player_character]] must make a Death Saving Throw (also called a Death Save) if they start their turn with 0 [[hit_points]]."
 }

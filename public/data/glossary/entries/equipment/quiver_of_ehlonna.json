@@ -13,11 +13,11 @@
     "arrow",
     "bolt",
     "javelin",
-    "quarterstaff's",
+    "quarterstaff",
     "spear"
   ],
   "filePath": "/data/glossary/entries/equipment/quiver_of_ehlonna.json",
-  "markdown": "# Quiver of Ehlonna\n\nEach of the quiver's three compartments connects to an extradimensional space that allows the quiver to hold numerous items while never weighing more than 2 pounds. The shortest compartment can hold up to 60 [[arrow]], [[bolt]], or similar objects. The midsize compartment holds up to 18 [[javelin]] or similar objects. The longest compartment holds up to 6 long objects, such as bows, [[quarterstaff's]], or [[spear]].\n\nYou can draw any item the quiver contains as if doing so from a regular quiver or scabbard.",
+  "markdown": "# Quiver of Ehlonna\n\nEach of the quiver's three compartments connects to an extradimensional space that allows the quiver to hold numerous items while never weighing more than 2 pounds. The shortest compartment can hold up to 60 [[arrow|Arrows]], [[bolt|Bolts]], or similar objects. The midsize compartment holds up to 18 [[javelin|Javelins]] or similar objects. The longest compartment holds up to 6 long objects, such as bows, [[quarterstaff|Quarterstaff's]], or [[spear|Spears]].\n\nYou can draw any item the quiver contains as if doing so from a regular quiver or scabbard.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon",

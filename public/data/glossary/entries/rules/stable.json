@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/stable.json",
-  "markdown": "# Stable\n\nA creature is Stable if it has 0 [[hit_points Points]] but isn't required to make [[death_saving_throw Saving Throws]]."
+  "markdown": "# Stable\n\nA creature is Stable if it has 0 [[hit_points]] but isn't required to make [[death_saving_throw]]."
 }

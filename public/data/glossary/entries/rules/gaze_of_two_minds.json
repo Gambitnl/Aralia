@@ -6,11 +6,11 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "You can use a bonus_action Action to touch a willing creature and perceive through its senses until the end of your next turn. As long as the creature...",
+  "excerpt": "You can use a bonus_action|Bonus Action to touch a willing creature and perceive through its senses until the end of your next turn. As long as the cr...",
   "aliases": [],
   "seeAlso": [
-    "bonus_action Action"
+    "bonus_action"
   ],
   "filePath": "/data/glossary/entries/rules/gaze_of_two_minds.json",
-  "markdown": "# Gaze of Two Minds\n\nYou can use a [[bonus_action Action]] to touch a willing creature and perceive through its senses until the end of your next turn. As long as the creature is on the same plane of existence as you, you can take a [[bonus_action Action]] on subsequent turns to maintain this connection, extending the duration until the end of your next turn. The connection ends if you don't maintain it in this way.\n\nWhile perceiving through the other creature's senses, you benefit from any special senses possessed by that creature, and you can cast spells as if you were in your space or the other creature's space if the two of you are within 60 feet of each other."
+  "markdown": "# Gaze of Two Minds\n\nYou can use a [[bonus_action]] to touch a willing creature and perceive through its senses until the end of your next turn. As long as the creature is on the same plane of existence as you, you can take a [[bonus_action]] on subsequent turns to maintain this connection, extending the duration until the end of your next turn. The connection ends if you don't maintain it in this way.\n\nWhile perceiving through the other creature's senses, you benefit from any special senses possessed by that creature, and you can cast spells as if you were in your space or the other creature's space if the two of you are within 60 feet of each other."
 }

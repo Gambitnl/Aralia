@@ -63,11 +63,7 @@
   "aliases": [
     "black ancestry"
   ],
-  "seeAlso": [
-    "dragonborn",
-    "acid_damage",
-    "breath_weapon"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/dragonborn_ancestries/black.json",
   "maleImageUrl": "/assets/images/races/Dragonborn_Black_Male.png",
   "femaleImageUrl": "/assets/images/races/Dragonborn_Black_Female.png"

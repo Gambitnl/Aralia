@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "You have advantage on saving throws against spells while you wear this cloak....",
+  "excerpt": "You have advantage|Advantage on saving throws against spells while you wear this cloak....",
   "aliases": [],
   "seeAlso": [
     "advantage"

@@ -7,13 +7,13 @@
     "item",
     "itemType:Potion"
   ],
-  "excerpt": "When you drink this potion, you gain the \"reduce\" effect of the enlarge_reduce/Reduce spell for 1d4 hours (no Concentration required). The red in the ...",
+  "excerpt": "When you drink this potion, you gain the \"reduce\" effect of the enlarge_reduce|Enlarge/Reduce spell for 1d4 hours (no Concentration required). The red...",
   "aliases": [],
   "seeAlso": [
-    "enlarge_reduce/Reduce"
+    "enlarge-reduce"
   ],
   "filePath": "/data/glossary/entries/equipment/potion_of_diminution.json",
-  "markdown": "# Potion of Diminution\n\nWhen you drink this potion, you gain the \"reduce\" effect of the [[enlarge_reduce/Reduce]] spell for 1d4 hours (no Concentration required).\n\nThe red in the potion's liquid continuously contracts to a tiny bead and then expands to color the clear liquid around it. Shaking the bottle fails to interrupt this process.",
+  "markdown": "# Potion of Diminution\n\nWhen you drink this potion, you gain the \"reduce\" effect of the [[enlarge-reduce|Enlarge/Reduce]] spell for 1d4 hours (no Concentration required).\n\nThe red in the potion's liquid continuously contracts to a tiny bead and then expands to color the clear liquid around it. Shaking the bottle fails to interrupt this process.",
   "itemMetadata": {
     "type": "Potion",
     "rarity": "Rare",

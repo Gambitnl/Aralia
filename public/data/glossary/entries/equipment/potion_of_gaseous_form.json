@@ -7,14 +7,14 @@
     "item",
     "itemType:Potion"
   ],
-  "excerpt": "When you drink this potion, you gain the effect of the gaseous_form Form spell for 1 hour (no Concentration required) or until you end the effect as a...",
+  "excerpt": "When you drink this potion, you gain the effect of the gaseous_form|Gaseous Form spell for 1 hour (no Concentration required) or until you end the eff...",
   "aliases": [],
   "seeAlso": [
-    "gaseous_form Form",
-    "bonus_action Action"
+    "gaseous-form",
+    "bonus_action"
   ],
   "filePath": "/data/glossary/entries/equipment/potion_of_gaseous_form.json",
-  "markdown": "# Potion of Gaseous Form\n\nWhen you drink this potion, you gain the effect of the [[gaseous_form Form]] spell for 1 hour (no Concentration required) or until you end the effect as a [[bonus_action Action]].\n\nThis potion's container seems to hold fog that moves and pours like water.",
+  "markdown": "# Potion of Gaseous Form\n\nWhen you drink this potion, you gain the effect of the [[gaseous-form|Gaseous Form]] spell for 1 hour (no Concentration required) or until you end the effect as a [[bonus_action]].\n\nThis potion's container seems to hold fog that moves and pours like water.",
   "itemMetadata": {
     "type": "Potion",
     "rarity": "Rare",

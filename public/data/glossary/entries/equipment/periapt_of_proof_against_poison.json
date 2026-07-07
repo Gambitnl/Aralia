@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This delicate silver chain has a brilliant-cut black gem pendant. While you wear it, you have immunity to the poisoned condition and Poison damage....",
+  "excerpt": "This delicate silver chain has a brilliant-cut black gem pendant. While you wear it, you have immunity|Immunity to the poisoned|Poisoned condition and...",
   "aliases": [],
   "seeAlso": [
     "immunity",

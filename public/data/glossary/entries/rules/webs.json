@@ -6,15 +6,15 @@
     "source:xphb",
     "hazard"
   ],
-  "excerpt": "Giant spiders weave thick, sticky webs across passages and at the bottom of pits to snare prey. These web-filled areas are difficult_terrain Terrain. ...",
+  "excerpt": "Giant spiders weave thick, sticky webs across passages and at the bottom of pits to snare prey. These web-filled areas are difficult_terrain|Difficult...",
   "aliases": [],
   "seeAlso": [
-    "difficult_terrain Terrain",
+    "difficult_terrain",
     "restrained",
     "athletics",
     "acrobatics",
     "cube_area_of_effect"
   ],
   "filePath": "/data/glossary/entries/rules/webs.json",
-  "markdown": "# Webs\n\nGiant spiders weave thick, sticky webs across passages and at the bottom of pits to snare prey. These web-filled areas are [[difficult_terrain Terrain]].\n\nA creature that enters a web-filled area for the first time on a turn or starts its turn there must succeed on a DC 12 Dexterity saving throw or have the [[restrained]] condition. As an action, a creature Restrained by the webs can try to escape from them, doing so with a successful DC 12 Strength ([[athletics]]) or Dexterity ([[acrobatics]]) check.\n\nEach 10-foot [[cube_area_of_effect]] of webs has AC 10; HP 15; Vulnerability to Fire damage; and Immunity to Piercing, Poison, and Psychic damage."
+  "markdown": "# Webs\n\nGiant spiders weave thick, sticky webs across passages and at the bottom of pits to snare prey. These web-filled areas are [[difficult_terrain]].\n\nA creature that enters a web-filled area for the first time on a turn or starts its turn there must succeed on a DC 12 Dexterity saving throw or have the [[restrained]] condition. As an action, a creature Restrained by the webs can try to escape from them, doing so with a successful DC 12 Strength ([[athletics]]) or Dexterity ([[acrobatics]]) check.\n\nEach 10-foot [[cube_area_of_effect|Cube]] of webs has AC 10; HP 15; Vulnerability to Fire damage; and Immunity to Piercing, Poison, and Psychic damage."
 }

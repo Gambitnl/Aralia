@@ -7,13 +7,13 @@
     "baseitem",
     "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Ability:: Wisdom - Utilize:: Improve food's flavor (DC 10), or detect spoiled or poisoned food (DC 15) - Craft:: rations...",
+  "excerpt": "- Ability: Wisdom - Utilize: Improve food's flavor (DC 10), or detect spoiled or poisoned food (DC 15) - Craft: rations|Rations...",
   "aliases": [],
   "seeAlso": [
     "rations"
   ],
   "filePath": "/data/glossary/entries/equipment/cook_s_utensils.json",
-  "markdown": "# Cook's Utensils\n\n- **Ability::** Wisdom\n- **Utilize::** Improve food's flavor (DC 10), or detect spoiled or poisoned food (DC 15)\n- **Craft::** [[rations]]",
+  "markdown": "# Cook's Utensils\n\n- **Ability:** Wisdom\n- **Utilize:** Improve food's flavor (DC 10), or detect spoiled or poisoned food (DC 15)\n- **Craft:** [[rations]]",
   "itemMetadata": {
     "type": "Artisan's Tools",
     "rarity": "None",

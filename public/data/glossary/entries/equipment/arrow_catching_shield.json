@@ -7,14 +7,14 @@
     "item",
     "itemType:Shield"
   ],
-  "excerpt": "You gain a +2 bonus to armor_class Class against ranged attack rolls while you wield this Shield. This bonus is in addition to the Shield's normal bon...",
+  "excerpt": "You gain a +2 bonus to armor_class|Armor Class against ranged attack rolls while you wield this Shield. This bonus is in addition to the Shield's norm...",
   "aliases": [],
   "seeAlso": [
-    "armor_class Class",
+    "armor_class",
     "reaction"
   ],
   "filePath": "/data/glossary/entries/equipment/arrow_catching_shield.json",
-  "markdown": "# Arrow-Catching Shield\n\nYou gain a +2 bonus to [[armor_class Class]] against ranged attack rolls while you wield this Shield. This bonus is in addition to the Shield's normal bonus to AC.\n\nWhenever an attacker makes a ranged attack roll against a target within 5 feet of you, you can take a [[reaction]] to become the target of the attack instead.",
+  "markdown": "# Arrow-Catching Shield\n\nYou gain a +2 bonus to [[armor_class]] against ranged attack rolls while you wield this Shield. This bonus is in addition to the Shield's normal bonus to AC.\n\nWhenever an attacker makes a ranged attack roll against a target within 5 feet of you, you can take a [[reaction]] to become the target of the attack instead.",
   "itemMetadata": {
     "type": "Shield",
     "rarity": "Rare",

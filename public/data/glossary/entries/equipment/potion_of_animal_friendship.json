@@ -7,13 +7,13 @@
     "item",
     "itemType:Potion"
   ],
-  "excerpt": "When you drink this potion, you can cast the level 3 version of the animal_friendship Friendship spell (save DC 13). Agitating this potion's muddy liq...",
+  "excerpt": "When you drink this potion, you can cast the level 3 version of the animal_friendship|Animal Friendship spell (save DC 13). Agitating this potion's mu...",
   "aliases": [],
   "seeAlso": [
-    "animal_friendship Friendship"
+    "animal-friendship"
   ],
   "filePath": "/data/glossary/entries/equipment/potion_of_animal_friendship.json",
-  "markdown": "# Potion of Animal Friendship\n\nWhen you drink this potion, you can cast the level 3 version of the [[animal_friendship Friendship]] spell (save DC 13).\n\nAgitating this potion's muddy liquid brings little bits into view: a fish scale, a hummingbird feather, a cat claw, or a squirrel hair.",
+  "markdown": "# Potion of Animal Friendship\n\nWhen you drink this potion, you can cast the level 3 version of the [[animal-friendship|Animal Friendship]] spell (save DC 13).\n\nAgitating this potion's muddy liquid brings little bits into view: a fish scale, a hummingbird feather, a cat claw, or a squirrel hair.",
   "itemMetadata": {
     "type": "Potion",
     "rarity": "Uncommon",

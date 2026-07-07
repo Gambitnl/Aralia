@@ -55,11 +55,7 @@
   "aliases": [
     "red ancestry"
   ],
-  "seeAlso": [
-    "dragonborn",
-    "fire_damage",
-    "breath_weapon"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/dragonborn_ancestries/red.json",
   "maleImageUrl": "/assets/images/races/Dragonborn_Red_Male.png",
   "femaleImageUrl": "/assets/images/races/Dragonborn_Red_Female.png"

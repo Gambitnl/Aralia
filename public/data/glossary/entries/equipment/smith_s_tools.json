@@ -7,7 +7,7 @@
     "baseitem",
     "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Ability:: Strength - Utilize:: Pry open a door or container (DC 20) - Craft:: Any Melee weapon (except club, greatclub, quarterstaff, and whip), Med...",
+  "excerpt": "- Ability: Strength - Utilize: Pry open a door or container (DC 20) - Craft: Any Melee weapon (except club|Club, greatclub|Greatclub, quarterstaff|Qua...",
   "aliases": [],
   "seeAlso": [
     "club",
@@ -15,19 +15,19 @@
     "quarterstaff",
     "whip",
     "hide_armor",
-    "ball_bearings Bearings",
+    "ball_bearings",
     "bucket",
     "caltrops",
     "chain",
     "crowbar",
-    "firearm_bullets_10 Bullets",
-    "grappling_hook Hook",
-    "iron_pot Pot",
-    "iron_spikes Spikes",
-    "sling_bullets_20 Bullets"
+    "firearm_bullets_10",
+    "grappling_hook",
+    "iron_pot",
+    "iron_spikes",
+    "sling_bullets_20"
   ],
   "filePath": "/data/glossary/entries/equipment/smith_s_tools.json",
-  "markdown": "# Smith's Tools\n\n- **Ability::** Strength\n- **Utilize::** Pry open a door or container (DC 20)\n- **Craft::** Any Melee weapon (except [[club]], [[greatclub]], [[quarterstaff]], and [[whip]]), Medium armor (except [[hide_armor]]), Heavy armor, [[ball_bearings Bearings]], [[bucket]], [[caltrops]], [[chain]], [[crowbar]], [[firearm_bullets_10 Bullets]], [[grappling_hook Hook]], [[iron_pot Pot]], [[iron_spikes Spikes]], [[sling_bullets_20 Bullets]]",
+  "markdown": "# Smith's Tools\n\n- **Ability:** Strength\n- **Utilize:** Pry open a door or container (DC 20)\n- **Craft:** Any Melee weapon (except [[club]], [[greatclub]], [[quarterstaff]], and [[whip]]), Medium armor (except [[hide_armor|Hide]]), Heavy armor, [[ball_bearings]], [[bucket]], [[caltrops]], [[chain]], [[crowbar]], [[firearm_bullets_10|Firearm Bullets]], [[grappling_hook]], [[iron_pot]], [[iron_spikes]], [[sling_bullets_20|Sling Bullets]]",
   "itemMetadata": {
     "type": "Artisan's Tools",
     "rarity": "None",

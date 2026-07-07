@@ -7,13 +7,13 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "These gloves are imperceptible while worn. While wearing them, you gain a +5 bonus to Dexterity (sleight_of_hand of Hand) checks....",
+  "excerpt": "These gloves are imperceptible while worn. While wearing them, you gain a +5 bonus to Dexterity (sleight_of_hand|Sleight of Hand) checks....",
   "aliases": [],
   "seeAlso": [
-    "sleight_of_hand of Hand"
+    "sleight_of_hand"
   ],
   "filePath": "/data/glossary/entries/equipment/gloves_of_thievery.json",
-  "markdown": "# Gloves of Thievery\n\nThese gloves are imperceptible while worn. While wearing them, you gain a +5 bonus to Dexterity ([[sleight_of_hand of Hand]]) checks.",
+  "markdown": "# Gloves of Thievery\n\nThese gloves are imperceptible while worn. While wearing them, you gain a +5 bonus to Dexterity ([[sleight_of_hand]]) checks.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon"

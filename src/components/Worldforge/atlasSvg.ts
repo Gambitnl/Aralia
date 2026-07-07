@@ -12,7 +12,7 @@
  * marker and cell-pick are later SP0 tasks (T3+).
  */
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
-import { computeDangerField, dangerCellsAbove } from '../../systems/worldforge/overlays/dangerField';
+import { computeDangerField, dangerCellsAbove, type DungeonDangerSite } from '../../systems/worldforge/overlays/dangerField';
 
 /** SVG "x,y x,y ..." points string for a cell's Voronoi polygon (graph coords). */
 export function cellPolygonPoints(atlas: FmgAtlasResult, i: number): string {
@@ -786,8 +786,14 @@ export function buildZoneCells(atlas: FmgAtlasResult): AtlasSvgPolygon[] {
  * with their 0..1 scalar, for the hatch renderer. Derived from world state via
  * `computeDangerField` (zones + terrain), not a static generator layer.
  */
-export function buildDangerCells(atlas: FmgAtlasResult): Array<{ points: string; danger: number }> {
-  const field = computeDangerField(atlas);
+export function buildDangerCells(
+  atlas: FmgAtlasResult,
+  dungeonSites?: ReadonlyArray<DungeonDangerSite>,
+): Array<{ points: string; danger: number }> {
+  // Pillar 2, Task 8: pass live dungeon-site states so UNCLEARED dungeons bump
+  // the overlay around their cells. Omitting `dungeonSites` reproduces the
+  // pre-Task-8 field exactly (the field's dungeon term is flag-gated).
+  const field = computeDangerField(atlas, dungeonSites ? { dungeonSites } : {});
   const out: Array<{ points: string; danger: number }> = [];
   for (const { i, danger } of dangerCellsAbove(field)) {
     const points = cellPolygonPoints(atlas, i);
@@ -802,7 +808,10 @@ export function buildDangerCells(atlas: FmgAtlasResult): Array<{ points: string;
  * regions (no facets — SP0 T2); rivers = tapered ribbons (T4); routes + burg
  * markers (T5); plus a coastline path (SP0 T3a).
  */
-export function buildAtlasSvgModel(atlas: FmgAtlasResult): AtlasSvgModel {
+export function buildAtlasSvgModel(
+  atlas: FmgAtlasResult,
+  dungeonSites?: ReadonlyArray<DungeonDangerSite>,
+): AtlasSvgModel {
   const cells = atlas.pack.cells;
   const isLand = (i: number): boolean => cells.h[i] >= LAND_THRESHOLD;
   const biomeKey = (i: number): number | null => (isLand(i) ? (cells.biome?.[i] ?? -1) : null);
@@ -930,7 +939,7 @@ export function buildAtlasSvgModel(atlas: FmgAtlasResult): AtlasSvgModel {
     poiMarkers: buildPoiMarkers(atlas),
     iceCells: buildIceCells(atlas),
     zoneCells: buildZoneCells(atlas),
-    dangerCells: buildDangerCells(atlas),
+    dangerCells: buildDangerCells(atlas, dungeonSites),
     regiments: buildRegiments(atlas),
     labels: buildLabels(atlas),
     layers: [

@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/resistance.json",
-  "markdown": "# Resistance\n\nIf you have Resistance to a [[damage_types type]], damage of that type is halved against you (round down). Resistance is applied only once to an instance of damage."
+  "markdown": "# Resistance\n\nIf you have Resistance to a [[damage_types]], damage of that type is halved against you (round down). Resistance is applied only once to an instance of damage."
 }

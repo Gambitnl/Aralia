@@ -7,15 +7,15 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A Diplomat's Pack contains the following items: chest, fine_clothes Clothes, ink, 5 ink_pen Pens, lamp, 2 map_or_scroll_case or Scroll Cases, 4 flasks...",
+  "excerpt": "A Diplomat's Pack contains the following items: chest|Chest, fine_clothes|Fine Clothes, ink|Ink, 5 ink_pen|Ink Pens, lamp|Lamp, 2 map_or_scroll_case|M...",
   "aliases": [],
   "seeAlso": [
     "chest",
-    "fine_clothes Clothes",
+    "fine_clothes",
     "ink",
-    "ink_pen Pens",
+    "ink_pen",
     "lamp",
-    "map_or_scroll_case or Scroll Cases",
+    "map_or_scroll_case",
     "oil",
     "paper",
     "parchment",
@@ -23,7 +23,7 @@
     "tinderbox"
   ],
   "filePath": "/data/glossary/entries/equipment/diplomat_s_pack.json",
-  "markdown": "# Diplomat's Pack\n\nA Diplomat's Pack contains the following items: [[chest]], [[fine_clothes Clothes]], [[ink]], 5 [[ink_pen Pens]], [[lamp]], 2 [[map_or_scroll_case or Scroll Cases]], 4 flasks of [[oil]], 5 sheets of [[paper]], 5 sheets of [[parchment]], [[perfume]], and [[tinderbox]].",
+  "markdown": "# Diplomat's Pack\n\nA Diplomat's Pack contains the following items: [[chest]], [[fine_clothes]], [[ink]], 5 [[ink_pen|Ink Pens]], [[lamp]], 2 [[map_or_scroll_case|Map or Scroll Cases]], 4 flasks of [[oil]], 5 sheets of [[paper]], 5 sheets of [[parchment]], [[perfume]], and [[tinderbox]].",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

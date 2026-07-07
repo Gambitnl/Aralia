@@ -136,7 +136,7 @@ export interface ChunkData {
      * ground). When present the renderer draws these walls/furnishings
      * instead of the solid footprint box — the building is enterable.
      */
-    parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string; baseY?: number }>;
+    parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string; baseY?: number; emissiveHex?: string; tag?: string }>;
     /**
      * Interior wall envelope in meters (≤ plot footprint). Roofs and floor
      * slabs must size to THIS, not the footprint box — the plot is up to
@@ -144,6 +144,13 @@ export interface ChunkData {
      */
     wallWidthM?: number;
     wallDepthM?: number;
+    /**
+     * Solved roof (BGv2 Task 5): the triangulated roof planes + tower caps as
+     * ONE geometry group in site-local METERS (Y up). Present only for
+     * blueprint-driven buildings whose plan carried a resolved style. When set,
+     * the renderer draws this mesh AND skips the legacy whole-rect roof prism.
+     */
+    solvedRoof?: { positions: Float32Array; indices: Uint32Array; normals: Float32Array; colorHex: string };
   }[];
 }
 
@@ -242,10 +249,13 @@ export interface ChunkSite {
   /** Render no mesh — nameplate only (see ChunkData.sites.markerOnly). */
   markerOnly?: boolean;
   /** Seamless-interior boxes, site-local meters (see ChunkData.sites.parts). */
-  parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string; baseY?: number }>;
+  parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string; baseY?: number; emissiveHex?: string; tag?: string }>;
   /** Interior wall envelope, meters (see ChunkData.sites.wallWidthM). */
   wallWidthM?: number;
   wallDepthM?: number;
+  /** Solved roof group, site-local meters (see ChunkData.sites.solvedRoof).
+   *  When set, the renderer draws it and skips the legacy roof prism. */
+  solvedRoof?: { positions: Float32Array; indices: Uint32Array; normals: Float32Array; colorHex: string };
   boxWidth?: number;
   boxDepth?: number;
   boxHeight?: number;

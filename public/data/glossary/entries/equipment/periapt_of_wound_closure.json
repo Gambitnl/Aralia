@@ -7,15 +7,15 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "While wearing this pendant, you gain the following benefits.  Life Preservation Whenever you make a death_saving_throw Saving Throw, you can change a ...",
+  "excerpt": "While wearing this pendant, you gain the following benefits.  Life Preservation Whenever you make a death_saving_throw|Death Saving Throw, you can cha...",
   "aliases": [],
   "seeAlso": [
-    "death_saving_throw Saving Throw",
-    "hit_point_dice Point Die",
-    "hit_points Points"
+    "death_saving_throw",
+    "hit_point_dice",
+    "hit_points"
   ],
   "filePath": "/data/glossary/entries/equipment/periapt_of_wound_closure.json",
-  "markdown": "# Periapt of Wound Closure\n\nWhile wearing this pendant, you gain the following benefits.\n\n## Life Preservation\n\nWhenever you make a [[death_saving_throw Saving Throw]], you can change a roll of 9 or lower to a 10, turning a failed save into a successful one.\n\n## Natural Healing Boost\n\nWhenever you roll a [[hit_point_dice Point Die]] to regain [[hit_points Points]], double the number of [[hit_points Points]] it restores.",
+  "markdown": "# Periapt of Wound Closure\n\nWhile wearing this pendant, you gain the following benefits.\n\n## Life Preservation\n\nWhenever you make a [[death_saving_throw]], you can change a roll of 9 or lower to a 10, turning a failed save into a successful one.\n\n## Natural Healing Boost\n\nWhenever you roll a [[hit_point_dice|Hit Point Die]] to regain [[hit_points]], double the number of [[hit_points]] it restores.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon",

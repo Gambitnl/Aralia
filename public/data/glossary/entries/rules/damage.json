@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/damage.json",
-  "markdown": "# Damage\n\nDamage represents harm that causes a creature or an object to lose [[hit_points Points]]."
+  "markdown": "# Damage\n\nDamage represents harm that causes a creature or an object to lose [[hit_points]]."
 }

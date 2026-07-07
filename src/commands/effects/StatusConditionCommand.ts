@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 02/07/2026, 11:25:18
+ * Last Sync: 06/07/2026, 09:33:48
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/DamageCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 10 files
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,6 +32,7 @@ import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 import { ConditionToStateTag } from '../../types/elemental';
 import { applyStateToTags } from '../../systems/physics/ElementalInteractionSystem';
 import { breakFriendsConcentrationForCaster } from './ConcentrationCommands';
+import { refreshConditionsByName, refreshStatusEffectsByName } from '../../utils/combat/statusConditionUtils';
 
 const FRIENDS_MEMORY_DURATION_ROUNDS = 24 * 60 * 10;
 
@@ -247,16 +248,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
     existing: ActiveCondition[] | undefined,
     condition: ActiveCondition
   ): ActiveCondition[] {
-    const conditions = existing ? [...existing] : [];
-    const matchIndex = conditions.findIndex(c => c.name === condition.name);
-
-    if (matchIndex >= 0) {
-      conditions[matchIndex] = condition;
-    } else {
-      conditions.push(condition);
-    }
-
-    return conditions;
+    return refreshConditionsByName(existing, condition).conditions;
   }
 
   /**
@@ -268,9 +260,6 @@ export class StatusConditionCommand extends BaseEffectCommand {
     duration: number,
     name: string
   ): { statusEffects: StatusEffect[]; appliedStatus: StatusEffect } {
-    const statusEffects = [...existing];
-    const matchIndex = statusEffects.findIndex(effect => effect.name === name);
-
     // MECHANIST: Check if the effect source provided a specific mechanical effect
     // e.g. Slasher Speed Reduction (-10ft)
     let mechanicalEffect: StatusEffect['effect'] = { type: 'condition' };
@@ -284,8 +273,8 @@ export class StatusConditionCommand extends BaseEffectCommand {
       mechanicalEffect = statusCondition.effect as StatusEffect['effect'];
     }
 
-    const appliedStatus: StatusEffect = {
-      id: matchIndex >= 0 ? statusEffects[matchIndex].id : generateId(),
+    return refreshStatusEffectsByName(existing, {
+      id: generateId(),
       name,
       type: 'debuff',
       duration,
@@ -294,15 +283,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
       effect: mechanicalEffect,
       icon: this.getIconForCondition(name),
       ...this.getStatusMetadata()
-    };
-
-    if (matchIndex >= 0) {
-      statusEffects[matchIndex] = appliedStatus;
-    } else {
-      statusEffects.push(appliedStatus);
-    }
-
-    return { statusEffects, appliedStatus };
+    });
   }
 
   private applyWrathOfNatureStatusMetadata(state: CombatState): CombatState {

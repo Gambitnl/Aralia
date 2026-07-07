@@ -7,16 +7,16 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "As a magic action, you can open or close this bottle. Opening the bottle causes thick smoke to billow out, forming a cloud that fills a 60-foot emanat...",
+  "excerpt": "As a magic|Magic action, you can open or close this bottle. Opening the bottle causes thick smoke to billow out, forming a cloud that fills a 60-foot ...",
   "aliases": [],
   "seeAlso": [
     "magic",
     "emanation_area_of_effect",
-    "heavily_obscured Obscured",
-    "gust_of_wind of Wind"
+    "heavily_obscured",
+    "gust-of-wind"
   ],
   "filePath": "/data/glossary/entries/equipment/eversmoking_bottle.json",
-  "markdown": "# Eversmoking Bottle\n\nAs a [[magic]] action, you can open or close this bottle.\n\nOpening the bottle causes thick smoke to billow out, forming a cloud that fills a 60-foot [[emanation_area_of_effect]] originating from the bottle. The area within the smoke is [[heavily_obscured Obscured]].\n\nEach minute the bottle remains open, the size of the [[emanation_area_of_effect]] increases by 10 feet until it reaches its maximum size of 120 feet.\n\nClosing the bottle causes the cloud to become fixed in place until it disperses after 10 minutes. A strong wind (such as that created by the [[gust_of_wind of Wind]] spell) disperses the cloud after 1 minute.",
+  "markdown": "# Eversmoking Bottle\n\nAs a [[magic]] action, you can open or close this bottle.\n\nOpening the bottle causes thick smoke to billow out, forming a cloud that fills a 60-foot [[emanation_area_of_effect|Emanation]] originating from the bottle. The area within the smoke is [[heavily_obscured]].\n\nEach minute the bottle remains open, the size of the [[emanation_area_of_effect|Emanation]] increases by 10 feet until it reaches its maximum size of 120 feet.\n\nClosing the bottle causes the cloud to become fixed in place until it disperses after 10 minutes. A strong wind (such as that created by the [[gust-of-wind|Gust of Wind]] spell) disperses the cloud after 1 minute.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon"

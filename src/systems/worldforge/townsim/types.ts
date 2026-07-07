@@ -22,7 +22,11 @@ export type LifeEventKind =
   | 'marriage'
   | 'economy'
   | 'festival'
-  | 'disaster';
+  | 'disaster'
+  // Pillar 2, Task 8 (living ecology): an occasional worry line about the
+  // uncleared dungeons around the burg (raid-pressure signal, one visible
+  // symptom). Never lethal — it colors the town's mood, not its population.
+  | 'raid_worry';
 
 /** One recorded fact in a town's history (a diary line). */
 export interface LifeEvent {

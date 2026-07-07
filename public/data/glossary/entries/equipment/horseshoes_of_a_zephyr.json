@@ -7,15 +7,15 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "These horseshoes come in a set of four. As a magic action, you can touch one of the horseshoes to the hoof of a horse or similar creature, whereupon t...",
+  "excerpt": "These horseshoes come in a set of four. As a magic|Magic action, you can touch one of the horseshoes to the hoof of a horse or similar creature, where...",
   "aliases": [],
   "seeAlso": [
     "magic",
-    "difficult_terrain Terrain",
+    "difficult_terrain",
     "exhaustion"
   ],
   "filePath": "/data/glossary/entries/equipment/horseshoes_of_a_zephyr.json",
-  "markdown": "# Horseshoes of a Zephyr\n\nThese horseshoes come in a set of four. As a [[magic]] action, you can touch one of the horseshoes to the hoof of a horse or similar creature, whereupon the horseshoe affixes itself to the hoof. Removing a horseshoe also takes a [[magic]] action.\n\nWhile all four shoes are affixed to the hooves of a horse or similar creature, they allow the creature to move normally while floating 4 inches above a surface. This effect means the creature can cross or stand above nonsolid or unstable surfaces, such as water or lava. The creature leaves no tracks and ignores [[difficult_terrain Terrain]]. In addition, the creature can travel for up to 12 hours a day without gaining [[exhaustion]] levels from extended travel.",
+  "markdown": "# Horseshoes of a Zephyr\n\nThese horseshoes come in a set of four. As a [[magic]] action, you can touch one of the horseshoes to the hoof of a horse or similar creature, whereupon the horseshoe affixes itself to the hoof. Removing a horseshoe also takes a [[magic]] action.\n\nWhile all four shoes are affixed to the hooves of a horse or similar creature, they allow the creature to move normally while floating 4 inches above a surface. This effect means the creature can cross or stand above nonsolid or unstable surfaces, such as water or lava. The creature leaves no tracks and ignores [[difficult_terrain]]. In addition, the creature can travel for up to 12 hours a day without gaining [[exhaustion]] levels from extended travel.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Very rare"

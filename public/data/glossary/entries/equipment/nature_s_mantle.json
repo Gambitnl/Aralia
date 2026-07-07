@@ -7,16 +7,15 @@
     "item",
     "itemType:Spellcasting Focus"
   ],
-  "excerpt": "This cloak shifts color and texture to blend with the terrain surrounding you. While wearing the cloak, you can use it as a spellcasting_focus Focus f...",
+  "excerpt": "This cloak shifts color and texture to blend with the terrain surrounding you. While wearing the cloak, you can use it as a spellcasting_focus|Spellca...",
   "aliases": [],
   "seeAlso": [
-    "spellcasting_focus Focus",
-    "lightly_obscured Obscured",
+    "lightly_obscured",
     "hide",
-    "bonus_action Action"
+    "bonus_action"
   ],
   "filePath": "/data/glossary/entries/equipment/nature_s_mantle.json",
-  "markdown": "# Nature's Mantle\n\nThis cloak shifts color and texture to blend with the terrain surrounding you. While wearing the cloak, you can use it as a [[spellcasting_focus Focus]] for your Druid and Ranger spells.\n\nWhile you are in an area that is [[lightly_obscured Obscured]], you can [[hide]] as a [[bonus_action Action]] even if you are being directly observed.",
+  "markdown": "# Nature's Mantle\n\nThis cloak shifts color and texture to blend with the terrain surrounding you. While wearing the cloak, you can use it as a Spellcasting Focus for your Druid and Ranger spells.\n\nWhile you are in an area that is [[lightly_obscured]], you can [[hide]] as a [[bonus_action]] even if you are being directly observed.",
   "itemMetadata": {
     "type": "Spellcasting Focus",
     "rarity": "Uncommon",

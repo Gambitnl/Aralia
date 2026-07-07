@@ -65,15 +65,24 @@ export function seedForTownDay(worldSeed: number, burgId: number, day: number): 
 /**
  * Advance one town's sim state up to `targetDay`, rolling each intervening day
  * with its own per-(burg,day) seed. No-op if already at/after targetDay.
+ *
+ * `raidPressure` (Pillar 2, Task 8, optional) is the 0..1 raid-pressure signal
+ * the burg feels from uncleared dungeons; when supplied, each day's roll may
+ * emit a raid-worry line. Constant across the advance window (the pressure moves
+ * far slower than a day) — passed straight through to `rollTownDay`. Omitting it
+ * leaves the sim byte-identical to its pre-Task-8 behavior.
  */
 export function advanceTown(
   state: TownSimState,
   worldSeed: number,
   targetDay: number,
+  raidPressure?: number,
 ): TownSimState {
+  const opts =
+    raidPressure && raidPressure > 0 ? { worldSeed, raidPressure } : undefined;
   let s = state;
   for (let day = s.lastSimDay + 1; day <= targetDay; day++) {
-    s = rollTownDay(s, day, seedForTownDay(worldSeed, s.burgId, day));
+    s = rollTownDay(s, day, seedForTownDay(worldSeed, s.burgId, day), opts);
   }
   // Bound persisted/in-memory size once per advance (not per day): readers only
   // look back a few years; cumulative totals preserve invariants past the trim.
@@ -93,6 +102,7 @@ export function advanceRegistry(
   worldSeed: number,
   targetDay: number,
   onlyBurgIds?: Iterable<number>,
+  raidPressureFor?: (burgId: number) => number,
 ): TownSimRegistry {
   const filter = onlyBurgIds === undefined ? undefined : new Set(onlyBurgIds);
   const next: TownSimRegistry = {};
@@ -100,7 +110,7 @@ export function advanceRegistry(
     const burgId = Number(key);
     next[burgId] =
       filter === undefined || filter.has(burgId)
-        ? advanceTown(registry[burgId], worldSeed, targetDay)
+        ? advanceTown(registry[burgId], worldSeed, targetDay, raidPressureFor?.(burgId))
         : registry[burgId]; // far town — unchanged, catches up when next included
   }
   return next;

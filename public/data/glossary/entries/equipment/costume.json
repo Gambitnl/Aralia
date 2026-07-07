@@ -7,7 +7,7 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "While wearing a Costume, you have advantage on any ability check you make to impersonate the person or type of person it represents....",
+  "excerpt": "While wearing a Costume, you have advantage|Advantage on any ability check you make to impersonate the person or type of person it represents....",
   "aliases": [],
   "seeAlso": [
     "advantage"

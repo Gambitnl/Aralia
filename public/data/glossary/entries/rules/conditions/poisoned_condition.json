@@ -13,5 +13,5 @@
     "advantage_disadvantage"
   ],
   "filePath": "/data/glossary/entries/rules/conditions/poisoned_condition.json",
-  "markdown": "# Poisoned\r\n\r\nWhile you have the Poisoned condition, you experience the following effect:\r\n\r\n*   **Ability Checks and Attacks Affected.** You have <span data-term-id=\"advantage_disadvantage\" class=\"glossary-term-link-from-markdown\">Disadvantage</span> on <span data-term-id=\"attack_roll\" class=\"glossary-term-link-from-markdown\">attack rolls</span> and <span data-term-id=\"ability_check\" class=\"glossary-term-link-from-markdown\">ability checks</span>.\r\n"
+  "markdown": "# Poisoned\n\nWhile you have the Poisoned condition, you experience the following effect:\n\n*   **Ability Checks and Attacks Affected.** You have [[advantage_disadvantage|Disadvantage]] on [[attack_roll|attack rolls]] and [[ability_check|ability checks]].\n"
 }

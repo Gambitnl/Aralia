@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/advantage.json",
-  "markdown": "# Advantage\n\nIf you have Advantage on a [[d20_test Test]], roll two d20s, and use the higher roll. A roll can't be affected by more than one Advantage, and Advantage and [[disadvantage]] on the same roll cancel each other."
+  "markdown": "# Advantage\n\nIf you have Advantage on a [[d20_test]], roll two d20s, and use the higher roll. A roll can't be affected by more than one Advantage, and Advantage and [[disadvantage]] on the same roll cancel each other."
 }

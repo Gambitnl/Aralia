@@ -6,16 +6,15 @@
     "source:xphb",
     "background"
   ],
-  "excerpt": "- Ability Scores:: Strength, Dexterity, Intelligence - Feat:: crafter - Skill Proficiencies:: investigation, persuasion - Tool Proficiency:: Choose on...",
+  "excerpt": "- Ability Scores: Strength, Dexterity, Intelligence - Feat: crafter|Crafter - Skill Proficiencies: investigation|Investigation, persuasion|Persuasion ...",
   "aliases": [],
   "seeAlso": [
     "crafter",
     "investigation",
     "persuasion",
-    "artisan_s_tools's Tools",
     "pouch",
-    "traveler_s_clothes's Clothes"
+    "traveler_s_clothes"
   ],
   "filePath": "/data/glossary/entries/backgrounds/artisan.json",
-  "markdown": "# Artisan\n\n- **Ability Scores::** Strength, Dexterity, Intelligence\n- **Feat::** [[crafter]]\n- **Skill Proficiencies::** [[investigation]], [[persuasion]]\n- **Tool Proficiency::** Choose one kind of [[artisan_s_tools's Tools]]\n- **Equipment::** Choose A or B: (A) [[artisan_s_tools's Tools]] (same as above), 2 [[pouch]], [[traveler_s_clothes's Clothes]], 32 GP; or (B) 50 GP"
+  "markdown": "# Artisan\n\n- **Ability Scores:** Strength, Dexterity, Intelligence\n- **Feat:** [[crafter]]\n- **Skill Proficiencies:** [[investigation]], [[persuasion]]\n- **Tool Proficiency:** Choose one kind of Artisan's Tools\n- **Equipment:** Choose A or B: (A) Artisan's Tools (same as above), 2 [[pouch|Pouches]], [[traveler_s_clothes|Traveler's Clothes]], 32 GP; or (B) 50 GP"
 }

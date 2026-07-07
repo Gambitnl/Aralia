@@ -7,14 +7,14 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "For 1 hour, a lit Candle sheds bright_light Light in a 5-foot radius and dim_light Light for an additional 5 feet....",
+  "excerpt": "For 1 hour, a lit Candle sheds bright_light|Bright Light in a 5-foot radius and dim_light|Dim Light for an additional 5 feet....",
   "aliases": [],
   "seeAlso": [
-    "bright_light Light",
-    "dim_light Light"
+    "bright_light",
+    "dim_light"
   ],
   "filePath": "/data/glossary/entries/equipment/candle.json",
-  "markdown": "# Candle\n\nFor 1 hour, a lit Candle sheds [[bright_light Light]] in a 5-foot radius and [[dim_light Light]] for an additional 5 feet.",
+  "markdown": "# Candle\n\nFor 1 hour, a lit Candle sheds [[bright_light]] in a 5-foot radius and [[dim_light]] for an additional 5 feet.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

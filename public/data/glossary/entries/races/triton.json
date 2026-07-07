@@ -57,12 +57,10 @@
   ],
   "aliases": [],
   "seeAlso": [
-    "humanoid",
     "darkvision",
-    "cold_resistance",
-    "fog_cloud",
-    "gust_of_wind",
-    "water_walk"
+    "fog-cloud",
+    "gust-of-wind",
+    "water-walk"
   ],
   "filePath": "/data/glossary/entries/races/triton.json",
   "maleImageUrl": "/assets/images/races/Triton_Male.png",

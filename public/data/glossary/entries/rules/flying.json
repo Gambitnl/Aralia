@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/flying.json",
-  "markdown": "# Flying\n\nA variety of effects allow a creature to fly. While flying, you fall if you have the [[incapacitated]] or [[prone]] condition or your [[fly_speed Speed]] is reduced to 0. You can stay aloft in those circumstances if you can hover."
+  "markdown": "# Flying\n\nA variety of effects allow a creature to fly. While flying, you fall if you have the [[incapacitated]] or [[prone]] condition or your [[fly_speed]] is reduced to 0. You can stay aloft in those circumstances if you can hover."
 }

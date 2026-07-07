@@ -134,13 +134,19 @@
   .agent-handle .id { color: var(--text-faint); font-family: var(--mono); font-size: 11px; font-weight: 400; margin-left: 6px; }
   .agent-note { color: var(--text-dim); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .agent-seen { color: var(--text-faint); font-size: 11px; font-family: var(--mono); white-space: nowrap; }
+  .inspectable { cursor: pointer; }
+  .inspectable:focus-visible { outline: 2px solid var(--accent-2); outline-offset: -2px; }
 
   /* ---------- Locks ---------- */
-  .lock-row {
+  .lock-row, .reservation-row {
     padding: 9px 11px; border-radius: 8px; margin-bottom: 6px;
     border: 1px solid var(--border); background: var(--panel-2);
   }
   .lock-row.soon { border-color: var(--amber); }
+  .reservation-pos {
+    display: inline-block; min-width: 32px; margin-right: 8px; font-family: var(--mono);
+    color: var(--amber); font-weight: 700;
+  }
   .lock-head { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
   .lock-holder { font-weight: 600; }
   .lock-countdown {
@@ -161,12 +167,16 @@
 
   /* ---------- Task board ---------- */
   .task-cols { display: flex; flex-direction: column; gap: 10px; }
-  .task-group { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .task-group { border: 3px solid var(--border); border-radius: 8px; overflow: hidden; }
   .task-group > h3 {
     margin: 0; padding: 6px 11px; font-size: 11px; text-transform: uppercase;
     letter-spacing: 0.6px; display: flex; align-items: center; gap: 8px;
     background: var(--panel-2); color: var(--text-dim);
+    cursor: pointer; user-select: none;
   }
+  .task-group > h3:focus-visible { outline: 2px solid var(--accent-2); outline-offset: -2px; }
+  .task-toggle-caret { width: 10px; color: var(--text-faint); font-family: var(--mono); }
+  .task-group.collapsed .task-group-body { display: none; }
   .task-group > h3 .gcount { margin-left: auto; font-variant-numeric: tabular-nums; }
   .task-group > h3 .gdot { width: 8px; height: 8px; border-radius: 50%; }
   .gdot.open { background: #58a6ff; }
@@ -249,6 +259,74 @@
   .msg-time { margin-left: auto; color: var(--text-faint); font-size: 11px; font-family: var(--mono); }
   .msg-body { color: var(--text); font-size: 13px; word-break: break-word; }
 
+  /* ---------- Message composer ---------- */
+  .message-composer {
+    border-top: 1px solid var(--border-soft);
+    padding: 10px;
+    background: rgba(12, 18, 34, 0.72);
+    display: grid;
+    grid-template-columns: minmax(80px, 120px) 1fr auto;
+  }
+  .message-composer.cmd-composer {
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: end;
+  }
+  .message-composer input[type="text"],
+  .message-composer select,
+  .message-composer textarea {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    background: #0c1628;
+    color: var(--text);
+    font: inherit;
+  }
+  .message-composer select {
+    height: 38px;
+    padding: 0 9px;
+  }
+  .message-composer input[type="text"] {
+    height: 38px;
+    padding: 0 9px;
+  }
+  .message-composer textarea {
+    min-height: 38px;
+    max-height: 110px;
+    resize: vertical;
+    padding: 8px 10px;
+    line-height: 1.35;
+  }
+  .message-composer button {
+    height: 38px;
+    min-width: 76px;
+    border: 1px solid rgba(135,187,255,.45);
+    border-radius: 8px;
+    background: rgba(88, 166, 255, .16);
+    color: var(--text);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .message-composer button:hover:not(:disabled) {
+    border-color: var(--accent-2);
+    color: var(--accent-2);
+    background: rgba(88, 166, 255, .24);
+  }
+  .message-composer button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+  }
+  .composer-status {
+    grid-column: 1 / -1;
+    min-height: 15px;
+    color: var(--text-faint);
+    font-size: 11px;
+    font-family: var(--mono);
+  }
+  .composer-status.error { color: var(--red); }
+  .composer-status.ok { color: var(--green); }
+
   .ts-now { color: var(--text-faint); font-size: 11px; font-family: var(--mono); }
 
   /* ---------- Docs side panel ---------- */
@@ -266,6 +344,34 @@
     display: flex; flex-direction: column;
   }
   #docs-panel.open { transform: translateX(0); }
+  #entry-inspector {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 520px; max-width: 92vw;
+    background: #0f1728; border-left: 1px solid var(--border, #232a3a);
+    box-shadow: -10px 0 30px rgba(0,0,0,.5); z-index: 60;
+    transform: translateX(100%); transition: transform .18s ease-out;
+    display: flex; flex-direction: column;
+  }
+  #entry-inspector.open { transform: translateX(0); }
+  .inspector-head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    padding: 13px 14px; border-bottom: 1px solid var(--border, #232a3a);
+  }
+  .inspector-head h2 { margin: 0; font-size: 14px; }
+  .inspector-subtitle { margin-top: 4px; color: var(--text-faint); font-family: var(--mono); font-size: 11px; word-break: break-all; }
+  #entry-inspector-close { background: transparent; border: none; color: var(--text-dim, #9aa4b2); font-size: 14px; cursor: pointer; }
+  .inspector-body { flex: 1; overflow-y: auto; padding: 12px 14px 18px; }
+  .inspector-facts {
+    display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 10px;
+    margin-bottom: 12px; font-size: 12px;
+  }
+  .inspector-facts dt { color: var(--text-faint); }
+  .inspector-facts dd { margin: 0; color: var(--text); word-break: break-word; }
+  .inspector-block { border: 1px solid var(--border-soft); border-radius: 8px; margin: 0 0 10px; overflow: hidden; background: rgba(8, 13, 26, .62); }
+  .inspector-block h3 { margin: 0; padding: 8px 10px; font-size: 11px; text-transform: uppercase; color: var(--text-dim); background: rgba(116,181,255,.08); }
+  .inspector-json {
+    margin: 0; padding: 10px; color: #c9d7f8; font: 11px/1.45 var(--mono);
+    white-space: pre-wrap; word-break: break-word;
+  }
   .docs-head { display: flex; align-items: center; justify-content: space-between;
     padding: 12px 14px; border-bottom: 1px solid var(--border, #232a3a); }
   .docs-head h2 { margin: 0; font-size: 14px; }
@@ -317,15 +423,15 @@
   main { gap: 14px; padding: 16px 18px 28px; }
   .panel {
     border-radius: 14px;
-    border: 1px solid var(--border-soft);
+    border: 3px solid var(--border-soft);
     background: var(--panel);
-    box-shadow: 0 20px 35px rgba(0,0,0,.28);
+    box-shadow: 0 0 0 2px rgba(116,181,255,.08), 0 20px 35px rgba(0,0,0,.28);
   }
   .panel > h2 {
     padding-top: 11px;
     padding-bottom: 11px;
     background: var(--panel-2);
-    border-bottom: 1px solid var(--border-soft);
+    border-bottom: 3px solid var(--border-soft);
   }
   .panel > h2 .badge {
     background: rgba(116,181,255,.14);
@@ -339,7 +445,7 @@
     top: 0;
     z-index: 1;
     background: linear-gradient(90deg, rgba(22, 32, 53, 0.95), rgba(19, 26, 44, 0.85));
-    border-bottom: 1px solid var(--border-soft);
+    border-bottom: 3px solid var(--border-soft);
   }
   .task-toolbar .label {
     font-size: 11px;
@@ -387,12 +493,12 @@
   .task-group > h3 .gdot {
     width: 8px; height: 8px; border-radius: 99px;
   }
-  .task-cat { border-top: 1px solid var(--border-soft); }
+  .task-cat { border-top: 3px solid var(--border-soft); }
   .task-cat:first-child { border-top: 0; }
   .task-cat-head {
     background: rgba(118, 214, 255, 0.08);
-    border-bottom: 1px solid rgba(116,181,255,.18);
-    border-top: 1px solid rgba(116,181,255,.14);
+    border-bottom: 3px solid rgba(116,181,255,.18);
+    border-top: 3px solid rgba(116,181,255,.14);
   }
   .task-gap {
     border-radius: 10px;
@@ -401,7 +507,7 @@
   }
   .task-row {
     padding: 10px 12px;
-    border-top: 1px solid rgba(116,181,255,.12);
+    border-top: 3px solid rgba(116,181,255,.12);
     transition: transform .15s ease, background .15s ease, border-color .15s ease;
     position: relative;
   }
@@ -419,7 +525,7 @@
   .task-row:hover {
     background: rgba(116,181,255,.08);
     transform: translateX(2px);
-    border-left: 2px solid rgba(116,181,255,.7);
+    border-left: 3px solid rgba(116,181,255,.7);
     box-shadow: inset 0 1px 0 rgba(255,255,255,.02), inset 0 -1px 0 rgba(255,255,255,.02);
   }
   .task-title { font-weight: 700; letter-spacing: .1px; }
@@ -448,6 +554,8 @@
     .task-toolbar { position: static; }
     .task-toolbar .muted { width: 100%; margin: 0; }
     .task-toolbar select { min-width: 0; }
+    .message-composer { grid-template-columns: 1fr; }
+    .message-composer button { width: 100%; }
   }
 </style>
 </head>
@@ -466,6 +574,7 @@
     <div class="counts" id="counts">
       <div class="count"><span class="n" id="c-agents">–</span><span class="l">agents</span></div>
       <div class="count"><span class="n" id="c-locks">–</span><span class="l">locks</span></div>
+      <div class="count"><span class="n" id="c-reservations">–</span><span class="l">reservations</span></div>
       <div class="count"><span class="n" id="c-tasks">–</span><span class="l">tasks</span></div>
       <div class="count"><span class="n" id="c-messages">–</span><span class="l">messages</span></div>
     </div>
@@ -483,6 +592,11 @@
     </section>
 
     <section class="panel">
+      <h2>📌 Reservations <span class="badge" id="b-reservations">0</span></h2>
+      <div class="body" id="reservations"></div>
+    </section>
+
+    <section class="panel">
       <h2>📋 Task Board <span class="badge" id="b-tasks">0</span></h2>
       <div class="task-toolbar">
         <span class="label">Category:</span>
@@ -495,8 +609,24 @@
     </section>
 
     <section class="panel">
+      <h2>🎖️ Command Feed <span class="badge" id="b-cmd-messages">0</span></h2>
+      <div class="body feed-body" id="cmd-feed"></div>
+      <form class="message-composer cmd-composer" id="cmd-composer">
+        <textarea id="cmd-composer-body" rows="2" maxlength="4000" placeholder="Write to the command feed — @handle to DM, otherwise broadcast"></textarea>
+        <button id="cmd-composer-send" type="submit">Send</button>
+        <div class="composer-status" id="cmd-composer-status"></div>
+      </form>
+    </section>
+
+    <section class="panel">
       <h2>💬 Message Feed <span class="badge" id="b-messages">0</span></h2>
       <div class="body feed-body" id="feed"></div>
+      <form class="message-composer" id="message-composer">
+        <input type="text" id="composer-name" maxlength="24" placeholder="Your name" title="Display name used as your sender handle" autocomplete="off">
+        <textarea id="composer-body" rows="2" maxlength="4000" placeholder="Write to the feed — start with @handle to DM an agent" title="Start with @handle (partial ok) to send direct; otherwise broadcasts"></textarea>
+        <button id="composer-send" type="submit">Send</button>
+        <div class="composer-status" id="composer-status"></div>
+      </form>
     </section>
   </main>
 
@@ -510,6 +640,17 @@
     <div class="docs-foot">Served read-only from <code>tools/agora/</code> by the daemon.</div>
   </aside>
 
+  <aside id="entry-inspector" aria-hidden="true" inert>
+    <div class="inspector-head">
+      <div>
+        <h2 id="entry-inspector-title">Entry details</h2>
+        <div class="inspector-subtitle" id="entry-inspector-subtitle"></div>
+      </div>
+      <button id="entry-inspector-close" title="Close">x</button>
+    </div>
+    <div class="inspector-body" id="entry-inspector-body"></div>
+  </aside>
+
 <script>
 (() => {
   "use strict";
@@ -518,6 +659,7 @@
   const ST = {
     agents: [],            // [{id,handle,note,status,lastSeen,...}]
     locks: [],             // [{id,paths,globs,agentId,reason,createdAt,expiresAt}]
+    reservations: [],      // [{id,paths,globs,agentId,reason,createdAt,position}]
     tasks: [],             // [{id,title,state,createdBy,claimedBy,updatedAt,...}]
     messages: [],          // [{id,seq,from,to,body,createdAt}]
     health: null,
@@ -525,7 +667,12 @@
     autoScroll: true,
     showArchived: false,
     categoryFilter: "all", // Optional task view filter.
+    // High-volume task buckets start closed but remain normal per-session
+    // toggles for operators who need to inspect the backlog.
+    collapsedTaskGroups: { blocked: true, done: true },
     gapById: new Map(),   // lowercased "project:id" AND bare "id" -> gap row (tracker bridge)
+    userAgent: null,      // Browser-side Agora identity used by the message composer.
+    sendBusy: false,
   };
 
   const $ = (id) => document.getElementById(id);
@@ -648,6 +795,280 @@
     return id.length > 8 ? id.slice(0, 8) : id;
   }
 
+  // The dashboard is a human-operated surface, not a long-running agent. It
+  // registers one lightweight browser identity and reuses the returned token so
+  // messages go through the same authenticated Agora path as `client.mjs say`.
+  const DASHBOARD_IDENTITY_KEY = "agora.dashboard.identity.v1";
+  const DASHBOARD_NAME_KEY = "agora.dashboard.displayName.v1";
+
+  function storedDisplayName() {
+    try { return localStorage.getItem(DASHBOARD_NAME_KEY) || ""; } catch (e) { return ""; }
+  }
+
+  function saveDisplayName(name) {
+    try { localStorage.setItem(DASHBOARD_NAME_KEY, name); } catch (e) {}
+  }
+
+  // Handles travel through CLI args and URLs, so keep them to safe characters.
+  function sanitizeHandle(name) {
+    return String(name || "").trim().replace(/\s+/g, "-").replace(/[^\w.-]/g, "").slice(0, 24);
+  }
+
+  function randomSuffix() {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID().slice(0, 8);
+    return Math.random().toString(16).slice(2, 10);
+  }
+
+  function storedDashboardIdentity() {
+    try {
+      const raw = localStorage.getItem(DASHBOARD_IDENTITY_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveDashboardIdentity(identity) {
+    ST.userAgent = identity;
+    try { localStorage.setItem(DASHBOARD_IDENTITY_KEY, JSON.stringify(identity)); } catch (e) {}
+  }
+
+  function setComposerStatus(text, kind = "", statusId = "composer-status") {
+    const el = $(statusId);
+    if (!el) return;
+    el.textContent = text || "";
+    el.classList.toggle("error", kind === "error");
+    el.classList.toggle("ok", kind === "ok");
+  }
+
+  // Targeting is typed, not picked: a leading "@handle " DMs that agent.
+  // Partial handles are fine while they match exactly one live agent
+  // (exact match wins over prefix, prefix over substring).
+  function resolveMention(body) {
+    const m = /^@([\w.-]+)\s+\S/.exec(body) || /^@([\w.-]+)\s*$/.exec(body);
+    if (!m) return { to: "all" };
+    const q = m[1].toLowerCase();
+    const candidates = ST.agents.filter((a) => !(ST.userAgent && a.id === ST.userAgent.agentId));
+    const exact = candidates.filter((a) => String(a.handle || "").toLowerCase() === q);
+    const prefix = candidates.filter((a) => String(a.handle || "").toLowerCase().startsWith(q));
+    const sub = candidates.filter((a) => String(a.handle || "").toLowerCase().includes(q));
+    const pool = exact.length ? exact : prefix.length ? prefix : sub;
+    const handles = [...new Set(pool.map((a) => a.handle))];
+    if (handles.length === 1) {
+      // Several presence rows can share one handle; DM the freshest one.
+      const target = pool.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0))[0];
+      return { to: target.id, handle: target.handle, rest: body.slice(m[0].length - (/\S$/.test(m[0]) ? 1 : 0)).trim() };
+    }
+    return { to: null, query: m[1], matches: handles };
+  }
+
+  function mentionHint(which) {
+    const c = COMPOSERS[which];
+    const body = ($(c.body).value || "");
+    if (!body.trim()) { setComposerStatus("", "", c.status); return; }
+    const r = resolveMention(body);
+    if (r.to === "all") setComposerStatus("→ broadcast", "", c.status);
+    else if (r.to) setComposerStatus(`→ DM @${r.handle}`, "ok", c.status);
+    else setComposerStatus(r.matches.length ? `@${r.query} is ambiguous: ${r.matches.slice(0, 5).join(", ")}` : `no agent matches @${r.query} — will broadcast as text`, "error", c.status);
+  }
+
+  function jsonBlock(title, value) {
+    return `<section class="inspector-block"><h3>${esc(title)}</h3><pre class="inspector-json">${esc(JSON.stringify(value, null, 2))}</pre></section>`;
+  }
+
+  function factRows(rows) {
+    return `<dl class="inspector-facts">${rows.filter((r) => r[1] !== undefined && r[1] !== null && r[1] !== "").map((r) =>
+      `<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join("")}</dl>`;
+  }
+
+  function agentInspector(agentId) {
+    const agent = ST.agents.find((a) => a.id === agentId);
+    if (!agent) return null;
+    const locks = ST.locks.filter((l) => l.agentId === agentId);
+    const tasks = ST.tasks.filter((t) => t.createdBy === agentId || t.claimedBy === agentId);
+    const messages = ST.messages.filter((m) => m.from === agentId || m.to === agentId);
+    return {
+      title: `Agent: ${agent.handle || shortId(agent.id)}`,
+      subtitle: agent.id,
+      html: [
+        factRows([
+          ["handle", agent.handle],
+          ["status", agent.status],
+          ["model", agent.model],
+          ["note", agent.note],
+          ["last seen", clockTime(agent.lastSeen)],
+          ["locks", locks.length],
+          ["tasks", tasks.length],
+          ["messages", messages.length],
+        ]),
+        jsonBlock("agent record", agent),
+        jsonBlock("locks held", locks),
+        jsonBlock("created or claimed tasks", tasks),
+        jsonBlock("messages from or to agent", messages),
+      ].join(""),
+    };
+  }
+
+  function lockInspector(lockId) {
+    const lock = ST.locks.find((l) => l.id === lockId);
+    if (!lock) return null;
+    const agent = ST.agents.find((a) => a.id === lock.agentId) || null;
+    return {
+      title: `Lock: ${shortId(lock.id)}`,
+      subtitle: lock.id,
+      html: [
+        factRows([
+          ["holder", agent ? agent.handle : lock.agentId],
+          ["expires", clockTime(lock.expiresAt)],
+          ["paths", (lock.paths || []).join(", ")],
+          ["globs", (lock.globs || []).join(", ")],
+          ["reason", lock.reason],
+        ]),
+        jsonBlock("lock record", lock),
+        jsonBlock("holder agent", agent),
+      ].join(""),
+    };
+  }
+
+  function reservationInspector(reservationId) {
+    const reservation = ST.reservations.find((r) => r.id === reservationId);
+    if (!reservation) return null;
+    const agent = ST.agents.find((a) => a.id === reservation.agentId) || null;
+    return {
+      title: `Reservation: #${reservation.position || "?"}`,
+      subtitle: reservation.id,
+      html: [
+        factRows([
+          ["position", reservation.position],
+          ["queue seq", reservation.queueSeq],
+          ["agent", agent ? agent.handle : reservation.agentId],
+          ["created", clockTime(reservation.createdAt)],
+          ["paths", (reservation.paths || []).join(", ")],
+          ["globs", (reservation.globs || []).join(", ")],
+          ["reason", reservation.reason],
+        ]),
+        jsonBlock("reservation record", reservation),
+        jsonBlock("reserving agent", agent),
+      ].join(""),
+    };
+  }
+
+  function resolvedAgentRecord(agentId, snapshot) {
+    if (snapshot && snapshot.id) return snapshot;
+    const live = ST.agents.find((a) => a.id === agentId);
+    if (live) return live;
+
+    // Older board tasks predate saved creator metadata. They still carry the
+    // raw agent id, so show an explicit legacy placeholder instead of `null`.
+    return agentId ? {
+      id: agentId,
+      handle: shortId(agentId),
+      status: 'unresolved',
+      note: 'legacy task: agent was not present in the active roster',
+    } : {
+      id: '',
+      handle: '(missing creator)',
+      status: 'missing',
+      note: 'task was created before mandatory creator metadata existed',
+    };
+  }
+
+  function taskInspector(taskId) {
+    const task = ST.tasks.find((t) => t.id === taskId);
+    if (!task) return null;
+    const createdBy = resolvedAgentRecord(task.createdBy, task.creatorAgent);
+    const claimedBy = task.claimedBy ? resolvedAgentRecord(task.claimedBy, task.claimedAgent) : null;
+    const deps = (task.deps || []).map((id) => ST.tasks.find((t) => t.id === id) || { id, missing: true });
+    const messages = ST.messages.filter((m) => String(m.body || "").includes(task.id));
+    return {
+      title: `Task: ${task.title || shortId(task.id)}`,
+      subtitle: task.id,
+      html: [
+        factRows([
+          ["state", task.state],
+          ["priority", task.priority],
+          ["created by", createdBy ? createdBy.handle : task.createdBy],
+          ["claimed by", claimedBy ? claimedBy.handle : task.claimedBy],
+          ["updated", clockTime(task.updatedAt)],
+          ["refs", (task.refs || []).join(", ")],
+          ["deps", (task.deps || []).join(", ")],
+        ]),
+        jsonBlock("task record", task),
+        jsonBlock("creator agent", createdBy),
+        jsonBlock("claiming agent", claimedBy),
+        jsonBlock("dependency tasks", deps),
+        jsonBlock("messages mentioning task id", messages),
+      ].join(""),
+    };
+  }
+
+  function messageInspector(messageId) {
+    const message = ST.messages.find((m) => String(m.id || m.seq) === String(messageId));
+    if (!message) return null;
+    const from = ST.agents.find((a) => a.id === message.from) || null;
+    const to = message.to && message.to !== "all" ? ST.agents.find((a) => a.id === message.to) || null : null;
+    return {
+      title: `Message: ${message.seq || shortId(message.id)}`,
+      subtitle: message.id || `seq ${message.seq}`,
+      html: [
+        factRows([
+          ["from", from ? from.handle : message.from],
+          ["to", message.to === "all" ? "broadcast" : (to ? to.handle : message.to)],
+          ["created", clockTime(message.createdAt)],
+          ["seq", message.seq],
+        ]),
+        jsonBlock("message record", message),
+        jsonBlock("sender agent", from),
+        jsonBlock("target agent", to),
+      ].join(""),
+    };
+  }
+
+  function inspectorPayload(kind, id) {
+    if (kind === "agent") return agentInspector(id);
+    if (kind === "lock") return lockInspector(id);
+    if (kind === "reservation") return reservationInspector(id);
+    if (kind === "task") return taskInspector(id);
+    if (kind === "message") return messageInspector(id);
+    return null;
+  }
+
+  function openEntryInspector(kind, id) {
+    const payload = inspectorPayload(kind, id);
+    if (!payload) return;
+    $("entry-inspector-title").textContent = payload.title;
+    $("entry-inspector-subtitle").textContent = payload.subtitle || "";
+    $("entry-inspector-body").innerHTML = payload.html;
+    const panel = $("entry-inspector");
+    panel.classList.add("open");
+    panel.setAttribute("aria-hidden", "false");
+    panel.removeAttribute("inert");
+  }
+
+  function closeEntryInspector() {
+    const panel = $("entry-inspector");
+    panel.classList.remove("open");
+    panel.setAttribute("aria-hidden", "true");
+    panel.setAttribute("inert", "");
+  }
+
+  function wireEntryInspectors(root) {
+    // Rows are regenerated from live board snapshots, so click handlers are
+    // attached after each render using data attributes instead of cached nodes.
+    for (const row of root.querySelectorAll("[data-entry-kind][data-entry-id]")) {
+      row.addEventListener("click", (ev) => {
+        const target = ev.target instanceof Element ? ev.target : ev.target.parentElement;
+        if (target && target.closest("a, button, select, input, textarea")) return;
+        openEntryInspector(row.dataset.entryKind, row.dataset.entryId);
+      });
+      row.addEventListener("keydown", (ev) => {
+        if (ev.key !== "Enter" && ev.key !== " ") return;
+        ev.preventDefault();
+        openEntryInspector(row.dataset.entryKind, row.dataset.entryId);
+      });
+    }
+  }
+
   function relTime(ms) {
     if (!ms) return "—";
     const d = Date.now() - ms;
@@ -682,10 +1103,13 @@
   function renderPresence() {
     const el = $("presence");
     $("b-agents").textContent = ST.agents.length;
-    if (!ST.agents.length) { el.innerHTML = '<div class="empty">No agents online</div>'; return; }
+    if (!ST.agents.length) {
+      el.innerHTML = '<div class="empty">No agents online</div>';
+      return;
+    }
     const rows = [...ST.agents].sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0)).map((a) => {
       const status = a.status === "online" ? "online" : "stale";
-      return `<div class="agent-row">
+      return `<div class="agent-row inspectable" role="button" tabindex="0" data-entry-kind="agent" data-entry-id="${esc(a.id)}">
         <span class="sdot ${status}" title="${status}"></span>
         <div class="agent-main">
           <div class="agent-handle">${esc(a.handle)}<span class="id">${esc((a.id||"").slice(0,8))}</span></div>
@@ -695,6 +1119,7 @@
       </div>`;
     });
     el.innerHTML = rows.join("");
+    wireEntryInspectors(el);
   }
 
   function renderLocks() {
@@ -711,7 +1136,7 @@
         ...(l.paths || []).map((p) => `<span class="tok" title="path">${esc(p)}</span>`),
         ...(l.globs || []).map((g) => `<span class="tok glob" title="glob">${esc(g)}</span>`),
       ].join("");
-      return `<div class="lock-row ${cls}">
+      return `<div class="lock-row inspectable ${cls}" role="button" tabindex="0" data-entry-kind="lock" data-entry-id="${esc(l.id)}">
         <div class="lock-head">
           <span class="sdot online"></span>
           <span class="lock-holder">${esc(handleOf(l.agentId))} <span class="lock-agentid" title="full agent id: ${esc(l.agentId)}">${esc(shortId(l.agentId))}</span></span>
@@ -722,10 +1147,42 @@
       </div>`;
     });
     el.innerHTML = rows.join("");
+    wireEntryInspectors(el);
+  }
+
+  function renderReservations() {
+    const el = $("reservations");
+    $("b-reservations").textContent = ST.reservations.length;
+    if (!ST.reservations.length) {
+      el.innerHTML = '<div class="empty">No file reservations</div>';
+      return;
+    }
+    const rows = [...ST.reservations].sort((a, b) => (a.position || 0) - (b.position || 0) || (a.createdAt || 0) - (b.createdAt || 0)).map((r) => {
+      const toks = [
+        ...(r.paths || []).map((p) => `<span class="tok" title="path">${esc(p)}</span>`),
+        ...(r.globs || []).map((g) => `<span class="tok glob" title="glob">${esc(g)}</span>`),
+      ].join("");
+      return `<div class="reservation-row inspectable" role="button" tabindex="0" data-entry-kind="reservation" data-entry-id="${esc(r.id)}">
+        <div class="lock-head">
+          <span class="reservation-pos">#${esc(r.position || "?")}</span>
+          <span class="lock-holder">${esc(handleOf(r.agentId))} <span class="lock-agentid" title="full agent id: ${esc(r.agentId)}">${esc(shortId(r.agentId))}</span></span>
+          <span class="agent-seen">${esc(relTime(r.createdAt))}</span>
+        </div>
+        <div class="lock-tokens">${toks || '<span class="tok">(no tokens)</span>'}</div>
+        ${r.reason ? `<div class="lock-reason">${esc(r.reason)}</div>` : ""}
+      </div>`;
+    });
+    el.innerHTML = rows.join("");
+    wireEntryInspectors(el);
   }
 
   const TASK_ORDER = ["open", "claimed", "in_progress", "blocked", "done"];
   const TASK_LABEL = { open: "Open", claimed: "Claimed", in_progress: "In Progress", blocked: "Blocked", done: "Done" };
+
+  function toggleTaskGroup(stateKey) {
+    ST.collapsedTaskGroups[stateKey] = !ST.collapsedTaskGroups[stateKey];
+    renderTasks();
+  }
 
   function renderTasks() {
     const el = $("tasks");
@@ -776,7 +1233,7 @@
           ? `<a class="task-gap" href="/gaps/view?project=${encodeURIComponent(cat.project)}" target="_blank" rel="noopener" title="open the ${esc(cat.project)} tracker card">${esc(cat.gapId)}</a>`
           : `<span class="task-gap unlinked" title="gap id not found in the tracker index">${esc(cat.gapId)}</span>`)
         : "";
-      return `<div class="task-row">
+      return `<div class="task-row inspectable" role="button" tabindex="0" data-entry-kind="task" data-entry-id="${esc(t.id)}">
         <div class="task-title">${gapChip}${esc(t.title)}${t.priority ? `<span class="task-pri">p${esc(String(t.priority))}</span>` : ""}</div>
         <div class="task-sub">
           ${t.claimedBy ? `<span class="who">▸ ${esc(handleOf(t.claimedBy))}</span>` : `<span>by ${esc(handleOf(t.createdBy))}</span>`}
@@ -809,12 +1266,32 @@
           : `📁 ${esc(label)}`;
         return `<div class="task-cat"><div class="task-cat-head">${head}<span class="ccount">${c.rows.length}</span></div>${c.rows.join("")}</div>`;
       }).join("");
-      return `<div class="task-group">
-        <h3><span class="gdot ${stateKey}"></span>${TASK_LABEL[stateKey]}<span class="gcount">${list.length}</span></h3>
-        ${body}
+      const collapsed = Boolean(ST.collapsedTaskGroups[stateKey]);
+      const groupId = `task-group-${stateKey}`;
+      return `<div class="task-group${collapsed ? " collapsed" : ""}" data-task-state="${stateKey}">
+        <h3 role="button" tabindex="0" aria-expanded="${collapsed ? "false" : "true"}" aria-controls="${groupId}">
+          <span class="task-toggle-caret">${collapsed ? ">" : "v"}</span>
+          <span class="gdot ${stateKey}"></span>${TASK_LABEL[stateKey]}<span class="gcount">${list.length}</span>
+        </h3>
+        <div class="task-group-body" id="${groupId}">${body}</div>
       </div>`;
     }).filter(Boolean).join("");
     el.innerHTML = `<div class="task-cols">${groups}</div>`;
+    wireEntryInspectors(el);
+    // Re-bind after each board refresh because task rows are regenerated from
+    // the daemon snapshot instead of being patched in place.
+    for (const head of el.querySelectorAll(".task-group > h3")) {
+      const group = head.closest(".task-group");
+      const stateKey = group && group.dataset ? group.dataset.taskState : "";
+      if (!stateKey) continue;
+      head.addEventListener("click", () => toggleTaskGroup(stateKey));
+      head.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          toggleTaskGroup(stateKey);
+        }
+      });
+    }
   }
 
   // Feed shows NEWEST FIRST. Messages older than the live window "expire" into
@@ -826,7 +1303,7 @@
     const target = broadcast
       ? `<span class="pill bcast">broadcast</span>`
       : `<span class="pill direct">@${esc(handleOf(m.to))}</span>`;
-    return `<div class="msg${archived ? " archived" : ""}">
+    return `<div class="msg inspectable${archived ? " archived" : ""}" role="button" tabindex="0" data-entry-kind="message" data-entry-id="${esc(m.id || m.seq)}">
       <div class="msg-head">
         <span class="msg-from">${esc(handleOf(m.from))}</span>
         <span class="arrow">→</span>
@@ -838,11 +1315,14 @@
   }
 
   function renderFeed() {
+    renderCommandFeed();
     const el = $("feed");
-    $("b-messages").textContent = ST.messages.length;
-    if (!ST.messages.length) { el.innerHTML = '<div class="empty">No messages yet</div>'; return; }
+    // Pre-channel messages have no channel field and belong to main.
+    const mainMsgs = ST.messages.filter((m) => (m.channel || "main") === "main");
+    $("b-messages").textContent = mainMsgs.length;
+    if (!mainMsgs.length) { el.innerHTML = '<div class="empty">No messages yet</div>'; return; }
     const cutoff = Date.now() - MSG_ARCHIVE_MS;
-    const msgs = [...ST.messages].sort((a, b) => (b.seq || 0) - (a.seq || 0)); // newest first
+    const msgs = [...mainMsgs].sort((a, b) => (b.seq || 0) - (a.seq || 0)); // newest first
     const live = msgs.filter((m) => (m.createdAt || 0) >= cutoff);
     const archived = msgs.filter((m) => (m.createdAt || 0) < cutoff);
 
@@ -853,9 +1333,27 @@
       if (ST.showArchived) html += archived.map((m) => msgHtml(m, true)).join("");
     }
     el.innerHTML = html;
+    wireEntryInspectors(el);
     const t = $("archive-toggle");
     if (t) t.addEventListener("click", () => { ST.showArchived = !ST.showArchived; renderFeed(); });
     if (ST.autoScroll) el.scrollTop = 0; // newest at top — pin to top
+  }
+
+  // Control-plane feed: orchestrators, the master, and the human. Workers'
+  // posts are refused by the daemon, so everything here is command traffic.
+  function renderCommandFeed() {
+    const el = $("cmd-feed");
+    if (!el) return;
+    const msgs = ST.messages
+      .filter((m) => m.channel === "command")
+      .sort((a, b) => (b.seq || 0) - (a.seq || 0)); // newest first
+    $("b-cmd-messages").textContent = msgs.length;
+    if (!msgs.length) {
+      el.innerHTML = '<div class="empty">No command traffic — orchestrators, the master, and the human post here (say --channel command)</div>';
+      return;
+    }
+    el.innerHTML = msgs.map((m) => msgHtml(m, false)).join("");
+    wireEntryInspectors(el);
   }
 
   function renderHeader() {
@@ -865,6 +1363,7 @@
       if (h.counts) {
         $("c-agents").textContent = h.counts.agents;
         $("c-locks").textContent = h.counts.locks;
+        $("c-reservations").textContent = h.counts.reservations || 0;
         $("c-tasks").textContent = h.counts.tasks;
         $("c-messages").textContent = h.counts.messages;
       }
@@ -872,6 +1371,7 @@
       // derive counts from local state if /health unavailable
       $("c-agents").textContent = ST.agents.length;
       $("c-locks").textContent = ST.locks.length;
+      $("c-reservations").textContent = ST.reservations.length;
       $("c-tasks").textContent = ST.tasks.length;
       $("c-messages").textContent = ST.messages.length;
     }
@@ -907,12 +1407,128 @@
     return r.json();
   }
 
+  async function postJSON(url, body, token) {
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers.Authorization = "Bearer " + token;
+    const r = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body || {}),
+    });
+    if (!r.ok) {
+      const err = new Error(url + " -> " + r.status);
+      err.status = r.status;
+      throw err;
+    }
+    ST.lastRefreshAt = Date.now();
+    return r.json();
+  }
+
+  async function ensureDashboardIdentity(forceNew = false) {
+    const wantedName = sanitizeHandle($("composer-name") ? $("composer-name").value : storedDisplayName());
+    const wantedHandle = wantedName || `operator-dashboard-${randomSuffix()}`;
+    const current = (!forceNew && ST.userAgent && ST.userAgent.token) ? ST.userAgent : (!forceNew ? storedDashboardIdentity() : null);
+    // Reuse the saved identity only while it still matches the chosen name.
+    if (current && current.token && (!wantedName || current.handle === wantedName)) {
+      ST.userAgent = current;
+      return current;
+    }
+    let identity;
+    try {
+      identity = await postJSON("/agents/register", {
+        handle: wantedHandle,
+        note: wantedName ? "Human operator on the Agora dashboard" : "User message composer in the Agora dashboard",
+        unique: true,
+        model: "human-dashboard",
+        role: "human", // unlocks the command channel
+      });
+    } catch (e) {
+      // A live agent already holds this name; keep it recognizable but unique.
+      if (e.status !== 409 || !wantedName) throw e;
+      identity = await postJSON("/agents/register", {
+        handle: `${wantedName}-${randomSuffix().slice(0, 4)}`,
+        note: "Human operator on the Agora dashboard",
+        unique: true,
+        model: "human-dashboard",
+        role: "human",
+      });
+    }
+    if (wantedName) saveDisplayName(wantedName);
+    saveDashboardIdentity(identity);
+    return identity;
+  }
+
+  // One send path for both composers; only the element ids and channel differ.
+  const COMPOSERS = {
+    main: { channel: "main", body: "composer-body", send: "composer-send", status: "composer-status" },
+    command: { channel: "command", body: "cmd-composer-body", send: "cmd-composer-send", status: "cmd-composer-status" },
+  };
+
+  async function sendComposerMessage(which = "main") {
+    const c = COMPOSERS[which] || COMPOSERS.main;
+    const input = $(c.body);
+    const button = $(c.send);
+    const body = (input.value || "").trim();
+    if (!body || ST.sendBusy) return;
+
+    // "@handle rest" DMs; anything else broadcasts. An ambiguous mention
+    // blocks the send so a directive never lands on the wrong agent.
+    const mention = resolveMention(body);
+    if (mention.to === null) {
+      if (mention.matches.length) {
+        setComposerStatus(`@${mention.query} is ambiguous (${mention.matches.slice(0, 5).join(", ")}) — type more of the name`, "error", c.status);
+        return;
+      }
+    }
+    if (mention.to && mention.to !== "all" && !mention.rest) {
+      setComposerStatus(`say something after @${mention.handle}`, "error", c.status);
+      return;
+    }
+    const to = mention.to || "all"; // no live match: send as broadcast, text intact
+
+    ST.sendBusy = true;
+    button.disabled = true;
+    setComposerStatus("sending...", "", c.status);
+    try {
+      let identity = await ensureDashboardIdentity(false);
+      let result;
+      try {
+        result = await postJSON("/messages", { to, body, channel: c.channel }, identity.token);
+      } catch (e) {
+        // Browser identities are ordinary Agora agents. If the daemon reaped the
+        // saved token (401), or the identity predates roles and can't post on the
+        // command channel (403), create a fresh dashboard identity and retry once.
+        if (e.status !== 401 && e.status !== 403) throw e;
+        identity = await ensureDashboardIdentity(true);
+        result = await postJSON("/messages", { to, body, channel: c.channel }, identity.token);
+      }
+      if (result && result.message && !ST.messages.some((m) => m.id === result.message.id)) {
+        ST.messages.push(result.message);
+        if (result.message.seq > ST.seenMsgSeq) ST.seenMsgSeq = result.message.seq;
+      }
+      input.value = "";
+      setComposerStatus(`sent as ${identity.handle}${mention.handle ? ` → @${mention.handle}` : " → broadcast"}`, "ok", c.status);
+      renderFeed();
+      refreshAgents();
+      refreshHealth();
+    } catch (e) {
+      setComposerStatus("send failed", "error", c.status);
+    } finally {
+      ST.sendBusy = false;
+      button.disabled = false;
+      input.focus();
+    }
+  }
+
   async function refreshAgents() {
-    try { ST.agents = (await getJSON("/agents")).agents || []; renderPresence(); renderLocks(); renderTasks(); renderFeed(); }
+    try { ST.agents = (await getJSON("/agents")).agents || []; renderPresence(); renderLocks(); renderReservations(); renderTasks(); renderFeed(); }
     catch (e) { /* keep last good */ }
   }
   async function refreshLocks() {
     try { ST.locks = (await getJSON("/locks")).locks || []; renderLocks(); } catch (e) {}
+  }
+  async function refreshReservations() {
+    try { ST.reservations = (await getJSON("/reservations")).reservations || []; renderReservations(); } catch (e) {}
   }
   async function refreshTasks() {
     try { ST.tasks = (await getJSON("/tasks")).tasks || []; renderTasks(); } catch (e) {}
@@ -922,7 +1538,7 @@
   }
   async function refreshMessages() {
     try {
-      const data = await getJSON("/messages?since=" + ST.seenMsgSeq);
+      const data = await getJSON("/messages?channel=all&since=" + ST.seenMsgSeq);
       const incoming = data.messages || [];
       for (const m of incoming) {
         if (!ST.messages.some((x) => x.id === m.id)) ST.messages.push(m);
@@ -933,7 +1549,7 @@
   }
 
   async function fullRefresh() {
-    await Promise.all([refreshHealth(), refreshAgents(), refreshLocks(), refreshTasks(), refreshMessages()]);
+    await Promise.all([refreshHealth(), refreshAgents(), refreshLocks(), refreshReservations(), refreshTasks(), refreshMessages()]);
     renderHeader();
   }
 
@@ -949,6 +1565,7 @@
   function onStructural(kind) {
     if (kind === "agent") refreshAgents();
     else if (kind === "lock") { refreshLocks(); refreshHealth(); }
+    else if (kind === "reservation") { refreshReservations(); refreshHealth(); }
     else if (kind === "task") { refreshTasks(); refreshHealth(); }
   }
 
@@ -962,6 +1579,10 @@
       case "lock.release":
       case "lock.expired":
         onStructural("lock"); break;
+      case "reservation.create":
+      case "reservation.release":
+      case "reservation.fulfill":
+        onStructural("reservation"); break;
       case "task.create":
       case "task.claim":
       case "task.state":
@@ -1001,8 +1622,9 @@
         const snap = d.snapshot || {};
         ST.agents = snap.agents || [];
         ST.locks = snap.locks || [];
+        ST.reservations = snap.reservations || [];
         ST.tasks = snap.tasks || [];
-        renderPresence(); renderLocks(); renderTasks();
+        renderPresence(); renderLocks(); renderReservations(); renderTasks();
         // messages aren't in the hello snapshot — pull them via REST.
         refreshMessages();
         refreshHealth();
@@ -1037,6 +1659,38 @@
   // down to read older messages.
   $("feed").addEventListener("scroll", () => {
     ST.autoScroll = $("feed").scrollTop < 40;
+  });
+
+  $("message-composer").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    sendComposerMessage("main");
+  });
+  $("composer-body").addEventListener("keydown", (ev) => {
+    if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") {
+      ev.preventDefault();
+      sendComposerMessage("main");
+    }
+  });
+  $("cmd-composer").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    sendComposerMessage("command");
+  });
+  $("cmd-composer-body").addEventListener("keydown", (ev) => {
+    if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") {
+      ev.preventDefault();
+      sendComposerMessage("command");
+    }
+  });
+  $("composer-body").addEventListener("input", () => mentionHint("main"));
+  $("cmd-composer-body").addEventListener("input", () => mentionHint("command"));
+  $("composer-name").value = storedDisplayName();
+  $("composer-name").addEventListener("change", () => {
+    const name = sanitizeHandle($("composer-name").value);
+    $("composer-name").value = name;
+    saveDisplayName(name);
+    // The next send re-registers under the new name (ensureDashboardIdentity
+    // notices the handle mismatch); nothing else to do here.
+    if (name) setComposerStatus(`will send as ${name}`, "ok");
   });
 
   // ----------------------------- docs panel -----------------------------
@@ -1115,11 +1769,17 @@
   }
   $("docs-btn").addEventListener("click", () => toggleDocs());
   $("docs-close").addEventListener("click", () => toggleDocs(false));
+  $("entry-inspector-close").addEventListener("click", () => closeEntryInspector());
   $("task-category-filter").addEventListener("change", () => {
     ST.categoryFilter = $("task-category-filter").value || "all";
     renderTasks();
   });
-  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") toggleDocs(false); });
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") {
+      toggleDocs(false);
+      closeEntryInspector();
+    }
+  });
 
   // ----------------------------- boot -----------------------------
   fullRefresh();   // REST seed on load (also a fallback if SSE is slow)

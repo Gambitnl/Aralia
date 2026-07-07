@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/d20_test.json",
-  "markdown": "# D20 Test\n\nD20 Tests encompass the three main d20 rolls of the game: [[ability_check checks]], [[attack_roll rolls]], and [[saving_throw throws]]. If something in the game affects D20 Tests, it affects all three of these rolls. The DM determines whether a D20 Test is warranted in a given circumstance."
+  "markdown": "# D20 Test\n\nD20 Tests encompass the three main d20 rolls of the game: [[ability_check]], [[attack_roll]], and [[saving_throw]]. If something in the game affects D20 Tests, it affects all three of these rolls. The DM determines whether a D20 Test is warranted in a given circumstance."
 }

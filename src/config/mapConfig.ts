@@ -13,7 +13,10 @@
 // 2026-07-01 (Remy): combat area quadrupled (40×30 → 80×60). The 2D map pans
 // and zooms to fit; the 3D map renders a non-playable fringe beyond this rect
 // so the battlefield no longer ends at a visible boundary.
-export const BATTLE_MAP_DIMENSIONS = { width: 80, height: 60 };
+// 2026-07-06 (Remy): "way more tiles" — 80×60 → 120×90 (2.25×, ~10.8k tiles).
+// The 2D grid renders one DOM node per tile, so growth beyond this needs
+// viewport culling first.
+export const BATTLE_MAP_DIMENSIONS = { width: 120, height: 90 };
 export const TILE_SIZE_PX = 32;
 
 // Compass Direction Vectors

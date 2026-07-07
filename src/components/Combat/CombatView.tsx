@@ -37,7 +37,7 @@ import BattleMap from '../BattleMap/BattleMap';
 // modules onto its critical path.
 const BattleMap3D = lazy(() => import('../BattleMap/BattleMap3D'));
 import { PlayerCharacter, Item } from '../../types';
-import { Ability, ActiveAnimatedObject, ActiveExtradimensionalSpace, ActiveFireEffect, ActiveSpellEmanation, ActiveSpellForce, ActiveSpellGuardian, ActiveSpellHelper, ActiveSpellStructure, ActiveTruePolymorphTransformation, BattleMapData, CombatCharacter, CombatLogEntry, CombatPartySnapshotEntry, PocketedSummon, SpellObjectImpact, SpellObjectRepair, SpellObjectAccessChange } from '../../types/combat';
+import { Ability, ActiveAnimatedObject, ActiveExtradimensionalSpace, ActiveFireEffect, ActiveSpellEmanation, ActiveSpellForce, ActiveSpellGuardian, ActiveSpellHelper, ActiveSpellStructure, ActiveTruePolymorphTransformation, BattleMapBiome, BattleMapData, CombatCharacter, CombatLogEntry, CombatPartySnapshotEntry, PocketedSummon, SpellObjectImpact, SpellObjectRepair, SpellObjectAccessChange } from '../../types/combat';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useCombatLog } from '../../hooks/combat/useCombatLog';
@@ -83,12 +83,18 @@ import { HARVESTABLE_CREATURES } from '../../systems/crafting/creatureHarvestDat
 // Fight-in-place slice 2: the in-scene combat surface + the World3D → CombatView
 // world handoff. When present, the fight renders IN the streamed world.
 const InPlaceCombatScene = lazy(() => import('./InPlaceCombatScene'));
+// Next-gen combat renderer prototype (PixiJS, spec: combat-map-nextgen). Lazy
+// so pixi.js stays off the eager 2D path; only mounted under ?pixiboard=1.
+const PixiBoardPrototype = lazy(() => import('../BattleMap/pixi/PixiBoardPrototype'));
+// Dev flag for the next-gen renderer prototype (spec: combat-map-nextgen).
+const usePixiBoard = typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).has('pixiboard');
 import { getFightInPlaceHandoff, clearFightInPlaceHandoff } from '../../systems/combat/fightInPlace/fightInPlaceHandoff';
 
 interface CombatViewProps {
   party: PlayerCharacter[];
   enemies: CombatCharacter[];
-  biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp';
+  biome: BattleMapBiome;
   onRoundElapsed?: (seconds: number) => void;
   onBattleEnd: (result: 'victory' | 'defeat', rewards?: { gold: number; items: Item[]; xp: number }, finalPartyState?: CombatPartySnapshotEntry[]) => void;
   currentPlane?: Plane;
@@ -101,6 +107,11 @@ const BIOME_META: Record<string, { icon: string; label: string }> = {
   dungeon: { icon: '🏰', label: 'Dungeon' },
   desert: { icon: '🏜️', label: 'Desert' },
   swamp: { icon: '🥀', label: 'Swamp' },
+  snow: { icon: '❄️', label: 'Snowfield' },
+  jungle: { icon: '🌴', label: 'Jungle' },
+  coast: { icon: '🌊', label: 'Coast' },
+  ruins: { icon: '🏛️', label: 'Ruins' },
+  volcanic: { icon: '🌋', label: 'Volcanic' },
 };
 
 // Shown while the lazy 3D combat surfaces (R3F + three.js) stream in. The 2D
@@ -530,6 +541,19 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
 
   const currentCharacter = turnManager.getCurrentCharacter();
 
+  // Objective at a glance: the win condition should not require scrolling the
+  // enemy roster below the fold.
+  const enemiesRemaining = characters.filter(c => c.team === 'enemy' && c.currentHP > 0).length;
+
+  // One-time coach line for a player's first fight; dismissing persists.
+  const [coachDismissed, setCoachDismissed] = useState<boolean>(() => {
+    try { return localStorage.getItem('aralia-combat-coach-dismissed') === '1'; } catch { return true; }
+  });
+  const dismissCoach = useCallback(() => {
+    setCoachDismissed(true);
+    try { localStorage.setItem('aralia-combat-coach-dismissed', '1'); } catch { /* storage unavailable */ }
+  }, []);
+
   useCombatAI({
     difficulty: 'normal',
     characters,
@@ -546,7 +570,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
       ref={combatViewRef}
       id={UI_ID.COMBAT_VIEW}
       data-testid={UI_ID.COMBAT_VIEW}
-      className="bg-gray-900 text-white h-screen flex flex-col p-4 relative overflow-y-auto xl:overflow-hidden"
+      className="bg-gray-900 text-white h-screen flex flex-col p-4 relative overflow-y-auto lg:overflow-hidden"
       style={{ overflowAnchor: 'none' }}
     >
       {/* Victory / Defeat Modal */}
@@ -743,6 +767,12 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
         <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600/70 bg-slate-800/80 px-3 py-1.5 text-sm font-semibold text-slate-200">
           {BIOME_META[biome]?.icon ?? '🗺'} {BIOME_META[biome]?.label ?? biome}
         </span>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold ${enemiesRemaining > 0 ? 'border-rose-700/70 bg-rose-950/60 text-rose-200' : 'border-emerald-700/70 bg-emerald-950/60 text-emerald-200'}`}
+          role="status"
+        >
+          {enemiesRemaining > 0 ? `⚔ ${enemiesRemaining} ${enemiesRemaining === 1 ? 'enemy remains' : 'enemies remain'}` : '✓ Battlefield clear'}
+        </span>
         <button
           onClick={() => {
             // Rerolling the battlefield mid-fight is destructive to the tactical
@@ -777,15 +807,32 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
         </button>
       </div>
 
+      {/* First-fight coach line: the busiest screen in the game answers
+          "what do I do now?" once, then never again after dismissal. */}
+      {!coachDismissed && currentCharacter && currentCharacter.team === 'player' && turnManager.isCharacterTurn(currentCharacter.id) && (
+        <div className="flex items-center justify-center gap-3 border-b border-amber-800/40 bg-amber-950/40 px-4 py-1.5 text-sm text-amber-100" role="status">
+          <span>
+            <span className="font-bold">Your turn, {currentCharacter.name.split(' ')[0]}</span> — click a green tile to move, or pick an ability on the right. Red hatching provokes attacks.
+          </span>
+          <button
+            onClick={dismissCoach}
+            className="rounded border border-amber-700/60 px-2 py-0.5 text-xs font-semibold text-amber-200 hover:bg-amber-900/50"
+            aria-label="Dismiss combat hint"
+          >
+            Got it
+          </button>
+        </div>
+      )}
+
       {/* Below the desktop three-column layout, show the battlefield first.
           Small screens use one normal page scroll so roster cards cannot be
           clipped by nested rail scrolling; the xl desktop rail keeps its
           bounded scroll behavior inside the tactical shell. */}
-      <div className="grid flex-grow grid-cols-1 gap-4 overflow-visible xl:min-h-0 xl:grid-cols-[230px_1fr_300px] xl:overflow-hidden">
+      <div className="grid flex-grow grid-cols-1 gap-4 overflow-visible lg:min-h-0 lg:grid-cols-[200px_1fr_280px] lg:overflow-hidden xl:grid-cols-[230px_1fr_300px]">
         {/* Left Pane */}
         <div
           data-testid="combat-roster-rail"
-          className="order-2 flex min-h-[18rem] max-h-none flex-col gap-4 overflow-visible scrollable-content p-1 xl:order-none xl:min-h-0 xl:max-h-none xl:overflow-y-auto"
+          className="order-2 flex min-h-[18rem] max-h-none flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:min-h-0 lg:max-h-none lg:overflow-y-auto"
         >
           <PartyDisplay
             characters={characters}
@@ -802,7 +849,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             surrounding grid/flex layout from forcing a scroll-sized child. */}
         <div
           ref={battlefieldSectionRef}
-          className="order-1 flex h-[26rem] shrink-0 flex-col gap-2 overflow-hidden p-1 xl:order-none xl:h-auto xl:min-h-0 xl:shrink"
+          className="order-1 flex h-[68vh] min-h-[24rem] shrink-0 flex-col gap-2 overflow-hidden p-1 lg:order-none lg:h-auto lg:min-h-0 lg:shrink"
         >
           <div
             className={`relative flex min-h-0 flex-1 items-center justify-center overflow-hidden ${
@@ -879,6 +926,21 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                       }}
                     />
                   </Suspense>
+                ) : usePixiBoard ? (
+                  <Suspense fallback={<Battle3DLoadingFallback />}>
+                    <PixiBoardPrototype
+                      mapData={mapData}
+                      characters={characters}
+                      spellMapArtifacts={spellMapArtifacts}
+                      combatState={{
+                        turnManager: turnManager,
+                        turnState: turnManager.turnState,
+                        abilitySystem: abilitySystem,
+                        isCharacterTurn: turnManager.isCharacterTurn,
+                        onCharacterUpdate: handleCharacterUpdate
+                      }}
+                    />
+                  </Suspense>
                 ) : (
                   <BattleMap
                     mapData={mapData}
@@ -907,7 +969,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             the same top-to-bottom order as the mockup's right rail. */}
         <div
           data-testid="combat-command-rail"
-          className="order-3 flex min-h-[18rem] max-h-none flex-col gap-3 overflow-visible scrollable-content p-1 xl:order-none xl:min-h-0 xl:max-h-none xl:overflow-y-auto"
+          className="order-3 grid min-h-[18rem] max-h-none grid-cols-1 gap-3 overflow-visible scrollable-content p-1 sm:grid-cols-2 lg:order-none lg:flex lg:min-h-0 lg:max-h-none lg:flex-col lg:overflow-y-auto"
         >
           <InitiativeTracker
             characters={characters}

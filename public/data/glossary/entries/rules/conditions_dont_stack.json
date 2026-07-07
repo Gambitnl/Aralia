@@ -14,5 +14,5 @@
     "exhaustion_condition"
   ],
   "filePath": "/data/glossary/entries/rules/conditions_dont_stack.json",
-  "markdown": "# Conditions Don't Stack\r\n\r\nIf multiple effects impose the same condition on you, each instance of the condition has its own duration, but the condition's effects don't get worse. Either you have a condition or you don't.\r\n\r\nThe <span data-term-id=\"exhaustion_condition\" class=\"glossary-term-link-from-markdown\">Exhaustion</span> condition is an exception; its effects get worse if you have the condition and receive it again.\r\n"
+  "markdown": "# Conditions Don't Stack\n\nIf multiple effects impose the same condition on you, each instance of the condition has its own duration, but the condition's effects don't get worse. Either you have a condition or you don't.\n\nThe [[exhaustion_condition|Exhaustion]] condition is an exception; its effects get worse if you have the condition and receive it again.\n"
 }

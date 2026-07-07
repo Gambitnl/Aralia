@@ -43,8 +43,7 @@
     ],
     "seeAlso": [
       "spells_chapter",
-      "spell_level_slots",
-      "class_spell_lists"
+      "spell_level_slots"
     ],
     "filePath": "/data/glossary/entries/rules/spells/gaining_spells.json"
   },
@@ -71,8 +70,7 @@
       "spell schools"
     ],
     "seeAlso": [
-      "spells_chapter",
-      "class_spell_lists"
+      "spells_chapter"
     ],
     "filePath": "/data/glossary/entries/rules/spells/school_of_magic.json"
   },
@@ -97,7 +95,6 @@
     ],
     "seeAlso": [
       "spells_chapter",
-      "spellcasting_focus",
       "component_pouch"
     ],
     "filePath": "/data/glossary/entries/rules/spells/spell_components_rules.json"

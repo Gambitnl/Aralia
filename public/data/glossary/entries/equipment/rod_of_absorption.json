@@ -7,7 +7,7 @@
     "item",
     "itemType:Rod"
   ],
-  "excerpt": "While holding this rod, you can take a reaction to absorb a spell that is targeting only you and doesn't create an area of effect. The absorbed spell'...",
+  "excerpt": "While holding this rod, you can take a reaction|Reaction to absorb a spell that is targeting only you and doesn't create an area of effect. The absorb...",
   "aliases": [],
   "seeAlso": [
     "reaction"

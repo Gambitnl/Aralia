@@ -7,13 +7,13 @@
     "item",
     "itemType:Melee Weapon"
   ],
-  "excerpt": "You gain a +2 bonus to attack rolls and damage rolls made with this magic weapon. In addition, you can make one attack with it as a bonus_action Actio...",
+  "excerpt": "You gain a +2 bonus to attack rolls and damage rolls made with this magic weapon. In addition, you can make one attack with it as a bonus_action|Bonus...",
   "aliases": [],
   "seeAlso": [
-    "bonus_action Action"
+    "bonus_action"
   ],
   "filePath": "/data/glossary/entries/equipment/scimitar_of_speed.json",
-  "markdown": "# Scimitar of Speed\n\nYou gain a +2 bonus to attack rolls and damage rolls made with this magic weapon. In addition, you can make one attack with it as a [[bonus_action Action]] on each of your turns.",
+  "markdown": "# Scimitar of Speed\n\nYou gain a +2 bonus to attack rolls and damage rolls made with this magic weapon. In addition, you can make one attack with it as a [[bonus_action]] on each of your turns.",
   "itemMetadata": {
     "type": "Melee Weapon",
     "rarity": "Very rare",

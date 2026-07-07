@@ -39,6 +39,9 @@ interface BattleMapTileProps {
    *  region. The perimeter gets a crisp stroke so "how far can I go" is a
    *  single readable outline instead of a shapeless wash. */
   moveEdges?: { top: boolean; right: boolean; bottom: boolean; left: boolean };
+  /** Reachable tile that sits in a living enemy's melee reach — moving here
+   *  provokes, so it gets a red hatch inside the move region. */
+  isThreatened?: boolean;
   isVisible?: boolean;
   lightLevel?: LightLevel;
   showCoverLabel?: boolean;
@@ -154,7 +157,7 @@ function getCoverTileVisual(tile: BattleMapTileData): CoverTileVisual | null {
   return null;
 }
 
-const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, isTeleportDestinationPreview, isObjectMoveDestination = false, moveEdges, isVisible = true, lightLevel = 'bright', showCoverLabel = false, targetingMode, onTileClick, onTileHover }) => {
+const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, isTeleportDestinationPreview, isObjectMoveDestination = false, moveEdges, isThreatened = false, isVisible = true, lightLevel = 'bright', showCoverLabel = false, targetingMode, onTileClick, onTileHover }) => {
   // Terrain color is the underlying ground. Spell-mutated environmental effects
   // are layered later so they can appear on grass, stone, water, or any biome.
   // Muted, low-chroma terrain tones so the translucent move/attack/AoE overlays
@@ -167,7 +170,9 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
       case 'rock':
       case 'floor':
       case 'stone': return 'bg-slate-600';
-      case 'water': return 'bg-sky-900';
+      // Water gets NO square tile tint: the ground canvas paints the flowing
+      // body, and a per-tile rectangle would re-impose the grid on it.
+      case 'water': return '';
       case 'difficult': return 'bg-amber-900';
       case 'wall': return 'bg-slate-900';
       case 'sand': return 'bg-yellow-800';
@@ -209,21 +214,6 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
     overlayClass = 'bg-amber-400/20';
   }
 
-  // Visibility is separate from targeting and movement overlays. The masks are
-  // deliberately light now that a painted ground sits underneath: hidden and
-  // dark tiles still read as "limited sight" but the battlefield art stays
-  // visible instead of being crushed to solid black (which turned the whole map
-  // into a dark checkerboard).
-  const visibilityOverlayClass = !isVisible
-    ? 'bg-black/55'
-    : lightLevel === 'magical_darkness'
-      ? 'bg-black/45'
-      : lightLevel === 'darkness'
-      ? 'bg-black/25'
-        : lightLevel === 'dim'
-          ? 'bg-slate-950/15'
-          : '';
-  
   // Targeting mode must send every tile click to the validation layer. Legal
   // tiles still get bright overlays, while illegal tiles can now produce the
   // existing "why this cannot be targeted" banner instead of doing nothing.
@@ -254,7 +244,7 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
     >
       {/* Faint terrain tint over the painted ground, for type legibility and to
           give the move/attack overlays a base. */}
-      <div className={`absolute inset-0 ${terrainColor} opacity-20 pointer-events-none`} />
+      {terrainColor && <div className={`absolute inset-0 ${terrainColor} opacity-20 pointer-events-none`} />}
       {/* Elevation is hover-only: always-on digits across the board read as a
           debug overlay, not a battle map. The number appears on the tile under
           the cursor (and stays in the title tooltip). */}
@@ -262,6 +252,15 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
         <div className="absolute top-0 right-0.5 text-[9px] font-bold text-slate-200/70 opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
           {tile.elevation}
         </div>
+      )}
+      {/* Red hatch on reachable tiles inside enemy melee reach: "you can go
+          here, but it provokes" — the danger half of the movement read. */}
+      {isThreatened && (
+        <div
+          data-testid="threat-hatch"
+          className="pointer-events-none absolute inset-0"
+          style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(244,63,94,0.30) 0px, rgba(244,63,94,0.30) 3px, transparent 3px, transparent 8px)' }}
+        />
       )}
       {/* Crisp perimeter stroke around the outer boundary of the reachable
           move region — the core "how far can I go" read. */}
@@ -289,7 +288,9 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
           {coverVisual.label}
         </div>
       )}
-      {visibilityOverlayClass && <div className={`absolute inset-0 ${visibilityOverlayClass} pointer-events-none`}></div>}
+      {/* Visibility darkening moved to BattleMapFogCanvas, which feathers the
+          same data into soft light pools instead of per-tile black squares.
+          Interaction overlays stay on the tile so they remain crisp. */}
       {overlayClass && <div className={`absolute inset-0 ${overlayClass} pointer-events-none`}></div>}
     </div>
   );

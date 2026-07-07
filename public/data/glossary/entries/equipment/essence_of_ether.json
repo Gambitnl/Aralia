@@ -7,7 +7,7 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A creature subjected to Essence of Ether must succeed on a DC 15 Constitution saving throw or have the poisoned condition for 8 hours. The creature al...",
+  "excerpt": "A creature subjected to Essence of Ether must succeed on a DC 15 Constitution saving throw or have the poisoned|Poisoned condition for 8 hours. The cr...",
   "aliases": [],
   "seeAlso": [
     "poisoned",

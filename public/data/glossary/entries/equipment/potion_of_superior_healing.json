@@ -7,13 +7,13 @@
     "item",
     "itemType:Potion"
   ],
-  "excerpt": "You regain 8d4 + 8 hit_points Points when you drink this potion. The potion's red liquid glimmers when agitated....",
+  "excerpt": "You regain 8d4 + 8 hit_points|Hit Points when you drink this potion. The potion's red liquid glimmers when agitated....",
   "aliases": [],
   "seeAlso": [
-    "hit_points Points"
+    "hit_points"
   ],
   "filePath": "/data/glossary/entries/equipment/potion_of_superior_healing.json",
-  "markdown": "# Potion of Superior Healing\n\nYou regain 8d4 + 8 [[hit_points Points]] when you drink this potion. The potion's red liquid glimmers when agitated.",
+  "markdown": "# Potion of Superior Healing\n\nYou regain 8d4 + 8 [[hit_points]] when you drink this potion. The potion's red liquid glimmers when agitated.",
   "itemMetadata": {
     "type": "Potion",
     "rarity": "Rare",

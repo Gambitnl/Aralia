@@ -7,7 +7,7 @@
     "item",
     "itemType:Instrument"
   ],
-  "excerpt": "This horn has 4 charges and regains 1d4 expended charges daily at dawn. As a magic action, you can blow the horn while expending 1 charge. One creatur...",
+  "excerpt": "This horn has 4 charges and regains 1d4 expended charges daily at dawn. As a magic|Magic action, you can blow the horn while expending 1 charge. One c...",
   "aliases": [],
   "seeAlso": [
     "magic"

@@ -11,10 +11,10 @@
   "aliases": [],
   "seeAlso": [
     "magic",
-    "long_rest Rest"
+    "long_rest"
   ],
   "filePath": "/data/glossary/entries/equipment/3_rod_of_the_pact_keeper.json",
-  "markdown": "# +3 Rod of the Pact Keeper\n\nWhile holding this rod, you gain a +3 bonus to spell attack rolls and to the saving throw DCs of your Warlock spells.\n\nIn addition, you can regain one spell slot as a [[magic]] action while holding the rod. You can't use this property again until you finish a [[long_rest Rest]].",
+  "markdown": "# +3 Rod of the Pact Keeper\n\nWhile holding this rod, you gain a +3 bonus to spell attack rolls and to the saving throw DCs of your Warlock spells.\n\nIn addition, you can regain one spell slot as a [[magic]] action while holding the rod. You can't use this property again until you finish a [[long_rest]].",
   "itemMetadata": {
     "type": "Rod",
     "rarity": "Very rare",

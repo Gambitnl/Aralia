@@ -7,16 +7,16 @@
     "item",
     "itemType:Potion"
   ],
-  "excerpt": "When you drink this potion, you gain a climb_speed Speed equal to your speed for 1 hour. During this time, you have advantage on Strength (athletics) ...",
+  "excerpt": "When you drink this potion, you gain a climb_speed|Climb Speed equal to your speed|Speed for 1 hour. During this time, you have advantage|Advantage on...",
   "aliases": [],
   "seeAlso": [
-    "climb_speed Speed",
+    "climb_speed",
     "speed",
     "advantage",
     "athletics"
   ],
   "filePath": "/data/glossary/entries/equipment/potion_of_climbing.json",
-  "markdown": "# Potion of Climbing\n\nWhen you drink this potion, you gain a [[climb_speed Speed]] equal to your [[speed]] for 1 hour. During this time, you have [[advantage]] on Strength ([[athletics]]) checks to climb.\n\nThis potion is separated into brown, silver, and gray layers resembling bands of stone. Shaking the bottle fails to mix the colors.",
+  "markdown": "# Potion of Climbing\n\nWhen you drink this potion, you gain a [[climb_speed]] equal to your [[speed]] for 1 hour. During this time, you have [[advantage]] on Strength ([[athletics]]) checks to climb.\n\nThis potion is separated into brown, silver, and gray layers resembling bands of stone. Shaking the bottle fails to mix the colors.",
   "itemMetadata": {
     "type": "Potion",
     "rarity": "Common",

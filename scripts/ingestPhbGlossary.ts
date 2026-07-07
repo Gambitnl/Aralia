@@ -4,6 +4,12 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  buildResolvableIdSet,
+  makeEmitter,
+  repairMarkdownLinks,
+  repairSeeAlso,
+} from './glossary/lib/termLinks';
 
 // This function is exported for testing purposes.
 export function buildItemMetadata(item: any, typeMap: Record<string, string>): any {
@@ -53,6 +59,28 @@ export function buildItemMetadata(item: any, typeMap: Record<string, string>): a
 const VENDOR_DATA_DIR = path.join(process.cwd(), 'vendor/5etools-src/data');
 const ENTRIES_BASE = path.join(process.cwd(), 'public/data/glossary/entries');
 
+/**
+ * Write a file, retrying briefly on transient Windows file-lock errors
+ * (EBUSY / EPERM / UNKNOWN) that occur when a virus scanner or indexer briefly
+ * holds the handle. Ingest writes 1000+ small files, so a stray lock would
+ * otherwise abort the whole build gate.
+ */
+function writeFileSyncRetry(file: string, data: string): void {
+  const transient = new Set(['EBUSY', 'EPERM', 'UNKNOWN', 'EACCES']);
+  for (let attempt = 0; ; attempt++) {
+    try {
+      fs.writeFileSync(file, data, 'utf8');
+      return;
+    } catch (err: any) {
+      if (attempt >= 5 || !transient.has(err?.code)) throw err;
+      const until = Date.now() + 50 * (attempt + 1);
+      while (Date.now() < until) {
+        /* brief synchronous backoff */
+      }
+    }
+  }
+}
+
 function slugify(name: string): string {
   if (typeof name !== 'string') return '';
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
@@ -80,7 +108,12 @@ function stripMarkup(text: any): string {
     })
     .replace(/\{@\w+\s+([^|}]+)(?:\|[^}]+)?\}/g, '$1') // other tags -> content
     .replace(/\{@\w+\}/g, '')                     // {@tag} -> empty
-    .replace(/(\w+)\|\w+/g, '$1')                 // word|source -> word
+    // word|source -> word, but never inside [[id|display]] links: this regex
+    // used to eat the link pipe too, corrupting [[hit_points|Hit Points]]
+    // into [[hit_points Points]] across the whole glossary.
+    .split(/(\[\[[^\]]*\]\])/g)
+    .map((seg) => (seg.startsWith('[[') ? seg : seg.replace(/(\w+)\|\w+/g, '$1')))
+    .join('')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -95,14 +128,39 @@ function entriesToMarkdown(entries: any[], depth = 1): string {
     } else if (typeof entry === 'object' && entry !== null) {
       if (entry.type === 'list') {
         const items = entry.items || [];
+        // Block-level content that can't live inside a bullet (e.g. a nested
+        // markdown table) is deferred and emitted after the list, so it keeps
+        // its own line structure instead of being flattened into one line.
+        const deferredBlocks: string[] = [];
         for (const item of items) {
           if (typeof item === 'string') {
             markdown += `- ${stripMarkup(item)}\n`;
           } else if (item.type === 'item') {
-            markdown += `- **${stripMarkup(item.name || '')}:** ${stripMarkup(item.entry || entriesToMarkdown(item.entries || []))}\n`;
+            const label = stripMarkup(item.name || '').replace(/:+$/, '');
+            const labelPrefix = label ? `**${label}:** ` : '';
+            if (item.entry) {
+              markdown += `- ${labelPrefix}${stripMarkup(item.entry)}\n`;
+            } else {
+              // item.entries may hold block content (tables, sub-lists). Split
+              // inline lead text (rendered onto the bullet) from block content
+              // (a markdown table), which is deferred to keep its newlines.
+              const rendered = entriesToMarkdown(item.entries || []).trim();
+              const hasBlock = /(^|\n)\s*\|/.test(rendered);
+              if (hasBlock) {
+                const lines = rendered.split('\n');
+                const firstTable = lines.findIndex((l) => /^\s*\|/.test(l));
+                const lead = lines.slice(0, firstTable).join(' ').trim();
+                const block = lines.slice(firstTable).join('\n').trim();
+                markdown += `- ${labelPrefix}${stripMarkup(lead)}\n`;
+                if (block) deferredBlocks.push(block);
+              } else {
+                markdown += `- ${labelPrefix}${stripMarkup(rendered)}\n`;
+              }
+            }
           }
         }
         markdown += '\n';
+        for (const block of deferredBlocks) markdown += `${block}\n\n`;
       } else if (entry.type === 'entries') {
         const headingStr = '#'.repeat(Math.min(depth + 1, 6));
         if (entry.name) markdown += `${headingStr} ${stripMarkup(entry.name)}\n\n`;
@@ -163,7 +221,10 @@ function processSourceFiles() {
   ];
 
   let count = 0;
-  
+  // Records every entry file this ingest generates, so downstream codemods can
+  // avoid editing generated files (their fixes belong in this script instead).
+  const generatedPaths: string[] = [];
+
   // Build Item Type Map
   const typeMap: Record<string, string> = {};
   try {
@@ -252,11 +313,53 @@ function processSourceFiles() {
           }
         }
 
-        fs.writeFileSync(outPath, JSON.stringify(glossaryEntry, null, 2), 'utf8');
+        writeFileSyncRetry(outPath, JSON.stringify(glossaryEntry, null, 2));
+        generatedPaths.push(path.relative(process.cwd(), outPath).replace(/\\/g, '/'));
         count++;
       }
     }
   }
+
+  const manifestPath = path.join(ENTRIES_BASE, '.generated-manifest.json');
+  writeFileSyncRetry(manifestPath, JSON.stringify(generatedPaths.sort(), null, 2));
+
+  // Second pass: now that every entry file (generated + checked-in) exists on
+  // disk, rewrite the generated files' term links and seeAlso arrays so they
+  // only reference targets that actually resolve. Underscore spell ids become
+  // their real hyphenated form; echo-corrupted ids are repaired; dead links
+  // are unlinked to plain text. This keeps generated content compile-clean
+  // without hand-editing generated files (which this ingest would overwrite).
+  const emitter = makeEmitter(buildResolvableIdSet(process.cwd()));
+  let repaired = 0;
+  for (const rel of generatedPaths) {
+    const file = path.join(process.cwd(), rel);
+    let json: any;
+    try {
+      json = JSON.parse(fs.readFileSync(file, 'utf8'));
+    } catch {
+      continue;
+    }
+    let dirty = false;
+    if (typeof json.markdown === 'string') {
+      const fixed = repairMarkdownLinks(json.markdown, emitter);
+      if (fixed !== json.markdown) {
+        json.markdown = fixed;
+        dirty = true;
+      }
+    }
+    if (Array.isArray(json.seeAlso)) {
+      const fixed = repairSeeAlso(json.seeAlso, emitter);
+      if (JSON.stringify(fixed) !== JSON.stringify(json.seeAlso)) {
+        json.seeAlso = fixed;
+        dirty = true;
+      }
+    }
+    if (dirty) {
+      writeFileSyncRetry(file, JSON.stringify(json, null, 2));
+      repaired++;
+    }
+  }
+  console.log(`Repaired links/seeAlso in ${repaired} generated entries.`);
 
   console.log(`Successfully ingested ${count} PHB 2024 glossary elements.`);
 }

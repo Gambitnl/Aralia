@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "{itemEntry Ioun Stone} While this pale lavender ellipsoid orbits your head, you can take a reaction to cancel a spell of level 4 or lower cast by a cr...",
+  "excerpt": "{itemEntry Ioun Stone} While this pale lavender ellipsoid orbits your head, you can take a reaction|Reaction to cancel a spell of level 4 or lower cas...",
   "aliases": [],
   "seeAlso": [
     "reaction"

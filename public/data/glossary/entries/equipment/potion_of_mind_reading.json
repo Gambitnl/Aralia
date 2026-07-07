@@ -7,13 +7,13 @@
     "item",
     "itemType:Potion"
   ],
-  "excerpt": "When you drink this potion, you gain the effect of the detect_thoughts Thoughts spell (save DC 13) for 10 minutes (no Concentration required). This po...",
+  "excerpt": "When you drink this potion, you gain the effect of the detect_thoughts|Detect Thoughts spell (save DC 13) for 10 minutes (no Concentration required). ...",
   "aliases": [],
   "seeAlso": [
-    "detect_thoughts Thoughts"
+    "detect-thoughts"
   ],
   "filePath": "/data/glossary/entries/equipment/potion_of_mind_reading.json",
-  "markdown": "# Potion of Mind Reading\n\nWhen you drink this potion, you gain the effect of the [[detect_thoughts Thoughts]] spell (save DC 13) for 10 minutes (no Concentration required).\n\nThis potion's dense, purple liquid has an ovoid cloud of pink floating in it.",
+  "markdown": "# Potion of Mind Reading\n\nWhen you drink this potion, you gain the effect of the [[detect-thoughts|Detect Thoughts]] spell (save DC 13) for 10 minutes (no Concentration required).\n\nThis potion's dense, purple liquid has an ovoid cloud of pink floating in it.",
   "itemMetadata": {
     "type": "Potion",
     "rarity": "Rare",

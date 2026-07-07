@@ -6,14 +6,14 @@
     "source:xphb",
     "feat"
   ],
-  "excerpt": "You gain the following benefits.  Escape Artist As a bonus_action Action, you can take the disengage action, which also ends the grappled condition on...",
+  "excerpt": "You gain the following benefits.  Escape Artist As a bonus_action|Bonus Action, you can take the disengage|Disengage action, which also ends the grapp...",
   "aliases": [],
   "seeAlso": [
-    "bonus_action Action",
+    "bonus_action",
     "disengage",
     "grappled",
     "speed"
   ],
   "filePath": "/data/glossary/entries/feats/boon_of_speed.json",
-  "markdown": "# Boon of Speed\n\nYou gain the following benefits.\n\n## Escape Artist\n\nAs a [[bonus_action Action]], you can take the [[disengage]] action, which also ends the [[grappled]] condition on you.\n\n## Quickness\n\nYour [[speed]] increases by 30 feet."
+  "markdown": "# Boon of Speed\n\nYou gain the following benefits.\n\n## Escape Artist\n\nAs a [[bonus_action]], you can take the [[disengage]] action, which also ends the [[grappled]] condition on you.\n\n## Quickness\n\nYour [[speed]] increases by 30 feet."
 }

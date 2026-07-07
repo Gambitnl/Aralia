@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "When you take a magic action to remove the stopper of this painted brass bottle, a cloud of thick smoke flows out of it. At the end of your turn, the ...",
+  "excerpt": "When you take a magic|Magic action to remove the stopper of this painted brass bottle, a cloud of thick smoke flows out of it. At the end of your turn...",
   "aliases": [],
   "seeAlso": [
     "magic",

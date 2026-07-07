@@ -7,15 +7,15 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "While this bowl is filled with water and you are within 5 feet of it, you can take a magic action to summon a Water Elemental. The elemental appears i...",
+  "excerpt": "While this bowl is filled with water and you are within 5 feet of it, you can take a magic|Magic action to summon a Water Elemental. The elemental app...",
   "aliases": [],
   "seeAlso": [
     "magic",
     "initiative",
-    "bonus_action Action"
+    "bonus_action"
   ],
   "filePath": "/data/glossary/entries/equipment/bowl_of_commanding_water_elementals.json",
-  "markdown": "# Bowl of Commanding Water Elementals\n\nWhile this bowl is filled with water and you are within 5 feet of it, you can take a [[magic]] action to summon a Water Elemental. The elemental appears in an unoccupied space as close to the bowl as possible, understands your languages, obeys your commands, and takes its turn immediately after you on your [[initiative]] count. The elemental disappears after 1 hour, when it dies, or when you dismiss it as a [[bonus_action Action]]. The bowl can't be used this way again until the next dawn.\n\nThe bowl is about 1 foot in diameter and half as deep. It holds about 3 gallons.",
+  "markdown": "# Bowl of Commanding Water Elementals\n\nWhile this bowl is filled with water and you are within 5 feet of it, you can take a [[magic]] action to summon a Water Elemental. The elemental appears in an unoccupied space as close to the bowl as possible, understands your languages, obeys your commands, and takes its turn immediately after you on your [[initiative]] count. The elemental disappears after 1 hour, when it dies, or when you dismiss it as a [[bonus_action]]. The bowl can't be used this way again until the next dawn.\n\nThe bowl is about 1 foot in diameter and half as deep. It holds about 3 gallons.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Rare"

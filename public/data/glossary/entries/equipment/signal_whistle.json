@@ -7,7 +7,7 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "When blown as a utilize action, a Signal Whistle produces a sound that can be heard up to 600 feet away....",
+  "excerpt": "When blown as a utilize|Utilize action, a Signal Whistle produces a sound that can be heard up to 600 feet away....",
   "aliases": [],
   "seeAlso": [
     "utilize"

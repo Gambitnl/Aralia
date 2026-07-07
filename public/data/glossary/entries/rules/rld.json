@@ -6,11 +6,11 @@
     "source:xphb",
     "itemProperty"
   ],
-  "excerpt": "Reload You can make a limited number of shots with a Reload weapon. You must then reload the weapon as an action or a bonus_action Action....",
+  "excerpt": "Reload You can make a limited number of shots with a Reload weapon. You must then reload the weapon as an action or a bonus_action|Bonus Action....",
   "aliases": [],
   "seeAlso": [
-    "bonus_action Action"
+    "bonus_action"
   ],
   "filePath": "/data/glossary/entries/rules/rld.json",
-  "markdown": "# RLD\n\n## Reload\n\nYou can make a limited number of shots with a Reload weapon. You must then reload the weapon as an action or a [[bonus_action Action]]."
+  "markdown": "# RLD\n\n## Reload\n\nYou can make a limited number of shots with a Reload weapon. You must then reload the weapon as an action or a [[bonus_action]]."
 }

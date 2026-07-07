@@ -7,11 +7,11 @@
     "item",
     "itemType:Instrument"
   ],
-  "excerpt": "You can take a magic action to blow this horn. In response, warrior spirits from the plane of Ysgard appear in unoccupied spaces within 60 feet of you...",
+  "excerpt": "You can take a magic|Magic action to blow this horn. In response, warrior spirits from the plane of Ysgard appear in unoccupied spaces within 60 feet ...",
   "aliases": [],
   "seeAlso": [
     "magic",
-    "hit_points Points",
+    "hit_points",
     "immunity",
     "charmed",
     "frightened",
@@ -19,7 +19,7 @@
     "friendly_attitude"
   ],
   "filePath": "/data/glossary/entries/equipment/horn_of_valhalla_brass.json",
-  "markdown": "# Horn of Valhalla, Brass\n\nYou can take a [[magic]] action to blow this horn. In response, warrior spirits from the plane of Ysgard appear in unoccupied spaces within 60 feet of you. Each spirit uses the Berserker stat block and returns to Ysgard after 1 hour or when it drops to 0 [[hit_points Points]]. The spirits look like living, breathing warriors, and they have [[immunity]] to the [[charmed]] and [[frightened]] conditions. Once you use the horn, it can't be used again until 7 days have passed.\n\nA brass horn summons 3 Berserker. To use the brass horn, you must have [[proficiency]] with all Simple weapons.\n\nIf you blow the horn without meeting its requirement, the summoned Berserker attack you. If you meet the requirement, they are [[friendly_attitude]] to you and your allies and follow your commands.",
+  "markdown": "# Horn of Valhalla, Brass\n\nYou can take a [[magic]] action to blow this horn. In response, warrior spirits from the plane of Ysgard appear in unoccupied spaces within 60 feet of you. Each spirit uses the Berserker stat block and returns to Ysgard after 1 hour or when it drops to 0 [[hit_points]]. The spirits look like living, breathing warriors, and they have [[immunity]] to the [[charmed]] and [[frightened]] conditions. Once you use the horn, it can't be used again until 7 days have passed.\n\nA brass horn summons 3 Berserker. To use the brass horn, you must have [[proficiency]] with all Simple weapons.\n\nIf you blow the horn without meeting its requirement, the summoned Berserker attack you. If you meet the requirement, they are [[friendly_attitude|Friendly]] to you and your allies and follow your commands.",
   "itemMetadata": {
     "type": "Instrument",
     "rarity": "Rare"

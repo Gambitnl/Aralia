@@ -50,11 +50,7 @@
     "humanoid"
   ],
   "aliases": [],
-  "seeAlso": [
-    "astral_knowledge",
-    "githyanki_psionics",
-    "psychic_resilience"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/githyanki.json",
   "maleImageUrl": "/assets/images/races/githyanki_male.png",
   "femaleImageUrl": "/assets/images/races/githyanki_female.png"

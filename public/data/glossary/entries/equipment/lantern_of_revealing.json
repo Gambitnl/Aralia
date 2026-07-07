@@ -7,16 +7,16 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "While lit, this hooded lantern burns for 6 hours on 1 pint of oil, shedding bright_light Light in a 30-foot radius and dim_light Light for an addition...",
+  "excerpt": "While lit, this hooded lantern burns for 6 hours on 1 pint of oil, shedding bright_light|Bright Light in a 30-foot radius and dim_light|Dim Light for ...",
   "aliases": [],
   "seeAlso": [
-    "bright_light Light",
-    "dim_light Light",
+    "bright_light",
+    "dim_light",
     "invisible",
     "utilize"
   ],
   "filePath": "/data/glossary/entries/equipment/lantern_of_revealing.json",
-  "markdown": "# Lantern of Revealing\n\nWhile lit, this hooded lantern burns for 6 hours on 1 pint of oil, shedding [[bright_light Light]] in a 30-foot radius and [[dim_light Light]] for an additional 30 feet. [[invisible]] creatures and objects are visible as long as they are in the lantern's [[bright_light Light]]. You can take a [[utilize]] action to lower the hood, reducing the lantern's light to [[dim_light Light]] in a 5-foot radius.",
+  "markdown": "# Lantern of Revealing\n\nWhile lit, this hooded lantern burns for 6 hours on 1 pint of oil, shedding [[bright_light]] in a 30-foot radius and [[dim_light]] for an additional 30 feet. [[invisible]] creatures and objects are visible as long as they are in the lantern's [[bright_light]]. You can take a [[utilize]] action to lower the hood, reducing the lantern's light to [[dim_light]] in a 5-foot radius.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon"

@@ -6,20 +6,20 @@
     "source:xphb",
     "background"
   ],
-  "excerpt": "- Ability Scores:: Constitution, Wisdom, Charisma - Feat:: healer - Skill Proficiencies:: medicine, religion - Tool Proficiency:: herbalism_kit Kit - ...",
+  "excerpt": "- Ability Scores: Constitution, Wisdom, Charisma - Feat: healer|Healer - Skill Proficiencies: medicine|Medicine, religion|Religion - Tool Proficiency:...",
   "aliases": [],
   "seeAlso": [
     "healer",
     "medicine",
     "religion",
-    "herbalism_kit Kit",
+    "herbalism_kit",
     "quarterstaff",
     "bedroll",
     "book",
     "lamp",
     "oil",
-    "traveler_s_clothes's Clothes"
+    "traveler_s_clothes"
   ],
   "filePath": "/data/glossary/entries/backgrounds/hermit.json",
-  "markdown": "# Hermit\n\n- **Ability Scores::** Constitution, Wisdom, Charisma\n- **Feat::** [[healer]]\n- **Skill Proficiencies::** [[medicine]], [[religion]]\n- **Tool Proficiency::** [[herbalism_kit Kit]]\n- **Equipment::** Choose A or B: (A) [[quarterstaff]], [[herbalism_kit Kit]], [[bedroll]], [[book]] (philosophy), [[lamp]], [[oil]] (3 flasks), [[traveler_s_clothes's Clothes]], 16 GP; or (B) 50 GP"
+  "markdown": "# Hermit\n\n- **Ability Scores:** Constitution, Wisdom, Charisma\n- **Feat:** [[healer]]\n- **Skill Proficiencies:** [[medicine]], [[religion]]\n- **Tool Proficiency:** [[herbalism_kit]]\n- **Equipment:** Choose A or B: (A) [[quarterstaff]], [[herbalism_kit]], [[bedroll]], [[book]] (philosophy), [[lamp]], [[oil]] (3 flasks), [[traveler_s_clothes|Traveler's Clothes]], 16 GP; or (B) 50 GP"
 }

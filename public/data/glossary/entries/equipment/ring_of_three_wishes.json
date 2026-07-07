@@ -7,7 +7,7 @@
     "item",
     "itemType:Ring"
   ],
-  "excerpt": "While wearing this ring, you can expend 1 of its 3 charges to cast wish from it. The ring becomes nonmagical when you use the last charge....",
+  "excerpt": "While wearing this ring, you can expend 1 of its 3 charges to cast wish|Wish from it. The ring becomes nonmagical when you use the last charge....",
   "aliases": [],
   "seeAlso": [
     "wish"

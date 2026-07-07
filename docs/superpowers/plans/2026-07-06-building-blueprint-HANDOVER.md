@@ -1,5 +1,7 @@
 # Handover — Building Blueprint Pipeline
 
+> **EXECUTED — COMPLETE 2026-07-07.** This handover was picked up and fully executed: all 12 plan tasks built and review-approved, plus a 5-critic Opus critique round (50 points → 12 fixes, ledger at `.agent/scratch/blueprint-critique-round2.md`), basement wiring into the live plot path, and a final whole-branch review (verdict: READY, zero blockers; 368 tests green, 0/2000 fuzz crashes; 2D and 3D both visually eyeballed). Execution ledger: `.superpowers/sdd/progress.md`; all task reports: `.superpowers/sdd/wave-a-report.md`. Open follow-ups (Wave C, deferred to Remy): frontage orientation, tower semantics, temple building type, lot/town-gen integration. The text below is the original pre-build handover, kept for the record.
+
 **You are picking up a fully-designed, ready-to-build feature.** The design is done, approved, and turned into a step-by-step plan. Your job is to build it. Read this whole doc first, then read the plan, then start.
 
 ---

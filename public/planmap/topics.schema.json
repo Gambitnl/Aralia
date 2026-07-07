@@ -13,7 +13,7 @@
         "required": ["label", "color"],
         "properties": {
           "label": { "type": "string" },
-          "color": { "enum": ["purple", "teal", "gray", "coral", "pink"] }
+          "color": { "enum": ["purple", "teal", "gray", "coral", "pink", "violet", "indigo", "green", "blue", "amber"] }
         }
       }
     },

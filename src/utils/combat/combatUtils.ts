@@ -372,8 +372,25 @@ export function getActionMessage(action: CombatAction, character: CombatCharacte
   const abilityName = action.abilityId || 'an ability';
   
   switch (action.type) {
-    case 'move':
+    case 'move': {
+      // "X moves." wastes the log's one job: telling the player what the enemy
+      // did. Carry distance and compass direction from the data we already have.
+      // The character object is often already at the destination when the log
+      // line is written, so derive the origin from the walked path when present.
+      const origin = action.movementPath?.[0];
+      if (action.targetPosition && origin) {
+        const dx = action.targetPosition.x - origin.x;
+        const dy = action.targetPosition.y - origin.y;
+        const tiles = Math.max(Math.abs(dx), Math.abs(dy));
+        if (tiles > 0) {
+          const ns = dy < 0 ? 'north' : dy > 0 ? 'south' : '';
+          const ew = dx < 0 ? 'west' : dx > 0 ? 'east' : '';
+          const dir = Math.abs(dy) > Math.abs(dx) * 2 ? ns : Math.abs(dx) > Math.abs(dy) * 2 ? ew : `${ns}${ew}` || ns || ew;
+          return `${character.name} moves ${tiles * 5} ft ${dir}.`;
+        }
+      }
       return `${character.name} moves.`;
+    }
     case 'ability': {
       const ability = character.abilities.find(a => a.id === action.abilityId);
       const name = ability?.name || abilityName;

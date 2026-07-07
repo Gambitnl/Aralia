@@ -192,6 +192,63 @@ test('locks: auto-expiry — sweepExpired drops past-TTL lock and emits lock.exp
   rm(dir);
 });
 
+test('reservations: queued agents keep FIFO dibs and the head is fulfilled by locking', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir, now: makeClock() });
+  const a = store.registerAgent({ handle: 'a' });
+  const b = store.registerAgent({ handle: 'b' });
+
+  const first = store.reserveFiles({ agentId: a.id, paths: ['tools/agora/dashboard/index.html'], reason: 'dashboard edit' });
+  assert.equal(first.ok, true);
+  assert.equal(first.reservation.position, 1);
+  assert.equal(first.reservation.queueSeq, 1);
+
+  const second = store.reserveFiles({ agentId: b.id, paths: ['tools/agora/dashboard/index.html'], reason: 'follow-up edit' });
+  assert.equal(second.ok, true);
+  assert.equal(second.reservation.position, 2);
+  assert.equal(second.reservation.queueSeq, 2);
+
+  const jump = store.acquireLock({ agentId: b.id, paths: ['tools/agora/dashboard/index.html'] });
+  assert.equal(jump.ok, false);
+  assert.equal(jump.conflict.type, 'reservation');
+  assert.equal(jump.conflict.reservation.agentId, a.id);
+  assert.equal(jump.conflict.reservation.position, 1);
+
+  const lock = store.acquireLock({ agentId: a.id, paths: ['tools/agora/dashboard/index.html'] });
+  assert.equal(lock.ok, true);
+
+  const remaining = store.listReservations();
+  assert.equal(remaining.length, 1);
+  assert.equal(remaining[0].agentId, b.id);
+  assert.equal(remaining[0].position, 1);
+
+  store.close();
+  rm(dir);
+});
+
+test('reservations: holder can cancel by id or covered path', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir, now: makeClock() });
+  const a = store.registerAgent({ handle: 'a' });
+
+  const first = store.reserveFiles({ agentId: a.id, paths: ['src/a.ts'], reason: 'later' });
+  assert.equal(first.ok, true);
+
+  const byPath = store.releaseReservation({ agentId: a.id, target: 'src/a.ts' });
+  assert.equal(byPath.ok, true);
+  assert.equal(store.listReservations().length, 0);
+
+  const second = store.reserveFiles({ agentId: a.id, paths: ['src/b.ts'], reason: 'later' });
+  assert.equal(second.ok, true);
+
+  const byId = store.releaseReservation({ agentId: a.id, target: second.reservation.id });
+  assert.equal(byId.ok, true);
+  assert.equal(store.listReservations().length, 0);
+
+  store.close();
+  rm(dir);
+});
+
 // --- tasks -----------------------------------------------------------------
 
 test('task lifecycle: create -> claim -> in_progress -> done; double-claim rejected; handoff', () => {
@@ -203,7 +260,20 @@ test('task lifecycle: create -> claim -> in_progress -> done; double-claim rejec
   const t = store.createTask({ agentId: a.id, title: 'do thing', body: 'details' });
   assert.equal(t.state, 'open');
   assert.equal(t.createdBy, a.id);
+  assert.deepEqual(t.creatorAgent, {
+    id: a.id,
+    handle: 'a',
+    note: '',
+    model: '',
+    sessionId: '',
+  });
+  assert.equal('token' in t.creatorAgent, false);
   assert.equal(t.history.length, 1);
+
+  assert.throws(
+    () => store.createTask({ agentId: 'missing-agent', title: 'bad creator' }),
+    /registered creator agent is required/,
+  );
 
   const c = store.claimTask({ taskId: t.id, agentId: a.id });
   assert.equal(c.ok, true);
@@ -246,6 +316,39 @@ test('task lifecycle: create -> claim -> in_progress -> done; double-claim rejec
 
 // --- messaging -------------------------------------------------------------
 
+test('messages: command channel is role-gated and filtered separately', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir, now: makeClock() });
+  const worker = store.registerAgent({ handle: 'w' }); // role defaults to worker
+  const orch = store.registerAgent({ handle: 'o', role: 'orchestrator' });
+  const human = store.registerAgent({ handle: 'h', role: 'human' });
+  const master = store.registerAgent({ handle: 'm', role: 'master' });
+
+  // Workers may not post on the command channel.
+  const refused = store.postMessage({ agentId: worker.id, to: 'all', body: 'sneak', channel: 'command' });
+  assert.equal(refused.ok, false);
+  assert.match(refused.error, /command channel/);
+
+  // Orchestrator, human, and master may.
+  for (const sender of [orch, human, master]) {
+    const r = store.postMessage({ agentId: sender.id, to: 'all', body: 'directive', channel: 'command' });
+    assert.equal(r.ok, true);
+    assert.equal(r.message.channel, 'command');
+  }
+
+  // Workers still post fine on main, and an unknown channel lands on main.
+  assert.equal(store.postMessage({ agentId: worker.id, to: 'all', body: 'status' }).ok, true);
+  assert.equal(store.postMessage({ agentId: worker.id, to: 'all', body: 'odd', channel: 'weird' }).message.channel, 'main');
+
+  // Channel filtering: default read = main only; command and all opt in.
+  assert.equal(store.getMessages({}).length, 2);
+  assert.equal(store.getMessages({ channel: 'command' }).length, 3);
+  assert.equal(store.getMessages({ channel: 'all' }).length, 5);
+
+  store.close();
+  rm(dir);
+});
+
 test('messages: broadcast + direct routing, since cursor', () => {
   const dir = tmpDir();
   const store = createStore({ dir, now: makeClock() });
@@ -254,9 +357,11 @@ test('messages: broadcast + direct routing, since cursor', () => {
   const c = store.registerAgent({ handle: 'c' });
 
   const m1 = store.postMessage({ agentId: a.id, to: 'all', body: 'hello all' });
-  assert.equal(m1.seq, 1);
+  assert.equal(m1.ok, true);
+  assert.equal(m1.message.seq, 1);
   const m2 = store.postMessage({ agentId: a.id, to: b.id, body: 'psst b' });
-  assert.equal(m2.seq, 2);
+  assert.equal(m2.ok, true);
+  assert.equal(m2.message.seq, 2);
 
   // b sees broadcast + its direct
   const forB = store.getMessages({ to: b.id });

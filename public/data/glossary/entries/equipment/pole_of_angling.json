@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This item functions as a Pole. While holding it, you can take a magic action to cause it to transform into a fishing pole with a hook, a line, and a r...",
+  "excerpt": "This item functions as a Pole. While holding it, you can take a magic|Magic action to cause it to transform into a fishing pole with a hook, a line, a...",
   "aliases": [],
   "seeAlso": [
     "magic"

@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/knocking_out_a_creature.json",
-  "markdown": "# Knocking Out a Creature\n\nWhen you would reduce a creature to 0 [[hit_points Points]] with a melee attack, you can instead reduce the creature to 1 Hit Point. The creature then has the [[unconscious]] condition and starts a [[short_rest Rest]].\n\nThe creature remains Unconscious until it regains any [[hit_points Points]] or until someone uses an action to administer first aid to it, which requires a successful DC 10 Wisdom ([[medicine]]) check."
+  "markdown": "# Knocking Out a Creature\n\nWhen you would reduce a creature to 0 [[hit_points]] with a melee attack, you can instead reduce the creature to 1 Hit Point. The creature then has the [[unconscious]] condition and starts a [[short_rest]].\n\nThe creature remains Unconscious until it regains any [[hit_points]] or until someone uses an action to administer first aid to it, which requires a successful DC 10 Wisdom ([[medicine]]) check."
 }

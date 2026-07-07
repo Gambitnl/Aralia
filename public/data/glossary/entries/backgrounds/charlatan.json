@@ -6,16 +6,16 @@
     "source:xphb",
     "background"
   ],
-  "excerpt": "- Ability Scores:: Dexterity, Constitution, Charisma - Feat:: skilled - Skill Proficiencies:: deception, sleight_of_hand of Hand - Tool Proficiency:: ...",
+  "excerpt": "- Ability Scores: Dexterity, Constitution, Charisma - Feat: skilled|Skilled - Skill Proficiencies: deception|Deception, sleight_of_hand|Sleight of Han...",
   "aliases": [],
   "seeAlso": [
     "skilled",
     "deception",
-    "sleight_of_hand of Hand",
-    "forgery_kit Kit",
+    "sleight_of_hand",
+    "forgery_kit",
     "costume",
-    "fine_clothes Clothes"
+    "fine_clothes"
   ],
   "filePath": "/data/glossary/entries/backgrounds/charlatan.json",
-  "markdown": "# Charlatan\n\n- **Ability Scores::** Dexterity, Constitution, Charisma\n- **Feat::** [[skilled]]\n- **Skill Proficiencies::** [[deception]], [[sleight_of_hand of Hand]]\n- **Tool Proficiency::** [[forgery_kit Kit]]\n- **Equipment::** Choose A or B: (A) [[forgery_kit Kit]], [[costume]], [[fine_clothes Clothes]], 15 GP; or (B) 50 GP"
+  "markdown": "# Charlatan\n\n- **Ability Scores:** Dexterity, Constitution, Charisma\n- **Feat:** [[skilled]]\n- **Skill Proficiencies:** [[deception]], [[sleight_of_hand]]\n- **Tool Proficiency:** [[forgery_kit]]\n- **Equipment:** Choose A or B: (A) [[forgery_kit]], [[costume]], [[fine_clothes]], 15 GP; or (B) 50 GP"
 }

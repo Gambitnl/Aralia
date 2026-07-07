@@ -68,6 +68,7 @@ import { type SceneCastMember } from './SceneCast';
 import { scheduleClockFromGameTime } from '../../systems/worldforge/roster/gameClock';
 import { GamePhase } from '../../types/core';
 import type { PlayerWorldPosition } from '../../types';
+import type { BattleMapBiome } from '../../types/combat';
 
 /**
  * HOSTILE-1 return-from-combat contract:
@@ -90,6 +91,7 @@ import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
 // same reason AtlasDemo is lazy. Only types may be imported statically.
 import type { WorldDelta } from '../../systems/worldforge/delta/types';
 import type { GroundWorld } from '../../systems/worldforge/bridge/groundChunkLoader';
+import { dungeonNameForEntrance } from '../../systems/worldforge/bridge/dungeonEntrances';
 import { LOCATIONS } from '../../data/world/locations';
 import { getBurgNamer } from '../../systems/worldforge/bridge/legacySubmapBridge';
 import { generateTownRoster } from '../../systems/worldforge/roster/generateTownRoster';
@@ -484,6 +486,9 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
   const combatTriggered = useRef(false);
   // SP4: ids of hidden places the player has already revealed this session.
   const discoveredHiddenRef = useRef<Set<string>>(new Set());
+  // Pillar 2: ids of dungeon entrances already discovered this session. Consume-
+  // once so StrictMode's double-mount + re-entering a radius stay idempotent.
+  const discoveredDungeonRef = useRef<Set<string>>(new Set());
   // Fight-in-place slice 1: the latest ground meters the player stands on, so a
   // dev entry (window.__fipTestFight / ?fipfight) can start a test fight at the
   // player's exact 3D location without walking into a hostile.
@@ -600,6 +605,53 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
         }
       }
 
+      // Pillar 2 discovery: walking within range of a world-grown dungeon
+      // ENTRANCE names the dungeon and pins it (interior is Pillar 3 — no fake
+      // interiors). Reuses the hidden-site persistence (REVEAL_HIDDEN_SITE): the
+      // payload's id/cellId/name/kind/offset all fit a dungeon entrance, so the
+      // discovery survives reload and pins on the map pane exactly like a hidden
+      // place. Consume-once via `discoveredDungeonRef` so StrictMode's double
+      // mount and re-entering the radius stay idempotent.
+      if (gwForDiscovery?.dungeonEntrances?.length) {
+        for (const de of gwForDiscovery.dungeonEntrances) {
+          if (discoveredDungeonRef.current.has(de.id)) continue;
+          if (Math.hypot(x - de.xM, z - de.zM) <= de.discoveryRadiusM) {
+            discoveredDungeonRef.current.add(de.id);
+            // The dungeon's REAL derived name (from its Pillar-1 lore pass),
+            // generated once and cached per sitePath.
+            const seed = state.worldSeed ?? 42;
+            const name =
+              dungeonNameForEntrance(seed, de.sitePath) ?? 'an unknown dungeon';
+            // Pin at the ENTRANCE's own atlas cell (the site cell), not the
+            // player's streamed cell — identity anchors to the site (recon trap 2).
+            const exX = gwForDiscovery.extentMetersX || 1;
+            const exZ = gwForDiscovery.extentMetersZ || 1;
+            const offsetX = Math.max(-0.5, Math.min(0.5, de.xM / exX - 0.5));
+            const offsetY = Math.max(-0.5, Math.min(0.5, de.zM / exZ - 0.5));
+            dispatch({
+              type: 'REVEAL_HIDDEN_SITE',
+              payload: {
+                id: de.id,
+                cellId: de.cellId,
+                name,
+                kind: de.entranceKind,
+                offsetX,
+                offsetY,
+              },
+            });
+            dispatch({
+              type: 'ADD_MESSAGE',
+              payload: {
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                text: `You found ${name} — the way down is dark.`,
+                sender: 'system',
+                timestamp: new Date(),
+              },
+            });
+          }
+        }
+      }
+
       // Combat handoff check: walking near a hostile creature in 3D ground mode
       // triggers combat by extracting the local 40x30 (5ft) terrain patch.
       if (combatTriggered.current) return;
@@ -644,7 +696,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
                 };
 
                 // PV4: Determine combat theme from dominant biome instead of hardcoding.
-                const getThemeFromBiome = (biome: string | undefined): 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp' => {
+                const getThemeFromBiome = (biome: string | undefined): BattleMapBiome => {
                   if (!biome) return 'forest';
                   const lowerBiome = biome.toLowerCase();
                   if (lowerBiome.includes('desert')) return 'desert';
@@ -719,7 +771,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
     const bx = Math.max(0, Math.min(ground.cols - 1, Math.round(x / 1.524)));
     const by = Math.max(0, Math.min(ground.rows - 1, Math.round(z / 1.524)));
     const groundBiome = (ground.biomeIds[by * ground.cols + bx] ?? '').toLowerCase();
-    const theme: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp' =
+    const theme: BattleMapBiome =
       groundBiome.includes('desert') ? 'desert'
         : (groundBiome.includes('swamp') || groundBiome.includes('wetland')) ? 'swamp'
           : 'forest';

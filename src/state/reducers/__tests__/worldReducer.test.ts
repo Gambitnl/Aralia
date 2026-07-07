@@ -246,6 +246,31 @@ describe('worldReducer', () => {
         expect(second.discoveredHiddenSites).toEqual([a, b]);
     });
 
+    it('DUNGEON_CLEARED records a cleared site (by sitePath), deduped, round-trips (Task 8)', () => {
+        const pathA = 'wf:7/cell:34/dungeon:m2';
+        const pathB = 'wf:7/burg:5/dungeon:crypt';
+        const baseState = createMockGameState({});
+        // Default uncleared: nothing tracked yet.
+        expect(baseState.clearedDungeons ?? []).toEqual([]);
+
+        const first = worldReducer(baseState, { type: 'DUNGEON_CLEARED', payload: { sitePath: pathA } });
+        expect(first.clearedDungeons).toEqual([pathA]);
+
+        // Re-clearing the same path is idempotent (empty slice, no duplicate).
+        const again = worldReducer(
+            { ...baseState, clearedDungeons: first.clearedDungeons! },
+            { type: 'DUNGEON_CLEARED', payload: { sitePath: pathA } },
+        );
+        expect(again.clearedDungeons).toBeUndefined();
+
+        // A different path appends.
+        const second = worldReducer(
+            { ...baseState, clearedDungeons: [pathA] },
+            { type: 'DUNGEON_CLEARED', payload: { sitePath: pathB } },
+        );
+        expect(second.clearedDungeons).toEqual([pathA, pathB]);
+    });
+
     // ============================================================================
     // ADD_RUMORS — living-world chronicle → tavern-gossip bridge
     // ============================================================================

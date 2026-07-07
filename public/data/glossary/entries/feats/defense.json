@@ -6,11 +6,11 @@
     "source:xphb",
     "feat"
   ],
-  "excerpt": "While you're wearing Light, Medium, or Heavy armor, you gain a +1 bonus to armor_class Class....",
+  "excerpt": "While you're wearing Light, Medium, or Heavy armor, you gain a +1 bonus to armor_class|Armor Class....",
   "aliases": [],
   "seeAlso": [
-    "armor_class Class"
+    "armor_class"
   ],
   "filePath": "/data/glossary/entries/feats/defense.json",
-  "markdown": "# Defense\n\nWhile you're wearing Light, Medium, or Heavy armor, you gain a +1 bonus to [[armor_class Class]]."
+  "markdown": "# Defense\n\nWhile you're wearing Light, Medium, or Heavy armor, you gain a +1 bonus to [[armor_class]]."
 }

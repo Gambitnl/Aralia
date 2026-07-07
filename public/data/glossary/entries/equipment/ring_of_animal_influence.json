@@ -10,12 +10,12 @@
   "excerpt": "This ring has 3 charges, and it regains 1d3 expended charges daily at dawn. While wearing the ring, you can expend 1 charge to cast one of the followi...",
   "aliases": [],
   "seeAlso": [
-    "animal_friendship Friendship",
+    "animal-friendship",
     "fear",
-    "speak_with_animals with Animals"
+    "speak-with-animals"
   ],
   "filePath": "/data/glossary/entries/equipment/ring_of_animal_influence.json",
-  "markdown": "# Ring of Animal Influence\n\nThis ring has 3 charges, and it regains 1d3 expended charges daily at dawn. While wearing the ring, you can expend 1 charge to cast one of the following spells (save DC 13) from it:\n\n- [[animal_friendship Friendship]]\n- [[fear]] (affects Beasts only)\n- [[speak_with_animals with Animals]]",
+  "markdown": "# Ring of Animal Influence\n\nThis ring has 3 charges, and it regains 1d3 expended charges daily at dawn. While wearing the ring, you can expend 1 charge to cast one of the following spells (save DC 13) from it:\n\n- [[animal-friendship|Animal Friendship]]\n- [[fear]] (affects Beasts only)\n- [[speak-with-animals|Speak with Animals]]",
   "itemMetadata": {
     "type": "Ring",
     "rarity": "Rare"

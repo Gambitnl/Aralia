@@ -52,10 +52,7 @@
   "aliases": [
     "fire_giant"
   ],
-  "seeAlso": [
-    "goliath",
-    "fire_damage"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/goliath_ancestries/fire_giant_goliath.json",
   "maleImageUrl": "/assets/images/races/Goliath_Fire Giant_Male.png",
   "femaleImageUrl": "/assets/images/races/Goliath_Fire Giant_Female.png"

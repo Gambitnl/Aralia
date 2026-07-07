@@ -288,6 +288,8 @@ export interface Item {
   mastery?: string;
   category?: string;
 
+  /** homeId of the household this item was stolen from; set when taken from an owned container. */
+  stolenFrom?: string;
   /** Optional pointer to the container/bag this item currently resides in. */
   containerId?: string;
   /** When true, this item behaves like a container capable of holding other items. */

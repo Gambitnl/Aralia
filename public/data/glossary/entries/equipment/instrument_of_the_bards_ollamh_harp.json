@@ -13,13 +13,13 @@
     "fly",
     "invisibility",
     "levitate",
-    "protection_from_evil_and_good from Evil and Good",
+    "protection-from-evil-and-good",
     "confusion",
-    "control_weather Weather",
-    "fire_storm Storm"
+    "control-weather",
+    "fire-storm"
   ],
   "filePath": "/data/glossary/entries/equipment/instrument_of_the_bards_ollamh_harp.json",
-  "markdown": "# Instrument of the Bards, Ollamh Harp\n\nAn Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college. A creature that attempts to play the instrument without being attuned to it must succeed on a DC 15 Wisdom saving throw or take 2d4 Psychic damage.\n\nYou can play the Ollamh Harp to cast one of the following spells: [[fly]], [[invisibility]], [[levitate]], [[protection_from_evil_and_good from Evil and Good]], [[confusion]], [[control_weather Weather]], and [[fire_storm Storm]]. Once the Ollamh Harp has been used to cast a spell, it can't be used to cast that spell again until the next dawn. The spells use your spellcasting ability and spell save DC.",
+  "markdown": "# Instrument of the Bards, Ollamh Harp\n\nAn Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college. A creature that attempts to play the instrument without being attuned to it must succeed on a DC 15 Wisdom saving throw or take 2d4 Psychic damage.\n\nYou can play the Ollamh Harp to cast one of the following spells: [[fly]], [[invisibility]], [[levitate]], [[protection-from-evil-and-good|Protection from Evil and Good]], [[confusion]], [[control-weather|Control Weather]], and [[fire-storm|Fire Storm]]. Once the Ollamh Harp has been used to cast a spell, it can't be used to cast that spell again until the next dawn. The spells use your spellcasting ability and spell save DC.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Legendary",

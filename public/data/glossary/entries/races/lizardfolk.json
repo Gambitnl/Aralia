@@ -56,10 +56,7 @@
   ],
   "aliases": [],
   "seeAlso": [
-    "humanoid",
-    "swim_speed",
-    "hungry_jaws",
-    "natural_armor"
+    "swim_speed"
   ],
   "filePath": "/data/glossary/entries/races/lizardfolk.json",
   "maleImageUrl": "/assets/images/races/Lizardfolk_Male.png",

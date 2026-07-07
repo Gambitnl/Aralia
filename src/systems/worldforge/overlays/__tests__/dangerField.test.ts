@@ -42,3 +42,62 @@ describe('computeDangerField', () => {
     expect(flagged.length).toBeLessThan(4); // not every cell is "dangerous"
   });
 });
+
+// ── Pillar 2, Task 8: dungeon-site danger term ──────────────────────────────
+describe('computeDangerField — dungeon sites (Task 8)', () => {
+  // Four calm grassland cells, no zones — so any danger is purely the site term.
+  const calm = {
+    pack: {
+      cells: {
+        h: [50, 50, 50, 50],
+        biome: [4, 4, 4, 4],
+        c: [[1], [0, 2], [1, 3], [2]],
+      },
+      zones: [],
+    },
+  } as any;
+
+  it('an UNCLEARED site adds a local bump that decays with distance', () => {
+    const base = computeDangerField(calm);
+    const withSite = computeDangerField(calm, {
+      dungeonSites: [{ cellId: 0, cleared: false }],
+    });
+    // Bump present at the site cell and its neighbour, decaying outward.
+    expect(withSite[0]).toBeGreaterThan(base[0]);
+    expect(withSite[0]).toBeGreaterThan(withSite[1]);
+    expect(withSite[1]).toBeGreaterThan(withSite[2]);
+  });
+
+  it('a CLEARED site contributes nothing (field equals the no-site field)', () => {
+    const base = computeDangerField(calm);
+    const cleared = computeDangerField(calm, {
+      dungeonSites: [{ cellId: 0, cleared: true }],
+    });
+    expect(Array.from(cleared)).toEqual(Array.from(base));
+  });
+
+  it('OMITTING dungeonSites is byte-identical to the pre-Task-8 output', () => {
+    const a = computeDangerField(atlas);
+    const b = computeDangerField(atlas, {}); // no dungeonSites key
+    expect(Array.from(a)).toEqual(Array.from(b));
+    // And on the calm atlas too, an empty site list must equal no term at all.
+    const c = computeDangerField(calm);
+    const d = computeDangerField(calm, { dungeonSites: [] });
+    expect(Array.from(c)).toEqual(Array.from(d));
+  });
+
+  it('is deterministic and pure with sites (same input → same output, input untouched)', () => {
+    const sites = [{ cellId: 0, cleared: false }];
+    const snap = JSON.stringify(sites);
+    const a = computeDangerField(calm, { dungeonSites: sites });
+    const b = computeDangerField(calm, { dungeonSites: sites });
+    expect(Array.from(a)).toEqual(Array.from(b));
+    expect(JSON.stringify(sites)).toBe(snap); // opts input not mutated
+  });
+
+  it('strength override raises the site-cell danger', () => {
+    const weak = computeDangerField(calm, { dungeonSites: [{ cellId: 0, cleared: false, strength: 0.2 }] });
+    const strong = computeDangerField(calm, { dungeonSites: [{ cellId: 0, cleared: false, strength: 0.9 }] });
+    expect(strong[0]).toBeGreaterThan(weak[0]);
+  });
+});

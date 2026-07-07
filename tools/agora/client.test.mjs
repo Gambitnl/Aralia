@@ -51,6 +51,7 @@ test('happy path: register -> lock -> locks -> task -> say -> inbox', async () =
   assert.equal(reg.code, 0);
   assert.ok(reg.identity && reg.identity.token, 'register returns identity with token');
   assert.match(reg.lines.join('\n'), /Registered as "tester"/);
+  const testerToken = reg.identity.token;
 
   // Identity persisted to the temp dir, keyed by baseUrl.
   const idFile = path.join(clientDir, 'client-identity.json');
@@ -89,6 +90,22 @@ test('happy path: register -> lock -> locks -> task -> say -> inbox', async () =
   assert.match(locks.lines.join('\n'), /tester/);
   assert.match(locks.lines.join('\n'), /src\/foo\.ts/);
 
+  // --- reservations: agents can queue for files before locking them ---
+  const reserve = await cli(['reserve', 'src/reserved.ts', '--reason', 'next pass', '--token', testerToken]);
+  assert.equal(reserve.code, 0);
+  assert.equal(reserve.reservation.position, 1);
+  assert.match(reserve.lines.join('\n'), /Reservation queued/);
+
+  const reservations = await cli(['reservations']);
+  assert.equal(reservations.code, 0);
+  assert.ok(reservations.reservations.some((r) => r.id === reserve.reservation.id));
+  assert.match(reservations.lines.join('\n'), /#1/);
+  assert.match(reservations.lines.join('\n'), /src\/reserved\.ts/);
+
+  const unreserve = await cli(['unreserve', reserve.reservation.id, '--token', testerToken]);
+  assert.equal(unreserve.code, 0);
+  assert.match(unreserve.lines.join('\n'), /Released reservation/);
+
   // --- lock conflict: a SECOND agent locking the same path -> 409 + exit 1 ---
   const reg2 = await cli(['register', 'rival']); // overwrites identity for this baseUrl
   assert.equal(reg2.code, 0);
@@ -98,15 +115,13 @@ test('happy path: register -> lock -> locks -> task -> say -> inbox', async () =
   assert.match(conflict.lines.join('\n'), /CONFLICT/);
   assert.match(conflict.lines.join('\n'), /tester/); // holder resolved to handle
 
-  // Re-register tester so subsequent commands use tester's token again.
-  // (We stored tester's identity earlier; just point --token at it.)
-  const testerToken = reg.identity.token;
-
   // --- task new / claim / state (explicit --token to avoid identity churn) ---
   const tnew = await cli(['task', 'new', 'Wire the thing', '--body', 'details', '--token', testerToken]);
   assert.equal(tnew.code, 0);
   const taskId = tnew.task.id;
   assert.equal(tnew.task.state, 'open');
+  assert.equal(tnew.task.creatorAgent.id, reg.identity.agentId);
+  assert.equal(tnew.task.creatorAgent.handle, 'tester');
 
   const tclaim = await cli(['task', 'claim', taskId, '--token', testerToken]);
   assert.equal(tclaim.code, 0);

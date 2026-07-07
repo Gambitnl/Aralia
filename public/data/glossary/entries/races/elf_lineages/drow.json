@@ -43,10 +43,9 @@
     "dark elf"
   ],
   "seeAlso": [
-    "elf",
     "darkvision",
-    "dancing_lights",
-    "faerie_fire",
+    "dancing-lights",
+    "faerie-fire",
     "darkness"
   ],
   "filePath": "/data/glossary/entries/races/elf_lineages/drow.json",

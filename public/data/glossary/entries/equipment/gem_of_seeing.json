@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This gem has 3 charges. As a magic action, you can expend 1 charge. For the next 10 minutes, you have truesight out to 120 feet when you peer through ...",
+  "excerpt": "This gem has 3 charges. As a magic|Magic action, you can expend 1 charge. For the next 10 minutes, you have truesight|Truesight out to 120 feet when y...",
   "aliases": [],
   "seeAlso": [
     "magic",

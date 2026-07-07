@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "While this pearl is on your person, you can take a magic action to regain one expended spell slot of level 3 or lower. Once you use the pearl, it can'...",
+  "excerpt": "While this pearl is on your person, you can take a magic|Magic action to regain one expended spell slot of level 3 or lower. Once you use the pearl, i...",
   "aliases": [],
   "seeAlso": [
     "magic"

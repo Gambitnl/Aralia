@@ -6,7 +6,7 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "You have truesight with a range of 30 feet....",
+  "excerpt": "You have truesight|Truesight with a range of 30 feet....",
   "aliases": [],
   "seeAlso": [
     "truesight"

@@ -6,11 +6,11 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "You can cast mage_armor Armor on yourself without expending a spell slot....",
+  "excerpt": "You can cast mage_armor|Mage Armor on yourself without expending a spell slot....",
   "aliases": [],
   "seeAlso": [
-    "mage_armor Armor"
+    "mage-armor"
   ],
   "filePath": "/data/glossary/entries/rules/armor_of_shadows.json",
-  "markdown": "# Armor of Shadows\n\nYou can cast [[mage_armor Armor]] on yourself without expending a spell slot."
+  "markdown": "# Armor of Shadows\n\nYou can cast [[mage-armor|Mage Armor]] on yourself without expending a spell slot."
 }

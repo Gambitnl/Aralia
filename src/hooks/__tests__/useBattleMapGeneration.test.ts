@@ -189,22 +189,22 @@ describe('useBattleMapGeneration', () => {
         }
     });
 
-    it('keeps 80x60 tactical spawn generation within the documented budget', () => {
+    it('keeps 120x90 tactical spawn generation within the documented budget', () => {
         const characters = [
             ...[1, 2, 3, 4, 5, 6].map(i => createMockCombatCharacter({ id: `p${i}`, team: 'player' })),
             ...[1, 2, 3, 4, 5, 6].map(i => createMockCombatCharacter({ id: `e${i}`, team: 'enemy' }))
         ];
 
         // Measure only the setup call. Vitest import and transform time is not
-        // part of the gameplay budget; the map quadrupled to 80x60 (2026-07-01)
-        // so the G6 budget scales with tile count (was <=50ms for 40x30).
+        // part of the gameplay budget; the budget scales with tile count
+        // (40x30 <=50ms → 80x60 <=200ms → 120x90 <=450ms, 2026-07-06).
         const startedAt = performance.now();
         const { mapData, positionedCharacters } = generateBattleSetup('forest', 13579, characters);
         const durationMs = performance.now() - startedAt;
 
-        expect(mapData.dimensions).toEqual({ width: 80, height: 60 });
+        expect(mapData.dimensions).toEqual({ width: 120, height: 90 });
         expect(positionedCharacters.every(character => character.position)).toBe(true);
-        expect(durationMs).toBeLessThanOrEqual(200);
+        expect(durationMs).toBeLessThanOrEqual(450);
     });
 
     it('falls back to nearest walkable tiles when preferred spawn zones are exhausted', async () => {

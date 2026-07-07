@@ -106,10 +106,31 @@ batch SHIPPED and verified (95/95 BattleMap tests, headless screenshot proof):
   warmed to low-alpha ink brown.
 - HUD: active-character banner (name/HP/"Your turn") atop the Actions rail,
   ability names on button faces, confirm dialogs on New Map and End Battle.
-Still open in the ledger (larger lifts): enemy tokens on the grid + threat/reach
-visualization, token motion/turn-handoff animation, soft radial fog-of-war,
-roster/initiative-strip dedup, log storytelling copy, SFX layer, onboarding
-prompt, canvas re-render at zoom, biome/name-truncation issues.
+Round 2 SHIPPED (verified headless; BattleMap suites green — one 3D WebGPU
+failfast test is flaky under parallel load only, passes alone):
+- Token legibility: "invisible enemies" was a CONTRAST bug (dark red-800 ring on
+  dark slate over dark forest) — now bright faction rings (red-500 hostile,
+  blue-400 ally) + white halo + an HP arc around the rim (green→amber→red);
+  tokens glide 0.35s between tiles instead of teleporting.
+- Roster: names get the full card width (no more "K…/Tho…"), ⓘ/AI controls
+  moved to their own row (44px touch targets kept).
+- Log: "Round N" entries render as chapter divider chips; movement lines now
+  carry distance + compass direction ("Goblin 3 moves 30 ft west"), origin
+  taken from action.movementPath[0] since the character is already at the
+  destination when the line is written.
+Round 3 SHIPPED (verified headless; BattleMap suites 55/55 green):
+- Soft fog-of-war: new `BattleMapFogCanvas` paints visibility at 1px/tile and
+  upscales with bilinear smoothing — the interpolation feathers every light
+  boundary, so fog reads as organic dark pools; per-tile mask divs removed
+  from `BattleMapTile` (tests updated to assert their absence).
+- Threat read: tiles inside a living enemy's melee reach get a red hatch when
+  they're inside the reachable-move region ("you can go here, but it provokes").
+- Objective chip in the toolbar ("N enemies remain" → "Battlefield clear") and
+  a dismissible first-fight coach line ("Your turn, X — click a green tile…",
+  persisted via localStorage `aralia-combat-coach-dismissed`).
+Still open in the ledger (larger lifts): SFX layer, canvas re-render at zoom,
+biome selector surfacing, board frame/ruler band, roster/initiative-strip
+dedup, gamma-aware overlay palette, token min-size floor at Fit zoom.
 
 ## 8. Do-not-revert notes
 

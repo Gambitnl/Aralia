@@ -28,6 +28,7 @@ const RUMOR_LIFESPAN_DAYS = 30;
 const KIND_TO_TYPE: Record<LifeEventKind, WorldRumor['type']> = {
   economy: 'market',
   disaster: 'event',
+  raid_worry: 'event',
   death: 'event',
   role_succession: 'event',
   birth: 'misc',

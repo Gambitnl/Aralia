@@ -7,13 +7,13 @@
     "item",
     "itemType:Tool"
   ],
-  "excerpt": "- Ability:: Intelligence - Utilize:: Detect a poisoned object (DC 10) - Craft:: basic_poison Poison...",
+  "excerpt": "- Ability: Intelligence - Utilize: Detect a poisoned object (DC 10) - Craft: basic_poison|Basic Poison...",
   "aliases": [],
   "seeAlso": [
-    "basic_poison Poison"
+    "basic_poison"
   ],
   "filePath": "/data/glossary/entries/equipment/poisoner_s_kit.json",
-  "markdown": "# Poisoner's Kit\n\n- **Ability::** Intelligence\n- **Utilize::** Detect a poisoned object (DC 10)\n- **Craft::** [[basic_poison Poison]]",
+  "markdown": "# Poisoner's Kit\n\n- **Ability:** Intelligence\n- **Utilize:** Detect a poisoned object (DC 10)\n- **Craft:** [[basic_poison]]",
   "itemMetadata": {
     "type": "Tool",
     "rarity": "None",

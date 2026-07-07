@@ -7,16 +7,16 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "Iron Spikes come in bundles of ten. As a utilize action, you can use a blunt object, such as a light_hammer Hammer, to hammer a spike into wood, earth...",
+  "excerpt": "Iron Spikes come in bundles of ten. As a utilize|Utilize action, you can use a blunt object, such as a light_hammer|Light Hammer, to hammer a spike in...",
   "aliases": [],
   "seeAlso": [
     "utilize",
-    "light_hammer Hammer",
+    "light_hammer",
     "rope",
     "chain"
   ],
   "filePath": "/data/glossary/entries/equipment/iron_spike.json",
-  "markdown": "# Iron Spike\n\nIron Spikes come in bundles of ten. As a [[utilize]] action, you can use a blunt object, such as a [[light_hammer Hammer]], to hammer a spike into wood, earth, or a similar material. You can do so to jam a door shut or to then tie a [[rope]] or [[chain]] to the Spike.",
+  "markdown": "# Iron Spike\n\nIron Spikes come in bundles of ten. As a [[utilize]] action, you can use a blunt object, such as a [[light_hammer]], to hammer a spike into wood, earth, or a similar material. You can do so to jam a door shut or to then tie a [[rope]] or [[chain]] to the Spike.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

@@ -6,7 +6,7 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "You can cast levitate on yourself without expending a spell slot....",
+  "excerpt": "You can cast levitate|Levitate on yourself without expending a spell slot....",
   "aliases": [],
   "seeAlso": [
     "levitate"

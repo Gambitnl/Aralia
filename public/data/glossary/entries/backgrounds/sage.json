@@ -6,18 +6,18 @@
     "source:xphb",
     "background"
   ],
-  "excerpt": "- Ability Scores:: Constitution, Intelligence, Wisdom - Feat:: magic_initiate Initiate (Wizard) - Skill Proficiencies:: arcana, history - Tool Profici...",
+  "excerpt": "- Ability Scores: Constitution, Intelligence, Wisdom - Feat: magic_initiate|Magic Initiate (Wizard) - Skill Proficiencies: arcana|Arcana, history|Hist...",
   "aliases": [],
   "seeAlso": [
-    "magic_initiate Initiate",
+    "magic_initiate",
     "arcana",
     "history",
-    "calligrapher_s_supplies's Supplies",
+    "calligrapher_s_supplies",
     "quarterstaff",
     "book",
     "parchment",
     "robe"
   ],
   "filePath": "/data/glossary/entries/backgrounds/sage.json",
-  "markdown": "# Sage\n\n- **Ability Scores::** Constitution, Intelligence, Wisdom\n- **Feat::** [[magic_initiate Initiate]] (Wizard)\n- **Skill Proficiencies::** [[arcana]], [[history]]\n- **Tool Proficiency::** [[calligrapher_s_supplies's Supplies]]\n- **Equipment::** Choose A or B: (A) [[quarterstaff]], [[calligrapher_s_supplies's Supplies]], [[book]] (history), [[parchment]] (8 sheets), [[robe]], 8 GP; or (B) 50 GP"
+  "markdown": "# Sage\n\n- **Ability Scores:** Constitution, Intelligence, Wisdom\n- **Feat:** [[magic_initiate]] (Wizard)\n- **Skill Proficiencies:** [[arcana]], [[history]]\n- **Tool Proficiency:** [[calligrapher_s_supplies|Calligrapher's Supplies]]\n- **Equipment:** Choose A or B: (A) [[quarterstaff]], [[calligrapher_s_supplies|Calligrapher's Supplies]], [[book]] (history), [[parchment]] (8 sheets), [[robe]], 8 GP; or (B) 50 GP"
 }

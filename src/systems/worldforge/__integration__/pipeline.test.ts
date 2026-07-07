@@ -19,6 +19,8 @@ import {
   type FmgWorldResult,
 } from '../fmg/generateWorld';
 import { generateInterior } from '../interior/generateInterior';
+import { blueprintForPlot } from '../interior/generateInterior';
+import { briefForPlot } from '../town/householdBrief';
 import { EXTERIOR } from '../interior/types';
 import { generateLocal } from '../local/generateLocal';
 import { generateRegion } from '../region/generateRegion';
@@ -130,6 +132,17 @@ function buildTownProbePipeline(): Pipeline {
 
   expect(anchor).toBeGreaterThanOrEqual(0);
 
+  // Center the window on the burg point, exactly like production settlement
+  // entry (getWorldforgeLocalForCell passes centerPx → windowCenterPx). This
+  // also activates generateRegion's settlement dry-land floor (2026-07-04
+  // coastal blue-flood fix): without it, this low coastal burg (h exactly 20,
+  // the waterline) interpolates below the waterline everywhere under the new
+  // water discipline, the whole window becomes `water`, and feature placement
+  // rejects every sample (townFeatureCount 0) — the flooded-town artifact the
+  // fix exists to prevent. Fixed 2026-07-06.
+  const burgId = world.pack.cells.burg![anchor];
+  const burg = (world.pack as unknown as { burgs: Array<{ x: number; y: number }> })
+    .burgs[burgId];
   const region = generateRegion(
     world,
     anchor,
@@ -137,6 +150,7 @@ function buildTownProbePipeline(): Pipeline {
     {
       feetPerPixel: FEET_PER_PIXEL,
       world,
+      windowCenterPx: [burg.x, burg.y],
     },
   );
   const local = generateLocal(region, boundsCenter(region.bounds), region.seedPath, {
@@ -380,8 +394,15 @@ describe('worldforge pipeline integration', () => {
       // origin snaps to the 100 ft sample lattice — adjacent regions now agree
       // EXACTLY at shared world points (seamProbe budget tightened <50 → <1 ft).
       // Region heightfield + downstream local material shift.
+      // Re-frozen 2026-07-06 (coastal blue-flood fix, landed 2026-07-04): water
+      // discipline now keys off the INTERPOLATED surface height instead of the
+      // single nearest cell, so thin land spits near ocean cells are no longer
+      // force-clamped underwater. Only the region heightfield shifts here; the
+      // primary window's material classification is unchanged (localMaterialHash
+      // identical). The generateRegion unit golden was re-frozen in the same
+      // change; this chain golden was missed.
       atlasCellCount: 6005,
-      regionHeightfieldHash: 290541207,
+      regionHeightfieldHash: 2801916318,
       localMaterialHash: 423127639,
     });
   }, 60_000); // world gen now includes Military/Markers/Zones (stages 33-35)
@@ -603,9 +624,66 @@ describe('worldforge pipeline integration', () => {
       // generateTownPlan.ts retired). 216 plots → max-plot-id +100 reseeds the
       // added building again → 1 room. Role/delta logic unchanged (market →
       // shopfloor); only the geometry seed moved.
-      addedInteriorRoomCount: 1,
+      // 2026-07-06 (Task 10): generateInterior is now an adapter over the
+      // blueprint generator (generateBuilding) — interiors re-rolled once
+      // (approved plan consequence). The added market building packs 2 rooms.
+      addedInteriorRoomCount: 2,
       hasAddedExteriorDoor: true,
       removedPlotPresent: false,
     });
+  }, 60_000);
+
+  // BGv2 Task 11: the population pass tags plots with a concrete building type
+  // and a founding household; toArtifactPlan must carry that `pop` through so
+  // the 3D bake can rebuild the brief and design each interior for its family.
+  it('carries the population pass into the artifact plan and threads the brief into interiors', () => {
+    const townProbe = buildTownProbePipeline();
+    const site = townProbe.region.townSites[0];
+    expect(site).toBeDefined();
+
+    const seedPath = townProbe.region.seedPath;
+    const townPlan = townPlanForSite(site, seedPath);
+
+    // A populated town (population: 4000) tags residential plots with a
+    // buildingType, homeId, occupants — carried on the artifact plot as `pop`.
+    const pops = townPlan.plots
+      .map((plot) => plot.pop)
+      .filter((pop): pop is NonNullable<typeof pop> => pop !== undefined);
+    expect(pops.length).toBeGreaterThan(0);
+
+    const homePlot = townPlan.plots.find(
+      (plot) => plot.pop?.residential && plot.pop.homeId && (plot.pop.occupants ?? 0) > 0,
+    );
+    expect(homePlot).toBeDefined();
+
+    // briefForPlot resolves the SAME seed the tooltip households key on (the
+    // town's seed path), so the family the house is built for is the tooltip
+    // family. A residential, occupied plot yields a brief with that homeId.
+    const brief = briefForPlot(homePlot!.pop!, pops, seedPath);
+    expect(brief).toBeDefined();
+    expect(brief!.homeId).toBe(homePlot!.pop!.homeId);
+
+    // Threading the brief + concrete type into blueprintForPlot designs the
+    // interior for that family: the type override wins and the plan echoes the
+    // household. The briefless plan (no pop) stays byte-identical to before.
+    const briefed = blueprintForPlot(
+      {
+        id: homePlot!.id,
+        footprint: homePlot!.footprint,
+        role: homePlot!.role,
+        storeys: homePlot!.storeys,
+        buildingType: homePlot!.pop!.buildingType,
+        household: brief,
+      },
+      seedPath,
+    );
+    expect(briefed.type).toBe(homePlot!.pop!.buildingType);
+    expect(briefed.household?.homeId).toBe(brief!.homeId);
+
+    const briefless = blueprintForPlot(
+      { id: homePlot!.id, footprint: homePlot!.footprint, role: homePlot!.role, storeys: homePlot!.storeys },
+      seedPath,
+    );
+    expect(briefless.household).toBeUndefined();
   }, 60_000);
 });

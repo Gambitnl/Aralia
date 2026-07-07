@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This helm has 3 charges. While wearing it, you can expend 1 charge to cast teleport from it. The helm regains 1d3 expended charges daily at dawn....",
+  "excerpt": "This helm has 3 charges. While wearing it, you can expend 1 charge to cast teleport|Teleport from it. The helm regains 1d3 expended charges daily at d...",
   "aliases": [],
   "seeAlso": [
     "teleport"

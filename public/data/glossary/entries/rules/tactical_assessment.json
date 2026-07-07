@@ -6,7 +6,7 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "When you make an Intelligence (history or investigation) check or a Wisdom (insight) check, you can expend one Superiority Die and add that die to the...",
+  "excerpt": "When you make an Intelligence (history|History or investigation|Investigation) check or a Wisdom (insight|Insight) check, you can expend one Superiori...",
   "aliases": [],
   "seeAlso": [
     "history",

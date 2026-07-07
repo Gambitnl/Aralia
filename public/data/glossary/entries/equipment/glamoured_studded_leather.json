@@ -7,14 +7,14 @@
     "item",
     "itemType:Light Armor"
   ],
-  "excerpt": "While wearing this armor, you gain a +1 bonus to armor_class Class. You can also take a bonus_action Action to cause the armor to assume the appearanc...",
+  "excerpt": "While wearing this armor, you gain a +1 bonus to armor_class|Armor Class. You can also take a bonus_action|Bonus Action to cause the armor to assume t...",
   "aliases": [],
   "seeAlso": [
-    "armor_class Class",
-    "bonus_action Action"
+    "armor_class",
+    "bonus_action"
   ],
   "filePath": "/data/glossary/entries/equipment/glamoured_studded_leather.json",
-  "markdown": "# Glamoured Studded Leather\n\nWhile wearing this armor, you gain a +1 bonus to [[armor_class Class]]. You can also take a [[bonus_action Action]] to cause the armor to assume the appearance of a normal set of clothing or some other kind of armor. You decide what it looks like—including color, style, and accessories—but the armor retains its normal bulk and weight. The illusory appearance lasts until you use this property again or doff the armor.",
+  "markdown": "# Glamoured Studded Leather\n\nWhile wearing this armor, you gain a +1 bonus to [[armor_class]]. You can also take a [[bonus_action]] to cause the armor to assume the appearance of a normal set of clothing or some other kind of armor. You decide what it looks like—including color, style, and accessories—but the armor retains its normal bulk and weight. The illusory appearance lasts until you use this property again or doff the armor.",
   "itemMetadata": {
     "type": "Light Armor",
     "rarity": "Rare",

@@ -41,7 +41,7 @@ import { BIOMES } from '@/constants';
 import { handleChunkRequest } from '@/systems/world3d/chunkWorkerCore';
 import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from '@/systems/world3d/config';
 import type { ChunkLoader } from '@/systems/world3d/types';
-import { getWorldforgeLocalForLocation, getBridgeAtlas } from '@/systems/worldforge/bridge/legacySubmapBridge';
+import { getWorldforgeLocalForLocation, getWorldforgeLocalForCell, getBridgeAtlas } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { createGroundChunkLoader } from '@/systems/worldforge/bridge/groundChunkLoader';
 import { pickSeamCellPair, buildSeamStitchedLocal } from '@/systems/worldforge/bridge/seamProbe';
 
@@ -104,7 +104,15 @@ const World3DDemo: React.FC = () => {
       // &wfseed= overrides the Worldforge world for dev shoots (e.g. a world
       // whose cultures cover more architecture-style families than seed 42's).
       const wfSeed = Number(params.get('wfseed') ?? DEMO_WF_SEED);
-      const bridged = getWorldforgeLocalForLocation(wfSeed, gx, gy, 25, 16);
+      // DUNGEON-ENTRANCE EYEBALL (?ground=1&dcell=<cellId>): enter the ground
+      // window centered on a specific atlas CELL (not a coarse grid tile), so a
+      // window known to contain a dungeon site actually frames its sealed-door
+      // entrance. Dev-only; falls back to grid-tile entry when absent.
+      const dcellParam = params.get('dcell');
+      const bridged =
+        dcellParam != null
+          ? getWorldforgeLocalForCell(wfSeed, Number(dcellParam))
+          : getWorldforgeLocalForLocation(wfSeed, gx, gy, 25, 16);
       const { ground, loader: groundLoader } = createGroundChunkLoader(bridged.local, wfSeed, bridged.region, { hour });
 
       // Spawn at the artifact center, on the ground surface

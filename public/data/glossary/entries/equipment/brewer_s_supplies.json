@@ -7,13 +7,13 @@
     "baseitem",
     "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Ability:: Intelligence - Utilize:: Detect poisoned drink (DC 15), or identify alcohol (DC 10) - Craft:: antitoxin...",
+  "excerpt": "- Ability: Intelligence - Utilize: Detect poisoned drink (DC 15), or identify alcohol (DC 10) - Craft: antitoxin|Antitoxin...",
   "aliases": [],
   "seeAlso": [
     "antitoxin"
   ],
   "filePath": "/data/glossary/entries/equipment/brewer_s_supplies.json",
-  "markdown": "# Brewer's Supplies\n\n- **Ability::** Intelligence\n- **Utilize::** Detect poisoned drink (DC 15), or identify alcohol (DC 10)\n- **Craft::** [[antitoxin]]",
+  "markdown": "# Brewer's Supplies\n\n- **Ability:** Intelligence\n- **Utilize:** Detect poisoned drink (DC 15), or identify alcohol (DC 10)\n- **Craft:** [[antitoxin]]",
   "itemMetadata": {
     "type": "Artisan's Tools",
     "rarity": "None",

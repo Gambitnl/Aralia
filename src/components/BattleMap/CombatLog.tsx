@@ -262,11 +262,27 @@ const CombatLog: React.FC<CombatLogProps> = ({ logEntries, richMessages, useRich
           // --- LEGACY MODE ---
           // Renders CombatLogEntry[] with the original simple styling.
           // This path is used when useRichDisplay is false or richMessages is empty.
-          : logEntries.map(entry => (
-              <p key={entry.id} className={getEntryStyle(entry.type)}>
-                {entry.message}
-              </p>
-            ))
+          : logEntries.map(entry => {
+              // Round announcements become chapter dividers so the log reads
+              // in rounds instead of an unbroken gray wall.
+              const roundMatch = /^Round (\d+) begins!/.exec(entry.message);
+              if (roundMatch) {
+                return (
+                  <div key={entry.id} className="my-1.5 flex items-center gap-2" role="separator" aria-label={`Round ${roundMatch[1]}`}>
+                    <span className="h-px flex-1 bg-amber-700/40" />
+                    <span className="rounded-full border border-amber-700/50 bg-slate-950/80 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
+                      Round {roundMatch[1]}
+                    </span>
+                    <span className="h-px flex-1 bg-amber-700/40" />
+                  </div>
+                );
+              }
+              return (
+                <p key={entry.id} className={getEntryStyle(entry.type)}>
+                  {entry.message}
+                </p>
+              );
+            })
         }
         {/* Invisible scroll anchor — scrollIntoView targets this element to auto-scroll
             to the bottom whenever new messages arrive. */}

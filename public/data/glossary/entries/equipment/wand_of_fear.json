@@ -15,7 +15,7 @@
     "cone_area_of_effect"
   ],
   "filePath": "/data/glossary/entries/equipment/wand_of_fear.json",
-  "markdown": "# Wand of Fear\n\nThis wand has 7 charges.\n\n## Spells\n\nWhile holding the wand, you can cast one of the spells (save DC 15) on the following table from it. The table indicates how many charges you must expend to cast the spell.\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[command]] (\"flee\" or \"grovel\" only) | 1 |\n| [[fear]] (60-foot [[cone_area_of_effect]]) | 3 |\n\n## Regaining Charges\n\nThe wand regains 1d6 + 1 expended charges daily at dawn. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed.",
+  "markdown": "# Wand of Fear\n\nThis wand has 7 charges.\n\n## Spells\n\nWhile holding the wand, you can cast one of the spells (save DC 15) on the following table from it. The table indicates how many charges you must expend to cast the spell.\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[command]] (\"flee\" or \"grovel\" only) | 1 |\n| [[fear]] (60-foot [[cone_area_of_effect|Cone]]) | 3 |\n\n## Regaining Charges\n\nThe wand regains 1d6 + 1 expended charges daily at dawn. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed.",
   "itemMetadata": {
     "type": "Wand",
     "rarity": "Rare",

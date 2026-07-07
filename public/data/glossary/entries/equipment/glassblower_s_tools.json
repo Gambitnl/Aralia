@@ -7,16 +7,16 @@
     "baseitem",
     "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Ability:: Intelligence - Utilize:: Discern what a glass object held in the past 24 hours (DC 15) - Craft:: glass_bottle Bottle, magnifying_glass Gla...",
+  "excerpt": "- Ability: Intelligence - Utilize: Discern what a glass object held in the past 24 hours (DC 15) - Craft: glass_bottle|Glass Bottle, magnifying_glass|...",
   "aliases": [],
   "seeAlso": [
-    "glass_bottle Bottle",
-    "magnifying_glass Glass",
+    "glass_bottle",
+    "magnifying_glass",
     "spyglass",
     "vial"
   ],
   "filePath": "/data/glossary/entries/equipment/glassblower_s_tools.json",
-  "markdown": "# Glassblower's Tools\n\n- **Ability::** Intelligence\n- **Utilize::** Discern what a glass object held in the past 24 hours (DC 15)\n- **Craft::** [[glass_bottle Bottle]], [[magnifying_glass Glass]], [[spyglass]], [[vial]]",
+  "markdown": "# Glassblower's Tools\n\n- **Ability:** Intelligence\n- **Utilize:** Discern what a glass object held in the past 24 hours (DC 15)\n- **Craft:** [[glass_bottle]], [[magnifying_glass]], [[spyglass]], [[vial]]",
   "itemMetadata": {
     "type": "Artisan's Tools",
     "rarity": "None",

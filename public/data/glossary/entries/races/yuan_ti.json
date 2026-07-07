@@ -53,12 +53,7 @@
     "snake-folk",
     "yuan-ti"
   ],
-  "seeAlso": [
-    "humanoid",
-    "magic_resistance",
-    "poison_damage",
-    "serpentine_casting"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/yuan_ti.json",
   "maleImageUrl": "/assets/images/races/Yuan-Ti_Male.png",
   "femaleImageUrl": "/assets/images/races/Yuan-Ti_Female.png"

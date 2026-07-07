@@ -2,12 +2,17 @@
   "id": "charisma",
   "title": "Charisma",
   "category": "Rules Glossary",
-  "tags": ["ability scores", "attributes", "stats"],
+  "tags": [
+    "ability scores",
+    "attributes",
+    "stats"
+  ],
   "excerpt": "Measures force of personality, persuasiveness, and leadership ability. Charisma is important for bards, paladins, sorcerers, and warlocks.",
-  "aliases": ["CHA"],
+  "aliases": [
+    "CHA"
+  ],
   "seeAlso": [
     "wisdom",
-    "intelligence",
     "ability_check"
   ],
   "filePath": "/data/glossary/entries/rules/charisma.json",

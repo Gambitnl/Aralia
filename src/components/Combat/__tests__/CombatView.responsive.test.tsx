@@ -189,8 +189,9 @@ describe('CombatView responsive layout', () => {
     for (const rail of [rosterRail, commandRail]) {
       expect(rail).toHaveClass('max-h-none');
       expect(rail).toHaveClass('overflow-visible');
-      expect(rail).toHaveClass('xl:overflow-y-auto');
-      expect(rail).toHaveClass('xl:max-h-none');
+      // Desktop rails begin at lg since the 3-column layout survives down to 1024px.
+      expect(rail).toHaveClass('lg:overflow-y-auto');
+      expect(rail).toHaveClass('lg:max-h-none');
     }
   });
 

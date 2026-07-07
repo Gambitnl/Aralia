@@ -25,6 +25,21 @@ code {
     monospace;
 }
 
+/* ============================================================================
+   Design Preview Overlay Guards
+   ============================================================================
+   The Start Point verifier puts a small explanatory note above the live town
+   picker. Its wrapper currently forces direct child divs to fill the preview so
+   the embedded production picker fits the resizable window; without this guard,
+   that same rule stretches the note into a full-window tinted sheet.
+   ============================================================================ */
+#window-design-preview-window [class~="pointer-events-none"][class~="absolute"][class~="left-1/2"][class~="top-3"][class~="z-10"] {
+  /* Keep the note content-sized so it explains the flow without dimming the map. */
+  width: auto !important;
+  height: auto !important;
+  max-width: calc(100% - 2rem);
+}
+
 @layer components {
   /* Base Button Style */
   .btn {

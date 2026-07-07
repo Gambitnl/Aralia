@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/attack_roll.json",
-  "markdown": "# Attack Roll\n\nAn attack roll is a [[d20_test Test]] that represents making an attack with a weapon, an [[unarmed_strike Strike]], or a spell."
+  "markdown": "# Attack Roll\n\nAn attack roll is a [[d20_test]] that represents making an attack with a weapon, an [[unarmed_strike]], or a spell."
 }

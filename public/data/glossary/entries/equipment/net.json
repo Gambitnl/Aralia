@@ -7,17 +7,17 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "When you take the attack action, you can replace one of your attacks with throwing a Net. Target a creature you can see within 15 feet of yourself. Th...",
+  "excerpt": "When you take the attack|Attack action, you can replace one of your attacks with throwing a Net. Target a creature you can see within 15 feet of yours...",
   "aliases": [],
   "seeAlso": [
     "attack",
-    "proficiency Bonus",
+    "proficiency",
     "restrained",
     "athletics",
     "immunity"
   ],
   "filePath": "/data/glossary/entries/equipment/net.json",
-  "markdown": "# Net\n\nWhen you take the [[attack]] action, you can replace one of your attacks with throwing a Net. Target a creature you can see within 15 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and [[proficiency Bonus]]) or have the [[restrained]] condition until it escapes. The target succeeds automatically if it is Huge or larger.\n\nTo escape, the target or a creature within 5 feet of it must take an action to make a DC 10 Strength ([[athletics]]) check, freeing the [[restrained]] creature on a success. Destroying the Net (AC 10; 5 HP; [[immunity]] to Bludgeoning, Poison, and Psychic damage) also frees the target, ending the effect.",
+  "markdown": "# Net\n\nWhen you take the [[attack]] action, you can replace one of your attacks with throwing a Net. Target a creature you can see within 15 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and [[proficiency|Proficiency Bonus]]) or have the [[restrained]] condition until it escapes. The target succeeds automatically if it is Huge or larger.\n\nTo escape, the target or a creature within 5 feet of it must take an action to make a DC 10 Strength ([[athletics]]) check, freeing the [[restrained]] creature on a success. Destroying the Net (AC 10; 5 HP; [[immunity]] to Bludgeoning, Poison, and Psychic damage) also frees the target, ending the effect.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

@@ -55,9 +55,6 @@
     "hippofolk",
     "space hippo"
   ],
-  "seeAlso": [
-    "humanoid",
-    "firearms"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/giff.json"
 }

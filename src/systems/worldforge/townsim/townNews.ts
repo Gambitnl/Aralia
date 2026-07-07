@@ -37,6 +37,9 @@ const PROMINENCE: Record<LifeEventKind, NewsProminence> = {
   came_of_age: 'gossip',
   inheritance: 'gossip',
   festival: 'gossip',
+  // Raid-worry (Task 8) travels as everyday overheard talk — a notice, not a
+  // crier's headline. Loud enough to reach the quest/notice board.
+  raid_worry: 'notice',
 };
 
 const RANK: Record<NewsProminence, number> = { headline: 3, notice: 2, gossip: 1 };

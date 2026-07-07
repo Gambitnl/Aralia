@@ -7,15 +7,14 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Intelligence, Wisdom, Charisma - Feat:: magic_initiate Initiate (Cleric) - Skill Proficiencies:: insight, religion - Tool Proficien...",
+    "excerpt": "- Ability Scores: Intelligence, Wisdom, Charisma - Feat: magic_initiate|Magic Initiate (Cleric) - Skill Proficiencies: insight|Insight, religion|Relig...",
     "aliases": [],
     "seeAlso": [
-      "magic_initiate Initiate",
+      "magic_initiate",
       "insight",
       "religion",
-      "calligrapher_s_supplies's Supplies",
-      "book (prayers)",
-      "holy_symbol Symbol",
+      "calligrapher_s_supplies",
+      "book",
       "parchment",
       "robe"
     ],
@@ -29,15 +28,14 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Strength, Dexterity, Intelligence - Feat:: crafter - Skill Proficiencies:: investigation, persuasion - Tool Proficiency:: Choose on...",
+    "excerpt": "- Ability Scores: Strength, Dexterity, Intelligence - Feat: crafter|Crafter - Skill Proficiencies: investigation|Investigation, persuasion|Persuasion ...",
     "aliases": [],
     "seeAlso": [
       "crafter",
       "investigation",
       "persuasion",
-      "artisan_s_tools's Tools",
       "pouch",
-      "traveler_s_clothes's Clothes"
+      "traveler_s_clothes"
     ],
     "filePath": "/data/glossary/entries/backgrounds/artisan.json"
   },
@@ -49,15 +47,15 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Dexterity, Constitution, Charisma - Feat:: skilled - Skill Proficiencies:: deception, sleight_of_hand of Hand - Tool Proficiency:: ...",
+    "excerpt": "- Ability Scores: Dexterity, Constitution, Charisma - Feat: skilled|Skilled - Skill Proficiencies: deception|Deception, sleight_of_hand|Sleight of Han...",
     "aliases": [],
     "seeAlso": [
       "skilled",
       "deception",
-      "sleight_of_hand of Hand",
-      "forgery_kit Kit",
+      "sleight_of_hand",
+      "forgery_kit",
       "costume",
-      "fine_clothes Clothes"
+      "fine_clothes"
     ],
     "filePath": "/data/glossary/entries/backgrounds/charlatan.json"
   },
@@ -69,17 +67,17 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Dexterity, Constitution, Intelligence - Feat:: alert - Skill Proficiencies:: sleight_of_hand of Hand, stealth - Tool Proficiency:: ...",
+    "excerpt": "- Ability Scores: Dexterity, Constitution, Intelligence - Feat: alert|Alert - Skill Proficiencies: sleight_of_hand|Sleight of Hand, stealth|Stealth - ...",
     "aliases": [],
     "seeAlso": [
       "alert",
-      "sleight_of_hand of Hand",
+      "sleight_of_hand",
       "stealth",
-      "thieves_tools' Tools",
-      "dagger Daggers",
+      "thieves_tools",
+      "dagger",
       "crowbar",
-      "pouch Pouches",
-      "traveler_s_clothes's Clothes"
+      "pouch",
+      "traveler_s_clothes"
     ],
     "filePath": "/data/glossary/entries/backgrounds/criminal.json"
   },
@@ -91,17 +89,16 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Strength, Dexterity, Charisma - Feat:: musician - Skill Proficiencies:: acrobatics, performance - Tool Proficiency:: Choose one kin...",
+    "excerpt": "- Ability Scores: Strength, Dexterity, Charisma - Feat: musician|Musician - Skill Proficiencies: acrobatics|Acrobatics, performance|Performance - Tool...",
     "aliases": [],
     "seeAlso": [
       "musician",
       "acrobatics",
       "performance",
-      "musical_instrument Instrument",
-      "costume Costumes",
+      "costume",
       "mirror",
       "perfume",
-      "traveler_s_clothes's Clothes"
+      "traveler_s_clothes"
     ],
     "filePath": "/data/glossary/entries/backgrounds/entertainer.json"
   },
@@ -113,16 +110,16 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Strength, Constitution, Wisdom - Feat:: tough - Skill Proficiencies:: animal_handling Handling, nature - Tool Proficiency:: carpent...",
+    "excerpt": "- Ability Scores: Strength, Constitution, Wisdom - Feat: tough|Tough - Skill Proficiencies: animal_handling|Animal Handling, nature|Nature - Tool Prof...",
     "aliases": [],
     "seeAlso": [
       "tough",
-      "animal_handling Handling",
+      "animal_handling",
       "nature",
-      "carpenter_s_tools's Tools",
+      "carpenter_s_tools",
       "sickle",
-      "healer_s_kit's Kit",
-      "iron_pot Pot",
+      "healer_s_kit",
+      "iron_pot",
       "shovel"
     ],
     "filePath": "/data/glossary/entries/backgrounds/farmer.json"
@@ -135,20 +132,19 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Strength, Intelligence, Wisdom - Feat:: alert - Skill Proficiencies:: athletics, perception - Tool Proficiency:: Choose one kind of...",
+    "excerpt": "- Ability Scores: Strength, Intelligence, Wisdom - Feat: alert|Alert - Skill Proficiencies: athletics|Athletics, perception|Perception - Tool Proficie...",
     "aliases": [],
     "seeAlso": [
       "alert",
       "athletics",
       "perception",
-      "gaming_set Set",
       "spear",
-      "light_crossbow Crossbow",
+      "light_crossbow",
       "bolt",
-      "hooded_lantern Lantern",
+      "hooded_lantern",
       "manacles",
       "quiver",
-      "traveler_s_clothes's Clothes"
+      "traveler_s_clothes"
     ],
     "filePath": "/data/glossary/entries/backgrounds/guard.json"
   },
@@ -160,19 +156,19 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Dexterity, Constitution, Wisdom - Feat:: magic_initiate Initiate (Druid) - Skill Proficiencies:: stealth, survival - Tool Proficien...",
+    "excerpt": "- Ability Scores: Dexterity, Constitution, Wisdom - Feat: magic_initiate|Magic Initiate (Druid) - Skill Proficiencies: stealth|Stealth, survival|Survi...",
     "aliases": [],
     "seeAlso": [
-      "magic_initiate Initiate",
+      "magic_initiate",
       "stealth",
       "survival",
-      "cartographer_s_tools's Tools",
+      "cartographer_s_tools",
       "shortbow",
-      "arrow Arrows",
+      "arrow",
       "bedroll",
       "quiver",
       "tent",
-      "traveler_s_clothes's Clothes"
+      "traveler_s_clothes"
     ],
     "filePath": "/data/glossary/entries/backgrounds/guide.json"
   },
@@ -184,19 +180,19 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Constitution, Wisdom, Charisma - Feat:: healer - Skill Proficiencies:: medicine, religion - Tool Proficiency:: herbalism_kit Kit - ...",
+    "excerpt": "- Ability Scores: Constitution, Wisdom, Charisma - Feat: healer|Healer - Skill Proficiencies: medicine|Medicine, religion|Religion - Tool Proficiency:...",
     "aliases": [],
     "seeAlso": [
       "healer",
       "medicine",
       "religion",
-      "herbalism_kit Kit",
+      "herbalism_kit",
       "quarterstaff",
       "bedroll",
       "book",
       "lamp",
       "oil",
-      "traveler_s_clothes's Clothes"
+      "traveler_s_clothes"
     ],
     "filePath": "/data/glossary/entries/backgrounds/hermit.json"
   },
@@ -208,15 +204,15 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Constitution, Intelligence, Charisma - Feat:: lucky - Skill Proficiencies:: animal_handling Handling, persuasion - Tool Proficiency...",
+    "excerpt": "- Ability Scores: Constitution, Intelligence, Charisma - Feat: lucky|Lucky - Skill Proficiencies: animal_handling|Animal Handling, persuasion|Persuasi...",
     "aliases": [],
     "seeAlso": [
       "lucky",
-      "animal_handling Handling",
+      "animal_handling",
       "persuasion",
-      "navigator_s_tools's Tools",
-      "pouch Pouches",
-      "traveler_s_clothes's Clothes"
+      "navigator_s_tools",
+      "pouch",
+      "traveler_s_clothes"
     ],
     "filePath": "/data/glossary/entries/backgrounds/merchant.json"
   },
@@ -228,14 +224,13 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Strength, Intelligence, Charisma - Feat:: skilled - Skill Proficiencies:: history, persuasion - Tool Proficiency:: Choose one kind ...",
+    "excerpt": "- Ability Scores: Strength, Intelligence, Charisma - Feat: skilled|Skilled - Skill Proficiencies: history|History, persuasion|Persuasion - Tool Profic...",
     "aliases": [],
     "seeAlso": [
       "skilled",
       "history",
       "persuasion",
-      "gaming_set Set",
-      "fine_clothes Clothes",
+      "fine_clothes",
       "perfume"
     ],
     "filePath": "/data/glossary/entries/backgrounds/noble.json"
@@ -248,13 +243,13 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Constitution, Intelligence, Wisdom - Feat:: magic_initiate Initiate (Wizard) - Skill Proficiencies:: arcana, history - Tool Profici...",
+    "excerpt": "- Ability Scores: Constitution, Intelligence, Wisdom - Feat: magic_initiate|Magic Initiate (Wizard) - Skill Proficiencies: arcana|Arcana, history|Hist...",
     "aliases": [],
     "seeAlso": [
-      "magic_initiate Initiate",
+      "magic_initiate",
       "arcana",
       "history",
-      "calligrapher_s_supplies's Supplies",
+      "calligrapher_s_supplies",
       "quarterstaff",
       "book",
       "parchment",
@@ -270,16 +265,16 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Strength, Dexterity, Wisdom - Feat:: tavern_brawler Brawler - Skill Proficiencies:: acrobatics, perception - Tool Proficiency:: nav...",
+    "excerpt": "- Ability Scores: Strength, Dexterity, Wisdom - Feat: tavern_brawler|Tavern Brawler - Skill Proficiencies: acrobatics|Acrobatics, perception|Perceptio...",
     "aliases": [],
     "seeAlso": [
-      "tavern_brawler Brawler",
+      "tavern_brawler",
       "acrobatics",
       "perception",
-      "navigator_s_tools's Tools",
+      "navigator_s_tools",
       "dagger",
       "rope",
-      "traveler_s_clothes's Clothes"
+      "traveler_s_clothes"
     ],
     "filePath": "/data/glossary/entries/backgrounds/sailor.json"
   },
@@ -291,14 +286,14 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Dexterity, Intelligence, Wisdom - Feat:: skilled - Skill Proficiencies:: investigation, perception - Tool Proficiency:: calligraphe...",
+    "excerpt": "- Ability Scores: Dexterity, Intelligence, Wisdom - Feat: skilled|Skilled - Skill Proficiencies: investigation|Investigation, perception|Perception - ...",
     "aliases": [],
     "seeAlso": [
       "skilled",
       "investigation",
       "perception",
-      "calligrapher_s_supplies's Supplies",
-      "fine_clothes Clothes",
+      "calligrapher_s_supplies",
+      "fine_clothes",
       "lamp",
       "oil",
       "parchment"
@@ -313,19 +308,18 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Strength, Dexterity, Constitution - Feat:: savage_attacker Attacker - Skill Proficiencies:: athletics, intimidation - Tool Proficie...",
+    "excerpt": "- Ability Scores: Strength, Dexterity, Constitution - Feat: savage_attacker|Savage Attacker - Skill Proficiencies: athletics|Athletics, intimidation|I...",
     "aliases": [],
     "seeAlso": [
-      "savage_attacker Attacker",
+      "savage_attacker",
       "athletics",
       "intimidation",
-      "gaming_set Set",
       "spear",
       "shortbow",
-      "arrow Arrows",
-      "healer_s_kit's Kit",
+      "arrow",
+      "healer_s_kit",
       "quiver",
-      "traveler_s_clothes's Clothes"
+      "traveler_s_clothes"
     ],
     "filePath": "/data/glossary/entries/backgrounds/soldier.json"
   },
@@ -337,18 +331,17 @@
       "source:xphb",
       "background"
     ],
-    "excerpt": "- Ability Scores:: Dexterity, Wisdom, Charisma - Feat:: lucky - Skill Proficiencies:: insight, stealth - Tool Proficiency:: thieves_tools' Tools - Equ...",
+    "excerpt": "- Ability Scores: Dexterity, Wisdom, Charisma - Feat: lucky|Lucky - Skill Proficiencies: insight|Insight, stealth|Stealth - Tool Proficiency: thieves_...",
     "aliases": [],
     "seeAlso": [
       "lucky",
       "insight",
       "stealth",
-      "thieves_tools' Tools",
-      "dagger Daggers",
-      "gaming_set Set",
+      "thieves_tools",
+      "dagger",
       "bedroll",
-      "pouch Pouches",
-      "traveler_s_clothes's Clothes"
+      "pouch",
+      "traveler_s_clothes"
     ],
     "filePath": "/data/glossary/entries/backgrounds/wayfarer.json"
   }

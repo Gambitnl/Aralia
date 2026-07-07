@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "While held up to your ear, this horn suppresses the effects of the deafened condition on you....",
+  "excerpt": "While held up to your ear, this horn suppresses the effects of the deafened|Deafened condition on you....",
   "aliases": [],
   "seeAlso": [
     "deafened"

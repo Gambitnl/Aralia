@@ -7,14 +7,14 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "When you take the attack action, you can replace one of your attacks with throwing a flask of Holy Water. Target one creature you can see within 20 fe...",
+  "excerpt": "When you take the attack|Attack action, you can replace one of your attacks with throwing a flask of Holy Water. Target one creature you can see withi...",
   "aliases": [],
   "seeAlso": [
     "attack",
-    "proficiency Bonus"
+    "proficiency"
   ],
   "filePath": "/data/glossary/entries/equipment/holy_water.json",
-  "markdown": "# Holy Water\n\nWhen you take the [[attack]] action, you can replace one of your attacks with throwing a flask of Holy Water. Target one creature you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and [[proficiency Bonus]]) or take 2d8 Radiant damage if it is a Fiend or an Undead.",
+  "markdown": "# Holy Water\n\nWhen you take the [[attack]] action, you can replace one of your attacks with throwing a flask of Holy Water. Target one creature you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and [[proficiency|Proficiency Bonus]]) or take 2d8 Radiant damage if it is a Fiend or an Undead.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

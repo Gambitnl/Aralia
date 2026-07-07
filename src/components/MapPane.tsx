@@ -48,6 +48,7 @@ import oldPaperBg from '../assets/images/old-paper.svg';
 import type { PlayerWorldPosition, DiscoveredHiddenSite } from '../types';
 import AtlasSvgView from './Worldforge/AtlasSvgView';
 import type { CellTraits } from './Worldforge/atlasSvg';
+import { dungeonStatesForWorld } from '../systems/worldforge/dungeon/world/dungeonStates';
 import SubmapSvgView from './Worldforge/SubmapSvgView';
 import TownPlanView from './Worldforge/TownPlanView';
 import NeighbourhoodSvgView from './Worldforge/NeighbourhoodSvgView';
@@ -89,6 +90,12 @@ interface MapPaneProps {
   playerWorldPos?: PlayerWorldPosition | null;
   /** SP4 discovered hidden places — pinned on the World Forge atlas. */
   discoveredHiddenSites?: DiscoveredHiddenSite[];
+  /**
+   * Pillar 2, Task 8 (living ecology): frozen site paths of cleared dungeons
+   * (state.clearedDungeons). Drives the danger overlay's dungeon term — every
+   * UNCLEARED site bumps the danger around its cell. Omit → all sites uncleared.
+   */
+  clearedDungeonPaths?: string[];
   onClose: () => void;
   allowTravel?: boolean;
   /** Show Enter 3D interaction mode (PLAYING phase atlas click-to-travel). */
@@ -207,6 +214,7 @@ const MapPane: React.FC<MapPaneProps> = ({
   onEnter3DAtCell,
   playerWorldPos = null,
   discoveredHiddenSites = [],
+  clearedDungeonPaths,
   onClose,
   allowTravel = true,
   allow3DEntry = false,
@@ -541,6 +549,15 @@ const MapPane: React.FC<MapPaneProps> = ({
     // each discovered place stays individually visible/clickable on the atlas.
     return spreadColocatedPoints(pins);
   }, [worldforgeAtlas, discoveredHiddenSites]);
+
+  // Pillar 2, Task 8 (living ecology): dungeon-site states for the danger
+  // overlay — every UNCLEARED site bumps the danger around its cell so the map
+  // visibly reacts to nearby uncleared dungeons. Only the real world atlas (not
+  // the pre-game preview) has enumerable sites; a null seed yields none.
+  const worldforgeDungeonSites = useMemo(() => {
+    if (!worldforgeAtlas || worldforgeSeed === 0) return undefined;
+    return dungeonStatesForWorld(worldforgeSeed, clearedDungeonPaths);
+  }, [worldforgeAtlas, worldforgeSeed, clearedDungeonPaths]);
 
   // Native-atlas cell pick → map the cell centroid to the legacy grid tile and
   // route to Enter-3D (preferred) or Travel to maintain travel contracts.
@@ -1261,6 +1278,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                 provisionRings={provisionRings}
                 provisionLineForMinutes={provisionLineForMinutes}
                 prefsScope={worldforgeSeed}
+                dungeonSites={worldforgeDungeonSites}
               />
             )}
             {/* One-time risk explainer — shown the FIRST time the player would set

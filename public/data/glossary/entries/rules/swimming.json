@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/swimming.json",
-  "markdown": "# Swimming\n\nWhile you're swimming, each foot of movement costs 1 extra foot (2 extra feet in [[difficult_terrain terrain]]). You ignore this extra cost if you have a [[swim_speed Speed]] and use it to swim. At the DM's option, moving any distance in rough water might require a successful DC 15 Strength ([[athletics]]) check."
+  "markdown": "# Swimming\n\nWhile you're swimming, each foot of movement costs 1 extra foot (2 extra feet in [[difficult_terrain]]). You ignore this extra cost if you have a [[swim_speed]] and use it to swim. At the DM's option, moving any distance in rough water might require a successful DC 15 Strength ([[athletics]]) check."
 }

@@ -7,13 +7,11 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A crossbow_bolt_case Bolt Case holds up to 20 Bolts....",
+  "excerpt": "A crossbow_bolt_case|Crossbow Bolt Case holds up to 20 Bolts....",
   "aliases": [],
-  "seeAlso": [
-    "crossbow_bolt_case Bolt Case"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/crossbow_bolt_case.json",
-  "markdown": "# Crossbow Bolt Case\n\nA [[crossbow_bolt_case Bolt Case]] holds up to 20 Bolts.",
+  "markdown": "# Crossbow Bolt Case\n\nA [[crossbow_bolt_case]] holds up to 20 Bolts.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

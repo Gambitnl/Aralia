@@ -61,10 +61,8 @@
   ],
   "aliases": [],
   "seeAlso": [
-    "humanoid",
     "goblin",
-    "bugbear",
-    "fey_ancestry"
+    "bugbear"
   ],
   "filePath": "/data/glossary/entries/races/hobgoblin.json",
   "maleImageUrl": "/assets/images/races/hobgoblin_male.png",

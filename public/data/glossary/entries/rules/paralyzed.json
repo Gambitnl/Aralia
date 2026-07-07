@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/paralyzed.json",
-  "markdown": "# Paralyzed\n\nWhile you have the Paralyzed condition, you experience the following effects.\n\n### Incapacitated\n\nYou have the [[incapacitated]] condition.\n\n### Speed 0\n\nYour [[speed]] is 0 and can't increase.\n\n### Saving Throws Affected\n\nYou automatically fail Strength and Dexterity [[saving_throw throws]].\n\n### Attacks Affected\n\n[[attack]] rolls against you have [[advantage]].\n\n### Automatic Critical Hits\n\nAny attack roll that hits you is a [[critical_hit Hit]] if the attacker is within 5 feet of you."
+  "markdown": "# Paralyzed\n\nWhile you have the Paralyzed condition, you experience the following effects.\n\n### Incapacitated\n\nYou have the [[incapacitated]] condition.\n\n### Speed 0\n\nYour [[speed]] is 0 and can't increase.\n\n### Saving Throws Affected\n\nYou automatically fail Strength and Dexterity [[saving_throw]].\n\n### Attacks Affected\n\n[[attack]] rolls against you have [[advantage]].\n\n### Automatic Critical Hits\n\nAny attack roll that hits you is a [[critical_hit]] if the attacker is within 5 feet of you."
 }

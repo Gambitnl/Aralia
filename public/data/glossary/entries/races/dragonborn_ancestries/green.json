@@ -55,11 +55,7 @@
   "aliases": [
     "green ancestry"
   ],
-  "seeAlso": [
-    "dragonborn",
-    "poison_damage",
-    "breath_weapon"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/dragonborn_ancestries/green.json",
   "maleImageUrl": "/assets/images/races/Dragonborn_Green_Male.png",
   "femaleImageUrl": "/assets/images/races/Dragonborn_Green_Female.png"

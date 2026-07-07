@@ -7,14 +7,14 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "While touching this crystal orb, you can cast scrying (save DC 17) with it. In addition, you can cast detect_thoughts Thoughts (save DC 17) targeting ...",
+  "excerpt": "While touching this crystal orb, you can cast scrying|Scrying (save DC 17) with it. In addition, you can cast detect_thoughts|Detect Thoughts (save DC...",
   "aliases": [],
   "seeAlso": [
     "scrying",
-    "detect_thoughts Thoughts"
+    "detect-thoughts"
   ],
   "filePath": "/data/glossary/entries/equipment/crystal_ball_of_mind_reading.json",
-  "markdown": "# Crystal Ball of Mind Reading\n\nWhile touching this crystal orb, you can cast [[scrying]] (save DC 17) with it. In addition, you can cast [[detect_thoughts Thoughts]] (save DC 17) targeting creatures you can see within 30 feet of the spell's sensor. You don't need to concentrate on this [[detect_thoughts Thoughts]] spell to maintain it during its duration, but it ends if the [[scrying]] spell ends.",
+  "markdown": "# Crystal Ball of Mind Reading\n\nWhile touching this crystal orb, you can cast [[scrying]] (save DC 17) with it. In addition, you can cast [[detect-thoughts|Detect Thoughts]] (save DC 17) targeting creatures you can see within 30 feet of the spell's sensor. You don't need to concentrate on this [[detect-thoughts|Detect Thoughts]] spell to maintain it during its duration, but it ends if the [[scrying]] spell ends.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Legendary",

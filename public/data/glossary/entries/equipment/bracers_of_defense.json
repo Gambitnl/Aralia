@@ -7,14 +7,14 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "While wearing these bracers, you gain a +2 bonus to armor_class Class if you are wearing no armor and using no shield....",
+  "excerpt": "While wearing these bracers, you gain a +2 bonus to armor_class|Armor Class if you are wearing no armor and using no shield|Shield....",
   "aliases": [],
   "seeAlso": [
-    "armor_class Class",
+    "armor_class",
     "shield"
   ],
   "filePath": "/data/glossary/entries/equipment/bracers_of_defense.json",
-  "markdown": "# Bracers of Defense\n\nWhile wearing these bracers, you gain a +2 bonus to [[armor_class Class]] if you are wearing no armor and using no [[shield]].",
+  "markdown": "# Bracers of Defense\n\nWhile wearing these bracers, you gain a +2 bonus to [[armor_class]] if you are wearing no armor and using no [[shield]].",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Rare",

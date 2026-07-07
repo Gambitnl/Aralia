@@ -142,18 +142,24 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
     top: `${position.y * TILE_SIZE_PX}px`,
     width: `${TILE_SIZE_PX * multiplier}px`,
     height: `${TILE_SIZE_PX * multiplier}px`,
-    transition: 'all 0.2s ease-in-out',
+    // Glide between tiles instead of teleporting: position-only so size and
+    // interaction styling don't animate along for the ride.
+    transition: 'left 0.35s ease-in-out, top 0.35s ease-in-out',
     zIndex: Z_INDEX.CONTENT_OVERLAY_LOW,
     cursor: targetingMode ? 'crosshair' : 'pointer',
   }), [position.x, position.y, multiplier, targetingMode]);
 
   // Memoized token circle style: only recalculates when visual state changes.
   const tokenStyle = useMemo((): React.CSSProperties => {
-    let borderColor = '#6B7280'; // gray-500 default
-    if (character.team === 'player') borderColor = '#3B82F6';
-    else borderColor = '#991B1B'; // red-800 for enemy team
-    if (isTargetable) borderColor = '#EF4444';
+    // Bright faction rings + a thin light halo: the old dark-red-on-dark-slate
+    // enemy ring disappeared entirely against the painted forest, which made
+    // hostiles effectively invisible on the board.
+    let borderColor = '#9CA3AF'; // gray-400 default
+    if (character.team === 'player') borderColor = '#60A5FA'; // blue-400
+    else borderColor = '#EF4444'; // red-500 for enemy team
+    if (isTargetable) borderColor = '#F87171';
     if (isSelected)   borderColor = '#FBBF24';
+    const halo = '0 0 0 1.5px rgba(255,255,255,0.4)';
 
     return {
       width: '80%',
@@ -163,14 +169,18 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
       backgroundColor: '#1F2937',
       overflow: 'hidden',
       boxShadow: isSelected
-        ? '0 0 10px #FBBF24, 0 0 20px #FBBF24'
+        ? `${halo}, 0 0 10px #FBBF24, 0 0 20px #FBBF24`
         : isTargetable
-          ? '0 0 10px #EF4444'
-          : '0 2px 4px rgba(0,0,0,0.5)',
+          ? `${halo}, 0 0 10px #EF4444`
+          : `${halo}, 0 2px 4px rgba(0,0,0,0.6)`,
       transform: isSelected ? 'scale(1.1)' : 'scale(1.0)',
       animation: isTurn ? 'pulseTurn 2s infinite' : 'none',
     };
   }, [character.team, isSelected, isTargetable, isTurn]);
+
+  // HP arc around the token rim: state-at-a-glance without opening a sheet.
+  const hpPct = Math.max(0, Math.min(1, character.maxHP > 0 ? character.currentHP / character.maxHP : 0));
+  const hpColor = hpPct > 0.5 ? '#34D399' : hpPct > 0.25 ? '#FBBF24' : '#F87171';
 
   const handleActivate = () => onCharacterClick(character);
 
@@ -205,6 +215,28 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
           )}
         </div>
       </Tooltip>
+
+      {/* HP arc hugging the ring: green → amber → red as the combatant drops,
+          starting at 12 o'clock and sweeping clockwise. */}
+      {hpPct < 1 && (
+        <svg
+          viewBox="0 0 36 36"
+          className="pointer-events-none absolute inset-0 h-full w-full -rotate-90"
+          aria-hidden="true"
+        >
+          <circle
+            cx="18"
+            cy="18"
+            r="16.5"
+            fill="none"
+            stroke={hpColor}
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            pathLength={100}
+            strokeDasharray={`${hpPct * 100} 100`}
+          />
+        </svg>
+      )}
 
       {/* Defense badges stay tiny and pinned to the perimeter so they expose
           the important damage traits without growing the token footprint or

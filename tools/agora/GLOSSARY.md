@@ -160,3 +160,75 @@ for streets.
 
 **Presentation-parity matrix** — the checklist proving every spell effect is
 visible and readable on every combat view before an old view is retired.
+
+## Building Generator v2 terms (living buildings)
+
+**Permanent blueprint** — the fixed layer of a building: walls, rooms, roof,
+style and backstory. Generated once from the seed and never changed by daily
+life; only a logged history event can alter it.
+
+**Living overlay** — the changeable layer of a building: who claims which
+room, each resident's daily schedule, lit hearths, container contents,
+boarded windows. Recomputed whenever the household changes. It can never
+move a wall.
+
+**Household brief** — the coarse description of a family (member slots,
+trade, wealth, whether they work at home) that the building generator
+designs a house for. Carries counts and roles, never names — names stay
+lazy.
+
+**Lot negotiation** — the one-round exchange over a building's size: the
+town offers a lot, the generator may request one size bump, the town grants
+or refuses. On refusal the building grows a storey up instead of out.
+
+**Born with a past** — a building rolling a deterministic backstory at
+generation (age band, earlier build phases, wear such as a bricked-up door)
+so towns look lived-in on day one, before any real sim history happens.
+
+**Build phase** — one construction era of a building. An old building's core
+and its later wing belong to different build phases and render in different
+period styles, making its history visible.
+
+## Next-gen combat map terms (one renderer, real battlefields)
+
+**Battlefield forge** — the one pure generator that turns "where is this
+fight" into a full battlefield. Every fight goes through it; no other
+battlefield generator exists.
+
+**Battlefield site** — the forge's input: a small record of where a fight
+is in world terms (atlas seed, cell, position, travel heading, time of day,
+weather, plus the cell's own terrain data).
+
+**Canned site** — a pre-picked battlefield site made of real world-cell
+data, used for fights that have no world position yet (the dev fixture,
+story encounters). Same generator, real data — not a fallback.
+
+**Battlefield plan** — the forge's output: the mechanical tiles the combat
+engine plays on and the paint instructions the renderer draws, produced
+together from one seed so they can never disagree.
+
+**Ground plate** — the painted battlefield image the renderer rasterizes
+from the plan's paint instructions, in chunks, redrawn only when the
+battlefield changes.
+
+**Battle scars layer** — the layer that accumulates permanent fight marks
+(scorch, blood, trampled grass) for the whole battle.
+
+**DOM mirror** — the invisible layer of real HTML buttons over the combat
+canvas that carries accessibility: labels, keyboard focus and screen-reader
+announcements for combatants and currently-meaningful tiles, without one
+button per map square.
+
+**Light map** — the small texture where vision pools and torch/spell light
+are composited before being laid over the board, so light genuinely eats
+fog instead of both being painted separately.
+
+**Fight chronicle** — a finished battle saved as a replayable record: an
+animated playback you can scrub like a short film, captioned by the
+narrated combat log, and fed to the rumor system so NPCs retell it later.
+Captured 2026-07-06 as plan-map node `combat-chronicles` (parked).
+
+**Generational time** — the plan-map ambition that the world clock ages
+everyone: NPCs gray, die and are succeeded, the player ages and can
+continue as an heir, and a dead character's deeds become world history.
+Captured 2026-07-06 as node `generational-time` (parked).

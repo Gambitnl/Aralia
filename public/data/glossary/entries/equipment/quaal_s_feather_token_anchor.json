@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This object looks like a feather. You can take a magic action to touch the token to a boat or ship. For the next 24 hours, the vessel can't be moved b...",
+  "excerpt": "This object looks like a feather. You can take a magic|Magic action to touch the token to a boat or ship. For the next 24 hours, the vessel can't be m...",
   "aliases": [],
   "seeAlso": [
     "magic"

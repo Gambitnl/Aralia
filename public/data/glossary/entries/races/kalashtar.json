@@ -55,10 +55,7 @@
     "quori"
   ],
   "aliases": [],
-  "seeAlso": [
-    "humanoid",
-    "psychic_damage"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/kalashtar.json",
   "maleImageUrl": "/assets/images/races/kalashtar_male.png",
   "femaleImageUrl": "/assets/images/races/kalashtar_female.png"

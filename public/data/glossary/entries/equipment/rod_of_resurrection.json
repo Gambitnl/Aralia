@@ -7,7 +7,7 @@
     "item",
     "itemType:Rod"
   ],
-  "excerpt": "The rod has 5 charges. While you hold it, you can cast one of the following spells from it: heal (expends 1 charge) or resurrection (expends 5 charges...",
+  "excerpt": "The rod has 5 charges. While you hold it, you can cast one of the following spells from it: heal|Heal (expends 1 charge) or resurrection|Resurrection ...",
   "aliases": [],
   "seeAlso": [
     "heal",

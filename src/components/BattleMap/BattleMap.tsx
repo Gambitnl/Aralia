@@ -43,6 +43,7 @@ import BattleMapTile from './BattleMapTile';
 import CharacterToken from './CharacterToken';
 import BattleMapOverlay from './BattleMapOverlay';
 import BattleMapGroundCanvas from './BattleMapGroundCanvas';
+import BattleMapFogCanvas from './BattleMapFogCanvas';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { UI_ID } from '../../styles/uiIds';
 import { Z_INDEX } from '../../styles/zIndex';
@@ -221,6 +222,22 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
     return set;
   }, [activePath]);
 
+  // Tiles adjacent to a living enemy (melee reach): stepping through or into
+  // these provokes — the other half of the movement decision, shown as a red
+  // hatch inside the reachable region.
+  const threatCoordSet = useMemo(() => {
+    const set = new Set<string>();
+    characters.forEach(ch => {
+      if (ch.team !== 'enemy' || ch.currentHP <= 0) return;
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          set.add(`${ch.position.x + dx},${ch.position.y + dy}`);
+        }
+      }
+    });
+    return set;
+  }, [characters]);
+
   // Coordinate set of the reachable-move region, for drawing a crisp perimeter
   // stroke around its outer boundary (instead of a shapeless per-tile wash).
   const validMoveCoordSet = useMemo(() => {
@@ -244,7 +261,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
   const [frameSize, setFrameSize] = useState({ w: 0, h: 0 });
   // User zoom sits on top of auto-fit: null means "auto" (fit the pane, but
   // never below the usable minimum), a number is an explicit zoom the player
-  // chose via the controls or ctrl+wheel.
+  // chose via the controls or mouse wheel.
   const [userZoom, setUserZoom] = useState<number | null>(null);
   const autoScale = fitScale < MIN_USABLE_BOARD_SCALE ? 1 : fitScale;
   const boardScale = userZoom ?? autoScale;
@@ -269,19 +286,67 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
     if (fitWrapRef.current) ro.observe(fitWrapRef.current);
     return () => ro.disconnect();
   }, [mapData?.dimensions.width, mapData?.dimensions.height]);
-  const clampZoom = (z: number) => Math.min(2, Math.max(0.25, z));
-  const zoomBy = useCallback((factor: number) => {
-    setUserZoom(prev => clampZoom((prev ?? boardScale) * factor));
+  const clampZoom = (z: number) => Math.min(3, Math.max(0.15, z));
+  // Focal-point zoom: remember which CONTENT point sat under the anchor
+  // (cursor or viewport center) so the scroll position can be corrected after
+  // the scale changes — otherwise zooming on a large map flings the view away
+  // from what the player was looking at.
+  const zoomAnchorRef = useRef<{
+    boardX: number;
+    boardY: number;
+    frameOffsetX: number;
+    frameOffsetY: number;
+    vx: number;
+    vy: number;
+  } | null>(null);
+  // User zoom should keep the cursor's map point stable; this flag prevents
+  // the active-combatant auto-center effect below from stealing that gesture.
+  const skipCombatantCenterAfterZoomRef = useRef(false);
+  const boardScaleRef = useRef(boardScale);
+  useLayoutEffect(() => {
+    // Wheel handlers run outside React's render cycle, so they read the latest
+    // committed board scale from this ref instead of from a stale closure.
+    boardScaleRef.current = boardScale;
   }, [boardScale]);
-  // Ctrl+wheel zoom. Attached natively because React's onWheel is passive and
-  // cannot preventDefault the browser's own page zoom.
+  const zoomBy = useCallback((factor: number, clientX?: number, clientY?: number) => {
+    const wrap = fitWrapRef.current;
+    const frame = fitFrameRef.current;
+    if (wrap && frame) {
+      const wrapRect = wrap.getBoundingClientRect();
+      const frameRect = frame.getBoundingClientRect();
+      const vx = clientX !== undefined ? clientX - wrapRect.left : wrap.clientWidth / 2;
+      const vy = clientY !== undefined ? clientY - wrapRect.top : wrap.clientHeight / 2;
+      const scale = boardScaleRef.current;
+      const frameOffsetX = wrap.scrollLeft + frameRect.left - wrapRect.left;
+      const frameOffsetY = wrap.scrollTop + frameRect.top - wrapRect.top;
+      zoomAnchorRef.current = {
+        boardX: (wrap.scrollLeft + vx - frameOffsetX) / scale,
+        boardY: (wrap.scrollTop + vy - frameOffsetY) / scale,
+        frameOffsetX,
+        frameOffsetY,
+        vx,
+        vy,
+      };
+    }
+    setUserZoom(prev => clampZoom((prev ?? boardScaleRef.current) * factor));
+  }, []);
+  useLayoutEffect(() => {
+    const wrap = fitWrapRef.current;
+    const anchor = zoomAnchorRef.current;
+    if (!wrap || !anchor) return;
+    zoomAnchorRef.current = null;
+    wrap.scrollLeft = anchor.frameOffsetX + anchor.boardX * boardScale - anchor.vx;
+    wrap.scrollTop = anchor.frameOffsetY + anchor.boardY * boardScale - anchor.vy;
+    skipCombatantCenterAfterZoomRef.current = true;
+  }, [boardScale]);
+  // Wheel zoom, anchored at the cursor. Attached natively because React's
+  // onWheel is passive and cannot preventDefault the board or page scroll.
   useEffect(() => {
     const wrap = fitWrapRef.current;
     if (!wrap) return;
     const onWheel = (e: WheelEvent) => {
-      if (!e.ctrlKey) return;
       e.preventDefault();
-      zoomBy(e.deltaY < 0 ? 1.15 : 1 / 1.15);
+      zoomBy(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX, e.clientY);
     };
     wrap.addEventListener('wheel', onWheel, { passive: false });
     return () => wrap.removeEventListener('wheel', onWheel);
@@ -294,6 +359,13 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
       fitWrapRef.current.scrollTo(0, 0);
     }
     if (!mapData || !isBoardScrollable || !currentCharacter || !fitWrapRef.current) return;
+
+    // A wheel or zoom-button gesture has already corrected the scroll position
+    // for the player's cursor/focal point, so do not recenter on the turn owner.
+    if (skipCombatantCenterAfterZoomRef.current) {
+      skipCombatantCenterAfterZoomRef.current = false;
+      return;
+    }
 
     const wrap = fitWrapRef.current;
     const targetLeft =
@@ -395,7 +467,10 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
       <div
         style={
           frameSize.w > 0
-            ? { width: frameSize.w * boardScale, height: frameSize.h * boardScale, flexShrink: 0, minWidth: 0, minHeight: 0, overflow: 'visible' }
+            // overflow hidden: at scale<1 the frame's UNSCALED layout box would
+            // otherwise leak past the spacer into the wrap's scroll extent,
+            // letting the user scroll into empty space beyond the visual board.
+            ? { width: frameSize.w * boardScale, height: frameSize.h * boardScale, flexShrink: 0, minWidth: 0, minHeight: 0, overflow: 'hidden' }
             : undefined
         }
       >
@@ -438,6 +513,16 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
               }}>
         {/* Painted forest ground beneath the interactive grid. */}
         <BattleMapGroundCanvas mapData={mapData} tileSize={TILE_SIZE_PX} className="pointer-events-none absolute inset-0 h-full w-full" />
+        {/* Soft fog-of-war above the tiles, below the tokens: the same
+            visibility data as before, feathered into light pools instead of
+            per-tile black squares. */}
+        <BattleMapFogCanvas
+          mapData={mapData}
+          tileSize={TILE_SIZE_PX}
+          visibleTiles={visibility.visibleTiles}
+          getLightLevel={visibility.getLightLevel}
+          className="pointer-events-none absolute inset-0 z-[2] h-full w-full"
+        />
         <div
           className="battle-map-grid"
           style={{
@@ -477,6 +562,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
                 tile={tile}
                 isValidMove={isValidMove}
                 moveEdges={moveEdges}
+                isThreatened={isValidMove && threatCoordSet.has(`${tx},${ty}`)}
                 isInPath={isInPath}
                 isTargetable={isTargetable}
                 isAoePreview={isAoePreview}

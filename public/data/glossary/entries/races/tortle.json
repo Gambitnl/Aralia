@@ -55,11 +55,7 @@
     "natural armor"
   ],
   "aliases": [],
-  "seeAlso": [
-    "humanoid",
-    "natural_armor",
-    "shell_defense"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/tortle.json",
   "maleImageUrl": "/assets/images/races/Tortle_Male.png",
   "femaleImageUrl": "/assets/images/races/Tortle_Female.png"

@@ -1,9 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { rootSeedPath } from '../../seedPath';
-import { genFootprint } from '../footprint';
+import { clampFootprint, genFootprint } from '../footprint';
+import type { BuildingType } from '../blueprintTypes';
 
 const shapeOf = (type: any, seed: number) =>
   genFootprint(rootSeedPath(seed), type);
+
+const ALL_TYPES: BuildingType[] = [
+  'cottage', 'townhouse', 'tenement', 'farmstead',
+  'shop', 'smithy', 'workshop', 'inn', 'tavern', 'storehouse',
+  'manor', 'temple', 'keep', 'civic',
+];
 
 describe('genFootprint', () => {
   it('is deterministic for a seed path', () => {
@@ -42,6 +49,36 @@ describe('genFootprint', () => {
         if (filled === cols * rows) rectangles++;
       }
       expect(rectangles).toBe(0);
+    }
+  });
+
+  it('masses exactly tile the footprint: union === cells, main first — 100 seeds × all types', () => {
+    for (const type of ALL_TYPES) {
+      for (let seed = 0; seed < 100; seed++) {
+        const fp = genFootprint(rootSeedPath(seed), type);
+        expect(fp.masses[0].kind).toBe('main');
+        const union = new Set<string>();
+        for (const m of fp.masses) {
+          for (let y = m.y; y < m.y + m.h; y++)
+            for (let x = m.x; x < m.x + m.w; x++) union.add(`${x},${y}`);
+        }
+        expect(union.size >= fp.cells.length).toBe(true); // masses may overlap each other
+        for (const c of fp.cells) expect(union.has(`${c.cx},${c.cy}`)).toBe(true);
+        for (const key of union) {
+          const [x, y] = key.split(',').map(Number);
+          expect(fp.occ[y]?.[x]).toBe(true); // no mass cell outside the footprint
+        }
+      }
+    }
+  });
+
+  it('clampFootprint transforms masses consistently with cells', () => {
+    const fp = genFootprint(rootSeedPath(4), 'manor');
+    const clamped = clampFootprint(fp, Math.max(4, fp.cols - 2), fp.rows);
+    // every clamped mass stays inside the clamped grid
+    for (const m of clamped.masses) {
+      expect(m.x).toBeGreaterThanOrEqual(0);
+      expect(m.x + m.w).toBeLessThanOrEqual(clamped.cols);
     }
   });
 });

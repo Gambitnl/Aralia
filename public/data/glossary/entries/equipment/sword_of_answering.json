@@ -7,7 +7,7 @@
     "item",
     "itemType:Melee Weapon"
   ],
-  "excerpt": "You gain a +3 bonus to attack rolls and damage rolls made with this sword. In addition, while you hold the sword, you can take a reaction to make one ...",
+  "excerpt": "You gain a +3 bonus to attack rolls and damage rolls made with this sword. In addition, while you hold the sword, you can take a reaction|Reaction to ...",
   "aliases": [],
   "seeAlso": [
     "reaction",

@@ -21,7 +21,7 @@
  * a plain stateless helper. Keep callers pointed here until a coordinated
  * rename can update every use site together.
  */
-import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition } from '../types/combat';
+import { BattleMapBiome, BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition } from '../types/combat';
 import { BATTLE_MAP_DIMENSIONS } from '../config/mapConfig';
 import { BattleMapGenerator } from '../services/battleMapGenerator';
 import { SeededRandom } from '@/utils/random';
@@ -502,7 +502,7 @@ function findNearestWalkableTile(
 }
 
 export const generateBattleSetup = (
-    biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp',
+    biome: BattleMapBiome,
     seed: number,
     initialCharacters: CombatCharacter[],
     presetMapData?: BattleMapData

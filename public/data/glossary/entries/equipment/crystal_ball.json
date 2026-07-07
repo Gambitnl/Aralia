@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "The typical crystal ball, a very rare item, is about 6 inches in diameter. While touching it, you can cast the scrying spell (save DC 17) with it....",
+  "excerpt": "The typical crystal ball, a very rare item, is about 6 inches in diameter. While touching it, you can cast the scrying|Scrying spell (save DC 17) with...",
   "aliases": [],
   "seeAlso": [
     "scrying"

@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "If you're hit by an attack roll made with a Ranged or Thrown weapon while wearing these gloves, you can take a reaction to reduce the damage by 1d10 p...",
+  "excerpt": "If you're hit by an attack roll made with a Ranged or Thrown weapon while wearing these gloves, you can take a reaction|Reaction to reduce the damage ...",
   "aliases": [],
   "seeAlso": [
     "reaction"

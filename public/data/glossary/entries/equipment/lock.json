@@ -7,14 +7,14 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A Lock comes with a key. Without the key, a creature can use thieves_tools' Tools to pick this Lock with a successful DC 15 Dexterity (sleight_of_hand...",
+  "excerpt": "A Lock comes with a key. Without the key, a creature can use thieves_tools|Thieves' Tools to pick this Lock with a successful DC 15 Dexterity (sleight...",
   "aliases": [],
   "seeAlso": [
-    "thieves_tools' Tools",
-    "sleight_of_hand of Hand"
+    "thieves_tools",
+    "sleight_of_hand"
   ],
   "filePath": "/data/glossary/entries/equipment/lock.json",
-  "markdown": "# Lock\n\nA Lock comes with a key. Without the key, a creature can use [[thieves_tools' Tools]] to pick this Lock with a successful DC 15 Dexterity ([[sleight_of_hand of Hand]]) check.",
+  "markdown": "# Lock\n\nA Lock comes with a key. Without the key, a creature can use [[thieves_tools|Thieves' Tools]] to pick this Lock with a successful DC 15 Dexterity ([[sleight_of_hand]]) check.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

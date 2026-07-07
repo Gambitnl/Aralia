@@ -7,7 +7,7 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "An Explorer's Pack contains the following items: backpack, bedroll, 2 flasks of oil, 10 days of rations, rope, tinderbox, 10 torch, and waterskin....",
+  "excerpt": "An Explorer's Pack contains the following items: backpack|Backpack, bedroll|Bedroll, 2 flasks of oil|Oil, 10 days of rations|Rations, rope|Rope, tinde...",
   "aliases": [],
   "seeAlso": [
     "backpack",
@@ -20,7 +20,7 @@
     "waterskin"
   ],
   "filePath": "/data/glossary/entries/equipment/explorer_s_pack.json",
-  "markdown": "# Explorer's Pack\n\nAn Explorer's Pack contains the following items: [[backpack]], [[bedroll]], 2 flasks of [[oil]], 10 days of [[rations]], [[rope]], [[tinderbox]], 10 [[torch]], and [[waterskin]].",
+  "markdown": "# Explorer's Pack\n\nAn Explorer's Pack contains the following items: [[backpack]], [[bedroll]], 2 flasks of [[oil]], 10 days of [[rations]], [[rope]], [[tinderbox]], 10 [[torch|Torches]], and [[waterskin]].",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

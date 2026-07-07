@@ -6,11 +6,11 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "When you cast a spell, such as charm_person Person, that can be cast with a higher-level spell slot to target an additional creature, you can spend 1 ...",
+  "excerpt": "When you cast a spell, such as charm_person|Charm Person, that can be cast with a higher-level spell slot to target an additional creature, you can sp...",
   "aliases": [],
   "seeAlso": [
-    "charm_person Person"
+    "charm-person"
   ],
   "filePath": "/data/glossary/entries/rules/twinned_spell.json",
-  "markdown": "# Twinned Spell\n\nWhen you cast a spell, such as [[charm_person Person]], that can be cast with a higher-level spell slot to target an additional creature, you can spend 1 Sorcery Point to increase the spell's effective level by 1."
+  "markdown": "# Twinned Spell\n\nWhen you cast a spell, such as [[charm-person|Charm Person]], that can be cast with a higher-level spell slot to target an additional creature, you can spend 1 Sorcery Point to increase the spell's effective level by 1."
 }

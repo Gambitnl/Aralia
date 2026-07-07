@@ -46,9 +46,7 @@
     "half-elf"
   ],
   "seeAlso": [
-    "human",
-    "elf",
-    "humanoid"
+    "human"
   ],
   "filePath": "/data/glossary/entries/races/half_elf.json"
 }

@@ -6,7 +6,7 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "You can cast jump on yourself without expending a spell slot....",
+  "excerpt": "You can cast jump|Jump on yourself without expending a spell slot....",
   "aliases": [],
   "seeAlso": [
     "jump"

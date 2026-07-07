@@ -45,11 +45,7 @@
     "small"
   ],
   "aliases": [],
-  "seeAlso": [
-    "fey",
-    "fairy_magic",
-    "flight"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/fairy.json",
   "maleImageUrl": "/assets/images/races/Fairy_Male.png",
   "femaleImageUrl": "/assets/images/races/Fairy_Female.png"

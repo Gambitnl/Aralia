@@ -7,20 +7,20 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A Scholar's Pack contains the following items: backpack, book, ink, ink_pen Pen, lamp, 10 flasks of oil, 10 sheets of parchment, and tinderbox....",
+  "excerpt": "A Scholar's Pack contains the following items: backpack|Backpack, book|Book, ink|Ink, ink_pen|Ink Pen, lamp|Lamp, 10 flasks of oil|Oil, 10 sheets of p...",
   "aliases": [],
   "seeAlso": [
     "backpack",
     "book",
     "ink",
-    "ink_pen Pen",
+    "ink_pen",
     "lamp",
     "oil",
     "parchment",
     "tinderbox"
   ],
   "filePath": "/data/glossary/entries/equipment/scholar_s_pack.json",
-  "markdown": "# Scholar's Pack\n\nA Scholar's Pack contains the following items: [[backpack]], [[book]], [[ink]], [[ink_pen Pen]], [[lamp]], 10 flasks of [[oil]], 10 sheets of [[parchment]], and [[tinderbox]].",
+  "markdown": "# Scholar's Pack\n\nA Scholar's Pack contains the following items: [[backpack]], [[book]], [[ink]], [[ink_pen]], [[lamp]], 10 flasks of [[oil]], 10 sheets of [[parchment]], and [[tinderbox]].",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

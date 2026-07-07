@@ -71,8 +71,7 @@
   ],
   "seeAlso": [
     "half_elf",
-    "humanoid",
-    "detect_magic"
+    "detect-magic"
   ],
   "filePath": "/data/glossary/entries/races/dragonmark_variants/seersight_half_elf.json",
   "spellsOfTheMark": [

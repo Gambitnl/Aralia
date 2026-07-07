@@ -50,11 +50,7 @@
     "horns"
   ],
   "aliases": [],
-  "seeAlso": [
-    "humanoid",
-    "goring_rush",
-    "hammering_horns"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/minotaur.json",
   "maleImageUrl": "/assets/images/races/Minotaur_Male.png",
   "femaleImageUrl": "/assets/images/races/Minotaur_Female.png"

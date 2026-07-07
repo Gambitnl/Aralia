@@ -7,7 +7,7 @@
     "item",
     "itemType:Ring"
   ],
-  "excerpt": "While wearing this ring, you can cast telekinesis from it....",
+  "excerpt": "While wearing this ring, you can cast telekinesis|Telekinesis from it....",
   "aliases": [],
   "seeAlso": [
     "telekinesis"

@@ -7,11 +7,11 @@
     "item",
     "itemType:Gaming Set"
   ],
-  "excerpt": "- Ability:: Wisdom - Utilize:: Discern whether someone is cheating (DC 10), or win the game (DC 20)...",
+  "excerpt": "- Ability: Wisdom - Utilize: Discern whether someone is cheating (DC 10), or win the game (DC 20)...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/dragonchess_set.json",
-  "markdown": "# Dragonchess Set\n\n- **Ability::** Wisdom\n- **Utilize::** Discern whether someone is cheating (DC 10), or win the game (DC 20)",
+  "markdown": "# Dragonchess Set\n\n- **Ability:** Wisdom\n- **Utilize:** Discern whether someone is cheating (DC 10), or win the game (DC 20)",
   "itemMetadata": {
     "type": "Gaming Set",
     "rarity": "None",

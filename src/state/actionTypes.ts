@@ -216,6 +216,9 @@ export type AppAction =
   | { type: 'LOCALE_CROSS_TO_CELL'; payload: { cellId: number; enterFeet: { x: number; y: number } } }
   // SP4 discovery: mark a hidden off-map place revealed (deduped by id).
   | { type: 'REVEAL_HIDDEN_SITE'; payload: DiscoveredHiddenSite }
+  // Pillar 2, Task 8 (living ecology): mark a dungeon site cleared (deduped by
+  // sitePath). Cleared sites stop feeding the danger overlay + raid pressure.
+  | { type: 'DUNGEON_CLEARED'; payload: { sitePath: string } }
   // Gemini Intelligence Action
   | { type: 'ANALYZE_SITUATION' }
   // Dynamic Actions

@@ -135,10 +135,11 @@ describe('BattleMapTile', () => {
       />
     );
 
-    // Hidden tiles should stay on the grid but receive the strongest visual
-    // mask, making fog-of-war visible without deleting terrain context.
+    // Hidden tiles stay on the grid and report 'hidden'; the visual darkening
+    // itself now lives in BattleMapFogCanvas (soft feathered fog), so the tile
+    // must NOT render its own per-tile mask div anymore.
     expect(screen.getByRole('button', { name: 'Tile grass at 0, 0' })).toHaveAttribute('title', expect.stringContaining('(0, 0) - grass - Elev: 0 - hidden'));
-    expect(container.querySelector('.bg-black\\/55')).toBeInTheDocument();
+    expect(container.querySelector('.bg-black\\/55')).not.toBeInTheDocument();
   });
 
   it('shows a softer mask for dim visible tiles', () => {
@@ -157,10 +158,10 @@ describe('BattleMapTile', () => {
       />
     );
 
-    // Dim tiles are visible, but they still need a map treatment distinct from
-    // bright light so light spells change tactical readability.
+    // Dim tiles report 'dim' in their tooltip; the dim-light wash is drawn by
+    // BattleMapFogCanvas now, so no per-tile mask div should render.
     expect(screen.getByRole('button', { name: 'Tile grass at 0, 0' })).toHaveAttribute('title', expect.stringContaining('(0, 0) - grass - Elev: 0 - dim'));
-    expect(container.querySelector('.bg-slate-950\\/15')).toBeInTheDocument();
+    expect(container.querySelector('.bg-slate-950\\/15')).not.toBeInTheDocument();
   });
 
   it('shows a short cover badge when cover labels are enabled', () => {

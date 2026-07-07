@@ -18,5 +18,5 @@
     "prone_condition"
   ],
   "filePath": "/data/glossary/entries/rules/conditions.json",
-  "markdown": "# Conditions\r\n\r\n<p class=\"glossary-intro-quote\">\r\nMany effects in the game impose a condition, a temporary state that alters the recipient's capabilities. A condition's definition specifies what happens to its recipient while affected by it, and some conditions apply other conditions.\r\n</p>\r\n\r\nThe specific conditions, their durations, and how they interact are detailed in the sub-entries in the glossary sidebar.\r\n"
+  "markdown": "# Conditions\n\nMany effects in the game impose a condition, a temporary state that alters the recipient's capabilities. A condition's definition specifies what happens to its recipient while affected by it, and some conditions apply other conditions.\n\nThe specific conditions, their durations, and how they interact are detailed in the sub-entries in the glossary sidebar.\n"
 }

@@ -7,17 +7,17 @@
     "item",
     "itemType:Melee Weapon"
   ],
-  "excerpt": "You have resistance to Cold damage while you hold this staff.  Spells The staff has 10 charges. While holding the staff, you can cast one of the spell...",
+  "excerpt": "You have resistance|Resistance to Cold damage while you hold this staff.  Spells The staff has 10 charges. While holding the staff, you can cast one o...",
   "aliases": [],
   "seeAlso": [
     "resistance",
-    "cone_of_cold of Cold",
-    "fog_cloud Cloud",
-    "ice_storm Storm",
-    "wall_of_ice of Ice"
+    "cone-of-cold",
+    "fog-cloud",
+    "ice-storm",
+    "wall-of-ice"
   ],
   "filePath": "/data/glossary/entries/equipment/staff_of_frost.json",
-  "markdown": "# Staff of Frost\n\nYou have [[resistance]] to Cold damage while you hold this staff.\n\n## Spells\n\nThe staff has 10 charges. While holding the staff, you can cast one of the spells on the following table from it, using your spell save DC. The table indicates how many charges you must expend to cast the spell.\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[cone_of_cold of Cold]] | 5 |\n| [[fog_cloud Cloud]] | 1 |\n| [[ice_storm Storm]] | 4 |\n| [[wall_of_ice of Ice]] | 4 |\n\n## Regaining Charges\n\nThe staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff turns to water and is destroyed.",
+  "markdown": "# Staff of Frost\n\nYou have [[resistance]] to Cold damage while you hold this staff.\n\n## Spells\n\nThe staff has 10 charges. While holding the staff, you can cast one of the spells on the following table from it, using your spell save DC. The table indicates how many charges you must expend to cast the spell.\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[cone-of-cold|Cone of Cold]] | 5 |\n| [[fog-cloud|Fog Cloud]] | 1 |\n| [[ice-storm|Ice Storm]] | 4 |\n| [[wall-of-ice|Wall of Ice]] | 4 |\n\n## Regaining Charges\n\nThe staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff turns to water and is destroyed.",
   "itemMetadata": {
     "type": "Melee Weapon",
     "rarity": "Very rare",

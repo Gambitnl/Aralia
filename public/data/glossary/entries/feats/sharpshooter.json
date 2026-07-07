@@ -6,13 +6,12 @@
     "source:xphb",
     "feat"
   ],
-  "excerpt": "You gain the following benefits.  Bypass Cover Your ranged attacks with weapons ignore cover Cover and cover-Quarters Cover.  Firing in Melee Being wi...",
+  "excerpt": "You gain the following benefits.  Bypass Cover Your ranged attacks with weapons ignore cover|Half Cover and cover|Three-Quarters Cover.  Firing in Mel...",
   "aliases": [],
   "seeAlso": [
-    "cover Cover",
-    "cover-Quarters Cover",
+    "cover",
     "disadvantage"
   ],
   "filePath": "/data/glossary/entries/feats/sharpshooter.json",
-  "markdown": "# Sharpshooter\n\nYou gain the following benefits.\n\n## Bypass Cover\n\nYour ranged attacks with weapons ignore [[cover Cover]] and [[cover-Quarters Cover]].\n\n## Firing in Melee\n\nBeing within 5 feet of an enemy doesn't impose [[disadvantage]] on your attack rolls with Ranged weapons.\n\n## Long Shots\n\nAttacking at long range doesn't impose [[disadvantage]] on your attack rolls with Ranged weapons."
+  "markdown": "# Sharpshooter\n\nYou gain the following benefits.\n\n## Bypass Cover\n\nYour ranged attacks with weapons ignore [[cover|Half Cover]] and [[cover|Three-Quarters Cover]].\n\n## Firing in Melee\n\nBeing within 5 feet of an enemy doesn't impose [[disadvantage]] on your attack rolls with Ranged weapons.\n\n## Long Shots\n\nAttacking at long range doesn't impose [[disadvantage]] on your attack rolls with Ranged weapons."
 }

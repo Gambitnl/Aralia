@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/climbing.json",
-  "markdown": "# Climbing\n\nWhile you're climbing, each foot of movement costs 1 extra foot (2 extra feet in [[difficult_terrain terrain]]). You ignore this extra cost if you have a [[climb_speed Speed]] and use it to climb. At the DM's option, climbing a slippery surface or one with few handholds might require a successful DC 15 Strength ([[athletics]]) check."
+  "markdown": "# Climbing\n\nWhile you're climbing, each foot of movement costs 1 extra foot (2 extra feet in [[difficult_terrain]]). You ignore this extra cost if you have a [[climb_speed]] and use it to climb. At the DM's option, climbing a slippery surface or one with few handholds might require a successful DC 15 Strength ([[athletics]]) check."
 }

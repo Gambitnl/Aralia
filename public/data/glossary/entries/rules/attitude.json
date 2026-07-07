@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/attitude.json",
-  "markdown": "# Attitude\n\nA [[monster]] has a starting attitude toward a [[player_character character]]: [[friendly_attitude]], [[hostile_attitude]], or [[indifferent_attitude]]."
+  "markdown": "# Attitude\n\nA [[monster]] has a starting attitude toward a [[player_character]]: [[friendly_attitude]], [[hostile_attitude]], or [[indifferent_attitude]]."
 }

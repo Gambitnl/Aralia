@@ -36,6 +36,7 @@ import {
 } from './disasters';
 import { festivalsOnDayOfYear } from './festivals';
 import { newbornName } from './naming';
+import { makeSeedPath, seedFromPath } from '../seedPath';
 import type {
   InstitutionRole,
   LifeEvent,
@@ -243,8 +244,46 @@ function annualToDaily(annual: number): number {
   return 1 - Math.pow(1 - annual, 1 / DAYS_PER_YEAR);
 }
 
-/** Advance one day; returns a new state (input untouched). */
-export function rollTownDay(state: TownSimState, day: number, rng: SeededRandom): TownSimState {
+// ── Raid-worry (Pillar 2, Task 8) ────────────────────────────────────────────
+//
+// Optional per-day input: the raid PRESSURE the burg feels from the uncleared
+// dungeons around it (0..1, from raidPressureForBurg). Above a threshold, the
+// town's daily roll OCCASIONALLY writes one "raid-worry" chronicle line — a mood
+// symptom of the ecology signal, never a death. The roll draws on its OWN seed
+// stream (per burg + day), NOT the passed `rng`, so every existing life-event
+// draw order — and every existing townSim test — is byte-for-byte unchanged.
+
+/** Below this pressure the burg is calm enough that no worry line is ever rolled. */
+const RAID_WORRY_MIN_PRESSURE = 0.35;
+/** Peak daily chance of a worry line, reached at full pressure. Scaled by
+ * pressure so a mildly threatened town frets rarely, a besieged one often. */
+const RAID_WORRY_MAX_DAILY_CHANCE = 0.12;
+
+/** Laconic worry lines (same tone bar as the rumor hooks). Chosen deterministically
+ * by the worry stream so the same (burg, day) always reads the same line. */
+const RAID_WORRY_LINES: ReadonlyArray<string> = [
+  "Herders won't graze past the tree line — not since something took a heifer.",
+  'Folk are barring their doors early. Word is something out of the old dark is on the move.',
+  "The road wardens want more hands. They won't say against what, only that it comes by night.",
+  'Nobody rides the outer track alone anymore. Whatever dens out there is getting bold.',
+];
+
+export interface RollTownDayOptions {
+  /** World seed — seeds the raid-worry stream (kept off the life-event rng). */
+  worldSeed?: number;
+  /** Raid pressure (0..1) the burg feels from uncleared dungeons today. */
+  raidPressure?: number;
+}
+
+/** Advance one day; returns a new state (input untouched). `opts` carries the
+ * optional raid-pressure signal (Task 8); omitting it reproduces the pre-Task-8
+ * behavior exactly (no worry line, no extra draws on any stream). */
+export function rollTownDay(
+  state: TownSimState,
+  day: number,
+  rng: SeededRandom,
+  opts?: RollTownDayOptions,
+): TownSimState {
   const next = cloneState(state);
 
   // Snapshot the cohort that existed at the start of the day (newborns added
@@ -437,6 +476,22 @@ export function rollTownDay(state: TownSimState, day: number, rng: SeededRandom)
     const base = next.prosperity ?? 50;
     next.prosperity = Math.max(0, Math.min(100, base + 1));
     addEvent(next.chronicle, day, 'festival', 0, [], `The town held ${name}.`);
+  }
+
+  // 7. Raid-worry (Task 8): the ecology signal's one visible symptom. Above the
+  // pressure floor, an occasional worry line joins the chronicle. Rolled on a
+  // SEPARATE per-(burg, day) stream — NEVER the life-event `rng` — so it cannot
+  // shift any existing draw and leaves every pre-Task-8 test byte-identical.
+  const pressure = opts?.raidPressure ?? 0;
+  if (pressure >= RAID_WORRY_MIN_PRESSURE) {
+    const worryRng = new SeededRandom(
+      seedFromPath(makeSeedPath(opts?.worldSeed ?? 0, `burg:${next.burgId}`, `day:${day}`, 's:raidworry')),
+    );
+    const chance = RAID_WORRY_MAX_DAILY_CHANCE * pressure;
+    if (worryRng.next() < chance) {
+      const line = RAID_WORRY_LINES[worryRng.nextInt(0, RAID_WORRY_LINES.length)]; // MAX-EXCLUSIVE
+      addEvent(next.chronicle, day, 'raid_worry', 0, [], line);
+    }
   }
 
   next.lastSimDay = day;

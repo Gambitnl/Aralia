@@ -51,6 +51,7 @@ import { useDialogueSystem } from '../../hooks/useDialogueSystem';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useKnownPortsSync } from '../../hooks/useKnownPortsSync';
 import { useChronicleRumorsSync } from '../../hooks/useChronicleRumorsSync';
+import { useDungeonRumorsSync } from '../../hooks/useDungeonRumorsSync';
 import { useTownSimRegistration } from '../../hooks/useTownSimRegistration';
 import { useTownMerchantRegistration } from '../../hooks/useTownMerchantRegistration';
 import { useVoyageArrival } from '../../hooks/useVoyageArrival';
@@ -193,6 +194,11 @@ const GameModals: React.FC<GameModalsProps> = ({
     // becomes WorldRumors the TavernGossipSystem surfaces for purchase. Idempotent
     // — the ADD_RUMORS reducer dedups by stable rumor id.
     useChronicleRumorsSync(gameState, dispatch);
+    // Living-world (Pillar 2, Task 7): while in a tracked town, every world-grown
+    // dungeon within earshot of that town contributes its rumor hooks as
+    // WorldRumors the TavernGossipSystem surfaces — same ADD_RUMORS channel as
+    // chronicle news, idempotent via stable dungeon-rumor ids.
+    useDungeonRumorsSync(gameState, dispatch);
 
     // Naval: relocate the player to the destination port tile when a voyage docks.
     // Idempotent — clears currentVoyage after dispatch so it cannot re-fire.
@@ -427,6 +433,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 allow3DEntry={allow3DEntry}
                                 onClose={() => onAction({ type: 'toggle_map', label: 'Close Map' })}
                                 discoveredHiddenSites={gameState.discoveredHiddenSites}
+                                clearedDungeonPaths={gameState.clearedDungeons}
                                 allowTravel={gameState.phase === GamePhase.PLAYING}
                                 showGenerationControls={gameState.phase === GamePhase.MAIN_MENU}
                                 canRegenerateWorld={canRegenerateWorldMap}

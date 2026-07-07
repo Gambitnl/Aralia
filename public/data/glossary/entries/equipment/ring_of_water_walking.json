@@ -7,13 +7,13 @@
     "item",
     "itemType:Ring"
   ],
-  "excerpt": "While wearing this ring, you cast water_walk Walk from it, targeting only yourself....",
+  "excerpt": "While wearing this ring, you cast water_walk|Water Walk from it, targeting only yourself....",
   "aliases": [],
   "seeAlso": [
-    "water_walk Walk"
+    "water-walk"
   ],
   "filePath": "/data/glossary/entries/equipment/ring_of_water_walking.json",
-  "markdown": "# Ring of Water Walking\n\nWhile wearing this ring, you cast [[water_walk Walk]] from it, targeting only yourself.",
+  "markdown": "# Ring of Water Walking\n\nWhile wearing this ring, you cast [[water-walk|Water Walk]] from it, targeting only yourself.",
   "itemMetadata": {
     "type": "Ring",
     "rarity": "Uncommon"

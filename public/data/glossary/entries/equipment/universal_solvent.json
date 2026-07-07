@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This tube holds milky liquid with a strong alcohol smell. When found, a tube contains 1d6 + 1 ounces. You can take a utilize action to pour 1 or more ...",
+  "excerpt": "This tube holds milky liquid with a strong alcohol smell. When found, a tube contains 1d6 + 1 ounces. You can take a utilize|Utilize action to pour 1 ...",
   "aliases": [],
   "seeAlso": [
     "utilize"

@@ -7,7 +7,7 @@
     "item",
     "itemType:Wand"
   ],
-  "excerpt": "This wand has 7 charges. While holding it, you can take a magic action to expend 1 charge and create a harmless burst of multicolored light at a point...",
+  "excerpt": "This wand has 7 charges. While holding it, you can take a magic|Magic action to expend 1 charge and create a harmless burst of multicolored light at a...",
   "aliases": [],
   "seeAlso": [
     "magic"

@@ -160,6 +160,24 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: St
         role,
         storeys: storeysForRole(role, pl.polygon),
         ...(family && frame ? styleStamp(family, pl.polygon, frame) : {}),
+        // Carry the population-pass classification through to the 3D bake so it
+        // can rebuild the founding household brief (BGv2 Task 11). Only when the
+        // population pass tagged this plot (buildingType set) — unpopulated towns
+        // omit `pop` and generate briefless, byte-identical to before.
+        ...(pl.buildingType
+          ? {
+              pop: {
+                buildingType: pl.buildingType,
+                residential: pl.residential,
+                occupants: pl.occupants,
+                homeId: pl.homeId,
+                district: pl.district,
+                workplaceId: pl.workplaceId,
+                workRole: pl.workRole,
+                proprietorHomeId: pl.proprietorHomeId,
+              },
+            }
+          : {}),
       });
     }
   }

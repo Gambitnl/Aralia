@@ -6,11 +6,11 @@
     "source:xphb",
     "itemProperty"
   ],
-  "excerpt": "Reach A Reach weapon adds 5 feet to your reach when you attack with it, as well as when determining your reach for opportunity_attack Attacks with it....",
+  "excerpt": "Reach A Reach weapon adds 5 feet to your reach when you attack with it, as well as when determining your reach for opportunity_attack|Opportunity Atta...",
   "aliases": [],
   "seeAlso": [
-    "opportunity_attack Attacks"
+    "opportunity_attack"
   ],
   "filePath": "/data/glossary/entries/rules/r.json",
-  "markdown": "# R\n\n## Reach\n\nA Reach weapon adds 5 feet to your reach when you attack with it, as well as when determining your reach for [[opportunity_attack Attacks]] with it."
+  "markdown": "# R\n\n## Reach\n\nA Reach weapon adds 5 feet to your reach when you attack with it, as well as when determining your reach for [[opportunity_attack|Opportunity Attacks]] with it."
 }

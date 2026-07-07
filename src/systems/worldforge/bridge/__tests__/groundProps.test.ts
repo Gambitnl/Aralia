@@ -240,6 +240,7 @@ describe('prop referee imprint onto BattleMap tiles', () => {
       ],
       hostiles: [],
       hiddenSites: [],
+      dungeonEntrances: [],
       rivers: [],
       roads: [],
       walls: [],

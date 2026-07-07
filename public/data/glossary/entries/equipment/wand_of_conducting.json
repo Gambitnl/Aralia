@@ -7,7 +7,7 @@
     "item",
     "itemType:Wand"
   ],
-  "excerpt": "This wand has 3 charges. While holding it, you can take a magic action to expend 1 charge and create orchestral music by waving it around. The music c...",
+  "excerpt": "This wand has 3 charges. While holding it, you can take a magic|Magic action to expend 1 charge and create orchestral music by waving it around. The m...",
   "aliases": [],
   "seeAlso": [
     "magic"

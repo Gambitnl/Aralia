@@ -38,10 +38,8 @@
   ],
   "aliases": [],
   "seeAlso": [
-    "genasi",
-    "earth_walk",
-    "blade_ward",
-    "pass_without_trace"
+    "blade-ward",
+    "pass-without-trace"
   ],
   "filePath": "/data/glossary/entries/races/earth_genasi.json",
   "maleImageUrl": "/assets/images/races/Genasi_Earth_Male.png",

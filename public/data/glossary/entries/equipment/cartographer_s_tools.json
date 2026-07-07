@@ -7,13 +7,13 @@
     "baseitem",
     "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Ability:: Wisdom - Utilize:: Draft a map of a small area (DC 15) - Craft:: map...",
+  "excerpt": "- Ability: Wisdom - Utilize: Draft a map of a small area (DC 15) - Craft: map|Map...",
   "aliases": [],
   "seeAlso": [
     "map"
   ],
   "filePath": "/data/glossary/entries/equipment/cartographer_s_tools.json",
-  "markdown": "# Cartographer's Tools\n\n- **Ability::** Wisdom\n- **Utilize::** Draft a map of a small area (DC 15)\n- **Craft::** [[map]]",
+  "markdown": "# Cartographer's Tools\n\n- **Ability:** Wisdom\n- **Utilize:** Draft a map of a small area (DC 15)\n- **Craft:** [[map]]",
   "itemMetadata": {
     "type": "Artisan's Tools",
     "rarity": "None",

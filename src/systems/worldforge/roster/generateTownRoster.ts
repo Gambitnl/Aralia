@@ -135,6 +135,10 @@ export function generateTownRoster(
 // ============================================================================
 
 function capacityForHouse(plot: TownPlot, seedPath: SeedPath): number {
+  // Briefless by design (BGv2 Task 11): the roster runs BEFORE households exist
+  // — this bedroom count is an INPUT to sizing the household, so there is no
+  // brief to pass yet. The 3D bake (groundChunkLoader) is where the founding
+  // brief threads back in, after households are known.
   const bedroomCount = generateInterior(plot, seedPath).rooms.filter(
     (room) => room.role === 'bedroom',
   ).length;

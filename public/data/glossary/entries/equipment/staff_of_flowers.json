@@ -7,7 +7,7 @@
     "item",
     "itemType:Melee Weapon"
   ],
-  "excerpt": "This wooden staff has 10 charges. While holding it, you can take a magic action to expend 1 charge from the staff and cause a flower to sprout from a ...",
+  "excerpt": "This wooden staff has 10 charges. While holding it, you can take a magic|Magic action to expend 1 charge from the staff and cause a flower to sprout f...",
   "aliases": [],
   "seeAlso": [
     "magic"

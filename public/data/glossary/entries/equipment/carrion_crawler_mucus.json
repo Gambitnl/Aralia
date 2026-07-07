@@ -7,7 +7,7 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A creature subjected to Carrion Crawler Mucus must succeed on a DC 13 Constitution saving throw or have the poisoned condition for 1 minute. The creat...",
+  "excerpt": "A creature subjected to Carrion Crawler Mucus must succeed on a DC 13 Constitution saving throw or have the poisoned|Poisoned condition for 1 minute. ...",
   "aliases": [],
   "seeAlso": [
     "poisoned",

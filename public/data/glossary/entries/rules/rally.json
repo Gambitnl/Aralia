@@ -6,12 +6,12 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "As a bonus_action Action, you can expend one Superiority Die to bolster the resolve of a companion. Choose an ally of yours within 30 feet of yourself...",
+  "excerpt": "As a bonus_action|Bonus Action, you can expend one Superiority Die to bolster the resolve of a companion. Choose an ally of yours within 30 feet of yo...",
   "aliases": [],
   "seeAlso": [
-    "bonus_action Action",
-    "temporary_hit_points Hit Points"
+    "bonus_action",
+    "temporary_hit_points"
   ],
   "filePath": "/data/glossary/entries/rules/rally.json",
-  "markdown": "# Rally\n\nAs a [[bonus_action Action]], you can expend one Superiority Die to bolster the resolve of a companion. Choose an ally of yours within 30 feet of yourself who can see or hear you. That creature gains [[temporary_hit_points Hit Points]] equal to the Superiority Die roll plus half your Fighter level (round down)."
+  "markdown": "# Rally\n\nAs a [[bonus_action]], you can expend one Superiority Die to bolster the resolve of a companion. Choose an ally of yours within 30 feet of yourself who can see or hear you. That creature gains [[temporary_hit_points]] equal to the Superiority Die roll plus half your Fighter level (round down)."
 }

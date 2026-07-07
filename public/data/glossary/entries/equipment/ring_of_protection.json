@@ -7,13 +7,13 @@
     "item",
     "itemType:Ring"
   ],
-  "excerpt": "You gain a +1 bonus to armor_class Class and saving throws while wearing this ring....",
+  "excerpt": "You gain a +1 bonus to armor_class|Armor Class and saving throws while wearing this ring....",
   "aliases": [],
   "seeAlso": [
-    "armor_class Class"
+    "armor_class"
   ],
   "filePath": "/data/glossary/entries/equipment/ring_of_protection.json",
-  "markdown": "# Ring of Protection\n\nYou gain a +1 bonus to [[armor_class Class]] and saving throws while wearing this ring.",
+  "markdown": "# Ring of Protection\n\nYou gain a +1 bonus to [[armor_class]] and saving throws while wearing this ring.",
   "itemMetadata": {
     "type": "Ring",
     "rarity": "Rare",

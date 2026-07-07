@@ -7,17 +7,17 @@
     "item",
     "itemType:Melee Weapon"
   ],
-  "excerpt": "As a bonus_action Action, you can turn the head of this staff into that of an animate, venomous snake for 1 minute or revert the staff to its inanimat...",
+  "excerpt": "As a bonus_action|Bonus Action, you can turn the head of this staff into that of an animate, venomous snake for 1 minute or revert the staff to its in...",
   "aliases": [],
   "seeAlso": [
-    "bonus_action Action",
+    "bonus_action",
     "attack",
-    "proficiency Bonus",
+    "proficiency",
     "immunity",
-    "hit_points Points"
+    "hit_points"
   ],
   "filePath": "/data/glossary/entries/equipment/staff_of_the_adder.json",
-  "markdown": "# Staff of the Adder\n\nAs a [[bonus_action Action]], you can turn the head of this staff into that of an animate, venomous snake for 1 minute or revert the staff to its inanimate form.\n\nWhen you take the [[attack]] action, you can make one of the attack rolls using the animated snake head, which has a reach of 5 feet. Apply your [[proficiency Bonus]] and Wisdom modifier to the attack roll. On a hit, the target takes 1d6 Piercing damage and 3d6 Poison damage.\n\nThe snake head can be attacked while it is animate. It has AC 15, HP 20, and [[immunity]] to Poison and Psychic damage. If the head drops to 0 [[hit_points Points]], the staff is destroyed. As long as it's not destroyed, the staff regains all lost [[hit_points Points]] when it reverts to its inanimate form.",
+  "markdown": "# Staff of the Adder\n\nAs a [[bonus_action]], you can turn the head of this staff into that of an animate, venomous snake for 1 minute or revert the staff to its inanimate form.\n\nWhen you take the [[attack]] action, you can make one of the attack rolls using the animated snake head, which has a reach of 5 feet. Apply your [[proficiency|Proficiency Bonus]] and Wisdom modifier to the attack roll. On a hit, the target takes 1d6 Piercing damage and 3d6 Poison damage.\n\nThe snake head can be attacked while it is animate. It has AC 15, HP 20, and [[immunity]] to Poison and Psychic damage. If the head drops to 0 [[hit_points]], the staff is destroyed. As long as it's not destroyed, the staff regains all lost [[hit_points]] when it reverts to its inanimate form.",
   "itemMetadata": {
     "type": "Melee Weapon",
     "rarity": "Uncommon",

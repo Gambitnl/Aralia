@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "You can take a utilize action to place these shackles on a creature that has the incapacitated condition. The shackles adjust to fit a creature of Sma...",
+  "excerpt": "You can take a utilize|Utilize action to place these shackles on a creature that has the incapacitated|Incapacitated condition. The shackles adjust to...",
   "aliases": [],
   "seeAlso": [
     "utilize",

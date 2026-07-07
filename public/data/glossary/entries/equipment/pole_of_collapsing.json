@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This item functions as a Pole. While holding it, you can take a magic action to collapse it into a 1-foot-long rod for ease of storage (the pole's wei...",
+  "excerpt": "This item functions as a Pole. While holding it, you can take a magic|Magic action to collapse it into a 1-foot-long rod for ease of storage (the pole...",
   "aliases": [],
   "seeAlso": [
     "magic"

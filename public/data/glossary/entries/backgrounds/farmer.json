@@ -6,18 +6,18 @@
     "source:xphb",
     "background"
   ],
-  "excerpt": "- Ability Scores:: Strength, Constitution, Wisdom - Feat:: tough - Skill Proficiencies:: animal_handling Handling, nature - Tool Proficiency:: carpent...",
+  "excerpt": "- Ability Scores: Strength, Constitution, Wisdom - Feat: tough|Tough - Skill Proficiencies: animal_handling|Animal Handling, nature|Nature - Tool Prof...",
   "aliases": [],
   "seeAlso": [
     "tough",
-    "animal_handling Handling",
+    "animal_handling",
     "nature",
-    "carpenter_s_tools's Tools",
+    "carpenter_s_tools",
     "sickle",
-    "healer_s_kit's Kit",
-    "iron_pot Pot",
+    "healer_s_kit",
+    "iron_pot",
     "shovel"
   ],
   "filePath": "/data/glossary/entries/backgrounds/farmer.json",
-  "markdown": "# Farmer\n\n- **Ability Scores::** Strength, Constitution, Wisdom\n- **Feat::** [[tough]]\n- **Skill Proficiencies::** [[animal_handling Handling]], [[nature]]\n- **Tool Proficiency::** [[carpenter_s_tools's Tools]]\n- **Equipment::** Choose A or B: (A) [[sickle]], [[carpenter_s_tools's Tools]], [[healer_s_kit's Kit]], [[iron_pot Pot]], [[shovel]], 30 GP; or (B) 50 GP"
+  "markdown": "# Farmer\n\n- **Ability Scores:** Strength, Constitution, Wisdom\n- **Feat:** [[tough]]\n- **Skill Proficiencies:** [[animal_handling]], [[nature]]\n- **Tool Proficiency:** [[carpenter_s_tools|Carpenter's Tools]]\n- **Equipment:** Choose A or B: (A) [[sickle]], [[carpenter_s_tools|Carpenter's Tools]], [[healer_s_kit|Healer's Kit]], [[iron_pot]], [[shovel]], 30 GP; or (B) 50 GP"
 }

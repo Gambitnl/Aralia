@@ -7,7 +7,7 @@
     "item",
     "itemType:Rod"
   ],
-  "excerpt": "This iron rod has a button on one end. You can take a utilize action to press the button, which causes the rod to become magically fixed in place. Unt...",
+  "excerpt": "This iron rod has a button on one end. You can take a utilize|Utilize action to press the button, which causes the rod to become magically fixed in pl...",
   "aliases": [],
   "seeAlso": [
     "utilize",

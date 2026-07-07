@@ -7,16 +7,16 @@
     "item",
     "itemType:Tool"
   ],
-  "excerpt": "- Ability:: Intelligence - Utilize:: Identify a plant (DC 10) - Craft:: antitoxin, candle, healer_s_kit's Kit, potion_of_healing of Healing...",
+  "excerpt": "- Ability: Intelligence - Utilize: Identify a plant (DC 10) - Craft: antitoxin|Antitoxin, candle|Candle, healer_s_kit|Healer's Kit, potion_of_healing|...",
   "aliases": [],
   "seeAlso": [
     "antitoxin",
     "candle",
-    "healer_s_kit's Kit",
-    "potion_of_healing of Healing"
+    "healer_s_kit",
+    "potion_of_healing"
   ],
   "filePath": "/data/glossary/entries/equipment/herbalism_kit.json",
-  "markdown": "# Herbalism Kit\n\n- **Ability::** Intelligence\n- **Utilize::** Identify a plant (DC 10)\n- **Craft::** [[antitoxin]], [[candle]], [[healer_s_kit's Kit]], [[potion_of_healing of Healing]]",
+  "markdown": "# Herbalism Kit\n\n- **Ability:** Intelligence\n- **Utilize:** Identify a plant (DC 10)\n- **Craft:** [[antitoxin]], [[candle]], [[healer_s_kit|Healer's Kit]], [[potion_of_healing]]",
   "itemMetadata": {
     "type": "Tool",
     "rarity": "None",

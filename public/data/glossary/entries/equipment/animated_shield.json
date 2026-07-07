@@ -7,14 +7,14 @@
     "item",
     "itemType:Shield"
   ],
-  "excerpt": "While holding this Shield, you can take a bonus_action Action to cause it to animate. The Shield leaps into the air and hovers in your space to protec...",
+  "excerpt": "While holding this Shield, you can take a bonus_action|Bonus Action to cause it to animate. The Shield leaps into the air and hovers in your space to ...",
   "aliases": [],
   "seeAlso": [
-    "bonus_action Action",
+    "bonus_action",
     "incapacitated"
   ],
   "filePath": "/data/glossary/entries/equipment/animated_shield.json",
-  "markdown": "# Animated Shield\n\nWhile holding this Shield, you can take a [[bonus_action Action]] to cause it to animate. The Shield leaps into the air and hovers in your space to protect you as if you were wielding it, leaving your hands free. The Shield remains animate for 1 minute, until you take a [[bonus_action Action]] to end this effect, or until you die or have the [[incapacitated]] condition, at which point the Shield falls to the ground or into your hand if you have one free.",
+  "markdown": "# Animated Shield\n\nWhile holding this Shield, you can take a [[bonus_action]] to cause it to animate. The Shield leaps into the air and hovers in your space to protect you as if you were wielding it, leaving your hands free. The Shield remains animate for 1 minute, until you take a [[bonus_action]] to end this effect, or until you die or have the [[incapacitated]] condition, at which point the Shield falls to the ground or into your hand if you have one free.",
   "itemMetadata": {
     "type": "Shield",
     "rarity": "Very rare",

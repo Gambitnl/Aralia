@@ -7,14 +7,14 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "When you take the attack action, you can replace one of your attacks with throwing a vial of Acid. Target one creature or object you can see within 20...",
+  "excerpt": "When you take the attack|Attack action, you can replace one of your attacks with throwing a vial of Acid. Target one creature or object you can see wi...",
   "aliases": [],
   "seeAlso": [
     "attack",
-    "proficiency Bonus"
+    "proficiency"
   ],
   "filePath": "/data/glossary/entries/equipment/acid.json",
-  "markdown": "# Acid\n\nWhen you take the [[attack]] action, you can replace one of your attacks with throwing a vial of Acid. Target one creature or object you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and [[proficiency Bonus]]) or take 2d6 Acid damage.",
+  "markdown": "# Acid\n\nWhen you take the [[attack]] action, you can replace one of your attacks with throwing a vial of Acid. Target one creature or object you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and [[proficiency|Proficiency Bonus]]) or take 2d6 Acid damage.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

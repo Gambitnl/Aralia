@@ -51,11 +51,7 @@
     "monk"
   ],
   "aliases": [],
-  "seeAlso": [
-    "githzerai_psionics",
-    "mental_discipline",
-    "psychic_resilience"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/githzerai.json",
   "maleImageUrl": "/assets/images/races/githzerai_male.png",
   "femaleImageUrl": "/assets/images/races/githzerai_female.png"

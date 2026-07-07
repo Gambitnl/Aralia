@@ -2,11 +2,16 @@
   "id": "wisdom",
   "title": "Wisdom",
   "category": "Rules Glossary",
-  "tags": ["ability scores", "attributes", "stats"],
+  "tags": [
+    "ability scores",
+    "attributes",
+    "stats"
+  ],
   "excerpt": "Measures awareness, intuition, and insight. Wisdom is important for clerics, druids, and rangers, and affects perception and many saving throws.",
-  "aliases": ["WIS"],
+  "aliases": [
+    "WIS"
+  ],
   "seeAlso": [
-    "intelligence",
     "charisma",
     "ability_check"
   ],

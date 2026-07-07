@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This orb can be used as an Arcane Focus. While holding this orb, you can take a magic action to determine which way is magnetic north. Nothing happens...",
+  "excerpt": "This orb can be used as an Arcane Focus. While holding this orb, you can take a magic|Magic action to determine which way is magnetic north. Nothing h...",
   "aliases": [],
   "seeAlso": [
     "magic"

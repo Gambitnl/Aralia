@@ -15,12 +15,40 @@
  * given seed path. Pure data — no three.js, no rendering concerns.
  */
 import type { Footprint } from './footprint';
+import type { BuildingType } from './blueprintTypes';
 import { rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import type { SeededRandom } from '../../../utils/random/seededRandom';
 
 interface Rect { x: number; y: number; w: number; h: number; }
 
 const MIN_ROOM_CELLS = 3;
+
+/**
+ * Hard per-type ceiling on final room count. Notch-splitting can inflate the
+ * BSP's area-based target (17-room manors were observed against a 10-room
+ * intent); the merge-down pass in partition() enforces these caps.
+ */
+const ROOM_CAP: Record<BuildingType, number> = {
+  cottage: 5,
+  shop: 6,
+  workshop: 6,
+  tavern: 9,
+  manor: 10,
+  townhouse: 6,
+  tenement: 10,
+  farmstead: 6,
+  smithy: 5,
+  inn: 10,
+  storehouse: 4,
+  temple: 6,
+  keep: 9,
+  civic: 7,
+};
+
+/** Hard ceiling on room count for a building type (merge-down cap). */
+export function roomCapFor(type: BuildingType): number {
+  return ROOM_CAP[type];
+}
 
 /** Largest axis-aligned rectangle of fully occupied cells (histogram method). */
 function maximalRect(fp: Footprint): Rect {
@@ -115,11 +143,16 @@ function shrinkMainToward(rng: SeededRandom, rect: Rect, total: number): Rect {
 /**
  * Partition a footprint into rooms. Returns rg[y][x]: room id per cell,
  * -1 outside the footprint; ids compact from 0.
+ *
+ * `maxRooms` (optional, additive) is a hard ceiling on the final room count:
+ * a merge-down pass folds the smallest room into its longest-shared-edge
+ * neighbor until the count fits. Callers with a building type should pass
+ * `roomCapFor(type)`.
  */
 export function partition(
   path: SeedPath,
   fp: Footprint,
-  opts: { keepMainWhole: boolean },
+  opts: { keepMainWhole: boolean; maxRooms?: number },
 ): number[][] {
   const rng = rngFromPath(streamPath(path, 'partition'));
   const total = fp.cells.length;
@@ -188,28 +221,44 @@ export function partition(
     }
   }
 
-  mergeSlivers(rg, fp, path);
+  mergeSlivers(rg, fp);
 
   // Guarantee at least MIN_ROOMS rooms: tiny footprints can collapse to two
   // rooms when chained sliver merges inflate one neighbor. Deterministically
   // split the largest splittable room until the floor is met (bounded, in
   // case a split immediately re-merges).
   for (let pass = 0; pass < 8; pass++) {
-    const areas = new Map<number, number>();
-    for (let y = 0; y < fp.rows; y++) {
-      for (let x = 0; x < fp.cols; x++) {
-        const id = rg[y][x];
-        if (id >= 0) areas.set(id, (areas.get(id) ?? 0) + 1);
-      }
-    }
+    const areas = roomAreas(rg, fp);
     if (areas.size >= MIN_ROOMS) break;
     const candidate = [...areas.entries()]
       .filter(([, a]) => a >= 2 * MIN_ROOM_CELLS)
       .sort((a, b) => b[1] - a[1] || a[0] - b[0])[0];
     if (!candidate) break;
-    if (!splitRoom(rg, fp, candidate[0], nextId)) break;
-    nextId += fp.rows * fp.cols; // fresh id range for the next pass
-    mergeSlivers(rg, fp, path);
+    // Safe running allocator: new rooms start just past the current max id
+    // (the old `nextId += rows * cols` stride relied on an unchecked
+    // invariant that a split never creates more components than grid cells).
+    const maxId = Math.max(...areas.keys());
+    if (!splitRoom(rg, fp, candidate[0], maxId + 1)) break;
+    mergeSlivers(rg, fp);
+  }
+
+  // Merge-down hard cap: notch-splitting can push the room count well past
+  // the BSP target (17-room manors were observed). While over the cap, fold
+  // the smallest room into the neighbor it shares the most edge with. Like
+  // sliver merging this is intentionally RNG-free — pure geometry with id
+  // tie-breaks — so it never disturbs the partition seed stream. The largest
+  // room (the reserved main when keepMainWhole) is never the merge SOURCE
+  // (we always pick the smallest), so the dominant room's identity survives;
+  // it may absorb neighbors, which only strengthens its dominance.
+  if (opts.maxRooms !== undefined) {
+    const cap = Math.max(MIN_ROOMS, opts.maxRooms);
+    for (;;) {
+      const areas = roomAreas(rg, fp);
+      if (areas.size <= cap) break;
+      const [sid] = [...areas.entries()]
+        .sort((a, b) => a[1] - b[1] || a[0] - b[0])[0];
+      mergeInto(rg, fp, sid);
+    }
   }
 
   // Compact ids to 0..n-1 in first-encounter (row-major) order.
@@ -230,6 +279,18 @@ export function partition(
 }
 
 const MIN_ROOMS = 3;
+
+/** Cell count per room id currently present in rg. */
+function roomAreas(rg: number[][], fp: Footprint): Map<number, number> {
+  const areas = new Map<number, number>();
+  for (let y = 0; y < fp.rows; y++) {
+    for (let x = 0; x < fp.cols; x++) {
+      const id = rg[y][x];
+      if (id >= 0) areas.set(id, (areas.get(id) ?? 0) + 1);
+    }
+  }
+  return areas;
+}
 
 /**
  * Split room `id` in two along the longest axis of its bounding box, cutting
@@ -302,8 +363,12 @@ function splitRoom(
  * Merge slivers (< MIN_ROOM_CELLS) into the neighbor sharing the most edge.
  * Iterates until stable; the footprint is 4-connected so every room that is
  * not the sole room has at least one neighbor. Mutates rg in place.
+ *
+ * Intentionally RNG-free: sliver merging is pure geometry (smallest sliver
+ * first, longest shared edge wins, ids break ties) so it never consumes from
+ * the partition seed stream and cannot shift later draws.
  */
-function mergeSlivers(rg: number[][], fp: Footprint, path: SeedPath): void {
+function mergeSlivers(rg: number[][], fp: Footprint): void {
   for (;;) {
     const areas = new Map<number, number>();
     for (let y = 0; y < fp.rows; y++) {
@@ -317,29 +382,37 @@ function mergeSlivers(rg: number[][], fp: Footprint, path: SeedPath): void {
       .filter(([, a]) => a < MIN_ROOM_CELLS)
       .sort((a, b) => a[1] - b[1] || a[0] - b[0])[0];
     if (!sliver) break;
-    const [sid] = sliver;
-    const shared = new Map<number, number>();
-    for (let y = 0; y < fp.rows; y++) {
-      for (let x = 0; x < fp.cols; x++) {
-        if (rg[y][x] !== sid) continue;
-        for (const [nx, ny] of [
-          [x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1],
-        ] as Array<[number, number]>) {
-          if (nx < 0 || nx >= fp.cols || ny < 0 || ny >= fp.rows) continue;
-          const nid = rg[ny][nx];
-          if (nid >= 0 && nid !== sid) shared.set(nid, (shared.get(nid) ?? 0) + 1);
-        }
+    mergeInto(rg, fp, sliver[0]);
+  }
+}
+
+/**
+ * Merge room `sid` into the neighbor it shares the most edge with (lowest id
+ * on ties). RNG-free geometry; mutates rg in place. Throws if the room has no
+ * neighbor (impossible on a 4-connected footprint with 2+ rooms).
+ */
+function mergeInto(rg: number[][], fp: Footprint, sid: number): void {
+  const shared = new Map<number, number>();
+  for (let y = 0; y < fp.rows; y++) {
+    for (let x = 0; x < fp.cols; x++) {
+      if (rg[y][x] !== sid) continue;
+      for (const [nx, ny] of [
+        [x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1],
+      ] as Array<[number, number]>) {
+        if (nx < 0 || nx >= fp.cols || ny < 0 || ny >= fp.rows) continue;
+        const nid = rg[ny][nx];
+        if (nid >= 0 && nid !== sid) shared.set(nid, (shared.get(nid) ?? 0) + 1);
       }
     }
-    if (shared.size === 0) {
-      throw new Error(`partition: sliver room ${sid} has no neighbor at ${path}`);
-    }
-    const target = [...shared.entries()]
-      .sort((a, b) => b[1] - a[1] || a[0] - b[0])[0][0];
-    for (let y = 0; y < fp.rows; y++) {
-      for (let x = 0; x < fp.cols; x++) {
-        if (rg[y][x] === sid) rg[y][x] = target;
-      }
+  }
+  if (shared.size === 0) {
+    throw new Error(`partition: room ${sid} has no neighbor to merge into`);
+  }
+  const target = [...shared.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0] - b[0])[0][0];
+  for (let y = 0; y < fp.rows; y++) {
+    for (let x = 0; x < fp.cols; x++) {
+      if (rg[y][x] === sid) rg[y][x] = target;
     }
   }
 }

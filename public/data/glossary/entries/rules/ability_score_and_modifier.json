@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/ability_score_and_modifier.json",
-  "markdown": "# Ability Score and Modifier\n\nA creature has six ability scores-Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma-each of which has a corresponding modifier. Add the modifier when you make a [[d20_test Test]] with the corresponding ability or when a rule asks you to do so."
+  "markdown": "# Ability Score and Modifier\n\nA creature has six ability scores-Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma-each of which has a corresponding modifier. Add the modifier when you make a [[d20_test]] with the corresponding ability or when a rule asks you to do so."
 }

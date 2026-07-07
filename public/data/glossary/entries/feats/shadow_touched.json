@@ -10,8 +10,8 @@
   "aliases": [],
   "seeAlso": [
     "invisibility",
-    "long_rest Rest"
+    "long_rest"
   ],
   "filePath": "/data/glossary/entries/feats/shadow_touched.json",
-  "markdown": "# Shadow-Touched\n\nYour exposure to the Shadowfell's magic grants you the following benefits.\n\n## Shadow Magic\n\nChoose one level 1 spell from the Illusion or Necromancy school of magic. You always have that spell and the [[invisibility]] spell prepared. You can cast each of these spells without expending a spell slot. Once you cast either spell in this way, you can't cast that spell in this way again until you finish a [[long_rest Rest]]. You can also cast these spells using spell slots you have of the appropriate level. The spells' spellcasting ability is the ability increased by this feat."
+  "markdown": "# Shadow-Touched\n\nYour exposure to the Shadowfell's magic grants you the following benefits.\n\n## Shadow Magic\n\nChoose one level 1 spell from the Illusion or Necromancy school of magic. You always have that spell and the [[invisibility]] spell prepared. You can cast each of these spells without expending a spell slot. Once you cast either spell in this way, you can't cast that spell in this way again until you finish a [[long_rest]]. You can also cast these spells using spell slots you have of the appropriate level. The spells' spellcasting ability is the ability increased by this feat."
 }

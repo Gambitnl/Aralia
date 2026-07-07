@@ -7,13 +7,13 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "While wearing this hat, you can cast the disguise_self Self spell. The spell ends if the hat is removed....",
+  "excerpt": "While wearing this hat, you can cast the disguise_self|Disguise Self spell. The spell ends if the hat is removed....",
   "aliases": [],
   "seeAlso": [
-    "disguise_self Self"
+    "disguise-self"
   ],
   "filePath": "/data/glossary/entries/equipment/hat_of_disguise.json",
-  "markdown": "# Hat of Disguise\n\nWhile wearing this hat, you can cast the [[disguise_self Self]] spell. The spell ends if the hat is removed.",
+  "markdown": "# Hat of Disguise\n\nWhile wearing this hat, you can cast the [[disguise-self|Disguise Self]] spell. The spell ends if the hat is removed.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon",

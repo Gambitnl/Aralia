@@ -6,12 +6,12 @@
     "source:xphb",
     "hazard"
   ],
-  "excerpt": "Slippery ice is difficult_terrain Terrain. A creature that moves onto slippery ice for the first time on a turn or starts its turn there must succeed ...",
+  "excerpt": "Slippery ice is difficult_terrain|Difficult Terrain. A creature that moves onto slippery ice for the first time on a turn or starts its turn there mus...",
   "aliases": [],
   "seeAlso": [
-    "difficult_terrain Terrain",
+    "difficult_terrain",
     "prone"
   ],
   "filePath": "/data/glossary/entries/rules/slippery_ice.json",
-  "markdown": "# Slippery Ice\n\nSlippery ice is [[difficult_terrain Terrain]]. A creature that moves onto slippery ice for the first time on a turn or starts its turn there must succeed on a DC 10 Dexterity saving throw or have the [[prone]] condition."
+  "markdown": "# Slippery Ice\n\nSlippery ice is [[difficult_terrain]]. A creature that moves onto slippery ice for the first time on a turn or starts its turn there must succeed on a DC 10 Dexterity saving throw or have the [[prone]] condition."
 }

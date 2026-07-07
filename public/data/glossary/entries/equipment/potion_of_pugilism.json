@@ -7,13 +7,13 @@
     "item",
     "itemType:Potion"
   ],
-  "excerpt": "After you drink this potion, each unarmed_strike Strike you make deals an extra 1d6 Force damage on a hit. This effect lasts 10 minutes. This potion i...",
+  "excerpt": "After you drink this potion, each unarmed_strike|Unarmed Strike you make deals an extra 1d6 Force damage on a hit. This effect lasts 10 minutes. This ...",
   "aliases": [],
   "seeAlso": [
-    "unarmed_strike Strike"
+    "unarmed_strike"
   ],
   "filePath": "/data/glossary/entries/equipment/potion_of_pugilism.json",
-  "markdown": "# Potion of Pugilism\n\nAfter you drink this potion, each [[unarmed_strike Strike]] you make deals an extra 1d6 Force damage on a hit. This effect lasts 10 minutes.\n\nThis potion is a thick green fluid that tastes like spinach.",
+  "markdown": "# Potion of Pugilism\n\nAfter you drink this potion, each [[unarmed_strike]] you make deals an extra 1d6 Force damage on a hit. This effect lasts 10 minutes.\n\nThis potion is a thick green fluid that tastes like spinach.",
   "itemMetadata": {
     "type": "Potion",
     "rarity": "Uncommon",

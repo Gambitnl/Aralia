@@ -21,7 +21,7 @@ const file = path.join(repo, 'public', 'planmap', 'topics.json');
 
 const STATUSES = new Set(['parked', 'specced', 'active', 'done', 'superseded']);
 const KINDS = new Set(['hard', 'chosen']);
-const COLORS = new Set(['purple', 'teal', 'gray', 'coral', 'pink']);
+const COLORS = new Set(['purple', 'teal', 'gray', 'coral', 'pink', 'indigo', 'green', 'blue', 'amber']);
 const ID_RE = /^[a-z0-9][a-z0-9-]*$/;
 // Same base slug as planmap-to-wave.mjs / planmap-reconcile.mjs.
 const slug = (s) => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);

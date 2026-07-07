@@ -7,16 +7,16 @@
     "item",
     "itemType:Potion"
   ],
-  "excerpt": "When you drink this potion, it removes any exhaustion levels you have and ends the poisoned condition on you. For the next 24 hours, you regain the ma...",
+  "excerpt": "When you drink this potion, it removes any exhaustion|Exhaustion levels you have and ends the poisoned|Poisoned condition on you. For the next 24 hour...",
   "aliases": [],
   "seeAlso": [
     "exhaustion",
     "poisoned",
-    "hit_points Points",
-    "hit_point_dice Point Die"
+    "hit_points",
+    "hit_point_dice"
   ],
   "filePath": "/data/glossary/entries/equipment/potion_of_vitality.json",
-  "markdown": "# Potion of Vitality\n\nWhen you drink this potion, it removes any [[exhaustion]] levels you have and ends the [[poisoned]] condition on you. For the next 24 hours, you regain the maximum number of [[hit_points Points]] for any [[hit_point_dice Point Die]] you spend.\n\nThis potion's crimson liquid regularly pulses with dull light, calling to mind a heartbeat.",
+  "markdown": "# Potion of Vitality\n\nWhen you drink this potion, it removes any [[exhaustion]] levels you have and ends the [[poisoned]] condition on you. For the next 24 hours, you regain the maximum number of [[hit_points]] for any [[hit_point_dice|Hit Point Die]] you spend.\n\nThis potion's crimson liquid regularly pulses with dull light, calling to mind a heartbeat.",
   "itemMetadata": {
     "type": "Potion",
     "rarity": "Very rare",

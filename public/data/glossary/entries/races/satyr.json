@@ -55,11 +55,7 @@
     "magic resistance"
   ],
   "aliases": [],
-  "seeAlso": [
-    "fey",
-    "magic_resistance",
-    "mirthful_leaps"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/satyr.json",
   "maleImageUrl": "/assets/images/races/satyr_male.png",
   "femaleImageUrl": "/assets/images/races/satyr_female.png"

@@ -7,7 +7,7 @@
     "item",
     "itemType:Potion"
   ],
-  "excerpt": "This potion's container looks empty but feels as though it holds liquid. When you drink the potion, you have the invisible condition for 1 hour....",
+  "excerpt": "This potion's container looks empty but feels as though it holds liquid. When you drink the potion, you have the invisible|Invisible condition for 1 h...",
   "aliases": [],
   "seeAlso": [
     "invisible"

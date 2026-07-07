@@ -7,14 +7,14 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A Climber's Kit includes boot tips, gloves, pitons, and a harness. As a utilize action, you can use the Climber's Kit to anchor yourself; when you do,...",
+  "excerpt": "A Climber's Kit includes boot tips, gloves, pitons, and a harness. As a utilize|Utilize action, you can use the Climber's Kit to anchor yourself; when...",
   "aliases": [],
   "seeAlso": [
     "utilize",
-    "bonus_action Action"
+    "bonus_action"
   ],
   "filePath": "/data/glossary/entries/equipment/climber_s_kit.json",
-  "markdown": "# Climber's Kit\n\nA Climber's Kit includes boot tips, gloves, pitons, and a harness. As a [[utilize]] action, you can use the Climber's Kit to anchor yourself; when you do, you can't fall more than 25 feet from the anchor point, and you can't move more than 25 feet from there without undoing the anchor as a [[bonus_action Action]].",
+  "markdown": "# Climber's Kit\n\nA Climber's Kit includes boot tips, gloves, pitons, and a harness. As a [[utilize]] action, you can use the Climber's Kit to anchor yourself; when you do, you can't fall more than 25 feet from the anchor point, and you can't move more than 25 feet from there without undoing the anchor as a [[bonus_action]].",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

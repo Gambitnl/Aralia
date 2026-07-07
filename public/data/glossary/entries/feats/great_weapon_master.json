@@ -6,15 +6,15 @@
     "source:xphb",
     "feat"
   ],
-  "excerpt": "You gain the following benefits.  Heavy Weapon Mastery When you hit a creature with a weapon that has the H property as part of the attack action on y...",
+  "excerpt": "You gain the following benefits.  Heavy Weapon Mastery When you hit a creature with a weapon that has the H property as part of the attack|Attack acti...",
   "aliases": [],
   "seeAlso": [
     "attack",
-    "proficiency Bonus",
-    "critical_hit Hit",
-    "hit_points Points",
-    "bonus_action Action"
+    "proficiency",
+    "critical_hit",
+    "hit_points",
+    "bonus_action"
   ],
   "filePath": "/data/glossary/entries/feats/great_weapon_master.json",
-  "markdown": "# Great Weapon Master\n\nYou gain the following benefits.\n\n## Heavy Weapon Mastery\n\nWhen you hit a creature with a weapon that has the H property as part of the [[attack]] action on your turn, you can cause the weapon to deal extra damage to the target. The extra damage equals your [[proficiency Bonus]].\n\n## Hew\n\nImmediately after you score a [[critical_hit Hit]] with a Melee weapon or reduce a creature to 0 [[hit_points Points]] with one, you can make one attack with the same weapon as a [[bonus_action Action]]."
+  "markdown": "# Great Weapon Master\n\nYou gain the following benefits.\n\n## Heavy Weapon Mastery\n\nWhen you hit a creature with a weapon that has the H property as part of the [[attack]] action on your turn, you can cause the weapon to deal extra damage to the target. The extra damage equals your [[proficiency|Proficiency Bonus]].\n\n## Hew\n\nImmediately after you score a [[critical_hit]] with a Melee weapon or reduce a creature to 0 [[hit_points]] with one, you can make one attack with the same weapon as a [[bonus_action]]."
 }

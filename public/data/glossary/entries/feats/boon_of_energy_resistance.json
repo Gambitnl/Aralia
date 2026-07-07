@@ -6,15 +6,15 @@
     "source:xphb",
     "feat"
   ],
-  "excerpt": "You gain the following benefits.  Energy Resistances You gain resistance to two of the following damage types of your choice: Acid, Cold, Fire, Lightn...",
+  "excerpt": "You gain the following benefits.  Energy Resistances You gain resistance|Resistance to two of the following damage types of your choice: Acid, Cold, F...",
   "aliases": [],
   "seeAlso": [
     "resistance",
-    "long_rest Rest",
+    "long_rest",
     "reaction",
-    "cover Cover",
-    "proficiency Bonus"
+    "cover",
+    "proficiency"
   ],
   "filePath": "/data/glossary/entries/feats/boon_of_energy_resistance.json",
-  "markdown": "# Boon of Energy Resistance\n\nYou gain the following benefits.\n\n## Energy Resistances\n\nYou gain [[resistance]] to two of the following damage types of your choice: Acid, Cold, Fire, Lightning, Necrotic, Poison, Psychic, Radiant, or Thunder. Whenever you finish a [[long_rest Rest]], you can change your choices.\n\n## Energy Redirection\n\nWhen you take damage of one of the types chosen for the Energy Resistances benefit, you can take a [[reaction]] to direct damage of the same type toward another creature you can see within 60 feet of yourself that isn't behind [[cover Cover]]. If you do so, that creature must succeed on a Dexterity saving throw (DC 8 plus your Constitution modifier and [[proficiency Bonus]]) or take damage equal to 2d12 plus your Constitution modifier."
+  "markdown": "# Boon of Energy Resistance\n\nYou gain the following benefits.\n\n## Energy Resistances\n\nYou gain [[resistance]] to two of the following damage types of your choice: Acid, Cold, Fire, Lightning, Necrotic, Poison, Psychic, Radiant, or Thunder. Whenever you finish a [[long_rest]], you can change your choices.\n\n## Energy Redirection\n\nWhen you take damage of one of the types chosen for the Energy Resistances benefit, you can take a [[reaction]] to direct damage of the same type toward another creature you can see within 60 feet of yourself that isn't behind [[cover|Total Cover]]. If you do so, that creature must succeed on a Dexterity saving throw (DC 8 plus your Constitution modifier and [[proficiency|Proficiency Bonus]]) or take damage equal to 2d12 plus your Constitution modifier."
 }

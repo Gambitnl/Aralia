@@ -7,15 +7,15 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This gem contains a mote of elemental energy. When you take a utilize action to break the gem, an Air Elemental is summoned, and the gem ceases to be ...",
+  "excerpt": "This gem contains a mote of elemental energy. When you take a utilize|Utilize action to break the gem, an Air Elemental is summoned, and the gem cease...",
   "aliases": [],
   "seeAlso": [
     "utilize",
     "initiative",
-    "bonus_action Action"
+    "bonus_action"
   ],
   "filePath": "/data/glossary/entries/equipment/elemental_gem_blue_sapphire.json",
-  "markdown": "# Elemental Gem, Blue Sapphire\n\nThis gem contains a mote of elemental energy. When you take a [[utilize]] action to break the gem, an Air Elemental is summoned, and the gem ceases to be magical. The elemental appears in an unoccupied space as close to the broken gem as possible, understands your languages, obeys your commands, and takes its turn immediately after you on your [[initiative]] count. The elemental disappears after 1 hour, when it dies, or when you dismiss it as a [[bonus_action Action]].",
+  "markdown": "# Elemental Gem, Blue Sapphire\n\nThis gem contains a mote of elemental energy. When you take a [[utilize]] action to break the gem, an Air Elemental is summoned, and the gem ceases to be magical. The elemental appears in an unoccupied space as close to the broken gem as possible, understands your languages, obeys your commands, and takes its turn immediately after you on your [[initiative]] count. The elemental disappears after 1 hour, when it dies, or when you dismiss it as a [[bonus_action]].",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon"

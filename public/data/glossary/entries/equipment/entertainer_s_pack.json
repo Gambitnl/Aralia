@@ -7,13 +7,13 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "An Entertainer's Pack contains the following items: backpack, bedroll, bell, bullseye_lantern Lantern, 3 costume, mirror, 8 flasks of oil, 9 days of r...",
+  "excerpt": "An Entertainer's Pack contains the following items: backpack|Backpack, bedroll|Bedroll, bell|Bell, bullseye_lantern|Bullseye Lantern, 3 costume|Costum...",
   "aliases": [],
   "seeAlso": [
     "backpack",
     "bedroll",
     "bell",
-    "bullseye_lantern Lantern",
+    "bullseye_lantern",
     "costume",
     "mirror",
     "oil",
@@ -22,7 +22,7 @@
     "waterskin"
   ],
   "filePath": "/data/glossary/entries/equipment/entertainer_s_pack.json",
-  "markdown": "# Entertainer's Pack\n\nAn Entertainer's Pack contains the following items: [[backpack]], [[bedroll]], [[bell]], [[bullseye_lantern Lantern]], 3 [[costume]], [[mirror]], 8 flasks of [[oil]], 9 days of [[rations]], [[tinderbox]], and [[waterskin]].",
+  "markdown": "# Entertainer's Pack\n\nAn Entertainer's Pack contains the following items: [[backpack]], [[bedroll]], [[bell]], [[bullseye_lantern]], 3 [[costume|Costumes]], [[mirror]], 8 flasks of [[oil]], 9 days of [[rations]], [[tinderbox]], and [[waterskin]].",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

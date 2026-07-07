@@ -7,13 +7,13 @@
     "item",
     "itemType:Ring"
   ],
-  "excerpt": "You have a swim_speed Speed of 40 feet while wearing this ring....",
+  "excerpt": "You have a swim_speed|Swim Speed of 40 feet while wearing this ring....",
   "aliases": [],
   "seeAlso": [
-    "swim_speed Speed"
+    "swim_speed"
   ],
   "filePath": "/data/glossary/entries/equipment/ring_of_swimming.json",
-  "markdown": "# Ring of Swimming\n\nYou have a [[swim_speed Speed]] of 40 feet while wearing this ring.",
+  "markdown": "# Ring of Swimming\n\nYou have a [[swim_speed]] of 40 feet while wearing this ring.",
   "itemMetadata": {
     "type": "Ring",
     "rarity": "Uncommon"

@@ -7,11 +7,11 @@
     "item",
     "itemType:Tool"
   ],
-  "excerpt": "- Ability:: Dexterity - Utilize:: Mimic 10 or fewer words of someone else's handwriting (DC 15), or duplicate a wax seal (DC 20)...",
+  "excerpt": "- Ability: Dexterity - Utilize: Mimic 10 or fewer words of someone else's handwriting (DC 15), or duplicate a wax seal (DC 20)...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/forgery_kit.json",
-  "markdown": "# Forgery Kit\n\n- **Ability::** Dexterity\n- **Utilize::** Mimic 10 or fewer words of someone else's handwriting (DC 15), or duplicate a wax seal (DC 20)",
+  "markdown": "# Forgery Kit\n\n- **Ability:** Dexterity\n- **Utilize:** Mimic 10 or fewer words of someone else's handwriting (DC 15), or duplicate a wax seal (DC 20)",
   "itemMetadata": {
     "type": "Tool",
     "rarity": "None",

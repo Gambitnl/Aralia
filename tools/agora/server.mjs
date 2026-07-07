@@ -218,7 +218,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       : typeof body.threadId === 'string' ? body.threadId
       : typeof body.conversationId === 'string' ? body.conversationId
       : undefined;
-    const agent = store.registerAgent({ handle: body.handle, note: body.note, model: body.model, sessionId });
+    const agent = store.registerAgent({ handle: body.handle, note: body.note, model: body.model, sessionId, role: body.role });
     sendJson(res, 201, {
       agentId: agent.id,
       token: agent.token,
@@ -226,6 +226,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       registeredAt: agent.registeredAt,
       model: agent.model,
       sessionId: agent.sessionId,
+      role: agent.role,
     });
   });
 
@@ -278,6 +279,44 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       if (result.ok) return sendJson(res, 200, { ok: true });
       if (result.error === 'lock not found') return sendJson(res, 404, { error: result.error });
       if (/online/.test(result.error || '')) return sendJson(res, 409, { error: result.error });
+      return sendJson(res, 403, { error: result.error || 'forbidden' });
+    }),
+  );
+
+  // ============================== Reservations ==============================
+  // Reservations are the waiting room for files that are locked or about to be
+  // contested. They do not grant edit rights; they only preserve FIFO order until
+  // the first reserver can acquire the real advisory lock.
+  router.post(
+    '/reservations',
+    withAuth(async (req, res, ctx) => {
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+      const result = store.reserveFiles({
+        agentId: ctx.agent.id,
+        paths: Array.isArray(body.paths) ? body.paths : [],
+        globs: Array.isArray(body.globs) ? body.globs : [],
+        reason: body.reason,
+      });
+      if (result.ok) return sendJson(res, 201, { reservation: result.reservation });
+      return sendJson(res, 400, { error: result.error || 'bad reservation request' });
+    }),
+  );
+
+  router.get('/reservations', async (_req, res) => {
+    sendJson(res, 200, { reservations: store.listReservations() });
+  });
+
+  router.delete(
+    '/reservations/:id',
+    withAuth(async (_req, res, ctx) => {
+      const result = store.releaseReservation({ agentId: ctx.agent.id, target: ctx.params.id });
+      if (result.ok) return sendJson(res, 200, { ok: true });
+      if (result.error === 'reservation not found') return sendJson(res, 404, { error: result.error });
       return sendJson(res, 403, { error: result.error || 'forbidden' });
     }),
   );
@@ -474,17 +513,21 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       if (!body.body || typeof body.body !== 'string') {
         return sendJson(res, 400, { error: 'body (string) is required' });
       }
-      const message = store.postMessage({
+      const result = store.postMessage({
         agentId: ctx.agent.id,
         to: body.to || 'all',
         body: body.body,
+        channel: body.channel,
       });
-      sendJson(res, 201, { message });
+      // The command channel refuses worker posts (role-gated control plane).
+      if (!result.ok) return sendJson(res, 403, { error: result.error });
+      sendJson(res, 201, { message: result.message });
     }),
   );
 
   router.get('/messages', async (req, res, ctx) => {
     const since = Number(ctx.query.get('since')) || 0;
+    const channel = ctx.query.get('channel') || undefined; // main (default) | command | all
     let to = ctx.query.get('to') || undefined;
     if (to === 'all') {
       to = undefined; // unfiltered
@@ -493,7 +536,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       const agent = token ? store.getAgentByToken(token) : null;
       to = agent ? agent.id : undefined; // no token + me => treat as 'all'
     }
-    sendJson(res, 200, { messages: store.getMessages({ since, to }) });
+    sendJson(res, 200, { messages: store.getMessages({ since, to, channel }) });
   });
 
   // ============================== Reference docs ==============================
@@ -593,6 +636,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       counts: {
         agents: store.listAgents().length,
         locks: store.listLocks().length,
+        reservations: store.listReservations().length,
         tasks: store.listTasks().length,
         campaigns: store.listCampaigns().length,
         messages: store.getMessages({ since: 0 }).length,
@@ -629,6 +673,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       snapshot: {
         agents: store.listAgents(),
         locks: store.listLocks(),
+        reservations: store.listReservations(),
         tasks: store.listTasks(),
         campaigns: store.listCampaigns(),
       },

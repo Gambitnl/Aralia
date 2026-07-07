@@ -1,0 +1,295 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`generateBuilding golden > cottage seed 12345 is stable 1`] = `
+{
+  "dims": [
+    35,
+    25,
+  ],
+  "floors": [
+    {
+      "doors": 5,
+      "level": -1,
+      "rooms": [
+        "cellar",
+        "cellar",
+        "cellar",
+        "storage",
+        "storage",
+      ],
+      "walls": 34,
+      "windows": 0,
+    },
+    {
+      "doors": 6,
+      "level": 0,
+      "rooms": [
+        "bedroom",
+        "bedroom",
+        "corridor",
+        "hall",
+        "kitchen",
+      ],
+      "walls": 32,
+      "windows": 6,
+    },
+    {
+      "doors": 4,
+      "level": 1,
+      "rooms": [
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "guest-room",
+      ],
+      "walls": 35,
+      "windows": 4,
+    },
+  ],
+  "stairs": 2,
+}
+`;
+
+exports[`generateBuilding golden > manor seed 12345 is stable 1`] = `
+{
+  "dims": [
+    55,
+    55,
+  ],
+  "floors": [
+    {
+      "doors": 10,
+      "level": -1,
+      "rooms": [
+        "cellar",
+        "cellar",
+        "cellar",
+        "cellar",
+        "cellar",
+        "corridor",
+        "storage",
+        "storage",
+        "storage",
+        "storage",
+      ],
+      "walls": 76,
+      "windows": 0,
+    },
+    {
+      "doors": 10,
+      "level": 0,
+      "rooms": [
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "corridor",
+        "great-hall",
+        "kitchen",
+        "solar",
+        "study",
+      ],
+      "walls": 71,
+      "windows": 14,
+    },
+    {
+      "doors": 9,
+      "level": 1,
+      "rooms": [
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "guest-room",
+        "guest-room",
+        "guest-room",
+      ],
+      "walls": 75,
+      "windows": 12,
+    },
+    {
+      "doors": 9,
+      "level": 2,
+      "rooms": [
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "guest-room",
+        "guest-room",
+        "guest-room",
+      ],
+      "walls": 75,
+      "windows": 12,
+    },
+  ],
+  "stairs": 3,
+}
+`;
+
+exports[`generateBuilding golden > shop seed 12345 is stable 1`] = `
+{
+  "dims": [
+    35,
+    30,
+  ],
+  "floors": [
+    {
+      "doors": 5,
+      "level": -1,
+      "rooms": [
+        "cellar",
+        "cellar",
+        "cellar",
+        "storage",
+        "storage",
+        "storage",
+      ],
+      "walls": 39,
+      "windows": 0,
+    },
+    {
+      "doors": 4,
+      "level": 0,
+      "rooms": [
+        "bedroom",
+        "shopfront",
+        "storage",
+        "workshop",
+      ],
+      "walls": 36,
+      "windows": 4,
+    },
+    {
+      "doors": 4,
+      "level": 1,
+      "rooms": [
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+      ],
+      "walls": 39,
+      "windows": 6,
+    },
+  ],
+  "stairs": 2,
+}
+`;
+
+exports[`generateBuilding golden > tavern seed 12345 is stable 1`] = `
+{
+  "dims": [
+    45,
+    35,
+  ],
+  "floors": [
+    {
+      "doors": 7,
+      "level": -1,
+      "rooms": [
+        "cellar",
+        "cellar",
+        "cellar",
+        "cellar",
+        "storage",
+        "storage",
+        "storage",
+      ],
+      "walls": 53,
+      "windows": 0,
+    },
+    {
+      "doors": 7,
+      "level": 0,
+      "rooms": [
+        "cellar",
+        "common-room",
+        "corridor",
+        "guest-room",
+        "guest-room",
+        "guest-room",
+        "kitchen",
+      ],
+      "walls": 50,
+      "windows": 5,
+    },
+    {
+      "doors": 7,
+      "level": 1,
+      "rooms": [
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "guest-room",
+        "guest-room",
+      ],
+      "walls": 55,
+      "windows": 8,
+    },
+  ],
+  "stairs": 2,
+}
+`;
+
+exports[`generateBuilding golden > workshop seed 12345 is stable 1`] = `
+{
+  "dims": [
+    40,
+    30,
+  ],
+  "floors": [
+    {
+      "doors": 4,
+      "level": -1,
+      "rooms": [
+        "cellar",
+        "cellar",
+        "storage",
+        "storage",
+      ],
+      "walls": 38,
+      "windows": 0,
+    },
+    {
+      "doors": 5,
+      "level": 0,
+      "rooms": [
+        "private-room",
+        "storage",
+        "workshop",
+        "workshop",
+        "workshop",
+      ],
+      "walls": 39,
+      "windows": 6,
+    },
+    {
+      "doors": 4,
+      "level": 1,
+      "rooms": [
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "guest-room",
+      ],
+      "walls": 42,
+      "windows": 6,
+    },
+  ],
+  "stairs": 2,
+}
+`;

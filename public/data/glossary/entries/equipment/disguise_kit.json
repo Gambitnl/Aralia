@@ -7,13 +7,13 @@
     "item",
     "itemType:Tool"
   ],
-  "excerpt": "- Ability:: Charisma - Utilize:: Apply makeup (DC 10) - Craft:: costume...",
+  "excerpt": "- Ability: Charisma - Utilize: Apply makeup (DC 10) - Craft: costume|Costume...",
   "aliases": [],
   "seeAlso": [
     "costume"
   ],
   "filePath": "/data/glossary/entries/equipment/disguise_kit.json",
-  "markdown": "# Disguise Kit\n\n- **Ability::** Charisma\n- **Utilize::** Apply makeup (DC 10)\n- **Craft::** [[costume]]",
+  "markdown": "# Disguise Kit\n\n- **Ability:** Charisma\n- **Utilize:** Apply makeup (DC 10)\n- **Craft:** [[costume]]",
   "itemMetadata": {
     "type": "Tool",
     "rarity": "None",

@@ -7,18 +7,18 @@
     "baseitem",
     "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Ability:: Intelligence - Utilize:: Identify a substance (DC 15), or start a fire (DC 15) - Craft:: acid, alchemist_s_fire's Fire, component_pouch Po...",
+  "excerpt": "- Ability: Intelligence - Utilize: Identify a substance (DC 15), or start a fire (DC 15) - Craft: acid|Acid, alchemist_s_fire|Alchemist's Fire, compon...",
   "aliases": [],
   "seeAlso": [
     "acid",
-    "alchemist_s_fire's Fire",
-    "component_pouch Pouch",
+    "alchemist_s_fire",
+    "component_pouch",
     "oil",
     "paper",
     "perfume"
   ],
   "filePath": "/data/glossary/entries/equipment/alchemist_s_supplies.json",
-  "markdown": "# Alchemist's Supplies\n\n- **Ability::** Intelligence\n- **Utilize::** Identify a substance (DC 15), or start a fire (DC 15)\n- **Craft::** [[acid]], [[alchemist_s_fire's Fire]], [[component_pouch Pouch]], [[oil]], [[paper]], [[perfume]]",
+  "markdown": "# Alchemist's Supplies\n\n- **Ability:** Intelligence\n- **Utilize:** Identify a substance (DC 15), or start a fire (DC 15)\n- **Craft:** [[acid]], [[alchemist_s_fire|Alchemist's Fire]], [[component_pouch]], [[oil]], [[paper]], [[perfume]]",
   "itemMetadata": {
     "type": "Artisan's Tools",
     "rarity": "None",

@@ -7,14 +7,11 @@
     "baseitem",
     "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Ability:: Wisdom - Utilize:: Paint a recognizable image of something you've seen (DC 10) - Craft:: druidic_focus Focus, holy_symbol Symbol...",
+  "excerpt": "- Ability: Wisdom - Utilize: Paint a recognizable image of something you've seen (DC 10) - Craft: druidic_focus|Druidic Focus, holy_symbol|Holy Symbol...",
   "aliases": [],
-  "seeAlso": [
-    "druidic_focus Focus",
-    "holy_symbol Symbol"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/painter_s_supplies.json",
-  "markdown": "# Painter's Supplies\n\n- **Ability::** Wisdom\n- **Utilize::** Paint a recognizable image of something you've seen (DC 10)\n- **Craft::** [[druidic_focus Focus]], [[holy_symbol Symbol]]",
+  "markdown": "# Painter's Supplies\n\n- **Ability:** Wisdom\n- **Utilize:** Paint a recognizable image of something you've seen (DC 10)\n- **Craft:** Druidic Focus, Holy Symbol",
   "itemMetadata": {
     "type": "Artisan's Tools",
     "rarity": "None",

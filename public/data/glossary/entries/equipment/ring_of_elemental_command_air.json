@@ -15,15 +15,15 @@
     "magic",
     "charmed",
     "resistance",
-    "fly_speed Speed",
+    "fly_speed",
     "speed",
-    "chain_lightning Lightning",
-    "feather_fall Fall",
-    "gust_of_wind of Wind",
-    "wind_wall Wall"
+    "chain-lightning",
+    "feather-fall",
+    "gust-of-wind",
+    "wind-wall"
   ],
   "filePath": "/data/glossary/entries/equipment/ring_of_elemental_command_air.json",
-  "markdown": "# Ring of Elemental Command (Air)\n\nThe Ring of Elemental Command (air) is linked to the Elemental Plane of Air. Every Ring of Elemental Command has the following two properties:\n\n- **Elemental Bane:** While wearing the ring, you have [[advantage]] on attack rolls against Elementals and they have [[disadvantage]] on attack rolls against you.\n- **Elemental Compulsion:** While wearing the ring, you can take a [[magic]] action to try to compel an Elemental you see within 60 feet of yourself. The Elemental makes a DC 18 Wisdom saving throw. On a failed save, the Elemental has the [[charmed]] condition until the start your next turn, and you determine what it does with its move and action on its next turn.\n\n## Elemental Focus\n\nWhile wearing the ring, you benefit from additional properties corresponding to the ring's linked Elemental Plane:\n\n- **Air:** You know Auran, you have [[resistance]] to Lightning damage, and you have a [[fly_speed Speed]] equal to your [[speed]] and can hover.\n\n## Spellcasting\n\nThe ring has 5 charges and regains 1d4 + 1 expended charges daily at dawn. While wearing the ring, you can cast a spell from it. A spell cast from the ring has a save DC of 18. Choose the spell from the following list: [[chain_lightning Lightning]] (3 charges), [[feather_fall Fall]] (0 charges), [[gust_of_wind of Wind]] (2 charges), [[wind_wall Wall]] (1 charge)",
+  "markdown": "# Ring of Elemental Command (Air)\n\nThe Ring of Elemental Command (air) is linked to the Elemental Plane of Air. Every Ring of Elemental Command has the following two properties:\n\n- **Elemental Bane:** While wearing the ring, you have [[advantage]] on attack rolls against Elementals and they have [[disadvantage]] on attack rolls against you.\n- **Elemental Compulsion:** While wearing the ring, you can take a [[magic]] action to try to compel an Elemental you see within 60 feet of yourself. The Elemental makes a DC 18 Wisdom saving throw. On a failed save, the Elemental has the [[charmed]] condition until the start your next turn, and you determine what it does with its move and action on its next turn.\n\n## Elemental Focus\n\nWhile wearing the ring, you benefit from additional properties corresponding to the ring's linked Elemental Plane:\n\n- **Air:** You know Auran, you have [[resistance]] to Lightning damage, and you have a [[fly_speed]] equal to your [[speed]] and can hover.\n\n## Spellcasting\n\nThe ring has 5 charges and regains 1d4 + 1 expended charges daily at dawn. While wearing the ring, you can cast a spell from it. A spell cast from the ring has a save DC of 18. Choose the spell from the following list: [[chain-lightning|Chain Lightning]] (3 charges), [[feather-fall|Feather Fall]] (0 charges), [[gust-of-wind|Gust of Wind]] (2 charges), [[wind-wall|Wind Wall]] (1 charge)",
   "itemMetadata": {
     "type": "Ring",
     "rarity": "Legendary",

@@ -7,13 +7,13 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "The medallion has 5 charges. While wearing it, you can expend 1 charge to cast detect_thoughts Thoughts (save DC 13) from it. The medallion regains 1d...",
+  "excerpt": "The medallion has 5 charges. While wearing it, you can expend 1 charge to cast detect_thoughts|Detect Thoughts (save DC 13) from it. The medallion reg...",
   "aliases": [],
   "seeAlso": [
-    "detect_thoughts Thoughts"
+    "detect-thoughts"
   ],
   "filePath": "/data/glossary/entries/equipment/medallion_of_thoughts.json",
-  "markdown": "# Medallion of Thoughts\n\nThe medallion has 5 charges. While wearing it, you can expend 1 charge to cast [[detect_thoughts Thoughts]] (save DC 13) from it. The medallion regains 1d4 expended charges daily at dawn.",
+  "markdown": "# Medallion of Thoughts\n\nThe medallion has 5 charges. While wearing it, you can expend 1 charge to cast [[detect-thoughts|Detect Thoughts]] (save DC 13) from it. The medallion regains 1d4 expended charges daily at dawn.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon",

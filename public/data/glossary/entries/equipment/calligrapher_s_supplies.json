@@ -7,14 +7,13 @@
     "baseitem",
     "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Ability:: Dexterity - Utilize:: Write text with impressive flourishes that guard against forgery (DC 15) - Craft:: ink, spell_scroll Scroll...",
+  "excerpt": "- Ability: Dexterity - Utilize: Write text with impressive flourishes that guard against forgery (DC 15) - Craft: ink|Ink, spell_scroll|Spell Scroll...",
   "aliases": [],
   "seeAlso": [
-    "ink",
-    "spell_scroll Scroll"
+    "ink"
   ],
   "filePath": "/data/glossary/entries/equipment/calligrapher_s_supplies.json",
-  "markdown": "# Calligrapher's Supplies\n\n- **Ability::** Dexterity\n- **Utilize::** Write text with impressive flourishes that guard against forgery (DC 15)\n- **Craft::** [[ink]], [[spell_scroll Scroll]]",
+  "markdown": "# Calligrapher's Supplies\n\n- **Ability:** Dexterity\n- **Utilize:** Write text with impressive flourishes that guard against forgery (DC 15)\n- **Craft:** [[ink]], Spell Scroll",
   "itemMetadata": {
     "type": "Artisan's Tools",
     "rarity": "None",

@@ -7,7 +7,7 @@
     "baseitem",
     "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Ability:: Dexterity - Utilize:: Carve a pattern in wood (DC 10) - Craft:: club, greatclub, quarterstaff, Ranged weapons (except pistol, musket, and ...",
+  "excerpt": "- Ability: Dexterity - Utilize: Carve a pattern in wood (DC 10) - Craft: club|Club, greatclub|Greatclub, quarterstaff|Quarterstaff, Ranged weapons (ex...",
   "aliases": [],
   "seeAlso": [
     "club",
@@ -16,15 +16,13 @@
     "pistol",
     "musket",
     "sling",
-    "arcane_focus Focus",
     "arrows_20",
     "bolts_20",
-    "druidic_focus Focus",
-    "ink_pen Pen",
+    "ink_pen",
     "needles_50"
   ],
   "filePath": "/data/glossary/entries/equipment/woodcarver_s_tools.json",
-  "markdown": "# Woodcarver's Tools\n\n- **Ability::** Dexterity\n- **Utilize::** Carve a pattern in wood (DC 10)\n- **Craft::** [[club]], [[greatclub]], [[quarterstaff]], Ranged weapons (except [[pistol]], [[musket]], and [[sling]]), [[arcane_focus Focus]], [[arrows_20]], [[bolts_20]], [[druidic_focus Focus]], [[ink_pen Pen]], [[needles_50]]",
+  "markdown": "# Woodcarver's Tools\n\n- **Ability:** Dexterity\n- **Utilize:** Carve a pattern in wood (DC 10)\n- **Craft:** [[club]], [[greatclub]], [[quarterstaff]], Ranged weapons (except [[pistol]], [[musket]], and [[sling]]), Arcane Focus, [[arrows_20|Arrows]], [[bolts_20|Bolts]], Druidic Focus, [[ink_pen]], [[needles_50|Needles]]",
   "itemMetadata": {
     "type": "Artisan's Tools",
     "rarity": "None",

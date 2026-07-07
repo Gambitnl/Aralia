@@ -7,7 +7,7 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A creature subjected to Truth Serum must succeed on a DC 11 Constitution saving throw or have the poisoned condition for 1 hour. The poisoned creature...",
+  "excerpt": "A creature subjected to Truth Serum must succeed on a DC 11 Constitution saving throw or have the poisoned|Poisoned condition for 1 hour. The poisoned...",
   "aliases": [],
   "seeAlso": [
     "poisoned"

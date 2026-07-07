@@ -7,17 +7,17 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This robe has 3 charges, and it regains 1d3 expended charges daily at dawn. While you wear it, you can take a magic action and expend 1 charge to caus...",
+  "excerpt": "This robe has 3 charges, and it regains 1d3 expended charges daily at dawn. While you wear it, you can take a magic|Magic action and expend 1 charge t...",
   "aliases": [],
   "seeAlso": [
     "magic",
-    "bright_light Light",
-    "dim_light Light",
+    "bright_light",
+    "dim_light",
     "disadvantage",
     "stunned"
   ],
   "filePath": "/data/glossary/entries/equipment/robe_of_scintillating_colors.json",
-  "markdown": "# Robe of Scintillating Colors\n\nThis robe has 3 charges, and it regains 1d3 expended charges daily at dawn. While you wear it, you can take a [[magic]] action and expend 1 charge to cause the garment to display a shifting pattern of dazzling hues until the end of your next turn. During this time, the robe sheds [[bright_light Light]] in a 30-foot radius and [[dim_light Light]] for an additional 30 feet, and creatures that can see you have [[disadvantage]] on attack rolls against you. Any creature in the [[bright_light Light]] that can see you when the robe's power is activated must succeed on a DC 15 Wisdom saving throw or have the [[stunned]] condition until the effect ends.",
+  "markdown": "# Robe of Scintillating Colors\n\nThis robe has 3 charges, and it regains 1d3 expended charges daily at dawn. While you wear it, you can take a [[magic]] action and expend 1 charge to cause the garment to display a shifting pattern of dazzling hues until the end of your next turn. During this time, the robe sheds [[bright_light]] in a 30-foot radius and [[dim_light]] for an additional 30 feet, and creatures that can see you have [[disadvantage]] on attack rolls against you. Any creature in the [[bright_light]] that can see you when the robe's power is activated must succeed on a DC 15 Wisdom saving throw or have the [[stunned]] condition until the effect ends.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Very rare",

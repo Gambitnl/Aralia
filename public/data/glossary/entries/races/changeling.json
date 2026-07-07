@@ -45,11 +45,7 @@
     "deception"
   ],
   "aliases": [],
-  "seeAlso": [
-    "fey",
-    "changeling_instincts",
-    "shapechanger"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/changeling.json",
   "maleImageUrl": "/assets/images/races/Changeling_Male.png",
   "femaleImageUrl": "/assets/images/races/Changeling_Female.png"

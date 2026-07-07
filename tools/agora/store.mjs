@@ -295,6 +295,8 @@ export function createStore({
   const state = {
     agents: new Map(), // id -> Agent (raw stored fields)
     locks: new Map(), // id -> Lock
+    reservations: new Map(), // id -> Reservation, FIFO dibs for future lock access
+    reservationSeq: 0, // last assigned reservation queue number
     tasks: new Map(), // id -> Task
     campaigns: new Map(), // id -> Campaign, the active governance domains claimed by orchestrators
     messages: [], // Message[] (ordered by seq)
@@ -343,6 +345,16 @@ export function createStore({
     },
     'lock.expired'(p) {
       state.locks.delete(p.lockId);
+    },
+    'reservation.create'(p) {
+      state.reservations.set(p.reservation.id, { ...p.reservation });
+      if (p.reservation.queueSeq > state.reservationSeq) state.reservationSeq = p.reservation.queueSeq;
+    },
+    'reservation.release'(p) {
+      state.reservations.delete(p.reservationId);
+    },
+    'reservation.fulfill'(p) {
+      state.reservations.delete(p.reservationId);
     },
     'task.create'(p) {
       state.tasks.set(p.task.id, JSON.parse(JSON.stringify(p.task)));
@@ -446,6 +458,8 @@ export function createStore({
       messageSeq: state.messageSeq,
       agents: [...state.agents.values()],
       locks: [...state.locks.values()],
+      reservations: [...state.reservations.values()],
+      reservationSeq: state.reservationSeq,
       tasks: [...state.tasks.values()],
       campaigns: [...state.campaigns.values()],
       messages: state.messages,
@@ -479,6 +493,8 @@ export function createStore({
     state.messageSeq = snap.messageSeq || 0;
     for (const a of snap.agents || []) state.agents.set(a.id, a);
     for (const l of snap.locks || []) state.locks.set(l.id, l);
+    for (const r of snap.reservations || []) state.reservations.set(r.id, r);
+    state.reservationSeq = snap.reservationSeq || Math.max(0, ...[...state.reservations.values()].map((r) => r.queueSeq || 0));
     for (const t of snap.tasks || []) state.tasks.set(t.id, t);
     for (const c of snap.campaigns || []) state.campaigns.set(c.id, c);
     state.messages = snap.messages || [];
@@ -515,7 +531,10 @@ export function createStore({
   // ===========================================================================
   // Presence
   // ===========================================================================
-  function registerAgent({ handle, note, model, sessionId } = {}) {
+  const AGENT_ROLES = ['worker', 'orchestrator', 'master', 'human'];
+  // Roles allowed to post on (and expected to read) the command channel.
+  const COMMAND_CHANNEL_ROLES = ['orchestrator', 'master', 'human'];
+  function registerAgent({ handle, note, model, sessionId, role } = {}) {
     const ts = now();
     const agent = {
       id: genId(),
@@ -530,6 +549,9 @@ export function createStore({
       // agent can look up and report which session it is).
       model: typeof model === 'string' ? model : '',
       sessionId: typeof sessionId === 'string' ? sessionId : '',
+      // Coordination role: workers do the tasks; orchestrator/master/human may
+      // also use the command channel. Self-declared (local-trust model).
+      role: AGENT_ROLES.includes(role) ? role : 'worker',
     };
     emit('agent.register', { agent });
     return { ...agent };
@@ -580,6 +602,22 @@ export function createStore({
     return null;
   }
 
+  function taskCreatorSnapshot(agentId) {
+    const agent = state.agents.get(agentId);
+    if (!agent) throw new Error('registered creator agent is required');
+
+    // Tasks outlive live presence rows, so each task carries a token-free copy of
+    // the creator identity. This keeps handoffs and dashboard inspection readable
+    // after the creator agent has gone stale or been reaped.
+    return {
+      id: agent.id,
+      handle: agent.handle,
+      note: agent.note || '',
+      model: agent.model || '',
+      sessionId: agent.sessionId || '',
+    };
+  }
+
   // ===========================================================================
   // Locks (advisory)
   // ===========================================================================
@@ -610,6 +648,14 @@ export function createStore({
       }
     }
 
+    const reservationConflict = reservationConflictFor(agentId, requestTokens);
+    if (reservationConflict) {
+      return {
+        ok: false,
+        conflict: { type: 'reservation', ...reservationConflict },
+      };
+    }
+
     const ttl = typeof ttlMs === 'number' ? ttlMs : lockTtlMs;
     const lock = {
       id: genId(),
@@ -621,6 +667,7 @@ export function createStore({
       expiresAt: t + ttl,
     };
     emit('lock.acquire', { lock });
+    fulfillHeadReservations(agentId, requestTokens);
     return { ok: true, lock: { ...lock } };
   }
 
@@ -642,6 +689,94 @@ export function createStore({
 
   function listLocks() {
     return activeLocks().map((l) => ({ ...l }));
+  }
+
+  // ===========================================================================
+  // Reservations (file-access waiting room)
+  // ===========================================================================
+  // Reservations are not edit permission. They are a visible FIFO queue for agents
+  // that want a file after the current holder. The queue becomes enforceable when
+  // a lock is requested: anyone behind #1 gets a reservation conflict instead of
+  // silently jumping the line.
+  // ===========================================================================
+  function reservationTokens(reservation) {
+    return [...(reservation.paths || []), ...(reservation.globs || [])];
+  }
+
+  function reservationOverlap(requestTokens, reservation) {
+    for (const r of requestTokens) {
+      for (const h of reservationTokens(reservation)) {
+        if (tokensOverlap(r, h)) return r;
+      }
+    }
+    return null;
+  }
+
+  function activeReservationsFor(requestTokens) {
+    return [...state.reservations.values()]
+      .filter((reservation) => reservationOverlap(requestTokens, reservation))
+      .sort((a, b) => (a.queueSeq || 0) - (b.queueSeq || 0) || a.createdAt - b.createdAt || String(a.id).localeCompare(String(b.id)));
+  }
+
+  function withReservationPosition(reservation) {
+    const queue = activeReservationsFor(reservationTokens(reservation));
+    const position = queue.findIndex((item) => item.id === reservation.id) + 1;
+    return { ...reservation, position: position || 1 };
+  }
+
+  function reservationConflictFor(agentId, requestTokens) {
+    const queue = activeReservationsFor(requestTokens);
+    if (!queue.length) return null;
+    const head = queue[0];
+    if (head.agentId === agentId) return null;
+    return { path: reservationOverlap(requestTokens, head), reservation: withReservationPosition(head) };
+  }
+
+  function fulfillHeadReservations(agentId, requestTokens) {
+    for (const reservation of activeReservationsFor(requestTokens)) {
+      if (reservation.agentId !== agentId) continue;
+      const head = activeReservationsFor(reservationTokens(reservation))[0];
+      if (!head || head.id !== reservation.id) continue;
+      emit('reservation.fulfill', { reservationId: reservation.id, agentId, lockTokens: requestTokens });
+    }
+  }
+
+  function reserveFiles({ agentId, paths = [], globs = [], reason } = {}) {
+    const requestTokens = [...paths, ...globs];
+    if (requestTokens.length === 0) {
+      return { ok: false, error: 'no paths or globs specified' };
+    }
+
+    const reservation = {
+      id: genId(),
+      paths: [...paths],
+      globs: [...globs],
+      agentId,
+      reason: reason || '',
+      createdAt: now(),
+      queueSeq: state.reservationSeq + 1,
+    };
+    emit('reservation.create', { reservation });
+    return { ok: true, reservation: withReservationPosition(reservation) };
+  }
+
+  function releaseReservation({ agentId, target } = {}) {
+    if (!target) return { ok: false, error: 'reservation id or path required' };
+    const targetTokens = [target];
+    const reservation = state.reservations.get(target)
+      || [...state.reservations.values()].find(
+        (item) => item.agentId === agentId && reservationOverlap(targetTokens, item),
+      );
+    if (!reservation) return { ok: false, error: 'reservation not found' };
+    if (reservation.agentId !== agentId) return { ok: false, error: 'only the reserver may release' };
+    emit('reservation.release', { reservationId: reservation.id, agentId });
+    return { ok: true };
+  }
+
+  function listReservations() {
+    return [...state.reservations.values()]
+      .sort((a, b) => (a.queueSeq || 0) - (b.queueSeq || 0) || a.createdAt - b.createdAt || String(a.id).localeCompare(String(b.id)))
+      .map(withReservationPosition);
   }
 
   // ===========================================================================
@@ -775,6 +910,7 @@ export function createStore({
   // ===========================================================================
   function createTask({ agentId, title, body, deps, priority, refs, category, campaignId, wave } = {}) {
     const ts = now();
+    const creatorAgent = taskCreatorSnapshot(agentId);
     const depIds = Array.isArray(deps) ? deps.filter(Boolean) : [];
     for (const d of depIds) {
       if (!state.tasks.has(d)) throw new Error('unknown dep: ' + d);
@@ -792,6 +928,7 @@ export function createStore({
       wave: typeof wave === 'string' ? wave.trim() : '',
       state: 'open',
       createdBy: agentId,
+      creatorAgent,
       claimedBy: null,
       // Orchestration metadata: deps gate readiness, priority orders the ready
       // queue, refs link out to tracker artifacts (gap IDs, doc paths).
@@ -905,7 +1042,17 @@ export function createStore({
   // ===========================================================================
   // Messaging
   // ===========================================================================
-  function postMessage({ agentId, to, body } = {}) {
+  function postMessage({ agentId, to, body, channel } = {}) {
+    // The command channel is a control-plane feed: only orchestrators, the
+    // master, and the human may post there. Workers get a refusal, not a
+    // silent drop, so a misconfigured agent learns immediately.
+    if (channel === 'command') {
+      const sender = state.agents.get(agentId);
+      const role = (sender && sender.role) || 'worker';
+      if (!COMMAND_CHANNEL_ROLES.includes(role)) {
+        return { ok: false, error: `role "${role}" may not post on the command channel (need one of: ${COMMAND_CHANNEL_ROLES.join(', ')}) — register with that role if you are one` };
+      }
+    }
     const ts = now();
     const message = {
       id: genId(),
@@ -913,15 +1060,24 @@ export function createStore({
       from: agentId,
       to: to || 'all',
       body: body || '',
+      channel: channel === 'command' ? 'command' : 'main',
       createdAt: ts,
     };
     emit('message.post', { message });
-    return { ...message };
+    return { ok: true, message: { ...message } };
   }
 
-  function getMessages({ since = 0, to } = {}) {
+  function getMessages({ since = 0, to, channel } = {}) {
+    // channel: 'main' (default — pre-channel messages count as main),
+    // 'command', or 'all'. Workers polling their inbox never see command
+    // traffic unless they ask for it; the gate is on POSTING, not reading.
+    const wanted = channel === 'command' || channel === 'all' ? channel : 'main';
     return state.messages
       .filter((m) => m.seq > since)
+      .filter((m) => {
+        if (wanted === 'all') return true;
+        return (m.channel || 'main') === wanted;
+      })
       .filter((m) => {
         if (!to) return true;
         return m.to === 'all' || m.to === to || m.from === to;
@@ -968,6 +1124,11 @@ export function createStore({
           emit('lock.release', { lockId: lock.id, agentId: agent.id, reaped: true });
         }
       }
+      for (const reservation of [...state.reservations.values()]) {
+        if (reservation.agentId === agent.id) {
+          emit('reservation.release', { reservationId: reservation.id, agentId: agent.id, reaped: true });
+        }
+      }
       for (const task of [...state.tasks.values()]) {
         if (task.claimedBy === agent.id && (task.state === 'claimed' || task.state === 'in_progress')) {
           const entry = { at: t, by: agent.id, action: 'reaped', state: 'open' };
@@ -998,6 +1159,10 @@ export function createStore({
     acquireLock,
     releaseLock,
     listLocks,
+    // reservations
+    reserveFiles,
+    releaseReservation,
+    listReservations,
     // campaigns
     claimCampaign,
     setCampaignState,

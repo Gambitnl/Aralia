@@ -7,11 +7,11 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "As a utilize action, you can tie a knot with Rope if you succeed on a DC 10 Dexterity (sleight_of_hand of Hand) check. The Rope can be burst with a su...",
+  "excerpt": "As a utilize|Utilize action, you can tie a knot with Rope if you succeed on a DC 10 Dexterity (sleight_of_hand|Sleight of Hand) check. The Rope can be...",
   "aliases": [],
   "seeAlso": [
     "utilize",
-    "sleight_of_hand of Hand",
+    "sleight_of_hand",
     "athletics",
     "grappled",
     "incapacitated",
@@ -19,7 +19,7 @@
     "acrobatics"
   ],
   "filePath": "/data/glossary/entries/equipment/rope.json",
-  "markdown": "# Rope\n\nAs a [[utilize]] action, you can tie a knot with Rope if you succeed on a DC 10 Dexterity ([[sleight_of_hand of Hand]]) check. The Rope can be burst with a successful DC 20 Strength ([[athletics]]) check.\n\nYou can bind an unwilling creature with the Rope only if the creature has the [[grappled]], [[incapacitated]], or [[restrained]] condition. If the creature's legs are bound, the creature has the [[restrained]] condition until it escapes. Escaping the Rope requires the creature to make a successful DC 15 Dexterity ([[acrobatics]]) check as an action.",
+  "markdown": "# Rope\n\nAs a [[utilize]] action, you can tie a knot with Rope if you succeed on a DC 10 Dexterity ([[sleight_of_hand]]) check. The Rope can be burst with a successful DC 20 Strength ([[athletics]]) check.\n\nYou can bind an unwilling creature with the Rope only if the creature has the [[grappled]], [[incapacitated]], or [[restrained]] condition. If the creature's legs are bound, the creature has the [[restrained]] condition until it escapes. Escaping the Rope requires the creature to make a successful DC 15 Dexterity ([[acrobatics]]) check as an action.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

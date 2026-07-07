@@ -44,10 +44,8 @@
     "svirfneblin"
   ],
   "seeAlso": [
-    "gnome",
     "darkvision",
-    "gnomish_cunning",
-    "disguise_self",
+    "disguise-self",
     "nondetection"
   ],
   "filePath": "/data/glossary/entries/races/deep_gnome.json",

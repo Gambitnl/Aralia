@@ -270,7 +270,7 @@ Commands:
                                           START HERE if you are new: register + one-shot
                                           briefing (peers, locks, ready tasks, rules;
                                           --gaps adds the project-tracker open-gap summary)
-  register <handle> [--note "..."] [--model <m>] [--session <id>]
+  register <handle> [--note "..."] [--model <m>] [--session <id>] [--role worker|orchestrator|master|human]
                                           register, store identity, print agentId+handle
                                           (409 if a live agent already holds <handle>);
                                           --model = which model you are (orchestrator stamps it),
@@ -288,6 +288,10 @@ Commands:
   unlock --mine                           release ALL locks you hold
   unlock <lockId> --force                 release a STALE/GONE holder's lock (refused if online)
   locks                                   list active locks
+  reserve <path...> [--glob g...] [--reason "..."]
+                                          claim FIFO dibs for future lock access
+  unreserve <reservationId|path>           leave a reservation queue you hold
+  reservations                            list active file-access reservation queues
 
   campaign claim <id> [--role lead|deputy] [--lead <id>] [--scope "..."] [--path <p>...] [--glob <g>...] [--wave <name>]
                                           declare an orchestrator campaign before seeding a wave;
@@ -309,7 +313,11 @@ Commands:
 
   say <body>                              broadcast a message to all (e.g. "WORKFLOW: ...")
   say --to <agentId|handle> <body>        direct message
-  inbox [--since <seq>] [--mine]          read messages (prints max seq for next --since)
+  say --channel command <body>            post on the command channel (orchestrator/master/human
+                                          roles only — register with --role <r> to qualify)
+  inbox [--since <seq>] [--mine] [--channel main|command|all]
+                                          read messages (default channel: main; prints max seq
+                                          for next --since)
 
   watch                                   stream the live SSE event feed (Ctrl-C to stop)
   health                                  probe the daemon
@@ -346,11 +354,15 @@ async function cmdRegister(out, parsed, env, baseUrl) {
     : typeof parsed.flags.conversation === 'string' ? parsed.flags.conversation
     : (typeof env.AGORA_SESSION_ID === 'string' && env.AGORA_SESSION_ID) ? env.AGORA_SESSION_ID : undefined;
 
+  // Coordination role: default worker; orchestrators/master/human declare
+  // themselves to unlock the command channel.
+  const role = typeof parsed.flags.role === 'string' ? parsed.flags.role : undefined;
+
   const maxTries = wantRandom ? 6 : 1;
   let last = null;
   for (let attempt = 0; attempt < maxTries; attempt++) {
     const handle = wantRandom ? randomHandle(base) : parsed._[0];
-    const r = await api(baseUrl, 'POST', '/agents/register', { body: { handle, note, unique, model, sessionId } });
+    const r = await api(baseUrl, 'POST', '/agents/register', { body: { handle, note, unique, model, sessionId, role } });
     last = r;
     if (r.status === 201 && r.json) {
       saveIdentity(env, baseUrl, {
@@ -445,6 +457,14 @@ async function cmdLock(out, parsed, env, baseUrl) {
   if (r.status === 409 && r.json && r.json.conflict) {
     const c = r.json.conflict;
     const map = await buildAgentMap(baseUrl);
+    if (c.type === 'reservation' && c.reservation) {
+      const who = handleFor(map, c.reservation.agentId);
+      out.log(`CONFLICT: "${c.path}" is reserved by ${who} at #${c.reservation.position}`);
+      const targets = [...(c.reservation.paths || []), ...(c.reservation.globs || [])];
+      out.log(`  reservation ${c.reservation.id} covers: ${targets.join(', ')}`);
+      if (c.reservation.reason) out.log(`  reason: ${c.reservation.reason}`);
+      return { code: 1, conflict: c };
+    }
     out.log(`CONFLICT: "${c.path}" is locked by ${handleFor(map, c.heldBy)}`);
     if (c.lock) {
       const targets = [...(c.lock.paths || []), ...(c.lock.globs || [])];
@@ -519,6 +539,66 @@ async function cmdLocks(out, parsed, env, baseUrl) {
     out.log(`${l.id}  ${handleFor(map, l.agentId).padEnd(16)} ${targets.join(', ')}  expires ${relativeTime(l.expiresAt)}${reason}`);
   }
   return { code: 0, locks };
+}
+
+async function cmdReserve(out, parsed, env, baseUrl) {
+  const token = needToken(out, parsed, env, baseUrl);
+  if (!token) return { code: 1 };
+  const paths = parsed._.slice();
+  const globs = asArray(parsed.flags.glob).filter((g) => typeof g === 'string');
+  if (paths.length === 0 && globs.length === 0) {
+    out.log('Usage: reserve <path...> [--glob g...] [--reason "..."]');
+    return { code: 1 };
+  }
+  const body = { paths, globs };
+  if (typeof parsed.flags.reason === 'string') body.reason = parsed.flags.reason;
+  const r = await api(baseUrl, 'POST', '/reservations', { token, body });
+  if (r.status === 201 && r.json && r.json.reservation) {
+    const reservation = r.json.reservation;
+    const targets = [...(reservation.paths || []), ...(reservation.globs || [])];
+    out.log(`Reservation queued: ${reservation.id}  #${reservation.position}`);
+    out.log(`  ${targets.join(', ')}`);
+    return { code: 0, reservation };
+  }
+  if (r.status === 401) {
+    out.log('unauthorized — your stored token is invalid; re-run register');
+    return { code: 1 };
+  }
+  out.log(`reserve failed (${r.status}): ${r.json ? r.json.error : r.text}`);
+  return { code: 1 };
+}
+
+async function cmdUnreserve(out, parsed, env, baseUrl) {
+  const token = needToken(out, parsed, env, baseUrl);
+  if (!token) return { code: 1 };
+  const target = parsed._[0];
+  if (!target) {
+    out.log('Usage: unreserve <reservationId|path>');
+    return { code: 1 };
+  }
+  const r = await api(baseUrl, 'DELETE', `/reservations/${encodeURIComponent(target)}`, { token });
+  if (r.status === 200) {
+    out.log(`Released reservation ${target}`);
+    return { code: 0 };
+  }
+  out.log(`unreserve failed (${r.status}): ${r.json ? r.json.error : r.text}`);
+  return { code: 1 };
+}
+
+async function cmdReservations(out, _parsed, _env, baseUrl) {
+  const r = await api(baseUrl, 'GET', '/reservations');
+  const reservations = (r.json && r.json.reservations) || [];
+  if (reservations.length === 0) {
+    out.log('no active reservations');
+    return { code: 0, reservations };
+  }
+  const map = await buildAgentMap(baseUrl);
+  for (const reservation of reservations) {
+    const targets = [...(reservation.paths || []), ...(reservation.globs || [])];
+    const reason = reservation.reason ? `  (${reservation.reason})` : '';
+    out.log(`#${reservation.position} ${reservation.id}  ${handleFor(map, reservation.agentId).padEnd(16)} ${targets.join(', ')}${reason}`);
+  }
+  return { code: 0, reservations };
 }
 
 async function cmdCampaign(out, parsed, env, baseUrl) {
@@ -625,9 +705,22 @@ async function cmdTask(out, parsed, env, baseUrl) {
     if (typeof parsed.flags.wave === 'string') body.wave = parsed.flags.wave;
     const r = await api(baseUrl, 'POST', '/tasks', { token, body });
     if (r.status === 201 && r.json && r.json.task) {
+      const identity = loadIdentity(env, baseUrl);
+      const creator = r.json.task.creatorAgent;
+      if (!creator || !creator.id) {
+        out.log('task new failed creator self-check: daemon did not return creatorAgent metadata');
+        return { code: 1, task: r.json.task };
+      }
+      // Agents normally use their saved token, but explicit --token still works.
+      // When a saved identity exists, verify the board attributed the task to it.
+      if (parsed.flags.token === undefined && identity && identity.agentId && creator.id !== identity.agentId) {
+        out.log(`task new failed creator self-check: expected ${identity.agentId}, got ${creator.id}`);
+        return { code: 1, task: r.json.task };
+      }
       // Iteration-2: --id-only prints just the task id (no grep needed).
       if (parsed.flags['id-only']) { out.log(r.json.task.id); return { code: 0, task: r.json.task }; }
       out.log(`Task created: ${r.json.task.id}  "${r.json.task.title}"  [${r.json.task.state}]`);
+      out.log(`  creator: ${creator.handle || creator.id} (${creator.id})`);
       return { code: 0, task: r.json.task };
     }
     out.log(`task new failed (${r.status}): ${r.json ? r.json.error : r.text}`);
@@ -839,10 +932,12 @@ async function cmdSay(out, parsed, env, baseUrl) {
       if (byHandle) to = byHandle[0];
     }
   }
-  const r = await api(baseUrl, 'POST', '/messages', { token, body: { to, body } });
+  const channel = typeof parsed.flags.channel === 'string' ? parsed.flags.channel : undefined;
+  const r = await api(baseUrl, 'POST', '/messages', { token, body: { to, body, channel } });
   if (r.status === 201 && r.json && r.json.message) {
     const map = await buildAgentMap(baseUrl);
-    out.log(`Sent (seq ${r.json.message.seq}) to ${handleFor(map, r.json.message.to)}`);
+    const chan = r.json.message.channel === 'command' ? ' [command]' : '';
+    out.log(`Sent (seq ${r.json.message.seq}) to ${handleFor(map, r.json.message.to)}${chan}`);
     return { code: 0, message: r.json.message };
   }
   out.log(`say failed (${r.status}): ${r.json ? r.json.error : r.text}`);
@@ -853,6 +948,7 @@ async function cmdInbox(out, parsed, env, baseUrl) {
   const since = parsed.flags.since !== undefined ? Number(parsed.flags.since) || 0 : 0;
   const params = [];
   if (since) params.push(`since=${since}`);
+  if (typeof parsed.flags.channel === 'string') params.push(`channel=${encodeURIComponent(parsed.flags.channel)}`);
   let token;
   if (parsed.flags.mine) {
     params.push('to=me');
@@ -902,6 +998,12 @@ function summarizeEvent(type, data, map) {
       return `${h(data.agentId)} released lock ${shortId(data.lockId)}`;
     case 'lock.expired':
       return `lock ${shortId(data.lockId)} expired`;
+    case 'reservation.create':
+      return `${h(data.reservation && data.reservation.agentId)} reserved ${[...(data.reservation.paths || []), ...(data.reservation.globs || [])].join(', ')}`;
+    case 'reservation.release':
+      return `${h(data.agentId)} released reservation ${shortId(data.reservationId)}`;
+    case 'reservation.fulfill':
+      return `${h(data.agentId)} fulfilled reservation ${shortId(data.reservationId)}`;
     case 'task.create':
       return `${h(data.task && data.task.createdBy)} created task "${data.task ? data.task.title : ''}"`;
     case 'task.claim':
@@ -1039,6 +1141,8 @@ const ONBOARD_RULES = `THE RULES (the whole contract):
      \`unlock --mine\` releases ANOTHER agent's locks. No name assigned to you? Use
      \`register --random\` — the daemon rejects a name a live agent already holds.
   2. lock BEFORE editing any shared file; a 409 CONFLICT is a HARD STOP on that file.
+     If you still need it later, use \`reserve <path> --reason "<why>"\` to join the FIFO
+     waiting list. A reservation is not edit permission; wait until the real lock succeeds.
   3. HEARTBEAT during long work (client.mjs heartbeat --every 600 in the background, or any
      authed call at least every ~30 min). Silent >60 min = reaped: locks freed, your claimed
      tasks reopened, token retired.
@@ -1186,6 +1290,15 @@ export async function run(argv, { env = process.env, baseUrl: baseOverride, watc
         break;
       case 'locks':
         res = await cmdLocks(out, parsed, env, baseUrl);
+        break;
+      case 'reserve':
+        res = await cmdReserve(out, parsed, env, baseUrl);
+        break;
+      case 'unreserve':
+        res = await cmdUnreserve(out, parsed, env, baseUrl);
+        break;
+      case 'reservations':
+        res = await cmdReservations(out, parsed, env, baseUrl);
         break;
       case 'campaign':
         res = await cmdCampaign(out, parsed, env, baseUrl);

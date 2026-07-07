@@ -7,13 +7,11 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A block_and_tackle and Tackle allows you to hoist up to four times the weight you can normally lift....",
+  "excerpt": "A block_and_tackle|Block and Tackle allows you to hoist up to four times the weight you can normally lift....",
   "aliases": [],
-  "seeAlso": [
-    "block_and_tackle and Tackle"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/block_and_tackle.json",
-  "markdown": "# Block and Tackle\n\nA [[block_and_tackle and Tackle]] allows you to hoist up to four times the weight you can normally lift.",
+  "markdown": "# Block and Tackle\n\nA [[block_and_tackle]] allows you to hoist up to four times the weight you can normally lift.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

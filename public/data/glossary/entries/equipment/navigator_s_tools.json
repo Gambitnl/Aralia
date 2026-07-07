@@ -7,11 +7,11 @@
     "item",
     "itemType:Tool"
   ],
-  "excerpt": "- Ability:: Wisdom - Utilize:: Plot a course (DC 10), or determine position by stargazing (DC 15)...",
+  "excerpt": "- Ability: Wisdom - Utilize: Plot a course (DC 10), or determine position by stargazing (DC 15)...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/navigator_s_tools.json",
-  "markdown": "# Navigator's Tools\n\n- **Ability::** Wisdom\n- **Utilize::** Plot a course (DC 10), or determine position by stargazing (DC 15)",
+  "markdown": "# Navigator's Tools\n\n- **Ability:** Wisdom\n- **Utilize:** Plot a course (DC 10), or determine position by stargazing (DC 15)",
   "itemMetadata": {
     "type": "Tool",
     "rarity": "None",

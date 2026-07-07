@@ -59,9 +59,7 @@
     "forged"
   ],
   "seeAlso": [
-    "humanoid",
-    "poisoned",
-    "poison_damage"
+    "poisoned"
   ],
   "filePath": "/data/glossary/entries/races/warforged.json",
   "maleImageUrl": "/assets/images/races/Warforged_Male.png",

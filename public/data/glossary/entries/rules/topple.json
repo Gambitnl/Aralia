@@ -9,9 +9,9 @@
   "excerpt": "If you hit a creature with this weapon, you can force the creature to make a Constitution saving throw (DC 8 plus the ability modifier used to make th...",
   "aliases": [],
   "seeAlso": [
-    "proficiency Bonus",
+    "proficiency",
     "prone"
   ],
   "filePath": "/data/glossary/entries/rules/topple.json",
-  "markdown": "# Topple\n\nIf you hit a creature with this weapon, you can force the creature to make a Constitution saving throw (DC 8 plus the ability modifier used to make the attack roll and your [[proficiency Bonus]]). On a failed save, the creature has the [[prone]] condition."
+  "markdown": "# Topple\n\nIf you hit a creature with this weapon, you can force the creature to make a Constitution saving throw (DC 8 plus the ability modifier used to make the attack roll and your [[proficiency|Proficiency Bonus]]). On a failed save, the creature has the [[prone]] condition."
 }

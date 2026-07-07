@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This tiny vial contains magic perfume, enough for one use. You can take a magic action to apply the perfume to yourself, and its effect lasts 1 hour. ...",
+  "excerpt": "This tiny vial contains magic perfume, enough for one use. You can take a magic|Magic action to apply the perfume to yourself, and its effect lasts 1 ...",
   "aliases": [],
   "seeAlso": [
     "magic",

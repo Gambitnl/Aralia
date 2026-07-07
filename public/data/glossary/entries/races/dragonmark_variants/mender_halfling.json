@@ -72,8 +72,7 @@
   ],
   "seeAlso": [
     "halfling",
-    "humanoid",
-    "cure_wounds"
+    "cure-wounds"
   ],
   "filePath": "/data/glossary/entries/races/dragonmark_variants/mender_halfling.json",
   "spellsOfTheMark": [

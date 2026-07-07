@@ -67,13 +67,12 @@
     "elf",
     "pallid elf",
     "humanoid",
-    "critical role"],
+    "critical role"
+  ],
   "aliases": [
     "pallid"
   ],
   "seeAlso": [
-    "elf",
-    "humanoid",
     "light",
     "sleep",
     "invisibility"

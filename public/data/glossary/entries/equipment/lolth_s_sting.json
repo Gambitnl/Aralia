@@ -7,7 +7,7 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A creature subjected to Lolth's Sting must succeed on a DC 13 Constitution saving throw or have the poisoned condition for 1 hour. If the creature fai...",
+  "excerpt": "A creature subjected to Lolth's Sting must succeed on a DC 13 Constitution saving throw or have the poisoned|Poisoned condition for 1 hour. If the cre...",
   "aliases": [],
   "seeAlso": [
     "poisoned",

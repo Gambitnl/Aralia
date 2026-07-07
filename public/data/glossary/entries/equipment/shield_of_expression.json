@@ -7,13 +7,13 @@
     "item",
     "itemType:Shield"
   ],
-  "excerpt": "The front of this Shield is shaped in the likeness of a face. While bearing the Shield, you can take a bonus_action Action to alter the face's express...",
+  "excerpt": "The front of this Shield is shaped in the likeness of a face. While bearing the Shield, you can take a bonus_action|Bonus Action to alter the face's e...",
   "aliases": [],
   "seeAlso": [
-    "bonus_action Action"
+    "bonus_action"
   ],
   "filePath": "/data/glossary/entries/equipment/shield_of_expression.json",
-  "markdown": "# Shield of Expression\n\nThe front of this Shield is shaped in the likeness of a face. While bearing the Shield, you can take a [[bonus_action Action]] to alter the face's expression.",
+  "markdown": "# Shield of Expression\n\nThe front of this Shield is shaped in the likeness of a face. While bearing the Shield, you can take a [[bonus_action]] to alter the face's expression.",
   "itemMetadata": {
     "type": "Shield",
     "rarity": "Common",

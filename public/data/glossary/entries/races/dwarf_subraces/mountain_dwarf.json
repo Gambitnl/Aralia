@@ -57,10 +57,7 @@
   ],
   "aliases": [],
   "seeAlso": [
-    "dwarf",
-    "hill_dwarf",
-    "humanoid",
-    "poison"
+    "hill_dwarf"
   ],
   "filePath": "/data/glossary/entries/races/dwarf_subraces/mountain_dwarf.json",
   "maleImageUrl": "/assets/images/races/Dwarf_Mountain_Male.png",

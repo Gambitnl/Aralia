@@ -6,7 +6,7 @@
     "source:xphb",
     "feat"
   ],
-  "excerpt": "You gain the following benefits.  Truesight You have truesight with a range of 60 feet....",
+  "excerpt": "You gain the following benefits.  Truesight You have truesight|Truesight with a range of 60 feet....",
   "aliases": [],
   "seeAlso": [
     "truesight"

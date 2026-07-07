@@ -527,4 +527,11 @@ export interface GameState {
   // SP4 discovery: hidden off-map places the player has revealed by 3D proximity,
   // with the tile where found. Persisted so discoveries survive reload + pin on the atlas.
   discoveredHiddenSites: DiscoveredHiddenSite[];
+
+  // Pillar 2, Task 8 (living ecology): frozen site paths of dungeons the party
+  // has CLEARED. Default empty (every site starts uncleared). Persisted so a
+  // cleared dungeon stays cleared across reload — it stops feeding the danger
+  // overlay + raid pressure and flips its rumors to the "cleared" variants.
+  // Each entry is a dungeon site's frozen SeedPath (an opaque string).
+  clearedDungeons?: string[];
 }

@@ -7,13 +7,13 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "While holding this fan, you can cast gust_of_wind of Wind (save DC 13) from it. Each subsequent time the fan is used before the next dawn, it has a cu...",
+  "excerpt": "While holding this fan, you can cast gust_of_wind|Gust of Wind (save DC 13) from it. Each subsequent time the fan is used before the next dawn, it has...",
   "aliases": [],
   "seeAlso": [
-    "gust_of_wind of Wind"
+    "gust-of-wind"
   ],
   "filePath": "/data/glossary/entries/equipment/wind_fan.json",
-  "markdown": "# Wind Fan\n\nWhile holding this fan, you can cast [[gust_of_wind of Wind]] (save DC 13) from it. Each subsequent time the fan is used before the next dawn, it has a cumulative 20% chance of not working; if the fan fails to work, it tears into useless, nonmagical tatters.",
+  "markdown": "# Wind Fan\n\nWhile holding this fan, you can cast [[gust-of-wind|Gust of Wind]] (save DC 13) from it. Each subsequent time the fan is used before the next dawn, it has a cumulative 20% chance of not working; if the fan fails to work, it tears into useless, nonmagical tatters.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon"

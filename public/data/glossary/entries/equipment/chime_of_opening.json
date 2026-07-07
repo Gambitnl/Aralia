@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "This hollow metal tube measures about 1 foot long and weighs 1 pound. As a magic action, you can strike the chime to cast knock. The spell's customary...",
+  "excerpt": "This hollow metal tube measures about 1 foot long and weighs 1 pound. As a magic|Magic action, you can strike the chime to cast knock|Knock. The spell...",
   "aliases": [],
   "seeAlso": [
     "magic",

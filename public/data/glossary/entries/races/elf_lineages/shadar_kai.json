@@ -74,10 +74,7 @@
     "shadow elf"
   ],
   "seeAlso": [
-    "elf",
-    "humanoid",
-    "charmed",
-    "necrotic_damage"
+    "charmed"
   ],
   "filePath": "/data/glossary/entries/races/elf_lineages/shadar_kai.json",
   "maleImageUrl": "/assets/images/races/Shadar-kai_Male.png",

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/06/2026, 11:58:16
+ * Last Sync: 06/07/2026, 09:33:48
  * Dependents: hooks/combat/useTurnManager.ts
- * Imports: 12 files
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -46,6 +46,7 @@ import { getAbilityModifierValue } from '../../../utils/statUtils';
 import { hasLineOfSight } from '../../../utils/spatial/lineOfSight';
 import { findPath } from '../../../utils/spatial/pathfinding';
 import { applyDamageAndCheckDowned, applyHealingAndRestore } from '../../../utils/combat/deathSaveUtils';
+import { applyRuntimeStatusCondition } from '../../../utils/combat/statusConditionUtils';
 
 // Repeat-save metadata now lives on StatusEffect, but not every repeat-save
 // shape is a saving throw. Some spell data asks for ability checks such as
@@ -814,11 +815,8 @@ export const useCombatEngine = ({
                             breakTriggers: effect.breakTriggers
                         };
 
-                        updatedCharacter = {
-                            ...updatedCharacter,
-                            statusEffects: [...(updatedCharacter.statusEffects || []), statusEffect],
-                            conditions: [...(updatedCharacter.conditions || []), activeCondition]
-                        };
+                        const applied = applyRuntimeStatusCondition(updatedCharacter, statusEffect, activeCondition);
+                        updatedCharacter = applied.character;
 
                         onLogEntry({
                             id: generateId(),
@@ -826,7 +824,7 @@ export const useCombatEngine = ({
                             type: 'status',
                             message: `${character.name} gains ${effect.statusName} from ${scheduledEffect.spellId}.`,
                             characterId: character.id,
-                            data: { trigger: timing, spellId: scheduledEffect.spellId, statusName: effect.statusName }
+                            data: { trigger: timing, spellId: scheduledEffect.spellId, statusName: effect.statusName, statusId: applied.appliedStatus.id }
                         });
                     }
                 });
@@ -871,21 +869,31 @@ export const useCombatEngine = ({
                 });
             }
         } else if (env.effect.effect.type === 'condition') {
-            const hasCondition = updatedChar.statusEffects.some(s => s.name === env.effect.name);
-            if (!hasCondition) {
-                updatedChar.statusEffects = [...updatedChar.statusEffects, {
+            // Environmental conditions share the spell status refresh policy so
+            // stepping through the same hazardous tile updates both mirrors
+            // instead of leaving stale duplicate condition records behind.
+            updatedChar = applyRuntimeStatusCondition(
+                updatedChar,
+                {
                     ...env.effect,
                     id: generateId(),
-                    duration: 1
-                }];
-                onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${character.name} is affected by ${env.effect.name}.`,
-                    characterId: character.id
-                });
-            }
+                    duration: 1,
+                    source: env.effect.source || env.effect.name
+                },
+                {
+                    name: env.effect.name,
+                    duration: { type: 'rounds', value: 1 },
+                    appliedTurn: 0,
+                    source: env.effect.source || env.effect.name
+                }
+            ).character;
+            onLogEntry({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `${character.name} is affected by ${env.effect.name}.`,
+                characterId: character.id
+            });
         }
 
         return updatedChar;

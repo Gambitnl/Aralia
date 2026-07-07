@@ -7,13 +7,13 @@
     "item",
     "itemType:Wand"
   ],
-  "excerpt": "This wand has 3 charges. While holding it, you can expend 1 charge to cast detect_magic Magic from it. The wand regains 1d3 expended charges daily at ...",
+  "excerpt": "This wand has 3 charges. While holding it, you can expend 1 charge to cast detect_magic|Detect Magic from it. The wand regains 1d3 expended charges da...",
   "aliases": [],
   "seeAlso": [
-    "detect_magic Magic"
+    "detect-magic"
   ],
   "filePath": "/data/glossary/entries/equipment/wand_of_magic_detection.json",
-  "markdown": "# Wand of Magic Detection\n\nThis wand has 3 charges. While holding it, you can expend 1 charge to cast [[detect_magic Magic]] from it. The wand regains 1d3 expended charges daily at dawn.",
+  "markdown": "# Wand of Magic Detection\n\nThis wand has 3 charges. While holding it, you can expend 1 charge to cast [[detect-magic|Detect Magic]] from it. The wand regains 1d3 expended charges daily at dawn.",
   "itemMetadata": {
     "type": "Wand",
     "rarity": "Uncommon",

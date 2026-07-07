@@ -6,13 +6,13 @@
     "source:xphb",
     "feat"
   ],
-  "excerpt": "When you hit with your unarmed_strike Strike and deal damage, you can deal Bludgeoning damage equal to 1d6 plus your Strength modifier instead of the ...",
+  "excerpt": "When you hit with your unarmed_strike|Unarmed Strike and deal damage, you can deal Bludgeoning damage equal to 1d6 plus your Strength modifier instead...",
   "aliases": [],
   "seeAlso": [
-    "unarmed_strike Strike",
+    "unarmed_strike",
     "shield",
     "grappled"
   ],
   "filePath": "/data/glossary/entries/feats/unarmed_fighting.json",
-  "markdown": "# Unarmed Fighting\n\nWhen you hit with your [[unarmed_strike Strike]] and deal damage, you can deal Bludgeoning damage equal to 1d6 plus your Strength modifier instead of the normal damage of an [[unarmed_strike Strike]]. If you aren't holding any weapons or a [[shield]] when you make the attack roll, the d6 becomes a d8.\n\nAt the start of each of your turns, you can deal 1d4 Bludgeoning damage to one creature [[grappled]] by you."
+  "markdown": "# Unarmed Fighting\n\nWhen you hit with your [[unarmed_strike]] and deal damage, you can deal Bludgeoning damage equal to 1d6 plus your Strength modifier instead of the normal damage of an [[unarmed_strike]]. If you aren't holding any weapons or a [[shield]] when you make the attack roll, the d6 becomes a d8.\n\nAt the start of each of your turns, you can deal 1d4 Bludgeoning damage to one creature [[grappled]] by you."
 }

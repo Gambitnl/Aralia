@@ -21,9 +21,6 @@
       "tinker"
     ],
     "seeAlso": [
-      "spellcasting",
-      "magical_tinkering_feature",
-      "infuse_item_feature",
       "artificer_infusions",
       "alchemist_subclass",
       "armorer_subclass",
@@ -49,9 +46,7 @@
         "excerpt": "An expert at combining reagents to produce mystical effects, from healing elixirs to volatile concoctions.",
         "aliases": [],
         "seeAlso": [
-          "artificer",
-          "experimental_elixir",
-          "alchemical_savant"
+          "artificer"
         ],
         "filePath": "/data/glossary/entries/classes/artificer_subclasses/alchemist.json",
         "parentClass": "artificer",
@@ -73,8 +68,7 @@
         "excerpt": "Modifies armor to function as a second skin, enhancing magic, defense, and unleashing potent attacks.",
         "aliases": [],
         "seeAlso": [
-          "artificer",
-          "arcane_armor_feature"
+          "artificer"
         ],
         "filePath": "/data/glossary/entries/classes/artificer_subclasses/armorer.json",
         "parentClass": "artificer",
@@ -93,8 +87,7 @@
         "excerpt": "Extraordinary processes that rapidly turn a nonmagical object into a magic item, available to the Artificer class.",
         "aliases": [],
         "seeAlso": [
-          "artificer",
-          "infuse_item_feature"
+          "artificer"
         ],
         "filePath": "/data/glossary/entries/classes/artificer_infusions.json",
         "parentClass": "artificer",
@@ -112,8 +105,7 @@
         "excerpt": "The spells available to the Artificer class.",
         "aliases": [],
         "seeAlso": [
-          "artificer",
-          "spellcasting"
+          "artificer"
         ],
         "filePath": "/data/glossary/entries/classes/artificer_spell_list.json",
         "parentClass": "artificer",
@@ -134,8 +126,7 @@
         "excerpt": "Specializes in using magic to hurl energy, projectiles, and explosions with a magical cannon.",
         "aliases": [],
         "seeAlso": [
-          "artificer",
-          "eldritch_cannon_feature"
+          "artificer"
         ],
         "filePath": "/data/glossary/entries/classes/artificer_subclasses/artillerist.json",
         "parentClass": "artificer",
@@ -157,9 +148,7 @@
         "excerpt": "A combination of protector and medic, accompanied by a protective steel defender of their own creation.",
         "aliases": [],
         "seeAlso": [
-          "artificer",
-          "steel_defender_feature",
-          "battle_ready_feature"
+          "artificer"
         ],
         "filePath": "/data/glossary/entries/classes/artificer_subclasses/battle_smith.json",
         "parentClass": "artificer",
@@ -186,12 +175,7 @@
       "savage",
       "rager"
     ],
-    "seeAlso": [
-      "rage",
-      "unarmored_defense_barbarian",
-      "reckless_attack",
-      "primal_knowledge"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/classes/barbarian.json",
     "subEntries": [
       {
@@ -209,10 +193,7 @@
           "berserker"
         ],
         "seeAlso": [
-          "barbarian",
-          "frenzy_berserker",
-          "reckless_attack",
-          "rage"
+          "barbarian"
         ],
         "filePath": "/data/glossary/entries/classes/barbarian_subclasses/path_of_the_berserker.json",
         "parentClass": "barbarian",
@@ -234,9 +215,7 @@
           "totem warrior"
         ],
         "seeAlso": [
-          "barbarian",
-          "animal_speaker",
-          "rage_of_the_wilds"
+          "barbarian"
         ],
         "filePath": "/data/glossary/entries/classes/barbarian_subclasses/path_of_the_wild_heart.json",
         "parentClass": "barbarian",
@@ -260,8 +239,6 @@
         ],
         "seeAlso": [
           "barbarian",
-          "vitality_of_the_tree",
-          "branches_of_the_tree",
           "teleport"
         ],
         "filePath": "/data/glossary/entries/classes/barbarian_subclasses/path_of_the_world_tree.json",
@@ -286,11 +263,7 @@
           "divine rager"
         ],
         "seeAlso": [
-          "barbarian",
-          "divine_fury",
-          "warrior_of_the_gods",
-          "radiant_damage",
-          "necrotic_damage"
+          "barbarian"
         ],
         "filePath": "/data/glossary/entries/classes/barbarian_subclasses/path_of_the_zealot.json",
         "parentClass": "barbarian",
@@ -322,11 +295,7 @@
       "lore master"
     ],
     "seeAlso": [
-      "bardic_inspiration_feature",
-      "spellcasting",
-      "jack_of_all_trades_feature",
       "expertise",
-      "college_of_lore_subclass",
       "spells_chapter",
       "proficiency_bonus",
       "d20_test"
@@ -345,8 +314,7 @@
         "excerpt": "The full list of spells available to the Bard class.",
         "aliases": [],
         "seeAlso": [
-          "bard",
-          "spellcasting"
+          "bard"
         ],
         "filePath": "/data/glossary/entries/classes/bard_spell_list.json",
         "parentClass": "bard",
@@ -369,9 +337,7 @@
           "dancer"
         ],
         "seeAlso": [
-          "bard",
-          "dazzling_footwork",
-          "unarmored_defense_bard"
+          "bard"
         ],
         "filePath": "/data/glossary/entries/classes/bard_subclasses/college_of_dance.json",
         "parentClass": "bard",
@@ -397,7 +363,6 @@
         ],
         "seeAlso": [
           "bard",
-          "mantle_of_inspiration",
           "charmed_condition"
         ],
         "filePath": "/data/glossary/entries/classes/bard_subclasses/college_of_glamour.json",
@@ -422,9 +387,7 @@
           "loremaster"
         ],
         "seeAlso": [
-          "bard",
-          "cutting_words",
-          "magical_secrets"
+          "bard"
         ],
         "filePath": "/data/glossary/entries/classes/bard_subclasses/college_of_lore.json",
         "parentClass": "bard",
@@ -448,9 +411,7 @@
           "skald"
         ],
         "seeAlso": [
-          "bard",
-          "combat_inspiration",
-          "extra_attack"
+          "bard"
         ],
         "filePath": "/data/glossary/entries/classes/bard_subclasses/college_of_valor.json",
         "parentClass": "bard",
@@ -480,10 +441,6 @@
       "divine caster"
     ],
     "seeAlso": [
-      "spellcasting",
-      "channel_divinity_feature",
-      "turn_undead_feature",
-      "divine_order_feature",
       "life_domain_subclass",
       "spells_chapter",
       "proficiency_bonus"
@@ -502,8 +459,7 @@
         "excerpt": "The full list of spells available to the Cleric class.",
         "aliases": [],
         "seeAlso": [
-          "cleric",
-          "spellcasting"
+          "cleric"
         ],
         "filePath": "/data/glossary/entries/classes/cleric_spell_list.json",
         "parentClass": "cleric",
@@ -525,10 +481,7 @@
           "healer domain"
         ],
         "seeAlso": [
-          "cleric",
-          "disciple_of_life",
-          "preserve_life",
-          "blessed_healer"
+          "cleric"
         ],
         "filePath": "/data/glossary/entries/classes/cleric_subclasses/life_domain.json",
         "parentClass": "cleric",
@@ -551,9 +504,7 @@
           "sun domain"
         ],
         "seeAlso": [
-          "cleric",
-          "radiance_of_the_dawn",
-          "warding_flare"
+          "cleric"
         ],
         "filePath": "/data/glossary/entries/classes/cleric_subclasses/light_domain.json",
         "parentClass": "cleric",
@@ -577,9 +528,7 @@
           "mischief domain"
         ],
         "seeAlso": [
-          "cleric",
-          "invoke_duplicity",
-          "blessing_of_the_trickster"
+          "cleric"
         ],
         "filePath": "/data/glossary/entries/classes/cleric_subclasses/trickery_domain.json",
         "parentClass": "cleric",
@@ -605,7 +554,6 @@
         ],
         "seeAlso": [
           "cleric",
-          "guided_strike",
           "war_priest"
         ],
         "filePath": "/data/glossary/entries/classes/cleric_subclasses/war_domain.json",
@@ -635,10 +583,6 @@
       "wild shaper"
     ],
     "seeAlso": [
-      "spellcasting",
-      "wild_shape_feature",
-      "druidic_feature",
-      "primal_order_feature",
       "circle_of_the_land_subclass",
       "circle_of_the_moon_subclass",
       "circle_of_the_sea_subclass",
@@ -664,9 +608,7 @@
           "land druid"
         ],
         "seeAlso": [
-          "druid",
-          "spellcasting",
-          "wild_shape_feature"
+          "druid"
         ],
         "filePath": "/data/glossary/entries/classes/druid_subclasses/circle_of_the_land.json",
         "parentClass": "druid",
@@ -690,7 +632,6 @@
         ],
         "seeAlso": [
           "druid",
-          "wild_shape_feature",
           "moonbeam"
         ],
         "filePath": "/data/glossary/entries/classes/druid_subclasses/circle_of_the_moon.json",
@@ -715,9 +656,7 @@
           "sea druid"
         ],
         "seeAlso": [
-          "druid",
-          "spellcasting",
-          "wild_shape_feature"
+          "druid"
         ],
         "filePath": "/data/glossary/entries/classes/druid_subclasses/circle_of_the_sea.json",
         "parentClass": "druid",
@@ -741,9 +680,7 @@
         ],
         "seeAlso": [
           "druid",
-          "wild_shape_feature",
-          "spellcasting",
-          "guiding_bolt"
+          "guiding-bolt"
         ],
         "filePath": "/data/glossary/entries/classes/druid_subclasses/circle_of_the_stars.json",
         "parentClass": "druid",
@@ -761,8 +698,7 @@
         "excerpt": "The full list of spells available to the Druid class.",
         "aliases": [],
         "seeAlso": [
-          "druid",
-          "spellcasting"
+          "druid"
         ],
         "filePath": "/data/glossary/entries/classes/druid_spell_list.json",
         "parentClass": "druid",
@@ -795,10 +731,6 @@
       "combatant"
     ],
     "seeAlso": [
-      "fighting_style_feature",
-      "second_wind_feature",
-      "action_surge_feature",
-      "weapon_mastery_feature",
       "champion_subclass",
       "battle_master_subclass",
       "eldritch_knight_subclass",
@@ -820,8 +752,7 @@
         "excerpt": "A master of sophisticated battle maneuvers, using tactical techniques fueled by Superiority Dice.",
         "aliases": [],
         "seeAlso": [
-          "fighter",
-          "maneuvers_battle_master"
+          "fighter"
         ],
         "filePath": "/data/glossary/entries/classes/fighter_subclasses/battle_master.json",
         "parentClass": "fighter",
@@ -841,8 +772,7 @@
         "excerpt": "A warrior who pursues physical excellence, focusing on raw martial prowess and dealing devastating critical hits.",
         "aliases": [],
         "seeAlso": [
-          "fighter",
-          "improved_critical"
+          "fighter"
         ],
         "filePath": "/data/glossary/entries/classes/fighter_subclasses/champion.json",
         "parentClass": "fighter",
@@ -862,9 +792,7 @@
         "excerpt": "A martial warrior who combines their combat skills with the study of arcane magic from the Wizard spell list.",
         "aliases": [],
         "seeAlso": [
-          "fighter",
-          "spellcasting",
-          "war_magic"
+          "fighter"
         ],
         "filePath": "/data/glossary/entries/classes/fighter_subclasses/eldritch_knight.json",
         "parentClass": "fighter",
@@ -884,8 +812,7 @@
         "excerpt": "A fighter who augments their physical might with psionic power, creating telekinetic shields and strikes.",
         "aliases": [],
         "seeAlso": [
-          "fighter",
-          "psionic_power"
+          "fighter"
         ],
         "filePath": "/data/glossary/entries/classes/fighter_subclasses/psi_warrior.json",
         "parentClass": "fighter",
@@ -916,13 +843,7 @@
       "martial artist",
       "ascetic"
     ],
-    "seeAlso": [
-      "martial_arts_feature",
-      "monks_focus",
-      "unarmored_defense_monk",
-      "deflect_attacks",
-      "stunning_strike_feature"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/classes/monk.json",
     "subEntries": [
       {
@@ -939,9 +860,7 @@
         "excerpt": "Manipulate the forces of life and death, acting as both wandering physician and swift end to your enemies.",
         "aliases": [],
         "seeAlso": [
-          "monk",
-          "hand_of_harm",
-          "hand_of_healing"
+          "monk"
         ],
         "filePath": "/data/glossary/entries/classes/monk_subclasses/warrior_of_mercy.json",
         "parentClass": "monk",
@@ -964,10 +883,8 @@
         "aliases": [],
         "seeAlso": [
           "monk",
-          "shadow_arts",
-          "shadow_step",
           "darkness",
-          "minor_illusion"
+          "minor-illusion"
         ],
         "filePath": "/data/glossary/entries/classes/monk_subclasses/warrior_of_shadow.json",
         "parentClass": "monk",
@@ -990,10 +907,7 @@
         "excerpt": "Tap into the power of the Elemental Planes, wielding strikes and bursts of elemental power.",
         "aliases": [],
         "seeAlso": [
-          "monk",
-          "elemental_attunement",
-          "elemental_burst",
-          "elementalism_spell"
+          "monk"
         ],
         "filePath": "/data/glossary/entries/classes/monk_subclasses/warrior_of_the_elements.json",
         "parentClass": "monk",
@@ -1014,10 +928,7 @@
         "excerpt": "Masters of unarmed combat, learning techniques to push, trip, and manipulate their foes' energy.",
         "aliases": [],
         "seeAlso": [
-          "monk",
-          "open_hand_technique",
-          "quivering_palm",
-          "wholeness_of_body"
+          "monk"
         ],
         "filePath": "/data/glossary/entries/classes/monk_subclasses/warrior_of_the_open_hand.json",
         "parentClass": "monk",
@@ -1045,12 +956,7 @@
       "divine champion"
     ],
     "seeAlso": [
-      "lay_on_hands_feature",
-      "divine_smite_spell",
-      "channel_divinity_paladin",
-      "aura_of_protection_feature",
-      "oath_of_devotion_subclass",
-      "spellcasting"
+      "oath_of_devotion_subclass"
     ],
     "filePath": "/data/glossary/entries/classes/paladin.json",
     "subEntries": [
@@ -1070,10 +976,7 @@
         "excerpt": "Uphold the ideals of justice and order, acting as a knight in shining armor against the forces of darkness.",
         "aliases": [],
         "seeAlso": [
-          "paladin",
-          "channel_divinity_paladin",
-          "sacred_weapon",
-          "aura_of_devotion"
+          "paladin"
         ],
         "filePath": "/data/glossary/entries/classes/paladin_subclasses/oath_of_devotion.json",
         "parentClass": "paladin",
@@ -1094,10 +997,7 @@
         "excerpt": "Strive for the heights of heroism, believing you and your companions are destined for glory.",
         "aliases": [],
         "seeAlso": [
-          "paladin",
-          "channel_divinity_paladin",
-          "inspiring_smite",
-          "peerless_athlete"
+          "paladin"
         ],
         "filePath": "/data/glossary/entries/classes/paladin_subclasses/oath_of_glory.json",
         "parentClass": "paladin",
@@ -1119,10 +1019,7 @@
         "excerpt": "Preserve life and light in the world, cherishing beauty and laughter over abstract principles.",
         "aliases": [],
         "seeAlso": [
-          "paladin",
-          "channel_divinity_paladin",
-          "natures_wrath",
-          "aura_of_warding"
+          "paladin"
         ],
         "filePath": "/data/glossary/entries/classes/paladin_subclasses/oath_of_the_ancients.json",
         "parentClass": "paladin",
@@ -1143,10 +1040,7 @@
         "excerpt": "A solemn commitment to punish those who have committed grievously evil acts.",
         "aliases": [],
         "seeAlso": [
-          "paladin",
-          "channel_divinity_paladin",
-          "vow_of_enmity",
-          "relentless_avenger"
+          "paladin"
         ],
         "filePath": "/data/glossary/entries/classes/paladin_subclasses/oath_of_vengeance.json",
         "parentClass": "paladin",
@@ -1164,8 +1058,7 @@
         "excerpt": "The full list of spells available to the Paladin class.",
         "aliases": [],
         "seeAlso": [
-          "paladin",
-          "spellcasting"
+          "paladin"
         ],
         "filePath": "/data/glossary/entries/classes/paladin_spell_list.json",
         "parentClass": "paladin",
@@ -1196,10 +1089,6 @@
       "stalker"
     ],
     "seeAlso": [
-      "favored_enemy_feature",
-      "spellcasting",
-      "deft_explorer_feature",
-      "fighting_style_feature",
       "hunter_subclass",
       "proficiency_bonus",
       "spells_chapter"
@@ -1220,8 +1109,7 @@
         "excerpt": "Form a mystical bond with a special animal, drawing on primal magic and a deep connection to the natural world.",
         "aliases": [],
         "seeAlso": [
-          "ranger",
-          "primal_companion"
+          "ranger"
         ],
         "filePath": "/data/glossary/entries/classes/ranger_subclasses/beast_master.json",
         "parentClass": "ranger",
@@ -1242,9 +1130,7 @@
         "excerpt": "Wield Fey mirth and fury, thanks to a boon from an archfey or a location in the Feywild.",
         "aliases": [],
         "seeAlso": [
-          "ranger",
-          "dreadful_strikes_fey",
-          "otherworldly_glamour"
+          "ranger"
         ],
         "filePath": "/data/glossary/entries/classes/ranger_subclasses/fey_wanderer.json",
         "parentClass": "ranger",
@@ -1265,9 +1151,7 @@
         "excerpt": "Draw on shadow magic to fight foes in the darkest places, excelling at ambushes.",
         "aliases": [],
         "seeAlso": [
-          "ranger",
-          "dread_ambusher",
-          "umbral_sight"
+          "ranger"
         ],
         "filePath": "/data/glossary/entries/classes/ranger_subclasses/gloom_stalker.json",
         "parentClass": "ranger",
@@ -1287,8 +1171,7 @@
         "excerpt": "Stalk prey using your abilities as a Hunter to protect nature and people everywhere.",
         "aliases": [],
         "seeAlso": [
-          "ranger",
-          "favored_enemy_feature"
+          "ranger"
         ],
         "filePath": "/data/glossary/entries/classes/ranger_subclasses/hunter.json",
         "parentClass": "ranger",
@@ -1306,8 +1189,7 @@
         "excerpt": "The full list of spells available to the Ranger class.",
         "aliases": [],
         "seeAlso": [
-          "ranger",
-          "spellcasting"
+          "ranger"
         ],
         "filePath": "/data/glossary/entries/classes/ranger_spell_list.json",
         "parentClass": "ranger",
@@ -1336,10 +1218,7 @@
       "trickster"
     ],
     "seeAlso": [
-      "sneak_attack_feature",
-      "cunning_action_feature",
       "expertise",
-      "thieves_cant_feature",
       "thief_subclass",
       "proficiency_bonus"
     ],
@@ -1360,9 +1239,7 @@
         "excerpt": "Enhance your roguish skills with a touch of arcane magic from the Wizard spell list, specializing in illusions and enchantments.",
         "aliases": [],
         "seeAlso": [
-          "rogue",
-          "spellcasting",
-          "mage_hand_legerdemain"
+          "rogue"
         ],
         "filePath": "/data/glossary/entries/classes/rogue_subclasses/arcane_trickster.json",
         "parentClass": "rogue",
@@ -1383,8 +1260,7 @@
         "excerpt": "Practice the grim art of death, using stealth, poison, and disguise to eliminate foes with deadly efficiency.",
         "aliases": [],
         "seeAlso": [
-          "rogue",
-          "assassinate_feature"
+          "rogue"
         ],
         "filePath": "/data/glossary/entries/classes/rogue_subclasses/assassin.json",
         "parentClass": "rogue",
@@ -1405,9 +1281,7 @@
         "excerpt": "Strike with the power of your mind, cutting through barriers both physical and psychic with blades of pure psionic energy.",
         "aliases": [],
         "seeAlso": [
-          "rogue",
-          "psionic_power_soulknife",
-          "psychic_blades"
+          "rogue"
         ],
         "filePath": "/data/glossary/entries/classes/rogue_subclasses/soulknife.json",
         "parentClass": "rogue",
@@ -1428,10 +1302,7 @@
         "excerpt": "A mix of burglar, treasure hunter, and explorer, a Thief is the epitome of an adventurer, excelling at infiltration and using magic items.",
         "aliases": [],
         "seeAlso": [
-          "rogue",
-          "fast_hands_feature",
-          "second_story_work_feature",
-          "use_magic_device_feature"
+          "rogue"
         ],
         "filePath": "/data/glossary/entries/classes/rogue_subclasses/thief.json",
         "parentClass": "rogue",
@@ -1461,9 +1332,6 @@
       "mage"
     ],
     "seeAlso": [
-      "spellcasting",
-      "sorcery_points_feature",
-      "metamagic_feature",
       "draconic_sorcery_subclass",
       "wild_magic_subclass",
       "aberrant_mind_subclass",
@@ -1490,9 +1358,7 @@
           "psionic sorcerer"
         ],
         "seeAlso": [
-          "sorcerer",
-          "psionic_spells",
-          "telepathic_speech"
+          "sorcerer"
         ],
         "filePath": "/data/glossary/entries/classes/sorcerer_subclasses/aberrant_sorcery.json",
         "parentClass": "sorcerer",
@@ -1516,8 +1382,7 @@
           "clockwork mage"
         ],
         "seeAlso": [
-          "sorcerer",
-          "restore_balance"
+          "sorcerer"
         ],
         "filePath": "/data/glossary/entries/classes/sorcerer_subclasses/clockwork_sorcery.json",
         "parentClass": "sorcerer",
@@ -1540,8 +1405,7 @@
           "dragon sorcerer"
         ],
         "seeAlso": [
-          "sorcerer",
-          "draconic_resilience"
+          "sorcerer"
         ],
         "filePath": "/data/glossary/entries/classes/sorcerer_subclasses/draconic_sorcery.json",
         "parentClass": "sorcerer",
@@ -1559,8 +1423,7 @@
         "excerpt": "The full list of spells available to the Sorcerer class.",
         "aliases": [],
         "seeAlso": [
-          "sorcerer",
-          "spellcasting"
+          "sorcerer"
         ],
         "filePath": "/data/glossary/entries/classes/sorcerer_spell_list.json",
         "parentClass": "sorcerer",
@@ -1582,8 +1445,7 @@
           "wild mage"
         ],
         "seeAlso": [
-          "sorcerer",
-          "wild_magic_surge"
+          "sorcerer"
         ],
         "filePath": "/data/glossary/entries/classes/sorcerer_subclasses/wild_magic_sorcery.json",
         "parentClass": "sorcerer",
@@ -1610,9 +1472,6 @@
       "invoker"
     ],
     "seeAlso": [
-      "pact_magic_feature",
-      "eldritch_invocations_feature",
-      "warlock_patron_feature",
       "fiend_patron_subclass",
       "proficiency_bonus",
       "spells_chapter"
@@ -1636,7 +1495,7 @@
         ],
         "seeAlso": [
           "warlock",
-          "misty_step"
+          "misty-step"
         ],
         "filePath": "/data/glossary/entries/classes/warlock_subclasses/archfey.json",
         "parentClass": "warlock",
@@ -1659,8 +1518,7 @@
           "fiendlock"
         ],
         "seeAlso": [
-          "warlock",
-          "dark_ones_blessing"
+          "warlock"
         ],
         "filePath": "/data/glossary/entries/classes/warlock_subclasses/fiend.json",
         "parentClass": "warlock",
@@ -1684,8 +1542,7 @@
           "GOOlock"
         ],
         "seeAlso": [
-          "warlock",
-          "awakened_mind"
+          "warlock"
         ],
         "filePath": "/data/glossary/entries/classes/warlock_subclasses/great_old_one.json",
         "parentClass": "warlock",
@@ -1703,8 +1560,7 @@
         "excerpt": "The full list of spells available to the Warlock class.",
         "aliases": [],
         "seeAlso": [
-          "warlock",
-          "spellcasting"
+          "warlock"
         ],
         "filePath": "/data/glossary/entries/classes/warlock_spell_list.json",
         "parentClass": "warlock",
@@ -1733,10 +1589,6 @@
       "spell slinger"
     ],
     "seeAlso": [
-      "spellcasting",
-      "spellbook_feature",
-      "arcane_recovery_feature",
-      "wizard_schools",
       "evoker_subclass",
       "proficiency_bonus",
       "spells_chapter"
@@ -1757,9 +1609,7 @@
         "excerpt": "Focuses on magic that blocks, banishes, or protects, ending harmful effects and guarding against spying.",
         "aliases": [],
         "seeAlso": [
-          "wizard",
-          "abjuration_school",
-          "arcane_ward_feature"
+          "wizard"
         ],
         "filePath": "/data/glossary/entries/classes/wizard_subclasses/abjurer.json",
         "parentClass": "wizard",
@@ -1780,9 +1630,7 @@
         "excerpt": "Strives to part the veils of space, time, and consciousness, mastering spells of discernment, remote viewing, and foresight.",
         "aliases": [],
         "seeAlso": [
-          "wizard",
-          "divination_school",
-          "portent_feature"
+          "wizard"
         ],
         "filePath": "/data/glossary/entries/classes/wizard_subclasses/diviner.json",
         "parentClass": "wizard",
@@ -1804,8 +1652,6 @@
         "aliases": [],
         "seeAlso": [
           "wizard",
-          "evocation_school",
-          "sculpt_spells_feature",
           "fireball"
         ],
         "filePath": "/data/glossary/entries/classes/wizard_subclasses/evoker.json",
@@ -1827,9 +1673,7 @@
         "excerpt": "Specializes in magic that dazzles the senses and tricks the mind, crafting illusions that make the impossible seem real.",
         "aliases": [],
         "seeAlso": [
-          "wizard",
-          "illusion_school",
-          "phantasmal_creatures_feature"
+          "wizard"
         ],
         "filePath": "/data/glossary/entries/classes/wizard_subclasses/illusionist.json",
         "parentClass": "wizard",
@@ -1847,8 +1691,7 @@
         "excerpt": "The full list of spells available to the Wizard class.",
         "aliases": [],
         "seeAlso": [
-          "wizard",
-          "spellcasting"
+          "wizard"
         ],
         "filePath": "/data/glossary/entries/classes/wizard_spell_list.json",
         "parentClass": "wizard",

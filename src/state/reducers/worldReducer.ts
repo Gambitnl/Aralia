@@ -29,6 +29,7 @@ import { groundPosToLocaleFeet } from '../../systems/worldforge/local/localePosi
 import { biomeIdForCell } from '../../systems/worldforge/local/biomeForCell';
 import { nearBurgIdsForCell } from '../../systems/worldforge/local/burgProximity';
 import { advanceRegistry } from '../../systems/worldforge/townsim/townSimRegistry';
+import { raidPressureForBurg } from '../../systems/worldforge/dungeon/world/raidPressure';
 import { buildTownSimStateForBurg } from '../../systems/worldforge/townsim/townSimRegistration';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
 import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
@@ -163,6 +164,15 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       const discovered = state.discoveredHiddenSites ?? [];
       if (discovered.some((s) => s.id === action.payload.id)) return {};
       return { discoveredHiddenSites: [...discovered, action.payload] };
+    }
+
+    case 'DUNGEON_CLEARED': {
+      // Pillar 2, Task 8: record a dungeon site the party has cleared. Deduped by
+      // sitePath so re-triggering the clear is idempotent and saves don't grow —
+      // exactly the REVEAL_HIDDEN_SITE persistence pattern.
+      const cleared = state.clearedDungeons ?? [];
+      if (cleared.includes(action.payload.sitePath)) return {};
+      return { clearedDungeons: [...cleared, action.payload.sitePath] };
     }
 
     case 'APPLY_WORLDFORGE_DELTA': {
@@ -309,9 +319,22 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
           const nearBurgIds = nextState.playerCell?.cellId != null
             ? nearBurgIdsForCell(nextState.worldSeed, nextState.playerCell.cellId, NEAR_SIM_GRAPH_RADIUS)
             : undefined;
+          // Pillar 2, Task 8 (living ecology): feed each ticking town its raid
+          // pressure from uncleared dungeons, so a beset burg occasionally frets
+          // in its chronicle. Cheap (plan-free site distance) + cached per seed;
+          // cleared dungeons drop out of the signal.
+          const clearedSet = new Set(nextState.clearedDungeons ?? []);
+          const raidPressureFor = (burgId: number): number =>
+            raidPressureForBurg(nextState.worldSeed, burgId, clearedSet);
           nextState = {
             ...nextState,
-            townSim: advanceRegistry(nextState.townSim, nextState.worldSeed, newDay, nearBurgIds),
+            townSim: advanceRegistry(
+              nextState.townSim,
+              nextState.worldSeed,
+              newDay,
+              nearBurgIds,
+              raidPressureFor,
+            ),
           };
         }
 

@@ -7,15 +7,15 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A Lamp burns oil as fuel to cast bright_light Light in a 15-foot radius and dim_light Light for an additional 30 feet....",
+  "excerpt": "A Lamp burns oil|Oil as fuel to cast bright_light|Bright Light in a 15-foot radius and dim_light|Dim Light for an additional 30 feet....",
   "aliases": [],
   "seeAlso": [
     "oil",
-    "bright_light Light",
-    "dim_light Light"
+    "bright_light",
+    "dim_light"
   ],
   "filePath": "/data/glossary/entries/equipment/lamp.json",
-  "markdown": "# Lamp\n\nA Lamp burns [[oil]] as fuel to cast [[bright_light Light]] in a 15-foot radius and [[dim_light Light]] for an additional 30 feet.",
+  "markdown": "# Lamp\n\nA Lamp burns [[oil]] as fuel to cast [[bright_light]] in a 15-foot radius and [[dim_light]] for an additional 30 feet.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

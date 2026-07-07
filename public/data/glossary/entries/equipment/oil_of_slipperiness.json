@@ -10,12 +10,12 @@
   "excerpt": "One vial of this oil can cover one Medium or smaller creature, along with the equipment it's wearing and carrying (one additional vial is required for...",
   "aliases": [],
   "seeAlso": [
-    "freedom_of_movement of Movement",
+    "freedom-of-movement",
     "magic",
     "grease"
   ],
   "filePath": "/data/glossary/entries/equipment/oil_of_slipperiness.json",
-  "markdown": "# Oil of Slipperiness\n\nOne vial of this oil can cover one Medium or smaller creature, along with the equipment it's wearing and carrying (one additional vial is required for each size category above Medium). Applying the oil takes 10 minutes. The affected creature then gains the effect of the [[freedom_of_movement of Movement]] spell for 8 hours.\n\nAlternatively, the oil can be poured on the ground as a [[magic]] action, where it covers a 10-foot square, duplicating the effect of the [[grease]] spell in that area for 8 hours.\n\nThis sticky, black unguent is thick and heavy, but it flows quickly when poured.",
+  "markdown": "# Oil of Slipperiness\n\nOne vial of this oil can cover one Medium or smaller creature, along with the equipment it's wearing and carrying (one additional vial is required for each size category above Medium). Applying the oil takes 10 minutes. The affected creature then gains the effect of the [[freedom-of-movement|Freedom of Movement]] spell for 8 hours.\n\nAlternatively, the oil can be poured on the ground as a [[magic]] action, where it covers a 10-foot square, duplicating the effect of the [[grease]] spell in that area for 8 hours.\n\nThis sticky, black unguent is thick and heavy, but it flows quickly when poured.",
   "itemMetadata": {
     "type": "Potion",
     "rarity": "Uncommon",

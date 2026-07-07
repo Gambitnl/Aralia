@@ -7,7 +7,7 @@
     "item",
     "itemType:Ring"
   ],
-  "excerpt": "This ring has 3 charges and regains 1d3 expended charges daily at dawn. While wearing the ring, you can take a magic action to expend 1 to 3 charges t...",
+  "excerpt": "This ring has 3 charges and regains 1d3 expended charges daily at dawn. While wearing the ring, you can take a magic|Magic action to expend 1 to 3 cha...",
   "aliases": [],
   "seeAlso": [
     "magic"

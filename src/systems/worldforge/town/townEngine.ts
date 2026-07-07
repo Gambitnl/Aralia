@@ -48,6 +48,25 @@ export interface BuildingPlot {
   staffCount?: number;
 }
 
+/**
+ * The population-pass fields of a {@link BuildingPlot} that survive into the flat
+ * artifact plan, carried so the 3D bake can rebuild the founding household brief
+ * ({@link import('./householdBrief').briefForPlot}) for each rendered building.
+ * Exactly the fields briefForPlot reads (no geometry) — briefForPlot resolves
+ * cross-references (workplaceId / proprietorHomeId) against the full set by homeId.
+ */
+export type TownPlotPopulation = Pick<
+  BuildingPlot,
+  | 'buildingType'
+  | 'residential'
+  | 'occupants'
+  | 'homeId'
+  | 'district'
+  | 'workplaceId'
+  | 'workRole'
+  | 'proprietorHomeId'
+>;
+
 export type CivicKind = 'plaza' | 'temple' | 'keep' | 'citadel' | 'dock' | 'bridge';
 
 export type TownTypology = 'hamlet' | 'village' | 'walled town' | 'city' | 'capital';

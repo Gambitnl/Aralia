@@ -58,6 +58,59 @@ describe('rollTownDay determinism + purity', () => {
   });
 });
 
+describe('rollTownDay raid-worry (Pillar 2 Task 8)', () => {
+  // Count raid_worry events across a long window of forced pressure.
+  function worryLinesOver(days: number, raidPressure: number, worldSeed = 42): string[] {
+    let s = stateOf([villager({ occupantId: 1 }), villager({ occupantId: 2 })]);
+    const lines: string[] = [];
+    for (let day = 1; day <= days; day++) {
+      s = rollTownDay(s, day, new SeededRandom(1000 + day), { worldSeed, raidPressure });
+      for (const e of s.chronicle.events) {
+        if (e.kind === 'raid_worry' && e.day === day) lines.push(e.summary);
+      }
+    }
+    return lines;
+  }
+
+  it('emits at least one raid-worry line under sustained HIGH pressure', () => {
+    const lines = worryLinesOver(200, 1);
+    expect(lines.length).toBeGreaterThan(0);
+    expect(lines[0].length).toBeGreaterThan(0);
+  });
+
+  it('emits NO raid-worry line below the pressure floor', () => {
+    expect(worryLinesOver(200, 0.1)).toEqual([]);
+  });
+
+  it('omitting opts is byte-identical to the pre-Task-8 roll (no extra draws)', () => {
+    const s = stateOf([villager({ occupantId: 1 }), villager({ occupantId: 2 })]);
+    const without = rollTownDay(s, 1, new SeededRandom(99));
+    const withZero = rollTownDay(s, 1, new SeededRandom(99), { worldSeed: 42, raidPressure: 0 });
+    expect(JSON.stringify(withZero)).toBe(JSON.stringify(without));
+  });
+
+  it('the raid-worry roll does not perturb the life-event stream', () => {
+    // A life-event roll under HIGH pressure produces the same villagers/wealth/
+    // (non-raid) events as one with NO pressure — only raid_worry lines differ.
+    const s = stateOf([villager({ occupantId: 1 }), villager({ occupantId: 2 })]);
+    const strip = (st: TownSimState) => ({
+      ...st,
+      chronicle: {
+        ...st.chronicle,
+        events: st.chronicle.events.filter((e) => e.kind !== 'raid_worry'),
+      },
+    });
+    const calm = rollTownDay(s, 5, new SeededRandom(77), { worldSeed: 42, raidPressure: 0 });
+    const beset = rollTownDay(s, 5, new SeededRandom(77), { worldSeed: 42, raidPressure: 1 });
+    // nextEventId can differ (a worry line consumes an id), so compare on the
+    // life-event content, not the counter.
+    const c = strip(calm);
+    const b = strip(beset);
+    expect(JSON.stringify(b.villagers)).toBe(JSON.stringify(c.villagers));
+    expect(JSON.stringify(b.chronicle.events)).toBe(JSON.stringify(c.chronicle.events));
+  });
+});
+
 describe('death + succession + inheritance', () => {
   it('an ancient role-holder dies, an heir succeeds, wealth is inherited', () => {
     const lord = villager({

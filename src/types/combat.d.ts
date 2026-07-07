@@ -579,7 +579,7 @@ export interface BattleMapData {
         height: number;
     };
     tiles: Map<string, BattleMapTile>;
-    theme: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp';
+    theme: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp' | 'snow' | 'jungle' | 'coast' | 'ruins' | 'volcanic';
     seed: number;
 }
 export interface CombatState {

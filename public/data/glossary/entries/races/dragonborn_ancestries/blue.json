@@ -55,11 +55,7 @@
   "aliases": [
     "blue ancestry"
   ],
-  "seeAlso": [
-    "dragonborn",
-    "lightning_damage",
-    "breath_weapon"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/dragonborn_ancestries/blue.json",
   "maleImageUrl": "/assets/images/races/Dragonborn_Blue_Male.png",
   "femaleImageUrl": "/assets/images/races/Dragonborn_Blue_Female.png"

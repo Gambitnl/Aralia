@@ -25,7 +25,11 @@
   #validation.show { display: block; }
   #validation b { color: #fca5a5; }
   #validation ul { margin: 6px 0 0; padding-left: 20px; }
-  #legend { padding: 8px 22px; font-size: 12px; color: #94a3b8; display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+  #legend { padding: 8px 22px; font-size: 12px; color: #94a3b8; display: grid; grid-template-columns: minmax(220px, 1.15fr) minmax(190px, 0.8fr) minmax(260px, 1.05fr) minmax(300px, 1fr) minmax(170px, 0.75fr); gap: 12px; align-items: start; }
+  .legend-group { min-width: 0; display: flex; flex-direction: column; gap: 5px; padding: 7px 9px; border: 1px solid rgba(51,65,85,0.55); border-radius: 6px; background: rgba(15,23,42,0.35); }
+  .legend-title { font-size: 10px; line-height: 1; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b; }
+  .legend-items { display: flex; gap: 8px 12px; flex-wrap: wrap; align-items: center; min-width: 0; }
+  .legend-note { line-height: 1.35; }
   .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
   /* Legend filter chips (item 4) — clickable toggles that dim non-matches. */
   #legend .chip { cursor: pointer; user-select: none; padding: 2px 6px; border-radius: 4px; border: 1px solid transparent; }
@@ -135,6 +139,30 @@
   #detail-body .dep.clk:hover { border-left-color: #7dd3fc; }
   #detail-body a { color: #7dd3fc; }
   #detail-body .empty { color: #475569; font-size: 11px; font-style: italic; }
+  /* Markdown document drawer: spec/doc links open beside the map instead of
+     replacing the page with raw Markdown. It mirrors the detail panel motion so
+     reference material feels like a companion view, not a navigation away. */
+  #doc-detail { position: fixed; top: 0; right: 0; width: 520px; max-width: 94vw; height: 100vh; overflow-y: auto;
+    background: #0b1120; border-left: 1px solid #1e293b; box-shadow: -8px 0 30px rgba(0,0,0,0.5);
+    transform: translateX(100%); transition: transform 0.15s ease; z-index: 950; padding: 0; }
+  #doc-detail.open { transform: translateX(0); }
+  #doc-close { position: absolute; top: 12px; right: 14px; background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 4px; }
+  #doc-close:hover { color: #e2e8f0; background: #1e293b; }
+  #doc-body { padding: 26px 30px 44px; }
+  #doc-body h1 { color: #fbbf24; font-size: 22px; margin: 0 34px 14px 0; }
+  #doc-body h2 { color: #fbbf24; font-size: 16px; margin: 28px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #1e293b; }
+  #doc-body h2:first-child { margin-top: 0; }
+  #doc-body p { color: #e2e8f0; line-height: 1.58; margin: 0 0 13px; }
+  #doc-body ul { margin: 0 0 15px; padding-left: 20px; }
+  #doc-body li { color: #e2e8f0; line-height: 1.55; margin-bottom: 8px; }
+  #doc-body li b { color: #fbbf24; }
+  #doc-body code { background: #1e293b; color: #e2e8f0; padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+  #doc-body a { color: #7dd3fc; }
+  #doc-body .err { color: #f87171; }
+  #doc-body .muted { color: #94a3b8; }
+  #doc-body blockquote { margin: 0 0 14px; padding: 8px 14px; border-left: 3px solid #fbbf24; color: #94a3b8; background: rgba(30,41,59,0.5); }
+  #doc-body pre { background: #1e293b; padding: 10px 14px; border-radius: 6px; overflow-x: auto; margin: 0 0 14px; }
+  #doc-body pre code { background: none; padding: 0; }
   #glossary-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
   #glossary-backdrop.open { display: flex; }
   #glossary-panel { position: relative; width: 90%; max-width: 760px; max-height: 85vh; overflow-y: auto; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 28px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
@@ -195,6 +223,7 @@
   <span class="zlabel" id="zoom-label">100%</span>
   <button id="zoom-in">+</button>
   <button id="zoom-fit">Fit</button>
+  <button id="zoom-read">Read</button>
   <button id="heat-toggle" aria-pressed="false">Age heat</button>
   <span id="heat-legend" style="display:none;">
     <span><span class="hsw" style="background:#22d3ee;"></span>≤2d</span>
@@ -212,6 +241,10 @@
 <aside id="detail" aria-label="Detail panel">
   <button id="detail-close" aria-label="Close">✕</button>
   <div id="detail-body"></div>
+</aside>
+<aside id="doc-detail" aria-label="Document panel">
+  <button id="doc-close" aria-label="Close document">✕</button>
+  <div id="doc-body"><p class="muted">Choose a document…</p></div>
 </aside>
 <div id="glossary-backdrop">
   <div id="glossary-panel" role="dialog" aria-modal="true" aria-label="Document">
@@ -233,20 +266,37 @@ const COLORS = {
   teal:   { fill: '#042f2e', stroke: '#2dd4bf', title: '#ccfbf1', sub: '#5eead4' },
   gray:   { fill: '#1e293b', stroke: '#94a3b8', title: '#f1f5f9', sub: '#cbd5e1' },
   coral:  { fill: '#431407', stroke: '#fb923c', title: '#ffedd5', sub: '#fdba74' },
-  pink:   { fill: '#500724', stroke: '#f472b6', title: '#fce7f3', sub: '#f9a8d4' }
+  pink:   { fill: '#500724', stroke: '#f472b6', title: '#fce7f3', sub: '#f9a8d4' },
+  violet: { fill: '#3b0764', stroke: '#d946ef', title: '#fae8ff', sub: '#f0abfc' },
+  indigo: { fill: '#1e1b4b', stroke: '#818cf8', title: '#e0e7ff', sub: '#a5b4fc' },
+  green:  { fill: '#052e16', stroke: '#86efac', title: '#dcfce7', sub: '#bbf7d0' },
+  blue:   { fill: '#172554', stroke: '#60a5fa', title: '#dbeafe', sub: '#93c5fd' },
+  amber:  { fill: '#451a03', stroke: '#fcd34d', title: '#fef3c7', sub: '#fde68a' }
 };
 const STATUS = { parked: '#94a3b8', specced: '#fbbf24', active: '#38bdf8', done: '#4ade80', superseded: '#9a3412' };
 const NODE_W = 300, BASE_H = 78, COL_GAP = 90, ROW_GAP = 26, PAD = 40;
 const LANE_GAP = 34, LANE_LABEL_H = 22; // vertical breathing room between campaign lanes (item 2)
+// Readable zoom is separate from overview fit: the whole roadmap is too wide
+// for every tile label to stay legible at once, so these constants give the
+// reader a close-up target without changing the underlying roadmap layout.
+const MIN_READABLE_VIEW_W = 520;
+const READABLE_TITLE_PX = 18;
 // Exploded step tiles: each parent's features render as their OWN child tiles
 // to the right, instead of stacked rows inside the parent card.
-const STEP_W = 190, STEP_H = 30, STEP_GAP_X = 30, STEP_GAP_Y = 8, PARENT_STEP_GAP = 44;
+const STEP_W = 190, MAX_STEP_W = 420, STEP_H = 30, STEP_LINE_H = 12, STEP_GAP_X = 30, STEP_GAP_Y = 8, PARENT_STEP_GAP = 44;
 const stepLabelText = f => (f.spike ? '! ' : '') + (f.title || '');
-const stepWidth = f => {
+const stepMetrics = f => {
   const openN = (typeof f.open === 'number' && f.open > 0) ? f.open : 0;
   const rightTools = (openN ? 28 : 0) + (f.link ? 22 : 0);
-  return Math.max(STEP_W, Math.ceil(44 + stepLabelText(f).length * 6.8 + rightTools));
+  const naturalW = Math.max(STEP_W, Math.ceil(44 + stepLabelText(f).length * 6.8 + rightTools));
+  const w = Math.min(MAX_STEP_W, naturalW);
+  const chars = Math.max(12, Math.floor((w - 46 - rightTools) / 6.8));
+  const lines = wrapWords(stepLabelText(f), chars);
+  const h = Math.max(STEP_H, 16 + lines.length * STEP_LINE_H);
+  return { w, h, lines };
 };
+const stepWidth = f => stepMetrics(f).w;
+const stepHeight = f => stepMetrics(f).h;
 // Parent tiles are allowed to grow vertically so roadmap labels remain readable.
 // These wrappers are approximate, but they keep all text inside the tile instead
 // of chopping titles or subtitles to make the old fixed-height card work.
@@ -299,9 +349,14 @@ const bayWidth = t => NODE_W + (chainWidth(t) ? PARENT_STEP_GAP + chainWidth(t) 
 const bayHeight = t => {
   const pc = paraSteps(t).length;
   const ph = parentHeight(t);
+  const chainBottom = chainSteps(t).length
+    ? ph / 2 + Math.max(...chainSteps(t).map(x => stepHeight(x.f))) / 2
+    : ph;
   // Parallel steps stack BELOW the parent; the chain row sits inside the parent.
-  const paraBottom = pc ? ph + STEP_GAP_Y + pc * STEP_H + (pc - 1) * STEP_GAP_Y : 0;
-  return Math.max(ph, paraBottom);
+  const paraBottom = pc
+    ? ph + STEP_GAP_Y + paraSteps(t).reduce((sum, x) => sum + stepHeight(x.f), 0) + (pc - 1) * STEP_GAP_Y
+    : 0;
+  return Math.max(ph, chainBottom, paraBottom);
 };
 
 // ---- Portability (item 5): derive the /@fs base prefix from the URL ----
@@ -676,6 +731,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   // Covers element content AND double-quoted attribute values — every
   // JSON-controlled string flows through here (ids land in data-* attributes).
   const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const docLinkAttrs = link => `href="${esc(docHref(link))}" data-doc-path="${esc(link)}"`;
   const S = [];
   // No width/height attributes — CSS makes the SVG fill the canvas flex cell,
   // so the drawing scales with the window instead of a fixed pixel box.
@@ -715,7 +771,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
         S.push(`<rect x="${x}" y="${y}" width="${w}" height="${SHIP_CHIP_H}" rx="12" fill="${cc.fill}" fill-opacity="0.4" stroke="${cc.stroke}" stroke-opacity="0.5"/>`);
         S.push(`<circle cx="${x + 11}" cy="${y + SHIP_CHIP_H / 2}" r="3.5" fill="${cc.stroke}"/>`);
         S.push(`<text class="ship-label" x="${x + 20}" y="${y + SHIP_CHIP_H / 2 + 4}" fill="${cc.title}"><title>${esc(raw)} — shipped ${esc(d || '(undated)')}</title>${esc(disp)}</text>`);
-        if (t.link) S.push(`<a href="${esc(docHref(t.link))}" target="_blank"><text class="ship-doc" x="${x + w - 9}" y="${y + SHIP_CHIP_H / 2 + 4}" text-anchor="end" fill="${cc.sub}"><title>${esc(t.link)}</title>📄</text></a>`);
+        if (t.link) S.push(`<a ${docLinkAttrs(t.link)} target="_blank"><text class="ship-doc" x="${x + w - 9}" y="${y + SHIP_CHIP_H / 2 + 4}" text-anchor="end" fill="${cc.sub}"><title>${esc(t.link)}</title>📄</text></a>`);
         S.push(`</g>`);
       });
     });
@@ -739,7 +795,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   // arrows — they now terminate on the real step tile.
   const stepId = (topicId, f) => `${topicId}::${slug(f.title)}`;
   const featPos = {};
-  const stepNodes = []; // { id, topicId, x, y, f, num }
+  const stepNodes = []; // { id, topicId, x, y, w, h, lines, f, num }
   const stepEdges = []; // { from, to, topicId, kind: 'chain' | 'branch' }
   live.forEach(t => {
     const p = pos[t.id]; if (!p) return;
@@ -749,23 +805,26 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     let chainX = sx0;
     chainSteps(t).forEach((x, k) => {
       const sx = chainX;
-      const sw = stepWidth(x.f);
+      const sm = stepMetrics(x.f);
       const id = stepId(t.id, x.f);
-      stepNodes.push({ id, topicId: t.id, x: sx, y: cy - STEP_H / 2, w: sw, f: x.f, num: x.i + 1 });
+      stepNodes.push({ id, topicId: t.id, x: sx, y: cy - sm.h / 2, w: sm.w, h: sm.h, lines: sm.lines, f: x.f, num: x.i + 1 });
       featPos[`${t.id}|${slug(x.f.title)}`] = { x: sx, y: cy };
       stepEdges.push(prevId
         ? { from: prevId, to: id, topicId: t.id, kind: 'chain' }
         : { from: t.id,   to: id, topicId: t.id, kind: 'branch' });
       prevId = id;
-      chainX += sw + STEP_GAP_X;
+      chainX += sm.w + STEP_GAP_X;
     });
     const paraTop = p.y + parentHeight(t) + STEP_GAP_Y;
+    let paraY = paraTop;
     paraSteps(t).forEach((x, j) => {
-      const sy = paraTop + j * (STEP_H + STEP_GAP_Y);
+      const sy = paraY;
+      const sm = stepMetrics(x.f);
       const id = stepId(t.id, x.f);
-      stepNodes.push({ id, topicId: t.id, x: sx0, y: sy, w: stepWidth(x.f), f: x.f, num: x.i + 1 });
-      featPos[`${t.id}|${slug(x.f.title)}`] = { x: sx0, y: sy + STEP_H / 2 };
+      stepNodes.push({ id, topicId: t.id, x: sx0, y: sy, w: sm.w, h: sm.h, lines: sm.lines, f: x.f, num: x.i + 1 });
+      featPos[`${t.id}|${slug(x.f.title)}`] = { x: sx0, y: sy + sm.h / 2 };
       stepEdges.push({ from: t.id, to: id, topicId: t.id, kind: 'branch' });
+      paraY += sm.h + STEP_GAP_Y;
     });
   });
   const stepById = Object.fromEntries(stepNodes.map(n => [n.id, n]));
@@ -784,7 +843,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     edgeShieldBlockers.push(blocker);
   });
   stepNodes.forEach(sn => {
-    const blocker = { x: sn.x, y: sn.y, w: sn.w, h: STEP_H, r: 5 };
+    const blocker = { x: sn.x, y: sn.y, w: sn.w, h: sn.h, r: 5 };
     edgeBlockers.push(blocker);
     edgeShieldBlockers.push(blocker);
   });
@@ -895,12 +954,12 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     let ax, ay;
     if (se.kind === 'chain') {
       const a = stepById[se.from]; if (!a) return;
-      ax = a.x + a.w; ay = a.y + STEP_H / 2;
+      ax = a.x + a.w; ay = a.y + a.h / 2;
     } else {
       const p = pos[se.topicId]; if (!p) return;
       ax = p.x + NODE_W; ay = p.y + parentHeight(byId[se.topicId]) / 2;
     }
-    const bx = b.x, by = b.y + STEP_H / 2;
+    const bx = b.x, by = b.y + b.h / 2;
     const mx = ax + (bx - ax) * 0.5;
     const d = `M${ax},${ay} C${mx},${ay} ${mx},${by} ${bx - 4},${by}`;
     // Tooltip + wide invisible hit path so the step arrow is hoverable (turns
@@ -952,7 +1011,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
       S.push(`<text class="sub" x="${p.x + 12}" y="${subStartY + i * 13}" fill="${c.sub}">${i === 0 ? `<title>${esc(t.sub || '')}</title>` : ''}${esc(line)}</text>`));
     S.push(`<circle cx="${p.x + 16}" cy="${p.y + h - 12}" r="4" fill="${STATUS[t.status] || '#94a3b8'}"/>`);
     S.push(`<text class="status" x="${p.x + 26}" y="${p.y + h - 8}" fill="${STATUS[t.status] || '#94a3b8'}">${esc((t.status || '').toUpperCase())}</text>`);
-    if (t.link) S.push(`<a href="${esc(docHref(t.link))}" target="_blank"><text class="sub" x="${p.x + NODE_W - 12}" y="${p.y + h - 8}" text-anchor="end" fill="${c.sub}">📄 spec</text></a>`);
+    if (t.link) S.push(`<a ${docLinkAttrs(t.link)} target="_blank"><text class="sub" x="${p.x + NODE_W - 12}" y="${p.y + h - 8}" text-anchor="end" fill="${c.sub}">📄 spec</text></a>`);
     S.push(`</g>`);
   });
 
@@ -966,16 +1025,19 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     const spikeAttrs = f.spike ? ` stroke-dasharray="4 3" stroke-opacity="0.95"` : '';
     S.push(`<g class="node stepnode" data-id="${esc(sn.id)}" data-topic="${esc(sn.topicId)}" data-campaign="${esc(t.campaign || '')}" data-status="${esc(f.status || '')}">`);
     const shk = heat && heat.get(sn.id);
-    if (shk) S.push(`<rect x="${sn.x}" y="${sn.y}" width="${sn.w}" height="${STEP_H}" rx="6" fill="${HEAT(shk.days)}" fill-opacity="0.28" pointer-events="none"/>`);
-    S.push(`<rect x="${sn.x}" y="${sn.y}" width="${sn.w}" height="${STEP_H}" rx="4" fill="${c.fill}" fill-opacity="0.55" stroke="${dead ? STATUS.superseded : c.stroke}"${spikeAttrs} stroke-width="1.5"/>`);
-    S.push(`<circle cx="${sn.x + 13}" cy="${sn.y + STEP_H / 2}" r="3.5" fill="${STATUS[f.status] || '#94a3b8'}"/>`);
-    S.push(`<text class="status" x="${sn.x + 24}" y="${sn.y + STEP_H / 2 + 4}" fill="${c.sub}">${sn.num}</text>`);
+    if (shk) S.push(`<rect x="${sn.x}" y="${sn.y}" width="${sn.w}" height="${sn.h}" rx="6" fill="${HEAT(shk.days)}" fill-opacity="0.28" pointer-events="none"/>`);
+    S.push(`<rect x="${sn.x}" y="${sn.y}" width="${sn.w}" height="${sn.h}" rx="4" fill="${c.fill}" fill-opacity="0.55" stroke="${dead ? STATUS.superseded : c.stroke}"${spikeAttrs} stroke-width="1.5"/>`);
+    const textTop = sn.y + Math.max(15, (sn.h - sn.lines.length * STEP_LINE_H) / 2 + 9);
+    S.push(`<circle cx="${sn.x + 13}" cy="${textTop - 4}" r="3.5" fill="${STATUS[f.status] || '#94a3b8'}"/>`);
+    S.push(`<text class="status" x="${sn.x + 24}" y="${textTop}" fill="${c.sub}">${sn.num}</text>`);
     const openN = (typeof f.open === 'number' && f.open > 0) ? f.open : 0;
-    const rawTitle = stepLabelText(f);
     const deco = dead ? ' text-decoration="line-through"' : '';
-    S.push(`<text class="sub" x="${sn.x + 34}" y="${sn.y + STEP_H / 2 + 4}" fill="${dead ? STATUS.superseded : c.title}"${deco}><title>${esc(f.title)}${f.status ? ` [${f.status}]` : ''}${f.parallel ? ' [parallel — branches off the parent]' : ''}${f.spike ? ' [spike — could invalidate the approach]' : ''}${openN ? ` — ${openN} open question(s) in the subspec` : ''}${dead && f.killed ? ` — killed: ${esc(f.killed)}` : ''}</title>${esc(rawTitle)}</text>`);
-    if (openN) S.push(`<text class="status" x="${sn.x + sn.w - (f.link ? 30 : 12)}" y="${sn.y + STEP_H / 2 + 4}" text-anchor="end" fill="#fbbf24"><title>${openN} open question(s) in ${esc(f.link || 'the subspec')}</title>?${openN}</text>`);
-    if (f.link) S.push(`<a href="${esc(docHref(f.link))}" target="_blank"><text class="sub" x="${sn.x + sn.w - 12}" y="${sn.y + STEP_H / 2 + 4}" text-anchor="end" fill="${c.sub}"><title>${esc(f.link)}</title>📄</text></a>`);
+    S.push(`<text class="sub" x="${sn.x + 34}" y="${textTop}" fill="${dead ? STATUS.superseded : c.title}"${deco}><title>${esc(f.title)}${f.status ? ` [${f.status}]` : ''}${f.parallel ? ' [parallel — branches off the parent]' : ''}${f.spike ? ' [spike — could invalidate the approach]' : ''}${openN ? ` — ${openN} open question(s) in the subspec` : ''}${dead && f.killed ? ` — killed: ${esc(f.killed)}` : ''}</title>`);
+    sn.lines.forEach((line, i) => S.push(`<tspan x="${sn.x + 34}" dy="${i ? STEP_LINE_H : 0}">${esc(line)}</tspan>`));
+    S.push(`</text>`);
+    const toolY = sn.y + sn.h - 8;
+    if (openN) S.push(`<text class="status" x="${sn.x + sn.w - (f.link ? 30 : 12)}" y="${toolY}" text-anchor="end" fill="#fbbf24"><title>${openN} open question(s) in ${esc(f.link || 'the subspec')}</title>?${openN}</text>`);
+    if (f.link) S.push(`<a ${docLinkAttrs(f.link)} target="_blank"><text class="sub" x="${sn.x + sn.w - 12}" y="${toolY}" text-anchor="end" fill="${c.sub}"><title>${esc(f.link)}</title>📄</text></a>`);
     S.push(`</g>`);
   });
   S.push(`</svg>`);
@@ -987,7 +1049,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   // reason — dead decisions are history, not garbage.
   const graveyardHtml = graveyard.length
     ? `<div id="graveyard"><span class="strip-label">Graveyard · ${graveyard.length}</span>` + graveyard.map(t =>
-        `<span class="strip-chip" title="${esc(t.killed || '')}"><span class="dot"></span>${esc(t.title)}${t.killed ? ` <i>— ${esc(t.killed)}</i>` : ''}${t.link ? ` <a href="${esc(docHref(t.link))}" target="_blank" title="${esc(t.link)}">📄</a>` : ''}</span>`
+        `<span class="strip-chip" title="${esc(t.killed || '')}"><span class="dot"></span>${esc(t.title)}${t.killed ? ` <i>— ${esc(t.killed)}</i>` : ''}${t.link ? ` <a ${docLinkAttrs(t.link)} target="_blank" title="${esc(t.link)}">📄</a>` : ''}</span>`
       ).join('') + `</div>`
     : '';
   document.getElementById('canvas').innerHTML = S.join('');
@@ -1060,7 +1122,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
       (go ? `<span class="d-tag" style="color:#4ade80">▶ READY</span>` : '') +
       (t.focus ? `<span class="d-tag" style="color:#fbbf24">★ FOCUS</span>` : '') +
       `</div>`;
-    if (t.link) html += `<p><a href="${esc(docHref(t.link))}" target="_blank">📄 ${esc(t.link)}</a></p>`;
+    if (t.link) html += `<p><a ${docLinkAttrs(t.link)} target="_blank">📄 ${esc(t.link)}</a></p>`;
 
     if (t.features && t.features.length) {
       html += `<h3>Features (${t.features.length})</h3>`;
@@ -1072,7 +1134,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
         if (f.status === 'superseded' && f.killed) bits.push(`killed: ${esc(f.killed)}`);
         html += `<div class="feat"><div class="ft">${i + 1}. ${esc(f.title)}</div>` +
           (bits.length ? `<div class="fm">${bits.join(' · ')}</div>` : '') +
-          (f.link ? `<div class="fm"><a href="${esc(docHref(f.link))}" target="_blank">📄 ${esc(f.link)}</a></div>` : '') +
+          (f.link ? `<div class="fm"><a ${docLinkAttrs(f.link)} target="_blank">📄 ${esc(f.link)}</a></div>` : '') +
           `</div>`;
       });
     }
@@ -1186,11 +1248,49 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   };
   const zoomBy = (factor, cx, cy) => {
     // Zoom around (cx,cy) in viewBox coords so the point under the cursor stays put.
-    const nw = Math.min(W * 4, Math.max(W / 12, view.w / factor));
+    // The old cap stopped at W/12 ("1200%"), which still left each roadmap
+    // tile only about 180px wide on the current graph. Let the user zoom until
+    // one parent tile is comfortably readable while preserving pan/overview.
+    const minViewW = Math.min(W, MIN_READABLE_VIEW_W);
+    const nw = Math.min(W * 4, Math.max(minViewW, view.w / factor));
     const nh = nw * (view.h / view.w);
     view.x += (cx - view.x) * (1 - nw / view.w);
     view.y += (cy - view.y) * (1 - nh / view.h);
     view.w = nw; view.h = nh;
+    applyView();
+  };
+  const zoomReadable = () => {
+    // One-click close-up for humans reviewing labels. The full roadmap's
+    // center can be empty space, so we snap the close-up to the nearest tile
+    // to the current view center instead of blindly magnifying the void.
+    const viewCenter = { x: view.x + view.w / 2, y: view.y + view.h / 2 };
+    const parentNodes = [...svgEl.querySelectorAll('.node')]
+      .filter(g => !g.dataset.topic || g.dataset.id === g.dataset.topic);
+    const readableNodes = parentNodes.length ? parentNodes : [...svgEl.querySelectorAll('.node')];
+    const nearest = readableNodes.map(g => {
+      const rect = g.querySelector('rect');
+      if (!rect) return null;
+      const x = Number(rect.getAttribute('x'));
+      const y = Number(rect.getAttribute('y'));
+      const w = Number(rect.getAttribute('width'));
+      const h = Number(rect.getAttribute('height'));
+      if (![x, y, w, h].every(Number.isFinite)) return null;
+      const cx = x + w / 2, cy = y + h / 2;
+      return { cx, cy, d: Math.hypot(cx - viewCenter.x, cy - viewCenter.y) };
+    }).filter(Boolean).sort((a, b) => a.d - b.d)[0];
+    const cx = nearest ? nearest.cx : viewCenter.x;
+    const cy = nearest ? nearest.cy : viewCenter.y;
+    const box = svgEl.getBoundingClientRect();
+    // Aim for roughly normal body-text size on screen. This adapts to browser
+    // zoom and viewport width, so "Read" stays useful whether the user is at
+    // normal zoom or has already cranked the browser to its maximum.
+    const targetW = Math.min(W, Math.max(MIN_READABLE_VIEW_W, (13 * (box.width || W)) / READABLE_TITLE_PX));
+    view = {
+      x: cx - targetW / 2,
+      y: cy - (targetW * ((box.height || H) / (box.width || W))) / 2,
+      w: targetW,
+      h: targetW * ((box.height || H) / (box.width || W))
+    };
     applyView();
   };
   const toViewCoords = (clientX, clientY) => {
@@ -1222,6 +1322,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   document.getElementById('zoom-in').addEventListener('click', () => zoomBy(1.25, view.x + view.w / 2, view.y + view.h / 2));
   document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1 / 1.25, view.x + view.w / 2, view.y + view.h / 2));
   document.getElementById('zoom-fit').addEventListener('click', fit);
+  document.getElementById('zoom-read').addEventListener('click', zoomReadable);
   // Drag-to-pan (mouse). A tiny threshold keeps click-to-pin working.
   // `panning`/`panStart`/`moved` are module-scope (declared once, above
   // buildAndShow) so the module-scope (bound-once) mousemove/mouseup listeners
@@ -1255,24 +1356,36 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   const readyNodes = live.filter(isActionable)
     .sort((a, b) => downCount(b.id) - downCount(a.id));
   const readyCount = readyNodes.length;
-  // Campaign chips are filter toggles (data-filter-camp); status chips too
-  // (data-filter-status). Union semantics across selected chips.
-  const leg = Object.entries(data.campaigns || {}).map(([k, c]) =>
+  // The legend is grouped by what the mark classifies. Campaign and status
+  // chips remain clickable filters, while arrow/action/count groups are
+  // explanatory only. This keeps the bar scannable after the roadmap gained
+  // more campaigns, edge types, and readiness signals.
+  const campItems = Object.entries(data.campaigns || {}).map(([k, c]) =>
     `<span class="chip" data-filter-camp="${esc(k)}"><span class="sw" style="background:${(COLORS[c.color] || COLORS.gray).stroke}"></span>${esc(c.label)}</span>`);
-  leg.push(...Object.entries(STATUS).map(([k, v]) =>
-    `<span class="chip" data-filter-status="${esc(k)}"><span class="sw" style="background:${v}; border-radius: 50%;"></span>${k}</span>`));
-  leg.push(`<span style="color:#f87171"><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#f87171" stroke-width="1.8"/></svg> hard</span>`);
-  leg.push(`<span style="color:#fbbf24"><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#fbbf24" stroke-width="1.8" stroke-dasharray="5 3"/></svg> chosen</span>`);
-  leg.push(`<span style="color:#c084fc"><svg width="26" height="10"><line x1="0" y1="5" x2="19" y2="5" stroke="#c084fc" stroke-width="1.4"/><circle cx="21" cy="5" r="3" fill="#0f172a" stroke="#c084fc" stroke-width="1.5"/></svg> requires a feature</span>`);
-  leg.push(`<span style="color:#22d3ee"><svg width="26" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="#22d3ee" stroke-width="1.4"/></svg> parent→step / step→step (sequential)</span>`);
-  leg.push(`<span style="color:#fbbf24;">?n = open questions in subspec</span>`);
-  leg.push(`<span>⚠ dashed = spike (could invalidate)</span>`);
-  leg.push(`<span style="color:#4ade80;">▶ ${readyCount} ready${readyNodes.length ? ` · top: ${esc(readyNodes[0].title)} (unblocks ${downCount(readyNodes[0].id)})` : ''}</span>`);
-  leg.push(`<span id="clearfilter">✕ clear filters</span>`);
+  const statusItems = Object.entries(STATUS).map(([k, v]) =>
+    `<span class="chip" data-filter-status="${esc(k)}"><span class="sw" style="background:${v}; border-radius: 50%;"></span>${k}</span>`);
+  const arrowItems = [
+    `<span style="color:#f87171"><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#f87171" stroke-width="1.8"/></svg> hard prerequisite</span>`,
+    `<span style="color:#fbbf24"><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#fbbf24" stroke-width="1.8" stroke-dasharray="5 3"/></svg> chosen order</span>`,
+    `<span style="color:#c084fc"><svg width="26" height="10"><line x1="0" y1="5" x2="19" y2="5" stroke="#c084fc" stroke-width="1.4"/><circle cx="21" cy="5" r="3" fill="#0f172a" stroke="#c084fc" stroke-width="1.5"/></svg> feature prerequisite</span>`,
+    `<span style="color:#22d3ee"><svg width="26" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="#22d3ee" stroke-width="1.4"/></svg> parent→step / sequential step</span>`
+  ];
+  const signalItems = [
+    `<span style="color:#fbbf24;">?n = open questions in subspec</span>`,
+    `<span>⚠ dashed = spike (could invalidate)</span>`,
+    `<span style="color:#4ade80;">▶ ${readyCount} ready${readyNodes.length ? ` · top: ${esc(readyNodes[0].title)} (unblocks ${downCount(readyNodes[0].id)})` : ''}</span>`,
+    `<span style="color:#4ade80;"><span class="ready-outline-swatch"></span>green outline = actionable now</span>`,
+    `<span id="clearfilter">✕ clear filters</span>`
+  ];
   // Ready tiles get a green outline because all hard blockers are finished.
   // Show the same outline in the legend so the frame has an explicit meaning.
-  leg.push(`<span style="color:#4ade80;"><span class="ready-outline-swatch"></span>green outline = actionable now</span>`);
-  leg.push(`<span style="margin-left:auto;">${counts}</span>`);
+  const leg = [
+    `<section class="legend-group"><div class="legend-title">Campaign</div><div class="legend-items">${campItems.join('')}</div></section>`,
+    `<section class="legend-group"><div class="legend-title">Status</div><div class="legend-items">${statusItems.join('')}</div></section>`,
+    `<section class="legend-group"><div class="legend-title">Arrows</div><div class="legend-items">${arrowItems.join('')}</div></section>`,
+    `<section class="legend-group"><div class="legend-title">Action Signals</div><div class="legend-items">${signalItems.join('')}</div></section>`,
+    `<section class="legend-group"><div class="legend-title">Totals</div><div class="legend-items legend-note">${counts}</div></section>`
+  ];
   document.getElementById('legend').innerHTML = leg.join('');
 
   // Heat legend visibility follows heatOn (element is static markup in
@@ -1454,6 +1567,9 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   const body = document.getElementById('glossary-body');
   const closeBtn = document.getElementById('glossary-close');
   const tools = document.getElementById('glossary-tools');
+  const docPanel = document.getElementById('doc-detail');
+  const docBody = document.getElementById('doc-body');
+  const docCloseBtn = document.getElementById('doc-close');
   const escGlossary = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const cache = {}; // path → { html, raw }
   let current = null; // the DOCS entry currently shown
@@ -1578,6 +1694,24 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     });
   };
 
+  const openDocPanel = (path) => {
+    // Roadmap spec links need to keep the map in place. This side drawer uses
+    // the same readable Markdown conversion as the older glossary modal, but
+    // opens beside the map so the reader can compare a tile and its source doc.
+    const doc = { path, copy: false };
+    docPanel.classList.add('open');
+    const hit = cache[doc.path];
+    if (hit) { docBody.innerHTML = hit.html; return; }
+    docBody.innerHTML = '<p class="muted">Loading…</p>';
+    loadDoc(doc).then(entry => {
+      docBody.innerHTML = entry.html;
+    }).catch(e => {
+      docBody.innerHTML = `<p class="err">Failed to load document: ${escGlossary(e.message)}</p>` +
+        `<p><a href="${escGlossary(docUrl(doc.path))}" target="_blank">Open raw file</a></p>`;
+    });
+  };
+  window.__openPlanmapDoc = openDocPanel;
+
   // The first /@fs fetch after a page load is SLOW (several seconds through
   // the dev middleware) — prefetch both docs in the background so the first
   // click opens instantly from cache.
@@ -1609,15 +1743,27 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   for (const [id, doc] of Object.entries(DOCS)) {
     const link = document.getElementById(id);
     if (!link) continue;
+    link.dataset.docPath = doc.path;
     link.addEventListener('click', e => {
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; // let middle/modified clicks through
       e.preventDefault();
-      openModal(doc);
+      e.stopPropagation();
+      openDocPanel(doc.path);
     });
   }
+  document.addEventListener('click', e => {
+    const link = e.target.closest('a[data-doc-path]');
+    if (!link) return;
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; // let middle/modified clicks open raw docs
+    e.preventDefault();
+    e.stopPropagation();
+    openDocPanel(link.dataset.docPath);
+  });
+  docCloseBtn.addEventListener('click', () => docPanel.classList.remove('open'));
   closeBtn.addEventListener('click', closeModal);
   backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(); });
   document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && docPanel.classList.contains('open')) docPanel.classList.remove('open');
     if (e.key === 'Escape' && backdrop.classList.contains('open')) closeModal();
   });
 })();

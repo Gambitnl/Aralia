@@ -55,9 +55,7 @@
     "humankind"
   ],
   "seeAlso": [
-    "humanoid",
     "skill_proficiencies",
-    "feats",
     "heroic_inspiration"
   ],
   "filePath": "/data/glossary/entries/races/human.json",

@@ -61,9 +61,7 @@
   ],
   "seeAlso": [
     "halfling",
-    "humanoid",
-    "frightened",
-    "poison"
+    "frightened"
   ],
   "filePath": "/data/glossary/entries/races/halfling_subraces/stout.json",
   "maleImageUrl": "/assets/images/races/Halfling_Stout_Male.png",

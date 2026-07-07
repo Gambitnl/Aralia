@@ -7,15 +7,15 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "As a bonus_action Action, you can drink a vial of Antitoxin to gain advantage on saving throws to avoid or end the poisoned condition for 1 hour....",
+  "excerpt": "As a bonus_action|Bonus Action, you can drink a vial of Antitoxin to gain advantage|Advantage on saving throws to avoid or end the poisoned|Poisoned c...",
   "aliases": [],
   "seeAlso": [
-    "bonus_action Action",
+    "bonus_action",
     "advantage",
     "poisoned"
   ],
   "filePath": "/data/glossary/entries/equipment/antitoxin.json",
-  "markdown": "# Antitoxin\n\nAs a [[bonus_action Action]], you can drink a vial of Antitoxin to gain [[advantage]] on saving throws to avoid or end the [[poisoned]] condition for 1 hour.",
+  "markdown": "# Antitoxin\n\nAs a [[bonus_action]], you can drink a vial of Antitoxin to gain [[advantage]] on saving throws to avoid or end the [[poisoned]] condition for 1 hour.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

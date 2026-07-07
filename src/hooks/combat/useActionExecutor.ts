@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/07/2026, 14:42:33
+ * Last Sync: 06/07/2026, 09:33:48
  * Dependents: hooks/combat/useTurnManager.ts
- * Imports: 10 files
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -52,6 +52,7 @@ import {
 import { AreaEffectTracker } from '../../systems/spells/effects/AreaEffectTracker';
 import { combatEvents } from '../../systems/events/CombatEvents';
 import { OpportunityAttackSystem } from '../../systems/combat/reactions/OpportunityAttackSystem';
+import { applyRuntimeStatusCondition } from '../../utils/combat/statusConditionUtils';
 
 export interface UseActionExecutorProps {
   characters: CombatCharacter[];
@@ -1118,16 +1119,13 @@ export const useActionExecutor = ({
                   appliedTurn: turnState.currentTurn,
                   source: 'zone_effect'
                 };
-                updatedCharacter = {
-                  ...updatedCharacter,
-                  statusEffects: [...(updatedCharacter.statusEffects || []), statusEffect],
-                  conditions: [...(updatedCharacter.conditions || []), activeCondition]
-                };
+                const applied = applyRuntimeStatusCondition(updatedCharacter, statusEffect, activeCondition);
+                updatedCharacter = applied.character;
                 onLogEntry({
                   id: generateId(), timestamp: Date.now(), type: 'status',
                   message: `${updatedCharacter.name} is now ${effect.statusName} from zone effect!`,
                   characterId: updatedCharacter.id,
-                  data: { statusId: statusEffect.id, condition: activeCondition, trigger: result.triggerType || 'on_enter_area' }
+                  data: { statusId: applied.appliedStatus.id, condition: applied.appliedCondition, trigger: result.triggerType || 'on_enter_area' }
                 });
               } else {
                 onLogEntry({

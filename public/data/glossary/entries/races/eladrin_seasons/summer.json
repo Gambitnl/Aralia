@@ -73,11 +73,7 @@
   ],
   "aliases": [],
   "seeAlso": [
-    "eladrin",
-    "elf",
-    "fey",
-    "charmed",
-    "fire_damage"
+    "charmed"
   ],
   "filePath": "/data/glossary/entries/races/eladrin_seasons/summer.json",
   "maleImageUrl": "/assets/images/races/Eladrin_Summer_Male.png",

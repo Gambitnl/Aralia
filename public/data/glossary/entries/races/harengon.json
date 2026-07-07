@@ -59,11 +59,7 @@
     "rabbitfolk",
     "harefolk"
   ],
-  "seeAlso": [
-    "humanoid",
-    "fey",
-    "feywild"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/harengon.json",
   "maleImageUrl": "/assets/images/races/Harengon_Male.png",
   "femaleImageUrl": "/assets/images/races/Harengon_Female.png"

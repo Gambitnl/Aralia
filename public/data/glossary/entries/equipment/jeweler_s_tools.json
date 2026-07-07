@@ -7,14 +7,11 @@
     "baseitem",
     "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Ability:: Intelligence - Utilize:: Discern a gem's value (DC 15) - Craft:: arcane_focus Focus, holy_symbol Symbol...",
+  "excerpt": "- Ability: Intelligence - Utilize: Discern a gem's value (DC 15) - Craft: arcane_focus|Arcane Focus, holy_symbol|Holy Symbol...",
   "aliases": [],
-  "seeAlso": [
-    "arcane_focus Focus",
-    "holy_symbol Symbol"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/jeweler_s_tools.json",
-  "markdown": "# Jeweler's Tools\n\n- **Ability::** Intelligence\n- **Utilize::** Discern a gem's value (DC 15)\n- **Craft::** [[arcane_focus Focus]], [[holy_symbol Symbol]]",
+  "markdown": "# Jeweler's Tools\n\n- **Ability:** Intelligence\n- **Utilize:** Discern a gem's value (DC 15)\n- **Craft:** Arcane Focus, Holy Symbol",
   "itemMetadata": {
     "type": "Artisan's Tools",
     "rarity": "None",

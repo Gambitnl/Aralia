@@ -7,14 +7,14 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "You can make this carpet hover and fly by taking a magic action and using the carpet's command word. It moves according to your directions if you are ...",
+  "excerpt": "You can make this carpet hover and fly by taking a magic|Magic action and using the carpet's command word. It moves according to your directions if yo...",
   "aliases": [],
   "seeAlso": [
     "magic",
-    "fly_speed Speed"
+    "fly_speed"
   ],
   "filePath": "/data/glossary/entries/equipment/carpet_of_flying_3_ft_5_ft.json",
-  "markdown": "# Carpet of Flying, 3 ft. × 5 ft.\n\nYou can make this carpet hover and fly by taking a [[magic]] action and using the carpet's command word. It moves according to your directions if you are within 30 feet of it.\n\nA 3 ft. × 5 ft. carpet can carry up to 200 lb. at a fly speed of 80 feet. A carpet can carry up to twice the weight shown on the table, but its [[fly_speed Speed]] is halved if it carries more than its normal capacity.",
+  "markdown": "# Carpet of Flying, 3 ft. × 5 ft.\n\nYou can make this carpet hover and fly by taking a [[magic]] action and using the carpet's command word. It moves according to your directions if you are within 30 feet of it.\n\nA 3 ft. × 5 ft. carpet can carry up to 200 lb. at a fly speed of 80 feet. A carpet can carry up to twice the weight shown on the table, but its [[fly_speed]] is halved if it carries more than its normal capacity.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Very rare"

@@ -208,7 +208,9 @@ describe('localWithDeltas', () => {
       removedPlotPresent: false,
       addedRole: 'market',
       addedStoreys: 2,
-      addedRoomCount: 8,
+      // Wave A5 room-cap: market → shop caps at 6 rooms; this seed lands 5
+      // (the pre-cap generator produced 8 here — stale expectation).
+      addedRoomCount: 5,
       buildingFeatureData: {
         plotId: 99,
         role: 'market',

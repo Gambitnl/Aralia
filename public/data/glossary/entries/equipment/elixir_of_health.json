@@ -7,7 +7,7 @@
     "item",
     "itemType:Potion"
   ],
-  "excerpt": "When you drink this potion, you are cured of all magical contagions. In addition, the following conditions end on you: blinded, deafened, paralyzed, a...",
+  "excerpt": "When you drink this potion, you are cured of all magical contagions. In addition, the following conditions end on you: blinded|Blinded, deafened|Deafe...",
   "aliases": [],
   "seeAlso": [
     "blinded",

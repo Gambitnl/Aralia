@@ -7,7 +7,7 @@
     "baseitem",
     "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Ability:: Strength - Utilize:: Seal or pry open a door or container (DC 20) - Craft:: club, greatclub, quarterstaff, barrel, chest, ladder, pole, po...",
+  "excerpt": "- Ability: Strength - Utilize: Seal or pry open a door or container (DC 20) - Craft: club|Club, greatclub|Greatclub, quarterstaff|Quarterstaff, barrel...",
   "aliases": [],
   "seeAlso": [
     "club",
@@ -17,11 +17,11 @@
     "chest",
     "ladder",
     "pole",
-    "portable_ram Ram",
+    "portable_ram",
     "torch"
   ],
   "filePath": "/data/glossary/entries/equipment/carpenter_s_tools.json",
-  "markdown": "# Carpenter's Tools\n\n- **Ability::** Strength\n- **Utilize::** Seal or pry open a door or container (DC 20)\n- **Craft::** [[club]], [[greatclub]], [[quarterstaff]], [[barrel]], [[chest]], [[ladder]], [[pole]], [[portable_ram Ram]], [[torch]]",
+  "markdown": "# Carpenter's Tools\n\n- **Ability:** Strength\n- **Utilize:** Seal or pry open a door or container (DC 20)\n- **Craft:** [[club]], [[greatclub]], [[quarterstaff]], [[barrel]], [[chest]], [[ladder]], [[pole]], [[portable_ram]], [[torch]]",
   "itemMetadata": {
     "type": "Artisan's Tools",
     "rarity": "None",

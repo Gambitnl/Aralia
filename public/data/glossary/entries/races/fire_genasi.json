@@ -38,10 +38,8 @@
   ],
   "aliases": [],
   "seeAlso": [
-    "genasi",
-    "fire_resistance",
-    "burning_hands",
-    "flame_blade"
+    "burning-hands",
+    "flame-blade"
   ],
   "filePath": "/data/glossary/entries/races/fire_genasi.json",
   "maleImageUrl": "/assets/images/races/Genasi_Fire_Male.png",

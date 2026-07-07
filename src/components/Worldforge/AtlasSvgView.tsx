@@ -17,6 +17,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
 import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, buildProvisionRingPath, type CellTraits, type BurgTier, type AtlasLegendEntry } from './atlasSvg';
+import type { DungeonDangerSite } from '../../systems/worldforge/overlays/dangerField';
 import AtlasLayers from './AtlasLayers';
 import { consumeMapCenterOnPlayer } from './mapFocusSignal';
 import type { RoutePlan } from '../../systems/travel/routePlanning';
@@ -89,6 +90,13 @@ export interface AtlasSvgViewProps {
    *    contain == cover when the aspects already match.
    */
   fitMode?: 'contain' | 'cover';
+  /**
+   * Pillar 2, Task 8 (living ecology): live dungeon-site states for the danger
+   * overlay. Each UNCLEARED site bumps the danger field around its cell, so the
+   * overlay visibly reacts to nearby uncleared dungeons. Omit for the pre-Task-8
+   * field (the danger term is flag-gated — no sites means byte-identical output).
+   */
+  dungeonSites?: ReadonlyArray<DungeonDangerSite>;
 }
 
 /** Read the persisted layer prefs for a given storage key (scoped per save). */
@@ -304,8 +312,8 @@ const LAYER_CHOICE_MARK_STYLE: React.CSSProperties = {
   background: 'rgba(15,23,42,0.9)',
 };
 
-const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], pulseToken = null, onPickCell, travelActive = false, planRoute, planMultiModalRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain' }) => {
-  const model = useMemo(() => buildAtlasSvgModel(atlas), [atlas]);
+const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], pulseToken = null, onPickCell, travelActive = false, planRoute, planMultiModalRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain', dungeonSites }) => {
+  const model = useMemo(() => buildAtlasSvgModel(atlas, dungeonSites), [atlas, dungeonSites]);
 
   // Map coloring is a single exclusive choice; feature layers are independent
   // toggles. Persisted across map opens, scoped per save (prefsScope) so a

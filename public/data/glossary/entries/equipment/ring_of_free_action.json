@@ -7,15 +7,15 @@
     "item",
     "itemType:Ring"
   ],
-  "excerpt": "While you wear this ring, difficult_terrain Terrain doesn't cost you extra movement. In addition, magic can neither reduce any of your Speeds nor caus...",
+  "excerpt": "While you wear this ring, difficult_terrain|Difficult Terrain doesn't cost you extra movement. In addition, magic can neither reduce any of your Speed...",
   "aliases": [],
   "seeAlso": [
-    "difficult_terrain Terrain",
+    "difficult_terrain",
     "paralyzed",
     "restrained"
   ],
   "filePath": "/data/glossary/entries/equipment/ring_of_free_action.json",
-  "markdown": "# Ring of Free Action\n\nWhile you wear this ring, [[difficult_terrain Terrain]] doesn't cost you extra movement. In addition, magic can neither reduce any of your Speeds nor cause you to have the [[paralyzed]] or [[restrained]] condition.",
+  "markdown": "# Ring of Free Action\n\nWhile you wear this ring, [[difficult_terrain]] doesn't cost you extra movement. In addition, magic can neither reduce any of your Speeds nor cause you to have the [[paralyzed]] or [[restrained]] condition.",
   "itemMetadata": {
     "type": "Ring",
     "rarity": "Rare",

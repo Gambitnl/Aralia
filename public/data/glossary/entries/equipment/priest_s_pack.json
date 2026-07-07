@@ -7,19 +7,19 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A Priest's Pack contains the following items: backpack, blanket, holy_water Water, lamp, 7 days of rations, robe, and tinderbox....",
+  "excerpt": "A Priest's Pack contains the following items: backpack|Backpack, blanket|Blanket, holy_water|Holy Water, lamp|Lamp, 7 days of rations|Rations, robe|Ro...",
   "aliases": [],
   "seeAlso": [
     "backpack",
     "blanket",
-    "holy_water Water",
+    "holy_water",
     "lamp",
     "rations",
     "robe",
     "tinderbox"
   ],
   "filePath": "/data/glossary/entries/equipment/priest_s_pack.json",
-  "markdown": "# Priest's Pack\n\nA Priest's Pack contains the following items: [[backpack]], [[blanket]], [[holy_water Water]], [[lamp]], 7 days of [[rations]], [[robe]], and [[tinderbox]].",
+  "markdown": "# Priest's Pack\n\nA Priest's Pack contains the following items: [[backpack]], [[blanket]], [[holy_water]], [[lamp]], 7 days of [[rations]], [[robe]], and [[tinderbox]].",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

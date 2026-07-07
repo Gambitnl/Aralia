@@ -7,7 +7,7 @@
     "item",
     "itemType:Wand"
   ],
-  "excerpt": "This wand has 7 charges. While holding it, you can take a magic action to expend 1 charge to cause a thin blue ray to streak from the tip toward a cre...",
+  "excerpt": "This wand has 7 charges. While holding it, you can take a magic|Magic action to expend 1 charge to cause a thin blue ray to streak from the tip toward...",
   "aliases": [],
   "seeAlso": [
     "magic",

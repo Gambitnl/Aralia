@@ -9,8 +9,8 @@
   "excerpt": "You gain the following benefits.  Damage Reduction When you're hit by an attack while you're wearing Heavy armor, any Bludgeoning, Piercing, and Slash...",
   "aliases": [],
   "seeAlso": [
-    "proficiency Bonus"
+    "proficiency"
   ],
   "filePath": "/data/glossary/entries/feats/heavy_armor_master.json",
-  "markdown": "# Heavy Armor Master\n\nYou gain the following benefits.\n\n## Damage Reduction\n\nWhen you're hit by an attack while you're wearing Heavy armor, any Bludgeoning, Piercing, and Slashing damage dealt to you by that attack is reduced by an amount equal to your [[proficiency Bonus]]."
+  "markdown": "# Heavy Armor Master\n\nYou gain the following benefits.\n\n## Damage Reduction\n\nWhen you're hit by an attack while you're wearing Heavy armor, any Bludgeoning, Piercing, and Slashing damage dealt to you by that attack is reduced by an amount equal to your [[proficiency|Proficiency Bonus]]."
 }

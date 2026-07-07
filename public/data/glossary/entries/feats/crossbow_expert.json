@@ -6,14 +6,14 @@
     "source:xphb",
     "feat"
   ],
-  "excerpt": "You gain the following benefits.  Ignore Loading You ignore the LD property of the hand_crossbow Crossbow, heavy_crossbow Crossbow, and light_crossbow...",
+  "excerpt": "You gain the following benefits.  Ignore Loading You ignore the LD property of the hand_crossbow|Hand Crossbow, heavy_crossbow|Heavy Crossbow, and lig...",
   "aliases": [],
   "seeAlso": [
-    "hand_crossbow Crossbow",
-    "heavy_crossbow Crossbow",
-    "light_crossbow Crossbow",
+    "hand_crossbow",
+    "heavy_crossbow",
+    "light_crossbow",
     "disadvantage"
   ],
   "filePath": "/data/glossary/entries/feats/crossbow_expert.json",
-  "markdown": "# Crossbow Expert\n\nYou gain the following benefits.\n\n## Ignore Loading\n\nYou ignore the LD property of the [[hand_crossbow Crossbow]], [[heavy_crossbow Crossbow]], and [[light_crossbow Crossbow]] (all called crossbows elsewhere in this feat). If you're holding one of them, you can load a piece of ammunition into it even if you lack a free hand.\n\n## Firing in Melee\n\nBeing within 5 feet of an enemy doesn't impose [[disadvantage]] on your attack rolls with crossbows.\n\n## Dual Wielding\n\nWhen you make the extra attack of the L property, you can add your ability modifier to the damage of the extra attack if that attack is with a crossbow that has the L property and you aren't already adding that modifier to the damage."
+  "markdown": "# Crossbow Expert\n\nYou gain the following benefits.\n\n## Ignore Loading\n\nYou ignore the LD property of the [[hand_crossbow]], [[heavy_crossbow]], and [[light_crossbow]] (all called crossbows elsewhere in this feat). If you're holding one of them, you can load a piece of ammunition into it even if you lack a free hand.\n\n## Firing in Melee\n\nBeing within 5 feet of an enemy doesn't impose [[disadvantage]] on your attack rolls with crossbows.\n\n## Dual Wielding\n\nWhen you make the extra attack of the L property, you can add your ability modifier to the damage of the extra attack if that attack is with a crossbow that has the L property and you aren't already adding that modifier to the damage."
 }

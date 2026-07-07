@@ -43,6 +43,7 @@ function makeGroundWorldFixture(overrides: Partial<GroundWorld> = {}): GroundWor
     props: [],
     hostiles: [],
     hiddenSites: [],
+    dungeonEntrances: [],
     rivers: [],
     roads: [],
     walls: [],

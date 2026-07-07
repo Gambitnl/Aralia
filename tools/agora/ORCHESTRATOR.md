@@ -173,6 +173,9 @@ wave-2 packet only surfaces in `tasks --ready` once its producer is `done`. The 
 map lands in `.agent/scratch/orchestrate/seed-<wave>.json`, and `orchestrate prompt`/`dispatch`
 inject each packet's task id into the worker prompt automatically (the worker CLAIMS its
 seeded task instead of creating its own). The wave announcement is broadcast as before.
+Every seeded task must show a non-null `creatorAgent` block for the orchestrator identity
+that seeded it. If a hand-written or custom seeding flow produces a task whose creator is
+missing, stop the wave and recreate the task after registering the orchestrator correctly.
 
 ### Step D — Dispatch the fix agents (each dogfoods Agora)
 Every fix agent — Claude subagent OR external CLI — gets a prompt containing the **same
@@ -194,7 +197,9 @@ node tools/agora/client.mjs say "WORKFLOW: <friction with the workflow, or none>
 Bake these rules into every prompt: **edit only owned files**; **lock before editing, treat a
 409 as a hard stop**; **do NOT run heavy commands** (`tsc`/`build`/`vitest`/dev-server) — N
 agents thrashing the machine is worse than the orchestrator running ONE integration check
-after; **report exact diffs + any cross-file follow-ups**; **end with `WORKFLOW:` feedback**.
+after; **check the claimed task has a real `creatorAgent` that matches the orchestrator or
+registered creator before editing**; **report exact diffs + any cross-file follow-ups**; **end
+with `WORKFLOW:` feedback**.
 
 ### Step E — Integration gate (orchestrator runs this, once per wave)
 Workers skip heavy commands; you verify the merged result:

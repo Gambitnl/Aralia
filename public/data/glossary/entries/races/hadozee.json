@@ -53,9 +53,7 @@
     "deck ape",
     "gliding monkey"
   ],
-  "seeAlso": [
-    "humanoid"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/hadozee.json",
   "maleImageUrl": "/assets/images/races/Hadozee_Male.png",
   "femaleImageUrl": "/assets/images/races/Hadozee_Female.png"

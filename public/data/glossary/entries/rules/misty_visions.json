@@ -6,11 +6,11 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "You can cast silent_image Image without expending a spell slot....",
+  "excerpt": "You can cast silent_image|Silent Image without expending a spell slot....",
   "aliases": [],
   "seeAlso": [
-    "silent_image Image"
+    "silent-image"
   ],
   "filePath": "/data/glossary/entries/rules/misty_visions.json",
-  "markdown": "# Misty Visions\n\nYou can cast [[silent_image Image]] without expending a spell slot."
+  "markdown": "# Misty Visions\n\nYou can cast [[silent-image|Silent Image]] without expending a spell slot."
 }

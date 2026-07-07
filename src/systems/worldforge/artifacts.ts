@@ -226,6 +226,11 @@ export interface TownPlan {
     wallColorHex?: string;
     roofColorHex?: string;
     roofForm?: 'gable' | 'hip' | 'steep' | 'flat';
+    /** Population-pass fields (2026-07-07, BGv2 Task 11), carried so the 3D bake
+     *  can rebuild the founding household brief for each building. Present only
+     *  when the town was generated with a population; absent for unpopulated
+     *  towns (buildings then generate briefless, exactly as before). */
+    pop?: import('./town/townEngine').TownPlotPopulation;
   }>;
 }
 

@@ -7,14 +7,14 @@
     "item",
     "itemType:Shield"
   ],
-  "excerpt": "While holding this Shield, you have resistance to damage from attacks made with Ranged weapons.  Curse This Shield is cursed. Attuning to it curses yo...",
+  "excerpt": "While holding this Shield, you have resistance|Resistance to damage from attacks made with Ranged weapons.  Curse This Shield is cursed. Attuning to i...",
   "aliases": [],
   "seeAlso": [
     "resistance",
-    "remove_curse Curse"
+    "remove-curse"
   ],
   "filePath": "/data/glossary/entries/equipment/shield_of_missile_attraction.json",
-  "markdown": "# Shield of Missile Attraction\n\nWhile holding this Shield, you have [[resistance]] to damage from attacks made with Ranged weapons.\n\n## Curse\n\nThis Shield is cursed. Attuning to it curses you until you are targeted by a [[remove_curse Curse]] spell or similar magic. Removing the Shield fails to end the curse on you. Whenever an attack with a Ranged weapon targets a creature within 10 feet of you, the curse causes you to become the target instead.",
+  "markdown": "# Shield of Missile Attraction\n\nWhile holding this Shield, you have [[resistance]] to damage from attacks made with Ranged weapons.\n\n## Curse\n\nThis Shield is cursed. Attuning to it curses you until you are targeted by a [[remove-curse|Remove Curse]] spell or similar magic. Removing the Shield fails to end the curse on you. Whenever an attack with a Ranged weapon targets a creature within 10 feet of you, the curse causes you to become the target instead.",
   "itemMetadata": {
     "type": "Shield",
     "rarity": "Rare",

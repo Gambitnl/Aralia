@@ -6,12 +6,12 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "As a bonus_action Action, you can expend one Superiority Die to feint, choosing one creature within 5 feet of yourself as your target. You have advant...",
+  "excerpt": "As a bonus_action|Bonus Action, you can expend one Superiority Die to feint, choosing one creature within 5 feet of yourself as your target. You have ...",
   "aliases": [],
   "seeAlso": [
-    "bonus_action Action",
+    "bonus_action",
     "advantage"
   ],
   "filePath": "/data/glossary/entries/rules/feinting_attack.json",
-  "markdown": "# Feinting Attack\n\nAs a [[bonus_action Action]], you can expend one Superiority Die to feint, choosing one creature within 5 feet of yourself as your target. You have [[advantage]] on your next attack roll against that target this turn. If that attack hits, add the Superiority Die to the attack's damage roll."
+  "markdown": "# Feinting Attack\n\nAs a [[bonus_action]], you can expend one Superiority Die to feint, choosing one creature within 5 feet of yourself as your target. You have [[advantage]] on your next attack roll against that target this turn. If that attack hits, add the Superiority Die to the attack's damage roll."
 }

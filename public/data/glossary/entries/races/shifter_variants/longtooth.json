@@ -56,10 +56,7 @@
     "predator"
   ],
   "aliases": [],
-  "seeAlso": [
-    "shifter",
-    "humanoid"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/shifter_variants/longtooth.json",
   "maleImageUrl": "/assets/images/races/Shifter_Longtooth_Male.png",
   "femaleImageUrl": "/assets/images/races/Shifter_Longtooth_Female.png"

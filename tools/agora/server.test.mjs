@@ -129,6 +129,54 @@ test('locks: acquire (201), overlap conflict (409), release by holder (200) / no
   assert.equal(missing.status, 404);
 });
 
+test('reservations: queued dibs appear in GET and block non-head lock acquisition', async () => {
+  const a = await registerAgent('reserve-a');
+  const b = await registerAgent('reserve-b');
+  const file = 'tools/agora/dashboard/index.html';
+
+  const first = await request('POST', '/reservations', {
+    token: a.token,
+    body: { paths: [file], reason: 'dashboard pass' },
+  });
+  assert.equal(first.status, 201);
+  assert.equal(first.json.reservation.position, 1);
+
+  const second = await request('POST', '/reservations', {
+    token: b.token,
+    body: { paths: [file], reason: 'next dashboard pass' },
+  });
+  assert.equal(second.status, 201);
+  assert.equal(second.json.reservation.position, 2);
+
+  const blocked = await request('POST', '/locks', {
+    token: b.token,
+    body: { paths: [file], reason: 'jump queue' },
+  });
+  assert.equal(blocked.status, 409);
+  assert.equal(blocked.json.conflict.type, 'reservation');
+  assert.equal(blocked.json.conflict.reservation.agentId, a.agentId);
+
+  const list = await request('GET', '/reservations');
+  assert.equal(list.status, 200);
+  assert.equal(list.json.reservations.filter((r) => r.paths.includes(file)).length, 2);
+
+  const lock = await request('POST', '/locks', {
+    token: a.token,
+    body: { paths: [file], reason: 'head locks' },
+  });
+  assert.equal(lock.status, 201);
+
+  const shifted = await request('GET', '/reservations');
+  const remaining = shifted.json.reservations.filter((r) => r.paths.includes(file));
+  assert.equal(remaining.length, 1);
+  assert.equal(remaining[0].agentId, b.agentId);
+  assert.equal(remaining[0].position, 1);
+
+  const cancel = await request('DELETE', `/reservations/${remaining[0].id}`, { token: b.token });
+  assert.equal(cancel.status, 200);
+  assert.equal(cancel.json.ok, true);
+});
+
 test('tasks: create -> claim -> in_progress -> done; double-claim -> 409', async () => {
   const a = await registerAgent('task-a');
   const b = await registerAgent('task-b');
@@ -140,6 +188,13 @@ test('tasks: create -> claim -> in_progress -> done; double-claim -> 409', async
   assert.equal(create.status, 201);
   const id = create.json.task.id;
   assert.equal(create.json.task.state, 'open');
+  assert.deepEqual(create.json.task.creatorAgent, {
+    id: a.agentId,
+    handle: 'task-a',
+    note: '',
+    model: '',
+    sessionId: '',
+  });
 
   const claim = await request('POST', `/tasks/${id}/claim`, { token: a.token });
   assert.equal(claim.status, 200);

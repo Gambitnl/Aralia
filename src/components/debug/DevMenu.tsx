@@ -58,7 +58,7 @@ type DevMenuActionType =
   | 'load'
   | 'toggle_log_viewer'
   | 'toggle_unified_log_viewer'
-  | 'battle_map_demo'
+  | 'combat_messaging_demo'
   | 'generate_encounter'
   | 'toggle_party_editor'
   | 'toggle_npc_test_plan'
@@ -204,7 +204,7 @@ const DevMenu: React.FC<DevMenuProps> = ({
     {
       title: 'Combat & Encounters',
       buttons: [
-        { label: 'Battle Map Demo', action: 'battle_map_demo', style: 'bg-teal-600 hover:bg-teal-500' },
+        // 'battle_map_demo' moved to the design preview — misc/design.html?step=battlemap
         // Combat Messaging Demo renders a mock combat log sequence showing unified messaging
         // and notifications. It allows checking priority filter behavior and color schemes.
         { label: 'Combat Messaging Demo', action: 'combat_messaging_demo', style: 'bg-purple-600 hover:bg-purple-500' },

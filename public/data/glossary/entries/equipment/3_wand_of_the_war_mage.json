@@ -7,13 +7,13 @@
     "item",
     "itemType:Wand"
   ],
-  "excerpt": "While holding this wand, you gain a +3 bonus to spell attack rolls. In addition, you ignore cover Cover when making a spell attack roll....",
+  "excerpt": "While holding this wand, you gain a +3 bonus to spell attack rolls. In addition, you ignore cover|Half Cover when making a spell attack roll....",
   "aliases": [],
   "seeAlso": [
-    "cover Cover"
+    "cover"
   ],
   "filePath": "/data/glossary/entries/equipment/3_wand_of_the_war_mage.json",
-  "markdown": "# +3 Wand of the War Mage\n\nWhile holding this wand, you gain a +3 bonus to spell attack rolls. In addition, you ignore [[cover Cover]] when making a spell attack roll.",
+  "markdown": "# +3 Wand of the War Mage\n\nWhile holding this wand, you gain a +3 bonus to spell attack rolls. In addition, you ignore [[cover|Half Cover]] when making a spell attack roll.",
   "itemMetadata": {
     "type": "Wand",
     "rarity": "Very rare",

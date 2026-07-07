@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "While wearing these gloves, climbing and swimming don't cost you extra movement, and you gain a +5 bonus to Strength (athletics) checks made to climb ...",
+  "excerpt": "While wearing these gloves, climbing and swimming don't cost you extra movement, and you gain a +5 bonus to Strength (athletics|Athletics) checks made...",
   "aliases": [],
   "seeAlso": [
     "athletics"

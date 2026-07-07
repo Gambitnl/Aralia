@@ -175,6 +175,60 @@ describe('StatusConditionCommand', () => {
     expect(logs.some(l => l.message.includes('resists the Prone condition'))).toBe(true);
   });
 
+  it('refreshes an existing status and condition by name instead of stacking duplicates', async () => {
+    const targetWithExistingStatus = createMockCombatCharacter({
+      id: 'target',
+      name: 'Target',
+      conditions: [{
+        name: 'Poisoned',
+        duration: { type: 'rounds', value: 1 },
+        appliedTurn: 0,
+        source: 'old-source'
+      }],
+      statusEffects: [{
+        id: 'existing-poisoned',
+        name: 'Poisoned',
+        type: 'debuff',
+        duration: 1,
+        source: 'old-source'
+      }]
+    });
+    state = {
+      ...state,
+      characters: [state.characters[0], targetWithExistingStatus]
+    };
+    context = {
+      ...context,
+      targets: [targetWithExistingStatus]
+    };
+    const effect: StatusConditionEffect = {
+      type: 'STATUS_CONDITION',
+      statusCondition: {
+        name: 'Poisoned',
+        duration: { type: 'rounds', value: 3 },
+        level: 0
+      },
+      condition: { type: 'always' } as any,
+      trigger: { type: 'immediate' } as any
+    };
+
+    const command = new StatusConditionCommand(effect, context);
+    const newState = await command.execute(state);
+    const updatedTarget = newState.characters.find(c => c.id === 'target')!;
+
+    expect(updatedTarget.statusEffects.filter(effect => effect.name === 'Poisoned')).toHaveLength(1);
+    expect(updatedTarget.statusEffects[0]).toMatchObject({
+      id: 'existing-poisoned',
+      duration: 3,
+      source: 'Test Spell'
+    });
+    expect(updatedTarget.conditions?.filter(condition => condition.name === 'Poisoned')).toHaveLength(1);
+    expect(updatedTarget.conditions?.[0]).toMatchObject({
+      appliedTurn: 1,
+      source: 'Test Spell'
+    });
+  });
+
   it('removes conditions if conditionRemoval is specified (e.g. Lesser Restoration)', async () => {
     // Setup target with Poisoned and Blinded
     const targetWithConditions = createMockCombatCharacter({

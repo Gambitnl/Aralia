@@ -1,46 +1,74 @@
 /**
- * @file generateInterior.ts
- * @description L4 interior generator — deterministic BSP room-packing of a
- * TownPlan plot footprint (SPEC §4 L4, decisions #10/#11/#12).
+ * @file generateInterior.ts — LEGACY ADAPTER over generateBuilding.
  *
- * How it works:
- * 1. The plot's quad footprint is reduced to a local rectangle: width along
- *    the frontage edge (corners 0→1, the street wall), depth along corners
- *    0→3, both snapped DOWN to the 5 ft grid. Town plots are generated as
- *    rotated rectangles, so this loses only the sub-cell remainder.
- * 2. The rectangle is split recursively (BSP) on 5 ft aligned lines until
- *    leaves fall under a target room area; each split records one doorway
- *    connecting the two halves, so the doorway graph is a spanning tree —
- *    every room is reachable from every other by construction.
- * 3. The entry door sits on the street wall (y = 0) in whichever room owns
- *    the frontage center — the same wall + center the 3D renderer already
- *    draws the exterior door on, so exterior and interior agree seamlessly.
- * 4. Rooms get roles from the plot role (market → shopfloor-first, house →
- *    hall-first) and a furnishing table per role places props against
- *    deterministic walls.
+ * Task 10 of the Building Blueprint Pipeline. The old in-file BSP generator is
+ * gone: ONE generator (generateBuilding, Tasks 2–8) now owns interior
+ * generation, and this module is a thin, deterministic mapping from the rich
+ * BlueprintPlan to the legacy InteriorPlan shape every existing 3D-build
+ * caller consumes (interiorParts, groundChunkLoader, the town roster).
  *
- * Determinism: every random draw comes from rngFromPath over
- * childSeedPath(seedPath, `interior:<plotId>`) streams — same plot, same
- * seed path → byte-identical plan.
+ * What the collapse keeps and loses:
+ * - Rooms become their axis-aligned BBOXES (InteriorRoom is a rect). For an
+ *   L-shaped blueprint room the bbox is a LOOSE bound — bboxes may overlap
+ *   and no longer tile the envelope exactly.
+ * - RoomPurpose (20 values) collapses onto the 6 legacy RoomRoles via
+ *   PURPOSE_TO_ROLE below (total mapping — every purpose is covered).
+ * - Doors keep {a, b, x, y, axis}; isEntry/openDir/swingInto are dropped
+ *   (the legacy bridge derives the entry from a === EXTERIOR).
+ * - Furnishing kinds pass through UNCHANGED, including kinds the legacy 3D
+ *   bridge has no mesh for yet (bench, altar, desk, chair, weapon-rack) —
+ *   the bridge's own unknown-kind skip governs there; the adapter never
+ *   silently drops data.
+ * - Windows, wall edges and wall runs have no legacy slot and are dropped
+ *   (the legacy bridge computes its own walls from room rects).
+ * - Basements exist in the BlueprintPlan (rollBasement below decides them
+ *   deterministically per building) but InteriorPlan cannot represent level
+ *   -1, so the adapter output stays basement-free: level -1 floors are
+ *   skipped and the basement stair (fromLevel -1) is filtered out. Only the
+ *   blueprint-primary 3D path (interiorParts.blueprintStructureParts)
+ *   renders below-grade geometry.
+ *
+ * Lot fit: the plot's snapped frontage × depth are fed into generateBuilding
+ * as maxWidthFt/maxDepthFt, clamping the invented footprint into the lot so
+ * interiors never overhang their plot (C3-T2). plan.widthFt/depthFt echo the
+ * ACTUAL building envelope (≤ the lot), which is what the renderer sizes
+ * roofs and the wall envelope from.
+ *
+ * Seeds: the building derives from childSeedPath(seedPath,
+ * `interior:<plot.id>`) — the same segment the legacy generator used — and
+ * buildingId === plot.id. plot.id is unique within a town plan and the seed
+ * path scopes the town, so (seedPath, plot.id) is globally unique. Interiors
+ * in existing worlds re-roll once (approved plan consequence).
  */
 
 import { childSeedPath, rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import type { Feet } from '../units';
-import {
-  EXTERIOR,
-  type InteriorDoorway,
-  type InteriorFloor,
-  type InteriorFurnishing,
-  type InteriorPlan,
-  type InteriorRoom,
-  type InteriorStair,
-  type RoomRole,
+import { generateBuilding, briefDigest, styleDigest } from './generateBuilding';
+import type {
+  BlueprintDoor,
+  BlueprintFloor,
+  BlueprintPlan,
+  BlueprintFurnishing,
+  BlueprintRoom,
+  BuildingType,
+  HouseholdBrief,
+  RoomPurpose,
+  StyleContext,
+} from './blueprintTypes';
+import type {
+  InteriorDoorway,
+  InteriorFloor,
+  InteriorFurnishing,
+  InteriorPlan,
+  InteriorRoom,
+  InteriorStair,
+  RoomRole,
 } from './types';
 
 /** Atomic grid (decision #12). */
 const CELL_FT = 5;
-/** Smallest allowed room side. */
-const MIN_ROOM_FT = 10;
+/** Smallest lot the adapter will size a building into. */
+const MIN_LOT_FT = 10;
 
 export interface InteriorPlotInput {
   id: number;
@@ -48,267 +76,233 @@ export interface InteriorPlotInput {
   footprint: Array<[Feet, Feet]>;
   role: string;
   storeys: number;
-}
-
-interface Rect {
-  x: number;
-  y: number;
-  w: number;
-  d: number;
+  // v2 (all optional — legacy callers unchanged):
+  /** Town population classification; when present it WINS over the role mapping. */
+  buildingType?: BuildingType;
+  /** The founding household brief (built via town/householdBrief.briefForPlot).
+   *  Present only where the population pass ran; unpopulated towns pass none and
+   *  the building generates briefless exactly as before. */
+  household?: HouseholdBrief;
+  /** Architectural style context assembled at the 3D bake from the atlas (Task 7):
+   *  cultureType from the burg, climate from its biome, wealth from the plot's
+   *  ward district, ageBand. Present only where the atlas can supply culture +
+   *  biome; when absent the building generates style-less (no solved roof), and
+   *  the legacy prism renders — honest absence, byte-identical to before. */
+  style?: StyleContext;
 }
 
 const snapDown = (v: number): number => Math.floor(v / CELL_FT) * CELL_FT;
-const snap = (v: number): number => Math.round(v / CELL_FT) * CELL_FT;
-
-interface FloorLayout {
-  rooms: InteriorRoom[];
-  doorways: InteriorDoorway[];
-  furnishings: InteriorFurnishing[];
-  /** Index of the anchor room: the street-entry room (ground) or the stair landing (upper). */
-  anchorRoomId: number;
-}
-
-/** The room rect index containing a plot-local point (half-open, clamped). */
-function rectAtPoint(rects: Rect[], x: number, y: number): number {
-  for (let i = 0; i < rects.length; i++) {
-    const r = rects[i];
-    if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.d) return i;
-  }
-  return 0;
-}
 
 /**
- * BSP-pack one floor of `widthFt × depthFt` into rooms + a doorway spanning tree,
- * assign roles, furnish, and keep doorways (and the stair, if any) clear. The
- * ground floor (`opts.ground`) gets a street entry door and role flavor from the
- * plot; an upper floor has no street door — its anchor is the room the stair
- * lands in, and its rooms are sleeping quarters. `basePath` seeds the floor, so
- * passing the building's interior path reproduces the original ground floor
- * byte-for-byte while each upper floor draws from its own stream.
+ * Town plot role → BuildingType. Explicit and closed: an unmapped role throws
+ * (no silent fallback — Remy's no-fallback directive; C3-T3).
  */
-function buildFloor(
-  basePath: SeedPath,
-  widthFt: number,
-  depthFt: number,
-  isMarket: boolean,
-  opts: { ground: boolean; stair?: { x: number; y: number } },
-): FloorLayout {
-  const roomRng = rngFromPath(streamPath(basePath, 'rooms'));
-  const floorArea = widthFt * depthFt;
-  const roomBudget = Math.min(isMarket ? 8 : 6, Math.max(2, Math.round(floorArea / 700)));
-  const targetArea = (floorArea / roomBudget) * 1.15 * (0.85 + roomRng.next() * 0.3);
+const ROLE_TO_TYPE: Record<string, BuildingType> = {
+  house: 'cottage',
+  market: 'shop',
+  shop: 'shop',
+  tavern: 'tavern',
+  inn: 'tavern',
+  workshop: 'workshop',
+  craft: 'workshop',
+  manor: 'manor',
+  keep: 'keep',
+  citadel: 'keep',
+  civic: 'civic',
+  temple: 'temple',
+};
 
-  const rects: Rect[] = [];
-  const doorways: InteriorDoorway[] = [];
-
-  const split = (r: Rect): number[] => {
-    const aspect = Math.max(r.w, r.d) / Math.min(r.w, r.d);
-    const splittable =
-      (r.w * r.d > targetArea || aspect > 2.5) &&
-      (r.w >= MIN_ROOM_FT * 2 || r.d >= MIN_ROOM_FT * 2);
-    if (!splittable) {
-      rects.push(r);
-      return [rects.length - 1];
-    }
-    const alongW = r.w >= r.d ? r.w >= MIN_ROOM_FT * 2 : !(r.d >= MIN_ROOM_FT * 2);
-    const len = alongW ? r.w : r.d;
-    const lo = MIN_ROOM_FT;
-    const hi = len - MIN_ROOM_FT;
-    const pos = snap(lo + roomRng.next() * (hi - lo));
-    const cut = Math.min(hi, Math.max(lo, pos));
-    const a: Rect = alongW ? { ...r, w: cut } : { ...r, d: cut };
-    const b: Rect = alongW
-      ? { x: r.x + cut, y: r.y, w: r.w - cut, d: r.d }
-      : { x: r.x, y: r.y + cut, w: r.w, d: r.d - cut };
-    const idsA = split(a);
-    const idsB = split(b);
-    const line = alongW ? r.x + cut : r.y + cut;
-    let best: { ia: number; ib: number; lo: number; hi: number } | null = null;
-    for (const ia of idsA) {
-      const ra = rects[ia];
-      const touchesA = alongW ? ra.x + ra.w === line : ra.y + ra.d === line;
-      if (!touchesA) continue;
-      for (const ib of idsB) {
-        const rb = rects[ib];
-        const touchesB = alongW ? rb.x === line : rb.y === line;
-        if (!touchesB) continue;
-        const oLo = Math.max(alongW ? ra.y : ra.x, alongW ? rb.y : rb.x);
-        const oHi = Math.min(
-          alongW ? ra.y + ra.d : ra.x + ra.w,
-          alongW ? rb.y + rb.d : rb.x + rb.w,
-        );
-        if (oHi - oLo <= 0) continue;
-        if (!best || oHi - oLo > best.hi - best.lo) best = { ia, ib, lo: oLo, hi: oHi };
-      }
-    }
-    if (best) {
-      const at = snap((best.lo + best.hi) / 2);
-      const doorAt = Math.min(best.hi - CELL_FT / 2, Math.max(best.lo + CELL_FT / 2, at));
-      doorways.push(
-        alongW
-          ? { a: best.ia, b: best.ib, x: line, y: doorAt, axis: 'y' }
-          : { a: best.ia, b: best.ib, x: doorAt, y: line, axis: 'x' },
-      );
-    }
-    return [...idsA, ...idsB];
-  };
-
-  split({ x: 0, y: 0, w: widthFt, d: depthFt });
-
-  // Anchor room: ground = the street-entry room; upper = the room the stair lands in.
-  let anchorRoomId = 0;
-  if (opts.ground) {
-    const frontX = widthFt / 2;
-    for (let i = 0; i < rects.length; i++) {
-      const r = rects[i];
-      if (r.y === 0 && r.x <= frontX && frontX <= r.x + r.w) { anchorRoomId = i; break; }
-    }
-    const entry = rects[anchorRoomId];
-    const entryDoorX = Math.min(
-      entry.x + entry.w - CELL_FT / 2,
-      Math.max(entry.x + CELL_FT / 2, snap(entry.x + entry.w / 2)),
+/** Resolve a plot role to a BuildingType; throws on an unmapped role. */
+export function buildingTypeForRole(role: string): BuildingType {
+  const type = ROLE_TO_TYPE[role];
+  if (!type) {
+    throw new Error(
+      `generateInterior: no BuildingType mapping for plot role "${role}" ` +
+      `(known: ${Object.keys(ROLE_TO_TYPE).join(', ')})`,
     );
-    doorways.unshift({ a: EXTERIOR, b: anchorRoomId, x: entryDoorX, y: 0, axis: 'x' });
-  } else if (opts.stair) {
-    anchorRoomId = rectAtPoint(rects, opts.stair.x, opts.stair.y);
   }
-
-  // Roles: anchor leads (shopfloor on a ground market, else hall/landing); the
-  // rest follow a per-context sequence (upper floors are sleeping quarters).
-  const roles: RoomRole[] = new Array(rects.length);
-  roles[anchorRoomId] = isMarket && opts.ground ? 'shopfloor' : 'hall';
-  const rest = rects
-    .map((r, i) => ({ i, area: r.w * r.d }))
-    .filter(({ i }) => i !== anchorRoomId)
-    .sort((p, q) => q.area - p.area || p.i - q.i);
-  const sequence: RoomRole[] = !opts.ground
-    ? ['bedroom', 'bedroom', 'storage', 'bedroom', 'bedroom']
-    : isMarket
-      ? ['storage', 'workshop', 'bedroom', 'storage', 'bedroom']
-      : ['kitchen', 'bedroom', 'storage', 'bedroom', 'bedroom'];
-  rest.forEach(({ i }, k) => {
-    roles[i] = sequence[Math.min(k, sequence.length - 1)];
-  });
-
-  const rooms: InteriorRoom[] = rects.map((r, i) => ({
-    id: i, role: roles[i], x: r.x, y: r.y, w: r.w, d: r.d,
-  }));
-
-  // Furnishings, then keep doorways AND the stair cell clear (props placed blind
-  // to door/stair positions would otherwise block a threshold or the landing).
-  const furnishRng = rngFromPath(streamPath(basePath, 'furnish'));
-  const furnishings: InteriorFurnishing[] = [];
-  for (const room of rooms) furnishings.push(...furnishRoom(room, furnishRng));
-  const clearFurnishings = furnishings.filter((f) => {
-    const onDoor = doorways.some((dr) =>
-      (dr.a === f.roomId || dr.b === f.roomId) &&
-      Math.abs(f.x - dr.x) < CELL_FT && Math.abs(f.y - dr.y) < CELL_FT);
-    const onStair = !!opts.stair &&
-      Math.abs(f.x - opts.stair.x) < CELL_FT && Math.abs(f.y - opts.stair.y) < CELL_FT;
-    return !onDoor && !onStair;
-  });
-
-  return { rooms, doorways, furnishings: clearFurnishings, anchorRoomId };
+  return type;
 }
 
-// generateInterior is pure and deterministic but called repeatedly for the SAME
-// plot — the roster generates it to count bedrooms, the 3D bake generates it for
-// the wall envelope + parts, and chunk reloads regenerate it. Memoize per
-// (seedPath, plot.id, role, storeys, dims): the interior path encodes (seedPath,
-// plot.id) and the rest complete the key. Callers treat the result as read-only,
-// so sharing the cached instance is safe. Soft cap guards against unbounded
-// growth across a long session (regeneration is cheap + deterministic).
+/** Full RoomPurpose → legacy RoomRole table (total — every purpose covered). */
+export const PURPOSE_TO_ROLE: Record<RoomPurpose, RoomRole> = {
+  'hall': 'hall',
+  'common-room': 'hall',
+  'great-hall': 'hall',
+  'nave': 'hall',
+  'sanctuary': 'hall',
+  'guard-room': 'hall',
+  'corridor': 'hall',
+  'kitchen': 'kitchen',
+  'bedroom': 'bedroom',
+  'guest-room': 'bedroom',
+  'private-room': 'bedroom',
+  'solar': 'bedroom',
+  'shopfront': 'shopfloor',
+  'workshop': 'workshop',
+  'study': 'workshop',
+  'storage': 'storage',
+  'pantry': 'storage',
+  'cellar': 'storage',
+  'armory': 'storage',
+  'vestry': 'storage',
+  'forge': 'workshop',
+  'counting-room': 'workshop',
+  'servant-room': 'bedroom',
+  'stockroom': 'storage',
+  'brewhouse': 'storage',
+};
+
+const toRoom = (r: BlueprintRoom): InteriorRoom => ({
+  id: r.id,
+  role: PURPOSE_TO_ROLE[r.purpose],
+  x: r.bbox.x,
+  y: r.bbox.y,
+  w: r.bbox.w,
+  d: r.bbox.d,
+});
+
+const toDoorway = (d: BlueprintDoor): InteriorDoorway => ({
+  a: d.a,
+  b: d.b,
+  x: d.x,
+  y: d.y,
+  axis: d.axis,
+});
+
+const toFurnishing = (f: BlueprintFurnishing): InteriorFurnishing => ({
+  kind: f.kind,
+  roomId: f.roomId,
+  x: f.x,
+  y: f.y,
+  rotation: f.rotation,
+});
+
+const toFloor = (f: BlueprintFloor): InteriorFloor => ({
+  level: f.level,
+  rooms: f.rooms.map(toRoom),
+  doorways: f.doors.map(toDoorway),
+  furnishings: f.furnishings.map(toFurnishing),
+});
+
+// generateInterior is pure and deterministic but called repeatedly for the
+// SAME plot (roster bedroom-count, 3D bake, chunk reloads). generateBuilding
+// memoizes the BlueprintPlan; this memo keeps the legacy contract that
+// identical (plot, seedPath) calls return the SAME InteriorPlan instance.
 const interiorMemo = new Map<string, InteriorPlan>();
 const INTERIOR_MEMO_CAP = 50_000;
+
+/**
+ * The FULL BlueprintPlan for a town plot — the same plan generateInterior
+ * collapses onto the legacy InteriorPlan, exposed so 3D consumers (Task 12:
+ * interiorParts → buildBuildingMeshData) can raise real blueprint geometry
+ * (irregular shell, wall thickness, window voids) instead of the legacy
+ * room-rect approximation. Deterministic and memoized via generateBuilding,
+ * so calling this alongside generateInterior costs one map lookup.
+ */
+/**
+ * Basement odds by building type. Manors and taverns nearly always dig
+ * cellars (wine/stores), shops and workshops usually (stock), cottages
+ * sometimes (root cellar). Tuned for flavor, not simulation.
+ */
+export const BASEMENT_CHANCE: Record<BuildingType, number> = {
+  manor: 0.9,
+  tavern: 0.8,
+  shop: 0.6,
+  workshop: 0.5,
+  cottage: 0.25,
+  townhouse: 0.4,
+  tenement: 0.2,
+  farmstead: 0.3,
+  smithy: 0.4,
+  inn: 0.85,
+  storehouse: 0.7,
+  temple: 0.6, // crypt
+  keep: 0.9,
+  civic: 0.5,
+};
+
+/**
+ * Deterministic per-building basement decision: one draw from the plot's own
+ * interior seed path on a NAMED sub-stream ('s:basement'), compared against
+ * the type's chance above. The stream isolation means adding draws anywhere
+ * else never flips a building's basement, and the decision depends only on
+ * (interiorPath, type) — both already part of every memo key downstream.
+ * No Math.random anywhere (determinism contract).
+ */
+export function rollBasement(type: BuildingType, interiorPath: SeedPath): boolean {
+  return rngFromPath(streamPath(interiorPath, 'basement')).next() < BASEMENT_CHANCE[type];
+}
+
+export function blueprintForPlot(plot: InteriorPlotInput, seedPath: SeedPath): BlueprintPlan {
+  const interiorPath = childSeedPath(seedPath, `interior:${plot.id}`);
+
+  // Lot envelope from the footprint's edge lengths (rotation-free frame).
+  const [c0, c1, , c3] = plot.footprint;
+  const lotWidthFt = Math.max(MIN_LOT_FT, snapDown(Math.hypot(c1[0] - c0[0], c1[1] - c0[1])));
+  const lotDepthFt = Math.max(MIN_LOT_FT, snapDown(Math.hypot(c3[0] - c0[0], c3[1] - c0[1])));
+  const storeys = Math.max(1, Math.floor(plot.storeys || 1));
+  // The town's own classification wins over the coarse role mapping; role is the
+  // fallback only when the population pass did NOT tag this plot.
+  const type = plot.buildingType ?? buildingTypeForRole(plot.role);
+
+  return generateBuilding({
+    buildingId: plot.id,
+    type,
+    seedPath: interiorPath,
+    storeys,
+    basement: rollBasement(type, interiorPath),
+    maxWidthFt: lotWidthFt,
+    maxDepthFt: lotDepthFt,
+    household: plot.household,
+    // Style context (Task 7): when the bake supplied one, generateBuilding
+    // resolves the dress + solves the roof. Undefined → style-less plan.
+    style: plot.style,
+  });
+}
 
 export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): InteriorPlan {
   const interiorPath = childSeedPath(seedPath, `interior:${plot.id}`);
 
-  // Local envelope from the footprint's edge lengths (rotation-free frame).
+  // Lot envelope from the footprint's edge lengths (rotation-free frame).
   const [c0, c1, , c3] = plot.footprint;
-  const widthFt = Math.max(MIN_ROOM_FT, snapDown(Math.hypot(c1[0] - c0[0], c1[1] - c0[1])));
-  const depthFt = Math.max(MIN_ROOM_FT, snapDown(Math.hypot(c3[0] - c0[0], c3[1] - c0[1])));
+  const lotWidthFt = Math.max(MIN_LOT_FT, snapDown(Math.hypot(c1[0] - c0[0], c1[1] - c0[1])));
+  const lotDepthFt = Math.max(MIN_LOT_FT, snapDown(Math.hypot(c3[0] - c0[0], c3[1] - c0[1])));
   const storeys = Math.max(1, Math.floor(plot.storeys || 1));
 
-  const memoKey = `${interiorPath}|${plot.role}|${storeys}|${widthFt}|${depthFt}`;
+  // Memo key includes the resolved type override, the brief digest and the
+  // style digest (the same digests generateBuilding keys on, Task 8 + Task 4)
+  // so a typed/briefed/styled plot never collapses onto the plain entry.
+  // Style-less plots append an empty style-digest segment, so their cached
+  // InteriorPlan is unchanged (byte-stable legacy behavior).
+  const memoKey =
+    `${interiorPath}|${plot.role}|${storeys}|${lotWidthFt}|${lotDepthFt}` +
+    `|${plot.buildingType ?? ''}|${briefDigest(plot.household)}|${styleDigest(plot.style)}`;
   const cached = interiorMemo.get(memoKey);
   if (cached) return cached;
 
-  const isMarket = plot.role === 'market';
+  const plan = blueprintForPlot(plot, seedPath);
 
-  // Ground floor — seeded by the interior path, so it reproduces byte-for-byte.
-  const ground = buildFloor(interiorPath, widthFt, depthFt, isMarket, { ground: true });
-
-  // Multi-storey: a single vertical stair shaft at the ground entry room's
-  // centroid (interior, clear of the wall doorways), repeated up each gap. Each
-  // upper floor packs the same envelope (sleeping quarters), reached at the stair.
-  const upperFloors: InteriorFloor[] = [];
-  const stairs: InteriorStair[] = [];
-  if (storeys > 1) {
-    const entry = ground.rooms[ground.anchorRoomId];
-    const stair = { x: snap(entry.x + entry.w / 2), y: snap(entry.y + entry.d / 2) };
-    // Clear ground furniture off the stair landing too.
-    ground.furnishings = ground.furnishings.filter(
-      (f) => !(Math.abs(f.x - stair.x) < CELL_FT && Math.abs(f.y - stair.y) < CELL_FT),
-    );
-    for (let level = 1; level < storeys; level++) {
-      stairs.push({ fromFloor: level - 1, x: stair.x, y: stair.y });
-      const floorPath = childSeedPath(interiorPath, `floor:${level}`);
-      const floor = buildFloor(floorPath, widthFt, depthFt, isMarket, { ground: false, stair });
-      upperFloors.push({ level, rooms: floor.rooms, doorways: floor.doorways, furnishings: floor.furnishings });
-    }
+  const ground = plan.floors.find((f) => f.level === 0);
+  if (!ground) {
+    throw new Error(`generateInterior: plan for plot ${plot.id} has no ground floor`);
   }
+  const uppers = plan.floors.filter((f) => f.level >= 1);
 
   const result: InteriorPlan = {
     plotId: plot.id,
-    widthFt,
-    depthFt,
+    widthFt: plan.widthFt,
+    depthFt: plan.depthFt,
     storeys,
-    rooms: ground.rooms,
-    doorways: ground.doorways,
-    furnishings: ground.furnishings,
-    upperFloors,
-    stairs,
+    rooms: ground.rooms.map(toRoom),
+    doorways: ground.doors.map(toDoorway),
+    furnishings: ground.furnishings.map(toFurnishing),
+    upperFloors: uppers.map(toFloor),
+    stairs: plan.stairs
+      .filter((s) => s.fromLevel >= 0)
+      .map((s): InteriorStair => ({ fromFloor: s.fromLevel, x: s.x, y: s.y })),
   };
   if (interiorMemo.size >= INTERIOR_MEMO_CAP) interiorMemo.clear();
   interiorMemo.set(memoKey, result);
   return result;
-}
-
-/** One props pass per room. Positions are room-interior feet, wall-snapped. */
-function furnishRoom(room: InteriorRoom, rng: { next(): number }): InteriorFurnishing[] {
-  const out: InteriorFurnishing[] = [];
-  const cx = room.x + room.w / 2;
-  const cy = room.y + room.d / 2;
-  const backY = room.y + room.d - CELL_FT / 2; // against the inner (back) wall
-  const sideX = rng.next() < 0.5 ? room.x + CELL_FT / 2 : room.x + room.w - CELL_FT / 2;
-  const put = (kind: string, x: number, y: number, rotation: 0 | 90 | 180 | 270) =>
-    out.push({ kind, roomId: room.id, x, y, rotation });
-
-  switch (room.role) {
-    case 'hall':
-      put('table', snap(cx), snap(cy), 0);
-      put('hearth', sideX, snap(cy), sideX < cx ? 90 : 270);
-      break;
-    case 'shopfloor':
-      put('counter', snap(cx), room.y + CELL_FT * 1.5, 0);
-      put('shelf', snap(cx), backY, 180);
-      break;
-    case 'kitchen':
-      put('hearth', snap(cx), backY, 180);
-      put('barrel', room.x + CELL_FT / 2, room.y + CELL_FT / 2, 0);
-      break;
-    case 'bedroom':
-      put('bed', room.x + CELL_FT, room.y + room.d - CELL_FT, 180);
-      put('chest', room.x + CELL_FT, room.y + CELL_FT / 2, 0);
-      break;
-    case 'storage':
-      put('barrel', room.x + CELL_FT / 2, room.y + CELL_FT / 2, 0);
-      put('crate', room.x + room.w - CELL_FT / 2, backY, 0);
-      break;
-    case 'workshop':
-      put('workbench', snap(cx), backY, 180);
-      break;
-  }
-  return out;
 }

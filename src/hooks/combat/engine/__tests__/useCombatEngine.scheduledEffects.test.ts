@@ -137,6 +137,62 @@ describe('useCombatEngine scheduled spell effects', () => {
     });
   });
 
+  it('refreshes scheduled status conditions by name instead of stacking duplicates', () => {
+    const caster = createCharacter({ id: 'caster', name: 'Caster', team: 'player', position: { x: 0, y: 0 } });
+    const target = createCharacter({
+      statusEffects: [{
+        id: 'existing-frightened',
+        name: 'Frightened',
+        type: 'debuff',
+        duration: 1,
+        source: 'old-fear'
+      }],
+      conditions: [{
+        name: 'Frightened',
+        duration: { type: 'rounds', value: 1 },
+        appliedTurn: 1,
+        source: 'old-fear'
+      }]
+    });
+    const scheduledEffect: ScheduledSpellEffect = {
+      id: 'scheduled-status-refresh',
+      spellId: 'delayed-fear',
+      casterId: caster.id,
+      targetId: target.id,
+      timing: 'turn_end',
+      createdAtRound: 1,
+      effects: [{
+        type: 'STATUS_CONDITION',
+        statusCondition: { name: 'Frightened' },
+        duration: { type: 'rounds', value: 1 },
+        trigger: { type: 'turn_end', frequency: 'once', consumption: 'unlimited', movementType: 'any' }
+      } as any]
+    };
+    const { result } = renderEngine([caster, target]);
+
+    act(() => {
+      result.current.addScheduledSpellEffect(scheduledEffect);
+    });
+
+    let updatedTarget = target;
+    act(() => {
+      updatedTarget = result.current.processScheduledSpellEffects(target, 'turn_end', 2);
+    });
+
+    expect(updatedTarget.statusEffects.filter(effect => effect.name === 'Frightened')).toHaveLength(1);
+    expect(updatedTarget.statusEffects[0]).toMatchObject({
+      id: 'existing-frightened',
+      source: 'delayed-fear',
+      sourceCasterId: caster.id
+    });
+    expect(updatedTarget.conditions?.filter(condition => condition.name === 'Frightened')).toHaveLength(1);
+    expect(updatedTarget.conditions?.[0]).toMatchObject({
+      appliedTurn: 2,
+      source: 'delayed-fear',
+      sourceCasterId: caster.id
+    });
+  });
+
   it('executes scheduled movement effects through the movement command bridge', () => {
     const caster = createCharacter({ id: 'caster', name: 'Caster', team: 'player', position: { x: 0, y: 0 } });
     const target = createCharacter({ id: 'target', name: 'Target', position: { x: 1, y: 0 } });
@@ -301,6 +357,78 @@ describe('useCombatEngine scheduled teleport effects', () => {
       message: expect.stringContaining('teleports from (0, 0) to (1, 0)'),
       characterId: target.id
     }));
+  });
+});
+
+describe('useCombatEngine environmental tile status effects', () => {
+  it('refreshes tile-applied status conditions in both runtime mirrors', () => {
+    const target = createCharacter({
+      statusEffects: [{
+        id: 'existing-slowed',
+        name: 'Slowed',
+        type: 'debuff',
+        duration: 3,
+        source: 'old-mud'
+      }],
+      conditions: [{
+        name: 'Slowed',
+        duration: { type: 'rounds', value: 3 },
+        appliedTurn: 4,
+        source: 'old-mud'
+      }]
+    });
+    const mapData = {
+      id: 'hazard-map',
+      name: 'Hazard Map',
+      dimensions: { width: 1, height: 1 },
+      theme: 'swamp',
+      seed: 1,
+      tiles: new Map([[
+        '1-0',
+        {
+          id: '1-0',
+          coordinates: { x: 1, y: 0 },
+          terrain: 'mud',
+          elevation: 0,
+          movementCost: 1,
+          blocksMovement: false,
+          blocksLoS: false,
+          decoration: null,
+          effects: [],
+          environmentalEffect: {
+            type: 'mud',
+            effect: {
+              name: 'Slowed',
+              type: 'debuff',
+              effect: { type: 'condition' }
+            }
+          }
+        }
+      ]])
+    } as any;
+    const props = {
+      characters: [target],
+      mapData,
+      onCharacterUpdate: vi.fn(),
+      onLogEntry: vi.fn(),
+      onMapUpdate: vi.fn(),
+      addDamageNumber: vi.fn()
+    };
+    const { result } = renderHook(() => useCombatEngine(props));
+
+    const updatedTarget = result.current.processTileEffects(target, target.position);
+
+    expect(updatedTarget.statusEffects.filter(effect => effect.name === 'Slowed')).toHaveLength(1);
+    expect(updatedTarget.statusEffects[0]).toMatchObject({
+      id: 'existing-slowed',
+      duration: 1,
+      source: 'Slowed'
+    });
+    expect(updatedTarget.conditions?.filter(condition => condition.name === 'Slowed')).toHaveLength(1);
+    expect(updatedTarget.conditions?.[0]).toMatchObject({
+      source: 'Slowed',
+      duration: { type: 'rounds', value: 1 }
+    });
   });
 });
 

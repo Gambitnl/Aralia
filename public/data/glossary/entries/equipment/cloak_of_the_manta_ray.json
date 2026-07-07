@@ -7,13 +7,13 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "While wearing this cloak, you can breathe underwater, and you have a swim_speed Speed of 60 feet....",
+  "excerpt": "While wearing this cloak, you can breathe underwater, and you have a swim_speed|Swim Speed of 60 feet....",
   "aliases": [],
   "seeAlso": [
-    "swim_speed Speed"
+    "swim_speed"
   ],
   "filePath": "/data/glossary/entries/equipment/cloak_of_the_manta_ray.json",
-  "markdown": "# Cloak of the Manta Ray\n\nWhile wearing this cloak, you can breathe underwater, and you have a [[swim_speed Speed]] of 60 feet.",
+  "markdown": "# Cloak of the Manta Ray\n\nWhile wearing this cloak, you can breathe underwater, and you have a [[swim_speed]] of 60 feet.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon",

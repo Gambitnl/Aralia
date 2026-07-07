@@ -16,5 +16,5 @@
     "special_speeds"
   ],
   "filePath": "/data/glossary/entries/rules/changes_to_your_speeds.json",
-  "markdown": "# Changes to Your Speeds\r\nIf an effect increases or decreases your <span data-term-id=\"speed\" class=\"glossary-term-link-from-markdown\">Speed</span> for a time, any special speed you have increases or decreases by an equal amount for the same duration. For example, if your <span data-term-id=\"speed\" class=\"glossary-term-link-from-markdown\">Speed</span> is reduced to 0 and you have a Climb Speed, your Climb Speed is also reduced to 0. Similarly, if your <span data-term-id=\"speed\" class=\"glossary-term-link-from-markdown\">Speed</span> is halved and you have a <span data-term-id=\"flying\" class=\"glossary-term-link-from-markdown\">Fly Speed</span>, your Fly Speed is also halved.\r\n"
+  "markdown": "# Changes to Your Speeds\nIf an effect increases or decreases your [[speed]] for a time, any special speed you have increases or decreases by an equal amount for the same duration. For example, if your [[speed]] is reduced to 0 and you have a Climb Speed, your Climb Speed is also reduced to 0. Similarly, if your [[speed]] is halved and you have a [[flying|Fly Speed]], your Fly Speed is also halved.\n"
 }

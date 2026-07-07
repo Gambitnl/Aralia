@@ -7,13 +7,13 @@
     "baseitem",
     "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Ability:: Strength - Utilize:: Chisel a symbol or hole in stone (DC 10) - Craft:: block_and_tackle and Tackle...",
+  "excerpt": "- Ability: Strength - Utilize: Chisel a symbol or hole in stone (DC 10) - Craft: block_and_tackle|Block and Tackle...",
   "aliases": [],
   "seeAlso": [
-    "block_and_tackle and Tackle"
+    "block_and_tackle"
   ],
   "filePath": "/data/glossary/entries/equipment/mason_s_tools.json",
-  "markdown": "# Mason's Tools\n\n- **Ability::** Strength\n- **Utilize::** Chisel a symbol or hole in stone (DC 10)\n- **Craft::** [[block_and_tackle and Tackle]]",
+  "markdown": "# Mason's Tools\n\n- **Ability:** Strength\n- **Utilize:** Chisel a symbol or hole in stone (DC 10)\n- **Craft:** [[block_and_tackle]]",
   "itemMetadata": {
     "type": "Artisan's Tools",
     "rarity": "None",

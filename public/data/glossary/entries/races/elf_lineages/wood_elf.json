@@ -53,10 +53,9 @@
     "green elf"
   ],
   "seeAlso": [
-    "elf",
     "druidcraft",
     "longstrider",
-    "pass_without_trace",
+    "pass-without-trace",
     "speed"
   ],
   "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf.json",

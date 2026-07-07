@@ -10,15 +10,12 @@
   "excerpt": "This cube is about an inch across. Each face has a distinct marking on it. You can press one of those faces, expend the number of charges required for...",
   "aliases": [],
   "seeAlso": [
-    "mage_armor Armor",
+    "mage-armor",
     "shield",
-    "leomund_s_tiny_hut's Tiny Hut",
-    "mordenkainen_s_private_sanctum's Private Sanctum",
-    "otiluke_s_resilient_sphere's Resilient Sphere",
-    "wall_of_force of Force"
+    "wall-of-force"
   ],
   "filePath": "/data/glossary/entries/equipment/cube_of_force.json",
-  "markdown": "# Cube of Force\n\nThis cube is about an inch across. Each face has a distinct marking on it. You can press one of those faces, expend the number of charges required for it, and thereby cast the spell associated with it (save DC 17), as shown in the Cube of Force Faces table.\n\nThe cube starts with 10 charges, and it regains 1d6 expended charges daily at dawn.\n\n**Cube of Force Faces**\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[mage_armor Armor]] | 1 |\n| [[shield]] | 1 |\n| [[leomund_s_tiny_hut's Tiny Hut]] | 3 |\n| [[mordenkainen_s_private_sanctum's Private Sanctum]] | 4 |\n| [[otiluke_s_resilient_sphere's Resilient Sphere]] | 4 |\n| [[wall_of_force of Force]] | 5 |",
+  "markdown": "# Cube of Force\n\nThis cube is about an inch across. Each face has a distinct marking on it. You can press one of those faces, expend the number of charges required for it, and thereby cast the spell associated with it (save DC 17), as shown in the Cube of Force Faces table.\n\nThe cube starts with 10 charges, and it regains 1d6 expended charges daily at dawn.\n\n**Cube of Force Faces**\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[mage-armor|Mage Armor]] | 1 |\n| [[shield]] | 1 |\n| Leomund's Tiny Hut | 3 |\n| Mordenkainen's Private Sanctum | 4 |\n| Otiluke's Resilient Sphere | 4 |\n| [[wall-of-force|Wall of Force]] | 5 |",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Rare",

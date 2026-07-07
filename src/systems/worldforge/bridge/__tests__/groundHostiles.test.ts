@@ -11,7 +11,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { RegionMarker, RegionZone } from '../../artifacts';
-import { generateGroundHostiles, hasHostileZoneContext } from '../groundHostiles';
+import { generateGroundHostiles, hasHostileZoneContext, DUNGEON_ENTRANCE_MARKER_TYPES } from '../groundHostiles';
 
 // ============================================================================
 // Fixtures
@@ -80,9 +80,12 @@ describe('generateGroundHostiles', () => {
   });
 
   it('produces hostiles from multiple marker types', () => {
+    // Pillar 2 seam: dungeon-flavored types (caves/dungeons/…) now surface as
+    // sealed-door ENTRANCES, not surface swarms — so this uses only NON-dungeon
+    // hostile types (see the dedicated seam test below for the excluded types).
     const markers: RegionMarker[] = [
       makeMarker('brigands', 100, 100),
-      makeMarker('caves', 300, 300),
+      makeMarker('hill-monsters', 300, 300),
       makeMarker('pirates', 400, 400),
     ];
     const result = generateGroundHostiles(
@@ -92,8 +95,21 @@ describe('generateGroundHostiles', () => {
     );
     const ids = result.map((h) => h.id);
     expect(ids.some((id) => id.includes('brigands'))).toBe(true);
-    expect(ids.some((id) => id.includes('caves'))).toBe(true);
+    expect(ids.some((id) => id.includes('hill-monsters'))).toBe(true);
     expect(ids.some((id) => id.includes('pirates'))).toBe(true);
+  });
+
+  it('dungeon-flavored markers no longer spawn SURFACE hostiles (Pillar 2 seam)', () => {
+    // These four types are claimed by the world-grown dungeon layer and surface
+    // as entrances (GroundWorld.dungeonEntrances) instead — no double spawn.
+    for (const type of DUNGEON_ENTRANCE_MARKER_TYPES) {
+      const result = generateGroundHostiles(
+        [makeMarker(type, 250, 250)], undefined, 42,
+        DEFAULT_BOUNDS.x, DEFAULT_BOUNDS.y,
+        DEFAULT_BOUNDS.width, DEFAULT_BOUNDS.height,
+      );
+      expect(result).toHaveLength(0);
+    }
   });
 
   it('is deterministic — same inputs produce identical output', () => {
@@ -199,10 +215,12 @@ describe('generateGroundHostiles', () => {
   });
 
   it('all hostile marker types produce at least one creature', () => {
+    // Excludes the four dungeon-entrance types (caves/dungeons/necropolises/
+    // disturbed-burials) — Pillar 2 surfaces those as sealed doors, not swarms.
     const hostileTypes = [
-      'brigands', 'pirates', 'hill-monsters', 'caves', 'dungeons',
-      'lake-monsters', 'sea-monsters', 'necropolises',
-      'disturbed-burials', 'rifts', 'encounters',
+      'brigands', 'pirates', 'hill-monsters',
+      'lake-monsters', 'sea-monsters',
+      'rifts', 'encounters',
     ];
     for (const type of hostileTypes) {
       const result = generateGroundHostiles(

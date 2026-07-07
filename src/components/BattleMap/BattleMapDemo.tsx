@@ -25,7 +25,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef, useContext } 
 import BattleMap from './BattleMap';
 import BattleMap3D from './BattleMap3D';
 import { PlayerCharacter } from '../../types';
-import { Ability, BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
+import { Ability, BattleMapBiome, BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useAbilitySystem } from '../../hooks/useAbilitySystem';
@@ -163,7 +163,7 @@ interface BattleMapDemoProps {
   party: PlayerCharacter[]; // The full party data
 }
 
-type BiomeType = 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp';
+type BiomeType = BattleMapBiome;
 
 // ---------------------------------------------------------------------------
 // 3D Controls Help Panel
@@ -518,7 +518,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   }, []);
 
   return (
-    <div className="bg-gray-900 text-white h-screen flex flex-col p-4 overflow-hidden">
+    <div className="bg-gray-900 text-white h-full flex flex-col p-4 overflow-hidden">
       {sheetCharacter && (
         <CharacterSheetModal
           isOpen={!!sheetCharacter}
@@ -533,68 +533,72 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
           }}
         />
       )}
-      <div className="flex justify-between items-center mb-4">
+      <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <h1 className="text-3xl font-bold text-amber-400 font-cinzel">Battle Map</h1>
-        <button
-          onClick={onExit}
-          className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg shadow"
-        >
-          End Battle
-        </button>
-      </div>
-
-      <div className="flex flex-wrap gap-4 mb-4 items-center bg-gray-800 p-3 rounded-lg">
-        <div>
-          <label htmlFor="biomeSelect" className="block text-sm font-medium text-sky-300">
-            Select Biome
-          </label>
-          <select
-            id="biomeSelect"
-            value={biome}
-            onChange={(e) => {
-              const nextBiome = e.target.value as BiomeType;
-              const baseCombatants = getBaseCombatants();
-              const setup = generateBattleSetup(nextBiome, seed, baseCombatants);
-
-              setBiome(nextBiome);
-              setCombatLog([]);
-              _setSelectedCharacterId(null);
-              setSheetCharacter(null);
-              setAutoCharacters(new Set());
-              setMapData(setup.mapData);
-              setCharacters(setup.positionedCharacters);
-              turnManager.initializeCombat(setup.positionedCharacters);
-            }}
-            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-600 bg-gray-700 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm rounded-md"
+        <div className="flex flex-col items-end gap-2">
+          <button
+            onClick={onExit}
+            className="rounded-md bg-red-600 px-3 py-1.5 text-sm shadow hover:bg-red-500"
           >
-            <option value="forest">Forest</option>
-            <option value="cave">Cave</option>
-            <option value="dungeon">Dungeon</option>
-            <option value="desert">Desert</option>
-            <option value="swamp">Swamp</option>
-          </select>
+            End Battle
+          </button>
+
+          {/* Compact demo controls stay right-aligned so they do not cover the
+              left-side Move/Attack controls above the tactical board. */}
+          <div className="flex max-w-full flex-wrap items-end justify-end gap-2 rounded-lg bg-gray-800/90 p-2 shadow-inner">
+            <div className="min-w-[7rem]">
+              <label htmlFor="biomeSelect" className="block text-[10px] font-semibold uppercase tracking-wide text-sky-300">
+                Biome
+              </label>
+              <select
+                id="biomeSelect"
+                value={biome}
+                onChange={(e) => {
+                  const nextBiome = e.target.value as BiomeType;
+                  const baseCombatants = getBaseCombatants();
+                  const setup = generateBattleSetup(nextBiome, seed, baseCombatants);
+
+                  setBiome(nextBiome);
+                  setCombatLog([]);
+                  _setSelectedCharacterId(null);
+                  setSheetCharacter(null);
+                  setAutoCharacters(new Set());
+                  setMapData(setup.mapData);
+                  setCharacters(setup.positionedCharacters);
+                  turnManager.initializeCombat(setup.positionedCharacters);
+                }}
+                className="mt-0.5 block h-8 w-full rounded-md border-gray-600 bg-gray-700 py-1 pl-2 pr-7 text-xs focus:border-sky-500 focus:outline-none focus:ring-sky-500"
+              >
+                <option value="forest">Forest</option>
+                <option value="cave">Cave</option>
+                <option value="dungeon">Dungeon</option>
+                <option value="desert">Desert</option>
+                <option value="swamp">Swamp</option>
+              </select>
+            </div>
+            <button
+              onClick={handleGenerate}
+              className="h-8 rounded-md bg-green-600 px-3 text-xs font-semibold shadow hover:bg-green-500"
+            >
+              New Map
+            </button>
+            <button
+              onClick={turnManager.endTurn}
+              disabled={!turnManager.isCharacterTurn(currentCharacter?.id || '')}
+              className="h-8 rounded-md bg-orange-600 px-3 text-xs font-semibold shadow hover:bg-orange-500 disabled:bg-gray-500"
+            >
+              End Turn
+            </button>
+            {/* [2026-05-21] 2D/3D render mode toggle */}
+            <button
+              onClick={() => setRenderMode(renderMode === '2d' ? '3d' : '2d')}
+              className="h-8 rounded-md bg-indigo-600 px-3 text-xs font-bold shadow hover:bg-indigo-500"
+              title={`Switch to ${renderMode === '2d' ? '3D' : '2D'} view`}
+            >
+              {renderMode === '2d' ? '🎮 3D View' : '🗺️ 2D View'}
+            </button>
+          </div>
         </div>
-        <button
-          onClick={handleGenerate}
-          className="self-end px-5 py-2 bg-green-600 hover:bg-green-500 rounded-lg shadow"
-        >
-          New Map
-        </button>
-        <button
-          onClick={turnManager.endTurn}
-          disabled={!turnManager.isCharacterTurn(currentCharacter?.id || '')}
-          className="self-end px-5 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg shadow disabled:bg-gray-500"
-        >
-          End Turn
-        </button>
-        {/* [2026-05-21] 2D/3D render mode toggle */}
-        <button
-          onClick={() => setRenderMode(renderMode === '2d' ? '3d' : '2d')}
-          className="self-end px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow font-bold text-sm"
-          title={`Switch to ${renderMode === '2d' ? '3D' : '2D'} view`}
-        >
-          {renderMode === '2d' ? '🎮 3D View' : '🗺️ 2D View'}
-        </button>
       </div>
 
       <div className="flex-grow min-h-0 grid grid-cols-1 xl:grid-cols-5 gap-4 overflow-hidden">

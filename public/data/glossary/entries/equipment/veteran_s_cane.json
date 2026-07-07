@@ -7,13 +7,13 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "As a bonus_action Action, you can transform this walking cane into an ordinary Longsword or change the Longsword back into a walking cane. In either c...",
+  "excerpt": "As a bonus_action|Bonus Action, you can transform this walking cane into an ordinary Longsword or change the Longsword back into a walking cane. In ei...",
   "aliases": [],
   "seeAlso": [
-    "bonus_action Action"
+    "bonus_action"
   ],
   "filePath": "/data/glossary/entries/equipment/veteran_s_cane.json",
-  "markdown": "# Veteran's Cane\n\nAs a [[bonus_action Action]], you can transform this walking cane into an ordinary Longsword or change the Longsword back into a walking cane. In either case, you must be holding the item.",
+  "markdown": "# Veteran's Cane\n\nAs a [[bonus_action]], you can transform this walking cane into an ordinary Longsword or change the Longsword back into a walking cane. In either case, you must be holding the item.",
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Common"

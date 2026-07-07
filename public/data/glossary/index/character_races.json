@@ -21,10 +21,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "aasimar",
-          "humanoid",
-          "radiant_damage",
-          "necrotic_damage",
           "frightened"
         ],
         "filePath": "/data/glossary/entries/races/aasimar_variants/fallen.json"
@@ -43,12 +39,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "aasimar",
-          "humanoid",
-          "radiant_damage",
-          "necrotic_damage"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/aasimar_variants/protector.json"
       },
       {
@@ -65,12 +56,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "aasimar",
-          "humanoid",
-          "radiant_damage",
-          "necrotic_damage"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/aasimar_variants/scourge.json"
       }
     ]
@@ -98,9 +84,7 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "humanoid",
-          "flight",
-          "gust_of_wind"
+          "gust-of-wind"
         ],
         "filePath": "/data/glossary/entries/races/aarakocra.json"
       },
@@ -120,10 +104,7 @@
           "hippofolk",
           "space hippo"
         ],
-        "seeAlso": [
-          "humanoid",
-          "firearms"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/giff.json"
       },
       {
@@ -142,9 +123,7 @@
           "deck ape",
           "gliding monkey"
         ],
-        "seeAlso": [
-          "humanoid"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/hadozee.json"
       },
       {
@@ -164,11 +143,7 @@
           "rabbitfolk",
           "harefolk"
         ],
-        "seeAlso": [
-          "humanoid",
-          "fey",
-          "feywild"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/harengon.json"
       },
       {
@@ -186,7 +161,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "humanoid",
           "deception",
           "insight",
           "skill_proficiencies"
@@ -210,7 +184,6 @@
           "lionfolk"
         ],
         "seeAlso": [
-          "humanoid",
           "frightened"
         ],
         "filePath": "/data/glossary/entries/races/leonin.json"
@@ -229,10 +202,7 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "humanoid",
-          "swim_speed",
-          "hungry_jaws",
-          "natural_armor"
+          "swim_speed"
         ],
         "filePath": "/data/glossary/entries/races/lizardfolk.json"
       },
@@ -252,7 +222,6 @@
           "elephantfolk"
         ],
         "seeAlso": [
-          "humanoid",
           "charmed",
           "frightened"
         ],
@@ -271,11 +240,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "humanoid",
-          "goring_rush",
-          "hammering_horns"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/minotaur.json"
       },
       {
@@ -293,7 +258,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "humanoid",
           "darkvision",
           "climb_speed",
           "perception",
@@ -319,7 +283,6 @@
           "mantis folk"
         ],
         "seeAlso": [
-          "monstrosity",
           "long_rest"
         ],
         "filePath": "/data/glossary/entries/races/thri_kreen.json"
@@ -337,11 +300,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "humanoid",
-          "natural_armor",
-          "shell_defense"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/tortle.json"
       },
       {
@@ -360,12 +319,7 @@
           "snake-folk",
           "yuan-ti"
         ],
-        "seeAlso": [
-          "humanoid",
-          "magic_resistance",
-          "poison_damage",
-          "serpentine_casting"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/yuan_ti.json"
       }
     ]
@@ -393,8 +347,6 @@
           "clockwork gnome"
         ],
         "seeAlso": [
-          "construct",
-          "gnome",
           "mending"
         ],
         "filePath": "/data/glossary/entries/races/autognome.json"
@@ -416,9 +368,7 @@
           "forged"
         ],
         "seeAlso": [
-          "humanoid",
-          "poisoned",
-          "poison_damage"
+          "poisoned"
         ],
         "filePath": "/data/glossary/entries/races/warforged.json"
       }
@@ -445,11 +395,7 @@
         "aliases": [
           "black ancestry"
         ],
-        "seeAlso": [
-          "dragonborn",
-          "acid_damage",
-          "breath_weapon"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/black.json"
       },
       {
@@ -466,11 +412,7 @@
         "aliases": [
           "blue ancestry"
         ],
-        "seeAlso": [
-          "dragonborn",
-          "lightning_damage",
-          "breath_weapon"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/blue.json"
       },
       {
@@ -487,11 +429,7 @@
         "aliases": [
           "brass ancestry"
         ],
-        "seeAlso": [
-          "dragonborn",
-          "fire_damage",
-          "breath_weapon"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/brass.json"
       },
       {
@@ -508,11 +446,7 @@
         "aliases": [
           "bronze ancestry"
         ],
-        "seeAlso": [
-          "dragonborn",
-          "lightning_damage",
-          "breath_weapon"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/bronze.json"
       },
       {
@@ -529,11 +463,10 @@
           "draconblood"
         ],
         "seeAlso": [
-          "dragonborn",
           "ravenite_dragonborn",
           "thaumaturgy",
-          "comprehend_languages",
-          "detect_magic"
+          "comprehend-languages",
+          "detect-magic"
         ],
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/draconblood.json"
       },
@@ -551,11 +484,7 @@
         "aliases": [
           "green ancestry"
         ],
-        "seeAlso": [
-          "dragonborn",
-          "poison_damage",
-          "breath_weapon"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/green.json"
       },
       {
@@ -572,10 +501,7 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "humanoid",
-          "darkvision",
-          "draconic_cry",
-          "kobold_legacy"
+          "darkvision"
         ],
         "filePath": "/data/glossary/entries/races/kobold.json"
       },
@@ -593,7 +519,6 @@
           "ravenite"
         ],
         "seeAlso": [
-          "dragonborn",
           "draconblood_dragonborn",
           "reaction"
         ],
@@ -613,11 +538,7 @@
         "aliases": [
           "red ancestry"
         ],
-        "seeAlso": [
-          "dragonborn",
-          "fire_damage",
-          "breath_weapon"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/red.json"
       },
       {
@@ -634,11 +555,7 @@
         "aliases": [
           "white ancestry"
         ],
-        "seeAlso": [
-          "dragonborn",
-          "cold_damage",
-          "breath_weapon"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/white.json"
       }
     ]
@@ -666,10 +583,7 @@
           "gray dwarf"
         ],
         "seeAlso": [
-          "dwarf",
-          "darkvision",
-          "duergar_magic",
-          "psionic_fortitude"
+          "darkvision"
         ],
         "filePath": "/data/glossary/entries/races/duergar.json"
       },
@@ -689,7 +603,6 @@
           "surface dwarf"
         ],
         "seeAlso": [
-          "dwarf",
           "darkvision",
           "duergar"
         ],
@@ -710,10 +623,7 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "dwarf",
-          "hill_dwarf",
-          "humanoid",
-          "poison"
+          "hill_dwarf"
         ],
         "filePath": "/data/glossary/entries/races/dwarf_subraces/mountain_dwarf.json"
       },
@@ -735,8 +645,6 @@
           "kundarak"
         ],
         "seeAlso": [
-          "dwarf",
-          "humanoid",
           "alarm"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/runeward_dwarf.json"
@@ -766,9 +674,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "eladrin",
-          "elf",
-          "fey",
           "charmed"
         ],
         "filePath": "/data/glossary/entries/races/eladrin_seasons/autumn.json"
@@ -789,9 +694,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "eladrin",
-          "elf",
-          "fey",
           "charmed"
         ],
         "filePath": "/data/glossary/entries/races/eladrin_seasons/spring.json"
@@ -812,11 +714,7 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "eladrin",
-          "elf",
-          "fey",
-          "charmed",
-          "fire_damage"
+          "charmed"
         ],
         "filePath": "/data/glossary/entries/races/eladrin_seasons/summer.json"
       },
@@ -836,9 +734,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "eladrin",
-          "elf",
-          "fey",
           "charmed",
           "frightened"
         ],
@@ -867,8 +762,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "elf",
-          "humanoid",
           "charmed"
         ],
         "filePath": "/data/glossary/entries/races/elf_lineages/astral_elf.json"
@@ -888,10 +781,9 @@
           "dark elf"
         ],
         "seeAlso": [
-          "elf",
           "darkvision",
-          "dancing_lights",
-          "faerie_fire",
+          "dancing-lights",
+          "faerie-fire",
           "darkness"
         ],
         "filePath": "/data/glossary/entries/races/elf_lineages/drow.json"
@@ -912,11 +804,10 @@
           "moon elf"
         ],
         "seeAlso": [
-          "elf",
           "cantrip",
           "prestidigitation",
-          "detect_magic",
-          "misty_step"
+          "detect-magic",
+          "misty-step"
         ],
         "filePath": "/data/glossary/entries/races/elf_lineages/high_elf.json"
       },
@@ -936,8 +827,6 @@
           "pallid"
         ],
         "seeAlso": [
-          "elf",
-          "humanoid",
           "light",
           "sleep",
           "invisibility"
@@ -961,8 +850,6 @@
           "aquatic elf"
         ],
         "seeAlso": [
-          "elf",
-          "humanoid",
           "charmed"
         ],
         "filePath": "/data/glossary/entries/races/elf_lineages/sea_elf.json"
@@ -984,10 +871,7 @@
           "shadow elf"
         ],
         "seeAlso": [
-          "elf",
-          "humanoid",
-          "charmed",
-          "necrotic_damage"
+          "charmed"
         ],
         "filePath": "/data/glossary/entries/races/elf_lineages/shadar_kai.json"
       },
@@ -1007,10 +891,9 @@
           "green elf"
         ],
         "seeAlso": [
-          "elf",
           "druidcraft",
           "longstrider",
-          "pass_without_trace",
+          "pass-without-trace",
           "speed"
         ],
         "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf.json"
@@ -1035,8 +918,6 @@
           "thuranni"
         ],
         "seeAlso": [
-          "elf",
-          "humanoid",
           "invisibility"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/shadowveil_elf.json"
@@ -1064,12 +945,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "fey",
-          "charge",
-          "hooves",
-          "natural_affinity"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/centaur.json"
       },
       {
@@ -1085,11 +961,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "fey",
-          "fairy_magic",
-          "flight"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/fairy.json"
       },
       {
@@ -1106,12 +978,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "firbolg_magic",
-          "hidden_step",
-          "powerful_build",
-          "speech_of_beast_and_leaf"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/firbolg.json"
       },
       {
@@ -1127,11 +994,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "fey",
-          "magic_resistance",
-          "mirthful_leaps"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/satyr.json"
       }
     ]
@@ -1157,8 +1020,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "genasi",
-          "lightning_resistance",
           "levitate"
         ],
         "filePath": "/data/glossary/entries/races/air_genasi.json"
@@ -1177,10 +1038,8 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "genasi",
-          "earth_walk",
-          "blade_ward",
-          "pass_without_trace"
+          "blade-ward",
+          "pass-without-trace"
         ],
         "filePath": "/data/glossary/entries/races/earth_genasi.json"
       },
@@ -1198,10 +1057,8 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "genasi",
-          "fire_resistance",
-          "burning_hands",
-          "flame_blade"
+          "burning-hands",
+          "flame-blade"
         ],
         "filePath": "/data/glossary/entries/races/fire_genasi.json"
       },
@@ -1219,10 +1076,7 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "genasi",
-          "acid_resistance",
-          "amphibious",
-          "create_or_destroy_water"
+          "create-or-destroy-water"
         ],
         "filePath": "/data/glossary/entries/races/water_genasi.json"
       }
@@ -1248,11 +1102,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "astral_knowledge",
-          "githyanki_psionics",
-          "psychic_resilience"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/githyanki.json"
       },
       {
@@ -1269,11 +1119,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "githzerai_psionics",
-          "mental_discipline",
-          "psychic_resilience"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/githzerai.json"
       }
     ]
@@ -1301,10 +1147,8 @@
           "svirfneblin"
         ],
         "seeAlso": [
-          "gnome",
           "darkvision",
-          "gnomish_cunning",
-          "disguise_self",
+          "disguise-self",
           "nondetection"
         ],
         "filePath": "/data/glossary/entries/races/deep_gnome.json"
@@ -1324,9 +1168,8 @@
           "wild gnome"
         ],
         "seeAlso": [
-          "gnome",
-          "minor_illusion",
-          "speak_with_animals"
+          "minor-illusion",
+          "speak-with-animals"
         ],
         "filePath": "/data/glossary/entries/races/gnome_subraces/forest_gnome.json"
       },
@@ -1345,7 +1188,6 @@
           "tinker gnome"
         ],
         "seeAlso": [
-          "gnome",
           "mending",
           "prestidigitation",
           "tinkers_tools"
@@ -1370,8 +1212,6 @@
           "sivis"
         ],
         "seeAlso": [
-          "gnome",
-          "humanoid",
           "message"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/wordweaver_gnome.json"
@@ -1401,7 +1241,6 @@
           "cloud_giant"
         ],
         "seeAlso": [
-          "goliath",
           "bonus_action",
           "teleport"
         ],
@@ -1422,10 +1261,7 @@
         "aliases": [
           "fire_giant"
         ],
-        "seeAlso": [
-          "goliath",
-          "fire_damage"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/goliath_ancestries/fire_giant_goliath.json"
       },
       {
@@ -1444,8 +1280,6 @@
           "frost_giant"
         ],
         "seeAlso": [
-          "goliath",
-          "cold_damage",
           "speed"
         ],
         "filePath": "/data/glossary/entries/races/goliath_ancestries/frost_giant_goliath.json"
@@ -1466,7 +1300,6 @@
           "hill_giant"
         ],
         "seeAlso": [
-          "goliath",
           "prone_condition"
         ],
         "filePath": "/data/glossary/entries/races/goliath_ancestries/hill_giant_goliath.json"
@@ -1487,7 +1320,6 @@
           "stone_giant"
         ],
         "seeAlso": [
-          "goliath",
           "reaction",
           "constitution"
         ],
@@ -1509,9 +1341,7 @@
           "storm_giant"
         ],
         "seeAlso": [
-          "goliath",
-          "reaction",
-          "thunder_damage"
+          "reaction"
         ],
         "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant_goliath.json"
       }
@@ -1539,10 +1369,7 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "goblinoid",
           "darkvision",
-          "fey_ancestry",
-          "powerful_build",
           "stealth"
         ],
         "filePath": "/data/glossary/entries/races/bugbear.json"
@@ -1565,8 +1392,7 @@
         ],
         "seeAlso": [
           "human",
-          "orc",
-          "humanoid"
+          "orc"
         ],
         "filePath": "/data/glossary/entries/races/half_orc.json"
       },
@@ -1585,10 +1411,8 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "humanoid",
           "goblin",
-          "bugbear",
-          "fey_ancestry"
+          "bugbear"
         ],
         "filePath": "/data/glossary/entries/races/hobgoblin.json"
       },
@@ -1607,7 +1431,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "humanoid",
           "goblin",
           "hobgoblin"
         ],
@@ -1632,8 +1455,7 @@
         ],
         "seeAlso": [
           "half_orc",
-          "humanoid",
-          "hunter's_mark"
+          "hunter"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/pathfinder_half_orc.json"
       }
@@ -1663,9 +1485,7 @@
           "half-elf"
         ],
         "seeAlso": [
-          "human",
-          "elf",
-          "humanoid"
+          "human"
         ],
         "filePath": "/data/glossary/entries/races/half_elf.json"
       },
@@ -1688,7 +1508,6 @@
         "seeAlso": [
           "half_elf",
           "sea_elf",
-          "humanoid",
           "charmed"
         ],
         "filePath": "/data/glossary/entries/races/half_elf_variants/aquatic.json"
@@ -1712,7 +1531,6 @@
         "seeAlso": [
           "half_elf",
           "drow",
-          "humanoid",
           "charmed"
         ],
         "filePath": "/data/glossary/entries/races/half_elf_variants/drow.json"
@@ -1734,7 +1552,6 @@
         "seeAlso": [
           "half_elf",
           "high_elf",
-          "humanoid",
           "charmed"
         ],
         "filePath": "/data/glossary/entries/races/half_elf_variants/high.json"
@@ -1756,7 +1573,6 @@
         "seeAlso": [
           "half_elf",
           "wood_elf",
-          "humanoid",
           "charmed"
         ],
         "filePath": "/data/glossary/entries/races/half_elf_variants/wood.json"
@@ -1780,8 +1596,7 @@
         ],
         "seeAlso": [
           "half_elf",
-          "humanoid",
-          "detect_magic"
+          "detect-magic"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/seersight_half_elf.json"
       },
@@ -1803,9 +1618,7 @@
           "lyrandar"
         ],
         "seeAlso": [
-          "half_elf",
-          "humanoid",
-          "lightning_damage"
+          "half_elf"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/stormborn_half_elf.json"
       }
@@ -1834,7 +1647,6 @@
         "aliases": [],
         "seeAlso": [
           "halfling",
-          "humanoid",
           "frightened"
         ],
         "filePath": "/data/glossary/entries/races/halfling_subraces/lightfoot.json"
@@ -1857,7 +1669,6 @@
         ],
         "seeAlso": [
           "halfling",
-          "humanoid",
           "druidcraft",
           "entangle"
         ],
@@ -1881,9 +1692,7 @@
         ],
         "seeAlso": [
           "halfling",
-          "humanoid",
-          "frightened",
-          "poison"
+          "frightened"
         ],
         "filePath": "/data/glossary/entries/races/halfling_subraces/stout.json"
       },
@@ -1906,7 +1715,6 @@
         ],
         "seeAlso": [
           "halfling",
-          "humanoid",
           "prestidigitation"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/hearthkeeper_halfling.json"
@@ -1930,8 +1738,7 @@
         ],
         "seeAlso": [
           "halfling",
-          "humanoid",
-          "cure_wounds"
+          "cure-wounds"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/mender_halfling.json"
       }
@@ -1958,9 +1765,7 @@
           "humankind"
         ],
         "seeAlso": [
-          "humanoid",
           "skill_proficiencies",
-          "feats",
           "heroic_inspiration"
         ],
         "filePath": "/data/glossary/entries/races/human.json"
@@ -1984,8 +1789,7 @@
         ],
         "seeAlso": [
           "human",
-          "humanoid",
-          "animal_friendship"
+          "animal-friendship"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/beastborn_human.json"
       },
@@ -2008,7 +1812,6 @@
         ],
         "seeAlso": [
           "human",
-          "humanoid",
           "mending"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/forgeborn_human.json"
@@ -2032,7 +1835,6 @@
         ],
         "seeAlso": [
           "human",
-          "humanoid",
           "shield"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/guardian_human.json"
@@ -2056,8 +1858,7 @@
         ],
         "seeAlso": [
           "human",
-          "humanoid",
-          "misty_step"
+          "misty-step"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/wayfarer_human.json"
       }
@@ -2083,10 +1884,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "humanoid",
-          "psychic_damage"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/kalashtar.json"
       },
       {
@@ -2103,7 +1901,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "humanoid",
           "halfling"
         ],
         "filePath": "/data/glossary/entries/races/kender.json"
@@ -2125,7 +1922,6 @@
           "simic guardian"
         ],
         "seeAlso": [
-          "humanoid",
           "vedalken"
         ],
         "filePath": "/data/glossary/entries/races/simic_hybrid.json"
@@ -2145,12 +1941,10 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "humanoid",
           "darkvision",
-          "cold_resistance",
-          "fog_cloud",
-          "gust_of_wind",
-          "water_walk"
+          "fog-cloud",
+          "gust-of-wind",
+          "water-walk"
         ],
         "filePath": "/data/glossary/entries/races/triton.json"
       },
@@ -2168,7 +1962,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "humanoid",
           "simic_hybrid"
         ],
         "filePath": "/data/glossary/entries/races/vedalken.json"
@@ -2195,11 +1988,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "fey",
-          "changeling_instincts",
-          "shapechanger"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/changeling.json"
       },
       {
@@ -2216,10 +2005,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "shifter",
-          "humanoid"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/shifter_variants/beasthide.json"
       },
       {
@@ -2236,10 +2022,7 @@
         ],
         "excerpt": "No excerpt available.",
         "aliases": [],
-        "seeAlso": [
-          "shifter",
-          "humanoid"
-        ],
+        "seeAlso": [],
         "filePath": "/data/glossary/entries/races/shifter_variants/longtooth.json"
       },
       {
@@ -2256,9 +2039,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "ooze",
-          "acid_damage",
-          "poison_damage",
           "poisoned"
         ],
         "filePath": "/data/glossary/entries/races/plasmoid.json"
@@ -2278,8 +2058,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "shifter",
-          "humanoid",
           "opportunity_attack"
         ],
         "filePath": "/data/glossary/entries/races/shifter_variants/swiftstride.json"
@@ -2299,8 +2077,6 @@
         "excerpt": "No excerpt available.",
         "aliases": [],
         "seeAlso": [
-          "shifter",
-          "humanoid",
           "incapacitated"
         ],
         "filePath": "/data/glossary/entries/races/shifter_variants/wildhunt.json"
@@ -2330,11 +2106,9 @@
           "chthonic legacy"
         ],
         "seeAlso": [
-          "tiefling",
-          "necrotic_damage",
-          "chill_touch",
-          "false_life",
-          "ray_of_enfeeblement"
+          "chill-touch",
+          "false-life",
+          "ray-of-enfeeblement"
         ],
         "filePath": "/data/glossary/entries/races/tiefling_legacies/chthonic.json"
       }

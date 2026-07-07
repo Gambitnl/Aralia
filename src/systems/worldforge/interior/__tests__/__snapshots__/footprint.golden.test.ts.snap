@@ -1,0 +1,184 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`genFootprint draw-order golden > pins cottage @ seed 1 1`] = `
+[
+  "8x3",
+  "########",
+  "########",
+  "..######",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins cottage @ seed 42 1`] = `
+[
+  "7x4",
+  "...####",
+  "#######",
+  "#######",
+  "#######",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins cottage @ seed 12345 1`] = `
+[
+  "6x6",
+  ".###..",
+  ".###..",
+  ".###..",
+  "######",
+  "######",
+  "######",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins manor @ seed 1 1`] = `
+[
+  "14x6",
+  "..############",
+  "##############",
+  "##############",
+  "##############",
+  "..############",
+  "..############",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins manor @ seed 42 1`] = `
+[
+  "13x9",
+  "...........##",
+  "...##########",
+  "...#########.",
+  "...#########.",
+  "############.",
+  "############.",
+  "############.",
+  "############.",
+  "############.",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins manor @ seed 12345 1`] = `
+[
+  "14x11",
+  ".....####.....",
+  ".....####.....",
+  ".....####.....",
+  "..############",
+  "..############",
+  "..############",
+  "..############",
+  "..############",
+  "##############",
+  "###...........",
+  "###...........",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins shop @ seed 1 1`] = `
+[
+  "8x4",
+  "..######",
+  "########",
+  "########",
+  "..######",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins shop @ seed 42 1`] = `
+[
+  "7x5",
+  "...####",
+  "...####",
+  "#######",
+  "#######",
+  "#######",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins shop @ seed 12345 1`] = `
+[
+  "6x7",
+  ".###..",
+  ".###..",
+  ".###..",
+  "######",
+  "######",
+  "######",
+  "######",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins tavern @ seed 1 1`] = `
+[
+  "11x5",
+  "..#########",
+  "###########",
+  "###########",
+  "..#########",
+  "..#########",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins tavern @ seed 42 1`] = `
+[
+  "11x6",
+  "...######..",
+  "...######..",
+  "#########..",
+  "###########",
+  "###########",
+  "###########",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins tavern @ seed 12345 1`] = `
+[
+  "9x11",
+  "..###....",
+  "..###....",
+  "..###....",
+  "#########",
+  "#########",
+  "#########",
+  "#########",
+  "#########",
+  "######...",
+  "######...",
+  "######...",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins workshop @ seed 1 1`] = `
+[
+  "9x4",
+  "..#######",
+  "#########",
+  "#########",
+  "..#######",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins workshop @ seed 42 1`] = `
+[
+  "8x5",
+  "...#####",
+  "...#####",
+  "########",
+  "########",
+  "########",
+]
+`;
+
+exports[`genFootprint draw-order golden > pins workshop @ seed 12345 1`] = `
+[
+  "7x7",
+  ".###...",
+  ".###...",
+  ".###...",
+  "#######",
+  "#######",
+  "#######",
+  "#######",
+]
+`;

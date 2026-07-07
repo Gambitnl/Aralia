@@ -6,12 +6,12 @@
     "source:xphb",
     "itemProperty"
   ],
-  "excerpt": "Loading You can fire only one piece of ammunition from a Loading weapon when you use an action, a bonus_action Action, or a reaction to fire it, regar...",
+  "excerpt": "Loading You can fire only one piece of ammunition from a Loading weapon when you use an action, a bonus_action|Bonus Action, or a reaction|Reaction to...",
   "aliases": [],
   "seeAlso": [
-    "bonus_action Action",
+    "bonus_action",
     "reaction"
   ],
   "filePath": "/data/glossary/entries/rules/ld.json",
-  "markdown": "# LD\n\n## Loading\n\nYou can fire only one piece of ammunition from a Loading weapon when you use an action, a [[bonus_action Action]], or a [[reaction]] to fire it, regardless of the number of attacks you can normally make."
+  "markdown": "# LD\n\n## Loading\n\nYou can fire only one piece of ammunition from a Loading weapon when you use an action, a [[bonus_action]], or a [[reaction]] to fire it, regardless of the number of attacks you can normally make."
 }

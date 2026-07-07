@@ -6,7 +6,7 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "When you make a Charisma (intimidation, performance, or persuasion) check, you can expend one Superiority Die and add that die to the roll....",
+  "excerpt": "When you make a Charisma (intimidation|Intimidation, performance|Performance, or persuasion|Persuasion) check, you can expend one Superiority Die and ...",
   "aliases": [],
   "seeAlso": [
     "intimidation",

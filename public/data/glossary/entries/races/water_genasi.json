@@ -47,10 +47,7 @@
   ],
   "aliases": [],
   "seeAlso": [
-    "genasi",
-    "acid_resistance",
-    "amphibious",
-    "create_or_destroy_water"
+    "create-or-destroy-water"
   ],
   "filePath": "/data/glossary/entries/races/water_genasi.json",
   "maleImageUrl": "/assets/images/races/Genasi_Water_Male.png",

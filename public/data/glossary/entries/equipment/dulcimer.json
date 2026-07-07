@@ -7,11 +7,11 @@
     "baseitem",
     "itemType:Instrument"
   ],
-  "excerpt": "- Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
+  "excerpt": "- Ability: Charisma - Utilize: Play a known tune (DC 10), or improvise a song (DC 15)...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/dulcimer.json",
-  "markdown": "# Dulcimer\n\n- **Ability::** Charisma\n- **Utilize::** Play a known tune (DC 10), or improvise a song (DC 15)",
+  "markdown": "# Dulcimer\n\n- **Ability:** Charisma\n- **Utilize:** Play a known tune (DC 10), or improvise a song (DC 15)",
   "itemMetadata": {
     "type": "Instrument",
     "rarity": "None",

@@ -7,7 +7,7 @@
     "item",
     "itemType:Wondrous Item"
   ],
-  "excerpt": "{itemEntry Ioun Stone} While this marbled lavender and green ellipsoid orbits your head, you can take a reaction to cancel a spell of level 8 or lower...",
+  "excerpt": "{itemEntry Ioun Stone} While this marbled lavender and green ellipsoid orbits your head, you can take a reaction|Reaction to cancel a spell of level 8...",
   "aliases": [],
   "seeAlso": [
     "reaction"

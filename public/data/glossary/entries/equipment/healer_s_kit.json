@@ -7,16 +7,16 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A Healer's Kit has ten uses. As a utilize action, you can expend one of its uses to stabilize an unconscious creature that has 0 hit_points Points wit...",
+  "excerpt": "A Healer's Kit has ten uses. As a utilize|Utilize action, you can expend one of its uses to stabilize an unconscious|Unconscious creature that has 0 h...",
   "aliases": [],
   "seeAlso": [
     "utilize",
     "unconscious",
-    "hit_points Points",
+    "hit_points",
     "medicine"
   ],
   "filePath": "/data/glossary/entries/equipment/healer_s_kit.json",
-  "markdown": "# Healer's Kit\n\nA Healer's Kit has ten uses. As a [[utilize]] action, you can expend one of its uses to stabilize an [[unconscious]] creature that has 0 [[hit_points Points]] without needing to make a Wisdom ([[medicine]]) check.",
+  "markdown": "# Healer's Kit\n\nA Healer's Kit has ten uses. As a [[utilize]] action, you can expend one of its uses to stabilize an [[unconscious]] creature that has 0 [[hit_points]] without needing to make a Wisdom ([[medicine]]) check.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

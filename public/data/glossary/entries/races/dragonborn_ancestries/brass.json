@@ -55,11 +55,7 @@
   "aliases": [
     "brass ancestry"
   ],
-  "seeAlso": [
-    "dragonborn",
-    "fire_damage",
-    "breath_weapon"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/dragonborn_ancestries/brass.json",
   "maleImageUrl": "/assets/images/races/Dragonborn_Brass_Male.png",
   "femaleImageUrl": "/assets/images/races/Dragonborn_Brass_Female.png"

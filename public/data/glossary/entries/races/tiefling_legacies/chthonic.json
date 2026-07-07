@@ -49,11 +49,9 @@
     "chthonic legacy"
   ],
   "seeAlso": [
-    "tiefling",
-    "necrotic_damage",
-    "chill_touch",
-    "false_life",
-    "ray_of_enfeeblement"
+    "chill-touch",
+    "false-life",
+    "ray-of-enfeeblement"
   ],
   "filePath": "/data/glossary/entries/races/tiefling_legacies/chthonic.json",
   "maleImageUrl": "/assets/images/races/Tiefling_Chthonic_Male.png",

@@ -6,12 +6,12 @@
     "source:xphb",
     "itemMastery"
   ],
-  "excerpt": "When you make the extra attack of the Light property, you can make it as part of the attack action instead of as a bonus_action Action. You can make t...",
+  "excerpt": "When you make the extra attack of the Light property, you can make it as part of the attack|Attack action instead of as a bonus_action|Bonus Action. Y...",
   "aliases": [],
   "seeAlso": [
     "attack",
-    "bonus_action Action"
+    "bonus_action"
   ],
   "filePath": "/data/glossary/entries/rules/nick.json",
-  "markdown": "# Nick\n\nWhen you make the extra attack of the Light property, you can make it as part of the [[attack]] action instead of as a [[bonus_action Action]]. You can make this extra attack only once per turn."
+  "markdown": "# Nick\n\nWhen you make the extra attack of the Light property, you can make it as part of the [[attack]] action instead of as a [[bonus_action]]. You can make this extra attack only once per turn."
 }

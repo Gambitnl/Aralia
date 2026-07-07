@@ -14,15 +14,15 @@
     "disadvantage",
     "magic",
     "charmed",
-    "swim_speed Speed",
-    "create_or_destroy_water or Destroy Water",
-    "ice_storm Storm",
+    "swim_speed",
+    "create-or-destroy-water",
+    "ice-storm",
     "tsunami",
-    "wall_of_ice of Ice",
-    "water_walk Walk"
+    "wall-of-ice",
+    "water-walk"
   ],
   "filePath": "/data/glossary/entries/equipment/ring_of_elemental_command_water.json",
-  "markdown": "# Ring of Elemental Command (Water)\n\nThe Ring of Elemental Command (water) is linked to the Elemental Plane of Water. Every Ring of Elemental Command has the following two properties:\n\n- **Elemental Bane:** While wearing the ring, you have [[advantage]] on attack rolls against Elementals and they have [[disadvantage]] on attack rolls against you.\n- **Elemental Compulsion:** While wearing the ring, you can take a [[magic]] action to try to compel an Elemental you see within 60 feet of yourself. The Elemental makes a DC 18 Wisdom saving throw. On a failed save, the Elemental has the [[charmed]] condition until the start your next turn, and you determine what it does with its move and action on its next turn.\n\n## Elemental Focus\n\nWhile wearing the ring, you benefit from additional properties corresponding to the ring's linked Elemental Plane:\n\n- **Water:** You know Aquan, you gain a [[swim_speed Speed]] of 60 feet, and you can breathe underwater.\n\n## Spellcasting\n\nThe ring has 5 charges and regains 1d4 + 1 expended charges daily at dawn. While wearing the ring, you can cast a spell from it. A spell cast from the ring has a save DC of 18. Choose the spell from the following list: [[create_or_destroy_water or Destroy Water]] (1 charge), [[ice_storm Storm]] (2 charges), [[tsunami]] (5 charges), [[wall_of_ice of Ice]] (3 charges), [[water_walk Walk]] (2 charges)",
+  "markdown": "# Ring of Elemental Command (Water)\n\nThe Ring of Elemental Command (water) is linked to the Elemental Plane of Water. Every Ring of Elemental Command has the following two properties:\n\n- **Elemental Bane:** While wearing the ring, you have [[advantage]] on attack rolls against Elementals and they have [[disadvantage]] on attack rolls against you.\n- **Elemental Compulsion:** While wearing the ring, you can take a [[magic]] action to try to compel an Elemental you see within 60 feet of yourself. The Elemental makes a DC 18 Wisdom saving throw. On a failed save, the Elemental has the [[charmed]] condition until the start your next turn, and you determine what it does with its move and action on its next turn.\n\n## Elemental Focus\n\nWhile wearing the ring, you benefit from additional properties corresponding to the ring's linked Elemental Plane:\n\n- **Water:** You know Aquan, you gain a [[swim_speed]] of 60 feet, and you can breathe underwater.\n\n## Spellcasting\n\nThe ring has 5 charges and regains 1d4 + 1 expended charges daily at dawn. While wearing the ring, you can cast a spell from it. A spell cast from the ring has a save DC of 18. Choose the spell from the following list: [[create-or-destroy-water|Create or Destroy Water]] (1 charge), [[ice-storm|Ice Storm]] (2 charges), [[tsunami]] (5 charges), [[wall-of-ice|Wall of Ice]] (3 charges), [[water-walk|Water Walk]] (2 charges)",
   "itemMetadata": {
     "type": "Ring",
     "rarity": "Legendary",

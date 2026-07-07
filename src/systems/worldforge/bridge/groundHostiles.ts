@@ -108,8 +108,32 @@ const HOSTILE_MARKER_MAP: Record<string, CreatureTemplate[]> = {
   ],
 };
 
-/** Marker types considered hostile for ground-mode spawn derivation. */
-const HOSTILE_MARKER_TYPES = new Set(Object.keys(HOSTILE_MARKER_MAP));
+/**
+ * Marker types the WORLD-GROWN DUNGEON layer (Pillar 2) claims as sealed-door
+ * ENTRANCES rather than surface hostiles. These four feed
+ * `enumerateDungeonSites` → `GroundWorld.dungeonEntrances` and surface as
+ * discoverable doors in 3D; the monsters live INSIDE the dungeon, not scattered
+ * on the surface. Removing them here is THE seam fix that prevents a double
+ * spawn (a dungeon marker becoming both an entrance AND a surface swarm). They
+ * mirror `MARKER_ENTRANCE` in dungeon/world/dungeonSites.ts — keep the two in
+ * sync. Other hostile marker types (brigands/pirates/hill-monsters/…) are
+ * unchanged and still spawn surface encounters.
+ */
+export const DUNGEON_ENTRANCE_MARKER_TYPES: ReadonlySet<string> = new Set([
+  'caves',
+  'dungeons',
+  'necropolises',
+  'disturbed-burials',
+]);
+
+/**
+ * Marker types considered hostile for ground-mode SURFACE spawn derivation —
+ * every hostile-mapped type EXCEPT the dungeon-entrance types, which Pillar 2
+ * surfaces as sealed doors instead.
+ */
+const HOSTILE_MARKER_TYPES = new Set(
+  Object.keys(HOSTILE_MARKER_MAP).filter((t) => !DUNGEON_ENTRANCE_MARKER_TYPES.has(t)),
+);
 
 /**
  * Maximum scatter radius (meters) from the marker center for individual

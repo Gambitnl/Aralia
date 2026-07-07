@@ -36,6 +36,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import World3DLighting from './World3DLighting';
+import InteriorLights from './InteriorLights';
 import FreeRoamCameraController, { type CameraFrameRequest } from './FreeRoamCameraController';
 import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
 import { VegetationTrees } from './vegetation/VegetationTrees';
@@ -44,6 +45,7 @@ import { useChunkStreaming } from './useChunkStreaming';
 import World3DNameplates from './World3DNameplates';
 import GroundAgents from './GroundAgents';
 import GroundProps from './GroundProps';
+import DungeonEntrances from './DungeonEntrances';
 import SceneCast, { type SceneCastMember } from './SceneCast';
 import PlayerAvatar from './PlayerAvatar';
 import GroundMovePlane from './GroundMovePlane';
@@ -446,6 +448,21 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
   const roofForm: RoofForm = s.roofForm ?? 'hip';
   const roofGeom = useRoofGeometry(roofForm, roof.width, roof.depth, rHeight);
 
+  // Solved roof (BGv2 Task 5): a blueprint-driven building whose plan resolved a
+  // style carries a triangulated roof group in site-local meters. When present,
+  // it REPLACES the legacy whole-rect prism (gated below). Positions live in the
+  // unflipped part frame (+z inward), so the same doorZSign flip the box parts
+  // apply per-vertex is applied here via the wrapping group's z scale.
+  const solvedRoofGeom = React.useMemo(() => {
+    if (!s.solvedRoof) return null;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(s.solvedRoof.positions, 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(s.solvedRoof.normals, 3));
+    g.setIndex(new THREE.BufferAttribute(s.solvedRoof.indices, 1));
+    return g;
+  }, [s.solvedRoof]);
+  const hasSolvedRoof = !!solvedRoofGeom;
+
   return (
     <group ref={groupRef} position={[s.localX, s.surfaceY, s.localZ]} rotation={[0, s.rotationY ?? 0, 0]}>
       {s.parts ? (
@@ -461,7 +478,13 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
           >
             <boxGeometry args={[p.w, p.h, p.d]} />
             {/* Apply wall texture only to tall perimeter/interior walls (h >= 2.0) */}
-            <meshStandardMaterial color={p.colorHex} map={p.h >= 2.0 ? (wallTex || null) : null} />
+            {/* A lit hearth (BGv2 Task 14) carries emissiveHex → warm glow. */}
+            <meshStandardMaterial
+              color={p.colorHex}
+              map={p.h >= 2.0 ? (wallTex || null) : null}
+              emissive={p.emissiveHex ?? '#000000'}
+              emissiveIntensity={p.emissiveHex ? 1.1 : 0}
+            />
           </mesh>
         ))
       ) : (
@@ -470,13 +493,26 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
           <meshStandardMaterial color={s.colorHex ?? '#b09a72'} map={wallTex || null} />
         </mesh>
       )}
-      {/* Styled roof (Task 7): real-size buildRoofGeometry mesh with its base
-          at y=0, placed at wall-top Y — no scale/yaw/half-rise offsets (those
-          were artifacts of the old 4-segment cone-as-pyramid). visible is
-          driven per-frame by the camera-inside test above. */}
-      <mesh ref={roofRef} position={[0, s.boxHeight ?? 0, 0]} geometry={roofGeom} castShadow={SHADOWS}>
-        <meshStandardMaterial color={s.roofColorHex ?? '#7a4a32'} flatShading side={THREE.DoubleSide} map={roofTex || null} />
-      </mesh>
+      {/* Solved roof (BGv2 Task 5): the plan's actual roof (irregular planes,
+          valleys, tower caps) baked to one geometry. Its Y already sits on the
+          wall top (positions carry wallTopFt), so no boxHeight offset. The
+          group's z scale applies the same doorZSign flip the box parts use.
+          Auto-hides on camera-enter via roofRef, exactly like the prism. */}
+      {hasSolvedRoof ? (
+        <group scale={[1, 1, -(s.doorZSign ?? -1)]}>
+          <mesh ref={roofRef} geometry={solvedRoofGeom!} castShadow={SHADOWS}>
+            <meshStandardMaterial color={s.solvedRoof!.colorHex} flatShading side={THREE.DoubleSide} map={roofTex || null} />
+          </mesh>
+        </group>
+      ) : (
+        /* Legacy styled roof (Task 7): real-size buildRoofGeometry prism with its
+           base at y=0, placed at wall-top Y. Kept for non-blueprint props and any
+           building whose plan resolved no style (no solved roof). visible is
+           driven per-frame by the camera-inside test above. */
+        <mesh ref={roofRef} position={[0, s.boxHeight ?? 0, 0]} geometry={roofGeom} castShadow={SHADOWS}>
+          <meshStandardMaterial color={s.roofColorHex ?? '#7a4a32'} flatShading side={THREE.DoubleSide} map={roofTex || null} />
+        </mesh>
+      )}
       {/* Chimney: style-family flag, solid shells only (interior-parts buildings
           would need a flue through the rooms), and never on flat parapet roofs. */}
       {s.chimney && !s.parts && roofForm !== 'flat' && (
@@ -739,6 +775,12 @@ const World3DScene: React.FC<World3DSceneProps> = ({
         {/* Sun + sky + hemisphere fill + distance fog + soft follow-frustum
             shadows (ground profile). Time-of-day plumbed, fixed late-morning. */}
         <World3DLighting viewProfile={viewProfile} timeOfDayHours={timeOfDayHours} />
+        {/* Interior lighting (ground profile): warm hearth flame point lights
+            near the camera (nearest ≤4), lit-window emissive glow (baked into
+            parts), and a camera-inside fill so any interior is readable. */}
+        {viewProfile === 'ground' && (
+          <InteriorLights loaded={loaded} origin={sceneOrigin} />
+        )}
         <FreeRoamCameraController
           initialTarget={[0, startSurfaceY, 0]}
           sceneOrigin={sceneOrigin}
@@ -770,6 +812,11 @@ const World3DScene: React.FC<World3DSceneProps> = ({
         <GroundAgents ground={groundWorld} clock={agentClock} sceneOrigin={sceneOrigin} />
         {viewProfile === 'ground' && (
           <GroundProps ground={groundWorld} sceneOrigin={sceneOrigin} />
+        )}
+        {/* Pillar 2: world-grown dungeon entrances (sealed doors) as readable
+            markers the player can walk up to and discover. */}
+        {viewProfile === 'ground' && (
+          <DungeonEntrances ground={groundWorld} sceneOrigin={sceneOrigin} />
         )}
         {sceneCast && sceneCast.length > 0 && (
           <SceneCast cast={sceneCast} surfaceY={startSurfaceY} onSelectNpc={onSelectNpc} />

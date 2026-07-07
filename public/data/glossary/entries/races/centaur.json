@@ -56,12 +56,7 @@
     "hooves"
   ],
   "aliases": [],
-  "seeAlso": [
-    "fey",
-    "charge",
-    "hooves",
-    "natural_affinity"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/centaur.json",
   "maleImageUrl": "/assets/images/races/Centaur_Male.png",
   "femaleImageUrl": "/assets/images/races/Centaur_Female.png"

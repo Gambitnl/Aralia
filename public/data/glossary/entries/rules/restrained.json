@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/restrained.json",
-  "markdown": "# Restrained\n\nWhile you have the Restrained condition, you experience the following effects.\n\n### Speed 0\n\nYour [[speed]] is 0 and can't increase.\n\n### Attacks Affected\n\n[[attack]] rolls against you have [[advantage]], and your attack rolls have [[disadvantage]].\n\n### Saving Throws Affected\n\nYou have [[disadvantage]] on Dexterity [[saving_throw throws]]."
+  "markdown": "# Restrained\n\nWhile you have the Restrained condition, you experience the following effects.\n\n### Speed 0\n\nYour [[speed]] is 0 and can't increase.\n\n### Attacks Affected\n\n[[attack]] rolls against you have [[advantage]], and your attack rolls have [[disadvantage]].\n\n### Saving Throws Affected\n\nYou have [[disadvantage]] on Dexterity [[saving_throw]]."
 }

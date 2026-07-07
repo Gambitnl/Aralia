@@ -63,8 +63,14 @@ AGORA_AGENT_ID=<handle> node tools/agora/client.mjs onboard <handle> --note "<wh
 1. **Lock before you edit.** Every file you intend to change:
    `client.mjs lock src/foo.ts src/bar.ts --reason "<why>"`. A **409 CONFLICT is a hard stop**
    on that file — someone else owns it; do not touch it, and say so.
+   If you still need the file later, use `client.mjs reserve src/foo.ts --reason "<why>"`
+   to join the FIFO waiting list. A reservation is only a dibs queue; edit only after your
+   real lock succeeds.
 2. **Pull or post work.** `client.mjs task next` claims the top ready task; or
-   `task new "<title>"` then `task claim <id>`. Your `agentId` is recorded as the claimant.
+   `task new "<title>"` then `task claim <id>`. New tasks must include a `creatorAgent`
+   block matching the agent that created them; the CLI self-check fails if the daemon omits
+   it or attributes the task to the wrong saved identity. When you inspect a task, treat a
+   missing or mismatched creator as a coordination blocker and ask the orchestrator to fix it.
 3. **Heartbeat during long work.** `client.mjs heartbeat --every 600 &` in the background.
    Silent for >60 min and you are **reaped**: your locks are freed, your claimed tasks reopened,
    your token retired. (A 401 mid-work means this happened — re-register with the same handle,
@@ -83,6 +89,7 @@ AGORA_AGENT_ID=<handle> node tools/agora/client.mjs onboard <handle> --note "<wh
   a `git reset --hard` clobbers every other agent in this checkout.
 - **Edit only the files you locked.** Need a file you don't own? Report it as a cross-file
   follow-up; don't reach into it.
+- **Reservations do not replace locks.** They only show who is next for a contested file.
 - **Don't run heavy commands** (`tsc`/`build`/`vitest`/dev-server) unless asked — N agents
   thrashing the machine is worse than one integration check at the end.
 - **`unlock --mine` releases only your own locks** — but that guarantee depends on Rule 1.

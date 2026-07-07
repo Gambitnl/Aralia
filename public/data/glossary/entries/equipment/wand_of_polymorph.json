@@ -7,7 +7,7 @@
     "item",
     "itemType:Wand"
   ],
-  "excerpt": "This wand has 7 charges. While holding it, you can expend 1 charge to cast polymorph (save DC 15) from it.  Regaining Charges The wand regains 1d6 + 1...",
+  "excerpt": "This wand has 7 charges. While holding it, you can expend 1 charge to cast polymorph|Polymorph (save DC 15) from it.  Regaining Charges The wand regai...",
   "aliases": [],
   "seeAlso": [
     "polymorph"

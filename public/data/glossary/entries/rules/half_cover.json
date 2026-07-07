@@ -2,7 +2,12 @@
   "id": "half_cover",
   "title": "Half Cover",
   "category": "Rules Glossary",
-  "tags": ["combat", "targeting", "terrain", "defense"],
+  "tags": [
+    "combat",
+    "targeting",
+    "terrain",
+    "defense"
+  ],
   "excerpt": "Half cover provides partial protection when an obstacle screens at least half of a target's body.",
   "aliases": [],
   "seeAlso": [
@@ -13,5 +18,5 @@
     "dexterity"
   ],
   "filePath": "/data/glossary/entries/rules/half_cover.json",
-  "markdown": "# Half Cover\n\nHalf cover represents partial physical screening by an intervening object, creature, or obstacle. It offers a modest degree of protection against direct attacks and spatial effects.\n\n## Environmental Context\n\nA target has half cover if an obstacle blocks at least half of its physical form from the source of an attack or effect. Examples include a low wall, a pile of rubble, a thick tree trunk, or another creature standing in the path of the effect.\n\n## Tactical Protection\n\n- provides a +2 bonus to [[armor_class|Armor Class (AC)]]\n- provides a +2 bonus to [[dexterity|Dexterity]] saving throws\n\n## Targeting Dynamics\n\nHalf cover does not prevent a source from targeting a creature directly, but the physical obstruction makes finding a clear path or clean hit more difficult. It scales into [[three_quarters_cover|Three-Quarters Cover]] as the barrier becomes more prominent.\n"
+  "markdown": "# Half Cover\n\nHalf cover represents partial physical screening by an intervening object, creature, or obstacle. It offers a modest degree of protection against direct attacks and spatial effects.\n\n## Environmental Context\n\nA target has half cover if an obstacle blocks at least half of its physical form from the source of an attack or effect. Examples include a low wall, a pile of rubble, a thick tree trunk, or another creature standing in the path of the effect.\n\n## Tactical Protection\n\n- provides a +2 bonus to [[armor_class|Armor Class (AC)]]\n- provides a +2 bonus to [[dexterity]] saving throws\n\n## Targeting Dynamics\n\nHalf cover does not prevent a source from targeting a creature directly, but the physical obstruction makes finding a clear path or clean hit more difficult. It scales into [[three_quarters_cover|Three-Quarters Cover]] as the barrier becomes more prominent.\n"
 }

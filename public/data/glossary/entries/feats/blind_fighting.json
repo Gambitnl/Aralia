@@ -6,7 +6,7 @@
     "source:xphb",
     "feat"
   ],
-  "excerpt": "You have blindsight with a range of 10 feet....",
+  "excerpt": "You have blindsight|Blindsight with a range of 10 feet....",
   "aliases": [],
   "seeAlso": [
     "blindsight"

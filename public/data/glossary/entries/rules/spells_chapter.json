@@ -23,7 +23,6 @@
     "spell_components_rules",
     "spell_duration_rules",
     "spell_effects_rules",
-    "spell_scroll",
     "magic_action"
   ],
   "filePath": "/data/glossary/entries/rules/spells_chapter.json",

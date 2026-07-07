@@ -7,7 +7,7 @@
     "item",
     "itemType:Melee Weapon"
   ],
-  "excerpt": "This wooden staff is decorated with bird carvings. It has 10 charges. While holding it, you can take a magic action to expend 1 charge from the staff ...",
+  "excerpt": "This wooden staff is decorated with bird carvings. It has 10 charges. While holding it, you can take a magic|Magic action to expend 1 charge from the ...",
   "aliases": [],
   "seeAlso": [
     "magic"

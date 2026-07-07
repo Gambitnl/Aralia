@@ -55,11 +55,7 @@
   "aliases": [
     "bronze ancestry"
   ],
-  "seeAlso": [
-    "dragonborn",
-    "lightning_damage",
-    "breath_weapon"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/dragonborn_ancestries/bronze.json",
   "maleImageUrl": "/assets/images/races/Dragonborn_Bronze_Male.png",
   "femaleImageUrl": "/assets/images/races/Dragonborn_Bronze_Female.png"

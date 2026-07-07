@@ -23,6 +23,8 @@ import { getTaskProfile } from './taskProfiles';
 import { resolveModelForTask, resetRouterCache } from './router';
 import { emitOllamaLog } from './ollamaLogSink';
 import { generateId } from '../../utils/core/idGenerator';
+import { isGroqActive, routeGenerateForTask, routeChatForTask } from '../ai/textProviderRouter';
+import { hasGroqApiKey } from '../ai/aiProviderSettings';
 
 /**
  * Low-level HTTP client for Ollama API.
@@ -142,6 +144,12 @@ export class OllamaClient {
      */
     async isAvailable(): Promise<boolean> {
         if (typeof window === 'undefined') return false;
+        // When Groq is the active text provider, "available" means a key is
+        // present (per spec: no /tags probe, no silent fallback). The first real
+        // call surfaces bad-key/rate-limit failures honestly.
+        if (isGroqActive()) {
+            return hasGroqApiKey();
+        }
         const models = await this.listModels();
         // The dev proxy returns an empty list when Ollama is not running so the
         // startup heartbeat can fail as a normal optional-dependency state
@@ -367,6 +375,13 @@ export class OllamaClient {
         | { ok: true; data: OllamaGenerateResponse; model: string }
         | { ok: false; error: string; model?: string }
     > {
+        // Provider router: when the player has switched text generation to Groq,
+        // delegate to the Groq provider. It returns this exact shape and logs
+        // through the same central sink, so callers and the log viewer are
+        // unchanged. No-fallback: a Groq failure is returned honestly.
+        if (isGroqActive()) {
+            return routeGenerateForTask(options);
+        }
         const profile = getTaskProfile(options.taskType);
         // Emit the attempt to the central log sink so every task is visible in
         // the in-app Ollama viewer without each call site logging individually.
@@ -415,6 +430,10 @@ export class OllamaClient {
         | { ok: true; data: OllamaChatResponse; model: string }
         | { ok: false; error: string; model?: string; statusCode?: number }
     > {
+        // Provider router: delegate to Groq when selected (see generateForTask).
+        if (isGroqActive()) {
+            return routeChatForTask(options);
+        }
         const profile = getTaskProfile(options.taskType);
         const logId = generateId();
         // Serialize the chat turns as the logged "prompt" so chat tasks show

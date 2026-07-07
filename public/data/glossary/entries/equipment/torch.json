@@ -7,15 +7,15 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A Torch burns for 1 hour, casting bright_light Light in a 20-foot radius and dim_light Light for an additional 20 feet. When you take the attack actio...",
+  "excerpt": "A Torch burns for 1 hour, casting bright_light|Bright Light in a 20-foot radius and dim_light|Dim Light for an additional 20 feet. When you take the a...",
   "aliases": [],
   "seeAlso": [
-    "bright_light Light",
-    "dim_light Light",
+    "bright_light",
+    "dim_light",
     "attack"
   ],
   "filePath": "/data/glossary/entries/equipment/torch.json",
-  "markdown": "# Torch\n\nA Torch burns for 1 hour, casting [[bright_light Light]] in a 20-foot radius and [[dim_light Light]] for an additional 20 feet. When you take the [[attack]] action, you can attack with the Torch, using it as a Simple Melee weapon. On a hit, the target takes 1 Fire damage.",
+  "markdown": "# Torch\n\nA Torch burns for 1 hour, casting [[bright_light]] in a 20-foot radius and [[dim_light]] for an additional 20 feet. When you take the [[attack]] action, you can attack with the Torch, using it as a Simple Melee weapon. On a hit, the target takes 1 Fire damage.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

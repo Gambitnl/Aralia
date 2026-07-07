@@ -94,6 +94,7 @@ export function buildSiteMeshes(data: ChunkData): ChunkSite[] {
       parts: s.parts,
       wallWidthM: s.wallWidthM,
       wallDepthM: s.wallDepthM,
+      solvedRoof: s.solvedRoof,
     };
 
     // Oriented-box footprint (Worldforge ground mode, 2026-06-11): a

@@ -6,12 +6,11 @@
     "source:xphb",
     "feat"
   ],
-  "excerpt": "You gain the following benefits.  Fortified Health Your hit_points Point maximum increases by 40. In addition, whenever you regain hit_points Points, ...",
+  "excerpt": "You gain the following benefits.  Fortified Health Your hit_points|Hit Point maximum increases by 40. In addition, whenever you regain hit_points|Hit ...",
   "aliases": [],
   "seeAlso": [
-    "hit_points Point",
-    "hit_points Points"
+    "hit_points"
   ],
   "filePath": "/data/glossary/entries/feats/boon_of_fortitude.json",
-  "markdown": "# Boon of Fortitude\n\nYou gain the following benefits.\n\n## Fortified Health\n\nYour [[hit_points Point]] maximum increases by 40. In addition, whenever you regain [[hit_points Points]], you can regain additional [[hit_points Points]] equal to your Constitution modifier. Once you've regained these additional [[hit_points Points]], you can't do so again until the start of your next turn."
+  "markdown": "# Boon of Fortitude\n\nYou gain the following benefits.\n\n## Fortified Health\n\nYour [[hit_points|Hit Point]] maximum increases by 40. In addition, whenever you regain [[hit_points]], you can regain additional [[hit_points]] equal to your Constitution modifier. Once you've regained these additional [[hit_points]], you can't do so again until the start of your next turn."
 }

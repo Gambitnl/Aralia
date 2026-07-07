@@ -56,10 +56,7 @@
     "tough"
   ],
   "aliases": [],
-  "seeAlso": [
-    "shifter",
-    "humanoid"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/races/shifter_variants/beasthide.json",
   "maleImageUrl": "/assets/images/races/Shifter_Beasthide_Male.png",
   "femaleImageUrl": "/assets/images/races/Shifter_Beasthide_Female.png"

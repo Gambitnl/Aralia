@@ -7,24 +7,24 @@
     "baseitem",
     "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Ability:: Dexterity - Utilize:: Mend a tear in clothing (DC 10), or sew a Tiny design (DC 10) - Craft:: padded_armor Armor, basket, bedroll, blanket...",
+  "excerpt": "- Ability: Dexterity - Utilize: Mend a tear in clothing (DC 10), or sew a Tiny design (DC 10) - Craft: padded_armor|Padded Armor, basket|Basket, bedro...",
   "aliases": [],
   "seeAlso": [
-    "padded_armor Armor",
+    "padded_armor",
     "basket",
     "bedroll",
     "blanket",
-    "fine_clothes Clothes",
+    "fine_clothes",
     "net",
     "robe",
     "rope",
     "sack",
     "string",
     "tent",
-    "traveler_s_clothes's Clothes"
+    "traveler_s_clothes"
   ],
   "filePath": "/data/glossary/entries/equipment/weaver_s_tools.json",
-  "markdown": "# Weaver's Tools\n\n- **Ability::** Dexterity\n- **Utilize::** Mend a tear in clothing (DC 10), or sew a Tiny design (DC 10)\n- **Craft::** [[padded_armor Armor]], [[basket]], [[bedroll]], [[blanket]], [[fine_clothes Clothes]], [[net]], [[robe]], [[rope]], [[sack]], [[string]], [[tent]], [[traveler_s_clothes's Clothes]]",
+  "markdown": "# Weaver's Tools\n\n- **Ability:** Dexterity\n- **Utilize:** Mend a tear in clothing (DC 10), or sew a Tiny design (DC 10)\n- **Craft:** [[padded_armor]], [[basket]], [[bedroll]], [[blanket]], [[fine_clothes]], [[net]], [[robe]], [[rope]], [[sack]], [[string]], [[tent]], [[traveler_s_clothes|Traveler's Clothes]]",
   "itemMetadata": {
     "type": "Artisan's Tools",
     "rarity": "None",

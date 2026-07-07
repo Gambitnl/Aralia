@@ -7,14 +7,14 @@
     "item",
     "itemType:Potion"
   ],
-  "excerpt": "This potion is a magic item. As a bonus_action Action, you can drink it or administer it to another creature within 5 feet of yourself. The creature t...",
+  "excerpt": "This potion is a magic item. As a bonus_action|Bonus Action, you can drink it or administer it to another creature within 5 feet of yourself. The crea...",
   "aliases": [],
   "seeAlso": [
-    "bonus_action Action",
-    "hit_points Points"
+    "bonus_action",
+    "hit_points"
   ],
   "filePath": "/data/glossary/entries/equipment/potion_of_healing.json",
-  "markdown": "# Potion of Healing\n\nThis potion is a magic item. As a [[bonus_action Action]], you can drink it or administer it to another creature within 5 feet of yourself. The creature that drinks the magical red fluid in this vial regains 2d4 + 2 [[hit_points Points]]. The potion's red liquid glimmers when agitated.",
+  "markdown": "# Potion of Healing\n\nThis potion is a magic item. As a [[bonus_action]], you can drink it or administer it to another creature within 5 feet of yourself. The creature that drinks the magical red fluid in this vial regains 2d4 + 2 [[hit_points]]. The potion's red liquid glimmers when agitated.",
   "itemMetadata": {
     "type": "Potion",
     "rarity": "Common",

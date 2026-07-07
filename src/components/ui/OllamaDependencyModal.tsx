@@ -35,14 +35,26 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './Button';
-import { Checkbox } from './Input';
+import { Checkbox, Input } from './Input';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
+import {
+  getAiTextProvider,
+  setAiTextProvider,
+  getGroqApiKey,
+  setGroqApiKey,
+} from '../../services/ai/aiProviderSettings';
 
 interface OllamaDependencyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onDontShowAgain: (value: boolean) => void;
+  /**
+   * Optional callback fired after the player switches provider (to Groq or back
+   * to Ollama). The host can use this to re-run the availability check / retry
+   * the blocked generation. Falls back to onClose when omitted.
+   */
+  onProviderChanged?: (provider: 'ollama' | 'groq') => void;
 }
 
 const shouldUseCompactPane = (): boolean =>
@@ -52,9 +64,49 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
   isOpen,
   onClose,
   onDontShowAgain,
+  onProviderChanged,
 }) => {
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => shouldUseCompactPane());
+
+  // Groq cloud-provider controls. The key is user-entered and stored ONLY in
+  // localStorage (via aiProviderSettings) — never in the bundle. We seed the
+  // field from any previously-stored key so switching back and forth is easy.
+  const [groqKeyInput, setGroqKeyInput] = useState<string>(() =>
+    typeof window !== 'undefined' ? getGroqApiKey() : ''
+  );
+  const [currentProvider, setCurrentProvider] = useState<'ollama' | 'groq'>(() =>
+    typeof window !== 'undefined' ? getAiTextProvider() : 'ollama'
+  );
+
+  // Keep the local view of provider/key in sync whenever the pane (re)opens,
+  // in case the setting changed elsewhere while it was closed.
+  useEffect(() => {
+    if (!isOpen) return;
+    setCurrentProvider(getAiTextProvider());
+    setGroqKeyInput(getGroqApiKey());
+  }, [isOpen]);
+
+  const handleUseGroq = () => {
+    const key = groqKeyInput.trim();
+    if (!key) return; // The button is disabled without a key; guard anyway.
+    setGroqApiKey(key);
+    setAiTextProvider('groq');
+    setCurrentProvider('groq');
+    if (onProviderChanged) {
+      onProviderChanged('groq');
+    } else {
+      onClose();
+    }
+  };
+
+  const handleUseOllama = () => {
+    setAiTextProvider('ollama');
+    setCurrentProvider('ollama');
+    if (onProviderChanged) {
+      onProviderChanged('ollama');
+    }
+  };
 
   // The pane starts in the top-right corner and stays anchored there while collapsing.
   // This avoids an intermediate jump from center-right to top-right when the user minimizes it.
@@ -259,6 +311,61 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                           <li>Make sure it is running (it serves on <code className="bg-gray-800 px-1 rounded">localhost:11434</code>), then retry.</li>
                         </ol>
                       </div>
+                    </div>
+
+                    {/* --- Groq cloud provider toggle --------------------------------
+                        A deliberate provider CHOICE (not silent fallback): the
+                        player pastes their own Groq API key, which is stored only
+                        in this browser's localStorage, and switches all AI text
+                        generation to Groq's cloud. A "switch back to Ollama" path
+                        is always offered. */}
+                    <div
+                      data-testid="groq-provider-section"
+                      className="mb-6 bg-gray-800/50 border-l-4 border-sky-500/50 p-4 rounded"
+                    >
+                      <h3 className="text-sky-200 font-semibold mb-2">☁️ Use Groq cloud instead</h3>
+                      <p className="text-sm text-gray-300 leading-relaxed mb-3">
+                        No local Ollama? Bring your own <strong>Groq</strong> API key and run the game's
+                        AI text on Groq's fast cloud models. Your key is stored only in this browser
+                        (never sent anywhere but Groq) and you can switch back to Ollama anytime.
+                      </p>
+                      <Input
+                        type="password"
+                        label="Groq API key"
+                        placeholder="gsk_..."
+                        value={groqKeyInput}
+                        data-testid="groq-api-key-input"
+                        onChange={(e) => setGroqKeyInput(e.target.value)}
+                        autoComplete="off"
+                      />
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <Button
+                          onClick={handleUseGroq}
+                          variant="action"
+                          size="sm"
+                          className="min-h-11"
+                          disabled={!groqKeyInput.trim()}
+                          data-testid="groq-use-button"
+                        >
+                          {currentProvider === 'groq' ? 'Save key & retry' : 'Use Groq cloud'}
+                        </Button>
+                        {currentProvider === 'groq' && (
+                          <Button
+                            onClick={handleUseOllama}
+                            variant="secondary"
+                            size="sm"
+                            className="min-h-11"
+                            data-testid="groq-switch-back-button"
+                          >
+                            Switch back to Ollama
+                          </Button>
+                        )}
+                      </div>
+                      {currentProvider === 'groq' && (
+                        <p className="mt-2 text-xs text-sky-300" data-testid="groq-active-indicator">
+                          AI text is currently set to Groq cloud.
+                        </p>
+                      )}
                     </div>
 
                     {/* Reusable premium Checkbox primitive for tracking user preference */}

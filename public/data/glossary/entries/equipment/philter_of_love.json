@@ -7,7 +7,7 @@
     "item",
     "itemType:Potion"
   ],
-  "excerpt": "The next time you see a creature within 10 minutes after drinking this philter, you are charmed by that creature and have the charmed condition for 1 ...",
+  "excerpt": "The next time you see a creature within 10 minutes after drinking this philter, you are charmed|charmed by that creature and have the charmed|Charmed ...",
   "aliases": [],
   "seeAlso": [
     "charmed"

@@ -46,10 +46,7 @@
   ],
   "aliases": [],
   "seeAlso": [
-    "humanoid",
-    "darkvision",
-    "draconic_cry",
-    "kobold_legacy"
+    "darkvision"
   ],
   "filePath": "/data/glossary/entries/races/kobold.json",
   "maleImageUrl": "/assets/images/races/kobold_male.png",

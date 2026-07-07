@@ -10,5 +10,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/disadvantage.json",
-  "markdown": "# Disadvantage\n\nIf you have Disadvantage on a [[d20_test Test]], roll two d20s and use the lower roll. A roll can't be affected by more than one Disadvantage, and [[advantage]] and Disadvantage on the same roll cancel each other."
+  "markdown": "# Disadvantage\n\nIf you have Disadvantage on a [[d20_test]], roll two d20s and use the lower roll. A roll can't be affected by more than one Disadvantage, and [[advantage]] and Disadvantage on the same roll cancel each other."
 }

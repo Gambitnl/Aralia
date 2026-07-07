@@ -7,15 +7,15 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A Burglar's Pack contains the following items: backpack, ball_bearings Bearings, bell, 10 candle, crowbar, hooded_lantern Lantern, 7 flasks of oil, 5 ...",
+  "excerpt": "A Burglar's Pack contains the following items: backpack|Backpack, ball_bearings|Ball Bearings, bell|Bell, 10 candle|Candles, crowbar|Crowbar, hooded_l...",
   "aliases": [],
   "seeAlso": [
     "backpack",
-    "ball_bearings Bearings",
+    "ball_bearings",
     "bell",
     "candle",
     "crowbar",
-    "hooded_lantern Lantern",
+    "hooded_lantern",
     "oil",
     "rations",
     "rope",
@@ -23,7 +23,7 @@
     "waterskin"
   ],
   "filePath": "/data/glossary/entries/equipment/burglar_s_pack.json",
-  "markdown": "# Burglar's Pack\n\nA Burglar's Pack contains the following items: [[backpack]], [[ball_bearings Bearings]], [[bell]], 10 [[candle]], [[crowbar]], [[hooded_lantern Lantern]], 7 flasks of [[oil]], 5 days of [[rations]], [[rope]], [[tinderbox]], and [[waterskin]].",
+  "markdown": "# Burglar's Pack\n\nA Burglar's Pack contains the following items: [[backpack]], [[ball_bearings]], [[bell]], 10 [[candle|Candles]], [[crowbar]], [[hooded_lantern]], 7 flasks of [[oil]], 5 days of [[rations]], [[rope]], [[tinderbox]], and [[waterskin]].",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

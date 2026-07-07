@@ -7,7 +7,7 @@
     "item",
     "itemType:Ring"
   ],
-  "excerpt": "While wearing this ring, you can cast jump from it, but can target only yourself when you do so....",
+  "excerpt": "While wearing this ring, you can cast jump|Jump from it, but can target only yourself when you do so....",
   "aliases": [],
   "seeAlso": [
     "jump"

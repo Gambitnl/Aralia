@@ -6,12 +6,12 @@
     "source:xphb",
     "optionalfeature"
   ],
-  "excerpt": "When you hit a creature with an attack roll using a weapon or an unarmed_strike Strike, you can expend one Superiority Die and add the die to the atta...",
+  "excerpt": "When you hit a creature with an attack roll using a weapon or an unarmed_strike|Unarmed Strike, you can expend one Superiority Die and add the die to ...",
   "aliases": [],
   "seeAlso": [
-    "unarmed_strike Strike",
+    "unarmed_strike",
     "prone"
   ],
   "filePath": "/data/glossary/entries/rules/trip_attack.json",
-  "markdown": "# Trip Attack\n\nWhen you hit a creature with an attack roll using a weapon or an [[unarmed_strike Strike]], you can expend one Superiority Die and add the die to the attack's damage roll. If the target is Large or smaller, it must succeed on a Strength saving throw or have the [[prone]] condition."
+  "markdown": "# Trip Attack\n\nWhen you hit a creature with an attack roll using a weapon or an [[unarmed_strike]], you can expend one Superiority Die and add the die to the attack's damage roll. If the target is Large or smaller, it must succeed on a Strength saving throw or have the [[prone]] condition."
 }

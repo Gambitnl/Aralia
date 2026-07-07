@@ -68,10 +68,6 @@
   ],
   "aliases": [],
   "seeAlso": [
-    "aasimar",
-    "humanoid",
-    "radiant_damage",
-    "necrotic_damage",
     "frightened"
   ],
   "filePath": "/data/glossary/entries/races/aasimar_variants/fallen.json",
