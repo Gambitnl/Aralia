@@ -990,13 +990,13 @@ const App: React.FC = () => {
   ]);
 
   const handleDevMenuAction = useCallback(async (actionType: string) => {
-    const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'combat_messaging_demo', 'generate_encounter', 'restart_dynamic_party', 'quick_start_dev'];
+    const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'combat_messaging_demo', 'generate_encounter', 'restart_dynamic_party', 'quick_start_dev', 'open_ai_provider_config'];
 
     if (actionsThatNeedMenuToggle.includes(actionType)) {
       dispatch({ type: 'TOGGLE_DEV_MENU' });
     }
 
-    switch (actionType as typeof actionsThatNeedMenuToggle[number] | 'main_menu' | 'char_creator' | 'toggle_log_viewer' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'load' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'toggle_economy_ledger' | 'toggle_courier_pouch' | 'combat_messaging_demo') {
+    switch (actionType as typeof actionsThatNeedMenuToggle[number] | 'main_menu' | 'char_creator' | 'toggle_log_viewer' | 'toggle_unified_log_viewer' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'load' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'toggle_economy_ledger' | 'toggle_courier_pouch' | 'combat_messaging_demo') {
       case 'restart_dynamic_party':
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Generating new party..." } });
         try {
@@ -1055,6 +1055,11 @@ const App: React.FC = () => {
         break;
       case 'toggle_unified_log_viewer':
         dispatch({ type: 'TOGGLE_UNIFIED_LOG_VIEWER' });
+        break;
+      case 'open_ai_provider_config':
+        // Reuse the shared provider pane so Gemini fallback and Groq cloud
+        // setup stay in one place instead of drifting across debug surfaces.
+        dispatch({ type: 'SHOW_OLLAMA_DEPENDENCY_MODAL' });
         break;
       // 'design_preview' removed - access via /Aralia/misc/design.html
       // 'battle_map_demo' moved to the design preview - misc/design.html?step=battlemap

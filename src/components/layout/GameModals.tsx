@@ -992,6 +992,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                             isOpen={gameState.isOllamaDependencyModalVisible}
                             onClose={() => dispatch({ type: 'HIDE_OLLAMA_DEPENDENCY_MODAL' })}
                             onDontShowAgain={onOllamaDontShowAgain || (() => { })}
+                            isDevModeEnabled={gameState.isDevModeEnabled}
                         />
                     </ErrorBoundary>
                 </Suspense>

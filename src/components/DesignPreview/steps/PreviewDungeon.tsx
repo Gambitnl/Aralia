@@ -4274,29 +4274,42 @@ export const PreviewDungeon: React.FC = () => {
   // Scroll-wheel zoom TOWARD the cursor: the sheet point under the pointer stays
   // pinned while the zoom changes (zoom-to-point), so inspecting a gallery means
   // pointing at it and scrolling. Smooth multiplicative steps; range clamped.
-  const onWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
-    if (!bufferRef.current) return;
-    e.preventDefault();
-    const canvas = e.currentTarget;
-    const rect = canvas.getBoundingClientRect();
-    // pointer in [0,1] of the DISPLAYED sheet.
-    const px = (e.clientX - rect.left) / rect.width;
-    const py = (e.clientY - rect.top) / rect.height;
-    setView((prev) => {
-      const cur = clampView(prev);
-      const factor = Math.exp(-e.deltaY * 0.0015); // wheel-up = zoom in
-      const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cur.zoom * factor));
-      // sheet-space point currently under the cursor (before the zoom change).
-      const half = 0.5 / cur.zoom;
-      const sheetX = cur.cx + (px - 0.5) * 2 * half;
-      const sheetY = cur.cy + (py - 0.5) * 2 * half;
-      // choose a new centre so that same sheet point stays under the cursor.
-      const nHalf = 0.5 / zoom;
-      const cx = sheetX - (px - 0.5) * 2 * nHalf;
-      const cy = sheetY - (py - 0.5) * 2 * nHalf;
-      return clampView({ zoom, cx, cy });
-    });
-  }, []);
+  //
+  // Attached as a NON-PASSIVE native listener, NOT React's `onWheel`. React marks
+  // wheel handlers passive, so `preventDefault()` is a silent no-op there — and
+  // because the canvas lives inside an `overflow-auto` pane, the scroll would then
+  // pan the PANE instead of (or on top of) zooming the map, which reads as "the
+  // zoom doesn't work." A native `{ passive: false }` listener lets us cancel the
+  // scroll so the wheel only ever zooms. Re-binds when the canvas mounts (`error`
+  // toggles the canvas subtree in/out).
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const handler = (e: WheelEvent) => {
+      if (!bufferRef.current) return;
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      // pointer in [0,1] of the DISPLAYED sheet.
+      const px = (e.clientX - rect.left) / rect.width;
+      const py = (e.clientY - rect.top) / rect.height;
+      setView((prev) => {
+        const cur = clampView(prev);
+        const factor = Math.exp(-e.deltaY * 0.0015); // wheel-up = zoom in
+        const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cur.zoom * factor));
+        // sheet-space point currently under the cursor (before the zoom change).
+        const half = 0.5 / cur.zoom;
+        const sheetX = cur.cx + (px - 0.5) * 2 * half;
+        const sheetY = cur.cy + (py - 0.5) * 2 * half;
+        // choose a new centre so that same sheet point stays under the cursor.
+        const nHalf = 0.5 / zoom;
+        const cx = sheetX - (px - 0.5) * 2 * nHalf;
+        const cy = sheetY - (py - 0.5) * 2 * nHalf;
+        return clampView({ zoom, cx, cy });
+      });
+    };
+    canvas.addEventListener('wheel', handler, { passive: false });
+    return () => canvas.removeEventListener('wheel', handler);
+  }, [error]);
 
   // Click-drag pan (only meaningful when zoomed in). Uses pointer capture + a ref
   // for live tracking, blitting imperatively per move so the drag is smooth; the
@@ -4445,7 +4458,6 @@ export const PreviewDungeon: React.FC = () => {
             <div className="relative">
               <canvas
                 ref={canvasRef}
-                onWheel={onWheel}
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={endDrag}

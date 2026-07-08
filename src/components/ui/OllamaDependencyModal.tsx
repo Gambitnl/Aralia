@@ -56,6 +56,11 @@ interface OllamaDependencyModalProps {
   onClose: () => void;
   onDontShowAgain: (value: boolean) => void;
   /**
+   * Dev Mode exposes operator-only wiring such as the local proxy path.
+   * Normal players should only see direct Groq key modes they can set up alone.
+   */
+  isDevModeEnabled?: boolean;
+  /**
    * Optional callback fired after the player switches provider (to Groq or back
    * to Ollama). The host can use this to re-run the availability check / retry
    * the blocked generation. Falls back to onClose when omitted.
@@ -70,6 +75,7 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
   isOpen,
   onClose,
   onDontShowAgain,
+  isDevModeEnabled = false,
   onProviderChanged,
 }) => {
   const [dontShowAgain, setDontShowAgain] = useState(false);
@@ -97,11 +103,20 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
   // (re)opens, in case a setting changed elsewhere while it was closed.
   useEffect(() => {
     if (!isOpen) return;
+    const storedKeyMode = getGroqKeyStorage();
     setCurrentProvider(getAiTextProvider());
-    setGroqKeyStorageState(getGroqKeyStorage());
+    // Local proxy depends on a separately installed local router and operator
+    // credentials. If Dev Mode is off, move back to the player-setup path so a
+    // hidden proxy choice cannot stay active without an explanation.
+    if (!isDevModeEnabled && storedKeyMode === 'proxy') {
+      setGroqKeyStorage('local');
+      setGroqKeyStorageState('local');
+    } else {
+      setGroqKeyStorageState(storedKeyMode);
+    }
     setGroqKeyInput(getGroqApiKey());
     setGroqProxyUrlInput(getGroqProxyUrl());
-  }, [isOpen]);
+  }, [isOpen, isDevModeEnabled]);
 
   // Switching mode persists the choice immediately, then re-reads the key from
   // whichever store the new mode selects (proxy carries no key, so it clears).
@@ -365,6 +380,16 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                         models. Choose how your key is handled below, then switch — you can go back to
                         Ollama anytime.
                       </p>
+                      {/* This official Groq Console link gives players a direct path
+                          to create or manage the key they need for local/session mode. */}
+                      <a
+                        href="https://console.groq.com/keys"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mb-3 inline-flex text-sm font-semibold text-sky-200 underline decoration-sky-400/60 underline-offset-4 hover:text-sky-100"
+                      >
+                        Get a Groq API key
+                      </a>
 
                       {/* Key-handling mode selector. Each option is a real
                           security trade-off the player picks, with a one-line
@@ -388,7 +413,10 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                               title: 'Local proxy',
                               note: 'Key never enters the browser — a local proxy holds it and adds it server-side. Safest.',
                             },
-                          ]).map(({ mode, title, note }) => (
+                            // The proxy row is developer/operator-only because
+                            // it requires a separate localhost router and host
+                            // credential setup that normal players will not have.
+                          ].filter(({ mode }) => isDevModeEnabled || mode !== 'proxy')).map(({ mode, title, note }) => (
                             <label
                               key={mode}
                               className={`flex items-start gap-2 rounded p-2 cursor-pointer border ${

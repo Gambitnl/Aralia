@@ -58,6 +58,7 @@ type DevMenuActionType =
   | 'load'
   | 'toggle_log_viewer'
   | 'toggle_unified_log_viewer'
+  | 'open_ai_provider_config'
   | 'combat_messaging_demo'
   | 'generate_encounter'
   | 'toggle_party_editor'
@@ -217,6 +218,9 @@ const DevMenu: React.FC<DevMenuProps> = ({
       buttons: [
         { label: 'View Gemini Prompt Log', action: 'toggle_log_viewer', style: 'bg-purple-600 hover:bg-purple-500' },
         { label: 'Banter & AI Inspector', action: 'toggle_unified_log_viewer', style: 'bg-pink-600 hover:bg-pink-500' },
+        // This sends developers to the shared provider setup pane, where the
+        // Gemini fallback and Groq cloud controls already live together.
+        { label: 'AI Provider Config', action: 'open_ai_provider_config', style: 'bg-sky-700 hover:bg-sky-600 border border-sky-500' },
         { label: 'NPC Interaction Test Plan', action: 'toggle_npc_test_plan', style: 'bg-cyan-600 hover:bg-cyan-500' },
         { label: 'Inspect Noble Houses', action: 'inspect_noble_houses', style: 'bg-orange-600 hover:bg-orange-500' },
       ],

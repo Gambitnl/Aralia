@@ -25,7 +25,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef, useContext } 
 import BattleMap from './BattleMap';
 import BattleMap3D from './BattleMap3D';
 import { PlayerCharacter } from '../../types';
-import { Ability, BattleMapBiome, BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
+import { Ability, BATTLE_MAP_BIOMES, BattleMapBiome, BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useAbilitySystem } from '../../hooks/useAbilitySystem';
@@ -560,7 +560,6 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
 
                   setBiome(nextBiome);
                   setCombatLog([]);
-                  _setSelectedCharacterId(null);
                   setSheetCharacter(null);
                   setAutoCharacters(new Set());
                   setMapData(setup.mapData);
@@ -569,11 +568,11 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
                 }}
                 className="mt-0.5 block h-8 w-full rounded-md border-gray-600 bg-gray-700 py-1 pl-2 pr-7 text-xs focus:border-sky-500 focus:outline-none focus:ring-sky-500"
               >
-                <option value="forest">Forest</option>
-                <option value="cave">Cave</option>
-                <option value="dungeon">Dungeon</option>
-                <option value="desert">Desert</option>
-                <option value="swamp">Swamp</option>
+                {BATTLE_MAP_BIOMES.map((b) => (
+                  <option key={b} value={b}>
+                    {b.charAt(0).toUpperCase() + b.slice(1)}
+                  </option>
+                ))}
               </select>
             </div>
             <button
@@ -601,9 +600,12 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
         </div>
       </div>
 
-      <div className="flex-grow min-h-0 grid grid-cols-1 xl:grid-cols-5 gap-4 overflow-hidden">
+      {/* Below lg the three regions stack and the whole block scrolls; from lg
+          up it is the fixed 3-region tactical layout with internally-scrolling
+          rails. (CombatView uses the same breakpoint — the demo mirrors it.) */}
+      <div className="flex-grow min-h-0 grid grid-cols-1 gap-4 overflow-y-auto lg:grid-cols-5 lg:overflow-hidden">
         {/* Left Pane */}
-        <div className="xl:col-span-1 flex flex-col gap-4 overflow-y-auto scrollable-content p-1">
+        <div className="order-2 flex flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:col-span-1 lg:overflow-y-auto">
           <PartyDisplay
             characters={characters}
             onCharacterSelect={handleCharacterSelect}
@@ -614,8 +616,9 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
           />
         </div>
 
-        {/* Center Pane */}
-        <div className="xl:col-span-3 flex flex-col overflow-hidden p-2 relative">
+        {/* Center Pane — map first and given a real height while stacked, so it
+            is never squished into a thin band below lg. */}
+        <div className="order-1 flex h-[65vh] min-h-[22rem] shrink-0 flex-col overflow-hidden p-2 relative lg:order-none lg:col-span-3 lg:h-auto lg:min-h-0 lg:shrink">
           <ControlsHelp visible={renderMode === '3d'} />
           <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
             {renderMode === '3d' ? (
@@ -648,7 +651,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
         </div>
 
         {/* Right Pane */}
-        <div className="xl:col-span-1 flex flex-col gap-4 overflow-y-auto scrollable-content p-1">
+        <div className="order-3 flex flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:col-span-1 lg:overflow-y-auto">
           <InitiativeTracker
             characters={characters}
             turnState={turnManager.turnState}
