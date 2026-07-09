@@ -60,6 +60,52 @@ export interface SavingThrowModifier {
 }
 
 /**
+ * Describes the incoming effect that a saving throw is being made against.
+ *
+ * Threading this into {@link rollSavingThrow} lets contextual advantage — such as
+ * "advantage on saving throws against poison" — match ONLY the relevant effect
+ * instead of applying to every save (see RM-SAVE-001).
+ *
+ * Backward-compatible: when omitted, contextual narrowing is skipped and the roll
+ * behaves identically to the pre-context implementation.
+ */
+export interface SaveEffectContext {
+    /** Damage type of the incoming effect, e.g. 'poison', 'fire', 'psychic'. */
+    damageType?: string;
+    /** Free-form descriptive tags for the effect, e.g. ['poison', 'magic', 'disease']. */
+    tags?: string[];
+}
+
+/**
+ * Structured saving-throw advantage/disadvantage modifier.
+ *
+ * Replaces brittle free-text strings ("advantage on Intelligence saving throws")
+ * with an explicit, matchable shape so advantage applies precisely (see RM-SAVE-002).
+ */
+export interface SaveAdvantageModifier {
+    /** Whether this grants advantage or imposes disadvantage. */
+    type: 'advantage' | 'disadvantage';
+    /**
+     * The roll context this applies to. Fixed to 'saving_throw' today; present so a
+     * single modifier list can later host attack/check contexts without a shape change.
+     */
+    context: 'saving_throw';
+    /**
+     * Ability names this applies to (e.g. ['Intelligence', 'Wisdom']).
+     * Omitted or empty = every ability (e.g. "advantage on all saving throws").
+     */
+    abilities?: SavingThrowAbility[];
+    /**
+     * Effect tags / damage types this is limited to, e.g. ['poison'].
+     * Omitted or empty = unconditional (applies regardless of effectContext).
+     * When set, requires effectContext to carry a matching damageType or tag.
+     */
+    against?: string[];
+    /** Optional label for logging/debugging. */
+    source?: string;
+}
+
+/**
  * Calculates the proficiency bonus based on character level/CR.
  * Formula: 2 + floor((level - 1) / 4)
  * Level 1-4 = +2, 5-8 = +3, etc.
@@ -90,12 +136,19 @@ export function calculateSpellDC(caster: CombatCharacter): number {
  * @param ability The ability to use for the save
  * @param dc The difficulty class to beat
  * @param modifiers Optional array of modifiers from active effects (e.g., Mind Sliver's -1d4)
+ * @param effectContext Optional description of the effect being saved against (damage type / tags).
+ *   Enables contextual advantage (e.g. "against poison") to match only the relevant effect.
+ *   Backward-compatible: when omitted, contextual narrowing is skipped.
+ * @param structuredModifiers Optional structured advantage/disadvantage modifiers. These match
+ *   precisely on ability and effect context, and are preferred over the legacy free-text strings.
  */
 export function rollSavingThrow(
     target: CombatCharacter,
     ability: SavingThrowAbility,
     dc: number,
-    modifiers?: SavingThrowModifier[]
+    modifiers?: SavingThrowModifier[],
+    effectContext?: SaveEffectContext,
+    structuredModifiers?: SaveAdvantageModifier[]
 ): SavingThrowResult {
     // Step 0: Check for Advantage/Disadvantage (Racial Modifiers, etc.)
     let hasAdvantage = false;
@@ -104,20 +157,37 @@ export function rollSavingThrow(
     const ALL_ABILITIES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
     const abilityLower = ability.toLowerCase();
 
+    // True when the effect being saved against carries one of the given tags/damage types.
+    // No context supplied ⇒ a contextual ("against X") modifier cannot be confirmed, so it does not apply.
+    const contextMatches = (against?: string[]): boolean => {
+        if (!against || against.length === 0) return true; // unconditional modifier
+        if (!effectContext) return false;                  // contextual modifier needs a context to match
+        const haystack = new Set<string>();
+        if (effectContext.damageType) haystack.add(effectContext.damageType.toLowerCase());
+        effectContext.tags?.forEach(tag => haystack.add(tag.toLowerCase()));
+        return against.some(a => haystack.has(a.toLowerCase()));
+    };
+
     const checkModifier = (modText: string) => {
         const text = modText.toLowerCase();
         // A modifier only applies to saving throws if it explicitly mentions "saving throw" or "save"
         // (to avoid applying "Dexterity (Stealth) checks" to Dexterity saving throws).
         if (text.includes('saving throw') || text.includes('save')) {
             const mentionsAnyAbility = ALL_ABILITIES.some(ab => text.includes(ab));
-            if (mentionsAnyAbility) {
-                // If it mentions specific abilities, it MUST mention this specific ability.
-                return text.includes(abilityLower);
-            } else {
-                // Generic saving throw modifier (e.g., "saving throws against magic" or "all saving throws").
-                // NOTE: Contextual saves (like "against poison") will over-apply here until context is added to rollSavingThrow.
-                return true;
+            if (mentionsAnyAbility && !text.includes(abilityLower)) {
+                // Mentions specific abilities but not this one — does not apply.
+                return false;
             }
+            // Contextual qualifier: phrases like "against poison" should only apply when the
+            // incoming effect matches. We only narrow when an effectContext was supplied, so
+            // callers that pass no context keep the original (broad) behavior for legacy strings.
+            const againstMatch = text.match(/against\s+([a-z]+)/);
+            if (againstMatch && effectContext) {
+                return contextMatches([againstMatch[1]]);
+            }
+            // Generic saving throw modifier (e.g., "all saving throws"), or a contextual string with
+            // no effectContext to narrow against (legacy broad behavior preserved).
+            return true;
         }
         return false;
     };
@@ -127,6 +197,17 @@ export function rollSavingThrow(
     });
     target.modifiers?.disadvantage.forEach(dis => {
         if (checkModifier(dis)) hasDisadvantage = true;
+    });
+
+    // Structured modifiers (RM-SAVE-002): explicit shape, matched precisely on ability + context.
+    structuredModifiers?.forEach(mod => {
+        if (mod.context !== 'saving_throw') return;
+        const abilityApplies = !mod.abilities || mod.abilities.length === 0
+            || mod.abilities.some(ab => ab.toLowerCase() === abilityLower);
+        if (!abilityApplies) return;
+        if (!contextMatches(mod.against)) return;
+        if (mod.type === 'advantage') hasAdvantage = true;
+        else hasDisadvantage = true;
     });
 
     // Step 1: Roll the d20

@@ -54,7 +54,13 @@ export interface SpellFieldInventoryQueryOptions {
     includeFreeText?: boolean;
     limit?: number;
 }
-export declare function buildSpellFieldInventory(): SpellFieldInventory;
+export interface BuildSpellFieldInventoryOptions {
+    /** Root that holds the `level-*` spell folders. Defaults to the live corpus. */
+    spellsRoot?: string;
+    /** Repo root used to derive relative/browser paths. Defaults to the repo root. */
+    repoRoot?: string;
+}
+export declare function buildSpellFieldInventory(options?: BuildSpellFieldInventoryOptions): SpellFieldInventory;
 export declare function createSpellFieldInventorySummary(inventory: SpellFieldInventory): {
     generatedAt: string;
     sourceRoot: string;

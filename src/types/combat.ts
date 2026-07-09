@@ -27,7 +27,7 @@ import type { CreatureType } from './creatures.js';
 import type { Spell, DamageType, ConditionName, EffectDuration, SpellEffect, RepeatSave, EscapeCheck, ConditionBreakTrigger, TargetFilter, AbilityCheckModifier, CreatedObject, IllusionMetadata, SensoryManifestation, TerrainManipulation, ConditionalEnding, BindingControl, DominationControl } from './spells.js'; // Import Spell
 import { StateTag } from './elemental.js';
 import { Plane } from './planes.js';
-import { RitualState } from './ritual.js';
+import { RitualState } from './rituals.js';
 
 export type { CharacterStats };
 

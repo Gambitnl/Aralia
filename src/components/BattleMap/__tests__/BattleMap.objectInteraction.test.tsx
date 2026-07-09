@@ -62,7 +62,7 @@ const createTile = (x: number, y: number) => ({
   effects: []
 });
 
-function renderObjectMap(activeObjectId: string | null, onObjectMove = vi.fn()) {
+function renderObjectMap(activeObjectId: string | null, onObjectMove = vi.fn(), assetOverlayVisible = true) {
   const mapData: BattleMapData = {
     dimensions: { width: 3, height: 1 },
     tiles: new Map([
@@ -101,6 +101,7 @@ function renderObjectMap(activeObjectId: string | null, onObjectMove = vi.fn()) 
     <BattleMap
       mapData={mapData}
       characters={[hero]}
+      assetOverlayVisible={assetOverlayVisible}
       objectInteraction={{
         activeObjectId,
         movableObjectIds: ['cover-sandbox-torch'],
@@ -183,5 +184,11 @@ describe('BattleMap object interaction', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tile floor at 2, 0' }));
 
     expect(onObjectMove).toHaveBeenCalledWith('cover-sandbox-torch', { x: 2, y: 0 } satisfies Position);
+  });
+
+  it('hides targetable asset markers when the parent disables the asset overlay', () => {
+    renderObjectMap(null, vi.fn(), false);
+
+    expect(screen.queryByRole('button', { name: 'Select Sandbox Torch object' })).not.toBeInTheDocument();
   });
 });

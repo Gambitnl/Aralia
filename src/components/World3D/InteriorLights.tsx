@@ -28,7 +28,8 @@ import * as THREE from 'three';
 import type { LoadedChunk } from '@/systems/world3d/types';
 import { chunkOriginWorld } from '@/systems/world3d/coords';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
-import { HEARTH_GLOW_HEX } from '@/systems/worldforge/bridge/interiorParts';
+import { siteLocalToScene, type SitePlacement } from './interiorPlacement';
+import { useInteriorHour } from './InteriorHourContext';
 
 /** Max simultaneous hearth point lights — a hard cap (perf discipline). */
 const MAX_HEARTH_LIGHTS = 4;
@@ -52,6 +53,12 @@ export interface HearthLight {
   x: number;
   y: number;
   z: number;
+  /**
+   * The site's 24-hour hearth schedule (`hearthHours[h]` = lit at hour h).
+   * Undefined for legacy/unscheduled sites (always eligible). The per-frame
+   * selector skips a hearth whose current hour is dark before the distance test.
+   */
+  hearthHours?: boolean[];
 }
 
 /** One building shell's scene-space bounds for the camera-inside test. */
@@ -108,23 +115,22 @@ export function collectInteriorLighting(
         baseY: s.surfaceY,
         topY: s.surfaceY + (s.boxHeight ?? 0) + 1.0,
       });
-      // Lit-hearth flame lights: the hearth furnishing part carries the warm
-      // HEARTH_GLOW_HEX emissive when lit. Project its site-local position into
-      // scene space exactly as SiteBuilding renders it (yaw + doorZSign z-flip).
-      const cos = Math.cos(rot);
-      const sin = Math.sin(rot);
+      // Hearth flame lights: the hearth furnishing part carries lightRole
+      // 'hearth'. Project its site-local (x, z) into scene space with the SAME
+      // transform SiteBuilding renders it through (shared helper). The hearth's
+      // live-lit hours ride along so the selector can skip a dark hearth. The y
+      // stays local: surfaceY + baseY + half height (yaw never touches y).
+      const placement: SitePlacement = {
+        gx,
+        gz,
+        rotationY: rot,
+        doorZSign: doorSign,
+      };
       for (const p of s.parts) {
-        if (p.emissiveHex !== HEARTH_GLOW_HEX) continue;
-        const lx = p.x;
-        const lz = p.z * -doorSign;
-        // three.js rotates CCW about +Y: rotate (lx, lz) by rot.
-        const rx = lx * cos + lz * sin;
-        const rz = -lx * sin + lz * cos;
-        hearths.push({
-          x: gx + rx,
-          y: s.surfaceY + (p.baseY ?? 0) + p.h * 0.5,
-          z: gz + rz,
-        });
+        if (p.lightRole !== 'hearth') continue;
+        const { x, z } = siteLocalToScene(p.x, p.z, placement);
+        const y = s.surfaceY + (p.baseY ?? 0) + p.h * 0.5;
+        hearths.push({ x, y, z, hearthHours: s.hearthHours });
       }
     }
   }
@@ -135,6 +141,11 @@ const InteriorLights: React.FC<{
   loaded: LoadedChunk[];
   origin: SceneOrigin;
 }> = ({ loaded, origin }) => {
+  // The live game hour comes from the shared InteriorHour context (one clock
+  // source for every interior liveness — windows, hearths, occupants — honoring
+  // the window.__wfAgentClock scrub override like GroundAgents). Hearths dark at
+  // this hour are skipped in the selector below.
+  const hour = useInteriorHour();
   // Static-per-chunk-set lighting data (no per-frame rebuild). The key changes
   // only when chunks stream in/out.
   const loadedKey = loaded.map((c) => `${c.cx}|${c.cy}`).join(',');
@@ -166,7 +177,10 @@ const InteriorLights: React.FC<{
       dist[i] = Infinity;
     }
     const rangeSq = HEARTH_RANGE_M * HEARTH_RANGE_M;
+    const hourInt = ((Math.floor(hour) % 24) + 24) % 24;
     for (let h = 0; h < hearths.length; h++) {
+      // Skip a hearth that is dark at the current hour before the distance test.
+      if (hearths[h].hearthHours && !hearths[h].hearthHours![hourInt]) continue;
       const dx = hearths[h].x - cam.x;
       const dy = hearths[h].y - cam.y;
       const dz = hearths[h].z - cam.z;

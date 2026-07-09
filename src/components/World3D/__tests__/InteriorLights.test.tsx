@@ -9,12 +9,12 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { chunkOriginWorld } from '@/systems/world3d/coords';
-import { HEARTH_GLOW_HEX } from '@/systems/worldforge/bridge/interiorParts';
 import type { LoadedChunk } from '@/systems/world3d/types';
 import InteriorLights, {
   collectInteriorLighting,
   INTERIOR_LIGHT_TUNING,
 } from '../InteriorLights';
+import { InteriorHourProvider } from '../InteriorHourContext';
 
 // R3F's useFrame is not driven in JSDOM; a no-op keeps the mount cheap. The
 // intrinsic <pointLight> elements are rendered by the r3f reconciler in the real
@@ -34,6 +34,13 @@ function chunkWith(sites: LoadedChunk['bundle']['sites']): LoadedChunk {
   } as LoadedChunk;
 }
 
+/** hearthHours schedule lit only at 19:00 — proves the schedule flows through. */
+const HEARTH_HOURS_19 = (() => {
+  const a = Array(24).fill(false);
+  a[19] = true;
+  return a;
+})();
+
 const litHouse = (id: string, localX: number, localZ: number) => ({
   id,
   kind: 'ruin' as const,
@@ -49,10 +56,11 @@ const litHouse = (id: string, localX: number, localZ: number) => ({
   wallDepthM: 5,
   rotationY: 0,
   doorZSign: -1 as const,
+  hearthHours: HEARTH_HOURS_19,
   parts: [
     { x: 0, z: 0, w: 7, d: 0.3, h: 3, colorHex: '#b09a72' }, // wall (no glow)
-    // lit hearth furnishing at local (1.2, 0.8), baseY 0, h 1.4
-    { x: 1.2, z: 0.8, w: 1.4, d: 0.7, h: 1.4, colorHex: '#b5552e', emissiveHex: HEARTH_GLOW_HEX },
+    // hearth furnishing at local (1.2, 0.8), baseY 0, h 1.4 — tagged lightRole.
+    { x: 1.2, z: 0.8, w: 1.4, d: 0.7, h: 1.4, colorHex: '#b5552e', lightRole: 'hearth' as const },
   ],
 });
 
@@ -68,6 +76,9 @@ describe('collectInteriorLighting', () => {
     expect(hearths[0].z).toBeCloseTo(base.y + 30 + 0.8, 5);
     // y = surfaceY + baseY(0) + h/2.
     expect(hearths[0].y).toBeCloseTo(10 + 1.4 / 2, 5);
+    // The site's 24-hour hearth schedule rides along on each light.
+    expect(hearths[0].hearthHours?.[19]).toBe(true);
+    expect(hearths[0].hearthHours?.[12]).toBe(false);
 
     // One shell with padded half-extents from the wall envelope.
     expect(shells).toHaveLength(1);
@@ -76,13 +87,14 @@ describe('collectInteriorLighting', () => {
     expect(shells[0].baseY).toBe(10);
   });
 
-  it('only hearth-glow parts become lights; plain furnishings/walls do not', () => {
+  it('only lightRole "hearth" parts become lights; walls and windows do not', () => {
     const house = litHouse('h1', 0, 0);
-    // add a cold hearth (no emissive) and a window-glow pane — neither is a flame.
+    // add an untagged furnishing and a window-pane (lightRole 'window') — neither
+    // is a hearth flame, so neither becomes a point light.
     house.parts.push({ x: 3, z: 0, w: 1, d: 1, h: 1, colorHex: '#b5552e' } as never);
-    house.parts.push({ x: -2, z: 0, w: 0.9, d: 0.3, h: 1, colorHex: '#2f3a4d', emissiveHex: '#ffb066' } as never);
+    house.parts.push({ x: -2, z: 0, w: 0.9, d: 0.3, h: 1, colorHex: '#2f3a4d', lightRole: 'window' } as never);
     const { hearths } = collectInteriorLighting([chunkWith([house])], ORIGIN);
-    expect(hearths).toHaveLength(1); // still exactly the one HEARTH_GLOW_HEX part
+    expect(hearths).toHaveLength(1); // still exactly the one lightRole 'hearth' part
   });
 
   it('sites without interior parts contribute no hearths and no shells', () => {
@@ -108,14 +120,22 @@ describe('InteriorLights component', () => {
   it('mounts the hard-capped hearth light set + one fill when lit buildings load', () => {
     // Five lit houses — more than the cap — must still mount only MAX + 1 lights.
     const houses = Array.from({ length: 5 }, (_, i) => litHouse(`h${i}`, i * 12, 0));
-    const { container } = render(<InteriorLights loaded={[chunkWith(houses)]} origin={ORIGIN} />);
+    const { container } = render(
+      <InteriorHourProvider clock={19}>
+        <InteriorLights loaded={[chunkWith(houses)]} origin={ORIGIN} />
+      </InteriorHourProvider>,
+    );
     const lights = container.querySelectorAll('pointLight');
     expect(lights.length).toBe(INTERIOR_LIGHT_TUNING.MAX_HEARTH_LIGHTS + 1); // +1 fill
   });
 
   it('renders nothing when no interior-bearing buildings are loaded', () => {
     const marker = { id: 't', kind: 'town' as const, localX: 0, localZ: 0, surfaceY: 5, radius: 6, walled: false };
-    const { container } = render(<InteriorLights loaded={[chunkWith([marker])]} origin={ORIGIN} />);
+    const { container } = render(
+      <InteriorHourProvider clock={19}>
+        <InteriorLights loaded={[chunkWith([marker])]} origin={ORIGIN} />
+      </InteriorHourProvider>,
+    );
     expect(container.querySelectorAll('pointLight').length).toBe(0);
   });
 });

@@ -1,8 +1,9 @@
-import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary, getSlotStorageKey } from '../../services/saveLoadService';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface SaveSlotSelectorProps {
   slots: SaveSlotSummary[];
@@ -28,7 +29,13 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
 }) => {
   const [newSlotName, setNewSlotName] = useState('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-  const rootRef = useRef<HTMLDivElement>(null);
+  // WindowFrame marks this surface aria-modal but does not itself trap focus or
+  // wire Escape, so keyboard-only players could Tab out of the dialog and had no
+  // key to dismiss it. useFocusTrap keeps Tab/Shift+Tab cycling within the save
+  // content, moves initial focus inside on open, restores it on close, and
+  // routes Escape to onClose. The component is only mounted while open, so the
+  // trap is always active (isOpen=true) for its lifetime.
+  const rootRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [pendingOverwrite, setPendingOverwrite] = useState<{
     slotId: string;
     displayName?: string;

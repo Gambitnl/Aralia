@@ -1,5 +1,6 @@
 import type { TownPlan } from '../artifacts';
 import { generateInterior } from '../interior/generateInterior';
+import type { InteriorPlan } from '../interior/types';
 import {
   childSeedPath,
   rngFromPath,
@@ -134,14 +135,28 @@ export function generateTownRoster(
 // disagree when agents are later placed into rooms.
 // ============================================================================
 
+/**
+ * Total bedrooms in a house across EVERY floor. The legacy InteriorPlan keeps
+ * the ground floor in `rooms` and each upper storey in `upperFloors[]`, so the
+ * ground-floor list alone misses upstairs bedrooms — and the generator puts
+ * most bedrooms upstairs in multi-storey houses (generateBuilding upperQueue).
+ * Basements never hold bedrooms, so they are excluded by construction.
+ */
+export function houseBedroomCount(plan: InteriorPlan): number {
+  const inFloor = (rooms: InteriorPlan['rooms']): number =>
+    rooms.filter((room) => room.role === 'bedroom').length;
+  return (
+    inFloor(plan.rooms) +
+    plan.upperFloors.reduce((total, floor) => total + inFloor(floor.rooms), 0)
+  );
+}
+
 function capacityForHouse(plot: TownPlot, seedPath: SeedPath): number {
   // Briefless by design (BGv2 Task 11): the roster runs BEFORE households exist
   // — this bedroom count is an INPUT to sizing the household, so there is no
   // brief to pass yet. The 3D bake (groundChunkLoader) is where the founding
   // brief threads back in, after households are known.
-  const bedroomCount = generateInterior(plot, seedPath).rooms.filter(
-    (room) => room.role === 'bedroom',
-  ).length;
+  const bedroomCount = houseBedroomCount(generateInterior(plot, seedPath));
   return Math.max(1, 2 * bedroomCount + 1);
 }
 

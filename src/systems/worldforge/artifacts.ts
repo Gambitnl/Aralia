@@ -213,8 +213,12 @@ export interface LocalArtifact extends WorldforgeArtifact {
  */
 export interface TownPlan {
   burgId: number;
-  /** Organic street centerlines, feet. */
-  streets: Array<{ id: number; centerline: Array<[Feet, Feet]>; widthFt: Feet }>;
+  /**
+   * Organic street centerlines, feet. `colorHex` carries the street's tier tint
+   * (avenue / street / lane) so the 3D bake vertex-colors each ribbon; absent =
+   * default packed dirt.
+   */
+  streets: Array<{ id: number; centerline: Array<[Feet, Feet]>; widthFt: Feet; colorHex?: string }>;
   /** Building plots with role + polygon footprint (the L3/L4 contract input). */
   plots: Array<{
     id: number;

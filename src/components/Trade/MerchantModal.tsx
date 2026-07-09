@@ -75,6 +75,22 @@ const marketFlavorLine = (surplus: string[], scarcity: string[]): string | null 
     return parts.length > 0 ? parts.join(' ') : null;
 };
 
+/** Social approaches the HAGGLE_ITEM handler understands (see handleMerchantAction). */
+type HaggleStrategy = 'persuade' | 'intimidate' | 'insight';
+
+/**
+ * Haggle approaches surfaced as controls. Each maps to a `strategy` the
+ * HAGGLE_ITEM handler already resolves: it rolls the matching social skill
+ * against a merchant DC and, on success, discounts purchases. `intimidate`
+ * carries a real downside (it raises local heat and counts as a crime), which
+ * the hint calls out so the choice is informed.
+ */
+const HAGGLE_STRATEGIES: { strategy: HaggleStrategy; label: string; hint: string }[] = [
+    { strategy: 'persuade', label: 'Persuade', hint: 'Talk the merchant down with Charisma (Persuasion). Success earns a 10% discount.' },
+    { strategy: 'insight', label: 'Insight', hint: 'Read the merchant with Wisdom (Insight) to spot a weak pitch. Success earns a 10% discount.' },
+    { strategy: 'intimidate', label: 'Intimidate', hint: 'Threaten the merchant with Charisma (Intimidation) for a 20% discount — but it draws heat and counts as a crime.' },
+];
+
 interface MerchantModalProps {
     isOpen: boolean;
     merchantName: string;
@@ -149,6 +165,18 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
         }
     };
 
+    // Haggle over the merchant's prices. The chosen approach routes to the
+    // existing HAGGLE_ITEM handler, which rolls the appropriate social skill for
+    // the party's spokesperson (the leader) against the merchant's DC. We pass
+    // the leader as interactorId; the handler falls back to party[0] anyway.
+    const handleHaggle = (strategy: HaggleStrategy) => {
+        onAction({
+            type: 'HAGGLE_ITEM',
+            label: `Haggle (${strategy})`,
+            payload: { strategy, interactorId: state.party?.[0]?.id } as any,
+        });
+    };
+
     if (!isOpen) return null;
 
     const marketFlavor = economy ? marketFlavorLine(economy.marketFactors.surplus, economy.marketFactors.scarcity) : null;
@@ -215,6 +243,25 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                             {/* Merchant Column */}
                             <div className="w-full p-4 border-b border-gray-700 flex flex-col bg-gray-800/30 md:w-1/2 md:border-b-0 md:border-r">
                                 <h3 className="text-lg font-bold text-sky-300 mb-3 sticky top-0">For Sale</h3>
+                                {/* Haggle controls — negotiate a better price before buying. Each
+                                    button dispatches the already-handled HAGGLE_ITEM action with a
+                                    social strategy; a successful roll discounts subsequent purchases. */}
+                                <div className="mb-3 flex flex-col gap-1.5 rounded-lg border border-gray-600/50 bg-gray-900/30 p-2">
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Haggle</span>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {HAGGLE_STRATEGIES.map(({ strategy, label, hint }) => (
+                                            <Tooltip key={strategy} content={hint}>
+                                                <button
+                                                    onClick={() => handleHaggle(strategy)}
+                                                    aria-label={`Haggle using ${label}`}
+                                                    className="min-h-11 flex-1 justify-center px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1 bg-indigo-600 hover:bg-indigo-500 text-white"
+                                                >
+                                                    {label}
+                                                </button>
+                                            </Tooltip>
+                                        ))}
+                                    </div>
+                                </div>
                                 <div className="space-y-2 pr-1 md:flex-grow md:overflow-y-auto md:scrollable-content md:pr-2">
                                     {merchantInventory.map((item, idx) => {
                                         const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'buy', regionId, priceContext);

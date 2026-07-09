@@ -234,6 +234,7 @@ const GameModals: React.FC<GameModalsProps> = ({
         if (gameState.isNoticeBoardVisible) { dispatch({ type: 'SET_NOTICE_BOARD_VISIBLE', payload: false }); return; }
         if (gameState.isBroadsheetVisible) { dispatch({ type: 'SET_BROADSHEET_VISIBLE', payload: false }); return; }
         if (gameState.isInvestmentBoardVisible) { dispatch({ type: 'TOGGLE_INVESTMENT_BOARD' }); return; }
+        if (gameState.isTradeRouteDashboardVisible) { dispatch({ type: 'TOGGLE_TRADE_ROUTE_DASHBOARD' }); return; }
         if (gameState.isCourierPouchVisible) { dispatch({ type: 'TOGGLE_COURIER_POUCH' }); return; }
         if (gameState.isEconomyLedgerVisible) { dispatch({ type: 'TOGGLE_ECONOMY_LEDGER' }); return; }
         if (gameState.isMapVisible) { onAction({ type: 'toggle_map', label: 'Close Map' }); return; }

@@ -73,6 +73,20 @@ const isContainerItem = (item: InventoryEntry): item is ItemContainer =>
   typeof item.capacitySlots === 'number' ||
   typeof item.capacityWeight === 'number';
 
+/**
+ * Item types that can be worn/wielded and therefore expect a defined
+ * equipment `slot`. Some data authored items are equippable by type but
+ * lack a slot; those must not be silently hidden (see GAPS G9).
+ */
+const isEquippableItemType = (item: InventoryEntry): boolean =>
+  item.type === 'armor' || item.type === 'weapon' || item.type === 'accessory';
+
+/**
+ * Dev-only dedup guard so we warn once per offending item id rather than
+ * on every render pass of the slot-filtered inventory view.
+ */
+const _warnedSlotlessEquippable = new Set<string>();
+
 // TODO #53(FEATURES): Add container browsing UI and item comparison panels for inventory entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 // ============================================================================
 // Item Tooltip Generator
@@ -305,7 +319,25 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
 
     return nonCoinInventory.filter(item => {
       // Check if item has a slot that matches the filter
-      if (!item.slot) return false;
+      if (!item.slot) {
+        // G9: equippable items (weapons/armor/accessories) that lack a
+        // defined slot were previously dropped here, silently hiding valid
+        // gear whenever a slot filter was active. Surface them instead so
+        // the player can still see them, and warn in dev so the missing
+        // slot data can be fixed at the source. Non-equippable slotless
+        // items (consumables, reagents, etc.) still correctly match no slot.
+        if (isEquippableItemType(item)) {
+          if (ENV.DEV && !_warnedSlotlessEquippable.has(item.id)) {
+            _warnedSlotlessEquippable.add(item.id);
+            console.warn(
+              `[InventoryList] Equippable item "${item.name}" (id: ${item.id}, type: ${item.type}) has no defined slot; ` +
+              `surfacing it in the slot filter rather than dropping it. Define an EquipmentSlotType for this item.`
+            );
+          }
+          return true;
+        }
+        return false;
+      }
 
       // Special case: Ring1 and Ring2 both accept items with slot='Ring' or 'Ring1' or 'Ring2'
       if ((filterBySlot === 'Ring1' || filterBySlot === 'Ring2')) {
@@ -469,11 +501,13 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
               return 0;
             }).map(child => {
               const key = child.instanceId;
-              const isEquippableType = child.type === 'armor' || child.type === 'weapon' || child.type === 'accessory';
-              // REVIEW Q13: The canEquipItem check is only called if isEquippableType AND child.slot exist.
-              // What if an equippable item doesn't have a slot defined? It would get { can: false, reason: undefined }.
-              // Is this intentional to skip slotless equippable items?
-              // ANSWER: This could hide valid items. Should log a warning for equippable items without slots.
+              const isEquippableType = isEquippableItemType(child);
+              // REVIEW Q13 (G9): per-slot equip validation only runs when the
+              // item declares a slot; a slotless equippable item cannot be
+              // matched to a specific slot, so it falls through to canBeEquipped=false
+              // here (rendered as not-yet-equippable) rather than being hidden.
+              // Slotless equippable items are no longer dropped from the list — the
+              // slot filter surfaces them and warns in dev (see filteredInventory above).
               const { can: canBeEquipped, reason: cantEquipReason } =
                 isEquippableType && child.slot ?
                   canEquipItem(character, child) : { can: false, reason: undefined };

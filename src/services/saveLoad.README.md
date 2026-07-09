@@ -3,89 +3,153 @@
 
 ## Purpose
 
-The `saveLoadService.ts` module is responsible for all interactions related to saving and loading the game state in Aralia RPG. It abstracts the underlying storage mechanism (currently Local Storage) and provides a clear API for the rest of the application to persist and retrieve game progress.
+This service saves and loads game state for Aralia RPG. It is the single API the rest of the app uses to persist and restore progress.
+
+Save payloads live in **IndexedDB**, not localStorage. IndexedDB has 50MB-2GB+ of space, while localStorage has a 5-10MB limit. Saves grow large as party members, map data, message history, and AI interaction logs accumulate, so the larger store prevents quota errors.
+
+Slot metadata (the small index of save summaries) stays in **localStorage**. The Load/Save UI reads this index synchronously while it renders, so it cannot wait for an async IndexedDB read.
+
+If IndexedDB is unavailable (incognito mode, an old browser), the service falls back to a **localStorage-only** mode. Nothing breaks; saves simply use the smaller store.
+
+## Storage Layout
+
+The service splits save data across three stores.
+
+* **IndexedDB (`aralia_rpg_saves` database, `saves` object store)** — holds each full save payload, keyed by slot ID. See `indexedDBStorageService.ts` for the raw IndexedDB wrapper.
+* **localStorage** — holds the slot metadata index and, in fallback mode, the save payloads themselves.
+* **sessionStorage** — caches the slot metadata index for the current tab so repeated menu reads avoid re-parsing.
 
 ## Core Functionality
 
-The service exports several key functions:
+The service is async-first. `saveGame`, `loadGame`, `deleteSaveGame`, `clearAllSaves`, and `initializeStorage` return Promises. The metadata reads (`getSaveSlots`, `hasSaveGame`, `getLatestSaveTimestamp`) stay synchronous because they only touch the localStorage index.
 
-1.  **`saveGame(gameState: GameState, slotName?: string): Promise<boolean>`**
-    *   **Purpose**: Serializes the provided `GameState` object and stores it in Local Storage.
-    *   **Parameters**:
-        *   `gameState: GameState`: The complete current game state to be saved. This includes `playerCharacter`, `inventory`, `currentLocationId`, `subMapCoordinates`, `messages`, `mapData`, `dynamicLocationItemIds`, etc.
-        *   `slotName?: string`: Optional. The name of the save slot. Defaults to `aralia_rpg_default_save`.
-    *   **Process**:
-        *   Creates a new object by spreading `gameState`.
-        *   Sets/updates `saveVersion` (to the current `SAVE_GAME_VERSION` constant) and `saveTimestamp` (to `Date.now()`).
-        *   Resets transient UI-related state fields within the object being saved (e.g., `isLoading`, `isImageLoading`, `error`, `isMapVisible`, `isSubmapVisible`, `geminiGeneratedActions`) to ensure a clean state upon loading.
-        *   Serializes the modified state object to a JSON string.
-        *   Stores the string in `localStorage` under the `slotName`.
-        *   Logs success or errors to the console.
-        *   Uses `alert` for user-facing error messages (e.g., quota exceeded).
-    *   **Returns**: A `Promise` resolving to `true` if saving was successful, `false` otherwise.
+### `saveGame(gameState, slotName?, notify?, options?): Promise<SaveLoadResult>`
 
-2.  **`loadGame(slotName?: string): Promise<GameState | null>`**
-    *   **Purpose**: Retrieves and deserializes game state from Local Storage.
-    *   **Parameters**:
-        *   `slotName?: string`: Optional. The name of the save slot to load from. Defaults to `aralia_rpg_default_save`.
-    *   **Process**:
-        *   Retrieves the JSON string from `localStorage` using `slotName`.
-        *   If no data is found, returns `null`.
-        *   Parses the JSON string into a `GameState` object.
-        *   **Version Check**: Compares the `saveVersion` in the loaded data with the `SAVE_GAME_VERSION` constant. If they don't match, logs a warning, alerts the user about incompatibility, and returns `null`.
-        *   Resets transient UI-related state fields in the loaded state (similar to `saveGame`).
-        *   Sets `phase` to `GamePhase.PLAYING`.
-        *   Logs success or errors to the console.
-        *   Uses `alert` for user-facing error messages (e.g., corrupted data).
-    *   **Returns**: A `Promise` resolving to the loaded `GameState` object, or `null` if loading fails or no valid save is found.
+Serializes the game state and writes it to storage.
 
-3.  **`hasSaveGame(slotName?: string): boolean`**
-    *   **Purpose**: Checks if a save game entry exists in the specified Local Storage slot.
-    *   **Parameters**:
-        *   `slotName?: string`: Optional. The name of the save slot. Defaults to `aralia_rpg_default_save`.
-    *   **Returns**: `true` if an item exists for `slotName` in `localStorage`, `false` otherwise.
+* **Process**:
+    * Copies `gameState` and stamps `saveVersion` (the current `SAVE_GAME_VERSION`) and `saveTimestamp` (`Date.now()`).
+    * Resets transient fields (`isLoading`, `isImageLoading`, `error`, `geminiGeneratedActions`, dev/debug viewers, the character sheet modal, and `notifications`). Player-facing overlay flags (`isMapVisible`, `isDiscoveryLogVisible`) persist as-is so resume reopens the panel the player was using.
+    * Computes a checksum with `simpleHash` over the serialized state to detect later tampering or corruption.
+    * Wraps the state in a `StoredSavePayload` (version, slot ID, slot name, auto-save flag, thumbnail, preview, state, checksum).
+    * Writes the payload to IndexedDB when it is available, otherwise to localStorage.
+    * Always writes the slot summary to the localStorage metadata index.
+* **Returns**: A `SaveLoadResult` with `success`, an optional `message`, and optional `data`.
 
-4.  **`getLatestSaveTimestamp(slotName?: string): number | null`**
-    *   **Purpose**: Retrieves the `saveTimestamp` from a saved game.
-    *   **Parameters**:
-        *   `slotName?: string`: Optional. The name of the save slot. Defaults to `aralia_rpg_default_save`.
-    *   **Process**:
-        *   Loads the raw string from `localStorage`.
-        *   Parses it as JSON (partially, just enough to get the timestamp).
-        *   Returns the `saveTimestamp` property if present.
-    *   **Returns**: The timestamp (number) or `null` if not found or an error occurs.
+### `loadGame(slotName?, notify?): Promise<SaveLoadResult>`
 
-5.  **`deleteSaveGame(slotName?: string): void`**
-    *   **Purpose**: Removes a save game entry from Local Storage.
-    *   **Parameters**:
-        *   `slotName?: string`: Optional. The name of the save slot. Defaults to `aralia_rpg_default_save`.
-    *   **Process**:
-        *   Calls `localStorage.removeItem(slotName)`.
-        *   Logs success or errors.
+Reads a save from storage and heals it for the current game version.
+
+* **Process**:
+    * Reads the payload from IndexedDB first, then falls back to localStorage. The fallback covers pre-migration saves, emergency saves, and IndexedDB-unavailable mode.
+    * Returns a "no save found" result when neither store has the slot.
+    * Parses the payload with `safeJSONParse`; a parse failure returns a "corrupted (unreadable)" result.
+    * Verifies the checksum when one is stored; a mismatch returns an "integrity check failed" result.
+    * Checks `saveVersion` against `SAVE_GAME_VERSION`; a mismatch returns an "incompatible" result and stops the load.
+    * Resets transient fields and restores persisted overlay flags (only strict `true` survives, so hand-edited saves heal to closed).
+    * Heals older saves: prunes the discovery log, normalizes party Hit Dice pools and class levels, normalizes dates, backfills the player cell and world history, and seeds rest-tracker fields.
+    * Forces `phase` to `PLAYING`. A save written during combat resumes on the exploration surface, because combat runtime is not serialized; the player is told they resumed from a pre-combat checkpoint.
+* **Returns**: A `SaveLoadResult`; on success, `data` holds the loaded `GameState`.
+
+### `hasSaveGame(slotName?): boolean`
+
+Reports whether a save exists. Reads the localStorage metadata index, so it stays synchronous.
+
+### `getLatestSaveTimestamp(slotName?): number | null`
+
+Returns the newest `saveTimestamp` for the default slot, or the timestamp for a named slot. Reads the metadata index.
+
+### `deleteSaveGame(slotName?): Promise<void>`
+
+Removes a save from IndexedDB and localStorage, then drops its metadata entry. It deletes from both stores to cover migrated, emergency, and fallback-mode saves.
+
+### `clearAllSaves(): Promise<void>`
+
+Wipes every save from both stores, clears the metadata index and session cache, and removes the emergency-save and checkpoint keys.
+
+### `getSaveSlots(): SaveSlotSummary[]`
+
+Returns metadata for every known slot, newest first. It reads the in-memory cache, then the session cache, then rebuilds from localStorage. Rebuilding merges any legacy single-slot saves it finds.
+
+### `refreshSaveSlotIndex(): SaveSlotSummary[]`
+
+Clears the caches and rebuilds the slot index. Gameplay hooks call this after they clear or repopulate storage so the UI reads current metadata.
+
+### `initializeStorage(): Promise<void>`
+
+Prepares storage on app startup. It detects IndexedDB availability, recovers any emergency save, and runs the one-time migration. It is safe to call more than once; it short-circuits after the first run.
+
+### `emergencySaveSync(gameState): void`
+
+Writes a synchronous best-effort save to localStorage during `beforeunload`. IndexedDB is async and cannot reliably finish before the browser kills the page, so this guarantees a last-moment write. The next `initializeStorage` call recovers it into IndexedDB.
+
+### `isUsingIndexedDB(): boolean`
+
+Reports whether IndexedDB is the active payload store. Useful for storage-status UI or debugging.
+
+### `isCheckpointSlot(slotId): boolean` and `getSlotStorageKey(slotName, isAutoSave?): string`
+
+Helpers that classify checkpoint slots and compute the canonical storage key. UI layers use `getSlotStorageKey` to mirror overwrite detection without duplicating the prefix rules.
+
+## Migration
+
+`initializeStorage` moves existing localStorage saves into IndexedDB once per install, not once per page load.
+
+* It only migrates when IndexedDB is available.
+* It reads the `aralia_rpg_migrated_to_idb` flag in localStorage. If the flag is set, migration is already done and does not re-run.
+* It finds every localStorage key that looks like a save payload (default slot, auto-save slot, `aralia_rpg_slot_` prefixes, and `aralia_rpg_checkpoint_` prefixes), copies each to IndexedDB, and removes it from localStorage.
+* It keeps the metadata index in localStorage, because that index stays there by design.
+* It sets the migration flag when done.
+* If migration fails, saves stay in localStorage and still work through the fallback read path.
+
+## Emergency Save
+
+The emergency save protects progress when the player closes the tab mid-session.
+
+* **Key**: `aralia_rpg_emergency_save` in localStorage.
+* **Write**: `emergencySaveSync` writes a full auto-save payload synchronously during `beforeunload`.
+* **Recover**: `initializeStorage` calls the internal recovery step, which moves the emergency payload into IndexedDB under its slot ID and clears the localStorage key.
+
+## Notification Path
+
+The service does not call `alert()`. Instead, each save/load function accepts an optional `notify` callback.
+
+* The callback receives `{ message, type }`, where `type` is a `NotificationType` (`success`, `error`, `warning`, or `info`).
+* Calling layers wire this callback to the global NotificationSystem so status messages appear in the in-game toast UI.
+* When no callback is passed, the service still logs through `logger` and returns the result; it simply shows no toast.
 
 ## Constants
 
-*   **`SAVE_GAME_VERSION: string`**: Defines the current version of the save game format (e.g., `"0.1.0"`). This is used for compatibility checks when loading games.
-*   **`DEFAULT_SAVE_SLOT: string`**: The default key used for storing the save game in Local Storage (e.g., `"aralia_rpg_default_save"`).
-
-## Storage Mechanism
-
-*   Currently uses **Browser Local Storage**.
+* **`SAVE_GAME_VERSION`** — the current save format version (`"0.1.0"`), used for compatibility checks.
+* **`DEFAULT_SAVE_SLOT` / `DEFAULT_SAVE_SLOT_KEY`** — the default manual save slot key.
+* **`AUTO_SAVE_SLOT` / `AUTO_SAVE_SLOT_KEY`** — the rapid auto-save slot key.
+* **`SLOT_INDEX_KEY`** — the localStorage key for the slot metadata index.
+* **`SLOT_PREFIX`** — the prefix for named manual slot keys.
+* **`CHECKPOINT_TIERS`** — the checkpoint tier configs (1 min, 5 min, 15 min, 30 min, 1 hour), each with its own slot key and interval.
+* **`MIGRATION_FLAG_KEY`** — the localStorage flag that records the localStorage-to-IndexedDB migration.
+* **`EMERGENCY_SAVE_KEY`** — the localStorage key for the synchronous emergency save.
 
 ## Data Integrity and Versioning
 
-*   The service implements a basic versioning system by storing `saveVersion` within the save data.
-*   When loading, it compares this version against the application's current `SAVE_GAME_VERSION`. Mismatches result in the load operation being aborted to prevent errors due to incompatible data structures.
+* Each payload carries a `simpleHash` checksum. Loading re-hashes the state and rejects the save if the checksum no longer matches.
+* Each payload carries a `saveVersion`. Loading rejects a save whose version does not match `SAVE_GAME_VERSION`.
+* Loading also heals older saves that predate current fields (player cell, world history, Hit Dice pools, rest tracker, discovery-log caps).
+
+## Cross-Tab Sync
+
+`setupSlotIndexStorageSync` registers a `storage` event listener so the slot index stays consistent across open tabs. When another tab clears or rewrites saves, the listener debounces and rebuilds this tab's metadata cache. `teardownSlotIndexStorageSync` removes the listener for tests and teardown. The module registers the listener on import.
 
 ## Usage
 
-The `saveLoadService` is primarily used by:
-*   **`App.tsx`**: To trigger save operations (via `saveGame`) and to load game state (via `loadGame`).
-*   **`MainMenu.tsx`**: To check for the existence of a save game (`hasSaveGame`) and get its timestamp (`getLatestSaveTimestamp`) for displaying "Continue" options and save details.
+The service is used by:
+* **`App.tsx`** — triggers saves and loads.
+* **`hooks/useAutoSave.ts`** — drives the rapid auto-save.
+* **`hooks/useGameInitialization.ts`** — calls `initializeStorage` on startup.
+* **`components/SaveLoad/LoadGameModal.tsx` and `SaveSlotSelector.tsx`** — read slot metadata and manage slots.
+* **`components/layout/MainMenu.tsx`** — checks for a save and reads its timestamp for the "Continue" option.
 
-## Future Considerations
+## Related Files
 
-*   **Multiple Save Slots**: Extend functions to manage different named slots beyond the default.
-*   **Migration Logic**: For more complex version changes, implement migration functions to attempt to upgrade older save formats to the current one.
-*   **Error Handling**: More sophisticated error handling and user feedback, avoiding `alert()`.
-*   **Storage Abstraction**: If a different storage mechanism is desired, the service's internal implementation would change, but its public API could largely remain the same.
+* **`src/services/indexedDBStorageService.ts`** — the raw IndexedDB wrapper (open, put, get, delete, list keys, clear, availability check).
+* **`src/utils/storageUtils.ts`** — the `SafeStorage` / `SafeSession` wrappers used for localStorage and sessionStorage.
+* **`docs/projects/tiered-autosave/`** — the project north star, tracker, and gap registry for the tiered autosave work.

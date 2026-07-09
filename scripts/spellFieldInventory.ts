@@ -103,6 +103,13 @@ export interface SpellFieldInventoryQueryOptions {
   limit?: number;
 }
 
+export interface BuildSpellFieldInventoryOptions {
+  /** Root that holds the `level-*` spell folders. Defaults to the live corpus. */
+  spellsRoot?: string;
+  /** Repo root used to derive relative/browser paths. Defaults to the repo root. */
+  repoRoot?: string;
+}
+
 interface MutableValueSummary {
   value: string;
   valueKind: ValueKind;
@@ -128,11 +135,11 @@ interface MutableFieldSummary {
 // is a good model for PHB semantics yet.
 // ============================================================================
 
-function listSpellFiles(): Array<{ level: number; filePath: string; relativePath: string }> {
+function listSpellFiles(spellsRoot: string, repoRoot: string): Array<{ level: number; filePath: string; relativePath: string }> {
   const entries: Array<{ level: number; filePath: string; relativePath: string }> = [];
 
   for (let level = 0; level <= 9; level += 1) {
-    const levelDir = path.join(SPELLS_ROOT, `level-${level}`);
+    const levelDir = path.join(spellsRoot, `level-${level}`);
     if (!fs.existsSync(levelDir)) continue;
 
     const files = fs.readdirSync(levelDir)
@@ -141,7 +148,7 @@ function listSpellFiles(): Array<{ level: number; filePath: string; relativePath
 
     for (const fileName of files) {
       const filePath = path.join(levelDir, fileName);
-      const relativePath = path.relative(REPO_ROOT, filePath).replace(/\\/g, '/');
+      const relativePath = path.relative(repoRoot, filePath).replace(/\\/g, '/');
       entries.push({ level, filePath, relativePath });
     }
   }
@@ -377,12 +384,14 @@ function collectNode(
   });
 }
 
-export function buildSpellFieldInventory(): SpellFieldInventory {
+export function buildSpellFieldInventory(options: BuildSpellFieldInventoryOptions = {}): SpellFieldInventory {
+  const spellsRoot = options.spellsRoot ?? SPELLS_ROOT;
+  const repoRoot = options.repoRoot ?? REPO_ROOT;
   const spells: SpellRecord[] = [];
   const fields = new Map<string, MutableFieldSummary>();
   const occurrences: InventoryOccurrence[] = [];
 
-  for (const entry of listSpellFiles()) {
+  for (const entry of listSpellFiles(spellsRoot, repoRoot)) {
     const raw = JSON.parse(fs.readFileSync(entry.filePath, 'utf8')) as Record<string, unknown>;
     const spell = deriveSpellRecord(entry.level, entry.filePath, entry.relativePath, raw);
     const spellOccurrences: InventoryOccurrence[] = [];
@@ -427,7 +436,7 @@ export function buildSpellFieldInventory(): SpellFieldInventory {
 
   return {
     generatedAt: new Date().toISOString(),
-    sourceRoot: SPELLS_ROOT,
+    sourceRoot: spellsRoot,
     spellCount: spells.length,
     fieldCount: fieldSummaries.length,
     occurrenceCount: sortedOccurrences.length,

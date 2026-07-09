@@ -37,6 +37,8 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import World3DLighting from './World3DLighting';
 import InteriorLights from './InteriorLights';
+import InteriorOccupants from './InteriorOccupants';
+import { InteriorHourProvider, useInteriorHour, emissiveForPart } from './InteriorHourContext';
 import FreeRoamCameraController, { type CameraFrameRequest } from './FreeRoamCameraController';
 import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
 import { VegetationTrees } from './vegetation/VegetationTrees';
@@ -57,6 +59,7 @@ import { chunkOriginWorld, worldToChunk } from '@/systems/world3d/coords';
 import { rebaseChunkPositions } from '@/systems/world3d/chunkRebase';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
+import { sitePartLocalOffset } from '@/systems/worldforge/bridge/sitePartTransform';
 import type { PlayerWorldPosition } from '@/types';
 import { useForgeTexture, getSemanticAssetKey } from '@/systems/worldforge/bridge/forgeMaterials';
 import type { ForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
@@ -289,9 +292,12 @@ const RoadPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
     roads ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
   );
   if (!roads) return null;
+  // Per-vertex street tiers (buildRoadMesh): pale avenues, warm paved streets,
+  // packed-dirt lanes read under one white-base vertex-colored material. Inherited
+  // regional roads bake the same #a08b62 dirt they used before this slice.
   return (
     <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} receiveShadow={SHADOWS}>
-      <meshStandardMaterial color="#a08b62" /> {/* packed dirt: light enough to read against grass at walking scale (shot-1 review) */}
+      <meshStandardMaterial vertexColors color="#ffffff" roughness={0.95} />
     </mesh>
   );
 };
@@ -413,6 +419,11 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
   const roofRef = useRef<THREE.Mesh>(null);
   const localCam = useRef(new THREE.Vector3());
 
+  // Live integer game hour: windows/hearths derive emissive from the building's
+  // baked schedule against this, so they light and darken with the clock without
+  // a chunk re-mesh. Read once here (not inside the parts.map) per rules-of-hooks.
+  const hour = useInteriorHour();
+
   const service = React.useContext(ForgeAssetContext);
   // Explicit role wins (styled-architecture chunks carry it). The colorHex
   // sniff survives ONLY as a legacy tail for old chunks minted before `role`
@@ -469,24 +480,30 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
         // Seamless interior (Worldforge L4): perimeter + room walls with real
         // door gaps, plus furnishing blocks. Parts use +z = inward-from-street;
         // doorZSign maps that onto whichever face the street actually is.
-        s.parts.map((p, i) => (
+        s.parts.map((p, i) => {
+          const off = sitePartLocalOffset(p, s.doorZSign ?? -1);
+          // Window/hearth parts carry a `lightRole` and NO baked emissive; the
+          // renderer decides their glow live from the hourly schedule. All other
+          // parts stay dark.
+          const em = emissiveForPart(p.lightRole, hour, s.litHours, s.hearthHours);
+          return (
           <mesh
             key={`part-${i}`}
-            position={[p.x, (p.baseY ?? 0) + p.h * 0.5, p.z * -(s.doorZSign ?? -1)]}
+            position={[off.x, off.y, off.z]}
             castShadow={SHADOWS}
             receiveShadow={SHADOWS}
           >
             <boxGeometry args={[p.w, p.h, p.d]} />
             {/* Apply wall texture only to tall perimeter/interior walls (h >= 2.0) */}
-            {/* A lit hearth (BGv2 Task 14) carries emissiveHex → warm glow. */}
             <meshStandardMaterial
               color={p.colorHex}
               map={p.h >= 2.0 ? (wallTex || null) : null}
-              emissive={p.emissiveHex ?? '#000000'}
-              emissiveIntensity={p.emissiveHex ? 1.1 : 0}
+              emissive={em.emissive}
+              emissiveIntensity={em.emissiveIntensity}
             />
           </mesh>
-        ))
+          );
+        })
       ) : (
         <mesh position={[0, (s.boxHeight ?? 0) * 0.5, 0]} castShadow={SHADOWS} receiveShadow={SHADOWS}>
           <boxGeometry args={[s.boxWidth, s.boxHeight, s.boxDepth]} />
@@ -779,7 +796,13 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             near the camera (nearest ≤4), lit-window emissive glow (baked into
             parts), and a camera-inside fill so any interior is readable. */}
         {viewProfile === 'ground' && (
-          <InteriorLights loaded={loaded} origin={sceneOrigin} />
+          // One InteriorHour clock source for the hearth lights and live
+          // occupants (windows already read it via the provider wrapping the
+          // chunk pieces below). Honors the window.__wfAgentClock scrub override.
+          <InteriorHourProvider clock={agentClock}>
+            <InteriorLights loaded={loaded} origin={sceneOrigin} />
+            <InteriorOccupants loaded={loaded} origin={sceneOrigin} />
+          </InteriorHourProvider>
         )}
         <FreeRoamCameraController
           initialTarget={[0, startSurfaceY, 0]}
@@ -800,15 +823,20 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           sceneOrigin={sceneOrigin}
           playerWorldPos={playerWorldPos}
         />
-        {loaded.map((c) => (
-          <ChunkPieces
-            key={`${c.cx}|${c.cy}`}
-            chunk={c}
-            origin={sceneOrigin}
-            anchor={anchorChunk}
-            loadedKeys={loadedKeys}
-          />
-        ))}
+        {/* One live-hour provider over the whole chunk subtree: SiteBuilding
+            reads useInteriorHour() to light windows/hearths from each building's
+            baked schedule. Re-renders only on the integer-hour boundary. */}
+        <InteriorHourProvider clock={agentClock}>
+          {loaded.map((c) => (
+            <ChunkPieces
+              key={`${c.cx}|${c.cy}`}
+              chunk={c}
+              origin={sceneOrigin}
+              anchor={anchorChunk}
+              loadedKeys={loadedKeys}
+            />
+          ))}
+        </InteriorHourProvider>
         <GroundAgents ground={groundWorld} clock={agentClock} sceneOrigin={sceneOrigin} />
         {viewProfile === 'ground' && (
           <GroundProps ground={groundWorld} sceneOrigin={sceneOrigin} />

@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { toArtifactPlan, storeysForRole } from '../townPlanAdapter';
+import { toArtifactPlan, storeysForRole, STREET_TIERS } from '../townPlanAdapter';
+
+const { avenue: AVENUE, street: STREET, lane: LANE } = STREET_TIERS;
 import { STYLE_FAMILIES } from '../architectureStyle';
 import type { TownPlan as EngineTownPlan } from '../townEngine';
 
@@ -49,11 +51,59 @@ describe('toArtifactPlan', () => {
     expect(temple.storeys).toBe(3);
   });
 
-  it('converts streets and surfaces the wall ring', () => {
-    expect(plan.streets.length).toBe(1);
-    expect(plan.streets[0].centerline.length).toBe(3);
+  it('surfaces the wall ring and gatehouses', () => {
     expect(walls.ring.length).toBe(4);
     expect(walls.gatehouses.length).toBe(1);
+  });
+
+  it('turns every ward edge into a lane and keeps the inherited road as an avenue', () => {
+    // One 4-sided ward → 4 lane edges; plus the one inherited regional road.
+    expect(plan.streets.length).toBe(5);
+    expect(plan.streets.filter((s) => s.widthFt === LANE.widthFt).length).toBe(4);
+    expect(plan.streets.filter((s) => s.widthFt === AVENUE.widthFt).length).toBe(1);
+  });
+
+  it('tags the inherited road as a wide pale avenue, centerline untouched', () => {
+    const avenue = plan.streets.find((s) => s.widthFt === AVENUE.widthFt)!;
+    expect(avenue.colorHex).toBe(AVENUE.colorHex);
+    expect(avenue.centerline).toEqual([[0, 0], [25, 25], [50, 50]]);
+  });
+
+  it('lanes are narrow packed dirt', () => {
+    for (const lane of plan.streets.filter((s) => s.widthFt === LANE.widthFt)) {
+      expect(lane.colorHex).toBe(LANE.colorHex);
+      expect(lane.centerline.length).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it('promotes plaza-ward frontage to paved streets', () => {
+    const plaza = {
+      ...makeEnginePlan(),
+      wards: [{ polygon: sq(0, 0, 40), block: sq(1, 1, 38), plots: [{ polygon: sq(4, 4, 16), frontageEdge: 0, buildingType: 'shop' as const }], civic: 'plaza' as const }],
+      plots: [{ polygon: sq(4, 4, 16), frontageEdge: 0, buildingType: 'shop' as const }],
+      streets: [],
+    } as EngineTownPlan;
+    const { plan: p } = toArtifactPlan(plaza, 3);
+    expect(p.streets.length).toBe(4); // the plaza ward's 4 edges, no inherited road
+    for (const s of p.streets) {
+      expect(s.widthFt).toBe(STREET.widthFt);
+      expect(s.colorHex).toBe(STREET.colorHex);
+    }
+  });
+
+  it('dedups ward edges shared between two adjacent wards', () => {
+    const twoWard = {
+      ...makeEnginePlan(),
+      wards: [
+        { polygon: sq(0, 0, 20), block: sq(1, 1, 18), plots: [], civic: undefined },
+        { polygon: sq(20, 0, 20), block: sq(21, 1, 18), plots: [], civic: undefined },
+      ],
+      plots: [],
+      streets: [],
+    } as EngineTownPlan;
+    const { plan: p } = toArtifactPlan(twoWard, 4);
+    // 4 + 4 edges, one shared → 7 unique streets.
+    expect(p.streets.length).toBe(7);
   });
 
   it('emits no style fields when no family is given (legacy shape)', () => {

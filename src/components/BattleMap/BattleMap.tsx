@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 02/07/2026, 00:55:57
+ * Last Sync: 09/07/2026, 01:28:08
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
- * Imports: 14 files
+ * Imports: 16 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -82,6 +82,8 @@ interface BattleMapProps {
   showCoverLabels?: boolean;
   showLightSourceMarkers?: boolean;
   showLineOfSightCone?: boolean;
+  assetOverlayVisible?: boolean;
+  cameraFocusRequest?: { characterId: string; requestId: number } | null;
   objectInteraction?: {
     activeObjectId: string | null;
     movableObjectIds: string[];
@@ -99,9 +101,10 @@ interface BattleMapProps {
   };
 }
 
-const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLabels = false, showLightSourceMarkers = true, showLineOfSightCone = false, objectInteraction, spellMapArtifacts, combatState }) => {
+const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLabels = false, showLightSourceMarkers = true, showLineOfSightCone = false, assetOverlayVisible = true, cameraFocusRequest = null, objectInteraction, spellMapArtifacts, combatState }) => {
   const { turnManager, turnState, abilitySystem, isCharacterTurn } = combatState;
   const [lineOfSightOverlayVisible, setLineOfSightOverlayVisible] = useState(showLineOfSightCone);
+  const [pendingCameraCenterCharacterId, setPendingCameraCenterCharacterId] = useState<string | null>(null);
 
   // Keep the local overlay toggle aligned if a parent view changes the starting
   // line-of-sight teaching overlay, while still letting the player hide it in
@@ -338,6 +341,51 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
     }
     setUserZoom(prev => clampZoom((prev ?? boardScaleRef.current) * factor));
   }, []);
+  const requestCameraCenter = useCallback((characterId: string) => {
+    // Both the explicit React prop and the roster's browser event land here.
+    // Resetting user zoom first means every roster focus click returns the map
+    // to its automatic viewer level before scrolling to the requested token.
+    setUserZoom(null);
+    setPendingCameraCenterCharacterId(characterId);
+  }, []);
+  const centerBoardOnCharacter = useCallback((character: CombatCharacter) => {
+    if (!mapData || !fitWrapRef.current) return;
+
+    const wrap = fitWrapRef.current;
+    const targetLeft =
+      (RULER_GUTTER_PX +
+        character.position.x * TILE_SIZE_PX +
+        TILE_SIZE_PX / 2) * boardScale -
+      wrap.clientWidth / 2;
+    const targetTop =
+      (COLUMN_RULER_HEIGHT_PX +
+        character.position.y * TILE_SIZE_PX +
+        TILE_SIZE_PX / 2) * boardScale -
+      wrap.clientHeight / 2;
+
+    // Camera centering is scroll-based in the 2D tactical board. Keeping the
+    // math in one helper makes roster focus and turn-start focus land on the
+    // same tile center instead of drifting by a gutter or ruler offset.
+    window.requestAnimationFrame(() => {
+      wrap.scrollTo({
+        left: Math.max(0, targetLeft),
+        top: Math.max(0, targetTop),
+      });
+    });
+  }, [boardScale, mapData]);
+  useEffect(() => {
+    if (!cameraFocusRequest) return;
+    requestCameraCenter(cameraFocusRequest.characterId);
+  }, [cameraFocusRequest, requestCameraCenter]);
+  useEffect(() => {
+    const handleRosterCameraRequest = (event: Event) => {
+      const characterId = (event as CustomEvent<{ characterId?: string }>).detail?.characterId;
+      if (characterId) requestCameraCenter(characterId);
+    };
+
+    window.addEventListener('aralia:battle-map-center-character', handleRosterCameraRequest);
+    return () => window.removeEventListener('aralia:battle-map-center-character', handleRosterCameraRequest);
+  }, [requestCameraCenter]);
   useLayoutEffect(() => {
     const wrap = fitWrapRef.current;
     const anchor = zoomAnchorRef.current;
@@ -360,6 +408,24 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
     return () => wrap.removeEventListener('wheel', onWheel);
   }, [zoomBy]);
   useLayoutEffect(() => {
+    if (!pendingCameraCenterCharacterId) return;
+
+    const requestedCharacter = characters.find(character => character.id === pendingCameraCenterCharacterId);
+    setPendingCameraCenterCharacterId(null);
+    if (!requestedCharacter || !isBoardScrollable) return;
+
+    // A roster focus click is an explicit camera command. Mark the next
+    // active-combatant centering pass as handled so it does not immediately
+    // pull the board back to whoever currently owns the turn.
+    skipCombatantCenterAfterZoomRef.current = true;
+    centerBoardOnCharacter(requestedCharacter);
+  }, [
+    centerBoardOnCharacter,
+    characters,
+    isBoardScrollable,
+    pendingCameraCenterCharacterId,
+  ]);
+  useLayoutEffect(() => {
     // Leaving scroll mode (e.g. pressing Fit) must clear any leftover scroll
     // offset: overflow-hidden keeps the stale scroll position and would leave
     // the fitted board shifted out of view.
@@ -375,30 +441,13 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
       return;
     }
 
-    const wrap = fitWrapRef.current;
-    const targetLeft =
-      (RULER_GUTTER_PX +
-        currentCharacter.position.x * TILE_SIZE_PX +
-        TILE_SIZE_PX / 2) * boardScale -
-      wrap.clientWidth / 2;
-    const targetTop =
-      (COLUMN_RULER_HEIGHT_PX +
-        currentCharacter.position.y * TILE_SIZE_PX +
-        TILE_SIZE_PX / 2) * boardScale -
-      wrap.clientHeight / 2;
-
     // A scrollable tactical board should open on the active combatant, not the
     // empty top-left corner of a large generated map.
-    window.requestAnimationFrame(() => {
-      wrap.scrollTo({
-        left: Math.max(0, targetLeft),
-        top: Math.max(0, targetTop),
-      });
-    });
+    centerBoardOnCharacter(currentCharacter);
   }, [
+    centerBoardOnCharacter,
     currentCharacter,
     isBoardScrollable,
-    boardScale,
     mapData,
   ]);
 
@@ -433,7 +482,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
       )}
        {/* UI for current turn actions */}
        {currentCharacter && isCharacterTurn(currentCharacter.id) && (
-        <div className="absolute -top-14 left-1/2 z-[var(--z-index-submap-overlay)] flex -translate-x-1/2 gap-2 rounded-md bg-gray-700 p-2 shadow-lg">
+        <div className="absolute left-3 top-3 z-[var(--z-index-submap-overlay)] flex gap-2 rounded-md border border-slate-600/70 bg-slate-950/80 p-1.5 shadow-lg backdrop-blur-sm">
           <button 
             onClick={() => {
               // Switching back to movement should leave any half-started attack
@@ -442,7 +491,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
               abilitySystem.cancelTargeting();
               setActionMode('move');
             }}
-            className={`min-h-11 rounded px-3 py-2 text-sm font-semibold transition-colors ${actionMode === 'move' ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-gray-600 hover:bg-gray-500'}`}
+            className={`h-9 rounded px-3 text-xs font-semibold transition-colors ${actionMode === 'move' ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-gray-600 hover:bg-gray-500'}`}
           >Move</button>
           <button
             onClick={() => {
@@ -454,7 +503,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
               abilitySystem.startTargeting(primaryAttack, currentCharacter);
             }}
             disabled={!canUsePrimaryAttack}
-            className={`min-h-11 rounded px-3 py-2 text-sm font-semibold transition-colors ${!canUsePrimaryAttack ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : actionMode === 'ability' ? 'bg-red-600 text-white ring-2 ring-red-300' : 'bg-gray-600 hover:bg-gray-500'}`}
+            className={`h-9 rounded px-3 text-xs font-semibold transition-colors ${!canUsePrimaryAttack ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : actionMode === 'ability' ? 'bg-red-600 text-white ring-2 ring-red-300' : 'bg-gray-600 hover:bg-gray-500'}`}
           >Attack</button>
         </div>
       )}
@@ -520,7 +569,12 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
                   height: `${mapData.dimensions.height * TILE_SIZE_PX + 2}px`,
               }}>
         {/* Painted forest ground beneath the interactive grid. */}
-        <BattleMapGroundCanvas mapData={mapData} tileSize={TILE_SIZE_PX} className="pointer-events-none absolute inset-0 h-full w-full" />
+        <BattleMapGroundCanvas
+          mapData={mapData}
+          tileSize={TILE_SIZE_PX}
+          showDecorations={assetOverlayVisible}
+          className="pointer-events-none absolute inset-0 h-full w-full"
+        />
         {/* Soft fog-of-war above the tiles, below the tokens: the same
             visibility data as before, feathered into light pools instead of
             per-tile black squares. */}
@@ -586,7 +640,10 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
             )
           })}
 
-          {objectInteraction && (mapData.targetableObjects ?? [])
+          {/* Targetable map assets are a teaching/editing overlay, not the
+              ground art itself. The surrounding combat screen owns the header
+              toggle so these pins can be hidden without crowding the legend. */}
+          {assetOverlayVisible && objectInteraction && (mapData.targetableObjects ?? [])
             .filter(targetObject => objectInteraction.movableObjectIds.includes(targetObject.id))
             .map(targetObject => {
               const isSelectedObject = targetObject.id === objectInteraction.activeObjectId;
@@ -701,7 +758,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
           regardless of how far the board is scaled to fit. */}
       <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-1 text-xs text-slate-300">
         {LEGEND_ITEMS.map(item => {
-          if (item.toggle === 'lineOfSight') {
+          if (item.toggle) {
             return (
               /* eslint-disable-next-line no-restricted-syntax -- This is a tiny legend swatch toggle; the shared Button component is too large for the map footer. */
               <button

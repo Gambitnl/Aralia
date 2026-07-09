@@ -51,6 +51,13 @@ import {
   StartBattleMapEncounterPayload
 } from '../types/actions.js';
 
+/**
+ * Alchemy/crafting recipe categories. Mirrors the `category` union on
+ * `CraftingRecipe` (systems/crafting/alchemyRecipes.ts) so the
+ * `UPDATE_CRAFTING_STATS` payload rejects typos at compile time.
+ */
+export type CraftingCategory = 'potion' | 'oil' | 'poison' | 'bomb' | 'utility' | 'ink';
+
 export type AppAction =
   | { type: 'SET_GAME_PHASE'; payload: GamePhase }
   | { type: 'SET_AUTO_SAVE_ENABLED'; payload: boolean }
@@ -356,7 +363,7 @@ export type AppAction =
   | { type: 'INIT_CRAFTING_STATE'; payload: { toolProficiencies: string[] } }
   | { type: 'LEARN_RECIPE'; payload: { recipeId: string } }
   | { type: 'ADD_CRAFTING_XP'; payload: { amount: number } }
-  | { type: 'UPDATE_CRAFTING_STATS'; payload: { quality: string; category: string; isNat20: boolean } }
+  | { type: 'UPDATE_CRAFTING_STATS'; payload: { quality: import('../types/crafting.js').CraftingQuality; category: CraftingCategory; isNat20: boolean } }
   | { type: 'UNLOCK_ACHIEVEMENT'; payload: { achievementId: string } }
   | { type: 'SET_CRAFTING_LOCATION'; payload: { locationId: string } }
   // Interactive Conversation Actions

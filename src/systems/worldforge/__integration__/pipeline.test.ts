@@ -30,6 +30,7 @@ import { toArtifactPlan } from '../town/townPlanAdapter';
 import { boundsCenter } from '../units';
 import { createWorld } from '../world/createWorld';
 import { WorldStore } from '../world/worldStore';
+import { makeGroundWorld } from '../bridge/groundChunkLoader';
 import type { LocalArtifact, RegionArtifact, RegionTownSite, TownPlan } from '../artifacts';
 
 // The artifact town plan for a region town site, via the owned Voronoi-ward
@@ -158,6 +159,20 @@ function buildTownProbePipeline(): Pipeline {
   });
 
   return { created, world, region, local };
+}
+
+// Living-interiors live clock: bake the walking-scale ground world from the
+// same populated town probe (population 4000). makeGroundWorld runs the plot
+// loop that stamps litHours / hearthHours / occupants onto each populated
+// building record — the bake Tasks 3 + 7 add and this suite pins.
+let cachedPopulatedGroundWorld: ReturnType<typeof makeGroundWorld> | null = null;
+function buildPopulatedGroundWorld(): ReturnType<typeof makeGroundWorld> {
+  if (cachedPopulatedGroundWorld) return cachedPopulatedGroundWorld;
+  const probe = buildTownProbePipeline();
+  cachedPopulatedGroundWorld = makeGroundWorld(probe.local, WORLD_SEED, probe.region, {
+    hour: 12,
+  });
+  return cachedPopulatedGroundWorld;
 }
 
 // ---------------------------------------------------------------------------
@@ -685,5 +700,40 @@ describe('worldforge pipeline integration', () => {
       seedPath,
     );
     expect(briefless.household).toBeUndefined();
+  }, 60_000);
+
+  // Living-interiors live clock (Task 3): the 3D bake stamps a full 24-hour
+  // window/hearth lighting schedule onto every populated building, so the
+  // renderer can light windows at dusk and darken them by day against the live
+  // clock — no re-enter, no re-mesh.
+  it('bakes a 24-hour lighting schedule onto populated buildings', () => {
+    const world = buildPopulatedGroundWorld();
+    const lit = world.buildings.filter((b) => b.litHours);
+    expect(lit.length).toBeGreaterThan(0);
+    for (const b of lit) {
+      expect(b.litHours).toHaveLength(24);
+      expect(b.hearthHours).toHaveLength(24);
+      // A populated house is dark-windowed at noon (windows only glow at dusk).
+      expect(b.litHours![12]).toBe(false);
+    }
+  }, 60_000);
+
+  // Living-interiors live clock (Task 7): the bake carries each family member as
+  // an occupant render packet (24-hour station table + body) instead of freezing
+  // occupant boxes into the static parts — the renderer moves them live.
+  it('bakes an occupant render schedule and NO occupant boxes in parts', () => {
+    const world = buildPopulatedGroundWorld();
+    const b = world.buildings.find((x) => x.occupants && x.occupants.length > 0);
+    expect(b).toBeDefined();
+    expect(b!.occupants![0].stationsByHour).toHaveLength(24);
+    expect(b!.occupants![0].body).toBeDefined();
+    // Interior frame (plan feet) rides along so the renderer can place stations.
+    expect(b!.interiorWidthFt).toBeGreaterThan(0);
+    expect(b!.interiorDepthFt).toBeGreaterThan(0);
+    // Occupant geometry is no longer baked into the static parts of a populated
+    // building (its family renders live from `occupants`) — the bake passes an
+    // empty occFigures roster, so no occupant boxes land in parts.
+    const occupantBoxes = (b!.parts ?? []).filter((p) => p.tag === 'occupant');
+    expect(occupantBoxes.length).toBe(0);
   }, 60_000);
 });

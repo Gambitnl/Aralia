@@ -95,6 +95,14 @@ export function buildSiteMeshes(data: ChunkData): ChunkSite[] {
       wallWidthM: s.wallWidthM,
       wallDepthM: s.wallDepthM,
       solvedRoof: s.solvedRoof,
+      // Living-interiors schedule (2026-07-08): the baked 24-hour lighting +
+      // occupant data passes through untouched so the render layer can resolve
+      // it against the live clock. Populated plots only; undefined otherwise.
+      litHours: s.litHours,
+      hearthHours: s.hearthHours,
+      occupants: s.occupants,
+      interiorWidthFt: s.interiorWidthFt,
+      interiorDepthFt: s.interiorDepthFt,
     };
 
     // Oriented-box footprint (Worldforge ground mode, 2026-06-11): a

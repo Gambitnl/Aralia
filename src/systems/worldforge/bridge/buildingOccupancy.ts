@@ -20,7 +20,8 @@
 import type { SeedPath } from '../seedPath';
 import type { Feet } from '../units';
 import { blueprintForPlot, type InteriorPlotInput } from '../interior/generateInterior';
-import { computeOccupancy } from '../interior/occupancy';
+import type { BlueprintPlan } from '../interior/blueprintTypes';
+import { computeOccupancy, type OccupantStation } from '../interior/occupancy';
 import { householdForPlot } from '../town/householdBrief';
 import type { Household } from '../town/household';
 import type { TownPlotPopulation } from '../town/townEngine';
@@ -49,6 +50,38 @@ export interface PlotOccupancy {
    * read town-wide from the street. Derived purely from occupancy — no RNG. */
   litWindows: boolean;
   /** The named family, so callers can label bodies / drive nameplates. */
+  household: Household;
+}
+
+/** One resolved station in PLAN FEET (blueprint frame; 0 = min corner). */
+export interface StationFeetPoint {
+  xFt: Feet;
+  yFt: Feet;
+  /** Floor level the member stands on (0 = ground, 1+ = upper, -1 = basement). */
+  level: number;
+  activity: OccupancyStationPoint['activity'];
+}
+
+/** One household member's whole day: their station every hour, or null when out. */
+export interface OccupantDaySchedule {
+  memberIndex: number;
+  /** Given name (first token of the full name). */
+  name: string;
+  /** Age band ('child' | 'adult' | 'elder'). */
+  ageBand: string;
+  occupation: 'resident' | 'shopkeeper' | 'artisan';
+  /** stationsByHour[h] = the member's station at hour h, or null when OUT. */
+  stationsByHour: (StationFeetPoint | null)[];
+}
+
+/** The full-day occupancy schedule for one populated plot — the bake-once record
+ *  the 3D renderer re-resolves against the live clock. */
+export interface PlotOccupancySchedule {
+  /** Length 24 — windows glow at hour h. */
+  litHours: boolean[];
+  /** Length 24 — hearth lit at hour h. */
+  hearthHours: boolean[];
+  occupants: OccupantDaySchedule[];
   household: Household;
 }
 
@@ -85,6 +118,134 @@ export function windowsLitAt(
  * @param townSeed  the town seed path householdForPlot / generateHousehold key on.
  * @param hour      0–23 game hour.
  */
+/**
+ * Resolve one station row entry to plan feet: the furnishing's center when the
+ * member stands at a piece, else the claimed room's anchor cell center —
+ * guaranteed inside the (possibly L-shaped) room. Mirrors the 2D overlay
+ * exactly. Returns null for an OUT station (no station this hour).
+ *
+ * No-fallback directive: a HOME station must resolve to a real room. A missing
+ * room is a schedule/plan mismatch, not a `(0,0)` placement — so we throw.
+ */
+function stationToFeet(
+  st: OccupantStation,
+  plan: BlueprintPlan,
+): StationFeetPoint | null {
+  if (st.where !== 'home' || st.level === undefined) return null;
+  const floor = plan.floors.find((f) => f.level === st.level);
+  if (!floor) return null;
+
+  let x: Feet;
+  let y: Feet;
+  const fu = st.furnishingIndex !== undefined ? floor.furnishings[st.furnishingIndex] : undefined;
+  if (fu) {
+    // Furniture carries its center in feet — the member stands at the piece.
+    x = fu.x;
+    y = fu.y;
+  } else {
+    // No piece → the claimed room's anchor cell center (guaranteed in-room),
+    // exactly as the 2D overlay resolves an anchored station.
+    const room = st.roomId !== undefined ? floor.rooms.find((r) => r.id === st.roomId) : undefined;
+    if (!room) {
+      throw new Error(
+        `stationToFeet: member ${st.memberIndex} home at level ${st.level} room ${st.roomId} ` +
+        `but no such room on the floor — occupancy/plan mismatch.`,
+      );
+    }
+    x = (room.anchor.cx + 0.5) * 5;
+    y = (room.anchor.cy + 0.5) * 5;
+  }
+  return { xFt: x, yFt: y, level: st.level, activity: st.activity };
+}
+
+/**
+ * Map a member's free-text trade onto the closed-body Occupation set the render
+ * figures key on. Only heads/spouses carry a trade identity; everyone else is a
+ * plain resident.
+ */
+export function occupationForMember(
+  member: Household['members'][number] | undefined,
+): 'resident' | 'shopkeeper' | 'artisan' {
+  const trade = (member?.occupation ?? '').toLowerCase();
+  if (member?.role !== 'head' && member?.role !== 'spouse') return 'resident';
+  if (/keep|shop|innkeep|tavern|clerk|official|merchant/.test(trade)) return 'shopkeeper';
+  if (/smith|artisan|wright|journey|apprentice|craft|brew|forge/.test(trade)) return 'artisan';
+  return 'resident';
+}
+
+/**
+ * The FULL-DAY occupancy schedule for one town plot: for every hour, which
+ * windows glow and whether the hearth is lit, plus each home member's station
+ * table (in PLAN FEET) across all 24 hours. Baked once at world-gen; the
+ * renderer re-resolves it against the live clock. `undefined` when the plot has
+ * no household (unpopulated town, storehouse, civic, temple, keep).
+ *
+ * @param plotPop   the plot's population record (from the town engine).
+ * @param allPlots  every plot in the town (for workplace/proprietor lookups).
+ * @param plotInput the geometric plot input (footprint/role/storeys).
+ * @param seedPath  the town's canonical seed path (blueprintForPlot's frame).
+ * @param townSeed  the town seed path householdForPlot / generateHousehold key on.
+ */
+export function occupancyScheduleForPlot(
+  plotPop: TownPlotPopulation,
+  allPlots: readonly TownPlotPopulation[],
+  plotInput: InteriorPlotInput,
+  seedPath: SeedPath,
+  townSeed: SeedPath,
+): PlotOccupancySchedule | undefined {
+  const resolved = householdForPlot(plotPop, allPlots, townSeed);
+  if (!resolved) return undefined;
+  const { household, worksAtHome } = resolved;
+
+  // PERF NOTE (2026-07-08): this is 1 of ~3 blueprintForPlot calls per populated
+  // plot (the other two are in buildInterior). generateBuilding is memoized, so
+  // the repeat calls are cache hits — measured ~17 ms total (1.9%) over a
+  // 650-plot capital bake; the real cost is cold generation (~1.3 ms/plot). Left
+  // un-threaded on purpose; full verdict in bridge/interiorParts.ts (buildInterior).
+  // Bench: .agent/scratch/bench-blueprint-fetch.ts
+  const plan = blueprintForPlot(plotInput, seedPath);
+  const occ = computeOccupancy(plan, household, { worksAtHome });
+
+  const litHours: boolean[] = [];
+  const hearthHours: boolean[] = [];
+  // Per-member station table, indexed [memberIndex][hour].
+  const byMember = new Map<number, (StationFeetPoint | null)[]>();
+  household.members.forEach((_, i) => byMember.set(i, new Array(24).fill(null)));
+
+  for (let h = 0; h < 24; h++) {
+    const row = occ.stationsByHour[h] ?? [];
+    let anyHome = false;
+    for (const st of row) {
+      const feet = stationToFeet(st, plan);
+      if (feet) {
+        anyHome = true;
+        byMember.get(st.memberIndex)?.splice(h, 1, feet);
+      }
+    }
+    const hearth = occ.flags.hearthLitHours[h] ?? false;
+    hearthHours[h] = hearth;
+    // Occupied = the hearth is lit (implies home) OR any member stands home.
+    litHours[h] = windowsLitAt(hearth || anyHome, h);
+  }
+
+  const occupants: OccupantDaySchedule[] = [];
+  household.members.forEach((member, memberIndex) => {
+    const stations = byMember.get(memberIndex)!;
+    // A member never home all day contributes no figure. This is an empty set,
+    // not a fallback.
+    if (stations.every((s) => s === null)) return;
+    occupants.push({
+      memberIndex,
+      name: member.name.split(' ')[0] ?? `#${memberIndex}`,
+      ageBand: member.ageBand ?? 'adult',
+      occupation: occupationForMember(member),
+      stationsByHour: stations,
+    });
+  });
+
+  return { litHours, hearthHours, occupants, household };
+}
+
 export function occupancyForPlot(
   plotPop: TownPlotPopulation,
   allPlots: readonly TownPlotPopulation[],
@@ -93,57 +254,27 @@ export function occupancyForPlot(
   townSeed: SeedPath,
   hour: number,
 ): PlotOccupancy | undefined {
-  const resolved = householdForPlot(plotPop, allPlots, townSeed);
-  if (!resolved) return undefined;
-  const { household, worksAtHome } = resolved;
-
-  const plan = blueprintForPlot(plotInput, seedPath);
-  const occ = computeOccupancy(plan, household, { worksAtHome });
+  const sched = occupancyScheduleForPlot(plotPop, allPlots, plotInput, seedPath, townSeed);
+  if (!sched) return undefined;
 
   const h = ((Math.floor(hour) % 24) + 24) % 24;
-  const row = occ.stationsByHour[h] ?? [];
-
   const stations: OccupancyStationPoint[] = [];
-  for (const st of row) {
-    if (st.where !== 'home' || st.level === undefined) continue;
-    const floor = plan.floors.find((f) => f.level === st.level);
-    if (!floor) continue;
-
-    let x: Feet;
-    let y: Feet;
-    const fu = st.furnishingIndex !== undefined ? floor.furnishings[st.furnishingIndex] : undefined;
-    if (fu) {
-      // Furniture carries its center in feet — the member stands at the piece.
-      x = fu.x;
-      y = fu.y;
-    } else {
-      // No piece → the claimed room's anchor cell center (guaranteed in-room),
-      // exactly as the 2D overlay resolves an anchored station.
-      const room = st.roomId !== undefined ? floor.rooms.find((r) => r.id === st.roomId) : undefined;
-      const anchor = room?.anchor ?? { cx: 0, cy: 0 };
-      x = (anchor.cx + 0.5) * 5;
-      y = (anchor.cy + 0.5) * 5;
-    }
-
+  for (const occ of sched.occupants) {
+    const st = occ.stationsByHour[h];
+    if (!st) continue;
     stations.push({
-      memberIndex: st.memberIndex,
-      name: household.members[st.memberIndex]?.name.split(' ')[0] ?? `#${st.memberIndex}`,
+      memberIndex: occ.memberIndex,
+      name: occ.name,
       activity: st.activity,
-      x,
-      y,
+      x: st.xFt,
+      y: st.yFt,
       level: st.level,
     });
   }
-
-  const hearthLit = occ.flags.hearthLitHours[h] ?? false;
-  // Occupied = someone is home this hour (a lit hearth already implies that, but
-  // a family home without a hearth still lights lamps). Windows glow when
-  // occupied AND the hour is dusk/night.
-  const occupied = hearthLit || stations.length > 0;
   return {
     stations,
-    hearthLit,
-    litWindows: windowsLitAt(occupied, h),
-    household,
+    hearthLit: sched.hearthHours[h],
+    litWindows: sched.litHours[h],
+    household: sched.household,
   };
 }

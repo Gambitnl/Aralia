@@ -31,7 +31,7 @@
  * axis (CHUNK_WORLD_SIZE = 128 m). Vertices beyond the artifact clamp to its
  * edge values (flat continuation), mirroring chunkSampler's clamping.
  */
-import type { ChunkData, ChunkMeshBundle, VegetationScatter, LodTier } from "../../world3d/types";
+import type { ChunkData, ChunkMeshBundle, VegetationScatter, LodTier, BuildingOccupantRender } from "../../world3d/types";
 import { handleGroundChunkRequest } from "./groundChunkWorkerCore";
 import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from "../../world3d/config";
 import { biomeColor } from "../../world3d/terrainColor";
@@ -39,13 +39,14 @@ import type { LocalArtifact, RegionArtifact, RegionTownSite, RegionMarker } from
 import { localArtifactToWorldData, GROUND_METERS_PER_CELL } from "./groundWorldAdapter";
 import { getCanonicalTownPlan, transformTownPlan, townSpanFtForBurg, CANON_TOWN_SPAN, getCanonicalTownWaterFeatures, canonicalTownSeedPath } from "../town/canonicalTown";
 import { briefForPlot } from "../town/householdBrief";
-import { occupancyForPlot } from "./buildingOccupancy";
+import { occupancyScheduleForPlot } from "./buildingOccupancy";
 import type { TownPlotPopulation } from "../town/townEngine";
 import type { InteriorPlotInput } from "../interior/generateInterior";
+import { buildingShellHeightM } from "../interior/generateBuilding";
 import { buildTownWaterBodies } from "../town/townWaterBodies";
 import { toArtifactPlan, type AdaptedTownPlan } from "../town/townPlanAdapter";
 import type { TownPlan } from "../artifacts";
-import { buildInterior, DOOR_LEAF_COLOR, type SitePart, type OccupantBody } from "./interiorParts";
+import { buildInterior, DOOR_LEAF_COLOR, type SitePart, type OccupantBody, type OccupantFigure } from "./interiorParts";
 import { generateTownRoster } from "../roster/generateTownRoster";
 import { occupantLocationAt, type ActivityKind } from "../roster/occupantSchedule";
 import type { TownRoster, Occupant } from "../roster/types";
@@ -246,6 +247,18 @@ export interface GroundWorld {
     /** Solved roof group, site-local meters (BGv2 Task 5); undefined until a
      *  style resolves. When set, the renderer skips the legacy roof prism. */
     solvedRoof?: { positions: Float32Array; indices: Uint32Array; normals: Float32Array; colorHex: string };
+    /** Living-interiors live clock: length-24 window-lit / hearth-lit schedules,
+     *  baked once; the renderer re-resolves them against the live game hour.
+     *  Present only for populated plots. */
+    litHours?: boolean[];
+    hearthHours?: boolean[];
+    /** Baked occupant render packets — the family, resolved live per hour.
+     *  Present only for populated plots (replaces the old baked occupant boxes). */
+    occupants?: BuildingOccupantRender[];
+    /** Interior envelope in PLAN FEET (blueprint frame) — the frame occupant
+     *  stations resolve in. Present only when `occupants` is. */
+    interiorWidthFt?: number;
+    interiorDepthFt?: number;
     name?: string;
     unlabeled?: boolean;
     labelRangeM?: number;
@@ -1079,6 +1092,8 @@ function groundTowns(
         // 2.5 m floor: thinner ribbons vanish against grass at walking
         // scale (Remy shot-1 review) — a village lane reads at ~8 ft.
         widthM: Math.max(2.5, s.widthFt * FEET_TO_METERS),
+        // Street tier tint (avenue/street/lane) → vertex-colored ribbon in 3D.
+        colorHex: s.colorHex,
       });
     }
     // Defensive wall ring → ground polyline runs (3D renders each as an extruded
@@ -1225,7 +1240,7 @@ function groundTowns(
       // level pad, so they'd render as ungrounded boxes. Every kept building is
       // guaranteed a pad (invariant the terrain-pad pass relies on).
       if (gridCols > 0 && gridRows > 0 && buildingFootprintCells(gridCols, gridRows, cornersM).length === 0) continue;
-      const heightM = Math.max(1, (p.storeys ?? 1)) * 3;
+      const heightM = buildingShellHeightM(p.storeys ?? 1);
 
       const isBiz = p.role === 'market' || p.role === 'workshop';
       let bizName: string | undefined;
@@ -1283,76 +1298,71 @@ function groundTowns(
         ...(household ? { household } : {}),
         style,
       };
-      // LIVING overlay (BGv2 Task 14): a populated building shows its OWN family
-      // standing at their hourly stations — the smith at the forge, the spouse
-      // in the house, everyone abed at night — and lights the hearth after dusk.
-      // This is the 3D twin of the 2D blueprint overlay: it resolves the SAME
-      // household briefForPlot designs the house for, so the family in the house
-      // IS the family the house was built for. Members who are OUT this hour get
-      // no body. Unpopulated plots (no `p.pop`) fall back to the roster figures
-      // (the agent-sim commuters), byte-identical to before.
-      const living = p.pop
-        ? occupancyForPlot(p.pop, pops, plotInput, region!.seedPath, townSeed, hour)
+      // LIVING interiors — live clock: a populated building bakes its OWN
+      // family's FULL 24-hour schedule (which hours the windows glow, the hearth
+      // is lit, and where each member stands every hour) instead of a single
+      // entry-hour snapshot. The renderer re-resolves this against the live game
+      // clock, so windows light at dusk and members move room-to-room without a
+      // re-enter. It resolves the SAME household briefForPlot designs the house
+      // for, so the family in the house IS the family the house was built for.
+      // Unpopulated plots (no `p.pop`) fall back to the roster figures (the
+      // agent-sim commuters), byte-identical to before.
+      const schedule = p.pop
+        ? occupancyScheduleForPlot(p.pop, pops, plotInput, region!.seedPath, townSeed)
         : undefined;
-      let occFigures;
-      let hearthLit = false;
-      // Interior-lighting slice: window panes glow when the family is home at a
-      // dusk/night bake hour (living.litWindows). Reads town-wide from the
-      // street; emissive-only, no light cast. Daytime / unpopulated → dark glass.
-      let litWindows = false;
-      if (living) {
-        hearthLit = living.hearthLit;
-        litWindows = living.litWindows;
-        occFigures = living.stations.map((st) => {
-          // Synthesize the parametric body from the household member's identity
-          // (BODY-1): a stable per-member seed keeps a family's bodies constant.
-          const member = living.household.members[st.memberIndex];
-          // Map the family member's free-text trade onto the body system's
-          // closed Occupation set (drives clothing palette). Breadwinners read as
-          // shopkeeper/artisan by trade keyword; everyone else is a resident.
-          const trade = (member?.occupation ?? '').toLowerCase();
-          const occupation =
-            member?.role === 'head' || member?.role === 'spouse'
-              ? /keep|shop|innkeep|tavern|clerk|official|merchant/.test(trade)
-                ? 'shopkeeper'
-                : /smith|artisan|wright|journey|apprentice|craft|brew|forge/.test(trade)
-                  ? 'artisan'
-                  : 'resident'
-              : 'resident';
-          const occLike = {
-            id: p.id * 100 + st.memberIndex,
-            name: member?.name ?? st.name,
-            ageBand: member?.ageBand ?? 'adult',
-            homePlotId: p.id,
-            occupation: occupation as 'resident' | 'shopkeeper' | 'artisan',
-          };
-          return {
-            id: occLike.id,
-            ageBand: occLike.ageBand,
+      // Per-member render packets: reuse the EXACT body pipeline the old inline
+      // bake used, keyed on the same stable per-member seed so a family's bodies
+      // stay constant. Occupation is already resolved on the schedule.
+      const occupantsRender: BuildingOccupantRender[] | undefined = schedule
+        ? schedule.occupants.map((o) => {
+            const member = schedule.household.members[o.memberIndex];
+            const occLike = {
+              id: p.id * 100 + o.memberIndex,
+              name: member?.name ?? o.name,
+              // AgeBand-typed for generateBody: mirror the old inline bake
+              // (member.ageBand, 'adult' when a member slot is missing).
+              ageBand: member?.ageBand ?? 'adult',
+              homePlotId: p.id,
+              occupation: o.occupation,
+            };
+            return {
+              id: occLike.id,
+              ageBand: o.ageBand,
+              body: bodyPlanToOccupantBody(
+                generateBody(occLike, childSeedPath(townSeed, `member:${p.id}:${o.memberIndex}`)),
+              ),
+              stationsByHour: o.stationsByHour,
+            };
+          })
+        : undefined;
+      // Occupant bodies are baked live now, so populated plots inject NO figure
+      // boxes into the static parts (pass an empty roster). Unpopulated plots
+      // still bake the roster figures (agent-sim commuters), unchanged — each
+      // gets a parametric body (BODY-1) from its own seed path.
+      const occFigures: OccupantFigure[] = schedule
+        ? []
+        : (byPlot.get(p.id) ?? []).map((o) => ({
+            id: o.id,
+            ageBand: o.ageBand,
+            atWork: o.atWork,
             body: bodyPlanToOccupantBody(
-              generateBody(occLike, childSeedPath(townSeed, `member:${p.id}:${st.memberIndex}`)),
+              generateBody(o, childSeedPath(region!.seedPath, `occ:${o.id}`)),
             ),
-            station: { xFt: st.x, yFt: st.y, level: st.level },
-          };
-        });
-      } else {
-        // Each occupant gets a parametric body (BODY-1) from its own seed path, so
-        // villagers vary in height/build/palette deterministically.
-        occFigures = (byPlot.get(p.id) ?? []).map((o) => ({
-          id: o.id,
-          ageBand: o.ageBand,
-          atWork: o.atWork,
-          body: bodyPlanToOccupantBody(
-            generateBody(o, childSeedPath(region!.seedPath, `occ:${o.id}`)),
-          ),
-        }));
-      }
+          }));
       // Wall envelope (≤ plot footprint) AND seamless interior parts (L4) from ONE
       // interior generation — the envelope sizes roofs/floors so eaves don't float
       // past the walls (construction v2); the parts use the same seed path as the
       // town plan so plan, shell, rooms AND household all agree. (Was two
       // generateInterior calls per plot — wasteful for large capitals.)
-      const interior = buildInterior(plotInput, region!.seedPath, heightM, occFigures, hearthLit, litWindows);
+      // Window/hearth parts are now tagged with lightRole and the renderer
+      // decides emissive live from the schedule — buildInterior no longer paints
+      // lit flags, so pass false/false.
+      const interior = buildInterior(plotInput, region!.seedPath, heightM, occFigures, false, false);
+      // Interior envelope in PLAN FEET (blueprint frame): the frame occupant
+      // stations resolve in. envelope.wallWidthM = plan.widthFt * FEET_TO_METERS,
+      // so dividing recovers the exact plan-feet frame.
+      const interiorWidthFt = interior.envelope.wallWidthM / FEET_TO_METERS;
+      const interiorDepthFt = interior.envelope.wallDepthM / FEET_TO_METERS;
       buildings.push({
         id: `wf-plot-${t.burgId}-${p.id}`,
         xM,
@@ -1375,6 +1385,17 @@ function groundTowns(
         // Solved roof (BGv2 Task 5): undefined unless the blueprint resolved a
         // style — then the renderer draws it and skips the legacy roof prism.
         solvedRoof: interior.roof,
+        // Living-interiors live clock: carry the baked 24-hour schedule +
+        // occupant packets + plan-feet frame. Populated plots only.
+        ...(schedule
+          ? {
+              litHours: schedule.litHours,
+              hearthHours: schedule.hearthHours,
+              occupants: occupantsRender,
+              interiorWidthFt,
+              interiorDepthFt,
+            }
+          : {}),
       });
     }
   }
@@ -1667,6 +1688,14 @@ export function sampleGroundChunk(
           // Solved roof (BGv2 Task 5): present only when the plan resolved a
           // style; when set, the renderer draws it and skips the legacy prism.
           solvedRoof: b.solvedRoof,
+          // Living-interiors live clock: carry the baked schedule + occupant
+          // packets + plan-feet frame through to the render side (undefined for
+          // unpopulated plots).
+          litHours: b.litHours,
+          hearthHours: b.hearthHours,
+          occupants: b.occupants,
+          interiorWidthFt: b.interiorWidthFt,
+          interiorDepthFt: b.interiorDepthFt,
         })),
       // Mapped occupants (NPCs): these show where keepers or townsfolk are
       // standing inside their buildings during working/home hours. We guard this

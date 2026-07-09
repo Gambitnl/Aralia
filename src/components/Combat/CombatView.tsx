@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/07/2026, 05:57:31
+ * Last Sync: 09/07/2026, 00:56:09
  * Dependents: components/Combat/index.ts
- * Imports: 36 files
+ * Imports: 41 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -283,6 +283,10 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
 
   // Auto-Battle State
   const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
+  const [cameraFocusRequest, setCameraFocusRequest] = useState<{ characterId: string; requestId: number } | null>(null);
+  // The asset overlay is tactical map chrome, so CombatView owns the header
+  // switch and passes the setting into every 2D BattleMap instance.
+  const [assetOverlayVisible, setAssetOverlayVisible] = useState(true);
 
   // AI Spell Input State
   // Tracks the spell currently requesting player input (for AI-DM arbitration)
@@ -491,6 +495,12 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
       }
       return newSet;
     });
+  }, []);
+
+  const handleCenterCharacterCamera = useCallback((characterId: string) => {
+    // The roster focus button should work even if the same combatant is clicked
+    // repeatedly, so each click gets a fresh request id for BattleMap to observe.
+    setCameraFocusRequest(prev => ({ characterId, requestId: (prev?.requestId ?? 0) + 1 }));
   }, []);
 
   // Update Turn Manager with auto status
@@ -731,6 +741,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                 mapData={mapData}
                 characters={characters}
                 spellMapArtifacts={spellMapArtifacts}
+                assetOverlayVisible={assetOverlayVisible}
+                cameraFocusRequest={cameraFocusRequest}
                 combatState={{
                   turnManager: turnManager,
                   turnState: turnManager.turnState,
@@ -796,6 +808,22 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
         >
           <span>🎲</span> {renderMode === '2d' ? '3D View' : '2D View'}
         </button>
+        {renderMode === '2d' && !usePixiBoard && (
+          <button
+            type="button"
+            aria-label={`${assetOverlayVisible ? 'Hide' : 'Show'} asset overlay`}
+            aria-pressed={assetOverlayVisible}
+            onClick={() => setAssetOverlayVisible(visible => !visible)}
+            className={`${COMBAT_BTN_BASE} ${
+              assetOverlayVisible
+                ? 'border border-amber-400/70 bg-amber-700 text-amber-50 hover:bg-amber-600'
+                : COMBAT_BTN_NEUTRAL
+            }`}
+            title={`${assetOverlayVisible ? 'Hide' : 'Show'} asset overlay`}
+          >
+            Assets
+          </button>
+        )}
         {/* TODO #58: Wrap debug buttons with process.env.NODE_ENV check to hide in production builds. */}
         <button
           onClick={() => {
@@ -841,6 +869,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             currentTurnCharacterId={turnManager.turnState.currentCharacterId}
             autoCharacters={autoCharacters}
             onToggleAuto={handleToggleAuto}
+            onCenterCharacter={handleCenterCharacterCamera}
           />
         </div>
 
@@ -946,6 +975,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                     mapData={mapData}
                     characters={characters}
                     spellMapArtifacts={spellMapArtifacts}
+                    assetOverlayVisible={assetOverlayVisible}
+                    cameraFocusRequest={cameraFocusRequest}
                     combatState={{
                       turnManager: turnManager,
                       turnState: turnManager.turnState,

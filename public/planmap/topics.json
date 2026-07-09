@@ -737,6 +737,35 @@
       ]
     },
     {
+      "id": "town-streets-3d",
+      "title": "Town street grid in 3D",
+      "sub": "BUILT 2026-07-08: ward-edge network now bakes as tiered ribbons — pale avenues (inherited roads), paved plaza streets, packed-dirt lanes. Was missing entirely (3D only painted inherited roads)",
+      "campaign": "rendering",
+      "status": "active",
+      "history": { "designed": "2026-07-08", "built": "2026-07-08" },
+      "deps": [
+        {
+          "id": "shipped-styled-town",
+          "kind": "hard",
+          "why": "extends the canonical town 3D bake — reuses its street-ribbon renderer + wall-gate breaks"
+        }
+      ],
+      "features": [
+        {
+          "title": "Ward-edge street network baked into the 3D town adapter (three-tier hierarchy)",
+          "status": "done"
+        },
+        {
+          "title": "Per-vertex street tints (avenue/street/lane) through roadGeometry + RoadPiece vertexColors",
+          "status": "done"
+        },
+        {
+          "title": "Live in-engine 3D eyeball (blocked: Ollama-gated town + concurrent World3DScene edit)",
+          "status": "parked"
+        }
+      ]
+    },
+    {
       "id": "shipped-living-world",
       "title": "Living-world town sim",
       "sub": "100% complete: life-events, key NPCs, economy, festivals, disasters, dialogue — 158 tests green",
@@ -1530,6 +1559,20 @@
         {
           "id": "combat-roads-real-terrain",
           "why": "pillar 2 subsumes mechanical roads"
+        }
+      ]
+    },
+    {
+      "id": "asset-forge",
+      "title": "Procedural asset forge (owned stylized battle-map props)",
+      "sub": "code-drawn, seeded, owned art style for battle-map props as an alternative to found packs. Grew out of the cave-believability gap 2026-07-07: procedural drawers reach 'good stylized game art' (light upper-left + ink outlines throughout). BUILT: forge module (src/components/BattleMap/forge/) + design-preview showcase (?step=assetforge) with set selector / reroll / PNG export. Cave set done (ore rocks, crystal-ore nodes, chunky crystals, stalagmites, glowing mushrooms). NOT wired to the game yet — design surface only; same drawers can feed the painter's biome branches once a set is approved. Adding a set = one <name>Forge.ts + one registry entry.",
+      "campaign": "combat",
+      "status": "active",
+      "deps": [
+        {
+          "id": "combat-map-nextgen",
+          "kind": "chosen",
+          "why": "the painted-pack look upgrade exposed the gap this fills; forge props would feed the same painter that stamps the Caeora packs"
         }
       ]
     },

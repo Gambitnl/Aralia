@@ -24,9 +24,15 @@ interface BattleMapGroundCanvasProps {
   mapData: BattleMapData;
   tileSize: number;
   className?: string;
+  showDecorations?: boolean;
 }
 
-export const BattleMapGroundCanvas: React.FC<BattleMapGroundCanvasProps> = ({ mapData, tileSize, className }) => {
+export const BattleMapGroundCanvas: React.FC<BattleMapGroundCanvasProps> = ({
+  mapData,
+  tileSize,
+  className,
+  showDecorations = true,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -56,11 +62,13 @@ export const BattleMapGroundCanvas: React.FC<BattleMapGroundCanvasProps> = ({ ma
 
     loadGroundTextures(mapData.theme).then((textures) => {
       if (cancelled) return;
-      paintGround(ctx, mapData, tileSize, textures, res);
+      // The asset overlay toggle hides decorative props without touching the
+      // base terrain or the map data that describes those props.
+      paintGround(ctx, mapData, tileSize, textures, res, { showDecorations });
     });
 
     return () => { cancelled = true; };
-  }, [mapData, tileSize]);
+  }, [mapData, tileSize, showDecorations]);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" />;
 };

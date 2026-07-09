@@ -1,10 +1,11 @@
 
 import {
     getPlane,
-    PLANES,
     MATERIAL_PLANE
 } from '../../data/planes';
+import { LOCATIONS } from '../../data/world/locations';
 import { Plane, PlanarEffect } from '../../types/planes';
+import { Location } from '../../types/world';
 import { GameState } from '../../types/index';
 
 /**
@@ -13,30 +14,31 @@ import { GameState } from '../../types/index';
 export class PlanarService {
 
     /**
+     * Resolves the authoritative Location record for the current location id,
+     * preferring runtime-generated locations over the static world map.
+     */
+    private static resolveCurrentLocation(gameState: GameState): Location | undefined {
+        const id = gameState.currentLocationId;
+        if (!id) return undefined;
+        // Dynamic locations (procedurally generated / mutated at runtime) take
+        // precedence over the static authored world map.
+        return gameState.dynamicLocations?.[id] ?? LOCATIONS[id];
+    }
+
+    /**
      * Retrieves the current plane definition based on the GameState.
-     * Defaults to Material Plane if not found.
+     *
+     * Resolves the plane from authoritative location data (the location's
+     * `planeId`), looking up the runtime `dynamicLocations` registry first and
+     * then the static `LOCATIONS` map. Falls back to the Material Plane only
+     * when the location, its `planeId`, or the referenced plane is genuinely
+     * unknown.
      */
     static getCurrentPlane(gameState: GameState): Plane {
-        // Look for the plane ID in the current location
-        // Assuming gameState.currentLocationId -> lookup Location -> check .planeId
-        // Since we don't have the Location object here, we rely on a property we might add to GameState
-        // or a utility that resolves it.
-
-        // For now, let's assume GameState might track `location.planeId` in the future.
-        // As a fallback, we default to Material.
-
-        // If we want to be robust, we'd need access to the location map.
-        // Let's implement a heuristic: check if any location ID starts with 'fey_', 'shadow_', etc.
-        // Or better, assume GameState has a helper or we just use Material for now until we integrate location data.
-
-        // For this task, we will allow an explicit override or default.
-
-        // Temporary: check if we are in a known planar ID directly (if stored in locationId for simple maps)
-        if (gameState.currentLocationId.startsWith('feywild_')) return PLANES['feywild'] || MATERIAL_PLANE;
-        if (gameState.currentLocationId.startsWith('shadowfell_')) return PLANES['shadowfell'] || MATERIAL_PLANE;
-        if (gameState.currentLocationId.startsWith('hell_')) return PLANES['nine_hells'] || MATERIAL_PLANE;
-
-        return getPlane('material') || MATERIAL_PLANE;
+        const location = this.resolveCurrentLocation(gameState);
+        // Location.planeId defaults to the Material Plane when unset.
+        const planeId = location?.planeId ?? 'material';
+        return getPlane(planeId) || MATERIAL_PLANE;
     }
 
     /**

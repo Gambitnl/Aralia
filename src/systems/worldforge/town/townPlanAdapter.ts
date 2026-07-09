@@ -20,8 +20,84 @@ export interface AdaptedTownPlan {
   walls: { ring: Pt[]; gatehouses: Pt[]; waterGates: Pt[] };
 }
 
-/** Town street default width (feet) when the engine plan carries no per-street width. */
-const STREET_WIDTH_FT = 12;
+/**
+ * Street hierarchy — the town's walkable network reads as three tiers so a burg
+ * looks like a place people move through, not a uniform grid. Each tier sets a
+ * ribbon width (feet) and a vertex tint the 3D bake paints:
+ *
+ *  • avenue — the inherited regional roads that enter through the gates: the
+ *    grand thoroughfares. Widest, pale flagstone.
+ *  • street — the market plaza's frontage: the paved civic heart. Medium, warm
+ *    paved stone.
+ *  • lane   — every other ward (Voronoi) edge: the packed-dirt web threading the
+ *    house blocks. Narrowest, and the same dirt tone roads used before this slice.
+ *
+ * The 2D map already draws this grid as the NEGATIVE SPACE between inset ward
+ * blocks; the ward edges are the centerlines of those gaps, so a ribbon on each
+ * edge lands exactly down the middle of the 2D street — the two views agree.
+ */
+export const STREET_TIERS = {
+  avenue: { widthFt: 22, colorHex: '#c9b79a' },
+  street: { widthFt: 15, colorHex: '#b8a67f' },
+  lane: { widthFt: 10, colorHex: '#a08b62' },
+} as const;
+type StreetTier = keyof typeof STREET_TIERS;
+
+/**
+ * Subdivide a ward edge so a long lane drapes over terrain bumps instead of
+ * spanning them as one flat plank. Ward edges are single a→b segments; the
+ * inherited avenues arrive already densified, so they pass through untouched.
+ */
+const STREET_NODE_SPACING_FT = 24;
+
+const edgeKey = (a: Pt, b: Pt): string => {
+  const ka = `${Math.round(a[0])},${Math.round(a[1])}`;
+  const kb = `${Math.round(b[0])},${Math.round(b[1])}`;
+  return ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
+};
+
+/** Points along a→b (both ends included), spaced ≤ STREET_NODE_SPACING_FT. */
+function subdivideEdge(a: Pt, b: Pt): Pt[] {
+  const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  const steps = Math.max(1, Math.ceil(len / STREET_NODE_SPACING_FT));
+  const pts: Pt[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    pts.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+  }
+  return pts;
+}
+
+/**
+ * The ward-edge street network: every unique Voronoi ward edge becomes a street
+ * centerline. Shared edges are emitted once; an edge bordering the market plaza
+ * ward upgrades from `lane` to `street` (paved frontage wins over dirt).
+ */
+function wardEdgeStreets(wards: EngineTownPlan['wards']): Array<{ centerline: Pt[]; tier: StreetTier }> {
+  const tierOf = new Map<string, StreetTier>();
+  const geom = new Map<string, [Pt, Pt]>();
+  const order: string[] = [];
+  for (const ward of wards) {
+    const tier: StreetTier = ward.civic === 'plaza' ? 'street' : 'lane';
+    const poly = ward.polygon;
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i];
+      const b = poly[(i + 1) % poly.length];
+      const k = edgeKey(a, b);
+      if (!tierOf.has(k)) {
+        tierOf.set(k, tier);
+        geom.set(k, [a, b]);
+        order.push(k);
+      } else if (tier === 'street') {
+        tierOf.set(k, 'street'); // plaza frontage upgrades a shared edge
+      }
+    }
+  }
+  return order.map((k) => {
+    const [a, b] = geom.get(k)!;
+    return { centerline: subdivideEdge(a, b), tier: tierOf.get(k)! };
+  });
+}
 
 /**
  * Drop only DEGENERATE slivers here (feet). The 3D bake additionally skips any
@@ -196,13 +272,20 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: St
     });
   }
 
-  const streets: ArtifactTownPlan['streets'] = plan.streets
-    .filter((s) => s.length >= 2)
-    .map((s, i) => ({
-      id: i,
-      centerline: s.map(([x, y]) => [x, y] as [number, number]),
-      widthFt: STREET_WIDTH_FT,
-    }));
+  // The full walkable network: the Voronoi ward-edge grid (lanes + plaza-frontage
+  // streets) plus the inherited regional roads promoted to avenues. Before this
+  // slice only the inherited roads reached 3D — usually none — so towns rendered
+  // streetless. Ward edges are the SAME lines the 2D map shows as block gaps.
+  const tiered: Array<{ centerline: Pt[]; tier: StreetTier }> = [
+    ...wardEdgeStreets(plan.wards),
+    ...plan.streets.filter((s) => s.length >= 2).map((s) => ({ centerline: s, tier: 'avenue' as StreetTier })),
+  ];
+  const streets: ArtifactTownPlan['streets'] = tiered.map((s, i) => ({
+    id: i,
+    centerline: s.centerline.map(([x, y]) => [x, y] as [number, number]),
+    widthFt: STREET_TIERS[s.tier].widthFt,
+    colorHex: STREET_TIERS[s.tier].colorHex,
+  }));
 
   return {
     plan: { burgId, streets, plots },

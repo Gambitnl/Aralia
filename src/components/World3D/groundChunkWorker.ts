@@ -45,7 +45,10 @@ self.onmessage = (ev: MessageEvent) => {
       }
     }
     if (bundle.water) transfer.push(bundle.water.positions.buffer, bundle.water.indices.buffer, bundle.water.normals.buffer);
-    if (bundle.roads) transfer.push(bundle.roads.positions.buffer, bundle.roads.indices.buffer, bundle.roads.normals.buffer);
+    if (bundle.roads) {
+      transfer.push(bundle.roads.positions.buffer, bundle.roads.indices.buffer, bundle.roads.normals.buffer);
+      if (bundle.roads.colors) transfer.push(bundle.roads.colors.buffer);
+    }
     if (bundle.vegetation) transfer.push(bundle.vegetation.positions.buffer, bundle.vegetation.scales.buffer, bundle.vegetation.rotations.buffer);
     if (bundle.bushes) transfer.push(bundle.bushes.positions.buffer, bundle.bushes.scales.buffer, bundle.bushes.rotations.buffer);
     (self as unknown as Worker).postMessage({ id: msg.id, bundle }, transfer);

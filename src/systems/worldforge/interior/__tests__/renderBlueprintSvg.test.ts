@@ -324,4 +324,16 @@ describe('renderBlueprintSvg occupancy overlay', () => {
     const opts = { seed, occupancy, manifests, hour: 19, members: household.members };
     expect(renderBlueprintSvg(plan, 0, opts)).toBe(renderBlueprintSvg(plan, 0, opts));
   });
+
+  it('throws on a HOME station whose room cannot be resolved (no (0,0) corner-drop)', () => {
+    // No-fallback: a home station must resolve to a real room. A missing room is
+    // a schedule/plan mismatch, not a silent (0,0) placement at the sheet corner.
+    const bad = JSON.parse(JSON.stringify(occupancy)) as typeof occupancy;
+    bad.stationsByHour[8] = [
+      { memberIndex: 0, hour: 8, where: 'home', level: 0, roomId: 999999, activity: 'chores' },
+    ];
+    expect(() =>
+      renderBlueprintSvg(plan, 0, { seed, occupancy: bad, hour: 8, members: household.members }),
+    ).toThrow(/room/i);
+  });
 });

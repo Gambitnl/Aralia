@@ -38,13 +38,24 @@ import { furnishRooms } from './furnish';
 import { resolveStyle } from '../town/architectureStyle';
 import { solveRoof } from './roofPlan';
 import { childSeedPath, type SeedPath } from '../seedPath';
+import { metersFromFeet } from '../units';
 
 const CELL_FT = 5;
 
-/** Storey height in feet — MIRRORS BLUEPRINT_STOREY_FT in
+/** Storey height in feet — the canonical per-floor height for the whole
+ *  building pipeline. MIRRORS BLUEPRINT_STOREY_FT in
  *  systems/world3d/buildingModels.ts. Duplicated (not imported) so worldforge
  *  never depends on the world3d/three.js layer; keep the two in lockstep. */
-const BLUEPRINT_STOREY_FT = 10;
+export const BLUEPRINT_STOREY_FT = 10;
+
+/**
+ * Shell height in meters for `storeys` above-grade floors. The single source
+ * the 3D bridge sizes building shells to, so the rendered wall top matches the
+ * feet-canon wall top the roof solver used (storeys × BLUEPRINT_STOREY_FT).
+ */
+export function buildingShellHeightM(storeys: number): number {
+  return metersFromFeet(Math.max(1, storeys) * BLUEPRINT_STOREY_FT);
+}
 
 export interface GenerateBuildingInput {
   buildingId: number;

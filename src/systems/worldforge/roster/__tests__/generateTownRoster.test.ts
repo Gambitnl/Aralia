@@ -16,7 +16,7 @@ import { rootSeedPath } from '../../seedPath';
 import { generateTownPlan as generateEngineTown } from '../../town/townEngine';
 import { toArtifactPlan } from '../../town/townPlanAdapter';
 import type { RegionTownSite, TownPlan } from '../../artifacts';
-import { generateTownRoster } from '../generateTownRoster';
+import { generateTownRoster, houseBedroomCount } from '../generateTownRoster';
 
 // ============================================================================
 // Fixtures
@@ -148,9 +148,9 @@ function capacityForHouse(plan: TownPlan): Map<number, number> {
   const capacities = new Map<number, number>();
   for (const plot of plan.plots) {
     if (plot.role !== 'house') continue;
-    const bedroomCount = generateInterior(plot, SEED_PATH).rooms.filter(
-      (room) => room.role === 'bedroom',
-    ).length;
+    // Reuse the production bedroom count (all floors) so this check can't drift
+    // from the roster's own capacity math the way a local copy silently did.
+    const bedroomCount = houseBedroomCount(generateInterior(plot, SEED_PATH));
     capacities.set(plot.id, 2 * bedroomCount + 1);
   }
   return capacities;

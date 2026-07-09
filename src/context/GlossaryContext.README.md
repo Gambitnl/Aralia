@@ -2,63 +2,90 @@
 
 ## Purpose
 
-The `GlossaryContext.tsx` module provides a React Context for managing and distributing the entire game's glossary data. Its primary responsibility is to fetch all glossary index files—**including nested indexes**—consolidate them into a single, comprehensive data structure, and make this data available to any component that needs it, most notably the `Glossary.tsx` component.
+`GlossaryContext.tsx` loads the game's glossary once and shares it with any
+component through React Context. It fetches a single pre-built bundle,
+deduplicates the entries, and exposes the result. This avoids prop-drilling and
+means the data loads only once.
 
-This approach ensures that the glossary data is loaded only once and is centrally managed, preventing prop-drilling and simplifying data access for consumer components.
+Consumers include `Glossary.tsx`, `GlossaryTooltip.tsx`,
+`SingleGlossaryEntryModal.tsx`, and the spellbook and design-preview surfaces.
 
-## Core Functionality
+## Core functionality
 
-The `GlossaryProvider` component performs the following steps when it mounts:
+`GlossaryProvider` runs one fetch inside a `useEffect`:
 
-1.  **Fetch Main Index**: It first fetches the main index file located at `/public/data/glossary/index/main.json`. This file contains a list of paths to all top-level category-specific JSON index files.
+1.  **Fetch the bundle.** It requests `data/glossary_bundle.json` (resolved
+    through `assetUrl`) using `fetchWithTimeout` with a 15-second timeout. This
+    single file already holds every glossary entry, so the provider does not
+    fetch or walk any index files.
 
-2.  **Recursively Fetch and Process Indexes**:
-    *   It uses a recursive function, `fetchAndProcessIndex`, to handle each file path.
-    *   If a fetched file is a **nested index** (identified by having an `index_files` key, like `rules_glossary.json`), the function calls itself for each path listed within that file.
-    *   If a fetched file is a **data file** (identified by being a simple array of `GlossaryEntry` objects), it returns the array of entries.
-    *   This allows for a hierarchical and modular organization of the glossary data.
+2.  **Validate the response.** If the payload is missing or is not an array, the
+    provider throws `"Glossary bundle is invalid or missing"`.
 
-3.  **Consolidate and Deduplicate Data**: All entries from the various files (including those from nested indexes) are flattened and combined into a single array of `GlossaryEntry` objects. A `Map` is used to ensure each entry ID is unique in the final list, preventing duplicates from causing issues.
+3.  **Deduplicate.** It builds a `Map` keyed by entry `id` and keeps the last
+    entry for each id, so duplicate ids cannot appear in the final list.
 
-4.  **Provide Data**: The final, consolidated array of `GlossaryEntry` objects is made available through the context provider's value.
+4.  **Publish.** It stores the deduplicated array in state and clears any prior
+    error.
 
-## State Management
+The provider fetches only once. The effect returns early if the data has
+already loaded, and a cancel flag ignores a late response after the provider
+unmounts.
 
-*   **`entries: GlossaryEntry[] | null`**: Holds the consolidated glossary data. It is `null` initially while loading, an empty array (`[]`) if an error occurs, and the full array of `GlossaryEntry` objects upon successful loading.
-*   **`error: string | null`**: Stores any error message that occurs during the fetching process.
+## The `enabled` prop
 
-## Provided Context Value
+```tsx
+interface GlossaryProviderProps {
+  children: ReactNode;
+  enabled?: boolean; // defaults to true
+}
+```
 
-Components consuming this context will receive:
-*   An array of `GlossaryEntry` objects on success.
-*   The Provider handles loading and error states internally, displaying a `LoadingSpinner` or `ErrorOverlay` respectively. It does not render children until data is available or an error has occurred (and been displayed).
+`enabled` defers the fetch until the glossary or game shell actually needs it.
+While `enabled` is `false`, the provider renders its children but does not load
+the bundle. Set it to `true` to trigger the load.
+
+## State and provided value
+
+*   **`entries: GlossaryEntry[] | null`** — the shared glossary data. It is
+    `null` before loading finishes, the full deduplicated array on success, and
+    an empty array (`[]`) if the fetch fails.
+*   **`error: string | null`** — the error message from a failed fetch, or
+    `null`.
+
+The context value is `entries` (`GlossaryEntry[] | null`). The provider does
+**not** hold back its children while loading and does **not** render a loading
+spinner. Consumers therefore receive `null` during loading and must handle that
+case themselves.
 
 ## Usage
 
-The `GlossaryProvider` should wrap the root `App` component or any part of the component tree where glossary access is needed.
+Wrap the part of the tree that needs glossary access with `GlossaryProvider`.
 
-**Example (in `App.tsx`):**
 ```tsx
 import { GlossaryProvider } from './context/GlossaryContext';
 
-const App: React.FC = () => {
-  return (
-    <GlossaryProvider>
-      {/* ... rest of the application ... */}
-      <Glossary isOpen={isGlossaryOpen} ... />
-    </GlossaryProvider>
-  );
-};
+const App: React.FC = () => (
+  <GlossaryProvider>
+    {/* ... rest of the application ... */}
+    <Glossary isOpen={isGlossaryOpen} ... />
+  </GlossaryProvider>
+);
 ```
 
-Any descendant component can then access the glossary data using the `useContext` hook:
+Any descendant reads the data with `useContext`. Remember that the value can be
+`null` while the bundle loads.
+
 ```tsx
+import { useContext } from 'react';
 import GlossaryContext from '../context/GlossaryContext';
-// ...
-const glossaryIndex = useContext(GlossaryContext);
-// ...
+
+const entries = useContext(GlossaryContext); // GlossaryEntry[] | null
 ```
 
-## Error Handling
+## Error handling
 
-If any of the fetch operations fail, the context sets its internal `error` state. The Provider then renders an `ErrorOverlay` component covering the screen, preventing the application from proceeding with incomplete or missing data. This ensures the user is aware of critical data loading failures.
+If the fetch fails, the provider logs the error to the console, stores the
+message in `error` state, and sets `entries` to an empty array. It then renders
+`ErrorOverlay` in place of its children, so the message covers the screen and
+the app does not continue with missing data.

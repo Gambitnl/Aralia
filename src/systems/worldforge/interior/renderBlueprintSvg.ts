@@ -548,10 +548,18 @@ export function renderBlueprintSvg(
         px = fX(f.x);
         py = fY(f.y);
       } else {
+        // No-fallback: a HOME station must resolve to a real room. A missing
+        // room is a schedule/plan mismatch, not a silent (0,0) placement at the
+        // sheet corner — mirrors the 3D bridge's stationToFeet.
         const rm = st.roomId !== undefined ? roomById.get(st.roomId) : undefined;
-        const anchor = rm?.anchor ?? { cx: 0, cy: 0 };
-        px = X(anchor.cx) + CELL / 2;
-        py = Y(anchor.cy) + CELL / 2;
+        if (!rm) {
+          throw new Error(
+            `renderBlueprintSvg: home station for member ${st.memberIndex} at hour ${hour} ` +
+              `has no resolvable room (roomId=${st.roomId ?? 'none'}, level=${level})`,
+          );
+        }
+        px = X(rm.anchor.cx) + CELL / 2;
+        py = Y(rm.anchor.cy) + CELL / 2;
       }
       const key = `${px},${py}`;
       const n = colocated.get(key) ?? 0;

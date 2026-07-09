@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import { strip5eToolsMarkup } from '../src/data/adapters/5eTools/shared';
 
 const ENTRIES_BASE = path.join(process.cwd(), 'public/data/glossary/entries');
@@ -22,15 +23,8 @@ function getAllFiles(dirPath: string, arrayOfFiles: string[] = []): string[] {
   return arrayOfFiles;
 }
 
-const allFiles = [
-  ...getAllFiles(EQUIPMENT_DIR),
-  ...getAllFiles(MAGIC_ITEMS_DIR)
-];
-
-const generatedItems: Record<string, any> = {};
-
 // Simple heuristic for icons
-function getIconForType(type: string): string {
+export function getIconForType(type: string): string {
   const t = type.toLowerCase();
   if (t.includes('sword') || t.includes('blade') || t.includes('scimitar') || t.includes('rapier')) return 'sword';
   if (t.includes('axe') || t.includes('halberd')) return 'axe_battle';
@@ -48,7 +42,7 @@ function getIconForType(type: string): string {
   return 'package';
 }
 
-function mapWeaponProperties(props: string[]): string[] {
+export function mapWeaponProperties(props: string[]): string[] {
     const propertyMap: Record<string, string> = {
         'V|XPHB': 'Versatile',
         'L|XPHB': 'Light',
@@ -73,7 +67,7 @@ function mapWeaponProperties(props: string[]): string[] {
     });
 }
 
-function parseItemEffect(markdown: string): any {
+export function parseItemEffect(markdown: string): any {
   if (!markdown) return undefined;
   // Match "regains XdY + Z [[hit_points" or "regains X [[hit_points"
   const healMatch = markdown.match(/regains\s+((?:\d+d\d+)(?:\s*\+\s*\d+)?|\d+)\s+\[\[hit_points/i);
@@ -88,137 +82,159 @@ function parseItemEffect(markdown: string): any {
   return undefined;
 }
 
+/**
+ * Convert a single glossary entry into a simplified registry item.
+ *
+ * This is the mechanical conversion seam (type / slot / damage / value /
+ * rarity / attunement heuristics) extracted from the generation loop so it
+ * can be exercised directly by acceptance tests (item_categorization IC-G3).
+ * Returns `null` for entries without `itemMetadata` (the same entries the
+ * generation loop skips).
+ */
+export function convertEntryToItem(data: any): { id: string; item: Record<string, any> } | null {
+  if (!data.itemMetadata) return null;
 
-for (const file of allFiles) {
-  try {
-    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-    if (!data.itemMetadata) continue;
+  const meta = data.itemMetadata;
+  const id = data.id;
+  const name = data.title;
+  const description = data.excerpt || '';
 
-    const meta = data.itemMetadata;
-    const id = data.id;
-    const name = data.title;
-    const description = data.excerpt || '';
+  let itemType = 'treasure';
+  let slot = undefined;
+  let armorCategory = undefined;
 
-    let itemType = 'treasure';
-    let slot = undefined;
-    let armorCategory = undefined;
+  const t = (meta.type || '').toLowerCase();
 
-    const t = (meta.type || '').toLowerCase();
-    
-    // Determine Type and Slot
-    if (t.includes('weapon')) {
-      itemType = 'weapon';
-      slot = 'MainHand';
-    } else if (t.includes('armor')) {
-      itemType = 'armor';
-      slot = 'Torso';
-      if (t.includes('light')) armorCategory = 'Light';
-      else if (t.includes('medium')) armorCategory = 'Medium';
-      else if (t.includes('heavy')) armorCategory = 'Heavy';
-    } else if (t.includes('shield')) {
-      itemType = 'armor';
-      slot = 'OffHand';
-      armorCategory = 'Shield';
-    } else if (t.includes('ring')) {
-      itemType = 'accessory';
-      slot = 'Ring';
-    } else if (t.includes('potion')) {
-      itemType = 'consumable';
-    } else if (t.includes('staff') || t.includes('wand') || t.includes('rod')) {
-      itemType = 'weapon'; // Or accessory depending on mechanics, we default to weapon for staffs
-      slot = 'MainHand';
-    } else if (t.includes('wondrous') || t.includes('accessory')) {
-      itemType = 'accessory';
-    }
-
-    let iconString = getIconForType(name + ' ' + t);
-    const svgPath = path.join(process.cwd(), 'public', 'assets', 'icons', 'items', `${id}.svg`);
-    if (fs.existsSync(svgPath)) {
-      iconString = `/assets/icons/items/${id}.svg`;
-    }
-
-    const item: any = {
-      id,
-      name,
-      description,
-      type: itemType,
-      icon: iconString,
-      weight: meta.weight,
-    };
-
-    if (meta.cost !== undefined) {
-      item.cost = `${meta.cost} GP`;
-      item.costInGp = meta.cost;
-    }
-
-    if (slot) item.slot = slot;
-    if (armorCategory) item.armorCategory = armorCategory;
-
-    // Damage parsing: "1d8 S" -> damageDice: "1d8", damageType: "Slashing"
-    if (meta.damage) {
-      const parts = meta.damage.split(' ');
-      if (parts.length > 0) item.damageDice = parts[0];
-      if (parts.length > 1) {
-        const dType = parts[1].toLowerCase();
-        if (dType.startsWith('s')) item.damageType = 'Slashing';
-        else if (dType.startsWith('p')) item.damageType = 'Piercing';
-        else if (dType.startsWith('b')) item.damageType = 'Bludgeoning';
-        else item.damageType = parts[1]; // fallback
-      }
-    }
-
-    if (meta.properties) {
-      item.properties = mapWeaponProperties(meta.properties);
-    }
-
-    if (meta.ac) {
-      if (itemType === 'armor' && armorCategory !== 'Shield') {
-        item.baseArmorClass = meta.ac;
-      } else {
-        item.armorClassBonus = meta.ac;
-      }
-    }
-
-    if (meta.rarity && meta.rarity !== 'None') {
-      const r = meta.rarity.toLowerCase();
-      if (r === 'common') item.rarity = 'ItemRarity.Common';
-      else if (r === 'uncommon') item.rarity = 'ItemRarity.Uncommon';
-      else if (r === 'rare') item.rarity = 'ItemRarity.Rare';
-      else if (r === 'very rare') item.rarity = 'ItemRarity.VeryRare';
-      else if (r === 'legendary') item.rarity = 'ItemRarity.Legendary';
-      else if (r === 'artifact') item.rarity = 'ItemRarity.Artifact';
-    }
-
-    if (meta.reqAttune) {
-      item.magicProperties = {
-        isIdentified: true,
-        attunement: {
-          required: true,
-          // reqAttune arrives with raw 5eTools tags (e.g.
-          // "{@item Belt of Dwarvenkind|XDMG}"). requirements renders as plain
-          // text in the inventory, so resolve the tags to their display text
-          // here rather than leaking markup into the shipped registry.
-          requirements: strip5eToolsMarkup(meta.reqAttune)
-        }
-      };
-    }
-
-    const parsedEffect = parseItemEffect(data.markdown || '');
-    if (parsedEffect) {
-      item.effect = parsedEffect;
-    }
-
-    generatedItems[id] = item;
-  } catch (err) {
-    console.error(`Failed to parse ${file}:`, err);
+  // Determine Type and Slot
+  if (t.includes('weapon')) {
+    itemType = 'weapon';
+    slot = 'MainHand';
+  } else if (t.includes('armor')) {
+    itemType = 'armor';
+    slot = 'Torso';
+    if (t.includes('light')) armorCategory = 'Light';
+    else if (t.includes('medium')) armorCategory = 'Medium';
+    else if (t.includes('heavy')) armorCategory = 'Heavy';
+  } else if (t.includes('shield')) {
+    itemType = 'armor';
+    slot = 'OffHand';
+    armorCategory = 'Shield';
+  } else if (t.includes('ring')) {
+    itemType = 'accessory';
+    slot = 'Ring';
+  } else if (t.includes('potion')) {
+    itemType = 'consumable';
+  } else if (t.includes('staff') || t.includes('wand') || t.includes('rod')) {
+    itemType = 'weapon'; // Or accessory depending on mechanics, we default to weapon for staffs
+    slot = 'MainHand';
+  } else if (t.includes('wondrous') || t.includes('accessory')) {
+    itemType = 'accessory';
   }
+
+  let iconString = getIconForType(name + ' ' + t);
+  const svgPath = path.join(process.cwd(), 'public', 'assets', 'icons', 'items', `${id}.svg`);
+  if (fs.existsSync(svgPath)) {
+    iconString = `/assets/icons/items/${id}.svg`;
+  }
+
+  const item: any = {
+    id,
+    name,
+    description,
+    type: itemType,
+    icon: iconString,
+    weight: meta.weight,
+  };
+
+  if (meta.cost !== undefined) {
+    item.cost = `${meta.cost} GP`;
+    item.costInGp = meta.cost;
+  }
+
+  if (slot) item.slot = slot;
+  if (armorCategory) item.armorCategory = armorCategory;
+
+  // Damage parsing: "1d8 S" -> damageDice: "1d8", damageType: "Slashing"
+  if (meta.damage) {
+    const parts = meta.damage.split(' ');
+    if (parts.length > 0) item.damageDice = parts[0];
+    if (parts.length > 1) {
+      const dType = parts[1].toLowerCase();
+      if (dType.startsWith('s')) item.damageType = 'Slashing';
+      else if (dType.startsWith('p')) item.damageType = 'Piercing';
+      else if (dType.startsWith('b')) item.damageType = 'Bludgeoning';
+      else item.damageType = parts[1]; // fallback
+    }
+  }
+
+  if (meta.properties) {
+    item.properties = mapWeaponProperties(meta.properties);
+  }
+
+  if (meta.ac) {
+    if (itemType === 'armor' && armorCategory !== 'Shield') {
+      item.baseArmorClass = meta.ac;
+    } else {
+      item.armorClassBonus = meta.ac;
+    }
+  }
+
+  if (meta.rarity && meta.rarity !== 'None') {
+    const r = meta.rarity.toLowerCase();
+    if (r === 'common') item.rarity = 'ItemRarity.Common';
+    else if (r === 'uncommon') item.rarity = 'ItemRarity.Uncommon';
+    else if (r === 'rare') item.rarity = 'ItemRarity.Rare';
+    else if (r === 'very rare') item.rarity = 'ItemRarity.VeryRare';
+    else if (r === 'legendary') item.rarity = 'ItemRarity.Legendary';
+    else if (r === 'artifact') item.rarity = 'ItemRarity.Artifact';
+  }
+
+  if (meta.reqAttune) {
+    item.magicProperties = {
+      isIdentified: true,
+      attunement: {
+        required: true,
+        // reqAttune arrives with raw 5eTools tags (e.g.
+        // "{@item Belt of Dwarvenkind|XDMG}"). requirements renders as plain
+        // text in the inventory, so resolve the tags to their display text
+        // here rather than leaking markup into the shipped registry.
+        requirements: strip5eToolsMarkup(meta.reqAttune)
+      }
+    };
+  }
+
+  const parsedEffect = parseItemEffect(data.markdown || '');
+  if (parsedEffect) {
+    item.effect = parsedEffect;
+  }
+
+  return { id, item };
 }
 
-let jsonString = JSON.stringify(generatedItems, null, 2);
-// Replace stringified enums with actual enum references
-jsonString = jsonString.replace(/"ItemRarity\.([^"]+)"/g, 'ItemRarity.$1');
+function main(): void {
+  const allFiles = [
+    ...getAllFiles(EQUIPMENT_DIR),
+    ...getAllFiles(MAGIC_ITEMS_DIR)
+  ];
 
-const fileContent = `/**
+  const generatedItems: Record<string, any> = {};
+
+  for (const file of allFiles) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      const converted = convertEntryToItem(data);
+      if (!converted) continue;
+      generatedItems[converted.id] = converted.item;
+    } catch (err) {
+      console.error(`Failed to parse ${file}:`, err);
+    }
+  }
+
+  let jsonString = JSON.stringify(generatedItems, null, 2);
+  // Replace stringified enums with actual enum references
+  jsonString = jsonString.replace(/"ItemRarity\.([^"]+)"/g, 'ItemRarity.$1');
+
+  const fileContent = `/**
  * @file generatedGlossaryItems.ts
  * AUTO-GENERATED FILE. DO NOT EDIT DIRECTLY.
  * 
@@ -230,5 +246,15 @@ import { Item, ItemRarity } from '../../types/index.js';
 export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = ${jsonString} as any;
 `;
 
-fs.writeFileSync(OUT_FILE, fileContent, 'utf8');
-console.log(`Generated ${Object.keys(generatedItems).length} items into src/data/items/generatedGlossaryItems.ts`);
+  fs.writeFileSync(OUT_FILE, fileContent, 'utf8');
+  console.log(`Generated ${Object.keys(generatedItems).length} items into src/data/items/generatedGlossaryItems.ts`);
+}
+
+const SCRIPT_FILE = fileURLToPath(import.meta.url);
+const isDirectRun = process.argv[1]
+  ? path.resolve(process.argv[1]) === SCRIPT_FILE
+  : false;
+
+if (isDirectRun) {
+  main();
+}

@@ -14,13 +14,14 @@ import {
   PERIMETER_WALL_COLORS,
   DOOR_LEAF_COLOR,
   WINDOW_PANE_COLOR,
-  WINDOW_GLOW_HEX,
   CEILING_COLOR,
   STAIR_COLOR,
   type OccupantFigure,
   type OccupantBody,
 } from '../interiorParts';
-import { generateBuilding } from '../../interior/generateBuilding';
+import { generateBuilding, buildingShellHeightM } from '../../interior/generateBuilding';
+import { FURNITURE, furnishingSpec } from '../interiorParts';
+import { FURNISHING_RECIPE_KINDS } from '../../interior/furnish';
 
 const isWallColor = (c: string): boolean =>
   c === INTERIOR_WALL_COLOR || Object.values(PERIMETER_WALL_COLORS).includes(c);
@@ -28,6 +29,21 @@ import { blueprintForPlot, generateInterior, type InteriorPlotInput } from '../.
 import { isAtWork } from '../groundChunkLoader';
 import { EXTERIOR } from '../../interior/types';
 import { rootSeedPath } from '../../seedPath';
+
+describe('furnishing render coverage (no-fallback)', () => {
+  it('every kind the recipes can emit has a 3D render spec', () => {
+    const missing = [...FURNISHING_RECIPE_KINDS].filter((kind) => !(kind in FURNITURE)).sort();
+    expect(missing).toEqual([]);
+  });
+
+  it('resolving an unknown furnishing kind throws instead of dropping it', () => {
+    expect(() => furnishingSpec('no-such-furniture')).toThrow(/unknown furnishing kind/i);
+  });
+
+  it('resolves a known kind to its spec', () => {
+    expect(furnishingSpec('anvil')).toBe(FURNITURE.anvil);
+  });
+});
 
 const SEED_PATH = rootSeedPath(42);
 const FT = 0.3048;
@@ -195,28 +211,49 @@ it('window panes stay dark glass by default (daytime / unlit)', () => {
   for (const w of windows) expect(w.emissiveHex).toBeUndefined();
 });
 
-it('litWindows tags EVERY window pane with the warm window glow, nothing else', () => {
+it('every window pane carries lightRole "window" and NO baked emissive (live lighting)', () => {
+  // The bake tags window panes unconditionally; the renderer decides lit/dark
+  // live from the building schedule. Build both "lit" and "unlit" (the litWindows
+  // flag is now inert): the structural tagging must be identical either way.
   const dark = buildInteriorParts(plot(), SEED_PATH, 3, [], undefined, undefined, false, false);
   const lit = buildInteriorParts(plot(), SEED_PATH, 3, [], undefined, undefined, false, true);
-  const litWindows = lit.filter((p) => p.colorHex === WINDOW_PANE_COLOR);
-  const darkWindows = dark.filter((p) => p.colorHex === WINDOW_PANE_COLOR);
-  // Same panes, same count — lighting is purely additive emissive tagging.
+  const litWindows = lit.filter((p) => p.lightRole === 'window');
+  const darkWindows = dark.filter((p) => p.lightRole === 'window');
+  // Same tagged panes, same count — window identity no longer depends on the
+  // bake hour / lit flag.
   expect(litWindows.length).toBe(darkWindows.length);
   expect(litWindows.length).toBeGreaterThan(0);
-  for (const w of litWindows) expect(w.emissiveHex).toBe(WINDOW_GLOW_HEX);
-  // Only window panes glow — no wall / floor / furniture picked up the tag.
-  const nonWindowGlow = lit.filter(
-    (p) => p.emissiveHex === WINDOW_GLOW_HEX && p.colorHex !== WINDOW_PANE_COLOR,
-  );
-  expect(nonWindowGlow).toEqual([]);
+  // Every window-role part IS a window pane, carries no baked emissive.
+  for (const w of litWindows) {
+    expect(w.colorHex).toBe(WINDOW_PANE_COLOR);
+    expect(w.emissiveHex).toBeUndefined();
+  }
+  // Conversely: every window pane is tagged 'window'.
+  const untaggedPanes = lit.filter((p) => p.colorHex === WINDOW_PANE_COLOR && p.lightRole !== 'window');
+  expect(untaggedPanes).toEqual([]);
 });
 
-it('lit-window tagging leaves the geometry byte-identical (emissive aside)', () => {
+it('the now-inert litWindows flag no longer changes any baked part', () => {
+  // Lighting is a live render decision, so the bake output is byte-identical
+  // whether or not litWindows is set — including the lightRole tags themselves.
   const dark = buildInteriorParts(plot(), SEED_PATH, 3, [], undefined, undefined, false, false);
   const lit = buildInteriorParts(plot(), SEED_PATH, 3, [], undefined, undefined, false, true);
-  const strip = (parts: ReturnType<typeof buildInteriorParts>) =>
-    parts.map(({ emissiveHex, ...rest }) => rest);
-  expect(strip(lit)).toEqual(strip(dark));
+  expect(lit).toEqual(dark);
+});
+
+it('every hearth furnishing carries lightRole "hearth" and NO baked emissive', () => {
+  // The bake tags hearths unconditionally; hearthLit is now inert. The renderer
+  // drives the fire live from the building's hearth schedule.
+  const cold = buildInteriorParts(plot(), SEED_PATH, 3, [], undefined, undefined, false, false);
+  const warm = buildInteriorParts(plot(), SEED_PATH, 3, [], undefined, undefined, true, false);
+  const coldHearths = cold.filter((p) => p.lightRole === 'hearth');
+  const warmHearths = warm.filter((p) => p.lightRole === 'hearth');
+  // Same hearths whether the (now-inert) hearthLit flag is set or not.
+  expect(warmHearths.length).toBe(coldHearths.length);
+  expect(warmHearths.length).toBeGreaterThan(0); // a house has a hearth
+  for (const hp of warmHearths) expect(hp.emissiveHex).toBeUndefined();
+  // hearthLit no longer changes any part either.
+  expect(warm).toEqual(cold);
 });
 
 it('places occupant figures inside the envelope with stable heights', () => {
@@ -278,6 +315,29 @@ it('renders each occupant from its parametric body, not a uniform crate', () => 
   expect(headTall.colorHex).toBe('#8d5524'); // skin tone
   expect(headTall.h).toBeCloseTo(0.27, 5); // head size
   expect(headTall.baseY).toBeCloseTo(bodyTall.h, 5); // head sits on the body
+});
+
+it('a populated-household occupant (station identity) is NOT baked into parts', () => {
+  // Living interiors: occupants that carry a station are rendered live by the
+  // InteriorOccupants layer against the game clock, so they are no longer baked
+  // into the static parts. A station figure adds zero parts.
+  const base = buildInteriorParts(plot(), SEED_PATH, 3);
+  const stationFig: OccupantFigure = {
+    ...fig(1, 'adult'),
+    station: { xFt: 20, yFt: 20, level: 0 },
+  };
+  const withStation = buildInteriorParts(plot(), SEED_PATH, 3, [stationFig]);
+  expect(withStation.length).toBe(base.length);
+  expect(withStation.filter((p) => p.tag === 'occupant')).toEqual([]);
+});
+
+it('roster occupants (no station) are still baked and tagged "occupant"', () => {
+  // The street/commuter roster fallback stays baked so the "no occupant boxes"
+  // assertion elsewhere can key precisely off the 'occupant' tag.
+  const parts = buildInteriorParts(plot(), SEED_PATH, 3, [fig(1, 'adult'), fig(2, 'adult')]);
+  const occ = parts.filter((p) => p.tag === 'occupant');
+  // Two figures × (body box + head box) = 4 tagged parts.
+  expect(occ.length).toBe(4);
 });
 
 it('places every occupant center away from wall rectangles', () => {
@@ -431,7 +491,8 @@ describe('solved roof parts (BGv2 Task 5)', () => {
 });
 
 // ── Roof seating regression (BGv2 Phase 1B, 2026-07-07). The town bake (the
-// REAL path: groundChunkLoader → buildInterior with shellHeightM = storeys×3)
+// REAL path: groundChunkLoader → buildInterior with shellHeightM =
+// buildingShellHeightM(storeys), i.e. storeys × 3.048 m / 10 ft feet-canon)
 // must land the solved roof's EAVE on the above-grade envelope top for every
 // storey count, with and without a basement — otherwise tall buildings render
 // as open-topped boxes with the roof sunk a storey below the wall tops. This
@@ -441,7 +502,7 @@ describe('solved roof parts (BGv2 Task 5)', () => {
 // (~0.5 ft = 0.152 m) below it and never a whole storey.
 describe('roof eave seats on the above-grade wall top (town bake)', () => {
   const FT_M = 0.3048;
-  const METERS_PER_STOREY = 3; // groundChunkLoader: heightM = storeys * 3
+  const METERS_PER_STOREY = buildingShellHeightM(1); // mirrors the real loader path
   const EAVE_OVERHANG_M = 0.6 * FT_M; // roof eave dips ≤ ~0.5 ft below wall top
 
   // A styled house plot (style ⇒ the plan resolves a solved roof).
@@ -542,7 +603,7 @@ describe('roof eave overhangs the exterior wall (no exposed rim)', () => {
 
   for (const storeys of [1, 2, 3]) {
     it(`${storeys}-storey: roof eave reaches beyond the outer wall face`, () => {
-      const built = buildInterior(stylePlot(storeys), SEED_PATH, storeys * 3);
+      const built = buildInterior(stylePlot(storeys), SEED_PATH, buildingShellHeightM(storeys));
       expect(built.roof).toBeDefined();
       const { wallX, wallZ, eaveX, eaveZ } = extents(built);
       // The eave must cover the wall top — reach AT LEAST the outer face (a hair

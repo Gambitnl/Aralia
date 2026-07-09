@@ -1,11 +1,12 @@
-import { describe, it, expect } from 'vitest';
-import { rootSeedPath } from '../../seedPath';
+import { describe, it, expect, test } from 'vitest';
+import { rootSeedPath, type SeedPath } from '../../seedPath';
 import { blueprintForPlot, type InteriorPlotInput } from '../../interior/generateInterior';
 import { computeOccupancy } from '../../interior/occupancy';
 import { householdForPlot } from '../../town/householdBrief';
 import type { TownPlotPopulation } from '../../town/townEngine';
 import {
   occupancyForPlot,
+  occupancyScheduleForPlot,
   windowsLitAt,
   DUSK_START_HOUR,
   DUSK_END_HOUR,
@@ -37,6 +38,22 @@ function populatedPlot(seed: number): {
     buildingType: 'townhouse',
   };
   return { plotPop, allPlots: [plotPop], plotInput };
+}
+
+/**
+ * The exact populated-house fixture the one-hour `occupancyForPlot` tests use,
+ * bundled with its seeds so the full-day resolver can be checked hour by hour
+ * against the single-hour resolver. Reuses {@link populatedPlot} — no new data.
+ */
+function makePopulatedHousePlotFixture(seed = 3): {
+  plotPop: TownPlotPopulation;
+  allPlots: TownPlotPopulation[];
+  plotInput: InteriorPlotInput;
+  seedPath: SeedPath;
+  townSeed: SeedPath;
+} {
+  const { plotPop, allPlots, plotInput } = populatedPlot(seed);
+  return { plotPop, allPlots, plotInput, seedPath: rootSeedPath(7), townSeed: rootSeedPath(7) };
 }
 
 /** Cell membership set for a plan floor: every room cell as "cx,cy". */
@@ -126,6 +143,49 @@ describe('occupancyForPlot', () => {
       const inBand = hour >= DUSK_START_HOUR && hour <= DUSK_END_HOUR;
       expect(occ.litWindows).toBe(occupied && inBand);
     }
+  });
+});
+
+describe('occupancyScheduleForPlot', () => {
+  test('returns a full 24-hour schedule that agrees with the one-hour resolver', () => {
+    const f = makePopulatedHousePlotFixture();
+    const sched = occupancyScheduleForPlot(f.plotPop, f.allPlots, f.plotInput, f.seedPath, f.townSeed);
+    expect(sched).toBeDefined();
+    expect(sched!.litHours).toHaveLength(24);
+    expect(sched!.hearthHours).toHaveLength(24);
+
+    // Windows are dark at noon, lit at 20:00 for an occupied house.
+    expect(sched!.litHours[12]).toBe(false);
+    expect(sched!.litHours[20]).toBe(true);
+
+    // Every occupant has a 24-slot station table; night stations are non-null
+    // (asleep at home), midday work stations may be null (out).
+    for (const occ of sched!.occupants) {
+      expect(occ.stationsByHour).toHaveLength(24);
+      expect(occ.stationsByHour[2]).not.toBeNull(); // 02:00 asleep at home
+    }
+  });
+
+  test('matches occupancyForPlot hour by hour', () => {
+    const f = makePopulatedHousePlotFixture();
+    const sched = occupancyScheduleForPlot(f.plotPop, f.allPlots, f.plotInput, f.seedPath, f.townSeed)!;
+    for (let h = 0; h < 24; h++) {
+      const single = occupancyForPlot(f.plotPop, f.allPlots, f.plotInput, f.seedPath, f.townSeed, h)!;
+      expect(sched.litHours[h]).toBe(single.litWindows);
+      expect(sched.hearthHours[h]).toBe(single.hearthLit);
+      // Home members this hour line up with the single-hour stations.
+      const homeThisHour = sched.occupants
+        .filter((o) => o.stationsByHour[h] !== null)
+        .map((o) => o.memberIndex)
+        .sort((a, b) => a - b);
+      expect(single.stations.map((s) => s.memberIndex).sort((a, b) => a - b)).toEqual(homeThisHour);
+    }
+  });
+
+  test('an unpopulated plot (no household) yields undefined', () => {
+    const civic: TownPlotPopulation = { residential: false, buildingType: 'civic' };
+    const plotInput: InteriorPlotInput = { id: 99, footprint, role: 'civic', storeys: 1 };
+    expect(occupancyScheduleForPlot(civic, [civic], plotInput, rootSeedPath(7), rootSeedPath(7))).toBeUndefined();
   });
 });
 

@@ -327,7 +327,9 @@ const RoadPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   const geometry = useDisposableGeometry(
     roads ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
   );
-  const material = useMemo(() => makeLitSolidMaterial('#a08b62', true), []);
+  // Per-vertex street tiers (buildRoadMesh) render under one flat vertex-color
+  // material — WebGPU parity with World3DScene's RoadPiece.
+  const material = useMemo(() => makeVertexColorMaterial(true), []);
   useEffect(() => () => material.dispose(), [material]);
   if (!roads) return null;
   return <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} material={material} />;

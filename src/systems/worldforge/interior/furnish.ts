@@ -111,6 +111,15 @@ const RECIPES: Record<RoomPurpose, Recipe> = {
   'brewhouse':      recipe(['barrel', 'workbench'], ['barrel', 'crate']),
 };
 
+/**
+ * Every furnishing kind the recipes can emit. Renderers MUST cover all of
+ * these — the 3D bridge asserts this at test time (no-fallback: a missing
+ * spec throws rather than silently dropping the piece).
+ */
+export const FURNISHING_RECIPE_KINDS: ReadonlySet<string> = new Set(
+  Object.values(RECIPES).flatMap((r) => [...r.core, ...r.filler].map((it) => it.kind)),
+);
+
 const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
 
 /** Cells a door touches: the two cells flanking its wall edge. */

@@ -41,7 +41,8 @@ import {
   ItemType,
   Faction
 } from '@/types/index';
-import type { QuestDefinition } from '@/types/quests';
+import type { Quest, QuestDefinition } from '@/types/quests';
+import { adaptQuestDefinitionToQuest } from '@/systems/quests/questAdapter';
 
 import {
   TurnState
@@ -1031,6 +1032,42 @@ export function createMockQuest(overrides: Partial<QuestDefinition> = {}): Quest
       status: QuestStatus.Active,
       stages: fallbackStage,
       currentStageId: 'fallback',
+      dateStarted: Date.now()
+    };
+  }
+}
+
+/**
+ * Creates a mock legacy Quest object for reducer-facing tests.
+ *
+ * `createMockQuest` returns the authoring-time `QuestDefinition` shape, but the
+ * reducer, QuestManager, and data layer all consume the flattened legacy
+ * `Quest` shape. This helper builds a `QuestDefinition` (via `createMockQuest`)
+ * and runs it through the runtime adapter so tests can feed the result straight
+ * into `questReducer`/`QuestManager` without a type cast (GQ-7).
+ *
+ * @param definitionOverrides Partial<QuestDefinition> applied before adaptation.
+ * @param questOverrides Partial<Quest> applied to the adapted legacy shape.
+ * @returns A complete legacy Quest object.
+ */
+export function createMockLegacyQuest(
+  definitionOverrides: Partial<QuestDefinition> = {},
+  questOverrides: Partial<Quest> = {}
+): Quest {
+  try {
+    const definition = createMockQuest(definitionOverrides);
+    const adapted = adaptQuestDefinitionToQuest(definition);
+    return { ...adapted, ...questOverrides };
+  } catch (error) {
+    console.error("Warden: createMockLegacyQuest failed", error);
+    return {
+      id: 'error-quest',
+      title: 'Error Quest',
+      description: 'Error',
+      giverId: 'system',
+      status: QuestStatus.Active,
+      objectives: [],
+      questType: 'Side',
       dateStarted: Date.now()
     };
   }

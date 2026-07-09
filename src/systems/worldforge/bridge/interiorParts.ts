@@ -42,6 +42,11 @@ export interface SitePart {
    * (chimney flues, dormer masses) so consumers/tests can separate roof parts
    * from the wall/floor structure without a color sniff (BGv2 Task 5). */
   tag?: string;
+  /** When set, this part is a live-lit surface the renderer drives from the
+   * building's hourly schedule: 'window' glass or the 'hearth' fire. Set
+   * UNCONDITIONALLY at bake (independent of any hour) so the renderer can find
+   * and toggle it. Replaces the old bake-time emissiveHex on these parts. */
+  lightRole?: 'window' | 'hearth';
 }
 
 /** Tag stamped on solved-roof dressing parts (chimney/dormer boxes). */
@@ -100,7 +105,7 @@ export const PERIMETER_WALL_COLORS: Record<string, string> = {
   house: '#b09a72',
 };
 
-const FURNITURE: Record<string, { w: number; d: number; h: number; colorHex: string }> = {
+export const FURNITURE: Record<string, { w: number; d: number; h: number; colorHex: string }> = {
   table: { w: 1.6, d: 0.9, h: 0.8, colorHex: '#c8a24a' },
   hearth: { w: 1.4, d: 0.7, h: 1.4, colorHex: '#b5552e' },
   'forge-hearth': { w: 1.6, d: 0.9, h: 1.2, colorHex: '#5a4636' },
@@ -116,7 +121,22 @@ const FURNITURE: Record<string, { w: number; d: number; h: number; colorHex: str
   desk: { w: 1.4, d: 0.7, h: 0.78, colorHex: '#8f6b45' },
   chair: { w: 0.5, d: 0.5, h: 0.9, colorHex: '#9c7a4e' },
   'weapon-rack': { w: 1.2, d: 0.4, h: 1.7, colorHex: '#6f5a3e' },
+  anvil: { w: 0.9, d: 0.4, h: 0.9, colorHex: '#45464b' },
+  'writing-desk': { w: 1.3, d: 0.6, h: 0.95, colorHex: '#8f6b45' },
+  strongbox: { w: 0.7, d: 0.5, h: 0.5, colorHex: '#5f5140' },
 };
+
+/**
+ * Resolve a furnishing kind to its 3D box spec. Throws on an unknown kind
+ * rather than silently dropping the piece from the scene (no-fallback). The
+ * FURNISHING_RECIPE_KINDS coverage test guarantees every emitted kind resolves,
+ * so this throw fires only when a new generator kind lands without a render spec.
+ */
+export function furnishingSpec(kind: string): { w: number; d: number; h: number; colorHex: string } {
+  const spec = FURNITURE[kind];
+  if (!spec) throw new Error(`interiorParts: unknown furnishing kind "${kind}" — add a spec to FURNITURE`);
+  return spec;
+}
 
 /** Stair flight tint (worn timber). */
 export const STAIR_COLOR = '#7a5a36';
@@ -227,6 +247,16 @@ export function buildInterior(
   // occupancy; defaults false so daytime / briefless bakes are unchanged.
   litWindows = false,
 ): { envelope: { wallWidthM: number; wallDepthM: number }; parts: SitePart[]; roof?: RoofPartGroup } {
+  // PERF NOTE (2026-07-08): blueprintForPlot runs ~3x per populated plot — here
+  // (generateInterior fetches it internally, plus the blueprintForPlot call
+  // below) and once more in occupancyScheduleForPlot. It LOOKS wasteful, but
+  // generateBuilding is memoized, so calls 2 and 3 are cache hits. Measured over
+  // a 650-plot capital bake: the 2 redundant calls cost ~17 ms total (1.9% of
+  // blueprint work); the real cost is cold generation (~1.3 ms/plot). Left
+  // un-threaded ON PURPOSE — passing one plan through these three signatures
+  // would risk the determinism / byte-stability contracts the tests guard, for a
+  // 1.9% win. Re-measure before revisiting. If bake feels slow, the target is
+  // cold generation, not these fetches. Bench: .agent/scratch/bench-blueprint-fetch.ts
   const plan = generateInterior(plot, seedPath);
   const blueprint = blueprintForPlot(plot, seedPath);
   const parts = buildInteriorParts(plot, seedPath, shellHeightM, occupants, plan, blueprint, hearthLit, litWindows);
@@ -290,7 +320,9 @@ function blueprintStructureParts(
         h: b.h * FT,
         colorHex: colorFor(b),
         ...(b.z0 !== 0 ? { baseY: b.z0 * FT } : {}),
-        ...(litWindows && b.kind === 'window-pane' ? { emissiveHex: WINDOW_GLOW_HEX } : {}),
+        // Window panes are ALWAYS tagged 'window' (bake-hour independent); the
+        // renderer decides lit/dark live from the building's schedule.
+        ...(b.kind === 'window-pane' ? { lightRole: 'window' as const } : {}),
       });
     }
   }
@@ -462,8 +494,7 @@ export function buildInteriorParts(
       if (fl.level >= 0) continue;
       const baseY = fl.level * storeyHeightM;
       for (const f of fl.furnishings) {
-        const spec = FURNITURE[f.kind];
-        if (!spec) continue;
+        const spec = furnishingSpec(f.kind);
         const rotated = f.rotation === 90 || f.rotation === 270;
         parts.push({
           x: toX(f.x), z: toZ(f.y),
@@ -619,7 +650,7 @@ export function buildInteriorParts(
           h: WINDOW_H,
           colorHex: WINDOW_PANE_COLOR,
           baseY: WINDOW_SILL_M,
-          ...(litWindows ? { emissiveHex: WINDOW_GLOW_HEX } : {}),
+          lightRole: 'window',
         });
       }
     }
@@ -637,7 +668,7 @@ export function buildInteriorParts(
           h: WINDOW_H,
           colorHex: WINDOW_PANE_COLOR,
           baseY: WINDOW_SILL_M,
-          ...(litWindows ? { emissiveHex: WINDOW_GLOW_HEX } : {}),
+          lightRole: 'window',
         });
       }
     }
@@ -661,8 +692,7 @@ export function buildInteriorParts(
   }
 
   for (const f of plan.furnishings) {
-    const spec = FURNITURE[f.kind];
-    if (!spec) continue;
+    const spec = furnishingSpec(f.kind);
     const rotated = f.rotation === 90 || f.rotation === 270;
     parts.push({
       x: toX(f.x),
@@ -671,7 +701,9 @@ export function buildInteriorParts(
       d: rotated ? spec.w : spec.d,
       h: spec.h,
       colorHex: spec.colorHex,
-      ...(hearthLit && HEARTH_KINDS.has(f.kind) ? { emissiveHex: HEARTH_GLOW_HEX } : {}),
+      // Hearth furnishings are ALWAYS tagged 'hearth' (bake-hour independent);
+      // the renderer glows the fire live from the building's hearth schedule.
+      ...(HEARTH_KINDS.has(f.kind) ? { lightRole: 'hearth' as const } : {}),
     });
   }
 
@@ -721,42 +753,36 @@ export function buildInteriorParts(
   for (const p of placeFor) perKey.set(p.key, (perKey.get(p.key) ?? 0) + 1);
   const placedPerKey = new Map<string, number>();
   occupants.forEach((o, k) => {
-    let px: number;
-    let pz: number;
-    let baseYForBody: number;
-    if (o.station) {
-      // LIVING overlay (BGv2 Task 14): stand at the exact occupancy station in
-      // PLAN FEET — the forge, a bed, the shared table — on its storey. This is
-      // the authoritative placement; the room-cycling below is the roster
-      // fallback for figures that carry no station.
-      px = toX(o.station.xFt);
-      pz = toZ(o.station.yFt);
-      baseYForBody = Math.max(0, o.station.level) * storeyHeightM;
-    } else {
-      const placeable = placeFor[k] ?? entryPlaceable;
-      const room = placeable.room;
-      const totalInRoom = perKey.get(placeable.key) ?? 1;
-      const slotInRoom = placedPerKey.get(placeable.key) ?? 0;
-      placedPerKey.set(placeable.key, slotInRoom + 1);
-      const anchor = anchorByKey.get(placeable.key);
-      const centerX = anchor ? anchor.x : room.x + room.w / 2;
-      const centerY = anchor ? anchor.y : room.y + room.d / 2;
-      // Anchor cells are 5 ft; a tighter ring keeps the crowd clear of the
-      // real-thickness blueprint walls (an inner wall protrudes its full
-      // 0.5 ft into the neighbor cell: 0.762 − 0.2 − 0.1524 ≈ 0.41 m clear).
-      const ringRadiusM = totalInRoom > 1 ? (anchor ? 0.2 : 0.6) : 0;
-      const angle = (Math.PI * 2 * slotInRoom) / totalInRoom + room.id * 0.37;
-      const offsetXFt = (Math.cos(angle) * ringRadiusM) / FT;
-      const offsetYFt = (Math.sin(angle) * ringRadiusM) / FT;
-      px = toX(centerX + offsetXFt);
-      pz = toZ(centerY + offsetYFt);
-      baseYForBody = placeable.baseY;
-    }
+    // Populated-household occupants (BGv2 Task 14 station identity) are NO LONGER
+    // baked into the static parts: the live InteriorOccupants layer renders them
+    // against the game clock so they move hour to hour. Only the roster fallback
+    // (street/commuter figures with no station) is still baked as a static box.
+    if (o.station) return;
+    const placeable = placeFor[k] ?? entryPlaceable;
+    const room = placeable.room;
+    const totalInRoom = perKey.get(placeable.key) ?? 1;
+    const slotInRoom = placedPerKey.get(placeable.key) ?? 0;
+    placedPerKey.set(placeable.key, slotInRoom + 1);
+    const anchor = anchorByKey.get(placeable.key);
+    const centerX = anchor ? anchor.x : room.x + room.w / 2;
+    const centerY = anchor ? anchor.y : room.y + room.d / 2;
+    // Anchor cells are 5 ft; a tighter ring keeps the crowd clear of the
+    // real-thickness blueprint walls (an inner wall protrudes its full
+    // 0.5 ft into the neighbor cell: 0.762 − 0.2 − 0.1524 ≈ 0.41 m clear).
+    const ringRadiusM = totalInRoom > 1 ? (anchor ? 0.2 : 0.6) : 0;
+    const angle = (Math.PI * 2 * slotInRoom) / totalInRoom + room.id * 0.37;
+    const offsetXFt = (Math.cos(angle) * ringRadiusM) / FT;
+    const offsetYFt = (Math.sin(angle) * ringRadiusM) / FT;
+    const px = toX(centerX + offsetXFt);
+    const pz = toZ(centerY + offsetYFt);
+    const baseYForBody = placeable.baseY;
     // A villager reads as a person, not a crate: a clothed body box under a
     // skin-toned head. Dimensions and palette come from the occupant's
     // parametric BodyPlan (BODY-1) — height, build, skin and clothing all vary
     // per person, so a crowd reads as a population rather than clones. The floor's
     // elevation (placeable.baseY) lifts upstairs occupants onto their storey.
+    // Tagged 'occupant' so consumers/tests can precisely separate baked figure
+    // boxes from structure (and assert populated plots bake none).
     const body = o.body;
     const headH = body.headSizeM;
     const bodyH = Math.max(0.1, body.heightM - headH);
@@ -767,6 +793,7 @@ export function buildInteriorParts(
       d: body.depthM,
       h: bodyH,
       colorHex: body.clothingHex,
+      tag: 'occupant',
       // Omit baseY on the ground floor so the part shape is unchanged there.
       ...(baseYForBody > 0 ? { baseY: baseYForBody } : {}),
     });
@@ -778,6 +805,7 @@ export function buildInteriorParts(
       h: headH,
       baseY: baseYForBody + bodyH,
       colorHex: body.skinToneHex,
+      tag: 'occupant',
     });
   });
 
@@ -795,8 +823,7 @@ export function buildInteriorParts(
       // blueprint structure — only the furniture is emitted per upper floor.
       if (blueprint) {
         for (const f of floor.furnishings) {
-          const spec = FURNITURE[f.kind];
-          if (!spec) continue;
+          const spec = furnishingSpec(f.kind);
           const rotated = f.rotation === 90 || f.rotation === 270;
           parts.push({
             x: toX(f.x), z: toZ(f.y),
@@ -846,8 +873,7 @@ export function buildInteriorParts(
         }
       }
       for (const f of floor.furnishings) {
-        const spec = FURNITURE[f.kind];
-        if (!spec) continue;
+        const spec = furnishingSpec(f.kind);
         const rotated = f.rotation === 90 || f.rotation === 270;
         parts.push({
           x: toX(f.x), z: toZ(f.y),

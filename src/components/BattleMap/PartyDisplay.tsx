@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 04/07/2026, 21:56:57
+ * Last Sync: 09/07/2026, 00:55:11
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -19,7 +19,8 @@
  * A component to display the player's party members during combat.
  * Now includes Auto-Battle toggle.
  */
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { LocateFixed } from 'lucide-react';
 import { CombatCharacter } from '../../types/combat';
 import Tooltip from '../Tooltip';
 import { WindowFrame } from '../ui/WindowFrame';
@@ -34,6 +35,7 @@ interface PartyMemberDisplayProps {
   isTurn: boolean;
   isAuto: boolean;
   onToggleAuto: (e: React.MouseEvent) => void;
+  onCenterCamera: (e: React.MouseEvent) => void;
 }
 
 const renderActionEconomy = (character: CombatCharacter) => {
@@ -95,7 +97,7 @@ const CombatantPortrait: React.FC<{ character: CombatCharacter; tone: 'player' |
   );
 };
 
-const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onClick, onInspect, isTurn, isAuto, onToggleAuto }) => {
+const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onClick, onInspect, isTurn, isAuto, onToggleAuto, onCenterCamera }) => {
   const healthPercentage = (character.currentHP / character.maxHP) * 100;
 
   // Split the name across two lines (given name over the rest) so full names
@@ -142,6 +144,14 @@ const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onCl
       {renderActionEconomy(character)}
       <div className="mt-1.5 flex items-center justify-end gap-1">
           <button
+              onClick={onCenterCamera}
+              className="flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-slate-300 transition-colors hover:border-amber-400 hover:text-amber-200"
+              title="Center map on character"
+              aria-label={`Center map on ${character.name}`}
+          >
+              <LocateFixed className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <button
               onClick={(e) => { e.stopPropagation(); onInspect(); }}
               className="flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-sm text-slate-300 transition-colors hover:border-sky-500 hover:text-sky-300"
               title="Inspect character"
@@ -165,10 +175,11 @@ interface EnemyMemberDisplayProps {
   character: CombatCharacter;
   onClick: () => void;
   onInspect: () => void;
+  onCenterCamera: () => void;
   isTurn: boolean;
 }
 
-const EnemyMemberDisplay: React.FC<EnemyMemberDisplayProps> = ({ character, onClick, onInspect, isTurn }) => {
+const EnemyMemberDisplay: React.FC<EnemyMemberDisplayProps> = ({ character, onClick, onInspect, onCenterCamera, isTurn }) => {
   const healthPercentage = (character.currentHP / character.maxHP) * 100;
 
   const [firstName, ...restName] = character.name.split(' ');
@@ -210,6 +221,15 @@ const EnemyMemberDisplay: React.FC<EnemyMemberDisplayProps> = ({ character, onCl
       {renderActionEconomy(character)}
 
       <button
+          onClick={(e) => { e.stopPropagation(); onCenterCamera(); }}
+          className="absolute right-14 top-2 z-[var(--z-index-content-overlay-low)] flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-slate-300 transition-colors hover:border-amber-400 hover:text-amber-200"
+          title="Center map on character"
+          aria-label={`Center map on ${character.name}`}
+      >
+          <LocateFixed className="h-4 w-4" aria-hidden="true" />
+      </button>
+
+      <button
           onClick={(e) => { e.stopPropagation(); onInspect(); }}
           className="absolute top-2 right-2 z-[var(--z-index-content-overlay-low)] flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-sm text-slate-300 transition-colors hover:border-sky-500 hover:text-sky-300"
           title="Inspect character"
@@ -228,6 +248,7 @@ interface PartyDisplayProps {
   currentTurnCharacterId: string | null;
   autoCharacters: Set<string>;
   onToggleAuto: (characterId: string) => void;
+  onCenterCharacter: (characterId: string) => void;
 }
 
 const ExpandIcon = () => (
@@ -236,8 +257,21 @@ const ExpandIcon = () => (
   </svg>
 );
 
-const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSelect, onCharacterInspect, currentTurnCharacterId, autoCharacters, onToggleAuto }) => {
+const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSelect, onCharacterInspect, currentTurnCharacterId, autoCharacters, onToggleAuto, onCenterCharacter }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const requestCenterCharacter = useCallback((characterId: string) => {
+    onCenterCharacter(characterId);
+
+    // The roster and tactical board can be mounted through different wrappers
+    // in the design preview, real combat, and pop-out window. This small event
+    // keeps the camera shortcut working even when a wrapper misses the React
+    // request prop, while the explicit callback above remains the normal owner.
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('aralia:battle-map-center-character', {
+        detail: { characterId }
+      }));
+    }
+  }, [onCenterCharacter]);
 
   const playerCharacters = characters.filter(c => c.team === 'player');
   const enemyCharacters = characters.filter(c => c.team === 'enemy' && c.currentHP > 0);
@@ -256,6 +290,7 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
               isTurn={char.id === currentTurnCharacterId}
               isAuto={autoCharacters.has(char.id)}
               onToggleAuto={(e) => { e.stopPropagation(); onToggleAuto(char.id); }}
+              onCenterCamera={(e) => { e.stopPropagation(); requestCenterCharacter(char.id); }}
             />
           ))}
         </div>
@@ -271,6 +306,7 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
                 character={char}
                 onClick={() => onCharacterSelect(char.id)}
                 onInspect={() => onCharacterInspect(char.id)}
+                onCenterCamera={() => requestCenterCharacter(char.id)}
                 isTurn={char.id === currentTurnCharacterId}
               />
             ))}
@@ -282,7 +318,7 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
 
   return (
     <>
-      <div className="flex flex-col gap-4 h-full overflow-hidden">
+      <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
         {isExpanded ? (
           <div className="bg-gray-800/80 p-4 rounded-lg border border-gray-700 flex items-center justify-between">
             <span className="text-gray-400 text-xs italic">Party panel is popped out.</span>
@@ -294,7 +330,7 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
             </button>
           </div>
         ) : (
-          <div className="flex flex-col gap-4 flex-1 overflow-hidden relative sm:grid sm:grid-cols-2 sm:items-start lg:flex lg:flex-col">
+          <div className="relative flex min-h-0 flex-1 flex-col gap-4 overflow-hidden sm:grid sm:grid-cols-2 sm:items-start lg:flex lg:flex-col">
             <button
               onClick={() => setIsExpanded(true)}
               className="absolute top-2 right-2 z-10 flex h-11 w-11 items-center justify-center rounded text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white"
@@ -302,7 +338,11 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
             >
               <ExpandIcon />
             </button>
-            <div className={`${COMBAT_PANEL} p-3 flex-1 overflow-y-auto scrollable-content`}>
+            {/* The docked roster should not force Party and Enemies into equal
+                halves. Party gets the height it needs first, then Enemies can
+                use the remaining rail space without making both sections feel
+                oddly oversized. */}
+            <div className={`${COMBAT_PANEL} min-h-0 overflow-y-auto scrollable-content p-3 ${enemyCharacters.length > 0 ? 'lg:max-h-[44%] lg:flex-none' : 'lg:flex-1'}`}>
               <h3 className={`${COMBAT_LABEL} mb-3 flex items-center gap-2 border-b border-amber-900/40 pb-2`}>
                 <span className="text-amber-400">⚜</span> Party
               </h3>
@@ -316,13 +356,14 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
                     isTurn={char.id === currentTurnCharacterId}
                     isAuto={autoCharacters.has(char.id)}
                     onToggleAuto={(e) => { e.stopPropagation(); onToggleAuto(char.id); }}
+                    onCenterCamera={(e) => { e.stopPropagation(); requestCenterCharacter(char.id); }}
                   />
                 ))}
               </div>
             </div>
 
             {enemyCharacters.length > 0 && (
-              <div className={`${COMBAT_PANEL} p-3 flex-1 overflow-y-auto scrollable-content`}>
+              <div className={`${COMBAT_PANEL} min-h-0 flex-1 overflow-y-auto scrollable-content p-3`}>
                 <h3 className="text-[11px] font-bold uppercase tracking-[0.22em] text-rose-400/90 mb-3 flex items-center gap-2 border-b border-rose-900/40 pb-2">
                   <span className="text-rose-400">☠</span> Enemies
                 </h3>
@@ -333,6 +374,7 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
                       character={char}
                       onClick={() => onCharacterSelect(char.id)}
                       onInspect={() => onCharacterInspect(char.id)}
+                      onCenterCamera={() => requestCenterCharacter(char.id)}
                       isTurn={char.id === currentTurnCharacterId}
                     />
                   ))}

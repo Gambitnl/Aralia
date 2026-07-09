@@ -34,6 +34,7 @@ import { DialogueSession } from '../types/dialogue.js';
 import { WorldHistoryEvent } from '../types/history.js';
 import { CrewRole } from '../types/naval.js';
 import { EquipItemPayload, UnequipItemPayload, UseItemPayload, DropItemPayload, ShowEncounterModalPayload, StartBattleMapEncounterPayload } from '../types/actions.js';
+export type CraftingCategory = 'potion' | 'oil' | 'poison' | 'bomb' | 'utility' | 'ink';
 export type AppAction = {
     type: 'SET_GAME_PHASE';
     payload: GamePhase;
@@ -838,6 +839,8 @@ export type AppAction = {
 } | {
     type: 'TOGGLE_TRADE_ROUTE_DASHBOARD';
 } | {
+    type: 'TOGGLE_INVESTMENT_BOARD';
+} | {
     type: 'INVEST_IN_CARAVAN';
     payload: {
         tradeRouteId: string;
@@ -987,8 +990,8 @@ export type AppAction = {
 } | {
     type: 'UPDATE_CRAFTING_STATS';
     payload: {
-        quality: string;
-        category: string;
+        quality: import('../types/crafting.js').CraftingQuality;
+        category: CraftingCategory;
         isNat20: boolean;
     };
 } | {

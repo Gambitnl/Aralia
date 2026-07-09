@@ -295,7 +295,25 @@ export const resolveRacialSpellCastingAbility = (
   return getRacialAbilityFromSelection(character, grant.sourceRaceId, grant.spellAbility);
 };
 
-export const resolveRacialSpellLimitedUseId = (sourceRaceId: string, spellId: string): string => `racial_${sourceRaceId}_${spellId}`;
+/**
+ * Unified generator for racial resource / limited-use IDs (RM-045).
+ *
+ * All racial resource-key generation routes through this single helper so the
+ * naming conventions stay consistent and lookups can't silently diverge:
+ *  - 'feature': trait-granted resources, keyed `racial_feature_<resourceId>`.
+ *  - 'spell':   racial spell limited uses, keyed `racial_<raceId>_<spellId>`.
+ *
+ * The output strings are unchanged from the previous ad-hoc call sites so that
+ * persisted save data and existing lookups remain valid.
+ */
+export function resolveRacialResourceId(kind: 'feature', resourceId: string): string;
+export function resolveRacialResourceId(kind: 'spell', sourceRaceId: string, spellId: string): string;
+export function resolveRacialResourceId(kind: 'feature' | 'spell', a: string, b?: string): string {
+  return kind === 'spell' ? `racial_${a}_${b}` : `racial_feature_${a}`;
+}
+
+export const resolveRacialSpellLimitedUseId = (sourceRaceId: string, spellId: string): string =>
+  resolveRacialResourceId('spell', sourceRaceId, spellId);
 
 const isHitDieSize = (value: number | undefined): value is HitDieSize =>
   typeof value === 'number' && HIT_DIE_SIZES.includes(value as HitDieSize);
@@ -1038,7 +1056,7 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
   racialResourceTraits.forEach((trait) => {
     const sourceLabel = `${trait.sourceRaceName}: ${trait.traitName}`;
     trait.resources?.forEach((resource) => {
-      const resourceKey = `racial_feature_${resource.id}`;
+      const resourceKey = resolveRacialResourceId('feature', resource.id);
       const nextMax: number = typeof resource.maxUses === 'number'
         ? resource.maxUses
         : next.proficiencyBonus || 2;
@@ -1404,15 +1422,22 @@ export function calculateCharacterSpeedFromRace(race: PlayerCharacter['race'], r
     if (match) speed = parseInt(match[1], 10);
   }
 
-  // Fleet of Foot (Wood Elf / Wood Half-Elf): Base speed increases to 35 feet.
-  // This covers the wood elf lineage option selected under the base elf race,
-  // as well as the standalone Wood Elf ("wood_elf") and Wood Half-Elf ("half_elf_wood") races.
-  if (
-    (race.id === 'elf' && racialSelections?.elf?.choiceId === 'wood_elf') ||
-    race.id === 'wood_elf' ||
-    race.id === 'half_elf_wood'
-  ) {
-    speed = 35;
+  // Apply speed increases granted by a chosen elven lineage, reading them from
+  // the race data instead of hardcoding per-race values (RM-044). For example,
+  // the Wood Elf lineage's "Fleet of Foot" benefit carries `speedIncrease: 5`,
+  // taking a base elf from 30 to 35 feet. Standalone races that always move
+  // faster (e.g. Wood Elf, Wood Half-Elf) already encode their speed via the
+  // "Speed: 35 feet" trait handled above, so no per-race override is needed here.
+  const selectedLineageId = racialSelections?.elf?.choiceId;
+  if (selectedLineageId && race.elvenLineages) {
+    const lineage = race.elvenLineages.find(l => l.id === selectedLineageId);
+    if (lineage) {
+      const lineageSpeedIncrease = lineage.benefits.reduce(
+        (sum, benefit) => sum + (benefit.speedIncrease ?? 0),
+        0,
+      );
+      speed += lineageSpeedIncrease;
+    }
   }
 
   return speed;

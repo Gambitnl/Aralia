@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { classifyApplicabilityValue } from './spellTemplateApplicability';
 import { compareAcceptedValueSets } from './spellTemplateValueParity';
 
@@ -43,7 +44,7 @@ const PUBLIC_REPORT_JSON_PATH = path.join(REPO_ROOT, 'public', 'data', 'spell_te
 type IssueSeverity = 'error' | 'warning';
 type IssueSource = 'template-parity' | 'structured-markdown' | 'runtime-json';
 
-interface TemplateField {
+export interface TemplateField {
   label?: string;
   pattern?: string;
   path?: string;
@@ -62,13 +63,13 @@ interface TemplateField {
   log?: Array<{ at: string; action: string; why: string }>;
 }
 
-interface TemplateContract {
+export interface TemplateContract {
   schemaVersion: number;
   templateKind: string;
   fields: TemplateField[];
 }
 
-interface ValidationIssue {
+export interface ValidationIssue {
   severity: IssueSeverity;
   source: IssueSource;
   code: string;
@@ -203,7 +204,7 @@ function acceptedValueMatches(value: string, acceptedValues: string[]): boolean 
 // as proposed.
 // ============================================================================
 
-function validateTemplateParity(
+export function validateTemplateParity(
   structuredTemplate: TemplateContract,
   jsonTemplate: TemplateContract,
   issues: ValidationIssue[],
@@ -556,4 +557,12 @@ function main(): void {
   console.log(`Issues: ${report.issueCount} (${report.errorCount} errors, ${report.warningCount} warnings)`);
 }
 
-main();
+// Only run the full validation gate when invoked as a script. Importing this
+// module (for example from focused Vitest coverage) must not read the live
+// corpus or write report artifacts as a side effect.
+const thisFilePath = fileURLToPath(import.meta.url);
+const invokedFilePath = process.argv[1] ? path.resolve(process.argv[1]) : '';
+
+if (invokedFilePath === thisFilePath) {
+  main();
+}

@@ -25,6 +25,30 @@
  * - ChunkLoader provides an abstract producer interface so streaming can run in-worker or in-process (tests).
  */
 
+// Living-interiors live clock: the baked occupant render packet references the
+// occupancy resolver's plan-feet station point and the interior body shape.
+// Type-only imports — erased at compile, so they add no runtime dependency.
+import type { StationFeetPoint } from "../worldforge/bridge/buildingOccupancy";
+import type { OccupantBody } from "../worldforge/bridge/interiorParts";
+
+/**
+ * A household member baked as a live-render packet (living-interiors slice).
+ * The renderer resolves the member's position each integer game hour from
+ * `stationsByHour` (plan feet, blueprint frame; null = OUT that hour) and draws
+ * the parametric `body`. Present only on populated building sites — it replaces
+ * the old static occupant boxes that were baked into `parts`.
+ */
+export interface BuildingOccupantRender {
+  /** Stable per-member id: plotId * 100 + memberIndex. */
+  id: number;
+  /** Age band ('child' | 'adult' | 'elder'). */
+  ageBand: string;
+  /** Parametric body (per-person proportions + palette). */
+  body: OccupantBody;
+  /** stationsByHour[h] = the member's station at hour h (plan feet), or null when OUT. */
+  stationsByHour: (StationFeetPoint | null)[];
+}
+
 /** Integer chunk coordinate on the chunk grid. */
 export interface ChunkCoord {
   cx: number;
@@ -136,7 +160,7 @@ export interface ChunkData {
      * ground). When present the renderer draws these walls/furnishings
      * instead of the solid footprint box — the building is enterable.
      */
-    parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string; baseY?: number; emissiveHex?: string; tag?: string }>;
+    parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string; baseY?: number; emissiveHex?: string; tag?: string; lightRole?: 'window' | 'hearth' }>;
     /**
      * Interior wall envelope in meters (≤ plot footprint). Roofs and floor
      * slabs must size to THIS, not the footprint box — the plot is up to
@@ -144,6 +168,21 @@ export interface ChunkData {
      */
     wallWidthM?: number;
     wallDepthM?: number;
+    /**
+     * Living-interiors live clock (baked once at world-gen). Length-24 schedules
+     * the renderer re-resolves against the live game hour: `litHours[h]` = the
+     * windows glow at hour h; `hearthHours[h]` = the hearth is lit. Present only
+     * for populated plots (a resolved household); absent otherwise.
+     */
+    litHours?: boolean[];
+    hearthHours?: boolean[];
+    /** Baked occupant render packets — the family, resolved live per hour.
+     *  Present only for populated plots. */
+    occupants?: BuildingOccupantRender[];
+    /** Interior envelope in PLAN FEET — the frame occupant stations resolve in
+     *  (blueprint frame; matches litHours/occupants). Present only when occupants are. */
+    interiorWidthFt?: number;
+    interiorDepthFt?: number;
     /**
      * Solved roof (BGv2 Task 5): the triangulated roof planes + tower caps as
      * ONE geometry group in site-local METERS (Y up). Present only for
@@ -249,10 +288,19 @@ export interface ChunkSite {
   /** Render no mesh — nameplate only (see ChunkData.sites.markerOnly). */
   markerOnly?: boolean;
   /** Seamless-interior boxes, site-local meters (see ChunkData.sites.parts). */
-  parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string; baseY?: number; emissiveHex?: string; tag?: string }>;
+  parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string; baseY?: number; emissiveHex?: string; tag?: string; lightRole?: 'window' | 'hearth' }>;
   /** Interior wall envelope, meters (see ChunkData.sites.wallWidthM). */
   wallWidthM?: number;
   wallDepthM?: number;
+  /** Living-interiors live clock: length-24 window-lit / hearth-lit schedules
+   *  the renderer re-resolves against the live hour (see ChunkData.sites). */
+  litHours?: boolean[];
+  hearthHours?: boolean[];
+  /** Baked occupant render packets — resolved live per hour (populated plots only). */
+  occupants?: BuildingOccupantRender[];
+  /** Interior envelope in PLAN FEET (blueprint frame) — occupant station frame. */
+  interiorWidthFt?: number;
+  interiorDepthFt?: number;
   /** Solved roof group, site-local meters (see ChunkData.sites.solvedRoof).
    *  When set, the renderer draws it and skips the legacy roof prism. */
   solvedRoof?: { positions: Float32Array; indices: Uint32Array; normals: Float32Array; colorHex: string };
@@ -289,7 +337,12 @@ export interface ChunkMeshBundle {
   cy: number;
   terrain: TerrainMesh;
   water?: ChunkGeometryArrays;
-  roads?: ChunkGeometryArrays;
+  /**
+   * Roads/streets carry per-vertex `colors` so RoadPiece renders with
+   * `vertexColors`: town streets tier their tint (avenue/street/lane) while
+   * inherited regional roads fall back to packed dirt — one shared material.
+   */
+  roads?: ChunkGeometryArrays & { colors?: Float32Array };
   /**
    * Extruded town wall-ring barriers (Worldforge Option B). Carries optional
    * per-vertex `colors` (styled-architecture slice) so each town's ramparts

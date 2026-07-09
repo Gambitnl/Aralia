@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/07/2026, 00:32:52
+ * Dependents: components/BattleMap/BattleMapGroundCanvas.tsx, components/BattleMap/pixi/PixiBattleBoard.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file groundPainter.ts
  * Shared painted-style ground renderer for the 2D battle map.
@@ -77,6 +93,11 @@ export interface GroundTextures {
   dirt: HTMLImageElement | null;
   /** Caeora painted token pack for the ACTIVE biome, if it has one. */
   pack: SpritePack | null;
+}
+
+export interface PaintGroundOptions {
+  /** Whether to draw decorative asset props such as trees, rocks, bushes, logs, and loose scatter. */
+  showDecorations?: boolean;
 }
 
 export const loadGroundTextures = async (theme?: CombatBiome): Promise<GroundTextures> => {
@@ -499,6 +520,7 @@ export function paintGround(
   tileSize: number,
   textures: GroundTextures,
   res: number,
+  options: PaintGroundOptions = {},
 ): void {
   const { grass, dirt } = textures;
   const W = mapData.dimensions.width;
@@ -1470,7 +1492,11 @@ export function paintGround(
   }
 
   // 3. Foliage + rocks from tile decorations (drawn large, top-down).
-  mapData.tiles.forEach((tile) => {
+  // The asset-overlay toggle hides this whole pass while preserving the base
+  // terrain paint. That gives users a clean tactical read without deleting the
+  // authored/generated decorations from the map data.
+  if (options.showDecorations !== false) {
+    mapData.tiles.forEach((tile) => {
     const cx = tile.coordinates.x * tileSize + tileSize / 2;
     const cy = tile.coordinates.y * tileSize + tileSize / 2;
     const seed = tile.coordinates.x * 73 + tile.coordinates.y * 149;
@@ -1850,7 +1876,8 @@ export function paintGround(
         break;
       }
     }
-  });
+    });
+  }
 
   // 4. Vignette — darken the edges so the board feels lit from within.
   // Heavier underground (enclosed dark), lighter under an open desert sky.

@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -9,6 +11,8 @@ import {
   normalizeRaceNameForMatching,
   summarizeVendorRace,
 } from '../raceReconciliationInventory';
+
+const VENDOR_PATH = path.join(process.cwd(), 'vendor', '5etools-src', 'data', 'races.json');
 
 /**
  * These tests protect the race reconciliation helpers before the full report
@@ -215,5 +219,93 @@ describe('createRaceCrosswalkRecord', () => {
     expect(record.vendorCandidates[0].reasons).toEqual(
       expect.arrayContaining(['name match', 'speed match', 'darkvision match']),
     );
+  });
+});
+
+// ============================================================================
+// Reconciliation Payload Shape
+// ============================================================================
+// The crosswalk record is the contract every downstream report and JSON artifact
+// depends on. This section pins the record's field shape so a helper refactor
+// cannot silently drop or rename a key the reports read.
+// ============================================================================
+
+describe('createRaceCrosswalkRecord payload shape', () => {
+  it('always returns the full crosswalk record contract', () => {
+    const record = createRaceCrosswalkRecord(
+      { id: 'human', name: 'Human', traits: ['Speed: 30 feet'], traitNames: ['Speed'] },
+      [summarizeVendorRace({ name: 'Human', source: 'PHB', speed: { walk: 30 } }, VENDOR_PATH)],
+    );
+
+    expect(record).toEqual(
+      expect.objectContaining({
+        araliaRaceId: 'human',
+        araliaName: 'Human',
+        status: expect.any(String),
+        vendorCandidates: expect.any(Array),
+        notes: expect.any(String),
+      }),
+    );
+
+    expect(record.vendorCandidates[0]).toEqual(
+      expect.objectContaining({
+        vendorName: expect.any(String),
+        vendorSource: expect.any(String),
+        vendorPath: expect.any(String),
+        confidence: expect.stringMatching(/^(high|medium|low)$/),
+        score: expect.any(Number),
+        reasons: expect.any(Array),
+      }),
+    );
+  });
+});
+
+// ============================================================================
+// Crosswalk Status Handling
+// ============================================================================
+// The five crosswalk statuses are the human-review signal of the whole report.
+// This section exercises each branch so an uncertain, custom, or reflavored
+// Aralia identity is never silently collapsed into a confident vendor match.
+// ============================================================================
+
+describe('createRaceCrosswalkRecord status handling', () => {
+  it('marks a name-only overlap as ambiguous when confidence stays below high', () => {
+    const record = createRaceCrosswalkRecord(
+      { id: 'goblin', name: 'Goblin', traits: [], traitNames: [] },
+      [summarizeVendorRace({ name: 'Goblin', source: 'MM', speed: { walk: 30 } }, VENDOR_PATH)],
+    );
+
+    expect(record.status).toBe('ambiguous');
+    expect(record.vendorCandidates[0].confidence).toBe('medium');
+  });
+
+  it('keeps a custom/reflavored Aralia ID as reflavored even when a vendor candidate exists', () => {
+    const record = createRaceCrosswalkRecord(
+      { id: 'stormborn_goliath', name: 'Goliath', traits: [], traitNames: [] },
+      [summarizeVendorRace({ name: 'Goliath', source: 'PHB' }, VENDOR_PATH)],
+    );
+
+    expect(record.status).toBe('reflavored');
+    expect(record.vendorCandidates.length).toBeGreaterThan(0);
+  });
+
+  it('marks a custom Aralia ID with no vendor candidate as custom', () => {
+    const record = createRaceCrosswalkRecord(
+      { id: 'wayfarer_kin', name: 'Wayfarer Kin', traits: [], traitNames: [] },
+      [summarizeVendorRace({ name: 'Dragonborn', source: 'PHB' }, VENDOR_PATH)],
+    );
+
+    expect(record.status).toBe('custom');
+    expect(record.vendorCandidates).toHaveLength(0);
+  });
+
+  it('marks a non-custom Aralia race with no vendor candidate as unmatched', () => {
+    const record = createRaceCrosswalkRecord(
+      { id: 'mistfolk', name: 'Mistfolk', traits: [], traitNames: [] },
+      [summarizeVendorRace({ name: 'Dragonborn', source: 'PHB' }, VENDOR_PATH)],
+    );
+
+    expect(record.status).toBe('unmatched');
+    expect(record.vendorCandidates).toHaveLength(0);
   });
 });

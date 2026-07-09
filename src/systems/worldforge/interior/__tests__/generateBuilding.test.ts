@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { rootSeedPath, rngFromPath, streamPath } from '../../seedPath';
-import { generateBuilding } from '../generateBuilding';
+import { generateBuilding, buildingShellHeightM, BLUEPRINT_STOREY_FT } from '../generateBuilding';
+import { metersFromFeet } from '../../units';
 import { EXTERIOR } from '../blueprintTypes';
 import type {
   BlueprintPlan, BuildingType, HouseholdBrief, MemberSlot, StyleContext,
@@ -17,6 +18,26 @@ const ALL_TYPES: BuildingType[] = [
 ];
 
 const gen = (over = {}) => generateBuilding({ buildingId: 1, type: 'manor', seedPath: rootSeedPath(3), storeys: 3, basement: true, ...over });
+
+describe('buildingShellHeightM', () => {
+  it('converts the canonical storey height through the exact international foot (10 ft = 3.048 m, no rounding)', () => {
+    // A rounded 3 m/storey leaves every building ~1.6% short of the feet-canon
+    // wall top the roof solver uses.
+    expect(buildingShellHeightM(1)).toBeCloseTo(3.048, 10);
+    expect(buildingShellHeightM(2)).toBeCloseTo(6.096, 10);
+    expect(buildingShellHeightM(1)).toBeGreaterThan(3); // guards the old magic 3
+  });
+
+  it('equals storeys × the exact metric conversion of BLUEPRINT_STOREY_FT', () => {
+    for (const s of [1, 2, 3, 4]) {
+      expect(buildingShellHeightM(s)).toBe(s * metersFromFeet(BLUEPRINT_STOREY_FT));
+    }
+  });
+
+  it('clamps to at least one storey (matches the loader guard)', () => {
+    expect(buildingShellHeightM(0)).toBe(buildingShellHeightM(1));
+  });
+});
 
 describe('generateBuilding', () => {
   it('is byte-identical for the same input', () => {
