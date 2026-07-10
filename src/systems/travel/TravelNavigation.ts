@@ -100,7 +100,7 @@ export function checkNavigation(
     // Time Penalty: 1d6 hours before realizing/correcting?
     // DMG says they travel in that direction for 1d6 hours before checking again.
     // RALPH: Failure Cost = Time (1d6 hours) + Drift (Wrong Direction).
-    const timePenalty = rng.nextInt(1, 6);
+    const timePenalty = rng.nextInt(1, 7);
 
     return {
       success: false,

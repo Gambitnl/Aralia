@@ -4,6 +4,7 @@ import {
     addHistoryEvent,
     getRelevantHistory,
     findEventsByParticipant,
+    findEventsByDateRange,
     pruneHistory
 } from '../historyUtils';
 import { WorldHistoryEvent } from '../../../types/history';
@@ -130,5 +131,35 @@ describe('historyUtils', () => {
 
         const noMatch = findEventsByParticipant(history, 'faction-b');
         expect(noMatch).toHaveLength(0);
+    });
+
+    it('should filter by date range with inclusive bounds', () => {
+        const history = {
+            events: [
+                { ...mockEvent, id: 'evt-10', timestamp: 10 },
+                { ...mockEvent, id: 'evt-20', timestamp: 20 },
+                { ...mockEvent, id: 'evt-30', timestamp: 30 },
+                { ...mockEvent, id: 'evt-40', timestamp: 40 }
+            ]
+        };
+
+        const results = findEventsByDateRange(history, 20, 30);
+        // Bounds are inclusive: both 20 and 30 are included, 10 and 40 excluded.
+        expect(results).toHaveLength(2);
+        // Sorted newest first.
+        expect(results[0].id).toBe('evt-30');
+        expect(results[1].id).toBe('evt-20');
+    });
+
+    it('should return an empty array when no events fall in the range', () => {
+        const history = {
+            events: [
+                { ...mockEvent, id: 'evt-10', timestamp: 10 },
+                { ...mockEvent, id: 'evt-20', timestamp: 20 }
+            ]
+        };
+
+        const results = findEventsByDateRange(history, 100, 200);
+        expect(results).toHaveLength(0);
     });
 });

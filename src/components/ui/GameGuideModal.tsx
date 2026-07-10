@@ -11,7 +11,7 @@ import { UI_ID } from '../../styles/uiIds';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { generateGuideResponse } from '../../services/ollamaTextService';
 import { generateCharacterFromConfig, CharacterGenerationConfig } from '../../services/characterGenerator';
-import { PlayerCharacter, NPCMemory, GoalStatus } from '../../types';
+import { PlayerCharacter, NPCMemory, GoalStatus, SuspicionLevel } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { RACES_DATA, AVAILABLE_CLASSES } from '../../constants';
 import { t } from '../../utils/i18n';
@@ -46,9 +46,14 @@ type GuideToolData = {
     config?: unknown;
 };
 
+// The game guide uses an empty, throwaway memory (it does not draw on real NPC memory).
+// Built on the canonical merged shape so it typechecks; behavior is unchanged (still empty).
 const buildGuideMemory = (): NPCMemory => ({
-    interactions: [],
+    disposition: 0,
     knownFacts: [],
+    suspicion: SuspicionLevel.Unaware,
+    goals: [],
+    interactions: [],
     attitude: 0,
     lastInteractionDate: Date.now(),
     discussedTopics: {},

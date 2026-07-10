@@ -5,9 +5,17 @@ import {
   dangerRating,
   formatRouteSummary,
   formatProvisionLine,
+  formatMultiModalSummary,
+  ferryFare,
+  FERRY_BOARDING_FEE_GP,
+  FERRY_PER_SEA_MILE_GP,
 } from '../travelReadout';
 import type { RoutePlan } from '../routePlanning';
+import type { MultiModalRoute } from '../multiModalRoute';
 import type { ProvisionStatus } from '../provisioning';
+import { characterReducer } from '../../../state/reducers/characterReducer';
+import type { GameState } from '../../../types/state';
+import type { AppAction } from '../../../state/actionTypes';
 
 describe('formatTravelTime', () => {
   it('formats minutes / hours / days', () => {
@@ -44,6 +52,111 @@ describe('formatRouteSummary', () => {
     const route: RoutePlan = { cells: [0, 1, 2], points: [[0, 0]], miles: 19.3, minutes: 380, danger: 0.4 };
     expect(formatRouteSummary(route, 'on foot')).toBe('≈ 6h 20m · ~19 mi · Danger: Moderate · on foot');
     expect(formatRouteSummary(route, 'by horse')).toContain('by horse');
+  });
+});
+
+// ── Ferry fares (travel G15) ────────────────────────────────────────────────
+const mmRoute = (over: Partial<MultiModalRoute>): MultiModalRoute => ({
+  cells: [0, 1, 2],
+  points: [[0, 0], [1, 0], [2, 0]],
+  segments: [],
+  miles: 40,
+  landMiles: 10,
+  seaMiles: 30,
+  minutes: 600,
+  danger: 0.3,
+  ...over,
+});
+
+describe('ferryFare', () => {
+  it('charges nothing for an all-land route (zero sea miles)', () => {
+    expect(ferryFare(mmRoute({ seaMiles: 0 }))).toBe(0);
+    expect(ferryFare({ seaMiles: 0 })).toBe(0);
+  });
+
+  it('scales up with sea miles: more open water → higher fare', () => {
+    const shortHop = ferryFare(mmRoute({ seaMiles: 10 }));
+    const longCrossing = ferryFare(mmRoute({ seaMiles: 30 }));
+    expect(longCrossing).toBeGreaterThan(shortHop);
+    // boarding fee + per-mile rate, rounded up to whole gp
+    expect(shortHop).toBe(Math.ceil(FERRY_BOARDING_FEE_GP + 10 * FERRY_PER_SEA_MILE_GP));
+    expect(longCrossing).toBe(Math.ceil(FERRY_BOARDING_FEE_GP + 30 * FERRY_PER_SEA_MILE_GP));
+  });
+
+  it('is a positive whole number for any sea crossing (deterministic + pure)', () => {
+    const fare = ferryFare(mmRoute({ seaMiles: 31 }));
+    expect(Number.isInteger(fare)).toBe(true);
+    expect(fare).toBeGreaterThan(0);
+    // pure: same input → same output
+    expect(ferryFare(mmRoute({ seaMiles: 31 }))).toBe(fare);
+  });
+});
+
+describe('formatMultiModalSummary (fare)', () => {
+  it('appends the fare only when a positive fare is supplied', () => {
+    const route = mmRoute({ seaMiles: 30 });
+    const withFare = formatMultiModalSummary(route, { fareGp: ferryFare(route) });
+    expect(withFare).toContain(`Fare: ${ferryFare(route)} gp`);
+    expect(withFare).toContain('land');
+    expect(withFare).toContain('sea');
+  });
+
+  it('omits the fare for an owned ship / all-land trip (no fare supplied or zero)', () => {
+    const route = mmRoute({ seaMiles: 30 });
+    expect(formatMultiModalSummary(route)).not.toContain('Fare');
+    expect(formatMultiModalSummary(route, { fareGp: 0 })).not.toContain('Fare');
+    expect(formatMultiModalSummary(route, { fareGp: null })).not.toContain('Fare');
+  });
+});
+
+describe('formatMultiModalSummary (tender leg)', () => {
+  it('appends the tender distance only when tenderMiles > 0', () => {
+    const route = mmRoute({ landMiles: 10, seaMiles: 30, tenderMiles: 0.3 });
+    const summary = formatMultiModalSummary(route);
+    expect(summary).toContain('10 mi land');
+    expect(summary).toContain('30 mi sea');
+    expect(summary).toContain('0.3 mi tender');
+    // ordering: tender sits between the sea distance and the danger label
+    expect(summary).toMatch(/sea \+ 0\.3 mi tender · Danger:/);
+  });
+
+  it('omits the tender piece when tenderMiles is 0 or undefined', () => {
+    expect(formatMultiModalSummary(mmRoute({ tenderMiles: 0 }))).not.toContain('tender');
+    expect(formatMultiModalSummary(mmRoute({ tenderMiles: undefined }))).not.toContain('tender');
+    // default fixture has no tenderMiles at all
+    expect(formatMultiModalSummary(mmRoute({}))).not.toContain('tender');
+  });
+
+  it('keeps the fare label alongside a tender leg', () => {
+    const route = mmRoute({ seaMiles: 30, tenderMiles: 0.4 });
+    const summary = formatMultiModalSummary(route, { fareGp: ferryFare(route) });
+    expect(summary).toContain('0.4 mi tender');
+    expect(summary).toContain(`Fare: ${ferryFare(route)} gp`);
+  });
+});
+
+describe('ferry fare — affordability + deduction on departure', () => {
+  it('an empty purse cannot afford a sea crossing (unaffordable gate condition)', () => {
+    const fare = ferryFare(mmRoute({ seaMiles: 30 }));
+    const purse = 3; // less than the crossing fare
+    expect(purse < fare).toBe(true); // MapPane rejects the pick in this state
+  });
+
+  it('deducts the fare from party gold on departure (MODIFY_GOLD path)', () => {
+    const fare = ferryFare(mmRoute({ seaMiles: 30 }));
+    // App.handleTileClick dispatches MODIFY_GOLD with -ferryFareGp on a committed
+    // ferry trip; prove the primitive reduces the purse by exactly the fare.
+    const state = { gold: 100 } as unknown as GameState;
+    const action = { type: 'MODIFY_GOLD', payload: { amount: -fare } } as AppAction;
+    const next = characterReducer(state, action);
+    expect(next.gold).toBe(100 - fare);
+  });
+
+  it('never drives gold negative when the fare exceeds the purse (clamp)', () => {
+    const fare = ferryFare(mmRoute({ seaMiles: 30 }));
+    const state = { gold: 1 } as unknown as GameState;
+    const action = { type: 'MODIFY_GOLD', payload: { amount: -fare } } as AppAction;
+    expect(characterReducer(state, action).gold).toBe(0);
   });
 });
 

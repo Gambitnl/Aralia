@@ -447,7 +447,9 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
 
   const voice = config.voice || DEFAULT_VOICES[randomInt(DEFAULT_VOICES.length)];
 
-  // TODO #452(preserve-lint): Replace NpcMemory with the structured NPCMemory when memory models merge.
+  // Canonical NPC memory. The two forked memory models were merged onto `NpcMemory`; the richer
+  // fields (interactions/attitude/discussedTopics + per-fact key/confidence/significance) are now
+  // optional on this shape and start empty for a freshly generated NPC.
   const initialMemory: NpcMemory = {
     disposition: config.initialDisposition ?? 50,
     knownFacts: [],

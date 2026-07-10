@@ -49,6 +49,8 @@ import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase, 
 import type { TravelMeta } from './types/travelMeta';
 import { BATTLE_MAP_BIOMES, type BattleMapBiome } from './types/combat';
 import { buildProvisionActions } from './systems/travel/applyProvision';
+import { resolveForcedMarch } from './systems/travel/forcedMarch';
+import { rollD20 } from './utils/combat/combatUtils';
 import { loadMonstersData } from './data/monsters';
 // State management - appReducer handles all state updates via actions, initialGameState provides defaults
 import { appReducer } from './state/appState';
@@ -724,9 +726,25 @@ const App: React.FC = () => {
     const targetBiome = BIOMES[tile.biomeId];
     // Travel-mode picks carry the planned route's real duration + a pre-rolled
     // "danger on the road" message; fall back to the legacy flat hour otherwise.
-    const travelSeconds = travelMeta?.seconds != null ? Math.max(60, Math.round(travelMeta.seconds)) : 3600;
+    // Navigation drift (travel G2): when MapPane's get-lost roll failed, the party
+    // wanders for extra hours before finding the path again. That lost time is
+    // added to the trip's clock advance (present ONLY when lost; a found trip
+    // carries no navDrift, so short/on-road trips are unaffected).
+    const driftSeconds = travelMeta?.navDrift?.lost
+      ? Math.max(0, Math.round(travelMeta.navDrift.extraSeconds))
+      : 0;
+    const travelSeconds = (travelMeta?.seconds != null ? Math.max(60, Math.round(travelMeta.seconds)) : 3600) + driftSeconds;
     const announceEncounter = () => {
       if (travelMeta?.encounterMessage) addMessage(travelMeta.encounterMessage, 'system');
+    };
+    // Announce the navigation drift after the move: the party still arrives at the
+    // intended cell, but the log tells them they lost their way and the time cost.
+    const announceNavDrift = () => {
+      const nd = travelMeta?.navDrift;
+      if (!nd?.lost) return;
+      const hours = nd.extraSeconds / 3600;
+      const rounded = Math.max(1, Math.round(hours));
+      addMessage(`You lose your way and drift ${nd.driftDirection}, costing you about ${rounded} extra hour${rounded === 1 ? '' : 's'} before you find the path again.`, 'system');
     };
     // A rolled road ambush now starts a REAL fight on arrival (it used to only
     // print the message and nothing happened). Fired after the move so combat
@@ -756,6 +774,34 @@ const App: React.FC = () => {
         .map(pc => ({ id: pc.id as string, hp: pc.hp }));
       for (const action of buildProvisionActions(prov, companionViews, healthViews)) dispatch(action);
       if (prov.note) addMessage(prov.note, 'system');
+    };
+    // Deduct the hired-ferry fare on departure (travel G15). MapPane already
+    // gated affordability and only stamps `ferryFareGp` when the committed trip
+    // crossed a sea leg on a hired ferry, so here we just spend the gold and note
+    // it — kept alongside the move so the trip and its cost stay atomic.
+    const applyFerryFare = () => {
+      const fare = travelMeta?.ferryFareGp;
+      if (!fare || fare <= 0) return;
+      dispatch({ type: 'MODIFY_GOLD', payload: { amount: -fare } });
+      addMessage(`You pay the ferry master ${fare} gp for passage.`, 'system');
+    };
+    // Forced-march exhaustion (travel G1). MapPane stamped `forcedMarch` only when
+    // the committed leg pushed past the safe 8-hour day, carrying the derived Con
+    // save DC. Here each party member rolls a Constitution save vs that DC; a party
+    // whose members buckle takes the 'exhaustion' condition (the same party-wide
+    // condition path as travel's 'fatigued'/'starving'). Fired after the move so
+    // the leg and its toll stay atomic.
+    const applyForcedMarch = () => {
+      const fm = travelMeta?.forcedMarch;
+      if (!fm) return;
+      const outcome = resolveForcedMarch(gameState.party, fm.saveDC, () => rollD20());
+      if (!outcome.anyFailed) {
+        addMessage(`You push on past ${Math.round(fm.hours)} hours of travel, but the party endures the forced march (DC ${fm.saveDC} Constitution saves).`, 'system');
+        return;
+      }
+      dispatch({ type: 'SET_PARTY_CONDITION', payload: { condition: 'exhaustion' } });
+      const worn = outcome.failedNames.join(', ');
+      addMessage(`The forced march past ${Math.round(fm.hours)} hours takes its toll — ${worn} fail a DC ${fm.saveDC} Constitution save and grow exhausted.`, 'system');
     };
 
     if (!targetBiome) {
@@ -789,6 +835,9 @@ const App: React.FC = () => {
       dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
       dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
       applyProvisionEffects();
+      applyFerryFare();
+      applyForcedMarch();
+      announceNavDrift();
       announceEncounter();
       triggerTravelEncounter();
     } else if (tile.discovered && !tile.locationId) {
@@ -801,6 +850,9 @@ const App: React.FC = () => {
         dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
         dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
         applyProvisionEffects();
+        applyFerryFare();
+        applyForcedMarch();
+        announceNavDrift();
         announceEncounter();
       } else {
         // Grid retirement: no coordinates in player-facing text — name the place.

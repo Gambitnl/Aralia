@@ -62,5 +62,6 @@
   ],
   "filePath": "/data/glossary/entries/races/hill_dwarf.json",
   "maleImageUrl": "/assets/images/races/Dwarf_Hill_Male.png",
-  "femaleImageUrl": "/assets/images/races/Dwarf_Hill_Female.png"
+  "femaleImageUrl": "/assets/images/races/Dwarf_Hill_Female.png",
+  "modernizationStatus": "modified_legacy"
 }

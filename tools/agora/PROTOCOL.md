@@ -173,16 +173,20 @@ lead explicitly and declare their own bounded paths/globs.
 | Method | Path | Auth | Body | Success | Errors |
 |---|---|---|---|---|---|
 | POST | `/campaigns` | Bearer | `{ "id"|"campaignId": string, "role"?: "lead"|"deputy", "leadCampaignId"?, "scope"?, "paths"?: string[], "globs"?: string[], "wave"? }` | `201 { campaign, warnings }` | `400` for missing id/scope tokens or invalid deputy lead; `409` on active lead overlap; `401` |
-| GET | `/campaigns` | none | query `?state=` | `200 { campaigns: [...] }` | - |
+| GET | `/campaigns` | none | query `?state=` | `200 { campaigns: [...] }`; each record includes `ownerStatus` and `ownerLive` | - |
 | POST | `/campaigns/:id/state` | Bearer | `{ "state": "active"|"blocked"|"done" }` | `200 { campaign }` | `404` unknown campaign; `403` non-owner; `400` invalid state; `401` |
 
-- A campaign is `{ id, role, leadCampaignId, agentId, scope, paths[], globs[], wave, state,
-  warnings[], createdAt, updatedAt, history[] }`.
+- A campaign is `{ id, role, leadCampaignId, agentId, ownerStatus, ownerLive, scope, paths[],
+  globs[], wave, state, warnings[], createdAt, updatedAt, history[] }`. `ownerStatus` is
+  `online | stale | gone`. `ownerLive` is a compatibility shortcut for `ownerStatus !== "gone"`.
 - `role: "lead"` is the default. A lead claim fails with `409` if any requested path/glob
   overlaps another live active lead campaign.
 - `role: "deputy"` requires `leadCampaignId` naming a live active lead. Deputies may overlap
   that lead; overlaps with unrelated active leads still fail. Overlaps with sibling deputies
   return warnings so the lead can coordinate boundaries.
+- An active campaign whose owner is no longer live may be re-claimed under the same campaign
+  id. The successor becomes the owner, the original `createdAt` is preserved, and history gets
+  an `adopted` entry naming the previous owner. A live owner's campaign cannot be taken over.
 - `orchestrate seed <plan>` claims a campaign before creating tasks. If packet refs include
   `planmap:<topic>/<feature>`, the campaign id/scope are extracted from
   `public/planmap/topics.json` (`planmap:<campaign-key>:<topic-id>` plus the campaign label and
@@ -196,9 +200,9 @@ lead explicitly and declare their own bounded paths/globs.
 |---|---|---|---|---|---|
 | POST | `/tasks` | Bearer | `{ "title": string, "body"?: string, "deps"?: taskId[], "priority"?: number, "refs"?: string[], "campaignId"?, "wave"? }` | `201 { task }` (state `open`) | `400` if `title` missing/not a string, a dep id is unknown, or campaignId is unknown; `401` |
 | POST | `/tasks/:id/claim` | Bearer | — | `200 { task }` (state `claimed`) | `404` not found; `409` if already claimed by another agent; `401` |
-| POST | `/tasks/claim-next` | Bearer | — | `200 { task }` — the top-priority READY task, atomically claimed; `200 { task: null }` when nothing is ready | `401` |
+| POST | `/tasks/claim-next` | Bearer | optional `{ "campaignId"?: string, "category"?: string }` (the same filters are accepted as query parameters) | `200 { task }` — the top-priority matching READY task, atomically claimed; `200 { task: null }` when nothing is ready | `400` invalid JSON; `401` |
 | POST | `/tasks/:id/state` | Bearer | `{ "state": "open"|"claimed"|"in_progress"|"blocked"|"done", "result"?: string }` | `200 { task }` | `404` not found; `400` invalid state; `401` |
-| POST | `/tasks/:id/handoff` | Bearer | `{ "toAgentId": string }` | `200 { task }` | `404` not found; `400` if `toAgentId` missing; `401` |
+| POST | `/tasks/:id/handoff` | Bearer | `{ "toAgentId": string }` | `200 { task }` | `404` not found; `400` if the target is missing, unregistered, or beyond the drop horizon; `401` |
 | GET | `/tasks` | none | — (query `?state=`, `?ready=1`) | `200 { tasks: [...] }` | — |
 
 - A task is
@@ -218,13 +222,19 @@ lead explicitly and declare their own bounded paths/globs.
   test counts) on the task itself — orchestrators read results from the board instead of
   scraping chat messages. Stored on the task and in the history entry.
 - `GET /tasks?ready=1` returns only ready tasks, **sorted by priority desc, then FIFO** —
-  the dispatch queue view. `POST /tasks/claim-next` claims its head atomically (worker-pull
-  model: workers loop `claim-next` → work → `done` with result → repeat).
+  the dispatch queue view. `POST /tasks/claim-next` claims its head atomically. Optional
+  `campaignId` and `category` filters restrict that atomic pull to one lane; omitting both
+  keeps the original global queue. Workers loop `claim-next` → work → `done` with result.
+- A handoff is accepted only when the target agent is still registered and inside the presence
+  drop horizon. This prevents a typo or dead identity from becoming a permanent task owner.
 - `history` entries look like `{ at, by, action, state, ... }` (`action` ∈
   `created | claimed | state | handoff | reaped`).
 - `GET /tasks?state=in_progress` filters by state.
 - Claiming a task already `claimed`/`in_progress` by **another** agent → `409`. Re-claiming
   your own is allowed.
+- Each sweep also reopens a claimed/in-progress task whose `claimedBy` identity has no roster
+  record. The `reaped` history entry records `reason: "orphan claimant missing from roster"`
+  and the previous claimant id, repairing strands created before target validation existed.
 
 ### Messaging
 

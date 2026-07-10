@@ -19,6 +19,9 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
+
+const SCRIPT_FILE = fileURLToPath(import.meta.url);
 
 // Forced-choice base families (variants-only). These base entries are helpers and intentionally excluded
 // from Character Creator selection and from the Glossary race index (Aasimar-style).
@@ -36,6 +39,35 @@ interface RaceInfo {
   name: string;
   baseRace?: string;
   filename: string;
+  /** Value of the `modernizationStatus` field declared in the TS race file, if any. */
+  modernizationStatus?: string;
+}
+
+/**
+ * A parsed glossary race entry, carrying just what the audit needs.
+ */
+interface GlossaryEntry {
+  /** The `id` field from the JSON (as-authored, e.g. hyphenated). */
+  id: string;
+  /** Whether the JSON declares a `modernizationStatus` field. */
+  hasModernizationStatus: boolean;
+  /** The declared value, if present. */
+  modernizationStatus?: string;
+  /** Source file path (for reporting). */
+  filePath: string;
+}
+
+/**
+ * Report of `modernizationStatus` drift between TS races and glossary JSON.
+ * Report-only: makes no rulings, changes no data.
+ */
+interface ModernizationDriftResult {
+  /** TS declares modernizationStatus, a matching glossary JSON exists, but that JSON is MISSING the field. */
+  tsHasJsonMissing: Array<{ race: RaceInfo; glossaryId: string }>;
+  /** TS race declares modernizationStatus but has NO matching glossary JSON at all. */
+  tsButNoJson: RaceInfo[];
+  /** Both TS and matching JSON declare modernizationStatus (informational count). */
+  inSync: number;
 }
 
 /**
@@ -47,6 +79,7 @@ interface AuditResult {
   missingGlossaryEntries: RaceInfo[];
   matchedEntries: string[];
   coverage: number;
+  modernizationDrift: ModernizationDriftResult;
 }
 
 // ============================================================================
@@ -75,51 +108,68 @@ function getCharacterCreatorRaces(): RaceInfo[] {
   const races: RaceInfo[] = [];
 
   // Parse each file to extract race data
-  // We need to find exports that end with _DATA and contain a Race object
   for (const file of files) {
     const filePath = path.join(racesDir, file);
     const content = fs.readFileSync(filePath, 'utf-8');
-
-    // Look for Race exports (pattern: export const XXX_DATA: Race = { ... })
-    // A real Race object must have a 'traits:' field (array of trait strings)
-    // This distinguishes races from subraces/benefits which don't have traits
-
-    // Find all DATA exports that look like races
-    // Match the pattern: export const XXX_DATA: Race = {
-    const raceExportMatches = content.matchAll(
-      /export\s+const\s+(\w+_DATA):\s*Race\s*=\s*\{/g
-    );
-
-    for (const exportMatch of raceExportMatches) {
-      const _exportName = exportMatch[1];
-
-      // Find the block for this export and extract id/name/baseRace
-      // We look for the id: field that appears after this export and before the next export or EOF
-      const exportIndex = exportMatch.index!;
-      const remainingContent = content.slice(exportIndex);
-
-      // Extract fields from this race block
-      // Use a simpler approach: find id/name right after the export
-      const idMatch = remainingContent.match(/id:\s*['"]([^'"]+)['"]/);
-      const nameMatch = remainingContent.match(/name:\s*['"]([^'"]+)['"]/);
-      const baseRaceMatch = remainingContent.match(/baseRace:\s*['"]([^'"]+)['"]/);
-      const hasTraits = remainingContent.includes('traits:');
-
-      // Only add if it has traits (real race, not a subrace/benefit helper)
-      if (idMatch && nameMatch && hasTraits) {
-        if (NON_SELECTABLE_BASE_RACE_IDS.has(idMatch[1])) continue;
-        races.push({
-          id: idMatch[1],
-          name: nameMatch[1],
-          baseRace: baseRaceMatch?.[1],
-          filename: file,
-        });
-      }
-    }
+    races.push(...extractRacesFromContent(content, file));
   }
 
   // Sort by name for consistent output
   return races.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Pure parser: extracts race info (including `modernizationStatus`) from the text
+ * of a single TS race file. Exposed as an export seam so the audit is testable
+ * against synthetic content without touching the filesystem.
+ *
+ * A real Race export matches `export const XXX_DATA: Race = {` and contains a
+ * `traits:` field (which distinguishes races from subrace/benefit helpers).
+ *
+ * @param content - Raw TS file contents
+ * @param filename - Source filename (recorded on each RaceInfo)
+ * @returns Parsed races found in the content (order-preserving; unsorted)
+ */
+export function extractRacesFromContent(content: string, filename: string): RaceInfo[] {
+  const races: RaceInfo[] = [];
+
+  const raceExportMatches = content.matchAll(
+    /export\s+const\s+(\w+_DATA):\s*Race\s*=\s*\{/g
+  );
+
+  for (const exportMatch of raceExportMatches) {
+    // Scope each race block to the text between this export and the next
+    // matching export (or EOF), so fields don't leak across exports.
+    const exportIndex = exportMatch.index!;
+    const nextMatch = content
+      .slice(exportIndex + exportMatch[0].length)
+      .match(/export\s+const\s+\w+_DATA:\s*Race\s*=\s*\{/);
+    const blockEnd =
+      nextMatch && nextMatch.index !== undefined
+        ? exportIndex + exportMatch[0].length + nextMatch.index
+        : content.length;
+    const block = content.slice(exportIndex, blockEnd);
+
+    const idMatch = block.match(/id:\s*['"]([^'"]+)['"]/);
+    const nameMatch = block.match(/name:\s*['"]([^'"]+)['"]/);
+    const baseRaceMatch = block.match(/baseRace:\s*['"]([^'"]+)['"]/);
+    const modernizationMatch = block.match(/modernizationStatus:\s*['"]([^'"]+)['"]/);
+    const hasTraits = block.includes('traits:');
+
+    // Only add if it has traits (real race, not a subrace/benefit helper)
+    if (idMatch && nameMatch && hasTraits) {
+      if (NON_SELECTABLE_BASE_RACE_IDS.has(idMatch[1])) continue;
+      races.push({
+        id: idMatch[1],
+        name: nameMatch[1],
+        baseRace: baseRaceMatch?.[1],
+        filename,
+        modernizationStatus: modernizationMatch?.[1],
+      });
+    }
+  }
+
+  return races;
 }
 
 /**
@@ -149,12 +199,12 @@ function findJsonFilesRecursively(dir: string): string[] {
 }
 
 /**
- * Scans the glossary entries directory for race JSON files (including subdirectories).
- * Parses each JSON file to extract the actual 'id' field.
+ * Scans the glossary entries directory for race JSON files (including subdirectories)
+ * and parses each into a GlossaryEntry (id + whether it declares modernizationStatus).
  *
- * @returns Set of glossary entry IDs (normalized)
+ * @returns Array of parsed glossary entries (one per JSON file)
  */
-function getGlossaryEntryIds(): Set<string> {
+function getGlossaryEntries(): GlossaryEntry[] {
   // Path to glossary race entries
   const glossaryDir = path.join(
     process.cwd(),
@@ -168,40 +218,73 @@ function getGlossaryEntryIds(): Set<string> {
   // Check if directory exists
   if (!fs.existsSync(glossaryDir)) {
     console.warn(`⚠️  Glossary directory not found: ${glossaryDir}`);
-    return new Set();
+    return [];
   }
 
   // Get all JSON files recursively (including subdirectories)
   const files = findJsonFilesRecursively(glossaryDir);
 
-  const entryIds = new Set<string>();
+  const entries: GlossaryEntry[] = [];
 
   for (const filePath of files) {
     try {
-      // Parse JSON to get the actual ID field
       const content = fs.readFileSync(filePath, 'utf-8');
       const data = JSON.parse(content);
 
-      if (data.id) {
-        // Add the actual ID from the JSON
-        entryIds.add(data.id);
-        // Also add normalized versions
-        entryIds.add(data.id.replace(/-/g, '_'));
-        entryIds.add(data.id.replace(/_/g, '-'));
-      }
-
-      // Also add filename-based ID as fallback
-      const filename = path.basename(filePath, '.json');
-      entryIds.add(filename);
-      entryIds.add(filename.replace(/-/g, '_'));
-      entryIds.add(filename.replace(/_/g, '-'));
+      // Fall back to filename when the JSON omits an explicit id.
+      const id = data.id || path.basename(filePath, '.json');
+      entries.push({
+        id,
+        hasModernizationStatus: Object.prototype.hasOwnProperty.call(
+          data,
+          'modernizationStatus'
+        ),
+        modernizationStatus: data.modernizationStatus,
+        filePath,
+      });
     } catch {
       // Skip files that can't be parsed
       console.warn(`⚠️  Could not parse: ${filePath}`);
     }
   }
 
-  return entryIds;
+  return entries;
+}
+
+/**
+ * Builds a lookup map from all normalized id/filename variants to their GlossaryEntry.
+ * Pure — safe to call with synthetic entries in tests.
+ *
+ * Mirrors the historical normalization (hyphen/underscore + filename fallback) so a
+ * single race id can resolve to its entry regardless of naming convention.
+ *
+ * @param entries - Parsed glossary entries
+ * @returns Map keyed by every normalized variant → the owning entry
+ */
+export function buildGlossaryEntryMap(
+  entries: GlossaryEntry[]
+): Map<string, GlossaryEntry> {
+  const map = new Map<string, GlossaryEntry>();
+
+  const add = (key: string, entry: GlossaryEntry) => {
+    if (!map.has(key)) map.set(key, entry);
+  };
+
+  for (const entry of entries) {
+    add(entry.id, entry);
+    add(entry.id.replace(/-/g, '_'), entry);
+    add(entry.id.replace(/_/g, '-'), entry);
+
+    // Filename-based fallback (basename without extension), if derivable.
+    const filename = entry.filePath
+      ? path.basename(entry.filePath, '.json')
+      : entry.id;
+    add(filename, entry);
+    add(filename.replace(/-/g, '_'), entry);
+    add(filename.replace(/_/g, '-'), entry);
+  }
+
+  return map;
 }
 
 /**
@@ -225,79 +308,96 @@ function getGlossaryFileCount(): number {
 // ============================================================================
 
 /**
- * Checks if a race has a matching glossary entry.
- * Handles various naming conventions between character creator and glossary.
+ * Resolves a race ID to its matching glossary entry, handling the various naming
+ * conventions between character creator and glossary. Pure — operates on a map.
  *
  * @param raceId - The character creator race ID
- * @param glossaryIds - Set of known glossary IDs
+ * @param entryMap - Map of normalized id variants → GlossaryEntry (see buildGlossaryEntryMap)
+ * @returns The matching GlossaryEntry, or undefined if none matches
+ */
+export function resolveGlossaryEntry(
+  raceId: string,
+  entryMap: Map<string, GlossaryEntry>
+): GlossaryEntry | undefined {
+  // Candidate keys to try, in order. First hit wins.
+  const candidates: string[] = [
+    raceId,
+    raceId.replace(/_/g, '-'),
+    raceId.replace(/-/g, '_'),
+  ];
+
+  // Suffix-stripping conventions (variant -> base ancestry/color/season/etc.)
+  const suffixes = ['_goliath', '_aasimar', '_tiefling', '_dragonborn', '_halfling', '_shifter', '_eladrin'];
+  for (const suffix of suffixes) {
+    if (raceId.endsWith(suffix)) {
+      const stripped = raceId.slice(0, -suffix.length);
+      candidates.push(stripped, stripped.replace(/_/g, '-'));
+    }
+  }
+
+  // Prefix-stripping: half_elf_aquatic -> aquatic
+  if (raceId.startsWith('half_elf_')) {
+    const stripped = raceId.replace('half_elf_', '');
+    candidates.push(stripped, stripped.replace(/_/g, '-'));
+  }
+
+  for (const key of candidates) {
+    const entry = entryMap.get(key);
+    if (entry) return entry;
+  }
+
+  return undefined;
+}
+
+/**
+ * Checks if a race has a matching glossary entry.
+ *
+ * @param raceId - The character creator race ID
+ * @param entryMap - Map of normalized id variants → GlossaryEntry
  * @returns true if a match exists
  */
-function hasGlossaryEntry(raceId: string, glossaryIds: Set<string>): boolean {
-  // Direct match
-  if (glossaryIds.has(raceId)) return true;
+function hasGlossaryEntry(
+  raceId: string,
+  entryMap: Map<string, GlossaryEntry>
+): boolean {
+  return resolveGlossaryEntry(raceId, entryMap) !== undefined;
+}
 
-  // Try different formats (hyphen vs underscore)
-  if (glossaryIds.has(raceId.replace(/_/g, '-'))) return true;
-  if (glossaryIds.has(raceId.replace(/-/g, '_'))) return true;
+/**
+ * Computes modernizationStatus drift between TS races and glossary entries.
+ * Report-only: makes NO rulings and changes NO data — it only surfaces where the
+ * TS files declare a modernizationStatus that the matching glossary JSON lacks
+ * (or has no matching JSON at all), so a human can decide what to do.
+ *
+ * Pure — testable against synthetic races + entries.
+ *
+ * @param races - Character creator races (only those declaring modernizationStatus are considered)
+ * @param entryMap - Map of normalized id variants → GlossaryEntry
+ * @returns Drift buckets and an in-sync count
+ */
+export function computeModernizationDrift(
+  races: RaceInfo[],
+  entryMap: Map<string, GlossaryEntry>
+): ModernizationDriftResult {
+  const tsHasJsonMissing: Array<{ race: RaceInfo; glossaryId: string }> = [];
+  const tsButNoJson: RaceInfo[] = [];
+  let inSync = 0;
 
-  // Handle goliath ancestry naming: cloud_giant_goliath -> cloud_giant
-  if (raceId.endsWith('_goliath')) {
-    const ancestryId = raceId.replace('_goliath', '');
-    if (glossaryIds.has(ancestryId)) return true;
-    if (glossaryIds.has(ancestryId.replace(/_/g, '-'))) return true;
+  for (const race of races) {
+    // Only races that DECLARE a modernizationStatus in TS are in scope.
+    if (!race.modernizationStatus) continue;
+
+    const entry = resolveGlossaryEntry(race.id, entryMap);
+    if (!entry) {
+      tsButNoJson.push(race);
+    } else if (!entry.hasModernizationStatus) {
+      tsHasJsonMissing.push({ race, glossaryId: entry.id });
+    } else {
+      inSync += 1;
+    }
   }
 
-  // Handle aasimar variants: fallen_aasimar -> fallen
-  if (raceId.endsWith('_aasimar')) {
-    const variantId = raceId.replace('_aasimar', '');
-    if (glossaryIds.has(variantId)) return true;
-  }
-
-  // Handle tiefling variants: abyssal_tiefling -> abyssal
-  if (raceId.endsWith('_tiefling')) {
-    const variantId = raceId.replace('_tiefling', '');
-    if (glossaryIds.has(variantId)) return true;
-  }
-
-  // Handle dragonborn colors: black_dragonborn -> black
-  if (raceId.endsWith('_dragonborn')) {
-    const colorId = raceId.replace('_dragonborn', '');
-    if (glossaryIds.has(colorId)) return true;
-  }
-
-  // Handle halfling subraces: lightfoot_halfling -> lightfoot
-  if (raceId.endsWith('_halfling')) {
-    const subraceId = raceId.replace('_halfling', '');
-    if (glossaryIds.has(subraceId)) return true;
-  }
-
-  // Handle elf lineages: high_elf -> high_elf (already covered by direct match)
-  // but also astral_elf etc.
-
-  // Handle gnome subraces: forest_gnome -> forest_gnome (already covered)
-
-  // Handle shifter variants: beasthide_shifter -> beasthide
-  if (raceId.endsWith('_shifter')) {
-    const variantId = raceId.replace('_shifter', '');
-    if (glossaryIds.has(variantId)) return true;
-  }
-
-  // Handle half_elf variants: half_elf_aquatic -> aquatic
-  if (raceId.startsWith('half_elf_')) {
-    const variantId = raceId.replace('half_elf_', '');
-    if (glossaryIds.has(variantId)) return true;
-  }
-
-  // Handle eladrin seasons: autumn_eladrin -> autumn
-  if (raceId.endsWith('_eladrin')) {
-    const seasonId = raceId.replace('_eladrin', '');
-    if (glossaryIds.has(seasonId)) return true;
-  }
-
-  // Handle dwarf subraces: mountain_dwarf -> mountain_dwarf (already covered)
-  // but also hill_dwarf etc.
-
-  return false;
+  return { tsHasJsonMissing, tsButNoJson, inSync };
 }
 
 /**
@@ -305,14 +405,15 @@ function hasGlossaryEntry(raceId: string, glossaryIds: Set<string>): boolean {
  */
 function runAudit(): AuditResult {
   const races = getCharacterCreatorRaces();
-  const glossaryIds = getGlossaryEntryIds();
+  const glossaryEntries = getGlossaryEntries();
+  const entryMap = buildGlossaryEntryMap(glossaryEntries);
   const glossaryCount = getGlossaryFileCount();
 
   const missingGlossaryEntries: RaceInfo[] = [];
   const matchedEntries: string[] = [];
 
   for (const race of races) {
-    if (hasGlossaryEntry(race.id, glossaryIds)) {
+    if (hasGlossaryEntry(race.id, entryMap)) {
       matchedEntries.push(race.id);
     } else {
       missingGlossaryEntries.push(race);
@@ -320,6 +421,7 @@ function runAudit(): AuditResult {
   }
 
   const coverage = Math.round((matchedEntries.length / races.length) * 100);
+  const modernizationDrift = computeModernizationDrift(races, entryMap);
 
   return {
     totalCharacterCreatorRaces: races.length,
@@ -327,6 +429,7 @@ function runAudit(): AuditResult {
     missingGlossaryEntries,
     matchedEntries,
     coverage,
+    modernizationDrift,
   };
 }
 
@@ -391,6 +494,44 @@ function printReport(result: AuditResult): void {
   }
 }
 
+/**
+ * Prints the modernizationStatus drift section. Report-only: no rulings, no data changes.
+ */
+function printModernizationDrift(drift: ModernizationDriftResult): void {
+  const { tsHasJsonMissing, tsButNoJson, inSync } = drift;
+
+  console.log('🔧 Modernization Status Drift (report-only — no rulings made):');
+  console.log('----------------------------------------------------------\n');
+  console.log(`   TS declares + JSON in sync:   ${inSync}`);
+  console.log(`   TS declares, JSON MISSING it: ${tsHasJsonMissing.length}`);
+  console.log(`   TS declares, NO matching JSON:${' '}${tsButNoJson.length}\n`);
+
+  if (tsHasJsonMissing.length === 0 && tsButNoJson.length === 0) {
+    console.log('✅ No modernization drift detected.\n');
+    return;
+  }
+
+  if (tsHasJsonMissing.length > 0) {
+    console.log('  ⚠️  TS declares modernizationStatus but glossary JSON is MISSING it:');
+    for (const { race, glossaryId } of tsHasJsonMissing) {
+      console.log(
+        `    - ${race.name} (${race.id}) → glossary "${glossaryId}" [TS: ${race.modernizationStatus}]`
+      );
+    }
+    console.log('');
+  }
+
+  if (tsButNoJson.length > 0) {
+    console.log('  ⚠️  TS declares modernizationStatus but has NO matching glossary JSON:');
+    for (const race of tsButNoJson) {
+      console.log(`    - ${race.name} (${race.id}) [TS: ${race.modernizationStatus}]`);
+    }
+    console.log('');
+  }
+
+  console.log('  ℹ️  These are drift signals for human review, not corrections.\n');
+}
+
 // ============================================================================
 // MAIN
 // ============================================================================
@@ -400,6 +541,7 @@ function main(): void {
 
   const result = runAudit();
   printReport(result);
+  printModernizationDrift(result.modernizationDrift);
 
   // Summary line
   if (result.coverage < 80) {
@@ -411,4 +553,11 @@ function main(): void {
   }
 }
 
-main();
+// Only run the live audit when executed directly (not when imported by tests).
+const isDirectRun = process.argv[1]
+  ? path.resolve(process.argv[1]) === SCRIPT_FILE
+  : false;
+
+if (isDirectRun) {
+  main();
+}

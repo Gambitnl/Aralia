@@ -259,6 +259,82 @@
   .msg-time { margin-left: auto; color: var(--text-faint); font-size: 11px; font-family: var(--mono); }
   .msg-body { color: var(--text); font-size: 13px; word-break: break-word; }
 
+  /* ---------- Orchestrator collaboration layer: roles, campaigns, pact ---------- */
+  .role-chip {
+    display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; border-radius: 999px; padding: 1px 7px; margin-left: 7px;
+    vertical-align: 1px; border: 1px solid transparent;
+  }
+  .role-chip.orchestrator { background: #2a2145; color: #c4a7ff; border-color: #4c3a80; }
+  .role-chip.human { background: #3a2c10; color: #ffd479; border-color: #6b5220; box-shadow: 0 0 8px rgba(255,212,121,.25); }
+  .role-chip.master { background: #10303a; color: #79e0ff; border-color: #205b6b; }
+  .role-chip.worker { background: #1d2634; color: #8fa3b8; border-color: #2b3a4d; }
+  .model-chip {
+    display: inline-block; font-family: var(--mono); font-size: 10px;
+    color: var(--text-faint); background: #101722; border: 1px solid var(--border);
+    border-radius: 5px; padding: 0 6px; margin-left: 7px; vertical-align: 1px;
+  }
+  .sdot.gone { background: #55606e; box-shadow: none; }
+
+  .pact-strip {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 9px 14px; border-bottom: 1px solid var(--border);
+    background: linear-gradient(90deg, rgba(88,166,255,.07), rgba(196,167,255,.07));
+    font-size: 12px;
+  }
+  .pact-orch { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+  .pact-link { color: var(--accent); text-decoration: none; }
+  .pact-link:hover { text-decoration: underline; }
+  .pact-verified { color: var(--green); font-weight: 600; cursor: pointer; }
+  .pact-sep { color: var(--text-faint); }
+  .pact-empty { color: var(--text-faint); font-style: italic; }
+
+  .campaign-row {
+    padding: 9px 11px; border-radius: 8px; margin-bottom: 6px;
+    border: 1px solid var(--border); background: var(--panel-2);
+  }
+  .campaign-row.deputy { margin-left: 22px; border-style: dashed; }
+  .campaign-row.gone-owner { opacity: 0.85; border-color: #3a3440; }
+  .campaign-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .campaign-id { font-weight: 700; }
+  .crole {
+    font-size: 9px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+    border-radius: 999px; padding: 1px 7px;
+  }
+  .crole.lead { background: #103a2a; color: #5fe3a1; border: 1px solid #1d6b47; }
+  .crole.deputy { background: #26203c; color: #b39dff; border: 1px solid #443768; }
+  .cstate { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+  .adopt-badge {
+    font-size: 10px; font-weight: 700; border-radius: 999px; padding: 1px 8px;
+    background: #3a1620; color: #ff9db1; border: 1px solid #6b2438;
+    animation: pulse 2.4s infinite;
+  }
+  .campaign-owner { display: inline-flex; align-items: center; gap: 6px; color: var(--text-dim); font-size: 12px; }
+  .campaign-scope { color: var(--text-dim); font-size: 12px; margin-top: 4px; }
+  .campaign-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; font-family: var(--mono); font-size: 11px; color: var(--text-faint); }
+  .campaign-warn { color: var(--amber); font-size: 11px; margin-top: 3px; }
+  .campaign-toggle {
+    display: block; width: 100%; text-align: center; background: none; border: 1px dashed var(--border);
+    color: var(--text-faint); border-radius: 8px; padding: 6px; cursor: pointer; font-size: 12px; margin-top: 4px;
+  }
+  .campaign-toggle:hover { color: var(--text-dim); border-color: var(--border-strong); }
+
+  .msg.human-msg { border-left: 3px solid #ffd479; background: linear-gradient(90deg, rgba(255,212,121,.06), transparent 55%); }
+  .msg .directive-pill {
+    font-size: 9px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+    background: #3a2c10; color: #ffd479; border: 1px solid #6b5220; border-radius: 999px; padding: 1px 7px;
+  }
+  .mention {
+    color: #9fd0ff; background: #12253a; border: 1px solid #1d3a55;
+    border-radius: 5px; padding: 0 4px; font-family: var(--mono); font-size: 12px;
+  }
+  .badge.gold { background: #3a2c10; color: #ffd479; }
+
+  .lock-queue { margin-top: 5px; font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .lock-queue .queue-pos { font-family: var(--mono); color: var(--amber); font-weight: 700; }
+
+  .panel.wide { grid-column: 1 / -1; }
+
   /* ---------- Message composer ---------- */
   .message-composer {
     border-top: 1px solid var(--border-soft);
@@ -574,6 +650,7 @@
     <div class="counts" id="counts">
       <div class="count"><span class="n" id="c-agents">–</span><span class="l">agents</span></div>
       <div class="count"><span class="n" id="c-locks">–</span><span class="l">locks</span></div>
+      <div class="count"><span class="n" id="c-campaigns">–</span><span class="l">campaigns</span></div>
       <div class="count"><span class="n" id="c-reservations">–</span><span class="l">reservations</span></div>
       <div class="count"><span class="n" id="c-tasks">–</span><span class="l">tasks</span></div>
       <div class="count"><span class="n" id="c-messages">–</span><span class="l">messages</span></div>
@@ -589,6 +666,22 @@
     <section class="panel">
       <h2>🔒 Locks <span class="badge" id="b-locks">0</span></h2>
       <div class="body" id="locks"></div>
+    </section>
+
+    <section class="panel">
+      <h2>🎯 Campaigns <span class="badge" id="b-campaigns-badge">0</span></h2>
+      <div class="pact-strip" id="pact-strip"><span class="pact-empty">loading orchestrator pact…</span></div>
+      <div class="body" id="campaigns"></div>
+    </section>
+
+    <section class="panel">
+      <h2>🎖️ Command Feed <span class="badge gold" id="b-cmd-human" style="display:none"></span> <span class="badge" id="b-cmd-messages">0</span></h2>
+      <div class="body feed-body" id="cmd-feed"></div>
+      <form class="message-composer cmd-composer" id="cmd-composer">
+        <textarea id="cmd-composer-body" rows="2" maxlength="4000" placeholder="Write to the command feed — @handle to DM, otherwise broadcast"></textarea>
+        <button id="cmd-composer-send" type="submit">Send</button>
+        <div class="composer-status" id="cmd-composer-status"></div>
+      </form>
     </section>
 
     <section class="panel">
@@ -608,17 +701,7 @@
       <div class="body" id="tasks"></div>
     </section>
 
-    <section class="panel">
-      <h2>🎖️ Command Feed <span class="badge" id="b-cmd-messages">0</span></h2>
-      <div class="body feed-body" id="cmd-feed"></div>
-      <form class="message-composer cmd-composer" id="cmd-composer">
-        <textarea id="cmd-composer-body" rows="2" maxlength="4000" placeholder="Write to the command feed — @handle to DM, otherwise broadcast"></textarea>
-        <button id="cmd-composer-send" type="submit">Send</button>
-        <div class="composer-status" id="cmd-composer-status"></div>
-      </form>
-    </section>
-
-    <section class="panel">
+    <section class="panel wide">
       <h2>💬 Message Feed <span class="badge" id="b-messages">0</span></h2>
       <div class="body feed-body" id="feed"></div>
       <form class="message-composer" id="message-composer">
@@ -661,7 +744,10 @@
     locks: [],             // [{id,paths,globs,agentId,reason,createdAt,expiresAt}]
     reservations: [],      // [{id,paths,globs,agentId,reason,createdAt,position}]
     tasks: [],             // [{id,title,state,createdBy,claimedBy,updatedAt,...}]
+    campaigns: [],         // [{id,role,leadCampaignId,agentId,scope,paths,globs,wave,state,...}]
     messages: [],          // [{id,seq,from,to,body,createdAt}]
+    docsNames: [],         // names served by GET /docs (pact strip links the pact when present)
+    collapsedCampaignDone: true,
     health: null,
     seenMsgSeq: 0,
     autoScroll: true,
@@ -681,6 +767,32 @@
 
   function shortId(id) {
     return id ? String(id).slice(0, 8) : "—";
+  }
+
+  // ---- orchestrator collaboration layer: roles, mentions, campaigns ----
+  const ROLE_TIER = { human: 0, master: 1, orchestrator: 2, worker: 3 };
+  function roleOf(a) { return (a && a.role) || "worker"; }
+  function roleChip(role) {
+    const icon = role === "human" ? "👤" : role === "orchestrator" ? "✦" : role === "master" ? "👑" : "";
+    return `<span class="role-chip ${esc(role)}">${icon ? icon + " " : ""}${esc(role)}</span>`;
+  }
+  function agentRole(agentId) {
+    const a = ST.agents.find((x) => x.id === agentId);
+    return a ? roleOf(a) : null; // null: sender no longer on the roster — role unknowable
+  }
+  // Runs on ALREADY-ESCAPED text: wraps @handle tokens so directives and
+  // callsign pings (@vega, @sol) stand out in both feeds.
+  function mentionize(escapedBody) {
+    return escapedBody.replace(/@([\w./-]+)/g, '<span class="mention">@$1</span>');
+  }
+  // Owner liveness for a campaign: prefer the daemon's stamp (WF-G17), fall
+  // back to a roster join, treat an absent owner as gone (reaped/never seen).
+  function ownerStatusOf(c) {
+    if (c.ownerStatus) return c.ownerStatus;
+    const a = ST.agents.find((x) => x.id === c.agentId);
+    if (a) return a.status === "online" ? "online" : "stale";
+    if (c.ownerLive === true) return "stale";
+    return "gone";
   }
 
   // ---- tracker bridge: which project does a task belong to? ----
@@ -1024,12 +1136,44 @@
     };
   }
 
+  function campaignInspector(campaignId) {
+    const c = (ST.campaigns || []).find((x) => x.id === campaignId);
+    if (!c) return null;
+    const owner = ST.agents.find((a) => a.id === c.agentId) || null;
+    const tasks = ST.tasks.filter((t) => t.campaignId === c.id);
+    const deputies = (ST.campaigns || []).filter((x) => x.leadCampaignId === c.id);
+    return {
+      title: `Campaign: ${c.id}`,
+      subtitle: `${c.role} · ${c.state} · owner ${ownerStatusOf(c)}`,
+      html: [
+        factRows([
+          ["role", c.role],
+          ["state", c.state],
+          ["owner", owner ? owner.handle : shortId(c.agentId)],
+          ["owner status", ownerStatusOf(c)],
+          ["scope", c.scope],
+          ["wave", c.wave],
+          ["lead campaign", c.leadCampaignId],
+          ["paths", (c.paths || []).join(", ")],
+          ["globs", (c.globs || []).join(", ")],
+          ["created", clockTime(c.createdAt)],
+          ["updated", clockTime(c.updatedAt)],
+        ]),
+        jsonBlock("campaign record", c),
+        jsonBlock("owner agent", owner),
+        jsonBlock("campaign tasks", tasks),
+        jsonBlock("deputy campaigns", deputies),
+      ].join(""),
+    };
+  }
+
   function inspectorPayload(kind, id) {
     if (kind === "agent") return agentInspector(id);
     if (kind === "lock") return lockInspector(id);
     if (kind === "reservation") return reservationInspector(id);
     if (kind === "task") return taskInspector(id);
     if (kind === "message") return messageInspector(id);
+    if (kind === "campaign") return campaignInspector(id);
     return null;
   }
 
@@ -1107,12 +1251,17 @@
       el.innerHTML = '<div class="empty">No agents online</div>';
       return;
     }
-    const rows = [...ST.agents].sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0)).map((a) => {
+    // Humans and orchestrators sort to the top (the collaboration layer),
+    // then freshest-first within each tier.
+    const rows = [...ST.agents].sort((a, b) =>
+      ((ROLE_TIER[roleOf(a)] ?? 9) - (ROLE_TIER[roleOf(b)] ?? 9)) || ((b.lastSeen || 0) - (a.lastSeen || 0))
+    ).map((a) => {
       const status = a.status === "online" ? "online" : "stale";
+      const role = roleOf(a);
       return `<div class="agent-row inspectable" role="button" tabindex="0" data-entry-kind="agent" data-entry-id="${esc(a.id)}">
         <span class="sdot ${status}" title="${status}"></span>
         <div class="agent-main">
-          <div class="agent-handle">${esc(a.handle)}<span class="id">${esc((a.id||"").slice(0,8))}</span></div>
+          <div class="agent-handle">${esc(a.handle)}${role !== "worker" ? roleChip(role) : ""}${a.model ? `<span class="model-chip">${esc(a.model)}</span>` : ""}<span class="id">${esc((a.id||"").slice(0,8))}</span></div>
           ${a.note ? `<div class="agent-note">${esc(a.note)}</div>` : ""}
         </div>
         <span class="agent-seen">${relTime(a.lastSeen)}</span>
@@ -1144,10 +1293,25 @@
         </div>
         <div class="lock-tokens">${toks || '<span class="tok">(no tokens)</span>'}</div>
         ${l.reason ? `<div class="lock-reason">${esc(l.reason)}</div>` : ""}
+        ${queueHtml(l)}
       </div>`;
     });
     el.innerHTML = rows.join("");
     wireEntryInspectors(el);
+  }
+
+  // Dibs made visible where people actually look (Remy, msg seq 536): the FIFO
+  // reservation queue renders under the lock it waits on. Exact-token overlap
+  // only — the Reservations panel remains the complete queue view.
+  function queueHtml(lock) {
+    const lockTokens = [...(lock.paths || []), ...(lock.globs || [])];
+    const queue = ST.reservations
+      .filter((r) => [...(r.paths || []), ...(r.globs || [])].some((t) => lockTokens.includes(t)))
+      .sort((a, b) => (a.position || 0) - (b.position || 0));
+    if (!queue.length) return "";
+    const entries = queue.map((r) =>
+      `<span class="queue-pos">#${esc(r.position || "?")}</span> ${esc(handleOf(r.agentId))}`);
+    return `<div class="lock-queue" title="reservation queue — dibs on this file, in FIFO order; a reservation is a place in line, not edit permission">⏳ dibs: ${entries.join(" · ")}</div>`;
   }
 
   function renderReservations() {
@@ -1303,14 +1467,19 @@
     const target = broadcast
       ? `<span class="pill bcast">broadcast</span>`
       : `<span class="pill direct">@${esc(handleOf(m.to))}</span>`;
-    return `<div class="msg inspectable${archived ? " archived" : ""}" role="button" tabindex="0" data-entry-kind="message" data-entry-id="${esc(m.id || m.seq)}">
+    // Human-authored messages are directives (pact §7): gold edge + pill.
+    // Role is a live-roster join, so it fades once the sender drops — honest, not sticky.
+    const fromRole = agentRole(m.from);
+    const human = fromRole === "human";
+    return `<div class="msg inspectable${archived ? " archived" : ""}${human ? " human-msg" : ""}" role="button" tabindex="0" data-entry-kind="message" data-entry-id="${esc(m.id || m.seq)}">
       <div class="msg-head">
-        <span class="msg-from">${esc(handleOf(m.from))}</span>
+        <span class="msg-from">${esc(handleOf(m.from))}</span>${fromRole && fromRole !== "worker" ? roleChip(fromRole) : ""}
         <span class="arrow">→</span>
         ${target}
+        ${human ? '<span class="directive-pill">★ directive</span>' : ""}
         <span class="msg-time">${clockTime(m.createdAt)}</span>
       </div>
-      <div class="msg-body">${esc(m.body)}</div>
+      <div class="msg-body">${mentionize(esc(m.body))}</div>
     </div>`;
   }
 
@@ -1348,11 +1517,104 @@
       .filter((m) => m.channel === "command")
       .sort((a, b) => (b.seq || 0) - (a.seq || 0)); // newest first
     $("b-cmd-messages").textContent = msgs.length;
+    // Human directives get their own counter so steering is never buried.
+    const humanCount = msgs.filter((m) => agentRole(m.from) === "human").length;
+    const hb = $("b-cmd-human");
+    if (hb) {
+      hb.textContent = humanCount ? `★ ${humanCount} human` : "";
+      hb.style.display = humanCount ? "" : "none";
+    }
     if (!msgs.length) {
       el.innerHTML = '<div class="empty">No command traffic — orchestrators, the master, and the human post here (say --channel command)</div>';
       return;
     }
     el.innerHTML = msgs.map((m) => msgHtml(m, false)).join("");
+    wireEntryInspectors(el);
+  }
+
+  // ---- campaigns panel: who leads which file domain, and is the owner alive ----
+  function renderCampaigns() {
+    const el = $("campaigns");
+    if (!el) return;
+    renderPactStrip();
+    const all = ST.campaigns || [];
+    const badge = $("b-campaigns-badge");
+    if (badge) badge.textContent = all.length;
+    if (!all.length) {
+      el.innerHTML = '<div class="empty">No campaigns claimed yet — orchestrators declare wave scope here before seeding tasks</div>';
+      return;
+    }
+    const active = all.filter((c) => c.state === "active");
+    const blocked = all.filter((c) => c.state === "blocked");
+    const done = all.filter((c) => c.state === "done").sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    const leads = active.filter((c) => c.role !== "deputy")
+      .sort((a, b) => ((ownerStatusOf(a) === "gone") - (ownerStatusOf(b) === "gone")) || ((b.updatedAt || 0) - (a.updatedAt || 0)));
+    const deputies = active.filter((c) => c.role === "deputy");
+
+    const rowHtml = (c) => {
+      const st = ownerStatusOf(c);
+      const owner = ST.agents.find((x) => x.id === c.agentId);
+      const ownerName = owner ? owner.handle : shortId(c.agentId);
+      const adoptable = c.state === "active" && st === "gone";
+      const tokens = [...(c.paths || []), ...(c.globs || [])];
+      return `<div class="campaign-row inspectable${c.role === "deputy" ? " deputy" : ""}${st === "gone" ? " gone-owner" : ""}" role="button" tabindex="0" data-entry-kind="campaign" data-entry-id="${esc(c.id)}">
+        <div class="campaign-head">
+          <span class="crole ${c.role === "deputy" ? "deputy" : "lead"}">${c.role === "deputy" ? "deputy" : "lead"}</span>
+          <span class="campaign-id">${esc(c.id)}</span>
+          <span class="campaign-owner"><span class="sdot ${st === "online" ? "online" : st === "stale" ? "stale" : "gone"}" title="owner ${st}"></span>${esc(ownerName)}</span>
+          ${adoptable ? '<span class="adopt-badge" title="owner is gone — a successor may re-claim this campaign id (history is preserved)">adoptable</span>' : ""}
+          <span class="cstate">${esc(c.state)} · ${relTime(c.updatedAt)}</span>
+        </div>
+        ${c.scope ? `<div class="campaign-scope">${esc(c.scope)}</div>` : ""}
+        <div class="campaign-meta">
+          ${c.wave ? `<span>wave ${esc(c.wave)}</span>` : ""}
+          <span>${tokens.length} path token(s)</span>
+          ${c.leadCampaignId ? `<span>under ${esc(c.leadCampaignId)}</span>` : ""}
+        </div>
+        ${(c.warnings || []).map((w) => `<div class="campaign-warn">⚠ ${esc(w)}</div>`).join("")}
+      </div>`;
+    };
+
+    let html = "";
+    for (const lead of leads) {
+      html += rowHtml(lead);
+      for (const d of deputies.filter((x) => x.leadCampaignId === lead.id)) html += rowHtml(d);
+    }
+    for (const d of deputies.filter((x) => !leads.some((l) => l.id === x.leadCampaignId))) html += rowHtml(d);
+    html += blocked.map(rowHtml).join("");
+    if (done.length) {
+      html += `<button class="campaign-toggle" id="campaign-toggle">🏁 ${done.length} finished campaign(s) — ${ST.collapsedCampaignDone ? "show" : "hide"}</button>`;
+      if (!ST.collapsedCampaignDone) html += done.map(rowHtml).join("");
+    }
+    el.innerHTML = html;
+    wireEntryInspectors(el);
+    const t = $("campaign-toggle");
+    if (t) t.addEventListener("click", () => { ST.collapsedCampaignDone = !ST.collapsedCampaignDone; renderCampaigns(); });
+  }
+
+  // The pact strip: which orchestrators are live, whether their identity
+  // handshake is proven on the board, and where the pact document lives.
+  function renderPactStrip() {
+    const el = $("pact-strip");
+    if (!el) return;
+    const orchs = ST.agents.filter((a) => roleOf(a) === "orchestrator");
+    if (!orchs.length) {
+      el.innerHTML = '<span class="pact-empty">no orchestrators registered — the pact strip lights up when they arrive</span>';
+      return;
+    }
+    const proof = ST.tasks.find((t) => t.state === "done" && /handshake/i.test(t.title || "") && /co-orchestrator/i.test(t.title || ""));
+    const pactDoc = (ST.docsNames || []).find((n) => /CO-ORCHESTRATION/i.test(n));
+    const parts = orchs
+      .sort((a, b) => String(a.handle || "").localeCompare(String(b.handle || "")))
+      .map((a) => `<span class="pact-orch"><span class="sdot ${a.status === "online" ? "online" : "stale"}"></span>✦ ${esc(a.handle)}${a.model ? `<span class="model-chip">${esc(a.model)}</span>` : ""}</span>`);
+    let html = parts.join('<span class="pact-sep">⇆</span>');
+    if (proof) {
+      html += ` <span class="pact-verified inspectable" role="button" tabindex="0" data-entry-kind="task" data-entry-id="${esc(proof.id)}" title="identity handshake proof task — click for the nonce transcript">✓ identity verified</span>`;
+    }
+    html += pactDoc
+      ? ` <span class="pact-sep">·</span> <a class="pact-link" href="/docs/${encodeURIComponent(pactDoc)}" target="_blank" rel="noopener">📜 the pact</a>`
+      : ' <span class="pact-sep">·</span> <span class="pact-empty" title="served once the daemon whitelists CO-ORCHESTRATION.md under /docs">📜 pact: tools/agora/CO-ORCHESTRATION.md</span>';
+    el.innerHTML = html;
     wireEntryInspectors(el);
   }
 
@@ -1363,6 +1625,7 @@
       if (h.counts) {
         $("c-agents").textContent = h.counts.agents;
         $("c-locks").textContent = h.counts.locks;
+        $("c-campaigns").textContent = h.counts.campaigns || 0;
         $("c-reservations").textContent = h.counts.reservations || 0;
         $("c-tasks").textContent = h.counts.tasks;
         $("c-messages").textContent = h.counts.messages;
@@ -1371,6 +1634,7 @@
       // derive counts from local state if /health unavailable
       $("c-agents").textContent = ST.agents.length;
       $("c-locks").textContent = ST.locks.length;
+      $("c-campaigns").textContent = ST.campaigns.length;
       $("c-reservations").textContent = ST.reservations.length;
       $("c-tasks").textContent = ST.tasks.length;
       $("c-messages").textContent = ST.messages.length;
@@ -1521,8 +1785,12 @@
   }
 
   async function refreshAgents() {
-    try { ST.agents = (await getJSON("/agents")).agents || []; renderPresence(); renderLocks(); renderReservations(); renderTasks(); renderFeed(); }
+    // Campaigns re-render too: owner liveness is a roster join.
+    try { ST.agents = (await getJSON("/agents")).agents || []; renderPresence(); renderLocks(); renderReservations(); renderTasks(); renderCampaigns(); renderFeed(); }
     catch (e) { /* keep last good */ }
+  }
+  async function refreshCampaigns() {
+    try { ST.campaigns = (await getJSON("/campaigns")).campaigns || []; renderCampaigns(); } catch (e) {}
   }
   async function refreshLocks() {
     try { ST.locks = (await getJSON("/locks")).locks || []; renderLocks(); } catch (e) {}
@@ -1531,7 +1799,8 @@
     try { ST.reservations = (await getJSON("/reservations")).reservations || []; renderReservations(); } catch (e) {}
   }
   async function refreshTasks() {
-    try { ST.tasks = (await getJSON("/tasks")).tasks || []; renderTasks(); } catch (e) {}
+    // Pact strip re-renders too: the identity-verified marker is board-derived.
+    try { ST.tasks = (await getJSON("/tasks")).tasks || []; renderTasks(); renderPactStrip(); } catch (e) {}
   }
   async function refreshHealth() {
     try { ST.health = await getJSON("/health"); renderHeader(); } catch (e) {}
@@ -1549,7 +1818,7 @@
   }
 
   async function fullRefresh() {
-    await Promise.all([refreshHealth(), refreshAgents(), refreshLocks(), refreshReservations(), refreshTasks(), refreshMessages()]);
+    await Promise.all([refreshHealth(), refreshAgents(), refreshLocks(), refreshReservations(), refreshTasks(), refreshCampaigns(), refreshMessages()]);
     renderHeader();
   }
 
@@ -1565,8 +1834,9 @@
   function onStructural(kind) {
     if (kind === "agent") refreshAgents();
     else if (kind === "lock") { refreshLocks(); refreshHealth(); }
-    else if (kind === "reservation") { refreshReservations(); refreshHealth(); }
+    else if (kind === "reservation") { refreshReservations(); refreshLocks(); refreshHealth(); } // locks re-render their dibs queue
     else if (kind === "task") { refreshTasks(); refreshHealth(); }
+    else if (kind === "campaign") { refreshCampaigns(); refreshHealth(); }
   }
 
   function handleEvent(type, data) {
@@ -1583,6 +1853,9 @@
       case "reservation.release":
       case "reservation.fulfill":
         onStructural("reservation"); break;
+      case "campaign.claim":
+      case "campaign.state":
+        onStructural("campaign"); break;
       case "task.create":
       case "task.claim":
       case "task.state":
@@ -1624,7 +1897,8 @@
         ST.locks = snap.locks || [];
         ST.reservations = snap.reservations || [];
         ST.tasks = snap.tasks || [];
-        renderPresence(); renderLocks(); renderReservations(); renderTasks();
+        ST.campaigns = snap.campaigns || [];
+        renderPresence(); renderLocks(); renderReservations(); renderTasks(); renderCampaigns();
         // messages aren't in the hello snapshot — pull them via REST.
         refreshMessages();
         refreshHealth();
@@ -1635,7 +1909,9 @@
     const NAMED = [
       "agent.register", "agent.touch", "agent.drop",
       "lock.acquire", "lock.release", "lock.expired",
-      "task.create", "task.claim", "task.state", "task.release", "task.handoff",
+      "reservation.create", "reservation.release", "reservation.fulfill",
+      "campaign.claim", "campaign.state",
+      "task.create", "task.claim", "task.state", "task.release", "task.handoff", "task.categories",
       "message.post",
     ];
     for (const name of NAMED) {
@@ -1785,12 +2061,17 @@
   fullRefresh();   // REST seed on load (also a fallback if SSE is slow)
   loadGapIndex();  // tracker bridge (task categorization); refreshed with the poll
   connect();       // SSE primary
+  // Pact strip links the pact document once the daemon serves it under /docs.
+  (async () => {
+    try { ST.docsNames = ((await getJSON("/docs")).docs || []).map((d) => d.name); renderPactStrip(); }
+    catch (e) { /* older daemon without /docs — strip shows the repo path instead */ }
+  })();
   setInterval(tick, 1000);              // countdowns / relative times
   const POLL_MS = 60000;
   ST.nextPollAt = Date.now() + POLL_MS;
   setInterval(() => {
     ST.nextPollAt = Date.now() + POLL_MS;
-    refreshHealth(); refreshAgents();
+    refreshHealth(); refreshAgents(); refreshCampaigns();
     renderFeed(); // advance the 1h archive boundary even on a quiet board
     loadGapIndex(); // tracker bridge stays fresh (server caches the walk)
   }, POLL_MS); // presence freshness (agent.stale isn't emitted); SSE covers everything else live

@@ -480,6 +480,57 @@ describe('AtlasSvgView', () => {
     expect(container.querySelector('[data-testid="atlas-travel-readout"]')?.textContent).toContain('2.0 mi sea');
   });
 
+  it('renders a tender leg with its own muted dotted style, distinct from sea and land', () => {
+    const multimodalRoute: MultiModalRoute = {
+      cells: [0, 1, 2, 3],
+      points: [[2, 2], [5, 5], [7, 7], [7.3, 7.3]],
+      segments: [
+        { kind: 'land', points: [[2, 2], [5, 5]] },
+        { kind: 'sea', points: [[5, 5], [7, 7]] },
+        { kind: 'tender', points: [[7, 7], [7.3, 7.3]] },
+      ],
+      miles: 4.3,
+      landMiles: 2,
+      seaMiles: 2,
+      tenderMiles: 0.3,
+      minutes: 210,
+      danger: 0.4,
+    };
+    const { container } = render(
+      <AtlasSvgView
+        atlas={stub}
+        width={300}
+        height={300}
+        travelActive
+        planRoute={() => null}
+        planMultiModalRoute={() => multimodalRoute}
+      />,
+    );
+
+    const svg = container.querySelector('[data-testid="atlas-svg-view"]')!;
+    svg.getBoundingClientRect = () => ({
+      x: 0, y: 0, left: 0, top: 0, right: 300, bottom: 300,
+      width: 300, height: 300,
+      toJSON: () => ({}),
+    } as DOMRect);
+    fireEvent.mouseMove(svg, { clientX: 150, clientY: 150 });
+
+    const tenderSeg = container.querySelector('[data-testid="atlas-travel-segment-tender"]')!;
+    expect(tenderSeg).not.toBeNull();
+    expect(tenderSeg.getAttribute('stroke')).toBe('#cbb48f');
+    expect(tenderSeg.getAttribute('stroke-dasharray')).toBe('0.5 3');
+    // Distinct from the sea leg (cyan '2 5') and the land leg ('6 4').
+    const seaSeg = container.querySelector('[data-testid="atlas-travel-segment-sea"]')!;
+    expect(seaSeg.getAttribute('stroke')).toBe('#38bdf8');
+    expect(seaSeg.getAttribute('stroke-dasharray')).toBe('2 5');
+    const landSeg = container.querySelector('[data-testid="atlas-travel-segment-land"]')!;
+    expect(landSeg.getAttribute('stroke-dasharray')).toBe('6 4');
+    expect(tenderSeg.getAttribute('stroke')).not.toBe(seaSeg.getAttribute('stroke'));
+    expect(tenderSeg.getAttribute('stroke')).not.toBe(landSeg.getAttribute('stroke'));
+    // Readout shows the tender distance alongside land + sea.
+    expect(container.querySelector('[data-testid="atlas-travel-readout"]')?.textContent).toContain('0.3 mi tender');
+  });
+
   // The 3D HUD "Cell Map" button sets a one-shot module signal, then opens this
   // map. AtlasSvgView consumes it on mount and centers on the player marker —
   // proven here without a full game world (the dev-start flows that lack a

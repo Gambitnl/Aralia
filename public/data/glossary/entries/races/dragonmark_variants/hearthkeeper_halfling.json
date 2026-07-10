@@ -112,5 +112,6 @@
     }
   ],
   "maleImageUrl": "/assets/images/races/Halfling_Hearthkeeper_Male.png",
-  "femaleImageUrl": "/assets/images/races/Halfling_Hearthkeeper_Female.png"
+  "femaleImageUrl": "/assets/images/races/Halfling_Hearthkeeper_Female.png",
+  "modernizationStatus": "modified_legacy"
 }

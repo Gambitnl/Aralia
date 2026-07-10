@@ -74,3 +74,54 @@ export function sitePartScenePosition(
     z: t.groupZ + rz,
   };
 }
+
+/** A 2D corner of a building plot quad (ground meters or scene-local meters). */
+type QuadCorner = { x: number; z: number };
+
+/**
+ * Derive a building's yaw + street-face sign from its 4-corner plot quad. This
+ * is the ONE definition of that convention: the frontage edge is c1 - c0, and
+ * c3 - c0 is the depth edge; three.js yaws CCW about +Y so the yaw negates the
+ * frontage-edge angle, and the cross product's sign picks which local-z face the
+ * street sits on (the door goes on the opposite face).
+ *
+ * The result is invariant under uniform scale + translation, so it returns the
+ * SAME orientation whether the quad is in plan feet, ground meters, or
+ * scene-local meters — that is why the render path (siteGeometry) and the
+ * walkability path (groundChunkLoader) can both call it despite living in
+ * different frames. `siteGeometry` sets `site.rotationY` / `site.doorZSign` from
+ * this, so nothing may re-derive the convention by hand.
+ */
+export function siteOrientationFromQuad(
+  corners: ReadonlyArray<QuadCorner>,
+): { rotationY: number; doorZSign: number } {
+  const e1x = corners[1].x - corners[0].x;
+  const e1z = corners[1].z - corners[0].z;
+  const e2x = corners[3].x - corners[0].x;
+  const e2z = corners[3].z - corners[0].z;
+  const rotationY = -Math.atan2(e1z, e1x);
+  const cross = e1x * e2z - e1z * e2x;
+  const doorZSign = cross >= 0 ? -1 : 1;
+  return { rotationY, doorZSign };
+}
+
+/**
+ * Inverse of the group yaw: turn a world/ground displacement measured FROM the
+ * group origin back into the building's render-local (x, z) frame. This is the
+ * exact inverse of the rotation `sitePartScenePosition` applies, so the returned
+ * `z` is directly comparable to `sitePartLocalOffset(part, doorZSign).z` — i.e.
+ * it already carries the `-doorZSign` flip the renderer used. The walkability
+ * grid uses this to decide which floor cells a part covers, and it must land the
+ * part on the SAME cells the renderer draws it on.
+ */
+export function worldOffsetToSiteLocal(
+  dx: number,
+  dz: number,
+  rotationY: number,
+): { lx: number; lz: number } {
+  const cos = Math.cos(rotationY);
+  const sin = Math.sin(rotationY);
+  // Inverse of the three.js CCW yaw above (rotate by +rotationY):
+  // (dx, dz) -> (dx·cos - dz·sin, dx·sin + dz·cos).
+  return { lx: dx * cos - dz * sin, lz: dx * sin + dz * cos };
+}

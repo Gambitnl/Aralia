@@ -14,46 +14,25 @@
  */
 
 import type { TaskProfile, TaskType } from '../../types/ollama';
+import { OLLAMA_TASK_MODELS } from '../../config/llmProviderConfig';
 
 // ---------------------------------------------------------------------------
 // Model preference lists (per category)
 // ---------------------------------------------------------------------------
+// Sourced from the canonical LLM provider config so every task's model choice
+// lives in ONE place. Values are unchanged — see src/config/llmProviderConfig.ts.
 
 /** Voices: companion banter, NPC dialogue, gossip, emotional reactions. */
-const DIALOGUE_MODELS = [
-    'adi0adi/ollama_stheno-8b_v3.1_q6k',
-    'leeplenty/ellaria',
-    'qwen3:8b-q4_K_M',
-    'mistral:instruct',
-    'llama3.1:instruct'
-];
+const DIALOGUE_MODELS = OLLAMA_TASK_MODELS.dialogue;
 
 /** Judgment: oracle, social outcomes, guidance, structured analysis. */
-const JUDGMENT_MODELS = [
-    'granite4.1:8b-q4_K_M',
-    'qwen3:8b-q4_K_M',
-    'llama3.1:instruct',
-    'mistral:instruct'
-];
+const JUDGMENT_MODELS = OLLAMA_TASK_MODELS.judgment;
 
 /** Utility: names, tile flavour, summaries, loot dressing, fact extraction. */
-const UTILITY_MODELS = [
-    'granite4.1:3b-q6_K',
-    'phi4-mini:3.8b-q4_K_M',
-    'phi4-mini:3.8b',
-    'gemma3:1b',
-    'gemma:2b'
-];
+const UTILITY_MODELS = OLLAMA_TASK_MODELS.utility;
 
 /** Atmosphere: location and encounter descriptions — prose with consistency. */
-const PROSE_MODELS = [
-    'qwen3.5:9b-q4_K_M',
-    'qwen3:8b-q4_K_M',
-    'gemma4:12b',
-    'adi0adi/ollama_stheno-8b_v3.1_q6k',
-    'granite4.1:8b-q4_K_M',
-    'llama3.1:instruct'
-];
+const PROSE_MODELS = OLLAMA_TASK_MODELS.prose;
 
 // ---------------------------------------------------------------------------
 // Parameter presets (per spec)

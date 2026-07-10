@@ -34,7 +34,7 @@ import { createAbilityFromSpell } from '../character/spellAbilityFactory';
 import { isWeaponProficient } from '../character/weaponUtils';
 import { generateId } from '../core/idGenerator';
 import { getAbilityModifierValue } from '../character/statUtils';
-import { buildHitPointDicePools } from '../character/characterUtils';
+import { buildHitPointDicePools, resolveRacialResourceId } from '../character/characterUtils';
 import { ResistanceCalculator } from './resistanceUtils';
 
 import { bresenhamLine } from '../spatial/lineOfSight';
@@ -1192,7 +1192,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       }
     });
 
-    const resourceKey = `racial_feature_${player.race.id}__breath_weapon__resource`;
+    const resourceKey = resolveRacialResourceId('feature', `${player.race.id}__breath_weapon__resource`);
     const limitedUse = player.limitedUses?.[resourceKey];
 
     combatChar.abilities.push({

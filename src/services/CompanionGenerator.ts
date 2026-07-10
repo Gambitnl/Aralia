@@ -11,6 +11,7 @@ import { OllamaClient } from './ollama/client';
 import { parseJsonRobustly } from './ollama/jsonParser';
 import { CompanionSoulSchema, CompanionSoul } from '../types/companion';
 import { generateNPC, NPCGenerationConfig } from './npcGenerator';
+import { COMPANION_GENERATION_MODEL } from '../config/llmProviderConfig';
 
 /**
  * Configuration for generating a companion's skeleton.
@@ -115,8 +116,9 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
 
   const client = new OllamaClient();
 
-  // Use mistral:instruct specifically for character generation (better at structured JSON output)
-  const model = 'mistral:instruct';
+  // Use mistral:instruct specifically for character generation (better at structured JSON output).
+  // Sourced from the canonical LLM provider config — value unchanged. See src/config/llmProviderConfig.ts.
+  const model = COMPANION_GENERATION_MODEL;
   const isAvailable = await client.isAvailable();
 
   if (!isAvailable) {

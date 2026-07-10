@@ -121,6 +121,50 @@ test('tasks: claimNextReady atomically claims the top-priority ready task', () =
   rm(dir);
 });
 
+test('tasks: claimNextReady can stay inside one campaign and category lane', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const orch = store.registerAgent({ handle: 'orch-filter' });
+  const worker = store.registerAgent({ handle: 'worker-filter' });
+
+  store.claimCampaign({
+    agentId: orch.id,
+    campaignId: 'lane-a',
+    paths: ['tmp/lane-a'],
+  });
+  store.claimCampaign({
+    agentId: orch.id,
+    campaignId: 'lane-b',
+    paths: ['tmp/lane-b'],
+  });
+  const laneA = store.createTask({
+    agentId: orch.id,
+    title: 'lane A task',
+    campaignId: 'lane-a',
+    category: 'backend',
+    priority: 10,
+  });
+  const laneB = store.createTask({
+    agentId: orch.id,
+    title: 'lane B task',
+    campaignId: 'lane-b',
+    category: 'frontend',
+    priority: 99,
+  });
+
+  const byCampaign = store.claimNextReady({ agentId: worker.id, campaignId: 'lane-a' });
+  assert.equal(byCampaign.task.id, laneA.id, 'higher-priority work in another campaign is ignored');
+
+  const byCategory = store.claimNextReady({ agentId: worker.id, category: 'frontend' });
+  assert.equal(byCategory.task.id, laneB.id);
+
+  const dryLane = store.claimNextReady({ agentId: worker.id, campaignId: 'lane-a' });
+  assert.equal(dryLane.task, null);
+
+  store.close();
+  rm(dir);
+});
+
 // --- dead-agent reaping ------------------------------------------------------
 
 test('reaping: a dropped agent frees its locks, reopens its tasks, and loses its token', () => {
@@ -210,6 +254,63 @@ test('handoff authorization: only the claimant or the creator may reassign', () 
   rm(dir);
 });
 
+test('handoff rejects missing or dropped targets without changing ownership', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  const store = createStore({ dir, now, presenceDropMs: 5000 });
+  const orch = store.registerAgent({ handle: 'orch-handoff' });
+  const claimant = store.registerAgent({ handle: 'claimant-handoff' });
+  const target = store.registerAgent({ handle: 'target-handoff' });
+  const task = store.createTask({ agentId: orch.id, title: 'safe handoff' });
+  store.claimTask({ taskId: task.id, agentId: claimant.id });
+
+  let r = store.handoffTask({ taskId: task.id, agentId: claimant.id, toAgentId: 'missing-agent' });
+  assert.equal(r.ok, false);
+  assert.match(r.error, /not registered or live/);
+
+  now.advance(6000);
+  store.touch(orch.id);
+  store.touch(claimant.id);
+  r = store.handoffTask({ taskId: task.id, agentId: claimant.id, toAgentId: target.id });
+  assert.equal(r.ok, false);
+  assert.match(r.error, /not registered or live/);
+  assert.equal(store.listTasks().find((row) => row.id === task.id).claimedBy, claimant.id);
+
+  store.close();
+  rm(dir);
+});
+
+test('sweep repairs a legacy task claimed by an identity with no roster record', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  let store = createStore({ dir, now });
+  const orch = store.registerAgent({ handle: 'orch-orphan' });
+  const worker = store.registerAgent({ handle: 'worker-orphan' });
+  const task = store.createTask({ agentId: orch.id, title: 'legacy orphan' });
+  store.claimTask({ taskId: task.id, agentId: worker.id });
+  store.close();
+
+  // Simulate a pre-WF-G15 snapshot whose claimant record disappeared without
+  // the matching task.release event.
+  const snapshotPath = path.join(dir, 'snapshot.json');
+  const snapshot = JSON.parse(fs.readFileSync(snapshotPath, 'utf8'));
+  snapshot.agents = snapshot.agents.filter((agent) => agent.id !== worker.id);
+  fs.writeFileSync(snapshotPath, JSON.stringify(snapshot));
+
+  store = createStore({ dir, now });
+  store.sweepExpired();
+  const repaired = store.listTasks().find((row) => row.id === task.id);
+  assert.equal(repaired.state, 'open');
+  assert.equal(repaired.claimedBy, null);
+  const last = repaired.history[repaired.history.length - 1];
+  assert.equal(last.action, 'reaped');
+  assert.equal(last.reason, 'orphan claimant missing from roster');
+  assert.equal(last.previousClaimant, worker.id);
+
+  store.close();
+  rm(dir);
+});
+
 // --- multi-orchestrator governance ------------------------------------------
 
 test('campaigns: overlapping leads are refused; a deputy may join the named lead', () => {
@@ -255,6 +356,52 @@ test('campaigns: overlapping leads are refused; a deputy may join the named lead
   assert.equal(joined.ok, true);
   assert.equal(joined.campaign.role, 'deputy');
   assert.equal(joined.campaign.leadCampaignId, 'ui-playtest');
+
+  store.close();
+  rm(dir);
+});
+
+test('campaigns: owner status is tri-state and gone owners can be adopted with history', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  const store = createStore({ dir, now, presenceTtlMs: 1000, presenceDropMs: 5000 });
+  const firstOwner = store.registerAgent({ handle: 'first-owner' });
+  const successor = store.registerAgent({ handle: 'successor-owner' });
+
+  const first = store.claimCampaign({
+    agentId: firstOwner.id,
+    campaignId: 'recoverable-campaign',
+    role: 'lead',
+    paths: ['tmp/recoverable'],
+  });
+  assert.equal(first.ok, true);
+  assert.equal(store.listCampaigns()[0].ownerStatus, 'online');
+  assert.equal(store.listCampaigns()[0].ownerLive, true);
+
+  now.advance(2000);
+  store.touch(successor.id);
+  assert.equal(store.listCampaigns()[0].ownerStatus, 'stale');
+  assert.equal(store.listCampaigns()[0].ownerLive, true);
+
+  now.advance(4000);
+  store.touch(successor.id);
+  assert.equal(store.listCampaigns()[0].ownerStatus, 'gone');
+  assert.equal(store.listCampaigns()[0].ownerLive, false);
+
+  const adopted = store.claimCampaign({
+    agentId: successor.id,
+    campaignId: 'recoverable-campaign',
+    role: 'lead',
+    paths: ['tmp/recoverable'],
+  });
+  assert.equal(adopted.ok, true);
+  assert.equal(adopted.campaign.agentId, successor.id);
+  assert.equal(adopted.campaign.createdAt, first.campaign.createdAt);
+  const last = adopted.campaign.history[adopted.campaign.history.length - 1];
+  assert.equal(last.action, 'adopted');
+  assert.equal(last.previousOwner, firstOwner.id);
+  assert.equal(store.listCampaigns()[0].ownerStatus, 'online');
+  assert.equal(store.listCampaigns()[0].ownerLive, true);
 
   store.close();
   rm(dir);

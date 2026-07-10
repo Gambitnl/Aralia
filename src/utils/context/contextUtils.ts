@@ -19,7 +19,7 @@
  * Utility functions for generating rich narrative context for AI processing.
  */
 import { GameState, PlayerCharacter, NPC, Location } from '../../types';
-import { QuestObjective } from '../../types/quests';
+import { QuestObjectiveProgress } from '../../types/quests';
 import { BIOMES, ITEMS } from '../../constants';
 import { getTimeModifiers, formatGameTime } from '../core/timeUtils';
 import { BACKGROUNDS } from '../../data/backgrounds';
@@ -220,11 +220,11 @@ export function generateGeneralActionContext({
   if (activeQuests.length > 0) {
     const questLines = activeQuests.map(q => {
         let line = `- **${q.title}**: ${q.description}`;
-        const objectives: QuestObjective[] = (q as any).objectives || [];
-        const activeObjectives = objectives.filter((objective: QuestObjective) => !objective.isCompleted);
+        const objectives: QuestObjectiveProgress[] = (q as any).objectives || [];
+        const activeObjectives = objectives.filter((objective: QuestObjectiveProgress) => !objective.isCompleted);
 
         if (activeObjectives.length > 0) {
-            const objectiveList = activeObjectives.map((objective: QuestObjective) => `  - [ ] ${objective.description}`).join('\n');
+            const objectiveList = activeObjectives.map((objective: QuestObjectiveProgress) => `  - [ ] ${objective.description}`).join('\n');
             line += `\n  *Current Objectives:*\n${objectiveList}`;
         }
         return line;

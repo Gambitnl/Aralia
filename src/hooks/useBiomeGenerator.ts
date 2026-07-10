@@ -16,6 +16,7 @@
 
 import { useState, useCallback } from 'react';
 import type { BiomeDNA, ScatterRule } from '@/types/biome';
+import { BIOME_GENERATION_MODELS } from '@/config/llmProviderConfig';
 
 // ============================================================================
 // TYPES
@@ -115,8 +116,11 @@ export const useBiomeGenerator = (): UseBiomeGeneratorResult => {
       let resultJSON: any;
 
       if (provider === 'ollama') {
-        // Models to try in order based on actually installed list
-        const models = ['mistral:instruct', 'phi4-mini:3.8b', 'gemma3:1b'];
+        // Models to try in order based on actually installed list.
+        // Sourced from the canonical LLM provider config — value unchanged.
+        // NOTE: this is an EXISTING fallback loop, preserved as-is for behavior
+        // parity. See src/config/llmProviderConfig.ts (BIOME_GENERATION_MODELS).
+        const models = BIOME_GENERATION_MODELS;
         
         let response: Response | null = null;
         let usedModel = '';

@@ -19,7 +19,6 @@ import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { GlossaryEntry } from '../types';
 import { fetchWithTimeout } from '../utils/networkUtils';
 import { assetUrl } from '../config/env';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ErrorOverlay } from '../components/ui/ErrorOverlay';
 
 const GlossaryContext = createContext<GlossaryEntry[] | null>(null);

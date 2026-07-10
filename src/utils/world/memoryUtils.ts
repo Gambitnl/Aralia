@@ -20,15 +20,21 @@
  * The deprecated bridge in src/utils/memoryUtils.ts stays only for older imports.
  */
 
-import { NPCMemory, Interaction, Fact, MemoryImportance, GameDate } from '../../types/memory';
+import { Interaction, MemoryImportance, GameDate } from '../../types/memory';
+import { NpcMemory, KnownFact, SuspicionLevel } from '../../types/world';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Creates a blank memory structure for a new NPC.
+ * Creates a blank memory structure for a new NPC on the canonical merged shape.
+ * The live-lane fields (disposition/suspicion/goals) get neutral defaults so the object
+ * satisfies `NpcMemory`; the richer optional fields start empty.
  */
-export const createEmptyMemory = (): NPCMemory => ({
-  interactions: [],
+export const createEmptyMemory = (): NpcMemory => ({
+  disposition: 0,
   knownFacts: [],
+  suspicion: SuspicionLevel.Unaware,
+  goals: [],
+  interactions: [],
   attitude: 0,
   lastInteractionDate: 0,
   discussedTopics: {},
@@ -39,21 +45,25 @@ export const createEmptyMemory = (): NPCMemory => ({
  * Handles duplicate checks or merging if necessary (though usually interactions are unique events).
  */
 export const addInteraction = (
-  memory: NPCMemory,
+  memory: NpcMemory,
   interaction: Omit<Interaction, 'id'> & { id?: string }
-): NPCMemory => {
+): NpcMemory => {
   const newInteraction: Interaction = {
     ...interaction,
     id: interaction.id || uuidv4(),
   };
 
+  const interactions = memory.interactions ?? [];
+  const priorAttitude = memory.attitude ?? 0;
+  const priorDate = typeof memory.lastInteractionDate === 'number' ? memory.lastInteractionDate : 0;
+
   // Keep most recent first or append?
-  // memory.ts says "Newest interactions should be appended to the end"
+  // Canonical shape says "Newest interactions should be appended to the end"
   return {
     ...memory,
-    interactions: [...memory.interactions, newInteraction],
-    lastInteractionDate: Math.max(memory.lastInteractionDate, newInteraction.date),
-    attitude: Math.min(100, Math.max(-100, memory.attitude + newInteraction.attitudeChange)),
+    interactions: [...interactions, newInteraction],
+    lastInteractionDate: Math.max(priorDate, newInteraction.date),
+    attitude: Math.min(100, Math.max(-100, priorAttitude + newInteraction.attitudeChange)),
   };
 };
 
@@ -67,19 +77,21 @@ export const addInteraction = (
  * @param limit Max number of memories to return
  */
 export const getRelevantMemories = (
-  memory: NPCMemory,
+  memory: NpcMemory,
   contextKeywords: string[] = [],
   limit: number = 5
 ): Interaction[] => {
+  const interactions = memory.interactions ?? [];
+
   // If no keywords, just return the most significant recent memories
   if (contextKeywords.length === 0) {
-    return [...memory.interactions]
+    return [...interactions]
       .sort((a, b) => b.significance - a.significance) // Sort by importance
       .slice(0, limit);
   }
 
   // Simple keyword matching
-  const scoredMemories = memory.interactions.map(mem => {
+  const scoredMemories = interactions.map(mem => {
     let score = mem.significance;
     const summaryLower = mem.summary.toLowerCase();
 
@@ -106,8 +118,8 @@ export const getRelevantMemories = (
  * @param memory The NPC's memory object.
  * @param contextKeywords Optional keywords to fetch specific relevant memories.
  */
-export const formatMemoryForAI = (memory: NPCMemory, contextKeywords: string[] = []): string => {
-  let contextString = `Disposition towards player: ${memory.attitude} (Range: -100 to 100).`;
+export const formatMemoryForAI = (memory: NpcMemory, contextKeywords: string[] = []): string => {
+  let contextString = `Disposition towards player: ${memory.attitude ?? 0} (Range: -100 to 100).`;
 
   // 1. Relevant Interactions
   const relevantInteractions = getRelevantMemories(memory, contextKeywords, 5);
@@ -122,7 +134,7 @@ export const formatMemoryForAI = (memory: NPCMemory, contextKeywords: string[] =
 
   // 2. Known Facts (Sort by significance and recency)
   const sortedFacts = [...memory.knownFacts]
-    .sort((a, b) => b.significance - a.significance || b.dateLearned - a.dateLearned)
+    .sort((a, b) => (b.significance ?? 0) - (a.significance ?? 0) || b.timestamp - a.timestamp)
     .slice(0, 5);
 
   if (sortedFacts.length > 0) {
@@ -130,8 +142,8 @@ export const formatMemoryForAI = (memory: NPCMemory, contextKeywords: string[] =
        const sourceText = fact.source === 'gossip'
           ? `(Heard Rumor)`
           : `(Witnessed)`;
-       // Use dynamic access for 'text' if it exists at runtime (legacy support), otherwise fallback to id.
-       const description = (fact as { text?: string })?.text || fact.id;
+       // Prefer the human-readable fact text; fall back to the semantic key/id.
+       const description = fact.text || fact.id;
        return `${sourceText}: "${description}"`;
     });
 
@@ -155,7 +167,7 @@ export const formatMemoryForAI = (memory: NPCMemory, contextKeywords: string[] =
  * @param memory The NPC's memory
  * @param currentDate The current game date (timestamp)
  */
-export const decayMemories = (memory: NPCMemory, currentDate: GameDate): NPCMemory => {
+export const decayMemories = (memory: NpcMemory, currentDate: GameDate): NpcMemory => {
   const ONE_DAY = 24 * 60 * 60 * 1000; // Assuming ms timestamp, adjust if GameDate is different
 
   const isExpired = (interaction: Interaction): boolean => {
@@ -182,12 +194,13 @@ export const decayMemories = (memory: NPCMemory, currentDate: GameDate): NPCMemo
     return age > 1 * ONE_DAY;
   };
 
-  const remainingInteractions = memory.interactions.filter(i => !isExpired(i));
+  const interactions = memory.interactions ?? [];
+  const remainingInteractions = interactions.filter(i => !isExpired(i));
 
   // If nothing changed, return original object to preserve reference if possible,
   // but for immutability usually we return new.
   // Optimization: check length
-  if (remainingInteractions.length === memory.interactions.length) {
+  if (remainingInteractions.length === interactions.length) {
     return memory;
   }
 
@@ -199,21 +212,27 @@ export const decayMemories = (memory: NPCMemory, currentDate: GameDate): NPCMemo
 
 /**
  * Teaches an NPC a new fact, or updates confidence if they already knew it.
+ * Operates on the canonical `KnownFact`; the merged optional `confidence`/`significance`
+ * fields default to 0 when comparing so pre-merge facts still behave sensibly.
  */
-export const learnFact = (memory: NPCMemory, fact: Fact): NPCMemory => {
+export const learnFact = (memory: NpcMemory, fact: KnownFact): NpcMemory => {
   const existingIndex = memory.knownFacts.findIndex(f => f.id === fact.id);
 
   if (existingIndex >= 0) {
     const existing = memory.knownFacts[existingIndex];
+    const factConfidence = fact.confidence ?? 0;
+    const factSignificance = fact.significance ?? 0;
+    const existingConfidence = existing.confidence ?? 0;
+    const existingSignificance = existing.significance ?? 0;
     // Update if new info is more confident or more significant
-    if (fact.confidence > existing.confidence || fact.significance > existing.significance) {
+    if (factConfidence > existingConfidence || factSignificance > existingSignificance) {
       const newFacts = [...memory.knownFacts];
       newFacts[existingIndex] = {
         ...existing,
-        confidence: Math.max(existing.confidence, fact.confidence),
-        significance: Math.max(existing.significance, fact.significance),
+        confidence: Math.max(existingConfidence, factConfidence),
+        significance: Math.max(existingSignificance, factSignificance),
         source: fact.source, // Update source to the latest one?
-        dateLearned: fact.dateLearned
+        timestamp: fact.timestamp
       };
       return { ...memory, knownFacts: newFacts };
     }

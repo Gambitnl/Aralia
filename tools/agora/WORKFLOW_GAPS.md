@@ -3,7 +3,7 @@ schema_version: 1
 gap_schema: workflow_gap_registry
 scope: "Gaps in the multi-agent WORKFLOW itself — coordination, dispatch, tooling, tracker-sync, verification. NOT game/feature gaps (those go in the owning project's docs/projects/**/GAPS.md)."
 id_prefix: WF-G
-next_free_id: WF-G15
+next_free_id: WF-G19
 allowed_statuses: [open, in_progress, blocked, needs_validation, resolved, wont_fix]
 allowed_severities: [low, medium, high, critical]
 allowed_classifications: [coordination, dispatch, daemon, client-tooling, registry, tracker-sync, verification, docs, enforcement, quota]
@@ -39,10 +39,12 @@ durable and structured, unlike `say "WORKFLOW: ..."` chat messages (which scroll
 
 ## Registry
 
-_No open workflow gaps (all resolved 2026-07-02 — see the archive below). Register new ones here:_
-
 | Gap ID | Status | Severity | Classification | Surface | Registered by | Date | Gap | Evidence | Why it matters | Next action | Next proof | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| WF-G15 | open | high | coordination | agora-daemon | orch.vega (Claude Fable 5) | 2026-07-10 | Task handoff accepts any `toAgentId` — a mistyped or dead target strands the task claimed-by-a-ghost forever | `store.mjs` `handoffTask` (~L1061) has no existence/liveness check; reducer `task.handoff` (~L418) sets `claimedBy` unconditionally; `sweepExpired` only reopens tasks whose claimant record still exists in `state.agents` | A stranded task is silent ownership loss — the exact failure the co-orchestration pact exists to prevent | Sol (backend lane): reject handoff unless `toAgentId` is a live registered agent, else error (+tests) | Test: handoff to unknown/dead id rejected; valid handoff unchanged | Campaign co-orchestration-pipeline |
+| WF-G16 | open | medium | coordination | agora-daemon | orch.vega (Claude Fable 5) | 2026-07-10 | `claim-next` pulls the top ready task across ALL campaigns — concurrent fleets cross-pull each other's tasks | `store.mjs` `claimNextReady` (~L1055) filters only `isTaskReady`; no campaign/category parameter anywhere in store/server/client | Two orchestrators running parallel waves steal each other's packets; workers do work their own lead cannot gate | Sol (backend lane): optional campaign/category filter on claim-next through HTTP + client; unfiltered default unchanged (+tests) | Test: two campaigns seeded, filtered claim-next returns only own-campaign task | Campaign co-orchestration-pipeline |
+| WF-G17 | open | medium | coordination | agora-daemon | orch.vega (Claude Fable 5) | 2026-07-10 | `GET /campaigns` shows dead-owner leads as `active` — misleads a polite orchestrator into backing off a free file domain | Claim-time overlap already ignores dead owners (`activeCampaigns` → `isLiveAgent`, `store.mjs` ~L858) but `listCampaigns` exposes no owner liveness; board showed 5 dead "active" leads on 2026-07-09 | ORCHESTRATOR.md §0b tells orchestrators to inspect campaigns before seeding; they see false conflicts and stall | Sol: expose owner liveness in the campaigns list + document takeover (re-claim a dead owner's campaign id) in PROTOCOL.md. Vega: dashboard renders owner liveness client-side | Test: dead-owner lead reports not-live in list; dashboard shows it grayed | Vega dashboard half lands in campaign co-orchestration-pipeline too |
+| WF-G18 | open | high | dispatch | external-agents | codex-sol-56 (Codex Sol) | 2026-07-10 | Command-feed messages cannot reliably wake or resume an orchestrator whose harness is idle or absent | Human directive seq 531 requires every human message, direct message, and `@callsign` mention to activate the intended orchestrator; Vega seq 533 confirms only the Claude-side watcher exists; installed Codex CLI 0.140.0 exposes `codex exec resume <session-id> <prompt>` but no verified Windows desktop message-injection route | Human steering can sit unread while task ownership and recovery decisions age, so the board is durable but not responsive | Build one registry-driven Agora watchdog with durable message cursor, human/direct/mention filtering, dedupe, cooldown, process/presence checks, audited adapter results, and explicit Codex/Claude resume adapters | Tests prove filter/cursor/dedupe/cooldown; live proof wakes an absent CLI harness once and records the triggering message sequence | Desktop-native Codex wake remains `wake-unavailable` until a supported Windows route is verified; CLI session resume is the first supported Codex adapter |
 
 ## Resolved (archive)
 

@@ -1,10 +1,40 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as SaveLoadService from '../saveLoadService';
+import * as IDBStorage from '../indexedDBStorageService';
 import { GameState, GamePhase, DiscoveryEntry, DiscoveryType } from '../../types';
 
 import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
 import type { WorldDelta } from '../../systems/worldforge/delta/types';
 import { MAX_DISCOVERY_LOG_ENTRIES } from '../../state/reducers/logReducer';
+
+// ---------------------------------------------------------------------------
+// IndexedDB is mocked with an in-memory store so the localStorage -> IndexedDB
+// migration flow (initializeStorage / MIGRATION_FLAG_KEY) can be exercised in
+// jsdom, which ships no real IndexedDB. The existing tests never trigger this
+// path — `idbAvailable` stays false until `initializeStorage()` runs, and only
+// the G5 "migration flow" describe below calls it — so they are unaffected by
+// this mock.
+// ---------------------------------------------------------------------------
+vi.mock('../indexedDBStorageService', () => {
+    const store = new Map<string, string>();
+    return {
+        isAvailable: vi.fn(async () => true),
+        putSave: vi.fn(async (slotId: string, data: string) => { store.set(slotId, data); }),
+        getSave: vi.fn(async (slotId: string) => (store.has(slotId) ? store.get(slotId)! : null)),
+        deleteSave: vi.fn(async (slotId: string) => { store.delete(slotId); }),
+        getAllKeys: vi.fn(async () => Array.from(store.keys())),
+        clearAllSaves: vi.fn(async () => { store.clear(); }),
+        closeDB: vi.fn(() => {}),
+        resetAvailabilityCache: vi.fn(() => {}),
+    };
+});
+
+// Internal saveLoadService storage keys, mirrored here so the G5 tests can
+// assert on the durable migration/emergency/slot-index localStorage entries.
+// (They are module-private constants in saveLoadService.ts.)
+const MIGRATION_FLAG_KEY = 'aralia_rpg_migrated_to_idb';
+const EMERGENCY_SAVE_KEY = 'aralia_rpg_emergency_save';
+const SLOT_INDEX_KEY = 'aralia_rpg_save_slots_index';
 
 // Mock NotificationSystem callback
 const mockNotify = vi.fn();
@@ -394,6 +424,113 @@ describe('SaveLoadService', () => {
             expect(result.data?.discoveryLog[0]?.id).toBe('legacy-discovery-0');
             expect(result.data?.unreadDiscoveryCount).toBe(result.data?.discoveryLog.filter(entry => !entry.isRead).length);
         });
+
+        // --------------------------------------------------------------------
+        // G5: versioned-migration coverage across mixed / older payload shapes.
+        // SAVE_GAME_VERSION is '0.1.0'; the loader keys compatibility off the
+        // *inner* state.saveVersion, so these cases pin that contract down.
+        // --------------------------------------------------------------------
+
+        it('rejects a save whose version is newer than the current save format', async () => {
+            // Version mismatch is symmetric: a future save is as incompatible as
+            // an ancient one. Existing coverage only exercised the older side.
+            const key = SaveLoadService.getSlotStorageKey('future_version');
+            localStorage.setItem(key, JSON.stringify({
+                version: '9.9.9',
+                slotId: key,
+                state: { ...mockGameState, saveVersion: '9.9.9' },
+            }));
+
+            const result = await SaveLoadService.loadGame('future_version', mockNotify);
+
+            expect(result.success).toBe(false);
+            expect(result.message).toContain('incompatible');
+            expect(result.message).toContain('9.9.9');
+            expect(mockNotify).toHaveBeenCalledWith({ message: expect.stringContaining('incompatible'), type: 'warning' });
+        });
+
+        it('loads a legacy save that predates version stamping (no saveVersion field)', async () => {
+            // Pre-versioning payloads carry no saveVersion; the guard is
+            // `if (loadedState.saveVersion && ...)`, so these must still boot.
+            const key = SaveLoadService.getSlotStorageKey('unversioned_legacy');
+            const { saveVersion: _dropped, ...legacyState } = mockGameState as any;
+            localStorage.setItem(key, JSON.stringify({ slotId: key, state: legacyState }));
+
+            const result = await SaveLoadService.loadGame('unversioned_legacy');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.gold).toBe(100);
+        });
+
+        it('keys the compatibility check off the inner state version, not the wrapper version', async () => {
+            // Mixed payload: current wrapper version but an older embedded state.
+            // The embedded state is authoritative, so this must be rejected.
+            const key = SaveLoadService.getSlotStorageKey('mixed_version');
+            localStorage.setItem(key, JSON.stringify({
+                version: '0.1.0',
+                slotId: key,
+                state: { ...mockGameState, saveVersion: '0.0.9' },
+            }));
+
+            const result = await SaveLoadService.loadGame('mixed_version', mockNotify);
+
+            expect(result.success).toBe(false);
+            expect(result.message).toContain('0.0.9');
+        });
+
+        it('loads a legacy bare GameState payload that has no StoredSavePayload wrapper', async () => {
+            // The earliest single-slot saves wrote the GameState directly, with
+            // no { version, slotId, state } envelope. loadGame falls back to
+            // treating the parsed object itself as the state.
+            const key = SaveLoadService.getSlotStorageKey('bare_state_legacy');
+            localStorage.setItem(key, JSON.stringify({ ...mockGameState }));
+
+            const result = await SaveLoadService.loadGame('bare_state_legacy');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.gold).toBe(100);
+        });
+
+        // --------------------------------------------------------------------
+        // G5: migratePlayerCell backfill across pre-cell-native saves.
+        // --------------------------------------------------------------------
+
+        it('backfills playerCell from a cell_<id> location on saves that predate the cell-native field', async () => {
+            const key = SaveLoadService.getSlotStorageKey('cell_native_slot');
+            const legacyState = { ...mockGameState, currentLocationId: 'cell_137' };
+            delete (legacyState as any).playerCell;
+            localStorage.setItem(key, JSON.stringify({ version: '0.1.0', slotId: key, state: legacyState }));
+
+            const result = await SaveLoadService.loadGame('cell_native_slot');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.playerCell).toEqual({ cellId: 137, localeCoords: null });
+        });
+
+        it('leaves an already-present playerCell untouched on load (idempotent migration)', async () => {
+            const key = SaveLoadService.getSlotStorageKey('cell_present_slot');
+            const state = { ...mockGameState, currentLocationId: 'cell_5', playerCell: { cellId: 999, localeCoords: null } };
+            localStorage.setItem(key, JSON.stringify({ version: '0.1.0', slotId: key, state }));
+
+            const result = await SaveLoadService.loadGame('cell_present_slot');
+
+            expect(result.success).toBe(true);
+            // Migration must NOT re-derive to cell 5 — the stored cell wins.
+            expect(result.data?.playerCell).toEqual({ cellId: 999, localeCoords: null });
+        });
+
+        it('resolves playerCell to null when the save has no world seed to anchor into', async () => {
+            const key = SaveLoadService.getSlotStorageKey('no_seed_slot');
+            const state = { ...mockGameState, currentLocationId: 'town_square' };
+            delete (state as any).playerCell;
+            delete (state as any).worldSeed;
+            localStorage.setItem(key, JSON.stringify({ version: '0.1.0', slotId: key, state }));
+
+            const result = await SaveLoadService.loadGame('no_seed_slot');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.playerCell).toBeNull();
+        });
     });
 
     describe('getSaveSlots', () => {
@@ -469,6 +606,125 @@ describe('SaveLoadService', () => {
       };
       const migrated = migrateMapDataToWorldDataV2(legacyMap as any, 42);
       expect(migrated.worldData?.version).toBe(2);
+    });
+
+    // ------------------------------------------------------------------------
+    // G5: anomalous slot-metadata index handling (localStorage-only mode).
+    // getSaveSlots must never throw on malformed/ghost/orphaned metadata; it
+    // heals to a best-effort list instead.
+    // ------------------------------------------------------------------------
+    describe('slot metadata anomalies (G5)', () => {
+        it('recovers to an empty slot list when the persisted slot index is malformed JSON', () => {
+            localStorage.setItem(SLOT_INDEX_KEY, '{ not valid json');
+
+            // refreshSaveSlotIndex clears the in-memory + session caches so the
+            // malformed localStorage value is actually re-parsed.
+            const slots = SaveLoadService.refreshSaveSlotIndex();
+
+            expect(slots).toEqual([]);
+        });
+
+        it('drops ghost slot-index entries whose payload no longer exists', () => {
+            // Index references a slot, but no matching payload key was written.
+            localStorage.setItem(SLOT_INDEX_KEY, JSON.stringify([
+                { slotId: 'aralia_rpg_slot_ghost', slotName: 'Ghost', lastSaved: 123 },
+            ]));
+
+            const slots = SaveLoadService.refreshSaveSlotIndex();
+
+            expect(slots.find(slot => slot.slotId === 'aralia_rpg_slot_ghost')).toBeUndefined();
+        });
+
+        it('merges an orphaned slot payload that is missing from the metadata index', () => {
+            // Payload exists on disk but the index never recorded it (interrupted
+            // write, imported backup). mergeWithLegacySaves must surface it.
+            const key = 'aralia_rpg_slot_orphan';
+            localStorage.setItem(key, JSON.stringify({
+                version: '0.1.0',
+                slotId: key,
+                slotName: 'Orphan Save',
+                preview: { locationName: 'town_square', partyLevel: 5 },
+                state: { ...mockGameState },
+            }));
+
+            const slots = SaveLoadService.refreshSaveSlotIndex();
+
+            const orphan = slots.find(slot => slot.slotId === key);
+            expect(orphan).toBeDefined();
+            expect(orphan?.slotName).toBe('Orphan Save');
+            expect(orphan?.partyLevel).toBe(5);
+        });
+    });
+
+    // ------------------------------------------------------------------------
+    // G5: localStorage -> IndexedDB migration flow (MIGRATION_FLAG_KEY).
+    // Runs LAST because initializeStorage() flips the module-level idbAvailable
+    // to true (via the mocked isAvailable); keeping it last avoids leaking that
+    // state into the localStorage-only tests above.
+    // ------------------------------------------------------------------------
+    describe('localStorage -> IndexedDB migration flow (G5)', () => {
+        beforeEach(async () => {
+            // Reset the in-memory IndexedDB mock between migration cases.
+            await (IDBStorage.clearAllSaves as any)();
+        });
+
+        it('migrates orphaned localStorage save payloads into IndexedDB and stamps the migration flag', async () => {
+            const legacyKey = 'aralia_rpg_slot_pre_migration';
+            const payload = JSON.stringify({
+                version: '0.1.0',
+                slotId: legacyKey,
+                slotName: 'Legacy',
+                state: { ...mockGameState },
+            });
+            localStorage.setItem(legacyKey, payload);
+
+            await SaveLoadService.initializeStorage();
+
+            expect(SaveLoadService.isUsingIndexedDB()).toBe(true);
+            // Payload moved OUT of localStorage...
+            expect(localStorage.getItem(legacyKey)).toBeNull();
+            // ...and INTO IndexedDB...
+            expect(await IDBStorage.getSave(legacyKey)).toBe(payload);
+            expect(IDBStorage.putSave).toHaveBeenCalledWith(legacyKey, payload);
+            // ...with the one-time flag set so migration never re-runs.
+            expect(localStorage.getItem(MIGRATION_FLAG_KEY)).toBe('true');
+        });
+
+        it('does not re-migrate localStorage saves once the migration flag is already set', async () => {
+            const keepKey = 'aralia_rpg_slot_keep_in_ls';
+            const payload = JSON.stringify({
+                version: '0.1.0',
+                slotId: keepKey,
+                slotName: 'Keep',
+                state: { ...mockGameState },
+            });
+            localStorage.setItem(keepKey, payload);
+            localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
+
+            await SaveLoadService.initializeStorage();
+
+            // Flag short-circuits migration: the payload stays put and nothing
+            // is written to IndexedDB.
+            expect(localStorage.getItem(keepKey)).toBe(payload);
+            expect(IDBStorage.putSave).not.toHaveBeenCalled();
+        });
+
+        it('recovers a synchronous emergency save into IndexedDB on the next startup', async () => {
+            const emergencyPayload = JSON.stringify({
+                version: '0.1.0',
+                slotId: 'aralia_rpg_autosave',
+                slotName: 'Auto-Save',
+                state: { ...mockGameState },
+            });
+            localStorage.setItem(EMERGENCY_SAVE_KEY, emergencyPayload);
+
+            await SaveLoadService.initializeStorage();
+
+            // The emergency blob is relocated into IndexedDB under its slotId and
+            // cleared from localStorage.
+            expect(localStorage.getItem(EMERGENCY_SAVE_KEY)).toBeNull();
+            expect(await IDBStorage.getSave('aralia_rpg_autosave')).toBe(emergencyPayload);
+        });
     });
 });
 

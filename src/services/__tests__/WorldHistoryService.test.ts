@@ -88,3 +88,59 @@ describe('WorldHistoryService first-build history contract', () => {
     expect(original.factions).toEqual(snapshot);
   });
 });
+
+describe('WorldHistoryService.createSkirmishEvent importance', () => {
+  const gameTime = new Date(Date.UTC(1234, 0, 1));
+
+  function withPower(id: string, name: string, power: number): Faction {
+    return { ...makeFaction(id, name), power };
+  }
+
+  it('scales importance with the power swing between combatants', () => {
+    const evenMatch = WorldHistoryService.createSkirmishEvent(
+      withPower('a', 'House Even A', 50),
+      withPower('b', 'House Even B', 48),
+      gameTime,
+    );
+    const lopsided = WorldHistoryService.createSkirmishEvent(
+      withPower('c', 'House Titan', 95),
+      withPower('d', 'House Ember', 5),
+      gameTime,
+    );
+
+    // High-disparity clash must register as more memorable than an even trade.
+    expect(lopsided.importance).toBeGreaterThan(evenMatch.importance);
+  });
+
+  it('marks a major power swing as high importance for the retention pruner', () => {
+    const upset = WorldHistoryService.createSkirmishEvent(
+      withPower('e', 'House Underdog', 90),
+      withPower('f', 'House Fallen', 20),
+      gameTime,
+    );
+
+    // history G5 acceptance: major swings should survive importance-aware pruning.
+    expect(upset.importance).toBeGreaterThanOrEqual(80);
+  });
+
+  it('keeps a near-even clash close to the base importance', () => {
+    const evenMatch = WorldHistoryService.createSkirmishEvent(
+      withPower('g', 'House Mirror A', 40),
+      withPower('h', 'House Mirror B', 40),
+      gameTime,
+    );
+
+    expect(evenMatch.importance).toBe(40);
+  });
+
+  it('clamps importance to the sane upper band on a total mismatch', () => {
+    const rout = WorldHistoryService.createSkirmishEvent(
+      withPower('i', 'House Apex', 100),
+      withPower('j', 'House Ashes', 0),
+      gameTime,
+    );
+
+    expect(rout.importance).toBeLessThanOrEqual(100);
+    expect(rout.importance).toBeGreaterThanOrEqual(80);
+  });
+});

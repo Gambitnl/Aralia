@@ -242,6 +242,16 @@ describe('savingThrowUtils', () => {
       expect(resultDex.roll).toBe(10); // Should just be the first roll
     });
 
+    // Helper: deterministic d20 sequence for a single rollSavingThrow call.
+    // Uses mockReset() (NOT mockClear) so the mockReturnValueOnce queue never leaks
+    // between assertions — restoreAllMocks/mockClear do not drain that queue, so a
+    // prior test's unconsumed value would otherwise bleed into the next roll.
+    const setRolls = (mock: ReturnType<typeof vi.mocked<typeof combatUtils.rollDice>>, ...rolls: number[]) => {
+        mock.mockReset();
+        for (const r of rolls) mock.mockReturnValueOnce(r);
+        mock.mockReturnValue(0); // any extra dice (bonuses etc.) contribute nothing here
+    };
+
     it('applies a structured advantage modifier only to the named ability (RM-SAVE-002)', () => {
         const char = createMockCombatCharacter({
             stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 30, cr: '1' }
@@ -254,13 +264,12 @@ describe('savingThrowUtils', () => {
         ];
 
         // Intelligence save: two rolls (10, 20), advantage takes the max.
-        rollDiceMock.mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValue(5);
+        setRolls(rollDiceMock, 10, 20);
         const resultInt = rollSavingThrow(char, 'Intelligence', 15, undefined, undefined, structured);
         expect(resultInt.roll).toBe(20);
 
-        rollDiceMock.mockClear();
         // Dexterity save: modifier does not name Dexterity, so no advantage — first roll stands.
-        rollDiceMock.mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValue(5);
+        setRolls(rollDiceMock, 10, 20);
         const resultDex = rollSavingThrow(char, 'Dexterity', 15, undefined, undefined, structured);
         expect(resultDex.roll).toBe(10);
     });
@@ -278,19 +287,17 @@ describe('savingThrowUtils', () => {
         ];
 
         // Poison effect: advantage applies, max(10, 20) = 20.
-        rollDiceMock.mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValue(5);
+        setRolls(rollDiceMock, 10, 20);
         const resultPoison = rollSavingThrow(char, 'Constitution', 15, undefined, { damageType: 'poison' }, structured);
         expect(resultPoison.roll).toBe(20);
 
-        rollDiceMock.mockClear();
         // Fire effect: advantage does NOT apply, first roll stands.
-        rollDiceMock.mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValue(5);
+        setRolls(rollDiceMock, 10, 20);
         const resultFire = rollSavingThrow(char, 'Constitution', 15, undefined, { damageType: 'fire' }, structured);
         expect(resultFire.roll).toBe(10);
 
-        rollDiceMock.mockClear();
         // No context supplied: a contextual modifier cannot be confirmed, so it does not over-apply.
-        rollDiceMock.mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValue(5);
+        setRolls(rollDiceMock, 10, 20);
         const resultNoCtx = rollSavingThrow(char, 'Constitution', 15, undefined, undefined, structured);
         expect(resultNoCtx.roll).toBe(10);
     });
@@ -305,7 +312,7 @@ describe('savingThrowUtils', () => {
             { type: 'advantage', context: 'saving_throw', against: ['disease'] }
         ];
 
-        rollDiceMock.mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValue(5);
+        setRolls(rollDiceMock, 10, 20);
         const result = rollSavingThrow(char, 'Constitution', 15, undefined, { tags: ['magic', 'disease'] }, structured);
         expect(result.roll).toBe(20);
     });
@@ -321,7 +328,7 @@ describe('savingThrowUtils', () => {
             { type: 'advantage', context: 'saving_throw' }
         ];
 
-        rollDiceMock.mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValue(5);
+        setRolls(rollDiceMock, 10, 20);
         const result = rollSavingThrow(char, 'Charisma', 15, undefined, undefined, structured);
         expect(result.roll).toBe(20);
     });
@@ -337,7 +344,7 @@ describe('savingThrowUtils', () => {
         ];
 
         // Disadvantage takes the min of the two rolls.
-        rollDiceMock.mockReturnValueOnce(18).mockReturnValueOnce(4).mockReturnValue(5);
+        setRolls(rollDiceMock, 18, 4);
         const result = rollSavingThrow(char, 'Wisdom', 15, undefined, undefined, structured);
         expect(result.roll).toBe(4);
     });
@@ -351,13 +358,12 @@ describe('savingThrowUtils', () => {
         const rollDiceMock = vi.mocked(combatUtils.rollDice);
 
         // Poison context: legacy string still applies -> advantage, max(10, 20) = 20.
-        rollDiceMock.mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValue(5);
+        setRolls(rollDiceMock, 10, 20);
         const resultPoison = rollSavingThrow(char, 'Constitution', 15, undefined, { damageType: 'poison' });
         expect(resultPoison.roll).toBe(20);
 
-        rollDiceMock.mockClear();
         // Fire context: legacy string is narrowed and no longer over-applies -> first roll stands.
-        rollDiceMock.mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValue(5);
+        setRolls(rollDiceMock, 10, 20);
         const resultFire = rollSavingThrow(char, 'Constitution', 15, undefined, { damageType: 'fire' });
         expect(resultFire.roll).toBe(10);
     });
@@ -370,7 +376,7 @@ describe('savingThrowUtils', () => {
 
         const rollDiceMock = vi.mocked(combatUtils.rollDice);
         // No effectContext: unchanged (broad) behavior — advantage still applies, max(10, 20) = 20.
-        rollDiceMock.mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValue(5);
+        setRolls(rollDiceMock, 10, 20);
         const result = rollSavingThrow(char, 'Constitution', 15);
         expect(result.roll).toBe(20);
     });

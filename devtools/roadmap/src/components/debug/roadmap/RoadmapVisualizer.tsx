@@ -85,6 +85,7 @@ import {
 } from './modules/opportunity-triage-workspace';
 import type { RoadmapHistoryTraceabilityPayload } from './modules/roadmap-history-traceability';
 import { loadRoadmapBootstrapData } from './modules/roadmap-bootstrap-loader';
+import { applyPlanmapOverlay, mapPlanmapStatusToBase, type PlanmapTopic } from './modules/planmap-overlay';
 import type { RenderNode, RoadmapData, ThemeMode } from './types';
 import { formatLevelCounts } from './utils';
 
@@ -786,8 +787,8 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
     const controller = new AbortController();
     const loadData = async () => {
       try {
-        const { data, layout, labelOverrides } = await loadRoadmapBootstrapData(controller.signal);
-        setData(data);
+        const { data, layout, labelOverrides, planmapTopics } = await loadRoadmapBootstrapData(controller.signal);
+        setData({ ...data, nodes: applyPlanmapOverlay(data.nodes, planmapTopics) });
         setPositionOverrides(layout);
         setNodeLabelOverrides(labelOverrides);
         setLoading(false);
@@ -800,6 +801,34 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
     };
     void loadData();
     return () => controller.abort();
+  }, []);
+
+  // Technical: on-demand re-fetch of roadmap data + plan-map topics, re-applying the
+  // planmap status overlay in place. Topics failures are non-fatal — a missing or
+  // malformed topics.json just means the roadmap renders without the overlay.
+  // Layman: the "Refresh status" button re-pulls both data sources and repaints
+  // the status pills without a full page reload.
+  const refreshPlanmapStatus = useCallback(async () => {
+    try {
+      const [dataRes, topicsRes] = await Promise.all([
+        fetch('/Aralia/api/roadmap/data'),
+        fetch('/Aralia/planmap/topics.json').catch(() => null),
+      ]);
+      if (!dataRes.ok) throw new Error(`Failed to refresh roadmap data (${dataRes.status})`);
+      const fresh = (await dataRes.json()) as RoadmapData;
+      let topics: PlanmapTopic[] | null = null;
+      if (topicsRes && topicsRes.ok) {
+        try {
+          const parsed = await topicsRes.json();
+          topics = Array.isArray(parsed?.topics) ? parsed.topics : null;
+        } catch {
+          topics = null;
+        }
+      }
+      setData({ ...fresh, nodes: applyPlanmapOverlay(fresh.nodes, topics) });
+    } catch (refreshErr) {
+      console.error(refreshErr);
+    }
   }, []);
 
   // Technical: loads local scanner settings (interval, stale threshold, default mode).
@@ -1921,6 +1950,7 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
             <div className="flex gap-2 flex-wrap">
               <button type="button" onClick={expandAll} className={`rounded-lg px-4 py-2 text-xs font-semibold border backdrop-blur-md transition-colors ${glassButtonClass(isDark)}`}>Expand All</button>
               <button type="button" onClick={collapseAll} className={`rounded-lg px-4 py-2 text-xs font-semibold border backdrop-blur-md transition-colors ${glassButtonClass(isDark)}`}>Collapse All</button>
+              <button type="button" onClick={() => void refreshPlanmapStatus()} className={`rounded-lg px-4 py-2 text-xs font-semibold border backdrop-blur-md transition-colors ${glassButtonClass(isDark)}`}>Refresh status</button>
               <div className={`flex items-center gap-1 rounded-lg border px-2 py-1 backdrop-blur-md ${isDark ? 'bg-slate-900/70 border-cyan-500/30 text-slate-100' : 'bg-white/80 border-slate-300 text-slate-700'}`}>
                 <span className="px-1 text-[10px] font-semibold uppercase tracking-[0.14em]">Preset</span>
                 {ROADMAP_PRODUCT_VIEWS.map((view) => (
@@ -3384,6 +3414,17 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
               <div className="mb-1 flex items-center justify-between gap-2 pr-16">
                 <div className="flex items-center gap-1.5">
                   <span className={`text-[10px] uppercase border rounded-full px-1.5 py-0.5 font-semibold ${statusChipClass(node.status, isDark)}`}>{node.status}</span>
+                  {node.planmapStatus && (
+                    <span className={`text-[10px] uppercase border rounded-full px-1.5 py-0.5 font-semibold ${statusChipClass(mapPlanmapStatusToBase(node.planmapStatus), isDark)}`}>
+                      {node.planmapStatus}
+                    </span>
+                  )}
+                  {node.planmapReady && (
+                    <span className="text-[10px] font-semibold" style={{ color: '#4ade80' }}>▶ READY</span>
+                  )}
+                  {node.planmapFocus && (
+                    <span className="text-[10px] font-semibold" style={{ color: '#fbbf24' }}>★ FOCUS</span>
+                  )}
                   {isModuleNode && (
                     <span className={`text-[10px] uppercase border rounded-full px-1.5 py-0.5 font-semibold ${moduleBadgeClass(isDark)}`}>
                       module

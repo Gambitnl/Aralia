@@ -156,3 +156,22 @@ export function findEventsByLocation(history: WorldHistory, locationId: string):
         .filter(event => event.locationId === locationId)
         .sort((a, b) => b.timestamp - a.timestamp);
 }
+
+/**
+ * Finds events that occurred within a chronological range, inclusive of both bounds.
+ * The `timestamp` field is the numeric game day, so this powers timeline slices and replay.
+ *
+ * @param history The world history.
+ * @param startDay The earliest game day to include (inclusive).
+ * @param endDay The latest game day to include (inclusive).
+ * @returns Array of events within [startDay, endDay], sorted by timestamp (newest first).
+ */
+export function findEventsByDateRange(
+    history: WorldHistory,
+    startDay: number,
+    endDay: number
+): WorldHistoryEvent[] {
+    return history.events
+        .filter(event => event.timestamp >= startDay && event.timestamp <= endDay)
+        .sort((a, b) => b.timestamp - a.timestamp);
+}

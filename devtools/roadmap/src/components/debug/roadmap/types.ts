@@ -57,6 +57,13 @@ export interface RoadmapNode {
   // Technical: true when .media/<id>.* exists on the server — set by generateRoadmapData().
   // Layman: controls whether the "View Preview" button appears in the info panel.
   hasMedia?: boolean;
+  // Technical: plan-map projection fields; planmapTopic is baked by the generator,
+  // the rest are set at load time by applyPlanmapOverlay (planmap-overlay.ts).
+  // Layman: which plan-map topic this node mirrors, plus its live plan-map state.
+  planmapTopic?: string;
+  planmapStatus?: string;
+  planmapReady?: boolean;
+  planmapFocus?: boolean;
 }
 
 export interface RoadmapEdge {
@@ -126,6 +133,12 @@ export interface RenderNode {
   // Technical: true when this node shares its ID with another rendered node (data integrity fault).
   // Layman: warning flag shown on cards whose data got scrambled during tree construction.
   warning?: boolean;
+  // Technical: plan-map projection fields surfaced from the mapped source milestone
+  // (applyPlanmapOverlay sets them on RoadmapNode; graph.ts copies them here).
+  // Layman: the raw plan-map status word plus "ready to start" / "current focus" flags.
+  planmapStatus?: string;
+  planmapReady?: boolean;
+  planmapFocus?: boolean;
 }
 
 export interface RenderEdge {

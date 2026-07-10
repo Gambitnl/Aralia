@@ -303,7 +303,9 @@ Commands:
   task new <title> [--body "..."] [--dep <taskId>...] [--priority N] [--ref <gapId|path>...] [--category <name>] [--campaign <id>] [--wave <name>]
                                           create a task; deps gate readiness, priority orders it
   task claim <taskId>                     claim a task
-  task next [--id-only]                   claim the highest-priority READY task (worker pull)
+  task next [--id-only] [--campaign <id>] [--category <name>]
+                                          claim the highest-priority READY task, optionally
+                                          restricted to one campaign and/or category
   task state <taskId> <state>             set state (open|claimed|in_progress|blocked|done)
   task done <taskId> [--result "..."]     mark done, recording WHAT was done (evidence)
   task handoff <taskId> <toAgentId>       reassign a task
@@ -796,7 +798,10 @@ async function cmdCampaigns(out, parsed, _env, baseUrl) {
     const targets = [...(c.paths || []), ...(c.globs || [])].join(', ');
     const lead = c.leadCampaignId ? `  lead:${c.leadCampaignId}` : '';
     const wave = c.wave ? `  wave:${c.wave}` : '';
-    out.log(`${c.id}  [${c.state}/${c.role}]  @${handleFor(map, c.agentId)}${lead}${wave}  ${c.scope || '(no scope note)'}`);
+    const owner = typeof c.ownerStatus === 'string'
+      ? `  owner:${c.ownerStatus}`
+      : c.ownerLive === true ? '  owner:live' : c.ownerLive === false ? '  owner:gone' : '';
+    out.log(`${c.id}  [${c.state}/${c.role}]  @${handleFor(map, c.agentId)}${lead}${wave}${owner}  ${c.scope || '(no scope note)'}`);
     if (targets) out.log(`  scope files: ${targets}`);
     for (const warning of c.warnings || []) out.log(`  warning: ${warning}`);
   }
@@ -869,7 +874,13 @@ async function cmdTask(out, parsed, env, baseUrl) {
 
   // Worker-pull: grab the top-priority ready task in one call.
   if (sub === 'next') {
-    const r = await api(baseUrl, 'POST', '/tasks/claim-next', { token });
+    const body = {};
+    if (typeof parsed.flags.campaign === 'string') body.campaignId = parsed.flags.campaign;
+    if (typeof parsed.flags.category === 'string') body.category = parsed.flags.category;
+    const r = await api(baseUrl, 'POST', '/tasks/claim-next', {
+      token,
+      body: Object.keys(body).length ? body : undefined,
+    });
     if (r.status === 200 && r.json) {
       if (!r.json.task) { out.log('no ready tasks'); return { code: 0, task: null }; }
       if (parsed.flags['id-only']) { out.log(r.json.task.id); return { code: 0, task: r.json.task }; }

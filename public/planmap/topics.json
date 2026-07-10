@@ -576,10 +576,41 @@
     {
       "id": "wf-interiors",
       "title": "Worldforge interiors (L4)",
-      "sub": "enterable buildings; BSP rooms + multi-storey wired & rendered — only an in-3D eyeball left",
+      "sub": "enterable buildings; rooms + floors wired & rendered. Building integrity + honesty gaps left (from the blindspot pass); frozen-houses lives in its own node.",
       "campaign": "world",
       "status": "active",
-      "deps": []
+      "deps": [
+        {
+          "id": "living-interiors-live-clock",
+          "kind": "related",
+          "why": "Frozen houses (blindspot finding #1, highest impact) is tracked as its own node; the rest of the interiors gaps live here."
+        }
+      ],
+      "features": [
+        {
+          "title": "Walls and furniture block where they're drawn",
+          "status": "done"
+        },
+        {
+          "title": "Bad interior data fails loudly, never silently dropped",
+          "status": "parked"
+        },
+        {
+          "title": "Old floor-plan format keeps L-rooms, windows and basements",
+          "status": "parked"
+        },
+        {
+          "title": "Each building's blueprint is built once, not four times",
+          "status": "parked"
+        },
+        {
+          "title": "Hearth glow and window light share one daily schedule",
+          "status": "parked"
+        }
+      ],
+      "history": {
+        "built": "2026-07-09"
+      }
     },
     {
       "id": "neighbour-streaming",
@@ -593,21 +624,64 @@
     {
       "id": "agent-sim-deepening",
       "title": "Agent sim deepening",
-      "sub": "behaviour-only mode · deepen-over-time · real-game wiring · spatial believability",
+      "sub": "BUILT: needs+decisions, families, races, Voronoi town, road-following, registry. NEXT: behaviour-only mode · spatial believability · deepen-over-time · real-game wiring",
       "campaign": "sim",
-      "status": "parked",
+      "status": "active",
+      "link": "docs/superpowers/specs/2026-06-26-agent-sim-deepening.md",
+      "history": {
+        "designed": "2026-06-26"
+      },
       "deps": [
         {
           "id": "building-generator-v2",
           "kind": "hard",
           "why": "Agents can only step inside buildings and use rooms once v2's living overlay exists: room claims, hourly stations, and furniture bindings are the data an indoor agent stands on."
         }
+      ],
+      "features": [
+        {
+          "title": "Behaviour sim: needs, decisions, family coordination",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-06-26-agent-sim-deepening.md"
+        },
+        {
+          "title": "Villagers with ages, races, and family ties",
+          "status": "done"
+        },
+        {
+          "title": "Voronoi-ward town with road-following movement",
+          "status": "done"
+        },
+        {
+          "title": "Villager registry with clickable kin links",
+          "status": "done"
+        },
+        {
+          "title": "Collapse to one behaviour mode (scrub re-simulates the day)",
+          "status": "active"
+        },
+        {
+          "title": "Front doors and door-to-door routing",
+          "status": "parked"
+        },
+        {
+          "title": "Deepen over time: economy, evolving relationships, town events",
+          "status": "parked"
+        },
+        {
+          "title": "Multi-day life events: aging, births, deaths, genealogy",
+          "status": "parked"
+        },
+        {
+          "title": "Populate the town the player enters: real-game wiring, 3D, talk to NPCs",
+          "status": "parked"
+        }
       ]
     },
     {
       "id": "maritime-remainder",
       "title": "Maritime travel remainder",
-      "sub": "owned-ship lifecycle + sea-encounter roll (3D) DONE 2026-07-05; left: in-app visual eyeball, Plans 4-6 (dock tiers/ferry fares/weather-piracy)",
+      "sub": "owned-ship lifecycle + sea-encounter roll (3D) DONE 2026-07-05. 2026-07-09: Voronoi/grid-retirement travel gaps (G3/G5/G6-G10/G13/G17) confirmed already done + closed by audit. SHIPPED same day (each tsc-clean at 635 baseline, travel suite green): ferry fares + affordability + gold deduction (G15); sea lane/coastal/open-ocean danger tiers + trip-level maritime encounter roll (G16); forced-march exhaustion via CON saves (G1, 9h=DC 11); navigation drift / getting lost with seeded time penalty (G2). dock tiers + tender legs (G14) shipped fully additive (dock size derived from burg population, world-gen untouched). ALL 5 real travel gaps done (G1/G2/G14/G15/G16) + owned-ship (G13); travel registry down to 2 open, both design-gated (G4 transport schema, G11 marker-merge contract). REMAINING: cosmetic readout labels (AtlasSvgView tender dotted line + travelReadout fare/tender text) + in-app visual eyeball of a live ferry/lost/exhaustion trip.",
       "campaign": "travel",
       "status": "active",
       "deps": [],
@@ -742,7 +816,10 @@
       "sub": "BUILT 2026-07-08: ward-edge network now bakes as tiered ribbons — pale avenues (inherited roads), paved plaza streets, packed-dirt lanes. Was missing entirely (3D only painted inherited roads)",
       "campaign": "rendering",
       "status": "active",
-      "history": { "designed": "2026-07-08", "built": "2026-07-08" },
+      "history": {
+        "designed": "2026-07-08",
+        "built": "2026-07-08"
+      },
       "deps": [
         {
           "id": "shipped-styled-town",
@@ -1522,27 +1599,31 @@
     {
       "id": "combat-map-nextgen",
       "title": "Next-gen 2D combat map (one renderer, world-derived battlefields, living board)",
-      "sub": "three-pillar ambition chosen 2026-07-06: single-scene renderer replacing the 10.8k-DOM-tile grid; battlefields derived from the actual Worldforge cell (roads/rivers/biome carry over); ambient life + cinematic turns + narrated log + sound. DESIGN APPROVED 2026-07-06: PixiJS v8 WebGPU-first renderer; battlefield forge (one generator, position-first + canned real cells); DOM-mirror accessibility. Prototype BUILT (6 tasks reviewed, ?pixiboard=1); eyeball gate in look-iteration with Remy: quadrant color blend + denser understory + integer-hash scatter + fractal noisy waterline (look anchor: gozzys.com wilderness maps) — all in shared groundPainter.ts, upgrades the DOM board too.",
+      "sub": "three-pillar ambition chosen 2026-07-06: single-scene renderer replacing the 10.8k-DOM-tile grid; battlefields derived from the actual Worldforge cell; ambient life + cinematic turns + narrated log + sound. STATE 2026-07-07: D1 Pixi prototype BUILT (6 tasks reviewed, ?pixiboard=1). TEN biomes painted; forest + desert now REAL PAINTED ART (Caeora packs via a generic per-biome sprite-pack loader). Combat demo relocated to the design preview (?step=battlemap) + window-frame layout fixed; combat 3-col layout survives >=1024px. OPEN: cave still 'not believable' (fix via forge or a Caeora cave zip); Remy eyeball verdicts on water round 6 + biome looks; D1 final whole-plan review; then D2 battlefield forge + D3 living board. Open work is on the Agora board (category combat-map-visual).",
       "campaign": "combat",
       "status": "active",
       "link": "docs/superpowers/specs/2026-07-06-combat-map-nextgen-design.md",
       "features": [
         {
-          "title": "renderer prototype (Pixi ground + tokens + fog) — eyeball gate",
+          "title": "D1 renderer prototype (Pixi ground + tokens + fog) — BUILT, 6 tasks reviewed; final whole-plan review pending (agora 31176b2a)",
           "status": "active",
           "link": "docs/superpowers/specs/2026-07-06-combat-map-nextgen-design.md"
         },
         {
-          "title": "all-biome painted looks (TEN biomes; forest + desert REAL PAINTED ART via Caeora packs through a generic per-biome sprite-pack loader — drop art in public/assets/battlemap/<biome>/ + one manifest entry; other 8 procedural until packs arrive) — eyeball gate",
+          "title": "all-biome painted looks: TEN biomes; forest + desert REAL PAINTED ART (Caeora packs, generic loader); cave OPEN (forge or cave zip); other 7 procedural until packs — eyeball gate",
           "status": "active"
         },
         {
-          "title": "battlefield forge contract + road/river derived-map mock — eyeball gate",
+          "title": "combat demo moved to design preview (?step=battlemap) + window-frame layout fix + 3-col survives >=1024px",
+          "status": "done"
+        },
+        {
+          "title": "battlefield forge contract + road/river derived-map mock (D2) — eyeball gate",
           "status": "specced",
           "link": "docs/superpowers/specs/2026-07-06-combat-map-nextgen-design.md"
         },
         {
-          "title": "living-board storyboard — eyeball gate",
+          "title": "living-board storyboard (D3) — eyeball gate",
           "status": "specced",
           "link": "docs/superpowers/specs/2026-07-06-combat-map-nextgen-design.md"
         },
@@ -1568,6 +1649,24 @@
       "sub": "code-drawn, seeded, owned art style for battle-map props as an alternative to found packs. Grew out of the cave-believability gap 2026-07-07: procedural drawers reach 'good stylized game art' (light upper-left + ink outlines throughout). BUILT: forge module (src/components/BattleMap/forge/) + design-preview showcase (?step=assetforge) with set selector / reroll / PNG export. Cave set done (ore rocks, crystal-ore nodes, chunky crystals, stalagmites, glowing mushrooms). NOT wired to the game yet — design surface only; same drawers can feed the painter's biome branches once a set is approved. Adding a set = one <name>Forge.ts + one registry entry.",
       "campaign": "combat",
       "status": "active",
+      "features": [
+        {
+          "title": "cave set + design-preview showcase (?step=assetforge): rocks, crystal-ore nodes, chunky crystals, stalagmites, glow mushrooms; set selector / reroll / PNG export",
+          "status": "done"
+        },
+        {
+          "title": "refine cave set: stalagmite texture, crystal tips, cohesion pass (agora eab6558d)",
+          "status": "open"
+        },
+        {
+          "title": "wire forge cave set into painter cave biome — resolves cave-believability (decision-gated forge vs cave zip; agora eca9ab35)",
+          "status": "open"
+        },
+        {
+          "title": "expand to more sets (dungeon next; one <name>Forge.ts + one registry entry) (agora 9f21f450)",
+          "status": "planned"
+        }
+      ],
       "deps": [
         {
           "id": "combat-map-nextgen",
@@ -1684,6 +1783,13 @@
           "title": "Phase 1A · household brief pipeline (town family → blueprint brief, single source of truth)",
           "status": "done",
           "link": "docs/superpowers/plans/2026-07-07-building-generator-v2-phase1a-inhabited.md"
+        },
+        {
+          "title": "Household sizing counts bedrooms on every floor (roster undercount fix)",
+          "status": "done",
+          "history": {
+            "built": "2026-07-09"
+          }
         },
         {
           "title": "Phase 1A · living overlay (claims, hourly stations, hearth schedule, owned loot manifests)",
@@ -1887,6 +1993,252 @@
       "history": {
         "designed": "2026-07-06"
       }
+    },
+    {
+      "id": "economy-player-surface",
+      "title": "Economy player-facing UX pass",
+      "sub": "The economy engine is built + wired into worldReducer (Steps 5b/5c), but has NO honest player surface: investment board, ledger, courier pouch, trade-route dashboard, and merchant modal are dev-menu-only, and most gold movements bypass the transaction framework (OPEN_MERCHANT has zero player dispatch sites). Goal: give the economy real in-game entry points so a player earns/spends/sees gold move through the framework. DECISION-GATED / supervised UX pass (Remy in the loop, mock-up + look-approve first) — handed off, not auto-built. Unblocks economy-ui G4/G8/G9 + the merchant-haggle discount persistence (needs merchantId threaded). Handover prompt in the link.",
+      "campaign": "sim",
+      "status": "parked",
+      "link": "docs/superpowers/plans/2026-07-09-economy-ux-pass-handover.md",
+      "deps": [],
+      "history": {
+        "captured": "2026-07-09"
+      }
+    },
+    {
+      "id": "llm-provider-config",
+      "title": "LLM provider as a user configuration choice",
+      "sub": "Reframe (Remy 2026-07-09): the divergent Ollama model-fallback chains scattered across files (types/ollama.ts, ollama/taskProfiles.ts, useBiomeGenerator.ts hardcoded mistral/phi4-mini/gemma3, CompanionGenerator.ts) should NOT be a silent fallback — they should be a user-facing CONFIGURATION choice of LLM provider, by system + availability. Remy's own setup leverages local Ollama to avoid token/rate limits; other users may prefer a different LLM agent (Gemini/Groq/etc.) depending on their machine and access. Direction: make the provider (and its model) a user config, KEEP the no-fallback directive (fail honestly on the chosen provider, no silent model-swapping), and consolidate the currently-hardcoded divergent chains behind that one config. FIRST SLICE SHIPPED 2026-07-09 (behavior-preserving): new src/config/llmProviderConfig.ts centralizes all the scattered hardcoded model choices (global fallback chain, the 4 task-category lists, companion 'mistral:instruct', biome list) with defaults that byte-for-byte reproduce today's behavior; types/ollama.ts, taskProfiles.ts, CompanionGenerator.ts, useBiomeGenerator.ts now import from it; each chain carries a TODO(llm-provider-config) marker. Gate: tsc 635 (no regression), 8/8 config-default pins green. NEXT: the user-facing provider/model settings toggle + wiring the config to actually switch provider (aiProviderSettings.ts already holds the Groq/provider surface).",
+      "campaign": "tooling",
+      "status": "active",
+      "deps": [],
+      "history": {
+        "captured": "2026-07-09"
+      }
+    },
+    {
+      "id": "interior-lighting-live-clock",
+      "title": "Interior lighting on the live clock",
+      "sub": "DONE 2026-07-09. Windows and the hearth now light and darken with the game clock, instead of freezing at the hour you walked in. The whole day is baked once as a schedule; the render side reads it live. Proof: 0 lit windows at noon, 26 at dusk, dark again by night — same building, clock moved.",
+      "campaign": "world",
+      "status": "done",
+      "link": "docs/superpowers/plans/2026-07-08-living-interiors-live-clock.md",
+      "deps": [
+        {
+          "id": "building-generator-v2",
+          "kind": "hard",
+          "why": "Windows and hearths are fixtures of the v2 building shell; the live clock re-times the hearth-lit hours the living overlay already bakes."
+        }
+      ],
+      "history": {
+        "designed": "2026-07-08"
+      },
+      "features": [
+        {
+          "title": "Windows and hearths light live from the daily schedule",
+          "status": "done"
+        },
+        {
+          "title": "One shared building placement transform (no hand-copied drift)",
+          "status": "done"
+        },
+        {
+          "title": "Live in-engine day and night eyeball",
+          "status": "parked"
+        }
+      ]
+    },
+    {
+      "id": "interior-occupants-live-clock",
+      "title": "Interior occupants move by the hour",
+      "sub": "DONE 2026-07-09. Each family member now moves through the house hour by hour on the live clock. Proof: ~1581 people home at night vs ~892 at midday, shifting as the clock advances. v1 snaps between spots; walking between them is the follow-up below.",
+      "campaign": "sim",
+      "status": "done",
+      "link": "docs/superpowers/plans/2026-07-08-living-interiors-live-clock.md",
+      "deps": [
+        {
+          "id": "building-generator-v2",
+          "kind": "hard",
+          "why": "Consumes the living overlay's per-hour occupancy stations; without the household brief and station schedule there is no one to move."
+        },
+        {
+          "id": "interior-lighting-live-clock",
+          "kind": "chosen",
+          "why": "Shares the baked 24-hour schedule and the one plan-feet-to-scene transform; built alongside so both read the same live clock."
+        }
+      ],
+      "history": {
+        "designed": "2026-07-08"
+      },
+      "features": [
+        {
+          "title": "Family stands at hourly stations in 3D, live",
+          "status": "done"
+        },
+        {
+          "title": "Occupants walk between stations",
+          "status": "parked"
+        },
+        {
+          "title": "Merge interior occupants into the street agent sim",
+          "status": "parked"
+        }
+      ]
+    },
+    {
+      "id": "servants-as-npcs",
+      "title": "Servants as real NPCs",
+      "sub": "Today a servant is only a tag on a house's design brief: it shapes which rooms get built, then never becomes a person (blindspot finding #2 — servant slots drive room programming but place no body). Promote servants to real household NPCs with a role in the household, a daily schedule, and a body that stands and moves like any resident. This is an NPC/roster system, not a field on a building — it is why the live-clock work split occupants away from building fixtures. Direction set by Remy 2026-07-09; not yet specced.",
+      "campaign": "sim",
+      "status": "parked",
+      "deps": [
+        {
+          "id": "interior-occupants-live-clock",
+          "kind": "chosen",
+          "why": "A servant needs the interior figure layer to appear and move; servants ride the same per-hour occupant system as residents."
+        },
+        {
+          "id": "building-generator-v2",
+          "kind": "chosen",
+          "why": "Servant slots already exist in the v2 household brief and shape the plan; this gives those slots a real person."
+        }
+      ],
+      "history": {
+        "captured": "2026-07-09"
+      }
+    },
+    {
+      "id": "ai-arbitrated-ritual-casting",
+      "title": "AI-arbitrated ritual casting",
+      "sub": "Remy's design 2026-07-09: rituals become a REAL feature but heavily AI-arbitrated and state-aware, NOT a progress bar the player babysits. A ritual is a background narrative process; drama comes from who is around and what is happening. SAFE place -> quiet background dice roll; interruptions are social + personality-driven (a companion who doesn't get magic / isn't aware of the ritual may cause a funny distraction -> concentration roll; a quiet/shy NPC less likely, a comedian/low-INT more likely; a companion who knows the player may head off the disruptor, but only if >1 companion present). HIGHER THREAT place -> danger-driven: waylaid by enemies, or sound/visual signals surfaced via passive perception ('you hear/see X' -> player may abort); companions roll passive perception too (background per-event DC -> auto pass/fail); noticing NPCs choose investigate / sound alarm / dismiss, driven by paranoid vs careless traits. Needs: awareness model (who's near + who knows), NPC personality traits, a NEW flexible per-event DC mechanic, AI arbitration (Ollama-gated, respects no-fallback/provider-config), and the existing ritual engine's completion payoff + backlash (currently stubs). Background clock already works. Needs a brainstorm pass then phased build. FIRST PREREQUISITE BUILT 2026-07-09 (no-decision, reusable): the flexible per-event detection mechanic — new src/systems/perception/eventDetection.ts with EventDC + difficulty bands (5e DC ladder, tunable), passivePerceptionOf (reuses the existing calculatePassiveScore; supports PC compute + NPC passivePerception field), and resolveEventDetection (passive auto-detect >= DC, optional seeded active roll, no-fallback throw). Gate: tsc 635, 17/17 tests. This is the 'companions roll passive perception (background DC -> auto pass/fail)' piece. REMAINING pieces are ritual-specific arbitration that need the brainstorm: awareness model (who's near + who knows — the memory factKey from the just-shipped merge feeds 'who knows'), personality->interruption/reaction mapping, AI narration, cast-trigger + command routing, real completion payoff, backlash.",
+      "campaign": "spells",
+      "status": "specced",
+      "link": "docs/superpowers/specs/2026-07-09-ai-arbitrated-ritual-casting.md",
+      "deps": [
+        {
+          "id": "npc-personality-system",
+          "kind": "hard",
+          "why": "Ritual interruption/reaction arbitration reads NPC personality (shy/comedian/paranoid/careless). Remy 2026-07-09: personality is broader than rituals, split off as its own foundational NPC-behavior track; rituals consume it."
+        }
+      ],
+      "history": {
+        "designed": "2026-07-09"
+      }
+    },
+    {
+      "id": "npc-memory-reconciliation",
+      "title": "NPC memory: merge or keep separate",
+      "sub": "Two NPC-memory systems exist. LIVE: world-state NpcMemory (types/world.ts) - disposition/suspicion/plain facts/goals, filled by talking/haggling/crime/gossip, ~20 consumers, drives recruitment + dossier + prices. DORMANT: richer NPCMemory (types/memory.ts) - timestamped interactions, emotion, per-fact confidence, importance, decay; self-labeled orphan, filled only in tests. world.ts is already half-extended with the richer type's optional fields. DETERMINATION 2026-07-09 = MERGE (evidence-backed): they are the SAME system forked, not separate purposes. docs/projects/memory/GAPS.md already tracks this as G1 (schema-normalization: pick one canonical shape) + G2 (retire the orphan MemorySystem); the richer NPCMemory was the intended structured upgrade (generator TODO: 'Replace NpcMemory with the structured NPCMemory when memory models merge'), parked ~6 weeks with ZERO live writes and its one read fed a hardcoded-empty memory; world.ts was deliberately half-widened 2026-07-03 to hold the richer fields (typed loosely) awaiting exactly this call. Migration sketch ready: extend KnownFact with optional richer fields (add a semantic factKey — which is what makes 'companion knows player is ritual-casting' a reliable query), finish the world.ts typing, repoint the decay/format helpers onto the canonical shape, retire MemorySystem, save/load backfill. Low blast radius (~20 live consumers keep working; richer lane has ~0 to preserve). MERGE EXECUTED + gate-green 2026-07-09: canonical = live NpcMemory; KnownFact extended with optional factKey/confidence/significance + widened source; NpcMemory half-merge fields tightened (Interaction[]/number/Record<string,number>); NPCMemory now aliases the canonical type; orphan MemorySystem.ts + test deleted; memoryUtils helpers repointed; save/load backfills from strength. tsc 635 (no regression), 28/28 memory/npc/gemini tests green. Closes memory G1 + G2. TAIL CLOSED 2026-07-10: the 3 stale .d.ts twins (memory.d.ts/world.d.ts/index.d.ts) deleted; verified not build-generated (tsconfig noEmit; node-tsconfig emitDeclarationOnly scopes only vite.config+named scripts) and not needed by any tsconfig include; sole consumer test:types repointed from index.d.ts to index.ts; tsc -b still 635 (byte-identical error set). Broader twin sweep spun off as types-decl-twin-hygiene.",
+      "campaign": "sim",
+      "status": "done",
+      "link": "docs/superpowers/plans/2026-07-09-npc-memory-reconciliation-handover.md",
+      "deps": [],
+      "history": {
+        "captured": "2026-07-09",
+        "built": "2026-07-09"
+      }
+    },
+    {
+      "id": "planmap-roadmap-sync",
+      "title": "Plan-map status on the roadmap + cross-tool nav",
+      "sub": "roadmap shows live plan-map status (READY/FOCUS badges, Refresh); jump/embed/peek between the two tools; one-way, never fuses graphs",
+      "campaign": "tooling",
+      "status": "specced",
+      "deps": [],
+      "link": "docs/superpowers/specs/2026-07-09-planmap-roadmap-live-status.md"
+    },
+    {
+      "id": "npc-personality-system",
+      "title": "NPC personality system",
+      "sub": "Foundational NPC-behavior track, split off the ritual track by Remy 2026-07-09 ('this is more about NPC behavior, in particular their personality traits, at first'). Today characters carry only a free-text traits: string[] + real ability scores; there is NO structured personality model. Build one that drives how NPCs behave: whether a companion interrupts the player (shy/reserved less likely, boisterous/comedian more likely), how an NPC reacts to a noticed danger (paranoid investigates/alarms, careless dismisses), and more broadly dialogue tone, party dynamics, and the living-world sim. Design decisions still OPEN (brainstorm redirected here before the model was picked): numeric personality axes (Sociability/Caution/Curiosity/Impulsiveness/Confidence, behaviors derive from thresholds) vs a fixed trait-tag enum vs Big-Five. Consumed by [[ai-arbitrated-ritual-casting]] (interruption/reaction arbitration) and feeds NPC memory ([[npc-memory-reconciliation]], now merged). Needs its own brainstorm → spec → build.",
+      "campaign": "sim",
+      "status": "parked",
+      "deps": [],
+      "history": {
+        "captured": "2026-07-09"
+      }
+    },
+    {
+      "id": "types-decl-twin-hygiene",
+      "title": "Stale src/types .d.ts twin cleanup",
+      "sub": "src/types holds hand-committed .d.ts files that shadow-duplicate their .ts source; 45 of 50 .d.ts have a live .ts twin. TypeScript resolves the .ts over the .d.ts, so the twins are invisible today (0 tsc errors) but latent: if anything ever imports an explicit .d path or a build starts emitting them, they resurface retired shapes. Confirmed NOT build-generated (tsconfig noEmit; tsconfig.node emitDeclarationOnly scopes only vite.config + a few named scripts, never src/types). FIRST 3 CLEARED 2026-07-10 (the ones the NPC-memory merge desynced: memory/world/index — see [[npc-memory-reconciliation]]); tsc -b held at 635 byte-identical. REMAINING: (1) audit the other ~42 twins, delete the ones that are pure stale duplicates (some may be legitimately hand-authored ambient decls with no .ts — the 5 .d-only files — leave those), tsc-diff each batch; (2) test:types is currently RED anyway — 18 pre-existing ConditionName drift errors in src/types/__tests__/spells.test-d.ts, not run in CI — either fix the spells declaration drift and gate it in CI, or retire the script. Low blast radius, parallelizable by disjoint file batches.",
+      "campaign": "tooling",
+      "status": "parked",
+      "deps": [
+        {
+          "id": "npc-memory-reconciliation",
+          "kind": "soft",
+          "why": "the memory merge exposed the twin-shadowing trap and cleared the first 3; this sweep generalizes it to the rest of src/types"
+        }
+      ],
+      "history": {
+        "captured": "2026-07-10"
+      }
+    },
+    {
+      "id": "interiors-blindspot-pass",
+      "title": "Interiors blindspot pass",
+      "sub": "read-pass over WF-INTERIORS surfaced 7 gaps. SHIPPED: #1 live clock, #2 silent failures, #3 hearth transform, #4 storey height. #6 measured won't-fix. OPEN on the Agora board: #5 lossy plan, #7 lighting-hours unify/confirm",
+      "campaign": "world",
+      "status": "active",
+      "deps": [
+        {
+          "id": "wf-interiors",
+          "kind": "requires",
+          "why": "The pass audits the L4 interiors subsystem (interior/ + bridge/)."
+        },
+        {
+          "id": "building-generator-v2",
+          "kind": "requires",
+          "why": "Living Buildings owns interior quality; the live-clock and quality findings extend it."
+        }
+      ],
+      "features": [
+        {
+          "title": "#1 Live clock reaches interiors (lit windows, hearth, occupants track the day)",
+          "status": "done",
+          "history": {
+            "built": "2026-07-09"
+          }
+        },
+        {
+          "title": "#2 Silent-failure audit vs no-fallback directive (furniture skip, servant no body, anchor 0,0)",
+          "status": "done",
+          "history": {
+            "built": "2026-07-09"
+          }
+        },
+        {
+          "title": "#3 Hearth-light transform de-duplicated and tested (was hand-copied from SiteBuilding)",
+          "status": "done",
+          "history": {
+            "built": "2026-07-09"
+          }
+        },
+        {
+          "title": "#4 Storey-height single source of truth (3m shell vs 10ft roof solver, ~1.6% drift)",
+          "status": "done",
+          "history": {
+            "built": "2026-07-08"
+          }
+        },
+        {
+          "title": "#5 Legacy InteriorPlan lossy-view consumer audit (L-room bbox, dropped windows, no basement)",
+          "status": "active"
+        },
+        {
+          "title": "#6 Redundant blueprint fetch measured negligible (1.9%, documented in code)",
+          "status": "done",
+          "history": {
+            "built": "2026-07-08"
+          }
+        },
+        {
+          "title": "#7 Unified 24-hour interior lighting schedule (hearth vs window hours reconciled)",
+          "status": "active"
+        }
+      ]
     }
   ]
 }

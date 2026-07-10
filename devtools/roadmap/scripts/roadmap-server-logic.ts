@@ -41,6 +41,11 @@ export type RoadmapNode = {
   // Optional flag marking this node as the live Spells navigator entry point.
   spellTree?: boolean;
   hasMedia?: boolean;   // true when .media/<id>.* exists on disk
+  // Plan-map projection (set at generate/overlay time; see planmap-overlay.ts).
+  planmapTopic?: string;   // baked by the generator from PLANMAP_TOPIC_BY_NODE_ID
+  planmapStatus?: string;  // raw plan-map status word, set by the runtime overlay
+  planmapReady?: boolean;  // computed by the runtime overlay
+  planmapFocus?: boolean;  // computed by the runtime overlay
   [key: string]: unknown;
 };
 

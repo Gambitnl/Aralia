@@ -851,8 +851,13 @@ export function createStore({
   // files before editing.
   // ===========================================================================
   function isLiveAgent(agentId, t = now()) {
+    return agentPresenceStatus(agentId, t) !== 'gone';
+  }
+
+  function agentPresenceStatus(agentId, t = now()) {
     const agent = state.agents.get(agentId);
-    return Boolean(agent && t - agent.lastSeen <= presenceDropMs);
+    if (!agent || t - agent.lastSeen > presenceDropMs) return 'gone';
+    return computeStatus(agent, t);
   }
 
   function activeCampaigns(t = now()) {
@@ -900,6 +905,16 @@ export function createStore({
       return { ok: false, error: 'deputy campaign must name an active lead campaign' };
     }
 
+    // A successor may adopt an active campaign whose owner has fallen beyond
+    // the drop horizon. Keep the original creation time and history so the
+    // dashboard shows continuity instead of making the old owner disappear.
+    const adoptsDeadOwner = Boolean(
+      existing
+      && existing.state === 'active'
+      && existing.agentId !== agentId
+      && !isLiveAgent(existing.agentId, t),
+    );
+
     for (const campaign of activeCampaigns(t)) {
       if (campaign.id === id) continue;
       if (campaign.role !== 'lead') continue;
@@ -943,7 +958,14 @@ export function createStore({
       updatedAt: t,
       history: [
         ...((existing && existing.history) || []),
-        { at: t, by: agentId, action: 'claimed', state: 'active', role: normalizedRole },
+        {
+          at: t,
+          by: agentId,
+          action: adoptsDeadOwner ? 'adopted' : 'claimed',
+          state: 'active',
+          role: normalizedRole,
+          ...(adoptsDeadOwner ? { previousOwner: existing.agentId } : {}),
+        },
       ],
     };
     emit('campaign.claim', { campaign });
@@ -963,9 +985,19 @@ export function createStore({
   }
 
   function listCampaigns({ state: filterState } = {}) {
+    const t = now();
     return [...state.campaigns.values()]
       .filter((campaign) => !filterState || campaign.state === filterState)
-      .map((campaign) => JSON.parse(JSON.stringify(campaign)));
+      .map((campaign) => {
+        const ownerStatus = agentPresenceStatus(campaign.agentId, t);
+        return {
+          ...JSON.parse(JSON.stringify(campaign)),
+          // Ownership remains authoritative through the stale window. Only a
+          // gone owner may be replaced; stale is a warning, not permission.
+          ownerStatus,
+          ownerLive: ownerStatus !== 'gone',
+        };
+      });
   }
 
   // ===========================================================================
@@ -1052,8 +1084,14 @@ export function createStore({
 
   /** Atomically claim the highest-priority ready task (worker-pull model).
    *  Returns { ok: true, task } or { ok: true, task: null } when nothing is ready. */
-  function claimNextReady({ agentId } = {}) {
-    const ready = [...state.tasks.values()].filter(isTaskReady).sort(readyOrder);
+  function claimNextReady({ agentId, campaignId, category } = {}) {
+    const normalizedCampaignId = normalizeCampaignId(campaignId || '');
+    const normalizedCategory = normalizeCategoryInput(category);
+    const ready = [...state.tasks.values()]
+      .filter(isTaskReady)
+      .filter((task) => !normalizedCampaignId || task.campaignId === normalizedCampaignId)
+      .filter((task) => !normalizedCategory || withCategory(task).categories.includes(normalizedCategory))
+      .sort(readyOrder);
     if (ready.length === 0) return { ok: true, task: null };
     return claimTask({ taskId: ready[0].id, agentId });
   }
@@ -1068,6 +1106,9 @@ export function createStore({
       return { ok: false, error: 'only the claimant or the task creator may handoff' };
     }
     const ts = now();
+    if (!state.agents.has(toAgentId) || !isLiveAgent(toAgentId, ts)) {
+      return { ok: false, error: 'target agent is not registered or live' };
+    }
     const entry = { at: ts, by: agentId, action: 'handoff', to: toAgentId, state: t.state };
     emit('task.handoff', { taskId, agentId, toAgentId, ts, entry });
     return { ok: true, task: JSON.parse(JSON.stringify(state.tasks.get(taskId))) };
@@ -1254,6 +1295,24 @@ export function createStore({
         }
       }
       emit('agent.drop', { agentId: agent.id, reaped: true });
+    }
+
+    // Invariant repair for legacy/corrupt state: old versions could hand a
+    // task to a typo or already-gone agent id. No reaper can visit an identity
+    // that has no roster record, so sweep those orphan claims directly.
+    for (const task of [...state.tasks.values()]) {
+      if (!task.claimedBy || !['claimed', 'in_progress'].includes(task.state)) continue;
+      if (state.agents.has(task.claimedBy)) continue;
+      const previousClaimant = task.claimedBy;
+      const entry = {
+        at: t,
+        by: 'system',
+        action: 'reaped',
+        state: 'open',
+        reason: 'orphan claimant missing from roster',
+        previousClaimant,
+      };
+      emit('task.release', { taskId: task.id, ts: t, entry, orphaned: true });
     }
   }
 

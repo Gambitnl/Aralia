@@ -25,6 +25,7 @@
  */
 import type { ChunkData, ChunkSite } from './types';
 import { gridPointToLocal } from './coords';
+import { siteOrientationFromQuad } from '@/systems/worldforge/bridge/sitePartTransform';
 
 const MIN_RADIUS_M = 8;
 const MAX_RADIUS_M = 30;
@@ -122,14 +123,11 @@ export function buildSiteMeshes(data: ChunkData): ChunkSite[] {
       site.boxWidth = Math.max(1, Math.hypot(e1x, e1z));
       site.boxDepth = Math.max(1, Math.hypot(e2x, e2z));
       site.boxHeight = Math.max(2, s.heightM ?? 4);
-      // three.js rotates counter-clockwise around +Y; atan2 of the frontage
-      // edge gives the box yaw so its width axis follows the street.
-      site.rotationY = -Math.atan2(e1z, e1x);
-      // Street side: corners 0-1 (the frontage edge) sit toward the street,
-      // e2 points away from it. The cross product's sign tells which local-Z
-      // face e2 maps to after the yaw — the door goes on the opposite face.
-      const cross = e1x * e2z - e1z * e2x;
-      site.doorZSign = cross >= 0 ? -1 : 1;
+      // Yaw (frontage edge follows the street) + street-face sign from the ONE
+      // shared convention, so the walkability grid can't re-derive it differently.
+      const orientation = siteOrientationFromQuad(c);
+      site.rotationY = orientation.rotationY;
+      site.doorZSign = orientation.doorZSign;
     }
 
     return site;

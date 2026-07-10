@@ -63,55 +63,10 @@ export interface Interaction {
 }
 
 /**
- * A specific piece of information an NPC knows about the player.
+ * The forked richer memory model (`NPCMemory`/`Fact`) has been merged onto the canonical live
+ * `NpcMemory`/`KnownFact` in `./world`. `NPCMemory` is kept as an alias so the handful of
+ * type-only importers (Gemini item prompts, the game-guide modal) keep resolving; new code should
+ * import `NpcMemory` from `./world` directly. `Fact`'s contribution (semantic key, confidence,
+ * significance, richer source labels) now lives on the optional fields of `KnownFact`.
  */
-export interface Fact {
-  /** Unique identifier for the fact (e.g., "player_is_dragonborn", "player_killed_king") */
-  id: string;
-  /** When the NPC learned this fact */
-  dateLearned: GameDate;
-  /** How confident the NPC is in this fact (0.0 to 1.0) */
-  confidence: number;
-  /** Importance score determining retention (0-10) */
-  significance: number;
-  /** When this fact becomes irrelevant (optional) */
-  expirationDate?: GameDate;
-  /** The source of the information (e.g., "witnessed", "gossip", "told_by_player") */
-  source: 'witnessed' | 'gossip' | 'told_by_player' | 'inference';
-}
-
-/**
- * Tracks what an NPC remembers about interactions.
- * Used by the dialogue and AI systems to maintain coherent conversations and relationships.
- */
-export interface NPCMemory {
-  /**
-   * Chronological list of past interactions with this NPC.
-   * Newest interactions should be appended to the end.
-   */
-  interactions: Interaction[];
-
-  /**
-   * Facts the NPC has learned about the player or world.
-   */
-  knownFacts: Fact[];
-
-  /**
-   * Overall attitude toward the player.
-   * Range: -100 (Hostile/Nemesis) to 100 (Devoted/Ally).
-   * 0 is Neutral.
-   */
-  attitude: number;
-
-  /**
-   * When the NPC last interacted with the player.
-   * Used to determine greeting familiarity or "long time no see" dialogue.
-   */
-  lastInteractionDate: GameDate;
-
-  /**
-   * Topics the NPC has already discussed to avoid repetitive dialogue.
-   * Keys are topic IDs, values are the timestamp when discussed.
-   */
-  discussedTopics: Record<string, GameDate>;
-}
+export type { NpcMemory as NPCMemory } from './world';

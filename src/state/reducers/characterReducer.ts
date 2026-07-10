@@ -53,6 +53,7 @@ import {
   getRacialSpellGrantForSpell,
   isRacialSpellCastLevelAllowed,
   resolveRacialSpellLimitedUseId,
+  resolveRacialResourceId,
 } from '../../utils/characterUtils';
 import { getMaxPreparedSpells } from '../../utils/character/getMaxPreparedSpells';
 import { isWeaponProficient } from '../../utils/weaponUtils';
@@ -274,7 +275,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
                         // 3. Relentless Endurance check (Orc trait)
                         // Trigger if reduced to 0 but not killed, and has the resource.
-                        const reResourceId = `racial_feature_orc__relentless_endurance__resource`;
+                        const reResourceId = resolveRacialResourceId('feature', 'orc__relentless_endurance__resource');
                         const hasRelentlessEndurance = updatedChar.limitedUses?.[reResourceId] && updatedChar.limitedUses[reResourceId].current > 0;
 
                         if (potentialNewHp <= 0 && updatedChar.hp > 0 && hasRelentlessEndurance) {

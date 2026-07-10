@@ -25,7 +25,14 @@
   #validation.show { display: block; }
   #validation b { color: #fca5a5; }
   #validation ul { margin: 6px 0 0; padding-left: 20px; }
-  #legend { padding: 8px 22px; font-size: 12px; color: #94a3b8; display: grid; grid-template-columns: minmax(220px, 1.15fr) minmax(190px, 0.8fr) minmax(260px, 1.05fr) minmax(300px, 1fr) minmax(170px, 0.75fr); gap: 12px; align-items: start; }
+  /* Legend panel: the explanatory guide is useful, but it is not the work
+     surface. It starts collapsed so the map gets the first screen of space,
+     while the full filter/legend grid remains one click away. */
+  #legend-panel { padding: 5px 22px 0; border-bottom: 1px solid rgba(30,41,59,0.6); }
+  #legend-toggle, #demo-flow-toggle { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; font-size: 12px; padding: 4px 10px; border-radius: 5px; cursor: pointer; }
+  #legend-toggle:hover, #demo-flow-toggle:hover { background: #334155; }
+  #legend-panel.collapsed #legend { display: none; }
+  #legend { padding: 8px 0; font-size: 12px; color: #94a3b8; display: grid; grid-template-columns: minmax(220px, 1.15fr) minmax(190px, 0.8fr) minmax(260px, 1.05fr) minmax(300px, 1fr) minmax(170px, 0.75fr); gap: 12px; align-items: start; }
   .legend-group { min-width: 0; display: flex; flex-direction: column; gap: 5px; padding: 7px 9px; border: 1px solid rgba(51,65,85,0.55); border-radius: 6px; background: rgba(15,23,42,0.35); }
   .legend-title { font-size: 10px; line-height: 1; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b; }
   .legend-items { display: flex; gap: 8px 12px; flex-wrap: wrap; align-items: center; min-width: 0; }
@@ -139,6 +146,55 @@
   #detail-body .dep.clk:hover { border-left-color: #7dd3fc; }
   #detail-body a { color: #7dd3fc; }
   #detail-body .empty { color: #475569; font-size: 11px; font-style: italic; }
+  /* Demo flow overlay: a compact guided overview for people who want to read
+     the map in the intended order without keeping the full guide expanded. */
+  #demo-flow-backdrop { display: none; position: fixed; inset: 0; background: rgba(2,6,23,0.72); z-index: 980; align-items: center; justify-content: center; padding: 22px; }
+  #demo-flow-backdrop.open { display: flex; }
+  #demo-flow-panel { position: relative; width: min(900px, 94vw); max-height: 86vh; overflow-y: auto; background: #0b1120; border: 1px solid #334155; border-radius: 8px; box-shadow: 0 22px 70px rgba(0,0,0,0.55); padding: 26px 30px 28px; }
+  #demo-flow-close { position: absolute; top: 12px; right: 14px; background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 4px; }
+  #demo-flow-close:hover { color: #e2e8f0; background: #1e293b; }
+  #demo-flow-panel h2 { margin: 0 34px 10px 0; color: #fbbf24; font-size: 20px; }
+  #demo-flow-panel p { margin: 0 0 14px; color: #cbd5e1; line-height: 1.5; }
+  .demo-map { position: relative; min-height: 420px; border: 1px solid #1e293b; border-radius: 8px; overflow: hidden; background: #0f172a; }
+  .demo-lane { position: absolute; left: 0; right: 0; border-top: 1px solid rgba(51,65,85,0.7); background: rgba(30,41,59,0.22); }
+  .demo-lane.one { top: 0; height: 140px; }
+  .demo-lane.two { top: 140px; height: 150px; background: rgba(15,23,42,0.42); }
+  .demo-lane.three { top: 290px; height: 130px; }
+  .demo-lane-label { position: absolute; top: 8px; left: 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #94a3b8; }
+  .demo-topic, .demo-step, .demo-chip { position: absolute; box-sizing: border-box; border-radius: 7px; background: rgba(4,47,46,0.82); border: 2px solid #2dd4bf; color: #ccfbf1; box-shadow: 0 0 0 1px rgba(15,23,42,0.8); }
+  .demo-topic { width: 210px; height: 86px; padding: 12px 14px; }
+  .demo-topic.primary { left: 80px; top: 36px; }
+  .demo-topic.secondary { left: 80px; top: 176px; border-color: #a78bfa; background: rgba(46,16,101,0.78); color: #ede9fe; }
+  .demo-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .demo-sub { font-size: 11px; color: #99f6e4; line-height: 1.25; }
+  .demo-status { position: absolute; left: 14px; bottom: 10px; font-size: 11px; font-weight: 700; color: #fbbf24; }
+  .demo-status::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #fbbf24; margin-right: 6px; }
+  .demo-doc { position: absolute; right: 12px; bottom: 9px; font-size: 11px; color: #bae6fd; }
+  .demo-ready { position: absolute; top: 10px; right: 12px; font-size: 11px; color: #4ade80; font-weight: 700; }
+  .demo-step { width: 148px; height: 44px; padding: 9px 10px 6px 28px; font-size: 11px; line-height: 1.15; }
+  .demo-step::before { content: ""; position: absolute; left: 12px; top: 17px; width: 7px; height: 7px; border-radius: 50%; background: #38bdf8; }
+  .demo-step.a { left: 360px; top: 56px; }
+  .demo-step.b { left: 540px; top: 56px; }
+  .demo-step.c { left: 360px; top: 194px; border-style: dashed; }
+  .demo-step.d { left: 540px; top: 236px; }
+  .demo-chip { left: 120px; bottom: 42px; width: 150px; height: 26px; border-radius: 14px; border-color: #818cf8; background: rgba(30,27,75,0.72); padding: 6px 28px 0 20px; font-size: 10px; }
+  .demo-datebar { position: absolute; left: 42px; right: 42px; bottom: 14px; height: 24px; border-top: 1px solid #334155; color: #64748b; font-size: 10px; }
+  .demo-datebar span { position: absolute; top: 8px; transform: translateX(-50%); }
+  .demo-datebar .bar { position: absolute; top: -7px; width: 8px; height: 10px; border-radius: 2px; background: #4ade80; }
+  .demo-arrow { position: absolute; height: 0; border-top: 2px solid #38bdf8; }
+  .demo-arrow::after { content: ""; position: absolute; right: -1px; top: -5px; border-left: 9px solid #38bdf8; border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+  .demo-arrow.one { left: 292px; top: 78px; width: 62px; }
+  .demo-arrow.two { left: 510px; top: 78px; width: 28px; }
+  .demo-arrow.three { left: 292px; top: 216px; width: 62px; border-top-color: #c084fc; }
+  .demo-arrow.three::after { border-left-color: #c084fc; }
+  .demo-caption { position: absolute; padding: 4px 8px; border-radius: 4px; background: rgba(15,23,42,0.88); border: 1px solid #334155; color: #cbd5e1; font-size: 10px; white-space: nowrap; }
+  .demo-caption.lanes { left: 12px; top: 34px; }
+  .demo-caption.topic { left: 90px; top: 8px; }
+  .demo-caption.steps { left: 392px; top: 18px; }
+  .demo-caption.arrowlabel { left: 392px; top: 106px; }
+  .demo-caption.status { left: 84px; top: 126px; }
+  .demo-caption.dates { right: 54px; bottom: 42px; }
+  .demo-note { margin-top: 14px; padding: 10px 12px; border-left: 3px solid #38bdf8; background: rgba(30,41,59,0.45); color: #94a3b8; }
   /* Markdown document drawer: spec/doc links open beside the map instead of
      replacing the page with raw Markdown. It mirrors the detail panel motion so
      reference material feels like a companion view, not a navigation away. */
@@ -184,19 +240,19 @@
   #glossary-body pre code { background: none; padding: 0; }
   .copybtn { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; font-size: 12px; padding: 5px 12px; border-radius: 5px; cursor: pointer; }
   .copybtn:hover { background: #334155; }
-  /* Date-progression timeline (Task 4): momentum bars + playhead readout,
-     sitting below the map/Shipped/Graveyard strips. Absent entirely when
-     history.json or window.PlanmapHistory isn't available (no error). */
-  #timeline { padding: 6px 22px 10px; border-top: 1px solid #1e293b; min-height: 54px; touch-action: none; }
-  #timeline svg { width: 100%; height: 54px; display: block; }
-  #timeline .tl-bar { fill: #4ade80; }
-  #timeline .tl-axis { stroke: #334155; stroke-width: 1; }
-  #timeline .tl-tick { font-size: 10px; fill: #64748b; }
-  #timeline .tl-play { fill: #1e293b; stroke: #334155; cursor: pointer; }
-  #timeline .tl-play.playing { fill: #334155; stroke: #fbbf24; }
-  #timeline .tl-playhead { stroke: #fbbf24; stroke-width: 2; }
-  #timeline .tl-knob { fill: #fbbf24; cursor: ew-resize; }
-  #timeline .tl-readout { font-size: 11px; fill: #94a3b8; }
+  /* Date-progression timeline (Task 4): now drawn inside the plan-map SVG so
+     it pans and zooms with the data it describes instead of acting like a fixed
+     page footer. #timeline remains only as a compatibility shell for old code. */
+  #timeline { display: none; }
+  .tl-hit { fill: transparent; cursor: ew-resize; }
+  .tl-bar { fill: #4ade80; }
+  .tl-axis { stroke: #334155; stroke-width: 1; }
+  .tl-tick { font-size: 10px; fill: #64748b; }
+  .tl-play { fill: #1e293b; stroke: #334155; cursor: pointer; }
+  .tl-play.playing { fill: #334155; stroke: #fbbf24; }
+  .tl-playhead { stroke: #fbbf24; stroke-width: 2; }
+  .tl-knob { fill: #fbbf24; cursor: ew-resize; }
+  .tl-readout { font-size: 11px; fill: #94a3b8; }
 </style>
 </head>
 <body>
@@ -215,7 +271,11 @@
 </header>
 <!-- Validation banner: populated + shown by JS only when a check fails. -->
 <div id="validation"></div>
-<div id="legend"></div>
+<div id="legend-panel" class="collapsed">
+  <button id="legend-toggle" type="button" aria-expanded="false" aria-controls="legend" title="Show or hide the plan-map guide, filters, and totals.">Show guide</button>
+  <button id="demo-flow-toggle" type="button" aria-haspopup="dialog" title="Open a short guided overview of how to read this plan-map.">Demo flow</button>
+  <div id="legend"></div>
+</div>
 <!-- Cross-cutting concerns are deliberately NOT graph nodes (aspect-nodes spaghetti a DAG) — they live here as prose. -->
 <div id="invariants"><b>Invariants (apply to every node):</b> seed-determinism · feet-canon · BattleMapTile referee vocabulary · save-compat</div>
 <div id="maptools">
@@ -223,8 +283,8 @@
   <span class="zlabel" id="zoom-label">100%</span>
   <button id="zoom-in">+</button>
   <button id="zoom-fit">Fit</button>
-  <button id="zoom-read">Read</button>
-  <button id="heat-toggle" aria-pressed="false">Age heat</button>
+  <button id="zoom-read" aria-pressed="false" title="Jump to a close-up view centered on the nearest roadmap tile so labels are easier to read.">Read: Off</button>
+  <button id="heat-toggle" aria-pressed="false" title="Show colored age shading for roadmap items based on how long they have stayed unchanged.">Age heat: Off</button>
   <span id="heat-legend" style="display:none;">
     <span><span class="hsw" style="background:#22d3ee;"></span>≤2d</span>
     <span><span class="hsw" style="background:#fbbf24;"></span>≤7d</span>
@@ -246,6 +306,53 @@
   <button id="doc-close" aria-label="Close document">✕</button>
   <div id="doc-body"><p class="muted">Choose a document…</p></div>
 </aside>
+<div id="demo-flow-backdrop">
+  <div id="demo-flow-panel" role="dialog" aria-modal="true" aria-labelledby="demo-flow-title">
+    <button id="demo-flow-close" aria-label="Close demo flow">✕</button>
+    <h2 id="demo-flow-title">Demo Flow</h2>
+    <p>A labeled mockup of the plan-map structure. The boxes are placeholders; the labels name the component type.</p>
+    <div class="demo-map" aria-label="Mock plan-map with labeled placeholder components">
+      <div class="demo-lane one"><span class="demo-lane-label">Campaign lane</span></div>
+      <div class="demo-lane two"><span class="demo-lane-label">Campaign lane</span></div>
+      <div class="demo-lane three"><span class="demo-lane-label">Shipped / history area</span></div>
+      <div class="demo-caption lanes">lane bands</div>
+      <div class="demo-caption topic">topic tile</div>
+      <div class="demo-caption steps">step tiles</div>
+      <div class="demo-caption arrowlabel">dependency arrows</div>
+      <div class="demo-caption status">status + doc affordances</div>
+      <div class="demo-caption dates">date scrubber</div>
+      <div class="demo-topic primary">
+        <div class="demo-ready">READY</div>
+        <div class="demo-title">Topic tile</div>
+        <div class="demo-sub">subtitle / intent summary</div>
+        <div class="demo-status">STATUS</div>
+        <div class="demo-doc">doc</div>
+      </div>
+      <div class="demo-topic secondary">
+        <div class="demo-title">Topic tile</div>
+        <div class="demo-sub">another top-level plan</div>
+        <div class="demo-status">STATUS</div>
+        <div class="demo-doc">doc</div>
+      </div>
+      <div class="demo-arrow one"></div>
+      <div class="demo-arrow two"></div>
+      <div class="demo-arrow three"></div>
+      <div class="demo-step a">Step tile</div>
+      <div class="demo-step b">Step tile</div>
+      <div class="demo-step c">Feature prerequisite</div>
+      <div class="demo-step d">Parallel step</div>
+      <div class="demo-chip">shipped chip</div>
+      <div class="demo-datebar">
+        <span style="left:0%;">start</span>
+        <span style="left:46%;">date</span>
+        <span style="left:100%;">now</span>
+        <i class="bar" style="left:46%;"></i>
+        <i class="bar" style="left:82%; height:14px; top:-11px;"></i>
+      </div>
+    </div>
+    <div class="demo-note">Use this as the mental model: lanes hold topic tiles, topic tiles branch into step tiles, arrows explain dependency pressure, and the bottom date bar scrubs history.</div>
+  </div>
+</div>
 <div id="glossary-backdrop">
   <div id="glossary-panel" role="dialog" aria-modal="true" aria-label="Document">
     <button id="glossary-close" aria-label="Close">✕</button>
@@ -260,6 +367,10 @@
      window.PlanmapHistory; absent/failed load just means the timeline
      feature is skipped below (guarded, no error). -->
 <script type="module" src="./history-derive.mjs"></script>
+<!-- Shared readiness derivation (isDead / isActionable). Attaches
+     window.PlanmapReady; the same module is imported by vitest and the
+     roadmap tool, so "what counts as READY" has exactly one home. -->
+<script type="module" src="./ready-derive.mjs"></script>
 <script>
 const COLORS = {
   purple: { fill: '#2e1065', stroke: '#a78bfa', title: '#ede9fe', sub: '#c4b5fd' },
@@ -274,6 +385,15 @@ const COLORS = {
   amber:  { fill: '#451a03', stroke: '#fcd34d', title: '#fef3c7', sub: '#fde68a' }
 };
 const STATUS = { parked: '#94a3b8', specced: '#fbbf24', active: '#38bdf8', done: '#4ade80', superseded: '#9a3412' };
+// Status descriptions are reused in the legend and inside every tile so the
+// roadmap teaches its own workflow vocabulary wherever the reader hovers.
+const STATUS_HELP = {
+  parked: 'Parked: known work or an idea being preserved, but not currently chosen for build.',
+  specced: 'Specced: the intent and shape are written down, but implementation is not done yet.',
+  active: 'Active: work is underway or currently being carried by the plan-map.',
+  done: 'Done: shipped or completed work kept on the map for history and dependency context.',
+  superseded: 'Superseded: intentionally replaced by another approach; kept so the decision history is visible.'
+};
 const NODE_W = 300, BASE_H = 78, COL_GAP = 90, ROW_GAP = 26, PAD = 40;
 const LANE_GAP = 34, LANE_LABEL_H = 22; // vertical breathing room between campaign lanes (item 2)
 // Readable zoom is separate from overview fit: the whole roadmap is too wide
@@ -417,6 +537,8 @@ window.addEventListener('mouseup', () => { panning = false; if (svgEl) svgEl.cla
 // re-fetching history.json. `timeline` stays null (feature absent) if
 // history.json or window.PlanmapHistory isn't available.
 let timeline = null, momentum = null, dayIndex = 0;
+let playTimer = null;
+let legendExpanded = false;
 // Staleness heat overlay (Task 6) — off by default; toggled by #heat-toggle,
 // read inside buildAndShow so every rebuild (replay, filter, resize) reflects
 // the current on/off state and the currently-selected day.
@@ -426,24 +548,43 @@ let heatOn = false;
 const tlSlug = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
 const tlEsc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-// ================= buildTimeline: momentum bars + playhead =================
-// Renders an SVG into #timeline: axis, one .tl-bar per day with count > 0
-// (height ∝ count), a few date ticks, a play button (inert until Task 5), a
-// playhead line+knob at activeIndex, and a readout of the active day (or
-// "Now" for the last index). x(i) maps a day index to a pixel column.
-function buildTimeline(tl, mom, activeIndex) {
-  const el = document.getElementById('timeline');
-  if (!tl || !tl.length) { el.innerHTML = ''; return; }
-  const W = el.clientWidth || el.getBoundingClientRect().width || 900, H = 54;
+// The guide panel owns explanatory metadata and filters, not the map itself.
+// Keeping the state here lets rebuilds refresh its contents without forcing it
+// open again after timeline scrubs, heat toggles, or filter changes.
+function syncLegendPanel() {
+  const panel = document.getElementById('legend-panel');
+  const button = document.getElementById('legend-toggle');
+  if (!panel || !button) return;
+  panel.classList.toggle('collapsed', !legendExpanded);
+  button.textContent = legendExpanded ? 'Hide guide' : 'Show guide';
+  button.setAttribute('aria-expanded', String(legendExpanded));
+}
+
+// The demo flow is a modal companion to the collapsed guide. It gives a
+// one-screen walkthrough without expanding the whole legend or changing map
+// zoom/pan state.
+function setDemoFlowOpen(open) {
+  const backdrop = document.getElementById('demo-flow-backdrop');
+  if (!backdrop) return;
+  backdrop.classList.toggle('open', open);
+}
+
+// ================= buildTimelineSvg: momentum bars + playhead ==============
+// Builds the history timeline as an SVG group in the same coordinate space as
+// the roadmap. That is what makes the bar stick to the bottom of the shipped
+// data notes and resize/move with pan + zoom instead of floating in page space.
+function buildTimelineSvg(tl, mom, activeIndex, x0, y0, W, H, playing) {
+  if (!tl || !tl.length) return '';
   const PADX = 34, PADY_TOP = 6, AXIS_Y = H - 18, BAR_MAX = AXIS_Y - PADY_TOP;
   const n = tl.length;
   const x = i => n <= 1 ? PADX : PADX + i * (W - 2 * PADX) / (n - 1);
   const maxCount = Math.max(1, ...mom.map(d => d.count));
 
   const S = [];
-  S.push(`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`);
-  // Play button (inert for Task 4 — wired in Task 5).
-  S.push(`<rect class="tl-play" data-role="play" x="4" y="${AXIS_Y - 12}" width="20" height="20" rx="4"/>`);
+  S.push(`<g id="svg-timeline" transform="translate(${x0},${y0})">`);
+  S.push(`<title>History timeline: bars show shipped-topic momentum by date; drag or click to scrub the plan-map date.</title>`);
+  S.push(`<rect class="tl-hit" data-role="timeline-bg" x="0" y="0" width="${W}" height="${H}"/>`);
+  S.push(`<rect class="tl-play${playing ? ' playing' : ''}" data-role="play" x="4" y="${AXIS_Y - 12}" width="20" height="20" rx="4"/>`);
   S.push(`<path d="M12,${AXIS_Y - 8} L12,${AXIS_Y + 4} L21,${AXIS_Y - 2} Z" fill="#94a3b8" pointer-events="none"/>`);
   // Axis.
   S.push(`<line class="tl-axis" x1="${PADX}" y1="${AXIS_Y}" x2="${W - PADX}" y2="${AXIS_Y}"/>`);
@@ -470,8 +611,8 @@ function buildTimeline(tl, mom, activeIndex) {
   // Readout: active day's date, or "Now" when at the last index (live data).
   const readoutText = activeIndex === n - 1 ? 'Now' : tl[activeIndex].date;
   S.push(`<text class="tl-readout" x="${W - PADX}" y="${PADY_TOP + 9}" text-anchor="end">${tlEsc(readoutText)}</text>`);
-  S.push(`</svg>`);
-  el.innerHTML = S.join('');
+  S.push(`</g>`);
+  return S.join('');
 }
 
 fetch('./topics.json').then(r => r.json()).then(data => {
@@ -521,7 +662,8 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   // inside the target topic, not the whole topic.
   const depList = t => (t.deps || []).map(d => typeof d === 'string' ? { id: d, kind: 'hard' } : d);
   // "Dead" = out of the live graph: done (Shipped strip) or superseded (Graveyard).
-  const isDead = t => t.status === 'done' || t.status === 'superseded';
+  // Delegates to the shared module so the viewer, tests, and roadmap tool agree.
+  const isDead = t => window.PlanmapReady.isDead(t);
 
   // Feature slug — MUST match tools/agora/validate-planmap.mjs's slug() exactly
   // (lowercase → non-alphanumeric runs to '-' → trim '-' → cap 40 chars).
@@ -626,16 +768,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   // never stored — can't rot.
   // A feature-targeted hard dep is satisfied when THAT feature is dead, not the
   // whole target topic. If the slug doesn't resolve, fall back to whole-topic.
-  const isActionable = t => !isDead(t) &&
-    depList(t).every(d => {
-      if (d.kind === 'chosen' || !byId[d.id]) return true;
-      if (d.feature) {
-        const f = featureOf(d.id, d.feature);
-        if (f) return featureDead(f);
-        // slug didn't resolve (data race / typo) — fall back to whole topic.
-      }
-      return isDead(byId[d.id]);
-    });
+  const isActionable = t => window.PlanmapReady.isActionable(t, byId);
 
   // ============= Stable campaign-lane layout (item 2) ================
   // Horizontal band per campaign (in campaigns-object order); x = dependency
@@ -726,11 +859,13 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   const shipW = shipColCount ? PAD + shipColCount * SHIP_COL_W + PAD : 0;
   const W = Math.max(liveW, shipW);
   const DATE_AXIS_H = (distinctShipDates.length || hasUndatedShip) ? 26 : 0;
-  const H = maxY + DATE_AXIS_H + PAD;
+  const TIMELINE_H = (timeline && momentum) ? 64 : 0;
+  const H = maxY + DATE_AXIS_H + TIMELINE_H + PAD;
 
   // Covers element content AND double-quoted attribute values — every
   // JSON-controlled string flows through here (ids land in data-* attributes).
   const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const statusTitle = s => esc(STATUS_HELP[s] || `Status: ${s || 'unknown'}`);
   const docLinkAttrs = link => `href="${esc(docHref(link))}" data-doc-path="${esc(link)}"`;
   const S = [];
   // No width/height attributes — CSS makes the SVG fill the canvas flex cell,
@@ -786,6 +921,15 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     distinctShipDates.forEach((d, i) => {
       S.push(`<text class="ship-tick" x="${shipChipX(shipColBase + i) + 4}" y="${rulerY + 16}" fill="#94a3b8">${esc(d.slice(5))}</text>`);
     });
+  }
+  if (timeline && momentum) {
+    // The replay timeline is appended after the shipped-date ruler so it stays
+    // visually attached to the plan data. Because it is inside #plansvg, the
+    // same viewBox zoom/pan code moves it together with the roadmap.
+    const timelineX = PAD - 6;
+    const timelineY = maxY + DATE_AXIS_H + 6;
+    const timelineW = Math.max(220, W - timelineX - PAD + 6);
+    S.push(buildTimelineSvg(timeline, momentum, dayIndex, timelineX, timelineY, timelineW, 54, !!playTimer));
   }
 
   // ---- Exploded step tiles: features become their own child nodes ----------
@@ -1009,8 +1153,8 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     const subStartY = p.y + 22 + titleRows.length * 15 + 2;
     subRows.forEach((line, i) =>
       S.push(`<text class="sub" x="${p.x + 12}" y="${subStartY + i * 13}" fill="${c.sub}">${i === 0 ? `<title>${esc(t.sub || '')}</title>` : ''}${esc(line)}</text>`));
-    S.push(`<circle cx="${p.x + 16}" cy="${p.y + h - 12}" r="4" fill="${STATUS[t.status] || '#94a3b8'}"/>`);
-    S.push(`<text class="status" x="${p.x + 26}" y="${p.y + h - 8}" fill="${STATUS[t.status] || '#94a3b8'}">${esc((t.status || '').toUpperCase())}</text>`);
+    S.push(`<circle cx="${p.x + 16}" cy="${p.y + h - 12}" r="4" fill="${STATUS[t.status] || '#94a3b8'}"><title>${statusTitle(t.status)}</title></circle>`);
+    S.push(`<text class="status" x="${p.x + 26}" y="${p.y + h - 8}" fill="${STATUS[t.status] || '#94a3b8'}"><title>${statusTitle(t.status)}</title>${esc((t.status || '').toUpperCase())}</text>`);
     if (t.link) S.push(`<a ${docLinkAttrs(t.link)} target="_blank"><text class="sub" x="${p.x + NODE_W - 12}" y="${p.y + h - 8}" text-anchor="end" fill="${c.sub}">📄 spec</text></a>`);
     S.push(`</g>`);
   });
@@ -1028,7 +1172,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     if (shk) S.push(`<rect x="${sn.x}" y="${sn.y}" width="${sn.w}" height="${sn.h}" rx="6" fill="${HEAT(shk.days)}" fill-opacity="0.28" pointer-events="none"/>`);
     S.push(`<rect x="${sn.x}" y="${sn.y}" width="${sn.w}" height="${sn.h}" rx="4" fill="${c.fill}" fill-opacity="0.55" stroke="${dead ? STATUS.superseded : c.stroke}"${spikeAttrs} stroke-width="1.5"/>`);
     const textTop = sn.y + Math.max(15, (sn.h - sn.lines.length * STEP_LINE_H) / 2 + 9);
-    S.push(`<circle cx="${sn.x + 13}" cy="${textTop - 4}" r="3.5" fill="${STATUS[f.status] || '#94a3b8'}"/>`);
+    S.push(`<circle cx="${sn.x + 13}" cy="${textTop - 4}" r="3.5" fill="${STATUS[f.status] || '#94a3b8'}"><title>${statusTitle(f.status)}</title></circle>`);
     S.push(`<text class="status" x="${sn.x + 24}" y="${textTop}" fill="${c.sub}">${sn.num}</text>`);
     const openN = (typeof f.open === 'number' && f.open > 0) ? f.open : 0;
     const deco = dead ? ' text-decoration="line-through"' : '';
@@ -1227,10 +1371,37 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   // rebuild: fit() (re)initializes it from the NEW W/H on first render (or an
   // explicit reset); applyView() re-applies the EXISTING view to the fresh
   // svgEl otherwise (opts.preserveView).
+  const updateToolbarButtonStates = () => {
+    // The toolbar labels double as mode indicators so the controls explain the
+    // current map state without requiring the reader to remember what each
+    // compact button does. Age heat is a true toggle; Read reflects whether the
+    // current view is close enough to count as the readable close-up mode.
+    const readBtn = document.getElementById('zoom-read');
+    if (readBtn) {
+      const box = svgEl.getBoundingClientRect();
+      const targetW = Math.min(W, Math.max(MIN_READABLE_VIEW_W, (13 * (box.width || W)) / READABLE_TITLE_PX));
+      const readOn = view.w <= targetW * 1.08;
+      readBtn.textContent = `Read: ${readOn ? 'On' : 'Off'}`;
+      readBtn.setAttribute('aria-pressed', String(readOn));
+      readBtn.title = readOn
+        ? 'Readable close-up is active. Click to recenter the close-up on the nearest roadmap tile.'
+        : 'Jump to a close-up view centered on the nearest roadmap tile so labels are easier to read.';
+    }
+
+    const heatBtn = document.getElementById('heat-toggle');
+    if (heatBtn) {
+      heatBtn.textContent = `Age heat: ${heatOn ? 'On' : 'Off'}`;
+      heatBtn.setAttribute('aria-pressed', String(heatOn));
+      heatBtn.title = heatOn
+        ? 'Age heat is on: colored shading shows how long roadmap items have stayed unchanged at this date.'
+        : 'Age heat is off. Click to color roadmap items by how long they have stayed unchanged at this date.';
+    }
+  };
   const applyView = () => {
     svgEl.setAttribute('viewBox', `${view.x} ${view.y} ${view.w} ${view.h}`);
     const z = W / view.w;
     document.getElementById('zoom-label').textContent = Math.round(z * 100) + '%';
+    updateToolbarButtonStates();
   };
   // Stash this build's applyView so the module-scope (bound-once) mousemove
   // listener can re-apply the viewBox during a drag without re-binding itself
@@ -1330,6 +1501,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   // since svgEl itself is recreated each build.
   svgEl.addEventListener('mousedown', ev => {
     if (ev.button !== 0) return;
+    if (ev.target.closest('#svg-timeline')) return;
     panning = true; moved = false;
     panStart = { x: ev.clientX, y: ev.clientY, vx: view.x, vy: view.y };
   });
@@ -1363,7 +1535,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   const campItems = Object.entries(data.campaigns || {}).map(([k, c]) =>
     `<span class="chip" data-filter-camp="${esc(k)}"><span class="sw" style="background:${(COLORS[c.color] || COLORS.gray).stroke}"></span>${esc(c.label)}</span>`);
   const statusItems = Object.entries(STATUS).map(([k, v]) =>
-    `<span class="chip" data-filter-status="${esc(k)}"><span class="sw" style="background:${v}; border-radius: 50%;"></span>${k}</span>`);
+    `<span class="chip" data-filter-status="${esc(k)}" title="${statusTitle(k)}"><span class="sw" style="background:${v}; border-radius: 50%;"></span>${k}</span>`);
   const arrowItems = [
     `<span style="color:#f87171"><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#f87171" stroke-width="1.8"/></svg> hard prerequisite</span>`,
     `<span style="color:#fbbf24"><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#fbbf24" stroke-width="1.8" stroke-dasharray="5 3"/></svg> chosen order</span>`,
@@ -1387,11 +1559,13 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     `<section class="legend-group"><div class="legend-title">Totals</div><div class="legend-items legend-note">${counts}</div></section>`
   ];
   document.getElementById('legend').innerHTML = leg.join('');
+  syncLegendPanel();
 
   // Heat legend visibility follows heatOn (element is static markup in
   // #maptools, just shown/hidden — no need to rebuild it per topics array).
   const heatLegendEl = document.getElementById('heat-legend');
   if (heatLegendEl) heatLegendEl.style.display = heatOn ? 'flex' : 'none';
+  updateToolbarButtonStates();
 
   // Filter state: sets of selected campaigns + statuses. A node matches if it
   // satisfies EVERY active dimension (campaign-set AND status-set); within a
@@ -1436,9 +1610,46 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     document.getElementById('legend').querySelectorAll('.chip.on').forEach(c => c.classList.remove('on'));
     applyFilter();
   });
+  // Stash for the ?topic= deep link below — same idiom as window.__goToDay.
+  // Both are inner to buildAndShow, so the post-first-render code can't reach
+  // them directly; each rebuild refreshes the stash to the current render.
+  window.__pinNode = pinNode; window.__byId = byId;
   } // end buildAndShow
 
+  // The guide toggle is static chrome around the dynamic legend contents. Bind
+  // it once after the first render; later rebuilds only refresh the inner grid.
+  const legendToggle = document.getElementById('legend-toggle');
+  if (legendToggle) {
+    legendToggle.addEventListener('click', () => {
+      legendExpanded = !legendExpanded;
+      syncLegendPanel();
+    });
+  }
+  const demoFlowToggle = document.getElementById('demo-flow-toggle');
+  const demoFlowBackdrop = document.getElementById('demo-flow-backdrop');
+  const demoFlowClose = document.getElementById('demo-flow-close');
+  if (demoFlowToggle) demoFlowToggle.addEventListener('click', () => setDemoFlowOpen(true));
+  if (demoFlowClose) demoFlowClose.addEventListener('click', () => setDemoFlowOpen(false));
+  if (demoFlowBackdrop) {
+    demoFlowBackdrop.addEventListener('click', e => {
+      if (e.target === demoFlowBackdrop) setDemoFlowOpen(false);
+    });
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') setDemoFlowOpen(false);
+  });
+  syncLegendPanel();
+
   buildAndShow(data.topics);   // live map, first render → fits
+
+  // Deep link: ?topic=<id> pins and opens that topic on load (seeds cross-tool nav).
+  // Applied after the first render AND after the history-driven re-render below —
+  // that rebuild replaces the SVG, which would wipe a pin applied only here.
+  const focusTopic = new URLSearchParams(location.search).get('topic');
+  const applyTopicFocus = () => {
+    if (focusTopic && window.__byId[focusTopic]) window.__pinNode(focusTopic);
+  };
+  applyTopicFocus();
 
   // ================= Staleness heat overlay toggle (Task 6) ==============
   // Flips module-scope heatOn and rebuilds from the CURRENTLY SELECTED day
@@ -1447,6 +1658,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   document.getElementById('heat-toggle').addEventListener('click', e => {
     heatOn = !heatOn;
     e.currentTarget.setAttribute('aria-pressed', String(heatOn));
+    e.currentTarget.textContent = `Age heat: ${heatOn ? 'On' : 'Off'}`;
     const topics = timeline ? timeline[dayIndex].topics : data.topics;
     buildAndShow(topics, { preserveView: true });
   });
@@ -1459,21 +1671,19 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     dayIndex = Math.max(0, Math.min(timeline.length - 1, i));
     const topics = timeline[dayIndex].topics; // live topics when dayIndex is the last index
     buildAndShow(topics, { preserveView: true }); // keep zoom/pan
-    buildTimeline(timeline, momentum, dayIndex);
   }
   window.__goToDay = goToDay;
 
   // Drag-to-scrub + play button. Wired once history/timeline are loaded.
-  let playTimer = null;
   function stopPlay() {
     if (playTimer) { clearInterval(playTimer); playTimer = null; }
-    const playBtn = document.querySelector('#timeline .tl-play');
+    const playBtn = document.querySelector('#plansvg .tl-play');
     if (playBtn) playBtn.classList.remove('playing');
   }
   function togglePlay() {
     if (playTimer) { stopPlay(); return; }
     if (dayIndex >= timeline.length - 1) goToDay(0); // restart from day 0 if at Now
-    const playBtn = document.querySelector('#timeline .tl-play');
+    const playBtn = document.querySelector('#plansvg .tl-play');
     if (playBtn) playBtn.classList.add('playing');
     playTimer = setInterval(() => {
       goToDay(dayIndex + 1);
@@ -1481,14 +1691,21 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     }, 700);
   }
 
-  // clientX -> nearest day index; inverse of buildTimeline's x(i) mapping
-  // (PADX + i*(W-2*PADX)/(n-1)), read from the live #timeline SVG's geometry.
-  function dayIndexFromClientX(svg, clientX) {
-    const rect = svg.getBoundingClientRect();
-    const vb = svg.viewBox.baseVal;
-    const W = vb && vb.width ? vb.width : rect.width;
+  // Pointer position -> nearest day index. The timeline now lives inside
+  // #plansvg, so we convert the browser pointer into SVG coordinates and then
+  // subtract the timeline group's own translation before applying the same
+  // PADX + fraction mapping used by buildTimelineSvg().
+  function dayIndexFromPointer(svg, clientX, clientY) {
+    const group = svg.querySelector('#svg-timeline');
+    if (!group) return dayIndex;
+    const point = svg.createSVGPoint();
+    point.x = clientX;
+    point.y = clientY;
+    const local = point.matrixTransform(svg.getScreenCTM().inverse());
+    const transform = group.transform.baseVal.consolidate();
+    const localX = local.x - (transform ? transform.matrix.e : 0);
+    const W = Number(group.querySelector('.tl-hit')?.getAttribute('width')) || 900;
     const PADX = 34;
-    const localX = (clientX - rect.left) * (W / rect.width);
     const n = timeline.length;
     if (n <= 1) return 0;
     const frac = (localX - PADX) / (W - 2 * PADX);
@@ -1496,28 +1713,28 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   }
 
   function wireTimelineControls() {
-    const container = document.getElementById('timeline');
+    const container = document.getElementById('canvas');
     if (!container) return;
     let dragging = false;
-    // Delegate from the container so re-renders of the inner <svg> (every
-    // buildTimeline call) don't need re-binding — the listener lives on the
-    // stable #timeline element, not the SVG that gets replaced via innerHTML.
+    // Delegate from #canvas so re-renders of #plansvg do not need re-binding.
+    // Only events that start on the attached timeline are claimed; ordinary
+    // map panning, node clicking, and empty-background unpinning stay unchanged.
     container.addEventListener('pointerdown', e => {
-      const svg = container.querySelector('svg');
+      const svg = container.querySelector('#plansvg');
       if (!svg) return;
       if (e.target.closest('[data-role="play"]')) { togglePlay(); return; }
-      const onKnobOrBg = e.target.closest('[data-role="knob"]') || e.target.closest('svg');
+      const onKnobOrBg = e.target.closest('#svg-timeline [data-role="knob"]') || e.target.closest('#svg-timeline [data-role="timeline-bg"]');
       if (!onKnobOrBg) return;
       dragging = true;
       stopPlay();
       container.setPointerCapture(e.pointerId);
-      goToDay(dayIndexFromClientX(svg, e.clientX));
+      goToDay(dayIndexFromPointer(svg, e.clientX, e.clientY));
     });
     container.addEventListener('pointermove', e => {
       if (!dragging) return;
-      const svg = container.querySelector('svg');
+      const svg = container.querySelector('#plansvg');
       if (!svg) return;
-      goToDay(dayIndexFromClientX(svg, e.clientX));
+      goToDay(dayIndexFromPointer(svg, e.clientX, e.clientY));
     });
     const endDrag = e => {
       if (!dragging) return;
@@ -1546,8 +1763,9 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     momentum = H.momentumByDay(timeline);
     dayIndex = timeline.length - 1; // playhead static at Now for Task 4
     window.__timeline = timeline; // expose for replay verification, now that it's populated
-    buildTimeline(timeline, momentum, dayIndex);
+    buildAndShow(timeline[dayIndex].topics);
     wireTimelineControls(); // Task 5: drag-to-scrub + play, now that `timeline` exists
+    applyTopicFocus(); // re-apply the ?topic= pin — this rebuild replaced the SVG
   }).catch(() => {});
 }).catch(e => {
   document.getElementById('canvas').innerHTML =

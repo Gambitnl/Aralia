@@ -14,6 +14,13 @@
  * @file src/types/ollama.ts
  */
 
+import {
+    OLLAMA_API_BASE,
+    OLLAMA_TIMEOUT_MS,
+    OLLAMA_RETRY_ATTEMPTS,
+    OLLAMA_GLOBAL_FALLBACK_MODELS,
+} from '../config/llmProviderConfig';
+
 // ============================================================================
 // Configuration
 // ============================================================================
@@ -35,27 +42,15 @@ export interface OllamaConfig {
 }
 
 export const DEFAULT_OLLAMA_CONFIG: OllamaConfig = {
-    apiBase: '/api/ollama',
-    timeoutMs: 90000,
-    retryAttempts: 0,
+    apiBase: OLLAMA_API_BASE,
+    timeoutMs: OLLAMA_TIMEOUT_MS,
+    retryAttempts: OLLAMA_RETRY_ATTEMPTS,
     // Order reflects the router fallback chain. Spec-recommended models come first;
     // legacy entries follow so existing setups continue to work until the user pulls
     // the new ones. See docs/ai/local-llm-model-routing.md.
-    preferredModels: [
-        'granite4.1:8b-q4_K_M',
-        'qwen3:8b-q4_K_M',
-        'granite4.1:3b-q6_K',
-        'phi4-mini:3.8b-q4_K_M',
-        'adi0adi/ollama_stheno-8b_v3.1_q6k',
-        'mistral:instruct',
-        'leeplenty/ellaria',
-        'phi4-mini:3.8b',
-        'llama3.1:instruct',
-        'llama3:instruct',
-        'gemma3:1b',
-        'gemma:2b',
-        'phi'
-    ]
+    // Sourced from the canonical LLM provider config (single source of truth) —
+    // values unchanged. See src/config/llmProviderConfig.ts.
+    preferredModels: OLLAMA_GLOBAL_FALLBACK_MODELS
 };
 
 // ============================================================================

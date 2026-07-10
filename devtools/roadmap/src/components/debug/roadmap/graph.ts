@@ -396,11 +396,20 @@ export const buildRenderGraph = (
         const branchBaseY = cursorY;
         const branchPos = getNodePosition(treeNode.id, branchBaseX, branchBaseY, positionOverrides);
 
+        // Technical: surface plan-map projection fields from the first directly
+        // attached milestone that carries them (set by applyPlanmapOverlay).
+        // Layman: if this card mirrors a plan-map topic, carry that topic's live
+        // state onto the card so the UI can show the plan-map pill and badges.
+        const planmapMilestone = treeNode.milestones.find((milestone) => milestone.planmapStatus !== undefined);
+
         const renderNode: RenderNode = {
           id: treeNode.id,
           kind: 'branch',
           label: treeNode.label,
           status: treeNode.status,
+          planmapStatus: planmapMilestone?.planmapStatus,
+          planmapReady: planmapMilestone?.planmapReady,
+          planmapFocus: planmapMilestone?.planmapFocus,
           x: branchPos.x,
           y: branchPos.y,
           width: BRANCH_WIDTH,

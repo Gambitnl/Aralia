@@ -35,6 +35,12 @@ export interface TravelVehicle {
   speed: number; // Base speed in ft/round (or equivalent for vehicles)
   capacityWeight: number; // Carrying capacity in lbs
   type: 'land' | 'water' | 'air';
+  /**
+   * Berth size a water vehicle needs (travel G14). 'small' craft fit any port;
+   * larger hulls need a bigger dock or they anchor offshore and land by tender.
+   * Only meaningful for `type: 'water'`; omit for land/air (treated as 'small').
+   */
+  dockClass?: 'small' | 'medium' | 'large';
 }
 
 /**
@@ -50,10 +56,10 @@ export const STANDARD_VEHICLES: Record<string, TravelVehicle> = {
   warhorse: { id: 'warhorse', name: 'Warhorse', speed: 60, capacityWeight: 540, type: 'land' },
   cart: { id: 'cart', name: 'Cart', speed: 0, capacityWeight: 0, type: 'land' }, // Speed limited by puller
   wagon: { id: 'wagon', name: 'Wagon', speed: 0, capacityWeight: 0, type: 'land' }, // Speed limited by puller
-  rowboat: { id: 'rowboat', name: 'Rowboat', speed: 15, capacityWeight: 0, type: 'water' },
-  keelboat: { id: 'keelboat', name: 'Keelboat', speed: 30, capacityWeight: 3000, type: 'water' }, // Approx capacity
-  galley: { id: 'galley', name: 'Galley', speed: 40, capacityWeight: 100000, type: 'water' },
-  warship: { id: 'warship', name: 'Warship', speed: 25, capacityWeight: 50000, type: 'water' },
+  rowboat: { id: 'rowboat', name: 'Rowboat', speed: 15, capacityWeight: 0, type: 'water', dockClass: 'small' },
+  keelboat: { id: 'keelboat', name: 'Keelboat', speed: 30, capacityWeight: 3000, type: 'water', dockClass: 'small' }, // Approx capacity
+  galley: { id: 'galley', name: 'Galley', speed: 40, capacityWeight: 100000, type: 'water', dockClass: 'large' },
+  warship: { id: 'warship', name: 'Warship', speed: 25, capacityWeight: 50000, type: 'water', dockClass: 'large' },
 };
 
 export interface TransportOption {

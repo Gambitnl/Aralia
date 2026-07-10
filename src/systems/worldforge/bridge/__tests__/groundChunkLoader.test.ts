@@ -714,4 +714,83 @@ describe('extractLocalTerrainPatch', () => {
     expect(centerTile?.decoration).toBe('tree');
     expect(centerTile?.blocksMovement).toBe(true);
   });
+
+  // ==========================================================================
+  // WF-INTERIORS plan-to-mesh integrity (finding #3 follow-up): the walkability
+  // grid must block the SAME cells the renderer draws a part on. The renderer
+  // places a part's inward axis at local z = p.z * -doorZSign (sitePartTransform
+  // / interiorPlacement / siteGeometry all agree). An off-center wall part must
+  // therefore block the drawn side of the building, not its mirror through the
+  // building origin.
+  // ==========================================================================
+  it('blocks the cells the renderer draws an off-center wall on, not their mirror', () => {
+    const cols = 100;
+    const rows = 100;
+    // Axis-aligned quad in the fixture winding [SW, SE, NE, NW]. This yields
+    // rotationY = 0 and doorZSign = -1 (siteOrientationFromQuad convention:
+    // e1 = c1-c0 frontage edge, e2 = c3-c0, cross >= 0 -> doorZSign -1).
+    const bXM = 50;
+    const bZM = 50;
+    const cornersM = [
+      { x: 45, z: 45 },
+      { x: 55, z: 45 },
+      { x: 55, z: 55 },
+      { x: 45, z: 55 },
+    ];
+    const doorZSign = -1;
+    // An off-center interior wall: p.z = +2. The renderer draws it at local
+    // z = 2 * -doorZSign = +2, i.e. world z = 52. The buggy mirror would land it
+    // at world z = 48.
+    const wall = { x: 0, z: 2, w: 8, d: 2, h: 3, colorHex: '#cfc7b8' };
+    const drawnWorld = { x: bXM + wall.x, z: bZM + wall.z * -doorZSign }; // (50, 52)
+    const mirrorWorld = { x: bXM + wall.x, z: bZM + wall.z * doorZSign }; // (50, 48)
+
+    const ground = makeGroundWorldFixture({
+      cols,
+      rows,
+      heights: new Array(cols * rows).fill(0),
+      biomeIds: new Array(cols * rows).fill('plains'),
+      extentMetersX: cols * GROUND_METERS_PER_CELL,
+      extentMetersZ: rows * GROUND_METERS_PER_CELL,
+      buildings: [
+        {
+          id: 'wf-plot-drift-test',
+          xM: bXM,
+          zM: bZM,
+          cornersM,
+          heightM: 6,
+          role: 'house',
+          wallWidthM: 10,
+          wallDepthM: 10,
+          parts: [
+            { x: 0, z: 0, w: 10, d: 10, h: 0.12, colorHex: '#9a8a72' }, // floor
+            wall,
+          ],
+        },
+      ],
+    });
+
+    const playerX = 40;
+    const playerZ = 40;
+    const patch = extractLocalTerrainPatch(ground, playerX, playerZ, 'forest', 42);
+
+    // Nearest tile center to a world point, for the default 40x30 patch.
+    const tileIdForWorld = (wx: number, wz: number): string => {
+      const tx = Math.round(20 + (wx - playerX) / GROUND_METERS_PER_CELL);
+      const ty = Math.round(15 + (wz - playerZ) / GROUND_METERS_PER_CELL);
+      return `${tx}-${ty}`;
+    };
+
+    const drawnTile = patch.tiles.get(tileIdForWorld(drawnWorld.x, drawnWorld.z));
+    const mirrorTile = patch.tiles.get(tileIdForWorld(mirrorWorld.x, mirrorWorld.z));
+
+    expect(drawnTile).toBeDefined();
+    expect(mirrorTile).toBeDefined();
+    // The wall blocks where the renderer draws it...
+    expect(drawnTile?.terrain).toBe('wall');
+    expect(drawnTile?.blocksMovement).toBe(true);
+    // ...and the mirror cell stays open floor.
+    expect(mirrorTile?.terrain).toBe('floor');
+    expect(mirrorTile?.blocksMovement).toBe(false);
+  });
 });

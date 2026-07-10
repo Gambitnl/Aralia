@@ -39,6 +39,21 @@ const PRIME_NODES_ONLY_VIEW = false;
 // This allowlist prevents generic workflow prose from becoming roadmap nodes.
 // Only capability-shaped labels that we explicitly trust are allowed through.
 // ============================================================================
+// Plan-map projection: which roadmap node (by generated node id) mirrors which
+// plan-map topic. Keyed by node id because the id is stable and unique; find a
+// node's id from the live /Aralia/api/roadmap/data payload, or by the deterministic
+// formula sub_<slug(pillarNodeId)>_<slug(stableLabel)>. Start empty; wire entries in
+// as they are curated. The roadmap only READS the plan-map — never the reverse.
+export const PLANMAP_TOPIC_BY_NODE_ID: Record<string, string> = {
+  // 'sub_pillar_rendering_beautification_wave': 'world-props',
+};
+
+// Returns the node with planmapTopic set when its id is mapped; unchanged otherwise.
+export const attachPlanmapTopic = <T extends { id: string }>(
+  node: T,
+  map: Record<string, string> = PLANMAP_TOPIC_BY_NODE_ID
+): T => (map[node.id] ? { ...node, planmapTopic: map[node.id] } : node);
+
 const CURATED_SUBFEATURES: Record<string, Set<string>> = {
   '3d exploration & combat': new Set([
     '3D Exploration & Combat',
@@ -2642,7 +2657,7 @@ export function generateRoadmapData() {
 
   const rootId = 'aralia_chronicles';
   nodeIds.register(rootId, 'root: Aralia Game Roadmap');
-  nodes.push({
+  nodes.push(attachPlanmapTopic({
     id: rootId,
     label: 'Aralia Game Roadmap',
     type: 'root',
@@ -2655,7 +2670,7 @@ export function generateRoadmapData() {
     initialY: ROOT_Y,
     color: '#fbbf24',
     description: 'Feature-first roadmap generated from processed game documentation.'
-  });
+  }));
 
   const featuresByGroup = buildFeaturesByGroup(docs);
   // Technical: inject synthetic dev-tool branches so they are first-class roadmap features.
@@ -2692,7 +2707,7 @@ export function generateRoadmapData() {
     const pillarStatus: RoadmapNode['status'] = pillarFeatures.length > 0 ? 'active' : 'planned';
     nodeIds.register(pillarNodeId, `pillar: ${pillar.label}`);
 
-    nodes.push({
+    nodes.push(attachPlanmapTopic({
       id: pillarNodeId,
       label: pillar.label,
       type: 'project',
@@ -2705,7 +2720,7 @@ export function generateRoadmapData() {
       initialY: y,
       color: DOMAIN_COLORS.default,
       description: `${pillar.summary} Mapped features: ${pillarFeatures.length}. Processed docs: ${docCount}.`
-    });
+    }));
     edges.push({ from: rootId, to: pillarNodeId, type: 'containment' });
 
     if (PRIME_NODES_ONLY_VIEW) {
@@ -2788,7 +2803,7 @@ export function generateRoadmapData() {
           `subfeature: pillar="${pillar.label}" feature="${feature.feature}" label="${sub.name}"`
         );
 
-        nodes.push({
+        nodes.push(attachPlanmapTopic({
           id: subId,
           label: sub.name,
           type: 'milestone',
@@ -2805,7 +2820,7 @@ export function generateRoadmapData() {
           canonicalDocs,
           componentFiles,
           link: canonicalDocs[0]
-        });
+        }));
         edges.push({ from: pillarNodeId, to: subId, type: 'containment' });
         subIndex += 1;
       }

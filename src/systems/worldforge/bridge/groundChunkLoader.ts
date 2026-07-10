@@ -47,6 +47,7 @@ import { buildTownWaterBodies } from "../town/townWaterBodies";
 import { toArtifactPlan, type AdaptedTownPlan } from "../town/townPlanAdapter";
 import type { TownPlan } from "../artifacts";
 import { buildInterior, DOOR_LEAF_COLOR, type SitePart, type OccupantBody, type OccupantFigure } from "./interiorParts";
+import { siteOrientationFromQuad, worldOffsetToSiteLocal, sitePartLocalOffset } from "./sitePartTransform";
 import { generateTownRoster } from "../roster/generateTownRoster";
 import { occupantLocationAt, type ActivityKind } from "../roster/occupantSchedule";
 import type { TownRoster, Occupant } from "../roster/types";
@@ -2010,27 +2011,24 @@ export function extractLocalTerrainPatch(
           blocksLoS = false;
           decoration = null;
 
-          // Convert world coords to building-local coordinate space to check walls and furniture
-          const c = b.cornersM;
-          const e1x = c[1].x - c[0].x;
-          const e1z = c[1].z - c[0].z;
-          const e2x = c[3].x - c[0].x;
-          const e2z = c[3].z - c[0].z;
-          const rotationY = -Math.atan2(e1z, e1x);
-          const cross = e1x * e2z - e1z * e2x;
-          const doorZSign = cross >= 0 ? -1 : 1;
-
-          const dxLocal = wx - b.xM;
-          const dzLocal = wz - b.zM;
-          const lx = dxLocal * Math.cos(rotationY) - dzLocal * Math.sin(rotationY);
-          const lz = dxLocal * Math.sin(rotationY) + dzLocal * Math.cos(rotationY);
+          // Convert world coords to building-local coordinate space to check
+          // walls and furniture. The yaw + street-face sign come from the ONE
+          // shared convention (siteOrientationFromQuad) the renderer uses, and
+          // the world->local inverse (worldOffsetToSiteLocal) is the exact
+          // inverse of the render yaw — so `lz` lands in the SAME render-local
+          // frame the renderer draws each part in. See sitePartTransform.ts.
+          const { rotationY, doorZSign } = siteOrientationFromQuad(b.cornersM);
+          const { lx, lz } = worldOffsetToSiteLocal(wx - b.xM, wz - b.zM, rotationY);
 
           // Iterate through interior parts (walls and furniture)
           for (const p of b.parts) {
-            const lzScene = p.z * doorZSign;
+            // The part's render-local center: sitePartLocalOffset applies the
+            // SAME -doorZSign z-flip the renderer draws with, so the walkability
+            // band matches the drawn cells (not their mirror through the origin).
+            const off = sitePartLocalOffset(p, doorZSign);
             // Add a small 0.1m tolerance buffer to ensure adjacent cells align cleanly
-            const inX = lx >= p.x - p.w / 2 - 0.1 && lx <= p.x + p.w / 2 + 0.1;
-            const inZ = lz >= lzScene - p.d / 2 - 0.1 && lz <= lzScene + p.d / 2 + 0.1;
+            const inX = lx >= off.x - p.w / 2 - 0.1 && lx <= off.x + p.w / 2 + 0.1;
+            const inZ = lz >= off.z - p.d / 2 - 0.1 && lz <= off.z + p.d / 2 + 0.1;
 
             // IN guard: only parts that intrude into the walkable band below head
             // height block the floor tile. Overhead parts — the door lintel

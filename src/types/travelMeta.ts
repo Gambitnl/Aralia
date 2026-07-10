@@ -38,6 +38,37 @@ export interface TravelMeta {
   /** Provisioning effects to apply after the move (omitted when ungated). */
   provision?: TravelProvisionEffect;
   /**
+   * Fare (whole gp) charged for a hired-ferry trip, deducted from party gold on
+   * departure (travel G15). Present only when the committed trip crossed a sea
+   * leg on a hired ferry; absent for all-land trips and owned-ship voyages (which
+   * pay no fare). App's executor deducts this after the move so cost stays atomic.
+   */
+  ferryFareGp?: number;
+  /**
+   * Forced-march exhaustion risk for a committed trip that pushes past the safe
+   * 8-hour travel day (travel G1). MapPane derives this from the trip's duration
+   * via `calculateForcedMarchStatus`: `saveDC` is 11 at the 9th hour and rises by
+   * 1 for each further full hour. App's executor rolls each party member's
+   * Constitution save vs `saveDC` after the move and applies the party
+   * 'exhaustion' condition when the march bites. Present ONLY when the trip is
+   * long enough to trigger a save (a normal ≤8-hour day omits it, so short trips
+   * are unaffected). `hours` is the trip's total travel time, for the log line.
+   */
+  forcedMarch?: { hours: number; saveDC: number };
+  /**
+   * Navigation drift (travel G2). MapPane rolls the DMG "get lost" check (a
+   * Survival check vs the trip's terrain DC) for a committed OFF-ROAD land trip.
+   * Present ONLY when the party gets LOST — a trip that stays on roads (roads are
+   * exempt) or navigates successfully omits the field entirely, so a clean trip is
+   * unaffected. `driftDirection` is the wrong compass heading the party wanders
+   * ('N'..'NW'); `extraSeconds` is the lost time (DMG 1d6 hours) that App's
+   * executor adds to the trip's ADVANCE_TIME and announces to the adventure log.
+   * The party still ARRIVES at the intended cell (time-only penalty) — getting
+   * lost never teleports the player to a wrong cell (keeps the cell-native
+   * arrival invariant intact); the drift is flavor + the time cost is the bite.
+   */
+  navDrift?: { lost: boolean; driftDirection: string; extraSeconds: number };
+  /**
    * Cell-native destination of the trip (Stage 4, cell-native world). When present,
    * arrival sets the canonical `playerCell` to this EXACT cell (resetting Locale
    * feet, which are meaningless in the new cell) and stamps the 3D-entry anchor so a

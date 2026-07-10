@@ -441,8 +441,23 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
   // a polling worker just idles).
   router.post(
     '/tasks/claim-next',
-    withAuth(async (_req, res, ctx) => {
-      const result = store.claimNextReady({ agentId: ctx.agent.id });
+    withAuth(async (req, res, ctx) => {
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+      // The body is canonical for CLI callers. Query parameters are also
+      // accepted so lightweight harnesses can opt into a lane without adding
+      // a request body. Omitting both preserves the global worker-pull queue.
+      const campaignId = typeof body.campaignId === 'string'
+        ? body.campaignId
+        : (ctx.query.get('campaignId') || ctx.query.get('campaign') || undefined);
+      const category = typeof body.category === 'string'
+        ? body.category
+        : (ctx.query.get('category') || undefined);
+      const result = store.claimNextReady({ agentId: ctx.agent.id, campaignId, category });
       if (result.ok) return sendJson(res, 200, { task: result.task || null });
       return sendJson(res, 409, { error: result.error });
     }),
@@ -570,7 +585,13 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
   // Whitelisted read-only serving of the coordination reference files so the
   // dashboard's docs panel can offer copy-content/copy-path without a second
   // static server. Strictly name-keyed — no path resolution from user input.
-  const DOC_FILES = ['PROTOCOL.md', 'ORCHESTRATOR.md', 'WORKFLOW_GAPS.md', 'COLD_START_ORCHESTRATOR_PROMPT.md'];
+  const DOC_FILES = [
+    'PROTOCOL.md',
+    'ORCHESTRATOR.md',
+    'CO-ORCHESTRATION.md',
+    'WORKFLOW_GAPS.md',
+    'COLD_START_ORCHESTRATOR_PROMPT.md',
+  ];
 
   router.get('/docs', async (_req, res) => {
     sendJson(res, 200, {

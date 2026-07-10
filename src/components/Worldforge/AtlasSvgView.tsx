@@ -55,6 +55,12 @@ export interface AtlasSvgViewProps {
   planRoute?: (toCell: number) => RoutePlan | null;
   /** Plan a pre-segmented mixed land/sea route for the hovered cell. */
   planMultiModalRoute?: (toCell: number) => MultiModalRoute | null;
+  /**
+   * Hired-ferry fare (gp) for a previewed multimodal route, appended to the
+   * readout so the player sees the cost before committing (travel G15). Returns
+   * null when no fare applies (owned ship, all-land trip, or non-ferry mode).
+   */
+  ferryFareForRoute?: (route: MultiModalRoute) => number | null;
   /** Transport label for the travel readout (e.g. "on foot", "by horse"). */
   transportLabel?: string;
   /**
@@ -312,7 +318,7 @@ const LAYER_CHOICE_MARK_STYLE: React.CSSProperties = {
   background: 'rgba(15,23,42,0.9)',
 };
 
-const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], pulseToken = null, onPickCell, travelActive = false, planRoute, planMultiModalRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain', dungeonSites }) => {
+const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], pulseToken = null, onPickCell, travelActive = false, planRoute, planMultiModalRoute, ferryFareForRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain', dungeonSites }) => {
   const model = useMemo(() => buildAtlasSvgModel(atlas, dungeonSites), [atlas, dungeonSites]);
 
   // Map coloring is a single exclusive choice; feature layers are independent
@@ -857,7 +863,16 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           <>
             {multiModalRoute.segments.map((segment, index) => {
               const points = segment.points.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
-              const stroke = segment.kind === 'sea' ? '#38bdf8' : dangerRating(multiModalRoute.danger).color;
+              // Tender = the short "rowed ashore" hop between ship and land (G14).
+              // Give it its own read: a muted, fine-dotted line, distinct from the
+              // cyan dashed sea leg and the danger-tinted land leg.
+              const stroke = segment.kind === 'sea'
+                ? '#38bdf8'
+                : segment.kind === 'tender'
+                  ? '#cbb48f'
+                  : dangerRating(multiModalRoute.danger).color;
+              const strokeWidth = segment.kind === 'sea' ? 2.4 : segment.kind === 'tender' ? 1.6 : 2.2;
+              const strokeDasharray = segment.kind === 'sea' ? '2 5' : segment.kind === 'tender' ? '0.5 3' : '6 4';
               return (
                 <polyline
                   key={`${segment.kind}-${index}`}
@@ -865,8 +880,8 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
                   points={points}
                   fill="none"
                   stroke={stroke}
-                  strokeWidth={segment.kind === 'sea' ? 2.4 : 2.2}
-                  strokeDasharray={segment.kind === 'sea' ? '2 5' : '6 4'}
+                  strokeWidth={strokeWidth}
+                  strokeDasharray={strokeDasharray}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   vectorEffect="non-scaling-stroke"
@@ -1057,7 +1072,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
         }}
       >
         {multiModalRoute
-          ? formatMultiModalSummary(multiModalRoute)
+          ? formatMultiModalSummary(multiModalRoute, { fareGp: ferryFareForRoute ? ferryFareForRoute(multiModalRoute) : null })
           : travelRoute
           ? formatRouteSummary(travelRoute, transportLabel)
           : <span style={{ color: '#f87171' }}>No route to here</span>}

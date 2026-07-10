@@ -64,19 +64,39 @@ import { describeCell } from '@/systems/worldforge/cellInfo';
 import type { Entry3DAnchor } from '@/types/state';
 import { getBridgeAtlas, getBurgCultureType } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { styleFamilyForCultureType } from '@/systems/worldforge/town/architectureStyle';
-import { buildAtlasTravelGraph, atlasMilesPerUnit, nearestLandCell, transportMobility } from '@/systems/worldforge/travel/atlasTravelGraph';
-import { buildMultiModalAtlasGraph } from '@/systems/worldforge/travel/multiModalAtlasGraph';
+import { buildAtlasTravelGraph, atlasMilesPerUnit, nearestLandCell, transportMobility, buildAtlasTerrainFn } from '@/systems/worldforge/travel/atlasTravelGraph';
+import { deriveNavDrift } from '@/systems/travel/navDrift';
+import { buildMultiModalAtlasGraph, routeSeaDanger } from '@/systems/worldforge/travel/multiModalAtlasGraph';
 import { buildSubmapTravelGraph } from '@/systems/worldforge/travel/submapTravelGraph';
 import { planRoutesFrom, transportSpeedMph } from '@/systems/travel/routePlanning';
 import { segmentRoute } from '@/systems/travel/multiModalRoute';
+import type { MultiModalRoute, TenderOptions } from '@/systems/travel/multiModalRoute';
+import { dockSizeForPort, dockClassForShipSize } from '@/systems/travel/dockTiers';
 import { availableTransports } from '@/systems/travel/availableTransports';
-import { rollTravelEncounter } from '@/systems/travel/travelEncounter';
-import { pickTravelEncounterMonsters } from '@/systems/travel/travelEncounterMonsters';
-import { formatTravelTime } from '@/systems/travel/travelReadout';
+import { rollTravelEncounter, rollSeaEncounter } from '@/systems/travel/travelEncounter';
+import { pickTravelEncounterMonsters, type TravelEncounterMonster } from '@/systems/travel/travelEncounterMonsters';
+import { formatTravelTime, ferryFare } from '@/systems/travel/travelReadout';
+import { calculateForcedMarchStatus } from '@/systems/travel/TravelCalculations';
 import { generateFmgWorld } from '@/systems/worldforge/fmg/generateWorld';
 import { shipTravelAvailability, shipVoyageFromDestination } from '@/systems/worldforge/travel/shipEmbark';
 import { shipSpeedMph } from '@/utils/naval/navalUtils';
 import type { Ship } from '@/types/naval';
+
+/**
+ * Derive the `forcedMarch` trip-meta (travel G1) from a committed leg's duration.
+ * Returns undefined for a trip at or under the safe 8-hour day (no save), so short
+ * trips omit the field entirely and stay unaffected. Present only when the leg is
+ * long enough to trigger a Constitution save (DC 11 at the 9th hour, +1 per further
+ * full hour). Applied to the ACTUAL seconds each leg commits — a partial-stop halt
+ * that stops short may fall back under the threshold and correctly skip the risk.
+ */
+function deriveForcedMarch(seconds: number): { hours: number; saveDC: number } | undefined {
+  const hours = seconds / 3600;
+  const status = calculateForcedMarchStatus(hours);
+  return status.isForcedMarch && status.constitutionSaveDC > 0
+    ? { hours: Number(hours.toFixed(2)), saveDC: status.constitutionSaveDC }
+    : undefined;
+}
 
 interface MapPaneProps {
   // Grid retirement: MapPane no longer takes mapData — it renders the cell-native
@@ -117,6 +137,12 @@ interface MapPaneProps {
   provisionInventory?: Item[];
   /** Number of party members consuming rations/water (provisioning consumers). */
   partySize?: number;
+  /**
+   * The party's spendable gold (`gameState.gold`) — used to gate hired-ferry
+   * travel (travel G15). When a sea crossing's fare exceeds this, the ferry pick
+   * is rejected with an "insufficient gold" cue instead of a free trip. Omit → 0.
+   */
+  partyGold?: number;
   /** Best forager's Survival modifier (Wis mod + proficiency) — for the forage choice. */
   partySurvivalModifier?: number;
   /**
@@ -225,6 +251,7 @@ const MapPane: React.FC<MapPaneProps> = ({
   enableIslandHarbors = false,
   provisionInventory = [],
   partySize = 0,
+  partyGold = 0,
   partySurvivalModifier = 0,
   activeShip = null,
   onSetSail,
@@ -260,6 +287,8 @@ const MapPane: React.FC<MapPaneProps> = ({
   // halt at the last sustainable point.
   const [pendingTravel, setPendingTravel] = useState<{
     cellId: number; tx: number; ty: number; minutes: number; points: Array<[number, number]>;
+    /** Hired-ferry fare (gp) to deduct on a FULL-completion commit (travel G15). */
+    ferryFareGp?: number;
   } | null>(null);
   // One-time explainer: the FIRST time the player tries to set out underprovisioned
   // we teach the risk (halt-short, starvation, companion fallout) + the mitigations,
@@ -513,20 +542,48 @@ const MapPane: React.FC<MapPaneProps> = ({
     return height >= 20;
   }, [worldforgeAtlas]);
 
+  // Travel G14: dock size at an atlas cell, DERIVED from the burg already there
+  // (population + capital flag) — never a baked field, so the frozen atlas is
+  // untouched. A cell with no burg reads as a small anchorage.
+  const atlasDockSizeOf = useCallback((cell: number) => {
+    const pack = worldforgeAtlas?.pack as unknown as {
+      cells?: { burg?: ArrayLike<number> };
+      burgs?: Array<{ population?: number; capital?: number } | undefined>;
+    } | undefined;
+    const burgId = pack?.cells?.burg?.[cell];
+    return dockSizeForPort(burgId ? pack?.burgs?.[burgId] : undefined);
+  }, [worldforgeAtlas]);
+
   const planAtlasMultiModal = useCallback((toCell: number) => {
     if (!worldforgeAtlas) return null;
     const plan = travelMmField?.to(toCell);
     if (!plan) return null;
+    // Travel G14: only an owned ship can be too large to berth. A hired ferry is
+    // a small craft that lands anywhere, so it needs no tender leg.
+    const tender: TenderOptions | undefined =
+      seaPref === 'ship' && activeShip
+        ? { vehicleDockClass: dockClassForShipSize(activeShip.size), dockSizeOf: atlasDockSizeOf }
+        : undefined;
     return segmentRoute(
       plan,
       (cell) => (isAtlasLandCell(cell) ? 'land' : 'sea'),
       atlasMilesPerUnit(worldforgeAtlas),
+      tender ? { tender } : undefined,
     );
-  }, [travelMmField, isAtlasLandCell, worldforgeAtlas]);
+  }, [travelMmField, isAtlasLandCell, worldforgeAtlas, seaPref, activeShip, atlasDockSizeOf]);
 
   const planSelectedAtlasRoute = useCallback((toCell: number) => {
     return travelMmField?.to(toCell) ?? planAtlasRoute(toCell);
   }, [travelMmField, planAtlasRoute]);
+
+  // Travel G15: fare a HIRED ferry charges for a previewed route's sea legs, for
+  // the hover readout. Only hired ferries pay — an owned ship (seaPref 'ship')
+  // sails for free — so this returns null unless the ferry option is selected.
+  const ferryFareForRoute = useCallback((route: MultiModalRoute): number | null => {
+    if (seaPref !== 'ferry') return null;
+    const fare = ferryFare(route);
+    return fare > 0 ? fare : null;
+  }, [seaPref]);
 
   // Atlas pins: place each discovered hidden place at the Voronoi SITE of its
   // canonical atlas cell (grid retirement: cell-native — the site stores `cellId`
@@ -725,13 +782,53 @@ const MapPane: React.FC<MapPaneProps> = ({
         showMapNotice("Can't travel there — no route.");
         return;
       }
-      const roll = rollTravelEncounter(route, rootSeedPath(worldforgeSeed));
-      const encounter = roll.encounter
-        ? { monsters: pickTravelEncounterMonsters(route, rootSeedPath(worldforgeSeed)) }
-        : undefined;
-      const encounterMessage = roll.encounter
-        ? `After ${formatTravelTime(route.minutes)} on the road, danger finds you — an encounter!`
-        : `You travel for ${formatTravelTime(route.minutes)} and arrive without incident.`;
+      // ── Ferry fare (travel G15) ───────────────────────────────────────────
+      // A HIRED ferry charges a fare for its sea legs. Compute it from the
+      // multimodal route (which separates sea miles) and gate affordability
+      // BEFORE the provisioning flow: an unaffordable crossing is rejected
+      // honestly instead of teleporting for free. Owned ships pay no fare and
+      // never reach here (the seaPref==='ship' branch returns above); an all-land
+      // ferry-mode trip has no sea miles, so fare is 0 and nothing is charged.
+      const ferryRoute = seaPref === 'ferry' ? planAtlasMultiModal(info.i) : null;
+      const ferryFareGp = ferryRoute ? ferryFare(ferryRoute) : 0;
+      if (ferryFareGp > 0 && partyGold < ferryFareGp) {
+        showMapNotice(`Not enough gold for the ferry — the fare is ${ferryFareGp} gp.`);
+        return;
+      }
+      // ── Encounter roll (travel G16) ───────────────────────────────────────
+      // A committed trip's danger follows its medium. All-land trips keep the
+      // road-ambush table exactly as before. A trip that crosses any sea cell
+      // (a hired ferry) rolls the SEA table instead, scaled by the route's sea
+      // danger tier (lane/coastal/open) — maritime travel is its own gameplay,
+      // not a reskinned land ambush. Owned-ship voyages never reach here: they
+      // commit through onSetSail above and resolve day-by-day at sea (Naval).
+      const seed = rootSeedPath(worldforgeSeed);
+      const hasSeaLeg = route.cells.some((c) => !isAtlasLandCell(c));
+      let encounter: { monsters: TravelEncounterMonster[] } | undefined;
+      let encounterMessage: string;
+      if (hasSeaLeg) {
+        const seaDanger = routeSeaDanger(worldforgeAtlas, route.cells);
+        const seaRoll = rollSeaEncounter(route, (c) => !isAtlasLandCell(c), seaDanger, seed);
+        if (seaRoll.encounter && seaRoll.outcome) {
+          // Hostile outcomes hand off to the existing battle-map flow like a road
+          // ambush; peaceful ones (wreck / merchant / squall) are flavor only —
+          // the naval combat internals are Naval G3, not wired here.
+          encounter = seaRoll.outcome.hostile
+            ? { monsters: seaRoll.outcome.monsters ?? [] }
+            : undefined;
+          encounterMessage = `After ${formatTravelTime(route.minutes)} at sea — ${seaRoll.outcome.summary}`;
+        } else {
+          encounterMessage = `You sail for ${formatTravelTime(route.minutes)} and reach harbour without incident.`;
+        }
+      } else {
+        const roll = rollTravelEncounter(route, seed);
+        encounter = roll.encounter
+          ? { monsters: pickTravelEncounterMonsters(route, seed) }
+          : undefined;
+        encounterMessage = roll.encounter
+          ? `After ${formatTravelTime(route.minutes)} on the road, danger finds you — an encounter!`
+          : `You travel for ${formatTravelTime(route.minutes)} and arrive without incident.`;
+      }
       // Cell-native arrival (Stage 4): carry the EXACT destination cell + its 3D-entry
       // anchor so arrival lands that cell (not the lossy tx/ty reverse-derive), resets
       // Locale feet, and frames the destination town on a later Enter-3D. The tx/ty
@@ -745,6 +842,24 @@ const MapPane: React.FC<MapPaneProps> = ({
         // <Town>." instead of the anti-immersive "Traveled to a new place."
         name: describeCell(worldforgeAtlas, destCellId)?.burg?.name,
       };
+      // ── Navigation drift (travel G2) ──────────────────────────────────────
+      // An OFF-ROAD land trip risks getting lost (DMG p.111): a failed Survival
+      // check vs the terrain DC drifts the party a wrong heading and burns extra
+      // hours. Sea trips never roll (you don't get "lost" following a ferry lane);
+      // the road exemption lives inside deriveNavDrift (an all-road route yields
+      // terrain 'road' → auto-success → no drift). Seeded by (worldSeed,
+      // destination cell) so a given world + trip always reproduces the same
+      // lost/not-lost + drift — the party still ARRIVES at destinationCell (the
+      // drift is time-only, never a wrong-cell teleport).
+      const navDrift = hasSeaLeg
+        ? undefined
+        : deriveNavDrift(
+            buildAtlasTerrainFn(worldforgeAtlas),
+            route.cells,
+            route.points,
+            partySurvivalModifier,
+            new SeededRandom((worldforgeSeed ?? 0) + destCellId * 6271 + 29),
+          );
       // Provisioning gate: does the party carry enough food + water for the trip?
       const decision = decideTravelProvision({
         foodDays: daysOfFood(provisionInventory),
@@ -758,13 +873,16 @@ const MapPane: React.FC<MapPaneProps> = ({
         const provision: TravelProvisionEffect | undefined = partySize > 0
           ? { rationsToSpend: decision.rationsToSpend, waterToSpend: decision.waterToSpend }
           : undefined;
-        onTileClick(0, 0, tile, { seconds: Math.round(route.minutes * 60), encounterMessage, encounter, provision, destinationCell });
+        const tripSeconds = Math.round(route.minutes * 60);
+        const forcedMarch = deriveForcedMarch(tripSeconds);
+        onTileClick(0, 0, tile, { seconds: tripSeconds, encounterMessage, encounter, provision, destinationCell, ...(ferryFareGp > 0 ? { ferryFareGp } : {}), ...(forcedMarch ? { forcedMarch } : {}), ...(navDrift ? { navDrift } : {}) });
         return;
       }
-      // Underprovisioned → open the choice flow instead of moving.
-      setPendingTravel({ cellId: info.i, tx: 0, ty: 0, minutes: route.minutes, points: route.points });
+      // Underprovisioned → open the choice flow instead of moving. Carry the fare
+      // so it's deducted on a full-completion commit after the choice resolves.
+      setPendingTravel({ cellId: info.i, tx: 0, ty: 0, minutes: route.minutes, points: route.points, ...(ferryFareGp > 0 ? { ferryFareGp } : {}) });
     }
-  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planSelectedAtlasRoute, planAtlasMultiModal, worldforgeSeed, provisionInventory, partySize, seaPref, onSetSail, showMapNotice]);
+  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planSelectedAtlasRoute, planAtlasMultiModal, worldforgeSeed, provisionInventory, partySize, partyGold, partySurvivalModifier, seaPref, onSetSail, showMapNotice, isAtlasLandCell]);
 
   // ── Underprovisioned travel choice resolution ──────────────────────────────
   // Map a graph-space point to a world grid tile (the same proportional bridge
@@ -834,7 +952,28 @@ const MapPane: React.FC<MapPaneProps> = ({
         cellId: snapToLandCell(worldforgeAtlas, pt.cellId),
         anchor: entry3DAnchorForCell(worldforgeAtlas, pt.cellId),
       };
-      if (target) onTileClick(0, 0, target, { seconds: Math.round(pt.minutes * 60 + extraSeconds), provision, destinationCell });
+      // Full-completion commit → deduct the hired-ferry fare (travel G15). A
+      // partial-stop halt (below) never crosses to the destination, so it isn't
+      // charged.
+      const fullSeconds = Math.round(pt.minutes * 60 + extraSeconds);
+      const fullForcedMarch = deriveForcedMarch(fullSeconds);
+      // Navigation drift (travel G2), recomputed at resolve time from the
+      // re-planned route (forced-march precedent). The full-completion commit
+      // still arrives at the picked cell, so an off-road land leg can still get
+      // lost; seeded identically to the ungated path (worldSeed, destination
+      // cell) so the same trip reproduces the same drift. A partial-stop halt
+      // (below) never reaches the destination and skips this.
+      const fullRoute = planSelectedAtlasRoute(pt.cellId);
+      const fullNavDrift = fullRoute && !fullRoute.cells.some((c) => !isAtlasLandCell(c))
+        ? deriveNavDrift(
+            buildAtlasTerrainFn(worldforgeAtlas),
+            fullRoute.cells,
+            fullRoute.points,
+            partySurvivalModifier,
+            new SeededRandom((worldforgeSeed ?? 0) + destinationCell.cellId * 6271 + 29),
+          )
+        : undefined;
+      if (target) onTileClick(0, 0, target, { seconds: fullSeconds, provision, destinationCell, ...(pt.ferryFareGp ? { ferryFareGp: pt.ferryFareGp } : {}), ...(fullForcedMarch ? { forcedMarch: fullForcedMarch } : {}), ...(fullNavDrift ? { navDrift: fullNavDrift } : {}) });
       setPendingTravel(null);
       return;
     }
@@ -861,9 +1000,10 @@ const MapPane: React.FC<MapPaneProps> = ({
       cellId: snapToLandCell(worldforgeAtlas, target.cellId),
       anchor: entry3DAnchorForCell(worldforgeAtlas, target.cellId),
     };
-    onTileClick(0, 0, target.tile, { seconds: haltSeconds, provision, destinationCell: haltCell });
+    const haltForcedMarch = deriveForcedMarch(haltSeconds);
+    onTileClick(0, 0, target.tile, { seconds: haltSeconds, provision, destinationCell: haltCell, ...(haltForcedMarch ? { forcedMarch: haltForcedMarch } : {}) });
     setPendingTravel(null);
-  }, [pendingTravel, worldforgeAtlas, provisionInventory, partySize, partySurvivalModifier, worldforgeSeed, onTileClick, pointToTile]);
+  }, [pendingTravel, worldforgeAtlas, provisionInventory, partySize, partySurvivalModifier, worldforgeSeed, onTileClick, pointToTile, planSelectedAtlasRoute, isAtlasLandCell]);
 
   // Display status for the pending choice panel (binding resource + shortfall).
   const pendingStatus = useMemo(() => {
@@ -1274,6 +1414,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                 travelActive={interactionMode === 'travel'}
                 planRoute={planAtlasRoute}
                 planMultiModalRoute={planAtlasMultiModal}
+                ferryFareForRoute={ferryFareForRoute}
                 transportLabel={selectedTransport.readoutLabel}
                 provisionRings={provisionRings}
                 provisionLineForMinutes={provisionLineForMinutes}

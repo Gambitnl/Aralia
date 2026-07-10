@@ -589,6 +589,24 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                         lifespan: 999,
                     }));
                 }
+
+                // Memory-merge backfill: the merged KnownFact carries optional confidence/significance
+                // fields that pre-merge saves lack. Default them from the existing `strength` so the
+                // new "does this NPC know X" query lane has usable values. Purely additive — no live
+                // reader consumed these fields before, so runtime behavior is unchanged.
+                if (Array.isArray(memory.knownFacts)) {
+                    memory.knownFacts = memory.knownFacts.map((fact) => {
+                        if (typeof fact !== 'object' || fact === null) return fact;
+                        const f = fact as KnownFact;
+                        if (f.confidence !== undefined && f.significance !== undefined) return f;
+                        const baseStrength = typeof f.strength === 'number' ? f.strength : 5;
+                        return {
+                            ...f,
+                            confidence: f.confidence ?? Math.max(0, Math.min(1, baseStrength / 10)),
+                            significance: f.significance ?? Math.max(0, Math.min(10, baseStrength)),
+                        };
+                    });
+                }
             }
 
             // Migrate old shiny_coin items to gold property

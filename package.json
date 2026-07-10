@@ -30,7 +30,7 @@
     "validate": "npm run validate:charset && tsx scripts/validate-data.ts",
     "spells:inventory": "tsx scripts/spellFieldInventory.ts",
     "test": "vitest",
-    "test:types": "tsd --typings src/types/index.d.ts --files src/types/__tests__/spells.test-d.ts",
+    "test:types": "tsd --typings src/types/index.ts --files src/types/__tests__/spells.test-d.ts",
     "test:mcp": "tsx scripts/test-mcp-servers.ts",
     "mcp:chrome": "tsx scripts/workflows/gemini/image-gen/launch-debug-chrome.js",
     "image-gen:login": "tsx scripts/workflows/gemini/image-gen/open-gemini-profile.ts",

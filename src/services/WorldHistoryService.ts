@@ -193,6 +193,53 @@ export class WorldHistoryService {
   }
 
     /**
+     * Base importance assigned to a skirmish when no strength signal is available.
+     * Also the floor the derived importance is measured up from.
+     */
+    private static readonly SKIRMISH_BASE_IMPORTANCE = 40;
+    /** Importance is clamped to this band so a single clash never dominates the ledger. */
+    private static readonly SKIRMISH_MIN_IMPORTANCE = 20;
+    private static readonly SKIRMISH_MAX_IMPORTANCE = 100;
+
+    /**
+     * Derives how memorable a skirmish is from the strength gap between the
+     * combatants, using the `power` field the Faction model already exposes
+     * (0-100 overall influence/strength).
+     *
+     * The wider the gap, the more the clash reshapes the balance of power — a
+     * lopsided rout or a stunning upset is a far more notable historical event
+     * than an even trade of blows, so the importance-aware pruner should keep it
+     * longer. When neither faction exposes a usable numeric `power` we fall back
+     * to the historical base importance (a no-op relative to the old hardcode).
+     */
+    private static deriveSkirmishImportance(winner: Faction, loser: Faction): number {
+        const base = WorldHistoryService.SKIRMISH_BASE_IMPORTANCE;
+        const winnerPower = winner.power;
+        const loserPower = loser.power;
+
+        if (
+            typeof winnerPower !== 'number' ||
+            typeof loserPower !== 'number' ||
+            Number.isNaN(winnerPower) ||
+            Number.isNaN(loserPower)
+        ) {
+            return base;
+        }
+
+        // Magnitude of the power swing (0 for an even match, up to 100 for a
+        // total mismatch across the canonical 0-100 power range).
+        const disparity = Math.abs(winnerPower - loserPower);
+        const importance = base + disparity;
+
+        return Math.round(
+            Math.min(
+                WorldHistoryService.SKIRMISH_MAX_IMPORTANCE,
+                Math.max(WorldHistoryService.SKIRMISH_MIN_IMPORTANCE, importance),
+            ),
+        );
+    }
+
+    /**
      * Converts a faction skirmish outcome into a WorldHistoryEvent.
      */
     static createSkirmishEvent(
@@ -225,7 +272,9 @@ export class WorldHistoryService {
             title: `The Skirmish of ${winner.name} and ${loser.name}`,
             description: `A violent confrontation occurred between ${winner.name} and ${loser.name}. ${winner.name} emerged victorious, solidifying their influence while ${loser.name} was forced to retreat.`,
             participants,
-            importance: 40, // Base importance for skirmishes
+            // Scale importance with the power swing so the retention pruner keeps
+            // major upsets/routs and can shed even, mundane clashes (history G5).
+            importance: WorldHistoryService.deriveSkirmishImportance(winner, loser),
             tags: ['war', 'faction_conflict', winner.id, loser.id]
         };
     }

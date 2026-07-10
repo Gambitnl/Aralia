@@ -17,7 +17,7 @@
 import type { NPCVisualSpec } from './visuals.js';
 import type { NPCKnowledgeProfile } from './dialogue.js';
 import type { Position as CombatPosition } from './combat.js';
-import type { NPCMemory } from './memory.js'; // Added because NPC now carries optional memory.
+import type { Interaction } from './memory.js'; // Rich interaction records for the merged NPC memory lane.
 import type { AbilityScores } from './character.js';
 import type { EquipmentSlotType, Item } from './items.js';
 import type { WorldData } from '../services/worldSim/types';
@@ -139,13 +139,26 @@ export interface GoalUpdatePayload {
 export interface KnownFact {
   id: string;
   text: string;
-  source: 'direct' | 'gossip';
+  /**
+   * Provenance of the fact. 'direct'/'gossip' are the original live-lane values;
+   * 'witnessed'/'told_by_player'/'inference' were merged in from the retired richer model.
+   */
+  source: 'direct' | 'gossip' | 'witnessed' | 'told_by_player' | 'inference';
   sourceNpcId?: string;
   isPublic: boolean;
   timestamp: number;
   strength: number;
   lifespan: number;
   sourceDiscoveryId?: string;
+  /**
+   * Semantic key for reliable "does this NPC know X" queries (e.g. 'player_is_ritual_casting').
+   * The key contribution of the memory merge. Optional so existing writers stay unaffected.
+   */
+  factKey?: string;
+  /** How confident the NPC is in this fact (0.0 - 1.0). Optional; backfilled from `strength` on load. */
+  confidence?: number;
+  /** Importance score (0 - 10) governing retention/priority. Optional; backfilled from `strength` on load. */
+  significance?: number;
 }
 
 export interface WorldRumor {
@@ -178,13 +191,20 @@ export interface NpcMemory {
   /** Optional lightweight fact list used by AI helpers (distinct from structured KnownFacts). */
   facts?: string[];
   lastInteractionTimestamp?: number;
-  interactions?: unknown[];
-  attitude?: string | number;
-  discussedTopics?: Record<string, unknown>;
+  /** Chronological rich interaction records merged in from the retired richer memory model. */
+  interactions?: Interaction[];
+  /** Overall attitude toward the player, -100 (hostile) .. 100 (devoted). Optional; defaults to 0. */
+  attitude?: number;
+  /** Topics already discussed, keyed by topic id -> game-day timestamp, to avoid repetition. */
+  discussedTopics?: Record<string, number>;
   lastInteractionDate?: string | number | Date | null;
 }
 
-export type ConsolidatedNpcMemory = NPCMemory | NpcMemory;
+/**
+ * Historically a union of the two forked memory shapes. After the memory merge there is a single
+ * canonical shape (`NpcMemory`); the alias is retained so existing importers keep resolving.
+ */
+export type ConsolidatedNpcMemory = NpcMemory;
 
 export interface GossipUpdatePayload {
   [npcId: string]: {

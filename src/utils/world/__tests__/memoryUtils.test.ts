@@ -1,7 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { createEmptyMemory, addInteraction, decayMemories, formatMemoryForAI, getRelevantMemories, learnFact } from '../memoryUtils';
-import { MemoryImportance, Interaction, Fact } from '../../../types/memory';
+import { MemoryImportance, Interaction } from '../../../types/memory';
+import { KnownFact } from '../../../types/world';
 
 // These tests cover the canonical world helper because Gemini item prompts now import it directly.
 // The deprecated bridge remains for legacy callers, so the proof here checks the owner path that active code should use.
@@ -26,9 +27,9 @@ describe('memoryUtils', () => {
         memory = addInteraction(memory, interaction);
 
         expect(memory.interactions).toHaveLength(1);
-        expect(memory.interactions[0].summary).toBe('Talked nicely');
+        expect(memory.interactions![0].summary).toBe('Talked nicely');
         expect(memory.attitude).toBe(5);
-        expect(memory.interactions[0].id).toBeDefined();
+        expect(memory.interactions![0].id).toBeDefined();
     });
 
     it('decays memories based on significance', () => {
@@ -49,9 +50,9 @@ describe('memoryUtils', () => {
         memory = decayMemories(memory, now);
 
         expect(memory.interactions).toHaveLength(2);
-        expect(memory.interactions.find(i => i.summary === 'Old Hi')).toBeUndefined();
-        expect(memory.interactions.find(i => i.summary === 'Hi')).toBeDefined();
-        expect(memory.interactions.find(i => i.summary === 'Major Event')).toBeDefined();
+        expect(memory.interactions!.find(i => i.summary === 'Old Hi')).toBeUndefined();
+        expect(memory.interactions!.find(i => i.summary === 'Hi')).toBeDefined();
+        expect(memory.interactions!.find(i => i.summary === 'Major Event')).toBeDefined();
     });
 
     it('retrieves relevant memories', () => {
@@ -68,18 +69,22 @@ describe('memoryUtils', () => {
 
     it('learns facts and updates confidence', () => {
         let memory = createEmptyMemory();
-        const fact: Fact = {
+        const fact: KnownFact = {
             id: 'fact1',
-            dateLearned: 100,
+            text: '',
+            source: 'gossip',
+            isPublic: true,
+            timestamp: 100,
+            strength: 5,
+            lifespan: 999,
             confidence: 0.5,
             significance: MemoryImportance.Standard,
-            source: 'gossip'
         };
 
         memory = learnFact(memory, fact);
         expect(memory.knownFacts[0].confidence).toBe(0.5);
 
-        const betterFact: Fact = {
+        const betterFact: KnownFact = {
             ...fact,
             confidence: 0.9,
             source: 'witnessed'
@@ -102,10 +107,14 @@ describe('memoryUtils', () => {
         });
         memory = learnFact(memory, {
             id: 'player_helped_gate_watch',
-            dateLearned: 120,
+            text: '',
+            source: 'gossip',
+            isPublic: true,
+            timestamp: 120,
+            strength: 8,
+            lifespan: 999,
             confidence: 0.8,
             significance: MemoryImportance.Major,
-            source: 'gossip'
         });
 
         const formatted = formatMemoryForAI(memory, ['gate']);

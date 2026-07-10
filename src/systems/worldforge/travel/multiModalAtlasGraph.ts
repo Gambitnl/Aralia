@@ -72,14 +72,73 @@ const FERRY_LANE_DANGER = 0.12;
 // coastal and open-ocean cells, which carry progressively higher danger.
 // SEA_DANGER_LANE intentionally mirrors FERRY_LANE_DANGER so both kinds agree
 // on lane danger; the tiering is only applied when opts.sea.kind === 'ship'.
+//
+// INVARIANT: SEA_DANGER_LANE < SEA_DANGER_COASTAL < SEA_DANGER_OPEN. The sea
+// encounter roll (travel G16) relies on this ordering, and seaTier.test.ts pins
+// it. TUNABLE — flagged for design review.
 // ============================================================================
 
-/** Danger for a sea cell that sits on a generated ferry lane. */
+/** Danger for a sea cell that sits on a generated ferry lane. TUNABLE — flagged for design review. */
 export const SEA_DANGER_LANE = FERRY_LANE_DANGER; // 0.12
-/** Danger for a ship in coastal water (≥1 land neighbor, not a lane). */
+/** Danger for a ship in coastal water (≥1 land neighbor, not a lane). TUNABLE — flagged for design review. */
 export const SEA_DANGER_COASTAL = 0.3;
-/** Danger for a ship in open ocean (no land neighbors, not a lane). */
+/** Danger for a ship in open ocean (no land neighbors, not a lane). TUNABLE — flagged for design review. */
 export const SEA_DANGER_OPEN = 0.5;
+
+/** Sea danger tiers, ordered lane < coastal < open. */
+export type SeaTier = 'lane' | 'coastal' | 'open';
+
+/** Danger weight for a sea tier. Invariant preserved: lane < coastal < open. */
+export function seaDangerForTier(tier: SeaTier): number {
+  switch (tier) {
+    case 'lane':
+      return SEA_DANGER_LANE;
+    case 'coastal':
+      return SEA_DANGER_COASTAL;
+    case 'open':
+      return SEA_DANGER_OPEN;
+  }
+}
+
+/**
+ * Classify a sea cell into a danger tier from the atlas topology alone (no new
+ * world-gen field): a cell on a generated ferry lane is `lane`; otherwise a cell
+ * with ≥1 land neighbor is `coastal` (near shore); a cell with no land neighbor
+ * is `open` ocean. This is a coarse proxy for "distance from shore" — the atlas
+ * exposes cell adjacency + heights but not a continuous shore-distance field, so
+ * one ring of neighbors is the available signal. Pass `laneCells` to avoid
+ * rebuilding the ferry-lane set per call.
+ */
+export function classifySeaCell(
+  atlas: FmgAtlasResult,
+  cell: number,
+  laneCells?: Set<number>,
+): SeaTier {
+  const cells = (atlas.pack as unknown as Packish).cells;
+  const lanes = laneCells ?? buildFerryLaneCells(atlas);
+  if (lanes.has(cell)) return 'lane';
+  const isLandHeight = (c: number): boolean => (cells.h?.[c] ?? 0) >= LAND_THRESHOLD;
+  return (cells.c?.[cell] ?? []).some(isLandHeight) ? 'coastal' : 'open';
+}
+
+/**
+ * Aggregate sea danger for a route: the MAX sea-tier danger over the route's sea
+ * cells (0 when the route never touches water). Mirrors how RoutePlan.danger is a
+ * max over per-cell danger, so a route that crosses open ocean reads as more
+ * dangerous than one that only hugs a ferry lane. Used by the committed-trip sea
+ * encounter roll (travel G16).
+ */
+export function routeSeaDanger(atlas: FmgAtlasResult, cells: number[]): number {
+  const heights = (atlas.pack as unknown as Packish).cells.h;
+  const lanes = buildFerryLaneCells(atlas);
+  let max = 0;
+  for (const cell of cells) {
+    if ((heights?.[cell] ?? 0) >= LAND_THRESHOLD) continue; // land cell — no sea danger
+    const d = seaDangerForTier(classifySeaCell(atlas, cell, lanes));
+    if (d > max) max = d;
+  }
+  return max;
+}
 
 type Packish = {
   cells: {
@@ -184,7 +243,6 @@ export function buildMultiModalAtlasGraph(
 
   const isLand = (cell: number): boolean => (cells.h?.[cell] ?? 0) >= LAND_THRESHOLD;
   const isFerryWater = (cell: number): boolean => !isLand(cell) && ferryLaneCells.has(cell);
-  const hasLandNeighbor = (cell: number): boolean => (cells.c?.[cell] ?? []).some(isLand);
   const biomeName = (cell: number): string => names?.[cells.biome?.[cell] ?? -1] ?? '';
 
   const isPortTransfer = (from: number, to: number): boolean =>
@@ -225,12 +283,11 @@ export function buildMultiModalAtlasGraph(
     passable: canEnter,
     danger: (cell) => {
       if (!isLand(cell)) {
-        // Ships see three danger tiers based on cell type.
-        // Ferries are lane-bound — keep the flat legacy value so ferry behavior
-        // is byte-for-byte identical to before this change.
+        // Ships see three danger tiers based on cell type (lane/coastal/open),
+        // classified from atlas topology. Ferries are lane-bound — keep the flat
+        // legacy value so ferry behavior is byte-for-byte identical to before.
         if (seaKind === 'ship') {
-          if (ferryLaneCells.has(cell)) return SEA_DANGER_LANE;
-          return hasLandNeighbor(cell) ? SEA_DANGER_COASTAL : SEA_DANGER_OPEN;
+          return seaDangerForTier(classifySeaCell(atlas, cell, ferryLaneCells));
         }
         return FERRY_LANE_DANGER;
       }

@@ -63,5 +63,6 @@
   ],
   "filePath": "/data/glossary/entries/races/halfling_subraces/lightfoot.json",
   "maleImageUrl": "/assets/images/races/Halfling_Lightfoot_Male.png",
-  "femaleImageUrl": "/assets/images/races/Halfling_Lightfoot_Female.png"
+  "femaleImageUrl": "/assets/images/races/Halfling_Lightfoot_Female.png",
+  "modernizationStatus": "modified_legacy"
 }

@@ -20,7 +20,6 @@ import * as THREE from 'three';
 import { collectInteriorLighting } from '../InteriorLights';
 import { chunkOriginWorld } from '@/systems/world3d/coords';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
-import { HEARTH_GLOW_HEX } from '@/systems/worldforge/bridge/interiorParts';
 import type { LoadedChunk } from '@/systems/world3d/types';
 
 interface OracleSite {
@@ -88,8 +87,8 @@ function makeChunk(cx: number, cy: number, site: OracleSite, parts: unknown[]): 
 
 describe('collectInteriorLighting hearth projection', () => {
   const origin: SceneOrigin = { x: 12.5, z: -7.25 };
-  // A hearth part (glows) plus a plain wall part (must be ignored).
-  const hearth = { x: 1.2, z: 0.8, w: 1, d: 1, h: 1.2, baseY: 0.3, colorHex: '#fff', emissiveHex: HEARTH_GLOW_HEX };
+  // A hearth part (tagged lightRole 'hearth') plus a plain wall part (ignored).
+  const hearth = { x: 1.2, z: 0.8, w: 1, d: 1, h: 1.2, baseY: 0.3, colorHex: '#fff', lightRole: 'hearth' as const };
   const wall = { x: 0, z: 0, w: 1, d: 1, h: 2, baseY: 0, colorHex: '#aaa' };
 
   const cases: Array<{ name: string; rotationY: number; doorZSign: number }> = [
@@ -125,7 +124,7 @@ describe('collectInteriorLighting hearth projection', () => {
     });
   }
 
-  it('only parts tagged with HEARTH_GLOW_HEX become lights', () => {
+  it('only parts tagged with lightRole "hearth" become lights', () => {
     const site: OracleSite = { localX: 0, localZ: 0, surfaceY: 0, rotationY: 0.5, doorZSign: -1 };
     const { hearths } = collectInteriorLighting([makeChunk(0, 0, site, [wall, wall, hearth])], origin);
     expect(hearths).toHaveLength(1);

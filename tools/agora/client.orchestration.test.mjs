@@ -83,6 +83,36 @@ test('orchestration flow: deps + priority + next + done --result + ready view', 
   assert.match(dry.lines.join('\n'), /no ready tasks/);
 });
 
+test('task next can pull from one campaign or category lane', async () => {
+  const filterEnv = { ...env, AGORA_AGENT_ID: 'cli-filter-worker' };
+  const filterCli = (argv) => run(argv, { env: filterEnv, baseUrl });
+  await filterCli(['register', 'cli-filter-worker']);
+
+  for (const [id, suffix] of [['cli-lane-a', 'a'], ['cli-lane-b', 'b']]) {
+    const claim = await filterCli([
+      'campaign', 'claim', id,
+      '--role', 'lead',
+      '--path', `tmp/cli-filter-${suffix}`,
+    ]);
+    assert.equal(claim.code, 0);
+  }
+  const laneA = await filterCli([
+    'task', 'new', 'CLI lane A',
+    '--campaign', 'cli-lane-a', '--category', 'backend', '--priority', '100',
+  ]);
+  const laneB = await filterCli([
+    'task', 'new', 'CLI lane B',
+    '--campaign', 'cli-lane-b', '--category', 'frontend', '--priority', '200',
+  ]);
+
+  const byCampaign = await filterCli(['task', 'next', '--campaign', 'cli-lane-a']);
+  assert.equal(byCampaign.task.id, laneA.task.id);
+  const byCategory = await filterCli(['task', 'next', '--category', 'frontend']);
+  assert.equal(byCategory.task.id, laneB.task.id);
+  const dryLane = await filterCli(['task', 'next', '--campaign', 'cli-lane-a']);
+  assert.equal(dryLane.task, null);
+});
+
 test('campaign commands: lead claims, overlap conflicts, list view, and task namespace', async () => {
   const leadEnv = { ...env, AGORA_AGENT_ID: 'campaign-cli-lead' };
   const rivalEnv = { ...env, AGORA_AGENT_ID: 'campaign-cli-rival' };
@@ -125,4 +155,5 @@ test('campaign commands: lead claims, overlap conflicts, list view, and task nam
   assert.equal(listed.code, 0);
   assert.match(listed.lines.join('\n'), /cli-governance/);
   assert.match(listed.lines.join('\n'), /lead/);
+  assert.match(listed.lines.join('\n'), /owner:online/);
 });

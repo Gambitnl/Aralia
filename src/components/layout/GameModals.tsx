@@ -442,6 +442,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 onRegenerateWorld={onRegenerateWorldMap}
                                 provisionInventory={gameState.inventory}
                                 partySize={gameState.party.length}
+                                partyGold={gameState.gold}
                                 partySurvivalModifier={partySurvivalModifier}
                                 activeShip={
                                     gameState.naval.playerShips.find(

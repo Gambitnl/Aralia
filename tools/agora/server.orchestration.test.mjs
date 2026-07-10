@@ -127,6 +127,66 @@ test('tasks: POST /tasks/claim-next claims by priority; 200 with task:null when 
   assert.equal(r.json.task, null);
 });
 
+test('tasks: POST /tasks/claim-next accepts campaign and category lane filters', async () => {
+  const orch = await registerAgent('orch-filter-api');
+  const worker = await registerAgent('worker-filter-api');
+
+  for (const [id, pathName] of [['api-lane-a', 'a'], ['api-lane-b', 'b']]) {
+    const campaign = await request('POST', '/campaigns', {
+      token: orch.token,
+      body: { id, role: 'lead', paths: [`tmp/api-filter-${pathName}`] },
+    });
+    assert.equal(campaign.status, 201);
+  }
+
+  const laneA = await request('POST', '/tasks', {
+    token: orch.token,
+    body: { title: 'api lane A', campaignId: 'api-lane-a', category: 'backend', priority: 100 },
+  });
+  const laneB = await request('POST', '/tasks', {
+    token: orch.token,
+    body: { title: 'api lane B', campaignId: 'api-lane-b', category: 'frontend', priority: 200 },
+  });
+
+  const byCampaign = await request('POST', '/tasks/claim-next', {
+    token: worker.token,
+    body: { campaignId: 'api-lane-a' },
+  });
+  assert.equal(byCampaign.status, 200);
+  assert.equal(byCampaign.json.task.id, laneA.json.task.id);
+
+  const byCategory = await request('POST', '/tasks/claim-next?category=frontend', { token: worker.token });
+  assert.equal(byCategory.status, 200);
+  assert.equal(byCategory.json.task.id, laneB.json.task.id);
+
+  const dryLane = await request('POST', '/tasks/claim-next', {
+    token: worker.token,
+    body: { campaignId: 'api-lane-a' },
+  });
+  assert.equal(dryLane.status, 200);
+  assert.equal(dryLane.json.task, null);
+});
+
+test('tasks: handoff refuses an unknown target and preserves the claimant', async () => {
+  const orch = await registerAgent('orch-handoff-api');
+  const worker = await registerAgent('worker-handoff-api');
+  const task = await request('POST', '/tasks', {
+    token: orch.token,
+    body: { title: 'api safe handoff' },
+  });
+  await request('POST', `/tasks/${task.json.task.id}/claim`, { token: worker.token });
+
+  const rejected = await request('POST', `/tasks/${task.json.task.id}/handoff`, {
+    token: orch.token,
+    body: { toAgentId: 'missing-agent' },
+  });
+  assert.equal(rejected.status, 400);
+  assert.match(rejected.json.error, /not registered or live/);
+
+  const board = await request('GET', '/tasks');
+  assert.equal(board.json.tasks.find((row) => row.id === task.json.task.id).claimedBy, worker.agentId);
+});
+
 test('campaigns: API claims lead scopes, rejects overlapping leads, and namespaces tasks', async () => {
   const lead = await registerAgent('campaign-lead');
   const rival = await registerAgent('campaign-rival');
@@ -172,14 +232,17 @@ test('campaigns: API claims lead scopes, rejects overlapping leads, and namespac
 
   const campaigns = await request('GET', '/campaigns');
   assert.equal(campaigns.status, 200);
-  assert.ok(campaigns.json.campaigns.some((c) => c.id === 'governance-api'));
+  const listed = campaigns.json.campaigns.find((c) => c.id === 'governance-api');
+  assert.ok(listed);
+  assert.equal(listed.ownerStatus, 'online');
+  assert.equal(listed.ownerLive, true);
 });
 
 test('docs: /docs lists the whitelisted reference files; /docs/:name serves them; others 404', async () => {
   const list = await request('GET', '/docs');
   assert.equal(list.status, 200);
   const names = list.json.docs.map((d) => d.name).sort();
-  assert.deepEqual(names, ['COLD_START_ORCHESTRATOR_PROMPT.md', 'ORCHESTRATOR.md', 'PROTOCOL.md', 'WORKFLOW_GAPS.md']);
+  assert.deepEqual(names, ['CO-ORCHESTRATION.md', 'COLD_START_ORCHESTRATOR_PROMPT.md', 'ORCHESTRATOR.md', 'PROTOCOL.md', 'WORKFLOW_GAPS.md']);
   assert.ok(list.json.docs.every((d) => d.path.includes('tools')), 'absolute paths returned');
 
   // Default is the pretty HTML page for humans; ?raw=1 is the plain markdown.

@@ -61,16 +61,46 @@ export function dangerRating(danger: number): DangerRating {
   return { level: 'Perilous', color: '#ef4444' };
 }
 
+// ── Ferry fares (travel G15) ────────────────────────────────────────────────
+// A hired ferry charges a fare for its sea legs, so crossing water is an
+// economic choice rather than a free teleport. The fare is a flat boarding fee
+// plus a per-sea-mile rate, computed ONLY from the route's open-water distance
+// (land legs are walked for free). Owned-ship voyages pay no fare — that's a
+// separate commit path — so callers only apply this to hired ferries.
+//
+// TUNABLE — flagged for design review. Low, D&D-appropriate defaults: a short
+// river/strait hop costs a couple of gold, a long sea passage a handful more.
+export const FERRY_BOARDING_FEE_GP = 2; // TUNABLE — flat fee to board, any crossing
+export const FERRY_PER_SEA_MILE_GP = 0.5; // TUNABLE — per mile of open-water passage
+
+/**
+ * Fare (whole gp, rounded up) a hired ferry charges for a route's sea legs.
+ *
+ * Pure + deterministic — depends only on `seaMiles`. Returns 0 for an all-land
+ * route (no sea miles), so callers can treat 0 as "no ferry needed / no charge".
+ */
+export function ferryFare(route: { seaMiles: number }): number {
+  if (!(route.seaMiles > 0)) return 0;
+  return Math.ceil(FERRY_BOARDING_FEE_GP + route.seaMiles * FERRY_PER_SEA_MILE_GP);
+}
+
 /**
  * One-line summary for a route that includes both land and sea legs.
  *
  * This keeps the total time and danger wording consistent with ordinary travel,
  * while splitting distance so the player can see how much of the trip is over
- * roads/terrain versus water.
+ * roads/terrain versus water. When a positive `fareGp` is supplied (hired ferry),
+ * the fare is appended so the player sees the cost before committing.
  */
-export function formatMultiModalSummary(route: MultiModalRoute): string {
+export function formatMultiModalSummary(route: MultiModalRoute, opts?: { fareGp?: number | null }): string {
   const rating = dangerRating(route.danger);
-  return `≈ ${formatTravelTime(route.minutes)} · ${formatDistance(route.landMiles)} land + ${formatDistance(route.seaMiles)} sea · Danger: ${rating.level}`;
+  // Distance breakdown: land + sea, plus a short "rowed ashore" tender leg when
+  // the route has one (optional field — guard for undefined/0).
+  const tender = route.tenderMiles;
+  const tenderPiece = tender != null && tender > 0 ? ` + ${formatDistance(tender)} tender` : '';
+  const base = `≈ ${formatTravelTime(route.minutes)} · ${formatDistance(route.landMiles)} land + ${formatDistance(route.seaMiles)} sea${tenderPiece} · Danger: ${rating.level}`;
+  const fare = opts?.fareGp;
+  return fare != null && fare > 0 ? `${base} · Fare: ${fare} gp` : base;
 }
 
 /**
