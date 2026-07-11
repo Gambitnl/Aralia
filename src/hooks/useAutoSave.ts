@@ -1,7 +1,33 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 11/07/2026, 01:14:26
+ * Dependents: App.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useEffect, useMemo, useRef } from 'react';
 import type { GameState } from '../types';
 import { GamePhase } from '../types';
 import * as SaveLoadService from '../services/saveLoadService';
+
+/**
+ * This hook protects an active adventure from refreshes, crashes, and accidental
+ * closure. It writes a frequently refreshed auto-save, preserves the last safe
+ * exploration state before combat, and now creates slower checkpoint tiers that
+ * let a player recover from mistakes discovered after the rapid auto-save changed.
+ *
+ * App.tsx supplies the live GameState. The save service owns serialization,
+ * storage selection, slot metadata, and migration behavior.
+ */
 
 const AUTO_SAVE_DEBOUNCE_MS = 1500;
 const AUTO_SAVE_THROTTLE_MS = 10_000;
@@ -41,6 +67,7 @@ export function useAutoSave(gameState: GameState, enabledOverride?: boolean) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSaveAtRef = useRef<number>(0);
   const isSavingRef = useRef(false);
+  const checkpointSavingRef = useRef<Set<string>>(new Set());
   const prevPhaseRef = useRef<GamePhase>(gameState.phase);
 
   const saveNow = async () => {
@@ -117,6 +144,46 @@ export function useAutoSave(gameState: GameState, enabledOverride?: boolean) {
       timerRef.current = null;
     };
   }, [eligible, gameState]);
+
+  // ========================================================================
+  // Recovery Checkpoint Tiers
+  // ========================================================================
+  // The rapid auto-save protects the latest moment, but it cannot recover an
+  // earlier healthy state after several bad actions. Each tier periodically
+  // snapshots the same current adventure into its own durable slot. Timers run
+  // only while normal exploration is eligible, so menus, loading, and combat do
+  // not create misleading recovery points.
+  // ========================================================================
+  useEffect(() => {
+    if (!eligible) return undefined;
+
+    const timers = SaveLoadService.CHECKPOINT_TIERS.map((tier) =>
+      window.setInterval(() => {
+        const state = latestStateRef.current;
+        if (!isGameplayPhase(state.phase) || state.isLoading || !state.party?.length) return;
+
+        // A slow storage write must not let the same tier overlap itself. Other
+        // tiers remain independent because several recovery horizons can become
+        // due at the same moment.
+        if (checkpointSavingRef.current.has(tier.id)) return;
+        checkpointSavingRef.current.add(tier.id);
+
+        void SaveLoadService.saveGame(
+          state,
+          tier.slotKey,
+          undefined,
+          { displayName: tier.displayLabel },
+        ).finally(() => {
+          checkpointSavingRef.current.delete(tier.id);
+        });
+      }, tier.intervalSeconds * 1000),
+    );
+
+    return () => {
+      timers.forEach((timer) => window.clearInterval(timer));
+      checkpointSavingRef.current.clear();
+    };
+  }, [eligible]);
 
   useEffect(() => {
     if (!eligible) return undefined;

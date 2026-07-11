@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/07/2026, 12:03:05
+ * Last Sync: 10/07/2026, 14:11:22
  * Dependents: commands/index.ts
  * Imports: 31 files
  *
@@ -14,7 +14,7 @@
  */
 // @dependencies-end
 
-import { Spell, SpellEffect, TargetConditionFilter, UtilityEffect, CreatedObject, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, StatusConditionEffect, isUtilityEffect, resolveScalableNumber, type DamageEffect, type MovementEffect } from '@/types/spells'
+import { Spell, SpellEffect, UtilityEffect, CreatedObject, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, StatusConditionEffect, isUtilityEffect, resolveScalableNumber, type DamageEffect, type MovementEffect } from '@/types/spells'
 import { ActiveFireEffect, CombatCharacter, CombatState, LightSource, SelectedSpellTarget, SpellObjectImpact } from '@/types/combat'
 
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand'
@@ -1305,7 +1305,10 @@ export class SpellCommandFactory {
 
   private static shouldUseSpellAttackCommand(spell: Spell, activeEffects: SpellEffect[]): boolean {
     const hasExplicitSpellAttackType = ['melee', 'ranged'].includes(spell.attackType ?? '')
-    const hasMeleeHitTargeting = spell.targeting.type === 'melee'
+    // Legacy authored/test spells can predate structured targeting metadata.
+    // Treat an absent targeting packet as "not explicitly melee" and let their
+    // effects continue through the generic command path instead of crashing.
+    const hasMeleeHitTargeting = spell.targeting?.type === 'melee'
     const isPrimalSavagery = spell.id === 'primal-savagery'
     const hasObjectIgnitionHitRider = activeEffects.some(effect =>
       isDamageEffect(effect) &&

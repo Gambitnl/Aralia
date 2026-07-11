@@ -345,14 +345,33 @@
                       "playerInputRequired":  true
                   },
     "modeChoice":  {
-                       "selectionType":  "choose_one",
-                       "options":  [
-                                       "Dancing Lights",
-                                       "Magic Mouth",
-                                       "Stinking Cloud",
-                                       "Gust of Wind",
-                                       "Suggestion"
-                                   ],
+                        "type":  "choose_one",
+                        "timing":  "on_cast",
+                        "optionCount":  5,
+                        "optionsSource":  "modeChoice.options",
+                        "canDismissActive":  false,
+                        "options":  [
+                                        {
+                                            "label":  "Dancing Lights",
+                                            "summary":  "Place Dancing Lights in four corridors of the warded area and assign their repeating patrol pattern."
+                                        },
+                                        {
+                                            "label":  "Magic Mouth",
+                                            "summary":  "Place Magic Mouth at two locations in the warded area with messages chosen by the caster."
+                                        },
+                                        {
+                                            "label":  "Stinking Cloud",
+                                            "summary":  "Place Stinking Cloud at two locations in the warded area; the vapors return after dispersal while the ward lasts."
+                                        },
+                                        {
+                                            "label":  "Gust of Wind",
+                                            "summary":  "Place a constant Gust of Wind in one corridor or room of the warded area."
+                                        },
+                                        {
+                                            "label":  "Suggestion",
+                                            "summary":  "Place one Suggestion effect at a chosen location in the warded area."
+                                        }
+                                    ],
                        "secondaryChoices":  [
                                                 "ward shape",
                                                 "unaffected individuals",

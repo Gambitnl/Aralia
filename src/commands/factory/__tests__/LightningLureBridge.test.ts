@@ -3,10 +3,13 @@ import { SpellCommandFactory } from '../SpellCommandFactory'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
 import lightningLure from '../../../../public/data/spells/level-0/lightning-lure.json'
 import { type Spell, type DamageEffect, type MovementEffect } from '@/types/spells'
-import * as savingThrowUtils from '@/utils/savingThrowUtils'
+import * as savingThrowUtils from '@/utils/character/savingThrowUtils'
 
-vi.mock('@/utils/savingThrowUtils', async importOriginal => {
-  const actual = await importOriginal<typeof import('@/utils/savingThrowUtils')>()
+// Lightning Lure resolves its Strength save through the character-specific
+// utility imported by SpellCommandFactory. Mocking the older facade left the
+// test at the mercy of real dice and made different cases fail on each run.
+vi.mock('@/utils/character/savingThrowUtils', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/utils/character/savingThrowUtils')>()
   return {
     ...actual,
     rollSavingThrow: vi.fn()

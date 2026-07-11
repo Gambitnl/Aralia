@@ -104,8 +104,13 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
 
                     <div
                         data-testid="window-frame-header-actions"
-                        className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2"
+                        // Title-bar actions must sit above the generous corner resize
+                        // hit zones. The top-right zone intentionally reaches 44px for
+                        // touch resizing, but without this layer priority it completely
+                        // intercepts the equally important Close button.
+                        className="relative ml-auto flex max-w-full flex-wrap items-center justify-end gap-2"
                         onMouseDown={e => e.stopPropagation()}
+                        style={{ zIndex: Z_INDEX.RESIZE_HANDLES_CORNERS + 1 }}
                     >
                         {headerActions}
 

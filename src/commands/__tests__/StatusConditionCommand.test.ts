@@ -6,6 +6,21 @@ import type { StatusConditionEffect } from '@/types/spells';
 import type { Class, GameState } from '@/types';
 import { createMockGameState, createMockPlayerCharacter } from '../../utils/factories';
 
+/**
+ * This file proves that status-condition commands apply, log, and refresh
+ * conditions without duplicating them.
+ *
+ * It builds complete combat and command fixtures locally, then exercises the
+ * same asynchronous command path used by live spell execution.
+ */
+
+// ============================================================================
+// Combat Fixtures
+// ============================================================================
+// These shared values provide the smallest complete character, state, and spell
+// context needed by every status-condition behavior below.
+// ============================================================================
+
 const baseStats = {
   strength: 10,
   dexterity: 12,
@@ -93,6 +108,13 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
   }) as GameState
 });
 
+// ============================================================================
+// Status-Condition Behavior
+// ============================================================================
+// Each test covers a player-visible rule: applying a condition, removing one,
+// logging the change, or refreshing duration without stacking duplicates.
+// ============================================================================
+
 describe('StatusConditionCommand', () => {
   it('applies conditions and mirrors them to statusEffects', async () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
@@ -123,7 +145,7 @@ describe('StatusConditionCommand', () => {
     expect(lastLog?.message).toContain('Prone');
   });
 
-  it('refreshes an existing condition instead of stacking duplicates', () => {
+  it('refreshes an existing condition instead of stacking duplicates', async () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
     const target = makeCharacter('target', { x: 1, y: 0 });
     const baseState = makeState([caster, target]);
@@ -136,14 +158,16 @@ describe('StatusConditionCommand', () => {
     };
 
     const command = new StatusConditionCommand(effect, makeContext(caster, [target]));
-    const firstResult = command.execute(baseState);
+    // The command can resolve follow-up saves and reactions asynchronously, so
+    // wait for the completed combat state before using it as the next cast input.
+    const firstResult = await command.execute(baseState);
 
     const secondState: CombatState = {
       ...firstResult,
       turnState: { ...firstResult.turnState, currentTurn: 3 }
     };
 
-    const secondResult = command.execute(secondState);
+    const secondResult = await command.execute(secondState);
     const updated = secondResult.characters.find(c => c.id === 'target');
 
     expect(updated?.conditions).toHaveLength(1);

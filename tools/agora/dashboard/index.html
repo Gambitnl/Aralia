@@ -1614,6 +1614,12 @@
     html += pactDoc
       ? ` <span class="pact-sep">·</span> <a class="pact-link" href="/docs/${encodeURIComponent(pactDoc)}" target="_blank" rel="noopener">📜 the pact</a>`
       : ' <span class="pact-sep">·</span> <span class="pact-empty" title="served once the daemon whitelists CO-ORCHESTRATION.md under /docs">📜 pact: tools/agora/CO-ORCHESTRATION.md</span>';
+    // Per-seat handbooks (VEGA.md = Claude seat). Linked once the daemon serves the
+    // doc under /docs; until then the strip stays clean rather than showing a dead link.
+    for (const seat of [{ re: /^VEGA\.md$/i, label: "📘 Vega handbook" }]) {
+      const doc = (ST.docsNames || []).find((n) => seat.re.test(n));
+      if (doc) html += ` <span class="pact-sep">·</span> <a class="pact-link" href="/docs/${encodeURIComponent(doc)}" target="_blank" rel="noopener">${seat.label}</a>`;
+    }
     el.innerHTML = html;
     wireEntryInspectors(el);
   }

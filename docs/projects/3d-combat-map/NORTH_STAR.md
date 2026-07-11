@@ -6,13 +6,13 @@ category: Feature/UI Projects
 main_category: "Game & Simulation"
 subcategory: "Combat & Encounters"
 status: active
-last_updated: 2026-06-11
+last_updated: 2026-07-10
 iteration: 8
 confidence: high
 evidence: docs/projects/3d-combat-map
-gap_signal: "5 open gaps (G1/G2/G3/G4/G6/G7/G8 closed; NC1 and NC2 done. Open: G5 style policy, G9 character silhouette pop proof, G10 3D status/defeat readability proof, G11 targeting decal PNG proof, G12 elevation contrast)"
+gap_signal: "7 open gaps; G14 requires a production bloom dependency decision before the build can be green"
 protocol: living project doc set
-next_step: "Run the G11 targeting-decal saved-PNG proof from HANDOFF.md, then continue G12 elevation contrast or a bounded G9/G10 tactical readability proof slice. NC2/G3/G7 are closed by the 2026-06-11 headless CombatView pop-out proof through ?dev_combat=1."
+next_step: "Choose the G14 production bloom strategy, restore a green build with rendered proof, then continue the existing G11/G12 visual slices."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -40,12 +40,12 @@ lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: "no"
+human_decision_required: "yes"
 ---
 # 3D Combat Map North Star
 
 Status: active
-Last updated: 2026-06-11
+Last updated: 2026-07-10
 
 ## Purpose
 
@@ -151,13 +151,33 @@ Not required for MVP:
 2. Should `CombatView` pop-out 3D mode include stronger external sync for render mode and lifecycle state? (Resolved for the current MVP proof: NC2 passed on 2026-06-11 with shared `renderMode`, persisted turn order, and persisted inspected token.)
 3. How strict should the 60 fps requirement be in the coldest test hardware profile before relaxing effects?
 
+## Required Review Brief
+
+Title: Production bloom dependency alignment
+Question: Should the 3D combat map align the Three/Fiber/Drei/postprocessing dependency set, make bloom optional with the existing stable effects as fallback, or maintain a local compatibility shim?
+Issue: The production Vite build fails inside `three/examples/jsm/tsl/display/BloomNode.js` because it imports `PostProcessingUtils`, which the installed `three.module.js` does not export. Data generation succeeds before the bundler reaches this dependency mismatch.
+Current behavior: The 3D combat map intentionally retains Bloom and Vignette while the unstable SSAO/NormalPass path was removed. Development/source checks do not prove that this combination can be bundled for production. The existing project handoff already treats post-processing as optional by budget and requires renderer failures to remain visible.
+Why blocked: Pinning or upgrading the rendering stack can affect every Three/Fiber surface and requires visual regression proof. Disabling bloom changes the intended presentation. A shim creates a maintenance surface the repository does not currently own.
+Option A: Align and pin a compatible `three`, `@react-three/fiber`, `@react-three/drei`, and `@react-three/postprocessing` set, then prove combat plus nearby 3D surfaces. This best preserves the intended bloom capability if a compatible set is available.
+Option B: Make Bloom optional for production and retain the existing Vignette/ContactShadows path as the explicit stable fallback. Preserve the bloom codepath behind a capability/profile boundary for later restoration.
+Option C: Add a narrowly scoped maintained compatibility shim for the missing export, with dependency-version guards and focused bundler tests.
+Evidence: `package.json`; `vite.config.ts`; `src/components/BattleMap/BattleMap3D.tsx`; `docs/projects/3d-combat-map/HANDOFF.md`; `npm run build` failure from 2026-07-10.
+Decision owner: Human/project owner with 3D Combat Map and dependency/tooling maintainers.
+Proof after decision: A successful production build plus rendered 3D combat proof at `?dev_combat=1`; console sweep with no repeated WebGL/postprocessing errors; visual comparison showing the selected bloom/fallback profile; focused checks for any shared World3D/ThreeDModal dependency impact.
+
+## Decision Visualizations
+
+| Decision | Status | Visual page | Summary | Owner |
+|---|---|---|---|---|
+| Production bloom dependency strategy | needs decision | Living-project dashboard -> 3D Combat Map | Choose aligned dependencies, an explicit optional fallback, or a maintained shim. | Human/project owner |
+
 ## Resume Path
 
 1. Read this file.
 2. Read `docs/projects/3d-combat-map/TRACKER.md` (Next-Check List NC1/NC2).
 3. Read `docs/projects/3d-combat-map/GAPS.md`.
 4. Read `docs/projects/3d-combat-map/AUDIT_OR_PROOF.md` for the durable NC1/NC2 step definitions and proof log.
-5. NC2 is closed; run the G11 targeting-decal saved-PNG proof from `HANDOFF.md`, then continue G12 elevation contrast or a bounded G9/G10 tactical readability proof slice.
+5. Resolve G14's production bloom decision and restore build proof before continuing G11/G12 or bounded G9/G10 visual slices.
 
 
 ## Cold-Start Gap Routing

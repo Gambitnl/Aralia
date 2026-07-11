@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/06/2026, 13:19:08
- * Dependents: commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/vfx/VFXSystem.tsx, hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts, utils/combat/resistanceUtils.ts
+ * Last Sync: 10/07/2026, 14:02:30
+ * Dependents: commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/Combat/MaplessTerrainSummary.tsx, hooks/combat/useVisibility.ts, hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts, utils/combat/resistanceUtils.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -414,14 +414,10 @@ function countMovementTilesInsideZone(
         for (let i = 1; i < movementPath.length; i++) {
             const from = movementPath[i - 1];
             const to = movementPath[i];
-            const startsInside = isPositionInArea(from, zone.position, zone.areaOfEffect!, zone.direction);
-            const endsInside = isPositionInArea(to, zone.position, zone.areaOfEffect!, zone.direction);
-
-            if (!startsInside && !endsInside) {
-                continue;
-            }
-
-            traveledInsideTiles += getChebyshevTileDistance(from, to);
+            // Paths can contain sparse waypoints rather than one entry per tile.
+            // Walk the segment in grid-sized steps so an eight-tile jump that
+            // merely ends inside the zone does not charge all eight tiles.
+            traveledInsideTiles += countUnitStepsTouchingZone(zone, from, to);
         }
 
         return traveledInsideTiles;
@@ -435,6 +431,37 @@ function countMovementTilesInsideZone(
     }
 
     return getChebyshevTileDistance(previousPosition, newPosition);
+}
+
+/**
+ * Count discrete grid steps whose start or end touches the active zone.
+ *
+ * Including the boundary-crossing steps preserves Spike Growth-style entry and
+ * exit damage, while interpolating sparse waypoints prevents out-of-zone travel
+ * from being billed as though it happened entirely on hazardous ground.
+ */
+function countUnitStepsTouchingZone(zone: ActiveSpellZone, from: Position, to: Position): number {
+    const distance = getChebyshevTileDistance(from, to);
+    if (distance === 0 || !zone.areaOfEffect) return 0;
+
+    let touchingSteps = 0;
+    let previous = from;
+
+    for (let step = 1; step <= distance; step++) {
+        // Round each evenly spaced sample onto the combat grid. Chebyshev
+        // distance guarantees at most one tile of movement on either axis per
+        // sample, matching Aralia's diagonal movement model.
+        const current = {
+            x: Math.round(from.x + ((to.x - from.x) * step) / distance),
+            y: Math.round(from.y + ((to.y - from.y) * step) / distance)
+        };
+        const startsInside = isPositionInArea(previous, zone.position, zone.areaOfEffect, zone.direction);
+        const endsInside = isPositionInArea(current, zone.position, zone.areaOfEffect, zone.direction);
+        if (startsInside || endsInside) touchingSteps += 1;
+        previous = current;
+    }
+
+    return touchingSteps;
 }
 
 function getChebyshevTileDistance(from: Position, to: Position): number {

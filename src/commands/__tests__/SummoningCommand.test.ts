@@ -7,6 +7,14 @@ import { CommandContext } from '../base/SpellCommand'
 import { CLASSES_DATA } from '@/constants'
 import { createMockGameState, createMockPlayerCharacter } from '../../utils/factories'
 
+/**
+ * This file proves summoned creatures are created, placed, bounded, and linked
+ * to their caster using the live SummoningCommand.
+ *
+ * Legacy world-grid fixtures are normalized into the current BattleMapData
+ * boundary before execution; the command no longer reads retired world grids.
+ */
+
 // Mock dependencies
 vi.mock('@/constants', async (importOriginal) => {
     const actual = await importOriginal()
@@ -463,15 +471,18 @@ describe('SummoningCommand', () => {
             expect(newState.combatLog.some(l => l.message.includes('No space available'))).toBe(true)
         })
 
-        it('should handle mapData with gridSize format (backward compatibility)', async () => {
+        it('normalizes a legacy gridSize fixture into current combat dimensions', async () => {
              const mapData = {
                 gridSize: { cols: 10, rows: 10 }
             }
 
             const casterAtCorner = { ...mockCaster, position: { x: 0, y: 0 } }
+            // Grid retirement moved combat bounds onto CombatState.mapData.
+            // Keep proving old fixture input can be adapted without asking the
+            // runtime command to resurrect the retired world-grid fallback.
             const context = { ...createMockContext(mapData), caster: casterAtCorner }
             const command = new SummoningCommand(mockEffect, context)
-            const state = createMockState([casterAtCorner])
+            const state = createMockState([casterAtCorner], mapData)
 
             const newState = await command.execute(state)
 

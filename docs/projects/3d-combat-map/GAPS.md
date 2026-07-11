@@ -6,13 +6,13 @@ slug: 3d-combat-map
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-25"
-gap_count: 6
-open_gap_count: 6
+last_updated: "2026-07-10"
+gap_count: 7
+open_gap_count: 7
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
-decision_required_count: 0
+decision_required_count: 1
 visual_proof_required_count: 0
 highest_severity: high
 proof_freshness: recorded
@@ -102,7 +102,7 @@ supported_optional_sections:
 # 3D Combat Map Gap Registry
 
 Status: active
-Last updated: 2026-06-25
+Last updated: 2026-07-10
 
 Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 
@@ -118,6 +118,7 @@ An external AAA-lite visual-readability report was reviewed against current Aral
 | G11 | open | adjacent_follow_up | future_worker | `.agent/3d-visual-quality/TRACKER.md` | Bounded gap sweep import (2026-06-11) | 3D targeting decals have implementation/live-eye-test evidence, but durable saved PNG proof is still owed for the living project. The side tracker says `TargetingDecals.tsx` now paints valid target and teleport tile sets onto terrain, but screenshot capture timed out on the heavy 3D frame and the before/after image proof remains missing. | `.agent/3d-visual-quality/TRACKER.md` rows 257-258; `src/components/BattleMap/TargetingDecals.tsx`; `src/components/BattleMap/BattleMap3D.tsx`; `docs/projects/3d-combat-map/HANDOFF.md` | Targeting readability is central to actually playing in 3D; without a durable capture, future agents cannot tell whether the live-eye-test state still holds after renderer or targeting changes. | Re-run the capture rig through `?dev_combat=1`, select Satum -> Acid Splash or equivalent targeting mode, and save before/after 3D screenshots. Keep this proof scoped to battle-map targeting, not Worldforge. | Saved before/after PNGs show 3D targeting decals in the canvas; console sweep has no repeated WebGL/postprocessing errors; tracker records the artifact paths. |
 | G12 | open | adjacent_follow_up | future_worker | `.agent/3d-visual-quality/GAPS.md` | Bounded gap sweep import (2026-06-11) | Battle-map generator elevations are too gentle for slope-rock and high-ground readability to show consistently at tactical zoom. The slope-rock shader exists, but `.agent` visual-quality gap #28 says the current generator's smoothed elevation range rarely creates steep enough faces for the effect to read. | `.agent/3d-visual-quality/GAPS.md` gap 28; `.agent/3d-visual-quality/TRACKER.md` task 65; `src/services/battleMapGenerator.ts`; `src/components/BattleMap/terrain/TerrainMesh.tsx` | Terrain shader work can be correct while the playable maps still look too flat, keeping tactical high-ground cues and slope drama only partially visible. | Prototype a generator-side elevation contrast slice, such as wider elevation range or deliberate ridge/bluff features, while preserving deterministic map generation and existing biome contracts. | Pose-matched tactical screenshots before/after at seed 424242 show stronger readable slopes without breaking forest/desert/cave traversal; focused generator/terrain tests pass. |
 | G13 | open | adjacent_follow_up | Codex | `docs/BACKLOG.md` migration 2026-06-25 | Combat overlays for range shapes, ruler logic, and movement enforcement still need 3D tactical proof. | `docs/BACKLOG.md`; `src/components/BattleMap/BattleMap3D.tsx`; `src/components/BattleMap/TargetingDecals.tsx` | 3D combat can be visually impressive but unplayable if the range, ruler, and movement legality cues do not match rules. | Define one 3D overlay/ruler enforcement slice that reuses existing targeting/movement state rather than inventing a parallel rule path. | Rendered 3D proof plus focused tests showing range shape, measured ruler distance, and illegal movement feedback match the 2D/rules path. |
+| G14 | review-required | blocked_human_decision | Human/project owner / 3D maintainers | Production bundling and BattleMap3D post-processing | repository-wide build sweep 2026-07-10 | The production build cannot bundle Bloom because the installed Three package does not export `PostProcessingUtils` expected by its bundled `BloomNode.js`; choose dependency alignment, an explicit optional fallback, or a maintained compatibility shim. | `package.json`; `vite.config.ts`; `src/components/BattleMap/BattleMap3D.tsx`; `docs/projects/3d-combat-map/NORTH_STAR.md` Required Review Brief; `npm run build` failure | The application cannot ship while the dependency set is incompatible, but silently removing bloom would discard intended presentation and a local shim would create new maintenance ownership. | Choose Option A, B, or C in the Required Review Brief before changing the rendering dependency architecture. | Successful production build plus rendered `?dev_combat=1` proof, console sweep, and nearby 3D-surface regression checks appropriate to the chosen option. |
 
 ## Classification Reference
 

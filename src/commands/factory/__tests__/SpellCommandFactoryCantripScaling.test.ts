@@ -1,12 +1,16 @@
 import { describe, it, expect } from 'vitest'
 import { SpellCommandFactory } from '../SpellCommandFactory'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockGameState } from '@/utils/factories'
 import fireBolt from '../../../../public/data/spells/level-0/fire-bolt.json'
 import frostbite from '../../../../public/data/spells/level-0/frostbite.json'
 import { type Spell, type SpellEffect, type DamageEffect } from '@/types/spells'
 
 type TestCommandWithEffect = {
   effect: SpellEffect
+}
+
+type TestSpellAttackCommand = {
+  hitEffects: SpellEffect[]
 }
 
 const spell = fireBolt as unknown as Spell
@@ -28,17 +32,36 @@ function getAttackRollModifierCommand(commands: unknown[]) {
   )
 }
 
+// Spell attacks now keep hit-conditioned damage inside one attack-roll command.
+// This helper accepts both that current wrapper and the generic direct-command
+// path so these tests continue to prove scaling rather than command packaging.
+function getDamageEffect(commands: unknown[]): DamageEffect | undefined {
+  for (const command of commands) {
+    if (typeof command !== 'object' || command === null) continue
+
+    if ('effect' in command) {
+      const effect = (command as TestCommandWithEffect).effect
+      if (effect.type === 'DAMAGE') return effect as DamageEffect
+    }
+
+    if ('hitEffects' in command && Array.isArray((command as TestSpellAttackCommand).hitEffects)) {
+      const effect = (command as TestSpellAttackCommand).hitEffects.find(candidate => candidate.type === 'DAMAGE')
+      if (effect) return effect as DamageEffect
+    }
+  }
+
+  return undefined
+}
+
 describe('SpellCommandFactory - Cantrip Scaling', () => {
   it('scales Fire Bolt to 2d10 at caster level 5', async () => {
     const caster = makeCaster(5)
     const commands = await SpellCommandFactory.createCommands(
       spell, caster, [target], 0, gameState
     )
-    const damageCommand = commands.find(
-      (c): c is TestCommandWithEffect => 'effect' in c && (c as TestCommandWithEffect).effect.type === 'DAMAGE'
-    )
-    expect(damageCommand).toBeDefined()
-    expect((damageCommand!.effect as DamageEffect).damage.dice).toBe('2d10')
+    const damageEffect = getDamageEffect(commands)
+    expect(damageEffect).toBeDefined()
+    expect(damageEffect!.damage.dice).toBe('2d10')
   })
 
   it('scales Fire Bolt to 3d10 at caster level 11', async () => {
@@ -46,11 +69,9 @@ describe('SpellCommandFactory - Cantrip Scaling', () => {
     const commands = await SpellCommandFactory.createCommands(
       spell, caster, [target], 0, gameState
     )
-    const damageCommand = commands.find(
-      (c): c is TestCommandWithEffect => 'effect' in c && (c as TestCommandWithEffect).effect.type === 'DAMAGE'
-    )
-    expect(damageCommand).toBeDefined()
-    expect((damageCommand!.effect as DamageEffect).damage.dice).toBe('3d10')
+    const damageEffect = getDamageEffect(commands)
+    expect(damageEffect).toBeDefined()
+    expect(damageEffect!.damage.dice).toBe('3d10')
   })
 
   it('scales Fire Bolt to 4d10 at caster level 17', async () => {
@@ -58,11 +79,9 @@ describe('SpellCommandFactory - Cantrip Scaling', () => {
     const commands = await SpellCommandFactory.createCommands(
       spell, caster, [target], 0, gameState
     )
-    const damageCommand = commands.find(
-      (c): c is TestCommandWithEffect => 'effect' in c && (c as TestCommandWithEffect).effect.type === 'DAMAGE'
-    )
-    expect(damageCommand).toBeDefined()
-    expect((damageCommand!.effect as DamageEffect).damage.dice).toBe('4d10')
+    const damageEffect = getDamageEffect(commands)
+    expect(damageEffect).toBeDefined()
+    expect(damageEffect!.damage.dice).toBe('4d10')
   })
 
   it('keeps Fire Bolt at 1d10 for caster level 4 (below first tier)', async () => {
@@ -70,11 +89,9 @@ describe('SpellCommandFactory - Cantrip Scaling', () => {
     const commands = await SpellCommandFactory.createCommands(
       spell, caster, [target], 0, gameState
     )
-    const damageCommand = commands.find(
-      (c): c is TestCommandWithEffect => 'effect' in c && (c as TestCommandWithEffect).effect.type === 'DAMAGE'
-    )
-    expect(damageCommand).toBeDefined()
-    expect((damageCommand!.effect as DamageEffect).damage.dice).toBe('1d10')
+    const damageEffect = getDamageEffect(commands)
+    expect(damageEffect).toBeDefined()
+    expect(damageEffect!.damage.dice).toBe('1d10')
   })
 
   it.each([

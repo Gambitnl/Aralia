@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 10/07/2026, 13:10:19
+ * Dependents: components/World3D/World3DScene.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file GrassLayer.tsx
  * @description Near-camera instanced grass for the streamed 3D world
@@ -90,7 +106,9 @@ function buildBladeGeometry(): THREE.BufferGeometry {
   return g;
 }
 
-let bladeGeometry: THREE.BufferGeometry | null = null;
+// Every streamed grass layer reuses the same immutable blade mesh. Building it
+// once outside React preserves the old cache while avoiding mutation during render.
+const BLADE_GEOMETRY = buildBladeGeometry();
 
 /**
  * Shared wind uniform advanced once per frame (see WindClock below). A gentle,
@@ -191,12 +209,11 @@ export const GrassLayer: React.FC<{
   }, [field]);
 
   if (!field || field.count === 0) return null;
-  if (!bladeGeometry) bladeGeometry = buildBladeGeometry();
   return (
     <instancedMesh
       ref={ref}
       key={field.cacheKey}
-      args={[bladeGeometry, GRASS_MATERIAL, field.count]}
+      args={[BLADE_GEOMETRY, GRASS_MATERIAL, field.count]}
       position={position}
       frustumCulled={false}
     />

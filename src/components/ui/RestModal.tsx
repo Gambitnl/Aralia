@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 05/07/2026, 07:42:33
+ * Last Sync: 10/07/2026, 14:01:25
  * Dependents: components/ActionPane/index.tsx, components/DesignPreview/steps/PreviewComponents.tsx, components/layout/GameModals.tsx
- * Imports: 4 files
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -48,8 +48,6 @@ const getAverageHitDieHeal = (die: number, conMod: number): number => {
 const RestModal: React.FC<RestModalProps> = ({ isOpen, party, onClose, onConfirm }) => {
   // Per-character Hit Dice spending selections keyed by character id and die size.
   const [spendMap, setSpendMap] = useState<HitPointDiceSpendMap>({});
-  const titleId = 'short-rest-title';
-
   // Normalize Hit Dice pools for display (class levels + prior spend).
   const partyPools = useMemo(
     () => party.map(member => ({
@@ -112,7 +110,7 @@ const RestModal: React.FC<RestModalProps> = ({ isOpen, party, onClose, onConfirm
   // (the shared shell's default ✕ is smaller and labelled differently).
   const header = (
     <div className="flex w-full items-center justify-between gap-4">
-      <h2 id={titleId} className="text-xl font-semibold text-amber-300">
+      <h2 className="text-xl font-semibold text-amber-300">
         Short Rest
       </h2>
       <button
@@ -121,7 +119,7 @@ const RestModal: React.FC<RestModalProps> = ({ isOpen, party, onClose, onConfirm
         aria-label="Close short rest"
         type="button"
       >
-        x
+        <span aria-hidden="true">x</span>
       </button>
     </div>
   );
@@ -145,10 +143,14 @@ const RestModal: React.FC<RestModalProps> = ({ isOpen, party, onClose, onConfirm
     </>
   );
 
+  // The shared shell derives aria-labelledby from the stable short-rest id.
+  // It points at the existing short-rest-title heading in the custom header.
   return (
     <ModalDialog
       isOpen={isOpen}
       onClose={onClose}
+      id="short-rest"
+      ariaLabel="Short Rest"
       title={header}
       size="xl"
       footer={footer}

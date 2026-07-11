@@ -490,11 +490,24 @@
     "playerInputRequired": true
   },
   "modeChoice": {
-    "selectionType": "choose_one",
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 3,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": false,
     "options": [
-      "Hemisphere",
-      "Globe",
-      "Flat contiguous panels"
+      {
+        "label": "Hemisphere",
+        "summary": "Create a 1-foot-thick hemispherical ice dome with a radius of up to 10 feet on a solid surface."
+      },
+      {
+        "label": "Globe",
+        "summary": "Create a 1-foot-thick ice globe with a radius of up to 10 feet on a solid surface."
+      },
+      {
+        "label": "Flat Contiguous Panels",
+        "summary": "Create up to ten contiguous 10-foot-square ice panels on a solid surface."
+      }
     ],
     "secondaryChoices": [
       "solid-surface placement",

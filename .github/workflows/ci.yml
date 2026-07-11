@@ -183,5 +183,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name: Run tests
-        run: npm test -- --run
+      - name: Run complete bounded test lane
+        # Four workers preserve the full Vitest discovery surface without the
+        # rotating collection failures seen under automatic CPU concurrency.
+        # Optional test:shard:1..4 scripts provide the same non-overlapping
+        # inventory when CI later needs separate parallel jobs.
+        run: npm run test:bounded

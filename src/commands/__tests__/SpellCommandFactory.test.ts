@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { SpellCommandFactory } from '../factory/SpellCommandFactory'
 import { DamageCommand } from '../effects/DamageCommand'
 import { HealingCommand } from '../effects/HealingCommand'
@@ -133,6 +133,10 @@ describe('SpellCommandFactory', () => {
       // proves the full factory-created command path instead of testing the
       // event bus in isolation.
       combatEvents.clearForTest()
+      // Pin the d20 away from both critical faces. The assertion protects the
+      // event contract, so ambient randomness must not turn the same test into
+      // a critical-hit case when it runs beside other suites.
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5)
 
       try {
         const caster = createMockCombatCharacter({
@@ -183,6 +187,7 @@ describe('SpellCommandFactory', () => {
           })
         ]))
       } finally {
+        randomSpy.mockRestore()
         combatEvents.clearForTest()
       }
     })

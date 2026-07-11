@@ -472,8 +472,13 @@ describe('dock/bridge deck geometry (TG5)', () => {
 
   it('a dock pier reaches seaward — its far end is on the water side of its base', () => {
     const plan = generateTownPlan(bigFp, rootSeedPath(21), { population: 8000, water });
-    const dist2ToWater = (p: Pt): number => {
-      let m = Infinity;
+    // Return the actual nearest point, not only its distance. A valid pier can
+    // cross a river centreline and finish farther from that line than its base;
+    // direction is the preserving proof that distinguishes this from an inland
+    // pier without rejecting intentional seaward overshoot.
+    const nearestPointOnWater = (p: Pt): Pt => {
+      let nearest: Pt = water[0][0];
+      let nearestDistance = Infinity;
       for (const line of water) {
         for (let i = 0; i < line.length - 1; i++) {
           const a = line[i], b = line[i + 1];
@@ -482,10 +487,14 @@ describe('dock/bridge deck geometry (TG5)', () => {
           let t = ((p[0] - a[0]) * vx + (p[1] - a[1]) * vy) / c2;
           t = Math.max(0, Math.min(1, t));
           const qx = a[0] + t * vx, qy = a[1] + t * vy;
-          m = Math.min(m, (p[0] - qx) ** 2 + (p[1] - qy) ** 2);
+          const distance = (p[0] - qx) ** 2 + (p[1] - qy) ** 2;
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearest = [qx, qy];
+          }
         }
       }
-      return m;
+      return nearest;
     };
     const docks = plan.civic.filter((c) => c.kind === 'dock');
     // pierQuad winds [nearL, farL, farR, nearR]: near edge = verts 0,3; far = 1,2.
@@ -496,10 +505,16 @@ describe('dock/bridge deck geometry (TG5)', () => {
     for (const d of docks) {
       const near: Pt = [(d.polygon[0][0] + d.polygon[3][0]) / 2, (d.polygon[0][1] + d.polygon[3][1]) / 2];
       const far: Pt = [(d.polygon[1][0] + d.polygon[2][0]) / 2, (d.polygon[1][1] + d.polygon[2][1]) / 2];
-      if (dist2ToWater(far) <= dist2ToWater(near) + 1e-6) reaching++;
+      const waterPoint = nearestPointOnWater(near);
+      const wardCenter = polygonCentroid(plan.wards[d.wardIndex].polygon);
+      const towardWater: Pt = Math.hypot(waterPoint[0] - near[0], waterPoint[1] - near[1]) > 1e-6
+        ? [waterPoint[0] - near[0], waterPoint[1] - near[1]]
+        : [near[0] - wardCenter[0], near[1] - wardCenter[1]];
+      const pierDirection: Pt = [far[0] - near[0], far[1] - near[1]];
+      if (pierDirection[0] * towardWater[0] + pierDirection[1] * towardWater[1] >= -1e-6) reaching++;
     }
-    // The strong majority of piers reach toward water (a few near a river
-    // corner can overshoot the nearest segment; the pier still points seaward).
+    // The strong majority of piers point toward water. Piers may cross the
+    // centerline, which is still a correct seaward result rather than a failure.
     expect(reaching).toBeGreaterThanOrEqual(Math.ceil(docks.length * 0.6));
   });
 

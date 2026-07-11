@@ -465,11 +465,21 @@
                       "playerInputRequired":  true
                   },
     "modeChoice":  {
-                       "selectionType":  "choose_one",
-                       "options":  [
-                                       "Caster plus willing creatures",
-                                       "Single eligible object"
-                                   ],
+                        "type":  "choose_one",
+                        "timing":  "on_cast",
+                        "optionCount":  2,
+                        "optionsSource":  "modeChoice.options",
+                        "canDismissActive":  false,
+                        "options":  [
+                                        {
+                                            "label":  "Caster Plus Willing Creatures",
+                                            "summary":  "Transport the caster and up to eight willing visible creatures to the selected known destination on the same plane."
+                                        },
+                                        {
+                                            "label":  "Single Eligible Object",
+                                            "summary":  "Transport one visible Large-or-smaller object that is not held or carried by an unwilling creature."
+                                        }
+                                    ],
                        "secondaryChoices":  [
                                                 "selected travelers or object",
                                                 "known same-plane destination",

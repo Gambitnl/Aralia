@@ -358,12 +358,25 @@
                       "playerInputRequired":  true
                   },
     "modeChoice":  {
-                       "selectionType":  "choose_one",
-                       "options":  [
-                                       "Gust of Wind",
-                                       "Spike Growth",
-                                       "Wind Wall"
-                                   ],
+                        "type":  "choose_one",
+                        "timing":  "on_cast",
+                        "optionCount":  3,
+                        "optionsSource":  "modeChoice.options",
+                        "canDismissActive":  false,
+                        "options":  [
+                                        {
+                                            "label":  "Gust of Wind",
+                                            "summary":  "Place a Gust of Wind effect within the warded grove; creatures declared immune treat it as a gentle fragrant breeze."
+                                        },
+                                        {
+                                            "label":  "Spike Growth",
+                                            "summary":  "Place a Spike Growth effect within the warded grove; creatures declared immune can cross it harmlessly."
+                                        },
+                                        {
+                                            "label":  "Wind Wall",
+                                            "summary":  "Place a Wind Wall effect within the warded grove; creatures declared immune treat it as a gentle fragrant breeze."
+                                        }
+                                    ],
                        "secondaryChoices":  [
                                                 "warded area size and placement",
                                                 "immune friends",

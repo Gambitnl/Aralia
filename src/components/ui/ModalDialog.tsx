@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 10/07/2026, 14:01:41
+ * Dependents: components/Combat/ReactionPrompt.tsx, components/ui/ConfirmationModal.tsx, components/ui/LongRestModal.tsx, components/ui/MissingChoiceModal.tsx, components/ui/RestModal.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/components/ui/ModalDialog.tsx
  * The app's shared BLOCKING dialog shell — the counterpart to `WindowFrame`.
@@ -44,6 +60,8 @@ export interface ModalDialogProps {
   accentClass?: string;
   /** id of an element describing the dialog, wired to the panel's `aria-describedby` for screen readers. */
   ariaDescribedBy?: string;
+  /** Stable accessible name for custom headers that also contain controls. */
+  ariaLabel?: string;
   /** Stacking layer; defaults to the confirm layer so a dialog sits above windows. */
   zIndex?: number;
   id?: string;
@@ -61,6 +79,7 @@ export const ModalDialog: React.FC<ModalDialogProps> = ({
   closeOnBackdrop = false,
   accentClass = 'border-amber-500/60',
   ariaDescribedBy,
+  ariaLabel,
   zIndex = Z_INDEX.CONFIRMATION_MODAL,
   id,
   testId,
@@ -69,6 +88,9 @@ export const ModalDialog: React.FC<ModalDialogProps> = ({
   const dialogRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
   const titleId = id ? `${id}-title` : undefined;
 
+  // A custom header may contain its own close button. When callers provide an
+  // explicit label, prefer it so the control's glyph/name cannot become part of
+  // the dialog title announced by assistive technology.
   const layer = (
     <AnimatePresence>
       {isOpen && (
@@ -88,7 +110,8 @@ export const ModalDialog: React.FC<ModalDialogProps> = ({
             className={`max-h-[calc(100vh-2rem)] w-full ${SIZE_CLASS[size]} overflow-y-auto rounded-xl border ${accentClass} bg-gray-900 p-6 text-gray-100 shadow-xl focus:outline-none scrollable-content`}
             role="dialog"
             aria-modal="true"
-            aria-labelledby={titleId}
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabel ? undefined : titleId}
             aria-describedby={ariaDescribedBy}
             tabIndex={-1}
             initial={{ scale: 0.95, opacity: 0 }}

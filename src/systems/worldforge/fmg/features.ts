@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 10/07/2026, 13:11:03
+ * Dependents: systems/worldforge/fmg/biomes.ts, systems/worldforge/fmg/burgs-generator.ts, systems/worldforge/fmg/coa-generator.ts, systems/worldforge/fmg/cultures-generator.ts, systems/worldforge/fmg/generateAtlas.ts, systems/worldforge/fmg/generateBase.ts, systems/worldforge/fmg/ice.ts, systems/worldforge/fmg/lakes.ts, systems/worldforge/fmg/markers-generator.ts, systems/worldforge/fmg/military-generator.ts, systems/worldforge/fmg/names-generator.ts, systems/worldforge/fmg/provinces-generator.ts, systems/worldforge/fmg/rankCells.ts, systems/worldforge/fmg/reGraph.ts, systems/worldforge/fmg/religions-generator.ts, systems/worldforge/fmg/river-generator.ts, systems/worldforge/fmg/routes-generator.ts, systems/worldforge/fmg/states-generator.ts, systems/worldforge/fmg/utils/graphUtils.ts, systems/worldforge/fmg/zones-generator.ts, systems/worldforge/provenance/worldCell.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file features.ts — ported from Azgaar's Fantasy-Map-Generator (MIT).
  * Upstream: .tmp/azgaar-src/src/modules/features.ts. See ./ATTRIBUTION.md.
@@ -221,7 +237,7 @@ export class FeatureModule {
       const distances = waterCells.map((neibCellId: number) =>
         distanceSquared(cells.p[cellId], cells.p[neibCellId]),
       );
-      const closest = distances.indexOf(Math.min.apply(Math, distances));
+      const closest = distances.indexOf(Math.min(...distances));
 
       haven[cellId] = waterCells[closest];
       harbor[cellId] = waterCells.length;

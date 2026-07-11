@@ -1,11 +1,17 @@
 
-import { describe, it, expect } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import { LeverageSystem, LeverageAttempt } from '../LeverageSystem';
 import { Secret, PlayerIdentityState } from '../../../types/identity';
 import { identityReducer } from '../../../state/reducers/identityReducer';
 import { GameState } from '../../../types';
 
 describe('LeverageSystem', () => {
+    afterEach(() => {
+        // Reducer integration cases may pin the time-derived random seed. Keep
+        // that deterministic clock local to the case that owns it.
+        vi.restoreAllMocks();
+    });
+
     const system = new LeverageSystem(12345);
 
     const mockSecret: Secret = {
@@ -168,6 +174,10 @@ describe('LeverageSystem', () => {
         };
 
         it('burns the secret on successful blackmail and adds gold', () => {
+            // APPLY_LEVERAGE intentionally mixes Date.now() into its seeded RNG.
+            // Pin a reviewed success seed so this test proves the success branch
+            // instead of failing whenever wall-clock time selects failure.
+            vi.spyOn(Date, 'now').mockReturnValue(11502);
             const stateWithIdentity = { ...baseState, playerIdentity: identityState } as unknown as GameState;
             const result = identityReducer(stateWithIdentity, {
                 type: 'APPLY_LEVERAGE',

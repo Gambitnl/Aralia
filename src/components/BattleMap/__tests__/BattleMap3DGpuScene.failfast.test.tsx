@@ -169,7 +169,10 @@ describe('BattleMap3D WebGPU fail-fast (flag on, no adapter)', () => {
     render(<BattleMap3D mapData={mapData} characters={[hero]} combatState={combatState} />);
 
     // The lazy GPU scene mounts, probes, and fail-fasts into the error panel.
-    const panel = await screen.findByTestId('battlemap-3d-webgpu-error');
+    // Sharded runs can spend more than Testing Library's one-second default
+    // transforming Three.js; the five-second bound waits for that existing lazy
+    // boundary without weakening what the test requires the UI to render.
+    const panel = await screen.findByTestId('battlemap-3d-webgpu-error', {}, { timeout: 5000 });
     expect(panel.textContent).toContain('WebGPU unavailable');
     expect(panel.textContent).toContain('navigator.gpu is not available');
     expect(panel.textContent).toContain('Remove');
@@ -184,7 +187,9 @@ describe('BattleMap3D WebGPU fail-fast (flag on, no adapter)', () => {
   it('offers "Use WebGL instead" and mounts the WebGL scene on explicit click', async () => {
     render(<BattleMap3D mapData={mapData} characters={[hero]} combatState={combatState} />);
 
-    const button = await screen.findByTestId('webgpu-use-webgl-button');
+    // Match the lazy-scene allowance above so concurrent shard load cannot turn
+    // module transformation time into a false WebGPU behavior regression.
+    const button = await screen.findByTestId('webgpu-use-webgl-button', {}, { timeout: 5000 });
     expect(button.textContent).toMatch(/use webgl instead/i);
 
     fireEvent.click(button);
@@ -194,6 +199,6 @@ describe('BattleMap3D WebGPU fail-fast (flag on, no adapter)', () => {
       expect(screen.queryByTestId('battlemap-3d-webgpu-error')).toBeNull();
       expect(screen.getByTestId('mock-canvas')).toBeTruthy();
       expect(mockTerrainMesh).toHaveBeenCalled();
-    });
+    }, { timeout: 5000 });
   });
 });

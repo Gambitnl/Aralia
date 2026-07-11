@@ -273,8 +273,9 @@ describe('processAreaMoveWithinTriggers', () => {
 
   it('uses an explicit movement path for zone-crossing movement that starts and ends outside', () => {
     // Endpoint-only movement cannot prove how a creature crossed the map. When
-    // a caller supplies the actual stepped path, the trigger helper should count
-    // only the segments that were traveled while already inside the zone.
+    // a caller supplies sparse waypoints, the trigger helper expands each jump
+    // into grid steps and counts the five interior steps plus the entry and exit
+    // boundary steps. Travel wholly outside the zone must not be charged.
     const effect = {
       type: 'DAMAGE',
       trigger: { type: 'on_move_in_area', frequency: 'every_time' },
@@ -301,7 +302,7 @@ describe('processAreaMoveWithinTriggers', () => {
       ]
     )
 
-    expect(results).toHaveLength(3)
+    expect(results).toHaveLength(7)
     expect(results.every(result => result.triggerType === 'on_move_in_area')).toBe(true)
   })
 })

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 13:41:52
+ * Last Sync: 10/07/2026, 14:00:03
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 8 files
  *
@@ -144,7 +144,10 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
           isCritical: false,
         });
 
-        currentState = statusCommand.execute(currentState);
+        // The bundled condition can resolve saves and reactions asynchronously.
+        // Finish it before creating the rider so both effects share one concrete
+        // combat state and the target still rolls only the single save above.
+        currentState = await statusCommand.execute(currentState);
       }
 
       // Store the rider as an active effect so the attack factory can read it

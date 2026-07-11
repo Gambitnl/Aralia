@@ -1,7 +1,7 @@
 # Agent retrace — plan
 
 **Date:** 2026-07-06
-**Status:** specced (approved in shape; not built)
+**Status:** store core landed and green in `store.mjs` (preserve-on-reap dossier, reapCount, checkpointTask — feed seq 376, 125/125); the client/server wiring (retrace cmd, checkpoint endpoint/cmd, successor flag) is still missing — announced seq 377 but never landed (verified 2026-07-10: zero hits in client.mjs/server.mjs)
 **Campaign:** Tooling (Agora)
 **Depends on:** agent-identity (hard)
 

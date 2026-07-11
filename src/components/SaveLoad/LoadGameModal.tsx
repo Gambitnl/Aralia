@@ -1,3 +1,11 @@
+/**
+ * This window presents every recoverable moment in a saved journey.
+ *
+ * It separates short-lived rapid autosaves, longer checkpoint history, and
+ * player-created chronicles so players understand what each record protects.
+ * The main menu supplies slot metadata and owns the actual load/delete work;
+ * this file only organizes the choices and confirms destructive deletion.
+ */
 import React, { useState } from 'react';
 import { SaveSlotSummary } from '../../services/saveLoadService';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
@@ -18,8 +26,12 @@ interface LoadGameModalProps {
 const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlot, onDeleteSlot }) => {
   const [slotToDelete, setSlotToDelete] = useState<SaveSlotSummary | null>(null);
 
-  const manualSlots = slots.filter(slot => !slot.isAutoSave);
-  const autoSlots = slots.filter(slot => slot.isAutoSave);
+  // Checkpoints are also autosaves at the storage layer, so separate them first.
+  // Without this ordering they disappear into the rapid-save list and their
+  // longer recovery horizon is invisible to the player.
+  const checkpointSlots = slots.filter(slot => slot.isCheckpoint);
+  const autoSlots = slots.filter(slot => slot.isAutoSave && !slot.isCheckpoint);
+  const manualSlots = slots.filter(slot => !slot.isAutoSave && !slot.isCheckpoint);
 
   const handleDeleteClick = (slot: SaveSlotSummary) => {
     setSlotToDelete(slot);
@@ -89,22 +101,40 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-6">
+          {checkpointSlots.length > 0 && (
+            <section className="mb-6" aria-labelledby="checkpoint-history-heading">
+              <div className="flex items-center justify-between gap-4 mb-2">
+                <h3 id="checkpoint-history-heading" className="text-lg font-semibold text-violet-200">
+                  Waystones (Checkpoints)
+                </h3>
+                <span className="text-xs text-gray-400 text-right">
+                  Longer recovery points preserved at one minute through one hour.
+                </span>
+              </div>
+              <div className="space-y-3">
+                {checkpointSlots.map(renderSlotCard)}
+              </div>
+            </section>
+          )}
+
           {autoSlots.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-sky-200">Echoes (Auto-Saves)</h3>
-                <span className="text-xs text-gray-400">Moments preserved automatically by the Weave.</span>
+            <section className="mb-6" aria-labelledby="rapid-autosaves-heading">
+              <div className="flex items-center justify-between gap-4 mb-2">
+                <h3 id="rapid-autosaves-heading" className="text-lg font-semibold text-sky-200">
+                  Echoes (Rapid Auto-Saves)
+                </h3>
+                <span className="text-xs text-gray-400 text-right">The latest moment preserved during active play.</span>
               </div>
               <div className="space-y-3">
                 {autoSlots.map(renderSlotCard)}
               </div>
-            </div>
+            </section>
           )}
 
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold text-amber-200">Chronicles</h3>
-              <span className="text-xs text-gray-400">Permanent records of your legend.</span>
+          <section aria-labelledby="manual-chronicles-heading">
+            <div className="flex items-center justify-between gap-4 mb-2">
+              <h3 id="manual-chronicles-heading" className="text-lg font-semibold text-amber-200">Chronicles</h3>
+              <span className="text-xs text-gray-400 text-right">Permanent records created by you.</span>
             </div>
             {manualSlots.length > 0 ? (
               <div className="space-y-3">
@@ -115,7 +145,7 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
                 The archives are silent. Begin your journey and use &quot;Chronicle Journey&quot; to chronicle your deeds.
               </div>
             )}
-          </div>
+          </section>
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 # The orchestrator pact
 
-**Version:** v1 draft (not yet agreed — binds when every live orchestrator posts `PACT-AGREE v1` on the command channel)
+**Version:** v2 — RATIFIED 2026-07-10 (`PACT-AGREE v2`: Vega seq 564, Sol seq 568; v1: Vega seq 545, Sol seq 547)
 **Applies to:** every agent that registers with role `orchestrator` on this repo's Agora daemon (`http://localhost:4319`)
 **Written by:** Vega (Claude) and Sol (Codex), the first orchestrator pair, 2026-07-10
 
@@ -129,6 +129,9 @@ Five rules, each of which removes one classic ingredient of deadlock:
   before it enters one.
 - **Disjointness is the safety invariant** (same rule as worker packets): no two agents
   edit the same file concurrently, ever.
+- **A peer orchestrator reviews a wave plan BEFORE its first dispatch** (v2, seqs
+  555/556/560). Retroactive review is an exception to log on the command channel, never
+  the normal route.
 
 ## 7. Human directives
 
@@ -147,6 +150,9 @@ Five rules, each of which removes one classic ingredient of deadlock:
      orchestrator. A direct message or `@callsign` mention wakes its named orchestrator.
   6. **Keep Planmap current** — every campaign checks whether it adds or changes durable
      scope. If it does, add or update the relevant Planmap content in the same campaign.
+  7. **At least one orchestrator stays responsive at all times** (seq 544) — never all
+     dormant at once. Announce dormancy on the command channel before ending a turn, and
+     only when a peer is active or reliably wakeable.
 - When orchestrators disagree and cannot resolve it with one PROPOSE/COUNTER round each,
   escalate to the human with a `NEEDS-HUMAN:` message that presents the concrete options.
 
@@ -196,7 +202,8 @@ live orchestrator. Log substantive changes in the table below.
 
 | Version | Date | Change | Agreed by |
 |---|---|---|---|
-| v1 | 2026-07-10 | Initial pact from the Sol–Vega bootstrap | draft — awaiting PACT-AGREE |
+| v1 | 2026-07-10 | Initial pact from the Sol–Vega bootstrap (Sol redline seq 541; §7.7 added from human seq 544 as pre-announced in seq 546) | Vega `PACT-AGREE v1` seq 545 · Sol `PACT-AGREE v1` seq 547 |
+| v2 | 2026-07-10 | §6: peer review of a wave plan before first dispatch; retroactive review is a logged exception (from the mod-sweep missed gate, seqs 555/556/560) | Vega `PACT-AGREE v2` seq 564 · Sol `PACT-AGREE v2` seq 568 |
 
 ## Terms
 

@@ -6,7 +6,7 @@
  * layout so narrow windows keep the title and control buttons reachable.
  */
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { WindowFrame } from '../WindowFrame';
 
@@ -78,5 +78,21 @@ describe('WindowFrame', () => {
     expect(screen.getByTitle('Resize top-left')).toHaveClass('h-11', 'w-11');
     expect(screen.getByTitle('Resize top edge')).toHaveClass('h-11', 'w-12');
     expect(screen.getByTitle('Resize left edge')).toHaveClass('h-12', 'w-11');
+  });
+
+  it('keeps title-bar actions above the top-right resize hit zone and closes on click', () => {
+    const onClose = vi.fn();
+
+    render(
+      <WindowFrame title="Resume Journey" onClose={onClose} storageKey="test-close-priority">
+        <div>Recovery choices</div>
+      </WindowFrame>
+    );
+
+    // Both controls deliberately have touch-sized targets. The title actions
+    // receive the higher layer so resizing cannot steal the player's Close click.
+    expect(screen.getByTestId('window-frame-header-actions')).toHaveStyle({ zIndex: 511 });
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });

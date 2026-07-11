@@ -14,7 +14,7 @@ interface CodexJob {
   buffer: string[];
 }
 const codexJobs = new Map<string, CodexJob>();
-const SAFE_SCRIPT_NAME_RE = /^[a-zA-Z0-9:_\-]+$/;
+const SAFE_SCRIPT_NAME_RE = /^[a-zA-Z0-9:_-]+$/;
 function isSafeScriptNameLocal(name: string): boolean {
   return SAFE_SCRIPT_NAME_RE.test(name);
 }

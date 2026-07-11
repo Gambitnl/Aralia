@@ -32,6 +32,7 @@ nobody overwrites anyone. Locks are advisory (honor-system) — cooperation is t
 
 | Project | North Star |
 |---|---|
+| Whole-Game Systems Audit and Gap Resolution | [F:/Repos/Aralia/docs/projects/game-systems-audit/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/game-systems-audit/NORTH_STAR.md) |
 | Combat System | [F:/Repos/Aralia/docs/projects/combat/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/combat/NORTH_STAR.md) |
 | Companions System | [F:/Repos/Aralia/docs/projects/companions/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/companions/NORTH_STAR.md) |
 | Crafting System | [F:/Repos/Aralia/docs/projects/crafting/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/crafting/NORTH_STAR.md) |
@@ -336,6 +337,8 @@ future intent were removed.
 | Investigation Task Cluster | idle | low | `docs/tasks/investigations` | GAPS.md present; Inquiry Packet Output Contract satisfies the old "clarify expected outputs" ask (doc-triage verified 2026-07-01) | implemented | dormant scaffold awaiting the next inquiry packet; no forward work queued |
 | Item Icons | complete | medium | `docs/tasks/item-icons` | GAPS.md complete; 810 SVG item assets generated; old batch backlog files retired | implemented | future art-direction passes may replace generated icons in place if needed |
 | Roadmap Maintenance | active | medium | `docs/projects/roadmap-maintenance` (canonical; `docs/tasks/roadmap` remains task-facing evidence) | GAPS.md present; task row merged into canonical project | implemented | route assignments through `docs/projects/roadmap-maintenance` only |
+
+| Whole-Game Systems Audit and Gap Resolution | active | medium | `docs/projects/game-systems-audit`, `docs/projects/game-systems-audit/COVERAGE_INVENTORY.md` | 12 review waves; 84 living-project folders require current campaign evidence; confirmed issues synchronize to owner gaps and Planmap | implemented parent_with_subprojects | complete W01 onboarding/persistence review, then proceed in dependency order |
 
 ## Design-Intent References
 

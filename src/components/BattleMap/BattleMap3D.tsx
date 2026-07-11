@@ -771,6 +771,11 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
         {(mapData.targetableObjects ?? []).map(targetObject => {
           const targetTileId = `${targetObject.position.x}-${targetObject.position.y}`;
 
+          // Handles are aiming UI, not scenery. Only objects the current
+          // ability can actually target get a marker — an idle map shows the
+          // object itself (tree, boulder), never a handle cube.
+          if (!validTargetSet.has(targetTileId)) return null;
+
           return (
             <TargetableObject3DMarker
               key={`targetable-object-3d-${targetObject.id}`}

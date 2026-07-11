@@ -38,7 +38,8 @@
  * -----------------
  *   npx vitest run src/styles/__tests__/buttonAudit.test.ts
  *
- * The test always passes. The report is printed to the console.
+ * The report case always passes. Its companion guard enforces a reviewed path
+ * manifest: new debt fails immediately, while fixed paths leave the inventory.
  */
 
 import { describe, it } from 'vitest';
@@ -133,6 +134,14 @@ const RAW_BUTTON_RE = /<button[\s\n\r>/]/gm;
 /** Matches `<motion.button`. */
 const MOTION_BUTTON_RE = /<motion\.button[\s\n\r>/]/gm;
 
+/**
+ * Presence checks deliberately omit the global flag. Reusing a global RegExp
+ * with `.test()` carries `lastIndex` from one file into the next, which made
+ * unchanged-tree audit totals depend on traversal order.
+ */
+const HAS_RAW_BUTTON_RE = /<button[\s\n\r>/]/m;
+const HAS_MOTION_BUTTON_RE = /<motion\.button[\s\n\r>/]/m;
+
 /** File imports BTN_* constants from buttonStyles. */
 const IMPORTS_BTN_CONSTANTS_RE = /from\s+['"][^'"]*buttonStyles['"]/;
 
@@ -218,6 +227,49 @@ function auditFile(absPath: string): AuditEntry {
   return { file: rel, category: 'needs_work', rawButtonCount: totalRaw };
 }
 
+/** The tracked JSON keeps known UI debt reviewable without hiding new files. */
+interface ButtonDebtManifest {
+  _comment: string;
+  reviewedNeedsWorkPaths: string[];
+}
+
+/** Differences between today's scan and the reviewed debt path set. */
+interface ButtonDebtComparison {
+  newPaths: string[];
+  resolvedPaths: string[];
+}
+
+/** Return whether a source file contains either supported raw-button form. */
+function containsRawButton(src: string): boolean {
+  return HAS_RAW_BUTTON_RE.test(src) || HAS_MOTION_BUTTON_RE.test(src);
+}
+
+/**
+ * Read the human-reviewed debt inventory beside this test. Keeping it in JSON
+ * makes migrations visible as one-path additions or removals in code review.
+ */
+function readButtonDebtManifest(): ButtonDebtManifest {
+  const manifestPath = path.resolve(__dirname, 'buttonAuditDebt.json');
+  return JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as ButtonDebtManifest;
+}
+
+/**
+ * Compare sets in sorted order so filesystem traversal and manifest ordering
+ * cannot change which paths the policy reports.
+ */
+function compareReviewedDebt(
+  currentPaths: string[],
+  reviewedPaths: string[],
+): ButtonDebtComparison {
+  const current = new Set(currentPaths);
+  const reviewed = new Set(reviewedPaths);
+
+  return {
+    newPaths: [...current].filter(file => !reviewed.has(file)).sort(),
+    resolvedPaths: [...reviewed].filter(file => !current.has(file)).sort(),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -230,7 +282,7 @@ describe('Button Design System Audit', () => {
     // Run audit on every file that contains a raw button
     const rawButtonFiles = allFiles.filter(f => {
       const src = fs.readFileSync(f, 'utf-8');
-      return RAW_BUTTON_RE.test(src) || MOTION_BUTTON_RE.test(src);
+      return containsRawButton(src);
     });
 
     const entries: AuditEntry[] = rawButtonFiles.map(auditFile);
@@ -302,29 +354,25 @@ describe('Button Design System Audit', () => {
     console.log(lines.join('\n'));
 
     // This test always passes — it is a report, not an assertion.
-    // To add a regression guard that fails when new violations appear,
-    // enable the companion test below ("regression guard") and commit
-    // the baseline count shown in the summary above.
+    // The companion guard below compares exact reviewed paths, so this report
+    // can remain informational without weakening new-debt enforcement.
     expect(needsWorkCount).toBeGreaterThanOrEqual(0); // always true
   });
 
   // -----------------------------------------------------------------------
-  // Regression guard
-  // ENABLE_REGRESSION_GUARD controls whether this suite fails when new
-  // unacknowledged raw-button violations are introduced.
-  // Keep BASELINE_VIOLATION_COUNT at the current accepted count and allow only
-  // equal or improving totals.
+  // Reviewed debt guard
+  // The manifest names every currently accepted path. A new path cannot hide
+  // behind an unrelated migration elsewhere, and a resolved path must be
+  // removed so the inventory shrinks alongside the real UI debt.
   // -----------------------------------------------------------------------
-  const ENABLE_REGRESSION_GUARD = true;
-  const BASELINE_VIOLATION_COUNT = 95; // baseline after excluding DesignPreview preview surfaces as intentional
+  const ENABLE_REVIEWED_DEBT_GUARD = true;
 
-  it('regression guard: no new raw-button violations introduced', () => {
-    if (!ENABLE_REGRESSION_GUARD) {
+  it('reviewed debt guard: no new or silently resolved raw-button paths', () => {
+    if (!ENABLE_REVIEWED_DEBT_GUARD) {
       console.log(
         '\n  ℹ️  Regression guard is disabled.\n' +
-        '     Run the audit above, note the "Needs work" count,\n' +
-        '     set BASELINE_VIOLATION_COUNT to that number, and\n' +
-        '     set ENABLE_REGRESSION_GUARD = true to activate.\n'
+        '     Run the audit above and review buttonAuditDebt.json, then\n' +
+        '     set ENABLE_REVIEWED_DEBT_GUARD = true to activate.\n'
       );
       return; // skip
     }
@@ -332,19 +380,43 @@ describe('Button Design System Audit', () => {
     const allFiles = collectTsxFiles(SRC_ROOT);
     const rawButtonFiles = allFiles.filter(f => {
       const src = fs.readFileSync(f, 'utf-8');
-      return RAW_BUTTON_RE.test(src) || MOTION_BUTTON_RE.test(src);
+      return containsRawButton(src);
     });
 
     const needsWork = rawButtonFiles
       .map(auditFile)
       .filter(e => e.category === 'needs_work');
+    const manifest = readButtonDebtManifest();
+    const reviewedPaths = manifest.reviewedNeedsWorkPaths;
+    const currentPaths = needsWork.map(entry => entry.file);
+    const { newPaths, resolvedPaths } = compareReviewedDebt(currentPaths, reviewedPaths);
 
+    // Sorted unique paths keep the manifest stable and easy to review.
+    expect(reviewedPaths).toEqual(
+      [...new Set(reviewedPaths)].sort((a, b) => a.localeCompare(b)),
+    );
     expect(
-      needsWork.length,
-      `New raw-button violations detected (${needsWork.length} > baseline ${BASELINE_VIOLATION_COUNT}).\n` +
-      `New files:\n${needsWork.map(e => `  ${e.file}`).join('\n')}\n` +
-      `Fix them or add to EXEMPT_FILES.`
-    ).toBeLessThanOrEqual(BASELINE_VIOLATION_COUNT);
+      newPaths,
+      `New raw-button debt must be fixed, explicitly exempted, or reviewed into buttonAuditDebt.json:\n${newPaths.map(file => `  ${file}`).join('\n')}`,
+    ).toEqual([]);
+    expect(
+      resolvedPaths,
+      `Resolved raw-button paths must be removed from buttonAuditDebt.json:\n${resolvedPaths.map(file => `  ${file}`).join('\n')}`,
+    ).toEqual([]);
+  });
+
+  it('reviewed debt comparison catches both a new path and a resolved path', () => {
+    // Reverse the current order deliberately: set comparison must remain stable
+    // while still identifying both directions of manifest drift.
+    const comparison = compareReviewedDebt(
+      ['components/NewButton.tsx', 'components/StillKnown.tsx'],
+      ['components/ResolvedButton.tsx', 'components/StillKnown.tsx'],
+    );
+
+    expect(comparison).toEqual({
+      newPaths: ['components/NewButton.tsx'],
+      resolvedPaths: ['components/ResolvedButton.tsx'],
+    });
   });
 
 });

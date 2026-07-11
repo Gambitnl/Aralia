@@ -1,0 +1,947 @@
+import path from 'path';
+import fs from 'fs';
+import { toProjectDisplayName, projectSlugFromNorthStarPath, toProjectSlug, stripMarkdownInline } from '../utils';
+import type { DevHubRouteContext } from './routeContext';
+
+type ProjectDocRole = {
+  key: string;
+  token: string;
+  label: string;
+  fileName: string;
+  required: boolean;
+};
+
+type ProjectDocSignal = ProjectDocRole & {
+  exists: boolean;
+  href: string;
+  repoPath: string;
+  size: number;
+  updatedAt: string | null;
+  declaredUpdated: string;
+  freshness: string;
+  freshnessLabel: string;
+};
+
+type ProjectTrackerMetadata = {
+  category?: string;
+  project?: string;
+  status?: string;
+  confidence?: string;
+  evidence?: string;
+  gapSignal?: string;
+  protocol?: string;
+  nextStep?: string;
+};
+
+type WorkflowGapSummary = {
+  href: string;
+  totalCount: number;
+  activeCount: number;
+  blockingCount: number;
+  highSeverityCount: number;
+  lastUpdated: string;
+  activeGaps: Array<{
+    id: string;
+    status: string;
+    severity: string;
+    area: string;
+    issue: string;
+    testimonies: number;
+    nextAction: string;
+    owner: string;
+    lastUpdated: string;
+  }>;
+};
+
+const projectDocRoles: ProjectDocRole[] = [
+  { key: 'northStar', token: 'N', label: 'North Star', fileName: 'NORTH_STAR.md', required: true },
+  { key: 'tracker', token: 'T', label: 'Tracker', fileName: 'TRACKER.md', required: true },
+  { key: 'gaps', token: 'G', label: 'Gaps', fileName: 'GAPS.md', required: true },
+  { key: 'agentPrompt', token: 'A', label: 'Agent Prompt', fileName: 'COLD_START_AGENT_PROMPT.md', required: true },
+  { key: 'decisions', token: 'D', label: 'Decisions', fileName: 'DECISIONS.md', required: true },
+  { key: 'proof', token: 'P', label: 'Proof', fileName: 'AUDIT_OR_PROOF.md', required: true },
+  { key: 'runbook', token: 'R', label: 'Runbook', fileName: 'RUNBOOK.md', required: true },
+];
+
+const subprojectDocRole: ProjectDocRole = {
+  key: 'subprojects',
+  token: 'S',
+  label: 'Subprojects',
+  fileName: 'SUBPROJECTS.md',
+  required: true,
+};
+
+const requiredProjectSchemaFields = [
+  'schemaversion',
+  'project',
+  'slug',
+  'category',
+  'maincategory',
+  'subcategory',
+  'status',
+  'lastupdated',
+  'confidence',
+  'evidence',
+  'gapsignal',
+  'protocol',
+  'nextstep',
+  'agentcomments',
+  'requireddocs',
+  'optionaldocs',
+  'requiredverification',
+  'completedverification',
+  'lastproof',
+  'workflowgapsreviewed',
+  'compactionstatus',
+  'lifecyclestatus',
+  'deprecationconfidence',
+  'deprecationreason',
+  'canonicalowner',
+  'humandecisionrequired',
+];
+
+// ============================================================================
+// Project Tracker Card Source
+// ============================================================================
+// This section is the single source for the project dashboard and project
+// detail API data. It reads each project folder directly and returns a strict
+// docSet schema, so the browser can show when project files exist and whether
+// their written Last updated dates line up with the North Star.
+// ============================================================================
+const readProjectTrackerMetadata = (projectsDir: string, projectDirs: string[]) => {
+  // Keep PROJECT_TRACKER.md as registry fallback data, not as the canonical
+  // source for the cards. The per-project folder owns live card state.
+  const folderSet = new Set(projectDirs);
+  const trackerPath = path.join(projectsDir, 'PROJECT_TRACKER.md');
+  const trackerContent = fs.existsSync(trackerPath)
+    ? fs.readFileSync(trackerPath, 'utf-8')
+    : '';
+  const nameBySlug = new Map<string, string>();
+
+  for (const slug of projectDirs) {
+    nameBySlug.set(slug, toProjectDisplayName(slug));
+  }
+
+  for (const line of trackerContent.split(/\r?\n/)) {
+    const northStarMatch = line.match(/^\|\s*([^|]+?)\s*\|\s*\[[^\]]+\]\(([^)]+NORTH_STAR\.md)\)\s*\|/i);
+    if (!northStarMatch) continue;
+    const slug = projectSlugFromNorthStarPath(northStarMatch[2]);
+    if (slug && folderSet.has(slug)) {
+      nameBySlug.set(slug, stripMarkdownInline(northStarMatch[1]));
+    }
+  }
+
+  const labelToSlug = new Map<string, string>();
+  for (const [slug, name] of nameBySlug.entries()) {
+    labelToSlug.set(toProjectSlug(name), slug);
+    labelToSlug.set(toProjectSlug(slug), slug);
+  }
+
+  const trackerBySlug = new Map<string, ProjectTrackerMetadata>();
+  let currentCategory = 'Project Tracker';
+  for (const rawLine of trackerContent.split(/\r?\n/)) {
+    const heading = rawLine.match(/^##\s+(.+)$/);
+    if (heading) {
+      currentCategory = stripMarkdownInline(heading[1].replace(/\s*\([^)]*\)\s*$/, ''));
+      continue;
+    }
+
+    if (!rawLine.startsWith('|')) continue;
+    const cells = rawLine.split('|').slice(1, -1).map((cell) => cell.trim());
+    if (cells.length < 7) continue;
+    if (/^-+$/.test(cells[0].replace(/\s/g, '')) || /^project$/i.test(stripMarkdownInline(cells[0]))) continue;
+
+    const explicitSlug = cells.map(projectSlugFromNorthStarPath).find(Boolean) as string | undefined;
+    const projectName = stripMarkdownInline(cells[0]);
+    const slug = explicitSlug || labelToSlug.get(toProjectSlug(projectName)) || toProjectSlug(projectName);
+    if (!folderSet.has(slug) || trackerBySlug.has(slug)) continue;
+
+    trackerBySlug.set(slug, {
+      category: currentCategory,
+      project: projectName,
+      status: stripMarkdownInline(cells[2]),
+      confidence: stripMarkdownInline(cells[3]),
+      evidence: stripMarkdownInline(cells[4]),
+      gapSignal: stripMarkdownInline(cells[5]),
+      protocol: stripMarkdownInline(cells[1]),
+      nextStep: stripMarkdownInline(cells[6]),
+    });
+  }
+
+  return { trackerBySlug, nameBySlug };
+};
+
+const markdownField = (content: string, label: string) => {
+  // Read simple "Label: value" fields from project markdown. The project docs
+  // stay human-readable, while the dashboard can still compute live status.
+  const match = content.match(new RegExp('^\\s*' + label + '\\s*:\\s*(.+)$', 'im'));
+  return match ? stripMarkdownInline(match[1]).trim() : '';
+};
+
+const markdownSectionFields = (content: string, headingName: string) => {
+  // Agents fill dashboard-facing values in a named markdown section. This
+  // parser lets the dashboard read those explicit fields first, while older
+  // projects can still fall back to inferred values until they are upgraded.
+  // It accepts both the newer "Label: value" block and the older two-column
+  // markdown table form used by some living-project North Stars.
+  const fields: Record<string, string> = {};
+  const lines = content.split(/\r?\n/);
+  const headingPattern = new RegExp('^##\\s+' + headingName + '\\s*$', 'i');
+  const startIndex = lines.findIndex((line) => headingPattern.test(stripMarkdownInline(line).trim()));
+  if (startIndex < 0) return fields;
+
+  for (const line of lines.slice(startIndex + 1)) {
+    if (/^##\s+/.test(line)) break;
+    const match = line.match(/^\s*([^:]+?)\s*:\s*(.+)\s*$/);
+    if (match) {
+      const key = toProjectSlug(match[1]).replace(/-/g, '');
+      fields[key] = stripMarkdownInline(match[2]).trim();
+      continue;
+    }
+
+    const tableCells = line.split('|').slice(1, -1).map((cell) => cell.trim());
+    if (tableCells.length < 2) continue;
+    if (/^-+$/.test(tableCells[0].replace(/\s/g, '')) || /^field$/i.test(stripMarkdownInline(tableCells[0]))) continue;
+    const key = toProjectSlug(tableCells[0]).replace(/-/g, '');
+    fields[key] = stripMarkdownInline(tableCells.slice(1).join(' | ')).trim();
+  }
+
+  return fields;
+};
+
+const markdownTableRows = (content: string, requiredHeader: string) => {
+  // Parent-project registries store their lane data in ordinary markdown
+  // tables. This parser intentionally handles only simple pipe tables so
+  // SUBPROJECTS.md remains readable and editable by humans instead of
+  // becoming a hidden JSON source.
+  const rows: Array<Record<string, string>> = [];
+  const lines = content.split(/\r?\n/);
+  for (let i = 0; i < lines.length; i += 1) {
+    const headerLine = lines[i];
+    if (!headerLine.trim().startsWith('|') || !headerLine.toLowerCase().includes(requiredHeader.toLowerCase())) continue;
+
+    const separatorLine = lines[i + 1] || '';
+    if (!/^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(separatorLine)) continue;
+
+    const headers = headerLine.split('|').slice(1, -1).map((cell) => stripMarkdownInline(cell).trim());
+    for (const line of lines.slice(i + 2)) {
+      if (!line.trim().startsWith('|')) break;
+      const cells = line.split('|').slice(1, -1).map((cell) => stripMarkdownInline(cell).trim());
+      if (cells.length < headers.length) continue;
+      rows.push(Object.fromEntries(headers.map((header, index) => [header, cells[index] || ''])));
+    }
+    break;
+  }
+
+  return rows;
+};
+
+const subprojectsFromMarkdown = (content: string) => {
+  // The live project detail UI needs real lane objects, not just the raw
+  // SUBPROJECTS.md document card. Keep the markdown table as source of truth
+  // and translate it into the small shape shared by project_ui.js. When a
+  // child lane points at its own NORTH_STAR.md, read that packet's
+  // frontmatter too so the parent dashboard shows the child project's
+  // iteration/pass state instead of leaving every row as "not recorded."
+  return markdownTableRows(content, 'Subproject ID').map((row) => {
+    const id = row['Subproject ID'] || '';
+    const setupPath = row['Project setup'] || '';
+    const setupAbsPath = setupPath ? path.resolve(process.cwd(), setupPath) : '';
+    const setupContent = setupAbsPath && fs.existsSync(setupAbsPath)
+      ? fs.readFileSync(setupAbsPath, 'utf-8')
+      : '';
+    const setupSchema = setupContent ? markdownFrontmatterFields(setupContent) : {};
+    return {
+      id,
+      name: projectCardSchemaField(setupSchema, 'project') || toProjectDisplayName(id || 'unnamed-subproject'),
+      setupPath,
+      status: projectCardSchemaField(setupSchema, 'status') || row.Status || '',
+      relationship: projectCardSchemaField(setupSchema, 'relationship') || row.Relationship || '',
+      scope: row.Scope || '',
+      evidence: projectCardSchemaField(setupSchema, 'evidence') || row['Existing project/task evidence'] || '',
+      currentGapIds: row['Current gap IDs'] || '',
+      nextAction: projectCardSchemaField(setupSchema, 'nextstep', 'nextStep') || row['Next high-impact slice'] || '',
+      proof: projectCardSchemaField(setupSchema, 'requiredverification', 'requiredVerification') || row['Proof boundary'] || '',
+      notes: row.Notes || '',
+      iteration: Number(projectCardSchemaField(setupSchema, 'iteration') || 0),
+      activeAgent: projectCardSchemaField(setupSchema, 'activeagent', 'activeAgent'),
+      agentPassStatus: projectCardSchemaField(setupSchema, 'agentpassstatus', 'agentPassStatus'),
+      agentPassStartedAt: projectCardSchemaField(setupSchema, 'agentpassstartedat', 'agentPassStartedAt'),
+      agentPassEndedAt: projectCardSchemaField(setupSchema, 'agentpassendedat', 'agentPassEndedAt'),
+    };
+  });
+};
+
+const readProjectCardJson = (projectDir: string) => {
+  // PROJECT_CARD.json remains a backward-compatible override, but markdown
+  // schema fields are preferred because they keep dashboard state inside the
+  // human-readable living project docs.
+  const cardPath = path.join(projectDir, 'PROJECT_CARD.json');
+  if (!fs.existsSync(cardPath)) return {};
+  try {
+    return JSON.parse(fs.readFileSync(cardPath, 'utf-8'));
+  } catch {
+    return {};
+  }
+};
+
+const markdownFrontmatterFields = (content: string) => {
+  // YAML frontmatter is the preferred project schema because it gives agents
+  // explicit fields to maintain and gives the dashboard stable keys to read.
+  // This lightweight parser intentionally supports the simple scalar and
+  // list shapes used by PROJECT_CARD_SCHEMA.md instead of trying to become a
+  // full YAML engine.
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) return {};
+  const fields: Record<string, any> = {};
+  const lines = match[1].split(/\r?\n/);
+  let activeListKey = '';
+
+  for (const line of lines) {
+    const listItem = line.match(/^\s*-\s+(.+)\s*$/);
+    if (listItem && activeListKey) {
+      fields[activeListKey] = [...(fields[activeListKey] || []), stripMarkdownInline(listItem[1]).replace(/^["']|["']$/g, '')];
+      continue;
+    }
+
+    const scalar = line.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)\s*$/);
+    if (!scalar) continue;
+    activeListKey = '';
+    const key = scalar[1].toLowerCase().replace(/[^a-z0-9]+/g, '');
+    const rawValue = scalar[2].trim();
+    if (!rawValue) {
+      fields[key] = [];
+      activeListKey = key;
+      continue;
+    }
+
+    fields[key] = stripMarkdownInline(rawValue).replace(/^["']|["']$/g, '');
+  }
+
+  return fields;
+};
+
+const projectCardSchemaField = (schema: Record<string, any>, ...keys: string[]) => {
+  // Markdown schema keys are normalized to lowercase words, while older JSON
+  // overrides used camelCase. This helper lets both contracts work during the
+  // migration instead of forcing every project to change at once.
+  for (const key of keys) {
+    const value = schema[key];
+    if (Array.isArray(value)) return value.join(', ');
+    if (value !== undefined && value !== null && String(value).trim()) return String(value).trim();
+  }
+  return '';
+};
+
+const projectCardSchemaList = (schema: Record<string, any>, ...keys: string[]) => {
+  // Required/optional docs are list-shaped in frontmatter but may still be
+  // comma-separated strings in legacy markdown or JSON. Normalize both so
+  // doc coverage can be compared consistently.
+  const value = projectCardSchemaField(schema, ...keys);
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const normalizeProjectDate = (value: string) => {
+  // Written project dates are more durable than filesystem modification times,
+  // which can change during Git operations or generated rewrites.
+  const match = String(value || '').match(/\d{4}-\d{2}-\d{2}/);
+  return match ? match[0] : '';
+};
+
+const readOptionalProjectText = (projectDir: string, fileName: string) => {
+  // Missing files are allowed while projects are being upgraded into the full
+  // living-project protocol shape.
+  const filePath = path.join(projectDir, fileName);
+  if (!fs.existsSync(filePath)) return '';
+  return fs.readFileSync(filePath, 'utf-8');
+};
+
+const readJsonRequestBody = (req: any): Promise<any> => {
+  // Vite's dev middleware does not parse JSON bodies for us. This helper
+  // keeps write endpoints local and explicit so the project viewer can save
+  // markdown without introducing a broader server framework.
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', (chunk: Buffer) => {
+      body += chunk.toString('utf-8');
+      if (body.length > 2_000_000) {
+        reject(new Error('Request body is too large.'));
+      }
+    });
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (error) {
+        reject(error);
+      }
+    });
+    req.on('error', reject);
+  });
+};
+
+const resolveProjectDocWritePath = (repoPath: string) => {
+  // Live editing is intentionally limited to living-project markdown files.
+  // This prevents the browser viewer from becoming a general filesystem
+  // editor while still allowing agents/users to update project docs directly.
+  const normalizedRepoPath = String(repoPath || '').replace(/\\/g, '/').replace(/^\/+/, '');
+  if (!/^docs\/projects\/[a-zA-Z0-9_-]+\/[A-Z0-9_/-]+\.md$/i.test(normalizedRepoPath)) {
+    throw new Error('Only docs/projects/<project>/<file>.md can be edited from the project viewer.');
+  }
+
+  const projectsRoot = path.resolve(process.cwd(), 'docs', 'projects');
+  const targetPath = path.resolve(process.cwd(), normalizedRepoPath);
+  if (!targetPath.startsWith(projectsRoot + path.sep)) {
+    throw new Error('Project doc path escaped docs/projects.');
+  }
+
+  return { normalizedRepoPath, targetPath };
+};
+
+const projectTitleFromDocs = (slug: string, northStarContent: string, trackerContent: string) => {
+  // Prefer the project's own heading because it is what a cold-start agent
+  // sees first when opening the project folder.
+  const heading = northStarContent.match(/^#\s+(.+)$/m) || trackerContent.match(/^#\s+(.+)$/m);
+  if (!heading) return toProjectDisplayName(slug);
+  return stripMarkdownInline(heading[1])
+    .replace(/\s+North Star$/i, '')
+    .replace(/\s+Living Tracker$/i, '')
+    .replace(/\s+Tracker$/i, '')
+    .replace(/\s+Gaps?$/i, '')
+    .trim() || toProjectDisplayName(slug);
+};
+
+const firstProjectParagraph = (content: string, headingName: string) => {
+  // Use a concise North Star paragraph as fallback card text when no explicit
+  // tracker next action exists.
+  const lines = content.split(/\r?\n/);
+  const headingPattern = new RegExp('^##\\s+' + headingName + '\\s*$', 'i');
+  const startIndex = lines.findIndex((line) => headingPattern.test(stripMarkdownInline(line).trim()));
+  if (startIndex < 0) return '';
+
+  const collected: string[] = [];
+  for (const line of lines.slice(startIndex + 1)) {
+    if (/^##\s+/.test(line)) break;
+    const cleanLine = stripMarkdownInline(line.replace(/^[-*]\s+/, '').trim());
+    if (!cleanLine && collected.length) break;
+    if (cleanLine) collected.push(cleanLine);
+  }
+
+  return collected.join(' ').trim();
+};
+
+const requiredReviewBriefFromDocs = (
+  northStarContent: string,
+  trackerContent: string,
+  gapsContent: string,
+) => {
+  // Review-required projects need more than a terse next-step sentence.
+  // Agents can add a small markdown section named "Required Review Brief";
+  // the dashboard turns that section into a decision panel with options.
+  const fields = {
+    ...markdownSectionFields(gapsContent, 'Required Review Brief'),
+    ...markdownSectionFields(trackerContent, 'Required Review Brief'),
+    ...markdownSectionFields(northStarContent, 'Required Review Brief'),
+  };
+  const options = ['optiona', 'optionb', 'optionc']
+    .map((key) => projectCardSchemaField(fields, key))
+    .filter(Boolean);
+
+  return {
+    title: projectCardSchemaField(fields, 'title') || '',
+    question: projectCardSchemaField(fields, 'question') || '',
+    issue: projectCardSchemaField(fields, 'issue') || '',
+    currentBehavior: projectCardSchemaField(fields, 'currentbehavior') || '',
+    whyBlocked: projectCardSchemaField(fields, 'whyblocked') || '',
+    options,
+    evidence: projectCardSchemaField(fields, 'evidence') || '',
+    decisionOwner: projectCardSchemaField(fields, 'decisionowner') || '',
+    proofAfterDecision: projectCardSchemaField(fields, 'proofafterdecision') || '',
+  };
+};
+
+const markdownSectionContent = (content: string, headingName: string) => {
+  // Small table-driven project features use named markdown sections so the
+  // dashboard can render them without requiring a database. This helper
+  // extracts one section body and stops at the next second-level heading.
+  const lines = content.split(/\r?\n/);
+  const headingPattern = new RegExp('^##\\s+' + headingName + '\\s*$', 'i');
+  const startIndex = lines.findIndex((line) => headingPattern.test(stripMarkdownInline(line).trim()));
+  if (startIndex < 0) return '';
+  const body: string[] = [];
+  for (const line of lines.slice(startIndex + 1)) {
+    if (/^##\s+/.test(line)) break;
+    body.push(line);
+  }
+  return body.join('\n').trim();
+};
+
+const decisionVisualizationsFromDocs = (
+  northStarContent: string,
+  trackerContent: string,
+  gapsContent: string,
+) => {
+  // Decision visualizations are isolated "this is what I mean" pages for
+  // choices a human has to make. Agents register them in a compact markdown
+  // table so project detail pages can link to the examples directly.
+  const sections = [northStarContent, trackerContent, gapsContent]
+    .map((content) => markdownSectionContent(content, 'Decision Visualizations'))
+    .filter(Boolean);
+
+  return sections.flatMap((section) => section.split(/\r?\n/).flatMap((line) => {
+    if (!line.startsWith('|')) return [];
+    const rawCells = line.split('|').slice(1, -1).map((cell) => cell.trim());
+    const cells = rawCells.map((cell) => stripMarkdownInline(cell).trim());
+    if (cells.length < 5 || /^-+$/.test(cells.join('')) || /^decision$/i.test(cells[0])) return [];
+    const visualHref = rawCells[2].match(/\(([^)]+)\)/)?.[1] || cells[2] || '';
+    return [{
+      decision: cells[0] || 'Unnamed decision',
+      status: cells[1] || 'draft',
+      href: visualHref,
+      summary: cells[3] || '',
+      owner: cells[4] || '',
+    }];
+  }));
+};
+
+const nextStepFromTracker = (trackerContent: string) => {
+  // The active task queue is the strongest source for the next visible
+  // dashboard action.
+  for (const line of trackerContent.split(/\r?\n/)) {
+    if (!line.startsWith('|')) continue;
+    const cells = line.split('|').slice(1, -1).map((cell) => stripMarkdownInline(cell).trim()).filter(Boolean);
+    if (cells.length < 3) continue;
+    const joined = cells.join(' ').toLowerCase();
+    if (!/\b(active|pending|planned|blocked)\b/.test(joined)) continue;
+    if (/\b(done|complete|closed)\b/.test(joined)) continue;
+
+    const descriptiveCell = cells.find((cell) => {
+      const lower = cell.toLowerCase();
+      return !/^t\d+/i.test(cell) && !/^(active|pending|planned|blocked)$/i.test(lower) && cell.length > 8;
+    });
+    if (descriptiveCell) return descriptiveCell;
+  }
+
+  return '';
+};
+
+const iterationFromAgentPrompt = (agentPromptContent: string) => {
+  // The cold-start prompt is the handoff packet agents read before an
+  // iteration pass. Prefer the YAML handoff header because it is the stable
+  // machine-readable index, then fall back to the Markdown handoff block so
+  // older or partially edited packets remain visible.
+  const promptSchema = markdownFrontmatterFields(agentPromptContent);
+  const frontmatterIteration = Number(projectCardSchemaField(promptSchema, 'iteration'));
+  if (Number.isFinite(frontmatterIteration) && frontmatterIteration > 0) return frontmatterIteration;
+  const match = agentPromptContent.match(/^Iteration:\s*(\d+)/im);
+  return match ? Number(match[1]) : 0;
+};
+
+const iterationAgentsFromPrompt = (agentPromptContent: string, iteration: number) => {
+  // The workflow only recently started asking agents to identify their
+  // runtime surface. Until a long-lived ledger exists, expose the current
+  // handoff identity as a one-row table so the UI has a stable shape and
+  // missing agent identity stays visible instead of being hidden.
+  const ledgerRows = agentPromptContent.split(/\r?\n/).flatMap((line) => {
+    if (!/^\|\s*\d+\s*\|/.test(line)) return [];
+    const cells = line.split('|').slice(1, -1).map((cell) => stripMarkdownInline(cell).trim());
+    if (cells.length < 6) return [];
+    return [{
+      iteration: Number(cells[0]) || 0,
+      agent: cells[1] || 'Not recorded',
+      surface: cells[2] || 'Not recorded',
+      certainty: cells[3] || 'unknown',
+      date: cells[4] || '',
+      source: cells[5] || 'COLD_START_AGENT_PROMPT.md',
+    }];
+  }).filter((row) => row.iteration > 0);
+
+  if (ledgerRows.length) return ledgerRows;
+
+  const identityBlock = (agentPromptContent.match(/^Agent identity \/ runtime:\s*([\s\S]*?)(?:\n##|\n---END|\n\n[A-Z][^\n]*:|$)/im)?.[1] || '').trim();
+  const compactIdentity = identityBlock
+    .split(/\r?\n/)
+    .map((line) => stripMarkdownInline(line.replace(/^[-*]\s+/, '').trim()))
+    .filter(Boolean)
+    .join(' ');
+
+  if (!iteration) return [];
+
+  return [{
+    iteration,
+    agent: compactIdentity || 'Not recorded',
+    surface: compactIdentity || 'Not recorded',
+    certainty: compactIdentity ? 'recorded in handoff' : 'missing',
+    source: 'COLD_START_AGENT_PROMPT.md',
+  }];
+};
+
+const readProjectDocSignal = (projectDir: string, slug: string, role: ProjectDocRole, northStarDate: string): ProjectDocSignal => {
+  // Each token reports both existence and freshness. Required files drive the
+  // complete/current counts; optional files are shown so agents know whether
+  // agent prompts, decisions, proof, or runbook docs exist for the project.
+  const filePath = path.join(projectDir, role.fileName);
+  const exists = fs.existsSync(filePath);
+  const content = exists ? fs.readFileSync(filePath, 'utf-8') : '';
+  const stat = exists ? fs.statSync(filePath) : null;
+  const declaredUpdated = normalizeProjectDate(markdownField(content, 'Last updated'));
+  let freshness = exists ? 'undated' : 'missing';
+  let freshnessLabel = exists ? 'exists, but has no Last updated date' : 'missing';
+
+  if (exists && declaredUpdated && northStarDate) {
+    if (declaredUpdated === northStarDate) {
+      freshness = 'current';
+      freshnessLabel = 'updated with North Star';
+    } else if (declaredUpdated > northStarDate) {
+      freshness = 'ahead';
+      freshnessLabel = 'newer than North Star';
+    } else {
+      freshness = 'stale';
+      freshnessLabel = 'older than North Star';
+    }
+  } else if (exists && declaredUpdated) {
+    freshness = 'dated';
+    freshnessLabel = 'dated, but North Star date is missing';
+  }
+
+  return {
+    ...role,
+    exists,
+    href: '/Aralia/docs/projects/' + slug + '/' + role.fileName,
+    repoPath: 'docs/projects/' + slug + '/' + role.fileName,
+    size: stat?.size || 0,
+    updatedAt: stat ? stat.mtime.toISOString() : null,
+    declaredUpdated,
+    freshness,
+    freshnessLabel,
+  };
+};
+
+const gapSignalFromGaps = (gapsContent: string, gapsFileExists: boolean) => {
+  // Keep the row compact while still summarizing the live project gap file.
+  // Prefer the YAML gap registry header because it lets the dashboard read
+  // rows with project-prefixed IDs without guessing from freeform markdown.
+  if (!gapsFileExists) return 'GAPS.md missing';
+  const gapSchema = markdownFrontmatterFields(gapsContent);
+  const openGapCount = Number(projectCardSchemaField(gapSchema, 'opengapcount'));
+  const gapCount = Number(projectCardSchemaField(gapSchema, 'gapcount'));
+  if (Number.isFinite(openGapCount) && Number.isFinite(gapCount)) {
+    return String(openGapCount) + ' open / ' + String(gapCount) + ' total project gap' + (gapCount === 1 ? '' : 's');
+  }
+  if (Number.isFinite(openGapCount)) return String(openGapCount) + ' open project gap' + (openGapCount === 1 ? '' : 's');
+  if (Number.isFinite(gapCount)) return String(gapCount) + ' tracked project gap' + (gapCount === 1 ? '' : 's');
+  // Some older gap files use project-prefixed IDs such as OLL-G1,
+  // WSS-005, or CMA-G19 instead of plain G1. Treat any markdown table row
+  // after the header as a countable gap so the UI does not under-report
+  // compact registries while they are being migrated.
+  const gapRows = markdownSectionContent(gapsContent, 'Gap Log').split(/\r?\n/).filter((line) => {
+    if (!line.startsWith('|')) return false;
+    const cells = line.split('|').slice(1, -1).map((cell) => stripMarkdownInline(cell).trim());
+    if (cells.length < 4) return false;
+    if (/^gap id$/i.test(cells[0]) || /^id$/i.test(cells[0]) || /^-+$/.test(cells[0].replace(/\s/g, ''))) return false;
+    return Boolean(cells[0]);
+  });
+  const openRows = gapRows.filter((line) => /\b(open|active|pending|blocked|not_started|in_progress|waiting|needs_validation|untriaged|routed|review-required|design_decision_deferred)\b/i.test(stripMarkdownInline(line)));
+  if (gapRows.length) return String(openRows.length) + ' open / ' + String(gapRows.length) + ' total project gap' + (gapRows.length === 1 ? '' : 's');
+  return 'GAPS.md present';
+};
+
+const readWorkflowGapSummary = (): WorkflowGapSummary => {
+  // Workflow gaps are process-health issues, not project blockers. The
+  // dashboard reads this central file so dispatchers can notice unclear
+  // agent instructions before sending more iteration agents into projects.
+  const workflowGapPath = path.resolve(
+    process.cwd(),
+    'docs',
+    'agent-workflows',
+    'living-project-task-protocol',
+    'WORKFLOW_GAPS.md',
+  );
+  const href = '/Aralia/docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md';
+  const emptySummary: WorkflowGapSummary = {
+    href,
+    totalCount: 0,
+    activeCount: 0,
+    blockingCount: 0,
+    highSeverityCount: 0,
+    lastUpdated: '',
+    activeGaps: [],
+  };
+
+  if (!fs.existsSync(workflowGapPath)) return emptySummary;
+
+  const content = fs.readFileSync(workflowGapPath, 'utf-8');
+  const lastUpdated = normalizeProjectDate(markdownField(content, 'Last updated'));
+  const gaps = content.split(/\r?\n/).flatMap((line) => {
+    if (!/^\|\s*WFG-\d+/i.test(line)) return [];
+    const cells = line.split('|').slice(1, -1).map((cell) => stripMarkdownInline(cell).trim());
+    if (cells.length < 9) return [];
+    const testimonies = Number(cells[5].replace(/[^\d]/g, '')) || 0;
+    return [{
+      id: cells[0],
+      status: cells[1],
+      severity: cells[2],
+      area: cells[3],
+      issue: cells[4],
+      testimonies,
+      nextAction: cells[6],
+      owner: cells[7],
+      lastUpdated: cells[8],
+    }];
+  });
+  const activeGaps = gaps.filter((gap) => !/\b(resolved|closed|superseded|rejected)\b/i.test(gap.status));
+  const severeGaps = activeGaps.filter((gap) => /\b(high|blocking|critical)\b/i.test(gap.severity));
+
+  return {
+    href,
+    totalCount: gaps.length,
+    activeCount: activeGaps.length,
+    blockingCount: activeGaps.filter((gap) => /\b(blocking|critical)\b/i.test(gap.severity)).length,
+    highSeverityCount: severeGaps.length,
+    lastUpdated,
+    activeGaps: activeGaps.slice(0, 5),
+  };
+};
+
+const buildProjectDashboardCard = (projectsDir: string, slug: string, trackerFallback: ProjectTrackerMetadata = {}) => {
+  // This is the canonical project-card builder. Dashboard and detail routes
+  // both use it so shared UI cards stay aligned.
+  const projectDir = path.join(projectsDir, slug);
+  const northStarContent = readOptionalProjectText(projectDir, 'NORTH_STAR.md');
+  const trackerContent = readOptionalProjectText(projectDir, 'TRACKER.md');
+  const gapsContent = readOptionalProjectText(projectDir, 'GAPS.md');
+  const agentPromptContent = readOptionalProjectText(projectDir, 'COLD_START_AGENT_PROMPT.md');
+  const iteration = iterationFromAgentPrompt(agentPromptContent);
+  const iterationAgents = iterationAgentsFromPrompt(agentPromptContent, iteration);
+  // The YAML badge needs a stricter signal than the general dashboard
+  // schema. Legacy markdown sections and PROJECT_CARD.json still power the
+  // card, but only frontmatter should count as "yaml" for the visible chip.
+  const frontmatterSchema = {
+    ...markdownFrontmatterFields(trackerContent),
+    ...markdownFrontmatterFields(northStarContent),
+  };
+  const dashboardSchema = {
+    ...readProjectCardJson(projectDir),
+    ...markdownSectionFields(trackerContent, 'Dashboard Card Schema'),
+    ...markdownSectionFields(northStarContent, 'Dashboard Card Schema'),
+    ...frontmatterSchema,
+  };
+  const northStarDate = normalizeProjectDate(markdownField(northStarContent, 'Last updated'));
+  const projectMode = projectCardSchemaField(dashboardSchema, 'projectmode', 'projectMode') || 'single';
+  const declaredRequiredDocs = projectCardSchemaList(dashboardSchema, 'requireddocs', 'requiredDocs');
+  const usesSubprojects = projectMode === 'parent_with_subprojects' || declaredRequiredDocs.includes('SUBPROJECTS.md');
+  const activeDocRoles = usesSubprojects ? [...projectDocRoles, subprojectDocRole] : projectDocRoles;
+  const docSet = activeDocRoles.map((role) => readProjectDocSignal(projectDir, slug, role, northStarDate));
+  const docs = Object.fromEntries(docSet.map((doc) => [doc.key, doc]));
+  const declaredDocDates = docSet.map((doc) => doc.declaredUpdated).filter(Boolean).sort();
+  const inferredLastUpdated = declaredDocDates[declaredDocDates.length - 1] || northStarDate;
+  const schemaKeys = new Set(Object.keys(dashboardSchema));
+  const missingSchemaFields = requiredProjectSchemaFields.filter((field) => !schemaKeys.has(field));
+  const schemaStatus = !schemaKeys.size ? 'inferred' : missingSchemaFields.length ? 'partial' : 'valid';
+  // A project earns the green YAML chip only when frontmatter covers every
+  // field listed as required by PROJECT_CARD_SCHEMA.md. Missing fields stay
+  // visible so future agents can fix the project docs instead of guessing.
+  const yamlSchemaKeys = new Set(Object.keys(frontmatterSchema));
+  const missingYamlSchemaFields = requiredProjectSchemaFields.filter((field) => !yamlSchemaKeys.has(field));
+  const yamlStatus = missingYamlSchemaFields.length ? 'not-yaml' : 'yaml';
+  const declaredOptionalDocs = projectCardSchemaList(dashboardSchema, 'optionaldocs', 'optionalDocs');
+  const requiredDocNames = declaredRequiredDocs.length ? declaredRequiredDocs : activeDocRoles.map((role) => role.fileName);
+  const missingDeclaredDocs = requiredDocNames
+    .filter((fileName) => /\.md$/i.test(fileName))
+    .filter((fileName) => !fs.existsSync(path.join(projectDir, fileName)));
+  const dirtySchemaDates = ['lastupdated', 'workflowgapsreviewed', 'lastproof']
+    .filter((field) => {
+      const value = projectCardSchemaField(dashboardSchema, field);
+      return value && !/^\d{4}-\d{2}-\d{2}$/.test(value);
+    });
+  const schemaWarnings = [
+    ...(!schemaKeys.size ? ['schema frontmatter/section missing'] : []),
+    ...(missingDeclaredDocs.length ? ['required docs missing'] : []),
+    ...(dirtySchemaDates.length ? ['dirty machine date fields: ' + dirtySchemaDates.join(', ')] : []),
+  ];
+  const requiredDocs = docSet.filter((doc) => doc.required);
+  const docsComplete = requiredDocs.every((doc) => doc.exists);
+  const docsCurrent = requiredDocs.every((doc) => doc.exists && doc.freshness === 'current');
+  const staleDocs = docSet.filter((doc) => doc.exists && ['stale', 'ahead', 'undated'].includes(doc.freshness));
+  const purpose = firstProjectParagraph(northStarContent, 'Purpose');
+  const resumePath = firstProjectParagraph(northStarContent, 'Resume Path');
+  const trackerNextStep = nextStepFromTracker(trackerContent);
+  const requiredReviewBrief = requiredReviewBriefFromDocs(northStarContent, trackerContent, gapsContent);
+  const decisionVisualizations = decisionVisualizationsFromDocs(northStarContent, trackerContent, gapsContent);
+  const subprojectsContent = usesSubprojects ? readOptionalProjectText(projectDir, 'SUBPROJECTS.md') : '';
+  const subprojectRegistrySchema = subprojectsContent ? markdownFrontmatterFields(subprojectsContent) : {};
+  const subprojects = subprojectsFromMarkdown(subprojectsContent);
+
+  return {
+    slug,
+    name: projectCardSchemaField(dashboardSchema, 'project') || trackerFallback.project || projectTitleFromDocs(slug, northStarContent, trackerContent),
+    category: projectCardSchemaField(dashboardSchema, 'category') || trackerFallback.category || 'Unregistered Project Folder',
+    mainCategory: projectCardSchemaField(dashboardSchema, 'maincategory', 'mainCategory'),
+    subcategory: projectCardSchemaField(dashboardSchema, 'subcategory'),
+    status: projectCardSchemaField(dashboardSchema, 'status') || markdownField(northStarContent, 'Status') || markdownField(trackerContent, 'Status') || trackerFallback.status || 'tracked',
+    lastUpdated: projectCardSchemaField(dashboardSchema, 'lastupdated', 'lastUpdated') || inferredLastUpdated || '',
+    confidence: projectCardSchemaField(dashboardSchema, 'confidence') || trackerFallback.confidence || 'unknown',
+    evidence: projectCardSchemaField(dashboardSchema, 'evidence') || trackerFallback.evidence || 'docs/projects/' + slug,
+    gapSignal: gapSignalFromGaps(gapsContent, Boolean(docs.gaps?.exists)) || projectCardSchemaField(dashboardSchema, 'gapsignal', 'gapSignal') || trackerFallback.gapSignal || 'See project gap file',
+    protocol: projectCardSchemaField(dashboardSchema, 'protocol') || trackerFallback.protocol || (docsComplete ? 'living project doc set' : 'incomplete project doc set'),
+    nextStep: projectCardSchemaField(dashboardSchema, 'nextstep', 'nextStep') || trackerNextStep || resumePath || purpose || trackerFallback.nextStep || 'Add next action to TRACKER.md',
+    projectMode,
+    subprojectTracker: projectCardSchemaField(dashboardSchema, 'subprojecttracker', 'subprojectTracker') || (usesSubprojects ? `docs/projects/${slug}/SUBPROJECTS.md` : ''),
+    subprojectCount: Number(projectCardSchemaField(dashboardSchema, 'subprojectcount', 'subprojectCount') || subprojects.length || 0),
+    subprojectSignal: projectCardSchemaField(dashboardSchema, 'subprojectsignal', 'subprojectSignal') || (subprojects.length ? `${subprojects.length} subproject lanes tracked` : ''),
+    highestPrioritySubproject: projectCardSchemaField(subprojectRegistrySchema, 'highestpriority', 'highestPriority') || '',
+    subprojectProofFreshness: projectCardSchemaField(subprojectRegistrySchema, 'prooffreshness', 'proofFreshness') || '',
+    subprojects,
+    iteration,
+    iterationLabel: iteration > 0 ? `Iteration ${iteration}` : 'Iteration not recorded',
+    iterationAgents,
+    requiredVerification: projectCardSchemaField(dashboardSchema, 'requiredverification', 'requiredVerification'),
+    completedVerification: projectCardSchemaField(dashboardSchema, 'completedverification', 'completedVerification'),
+    lastProof: projectCardSchemaField(dashboardSchema, 'lastproof', 'lastProof'),
+    workflowGapsReviewed: projectCardSchemaField(dashboardSchema, 'workflowgapsreviewed', 'workflowGapsReviewed'),
+    agentComments: projectCardSchemaField(dashboardSchema, 'agentcomments', 'agentComments'),
+    activeAgent: projectCardSchemaField(dashboardSchema, 'activeagent', 'activeAgent'),
+    agentPassStatus: projectCardSchemaField(dashboardSchema, 'agentpassstatus', 'agentPassStatus'),
+    agentPassStartedAt: projectCardSchemaField(dashboardSchema, 'agentpassstartedat', 'agentPassStartedAt'),
+    agentPassEndedAt: projectCardSchemaField(dashboardSchema, 'agentpassendedat', 'agentPassEndedAt'),
+    requiredDocs: declaredRequiredDocs.join(', '),
+    optionalDocs: declaredOptionalDocs.join(', '),
+    compactionStatus: projectCardSchemaField(dashboardSchema, 'compactionstatus', 'compactionStatus'),
+    lifecycleStatus: projectCardSchemaField(dashboardSchema, 'lifecyclestatus', 'lifecycleStatus') || 'active',
+    deprecationConfidence: projectCardSchemaField(dashboardSchema, 'deprecationconfidence', 'deprecationConfidence') || 'none',
+    deprecationReason: projectCardSchemaField(dashboardSchema, 'deprecationreason', 'deprecationReason'),
+    canonicalOwner: projectCardSchemaField(dashboardSchema, 'canonicalowner', 'canonicalOwner'),
+    humanDecisionRequired: projectCardSchemaField(dashboardSchema, 'humandecisionrequired', 'humanDecisionRequired') || 'no',
+    requiredReviewBrief,
+    decisionVisualizations,
+    dashboardSchemaPresent: schemaKeys.size > 0,
+    schemaStatus,
+    missingSchemaFields,
+    yamlSchemaPresent: yamlSchemaKeys.size > 0,
+    yamlStatus,
+    missingYamlSchemaFields,
+    schemaWarnings,
+    declaredRequiredDocs,
+    declaredOptionalDocs,
+    missingDeclaredDocs,
+    canonicalDocCoverageStatus: missingDeclaredDocs.length ? 'missing_required' : 'complete',
+    docsComplete,
+    docsCurrent,
+    staleDocCount: staleDocs.length,
+    docSet,
+    docs,
+    links: Object.fromEntries(docSet.map((doc) => [doc.key, doc.href])),
+  };
+};
+
+export async function handleProjectRoutes(ctx: DevHubRouteContext): Promise<boolean> {
+  const { req, json, parsedUrl, urlPath } = ctx;
+
+  if (urlPath === '/api/projects/doc' && req.method === 'POST') {
+    try {
+      const body = await readJsonRequestBody(req);
+      const { normalizedRepoPath, targetPath } = resolveProjectDocWritePath(body.path);
+      const content = String(body.content ?? '');
+
+      fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+      fs.writeFileSync(targetPath, content, 'utf-8');
+      const stat = fs.statSync(targetPath);
+
+      json({
+        ok: true,
+        path: normalizedRepoPath,
+        size: stat.size,
+        updatedAt: stat.mtime.toISOString(),
+      });
+    } catch (e) {
+      json({ error: String(e) }, 400);
+    }
+    return true;
+  }
+
+  if (urlPath === '/api/projects/dashboard') {
+    try {
+      const projectsDir = path.resolve(process.cwd(), 'docs', 'projects');
+      const projectDirs = fs.existsSync(projectsDir)
+        ? fs.readdirSync(projectsDir, { withFileTypes: true })
+          .filter((entry: any) => entry.isDirectory())
+          .map((entry: any) => entry.name)
+          .sort((a: string, b: string) => a.localeCompare(b))
+        : [];
+      const { trackerBySlug } = readProjectTrackerMetadata(projectsDir, projectDirs);
+      const projects = projectDirs.map((slug: string) => buildProjectDashboardCard(
+        projectsDir,
+        slug,
+        trackerBySlug.get(slug) || {},
+      ));
+      const countBy = (key: string) => projects.reduce((acc: Record<string, number>, project: any) => {
+        const value = String(project[key] || 'unknown');
+        acc[value] = (acc[value] || 0) + 1;
+        return acc;
+      }, {});
+      const iterationCounts = projects.map((project: any) => Number(project.iteration || 0)).filter((count: number) => Number.isFinite(count));
+      const iterationCountTotal = iterationCounts.reduce((sum: number, count: number) => sum + count, 0);
+      const iterationRecordedCount = iterationCounts.filter((count: number) => count > 0).length;
+
+      json({
+        generatedAt: new Date().toISOString(),
+        projectCount: projects.length,
+        docsCompleteCount: projects.filter((project: any) => project.docsComplete).length,
+        docsCurrentCount: projects.filter((project: any) => project.docsCurrent).length,
+        iterationCountTotal,
+        iterationCountMax: iterationCounts.length ? Math.max(...iterationCounts) : 0,
+        iterationCountAverage: iterationRecordedCount ? iterationCountTotal / iterationRecordedCount : 0,
+        iterationRecordedCount,
+        workflowGaps: readWorkflowGapSummary(),
+        statusCounts: countBy('status'),
+        categoryCounts: countBy('category'),
+        projects,
+      });
+    } catch (e) {
+      json({ error: String(e) }, 500);
+    }
+    return true;
+  }
+
+  if (urlPath === '/api/projects/detail') {
+    try {
+      const projectSlug = String(parsedUrl.searchParams.get('project') || '').trim();
+      if (!/^[a-zA-Z0-9_-]+$/.test(projectSlug)) {
+        json({ error: 'Invalid project slug.' }, 400);
+        return true;
+      }
+
+      const projectsRoot = path.resolve(process.cwd(), 'docs', 'projects');
+      const projectDir = path.resolve(projectsRoot, projectSlug);
+      if (!projectDir.startsWith(projectsRoot) || !fs.existsSync(projectDir)) {
+        json({ error: 'Project not found.' }, 404);
+        return true;
+      }
+
+      const projectDirs = fs.existsSync(projectsRoot)
+        ? fs.readdirSync(projectsRoot, { withFileTypes: true })
+          .filter((entry: any) => entry.isDirectory())
+          .map((entry: any) => entry.name)
+        : [];
+      const { trackerBySlug } = readProjectTrackerMetadata(projectsRoot, projectDirs);
+      const projectCard = buildProjectDashboardCard(projectsRoot, projectSlug, trackerBySlug.get(projectSlug) || {});
+      const docSet = projectCard.docSet.map((doc) => ({
+        ...doc,
+        content: doc.exists ? fs.readFileSync(path.join(projectDir, doc.fileName), 'utf-8') : '',
+      }));
+
+      json({
+        ...projectCard,
+        docSet,
+        docs: Object.fromEntries(docSet.map((doc) => [doc.key, doc])),
+      });
+    } catch (e) {
+      json({ error: String(e) }, 500);
+    }
+    return true;
+  }
+
+  return false;
+}

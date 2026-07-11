@@ -124,7 +124,9 @@
         "saveEffect": "negates_condition",
         "targetFilter": {
           "creatureTypes": [],
-          "excludeCreatureTypes": [],
+          "excludeCreatureTypes": [
+            "Undead"
+          ],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
@@ -208,7 +210,9 @@
         "saveEffect": "negates_condition",
         "targetFilter": {
           "creatureTypes": [],
-          "excludeCreatureTypes": [],
+          "excludeCreatureTypes": [
+            "Undead"
+          ],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],

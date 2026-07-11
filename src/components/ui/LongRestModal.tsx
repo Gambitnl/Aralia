@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 10/07/2026, 14:01:08
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file LongRestModal.tsx
  * Long rest modal for prompting and applying racial choices during a long rest.
@@ -46,11 +62,29 @@ const LongRestModal: React.FC<LongRestModalProps> = ({ isOpen, party, onClose, o
     c.race?.restChoices && c.race.restChoices.length > 0
   );
 
+  // Keep the emergency close affordance separate from the footer's ordinary
+  // Cancel action. The large square target matches Short Rest and remains easy
+  // to reach on touch devices when the choice list makes the dialog tall.
+  const header = (
+    <div className="flex w-full items-center justify-between gap-4">
+      <h2 className="text-xl font-bold text-amber-300">Long Rest</h2>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Cancel long rest"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+      >
+        <span aria-hidden="true">x</span>
+      </button>
+    </div>
+  );
+
   return (
     <ModalDialog
       isOpen={isOpen}
       onClose={onClose}
-      title="Long Rest"
+      ariaLabel="Long Rest"
+      title={header}
       size="xl"
       id="long-rest"
       footer={

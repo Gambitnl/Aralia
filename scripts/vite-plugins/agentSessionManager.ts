@@ -94,7 +94,7 @@ const querySystemTerminals = (): Promise<SysProc[]> => new Promise((resolve) => 
       if (!stdout || !stdout.trim()) { resolve([]); return; }
       try {
         // Strip any CLIXML progress preamble powershell may inject before the JSON
-        const jsonStart = stdout.search(/[\[{]/);
+        const jsonStart = stdout.search(/[[{]/);
         const json = jsonStart >= 0 ? stdout.slice(jsonStart) : stdout;
         const raw = JSON.parse(json.trim());
         resolve(Array.isArray(raw) ? raw : (raw && raw.pid ? [raw] : []));

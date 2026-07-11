@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 10/07/2026, 13:10:48
+ * Dependents: state/appState.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/state/reducers/npcReducer.ts
  * A slice reducer that handles NPC memory state changes.
@@ -201,6 +217,8 @@ export function npcReducer(state: GameState, action: AppAction): Partial<GameSta
             [npc.id]: npc.memory
           };
         } else {
+          // Legacy memory shapes are preserved on the NPC itself. The reducer only
+          // mirrors disposition-aware memories into the indexed relationship store.
         }
       }
 

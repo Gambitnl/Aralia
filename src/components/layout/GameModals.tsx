@@ -553,7 +553,11 @@ const GameModals: React.FC<GameModalsProps> = ({
             )}
 
             {/* Agent-sim live dev overlay (dev mode, in-game only) — demo burg on the game clock. */}
-            {gameState.isDevModeEnabled && gameState.phase === GamePhase.PLAYING && (
+            {/* Developer inspectors stay available during ordinary exploration, but
+                disappear while a conversation owns the lower-right interaction area.
+                Their fixed buttons otherwise sit over the player's Send button and make
+                the opening scene look interactive while blocking pointer submission. */}
+            {gameState.isDevModeEnabled && gameState.phase === GamePhase.PLAYING && !gameState.activeConversation && (
                 <Suspense key="agentsim" fallback={null}>
                     <ErrorBoundary fallbackMessage="Error in Agent Sim overlay.">
                         <AgentSimDevOverlay />
@@ -562,7 +566,9 @@ const GameModals: React.FC<GameModalsProps> = ({
             )}
 
             {/* Town-history live dev overlay (dev mode, in-game only) — the living-world chronicle of the town the player is standing in. */}
-            {gameState.isDevModeEnabled && gameState.phase === GamePhase.PLAYING && (
+            {/* The town-history inspector follows the same ownership rule as the
+                agent-sim inspector so neither debug control competes with dialogue. */}
+            {gameState.isDevModeEnabled && gameState.phase === GamePhase.PLAYING && !gameState.activeConversation && (
                 <Suspense key="townhistory" fallback={null}>
                     <ErrorBoundary fallbackMessage="Error in Town History overlay.">
                         <TownHistoryDevOverlay />

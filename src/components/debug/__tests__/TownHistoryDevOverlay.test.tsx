@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { getGameDay } from '../../../utils/core';
 import { createMockGameState } from '../../../utils/core/factories';
 import { GameProvider } from '../../../state/GameContext';
-import { getTownTilesForGrid } from '../../../systems/worldforge/bridge/legacySubmapBridge';
+import { getBridgeAtlas, getTownTilesForGrid } from '../../../systems/worldforge/bridge/legacySubmapBridge';
 import { buildTownSimStateForBurg } from '../../../systems/worldforge/townsim/townSimRegistration';
 import { advanceTown } from '../../../systems/worldforge/townsim/townSimRegistry';
 import type { GameState } from '../../../types';
@@ -13,6 +13,13 @@ const SEED = 12345;
 const COLS = 96;
 const ROWS = 96;
 const firstTile = getTownTilesForGrid(SEED, COLS, ROWS)[0];
+const firstCellId = getBridgeAtlas(SEED).pack.burgs[firstTile.burgId]?.cell;
+
+// The deterministic fixture must expose the burg's canonical cell; otherwise
+// this test cannot honestly claim to place the player inside that tracked town.
+if (firstCellId == null) {
+  throw new Error(`Expected burg ${firstTile.burgId} to have an atlas cell`);
+}
 
 function renderOverlay(state: GameState) {
   return render(
@@ -54,7 +61,8 @@ describe('TownHistoryDevOverlay', () => {
       ...base,
       worldSeed: SEED,
       gameTime: advancedTime,
-      currentLocationId: `coord_${firstTile.x}_${firstTile.y}`,
+      currentLocationId: `cell_${firstCellId}`,
+      playerCell: { cellId: firstCellId, localeCoords: null },
       townSim: { [firstTile.burgId]: town },
     };
     renderOverlay(state);

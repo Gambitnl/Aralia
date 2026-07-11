@@ -3,7 +3,6 @@ import { renderHook } from '@testing-library/react';
 import type { Dispatch } from 'react';
 import { useVoyageArrival } from '../useVoyageArrival';
 import type { VoyageState } from '../../types/naval';
-import type { MapData } from '../../types';
 import type { AppAction } from '../../state/actionTypes';
 
 // ---------------------------------------------------------------------------
@@ -16,10 +15,6 @@ vi.mock('../../systems/worldforge/bridge/legacySubmapBridge', () => {
   burgs[42] = { cell: 142 };
   burgs[7] = { cell: 107 };
   return {
-    getTownTilesForGrid: vi.fn(() => [
-      { x: 5, y: 3, burgId: 42, name: 'Portville' },
-      { x: 10, y: 7, burgId: 7, name: 'Harborton' },
-    ]),
     getBridgeAtlas: vi.fn(() => ({ pack: { burgs } })),
   };
 });
@@ -32,17 +27,12 @@ vi.mock('../../constants', () => ({
   LOCATIONS: {},
 }));
 
-import { getTownTilesForGrid } from '../../systems/worldforge/bridge/legacySubmapBridge';
+import { getBridgeAtlas } from '../../systems/worldforge/bridge/legacySubmapBridge';
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 
 // ---------------------------------------------------------------------------
 // Test helpers
 // ---------------------------------------------------------------------------
-
-const MOCK_MAP_DATA: MapData = {
-  gridSize: { cols: 30, rows: 20 },
-  tiles: [],
-} as unknown as MapData;
 
 function makeDocketVoyage(destinationId: string): VoyageState {
   return {
@@ -79,7 +69,6 @@ function makeSailingVoyage(destinationId: string): VoyageState {
 describe('useVoyageArrival', () => {
   // mockDispatch is the raw vi.fn() for assertion (toHaveBeenCalledTimes, .mock.calls).
   // dispatch is the typed alias passed to the hook (React.Dispatch<AppAction>).
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockDispatch: ReturnType<typeof vi.fn>;
   let dispatch: Dispatch<AppAction>;
 
@@ -129,7 +118,7 @@ describe('useVoyageArrival', () => {
     expect(determineActiveDynamicNpcsForLocation).toHaveBeenCalledWith('cell_107', {});
   });
 
-  it('passes worldSeed, cols, rows to getTownTilesForGrid', () => {
+  it('passes worldSeed to the cell-native bridge atlas', () => {
     renderHook(() =>
       useVoyageArrival({
         worldSeed: 99999,
@@ -138,7 +127,9 @@ describe('useVoyageArrival', () => {
       }),
     );
 
-    expect(getTownTilesForGrid).toHaveBeenCalledWith(99999, 30, 20);
+    // Grid retirement made the burg's atlas cell authoritative, so arrival no
+    // longer requests a projected 30x20 town-tile view.
+    expect(getBridgeAtlas).toHaveBeenCalledWith(99999);
   });
 
   // -------------------------------------------------------------------------
@@ -223,7 +214,7 @@ describe('useVoyageArrival', () => {
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'NAVAL_CLEAR_VOYAGE' });
     // Confirm a clear error was logged
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('No grid tile found for destination burgId 999'),
+      expect.stringContaining('Destination burg 999 has no atlas cell'),
     );
 
     consoleErrorSpy.mockRestore();
@@ -307,7 +298,7 @@ describe('useVoyageArrival', () => {
 
     expect(mockDispatch).toHaveBeenCalledTimes(1);
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'NAVAL_CLEAR_VOYAGE' });
-    expect(getTownTilesForGrid).not.toHaveBeenCalled();
+    expect(getBridgeAtlas).not.toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining('worldSeed is absent'),
     );

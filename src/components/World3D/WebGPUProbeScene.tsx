@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 10/07/2026, 13:10:04
+ * Dependents: components/World3D/WebGPUProbe.tsx
+ * Imports: 19 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file WebGPUProbeScene.tsx
  * @description PROBE-LOCAL copy of the streamed-world R3F scene, rendered through
@@ -306,7 +322,7 @@ const TerrainPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin; anchor: 
   );
   const geometry = useDisposableGeometry(rebased);
   const scenePos = chunkScenePos(anchor.cx, anchor.cy, origin);
-  const material = useMemo(makeTerrainMaterial, []);
+  const material = useMemo(() => makeTerrainMaterial(), []);
   useEffect(() => () => material.dispose(), [material]);
   return <mesh geometry={geometry} position={scenePos} material={material} />;
 };
@@ -316,7 +332,7 @@ const WaterPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chu
   const geometry = useDisposableGeometry(
     water ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
   );
-  const material = useMemo(makeWaterMaterial, []);
+  const material = useMemo(() => makeWaterMaterial(), []);
   useEffect(() => () => material.dispose(), [material]);
   if (!water) return null;
   return <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} material={material} />;
@@ -488,7 +504,9 @@ const TreesPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin; material: 
   );
 };
 
-let bushSphere: THREE.SphereGeometry | null = null;
+// Bushes share one small geometry for the lifetime of the scene module. Creating
+// it outside render preserves the old singleton behavior without a render-time mutation.
+const BUSH_SPHERE = new THREE.SphereGeometry(1, 6, 4);
 const BushPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin; material: THREE.MeshBasicNodeMaterial }> = ({ chunk, origin, material }) => {
   const bushes = chunk.bundle.bushes;
   const ref = useRef<THREE.InstancedMesh>(null);
@@ -516,10 +534,9 @@ const BushPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin; material: T
     mesh.instanceMatrix.needsUpdate = true;
   }, [bushes, count]);
   if (!bushes || count === 0) return null;
-  if (!bushSphere) bushSphere = new THREE.SphereGeometry(1, 6, 4);
   return (
     <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-      <instancedMesh ref={ref} args={[bushSphere, material, count]} frustumCulled={false} />
+      <instancedMesh ref={ref} args={[BUSH_SPHERE, material, count]} frustumCulled={false} />
     </group>
   );
 };
@@ -878,8 +895,8 @@ const WebGPUProbeScene: React.FC<Props> = ({ loader, ground, start, startSurface
 
   // Shared materials for the town masonry + trees/grass/bushes/buildings.
   const wallMat = useMemo(() => makeVertexColorMaterial(false, true), []);
-  const treeMat = useMemo(makeInstancedTreeMaterial, []);
-  const grassMat = useMemo(makeInstancedGrassMaterial, []);
+  const treeMat = useMemo(() => makeInstancedTreeMaterial(), []);
+  const grassMat = useMemo(() => makeInstancedGrassMaterial(), []);
   const solidCache = useMemo(() => new Map<string, THREE.MeshBasicNodeMaterial>(), []);
   const solidMat: SolidMat = useMemo(
     () => (hex: string, flat = false) => {

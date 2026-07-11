@@ -20,10 +20,27 @@ import sleep from '../../../public/data/spells/level-1/sleep.json';
 import scorchingRay from '../../../public/data/spells/level-2/scorching-ray.json';
 import fireball from '../../../public/data/spells/level-3/fireball.json';
 import viciousMockery from '../../../public/data/spells/level-0/vicious-mockery.json';
+import swordBurst from '../../../public/data/spells/level-0/sword-burst.json';
+import wordOfRadiance from '../../../public/data/spells/level-0/word-of-radiance.json';
 import faerieFire from '../../../public/data/spells/level-1/faerie-fire.json';
 import charmPerson from '../../../public/data/spells/level-1/charm-person.json';
 import dissonantWhispers from '../../../public/data/spells/level-1/dissonant-whispers.json';
 import lyrisSongweaver from '../../../public/premade-characters/lyris_songweaver.json';
+
+/**
+ * This file proves Package 4 multi-target spell behavior through the real
+ * ability-system hook and live spell JSON fixtures.
+ *
+ * Geometry and dice are made deterministic, while target selection and action
+ * payload construction remain the production paths used by combat.
+ */
+
+// ============================================================================
+// Deterministic Hook Boundaries
+// ============================================================================
+// Targeting, command execution, geometry, and dice are controlled so each test
+// isolates how the ability hook allocates multi-target spell actions.
+// ============================================================================
 
 vi.mock('../combat/useTargeting', async () => {
   const React = await vi.importActual<typeof import('react')>('react');
@@ -73,6 +90,13 @@ vi.mock('../../utils/combatUtils', async () => {
     rollDice: () => 15
   };
 });
+
+// ============================================================================
+// Live Spell And Character Fixtures
+// ============================================================================
+// The fixture registry mirrors the spell IDs carried by the premade characters,
+// ensuring the hook sees the same structured records as the game.
+// ============================================================================
 
 const allSpellData = {
   'fire-bolt': fireBolt,
@@ -173,6 +197,13 @@ const hiddenCreature = (overrides: Partial<CombatCharacter>) => createMockCombat
   statusEffects: [{ id: 'hidden', name: 'Hidden' }],
   ...overrides
 });
+
+// ============================================================================
+// Package 4 Multi-Target Behaviors
+// ============================================================================
+// These cases prove rays, areas, and creature allocations become the expected
+// simulator action payloads without replacing the production targeting flow.
+// ============================================================================
 
 describe('useAbilitySystem - Package 4 multi-target spells', () => {
   // The hook expects the full CombatAction contract, so the mock uses that

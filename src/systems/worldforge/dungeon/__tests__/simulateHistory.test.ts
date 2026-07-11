@@ -143,6 +143,8 @@ describe('simulateHistory', () => {
     }
   });
 
+  // This exhaustive 300-layout reachability sweep is intentionally heavier
+  // than the generic 5-second unit-test budget, especially inside a busy shard.
   it('brick-off and collapse can occur (F1: they were unreachable before)', () => {
     // Before the F1 fix these two kinds were gated on application state that only
     // filled AFTER rolling, so 600 runs produced zero. Sweep a range and assert
@@ -161,7 +163,7 @@ describe('simulateHistory', () => {
     }
     expect(kinds.has('brick-off')).toBe(true);
     expect(kinds.has('collapse')).toBe(true);
-  });
+  }, 15_000);
 
   it('every logged event leaves real evidence — no phantom ruin (F5)', () => {
     for (const theme of THEMES) {

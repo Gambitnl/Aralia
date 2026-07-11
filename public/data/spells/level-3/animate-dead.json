@@ -120,6 +120,7 @@
     "effects":  [
                     {
                         "type":  "SUMMONING",
+                        "description":  "Animate one pile of bones or one corpse of a Medium or Small Humanoid within 10 feet, creating one persistent Undead for 24 hours: bones become a Skeleton and a corpse becomes a Zombie.",
                         "trigger":  {
                                         "type":  "immediate"
                                     },

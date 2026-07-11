@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 10/07/2026, 14:00:36
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file EncounterModal.tsx
  * Displays an AI-generated encounter and provides a manual encounter builder
@@ -302,7 +318,10 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
     : canSimulateCustom;
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={t('encounter_modal.title')}>
+    // WindowFrame owns the one accessible dialog boundary. This outer wrapper
+    // only groups the encounter content; duplicating the role made assistive
+    // technology announce two identically named dialogs for one window.
+    <div>
       <WindowFrame
         title={t('encounter_modal.title')}
         onClose={onClose}

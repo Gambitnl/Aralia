@@ -386,13 +386,29 @@
                       "playerInputRequired":  true
                   },
     "modeChoice":  {
-                       "selectionType":  "choose_one",
-                       "options":  [
-                                       "Celestial",
-                                       "Elemental",
-                                       "Fiend",
-                                       "Specific named creature"
-                                   ],
+                        "type":  "choose_one",
+                        "timing":  "on_cast",
+                        "optionCount":  4,
+                        "optionsSource":  "modeChoice.options",
+                        "canDismissActive":  false,
+                        "options":  [
+                                        {
+                                            "label":  "Celestial",
+                                            "summary":  "Request that the known cosmic power send a Celestial ally to the chosen unoccupied space."
+                                        },
+                                        {
+                                            "label":  "Elemental",
+                                            "summary":  "Request that the known cosmic power send an Elemental ally to the chosen unoccupied space."
+                                        },
+                                        {
+                                            "label":  "Fiend",
+                                            "summary":  "Request that the known cosmic power send a Fiend ally to the chosen unoccupied space."
+                                        },
+                                        {
+                                            "label":  "Specific Named Creature",
+                                            "summary":  "Request a known creature by name; the cosmic power can send a different eligible ally instead."
+                                        }
+                                    ],
                        "secondaryChoices":  [
                                                 "known cosmic power",
                                                 "arrival space within range",

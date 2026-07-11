@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 10/07/2026, 13:09:49
+ * Dependents: components/BattleMap/BattleMap3D.tsx
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file BattleMap3DGpuScene.tsx
  * @description EXPERIMENTAL WebGPU render path for the 3D tactical battle map
@@ -263,7 +279,7 @@ function bladeGeometry(): THREE.BufferGeometry {
 const GrassPiece: React.FC<{ mapData: BattleMapData; groundY: (x: number, z: number) => number }> = ({ mapData, groundY }) => {
   const { width, height } = mapData.dimensions;
   const ref = useRef<THREE.InstancedMesh>(null);
-  const geometry = useMemo(bladeGeometry, []);
+  const geometry = useMemo(() => bladeGeometry(), []);
   const material = useMemo(() => {
     const m = new THREE.MeshBasicNodeMaterial();
     // Vertical gradient base→tip green, lit; darker at the root (fake AO).

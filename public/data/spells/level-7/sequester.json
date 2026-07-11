@@ -501,11 +501,21 @@
                       "playerInputRequired":  true
                   },
     "modeChoice":  {
-                       "selectionType":  "choose_one",
-                       "options":  [
-                                       "Object",
-                                       "Willing creature"
-                                   ],
+                        "type":  "choose_one",
+                        "timing":  "on_cast",
+                        "optionCount":  2,
+                        "optionsSource":  "modeChoice.options",
+                        "canDismissActive":  false,
+                        "options":  [
+                                        {
+                                            "label":  "Object",
+                                            "summary":  "Hide the touched object from sight, Divination, magical detection, and remote viewing until the spell ends."
+                                        },
+                                        {
+                                            "label":  "Willing Creature",
+                                            "summary":  "Hide the willing creature and place it in suspended animation without aging or needing food, water, or air."
+                                        }
+                                    ],
                        "secondaryChoices":  [
                                                 "early ending condition",
                                                 "one-mile visibility or occurrence"

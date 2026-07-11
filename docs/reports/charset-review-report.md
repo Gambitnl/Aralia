@@ -9,15 +9,62 @@ Instructions for the reviewing agent:
 - If a remaining issue is not clearly a real accented word, flag it for deeper investigation instead of guessing.
 - Soft documentation mojibake can be handled separately unless the owner asks for full docs cleanup.
 
-Total remaining manual/suspicious issues: 251
+Total remaining manual/suspicious issues: 255
 Strict data issues requiring owner decision: 0
-Soft documentation issues: 251
+Soft documentation issues: 255
 
 ## Strict Data Issues
 
 No strict data issues remain.
 
 ## Soft Documentation Issues
+
+## SOFT docs\tasks\spells\mechanics-discovery\buckets\message_or_communication.md:66:215
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| `mass-suggestion::message_or_communication` | `closed` | Closed 2026-06-27 - added communicationDetails for 25-word mass suggestion, 12 targets, and hear/understand/seen gates. | You suggest a course of activityÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"described in no more than 25 wordsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"to twelve or fewer creatures you can see within range that can hear and understand you. | Utility Type: communication | Runtime JSON contains related hints: communication, UTILITY. |\r
+```
+## SOFT docs\tasks\spells\mechanics-discovery\buckets\message_or_communication.md:66:223
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| `mass-suggestion::message_or_communication` | `closed` | Closed 2026-06-27 - added communicationDetails for 25-word mass suggestion, 12 targets, and hear/understand/seen gates. | You suggest a course of activityÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"described in no more than 25 wordsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"to twelve or fewer creatures you can see within range that can hear and understand you. | Utility Type: communication | Runtime JSON contains related hints: communication, UTILITY. |\r
+```
+
+## SOFT docs\tasks\spells\mechanics-discovery\buckets\message_or_communication.md:66:273
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| `mass-suggestion::message_or_communication` | `closed` | Closed 2026-06-27 - added communicationDetails for 25-word mass suggestion, 12 targets, and hear/understand/seen gates. | You suggest a course of activityÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"described in no more than 25 wordsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"to twelve or fewer creatures you can see within range that can hear and understand you. | Utility Type: communication | Runtime JSON contains related hints: communication, UTILITY. |\r
+```
+
+## SOFT docs\tasks\spells\mechanics-discovery\buckets\message_or_communication.md:66:281
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| `mass-suggestion::message_or_communication` | `closed` | Closed 2026-06-27 - added communicationDetails for 25-word mass suggestion, 12 targets, and hear/understand/seen gates. | You suggest a course of activityÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"described in no more than 25 wordsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"to twelve or fewer creatures you can see within range that can hear and understand you. | Utility Type: communication | Runtime JSON contains related hints: communication, UTILITY. |\r
+```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1772:239
 
@@ -28,7 +75,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G2 | resolved 2026-06-11 | contract_follow_up | 2026-06-11 (spine) | Delta-layer schema landed via Lane B directive B3: `delta/{types,applyDeltas,serialize}.ts` (versioned envelope, ordered pure replay, JSON round-trip; 6 tests). | ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â |\r
+| WF-G2 | resolved 2026-06-11 | contract_follow_up | 2026-06-11 (spine) | Delta-layer schema landed via Lane B directive B3: `delta/{types,applyDeltas,serialize}.ts` (versioned envelope, ordered pure replay, JSON round-trip; 6 tests). | ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1773:293
@@ -40,7 +87,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-INT-1 | resolved 2026-06-11 | integration_debt | 2026-06-11 (B1/C1 review) | Lane C's `generateRegion` and Lane A's descend path use placeholder `feetPerPixel: 1000`; the canonical `FEET_PER_FMG_PIXEL` (9,842.52, adapter) must be wired through both once their lanes have an idle window ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â orchestrator-owned integration (cross-lane scope). | RESOLVED with WF-G4: the demo already passed canonical (that's what exposed the bug); region bounds are now scale-invariant (anchor-centered 25,000 ft square) so feetPerPixel only affects sampling context; canonical-scale contract pinned by 3 regression tests in generateRegion.test.ts. The remaining `1000` in suites is a deliberate multi-cell stress scale, not a placeholder. |\r
+| WF-INT-1 | resolved 2026-06-11 | integration_debt | 2026-06-11 (B1/C1 review) | Lane C's `generateRegion` and Lane A's descend path use placeholder `feetPerPixel: 1000`; the canonical `FEET_PER_FMG_PIXEL` (9,842.52, adapter) must be wired through both once their lanes have an idle window ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â orchestrator-owned integration (cross-lane scope). | RESOLVED with WF-G4: the demo already passed canonical (that's what exposed the bug); region bounds are now scale-invariant (anchor-centered 25,000 ft square) so feetPerPixel only affects sampling context; canonical-scale contract pinned by 3 regression tests in generateRegion.test.ts. The remaining `1000` in suites is a deliberate multi-cell stress scale, not a placeholder. |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:193
@@ -52,7 +99,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |\r
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:228
@@ -64,7 +111,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |\r
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:250
@@ -76,7 +123,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |\r
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:270
@@ -88,7 +135,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |\r
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:615
@@ -100,7 +147,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |\r
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:655
@@ -112,7 +159,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |\r
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:690
@@ -124,7 +171,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |\r
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:721
@@ -136,7 +183,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |\r
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1775:184
@@ -148,7 +195,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |\r
+| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1775:271
@@ -160,7 +207,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |\r
+| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1775:604
@@ -172,7 +219,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |\r
+| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1775:618
@@ -184,7 +231,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |\r
+| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
 ```
 
 ## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1775:796
@@ -196,7 +243,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |\r
+| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
 ```
 
 ## SOFT docs\projects\worldforge\TRACKER.md:96:43
@@ -3030,5 +3077,3 @@ change � say so in the report if you agree, argue if not).\r
 ```text
 - **docs\portraits\race_profiles\research-status.json:36**: `"message": "Attempt 1 failed: elementHandle.fill: Element is not attached to the DOM\nCall log:\n\u001b[2m    - fill(\"You are a senior RPG lore researcher writing a world-agnostic race dossier for \"Giff\" (giff).\u001b[22m\n\n\u001b[2mResearch mode requirements:\u001b[22m\n\u001b[2m- Perform live web research before drafting. Use Gemini's Deep Research workflow if available.\u001b[22m\n\u001b[2m- Cross-check multiple sources and resolve contradictions when possible.\u001b[22m\n\u001b[2m- Include only verifiable source URLs in the Sources section.\u001b[22m\n\n\u001b[2mContent constraints:\u001b[22m\n\u001b[2m- Keep this generalized for procedural world generation.\u001b[22m\n\u001b[2m- Do not anchor to named cities, kingdoms, nations, or timeline-specific events.\u001b[22m\n\u001b[2m- Avoid setting-locked proper nouns unless unavoidable for origin context; generalize them when possible.\u001b[22m\n\u001b[2m- Write in concise wiki-like prose with a light narrative flow (not a novel).\u001b[22m\n\u001b[2m- Do NOT output a Q&A table or question list format.\u001b[22m\n\n\u001b[2mOutput format (markdown only):\u001b[22m\n\u001b[2m1) # <Race Name>\u001b[22m\n\u001b[2m2) ## Overview\u001b[22m\n\u001b[2m3) ## Cultural Throughline\u001b[22m\n\u001b[2m4) ## Ten-Point Generalized Profile\u001b[22m\n\u001b[2m   - Provide 10 numbered subsections, one per required topic, each with a heading and 1-3 concise paragraphs.\u001b[22m\n\u001b[2m5) ## Design Hooks for Procedural Worldgen\u001b[22m\n\u001b[2m6) ## Sources\u001b[22m\n\u001b[2m   - List at least 5 web sources as markdown bullets with working URLs.\u001b[22m\n\n\u001b[2mRequired ten topics to cover inside 'Ten-Point Generalized Profile':\u001b[22m\n\u001b[2m1. (q1) What is this race's broad origin pattern (ancestral, planar, created, transformed, or unknown)?\u001b[22m\n\u001b[2m2. (q2) What core survival pressures historically shaped this race's behavior and values?\u001b[22m\n\u001b[2m3. (q3) Which social structures are most common (clans, houses, councils, bands, guilds, loose networks)?\u001b[22m\n\u001b[2m4. (q4) What roles or labors are most culturally typical in day-to-day life (non-combat)?\u001b[22m\n\u001b[2m5. (q5) What tensions commonly exist between this race's natural traits and broader society?\u001b[22m\n\u001b[2m6. (q6) What rites of passage or adulthood markers are culturally important?\u001b[22m\n\u001b[2m7. (q7) How does this race usually approach conflict resolution before violence?\u001b[22m\n\u001b[2m8. (q8) What family and kinship norms are typical (child-rearing, elders, obligation, inheritance)?\u001b[22m\n\u001b[2m9. (q9) What are common misunderstandings outsiders have about this race, and what is usually true instead?\u001b[22m\n\u001b[2m10. (q10) What generalized character hooks fit this race for play (duty, ambition, exile, craft, faith, curiosity, survival)?\u001b[22m\n\n\u001b[2mQuality bar:\u001b[22m\n\u001b[2m- Prefer official/primary sources first, then reputable references.\u001b[22m\n\u001b[2m- If sources disagree, include a short caveat in the relevant section.\u001b[22m\n\u001b[2m- Keep claims specific but setting-generalized.\u001b[22m\n\n\u001b[2mCandidate internal context to cross-check (may be stale; verify externally):\u001b[22m\n\u001b[2mentryLore: Giff are hippo-headed humanoids of impressive size who are renowned across the multiverse for their martial prowess and their love of firearms. Originally from a world whose name has been lost to time, giff now travel throughout Wildspace, often serving as mercenaries, bodyguards, or soldiers. They are fiercely proud of their military heritage and maintain strict hierarchies and traditions even when far from their kin. A giff's word is their bond, and they take contracts and oaths extremely seriously.\u001b[22m\n\u001b[2m\n\u001b[2mtags: race, giff, humanoid, spelljammer, beastfolk, military\u001b[22m\n\u001b[2msocietyType: Giff society is intensely hierarchical and organized around the military regiment. Loyalty to the group, the chain of command, and one's personal word is the foundation of their culture. They value discipline, tactical brilliance, and the fulfillment of one's duty above all else. Status is earned through merit, service, and the demonstration of martial skill. They possess a deep sense of honor and a collective identity as the multiverse's premier soldiers of fortune.\u001b[22m\n\u001b[2mtypicalEnvironment: Shipboard decks, fortified borderlands, and any location with a strong military presence are the giff's preferred habitats. They thrive in environments where they can establish a clear chain of command and utilize their tactical expertise. Many serve as professional mercenaries, elite bodyguards, or specialized soldiers in large interplanetary empires. They are comfortable in a variety of terrestrial and cosmic habitats, provided they have a clear mission and the means to maintain their martial traditions.\u001b[22m\n\n\u001b[2mReturn markdown only.\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and editable\u001b[22m\n"`\r
 ```
-
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/reports/charset-review-report.md","sha256WithoutMarker":"54daf8b9e265e7b2abdfa86c84305818b5e7a04d535aab99f8ebd19380018c71","markedAtUtc":"2026-06-25T23:48:24.958Z"} -->

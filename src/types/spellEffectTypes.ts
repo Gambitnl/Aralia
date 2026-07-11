@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/07/2026, 17:08:24
+ * Last Sync: 10/07/2026, 13:11:34
  * Dependents: types/spells.ts
- * Imports: 11 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -49,8 +49,10 @@ export type SpellEffect =
 /** The six primary ability scores used for saving throws. */
 export type SavingThrowAbility = "Strength" | "Dexterity" | "Constitution" | "Intelligence" | "Wisdom" | "Charisma";
 
-// ConditionName is normalized onto ConditionType while retaining custom domain conditions.
-export type ConditionName = ConditionType | "Slowed" | "Slasher Slow";
+// Condition names are stored in spell JSON and creature data as plain strings.
+// Deriving the string-literal union from the enum keeps ConditionType as the single
+// canonical list without requiring serialized game data to carry enum values.
+export type ConditionName = `${ConditionType}` | "Slowed" | "Slasher Slow";
 
 /** Modifiers that adjust how a saving throw is made. */
 export interface SaveModifier {

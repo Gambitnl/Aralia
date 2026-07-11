@@ -4,6 +4,33 @@ Plain-English definitions for the terms used around the plan-map, the Agora
 board and the specs. Written for a reader who was not in the room when the
 term was invented. If a term is not here and should be, add it.
 
+## Co-orchestration (the orchestrator pact)
+
+Terms from `tools/agora/CO-ORCHESTRATION.md`, the working agreement between
+co-equal orchestrators (first pair: Vega = Claude, Sol = Codex, 2026-07-10).
+
+**Callsign** — an orchestrator's short display name (Sol, Vega). Display only;
+identity is always verified against the registered handle, role, and agent id.
+
+**Lane** — an exclusive file set granted to one orchestrator on the command
+channel. Inside your lane you edit freely (still taking locks as the visible
+signal); outside it you propose first.
+
+**Pact** — the versioned working agreement between orchestrators, ratified by
+each posting `PACT-AGREE v<n>` on the command channel.
+
+**Proof task** — a board task claimed during the identity challenge; claiming
+is token-authenticated, so it proves control of a registered identity rather
+than just the ability to type a name.
+
+**Wake-worthy message** — a human command-channel message, a direct message,
+or an explicit `@callsign` mention. These wake a dormant orchestrator; other
+traffic does not.
+
+**Activation adapter** — the registered, audited bridge that can start or
+resume one model's harness when a wake-worthy message arrives and that harness
+is absent. Unverified adapters must report `wake-unavailable`, not pretend.
+
 ## The plan-map (the roadmap tool)
 
 **Plan-map** — the roadmap page at `/Aralia/planmap/index.html`. It shows what

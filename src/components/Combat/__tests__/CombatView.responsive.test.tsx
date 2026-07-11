@@ -216,6 +216,40 @@ describe('CombatView responsive layout', () => {
     expect(screen.getByRole('button', { name: /End Battle/i })).toHaveClass('min-h-11');
   });
 
+  it('lets the player independently hide and restore both combat rails', () => {
+    // Rail visibility is deliberately user-controlled: hiding the roster must
+    // not also remove abilities, and either panel can be restored immediately.
+    render(
+      <SpellContext.Provider value={{} as any}>
+        <CombatView
+          party={[{ id: 'party-1', name: 'Dev Player' } as any]}
+          enemies={[combatants.enemy as any]}
+          biome="forest"
+          onBattleEnd={vi.fn()}
+        />
+      </SpellContext.Provider>,
+    );
+
+    const rosterRail = screen.getByTestId('combat-roster-rail');
+    const commandRail = screen.getByTestId('combat-command-rail');
+    const rosterToggle = screen.getByRole('button', { name: 'Hide combat roster' });
+    const commandToggle = screen.getByRole('button', { name: 'Hide combat commands' });
+
+    rosterToggle.click();
+    expect(rosterRail).toHaveClass('hidden');
+    expect(commandRail).not.toHaveClass('hidden');
+    expect(screen.getByRole('button', { name: 'Show combat roster' })).toHaveAttribute('aria-pressed', 'false');
+
+    commandToggle.click();
+    expect(commandRail).toHaveClass('hidden');
+    expect(screen.getByRole('button', { name: 'Show combat commands' })).toHaveAttribute('aria-pressed', 'false');
+
+    screen.getByRole('button', { name: 'Show combat roster' }).click();
+    screen.getByRole('button', { name: 'Show combat commands' }).click();
+    expect(rosterRail).not.toHaveClass('hidden');
+    expect(commandRail).not.toHaveClass('hidden');
+  });
+
   it('returns compact combat players to the battlefield after selecting an ability', () => {
     render(
       <SpellContext.Provider value={{} as any}>

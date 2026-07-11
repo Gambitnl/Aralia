@@ -24,7 +24,7 @@ function normalizeTarget(rawTarget: string, docRelDir: string): string | null {
 function extractFacts(relPath: string, content: string, mtimeMs: number): DocFacts {
   const lf = content.replace(/\r\n/g, '\n');
   const contentHash = crypto.createHash('sha256').update(lf).digest('hex');
-  const wordCount = (lf.replace(/[#>*_`\-]/g, ' ').match(/\S+/g) || []).length;
+  const wordCount = (lf.replace(/[#>*_`-]/g, ' ').match(/\S+/g) || []).length;
   const openTaskCount = (lf.match(/^\s*[-*]\s+\[ \]\s+/gm) || []).length;
 
   const fm = lf.match(/^---\n([\s\S]*?)\n---/);

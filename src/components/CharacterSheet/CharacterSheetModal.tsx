@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/06/2026, 00:46:13
+ * Last Sync: 10/07/2026, 14:00:52
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/CharacterSheet/index.ts, components/Combat/CombatView.tsx, components/layout/GameModals.tsx
  * Imports: 14 files
  *
@@ -133,7 +133,10 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   };
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={character.name}>
+    // WindowFrame supplies the sheet's accessible dialog name and focusable
+    // window boundary. The wrapper remains layout-only so one visible sheet is
+    // announced exactly once to keyboard and screen-reader users.
+    <div>
       <WindowFrame
         title={character.name}
         storageKey={WINDOW_KEYS.CHARACTER_SHEET}

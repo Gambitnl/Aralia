@@ -56,6 +56,7 @@ import { CombatIntentPreview } from '../BattleMap/CombatIntentPreview';
 import { COMBAT_BTN_BASE, COMBAT_BTN_NEUTRAL, COMBAT_BTN_GREEN, COMBAT_BTN_ORANGE, COMBAT_BTN_INDIGO, COMBAT_BTN_RED } from '../BattleMap/combatUiTheme';
 import CharacterSheetModal from '../CharacterSheet/CharacterSheetModal';
 import { CombatCharacterInspector } from '../BattleMap/CombatCharacterInspector';
+import CombatRailControls from '../BattleMap/CombatRailControls';
 import MaplessTerrainSummary from './MaplessTerrainSummary';
 import { canUseDevTools } from '../../utils/permissions';
 import { logger } from '../../utils/logger';
@@ -287,6 +288,21 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // The asset overlay is tactical map chrome, so CombatView owns the header
   // switch and passes the setting into every 2D BattleMap instance.
   const [assetOverlayVisible, setAssetOverlayVisible] = useState(true);
+  // Players can independently collapse either side rail when the battlefield
+  // needs more room. The controls stay reversible because combat information is
+  // still important and should never disappear as an automatic side effect.
+  const [rosterRailVisible, setRosterRailVisible] = useState(true);
+  const [commandRailVisible, setCommandRailVisible] = useState(true);
+
+  // Keep all four desktop templates explicit so the map expands into the space
+  // released by either rail and Tailwind can discover every generated class.
+  const tacticalGridColumns = rosterRailVisible
+    ? commandRailVisible
+      ? 'lg:grid-cols-[200px_minmax(0,1fr)_280px] xl:grid-cols-[230px_minmax(0,1fr)_300px]'
+      : 'lg:grid-cols-[200px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)]'
+    : commandRailVisible
+      ? 'lg:grid-cols-[minmax(0,1fr)_280px] xl:grid-cols-[minmax(0,1fr)_300px]'
+      : 'lg:grid-cols-[minmax(0,1fr)]';
 
   // AI Spell Input State
   // Tracks the spell currently requesting player input (for AI-DM arbitration)
@@ -824,6 +840,12 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             Assets
           </button>
         )}
+        <CombatRailControls
+          rosterVisible={rosterRailVisible}
+          commandVisible={commandRailVisible}
+          onToggleRoster={() => setRosterRailVisible(visible => !visible)}
+          onToggleCommand={() => setCommandRailVisible(visible => !visible)}
+        />
         {/* TODO #58: Wrap debug buttons with process.env.NODE_ENV check to hide in production builds. */}
         <button
           onClick={() => {
@@ -856,11 +878,11 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
           Small screens use one normal page scroll so roster cards cannot be
           clipped by nested rail scrolling; the xl desktop rail keeps its
           bounded scroll behavior inside the tactical shell. */}
-      <div className="grid flex-grow grid-cols-1 gap-4 overflow-visible lg:min-h-0 lg:grid-cols-[200px_1fr_280px] lg:overflow-hidden xl:grid-cols-[230px_1fr_300px]">
+      <div className={`grid flex-grow grid-cols-1 gap-4 overflow-visible lg:min-h-0 lg:overflow-hidden ${tacticalGridColumns}`}>
         {/* Left Pane */}
         <div
           data-testid="combat-roster-rail"
-          className="order-2 flex min-h-[18rem] max-h-none flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:min-h-0 lg:max-h-none lg:overflow-y-auto"
+          className={`${rosterRailVisible ? 'flex' : 'hidden'} order-2 min-h-[18rem] max-h-none flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:min-h-0 lg:max-h-none lg:overflow-y-auto`}
         >
           <PartyDisplay
             characters={characters}
@@ -1000,7 +1022,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             the same top-to-bottom order as the mockup's right rail. */}
         <div
           data-testid="combat-command-rail"
-          className="order-3 grid min-h-[18rem] max-h-none grid-cols-1 gap-3 overflow-visible scrollable-content p-1 sm:grid-cols-2 lg:order-none lg:flex lg:min-h-0 lg:max-h-none lg:flex-col lg:overflow-y-auto"
+          className={`${commandRailVisible ? 'grid' : 'hidden'} order-3 min-h-[18rem] max-h-none grid-cols-1 gap-3 overflow-visible scrollable-content p-1 sm:grid-cols-2 lg:order-none lg:min-h-0 lg:max-h-none lg:flex-col lg:overflow-y-auto ${commandRailVisible ? 'lg:flex' : 'lg:hidden'}`}
         >
           <InitiativeTracker
             characters={characters}

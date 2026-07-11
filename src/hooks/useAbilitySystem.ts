@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 02/07/2026, 12:03:05
+ * Last Sync: 10/07/2026, 22:50:46
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 26 files
  *
@@ -1284,7 +1284,7 @@ export const useAbilitySystem = ({
       }
       return true;
     },
-    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onActiveLightSourcesUpdate, onActiveSpellHelpersUpdate, onActiveSpellForcesUpdate, onActiveSpellGuardiansUpdate, onActiveAnimatedObjectsUpdate, onActiveSpellStructuresUpdate, onActiveExtradimensionalSpacesUpdate, onActiveSpellEmanationsUpdate, onSpellObjectImpactsUpdate, onSpellObjectRepairsUpdate, onSpellObjectAccessChangesUpdate, onActiveFireEffectsUpdate, onActiveTruePolymorphTransformationsUpdate, onMapUpdate, onAddSpellZone, onSpellZonesUpdate, onSpellCreatedInventoryItems, onAddScheduledSpellEffect, onAddMovementDebuff, onAddSpellMovementVisual, activeLightSources, spellZones]
+    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onActiveLightSourcesUpdate, onActiveSpellHelpersUpdate, onActiveSpellForcesUpdate, onActiveSpellGuardiansUpdate, onActiveAnimatedObjectsUpdate, onActiveSpellStructuresUpdate, onActiveExtradimensionalSpacesUpdate, onActiveSpellEmanationsUpdate, onSpellObjectImpactsUpdate, onSpellObjectRepairsUpdate, onSpellObjectAccessChangesUpdate, onActiveFireEffectsUpdate, onActiveTruePolymorphTransformationsUpdate, onMapUpdate, onAddSpellZone, onSpellZonesUpdate, onSpellCreatedInventoryItems, onAddScheduledSpellEffect, onAddMovementDebuff, onAddSpellMovementVisual, activeLightSources, requestReaction, spellZones]
   );
 
 
@@ -1544,7 +1544,17 @@ export const useAbilitySystem = ({
       .map(id => currentCharacters.find(c => c.id === id))
       .filter((c): c is CombatCharacter => !!c);
 
-    const commands = AbilityCommandFactory.createCommands(ability, casterAfterCost, targets, commandGameState, selectedSpellTargets);
+    // Standard weapon/ability attacks use the same reaction arbiter as spell
+    // commands. Passing the hook-owned bridge restores Shield-style when-hit
+    // prompts that were lost when the legacy mutation path moved into commands.
+    const commands = AbilityCommandFactory.createCommands(
+      ability,
+      casterAfterCost,
+      targets,
+      commandGameState,
+      selectedSpellTargets,
+      requestReaction,
+    );
 
     // Snapshot the event trace immediately before command execution. Weapon
     // attack commands emit structured hit/miss events during execution; after

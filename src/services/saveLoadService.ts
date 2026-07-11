@@ -291,13 +291,19 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     // This handles both the normal case (saves in IndexedDB) and the legacy/
     // fallback case (saves still in localStorage or emergency saves).
     let serializedState: string | null = null;
+    // Record the store that supplied this exact payload. Availability alone is
+    // not enough: an IndexedDB-capable browser may still recover a legacy or
+    // emergency copy from localStorage when the primary record is absent.
+    let storageUsed: 'IndexedDB' | 'localStorage' = 'localStorage';
     if (idbAvailable) {
       serializedState = await IDBStorage.getSave(storageKey);
+      if (serializedState) storageUsed = 'IndexedDB';
     }
     if (!serializedState) {
       // Check localStorage as fallback (pre-migration saves, emergency saves,
       // or IndexedDB-unavailable mode).
       serializedState = SafeStorage.getItem(storageKey);
+      storageUsed = 'localStorage';
     }
 
     if (!serializedState) {
@@ -419,7 +425,7 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
 
     logger.info("Game loaded", {
       slotId: storageKey,
-      storage: idbAvailable ? 'IndexedDB' : 'localStorage',
+      storage: storageUsed,
       timestamp: new Date(loadedState.saveTimestamp!).toISOString()
     });
 

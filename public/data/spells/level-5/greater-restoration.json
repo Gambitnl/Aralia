@@ -277,8 +277,35 @@
                        "type":  "choose_one",
                        "timing":  "on_cast",
                        "optionCount":  5,
-                       "optionsSource":  "effects[0].controlOptions",
-                       "canDismissActive":  false,
+                        "optionsSource":  "controlOptions",
+                        "canDismissActive":  false,
+                        "options":  [
+                                        {
+                                            "label":  "Remove Exhaustion",
+                                            "summary":  "Remove one Exhaustion level from the touched creature.",
+                                            "controlOptionIndices":  [0]
+                                        },
+                                        {
+                                            "label":  "Remove Charmed or Petrified",
+                                            "summary":  "Remove either the Charmed condition or the Petrified condition from the touched creature.",
+                                            "controlOptionIndices":  [1]
+                                        },
+                                        {
+                                            "label":  "Remove Curse",
+                                            "summary":  "End a curse affecting the creature, including attunement to a cursed magic item.",
+                                            "controlOptionIndices":  [2]
+                                        },
+                                        {
+                                            "label":  "Restore Ability Score",
+                                            "summary":  "End one reduction to one of the target's ability scores.",
+                                            "controlOptionIndices":  [3]
+                                        },
+                                        {
+                                            "label":  "Restore Hit Point Maximum",
+                                            "summary":  "End one reduction to the target's Hit Point maximum.",
+                                            "controlOptionIndices":  [4]
+                                        }
+                                    ],
                        "notes":  "Greater Restoration removes exactly one listed major affliction per casting."
                    },
     "description":  "You touch a creature and magically remove one of the following effects from it:\n1 Exhaustion level\nThe Charmed or Petrified condition\nA curse, including the target\u0027s Attunement to a cursed magic item\nAny reduction to one of the target\u0027s ability scores\nAny reduction to the target\u0027s Hit Point maximum",

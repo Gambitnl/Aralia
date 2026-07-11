@@ -6,13 +6,13 @@ category: Documentation
 main_category: "Tools, Docs & Agents"
 subcategory: "Scripts & Automation"
 status: active
-last_updated: 2026-06-12
+last_updated: 2026-07-10
 iteration: 3
 confidence: medium
 evidence: docs/projects/scripts-quality; docs/projects/script-tests (merged support surface); docs/projects/DECISION_BLITZ_2026-06-10.md (D21)
-gap_signal: "2 open gaps; G3 and G4 remain open after script-tests merge"
+gap_signal: "5 open gaps; G5 and G6 require policy decisions, while G7 tracks the recovered but still slow quality-debt report"
 protocol: living project doc set
-next_step: Run npm run quality:debt at each quality-scope change, keep the routed scripts-git follow-up outside this project unless ownership changes, and pick up the inherited script-tests gaps (ST-GAP-001 first) as the next test slices.
+next_step: Choose the staged or bulk recovery policy in the Required Review Brief before changing charset or shared type-contract systems; then repair the approved clusters and add bounded progress visibility to the 162-second quality-debt report.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -36,12 +36,12 @@ lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: "no"
+human_decision_required: "yes"
 ---
 # NORTH_STAR: Scripts: Quality
 
 Status: active
-Last updated: 2026-06-12
+Last updated: 2026-07-10
 
 ## Why This Project Exists
 
@@ -179,6 +179,26 @@ Do not edit outside `docs/projects/scripts-quality/` in this task.
 | Allowed boundaries | `docs/projects/scripts-quality/*` |
 | Stop condition | docs are internally consistent, the routed follow-up is explicit, and the checkpoint convention remains the local owner |
 | Next checks | Run `npm run quality:debt` on quality-scope, lint-scope, or push-policy changes and record one compact snapshot here |
+
+## Required Review Brief
+
+Title: Quality recovery and charset/type migration policy
+Question: Should Aralia introduce a staged strict-data charset fixer and repair root type-contract clusters incrementally, or run the existing broad charset rewrite and a one-shot compiler cleanup?
+Issue: `npm run validate` currently stops after reporting 8,396 charset findings across 686 files: 867 strict findings and 7,529 soft findings. The existing `--write` path fixes both classes, so using it would rewrite punctuation across a large part of the repository. The compiler also reports more than 500 diagnostics spread across test fixtures, data-schema boundaries, source migrations, and stale declaration twins. The refreshed `npm run quality:debt` completed in 162 seconds and reported 555 TypeScript diagnostics plus 8 ESLint errors and 2,583 warnings.
+Current behavior: Validation cannot reach later data checks until charset passes. Narrow type-contract repairs are effective: restoring the serialized condition-name boundary removed 18 TSD failures and materially reduced compiler diagnostics without deleting tests or data. The remaining clusters do not share one safe mechanical fix.
+Why blocked: A strict-data-only fixer, canonical shared fixtures, or declaration-twin retirement would add or reshape repository systems. The existing broad rewrite is mechanically available, but accepting thousands of soft punctuation changes is a product/documentation policy choice rather than a test repair.
+Option A: Add a staged strict-data-only charset mode, preserve soft findings as advisory, and repair compiler root contracts incrementally with focused proof. This is the preserving recommendation.
+Option B: Run the existing broad `--write` migration and perform one coordinated compiler cleanup across all diagnostic clusters.
+Option C: Keep charset and compiler debt non-blocking for now; continue only isolated test and lint fixes that do not alter shared contracts.
+Evidence: `docs/reports/charset-review-report.md`; `scripts/check-charset.ts`; `src/types/spellEffectTypes.ts`; `src/types/combat.ts`; current `npx tsc --noEmit --pretty false` output; completed `npm run quality:debt` checkpoint on 2026-07-10.
+Decision owner: Human/project owner with Scripts: Quality and relevant data/type owners.
+Proof after decision: Option A requires focused fixer tests proving strict-only edits leave soft content untouched, a successful charset validation phase, and compiler counts after each root-contract slice. Option B requires reviewed diff-size/content sampling before acceptance plus full validation and compiler reruns.
+
+## Decision Visualizations
+
+| Decision | Status | Visual page | Summary | Owner |
+|---|---|---|---|---|
+| Charset and compiler recovery policy | needs decision | Living-project dashboard -> Scripts: Quality | Choose staged strict-only/root-contract repair, bulk rewrite/cleanup, or deferral. | Human/project owner |
 
 ## Artifact Boundary
 

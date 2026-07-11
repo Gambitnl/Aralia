@@ -42,6 +42,7 @@ import { createPlayerCombatCharacter } from '../../utils/combatUtils';
 import { createQuickCombatCharacter, AVAILABLE_RACE_IDS, getRaceDisplayName } from '../../utils/sandbox/quickCharacterGenerator';
 import SpellContext from '../../context/SpellContext';
 import { Spell } from '../../types/spells';
+import CombatRailControls from './CombatRailControls';
 
 // Dev-only: when the demo is opened without real enemies, spawn a small opposing
 // force so the 3D battle map shows both teams (team colors, spawn spread, class
@@ -311,6 +312,21 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
   const [cameraFocusRequest, setCameraFocusRequest] = useState<{ characterId: string; requestId: number } | null>(null);
   const [assetOverlayVisible, setAssetOverlayVisible] = useState(true);
+  // Each rail can be hidden independently. This makes the design preview useful
+  // at laptop sizes and lets reviewers judge the battlefield without discarding
+  // either roster or command information permanently.
+  const [rosterRailVisible, setRosterRailVisible] = useState(true);
+  const [commandRailVisible, setCommandRailVisible] = useState(true);
+
+  // The center map receives every column released by a hidden rail. Keep every
+  // full class name present so Tailwind can generate all four layout variants.
+  const tacticalGridColumns = rosterRailVisible
+    ? commandRailVisible
+      ? 'lg:grid-cols-[200px_minmax(0,1fr)_280px] xl:grid-cols-[230px_minmax(0,1fr)_300px]'
+      : 'lg:grid-cols-[200px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)]'
+    : commandRailVisible
+      ? 'lg:grid-cols-[minmax(0,1fr)_280px] xl:grid-cols-[minmax(0,1fr)_300px]'
+      : 'lg:grid-cols-[minmax(0,1fr)]';
 
   const biomeRef = useRef(biome);
   useEffect(() => {
@@ -616,6 +632,12 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
               Assets
             </button>
           )}
+          <CombatRailControls
+            rosterVisible={rosterRailVisible}
+            commandVisible={commandRailVisible}
+            onToggleRoster={() => setRosterRailVisible(visible => !visible)}
+            onToggleCommand={() => setCommandRailVisible(visible => !visible)}
+          />
           <button
             onClick={onExit}
             className="h-7 rounded-md bg-red-600 px-3 text-xs font-semibold shadow hover:bg-red-500"
@@ -628,9 +650,9 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
       {/* Below lg the three regions stack and the whole block scrolls; from lg
           up it is the fixed 3-region tactical layout with internally-scrolling
           rails. (CombatView uses the same breakpoint — the demo mirrors it.) */}
-      <div className="flex-grow min-h-0 grid grid-cols-1 gap-4 overflow-y-auto lg:grid-cols-5 lg:overflow-hidden">
+      <div className={`flex-grow min-h-0 grid grid-cols-1 gap-4 overflow-y-auto lg:overflow-hidden ${tacticalGridColumns}`}>
         {/* Left Pane */}
-        <div className="order-2 flex flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:col-span-1 lg:overflow-y-auto">
+        <div className={`${rosterRailVisible ? 'flex' : 'hidden'} order-2 flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:overflow-y-auto`}>
           <PartyDisplay
             characters={characters}
             onCharacterSelect={handleCharacterSelect}
@@ -644,7 +666,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
 
         {/* Center Pane — map first and given a real height while stacked, so it
             is never squished into a thin band below lg. */}
-        <div className="order-1 flex h-[65vh] min-h-[22rem] shrink-0 flex-col overflow-hidden p-2 relative lg:order-none lg:col-span-3 lg:h-auto lg:min-h-0 lg:shrink">
+        <div className="order-1 flex h-[65vh] min-h-[22rem] shrink-0 flex-col overflow-hidden p-2 relative lg:order-none lg:h-auto lg:min-h-0 lg:shrink">
           <ControlsHelp visible={renderMode === '3d'} />
           <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
             {renderMode === '3d' ? (
@@ -679,7 +701,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
         </div>
 
         {/* Right Pane */}
-        <div className="order-3 flex flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:col-span-1 lg:overflow-y-auto">
+        <div className={`${commandRailVisible ? 'flex' : 'hidden'} order-3 flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:overflow-y-auto`}>
           <InitiativeTracker
             characters={characters}
             turnState={turnManager.turnState}

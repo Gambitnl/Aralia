@@ -157,6 +157,26 @@ describe('MainMenu', () => {
         }
     });
 
+    it('requires an explicit confirmation to abandon an active run and lets the player cancel safely', () => {
+        const onAbandonRun = vi.fn();
+        render(<MainMenu {...defaultProps} hasActiveRun onAbandonRun={onAbandonRun} />);
+
+        // Opening the warning is not itself destructive. Cancelling must restore
+        // the normal action without notifying the app reducer.
+        fireEvent.click(screen.getByRole('button', { name: /Abandon Run/i }));
+        expect(screen.getByText(/unsaved progress will be lost/i)).toBeInTheDocument();
+        expect(onAbandonRun).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+        expect(onAbandonRun).not.toHaveBeenCalled();
+        expect(screen.getByRole('button', { name: /Abandon Run/i })).toBeInTheDocument();
+
+        // Only the second, explicit confirmation crosses the destructive
+        // boundary and asks App to clear the in-memory run.
+        fireEvent.click(screen.getByRole('button', { name: /Abandon Run/i }));
+        fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+        expect(onAbandonRun).toHaveBeenCalledOnce();
+    });
+
     it('calls onNewGame when Begin Legend button is clicked', () => {
         render(<MainMenu {...defaultProps} />);
         fireEvent.click(screen.getByText('Begin Legend'));

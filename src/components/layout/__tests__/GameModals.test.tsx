@@ -79,8 +79,6 @@ vi.mock('../../Combat/EncounterModal', () => ({ default: () => <div data-testid=
 vi.mock('../../dice/DiceRollerModal', () => ({ default: () => <div data-testid="dice-roller-modal" /> }));
 vi.mock('../../Economy/LedgerBook', () => ({ default: () => <div data-testid="ledger-book" /> }));
 vi.mock('../../Economy/CourierPouch', () => ({ default: () => <div data-testid="courier-pouch" /> }));
-vi.mock('../../ui/LongRestModal', () => ({ default: () => <div data-testid="long-rest-modal" /> }));
-vi.mock('../../ui/RestModal', () => ({ default: () => <div data-testid="rest-modal" /> }));
 vi.mock('../../ui/GameGuideModal', () => ({ default: () => <div data-testid="game-guide-modal" /> }));
 
 let GameModals: ComponentType<React.ComponentProps<typeof import('../GameModals').default>>;
@@ -475,13 +473,18 @@ describe('GameModals focus-trap coverage', () => {
     });
 
     it('renders LongRestModal when isLongRestModalVisible is true', async () => {
+        // Use the real lazy child here. A file-global mock could be invalidated
+        // by another suite's module reset, which made this wiring proof depend
+        // on aggregate execution order instead of the rendered dialog contract.
         createProps(withOpenModal({ isLongRestModalVisible: true }));
-        expect(await screen.findByTestId('long-rest-modal')).toBeInTheDocument();
+        expect(await screen.findByRole('dialog', { name: 'Long Rest' })).toBeInTheDocument();
     });
 
     it('renders RestModal when isShortRestModalVisible is true', async () => {
+        // The accessible name proves both GameModals wiring and the real shared
+        // dialog shell without relying on a mock-only test id.
         createProps(withOpenModal({ isShortRestModalVisible: true }));
-        expect(await screen.findByTestId('rest-modal')).toBeInTheDocument();
+        expect(await screen.findByRole('dialog', { name: 'Short Rest' })).toBeInTheDocument();
     });
 
     // Regression: every direct child of the AnimatePresence wrapper must carry a

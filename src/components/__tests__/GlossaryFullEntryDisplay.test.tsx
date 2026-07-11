@@ -33,8 +33,12 @@ describe('FullEntryDisplay', () => {
   };
 
   it('renders fetched markdown without frontmatter and wires see-also navigation', async () => {
-    const response = new Response('---\nid: test-entry\ntags: [level 3]\n---\n\n# Heading\nContent body');
-    const fetchMock = vi.fn().mockResolvedValue(response);
+    // FullEntryDisplay loads both the selected entry and the shared spell-rule
+    // enrichment file. Each fetch needs its own Response body because browser
+    // response streams can only be consumed once.
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response('---\nid: test-entry\ntags: [level 3]\n---\n\n# Heading\nContent body'))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ enrichmentDataset: { rulesByGlossaryTermId: {} } })));
     global.fetch = fetchMock as unknown as typeof fetch;
 
     const onNavigate = vi.fn();
@@ -49,7 +53,9 @@ describe('FullEntryDisplay', () => {
     expect(content).not.toContain('tags: [level 3]');
     expect(fetchMock.mock.calls[0]?.[0]).toContain('entries/test-entry.md');
 
-    fireEvent.click(screen.getByText('related-term'));
+    // The template humanizes stored IDs for display while preserving the raw
+    // glossary ID passed to navigation.
+    fireEvent.click(screen.getByRole('button', { name: 'Related-Term' }));
     expect(onNavigate).toHaveBeenCalledWith('related-term');
   });
 

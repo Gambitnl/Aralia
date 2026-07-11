@@ -380,8 +380,60 @@
                        "type":  "choose_one",
                        "timing":  "on_cast",
                        "optionCount":  10,
-                       "optionsSource":  "effects[0].controlOptions",
-                       "canDismissActive":  false,
+                        "optionsSource":  "controlOptions",
+                        "canDismissActive":  false,
+                        "options":  [
+                                        {
+                                            "label":  "Courage",
+                                            "summary":  "Chosen creature types cannot gain the Frightened condition while in the area.",
+                                            "controlOptionIndices":  [0]
+                                        },
+                                        {
+                                            "label":  "Darkness",
+                                            "summary":  "Darkness fills the area and lower-level magical light cannot illuminate it.",
+                                            "controlOptionIndices":  [1]
+                                        },
+                                        {
+                                            "label":  "Daylight",
+                                            "summary":  "Bright light fills the area and lower-level magical Darkness cannot extinguish it.",
+                                            "controlOptionIndices":  [2]
+                                        },
+                                        {
+                                            "label":  "Peaceful Rest",
+                                            "summary":  "Dead bodies interred in the area cannot be turned into Undead.",
+                                            "controlOptionIndices":  [3]
+                                        },
+                                        {
+                                            "label":  "Extradimensional Interference",
+                                            "summary":  "Chosen creature types cannot enter or exit using teleportation or interplanar travel.",
+                                            "controlOptionIndices":  [4]
+                                        },
+                                        {
+                                            "label":  "Fear",
+                                            "summary":  "Chosen creature types have the Frightened condition while in the area.",
+                                            "controlOptionIndices":  [5]
+                                        },
+                                        {
+                                            "label":  "Resistance",
+                                            "summary":  "Chosen creature types gain Resistance to one selected damage type in the area.",
+                                            "controlOptionIndices":  [6]
+                                        },
+                                        {
+                                            "label":  "Silence",
+                                            "summary":  "No sound can emanate from within the area or reach into it.",
+                                            "controlOptionIndices":  [7]
+                                        },
+                                        {
+                                            "label":  "Tongues",
+                                            "summary":  "Chosen creature types can communicate with any other creature in the area.",
+                                            "controlOptionIndices":  [8]
+                                        },
+                                        {
+                                            "label":  "Vulnerability",
+                                            "summary":  "Chosen creature types gain Vulnerability to one selected damage type in the area.",
+                                            "controlOptionIndices":  [9]
+                                        }
+                                    ],
                        "secondaryChoices":  {
                                                 "hallowedWardCreatureTypeOptions":  [
                                                                                         "Aberration",

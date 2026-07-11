@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 10/07/2026, 14:01:57
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo, useState } from 'react';
 import { useGameState } from '../../state/GameContext';
 import { getGameDay } from '../../utils/core';
@@ -56,10 +72,14 @@ const TownHistoryDevOverlay: React.FC = () => {
       resolveTownForLocation({
         currentLocationId: state.currentLocationId,
         worldSeed: state.worldSeed,
+        // Town simulation is cell-native after grid retirement. Pass the same
+        // canonical player cell used by rumors, merchants, and town registration
+        // so the developer overlay observes the town the player actually occupies.
+        cellId: state.playerCell?.cellId ?? null,
         townSim: state.townSim,
         gameTime: state.gameTime,
       }),
-    [state.currentLocationId, state.worldSeed, state.townSim, state.gameTime],
+    [state.currentLocationId, state.worldSeed, state.playerCell?.cellId, state.townSim, state.gameTime],
   );
 
   const holders = useMemo(() => (town ? currentHolders(town, day) : []), [town, day]);

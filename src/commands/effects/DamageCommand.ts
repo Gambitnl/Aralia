@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/07/2026, 22:23:42
+ * Last Sync: 10/07/2026, 13:59:46
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 15 files
  *
@@ -401,7 +401,10 @@ export class DamageCommand extends BaseEffectCommand {
 
       // --- SLASHER FEAT LOGIC ---
       if (caster.feats?.includes('slasher') && this.effect.damage.type.toLowerCase() === 'slashing' && finalDamage > 0) {
-        currentState = this.applySlasherFeat(currentState, caster, target, isCritical);
+        // Slasher delegates its slow to the same asynchronous condition command
+        // used by spells. Wait for that completed state before logging damage or
+        // resolving concentration so later steps never receive a pending Promise.
+        currentState = await this.applySlasherFeat(currentState, caster, target, isCritical);
       }
 
       // --- LOGGING ---
@@ -1008,7 +1011,10 @@ export class DamageCommand extends BaseEffectCommand {
       return state;
     }
 
-    const friendsEffect = damagedTarget.statusEffects.find(effect =>
+    // Older saves and deliberately small command fixtures may predate the
+    // statusEffects array. Treat that absence as "no Friends charm" so ordinary
+    // damage remains compatible while the serialized character is normalized.
+    const friendsEffect = damagedTarget.statusEffects?.find(effect =>
       effect.socialLifecycle?.kind === 'friends_charm' &&
       effect.sourceCasterId
     );
@@ -1130,12 +1136,12 @@ export class DamageCommand extends BaseEffectCommand {
    * 1. Reduce speed by 10ft (at most once per turn).
    * 2. On critical hit, target has disadvantage on attacks until start of attacker's next turn.
    */
-  private applySlasherFeat(
+  private async applySlasherFeat(
     state: CombatState,
     caster: CombatState['characters'][0],
     target: CombatState['characters'][0],
     isCritical: boolean
-  ): CombatState {
+  ): Promise<CombatState> {
     let currentState = state;
 
     // Rule 1: Reduce Speed by 10ft (Once per turn)
@@ -1179,7 +1185,9 @@ export class DamageCommand extends BaseEffectCommand {
           targets: [target]
         }
       );
-      currentState = slowCommand.execute(currentState);
+      // StatusConditionCommand may resolve saves and reactions asynchronously.
+      // Slasher must finish that work before adding its follow-up combat log.
+      currentState = await slowCommand.execute(currentState);
 
       currentState = this.addLogEntry(currentState, {
         type: 'status',

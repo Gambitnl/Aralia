@@ -6,6 +6,7 @@ import { GameState, GamePhase, DiscoveryEntry, DiscoveryType } from '../../types
 import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
 import type { WorldDelta } from '../../systems/worldforge/delta/types';
 import { MAX_DISCOVERY_LOG_ENTRIES } from '../../state/reducers/logReducer';
+import { logger } from '../../utils/logger';
 
 // ---------------------------------------------------------------------------
 // IndexedDB is mocked with an in-memory store so the localStorage -> IndexedDB
@@ -725,7 +726,90 @@ describe('SaveLoadService', () => {
             expect(localStorage.getItem(EMERGENCY_SAVE_KEY)).toBeNull();
             expect(await IDBStorage.getSave('aralia_rpg_autosave')).toBe(emergencyPayload);
         });
+
+        // ====================================================================
+        // IndexedDB-First Runtime Contract
+        // ====================================================================
+        // Migration proves old saves can move, but ordinary play also needs to
+        // prove that new writes, reads, fallback recovery, corruption handling,
+        // and deletion all honor the initialized storage mode.
+        // ====================================================================
+
+        it('writes new save payloads to IndexedDB while keeping only preview metadata local', async () => {
+            await SaveLoadService.initializeStorage();
+
+            const result = await SaveLoadService.saveGame(mockGameState, 'idb_primary');
+            const storageKey = 'aralia_rpg_slot_idb_primary';
+
+            expect(result.success).toBe(true);
+            expect(IDBStorage.putSave).toHaveBeenCalledWith(storageKey, expect.any(String));
+            expect(await IDBStorage.getSave(storageKey)).not.toBeNull();
+            expect(localStorage.getItem(storageKey)).toBeNull();
+            expect(SaveLoadService.getSaveSlots()).toEqual(expect.arrayContaining([
+                expect.objectContaining({ slotId: storageKey, partyLevel: 5 }),
+            ]));
+        });
+
+        it('prefers the IndexedDB payload when stale localStorage data shares the slot key', async () => {
+            const logSpy = vi.spyOn(logger, 'info');
+            await SaveLoadService.initializeStorage();
+            const storageKey = 'aralia_rpg_slot_idb_precedence';
+            await SaveLoadService.saveGame(mockGameState, 'idb_precedence');
+
+            // A malformed legacy copy would fail checksum/JSON validation if the
+            // loader accidentally consulted localStorage before the primary store.
+            localStorage.setItem(storageKey, '{ stale local copy');
+            const result = await SaveLoadService.loadGame('idb_precedence');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.gold).toBe(100);
+            expect(IDBStorage.getSave).toHaveBeenCalledWith(storageKey);
+            expect(logSpy).toHaveBeenCalledWith('Game loaded', expect.objectContaining({ storage: 'IndexedDB' }));
+        });
+
+        it('falls back to a valid localStorage payload when IndexedDB has no matching record', async () => {
+            const logSpy = vi.spyOn(logger, 'info');
+            await SaveLoadService.initializeStorage();
+            const storageKey = 'aralia_rpg_slot_idb_fallback';
+            await SaveLoadService.saveGame(mockGameState, 'idb_fallback');
+            const validPayload = await IDBStorage.getSave(storageKey);
+            expect(validPayload).not.toBeNull();
+
+            // Simulate a browser where metadata/legacy payload survived but the
+            // corresponding IndexedDB record was cleared or never migrated.
+            await IDBStorage.deleteSave(storageKey);
+            localStorage.setItem(storageKey, validPayload!);
+            const result = await SaveLoadService.loadGame('idb_fallback');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.gold).toBe(100);
+            expect(logSpy).toHaveBeenCalledWith('Game loaded', expect.objectContaining({ storage: 'localStorage' }));
+        });
+
+        it('rejects corrupted JSON read from the primary IndexedDB store', async () => {
+            await SaveLoadService.initializeStorage();
+            const storageKey = 'aralia_rpg_slot_idb_corrupt';
+            await IDBStorage.putSave(storageKey, '{ invalid indexeddb json');
+
+            const result = await SaveLoadService.loadGame('idb_corrupt');
+
+            expect(result.success).toBe(false);
+            expect(result.message).toContain('corrupted');
+        });
+
+        it('deletes the same slot from IndexedDB, local fallback storage, and metadata', async () => {
+            await SaveLoadService.initializeStorage();
+            const storageKey = 'aralia_rpg_slot_idb_delete';
+            await SaveLoadService.saveGame(mockGameState, 'idb_delete');
+            const payload = await IDBStorage.getSave(storageKey);
+            localStorage.setItem(storageKey, payload!);
+
+            await SaveLoadService.deleteSaveGame('idb_delete');
+
+            expect(IDBStorage.deleteSave).toHaveBeenCalledWith(storageKey);
+            expect(await IDBStorage.getSave(storageKey)).toBeNull();
+            expect(localStorage.getItem(storageKey)).toBeNull();
+            expect(SaveLoadService.getSaveSlots().some(slot => slot.slotId === storageKey)).toBe(false);
+        });
     });
 });
-
-

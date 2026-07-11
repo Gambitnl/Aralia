@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 21:39:59
+ * Last Sync: 10/07/2026, 14:02:14
  * Dependents: hooks/useAbilitySystem.ts
  * Imports: 6 files
  *
@@ -99,7 +99,15 @@ export const resolveMultiTargetIds = (
   );
 
   const orderedTargets = characters
-    .filter(character => validTargetKeys.has(`${character.position.x}-${character.position.y}`))
+    .filter(character => {
+      // Automatic ray/missile expansion follows the relation chosen by the
+      // player's first click. An enemy click fills remaining instances with
+      // enemies; an ally click fills with allies. This prevents a legal-but-
+      // unintended caster tile from consuming an attack before nearby targets.
+      const matchesClickedRelation = character.team === clickedTarget.team
+      const occupiesValidTarget = validTargetKeys.has(`${character.position.x}-${character.position.y}`)
+      return matchesClickedRelation && occupiesValidTarget
+    })
     .sort((left, right) => {
       const leftDistance = getDistance(caster.position, left.position);
       const rightDistance = getDistance(caster.position, right.position);

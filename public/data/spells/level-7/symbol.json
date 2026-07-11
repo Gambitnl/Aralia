@@ -900,15 +900,49 @@
                       "playerInputRequired":  true
                   },
     "modeChoice":  {
-                       "selectionType":  "choose_one",
-                       "options":  [
-                                       "Death",
-                                       "Discord",
-                                       "Fear",
-                                       "Pain",
-                                       "Sleep",
-                                       "Stunning"
-                                   ],
+                        "type":  "choose_one",
+                        "timing":  "on_cast",
+                        "optionCount":  6,
+                        "optionsSource":  "effects",
+                        "canDismissActive":  false,
+                        "options":  [
+                                        {
+                                            "label":  "Death",
+                                            "summary":  "Targets make a Constitution save against 10d10 Necrotic damage.",
+                                            "effectIndices":  [0],
+                                            "effectTypes":  ["DAMAGE"]
+                                        },
+                                        {
+                                            "label":  "Discord",
+                                            "summary":  "Targets make a Wisdom save or argue for 1 minute with impaired attacks, checks, and communication.",
+                                            "effectIndices":  [5],
+                                            "effectTypes":  ["ATTACK_ROLL_MODIFIER"]
+                                        },
+                                        {
+                                            "label":  "Fear",
+                                            "summary":  "Targets make a Wisdom save or become Frightened for 1 minute and move away from the glyph.",
+                                            "effectIndices":  [1],
+                                            "effectTypes":  ["STATUS_CONDITION"]
+                                        },
+                                        {
+                                            "label":  "Pain",
+                                            "summary":  "Targets make a Constitution save or become Incapacitated for 1 minute.",
+                                            "effectIndices":  [2],
+                                            "effectTypes":  ["STATUS_CONDITION"]
+                                        },
+                                        {
+                                            "label":  "Sleep",
+                                            "summary":  "Targets make a Wisdom save or become Unconscious for 10 minutes, ending on damage or being shaken awake.",
+                                            "effectIndices":  [3],
+                                            "effectTypes":  ["STATUS_CONDITION"]
+                                        },
+                                        {
+                                            "label":  "Stunning",
+                                            "summary":  "Targets make a Wisdom save or become Stunned for 1 minute.",
+                                            "effectIndices":  [4],
+                                            "effectTypes":  ["STATUS_CONDITION"]
+                                        }
+                                    ],
                        "secondaryChoices":  [
                                                 "glyph surface or object",
                                                 "trigger",

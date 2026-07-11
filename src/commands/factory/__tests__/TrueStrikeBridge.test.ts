@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SpellCommandFactory } from '../SpellCommandFactory'
 import { WeaponAttackCommand } from '../AbilityCommandFactory'
 import { NarrativeCommand } from '../../effects/NarrativeCommand'
@@ -115,7 +115,16 @@ const createTrueStrikeSelectedTarget = (targetId: string): SelectedSpellTarget[]
 ]
 
 describe('True Strike bridge', () => {
+  afterEach(() => {
+    // Each bridge case owns any random-source pin it creates; restoring here
+    // prevents that deterministic proof from leaking into neighboring cases.
+    vi.restoreAllMocks()
+  })
+
   it('turns the cast into a real weapon attack against the selected creature target and applies Radiant scaling', async () => {
+    // Armor Class 1 still allows a natural-one miss. Pin a normal roll because
+    // this test proves target handoff and damage scaling, not miss behavior.
+    vi.spyOn(Math, 'random').mockReturnValue(0.5)
     const caster = createTrueStrikeCaster()
     const target = createTrueStrikeTarget()
     const gameState = createMockGameState()

@@ -1,6 +1,84 @@
 {
   "comment": "Machine-readable Agent Matrix registry. THE source orchestrators consume programmatically (orchestrate.mjs validates plans against it; `orchestrate agents` prints it). Prose detail lives in the operator dashboard's onboarding contract (Aralia-operator-dashboard/docs/agent-matrix/sections/05-agent-offering-registration-contract.md) — when that changes, update this file. Statuses: ready | quota_limited | trial | deprecated | unknown. A packet agent must have role 'worker', status ready/quota_limited, and dispatch wiring (dispatch.command or type agent-tool) to pass validatePlan.",
-  "updated": "2026-07-01",
+  "updated": "2026-07-10",
+  "wakeAdapters": {
+    "codex-cli-resume": {
+      "label": "Codex CLI session resume",
+      "status": "ready",
+      "command": "codex",
+      "args": ["exec", "resume", "--skip-git-repo-check", "{sessionId}", "{prompt}"],
+      "processNames": ["codex.exe", "codex"],
+      "observedVersion": "codex-cli 0.140.0",
+      "compatibleSessionSurface": "cli-native-only",
+      "capabilities": {
+        "start": "wake-unavailable",
+        "resume": "candidate-cli-native-live-test-required",
+        "health": "process-probe",
+        "stop": "wake-unavailable"
+      },
+      "desktopInjection": "wake-unavailable",
+      "notes": "Only for sessions created by the Codex CLI version on PATH. The first desktop-session test failed because PATH resolved to 0.140.0 while the session belonged to 0.144.0-alpha.4. Use codex-session-turn-once for version-matched desktop and CLI sessions. Session ids belong in .agent/agora/watchdog-targets.json, never in this tracked registry."
+    },
+    "codex-session-turn-once": {
+      "label": "Codex version-matched one-shot heartbeat turn",
+      "status": "ready",
+      "command": "node",
+      "args": ["{script}", "codex-turn-once", "--session", "{sessionId}", "--cwd", "{cwd}", "--prompt", "{prompt}"],
+      "processNames": ["codex.exe", "codex"],
+      "capabilities": {
+        "start": "event-driven-single-turn",
+        "resume": "desktop-and-cli-session-version-matched",
+        "health": "child-exit-and-agora-awake-proof",
+        "stop": "child-process-exits-after-one-turn"
+      },
+      "desktopInjection": "not-required",
+      "notes": "The watcher reads the saved session's cli_version, finds the matching locally installed Codex engine, resumes that session for one Agora heartbeat turn, then exits. A 0.144.0-alpha.4 desktop-session resume probe passed after the earlier 0.140.0 mismatch failed. Full dormant delivery remains live-test gated."
+    },
+    "codex-app-heartbeat": {
+      "label": "Codex app recurring in-thread heartbeat",
+      "status": "paused",
+      "type": "app-heartbeat",
+      "processNames": ["codex.exe", "codex"],
+      "capabilities": {
+        "start": "managed-by-codex-app",
+        "resume": "app-owned-thread",
+        "health": "automation-status",
+        "stop": "pause-or-delete-automation"
+      },
+      "desktopInjection": "not-required",
+      "notes": "Not used for Agora wake delivery. Its recurring minimum cadence adds polling delay; the event-driven codex-session-turn-once adapter is preferred."
+    },
+    "claude-desktop-native": {
+      "label": "Claude Desktop native conversation watcher",
+      "status": "paused",
+      "type": "desktop-native",
+      "processNames": ["claude.exe", "Claude"],
+      "capabilities": {
+        "start": "wake-unavailable",
+        "resume": "native-watcher-only",
+        "health": "agora-awake-proof",
+        "stop": "not-applicable"
+      },
+      "desktopInjection": "wake-unavailable",
+      "notes": "Identity-safe placeholder for the intended Claude Desktop conversation. It must not fall through to claude-cli-resume, which is a different harness. Test 1 proved Vega's in-session native watcher; a supported external Desktop wake bridge is still missing."
+    },
+    "claude-cli-resume": {
+      "label": "Claude CLI session resume",
+      "status": "ready",
+      "command": "claude",
+      "args": ["--print", "--resume", "{sessionId}", "{prompt}"],
+      "processNames": ["claude.exe", "claude"],
+      "observedVersion": "Claude Code 2.1.205",
+      "capabilities": {
+        "start": "wake-unavailable",
+        "resume": "candidate-live-test-required",
+        "health": "process-probe",
+        "stop": "wake-unavailable"
+      },
+      "desktopInjection": "wake-unavailable",
+      "notes": "Resumes one known Claude Code session through the installed CLI. Native Claude Desktop message injection remains unclaimed."
+    }
+  },
   "agents": {
     "claude": {
       "label": "Claude subagent (Agent tool)",

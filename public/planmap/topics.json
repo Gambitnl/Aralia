@@ -25,7 +25,7 @@
     },
     "spells": {
       "label": "Spells",
-      "color": "violet"
+      "color": "purple"
     },
     "ui": {
       "label": "2D UI",
@@ -197,7 +197,6 @@
         }
       ],
       "link": "docs/superpowers/specs/2026-07-05-building-blueprint-pipeline-design.md",
-      "open": 0,
       "features": [
         {
           "title": "Blueprint data contract (rooms/doors/windows/furniture/stairs/walls, feet)",
@@ -250,7 +249,6 @@
         }
       ],
       "link": "docs/superpowers/specs/2026-07-06-dungeon-history-first-design.md",
-      "open": 2,
       "features": [
         {
           "title": "Pure-data generator (growth layout: door → corridor → room, loop doors through wall gaps)",
@@ -579,13 +577,7 @@
       "sub": "enterable buildings; rooms + floors wired & rendered. Building integrity + honesty gaps left (from the blindspot pass); frozen-houses lives in its own node.",
       "campaign": "world",
       "status": "active",
-      "deps": [
-        {
-          "id": "living-interiors-live-clock",
-          "kind": "related",
-          "why": "Frozen houses (blindspot finding #1, highest impact) is tracked as its own node; the rest of the interiors gaps live here."
-        }
-      ],
+      "deps": [],
       "features": [
         {
           "title": "Walls and furniture block where they're drawn",
@@ -642,7 +634,8 @@
         {
           "title": "Behaviour sim: needs, decisions, family coordination",
           "status": "done",
-          "link": "docs/superpowers/specs/2026-06-26-agent-sim-deepening.md"
+          "link": "docs/superpowers/specs/2026-06-26-agent-sim-deepening.md",
+          "open": 5
         },
         {
           "title": "Villagers with ages, races, and family ties",
@@ -676,7 +669,8 @@
           "title": "Populate the town the player enters: real-game wiring, 3D, talk to NPCs",
           "status": "parked"
         }
-      ]
+      ],
+      "open": 5
     },
     {
       "id": "maritime-remainder",
@@ -1463,7 +1457,7 @@
         },
         {
           "title": "task checkpoint --did --next --files (latest-wins resumable note) + reapCount escalation",
-          "status": "done",
+          "status": "specced",
           "link": "docs/superpowers/plans/2026-07-06-agent-retrace-plan.md"
         },
         {
@@ -1505,7 +1499,6 @@
       "deps": [
         {
           "id": "agent-ping",
-          "kind": "soft",
           "why": "dashboard posts are how the human pokes listening agents awake — the composer is only a two-way surface because the wake channel exists"
         }
       ],
@@ -1629,7 +1622,7 @@
         },
         {
           "title": "migration + build in shippable slices (after approvals)",
-          "status": "planned"
+          "status": "parked"
         }
       ],
       "deps": [
@@ -1656,15 +1649,15 @@
         },
         {
           "title": "refine cave set: stalagmite texture, crystal tips, cohesion pass (agora eab6558d)",
-          "status": "open"
+          "status": "parked"
         },
         {
           "title": "wire forge cave set into painter cave biome — resolves cave-believability (decision-gated forge vs cave zip; agora eca9ab35)",
-          "status": "open"
+          "status": "parked"
         },
         {
           "title": "expand to more sets (dungeon next; one <name>Forge.ts + one registry entry) (agora 9f21f450)",
-          "status": "planned"
+          "status": "parked"
         }
       ],
       "deps": [
@@ -1764,7 +1757,7 @@
       "deps": [
         {
           "id": "building-generator",
-          "kind": "requires",
+          "kind": "hard",
           "why": "Extends the completed BlueprintPlan pipeline additively: v2 feeds households in and dresses the same plan with roofs, styles, blocks, and history."
         }
       ],
@@ -2124,7 +2117,8 @@
       ],
       "history": {
         "designed": "2026-07-09"
-      }
+      },
+      "open": 4
     },
     {
       "id": "npc-memory-reconciliation",
@@ -2168,7 +2162,6 @@
       "deps": [
         {
           "id": "npc-memory-reconciliation",
-          "kind": "soft",
           "why": "the memory merge exposed the twin-shadowing trap and cleared the first 3; this sweep generalizes it to the rest of src/types"
         }
       ],
@@ -2185,12 +2178,12 @@
       "deps": [
         {
           "id": "wf-interiors",
-          "kind": "requires",
+          "kind": "hard",
           "why": "The pass audits the L4 interiors subsystem (interior/ + bridge/)."
         },
         {
           "id": "building-generator-v2",
-          "kind": "requires",
+          "kind": "hard",
           "why": "Living Buildings owns interior quality; the live-clock and quality findings extend it."
         }
       ],
@@ -2237,6 +2230,178 @@
         {
           "title": "#7 Unified 24-hour interior lighting schedule (hearth vs window hours reconciled)",
           "status": "active"
+        }
+      ]
+    },
+    {
+      "id": "co-orchestration-pipeline",
+      "title": "Co-orchestration pipeline",
+      "sub": "Multiple orchestrators (Claude+Codex+future models) share the Agora board without losing task ownership or deadlocking",
+      "campaign": "tooling",
+      "status": "active",
+      "deps": [],
+      "link": "tools/agora/CO-ORCHESTRATION.md",
+      "features": [
+        {
+          "title": "Sol-Vega handshake + identity protocol",
+          "status": "done"
+        },
+        {
+          "title": "Orchestrator pact v1",
+          "status": "active",
+          "link": "tools/agora/CO-ORCHESTRATION.md"
+        },
+        {
+          "title": "Daemon ownership + deadlock hardening (WF-G15..17)",
+          "status": "active"
+        },
+        {
+          "title": "Dashboard collaboration visibility",
+          "status": "done"
+        },
+        {
+          "title": "Wake watchdog + activation adapters (WF-G18)",
+          "status": "active"
+        },
+        {
+          "title": "Live wake hard-test Sol-Vega",
+          "status": "active"
+        },
+        {
+          "title": "Daemon auth: strip bearer tokens from public /agents (WF-G24)",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "id": "code-modularization-sweep",
+      "title": "Code modularization sweep",
+      "sub": "Split oversized code files repo-wide into small modules via disjoint worker packets (Remy directive 2026-07-10)",
+      "campaign": "tooling",
+      "status": "active",
+      "deps": [],
+      "features": [
+        {
+          "title": "Discovery inventory + disjoint packets",
+          "status": "done"
+        },
+        {
+          "title": "Wave 1: nine low-risk splits",
+          "status": "done"
+        },
+        {
+          "title": "High fan-in splits behind facades",
+          "status": "parked"
+        }
+      ]
+    },
+    {
+      "id": "whole-game-systems-audit",
+      "title": "Whole-Game Systems Audit and Gap Resolution",
+      "campaign": "tooling",
+      "status": "active",
+      "deps": [],
+      "link": "docs/projects/game-systems-audit/NORTH_STAR.md",
+      "features": [
+        {
+          "title": "W01 Onboarding and persistence",
+          "status": "active",
+          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+        },
+        {
+          "title": "W01 checkpoint tier runtime - Tiered Autosave GAP-002",
+          "status": "done",
+          "link": "docs/projects/tiered-autosave/GAPS.md"
+        },
+        {
+          "title": "W01 saved-run state restoration proof",
+          "status": "done",
+          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+        },
+        {
+          "title": "W01 checkpoint history separation - Tiered Autosave GAP-003",
+          "status": "done",
+          "link": "docs/projects/tiered-autosave/GAPS.md"
+        },
+        {
+          "title": "W01 shared WindowFrame close target - Ui Primitives G4",
+          "status": "done",
+          "link": "docs/projects/ui-primitives/GAPS.md"
+        },
+        {
+          "title": "W01 IndexedDB primary and recovery paths - Tiered Autosave GAP-005",
+          "status": "done",
+          "link": "docs/projects/tiered-autosave/GAPS.md"
+        },
+        {
+          "title": "W01 accurate fallback storage diagnostics - SaveLoad G8",
+          "status": "done",
+          "link": "docs/projects/saveload/GAPS.md"
+        },
+        {
+          "title": "W01 safe abandon and persistent recovery proof",
+          "status": "done",
+          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+        },
+        {
+          "title": "W01 all checkpoint horizons and stable retention keys",
+          "status": "done",
+          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+        },
+        {
+          "title": "W02 World and exploration",
+          "status": "specced",
+          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+        },
+        {
+          "title": "W03 Town social and quests",
+          "status": "specced",
+          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+        },
+        {
+          "title": "W04 Combat and tactical play",
+          "status": "specced",
+          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+        },
+        {
+          "title": "W05 Character mechanics and progression",
+          "status": "specced",
+          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+        },
+        {
+          "title": "W06 Items economy and crafting",
+          "status": "specced",
+          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+        },
+        {
+          "title": "W07 Factions crime and faith",
+          "status": "specced",
+          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+        },
+        {
+          "title": "W08 Extended travel and realms",
+          "status": "specced",
+          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+        },
+        {
+          "title": "W09 Simulation time and environment",
+          "status": "specced",
+          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+        },
+        {
+          "title": "W10 3D and rendering",
+          "status": "specced",
+          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+        },
+        {
+          "title": "W11 Information and UI surfaces",
+          "status": "specced",
+          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+        },
+        {
+          "title": "W12 Services resilience and closure",
+          "status": "specced",
+          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
         }
       ]
     }

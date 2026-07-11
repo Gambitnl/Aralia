@@ -12,6 +12,16 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useSpellGateChecks } from '../useSpellGateChecks';
+import currentMagicMissileJson from '../../../public/data/spells/level-1/magic-missile.json';
+
+// The hook owns result merging, while spellGateBootstrap owns optional local
+// artifact loading. Mock that boundary directly so clean CI and local machines
+// exercise the same deterministic report inputs without requiring ignored
+// `.agent/roadmap-local` files to exist on disk.
+const mockFetchSpellGateBootstrap = vi.hoisted(() => vi.fn());
+vi.mock('../../components/Glossary/spellGateChecker/spellGateBootstrap', () => ({
+  fetchSpellGateBootstrap: mockFetchSpellGateBootstrap,
+}));
 
 // ============================================================================
 // Mock wiring
@@ -123,7 +133,10 @@ vi.mock('../../../../.agent/roadmap-local/spell-validation/spell-structured-vs-j
   },
 }));
 
-const mockFetch = vi.fn();
+// Hoist the network spy for the same reason as the bootstrap spy: Vitest moves
+// module mock factories above ordinary declarations, and the restored tests
+// must not depend on factory-evaluation timing to receive their live JSON.
+const mockFetch = vi.hoisted(() => vi.fn());
 vi.mock('../../utils/networkUtils', () => ({
   fetchWithTimeout: (url: string) => mockFetch(url),
 }));
@@ -167,101 +180,22 @@ const fidelity = {
 };
 
 const spellJson = {
-  id: 'magic-missile',
-  name: 'Magic Missile',
-  aliases: [],
-  level: 1,
-  school: 'Evocation',
-  legacy: false,
+  // Begin with the checked-in production payload so this restored schema test
+  // evolves with required targeting/effect fields instead of preserving a
+  // second, silently stale copy of the spell schema in test code.
+  ...currentMagicMissileJson,
   classes: ['Cleric', 'Wizard'],
   subClasses: ['Warlock - Fiend Patron'],
   subClassesVerification: 'verified',
-  ritual: false,
-  rarity: 'common',
-  attackType: '',
-  castingTime: {
-    value: 1,
-    unit: 'action',
-    combatCost: { type: 'action', condition: '' },
-    explorationCost: { value: 0, unit: 'minute' },
-  },
-  range: { type: 'ranged', distance: 120 },
   components: {
+    ...currentMagicMissileJson.components,
     verbal: true,
     somatic: true,
     material: false,
-    materialDescription: '',
-    materialCost: 0,
-    isConsumed: false,
   },
-  duration: {
-    type: 'instantaneous',
-    concentration: false,
-    value: 0,
-    unit: 'round',
-  },
-  targeting: {
-    type: 'multi',
-    range: 120,
-    maxTargets: 3,
-    validTargets: ['creatures'],
-    lineOfSight: true,
-    areaOfEffect: { shape: 'Sphere', size: 0, height: 0 },
-    filter: {
-      creatureTypes: [],
-      excludeCreatureTypes: [],
-      sizes: [],
-      alignments: [],
-      hasCondition: [],
-      isNativeToPlane: false,
-    },
-  },
-  effects: [{
-    type: 'DAMAGE',
-    trigger: {
-      type: 'immediate',
-      frequency: 'every_time',
-      consumption: 'unlimited',
-      attackFilter: {
-        weaponType: 'any',
-        attackType: 'any',
-      },
-      movementType: 'any',
-      sustainCost: {
-        actionType: 'action',
-        optional: false,
-      },
-    },
-    condition: {
-      type: 'always',
-      saveType: 'Strength',
-      saveEffect: 'none',
-      targetFilter: {
-        creatureTypes: [],
-        excludeCreatureTypes: [],
-        sizes: [],
-        alignments: [],
-        hasCondition: [],
-        isNativeToPlane: false,
-      },
-      requiresStatus: [],
-      saveModifiers: [],
-    },
-    damage: {
-      dice: '1d4+1',
-      type: 'Force',
-    },
-    scaling: {
-      type: 'slot_level',
-      bonusPerLevel: '+1 dart (1d4+1 each)',
-      customFormula: '',
-    },
-    description: '',
-  }],
-  arbitrationType: 'mechanical',
-  aiContext: { prompt: '', playerInputRequired: false },
-  higherLevels: 'When you cast this spell using a spell slot of 2nd level or higher, the spell creates one more dart for each slot level above 1st.',
-  tags: ['damage', 'force', 'auto-hit'],
+  // This fixture intentionally models the outstanding structured-to-runtime
+  // description gap asserted below, while every unrelated schema field stays
+  // inherited from the current checked-in spell payload.
   description: '',
 };
 
@@ -309,6 +243,57 @@ const spellGateArtifact = {
   },
 };
 
+// These are the optional local report payloads the bootstrap normally imports
+// from ignored `.agent` files. Keeping the exact mismatch fields in the test
+// fixture lets clean CI prove every bucket classification without filesystem
+// state becoming a hidden prerequisite.
+const structuredCanonicalReport = {
+  mismatches: [
+    {
+      spellId: 'magic-missile',
+      field: 'Sub-Classes',
+      structuredValue: 'Warlock - Fiend Patron',
+      canonicalValue: 'Cleric - Order Domain (TCoE), Warlock - Fiend Patron',
+      summary: 'Magic Missile records Sub-Classes differently in the structured block and the canonical snapshot.',
+    },
+    {
+      spellId: 'magic-missile',
+      field: 'Casting Time',
+      structuredValue: '1 Action',
+      canonicalValue: '1 Action *',
+      summary: 'Canonical display appends a trigger-style footnote marker.',
+    },
+    {
+      spellId: 'magic-missile',
+      field: 'Description',
+      mismatchKind: 'missing-canonical-field',
+      structuredValue: 'You create three glowing darts of magical force.',
+      canonicalValue: '',
+      summary: 'Magic Missile has structured Description data, but the canonical snapshot does not currently expose a comparable Description value.',
+    },
+    {
+      spellId: 'magic-missile',
+      field: 'Components',
+      structuredValue: 'V, S, M *',
+      canonicalValue: 'V, S, M **',
+      summary: 'Magic Missile records Components differently in the structured block and the canonical snapshot.',
+    },
+  ],
+};
+
+const structuredJsonReport = {
+  mismatches: [
+    {
+      spellId: 'magic-missile',
+      field: 'Description',
+      mismatchKind: 'missing-json-field',
+      structuredValue: 'You create three glowing darts of magical force.',
+      jsonValue: '',
+      summary: 'Magic Missile still has structured Description data, but the runtime spell JSON does not currently store a comparable Description value.',
+    },
+  ],
+};
+
 // ============================================================================
 // Hook behavior checks
 // ============================================================================
@@ -316,28 +301,32 @@ const spellGateArtifact = {
 // also carrying through the richer spell-truth artifact details.
 // ============================================================================
 
-// These tests exercise the structured-vs-canonical / structured-vs-json drift
-// classification, which only fires when the optional .agent/roadmap-local
-// reports are loadable. spellGateBootstrap.ts loads those reports through a
-// dynamic `import(/* @vite-ignore */ ...)` so production builds and clean CI
-// checkouts (where the .agent files are absent) gracefully fall back to empty
-// reports. The @vite-ignore pragma also bypasses Vitest's vi.mock wiring, so
-// even though this file declares mocks for those JSON imports, the runtime
-// import() call goes straight to the filesystem. That makes these scenarios
-// pass locally (where reviewers have the report files) and fail in CI.
-//
-// Skipped here rather than rewritten because the right fix is a small
-// refactor of spellGateBootstrap to accept injected reports — out of scope for
-// the current CI-stabilization pass. Track restoration when that refactor lands.
-describe.skip('useSpellGateChecks', () => {
+// Production still loads optional local reports through a Vite-ignored dynamic
+// import and falls back cleanly when they are absent. This test mocks the
+// bootstrap boundary itself, so local and CI runs receive the same report data
+// without changing that production fallback contract.
+// The focused fixtures above preserve the optional reports' exact mismatch
+// shapes without requiring a new production injection API.
+describe('useSpellGateChecks', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFetchSpellGateBootstrap.mockResolvedValue({
+      manifest,
+      fidelity,
+      gateArtifact: spellGateArtifact,
+      knownGaps: new Set(['magic-missile']),
+      structuredCanonicalReport,
+      structuredJsonReport,
+    });
     mockFetch.mockImplementation(async (url: string) => {
       if (url.includes('spells_manifest.json')) return manifest;
       if (url.includes('spells_fidelity.json')) return fidelity;
       if (url.includes('spell_gate_report.json')) return spellGateArtifact;
-      if (url.includes('magic-missile.json')) return spellJson;
-      return null;
+      // The bootstrap data above is mocked at its public boundary, so the only
+      // remaining network request made by the hook is the manifest entry's live
+      // spell payload. Returning that payload as the bounded fallback keeps this
+      // fixture independent of assetUrl's environment-specific path prefix.
+      return spellJson;
     });
   });
 
