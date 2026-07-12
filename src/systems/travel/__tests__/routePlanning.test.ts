@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { planFastestRoute, planRoutesFrom, transportSpeedMph, type TravelGraph } from '../routePlanning';
+import { planFastestRoute, planRoutesFrom, routeHaltIndex, transportSpeedMph, type TravelGraph } from '../routePlanning';
 import type { TravelTerrain } from '../../../types/travel';
 import { STANDARD_VEHICLES } from '../../../types/travel';
+import { climbFactorFor } from '../../worldforge/travel/routeTerrain';
 
 /**
  * These tests protect the generic travel route planner.
@@ -100,6 +101,71 @@ describe('planFastestRoute', () => {
   });
 });
 
+// Edge-level climb cost (2026-07-11 mountains): a graph may expose
+// climbFactor(from, to); the planner multiplies it into the speed-factor
+// branch so ascents genuinely cost time and pass routes beat scrambles.
+describe('climbFactor edge hook (2026-07-11 mountains)', () => {
+  it('multiplies into the terrain-table branch (absent hook = unchanged times)', () => {
+    const flat = lineGraph({});
+    const climb: TravelGraph = { ...lineGraph({}), climbFactor: (_from, to) => (to === 1 ? 0.5 : 1) };
+    expect(planFastestRoute(flat, 0, 1, { milesPerUnit: 0.1, speedMph: 3 })!.minutes).toBeCloseTo(20, 6);
+    expect(planFastestRoute(climb, 0, 1, { milesPerUnit: 0.1, speedMph: 3 })!.minutes).toBeCloseTo(40, 6);
+  });
+
+  it('composes with a graded speedFactor (both multiply)', () => {
+    const g: TravelGraph = {
+      ...lineGraph({}),
+      speedFactor: (c) => (c === 1 ? 0.5 : 1),
+      climbFactor: (_from, to) => (to === 1 ? 0.5 : 1),
+    };
+    // 1 mile at 3 mph = 20 min, × 2 (terrain) × 2 (climb) = 80 min.
+    expect(planFastestRoute(g, 0, 1, { milesPerUnit: 0.1, speedMph: 3 })!.minutes).toBeCloseTo(80, 6);
+  });
+
+  it('edgeMinutes stays authoritative — climbFactor is not double-applied on top', () => {
+    const g: TravelGraph = {
+      ...lineGraph({}),
+      edgeMinutes: () => 7,
+      climbFactor: () => 0.5,
+    };
+    expect(planFastestRoute(g, 0, 1, { milesPerUnit: 0.1, speedMph: 3 })!.minutes).toBe(7);
+  });
+
+  // The mechanics heart: once climbing costs time, a flat-but-long saddle
+  // route beats the short-but-steep scramble straight over the ridge.
+  it('prefers the flat pass route over the direct scramble across a ridge', () => {
+    // Direct line 0—1—5 hops a h75 ridge cell; the detour 0—2—3—4—5 swings
+    // around it over gentle h35/40/35 saddle cells (longer, ~29 units vs 20).
+    //
+    //      2(h35) — 3(h40) — 4(h35)     ← the pass (long, gentle)
+    //     /                    \
+    //  0(h30) —— 1(h75) —— 5(h30)       ← the scramble (short, steep)
+    const h: Record<number, number> = { 0: 30, 1: 75, 2: 35, 3: 40, 4: 35, 5: 30 };
+    const pos: Record<number, [number, number]> = {
+      0: [0, 0], 1: [10, 0], 5: [20, 0],
+      2: [5, 8], 3: [10, 9], 4: [15, 8],
+    };
+    const adj: Record<number, number[]> = {
+      0: [1, 2], 1: [0, 5], 2: [0, 3], 3: [2, 4], 4: [3, 5], 5: [1, 4],
+    };
+    const graph = (withClimb: boolean): TravelGraph => ({
+      neighbors: (c) => adj[c] ?? [],
+      position: (c) => pos[c],
+      terrain: () => 'open',
+      passable: () => true,
+      ...(withClimb
+        ? { climbFactor: (from: number, to: number) => climbFactorFor(h[to] - h[from], null) }
+        : {}),
+    });
+    // Without climb cost the scramble is simply shorter and wins…
+    expect(planFastestRoute(graph(false), 0, 5, { milesPerUnit: 0.1, speedMph: 3 })!.cells)
+      .toEqual([0, 1, 5]);
+    // …with it, the planner threads the saddle instead.
+    expect(planFastestRoute(graph(true), 0, 5, { milesPerUnit: 0.1, speedMph: 3 })!.cells)
+      .toEqual([0, 2, 3, 4, 5]);
+  });
+});
+
 describe('planRoutesFrom (single-source field)', () => {
   it('uses graph-supplied per-edge minutes when available', () => {
     const graph: TravelGraph = {
@@ -116,6 +182,9 @@ describe('planRoutesFrom (single-source field)', () => {
     expect(route).not.toBeNull();
     expect(route!.minutes).toBe(101);
     expect(route!.cells).toEqual([0, 1, 2]);
+    // The exact edge-cost ledger is what lets provisioning stop at cell 1
+    // after one minute instead of guessing from the three equally spaced points.
+    expect(route!.cumulativeMinutes).toEqual([0, 1, 101]);
   });
 
   it('computes one field that resolves routes to any cell (instant hover reconstruct)', () => {
@@ -139,5 +208,35 @@ describe('planRoutesFrom (single-source field)', () => {
     };
     const field = planRoutesFrom(g, 0, { milesPerUnit: 1, speedMph: 3 });
     expect(field.to(2)).toBeNull();
+  });
+});
+
+describe('routeHaltIndex', () => {
+  it('uses cumulative edge time rather than vertex fraction for a supply horizon', () => {
+    const route = {
+      cells: [10, 11, 12, 13],
+      points: [[0, 0], [1, 0], [2, 0], [3, 0]] as Array<[number, number]>,
+      miles: 3,
+      minutes: 180,
+      cumulativeMinutes: [0, 10, 170, 180],
+      danger: 0,
+    };
+
+    expect(routeHaltIndex(route, 60)).toBe(1);
+    expect(routeHaltIndex(route, 175)).toBe(2);
+  });
+
+  it('does not grant a free first edge at a zero-minute horizon and can require a land halt', () => {
+    const route = {
+      cells: [20, 21, 22, 23],
+      points: [[0, 0], [1, 0], [2, 0], [3, 0]] as Array<[number, number]>,
+      miles: 3,
+      minutes: 90,
+      cumulativeMinutes: [0, 30, 60, 90],
+      danger: 0,
+    };
+
+    expect(routeHaltIndex(route, 0)).toBe(0);
+    expect(routeHaltIndex(route, 75, (cell) => cell === 20 || cell === 23)).toBe(0);
   });
 });

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 11/07/2026, 14:00:57
+ * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewTowns.tsx, components/DesignPreview/steps/Town3DScene.tsx, components/DesignPreview/steps/townMesh.ts, components/MapPane.tsx, components/Worldforge/TownPlanView.tsx, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/town/architectureDistricts.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/householdBrief.ts, systems/worldforge/town/population.ts, systems/worldforge/town/townDiagnostics.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file townEngine.ts — SP-T clean-room Voronoi-ward town generator, iteration #1.
  *
@@ -18,6 +34,10 @@
 import { rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import { generateSubmap, polygonBounds, pointInPolygon, clipPolylineToPolygon, type Pt } from '../submap/submapEngine';
 import { assignTownPopulation, assignWardWealth } from './population';
+import {
+  assignArchitectureDistricts,
+  type TownArchitectureDistrict,
+} from './architectureDistricts';
 
 export interface BuildingPlot {
   /** Plot footprint polygon (graph coords, the town's frame). */
@@ -36,6 +56,8 @@ export interface BuildingPlot {
   occupants?: number;
   /** Stable per-town building id (`b<index>`) — keys the lazy named household. */
   homeId?: string;
+  /** Stable architecture identity assigned before population or adapter filtering. */
+  architectureKey?: string;
   /** Social class of the ward this plot sits in (set before classification). */
   district?: import('./population').WardWealth;
   /** For a HOME: the `homeId` of the workplace its breadwinners work at (undefined = unskilled labour). */
@@ -120,6 +142,8 @@ export interface TownWard {
   civic?: CivicKind;
   /** Social class of this ward (wealthy near the keep/market, poor at the rim). */
   wealth?: import('./population').WardWealth;
+  /** Spatial district whose buildings repeat one roof/facade dialect. */
+  architectureDistrict?: TownArchitectureDistrict;
 }
 
 /** Land use of the ring between the built town core and the cell boundary. */
@@ -1049,12 +1073,25 @@ export function generateTownPlan(
   const prestige = civic.filter((c) => c.kind === 'keep' || c.kind === 'citadel' || c.kind === 'temple' || c.kind === 'plaza');
   const anchors = prestige.map((c) => polygonCentroid(c.polygon));
   const wealth = assignWardWealth(wardCentroids, anchors, coreSpan, seedPath);
+  const architectureDistricts = assignArchitectureDistricts(
+    wardCentroids,
+    townCenter,
+    wards.map((ward) => ward.civic),
+    seedPath,
+  );
   wards.forEach((w, i) => {
     w.wealth = wealth[i];
+    w.architectureDistrict = architectureDistricts[i];
     for (const p of w.plots) p.district = wealth[i];
   });
 
   const allPlots = wards.flatMap((w) => w.plots);
+  // Architecture identity exists even for unpopulated previews. Assign it only
+  // after civic-overlap and cross-ward filtering finalize the canonical plot
+  // list, so normalized 2D and transformed 3D plans retain the same key.
+  allPlots.forEach((plot, plotIndex) => {
+    plot.architectureKey = `plot:${plotIndex}`;
+  });
   let farmsteads: import('./population').Farmstead[] = [];
   let demographics: import('./population').TownDemographics | undefined;
   if (profile) {

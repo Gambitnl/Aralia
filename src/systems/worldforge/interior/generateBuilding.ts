@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 11/07/2026, 12:57:06
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/generateInterior.ts
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file generateBuilding.ts — assemble a full multi-floor BlueprintPlan.
  *
@@ -135,13 +151,27 @@ export function briefDigest(brief: HouseholdBrief | undefined): string {
   ]);
 }
 
-/** Stable digest of a style context for the memo key (same pattern as
- *  briefDigest): two styles that resolve to different dress/roofs MUST produce
- *  different digests. Empty string when there is no style (briefless/preview v1
- *  memo keys unchanged). Covers every StyleContext field. */
+/**
+ * Stable digest of a style context for the memo key.
+ *
+ * Two contexts that resolve to different district or building dress must never
+ * share a cached plan. The four original fields keep their historical JSON
+ * shape when no architecture identity is present, so standalone preview memo
+ * keys remain unchanged. Identified production buildings append all three
+ * identity scopes because each can change the roof or facade answer.
+ */
 export function styleDigest(style: StyleContext | undefined): string {
   if (!style) return '';
-  return JSON.stringify([style.cultureType, style.climate, style.wealth, style.ageBand]);
+  const originalFields = [style.cultureType, style.climate, style.wealth, style.ageBand];
+  if (!style.architecture) return JSON.stringify(originalFields);
+  return JSON.stringify([
+    ...originalFields,
+    [
+      style.architecture.settlementKey,
+      style.architecture.districtKey,
+      style.architecture.buildingKey,
+    ],
+  ]);
 }
 
 /** A room OWNS a window when the window's outer edge lies on the boundary of

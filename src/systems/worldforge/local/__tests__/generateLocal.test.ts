@@ -9,7 +9,9 @@ import { generateRegion } from '../../region/generateRegion';
 import { generateLocal } from '../generateLocal';
 import { rootSeedPath } from '../../seedPath';
 import { boundsCenter } from '../../units';
-import { WORLDFORGE_SCHEMA_VERSION, type RegionArtifact } from '../../artifacts';
+import { WORLDFORGE_SCHEMA_VERSION, type LocalArtifact, type RegionArtifact } from '../../artifacts';
+import { patchNoise2 } from '../../vegetation/grassField';
+import { CLEARING_FREQ, CLEARING_SALT, CLEARING_THRESHOLD } from '../../forests/forestTunables';
 
 const SEED = 'world-42';
 const WORLD_SEED = 42;
@@ -157,6 +159,125 @@ describe('generateLocal — altitude/slope rock classification', () => {
 
   it('lowlands (FMG h≈35) stay essentially rock-free', () => {
     expect(rockFraction(0.35)).toBeLessThan(0.05);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Forest thickets, clearings, undergrowth (forests campaign Task 10).
+// Trees in DENSE-forest windows gate through the shared patch noise
+// (patchNoise2 over world feet / 1000): low-noise zones become clearings,
+// and an extra keep-gated 'undergrowth' stream crowds bushes into the
+// thickets. Non-dense windows must stay byte-identical to the pre-Task-10
+// generator.
+// ---------------------------------------------------------------------------
+
+describe('generateLocal — forest thickets, clearings, undergrowth (Task 10)', () => {
+  const clearingNoiseAt = (x: number, y: number) =>
+    patchNoise2(x / 1000, y / 1000, CLEARING_SALT, CLEARING_FREQ);
+
+  function buildLocalFor(biomeId: number): LocalArtifact {
+    const region = buildRegion();
+    const center = boundsCenter(region.bounds);
+    return generateLocal(region, center, region.seedPath ?? rootSeedPath(WORLD_SEED), { biomeId });
+  }
+
+  let cachedDense: LocalArtifact | null = null;
+  /** Temperate deciduous forest (biome 6, treeDensity 1.8 ≥ 1.4 → dense). */
+  const dense = () => (cachedDense ??= buildLocalFor(6));
+
+  /**
+   * Features after the artifact's last boulder. placeKind pushes in call
+   * order (trees, bushes, boulders, then undergrowth), so this slice is
+   * exactly the 'undergrowth' stream's output — empty when the stream
+   * never ran.
+   */
+  function undergrowthSlice(local: LocalArtifact) {
+    let lastBoulder = -1;
+    local.features.forEach((f, i) => { if (f.kind === 'boulder') lastBoulder = i; });
+    expect(lastBoulder).toBeGreaterThanOrEqual(0); // fixture must have boulders for the slice to mean anything
+    return local.features.slice(lastBoulder + 1);
+  }
+
+  it('dense forest: low-noise probe rects hold < 20% of mean tree density (clearings)', () => {
+    const local = dense();
+    const { bounds } = local;
+    // Find clearing probe rects straight from the noise the gate reads:
+    // 150ft rects whose 10ft-sampled noise never reaches the threshold
+    // (0.03 margin absorbs sub-sample wiggle).
+    const RECT = 150;
+    const rects: Array<[number, number]> = [];
+    for (let ry = bounds.y; ry + RECT <= bounds.y + bounds.height; ry += RECT) {
+      for (let rx = bounds.x; rx + RECT <= bounds.x + bounds.width; rx += RECT) {
+        let maxNoise = -Infinity;
+        for (let sy = 0; sy <= RECT; sy += 10) {
+          for (let sx = 0; sx <= RECT; sx += 10) {
+            const n = clearingNoiseAt(rx + sx, ry + sy);
+            if (n > maxNoise) maxNoise = n;
+          }
+        }
+        if (maxNoise < CLEARING_THRESHOLD - 0.03) rects.push([rx, ry]);
+      }
+    }
+    expect(rects.length).toBeGreaterThanOrEqual(3); // the window really has clearings to probe
+
+    const trees = local.features.filter((f) => f.kind === 'tree');
+    const meanPerSqFt = trees.length / (bounds.width * bounds.height);
+    const expectedInRects = meanPerSqFt * RECT * RECT * rects.length;
+    let inRects = 0;
+    for (const t of trees) {
+      for (const [rx, ry] of rects) {
+        if (t.x >= rx && t.x < rx + RECT && t.y >= ry && t.y < ry + RECT) { inRects++; break; }
+      }
+    }
+    expect(expectedInRects).toBeGreaterThan(5); // probe is statistically meaningful
+    expect(inRects).toBeLessThan(expectedInRects * 0.2);
+  });
+
+  it('dense forest: every tree sits above the clearing threshold (gate wired to the shared noise)', () => {
+    const trees = dense().features.filter((f) => f.kind === 'tree');
+    expect(trees.length).toBeGreaterThan(300);
+    let below = 0;
+    for (const t of trees) if (clearingNoiseAt(t.x, t.y) <= CLEARING_THRESHOLD) below++;
+    expect(below).toBe(0);
+  });
+
+  it('dense forest: undergrowth bushes exist and all hug the thickets (same keep as trees)', () => {
+    const under = undergrowthSlice(dense());
+    expect(under.length).toBeGreaterThan(200); // 2.5× scrub density has real presence
+    expect(under.every((f) => f.kind === 'bush')).toBe(true);
+    let below = 0;
+    for (const f of under) if (clearingNoiseAt(f.x, f.y) <= CLEARING_THRESHOLD) below++;
+    expect(below).toBe(0); // clearings stay open — undergrowth never lands in them
+  });
+
+  it('deep-forest-id biome (taiga 9): deterministic, with undergrowth', () => {
+    const a = buildLocalFor(9);
+    const b = buildLocalFor(9);
+    expect(a.features).toEqual(b.features);
+    expect(undergrowthSlice(a).length).toBeGreaterThan(0);
+  });
+
+  it('grassland (non-dense) output is BYTE-IDENTICAL to the pre-Task-10 generator', () => {
+    const a = buildLocalFor(4);
+    const b = buildLocalFor(4);
+    expect(a.features).toEqual(b.features); // deterministic
+    expect(undergrowthSlice(a).length).toBe(0); // the undergrowth stream never ran
+    // FNV-1a over the exact feature JSON (ids, kinds, full-precision coords).
+    // Snapshot BAKED PRE-CHANGE (RED run, 2026-07-11): a post-change match
+    // proves non-dense windows still get the same streams in the same order —
+    // no keep gate, no extra call, identical bytes.
+    const s = JSON.stringify(a.features);
+    let h = 0x811c9dc5;
+    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+    expect({
+      featureHash: h >>> 0,
+      featureCount: a.features.length,
+      counts: {
+        tree: a.features.filter((f) => f.kind === 'tree').length,
+        bush: a.features.filter((f) => f.kind === 'bush').length,
+        boulder: a.features.filter((f) => f.kind === 'boulder').length,
+      },
+    }).toMatchSnapshot('grassland-task10-byte-identity');
   });
 });
 

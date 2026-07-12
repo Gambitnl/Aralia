@@ -6,10 +6,10 @@ slug: world-3d-ui
 status: active
 status_note: "Preserved as merged_reference to avoid flattening existing gap provenance. Iteration 4 monitor pass: scoped World3D suite green 25/25; seeded Gap Log row G1 closed after bounded sweep; no open project gaps."
 registry_mode: merged_reference
-last_updated: "2026-06-10"
-gap_count: 0
+last_updated: "2026-07-11"
+gap_count: 1
 open_gap_count: 0
-resolved_gap_count: 0
+resolved_gap_count: 1
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
@@ -126,6 +126,7 @@ Use this file for durable unresolved findings that are too important or too larg
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
+| W3DUI-G2 | resolved | in_scope_now | Codex | World3D transition HUD and developer inspectors | whole-game systems audit W02 | In dev mode, the fixed Agent sim launcher occupied the same lower-right hit target as the visible Atlas button, preventing pointer transition from 3D to the atlas; Town history shared the same unsafe edge lane. | Live `elementsFromPoint` trace placed `agent-sim-dev-overlay` above `hud-atlas-toggle`; `src/components/debug/AgentSimDevOverlay.tsx`; `src/components/debug/TownHistoryDevOverlay.tsx`. | A visible primary navigation control must not be pointer-inert because an optional inspector owns its hit area. | Resolved by reserving the final 220px for the World3D HUD and shifting both developer inspectors beside it. | Focused overlay tests plus rendered pointer switch to Atlas with dev mode enabled. |
 
 ## Schema Fit Notes
 

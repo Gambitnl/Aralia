@@ -277,17 +277,23 @@ describe('adapter — civilization data from generateFmgWorld', () => {
   it('GOLDEN: maps route groups into artifact route kinds', () => {
     const { artifact } = buildGoldenWorldArtifact();
 
+    // Tier vocabulary (road-systems Task 5): the pre-split 12 "road" trunk
+    // routes are now "highway"; the old 199 "trail" routes split by burg
+    // importance into 8 town "road" + 197 village "trail" (per-group merge,
+    // +6 total). searoute unchanged. route[0] is the first highway (former
+    // main road). Same shift as fmgWorld.test.ts route counts.
     const counts = {
+      highway: artifact.routes.filter((route) => route.kind === 'highway').length,
       road: artifact.routes.filter((route) => route.kind === 'road').length,
       trail: artifact.routes.filter((route) => route.kind === 'trail').length,
       searoute: artifact.routes.filter((route) => route.kind === 'searoute')
         .length,
     };
 
-    expect(counts).toEqual({ road: 12, trail: 199, searoute: 36 });
+    expect(counts).toEqual({ highway: 12, road: 8, trail: 197, searoute: 36 });
     expect(artifact.routes[0]).toMatchObject({
       id: 0,
-      kind: 'road',
+      kind: 'highway',
     });
     expect(artifact.routes[0].cellIds.length).toBeGreaterThan(1);
   });

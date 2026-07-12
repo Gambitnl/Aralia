@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 25/06/2026, 13:13:23
+ * Last Sync: 12/07/2026, 01:22:36
  * Dependents: App.tsx
  * Imports: 8 files
  *
@@ -16,9 +16,20 @@
 
 /**
  * @file src/hooks/useGameActions.ts
- * Custom hook for managing game action processing.
- * This is the refactored version that orchestrates calls to specific action handlers.
+ * This hook is the front door for player actions from the exploration interface.
+ *
+ * It prepares the shared game context, finds the specialised handler for each action,
+ * and owns the global loading/error lifecycle around handlers that do not manage that
+ * lifecycle themselves. App.tsx calls this hook and passes the resulting processAction
+ * function to action-producing controls throughout the game.
  */
+
+// ============================================================================
+// Dependencies
+// ============================================================================
+// These imports provide game state types, authored world context, handler contracts,
+// and the shared helpers used to explain the player's action to narrative systems.
+// ============================================================================
 import React, { useCallback } from 'react';
 import { GameState, Action, Location, GeminiLogEntry, DiscoveryType, ACTION_METADATA } from '../types';
 import { AppAction } from '../state/actionTypes';
@@ -28,7 +39,12 @@ import { AddMessageFn, PlayPcmAudioFn, GetCurrentLocationFn, GetCurrentNPCsFn, G
 import { getDiegeticPlayerActionMessage } from '../utils/actionUtils';
 import { generateGeneralActionContext } from '../utils/contextUtils';
 
-
+// ============================================================================
+// Hook Inputs
+// ============================================================================
+// App.tsx supplies both the current game state and the services that action handlers
+// need. Keeping these inputs explicit lets the specialised handlers remain reusable.
+// ============================================================================
 interface UseGameActionsProps {
   gameState: GameState;
   dispatch: React.Dispatch<AppAction>;
@@ -39,7 +55,12 @@ interface UseGameActionsProps {
   getTileTooltipText: GetTileTooltipTextFn;
 }
 
-
+// ============================================================================
+// Player Action Orchestration
+// ============================================================================
+// This section records discoveries and AI diagnostics, then routes each player action
+// through the correct handler while keeping the global interaction gate trustworthy.
+// ============================================================================
 export function useGameActions({
   gameState,
   dispatch,
@@ -50,6 +71,8 @@ export function useGameActions({
   getTileTooltipText,
 }: UseGameActionsProps) {
 
+  // Record each AI request and response in the developer log without making the
+  // specialised action handlers depend directly on global state.
   const addGeminiLog = useCallback<AddGeminiLogFn>((functionName, prompt, response) => {
     const logEntry: GeminiLogEntry = {
       timestamp: new Date(),
@@ -60,6 +83,8 @@ export function useGameActions({
     dispatch({ type: 'ADD_GEMINI_LOG_ENTRY', payload: logEntry });
   }, [dispatch]);
 
+  // Add a location to the discovery journal only once. Revisiting an explored place
+  // should not inflate the journal or repeatedly increase its unread count.
   const logDiscovery = useCallback<LogDiscoveryFn>((newLocation: Location) => {
     const alreadyDiscovered = gameState.discoveryLog.some(entry =>
       entry.type === DiscoveryType.LOCATION_DISCOVERY &&
@@ -91,12 +116,21 @@ export function useGameActions({
       // instead of being hidden by string suffix checks.
       const actionMetadata = ACTION_METADATA[action.type];
       const isUiToggle = Boolean(actionMetadata?.isUiToggle);
+
+      // Clear an error left by the previous action before starting this action's
+      // loading period. SET_ERROR intentionally ends the reducer's current loading
+      // state, so reversing these two dispatches would immediately re-enable controls
+      // while an asynchronous action is still pending.
+      dispatch({ type: 'SET_ERROR', payload: null });
+
+      // Pure interface toggles remain immediate and spinner-free. All other actions
+      // close the global interaction gate until their handler completes or fails.
       if (!isUiToggle) {
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Processing action..." } });
       }
 
-      dispatch({ type: 'SET_ERROR', payload: null });
-
+      // Leaving conversation work resets the selected NPC so a later action cannot
+      // accidentally inherit dialogue context from the previous interaction.
       if (action.type !== 'talk') {
         if (gameState.lastInteractedNpcId !== null) {
           dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
@@ -105,12 +139,15 @@ export function useGameActions({
 
       const playerCharacter = gameState.party[0];
 
+      // Echo actions that have a player-facing phrasing into the message history.
       const diegeticMessage = getDiegeticPlayerActionMessage(action, NPCS, LOCATIONS, playerCharacter);
       if (diegeticMessage) {
         addMessage(diegeticMessage, 'player');
       }
 
       let playerContext = 'An adventurer';
+
+      // Prefer the lead party member's authored identity when one is available.
       if (playerCharacter) {
         playerContext = `${playerCharacter.name}, a ${playerCharacter.race.name} ${playerCharacter.class.name}`;
       }
@@ -149,6 +186,8 @@ export function useGameActions({
       });
 
       try {
+        // Await the selected handler so the loading gate covers the complete action,
+        // including network-backed narration and other asynchronous game systems.
         const handler = handlers[action.type];
         if (handler) {
           await handler(action);
@@ -158,6 +197,9 @@ export function useGameActions({
           dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
         }
       } catch (err: unknown) {
+        // Convert unknown failures into both a player-facing message and reducer error.
+        // SET_ERROR also releases loading immediately; the finally block below remains
+        // the common success/error exit for actions whose handlers do not self-manage it.
         const msg = err instanceof Error ? err.message : String(err);
         console.error(`[useGameActions] Error in ${action.type}:`, err);
         addMessage(`Error processing action: ${msg}`, 'system');
@@ -179,5 +221,7 @@ export function useGameActions({
     ],
   );
 
+  // Action-producing components only need this stable entry point; all supporting
+  // context and lifecycle work remains private to the hook.
   return { processAction };
 }

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 11/07/2026, 14:58:18
+ * Dependents: components/Worldforge/TownPlanView.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file townPlanAdapter.ts — fold a rich `townEngine` TownPlan (organic wards,
  * walls, civic) into the flat `artifacts.ts` TownPlan that the 3D ground bake
@@ -7,12 +23,22 @@
  * Roles map into the buckets the 3D loader keys off
  * (`groundChunkLoader.ts`: `isBiz = role === 'market' || 'workshop'`) and mirror
  * `TownPlanView.describeBuilding` so 2D labels and 3D roles agree.
+ *
+ * Styling is layered through the canonical architecture resolver: culture is
+ * town-wide, spatial districts repeat a dominant construction dialect, wealth
+ * narrows finish quality, and each stable engine plot key receives a bounded
+ * individual variant. Artifact ids and footprints remain unchanged because
+ * businesses and interiors key on them.
  */
 import type { TownPlan as EngineTownPlan, BuildingPlot, CivicKind } from './townEngine';
 import type { TownPlan as ArtifactTownPlan } from '../artifacts';
 import type { Pt } from '../submap/submapEngine';
 import { isResidential, type BuildingType } from './population';
-import { styledWallColor, styledRoof, styleFrameOf, type StyleFamily, type StyleFrame, type RoofForm } from './architectureStyle';
+import {
+  resolveArchitectureVariant,
+  type StyleFamily,
+  type RoofForm,
+} from './architectureStyle';
 
 export interface AdaptedTownPlan {
   plan: ArtifactTownPlan;
@@ -113,7 +139,11 @@ function quadSides(q: [Pt, Pt, Pt, Pt]): [number, number] {
 }
 
 /** BuildingType / ward-civic → the role buckets the 3D loader understands. */
-function roleForPlot(plot: BuildingPlot, wardCivic?: CivicKind): string {
+/**
+ * This role decision is shared with the 2D town inspector so an unpopulated
+ * plot advertises the same motif recipe it will receive after artifact baking.
+ */
+export function roleForPlot(plot: BuildingPlot, wardCivic?: CivicKind): string {
   const t = plot.buildingType;
   if (t) {
     if (isResidential(t)) return 'house';
@@ -196,18 +226,45 @@ export function storeysForRole(role: string, poly: Pt[]): number {
 }
 
 /**
- * Per-plot architecture-style stamps ({ wallColorHex, roofColorHex, roofForm })
- * hashed from the plot polygon's NORMALIZED position in the plan footprint —
- * frame-invariant, so the 2D map (normalized frame) and 3D bake (region feet)
- * pick identical styles for the same building.
+ * Per-plot architecture-style stamps ({ wallColorHex, roofColorHex, roofForm }).
+ *
+ * The burg id chooses a settlement recipe, the spatial ward district chooses
+ * the construction dialect, wealth narrows finishes, and the stable engine plot
+ * key chooses a bounded building exception. These identities survive the
+ * normalized-to-region transform and adapter filtering.
  */
 function styleStamp(
-  fam: StyleFamily,
-  poly: Pt[],
-  frame: StyleFrame,
-): { wallColorHex: string; roofColorHex: string; roofForm: RoofForm } {
-  const roof = styledRoof(fam, poly, frame);
-  return { wallColorHex: styledWallColor(fam, poly, frame), roofColorHex: roof.color, roofForm: roof.form };
+  family: StyleFamily,
+  burgId: number,
+  districtKey: string,
+  districtLabel: string,
+  buildingKey: string,
+  wealth: 'poor' | 'common' | 'wealthy',
+): {
+  wallColorHex: string;
+  roofColorHex: string;
+  roofForm: RoofForm;
+  architecture: NonNullable<ArtifactTownPlan['plots'][number]['architecture']>;
+} {
+  const variant = resolveArchitectureVariant(family, wealth, {
+    settlementKey: `burg:${burgId}`,
+    districtKey,
+    buildingKey,
+  });
+  return {
+    wallColorHex: variant.wallColor,
+    roofColorHex: variant.roofColor,
+    roofForm: variant.roofForm,
+    architecture: {
+      districtKey,
+      districtLabel,
+      buildingKey,
+      wealth,
+      districtSignature: variant.districtSignature,
+      buildingVariant: variant.buildingVariant,
+      facadePattern: variant.facadePattern,
+    },
+  };
 }
 
 /**
@@ -221,21 +278,31 @@ function styleStamp(
  */
 export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: StyleFamily): AdaptedTownPlan {
   const plots: ArtifactTownPlan['plots'] = [];
-  const frame = family ? styleFrameOf(plan.footprint) : undefined;
   let id = 0;
 
   for (const ward of plan.wards) {
+    const wealth = ward.wealth ?? 'common';
+    // Generated plans carry spatial districts. Legacy/synthetic plans retain
+    // the previous wealth key so old fixtures keep deterministic style output.
+    const districtKey = ward.architectureDistrict?.key ?? `wealth:${wealth}`;
+    const districtLabel = ward.architectureDistrict?.label ?? `${wealth} quarter`;
     for (const pl of ward.plots) {
       const quad = orientedQuad(pl.polygon);
       const [w, d] = quadSides(quad);
       if (Math.min(w, d) < MIN_PLOT_SIDE_FT) continue; // sub-tile sliver — skip
       const role = roleForPlot(pl, ward.civic);
+      // Capture the id once so style identity and the durable artifact record
+      // refer to the exact same building. The increment order is unchanged.
+      const plotId = id++;
+      const buildingKey = pl.architectureKey ?? `plot:${plotId}`;
       plots.push({
-        id: id++,
+        id: plotId,
         footprint: quad,
         role,
         storeys: storeysForRole(role, pl.polygon),
-        ...(family && frame ? styleStamp(family, pl.polygon, frame) : {}),
+        ...(family
+          ? styleStamp(family, burgId, districtKey, districtLabel, buildingKey, wealth)
+          : {}),
         // Carry the population-pass classification through to the 3D bake so it
         // can rebuild the founding household brief (BGv2 Task 11). Only when the
         // population pass tagged this plot (buildingType set) — unpopulated towns
@@ -263,12 +330,26 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: St
   for (const c of plan.civic) {
     const role = roleForCivic(c.kind);
     if (!role) continue;
+    const civicWard = plan.wards[c.wardIndex];
+    const wealth = civicWard?.wealth ?? 'common';
+    const districtKey = civicWard?.architectureDistrict?.key ?? `wealth:${wealth}`;
+    const districtLabel = civicWard?.architectureDistrict?.label ?? `${wealth} quarter`;
+    const plotId = id++;
     plots.push({
-      id: id++,
+      id: plotId,
       footprint: orientedQuad(c.polygon),
       role,
       storeys: storeysForRole(role, c.polygon),
-      ...(family && frame ? styleStamp(family, c.polygon, frame) : {}),
+      ...(family
+        ? styleStamp(
+            family,
+            burgId,
+            districtKey,
+            districtLabel,
+            `civic:${c.kind}:${c.wardIndex}`,
+            wealth,
+          )
+        : {}),
     });
   }
 

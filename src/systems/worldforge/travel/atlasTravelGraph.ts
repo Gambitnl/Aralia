@@ -3,15 +3,24 @@
  *
  * Lets the generic route planner (`systems/travel/routePlanning.ts`) pathfind
  * over the atlas Voronoi cells: neighbors from `pack.cells.c`, centroids from
- * `pack.cells.p`, terrain from roads (`pack.routes[].cells`) + biome, passability
- * from land height, and a per-cell danger baseline from biome (halved on roads).
+ * `pack.cells.p`, passability from land height, and speed/danger/navigation from
+ * the shared road-terrain core (`routeTerrain.ts`) — route tiers graded by FMG
+ * group (highway/road/trail/path) with biome-graded off-road travel.
  *
- * Pure: no React/DOM. Biome→terrain/danger tables are deliberately simple; tune
- * later. milesPerUnit converts graph units → miles so travel time is realistic.
+ * Pure: no React/DOM. All gameplay-feel numbers live in `roadTunables.ts`.
+ * milesPerUnit converts graph units → miles so travel time is realistic.
  */
 import type { FmgAtlasResult } from '../fmg/generateAtlas';
 import type { TravelGraph } from '../../travel/routePlanning';
 import type { TravelTerrain, TransportOption } from '../../../types/travel';
+import {
+  buildRouteCellTiers, landSpeedFactor, landDanger, navDC, navCause, climbFactorFor,
+  type RouteTier,
+} from './routeTerrain';
+import { OFFROAD_NAV_DC_DIFFICULT } from './roadTunables';
+import { lookupForAtlas } from '../forests/forestKindForCell';
+import { FOREST_NAV_DC_BUMP } from '../forests/forestTunables';
+import { HIGHLAND_NAV_DC_BUMP, RANGE_MIN_H, PEAK_MIN_H } from '../mountains/mountainTunables';
 
 /** Where a transport can go: land mounts/carts, water boats, or flying (both). */
 export type TravelMobility = 'land' | 'water' | 'air';
@@ -26,23 +35,12 @@ export function transportMobility(transport?: TransportOption | null): TravelMob
 const LAND_THRESHOLD = 20;
 const KM_TO_MILES = 0.621371;
 
-/** Biomes that count as difficult terrain (half travel speed off-road). */
-const DIFFICULT_BIOMES = new Set<string>([
-  'Hot desert', 'Cold desert', 'Tropical rainforest', 'Temperate rainforest',
-  'Taiga', 'Tundra', 'Glacier', 'Wetland',
-]);
-
-/** Wilderness danger baseline per biome (0..1); roads halve it. */
-const BIOME_DANGER: Record<string, number> = {
-  'Hot desert': 0.5, 'Cold desert': 0.45, 'Tropical rainforest': 0.55, 'Temperate rainforest': 0.4,
-  'Taiga': 0.4, 'Tundra': 0.45, 'Glacier': 0.6, 'Wetland': 0.5,
-  'Savanna': 0.3, 'Grassland': 0.2, 'Tropical seasonal forest': 0.35, 'Temperate deciduous forest': 0.3,
-};
-const DEFAULT_DANGER = 0.25;
+// Biome speed/danger tables and the difficult-biome set moved to roadTunables.ts
+// (single source of truth); this file consumes them through routeTerrain.ts.
 
 type Packish = {
   cells: { c?: number[][]; p?: Array<[number, number]>; h?: ArrayLike<number>; biome?: ArrayLike<number> };
-  routes?: Array<{ cells?: number[] }>;
+  routes?: Array<{ group?: string; cells?: number[]; points?: number[][] }>;
 };
 
 /**
@@ -71,13 +69,10 @@ export function nearestLandCell(atlas: FmgAtlasResult, start: number, maxVisited
   return start;
 }
 
-/** All cell ids that lie on a road/route (terrain = road there). */
+/** All cell ids that lie on a LAND route (any tier). Kept for callers that only
+ * need membership; graded consumers use buildRouteCellTiers directly. */
 export function buildRoadCells(atlas: FmgAtlasResult): Set<number> {
-  const set = new Set<number>();
-  for (const r of ((atlas.pack as unknown as Packish).routes ?? [])) {
-    for (const c of r.cells ?? []) set.add(c);
-  }
-  return set;
+  return new Set(buildRouteCellTiers(atlas.pack as unknown as Packish).keys());
 }
 
 /** Graph-unit → mile scale: from Azgaar `distanceScale` (km/unit) if present, else a continent-sized default. */
@@ -88,41 +83,19 @@ export function atlasMilesPerUnit(atlas: FmgAtlasResult): number {
 }
 
 export interface AtlasTravelGraphOptions {
-  /** Precomputed road cells (defaults to buildRoadCells). */
-  roadCells?: Set<number>;
   /** Where the chosen transport can travel: land (default) / water / air. */
   mobility?: TravelMobility;
 }
 
 /**
- * Per-cell travel-terrain lookup, matching the graph's own `terrain()` logic
- * (road/difficult-biome/open). Exposed standalone so the provisioning ring (E2)
- * can weight reach by terrain burn without rebuilding the whole travel graph.
- */
-export function buildAtlasTerrainFn(
-  atlas: FmgAtlasResult,
-  opts: AtlasTravelGraphOptions = {},
-): (cell: number) => TravelTerrain {
-  const cells = (atlas.pack as unknown as Packish).cells;
-  const roadCells = opts.roadCells ?? buildRoadCells(atlas);
-  const mobility = opts.mobility ?? 'land';
-  const names = (atlas.biomesData as unknown as { name?: string[] }).name;
-  const biomeName = (c: number): string => names?.[cells.biome?.[c] ?? -1] ?? '';
-  return (c: number): TravelTerrain => {
-    if (mobility !== 'land') return 'open';
-    return roadCells.has(c) ? 'road' : (DIFFICULT_BIOMES.has(biomeName(c)) ? 'difficult' : 'open');
-  };
-}
-
-/**
  * Build a `TravelGraph` over the atlas Voronoi cells, scoped to the transport's
- * mobility: land travel uses land cells (road/biome terrain), water travel uses
- * sea/lake cells, and flying (air) can cross both, ignoring terrain. This is what
- * stops a land mount from crossing the sea — or lets a flying mount cross it.
+ * mobility: land travel uses land cells (route-tier/biome grading), water travel
+ * uses sea/lake cells, and flying (air) can cross both, ignoring terrain. This is
+ * what stops a land mount from crossing the sea — or lets a flying mount cross it.
  */
 export function buildAtlasTravelGraph(atlas: FmgAtlasResult, opts: AtlasTravelGraphOptions = {}): TravelGraph {
   const cells = (atlas.pack as unknown as Packish).cells;
-  const roadCells = opts.roadCells ?? buildRoadCells(atlas);
+  const tiers = buildRouteCellTiers(atlas.pack as unknown as Packish);
   const mobility = opts.mobility ?? 'land';
   const names = (atlas.biomesData as unknown as { name?: string[] }).name;
   const biomeName = (c: number): string => names?.[cells.biome?.[c] ?? -1] ?? '';
@@ -132,6 +105,8 @@ export function buildAtlasTravelGraph(atlas: FmgAtlasResult, opts: AtlasTravelGr
     if (mobility === 'air') return true;          // flying crosses land + water
     return mobility === 'water' ? !isLand(c) : isLand(c);
   };
+  // Route tiers only matter on foot/hoof — no roads at sea, and flight skips them.
+  const tierOf = (c: number): RouteTier | null => (mobility === 'land' ? tiers.get(c) ?? null : null);
   return {
     neighbors: (c) => cells.c?.[c] ?? [],
     position: (c) => {
@@ -140,12 +115,61 @@ export function buildAtlasTravelGraph(atlas: FmgAtlasResult, opts: AtlasTravelGr
     },
     terrain: (c): TravelTerrain => {
       if (mobility !== 'land') return 'open';      // no roads at sea; flight ignores terrain
-      return roadCells.has(c) ? 'road' : (DIFFICULT_BIOMES.has(biomeName(c)) ? 'difficult' : 'open');
+      const tier = tierOf(c);
+      if (tier === 'highway' || tier === 'road') return 'road';
+      if (tier === 'trail') return 'trail';
+      return navDC(biomeName(c), null) >= 15 ? 'difficult' : 'open';
     },
     passable,
-    danger: (c) => {
-      const base = BIOME_DANGER[biomeName(c)] ?? DEFAULT_DANGER;
-      return mobility === 'land' && roadCells.has(c) ? base * 0.5 : base;
-    },
+    speedFactor: (c) => (mobility === 'land' ? landSpeedFactor(biomeName(c), tierOf(c)) : 1),
+    // Relief costs time only on foot/hoof — water has no grades and flight
+    // ignores them — so non-land mobility keeps a constant factor of 1 (the
+    // member stays present, mirroring how speedFactor handles mobility).
+    // The destination cell's tier softens the grade: engineered roads
+    // switchback up a slope a trackless cell takes face-on.
+    climbFactor: (from, to) => (mobility === 'land'
+      ? climbFactorFor((cells.h?.[to] ?? 0) - (cells.h?.[from] ?? 0), tierOf(to))
+      : 1),
+    danger: (c) => (mobility === 'land' ? landDanger(biomeName(c), tierOf(c))
+                                        : landDanger(biomeName(c), null)),
+  };
+}
+
+/**
+ * Per-cell getting-lost info for navDrift: DC + player-facing cause. Bump
+ * order is fixed: base tier/biome ladder → elevation (2026-07-11 mountains:
+ * OFF-ROUTE cells only — trackless crag country h >= PEAK_MIN_H is at least
+ * difficult wilderness regardless of biome, bump-then-floor
+ * max(dc + HIGHLAND_NAV_DC_BUMP, 15); the highland band below adds
+ * HIGHLAND_NAV_DC_BUMP; a graded route keeps its ladder, that is what passes
+ * are FOR) → haunted/fey named forests LAST (2026-07-11 forests campaign:
+ * +FOREST_NAV_DC_BUMP on any losable cell — but a maintained road, dc 0,
+ * never starts losing travelers). The cause is never changed by the bumps.
+ */
+export function buildNavInfoFn(
+  atlas: FmgAtlasResult,
+): (cell: number) => { dc: number; cause: 'road' | 'wilds' | 'faint-path' } {
+  const cells = (atlas.pack as unknown as Packish).cells;
+  const tiers = buildRouteCellTiers(atlas.pack as unknown as Packish);
+  const names = (atlas.biomesData as unknown as { name?: string[] }).name;
+  const biomeName = (c: number): string => names?.[cells.biome?.[c] ?? -1] ?? '';
+  const forestKind = lookupForAtlas(atlas); // built once per atlas (WeakMap-shared)
+  return (c) => {
+    const tier = tiers.get(c) ?? null;
+    let dc = navDC(biomeName(c), tier);
+    if (!tier) {
+      // Crag rule is bump-then-floor (controller ruling, monotonicity): the
+      // highland bump applies through the h >= PEAK_MIN_H hand-off, so a
+      // difficult biome reads max(15+3, 15) = 18 above the band edge exactly
+      // as at h 69 — the DC never drops as the ground gets higher.
+      const h = cells.h?.[c] ?? 0;
+      if (h >= PEAK_MIN_H) dc = Math.max(dc + HIGHLAND_NAV_DC_BUMP, OFFROAD_NAV_DC_DIFFICULT);
+      else if (h >= RANGE_MIN_H) dc += HIGHLAND_NAV_DC_BUMP;
+    }
+    if (dc > 0) {
+      const kind = forestKind(c);
+      if (kind === 'haunted' || kind === 'fey') dc += FOREST_NAV_DC_BUMP;
+    }
+    return { dc, cause: navCause(biomeName(c), tier) };
   };
 }

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 13:02:31
+ * Last Sync: 12/07/2026, 01:17:38
  * Dependents: App.tsx
- * Imports: 39 files
+ * Imports: 55 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -244,15 +244,26 @@ const GameModals: React.FC<GameModalsProps> = ({
     // member lists Survival among their proficient skills) — drives the travel
     // "Forage en route" biome-yield roll. Max across the party (best forager leads).
     const partySurvivalModifier = useMemo(() => {
-        let best = 0;
+        // Preserve an honestly weak party: starting at zero silently upgrades
+        // every all-negative-Wisdom group to an average forager/navigator.
+        let best = Number.NEGATIVE_INFINITY;
         for (const pc of gameState.party) {
             const wisMod = getAbilityModifierValue(pc.finalAbilityScores?.Wisdom ?? pc.abilityScores?.Wisdom ?? 10);
             const proficient = pc.skills?.some(s => s.id === 'survival') ?? false;
             const mod = wisMod + (proficient ? (pc.proficiencyBonus ?? 2) : 0);
             if (mod > best) best = mod;
         }
-        return best;
+        return Number.isFinite(best) ? best : 0;
     }, [gameState.party]);
+
+    // Cell discovery is stored in the existing durable Logbook entries. This
+    // projection gives MapPane a compact set without inventing a second save
+    // collection that could drift from the player's journal.
+    const exploredCellIds = useMemo(() => gameState.discoveryLog.flatMap((entry) =>
+        entry.flags
+            .filter((flag) => flag.key === 'cellId' && typeof flag.value === 'number')
+            .map((flag) => flag.value as number)
+    ), [gameState.discoveryLog]);
 
     // Grid retirement: the world map is the atlas from worldSeed; visibility is
     // the sole gate (no mapData grid to require).
@@ -444,6 +455,8 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 partySize={gameState.party.length}
                                 partyGold={gameState.gold}
                                 partySurvivalModifier={partySurvivalModifier}
+                                transportParty={gameState.party}
+                                exploredCellIds={exploredCellIds}
                                 activeShip={
                                     gameState.naval.playerShips.find(
                                         s => s.id === gameState.naval.activeShipId
@@ -1092,10 +1105,18 @@ const GameModals: React.FC<GameModalsProps> = ({
                         party={gameState.party}
                         onClose={() => dispatch({ type: 'TOGGLE_LONG_REST_MODAL' })}
                         onConfirm={(choices) => {
-                            // LongRestModal's confirm calls onClose itself, which
-                            // already toggles the modal flag — toggling here too
-                            // flipped it straight back open (stuck-open modal).
-                            dispatch({ type: 'LONG_REST', payload: { racialRestChoices: choices } });
+                            // Route confirmation through the same gameplay
+                            // pipeline as every other Action Pane command. A
+                            // direct reducer dispatch restores resources but
+                            // skips planar rules, overnight world work, journal
+                            // rollover, and the promised eight-hour advance.
+                            // LongRestModal closes itself after this callback,
+                            // so the action must not toggle the modal a second time.
+                            void onAction({
+                                type: 'LONG_REST',
+                                label: 'Long Rest',
+                                payload: { racialRestChoices: choices },
+                            });
                         }}
                     />
                 </ErrorBoundary>

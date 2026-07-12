@@ -1,15 +1,31 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 12/07/2026, 00:33:34
+ * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/components/World3D/SceneCast.tsx
  *
  * Renders the **staged cast** of an in-world scene — the player plus the 1–3
- * opening-situation strangers — as simple humanoid figures standing in a
- * conversational cluster at the spawn point, each with a floating name label.
+ * opening-situation strangers — standing in a conversational cluster at the
+ * spawn point, each with a floating name label.
  *
- * This is what makes the opening "situation" actually *visible* in the 3D world
- * instead of only existing as a floating conversation panel: the player spawns
- * looking at the people the predicament is about. Figures are deliberately
- * lightweight (a tapered body + head, no skeleton/animation) — the goal is
- * presence and framing, not the full combat CharacterActor.
+ * Figures are REAL generated entities (src/systems/entities3d): the player
+ * renders their actual race + class + equipped gear, rich NPCs render their
+ * class and worn gear. A member without a recipe renders as an unarmed human
+ * commoner — the same default the NPC generator itself uses for unspecified
+ * folk (castMemberRecipe below is the one place that decides this).
  *
  * Positions are scene-local: the streamed scene origin is centered on the spawn
  * `start`, so scene-space (0, surfaceY, 0) is the ground at the player's feet.
@@ -18,14 +34,23 @@
 import React, { useMemo } from 'react';
 import { Html } from '@react-three/drei';
 import type { ThreeEvent } from '@react-three/fiber';
+import { registerAllParts } from '@/systems/entities3d/parts';
+import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
+import { heightM } from '@/systems/entities3d/types';
+import type { EntityRecipe } from '@/systems/entities3d/types';
+import { Entity3D } from '@/systems/entities3d/three/Entity3D';
+
+registerAllParts();
 
 export interface SceneCastMember {
   id: string;
   name: string;
-  /** The player's own figure (distinct colour, stands at the near edge). */
+  /** The player's own figure (stands at the near edge). */
   isPlayer?: boolean;
-  /** The stranger who speaks first — given a subtle highlight. */
+  /** The stranger who speaks first — label carries the highlight. */
   isSpeaker?: boolean;
+  /** Real identity when known (player sheet / rich NPC). */
+  recipe?: EntityRecipe;
 }
 
 interface SceneCastProps {
@@ -40,13 +65,6 @@ interface SceneCastProps {
   onSelectNpc?: (npcId: string) => void;
 }
 
-const PLAYER_COLOR = '#3b82f6'; // steel blue — the player reads as "you"
-const NPC_COLOR = '#c2683a'; // tan/brown — matches the instanced townsfolk
-const SPEAKER_COLOR = '#d9a441'; // warm amber — the one addressing you
-
-const BODY_HEIGHT = 1.35;
-const HEAD_RADIUS = 0.2;
-
 /**
  * Whether a cast figure is click-to-talk interactive: only NPC figures, and only
  * when a select handler is wired. The player's own figure is NEVER clickable —
@@ -55,6 +73,22 @@ const HEAD_RADIUS = 0.2;
  */
 export function figureIsInteractive(member: SceneCastMember, hasHandler: boolean): boolean {
   return hasHandler && !member.isPlayer;
+}
+
+/**
+ * The one place an unspecified cast member becomes a body: an unarmed human
+ * commoner, deterministic per member id. Members with real identities carry
+ * their own recipe.
+ */
+export function castMemberRecipe(member: SceneCastMember): EntityRecipe {
+  if (member.recipe) return member.recipe;
+  return {
+    kind: 'humanoid',
+    raceId: 'human',
+    classId: 'fighter', // classId only tints accents; commoners carry no gear
+    seed: `cast:${member.id}`,
+    gearOverride: [],
+  };
 }
 
 /**
@@ -84,13 +118,17 @@ const Figure: React.FC<{
   surfaceY: number;
   onSelectNpc?: (npcId: string) => void;
 }> = ({ member, surfaceY, onSelectNpc }) => {
-  const color = member.isPlayer ? PLAYER_COLOR : member.isSpeaker ? SPEAKER_COLOR : NPC_COLOR;
   const [x, , z] = member.pos;
   // Face the cluster centre so the group reads as "in conversation".
   const facing = Math.atan2(-x, -z);
 
+  const blueprint = useMemo(() => generateEntityBlueprint(castMemberRecipe(member)), [member]);
+  const labelY = heightM(blueprint.frame) + 0.45;
+
   // Click-to-talk: only NPC figures are interactive, and only when a handler is
-  // wired. The player's own figure is inert (you don't talk to yourself).
+  // wired. The player's own figure is inert (you don't talk to yourself). The
+  // affordance is the 💬 label + pointer cursor (the generated body's material
+  // is shared, so no per-figure emissive tint).
   const interactive = figureIsInteractive(member, typeof onSelectNpc === 'function');
   const handlePointerDown = interactive
     ? (e: ThreeEvent<PointerEvent>) => {
@@ -120,23 +158,18 @@ const Figure: React.FC<{
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
     >
-      {/* Body — a tapered cylinder standing on the ground. */}
-      <mesh position={[0, BODY_HEIGHT / 2, 0]} castShadow>
-        <cylinderGeometry args={[0.16, 0.26, BODY_HEIGHT, 10]} />
-        <meshStandardMaterial
-          color={color}
-          roughness={0.8}
-          emissive={interactive ? color : '#000000'}
-          emissiveIntensity={interactive ? 0.12 : 0}
-        />
-      </mesh>
-      {/* Head. */}
-      <mesh position={[0, BODY_HEIGHT + HEAD_RADIUS * 0.9, 0]} castShadow>
-        <sphereGeometry args={[HEAD_RADIUS, 14, 12]} />
-        <meshStandardMaterial color={color} roughness={0.7} />
-      </mesh>
+      {/* The generated body, idling in place (pointer events bubble up).
+          Opening scenes can stage several figures at once, so their soft-body
+          fields use a conversational-distance resolution and a gentle idle
+          refresh. Labels, clicks, gear, eyes, and facing remain full-frame. */}
+      <Entity3D
+        blueprint={blueprint}
+        walking={false}
+        resolutionScale={0.6}
+        fieldUpdateHz={6}
+      />
       {/* Name label floating above the head. */}
-      <Html center position={[0, BODY_HEIGHT + HEAD_RADIUS * 2 + 0.45, 0]} distanceFactor={12}>
+      <Html center position={[0, labelY, 0]} distanceFactor={12}>
         <div
           data-testid={`scene-cast-label-${member.id}`}
           data-player={member.isPlayer ? 'true' : 'false'}

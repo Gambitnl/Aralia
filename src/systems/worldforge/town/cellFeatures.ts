@@ -115,8 +115,9 @@ export function cellWaterPolylines(atlas: TownAtlas, burgId: number): Pt[][] {
 
 /**
  * Inherited regional roads passing through the burg cell, clipped to the cell
- * polygon (atlas-pixel coords). Searoutes are excluded; land roads and trails
- * become continued main streets in {@link canonicalTown}.
+ * polygon (atlas-pixel coords). Searoutes are excluded; every land tier
+ * (highways, roads, trails, paths) becomes a continued main street in
+ * {@link canonicalTown}.
  */
 export function cellRoadPolylines(atlas: TownAtlas, burgId: number): Pt[][] {
   const pack = atlas.pack as any;
@@ -124,7 +125,9 @@ export function cellRoadPolylines(atlas: TownAtlas, burgId: number): Pt[][] {
   const routes: any[] = pack.routes ?? [];
   const out: Pt[][] = [];
   for (const r of routes) {
-    if (r.group !== 'roads' && r.group !== 'trails') continue;
+    // Keep all land tiers (road-systems Task 5 added highways + paths); only
+    // searoutes are excluded from town street continuation.
+    if (r.group === 'searoutes') continue;
     const pts: Pt[] = r.points ?? [];
     if (pts.length < 2) continue;
     for (const seg of clipPolylineToPolygon(pts, cellPoly)) {

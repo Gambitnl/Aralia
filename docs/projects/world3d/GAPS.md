@@ -4,17 +4,17 @@ gap_schema: project_gap_registry
 project: World3d
 slug: world3d
 status: "active â€” W3D-G10 resolved 2026-06-21 (T7 LOD loader contract + skirts)"
-status_note: "Preserved as routed_reference to avoid flattening existing gap provenance. W3D-G10 resolved (D4 implemented)."
+status_note: "Preserved as routed_reference to avoid flattening existing gap provenance. W3D-G10 plus the critical W3D-G29 and W3D-G30 runtime performance failures are resolved."
 registry_mode: routed_reference
-last_updated: "2026-06-25"
-gap_count: 15
+last_updated: "2026-07-11"
+gap_count: 17
 open_gap_count: 14
-resolved_gap_count: 1
+resolved_gap_count: 3
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
 visual_proof_required_count: 0
-highest_severity: low
+highest_severity: critical
 proof_freshness: recorded
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 north_star: docs/projects/world3d/NORTH_STAR.md
@@ -102,7 +102,7 @@ supported_optional_sections:
 # World3d Gap Registry
 
 Status: active â€” W3D-G10 resolved 2026-06-21 (T7 LOD loader contract + skirts implemented)
-Last updated: 2026-06-25
+Last updated: 2026-07-11
 
 North Star: `docs/projects/world3d/NORTH_STAR.md`
 
@@ -130,6 +130,8 @@ retained with `done`/`superseded` status as history; do not silently delete.
 | W3D-G26 | not_started | adjacent_follow_up | Codex | `docs/BACKLOG.md` migration 2026-06-25 | Dungeon and town scene-generation paths need explicit 3D ownership and proof. | `docs/BACKLOG.md`; Worldforge town/ground tracker; `src/components/World3D` | Town and dungeon entry paths should not fork into incompatible 3D generation models. | Route town generation through Worldforge ground-mode contracts and define whether dungeon generation is World3D-owned or a separate project. | One town or dungeon entry proof that names the generator, cache key, and scene handoff contract. |
 | W3D-G27 | not_started | adjacent_follow_up | Codex | `docs/BACKLOG.md` migration 2026-06-25 | Generated scenes need seed-based caching and entry toggles wired through submap/world UI. | `docs/BACKLOG.md`; `src/components/MapPane.tsx`; `src/components/World3D` | Players need repeatable scene entry, and agents need deterministic proof when moving between map/submap/world UI and 3D. | Define cache key, invalidation, and entry-toggle ownership before adding more scene paths. | Re-entering the same seed/location produces the same scene and uses the documented cache path. |
 | W3D-G28 | not_started | adjacent_follow_up | Codex | `docs/improvements/MALLEABLE_WORLD_DEV_NOTES.md` retirement 2026-06-25 | Experimental terrain deformation and overlay APIs exist under ThreeDModal, but their production owner and gameplay bridge are not defined. | Retired `docs/improvements/MALLEABLE_WORLD_DEV_NOTES.md`; `src/components/ThreeDModal/Experimental/DeformationManager.ts`; `src/components/ThreeDModal/Experimental/DeformableTerrain.tsx`; `src/components/ThreeDModal/Experimental/OverlayMesh.tsx`; `src/components/ThreeDModal/Experimental/types.ts`; `src/components/ThreeDModal/Experimental/DeformableScene.tsx` | Terrain-reactive spells, overlays, and environmental changes should not fragment into one-off visuals. The prototype proves a possible model, but it is not verified as a production World3D or combat/exploration pipeline. | Decide whether the experimental deformation stack graduates into World3D rendering, remains ThreeDModal-only prototype code, or moves to a separate terrain-reactivity owner. If accepted, pick one spell or environment effect as the first bridge. | Rendered proof and focused tests showing one live gameplay event updates deformation/overlay state, persists or intentionally stays transient, and does not regress base terrain rendering. |
+| W3D-G29 | resolved | in_scope_now | Codex | whole-game systems audit W02, live 3D entry 2026-07-11 | The production ground scene ran at approximately 0.61 FPS because all enterable parts in the full 81-chunk stream were mounted as unique meshes/materials and nearly every object entered the shadow pass. | Live pre-fix scene probe: 47,137 objects, 44,702 meshes, 44,051 materials, 42,682 shadow casters, 2.44 GB JS heap, 3840x1874 canvas; `src/components/World3D/World3DScene.tsx` `SiteBuilding`, `SitePieces`, and `VegetationPiece`. | Ground exploration was effectively frozen and could crash the browser, making a core player surface unusable. | Resolved with player-proximity interior LOD (authored interiors remain intact and remount on approach), shell/shadow LOD, near-window vegetation shadows, and a bounded render DPR. | Focused lifecycle suite 2/2 green; rendered worst-case capital entry measured 32.55 FPS over 5 seconds with 1,533 meshes and 279 shadow casters, a greater than 53x frame-rate recovery, with the 3D scene still visibly rendered. |
+| W3D-G30 | resolved | in_scope_now | Codex | whole-game systems audit W02, user-reported 1 FPS follow-up 2026-07-11 | Dense opening/town scenes could still collapse to single-digit or approximately 1 FPS after W3D-G29: the player and staged cast rebuilt full marching-cubes bodies every frame, and an overview mounted 60+ hidden live interior residents while also replaying the kilometer-wide far shadow cascade. | Cold single-tab `?phase=world3d&ground=1&cast=1` measured 8.12 FPS; the town scene exposed 68 live `metaballBody` fields, 3,790 meshes, and 874 shadow casters. A second active 3D tab drove delivered frames to 0.85 FPS, matching the rounded HUD value reported by the user. Sources: `PlayerAvatar.tsx`, `SceneCast.tsx`, `Entity3D.tsx`, `InteriorOccupants.tsx`, `OccupantFigure.tsx`, `World3DLighting.tsx`, and `World3DScene.tsx`. | The game could appear fixed in a sparse wilderness cell while the actual opening cast or a populated town remained unplayable, so the start-of-game continuity goal was still false. | Resolved without removing generated characters or interiors: foreground/cast body fields now use bounded resolution and update rates; live interior bodies are close-range, nearest-first, and capped at 10; distant shells skip roof-inside frame work; ground DPR is capped at 0.75; and the far shadow cascade activates only for a genuine aerial overview while the near cascade remains live during play. | 23/23 focused World3D/entity tests green. Cold rendered full-cast proof measured 33.12 FPS over 7 seconds (per-second buckets 40/29/36/31/35/33), with 3 live generated bodies, the town/cast visibly rendered, the far cascade off at opening height, and its automatic restoration verified above the 90 m overview threshold. |
 
 ## Legacy 3D Exploration Packet Disposition
 

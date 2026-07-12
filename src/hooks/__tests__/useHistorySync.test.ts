@@ -294,4 +294,17 @@ describe('useHistorySync', () => {
             payload: GamePhase.NOT_FOUND
         });
     });
+
+    it('replaces the 404 entry when returning to the main menu', () => {
+        mockLocation.search = '?phase=not_found';
+        gameState = { ...gameState, phase: GamePhase.NOT_FOUND };
+        const { rerender } = renderHook(({ state }) => useHistorySync(state, dispatch), {
+            initialProps: { state: gameState },
+        });
+        replaceStateMock.mockClear();
+        pushStateMock.mockClear();
+        rerender({ state: { ...gameState, phase: GamePhase.MAIN_MENU } });
+        expect(replaceStateMock).toHaveBeenCalledWith({ phase: GamePhase.MAIN_MENU }, '', '/?phase=main_menu');
+        expect(pushStateMock).not.toHaveBeenCalled();
+    });
 });

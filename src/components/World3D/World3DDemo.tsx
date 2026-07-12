@@ -38,6 +38,41 @@ if (urlParams.get('stubForgeAssets') === '1') {
 
 import { generateMap } from '@/services/mapService';
 import { BIOMES } from '@/constants';
+import { ALL_RACES_DATA } from '@/data/races';
+import { CLASSES_DATA } from '@/data/classes';
+import type { PlayerCharacter } from '@/types/character';
+import type { SceneCastMember } from './SceneCast';
+import { recipeFromCharacter } from '@/systems/entities3d/recipeFromCharacter';
+
+/** Demo body: a real race + class so the sandbox avatar exercises the real
+ * entity-generator path without any game state. */
+const demoCharacter = {
+  id: 'demo-player',
+  name: 'Demo Player',
+  race: ALL_RACES_DATA['human'],
+  class: CLASSES_DATA['fighter'],
+  equippedItems: {},
+} as unknown as PlayerCharacter;
+
+/** `?cast=1`: stage a demo opening cluster (player + two strangers) so the
+ * SceneCast entity swap is eyeball-able without a running game/Ollama. One
+ * stranger carries a real recipe (geared ranger), one falls through to the
+ * commoner default — the two paths castMemberRecipe covers. */
+const demoCast: SceneCastMember[] = [
+  {
+    id: 'demo-player',
+    name: 'Demo Player',
+    isPlayer: true,
+    recipe: recipeFromCharacter(demoCharacter),
+  },
+  {
+    id: 'demo-speaker',
+    name: 'Rangy Speaker',
+    isSpeaker: true,
+    recipe: { kind: 'humanoid', raceId: 'wood_elf', classId: 'ranger', seed: 'demo-speaker' },
+  },
+  { id: 'demo-commoner', name: 'Quiet Stranger' },
+];
 import { handleChunkRequest } from '@/systems/world3d/chunkWorkerCore';
 import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from '@/systems/world3d/config';
 import type { ChunkLoader } from '@/systems/world3d/types';
@@ -200,9 +235,11 @@ const World3DDemo: React.FC = () => {
           <World3DScene loader={loader} start={start} startSurfaceY={startSurfaceY} viewProfile={groundMode ? 'ground' : 'continent'}
             forgeAssetService={_stubService}
             // Player-avatar sandbox: the demo has no game state, so stand a
-            // demo-identity body at the spawn (groundPos null → spawn anchor).
+            // demo character (real race + class data) at the spawn
+            // (groundPos null → spawn anchor).
             groundWorld={demoGround ?? null}
-            playerIdentity={groundMode ? { id: 'demo-player', name: 'Demo Player' } : null}
+            playerCharacter={groundMode ? demoCharacter : null}
+            sceneCast={groundMode && urlParams.get('cast') === '1' ? demoCast : undefined}
           />
         </div>
       </div>

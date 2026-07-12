@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 13/06/2026, 14:09:00
- * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx
- * Imports: 18 files
+ * Last Sync: 11/07/2026, 14:55:39
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/DungeonEntrances.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/groundChunkWorker.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/provenance/groundProvenance.ts
+ * Imports: 40 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -35,7 +35,8 @@ import type { ChunkData, ChunkMeshBundle, VegetationScatter, LodTier, BuildingOc
 import { handleGroundChunkRequest } from "./groundChunkWorkerCore";
 import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from "../../world3d/config";
 import { biomeColor } from "../../world3d/terrainColor";
-import type { LocalArtifact, RegionArtifact, RegionTownSite, RegionMarker } from "../artifacts";
+import type { LocalArtifact, RegionArtifact, RegionTownSite, RegionMarker, RegionRoad } from "../artifacts";
+import { ROAD_3D_TIERS, PATH_3D_KEEP_POINTS, PATH_3D_SKIP_POINTS } from "../travel/roadTunables";
 import { localArtifactToWorldData, GROUND_METERS_PER_CELL } from "./groundWorldAdapter";
 import { getCanonicalTownPlan, transformTownPlan, townSpanFtForBurg, CANON_TOWN_SPAN, getCanonicalTownWaterFeatures, canonicalTownSeedPath } from "../town/canonicalTown";
 import { briefForPlot } from "../town/householdBrief";
@@ -46,7 +47,7 @@ import { buildingShellHeightM } from "../interior/generateBuilding";
 import { buildTownWaterBodies } from "../town/townWaterBodies";
 import { toArtifactPlan, type AdaptedTownPlan } from "../town/townPlanAdapter";
 import type { TownPlan } from "../artifacts";
-import { buildInterior, DOOR_LEAF_COLOR, type SitePart, type OccupantBody, type OccupantFigure } from "./interiorParts";
+import { buildInterior, DOOR_LEAF_COLOR, MOTIF_PART_TAG, type SitePart, type OccupantBody, type OccupantFigure } from "./interiorParts";
 import { siteOrientationFromQuad, worldOffsetToSiteLocal, sitePartLocalOffset } from "./sitePartTransform";
 import { generateTownRoster } from "../roster/generateTownRoster";
 import { occupantLocationAt, type ActivityKind } from "../roster/occupantSchedule";
@@ -71,6 +72,12 @@ import { buildGroundProps, imprintPropOnTile } from "./groundProps";
 import type { PropInstance } from "../props/propSchema";
 import type { EntranceKind } from "../dungeon/world/dungeonSites";
 import { dungeonEntrancesForWindow } from "./dungeonEntrances";
+// Canopy atmosphere (forests Task 11). BIOMES is pure data: its one import is
+// a type-only binding (elided at build), so it is worker-safe here.
+import { BIOMES } from "../../../data/biomes";
+import { biomeIdForCell } from "../local/biomeForCell";
+import { forestKindForCell } from "../forests/forestKindForCell";
+import type { ForestKind } from "../forests/forestClusters";
 
 /** A polyline in ground world-meters with a uniform width (meters). */
 interface GroundPolyline {
@@ -184,6 +191,22 @@ export interface GroundDungeonEntrance {
   discoveryRadiusM: number;
 }
 
+/**
+ * Canopy atmosphere of the window's atlas cell (forests Task 11): what the 3D
+ * scene needs to close the woods overhead — dimmer ambient light, pulled-in
+ * fog. Resolved ONCE per window from the legacy biome def + named-forest kind;
+ * the render-side modulation (fey dims less, haunted fog one step heavier)
+ * lives in the scene, not here.
+ */
+export interface GroundCanopy {
+  /** True by construction — a canopy only exists where the def says shade. */
+  shade: boolean;
+  /** Fog grade from the biome def ('light' when the def shades without fog). */
+  fog: 'light' | 'medium' | 'heavy';
+  /** Named-forest kind of the cell; null inside anonymous/unnamed woods. */
+  forestKind: ForestKind | null;
+}
+
 export interface GroundWorld {
   cols: number;
   rows: number;
@@ -279,30 +302,56 @@ export interface GroundWorld {
   townPlans?: Array<{ burgId: number; plan: TownPlan }>;
   /** Artifact window origin in town/plan FEET (`local.bounds`) for feet→meters. */
   boundsFeet?: { x: number; y: number };
+  /**
+   * Canopy atmosphere of the window's atlas cell (forests Task 11). Null when
+   * the cell's biome def has no canopyShade — or when no anchor cell was given
+   * (tests/legacy callers) — and the 3D scene then renders exactly the
+   * pre-canopy lighting.
+   */
+  canopy?: GroundCanopy | null;
 }
 
 const FEET_TO_METERS = 0.3048;
 
 /** Region polylines (feet, world space) → ground meters, kept if any point
- * lands inside the artifact window (fine clipping happens per chunk). */
-function regionPolylinesToGround(
-  lines: Array<{ centerline: Array<[number, number]>; widthFt: number }>,
+ * lands inside the artifact window (fine clipping happens per chunk). Route
+ * polylines carry `kind`, which sets the tier tint (ROAD_3D_TIERS) and breaks
+ * faint paths into a keep/skip patch cycle so they read as broken wear-lines.
+ * Rivers pass no `kind` and behave exactly as before. */
+export function regionPolylinesToGround(
+  lines: Array<{ centerline: Array<[number, number]>; widthFt: number; kind?: RegionRoad['kind'] }>,
   local: LocalArtifact,
 ): GroundPolyline[] {
   const { bounds } = local;
   const out: GroundPolyline[] = [];
-  for (const line of lines) {
-    const pts = line.centerline.map(([fx, fy]) => ({
-      x: (fx - bounds.x) * FEET_TO_METERS,
-      z: (fy - bounds.y) * FEET_TO_METERS,
-    }));
+  const push = (pts: Array<{ x: number; z: number }>, widthFt: number, colorHex?: string): void => {
     const extentX = bounds.width * FEET_TO_METERS;
     const extentZ = bounds.height * FEET_TO_METERS;
     const touches = pts.some(
       (p) => p.x >= -50 && p.x <= extentX + 50 && p.z >= -50 && p.z <= extentZ + 50,
     );
     if (touches && pts.length >= 2) {
-      out.push({ points: pts, widthM: Math.max(1, line.widthFt * FEET_TO_METERS) });
+      out.push({
+        points: pts,
+        widthM: Math.max(1, widthFt * FEET_TO_METERS),
+        ...(colorHex ? { colorHex } : {}),
+      });
+    }
+  };
+  for (const line of lines) {
+    const pts = line.centerline.map(([fx, fy]) => ({
+      x: (fx - bounds.x) * FEET_TO_METERS,
+      z: (fy - bounds.y) * FEET_TO_METERS,
+    }));
+    const colorHex = line.kind ? ROAD_3D_TIERS[line.kind].colorHex : undefined;
+    if (line.kind === 'path') {
+      // Faint path: deterministic keep/skip cycle → broken wear-line patches.
+      const cycle = PATH_3D_KEEP_POINTS + PATH_3D_SKIP_POINTS;
+      for (let start = 0; start < pts.length; start += cycle) {
+        push(pts.slice(start, start + PATH_3D_KEEP_POINTS), line.widthFt, colorHex);
+      }
+    } else {
+      push(pts, line.widthFt, colorHex);
     }
   }
   return out;
@@ -352,6 +401,12 @@ const MARKER_KIND_MAP: Record<string, HiddenPlaceKind> = {
   circuses: 'camp',
   jousts: 'camp',
   migration: 'camp',
+  // Forests campaign (T8b): forest POI markers (forestsPass) surface as
+  // proximity discoveries through the existing kinds — no new machinery.
+  'hunter-camp': 'camp',
+  'hermit-hollow': 'camp',
+  'forest-shrine': 'shrine',
+  'beast-den': 'cave',
 };
 
 /**
@@ -398,6 +453,23 @@ function markerDerivedHiddenSites(
   return out;
 }
 
+/**
+ * Pure canopy resolution (forests Task 11): the window's legacy biome def +
+ * named-forest kind → the `GroundWorld.canopy` payload, or null when the def
+ * carries no canopyShade (open land, grassland, water). A def that shades
+ * without naming a fog grade defaults to 'light'. Kept pure (defs passed in)
+ * so it tests without the bridge atlas; production passes `BIOMES`.
+ */
+export function resolveCanopy(
+  legacyBiomeId: string | undefined,
+  forestKind: ForestKind | null,
+  biomes: Record<string, { visibilityModifiers?: { fog?: 'light' | 'medium' | 'heavy'; canopyShade?: boolean } }>,
+): GroundCanopy | null {
+  const vis = legacyBiomeId ? biomes[legacyBiomeId]?.visibilityModifiers : undefined;
+  if (!vis?.canopyShade) return null;
+  return { shade: true, fog: vis.fog ?? 'light', forestKind };
+}
+
 export interface MakeGroundWorldOptions {
   /** In-game hour 0–23: working adults stand at their work plot during
    * business hours (8–18), at home otherwise. Default noon. */
@@ -415,6 +487,12 @@ export interface MakeGroundWorldOptions {
    * a separate `computeGroundProps` call (Stage B). Default false = full build.
    */
   skipProps?: boolean;
+  /**
+   * Atlas cell the window anchors on (worldGenCore's entry cell). Enables the
+   * per-window canopy resolution (forests Task 11); omitted (tests, legacy
+   * callers) → `canopy: null`, behavior unchanged.
+   */
+  anchorCellId?: number;
 }
 
 /**
@@ -537,6 +615,18 @@ export function makeGroundWorld(
   // seed's cached site list; empty when no site falls in the window.
   const dungeonEntrances = dungeonEntrancesForWindow(seed, local);
 
+  // Canopy atmosphere (forests Task 11): resolved ONCE per window from the
+  // anchor cell. Both cell lookups ride the bridge's per-seed atlas cache the
+  // caller already warmed by resolving this window; without an anchor cell
+  // (tests, legacy paths) the canopy is null and nothing downstream changes.
+  const canopy = opts.anchorCellId != null
+    ? resolveCanopy(
+        biomeIdForCell(seed, opts.anchorCellId),
+        forestKindForCell(seed, opts.anchorCellId),
+        BIOMES,
+      )
+    : null;
+
   const world: GroundWorld = {
     cols: wd.gridSize.cols,
     rows: wd.gridSize.rows,
@@ -565,6 +655,7 @@ export function makeGroundWorld(
     occupants: townContent.occupants,
     townPlans: townContent.townPlans,
     boundsFeet: { x: local.bounds.x, y: local.bounds.y },
+    canopy,
   };
 
   // WAVE-1 props: deterministic dressing (market stalls, dock crates, wilderness
@@ -1279,16 +1370,22 @@ function groundTowns(
       // with no `pop` (unpopulated town) yields no type override and no brief —
       // briefless generation, byte-identical to before.
       const household = p.pop ? briefForPlot(p.pop, pops, townSeed) : undefined;
-      // Style context (BGv2 Task 7): burg culture + climate (resolved once above)
-      // plus this plot's ward wealth (WardWealth from the population pass, common
-      // when no district was tagged) and the Phase-3 age stub. Attached so the
-      // building raises its solved roof (dropping the legacy prism). Plots keep
-      // the SAME conditional-spread pattern as buildingType/household.
+      // Style context (BGv2 Task 7 + cohesive-identity extension): burg culture
+      // and climate define the town family; the artifact's spatial district key
+      // repeats one local construction dialect; wealth narrows finishes; and the
+      // pre-filter building key owns bounded lot-by-lot variation. Legacy plans
+      // without an architecture stamp retain the former wealth/plot fallback.
       const style: StyleContext = {
         cultureType: burgCultureType,
         climate: burgClimate,
-        wealth: p.pop?.district ?? 'common',
+        wealth: p.architecture?.wealth ?? p.pop?.district ?? 'common',
         ageBand: 'new',
+        architecture: {
+          settlementKey: `burg:${t.burgId}`,
+          districtKey: p.architecture?.districtKey
+            ?? `wealth:${p.pop?.district ?? 'common'}`,
+          buildingKey: p.architecture?.buildingKey ?? `plot:${p.id}`,
+        },
       };
       const plotInput: InteriorPlotInput = {
         id: p.id,
@@ -1309,7 +1406,7 @@ function groundTowns(
       // Unpopulated plots (no `p.pop`) fall back to the roster figures (the
       // agent-sim commuters), byte-identical to before.
       const schedule = p.pop
-        ? occupancyScheduleForPlot(p.pop, pops, plotInput, region!.seedPath, townSeed)
+        ? occupancyScheduleForPlot(p.pop, pops, plotInput, townSeed, townSeed)
         : undefined;
       // Per-member render packets: reuse the EXACT body pipeline the old inline
       // bake used, keyed on the same stable per-member seed so a family's bodies
@@ -1329,6 +1426,8 @@ function groundTowns(
             return {
               id: occLike.id,
               ageBand: o.ageBand,
+              // Ancestry group — the entity renderer turns it into a real body
+              ...(member?.race ? { race: member.race } : {}),
               body: bodyPlanToOccupantBody(
                 generateBody(occLike, childSeedPath(townSeed, `member:${p.id}:${o.memberIndex}`)),
               ),
@@ -1350,15 +1449,18 @@ function groundTowns(
               generateBody(o, childSeedPath(region!.seedPath, `occ:${o.id}`)),
             ),
           }));
-      // Wall envelope (≤ plot footprint) AND seamless interior parts (L4) from ONE
-      // interior generation — the envelope sizes roofs/floors so eaves don't float
-      // past the walls (construction v2); the parts use the same seed path as the
-      // town plan so plan, shell, rooms AND household all agree. (Was two
-      // generateInterior calls per plot — wasteful for large capitals.)
+      // Wall envelope (≤ plot footprint) AND seamless interior parts (L4) from
+      // ONE interior generation. The canonical TOWN seed is essential here:
+      // plot ids restart at zero in every burg, so the former region seed made
+      // plot 7 in two same-region towns generate the same bones. Town-scoped
+      // seeds keep each burg's buildings distinct and also match the household
+      // and occupancy paths above. The envelope still sizes roofs/floors so
+      // eaves do not float past the walls. (Was two generateInterior calls per
+      // plot — wasteful for large capitals.)
       // Window/hearth parts are now tagged with lightRole and the renderer
       // decides emissive live from the schedule — buildInterior no longer paints
       // lit flags, so pass false/false.
-      const interior = buildInterior(plotInput, region!.seedPath, heightM, occFigures, false, false);
+      const interior = buildInterior(plotInput, townSeed, heightM, occFigures, false, false);
       // Interior envelope in PLAN FEET (blueprint frame): the frame occupant
       // stations resolve in. envelope.wallWidthM = plan.widthFt * FEET_TO_METERS,
       // so dividing recovers the exact plan-feet frame.
@@ -2022,6 +2124,12 @@ export function extractLocalTerrainPatch(
 
           // Iterate through interior parts (walls and furniture)
           for (const p of b.parts) {
+            // Role motifs are exterior presentation dressing. Turrets and
+            // buttresses intentionally overlap the shell corners to form one
+            // silhouette, but they must not turn valid interior floor cells
+            // into blocked tactical tiles or alter line of sight.
+            if (p.tag === MOTIF_PART_TAG) continue;
+
             // The part's render-local center: sitePartLocalOffset applies the
             // SAME -doorZSign z-flip the renderer draws with, so the walkability
             // band matches the drawn cells (not their mirror through the origin).

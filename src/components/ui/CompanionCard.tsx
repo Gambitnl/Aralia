@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 14:04:05
+ * Last Sync: 12/07/2026, 00:55:12
  * Dependents: components/DesignPreview/steps/PreviewComponents.tsx, components/Party/RelationshipsPane.tsx
- * Imports: 2 files
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -26,6 +26,7 @@
 import React from 'react';
 import { Companion, RelationshipLevel } from '../../types/companions';
 import { assetUrl } from '../../config/env';
+import { usableCompanionAvatarUrl } from '../../systems/companions/portraitAssets';
 
 interface CompanionCardProps {
   companion: Companion;
@@ -51,6 +52,9 @@ const APPROVAL_GRADIENT = "bg-gradient-to-r from-red-900 via-gray-700 to-green-9
 export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, playerId = 'player' }) => {
   const relationship = companion.relationships[playerId] || { level: 'stranger', approval: 0 };
   const { identity, personality, goals } = companion;
+  // Normalize at render time because persisted companions can predate the
+  // canonical-data fix and still carry a retired placeholder portrait.
+  const avatarUrl = usableCompanionAvatarUrl(identity.avatarUrl);
 
   // Map the full runtime approval span (-500..500) into the bar width.
   const approvalPercent = Math.max(0, Math.min(100, (relationship.approval + 500) / 10));
@@ -60,8 +64,8 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, playerI
       {/* Header: Name and Avatar */}
       <div className="flex gap-4 mb-4">
         <div className="w-16 h-16 rounded-full bg-gray-700 border-2 border-amber-600 flex items-center justify-center overflow-hidden shrink-0">
-          {identity.avatarUrl ? (
-            <img src={assetUrl(identity.avatarUrl)} alt={identity.name} className="w-full h-full object-cover" />
+          {avatarUrl ? (
+            <img src={assetUrl(avatarUrl)} alt={identity.name} className="w-full h-full object-cover" />
           ) : (
             <span className="text-2xl font-cinzel text-amber-500">{identity.name.charAt(0)}</span>
           )}

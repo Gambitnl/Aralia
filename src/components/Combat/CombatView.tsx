@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/07/2026, 00:56:09
+ * Last Sync: 11/07/2026, 23:24:21
  * Dependents: components/Combat/index.ts
- * Imports: 41 files
+ * Imports: 45 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -57,7 +57,19 @@ import { COMBAT_BTN_BASE, COMBAT_BTN_NEUTRAL, COMBAT_BTN_GREEN, COMBAT_BTN_ORANG
 import CharacterSheetModal from '../CharacterSheet/CharacterSheetModal';
 import { CombatCharacterInspector } from '../BattleMap/CombatCharacterInspector';
 import CombatRailControls from '../BattleMap/CombatRailControls';
+import CompactTurnStrip from '../BattleMap/CompactTurnStrip';
+import CombatRailResizeHandle from '../BattleMap/CombatRailResizeHandle';
 import MaplessTerrainSummary from './MaplessTerrainSummary';
+import {
+  COMBAT_COMMAND_WIDTH_DEFAULT,
+  COMBAT_COMMAND_WIDTH_MAX,
+  COMBAT_COMMAND_WIDTH_MIN,
+  COMBAT_ROSTER_WIDTH_DEFAULT,
+  COMBAT_ROSTER_WIDTH_MAX,
+  COMBAT_ROSTER_WIDTH_MIN,
+  createCombatRailGridStyle,
+  useCombatRailLayout,
+} from '../../hooks/useCombatRailLayout';
 import { canUseDevTools } from '../../utils/permissions';
 import { logger } from '../../utils/logger';
 import { createPlayerCombatCharacter } from '../../utils/combatUtils';
@@ -289,20 +301,31 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // switch and passes the setting into every 2D BattleMap instance.
   const [assetOverlayVisible, setAssetOverlayVisible] = useState(true);
   // Players can independently collapse either side rail when the battlefield
-  // needs more room. The controls stay reversible because combat information is
-  // still important and should never disappear as an automatic side effect.
-  const [rosterRailVisible, setRosterRailVisible] = useState(true);
-  const [commandRailVisible, setCommandRailVisible] = useState(true);
+  // needs more room. Their last deliberate layout returns in later combats;
+  // first use and invalid saved data still show every combat tool.
+  const {
+    rosterVisible: rosterRailVisible,
+    commandVisible: commandRailVisible,
+    rosterWidth: rosterRailWidth,
+    commandWidth: commandRailWidth,
+    setRosterVisible: setRosterRailVisible,
+    setCommandVisible: setCommandRailVisible,
+    setRosterWidth: setRosterRailWidth,
+    setCommandWidth: setCommandRailWidth,
+    resetLayout: resetRailLayout,
+    layoutIsDefault: railLayoutIsDefault,
+  } = useCombatRailLayout();
 
   // Keep all four desktop templates explicit so the map expands into the space
-  // released by either rail and Tailwind can discover every generated class.
+  // released by either rail. CSS variables supply remembered, bounded widths.
   const tacticalGridColumns = rosterRailVisible
     ? commandRailVisible
-      ? 'lg:grid-cols-[200px_minmax(0,1fr)_280px] xl:grid-cols-[230px_minmax(0,1fr)_300px]'
-      : 'lg:grid-cols-[200px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)]'
+      ? 'lg:grid-cols-[var(--combat-roster-width)_minmax(0,1fr)_var(--combat-command-width)]'
+      : 'lg:grid-cols-[var(--combat-roster-width)_minmax(0,1fr)]'
     : commandRailVisible
-      ? 'lg:grid-cols-[minmax(0,1fr)_280px] xl:grid-cols-[minmax(0,1fr)_300px]'
+      ? 'lg:grid-cols-[minmax(0,1fr)_var(--combat-command-width)]'
       : 'lg:grid-cols-[minmax(0,1fr)]';
+  const tacticalGridStyle = createCombatRailGridStyle(rosterRailWidth, commandRailWidth);
 
   // AI Spell Input State
   // Tracks the spell currently requesting player input (for AI-DM arbitration)
@@ -729,6 +752,15 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
           initialMaximized={false}
         >
           <div className="h-full overflow-auto bg-gray-900 flex items-center justify-center p-2 relative">
+            {/* The popped-out battlefield owns the targeting HUD while it is
+                open, preventing cancel controls from remaining behind it. */}
+            {abilitySystem.targetingMode && abilitySystem.selectedAbility && (
+              <CombatIntentPreview
+                ability={abilitySystem.selectedAbility}
+                casterName={currentCharacter?.name}
+                onCancel={abilitySystem.cancelTargeting}
+              />
+            )}
             {/* [2026-05-21] 2D/3D toggle in pop-out window */}
             <button
               onClick={() => setRenderMode(renderMode === '2d' ? '3d' : '2d')}
@@ -845,6 +877,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
           commandVisible={commandRailVisible}
           onToggleRoster={() => setRosterRailVisible(visible => !visible)}
           onToggleCommand={() => setCommandRailVisible(visible => !visible)}
+          onResetLayout={resetRailLayout}
+          layoutIsDefault={railLayoutIsDefault}
         />
         {/* TODO #58: Wrap debug buttons with process.env.NODE_ENV check to hide in production builds. */}
         <button
@@ -878,12 +912,24 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
           Small screens use one normal page scroll so roster cards cannot be
           clipped by nested rail scrolling; the xl desktop rail keeps its
           bounded scroll behavior inside the tactical shell. */}
-      <div className={`grid flex-grow grid-cols-1 gap-4 overflow-visible lg:min-h-0 lg:overflow-hidden ${tacticalGridColumns}`}>
+      <div
+        data-testid="combat-layout-grid"
+        className={`grid flex-grow grid-cols-1 gap-4 overflow-visible lg:min-h-0 lg:overflow-hidden ${tacticalGridColumns}`}
+        style={tacticalGridStyle}
+      >
         {/* Left Pane */}
         <div
           data-testid="combat-roster-rail"
-          className={`${rosterRailVisible ? 'flex' : 'hidden'} order-2 min-h-[18rem] max-h-none flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:min-h-0 lg:max-h-none lg:overflow-y-auto`}
+          className={`${rosterRailVisible ? 'flex' : 'hidden'} relative order-2 min-h-[18rem] max-h-none flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:min-h-0 lg:max-h-none lg:overflow-y-auto`}
         >
+          <CombatRailResizeHandle
+            side="roster"
+            value={rosterRailWidth}
+            minimum={COMBAT_ROSTER_WIDTH_MIN}
+            maximum={COMBAT_ROSTER_WIDTH_MAX}
+            onChange={setRosterRailWidth}
+            onReset={() => setRosterRailWidth(COMBAT_ROSTER_WIDTH_DEFAULT)}
+          />
           <PartyDisplay
             characters={characters}
             onCharacterSelect={handleCharacterSelect}
@@ -902,6 +948,16 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
           ref={battlefieldSectionRef}
           className="order-1 flex h-[68vh] min-h-[24rem] shrink-0 flex-col gap-2 overflow-hidden p-1 lg:order-none lg:h-auto lg:min-h-0 lg:shrink"
         >
+          {/* Collapsing the command rail expands the board without erasing the
+              active actor, remaining resources, movement, or End Turn command. */}
+          {!commandRailVisible && (
+            <CompactTurnStrip
+              character={currentCharacter}
+              isCharactersTurn={Boolean(currentCharacter && turnManager.isCharacterTurn(currentCharacter.id))}
+              onEndTurn={turnManager.endTurn}
+              onRestoreCommands={() => setCommandRailVisible(true)}
+            />
+          )}
           <div
             className={`relative flex min-h-0 flex-1 items-center justify-center overflow-hidden ${
               renderMode !== '2d'
@@ -911,10 +967,11 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
           >
             {/* Intent preview: shows what the selected ability will do while the
                 player is picking a target on the grid. */}
-            {renderMode === '2d' && abilitySystem.targetingMode && abilitySystem.selectedAbility && (
+            {!isBattleMapExpanded && abilitySystem.targetingMode && abilitySystem.selectedAbility && (
               <CombatIntentPreview
                 ability={abilitySystem.selectedAbility}
                 casterName={currentCharacter?.name}
+                onCancel={abilitySystem.cancelTargeting}
               />
             )}
             {/* Map controls: view toggle + Pop-out */}
@@ -1022,8 +1079,16 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             the same top-to-bottom order as the mockup's right rail. */}
         <div
           data-testid="combat-command-rail"
-          className={`${commandRailVisible ? 'grid' : 'hidden'} order-3 min-h-[18rem] max-h-none grid-cols-1 gap-3 overflow-visible scrollable-content p-1 sm:grid-cols-2 lg:order-none lg:min-h-0 lg:max-h-none lg:flex-col lg:overflow-y-auto ${commandRailVisible ? 'lg:flex' : 'lg:hidden'}`}
+          className={`${commandRailVisible ? 'grid' : 'hidden'} relative order-3 min-h-[18rem] max-h-none grid-cols-1 gap-3 overflow-visible scrollable-content p-1 sm:grid-cols-2 lg:order-none lg:min-h-0 lg:max-h-none lg:flex-col lg:overflow-y-auto ${commandRailVisible ? 'lg:flex' : 'lg:hidden'}`}
         >
+          <CombatRailResizeHandle
+            side="command"
+            value={commandRailWidth}
+            minimum={COMBAT_COMMAND_WIDTH_MIN}
+            maximum={COMBAT_COMMAND_WIDTH_MAX}
+            onChange={setCommandRailWidth}
+            onReset={() => setCommandRailWidth(COMBAT_COMMAND_WIDTH_DEFAULT)}
+          />
           <InitiativeTracker
             characters={characters}
             turnState={turnManager.turnState}
@@ -1058,6 +1123,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             <AbilityPalette
               character={currentCharacter}
               onSelectAbility={(ability) => handleAbilitySelect(ability, currentCharacter)}
+              selectedAbilityId={abilitySystem.targetingMode ? abilitySystem.selectedAbility?.id : null}
+              onCancelAbility={abilitySystem.cancelTargeting}
               canAffordAction={(cost) => turnManager.canAffordAction(currentCharacter, cost)}
             />
           )}

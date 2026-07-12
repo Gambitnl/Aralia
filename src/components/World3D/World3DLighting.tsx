@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 12/07/2026, 00:34:41
+ * Dependents: components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DScene.tsx
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file World3DLighting.tsx
  * @description Sun + sky + atmosphere for the streamed 3D ground world
@@ -25,6 +41,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Sky } from '@react-three/drei';
 import * as THREE from 'three';
+import { GROUND_FOG_FAR, GROUND_FOG_NEAR, type CanopyInterior } from './canopyInterior';
 
 export interface SunState {
   /** Unit-ish sun direction (points FROM origin TOWARD the sun). */
@@ -90,13 +107,38 @@ const FAR_SHADOW_HALF_M = 850;
 const FAR_SHADOW_MAP_SIZE = 1024;
 /** Fraction of the sun key carried by the far cascade light. */
 const FAR_SHADOW_INTENSITY_SHARE = 0.35;
+/**
+ * The far cascade is useful only after the camera rises into a true town
+ * overview. At walking and opening-diorama heights the near 440-metre-wide
+ * shadow map already covers the visible play space; replaying every caster into
+ * a second 1.7-kilometre map cost roughly one third of the delivered frames.
+ */
+export const FAR_SHADOW_ENABLE_HEIGHT_M = 90;
 /** Sun distance from the frustum center along the sun direction. */
 const SUN_DIST_M = 900;
+
+/** Pure threshold used by the live light and its regression test. */
+export function shouldUseFarShadow(cameraY: number, referenceSurfaceY: number): boolean {
+  return cameraY - referenceSurfaceY >= FAR_SHADOW_ENABLE_HEIGHT_M;
+}
 
 const World3DLighting: React.FC<{
   viewProfile: 'continent' | 'ground';
   timeOfDayHours?: number;
-}> = ({ viewProfile, timeOfDayHours = DEFAULT_TIME_OF_DAY_H }) => {
+  /**
+   * Canopy atmosphere (forests Task 11): already-damped modulation values from
+   * the scene — hemisphere intensity × lightMul, ground-profile fog pulled to
+   * fogNear/fogFar. Null (the default) renders the exact pre-canopy values.
+   */
+  interior?: CanopyInterior | null;
+  /** Spawn-ground elevation used to distinguish walking height from overview. */
+  shadowReferenceY?: number;
+}> = ({
+  viewProfile,
+  timeOfDayHours = DEFAULT_TIME_OF_DAY_H,
+  interior = null,
+  shadowReferenceY = 0,
+}) => {
   const sun = useMemo(() => sunFromTime(timeOfDayHours), [timeOfDayHours]);
   const lightRef = useRef<THREE.DirectionalLight>(null);
   const farLightRef = useRef<THREE.DirectionalLight>(null);
@@ -123,6 +165,16 @@ const World3DLighting: React.FC<{
   // has to span the whole streamed window at mush resolution.
   useFrame(({ camera }) => {
     if (!castShadows) return;
+    const useFarShadow = shouldUseFarShadow(camera.position.y, shadowReferenceY);
+
+    // Keep the wide light as an unshadowed share of the sun at walking height,
+    // preserving total brightness while skipping its expensive second caster
+    // pass. The Town Cell aerial camera crosses the threshold and restores the
+    // far map automatically.
+    if (farLightRef.current && farLightRef.current.castShadow !== useFarShadow) {
+      farLightRef.current.castShadow = useFarShadow;
+      farLightRef.current.shadow.needsUpdate = useFarShadow;
+    }
     const followFrustum = (
       light: THREE.DirectionalLight | null,
       halfM: number,
@@ -143,7 +195,9 @@ const World3DLighting: React.FC<{
       );
     };
     followFrustum(lightRef.current, SHADOW_HALF_M, SHADOW_MAP_SIZE);
-    followFrustum(farLightRef.current, FAR_SHADOW_HALF_M, FAR_SHADOW_MAP_SIZE);
+    if (useFarShadow) {
+      followFrustum(farLightRef.current, FAR_SHADOW_HALF_M, FAR_SHADOW_MAP_SIZE);
+    }
   });
 
   return (
@@ -158,8 +212,13 @@ const World3DLighting: React.FC<{
         mieCoefficient={0.005}
         mieDirectionalG={0.8}
       />
-      {/* Cool sky / warm ground-bounce hemisphere fill. */}
-      <hemisphereLight args={[sun.hemiSkyColor, sun.hemiGroundColor, sun.hemiIntensity]} />
+      {/* Cool sky / warm ground-bounce hemisphere fill. Canopy shade dims it
+          via `interior.lightMul`; intensity rides its own prop (not args) so
+          the damped per-frame value updates the light instead of rebuilding it. */}
+      <hemisphereLight
+        args={[sun.hemiSkyColor, sun.hemiGroundColor]}
+        intensity={sun.hemiIntensity * (interior?.lightMul ?? 1)}
+      />
       {/* Warm sun key — NEAR cascade. Carries the majority of the key so the
           walking-scale neighbourhood gets crisp, high-res shadows. Bias pair
           tuned against acne (bias) and peter-panning (normalBias kept small in
@@ -193,7 +252,9 @@ const World3DLighting: React.FC<{
           position={[sun.direction[0] * SUN_DIST_M, sun.direction[1] * SUN_DIST_M, sun.direction[2] * SUN_DIST_M]}
           intensity={sun.sunIntensity * FAR_SHADOW_INTENSITY_SHARE}
           color={sun.sunColor}
-          castShadow
+          // The frame loop enables this only for a true aerial overview. The
+          // near cascade is sufficient at the opening/walking camera height.
+          castShadow={false}
           shadow-mapSize-width={FAR_SHADOW_MAP_SIZE}
           shadow-mapSize-height={FAR_SHADOW_MAP_SIZE}
           shadow-camera-near={10}
@@ -208,10 +269,16 @@ const World3DLighting: React.FC<{
       )}
       {/* Distance fog tinted to the sky horizon. Ground profile pulls it in to
           meet the artifact-edge haze; continent keeps the km-scale falloff.
-          Near distances stay generous so the midground never grays out. */}
+          Near distances stay generous so the midground never grays out. Under
+          canopy (forests Task 11) the damped interior override pulls the
+          ground fog in further so the woods close around the player. */}
       <fog
         attach="fog"
-        args={viewProfile === 'ground' ? [sun.fogColor, 450, 2000] : [sun.fogColor, 1100, 5200]}
+        args={
+          viewProfile === 'ground'
+            ? [sun.fogColor, interior?.fogNear ?? GROUND_FOG_NEAR, interior?.fogFar ?? GROUND_FOG_FAR]
+            : [sun.fogColor, 1100, 5200]
+        }
       />
     </>
   );

@@ -1,7 +1,7 @@
 # Road systems: mechanical + visual enrichment
 
 **Date:** 2026-07-11
-**Status:** Approved goal (Remy /goal directive); design derived from four codebase explorations
+**Status:** BUILT 2026-07-11 — all five slices landed (10 tasks + final review + fix wave, 194 files / 1738 targeted tests green, tsc baseline unchanged); remaining items in Open
 **Goal (Remy's words):** "enrich the world with proper road systems that both work mechanically as well as visually. different road types. different movement speeds during travel. paths that go into forest areas that becomes less visible and hard to follow. etc"
 
 ## Front-loaded summary
@@ -74,7 +74,7 @@ Forest terms used throughout: **forest** = tropical seasonal (5) and temperate d
 Per-cell, per-route-segment **visibility**: `visible | faint | overgrown`.
 
 - Forest (5, 6) makes `path` segments **faint**; deep forest (7, 8, 9) makes them **overgrown**. Trails become **faint** only in deep forest. Roads and highways never fade (they are maintained).
-- Mechanics: the navigation DC ladder above feeds `deriveNavDrift` — the governing terrain of a trip is the worst (visibility, tier) segment crossed. Failing the Survival check keeps today's consequence (wrong-direction drift + 1d6 h) with new messaging: "The path fades among the trees — you lose the trail." Success on a faint path grants normal path speed; failure also downgrades that trip's path speed bonus to off-road (you are bushwhacking).
+- Mechanics: the navigation DC ladder above feeds `deriveNavDrift` — the governing DC of a trip is the worst (visibility, tier) cell crossed. Failing the Survival check keeps today's consequence (wrong-direction drift + 1d6 h) with new messaging: "The path fades among the trees — you lose the trail." The 1d6 hours *is* the bushwhacking cost; no separate speed-downgrade bookkeeping.
 - The travel readout names the risk before commit: route summary gains "follows a faint forest path" wording so the player can choose the long road instead.
 - No new lost-state machinery is invented: this deepens the existing seeded navDrift roll. One real path, no cosmetic fallback.
 
@@ -97,7 +97,7 @@ Per-cell, per-route-segment **visibility**: `visible | faint | overgrown`.
 
 - `regionPolylinesToGround` carries `kind` through and assigns per-tier `widthFt` + `colorHex` (mirroring how town streets use `STREET_TIERS`): highway 44 ft pale flagstone `#c9b79a`, road 40 ft packed earth `#a08b62`, trail 20 ft lighter worn `#b5a077`, path 8 ft faint `#9aa07a`. `GroundPolyline.colorHex` already flows untouched to the ribbon vertex colors — this is the one-function seam the exploration verified.
 - `generateRegion.ts` route → `RegionRoad` mapping extends to the new kinds (today it collapses to road|trail).
-- **Faint paths in 3D:** paths do not render as solid ribbons in forest. Instead they stamp worn ground into the terrain material channel (`LocalTerrain.materialIndex → 'dirt'`) in intermittent patches (seeded, density falls with forest cover), so a faint path reads as a broken wear-line through undergrowth. This uses the existing per-cell material → vertex-color pipeline; no UVs, no z-fighting.
+- **Faint paths in 3D:** paths do not render as continuous solid ribbons. The path centerline is split into a deterministic keep/skip patch cycle, so a faint path reads as a broken wear-line through undergrowth. Terrain-material stamping (`LocalTerrain.materialIndex → 'dirt'` under paths) is deferred to a beautification pass — the patch cycle delivers the read with a fraction of the surface area.
 - Textured (UV-mapped) ribbons for highways are explicitly deferred to a later beautification pass.
 
 ## Tunables (single source of truth)
@@ -137,3 +137,8 @@ Slice 1 has no dependency on 2; slices 3 and 5 depend on 2; slice 4 depends on 1
 - Tier speed/danger numbers are starting values — tune after first playthrough feel.
 - Bridge glyphs (2D stretch) may slip to a polish pass.
 - Whether paths should also target dungeons/lairs as POI endpoints once the dungeon placement work lands.
+- **Owner decision (found during build):** FMG's internal `hasRoad`/`getConnectivityRate` helpers feed burg population generation. Giving town-tier roads the spec's new connectivity weights swings capital populations up to ~7× — a world-break. The build preserved old world output exactly (highways inherit the old road weights); adopting the spec's literal weights is deferred to Remy.
+- **Owner decision (found during build):** burg populations are assigned AFTER routes generate, so the road-vs-trail split currently anchors on capitals and ports only; the population threshold is wired but inert until burg population assignment moves earlier in the pipeline.
+- **Live eyeball gaps:** in-game 3D rural road ribbons and the in-game hover readout (with the faint-path warning) still need a live playthrough look. Headless proof exists for both 2D renderers, the 3D town harness, and all mechanics are test-pinned.
+- Submap and Neighbourhood views still draw every route with the old single road stroke (`l0Adapter.ts` labels all routes `kind: 'road'`) — separate renderers, backlog item.
+- Warning wording nuance: the pre-commit warning says "faint forest path" even when the fading segment is a trail (deep forest) or when the worst hazard on the trip is trackless wilds; consider "may be hard to follow" wording in a polish pass.

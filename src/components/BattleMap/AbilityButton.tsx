@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/07/2026, 21:55:28
+ * Last Sync: 11/07/2026, 23:22:49
  * Dependents: components/BattleMap/AbilityPalette.tsx
  * Imports: 3 files
  *
@@ -20,6 +20,7 @@
  */
 import React, { useMemo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { Crosshair } from 'lucide-react';
 import { Ability } from '../../types/combat';
 import Tooltip from '../Tooltip';
 import { getAbilityIconVisual } from '../../utils/visuals/combatIconVisuals';
@@ -28,6 +29,7 @@ interface AbilityButtonProps {
     ability: Ability;
     onSelect: () => void;
     isDisabled: boolean;
+    isSelected?: boolean;
 }
 
 // Combat ability ranges are stored in grid tiles. The tooltip also shows the
@@ -43,7 +45,7 @@ const formatGrantedActionCost = (type: string): string => {
     return type.charAt(0).toUpperCase() + type.slice(1);
 };
 
-const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisabled }) => {
+const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisabled, isSelected = false }) => {
     const shouldReduceMotion = useReducedMotion();
     const isOnCooldown = (ability.currentCooldown || 0) > 0;
     const isExhausted = ability.maxUses !== undefined && (ability.usesRemaining ?? ability.maxUses) <= 0;
@@ -75,7 +77,9 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
 
     // Apply primary color from visual spec if it's not transparent/default, to give hint of school.
     // Do not override border color if disabled, to ensure the gray disabled state is visible.
-    const customStyle = (!isDisabled && visual.primaryColor !== 'transparent')
+    // An armed ability uses the shared sky targeting color instead of its
+    // school accent, so the command tile and map HUD read as one interaction.
+    const customStyle = (!isDisabled && !isSelected && visual.primaryColor !== 'transparent')
         ? { borderColor: visual.primaryColor }
         : {};
 
@@ -144,19 +148,28 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
         : '';
     const accessibleLabel = `${visual.label}, ${costText} cost, range ${rangeText}${grantedActionLabel}${hasWeaponProficiencyWarning ? `, warning: ${weaponProficiencyWarning}` : ''}${isOnCooldown ? `, ${ability.currentCooldown} turn cooldown` : ''}${isExhausted ? ', depleted' : usesLabel ? `, ${usesLabel} uses` : ''}`;
 
-    return (
-        <Tooltip content={tooltipContent}>
-            <motion.button
+    // The armed tile stays visibly connected to the targeting HUD on the map.
+    // Keeping the button itself as the pressed control also gives keyboard and
+    // screen-reader players the same state that sighted players see in the ring.
+    const button = (
+        <motion.button
                 onClick={onSelect}
                 disabled={isDisabled}
                 aria-label={accessibleLabel}
                 aria-disabled={isDisabled}
+                aria-pressed={isSelected}
                 style={customStyle}
                 whileHover={isDisabled ? undefined : { scale: shouldReduceMotion ? 1 : 1.05 }}
                 whileTap={isDisabled ? undefined : { scale: shouldReduceMotion ? 1 : 0.95 }}
                 transition={{ duration: 0.1 }}
                 className={`relative w-16 h-[4.5rem] rounded-lg flex flex-col items-center justify-center p-1 text-white border-2 outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900
-                    ${isDisabled ? 'bg-slate-800/50 border-slate-600 cursor-not-allowed opacity-60' : hasWeaponProficiencyWarning ? 'bg-amber-950 hover:bg-amber-900 border-amber-400 cursor-pointer' : 'bg-slate-800 hover:bg-slate-700 border-slate-600 cursor-pointer'}
+                    ${isDisabled
+                        ? 'bg-slate-800/50 border-slate-600 cursor-not-allowed opacity-60'
+                        : isSelected
+                            ? 'border-sky-300 bg-sky-950/90 ring-2 ring-sky-400/80 shadow-[0_0_18px_rgba(56,189,248,0.5)] cursor-pointer'
+                            : hasWeaponProficiencyWarning
+                                ? 'bg-amber-950 hover:bg-amber-900 border-amber-400 cursor-pointer'
+                                : 'bg-slate-800 hover:bg-slate-700 border-slate-600 cursor-pointer'}
                 `}
             >
                 <span className="text-2xl flex-grow flex items-center drop-shadow-md">
@@ -176,6 +189,18 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                 <div className={`absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full shadow-md ${costBadgeColor}`}>
                     {costText}
                 </div>
+
+                {/* A crosshair is a compact, language-independent signal that
+                    this exact ability owns the target picker. Clicking the
+                    pressed tile again is handled by the palette as cancel. */}
+                {isSelected ? (
+                    <div
+                        aria-hidden="true"
+                        className="absolute -left-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-sky-100 bg-sky-500 text-slate-950 shadow-md"
+                    >
+                        <Crosshair size={12} strokeWidth={3} />
+                    </div>
+                ) : null}
 
                 {/* Spells like Minor Illusion and Wall of Light grant later
                     actions after the initial cast. Mark those abilities in the
@@ -212,8 +237,12 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                     </div>
                 )}
             </motion.button>
-        </Tooltip>
     );
+
+    // Selecting an ability can leave the pointer resting on its tile. Unmount
+    // that hover tooltip once armed because the map HUD now owns the details;
+    // otherwise two floating explanations compete over the battlefield.
+    return isSelected ? button : <Tooltip content={tooltipContent}>{button}</Tooltip>;
 };
 
 export default AbilityButton;

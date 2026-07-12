@@ -5,12 +5,16 @@
  * null when the member is OUT that hour. The station is authored in plan feet
  * (blueprint frame, 0 = min corner); the resolver maps it through the shared
  * planFeetToSiteLocal → siteLocalToScene transform, then lifts by storey. The
- * live component itself only re-flattens the loaded-chunk set and renders one
- * shared OccupantFigure per occupant, so the resolver is the piece worth pinning.
+ * The nearby-body selector is also pinned because it protects the live scene
+ * from mounting an unbounded number of marching-cubes residents in dense towns.
  */
 import { describe, it, expect } from 'vitest';
 import type { BuildingOccupantRender } from '@/systems/world3d/types';
-import { occupantScenePosition } from '../InteriorOccupants';
+import {
+  MAX_LIVE_INTERIOR_BODIES,
+  occupantScenePosition,
+  selectInteriorBodyKeys,
+} from '../InteriorOccupants';
 
 describe('occupantScenePosition', () => {
   it('returns null when the occupant is OUT that hour', () => {
@@ -111,5 +115,37 @@ describe('occupantScenePosition', () => {
     expect(pos.x).toBeCloseTo(-10 * FT, 6);
     expect(pos.z).toBeCloseTo(-15 * FT, 6);
     expect(pos.y).toBe(0);
+  });
+});
+
+describe('selectInteriorBodyKeys', () => {
+  it('keeps only the nearest bounded set in a dense town block', () => {
+    // Twenty residents all fit inside the close-detail radius. Only the ten
+    // nearest may receive live generated bodies; the rest remain simulated.
+    const candidates = Array.from({ length: 20 }, (_, index) => ({
+      key: `resident-${index}`,
+      x: index + 1,
+      y: 0,
+      z: 0,
+    }));
+    const selected = selectInteriorBodyKeys(candidates, { x: 0, y: 0, z: 0 }, new Set());
+
+    expect(selected.size).toBe(MAX_LIVE_INTERIOR_BODIES);
+    expect([...selected]).toEqual(Array.from({ length: 10 }, (_, index) => `resident-${index}`));
+  });
+
+  it('uses a wider exit radius for an already-visible resident', () => {
+    // A new body 20 m away stays hidden (outside the 18 m enter radius), while
+    // an existing one at the same distance survives until it crosses 24 m.
+    const candidate = [{ key: 'resident', x: 20, y: 0, z: 0 }];
+    expect(selectInteriorBodyKeys(candidate, { x: 0, y: 0, z: 0 }, new Set()).size).toBe(0);
+    expect(
+      selectInteriorBodyKeys(candidate, { x: 0, y: 0, z: 0 }, new Set(['resident'])).has('resident'),
+    ).toBe(true);
+  });
+
+  it('treats an overhead camera as far from ground-floor residents', () => {
+    const candidate = [{ key: 'resident', x: 0, y: 0, z: 0 }];
+    expect(selectInteriorBodyKeys(candidate, { x: 0, y: 35, z: 0 }, new Set()).size).toBe(0);
   });
 });

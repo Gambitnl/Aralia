@@ -133,6 +133,76 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       weight: 1
     }
   ],
+  forest_haunted: [
+    {
+      id: 'whispering_dead',
+      description: 'Voices of the long-dead whisper from the gloom, urging you off the path.',
+      effect: { type: 'delay', amount: 2, description: '2 hour delay' },
+      weight: 2,
+      skillCheck: {
+        check: { skill: 'religion', dc: 13 },
+        successEffect: { type: 'delay', amount: 0, description: 'No delay' },
+        successDescription: 'You speak the old rites of passage and the whispers fall silent. (Religion Success)',
+        failureDescription: 'The voices tangle your thoughts, and you wander until they fade. (Religion Fail)'
+      }
+    },
+    {
+      id: 'cold_mists',
+      description: 'An unnatural cold mist coils between the trees, swallowing every landmark.',
+      effect: { type: 'delay', amount: 2, description: '2 hour delay' },
+      weight: 2,
+      skillCheck: {
+        check: { skill: 'survival', dc: 12 },
+        successEffect: { type: 'delay', amount: 0, description: 'No delay' },
+        successDescription: 'You keep your bearings by moss and wind until the mist thins. (Survival Success)',
+        failureDescription: 'You creep forward blind, checking every step twice.'
+      }
+    },
+    {
+      id: 'grasping_roots',
+      description: 'Pale roots writhe up from the leaf-rot and coil around your ankles.',
+      effect: { type: 'health_change', amount: -2, description: 'Took 2 damage' },
+      weight: 1,
+      skillCheck: {
+        check: { skill: 'athletics', dc: 12 },
+        successEffect: { type: 'delay', amount: 0, description: 'No delay' },
+        successDescription: 'You tear free before the roots can tighten their grip. (Athletics Success)',
+        failureDescription: 'You have to cut yourself loose, root by clinging root.'
+      }
+    }
+  ],
+  forest_fey: [
+    {
+      id: 'dancing_lights',
+      description: 'Motes of colored light weave between the trunks, beckoning you deeper into the wood.',
+      effect: { type: 'delay', amount: 2, description: '2 hour delay' },
+      weight: 2,
+      skillCheck: {
+        check: { skill: 'arcana', dc: 13 },
+        successEffect: { type: 'xp_gain', amount: 25, description: 'Gained 25 XP' },
+        successDescription: 'You name the fey glamour for what it is and study its weave as it fades. (Arcana Success)',
+        failureDescription: 'You chase the lights down winding paths that lead nowhere. (Arcana Fail)'
+      }
+    },
+    {
+      id: 'stolen_hour',
+      description: 'The light shifts strangely between the trees, and when it settles the sun stands an hour lower.',
+      effect: { type: 'delay', amount: 1, description: '1 hour delay' },
+      weight: 1,
+    },
+    {
+      id: 'mushroom_ring',
+      description: 'A perfect ring of pale mushrooms circles the only clear way forward.',
+      effect: { type: 'delay', amount: 2, description: '2 hour delay' },
+      weight: 1,
+      skillCheck: {
+        check: { skill: 'nature', dc: 12 },
+        successEffect: { type: 'delay', amount: 0, description: 'No delay' },
+        successDescription: 'You know better than to step inside, and skirt the ring without breaking it. (Nature Success)',
+        failureDescription: 'You cut through the circle, and the wood seems to rearrange itself around you.'
+      }
+    }
+  ],
   mountain: [
     {
       id: 'rockslide',

@@ -28,6 +28,11 @@ import { distanceSquared } from "./utils/functionUtils";
 import { findClosestCell } from "./utils/graphUtils";
 import { findPath } from "./utils/pathUtils";
 import { rn } from "./utils/numberUtils";
+import {
+  ROAD_BURG_MIN_POPULATION,
+  PATH_SPUR_PERCENT,
+  PATH_SPUR_MAX_DEPTH,
+} from "../travel/roadTunables";
 import type { Pack } from "./features";
 import type { Grid } from "./utils/graphUtils";
 import type { BiomesData } from "./biomes";
@@ -48,7 +53,10 @@ const ROUTE_TYPE_MODIFIERS: Record<string, number> = {
 
 export interface Route {
   i: number;
-  group: "roads" | "trails" | "searoutes";
+  // Tier vocabulary (road-systems Task 5): highways = capital trunk network,
+  // roads = town↔town links, trails = village links, paths = forest spurs
+  // (Task 7's generator; the group is in the union now so types settle once).
+  group: "highways" | "roads" | "trails" | "paths" | "searoutes";
   feature: number;
   points: number[][];
   cells?: number[];
@@ -302,31 +310,107 @@ export class RoutesModule {
     }
   }
 
+  private isTownBurg(burg: Burg): boolean {
+    // Towns anchor roads; villages anchor trails. Capitals/ports always qualify.
+    return Boolean(burg.capital) || Boolean(burg.port) ||
+      ((burg.population as number | undefined) ?? 0) >= ROAD_BURG_MIN_POPULATION;
+  }
+
   private generateTrails(connections: Map<string, boolean>) {
     const { burgsByFeature } = this.sortBurgsByFeature(this.ctx.pack.burgs!);
-    const trails: Route[] = [];
+    const townRoads: Route[] = [];
+    const villageTrails: Route[] = [];
 
     for (const [key, featureBurgs] of Object.entries(burgsByFeature)) {
       const points = featureBurgs.map((burg) => [burg.x, burg.y] as Point);
       const urquhartEdges = this.calculateUrquhartEdges(points);
       urquhartEdges.forEach(([fromId, toId]) => {
-        const start = featureBurgs[fromId].cell;
-        const exit = featureBurgs[toId].cell;
+        const from = featureBurgs[fromId];
+        const to = featureBurgs[toId];
+        // Both endpoints are towns → a road; otherwise a village trail.
+        const isRoad = this.isTownBurg(from) && this.isTownBurg(to);
 
         const segments = this.findPathSegments({
           isWater: false,
           connections,
-          start,
-          exit,
+          start: from.cell,
+          exit: to.cell,
         });
         for (const segment of segments) {
           this.addConnections(segment, connections);
-          trails.push({ feature: Number(key), cells: segment } as Route);
+          (isRoad ? townRoads : villageTrails).push({
+            feature: Number(key),
+            cells: segment,
+          } as Route);
         }
       });
     }
 
-    return trails;
+    return { townRoads, villageTrails };
+  }
+
+  /** Knuth-hash a burg id to a stable 0..99 bucket (deterministic spur pick). */
+  private spurBucket(burgId: number): number {
+    return Math.abs(Math.imul(burgId, 2654435761)) % 100;
+  }
+
+  /**
+   * Village forest spurs: a share of villages get a short hunters'/woodcutters'
+   * path from the village into the nearest forest, so faint paths lead INTO the
+   * woods (and can fade there) instead of only linking settlements. Deterministic:
+   * spur selection hashes the burg id; the target is the first forest cell found
+   * by BFS, walked PATH_SPUR_MAX_DEPTH cells deeper along forest neighbors.
+   */
+  private generatePaths(connections: Map<string, boolean>) {
+    const cells = this.ctx.pack.cells as any;
+    const FOREST_IDS = new Set([5, 6, 7, 8, 9]);
+    const isForest = (c: number): boolean => FOREST_IDS.has(cells.biome?.[c] ?? 0);
+    const isLand = (c: number): boolean => (cells.h?.[c] ?? 0) >= 20;
+    const paths: Route[] = [];
+
+    for (const burg of this.ctx.pack.burgs!) {
+      if (!burg.i || burg.removed || this.isTownBurg(burg)) continue; // villages only
+      if (this.spurBucket(burg.i as number) >= PATH_SPUR_PERCENT) continue;
+
+      // BFS from the village for the nearest forest cell (bounded search).
+      const seen = new Set<number>([burg.cell as number]);
+      const queue: number[] = [burg.cell as number];
+      let entry = -1;
+      let visited = 0;
+      while (queue.length && visited < 400 && entry < 0) {
+        const cur = queue.shift()!;
+        visited++;
+        for (const nb of cells.c?.[cur] ?? []) {
+          if (seen.has(nb) || !isLand(nb)) continue;
+          seen.add(nb);
+          if (isForest(nb)) { entry = nb; break; }
+          queue.push(nb);
+        }
+      }
+      if (entry < 0) continue; // no forest near this village
+
+      // Walk deeper: follow forest neighbors up to PATH_SPUR_MAX_DEPTH cells,
+      // picking the lowest-id neighbor for determinism.
+      let target = entry;
+      for (let d = 0; d < PATH_SPUR_MAX_DEPTH; d++) {
+        const deeper = (cells.c?.[target] ?? [])
+          .filter((nb: number) => isForest(nb) && !seen.has(nb))
+          .sort((a: number, b: number) => a - b)[0];
+        if (deeper == null) break;
+        seen.add(deeper);
+        target = deeper;
+      }
+
+      const segments = this.findPathSegments({
+        isWater: false, connections, start: burg.cell as number, exit: target,
+      });
+      for (const segment of segments) {
+        this.addConnections(segment, connections);
+        paths.push({ feature: burg.feature as number, cells: segment } as Route);
+      }
+    }
+
+    return paths;
   }
 
   private generateSeaRoutes(connections: Map<string, boolean>) {
@@ -439,28 +523,30 @@ export class RoutesModule {
   }
 
   private createRoutesData(routes: Route[], connections: Map<string, boolean>) {
+    // Order matters: main roads claim their corridors (via addConnections)
+    // BEFORE trails generate, so trails never re-path an existing trunk. The
+    // tier split below changes only grouping/labeling, not this order.
     const mainRoads = this.generateMainRoads(connections);
-    const trails = this.generateTrails(connections);
+    const { townRoads, villageTrails } = this.generateTrails(connections);
     const seaRoutes = this.generateSeaRoutes(connections);
     const pointsArray = this.preparePointsArray();
 
-    for (const { feature, cells, merged } of this.mergeRoutes(mainRoads)) {
-      if (merged) continue;
-      const points = this.getPoints("roads", cells!, pointsArray);
-      routes.push({ i: routes.length, group: "roads", feature, points });
-    }
-
-    for (const { feature, cells, merged } of this.mergeRoutes(trails)) {
-      if (merged) continue;
-      const points = this.getPoints("trails", cells!, pointsArray);
-      routes.push({ i: routes.length, group: "trails", feature, points });
-    }
-
-    for (const { feature, cells, merged } of this.mergeRoutes(seaRoutes)) {
-      if (merged) continue;
-      const points = this.getPoints("searoutes", cells!, pointsArray);
-      routes.push({ i: routes.length, group: "searoutes", feature, points });
-    }
+    // Merge + emit per group so tiers never blend into one another.
+    const emit = (list: Route[], group: Route["group"]) => {
+      for (const { feature, cells, merged } of this.mergeRoutes(list)) {
+        if (merged) continue;
+        const points = this.getPoints(group, cells!, pointsArray);
+        routes.push({ i: routes.length, group, feature, points });
+      }
+    };
+    emit(mainRoads, "highways");
+    emit(townRoads, "roads");
+    emit(villageTrails, "trails");
+    // Forest spurs generate last among land groups (after trails claimed their
+    // corridors, so spurs never steal them) and only ADD connections.
+    const paths = this.generatePaths(connections);
+    emit(paths, "paths");
+    emit(seaRoutes, "searoutes");
 
     return routes;
   }
@@ -476,7 +562,16 @@ export class RoutesModule {
     });
 
     pack.routes = this.createRoutesData(lockedRoutes, connections);
-    (pack.cells as any).routes = this.buildLinks(pack.routes);
+    // Forest-spur paths (road-systems Task 7) stay OUT of the cell-link
+    // index: every later FMG stage reads these links (religions expansion,
+    // Burgs.specify populations/features, markers, zones), so indexing the
+    // new spurs would change burg populations and shift the RNG stream away
+    // from the frozen golden world (same doctrine as hasRoad/isCrossroad
+    // below). Gameplay consumers read pack.routes directly, so paths still
+    // reach travel graphs, renderers and the region generator.
+    (pack.cells as any).routes = this.buildLinks(
+      pack.routes.filter((route) => route.group !== "paths"),
+    );
   }
 
   // utility functions
@@ -509,7 +604,12 @@ export class RoutesModule {
         (route) => route.i === routeId,
       );
       if (!route) return false;
-      return route.group === "roads";
+      // Behavior-preserving: the pre-split "roads" trunk network is now
+      // labeled "highways" (identical corridors). Matching "highways" keeps
+      // this FMG-internal generation heuristic byte-identical to the frozen
+      // golden world; the town-link "roads" tier (formerly part of "trails")
+      // is deliberately excluded so specify()'s RNG stream does not shift.
+      return route.group === "highways";
     });
   }
 
@@ -521,7 +621,9 @@ export class RoutesModule {
       const route = this.ctx.pack.routes!.find(
         (route) => route.i === routeId,
       );
-      return route?.group === "roads";
+      // Trunk junctions: the former "roads" network is now "highways" (see
+      // hasRoad). Preserved verbatim to keep the golden world frozen.
+      return route?.group === "highways";
     });
     return roadConnections.length > 2;
   }
@@ -530,9 +632,18 @@ export class RoutesModule {
     const connections = (this.ctx.pack.cells as any).routes[cellId];
     if (!connections) return 0;
 
+    // Behavior-preserving rates: the pre-split world had only "roads" (0.2)
+    // and "trails" (0.1). "roads" became "highways" (keep 0.2); the old
+    // "trails" split into town "roads" + village "trails" (both keep 0.1) so
+    // definePopulation() computes byte-identical populations against the
+    // frozen golden. "paths" (Task 7) mirrors the faintest trail tier.
+    // Re-tuning these to reflect the new tier hierarchy is a deliberate
+    // world-break requiring owner approval (see fmgWorld.test.ts header).
     const connectivityRateMap: Record<string, number> = {
-      roads: 0.2,
+      highways: 0.2,
+      roads: 0.1,
       trails: 0.1,
+      paths: 0.1,
       searoutes: 0.2,
       default: 0.1,
     };

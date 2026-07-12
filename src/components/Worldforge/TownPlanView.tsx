@@ -1,10 +1,40 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 11/07/2026, 14:58:35
+ * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewTowns.tsx, components/MapPane.tsx
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { polygonBounds, pointInPolygon, type Pt } from '../../systems/worldforge/submap/submapEngine';
 import type { TownPlan, CivicKind, BuildingPlot } from '../../systems/worldforge/town/townEngine';
 import { generateHousehold } from '../../systems/worldforge/town/household';
 import { BUILDING_FILL, BUILDING_LABEL } from '../../systems/worldforge/town/buildingStyle';
-import { styledWallColor, styleFrameOf, type StyleFamily } from '../../systems/worldforge/town/architectureStyle';
-import type { SeedPath } from '../../systems/worldforge/seedPath';
+import {
+  resolveArchitectureVariant,
+  type ArchitectureVariant,
+  type StyleFamily,
+} from '../../systems/worldforge/town/architectureStyle';
+import {
+  resolveBuildingMotifs,
+  type BuildingMotifResolution,
+} from '../../systems/worldforge/town/buildingMotifs';
+import { fnv1a, type SeedPath } from '../../systems/worldforge/seedPath';
+import { buildingTypeForRole } from '../../systems/worldforge/interior/generateInterior';
+import { roleForPlot } from '../../systems/worldforge/town/townPlanAdapter';
+import type {
+  BuildingMotif,
+  FacadePattern,
+} from '../../systems/worldforge/interior/blueprintTypes';
 import { useTownLayers, TOWN_LAYER_DEFS } from './useDrillLayers';
 import DrillLayerPanel from './DrillLayerPanel';
 
@@ -17,12 +47,13 @@ export interface TownPlanViewProps {
   /** Per-save scope for the town layer toggles (pass the world seed). */
   prefsScope?: string | number;
   /**
-   * Regional architecture style family (from the burg's FMG culture type) —
-   * when set, building-plot fills use the SAME frame-normalized centroid-hash
-   * palette pick the 3D ground bake uses, so a Highland stone town reads
-   * stone-grey on the map too. Omit for fixtures with no real burg/seed.
+   * Regional architecture family from the burg's FMG culture type. When set,
+   * building fills, facade patterns, roof outlines, and role-motif evidence use
+   * the same layered resolver as the production 3D building bridge.
    */
   styleFamily?: StyleFamily;
+  /** Exact production settlement key (`burg:<id>`) for 2D/3D style parity. */
+  settlementKey?: string;
 }
 
 const CIVIC_COLOR: Record<CivicKind, string> = {
@@ -83,6 +114,77 @@ const DISTRICT_LABEL: Record<'wealthy' | 'common' | 'poor', string> = {
   wealthy: 'Wealthy quarter', common: 'Common ward', poor: 'Poor district',
 };
 
+const FACADE_LABEL: Record<FacadePattern, string> = {
+  plain: 'Plain',
+  'belt-course': 'Belt-course',
+  'vertical-bays': 'Vertical-bay',
+  'half-timber': 'Half-timber',
+  'log-bands': 'Log-band',
+};
+
+/** Plain-language names for the visible role cues shown by the inspector. */
+const MOTIF_LABEL: Record<BuildingMotif, string> = {
+  'front-canopy': 'front canopy',
+  'shop-awning': 'shop awning',
+  'display-bay': 'display bay',
+  'bay-window': 'bay window',
+  'jettied-bay': 'jettied bay',
+  'hanging-sign': 'hanging sign',
+  'vent-stack': 'vent stack',
+  'loading-hoist': 'loading hoist',
+  'side-shed': 'side shed',
+  'covered-gallery': 'covered gallery',
+  'entry-portico': 'entry portico',
+  'bell-cote': 'bell-cote',
+  'roof-finials': 'roof finials',
+  battlements: 'battlements',
+  'corner-turrets': 'corner turrets',
+  buttresses: 'buttresses',
+  'log-porch': 'log porch',
+};
+
+/** Resolved map dress for one engine plot, keyed from production identity. */
+interface TownPlotArchitectureStyle extends ArchitectureVariant, BuildingMotifResolution {
+  districtKey: string;
+  districtLabel: string;
+  buildingKey: string;
+  trimColor: string;
+  patternId: string;
+}
+
+/** Reuse SVG pattern definitions whenever wall, trim, and grammar agree. */
+function architecturePatternId(
+  wallColor: string,
+  trimColor: string,
+  facadePattern: FacadePattern,
+): string {
+  return `town-architecture-${fnv1a(`${wallColor}|${trimColor}|${facadePattern}`).toString(36)}`;
+}
+
+/**
+ * Small map-scale material pattern for one facade grammar.
+ *
+ * The 2D town cannot show literal wall beams at building scale, but repeating
+ * the same horizontal/vertical rhythm makes district dialects readable without
+ * inventing a second style system.
+ */
+const ArchitecturePattern: React.FC<{ style: TownPlotArchitectureStyle }> = ({ style }) => (
+  <pattern
+    id={style.patternId}
+    width={6}
+    height={6}
+    patternUnits="userSpaceOnUse"
+  >
+    <rect width={6} height={6} fill={style.wallColor} />
+    <g stroke={style.trimColor} strokeWidth={0.7} opacity={0.72}>
+      {style.facadePattern === 'belt-course' && <path d="M0 4.5H6" />}
+      {style.facadePattern === 'vertical-bays' && <path d="M2 0V6M5 0V6" />}
+      {style.facadePattern === 'half-timber' && <path d="M0 0L6 6M6 0L0 6M0 3H6" />}
+      {style.facadePattern === 'log-bands' && <path d="M0 1.5H6M0 3H6M0 4.5H6" />}
+    </g>
+  </pattern>
+);
+
 interface HoverInfo {
   poly: Pt[];
   title: string;
@@ -98,12 +200,75 @@ interface HoverInfo {
  * fit-to-view + manual pan/zoom. Hovering a building or civic structure highlights
  * it and shows an inspector tooltip. This is the deepest 2D tier the drill reaches.
  */
-const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height = 560, seedPath, prefsScope, styleFamily }) => {
+const TownPlanView: React.FC<TownPlanViewProps> = ({
+  plan,
+  width = 900,
+  height = 560,
+  seedPath,
+  prefsScope,
+  styleFamily,
+  settlementKey,
+}) => {
   const { layers, toggle } = useTownLayers(prefsScope);
   const bounds = useMemo(() => polygonBounds(plan.footprint), [plan]);
-  // Same hashing reference frame the 3D bake uses (townPlanAdapter.toArtifactPlan) —
-  // the plan's footprint bbox — so per-plot palette picks land on the identical color.
-  const styleFrame = useMemo(() => (styleFamily ? styleFrameOf(plan.footprint) : undefined), [styleFamily, plan]);
+
+  // Resolve the exact same architecture identity the artifact adapter and 3D
+  // blueprint receive. Object identity is safe as the map key because the town
+  // plan keeps one canonical plot object in both wards and plan.plots.
+  const architectureByPlot = useMemo(() => {
+    const resolved = new Map<BuildingPlot, TownPlotArchitectureStyle>();
+    if (!styleFamily) return resolved;
+    const townKey = settlementKey ?? seedPath ?? 'town-plan-preview';
+    plan.wards.forEach((ward, wardIndex) => {
+      const wealth = ward.wealth ?? 'common';
+      const districtKey = ward.architectureDistrict?.key ?? `wealth:${wealth}`;
+      const districtLabel = ward.architectureDistrict?.label ?? `${wealth} quarter`;
+      ward.plots.forEach((plot, plotIndex) => {
+        const buildingKey = plot.architectureKey
+          ?? plot.homeId
+          ?? `ward:${wardIndex}/plot:${plotIndex}`;
+        const variant = resolveArchitectureVariant(styleFamily, wealth, {
+          settlementKey: townKey,
+          districtKey,
+          buildingKey,
+        });
+        // Population normally supplies the exact type. For an unpopulated plot,
+        // reuse the production interior bridge's closed role mapping so the map
+        // never advertises a motif recipe different from the eventual 3D bake.
+        const buildingType = plot.buildingType
+          ?? buildingTypeForRole(roleForPlot(plot, ward.civic));
+        const motifResolution = resolveBuildingMotifs(
+          styleFamily.id,
+          buildingType,
+          variant.districtSignature,
+          variant.buildingVariant,
+        );
+        resolved.set(plot, {
+          ...variant,
+          ...motifResolution,
+          districtKey,
+          districtLabel,
+          buildingKey,
+          trimColor: styleFamily.wallTint,
+          patternId: architecturePatternId(
+            variant.wallColor,
+            styleFamily.wallTint,
+            variant.facadePattern,
+          ),
+        });
+      });
+    });
+    return resolved;
+  }, [plan, seedPath, settlementKey, styleFamily]);
+
+  const architecturePatterns = useMemo(() => {
+    const unique = new Map<string, TownPlotArchitectureStyle>();
+    for (const style of architectureByPlot.values()) {
+      if (style.facadePattern !== 'plain') unique.set(style.patternId, style);
+    }
+    return [...unique.values()];
+  }, [architectureByPlot]);
+
   const fit = useMemo(() => {
     const w = bounds.maxX - bounds.minX || 1;
     const h = bounds.maxY - bounds.minY || 1;
@@ -136,7 +301,11 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
     return m;
   }, [plan]);
 
-  const describeBuilding = (pl: BuildingPlot, wardCivic?: CivicKind): { title: string; lines: string[] } => {
+  const describeBuilding = (
+    pl: BuildingPlot,
+    wardCivic?: CivicKind,
+    architecture?: TownPlotArchitectureStyle,
+  ): { title: string; lines: string[] } => {
     const c = centroidOf(pl.polygon);
     const area = areaOf(pl.polygon);
     const size = area < stats.median * 0.6 ? 'Small' : area > stats.median * 1.6 ? 'Large' : 'Average';
@@ -173,6 +342,13 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
         }
         lines.push(`Employs ${pl.staffCount ?? 0} ${(pl.staffCount ?? 0) === 1 ? 'hand' : 'hands'}`);
       }
+      if (architecture) {
+        lines.push(
+          `${architecture.districtLabel} · ` +
+          `${FACADE_LABEL[architecture.facadePattern]} facade · ${architecture.roofForm} roof`,
+        );
+        lines.push(`Role cues · ${architecture.motifs.map((motif) => MOTIF_LABEL[motif]).join(', ')}`);
+      }
       if (wardCivic) lines.push(`In the ${CIVIC_LABEL[wardCivic].toLowerCase()} ward`);
       return { title, lines };
     }
@@ -192,6 +368,13 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
       `${size} footprint · ${pl.shape === 'L' ? 'L-shaped' : 'rectangular'}`,
       `~${storeys} ${storeys === 1 ? 'storey' : 'storeys'}`,
     ];
+    if (architecture) {
+      lines.push(
+        `${architecture.districtLabel} · ` +
+        `${FACADE_LABEL[architecture.facadePattern]} facade · ${architecture.roofForm} roof`,
+      );
+      lines.push(`Role cues · ${architecture.motifs.map((motif) => MOTIF_LABEL[motif]).join(', ')}`);
+    }
     if (wardCivic) lines.push(`In the ${CIVIC_LABEL[wardCivic].toLowerCase()} ward`);
     return { title, lines };
   };
@@ -249,7 +432,7 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
     for (const w of plan.wards) {
       for (const pl of w.plots) {
         if (pointInPolygon(g, pl.polygon)) {
-          const d = describeBuilding(pl, w.civic);
+          const d = describeBuilding(pl, w.civic, architectureByPlot.get(pl));
           const [cx, cy] = centroidOf(pl.polygon);
           return { poly: pl.polygon, title: d.title, lines: d.lines, px: cx, py: cy };
         }
@@ -319,6 +502,11 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
           <rect width="7" height="7" fill="#c7a567" />
           <line x1="0" y1="0" x2="0" y2="7" stroke="#a6843f" strokeWidth="1.5" />
         </pattern>
+        {/* District facade grammars reuse the production resolver's wall and
+            trim colors. Definitions are deduplicated by material + pattern. */}
+        {architecturePatterns.map((style) => (
+          <ArchitecturePattern key={style.patternId} style={style} />
+        ))}
       </defs>
       <g transform={`translate(${view.x},${view.y}) scale(${view.k})`}>
         {/* Cell base = open countryside (the whole parent cell is land). */}
@@ -334,20 +522,44 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
         {/* Buildable blocks (ward insets) in parchment — the area between them is
             street. Fall back to the full ward if no block (older plans). */}
         {plan.wards.map((w, i) => (
-          <path key={`w${i}`} d={poly(w.block ?? w.polygon)} fill={w.civic === 'plaza' ? '#e7dcc0' : '#efe6d2'} stroke="#b7a77f" strokeWidth={0.4} vectorEffect="non-scaling-stroke" />
+          <path key={`w${i}`} d={poly(w.block ?? w.polygon)} fill={w.civic === 'plaza' ? '#e7dcc0' : '#efe6d2'} stroke="#b7a77f" strokeWidth={0.4} vectorEffect="non-scaling-stroke"
+            data-architecture-district-key={w.architectureDistrict?.key}
+            data-architecture-district-label={w.architectureDistrict?.label} />
         ))}
         {/* Inherited main roads on top of the street grid (wider, distinct). */}
         {layers.roads && plan.streets.map((s, i) => (
           <path key={`st${i}`} d={open(s)} fill="none" stroke="#b8a577" strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
         ))}
-        {layers.buildings && plan.wards.flatMap((w, wi) => w.plots.map((pl, pi) => (
-          <path key={`p${wi}-${pi}`} d={poly(pl.polygon)}
-            fill={styleFamily && styleFrame
-              ? styledWallColor(styleFamily, pl.polygon, styleFrame)
-              : pl.buildingType ? BUILDING_FILL[pl.buildingType] : pl.kind === 'interior' ? '#b89a72' : '#9c7b54'}
-            stroke="#5f4527" strokeWidth={0.5} vectorEffect="non-scaling-stroke"
-            data-testid={pl.buildingType ? `town-building-${pl.buildingType}` : undefined} />
-        )))}
+        {layers.buildings && plan.wards.flatMap((w, wi) => w.plots.map((pl, pi) => {
+          const architecture = architectureByPlot.get(pl);
+          const fill = architecture
+            ? architecture.facadePattern === 'plain'
+              ? architecture.wallColor
+              : `url(#${architecture.patternId})`
+            : pl.buildingType
+              ? BUILDING_FILL[pl.buildingType]
+              : pl.kind === 'interior' ? '#b89a72' : '#9c7b54';
+          return (
+            <path key={`p${wi}-${pi}`} d={poly(pl.polygon)}
+              fill={fill}
+              stroke={architecture?.roofColor ?? '#5f4527'}
+              strokeWidth={architecture ? 0.8 : 0.5}
+              vectorEffect="non-scaling-stroke"
+              data-testid={pl.buildingType ? `town-building-${pl.buildingType}` : undefined}
+              data-architecture-district-key={architecture?.districtKey}
+              data-architecture-district-label={architecture?.districtLabel}
+              data-architecture-district-signature={architecture?.districtSignature}
+              data-architecture-building-key={architecture?.buildingKey}
+              data-architecture-building-variant={architecture?.buildingVariant}
+              data-architecture-facade-pattern={architecture?.facadePattern}
+              data-architecture-motifs={architecture?.motifs.join(',')}
+              data-architecture-motif-signature={architecture?.motifSignature}
+              data-architecture-motif-variant={architecture?.motifVariant}
+              data-architecture-roof-form={architecture?.roofForm}
+              data-architecture-wall-color={architecture?.wallColor}
+              data-architecture-roof-color={architecture?.roofColor} />
+          );
+        }))}
         {/* Rural farmsteads: scattered homes out on the farm parcels (where the
             rural share of the population lives, working the fields). */}
         {layers.buildings && (plan.farmsteads ?? []).map((f, i) => (

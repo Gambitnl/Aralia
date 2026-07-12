@@ -1,8 +1,11 @@
 /**
- * @file interiorParts.test.ts
- * Invariants for the L4 interior → 3D parts conversion: determinism, an
- * OPEN entry doorway in the street wall (seamless decision #11), wall/
- * furnishing bounds.
+ * This file proves that a canonical blueprint becomes honest 3D building
+ * parts without losing doors, windows, floors, furnishings, or roof geometry.
+ *
+ * It exercises the L4 bridge used by real towns. The architectural-identity
+ * checks additionally prove that resolved regional wall colors and district
+ * facade grammars plus building-role motifs reach rendering as additive
+ * dressing, while the permanent structural geometry remains unchanged.
  */
 
 import {
@@ -10,25 +13,30 @@ import {
   buildInteriorParts,
   buildBlueprintParts,
   ROOF_PART_TAG,
+  FACADE_PART_TAG,
+  MOTIF_PART_TAG,
   INTERIOR_WALL_COLOR,
   PERIMETER_WALL_COLORS,
   DOOR_LEAF_COLOR,
   WINDOW_PANE_COLOR,
   CEILING_COLOR,
   STAIR_COLOR,
+  FURNITURE,
+  furnishingSpec,
   type OccupantFigure,
   type OccupantBody,
 } from '../interiorParts';
 import { generateBuilding, buildingShellHeightM } from '../../interior/generateBuilding';
-import { FURNITURE, furnishingSpec } from '../interiorParts';
 import { FURNISHING_RECIPE_KINDS } from '../../interior/furnish';
-
-const isWallColor = (c: string): boolean =>
-  c === INTERIOR_WALL_COLOR || Object.values(PERIMETER_WALL_COLORS).includes(c);
 import { blueprintForPlot, generateInterior, type InteriorPlotInput } from '../../interior/generateInterior';
 import { isAtWork } from '../groundChunkLoader';
 import { EXTERIOR } from '../../interior/types';
 import { rootSeedPath } from '../../seedPath';
+import { STYLE_FAMILIES } from '../../town/architectureStyle';
+
+/** Colors that identify structural walls in legacy, unstyled test fixtures. */
+const isWallColor = (color: string): boolean =>
+  color === INTERIOR_WALL_COLOR || Object.values(PERIMETER_WALL_COLORS).includes(color);
 
 describe('furnishing render coverage (no-fallback)', () => {
   it('every kind the recipes can emit has a 3D render spec', () => {
@@ -421,7 +429,17 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     generateBuilding({
       buildingId: 7, type: 'manor', seedPath: rootSeedPath(7),
       storeys: 2, basement: false,
-      style: { cultureType: 'Generic', climate: 'temperate', wealth: 'common', ageBand: 'new' },
+      style: {
+        cultureType: 'Generic',
+        climate: 'temperate',
+        wealth: 'common',
+        ageBand: 'new',
+        architecture: {
+          settlementKey: 'burg:17',
+          districtKey: 'wealth:common',
+          buildingKey: 'plot:7',
+        },
+      },
     });
   const bare = () =>
     generateBuilding({
@@ -454,13 +472,165 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     expect(Array.from(out.roof!.positions).every(Number.isFinite)).toBe(true);
   });
 
-  it('the structure parts are byte-stable whether or not a roof is present', () => {
-    // Adding a solved roof must not perturb the wall/floor/etc. structure parts
-    // (the roof arrives as a separate group + chimney/dormer dressing).
-    const structOnly = (bp: ReturnType<typeof styled>) =>
+  it('style dressing does not move the permanent structure geometry', () => {
+    // Roof and facade dressing are additive, and regional color may repaint an
+    // outer wall. Strip those presentation facts before comparing the actual
+    // wall/floor/stair boxes against the bare building.
+    const structuralGeometry = (bp: ReturnType<typeof styled>) =>
       buildBlueprintParts(bp, 3, PERIMETER_WALL_COLORS.house, false)
-        .parts.filter((p) => p.tag !== ROOF_PART_TAG);
-    expect(structOnly(styled())).toEqual(structOnly(bare()));
+        .parts
+        .filter((part) =>
+          part.tag !== ROOF_PART_TAG &&
+          part.tag !== FACADE_PART_TAG &&
+          part.tag !== MOTIF_PART_TAG)
+        .map((part) => ({
+          x: part.x,
+          z: part.z,
+          w: part.w,
+          d: part.d,
+          h: part.h,
+          baseY: part.baseY,
+          lightRole: part.lightRole,
+        }));
+    expect(structuralGeometry(styled())).toEqual(structuralGeometry(bare()));
+  });
+
+  it('resolved district walls and facade grammar reach the visible 3D parts', () => {
+    const blueprint = styled();
+    const out = buildBlueprintParts(
+      blueprint,
+      3,
+      PERIMETER_WALL_COLORS.house,
+      false,
+    );
+    const style = blueprint.styleResolved!;
+
+    // The production bridge formerly discarded style.wallColor and painted
+    // every blueprint wall with a generic role color. At least one real outer
+    // wall must now carry the resolved district material.
+    expect(out.parts.filter((part) =>
+      part.tag !== FACADE_PART_TAG &&
+      part.tag !== MOTIF_PART_TAG &&
+      part.colorHex === style.wallColor).length)
+      .toBeGreaterThan(0);
+
+    // This fixture resolves to half-timber: shallow horizontal courses plus
+    // vertical bays, all in the family's shared trim color.
+    expect(style.facadePattern).toBe('half-timber');
+    const facade = out.parts.filter((part) => part.tag === FACADE_PART_TAG);
+    expect(facade.length).toBeGreaterThan(0);
+    expect(facade.every((part) => part.colorHex === style.trimColor)).toBe(true);
+    expect(facade.some((part) => part.w > part.d)).toBe(true);
+    expect(facade.some((part) => part.d > part.w)).toBe(true);
+  });
+
+  it.each([
+    ['shop', 'hanging-sign', 2],
+    ['smithy', 'vent-stack', 1],
+    ['workshop', 'loading-hoist', 2],
+    ['farmstead', 'side-shed', 1],
+    ['temple', 'bell-cote', 2],
+    ['keep', 'battlements', 3],
+  ] as const)('renders the %s recognition program as palette-bound motif parts', (
+    buildingType,
+    expectedCoreMotif,
+    storeys,
+  ) => {
+    // The same district and culture frame every role. The role resolver is the
+    // only changing input, so these assertions prove a shop sign or keep crown
+    // survives all the way into the production 3D box list.
+    const blueprint = generateBuilding({
+      buildingId: 800 + storeys,
+      type: buildingType,
+      seedPath: rootSeedPath(1800 + storeys),
+      storeys,
+      basement: false,
+      style: {
+        cultureType: 'Generic',
+        climate: 'temperate',
+        wealth: 'common',
+        ageBand: 'new',
+        architecture: {
+          settlementKey: 'burg:motif-proof',
+          districtKey: 'district:market-east',
+          buildingKey: `plot:${buildingType}`,
+        },
+      },
+    });
+    const out = buildBlueprintParts(
+      blueprint,
+      3,
+      PERIMETER_WALL_COLORS.house,
+      false,
+    );
+    const motifParts = out.parts.filter((part) => part.tag === MOTIF_PART_TAG);
+    const renderedMotifs = new Set(motifParts.map((part) => part.motifKind));
+    const palette = new Set([
+      blueprint.styleResolved!.wallColor,
+      blueprint.styleResolved!.roofColor,
+      blueprint.styleResolved!.trimColor,
+    ]);
+
+    expect(motifParts.length).toBeGreaterThan(0);
+    expect(renderedMotifs.has(expectedCoreMotif)).toBe(true);
+    expect(renderedMotifs).toEqual(new Set(blueprint.styleResolved!.motifs));
+    expect(motifParts.every((part) => palette.has(part.colorHex))).toBe(true);
+  });
+
+  it('horizontal log courses stop at window openings', () => {
+    const source = styled();
+    // generateBuilding memoizes plans, so copy the resolved style rather than
+    // mutating the shared fixture and leaking this grammar into later tests.
+    const blueprint = {
+      ...source,
+      styleResolved: {
+        ...source.styleResolved!,
+        facadePattern: 'log-bands' as const,
+      },
+    };
+    const parts = buildBlueprintParts(
+      blueprint,
+      3,
+      PERIMETER_WALL_COLORS.house,
+      false,
+    ).parts;
+    const bands = parts.filter((part) => part.tag === FACADE_PART_TAG);
+    const panes = parts.filter((part) => part.colorHex === WINDOW_PANE_COLOR);
+
+    expect(bands.length).toBeGreaterThan(0);
+    expect(panes.length).toBeGreaterThan(0);
+
+    // Compare only bands and panes on the same wall plane. Facade trim projects
+    // beyond the wall, so its normal-axis box intentionally does not intersect
+    // the pane even when the two would overlap in the elevation view.
+    for (const band of bands) {
+      const bandRunsAlongX = band.w > band.d;
+      for (const pane of panes) {
+        const paneRunsAlongX = pane.w > pane.d;
+        if (bandRunsAlongX !== paneRunsAlongX) continue;
+        const sameWall = bandRunsAlongX
+          ? Math.abs(band.z - pane.z) < 1
+          : Math.abs(band.x - pane.x) < 1;
+        if (!sameWall) continue;
+
+        const bandAlong = bandRunsAlongX
+          ? [band.x - band.w / 2, band.x + band.w / 2]
+          : [band.z - band.d / 2, band.z + band.d / 2];
+        const paneAlong = paneRunsAlongX
+          ? [pane.x - pane.w / 2, pane.x + pane.w / 2]
+          : [pane.z - pane.d / 2, pane.z + pane.d / 2];
+        const overlapsAlong = bandAlong[0] < paneAlong[1] - 1e-6
+          && bandAlong[1] > paneAlong[0] + 1e-6;
+        // SitePart permits an omitted baseY for ground-seated legacy boxes.
+        // Generated facade and pane parts set it, but using the contract's
+        // zero default here keeps this assertion honest for either shape.
+        const bandBaseY = band.baseY ?? 0;
+        const paneBaseY = pane.baseY ?? 0;
+        const overlapsVertically = bandBaseY < paneBaseY + pane.h - 1e-6
+          && bandBaseY + band.h > paneBaseY + 1e-6;
+        expect(overlapsAlong && overlapsVertically).toBe(false);
+      }
+    }
   });
 
   it('chimney dressing is tagged and colored from the resolved trim', () => {
@@ -568,7 +738,12 @@ describe('roof eave seats on the above-grade wall top (town bake)', () => {
 // roof caps the wall with no exposed rim.
 describe('roof eave overhangs the exterior wall (no exposed rim)', () => {
   const FT_M = 0.3048;
-  const PERIM = new Set(Object.values(PERIMETER_WALL_COLORS));
+  // Styled blueprints now paint outer walls from their resolved family palette;
+  // legacy role colors remain valid for bare fixtures.
+  const PERIM = new Set([
+    ...Object.values(PERIMETER_WALL_COLORS),
+    ...STYLE_FAMILIES.temperateFrame.wallPalette,
+  ]);
 
   const stylePlot = (storeys: number, role = 'house'): InteriorPlotInput => ({
     id: 3,
@@ -583,6 +758,9 @@ describe('roof eave overhangs the exterior wall (no exposed rim)', () => {
   const extents = (built: ReturnType<typeof buildInterior>) => {
     let wallX = -Infinity, wallZ = -Infinity;
     for (const p of built.parts) {
+      // Eave coverage is a wall-shell invariant. Attached sheds, bays, and
+      // other role motifs may intentionally project beyond the main roof.
+      if (p.tag === MOTIF_PART_TAG || p.tag === FACADE_PART_TAG) continue;
       if (!PERIM.has(p.colorHex)) continue;
       if ((p.baseY ?? 0) < -0.01) continue;
       wallX = Math.max(wallX, Math.abs(p.x) + p.w / 2);

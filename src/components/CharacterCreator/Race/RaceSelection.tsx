@@ -158,10 +158,25 @@ interface RaceSelectionProps {
   onBack?: () => void;
 }
 
+// Reuse one empty draft map for races with no saved subchoices. Creating a new
+// object during every render would retrigger the synchronization effect and
+// turn an otherwise idle race screen into an infinite render loop.
+const EMPTY_RACIAL_SELECTIONS: Record<string, RacialSelectionData> = {};
+
 type AbilityScoreName = 'Intelligence' | 'Wisdom' | 'Charisma';
 
-const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBack }) => {
-  const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null);
+const RaceSelection: React.FC<RaceSelectionProps> = ({
+  races,
+  onRaceSelect,
+  selectedRaceId: savedRaceId,
+  racialSelections = EMPTY_RACIAL_SELECTIONS,
+  onBack,
+}) => {
+  // Returning to this step must show the race already stored by the creator.
+  // Starting from an empty local selection made the detail pane fall back to
+  // the alphabetically first race, so pressing Confirm after Back could replace
+  // the player's earlier choice without warning.
+  const [selectedRaceId, setSelectedRaceId] = useState<string | null>(() => savedRaceId ?? null);
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
   const [selectedSpellAbility, setSelectedSpellAbility] = useState<AbilityScoreName | null>(null);
   const [selectedKeenSensesSkillId, setSelectedKeenSensesSkillId] = useState<string | null>(null);
@@ -209,25 +224,38 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
   const selectedRace = races.find(r => r.id === effectiveRaceId);
   const selectedRaceSpellAbilityChoice = selectedRace ? getRacialSpellCastingAbilityChoiceForRace(selectedRace.id) : null;
 
-  // When the viewed race changes, clear per-race local choice state so we don't accidentally carry it over.
+  // When the viewed race changes, restore any choices already owned by the
+  // creator draft. A race can have several linked choice stores (for example,
+  // Changeling uses skills plus size), so every local control is populated or
+  // cleared together instead of leaking choices between species.
   useEffect(() => {
-    // WHAT CHANGED: Added explicit reset logic for sub-choices.
-    // WHY IT CHANGED: Previously, if you selected 'Elf' and picked a 
-    // proficiency, then switched to 'Dwarf', the internal state for the 
-    // elf proficiency might persist. This effect ensures a clean slate on 
-    // every race navigation event.
-    // DEBT: Resetting local choices when race selection changes; synchronous setStates here trigger cascading renders.
+    const currentSelection = racialSelections[effectiveRaceId ?? ''];
+    const isElfFamily = selectedRace?.id === 'elf' || selectedRace?.baseRace === 'elf';
+
+    // DEBT: Synchronizing local controls from the draft in an effect causes an
+    // extra render. A future reducer-owned race form could remove this mirror,
+    // but this keeps the current component boundary while preserving choices.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedSpellAbility(null);
+    setSelectedSpellAbility((currentSelection?.spellAbility as AbilityScoreName | undefined) ?? null);
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedKeenSensesSkillId(null);
+    setSelectedKeenSensesSkillId(isElfFamily ? racialSelections.elf?.skillIds?.[0] ?? null : null);
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedCentaurNaturalAffinitySkillId(null);
+    setSelectedCentaurNaturalAffinitySkillId(selectedRace?.id === 'centaur' ? racialSelections.centaur?.skillIds?.[0] ?? null : null);
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedChangelingInstinctSkillIds(new Set());
+    setSelectedChangelingInstinctSkillIds(new Set(selectedRace?.id === 'changeling' ? racialSelections.changeling?.skillIds ?? [] : []));
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedChangelingSize(null);
-  }, [effectiveRaceId]); // Depend on effectiveRaceId instead of setStates inside
+    setSelectedChangelingSize(selectedRace?.id === 'changeling' ? racialSelections.changeling?.size ?? null : null);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRacialSkillChoices(
+      selectedRace?.id === 'changeling' || selectedRace?.id === 'centaur' || isElfFamily
+        ? []
+        : currentSelection?.skillIds ?? [],
+    );
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRacialToolChoices(currentSelection?.toolIds ?? []);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRacialCantripChoices(currentSelection?.selectedSpellIds ?? []);
+  }, [effectiveRaceId, racialSelections, selectedRace]);
 
   // Compute detail data with sibling variants for comparison table
   const detailData = useMemo(() => {

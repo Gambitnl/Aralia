@@ -12,7 +12,31 @@
  * marker and cell-pick are later SP0 tasks (T3+).
  */
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
+import type { ForestKind } from '../../systems/worldforge/forests/forestClusters';
+import {
+  FOREST_LABEL_FONT_MAX,
+  FOREST_LABEL_FONT_MIN,
+  FOREST_LABEL_FULL_SIZE_CELLS,
+  FOREST_LABEL_MIN_ZOOM,
+  FOREST_MIN_CELLS,
+  GLYPH_FULL_ZOOM,
+  GLYPH_MIN_ZOOM,
+} from '../../systems/worldforge/forests/forestTunables';
+import {
+  PEAK_LABEL_FONT,
+  PEAK_LABEL_MIN_ZOOM,
+  PEAK_LABEL_PRIORITY,
+  RANGE_LABEL_FONT_MAX,
+  RANGE_LABEL_FONT_MIN,
+  RANGE_LABEL_FULL_SIZE_CELLS,
+  RANGE_LABEL_MIN_ZOOM,
+  RANGE_LABEL_PRIORITY,
+  RANGE_MIN_CELLS,
+} from '../../systems/worldforge/mountains/mountainTunables';
 import { computeDangerField, dangerCellsAbove, type DungeonDangerSite } from '../../systems/worldforge/overlays/dangerField';
+import { routeVisibility } from '../../systems/worldforge/travel/routeTerrain';
+import { cellGlyphs, forestTint, glyphPath } from './forestGlyphs';
+import { groupToKind, routeOpacity, segmentRouteByVisibility } from './routeMapStyle';
 
 /** SVG "x,y x,y ..." points string for a cell's Voronoi polygon (graph coords). */
 export function cellPolygonPoints(atlas: FmgAtlasResult, i: number): string {
@@ -37,7 +61,7 @@ export interface AtlasSvgPolygon { points: string; fill: string }
 export interface AtlasSvgRegion { d: string; fill: string }
 export interface AtlasSvgMarker { x: number; y: number; type?: string }
 export interface AtlasSvgLayer { id: string; polygons: AtlasSvgPolygon[]; regions?: AtlasSvgRegion[] }
-export interface AtlasSvgRoute { d: string; group: string }
+export interface AtlasSvgRoute { d: string; group: string; kind: string; opacity: number }
 /** Settlement hierarchy tier — drives which glyph the atlas draws for a burg. */
 export type BurgTier = 'capital' | 'city' | 'town' | 'village';
 export interface AtlasSvgBurg {
@@ -96,7 +120,17 @@ export interface AtlasSvgModel {
   /** Military regiments as markers (Azgaar "military" overlay; toggle layer). */
   regiments?: AtlasSvgMarker[];
   labels?: AtlasSvgLabel[];
+  /**
+   * Forest tree glyphs (forests campaign T6): ONE entry per NAMED-forest cell —
+   * all that cell's glyph paths concatenated into a single `d`, tinted by the
+   * forest's kind (null = ordinary, keep the plain glyph green). Only cells in
+   * a `pack.forests` cluster stamp; anonymous copses stay plain fill.
+   */
+  forestGlyphs?: AtlasSvgForestGlyphCell[];
 }
+
+/** One named-forest cell's concatenated glyph paths + its kind tint. */
+export interface AtlasSvgForestGlyphCell { d: string; tint: string | null }
 
 const LAND_THRESHOLD = 20;
 
@@ -302,16 +336,37 @@ export function buildRivers(atlas: FmgAtlasResult, widthScale = 1): AtlasSvgRegi
   return out;
 }
 
-/** Route polylines grouped by kind (SP0 T5): roads / trails / searoutes. */
+/**
+ * Route polylines (SP0 T5, restyled by road-systems Task 8): each route carries
+ * its atlas kind + a stroke opacity from the shared routeMapStyle language.
+ * Maintained land tiers (highway/road) and sea routes render whole; trails and
+ * paths split into constant-visibility segments so forest stretches fade.
+ */
 export function buildRoutes(atlas: FmgAtlasResult): AtlasSvgRoute[] {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const routes: any[] = (atlas.pack as any).routes ?? [];
+  const pack: any = atlas.pack as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const routes: any[] = pack.routes ?? [];
+  const names: string[] | undefined = atlas.biomesData?.name;
+  const biomeOf = (cellId: number): string => names?.[pack.cells?.biome?.[cellId] ?? -1] ?? '';
+  const toPath = (pts: number[][]): string =>
+    'M' + pts.map((p) => `${+p[0].toFixed(1)},${+p[1].toFixed(1)}`).join('L');
   const out: AtlasSvgRoute[] = [];
   for (const r of routes) {
-    const pts: Array<[number, number]> = r.points ?? [];
+    const pts: number[][] = r.points ?? [];
     if (pts.length < 2) continue;
-    const d = 'M' + pts.map((p) => `${+p[0].toFixed(1)},${+p[1].toFixed(1)}`).join('L');
-    out.push({ d, group: r.group ?? 'roads' });
+    const group: string = r.group ?? 'roads';
+    const kind = groupToKind(group);
+    if (kind === 'searoute' || kind === 'highway' || kind === 'road') {
+      // Maintained (or sea) routes never fade — one segment, full polyline.
+      out.push({ d: toPath(pts), group, kind, opacity: routeOpacity(kind, 'visible') });
+      continue;
+    }
+    const tier = kind; // 'trail' | 'path'
+    for (const seg of segmentRouteByVisibility(pts, (c) => routeVisibility(biomeOf(c), tier))) {
+      if (seg.points.length < 2) continue; // trailing boundary-only run draws nothing
+      out.push({ d: toPath(seg.points), group, kind, opacity: routeOpacity(kind, seg.visibility) });
+    }
   }
   return out;
 }
@@ -430,8 +485,17 @@ export function buildBurgs(atlas: FmgAtlasResult): AtlasSvgBurg[] {
   return out;
 }
 
-export type LabelKind = 'state' | 'capital' | 'town';
-export interface AtlasSvgLabel { x: number; y: number; text: string; kind: LabelKind }
+export type LabelKind = 'state' | 'capital' | 'town' | 'forest' | 'range' | 'peak';
+export interface AtlasSvgLabel {
+  x: number;
+  y: number;
+  text: string;
+  kind: LabelKind;
+  /** Per-label size override (screen px). buildLabels sets it on forest and
+   * range labels (area-scaled); absent = the kind's LABEL_FONT default, so
+   * state/capital/town/peak labels are untouched. */
+  fontSize?: number;
+}
 /** A placed (decluttered) label in screen space. */
 export interface PlacedLabel extends AtlasSvgLabel { sx: number; sy: number; fontSize: number }
 
@@ -452,16 +516,80 @@ export function buildLabels(atlas: FmgAtlasResult): AtlasSvgLabel[] {
     if (!pole) continue;
     out.push({ x: pole[0], y: pole[1], text: s.fullName || s.name, kind: 'state' });
   }
+  // Named forests (forests campaign T4) — one label at each forest's pole of
+  // inaccessibility. Absent pre-forests packs simply add nothing. Font size
+  // is area-scaled (rulings 2026-07-11): lerp MIN→MAX as the cluster grows
+  // from FOREST_MIN_CELLS to FOREST_LABEL_FULL_SIZE_CELLS, so vast elderwoods
+  // read bigger than roadside woods.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const forests: any[] = (atlas.pack as any).forests ?? [];
+  for (const f of forests) {
+    if (!f || !f.name || !f.pole) continue;
+    const t = Math.min(1, Math.max(0,
+      (f.cells.length - FOREST_MIN_CELLS) / (FOREST_LABEL_FULL_SIZE_CELLS - FOREST_MIN_CELLS)));
+    const fontSize = Math.round(
+      FOREST_LABEL_FONT_MIN + (FOREST_LABEL_FONT_MAX - FOREST_LABEL_FONT_MIN) * t);
+    out.push({ x: f.pole[0], y: f.pole[1], text: f.name, kind: 'forest', fontSize });
+  }
+  // Named mountain ranges (mountains T3) — one label at each range's pole of
+  // inaccessibility, the forests pattern exactly: font size lerps MIN→MAX as
+  // the cluster grows from RANGE_MIN_CELLS to RANGE_LABEL_FULL_SIZE_CELLS, so
+  // continental spines read bigger than lone massifs. Pre-mountains packs
+  // (no pack.ranges) add nothing.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ranges: any[] = (atlas.pack as any).ranges ?? [];
+  for (const r of ranges) {
+    if (!r || !r.name || !r.pole) continue;
+    const t = Math.min(1, Math.max(0,
+      (r.cells.length - RANGE_MIN_CELLS) / (RANGE_LABEL_FULL_SIZE_CELLS - RANGE_MIN_CELLS)));
+    const fontSize = Math.round(
+      RANGE_LABEL_FONT_MIN + (RANGE_LABEL_FONT_MAX - RANGE_LABEL_FONT_MIN) * t);
+    out.push({ x: r.pole[0], y: r.pole[1], text: r.name, kind: 'range', fontSize });
+  }
+  // Named peaks (mountains T3) — "▲ Name" at the peak's own cell point (peaks
+  // carry no pole; cells.p is the same FMG-px source the state fallback uses).
+  // No fontSize override: the flat PEAK_LABEL_FONT kind default applies.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const peaks: any[] = (atlas.pack as any).peaks ?? [];
+  for (const pk of peaks) {
+    if (!pk || !pk.name) continue;
+    const pt = atlas.pack.cells.p[pk.cellId];
+    if (!pt) continue;
+    out.push({ x: pt[0], y: pt[1], text: `▲ ${pk.name}`, kind: 'peak' });
+  }
   return out;
 }
 
-const LABEL_FONT: Record<LabelKind, number> = { state: 14, capital: 11, town: 9 };
-const LABEL_PRIORITY: Record<LabelKind, number> = { state: 0, capital: 1, town: 2 };
+// Per-kind DEFAULT font sizes. Forest and range labels normally arrive from
+// buildLabels with a per-label area-scaled `fontSize` (MIN→MAX by cluster
+// cell count); this table is the fallback for any label without that
+// override. Peaks are flat PEAK_LABEL_FONT on purpose — landmarks, not banners.
+const LABEL_FONT: Record<LabelKind, number> = {
+  state: 14, capital: 11, town: 9, forest: FOREST_LABEL_FONT_MIN,
+  range: RANGE_LABEL_FONT_MIN, peak: PEAK_LABEL_FONT,
+};
+// Declutter rank — lower claims space first. Forest moved 3 → 4 when ranges
+// took 3 (mountains T3, rulings 2026-07-11): ranges outrank woods, both stay
+// below towns, peaks rank last. The literal 4 supersedes forestTunables'
+// FOREST_LABEL_PRIORITY (still 3 there) — this table is the live ladder.
+const LABEL_PRIORITY: Record<LabelKind, number> = {
+  state: 0, capital: 1, town: 2, range: RANGE_LABEL_PRIORITY, forest: 4, peak: PEAK_LABEL_PRIORITY,
+};
 
 export interface DeclutterView { k: number; x: number; y: number }
 export interface DeclutterOptions {
   capitalMinScale?: number;
   townMinScale?: number;
+  /** Zoom below which forest name labels hide (defaults to the forest
+   * tunables' FOREST_LABEL_MIN_ZOOM, 1.5 — between capitals and towns). */
+  forestMinScale?: number;
+  /** Zoom below which range name labels hide (defaults to the mountain
+   * tunables' RANGE_LABEL_MIN_ZOOM, 1.2 — macro geography names itself
+   * alongside capitals, earlier than forests). */
+  rangeMinScale?: number;
+  /** Zoom below which peak labels hide (defaults to the mountain tunables'
+   * PEAK_LABEL_MIN_ZOOM, 2.2 — lean-all-the-way-in landmarks, past towns). */
+  peakMinScale?: number;
   /**
    * Visible viewport size (screen space). When supplied, each placed label is
    * clamped so its text bbox stays fully inside `[0,width] × [0,height]` — a
@@ -489,14 +617,18 @@ export interface DeclutterOptions {
  * name) — the renderer applies this same offset, so the collision box must use
  * it too or two near-vertical burgs collide on paper but overlap on screen.
  */
-const LABEL_RENDER_DY: Record<LabelKind, number> = { state: 0, capital: 15, town: 15 };
+const LABEL_RENDER_DY: Record<LabelKind, number> = {
+  state: 0, capital: 15, town: 15, forest: 0, range: 0, peak: 0,
+};
 
 /**
  * Zoom-threshold + greedy bbox-collision declutter (SP0 T5c). State labels
- * always show; capitals appear past `capitalMinScale`, towns past
- * `townMinScale`. Higher-priority labels (state > capital > town) claim space
- * first; overlapping lower-priority labels are dropped. Screen-space (constant
- * text size), so positions use the live view transform.
+ * always show; capitals appear past `capitalMinScale`, ranges past
+ * `rangeMinScale`, forests past `forestMinScale`, towns past `townMinScale`,
+ * peaks past `peakMinScale`. Higher-priority labels
+ * (state > capital > town > range > forest > peak) claim space first;
+ * overlapping lower-priority labels are dropped. Screen-space (constant text
+ * size), so positions use the live view transform.
  *
  * The collision box mirrors the renderer's vertical offset and adds a small pad
  * so labels read with breathing room, and (when `bounds` is given) every kept
@@ -509,19 +641,25 @@ export function declutterLabels(
 ): PlacedLabel[] {
   const capMin = opts.capitalMinScale ?? 1.2;
   const townMin = opts.townMinScale ?? 2.0;
+  const forestMin = opts.forestMinScale ?? FOREST_LABEL_MIN_ZOOM;
+  const rangeMin = opts.rangeMinScale ?? RANGE_LABEL_MIN_ZOOM;
+  const peakMin = opts.peakMinScale ?? PEAK_LABEL_MIN_ZOOM;
   const pad = opts.pad ?? 2;
   const bounds = opts.bounds;
   const maxLabels = opts.maxLabels ?? Infinity;
   const visible = labels.filter((l) =>
     l.kind === 'state'
     || (l.kind === 'capital' && view.k >= capMin)
-    || (l.kind === 'town' && view.k >= townMin),
+    || (l.kind === 'town' && view.k >= townMin)
+    || (l.kind === 'forest' && view.k >= forestMin)
+    || (l.kind === 'range' && view.k >= rangeMin)
+    || (l.kind === 'peak' && view.k >= peakMin),
   );
   visible.sort((a, b) => LABEL_PRIORITY[a.kind] - LABEL_PRIORITY[b.kind]);
   const placed: Array<{ x: number; y: number; w: number; h: number }> = [];
   const out: PlacedLabel[] = [];
   for (const l of visible) {
-    const fontSize = LABEL_FONT[l.kind];
+    const fontSize = l.fontSize ?? LABEL_FONT[l.kind];
     const w = l.text.length * fontSize * 0.55;
     const h = fontSize;
     // Anchor, then clamp the CENTER so the (half-width, half-height) bbox — at
@@ -559,6 +697,64 @@ export function declutterLabels(
     if (out.length >= maxLabels) break;
   }
   return out;
+}
+
+/**
+ * Forest tree glyphs (forests campaign T6): per-cell glyph stamps for every
+ * cell of every NAMED forest (`pack.forests` clusters only — anonymous copses
+ * keep the plain biome fill, so the map stays calm and the layer stays cheap).
+ *
+ * One entry per forest cell: all that cell's deterministic glyph paths
+ * (forestGlyphs.cellGlyphs → glyphPath) concatenated into one `d` string,
+ * plus the forest's kind tint (null for ordinary). Cells whose polygons are
+ * degenerate or whose biome stamps nothing are skipped rather than emitted
+ * empty. BOTH renderers consume this function — the SVG model folds it in
+ * below, the canvas rebuilds the identical data via the same call — so the
+ * two maps cannot disagree on where trees stand.
+ */
+export function buildForestGlyphs(atlas: FmgAtlasResult): AtlasSvgForestGlyphCell[] {
+  const forests =
+    (atlas.pack as { forests?: Array<{ cells: number[]; kind: ForestKind }> }).forests ?? [];
+  if (forests.length === 0) return [];
+  const cells = atlas.pack.cells;
+  const verts = atlas.pack.vertices.p;
+  const out: AtlasSvgForestGlyphCell[] = [];
+  for (const forest of forests) {
+    const tint = forestTint(forest.kind);
+    for (const cellId of forest.cells) {
+      const vIds = cells.v[cellId];
+      if (!vIds || vIds.length < 3) continue;
+      const poly: Array<[number, number]> = [];
+      for (const vid of vIds) {
+        const p = verts[vid];
+        if (p) poly.push([p[0], p[1]]);
+      }
+      if (poly.length < 3) continue;
+      const biomeIndex = cells.biome?.[cellId] ?? -1;
+      let d = '';
+      for (const g of cellGlyphs(cellId, poly, biomeIndex, atlas.biomesData, forest.kind)) {
+        d += glyphPath(g.g, g.x, g.y, g.s);
+      }
+      if (d) out.push({ d, tint });
+    }
+  }
+  return out;
+}
+
+/** Full glyph-layer opacity once zoomed past GLYPH_FULL_ZOOM. */
+export const FOREST_GLYPH_LAYER_OPACITY = 0.85;
+
+/**
+ * Shared zoom ramp for the glyph layer (both renderers): hidden below
+ * GLYPH_MIN_ZOOM, then a linear fade-in to FOREST_GLYPH_LAYER_OPACITY at
+ * GLYPH_FULL_ZOOM. `view.k` (SVG) and `view.scale` (canvas) share the same
+ * screen-px-per-graph-unit semantics, so one ramp serves both. A degenerate
+ * (NaN) zoom answers 0 — never leak NaN into CSS or globalAlpha.
+ */
+export function forestGlyphRampOpacity(k: number): number {
+  if (!(k >= GLYPH_MIN_ZOOM)) return 0; // also catches NaN
+  if (k >= GLYPH_FULL_ZOOM) return FOREST_GLYPH_LAYER_OPACITY;
+  return FOREST_GLYPH_LAYER_OPACITY * ((k - GLYPH_MIN_ZOOM) / (GLYPH_FULL_ZOOM - GLYPH_MIN_ZOOM));
 }
 
 /**
@@ -922,6 +1118,7 @@ export function buildAtlasSvgModel(
     coastline,
     rivers: buildRivers(atlas),
     routes: buildRoutes(atlas),
+    forestGlyphs: buildForestGlyphs(atlas),
     burgs: buildBurgs(atlas),
     stateBorders: buildStateBorders(atlas),
     stateRegions,

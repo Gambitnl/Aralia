@@ -98,8 +98,10 @@
  * For each route passing through member cells (searoutes skipped), produce a
  * RegionRoad. Centerline is built from route point [x,y] coords converted to
  * feet, then Chaikin-smoothed (3 iterations). Width mapping by kind:
- *   road  → 40 ft (main trade routes)
- *   trail → 20 ft (local paths)
+ *   highway → 44 ft (capital trunk)
+ *   road    → 40 ft (main trade routes)
+ *   trail   → 20 ft (local paths)
+ *   path    →  8 ft (forest spur, Task 7)
  * Heightfield is gently flattened under town envelopes (build sites).
  */
 import {
@@ -913,9 +915,13 @@ function generateCivData(
     const centerline = clipPolylineToBounds(smoothRegionRiverCenterline(rawCenterline), bounds);
     if (centerline.length < 2) continue;
 
-    // Width by kind: road=40ft (main trade routes), trail=20ft (local paths)
-    const kind = route.group === 'roads' ? 'road' as const : 'trail' as const;
-    const widthFt = kind === 'road' ? 40 : 20;
+    // Width by kind: highway 44ft paved trunk, road 40ft trade route,
+    // trail 20ft cart track, path 8ft foot-worn line.
+    const kind =
+      route.group === 'highways' ? 'highway' as const :
+      route.group === 'roads' ? 'road' as const :
+      route.group === 'paths' ? 'path' as const : 'trail' as const;
+    const widthFt = kind === 'highway' ? 44 : kind === 'road' ? 40 : kind === 'trail' ? 20 : 8;
 
     roads.push({ routeId: route.i, centerline, widthFt, kind });
   }

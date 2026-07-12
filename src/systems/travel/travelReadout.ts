@@ -106,10 +106,33 @@ export function formatMultiModalSummary(route: MultiModalRoute, opts?: { fareGp?
 /**
  * One-line route summary for the travel readout, e.g.
  * "≈ 6h 20m · ~19 mi · Danger: Moderate · on foot".
+ *
+ * `opts.faintPath` appends a warning when the route follows a faint forest
+ * path, so the player learns the trail can fade (a get-lost risk on commit)
+ * BEFORE clicking — not from a surprise drift afterwards.
+ *
+ * `opts.passName` appends "via <Name>" when the route crests a named
+ * mountain pass (the caller resolves which — first crossed wins, via
+ * `passNameOnRoute`); `opts.forestName` appends "through the <Name>" when it
+ * crosses a named forest (largest wins, via `namedForestOnRoute`). ONE
+ * flavor clause max: when both are present the pass WINS and the forest
+ * clause is dropped — this function owns that rule so every caller can
+ * thread both values plainly. The faint-path warning always comes first.
  */
-export function formatRouteSummary(route: RoutePlan, transportLabel = 'on foot'): string {
+export function formatRouteSummary(
+  route: RoutePlan,
+  transportLabel = 'on foot',
+  opts?: { faintPath?: boolean; forestName?: string; passName?: string },
+): string {
   const rating = dangerRating(route.danger);
-  return `≈ ${formatTravelTime(route.minutes)} · ~${formatDistance(route.miles)} · Danger: ${rating.level} · ${transportLabel}`;
+  const base = `≈ ${formatTravelTime(route.minutes)} · ~${formatDistance(route.miles)} · Danger: ${rating.level} · ${transportLabel}`;
+  const faint = opts?.faintPath ? ' · follows a faint forest path' : '';
+  const flavor = opts?.passName
+    ? ` · via ${opts.passName}`
+    : opts?.forestName
+      ? ` · through the ${opts.forestName}`
+      : '';
+  return `${base}${faint}${flavor}`;
 }
 
 export interface ProvisionLine {

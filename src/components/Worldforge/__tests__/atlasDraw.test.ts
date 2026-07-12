@@ -9,9 +9,12 @@
  * Runs on: Vitest unit testing framework
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { drawAtlas, isCacheValid, parseHexColor, getCleanNumber, isStateBorder, shouldShowBurgLabel } from "../atlasDraw";
+import { buildForestGlyphs, forestGlyphRampOpacity } from "../atlasSvg";
 import { heightmapTemplates } from "../../../systems/worldforge/fmg/heightmap-templates";
+import { Biomes } from "../../../systems/worldforge/fmg/biomes";
+import { GLYPH_MIN_ZOOM, GLYPH_FULL_ZOOM, FOREST_TINTS } from "../../../systems/worldforge/forests/forestTunables";
 import type { FmgAtlasResult } from "../../../systems/worldforge/fmg/generateAtlas";
 
 // ============================================================================
@@ -204,6 +207,18 @@ function createMockContext2D() {
 // ============================================================================
 
 describe("drawAtlas", () => {
+  it("skips the offscreen terrain buffer while the mounted canvas is zero-sized", () => {
+    const ctx = createMockContext2D();
+    Object.defineProperty(ctx, "canvas", { value: { width: 0, height: 0 } });
+    const createElement = vi.spyOn(document, "createElement");
+
+    // A transient zero-sized mount must draw directly instead of asking the
+    // browser to drawImage a zero-sized offscreen canvas.
+    expect(() => drawAtlas(ctx, mockAtlas, { offsetX: 0, offsetY: 0, scale: 1 })).not.toThrow();
+    expect(createElement).not.toHaveBeenCalledWith("canvas");
+    createElement.mockRestore();
+  });
+
   it("should draw layers in correct order (water background, land cells, coastline)", () => {
     const ctx = createMockContext2D();
     const view = { offsetX: 10, offsetY: 20, scale: 2 };
@@ -278,6 +293,153 @@ describe("drawAtlas", () => {
 
     const cultureTint = ctx.calls.find((c) => c.name === "set_fillStyle" && c.args[0] === "rgb(143,37,47)");
     expect(cultureTint).toBeDefined();
+  });
+});
+
+// ============================================================================
+// Section: Forest tree glyphs (forests campaign Task 6)
+// ============================================================================
+// The canvas renderer stamps the SAME per-cell glyph paths the SVG model
+// builder emits (one source of truth: buildForestGlyphs), via Path2D, right
+// after the terrain-texture blur boundary — zoom-gated on view.scale.
+// ============================================================================
+
+describe("drawAtlas forest glyph stamping", () => {
+  /** Path2D stand-in: jsdom has no Path2D; record every constructed path. */
+  const constructedPaths: Array<{ d: string }> = [];
+  class FakePath2D {
+    d: string;
+    constructor(d?: string) {
+      this.d = d ?? "";
+      constructedPaths.push(this);
+    }
+  }
+
+  beforeEach(() => {
+    constructedPaths.length = 0;
+    vi.stubGlobal("Path2D", FakePath2D);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  /** Mock ctx extended with the transform + alpha the glyph pass uses. */
+  function createGlyphMockContext() {
+    const ctx = createMockContext2D() as any;
+    ctx.translate = (x: number, y: number) => ctx.calls.push({ name: "translate", args: [x, y] });
+    ctx.scale = (x: number, y: number) => ctx.calls.push({ name: "scale", args: [x, y] });
+    Object.defineProperty(ctx, "globalAlpha", {
+      get: () => ctx.props.globalAlpha,
+      set: (v: number) => {
+        ctx.props.globalAlpha = v;
+        ctx.calls.push({ name: "set_globalAlpha", args: [v] });
+      },
+    });
+    // Re-wire fill/stroke to CAPTURE the Path2D argument the stamping passes.
+    ctx.fill = (...args: unknown[]) => ctx.calls.push({ name: "fill", args });
+    ctx.stroke = (...args: unknown[]) => ctx.calls.push({ name: "stroke", args });
+    return ctx as ReturnType<typeof createMockContext2D>;
+  }
+
+  /** Three square land cells, all forest biome; cells 0+1 in one named forest. */
+  function forestAtlas(kind: string): FmgAtlasResult {
+    return {
+      seed: "forest-seed",
+      graphWidth: 100,
+      graphHeight: 100,
+      biomesData: Biomes.getDefault(),
+      pack: {
+        vertices: { p: [[0, 0], [20, 0], [20, 20], [0, 20], [40, 0], [40, 20], [60, 0], [60, 20]] },
+        cells: {
+          h: new Uint8Array([50, 50, 50]),
+          v: [[0, 1, 2, 3], [1, 4, 5, 2], [4, 6, 7, 5]],
+          c: [[1], [0, 2], [1]],
+          biome: new Uint8Array([6, 6, 6]),
+          p: [[10, 10], [30, 10], [50, 10]],
+        },
+        rivers: [],
+        forests: [{ i: 1, name: "Testwood", kind, cells: [0, 1], pole: [20, 10] }],
+      },
+    } as unknown as FmgAtlasResult;
+  }
+
+  it("stamps one Path2D per forest cell with the builder's exact path data", () => {
+    const ctx = createGlyphMockContext();
+    const view = { offsetX: 7, offsetY: 11, scale: 3, showScaleBar: false };
+    drawAtlas(ctx, forestAtlas("ordinary"), view);
+
+    const expected = buildForestGlyphs(forestAtlas("ordinary"));
+    expect(expected).toHaveLength(2); // sanity: the builder sees both forest cells
+    expect(constructedPaths.map((p) => p.d)).toEqual(expected.map((e) => e.d));
+
+    // Stamped through the graph→screen transform, not per-point math.
+    expect(ctx.calls.some((c) => c.name === "translate" && c.args[0] === 7 && c.args[1] === 11)).toBe(true);
+    expect(ctx.calls.some((c) => c.name === "scale" && c.args[0] === 3 && c.args[1] === 3)).toBe(true);
+
+    // Each path is filled AND stroked (canopy shapes + stem lines).
+    const pathFills = ctx.calls.filter((c) => c.name === "fill" && c.args[0] instanceof FakePath2D);
+    const pathStrokes = ctx.calls.filter((c) => c.name === "stroke" && c.args[0] instanceof FakePath2D);
+    expect(pathFills).toHaveLength(2);
+    expect(pathStrokes).toHaveLength(2);
+
+    // Layer alpha follows the shared zoom ramp (scale 3 ≥ FULL → full opacity).
+    expect(ctx.calls.some((c) => c.name === "set_globalAlpha" && c.args[0] === forestGlyphRampOpacity(3))).toBe(true);
+
+    // Constant 0.5 SCREEN px ink (matches the SVG side's non-scaling-stroke).
+    expect(ctx.calls.some((c) => c.name === "set_lineWidth" && c.args[0] === 0.5 / 3)).toBe(true);
+
+    // Ordinary forest → default glyph green, not a kind tint.
+    expect(ctx.calls.some((c) => c.name === "set_fillStyle" && c.args[0] === "#2f5233")).toBe(true);
+  });
+
+  it("stamps AFTER the terrain fills and BEFORE the coastline ink", () => {
+    const ctx = createGlyphMockContext();
+    drawAtlas(ctx, forestAtlas("ordinary"), { offsetX: 0, offsetY: 0, scale: 3, showScaleBar: false });
+    const idxOf = (pred: (c: { name: string; args: any[] }) => boolean) => ctx.calls.findIndex(pred);
+    const translateIdx = idxOf((c) => c.name === "translate");
+    const coastIdx = idxOf((c) => c.name === "set_strokeStyle" && c.args[0] === "#1a3d66");
+    const lastTerrainFillIdx = ctx.calls
+      .map((c, i) => ({ c, i }))
+      .filter(({ c }) => c.name === "fill" && !(c.args[0] instanceof FakePath2D))
+      .map(({ i }) => i)
+      .pop()!;
+    expect(translateIdx).toBeGreaterThan(lastTerrainFillIdx);
+    expect(translateIdx).toBeLessThan(coastIdx);
+  });
+
+  it("tints haunted forest glyphs with the kind hex", () => {
+    const ctx = createGlyphMockContext();
+    drawAtlas(ctx, forestAtlas("haunted"), { offsetX: 0, offsetY: 0, scale: 3, showScaleBar: false });
+    expect(ctx.calls.some((c) => c.name === "set_fillStyle" && c.args[0] === FOREST_TINTS.haunted)).toBe(true);
+    expect(ctx.calls.some((c) => c.name === "set_fillStyle" && c.args[0] === "#2f5233")).toBe(false);
+  });
+
+  it("skips stamping entirely below GLYPH_MIN_ZOOM (zoomed-out map stays clean)", () => {
+    const ctx = createGlyphMockContext();
+    drawAtlas(ctx, forestAtlas("ordinary"), {
+      offsetX: 0,
+      offsetY: 0,
+      scale: GLYPH_MIN_ZOOM - 0.05,
+      showScaleBar: false,
+    });
+    expect(constructedPaths).toHaveLength(0);
+    expect(ctx.calls.some((c) => c.name === "translate")).toBe(false);
+  });
+
+  it("ramps globalAlpha between MIN and FULL zoom", () => {
+    const mid = (GLYPH_MIN_ZOOM + GLYPH_FULL_ZOOM) / 2;
+    const ctx = createGlyphMockContext();
+    drawAtlas(ctx, forestAtlas("ordinary"), { offsetX: 0, offsetY: 0, scale: mid, showScaleBar: false });
+    const alphaSet = ctx.calls.find((c) => c.name === "set_globalAlpha");
+    expect(alphaSet).toBeDefined();
+    expect(alphaSet!.args[0]).toBeCloseTo(forestGlyphRampOpacity(mid), 10);
+  });
+
+  it("a forest-free atlas never touches Path2D or the transform (existing fixtures unchanged)", () => {
+    const ctx = createGlyphMockContext();
+    drawAtlas(ctx, mockAtlas, { offsetX: 0, offsetY: 0, scale: 3, showScaleBar: false });
+    expect(constructedPaths).toHaveLength(0);
+    expect(ctx.calls.some((c) => c.name === "translate")).toBe(false);
   });
 });
 

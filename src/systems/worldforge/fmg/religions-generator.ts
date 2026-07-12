@@ -991,7 +991,11 @@ export class ReligionsModule {
       const biomePassageCost = biomesData.cost[cells.biome[nextCellId]];
 
       if (route) {
-        if (route.group === "roads") return 1;
+        // The pre-split trunk network (formerly group "roads") is now labeled
+        // "highways" — identical corridors (road-systems Task 5). Matching
+        // "highways" here keeps religion spread byte-identical to the frozen
+        // golden world; the new town-link "roads" tier stays a normal route.
+        if (route.group === "highways") return 1;
         return biomePassageCost / 3; // trails and other routes
       }
 

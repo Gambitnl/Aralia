@@ -7,9 +7,9 @@ status: active
 status_note: ""
 registry_mode: canonical
 last_updated: "2026-07-11"
-gap_count: 4
+gap_count: 5
 open_gap_count: 3
-resolved_gap_count: 1
+resolved_gap_count: 2
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
@@ -114,6 +114,7 @@ Use this file for durable unresolved findings that genuinely belong to this proj
 | G2 | not_started | adjacent_follow_up | Codex | Tooltip placement | `docs/BACKLOG.md` migration 2026-06-25 | Tooltip edge and corner placements need exercised and refined if clipping persists. | `docs/BACKLOG.md`; `src/components/ui/Tooltip.tsx` | Tooltips that clip at edges hide rules and affordances. | Add focused placement fixtures or stories for edge/corner cases before changing placement math. | Rendered proof at viewport edges showing no clipped tooltip content. |
 | G3 | not_started | adjacent_follow_up | Codex | Z-index registry adoption | backlog-retirement scan 2026-06-26 | Stale top-level z-index progress notes claimed zero runtime hardcoded `z-[number]` values, but the current source still has four runtime uses. | `z-index-migration-progress.md`; `z-index-analysis-report.md`; `rg -n "z-\[\d+\]" src -g "*.tsx" -g "*.ts"` finds `src/components/World3D/AtlasPlayerMarker.tsx`, `src/components/MapPane.tsx`, `src/components/DesignPreview/steps/PreviewComponents.tsx`, and `src/components/CharacterCreator/Race/RaceDetailPane.tsx`. | Layering drift can reintroduce modal/tooltip overlap bugs and makes the registry less trustworthy. | Replace or justify the four runtime hardcoded z-index classes through `src/styles/zIndex.ts`, then refresh the top-level z-index notes. | Focused source scan shows no unowned runtime hardcoded `z-[number]` classes; visual check for any touched overlay/popover surfaces. |
 | G4 | resolved | in_scope_now | Codex | Shared WindowFrame chrome | whole-game systems audit W01 | The top-right resize hit zone covered the shared Close button, so Resume Journey and other windowed surfaces could not be dismissed by pointer. | Repository-local Playwright reported `Resize top-right ... intercepts pointer events`; `src/components/ui/WindowFrame.tsx` now gives title actions layer priority over resize targets. | A blocked Close control traps players inside save/load, map, glossary, party, creator, and other shared windows. | Keep the title-action layer above corner resize zones without shrinking either touch target. | WindowFrame component test, independent Playwright close test, and live Resume Journey close all pass on 2026-07-11. |
+| G5 | resolved | in_scope_now | Codex | NotFound recovery navigation | Whole-game systems audit W01 | Return to Safety pushed Main Menu after NOT_FOUND, while the menu also offered Return to the stored NOT_FOUND previous phase; either route reopened the 404. | Live invalid-phase loop and `useHistorySync`/App source trace | The advertised recovery path led straight back into the error. | Replace the NOT_FOUND history entry and suppress terminal/error phases from the menu Return control. | 13 focused hook tests pass; live invalid URL returns to `?phase=main_menu` with no Return shortcut. |
 
 ## Classification Reference
 

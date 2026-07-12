@@ -43,6 +43,9 @@ export interface BuildingOccupantRender {
   id: number;
   /** Age band ('child' | 'adult' | 'elder'). */
   ageBand: string;
+  /** Ancestry (a `raceGroups` name, e.g. "Elf", "Greenskins") — shapes the
+   * rendered body. Absent on packets from before this field existed. */
+  race?: string;
   /** Parametric body (per-person proportions + palette). */
   body: OccupantBody;
   /** stationsByHour[h] = the member's station at hour h (plan feet), or null when OUT. */

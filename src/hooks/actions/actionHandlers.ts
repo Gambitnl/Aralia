@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/06/2026, 01:55:25
+ * Last Sync: 12/07/2026, 01:17:38
  * Dependents: hooks/useGameActions.ts
- * Imports: 17 files
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -47,6 +47,7 @@ import type {
   DialogueSession,
   Location,
   Faction,
+  RacialRestChoiceData,
 } from '../../types';
 import { GamePhase } from '../../types';
 import type { AppAction } from '../../state/actionTypes';
@@ -262,8 +263,19 @@ export function buildActionHandlers({
     TOGGLE_PREPARED_SPELL: (action) => {
       handleTogglePreparedSpell(dispatch, action.payload as { characterId: string; spellId: string; });
     },
-    LONG_REST: async () => {
-      await handleLongRest({ gameState, dispatch, addMessage, addGeminiLog });
+    LONG_REST: async (action) => {
+      // Preserve modal-authored racial choices while routing the rest through
+      // the full gameplay handler instead of reducing it as a partial rest.
+      const restPayload = action.payload as {
+        racialRestChoices?: Record<string, Record<string, RacialRestChoiceData>>;
+      } | undefined;
+      await handleLongRest({
+        gameState,
+        dispatch,
+        addMessage,
+        addGeminiLog,
+        racialRestChoices: restPayload?.racialRestChoices,
+      });
     },
     // The HUD "Long Rest" button opens the confirm modal (GameModals renders it
     // off the uiReducer flag). Without this route the button fell through to

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 17:45:59
- * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx
- * Imports: 9 files
+ * Last Sync: 12/07/2026, 00:34:58
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx
+ * Imports: 29 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -36,6 +36,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import World3DLighting from './World3DLighting';
+import { canopyInterior, NEUTRAL_INTERIOR, type CanopyInterior } from './canopyInterior';
 import InteriorLights from './InteriorLights';
 import InteriorOccupants from './InteriorOccupants';
 import { InteriorHourProvider, useInteriorHour, emissiveForPart } from './InteriorHourContext';
@@ -125,8 +126,8 @@ interface World3DSceneProps {
    * Locale-map click-to-move both write this state, so the body follows both.
    */
   playerGroundPos?: { xM: number; zM: number } | null;
-  /** Ground mode: identity for the player avatar body + nameplate. */
-  playerIdentity?: { id?: string; name?: string; raceName?: string } | null;
+  /** Ground mode: the real character — race/class/gear shape the avatar body. */
+  playerCharacter?: import('@/types/character').PlayerCharacter | null;
   /**
    * Fractional hour driving the sun/sky/fog model (World3DLighting). Plumbed
    * for the game clock; defaults to a pleasant fixed late-morning.
@@ -414,7 +415,11 @@ const ROOFLESS =
  * clip-through-the-wall hack — converting the camera into the group's local
  * frame each frame makes the inside-test rotation-correct.
  */
-const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> = ({ site: s }) => {
+const SiteBuilding: React.FC<{
+  site: LoadedChunk['bundle']['sites'][number];
+  /** Full room geometry is mounted only where the player can enter it. */
+  renderInterior: boolean;
+}> = ({ site: s, renderInterior }) => {
   const groupRef = useRef<THREE.Group>(null);
   const roofRef = useRef<THREE.Mesh>(null);
   const localCam = useRef(new THREE.Vector3());
@@ -431,12 +436,27 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
   const role = s.role ?? (s.colorHex === '#c8923f' ? 'market' : s.colorHex === '#b09a72' ? 'house' : s.kind);
   const wallTex = useForgeTexture(getSemanticAssetKey({ surface: 'wall', role }), service);
   const roofTex = useForgeTexture(getSemanticAssetKey({ surface: 'roof', role }), service);
+  const hasLiveInterior = renderInterior && !!s.parts;
+  // Shadow maps are camera-local too: distant shells keep their color and
+  // silhouette, while nearby buildings retain the grounding/readability pass.
+  const castsLocalShadow = SHADOWS && renderInterior;
+
+  // A roof can be hidden only while its enterable interior is live. Restore it
+  // immediately when player-proximity LOD turns that building back into a
+  // shell; otherwise a roof hidden during an earlier visit could stay absent.
+  React.useEffect(() => {
+    if (!hasLiveInterior && roofRef.current) roofRef.current.visible = true;
+  }, [hasLiveInterior]);
 
   useFrame(({ camera }) => {
+    // Dense towns contain hundreds of distant shells. They can never hide
+    // their roofs, so avoid a world-to-local camera transform for every one on
+    // every frame. Only the handful of walk-up interiors need this live test.
+    if (!hasLiveInterior) return;
     const roof = roofRef.current;
     const group = groupRef.current;
     if (!roof || !group) return;
-    if (ROOFLESS && s.parts) {
+    if (ROOFLESS && hasLiveInterior) {
       roof.visible = false;
       return;
     }
@@ -446,7 +466,7 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
     const halfW = ((s.wallWidthM ?? s.boxWidth ?? 0) / 2) + 0.5;
     const halfD = ((s.wallDepthM ?? s.boxDepth ?? 0) / 2) + 0.5;
     const inside =
-      !!s.parts &&
+      hasLiveInterior &&
       Math.abs(localCam.current.x) <= halfW &&
       Math.abs(localCam.current.z) <= halfD &&
       localCam.current.y <= (s.boxHeight ?? 0) + 1.0;
@@ -476,11 +496,11 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
 
   return (
     <group ref={groupRef} position={[s.localX, s.surfaceY, s.localZ]} rotation={[0, s.rotationY ?? 0, 0]}>
-      {s.parts ? (
+      {hasLiveInterior ? (
         // Seamless interior (Worldforge L4): perimeter + room walls with real
         // door gaps, plus furnishing blocks. Parts use +z = inward-from-street;
         // doorZSign maps that onto whichever face the street actually is.
-        s.parts.map((p, i) => {
+        s.parts!.map((p, i) => {
           const off = sitePartLocalOffset(p, s.doorZSign ?? -1);
           // Window/hearth parts carry a `lightRole` and NO baked emissive; the
           // renderer decides their glow live from the hourly schedule. All other
@@ -490,8 +510,11 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
           <mesh
             key={`part-${i}`}
             position={[off.x, off.y, off.z]}
-            castShadow={SHADOWS}
-            receiveShadow={SHADOWS}
+            // Roofs and shells provide the readable exterior shadow. Casting
+            // every chair, wall segment, and window into the same map adds a
+            // second full scene pass for little visual value.
+            castShadow={false}
+            receiveShadow={castsLocalShadow}
           >
             <boxGeometry args={[p.w, p.h, p.d]} />
             {/* Apply wall texture only to tall perimeter/interior walls (h >= 2.0) */}
@@ -505,7 +528,10 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
           );
         })
       ) : (
-        <mesh position={[0, (s.boxHeight ?? 0) * 0.5, 0]} castShadow={SHADOWS} receiveShadow={SHADOWS}>
+        // Performance LOD: distant interior-bearing buildings retain their
+        // footprint-true shell. Their authored parts remain in the payload and
+        // mount intact as soon as the player enters this chunk.
+        <mesh position={[0, (s.boxHeight ?? 0) * 0.5, 0]} castShadow={castsLocalShadow} receiveShadow={castsLocalShadow}>
           <boxGeometry args={[s.boxWidth, s.boxHeight, s.boxDepth]} />
           <meshStandardMaterial color={s.colorHex ?? '#b09a72'} map={wallTex || null} />
         </mesh>
@@ -517,7 +543,7 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
           Auto-hides on camera-enter via roofRef, exactly like the prism. */}
       {hasSolvedRoof ? (
         <group scale={[1, 1, -(s.doorZSign ?? -1)]}>
-          <mesh ref={roofRef} geometry={solvedRoofGeom!} castShadow={SHADOWS}>
+          <mesh ref={roofRef} geometry={solvedRoofGeom!} castShadow={castsLocalShadow}>
             <meshStandardMaterial color={s.solvedRoof!.colorHex} flatShading side={THREE.DoubleSide} map={roofTex || null} />
           </mesh>
         </group>
@@ -526,14 +552,14 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
            base at y=0, placed at wall-top Y. Kept for non-blueprint props and any
            building whose plan resolved no style (no solved roof). visible is
            driven per-frame by the camera-inside test above. */
-        <mesh ref={roofRef} position={[0, s.boxHeight ?? 0, 0]} geometry={roofGeom} castShadow={SHADOWS}>
+        <mesh ref={roofRef} position={[0, s.boxHeight ?? 0, 0]} geometry={roofGeom} castShadow={castsLocalShadow}>
           <meshStandardMaterial color={s.roofColorHex ?? '#7a4a32'} flatShading side={THREE.DoubleSide} map={roofTex || null} />
         </mesh>
       )}
       {/* Chimney: style-family flag, solid shells only (interior-parts buildings
           would need a flue through the rooms), and never on flat parapet roofs. */}
       {s.chimney && !s.parts && roofForm !== 'flat' && (
-        <mesh position={[roof.width * 0.3, (s.boxHeight ?? 0) + rHeight * 0.9, 0]} castShadow={SHADOWS}>
+        <mesh position={[roof.width * 0.3, (s.boxHeight ?? 0) + rHeight * 0.9, 0]} castShadow={castsLocalShadow}>
           <boxGeometry args={[0.6, 1.4, 0.6]} />
           <meshStandardMaterial color="#6e6c66" />
         </mesh>
@@ -565,12 +591,32 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
   );
 };
 
-const SitePieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
+const SitePieces: React.FC<{
+  chunk: LoadedChunk;
+  origin: SceneOrigin;
+  detailAnchor: ChunkCoord;
+  detailCenter: { x: number; z: number };
+}> = ({ chunk, origin, detailAnchor, detailCenter }) => {
+  // The streamer retains an 81-chunk landscape window. Mounting every room
+  // piece throughout that window created tens of thousands of meshes, so only
+  // the player's current chunk carries enterable detail at any one time.
+  const renderInteriors = chunk.cx === detailAnchor.cx && chunk.cy === detailAnchor.cy;
+  const chunkWorldOrigin = chunkOriginWorld(chunk.cx, chunk.cy);
   return (
     <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
       {chunk.bundle.sites.map((s) =>
         s.markerOnly ? null : s.boxWidth && s.boxDepth && s.boxHeight ? (
-          <SiteBuilding key={`${chunk.cx}|${chunk.cy}|${s.id}`} site={s} />
+          <SiteBuilding
+            key={`${chunk.cx}|${chunk.cy}|${s.id}`}
+            site={s}
+            // A capital can place thousands of authored room pieces in one
+            // chunk. Keep only walk-up interiors live; the shell swaps back to
+            // full detail before the player is close enough to enter.
+            renderInterior={renderInteriors && Math.hypot(
+              chunkWorldOrigin.x + s.localX - detailCenter.x,
+              chunkWorldOrigin.y + s.localZ - detailCenter.z,
+            ) <= 18}
+          />
         ) : (
           // Renders a simple primitive cube for legacy sites that don't have detailed
           // oriented-box footprints or enterable parts.
@@ -591,7 +637,11 @@ const SitePieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chu
   );
 };
 
-const VegetationPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
+const VegetationPiece: React.FC<{
+  chunk: LoadedChunk;
+  origin: SceneOrigin;
+  anchor: ChunkCoord;
+}> = ({ chunk, origin, anchor }) => {
   const veg = chunk.bundle.vegetation;
   const bushes = chunk.bundle.bushes;
   const bushRef = useRef<THREE.InstancedMesh>(null);
@@ -609,14 +659,19 @@ const VegetationPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = (
   }, [bushes?.cacheKey]);
   const treeCount = veg ? veg.positions.length / 3 : 0;
   const bushCount = bushes ? bushes.positions.length / 3 : 0;
+  // The lighting frustum follows the player, so vegetation beyond the adjacent
+  // chunks cannot contribute a useful visible shadow. Keeping those instances
+  // out of the shadow pass avoids replaying the whole 81-chunk forest.
+  const castsNearbyShadow = SHADOWS
+    && Math.max(Math.abs(chunk.cx - anchor.cx), Math.abs(chunk.cy - anchor.cy)) <= 1;
   if (treeCount === 0 && bushCount === 0) return null;
   return (
     <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
       {/* Vegetation lift (beautification wave): procedural instanced trees
           replace the old placeholder cones. Same scatter positions, new look. */}
-      {treeCount > 0 && veg && <VegetationTrees scatter={veg} castShadow={SHADOWS} />}
+      {treeCount > 0 && veg && <VegetationTrees scatter={veg} castShadow={castsNearbyShadow} />}
       {bushCount > 0 && (
-        <instancedMesh ref={bushRef} args={[undefined, undefined, bushCount]} castShadow={SHADOWS}>
+        <instancedMesh ref={bushRef} args={[undefined, undefined, bushCount]} castShadow={castsNearbyShadow}>
           <sphereGeometry args={[1, 6, 4]} />
           <meshStandardMaterial color="#ffffff" flatShading />
         </instancedMesh>
@@ -629,8 +684,10 @@ const ChunkPieces: React.FC<{
   chunk: LoadedChunk;
   origin: SceneOrigin;
   anchor: ChunkCoord;
+  detailAnchor: ChunkCoord;
+  detailCenter: { x: number; z: number };
   loadedKeys: Set<string>;
-}> = ({ chunk, origin, anchor, loadedKeys }) => (
+}> = ({ chunk, origin, anchor, detailAnchor, detailCenter, loadedKeys }) => (
   <>
     <TerrainPiece chunk={chunk} origin={origin} anchor={anchor} loadedKeys={loadedKeys} />
     <WaterPiece chunk={chunk} origin={origin} />
@@ -638,13 +695,80 @@ const ChunkPieces: React.FC<{
     <WallPiece chunk={chunk} origin={origin} />
     <GatePiece chunk={chunk} origin={origin} />
     <DeckPiece chunk={chunk} origin={origin} />
-    <SitePieces chunk={chunk} origin={origin} />
-    <VegetationPiece chunk={chunk} origin={origin} />
+    <SitePieces
+      chunk={chunk}
+      origin={origin}
+      detailAnchor={detailAnchor}
+      detailCenter={detailCenter}
+    />
+    <VegetationPiece chunk={chunk} origin={origin} anchor={detailAnchor} />
     {/* Near-camera instanced grass (vegetation lift): only chunks near the
         anchor mount a grass mesh — cheap distance falloff. */}
     <GrassLayer chunk={chunk} anchor={anchor} position={chunkScenePos(chunk.cx, chunk.cy, origin)} />
   </>
 );
+
+/** Exp-damp rate for the canopy transition: ~95% converged after ~2 s. */
+const CANOPY_DAMP_LAMBDA = 1.5;
+
+/** Value-equality for applied canopy interiors (null = no modulation). */
+function sameInterior(a: CanopyInterior | null, b: CanopyInterior | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.lightMul === b.lightMul && a.fogNear === b.fogNear && a.fogFar === b.fogFar;
+}
+
+/**
+ * Canopy atmosphere damper (forests Task 11): eases the APPLIED lighting
+ * modulation toward the window's canopy target over ~2 s so entering/leaving
+ * the woods breathes instead of popping (same exponential-fade idiom as
+ * InteriorLights' camera fill). The damp lives here in the scene;
+ * World3DLighting stays render-pure and just consumes the damped values via
+ * its `interior` prop. At rest without canopy it hands over `interior: null`
+ * — the exact pre-canopy render path — and non-forest windows START there,
+ * so they never leave it (byte-identical behavior).
+ */
+const CanopyDampedLighting: React.FC<{
+  viewProfile: 'continent' | 'ground';
+  timeOfDayHours?: number;
+  target: CanopyInterior | null;
+  shadowReferenceY: number;
+}> = ({ viewProfile, timeOfDayHours, target, shadowReferenceY }) => {
+  // Applied values start at open-air neutral so a forest entry fades IN.
+  const cur = useRef<CanopyInterior>({ ...NEUTRAL_INTERIOR });
+  const [applied, setApplied] = React.useState<CanopyInterior | null>(null);
+  useFrame((_, delta) => {
+    const goal = target ?? NEUTRAL_INTERIOR;
+    const c = cur.current;
+    const converged =
+      Math.abs(c.lightMul - goal.lightMul) < 1e-3 &&
+      Math.abs(c.fogNear - goal.fogNear) < 0.5 &&
+      Math.abs(c.fogFar - goal.fogFar) < 0.5;
+    if (converged) {
+      // Snap to the exact goal and rest: null outside canopy (base path), the
+      // exact tunable values inside. The equality guard keeps steady-state
+      // frames from triggering any re-render.
+      c.lightMul = goal.lightMul;
+      c.fogNear = goal.fogNear;
+      c.fogFar = goal.fogFar;
+      const rest = target ? { ...goal } : null;
+      setApplied((prev) => (sameInterior(prev, rest) ? prev : rest));
+      return;
+    }
+    c.lightMul = THREE.MathUtils.damp(c.lightMul, goal.lightMul, CANOPY_DAMP_LAMBDA, delta);
+    c.fogNear = THREE.MathUtils.damp(c.fogNear, goal.fogNear, CANOPY_DAMP_LAMBDA, delta);
+    c.fogFar = THREE.MathUtils.damp(c.fogFar, goal.fogFar, CANOPY_DAMP_LAMBDA, delta);
+    setApplied({ ...c });
+  });
+  return (
+    <World3DLighting
+      viewProfile={viewProfile}
+      timeOfDayHours={timeOfDayHours}
+      interior={applied}
+      shadowReferenceY={shadowReferenceY}
+    />
+  );
+};
 
 const World3DScene: React.FC<World3DSceneProps> = ({
   loader,
@@ -662,7 +786,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   onSelectNpc,
   onGroundPick,
   playerGroundPos = null,
-  playerIdentity = null,
+  playerCharacter = null,
   timeOfDayHours,
   combatLayer,
   cameraFrameRequest = null,
@@ -689,6 +813,14 @@ const World3DScene: React.FC<World3DSceneProps> = ({
     }
   }, [loaded.length, onChunkUpdate]);
 
+  // Canopy atmosphere target (forests Task 11): the bridge resolved the
+  // window's canopy once; this is the modulation the damper eases toward.
+  // Null (no canopy / no ground world) keeps the lighting on its base path.
+  const canopyTarget = useMemo(
+    () => canopyInterior(groundWorld?.canopy ?? null),
+    [groundWorld],
+  );
+
   // Fixed scene origin near the player; the scene is drawn relative to it (coords ~0).
   const sceneOrigin: SceneOrigin = useMemo(() => ({ x: start[0], z: start[2] }), [start]);
   // Anchor chunk for the shared terrain transform (see TerrainPiece). Frozen
@@ -696,6 +828,21 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   const anchorChunk: ChunkCoord = useMemo(
     () => worldToChunk(sceneOrigin.x, sceneOrigin.z),
     [sceneOrigin],
+  );
+  // Interior detail follows locomotion instead of staying pinned to spawn.
+  // Locale-map moves and click-to-move share this player position, so crossing
+  // a chunk boundary swaps the detailed building set naturally.
+  const detailAnchor: ChunkCoord = useMemo(
+    () => playerGroundPos
+      ? worldToChunk(playerGroundPos.xM, playerGroundPos.zM)
+      : anchorChunk,
+    [anchorChunk, playerGroundPos],
+  );
+  const detailCenter = useMemo(
+    () => playerGroundPos
+      ? { x: playerGroundPos.xM, z: playerGroundPos.zM }
+      : { x: sceneOrigin.x, z: sceneOrigin.z },
+    [playerGroundPos, sceneOrigin],
   );
   // Loaded-chunk key set: frontier skirts draw only on edges with no neighbour.
   const loadedKeys = useMemo(() => new Set(loaded.map((c) => `${c.cx}|${c.cy}`)), [loaded]);
@@ -762,6 +909,11 @@ const World3DScene: React.FC<World3DSceneProps> = ({
     <div style={{ width: '100%', height: '100%', minHeight: '520px', flex: '1 1 auto', background: '#cdd9e6', borderRadius: '12px', overflow: 'hidden' }}>
       <ForgeAssetContext.Provider value={forgeAssetService}>
       <Canvas
+        // Avoid a 4K backing buffer on DPR-2 monitors. Ground mode draws the
+        // denser town/interior layers and therefore uses a 0.75 ceiling (still
+        // a 1920px backing buffer in a 2560px-wide viewport); the lighter
+        // continent view keeps the prior 0.85 ceiling for distant labels.
+        dpr={viewProfile === 'ground' ? [0.65, 0.75] : [0.75, 0.85]}
         shadows={SHADOWS && viewProfile === 'ground' ? 'soft' : false}
         camera={{ fov: 55, near: 1, far: 60000, position: camPosition }}
         gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
@@ -790,8 +942,15 @@ const World3DScene: React.FC<World3DSceneProps> = ({
         }}
       >
         {/* Sun + sky + hemisphere fill + distance fog + soft follow-frustum
-            shadows (ground profile). Time-of-day plumbed, fixed late-morning. */}
-        <World3DLighting viewProfile={viewProfile} timeOfDayHours={timeOfDayHours} />
+            shadows (ground profile). Time-of-day plumbed, fixed late-morning.
+            Wrapped in the canopy damper (forests Task 11): under forest canopy
+            the ambient dims and the fog pulls in, eased over ~2 s. */}
+        <CanopyDampedLighting
+          viewProfile={viewProfile}
+          timeOfDayHours={timeOfDayHours}
+          target={canopyTarget}
+          shadowReferenceY={startSurfaceY}
+        />
         {/* Interior lighting (ground profile): warm hearth flame point lights
             near the camera (nearest ≤4), lit-window emissive glow (baked into
             parts), and a camera-inside fill so any interior is readable. */}
@@ -833,6 +992,8 @@ const World3DScene: React.FC<World3DSceneProps> = ({
               chunk={c}
               origin={sceneOrigin}
               anchor={anchorChunk}
+              detailAnchor={detailAnchor}
+              detailCenter={detailCenter}
               loadedKeys={loadedKeys}
             />
           ))}
@@ -858,9 +1019,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             ground={groundWorld}
             sceneOrigin={sceneOrigin}
             startSurfaceY={startSurfaceY}
-            playerName={playerIdentity?.name}
-            playerId={playerIdentity?.id}
-            raceName={playerIdentity?.raceName}
+            character={playerCharacter}
           />
         )}
         {/* Click-to-move locomotion (ground mode): invisible pick plane over the

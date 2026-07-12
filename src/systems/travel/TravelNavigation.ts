@@ -34,6 +34,7 @@ const DIRECTIONS: TravelDirection[] = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW
  * @param hasMapOrCompass Whether the party has navigational aids (Advantage -> +5).
  * @param intendedDirection The direction the party WANTS to go.
  * @param rng Optional SeededRandom instance for deterministic drift.
+ * @param dcOverride Explicit DC replacing the terrain-table lookup (0 still auto-succeeds).
  */
 export function checkNavigation(
   survivalCheckResult: number,
@@ -41,14 +42,16 @@ export function checkNavigation(
   pace: TravelPace,
   hasMapOrCompass: boolean,
   intendedDirection: TravelDirection,
-  rng: SeededRandom = new SeededRandom(Math.random())
+  rng: SeededRandom = new SeededRandom(Math.random()),
+  dcOverride?: number,
 ): NavigationResult {
   // RALPH: Navigation Logic.
   // Compares Survival Roll vs Terrain DC.
   // Applies standard 5e modifiers (+5 for Map, +/-5 for Pace).
 
-  // 1. Determine DC
-  const dc = TERRAIN_NAVIGATION_DCS[terrain];
+  // 1. Determine DC — the graded road system passes an explicit per-trip DC
+  // (faint forest paths etc.); the terrain table remains the legacy default.
+  const dc = dcOverride ?? TERRAIN_NAVIGATION_DCS[terrain];
 
   // If DC is 0, auto-success (following a road)
   // RALPH: You can't get lost on a Road (usually).

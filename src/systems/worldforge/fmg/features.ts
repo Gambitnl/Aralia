@@ -125,6 +125,11 @@ export interface Pack {
   religions?: import("./religions-generator").Religion[];
   provinces?: import("./provinces-generator").Province[];
   ice?: import("./ice").IceElement[];
+  // --- Aralia additive passes (post-FMG stages; not upstream fields) ---
+  forests?: import("../forests/forestsPass").PackForest[]; // set by generateForests (stage 36)
+  ranges?: import("../mountains/mountainsPass").PackRange[]; // set by generateMountains (stage 37)
+  peaks?: import("../mountains/mountainsPass").PackPeak[]; // set by generateMountains (stage 37)
+  passes?: import("../mountains/mountainsPass").PackPass[]; // typed now; the passes task (mountains Task 4) fills it
 }
 
 export class FeatureModule {

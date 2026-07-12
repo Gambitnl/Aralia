@@ -57,17 +57,19 @@ export interface TravelMeta {
   forcedMarch?: { hours: number; saveDC: number };
   /**
    * Navigation drift (travel G2). MapPane rolls the DMG "get lost" check (a
-   * Survival check vs the trip's terrain DC) for a committed OFF-ROAD land trip.
-   * Present ONLY when the party gets LOST — a trip that stays on roads (roads are
-   * exempt) or navigates successfully omits the field entirely, so a clean trip is
-   * unaffected. `driftDirection` is the wrong compass heading the party wanders
-   * ('N'..'NW'); `extraSeconds` is the lost time (DMG 1d6 hours) that App's
-   * executor adds to the trip's ADVANCE_TIME and announces to the adventure log.
-   * The party still ARRIVES at the intended cell (time-only penalty) — getting
-   * lost never teleports the player to a wrong cell (keeps the cell-native
-   * arrival invariant intact); the drift is flavor + the time cost is the bite.
+   * Survival check vs the trip's governing graded DC — the worst cell crossed)
+   * for a committed land trip. Present ONLY when the party gets LOST — a trip
+   * that stays on maintained routes (highways/roads, and trails outside deep
+   * forest, all DC 0) or navigates successfully omits the field entirely, so a
+   * clean trip is unaffected. `driftDirection` is the wrong compass heading the
+   * party wanders ('N'..'NW'); `extraSeconds` is the lost time (DMG 1d6 hours)
+   * that App's executor adds to the trip's ADVANCE_TIME and announces to the
+   * adventure log. `cause` words the announcement: a faint forest path that
+   * faded reads differently from trackless wilds. The party still ARRIVES at
+   * the intended cell (time-only penalty) — getting lost never teleports the
+   * player to a wrong cell (keeps the cell-native arrival invariant intact).
    */
-  navDrift?: { lost: boolean; driftDirection: string; extraSeconds: number };
+  navDrift?: { lost: boolean; driftDirection: string; extraSeconds: number; cause: 'wilds' | 'faint-path' };
   /**
    * Cell-native destination of the trip (Stage 4, cell-native world). When present,
    * arrival sets the canonical `playerCell` to this EXACT cell (resetting Locale

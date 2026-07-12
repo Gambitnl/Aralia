@@ -19,6 +19,19 @@ import {
   findCellAtPoint,
   cellTraits,
 } from '../atlasSvg';
+import {
+  FOREST_LABEL_FONT_MAX,
+  FOREST_LABEL_FONT_MIN,
+} from '../../../systems/worldforge/forests/forestTunables';
+import {
+  PEAK_LABEL_FONT,
+  PEAK_LABEL_MIN_ZOOM,
+  RANGE_LABEL_FONT_MAX,
+  RANGE_LABEL_FONT_MIN,
+  RANGE_LABEL_FULL_SIZE_CELLS,
+  RANGE_LABEL_MIN_ZOOM,
+  RANGE_MIN_CELLS,
+} from '../../../systems/worldforge/mountains/mountainTunables';
 
 // Minimal stub shaped like FmgAtlasResult (only fields the helpers read).
 const stub = {
@@ -309,6 +322,131 @@ describe('buildLabels', () => {
     expect(labels.filter((l) => l.kind === 'town')).toHaveLength(1);
     const state = labels.find((l) => l.kind === 'state');
     expect(state?.text).toBe('Kingdom of Realm');
+    // No pack.forests on this fixture → no forest labels (pre-forests packs unchanged).
+    expect(labels.filter((l) => l.kind === 'forest')).toHaveLength(0);
+  });
+  it('emits forest names at their pole with the forest kind (forests campaign T4)', () => {
+    const a = {
+      pack: {
+        cells: { p: [[1, 1]] },
+        burgs: [],
+        states: [],
+        forests: [
+          { i: 1, name: 'Angshire Wildwood', kind: 'ordinary', cells: [4, 5, 6, 7], pole: [12, 34] },
+          { i: 2, name: 'Thornwold Murkwood', kind: 'haunted', cells: [9, 10, 11, 12], pole: [56, 78] },
+        ],
+      },
+    } as any;
+    const forests = buildLabels(a).filter((l) => l.kind === 'forest');
+    // fontSize added by the area-scaled sizing ruling (2026-07-11): both
+    // fixtures are 4-cell clusters = FOREST_MIN_CELLS, so the lerp sits at
+    // its floor — FOREST_LABEL_FONT_MIN (9).
+    expect(forests).toEqual([
+      { x: 12, y: 34, text: 'Angshire Wildwood', kind: 'forest', fontSize: FOREST_LABEL_FONT_MIN },
+      { x: 56, y: 78, text: 'Thornwold Murkwood', kind: 'forest', fontSize: FOREST_LABEL_FONT_MIN },
+    ]);
+  });
+  it('scales forest label font by cluster area, capped at MAX (rulings 2026-07-11)', () => {
+    const forestOf = (i: number, cellCount: number) => ({
+      i,
+      name: `Wood ${i}`,
+      kind: 'ordinary',
+      cells: Array.from({ length: cellCount }, (_, k) => k),
+      pole: [i * 100, 10],
+    });
+    const a = {
+      pack: {
+        cells: { p: [] },
+        burgs: [],
+        states: [],
+        forests: [
+          forestOf(1, 4), //  = FOREST_MIN_CELLS          → t=0   → MIN (9)
+          forestOf(2, 42), // midpoint of the 4..80 ramp  → t=0.5 → round(12.5) = 13
+          forestOf(3, 80), //  = FULL_SIZE_CELLS          → t=1   → MAX (16)
+          forestOf(4, 500), // beyond FULL_SIZE           → clamped at MAX (16)
+        ],
+      },
+    } as any;
+    const sizes = buildLabels(a)
+      .filter((l) => l.kind === 'forest')
+      .map((l) => l.fontSize);
+    expect(sizes).toEqual([FOREST_LABEL_FONT_MIN, 13, FOREST_LABEL_FONT_MAX, FOREST_LABEL_FONT_MAX]);
+  });
+  it('leaves non-forest labels without a per-label fontSize (kind default applies)', () => {
+    const a = {
+      pack: {
+        cells: { p: [[1, 1]] },
+        burgs: [{ i: 0 }, { i: 1, x: 5, y: 6, name: 'Burgton', capital: 1 }, { i: 2, x: 7, y: 8, name: 'Villa' }],
+        states: [{ i: 0 }, { i: 1, name: 'Realm', fullName: 'Kingdom of Realm', pole: [3, 4] }],
+      },
+    } as any;
+    const labels = buildLabels(a);
+    expect(labels.length).toBeGreaterThan(0);
+    for (const l of labels) expect(l.fontSize).toBeUndefined();
+  });
+  it('emits range names at their pole with the range kind, area-scaled MIN→MAX (mountains T3)', () => {
+    const rangeOf = (i: number, cellCount: number) => ({
+      i,
+      name: `Range ${i}`,
+      kind: 'range',
+      cells: Array.from({ length: cellCount }, (_, k) => k),
+      coreCells: [],
+      pole: [i * 100, 20],
+    });
+    const a = {
+      pack: {
+        cells: { p: [] },
+        burgs: [],
+        states: [],
+        ranges: [
+          rangeOf(1, RANGE_MIN_CELLS), //             = RANGE_MIN_CELLS → t=0 → MIN (10)
+          rangeOf(2, 33), // (33−5)/55 ≈ 0.509 on the 5..60 ramp → round(14.07) = 14
+          rangeOf(3, RANGE_LABEL_FULL_SIZE_CELLS), // = FULL_SIZE      → t=1 → MAX (18)
+          rangeOf(4, 400), //                    beyond FULL_SIZE → clamped at MAX (18)
+        ],
+      },
+    } as any;
+    const ranges = buildLabels(a).filter((l) => l.kind === 'range');
+    expect(ranges.map(({ x, y, text }) => ({ x, y, text }))).toEqual([
+      { x: 100, y: 20, text: 'Range 1' },
+      { x: 200, y: 20, text: 'Range 2' },
+      { x: 300, y: 20, text: 'Range 3' },
+      { x: 400, y: 20, text: 'Range 4' },
+    ]);
+    expect(ranges.map((l) => l.fontSize)).toEqual(
+      [RANGE_LABEL_FONT_MIN, 14, RANGE_LABEL_FONT_MAX, RANGE_LABEL_FONT_MAX]);
+  });
+  it('emits peak labels at their cell point with a ▲ prefix and flat font (mountains T3)', () => {
+    const a = {
+      pack: {
+        cells: { p: [[0, 0], [10, 20], [30, 40]] },
+        burgs: [],
+        states: [],
+        ranges: [],
+        peaks: [
+          { i: 1, rangeI: 1, cellId: 1, h: 78, name: 'Mount Elden' },
+          { i: 2, rangeI: 1, cellId: 2, h: 74, name: 'Elden Horn' },
+        ],
+      },
+    } as any;
+    const peaks = buildLabels(a).filter((l) => l.kind === 'peak');
+    expect(peaks).toEqual([
+      { x: 10, y: 20, text: '▲ Mount Elden', kind: 'peak' },
+      { x: 30, y: 40, text: '▲ Elden Horn', kind: 'peak' },
+    ]);
+    // Flat PEAK_LABEL_FONT comes from the kind default — no per-label override.
+    for (const p of peaks) expect(p.fontSize).toBeUndefined();
+  });
+  it('emits no range or peak labels when the pack has no mountains data (pre-mountains packs unchanged)', () => {
+    const a = {
+      pack: {
+        cells: { p: [[1, 1]] },
+        burgs: [{ i: 0 }, { i: 1, x: 5, y: 6, name: 'Burgton', capital: 1 }],
+        states: [],
+      },
+    } as any;
+    const labels = buildLabels(a);
+    expect(labels.filter((l) => l.kind === 'range' || l.kind === 'peak')).toHaveLength(0);
   });
 });
 
@@ -325,6 +463,76 @@ describe('declutterLabels', () => {
     const r = declutterLabels(labels, { k: 3, x: 0, y: 0 }).map((l) => l.text).sort();
     expect(r).toEqual(['A', 'C']); // B overlaps A (state wins), C is far away
   });
+  it('hides forest labels below the 1.5 zoom threshold and shows them at k >= 1.5', () => {
+    const forest = [{ x: 100, y: 100, text: 'Angshire Wildwood', kind: 'forest' as const }];
+    expect(declutterLabels(forest, { k: 1.4, x: 0, y: 0 })).toHaveLength(0);
+    expect(declutterLabels(forest, { k: 1.5, x: 0, y: 0 }).map((l) => l.text)).toEqual(['Angshire Wildwood']);
+  });
+  it('honors a forestMinScale override (same pattern as capitalMinScale)', () => {
+    const forest = [{ x: 100, y: 100, text: 'Angshire Wildwood', kind: 'forest' as const }];
+    expect(declutterLabels(forest, { k: 1.5, x: 0, y: 0 }, { forestMinScale: 3 })).toHaveLength(0);
+    expect(declutterLabels(forest, { k: 3, x: 0, y: 0 }, { forestMinScale: 3 })).toHaveLength(1);
+  });
+  it('drops the forest label when it collides with a state label (state wins)', () => {
+    // Forest priority moved 3 → 4 when mountain ranges took 3 (mountains T3,
+    // rulings 2026-07-11); state (0) still outranks it, so this pin's intent
+    // — civilization claims space before woods — is unchanged.
+    const contested = [
+      { x: 0, y: 0, text: 'Wildwood', kind: 'forest' as const }, // listed first, still loses
+      { x: 0, y: 0, text: 'Realm', kind: 'state' as const },
+    ];
+    expect(declutterLabels(contested, { k: 2, x: 0, y: 0 }).map((l) => l.text)).toEqual(['Realm']);
+  });
+  it('hides range labels below RANGE_LABEL_MIN_ZOOM and shows them at k >= it (mountains T3)', () => {
+    const range = [{ x: 100, y: 100, text: 'Elden Spine', kind: 'range' as const }];
+    expect(declutterLabels(range, { k: RANGE_LABEL_MIN_ZOOM - 0.05, x: 0, y: 0 })).toHaveLength(0);
+    expect(declutterLabels(range, { k: RANGE_LABEL_MIN_ZOOM, x: 0, y: 0 }).map((l) => l.text))
+      .toEqual(['Elden Spine']);
+  });
+  it('honors a rangeMinScale override (the forestMinScale pattern)', () => {
+    const range = [{ x: 100, y: 100, text: 'Elden Spine', kind: 'range' as const }];
+    expect(declutterLabels(range, { k: 2, x: 0, y: 0 }, { rangeMinScale: 3 })).toHaveLength(0);
+    expect(declutterLabels(range, { k: 3, x: 0, y: 0 }, { rangeMinScale: 3 })).toHaveLength(1);
+  });
+  it('hides peak labels below PEAK_LABEL_MIN_ZOOM (2.2) and shows them past it', () => {
+    const peak = [{ x: 100, y: 100, text: '▲ Mount Elden', kind: 'peak' as const }];
+    expect(declutterLabels(peak, { k: PEAK_LABEL_MIN_ZOOM - 0.1, x: 0, y: 0 })).toHaveLength(0);
+    expect(declutterLabels(peak, { k: PEAK_LABEL_MIN_ZOOM, x: 0, y: 0 }).map((l) => l.text))
+      .toEqual(['▲ Mount Elden']);
+  });
+  it('honors a peakMinScale override', () => {
+    const peak = [{ x: 100, y: 100, text: '▲ Mount Elden', kind: 'peak' as const }];
+    expect(declutterLabels(peak, { k: PEAK_LABEL_MIN_ZOOM, x: 0, y: 0 }, { peakMinScale: 4 })).toHaveLength(0);
+    expect(declutterLabels(peak, { k: 4, x: 0, y: 0 }, { peakMinScale: 4 })).toHaveLength(1);
+  });
+  it('gives placed peak labels the flat PEAK_LABEL_FONT kind default', () => {
+    const placed = declutterLabels(
+      [{ x: 0, y: 0, text: '▲ Mount Elden', kind: 'peak' as const }],
+      { k: 3, x: 0, y: 0 },
+    );
+    expect(placed[0].fontSize).toBe(PEAK_LABEL_FONT);
+  });
+  it('priority ladder (mountains T3): town beats range, range beats forest, forest beats peak', () => {
+    // k=3 clears every zoom gate. Lower rank claims space first: state 0 <
+    // capital 1 < town 2 < range 3 < forest 4 (moved from 3) < peak 5.
+    // Town renders 15px below its anchor, so the range anchor sits 2 map-px
+    // (6 screen-px) lower to make the two collision boxes actually meet.
+    const townVsRange = [
+      { x: 0, y: 2, text: 'Elden Spine', kind: 'range' as const }, // listed first, still loses
+      { x: 0, y: 0, text: 'Villa', kind: 'town' as const },
+    ];
+    expect(declutterLabels(townVsRange, { k: 3, x: 0, y: 0 }).map((l) => l.text)).toEqual(['Villa']);
+    const rangeVsForest = [
+      { x: 0, y: 0, text: 'Wildwood', kind: 'forest' as const }, // listed first, still loses
+      { x: 0, y: 0, text: 'Elden Spine', kind: 'range' as const },
+    ];
+    expect(declutterLabels(rangeVsForest, { k: 3, x: 0, y: 0 }).map((l) => l.text)).toEqual(['Elden Spine']);
+    const forestVsPeak = [
+      { x: 0, y: 0, text: '▲ Elden Horn', kind: 'peak' as const }, // listed first, still loses
+      { x: 0, y: 0, text: 'Wildwood', kind: 'forest' as const },
+    ];
+    expect(declutterLabels(forestVsPeak, { k: 3, x: 0, y: 0 }).map((l) => l.text)).toEqual(['Wildwood']);
+  });
   it('honors a label budget so cramped maps do not fill with state names', () => {
     const crowdedStateLabels = [
       { x: 0, y: 0, text: 'North Realm', kind: 'state' as const },
@@ -336,6 +544,30 @@ describe('declutterLabels', () => {
     expect(
       declutterLabels(crowdedStateLabels, { k: 1, x: 0, y: 0 }, { maxLabels: 2 }).map((l) => l.text),
     ).toHaveLength(2);
+  });
+  it('carries a per-label fontSize onto the placed label; absent falls back to the kind default', () => {
+    const sized = declutterLabels(
+      [{ x: 0, y: 0, text: 'Elderwood', kind: 'forest' as const, fontSize: 15 }],
+      { k: 2, x: 0, y: 0 },
+    );
+    expect(sized[0].fontSize).toBe(15);
+    const fallback = declutterLabels(
+      [{ x: 0, y: 0, text: 'Elderwood', kind: 'forest' as const }],
+      { k: 2, x: 0, y: 0 },
+    );
+    expect(fallback[0].fontSize).toBe(FOREST_LABEL_FONT_MIN); // LABEL_FONT.forest
+  });
+  it('sizes the collision box from the per-label fontSize (big fonts claim more room)', () => {
+    // Two 8-char forest labels whose screen anchors sit 50px apart (k=2).
+    // At the 9px kind default each box spans ±(8*9*0.55/2 + pad) ≈ ±21.8px —
+    // clear of each other — but at 16px it spans ±37.2px and they collide,
+    // so the second label must drop.
+    const pair = (fontSize?: number) => [
+      { x: 0, y: 0, text: 'Wildwood', kind: 'forest' as const, ...(fontSize ? { fontSize } : {}) },
+      { x: 25, y: 0, text: 'Wildwood', kind: 'forest' as const, ...(fontSize ? { fontSize } : {}) },
+    ];
+    expect(declutterLabels(pair(), { k: 2, x: 0, y: 0 })).toHaveLength(2);
+    expect(declutterLabels(pair(16), { k: 2, x: 0, y: 0 })).toHaveLength(1);
   });
 });
 

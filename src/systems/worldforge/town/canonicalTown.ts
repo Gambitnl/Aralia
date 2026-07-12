@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 11/07/2026, 14:02:45
+ * Dependents: components/MapPane.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file canonicalTown.ts — the SINGLE source of truth for a burg's town plan.
  *
@@ -158,10 +174,13 @@ const mapPoly = (poly: Pt[], k: number, dx: number, dy: number): Pt[] =>
  */
 export function transformTownPlan(plan: TownPlan, k: number, dx = 0, dy = 0): TownPlan {
   const wards = plan.wards.map((w) => ({
+    // Preserve non-geometric ward facts such as wealth, civic role, and the
+    // architecture district. The previous field-by-field copy silently dropped
+    // wealth before 3D adaptation, so transformed towns lost their social finish.
+    ...w,
     polygon: mapPoly(w.polygon, k, dx, dy),
     block: mapPoly(w.block, k, dx, dy),
     plots: w.plots.map((pl) => ({ ...pl, polygon: mapPoly(pl.polygon, k, dx, dy) })),
-    civic: w.civic,
   }));
   return {
     footprint: mapPoly(plan.footprint, k, dx, dy),

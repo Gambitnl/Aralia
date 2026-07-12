@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildGrassField } from '../grassField';
+import { buildGrassField, patchNoise2 } from '../grassField';
 
 /** res x res grid terrain, flat at `height`, painted a single color. */
 function makeTerrain(res: number, height: number, color: [number, number, number]) {
@@ -108,5 +108,52 @@ describe('grassField', () => {
     for (let i = 0; i < f.count; i++) {
       expect(f.positions[i * 3 + 1]).toBeCloseTo(f.positions[i * 3], 4);
     }
+  });
+});
+
+describe('patchNoise2 — the shared patch/clearing noise (forests Task 10)', () => {
+  // Tree thickets (generateLocal) and grass patchiness read the SAME exported
+  // field so clearings in the canopy line up with gaps in the grass. These pin
+  // the properties the clearing gate relies on.
+  it('is deterministic and stays inside [0,1]', () => {
+    const a = patchNoise2(263.7, 76.2, 7031, 3);
+    expect(patchNoise2(263.7, 76.2, 7031, 3)).toBe(a);
+    let min = Infinity;
+    let max = -Infinity;
+    for (let i = 0; i < 4000; i++) {
+      const v = patchNoise2(i * 0.137, i * 0.091, 7031, 3);
+      if (v < min) min = v;
+      if (v > max) max = v;
+    }
+    expect(min).toBeGreaterThanOrEqual(0);
+    expect(max).toBeLessThanOrEqual(1);
+    expect(max - min).toBeGreaterThan(0.4); // a real field, not a constant
+  });
+
+  it('is smooth — a pure function of world-space coords, so adjacent local windows continue the field', () => {
+    // The clearing gate samples world feet / 1000. Purity in (u, v) means two
+    // windows evaluating the same world foot get the same value by
+    // construction; smoothness means the gate carves coherent clearings, not
+    // per-sample speckle. Smoothstep-lerped value noise at freq 3 moves well
+    // under 0.06 across a 2ft step (0.002 in u).
+    for (let i = 0; i < 500; i++) {
+      const u = 100 + i * 0.53;
+      const v = 40 + i * 0.29;
+      const du = Math.abs(patchNoise2(u + 0.002, v, 7031, 3) - patchNoise2(u, v, 7031, 3));
+      const dv = Math.abs(patchNoise2(u, v + 0.002, 7031, 3) - patchNoise2(u, v, 7031, 3));
+      expect(du).toBeLessThan(0.06);
+      expect(dv).toBeLessThan(0.06);
+    }
+  });
+
+  it('different salts give decorrelated fields', () => {
+    let near = 0;
+    const N = 400;
+    for (let i = 0; i < N; i++) {
+      const u = i * 0.31;
+      const v = i * 0.17;
+      if (Math.abs(patchNoise2(u, v, 7031, 3) - patchNoise2(u, v, 999, 3)) < 0.02) near++;
+    }
+    expect(near).toBeLessThan(N * 0.15);
   });
 });

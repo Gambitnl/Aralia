@@ -42,6 +42,10 @@
  *    33. Military.generate()           (no reseed; rand/gauss note draws)
  *    34. Markers.generate()            (no reseed; placement/legend draws)
  *    35. Zones.generate()              (no reseed; count/placement draws)
+ *    36. generateForests()             (Aralia pass, OWN SeededRandom stream
+ *                                       — zero shared-stream draws, additive)
+ *    37. generateMountains()           (Aralia pass, OWN SeededRandom stream
+ *                                       — zero shared-stream draws, additive)
  * The only remaining upstream stage — Names.getMapName — is NOT ported
  * (map-title UI; it runs strictly after stage 35, so omitting
  * them cannot affect any ported draw).
@@ -97,6 +101,8 @@ import {
   ensureIslandHarbors,
   type EnsureIslandHarborsReport,
 } from "./ensureIslandHarbors";
+import { generateForests } from "../forests/forestsPass";
+import { generateMountains } from "../mountains/mountainsPass";
 
 export interface FmgWorldOptions extends FmgAtlasOptions {
   /**
@@ -388,6 +394,21 @@ export function generateFmgWorld(
     // stream after Markers.
     const Zones = new ZonesModule({ pack, Names, Routes, notes });
     Zones.generate();
+
+    // 36. forests (Aralia pass, own RNG stream — additive, frozen-stream
+    // safe). Runs after every ported FMG stage has consumed its shared
+    // Alea(seed) draws; generateForests seeds its own SeededRandom from the
+    // world seed and only ADDS pack.forests, so all goldens above stay
+    // byte-identical.
+    generateForests(pack, seed);
+
+    // 37. mountains (Aralia pass, own RNG stream — additive, frozen-stream
+    // safe). Directly after forests: generateMountains seeds its own
+    // SeededRandom from the world seed and only ADDS pack.ranges/pack.peaks.
+    // `notes` is threaded in so peaks can ADOPT volcano/sacred-mountain
+    // legend names (pure string reuse, zero draws on any stream), so all
+    // goldens above stay byte-identical.
+    generateMountains(pack, seed, notes);
 
     // Optional Aralia maritime pass. It runs after the ported FMG pipeline so
     // the frozen upstream/RNG contract remains intact unless explicitly opted in.

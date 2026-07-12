@@ -1,3 +1,11 @@
+/**
+ * GameModals integration regressions.
+ *
+ * These checks protect the shared overlay wiring: focus containment, payload
+ * forwarding, and the boundary between UI confirmation and gameplay action
+ * handlers. Child modules are mocked only where the parent contract is enough.
+ */
+
 import React from 'react';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
@@ -478,6 +486,24 @@ describe('GameModals focus-trap coverage', () => {
         // on aggregate execution order instead of the rendered dialog contract.
         createProps(withOpenModal({ isLongRestModalVisible: true }));
         expect(await screen.findByRole('dialog', { name: 'Long Rest' })).toBeInTheDocument();
+    });
+
+    it('routes confirmed long rests through onAction instead of reducing them directly', async () => {
+        const dispatch = vi.fn();
+        const onAction = vi.fn();
+        createProps(withOpenModal({ isLongRestModalVisible: true }), { dispatch, onAction });
+
+        fireEvent.click(await screen.findByRole('button', { name: 'Confirm Long Rest' }));
+
+        expect(onAction).toHaveBeenCalledWith({
+            type: 'LONG_REST',
+            label: 'Long Rest',
+            payload: { racialRestChoices: {} },
+        });
+        // The modal owns its one close toggle; GameModals must not send a
+        // second toggle or bypass the action handler with a reducer dispatch.
+        expect(dispatch).toHaveBeenCalledWith({ type: 'TOGGLE_LONG_REST_MODAL' });
+        expect(dispatch).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'LONG_REST' }));
     });
 
     it('renders RestModal when isShortRestModalVisible is true', async () => {

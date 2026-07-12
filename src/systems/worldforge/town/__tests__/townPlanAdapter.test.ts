@@ -1,3 +1,11 @@
+/**
+ * This file proves that the rich town plan becomes the flat, durable artifact
+ * consumed by the 3D ground world without changing plot identity.
+ *
+ * It covers role mapping, street tiers, style stamps, and the architectural
+ * cohesion rule: plots in one social district use a small repeated vocabulary
+ * while stable plot ids still permit bounded building-level differences.
+ */
 import { describe, it, expect } from 'vitest';
 import { toArtifactPlan, storeysForRole, STREET_TIERS } from '../townPlanAdapter';
 
@@ -111,6 +119,7 @@ describe('toArtifactPlan', () => {
       expect(p.wallColorHex).toBeUndefined();
       expect(p.roofColorHex).toBeUndefined();
       expect(p.roofForm).toBeUndefined();
+      expect(p.architecture).toBeUndefined();
     }
   });
 
@@ -125,10 +134,86 @@ describe('toArtifactPlan', () => {
       expect(plot.roofColorHex).toBeTruthy();
       expect(fam.roofPalette).toContain(plot.roofColorHex!);
       expect(plot.roofForm && fam.roofForms.includes(plot.roofForm)).toBe(true);
+      expect(plot.architecture?.districtSignature).toBeTruthy();
+      expect(plot.architecture?.buildingVariant).toBeTruthy();
+      expect(fam.facadePatterns).toContain(plot.architecture?.facadePattern);
       expect(plot.wallColorHex).toBe(b.plan.plots[i].wallColorHex);
       expect(plot.roofColorHex).toBe(b.plan.plots[i].roofColorHex);
       expect(plot.roofForm).toBe(b.plan.plots[i].roofForm);
+      expect(plot.architecture).toEqual(b.plan.plots[i].architecture);
     }
+  });
+
+  it('preserves explicit spatial district and pre-filter building identities', () => {
+    const engine = makeEnginePlan();
+    engine.wards[0].architectureDistrict = {
+      index: 3,
+      key: 'district:3',
+      label: 'Harbor District',
+    };
+    engine.wards[0].plots[0].architectureKey = 'plot:canonical-shop';
+    engine.wards[0].plots[1].architectureKey = 'plot:canonical-home';
+
+    const { plan: styled } = toArtifactPlan(engine, 12, STYLE_FAMILIES.coastalTimber);
+    const shop = styled.plots.find((plot) => plot.role === 'market')!;
+    const home = styled.plots.find((plot) => plot.role === 'house')!;
+
+    expect(shop.architecture?.districtKey).toBe('district:3');
+    expect(shop.architecture?.districtLabel).toBe('Harbor District');
+    expect(shop.architecture?.buildingKey).toBe('plot:canonical-shop');
+    expect(shop.architecture?.wealth).toBe('common');
+    expect(home.architecture?.districtKey).toBe('district:3');
+    expect(home.architecture?.buildingKey).toBe('plot:canonical-home');
+    expect(shop.architecture?.districtSignature)
+      .toBe(home.architecture?.districtSignature);
+  });
+
+  it('keeps a district to a dominant plus one related choice per visible style trait', () => {
+    // A long synthetic ward provides enough buildings for both the dominant
+    // branch and its minority exceptions to appear deterministically.
+    const districtPlots = Array.from({ length: 48 }, (_, index) => ({
+      polygon: sq(index * 20, 0, 16),
+      frontageEdge: 0,
+      buildingType: 'cottage' as const,
+    }));
+    const districtPlan = {
+      ...makeEnginePlan(),
+      footprint: sq(-10, -10, 1000),
+      core: sq(0, 0, 980),
+      wards: [{
+        polygon: sq(0, 0, 980),
+        block: sq(1, 1, 978),
+        plots: districtPlots,
+        civic: undefined,
+        wealth: 'common' as const,
+      }],
+      plots: districtPlots,
+      civic: [],
+      streets: [],
+    } as EngineTownPlan;
+    const family = STYLE_FAMILIES.temperateFrame;
+    const { plan: styled } = toArtifactPlan(districtPlan, 17, family);
+
+    for (const values of [
+      styled.plots.map((plot) => plot.wallColorHex),
+      styled.plots.map((plot) => plot.roofColorHex),
+      styled.plots.map((plot) => plot.roofForm),
+    ]) {
+      expect(new Set(values).size).toBeGreaterThanOrEqual(2);
+      expect(new Set(values).size).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it('lets two same-culture towns choose different district recipes', () => {
+    const family = STYLE_FAMILIES.temperateFrame;
+    const first = toArtifactPlan(makeEnginePlan(), 17, family).plan.plots;
+    const second = toArtifactPlan(makeEnginePlan(), 18, family).plan.plots;
+    const visibleStyle = (plots: typeof first) => plots.map((plot) => [
+      plot.wallColorHex,
+      plot.roofColorHex,
+      plot.roofForm,
+    ]);
+    expect(visibleStyle(first)).not.toEqual(visibleStyle(second));
   });
 
   it('plot IDs are unchanged by styling (business-binding invariant)', () => {

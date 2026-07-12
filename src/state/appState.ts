@@ -747,6 +747,10 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // Record the canonical cell (cell-native world): the atlas-travel
                 // destination is authoritative (carried intact, feet reset).
                 playerCell: arrivalPlayerCell,
+                // Locale meters are meaningful only inside their source cell.
+                // Keeping them across atlas travel/remote 3D entry lets the new
+                // ground scene spawn at coordinates from the previous locale.
+                playerGroundPos: dest ? null : state.playerGroundPos,
                 // Moving invalidates a start-selection / click entry anchor so a later 3D
                 // entry doesn't snap back to the old town; an atlas-travel arrival
                 // instead stamps the destination's anchor so Enter-3D frames that town.
@@ -1156,4 +1160,3 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         }
     }
 }
-

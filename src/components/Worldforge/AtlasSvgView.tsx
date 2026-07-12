@@ -16,13 +16,16 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
-import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, buildProvisionRingPath, type CellTraits, type BurgTier, type AtlasLegendEntry } from './atlasSvg';
+import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, buildProvisionRingPath, forestGlyphRampOpacity, type CellTraits, type BurgTier, type AtlasLegendEntry } from './atlasSvg';
+import { FOREST_LABEL_COLOR, FOREST_LABEL_OUTLINE } from '../../systems/worldforge/forests/forestTunables';
+import { PEAK_LABEL_COLOR, RANGE_LABEL_COLOR, RANGE_LABEL_LETTER_SPACING_EM, RANGE_LABEL_OUTLINE } from '../../systems/worldforge/mountains/mountainTunables';
 import type { DungeonDangerSite } from '../../systems/worldforge/overlays/dangerField';
 import AtlasLayers from './AtlasLayers';
 import { consumeMapCenterOnPlayer } from './mapFocusSignal';
 import type { RoutePlan } from '../../systems/travel/routePlanning';
 import type { MultiModalRoute } from '../../systems/travel/multiModalRoute';
 import { formatRouteSummary, dangerRating, formatMultiModalSummary } from '../../systems/travel/travelReadout';
+import { directionalAtlasNeighbor, type AtlasKeyboardDirection } from './AtlasMapView';
 
 /** How much detail the hover info panel shows. */
 type InfoVerbosity = 'off' | 'minimal' | 'standard' | 'full';
@@ -61,6 +64,26 @@ export interface AtlasSvgViewProps {
    * null when no fare applies (owned ship, all-land trip, or non-ferry mode).
    */
   ferryFareForRoute?: (route: MultiModalRoute) => number | null;
+  /**
+   * Faint-path warning for a previewed land route: true when the route follows
+   * a faint forest path, so the readout warns the player the trail can fade
+   * (a get-lost risk) BEFORE they commit. MapPane owns the atlas nav info and
+   * supplies the check; this just renders the appended warning.
+   */
+  faintPathForRoute?: (route: RoutePlan) => boolean;
+  /**
+   * Name of the largest named forest a previewed land route crosses, or null
+   * when it crosses none. MapPane owns the atlas forests and supplies the
+   * lookup; this just renders the appended "through the <Name>" piece.
+   */
+  forestNameForRoute?: (route: RoutePlan) => string | null;
+  /**
+   * Name of the FIRST named mountain pass a previewed land route crests, or
+   * null when it crests none. MapPane owns the atlas passes and supplies the
+   * lookup; this just threads the value into the readout ("via <Name>" —
+   * formatRouteSummary owns the pass-beats-forest one-flavor-clause rule).
+   */
+  passNameForRoute?: (route: RoutePlan) => string | null;
   /** Transport label for the travel readout (e.g. "on foot", "by horse"). */
   transportLabel?: string;
   /**
@@ -318,7 +341,7 @@ const LAYER_CHOICE_MARK_STYLE: React.CSSProperties = {
   background: 'rgba(15,23,42,0.9)',
 };
 
-const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], pulseToken = null, onPickCell, travelActive = false, planRoute, planMultiModalRoute, ferryFareForRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain', dungeonSites }) => {
+const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], pulseToken = null, onPickCell, travelActive = false, planRoute, planMultiModalRoute, ferryFareForRoute, faintPathForRoute, forestNameForRoute, passNameForRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain', dungeonSites }) => {
   const model = useMemo(() => buildAtlasSvgModel(atlas, dungeonSites), [atlas, dungeonSites]);
 
   // Map coloring is a single exclusive choice; feature layers are independent
@@ -504,7 +527,13 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   // gesture a PAN so the release is never treated as a cell click (which, in
   // Travel mode, would travel + close the map). Reset on each mousedown.
   const draggedRef = useRef(false);
+  // Touch has no hover. The first tap previews/inspects a cell; a second tap on
+  // that same cell commits the existing pick callback. This prevents a finger
+  // from starting travel before the player can read the route and supplies.
+  const lastPointerTypeRef = useRef<string>('mouse');
+  const touchArmedCellRef = useRef<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const [hasKeyboardFocus, setHasKeyboardFocus] = useState(false);
   // True once the player has manually zoomed/panned (or used Find Me). After that
   // we stop auto-refitting on viewport-size changes, so toggling Travel↔Explore —
   // which grows/shrinks the toolbar and therefore the measured map area — no
@@ -553,7 +582,9 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     el.addEventListener('wheel', handleWheel, { passive: false });
     return () => el.removeEventListener('wheel', handleWheel);
   }, [width, height]);
-  const onDown = (e: React.MouseEvent) => {
+  const onDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    lastPointerTypeRef.current = e.pointerType;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
     drag.current = { x: e.clientX - view.x, y: e.clientY - view.y };
     downPos.current = { x: e.clientX, y: e.clientY };
     draggedRef.current = false;
@@ -585,7 +616,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     }
     return hit;
   };
-  const onMove = (e: React.MouseEvent) => {
+  const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
     const d = drag.current;
     if (d) {
       const dp = downPos.current;
@@ -598,6 +629,9 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       setView((v) => ({ ...v, x: e.clientX - d.x, y: e.clientY - d.y }));
       return;
     }
+    // A touch drag has no stable hover position. Its eventual tap is armed in
+    // onClick, while a real drag only changes the view.
+    if (e.pointerType === 'touch') return;
     // Hover: resolve and highlight the cell under the cursor (always, even when
     // the Cells layer is off). setState with the same index is a no-op re-render.
     const p = pointerToGraph(e.clientX, e.clientY);
@@ -608,8 +642,17 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     // small screen-space radius, the town info panel takes over from the cell one.
     setHoveredBurg(findBurgAt(p.gx, p.gy));
   };
-  const onUp = () => { drag.current = null; };
-  const onLeave = () => { drag.current = null; setHoveredCell(null); setHoveredBurg(null); };
+  const onUp = (e: React.PointerEvent<SVGSVGElement>) => {
+    drag.current = null;
+    if (e.currentTarget.hasPointerCapture?.(e.pointerId)) e.currentTarget.releasePointerCapture?.(e.pointerId);
+  };
+  const onLeave = (e: React.PointerEvent<SVGSVGElement>) => {
+    drag.current = null;
+    if (e.pointerType !== 'touch') {
+      setHoveredCell(null);
+      setHoveredBurg(null);
+    }
+  };
   const onClick = (e: React.MouseEvent) => {
     // Suppress the pick when the gesture was a pan — either the press moved during
     // the drag (draggedRef), or net down→up displacement exceeds the slop. This
@@ -627,7 +670,39 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     setSelectedBurg(null);
     if (!onPickCell) return;
     const i = findCellAtPoint(atlas, p.gx, p.gy);
-    if (i >= 0) onPickCell(cellTraits(atlas, i));
+    if (i < 0) return;
+    if (lastPointerTypeRef.current === 'touch' && touchArmedCellRef.current !== i) {
+      touchArmedCellRef.current = i;
+      setHoveredCell(i);
+      setHoveredBurg(null);
+      return;
+    }
+    touchArmedCellRef.current = null;
+    onPickCell(cellTraits(atlas, i));
+  };
+
+  const handleAtlasKeyDown = (event: React.KeyboardEvent<SVGSVGElement>) => {
+    const direction: AtlasKeyboardDirection | null =
+      event.key === 'ArrowLeft' ? 'left'
+        : event.key === 'ArrowRight' ? 'right'
+          : event.key === 'ArrowUp' ? 'up'
+            : event.key === 'ArrowDown' ? 'down'
+              : null;
+    if (direction) {
+      event.preventDefault();
+      const markerCell = marker ? findCellAtPoint(atlas, marker.x, marker.y) : -1;
+      const firstLand = Array.from(atlas.pack.cells.h).findIndex((cellHeight) => cellHeight >= 20);
+      const current = hoveredCell ?? (markerCell >= 0 ? markerCell : Math.max(0, firstLand));
+      const next = directionalAtlasNeighbor(current, direction, atlas.pack.cells.p, atlas.pack.cells.c);
+      setHoveredCell(next);
+      setHoveredBurg(null);
+      touchArmedCellRef.current = null;
+      return;
+    }
+    if ((event.key === 'Enter' || event.key === ' ') && hoveredCell != null && onPickCell) {
+      event.preventDefault();
+      onPickCell(cellTraits(atlas, hoveredCell));
+    }
   };
 
   // Full trait readout for the hovered cell (computed regardless of layer toggles).
@@ -803,8 +878,28 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       ref={svgRef}
       width={width} height={height}
       viewBox={`0 0 ${width} ${height}`}
-      style={{ background: '#1f4a73', userSelect: 'none', cursor: drag.current ? 'grabbing' : 'grab' }}
-      onMouseDown={onDown} onMouseMove={onMove} onMouseUp={onUp} onMouseLeave={onLeave} onClick={onClick}
+      role="application"
+      tabIndex={0}
+      aria-label={travelActive
+        ? 'World atlas travel map. Use arrow keys to inspect neighboring cells and Enter or Space to choose a destination.'
+        : 'World atlas. Use arrow keys to inspect neighboring cells and Enter or Space to select a cell.'}
+      style={{
+        background: '#1f4a73',
+        userSelect: 'none',
+        touchAction: 'none',
+        cursor: drag.current ? 'grabbing' : 'grab',
+        outline: hasKeyboardFocus ? '3px solid #f5c542' : 'none',
+        outlineOffset: -3,
+      }}
+      onFocus={() => setHasKeyboardFocus(true)}
+      onBlur={() => setHasKeyboardFocus(false)}
+      onKeyDown={handleAtlasKeyDown}
+      onPointerDown={onDown}
+      onPointerMove={onMove}
+      onPointerUp={onUp}
+      onPointerCancel={onUp}
+      onPointerLeave={onLeave}
+      onClick={onClick}
       data-testid="atlas-svg-view"
     >
       <defs>
@@ -837,7 +932,14 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           exactly as before. In 'cover' mode the world covers the viewport and
           this is simply hidden. */}
       <rect x={0} y={0} width={width} height={height} fill="#1f4a73" pointerEvents="none" />
-      <g transform={`translate(${view.x},${view.y}) scale(${view.k})`}>
+      {/* The forest glyph layer's zoom ramp rides in as a CSS custom property:
+          AtlasLayers is memoized with no zoom access (the freeze fix), so its
+          glyph group reads var(--forest-glyph-opacity) instead of a prop —
+          zooming re-renders only this <g>'s style, never the layer subtree. */}
+      <g
+        transform={`translate(${view.x},${view.y}) scale(${view.k})`}
+        style={{ '--forest-glyph-opacity': forestGlyphRampOpacity(view.k) } as React.CSSProperties}
+      >
         {/* Deep base ocean; shallow depth bands (T3b) layer on top near coasts. */}
         <rect x={0} y={0} width={model.width} height={model.height} fill="#1f4a73" />
         {/* Heavy static layers, memoized so hover/pan/zoom don't reconcile the
@@ -907,23 +1009,38 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       </g>
       {/* Labels overlay — screen space (constant size), zoom-thresholded + decluttered (T5c).
           Burg names (capital/town) are nudged below their point so the settlement
-          glyph (drawn after this block) sits ABOVE the name without overlapping. */}
+          glyph (drawn after this block) sits ABOVE the name without overlapping.
+          State, forest, range and peak names sit ON their anchor (dy 0). Forest
+          names read as physical geography: italic, muted green, dark outline
+          (forests T4). Range names are spaced small-caps in stony ink — SVG has
+          no text-transform, so the STRING is uppercased at render — and peaks
+          are tiny "▲ Name" landmarks in the same ink family (mountains T3). */}
       {visible.labels ? declutterLabels(model.labels ?? [], view, { bounds: { width, height }, pad: labelPad, maxLabels: labelBudget }).map((l, i) => (
         <text
           key={`lb${i}`}
           x={l.sx}
-          y={l.sy + (l.kind === 'state' ? 0 : 15)}
+          y={l.sy + (l.kind === 'capital' || l.kind === 'town' ? 15 : 0)}
           textAnchor="middle"
-          fontFamily={l.kind === 'state' ? 'Georgia, serif' : 'sans-serif'}
+          fontFamily={l.kind === 'capital' || l.kind === 'town' ? 'sans-serif' : 'Georgia, serif'}
+          fontStyle={l.kind === 'forest' ? 'italic' : undefined}
           fontSize={l.fontSize}
-          fontWeight={l.kind === 'town' ? 400 : 700}
-          fill={l.kind === 'state' ? '#2d1b38' : '#111827'}
-          stroke="#ffffff"
+          fontWeight={l.kind === 'state' || l.kind === 'capital' ? 700 : 400}
+          letterSpacing={l.kind === 'range' ? `${RANGE_LABEL_LETTER_SPACING_EM}em` : undefined}
+          fill={
+            l.kind === 'range' ? RANGE_LABEL_COLOR
+            : l.kind === 'peak' ? PEAK_LABEL_COLOR
+            : l.kind === 'forest' ? FOREST_LABEL_COLOR
+            : l.kind === 'state' ? '#2d1b38' : '#111827'
+          }
+          stroke={
+            l.kind === 'range' || l.kind === 'peak' ? RANGE_LABEL_OUTLINE
+            : l.kind === 'forest' ? FOREST_LABEL_OUTLINE : '#ffffff'
+          }
           strokeWidth={l.kind === 'state' ? 3 : 2}
           paintOrder="stroke"
           style={{ pointerEvents: 'none' }}
         >
-          {l.text}
+          {l.kind === 'range' ? l.text.toUpperCase() : l.text}
         </text>
       )) : null}
       {/* Burg settlement glyphs — screen space (constant size), tier-distinct,
@@ -1074,7 +1191,13 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
         {multiModalRoute
           ? formatMultiModalSummary(multiModalRoute, { fareGp: ferryFareForRoute ? ferryFareForRoute(multiModalRoute) : null })
           : travelRoute
-          ? formatRouteSummary(travelRoute, transportLabel)
+          ? formatRouteSummary(travelRoute, transportLabel, {
+              faintPath: faintPathForRoute ? faintPathForRoute(travelRoute) : false,
+              forestName: forestNameForRoute?.(travelRoute) ?? undefined,
+              // Both flavor values thread plainly — formatRouteSummary owns
+              // the pass-beats-forest one-flavor-clause rule.
+              passName: passNameForRoute?.(travelRoute) ?? undefined,
+            })
           : <span style={{ color: '#f87171' }}>No route to here</span>}
         {/* Provisions line: how much food/water the trip would cost vs what's
             carried (binding resource labeled). Only when a route is previewed. */}

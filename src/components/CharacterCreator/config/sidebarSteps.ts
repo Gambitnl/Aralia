@@ -132,7 +132,20 @@ export const isStepReachedAndComplete = (
   step: CreationStep,
   currentStep: CreationStep,
   state: CharacterCreationState,
-): boolean => step <= currentStep && isStepCompleted(step, state);
+): boolean => {
+  // Follow the route the player actually sees instead of the enum's historical
+  // numeric order. Origin Feat was moved near the end of the wizard while its
+  // enum value stayed between Background and Appearance; numeric comparison
+  // therefore credited that future default feat several screens too early.
+  const visibleRoute = SIDEBAR_STEPS.filter(stepConfig => stepConfig.isVisible(state));
+  const stepIndex = visibleRoute.findIndex(stepConfig => stepConfig.step === step);
+  const currentIndex = visibleRoute.findIndex(stepConfig => stepConfig.step === currentStep);
+
+  // A conditional or legacy step that is absent from the current route cannot
+  // be considered reached. This keeps race/class-specific branches honest.
+  if (stepIndex < 0 || currentIndex < 0) return false;
+  return stepIndex <= currentIndex && isStepCompleted(step, state);
+};
 
 /**
  * Group display configuration

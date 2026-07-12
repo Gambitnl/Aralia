@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 05/07/2026, 10:07:46
+ * Last Sync: 11/07/2026, 19:46:55
  * Dependents: App.tsx
- * Imports: 15 files
+ * Imports: 16 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -48,6 +48,7 @@ import LocalMapView from "./LocalMapView";
 import CellInfoPanel from "./CellInfoPanel";
 import { describeCell } from "../../systems/worldforge/cellInfo";
 import { type OverlayMarker } from "./overlay";
+import { getBridgeAtlas, worldforgeSeedString } from "../../systems/worldforge/bridge/legacySubmapBridge";
 
 // ============================================================================
 // L1 Region Viewport Sub-Component
@@ -88,7 +89,14 @@ export const atlasDemoBreadcrumbIdentityClassName =
 export const atlasDemoBreadcrumbHintClassName =
   "flex max-w-full items-start gap-1.5 text-[10px] text-gray-500 sm:items-center";
 
-const AtlasDemo: React.FC = () => {
+interface AtlasDemoProps {
+  /** Bind the atlas to the active run instead of exposing the standalone generator. */
+  embeddedInGame?: boolean;
+  /** Canonical game seed used by start selection, travel, 3D, and persistence. */
+  worldSeed?: number;
+}
+
+const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed }) => {
   // Navigation & View Mode — the full zoom chain: L0 atlas → L1 region → L2 local
   const [viewMode, setViewMode] = useState<"atlas" | "region" | "local">("atlas");
   const [selectedCellId, setSelectedCellId] = useState<number | null>(null);
@@ -100,7 +108,11 @@ const AtlasDemo: React.FC = () => {
   const [isGeneratingLocal, setIsGeneratingLocal] = useState<boolean>(false);
 
   // Generation configurations
-  const [seed, setSeed] = useState<string>("world-42");
+  // The standalone harness keeps its editable demo seed. In live play, reuse
+  // the exact bridge atlas that selected the starting town and anchors travel;
+  // generating a parallel `world-42` here displayed a different world.
+  const canonicalGameSeed = embeddedInGame && worldSeed != null ? worldforgeSeedString(worldSeed) : null;
+  const [seed, setSeed] = useState<string>(canonicalGameSeed ?? "world-42");
   const [template, setTemplate] = useState<string>("continents");
   const [cellsDesired, setCellsDesired] = useState<number>(10000);
 
@@ -129,7 +141,9 @@ const AtlasDemo: React.FC = () => {
   const [demoTime, setDemoTime] = useState<number>(0);
 
   // Telemetry & progress
-  const [atlas, setAtlas] = useState<FmgAtlasResult | null>(null);
+  const [atlas, setAtlas] = useState<FmgAtlasResult | null>(() =>
+    embeddedInGame && worldSeed != null ? getBridgeAtlas(worldSeed) : null,
+  );
   const [genTimeMs, setGenTimeMs] = useState<number>(0);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isGeneratingRegion, setIsGeneratingRegion] = useState<boolean>(false);
@@ -413,6 +427,9 @@ const AtlasDemo: React.FC = () => {
   };
 
   useEffect(() => {
+    // Live runs already own a canonical, cached atlas. Regeneration belongs to
+    // the standalone cartographer and pre-run setup, never an active journey.
+    if (embeddedInGame) return;
     handleGenerate();
   }, []);
 
@@ -432,12 +449,14 @@ const AtlasDemo: React.FC = () => {
                 </span>
               )}
               <h1 className="text-lg font-bold leading-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-                Worldforge Atlas Cartographer
+                {embeddedInGame ? "Worldforge Atlas" : "Worldforge Atlas Cartographer"}
               </h1>
             </div>
             <p className="text-xs text-gray-500">
               {viewMode === "atlas"
-                ? "Procedural World Generation & Interactive Render Harness"
+                ? embeddedInGame
+                  ? "The canonical atlas for this journey"
+                  : "Procedural World Generation & Interactive Render Harness"
                 : `Zoom descent slice centered on Cell #${selectedCellId}`}
             </p>
           </div>
@@ -546,7 +565,9 @@ const AtlasDemo: React.FC = () => {
             <div className="pointer-events-auto flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1 pb-16 sm:pb-1">
           {viewMode === "atlas" ? (
             <>
-              {/* L0 Generation Panel */}
+              {/* L0 generation is a standalone harness capability. Active runs
+                  must keep the same world used by spawn, travel, saves, and 3D. */}
+              {!embeddedInGame && (
               <div className="bg-gray-900/85 backdrop-blur-md border border-gray-800 rounded-xl p-3 flex flex-col gap-2 shadow-xl sm:p-5 sm:gap-4">
                 <div className="flex items-center gap-2 border-b border-gray-800 pb-2 sm:pb-3">
                   <Settings size={16} className="text-indigo-400" />
@@ -638,6 +659,7 @@ const AtlasDemo: React.FC = () => {
                   )}
                 </button>
               </div>
+              )}
 
               {/* Render Options Panel */}
               <div className="bg-gray-900/85 backdrop-blur-md border border-gray-800 rounded-xl p-5 flex flex-col gap-4 shadow-xl">

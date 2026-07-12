@@ -23,6 +23,7 @@ describe('MOVE_PLAYER cell-native arrival', () => {
     const base = createMockGameState({
       worldSeed: SEED,
       playerCell: { cellId: 7, localeCoords: { x: 999, y: 888 } },
+      playerGroundPos: { tileX: 7, tileY: 0, xM: 999, zM: 888 },
     });
 
     const next = appReducer(base, {
@@ -36,6 +37,7 @@ describe('MOVE_PLAYER cell-native arrival', () => {
 
     // The destination cell is carried INTACT, with the stale feet reset.
     expect(next.playerCell).toEqual({ cellId: 562, localeCoords: null });
+    expect(next.playerGroundPos).toBeNull();
     // Arrival sets up entry into the destination town/cell.
     expect(next.entry3DAnchor).toEqual(anchor);
     expect(next.currentLocationId).toBe(makeCellLocationId(562));

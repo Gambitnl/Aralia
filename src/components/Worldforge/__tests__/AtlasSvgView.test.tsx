@@ -36,6 +36,56 @@ describe('AtlasSvgView', () => {
     expect(container.querySelector('[data-testid="atlas-player-marker"]')).toBeTruthy();
   });
 
+  it('exposes a named keyboard map whose arrows inspect real neighbors and Enter picks', () => {
+    const picks: number[] = [];
+    const keyboardStub = {
+      ...stub,
+      pack: { ...stub.pack, cells: { ...stub.pack.cells, c: [[1], [0]] } },
+    };
+    const { getByRole, queryByTestId } = render(
+      <AtlasSvgView
+        atlas={keyboardStub}
+        width={300}
+        height={300}
+        travelActive
+        onPickCell={(cell) => picks.push(cell.i)}
+      />,
+    );
+
+    const map = getByRole('application', { name: /world atlas travel map/i });
+    fireEvent.focus(map);
+    expect(map).toHaveAttribute('tabindex', '0');
+    expect(map).toHaveStyle({ outline: '3px solid #f5c542' });
+    fireEvent.keyDown(map, { key: 'ArrowLeft' });
+    expect(queryByTestId('atlas-cell-info')).toBeTruthy();
+    expect(picks).toEqual([]);
+    fireEvent.keyDown(map, { key: 'Enter' });
+    expect(picks).toEqual([0]);
+  });
+
+  it('uses first-tap preview and second-tap commit for touch travel', () => {
+    const picks: number[] = [];
+    const { getByTestId, queryByTestId } = render(
+      <AtlasSvgView atlas={stub} width={300} height={300} travelActive onPickCell={(cell) => picks.push(cell.i)} />,
+    );
+    const svg = getByTestId('atlas-svg-view');
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0, y: 0, left: 0, top: 0, right: 300, bottom: 300, width: 300, height: 300,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    const tap = () => {
+      fireEvent.pointerDown(svg, { clientX: 150, clientY: 150, pointerId: 4, pointerType: 'touch' });
+      fireEvent.pointerUp(svg, { clientX: 150, clientY: 150, pointerId: 4, pointerType: 'touch' });
+      fireEvent.click(svg, { clientX: 150, clientY: 150 });
+    };
+    tap();
+    expect(queryByTestId('atlas-cell-info')).toBeTruthy();
+    expect(picks).toEqual([]);
+    tap();
+    expect(picks).toHaveLength(1);
+  });
+
   it('shows a Find Me button only when a player marker is given, and clicking it surfaces the player cell', () => {
     const { container, queryByTestId, getByTestId, rerender } = render(
       <AtlasSvgView atlas={stub} width={300} height={300} />,
@@ -88,9 +138,9 @@ describe('AtlasSvgView', () => {
     );
     const svg = getByTestId('atlas-svg-view');
     // Grab → move beyond the slop → release → click: this is a pan, not a pick.
-    fireEvent.mouseDown(svg, { clientX: 100, clientY: 100 });
-    fireEvent.mouseMove(svg, { clientX: 140, clientY: 130 });
-    fireEvent.mouseUp(svg);
+    fireEvent.pointerDown(svg, { clientX: 100, clientY: 100, pointerId: 1, pointerType: 'mouse' });
+    fireEvent.pointerMove(svg, { clientX: 140, clientY: 130, pointerId: 1, pointerType: 'mouse' });
+    fireEvent.pointerUp(svg, { pointerId: 1, pointerType: 'mouse' });
     fireEvent.click(svg, { clientX: 140, clientY: 130 });
     expect(picks).toBe(0);
   });
@@ -102,10 +152,10 @@ describe('AtlasSvgView', () => {
     const svg = getByTestId('atlas-svg-view');
     // Grab → pan → release → a stray move arrives after onUp nulled drag.current.
     // The setView updater used to lazily read drag.current!.x → "reading 'x' of null".
-    fireEvent.mouseDown(svg, { clientX: 100, clientY: 100 });
-    fireEvent.mouseMove(svg, { clientX: 140, clientY: 130 });
-    fireEvent.mouseUp(svg);
-    expect(() => fireEvent.mouseMove(svg, { clientX: 180, clientY: 160 })).not.toThrow();
+    fireEvent.pointerDown(svg, { clientX: 100, clientY: 100, pointerId: 1, pointerType: 'mouse' });
+    fireEvent.pointerMove(svg, { clientX: 140, clientY: 130, pointerId: 1, pointerType: 'mouse' });
+    fireEvent.pointerUp(svg, { pointerId: 1, pointerType: 'mouse' });
+    expect(() => fireEvent.pointerMove(svg, { clientX: 180, clientY: 160, pointerId: 1, pointerType: 'mouse' })).not.toThrow();
     // Component survives (no error boundary swap): the atlas svg is still mounted.
     expect(container.querySelector('[data-testid="atlas-svg-view"]')).toBeTruthy();
   });
@@ -471,7 +521,7 @@ describe('AtlasSvgView', () => {
       width: 300, height: 300,
       toJSON: () => ({}),
     } as DOMRect);
-    fireEvent.mouseMove(svg, { clientX: 150, clientY: 150 });
+    fireEvent.pointerMove(svg, { clientX: 150, clientY: 150, pointerId: 1, pointerType: 'mouse' });
 
     expect(container.querySelectorAll('[data-testid="atlas-travel-segment-land"]')).toHaveLength(1);
     expect(container.querySelectorAll('[data-testid="atlas-travel-segment-sea"]')).toHaveLength(1);
@@ -513,7 +563,7 @@ describe('AtlasSvgView', () => {
       width: 300, height: 300,
       toJSON: () => ({}),
     } as DOMRect);
-    fireEvent.mouseMove(svg, { clientX: 150, clientY: 150 });
+    fireEvent.pointerMove(svg, { clientX: 150, clientY: 150, pointerId: 1, pointerType: 'mouse' });
 
     const tenderSeg = container.querySelector('[data-testid="atlas-travel-segment-tender"]')!;
     expect(tenderSeg).not.toBeNull();

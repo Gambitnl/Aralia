@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/07/2026, 01:00:24
+ * Last Sync: 11/07/2026, 23:23:47
  * Dependents: components/BattleMap/index.ts, components/DesignPreview/steps/PreviewBattleMap.tsx
- * Imports: 20 files
+ * Imports: 25 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -42,7 +42,20 @@ import { createPlayerCombatCharacter } from '../../utils/combatUtils';
 import { createQuickCombatCharacter, AVAILABLE_RACE_IDS, getRaceDisplayName } from '../../utils/sandbox/quickCharacterGenerator';
 import SpellContext from '../../context/SpellContext';
 import { Spell } from '../../types/spells';
+import {
+  COMBAT_COMMAND_WIDTH_DEFAULT,
+  COMBAT_COMMAND_WIDTH_MAX,
+  COMBAT_COMMAND_WIDTH_MIN,
+  COMBAT_ROSTER_WIDTH_DEFAULT,
+  COMBAT_ROSTER_WIDTH_MAX,
+  COMBAT_ROSTER_WIDTH_MIN,
+  createCombatRailGridStyle,
+  useCombatRailLayout,
+} from '../../hooks/useCombatRailLayout';
 import CombatRailControls from './CombatRailControls';
+import CompactTurnStrip from './CompactTurnStrip';
+import CombatRailResizeHandle from './CombatRailResizeHandle';
+import { CombatIntentPreview } from './CombatIntentPreview';
 
 // Dev-only: when the demo is opened without real enemies, spawn a small opposing
 // force so the 3D battle map shows both teams (team colors, spawn spread, class
@@ -311,22 +324,34 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
   const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
   const [cameraFocusRequest, setCameraFocusRequest] = useState<{ characterId: string; requestId: number } | null>(null);
+  const battlefieldSectionRef = useRef<HTMLDivElement>(null);
   const [assetOverlayVisible, setAssetOverlayVisible] = useState(true);
-  // Each rail can be hidden independently. This makes the design preview useful
-  // at laptop sizes and lets reviewers judge the battlefield without discarding
-  // either roster or command information permanently.
-  const [rosterRailVisible, setRosterRailVisible] = useState(true);
-  const [commandRailVisible, setCommandRailVisible] = useState(true);
+  // Each rail can be hidden independently, and the deliberate layout follows
+  // the player into later combats. First use still shows every combat tool.
+  const {
+    rosterVisible: rosterRailVisible,
+    commandVisible: commandRailVisible,
+    rosterWidth: rosterRailWidth,
+    commandWidth: commandRailWidth,
+    setRosterVisible: setRosterRailVisible,
+    setCommandVisible: setCommandRailVisible,
+    setRosterWidth: setRosterRailWidth,
+    setCommandWidth: setCommandRailWidth,
+    resetLayout: resetRailLayout,
+    layoutIsDefault: railLayoutIsDefault,
+  } = useCombatRailLayout();
 
-  // The center map receives every column released by a hidden rail. Keep every
-  // full class name present so Tailwind can generate all four layout variants.
+  // The center map receives every column released by a hidden rail. CSS
+  // variables carry remembered widths while these explicit classes preserve
+  // all four visibility variants for Tailwind and the desktop breakpoint.
   const tacticalGridColumns = rosterRailVisible
     ? commandRailVisible
-      ? 'lg:grid-cols-[200px_minmax(0,1fr)_280px] xl:grid-cols-[230px_minmax(0,1fr)_300px]'
-      : 'lg:grid-cols-[200px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)]'
+      ? 'lg:grid-cols-[var(--combat-roster-width)_minmax(0,1fr)_var(--combat-command-width)]'
+      : 'lg:grid-cols-[var(--combat-roster-width)_minmax(0,1fr)]'
     : commandRailVisible
-      ? 'lg:grid-cols-[minmax(0,1fr)_280px] xl:grid-cols-[minmax(0,1fr)_300px]'
+      ? 'lg:grid-cols-[minmax(0,1fr)_var(--combat-command-width)]'
       : 'lg:grid-cols-[minmax(0,1fr)]';
+  const tacticalGridStyle = createCombatRailGridStyle(rosterRailWidth, commandRailWidth);
 
   const biomeRef = useRef(biome);
   useEffect(() => {
@@ -407,6 +432,17 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
     // still produces a fresh camera command for the BattleMap component.
     setCameraFocusRequest(prev => ({ characterId, requestId: (prev?.requestId ?? 0) + 1 }));
   }, []);
+
+  const handleAbilitySelect = useCallback((ability: Ability, character: CombatCharacter) => {
+    abilitySystem.startTargeting(ability, character);
+
+    // The design preview stacks its command rail below the map at compact
+    // widths. Return to the battlefield after arming an ability so reviewers
+    // see the target surface and shared intent HUD instead of a detached tile.
+    if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+      battlefieldSectionRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+  }, [abilitySystem]);
 
   const handleGenerate = () => {
     const nextSeed = Date.now();
@@ -637,6 +673,8 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
             commandVisible={commandRailVisible}
             onToggleRoster={() => setRosterRailVisible(visible => !visible)}
             onToggleCommand={() => setCommandRailVisible(visible => !visible)}
+            onResetLayout={resetRailLayout}
+            layoutIsDefault={railLayoutIsDefault}
           />
           <button
             onClick={onExit}
@@ -650,9 +688,21 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
       {/* Below lg the three regions stack and the whole block scrolls; from lg
           up it is the fixed 3-region tactical layout with internally-scrolling
           rails. (CombatView uses the same breakpoint — the demo mirrors it.) */}
-      <div className={`flex-grow min-h-0 grid grid-cols-1 gap-4 overflow-y-auto lg:overflow-hidden ${tacticalGridColumns}`}>
+      <div
+        data-testid="combat-layout-grid"
+        className={`flex-grow min-h-0 grid grid-cols-1 gap-4 overflow-y-auto lg:overflow-hidden ${tacticalGridColumns}`}
+        style={tacticalGridStyle}
+      >
         {/* Left Pane */}
-        <div className={`${rosterRailVisible ? 'flex' : 'hidden'} order-2 flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:overflow-y-auto`}>
+        <div className={`${rosterRailVisible ? 'flex' : 'hidden'} relative order-2 flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:overflow-y-auto`}>
+          <CombatRailResizeHandle
+            side="roster"
+            value={rosterRailWidth}
+            minimum={COMBAT_ROSTER_WIDTH_MIN}
+            maximum={COMBAT_ROSTER_WIDTH_MAX}
+            onChange={setRosterRailWidth}
+            onReset={() => setRosterRailWidth(COMBAT_ROSTER_WIDTH_DEFAULT)}
+          />
           <PartyDisplay
             characters={characters}
             onCharacterSelect={handleCharacterSelect}
@@ -666,7 +716,31 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
 
         {/* Center Pane — map first and given a real height while stacked, so it
             is never squished into a thin band below lg. */}
-        <div className="order-1 flex h-[65vh] min-h-[22rem] shrink-0 flex-col overflow-hidden p-2 relative lg:order-none lg:h-auto lg:min-h-0 lg:shrink">
+        <div
+          ref={battlefieldSectionRef}
+          data-testid="combat-battlefield-section"
+          className="order-1 flex h-[65vh] min-h-[22rem] shrink-0 flex-col overflow-hidden p-2 relative lg:order-none lg:h-auto lg:min-h-0 lg:shrink"
+        >
+          {/* Map-focus mode keeps the small amount of information needed to
+              finish a turn while the detailed command rail is out of sight. */}
+          {!commandRailVisible && (
+            <CompactTurnStrip
+              character={currentCharacter}
+              isCharactersTurn={Boolean(currentCharacter && turnManager.isCharacterTurn(currentCharacter.id))}
+              onEndTurn={turnManager.endTurn}
+              onRestoreCommands={() => setCommandRailVisible(true)}
+            />
+          )}
+          {/* Targeting feedback belongs to the combat shell rather than one
+              renderer, so switching between 2D and 3D keeps the armed ability
+              and its cancel path visible. */}
+          {abilitySystem.targetingMode && abilitySystem.selectedAbility && (
+            <CombatIntentPreview
+              ability={abilitySystem.selectedAbility}
+              casterName={currentCharacter?.name}
+              onCancel={abilitySystem.cancelTargeting}
+            />
+          )}
           <ControlsHelp visible={renderMode === '3d'} />
           <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
             {renderMode === '3d' ? (
@@ -701,7 +775,15 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
         </div>
 
         {/* Right Pane */}
-        <div className={`${commandRailVisible ? 'flex' : 'hidden'} order-3 flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:overflow-y-auto`}>
+        <div className={`${commandRailVisible ? 'flex' : 'hidden'} relative order-3 flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:overflow-y-auto`}>
+          <CombatRailResizeHandle
+            side="command"
+            value={commandRailWidth}
+            minimum={COMBAT_COMMAND_WIDTH_MIN}
+            maximum={COMBAT_COMMAND_WIDTH_MAX}
+            onChange={setCommandRailWidth}
+            onReset={() => setCommandRailWidth(COMBAT_COMMAND_WIDTH_DEFAULT)}
+          />
           <InitiativeTracker
             characters={characters}
             turnState={turnManager.turnState}
@@ -715,7 +797,9 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
           )}
           <AbilityPalette
             character={currentCharacter}
-            onSelectAbility={(ability) => currentCharacter && abilitySystem.startTargeting(ability, currentCharacter)}
+            onSelectAbility={(ability) => currentCharacter && handleAbilitySelect(ability, currentCharacter)}
+            selectedAbilityId={abilitySystem.targetingMode ? abilitySystem.selectedAbility?.id : null}
+            onCancelAbility={abilitySystem.cancelTargeting}
             canAffordAction={(cost) => currentCharacter ? turnManager.canAffordAction(currentCharacter, cost) : false}
           />
           <CombatLog logEntries={combatLog} />

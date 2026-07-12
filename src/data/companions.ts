@@ -33,7 +33,10 @@ const KAELEN_ID: NPCIdentity = {
   sex: 'Male',
   age: 'Late 20s',
   physicalDescription: 'Lean and wiry with charcoal-grey skin and small, swept-back obsidian horns. He has a jagged scar across his jaw and intense amber eyes that never stop scanning. He wears dark, practical leathers that have seen better days.',
-  avatarUrl: '/avatars/kaelen.png' // Placeholder
+  // No authored portrait asset ships yet. Leaving the optional URL absent uses
+  // the existing initials fallback instead of issuing a broken HTTP request;
+  // the field remains ready for a real portrait when one is added.
+  avatarUrl: undefined,
 };
 
 const KAELEN_PERSONALITY: PersonalityTraits = {
@@ -209,7 +212,9 @@ const ELARA_ID: NPCIdentity = {
   sex: 'Female',
   age: 32,
   physicalDescription: 'Tall and athletic with a posture that commands respect. She has silver-blonde hair kept in a strict braid and striking sea-blue eyes. She wears polished half-plate armor emblazoned with the sun-disk of her order, looking every bit the disciplined soldier of the faith.',
-  avatarUrl: '/avatars/elara.png'
+  // Match Kaelen's honest no-portrait contract. Companion cards and reaction
+  // bubbles already render Elara's initial when this optional URL is absent.
+  avatarUrl: undefined,
 };
 
 const ELARA_PERSONALITY: PersonalityTraits = {

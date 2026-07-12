@@ -20,6 +20,19 @@
  */
 import { generateFmgWorld, type FmgWorldResult } from '../generateWorld';
 import type { Burg } from '../burgs-generator';
+import type { Route } from '../routes-generator';
+import {
+  FOREST_MIN_CELLS,
+  FOREST_POI_MAX_PER_FOREST,
+  FOREST_POI_PER_CELLS,
+} from '../../forests/forestTunables';
+import {
+  RANGE_MIN_H,
+  RANGE_MIN_CELLS,
+  PEAK_MIN_H,
+  PEAKS_PER_RANGE_MAX,
+  PASS_WORDS,
+} from '../../mountains/mountainTunables';
 
 const GOLDEN_SEED = 'aralia-fmg-golden-1';
 const GOLDEN_OPTIONS = { width: 320, height: 180, cellsDesired: 1000 };
@@ -68,6 +81,15 @@ describe('fmg world — determinism', () => {
     expect(Array.from(a.pack.cells.province!)).toEqual(
       Array.from(b.pack.cells.province!),
     );
+    // forests (Aralia stage 36, own RNG stream) extend the determinism signature
+    expect(a.pack.forests).toEqual(b.pack.forests);
+    // forest POI markers (Task 8a) append to pack.markers deterministically
+    expect(a.markers).toEqual(b.markers);
+    // ranges + peaks (Aralia stage 37, own RNG stream) extend it further
+    expect(a.pack.ranges).toEqual(b.pack.ranges);
+    expect(a.pack.peaks).toEqual(b.pack.peaks);
+    // passes (stage 37's rng-free detection over routes × ranges) too
+    expect(a.pack.passes).toEqual(b.pack.passes);
   });
 
   it('restores Math.random after generation', () => {
@@ -159,13 +181,22 @@ describe('fmg world — golden snapshot (FROZEN)', () => {
       { name: 'Metown', cell: 166, x: 27.88, y: 51.56, population: 3.882, group: 'capital' },
     ]);
 
-    // routes by type
-    expect(pack.routes!.length).toBe(247);
+    // routes by tier (road-systems Task 5). The pre-split trunk network (12
+    // "roads") is now labeled "highways" verbatim; the old 199 "trails" split
+    // by burg importance into town "roads" + village "trails", merged
+    // per-group (so tiers never blend) — that separate merge yields the +6
+    // total (247→253). searoutes unchanged. Task 7 then adds 38 village
+    // forest-spur "paths" (253→291); the four earlier groups stay
+    // byte-identical because paths generate last among land groups, only ADD
+    // connections, and stay out of the cell-link index.
+    expect(pack.routes!.length).toBe(291);
     expect({
+      highways: pack.routes!.filter((r) => r.group === 'highways').length,
       roads: pack.routes!.filter((r) => r.group === 'roads').length,
       trails: pack.routes!.filter((r) => r.group === 'trails').length,
+      paths: pack.routes!.filter((r) => r.group === 'paths').length,
       searoutes: pack.routes!.filter((r) => r.group === 'searoutes').length,
-    }).toEqual({ roads: 12, trails: 199, searoutes: 36 });
+    }).toEqual({ highways: 12, roads: 8, trails: 197, paths: 38, searoutes: 36 });
 
     // religions: 12 folk (per culture) + 6 organized (default) + placeholder
     expect(pack.religions!.length).toBe(19);
@@ -250,11 +281,16 @@ describe('fmg world — golden snapshot (FROZEN)', () => {
     ]);
 
     expect({
+      highways: pack.routes!.filter((r) => r.group === 'highways').length,
       roads: pack.routes!.filter((r) => r.group === 'roads').length,
       trails: pack.routes!.filter((r) => r.group === 'trails').length,
+      paths: pack.routes!.filter((r) => r.group === 'paths').length,
       searoutes: pack.routes!.filter((r) => r.group === 'searoutes').length,
-    // searoutes: 104→108 (world-break D3 2026-06-26: ensureIslandHarbors default-ON promotes 4 ports)
-    }).toEqual({ roads: 11, trails: 456, searoutes: 108 });
+    // Tier split (Task 5): pre-split 11 "roads" trunk → 11 "highways"; old 456
+    // "trails" → town "roads" + village "trails" (per-group merge). searoutes:
+    // 104→108 (world-break D3 2026-06-26: ensureIslandHarbors default-ON promotes 4 ports).
+    // Task 7 adds 159 village forest-spur "paths"; the other groups are unchanged.
+    }).toEqual({ highways: 11, roads: 31, trails: 446, paths: 159, searoutes: 108 });
 
     expect(pack.religions!.length).toBe(19);
     expect(pack.provinces!.length).toBe(209);
@@ -361,7 +397,7 @@ describe('fmg world — sanity invariants', () => {
 
     expect(pack.routes!.length).toBeGreaterThan(0);
     for (const route of pack.routes!) {
-      expect(['roads', 'trails', 'searoutes']).toContain(route.group);
+      expect(['highways', 'roads', 'trails', 'paths', 'searoutes']).toContain(route.group);
       expect(route.points.length).toBeGreaterThanOrEqual(2);
       for (const [x, y, cellId] of route.points) {
         expect(Number.isFinite(x)).toBe(true); // no NaN coordinates
@@ -384,13 +420,14 @@ describe('fmg world — sanity invariants', () => {
       }
     }
 
-    // roads connect capitals: every capital with a road link is reachable
-    const roadCells = new Set(
+    // highways connect capitals: the trunk network (pre-split "roads") is now
+    // labeled "highways" — every capital with a trunk link is reachable
+    const highwayCells = new Set(
       pack
-        .routes!.filter((r) => r.group === 'roads')
+        .routes!.filter((r) => r.group === 'highways')
         .flatMap((r) => r.points.map((p) => p[2])),
     );
-    expect(roadCells.size).toBeGreaterThan(0);
+    expect(highwayCells.size).toBeGreaterThan(0);
   });
 
   it('honors explicit option overrides', () => {
@@ -426,6 +463,192 @@ describe('fmg world — sanity invariants', () => {
       ensureIslandHarbors: false,
     });
     expect(optOutResult.islandHarborReport).toBeUndefined();
+  });
+});
+
+describe('fmg world — tiered land routes (road-systems Task 5)', () => {
+  it('tiers land routes: capitals ride highways, town links are roads, village links trails', () => {
+    // Reuse the golden fixture seed/options so this shares determinism with the
+    // pinned route-count case above.
+    const world = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+    const routes = world.pack.routes!;
+    const groups = new Set(routes.map((r) => r.group));
+    expect(groups.has('highways')).toBe(true);
+    expect(groups.has('trails')).toBe(true);
+    expect(groups.has('roads') || groups.has('trails')).toBe(true); // road split may be world-dependent
+    // No route keeps the retired bare vocabulary — every group is known.
+    for (const r of routes) {
+      expect(['highways', 'roads', 'trails', 'paths', 'searoutes']).toContain(r.group);
+    }
+    // Every capital burg that the trunk graph linked sits on a highway cell.
+    // (A capital alone on its landmass has no Urquhart edge, hence no highway —
+    // the trunk network still covers every multi-capital feature.)
+    const highwayCells = new Set(
+      routes.filter((r) => r.group === 'highways').flatMap((r) => r.points.map((p) => p[2])),
+    );
+    expect(highwayCells.size).toBeGreaterThan(0);
+    for (const b of world.pack.burgs!.filter((b) => b?.i && !b.removed && b.capital)) {
+      expect(highwayCells.has(b.cell)).toBe(true);
+    }
+  });
+
+  it('is deterministic: same seed regenerates identical route groups + cells', () => {
+    const sig = (rs: Route[]) =>
+      rs.map((r) => `${r.group}:${r.points.map((p) => p[2]).join(',')}`).join('|');
+    const a = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+    const b = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+    expect(sig(b.pack.routes!)).toBe(sig(a.pack.routes!));
+  });
+});
+
+describe('fmg world — village forest-spur paths (road-systems Task 7)', () => {
+  it('generates village forest-spur paths that start at a burg and end in forest', () => {
+    const world = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+    const FOREST_IDS = new Set([5, 6, 7, 8, 9]);
+    const routes = world.pack.routes!;
+    const paths = routes.filter((r) => r.group === 'paths');
+    // World-dependent count, but a default world with villages near forest gets SOME.
+    expect(paths.length).toBeGreaterThan(0);
+    const burgCells = new Set(
+      world.pack.burgs!.filter((b) => b?.i && !b.removed).map((b) => b.cell),
+    );
+    const biome = world.pack.cells.biome!;
+    const cellsOf = (r: Route) => r.points.map((pt) => pt[2]);
+    // How many routes touch each cell — split spurs anchor on a shared cell.
+    const routeUse = new Map<number, number>();
+    for (const r of routes) {
+      for (const c of new Set(cellsOf(r))) routeUse.set(c, (routeUse.get(c) ?? 0) + 1);
+    }
+    for (const p of paths) {
+      const cells = cellsOf(p);
+      // Every spur reaches into the woods (holds in this pinned world; a
+      // forest-side split could shorten a spur before its forest target).
+      expect(cells.some((c) => FOREST_IDS.has(biome[c]))).toBe(true);
+      // Every spur anchors at its village — directly, or (when getRouteSegments
+      // split it where it crossed a corridor an earlier route already claimed)
+      // through an endpoint cell shared with that other route.
+      const atBurg = burgCells.has(cells[0]) || burgCells.has(cells[cells.length - 1]);
+      const sharesEndpoint =
+        (routeUse.get(cells[0]) ?? 0) > 1 ||
+        (routeUse.get(cells[cells.length - 1]) ?? 0) > 1;
+      expect(atBurg || sharesEndpoint).toBe(true);
+    }
+    // The typical spur starts right at its village: splits are the exception.
+    const direct = paths.filter((p) => {
+      const cells = cellsOf(p);
+      return burgCells.has(cells[0]) || burgCells.has(cells[cells.length - 1]);
+    });
+    expect(direct.length).toBeGreaterThan(paths.length / 2);
+  });
+});
+
+describe('fmg world — spurs retarget onto forest POIs (forests campaign Task 9)', () => {
+  /**
+   * Stage 36's retargetSpursToPois (LAST in generateForests, after POI
+   * placement) rewrites each "paths" route to end on the BFS-nearest forest
+   * POI cell when one is within the 400-visited land BFS the original spur
+   * search used; spurs with no POI in range stay as dead-ends. ZERO draws on
+   * any stream — every golden above is untouched, and the same-seed route
+   * determinism test stays green (both runs retarget identically; only its
+   * unpinned signature VALUE changed vs the roads era, by design).
+   * Measured 2026-07-11: golden world 38/38 spurs end on a POI cell;
+   * default world 156/159 (3 villages have no POI in BFS range).
+   */
+  const POI_TYPES = new Set(['hunter-camp', 'forest-shrine', 'hermit-hollow', 'beast-den']);
+
+  const retargetedOf = (pack: FmgWorldResult['pack'], markers: FmgWorldResult['markers']) => {
+    const poiCells = new Set(
+      markers.filter((m) => POI_TYPES.has(m.type)).map((m) => m.cell),
+    );
+    const paths = pack.routes!.filter((r) => r.group === 'paths');
+    const retargeted = paths.filter((r) =>
+      poiCells.has(r.points[r.points.length - 1][2]),
+    );
+    return { poiCells, paths, retargeted };
+  };
+
+  it('retargeted spurs end on POI cells via valid land chains (golden world)', () => {
+    const { pack, markers } = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+    const { poiCells, paths, retargeted } = retargetedOf(pack, markers);
+    expect(poiCells.size).toBeGreaterThan(0);
+    expect(paths.length).toBeGreaterThan(0);
+    // At least one spur has a POI within BFS range and now leads to it.
+    expect(retargeted.length).toBeGreaterThanOrEqual(1);
+    for (const r of retargeted) {
+      const cells = r.points.map((p) => p[2]);
+      // The rebuilt chain is a real walk: consecutive cells are neighbors,
+      // every cell is land (the BFS never crosses water).
+      for (let i = 0; i < cells.length - 1; i++) {
+        expect(pack.cells.c![cells[i]]).toContain(cells[i + 1]);
+      }
+      for (const c of cells.slice(1)) {
+        expect(pack.cells.h![c]).toBeGreaterThanOrEqual(20);
+      }
+    }
+  });
+
+  it('retargeted spurs exist on the default-options world too', () => {
+    const { pack, markers } = defaultWorld();
+    const { retargeted } = retargetedOf(pack, markers);
+    expect(retargeted.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('fmg world — named forests (forests campaign, additive pass)', () => {
+  /**
+   * Stage 36 (generateForests) runs on its OWN SeededRandom stream after
+   * every ported FMG stage has consumed its draws. THE CONTRACT: it only
+   * ADDS pack.forests — every frozen golden elsewhere in this file must
+   * remain byte-identical. If any pre-existing assertion in this file
+   * shifts, the forests pass leaked into the shared Alea stream: fix the
+   * pass, never the golden.
+   */
+  it('populates pack.forests on the golden world with valid, disjoint, in-bounds forests', () => {
+    const { pack } = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+    const forests = pack.forests!;
+    expect(forests).toBeDefined();
+    expect(forests.length).toBeGreaterThan(0);
+
+    const FOREST_BIOMES = new Set([5, 6, 7, 8, 9]);
+    const cellCount = pack.cells.i.length;
+    const seen = new Set<number>();
+    forests.forEach((forest, idx) => {
+      expect(forest.i).toBe(idx + 1); // 1-based, contiguous
+      expect(forest.name.length).toBeGreaterThan(0);
+      expect(['ordinary', 'ancient', 'haunted', 'fey']).toContain(forest.kind);
+      expect(forest.cells.length).toBeGreaterThanOrEqual(4); // FOREST_MIN_CELLS
+      for (const cell of forest.cells) {
+        expect(cell).toBeGreaterThanOrEqual(0);
+        expect(cell).toBeLessThan(cellCount);
+        expect(FOREST_BIOMES.has(pack.cells.biome![cell])).toBe(true);
+        expect(seen.has(cell)).toBe(false); // every cell in exactly one forest
+        seen.add(cell);
+      }
+      // Pole (label anchor) is a finite point inside the map, FMG px space.
+      expect(Number.isFinite(forest.pole[0])).toBe(true);
+      expect(Number.isFinite(forest.pole[1])).toBe(true);
+      expect(forest.pole[0]).toBeGreaterThanOrEqual(0);
+      expect(forest.pole[0]).toBeLessThanOrEqual(GOLDEN_OPTIONS.width);
+      expect(forest.pole[1]).toBeGreaterThanOrEqual(0);
+      expect(forest.pole[1]).toBeLessThanOrEqual(GOLDEN_OPTIONS.height);
+    });
+  });
+
+  it('names forests on the default-options world too', () => {
+    const { pack } = defaultWorld();
+    expect(pack.forests!.length).toBeGreaterThan(0);
+  });
+
+  it('is deterministic: same seed regenerates an identical forest signature', () => {
+    const sig = (world: FmgWorldResult) =>
+      world.pack
+        .forests!.map(
+          (f) => `${f.i}:${f.kind}:${f.name}:${f.cells.join(',')}:${f.pole.join(',')}`,
+        )
+        .join('|');
+    const a = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+    const b = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+    expect(sig(b)).toBe(sig(a));
   });
 });
 
@@ -471,5 +694,216 @@ describe('fmg world — maritime reachability integration (default ON)', () => {
       const waterCell = pack.cells.haven![burg!.cell];
       expect(seaRouteSet.has(waterCell)).toBe(true);
     }
+  });
+});
+
+describe('fmg world — forest POI markers (forests campaign Task 8a, additive append)', () => {
+  /**
+   * Stage 36's placeForestPois appends forest POI markers to pack.markers.
+   * ADDITIVE CONTRACT: every FMG stage-34 marker stays byte-identical and
+   * keeps its position/id — the POIs only APPEND after them, drawing from the
+   * forests-own SeededRandom stream (zero shared Alea draws, so every other
+   * golden in this file is untouched).
+   */
+  const POI_TYPES = new Set(['hunter-camp', 'forest-shrine', 'hermit-hollow', 'beast-den']);
+  const POI_ICONS: Record<string, string> = {
+    'hunter-camp': '🏕️',
+    'hermit-hollow': '🛖',
+    'forest-shrine': '⛩️',
+    'beast-den': '🐾',
+  };
+
+  it('appends POI markers after the frozen FMG markers on the golden world', () => {
+    const { pack, markers } = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+
+    const firstPoi = markers.findIndex((m) => POI_TYPES.has(m.type));
+    expect(firstPoi).toBeGreaterThan(0); // golden world HAS qualifying forests
+    const fmgMarkers = markers.slice(0, firstPoi);
+    const poiMarkers = markers.slice(firstPoi);
+
+    // Strict append: everything before the first POI is FMG's, everything
+    // after it is a POI — the two blocks never interleave.
+    expect(fmgMarkers.some((m) => POI_TYPES.has(m.type))).toBe(false);
+    expect(poiMarkers.every((m) => POI_TYPES.has(m.type))).toBe(true);
+
+    // FROZEN pre-Task-8a golden: stage 34 placed exactly 31 markers on this
+    // world (measured 2026-07-11, before the POI pass existed). The old count
+    // holds exactly as the block length and as a floor for the total.
+    expect(fmgMarkers.length).toBe(31);
+    expect(markers.length).toBeGreaterThanOrEqual(31);
+
+    // Marker ids stay contiguous through the append (FMG's 0..30, POIs on).
+    markers.forEach((m, idx) => expect(m.i).toBe(idx));
+
+    // POI count follows the per-forest formula (density + hard cap) over
+    // qualifying forests.
+    const forests = pack.forests!;
+    const expected = forests.reduce(
+      (sum, f) =>
+        sum +
+        (f.cells.length >= FOREST_MIN_CELLS * 2
+          ? Math.min(
+              FOREST_POI_MAX_PER_FOREST,
+              Math.max(1, Math.floor(f.cells.length / FOREST_POI_PER_CELLS)),
+            )
+          : 0),
+      0,
+    );
+    expect(poiMarkers.length).toBe(expected);
+    // Both golden forests qualify (198 -> 4 POIs, 135 -> 3 at the retuned
+    // 1-per-40-cells density; the cap of 5 doesn't bind on this world).
+    expect(expected).toBe(7);
+
+    // Every POI sits on a cell of a qualifying forest, stamped at that cell's
+    // point, with its type's icon.
+    for (const m of poiMarkers) {
+      const forest = forests.find((f) => f.cells.includes(m.cell));
+      expect(forest).toBeDefined();
+      expect(forest!.cells.length).toBeGreaterThanOrEqual(FOREST_MIN_CELLS * 2);
+      expect(m.x).toBe(pack.cells.p[m.cell][0]);
+      expect(m.y).toBe(pack.cells.p[m.cell][1]);
+      expect(m.icon).toBe(POI_ICONS[m.type]);
+    }
+    // Occupied discipline holds ACROSS the whole marker layer: POIs skip
+    // cells FMG markers already claimed, so no marker anywhere shares a cell.
+    expect(new Set(markers.map((m) => m.cell)).size).toBe(markers.length);
+    expect(new Set(poiMarkers.map((m) => m.type)).size).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('fmg world — named ranges + peaks (mountains campaign, additive pass)', () => {
+  /**
+   * Stage 37 (generateMountains) runs on its OWN SeededRandom stream directly
+   * after stage 36. THE CONTRACT: it only ADDS pack.ranges + pack.peaks —
+   * every frozen golden elsewhere in this file must remain byte-identical.
+   * If any pre-existing assertion in this file shifts, the mountains pass
+   * leaked into the shared Alea stream: fix the pass, never the golden.
+   */
+  it('populates pack.ranges/pack.peaks on the golden world with valid, disjoint highland ranges', () => {
+    const { pack } = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+
+    const ranges = pack.ranges!;
+    expect(ranges).toBeDefined();
+    expect(ranges.length).toBeGreaterThan(0);
+    const seen = new Set<number>();
+    ranges.forEach((range, idx) => {
+      expect(range.i).toBe(idx + 1); // 1-based, contiguous
+      expect(range.name.length).toBeGreaterThan(0);
+      expect(['range', 'highlands', 'volcanic']).toContain(range.kind);
+      expect(range.cells.length).toBeGreaterThanOrEqual(RANGE_MIN_CELLS);
+      for (const cell of range.cells) {
+        expect(pack.cells.h[cell]).toBeGreaterThanOrEqual(RANGE_MIN_H);
+        expect(seen.has(cell)).toBe(false); // every cell in exactly one range
+        seen.add(cell);
+      }
+      expect(range.coreCells).toEqual(
+        range.cells.filter((cell) => pack.cells.h[cell] >= PEAK_MIN_H),
+      );
+      expect(range.pole[0]).toBeGreaterThanOrEqual(0);
+      expect(range.pole[0]).toBeLessThanOrEqual(GOLDEN_OPTIONS.width);
+      expect(range.pole[1]).toBeGreaterThanOrEqual(0);
+      expect(range.pole[1]).toBeLessThanOrEqual(GOLDEN_OPTIONS.height);
+    });
+    // Range names are unique after the shared geographic dedup.
+    expect(new Set(ranges.map((range) => range.name)).size).toBe(ranges.length);
+
+    const peaks = pack.peaks!;
+    expect(peaks.length).toBeGreaterThan(0);
+    const perRange = new Map<number, number>();
+    peaks.forEach((peak, idx) => {
+      expect(peak.i).toBe(idx + 1); // global 1-based, contiguous
+      const range = ranges.find((r) => r.i === peak.rangeI);
+      expect(range).toBeDefined();
+      expect(range!.coreCells).toContain(peak.cellId);
+      expect(peak.h).toBe(pack.cells.h[peak.cellId]);
+      expect(peak.h).toBeGreaterThanOrEqual(PEAK_MIN_H);
+      expect(peak.name.length).toBeGreaterThan(0);
+      perRange.set(peak.rangeI, (perRange.get(peak.rangeI) ?? 0) + 1);
+    });
+    for (const count of perRange.values()) {
+      expect(count).toBeLessThanOrEqual(PEAKS_PER_RANGE_MAX);
+    }
+  });
+
+  it('adopts the volcano legend name for the peak beside it on the golden world', () => {
+    const world = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+    const { pack, notes } = world;
+
+    // Measured 2026-07-11: the golden world's ONE adoptable marker is a
+    // volcano whose note names it "Trubc Volcano"; the marker cell neighbors
+    // a peak cell, and the peak adopts the legend name VERBATIM (the
+    // neighbor-radius branch of the adoption contract, live end-to-end).
+    const volcano = world.markers.find((m) => m.type === 'volcanoes');
+    expect(volcano).toBeDefined();
+    const note = notes.find((n) => n.id === `marker${volcano!.i}`);
+    expect(note).toBeDefined();
+
+    const adopted = pack.peaks!.find(
+      (peak) =>
+        peak.cellId === volcano!.cell ||
+        (pack.cells.c?.[peak.cellId] ?? []).includes(volcano!.cell),
+    );
+    expect(adopted).toBeDefined();
+    expect(adopted!.name).toBe(note!.name);
+  });
+
+  it('is deterministic: same seed regenerates an identical range+peak+pass signature', () => {
+    const sig = (world: FmgWorldResult) =>
+      [
+        world.pack
+          .ranges!.map(
+            (r) =>
+              `${r.i}:${r.kind}:${r.name}:${r.cells.join(',')}:${r.coreCells.join(',')}:${r.pole.join(',')}`,
+          )
+          .join('|'),
+        world.pack
+          .peaks!.map((p) => `${p.i}:${p.rangeI}:${p.cellId}:${p.h}:${p.name}`)
+          .join('|'),
+        world.pack
+          .passes!.map((p) => `${p.i}:${p.rangeI}:${p.cellId}:${p.name}:${p.routeIds.join(',')}`)
+          .join('|'),
+      ].join('||');
+    const a = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+    const b = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+    expect(sig(a)).toBe(sig(b));
+    expect(sig(a).length).toBeGreaterThan(0);
+  });
+
+  it('detects named passes where the default world\'s routes cross its ranges', () => {
+    const { pack } = defaultWorld();
+    expect(pack.ranges!.length).toBeGreaterThan(0);
+    expect(pack.peaks!.length).toBeGreaterThan(0);
+
+    // The default world's highway/road network crosses highland, so at least
+    // one pass must exist (mountains Task 4 — passes are the payoff of the
+    // climb-cost asymmetry: graded ways over the crest get NAMED).
+    const passes = pack.passes!;
+    expect(passes).toBeDefined();
+    expect(passes.length).toBeGreaterThan(0);
+
+    const rangeById = new Map(pack.ranges!.map((r) => [r.i, r]));
+    passes.forEach((pass, idx) => {
+      // 1-based ids, ordered by cellId ascending.
+      expect(pass.i).toBe(idx + 1);
+      if (idx > 0) expect(pass.cellId).toBeGreaterThan(passes[idx - 1].cellId);
+      // The crest cell is highland and a member of the pass's OWN named range
+      // (rangeIdOf(passCell) != null, and consistent with pass.rangeI).
+      expect(pack.cells.h[pass.cellId]).toBeGreaterThanOrEqual(RANGE_MIN_H);
+      expect(rangeById.get(pass.rangeI)!.cells).toContain(pass.cellId);
+      // Every listed route exists, is a pass-worthy tier, and truly crosses
+      // the crest cell (the pass lies ON its routes).
+      expect(pass.routeIds.length).toBeGreaterThan(0);
+      expect(pass.routeIds).toEqual([...pass.routeIds].sort((x, y) => x - y));
+      for (const routeId of pass.routeIds) {
+        const route = pack.routes!.find((r) => r.i === routeId);
+        expect(route).toBeDefined();
+        expect(['highways', 'roads', 'trails']).toContain(route!.group);
+        expect(route!.points.some((p) => p[2] === pass.cellId)).toBe(true);
+      }
+      // Deterministic non-rng word pick: PASS_WORDS[cellId % length].
+      expect(
+        pass.name.endsWith(` ${PASS_WORDS[pass.cellId % PASS_WORDS.length]}`),
+      ).toBe(true);
+    });
   });
 });

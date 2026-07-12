@@ -1,24 +1,37 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 12/07/2026, 00:33:16
+ * Dependents: components/World3D/GroundMovePlane.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/combat/InPlaceCombatLayer.tsx
+ * Imports: 11 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/components/World3D/PlayerAvatar.tsx
  *
- * The player's own visible body in the streamed ground world. Before this,
- * the player existed only as a floating nameplate — no figure under it.
- *
- * Deliberately REUSES the existing character-body approach rather than
- * inventing a new humanoid system:
- *  - the tapered-cylinder + head silhouette from `SceneCast` (the staged
- *    opening-scene figures), in the same player steel-blue;
- *  - `generateBody` proportions (the same parametric generator the instanced
- *    townsfolk in `GroundAgents` use) for a deterministic height/build, with
- *    a cheap race scale on top (a Forest Gnome should be small).
+ * The player's own visible body in the streamed ground world — a REAL
+ * generated entity (src/systems/entities3d): the character's race sets the
+ * body, the class and equipped items set the visible gear, and the blobfolk
+ * gait walks the legs. This replaced the tapered-cylinder placeholder when
+ * the entity generator shipped (2026-07-11).
  *
  * Anchoring: the body stands at the LOGICAL player position
  * (`playerGroundPos` — tile-local ground meters), NOT the camera. Camera walk
  * and Locale-map click-to-move both dispatch SET_PLAYER_GROUND_POS, so both
  * move this body. Ground elevation is resampled from the ground-world
- * heightfield each move so the figure stays planted on the terrain.
+ * heightfield each move so the figure stays planted on the terrain. The gait
+ * driver takes its speed and heading from the same glide, so the legs stride
+ * exactly as fast as the body actually moves.
  */
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
@@ -26,17 +39,20 @@ import type { SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import { GROUND_METERS_PER_CELL } from '@/systems/worldforge/bridge/groundWorldAdapter';
 import { heightToMeters } from '@/systems/world3d/config';
-import { generateBody } from '@/systems/worldforge/body/generateBody';
-import { rootSeedPath, streamPath } from '@/systems/worldforge/seedPath';
-import type { Occupant } from '@/systems/worldforge/roster/types';
+import type { PlayerCharacter } from '@/types/character';
+import { registerAllParts } from '@/systems/entities3d/parts';
+import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
+import { recipeFromCharacter } from '@/systems/entities3d/recipeFromCharacter';
+import { heightM } from '@/systems/entities3d/types';
+import { assembleEntity } from '@/systems/entities3d/three/assembleEntity';
+import type { LocomotionState } from '@/systems/entities3d/three/gaits';
 
-const FT_TO_M = 0.3048;
-const PLAYER_COLOR = '#3b82f6'; // steel blue — matches the SceneCast player figure
+registerAllParts();
 
 /**
- * Cheap race scale: small folk get a visibly smaller body. Keyword match on
- * the race name — generateBody is human-banded, so this is the lightweight
- * way to honor "a Forest Gnome should be small" without touching it.
+ * Cheap race scale, kept for legacy callers: small folk get a visibly smaller
+ * body. The avatar itself no longer uses this — race frames come from the
+ * entity generator's species profiles.
  */
 export function raceScale(raceName: string | undefined): number {
   const n = (raceName ?? '').toLowerCase();
@@ -60,10 +76,9 @@ interface PlayerAvatarProps {
   sceneOrigin: SceneOrigin;
   /** Spawn surface Y (m) — fallback elevation when groundPos is null. */
   startSurfaceY: number;
-  playerName?: string;
-  /** Player id — seeds the deterministic body build. */
-  playerId?: string;
-  raceName?: string;
+  /** The real character — race, class, and equipped gear shape the body.
+   * Null (pre-party states) renders no figure: there is no character yet. */
+  character?: PlayerCharacter | null;
 }
 
 const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
@@ -71,33 +86,33 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
   ground,
   sceneOrigin,
   startSurfaceY,
-  playerName,
-  playerId,
-  raceName,
+  character,
 }) => {
-  // Deterministic body proportions via the townsfolk generator. The player is
-  // not a roster Occupant, so present a minimal adult-resident identity to it.
-  const dims = useMemo(() => {
-    const pseudo: Occupant = {
-      id: 1,
-      name: playerName ?? 'Player',
-      ageBand: 'adult',
-      homePlotId: 0,
-      occupation: 'resident',
-    };
-    // Seed off the player id so the build is stable per character.
-    let hash = 0;
-    for (const ch of playerId ?? 'pc') hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-    const p = generateBody(pseudo, streamPath(rootSeedPath(hash), 'player')).proportions;
-    const scale = raceScale(raceName);
-    return {
-      heightM: p.height * FT_TO_M * scale,
-      radiusM: (p.shoulderWidth / 2) * FT_TO_M * scale,
-      headM: (p.headSize / 2) * FT_TO_M * scale,
-    };
-  }, [playerId, raceName, playerName]);
+  const blueprint = useMemo(
+    () => (character ? generateEntityBlueprint(recipeFromCharacter(character)) : null),
+    [character],
+  );
+  // The marching-cubes body is attractive but expensive to polygonize. A
+  // player needs responsive gear, eyes, turning, and movement every frame, but
+  // the soft body surface itself does not need to be rebuilt at monitor speed.
+  // A smaller field updated ten times per second preserves the animated body
+  // while leaving enough frame budget for terrain, buildings, and townsfolk.
+  const handle = useMemo(
+    () => (blueprint ? assembleEntity(blueprint, { resolutionScale: 0.7, fieldUpdateHz: 10 }) : null),
+    [blueprint],
+  );
+  useEffect(() => {
+    handle?.retain();
+    return () => handle?.release();
+  }, [handle]);
 
   const groupRef = useRef<THREE.Group>(null);
+  const loco = useRef<LocomotionState>({
+    position: new THREE.Vector3(),
+    heading: new THREE.Vector3(0, 0, 1),
+    speed: 0,
+  });
+  const yawRef = useRef(0);
 
   // Logical position → scene space (scene origin sits on the spawn point). This
   // is the TARGET; the body glides toward it (below) so a click-to-move walks
@@ -110,38 +125,46 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
 
   // Ease the visible body toward the logical position each frame, resampling the
   // terrain height under the CURRENT (interpolated) footfall so it stays planted
-  // while crossing relief. Distance-proportional alpha eases in and arrives
-  // promptly regardless of how far the click was. `ground` is captured here; the
-  // hook order is stable because this runs before the early `!ground` return.
-  useFrame((_, delta) => {
+  // while crossing relief. The per-frame displacement drives the gait: speed =
+  // how fast the body really moves, heading = which way, so strides match the
+  // glide and the figure turns into its direction of travel.
+  useFrame((state, delta) => {
     const g = groupRef.current;
-    if (!g || !ground) return;
+    if (!g || !ground || !handle) return;
     const a = Math.min(1, delta * 6);
-    g.position.x += (sx - g.position.x) * a;
-    g.position.z += (sz - g.position.z) * a;
+    const dx = (sx - g.position.x) * a;
+    const dz = (sz - g.position.z) * a;
+    g.position.x += dx;
+    g.position.z += dz;
     const curXM = g.position.x + sceneOrigin.x;
     const curZM = g.position.z + sceneOrigin.z;
     g.position.y = groundPos ? groundSurfaceYM(ground, curXM, curZM) : startSurfaceY;
+
+    // locomotion from the actual glide (smoothed so strides don't stutter)
+    const rawSpeed = delta > 0 ? Math.hypot(dx, dz) / delta : 0;
+    const l = loco.current;
+    l.speed += (rawSpeed - l.speed) * Math.min(1, delta * 8);
+    if (rawSpeed > 0.05) {
+      l.heading.set(dx, 0, dz).normalize();
+      const targetYaw = Math.atan2(l.heading.x, l.heading.z);
+      // shortest-arc turn toward travel direction
+      let dYaw = targetYaw - yawRef.current;
+      while (dYaw > Math.PI) dYaw -= Math.PI * 2;
+      while (dYaw < -Math.PI) dYaw += Math.PI * 2;
+      yawRef.current += dYaw * Math.min(1, delta * 8);
+    }
+    handle.group.rotation.y = yawRef.current;
+    handle.update(state.clock.elapsedTime, delta, l);
   });
 
-  if (!ground) return null;
+  if (!ground || !handle || !blueprint || !character) return null;
 
-  const bodyH = dims.heightM - dims.headM * 2; // body carries the frame, head tops it up
   return (
     <group ref={groupRef} position={[sx, targetSurfaceY, sz]} data-testid="player-avatar">
-      {/* Body — the SceneCast tapered-cylinder silhouette, sized by generateBody. */}
-      <mesh position={[0, bodyH / 2, 0]} castShadow>
-        <cylinderGeometry args={[dims.radiusM * 0.65, dims.radiusM, bodyH, 10]} />
-        <meshStandardMaterial color={PLAYER_COLOR} roughness={0.8} />
-      </mesh>
-      {/* Head. */}
-      <mesh position={[0, bodyH + dims.headM * 0.9, 0]} castShadow>
-        <sphereGeometry args={[dims.headM, 14, 12]} />
-        <meshStandardMaterial color={PLAYER_COLOR} roughness={0.7} />
-      </mesh>
+      <primitive object={handle.group} />
       {/* Nameplate riding just above the head, same styling as SceneCast. */}
-      {playerName ? (
-        <Html center position={[0, dims.heightM + 0.5, 0]} distanceFactor={12}>
+      {character.name ? (
+        <Html center position={[0, heightM(blueprint.frame) + 0.5, 0]} distanceFactor={12}>
           <div
             data-testid="player-avatar-label"
             style={{
@@ -157,7 +180,7 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
               border: '1px solid rgba(148, 163, 184, 0.5)',
             }}
           >
-            {playerName}
+            {character.name}
           </div>
         </Html>
       ) : null}

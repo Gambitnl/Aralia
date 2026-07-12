@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
 import React from 'react';
 
 // Mock the game context so the overlay reads a fixed seed + clock without a provider.
@@ -15,6 +15,8 @@ describe('AgentSimDevOverlay', () => {
     const { container, getByText } = render(<AgentSimDevOverlay />);
     expect(getByText(/Agent sim/i)).toBeTruthy();
     expect(container.querySelector('[data-testid="town-agent-snapshot"]')).toBeNull();
+    // Protect the primary World3D transition controls from the dev launcher.
+    expect(screen.getByTestId('agent-sim-dev-overlay')).toHaveStyle({ right: '220px' });
   });
 
   it('expands to a live town snapshot at the current game hour', () => {

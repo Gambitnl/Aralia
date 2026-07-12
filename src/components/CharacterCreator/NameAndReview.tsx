@@ -219,6 +219,10 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
   const elvenLineageDetails = selectedElvenLineageId ? RACES_DATA['elf']?.elvenLineages?.find(l => l.id === selectedElvenLineageId) : null;
   const selectedGnomeSubraceId = racialSelections?.['gnome']?.choiceId;
   const gnomeSubraceDetails = selectedGnomeSubraceId ? RACES_DATA['gnome']?.gnomeSubraces?.find(sr => sr.id === selectedGnomeSubraceId) : null;
+  // Species such as Changeling require an explicit Small/Medium decision.
+  // Surface the stored value at the final gate so required identity choices
+  // are reviewable before the character is handed to the game.
+  const selectedSpeciesSize = racialSelections?.[characterPreview.race.id]?.size;
 
   // The displayed ability scores are already age-adjusted, but earlier steps
   // (the sidebar) show the pre-age numbers. Surface the age modifier here so a
@@ -474,6 +478,12 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                     <BookOpen size={14} /> Class & Racial Features
                   </h3>
                   <div className="space-y-2 text-sm">
+                    {selectedSpeciesSize && (
+                      <div className="text-gray-300">
+                        <span className="text-amber-500/80 font-semibold mr-2">Species Size:</span>
+                        {selectedSpeciesSize}
+                      </div>
+                    )}
                     {selectedDraconicAncestry && (
                       <div className="text-gray-300">
                         <span className="text-amber-500/80 font-semibold mr-2">Draconic Ancestry:</span>

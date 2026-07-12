@@ -57,6 +57,10 @@ import {
   type AtlasArtifact,
   type AtlasBurg,
   type AtlasCell,
+  type AtlasForest,
+  type AtlasPass,
+  type AtlasPeak,
+  type AtlasRange,
   type AtlasRiver,
   type AtlasRoute,
 } from '../artifacts';
@@ -201,7 +205,7 @@ export function buildAtlasArtifact(
 
   // FMG source fields, from fmg/routes-generator.ts:
   //   Route.i -> AtlasRoute.id
-  //   Route.group "roads" / "trails" / "searoutes" -> singular route kind
+  //   Route.group "highways"/"roads"/"trails"/"paths"/"searoutes" -> singular kind
   //   Route.points are [x, y, cellId] triples, so the third value becomes
   //   the artifact's ordered cellIds. Some intermediate route segments carry
   //   `cells`, but the stored pack.routes contract uses points.
@@ -213,6 +217,50 @@ export function buildAtlasArtifact(
       }))
     : [];
 
+  // Named forests (forests campaign Task 2), from fmg/../forests/forestsPass:
+  //   PackForest.i -> AtlasForest.id (1-based, 0 = "no forest")
+  //   PackForest.cells -> AtlasForest.cellIds — raw pack cell ids, the same
+  //     cell-space convention routes/rivers use (no conversion).
+  //   PackForest.pole -> AtlasForest.pole — a POINT, so it converts FMG px →
+  //     world feet exactly like AtlasBurg x/y (the label anchor must live in
+  //     the same space burg labels do).
+  // Present only after generateFmgWorld; plain atlas packs have no forests.
+  const forests: AtlasForest[] = (pack.forests ?? []).map((forest) => ({
+    id: forest.i,
+    name: forest.name,
+    kind: forest.kind,
+    cellIds: [...forest.cells],
+    pole: [feetFromFmgPixel(forest.pole[0]), feetFromFmgPixel(forest.pole[1])],
+  }));
+
+  // Named ranges + peaks (mountains campaign Task 2), from
+  // fmg/../mountains/mountainsPass — the forests conventions verbatim:
+  //   ids and cell-space data raw; pole a POINT converting FMG px → feet.
+  // passes: DECLARED now, filled by the passes task (mountains Task 4);
+  // until then pack.passes is never set, so the artifact carries [].
+  const ranges: AtlasRange[] = (pack.ranges ?? []).map((range) => ({
+    id: range.i,
+    name: range.name,
+    kind: range.kind,
+    cellIds: [...range.cells],
+    coreCellIds: [...range.coreCells],
+    pole: [feetFromFmgPixel(range.pole[0]), feetFromFmgPixel(range.pole[1])],
+  }));
+  const peaks: AtlasPeak[] = (pack.peaks ?? []).map((peak) => ({
+    id: peak.i,
+    rangeId: peak.rangeI,
+    cellId: peak.cellId,
+    h: peak.h,
+    name: peak.name,
+  }));
+  const passes: AtlasPass[] = (pack.passes ?? []).map((pass) => ({
+    id: pass.i,
+    rangeId: pass.rangeI,
+    cellId: pass.cellId,
+    name: pass.name,
+    routeIds: [...pass.routeIds],
+  }));
+
   return {
     layer: 'atlas',
     schemaVersion: WORLDFORGE_SCHEMA_VERSION,
@@ -222,12 +270,18 @@ export function buildAtlasArtifact(
     burgs,
     rivers,
     routes,
+    forests,
+    ranges,
+    peaks,
+    passes,
     options: freezeWorldGenOptions(options),
   };
 }
 
 function mapRouteGroup(group: RouteGroup): AtlasRoute['kind'] {
+  if (group === 'highways') return 'highway';
   if (group === 'roads') return 'road';
   if (group === 'trails') return 'trail';
+  if (group === 'paths') return 'path';
   return 'searoute';
 }

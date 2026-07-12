@@ -124,6 +124,45 @@ const renderElementalAdeptFeatSelection = (onConfirm = vi.fn()) => {
 };
 
 describe('FeatSelection', () => {
+  it('keeps a preselected required feat active when its setup card is clicked', () => {
+    const RequiredFeatHarness = () => {
+      const [selectedFeatId, setSelectedFeatId] = useState('slasher');
+      const [featChoices, setFeatChoices] = useState<Record<string, FeatChoiceState>>({});
+
+      // This mirrors a background-provided feat: the slot is mandatory and the
+      // player arrives with the feat selected but its sub-choice unfinished.
+      return (
+        <SpellContext.Provider value={mockSpells}>
+          <FeatSelection
+            availableFeats={[slasherFeat]}
+            selectedFeatId={selectedFeatId}
+            featChoices={featChoices}
+            onSelectFeat={setSelectedFeatId}
+            onSetFeatChoice={(featId, choiceType, value) => {
+              setFeatChoices(current => ({
+                ...current,
+                [featId]: { ...(current[featId] ?? {}), [choiceType]: value },
+              }));
+            }}
+            onConfirm={vi.fn()}
+            hasEligibleFeats={true}
+            allowSkip={false}
+          />
+        </SpellContext.Provider>
+      );
+    };
+
+    render(<RequiredFeatHarness />);
+    expect(screen.getByRole('button', { name: 'Strength +1' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Slasher/i }));
+
+    // The setup choices remain available instead of vanishing behind a
+    // disabled Confirm button with no visible recovery path.
+    expect(screen.getByRole('button', { name: 'Strength +1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Dexterity +1' })).toBeInTheDocument();
+  });
+
   it('requires and records the Slasher Strength/Dexterity ability choice before confirmation', () => {
     const onConfirm = vi.fn();
     renderSlasherFeatSelection(onConfirm);

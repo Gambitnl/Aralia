@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 11/07/2026, 23:23:10
+ * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file AbilityPalette.tsx
  * Displays the abilities for the currently selected character.
@@ -14,10 +30,18 @@ import { WINDOW_KEYS } from '../../styles/uiIds';
 interface AbilityPaletteProps {
   character: CombatCharacter | null;
   onSelectAbility: (ability: Ability) => void;
+  selectedAbilityId?: string | null;
+  onCancelAbility?: () => void;
   canAffordAction: (cost: AbilityCost) => boolean;
 }
 
-const AbilityPalette: React.FC<AbilityPaletteProps> = ({ character, onSelectAbility, canAffordAction }) => {
+const AbilityPalette: React.FC<AbilityPaletteProps> = ({
+  character,
+  onSelectAbility,
+  selectedAbilityId = null,
+  onCancelAbility,
+  canAffordAction,
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!character) {
@@ -143,12 +167,23 @@ const AbilityPalette: React.FC<AbilityPaletteProps> = ({ character, onSelectAbil
         const isOnCooldown = (ability.currentCooldown || 0) > 0;
         const isExhausted = ability.maxUses !== undefined && (ability.usesRemaining ?? ability.maxUses) <= 0;
         const isDisabled = !isAffordable || isOnCooldown || isExhausted;
+        const isSelected = selectedAbilityId === ability.id;
         return (
           <AbilityButton
             key={ability.id}
             ability={ability}
-            onSelect={() => onSelectAbility(ability)}
+            // The currently armed tile behaves like a pressed toggle. This
+            // keeps cancellation available in the same place the intent began,
+            // while the map HUD remains the second, spatially closer exit.
+            onSelect={() => {
+              if (isSelected && onCancelAbility) {
+                onCancelAbility();
+                return;
+              }
+              onSelectAbility(ability);
+            }}
             isDisabled={isDisabled}
+            isSelected={isSelected}
           />
         );
       })}

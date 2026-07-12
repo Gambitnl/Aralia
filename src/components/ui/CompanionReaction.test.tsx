@@ -1,3 +1,12 @@
+/**
+ * This file verifies the transient companion-reaction bubble players see over
+ * exploration and combat.
+ *
+ * It protects queue ordering, duplicate suppression, timed dismissal, and the
+ * honest initials fallback used when an authored companion has no portrait
+ * asset. The tests use fake time so they exercise the full display sequence
+ * without slowing the suite down by real five-second waits.
+ */
 import React from 'react';
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -5,6 +14,7 @@ import { CompanionReaction } from './CompanionReaction';
 import { createMockCompanion } from '../../utils/character/companionFactories';
 import { GameMessage } from '../../types';
 import { UI_ID } from '../../styles/uiIds';
+import { COMPANIONS } from '../../data/companions';
 
 // These helpers keep the test focused on bubble sequencing instead of bulky fixture setup.
 const makeCompanion = (id: string, name: string) =>
@@ -99,6 +109,35 @@ describe('CompanionReaction', () => {
       vi.advanceTimersByTime(5_001);
     });
 
+    expect(screen.queryByTestId(UI_ID.COMPANION_REACTION)).not.toBeInTheDocument();
+  });
+
+  it('uses the initials fallback for a legacy companion carrying a retired portrait path', () => {
+    // Existing saves can retain the old placeholder even after canonical data
+    // stops advertising it, so exercise the persisted shape seen in live play.
+    const legacyElara = {
+      ...COMPANIONS.elara_vance,
+      identity: {
+        ...COMPANIONS.elara_vance.identity,
+        avatarUrl: '/avatars/elara.png',
+      },
+    };
+    const reaction = makeReaction(5, 'elara_vance', 'Elara Vance: "Stand firm."', 5_000);
+    const { container } = render(
+      <CompanionReaction companions={{ elara_vance: legacyElara }} latestMessage={reaction} />,
+    );
+
+    // Canonical data is clean and the render boundary also protects old saves.
+    expect(COMPANIONS.elara_vance.identity.avatarUrl).toBeUndefined();
+    expect(COMPANIONS.kaelen_thorne.identity.avatarUrl).toBeUndefined();
+    expect(container.querySelector('img')).toBeNull();
+    expect(screen.getByTestId(UI_ID.COMPANION_REACTION)).toHaveTextContent('Stand firm.');
+
+    // Finish the bubble's timer inside React's update boundary so this proof
+    // leaves no pending state update or warning for the next scenario.
+    act(() => {
+      vi.advanceTimersByTime(5_001);
+    });
     expect(screen.queryByTestId(UI_ID.COMPANION_REACTION)).not.toBeInTheDocument();
   });
 });

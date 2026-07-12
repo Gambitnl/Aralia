@@ -5,7 +5,7 @@
  *
  * Last Sync: 25/06/2026, 19:11:10
  * Dependents: components/MapPane.tsx
- * Imports: 4 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,46 +23,24 @@
  * but gives it a graph with port transfer edges and per-edge travel minutes, so
  * a route can walk to a harbor, ride a ferry lane, and walk away from the next
  * harbor without running separate planners.
+ *
+ * Land legs are graded by the shared road-terrain core (`routeTerrain.ts`) —
+ * the same route tiers and biome factors as `atlasTravelGraph.ts` — so
+ * single-mode and multimodal routes agree cell-for-cell on land. Sea legs are
+ * untouched by that grading (lane danger, ship sea tiers, boarding time).
  */
 import type { FmgAtlasResult } from '../fmg/generateAtlas';
 import type { TravelGraph } from '../../travel/routePlanning';
-import { atlasMilesPerUnit, buildRoadCells } from './atlasTravelGraph';
-import {
-  TERRAIN_TRAVEL_MODIFIERS,
-  type TravelTerrain,
-} from '../../../types/travel';
+import { atlasMilesPerUnit } from './atlasTravelGraph';
+import type { TravelTerrain } from '../../../types/travel';
+import { buildRouteCellTiers, landSpeedFactor, landDanger, navDC, climbFactorFor } from './routeTerrain';
 
 const LAND_THRESHOLD = 20;
 const DEFAULT_LAND_MPH = 3;
 const BOARDING_MINUTES = 60;
 
-const DIFFICULT_BIOMES = new Set<string>([
-  'Hot desert',
-  'Cold desert',
-  'Tropical rainforest',
-  'Temperate rainforest',
-  'Taiga',
-  'Tundra',
-  'Glacier',
-  'Wetland',
-]);
-
-const BIOME_DANGER: Record<string, number> = {
-  'Hot desert': 0.5,
-  'Cold desert': 0.45,
-  'Tropical rainforest': 0.55,
-  'Temperate rainforest': 0.4,
-  Taiga: 0.4,
-  Tundra: 0.45,
-  Glacier: 0.6,
-  Wetland: 0.5,
-  Savanna: 0.3,
-  Grassland: 0.2,
-  'Tropical seasonal forest': 0.35,
-  'Temperate deciduous forest': 0.3,
-};
-
-const DEFAULT_LAND_DANGER = 0.25;
+// Land biome speed/danger tables moved to roadTunables.ts (single source of
+// truth); land grading is consumed through routeTerrain.ts. Sea constants stay.
 const FERRY_LANE_DANGER = 0.12;
 
 // ============================================================================
@@ -227,7 +205,7 @@ export function buildMultiModalAtlasGraph(
 ): TravelGraph {
   const pack = atlas.pack as unknown as Packish;
   const cells = pack.cells;
-  const roadCells = buildRoadCells(atlas);
+  const tiers = buildRouteCellTiers(pack);
   const ferryLaneCells = buildFerryLaneCells(atlas);
   const portTransfers = buildPortTransfers(atlas);
   const landSpeedMph = opts.landSpeedMph ?? DEFAULT_LAND_MPH;
@@ -261,10 +239,15 @@ export function buildMultiModalAtlasGraph(
     return isFerryWater(cell);
   };
 
+  // Same terrain ladder as the land-only graph: maintained tiers read as road,
+  // trails as trail, and paths fall through to the biome off-road class (the
+  // navDC >= 15 test is the shared difficult-biome inference).
   const terrain = (cell: number): TravelTerrain => {
     if (!isLand(cell)) return 'open';
-    if (roadCells.has(cell)) return 'road';
-    return DIFFICULT_BIOMES.has(biomeName(cell)) ? 'difficult' : 'open';
+    const tier = tiers.get(cell);
+    if (tier === 'highway' || tier === 'road') return 'road';
+    if (tier === 'trail') return 'trail';
+    return navDC(biomeName(cell), null) >= 15 ? 'difficult' : 'open';
   };
 
   return {
@@ -291,14 +274,23 @@ export function buildMultiModalAtlasGraph(
         }
         return FERRY_LANE_DANGER;
       }
-      const base = BIOME_DANGER[biomeName(cell)] ?? DEFAULT_LAND_DANGER;
-      return roadCells.has(cell) ? base * 0.5 : base;
+      // Land cells: biome baseline scaled down by route tier — identical to
+      // the land-only graph, so the two graphs agree cell-for-cell.
+      return landDanger(biomeName(cell), tiers.get(cell) ?? null);
     },
     edgeMinutes: (from, to) => {
       if (isPortTransfer(from, to)) return BOARDING_MINUTES;
 
       const speed = isLand(to) ? landSpeedMph : (opts.sea?.speedMph ?? landSpeedMph);
-      const modifier = isLand(to) ? TERRAIN_TRAVEL_MODIFIERS[terrain(to)] || 1 : 1;
+      // Land legs use the graded speed factor (route tier + biome) times the
+      // shared per-edge climb factor (2026-07-11 mountains) — softened by the
+      // same destination-cell tier this leg already resolves, so single-mode
+      // and multimodal routes agree cell-for-cell on land. Sea legs ride at
+      // the transport's flat sea speed (no grades at sea).
+      const modifier = isLand(to)
+        ? landSpeedFactor(biomeName(to), tiers.get(to) ?? null)
+          * climbFactorFor((cells.h?.[to] ?? 0) - (cells.h?.[from] ?? 0), tiers.get(to) ?? null)
+        : 1;
       const miles = distance(position(from), position(to)) * milesPerUnit;
       return (miles / Math.max(0.1, speed * modifier)) * 60;
     },

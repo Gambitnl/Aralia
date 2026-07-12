@@ -20,10 +20,12 @@
  * Tier-agnostic: it plans a route over ANY cell graph (the Worldforge atlas
  * Voronoi cells, a submap's cells, or the legacy tile grid) via a small
  * `TravelGraph` adapter. Edge cost is real travel TIME, derived from distance ×
- * terrain (road/trail/open/difficult, reusing `TERRAIN_TRAVEL_MODIFIERS`) ÷ the
- * chosen transport's speed. The planner returns the fastest route, its total
- * time/distance, and an aggregate danger rating — everything the map UI needs to
- * draw the path line, preview travel time, and roll for encounters.
+ * speed factor ÷ the chosen transport's speed — the graph's graded `speedFactor`
+ * when it has one, else coarse terrain via `TERRAIN_TRAVEL_MODIFIERS`, times an
+ * optional per-edge `climbFactor` (relief slows ascents; and a graph's
+ * `edgeMinutes` overrides all of it). The planner returns the fastest route,
+ * its total time/distance, and an aggregate danger rating — everything the map
+ * UI needs to draw the path line, preview travel time, and roll for encounters.
  *
  * Pure: no React/DOM. Reuses `src/types/travel.ts` (terrain modifiers, vehicles).
  */
@@ -45,6 +47,17 @@ export interface TravelGraph {
   passable(cell: number): boolean;
   /** Per-cell danger in [0,1] (0 = safe). Optional; defaults to 0. */
   danger?(cell: number): number;
+  /** Optional graded speed factor per cell (road tiers + biome grading). When
+   * present the planner uses it instead of the coarse TERRAIN_TRAVEL_MODIFIERS. */
+  speedFactor?: (cell: number) => number;
+  /**
+   * Optional per-edge climb speed multiplier for moving `from` → `to`
+   * (1 = flat; < 1 slows — ascents cost more than descents). Multiplied into
+   * the speed factor, so relief stacks with terrain/biome grading and steep
+   * scrambles lose to pass routes. Ignored when `edgeMinutes` is present —
+   * an authoritative edge time folds its own climb cost.
+   */
+  climbFactor?: (from: number, to: number) => number;
   /**
    * Optional authoritative travel time for moving from one cell into a neighbor.
    * Multi-modal graphs use this to mix land and sea speeds inside one route.
@@ -61,6 +74,13 @@ export interface RoutePlan {
   miles: number;
   /** Total travel time in minutes. */
   minutes: number;
+  /**
+   * Elapsed travel minutes at each matching `cells` index. The planner emits
+   * this exact edge-cost ledger so supply-limited movement can stop at the last
+   * cell the party genuinely paid enough time/resources to reach, instead of
+   * guessing from the number of polyline vertices.
+   */
+  cumulativeMinutes?: number[];
   /** Aggregate danger rating in [0,1] (max of per-cell danger along the route). */
   danger: number;
 }
@@ -147,8 +167,11 @@ export function planRoutesFrom(graph: TravelGraph, start: number, opts: RoutePla
   const minutesOf = (from: number, to: number): number => {
     if (graph.edgeMinutes) return graph.edgeMinutes(from, to);
     const miles = dist(graph.position(from), graph.position(to)) * opts.milesPerUnit;
-    const terrainMod = TERRAIN_TRAVEL_MODIFIERS[graph.terrain(to)] || 1;
-    return (miles / (speed * terrainMod)) * 60;
+    const base = graph.speedFactor
+      ? graph.speedFactor(to)
+      : (TERRAIN_TRAVEL_MODIFIERS[graph.terrain(to)] || 1);
+    const factor = base * (graph.climbFactor?.(from, to) ?? 1);
+    return (miles / (speed * Math.max(0.05, factor))) * 60;
   };
 
   const best = new Map<number, number>([[start, 0]]);
@@ -174,7 +197,7 @@ export function planRoutesFrom(graph: TravelGraph, start: number, opts: RoutePla
 
   const to = (goal: number): RoutePlan | null => {
     if (goal === start) {
-      return { cells: [start], points: [graph.position(start)], miles: 0, minutes: 0, danger: graph.danger?.(start) ?? 0 };
+      return { cells: [start], points: [graph.position(start)], miles: 0, minutes: 0, cumulativeMinutes: [0], danger: graph.danger?.(start) ?? 0 };
     }
     if (!graph.passable(goal) || !best.has(goal)) return null;
     const cells: number[] = [];
@@ -184,17 +207,49 @@ export function planRoutesFrom(graph: TravelGraph, start: number, opts: RoutePla
     }
     cells.reverse();
     let miles = 0;
+    let elapsedMinutes = 0;
     let danger = graph.danger?.(start) ?? 0;
     const points: Array<[number, number]> = [graph.position(start)];
+    const cumulativeMinutes = [0];
     for (let i = 1; i < cells.length; i++) {
       miles += dist(graph.position(cells[i - 1]), graph.position(cells[i])) * opts.milesPerUnit;
+      elapsedMinutes += minutesOf(cells[i - 1], cells[i]);
+      cumulativeMinutes.push(elapsedMinutes);
       points.push(graph.position(cells[i]));
       danger = Math.max(danger, graph.danger?.(cells[i]) ?? 0);
     }
-    return { cells, points, miles, minutes: best.get(goal)!, danger };
+    return { cells, points, miles, minutes: best.get(goal)!, cumulativeMinutes, danger };
   };
 
   return { start, dist: best, prev, to };
+}
+
+/**
+ * Return the last route index reachable inside a time budget, optionally
+ * requiring a safe halt cell (for example, land during a ferry itinerary).
+ * Generated routes carry exact cumulative edge minutes. Hand-authored legacy
+ * fixtures without that ledger use a proportional fallback so this additive
+ * field does not invalidate older callers while they migrate.
+ */
+export function routeHaltIndex(
+  route: RoutePlan,
+  availableMinutes: number,
+  canHaltAt: (cellId: number) => boolean = () => true,
+): number {
+  if (route.cells.length === 0) return -1;
+  const safeBudget = Math.max(0, availableMinutes);
+  const elapsed = route.cumulativeMinutes?.length === route.cells.length
+    ? route.cumulativeMinutes
+    : route.cells.map((_, index) => route.cells.length <= 1
+      ? 0
+      : route.minutes * (index / (route.cells.length - 1)));
+
+  let best = canHaltAt(route.cells[0]) ? 0 : -1;
+  for (let index = 1; index < route.cells.length; index++) {
+    if ((elapsed[index] ?? Infinity) > safeBudget) break;
+    if (canHaltAt(route.cells[index])) best = index;
+  }
+  return best;
 }
 
 /**

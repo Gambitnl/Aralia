@@ -1637,6 +1637,119 @@
       ]
     },
     {
+      "id": "combat-map-shell-policy",
+      "title": "Combat-map shell: battlefield space, rails, and information priority",
+      "sub": "The tactical board now lets players independently hide the roster and command rails, giving the map room at laptop and desktop sizes without deleting combat information. First use opens both rails; later combats remember the player's last deliberate layout and bounded desktop widths. Mouse and keyboard resize handles preserve a battlefield share, and one reset restores the full default shell. A compact turn strip preserves the active actor, resource state, movement, and End Turn whenever the command rail is hidden. The remaining shell choice is whether map-focus mode should eventually expose favorite abilities. Added 2026-07-11 during the battle-map UI/UX continuation pass.",
+      "campaign": "combat",
+      "status": "active",
+      "deps": [
+        {
+          "id": "combat-map-nextgen",
+          "kind": "chosen",
+          "why": "the renderer can only feel map-first if the surrounding combat shell gives it predictable space and preserves tactical information intentionally"
+        }
+      ],
+      "features": [
+        {
+          "title": "Independent roster and command-rail visibility controls shared by the real combat screen and design preview",
+          "status": "done",
+          "history": {
+            "built": "2026-07-11"
+          }
+        },
+        {
+          "title": "Open first-use combat with both rails visible, then remember the player's last deliberate roster and command-rail layout",
+          "status": "done",
+          "history": {
+            "built": "2026-07-11"
+          }
+        },
+        {
+          "title": "Use bounded, remembered desktop rail widths with mouse and keyboard resize handles, responsive battlefield caps, per-rail double-click reset, and one full panel reset",
+          "status": "done",
+          "history": {
+            "built": "2026-07-11"
+          }
+        },
+        {
+          "title": "Keep a compact active-actor, action-economy, movement, and End Turn strip visible whenever the command rail is hidden",
+          "status": "done",
+          "history": {
+            "built": "2026-07-11"
+          }
+        },
+        {
+          "title": "DECISION: Should map-focus mode remain status-only, expose three player-chosen favorite abilities, or open a compact radial ability picker on demand?",
+          "status": "specced",
+          "spike": true,
+          "parallel": true
+        }
+      ]
+    },
+    {
+      "id": "combat-targeting-interaction",
+      "title": "Combat targeting: armed intent, validation, and cancellation",
+      "sub": "Target selection now has one shared intent HUD across the playable combat screen, design preview, 2D map, 3D map, and popped-out battlefield. The HUD states exactly what is armed and what valid choice the engine is waiting for, while the originating ability tile stays visibly pressed and can cancel the intent on a second click. The 2D map's Move / Attack strip now stays above painted terrain and names a genuinely ready direct attack instead of trusting ability-array order. Visible map and command cancellation plus Escape provide consistent exits without stealing Escape from focused text inputs. Invalid targets currently keep the ability armed and surface the validation reason; whether that forgiving retry behavior and the quick-Attack selection policy become permanent remain player-experience decisions. Added 2026-07-11 during the battle-map UI/UX continuation pass.",
+      "campaign": "combat",
+      "status": "active",
+      "deps": [
+        {
+          "id": "combat-map-nextgen",
+          "kind": "chosen",
+          "why": "targeting feedback must survive renderer changes so the player never loses track of an armed combat action"
+        }
+      ],
+      "features": [
+        {
+          "title": "Show one shared armed-ability HUD with target instruction, cost, range, caster, follow-up, and description in every combat-map mode",
+          "status": "done",
+          "history": {
+            "built": "2026-07-11"
+          }
+        },
+        {
+          "title": "Provide visible icon cancellation and Escape cancellation while preserving Escape inside focused text-editing controls",
+          "status": "done",
+          "history": {
+            "built": "2026-07-11"
+          }
+        },
+        {
+          "title": "Keep the originating ability tile visibly pressed, close its redundant hover tooltip, and let a second click cancel the armed intent",
+          "status": "done",
+          "history": {
+            "built": "2026-07-11"
+          }
+        },
+        {
+          "title": "Return stacked playable and design-preview layouts to the battlefield after an ability is armed",
+          "status": "done",
+          "history": {
+            "built": "2026-07-11"
+          }
+        },
+        {
+          "title": "Keep the 2D Move / Attack toolbar above painted terrain, expose accessible pressed state, and select only a ready direct main-Action attack",
+          "status": "done",
+          "history": {
+            "built": "2026-07-12"
+          }
+        },
+        {
+          "title": "DECISION: After an invalid target click, should targeting stay armed with an explanation or cancel immediately? Keep-armed retry is recommended; never snap to a nearby target the player did not choose.",
+          "status": "specced",
+          "spike": true,
+          "parallel": true
+        },
+        {
+          "title": "DECISION: Should quick Attack remain the first ready direct attack in authored loadout order, remember the character's last explicitly used direct attack, or use a configurable favorite? Remembering the last explicit direct attack is recommended; never auto-pick highest damage.",
+          "status": "specced",
+          "spike": true,
+          "parallel": true
+        }
+      ]
+    },
+    {
       "id": "asset-forge",
       "title": "Procedural asset forge (owned stylized battle-map props)",
       "sub": "code-drawn, seeded, owned art style for battle-map props as an alternative to found packs. Grew out of the cave-believability gap 2026-07-07: procedural drawers reach 'good stylized game art' (light upper-left + ink outlines throughout). BUILT: forge module (src/components/BattleMap/forge/) + design-preview showcase (?step=assetforge) with set selector / reroll / PNG export. Cave set done (ore rocks, crystal-ore nodes, chunky crystals, stalagmites, glowing mushrooms). NOT wired to the game yet — design surface only; same drawers can feed the painter's biome branches once a set is approved. Adding a set = one <name>Forge.ts + one registry entry.",
@@ -2305,7 +2418,7 @@
       "features": [
         {
           "title": "W01 Onboarding and persistence",
-          "status": "active",
+          "status": "done",
           "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
         },
         {
@@ -2349,9 +2462,129 @@
           "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
         },
         {
+          "title": "W01 race backtracking draft restoration - Character Creator G24",
+          "status": "done",
+          "link": "docs/projects/character-creator/GAPS.md"
+        },
+        {
+          "title": "W01 visible-route progress ordering - Character Creator G25",
+          "status": "done",
+          "link": "docs/projects/character-creator/GAPS.md"
+        },
+        {
+          "title": "W01 mandatory feat setup stability - Character Creator G26",
+          "status": "done",
+          "link": "docs/projects/character-creator/GAPS.md"
+        },
+        {
+          "title": "W01 racial sub-choice persistence - Character Creator G27",
+          "status": "done",
+          "link": "docs/projects/character-creator/GAPS.md"
+        },
+        {
+          "title": "W01 required species choice review - Character Creator G28",
+          "status": "done",
+          "link": "docs/projects/character-creator/GAPS.md"
+        },
+        {
+          "title": "W01 representative manual creation matrix",
+          "status": "done",
+          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+        },
+        {
+          "title": "W01 combat defeat to game-over recovery - Combat G33",
+          "status": "done",
+          "link": "docs/projects/combat/GAPS.md"
+        },
+        {
+          "title": "W01 invalid-route history recovery - Ui Primitives G5",
+          "status": "done",
+          "link": "docs/projects/ui-primitives/GAPS.md"
+        },
+        {
           "title": "W02 World and exploration",
-          "status": "specced",
+          "status": "active",
           "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+        },
+        {
+          "title": "W02 opening dependency failure and retry recovery",
+          "status": "done",
+          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+        },
+        {
+          "title": "W02 3D-to-atlas dev inspector collision - World 3D UI W3DUI-G2",
+          "status": "done",
+          "link": "docs/projects/world-3d-ui/GAPS.md"
+        },
+        {
+          "title": "W02 canonical live Worldforge atlas - Worldforge WF-G10",
+          "status": "done",
+          "link": "docs/projects/worldforge/GAPS.md"
+        },
+        {
+          "title": "W02 keyboard Worldforge cell descent - Worldforge WF-G11",
+          "status": "done",
+          "link": "docs/projects/worldforge/GAPS.md"
+        },
+        {
+          "title": "W02 critical World3D frame collapse - World3D W3D-G29",
+          "status": "done",
+          "link": "docs/projects/world3d/GAPS.md"
+        },
+        {
+          "title": "W02 dense opening and populated-town 1 FPS follow-up - World3D W3D-G30",
+          "status": "done",
+          "link": "docs/projects/world3d/GAPS.md"
+        },
+        {
+          "title": "W02 Classic reachable, unreachable, and supply-limited travel proof",
+          "status": "done",
+          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+        },
+        {
+          "title": "W02 Classic travel save and reload continuity",
+          "status": "done",
+          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+        },
+        {
+          "title": "W02 persistent cell discovery and journal handoff - Travel G7",
+          "status": "done",
+          "link": "docs/projects/travel/GAPS.md"
+        },
+        {
+          "title": "W02 cell-native travel encounter combat handoff - Travel G18",
+          "status": "done",
+          "link": "docs/projects/travel/GAPS.md"
+        },
+        {
+          "title": "W02 ferry destination conservation - Travel G19",
+          "status": "done",
+          "link": "docs/projects/travel/GAPS.md"
+        },
+        {
+          "title": "W02 time-weighted provision halt horizon - Travel G20",
+          "status": "done",
+          "link": "docs/projects/travel/GAPS.md"
+        },
+        {
+          "title": "W02 honest party transport availability - Travel G21",
+          "status": "done",
+          "link": "docs/projects/travel/GAPS.md"
+        },
+        {
+          "title": "W02 Classic atlas keyboard and touch parity - Worldforge WF-G12",
+          "status": "done",
+          "link": "docs/projects/worldforge/GAPS.md"
+        },
+        {
+          "title": "W02 legacy-save companion portrait fallback - Companions G9",
+          "status": "done",
+          "link": "docs/projects/companions/GAPS.md"
+        },
+        {
+          "title": "W02 Long Rest full action-pipeline and eight-hour advance - Action Pane G1",
+          "status": "done",
+          "link": "docs/projects/action-pane/GAPS.md"
         },
         {
           "title": "W03 Town social and quests",
@@ -2402,6 +2635,142 @@
           "title": "W12 Services resilience and closure",
           "status": "specced",
           "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+        }
+      ]
+    },
+    {
+      "id": "entity-generator-3d",
+      "title": "Procedural 3D entity generator",
+      "sub": "Creatures + humanoids from modular 3D parts; any race x class combo (blobfolk style industrialized); design.html?step=entityforge",
+      "campaign": "rendering",
+      "status": "done",
+      "deps": [],
+      "link": "docs/superpowers/specs/2026-07-11-entity-generator-3d-design.md",
+      "features": [
+        {
+          "title": "Swap into game scenes: player avatar, town commuters, interior occupants, combat tokens",
+          "status": "done"
+        },
+        {
+          "title": "Look polish: wing shapes, hair-colored beards, dragon tail, loxodon trunk, crowd baking/LOD",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "road-systems",
+      "title": "Road systems",
+      "sub": "four land tiers work mechanically + visually · faint forest paths can lose you · graded biome speeds",
+      "campaign": "travel",
+      "status": "active",
+      "deps": [],
+      "link": "docs/superpowers/specs/2026-07-11-road-systems-design.md",
+      "open": 8,
+      "features": [
+        {
+          "title": "Mechanics foundation: dead-wiring fix, graded biome speeds, tier speed/danger",
+          "status": "done"
+        },
+        {
+          "title": "Tiered generation: highways, road/trail split, village forest-spur paths",
+          "status": "done"
+        },
+        {
+          "title": "Faint-path getting-lost ladder (Survival vs graded DC, cause-worded drift)",
+          "status": "done"
+        },
+        {
+          "title": "2D stroke language + forest fade (canvas + SVG)",
+          "status": "done"
+        },
+        {
+          "title": "3D tier ribbons + patchy faint paths",
+          "status": "done"
+        },
+        {
+          "title": "Faint-path warning in the travel readout",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "forests",
+      "title": "Forests",
+      "sub": "named woods with character · readable tree fills · paths lead to camps and shrines · deep canopy in 3D",
+      "campaign": "world",
+      "status": "active",
+      "deps": [
+        {
+          "id": "road-systems",
+          "kind": "requires",
+          "why": "forest-spur paths from the road campaign get their destinations here (POIs); nav DC ladder extends for haunted/fey woods"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-11-forests-design.md",
+      "open": 9,
+      "features": [
+        {
+          "title": "Named forests (cluster + culture naming + map label + artifact)",
+          "status": "done"
+        },
+        {
+          "title": "2D tree fills (light up dead FMG icon data, zoom-aware, kind tints)",
+          "status": "done"
+        },
+        {
+          "title": "Forest characters (ancient/haunted/fey live, escalate-only biome override)",
+          "status": "done"
+        },
+        {
+          "title": "Forest POIs + spur retargeting (camps, hollows, shrines, dens)",
+          "status": "done"
+        },
+        {
+          "title": "Deep forest in 3D (thickets/clearings, undergrowth, canopy atmosphere)",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "mountains",
+      "title": "Mountains",
+      "sub": "named ranges + peaks + passes · climb costs make passes precious · relief glyphs · real 3D high country",
+      "campaign": "world",
+      "status": "active",
+      "deps": [
+        {
+          "id": "road-systems",
+          "kind": "requires",
+          "why": "passes are detected where the tiered routes cross ranges; climb cost composes with tier speed factors"
+        },
+        {
+          "id": "forests",
+          "kind": "requires",
+          "why": "ranges/peaks reuse the forests place-pass pattern (clustering, naming, labels, escalation slot); trip-event revival lights the haunted/fey pools too"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-11-mountains-design.md",
+      "open": 5,
+      "features": [
+        {
+          "title": "Named ranges + peaks (adopt Mount X marker names)",
+          "status": "active"
+        },
+        {
+          "title": "Passes: detected on routes, named, in the readout",
+          "status": "specced"
+        },
+        {
+          "title": "Elevation mechanics: dead biomes revived, climb cost, trip-event service rewired",
+          "status": "active"
+        },
+        {
+          "title": "2D relief glyphs (carets/chevrons, both renderers, first SVG elevation)",
+          "status": "specced"
+        },
+        {
+          "title": "3D high country: elevation curve + ridges + snow + tree line + shading fixes",
+          "status": "specced"
         }
       ]
     }

@@ -1,10 +1,27 @@
+/**
+ * This file proves the rules that make generated towns look related without
+ * making their buildings identical.
+ *
+ * It covers the culture-family tables, frame-stable 2D/3D palette picks, the
+ * climate and wealth resolver, and the layered settlement/district/building
+ * identity rules. These tests call only pure functions, so failures identify a
+ * style-rule regression without involving React or three.js rendering.
+ */
 import { describe, it, expect } from 'vitest';
 import {
   styleFamilyForCultureType, styledWallColor, styledRoof, styleFrameOf, hash01,
-  STYLE_FAMILIES, resolveStyle, climateForBiomeId, BIOME_TO_CLIMATE,
+  STYLE_FAMILIES, resolveStyle, resolveArchitectureVariant,
+  climateForBiomeId, BIOME_TO_CLIMATE,
 } from '../architectureStyle';
 import type { ResolveStyleInput } from '../architectureStyle';
 import { makeSeedPath } from '../../seedPath';
+
+// ============================================================================
+// Culture Families And Frame-Stable Town Map Styling
+// ============================================================================
+// These checks protect the broad architectural vocabulary shared by the 2D
+// town map and the 3D building pipeline.
+// ============================================================================
 
 describe('architectureStyle', () => {
   it('maps every FMG culture type to a family', () => {
@@ -28,6 +45,7 @@ describe('architectureStyle', () => {
       expect(fam.wallPalette.length).toBeGreaterThanOrEqual(2);
       expect(fam.roofPalette.length).toBeGreaterThanOrEqual(1);
       expect(fam.roofForms.length).toBeGreaterThanOrEqual(1);
+      expect(fam.facadePatterns.length).toBeGreaterThanOrEqual(2);
       expect(fam.gatehouseForms.length).toBeGreaterThanOrEqual(1);
       expect(fam.deckDetail.pilingSpacingM).toBeGreaterThan(0);
     }
@@ -70,6 +88,14 @@ describe('architectureStyle', () => {
     expect(a).not.toBe(b);
   });
 });
+
+// ============================================================================
+// Full Building Dress
+// ============================================================================
+// Culture, climate, and wealth turn a family into one concrete building dress.
+// Legacy calls intentionally omit architecture identity so their old stream
+// choices remain pinned while the new layer stays opt-in.
+// ============================================================================
 
 describe('resolveStyle', () => {
   const path = makeSeedPath(1337, 'cell:71-8', 'local:2-1', 'bldg:14');
@@ -144,7 +170,132 @@ describe('resolveStyle', () => {
   it('passes familyId through from the culture mapping', () => {
     expect(resolveStyle(base, path).familyId).toBe('highlandStone');
   });
+
+  it('resolves type-recognition motifs as part of the shared dress', () => {
+    const architecture = {
+      settlementKey: 'burg:17',
+      districtKey: 'district:2',
+      buildingKey: 'plot:9',
+    };
+    const shop = resolveStyle({ ...base, buildingType: 'shop', architecture }, path);
+    const keep = resolveStyle({ ...base, buildingType: 'keep', architecture }, path);
+
+    expect(shop.motifs).toContain('hanging-sign');
+    expect(keep.motifs).toContain('battlements');
+    expect(shop.motifSignature).not.toBe(keep.motifSignature);
+    expect([0, 1, 2]).toContain(shop.motifVariant);
+  });
 });
+
+// ============================================================================
+// Layered Settlement, District, And Building Identity
+// ============================================================================
+// These checks encode the user's central balance: a district must repeat a
+// recognizable dialect, but neighboring lots still need visible variation.
+// ============================================================================
+
+describe('resolveArchitectureVariant', () => {
+  const family = STYLE_FAMILIES.temperateFrame;
+  const identity = (buildingKey: string, districtKey = 'wealth:common') => ({
+    settlementKey: 'burg:17',
+    districtKey,
+    buildingKey,
+  });
+
+  it('is deterministic for the same three-scope identity', () => {
+    const a = resolveArchitectureVariant(family, 'common', identity('plot:8'));
+    const b = resolveArchitectureVariant(family, 'common', identity('plot:8'));
+    expect(a).toEqual(b);
+  });
+
+  it('keeps one district signature while giving every sampled building an individual token', () => {
+    // A long street sample makes the intended majority/minority rules visible
+    // without depending on one specially chosen pair of building ids.
+    const variants = Array.from({ length: 120 }, (_, index) =>
+      resolveArchitectureVariant(family, 'common', identity(`plot:${index}`)));
+
+    expect(new Set(variants.map((variant) => variant.districtSignature)).size).toBe(1);
+    expect(new Set(variants.map((variant) => variant.buildingVariant)).size).toBe(120);
+    expect(new Set(variants.map((variant) => variant.pitchScale)).size).toBeGreaterThan(100);
+
+    // Districts offer at most a dominant and one related alternative for each
+    // trait. At least one sampled exception must appear, or the street clones.
+    for (const values of [
+      variants.map((variant) => variant.wallColor),
+      variants.map((variant) => variant.roofColor),
+      variants.map((variant) => variant.roofForm),
+      variants.map((variant) => variant.facadePattern),
+    ]) {
+      expect(new Set(values).size).toBeGreaterThanOrEqual(2);
+      expect(new Set(values).size).toBeLessThanOrEqual(2);
+      const counts = values.reduce<Record<string, number>>((tally, value) => {
+        tally[value] = (tally[value] ?? 0) + 1;
+        return tally;
+      }, {});
+      expect(Math.max(...Object.values(counts)) / values.length).toBeGreaterThan(0.6);
+    }
+  });
+
+  it('lets districts differ visibly while keeping the same town culture family', () => {
+    const common = resolveArchitectureVariant(
+      family,
+      'common',
+      identity('plot:4', 'wealth:common'),
+    );
+    const harbor = resolveArchitectureVariant(
+      family,
+      'common',
+      identity('plot:4', 'harbor'),
+    );
+
+    expect(common.districtSignature).not.toBe(harbor.districtSignature);
+    expect([
+      common.wallColor,
+      common.roofColor,
+      common.roofForm,
+      common.facadePattern,
+    ]).not.toEqual([
+      harbor.wallColor,
+      harbor.roofColor,
+      harbor.roofForm,
+      harbor.facadePattern,
+    ]);
+    expect(family.wallPalette).toContain(common.wallColor);
+    expect(family.wallPalette).toContain(harbor.wallColor);
+  });
+
+  it('does not repeat the same district recipe across two towns of one culture', () => {
+    const first = resolveArchitectureVariant(family, 'common', identity('plot:1'));
+    const second = resolveArchitectureVariant(family, 'common', {
+      ...identity('plot:1'),
+      settlementKey: 'burg:18',
+    });
+    expect(first.districtSignature).not.toBe(second.districtSignature);
+  });
+
+  it('keeps one structural dialect across wealth while finishes respect each tier', () => {
+    const poor = resolveArchitectureVariant(family, 'poor', identity('plot:11', 'district:2'));
+    const wealthy = resolveArchitectureVariant(family, 'wealthy', identity('plot:11', 'district:2'));
+
+    // Wealth changes the available material slice, not the builders' shared
+    // district grammar or the stable identity of this individual building.
+    expect(poor.districtSignature).toBe(wealthy.districtSignature);
+    expect(poor.buildingVariant).toBe(wealthy.buildingVariant);
+    expect(poor.roofForm).toBe(wealthy.roofForm);
+    expect(poor.facadePattern).toBe(wealthy.facadePattern);
+    expect(poor.pitchScale).toBe(wealthy.pitchScale);
+    expect(poor.eaveOffsetFt).toBe(wealthy.eaveOffsetFt);
+    expect(family.wallPalette.slice(0, 2)).toContain(poor.wallColor);
+    expect(family.wallPalette.slice(2)).toContain(wealthy.wallColor);
+  });
+});
+
+// ============================================================================
+// Atlas Biome To Architectural Climate
+// ============================================================================
+// This closed map prevents unknown world biomes from silently becoming a
+// generic temperate building style.
+// ============================================================================
 
 describe('climateForBiomeId (BGv2 Task 7 — burg biome → ClimateClass)', () => {
   // The closed FMG biome vocabulary is the 13 entries of Biomes.getDefault().name

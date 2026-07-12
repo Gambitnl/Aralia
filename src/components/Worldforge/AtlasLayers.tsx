@@ -1,5 +1,18 @@
 import React from 'react';
-import type { AtlasSvgModel } from './atlasSvg';
+import { FOREST_GLYPH_LAYER_OPACITY, type AtlasSvgModel } from './atlasSvg';
+import { ROUTE_STROKES } from './routeMapStyle';
+
+/**
+ * Forest glyph layer opacity (forests campaign T6). This memoized tree has NO
+ * zoom access on purpose (re-rendering it per zoom frame is the World Map
+ * freeze), so the zoom ramp arrives as the CSS custom property
+ * `--forest-glyph-opacity`, which AtlasSvgView sets on the zoom-transform <g>
+ * each frame. The fallback keeps other hosts (tests, proof pages) at full
+ * layer opacity.
+ */
+const FOREST_GLYPH_OPACITY_VAR: React.CSSProperties = {
+  opacity: `var(--forest-glyph-opacity, ${FOREST_GLYPH_LAYER_OPACITY})`,
+};
 
 export interface AtlasLayersProps {
   model: AtlasSvgModel;
@@ -117,6 +130,26 @@ function AtlasLayersImpl({ model, visible, softenActive = true }: AtlasLayersPro
           ))}
         </g>
       ) : null}
+      {/* Forest tree glyphs (forests campaign T6) — tiny per-cell tree stamps
+          for NAMED forests only, kind-tinted. Placed at the terrain-texture
+          boundary: above every softened fill coloring (the canvas renderer's
+          "after the blur" line), below zones/ink (rivers/borders/routes/coast)
+          so the map ink stays on top. Crisp on purpose: no soften filter.
+          Zoom ramp comes in via --forest-glyph-opacity (see the const above). */}
+      {(visible.forestGlyphs ?? true) && (model.forestGlyphs?.length ?? 0) > 0 ? (
+        <g data-testid="atlas-forest-glyphs" style={FOREST_GLYPH_OPACITY_VAR}>
+          {(model.forestGlyphs ?? []).map((c, i) => (
+            <path
+              key={`fg${i}`}
+              d={c.d}
+              fill={c.tint ?? '#2f5233'}
+              stroke="#2b3d2e"
+              strokeWidth={0.5}
+              vectorEffect="non-scaling-stroke"
+            />
+          ))}
+        </g>
+      ) : null}
       {visible.ice ? (
         <g opacity={0.8}>
           {(model.iceCells ?? []).map((c, i) => (
@@ -169,14 +202,19 @@ function AtlasLayersImpl({ model, visible, softenActive = true }: AtlasLayersPro
           strokeWidth={1} strokeDasharray="3 2" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
       ) : null}
       {visible.routes ? (model.routes ?? []).map((rt, i) => {
-        const s = rt.group === 'trails'
-          ? { stroke: '#708090', dash: '3 3', w: 0.8 }
-          : rt.group === 'searoutes'
-            ? { stroke: '#87cefa', dash: '4 4', w: 1 }
-            : { stroke: '#8b5a2b', dash: undefined, w: 1.2 };
+        // Shared route stroke language (road-systems Task 8): the model carries
+        // kind + fade opacity; the table here matches the canvas renderer.
+        const s = ROUTE_STROKES[(rt.kind ?? 'road') as keyof typeof ROUTE_STROKES] ?? ROUTE_STROKES.road;
         return (
-          <path key={`rt${i}`} d={rt.d} fill="none" stroke={s.stroke} strokeWidth={s.w}
-            strokeDasharray={s.dash} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+          <g key={`rt${i}`} opacity={rt.opacity ?? 1}>
+            {s.casing ? (
+              <path d={rt.d} fill="none" stroke={s.casing.stroke} strokeWidth={s.casing.width}
+                strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+            ) : null}
+            <path d={rt.d} fill="none" stroke={s.stroke} strokeWidth={s.width}
+              strokeDasharray={s.dash ? s.dash.join(' ') : undefined}
+              strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+          </g>
         );
       }) : null}
       {visible.coast && model.coastline ? (

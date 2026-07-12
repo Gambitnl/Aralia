@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/06/2026, 18:12:31
- * Dependents: hooks/actions/actionHandlers.ts
- * Imports: 10 files
+ * Last Sync: 12/07/2026, 01:17:38
+ * Dependents: components/ConversationPanel/ConversationPanel.tsx, hooks/actions/actionHandlers.ts
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -19,7 +19,7 @@
  * Handles resource management actions like spellcasting and ability usage.
  */
 import React from 'react';
-import { GameState, HitPointDiceSpendMap, HitPointDicePool, Spell, SpellSlots } from '../../types';
+import { GameState, HitPointDiceSpendMap, HitPointDicePool, RacialRestChoiceData, Spell, SpellSlots } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { handleGossipEvent, handleResidueChecks, handleLongRestWorldEvents } from './handleWorldEvents'; // Import the new world event handlers.
@@ -40,6 +40,8 @@ interface HandleRestProps {
     dispatch: React.Dispatch<AppAction>;
     addMessage: AddMessageFn;
     addGeminiLog: AddGeminiLogFn;
+    /** Choices collected by the modal must survive the gameplay pipeline. */
+    racialRestChoices?: Record<string, Record<string, RacialRestChoiceData>>;
 }
 
 interface HandleShortRestProps extends Omit<HandleRestProps, 'addGeminiLog'> {
@@ -215,7 +217,13 @@ export function handleTogglePreparedSpell(dispatch: React.Dispatch<AppAction>, p
     dispatch({ type: 'TOGGLE_PREPARED_SPELL', payload });
 }
 
-export async function handleLongRest({ gameState, dispatch, addMessage, addGeminiLog }: HandleRestProps): Promise<void> {
+export async function handleLongRest({
+    gameState,
+    dispatch,
+    addMessage,
+    addGeminiLog,
+    racialRestChoices,
+}: HandleRestProps): Promise<void> {
     addMessage("The party begins to settle in for a long rest...", "system");
 
     // --- NEW: OVERNIGHT WORLD SIMULATION ---
@@ -251,7 +259,12 @@ export async function handleLongRest({ gameState, dispatch, addMessage, addGemin
     // Step 6: Apply the mechanical benefits of the long rest to the player party.
     dispatch({
         type: 'LONG_REST',
-        payload: { deniedCharacterIds: restOutcome.deniedCharacterIds }
+        // Apply both the world/planar outcome and the player's modal choices in
+        // the one mechanical rest update so neither path overwrites the other.
+        payload: {
+            deniedCharacterIds: restOutcome.deniedCharacterIds,
+            racialRestChoices,
+        }
     });
 
     // Step 7: Advance the in-game clock.

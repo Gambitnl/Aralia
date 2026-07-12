@@ -43,6 +43,10 @@ const PROMINENCE_COLOR: Record<NewsProminence, string> = {
   gossip: '#8b949e',
 };
 
+// Share the agent inspector's horizontal safety lane so neither developer
+// launcher covers World3D's Atlas/HUD controls at the lower-right edge.
+const DEV_INSPECTOR_RIGHT_OFFSET_PX = 220;
+
 const panelStyle: React.CSSProperties = {
   background: 'rgba(13,17,23,0.96)',
   border: '1px solid #30363d',
@@ -90,7 +94,7 @@ const TownHistoryDevOverlay: React.FC = () => {
 
   if (!open) {
     return (
-      <div style={{ position: 'fixed', right: 12, bottom: 56, zIndex: 4000, fontFamily: 'sans-serif' }} data-testid="town-history-dev-overlay">
+      <div style={{ position: 'fixed', right: DEV_INSPECTOR_RIGHT_OFFSET_PX, bottom: 56, zIndex: 4000, fontFamily: 'sans-serif' }} data-testid="town-history-dev-overlay">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -103,7 +107,7 @@ const TownHistoryDevOverlay: React.FC = () => {
   }
 
   return (
-    <div style={{ position: 'fixed', right: 12, bottom: 56, zIndex: 4000, fontFamily: 'sans-serif' }} data-testid="town-history-dev-overlay">
+    <div style={{ position: 'fixed', right: DEV_INSPECTOR_RIGHT_OFFSET_PX, bottom: 56, zIndex: 4000, fontFamily: 'sans-serif' }} data-testid="town-history-dev-overlay">
       <div style={panelStyle}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
           <span style={{ color: '#e2e8f0', fontSize: 12, fontWeight: 700 }}>

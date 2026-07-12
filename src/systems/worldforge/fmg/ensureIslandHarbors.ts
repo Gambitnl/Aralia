@@ -248,7 +248,10 @@ function addRouteLink(
 function rebuildRouteLinks(pack: IslandHarborPack): void {
   const links: Record<number, Record<number, number>> = {};
 
-  for (const route of pack.routes ?? []) {
+  // Forest-spur paths stay OUT of the cell-link index — same invariant as
+  // Routes.generate() in routes-generator.ts (indexing them shifts downstream
+  // world-gen RNG off the frozen golden).
+  for (const route of (pack.routes ?? []).filter((r) => r.group !== 'paths')) {
     const cells = routeCells(route);
     for (let i = 0; i < cells.length - 1; i++) {
       const from = cells[i];

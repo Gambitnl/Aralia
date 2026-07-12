@@ -51,8 +51,19 @@ function hash01(a: number, b: number, c: number): number {
  * instead of statistically flat coverage. Lattice values come from hash01 on
  * WORLD-space lattice coords so the field is continuous-ish per chunk and
  * fully deterministic from (cx, cy).
+ *
+ * Exported as `patchNoise2` (forests Task 10): the shared patch-noise
+ * PRIMITIVE. Grass patchiness here and the 3D tree thicket/clearing gate +
+ * undergrowth in generateLocal all call this function, but with DIFFERENT
+ * salts/frequencies/coordinate spaces — so grass gaps and canopy clearings do
+ * NOT currently line up (aligning them means retuning grass salts, a visual
+ * decision parked in the forests spec's Open list). Pure in (u, v, salt,
+ * freq) — callers that feed world-space coords (e.g. world feet / 1000) get a
+ * field that continues seamlessly across chunk/window borders. The function
+ * body is unchanged from the private valueNoise2 it used to be; the alias
+ * below keeps grass call sites as-is.
  */
-function valueNoise2(u: number, v: number, salt: number, freq: number): number {
+export function patchNoise2(u: number, v: number, salt: number, freq: number): number {
   const x = u * freq;
   const y = v * freq;
   const xi = Math.floor(x);
@@ -72,6 +83,10 @@ function valueNoise2(u: number, v: number, salt: number, freq: number): number {
     v11 * tx * ty
   );
 }
+
+/** Internal alias — grass code below is byte-for-byte untouched by the
+ * patchNoise2 export rename. */
+const valueNoise2 = patchNoise2;
 
 export interface GrassFieldOptions {
   /** Candidate samples per chunk (survivors depend on green coverage). */

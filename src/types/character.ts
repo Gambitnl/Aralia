@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 14/06/2026, 20:42:18
- * Dependents: components/DesignPreview/steps/PreviewCombatSandbox.tsx, components/Town/TownCanvas.tsx, components/puzzles/LockpickingModal.tsx, hooks/combat/useSummons.ts, hooks/useCharacterAssembly.ts, services/travelService.ts, systems/crafting/craftingService.ts, systems/crime/SmugglingSystem.ts, systems/crime/fencing/FenceSystem.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/puzzles/secretDoorSystem.ts, systems/travel/TravelCalculations.ts, types/index.ts, utils/character/checkUtils.ts, utils/sandbox/quickCharacterGenerator.ts
+ * Last Sync: 11/07/2026, 18:52:50
+ * Dependents: components/World3D/PlayerAvatar.tsx, components/World3D/World3DDemo.tsx, components/puzzles/LockpickingModal.tsx, data/classes/classFeatureProgression.ts, data/classes/subclasses.ts, data/classes/tierOneFeatures.ts, hooks/combat/useSummons.ts, services/travelService.ts, systems/crafting/craftingService.ts, systems/crime/SmugglingSystem.ts, systems/crime/fencing/FenceSystem.ts, systems/entities3d/recipeFromCharacter.ts, systems/party/npcToPartyMember.ts, systems/party/partyConstants.ts, systems/party/recruitTypes.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/characterAbilityBridge.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/puzzles/secretDoorSystem.ts, systems/travel/TravelCalculations.ts, systems/travel/forcedMarch.ts, types/index.ts, utils/character/checkUtils.ts, utils/sandbox/quickCharacterGenerator.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -480,6 +480,8 @@ export type HitPointDiceSpendMap = Record<string, HitPointDiceSpend>;
 
 export interface RacialSelectionData {
   choiceId?: string;
+  /** Explicit Small/Medium choice for species such as Changeling. */
+  size?: 'Small' | 'Medium';
   spellAbility?: AbilityScoreName;
   skillIds?: string[];
   toolIds?: string[];

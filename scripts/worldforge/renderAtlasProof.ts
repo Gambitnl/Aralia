@@ -7,20 +7,22 @@
  * It also measures the performance benefits of caching by comparing the time taken for a
  * full redraw against a cached pan blit.
  *
+ * The draw functions (drawAtlas, drawRegion) are bundled with esbuild — with all
+ * their module dependencies — into one browser IIFE and injected into the page.
+ *
  * Usage: npx tsx scripts/worldforge/renderAtlasProof.ts
  */
 
 import { chromium } from "playwright";
+// esbuild is not a direct dependency; it resolves hoisted from vite/tsx.
+import { build } from "esbuild";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { generateFmgAtlas } from "../../src/systems/worldforge/fmg/generateAtlas";
 import { generateFmgWorld } from "../../src/systems/worldforge/fmg/generateWorld";
-import { FEET_PER_FMG_PIXEL } from "../../src/systems/worldforge/adapter/atlasArtifact";
-import { drawAtlas, drawGraticule, drawScaleBar, parseHexColor, isStateBorder, shouldShowBurgLabel, intersects, getCleanNumber, getOverlayColor, isHexColor, stableHashColor } from "../../src/components/Worldforge/atlasDraw";
 import { generateRegion } from "../../src/systems/worldforge/region/generateRegion";
 import { rootSeedPath } from "../../src/systems/worldforge/seedPath";
-import { drawRegion } from "../../src/components/Worldforge/regionDraw";
 
 // ============================================================================
 // Section: Configuration & Constants
@@ -38,38 +40,34 @@ async function main() {
   const seed = "world-42";
   const template = "continents";
 
-  const injectAtlasFn = async (p: any) => {
-    await p.evaluate(
-      ({ drawAtlasStr, drawGraticuleStr, drawScaleBarStr, parseHexColorStr, isStateBorderStr, shouldShowBurgLabelStr, intersectsStr, getCleanNumberStr, getOverlayColorStr, isHexColorStr, stableHashColorStr, feetPerPixel }) => {
-        const g = window as any;
-        g.FEET_PER_FMG_PIXEL = feetPerPixel;
-        g.parseHexColor = new Function("const __name = (fn) => fn; return " + parseHexColorStr)();
-        g.isHexColor = new Function("const __name = (fn) => fn; return " + isHexColorStr)();
-        g.stableHashColor = new Function("const __name = (fn) => fn; return " + stableHashColorStr)();
-        g.getOverlayColor = new Function("const __name = (fn) => fn; return " + getOverlayColorStr)();
-        g.isStateBorder = new Function("const __name = (fn) => fn; return " + isStateBorderStr)();
-        g.shouldShowBurgLabel = new Function("const __name = (fn) => fn; return " + shouldShowBurgLabelStr)();
-        g.intersects = new Function("const __name = (fn) => fn; return " + intersectsStr)();
-        g.getCleanNumber = new Function("const __name = (fn) => fn; return " + getCleanNumberStr)();
-        g.drawGraticule = new Function("const __name = (fn) => fn; return " + drawGraticuleStr)();
-        g.drawScaleBar = new Function("const __name = (fn) => fn; return " + drawScaleBarStr)();
-        g.drawAtlas = new Function("const __name = (fn) => fn; return " + drawAtlasStr)();
-      },
-      {
-        drawAtlasStr: drawAtlas.toString(),
-        drawGraticuleStr: drawGraticule.toString(),
-        drawScaleBarStr: drawScaleBar.toString(),
-        parseHexColorStr: parseHexColor.toString(),
-        isHexColorStr: isHexColor.toString(),
-        stableHashColorStr: stableHashColor.toString(),
-        getOverlayColorStr: getOverlayColor.toString(),
-        isStateBorderStr: isStateBorder.toString(),
-        shouldShowBurgLabelStr: shouldShowBurgLabel.toString(),
-        intersectsStr: intersects.toString(),
-        getCleanNumberStr: getCleanNumber.toString(),
-        feetPerPixel: FEET_PER_FMG_PIXEL,
-      }
-    );
+  // Bundle drawAtlas + drawRegion WITH their module dependencies (routeMapStyle,
+  // routeTerrain, forest glyphs via atlasSvg, river centerline smoothing, ...)
+  // into one browser IIFE that attaches them to window. The previous
+  // Function.prototype.toString() injection dropped imported bindings, which
+  // broke as soon as atlasDraw/regionDraw gained module-scope imports; bundling
+  // picks up any future imports automatically.
+  console.log("Bundling draw functions for page injection...");
+  const bundleResult = await build({
+    stdin: {
+      contents: [
+        'import { drawAtlas } from "./src/components/Worldforge/atlasDraw";',
+        'import { drawRegion } from "./src/components/Worldforge/regionDraw";',
+        "Object.assign(window as any, { drawAtlas, drawRegion });",
+      ].join("\n"),
+      resolveDir: path.join(__dirname, "../.."),
+      loader: "ts",
+    },
+    bundle: true,
+    format: "iife",
+    platform: "browser",
+    write: false,
+    define: { "process.env.NODE_ENV": '"production"' },
+  });
+  const drawBundleJs = bundleResult.outputFiles[0].text;
+
+  // Page contexts reset on every page.setContent, so re-inject after each one.
+  const injectDrawFns = async (p: any) => {
+    await p.addScriptTag({ content: drawBundleJs });
   };
 
   console.log(`Generating atlas for seed '${seed}' and template '${template}'...`);
@@ -125,8 +123,8 @@ async function main() {
   // 1. Set up page canvas
   await page.setContent(`<canvas id="c" width="${W}" height="${H}" style="display:block"></canvas>`);
 
-  // Inject drawAtlas, drawGraticule, drawScaleBar, and helper functions into browser context
-  await injectAtlasFn(page);
+  // Inject the bundled draw functions into the browser context
+  await injectDrawFns(page);
 
   // 2. Render and save styled default view (scale: 1)
   console.log("Drawing styled default view...");
@@ -471,8 +469,8 @@ async function main() {
 
   await page.setContent(dashboardHtml);
 
-  // Re-inject draw core and helper functions to the new page context
-  await injectAtlasFn(page);
+  // Re-inject the bundled draw functions into the new page context
+  await injectDrawFns(page);
 
   // Render the default view with graticule grid enabled
   const demoView = {
@@ -716,10 +714,8 @@ async function main() {
 
   await page.setContent(regionHtml);
 
-  // Inject drawRegion function into browser context
-  await page.evaluate((drawRegionStr) => {
-    (window as any).drawRegion = new Function("const __name = (fn) => fn; return " + drawRegionStr)();
-  }, drawRegion.toString());
+  // Re-inject the bundled draw functions (drawRegion) into the new page context
+  await injectDrawFns(page);
 
   // Render the L1 region artifact in the page context
   await page.evaluate(
@@ -775,8 +771,8 @@ async function main() {
   await page.setViewportSize({ width: W, height: H });
   await page.setContent(`<canvas id="c" width="${W}" height="${H}" style="display:block"></canvas>`);
 
-  // Re-inject draw core and helper functions into the page context
-  await injectAtlasFn(page);
+  // Re-inject the bundled draw functions into the page context
+  await injectDrawFns(page);
 
   // Render political layer (full map, scale: 1)
   console.log("Drawing political layer (full map)...");
@@ -835,11 +831,8 @@ async function main() {
   await page.setViewportSize({ width: W, height: H });
   await page.setContent(`<canvas id="c" width="${W}" height="${H}" style="display:block"></canvas>`);
 
-  // Inject drawAtlas, drawRegion, and all helpers
-  await injectAtlasFn(page);
-  await page.evaluate((drawRegionStr) => {
-    (window as any).drawRegion = new Function("const __name = (fn) => fn; return " + drawRegionStr)();
-  }, drawRegion.toString());
+  // Inject the bundled draw functions (drawAtlas + drawRegion)
+  await injectDrawFns(page);
 
   // 1. Stage 1: Atlas default view (scale: 1.0)
   console.log("Capturing Stage 1...");

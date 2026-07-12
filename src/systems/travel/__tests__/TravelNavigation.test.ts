@@ -51,4 +51,26 @@ describe('TravelNavigation', () => {
       expect(result.success).toBe(true);
     });
   });
+
+  describe('checkNavigation — dcOverride (graded road DCs)', () => {
+    it('should replace the terrain-table DC with the override', () => {
+      // Open table DC is 5, so roll 10 would pass — but the override DC 12 fails it.
+      const result = checkNavigation(10, 'open', 'normal', false, 'N', rng, 12);
+      expect(result.success).toBe(false);
+      expect(result.dc).toBe(12);
+    });
+
+    it('should keep auto-success when the override DC is 0 (maintained route)', () => {
+      // Even a catastrophic roll cannot get lost when the override DC is 0.
+      const result = checkNavigation(-30, 'difficult', 'normal', false, 'N', rng, 0);
+      expect(result.success).toBe(true);
+      expect(result.driftDirection).toBeNull();
+    });
+
+    it('should still apply pace modifiers against the override DC', () => {
+      // Roll 7 + Slow(+5) = 12 >= override 12 -> Success
+      const result = checkNavigation(7, 'difficult', 'slow', false, 'N', rng, 12);
+      expect(result.success).toBe(true);
+    });
+  });
 });

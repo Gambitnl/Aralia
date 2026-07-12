@@ -35,6 +35,11 @@ function openPanel() {
 }
 
 describe('TownHistoryDevOverlay', () => {
+  it('keeps its launcher out of the lower-right World3D HUD lane', () => {
+    renderOverlay(createMockGameState());
+    expect(screen.getByTestId('town-history-dev-overlay')).toHaveStyle({ right: '220px' });
+  });
+
   it('shows "Not in a tracked town" when the location resolves to no town', () => {
     const base = createMockGameState();
     const state: GameState = {

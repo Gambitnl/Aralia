@@ -336,6 +336,13 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       dispatch({ type: 'SET_RACIAL_SELECTION', payload: { raceId: 'changeling', patch: { skillIds: choices.changelingInstinctSkillIds } } });
     }
 
+    if (choices?.changelingSize) {
+      // Size is a real Changeling creation decision, not presentation-only
+      // state. Preserve it with the other racial selections so Back, reload,
+      // review, and future size-aware mechanics all receive the same choice.
+      dispatch({ type: 'SET_RACIAL_SELECTION', payload: { raceId: 'changeling', patch: { size: choices.changelingSize } } });
+    }
+
     if (choices?.genericSkillChoices) {
       // Handle the generic skill choices for Kender, Kenku, Warforged, Half-Elf, etc.
       // We apply it to the specific raceId that was selected.

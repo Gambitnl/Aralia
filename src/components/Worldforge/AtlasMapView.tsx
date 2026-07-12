@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 09:06:27
+ * Last Sync: 11/07/2026, 19:47:09
  * Dependents: components/Worldforge/AtlasDemo.tsx
  * Imports: 3 files
  *
@@ -89,6 +89,43 @@ export interface AtlasMapViewProps {
   cooldownActive?: boolean;
   /** Optional array of live overlay markers. */
   markers?: OverlayMarker[];
+}
+
+export type AtlasKeyboardDirection = "left" | "right" | "up" | "down";
+
+/**
+ * Pick the neighboring Voronoi cell that lies furthest in the requested
+ * screen-space direction. This gives keyboard users the same cell graph the
+ * pointer explores without pretending the irregular atlas is a square grid.
+ */
+export function directionalAtlasNeighbor(
+  currentCellId: number,
+  direction: AtlasKeyboardDirection,
+  points: ArrayLike<readonly [number, number]>,
+  neighbors: ArrayLike<ArrayLike<number>>,
+): number {
+  const origin = points[currentCellId];
+  if (!origin) return currentCellId;
+  const desired = direction === "left" ? [-1, 0]
+    : direction === "right" ? [1, 0]
+      : direction === "up" ? [0, -1]
+        : [0, 1];
+
+  let bestId = currentCellId;
+  let bestScore = 0;
+  for (const candidateId of Array.from(neighbors[currentCellId] ?? [])) {
+    const candidate = points[candidateId];
+    if (!candidate) continue;
+    const dx = candidate[0] - origin[0];
+    const dy = candidate[1] - origin[1];
+    const distance = Math.hypot(dx, dy) || 1;
+    const score = (dx * desired[0] + dy * desired[1]) / distance;
+    if (score > bestScore) {
+      bestScore = score;
+      bestId = candidateId;
+    }
+  }
+  return bestId;
 }
 
 // ============================================================================
@@ -270,6 +307,32 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
     // Reset hover coordinates when mouse pointer leaves canvas bounds
     setHoverPos({});
     setHoveredCellId(null);
+  };
+
+  // Canvas pixels are not inherently keyboard-addressable. Arrow keys walk
+  // the actual Voronoi adjacency graph; Enter/Space follows the same descent
+  // callback as pointer activation, including the existing water guard.
+  const handleCanvasKeyDown = (event: React.KeyboardEvent<HTMLCanvasElement>) => {
+    const keyDirection: AtlasKeyboardDirection | null =
+      event.key === "ArrowLeft" ? "left"
+        : event.key === "ArrowRight" ? "right"
+          : event.key === "ArrowUp" ? "up"
+            : event.key === "ArrowDown" ? "down"
+              : null;
+
+    if (keyDirection) {
+      event.preventDefault();
+      const firstLandCell = Array.from(atlas.pack.cells.h).findIndex((height) => height >= 20);
+      const current = selectedCellId ?? Math.max(0, firstLandCell);
+      const next = directionalAtlasNeighbor(current, keyDirection, atlas.pack.cells.p, atlas.pack.cells.c);
+      onCellSelect?.(next);
+      return;
+    }
+
+    if ((event.key === "Enter" || event.key === " ") && selectedCellId != null) {
+      event.preventDefault();
+      onCellClick?.(selectedCellId);
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -675,6 +738,10 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
       {/* Interactive Canvas Surface */}
       <canvas
         ref={canvasRef}
+        data-testid="worldforge-atlas-canvas"
+        role="application"
+        tabIndex={0}
+        aria-label="Interactive Worldforge atlas. Use arrow keys to inspect neighboring cells and Enter to descend into the selected land cell."
         width={width}
         height={height}
         onPointerDown={handlePointerDown}
@@ -682,7 +749,8 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onPointerLeave={handlePointerLeave}
-        className="cursor-grab active:cursor-grabbing block"
+        onKeyDown={handleCanvasKeyDown}
+        className="cursor-grab active:cursor-grabbing block focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-inset"
       />
 
       {/* Recenter pill â€” shown when the map has been panned out of view */}

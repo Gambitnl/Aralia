@@ -45,12 +45,13 @@
 // React hooks - useReducer for complex state management, useCallback for memoized functions,
 // useEffect for side effects
 import React, { useReducer, useCallback, useEffect, useRef, lazy, Suspense, useState } from 'react';
-import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase, Notification } from './types';
+import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase, Notification, DiscoveryType } from './types';
 import type { TravelMeta } from './types/travelMeta';
 import { BATTLE_MAP_BIOMES, type BattleMapBiome } from './types/combat';
 import { buildProvisionActions } from './systems/travel/applyProvision';
 import { resolveForcedMarch } from './systems/travel/forcedMarch';
 import { rollD20 } from './utils/combat/combatUtils';
+import { createBattleEndActions } from './utils/combat/battleEndActions';
 import { loadMonstersData } from './data/monsters';
 // State management - appReducer handles all state updates via actions, initialGameState provides defaults
 import { appReducer } from './state/appState';
@@ -505,6 +506,13 @@ const App: React.FC = () => {
       // and prove town-merchant registration on arrival.
       worldSeed: gameState.worldSeed,
       playerCellId: gameState.playerCell?.cellId ?? null,
+      // Cell-native discovery proof: expose only durable numeric cell flags,
+      // never the full journal text, so browser rigs can verify dedupe/reload.
+      exploredCellIds: gameState.discoveryLog.flatMap((entry) => entry.flags
+        .filter((flag) => flag.key === 'cellId' && typeof flag.value === 'number')
+        .map((flag) => flag.value as number)),
+      discoveryCount: gameState.discoveryLog.length,
+      unreadDiscoveryCount: gameState.unreadDiscoveryCount ?? 0,
       // Interactive-3D locomotion proof: the live ground-move state a click-to-walk
       // (or camera walk) writes, so a rig can confirm a 3D ground click moved the player.
       playerGroundPos: gameState.playerGroundPos ?? null,
@@ -733,7 +741,7 @@ const App: React.FC = () => {
     const driftSeconds = travelMeta?.navDrift?.lost
       ? Math.max(0, Math.round(travelMeta.navDrift.extraSeconds))
       : 0;
-    const travelSeconds = (travelMeta?.seconds != null ? Math.max(60, Math.round(travelMeta.seconds)) : 3600) + driftSeconds;
+    const travelSeconds = (travelMeta?.seconds != null ? Math.max(0, Math.round(travelMeta.seconds)) : 3600) + driftSeconds;
     const announceEncounter = () => {
       if (travelMeta?.encounterMessage) addMessage(travelMeta.encounterMessage, 'system');
     };
@@ -744,7 +752,12 @@ const App: React.FC = () => {
       if (!nd?.lost) return;
       const hours = nd.extraSeconds / 3600;
       const rounded = Math.max(1, Math.round(hours));
-      addMessage(`You lose your way and drift ${nd.driftDirection}, costing you about ${rounded} extra hour${rounded === 1 ? '' : 's'} before you find the path again.`, 'system');
+      // Word by cause: a path that faded under the trees reads differently from
+      // trackless wilds; both keep the drift heading + hours-lost structure.
+      const lead = nd.cause === 'faint-path'
+        ? 'The path fades among the trees — you lose the trail'
+        : 'You lose your way';
+      addMessage(`${lead} and drift ${nd.driftDirection}, costing you about ${rounded} extra hour${rounded === 1 ? '' : 's'} before you find the path again.`, 'system');
     };
     // A rolled road ambush now starts a REAL fight on arrival (it used to only
     // print the message and nothing happened). Fired after the move so combat
@@ -804,6 +817,33 @@ const App: React.FC = () => {
       addMessage(`The forced march past ${Math.round(fm.hours)} hours takes its toll — ${worn} fail a DC ${fm.saveDC} Constitution save and grow exhausted.`, 'system');
     };
 
+    // A reached atlas cell becomes durable player knowledge exactly once. The
+    // existing discovery log is the single saved source for both Logbook memory
+    // and MapPane fog; locationId + cellId flags make reducer dedupe explicit.
+    const recordCellDiscovery = (cellId: number, locationId: string) => {
+      const alreadyKnown = gameState.discoveryLog.some((entry) =>
+        entry.type === DiscoveryType.LOCATION_DISCOVERY
+        && entry.flags.some((flag) => flag.key === 'cellId' && flag.value === cellId));
+      if (alreadyKnown) return;
+      const placeName = travelMeta?.destinationCell?.name ?? targetBiome?.name ?? `Cell ${cellId}`;
+      dispatch({
+        type: 'ADD_DISCOVERY_ENTRY',
+        payload: {
+          gameTime: gameState.gameTime.toISOString(),
+          type: DiscoveryType.LOCATION_DISCOVERY,
+          title: `Location Discovered: ${placeName}`,
+          content: `You reached ${placeName} and added this atlas cell to your explored world.`,
+          source: { type: 'LOCATION', id: locationId, name: placeName },
+          flags: [
+            { key: 'locationId', value: locationId, label: placeName },
+            { key: 'cellId', value: cellId, label: `Atlas cell ${cellId}` },
+          ],
+          isQuestRelated: false,
+          associatedLocationId: locationId,
+        },
+      });
+    };
+
     if (!targetBiome) {
       addMessage("The nature of this terrain is unknown.", 'system');
       return;
@@ -832,7 +872,8 @@ const App: React.FC = () => {
       // Grid retirement: no mapData tile mutation (isPlayerCurrent is the canonical
       // cell; fog is cell-native). The destinationCell carries the exact arrival cell.
       dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: tile.locationId, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(tile.locationId, LOCATIONS), destinationCell: travelMeta?.destinationCell } });
-      dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
+      if (travelSeconds > 0) dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
+      if (travelMeta?.destinationCell) recordCellDiscovery(travelMeta.destinationCell.cellId, tile.locationId);
       dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
       applyProvisionEffects();
       applyFerryFare();
@@ -845,15 +886,25 @@ const App: React.FC = () => {
       // clicked atlas cell (carried by destinationCell), not a coord_X_Y tile.
       const destCellId = travelMeta?.destinationCell?.cellId;
       const targetLocId = destCellId != null ? makeCellLocationId(destCellId) : null;
-      if (targetLocId && targetLocId !== gameState.currentLocationId) {
-        dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: targetLocId, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetLocId, LOCATIONS), destinationCell: travelMeta?.destinationCell } });
-        dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
+      if (targetLocId) {
+        const moved = targetLocId !== gameState.currentLocationId;
+        if (moved) {
+          dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: targetLocId, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetLocId, LOCATIONS), destinationCell: travelMeta?.destinationCell } });
+          recordCellDiscovery(destCellId!, targetLocId);
+        }
+        // A zero-supply push can honestly halt in the origin cell. It still
+        // applies starvation/loyalty effects, but receives no free edge or time.
+        if (travelSeconds > 0) dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
         dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
         applyProvisionEffects();
         applyFerryFare();
         applyForcedMarch();
         announceNavDrift();
         announceEncounter();
+        triggerTravelEncounter();
+        if (!moved && !travelMeta?.provision?.note) {
+          addMessage(`You remain in ${targetBiome.name.toLowerCase()} country.`, 'system');
+        }
       } else {
         // Grid retirement: no coordinates in player-facing text — name the place.
         const settlementName = tile.locationId ? LOCATIONS[tile.locationId]?.name : undefined;
@@ -872,7 +923,7 @@ const App: React.FC = () => {
       addMessage('That place lies beyond the known map — scout closer before you can travel there.', 'system');
     }
 
-  }, [gameState.currentLocationId, gameState.companions, gameState.party, addMessage, dispatch]);
+  }, [gameState.currentLocationId, gameState.companions, gameState.party, gameState.discoveryLog, gameState.gameTime, addMessage, dispatch]);
 
   /**
    * Atlas "Enter 3D" mode: place the player in the streamed world at the clicked cell.
@@ -883,13 +934,27 @@ const App: React.FC = () => {
       return;
     }
 
-    // Grid retirement: 3D entry is fully cell-native. The streamed ground frames
-    // itself from the entry anchor (the chosen atlas cell), so the legacy
-    // continent position is vestigial — enter at the origin and let the anchor
-    // place the camera. (The old grid-cell→world-meters conversion is gone.)
-    dispatch({ type: 'SET_PLAYER_WORLD_POS', payload: { x: 0, y: 0, z: 0 } });
+    // 3D entry is an atomic location transition, not just a render hint. A
+    // selected explored cell must become the canonical playerCell/location too,
+    // otherwise saves, NPC context and hidden discoveries describe the old cell
+    // while the loader renders the new one.
     if (anchor) {
-      dispatch({ type: 'SET_ENTRY_3D_ANCHOR', payload: anchor });
+      const targetLocationId = makeCellLocationId(anchor.cellId);
+      if (gameState.playerCell?.cellId !== anchor.cellId || gameState.currentLocationId !== targetLocationId) {
+        dispatch({
+          type: 'MOVE_PLAYER',
+          payload: {
+            newLocationId: targetLocationId,
+            activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetLocationId, LOCATIONS),
+            destinationCell: { cellId: anchor.cellId, anchor },
+          },
+        });
+      } else {
+        dispatch({ type: 'SET_ENTRY_3D_ANCHOR', payload: anchor });
+      }
+      // Locale meters belong to the old cell; the destination ground session
+      // will establish a fresh local position after it loads.
+      dispatch({ type: 'SET_PLAYER_GROUND_POS', payload: { position: null } });
       // Living-world sim: if the entered cell holds a town, start tracking its
       // history. Resolved straight from the cell — no grid tile lookup.
       const burgId = burgIdForCell(gameState.worldSeed ?? 0, anchor.cellId);
@@ -897,13 +962,16 @@ const App: React.FC = () => {
         dispatch({ type: 'TOWNSIM_REGISTER_BURG', payload: { burgId } });
       }
     }
+    // The legacy continent position is vestigial, but keep its compatibility
+    // value at the origin while the cell-native anchor frames the ground world.
+    dispatch({ type: 'SET_PLAYER_WORLD_POS', payload: { x: 0, y: 0, z: 0 } });
     dispatch({ type: 'SET_WORLD_VIEW_MODE', payload: '3d' });
     if (gameState.isMapVisible) {
       dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
     }
 
     addMessage('Entering the 3D world.', 'system');
-  }, [addMessage, dispatch, gameState.isMapVisible, gameState.worldSeed]);
+  }, [addMessage, dispatch, gameState.currentLocationId, gameState.isMapVisible, gameState.playerCell?.cellId, gameState.worldSeed]);
 
   const handleOpenCharacterSheet = useCallback((character: PlayerCharacter) => {
     dispatch({ type: 'OPEN_CHARACTER_SHEET', payload: character });
@@ -1252,7 +1320,14 @@ const App: React.FC = () => {
   if (gameState.phase === GamePhase.MAIN_MENU) {
     // Render the Main Menu: New Game, Load Game, etc.
     const prevPhase: GamePhase | undefined = gameState.previousPhase;
-    const canGoBack = prevPhase !== undefined && prevPhase !== GamePhase.MAIN_MENU;
+    // Error and terminal recovery are one-way boundaries. Offering Return for
+    // either phase recreates the 404/game-over screen immediately after the
+    // player has explicitly returned to safety.
+    const canGoBack =
+      prevPhase !== undefined &&
+      prevPhase !== GamePhase.MAIN_MENU &&
+      prevPhase !== GamePhase.NOT_FOUND &&
+      prevPhase !== GamePhase.GAME_OVER;
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred in the Main Menu.">
         <MainMenu
@@ -1389,12 +1464,9 @@ const App: React.FC = () => {
           onRoundElapsed={handleCombatRoundElapsed}
           onBattleEnd={(result, rewards, finalPartyState) => {
             addMessage(result === 'victory' ? 'Victory! The enemies are defeated.' : 'Defeat! The party has fallen.', 'system');
-            if (result === 'victory' && rewards) {
-              // finalPartyState carries post-combat HP/slots/uses so attrition persists.
-              dispatch({ type: 'END_BATTLE', payload: { rewards, finalPartyState } });
-            } else {
-              dispatch({ type: 'END_BATTLE' });
-            }
+            // Defeat must enter GAME_OVER after combat teardown; victory keeps
+            // the existing reward settlement and exploration return.
+            for (const action of createBattleEndActions(result, rewards, finalPartyState)) dispatch(action);
           }}
         />
       </ErrorBoundary>
@@ -1413,7 +1485,7 @@ const App: React.FC = () => {
     const atlasContent = useWorldforgeSurface ? (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
         <Suspense fallback={<LoadingSpinner />}>
-          <WorldforgeAtlasDemo />
+          <WorldforgeAtlasDemo embeddedInGame worldSeed={gameState.worldSeed} />
         </Suspense>
         <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 40 }}>
           <MapSurfaceToggle />
@@ -1495,7 +1567,8 @@ const App: React.FC = () => {
       <div className="flex flex-col items-center justify-center h-screen bg-black text-red-600 font-serif gap-8">
         <h1 className="text-6xl tracking-wider">{t('app.game_over')}</h1>
         <button
-          onClick={() => dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU })}
+          // Clear the defeated in-memory run while preserving stored saves for recovery.
+          onClick={handleAbandonRun}
           className="px-8 py-3 bg-red-900/50 hover:bg-red-800/80 border border-red-700 rounded text-xl text-red-100 transition-colors"
         >
           Return to Main Menu

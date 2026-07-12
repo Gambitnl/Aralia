@@ -31,7 +31,7 @@
  * 7. Optional atlas overlays:
  *    - Territory color tint blending for state, culture, religion, or province ownership
  *    - Crisp state border strokes (dark-purple boundaries along shared Voronoi edges)
- *    - Route networks (roads as solid brown, trails as thin dashed stone-grey, sea routes as dashed light-blue)
+ *    - Route networks (tiered strokes from routeMapStyle.ts, shared with the SVG renderer; trails/paths fade per-segment in forest)
  *    - Burg markers (capitals as larger double red/white circles, towns as small white circles)
  *    - Serif state name labels and sans-serif burg name labels with zoom thresholds (capitals at scale >= 1.2, towns at scale >= 2.0)
  *    - Simple 2D bounding-box collision detection to declutter labels and prevent overlaps
@@ -42,6 +42,15 @@
 
 import type { FmgAtlasResult } from "../../systems/worldforge/fmg/generateAtlas";
 import { FEET_PER_FMG_PIXEL } from "../../systems/worldforge/adapter/atlasArtifact";
+import { routeVisibility } from "../../systems/worldforge/travel/routeTerrain";
+import { buildForestGlyphs, forestGlyphRampOpacity } from "./atlasSvg";
+import {
+  ROUTE_STROKES,
+  groupToKind,
+  routeOpacity,
+  segmentRouteByVisibility,
+  type RouteStroke,
+} from "./routeMapStyle";
 
 // ============================================================================
 // Types
@@ -427,7 +436,10 @@ export function drawAtlas(
   let terrainCtx: CanvasRenderingContext2D = ctx;
   let terrainCanvas: HTMLCanvasElement | null = null;
   try {
-    if (typeof document !== "undefined") {
+    // Resize/HMR can briefly expose a mounted canvas at 0x0. Creating and
+    // blitting a zero-sized offscreen canvas throws InvalidStateError in real
+    // browsers, so draw directly until the measured viewport becomes usable.
+    if (typeof document !== "undefined" && canvasWidth > 0 && canvasHeight > 0) {
       const oc = document.createElement("canvas");
       oc.width = canvasWidth;
       oc.height = canvasHeight;
@@ -576,6 +588,44 @@ export function drawAtlas(
     }
     ctx.drawImage(terrainCanvas, 0, 0);
     ctx.restore();
+  }
+
+  // --------------------------------------------------------------------------
+  // Layer 2.4: Forest tree glyphs (forests campaign T6)
+  // --------------------------------------------------------------------------
+  // Tiny per-cell tree stamps for NAMED forests (pack.forests clusters only),
+  // kind-tinted, sharing ONE source of truth with the SVG renderer: the same
+  // buildForestGlyphs paths, stamped here via Path2D. Placed right after the
+  // terrain blur boundary so glyphs stay crisp ink over the softened fills,
+  // under the cell mesh / coastline / rivers / political layers. Zoom-gated:
+  // the shared ramp answers 0 below GLYPH_MIN_ZOOM (view.scale carries the
+  // same screen-px-per-graph-unit meaning as the SVG side's view.k), so the
+  // zoomed-out map stays clean and we skip the work entirely.
+  {
+    const glyphAlpha = forestGlyphRampOpacity(view.scale);
+    if (glyphAlpha > 0) {
+      const glyphCells = buildForestGlyphs(atlas);
+      if (glyphCells.length > 0) {
+        ctx.save();
+        ctx.globalAlpha = glyphAlpha;
+        // Stamp in graph space through the view transform; divide the stroke
+        // by scale so ink stays 0.5 SCREEN px — the canvas twin of the SVG
+        // layer's vectorEffect="non-scaling-stroke".
+        ctx.translate(view.offsetX, view.offsetY);
+        ctx.scale(view.scale, view.scale);
+        ctx.lineWidth = 0.5 / view.scale;
+        ctx.strokeStyle = "#2b3d2e";
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        for (const cell of glyphCells) {
+          const path = new Path2D(cell.d);
+          ctx.fillStyle = cell.tint ?? "#2f5233";
+          ctx.fill(path);
+          ctx.stroke(path);
+        }
+        ctx.restore();
+      }
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -798,37 +848,48 @@ export function drawAtlas(
       ctx.restore();
     }
 
-    // 5.2 Routes (roads, trails, and sea routes using points array)
+    // 5.2 Routes — tier stroke language + forest fade, shared with the SVG
+    // renderer via routeMapStyle (one language, two backends).
     if (pack.routes) {
+      const biomeOf = (cellId: number): string =>
+        biomesData?.name?.[pack.cells.biome?.[cellId] ?? -1] ?? "";
+      const drawPolyline = (pts: number[][], style: RouteStroke, opacity: number) => {
+        if (pts.length < 2) return; // trailing boundary-only segment draws nothing
+        const trace = () => {
+          ctx.beginPath();
+          ctx.moveTo(tx(pts[0][0]), ty(pts[0][1]));
+          for (let k = 1; k < pts.length; k++) ctx.lineTo(tx(pts[k][0]), ty(pts[k][1]));
+        };
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        if (style.casing) {
+          trace();
+          ctx.strokeStyle = style.casing.stroke;
+          ctx.lineWidth = style.casing.width * view.scale;
+          ctx.setLineDash([]);
+          ctx.stroke();
+        }
+        trace();
+        ctx.strokeStyle = style.stroke;
+        ctx.lineWidth = style.width * view.scale;
+        ctx.setLineDash(style.dash ? style.dash.map((d) => d * view.scale) : []);
+        ctx.stroke();
+        ctx.restore();
+      };
       for (const route of pack.routes) {
         const pts = route.points;
         if (!pts || pts.length < 2) continue;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(tx(pts[0][0]), ty(pts[0][1]));
-        for (let k = 1; k < pts.length; k++) {
-          ctx.lineTo(tx(pts[k][0]), ty(pts[k][1]));
+        const kind = groupToKind(route.group ?? "roads");
+        const style = ROUTE_STROKES[kind];
+        if (kind === "trail" || kind === "path") {
+          for (const seg of segmentRouteByVisibility(pts, (c) => routeVisibility(biomeOf(c), kind))) {
+            drawPolyline(seg.points, style, routeOpacity(kind, seg.visibility));
+          }
+        } else {
+          drawPolyline(pts, style, routeOpacity(kind, "visible"));
         }
-
-        if (route.group === "roads") {
-          ctx.strokeStyle = "#8b5a2b"; // Solid brown
-          ctx.lineWidth = 1.2 * view.scale;
-          ctx.setLineDash([]);
-        } else if (route.group === "trails") {
-          ctx.strokeStyle = "#708090"; // Stone grey
-          ctx.lineWidth = 0.8 * view.scale;
-          ctx.setLineDash([3, 3]);
-        } else if (route.group === "searoutes") {
-          ctx.strokeStyle = "#87cefa"; // Light blue
-          ctx.lineWidth = 1.0 * view.scale;
-          ctx.setLineDash([4, 4]);
-        }
-
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.stroke();
-        ctx.restore();
       }
     }
 

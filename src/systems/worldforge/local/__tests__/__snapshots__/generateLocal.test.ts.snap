@@ -1,8 +1,20 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`generateLocal — forest thickets, clearings, undergrowth (Task 10) > grassland (non-dense) output is BYTE-IDENTICAL to the pre-Task-10 generator > grassland-task10-byte-identity 1`] = `
+{
+  "counts": {
+    "boulder": 270,
+    "bush": 540,
+    "tree": 180,
+  },
+  "featureCount": 990,
+  "featureHash": 3351557825,
+}
+`;
+
 exports[`generateLocal — golden snapshot (freeze at acceptance) > pins terrain hash and feature counts > local-golden 1`] = `
 {
-  "featureCount": 2970,
+  "featureCount": 5670,
   "materialHash": 1341647017,
   "seedPath": "wf:42/cell:110/local:265200-77700",
   "treeCount": 1620,

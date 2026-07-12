@@ -20,12 +20,25 @@ import { Ability, CombatCharacter } from '../../../types/combat';
 const renderedAbilities: Ability[] = [];
 
 vi.mock('../AbilityButton', () => ({
-  default: ({ ability }: { ability: Ability }) => {
+  default: ({
+    ability,
+    onSelect,
+    isSelected,
+  }: {
+    ability: Ability;
+    onSelect: () => void;
+    isSelected?: boolean;
+  }) => {
     // The real button renders visuals and motion. This mock records the ability
     // object exactly as the palette generated it, which is the metadata contract
-    // this test cares about.
+    // most tests care about, while preserving click and pressed-state behavior
+    // for the armed-ability interaction test.
     renderedAbilities.push(ability);
-    return <button type="button">{ability.name}</button>;
+    return (
+      <button type="button" onClick={onSelect} aria-pressed={isSelected}>
+        {ability.name}
+      </button>
+    );
   }
 }));
 
@@ -119,5 +132,43 @@ describe('AbilityPalette generated granted-action abilities', () => {
     expect(popoutButton).toHaveClass('w-11');
     expect(popoutButton).toHaveClass('items-center');
     expect(popoutButton).toHaveClass('justify-center');
+  });
+
+  it('cancels targeting when the player presses the armed tile again', () => {
+    const onSelectAbility = vi.fn();
+    const onCancelAbility = vi.fn();
+    const character = {
+      id: 'fighter',
+      name: 'Fighter',
+      abilities: [{
+        id: 'strike',
+        name: 'Strike',
+        description: 'A basic attack.',
+        type: 'weapon',
+        cost: { type: 'action' },
+        targeting: 'single_enemy',
+        range: 1,
+        effects: []
+      }]
+    } as unknown as CombatCharacter;
+
+    render(
+      <AbilityPalette
+        character={character}
+        onSelectAbility={onSelectAbility}
+        selectedAbilityId="strike"
+        onCancelAbility={onCancelAbility}
+        canAffordAction={() => true}
+      />
+    );
+
+    const armedTile = screen.getByRole('button', { name: 'Strike' });
+    expect(armedTile).toHaveAttribute('aria-pressed', 'true');
+
+    // The originating command is a natural second cancel path. It must not
+    // restart the same ability and reset target-selection context.
+    armedTile.click();
+    expect(onCancelAbility).toHaveBeenCalledTimes(1);
+    expect(onSelectAbility).not.toHaveBeenCalled();
   });
 });

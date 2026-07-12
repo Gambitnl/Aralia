@@ -17,6 +17,11 @@ import TownAgentSnapshotView from '../Worldforge/TownAgentSnapshotView';
 
 const SYLLABLES = ['ar', 'be', 'cor', 'dun', 'el', 'fen', 'gor', 'hal', 'kel', 'mor', 'tan', 'wyn'];
 
+// Keep developer inspectors beside, rather than on top of, the lower-right
+// World3D HUD. That HUD owns the final ~200px for its transition controls;
+// `right: 12` made the Atlas button visible but impossible to click.
+const DEV_INSPECTOR_RIGHT_OFFSET_PX = 220;
+
 const AgentSimDevOverlay: React.FC = () => {
   const { state } = useGameState();
   const [open, setOpen] = useState(false);
@@ -44,7 +49,7 @@ const AgentSimDevOverlay: React.FC = () => {
   const clock = scrub ?? liveClock;
 
   return (
-    <div style={{ position: 'fixed', right: 12, bottom: 12, zIndex: 4000, fontFamily: 'sans-serif' }} data-testid="agent-sim-dev-overlay">
+    <div style={{ position: 'fixed', right: DEV_INSPECTOR_RIGHT_OFFSET_PX, bottom: 12, zIndex: 4000, fontFamily: 'sans-serif' }} data-testid="agent-sim-dev-overlay">
       {open ? (
         <div style={{ background: 'rgba(13,17,23,0.96)', border: '1px solid #30363d', borderRadius: 8, padding: 8, boxShadow: '0 6px 24px rgba(0,0,0,0.5)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>

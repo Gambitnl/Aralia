@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 14:31:40
+ * Last Sync: 12/07/2026, 00:55:13
  * Dependents: App.tsx, components/DesignPreview/steps/PreviewComponents.tsx
- * Imports: 3 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -29,6 +29,7 @@ import { Companion } from '../../types/companions';
 
 import { GameMessage } from '../../types';
 import { UI_ID } from '../../styles/uiIds';
+import { usableCompanionAvatarUrl } from '../../systems/companions/portraitAssets';
 
 const REACTION_DISPLAY_MS = 5_000;
 const REACTION_DUPLICATE_WINDOW_MS = 3_000;
@@ -67,7 +68,9 @@ const buildReactionBubble = (message: GameMessage, companion: Companion): Reacti
   companionId: companion.id,
   companionName: companion.identity.name,
   text: parseReactionText(message.text),
-  avatarUrl: companion.identity.avatarUrl,
+  // Legacy saves can still contain placeholder paths removed from canonical
+  // companion data, so normalize at the final UI boundary as well.
+  avatarUrl: usableCompanionAvatarUrl(companion.identity.avatarUrl),
   receivedAt: getMessageTimestamp(message),
 });
 

@@ -83,12 +83,15 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
     }
 
     // State -> URL Sync (User Action)
-    const shouldUpdatePhase = getPhaseFromSlug(params.get('phase')) !== gameState.phase;
+    const currentUrlPhase = getPhaseFromSlug(params.get('phase'));
+    const shouldUpdatePhase = currentUrlPhase !== gameState.phase;
 
     syncParams(params, gameState.phase);
 
     // Use pushState for phase changes, replaceState for updates (like movement)
-    const method = shouldUpdatePhase ? 'pushState' : 'replaceState';
+    // Recovery replaces the 404 entry so Back cannot immediately reopen it.
+    const recoveringFromNotFound = currentUrlPhase === GamePhase.NOT_FOUND && gameState.phase === GamePhase.MAIN_MENU;
+    const method = shouldUpdatePhase && !recoveringFromNotFound ? 'pushState' : 'replaceState';
 
     // Only update if URL actually changed to avoid thrashing
     const currentSearch = new URLSearchParams(window.location.search).toString();

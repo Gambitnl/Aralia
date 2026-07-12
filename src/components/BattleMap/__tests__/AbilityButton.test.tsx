@@ -6,6 +6,15 @@ import AbilityButton from '../AbilityButton';
 import { Ability } from '../../../types/combat';
 import { SpellSchool } from '@/types/spells';
 
+/**
+ * This file checks one combat ability tile in isolation.
+ *
+ * It protects the visual source, accessibility label, disabled warnings, and
+ * armed-targeting state before AbilityPalette arranges tiles in the command
+ * rail. The tests use the real tooltip and motion wrapper so overlap regressions
+ * are caught at the component boundary where they originate.
+ */
+
 describe('AbilityButton', () => {
     const mockOnSelect = vi.fn();
 
@@ -70,6 +79,27 @@ describe('AbilityButton', () => {
         render(<AbilityButton ability={mockAbility} onSelect={mockOnSelect} isDisabled={false} />);
         fireEvent.click(screen.getByRole('button'));
         expect(mockOnSelect).toHaveBeenCalled();
+    });
+
+    it('marks an armed ability as pressed and leaves details to the map HUD', () => {
+        render(
+            <AbilityButton
+                ability={mockAbility}
+                onSelect={mockOnSelect}
+                isDisabled={false}
+                isSelected
+            />
+        );
+
+        const armedButton = screen.getByRole('button');
+        expect(armedButton).toHaveAttribute('aria-pressed', 'true');
+        expect(armedButton).toHaveClass('ring-2');
+
+        // A selected tile remains under the pointer after it is clicked. Its
+        // large tooltip must stay closed because CombatIntentPreview now owns
+        // the same details over the map and needs an unobstructed target view.
+        fireEvent.mouseEnter(armedButton);
+        expect(screen.queryByTestId('tooltip')).not.toBeInTheDocument();
     });
 
     it('shows cooldown overlay', () => {

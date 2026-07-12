@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { planRoutesFrom } from '../../../travel/routePlanning';
 import type { FmgAtlasResult } from '../../fmg/generateAtlas';
+import { buildAtlasTravelGraph } from '../atlasTravelGraph';
 import {
   buildFerryLaneCells,
   buildMultiModalAtlasGraph,
@@ -247,5 +248,120 @@ describe('buildMultiModalAtlasGraph — ship open-water passability (3A)', () =>
     // Cells 2 and 3 are ferry-lane sea cells
     expect(graph.danger!(2)).toBe(0.12);
     expect(graph.danger!(3)).toBe(0.12);
+  });
+});
+
+// ============================================================================
+// Graded road mechanics on land legs (2026-07-11 road systems)
+// ============================================================================
+// The multimodal graph must grade its land legs exactly like the land-only
+// graph: route tiers from FMG groups (generated points-only routes included)
+// and biome-graded off-road travel. Sea legs are pinned above and must not
+// shift — grading applies to land cells only.
+// ============================================================================
+
+describe('graded road mechanics on land legs (2026-07-11 road systems)', () => {
+  // 3 land cells in a row, all the given biome; routes spliced in per case.
+  // graphWidth 1000 → the milesPerUnit fallback is 3 mi/unit, so each 10-unit
+  // hop is 30 miles; at the default 3 mph land speed that is 600 base minutes.
+  const makeLandAtlas = (biomeName: string, routes: unknown[]): FmgAtlasResult => ({
+    graphWidth: 1000,
+    biomesData: { name: ['Marine', biomeName] },
+    pack: {
+      cells: {
+        c: [[1], [0, 2], [1]],
+        p: [[0, 0], [10, 0], [20, 0]],
+        h: [30, 30, 30],
+        biome: [1, 1, 1],
+      },
+      routes,
+    },
+  } as unknown as FmgAtlasResult);
+
+  it('applies the road-tier speed factor to land edgeMinutes (points-only route)', () => {
+    const graph = buildMultiModalAtlasGraph(
+      makeLandAtlas('Temperate deciduous forest', [{ group: 'roads', points: [[10, 0, 1]] }]),
+      { sea: null },
+    );
+    expect(graph.terrain(1)).toBe('road');
+    // 30 miles at 3 mph × 1.25 road tier (biome penalty cleared) = 480 minutes.
+    expect(graph.edgeMinutes!(0, 1)).toBeCloseTo(480, 6);
+  });
+
+  it('grades off-road land edgeMinutes by biome instead of the binary difficult set', () => {
+    const graph = buildMultiModalAtlasGraph(
+      makeLandAtlas('Temperate deciduous forest', []),
+      { sea: null },
+    );
+    // 30 miles at 3 mph × 0.75 deciduous-forest off-road factor = 800 minutes.
+    expect(graph.edgeMinutes!(0, 1)).toBeCloseTo(800, 6);
+  });
+
+  it('scales land danger down on routes by tier, not a flat road halving', () => {
+    const road = buildMultiModalAtlasGraph(
+      makeLandAtlas('Grassland', [{ group: 'roads', cells: [1] }]),
+      { sea: null },
+    );
+    expect(road.danger!(1)).toBeCloseTo(0.2 * 0.5, 6); // Grassland baseline × road mult
+    expect(road.danger!(0)).toBeCloseTo(0.2, 6);       // off-route keeps the biome baseline
+
+    const trail = buildMultiModalAtlasGraph(
+      makeLandAtlas('Grassland', [{ group: 'trails', cells: [1] }]),
+      { sea: null },
+    );
+    expect(trail.terrain(1)).toBe('trail');
+    expect(trail.danger!(1)).toBeCloseTo(0.2 * 0.7, 6); // trails are patrolled less
+  });
+
+  it('agrees cell-for-cell with the land graph on terrain and danger', () => {
+    const atlas = makeLandAtlas('Taiga', [
+      { group: 'highways', points: [[0, 0, 0]] },
+      { group: 'paths', cells: [1] },
+    ]);
+    const land = buildAtlasTravelGraph(atlas);
+    const multi = buildMultiModalAtlasGraph(atlas, { sea: null });
+    for (const cell of [0, 1, 2]) {
+      expect(multi.terrain(cell)).toBe(land.terrain(cell));
+      expect(multi.danger!(cell)).toBeCloseTo(land.danger!(cell), 12);
+    }
+  });
+
+  // Climb case (2026-07-11 mountains): an ascending ridge 30 → 50 → 70 with a
+  // road on cell 1 only, so one leg is tier-softened and one takes full slope.
+  const makeRidgeAtlas = (): FmgAtlasResult => ({
+    graphWidth: 1000,
+    biomesData: { name: ['Marine', 'Grassland'] },
+    pack: {
+      cells: {
+        c: [[1], [0, 2], [1]],
+        p: [[0, 0], [10, 0], [20, 0]],
+        h: [30, 50, 70],
+        biome: [1, 1, 1],
+      },
+      routes: [{ group: 'roads', cells: [1] }],
+    },
+  } as unknown as FmgAtlasResult);
+
+  it('folds the climb factor into land edgeMinutes with the leg tier softening (mountains)', () => {
+    const graph = buildMultiModalAtlasGraph(makeRidgeAtlas(), { sea: null });
+    // 0→1: 30 miles, +20h onto a road (Δh halved → ×1/1.5) at road speed 1.25:
+    // 30 / (3 × 1.25 × (1/1.5)) × 60 = 720 minutes (was 480 flat).
+    expect(graph.edgeMinutes!(0, 1)).toBeCloseTo(720, 6);
+    // 1→2: off-road +20h full slope (×1/2): 30 / (3 × 1 × 0.5) × 60 = 1200.
+    expect(graph.edgeMinutes!(1, 2)).toBeCloseTo(1200, 6);
+    // Descending back down the same edge is cheaper than climbing it.
+    expect(graph.edgeMinutes!(2, 1)).toBeLessThan(graph.edgeMinutes!(1, 2));
+  });
+
+  it('agrees with the land graph on climb-graded travel minutes (mountains)', () => {
+    const atlas = makeRidgeAtlas();
+    const land = buildAtlasTravelGraph(atlas);
+    const multi = buildMultiModalAtlasGraph(atlas, { sea: null });
+    // Same speed both sides: multi's default land speed is 3 mph; the land
+    // planner gets speedMph 3 + the atlas mile scale (graphWidth 1000 → 3 mi/unit).
+    const landRoute = planRoutesFrom(land, 0, { milesPerUnit: 3, speedMph: 3 }).to(2)!;
+    const multiRoute = planRoutesFrom(multi, 0, { milesPerUnit: 3, speedMph: 3 }).to(2)!;
+    expect(landRoute.cells).toEqual(multiRoute.cells);
+    expect(landRoute.minutes).toBeCloseTo(multiRoute.minutes, 6);
   });
 });

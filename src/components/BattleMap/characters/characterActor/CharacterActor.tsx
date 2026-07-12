@@ -11,21 +11,21 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { CombatCharacter } from '../../../../types/combat';
 import { getDistance } from '../../../../utils/combat/combatUtils';
-import { useFresnelRim } from '../useFresnelRim';
 import { DefenseBadgeRow } from './defenseBadges';
 import { ConditionBadgeRow } from './conditionBadges';
-import {
-  type AnimationState,
-  getArchetype,
-  getRaceVisual,
-  BeastModel,
-  DragonModel,
-  OozeModel,
-  AberrationModel,
-  HumanoidModel,
-  SelectionDecal,
-  TurnIndicator,
-} from './models';
+import { type AnimationState, SelectionDecal, TurnIndicator } from './models';
+import { EntityModel } from './EntityModel';
+import { registerAllParts } from '@/systems/entities3d/parts';
+import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
+import { recipeFromCombatant } from '@/systems/entities3d/recipeFromCombatant';
+import { heightM } from '@/systems/entities3d/types';
+
+registerAllParts();
+
+/** Combat map: 1 tile = 5 ft = 1 unit → 0.656 units per meter, plus the same
+ * mild readability oversize the primitive models used (~1.25×). */
+const UNITS_PER_M = 1 / 1.524;
+const MODEL_SCALE = UNITS_PER_M * 1.25;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -103,43 +103,18 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
   const isAlive = character.currentHP > 0;
   const teamKey = isPlayer ? 'player' : character.team === 'enemy' ? 'enemy' : 'neutral';
   const teamColors = TEAM_COLORS[teamKey];
-  const archetype = useMemo(() => getArchetype(character.class?.name ?? ''), [character.class?.name]);
-  const raceVisual = useMemo(
-    () => getRaceVisual(character.creatureTypes, character.name),
-    [character.creatureTypes, character.name],
+  // The generated body: race/class for PCs and humanoid monsters, creature
+  // type × size for the rest. Size lives in the blueprint's frame, so no
+  // separate size-category scale — a Huge dragon's frame IS huge.
+  const blueprint = useMemo(
+    () => generateEntityBlueprint(recipeFromCombatant(character)),
+    // identity fields only — HP/position changes must not rebuild the body
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [character.id, character.name, character.class?.id, character.creatureTypes, character.stats?.size],
   );
-  // Fresnel rim on the model meshes (GOAL #7). Re-runs when the body plan or
-  // identity changes so rebuilt mesh trees get patched too.
-  useFresnelRim(modelGroupRef, [raceVisual.form, character.id]);
-  // Per-character idle stance (GOAL #8): seeded lean + arm-angle offsets and a
-  // sway/breathe phase so units don't stand and breathe in lockstep.
-  const stance = useMemo(() => {
-    let h = 0;
-    for (let i = 0; i < character.id.length; i++) {
-      h = ((h << 5) - h) + character.id.charCodeAt(i);
-      h |= 0;
-    }
-    const r = (n: number) => {
-      const x = Math.sin(h + n * 374761) * 43758.5453;
-      return x - Math.floor(x);
-    };
-    return {
-      phase: r(1) * Math.PI * 2,
-      lean: (r(2) - 0.5) * 0.10,
-      armL: (r(3) - 0.5) * 0.22,
-      armR: (r(4) - 0.5) * 0.18,
-    };
-  }, [character.id]);
-  // Creature size category → overall scale, so Large+ enemies (ogres, trolls,
-  // dragons) physically tower over Medium humanoids instead of all matching.
-  const sizeScale = useMemo(() => {
-    switch (character.stats?.size) {
-      case 'Large': return 1.55;
-      case 'Huge': return 2.15;
-      case 'Gargantuan': return 2.9;
-      default: return 1.0; // Tiny/Small/Medium
-    }
-  }, [character.stats?.size]);
+  /** Body height in map units — pips and nameplates ride above the real head. */
+  const heightUnits = heightM(blueprint.frame) * MODEL_SCALE;
+  const pipY = Math.max(1.85, heightUnits + 0.45);
 
   const activeCharacter = useMemo(() => {
     if (!activeCharacterId) return undefined;
@@ -295,65 +270,18 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
           status story, below the HP pip. */}
       <ConditionBadgeRow character={character} />
 
-      {/* Character model — scaled to TRUE world proportions (Remy 2026-07-01:
-          "characters shouldn't be almost as big as a tree"). At 1 tile = 5 ft,
-          2.2× puts a human at ~1.4 units ≈ 7 ft — figures stand under the
-          canopy instead of rivaling it. Readability is carried by the team
-          rings, fresnel rim (task 73), and indicators, not by giant models
-          (the old 3.7× made characters near canopy height). */}
-      <group
-        ref={modelGroupRef}
-        scale={[
-          2.2 * raceVisual.buildScale * sizeScale,
-          2.2 * raceVisual.heightScale * sizeScale,
-          2.2 * raceVisual.buildScale * sizeScale,
-        ]}
-        rotation={[0, facingRotation, 0]}
-      >
-        {raceVisual.form === 'beast' ? (
-          <BeastModel
-            teamColor={teamColors.primary}
-            isPlayerTeam={isPlayer}
-            animTime={animTimeRef.current}
-            furColor={raceVisual.skin}
-            idlePhase={stance.phase}
-          />
-        ) : raceVisual.form === 'dragon' ? (
-          <DragonModel
-            teamColor={teamColors.primary}
-            isPlayerTeam={isPlayer}
-            animTime={animTimeRef.current}
-            scaleColor={raceVisual.skin}
-            idlePhase={stance.phase}
-          />
-        ) : raceVisual.form === 'ooze' ? (
-          <OozeModel
-            teamColor={teamColors.primary}
-            isPlayerTeam={isPlayer}
-            animTime={animTimeRef.current}
-            slimeColor={raceVisual.skin}
-            idlePhase={stance.phase}
-          />
-        ) : raceVisual.form === 'aberration' ? (
-          <AberrationModel
-            teamColor={teamColors.primary}
-            isPlayerTeam={isPlayer}
-            animTime={animTimeRef.current}
-            fleshColor={raceVisual.skin}
-            idlePhase={stance.phase}
-          />
-        ) : (
-          <HumanoidModel
-            teamColor={teamColors.primary}
-            isPlayerTeam={isPlayer}
-            isAlive={isAlive}
-            animState={isAlive ? animState : 'death'}
-            animTime={animTimeRef.current}
-            archetype={archetype}
-            race={raceVisual}
-            stance={stance}
-          />
-        )}
+      {/* Character body — a generated entity at true world proportions
+          (Remy 2026-07-01: "characters shouldn't be almost as big as a
+          tree"). At 1 tile = 5 ft, MODEL_SCALE puts a human at ~1.4 units
+          ≈ 7 ft; size categories are already in the blueprint's frame, so
+          a Huge dragon towers without a separate multiplier. Readability
+          is carried by the team rings, ink outlines, and indicators. */}
+      <group ref={modelGroupRef} scale={MODEL_SCALE} rotation={[0, facingRotation, 0]}>
+        <EntityModel
+          blueprint={blueprint}
+          animState={isAlive ? animState : 'death'}
+          animTimeRef={animTimeRef}
+        />
       </group>
 
       {/* Target reticle glow when targetable */}
@@ -366,11 +294,12 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         />
       )}
 
-      {/* Always-visible HP pip — sphere + team ring, positioned above the 2.2× scaled model */}
-      <group position={[0, 1.85, 0]}>
-        {/* HP color sphere — glows team-appropriate health color */}
+      {/* Always-visible HP pip — sphere + team ring, riding above the real head */}
+      <group position={[0, pipY, 0]}>
+        {/* HP color sphere — glows team-appropriate health color (sized down
+            for the generated bodies; readability still carried by the glow) */}
         <mesh>
-          <sphereGeometry args={[0.18, 10, 8]} />
+          <sphereGeometry args={[0.14, 10, 8]} />
           <meshStandardMaterial
             color={hpColor}
             emissive={hpColor}
@@ -381,7 +310,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         </mesh>
         {/* Team ring — larger for visibility at 20+ unit distance */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.03, 0]}>
-          <ringGeometry args={[0.20, 0.36, 20]} />
+          <ringGeometry args={[0.16, 0.29, 20]} />
           <meshStandardMaterial
             color={teamColors.selection}
             emissive={teamColors.selection}
@@ -397,7 +326,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
       {/* Nameplate — shown on hover, selection, or active turn (BG3 style) */}
       {(isSelected || isTurn || hovered) && (
         <Html
-          position={[0, 2.15, 0]}
+          position={[0, pipY + 0.3, 0]}
           center
           distanceFactor={10}
           style={{ pointerEvents: 'none' }}

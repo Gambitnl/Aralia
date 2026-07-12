@@ -3,9 +3,10 @@
  * Focused layout coverage for the active combat shell on cramped screens.
  */
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import SpellContext from '../../../context/SpellContext';
+import { Ability } from '../../../types/combat';
 import CombatView from '../CombatView';
 
 const combatants = vi.hoisted(() => {
@@ -51,6 +52,23 @@ const combatOutcome = vi.hoisted(() => ({
   forceOutcome: vi.fn(),
 }));
 
+const abilityTargeting = vi.hoisted(() => ({
+  targetingMode: false,
+  selectedAbility: null as Ability | null,
+  cancelTargeting: vi.fn(),
+}));
+
+const targetingAbility: Ability = {
+  id: 'fire-bolt',
+  name: 'Fire Bolt',
+  description: 'Hurl a mote of fire at a creature within range.',
+  type: 'spell',
+  cost: { type: 'action' },
+  targeting: 'single_enemy',
+  range: 24,
+  effects: [],
+};
+
 // Heavy combat children are mocked so the test exercises CombatView's layout
 // rails without loading the full tactical grid, 3D renderer, or log widgets.
 vi.mock('../../BattleMap/BattleMap', () => ({ default: () => <div data-testid="mock-battle-map" /> }));
@@ -67,7 +85,6 @@ vi.mock('../../BattleMap/AbilityPalette', () => ({
   ),
 }));
 vi.mock('../../BattleMap/CombatLog', () => ({ default: () => <div data-testid="mock-combat-log" /> }));
-vi.mock('../../BattleMap/CombatIntentPreview', () => ({ CombatIntentPreview: () => <div data-testid="mock-intent-preview" /> }));
 vi.mock('../../BattleMap/AISpellInputModal', () => ({ default: () => <div data-testid="mock-ai-spell-input" /> }));
 vi.mock('../../BattleMap/CombatCharacterInspector', () => ({ CombatCharacterInspector: () => <div data-testid="mock-inspector" /> }));
 vi.mock('../../CharacterSheet/CharacterSheetModal', () => ({ default: () => <div data-testid="mock-character-sheet" /> }));
@@ -123,9 +140,10 @@ vi.mock('../../../hooks/combat/useTurnManager', () => ({
 
 vi.mock('../../../hooks/useAbilitySystem', () => ({
   useAbilitySystem: () => ({
-    targetingMode: false,
-    selectedAbility: null,
+    targetingMode: abilityTargeting.targetingMode,
+    selectedAbility: abilityTargeting.selectedAbility,
     startTargeting: vi.fn(),
+    cancelTargeting: abilityTargeting.cancelTargeting,
     executeAbility: vi.fn(),
     requestReaction: vi.fn(),
     pendingReaction: null,
@@ -163,12 +181,16 @@ describe('CombatView responsive layout', () => {
   beforeEach(() => {
     // JSDOM does not implement element scrolling, but CombatView resets its
     // scroll position on mount in real browsers.
+    localStorage.clear();
     Element.prototype.scrollTo = vi.fn();
     Element.prototype.scrollIntoView = vi.fn();
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 320 });
     combatOutcome.battleState = 'active';
     combatOutcome.rewards = null;
     combatOutcome.forceOutcome.mockClear();
+    abilityTargeting.targetingMode = false;
+    abilityTargeting.selectedAbility = null;
+    abilityTargeting.cancelTargeting.mockClear();
   });
 
   it('lets mobile combat rails expand in the page while desktop keeps bounded rail scrolling', () => {
@@ -235,19 +257,123 @@ describe('CombatView responsive layout', () => {
     const rosterToggle = screen.getByRole('button', { name: 'Hide combat roster' });
     const commandToggle = screen.getByRole('button', { name: 'Hide combat commands' });
 
-    rosterToggle.click();
+    fireEvent.click(rosterToggle);
     expect(rosterRail).toHaveClass('hidden');
     expect(commandRail).not.toHaveClass('hidden');
     expect(screen.getByRole('button', { name: 'Show combat roster' })).toHaveAttribute('aria-pressed', 'false');
 
-    commandToggle.click();
+    fireEvent.click(commandToggle);
     expect(commandRail).toHaveClass('hidden');
-    expect(screen.getByRole('button', { name: 'Show combat commands' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getAllByRole('button', { name: 'Show combat commands' })
+      .find(button => button.hasAttribute('aria-pressed')))
+      .toHaveAttribute('aria-pressed', 'false');
 
-    screen.getByRole('button', { name: 'Show combat roster' }).click();
-    screen.getByRole('button', { name: 'Show combat commands' }).click();
+    // The collapsed rail still leaves a small turn HUD beside the battlefield,
+    // so map-focus mode cannot hide the actor, resource state, or End Turn.
+    const compactTurnStrip = screen.getByTestId('compact-turn-strip');
+    expect(compactTurnStrip).toHaveTextContent('Dev Player');
+    expect(compactTurnStrip).toHaveTextContent('Your turn');
+    expect(screen.getByLabelText('Action ready')).toBeInTheDocument();
+    expect(screen.getByLabelText('30 feet of movement remaining')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: "End Dev Player's turn" })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show combat roster' }));
+    fireEvent.click(within(compactTurnStrip).getByRole('button', { name: 'Show combat commands' }));
     expect(rosterRail).not.toHaveClass('hidden');
     expect(commandRail).not.toHaveClass('hidden');
+    expect(screen.queryByTestId('compact-turn-strip')).not.toBeInTheDocument();
+  });
+
+  it('restores the last rail layout when combat remounts', () => {
+    // A later encounter should reopen in the player's deliberate map-focus
+    // layout rather than forcing both side panels open every time.
+    const firstCombat = render(
+      <SpellContext.Provider value={{} as any}>
+        <CombatView
+          party={[{ id: 'party-1', name: 'Dev Player' } as any]}
+          enemies={[combatants.enemy as any]}
+          biome="forest"
+          onBattleEnd={vi.fn()}
+        />
+      </SpellContext.Provider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hide combat commands' }));
+    expect(screen.getByTestId('combat-command-rail')).toHaveClass('hidden');
+    firstCombat.unmount();
+
+    render(
+      <SpellContext.Provider value={{} as any}>
+        <CombatView
+          party={[{ id: 'party-1', name: 'Dev Player' } as any]}
+          enemies={[combatants.enemy as any]}
+          biome="forest"
+          onBattleEnd={vi.fn()}
+        />
+      </SpellContext.Provider>,
+    );
+
+    expect(screen.getByTestId('combat-command-rail')).toHaveClass('hidden');
+    expect(screen.getByTestId('compact-turn-strip')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Show combat commands' })
+      .find(button => button.hasAttribute('aria-pressed')))
+      .toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('resizes desktop rails from the keyboard and resets the panel layout', () => {
+    // The separator is keyboard-operable even though it only becomes visible at
+    // the desktop breakpoint. Its value and grid variable update together.
+    render(
+      <SpellContext.Provider value={{} as any}>
+        <CombatView
+          party={[{ id: 'party-1', name: 'Dev Player' } as any]}
+          enemies={[combatants.enemy as any]}
+          biome="forest"
+          onBattleEnd={vi.fn()}
+        />
+      </SpellContext.Provider>,
+    );
+
+    const grid = screen.getByTestId('combat-layout-grid');
+    const rosterHandle = screen.getByRole('separator', { name: 'Resize combat roster' });
+    const resetPanels = screen.getByRole('button', { name: 'Reset combat panels' });
+
+    expect(rosterHandle).toHaveAttribute('aria-valuenow', '230');
+    expect(resetPanels).toBeDisabled();
+
+    fireEvent.keyDown(rosterHandle, { key: 'ArrowRight' });
+    expect(rosterHandle).toHaveAttribute('aria-valuenow', '238');
+    expect(grid.style.getPropertyValue('--combat-roster-width')).toContain('238px');
+    expect(resetPanels).toBeEnabled();
+
+    fireEvent.click(resetPanels);
+    expect(rosterHandle).toHaveAttribute('aria-valuenow', '230');
+    expect(grid.style.getPropertyValue('--combat-roster-width')).toContain('230px');
+    expect(resetPanels).toBeDisabled();
+  });
+
+  it('keeps targeting intent and cancellation visible after switching map renderers', () => {
+    abilityTargeting.targetingMode = true;
+    abilityTargeting.selectedAbility = targetingAbility;
+
+    render(
+      <SpellContext.Provider value={{} as any}>
+        <CombatView
+          party={[{ id: 'party-1', name: 'Dev Player' } as any]}
+          enemies={[combatants.enemy as any]}
+          biome="forest"
+          onBattleEnd={vi.fn()}
+        />
+      </SpellContext.Provider>,
+    );
+
+    expect(screen.getByTestId('combat-targeting-hud')).toHaveTextContent('Choose an enemy');
+
+    fireEvent.click(screen.getByRole('button', { name: /3D View/i }));
+    expect(screen.getByTestId('combat-targeting-hud')).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(abilityTargeting.cancelTargeting).toHaveBeenCalledTimes(1);
   });
 
   it('returns compact combat players to the battlefield after selecting an ability', () => {

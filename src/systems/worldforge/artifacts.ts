@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 11/07/2026, 14:01:45
+ * Dependents: components/World3D/World3DWrapper.tsx, components/World3D/createWorldGenClient.ts, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/LocalMapView.tsx, components/Worldforge/RegionMapView.tsx, components/Worldforge/TownAgentSnapshotView.tsx, components/Worldforge/localDraw.ts, components/Worldforge/regionDraw.ts, systems/spells/ai/MaterialTagService.ts, systems/worldforge/adapter/atlasArtifact.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundDeltas.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundWorldAdapter.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts, systems/worldforge/delta/applyDeltas.ts, systems/worldforge/delta/types.ts, systems/worldforge/generate.ts, systems/worldforge/index.ts, systems/worldforge/local/generateLocal.ts, systems/worldforge/local/stitchLocalArtifacts.ts, systems/worldforge/provenance/groundProvenance.ts, systems/worldforge/region/generateRegion.ts, systems/worldforge/roster/agentPath.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/roster/townSnapshot.ts, systems/worldforge/roster/types.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/keyNpcs.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file artifacts.ts — Worldforge layer artifact types.
  *
@@ -86,7 +102,62 @@ export interface AtlasRoute {
   id: number;
   /** Ordered cell ids the route passes through. */
   cellIds: number[];
-  kind: 'road' | 'trail' | 'searoute';
+  /** Tier vocabulary (road-systems Task 5): highway = capital trunk, road =
+   * town link, trail = village link, path = forest spur (Task 7), searoute. */
+  kind: 'highway' | 'road' | 'trail' | 'path' | 'searoute';
+}
+
+export interface AtlasForest {
+  id: number;
+  /** Culture-flavored name, e.g. "Angshire Wildwood" (forests Task 2). */
+  name: string;
+  /** Per-forest character; drives tint, encounters, nav DCs (spec §1/§3). */
+  kind: 'ordinary' | 'ancient' | 'haunted' | 'fey';
+  /** Member cell ids (cell-space kept raw, the AtlasRoute convention). */
+  cellIds: number[];
+  /** Label anchor (pole of inaccessibility), world feet — point data
+   * converts like AtlasBurg x/y. */
+  pole: [Feet, Feet];
+}
+
+export interface AtlasRange {
+  id: number;
+  /** Culture-flavored name, e.g. "Elden Spine" (mountains Task 2; unique per
+   * atlas after the geographic dedup). */
+  name: string;
+  /** Per-range character; drives naming banks, glyph flavor, encounter hooks
+   * (spec 2026-07-11-mountains-design §1). */
+  kind: 'range' | 'highlands' | 'volcanic';
+  /** Member cell ids (cell-space kept raw, the AtlasRoute convention). */
+  cellIds: number[];
+  /** The core-mountain (h >= 70) subset of cellIds. */
+  coreCellIds: number[];
+  /** Label anchor (pole of inaccessibility), world feet — point data
+   * converts like AtlasBurg x/y. */
+  pole: [Feet, Feet];
+}
+
+export interface AtlasPeak {
+  id: number;
+  /** Owning AtlasRange id. */
+  rangeId: number;
+  cellId: number;
+  /** Encoded pack height (0–100 scale, FMG convention) at the peak cell. */
+  h: number;
+  /** Adopted volcano/sacred-mountain legend name ("Mount X") or a fresh
+   * culture+form name; twins tolerated (peaks skip the dedup). */
+  name: string;
+}
+
+export interface AtlasPass {
+  id: number;
+  /** The AtlasRange this pass crosses. */
+  rangeId: number;
+  /** The crossing's highest route cell. */
+  cellId: number;
+  name: string;
+  /** AtlasRoute ids that cross through this pass. */
+  routeIds: number[];
 }
 
 export interface AtlasArtifact extends WorldforgeArtifact {
@@ -95,6 +166,11 @@ export interface AtlasArtifact extends WorldforgeArtifact {
   burgs: AtlasBurg[];
   rivers: AtlasRiver[];
   routes: AtlasRoute[];
+  forests: AtlasForest[];
+  ranges: AtlasRange[];
+  peaks: AtlasPeak[];
+  /** Empty until the passes task (mountains Task 4) fills pack.passes. */
+  passes: AtlasPass[];
 }
 
 // ---------------------------------------------------------------------------
@@ -122,7 +198,8 @@ export interface RegionRoad {
   routeId: number;
   centerline: Array<[Feet, Feet]>;
   widthFt: Feet;
-  kind: 'road' | 'trail';
+  /** Land tier (road-systems Task 5); searoutes are not region roads. */
+  kind: 'highway' | 'road' | 'trail' | 'path';
 }
 
 export interface RegionTownSite {
@@ -211,6 +288,23 @@ export interface LocalArtifact extends WorldforgeArtifact {
  * town generator; declared now so LocalArtifact's shape is honest about
  * where towns live in the hierarchy.
  */
+export interface TownPlotArchitecture {
+  /** Stable spatial district identity, independent of wealth or display label. */
+  districtKey: string;
+  /** Human-readable district name for inspectors and debug tooling. */
+  districtLabel: string;
+  /** Stable building identity assigned before adapter filtering. */
+  buildingKey: string;
+  /** Ward finish tier, present even when civic plots have no population record. */
+  wealth: import('./interior/blueprintTypes').BriefWealth;
+  /** Resolved district recipe token shared by every building in the district. */
+  districtSignature: string;
+  /** Resolved individual token proving neighboring buildings are not clones. */
+  buildingVariant: string;
+  /** Facade grammar shared with the blueprint and production 3D bridge. */
+  facadePattern: import('./interior/blueprintTypes').FacadePattern;
+}
+
 export interface TownPlan {
   burgId: number;
   /**
@@ -230,6 +324,8 @@ export interface TownPlan {
     wallColorHex?: string;
     roofColorHex?: string;
     roofForm?: 'gable' | 'hip' | 'steep' | 'flat';
+    /** Durable district/building identity plus resolved dialect evidence. */
+    architecture?: TownPlotArchitecture;
     /** Population-pass fields (2026-07-07, BGv2 Task 11), carried so the 3D bake
      *  can rebuild the founding household brief for each building. Present only
      *  when the town was generated with a population; absent for unpopulated

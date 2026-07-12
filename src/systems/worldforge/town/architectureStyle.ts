@@ -1,15 +1,42 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 11/07/2026, 14:55:05
+ * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewTowns.tsx, components/MapPane.tsx, components/World3D/World3DScene.tsx, components/Worldforge/TownPlanView.tsx, systems/world3d/buildingModels.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/generateBuilding.ts, systems/worldforge/town/buildingMotifs.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/registerBurgMerchants.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file architectureStyle.ts — regional architecture style families.
  *
  * Single source of truth for HOW a culture builds: palettes, roof shapes,
- * gatehouse forms, dock/bridge detailing. Shared by the 2D town map
- * (TownPlanView) and the 3D ground renderer, sibling of buildingStyle.ts.
- * A burg's family comes from its FMG culture TYPE — deterministic, and per
- * the no-fallback directive an unknown type is an ERROR, not a default.
+ * facade grammars, gatehouse forms, and dock/bridge detailing. Shared by the
+ * 2D town map and the 3D ground renderer, sibling of buildingStyle.ts.
+ *
+ * Architectural identity is layered. Culture and climate define the town-wide
+ * family, a settlement/district key chooses a dominant local dialect, and the
+ * building key permits bounded exceptions. A burg's family comes from its FMG
+ * culture TYPE — deterministic, and per the no-fallback directive an unknown
+ * type is an ERROR, not a default.
  */
 import type { Pt } from '../submap/submapEngine';
-import type { BuildingType, StyleResolved } from '../interior/blueprintTypes';
-import { rngFromPath, streamPath, type SeedPath } from '../seedPath';
+import type {
+  ArchitectureIdentity,
+  BriefWealth,
+  BuildingType,
+  FacadePattern,
+  StyleResolved,
+} from '../interior/blueprintTypes';
+import { fnv1a, rngFromPath, streamPath, type SeedPath } from '../seedPath';
+import { resolveBuildingMotifs } from './buildingMotifs';
 
 export type RoofForm = 'gable' | 'hip' | 'steep' | 'flat';
 export type GatehouseForm = 'twinTowers' | 'tunnelBlock' | 'singleTower';
@@ -27,6 +54,8 @@ export interface StyleFamily {
   wallPalette: string[];
   roofPalette: string[];
   roofForms: RoofForm[];
+  /** Wall-detail grammars this culture knows how to build. */
+  facadePatterns: FacadePattern[];
   gatehouseForms: GatehouseForm[];
   /** Town rampart tint. */
   wallTint: string;
@@ -40,6 +69,7 @@ export const STYLE_FAMILIES: Record<StyleFamily['id'], StyleFamily> = {
     wallPalette: ['#8d8a83', '#7b786f', '#9a948a', '#6e6c66'],
     roofPalette: ['#4a5058', '#3f444b', '#565c63'],
     roofForms: ['steep', 'gable', 'hip'],
+    facadePatterns: ['belt-course', 'vertical-bays', 'plain'],
     gatehouseForms: ['twinTowers', 'singleTower'],
     wallTint: '#8a877f',
     chimneys: true,
@@ -50,6 +80,7 @@ export const STYLE_FAMILIES: Record<StyleFamily['id'], StyleFamily> = {
     wallPalette: ['#9a8a6e', '#a89478', '#8c7a5e', '#b3a184'],
     roofPalette: ['#5e4a38', '#6d5540', '#514031'],
     roofForms: ['gable', 'hip'],
+    facadePatterns: ['vertical-bays', 'half-timber', 'plain'],
     gatehouseForms: ['singleTower', 'twinTowers'],
     wallTint: '#93865f',
     chimneys: true,
@@ -60,6 +91,7 @@ export const STYLE_FAMILIES: Record<StyleFamily['id'], StyleFamily> = {
     wallPalette: ['#cfc0a2', '#d8ccb2', '#c2b191', '#b8a686'],
     roofPalette: ['#7a4a32', '#6d4029', '#8a5238'],
     roofForms: ['gable', 'steep', 'hip'],
+    facadePatterns: ['half-timber', 'vertical-bays', 'belt-course'],
     gatehouseForms: ['tunnelBlock', 'twinTowers'],
     wallTint: '#a09680',
     chimneys: true,
@@ -70,6 +102,7 @@ export const STYLE_FAMILIES: Record<StyleFamily['id'], StyleFamily> = {
     wallPalette: ['#6f5a41', '#7c6549', '#5e4c37', '#87704f'],
     roofPalette: ['#7d6a3e', '#6e5d36', '#8c7845'],
     roofForms: ['gable', 'flat'],
+    facadePatterns: ['log-bands', 'vertical-bays', 'plain'],
     gatehouseForms: ['singleTower'],
     wallTint: '#6b5a43',
     chimneys: false,
@@ -80,6 +113,7 @@ export const STYLE_FAMILIES: Record<StyleFamily['id'], StyleFamily> = {
     wallPalette: ['#9c7b54', '#a98a5f', '#8a6643', '#b89a72'],
     roofPalette: ['#7a4a32', '#7d6a3e', '#5e3a2c'],
     roofForms: ['hip', 'gable'],
+    facadePatterns: ['half-timber', 'belt-course', 'vertical-bays', 'plain'],
     gatehouseForms: ['twinTowers', 'tunnelBlock', 'singleTower'],
     wallTint: '#9a9387',
     chimneys: true,
@@ -217,6 +251,8 @@ export interface ResolveStyleInput {
    * in the signature so callers can wire it once without a later API break.
    */
   ageBand?: 'new' | 'aged' | 'old' | 'ancient';
+  /** Optional town/district/building identity for coordinated architecture. */
+  architecture?: ArchitectureIdentity;
   buildingType: BuildingType;
 }
 
@@ -230,19 +266,170 @@ function tierSlice<T>(palette: T[], wealth: ResolveStyleInput['wealth']): T[] {
   return palette;
 }
 
+// ============================================================================
+// District Dialect And Building Variation
+// ============================================================================
+// A district first chooses a small, repeated vocabulary from its culture
+// family. Individual buildings mostly repeat that vocabulary and occasionally
+// choose one related alternative. This creates readable neighborhoods without
+// turning every house into a clone or allowing random styles to dissolve the
+// town's cultural identity.
+// ============================================================================
+
+/** The bounded choices one identified building contributes to its district. */
+export interface ArchitectureVariant {
+  wallColor: string;
+  roofColor: string;
+  roofForm: RoofForm;
+  facadePattern: FacadePattern;
+  /** Shared by every building using the same family, settlement, and spatial district. */
+  districtSignature: string;
+  /** Different for every stable building key inside that district. */
+  buildingVariant: string;
+  /** Small silhouette change; deliberately too narrow to leave the family grammar. */
+  pitchScale: number;
+  /** Small eave change in feet; climate still supplies the dominant value. */
+  eaveOffsetFt: number;
+}
+
+/** Stable 0..1 value from a readable identity string. No shared RNG is consumed. */
+function textHash01(value: string): number {
+  return fnv1a(value) / 0x1_0000_0000;
+}
+
+/** Pick one offered value directly from a named identity fact. */
+function pickByText<T>(values: T[], key: string): T {
+  return pick(values, textHash01(key));
+}
+
 /**
- * Resolve the full architectural dress for one building. THREE draws from the
- * `'style'` stream in a FIXED order regardless of input (roofForm, wall, roof)
- * so the stream stays refactor-stable; climate is pure post-processing of the
- * drawn form and consumes NO draws. Trim is derived deterministically from the
- * family's rampart tint (`wallTint`) — no draw.
+ * Pick a related alternative to a district's dominant value.
+ *
+ * A one-choice family returns its only value. Larger families exclude the
+ * dominant value so the minority building branch always creates a real visual
+ * difference instead of spending its exception on the same answer.
+ */
+function relatedAlternative<T>(values: T[], dominant: T, key: string): T {
+  const alternatives = values.filter((value) => value !== dominant);
+  return alternatives.length > 0 ? pickByText(alternatives, key) : dominant;
+}
+
+/**
+ * Resolve one building's bounded variation inside a stable district dialect.
+ *
+ * Cohesion ratios are intentional game rules rather than incidental hash
+ * behavior: roughly 70-80% of buildings repeat each district dominant. The
+ * remaining buildings select from the SAME culture family's palette, roof
+ * forms, and facade grammar. Wealth narrows the color palettes before either
+ * district or building choices happen, so a poor quarter cannot borrow a rich
+ * quarter's dressed finish simply because its building key changed.
+ */
+export function resolveArchitectureVariant(
+  family: StyleFamily,
+  wealth: BriefWealth,
+  identity: ArchitectureIdentity,
+): ArchitectureVariant {
+  // Culture + settlement + spatial district own the structural recipe. Wealth
+  // deliberately stays OUT of this key: two social classes on the same street
+  // may afford different finishes, but they still inherit one roof and facade
+  // grammar from the district's builders.
+  const districtKey = [
+    family.id,
+    identity.settlementKey,
+    identity.districtKey,
+  ].join('|');
+  const finishKey = `${districtKey}|wealth:${wealth}`;
+  const buildingKey = `${districtKey}|${identity.buildingKey}`;
+  const finishBuildingKey = `${finishKey}|${identity.buildingKey}`;
+
+  // Wealth limits which finishes are available, then chooses a dominant plus
+  // one related secondary from that smaller set. These material choices may
+  // differ inside one district without changing its construction grammar.
+  const walls = tierSlice(family.wallPalette, wealth);
+  const roofs = tierSlice(family.roofPalette, wealth);
+  const districtWall = pickByText(walls, `${finishKey}|wall:dominant`);
+  const secondaryWall = relatedAlternative(walls, districtWall, `${finishKey}|wall:secondary`);
+  const districtRoof = pickByText(roofs, `${finishKey}|roof-color:dominant`);
+  const secondaryRoof = relatedAlternative(roofs, districtRoof, `${finishKey}|roof-color:secondary`);
+  const districtRoofForm = pickByText(family.roofForms, `${districtKey}|roof-form:dominant`);
+  const secondaryRoofForm = relatedAlternative(
+    family.roofForms,
+    districtRoofForm,
+    `${districtKey}|roof-form:secondary`,
+  );
+  const districtFacade = pickByText(
+    family.facadePatterns,
+    `${districtKey}|facade:dominant`,
+  );
+  const secondaryFacade = relatedAlternative(
+    family.facadePatterns,
+    districtFacade,
+    `${districtKey}|facade:secondary`,
+  );
+
+  // Each trait uses an independent named hash. Adding a future trait cannot
+  // shift any existing color, roof, or facade decision.
+  const wallColor = textHash01(`${finishBuildingKey}|wall:loyalty`) < 0.72
+    ? districtWall
+    : secondaryWall;
+  const roofColor = textHash01(`${finishBuildingKey}|roof-color:loyalty`) < 0.78
+    ? districtRoof
+    : secondaryRoof;
+  const roofForm = textHash01(`${buildingKey}|roof-form:loyalty`) < 0.78
+    ? districtRoofForm
+    : secondaryRoofForm;
+  const facadePattern = textHash01(`${buildingKey}|facade:loyalty`) < 0.80
+    ? districtFacade
+    : secondaryFacade;
+
+  // Silhouette changes stay within a narrow band. They make adjacent roofs
+  // distinct in profile while climate and roof form remain the dominant read.
+  const pitchScale = 0.88 + textHash01(`${buildingKey}|pitch`) * 0.24;
+  const eaveOffsetFt = (textHash01(`${buildingKey}|eave`) - 0.5) * 0.5;
+
+  return {
+    wallColor,
+    roofColor,
+    roofForm,
+    facadePattern,
+    districtSignature: `${family.id}:${fnv1a(districtKey).toString(36)}`,
+    buildingVariant: fnv1a(buildingKey).toString(36),
+    pitchScale,
+    eaveOffsetFt,
+  };
+}
+
+/**
+ * Resolve the full architectural dress for one building.
+ *
+ * THREE legacy draws remain in a FIXED order regardless of input (roof form,
+ * wall, roof), so old calls without an architecture identity keep their exact
+ * results. Identified production buildings replace those three visible answers
+ * with the district/building variant above, but still consume the legacy draws
+ * to keep the stream contract easy to audit. Climate is pure post-processing
+ * and consumes no draws. Trim remains the family's shared construction color.
  */
 export function resolveStyle(input: ResolveStyleInput, path: SeedPath): StyleResolved {
-  const fam = styleFamilyForCultureType(input.cultureType); // throws on unknown
+  // Resolve the culture first. Unknown culture types fail here rather than
+  // silently borrowing an unrelated town's architecture.
+  const fam = styleFamilyForCultureType(input.cultureType);
   const rng = rngFromPath(streamPath(path, 'style'));
 
-  // Draw 1: base roof form from the family's offered forms.
-  let roofForm = pick(fam.roofForms, rng.next());
+  // Preserve the original three style draws exactly. Standalone calls still
+  // use them; identified town buildings use the bounded variant while leaving
+  // the old stream's order and draw count untouched.
+  const legacyRoofForm = pick(fam.roofForms, rng.next());
+  const legacyWallColor = pick(tierSlice(fam.wallPalette, input.wealth), rng.next());
+  const legacyRoofColor = pick(tierSlice(fam.roofPalette, input.wealth), rng.next());
+  const variant = input.architecture
+    ? resolveArchitectureVariant(fam, input.wealth, input.architecture)
+    : undefined;
+
+  let roofForm = variant?.roofForm ?? legacyRoofForm;
+  const wallColor = variant?.wallColor ?? legacyWallColor;
+  const roofColor = variant?.roofColor ?? legacyRoofColor;
+  const facadePattern = variant?.facadePattern
+    ?? pickByText(fam.facadePatterns, `${path}|facade`);
 
   // Climate overrides — deterministic, no extra draws.
   const offers = (f: RoofForm) => fam.roofForms.includes(f);
@@ -255,18 +442,35 @@ export function resolveStyle(input: ResolveStyleInput, path: SeedPath): StyleRes
     roofForm = fam.roofForms.find((f) => f !== 'flat') ?? 'gable';
   }
 
-  // Draw 2 & 3: wall then roof color from the wealth-restricted palette slice.
-  const wallColor = pick(tierSlice(fam.wallPalette, input.wealth), rng.next());
-  const roofColor = pick(tierSlice(fam.roofPalette, input.wealth), rng.next());
-
-  // pitchRiseFt: base 5, steep 8; cold ×1.4; flat → 0.
+  // Roof pitch starts from the approved form/climate rule. Identified buildings
+  // then receive a small individual scale, which changes the skyline without
+  // allowing a roof to leave its district's dominant grammar.
   let pitchRiseFt = roofForm === 'steep' ? 8 : 5;
   if (input.climate === 'cold') pitchRiseFt *= 1.4;
+  if (variant) pitchRiseFt *= variant.pitchScale;
   if (roofForm === 'flat') pitchRiseFt = 0;
 
-  // eaveOverhangFt: 1; cold 2 (snow shed), arid 0.5.
-  const eaveOverhangFt =
+  // Climate remains the dominant eave rule. A bounded offset creates subtle
+  // lot-by-lot variation, with a hard minimum so every roof still protects its
+  // wall face and the bridge's eave-clearance guarantee remains meaningful.
+  const climateEaveFt =
     input.climate === 'cold' ? 2 : input.climate === 'arid' ? 0.5 : 1;
+  const eaveOverhangFt = Math.max(
+    0.25,
+    climateEaveFt + (variant?.eaveOffsetFt ?? 0),
+  );
+
+  // Standalone preview calls have no district, but still receive stable labels
+  // and a facade pattern so the resolved contract is total for every style.
+  const districtSignature = variant?.districtSignature ?? `${fam.id}:standalone`;
+  const buildingVariant = variant?.buildingVariant
+    ?? fnv1a(`${path}|standalone`).toString(36);
+  const motifResolution = resolveBuildingMotifs(
+    fam.id,
+    input.buildingType,
+    districtSignature,
+    buildingVariant,
+  );
 
   return {
     familyId: fam.id,
@@ -279,5 +483,11 @@ export function resolveStyle(input: ResolveStyleInput, path: SeedPath): StyleRes
     finishTier: input.wealth,
     ornament: input.wealth === 'wealthy',
     raisedPlinth: input.climate === 'marsh',
+    districtSignature,
+    buildingVariant,
+    facadePattern,
+    motifs: motifResolution.motifs,
+    motifVariant: motifResolution.motifVariant,
+    motifSignature: motifResolution.motifSignature,
   };
 }

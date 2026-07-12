@@ -13,6 +13,7 @@ import {
 import type { RoutePlan } from '../routePlanning';
 import type { MultiModalRoute } from '../multiModalRoute';
 import type { ProvisionStatus } from '../provisioning';
+import { routeHasFaintPath } from '../navDrift';
 import { characterReducer } from '../../../state/reducers/characterReducer';
 import type { GameState } from '../../../types/state';
 import type { AppAction } from '../../../state/actionTypes';
@@ -52,6 +53,80 @@ describe('formatRouteSummary', () => {
     const route: RoutePlan = { cells: [0, 1, 2], points: [[0, 0]], miles: 19.3, minutes: 380, danger: 0.4 };
     expect(formatRouteSummary(route, 'on foot')).toBe('≈ 6h 20m · ~19 mi · Danger: Moderate · on foot');
     expect(formatRouteSummary(route, 'by horse')).toContain('by horse');
+  });
+});
+
+// ── Faint-path warning (roads task 10) ──────────────────────────────────────
+// The readout warns BEFORE the player commits to a route that follows a faint
+// forest path (the trail can fade → a get-lost roll on the committed trip).
+describe('formatRouteSummary (faint-path warning)', () => {
+  it('warns when a route follows a faint forest path', () => {
+    const route: RoutePlan = { cells: [1], points: [[0, 0]], miles: 5, minutes: 100, danger: 0.2 };
+    expect(formatRouteSummary(route, 'on foot', { faintPath: true }))
+      .toContain('follows a faint forest path');
+    expect(formatRouteSummary(route)).not.toContain('faint');
+  });
+
+  it('routeHasFaintPath detects any faint-path cell', () => {
+    const info = (c: number) => (c === 2
+      ? { dc: 8, cause: 'faint-path' as const }
+      : { dc: 0, cause: 'road' as const });
+    expect(routeHasFaintPath(info, [1, 2, 3])).toBe(true);
+    expect(routeHasFaintPath(info, [1, 3])).toBe(false);
+  });
+});
+
+// ── Named-forest naming (forests task 7) ────────────────────────────────────
+// When the route crosses a named forest, the summary names the wood so the
+// player reads "through the <Name>" before committing to the trip.
+describe('formatRouteSummary (named forest)', () => {
+  const route: RoutePlan = { cells: [0, 1, 2], points: [[0, 0]], miles: 19.3, minutes: 380, danger: 0.4 };
+
+  it('appends the forest segment when forestName is set', () => {
+    expect(formatRouteSummary(route, 'on foot', { forestName: 'Angshire Wraithwood' }))
+      .toBe('≈ 6h 20m · ~19 mi · Danger: Moderate · on foot · through the Angshire Wraithwood');
+  });
+
+  it('orders the faint-path warning first, then the forest segment, when both opts are set', () => {
+    expect(formatRouteSummary(route, 'on foot', { faintPath: true, forestName: 'Bigwood' }))
+      .toBe('≈ 6h 20m · ~19 mi · Danger: Moderate · on foot · follows a faint forest path · through the Bigwood');
+  });
+
+  it('leaves the summary byte-identical when opts are absent, empty, or unset', () => {
+    const plain = '≈ 6h 20m · ~19 mi · Danger: Moderate · on foot';
+    expect(formatRouteSummary(route, 'on foot')).toBe(plain);
+    expect(formatRouteSummary(route, 'on foot', {})).toBe(plain);
+    expect(formatRouteSummary(route, 'on foot', { forestName: undefined })).toBe(plain);
+  });
+});
+
+// ── Named-pass naming (mountains task 4) ────────────────────────────────────
+// When the route crests a named mountain pass, the summary says "via <Name>".
+// One flavor clause max: a pass outranks a named forest, whose clause drops.
+describe('formatRouteSummary (named pass)', () => {
+  const route: RoutePlan = { cells: [0, 1, 2], points: [[0, 0]], miles: 19.3, minutes: 380, danger: 0.4 };
+
+  it('appends "via <Name>" when passName is set', () => {
+    expect(formatRouteSummary(route, 'on foot', { passName: 'Ironteeth Pass' }))
+      .toBe('≈ 6h 20m · ~19 mi · Danger: Moderate · on foot · via Ironteeth Pass');
+  });
+
+  it('pass WINS over forest — the forest clause is dropped (one flavor clause max)', () => {
+    const both = formatRouteSummary(route, 'on foot', { passName: 'Ironteeth Pass', forestName: 'Bigwood' });
+    expect(both).toBe('≈ 6h 20m · ~19 mi · Danger: Moderate · on foot · via Ironteeth Pass');
+    expect(both).not.toContain('through the');
+  });
+
+  it('orders the faint-path warning first, then the pass clause', () => {
+    expect(formatRouteSummary(route, 'on foot', { faintPath: true, passName: 'Ironteeth Pass', forestName: 'Bigwood' }))
+      .toBe('≈ 6h 20m · ~19 mi · Danger: Moderate · on foot · follows a faint forest path · via Ironteeth Pass');
+  });
+
+  it('stays byte-identical when passName is absent — the forest clause survives', () => {
+    expect(formatRouteSummary(route, 'on foot', { passName: undefined, forestName: 'Bigwood' }))
+      .toBe('≈ 6h 20m · ~19 mi · Danger: Moderate · on foot · through the Bigwood');
+    expect(formatRouteSummary(route, 'on foot', { passName: undefined }))
+      .toBe('≈ 6h 20m · ~19 mi · Danger: Moderate · on foot');
   });
 });
 

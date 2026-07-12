@@ -24,6 +24,13 @@
 import { CELL_FT, LOCAL_SIZE_FT, type BoundsFt, type Feet } from '../units';
 import { childSeedPath, rngFromPath, streamPath, worldSeedFromPath, type SeedPath } from '../seedPath';
 import { makeWorldFeetNoise } from './worldFeetNoise';
+import { patchNoise2 } from '../vegetation/grassField';
+import {
+  CLEARING_FREQ,
+  CLEARING_SALT,
+  CLEARING_THRESHOLD,
+  UNDERGROWTH_MULT,
+} from '../forests/forestTunables';
 import {
   WORLDFORGE_SCHEMA_VERSION,
   type LocalArtifact,
@@ -78,6 +85,16 @@ const BIOME_PROFILES: Record<number, BiomeProfile> = {
 };
 
 const FALLBACK_PROFILE: BiomeProfile = BIOME_PROFILES[4];
+
+/**
+ * FMG deep-forest biome ids (7 tropical rainforest, 8 temperate rainforest,
+ * 9 taiga) — always dense canopy. The density clause below extends "dense" to
+ * any biome whose treeDensity reaches 1.4 (currently 5 tropical seasonal 1.4
+ * and 6 temperate deciduous 1.8; the id set guards the rainforests/taiga even
+ * if their densities get tuned down later).
+ */
+const DEEP_FOREST_BIOME_IDS: ReadonlySet<number> = new Set([7, 8, 9]);
+const DENSE_TREE_DENSITY = 1.4;
 
 /** Material palette order is part of the artifact contract — append only. */
 const MATERIALS: TerrainMaterial[] = [
@@ -282,6 +299,7 @@ export function generateLocal(
     stream: string,
     minSepFt: number,
     allow: (mat: number) => boolean,
+    keep?: (fx: number, fy: number) => boolean,
   ) => {
     const target = Math.round((sizeFt * sizeFt) / 10_000 * densityPer10kSqFt);
     if (target <= 0) return;
@@ -295,6 +313,10 @@ export function generateLocal(
       const ccx = Math.min(widthCells - 1, Math.floor((fx - bounds.x) / CELL_FT));
       const ccy = Math.min(heightCells - 1, Math.floor((fy - bounds.y) / CELL_FT));
       if (!allow(materialIndex[ccy * widthCells + ccx])) continue;
+      // Optional spatial gate (e.g. the dense-forest clearing noise) — checked
+      // after the material allow, before min-sep; a rejected sample burns an
+      // attempt exactly like a material rejection.
+      if (keep && !keep(fx, fy)) continue;
       let tooClose = false;
       for (const [px, py] of placed) {
         if (Math.hypot(px - fx, py - fy) < minSepFt) { tooClose = true; break; }
@@ -306,9 +328,37 @@ export function generateLocal(
   };
 
   const groundOk = (m: number) => m !== MAT.water && m !== MAT.paved && m !== MAT.rock;
-  placeKind('tree', profile.treeDensity, 'trees', 18, groundOk);
+
+  // Dense forest (deep-forest biome id, or canopy at/above the density bar):
+  // trees gate through the SHARED patch noise — where the field dips below the
+  // threshold no tree lands, so coherent clearings open up and the survivors
+  // crowd into thickets. Mirrors grassField's world-space-lattice reasoning:
+  // patchNoise2 is sampled at WORLD-space feet / 1000, so two adjacent local
+  // windows evaluate the same world foot to the same value and the
+  // thicket/clearing field continues seamlessly across window borders instead
+  // of resetting per window. Non-dense windows pass no keep — their placement
+  // is byte-identical to the pre-Task-10 generator.
+  const isDenseForest =
+    DEEP_FOREST_BIOME_IDS.has(opts.biomeId) || profile.treeDensity >= DENSE_TREE_DENSITY;
+  const clearingKeep = isDenseForest
+    ? (fx: number, fy: number) =>
+        patchNoise2(fx / 1000, fy / 1000, CLEARING_SALT, CLEARING_FREQ) > CLEARING_THRESHOLD
+    : undefined;
+
+  placeKind('tree', profile.treeDensity, 'trees', 18, groundOk, clearingKeep);
   placeKind('bush', profile.bushDensity, 'bushes', 10, groundOk);
   placeKind('boulder', profile.boulderDensity, 'boulders', 14, (m) => m !== MAT.water && m !== MAT.paved);
+  if (clearingKeep) {
+    // Undergrowth: scrub crowding the thicket floor under dense canopy — same
+    // keep as the trees, so it hugs the thickets and the clearings stay open.
+    // Reuses the 'bush' feature kind; the separate 'undergrowth' stream name
+    // keeps it deterministic and independent of the base 'bushes' stream. Runs
+    // LAST: each placeKind call seeds its own rng via
+    // rngFromPath(streamPath(localPath, stream)), so ordering can't perturb the
+    // other streams anyway — but appending keeps the three base streams' ids
+    // identical to the pre-Task-10 artifact.
+    placeKind('bush', profile.bushDensity * UNDERGROWTH_MULT, 'undergrowth', 8, groundOk, clearingKeep);
+  }
 
   const terrain: LocalTerrain = {
     widthCells,

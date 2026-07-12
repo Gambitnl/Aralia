@@ -216,6 +216,12 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
 
   // === Handlers ===
   const handleSelect = (featId: string) => {
+    // A required slot can arrive with its background feat already selected and
+    // waiting for configuration. Clicking that amber "Setup" card should keep
+    // the feat selected; clearing it made every setup control disappear while
+    // the required Confirm action remained disabled.
+    if (selectionRequired && selectedFeatId === featId) return;
+
     const newFeatId = selectedFeatId === featId ? '' : featId;
     // Clear choices when switching feats
     if (selectedFeatId && selectedFeatId !== newFeatId) {

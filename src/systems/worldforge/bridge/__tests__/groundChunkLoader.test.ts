@@ -19,6 +19,7 @@ import type { GroundWorld } from '../groundChunkLoader';
 import { makeGroundWorld, sampleGroundChunk, extractLocalTerrainPatch, groundSurfaceY, canonicalArtifactTownForSite } from '../groundChunkLoader';
 import { groundTownAgentsAt } from '../groundAgentMotion';
 import { GROUND_METERS_PER_CELL, localArtifactToWorldData } from '../groundWorldAdapter';
+import { FACADE_PART_TAG, MOTIF_PART_TAG } from '../interiorParts';
 
 // ============================================================================
 // Fixed Bridge Fixtures
@@ -455,6 +456,40 @@ describe('makeGroundWorld building terrain pads', () => {
     expect(b.hiddenSites).toEqual(a.hiddenSites); // deterministic per seed + window
   });
 
+  it('surfaces forest POI markers as marker-derived hidden sites (forests T8b)', () => {
+    const local = makeLocalArtifact();
+    const region: RegionArtifact = {
+      ...makeRegionArtifact(),
+      markers: [
+        { type: 'hunter-camp', icon: '🏕️', x: 120, y: 80 },
+        { type: 'hermit-hollow', icon: '🛖', x: 200, y: 150 },
+        { type: 'forest-shrine', icon: '⛩️', x: 300, y: 220 },
+        { type: 'beast-den', icon: '🐾', x: 400, y: 320 },
+      ],
+    };
+    const ground = makeGroundWorld(local, 42, region);
+
+    // The required proof: a hunter-camp RegionMarker becomes a GroundHiddenSite
+    // of kind 'camp' at the marker's feet→meters spot, revealed by the existing
+    // proximity bridge — no new discovery machinery.
+    const FEET_TO_METERS = 0.3048;
+    const camp = ground.hiddenSites.find((s) => s.id.includes('hunter-camp'));
+    expect(camp).toBeDefined();
+    expect(camp?.kind).toBe('camp');
+    expect(camp?.name).toBe('Camp');
+    expect(camp?.xM).toBeCloseTo(120 * FEET_TO_METERS, 6);
+    expect(camp?.zM).toBeCloseTo(80 * FEET_TO_METERS, 6);
+
+    // The other three forest POI types map onto existing kinds the same way.
+    expect(ground.hiddenSites.find((s) => s.id.includes('hermit-hollow'))?.kind).toBe('camp');
+    expect(ground.hiddenSites.find((s) => s.id.includes('forest-shrine'))?.kind).toBe('shrine');
+    expect(ground.hiddenSites.find((s) => s.id.includes('beast-den'))?.kind).toBe('cave');
+
+    // Task 11 guard: with no atlas-cell anchor provided, the canopy stays null
+    // — non-forest / anchor-less builds keep exactly the pre-canopy behavior.
+    expect(ground.canopy ?? null).toBeNull();
+  });
+
   it('correctly maps worldBusinesses and NPC owner names to buildings and keepers', () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
@@ -547,6 +582,53 @@ describe('makeGroundWorld building terrain pads', () => {
     }
     expect(bound).toBeGreaterThan(0);
   });
+
+  it('carries spatial district identity into visible production building parts', () => {
+    const local = makeLocalArtifact();
+    const region = makeRegionArtifact();
+    const site = region.townSites[0];
+    const { plan } = canonicalArtifactTownForSite(42, site);
+    const stamped = plan.plots.filter((plot) => plot.architecture);
+
+    expect(stamped.length).toBeGreaterThan(0);
+    expect(new Set(stamped.map((plot) => plot.architecture!.districtKey)).size)
+      .toBeGreaterThan(1);
+    expect(new Set(stamped.map((plot) => plot.architecture!.buildingKey)).size)
+      .toBe(stamped.length);
+
+    const ground = makeGroundWorld(local, 42, region, { hour: 12 });
+    const artifactById = new Map(stamped.map((plot) => [plot.id, plot]));
+    let visibleStamped = 0;
+    let visibleFacade = 0;
+    let visibleMotifs = 0;
+    for (const building of ground.buildings) {
+      const plotId = Number(building.id.split('-').at(-1));
+      const artifact = artifactById.get(plotId);
+      if (!artifact?.architecture) continue;
+      visibleStamped++;
+
+      // The artifact material reaches the real structural wall parts, while a
+      // non-plain district grammar reaches separately tagged facade dressing.
+      expect(building.wallColorHex).toBe(artifact.wallColorHex);
+      expect(building.parts.some((part) => part.colorHex === artifact.wallColorHex))
+        .toBe(true);
+      if (artifact.architecture.facadePattern !== 'plain') {
+        expect(building.parts.some((part) => part.tag === FACADE_PART_TAG)).toBe(true);
+        visibleFacade++;
+      }
+      const motifParts = building.parts.filter((part) => part.tag === MOTIF_PART_TAG);
+      if (motifParts.length > 0) {
+        // Every production motif box carries its exact semantic cue, which lets
+        // render proofs distinguish a sign from a vent without color guessing.
+        expect(motifParts.every((part) => part.motifKind)).toBe(true);
+        visibleMotifs++;
+      }
+    }
+
+    expect(visibleStamped).toBeGreaterThan(0);
+    expect(visibleFacade).toBeGreaterThan(0);
+    expect(visibleMotifs).toBeGreaterThan(0);
+  });
 });
 
 // ============================================================================
@@ -556,6 +638,60 @@ describe('makeGroundWorld building terrain pads', () => {
 // patch matching the spot's ground heights, biomes, features, and buildings.
 // ============================================================================
 describe('extractLocalTerrainPatch', () => {
+  it('keeps decorative role motifs out of tactical collision and line of sight', () => {
+    // This oversized motif deliberately covers the player's tile. Without the
+    // motif tag guard it would behave like a solid wall; with the guard the
+    // underlying floor remains a valid combat square.
+    const ground = makeGroundWorldFixture({
+      cols: 100,
+      rows: 100,
+      heights: new Array(100 * 100).fill(0),
+      biomeIds: new Array(100 * 100).fill('plains'),
+      extentMetersX: 100 * GROUND_METERS_PER_CELL,
+      extentMetersZ: 100 * GROUND_METERS_PER_CELL,
+      buildings: [{
+        id: 'wf-plot-motif-collision-proof',
+        xM: 50,
+        zM: 50,
+        cornersM: [
+          { x: 45, z: 45 },
+          { x: 55, z: 45 },
+          { x: 55, z: 55 },
+          { x: 45, z: 55 },
+        ],
+        heightM: 6,
+        role: 'house',
+        wallWidthM: 8,
+        wallDepthM: 8,
+        parts: [
+          { x: 0, z: 0, w: 8, d: 8, h: 0.12, colorHex: '#9a8a72' },
+          {
+            x: 0,
+            z: 0,
+            w: 4,
+            d: 4,
+            h: 3,
+            colorHex: '#cfc7b8',
+            tag: MOTIF_PART_TAG,
+            motifKind: 'corner-turrets',
+          },
+        ],
+      }],
+    });
+    const patch = extractLocalTerrainPatch(
+      ground,
+      50,
+      50,
+      'forest',
+      42,
+      { width: 3, height: 3 },
+    );
+    const centerTile = patch.tiles.get('1-1')!;
+
+    expect(centerTile.blocksMovement).toBe(false);
+    expect(centerTile.blocksLoS).toBe(false);
+  });
+
   it('extracts a 40x30 terrain patch matching the heights, biomes, and buildings of the ground world', () => {
     // 1. Create a fixture ground world with custom height, biome, feature, and building
     const cols = 100;

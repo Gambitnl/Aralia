@@ -58,3 +58,77 @@ Original prompt: Set a goal to make the start of the game playable. Think of cor
 - Each horizon fires at the expected repeated cadence and always uses its stable slot key, proving bounded overwrite behavior rather than unbounded save accumulation.
 - A state update halfway to the first checkpoint did not reset the timer, and the eventual snapshot contained the latest state. Disabled autosave and leaving exploration still cancel all checkpoint work.
 - Together with the live one-minute Waystone creation and rendered history proof, the W01 Autosave tiers row is now verified. Browser-profile lifetime behavior remains part of broader resilience testing rather than this timer contract.
+
+## 2026-07-11 combat-map shell continuation
+
+- The design preview and playable combat screen now share independent roster and command-rail visibility controls.
+- Collapsing the command rail keeps a compact turn strip beside the battlefield with the active actor, action/bonus/reaction state, movement remaining, a restore-panel control, and End Turn.
+- The battlemap planmap shell node records the resolved turn-strip policy and asks whether map-focus mode should stay status-only or gain a compact favorite-ability affordance.
+- Rendered proof now covers an enemy turn, a player turn, the wide one-row HUD, the narrow two-row HUD, and restoring the command rail. Both widths keep the strip inside the battlefield without horizontal or vertical overflow.
+- Focused verification passes: CombatView responsive tests (5/5), compact-strip lint, planmap derivation tests, JSON parsing, dependency sync, and the repository sync check.
+- Rail visibility now uses one shared, schema-validated preference. First use and invalid saved data show both rails; deliberate choices survive later combats; storage failures still update the current screen without crashing.
+- Live proof hid the command rail, reloaded into the saved map-focus layout with the compact turn HUD intact, restored commands, and reloaded into the restored full layout with no console errors.
+- Persistence verification passes: shared hook tests (4/4) and CombatView responsive tests (6/6), including a full CombatView unmount/remount.
+- Desktop roster and command rails now have bounded, remembered widths. Mouse dragging, arrow keys, Home/End, per-rail double-click reset, and the toolbar's full panel reset share one layout contract.
+- Responsive caps reserve the battlefield's share at desktop widths; below the desktop breakpoint the rails remain stacked and both resize handles disappear.
+- Live proof dragged the roster from 230px to 294px without grid overflow, reloaded with 294px restored, resized commands from the keyboard, reset both widths to 230/300px, and found no errors on a clean page load.
+- Resize verification passes: handle interactions (2/2), layout/persistence hook (7/7), and CombatView responsive behavior (7/7).
+- Next: the owner can steer whether map-focus mode stays status-only or gains a favorite-ability affordance.
+
+### Shared combat targeting intent
+
+- The design-preview and playable combat shells now share one targeting HUD across 2D, 3D, and popped-out map modes. It names the armed ability, action cost, required target, range, caster, follow-up, and description without changing combat resolution.
+- Targeting now has an explicit icon cancel action and a universal Escape path. Escape deliberately yields to focused inputs, textareas, selects, and content-editable prompts so combat cancellation cannot discard in-progress text interaction.
+- Rendered proof armed Unarmed Strike in 2D, verified the HUD clears the zoom controls, switched to 3D without losing the armed intent, and confirmed the HUD remains mounted within the compact 390px composition.
+- Focused verification passes: intent HUD tests (2/2), CombatView responsive tests (8/8), touched-file lint with no errors, dependency sync for all three shared consumers, and the repository sync check.
+- Next targeting decision: invalid target clicks currently leave the ability armed and show the validation reason. The owner can keep that forgiving retry behavior or make invalid attempts cancel; automatic nearest-target snapping is not recommended because it can attack a creature the player did not choose.
+
+### Armed ability command feedback
+
+- The command tile that started targeting now remains visibly pressed with a crosshair and high-contrast ring, in both embedded and popped-out ability palettes.
+- Pressing that same tile again cancels targeting. The map HUD cancel button and Escape remain available, so cancellation is reachable from both the command origin and the target surface.
+- The large hover tooltip unmounts while its tile is armed because the map HUD now owns those details; this prevents two floating panels from covering the battlefield after a click.
+- Both playable combat and the design-preview battle map return stacked layouts to the battlefield after a command is armed, keeping the target surface and intent HUD together on compact screens.
+- The existing Plan Map targeting node records this as a completed interaction contract. Invalid-target retry versus immediate cancellation remains the only open targeting decision in this pass.
+
+### Truthful map command toolbar
+
+- The 2D map's Move / Attack toolbar was present in the DOM but painted underneath terrain tiles because its CSS-variable z-index resolved to `auto`. It now uses the shared numeric combat-overlay layer, and live hit-testing lands on the command button rather than the terrain beneath it.
+- The validation-reason banner uses the same explicit combat layer and begins below the command cluster, so an invalid target explanation cannot disappear behind the board or overlap the controls it is explaining.
+- Quick Attack no longer assumes `abilities[0]` is an attack. It preserves authored loadout order while selecting the first affordable direct main-Action attack, skipping spells, movement, area/bonus attacks, cooldowns, and depleted uses; it disables when no truthful shortcut exists.
+- Move and Attack now use familiar icons and accessible pressed states. Quick Attack announces the exact attack it will arm, and pressing the armed shortcut again cancels targeting consistently with the ability palette.
+- Focused verification passes 12/12 across the new selection and toolbar regressions plus existing 2D parity, visibility, and object-interaction coverage. Live 2D proof confirms z-index 400, topmost hit ownership, exact `Attack with Unarmed Strike` naming, and pressed-to-cancel behavior.
+- Next command decision: keep the shortcut on the first ready direct attack in authored loadout order, remember the character's last explicitly used direct attack, or let the player configure a favorite. Remembering the last explicit direct attack is recommended; automatic highest-damage selection would make the command less predictable.
+
+### Manual creator backtracking
+
+- The resumed W01 pass reproduced a contradictory draft after Human -> Age -> Back: the sidebar retained Human while the detail pane and primary action reset to Fallen Aasimar.
+- `RaceSelection.tsx` now initializes its viewed race from the parent creator draft. A focused regression passes 1/1, and live reload/backtracking restores both Human indicators consistently.
+- Character Creator G24 is resolved. Continue the representative Human martial completion, then a spellcaster and a race with additional required choices before closing the manual-creation inventory row.
+
+### Manual creator representative matrix
+
+- Human/Soldier/Fighter completed with recommended point buy, Perception, replacement class skills, Defense, three weapon masteries, Savage Attacker, Tough, and a named start-town handoff.
+- Fallen Aasimar/Sage/Wizard completed with three class cantrips, six spellbook entries, racial Light, configured Magic Initiate Intelligence/Wizard choices, duplicate filtering, and a named start-town handoff.
+- Changeling/Criminal/Rogue completed with required Deception/Insight/Small choices preserved through Back, combined provenance badges, four replacement Rogue skills, two masteries, Alert, visible final size review, and a named start-town handoff.
+- Character Creator G25-G28 are resolved. The manual creation inventory row is verified; next W01 work is game-over and not-found recovery.
+
+## 2026-07-11 W02 dense-world and travel continuity
+
+- The user-reported rounded `1 FPS` was reproduced on the populated opening/town path: a cold full-cast scene ran at 8.12 FPS, and a competing active 3D tab reduced delivered frames to 0.85 FPS.
+- Player/cast/generated-body fields now use bounded resolution and update cadence; overview residents are nearest-first and capped; distant building shells skip inert frame work; normal-height play uses the near shadow cascade and aerial views restore the far cascade; ground DPR is bounded.
+- Cold full-cast proof improved to 33.12 FPS with the intended three live generated bodies, town geometry, near shadows, and aerial far shadows intact. Focused World3D/entity coverage passes 23/23. World3D W3D-G30 is resolved.
+- Cell discovery now persists exact IDs and dedupes. Live `[2497,2499,2498]` survived an explicit save and full Continue reload; later hostile routes added exact 2761 and 2371. Travel G7 is genuinely resolved after correcting its earlier read-only false closure.
+- Direct cell-native travel opened Wolf combat at 2761. A one-day underprovisioned route toward 2370 stopped at the exact time-affordable cell 2371 after 1396.11 of 1670.54 minutes and opened two-Bandit combat. Travel G18/G20 are resolved.
+- Ferry mode rejects water-lane endpoints without changing the player cell, accepts land/port endpoints, and no longer snaps identity ashore. Foot-only parties expose only walking; a mounted party adds horse travel. Travel G19/G21 are resolved.
+- The Classic SVG atlas now supports named focus, real-neighbor arrow navigation, Enter/Space activation, and guarded pointer/touch pan-versus-pick handling. The 29-test AtlasSvgView suite and a live keyboard-only route selection/commit resolve Worldforge WF-G12.
+- The hostile encounter also exposed missing Elara/Kaelen placeholder portraits. Canonical data now omits them, and both companion render boundaries filter the two retired paths from legacy saves while preserving real future URLs. Eleven focused tests and a live stale-Elara injection produced no avatar request or console error; Companions G9 is resolved.
+- The owner registries, whole-game proof ledger, coverage inventory, tracker, and Planmap now agree. The focused W02 atlas/travel matrix currently passes 98/98; project-doc audit validates the touched Travel, Worldforge, Companions, World3D, and audit registries.
+- Next W02 continuity targets are cardinal/out-of-bounds movement, legacy Submap reachability, exploration commands, and exact 2D-to-3D-to-2D geography return.
+
+### Long Rest action continuity
+
+- The live Long Rest modal described an eight-hour recovery but confirmed by dispatching the reducer directly, bypassing planar checks, overnight simulation, journal rollover, messages, and the explicit time advance owned by `handleLongRest`.
+- Confirmation now travels through the same `processAction` pipeline as other Action Pane commands. Modal-authored racial choices survive that route and are merged with any planar-rest denials in the one mechanical rest action.
+- Focused ActionPane, GameModals, and resource-action coverage passes 48/48. Live confirmation advanced the clock from 10:40 to 18:40, emitted the settle/world/awake messages, closed the modal once, and produced zero console errors.
+- Action Pane G1 is registered, resolved, and linked in the whole-game audit and Planmap.

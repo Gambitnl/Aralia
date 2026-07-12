@@ -412,11 +412,13 @@ describe('generateRegion (C2: civilization)', () => {
     });
 
     for (const road of region.roads) {
-      expect(['road', 'trail']).toContain(road.kind);
+      // 'path' = village forest spurs (road-systems Task 7), 8 ft foot-worn lines.
+      expect(['road', 'trail', 'path']).toContain(road.kind);
       expect(road.widthFt).toBeGreaterThan(0);
-      // Road wider than trail
+      // Road wider than trail, trail wider than path
       if (road.kind === 'road') expect(road.widthFt).toBeGreaterThanOrEqual(40);
       if (road.kind === 'trail') expect(road.widthFt).toBeLessThanOrEqual(20);
+      if (road.kind === 'path') expect(road.widthFt).toBeLessThanOrEqual(8);
     }
   }, 30_000);
 

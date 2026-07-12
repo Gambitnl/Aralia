@@ -4,8 +4,9 @@ exports[`generateRegion (C2: civilization) > matches FROZEN golden values for bu
 {
   "firstEnvelopeWidth": 800,
   "firstGateCount": 0,
-  "roadCount": 1,
+  "roadCount": 2,
   "roadKinds": [
+    "path",
     "trail",
   ],
   "townSiteCount": 1,

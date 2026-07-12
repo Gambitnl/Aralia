@@ -114,6 +114,27 @@ describe('CreationSidebar', () => {
     expect(screen.getByText('1 / 10 steps complete')).toBeInTheDocument();
   });
 
+  it('uses visible wizard order when a background feat has an older enum value', () => {
+    // Soldier supplies Savage Attacker immediately, but the player does not
+    // visit the Origin Feat screen until after class and ability configuration.
+    // At Appearance, only Race, Age, Background, and Appearance are reached.
+    render(
+      <CreationSidebar
+        currentStep={CreationStep.Visuals}
+        state={{
+          ...initialCharacterCreatorState,
+          selectedRace: humanRace,
+          selectedBackground: 'soldier',
+          backgroundFeatId: 'savage_attacker',
+        }}
+        onNavigateToStep={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('4 / 11 steps complete')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '9. Origin Feat: Savage Attacker' })).not.toHaveAccessibleName(/completed/i);
+  });
+
   it('marks the current step for the sidebar-only auto-scroll target', () => {
     render(
       <CreationSidebar

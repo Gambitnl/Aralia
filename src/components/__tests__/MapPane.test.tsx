@@ -45,6 +45,23 @@ describe('MapPane', () => {
     expect(seaPreference).toHaveValue('none');
   });
 
+  it('offers only real party transports instead of granting every party a phantom horse', async () => {
+    const { rerender } = render(
+      <MapPane onTileClick={vi.fn()} onClose={vi.fn()} allowTravel transportParty={[{ transportMode: 'foot' }]} />,
+    );
+
+    const footOnly = screen.getByLabelText('Transport') as HTMLSelectElement;
+    expect(Array.from(footOnly.options).map((option) => option.value)).toEqual(['walking']);
+
+    rerender(
+      <MapPane onTileClick={vi.fn()} onClose={vi.fn()} allowTravel transportParty={[{ transportMode: 'mounted' }]} />,
+    );
+    await waitFor(() => {
+      expect(Array.from((screen.getByLabelText('Transport') as HTMLSelectElement).options).map((option) => option.value))
+        .toEqual(['walking', 'riding_horse']);
+    });
+  });
+
   it('keeps world map toolbar controls touch-sized in the floating window', async () => {
     render(
       <MapPane

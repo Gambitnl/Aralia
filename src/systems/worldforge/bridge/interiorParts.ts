@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 11/07/2026, 15:04:31
+ * Dependents: components/World3D/InteriorHourContext.tsx, components/World3D/OccupantFigure.tsx, systems/world3d/types.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/sitePartTransform.ts
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file interiorParts.ts — L4 interior → renderable wall/furnishing parts.
  *
@@ -6,6 +22,11 @@
  * group, replacing the solid shell box: perimeter walls with a real gap at
  * the entry door (decision #11 — seamless, the camera can walk in), interior
  * walls along room boundaries minus doorway gaps, and low furnishing blocks.
+ * Styled blueprints also carry their resolved regional wall material and an
+ * additive facade grammar (courses, bays, half-timbering, or log bands). Those
+ * details sit outside the structural wall boxes, so they never close a door,
+ * fill a window, or move the permanent plan. Larger role motifs use that same
+ * additive path for signs, vents, porches, bell-cotes, and defensive details.
  *
  * Frame: x = centered frontage meters (matching the renderer group's +x
  * along the footprint's 0→1 edge). z = centered DEPTH meters with +z
@@ -16,12 +37,22 @@
 
 import { blueprintForPlot, generateInterior, type InteriorPlotInput } from '../interior/generateInterior';
 import { EXTERIOR, type InteriorRoom, type InteriorPlan } from '../interior/types';
-import type { BlueprintPlan } from '../interior/blueprintTypes';
+import type {
+  BuildingMotif,
+  BlueprintPlan,
+  FacadePattern,
+  WallRun,
+} from '../interior/blueprintTypes';
 import { HEARTH_KINDS } from '../interior/occupancy';
 import { OUTER_THICKNESS_FT } from '../interior/walls';
 import { buildBuildingMeshData, buildRoofMeshData, type MeshBox } from '../../world3d/buildingModels';
 import type { ChunkGeometryArrays } from '../../world3d/types';
 import type { SeedPath } from '../seedPath';
+import { buildBuildingMotifParts } from './buildingMotifParts';
+
+// Preserve the bridge's public tag import while the dedicated motif module owns
+// the geometry and literal. Existing renderers and tests need no migration.
+export { MOTIF_PART_TAG } from './buildingMotifParts';
 
 /** One renderable box, site-local meters (y sits on the ground). */
 export interface SitePart {
@@ -42,6 +73,8 @@ export interface SitePart {
    * (chimney flues, dormer masses) so consumers/tests can separate roof parts
    * from the wall/floor structure without a color sniff (BGv2 Task 5). */
   tag?: string;
+  /** Exact exterior motif represented by this additive part. */
+  motifKind?: BuildingMotif;
   /** When set, this part is a live-lit surface the renderer drives from the
    * building's hourly schedule: 'window' glass or the 'hearth' fire. Set
    * UNCONDITIONALLY at bake (independent of any hour) so the renderer can find
@@ -51,6 +84,9 @@ export interface SitePart {
 
 /** Tag stamped on solved-roof dressing parts (chimney/dormer boxes). */
 export const ROOF_PART_TAG = 'roof';
+
+/** Tag stamped on additive exterior trim generated from a facade grammar. */
+export const FACADE_PART_TAG = 'facade';
 
 /** The triangulated solved roof (planes + tower caps) as ONE geometry group,
  *  site-local METERS, ready for a single BufferGeometry. Separate from the box
@@ -70,6 +106,16 @@ const WALL_T = 0.3;
 /** Extra roof-eave overhang past the outer wall face, feet — a small readable
  *  eave so the roof caps the wall top instead of stopping flush/inside it. */
 const EAVE_CLEAR_FT = 0.5;
+/** Shallow projection of facade trim beyond the structural wall face. */
+const FACADE_DEPTH_M = 0.08;
+/** Width of one vertical structural bay marker, feet. */
+const FACADE_POST_WIDTH_FT = 0.55;
+/** Height of one horizontal facade course, feet. */
+const FACADE_BAND_HEIGHT_FT = 0.42;
+/** Maximum distance between vertical bay markers, feet. */
+const FACADE_BAY_SPACING_FT = 10;
+/** Window void width used by walls.ts and buildingModels.ts, plus trim clearance. */
+const FACADE_WINDOW_HALF_CLEAR_FT = 1.6;
 /** Doorway clear width, feet (one 5 ft cell). */
 const DOOR_FT = 5;
 /** Single worn-plank floor color shared by every generated interior. */
@@ -278,13 +324,217 @@ export function buildInterior(
   };
 }
 
+// ============================================================================
+// Additive Facade Dressing
+// ============================================================================
+// The blueprint's wall runs remain the structural truth. This section projects
+// shallow trim just beyond their exterior faces, using the resolved district
+// grammar. Because dressing is emitted after structure and tagged separately,
+// callers can inspect or hide it without changing collision or room topology.
+// ============================================================================
+
+/** Along-axis bounds of one straight wall run, in blueprint feet. */
+function wallRunSpan(run: WallRun): [number, number] {
+  return run.axis === 'x' ? [run.x1, run.x2] : [run.y1, run.y2];
+}
+
 /**
- * Blueprint structure → SiteParts (Task 12). Converts the pure
+ * Split a horizontal trim course around every window void on this wall run.
+ *
+ * Door edges already split wall runs, but windows are openings inside a run.
+ * Keeping a small 0.1 ft margin beyond each 3 ft window prevents projected log
+ * bands or belt courses from appearing as bars across the glass.
+ */
+function facadeBandSpans(
+  run: WallRun,
+  windows: BlueprintPlan['floors'][number]['windows'],
+  lo: number,
+  hi: number,
+): Array<[number, number]> {
+  const wallLineFt = run.axis === 'x' ? run.y1 : run.x1;
+  const openings = windows
+    .filter((window) => {
+      if (window.axis !== run.axis) return false;
+      const fixedFt = run.axis === 'x' ? window.y : window.x;
+      return Math.abs(fixedFt - wallLineFt) < 1e-6;
+    })
+    .map((window) => {
+      const centerFt = run.axis === 'x' ? window.x : window.y;
+      return [
+        Math.max(lo, centerFt - FACADE_WINDOW_HALF_CLEAR_FT),
+        Math.min(hi, centerFt + FACADE_WINDOW_HALF_CLEAR_FT),
+      ] as [number, number];
+    })
+    .filter(([openingLo, openingHi]) => openingHi > openingLo)
+    .sort(([a], [b]) => a - b);
+
+  const spans: Array<[number, number]> = [];
+  let cursorFt = lo;
+  for (const [openingLo, openingHi] of openings) {
+    if (openingLo > cursorFt) spans.push([cursorFt, openingLo]);
+    cursorFt = Math.max(cursorFt, openingHi);
+  }
+  if (hi > cursorFt) spans.push([cursorFt, hi]);
+  return spans;
+}
+
+/**
+ * Convert one decorative span on an outer wall into a shallow render box.
+ *
+ * `alongCenterFt` and `alongLengthFt` describe the strip along the wall. The
+ * strip is then moved just beyond the wall's outward face, which prevents
+ * z-fighting while keeping the facade attached to its exact irregular shell.
+ */
+function facadePartOnRun(
+  run: WallRun,
+  planWidthFt: number,
+  planDepthFt: number,
+  alongCenterFt: number,
+  alongLengthFt: number,
+  baseYFt: number,
+  heightFt: number,
+  colorHex: string,
+): SitePart {
+  const outwardFt = run.thicknessFt / 2 + FACADE_DEPTH_M / FT / 2;
+  const common = {
+    h: heightFt * FT,
+    baseY: baseYFt * FT,
+    colorHex,
+    tag: FACADE_PART_TAG,
+  };
+
+  // Horizontal wall runs extend along plan x and project along their y normal.
+  if (run.axis === 'x') {
+    return {
+      ...common,
+      x: (alongCenterFt - planWidthFt / 2) * FT,
+      z: (run.y1 - planDepthFt / 2 + run.ny * outwardFt) * FT,
+      w: alongLengthFt * FT,
+      d: FACADE_DEPTH_M,
+    };
+  }
+
+  // Vertical wall runs extend along plan y and project along their x normal.
+  return {
+    ...common,
+    x: (run.x1 - planWidthFt / 2 + run.nx * outwardFt) * FT,
+    z: (alongCenterFt - planDepthFt / 2) * FT,
+    w: FACADE_DEPTH_M,
+    d: alongLengthFt * FT,
+  };
+}
+
+/**
+ * Dress every above-grade outer wall from the resolved facade grammar.
+ *
+ * Window centers sit halfway through 5 ft cells, while vertical markers sit on
+ * wall-run boundaries and 10 ft intervals. That rhythm naturally avoids most
+ * glazing without reading or rewriting window geometry. Door runs are already
+ * split by the blueprint wall builder, so the same rule frames rather than
+ * blocks entrances.
+ */
+function facadeDetails(
+  blueprint: BlueprintPlan,
+  storeyHeightM: number,
+): SitePart[] {
+  const style = blueprint.styleResolved;
+  if (!style || style.facadePattern === 'plain') return [];
+
+  const pattern: FacadePattern = style.facadePattern;
+  const storeyHeightFt = storeyHeightM / FT;
+  const parts: SitePart[] = [];
+
+  // Each floor owns its own wall runs, so details follow upper-storey shells as
+  // faithfully as the ground floor and never dress a below-grade basement.
+  for (const floor of blueprint.floors) {
+    if (floor.level < 0) continue;
+    const floorBaseFt = floor.level * storeyHeightFt;
+
+    for (const run of floor.wallRuns) {
+      if (run.kind !== 'outer') continue;
+      const [lo, hi] = wallRunSpan(run);
+      const runLengthFt = hi - lo;
+      if (runLengthFt <= 0) continue;
+
+      // Belt-course and half-timber districts repeat a strong line below each
+      // eave. Wealthy buildings add a lower sill course as restrained ornament.
+      const bandOffsetsFt: number[] = [];
+      if (pattern === 'belt-course' || pattern === 'half-timber') {
+        bandOffsetsFt.push(Math.max(0.5, storeyHeightFt - 1));
+        if (style.ornament) bandOffsetsFt.push(1);
+      }
+
+      // Log districts use several close horizontal bands so the wall reads as
+      // stacked construction rather than a plaster face.
+      if (pattern === 'log-bands') {
+        for (let offsetFt = 1.5; offsetFt < storeyHeightFt - 0.5; offsetFt += 2) {
+          bandOffsetsFt.push(offsetFt);
+        }
+      }
+
+      for (const offsetFt of bandOffsetsFt) {
+        for (const [spanLo, spanHi] of facadeBandSpans(run, floor.windows, lo, hi)) {
+          parts.push(facadePartOnRun(
+            run,
+            blueprint.widthFt,
+            blueprint.depthFt,
+            (spanLo + spanHi) / 2,
+            spanHi - spanLo,
+            floorBaseFt + offsetFt,
+            FACADE_BAND_HEIGHT_FT,
+            style.trimColor,
+          ));
+        }
+      }
+
+      // Vertical-bay and half-timber districts mark corners, door breaks, and
+      // long spans. Ten-foot spacing is broad enough to remain legible at town
+      // scale while still giving a close building a constructed rhythm.
+      if (pattern === 'vertical-bays' || pattern === 'half-timber') {
+        const centersFt: number[] = [lo];
+        for (
+          let atFt = lo + FACADE_BAY_SPACING_FT;
+          atFt < hi;
+          atFt += FACADE_BAY_SPACING_FT
+        ) {
+          centersFt.push(atFt);
+        }
+        centersFt.push(hi);
+
+        const postWidthFt = Math.min(FACADE_POST_WIDTH_FT, runLengthFt);
+        for (const proposedFt of centersFt) {
+          // Keep the post body on this run even when the marker represents an
+          // endpoint; adjacent runs may overlap at a corner, which reads as one
+          // stronger corner post and is harmless additive geometry.
+          const centerFt = Math.max(
+            lo + postWidthFt / 2,
+            Math.min(hi - postWidthFt / 2, proposedFt),
+          );
+          parts.push(facadePartOnRun(
+            run,
+            blueprint.widthFt,
+            blueprint.depthFt,
+            centerFt,
+            postWidthFt,
+            floorBaseFt + 0.45,
+            Math.max(0.5, storeyHeightFt - 0.9),
+            style.trimColor,
+          ));
+        }
+      }
+    }
+  }
+
+  return parts;
+}
+
+/**
+ * Blueprint structure to SiteParts (Task 12). Converts the pure
  * buildBuildingMeshData boxes (plan feet) into site-local meter parts:
  * per-level floor/ceiling slabs with stair holes, thickness-true walls
  * following the irregular shell along each run's outward normal, window
  * voids (sill + head + glazed pane), door jamb reveals + lintels, and
- * stair flights — for every level of the plan.
+ * stair flights for every level of the plan.
  */
 function blueprintStructureParts(
   bp: BlueprintPlan,
@@ -299,6 +549,10 @@ function blueprintStructureParts(
   const md = buildBuildingMeshData(bp, { storeyHeightFt: storeyHeightM / FT });
   const W = bp.widthFt;
   const D = bp.depthFt;
+  // Styled blueprints own their regional/district wall material. The role
+  // color remains the honest fallback for legacy or synthetic plans that have
+  // no resolved style.
+  const exteriorWallColor = bp.styleResolved?.wallColor ?? perimeterColor;
   const colorFor = (b: MeshBox): string => {
     switch (b.kind) {
       case 'floor': return FLOOR_COLOR;
@@ -306,7 +560,7 @@ function blueprintStructureParts(
       case 'stair': return STAIR_COLOR;
       case 'door-lintel': return DOOR_LINTEL_COLOR;
       case 'window-pane': return WINDOW_PANE_COLOR;
-      default: return b.wallKind === 'outer' ? perimeterColor : INTERIOR_WALL_COLOR;
+      default: return b.wallKind === 'outer' ? exteriorWallColor : INTERIOR_WALL_COLOR;
     }
   };
   const parts: SitePart[] = [];
@@ -326,6 +580,11 @@ function blueprintStructureParts(
       });
     }
   }
+
+  // Facade grammar and role motifs are additive dressing outside the completed
+  // structural walk. Core boxes, openings, slabs, and stairs are never rewritten.
+  parts.push(...facadeDetails(bp, storeyHeightM));
+  parts.push(...buildBuildingMotifParts(bp, storeyHeightM));
   return parts;
 }
 

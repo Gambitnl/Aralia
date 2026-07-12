@@ -75,7 +75,14 @@ export async function runWorldGen(req: WorldGenRequest, emit: WorldGenEmit): Pro
   emit.emitProgress?.('town');
 
   // Stage A: terrain + town, no props. This is the "you can look around" world.
-  const ground = makeGroundWorld(local, wfSeed, region, { hour, deltas, skipProps: true });
+  // The entry cell doubles as the canopy anchor (forests Task 11): the window's
+  // atlas cell decides whether the woods close overhead in the 3D scene.
+  const ground = makeGroundWorld(local, wfSeed, region, {
+    hour,
+    deltas,
+    skipProps: true,
+    anchorCellId: entryCellId,
+  });
   emit.emitStageA({ ground, local, region });
 
   // Stage B: dressing. Built without registered businesses — the deterministic

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/07/2026, 01:28:08
+ * Last Sync: 11/07/2026, 23:51:15
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
- * Imports: 16 files
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,6 +33,7 @@
  * - No texture atlas consolidation for sprite batching
  */
 import React, { useMemo, useCallback, useEffect, useRef, useState, useLayoutEffect } from 'react';
+import { Footprints, Swords } from 'lucide-react';
 import { BattleMapData, CombatCharacter, BattleMapTile as BattleMapTileData, CombatState, LightSource, Position } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
@@ -49,6 +50,7 @@ import { UI_ID } from '../../styles/uiIds';
 import { Z_INDEX } from '../../styles/zIndex';
 import { selectVisibilityObserver } from './visibilityObserverPolicy';
 import type { SpellMapArtifacts } from './spellMapArtifacts';
+import { selectQuickAttack } from './quickAttack';
 
 // Width of the row-letter gutter to the left of the grid; the column ruler uses
 // the same value as a leading offset so numbers sit centered over their columns.
@@ -205,10 +207,20 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
       };
     });
   }, [abilitySystem.pendingTeleportAssignment, characters]);
-  const primaryAttack = currentCharacter?.abilities[0];
-  const canUsePrimaryAttack = currentCharacter && primaryAttack
-    ? turnManager.canAffordAction(currentCharacter, primaryAttack.cost)
-    : false;
+  // The map shortcut must represent a real direct attack, not the first item in
+  // an arbitrary ability array. Preserve loadout order while skipping spells,
+  // movement, cooldowns, depleted uses, and unaffordable attacks.
+  const quickAttack = currentCharacter
+    ? selectQuickAttack(
+        currentCharacter.abilities,
+        (cost) => turnManager.canAffordAction(currentCharacter, cost),
+      )
+    : null;
+  const quickAttackIsArmed = Boolean(
+    abilitySystem.targetingMode
+    && quickAttack
+    && abilitySystem.selectedAbility?.id === quickAttack.id,
+  );
 
   // --- OPTIMIZATION START ---
   // Memoize sets to reduce O(N) lookups in render loop and prevent re-calcs on mouse move
@@ -475,14 +487,22 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
         <div
           role="status"
           aria-live="polite"
-          className="absolute left-3 top-12 z-[var(--z-index-submap-overlay)] max-w-[18rem] rounded border border-rose-300/70 bg-slate-950/90 px-3 py-2 text-xs font-semibold leading-snug text-rose-100 shadow-[0_0_16px_rgba(244,63,94,0.28)]"
+          className="absolute left-3 top-16 max-w-[18rem] rounded border border-rose-300/70 bg-slate-950/90 px-3 py-2 text-xs font-semibold leading-snug text-rose-100 shadow-[0_0_16px_rgba(244,63,94,0.28)]"
+          style={{ zIndex: Z_INDEX.COMBAT_OVERLAY }}
         >
           {abilitySystem.targetValidationReason}
         </div>
       )}
        {/* UI for current turn actions */}
        {currentCharacter && isCharacterTurn(currentCharacter.id) && (
-        <div className="absolute left-3 top-3 z-[var(--z-index-submap-overlay)] flex gap-2 rounded-md border border-slate-600/70 bg-slate-950/80 p-1.5 shadow-lg backdrop-blur-sm">
+        /* The painted ground and tile grid are rendered later in this file.
+           Use the shared combat overlay layer explicitly so the toolbar stays
+           visible and clickable instead of existing underneath those canvases. */
+        <div
+          data-testid="battle-map-command-toolbar"
+          className="absolute left-3 top-3 flex gap-2 rounded-md border border-slate-600/70 bg-slate-950/80 p-1.5 shadow-lg backdrop-blur-sm"
+          style={{ zIndex: Z_INDEX.COMBAT_OVERLAY }}
+        >
           <button 
             onClick={() => {
               // Switching back to movement should leave any half-started attack
@@ -491,20 +511,40 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
               abilitySystem.cancelTargeting();
               setActionMode('move');
             }}
-            className={`h-9 rounded px-3 text-xs font-semibold transition-colors ${actionMode === 'move' ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-gray-600 hover:bg-gray-500'}`}
-          >Move</button>
+            type="button"
+            aria-pressed={actionMode === 'move'}
+            aria-label="Move on the battle map"
+            className={`inline-flex h-9 items-center gap-1.5 rounded px-3 text-xs font-semibold transition-colors ${actionMode === 'move' ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-gray-600 hover:bg-gray-500'}`}
+          >
+            <Footprints size={14} aria-hidden="true" />
+            <span>Move</span>
+          </button>
           <button
             onClick={() => {
-              // The quick Attack button mirrors the ability palette. If the
-              // action has already been spent, the player should see the button
-              // disabled instead of entering a targeting mode that will fail.
-              if (!currentCharacter || !primaryAttack || !canUsePrimaryAttack) return;
+              // Pressing the armed shortcut again mirrors the ability palette's
+              // cancel behavior, keeping both command origins consistent.
+              if (quickAttackIsArmed) {
+                abilitySystem.cancelTargeting();
+                setActionMode('move');
+                return;
+              }
+
+              // The shortcut disables when no honest direct attack is ready,
+              // instead of arming a movement, utility, or unavailable ability.
+              if (!currentCharacter || !quickAttack) return;
               setActionMode('ability');
-              abilitySystem.startTargeting(primaryAttack, currentCharacter);
+              abilitySystem.startTargeting(quickAttack, currentCharacter);
             }}
-            disabled={!canUsePrimaryAttack}
-            className={`h-9 rounded px-3 text-xs font-semibold transition-colors ${!canUsePrimaryAttack ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : actionMode === 'ability' ? 'bg-red-600 text-white ring-2 ring-red-300' : 'bg-gray-600 hover:bg-gray-500'}`}
-          >Attack</button>
+            type="button"
+            disabled={!quickAttack}
+            aria-pressed={quickAttackIsArmed}
+            aria-label={quickAttack ? `Attack with ${quickAttack.name}` : 'No direct attack available'}
+            title={quickAttack ? `Attack with ${quickAttack.name}` : 'No direct action attack is ready'}
+            className={`inline-flex h-9 items-center gap-1.5 rounded px-3 text-xs font-semibold transition-colors ${!quickAttack ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : quickAttackIsArmed ? 'bg-red-600 text-white ring-2 ring-red-300' : 'bg-gray-600 hover:bg-gray-500'}`}
+          >
+            <Swords size={14} aria-hidden="true" />
+            <span>Attack</span>
+          </button>
         </div>
       )}
 

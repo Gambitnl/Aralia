@@ -6,10 +6,10 @@ slug: combat
 status: "active (G30 decision recorded 2026-06-10; implementation lane open)"
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-26"
-gap_count: 4
+last_updated: "2026-07-11"
+gap_count: 5
 open_gap_count: 4
-resolved_gap_count: 0
+resolved_gap_count: 1
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
@@ -113,6 +113,7 @@ Use this file for durable unresolved findings that are too important or too larg
 | CMA-G18 | not_started | adjacent_follow_up | combat owner | `docs/projects/code-modularization-audit/GAPS.md` CMA-G18 | Code modularization audit routing | `useActionExecutor.ts` (~753 lines), `CombatView.tsx` (~619 lines), `EncounterModal.tsx` (~586 lines), and `combat.ts` types (~704 lines) are co-located enough that behavior can drift if modularized without end-to-end combat proof. | `src/hooks/combat/useActionExecutor.ts`; `src/components/Combat/CombatView.tsx`; `src/components/Combat/EncounterModal.tsx`; `src/types/combat.ts`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G18 | A split without turn-flow, log-state, and encounter-generation proof can silently break combat. Blocked on G30 (useAbilitySystem/useCombatEngine ownership decision) â€” G30 resolved 2026-06-10 (DECISION_BLITZ D6), so this route is no longer decision-blocked. | Accept or defer the inbound CMA-G18 route under the D6 model (Code Modularization Audit owns split plans; Combat contributes invariants/tests); if accepting, follow a bounded split plan with combat scenario replay or smoke proof. | Owner gap row exists and CMA-G18 status is updated to reflect acceptance or deferral. |
 | G31 | not_started | adjacent_follow_up | Codex | Combat AI tactics | `docs/BACKLOG.md` migration 2026-06-25 | Allied party-member combat tactics need explicit AI behavior instead of living as a root backlog note. | `docs/BACKLOG.md`; `src/utils/combat/combatAI.ts`; combat ownership notes in this registry | Allied combatants should not behave like placeholder entities once party combat expands; tactic logic needs testable rules for support, positioning, target choice, and resource use. | Define the first allied-tactics policy slice and add focused AI scoring tests before wiring broader behavior. | Unit tests proving one allied attacker and one allied support caster choose expected actions under deterministic combat state. |
 | G32 | not_started | adjacent_follow_up | combat owner | Combat subsystem maintainability | `src/systems/combat/Combat_Ralph.md` retirement 2026-06-26 | `AttackRiderSystem.getMatchingRiders` still uses inline sequential filter logic and rider/type dependencies still import directly from the broad `types/combat` surface. Dead-import cleanup and singleton test isolation from the same note are already implemented, so only the maintainability leftovers remain. | `src/systems/combat/Combat_Ralph.md`; `src/systems/combat/AttackRiderSystem.ts`; `src/types/combat.ts`; `src/test/combatEmitters.ts`; `AttackEventEmitter.ts`, `MovementEventEmitter.ts`, and `SustainActionSystem.ts` expose `setInstance`/`createFresh` | Rider matching is compact today, but future rider families can make inline filters harder to test and broad type imports keep the subsystem coupled to the monolithic combat type file. | If a Combat refactor slice is selected, extract rider predicates behind focused tests and consider a narrow combat-rider type export. Do not reopen the already-landed dead-import or singleton-isolation work. | Focused `AttackRiderSystem` tests cover target, consumption, weapon type, and attack type predicates before/after refactor; no behavior drift in rider consumption. |
+| G33 | resolved | in_scope_now | Codex | Combat outcome routing | Whole-game systems audit W01 | Defeat dispatched rewardless `END_BATTLE`, returning directly to PLAYING; GAME_OVER had no runtime producer. | `CombatView.onBattleEnd`, `App.tsx`, `appState.ts`, focused routing test | Total-party defeat silently resumed exploration. | Route defeat through teardown into GAME_OVER; menu return abandons only in-memory state and preserves saves. | Focused action test plus rendered GAME_OVER-to-menu recovery. |
 
 ## Global Gap Routing Notes
 

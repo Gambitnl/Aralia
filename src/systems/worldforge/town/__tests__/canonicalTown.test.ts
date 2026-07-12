@@ -126,6 +126,21 @@ describe('transformTownPlan', () => {
       expect(back.footprint[i][1]).toBeCloseTo(plan.footprint[i][1], 4);
     }
   });
+
+  it('preserves social and architecture identity while transforming geometry', () => {
+    const plan = getCanonicalTownPlan(makeAtlas(), 42, 1);
+    const out = transformTownPlan(plan, 3, 1000, 2000);
+
+    expect(out.wards.map((ward) => ward.wealth)).toEqual(
+      plan.wards.map((ward) => ward.wealth),
+    );
+    expect(out.wards.map((ward) => ward.architectureDistrict)).toEqual(
+      plan.wards.map((ward) => ward.architectureDistrict),
+    );
+    expect(out.plots.map((plot) => plot.architectureKey)).toEqual(
+      plan.plots.map((plot) => plot.architectureKey),
+    );
+  });
 });
 
 describe('population scaling', () => {

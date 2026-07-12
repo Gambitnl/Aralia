@@ -31,6 +31,7 @@
 
 import React, { useCallback, useRef, useMemo, useState, useEffect } from 'react';
 import World3DScene from './World3DScene';
+import { recipeFromCharacter, recipeFromRichNpc } from '@/systems/entities3d/recipeFromCharacter';
 import { createForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
 import { assetAddress } from '@/systems/worldforge/assets/assetKey';
 
@@ -62,8 +63,8 @@ import {
 } from './clickMoveAuthority';
 import { localeFeetToGroundMeters } from '../../systems/worldforge/local/localePosition';
 import { requestMapCenterOnPlayer, requestMapDrillToPlayerTown } from '../Worldforge/mapFocusSignal';
-import { findCellAtPoint } from '../Worldforge/atlasSvg';
 import { type DisposableChunkLoader } from './createWorkerChunkLoader';
+import { resolveGroundEntryCellId } from './entryCellIdentity';
 import { usePlayerWorldPos, useWorldViewMode } from '../../hooks/useWorldViewMode';
 import { useGameState } from '../../state/GameContext';
 import { type SceneCastMember } from './SceneCast';
@@ -246,16 +247,11 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
         // Grid retirement (2026-07-01): 3D entry is fully cell-native. The entry
         // CELL is the anchor's cell (map click / start-selection / travel carry an
         // Entry3DAnchor) or — for a toggle-to-3D from gameplay with no anchor — the
-        // player's canonical cell. There is no 30x20 grid tile resolution anymore.
+        // player's canonical cell. A settlement's centerPx only frames the town;
+        // resolving that coordinate back through Voronoi geometry could redirect
+        // the worker to a neighbour and contradict the saved/2D player cell.
         const anchor = state.entry3DAnchor;
-        let entryCellId: number | null = null;
-        if (anchor) {
-          entryCellId = anchor.centerPx && wfSeed != null
-            ? findCellAtPoint(bridge.getBridgeAtlas(wfSeed), anchor.centerPx[0], anchor.centerPx[1])
-            : anchor.cellId;
-        } else if (state.playerCell?.cellId != null) {
-          entryCellId = state.playerCell.cellId;
-        }
+        const entryCellId = resolveGroundEntryCellId(anchor, state.playerCell);
         // The ground session's tile identity is the entry cell (opaque {x: cellId,
         // y: 0}) — cell-native, no grid coord. Feeds wfGroundView.tile + the
         // ground-position save/restore below.
@@ -937,13 +933,22 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
       .slice(0, 4)
       .map((id): SceneCastMember | null => {
         const npc = state.generatedNpcs?.[id];
-        return npc ? { id, name: npc.name, isSpeaker: id === speakerId } : null;
+        return npc
+          ? { id, name: npc.name, isSpeaker: id === speakerId, recipe: recipeFromRichNpc(npc) }
+          : null;
       })
       .filter((m): m is SceneCastMember => m !== null);
     if (npcs.length === 0) return [];
     const player = state.party?.[0];
     const cast: SceneCastMember[] = [];
-    if (player) cast.push({ id: player.id ?? 'player', name: player.name ?? 'You', isPlayer: true });
+    if (player) {
+      cast.push({
+        id: player.id ?? 'player',
+        name: player.name ?? 'You',
+        isPlayer: true,
+        recipe: recipeFromCharacter(player),
+      });
+    }
     cast.push(...npcs);
     return cast;
   }, [state.currentLocationActiveDynamicNpcIds, state.generatedNpcs, state.party, state.activeConversation]);
@@ -1028,15 +1033,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
               ? { xM: state.playerGroundPos.xM, zM: state.playerGroundPos.zM }
               : null
           }
-          playerIdentity={
-            wfGroundView && state.party?.[0]
-              ? {
-                  id: state.party[0].id,
-                  name: state.party[0].name,
-                  raceName: state.party[0].race?.name,
-                }
-              : null
-          }
+          playerCharacter={wfGroundView ? (state.party?.[0] ?? null) : null}
         />
       ) : worldGenError ? (
         // No-fallback: a failed world build says so plainly instead of a blank view.

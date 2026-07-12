@@ -1,6 +1,19 @@
+/**
+ * This file proves that the canonical building generator produces complete,
+ * deterministic, and connected plans across every supported building type.
+ *
+ * It also guards the additive Building Generator v2 layers: household briefs,
+ * roof/style dress, and the new settlement/district/building identity may alter
+ * visible dress but must never move the permanent rooms, walls, or stairs.
+ */
 import { describe, it, expect, vi } from 'vitest';
 import { rootSeedPath, rngFromPath, streamPath } from '../../seedPath';
-import { generateBuilding, buildingShellHeightM, BLUEPRINT_STOREY_FT } from '../generateBuilding';
+import {
+  generateBuilding,
+  buildingShellHeightM,
+  BLUEPRINT_STOREY_FT,
+  styleDigest,
+} from '../generateBuilding';
 import { metersFromFeet } from '../../units';
 import { EXTERIOR } from '../blueprintTypes';
 import type {
@@ -255,5 +268,76 @@ describe('style-driven building (roof + resolved dress)', () => {
     const a = generateBuilding({ buildingId: 1, type: 'manor', seedPath: rootSeedPath(9), storeys: 2, style: COLD_POOR });
     const b = generateBuilding({ buildingId: 1, type: 'manor', seedPath: rootSeedPath(9), storeys: 2, style: ARID_WEALTHY });
     expect(JSON.stringify(a)).not.toBe(JSON.stringify(b));
+  });
+
+  it('memo and dress distinguish individual buildings inside one district without moving their bones', () => {
+    const districtStyle: StyleContext = {
+      ...TEMPERATE_COMMON,
+      architecture: {
+        settlementKey: 'burg:12',
+        districtKey: 'wealth:common',
+        buildingKey: 'plot:4',
+      },
+    };
+    const neighboringStyle: StyleContext = {
+      ...districtStyle,
+      architecture: {
+        ...districtStyle.architecture!,
+        buildingKey: 'plot:5',
+      },
+    };
+
+    // The digest is the cache boundary: if these collide, the second building
+    // can inherit the first building's facade and roof profile.
+    expect(styleDigest(districtStyle)).not.toBe(styleDigest(neighboringStyle));
+
+    const first = generateBuilding({
+      buildingId: 1,
+      type: 'manor',
+      seedPath: rootSeedPath(9),
+      storeys: 2,
+      style: districtStyle,
+    });
+    const neighbor = generateBuilding({
+      buildingId: 1,
+      type: 'manor',
+      seedPath: rootSeedPath(9),
+      storeys: 2,
+      style: neighboringStyle,
+    });
+
+    expect(bones(first)).toBe(bones(neighbor));
+    expect(first.styleResolved!.districtSignature)
+      .toBe(neighbor.styleResolved!.districtSignature);
+    expect(first.styleResolved!.buildingVariant)
+      .not.toBe(neighbor.styleResolved!.buildingVariant);
+  });
+
+  it('district identity changes the local recipe while preserving one town family', () => {
+    const styleFor = (districtKey: string): StyleContext => ({
+      ...TEMPERATE_COMMON,
+      architecture: {
+        settlementKey: 'burg:12',
+        districtKey,
+        buildingKey: 'plot:4',
+      },
+    });
+    const common = generateBuilding({
+      buildingId: 2,
+      type: 'townhouse',
+      seedPath: rootSeedPath(9),
+      style: styleFor('wealth:common'),
+    });
+    const harbor = generateBuilding({
+      buildingId: 2,
+      type: 'townhouse',
+      seedPath: rootSeedPath(9),
+      style: styleFor('harbor'),
+    });
+
+    expect(common.styleResolved!.familyId).toBe(harbor.styleResolved!.familyId);
+    expect(common.styleResolved!.districtSignature)
+      .not.toBe(harbor.styleResolved!.districtSignature);
+    expect(bones(common)).toBe(bones(harbor));
   });
 });

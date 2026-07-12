@@ -8,7 +8,9 @@
  *
  * What remains are pure atlas-space helpers the owned map still depends on:
  * land-snapping a cell, resolving a cell's 3D-entry anchor, and fanning out
- * co-located map pins. Pure: no React/DOM.
+ * co-located map pins. The anchor keeps one canonical cell identity while an
+ * optional town coordinate only changes the camera window inside that cell.
+ * Pure: no React/DOM.
  */
 import type { FmgAtlasResult } from '../fmg/generateAtlas';
 import type { Entry3DAnchor } from '../../../types/state';
@@ -42,35 +44,29 @@ export function snapToLandCell(atlas: FmgAtlasResult, cellId: number): number {
 
 /**
  * Resolve the exact 3D-entry anchor for a clicked atlas cell (cell-native world).
- * A burg cell anchors on the BURG'S position (so the Locale frames the town —
- * cells are far larger than the Locale window, and the burg sits anywhere within
- * its cell); a non-burg cell land-snaps and centers on the cell site.
+ * The land-snapped clicked cell remains the location identity used by travel,
+ * saves, the 2D marker, and the 3D worker. A burg's position is carried only as
+ * a window-center override so the Locale still frames the town. FMG occasionally
+ * places a burg coordinate across a Voronoi boundary from the cell that owns it;
+ * treating that coordinate as a second cell id made the player occupy two places.
  */
 export function entry3DAnchorForCell(atlas: FmgAtlasResult, cellId: number): Entry3DAnchor {
-  const burgId = (atlas.pack.cells as { burg?: ArrayLike<number> }).burg?.[cellId];
+  // Resolve water or edge picks once. Every field in the returned anchor is now
+  // interpreted relative to this one canonical land cell.
+  const resolvedCellId = snapToLandCell(atlas, cellId);
+  const burgId = (atlas.pack.cells as { burg?: ArrayLike<number> }).burg?.[resolvedCellId];
   if (burgId) {
     const burg = atlas.pack.burgs?.[burgId] as { x?: number; y?: number } | undefined;
     if (burg && burg.x != null && burg.y != null) {
-      return { cellId: nearestCell(atlas, burg.x, burg.y), centerPx: [burg.x, burg.y] };
+      // The coordinate controls what the player sees on entry, not which atlas
+      // polygon owns the player. This preserves town framing without redirecting
+      // the 3D worker away from the cell selected and saved by the 2D game.
+      return { cellId: resolvedCellId, centerPx: [burg.x, burg.y] };
     }
   }
-  return { cellId: snapToLandCell(atlas, cellId) };
-}
-
-/** Nearest Voronoi cell id to a graph point (owned nearest-site lookup). */
-function nearestCell(atlas: FmgAtlasResult, gx: number, gy: number): number {
-  const p = atlas.pack.cells.p;
-  let best = -1;
-  let bestD = Infinity;
-  for (let i = 0; i < p.length; i++) {
-    const c = p[i];
-    if (!c) continue;
-    const dx = c[0] - gx;
-    const dy = c[1] - gy;
-    const d = dx * dx + dy * dy;
-    if (d < bestD) { bestD = d; best = i; }
-  }
-  return best;
+  // Wilderness entry has no sub-cell visual target, so the worker centers on
+  // the canonical cell's own site.
+  return { cellId: resolvedCellId };
 }
 
 /**

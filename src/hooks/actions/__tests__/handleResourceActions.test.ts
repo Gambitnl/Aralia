@@ -1,3 +1,11 @@
+/**
+ * Rest action pipeline regressions.
+ *
+ * The tests keep pacing, time advancement, journal rollover, and modal-authored
+ * choices together so a UI path cannot accidentally perform only the reducer
+ * half of a short or long rest.
+ */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { handleLongRest, handleShortRest } from '../handleResourceActions';
 import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
@@ -112,17 +120,26 @@ describe('handleShortRest', () => {
       },
     });
 
+    const racialRestChoices = {
+      'rest-1': {
+        adaptable: { skillIds: ['Survival'] },
+      },
+    };
+
     await handleLongRest({
       gameState: state,
       dispatch: mockDispatch as any,
       addMessage: mockAddMessage as any,
       addGeminiLog: vi.fn() as any,
+      racialRestChoices,
     });
 
+    const longRestAction = mockDispatch.mock.calls.find(([action]) => action.type === 'LONG_REST');
     const advanceTimeIndex = mockDispatch.mock.calls.findIndex(([action]) => action.type === 'ADVANCE_TIME');
     const addJournalIndex = mockDispatch.mock.calls.findIndex(([action]) => action.type === 'ADD_JOURNAL_ENTRY');
     const addJournalAction = mockDispatch.mock.calls.find(([action]) => action.type === 'ADD_JOURNAL_ENTRY');
 
+    expect(longRestAction?.[0].payload).toMatchObject({ racialRestChoices });
     expect(advanceTimeIndex).toBeGreaterThan(-1);
     expect(addJournalIndex).toBeGreaterThan(-1);
     expect(addJournalIndex).toBeGreaterThan(advanceTimeIndex);
