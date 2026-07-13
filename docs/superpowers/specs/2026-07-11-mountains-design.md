@@ -1,7 +1,7 @@
 # Mountains: named ranges, real passes, high country that matters
 
 **Date:** 2026-07-11
-**Status:** Design approved by Remy (full vision; trip events = one roll per committed trip); spec pending Remy review
+**Status:** BUILT 2026-07-12 — all five slices landed (11 build tasks, each individually reviewed + approved; whole-campaign review + close-out). 2468 targeted tests green, tsc at baseline, fmgWorld goldens byte-identical, lowland 3D invariance proven by construction. Remaining = live eyeballs (Open).
 **Goal (Remy's words):** "now do mountains" — third campaign in the roads → forests pattern: mountains become places, elevation becomes mechanics, high country becomes visible in 2D and real in 3D.
 
 ## Front-loaded summary
@@ -108,4 +108,7 @@ Doctrine tests as before (own-stream proof, fmgWorld goldens byte-identical, det
 - Whether ranges should feed the chronicle/history hooks now or wait for the history campaign.
 - Pass POI-ification (keeps, tolls) once settlements-near-passes matter.
 - The Azgaar height-cost floor quirk (owner decision).
-- 3D look gates: curve/ridge drama level, snow-line height, glyph density — Remy's screenshots call.
+- **3D look gate (the gate to done):** curve/ridge drama level, snow-line height, and the elevation-curve reshape's actual peaks all need an in-game 3D playthrough — no high-n goldens exist, so the high-country look is unverified by tests (invariance is proven; drama is not). Joins the standing live-look queue with roads' and forests' 3D eyeballs.
+- **2D relief glyph sizing (found in visual proof):** peak carets / hill chevrons render via the validated shared pipeline but read subtle at modest coastal hills on seed world-42; glyph size/density is a tuning call for Remy's screenshot review (same posture as forests' glyph-density call). The snow-capped high spines and grey highlands read clearly at full-atlas zoom.
+- High/steep glacier cells still classify as rock (not ice) — the brown-glacier bug is killed only for low-slope glacier sheets; a classification follow-up.
+- Ground-mode slope vs mesh-normal slope agree only on linear ramps (rock-blend look not pixel-identical on noisy terrain) — acceptable, documented.

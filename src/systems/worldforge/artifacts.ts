@@ -252,7 +252,10 @@ export interface RegionArtifact extends WorldforgeArtifact {
 // ---------------------------------------------------------------------------
 
 export type TerrainMaterial =
-  | 'grass' | 'dirt' | 'rock' | 'sand' | 'wetland' | 'water' | 'paved' | 'floor';
+  | 'grass' | 'dirt' | 'rock' | 'sand' | 'wetland' | 'water' | 'paved' | 'floor'
+  // APPEND-ONLY (golden safety): `ice` is added at the END so every existing
+  // MATERIALS index is unchanged (glacier windows, Task 10 MOUNTAINS).
+  | 'ice';
 
 export interface LocalTerrain {
   /** 5 ft cells, row-major, bounds-aligned. */

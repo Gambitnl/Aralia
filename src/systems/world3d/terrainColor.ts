@@ -18,6 +18,9 @@ const PALETTE: Record<string, RGB> = {
   wetland: [0.34, 0.46, 0.34],
   swamp: [0.30, 0.40, 0.28],
   mountain: [0.46, 0.42, 0.40],
+  // Glacier ice (Task 10 MOUNTAINS): a light, faintly-blue surface that kills
+  // the brown-rock glacier bug — glacier windows now emit an `ice` material.
+  ice: [0.86, 0.9, 0.95],
   // Packed earth (trails, taiga/tundra floor, shorelines): a distinct warm
   // brown so dirt no longer reads identical to grass (was aliased to plains).
   dirt: [0.50, 0.42, 0.30],

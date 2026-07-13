@@ -2045,7 +2045,7 @@
       "link": "docs/superpowers/specs/2026-07-06-groq-inference-toggle-design.md",
       "features": [
         {
-          "title": "Key-handling the user picks: persistent localStorage / session-only / local-proxy (key never in the browser) — none in the bundle",
+          "title": "Key-handling the user picks: persistent localStorage / session-only / local-proxy (key never in the browser) — none in the bundle. Local-proxy path is now ALWAYS-ON in dev: the Vite dev server itself proxies /__groq/v1 (scripts/vite-plugins/groqProxyManager.ts), reading the key from Windows Credential Manager (AgentMatrix/Groq/GROQ_API_KEY) — same-origin, no separate process, no CORS, nothing to start by hand. Default proxy URL is now /__groq/v1; verified keyLoaded + proxy-ok live. Standalone tools/groq-proxy (npm run groq-proxy, :8787) still serves the same shape for non-Vite use",
           "status": "done"
         },
         {
@@ -2058,6 +2058,14 @@
         },
         {
           "title": "Toggle on the Ollama-unavailable message: enter key + switch provider",
+          "status": "done"
+        },
+        {
+          "title": "Active-provider banner at the top of the pane: reads 'Currently active: Groq cloud (local proxy)' in sky, or 'Ollama (local model) — the default' in gray, so the pane reflects reality instead of always reading 'Ollama required'. Updates live on switch; verified both states",
+          "status": "done"
+        },
+        {
+          "title": "The whole Ollama explainer (what it is / what breaks without it / how to start it) is grouped in one bordered container with a collapse/expand toggle. Defaults expanded when Ollama is active, collapsed when Groq is on (the block is then noise). Conditional-render collapse after animated approaches proved brittle in this layout (grid 0fr floors at min-content; framer auto-height stalls; max-height transition never settles). Verified both defaults + toggle",
           "status": "done"
         },
         {
@@ -2654,6 +2662,10 @@
         {
           "title": "Look polish: wing shapes, hair-colored beards, dragon tail, loxodon trunk, crowd baking/LOD",
           "status": "done"
+        },
+        {
+          "title": "Wireframe render look (global default; ?wire=0 = solid)",
+          "status": "done"
         }
       ]
     },
@@ -2750,27 +2762,27 @@
         }
       ],
       "link": "docs/superpowers/specs/2026-07-11-mountains-design.md",
-      "open": 5,
+      "open": 7,
       "features": [
         {
           "title": "Named ranges + peaks (adopt Mount X marker names)",
-          "status": "active"
+          "status": "done"
         },
         {
           "title": "Passes: detected on routes, named, in the readout",
-          "status": "specced"
+          "status": "done"
         },
         {
           "title": "Elevation mechanics: dead biomes revived, climb cost, trip-event service rewired",
-          "status": "active"
+          "status": "done"
         },
         {
           "title": "2D relief glyphs (carets/chevrons, both renderers, first SVG elevation)",
-          "status": "specced"
+          "status": "done"
         },
         {
           "title": "3D high country: elevation curve + ridges + snow + tree line + shading fixes",
-          "status": "specced"
+          "status": "done"
         }
       ]
     }

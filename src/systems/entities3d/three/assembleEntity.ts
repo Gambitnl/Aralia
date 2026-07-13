@@ -5,10 +5,15 @@
  *   group                (caller positions/rotates this)
  *   ├─ bodyRoot          (lifted by the gait's verticalOffsetM)
  *   │  ├─ metaballBody   (MarchingCubes field: gait body + field parts)
- *   │  ├─ metaballOutline(inverse hull sharing the field geometry)
+ *   │  ├─ metaballOutline(inverse hull sharing the field geometry — SOLID mode only)
  *   │  ├─ parts          (one container per mesh part, re-anchored per frame)
  *   │  └─ eyeL / eyeR    (blobfolk-style eyes with blink)
  *   └─ blobShadow        (radial ground disc, fades with airtime)
+ *
+ * Render mode (toon.ts ENTITY_RENDER_MODE, default 'wireframe'): 'wireframe'
+ * draws every surface as edge lines and drops the ink outlines (there is no
+ * filled surface to hull); 'solid' is the original toon-shaded blob look. Eyes
+ * and the ground shadow stay solid in both.
  *
  * Framework-agnostic: no React. Entity3D.tsx wraps this for R3F scenes.
  */
@@ -29,7 +34,13 @@ import { ANCHORS, headRadiusM, heightM } from '../types';
 import { getPart } from '../registry';
 import type { GaitDriver, LocomotionState } from './gaits';
 import { createGaitDriver } from './gaits';
-import { blobShadowMaterial, outlineMaterial, toonMaterial } from './toon';
+import {
+  blobShadowMaterial,
+  outlineMaterial,
+  entityMaterial,
+  ENTITY_RENDER_MODE,
+  type EntityRenderMode,
+} from './toon';
 
 export const SUBTRACT = 12;
 export const ISO = 80;
@@ -55,6 +66,8 @@ export interface AssembleOptions {
    * and eyes still track every frame; only the body re-polygonizes at this
    * rate. Default: every frame. */
   fieldUpdateHz?: number;
+  /** Draw solid (toon blob) or wireframe. Default: the global ENTITY_RENDER_MODE. */
+  renderMode?: EntityRenderMode;
 }
 
 const IDLE: LocomotionState = {
@@ -91,6 +104,9 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   const centerY = hM * 0.5;
   const resolutionScale = options.resolutionScale ?? 1;
   const fieldInterval = options.fieldUpdateHz ? 1 / options.fieldUpdateHz : 0;
+  const renderMode = options.renderMode ?? ENTITY_RENDER_MODE;
+  const wireframe = renderMode === 'wireframe';
+  const makeMaterial = entityMaterial(renderMode);
 
   const group = new Group();
   group.name = `entity:${blueprint.label}`;
@@ -98,10 +114,13 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   bodyRoot.name = 'bodyRoot';
   group.add(bodyRoot);
 
-  const bodyMaterial = toonMaterial(palette.skinHex);
+  const bodyMaterial = makeMaterial(palette.skinHex);
   // Bigger fields need more cells or limbs alias apart; tiers keep humans cheap.
+  // Wireframe reads cleaner (and cheaper) at a coarser grid — the lines carry
+  // the shape, so a smoother isosurface only adds visual noise.
   const baseResolution = fieldScale <= 2.4 ? 48 : fieldScale <= 3.4 ? 64 : 80;
-  const resolution = Math.max(28, Math.round(baseResolution * resolutionScale));
+  const wireScale = wireframe ? 0.6 : 1;
+  const resolution = Math.max(wireframe ? 20 : 28, Math.round(baseResolution * resolutionScale * wireScale));
   // Geometry budget scales with the field: a body surface fills a small share
   // of the cells, and a fixed huge budget would cost megabytes per entity.
   // Floor high enough that a full biped + parts never truncates (a truncated
@@ -115,12 +134,16 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   mc.frustumCulled = false;
   bodyRoot.add(mc);
 
-  const outline = new Mesh(mc.geometry, outlineMaterial(palette.skinHex, 0.026 / fieldScale));
-  outline.name = 'metaballOutline';
-  outline.scale.setScalar(fieldScale);
-  outline.position.y = centerY;
-  outline.frustumCulled = false;
-  bodyRoot.add(outline);
+  // Inverse-hull ink outline — a solid-mode feature. In wireframe there is no
+  // filled surface to hull, so it is skipped (and there is no metaballOutline).
+  if (!wireframe) {
+    const outline = new Mesh(mc.geometry, outlineMaterial(palette.skinHex, 0.026 / fieldScale));
+    outline.name = 'metaballOutline';
+    outline.scale.setScalar(fieldScale);
+    outline.position.y = centerY;
+    outline.frustumCulled = false;
+    bodyRoot.add(outline);
+  }
 
   const driver: GaitDriver = createGaitDriver(gait, frame);
   const sink = new FieldSink(mc, fieldScale, centerY);
@@ -147,23 +170,23 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       frame,
       palette,
       params,
-      material: (hex) => toonMaterial(hex),
+      material: (hex) => makeMaterial(hex),
     });
-    // ink outlines for every mesh in the part
-    const outlines: Mesh[] = [];
-    object.traverse((o) => {
-      const m = o as Mesh;
-      if (m.isMesh) {
-        const shell = new Mesh(m.geometry, outlineMaterial('#20242c', outlineThickness));
-        shell.name = 'partOutline';
-        outlines.push(shell);
-        shell.position.copy(m.position);
-        shell.quaternion.copy(m.quaternion);
-        shell.scale.copy(m.scale);
-        (m.parent ?? object).add(shell);
-      }
-    });
-    void outlines;
+    // ink outlines for every mesh in the part (solid mode only — wireframe
+    // parts are already all-edges)
+    if (!wireframe) {
+      object.traverse((o) => {
+        const m = o as Mesh;
+        if (m.isMesh) {
+          const shell = new Mesh(m.geometry, outlineMaterial('#20242c', outlineThickness));
+          shell.name = 'partOutline';
+          shell.position.copy(m.position);
+          shell.quaternion.copy(m.quaternion);
+          shell.scale.copy(m.scale);
+          (m.parent ?? object).add(shell);
+        }
+      });
+    }
     const container = new Group();
     container.name = `part:${instance.partId}`;
     container.add(object);

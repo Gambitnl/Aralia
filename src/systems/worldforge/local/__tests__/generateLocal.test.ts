@@ -6,12 +6,13 @@
 import { describe, it, expect } from 'vitest';
 import { generateFmgAtlas } from '../../fmg/generateAtlas';
 import { generateRegion } from '../../region/generateRegion';
-import { generateLocal } from '../generateLocal';
+import { generateLocal, elevationCurveFt } from '../generateLocal';
 import { rootSeedPath } from '../../seedPath';
 import { boundsCenter } from '../../units';
 import { WORLDFORGE_SCHEMA_VERSION, type LocalArtifact, type RegionArtifact } from '../../artifacts';
 import { patchNoise2 } from '../../vegetation/grassField';
 import { CLEARING_FREQ, CLEARING_SALT, CLEARING_THRESHOLD } from '../../forests/forestTunables';
+import { MOUNTAIN_MAX_ELEV_FT } from '../../mountains/mountainTunables';
 
 const SEED = 'world-42';
 const WORLD_SEED = 42;
@@ -293,5 +294,195 @@ describe('generateLocal — golden snapshot (freeze at acceptance)', () => {
       treeCount: local.features.filter(f => f.kind === 'tree').length,
       seedPath: local.seedPath,
     }).toMatchSnapshot('local-golden');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Task 10 (MOUNTAINS): glacier windows get a white ICE ground material.
+// A fully-synthetic flat region keeps these fast and deterministic (no atlas).
+// ---------------------------------------------------------------------------
+function flatRegion(level: number): RegionArtifact {
+  return {
+    layer: 'region',
+    schemaVersion: WORLDFORGE_SCHEMA_VERSION,
+    seedPath: rootSeedPath(WORLD_SEED),
+    bounds: { x: 0, y: 0, width: 3000, height: 3000 },
+    heightfield: {
+      width: 4,
+      height: 4,
+      resolutionFt: 1000,
+      samples: new Float32Array(16).fill(level),
+    },
+    rivers: [],
+    roads: [],
+    townSites: [],
+  } as unknown as RegionArtifact;
+}
+
+describe('generateLocal — glacier ice material (Task 10 white glacier)', () => {
+  it('appends ice to the palette without shifting any existing material index (append-only)', () => {
+    const region = flatRegion(0.4);
+    const local = generateLocal(region, boundsCenter(region.bounds), region.seedPath, { biomeId: 4 });
+    // Every pre-Task-10 index keeps its position; ice is strictly appended.
+    expect(local.terrain.materials.slice(0, 8)).toEqual(
+      ['grass', 'dirt', 'rock', 'sand', 'wetland', 'water', 'paved', 'floor'],
+    );
+    expect(local.terrain.materials[8]).toBe('ice');
+    expect(local.terrain.materials.indexOf('ice')).toBe(8);
+  });
+
+  it('glacier biome (11) grounds flat cells as ice, not brown rock', () => {
+    const region = flatRegion(0.4); // mid altitude, gentle: pure ground, no rock/water band
+    const glacier = generateLocal(region, boundsCenter(region.bounds), region.seedPath, { biomeId: 11 });
+    const iceIdx = glacier.terrain.materials.indexOf('ice');
+    const rockIdx = glacier.terrain.materials.indexOf('rock');
+    const m = glacier.terrain.materialIndex;
+    let ice = 0;
+    let rock = 0;
+    for (let i = 0; i < m.length; i++) {
+      if (m[i] === iceIdx) ice++;
+      else if (m[i] === rockIdx) rock++;
+    }
+    expect(iceIdx).toBe(8);
+    // The flat glacier sheet reads as ice across the window (was ALL brown rock
+    // pre-Task-10). Only the steep-noise scree band (~1%, biome-independent)
+    // stays rock — the altitude/slope classifier still wins on genuine crags.
+    expect(ice).toBeGreaterThan(m.length * 0.9);
+    expect(rock).toBeLessThan(m.length * 0.05);
+    expect(ice).toBeGreaterThan(rock * 10);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Task 11 (MOUNTAINS): 3D elevation curve + biome-keyed tree line.
+//   • elevationCurveFt un-compresses high country (flat n·2000 → 7000 ft at n=1)
+//     while staying EXACTLY n·2000 for n ≤ 0.5 (lowland/town byte-identity gate).
+//   • the tree placeKind keep gains a per-window normalized-height line, resolved
+//     from the anchor biome's temperature class, composed with the forests
+//     clearingKeep. Trees only; bushes/boulders/undergrowth untouched.
+// A 40×40 flat synthetic region (matches the rock-classification fixtures) keeps
+// these fast, deterministic, and free of atlas coupling.
+// ---------------------------------------------------------------------------
+function syntheticRegion40(level: number): RegionArtifact {
+  const width = 40;
+  const resolutionFt = 100;
+  return {
+    layer: 'region',
+    schemaVersion: WORLDFORGE_SCHEMA_VERSION,
+    seedPath: rootSeedPath(7),
+    bounds: { x: 0, y: 0, width: width * resolutionFt, height: width * resolutionFt },
+    heightfield: { width, height: width, resolutionFt, samples: new Float32Array(width * width).fill(level) },
+    rivers: [],
+    roads: [],
+    townSites: [],
+  } as unknown as RegionArtifact;
+}
+
+describe('elevationCurveFt — mountain relief curve (Task 11)', () => {
+  it('is EXACTLY 2000·n for n ≤ 0.5 (lowland byte-identity — the hard invariance gate)', () => {
+    for (let n = 0; n <= 0.5; n += 0.005) {
+      const nn = Math.min(n, 0.5);
+      expect(elevationCurveFt(nn)).toBe(2000 * nn); // second term is identically 0
+    }
+    expect(elevationCurveFt(0)).toBe(0);
+    expect(elevationCurveFt(0.25)).toBe(500);
+    expect(elevationCurveFt(0.5)).toBe(1000); // knot: still exactly 2000·0.5
+  });
+
+  it('reaches MOUNTAIN_MAX_ELEV_FT (7000) at n = 1', () => {
+    expect(elevationCurveFt(1)).toBe(MOUNTAIN_MAX_ELEV_FT);
+    expect(elevationCurveFt(1)).toBe(7000);
+  });
+
+  it('is monotonic increasing across [0,1]', () => {
+    let prev = -Infinity;
+    for (let n = 0; n <= 1.0000001; n += 0.01) {
+      const v = elevationCurveFt(Math.min(n, 1));
+      expect(v).toBeGreaterThan(prev);
+      prev = v;
+    }
+  });
+
+  it('accelerates above 0.5 (high country > flat n·2000), never below it', () => {
+    for (let n = 0.505; n <= 1; n += 0.02) {
+      expect(elevationCurveFt(n)).toBeGreaterThan(2000 * n);
+    }
+  });
+
+  it('is C1-continuous at the n = 0.5 knot (one-sided slopes both → 2000)', () => {
+    const eps = 1e-6;
+    expect(Math.abs(elevationCurveFt(0.5 + eps) - elevationCurveFt(0.5))).toBeLessThan(1e-2);
+    const slopeBelow = (elevationCurveFt(0.5) - elevationCurveFt(0.5 - eps)) / eps;
+    const slopeAbove = (elevationCurveFt(0.5 + eps) - elevationCurveFt(0.5)) / eps;
+    expect(slopeBelow).toBeCloseTo(2000, 1); // linear side
+    expect(slopeAbove).toBeCloseTo(2000, 1); // ^2.2 ramp has zero slope at the knot → C1
+  });
+});
+
+describe('generateLocal — lowland elevation invariance (Task 11 hard gate)', () => {
+  it('crafted all-low window (n ≤ 0.5) → elevationFt BYTE-IDENTICAL to the pre-curve n·2000 field', () => {
+    const region = syntheticRegion40(0.3); // base 0.3 + detail ⇒ every cell well under 0.5
+    const local = generateLocal(region, boundsCenter(region.bounds), region.seedPath, { biomeId: 4 });
+    const e = local.terrain.elevationFt;
+    // Prove the window is genuinely in the invariance regime: the curve equals
+    // 2000·n below 0.5, so max elevation < 1000 ⇒ every cell had n < 0.5.
+    let emax = -Infinity;
+    let hash = 0x811c9dc5;
+    for (let i = 0; i < e.length; i++) {
+      emax = Math.max(emax, e[i]);
+      const v = Math.round(e[i] * 1000);
+      hash ^= v & 0xff; hash = Math.imul(hash, 0x01000193);
+      hash ^= (v >> 8) & 0xff; hash = Math.imul(hash, 0x01000193);
+      hash ^= (v >> 16) & 0xff; hash = Math.imul(hash, 0x01000193);
+    }
+    expect(emax).toBeLessThan(1000); // whole window under n = 0.5
+    // Hash BAKED from the pre-Task-11 generator (n·2000). A match proves the curve
+    // is a byte-exact passthrough for lowland — no town/lowland elevation moves.
+    expect(hash >>> 0).toBe(3072597900);
+  });
+});
+
+describe('generateLocal — biome-keyed tree line (Task 11)', () => {
+  function treesFor(level: number, biomeId: number): number {
+    const r = syntheticRegion40(level);
+    const local = generateLocal(r, boundsCenter(r.bounds), r.seedPath, { biomeId });
+    return local.features.filter((f) => f.kind === 'tree').length;
+  }
+  function bushesFor(level: number, biomeId: number): number {
+    const r = syntheticRegion40(level);
+    const local = generateLocal(r, boundsCenter(r.bounds), r.seedPath, { biomeId });
+    return local.features.filter((f) => f.kind === 'bush').length;
+  }
+
+  it('trees survive below the line and vanish above it (taiga, cold line 0.55)', () => {
+    expect(treesFor(0.50, 9)).toBeGreaterThan(500); // n≈0.50 < 0.55 → kept
+    expect(treesFor(0.58, 9)).toBe(0);              // n≈0.58 > 0.55 → every tree cut
+  });
+
+  it('the cold line (0.55) sits lower than the temperate line (0.62)', () => {
+    // At n≈0.58: cold biomes have lost their trees, temperate still has its.
+    expect(treesFor(0.58, 9)).toBe(0);               // taiga (cold) cut
+    expect(treesFor(0.58, 10)).toBe(0);              // tundra (cold) cut
+    expect(treesFor(0.58, 6)).toBeGreaterThan(500);  // temperate deciduous kept
+  });
+
+  it('tropical biomes carry NO tree line (trees persist where the temperate line cuts)', () => {
+    // At n≈0.64 the temperate line (0.62) cuts everything; tropical (none) keeps its trees.
+    expect(treesFor(0.64, 6)).toBe(0);              // temperate deciduous cut
+    expect(treesFor(0.64, 5)).toBeGreaterThan(0);   // tropical seasonal forest kept
+  });
+
+  it('the line gates TREES ONLY — bushes are untouched above it', () => {
+    // Same high window that zeroes taiga trees still places its bushes.
+    expect(treesFor(0.58, 9)).toBe(0);
+    expect(bushesFor(0.58, 9)).toBeGreaterThan(100);
+  });
+
+  it('composes with the forests clearingKeep: below the line a dense window is unchanged', () => {
+    // biome 6 is dense (clearingKeep active). Below the temperate line the tree
+    // line is a no-op, so the count matches the clearing-only generator.
+    const below = treesFor(0.50, 6);
+    expect(below).toBeGreaterThan(500);
+    expect(treesFor(0.64, 6)).toBe(0); // above the line the composite keep rejects all
   });
 });

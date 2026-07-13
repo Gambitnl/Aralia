@@ -11,7 +11,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { drawAtlas, isCacheValid, parseHexColor, getCleanNumber, isStateBorder, shouldShowBurgLabel } from "../atlasDraw";
-import { buildForestGlyphs, forestGlyphRampOpacity } from "../atlasSvg";
+import { buildForestGlyphs, forestGlyphRampOpacity, buildReliefGlyphs, reliefGlyphRampOpacity, buildPassMarks, passMarkPath, RELIEF_GLYPH_LAYER_OPACITY } from "../atlasSvg";
+import { reliefInk } from "../mountainGlyphs";
 import { heightmapTemplates } from "../../../systems/worldforge/fmg/heightmap-templates";
 import { Biomes } from "../../../systems/worldforge/fmg/biomes";
 import { GLYPH_MIN_ZOOM, GLYPH_FULL_ZOOM, FOREST_TINTS } from "../../../systems/worldforge/forests/forestTunables";
@@ -351,7 +352,10 @@ describe("drawAtlas forest glyph stamping", () => {
       pack: {
         vertices: { p: [[0, 0], [20, 0], [20, 20], [0, 20], [40, 0], [40, 20], [60, 0], [60, 20]] },
         cells: {
-          h: new Uint8Array([50, 50, 50]),
+          // Lowland forest (h30, below the mountains T9 relief band) so this
+          // forest-glyph fixture stays isolated from the relief-glyph stamp;
+          // relief stamping is exercised in "drawAtlas relief glyph stamping".
+          h: new Uint8Array([30, 30, 30]),
           v: [[0, 1, 2, 3], [1, 4, 5, 2], [4, 6, 7, 5]],
           c: [[1], [0, 2], [1]],
           biome: new Uint8Array([6, 6, 6]),
@@ -440,6 +444,178 @@ describe("drawAtlas forest glyph stamping", () => {
     drawAtlas(ctx, mockAtlas, { offsetX: 0, offsetY: 0, scale: 3, showScaleBar: false });
     expect(constructedPaths).toHaveLength(0);
     expect(ctx.calls.some((c) => c.name === "translate")).toBe(false);
+  });
+});
+
+// ============================================================================
+// Section: Mountain relief glyphs + pass marks (mountains campaign Task 9)
+// ============================================================================
+// The canvas renderer stamps the SAME per-cell relief paths the SVG model
+// builder emits (one source of truth: buildReliefGlyphs), via Path2D, just
+// BEFORE the forest layer (relief under trees). Peaks h>=80 add a WHITE
+// snowcap. Pass marks (buildPassMarks) draw in the political layer after routes.
+// ============================================================================
+
+describe("drawAtlas relief glyph + pass-mark stamping", () => {
+  const constructedPaths: Array<{ d: string }> = [];
+  class FakePath2D {
+    d: string;
+    constructor(d?: string) {
+      this.d = d ?? "";
+      constructedPaths.push(this);
+    }
+  }
+
+  beforeEach(() => {
+    constructedPaths.length = 0;
+    vi.stubGlobal("Path2D", FakePath2D);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function createReliefMockContext() {
+    const ctx = createMockContext2D() as any;
+    ctx.translate = (x: number, y: number) => ctx.calls.push({ name: "translate", args: [x, y] });
+    ctx.scale = (x: number, y: number) => ctx.calls.push({ name: "scale", args: [x, y] });
+    Object.defineProperty(ctx, "globalAlpha", {
+      get: () => ctx.props.globalAlpha,
+      set: (v: number) => {
+        ctx.props.globalAlpha = v;
+        ctx.calls.push({ name: "set_globalAlpha", args: [v] });
+      },
+    });
+    ctx.fill = (...args: unknown[]) => ctx.calls.push({ name: "fill", args });
+    ctx.stroke = (...args: unknown[]) => ctx.calls.push({ name: "stroke", args });
+    return ctx as ReturnType<typeof createMockContext2D>;
+  }
+
+  /** Hill (h60) + snow-capped peak (h85), no forest. */
+  function reliefAtlas(): FmgAtlasResult {
+    return {
+      seed: "relief-seed",
+      graphWidth: 100,
+      graphHeight: 100,
+      biomesData: Biomes.getDefault(),
+      pack: {
+        vertices: { p: [[0, 0], [20, 0], [20, 20], [0, 20], [40, 0], [40, 20]] },
+        cells: {
+          h: new Uint8Array([60, 85]),
+          v: [[0, 1, 2, 3], [1, 4, 5, 2]],
+          c: [[1], [0]],
+          biome: new Uint8Array([2, 2]),
+          p: [[10, 10], [30, 10]],
+        },
+        rivers: [],
+      },
+    } as unknown as FmgAtlasResult;
+  }
+
+  it("stamps relief bodies (band ink) + a white snowcap via Path2D at full zoom", () => {
+    const ctx = createReliefMockContext();
+    drawAtlas(ctx, reliefAtlas(), { offsetX: 0, offsetY: 0, scale: 3, showScaleBar: false });
+
+    const expected = buildReliefGlyphs(reliefAtlas());
+    expect(expected).toHaveLength(2); // hill + peak
+    // Order: hill body, then peak body, then peak snowcap.
+    expect(constructedPaths.map((p) => p.d)).toEqual([
+      expected[0].d,
+      expected[1].d,
+      expected[1].snowD,
+    ]);
+
+    // Band ink for each body; white for the cap.
+    expect(ctx.calls.some((c) => c.name === "set_strokeStyle" && c.args[0] === reliefInk("hill"))).toBe(true);
+    expect(ctx.calls.some((c) => c.name === "set_strokeStyle" && c.args[0] === reliefInk("peak"))).toBe(true);
+    expect(ctx.calls.some((c) => c.name === "set_strokeStyle" && c.args[0] === "#ffffff")).toBe(true);
+
+    // Layer alpha follows the shared relief zoom ramp (scale 3 ≥ FULL).
+    expect(ctx.calls.some((c) => c.name === "set_globalAlpha" && c.args[0] === RELIEF_GLYPH_LAYER_OPACITY)).toBe(true);
+    expect(RELIEF_GLYPH_LAYER_OPACITY).toBe(reliefGlyphRampOpacity(3));
+    // Constant screen-px ink (canvas twin of non-scaling-stroke).
+    expect(ctx.calls.some((c) => c.name === "set_lineWidth" && c.args[0] === 0.6 / 3)).toBe(true);
+  });
+
+  it("skips relief stamping entirely below the min zoom (map stays clean far out)", () => {
+    const ctx = createReliefMockContext();
+    drawAtlas(ctx, reliefAtlas(), { offsetX: 0, offsetY: 0, scale: 0.2, showScaleBar: false });
+    // No relief Path2D and no relief band ink at this zoom.
+    expect(ctx.calls.some((c) => c.name === "set_strokeStyle" && c.args[0] === reliefInk("peak"))).toBe(false);
+  });
+
+  it("no longer emits the legacy 2026-06-11 triangle relief fill (Layer 4.5 removed)", () => {
+    const ctx = createReliefMockContext();
+    drawAtlas(ctx, reliefAtlas(), { offsetX: 0, offsetY: 0, scale: 3, showScaleBar: false, showPolitical: true } as any);
+    // The old pass filled peaks with this exact rgba — gone now.
+    expect(ctx.calls.some((c) => c.name === "set_fillStyle" && c.args[0] === "rgba(90, 82, 74, 0.55)")).toBe(false);
+  });
+
+  it("stamps relief BEFORE the forest glyphs (relief under trees)", () => {
+    // A forested mountain cell: relief (height-truth) + forest (named) both stamp.
+    const forestedPeak = {
+      seed: "fp",
+      graphWidth: 100,
+      graphHeight: 100,
+      biomesData: Biomes.getDefault(),
+      pack: {
+        vertices: { p: [[0, 0], [20, 0], [20, 20], [0, 20]] },
+        cells: {
+          h: new Uint8Array([60]),
+          v: [[0, 1, 2, 3]],
+          c: [[]],
+          biome: new Uint8Array([6]),
+          p: [[10, 10]],
+        },
+        rivers: [],
+        forests: [{ i: 1, name: "Highwood", kind: "ordinary", cells: [0], pole: [10, 10] }],
+      },
+    } as unknown as FmgAtlasResult;
+    const ctx = createReliefMockContext();
+    drawAtlas(ctx, forestedPeak, { offsetX: 0, offsetY: 0, scale: 3, showScaleBar: false });
+    const reliefInkIdx = ctx.calls.findIndex((c) => c.name === "set_strokeStyle" && c.args[0] === reliefInk("hill"));
+    const forestFillIdx = ctx.calls.findIndex((c) => c.name === "set_fillStyle" && c.args[0] === "#2f5233");
+    expect(reliefInkIdx).toBeGreaterThanOrEqual(0);
+    expect(forestFillIdx).toBeGreaterThanOrEqual(0);
+    expect(reliefInkIdx).toBeLessThan(forestFillIdx);
+  });
+
+  /** Two land cells + one pass on cell 1; political layer on. */
+  function passAtlas(): FmgAtlasResult {
+    return {
+      seed: "pass-seed",
+      graphWidth: 100,
+      graphHeight: 100,
+      biomesData: Biomes.getDefault(),
+      pack: {
+        vertices: { p: [[0, 0], [20, 0], [20, 20], [0, 20], [40, 0], [40, 20]] },
+        cells: {
+          h: new Uint8Array([30, 30]),
+          v: [[0, 1, 2, 3], [1, 4, 5, 2]],
+          c: [[1], [0]],
+          biome: new Uint8Array([1, 1]),
+          p: [[10, 10], [30, 10]],
+        },
+        rivers: [],
+        routes: [],
+        passes: [{ i: 1, rangeI: 1, cellId: 1, name: "Highwood Pass", routeIds: [] }],
+      },
+    } as unknown as FmgAtlasResult;
+  }
+
+  it("stamps a paired-chevron pass mark via Path2D at each pass cell (ink #3d3833)", () => {
+    const ctx = createReliefMockContext();
+    drawAtlas(ctx, passAtlas(), { offsetX: 0, offsetY: 0, scale: 3, showScaleBar: false, showPolitical: true } as any);
+    const marks = buildPassMarks(passAtlas());
+    expect(marks).toEqual([{ x: 30, y: 10 }]);
+    expect(constructedPaths.some((p) => p.d === passMarkPath(30, 10))).toBe(true);
+    expect(ctx.calls.some((c) => c.name === "set_strokeStyle" && c.args[0] === "#3d3833")).toBe(true);
+  });
+
+  it("draws pass marks even far out (passes are load-bearing, NOT zoom-hidden)", () => {
+    const ctx = createReliefMockContext();
+    drawAtlas(ctx, passAtlas(), { offsetX: 0, offsetY: 0, scale: 0.2, showScaleBar: false, showPolitical: true } as any);
+    // Relief is zoom-hidden at 0.2, but the pass mark still stamps.
+    expect(constructedPaths.some((p) => p.d === passMarkPath(30, 10))).toBe(true);
   });
 });
 

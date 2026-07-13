@@ -416,9 +416,16 @@ describe('worldforge pipeline integration', () => {
       // primary window's material classification is unchanged (localMaterialHash
       // identical). The generateRegion unit golden was re-frozen in the same
       // change; this chain golden was missed.
+      // Re-frozen 2026-07-12 (Task 10 MOUNTAINS — white glacier): ANCHOR_CELL
+      // 110 is a coastal GLACIER cell (biome 11, h=21), so its Local window's
+      // flat ground now classifies as the new `ice` material instead of brown
+      // `rock` (generateLocal BIOME_PROFILES[11].ground rock→ice; `ice` appended
+      // LAST in MATERIALS so every other index is unchanged). ONLY
+      // localMaterialHash shifts — the atlas + region heightfield are
+      // byte-identical (no elevation math changed). Relief-shading restored.
       atlasCellCount: 6005,
       regionHeightfieldHash: 2801916318,
-      localMaterialHash: 423127639,
+      localMaterialHash: 2089968609,
     });
   }, 60_000); // world gen now includes Military/Markers/Zones (stages 33-35)
 

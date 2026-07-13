@@ -15,7 +15,7 @@ describe('entities3d assembler', () => {
     registerAllParts();
   });
 
-  it('builds a group with body, outline, eyes, shadow, and one container per mesh part', () => {
+  it('builds a group with body, eyes, shadow, and one container per mesh part', () => {
     const bp = generateEntityBlueprint({
       kind: 'humanoid',
       raceId: 'infernal_tiefling',
@@ -33,10 +33,33 @@ describe('entities3d assembler', () => {
     const meshContainers = partContainers!.children.length;
     expect(meshContainers).toBeGreaterThanOrEqual(meshPartCount);
     expect(handle.group.getObjectByName('metaballBody'), 'metaball body missing').toBeTruthy();
-    expect(handle.group.getObjectByName('metaballOutline'), 'outline missing').toBeTruthy();
     expect(handle.group.getObjectByName('eyeL'), 'left eye missing').toBeTruthy();
     expect(handle.group.getObjectByName('eyeR'), 'right eye missing').toBeTruthy();
     expect(handle.group.getObjectByName('blobShadow'), 'shadow missing').toBeTruthy();
+    handle.dispose();
+  });
+
+  it('wireframe (default) draws no ink outlines', () => {
+    const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'human', classId: 'fighter', seed: 'asm-wire' });
+    const handle = assembleEntity(bp); // default render mode is wireframe
+    expect(handle.group.getObjectByName('metaballOutline'), 'wireframe should have no body outline').toBeFalsy();
+    let outlined = 0;
+    handle.group.traverse((o) => {
+      if (o.name === 'partOutline') outlined += 1;
+    });
+    expect(outlined, 'wireframe should have no part outlines').toBe(0);
+    handle.dispose();
+  });
+
+  it('solid mode adds the body inverse-hull outline and part ink outlines', () => {
+    const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'human', classId: 'fighter', seed: 'asm-solid' });
+    const handle = assembleEntity(bp, { renderMode: 'solid' });
+    expect(handle.group.getObjectByName('metaballOutline'), 'solid body outline missing').toBeTruthy();
+    let outlined = 0;
+    handle.group.traverse((o) => {
+      if (o.name === 'partOutline' && (o as Mesh).isMesh) outlined += 1;
+    });
+    expect(outlined).toBeGreaterThan(0);
     handle.dispose();
   });
 
@@ -61,18 +84,6 @@ describe('entities3d assembler', () => {
     const handle = assembleEntity(bp);
     handle.update(0.5, 1 / 60, { ...WALK, speed: 0.5 });
     expect(handle.group.getObjectByName('bodyRoot')!.position.y).toBeGreaterThan(0.2);
-    handle.dispose();
-  });
-
-  it('adds ink outlines to mesh parts', () => {
-    const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'human', classId: 'fighter', seed: 'asm-4' });
-    const handle = assembleEntity(bp);
-    const parts = handle.group.getObjectByName('parts')!;
-    let outlined = 0;
-    parts.traverse((o) => {
-      if (o.name === 'partOutline' && (o as Mesh).isMesh) outlined += 1;
-    });
-    expect(outlined).toBeGreaterThan(0);
     handle.dispose();
   });
 

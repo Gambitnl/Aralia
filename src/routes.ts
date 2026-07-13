@@ -73,6 +73,50 @@ export const getPhaseFromSlug = (slug: string | null): GamePhase | null => {
   return Number.isInteger(numeric) && typeof GamePhase[numeric] === 'string' ? (numeric as GamePhase) : null;
 };
 
+/** Product name used as the browser-tab title prefix. */
+export const APP_TITLE = 'Aralia';
+
+/**
+ * Human, descriptive browser-tab names per phase. Anything not listed falls back
+ * to a prettified enum name (WORLD3D_DEMO -> "World3d Demo"). Add an entry here to
+ * give a phase a nicer tab title; getPhaseTitle() is the single source the app and
+ * the URL Directory both read.
+ */
+export const PHASE_TITLES: Partial<Record<GamePhase, string>> = {
+  [GamePhase.MAIN_MENU]: 'Main Menu',
+  [GamePhase.CHARACTER_CREATION]: 'Character Creator',
+  [GamePhase.PLAYING]: 'Adventure',
+  [GamePhase.GAME_OVER]: 'Game Over',
+  [GamePhase.BATTLE_MAP_DEMO]: 'Battle Map',
+  [GamePhase.LOAD_TRANSITION]: 'Loading',
+  [GamePhase.COMBAT]: 'Combat',
+  [GamePhase.NOT_FOUND]: 'Page Not Found',
+  [GamePhase.WORLD3D_DEMO]: '3D World',
+  [GamePhase.WORLDFORGE_DEMO]: 'Worldforge Atlas',
+  [GamePhase.COMBAT_MESSAGING_DEMO]: 'Combat Messaging',
+  [GamePhase.SPAWN_PREVIEW]: 'Spawn Preview',
+  [GamePhase.AGENTSIM_PREVIEW]: 'Agent Simulation',
+  [GamePhase.AGENTSIM_3D_PREVIEW]: 'Agent Simulation (3D)',
+  [GamePhase.START_POINT_SELECTION]: 'Choose Start Point',
+  [GamePhase.LIVING_WORLD_PREVIEW]: 'Living World',
+  [GamePhase.WEBGPU_PROBE]: 'WebGPU Probe',
+};
+
+const prettifyPhaseName = (name: string): string =>
+  name
+    .toLowerCase()
+    .split('_')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+/** The descriptive label for a phase (no app prefix), e.g. 'Worldforge Atlas'. */
+export const getPhaseLabel = (phase: GamePhase): string =>
+  PHASE_TITLES[phase] ?? prettifyPhaseName(GamePhase[phase] ?? '');
+
+/** The full browser-tab title for a phase, e.g. 'Aralia — Worldforge Atlas'. */
+export const getPhaseTitle = (phase: GamePhase): string => `${APP_TITLE} — ${getPhaseLabel(phase)}`;
+
 /**
  * Standalone "deep-link" flags handled outside the phase system. Keep these
  * listed here so the full set of recognized query flags is discoverable.

@@ -7,6 +7,7 @@
     "dev": "vite",
     "agora": "node tools/agora/server.mjs",
     "orchestrate": "node tools/agora/orchestrate.mjs",
+    "groq-proxy": "node tools/groq-proxy/proxy.mjs",
     "clean": "rimraf dist",
     "tidy-up": "bash ./scripts/tidy-up.sh standard",
     "tidy-up:light": "bash ./scripts/tidy-up.sh light",

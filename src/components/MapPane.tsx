@@ -66,6 +66,8 @@ import { getBridgeAtlas, getBurgCultureType } from '@/systems/worldforge/bridge/
 import { styleFamilyForCultureType } from '@/systems/worldforge/town/architectureStyle';
 import { buildAtlasTravelGraph, atlasMilesPerUnit, nearestLandCell, transportMobility, buildNavInfoFn } from '@/systems/worldforge/travel/atlasTravelGraph';
 import { deriveNavDrift, routeHasFaintPath } from '@/systems/travel/navDrift';
+import { rollTripEvent, bestPartyCheckTotal, type TripEventPartyMember } from '@/systems/travel/tripEvents';
+import { biomeIdForCell } from '@/systems/worldforge/local/biomeForCell';
 import { namedForestOnRoute } from '@/systems/worldforge/forests/forestKindForCell';
 import { passNameOnRoute } from '@/systems/worldforge/mountains/rangeForCell';
 import { buildMultiModalAtlasGraph, routeSeaDanger } from '@/systems/worldforge/travel/multiModalAtlasGraph';
@@ -148,8 +150,14 @@ interface MapPaneProps {
   partyGold?: number;
   /** Best forager's Survival modifier (Wis mod + proficiency) — for the forage choice. */
   partySurvivalModifier?: number;
-  /** Real party travel modes; a horse is offered only when a member is mounted. */
-  transportParty?: Array<{ transportMode?: 'foot' | 'mounted' }>;
+  /**
+   * Real party travel modes; a horse is offered only when a member is mounted.
+   * GameModals binds this to `gameState.party`, so the full member objects are
+   * already here — trip-event skill checks read their optional check fields
+   * (ability scores, skill proficiencies, proficiency bonus) off the SAME
+   * array; transport-only callers stay valid because those fields are optional.
+   */
+  transportParty?: Array<{ transportMode?: 'foot' | 'mounted' } & TripEventPartyMember>;
   /** Persisted atlas cells reached by this party, derived from discovery entries. */
   exploredCellIds?: number[];
   /**
@@ -946,6 +954,25 @@ const MapPane: React.FC<MapPaneProps> = ({
             partySurvivalModifier,
             new SeededRandom((worldforgeSeed ?? 0) + destCellId * 6271 + 29),
           );
+      // ── Trip event (mountains spec §3) ────────────────────────────────────
+      // ONE seeded travel event per committed LAND trip — the roll that finally
+      // fires the dormant biome pools (mountain, forest_haunted, …) in real
+      // play. Land only, like navDrift: you don't meet a rockslide on a ferry.
+      // ONE SeededRandom instance (worldSeed, destination cell — its own prime
+      // stream, distinct from navDrift's) feeds the whole roll: chance gate,
+      // pool pick, then the party's check d20, so a given world + trip always
+      // reproduces the same event and resolution. The check reads the party's
+      // best member for the event's skill straight off transportParty (bound
+      // to gameState.party — the same array the survival modifier reads).
+      const tripRng = new SeededRandom((worldforgeSeed ?? 0) + destCellId * 9973 + 41);
+      const tripEvent = hasSeaLeg
+        ? undefined
+        : rollTripEvent(
+            route.cells,
+            (c) => biomeIdForCell(worldforgeSeed ?? 0, c),
+            (skill) => bestPartyCheckTotal(transportParty, skill, tripRng),
+            tripRng,
+          );
       // Provisioning gate: does the party carry enough food + water for the trip?
       const decision = decideTravelProvision({
         foodDays: daysOfFood(provisionInventory),
@@ -961,7 +988,7 @@ const MapPane: React.FC<MapPaneProps> = ({
           : undefined;
         const tripSeconds = Math.round(route.minutes * 60);
         const forcedMarch = deriveForcedMarch(tripSeconds);
-        onTileClick(0, 0, tile, { seconds: tripSeconds, encounterMessage, encounter, provision, destinationCell, ...(ferryFareGp > 0 ? { ferryFareGp } : {}), ...(forcedMarch ? { forcedMarch } : {}), ...(navDrift ? { navDrift } : {}) });
+        onTileClick(0, 0, tile, { seconds: tripSeconds, encounterMessage, encounter, provision, destinationCell, ...(ferryFareGp > 0 ? { ferryFareGp } : {}), ...(forcedMarch ? { forcedMarch } : {}), ...(navDrift ? { navDrift } : {}), ...(tripEvent ? { tripEvent } : {}) });
         return;
       }
       // Underprovisioned → open the choice flow instead of moving. Carry the fare
@@ -974,7 +1001,7 @@ const MapPane: React.FC<MapPaneProps> = ({
         ...(ferryFareGp > 0 ? { ferryFareGp } : {}),
       });
     }
-  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planSelectedAtlasRoute, planAtlasMultiModal, worldforgeSeed, provisionInventory, partySize, partyGold, partySurvivalModifier, navInfoOf, seaPref, onSetSail, showMapNotice, isAtlasLandCell, isExploredCell, encounterMetaForRoute]);
+  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planSelectedAtlasRoute, planAtlasMultiModal, worldforgeSeed, provisionInventory, partySize, partyGold, partySurvivalModifier, transportParty, navInfoOf, seaPref, onSetSail, showMapNotice, isAtlasLandCell, isExploredCell, encounterMetaForRoute]);
 
   // ── Underprovisioned travel choice resolution ──────────────────────────────
   // Exact route cells and cumulative edge minutes resolve a partial stop; no
@@ -1054,6 +1081,18 @@ const MapPane: React.FC<MapPaneProps> = ({
             new SeededRandom((worldforgeSeed ?? 0) + destinationCell.cellId * 6271 + 29),
           )
         : undefined;
+      // Trip event (mountains §3), same land-only rule and seeding as the ungated
+      // commit above: its own prime stream (worldSeed, destination cell), distinct
+      // from navDrift's, so the full-completion resolve reproduces the same event.
+      const fullTripRng = new SeededRandom((worldforgeSeed ?? 0) + destinationCell.cellId * 9973 + 41);
+      const fullTripEvent = fullRoute && !fullRoute.cells.some((c) => !isAtlasLandCell(c))
+        ? rollTripEvent(
+            fullRoute.cells,
+            (c) => biomeIdForCell(worldforgeSeed ?? 0, c),
+            (skill) => bestPartyCheckTotal(transportParty, skill, fullTripRng),
+            fullTripRng,
+          )
+        : undefined;
       if (target) onTileClick(0, 0, target, {
         seconds: fullSeconds,
         provision,
@@ -1063,6 +1102,7 @@ const MapPane: React.FC<MapPaneProps> = ({
         ...(pt.ferryFareGp ? { ferryFareGp: pt.ferryFareGp } : {}),
         ...(fullForcedMarch ? { forcedMarch: fullForcedMarch } : {}),
         ...(fullNavDrift ? { navDrift: fullNavDrift } : {}),
+        ...(fullTripEvent ? { tripEvent: fullTripEvent } : {}),
       });
       setPendingTravel(null);
       return;
@@ -1105,7 +1145,7 @@ const MapPane: React.FC<MapPaneProps> = ({
       ...(haltForcedMarch ? { forcedMarch: haltForcedMarch } : {}),
     });
     setPendingTravel(null);
-  }, [pendingTravel, worldforgeAtlas, provisionInventory, partySize, partySurvivalModifier, navInfoOf, worldforgeSeed, onTileClick, isAtlasLandCell, planSelectedAtlasRoute, encounterMetaForRoute]);
+  }, [pendingTravel, worldforgeAtlas, provisionInventory, partySize, partySurvivalModifier, transportParty, navInfoOf, worldforgeSeed, onTileClick, isAtlasLandCell, planSelectedAtlasRoute, encounterMetaForRoute]);
 
   // Display status for the pending choice panel (binding resource + shortfall).
   const pendingStatus = useMemo(() => {

@@ -62,7 +62,7 @@ import { useGameActions } from './hooks/useGameActions';
 import { useGameInitialization } from './hooks/useGameInitialization';
 import { useOllamaLogBridge } from './hooks/useOllamaLogBridge';
 import { useHistorySync } from './hooks/useHistorySync';
-import { isWorldGenDeepLink, isDummyAutoStartDeepLink } from './routes';
+import { isWorldGenDeepLink, isDummyAutoStartDeepLink, getPhaseTitle } from './routes';
 import { useCompanionCommentary } from './hooks/useCompanionCommentary';
 import { useCompanionBanter } from './hooks/useCompanionBanter';
 import { useTownCrierAnnouncements } from './hooks/useTownCrierAnnouncements';
@@ -741,7 +741,14 @@ const App: React.FC = () => {
     const driftSeconds = travelMeta?.navDrift?.lost
       ? Math.max(0, Math.round(travelMeta.navDrift.extraSeconds))
       : 0;
-    const travelSeconds = (travelMeta?.seconds != null ? Math.max(0, Math.round(travelMeta.seconds)) : 3600) + driftSeconds;
+    // Trip event (mountains §3): MapPane rolled one seeded event for this land
+    // trip. A `delay` outcome (rockslide, storm) costs extra hours on the clock,
+    // added like drift; flavor-only events carry extraSeconds 0. Present only
+    // when an event fired, so quiet trips are unaffected.
+    const tripEventSeconds = travelMeta?.tripEvent
+      ? Math.max(0, Math.round(travelMeta.tripEvent.extraSeconds))
+      : 0;
+    const travelSeconds = (travelMeta?.seconds != null ? Math.max(0, Math.round(travelMeta.seconds)) : 3600) + driftSeconds + tripEventSeconds;
     const announceEncounter = () => {
       if (travelMeta?.encounterMessage) addMessage(travelMeta.encounterMessage, 'system');
     };
@@ -758,6 +765,14 @@ const App: React.FC = () => {
         ? 'The path fades among the trees — you lose the trail'
         : 'You lose your way';
       addMessage(`${lead} and drift ${nd.driftDirection}, costing you about ${rounded} extra hour${rounded === 1 ? '' : 's'} before you find the path again.`, 'system');
+    };
+    // Announce the trip event after the move (mountains §3): the event's own
+    // message already reads as a resolved beat (e.g. a rockslide the party
+    // climbed past, or failed and lost hours to). The delay is already folded
+    // into travelSeconds above; this just tells the story.
+    const announceTripEvent = () => {
+      const te = travelMeta?.tripEvent;
+      if (te?.message) addMessage(te.message, 'system');
     };
     // A rolled road ambush now starts a REAL fight on arrival (it used to only
     // print the message and nothing happened). Fired after the move so combat
@@ -879,6 +894,7 @@ const App: React.FC = () => {
       applyFerryFare();
       applyForcedMarch();
       announceNavDrift();
+      announceTripEvent();
       announceEncounter();
       triggerTravelEncounter();
     } else if (tile.discovered && !tile.locationId) {
@@ -900,6 +916,7 @@ const App: React.FC = () => {
         applyFerryFare();
         applyForcedMarch();
         announceNavDrift();
+        announceTripEvent();
         announceEncounter();
         triggerTravelEncounter();
         if (!moved && !travelMeta?.provision?.note) {
@@ -1085,6 +1102,13 @@ const App: React.FC = () => {
     worldMapDeepLinkRef.current = true;
     handleOpenWorldGenerationFromMainMenu();
   }, [gameState.phase, handleOpenWorldGenerationFromMainMenu]);
+
+  // Give each phase a descriptive browser-tab name (e.g. "Aralia — Worldforge
+  // Atlas"), so tabs are distinguishable. getPhaseTitle() lives in routes.ts,
+  // the same source the URL Directory reads, so titles stay consistent.
+  useEffect(() => {
+    document.title = getPhaseTitle(gameState.phase);
+  }, [gameState.phase]);
 
   const handleNewGame = useCallback(() => {
     // Grid retirement: carry the previewed world by SEED (the atlas source), not a

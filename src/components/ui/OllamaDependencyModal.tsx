@@ -98,6 +98,12 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
   const [currentProvider, setCurrentProvider] = useState<'ollama' | 'groq'>(() =>
     typeof window !== 'undefined' ? getAiTextProvider() : 'ollama'
   );
+  // The long Ollama explainer is grouped in one bordered container that folds.
+  // Default it OPEN when Ollama is active (the player likely needs the setup
+  // steps) and CLOSED when Groq is on (the whole block is then just noise).
+  const [isOllamaInfoOpen, setIsOllamaInfoOpen] = useState<boolean>(() =>
+    typeof window === 'undefined' || getAiTextProvider() !== 'groq'
+  );
 
   // Keep the local view of provider/key/mode in sync whenever the pane
   // (re)opens, in case a setting changed elsewhere while it was closed.
@@ -105,6 +111,7 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
     if (!isOpen) return;
     const storedKeyMode = getGroqKeyStorage();
     setCurrentProvider(getAiTextProvider());
+    setIsOllamaInfoOpen(getAiTextProvider() !== 'groq');
     // Local proxy depends on a separately installed local router and operator
     // credentials. If Dev Mode is off, move back to the player-setup path so a
     // hidden proxy choice cannot stay active without an explanation.
@@ -130,6 +137,13 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
   // required. Otherwise a key must be present. This gates the "Use Groq" button.
   const canActivateGroq =
     groqKeyStorage === 'proxy' ? groqProxyUrlInput.trim().length > 0 : groqKeyInput.trim().length > 0;
+
+  // Plain-language label for how the active Groq key is handled, shown in the
+  // top status banner so the player sees which mode is live at a glance.
+  const groqModeLabel =
+    groqKeyStorage === 'proxy' ? 'local proxy'
+      : groqKeyStorage === 'session' ? 'session key'
+        : 'saved key';
 
   const handleUseGroq = () => {
     if (!canActivateGroq) return; // The button is disabled otherwise; guard anyway.
@@ -320,43 +334,112 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                       The footer below stays visible so players can always dismiss the pane. */}
                   <div data-testid="ollama-pane-scroll" className="min-h-0 flex-1 overflow-y-auto p-5 pb-4">
                     <div className="space-y-4 text-sm text-gray-300 leading-relaxed mb-6">
-                      <p>
-                        Aralia uses <strong>Ollama</strong>, a local AI service, to write dialogue and scenes on the fly.
-                        Several core parts of the game <strong>do not work</strong> without it — Ollama is not optional for those.
-                      </p>
-
-                      <div className="bg-gray-800/50 border-l-4 border-amber-500/40 p-4 rounded">
-                        <h3 className="text-amber-200 font-semibold mb-2">ℹ️ What's Ollama?</h3>
-                        <p>
-                          Ollama is an open-source tool that runs large language models locally on your computer.
-                          This means AI features work entirely offline, with no data sent to external servers.
-                        </p>
+                      {/* Currently-active provider — the first thing the player sees, so the
+                          pane reflects what's actually powering AI text instead of always
+                          reading "Ollama required". Flips to a positive Groq state when set. */}
+                      <div
+                        data-testid="active-provider-banner"
+                        className={`flex items-start gap-2 rounded p-3 border-l-4 ${
+                          currentProvider === 'groq'
+                            ? 'bg-sky-500/10 border-sky-400/70 text-sky-100'
+                            : 'bg-gray-800/60 border-gray-500/50 text-gray-200'
+                        }`}
+                      >
+                        <span aria-hidden="true" className="leading-none text-base">
+                          {currentProvider === 'groq' ? '☁️' : '🖥️'}
+                        </span>
+                        <span className="min-w-0">
+                          <strong>Currently active:</strong>{' '}
+                          {currentProvider === 'groq' ? (
+                            <>Groq cloud ({groqModeLabel}) — Ollama isn't needed while this is on.</>
+                          ) : (
+                            <>Ollama (local model) — the default.</>
+                          )}
+                        </span>
                       </div>
 
-                      <div>
-                        <h3 className="text-red-300 font-semibold mb-2">Without Ollama, these DON'T work:</h3>
-                        <ul className="list-disc list-inside space-y-1 ml-2">
-                          <li>The opening scene of a new game (it will stop and ask you to start Ollama)</li>
-                          <li>Talking to NPCs — their replies are generated live</li>
-                          <li>Live conversations with your companions</li>
-                        </ul>
-                      </div>
+                      {/* The whole Ollama explainer lives in ONE bordered container
+                          that collapses. When Groq is active this block is just noise,
+                          so it folds away (default-collapsed for Groq, open for Ollama). */}
+                      <div
+                        data-testid="ollama-info-container"
+                        className="rounded-lg border border-amber-500/30 overflow-hidden"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setIsOllamaInfoOpen((o) => !o)}
+                          aria-expanded={isOllamaInfoOpen}
+                          aria-controls="ollama-info-body"
+                          data-testid="ollama-info-toggle"
+                          className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left bg-amber-500/5 hover:bg-amber-500/10 transition-colors"
+                        >
+                          <span className="font-semibold text-amber-200">
+                            About Ollama — what it is and how to start it
+                          </span>
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={`shrink-0 text-amber-300 transition-transform duration-300 ${isOllamaInfoOpen ? 'rotate-180' : ''}`}
+                            aria-hidden="true"
+                          >
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
 
-                      <div>
-                        <h3 className="text-amber-200 font-semibold mb-2">What still works without it:</h3>
-                        <p>
-                          Companions still react to events (loot, crimes, discoveries) using pre-written lines — just not
-                          freshly-written ones. Everything mechanical (combat, travel, inventory, leveling) is unaffected.
-                        </p>
-                      </div>
+                        {/* Conditionally render the explainer: mounted when open, gone
+                            when collapsed. Simple and always correct. Animated collapses all
+                            proved brittle in this exact layout (grid 0fr floors at
+                            min-content; framer auto-height stalls at ~1px; a max-height
+                            transition never settles to 0 here), so the toggle snaps. The
+                            chevron rotation is the affordance. */}
+                        {isOllamaInfoOpen && (
+                              <div id="ollama-info-body" className="space-y-4 p-4 border-t border-amber-500/20">
+                                <p>
+                                  Aralia uses <strong>Ollama</strong>, a local AI service, to write dialogue and scenes on the fly.
+                                  Several core parts of the game <strong>do not work</strong> without it — Ollama is not optional for those.
+                                </p>
 
-                      <div>
-                        <h3 className="text-amber-200 font-semibold mb-2">To start Ollama:</h3>
-                        <ol className="list-decimal list-inside space-y-1 ml-2">
-                          <li>Install it from <span className="text-amber-300">ollama.ai</span> (see Learn More below).</li>
-                          <li>Pull a model once, e.g. <code className="bg-gray-800 px-1 rounded">ollama pull llama3</code>.</li>
-                          <li>Make sure it is running (it serves on <code className="bg-gray-800 px-1 rounded">localhost:11434</code>), then retry.</li>
-                        </ol>
+                                <div className="bg-gray-800/50 border-l-4 border-amber-500/40 p-4 rounded">
+                                  <h3 className="text-amber-200 font-semibold mb-2">ℹ️ What's Ollama?</h3>
+                                  <p>
+                                    Ollama is an open-source tool that runs large language models locally on your computer.
+                                    This means AI features work entirely offline, with no data sent to external servers.
+                                  </p>
+                                </div>
+
+                                <div>
+                                  <h3 className="text-red-300 font-semibold mb-2">Without Ollama, these DON'T work:</h3>
+                                  <ul className="list-disc list-inside space-y-1 ml-2">
+                                    <li>The opening scene of a new game (it will stop and ask you to start Ollama)</li>
+                                    <li>Talking to NPCs — their replies are generated live</li>
+                                    <li>Live conversations with your companions</li>
+                                  </ul>
+                                </div>
+
+                                <div>
+                                  <h3 className="text-amber-200 font-semibold mb-2">What still works without it:</h3>
+                                  <p>
+                                    Companions still react to events (loot, crimes, discoveries) using pre-written lines — just not
+                                    freshly-written ones. Everything mechanical (combat, travel, inventory, leveling) is unaffected.
+                                  </p>
+                                </div>
+
+                                <div>
+                                  <h3 className="text-amber-200 font-semibold mb-2">To start Ollama:</h3>
+                                  <ol className="list-decimal list-inside space-y-1 ml-2">
+                                    <li>Install it from <span className="text-amber-300">ollama.ai</span> (see Learn More below).</li>
+                                    <li>Pull a model once, e.g. <code className="bg-gray-800 px-1 rounded">ollama pull llama3</code>.</li>
+                                    <li>Make sure it is running (it serves on <code className="bg-gray-800 px-1 rounded">localhost:11434</code>), then retry.</li>
+                                  </ol>
+                                </div>
+                              </div>
+                        )}
                       </div>
 
                       {/* Cloud alternative: let players who don't want a local model

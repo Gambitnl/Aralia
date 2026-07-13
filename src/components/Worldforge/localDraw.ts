@@ -32,6 +32,9 @@ const MATERIAL_COLORS: Record<TerrainMaterial, [number, number, number]> = {
   water: [42, 88, 132],
   paved: [148, 140, 128],
   floor: [160, 148, 128],
+  // Glacier ice (Task 10 MOUNTAINS): 2D counterpart of terrainColor's ICE_RGB
+  // (linear 0.86/0.90/0.95 → 0–255), a pale icy blue distinct from rock.
+  ice: [219, 230, 242],
 };
 
 /** Per-kind feature glyph colors. */

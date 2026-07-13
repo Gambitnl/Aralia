@@ -120,6 +120,7 @@ import {
   type SeedPath,
 } from '../seedPath';
 import { makeWorldFeetNoise } from '../local/worldFeetNoise';
+import { RIDGE_AMPLITUDE, RIDGE_SPAN_FT, RIDGE_START_N } from '../mountains/mountainTunables';
 import { BoundsFt, Feet, REGION_SIZE_FT } from '../units';
 import type { FmgAtlasResult } from '../fmg/generateAtlas';
 import type { FmgWorldResult } from '../fmg/generateWorld';
@@ -531,6 +532,52 @@ export function computeIdwRadiusFt(
   return 4 * spacingPx * feetPerPixel;
 }
 
+/** Clamped smoothstep on [0,1]: 0 for t ≤ 0, 1 for t ≥ 1, C1 in between. The
+ * `t ≤ 0 → 0` clamp is what makes the ridge boost EXACTLY 0 below the line. */
+function smoothstep01(t: number): number {
+  if (t <= 0) return 0;
+  if (t >= 1) return 1;
+  return t * t * (3 - 2 * t);
+}
+
+/**
+ * Build the MOUNTAIN RIDGE field (Task 11): a domain-warped, ridged world-feet
+ * noise that adds real peaks to high country, returning the feet-normalized
+ * height delta to ADD to a heightfield sample.
+ *
+ * `(fx, fy, baseH) => delta`, where:
+ *  - `ridgeBoost = smoothstep01((baseH − RIDGE_START_N) / (1 − RIDGE_START_N))`
+ *    ramps the effect in above RIDGE_START_N. For `baseH ≤ RIDGE_START_N` the
+ *    boost is EXACTLY 0, so the delta is EXACTLY 0 and the sample is unchanged —
+ *    the lowland-invariance hard gate, true by construction (no float drift).
+ *  - the ridged component is `1 − 2|n|` of a world-feet noise sampled at
+ *    coordinates domain-warped by two aux world-feet noises (±0.35·RIDGE_SPAN_FT),
+ *    exactly mirroring the octave loop's ridge transform.
+ *
+ * Keyed off the WORLD seed (`worldSeed ^ constants`) and indexed by WORLD FEET,
+ * never the region path/grid — so two adjacent regions add the identical delta
+ * at a shared world point and the relief meets seamlessly across region borders,
+ * the same construction the octave loop already relies on. Pure.
+ */
+export function makeMountainRidgeField(
+  worldSeed: number,
+): (fx: number, fy: number, baseH: number) => number {
+  const ridgeBase = makeWorldFeetNoise((worldSeed ^ 0x52444745) >>> 0, RIDGE_SPAN_FT); // 'RDGE'
+  const warpX = makeWorldFeetNoise((worldSeed ^ 0x57727058) >>> 0, RIDGE_SPAN_FT); // 'WrpX'
+  const warpY = makeWorldFeetNoise((worldSeed ^ 0x57727059) >>> 0, RIDGE_SPAN_FT); // 'WrpY'
+  const WARP_FT = 0.7 * RIDGE_SPAN_FT; // (noise − 0.5) spans ±0.35·RIDGE_SPAN_FT
+  const span = 1 - RIDGE_START_N;
+  return (fx: number, fy: number, baseH: number): number => {
+    const boost = smoothstep01((baseH - RIDGE_START_N) / span);
+    if (boost === 0) return 0; // baseH ≤ RIDGE_START_N ⇒ lowland-invariant
+    const dx = (warpX(fx, fy) - 0.5) * WARP_FT;
+    const dy = (warpY(fx, fy) - 0.5) * WARP_FT;
+    const n = ridgeBase(fx + dx, fy + dy) * 2 - 1; // [0,1] → [-1,1]
+    const ridge = 1 - 2 * Math.abs(n); // ridge transform → crest lines
+    return ridge * RIDGE_AMPLITUDE * boost;
+  };
+}
+
 /**
  * Generate the heightfield: IDW interpolation of pack cell heights, then
  * multi-octave value noise scaled by local relief. Enforce water discipline.
@@ -722,6 +769,22 @@ function generateHeightfield(
 
         samples[row * width + col] += scaledNoise;
       }
+    }
+  }
+
+  // ── MOUNTAIN RIDGE synthesis (Task 11) ───────────────────────────────────
+  // After the octaves, before the clamp: add domain-warped ridged noise that
+  // grows real peaks in high country. The boost is smoothstep-gated on
+  // (baseH − RIDGE_START_N), so samples at or below RIDGE_START_N get EXACTLY 0
+  // added and stay byte-identical (lowland invariance). World-seed-keyed +
+  // world-feet-indexed like the octaves above ⇒ seam-safe across regions.
+  const ridgeField = makeMountainRidgeField(worldSeed);
+  for (let row = 0; row < height; row++) {
+    const fy = bounds.y + row * resolutionFt;
+    for (let col = 0; col < width; col++) {
+      const fx = bounds.x + col * resolutionFt;
+      const i = row * width + col;
+      samples[i] += ridgeField(fx, fy, samples[i]);
     }
   }
 

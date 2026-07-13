@@ -28,7 +28,7 @@ import { worldToScene } from '@/systems/world3d/sceneOrigin';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
 import { registerAllParts } from '@/systems/entities3d/parts';
 import { crowdArchetypeForGroup, CROWD_WALK_PHASES } from '@/systems/entities3d/three/crowdBake';
-import { toonGradient } from '@/systems/entities3d/three/toon';
+import { toonGradient, ENTITY_RENDER_MODE } from '@/systems/entities3d/three/toon';
 import { crowdInstancePlan, CROWD_GROUPS, type HeadingMemory } from './crowdInstancePlan';
 
 registerAllParts();
@@ -58,7 +58,12 @@ const GroundAgents: React.FC<GroundAgentsProps> = ({ ground, clock, sceneOrigin,
   // One material + the per-group baked keyframes (bakes once per session,
   // cached module-side). ~12 groups × 7 keyframes of ~small geometry.
   const material = useMemo(
-    () => new THREE.MeshToonMaterial({ vertexColors: true, gradientMap: toonGradient() }),
+    () =>
+      new THREE.MeshToonMaterial({
+        vertexColors: true,
+        gradientMap: toonGradient(),
+        wireframe: ENTITY_RENDER_MODE === 'wireframe',
+      }),
     [],
   );
   const buckets = useMemo(() => {

@@ -300,7 +300,7 @@ function detectPasses(pack: Pack): void {
       else byCell.set(crest, { rangeI: rangeIdOf(crest)!, routeIds: new Set([route.i]) });
       crest = -1;
     };
-    for (const point of route.points) {
+    for (const point of route.points ?? []) {
       const cell = point[2];
       if (rangeIdOf(cell) == null) {
         commitRun(); // the run (if any) ended at a non-range cell

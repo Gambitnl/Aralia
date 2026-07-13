@@ -15,7 +15,8 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { generateFmgAtlas } from '../../fmg/generateAtlas';
 import { generateFmgWorld } from '../../fmg/generateWorld';
-import { generateRegion } from '../generateRegion';
+import { generateRegion, makeMountainRidgeField } from '../generateRegion';
+import { RIDGE_START_N, RIDGE_AMPLITUDE } from '../../mountains/mountainTunables';
 import { rootSeedPath, fnv1a } from '../../seedPath';
 import { boundsContain } from '../../units';
 import type { FmgAtlasResult } from '../../fmg/generateAtlas';
@@ -457,6 +458,71 @@ describe('generateRegion (C2: civilization)', () => {
     expect(region.townSites).toEqual([]);
     expect(region.roads).toEqual([]);
   }, 30_000);
+});
+
+// ---------------------------------------------------------------------------
+// Task 11 (MOUNTAINS): window-scale ridge synthesis. After the octave loop and
+// BEFORE the clamp pass, a domain-warped ridged world-feet noise adds real peaks
+// to high country. Its boost is gated by smoothstep on (baseH − RIDGE_START_N),
+// so for baseH ≤ RIDGE_START_N the contribution is EXACTLY 0 — lowland regions
+// (towns, low country) are byte-identical. World-seed-keyed + world-feet-indexed,
+// mirroring the octave loop, so it is seam-safe by construction.
+// ---------------------------------------------------------------------------
+describe('generateRegion — mountain ridge synthesis (Task 11)', () => {
+  const PROBE_POINTS: Array<[number, number]> = [
+    [0, 0], [12345, 67890], [-4000, 9000], [250000, 250000], [1_000_000, 300_000],
+  ];
+
+  it('ridge contribution is EXACTLY 0 for baseH ≤ RIDGE_START_N (lowland invariance — hard gate)', () => {
+    const ridge = makeMountainRidgeField(0xc0ffee);
+    for (let baseH = 0; baseH <= RIDGE_START_N; baseH += 0.02) {
+      const bh = Math.min(baseH, RIDGE_START_N);
+      for (const [fx, fy] of PROBE_POINTS) {
+        expect(ridge(fx, fy, bh)).toBe(0); // samples[i] += 0 ⇒ unchanged
+      }
+    }
+    // The boundary itself (baseH === RIDGE_START_N) is inclusive-invariant.
+    for (const [fx, fy] of PROBE_POINTS) expect(ridge(fx, fy, RIDGE_START_N)).toBe(0);
+  });
+
+  it('fires above the line and its boost grows monotonically with baseH (gating)', () => {
+    const ridge = makeMountainRidgeField(0xc0ffee);
+    let anyNonZero = false;
+    for (let k = 0; k < 400 && !anyNonZero; k++) {
+      if (ridge(k * 137, k * 251, 0.9) !== 0) anyNonZero = true;
+    }
+    expect(anyNonZero).toBe(true); // high country actually reshapes
+
+    const fx = 8000;
+    const fy = 15000;
+    const mag = (h: number) => Math.abs(ridge(fx, fy, h));
+    expect(mag(RIDGE_START_N)).toBe(0);
+    expect(mag(0.9)).toBeGreaterThanOrEqual(mag(0.7));
+    expect(mag(0.7)).toBeGreaterThanOrEqual(mag(0.6));
+  });
+
+  it('is bounded by RIDGE_AMPLITUDE and finite everywhere', () => {
+    const ridge = makeMountainRidgeField(42);
+    for (let k = 0; k < 600; k++) {
+      const v = ridge(k * 53, k * 97 - 12000, 0.8 + 0.2 * ((k % 11) / 11));
+      expect(Number.isFinite(v)).toBe(true);
+      expect(Math.abs(v)).toBeLessThanOrEqual(RIDGE_AMPLITUDE + 1e-12);
+    }
+  });
+
+  it('is deterministic (same world seed → identical) and seed-sensitive (seam-safe convention)', () => {
+    const a = makeMountainRidgeField(777);
+    const b = makeMountainRidgeField(777);
+    for (const [fx, fy] of PROBE_POINTS) {
+      expect(a(fx, fy, 0.85)).toBe(b(fx, fy, 0.85));
+    }
+    const c = makeMountainRidgeField(778);
+    let differs = false;
+    for (let k = 0; k < 80 && !differs; k++) {
+      if (a(k * 111, k * 333, 0.9) !== c(k * 111, k * 333, 0.9)) differs = true;
+    }
+    expect(differs).toBe(true);
+  });
 });
 
 /**

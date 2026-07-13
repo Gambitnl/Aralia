@@ -247,7 +247,11 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       weight: 0.5
     }
   ],
-  swamp: [
+  // Keyed `wetland` (was `swamp`) so it matches the legacy biome id
+  // `wetland_marsh` that biomeForCell/trip-events actually produce — the
+  // substring matcher needs the pool name to be a substring of the id
+  // (`wetland_marsh`.includes('wetland')), which `swamp` never satisfied.
+  wetland: [
     {
       id: 'thick_fog',
       description: 'Thick fog rolls in, obscuring the path.',

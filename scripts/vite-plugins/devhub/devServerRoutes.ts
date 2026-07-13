@@ -52,7 +52,7 @@ const buildScanTargets = (includeKnown = true, start?: number, end?: number, sca
   return buildScanTargetsFromRange(start ?? DEV_SERVER_SCAN_MIN_PORT, end ?? DEV_SERVER_SCAN_MIN_PORT, includeKnown);
 };
 
-const probeHttpUrl = async (
+export const probeHttpUrl = async (
   target: { port: number; label: string; expectedUrl: string; },
   checkedPath = '/',
   timeoutMs = DEV_SERVER_SCAN_TIMEOUT_MS,
@@ -60,9 +60,74 @@ const probeHttpUrl = async (
   const checkedUrl = `http://${DEV_SERVER_SCAN_HOST}:${target.port}${checkedPath}`;
   const startMs = Date.now();
   const timeout = Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : DEV_SERVER_SCAN_TIMEOUT_MS;
+  // Absolute ceiling on how long a single probe may run. A server that streams
+  // a body forever (or answers very slowly) must never stall the probe, because
+  // one stuck probe blocks its scan worker, which blocks Promise.all, which
+  // hangs the whole chunk and freezes the scan. 2x the socket timeout, floored.
+  const hardDeadlineMs = Math.max(2000, timeout * 2);
 
   return new Promise<any>((resolve) => {
-    const request = httpRequest(
+    let settled = false;
+    let deadlineTimer: ReturnType<typeof setTimeout> | null = null;
+    let request: any = null;
+    let liveResponse: any = null;
+    let liveTitle = '';
+
+    const settle = (result: any) => {
+      if (settled) return;
+      settled = true;
+      if (deadlineTimer) {
+        clearTimeout(deadlineTimer);
+        deadlineTimer = null;
+      }
+      try {
+        request?.destroy();
+      } catch {
+        // Ignore teardown errors; the probe result is already decided.
+      }
+      resolve(result);
+    };
+
+    const settleActive = (response: any, title: string) => {
+      settle({
+        port: target.port,
+        label: target.label,
+        expectedUrl: target.expectedUrl,
+        active: true,
+        activeUrl: checkedUrl,
+        checkedUrl,
+        checkedPath,
+        httpStatus: Number(response.statusCode) || 0,
+        httpStatusText: String(response.statusMessage || ''),
+        responseMs: Date.now() - startMs,
+        title,
+      });
+    };
+
+    const settleInactive = (message: string) => {
+      settle({
+        port: target.port,
+        label: target.label,
+        expectedUrl: target.expectedUrl,
+        active: false,
+        checkedUrl,
+        checkedPath,
+        error: message || 'Request failed',
+        responseMs: Date.now() - startMs,
+      });
+    };
+
+    deadlineTimer = setTimeout(() => {
+      // A listening HTTP server that answered with headers is "active" even if
+      // its body never ended; otherwise the deadline means no response at all.
+      if (liveResponse) {
+        settleActive(liveResponse, liveTitle);
+      } else {
+        settleInactive('Probe exceeded hard deadline.');
+      }
+    }, hardDeadlineMs);
+
+    request = httpRequest(
       {
         method: 'GET',
         host: DEV_SERVER_SCAN_HOST,
@@ -74,50 +139,40 @@ const probeHttpUrl = async (
         timeout,
       },
       (response: any) => {
-        const statusCode = Number(response.statusCode);
-        let title = '';
+        liveResponse = response;
         let responseBody = '';
+        let bytesRead = 0;
         response.setEncoding('utf8');
         response.on('data', (chunk: string) => {
-          if (!title && responseBody.length < 4096) {
-            responseBody += String(chunk || '');
-            title = toTitleFromHtml(responseBody);
+          const text = String(chunk || '');
+          bytesRead += text.length;
+          if (!liveTitle && responseBody.length < 4096) {
+            responseBody += text;
+            liveTitle = toTitleFromHtml(responseBody);
           }
-          if (responseBody.length > 4096) {
-            response.resume();
+          // We only need the status line and the <title>. Resolve as soon as we
+          // have the title or have seen enough of the head, then tear the stream
+          // down. Destroying a response emits 'close', not 'end', so we settle
+          // here rather than wait for 'end' — which never comes after a destroy,
+          // and never comes at all for a server that streams forever. Waiting on
+          // 'end' was the original hang.
+          if (liveTitle || bytesRead >= 4096) {
+            settleActive(response, liveTitle);
             response.destroy();
           }
         });
-        response.on('end', () => {
-          resolve({
-            port: target.port,
-            label: target.label,
-            expectedUrl: target.expectedUrl,
-            active: true,
-            activeUrl: checkedUrl,
-            checkedUrl,
-            checkedPath,
-            httpStatus: statusCode || 0,
-            httpStatusText: String(response.statusMessage || ''),
-            responseMs: Date.now() - startMs,
-            title,
-          });
-        });
+        // Every terminal outcome after headers means the port is live. Settling
+        // active on all of them guarantees the probe always resolves.
+        response.on('end', () => settleActive(response, liveTitle));
+        response.on('close', () => settleActive(response, liveTitle));
+        response.on('aborted', () => settleActive(response, liveTitle));
+        response.on('error', () => settleActive(response, liveTitle));
         response.resume();
       },
     );
 
     request.on('error', (error: any) => {
-      resolve({
-        port: target.port,
-        label: target.label,
-        expectedUrl: target.expectedUrl,
-        active: false,
-        checkedUrl,
-        checkedPath,
-        error: error?.message || 'Request failed',
-        responseMs: Date.now() - startMs,
-      });
+      settleInactive(error?.message || 'Request failed');
     });
 
     request.on('timeout', () => {

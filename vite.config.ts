@@ -79,6 +79,7 @@ const shellTerminalManager = () => ({
 });
 import { portraitApiManager } from './scripts/vite-plugins/portraitApiManager';
 import { sceneApiManager } from './scripts/vite-plugins/sceneApiManager';
+import { groqProxyManager } from './scripts/vite-plugins/groqProxyManager';
 
 import {
   conductorManager,
@@ -213,7 +214,8 @@ export default defineConfig(async ({ mode, command }) => {
     shellTerminalManager(),
     agentUsageProbe(),
     patVaultManager(),
-    agentSessionManager()
+    agentSessionManager(),
+    groqProxyManager()
   ];
   const roadmapOnlyPlugins = [react(), roadmapManager()];
   const hubOnlyPlugins = [

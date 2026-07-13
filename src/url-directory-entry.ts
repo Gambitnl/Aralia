@@ -17,11 +17,19 @@
  */
 
 import { GamePhase } from './types';
-import { getPhaseSlug, PHASE_SLUG_OVERRIDES } from './routes';
+import { getPhaseSlug, getPhaseTitle, PHASE_SLUG_OVERRIDES } from './routes';
 
 const BASE = import.meta.env.BASE_URL; // '/Aralia/'
 
-type LinkRow = { label: string; url: string; note?: string; tag?: string };
+// The browser-tab title (document.title) each URL produces. Phase routes derive
+// it from routes.ts; standalone pages get their parsed <title> from the scan.
+type LinkRow = { label: string; url: string; note?: string; tag?: string; title?: string };
+
+// Tab title for a phase given its enum NAME (server rows carry the name string).
+const phaseTitleByName = (name: string): string => {
+  const value = GamePhase[name as keyof typeof GamePhase];
+  return typeof value === 'number' ? getPhaseTitle(value) : '';
+};
 type Groups = {
   rootApp: LinkRow[];
   phaseRoutes: LinkRow[];
@@ -42,9 +50,12 @@ function staticGroups(): Groups {
       url: `${BASE}?phase=${slug}`,
       note: `?phase=${slug}`,
       tag: overrideSlugs.has(slug) ? 'clean slug' : phase === GamePhase.NOT_FOUND ? '404' : undefined,
+      title: getPhaseTitle(phase),
     };
   });
 
+  // Standalone pages: their <title> isn't known at build time (it lives in each
+  // HTML file), so it stays blank until the live scan fills it in.
   const toPages = (glob: Record<string, unknown>, tag: string): LinkRow[] =>
     Object.keys(glob)
       .sort()
@@ -59,7 +70,7 @@ function staticGroups(): Groups {
       });
 
   return {
-    rootApp: [{ label: 'Main Game', url: BASE, note: '/', tag: 'app' }],
+    rootApp: [{ label: 'Main Game', url: BASE, note: '/', tag: 'app', title: getPhaseTitle(GamePhase.MAIN_MENU) }],
     phaseRoutes,
     flagRoutes: [
       { label: 'World Map / World Generation', url: `${BASE}?worldmap=1`, note: '?worldmap=1  (alias: ?view=worldgen)', tag: 'flag' },
@@ -71,14 +82,15 @@ function staticGroups(): Groups {
 
 // ── Map the server scan payload into the same Groups shape ──────────────────
 function serverGroups(data: any): Groups {
-  const page = (p: any, tag: string): LinkRow => ({ label: p.label, url: p.url, note: '/' + p.file, tag });
+  const page = (p: any, tag: string): LinkRow => ({ label: p.label, url: p.url, note: '/' + p.file, tag: p.tag ?? tag, title: p.title || undefined });
   return {
-    rootApp: (data.rootApp ?? []).map((r: any) => ({ label: r.label, url: r.url, note: '/', tag: 'app' })),
+    rootApp: (data.rootApp ?? []).map((r: any) => ({ label: r.label, url: r.url, note: '/', tag: 'app', title: getPhaseTitle(GamePhase.MAIN_MENU) })),
     phaseRoutes: (data.phaseRoutes ?? []).map((r: any) => ({
       label: r.label,
       url: r.url,
       note: `?phase=${r.slug}`,
       tag: r.clean ? 'clean slug' : r.label === 'NOT_FOUND' ? '404' : undefined,
+      title: phaseTitleByName(r.label),
     })),
     flagRoutes: (data.flags ?? []).map((f: any) => ({ label: f.label, url: f.url, note: f.note, tag: 'flag' })),
     miscPages: (data.miscPages ?? []).map((p: any) => page(p, 'misc')),
@@ -96,7 +108,10 @@ const esc = (s: string): string =>
 function renderRow(r: LinkRow, isNew: boolean): string {
   return `
     <div class="urld-row${isNew ? ' urld-row--new' : ''}">
-      <a class="urld-link" href="${esc(r.url)}">${esc(r.label)}</a>
+      <div class="urld-main">
+        <a class="urld-link" href="${esc(r.url)}">${esc(r.label)}</a>
+        ${r.title ? `<span class="urld-title" title="Browser-tab name">${esc(r.title)}</span>` : ''}
+      </div>
       ${isNew ? '<span class="urld-tag urld-tag--new">new</span>' : ''}
       ${r.tag ? `<span class="urld-tag urld-tag--${esc(r.tag.replace(/\s+/g, '-'))}">${esc(r.tag)}</span>` : ''}
       <code class="urld-path">${esc(r.note ?? r.url)}</code>

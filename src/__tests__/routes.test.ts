@@ -3,6 +3,7 @@ import { GamePhase } from '../types';
 import {
   getPhaseSlug,
   getPhaseFromSlug,
+  getPhaseTitle,
   isWorldGenDeepLink,
   isDummyAutoStartDeepLink,
   PHASE_SLUG_OVERRIDES,
@@ -85,5 +86,23 @@ describe('routes — dummy auto-start opt-in', () => {
     expect(isDummyAutoStartDeepLink('')).toBe(false);
     expect(isDummyAutoStartDeepLink('?dummy=0')).toBe(false);
     expect(isDummyAutoStartDeepLink('?phase=playing')).toBe(false);
+  });
+});
+
+describe('routes — phase tab titles', () => {
+  it('uses the hand-picked title for named phases, prefixed with the app name', () => {
+    expect(getPhaseTitle(GamePhase.MAIN_MENU)).toBe('Aralia — Main Menu');
+    expect(getPhaseTitle(GamePhase.WORLDFORGE_DEMO)).toBe('Aralia — Worldforge Atlas');
+    expect(getPhaseTitle(GamePhase.PLAYING)).toBe('Aralia — Adventure');
+  });
+
+  it('falls back to a prettified enum name for unlisted phases', () => {
+    // Every phase gets a non-empty, prefixed title even without a PHASE_TITLES entry.
+    const phases = Object.values(GamePhase).filter((v): v is GamePhase => typeof v === 'number');
+    for (const phase of phases) {
+      const title = getPhaseTitle(phase);
+      expect(title.startsWith('Aralia — ')).toBe(true);
+      expect(title.length).toBeGreaterThan('Aralia — '.length);
+    }
   });
 });

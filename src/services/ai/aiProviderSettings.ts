@@ -48,10 +48,16 @@ export const DEFAULT_GROQ_KEY_STORAGE: GroqKeyStorage = 'local';
 
 /**
  * Default local-proxy base URL (OpenAI-compatible). The provider appends
- * `/chat/completions`. Points at a localhost proxy (the agent-matrix
- * free-router serves this shape); the game never runs the proxy itself.
+ * `/chat/completions`.
+ *
+ * This is a SAME-ORIGIN path served by the Vite dev server itself (see
+ * scripts/vite-plugins/groqProxyManager.ts). The dev server injects the Groq
+ * key — read from Windows Credential Manager — so the key never enters the
+ * browser and the proxy is always available while `npm run dev` runs (nothing
+ * to start by hand). For non-Vite contexts, `npm run groq-proxy` still serves
+ * the same shape on http://localhost:8787/v1.
  */
-export const DEFAULT_GROQ_PROXY_URL = 'http://localhost:8787/v1';
+export const DEFAULT_GROQ_PROXY_URL = '/__groq/v1';
 
 /** localStorage keys. Namespaced so they don't collide with other prefs. */
 const LS_PROVIDER = 'aralia.ai.textProvider';

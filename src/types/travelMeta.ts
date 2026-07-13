@@ -71,6 +71,21 @@ export interface TravelMeta {
    */
   navDrift?: { lost: boolean; driftDirection: string; extraSeconds: number; cause: 'wilds' | 'faint-path' };
   /**
+   * Trip event (mountains spec §3). MapPane rolls ONE seeded travel event per
+   * committed LAND trip — the biome-pool revival that finally fires the
+   * mountain, haunted/fey forest, and every other travel-event table in real
+   * play. The governing pool follows the route's drama priority (a crag cell
+   * outranks a haunted wood outranks the most-crossed ordinary biome); skill
+   * check events already resolved against the party's best member inside the
+   * roll. Present ONLY when an event fired (the chance gate keeps ~75% of
+   * trips silent), so a quiet trip is unaffected. `message` is the resolved
+   * player-facing line (event description + check branch) App announces to the
+   * adventure log; `extraSeconds` is the event's delay cost, joining the
+   * trip's ADVANCE_TIME exactly like navDrift's (0 for delay-free events).
+   * Sea trips never carry one — you don't meet a rockslide on a ferry.
+   */
+  tripEvent?: { message: string; extraSeconds: number };
+  /**
    * Cell-native destination of the trip (Stage 4, cell-native world). When present,
    * arrival sets the canonical `playerCell` to this EXACT cell (resetting Locale
    * feet, which are meaningless in the new cell) and stamps the 3D-entry anchor so a

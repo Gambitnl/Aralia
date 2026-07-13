@@ -43,7 +43,15 @@
 import type { FmgAtlasResult } from "../../systems/worldforge/fmg/generateAtlas";
 import { FEET_PER_FMG_PIXEL } from "../../systems/worldforge/adapter/atlasArtifact";
 import { routeVisibility } from "../../systems/worldforge/travel/routeTerrain";
-import { buildForestGlyphs, forestGlyphRampOpacity } from "./atlasSvg";
+import {
+  buildForestGlyphs,
+  forestGlyphRampOpacity,
+  buildReliefGlyphs,
+  reliefGlyphRampOpacity,
+  buildPassMarks,
+  passMarkPath,
+} from "./atlasSvg";
+import { reliefInk } from "./mountainGlyphs";
 import {
   ROUTE_STROKES,
   groupToKind,
@@ -591,6 +599,44 @@ export function drawAtlas(
   }
 
   // --------------------------------------------------------------------------
+  // Layer 2.35: Mountain relief glyphs (mountains campaign T9)
+  // --------------------------------------------------------------------------
+  // Peak carets + hill chevrons for EVERY land cell in a relief band
+  // (height-truth), sharing ONE source of truth with the SVG renderer:
+  // buildReliefGlyphs, stamped via Path2D. Placed just BEFORE the forest-glyph
+  // layer so relief reads UNDER trees. Each cell strokes its band-inked body,
+  // then re-strokes any snowcap sub-path WHITE. Same zoom ramp shape as the
+  // forest layer (on the mountain knobs). Replaces the legacy 2026-06-11
+  // triangle relief pass (removed).
+  {
+    const reliefAlpha = reliefGlyphRampOpacity(view.scale);
+    if (reliefAlpha > 0) {
+      const reliefCells = buildReliefGlyphs(atlas);
+      if (reliefCells.length > 0) {
+        ctx.save();
+        ctx.globalAlpha = reliefAlpha;
+        // Stamp in graph space through the view transform; divide the stroke by
+        // scale so ink stays a constant SCREEN width (the canvas twin of the SVG
+        // layer's vectorEffect="non-scaling-stroke").
+        ctx.translate(view.offsetX, view.offsetY);
+        ctx.scale(view.scale, view.scale);
+        ctx.lineWidth = 0.6 / view.scale;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        for (const cell of reliefCells) {
+          ctx.strokeStyle = reliefInk(cell.band);
+          ctx.stroke(new Path2D(cell.d));
+          if (cell.snowD) {
+            ctx.strokeStyle = "#ffffff";
+            ctx.stroke(new Path2D(cell.snowD));
+          }
+        }
+        ctx.restore();
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------
   // Layer 2.4: Forest tree glyphs (forests campaign T6)
   // --------------------------------------------------------------------------
   // Tiny per-cell tree stamps for NAMED forests (pack.forests clusters only),
@@ -750,46 +796,10 @@ export function drawAtlas(
   }
   ctx.restore();
 
-  // --------------------------------------------------------------------------
-  // Layer 4.5: Relief glyphs (relief pass, 2026-06-11) — Azgaar-style
-  // mountain/hill marks so elevation reads as cartography, not just tint.
-  // Peaks (h ≥ 65) always draw; hills (50–64) draw on alternating cells to
-  // keep density pleasant. Size follows height; screen-scaled so glyphs
-  // stay legible at any zoom without swallowing the map.
-  // --------------------------------------------------------------------------
-  {
-    ctx.save();
-    ctx.lineJoin = "round";
-    for (let i = 0; i < cellsN; i++) {
-      const h = pack.cells.h[i];
-      if (h < 50) continue;
-      const isPeak = h >= 65;
-      if (!isPeak && i % 2 === 0) continue; // thin the hill band
-
-      const p = pack.cells.p[i];
-      if (!p) continue;
-      const x = tx(p[0]);
-      const y = ty(p[1]);
-      const size = (isPeak ? 3.2 + ((h - 65) / 35) * 2.4 : 2.2) * Math.max(1, Math.sqrt(view.scale));
-
-      ctx.beginPath();
-      ctx.moveTo(x - size, y + size * 0.6);
-      ctx.lineTo(x, y - size);
-      ctx.lineTo(x + size, y + size * 0.6);
-      if (isPeak) {
-        ctx.fillStyle = "rgba(90, 82, 74, 0.55)";
-        ctx.fill();
-        ctx.strokeStyle = "rgba(50, 45, 40, 0.65)";
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
-      } else {
-        ctx.strokeStyle = "rgba(90, 82, 74, 0.45)";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
-  }
+  // NOTE: the legacy Layer 4.5 (2026-06-11 triangle relief pass, h>=50 hills /
+  // h>=65 peaks) was REMOVED in mountains T9 — its relief language is now the
+  // shared mountainGlyphs peak-caret / hill-chevron layer stamped above (Layer
+  // 2.35), one source of truth with the SVG renderer.
 
   // --------------------------------------------------------------------------
   // Layer 5: Political Overlay Features (State Borders, Routes, Burgs, Labels)
@@ -890,6 +900,27 @@ export function drawAtlas(
         } else {
           drawPolyline(pts, style, routeOpacity(kind, "visible"));
         }
+      }
+    }
+
+    // 5.2b Pass marks (mountains campaign T9) — paired chevrons flanking each
+    // pass cell, stamped AFTER the routes (passes sit ON routes) through the
+    // same graph→screen transform as the relief/forest glyphs so both renderers
+    // place them identically. NOT zoom-gated: passes are load-bearing wayfinding.
+    {
+      const passMarks = buildPassMarks(atlas);
+      if (passMarks.length > 0) {
+        ctx.save();
+        ctx.translate(view.offsetX, view.offsetY);
+        ctx.scale(view.scale, view.scale);
+        ctx.lineWidth = 1 / view.scale;
+        ctx.strokeStyle = "#3d3833";
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        for (const m of passMarks) {
+          ctx.stroke(new Path2D(passMarkPath(m.x, m.y)));
+        }
+        ctx.restore();
       }
     }
 

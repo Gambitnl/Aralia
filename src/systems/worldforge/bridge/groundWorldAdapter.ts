@@ -75,6 +75,9 @@ const MATERIAL_BIOME: Record<TerrainMaterial, string> = {
   water: "water",
   paved: "paved",
   floor: "floor",
+  // Glacier ice (Task 10 MOUNTAINS): its own light-blue terrainColor palette id,
+  // so glacier windows render as ice instead of the old brown `mountain` rock.
+  ice: "ice",
 };
 
 /**

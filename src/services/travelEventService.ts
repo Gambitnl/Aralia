@@ -27,15 +27,20 @@ const DEFAULT_EVENT_CHANCE = 0.3;
 
 /**
  * Generates a travel event based on the current biome
- * @param biomeId - The biome identifier (e.g., 'forest', 'mountain', 'swamp')
+ * @param biomeId - The biome identifier (e.g., 'forest', 'mountain', 'wetland')
  * @param eventChance - Optional override for event probability (0-1). Default is 0.3
  * @param worldContext - Optional context for generating deterministic discoveries
+ * @param rand - Optional random source (0 ≤ rand() < 1) replacing BOTH internal
+ *   Math.random() draws (chance gate + weighted pick) so a caller-seeded stream
+ *   makes the roll deterministic (mountains trip events). Omit for the legacy
+ *   Math.random behavior — unchanged.
  * @returns A TravelEvent or null if no event occurs
  */
 export function generateTravelEvent(
   biomeId: string,
   eventChance: number = DEFAULT_EVENT_CHANCE,
-  worldContext?: { worldSeed: number; x: number; y: number }
+  worldContext?: { worldSeed: number; x: number; y: number },
+  rand: () => number = Math.random
 ): TravelEvent | null {
 
   // 1. Check for Discoveries first (if context provided)
@@ -75,7 +80,7 @@ export function generateTravelEvent(
 
   // 2. Standard Random Events
   // Check if an event should occur based on chance
-  if (Math.random() > eventChance) {
+  if (rand() > eventChance) {
     return null;
   }
 
@@ -107,7 +112,7 @@ export function generateTravelEvent(
   const totalWeight = allEvents.reduce((sum, event) => sum + (event.weight ?? 1), 0);
 
   // Pick a random event based on weight
-  let randomValue = Math.random() * totalWeight;
+  let randomValue = rand() * totalWeight;
 
   for (const event of allEvents) {
     randomValue -= event.weight ?? 1;

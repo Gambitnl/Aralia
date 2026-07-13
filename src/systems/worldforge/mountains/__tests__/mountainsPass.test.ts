@@ -320,6 +320,15 @@ describe('generateMountains (mini-pack)', () => {
     generateMountains(pack, 'mtn-mini-0', MINI_NOTES);
     expect(pack.passes).toEqual([]);
   });
+
+  it('tolerates a land route with no points (cells-only legacy shape)', () => {
+    // detectPasses reads route.points; a crafted/legacy route lacking it must
+    // not throw (final-review guard, matching buildRouteCellTiers' `?? []`).
+    const pack = makeMiniPack();
+    // A land route carrying `cells` but no `points` (crafted/legacy shape).
+    pack.routes = [{ i: 999, group: 'roads', feature: 6, cells: [0, 1] } as unknown as Route];
+    expect(() => generateMountains(pack, 'mtn-mini-guard', MINI_NOTES)).not.toThrow();
+  });
 });
 
 // ---------------------------------------------------------------------------

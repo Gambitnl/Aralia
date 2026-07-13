@@ -303,3 +303,12 @@ UI: R3F canvas (ground disc + hemisphere/directional light, blobfolk sky `#bfe8f
 - [x] Combat HP pip and team ring trimmed (~25%) for the new body scale.
 - [x] Crowd walk cycle 6 → 8 baked keyframes.
 - [x] 70 entities3d tests green (raceMap beard assertion updated); typecheck clean; before/after screenshots eyeballed and sent.
+
+### Task 16 (wireframe look, Remy 2026-07-12): "make them wireframes instead of blobs"
+
+- [x] `three/toon.ts`: `EntityRenderMode` type, `ENTITY_RENDER_MODE` global default = `'wireframe'`, `wireframeMaterial()` (MeshBasicMaterial, colour brightened 18% toward white), `entityMaterial(mode)` factory.
+- [x] `assembleEntity` + `Entity3D` take `renderMode?` (default = constant). Wireframe: MeshBasic wireframe materials for body + mesh parts; skip body inverse-hull outline (no `metaballOutline`) and part ink shells (no `partOutline`); field resolution × 0.6 (cleaner + cheaper); eyes + shadow stay solid.
+- [x] `GroundAgents` crowd material reads the constant (`wireframe: ENTITY_RENDER_MODE === 'wireframe'`).
+- [x] Forge `wireframe` checkbox (`?wire=0` = solid) for A/B; `EntityForgeScene`/`PreviewEntityForge` thread `renderMode`.
+- [x] assemble.test.ts updated: default (wireframe) asserts NO outlines; explicit `renderMode:'solid'` test asserts both outlines present. 285 tests green; typecheck clean on touched files.
+- [x] Eyeballed forge (dwarf/fighter/dragon wireframe + solid toggle) and in-game (world3d cast diorama figures wireframe — proves global default reaches game surfaces).

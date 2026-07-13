@@ -7,7 +7,9 @@
  * renderer only consumes the resulting ChunkData records.
  */
 import { describe, expect, it } from 'vitest';
-import { WORLD3D_CONFIG } from '../../../world3d/config';
+import { WORLD3D_CONFIG, heightToMeters } from '../../../world3d/config';
+import { buildPlaceholderHeightfield } from '../../../world3d/chunkGeometry';
+import type { ChunkData } from '../../../world3d/types';
 import {
   WORLD_DELTA_OPERATION_VERSION,
   WORLD_DELTA_SCHEMA_VERSION,
@@ -16,7 +18,16 @@ import {
 import type { LocalArtifact, RegionArtifact } from '../../artifacts';
 import { rootSeedPath } from '../../seedPath';
 import type { GroundWorld } from '../groundChunkLoader';
-import { makeGroundWorld, sampleGroundChunk, extractLocalTerrainPatch, groundSurfaceY, canonicalArtifactTownForSite } from '../groundChunkLoader';
+import { makeGroundWorld, sampleGroundChunk, groundSlope01, extractLocalTerrainPatch, groundSurfaceY, canonicalArtifactTownForSite } from '../groundChunkLoader';
+import { getBridgeAtlas } from '../legacySubmapBridge';
+import {
+  resolveSnowLine,
+  latitudeAtGraphY,
+  SNOW_LINE_H,
+  SNOW_LINE_POLAR,
+  SNOW_LINE_TROPICAL,
+  SNOW_RGB,
+} from '../../mountains/mountainTunables';
 import { groundTownAgentsAt } from '../groundAgentMotion';
 import { GROUND_METERS_PER_CELL, localArtifactToWorldData } from '../groundWorldAdapter';
 import { FACADE_PART_TAG, MOTIF_PART_TAG } from '../interiorParts';
@@ -928,5 +939,160 @@ describe('extractLocalTerrainPatch', () => {
     // ...and the mirror cell stays open floor.
     expect(mirrorTile?.terrain).toBe('floor');
     expect(mirrorTile?.blocksMovement).toBe(false);
+  });
+});
+
+// ============================================================================
+// Task 10 (MOUNTAINS) — 3D high-country vertex colors: the relief-shading
+// unit-bug fix, the re-enabled slope→rock blend, and snow caps at altitude.
+// A flat 100×100 world keeps a chunk fully inside the artifact (extent 152 m >
+// the 128 m chunk), so no edge-haze contaminates the tint under test.
+// ============================================================================
+
+function flatColorWorld(height: number, biome = 'grassland', extra: Partial<GroundWorld> = {}): GroundWorld {
+  const cols = 100;
+  const rows = 100;
+  return makeGroundWorldFixture({
+    cols,
+    rows,
+    heights: new Array(cols * rows).fill(height),
+    biomeIds: new Array(cols * rows).fill(biome),
+    extentMetersX: cols * GROUND_METERS_PER_CELL,
+    extentMetersZ: rows * GROUND_METERS_PER_CELL,
+    ...extra,
+  });
+}
+
+describe('sampleGroundChunk relief shading (unit-bug fix)', () => {
+  it('high ground reads distinctly brighter than low ground (dead ~2% today → live)', () => {
+    // Same biome, same (flat → zero slope, sub-snow-line) everything: only the
+    // encoded height differs. Pre-fix the height/100 call collapsed the shade
+    // swing to ~2%; the raw-height call restores the intended relief contrast.
+    const low = sampleGroundChunk(flatColorWorld(5), 0, 0, 2);
+    const high = sampleGroundChunk(flatColorWorld(30), 0, 0, 2);
+    const lo = low.biomeColors![0];
+    const hi = high.biomeColors![0];
+    expect((hi - lo) / lo).toBeGreaterThan(0.1);
+  });
+});
+
+describe('groundSlope01 ↔ chunkGeometry normal convention (calibration)', () => {
+  it('agrees with the mesh normal-derived (1 − ny) slope on a linear ramp', () => {
+    const res = 5;
+    const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
+    const spacingM = S / (res - 1);
+    const mPerH = heightToMeters(1) - heightToMeters(0);
+
+    // Build a linear ramp whose world-space rise/run G is a chosen tan(theta).
+    const ramp = (targetG: number): Float32Array => {
+      const dhPerVertex = (targetG * spacingM) / mPerH; // encoded-height step per vertex in +x
+      const heights = new Float32Array(res * res);
+      for (let j = 0; j < res; j++)
+        for (let i = 0; i < res; i++) heights[j * res + i] = i * dhPerVertex;
+      return heights;
+    };
+
+    // Geometry convention: the up-component of the flat-shaded vertex normal.
+    const geomSlope01 = (heights: Float32Array, i: number, j: number): number => {
+      const geo = buildPlaceholderHeightfield(
+        { resolution: res, heights } as unknown as ChunkData,
+        { skirtDepth: 0 },
+      );
+      const ny = geo.normals[(j * res + i) * 3 + 1];
+      return 1 - ny;
+    };
+
+    // Three angles across the useful blend band (~30°, 45°, 60°) all agree
+    // within the ±0.1 tolerance the brief specifies.
+    for (const G of [Math.tan(Math.PI / 6), 1, Math.tan(Math.PI / 3)]) {
+      const heights = ramp(G);
+      const ground = groundSlope01(heights, 2, 2, res);
+      const geom = geomSlope01(heights, 2, 2);
+      expect(Math.abs(ground - geom)).toBeLessThanOrEqual(0.1);
+    }
+
+    // And the calibration is not degenerate — a 45° ramp reads as real steepness.
+    expect(groundSlope01(ramp(1), 2, 2, res)).toBeGreaterThan(0.2);
+    // Flat ground is flat.
+    expect(groundSlope01(new Float32Array(res * res), 2, 2, res)).toBe(0);
+  });
+});
+
+describe('sampleGroundChunk snow caps (Task 10)', () => {
+  it('blends toward SNOW_RGB above the snow line, full white past the band, and leaves geometry alone', () => {
+    // snowLineH defaults to the temperate baseline (SNOW_LINE_H = 55), band 12.
+    const below = sampleGroundChunk(flatColorWorld(50), 0, 0, 2);
+    const mid = sampleGroundChunk(flatColorWorld(61), 0, 0, 2); // t ≈ 0.5
+    const full = sampleGroundChunk(flatColorWorld(67), 0, 0, 2); // t = 1 → SNOW_RGB
+
+    // Below the line: ordinary biome tint (blue channel well under snow's 0.95).
+    expect(below.biomeColors![2]).toBeLessThan(0.8);
+
+    // Past the band: essentially pure snow.
+    expect(full.biomeColors![0]).toBeCloseTo(SNOW_RGB[0], 2);
+    expect(full.biomeColors![1]).toBeCloseTo(SNOW_RGB[1], 2);
+    expect(full.biomeColors![2]).toBeCloseTo(SNOW_RGB[2], 2);
+
+    // Mid-band sits strictly between the two.
+    expect(mid.biomeColors![0]).toBeGreaterThan(below.biomeColors![0]);
+    expect(mid.biomeColors![0]).toBeLessThan(full.biomeColors![0]);
+
+    // Snow is a COLOR effect only — the sampled height (mesh geometry) is untouched.
+    expect(full.heights[0]).toBeCloseTo(67, 5);
+  });
+
+  it('honors a per-world snowLineH (polar caps snow lower)', () => {
+    // At height 45 a temperate window (line 55) has no snow, but a polar window
+    // (line 35, band 12 → t = min(1,(45-35)/12) ≈ 0.83) is nearly white.
+    const temperate = sampleGroundChunk(flatColorWorld(45, 'grassland'), 0, 0, 2);
+    const polar = sampleGroundChunk(flatColorWorld(45, 'grassland', { snowLineH: SNOW_LINE_POLAR }), 0, 0, 2);
+    expect(temperate.biomeColors![2]).toBeLessThan(0.8);
+    expect(polar.biomeColors![2]).toBeGreaterThan(temperate.biomeColors![2]);
+    expect(polar.biomeColors![0]).toBeGreaterThan(temperate.biomeColors![0]);
+  });
+});
+
+describe('snow-line latitude band (pure helpers)', () => {
+  it('resolveSnowLine: polar low, temperate baseline, tropical high, null → temperate fallback', () => {
+    expect(resolveSnowLine(75)).toBe(SNOW_LINE_POLAR); // |lat| > 60 polar
+    expect(resolveSnowLine(-75)).toBe(SNOW_LINE_POLAR); // southern hemisphere
+    expect(resolveSnowLine(45)).toBe(SNOW_LINE_H); // 25..60 temperate
+    expect(resolveSnowLine(10)).toBe(SNOW_LINE_TROPICAL); // < 25 tropical
+    expect(resolveSnowLine(60)).toBe(SNOW_LINE_H); // boundary: 60 is not > 60
+    expect(resolveSnowLine(25)).toBe(SNOW_LINE_H); // boundary: 25 is temperate
+    expect(resolveSnowLine(null)).toBe(SNOW_LINE_H); // no mapCoordinates → baseline
+  });
+
+  it('latitudeAtGraphY: north edge = latN, south edge = latS, linear between (climate convention)', () => {
+    const coords = { latN: 60, latS: 20 };
+    expect(latitudeAtGraphY(0, 100, coords)).toBeCloseTo(60, 6);
+    expect(latitudeAtGraphY(100, 100, coords)).toBeCloseTo(20, 6);
+    expect(latitudeAtGraphY(50, 100, coords)).toBeCloseTo(40, 6);
+    expect(latitudeAtGraphY(50, 100, null)).toBeNull(); // atlas-only / crafted
+    expect(latitudeAtGraphY(50, 0, coords)).toBeNull(); // degenerate graph
+  });
+});
+
+describe('makeGroundWorld snow-line threading (anchor seam, mirrors canopy)', () => {
+  it('falls back to the temperate baseline without an anchor cell', () => {
+    const local = makeLocalArtifact();
+    const region = makeRegionArtifact();
+    const ground = makeGroundWorld(local, 42, region);
+    expect(ground.snowLineH ?? SNOW_LINE_H).toBe(SNOW_LINE_H);
+  });
+
+  it('resolves snowLineH from the anchor cell latitude, reading the same atlas the canopy seam does', () => {
+    const local = makeLocalArtifact();
+    const region = makeRegionArtifact();
+    const anchorCellId = 110;
+    const atlas = getBridgeAtlas(42); // same per-seed cache makeGroundWorld uses
+    const [, cellY] = atlas.pack.cells.p[anchorCellId];
+    const expected = resolveSnowLine(
+      latitudeAtGraphY(cellY, atlas.graphHeight, atlas.mapCoordinates),
+    );
+
+    const ground = makeGroundWorld(local, 42, region, { anchorCellId });
+    expect(ground.snowLineH).toBe(expected);
+    expect([SNOW_LINE_POLAR, SNOW_LINE_H, SNOW_LINE_TROPICAL]).toContain(ground.snowLineH);
   });
 });

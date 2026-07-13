@@ -23,6 +23,8 @@ import {
   GLYPH_MIN_ZOOM,
 } from '../../systems/worldforge/forests/forestTunables';
 import {
+  MOUNTAIN_GLYPH_FULL_ZOOM,
+  MOUNTAIN_GLYPH_MIN_ZOOM,
   PEAK_LABEL_FONT,
   PEAK_LABEL_MIN_ZOOM,
   PEAK_LABEL_PRIORITY,
@@ -36,6 +38,13 @@ import {
 import { computeDangerField, dangerCellsAbove, type DungeonDangerSite } from '../../systems/worldforge/overlays/dangerField';
 import { routeVisibility } from '../../systems/worldforge/travel/routeTerrain';
 import { cellGlyphs, forestTint, glyphPath } from './forestGlyphs';
+import {
+  cellReliefGlyphs,
+  reliefBandForHeight,
+  reliefGlyphCapPath,
+  reliefGlyphPath,
+  type ReliefBand,
+} from './mountainGlyphs';
 import { groupToKind, routeOpacity, segmentRouteByVisibility } from './routeMapStyle';
 
 /** SVG "x,y x,y ..." points string for a cell's Voronoi polygon (graph coords). */
@@ -127,10 +136,32 @@ export interface AtlasSvgModel {
    * a `pack.forests` cluster stamp; anonymous copses stay plain fill.
    */
   forestGlyphs?: AtlasSvgForestGlyphCell[];
+  /**
+   * Mountain relief glyphs (mountains campaign T9): ONE entry per LAND cell in
+   * a relief band (h >= 50) — height-truth, NOT range-gated, so the SVG map
+   * finally shows elevation everywhere the canvas grey-lift does. Renders UNDER
+   * the forest glyphs (a forested hill shows trees over its chevron). `d` is
+   * the band-inked body; `snowD` is the WHITE snowcap sub-path (only on
+   * h >= 80 peaks, else '').
+   */
+  reliefGlyphs?: AtlasSvgReliefGlyphCell[];
+  /**
+   * Pass marks (mountains campaign T9): one paired-chevron anchor per
+   * `pack.passes` cell, in map space. Drawn in the routes layer (passes sit ON
+   * routes) and NOT zoom-hidden — passes are load-bearing wayfinding.
+   */
+  passMarks?: AtlasSvgPassMark[];
 }
 
 /** One named-forest cell's concatenated glyph paths + its kind tint. */
 export interface AtlasSvgForestGlyphCell { d: string; tint: string | null }
+
+/** One land cell's relief glyphs: band-inked body `d` + white snowcap `snowD`
+ * (empty unless the cell is a h >= 80 peak). */
+export interface AtlasSvgReliefGlyphCell { d: string; band: ReliefBand; snowD: string }
+
+/** One pass mark anchor (map space) — the pass cell's site point. */
+export interface AtlasSvgPassMark { x: number; y: number }
 
 const LAND_THRESHOLD = 20;
 
@@ -758,6 +789,112 @@ export function forestGlyphRampOpacity(k: number): number {
 }
 
 /**
+ * Mountain relief glyphs (mountains campaign T9): the twin of buildForestGlyphs
+ * for elevation. For EVERY land cell whose height falls in a relief band
+ * (`reliefBandForHeight` non-null ⇒ h >= 50) — height-truth, NOT range-gated:
+ * ranges give NAMES, glyphs read raw elevation, so the SVG map shows relief
+ * everywhere. One entry per cell: all that cell's deterministic relief glyphs
+ * (cellReliefGlyphs → reliefGlyphPath) concatenated into a single band-inked
+ * `d`, plus a SEPARATE white `snowD` holding ONLY the snowcap sub-paths of its
+ * h >= 80 peaks (built from `reliefGlyphCapPath`, the clean split — the cap
+ * never lands in `d`, so the renderer inks the body dark and the cap white with
+ * no double-stroke). Degenerate polygons are skipped. BOTH renderers consume
+ * this — the SVG model folds it in, the canvas rebuilds the identical data —
+ * so the two maps cannot disagree on where mountains stand.
+ */
+export function buildReliefGlyphs(atlas: FmgAtlasResult): AtlasSvgReliefGlyphCell[] {
+  const cells = atlas.pack.cells;
+  const verts = atlas.pack.vertices.p;
+  const n = cells.h.length;
+  const out: AtlasSvgReliefGlyphCell[] = [];
+  for (let cellId = 0; cellId < n; cellId++) {
+    const h = cells.h[cellId];
+    const band = reliefBandForHeight(h); // null below the hill line (h < 50)
+    if (!band) continue;
+    const vIds = cells.v[cellId];
+    if (!vIds || vIds.length < 3) continue;
+    const poly: Array<[number, number]> = [];
+    for (const vid of vIds) {
+      const p = verts[vid];
+      if (p) poly.push([p[0], p[1]]);
+    }
+    if (poly.length < 3) continue;
+    let d = '';
+    let snowD = '';
+    for (const g of cellReliefGlyphs(cellId, poly, h, band)) {
+      // Body strokes with snowTip=false so the cap stays OUT of `d`; the cap
+      // (when this glyph is a snow-tipped peak) goes only into snowD.
+      d += reliefGlyphPath(g.band, g.x, g.y, g.s, false);
+      if (g.snowTip) snowD += reliefGlyphCapPath(g.x, g.y, g.s);
+    }
+    if (d) out.push({ d, band, snowD });
+  }
+  return out;
+}
+
+/** Full relief-glyph layer opacity once zoomed past MOUNTAIN_GLYPH_FULL_ZOOM.
+ * A touch stronger than the forest layer so peak ink reads over rock fills. */
+export const RELIEF_GLYPH_LAYER_OPACITY = 0.9;
+
+/**
+ * Shared zoom ramp for the relief-glyph layer (both renderers): the forest ramp
+ * shape on the MOUNTAIN glyph knobs, so relief thins in alongside trees. Hidden
+ * below MOUNTAIN_GLYPH_MIN_ZOOM, linear fade to RELIEF_GLYPH_LAYER_OPACITY at
+ * MOUNTAIN_GLYPH_FULL_ZOOM. A degenerate (NaN) zoom answers 0 — never leak NaN
+ * into CSS or globalAlpha.
+ */
+export function reliefGlyphRampOpacity(k: number): number {
+  if (!(k >= MOUNTAIN_GLYPH_MIN_ZOOM)) return 0; // also catches NaN
+  if (k >= MOUNTAIN_GLYPH_FULL_ZOOM) return RELIEF_GLYPH_LAYER_OPACITY;
+  return (
+    RELIEF_GLYPH_LAYER_OPACITY *
+    ((k - MOUNTAIN_GLYPH_MIN_ZOOM) / (MOUNTAIN_GLYPH_FULL_ZOOM - MOUNTAIN_GLYPH_MIN_ZOOM))
+  );
+}
+
+/**
+ * Pass mark anchors (mountains campaign T9): one point per `pack.passes` cell,
+ * read from that cell's site (`pack.cells.p[cellId]`) in map space. Empty for
+ * pre-mountains packs (no `pack.passes`). Both renderers draw the paired
+ * chevron via `passMarkPath` at these points.
+ */
+export function buildPassMarks(atlas: FmgAtlasResult): AtlasSvgPassMark[] {
+  const passes =
+    (atlas.pack as { passes?: Array<{ cellId: number }> }).passes ?? [];
+  if (passes.length === 0) return [];
+  const p = atlas.pack.cells.p;
+  const out: AtlasSvgPassMark[] = [];
+  for (const pass of passes) {
+    const pt = p?.[pass.cellId];
+    if (!pt) continue;
+    out.push({ x: pt[0], y: pt[1] });
+  }
+  return out;
+}
+
+/**
+ * Paired-chevron pass mark (mountains campaign T9): two small `‹ ›`-style ticks
+ * flanking (x, y) in map space, vertices pointing outward like a saddle gate.
+ * One geometry string, shared by both renderers (SVG `<path d>` and canvas
+ * `new Path2D(d)`), so passes read identically. `size` is the chevron arm reach
+ * and half-gap in map units.
+ */
+export function passMarkPath(x: number, y: number, size = 2): string {
+  const g = size; // half-gap from the anchor to each chevron's inner edge
+  const a = size; // chevron arm reach (both directions from the vertex)
+  const ff = (v: number): string => {
+    const r = Math.round(v * 100) / 100;
+    return String(r === 0 ? 0 : r);
+  };
+  return (
+    // Left chevron ‹ — vertex at (x-g-a), arms opening right toward the anchor.
+    `M${ff(x - g)} ${ff(y - a)}L${ff(x - g - a)} ${ff(y)}L${ff(x - g)} ${ff(y + a)}` +
+    // Right chevron › — vertex at (x+g+a), arms opening left toward the anchor.
+    `M${ff(x + g)} ${ff(y - a)}L${ff(x + g + a)} ${ff(y)}L${ff(x + g)} ${ff(y + a)}`
+  );
+}
+
+/**
  * Owned point→cell lookup (SP0 T7): the Voronoi cell containing a graph-space
  * point is the cell whose site (`cells.p`) is nearest — no iframe `findCell`.
  * Brute force over cell centers (fine at ~10k cells per click).
@@ -1119,6 +1256,8 @@ export function buildAtlasSvgModel(
     rivers: buildRivers(atlas),
     routes: buildRoutes(atlas),
     forestGlyphs: buildForestGlyphs(atlas),
+    reliefGlyphs: buildReliefGlyphs(atlas),
+    passMarks: buildPassMarks(atlas),
     burgs: buildBurgs(atlas),
     stateBorders: buildStateBorders(atlas),
     stateRegions,

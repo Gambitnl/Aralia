@@ -7,12 +7,24 @@ import {
   Color,
   DataTexture,
   DoubleSide,
+  MeshBasicMaterial,
   MeshToonMaterial,
   NearestFilter,
   RedFormat,
   ShaderMaterial,
   BackSide,
 } from 'three';
+
+/** How generated entity bodies are drawn. */
+export type EntityRenderMode = 'solid' | 'wireframe';
+
+/**
+ * The global default look for generated entities. `wireframe` replaced the
+ * solid metaball ("blob") surface 2026-07-12 (Remy): every consumer that does
+ * not pass its own `renderMode` inherits this. Flip to `'solid'` to restore
+ * the toon-shaded blobfolk body across the whole game in one line.
+ */
+export const ENTITY_RENDER_MODE: EntityRenderMode = 'wireframe';
 
 let gradient: DataTexture | null = null;
 
@@ -28,6 +40,21 @@ export function toonGradient(): DataTexture {
 
 export function toonMaterial(colorHex: string): MeshToonMaterial {
   return new MeshToonMaterial({ color: colorHex, gradientMap: toonGradient() });
+}
+
+/**
+ * Unlit wireframe material — draws only the triangle edges of a mesh. The
+ * colour is brightened a touch so the lines read against sky and ground
+ * without a filled surface behind them.
+ */
+export function wireframeMaterial(colorHex: string): MeshBasicMaterial {
+  const color = new Color(colorHex).lerp(new Color('#ffffff'), 0.18);
+  return new MeshBasicMaterial({ color, wireframe: true });
+}
+
+/** The material factory for a render mode: toon-shaded solid, or wireframe. */
+export function entityMaterial(mode: EntityRenderMode): (colorHex: string) => MeshToonMaterial | MeshBasicMaterial {
+  return mode === 'wireframe' ? wireframeMaterial : toonMaterial;
 }
 
 /** Inverse-hull ink outline: render the same geometry inflated, back faces only. */

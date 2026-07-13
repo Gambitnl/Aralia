@@ -236,8 +236,8 @@ export function buildAtlasArtifact(
   // Named ranges + peaks (mountains campaign Task 2), from
   // fmg/../mountains/mountainsPass — the forests conventions verbatim:
   //   ids and cell-space data raw; pole a POINT converting FMG px → feet.
-  // passes: DECLARED now, filled by the passes task (mountains Task 4);
-  // until then pack.passes is never set, so the artifact carries [].
+  // passes: filled by detectPasses (mountains Task 4) — route crests inside
+  // named ranges; `?? []` keeps atlas-only packs (no civilization data) valid.
   const ranges: AtlasRange[] = (pack.ranges ?? []).map((range) => ({
     id: range.i,
     name: range.name,

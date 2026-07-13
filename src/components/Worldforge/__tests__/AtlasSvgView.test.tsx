@@ -12,7 +12,10 @@ const stub = {
   graphWidth: 100, graphHeight: 100,
   biomesData: { color: ['#000', '#11aa33'] },
   pack: { vertices: { p: [[0,0],[10,0],[10,10],[0,10]] },
-          cells: { h: [5, 50], v: [[0,1,2], [0,1,2,3]], biome: [0, 1], p: [[2,2],[7,7]] } },
+          // cell 1 is lowland (h30, below the relief-glyph band) so the shared
+          // stub stays isolated from the mountains T9 relief layer — relief
+          // stamping is exercised in AtlasLayers.reliefGlyphs / atlasDraw tests.
+          cells: { h: [5, 30], v: [[0,1,2], [0,1,2,3]], biome: [0, 1], p: [[2,2],[7,7]] } },
 } as any;
 
 describe('AtlasSvgView', () => {

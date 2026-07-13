@@ -1,5 +1,6 @@
 import React from 'react';
-import { FOREST_GLYPH_LAYER_OPACITY, type AtlasSvgModel } from './atlasSvg';
+import { FOREST_GLYPH_LAYER_OPACITY, RELIEF_GLYPH_LAYER_OPACITY, passMarkPath, type AtlasSvgModel } from './atlasSvg';
+import { reliefInk } from './mountainGlyphs';
 import { ROUTE_STROKES } from './routeMapStyle';
 
 /**
@@ -12,6 +13,16 @@ import { ROUTE_STROKES } from './routeMapStyle';
  */
 const FOREST_GLYPH_OPACITY_VAR: React.CSSProperties = {
   opacity: `var(--forest-glyph-opacity, ${FOREST_GLYPH_LAYER_OPACITY})`,
+};
+
+/**
+ * Relief glyph layer opacity (mountains campaign T9) — same freeze-safe CSS
+ * custom-property channel as the forest layer: AtlasSvgView sets
+ * `--relief-glyph-opacity` from view.k each frame; the fallback keeps
+ * zoom-free hosts (tests, proof pages) at full layer opacity.
+ */
+const RELIEF_GLYPH_OPACITY_VAR: React.CSSProperties = {
+  opacity: `var(--relief-glyph-opacity, ${RELIEF_GLYPH_LAYER_OPACITY})`,
 };
 
 export interface AtlasLayersProps {
@@ -130,6 +141,40 @@ function AtlasLayersImpl({ model, visible, softenActive = true }: AtlasLayersPro
           ))}
         </g>
       ) : null}
+      {/* Mountain relief glyphs (mountains campaign T9) — peak carets + hill
+          chevrons for EVERY land cell in a relief band (height-truth). Placed
+          just BELOW the forest glyphs (relief under trees: a forested hill
+          shows its canopy over the chevron) and ABOVE the biome fills. Each
+          cell strokes its band-inked body, then re-strokes any snowcap sub-path
+          WHITE. Crisp (no soften filter); zoom ramp via --relief-glyph-opacity. */}
+      {(visible.reliefGlyphs ?? true) && (model.reliefGlyphs?.length ?? 0) > 0 ? (
+        <g data-testid="atlas-relief-glyphs" style={RELIEF_GLYPH_OPACITY_VAR}>
+          {(model.reliefGlyphs ?? []).map((c, i) => (
+            <React.Fragment key={`rg${i}`}>
+              <path
+                d={c.d}
+                fill="none"
+                stroke={reliefInk(c.band)}
+                strokeWidth={0.6}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+              />
+              {c.snowD ? (
+                <path
+                  d={c.snowD}
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth={0.6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+              ) : null}
+            </React.Fragment>
+          ))}
+        </g>
+      ) : null}
       {/* Forest tree glyphs (forests campaign T6) — tiny per-cell tree stamps
           for NAMED forests only, kind-tinted. Placed at the terrain-texture
           boundary: above every softened fill coloring (the canvas renderer's
@@ -217,6 +262,26 @@ function AtlasLayersImpl({ model, visible, softenActive = true }: AtlasLayersPro
           </g>
         );
       }) : null}
+      {/* Pass marks (mountains campaign T9) — a paired chevron flanking each
+          pass cell, drawn in the routes layer AFTER the route strokes (passes
+          sit ON routes). Ink only, no fill; NOT zoom-hidden (no opacity ramp) —
+          passes are load-bearing wayfinding. */}
+      {visible.routes && (model.passMarks?.length ?? 0) > 0 ? (
+        <g data-testid="atlas-pass-marks">
+          {(model.passMarks ?? []).map((m, i) => (
+            <path
+              key={`pass${i}`}
+              d={passMarkPath(m.x, m.y)}
+              fill="none"
+              stroke="#3d3833"
+              strokeWidth={1}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+          ))}
+        </g>
+      ) : null}
       {visible.coast && model.coastline ? (
         <>
           {/* shelf glow + crisp inked coast (double stroke, T3) */}

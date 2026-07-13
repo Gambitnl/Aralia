@@ -78,6 +78,13 @@ import { BIOMES } from "../../../data/biomes";
 import { biomeIdForCell } from "../local/biomeForCell";
 import { forestKindForCell } from "../forests/forestKindForCell";
 import type { ForestKind } from "../forests/forestClusters";
+import {
+  resolveSnowLine,
+  latitudeAtGraphY,
+  SNOW_LINE_H,
+  SNOW_RGB,
+  SNOW_BAND,
+} from "../mountains/mountainTunables";
 
 /** A polyline in ground world-meters with a uniform width (meters). */
 interface GroundPolyline {
@@ -309,6 +316,13 @@ export interface GroundWorld {
    * pre-canopy lighting.
    */
   canopy?: GroundCanopy | null;
+  /**
+   * Encoded-height snow line for this window (Task 10 MOUNTAINS), resolved ONCE
+   * from the anchor cell's latitude band (spec §5). Ground vertices at/above it
+   * blend toward snow in `sampleGroundChunk`. Absent (tests/legacy/anchor-less
+   * builds) → the sampler uses the temperate baseline SNOW_LINE_H.
+   */
+  snowLineH?: number;
 }
 
 const FEET_TO_METERS = 0.3048;
@@ -470,6 +484,20 @@ export function resolveCanopy(
   return { shade: true, fog: vis.fog ?? 'light', forestKind };
 }
 
+/**
+ * Latitude (degrees) of an anchor atlas cell, or `null` when the pack carries
+ * no map coordinates. The bridge half of the snow-line seam (Task 10): it
+ * reads the anchor cell's graph-y + the pack's `mapCoordinates` off the same
+ * per-seed atlas cache the canopy seam uses, then defers the actual math to the
+ * pure `latitudeAtGraphY` (unit-tested without the bridge).
+ */
+function anchorLatitudeDeg(seed: number, cellId: number): number | null {
+  const atlas = getBridgeAtlas(seed);
+  const p = atlas.pack.cells.p[cellId];
+  if (!p) return null;
+  return latitudeAtGraphY(p[1], atlas.graphHeight, atlas.mapCoordinates);
+}
+
 export interface MakeGroundWorldOptions {
   /** In-game hour 0–23: working adults stand at their work plot during
    * business hours (8–18), at home otherwise. Default noon. */
@@ -627,6 +655,15 @@ export function makeGroundWorld(
       )
     : null;
 
+  // Snow line (Task 10 MOUNTAINS): resolved ONCE per window from the anchor
+  // cell's atlas latitude (spec §5's 3-band table), reusing the SAME per-seed
+  // atlas cache the canopy seam warmed. Without an anchor (tests/legacy) or a
+  // pack that carries no map coordinates, `resolveSnowLine(null)` yields the
+  // temperate baseline — behavior unchanged.
+  const snowLineH = opts.anchorCellId != null
+    ? resolveSnowLine(anchorLatitudeDeg(seed, opts.anchorCellId))
+    : SNOW_LINE_H;
+
   const world: GroundWorld = {
     cols: wd.gridSize.cols,
     rows: wd.gridSize.rows,
@@ -656,6 +693,7 @@ export function makeGroundWorld(
     townPlans: townContent.townPlans,
     boundsFeet: { x: local.bounds.x, y: local.bounds.y },
     canopy,
+    snowLineH,
   };
 
   // WAVE-1 props: deterministic dressing (market stalls, dock crates, wilderness
@@ -1620,6 +1658,49 @@ export function buildGroundVegetation(
 }
 
 /**
+ * Ground-mode steepness → [0,1], CALIBRATED to agree with chunkGeometry's
+ * normal-derived `1 − n·up` convention on a linear ramp.
+ *
+ * The mesh reads slope off the flat-shaded vertex normal: for a plane of world
+ * gradient G (rise-meters / run-meters), `ny = 1/√(1+G²)` so its convention is
+ * `slope01 = 1 − cos(atan(G))`. Here we approximate that with a linear
+ * `min(1, G·SLOPE01_SCALE)`; picking SLOPE01_SCALE ≈ 1 − 1/√2 makes the two
+ * match at a 45° ramp (G = 1) and stay within ±0.1 across the ~30–60° band
+ * where the rock blend actually acts. See groundChunkLoader.test.ts.
+ */
+const SLOPE01_SCALE = 0.2929;
+
+/**
+ * Per-vertex steepness in [0,1] from the chunk's own encoded-height grid
+ * (Task 10 MOUNTAINS — re-enables the written-but-bypassed slope→rock blend in
+ * ground mode). Central finite difference of neighbor heights, converted to a
+ * world-space rise/run so it is resolution-independent, then scaled to the
+ * mesh's `1 − ny` convention (SLOPE01_SCALE). Edge vertices lack a neighbor on
+ * one side; the index clamp degrades those to a (halved) one-sided difference —
+ * a slight under-read of slope exactly where chunk skirts already hide the seam.
+ */
+export function groundSlope01(
+  heights: Float32Array,
+  i: number,
+  j: number,
+  resolution: number,
+): number {
+  if (resolution < 2) return 0;
+  const spacingM = WORLD3D_CONFIG.CHUNK_WORLD_SIZE / (resolution - 1);
+  const mPerH = heightToMeters(1) - heightToMeters(0); // heightToMeters is linear
+  const at = (ii: number, jj: number): number => {
+    const ci = ii < 0 ? 0 : ii >= resolution ? resolution - 1 : ii;
+    const cj = jj < 0 ? 0 : jj >= resolution ? resolution - 1 : jj;
+    return heights[cj * resolution + ci];
+  };
+  const run = 2 * spacingM;
+  const gx = ((at(i + 1, j) - at(i - 1, j)) * mPerH) / run;
+  const gz = ((at(i, j + 1) - at(i, j - 1)) * mPerH) / run;
+  const grad = Math.hypot(gx, gz); // world rise/run, dimensionless
+  return Math.min(1, grad * SLOPE01_SCALE);
+}
+
+/**
  * Sample one chunk of ground terrain: vertex (i, j) sits at world meters
  * (cxÂ·S + i/(resâˆ’1)Â·S), mapped to fractional artifact cells at 1.524 m per
  * cell, with bilinear height interpolation and nearest-cell biomes.
@@ -1650,7 +1731,14 @@ export function sampleGroundChunk(
   const heights = new Float32Array(resolution * resolution);
   const outBiomes: string[] = new Array(resolution * resolution);
   const biomeColors = new Float32Array(resolution * resolution * 3);
+  // Per-vertex edge falloff, carried to the color pass for the haze blend.
+  const edgeTs = new Float32Array(resolution * resolution);
+  // Snow line for this window (Task 10), resolved once in makeGroundWorld;
+  // anchor-less/legacy builds fall back to the temperate baseline.
+  const snowLineH = ground.snowLineH ?? SNOW_LINE_H;
 
+  // Pass 1: heights + biomes + edge falloff. Colors follow in a second pass so
+  // per-vertex SLOPE can read the finished neighbor heights (central difference).
   for (let j = 0; j < resolution; j++) {
     const tz = resolution === 1 ? 0 : j / (resolution - 1);
     const worldZ = (cy + tz) * S;
@@ -1684,13 +1772,36 @@ export function sampleGroundChunk(
 
       const idx = j * resolution + i;
       heights[idx] = height;
+      edgeTs[idx] = edgeT;
 
       const bx = Math.round(gx);
       const by = Math.round(gy);
       const biomeId = biomeIds[clampY(by) * cols + clampX(bx)] ?? "plains";
       outBiomes[idx] = biomeId;
+    }
+  }
 
-      let [r, g, b] = biomeColor(biomeId, height / 100);
+  // Pass 2: per-vertex tint. Uses the RAW encoded height (the relief-shading
+  // unit-bug fix — was `height / 100`, which collapsed the shade swing to ~2%)
+  // and the ground-mode slope (re-enabling the written slope→rock blend), then
+  // caps high country with snow, and finally fades the window edge to haze.
+  for (let j = 0; j < resolution; j++) {
+    for (let i = 0; i < resolution; i++) {
+      const idx = j * resolution + i;
+      const height = heights[idx];
+      const slope01 = groundSlope01(heights, i, j, resolution);
+      let [r, g, b] = biomeColor(outBiomes[idx], height, slope01);
+
+      // Snow cap: blend toward SNOW_RGB above the (latitude-banded) snow line.
+      if (height >= snowLineH) {
+        const t = Math.min(1, (height - snowLineH) / SNOW_BAND);
+        r += (SNOW_RGB[0] - r) * t;
+        g += (SNOW_RGB[1] - g) * t;
+        b += (SNOW_RGB[2] - b) * t;
+      }
+
+      // Window edge → haze (atmospheric fade of the falling-away horizon).
+      const edgeT = edgeTs[idx];
       if (edgeT > 0) {
         const hz = edgeT * 0.65;
         r += (HAZE_RGB[0] - r) * hz;

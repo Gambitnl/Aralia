@@ -25,8 +25,12 @@ export async function handleUrlInventoryRoutes(ctx: DevHubRouteContext): Promise
         .filter((name): name is string => Boolean(name));
 
       const routesSrc = fs.readFileSync(path.resolve(root, 'src/routes.ts'), 'utf-8');
+      // Only read entries inside the PHASE_SLUG_OVERRIDES object literal. routes.ts
+      // has other maps with the same `[GamePhase.X]: '...'` shape (e.g. PHASE_TITLES),
+      // so an unscoped match would mistake tab titles for URL slugs.
+      const overridesBlock = routesSrc.match(/PHASE_SLUG_OVERRIDES[^{]*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
       const overrides: Record<string, string> = {};
-      for (const m of routesSrc.matchAll(/\[GamePhase\.([A-Z0-9_]+)\]:\s*'([^']+)'/g)) {
+      for (const m of overridesBlock.matchAll(/\[GamePhase\.([A-Z0-9_]+)\]:\s*'([^']+)'/g)) {
         overrides[m[1]] = m[2];
       }
       const phaseRoutes = phaseNames.map((name) => {
@@ -34,7 +38,17 @@ export async function handleUrlInventoryRoutes(ctx: DevHubRouteContext): Promise
         return { label: name, slug, url: `${base}?phase=${slug}`, clean: name in overrides };
       });
 
-      // 2. Standalone HTML pages — real directory listings.
+      // Read a file's <title> (the browser-tab name) so the URL Directory can
+      // show each page's descriptive name. Blank when unreadable or absent.
+      const readTitle = (absFile: string): string => {
+        try {
+          return fs.readFileSync(absFile, 'utf-8').match(/<title>([\s\S]*?)<\/title>/i)?.[1]?.trim() ?? '';
+        } catch {
+          return '';
+        }
+      };
+
+      // 2. Standalone HTML pages — real directory listings, each with its <title>.
       const globHtml = (dir: string, tag: string) => {
         const abs = path.resolve(root, dir);
         if (!fs.existsSync(abs)) return [];
@@ -47,6 +61,7 @@ export async function handleUrlInventoryRoutes(ctx: DevHubRouteContext): Promise
             label: f.replace(/\.html$/, '').replace(/[_-]/g, ' '),
             file: `${dir}/${f}`,
             url: `${base}${dir}/${f}`,
+            title: readTitle(path.join(abs, f)),
           }));
       };
       // Load standalone HTML pages located in the misc/ directory.
@@ -55,7 +70,7 @@ export async function handleUrlInventoryRoutes(ctx: DevHubRouteContext): Promise
         // Manually register the Ollama diagnostics dashboard page since it resides
         // in its own dedicated subfolder under tools/ rather than misc/ root.
         ...(fs.existsSync(path.resolve(root, 'tools/ollama/index.html'))
-          ? [{ tag: 'tool', label: 'Ollama dashboard', file: 'tools/ollama/index.html', url: `${base}tools/ollama/index.html` }]
+          ? [{ tag: 'tool', label: 'Ollama dashboard', file: 'tools/ollama/index.html', url: `${base}tools/ollama/index.html`, title: readTitle(path.resolve(root, 'tools/ollama/index.html')) }]
           : [])
       ];
       // Load standalone roadmap HTML pages.

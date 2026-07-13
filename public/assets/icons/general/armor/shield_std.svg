@@ -1,4 +1,5 @@
-<svg width="512" height="512" viewBox="0 0 512 512" color="#151515" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+<svg width="512" height="512" viewBox="0 0 512 512" color="#94A3B8" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+<!-- Slate grey keeps this silhouette readable on Aralia's dark equipment and registry panels. -->
 <!-- Source: game-icons:shield; License: CC BY 3.0; https://game-icons.net -->
 <path fill="currentColor" d="M256 16c25 24 100 72 150 72v96c0 96-75 240-150 312c-75-72-150-216-150-312V88c50 0 125-48 150-72"/>
 </svg>

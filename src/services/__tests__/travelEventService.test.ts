@@ -1,8 +1,9 @@
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { generateTravelEvent } from '../travelEventService';
 import { TRAVEL_EVENTS } from '../../data/travelEvents';
 import type { TravelEvent } from '../../types/exploration';
+import { SeededRandom } from '@/utils/random';
 
 describe('travelEventService', () => {
   it('should return null when event chance is 0', () => {
@@ -120,5 +121,54 @@ describe('variant forest pools (forest_haunted / forest_fey)', () => {
     expect(byId.get('mushroom_ring')?.skillCheck?.check).toEqual({ skill: 'nature', dc: 12 });
     expect(byId.get('stolen_hour')?.skillCheck).toBeUndefined();
     expect(byId.get('stolen_hour')?.effect).toEqual({ type: 'delay', amount: 1, description: '1 hour delay' });
+  });
+});
+
+// ── Injectable rand (mountains task 7) ───────────────────────────────────────
+// generateTravelEvent grows an optional `rand?: () => number` that replaces BOTH
+// internal Math.random() call sites (the chance gate AND the weighted pick), so
+// a caller-seeded stream makes the roll fully deterministic. Omitting the param
+// preserves today's Math.random behavior exactly.
+describe('generateTravelEvent — injectable rand param', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('never touches Math.random when rand is provided (both call sites replaced)', () => {
+    const spy = vi.spyOn(Math, 'random');
+    const rng = new SeededRandom(42);
+    generateTravelEvent('mountain', 1, undefined, () => rng.next());
+    generateTravelEvent('mountain', 0.25, undefined, () => rng.next());
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('the chance gate consults the injected rand (draw above chance → null)', () => {
+    expect(generateTravelEvent('mountain', 0.3, undefined, () => 0.5)).toBeNull();
+    expect(generateTravelEvent('mountain', 0.3, undefined, () => 0.2)).not.toBeNull();
+  });
+
+  it('the weighted pick consults the injected rand (0 → first event of the merged pool)', () => {
+    // Gate draw 0 passes any chance; pick draw 0 lands on the first event of
+    // [...mountain, ...general] — rockslide.
+    const draws = [0, 0];
+    const event = generateTravelEvent('mountain', 0.25, undefined, () => draws.shift() ?? 0);
+    expect(event?.id).toBe('rockslide');
+  });
+
+  it('a seeded rand reproduces the same event, roll after roll (determinism)', () => {
+    for (const seed of [1, 7, 42, 99]) {
+      const a = new SeededRandom(seed);
+      const b = new SeededRandom(seed);
+      const eventA = generateTravelEvent('mountain', 1, undefined, () => a.next());
+      const eventB = generateTravelEvent('mountain', 1, undefined, () => b.next());
+      expect(eventA?.id).toBe(eventB?.id);
+    }
+  });
+
+  it('backward compat: omitting rand still rolls (Math.random path intact)', () => {
+    const spy = vi.spyOn(Math, 'random').mockReturnValue(0);
+    const event = generateTravelEvent('mountain', 0.25);
+    expect(event?.id).toBe('rockslide'); // gate 0 ≤ 0.25 passes; pick 0 → first
+    expect(spy).toHaveBeenCalledTimes(2); // exactly the two legacy call sites
   });
 });

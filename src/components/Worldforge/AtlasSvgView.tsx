@@ -16,7 +16,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
-import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, buildProvisionRingPath, forestGlyphRampOpacity, type CellTraits, type BurgTier, type AtlasLegendEntry } from './atlasSvg';
+import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, buildProvisionRingPath, forestGlyphRampOpacity, reliefGlyphRampOpacity, type CellTraits, type BurgTier, type AtlasLegendEntry } from './atlasSvg';
 import { FOREST_LABEL_COLOR, FOREST_LABEL_OUTLINE } from '../../systems/worldforge/forests/forestTunables';
 import { PEAK_LABEL_COLOR, RANGE_LABEL_COLOR, RANGE_LABEL_LETTER_SPACING_EM, RANGE_LABEL_OUTLINE } from '../../systems/worldforge/mountains/mountainTunables';
 import type { DungeonDangerSite } from '../../systems/worldforge/overlays/dangerField';
@@ -932,13 +932,17 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           exactly as before. In 'cover' mode the world covers the viewport and
           this is simply hidden. */}
       <rect x={0} y={0} width={width} height={height} fill="#1f4a73" pointerEvents="none" />
-      {/* The forest glyph layer's zoom ramp rides in as a CSS custom property:
+      {/* The glyph layers' zoom ramps ride in as CSS custom properties:
           AtlasLayers is memoized with no zoom access (the freeze fix), so its
-          glyph group reads var(--forest-glyph-opacity) instead of a prop —
-          zooming re-renders only this <g>'s style, never the layer subtree. */}
+          forest/relief groups read var(--forest-glyph-opacity) /
+          var(--relief-glyph-opacity) instead of props — zooming re-renders only
+          this <g>'s style, never the layer subtree. */}
       <g
         transform={`translate(${view.x},${view.y}) scale(${view.k})`}
-        style={{ '--forest-glyph-opacity': forestGlyphRampOpacity(view.k) } as React.CSSProperties}
+        style={{
+          '--forest-glyph-opacity': forestGlyphRampOpacity(view.k),
+          '--relief-glyph-opacity': reliefGlyphRampOpacity(view.k),
+        } as React.CSSProperties}
       >
         {/* Deep base ocean; shallow depth bands (T3b) layer on top near coasts. */}
         <rect x={0} y={0} width={model.width} height={model.height} fill="#1f4a73" />

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { SeededRandom } from '../../../../utils/random/seededRandom';
+import { TRAVEL_EVENTS } from '../../../../data/travelEvents';
 import {
   clusterRangeCells, findPeaks, rangeKindOf,
   nameRange, namePeak, namePass,
@@ -216,11 +217,20 @@ describe('namePass', () => {
 
 describe('mountainTunables contracts', () => {
   it('pins the trip-event drama priority order (first legacy id crossed wins)', () => {
+    // highland_vale dropped (final-review fix): no `highland` event pool exists,
+    // so listing it only let a lone highland cell hijack a themed route down to
+    // the generic pool. Every listed id resolves to a real pool via substring
+    // match (mountain_*→mountain, wetland_marsh→wetland, desert_dune→desert).
     expect(TRIP_EVENT_DRAMA).toEqual([
       'mountain_crag', 'mountain_alpine', 'mountain_glacier',
-      'forest_haunted', 'forest_fey', 'highland_vale',
+      'forest_haunted', 'forest_fey',
       'wetland_marsh', 'desert_dune',
     ]);
+    // Every drama id must resolve to a real (non-general) pool.
+    for (const id of TRIP_EVENT_DRAMA) {
+      const pool = Object.keys(TRAVEL_EVENTS).find((k) => k !== 'general' && (id.includes(k) || k.includes(id)));
+      expect(pool, `drama id ${id} has no themed pool`).toBeTruthy();
+    }
     expect(TRIP_EVENT_CHANCE).toBe(0.25);
   });
 

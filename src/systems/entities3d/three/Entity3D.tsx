@@ -26,6 +26,7 @@ import { Vector3 } from 'three';
 import type { EntityBlueprint } from '../types';
 import type { LocomotionState } from './gaits';
 import { assembleEntity } from './assembleEntity';
+import type { EntityRenderMode } from './toon';
 
 export interface Entity3DProps {
   blueprint: EntityBlueprint;
@@ -48,6 +49,8 @@ export interface Entity3DProps {
    * Gear, eyes, facing, and group movement still update every rendered frame.
    */
   fieldUpdateHz?: number;
+  /** Draw solid (toon blob) or wireframe. Default: the global ENTITY_RENDER_MODE. */
+  renderMode?: EntityRenderMode;
 }
 
 export function Entity3D({
@@ -59,13 +62,14 @@ export function Entity3D({
   yaw = 0,
   resolutionScale,
   fieldUpdateHz,
+  renderMode,
 }: Entity3DProps) {
   // Keep the numeric performance settings as explicit dependencies. Callers
   // can tune a foreground hero differently from a conversational crowd
   // without rebuilding the handle merely because an options object changed.
   const handle = useMemo(
-    () => assembleEntity(blueprint, { resolutionScale, fieldUpdateHz }),
-    [blueprint, fieldUpdateHz, resolutionScale],
+    () => assembleEntity(blueprint, { resolutionScale, fieldUpdateHz, renderMode }),
+    [blueprint, fieldUpdateHz, resolutionScale, renderMode],
   );
   useEffect(() => {
     handle.retain();

@@ -84,9 +84,16 @@ export const TRIP_EVENT_CHANCE = 0.25;
  * route's most-crossed non-plain id governs; else the 'general' pool. */
 export const TRIP_EVENT_DRAMA: string[] = [
   'mountain_crag', 'mountain_alpine', 'mountain_glacier',
-  'forest_haunted', 'forest_fey', 'highland_vale',
+  'forest_haunted', 'forest_fey',
   'wetland_marsh', 'desert_dune',
 ];
+// NOTE: highland_plateau/highland_vale are intentionally ABSENT — there is no
+// `highland` event pool, so listing them here would only let a single highland
+// cell HIJACK a trip's governing biome away from a themed pool (forest, etc.)
+// down to the generic pool. Without them, highland cells fall through to the
+// most-crossed-biome tally like any other terrain. Every id that IS listed
+// resolves to a real pool via the service's substring match
+// (`mountain_crag`→mountain, `wetland_marsh`→wetland, `desert_dune`→desert).
 
 // ---------------------------------------------------------------------------
 // 3D high country — elevation curve, ridges, snow, tree line
@@ -131,8 +138,50 @@ export function treelineClassOf(biomeId: number): TreelineClass {
 }
 
 /** Encoded-height units where snow blending starts (falls with latitude band
- * in the renderer — this is the temperate baseline). */
+ * in the renderer — this is the temperate baseline, 25°..60° latitude). */
 export const SNOW_LINE_H = 55;
+
+/** Polar snow line (|latitude| > 60°): snow reaches far lower down. */
+export const SNOW_LINE_POLAR = 35;
+
+/** Tropical snow line (|latitude| < 25°): only the very highest ground whitens. */
+export const SNOW_LINE_TROPICAL = 75;
+
+/** Encoded-height span above the snow line over which the tint ramps from the
+ * biome color to full SNOW_RGB (t = min(1, (h − snowLineH) / SNOW_BAND)). */
+export const SNOW_BAND = 12;
+
+/**
+ * Latitude (degrees, +N/−S) of an atlas cell at graph-y `cellY`. Mirrors the
+ * FMG climate convention exactly (climate.ts: `latN − (y/graphHeight)·latT`,
+ * latT = latN − latS): the map's north edge (y = 0) sits at `latN`, the south
+ * edge (y = graphHeight) at `latS`, linear between. Returns `null` when the
+ * pack carries no map coordinates (crafted/atlas-only worlds) or the graph is
+ * degenerate — the caller then falls back to the temperate snow line. Pure.
+ */
+export function latitudeAtGraphY(
+  cellY: number,
+  graphHeight: number,
+  coords: { latN: number; latS: number } | null | undefined,
+): number | null {
+  if (!coords || !(graphHeight > 0)) return null;
+  const latT = coords.latN - coords.latS;
+  return coords.latN - (cellY / graphHeight) * latT;
+}
+
+/**
+ * Resolve the encoded-height snow line for a window from its anchor cell's
+ * latitude, via a simple 3-band table (spec §5): polar caps snow low, the
+ * tropics push it high, temperate latitudes keep the baseline. A `null`
+ * latitude (no map coordinates) falls back to the temperate baseline. Pure.
+ */
+export function resolveSnowLine(anchorLatitudeDeg: number | null): number {
+  if (anchorLatitudeDeg == null) return SNOW_LINE_H;
+  const absLat = Math.abs(anchorLatitudeDeg);
+  if (absLat > 60) return SNOW_LINE_POLAR;
+  if (absLat >= 25) return SNOW_LINE_H;
+  return SNOW_LINE_TROPICAL;
+}
 
 /** Snow-cap blend target color (linear RGB 0–1) — near-white with a cool cast. */
 export const SNOW_RGB: [number, number, number] = [0.92, 0.93, 0.95];

@@ -32,6 +32,11 @@ import {
   UNDERGROWTH_MULT,
 } from '../forests/forestTunables';
 import {
+  MOUNTAIN_MAX_ELEV_FT,
+  TREELINE_N,
+  treelineClassOf,
+} from '../mountains/mountainTunables';
+import {
   WORLDFORGE_SCHEMA_VERSION,
   type LocalArtifact,
   type LocalFeature,
@@ -80,7 +85,7 @@ const BIOME_PROFILES: Record<number, BiomeProfile> = {
   8:  { ground: 'grass',   treeDensity: 2.2,  bushDensity: 1.4, boulderDensity: 0.4 },
   9:  { ground: 'dirt',    treeDensity: 1.6,  bushDensity: 0.7, boulderDensity: 0.6 },
   10: { ground: 'dirt',    treeDensity: 0.15, bushDensity: 0.5, boulderDensity: 0.9 },
-  11: { ground: 'rock',    treeDensity: 0,    bushDensity: 0.05, boulderDensity: 1.2 },
+  11: { ground: 'ice',     treeDensity: 0,    bushDensity: 0.05, boulderDensity: 1.2 },
   12: { ground: 'wetland', treeDensity: 0.9,  bushDensity: 1.3, boulderDensity: 0.1 },
 };
 
@@ -96,9 +101,12 @@ const FALLBACK_PROFILE: BiomeProfile = BIOME_PROFILES[4];
 const DEEP_FOREST_BIOME_IDS: ReadonlySet<number> = new Set([7, 8, 9]);
 const DENSE_TREE_DENSITY = 1.4;
 
-/** Material palette order is part of the artifact contract — append only. */
+/** Material palette order is part of the artifact contract — APPEND ONLY.
+ * `ice` (Task 10 MOUNTAINS) is appended last so every prior index is stable
+ * and no existing local golden shifts; inserting mid-list would shift indices
+ * and break every local golden. */
 const MATERIALS: TerrainMaterial[] = [
-  'grass', 'dirt', 'rock', 'sand', 'wetland', 'water', 'paved', 'floor',
+  'grass', 'dirt', 'rock', 'sand', 'wetland', 'water', 'paved', 'floor', 'ice',
 ];
 const MAT = Object.fromEntries(MATERIALS.map((m, i) => [m, i])) as Record<TerrainMaterial, number>;
 
@@ -124,6 +132,26 @@ const ROCK_BAND = 0.15;
 // Fine 5ft detail now comes from `makeWorldFeetNoise` (a single per-world lattice
 // indexed by global world feet) instead of a per-Local lattice — see the
 // detail-noise block in generateLocal (Stage 5 S5.2, seamless cell boundaries).
+
+/**
+ * Map a normalized height `n` (0..1 ≙ FMG 0..100) to feet of local relief.
+ *
+ * Below n = 0.5 this is EXACTLY the legacy `n · 2000` mapping: `max(0, n − 0.5)`
+ * is 0, so `Math.pow(0, 2.2)` is 0 and the high-country term drops out — every
+ * lowland/town window is BYTE-IDENTICAL to the pre-mountains generator (the hard
+ * invariance gate, Task 11). At and above n = 0.5 a `^2.2` ramp accelerates the
+ * curve so high country reaches `MOUNTAIN_MAX_ELEV_FT` (7,000 ft) at n = 1 —
+ * un-compressing the mountains the flat `× 2000` mapping squashed under ~610 m.
+ *
+ * The ramp span is written as `MOUNTAIN_MAX_ELEV_FT − 2000` so retuning the max
+ * flows through. Monotonic increasing on [0,1]; C1-continuous at the 0.5 knot
+ * (the ^2.2 exponent > 1 gives the ramp zero slope there, matching the linear
+ * side's 2000 ft/unit). Pure.
+ */
+export function elevationCurveFt(n: number): number {
+  const highRamp = Math.pow(Math.max(0, n - 0.5) / 0.5, 2.2);
+  return 2000 * n + highRamp * (MOUNTAIN_MAX_ELEV_FT - 2000);
+}
 
 // ---------------------------------------------------------------------------
 // Generation
@@ -194,10 +222,11 @@ export function generateLocal(
       const detail = (noiseA(fx, fy) - 0.5) * 0.012 + (noiseB(fx, fy) - 0.5) * 0.005;
       const n = base + detail * Math.min(1, aboveWater * 8);
       normalized[i] = n;
-      // Normalized 0..1 ≙ FMG 0..100 height; expose as feet of relief above
-      // the local floor using a fixed vertical scale (100 normalized = 2000ft
-      // of relief — the L3 ground mode re-anchors absolute elevation).
-      elevationFt[i] = n * 2000;
+      // Normalized 0..1 ≙ FMG 0..100 height → feet of relief via elevationCurveFt
+      // (Task 11): identity `n · 2000` below n = 0.5 (lowlands/towns unchanged),
+      // accelerating to MOUNTAIN_MAX_ELEV_FT at n = 1 so high country grows real
+      // peaks. The L3 ground mode re-anchors absolute elevation.
+      elevationFt[i] = elevationCurveFt(n);
     }
   }
 
@@ -345,7 +374,27 @@ export function generateLocal(
         patchNoise2(fx / 1000, fy / 1000, CLEARING_SALT, CLEARING_FREQ) > CLEARING_THRESHOLD
     : undefined;
 
-  placeKind('tree', profile.treeDensity, 'trees', 18, groundOk, clearingKeep);
+  // Tree line (Task 11 MOUNTAINS): reject trees above the window's normalized
+  // height line, resolved ONCE from the anchor biome's temperature class — cold
+  // taiga/tundra/glacier lose trees lowest, tropical biomes carry no line
+  // (TREELINE_N.none sits above the domain). Read from the SAME cached
+  // `normalized` field the material pass uses, indexed by the SAME cell math as
+  // placeKind, so the gate agrees cell-for-cell. Composed with the forests
+  // clearingKeep: a tree survives only if BOTH pass. Trees only — bushes,
+  // boulders, and undergrowth are untouched. For a lowland window every cell is
+  // below the line, so `belowTreeline` is always true and the tree stream stays
+  // byte-identical to the pre-Task-11 generator (lowland invariance).
+  const treelineN = TREELINE_N[treelineClassOf(opts.biomeId)];
+  const belowTreeline = (fx: number, fy: number): boolean => {
+    const ccx = Math.min(widthCells - 1, Math.floor((fx - bounds.x) / CELL_FT));
+    const ccy = Math.min(heightCells - 1, Math.floor((fy - bounds.y) / CELL_FT));
+    return normalized[ccy * widthCells + ccx] <= treelineN;
+  };
+  const treeKeep = clearingKeep
+    ? (fx: number, fy: number) => clearingKeep(fx, fy) && belowTreeline(fx, fy)
+    : (fx: number, fy: number) => belowTreeline(fx, fy);
+
+  placeKind('tree', profile.treeDensity, 'trees', 18, groundOk, treeKeep);
   placeKind('bush', profile.bushDensity, 'bushes', 10, groundOk);
   placeKind('boulder', profile.boulderDensity, 'boulders', 14, (m) => m !== MAT.water && m !== MAT.paved);
   if (clearingKeep) {
