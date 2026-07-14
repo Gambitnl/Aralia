@@ -1,0 +1,246 @@
+{
+  "_readme": "Maps Claude desktop custom session groups (cg-*) to planmap campaigns/topics. Forks use this to infer which group a new chat belongs to and to suggest a title. 'name' = the group's display name in the desktop app sidebar (not stored locally; fill in by hand when confirmed — theme is the working label until then). 'campaign'/'topics' anchor the group to planmap. Hand-edit: name, theme, campaign, topics. Derived (sessions, sampleTitles) refresh with: node tools/agora/planmap-session-groups.mjs",
+  "updated": "2026-07-14",
+  "groups": [
+    {
+      "id": "cg-b46e0cca-b7f0-47fc-a271-71f7aa69172f",
+      "name": null,
+      "theme": "World Map 2D",
+      "campaign": "world",
+      "topics": [
+        "shipped-cartography"
+      ],
+      "sessions": 12,
+      "sampleTitles": [
+        "WorldMap: Starting Town picker",
+        "WorldMap: Starting Town picker (fork)",
+        "WorldMap: Scrolling & Zooming",
+        "Layers"
+      ]
+    },
+    {
+      "id": "cg-d2056867-59c9-420a-8a96-85d5d655b440",
+      "name": null,
+      "theme": "Travel",
+      "campaign": "travel",
+      "topics": [
+        "maritime-remainder",
+        "provisioning-remainder"
+      ],
+      "sessions": 10,
+      "sampleTitles": [
+        "Travel Dev:preview (fork)",
+        "Travel (fork)",
+        "Travel: Biome-yield forage loop (R2)",
+        "Worldforge Town"
+      ]
+    },
+    {
+      "id": "cg-8ebfa55a-b0ab-410c-af02-0fa5eeb8930e",
+      "name": null,
+      "theme": "Starter chats",
+      "campaign": "tooling",
+      "topics": [
+        "session-group-map"
+      ],
+      "sessions": 3,
+      "sampleTitles": [
+        "Starter: 2026-D14-M07",
+        "Preview mode starter chat"
+      ]
+    },
+    {
+      "id": "cg-6b0b92da-a805-4d3a-8b30-8e44e1375da1",
+      "name": null,
+      "theme": "Tooling and meta",
+      "campaign": "tooling",
+      "topics": [
+        "agora-fleet-coordination"
+      ],
+      "sessions": 8,
+      "sampleTitles": [
+        "PortScan: Port scanning limit at 4400",
+        "URL's Dev:preview",
+        "Github Matters",
+        "Memory file contents"
+      ]
+    },
+    {
+      "id": "cg-279706e1-a8fd-44de-bcf6-9b65aae5b9b8",
+      "name": null,
+      "theme": "Fixes and investigations (cross-cutting)",
+      "campaign": null,
+      "topics": [],
+      "sessions": 13,
+      "sampleTitles": [
+        "Fix stale InteriorLights hearth test fixture",
+        "LCP performance: procedural generation bottleneck",
+        "Agent turn-end action forcing",
+        "Fix stale pipeline goldens (heightfield hash, townFeatureCount)"
+      ]
+    },
+    {
+      "id": "cg-c858a2c7-60f5-4bdb-acac-c0195cc47b09",
+      "name": null,
+      "theme": "Building generator",
+      "campaign": null,
+      "topics": [
+        "building-generator"
+      ],
+      "sessions": 7,
+      "sampleTitles": [
+        "D&D procedural building generator v2.1: Opus 4.8H",
+        "D&D procedural building generator v2: Fable 5",
+        "D&D procedural building generator v1: Fable 5",
+        "D&D procedural building generator: Opus 4.8"
+      ]
+    },
+    {
+      "id": "cg-38a63248-02fc-41f5-9613-21b164f974e7",
+      "name": null,
+      "theme": "Town roads 3D",
+      "campaign": null,
+      "topics": [
+        "town-streets-3d"
+      ],
+      "sessions": 7,
+      "sampleTitles": [
+        "Opus 4.8H: Voronoi town roads in 3D"
+      ]
+    },
+    {
+      "id": "cg-e1a0daf6-baca-4b7d-93d7-6b3efd911137",
+      "name": null,
+      "theme": "Living-world sim and character design",
+      "campaign": "sim",
+      "topics": [
+        "agent-sim-deepening",
+        "character-aging"
+      ],
+      "sessions": 5,
+      "sampleTitles": [
+        "GOV.UK memory and HTML effectiveness",
+        "WorldSim: Agent-Sim behavior",
+        "Player Character: Aging"
+      ]
+    },
+    {
+      "id": "cg-3acf54db-49e8-4adc-ac0d-012bf7cfb18e",
+      "name": null,
+      "theme": "2D UI details",
+      "campaign": "ui",
+      "topics": [],
+      "sessions": 4,
+      "sampleTitles": [
+        "Table cell border"
+      ]
+    },
+    {
+      "id": "cg-7f8efb5d-8f61-4b2c-aef7-7a870e628068",
+      "name": null,
+      "theme": "Worldforge town",
+      "campaign": "world",
+      "topics": [
+        "shipped-styled-town"
+      ],
+      "sessions": 2,
+      "sampleTitles": [
+        "Worldforge Town"
+      ]
+    },
+    {
+      "id": "cg-1e075326-cca2-4946-8057-07e4da599d5b",
+      "name": null,
+      "theme": "Dungeon generator",
+      "campaign": null,
+      "topics": [
+        "dungeon-generator"
+      ],
+      "sessions": 3,
+      "sampleTitles": [
+        "Fable 5: Dungeon generator v2",
+        "Fable 5: Dungeon generator v1",
+        "Opus 4.8: Procedural dungeon generator for Aralia"
+      ]
+    },
+    {
+      "id": "cg-0404d8d6-b0e5-4ce2-b8f8-33b00115c071",
+      "name": null,
+      "theme": "Combat map",
+      "campaign": "combat",
+      "topics": [
+        "combat-map-nextgen"
+      ],
+      "sessions": 5,
+      "sampleTitles": [
+        "Fable 5: Combat map v3: Assets",
+        "Fable 5: Combat map v2 Biomes",
+        "Fable 5: Combat map v2: Water",
+        "Fable 5: Combat map v1.5"
+      ]
+    },
+    {
+      "id": "cg-97a57df8-2fa9-4d09-a06b-df9f7b118754",
+      "name": null,
+      "theme": "Glossary",
+      "campaign": null,
+      "topics": [
+        "glossary-structured-content"
+      ],
+      "sessions": 1,
+      "sampleTitles": [
+        "Glossary structured knowledge layer"
+      ]
+    },
+    {
+      "id": "cg-7ac9ccd3-18c0-465f-8f23-dccccd0f54fe",
+      "name": null,
+      "theme": "Villager behavior",
+      "campaign": "sim",
+      "topics": [
+        "agent-sim-deepening"
+      ],
+      "sessions": 1,
+      "sampleTitles": [
+        "Opus 4.8M: Villager behavior"
+      ]
+    },
+    {
+      "id": "cg-3566b4c7-e2a1-4687-9218-45bf30eb85b6",
+      "name": null,
+      "theme": "Early design V0.1",
+      "campaign": "ui",
+      "topics": [],
+      "sessions": 1,
+      "sampleTitles": [
+        "Fable 5L: early Design V0.1"
+      ]
+    },
+    {
+      "id": "cg-6cea4f34-00b2-477b-a0c3-323d28808124",
+      "name": null,
+      "theme": "WorldClock / interiors time",
+      "campaign": null,
+      "topics": [
+        "interior-lighting-live-clock",
+        "interior-occupants-live-clock"
+      ],
+      "sessions": 1,
+      "sampleTitles": [
+        "WorldClock: Building interiors stop time: Opus 4.8H"
+      ]
+    },
+    {
+      "id": "cg-c8b65e86-4565-413d-b756-436bcf7d3a6b",
+      "name": null,
+      "theme": "Agent onboarding / AntiGravity",
+      "campaign": "agents",
+      "topics": [],
+      "sessions": 2,
+      "sampleTitles": [
+        "Agent Onboarding (fork)",
+        "AntiGravity Managed Agent"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,16 @@
-<svg width="512" height="512" viewBox="0 0 512 512" color="#94A3B8" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-<!-- Slate grey keeps this silhouette readable on Aralia's dark equipment and registry panels. -->
-<!-- Source: game-icons:magic-shield; License: CC BY 3.0; https://game-icons.net -->
-<path fill="currentColor" d="M57.78 23.135c-1.517 29.085-2.193 55.608-2.266 80.316c6.56-2.716 13.703-4.333 21.228-4.333c31.245 0 56.883 25.64 56.883 56.887c0 31.246-25.777 56.3-56.883 56.3c-6.068 0-11.95-1.003-17.488-2.77C71.906 332.82 108.064 376.35 147.668 401.9c20.677 13.34 42.986 21.7 64.268 33.245c17.444 9.463 34.177 21.525 47.42 40.127c13.23-18.597 29.925-30.658 47.324-40.122c21.226-11.545 43.46-19.904 64.064-33.242c39.46-25.543 75.488-69.07 88.135-192.324c-5.32 1.708-10.974 2.723-16.907 2.723c-31.107 0-56.88-25.058-56.88-56.3c0-31.244 25.634-56.888 56.88-56.888c7.63 0 14.745 1.697 21.23 4.508c-.07-24.757-.745-51.334-2.265-80.49c-59.488 13-130.78 19.266-201.5 19.888h-.163c-70.718-.62-142.008-6.888-201.496-19.888zm304.124 39.32l-27.117 93.18l-17.945-5.22l11.504-39.532l-85.116 63.646l-11.19-14.97l129.864-97.105zm-205.394 1.01l81.732 59.512l-11 15.107l-34.338-25.004l34.79 103.514l-17.714 5.955l-53.47-159.085zm140.486 99.652l129.383 97.95l-98.25-.48l.09-18.69l42.15.208l-84.653-64.087zm-122.357 37.71l10.83 15.228l-36.206 25.754l104.898-.17l.03 18.69l-163.577.262l84.024-59.766zm117.79 21l17.806 5.675l-49.39 155.008l-31.248-96.46l17.777-5.76l13.324 41.124l31.73-99.586z"/>
+<svg width="128" height="128" viewBox="0 0 128 128" color="#94A3B8" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+<!--
+  ARCHITECTURAL CONTEXT:
+  This SVG represents a 'Shield +1' (Magical Shield equipment) in Aralia's item system.
+  It shares the same base silhouette as the Standard Shield to maintain family cohesion,
+  but features rune engravings on the rim and a multi-layered starburst central motif.
+
+  DESIGN CHOICES:
+  - Base heater shield shape identical to standard shield for structural family alignment.
+  - Runic notch cutouts in the outer rim representing magical empowerment.
+  - A three-layer starburst (large star + inner star cutout + center filled diamond under evenodd)
+    portraying a glowing magical core.
+  - currentColor inheritance is preserved for dynamic palette changes in-game.
+-->
+<path fill-rule="evenodd" clip-rule="evenodd" d="M 24 20 C 48 14 80 14 104 20 C 104 60 88 102 64 116 C 40 102 24 60 24 20 Z M 32 26 C 50 22 78 22 96 26 C 96 58 82 94 64 106 C 46 94 32 58 32 26 Z M 34 28 C 50 24 78 24 94 28 C 94 58 80 92 64 104 C 48 92 34 58 34 28 Z M 64 36 L 69 59 L 92 64 L 69 69 L 64 92 L 59 69 L 36 64 L 59 59 L 64 36 Z M 64 48 L 67 61 L 80 64 L 67 67 L 64 80 L 61 67 L 48 64 L 61 61 L 64 48 Z M 64 58 L 66 64 L 64 70 L 62 64 L 64 58 Z M 38 21 L 41 24 L 40 25 L 37 22 Z M 90 21 L 87 24 L 88 25 L 91 22 Z M 42 98 L 45 101 L 44 102 L 41 99 Z M 86 98 L 83 101 L 84 102 L 87 99 Z" />
 </svg>

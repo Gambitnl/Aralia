@@ -13,7 +13,13 @@
         "required": ["label", "color"],
         "properties": {
           "label": { "type": "string" },
-          "color": { "enum": ["purple", "teal", "gray", "coral", "pink", "violet", "indigo", "green", "blue", "amber"] }
+          "color": { "enum": ["purple", "teal", "gray", "coral", "pink", "violet", "indigo", "green", "blue", "amber"] },
+          "subcampaigns": {
+            "description": "Optional ordered names for nested planning lanes inside this campaign.",
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "uniqueItems": true
+          }
         }
       }
     },
@@ -27,6 +33,11 @@
           "title": { "type": "string", "minLength": 1 },
           "sub": { "type": "string" },
           "campaign": { "type": "string" },
+          "subcampaign": {
+            "description": "Optional nested lane within the topic's campaign. When the campaign declares subcampaigns, this value should match one of them.",
+            "type": "string",
+            "minLength": 1
+          },
           "status": { "enum": ["parked", "specced", "active", "done", "superseded"] },
           "killed": {
             "description": "One-line reason a superseded topic died — the why-we-didn't is worth keeping. Shown in the Graveyard strip.",

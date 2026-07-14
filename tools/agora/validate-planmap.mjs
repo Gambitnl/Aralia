@@ -63,6 +63,18 @@ for (const t of topics) {
   if (!t.title) warn(`${where}: missing title`);
   if (!t.campaign) warn(`${where}: missing campaign`);
   else if (!campaigns[t.campaign]) warn(`${where}: unknown campaign "${t.campaign}"`);
+  // Nested lane names remain optional for backward compatibility. Campaigns
+  // that declare a taxonomy become the authority for spelling and membership.
+  if (t.subcampaign != null) {
+    if (typeof t.subcampaign !== 'string' || !t.subcampaign.trim()) {
+      warn(`${where}: "subcampaign" must be a non-empty string`);
+    } else {
+      const allowed = campaigns[t.campaign]?.subcampaigns;
+      if (Array.isArray(allowed) && allowed.length && !allowed.includes(t.subcampaign)) {
+        warn(`${where}: unknown subcampaign "${t.subcampaign}" for campaign "${t.campaign}" (known: ${allowed.join(', ')})`);
+      }
+    }
+  }
   if (!STATUSES.has(t.status)) warn(`${where}: invalid status "${t.status}"`);
   if (t.status === 'superseded' && !t.killed) warn(`${where}: superseded but no "killed" reason (the why-we-didn't is the whole point of the Graveyard)`);
   const slugSeen = new Map();
@@ -93,6 +105,14 @@ for (const [key, c] of Object.entries(campaigns)) {
   if (!c || typeof c !== 'object') { warn(`campaign "${key}": not an object`); continue; }
   if (!c.label) warn(`campaign "${key}": missing label`);
   if (!COLORS.has(c.color)) warn(`campaign "${key}": invalid color "${c.color}" (known: ${[...COLORS].join(', ')})`);
+  // Ordered subgroup names must be usable as stable, unique lane identifiers.
+  if (c.subcampaigns != null) {
+    if (!Array.isArray(c.subcampaigns) || c.subcampaigns.some((name) => typeof name !== 'string' || !name.trim())) {
+      warn(`campaign "${key}": "subcampaigns" must be an array of non-empty strings`);
+    } else if (new Set(c.subcampaigns).size !== c.subcampaigns.length) {
+      warn(`campaign "${key}": "subcampaigns" contains duplicate names`);
+    }
+  }
 }
 
 // Referential integrity (deps) — after ids are collected.

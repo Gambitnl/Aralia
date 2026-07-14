@@ -708,6 +708,12 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     if (typeof res.flushHeaders === 'function') res.flushHeaders();
 
     function writeEvent(seq, type, data) {
+      // WF-G24: the agent.register event (journaled with the bearer token for
+      // replay durability) must never cross the public SSE boundary intact.
+      if (data && data.agent && typeof data.agent === 'object' && 'token' in data.agent) {
+        const { token, ...pub } = data.agent;
+        data = { ...data, agent: pub };
+      }
       res.write(`id: ${seq}\n`);
       res.write(`event: ${type}\n`);
       res.write(`data: ${JSON.stringify(data)}\n\n`);

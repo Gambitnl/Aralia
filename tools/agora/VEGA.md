@@ -110,8 +110,8 @@ inventory, `.agent/scratch/modularization/INVENTORY.md` still lists the remainin
 staged Wave1/Wave2 + WF-G15..17 code is now LIVE). Cause unknown — that is WF-G25.
 
 **Open workflow gaps:** WF-G18 (close after the live dormant test), WF-G19..G22 (as before),
-WF-G23 (worker prompt injection, standing rule), **WF-G24 (public `GET /agents` leaks bearer
-tokens — top integrity hole, Sol task 5d2a8aba)**, **WF-G25 (daemon dies silently, no crash
+WF-G23 (worker prompt injection, standing rule), WF-G24 (CLOSED 2026-07-13 — tokens stripped
+from public GET /agents and SSE by claude-wfg24, task 5d2a8aba done), **WF-G25 (daemon dies silently, no crash
 log — Sol task ef3976c1)**. All in `WORKFLOW_GAPS.md`.
 
 **Planmap:** topics `co-orchestration-pipeline` and `code-modularization-sweep` are live in

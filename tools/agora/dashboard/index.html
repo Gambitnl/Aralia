@@ -99,6 +99,32 @@
     display: flex; align-items: center; gap: 8px;
     background: var(--panel-2);
   }
+  main > .panel[data-panel-id] > h2 {
+    cursor: pointer;
+    user-select: none;
+  }
+  main > .panel[data-panel-id] > h2::before {
+    content: "v";
+    width: 10px;
+    color: var(--text-faint);
+    font-family: var(--mono);
+  }
+  main > .panel[data-panel-id].collapsed {
+    min-height: 0;
+  }
+  main > .panel[data-panel-id].collapsed > h2 {
+    border-bottom: 0;
+  }
+  main > .panel[data-panel-id].collapsed > h2::before {
+    content: ">";
+  }
+  main > .panel[data-panel-id].collapsed > :not(h2) {
+    display: none;
+  }
+  main > .panel[data-panel-id] > h2:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
   .panel > h2 .badge {
     margin-left: auto;
     font-size: 11px;
@@ -756,12 +782,22 @@
     // High-volume task buckets start closed but remain normal per-session
     // toggles for operators who need to inspect the backlog.
     collapsedTaskGroups: { blocked: true, done: true },
+    collapsedPanels: {},  // dashboard tile id -> collapsed, persisted in localStorage
     gapById: new Map(),   // lowercased "project:id" AND bare "id" -> gap row (tracker bridge)
     userAgent: null,      // Browser-side Agora identity used by the message composer.
     sendBusy: false,
   };
 
   const $ = (id) => document.getElementById(id);
+  const COLLAPSIBLE_PANELS = [
+    ["presence", "presence"],
+    ["locks", "locks"],
+    ["campaigns", "campaigns"],
+    ["command-feed", "cmd-feed"],
+    ["reservations", "reservations"],
+    ["tasks", "tasks"],
+    ["message-feed", "feed"],
+  ];
   const esc = (s) => String(s == null ? "" : s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -912,6 +948,7 @@
   // messages go through the same authenticated Agora path as `client.mjs say`.
   const DASHBOARD_IDENTITY_KEY = "agora.dashboard.identity.v1";
   const DASHBOARD_NAME_KEY = "agora.dashboard.displayName.v1";
+  const DASHBOARD_COLLAPSED_PANELS_KEY = "agora.dashboard.collapsedPanels.v1";
 
   function storedDisplayName() {
     try { return localStorage.getItem(DASHBOARD_NAME_KEY) || ""; } catch (e) { return ""; }
@@ -943,6 +980,57 @@
   function saveDashboardIdentity(identity) {
     ST.userAgent = identity;
     try { localStorage.setItem(DASHBOARD_IDENTITY_KEY, JSON.stringify(identity)); } catch (e) {}
+  }
+
+  function loadCollapsedPanels() {
+    try {
+      const raw = localStorage.getItem(DASHBOARD_COLLAPSED_PANELS_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveCollapsedPanels() {
+    try { localStorage.setItem(DASHBOARD_COLLAPSED_PANELS_KEY, JSON.stringify(ST.collapsedPanels)); } catch (e) {}
+  }
+
+  function setPanelCollapsed(panel, panelId, collapsed) {
+    panel.classList.toggle("collapsed", collapsed);
+    const head = panel.querySelector(":scope > h2");
+    if (head) head.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    ST.collapsedPanels[panelId] = collapsed;
+  }
+
+  function togglePanel(panelId) {
+    const panel = document.querySelector(`main > .panel[data-panel-id="${panelId}"]`);
+    if (!panel) return;
+    setPanelCollapsed(panel, panelId, !panel.classList.contains("collapsed"));
+    saveCollapsedPanels();
+  }
+
+  function initPanelCollapse() {
+    ST.collapsedPanels = loadCollapsedPanels();
+    for (const [panelId, bodyId] of COLLAPSIBLE_PANELS) {
+      const body = $(bodyId);
+      const panel = body ? body.closest(".panel") : null;
+      const head = panel ? panel.querySelector(":scope > h2") : null;
+      if (!panel || !head) continue;
+      // Panels are regenerated from static markup, so one boot-time binding is
+      // enough. Row-level handlers remain in their render functions.
+      panel.dataset.panelId = panelId;
+      head.setAttribute("role", "button");
+      head.setAttribute("tabindex", "0");
+      setPanelCollapsed(panel, panelId, Boolean(ST.collapsedPanels[panelId]));
+      head.addEventListener("click", () => togglePanel(panelId));
+      head.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          togglePanel(panelId);
+        }
+      });
+    }
   }
 
   function setComposerStatus(text, kind = "", statusId = "composer-status") {
@@ -2062,6 +2150,7 @@
       closeEntryInspector();
     }
   });
+  initPanelCollapse();
 
   // ----------------------------- boot -----------------------------
   fullRefresh();   // REST seed on load (also a fallback if SSE is slow)

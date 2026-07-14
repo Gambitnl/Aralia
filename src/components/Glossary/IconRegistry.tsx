@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 25/06/2026, 22:31:05
+ * Last Sync: 14/07/2026, 01:36:02
  * Dependents: components/CharacterCreator/Class/ClassDetailPane.tsx, components/CharacterCreator/Class/ClassSelection.tsx, components/CharacterCreator/NameAndReview.tsx, components/CharacterCreator/Race/RaceDetailPane.tsx, components/CharacterCreator/SpellSourceSelector.tsx, components/CharacterCreator/shared/CharacterCreatorTraitsTable.tsx, components/DesignPreview/steps/PreviewIcons.tsx, components/DesignPreview/steps/PreviewMissingIcons.tsx, components/DesignPreview/steps/PreviewTables.tsx, components/Glossary/ArtificerInfusionsTable.tsx, components/Glossary/GlossaryTraitTable.tsx, components/Party/PartyOverlay.tsx, components/Party/PartyPane/PartyMemberCard.tsx, utils/classIcons.ts
  * Imports: None
  *
@@ -15,6 +15,16 @@
 // @dependencies-end
 
 import React from 'react';
+
+/**
+ * This file acts as a centralized library of visual icons used throughout the game's interface.
+ *
+ * It maps simple names (like 'sword' or 'shield') to their corresponding vector graphic (SVG) shapes.
+ * This allows other components to draw icons consistently and prevents duplicate graphic definitions.
+ *
+ * Called by: Various user interface files (such as ClassDetailPane, PartyMemberCard, and glossary tables).
+ * Depends on: React for rendering the SVG elements.
+ */
 
 export type GlossaryIconName =
     | 'eye'
@@ -215,9 +225,16 @@ export const GlossaryIcon: React.FC<GlossaryIconProps> = ({ name, className = "w
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
             </svg>
         ),
+        // Weapon concept: Symmetrical fantasy longsword pointing up-right.
+        // Styled with a hollow-outline leaf blade, center fuller ridge,
+        // perpendicular crossguard, grip, and circular pommel.
         sword: (
-            <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-                <path d="M6.92,5H5L14,14L15,13.06M19.96,19.12L19.12,19.96C18.73,20.35 18.1,20.35 17.71,19.96L14.59,16.84L11.91,19.5L10.5,18.09L11.92,16.67L3,7.75V3H7.75L16.67,11.92L18.09,10.5L19.5,11.91L16.83,14.58L19.95,17.7C20.35,18.1 20.35,18.73 19.96,19.12Z" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="M6 16 L16 6 L21 3 L18 8 L8 18 Z" />
+                <line x1="7" y1="17" x2="17.5" y2="6.5" />
+                <line x1="4" y1="14" x2="10" y2="20" />
+                <line x1="7" y1="17" x2="4" y2="20" />
+                <circle cx="3" cy="21" r="1" />
             </svg>
         ),
         wind: (
@@ -389,14 +406,22 @@ export const GlossaryIcon: React.FC<GlossaryIconProps> = ({ name, className = "w
                 <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
             </svg>
         ),
+        // Weapon concept: Stylized elven/ranger's mark fantasy reticle.
+        // Replaces modern sniper scope crosshairs with a runic theme,
+        // using four inward-pointing compass arrowheads and reticle ticks.
         crosshairs: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
                 <circle cx="12" cy="12" r="10" />
                 <circle cx="12" cy="12" r="4" />
-                <line x1="12" y1="2" x2="12" y2="6" />
-                <line x1="12" y1="18" x2="12" y2="22" />
-                <line x1="2" y1="12" x2="6" y2="12" />
-                <line x1="18" y1="12" x2="22" y2="12" />
+                <path d="M10 2 L12 5 L14 2" />
+                <path d="M10 22 L12 19 L14 22" />
+                <path d="M2 10 L5 12 L2 14" />
+                <path d="M22 10 L19 12 L22 14" />
+                <line x1="12" y1="5" x2="12" y2="8" />
+                <line x1="12" y1="19" x2="12" y2="16" />
+                <line x1="5" y1="12" x2="8" y2="12" />
+                <line x1="19" y1="12" x2="16" y2="12" />
+                <circle cx="12" cy="12" r="1" fill="currentColor" />
             </svg>
         ),
         mask: (
@@ -486,9 +511,20 @@ export const GlossaryIcon: React.FC<GlossaryIconProps> = ({ name, className = "w
                 <path d="M288 0L160 0 128 0C110.3 0 96 14.3 96 32s14.3 32 32 32l0 132.8c0 11.8-3.3 23.5-9.5 33.5L10.3 406.2C3.6 417.2 0 429.7 0 442.6C0 480.9 31.1 512 69.4 512l309.2 0c38.3 0 69.4-31.1 69.4-69.4c0-12.8-3.6-25.4-10.3-36.4L329.5 230.4c-6.2-10.1-9.5-21.7-9.5-33.5L320 64c17.7 0 32-14.3 32-32s-14.3-32-32-32L288 0zM192 196.8L192 64l64 0 0 132.8c0 23.7 6.6 46.9 19 67.1L309.5 320l-171 0L173 263.9c12.4-20.2 19-43.4 19-67.1z" />
             </svg>
         ),
+        // Weapon concept: Double-sided fantasy warhammer / combat gavel.
+        // A heavy flanged striking head on one side, an armor-piercing
+        // rear pick beak on the other, topped with a central shaft spike.
         fa_gavel: (
-            <svg viewBox="0 0 512 512" fill="currentColor" className={className}>
-                <path d="M318.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-120 120c-12.5 12.5-12.5 32.8 0 45.3l16 16c12.5 12.5 32.8 12.5 45.3 0l4-4L325.4 293.4l-4 4c-12.5 12.5-12.5 32.8 0 45.3l16 16c12.5 12.5 32.8 12.5 45.3 0l120-120c12.5-12.5 12.5-32.8 0-45.3l-16-16c-12.5-12.5-32.8-12.5-45.3 0l-4 4L330.6 74.6l4-4c12.5-12.5 12.5-32.8 0-45.3l-16-16zm-152 288c-12.5-12.5-32.8-12.5-45.3 0l-112 112c-12.5 12.5-12.5 32.8 0 45.3l48 48c12.5 12.5 32.8 12.5 45.3 0l112-112c12.5-12.5 12.5-32.8 0-45.3l-1.4-1.4L272 285.3 226.7 240 168 298.7l-1.4-1.4z" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <g transform="rotate(45 12 12)">
+                    <line x1="12" y1="7.5" x2="12" y2="22" />
+                    <path d="M12 7.5 L17 7 L18 8 L18 9.5 L17 10.5 L12 10 Z" fill="none" />
+                    <line x1="17" y1="7" x2="17" y2="10.5" />
+                    <path d="M12 7.5 Q7.5 7.5 4 10.5 Q7.5 9 12 10 Z" fill="none" />
+                    <path d="M10 7.5 L14 7.5 L14 10 L10 10 Z" />
+                    <line x1="12" y1="7.5" x2="12" y2="3.5" />
+                    <path d="M11.5 22 L12 24 L12.5 22 Z" />
+                </g>
             </svg>
         ),
         fa_music: (
@@ -521,9 +557,17 @@ export const GlossaryIcon: React.FC<GlossaryIconProps> = ({ name, className = "w
                 <path d="M361.5 1.2c5 2.1 8.6 6.6 9.6 11.9L391 121l107.9 19.8c5.3 1 9.8 4.6 11.9 9.6s1.5 10.7-1.6 15.2L446.9 256l62.3 90.3c3.1 4.5 3.7 10.2 1.6 15.2s-6.6 8.6-11.9 9.6L391 391 371.1 498.9c-1 5.3-4.6 9.8-9.6 11.9s-10.7 1.5-15.2-1.6L256 446.9l-90.3 62.3c-4.5 3.1-10.2 3.7-15.2 1.6s-8.6-6.6-9.6-11.9L121 391 13.1 371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7 1.6-15.2L65.1 256 2.8 165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6 11.9-9.6L121 121 140.9 13.1c1-5.3 4.6-9.8 9.6-11.9s10.7-1.5 15.2 1.6L256 65.1 346.3 2.8c4.5-3.1 10.2-3.7 15.2-1.6zM160 256a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zm224 0a128 128 0 1 0 -256 0 128 128 0 1 0 256 0z" />
             </svg>
         ),
+        // Weapon concept: Archery bullseye target pierced by a diagonal ranger arrow.
+        // Visually distinct from the compass reticle, featuring concentric target rings,
+        // arrowhead, shaft, and fletching crossing the center.
         fa_crosshairs: (
-            <svg viewBox="0 0 512 512" fill="currentColor" className={className}>
-                <path d="M256 0c17.7 0 32 14.3 32 32l0 34.7C368.4 80.1 431.9 143.6 445.3 224l34.7 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-34.7 0C431.9 368.4 368.4 431.9 288 445.3l0 34.7c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-34.7C143.6 431.9 80.1 368.4 66.7 288L32 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l34.7 0C80.1 143.6 143.6 80.1 224 66.7L224 32c0-17.7 14.3-32 32-32zM128 256a128 128 0 1 0 256 0 128 128 0 1 0 -256 0zm128-80a80 80 0 1 1 0 160 80 80 0 1 1 0-160z" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <circle cx="12" cy="12" r="8" />
+                <circle cx="12" cy="12" r="4" />
+                <line x1="3" y1="21" x2="20" y2="4" />
+                <path d="M17 5 L21 3 L19 7 Z" fill="currentColor" />
+                <line x1="5" y1="17" x2="7" y2="19" />
+                <line x1="3.5" y1="18.5" x2="5.5" y2="20.5" />
             </svg>
         ),
         fa_mask: (
@@ -547,19 +591,47 @@ export const GlossaryIcon: React.FC<GlossaryIconProps> = ({ name, className = "w
             </svg>
         ),
         // Pictogrammers/MDI Weapon Icons
+        // Reworked to unified 24x24 line-art strokes for better small-size clarity
+        // Weapon concept: Two crossed symmetrical fantasy longswords.
+        // Provides a balanced emblem for dueling or martial prowess,
+        // mirroring their guard, grip, and pommel shapes.
         sword_cross: (
-            <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-                <path d="M6.2,2.44L18.1,14.34L20.22,12.22L21.63,13.63L19.16,16.1L22.34,19.28C22.73,19.67 22.73,20.3 22.34,20.69L21.63,21.4C21.24,21.79 20.61,21.79 20.22,21.4L17,18.23L14.56,20.7L13.15,19.29L15.27,17.17L3.37,5.27V2.44H6.2M15.89,10L20.63,5.26V2.44H17.8L13.06,7.18L15.89,10M10.94,15L8.11,12.13L5.9,14.34L3.78,12.22L2.37,13.63L4.84,16.1L1.66,19.29C1.27,19.68 1.27,20.31 1.66,20.7L2.37,21.41C2.76,21.8 3.39,21.8 3.78,21.41L7,18.23L9.44,20.7L10.85,19.29L8.73,17.17L10.94,15Z" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="M8 14 L17 5 L20 4 L19 7 L10 16 Z" />
+                <line x1="6" y1="12" x2="12" y2="18" />
+                <line x1="9" y1="15" x2="5" y2="19" />
+                <circle cx="4" cy="20" r="1" />
+
+                <path d="M16 14 L7 5 L4 4 L5 7 L14 16 Z" />
+                <line x1="18" y1="12" x2="12" y2="18" />
+                <line x1="15" y1="15" x2="19" y2="19" />
+                <circle cx="20" cy="20" r="1" />
             </svg>
         ),
+        // Weapon concept: Symmetrical fantasy bearded handaxe / hatchet.
+        // Features a shaft with leather pommel wrap and a curved
+        // bearded blade socketed cleanly onto the handle.
         axe: (
-            <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-                <path d="M12,2L22,8C22,12 20,14 16,15L13,10L9,6L12,2M4.11,19.84L2.12,18.33L9.19,9L11,10.81L4.11,19.84Z" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="M5 19 L16 8" />
+                <path d="M12.5 11.5 L14.5 9.5 L19.5 7.5 C21 10.5 21 12 18 14.5 C15.5 13.5 14 13 12.5 11.5 Z" />
+                <path d="M4 20 C3.5 20.5 4.5 21.5 5 21" />
             </svg>
         ),
+        // Weapon concept: Heavy spiked morningstar / combat mace.
+        // Consists of a long shaft with grip details and a central spherical
+        // core studded with sharp, triangular radiating spikes.
         mace: (
-            <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-                <path d="M19.92 9.27C19.97 9 20 8.76 20 8.5S19.97 8 19.92 7.73L23 8.5L19.92 9.27M14.69 12.92L15.5 16.16L16.31 12.92C16.05 12.97 15.78 13 15.5 13S14.95 12.97 14.69 12.92M11.7 10.89L6.79 15.79L6.09 15.09L1 20.17L3.83 23L8.91 17.91L8.21 17.21L13.11 12.3C12.54 11.94 12.06 11.46 11.7 10.89M16.27 4.08L15.5 1L14.73 4.08C15 4.03 15.24 4 15.5 4S16 4.03 16.27 4.08M8 8.5L11.08 9.27C11.03 9 11 8.76 11 8.5S11.03 8 11.08 7.73L8 8.5M18.63 10.04C18.86 9.58 19 9.06 19 8.5S18.86 7.42 18.63 6.96L21 3L17.04 5.37C16.58 5.14 16.06 5 15.5 5S14.42 5.14 13.96 5.37L10 3L12.37 6.96C12.14 7.42 12 7.94 12 8.5C12 10.43 13.57 12 15.5 12C16.06 12 16.58 11.86 17.04 11.63L21 14L18.63 10.04Z" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <line x1="4" y1="20" x2="15" y2="9" />
+                <circle cx="17" cy="7" r="3" />
+                <path d="M14.5 8 L11.5 6.5 L15.5 6" />
+                <path d="M15 5.5 L14 2 L17 4.5" />
+                <path d="M17.5 4 L19.5 1 L19 4.5" />
+                <path d="M19 6 L22 4.5 L19.5 7.5" />
+                <path d="M19.8 8 L23 9.5 L19 10" />
+                <path d="M18 9.5 L19.5 13 L16.5 10" />
+                <circle cx="3" cy="21" r="1" />
             </svg>
         ),
         // Font Awesome replacement icons
@@ -620,29 +692,81 @@ export const GlossaryIcon: React.FC<GlossaryIconProps> = ({ name, className = "w
             </svg>
         ),
         // MDI Weapons
+        // Weapon concept: Fully drawn elven recurve bow with nocked arrow.
+        // Showcases double-curved flexed limbs, a V-shaped drawn string,
+        // and an arrow with fletching and a solid arrowhead.
         bow_arrow: (
-            <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-                <path d="M19.03 6.03L20 7L22 2L17 4L17.97 4.97L16.15 6.79C10.87 2.16 3.3 3.94 2.97 4L2 4.26L2.5 6.2L3.29 6L10.12 12.82L6.94 16H5L2 19L4 20L5 22L8 19V17.06L11.18 13.88L18 20.71L17.81 21.5L19.74 22L20 21.03C20.06 20.7 21.84 13.13 17.21 7.85L19.03 6.03M4.5 5.78C6.55 5.5 11.28 5.28 14.73 8.21L10.82 12.12L4.5 5.78M18.22 19.5L11.88 13.18L15.79 9.27C18.72 12.72 18.5 17.45 18.22 19.5Z" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <g transform="rotate(45 12 12)">
+                    <path d="M12 7 Q8 5 6 9 T4 11" />
+                    <path d="M12 7 Q16 5 18 9 T20 11" />
+                    <path d="M11 6.5 L13 6.5 L12 8.5 Z" fill="currentColor" />
+                    <path d="M4 11 L12 18 L20 11" />
+                    <line x1="12" y1="18" x2="12" y2="3" />
+                    <path d="M10 5 L12 2 L14 5 Z" fill="currentColor" />
+                    <path d="M10 16.5 L12 15 L14 16.5" />
+                    <path d="M10 17.5 L12 16 L14 17.5" />
+                </g>
             </svg>
         ),
+        // Weapon concept: Symmetrical double-bitted fantasy battle axe.
+        // Features hollow-ground inner arcs, central reinforcing socket diamond,
+        // and sharp spikes on both ends of the vertical shaft.
         axe_battle: (
-            <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-                <path d="M21.47 12.43C19.35 14.55 15.82 13.84 15.82 13.84V9.6L3.41 22L2 20.59L14.4 8.18H10.16C10.16 8.18 9.45 4.65 11.57 2.53C13.69 .406 17.23 1.11 17.23 1.11V5.36L17.94 4.65L19.35 6.06L18.64 6.77H22.89C22.89 6.77 23.59 10.31 21.47 12.43Z" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <g transform="rotate(45 12 12)">
+                    <line x1="12" y1="3" x2="12" y2="21" />
+                    <path d="M12 7 L18 4 C20.5 8 20.5 14 18 18 L12 15 C14.5 13 14.5 9 12 7 Z" />
+                    <path d="M12 7 L6 4 C3.5 8 3.5 14 6 18 L12 15 C9.5 13 9.5 9 12 7 Z" />
+                    <path d="M12 9.5 L13.5 11 L12 12.5 L10.5 11 Z" />
+                    <path d="M12 3 L12 1.5" />
+                    <path d="M11.5 21 L12 23 L12.5 21 Z" />
+                </g>
             </svg>
         ),
+        // Weapon concept: Asymmetrical fantasy war pick / military pickaxe.
+        // Showcases a curved armor-piercing beak on the left, a flat hammer
+        // poll on the right, and a protective collar socket with top spike.
         pickaxe: (
-            <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-                <path d="M14.79,10.62L3.5,21.9L2.1,20.5L13.38,9.21L14.79,10.62M19.27,7.73L19.86,7.14L19.07,6.35L19.71,5.71L18.29,4.29L17.65,4.93L16.86,4.14L16.27,4.73C14.53,3.31 12.57,2.17 10.47,1.37L9.64,3.16C11.39,4.08 13,5.19 14.5,6.5L14,7L17,10L17.5,9.5C18.81,11 19.92,12.61 20.84,14.36L22.63,13.53C21.83,11.43 20.69,9.47 19.27,7.73Z" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <g transform="rotate(45 12 12)">
+                    <line x1="12" y1="6" x2="12" y2="23" />
+                    <path d="M12 6 Q7 6 3 11 Q7 8.5 11.5 8.5 L12 6 Z" />
+                    <path d="M12 6 Q15 6 18 8.5 L16.5 10 Q14.5 9 12 8.5 Z" />
+                    <path d="M10 5.5 L14 5.5 L13.5 9.5 L10.5 9.5 Z" />
+                    <line x1="12" y1="5.5" x2="12" y2="2" />
+                </g>
             </svg>
         ),
+        // Weapon concept: Symmetrical crossed fencing foils / rapiers.
+        // Elegantly crosses two thin, flexible duelists' blades from the
+        // bottom corners, with detailed swept guards, quillons, and pommels.
         fencing: (
-            <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-                <path d="M4.5 17.42L5.58 18.5L3.28 20.78C3 21.07 2.5 21.07 2.22 20.78S1.93 20 2.22 19.72L4.5 17.42M18.29 5.42L18.29 4L12 10.29L5.71 4L5.71 5.42L11.29 11L7.5 14.81C6.32 13.97 4.68 14.07 3.63 15.12L7.88 19.37C8.93 18.32 9.03 16.68 8.2 15.5L18.29 5.42M21.78 19.72L19.5 17.42L18.42 18.5L20.72 20.78C21 21.07 21.5 21.07 21.78 20.78S22.07 20 21.78 19.72M16.5 14.81L13.42 11.71L12.71 12.42L15.81 15.5C14.97 16.68 15.07 18.32 16.12 19.37L20.37 15.12C19.32 14.07 17.68 13.97 16.5 14.81Z" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <line x1="8" y1="16" x2="20" y2="4" />
+                <path d="M7 14 C9 13.5 10 15 9.5 16.5 C9 18 7.5 17 7 14 Z" fill="none" />
+                <line x1="6.5" y1="14.5" x2="9.5" y2="17.5" />
+                <line x1="8.5" y1="15.5" x2="5" y2="19" />
+                <circle cx="4" cy="20" r="1" />
+
+                <line x1="16" y1="16" x2="4" y2="4" />
+                <path d="M17 14 C15 13.5 14 15 14.5 16.5 C15 18 16.5 17 17 14 Z" fill="none" />
+                <line x1="17.5" y1="14.5" x2="14.5" y2="17.5" />
+                <line x1="15.5" y1="15.5" x2="19" y2="19" />
+                <circle cx="20" cy="20" r="1" />
             </svg>
         ),
+        // Weapon concept: Winged fantasy spear / hunting partisan.
+        // Features a leaf-shaped blade with a center ridge, dual wing spurs
+        // to prevent over-penetration, and a textured shaft grip wrap.
         spear: (
-            <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-                <path d="M16 9H16.41L3.41 22L2 20.59L15 7.59V9H16M16 4V8H20L22 2L16 4Z" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <line x1="3" y1="21" x2="16" y2="8" />
+                <path d="M15 9 C15.5 6.5 18.5 3.5 22 2 C20.5 5.5 17.5 8.5 15 9 Z" />
+                <line x1="15" y1="9" x2="22" y2="2" />
+                <path d="M15 9 L12 9 L14 7 Z" />
+                <path d="M15 9 L15 12 L17 10 Z" />
+                <path d="M12.5 11.5 Q14 13 13.5 12.5" />
             </svg>
         ),
         // MDI Shields

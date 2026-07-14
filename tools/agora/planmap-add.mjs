@@ -5,7 +5,8 @@
  *
  * New topic:
  *   node tools/agora/planmap-add.mjs --new-topic props-v2 --title "Props v2" \
- *        --campaign world [--sub "..."] [--status parked] [--link docs/...] [--dep world-props[:hard|:chosen]]
+ *        --campaign world [--subcampaign "Interiors & Buildings"] [--sub "..."]
+ *        [--status parked] [--link docs/...] [--dep world-props[:hard|:chosen]]
  * Add feature to existing topic:
  *   node tools/agora/planmap-add.mjs --topic fip-slice1 --feature "Combat music" \
  *        [--status parked] [--link docs/...]
@@ -55,11 +56,19 @@ if (newTopicId) {
   if (byId[newTopicId]) die(`topic "${newTopicId}" already exists`);
   const campaign = flag('campaign') ?? die('--campaign required for a new topic');
   if (!data.campaigns[campaign]) die(`unknown campaign "${campaign}" (known: ${Object.keys(data.campaigns).join(', ')})`);
+  // A nested lane is optional, but when the campaign publishes an ordered list
+  // the capture command rejects typos instead of creating a near-duplicate band.
+  const subcampaign = flag('subcampaign');
+  const allowedSubcampaigns = data.campaigns[campaign].subcampaigns ?? [];
+  if (subcampaign && allowedSubcampaigns.length && !allowedSubcampaigns.includes(subcampaign)) {
+    die(`unknown subcampaign "${subcampaign}" for "${campaign}" (known: ${allowedSubcampaigns.join(', ')})`);
+  }
   const topic = {
     id: newTopicId,
     title: flag('title') ?? die('--title required'),
     ...(flag('sub') ? { sub: flag('sub') } : {}),
     campaign,
+    ...(subcampaign ? { subcampaign } : {}),
     status,
     deps: (args.filter((a, i) => args[i - 1] === '--dep')).map((d) => {
       if (d.startsWith('--')) die('missing value for --dep');

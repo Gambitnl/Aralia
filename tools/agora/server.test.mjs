@@ -271,6 +271,18 @@ test('messages: broadcast + direct; ?since cursor; ?to=me resolves via token', a
   assert.equal(meAnon.status, 200);
 });
 
+test('WF-G24: GET /agents never exposes bearer tokens', async () => {
+  const a = await registerAgent('token-leak-probe');
+  const r = await request('GET', '/agents');
+  assert.equal(r.status, 200);
+  const me = r.json.agents.find((x) => x.id === a.agentId);
+  assert.ok(me, 'registered agent is on the roster');
+  for (const agent of r.json.agents) {
+    assert.equal('token' in agent, false, `agent ${agent.handle} must not expose a token`);
+  }
+  assert.equal(r.raw.includes(a.token), false, 'raw response must not contain the bearer token');
+});
+
 test('GET /health returns ok:true and sensible counts', async () => {
   const h = await request('GET', '/health');
   assert.equal(h.status, 200);
@@ -328,6 +340,53 @@ test('SSE: connect receives hello then a live message event', async () => {
     );
     req.on('error', (e) => {
       // Ignore the abort that our own destroy() triggers after resolve.
+      if (e.code !== 'ECONNRESET' && !sawHello) reject(e);
+    });
+    req.end();
+  });
+});
+
+test('WF-G24: SSE hello snapshot and agent.register events carry no bearer tokens', async () => {
+  const existing = await registerAgent('sse-token-existing');
+
+  await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      req.destroy();
+      reject(new Error('SSE timeout: did not receive hello + agent.register in time'));
+    }, 2000);
+
+    let buffer = '';
+    let sawHello = false;
+    let live = null;
+
+    const req = http.request(
+      { host: '127.0.0.1', port, method: 'GET', path: '/events', headers: { Accept: 'text/event-stream' } },
+      (res) => {
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => {
+          buffer += chunk;
+          if (!sawHello && /event: hello/.test(buffer)) {
+            sawHello = true;
+            // Register a NEW agent while the stream is open so the live
+            // agent.register event crosses the SSE boundary.
+            registerAgent('sse-token-live').then((a) => { live = a; }).catch(reject);
+          }
+          if (sawHello && live && /event: agent\.register/.test(buffer) && /sse-token-live/.test(buffer)) {
+            clearTimeout(timer);
+            req.destroy();
+            try {
+              assert.equal(buffer.includes(existing.token), false, 'hello snapshot leaked an existing token');
+              assert.equal(buffer.includes(live.token), false, 'agent.register event leaked the new token');
+              resolve();
+            } catch (e) {
+              reject(e);
+            }
+          }
+        });
+        res.on('error', () => {});
+      },
+    );
+    req.on('error', (e) => {
       if (e.code !== 'ECONNRESET' && !sawHello) reject(e);
     });
     req.end();

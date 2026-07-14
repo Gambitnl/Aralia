@@ -1,5 +1,16 @@
-<svg width="512" height="512" viewBox="0 0 512 512" color="#94A3B8" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-<!-- Slate grey keeps this silhouette readable on Aralia's dark equipment and registry panels. -->
-<!-- Source: game-icons:shoulder-armor; License: CC BY 3.0; https://game-icons.net -->
-<path fill="currentColor" d="m208 56.643l-16 64l-98.568 14.082L256 175.365l162.568-40.64L320 120.643l-16-64l-27.268 18.18l-12.002 48.003h-17.46l-12.002-48.004zm-138.621 90.62L16 200.644l48 64l25.77-25.77l26.619-79.857zm373.242 0l-47.01 11.753l26.62 79.857L448 264.643l48-64zm-308.717 16.132l-20.123 60.369l13.81 55.246L247 345.348V191.67zm244.192 0L265 191.67v153.678l119.408-66.338l13.81-55.246zM144 308.715v56.314l103 30.627v-29.719zm224 0l-103 57.223v29.718l103-30.627zm-224 75.54v56.388l103 14.714V414.88zm224 0L265 414.88v40.478l103-14.714z"/>
+<svg width="128" height="128" viewBox="0 0 128 128" color="#94A3B8" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+<!--
+  ARCHITECTURAL CONTEXT:
+  This SVG represents 'Splint Armor' (Heavy Armor torso piece) in Aralia's item system.
+  It is styled as vertical steel slats (splints) riveted to heavy leather backing,
+  providing massive defense.
+
+  DESIGN CHOICES:
+  - Symmetrical heavy plate pauldrons (flaring to X=110) to convey a heavy bulk.
+  - Symmetrical columns of vertical slats (splints) separated by negative-space gaps.
+  - Round rivets (cutouts) on each splint, at top, middle, and bottom.
+  - A horizontal leather belt (Y=72 to Y=78) dividing the chest splints from the skirt splints.
+  - currentColor inheritance is preserved for dynamic palette changes in-game.
+-->
+<path fill-rule="evenodd" clip-rule="evenodd" d="M 38 10 L 90 10 L 102 24 L 110 44 L 96 52 L 96 116 L 32 116 L 32 52 L 18 44 L 26 24 L 38 10 Z M 64 26 C 54 26 46 18 46 10 L 82 10 C 82 18 74 26 64 26 Z M 32 72 L 96 72 L 96 78 L 32 78 Z M 60 69 L 68 69 L 68 81 L 60 81 Z M 40 32 L 48 32 L 48 66 L 40 66 L 40 32 Z M 52 32 L 60 32 L 60 66 L 52 66 L 52 32 Z M 68 32 L 76 32 L 76 66 L 68 66 L 68 32 Z M 80 32 L 88 32 L 88 66 L 80 66 L 80 32 Z M 40 84 L 48 84 L 48 112 L 40 112 L 40 84 Z M 52 84 L 60 84 L 60 112 L 52 112 L 52 84 Z M 68 84 L 76 84 L 76 112 L 68 112 L 68 84 Z M 80 84 L 88 84 L 88 112 L 80 112 L 80 84 Z M 44 36 A 2 2 0 1 0 44 40 A 2 2 0 1 0 44 36 Z M 44 48 A 2 2 0 1 0 44 52 A 2 2 0 1 0 44 48 Z M 44 60 A 2 2 0 1 0 44 64 A 2 2 0 1 0 44 60 Z M 56 36 A 2 2 0 1 0 56 40 A 2 2 0 1 0 56 36 Z M 56 48 A 2 2 0 1 0 56 52 A 2 2 0 1 0 56 48 Z M 56 60 A 2 2 0 1 0 56 64 A 2 2 0 1 0 56 60 Z M 72 36 A 2 2 0 1 0 72 40 A 2 2 0 1 0 72 36 Z M 72 48 A 2 2 0 1 0 72 52 A 2 2 0 1 0 72 48 Z M 72 60 A 2 2 0 1 0 72 64 A 2 2 0 1 0 72 60 Z M 84 36 A 2 2 0 1 0 84 40 A 2 2 0 1 0 84 36 Z M 84 48 A 2 2 0 1 0 84 52 A 2 2 0 1 0 84 48 Z M 84 60 A 2 2 0 1 0 84 64 A 2 2 0 1 0 84 60 Z M 44 88 A 2 2 0 1 0 44 92 A 2 2 0 1 0 44 88 Z M 44 100 A 2 2 0 1 0 44 104 A 2 2 0 1 0 44 100 Z M 56 88 A 2 2 0 1 0 56 92 A 2 2 0 1 0 56 88 Z M 56 100 A 2 2 0 1 0 56 104 A 2 2 0 1 0 56 100 Z M 72 88 A 2 2 0 1 0 72 92 A 2 2 0 1 0 72 88 Z M 72 100 A 2 2 0 1 0 72 104 A 2 2 0 1 0 72 100 Z M 84 88 A 2 2 0 1 0 84 92 A 2 2 0 1 0 84 88 Z M 84 100 A 2 2 0 1 0 84 104 A 2 2 0 1 0 84 100 Z" />
 </svg>

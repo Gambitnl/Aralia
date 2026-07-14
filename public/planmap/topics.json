@@ -5,7 +5,12 @@
   "campaigns": {
     "world": {
       "label": "World",
-      "color": "purple"
+      "color": "purple",
+      "subcampaigns": [
+        "Interiors & Buildings",
+        "World Streaming",
+        "Terrain & Regions"
+      ]
     },
     "combat": {
       "label": "Combat",
@@ -177,6 +182,7 @@
       "title": "Building blueprint pipeline",
       "sub": "blueprint-first: design the 2D blueprint, build 3D from ONE shared data shape (rooms/doors/walls/stairs in feet)",
       "campaign": "world",
+      "subcampaign": "Interiors & Buildings",
       "status": "done",
       "deps": [
         {
@@ -229,6 +235,7 @@
       "title": "Procedural dungeon generator",
       "sub": "THEME SPINE + SHEET LOOK LANDED 2026-07-06 (after critique wave + feet-canon + compound rooms/elbow corridors): 3 themes (crypt/cavern/frost) each own palette, name pools, monster table, debris vocabulary + thematic exterior glyphs; drawer has title cartouche, brooding vignette, per-room floor tones; layout invariant across themes at the same seed (verified). 11/11 tests. Remaining: 3D scene builder (Dungeon Forge poach list saved), world attachment, real bestiary, rotation/verticality/symmetric wings || AMBITION APPROVED 2026-07-07: Remy green-lit all four pillars (history-first, world-grown, diegetic map+3D, multi-level) — kickoff prompt written for a new agent; history-first is the spine, build it first. || PILLAR 1 BUILT 2026-07-06: builder-archetype intact layouts + seeded decay events with map evidence + derived text (name/blurb/notes/rumor hooks) + 2D parchment sheet + sprawl dial; 72 tests green, final review READY; Remy iteration waves folded in.",
       "campaign": "world",
+      "subcampaign": "Terrain & Regions",
       "status": "active",
       "deps": [
         {
@@ -576,6 +583,7 @@
       "title": "Worldforge interiors (L4)",
       "sub": "enterable buildings; rooms + floors wired & rendered. Building integrity + honesty gaps left (from the blindspot pass); frozen-houses lives in its own node.",
       "campaign": "world",
+      "subcampaign": "Interiors & Buildings",
       "status": "active",
       "deps": [],
       "features": [
@@ -609,6 +617,7 @@
       "title": "Dynamic neighbour streaming",
       "sub": "stream neighbours in PLAYING + canonical-scale window tiling (seams already exact)",
       "campaign": "world",
+      "subcampaign": "World Streaming",
       "status": "specced",
       "deps": [],
       "link": "docs/superpowers/specs/2026-06-30-stage5-seamless-edges-design.md"
@@ -734,6 +743,7 @@
       "title": "Grid retirement",
       "sub": "legacy 30×20 world grid entirely gone from live code (10 commits)",
       "campaign": "world",
+      "subcampaign": "World Streaming",
       "status": "done",
       "deps": [],
       "link": "docs/superpowers/plans/2026-07-01-grid-2d-view-retirement-plan.md",
@@ -747,6 +757,7 @@
       "title": "Seam-first open-region slice",
       "sub": "world-pure IDW handoff, chunk-seam hairlines fully fixed — seams exact 2026-07-02",
       "campaign": "world",
+      "subcampaign": "World Streaming",
       "status": "done",
       "deps": [],
       "link": "docs/superpowers/specs/2026-06-29-open-region-wilderness-design.md",
@@ -766,6 +777,7 @@
       "title": "Worldforge cartography (SP0–SP4)",
       "sub": "owned SVG atlas, recursive submaps, clean-room Voronoi town gen, leaf→3D, hidden places",
       "campaign": "world",
+      "subcampaign": "Terrain & Regions",
       "status": "done",
       "deps": [],
       "link": "docs/projects/worldforge/SPEC.md",
@@ -790,6 +802,7 @@
       "title": "Canonical town styled architecture",
       "sub": "5 culture-keyed style families, road gates, dock pilings, 2D/3D palette parity",
       "campaign": "world",
+      "subcampaign": "Interiors & Buildings",
       "status": "done",
       "deps": [],
       "link": "docs/superpowers/specs/2026-07-01-styled-town-architecture-design.md",
@@ -807,12 +820,12 @@
     {
       "id": "town-streets-3d",
       "title": "Town street grid in 3D",
-      "sub": "BUILT 2026-07-08: ward-edge network now bakes as tiered ribbons — pale avenues (inherited roads), paved plaza streets, packed-dirt lanes. Was missing entirely (3D only painted inherited roads)",
+      "sub": "BUILT 2026-07-12: ward-edge network bakes as tiered ribbons — pale avenues (inherited roads), paved plaza streets, packed-dirt lanes. Was missing entirely (3D only painted inherited roads). Real game path PROVEN 2026-07-13 (seed 42: 2 avenues / 6 streets / 183 lanes). OPEN (Remy to steer on resume): unify the 2 town renderers + boost tier contrast",
       "campaign": "rendering",
       "status": "active",
       "history": {
-        "designed": "2026-07-08",
-        "built": "2026-07-08"
+        "designed": "2026-07-12",
+        "built": "2026-07-12"
       },
       "deps": [
         {
@@ -831,7 +844,19 @@
           "status": "done"
         },
         {
-          "title": "Live in-engine 3D eyeball (blocked: Ollama-gated town + concurrent World3DScene edit)",
+          "title": "Real game ground-path proof (headless, seed 42 GroundWorld → ground.roads top-down)",
+          "status": "done"
+        },
+        {
+          "title": "Design-preview Town3D schematic wired with the same tiered ribbons (townMesh)",
+          "status": "done"
+        },
+        {
+          "title": "DECISION (Remy): unify the 2 town renderers — preview uses game ground bake vs revert preview patch vs keep both",
+          "status": "parked"
+        },
+        {
+          "title": "DECISION (Remy): boost tier contrast — plaza streets read almost identical to lanes",
           "status": "parked"
         }
       ]
@@ -1268,6 +1293,7 @@
       "title": "Cell provenance audit",
       "sub": "FMG Voronoi cell -> 3D-world provenance audit — first slice of \"3D trickles from the cell\"",
       "campaign": "world",
+      "subcampaign": "World Streaming",
       "status": "done",
       "deps": [],
       "history": {
@@ -1336,7 +1362,7 @@
     {
       "id": "planmap-shipped-timeline",
       "title": "Shipped-on-timeline",
-      "sub": "done topics render INSIDE their campaign lane on a shared date axis by completion date (parsed from the linked spec); undated ones get a labeled column",
+      "sub": "done topics render inside their campaign lane on a shared elapsed-time axis; snap to history.built, then an observed done transition, otherwise an honest date-unknown bucket",
       "campaign": "tooling",
       "status": "done",
       "deps": [
@@ -1864,6 +1890,7 @@
       "title": "Building Generator v2: Living Buildings",
       "sub": "inhabited buildings (household-driven plans + occupants using rooms), roofscapes + regional styles, street-aware blocks, buildings with visible history",
       "campaign": "world",
+      "subcampaign": "Interiors & Buildings",
       "status": "active",
       "focus": true,
       "link": "docs/superpowers/specs/2026-07-07-building-generator-v2-living-buildings.md",
@@ -2136,6 +2163,7 @@
       "title": "Interior lighting on the live clock",
       "sub": "DONE 2026-07-09. Windows and the hearth now light and darken with the game clock, instead of freezing at the hour you walked in. The whole day is baked once as a schedule; the render side reads it live. Proof: 0 lit windows at noon, 26 at dusk, dark again by night — same building, clock moved.",
       "campaign": "world",
+      "subcampaign": "Interiors & Buildings",
       "status": "done",
       "link": "docs/superpowers/plans/2026-07-08-living-interiors-live-clock.md",
       "deps": [
@@ -2295,6 +2323,7 @@
       "title": "Interiors blindspot pass",
       "sub": "read-pass over WF-INTERIORS surfaced 7 gaps. SHIPPED: #1 live clock, #2 silent failures, #3 hearth transform, #4 storey height. #6 measured won't-fix. OPEN on the Agora board: #5 lossy plan, #7 lighting-hours unify/confirm",
       "campaign": "world",
+      "subcampaign": "Interiors & Buildings",
       "status": "active",
       "deps": [
         {
@@ -2390,7 +2419,7 @@
         },
         {
           "title": "Daemon auth: strip bearer tokens from public /agents (WF-G24)",
-          "status": "active"
+          "status": "done"
         }
       ]
     },
@@ -2710,6 +2739,7 @@
       "title": "Forests",
       "sub": "named woods with character · readable tree fills · paths lead to camps and shrines · deep canopy in 3D",
       "campaign": "world",
+      "subcampaign": "Terrain & Regions",
       "status": "active",
       "deps": [
         {
@@ -2748,6 +2778,7 @@
       "title": "Mountains",
       "sub": "named ranges + peaks + passes · climb costs make passes precious · relief glyphs · real 3D high country",
       "campaign": "world",
+      "subcampaign": "Terrain & Regions",
       "status": "active",
       "deps": [
         {
@@ -2785,6 +2816,15 @@
           "status": "done"
         }
       ]
+    },
+    {
+      "id": "session-group-map",
+      "title": "Session-group map",
+      "sub": "desktop chat groups mapped to planmap topics; forks self-title + self-group",
+      "campaign": "tooling",
+      "status": "active",
+      "deps": [],
+      "link": "public/planmap/session-groups.json"
     }
   ]
 }

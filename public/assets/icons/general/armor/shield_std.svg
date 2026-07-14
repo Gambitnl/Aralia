@@ -1,5 +1,14 @@
-<svg width="512" height="512" viewBox="0 0 512 512" color="#94A3B8" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-<!-- Slate grey keeps this silhouette readable on Aralia's dark equipment and registry panels. -->
-<!-- Source: game-icons:shield; License: CC BY 3.0; https://game-icons.net -->
-<path fill="currentColor" d="M256 16c25 24 100 72 150 72v96c0 96-75 240-150 312c-75-72-150-216-150-312V88c50 0 125-48 150-72"/>
+<svg width="128" height="128" viewBox="0 0 128 128" color="#94A3B8" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+<!--
+  ARCHITECTURAL CONTEXT:
+  This SVG represents a 'Standard Shield' (Shield equipment) in Aralia's item system.
+  It is styled as a classic medieval heater shield with a reinforced iron rim and central boss.
+
+  DESIGN CHOICES:
+  - Graceful heater shield silhouette with curved top and sides ending in a sharp bottom point.
+  - Reinforced outer rim (Y=20 to Y=26) with inset rivet cutouts for mechanical depth.
+  - Layered central boss (boss dome + ring cutout) to draw focus and provide standard shield recognition.
+  - currentColor inheritance is preserved for dynamic palette changes in-game.
+-->
+<path fill-rule="evenodd" clip-rule="evenodd" d="M 24 20 C 48 14 80 14 104 20 C 104 60 88 102 64 116 C 40 102 24 60 24 20 Z M 32 26 C 50 22 78 22 96 26 C 96 58 82 94 64 106 C 46 94 32 58 32 26 Z M 34 28 C 50 24 78 24 94 28 C 94 58 80 92 64 104 C 48 92 34 58 34 28 Z M 64 50 A 14 14 0 1 0 64 78 A 14 14 0 1 0 64 50 Z M 64 58 A 6 6 0 1 0 64 70 A 6 6 0 1 0 64 58 Z M 64 21 A 1.5 1.5 0 1 0 64 24 A 1.5 1.5 0 1 0 64 21 Z M 64 101 A 1.5 1.5 0 1 0 64 104 A 1.5 1.5 0 1 0 64 101 Z M 29 56 A 1.5 1.5 0 1 0 29 59 A 1.5 1.5 0 1 0 29 56 Z M 99 56 A 1.5 1.5 0 1 0 99 59 A 1.5 1.5 0 1 0 99 56 Z" />
 </svg>

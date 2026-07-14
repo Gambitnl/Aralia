@@ -66,6 +66,10 @@
   .node .status { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; }
   .lane-bg { fill: #ffffff; fill-opacity: 0.022; }
   .lane-label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; }
+  /* Sub-campaigns are quiet bands inside a campaign lane. They provide a second
+     planning hierarchy without competing with campaign color or topic cards. */
+  .sublane-bg { fill: #020617; fill-opacity: 0.13; stroke: #475569; stroke-opacity: 0.28; stroke-dasharray: 4 6; }
+  .sublane-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.68; }
   .edge { fill: none; stroke: #475569; stroke-width: 1.25; opacity: 0.75; }
   .edge-hit { fill: none; stroke: transparent; stroke-width: 14; cursor: pointer; }
   /* Per-type hover highlight — each arrow type lights in its own color. The
@@ -91,6 +95,8 @@
   .edgeg.member .member-end { fill: #0f172a; stroke: #c084fc; stroke-width: 1.25; opacity: 0.7; }
   .edgeg.member.lit .member-end, .edgeg.member:hover .member-end, .edgeg.member.pinned .member-end { stroke: #c084fc; opacity: 1; stroke-width: 2; }
   .node, .edgeg { transition: none; }
+  .step-toggle { cursor: pointer; }
+  .step-toggle:hover rect { stroke-width: 2.4; }
   #invariants { padding: 0 22px 8px; font-size: 11px; color: #64748b; }
   #invariants b { color: #94a3b8; }
   /* Shipped/Graveyard strips: chip rows, not prose runs. */
@@ -396,6 +402,7 @@ const STATUS_HELP = {
 };
 const NODE_W = 300, BASE_H = 78, COL_GAP = 90, ROW_GAP = 26, PAD = 40;
 const LANE_GAP = 34, LANE_LABEL_H = 22; // vertical breathing room between campaign lanes (item 2)
+const SUBLANE_GAP = 12, SUBLANE_LABEL_H = 20;
 // Readable zoom is separate from overview fit: the whole roadmap is too wide
 // for every tile label to stay legible at once, so these constants give the
 // reader a close-up target without changing the underlying roadmap layout.
@@ -448,6 +455,10 @@ const parentTitleLines = t => wrapWords(t.title, PARENT_TITLE_CHARS);
 const parentSubLines = t => t.sub ? wrapWords(t.sub, PARENT_SUB_CHARS) : [];
 const parentHeight = t => {
   const titleRows = parentTitleLines(t).length;
+  // Topics begin as compact overview tiles. Their height reserves room for the
+  // wrapped title and footer indicators, but the longer intent summary only
+  // becomes part of the map layout after the reader selects that topic.
+  if (!expandedStepTopics.has(t.id)) return Math.max(BASE_H, 22 + titleRows * 15 + 28);
   const subRows = parentSubLines(t).length;
   return Math.max(BASE_H, 22 + titleRows * 15 + 2 + subRows * 13 + 18);
 };
@@ -459,6 +470,7 @@ const chainSteps = t => featList(t).map((f, i) => ({ f, i })).filter(x => !x.f.p
 const paraSteps  = t => featList(t).map((f, i) => ({ f, i })).filter(x =>  x.f.parallel);
 // Horizontal room the chain needs (parallels tuck under the first step column).
 const chainWidth = t => {
+  if (!expandedStepTopics.has(t.id)) return 0;
   const chain = chainSteps(t);
   if (chain.length > 0) return chain.reduce((sum, x, i) => sum + stepWidth(x.f) + (i ? STEP_GAP_X : 0), 0);
   const parallel = paraSteps(t);
@@ -467,6 +479,7 @@ const chainWidth = t => {
 // A parent's "bay" = the parent tile plus its whole step sub-flow to the right.
 const bayWidth = t => NODE_W + (chainWidth(t) ? PARENT_STEP_GAP + chainWidth(t) : 0);
 const bayHeight = t => {
+  if (!expandedStepTopics.has(t.id)) return parentHeight(t);
   const pc = paraSteps(t).length;
   const ph = parentHeight(t);
   const chainBottom = chainSteps(t).length
@@ -539,6 +552,14 @@ window.addEventListener('mouseup', () => { panning = false; if (svgEl) svgEl.cla
 let timeline = null, momentum = null, dayIndex = 0;
 let playTimer = null;
 let legendExpanded = false;
+// Topics and their step tiles share one expansion state. The overview starts
+// title-only and compact; selecting a topic reveals its summary and unfolds its
+// child steps without introducing a second, potentially contradictory mode.
+const expandedStepTopics = new Set();
+// Selection outlives each SVG rebuild. It locks the same connected-path
+// highlight used by hover, while expansion continues to control card details
+// and child-step disclosure independently.
+let lockedHighlightTopicId = null;
 // Staleness heat overlay (Task 6) — off by default; toggled by #heat-toggle,
 // read inside buildAndShow so every rebuild (replay, filter, resize) reflects
 // the current on/off state and the currently-selected day.
@@ -802,31 +823,69 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   laneKeys.forEach(k => (byLane[k] || []).sort((a, b) => orderIndex[a.id] - orderIndex[b.id]));
 
   // ============= Shipped-in-lane, placed by completion date ==========
-  // Done topics live INSIDE their campaign lane on a SHARED date axis: the date
-  // is parsed from the linked spec's YYYY-MM-DD ("date created"). Same date =
-  // same column across every lane. Undated done topics (no dated link) get a
-  // labeled leftmost column instead of being hidden.
-  const SHIP_COL_W = 172, SHIP_CHIP_H = 24, SHIP_ROW_GAP = 6, SHIP_AREA_TOP = 10;
-  const shipDateOf = t => { const m = (t.link || '').match(/\d{4}-\d{2}-\d{2}/); return m ? m[0] : null; };
+  // Done topics live INSIDE their campaign lane on a shared calendar axis.
+  // `history.built` is the authoritative snap point. When that manual date is
+  // absent, a recorded transition to done is valid retrospective evidence too.
+  // A spec filename is deliberately NOT a fallback: it dates the document, not
+  // the completed work, and previously made the ruler look more precise than it
+  // was. Baseline-done topics therefore remain honestly "date unknown".
+  const SHIP_CHIP_W = 160, SHIP_CHIP_H = 24, SHIP_ROW_GAP = 6, SHIP_AREA_TOP = 10;
+  const observedDoneDate = t => {
+    const observed = momentum && momentum.find(day =>
+      (day.shipped || []).some(node => node.kind === 'topic' && node.key === t.id));
+    return observed ? observed.date : null;
+  };
+  const shipDateInfo = t => {
+    if (t.history && t.history.built) {
+      return { date: t.history.built, approximate: !!t.history.builtApprox, source: 'recorded built date' };
+    }
+    const observed = observedDoneDate(t);
+    return observed
+      ? { date: observed, approximate: false, source: 'first observed transition to done' }
+      : { date: null, approximate: false, source: 'completion date unknown' };
+  };
   const shipByLaneKey = {};
   shipped.forEach(t => { const k = t.campaign || '(none)'; (shipByLaneKey[k] = shipByLaneKey[k] || []).push(t); });
-  const distinctShipDates = [...new Set(shipped.map(shipDateOf).filter(Boolean))].sort();
-  const shipDateRank = Object.fromEntries(distinctShipDates.map((d, i) => [d, i]));
-  const hasUndatedShip = shipped.some(t => !shipDateOf(t));
-  const shipColBase = hasUndatedShip ? 1 : 0;                 // col 0 reserved for undated
-  const shipColOf = t => { const d = shipDateOf(t); return d == null ? 0 : shipColBase + shipDateRank[d]; };
-  const shipColCount = shipColBase + distinctShipDates.length;
-  // Per-lane vertical stacking: multiple done topics sharing a column stack down.
-  const shipPlace = {};      // id -> {col, stackRow}
+  const shipInfoById = Object.fromEntries(shipped.map(t => [t.id, shipDateInfo(t)]));
+  const distinctShipDates = [...new Set(shipped.map(t => shipInfoById[t.id].date).filter(Boolean))].sort();
+  const hasUndatedShip = shipped.some(t => !shipInfoById[t.id].date);
+  const hasShipDates = distinctShipDates.length > 0;
+  const shipDateMs = d => Date.parse(`${d}T00:00:00Z`);
+  const shipMinMs = hasShipDates ? shipDateMs(distinctShipDates[0]) : 0;
+  const shipMaxMs = hasShipDates ? shipDateMs(distinctShipDates[distinctShipDates.length - 1]) : 0;
+  const shipRangeMs = Math.max(1, shipMaxMs - shipMinMs);
+  // The ruler shares the dependency map's width. A reserved left bucket keeps
+  // unknown dates separate; known dates then use a true elapsed-time scale.
+  const liveW = colX[maxDepth] + colWidth[maxDepth] + PAD;
+  const W = Math.max(liveW, 960);
+  const unknownShipX = PAD + SHIP_CHIP_W / 2;
+  const datedShipLeft = PAD + SHIP_CHIP_W / 2 + (hasUndatedShip ? SHIP_CHIP_W + 28 : 0);
+  const datedShipRight = Math.max(datedShipLeft, W - PAD - SHIP_CHIP_W / 2);
+  const shipCenterForDate = d => {
+    if (!d) return unknownShipX;
+    if (shipMinMs === shipMaxMs) return (datedShipLeft + datedShipRight) / 2;
+    return datedShipLeft + ((shipDateMs(d) - shipMinMs) / shipRangeMs) * (datedShipRight - datedShipLeft);
+  };
+  // Every rendered campaign lane gets the same slim date ruler at its lower
+  // edge. Reserving that space inside the lane keeps the ruler visually paired
+  // with its shipped chips instead of leaving one detached axis below the map.
+  const LANE_DATE_AXIS_H = shipped.length ? 26 : 0;
+  // Per-lane collision packing: chips keep their exact date x-coordinate and
+  // move to the next row only when nearby dates would overlap horizontally.
+  const shipPlace = {};      // id -> {centerX, stackRow}
   const shipLaneRows = {};   // laneKey -> max stack rows in that lane
   laneKeys.forEach(key => {
     const list = shipByLaneKey[key] || [];
-    const colStack = {}; let maxRows = 0;
-    list.slice().sort((a, b) => shipColOf(a) - shipColOf(b)).forEach(t => {
-      const col = shipColOf(t); const row = colStack[col] || 0; colStack[col] = row + 1;
-      shipPlace[t.id] = { col, stackRow: row }; maxRows = Math.max(maxRows, row + 1);
+    const rowRightEdges = [];
+    list.slice().sort((a, b) => shipCenterForDate(shipInfoById[a.id].date) - shipCenterForDate(shipInfoById[b.id].date)).forEach(t => {
+      const centerX = shipCenterForDate(shipInfoById[t.id].date);
+      const left = centerX - SHIP_CHIP_W / 2;
+      let row = rowRightEdges.findIndex(right => left >= right + 8);
+      if (row < 0) row = rowRightEdges.length;
+      rowRightEdges[row] = centerX + SHIP_CHIP_W / 2;
+      shipPlace[t.id] = { centerX, stackRow: row };
     });
-    if (list.length) shipLaneRows[key] = maxRows;
+    if (list.length) shipLaneRows[key] = rowRightEdges.length;
   });
   const shipAreaH = key => shipLaneRows[key] ? SHIP_AREA_TOP + shipLaneRows[key] * (SHIP_CHIP_H + SHIP_ROW_GAP) : 0;
 
@@ -834,6 +893,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   // their depth column and stack them by BAY height; the band is the tallest column.
   const pos = {};
   const laneRects = []; // {y, h, key} for the faint lane backgrounds + labels
+  const subLaneRects = []; // nested bands rendered inside their owning campaign
   const shipRowTop = {}; // laneKey -> y of the lane's shipped sub-row
   let laneTop = PAD;
   laneKeys.forEach(key => {
@@ -841,26 +901,52 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     const sList = shipByLaneKey[key] || [];
     if (!list.length && !sList.length) return; // truly empty lane — skip
     const bandTop = laneTop + LANE_LABEL_H;
-    const colY = {}; // running y per column within this lane
-    list.forEach(t => {
-      const c = depth[t.id];
-      const y = (colY[c] == null) ? bandTop : colY[c];
-      pos[t.id] = { x: colX[c], y };
-      colY[c] = y + bayHeight(t) + ROW_GAP;
+    const campaignConfig = data.campaigns[key] || {};
+    const configuredSubs = Array.isArray(campaignConfig.subcampaigns) ? campaignConfig.subcampaigns : [];
+    const namedSubs = [...new Set(list.map(t => t.subcampaign).filter(Boolean))];
+    const showSubLanes = namedSubs.length > 0;
+    // Configured names establish stable order. Newly-authored names remain
+    // visible at the end so a missing config entry never hides roadmap work.
+    const subKeys = [
+      ...configuredSubs.filter(name => namedSubs.includes(name)),
+      ...namedSubs.filter(name => !configuredSubs.includes(name)),
+      ...(list.some(t => !t.subcampaign) ? [''] : [])
+    ];
+    const groups = showSubLanes
+      ? subKeys.map(name => ({ name, topics: list.filter(t => (t.subcampaign || '') === name) })).filter(group => group.topics.length)
+      : [{ name: '', topics: list }];
+    let groupTop = bandTop;
+    groups.forEach((group, groupIndex) => {
+      const contentTop = groupTop + (showSubLanes ? SUBLANE_LABEL_H : 0);
+      const colY = {}; // each subgroup stacks independently at every depth
+      group.topics.forEach(t => {
+        const c = depth[t.id];
+        const y = (colY[c] == null) ? contentTop : colY[c];
+        pos[t.id] = { x: colX[c], y };
+        colY[c] = y + bayHeight(t) + ROW_GAP;
+      });
+      const groupBottom = Math.max(contentTop, ...Object.values(colY));
+      if (showSubLanes) {
+        subLaneRects.push({
+          y: groupTop,
+          h: groupBottom - groupTop,
+          key: `${key}:${group.name || 'general'}`,
+          campaign: key,
+          label: group.name || 'General'
+        });
+      }
+      groupTop = groupBottom + (groupIndex < groups.length - 1 ? SUBLANE_GAP : 0);
     });
-    let bandBottom = list.length ? Math.max(bandTop, ...Object.values(colY)) : bandTop; // tallest column
+    let bandBottom = list.length ? groupTop : bandTop;
     if (shipLaneRows[key]) { shipRowTop[key] = bandBottom + SHIP_AREA_TOP; bandBottom += shipAreaH(key); }
+    bandBottom += LANE_DATE_AXIS_H;
     const bandH = bandBottom - laneTop;
     laneRects.push({ y: laneTop, h: bandH, key, label: (data.campaigns[key] || {}).label || key });
     laneTop = laneTop + bandH + LANE_GAP;
   });
   const maxY = laneTop;
-  const liveW = colX[maxDepth] + colWidth[maxDepth] + PAD;
-  const shipW = shipColCount ? PAD + shipColCount * SHIP_COL_W + PAD : 0;
-  const W = Math.max(liveW, shipW);
-  const DATE_AXIS_H = (distinctShipDates.length || hasUndatedShip) ? 26 : 0;
   const TIMELINE_H = (timeline && momentum) ? 64 : 0;
-  const H = maxY + DATE_AXIS_H + TIMELINE_H + PAD;
+  const H = maxY + TIMELINE_H + PAD;
 
   // Covers element content AND double-quoted attribute values — every
   // JSON-controlled string flows through here (ids land in data-* attributes).
@@ -878,56 +964,70 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     S.push(`<rect class="lane-bg" x="${PAD - 16}" y="${l.y}" width="${W - (PAD - 16) * 2}" height="${l.h}" rx="8"/>`);
     S.push(`<text class="lane-label" x="${PAD - 6}" y="${l.y + 15}" fill="#e2e8f0">${esc(l.label)}</text>`);
   });
+  // Sub-campaign bands sit over the campaign wash but behind all arrows and
+  // tiles. Their labels describe ownership only; they do not affect readiness.
+  subLaneRects.forEach(l => {
+    S.push(`<rect class="sublane-bg" data-subcampaign="${esc(l.label)}" x="${PAD - 8}" y="${l.y}" width="${W - (PAD - 8) * 2}" height="${l.h}" rx="5"/>`);
+    S.push(`<text class="sublane-label" x="${PAD + 4}" y="${l.y + 14}" fill="#94a3b8">${esc(l.label)}</text>`);
+  });
 
   // ---- Shipped tiles inside their lane, on the shared date axis ------------
-  // Each done topic is a small dimmed chip at x = its date-column, y = its
-  // lane's shipped sub-row (stacked when several share a date). A date ruler at
-  // the very bottom labels each column. Faint column guides tie them together.
-  const shipChipX = col => PAD + col * SHIP_COL_W;
-  if (shipColCount) {
-    // Faint vertical guides per column, spanning the full drawing height.
-    for (let c = 0; c < shipColCount; c++) {
-      const gx = shipChipX(c) + (SHIP_COL_W - 12) / 2 + 4;
-      S.push(`<line x1="${gx}" y1="${PAD}" x2="${gx}" y2="${maxY}" stroke="#1e293b" stroke-opacity="0.5" stroke-dasharray="2 6"/>`);
-    }
+  // Each done topic is centered exactly on its completion date. Repeated rulers
+  // between lanes use those same x coordinates, so the visual snap point is the
+  // chip center and equal horizontal distance means equal elapsed time.
+  if (shipped.length) {
+    const guidePoints = [
+      ...(hasUndatedShip ? [{ x: unknownShipX, label: 'date unknown' }] : []),
+      ...distinctShipDates.map(date => ({ x: shipCenterForDate(date), label: date }))
+    ];
+    guidePoints.forEach(point => {
+      S.push(`<line x1="${point.x}" y1="${PAD}" x2="${point.x}" y2="${maxY}" stroke="#1e293b" stroke-opacity="0.5" stroke-dasharray="2 6"/>`);
+    });
     laneKeys.forEach(key => {
       const list = shipByLaneKey[key] || [];
       if (!list.length || shipRowTop[key] == null) return;
       const cc = COLORS[(data.campaigns[key] || {}).color] || COLORS.gray;
       list.forEach(t => {
         const pl = shipPlace[t.id];
-        const x = shipChipX(pl.col) + 4;
+        const x = pl.centerX - SHIP_CHIP_W / 2;
         const y = shipRowTop[key] + pl.stackRow * (SHIP_CHIP_H + SHIP_ROW_GAP);
-        const w = SHIP_COL_W - 12;
-        const d = shipDateOf(t);
+        const w = SHIP_CHIP_W;
+        const info = shipInfoById[t.id];
         const raw = t.title;
         const disp = raw.length > 20 ? raw.slice(0, 19) + '…' : raw;
         S.push(`<g class="shipnode" data-id="${esc(t.id)}" data-campaign="${esc(key)}">`);
         S.push(`<rect x="${x}" y="${y}" width="${w}" height="${SHIP_CHIP_H}" rx="12" fill="${cc.fill}" fill-opacity="0.4" stroke="${cc.stroke}" stroke-opacity="0.5"/>`);
         S.push(`<circle cx="${x + 11}" cy="${y + SHIP_CHIP_H / 2}" r="3.5" fill="${cc.stroke}"/>`);
-        S.push(`<text class="ship-label" x="${x + 20}" y="${y + SHIP_CHIP_H / 2 + 4}" fill="${cc.title}"><title>${esc(raw)} — shipped ${esc(d || '(undated)')}</title>${esc(disp)}</text>`);
+        const completionLabel = info.date
+          ? `completed ${info.date}${info.approximate ? ' (approximate)' : ''}; ${info.source}`
+          : info.source;
+        S.push(`<text class="ship-label" x="${x + 20}" y="${y + SHIP_CHIP_H / 2 + 4}" fill="${cc.title}"><title>${esc(raw)} — ${esc(completionLabel)}</title>${esc(disp)}</text>`);
         if (t.link) S.push(`<a ${docLinkAttrs(t.link)} target="_blank"><text class="ship-doc" x="${x + w - 9}" y="${y + SHIP_CHIP_H / 2 + 4}" text-anchor="end" fill="${cc.sub}"><title>${esc(t.link)}</title>📄</text></a>`);
         S.push(`</g>`);
       });
     });
-    // Date ruler along the bottom: one tick per distinct completion date
-    // (+undated). The label makes clear that this is not a work queue; it is
-    // a reference axis for the already-shipped chips sitting above it.
-    const rulerY = maxY + 6;
-    S.push(`<g class="ship-axis"><title>Shipped date axis: completed topics above this line are grouped by their completion/spec date.</title>` +
-      `<line x1="${PAD - 6}" y1="${rulerY}" x2="${W - PAD + 6}" y2="${rulerY}" stroke="#334155"/>` +
-      `<text class="ship-axis-label" x="${PAD - 6}" y="${rulerY - 6}" fill="#64748b">shipped dates</text></g>`);
-    if (hasUndatedShip) S.push(`<text class="ship-tick" x="${shipChipX(0) + 4}" y="${rulerY + 16}" fill="#64748b">undated</text>`);
-    distinctShipDates.forEach((d, i) => {
-      S.push(`<text class="ship-tick" x="${shipChipX(shipColBase + i) + 4}" y="${rulerY + 16}" fill="#94a3b8">${esc(d.slice(5))}</text>`);
+    // Repeat one ruler at the bottom of every campaign band. Each copy uses the
+    // same x positions, preserving the cross-lane date alignment while keeping
+    // the labels close to the shipped work they explain.
+    laneRects.forEach(lane => {
+      const rulerY = lane.y + lane.h - LANE_DATE_AXIS_H + 6;
+      S.push(`<g class="ship-axis lane-ship-axis" data-campaign="${esc(lane.key)}"><title>${esc(lane.label)} completion date axis. Snap rule: recorded history.built date; otherwise first observed transition to done; otherwise date unknown. Horizontal distance is elapsed calendar time.</title>` +
+        `<line x1="${PAD - 6}" y1="${rulerY}" x2="${W - PAD + 6}" y2="${rulerY}" stroke="#334155"/>` +
+        `<text class="ship-axis-label" x="${PAD - 6}" y="${rulerY - 6}" fill="#64748b">completion dates</text>`);
+      if (hasUndatedShip) S.push(`<text class="ship-tick" x="${unknownShipX}" y="${rulerY + 16}" text-anchor="middle" fill="#64748b">date unknown</text>`);
+      distinctShipDates.forEach(d => {
+        const x = shipCenterForDate(d);
+        S.push(`<line x1="${x}" y1="${rulerY - 3}" x2="${x}" y2="${rulerY + 4}" stroke="#64748b"/>`);
+        S.push(`<text class="ship-tick" x="${x}" y="${rulerY + 16}" text-anchor="middle" fill="#94a3b8">${esc(d.slice(5))}</text>`);
+      });
+      S.push(`</g>`);
     });
   }
   if (timeline && momentum) {
-    // The replay timeline is appended after the shipped-date ruler so it stays
-    // visually attached to the plan data. Because it is inside #plansvg, the
-    // same viewBox zoom/pan code moves it together with the roadmap.
+    // The replay timeline follows the final campaign lane. Because it is inside
+    // #plansvg, the same viewBox zoom/pan code moves it together with the map.
     const timelineX = PAD - 6;
-    const timelineY = maxY + DATE_AXIS_H + 6;
+    const timelineY = maxY + 6;
     const timelineW = Math.max(220, W - timelineX - PAD + 6);
     S.push(buildTimelineSvg(timeline, momentum, dayIndex, timelineX, timelineY, timelineW, 54, !!playTimer));
   }
@@ -943,6 +1043,11 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   const stepEdges = []; // { from, to, topicId, kind: 'chain' | 'branch' }
   live.forEach(t => {
     const p = pos[t.id]; if (!p) return;
+    if (!expandedStepTopics.has(t.id)) {
+      const foldedAnchor = { x: p.x + NODE_W, y: p.y + parentHeight(t) / 2 };
+      featList(t).forEach(f => { featPos[`${t.id}|${slug(f.title)}`] = foldedAnchor; });
+      return;
+    }
     const sx0 = p.x + NODE_W + PARENT_STEP_GAP; // first step column
     const cy = p.y + parentHeight(t) / 2;       // chain row center
     let prevId = null;
@@ -996,9 +1101,9 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     const laneTopForShip = shipRowTop[t.campaign || '(none)'];
     if (!pl || laneTopForShip == null) return;
     edgeBlockers.push({
-      x: shipChipX(pl.col) + 4,
+      x: pl.centerX - SHIP_CHIP_W / 2,
       y: laneTopForShip + pl.stackRow * (SHIP_CHIP_H + SHIP_ROW_GAP),
-      w: SHIP_COL_W - 12,
+      w: SHIP_CHIP_W,
       h: SHIP_CHIP_H,
       r: 13
     });
@@ -1125,16 +1230,18 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     S.push(`<rect class="edge-shield" x="${b.x - pad}" y="${b.y - pad}" width="${b.w + pad * 2}" height="${b.h + pad * 2}" rx="${b.r + pad}" fill="#101a2d" pointer-events="none"/>`);
   });
 
-  // --- Parent campaign tiles: title / status / spec link only (steps now live
-  // in their own tiles to the right).
+  // --- Parent campaign tiles ------------------------------------------------
+  // Compact tiles show the title and small operational indicators. A selected
+  // tile grows to reveal its intent summary while its steps unfold to the right.
   live.forEach(t => {
     const p = pos[t.id];
     const h = parentHeight(t);
     const c = COLORS[(data.campaigns[t.campaign] || {}).color] || COLORS.gray;
     const go = isActionable(t);
+    const expanded = expandedStepTopics.has(t.id);
     const titleRows = parentTitleLines(t);
     const subRows = parentSubLines(t);
-    S.push(`<g class="node" data-id="${esc(t.id)}" data-topic="${esc(t.id)}" data-campaign="${esc(t.campaign || '')}" data-status="${esc(t.status || '')}">`);
+    S.push(`<g class="node${expanded ? ' expanded' : ''}" data-id="${esc(t.id)}" data-topic="${esc(t.id)}" data-campaign="${esc(t.campaign || '')}" data-subcampaign="${esc(t.subcampaign || '')}" data-status="${esc(t.status || '')}" data-expanded="${expanded}" role="button" aria-expanded="${expanded}" aria-pressed="${lockedHighlightTopicId === t.id}" aria-label="${expanded ? 'Collapse' : 'Expand'} ${esc(t.title)}">`);
     const hk = heat && heat.get(t.id);
     if (hk) S.push(`<rect x="${p.x}" y="${p.y}" width="${NODE_W}" height="${h}" rx="6" fill="${HEAT(hk.days)}" fill-opacity="0.28" pointer-events="none"/>`);
     S.push(`<rect x="${p.x}" y="${p.y}" width="${NODE_W}" height="${h}" rx="6" fill="${c.fill}" stroke="${go ? '#4ade80' : c.stroke}" stroke-width="${go ? 3 : 1.5}"/>`);
@@ -1145,16 +1252,30 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     if (t.focus) badges.push(['★ FOCUS', '#fbbf24']);
     badges.forEach(([txt, col], bi) =>
       S.push(`<text class="status" x="${p.x + NODE_W - 12}" y="${p.y + 20 + bi * 13}" text-anchor="end" fill="${col}">${txt}</text>`));
-    // Draw every wrapped title and subtitle row. The tile height was already
-    // computed from these same rows, so text stays inside the card instead of
-    // being clipped or replaced by ellipses.
+    // Titles are always visible. Summary rows are deliberately omitted from the
+    // compact map and are drawn only after selection; parentHeight uses the same
+    // state so the card body and surrounding lane close up with the text.
     titleRows.forEach((line, i) =>
       S.push(`<text class="title" x="${p.x + 12}" y="${p.y + 22 + i * 15}" fill="${c.title}">${i === 0 ? `<title>${esc(t.title)}</title>` : ''}${esc(line)}</text>`));
     const subStartY = p.y + 22 + titleRows.length * 15 + 2;
-    subRows.forEach((line, i) =>
-      S.push(`<text class="sub" x="${p.x + 12}" y="${subStartY + i * 13}" fill="${c.sub}">${i === 0 ? `<title>${esc(t.sub || '')}</title>` : ''}${esc(line)}</text>`));
+    if (expanded) {
+      subRows.forEach((line, i) =>
+        S.push(`<text class="sub topic-summary" x="${p.x + 12}" y="${subStartY + i * 13}" fill="${c.sub}">${i === 0 ? `<title>${esc(t.sub || '')}</title>` : ''}${esc(line)}</text>`));
+    }
     S.push(`<circle cx="${p.x + 16}" cy="${p.y + h - 12}" r="4" fill="${STATUS[t.status] || '#94a3b8'}"><title>${statusTitle(t.status)}</title></circle>`);
     S.push(`<text class="status" x="${p.x + 26}" y="${p.y + h - 8}" fill="${STATUS[t.status] || '#94a3b8'}"><title>${statusTitle(t.status)}</title>${esc((t.status || '').toUpperCase())}</text>`);
+    const featureCount = featList(t).length;
+    if (featureCount) {
+      const chipText = expanded ? `hide ${featureCount}` : `${featureCount} steps`;
+      const chipW = expanded ? 58 : Math.max(58, 36 + String(featureCount).length * 6);
+      const chipX = p.x + NODE_W - chipW - 12;
+      const chipY = p.y + h - (t.link ? 52 : 28);
+      S.push(`<g class="step-toggle" data-topic="${esc(t.id)}" role="button" aria-label="${expanded ? 'Fold' : 'Expand'} ${featureCount} step tiles for ${esc(t.title)}">` +
+        `<title>${expanded ? 'Fold' : 'Expand'} ${featureCount} step tile${featureCount === 1 ? '' : 's'} for this topic.</title>` +
+        `<rect x="${chipX}" y="${chipY}" width="${chipW}" height="18" rx="9" fill="#1e293b" stroke="${c.stroke}" stroke-opacity="0.85"/>` +
+        `<text class="status" x="${chipX + chipW / 2}" y="${chipY + 12}" text-anchor="middle" fill="${c.sub}">${esc(chipText)}</text>` +
+        `</g>`);
+    }
     if (t.link) S.push(`<a ${docLinkAttrs(t.link)} target="_blank"><text class="sub" x="${p.x + NODE_W - 12}" y="${p.y + h - 8}" text-anchor="end" fill="${c.sub}">📄 spec</text></a>`);
     S.push(`</g>`);
   });
@@ -1167,7 +1288,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     const f = sn.f;
     const dead = f.status === 'superseded';
     const spikeAttrs = f.spike ? ` stroke-dasharray="4 3" stroke-opacity="0.95"` : '';
-    S.push(`<g class="node stepnode" data-id="${esc(sn.id)}" data-topic="${esc(sn.topicId)}" data-campaign="${esc(t.campaign || '')}" data-status="${esc(f.status || '')}">`);
+    S.push(`<g class="node stepnode" data-id="${esc(sn.id)}" data-topic="${esc(sn.topicId)}" data-campaign="${esc(t.campaign || '')}" data-subcampaign="${esc(t.subcampaign || '')}" data-status="${esc(f.status || '')}">`);
     const shk = heat && heat.get(sn.id);
     if (shk) S.push(`<rect x="${sn.x}" y="${sn.y}" width="${sn.w}" height="${sn.h}" rx="6" fill="${HEAT(shk.days)}" fill-opacity="0.28" pointer-events="none"/>`);
     S.push(`<rect x="${sn.x}" y="${sn.y}" width="${sn.w}" height="${sn.h}" rx="4" fill="${c.fill}" fill-opacity="0.55" stroke="${dead ? STATUS.superseded : c.stroke}"${spikeAttrs} stroke-width="1.5"/>`);
@@ -1223,20 +1344,31 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     walk(id, fwd); walk(id, rev);
     return set;
   };
+  const clearChainHighlight = () => {
+    svgEl.classList.remove('focus');
+    svgEl.querySelectorAll('.node.lit, .edgeg.lit, .stepedge.lit').forEach(el => el.classList.remove('lit'));
+  };
+  const applyChainHighlight = (...topicIds) => {
+    const roots = topicIds.filter(id => id && byId[id]);
+    if (!roots.length) { clearChainHighlight(); return; }
+    // A hovered path is added to the selected path instead of replacing it.
+    // Mouse-out therefore returns to the locked selection without flicker.
+    const lit = new Set();
+    roots.forEach(id => chainOf(id).forEach(memberId => lit.add(memberId)));
+    svgEl.classList.add('focus');
+    svgEl.querySelectorAll('.node').forEach(n => n.classList.toggle('lit', lit.has(n.dataset.topic || n.dataset.id)));
+    svgEl.querySelectorAll('.edgeg').forEach(eg =>
+      eg.classList.toggle('lit', lit.has(eg.dataset.from) && lit.has(eg.dataset.to)));
+    svgEl.querySelectorAll('.stepedge').forEach(se => se.classList.toggle('lit', lit.has(se.dataset.topic)));
+  };
   svgEl.querySelectorAll('.node').forEach(g => {
     g.addEventListener('mouseenter', () => {
       // Step tiles carry data-topic; light the whole dependency chain of the
       // owning topic (both a parent and its steps share that topic id).
-      const lit = chainOf(g.dataset.topic || g.dataset.id); // set of topic ids
-      svgEl.classList.add('focus');
-      svgEl.querySelectorAll('.node').forEach(n => n.classList.toggle('lit', lit.has(n.dataset.topic || n.dataset.id)));
-      svgEl.querySelectorAll('.edgeg').forEach(eg =>
-        eg.classList.toggle('lit', lit.has(eg.dataset.from) && lit.has(eg.dataset.to)));
-      svgEl.querySelectorAll('.stepedge').forEach(se => se.classList.toggle('lit', lit.has(se.dataset.topic)));
+      applyChainHighlight(lockedHighlightTopicId, g.dataset.topic || g.dataset.id);
     });
     g.addEventListener('mouseleave', () => {
-      svgEl.classList.remove('focus');
-      svgEl.querySelectorAll('.node.lit, .edgeg.lit, .stepedge.lit').forEach(el => el.classList.remove('lit'));
+      applyChainHighlight(lockedHighlightTopicId);
     });
   });
 
@@ -1245,10 +1377,18 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   const detailBody = document.getElementById('detail-body');
   let pinnedNode = null, pinnedEdge = null;
   const clearPins = () => {
-    svgEl.querySelectorAll('.node.pinned, .edgeg.pinned').forEach(el => el.classList.remove('pinned'));
+    svgEl.querySelectorAll('.node.pinned, .edgeg.pinned').forEach(el => {
+      el.classList.remove('pinned');
+      if (el.classList.contains('node')) el.setAttribute('aria-pressed', 'false');
+    });
     pinnedNode = pinnedEdge = null;
   };
-  const closeDetail = () => { detail.classList.remove('open'); clearPins(); };
+  const closeDetail = () => {
+    detail.classList.remove('open');
+    lockedHighlightTopicId = null;
+    clearPins();
+    clearChainHighlight();
+  };
   closeDetailCurrent = closeDetail;
 
   const campLabel = key => (data.campaigns[key] || {}).label || key || '—';
@@ -1262,6 +1402,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     if (t.sub) html += `<p class="d-sub">${esc(t.sub)}</p>`;
     html += `<div class="d-meta">` +
       `<span class="d-tag">${esc(campLabel(t.campaign))}</span>` +
+      (t.subcampaign ? `<span class="d-tag">${esc(t.subcampaign)}</span>` : '') +
       statusTag(t.status) +
       (go ? `<span class="d-tag" style="color:#4ade80">▶ READY</span>` : '') +
       (t.focus ? `<span class="d-tag" style="color:#fbbf24">★ FOCUS</span>` : '') +
@@ -1334,13 +1475,20 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   const pinNode = (id) => {
     clearPins();
     const g = svgEl.querySelector(`.node[data-id="${CSS.escape(id)}"]`);
-    if (g) g.classList.add('pinned');
+    if (g) {
+      g.classList.add('pinned');
+      g.setAttribute('aria-pressed', 'true');
+    }
+    lockedHighlightTopicId = id;
     pinnedNode = id;
     renderTopicDetail(byId[id]);
     detail.classList.add('open');
+    applyChainHighlight(id);
   };
   const pinEdge = (g) => {
     clearPins();
+    lockedHighlightTopicId = null;
+    clearChainHighlight();
     g.classList.add('pinned');
     pinnedEdge = g;
     const e = edges.find(x => x.from === g.dataset.from && x.to === g.dataset.to);
@@ -1352,11 +1500,49 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     g.addEventListener('click', ev => {
       // Let real <a> spec links do their thing.
       if (ev.target.closest('a')) return;
+      const stepToggle = ev.target.closest('.step-toggle');
+      if (stepToggle) {
+        ev.stopPropagation();
+        const id = stepToggle.dataset.topic;
+        const opening = !expandedStepTopics.has(id);
+        const wasSelected = lockedHighlightTopicId === id;
+        opening ? expandedStepTopics.add(id) : expandedStepTopics.delete(id);
+        if (opening) lockedHighlightTopicId = id;
+        else if (wasSelected) closeDetail();
+        const topics = timeline ? timeline[dayIndex].topics : data.topics;
+        buildAndShow(topics, { preserveView: true, pinTopicId: opening ? id : null });
+        return;
+      }
       ev.stopPropagation();
-      // Clicking a step tile pins its parent topic (steps share data-topic).
-      pinNode(g.dataset.topic || g.dataset.id);
+      const id = g.dataset.topic || g.dataset.id;
+      // Step tiles remain ordinary detail targets. They do not fold their own
+      // parent away while the reader is inspecting one of the revealed steps.
+      if (g.classList.contains('stepnode')) {
+        if (lockedHighlightTopicId === id) closeDetail();
+        else pinNode(id);
+        return;
+      }
+      // Selecting a parent is the single disclosure action: it reveals the
+      // topic summary, unfolds its steps, and opens the existing detail panel.
+      // Selecting the expanded parent again returns it to the compact overview.
+      const wasSelected = lockedHighlightTopicId === id;
+      if (wasSelected) {
+        expandedStepTopics.delete(id);
+        closeDetail();
+      } else {
+        expandedStepTopics.add(id);
+        lockedHighlightTopicId = id;
+      }
+      const topics = timeline ? timeline[dayIndex].topics : data.topics;
+      buildAndShow(topics, { preserveView: true, pinTopicId: wasSelected ? null : id });
     });
   });
+  // A selection-triggered rebuild creates a fresh SVG, so restore the pin on
+  // that fresh node after its handlers exist. This keeps the side-panel context
+  // and the yellow selected outline aligned with the expanded in-map tile.
+  const restorePinnedId = opts.pinTopicId || lockedHighlightTopicId;
+  if (restorePinnedId && byId[restorePinnedId]) pinNode(restorePinnedId);
+  else if (restorePinnedId) closeDetail();
   svgEl.querySelectorAll('.edgeg').forEach(g => {
     g.addEventListener('click', ev => { ev.stopPropagation(); pinEdge(g); });
   });

@@ -635,7 +635,10 @@ export function createStore({
     for (const agent of state.agents.values()) {
       const age = t - agent.lastSeen;
       if (age > presenceDropMs) continue; // dropped from the active list
-      out.push({ ...agent, status: computeStatus(agent, t) });
+      // WF-G24: never expose the bearer token on the public roster — an agent
+      // only ever learns its own token from its register response.
+      const { token, ...pub } = agent;
+      out.push({ ...pub, status: computeStatus(agent, t) });
     }
     return out;
   }

@@ -12,6 +12,7 @@ If you only remember three things:
 ## 1. What it is (the mental model)
 
 - **File of record:** `public/planmap/topics.json` (JSON, schema at `public/planmap/topics.schema.json`).
+- **Sub-campaign lanes:** a campaign may declare an ordered `subcampaigns` array; a topic's optional `subcampaign` places it in that nested visual lane. This grouping does not change dependencies, readiness, or status.
 - **Viewer:** `http://localhost:<port>/Aralia/planmap/index.html` on any running dev server. A tech-tree: campaign-colored **topic boxes**, **feature tiles** inside them, `requires` **arrows** between topics, a **Graveyard** strip for superseded decisions, one **★ FOCUS** star, and a date-progression **timeline/rewind** derived from `history.json`.
 - **Shape:** `{ campaigns: {…}, topics: [ … ], repoRoot, _readme }`. A topic = a box worth planning around. A feature = a tile inside it. **Feature array order = intended build order** (the viewer chains tile arrows in list order).
 - **No dates in the plan itself** — only order (`deps` + feature sequence). Real dates live separately in `history.json` for the timeline; never invent them.
