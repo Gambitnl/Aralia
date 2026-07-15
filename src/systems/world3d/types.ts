@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 12/06/2026, 07:04:41
- * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DNameplates.tsx, components/World3D/World3DScene.tsx, components/World3D/createWorkerChunkLoader.ts, components/World3D/useChunkStreaming.ts, components/World3D/vegetationInstanceMatrices.ts, systems/world3d/chunkBundle.ts, systems/world3d/chunkGeometry.ts, systems/world3d/chunkManager.ts, systems/world3d/chunkSampler.ts, systems/world3d/chunkStreamer.ts, systems/world3d/chunkWorkerCore.ts, systems/world3d/coords.ts, systems/world3d/lod.ts, systems/world3d/polylineClip.ts, systems/world3d/roadGeometry.ts, systems/world3d/siteGeometry.ts, systems/world3d/vegetationScatter.ts, systems/world3d/waterGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts
- * Imports: None
+ * Last Sync: 14/07/2026, 21:07:58
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/InteriorLights.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DNameplates.tsx, components/World3D/World3DScene.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/useChunkStreaming.ts, components/World3D/vegetation/GrassLayer.tsx, components/World3D/vegetation/VegetationTrees.tsx, components/World3D/vegetationInstanceMatrices.ts, systems/world3d/buildingModels.ts, systems/world3d/chunkBundle.ts, systems/world3d/chunkGeometry.ts, systems/world3d/chunkManager.ts, systems/world3d/chunkSampler.ts, systems/world3d/chunkStreamer.ts, systems/world3d/chunkWorkerCore.ts, systems/world3d/config.ts, systems/world3d/coords.ts, systems/world3d/deckGeometry.ts, systems/world3d/gateGeometry.ts, systems/world3d/lod.ts, systems/world3d/polylineClip.ts, systems/world3d/roadGeometry.ts, systems/world3d/siteGeometry.ts, systems/world3d/vegetationScatter.ts, systems/world3d/wallGeometry.ts, systems/world3d/waterGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/interiorParts.ts
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -163,7 +163,20 @@ export interface ChunkData {
      * ground). When present the renderer draws these walls/furnishings
      * instead of the solid footprint box — the building is enterable.
      */
-    parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string; baseY?: number; emissiveHex?: string; tag?: string; lightRole?: 'window' | 'hearth' }>;
+    parts?: Array<{
+      x: number;
+      z: number;
+      w: number;
+      d: number;
+      h: number;
+      colorHex: string;
+      baseY?: number;
+      emissiveHex?: string;
+      tag?: string;
+      lightRole?: 'window' | 'hearth';
+      /** Present in collision data but intentionally omitted from rendering. */
+      renderRole?: 'tactical-only';
+    }>;
     /**
      * Interior wall envelope in meters (≤ plot footprint). Roofs and floor
      * slabs must size to THIS, not the footprint box — the plot is up to
@@ -186,6 +199,9 @@ export interface ChunkData {
      *  (blueprint frame; matches litHours/occupants). Present only when occupants are. */
     interiorWidthFt?: number;
     interiorDepthFt?: number;
+    /** Optional stable plan origin for one-sided structural extensions. */
+    interiorOriginXFt?: number;
+    interiorOriginYFt?: number;
     /**
      * Solved roof (BGv2 Task 5): the triangulated roof planes + tower caps as
      * ONE geometry group in site-local METERS (Y up). Present only for
@@ -291,7 +307,20 @@ export interface ChunkSite {
   /** Render no mesh — nameplate only (see ChunkData.sites.markerOnly). */
   markerOnly?: boolean;
   /** Seamless-interior boxes, site-local meters (see ChunkData.sites.parts). */
-  parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string; baseY?: number; emissiveHex?: string; tag?: string; lightRole?: 'window' | 'hearth' }>;
+  parts?: Array<{
+    x: number;
+    z: number;
+    w: number;
+    d: number;
+    h: number;
+    colorHex: string;
+    baseY?: number;
+    emissiveHex?: string;
+    tag?: string;
+    lightRole?: 'window' | 'hearth';
+    /** Present in collision data but intentionally omitted from rendering. */
+    renderRole?: 'tactical-only';
+  }>;
   /** Interior wall envelope, meters (see ChunkData.sites.wallWidthM). */
   wallWidthM?: number;
   wallDepthM?: number;
@@ -304,6 +333,9 @@ export interface ChunkSite {
   /** Interior envelope in PLAN FEET (blueprint frame) — occupant station frame. */
   interiorWidthFt?: number;
   interiorDepthFt?: number;
+  /** Optional stable plan origin for one-sided structural extensions. */
+  interiorOriginXFt?: number;
+  interiorOriginYFt?: number;
   /** Solved roof group, site-local meters (see ChunkData.sites.solvedRoof).
    *  When set, the renderer draws it and skips the legacy roof prism. */
   solvedRoof?: { positions: Float32Array; indices: Uint32Array; normals: Float32Array; colorHex: string };
@@ -385,4 +417,3 @@ export interface LoadedChunk {
   bundle: ChunkMeshBundle;
   lod: LodTier;
 }
-

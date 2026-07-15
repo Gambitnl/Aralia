@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 14/07/2026, 22:01:48
+ * Dependents: systems/worldforge/interior/blueprintTypes.ts, systems/worldforge/interior/buildingExtensions.ts, systems/worldforge/interior/buildingHistory.ts, systems/worldforge/interior/generateBuilding.ts, systems/worldforge/interior/partition.ts, systems/worldforge/interior/roofPlan.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file footprint.ts — irregular building footprints on the 5 ft cell grid.
  *
@@ -11,7 +27,7 @@
  *
  * Pure data — no three.js, no rendering concerns.
  */
-import type { BuildingType, Cell } from './blueprintTypes';
+import type { BuildingLotProfile, BuildingType, Cell } from './blueprintTypes';
 import { rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import type { SeededRandom } from '../../../utils/random/seededRandom';
 
@@ -21,6 +37,8 @@ export interface FootprintMass {
   kind: MassKind;
   /** Post-normalize cell coords (same frame as Footprint.cells). */
   x: number; y: number; w: number; h: number;
+  /** Ordered event that introduced this mass; absent on canonical generation. */
+  extensionEventIndex?: number;
 }
 
 export interface Footprint {
@@ -124,6 +142,96 @@ function occupiedSet(rects: Rect[]): Set<string> {
     }
   }
   return occupied;
+}
+
+/** Rasterize an exact mass recipe into the canonical normalized footprint. */
+function rasterizeMasses(rects: KindedRect[]): Footprint {
+  const occupied = occupiedSet(rects);
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const key of occupied) {
+    const [x, y] = key.split(',').map(Number);
+    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+  }
+  const cols = maxX - minX + 1;
+  const rows = maxY - minY + 1;
+  const occ: boolean[][] = Array.from({ length: rows }, () =>
+    new Array<boolean>(cols).fill(false),
+  );
+  const cells: Cell[] = [];
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (occupied.has(`${x + minX},${y + minY}`)) {
+        occ[y][x] = true;
+        cells.push({ cx: x, cy: y });
+      }
+    }
+  }
+  const masses: FootprintMass[] = rects.map((rect) => ({
+    kind: rect.kind,
+    x: rect.x - minX,
+    y: rect.y - minY,
+    w: rect.w,
+    h: rect.h,
+  }));
+  return { cols, rows, occ, cells, masses };
+}
+
+/**
+ * Build directly inside a town-negotiated lot. The street-facing main mass
+ * fills the frontage. Returns extend only on their named side, while a rear
+ * court keeps both party-wall columns complete and removes only the rear
+ * center. Small lots degrade to a full envelope rather than producing a
+ * disconnected or one-cell decorative appendage.
+ */
+export function footprintForLotProfile(
+  profile: BuildingLotProfile,
+  maxCols: number,
+  maxRows: number,
+): Footprint {
+  const cols = Math.max(1, Math.floor(maxCols));
+  const rows = Math.max(1, Math.floor(maxRows));
+  const full = (): Footprint => rasterizeMasses([
+    { kind: 'main', x: 0, y: 0, w: cols, h: rows },
+  ]);
+  if (profile === 'full-envelope' || cols < 3 || rows < 3) return full();
+
+  const frontRows = Math.max(2, rows - 2);
+  const returnRows = rows - frontRows + 1;
+  const returnWidth = Math.max(2, Math.min(cols - 1, Math.ceil(cols * 0.4)));
+  const main: KindedRect = { kind: 'main', x: 0, y: 0, w: cols, h: frontRows };
+  if (profile === 'left-return') {
+    return rasterizeMasses([
+      main,
+      { kind: 'wing', x: 0, y: frontRows - 1, w: returnWidth, h: returnRows },
+    ]);
+  }
+  if (profile === 'right-return') {
+    return rasterizeMasses([
+      main,
+      {
+        kind: 'wing',
+        x: cols - returnWidth,
+        y: frontRows - 1,
+        w: returnWidth,
+        h: returnRows,
+      },
+    ]);
+  }
+  // A three-cell-wide urban lot can still preserve both shared side runs with
+  // one 5 ft rear bay on each side and an open rear-center cell.
+  const sideWidth = Math.max(1, Math.min(Math.floor((cols - 1) / 2), returnWidth));
+  return rasterizeMasses([
+    main,
+    { kind: 'wing', x: 0, y: frontRows - 1, w: sideWidth, h: returnRows },
+    {
+      kind: 'wing',
+      x: cols - sideWidth,
+      y: frontRows - 1,
+      w: sideWidth,
+      h: returnRows,
+    },
+  ]);
 }
 
 const MAX_SHAPE_ATTEMPTS = 16;
@@ -299,35 +407,5 @@ export function genFootprint(path: SeedPath, type: BuildingType): Footprint {
     rects.push({ kind: 'wing', ...rollWing(rng, main) });
   }
 
-  // Rasterize + normalize so the min occupied cell is (0,0).
-  const occupied = occupiedSet(rects);
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (const key of occupied) {
-    const [x, y] = key.split(',').map(Number);
-    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
-    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
-  }
-  const cols = maxX - minX + 1;
-  const rows = maxY - minY + 1;
-  const occ: boolean[][] = Array.from({ length: rows }, () =>
-    new Array<boolean>(cols).fill(false),
-  );
-  const cells: Cell[] = [];
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      if (occupied.has(`${x + minX},${y + minY}`)) {
-        occ[y][x] = true;
-        cells.push({ cx: x, cy: y });
-      }
-    }
-  }
-  // Apply the same min-cell offset to every rect (post-normalize frame).
-  const masses: FootprintMass[] = rects.map((r) => ({
-    kind: r.kind,
-    x: r.x - minX,
-    y: r.y - minY,
-    w: r.w,
-    h: r.h,
-  }));
-  return { cols, rows, occ, cells, masses };
+  return rasterizeMasses(rects);
 }

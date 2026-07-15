@@ -11,7 +11,11 @@
 import { describe, it, expect } from 'vitest';
 import { runWorldGen } from '../worldGenCore';
 import { getBridgeAtlas, getWorldforgeLocalForCell } from '@/systems/worldforge/bridge/legacySubmapBridge';
-import { makeGroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
+import {
+  canonicalArtifactTownForSite,
+  makeGroundWorld,
+} from '@/systems/worldforge/bridge/groundChunkLoader';
+import { HISTORY_PART_TAG } from '@/systems/worldforge/bridge/interiorParts';
 import { listSelectableTowns } from '@/systems/worldforge/local/startTowns';
 import { findCellAtPoint } from '@/components/Worldforge/atlasSvg';
 
@@ -28,7 +32,24 @@ function portRequest(seed: number): { wfSeed: number; entryCellId: number; cente
 
 describe('runWorldGen (worker core)', () => {
   it('emits Stage A (ground without props + local + region), then Stage B (props)', async () => {
-    const req = portRequest(42);
+    const baseReq = portRequest(42);
+    const resolved = getWorldforgeLocalForCell(baseReq.wfSeed, baseReq.entryCellId, {
+      centerPx: baseReq.centerPx,
+    });
+    const site = resolved.region!.townSites[0];
+    const plot = canonicalArtifactTownForSite(baseReq.wfSeed, site).plan.plots[0];
+    const req = {
+      ...baseReq,
+      buildingEventLogs: {
+        [site.burgId]: {
+          [plot.id]: [{
+            day: 12,
+            kind: 'fire-damage' as const,
+            payload: { incidentId: 'worker-proof-fire', severity: 3 as const },
+          }],
+        },
+      },
+    };
 
     let stageA: Parameters<Parameters<typeof runWorldGen>[1]['emitStageA']>[0] | null = null;
     let stageB: Parameters<Parameters<typeof runWorldGen>[1]['emitStageB']>[0] | null = null;
@@ -54,11 +75,17 @@ describe('runWorldGen (worker core)', () => {
     expect(stageA!.local).toBeTruthy();
     expect(stageA!.region).toBeTruthy();
 
+    // The compact save-side log crossed the worker request and reached the
+    // exact burg/plot building, where replay produced tagged visual evidence.
+    const damaged = stageA!.ground.buildings.find((building) =>
+      building.id === `wf-plot-${site.burgId}-${plot.id}`);
+    expect(damaged).toBeDefined();
+    expect(damaged!.parts.some((part) =>
+      part.tag === HISTORY_PART_TAG && part.historyKind === 'scorched-room')).toBe(true);
+
     // Stage B props equal a full main-thread build's props (name-fallback
     // invariant: the worker has no registered businesses, yet matches).
-    const { local, region } = getWorldforgeLocalForCell(req.wfSeed, req.entryCellId, {
-      centerPx: req.centerPx,
-    });
+    const { local, region } = resolved;
     const full = makeGroundWorld(local, req.wfSeed, region, { hour: req.hour });
     expect(stageB!).toEqual(full.props);
     expect(stageB!.length).toBeGreaterThan(0);

@@ -35,6 +35,69 @@ describe('TownPlanView', () => {
     expect(container.querySelectorAll('[data-testid="town-farmstead"]').length).toBe(plan.farmsteads.length);
   });
 
+  it('exposes coherent row, courtyard, and arcade contracts on building paths', () => {
+    const plan = generateTownPlan(footprint, rootSeedPath(1420), { population: 12_000 });
+    const { container } = render(
+      <TownPlanView
+        plan={plan}
+        width={600}
+        height={400}
+        styleFamily={STYLE_FAMILIES.riverHalfTimber}
+      />,
+    );
+    const buildings = Array.from(container.querySelectorAll<SVGPathElement>(
+      '[data-building-ensemble-kind]',
+    ));
+
+    expect(buildings).toHaveLength(plan.wards.flatMap((ward) => ward.plots).length);
+    expect(buildings.some((building) =>
+      building.dataset.buildingEnsembleKind === 'market-arcade')).toBe(true);
+    expect(buildings.some((building) =>
+      building.dataset.buildingEnsembleKind === 'row')).toBe(true);
+    for (const blockKey of new Set(buildings.map((building) =>
+      building.dataset.buildingEnsembleBlockKey))) {
+      const block = buildings.filter((building) =>
+        building.dataset.buildingEnsembleBlockKey === blockKey);
+      expect(new Set(block.map((building) =>
+        building.dataset.buildingEnsembleSignature)).size).toBe(1);
+      expect(new Set(block.map((building) =>
+        building.dataset.buildingEnsembleEaveStoreys)).size).toBe(1);
+      const kind = block[0]?.dataset.buildingEnsembleKind;
+      if (kind === 'row' || kind === 'market-arcade') {
+        expect(new Set(block.map((building) =>
+          building.dataset.architectureRoofForm)).size).toBe(1);
+        expect(new Set(block.map((building) =>
+          building.dataset.architecturePitchScale)).size).toBe(1);
+        expect(new Set(block.map((building) =>
+          building.dataset.architectureEaveOffsetFt)).size).toBe(1);
+        if (block.length > 1) {
+          expect(new Set(block.map((building) =>
+            building.dataset.architectureBuildingVariant)).size).toBe(block.length);
+        }
+      }
+    }
+  });
+
+  it('renders each canonical shared court with district and amenity evidence', () => {
+    const plan = generateTownPlan(footprint, rootSeedPath(1420), { population: 12_000 });
+    const { container } = render(
+      <TownPlanView plan={plan} width={600} height={400} />,
+    );
+    const courts = Array.from(container.querySelectorAll<SVGGElement>(
+      '[data-testid="town-courtyard"]',
+    ));
+
+    expect(plan.courtyards.length).toBeGreaterThan(0);
+    expect(courts).toHaveLength(plan.courtyards.length);
+    for (const court of courts) {
+      expect(court.dataset.courtyardBlockKey).toMatch(/^ward:/);
+      expect(court.dataset.courtyardDistrictKey).toBeTruthy();
+      expect(['well', 'wash-yard', 'work-yard', 'garden'])
+        .toContain(court.dataset.courtyardAmenity);
+      expect(court.dataset.courtyardSignature).toMatch(/^court-/);
+    }
+  });
+
   it('accepts a seedPath and renders without crashing (household naming wiring)', () => {
     // Hover-driven household naming needs real layout (jsdom has none), so the
     // household content itself is covered by household.test.ts + the headless proof.
@@ -130,6 +193,50 @@ describe('TownPlanView', () => {
       expect(new Set(districtBuildings.map(
         (building) => building.dataset.architectureFacadePattern,
       )).size).toBeLessThanOrEqual(2);
+      expect(new Set(districtBuildings.map(
+        (building) => building.dataset.architectureConstructionSignature,
+      )).size).toBe(1);
+      expect(new Set(districtBuildings.map(
+        (building) => building.dataset.architectureConstructionKit,
+      )).size).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it('exposes district-coherent weathering with age and lot-level variation', () => {
+    const plan = generateTownPlan(footprint, rootSeedPath(142), { population: 4000 });
+    const { container } = render(
+      <TownPlanView
+        plan={plan}
+        width={600}
+        height={400}
+        styleFamily={STYLE_FAMILIES.roughLog}
+        settlementKey="burg:31"
+        climate="arid"
+      />,
+    );
+    const buildings = Array.from(
+      container.querySelectorAll<SVGPathElement>('[data-building-weathering-signature]'),
+    );
+
+    expect(buildings.length).toBeGreaterThan(0);
+    expect(new Set(buildings.map((building) =>
+      building.dataset.buildingWeatheringVariant)).size).toBe(buildings.length);
+    expect(new Set(buildings.map((building) =>
+      building.dataset.buildingWeatheringIntensity)).size).toBeGreaterThan(1);
+
+    // Every weathered building in this dry town uses the same climate-compatible
+    // residue vocabulary, while each district retains its own signature.
+    const weathered = buildings.filter((building) =>
+      Number(building.dataset.buildingWeatheringIntensity) > 0);
+    expect(weathered.length).toBeGreaterThan(0);
+    expect(new Set(weathered.map((building) =>
+      building.dataset.buildingWeatheringWallPatina))).toEqual(new Set(['dust-veil']));
+    for (const districtKey of new Set(buildings.map((building) =>
+      building.dataset.architectureDistrictKey))) {
+      const district = buildings.filter((building) =>
+        building.dataset.architectureDistrictKey === districtKey);
+      expect(new Set(district.map((building) =>
+        building.dataset.buildingWeatheringSignature)).size).toBe(1);
     }
   });
 
@@ -203,8 +310,26 @@ describe('TownPlanView', () => {
       .toBe(artifactPlot.architecture!.districtSignature);
     expect(mapPlot.dataset.architectureBuildingVariant)
       .toBe(artifactPlot.architecture!.buildingVariant);
+    expect(mapPlot.dataset.buildingAgeBand)
+      .toBe(artifactPlot.architecture!.ageBand);
     expect(mapPlot.dataset.architectureFacadePattern)
       .toBe(artifactPlot.architecture!.facadePattern);
+    expect(mapPlot.dataset.architectureConstructionKit)
+      .toBe(artifactPlot.architecture!.construction.kitId);
+    expect(mapPlot.dataset.architectureConstructionSignature)
+      .toBe(artifactPlot.architecture!.construction.constructionSignature);
+    expect(mapPlot.dataset.architectureWallMaterial)
+      .toBe(artifactPlot.architecture!.construction.wallMaterial);
+    expect(mapPlot.dataset.architectureRoofCovering)
+      .toBe(artifactPlot.architecture!.construction.roofCovering);
+    expect(mapPlot.dataset.architectureFoundation)
+      .toBe(artifactPlot.architecture!.construction.foundation);
+    expect(mapPlot.dataset.architectureGlazing)
+      .toBe(artifactPlot.architecture!.construction.glazing);
+    expect(mapPlot.dataset.architectureShutters)
+      .toBe(artifactPlot.architecture!.construction.shutters);
+    expect(mapPlot.dataset.architectureOrnamentKit)
+      .toBe(artifactPlot.architecture!.construction.ornamentKit);
     expect(mapPlot.dataset.architectureRoofForm).toBe(artifactPlot.roofForm);
     expect(mapPlot.dataset.architectureWallColor).toBe(artifactPlot.wallColorHex);
     expect(mapPlot.dataset.architectureRoofColor).toBe(artifactPlot.roofColorHex);

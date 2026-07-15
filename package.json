@@ -6,8 +6,13 @@
   "scripts": {
     "dev": "vite",
     "agora": "node tools/agora/server.mjs",
+    "sync": "node tools/agora/sync-surfaces.mjs",
+    "sync:dry": "node tools/agora/sync-surfaces.mjs --dry-run",
     "orchestrate": "node tools/agora/orchestrate.mjs",
     "groq-proxy": "node tools/groq-proxy/proxy.mjs",
+    "jules:manifest": "node scripts/jules/manifest.mjs",
+    "jules:run": "node scripts/jules/run-batch.mjs",
+    "jules:fetch": "node scripts/jules/fetch-icons.mjs",
     "clean": "rimraf dist",
     "tidy-up": "bash ./scripts/tidy-up.sh standard",
     "tidy-up:light": "bash ./scripts/tidy-up.sh light",

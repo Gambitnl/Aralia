@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { rootSeedPath } from '../../seedPath';
-import { clampFootprint, genFootprint } from '../footprint';
+import { clampFootprint, footprintForLotProfile, genFootprint } from '../footprint';
 import type { BuildingType } from '../blueprintTypes';
 
 const shapeOf = (type: any, seed: number) =>
@@ -80,5 +80,32 @@ describe('genFootprint', () => {
       expect(m.x).toBeGreaterThanOrEqual(0);
       expect(m.x + m.w).toBeLessThanOrEqual(clamped.cols);
     }
+  });
+});
+
+describe('footprintForLotProfile', () => {
+  it('fills the negotiated envelope while keeping attached side runs complete', () => {
+    const full = footprintForLotProfile('full-envelope', 8, 7);
+    const court = footprintForLotProfile('rear-court', 8, 7);
+    const left = footprintForLotProfile('left-return', 8, 7);
+    const right = footprintForLotProfile('right-return', 8, 7);
+
+    for (const fp of [full, court, left, right]) {
+      expect([fp.cols, fp.rows]).toEqual([8, 7]);
+      expect(fp.occ[0].every(Boolean)).toBe(true);
+      expect(fp.masses[0].kind).toBe('main');
+    }
+    expect(court.occ.every((row) => row[0] && row[7])).toBe(true);
+    expect(left.occ.every((row) => row[0])).toBe(true);
+    expect(right.occ.every((row) => row[7])).toBe(true);
+    expect(court.cells.length).toBeLessThan(full.cells.length);
+    expect(left.cells.length).toBeLessThan(full.cells.length);
+  });
+
+  it('uses a one-cell rear opening on the smallest viable rear court', () => {
+    const compact = footprintForLotProfile('rear-court', 3, 3);
+    expect(compact.cells).toHaveLength(8);
+    expect(compact.occ[2]).toEqual([true, false, true]);
+    expect(compact.occ.every((row) => row[0] && row[2])).toBe(true);
   });
 });

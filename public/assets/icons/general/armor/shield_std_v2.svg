@@ -1,0 +1,39 @@
+<svg width="128" height="128" viewBox="0 0 128 128" color="#94A3B8" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <!-- D&D Standard Shield: Classic heater shield with reinforced steel rim, corner brackets, and a heavy center boss -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Main shield board -->
+    <path d="M24,20 C54,20 64,12 64,12 C64,12 74,20 104,20 C104,56 94,92 64,116 C34,92 24,56 24,20 Z" stroke-width="3" fill="currentColor" fill-opacity="0.1"/>
+    
+    <!-- Inner steel reinforcing border -->
+    <path d="M28,24 C52,24 64,17 64,17 C64,17 76,24 100,24 C100,54 90,88 64,110 C38,88 28,54 28,24 Z" stroke-width="1.5"/>
+
+    <!-- Center vertical crease line -->
+    <path d="M64,12 L64,116" stroke-width="2.5"/>
+
+    <!-- Corner bracket reinforcements -->
+    <path d="M24,20 L36,24 M104,20 L92,24 M64,116 L64,102" stroke-width="3"/>
+    
+    <!-- Bolted studs along the rim -->
+    <circle cx="34" cy="30" r="2.5" fill="currentColor" stroke="none"/>
+    <circle cx="48" cy="27" r="2.5" fill="currentColor" stroke="none"/>
+    <circle cx="80" cy="27" r="2.5" fill="currentColor" stroke="none"/>
+    <circle cx="94" cy="30" r="2.5" fill="currentColor" stroke="none"/>
+    <circle cx="32" cy="50" r="2.5" fill="currentColor" stroke="none"/>
+    <circle cx="96" cy="50" r="2.5" fill="currentColor" stroke="none"/>
+    <circle cx="38" cy="70" r="2.5" fill="currentColor" stroke="none"/>
+    <circle cx="90" cy="70" r="2.5" fill="currentColor" stroke="none"/>
+    <circle cx="50" cy="94" r="2.5" fill="currentColor" stroke="none"/>
+    <circle cx="78" cy="94" r="2.5" fill="currentColor" stroke="none"/>
+
+    <!-- Central steel boss (rounded dome) -->
+    <circle cx="64" cy="54" r="14" stroke-width="2" fill="currentColor" fill-opacity="0.2"/>
+    <circle cx="64" cy="54" r="7" stroke-width="1.5"/>
+    <circle cx="64" cy="54" r="1.5" fill="currentColor"/>
+    
+    <!-- Screws/bolts mounting the boss -->
+    <circle cx="64" cy="44" r="1.5" fill="currentColor" stroke="none"/>
+    <circle cx="64" cy="64" r="1.5" fill="currentColor" stroke="none"/>
+    <circle cx="54" cy="54" r="1.5" fill="currentColor" stroke="none"/>
+    <circle cx="74" cy="54" r="1.5" fill="currentColor" stroke="none"/>
+  </g>
+</svg>

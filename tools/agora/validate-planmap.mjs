@@ -17,7 +17,11 @@ import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '..', '..');
-const file = path.join(repo, 'public', 'planmap', 'topics.json');
+// --file <path> overrides the default map location (tests validate fixtures).
+const fileFlagIdx = process.argv.indexOf('--file');
+const file = fileFlagIdx >= 0 && process.argv[fileFlagIdx + 1]
+  ? path.resolve(process.argv[fileFlagIdx + 1])
+  : path.join(repo, 'public', 'planmap', 'topics.json');
 
 const STATUSES = new Set(['parked', 'specced', 'active', 'done', 'superseded']);
 const KINDS = new Set(['hard', 'chosen']);
@@ -53,9 +57,15 @@ function checkHistory(where, h) {
     warn(`${where}: history.designed (${h.designed}) is after history.built (${h.built})`);
 }
 
+const TIERS = new Set(['strategic', 'component']);
+
 for (const t of topics) {
   const where = `topic "${t.id ?? t.title ?? '?'}"`;
   checkHistory(where, t.history);
+  // Freshness fields (2026-07-14 design): tooling-written, optional everywhere.
+  if (t.updated !== undefined && !DATE_RE.test(t.updated)) warn(`${where}: "updated" must be YYYY-MM-DD`);
+  if (t.tier !== undefined && !TIERS.has(t.tier)) warn(`${where}: "tier" must be strategic|component`);
+  if (t.status_note !== undefined && typeof t.status_note !== 'string') warn(`${where}: "status_note" must be a string`);
   if (!t.id) warn(`${where}: missing id`);
   else if (!ID_RE.test(t.id)) warn(`${where}: id violates pattern ^[a-z0-9][a-z0-9-]*$ (breaks planmap:<id>/<slug> refs and the viewer)`);
   else if (ids.has(t.id)) warn(`duplicate topic id "${t.id}"`);
@@ -82,6 +92,8 @@ for (const t of topics) {
     if (!f.title) warn(`${where}: feature missing title`);
     if (!STATUSES.has(f.status)) warn(`${where} / "${f.title}": invalid status "${f.status}"`);
     if (f.status === 'superseded' && !f.killed) warn(`${where} / "${f.title}": superseded but no "killed" reason`);
+    if (f.status_note !== undefined && typeof f.status_note !== 'string') warn(`${where} / "${f.title}": "status_note" must be a string`);
+    if (f.decision !== undefined && typeof f.decision !== 'boolean') warn(`${where} / "${f.title}": "decision" must be boolean (true = waiting on a human call)`);
     if (f.open != null && (!Number.isInteger(f.open) || f.open < 0)) warn(`${where} / "${f.title}": "open" must be an integer >= 0 (got ${JSON.stringify(f.open)})`);
     if (f.spike != null && typeof f.spike !== 'boolean') warn(`${where} / "${f.title}": "spike" must be boolean`);
     if (f.parallel != null && typeof f.parallel !== 'boolean') warn(`${where} / "${f.title}": "parallel" must be boolean`);

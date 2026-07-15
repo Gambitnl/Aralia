@@ -1,0 +1,46 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="gradRed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCA5A5" />
+      <stop offset="50%" stop-color="#F87171" />
+      <stop offset="100%" stop-color="#991B1B" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background shadow for contrast -->
+  <circle cx="50" cy="50" r="45" fill="#1a1a1a" opacity="0.5" />
+
+  <!-- The Hand/Gesture -->
+  <g filter="url(#glow)">
+    <!-- Palm and Wrist -->
+    <path d="M35 80 Q40 70 45 65 L55 65 Q60 70 65 80" stroke="#4B5563" stroke-width="3" fill="none" stroke-linecap="round" />
+    
+    <!-- Fingers in a grasping/reaching pose -->
+    <path d="M45 65 C40 50 35 45 30 40" stroke="#F87171" stroke-width="4" fill="none" stroke-linecap="round" /> <!-- Pinky -->
+    <path d="M50 62 C48 45 45 40 42 35" stroke="#FCA5A5" stroke-width="4" fill="none" stroke-linecap="round" /> <!-- Ring -->
+    <path d="M55 62 C55 45 58 40 62 32" stroke="#F87171" stroke-width="4" fill="none" stroke-linecap="round" /> <!-- Middle -->
+    <path d="M60 65 C65 55 70 50 75 45" stroke="#FCA5A5" stroke-width="4" fill="none" stroke-linecap="round" /> <!-- Index -->
+    
+    <!-- Thumb -->
+    <path d="M45 65 Q35 60 30 55" stroke="#F87171" stroke-width="4" fill="none" stroke-linecap="round" />
+
+    <!-- Electrical Discharge originating from fingertips -->
+    <path d="M42 35 L45 25 L38 22 L43 12" stroke="#FCA5A5" stroke-width="2" fill="none" stroke-linejoin="round" />
+    <path d="M62 32 L68 20 L58 18 L65 5" stroke="#FCA5A5" stroke-width="2" fill="none" stroke-linejoin="round" />
+    <path d="M75 45 L85 40 L80 35 L90 30" stroke="#FCA5A5" stroke-width="2" fill="none" stroke-linejoin="round" />
+    
+    <!-- Core Energy Spark in center of palm -->
+    <circle cx="52" cy="58" r="4" fill="#FCA5A5">
+      <animate attributeName="r" values="3;5;3" dur="0.5s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- Arcs connecting fingers to the palm core -->
+    <path d="M42 35 Q50 45 52 58" stroke="#F87171" stroke-width="1.5" fill="none" opacity="0.7" />
+    <path d="M62 32 Q55 45 52 58" stroke="#F87171" stroke-width="1.5" fill="none" opacity="0.7" />
+    <path d="M75 45 Q65 55 52 58" stroke="#F87171" stroke-width="1.5" fill="none" opacity="0.7" />
+  </g>
+</svg>

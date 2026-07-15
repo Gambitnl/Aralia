@@ -46,4 +46,27 @@ describe('generateInterior memoization', () => {
     expect(large).not.toBe(small);
     expect(large.widthFt).toBeGreaterThan(small.widthFt);
   });
+
+  it('does not alias negotiated lot profiles onto a legacy envelope', () => {
+    const baseEnsemble = {
+      blockKey: 'ward:2:edge:1',
+      kind: 'row' as const,
+      partyWallLeft: true,
+      partyWallRight: true,
+      eaveStoreys: 2 as const,
+      ensembleSignature: 'memo-lot-proof',
+    };
+    const legacy = generateInterior(house({ id: 12, ensemble: baseEnsemble }), SEED_PATH);
+    const negotiated = generateInterior(house({
+      id: 12,
+      ensemble: {
+        ...baseEnsemble,
+        lotProfile: 'rear-court',
+        lotSignature: 'memo-rear-court',
+      },
+    }), SEED_PATH);
+
+    expect(negotiated).not.toBe(legacy);
+    expect(negotiated.rooms).not.toEqual(legacy.rooms);
+  });
 });

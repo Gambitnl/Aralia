@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 14/07/2026, 23:19:30
+ * Dependents: components/BattleMap/groundPainter.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file groundPainter/paintPipeline.ts
  * The paint pipeline: composes the cached textures and the prop drawers into
@@ -9,7 +25,7 @@
  * unchanged so the art is byte-for-byte identical across the DOM canvas and
  * the PixiJS prototype.
  */
-import type { BattleMapData } from '../../../types/combat';
+import type { BattleMapData, BattleMapTile } from '../../../types/combat';
 import {
   type Ground,
   type CombatBiome,
@@ -46,6 +62,45 @@ export interface PaintGroundOptions {
 }
 
 /**
+ * Decides whether the painter may add visual-only leaves, flowers, saplings,
+ * and loose rocks to otherwise empty tiles.
+ *
+ * Legacy sandbox arenas still need that illustrative filler. A WorldForge map
+ * does not: its placed features and props are authoritative, so extra per-tile
+ * scatter would recreate the "assets sneezed onto the map" problem and make the
+ * picture disagree with the game world.
+ */
+export function shouldPaintAmbientScatter(mapData: BattleMapData): boolean {
+  return mapData.provenance?.kind !== 'worldforge';
+}
+
+export interface CrossingPaintGroup {
+  id: string;
+  kind: NonNullable<BattleMapTile['crossing']>['kind'];
+  cells: BattleMapTile[];
+}
+
+/**
+ * Group only source-authored crossing cells for the over-water paint pass.
+ * Keeping this selection pure gives tests and debug tools a way to prove that
+ * ordinary water cannot acquire plausible bridge art from painter heuristics.
+ */
+export function collectCrossingPaintGroups(mapData: BattleMapData): CrossingPaintGroup[] {
+  const groups = new Map<string, CrossingPaintGroup>();
+  for (const tile of mapData.tiles.values()) {
+    if (!tile.crossing) continue;
+    const group = groups.get(tile.crossing.sourceCrossingId) ?? {
+      id: tile.crossing.sourceCrossingId,
+      kind: tile.crossing.kind,
+      cells: [],
+    };
+    group.cells.push(tile);
+    groups.set(group.id, group);
+  }
+  return [...groups.values()];
+}
+
+/**
  * Paint the complete painted ground onto a 2D context. The caller must have
  * sized the canvas to (W*tileSize*res, H*tileSize*res) and set
  * ctx.setTransform(res,0,0,res,0,0) before calling.
@@ -68,6 +123,7 @@ export function paintGround(
     ? (mapData.theme as CombatBiome)
     : 'forest';
   const indoor = biome === 'cave' || biome === 'dungeon';
+  const paintAmbientScatter = shouldPaintAmbientScatter(mapData);
 
   const grassPat = grass ? ctx.createPattern(grass, 'repeat') : null;
   const dirtPat = dirt ? ctx.createPattern(dirt, 'repeat') : null;
@@ -210,7 +266,10 @@ export function paintGround(
   // squiggles. Drawn BEFORE the per-cell overpaint so water/stone tiles
   // paint over any residue where they overlap. Open-country biomes only:
   // no road crosses a bog, a cave, or a dungeon room.
-  if (dirtPat && (biome === 'forest' || biome === 'desert')) {
+  // Legacy arenas need a painter-authored route to read as a place. A real
+  // location must wait for its source road geometry to reach the referee grid;
+  // drawing a replacement here would hide that missing semantic bridge.
+  if (paintAmbientScatter && dirtPat && (biome === 'forest' || biome === 'desert')) {
     const startY = py * (0.2 + rand(mapSeed, 1, 81) * 0.6);
     const endY = py * (0.2 + rand(mapSeed, 2, 82) * 0.6);
     const segs = Math.max(6, Math.floor(W / 12));
@@ -606,6 +665,58 @@ export function paintGround(
     }
   });
 
+  // 2b-iii. Source-backed road surface. Unlike the legacy painter route above,
+  // this pass has no route generator and cannot decide where a road belongs.
+  // It only joins referee cells whose WorldForge surface fact says the source
+  // road intersects them. Drawing before water keeps unbridged crossings wet
+  // and visibly blocked instead of manufacturing a plausible-looking ford.
+  const roadCells = Array.from(mapData.tiles.values()).filter((tile) => tile.surface?.kind === 'road');
+  if (roadCells.length > 0) {
+    const roadCellIds = new Set(roadCells.map((tile) => tile.id));
+    const traceRoadCellUnion = (): void => {
+      ctx.beginPath();
+      for (const tile of roadCells) {
+        const x = (tile.coordinates.x + 0.5) * tileSize;
+        const y = (tile.coordinates.y + 0.5) * tileSize;
+
+        // A zero-length rounded segment paints isolated cells, while east and
+        // south links join the rasterized footprint without double tracing.
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + 0.01, y);
+        if (roadCellIds.has(`${tile.coordinates.x + 1}-${tile.coordinates.y}`)) {
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + tileSize, y);
+        }
+        if (roadCellIds.has(`${tile.coordinates.x}-${tile.coordinates.y + 1}`)) {
+          ctx.moveTo(x, y);
+          ctx.lineTo(x, y + tileSize);
+        }
+      }
+    };
+
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    traceRoadCellUnion();
+    ctx.strokeStyle = 'rgba(38,28,17,0.42)';
+    ctx.lineWidth = tileSize * 1.32;
+    ctx.stroke();
+
+    traceRoadCellUnion();
+    ctx.strokeStyle = dirtPat ?? '#72563a';
+    ctx.lineWidth = tileSize * 1.12;
+    ctx.stroke();
+
+    traceRoadCellUnion();
+    ctx.strokeStyle = biome === 'desert'
+      ? 'rgba(224,194,137,0.38)'
+      : 'rgba(157,122,76,0.32)';
+    ctx.lineWidth = tileSize;
+    ctx.stroke();
+    ctx.restore();
+  }
+
   // 2c. Waterline pipeline (look reference: gozzys.com wilderness maps).
   // The bank must wiggle at SUB-tile scale — smooth geometry of any kind
   // (squares, rounded squares, circle unions) reads as artificial. So: build
@@ -891,7 +1002,7 @@ export function paintGround(
       // Shore growth: clumps of bushes and reeds hugging the land side of
       // the waterline, overhanging the edge like the reference maps. Frozen
       // ponds and lava get no growth — nothing lives on those banks.
-      if (wl.shore !== 'none') mapData.tiles.forEach((tile) => {
+      if (paintAmbientScatter && wl.shore !== 'none') mapData.tiles.forEach((tile) => {
         if (terrainToGround(tile.terrain) !== 'water') return;
         const tx = tile.coordinates.x;
         const ty = tile.coordinates.y;
@@ -924,7 +1035,7 @@ export function paintGround(
       // Lily pads floating on shore-touching water (painted decals, drawn
       // over the composited water so they sit ON the surface).
       const lilySprites = biome === 'forest' ? textures.pack : null;
-      if (lilySprites) {
+      if (paintAmbientScatter && lilySprites) {
         mapData.tiles.forEach((tile) => {
           if (terrainToGround(tile.terrain) !== 'water') return;
           const tx = tile.coordinates.x;
@@ -948,11 +1059,162 @@ export function paintGround(
     }
   }
 
+  // 2c-ii. Source-backed crossings sit above the completed water layer. The
+  // painter groups their referee cells into one joined footprint, but it never
+  // chooses a crossing location or changes movement rules; both come from the
+  // Region crossing receipt carried on each tile.
+  for (const group of collectCrossingPaintGroups(mapData)) {
+    const cellIds = new Set(group.cells.map((tile) => tile.id));
+    const traceCellUnion = (): void => {
+      ctx.beginPath();
+      for (const tile of group.cells) {
+        const x = (tile.coordinates.x + 0.5) * tileSize;
+        const y = (tile.coordinates.y + 0.5) * tileSize;
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + 0.01, y);
+        if (cellIds.has(`${tile.coordinates.x + 1}-${tile.coordinates.y}`)) {
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + tileSize, y);
+        }
+        if (cellIds.has(`${tile.coordinates.x}-${tile.coordinates.y + 1}`)) {
+          ctx.moveTo(x, y);
+          ctx.lineTo(x, y + tileSize);
+        }
+      }
+    };
+
+    ctx.save();
+    ctx.lineCap = 'square';
+    ctx.lineJoin = 'round';
+    if (group.kind === 'bridge') {
+      const crossing = group.cells[0].crossing!;
+      const directionLength = Math.hypot(
+        crossing.roadDirection.x,
+        crossing.roadDirection.y,
+      ) || 1;
+      const direction = {
+        x: crossing.roadDirection.x / directionLength,
+        y: crossing.roadDirection.y / directionLength,
+      };
+      const sourceAnchor = mapData.provenance?.anchorWorldMeters;
+      const center = sourceAnchor
+        ? {
+            x: (Math.floor(W / 2)
+              + (crossing.centerWorldMeters.x - sourceAnchor.x) / 1.524) * tileSize,
+            y: (Math.floor(H / 2)
+              + (crossing.centerWorldMeters.z - sourceAnchor.z) / 1.524) * tileSize,
+          }
+        : {
+            // Legacy/test maps may omit provenance. The crossing cells remain
+            // authoritative; their centroid is the least-assumptive fallback.
+            x: group.cells.reduce((sum, tile) => sum + tile.coordinates.x + 0.5, 0)
+              / group.cells.length * tileSize,
+            y: group.cells.reduce((sum, tile) => sum + tile.coordinates.y + 0.5, 0)
+              / group.cells.length * tileSize,
+          };
+      const spanPx = crossing.spanMeters / 1.524 * tileSize;
+      const widthPx = crossing.widthMeters / 1.524 * tileSize;
+      const halfSpan = spanPx / 2;
+      const halfWidth = widthPx / 2;
+
+      // Draw one oriented construction span from the source dimensions. This
+      // removes the stair-step silhouette that the referee-cell union produced
+      // while leaving collision and movement on those exact cells unchanged.
+      ctx.translate(center.x, center.y);
+      ctx.rotate(Math.atan2(direction.y, direction.x));
+      ctx.shadowColor = 'rgba(8,5,3,0.62)';
+      ctx.shadowBlur = tileSize * 0.18;
+      ctx.shadowOffsetY = tileSize * 0.12;
+      ctx.fillStyle = '#292720';
+      ctx.fillRect(-halfSpan - 2, -halfWidth - 2, spanPx + 4, widthPx + 4);
+      ctx.shadowColor = 'transparent';
+
+      const deckGradient = ctx.createLinearGradient(0, -halfWidth, 0, halfWidth);
+      deckGradient.addColorStop(0, '#5b574e');
+      deckGradient.addColorStop(0.18, '#716b5f');
+      deckGradient.addColorStop(0.5, '#797265');
+      deckGradient.addColorStop(0.82, '#6c665b');
+      deckGradient.addColorStop(1, '#514d45');
+      ctx.fillStyle = deckGradient;
+      ctx.fillRect(-halfSpan, -halfWidth, spanPx, widthPx);
+
+      // World3D already treats Ground decks as town masonry. Repeating joints
+      // and restrained value changes keep this view materially consistent and
+      // flat, avoiding the false rounded-log read of a strong wood gradient.
+      ctx.strokeStyle = 'rgba(38,36,32,0.42)';
+      ctx.lineWidth = 1;
+      for (let x = -halfSpan + tileSize * 0.7; x < halfSpan; x += tileSize * 1.4) {
+        ctx.beginPath();
+        ctx.moveTo(x, -halfWidth + 2);
+        ctx.lineTo(x, halfWidth - 2);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = 'rgba(198,190,170,0.12)';
+      for (const lane of [-0.3, 0, 0.3]) {
+        ctx.beginPath();
+        ctx.moveTo(-halfSpan, widthPx * lane);
+        ctx.lineTo(halfSpan, widthPx * lane);
+        ctx.stroke();
+      }
+
+      // Parallel rails and regular posts give the deck a readable constructed
+      // edge instead of allowing its broad route width to resemble floor paint.
+      for (const side of [-1, 1]) {
+        const railY = side * (halfWidth - Math.max(2, tileSize * 0.08));
+        ctx.strokeStyle = '#34322d';
+        ctx.lineWidth = Math.max(3, tileSize * 0.18);
+        ctx.beginPath();
+        ctx.moveTo(-halfSpan, railY);
+        ctx.lineTo(halfSpan, railY);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(184,178,160,0.35)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-halfSpan, railY - side * tileSize * 0.08);
+        ctx.lineTo(halfSpan, railY - side * tileSize * 0.08);
+        ctx.stroke();
+        ctx.fillStyle = '#45423b';
+        for (let x = -halfSpan; x <= halfSpan; x += tileSize * 3.5) {
+          ctx.fillRect(
+            x - tileSize * 0.08,
+            railY - tileSize * 0.2,
+            tileSize * 0.16,
+            tileSize * 0.4,
+          );
+        }
+      }
+    } else {
+      // Fords remain visibly wet: a translucent shallow band and irregular
+      // stepping stones communicate difficult terrain rather than a dry deck.
+      traceCellUnion();
+      ctx.strokeStyle = 'rgba(188,166,112,0.42)';
+      ctx.lineWidth = tileSize * 1.02;
+      ctx.stroke();
+      for (const tile of group.cells) {
+        const tx = tile.coordinates.x;
+        const ty = tile.coordinates.y;
+        ctx.fillStyle = 'rgba(104,94,72,0.76)';
+        ctx.beginPath();
+        ctx.ellipse(
+          (tx + 0.34 + rand(tx, ty, 611) * 0.3) * tileSize,
+          (ty + 0.34 + rand(tx, ty, 612) * 0.3) * tileSize,
+          tileSize * (0.13 + rand(tx, ty, 613) * 0.08),
+          tileSize * (0.09 + rand(tx, ty, 614) * 0.05),
+          rand(tx, ty, 615) * Math.PI,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
   // 2d. One rare landmark set-piece per forest map (seeded, about half of
   // maps): standing stones, a toadstool ring, an altar, a sword in the
   // stone, giant mushrooms, or a dragon skeleton. Pure set dressing on open
   // grass — it blocks nothing, it just makes the field a PLACE.
-  if (textures.pack && biome === 'forest' && rand(mapSeed, 8, 381) < 0.55) {
+  if (paintAmbientScatter && textures.pack && biome === 'forest' && rand(mapSeed, 8, 381) < 0.55) {
     // Deterministic search for an open grass tile in the center half.
     let lx = -1;
     let ly = -1;
@@ -994,7 +1256,7 @@ export function paintGround(
   // 2d-ii. One rare landmark set-piece per desert map: a T-rex skeleton
   // bleaching in the sand, a cluster of ruined pillars/slabs, or a genie's
   // lamp/carpet oddity. Same "makes it a PLACE" job as the forest set.
-  if (textures.pack && biome === 'desert' && rand(mapSeed, 8, 441) < 0.5) {
+  if (paintAmbientScatter && textures.pack && biome === 'desert' && rand(mapSeed, 8, 441) < 0.5) {
     let lx = -1;
     let ly = -1;
     for (let tries = 0; tries < 60; tries++) {
@@ -1093,6 +1355,13 @@ export function paintGround(
         break;
       }
       default: {
+        // World-derived maps draw only objects that exist in GroundWorld. The
+        // base texture still carries grass and soil detail, but leaves,
+        // flowers, saplings, and loose rocks are not invented per tile.
+        if (!paintAmbientScatter) {
+          break;
+        }
+
         // Understory scatter, biome by biome. Densities are deliberately
         // high — a battlefield should read as a populated place, not an
         // empty arena.

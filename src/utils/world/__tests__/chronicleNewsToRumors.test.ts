@@ -28,6 +28,7 @@ describe('chronicleNewsToRumors', () => {
       makeNews({ id: 5, kind: 'birth' }),
       makeNews({ id: 6, kind: 'festival' }),
       makeNews({ id: 7, kind: 'marriage' }),
+      makeNews({ id: 8, kind: 'building' }),
     ];
 
     const rumors = chronicleNewsToRumors(news, 100, 'coord_3_4');
@@ -40,6 +41,7 @@ describe('chronicleNewsToRumors', () => {
     expect(byId['chronicle-coord_3_4-5']).toBe('misc'); // birth
     expect(byId['chronicle-coord_3_4-6']).toBe('misc'); // festival
     expect(byId['chronicle-coord_3_4-7']).toBe('misc'); // marriage
+    expect(byId['chronicle-coord_3_4-8']).toBe('event'); // building lifecycle
   });
 
   it('produces stable, unique ids derived from locationId + event id', () => {

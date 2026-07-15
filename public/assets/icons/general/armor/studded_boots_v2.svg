@@ -1,0 +1,43 @@
+<svg width="128" height="128" viewBox="0 0 128 128" color="#94A3B8" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <!-- D&D Studded Boots: Leather riding boots with toe plates, buckles, straps, and studs -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Left Boot Outer Outline -->
+    <path d="M22,25 L46,25 L44,60 L68,88 C74,94 74,98 64,104 L52,104 L32,84 L24,60 Z" stroke-width="2.5" fill="currentColor" fill-opacity="0.1"/>
+    <!-- Right Boot Outer Outline (slightly offset and behind/overlapping) -->
+    <path d="M52,20 L76,20 L74,55 L98,83 C104,89 104,93 94,99 L82,99 L62,79 L54,55 Z" stroke-width="2.5" fill="currentColor" fill-opacity="0.15"/>
+    
+    <!-- Toe plate reinforcement (Right) -->
+    <path d="M94,87 C99,92 98,99 94,99 L84,99 C84,99 87,90 94,87 Z" stroke-width="2" fill="currentColor"/>
+    <!-- Toe plate reinforcement (Left) -->
+    <path d="M64,92 C69,97 68,104 64,104 L54,104 C54,104 57,95 64,92 Z" stroke-width="2" fill="currentColor"/>
+
+    <!-- Boot cuffs -->
+    <path d="M22,25 C22,25 34,28 46,25 C46,25 44,29 44,29 C34,31 22,29 22,29 Z" fill="currentColor"/>
+    <path d="M52,20 C52,20 64,23 76,20 C76,20 74,24 74,24 C64,26 52,24 52,24 Z" fill="currentColor"/>
+
+    <!-- Straps & Buckles (Right) -->
+    <path d="M68,64 L86,72" stroke-width="3"/>
+    <rect x="74" y="65" width="6" height="8" rx="1" fill="currentColor"/>
+    <!-- Straps & Buckles (Left) -->
+    <path d="M38,69 L56,77" stroke-width="3"/>
+    <rect x="44" y="70" width="6" height="8" rx="1" fill="currentColor"/>
+
+    <!-- Stud details along the vertical seams -->
+    <!-- Left Boot Studs -->
+    <circle cx="27" cy="38" r="2" fill="currentColor" stroke="none"/>
+    <circle cx="29" cy="48" r="2" fill="currentColor" stroke="none"/>
+    <circle cx="31" cy="58" r="2" fill="currentColor" stroke="none"/>
+    <circle cx="38" cy="74" r="2" fill="currentColor" stroke="none"/>
+    <circle cx="48" cy="84" r="2" fill="currentColor" stroke="none"/>
+    <!-- Right Boot Studs -->
+    <circle cx="57" cy="33" r="2" fill="currentColor" stroke="none"/>
+    <circle cx="59" cy="43" r="2" fill="currentColor" stroke="none"/>
+    <circle cx="61" cy="53" r="2" fill="currentColor" stroke="none"/>
+    <circle cx="68" cy="69" r="2" fill="currentColor" stroke="none"/>
+    <circle cx="78" cy="79" r="2" fill="currentColor" stroke="none"/>
+
+    <!-- Soles -->
+    <path d="M32,104 L64,104" stroke-width="4"/>
+    <path d="M62,99 L94,99" stroke-width="4"/>
+  </g>
+</svg>

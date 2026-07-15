@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 14/07/2026, 20:29:08
+ * Dependents: systems/worldforge/bridge/groundChunkLoader.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file groundProps.ts — adapter that projects a live GroundWorld onto the prop
  * placement engine's slim `PropPlacementContext`, plus the combat-extraction
@@ -18,6 +34,7 @@ import type {
   CtxBuilding,
   CtxDeck,
   CtxPlaza,
+  CtxCourtyard,
   CtxGatehouse,
   CtxHiddenSite,
 } from '../props/placementEngine';
@@ -119,6 +136,11 @@ export function groundToPlacementContext(
   // covers the market cluster so stalls ring it. No market plots → no plaza.
   const plazas: CtxPlaza[] = buildMarketPlazas(ground);
 
+  // Canonical town-plan courts already live in region feet. Project them with
+  // the same GroundWorld origin as buildings and streets; no geometric guessing
+  // occurs in the prop layer, and legacy plans simply contribute no anchors.
+  const courtyards: CtxCourtyard[] = buildCourtyardAnchors(ground);
+
   // SLICE B — gate/walls: road gatehouses (already carried on GroundWorld) anchor
   // gate dressing; the wall rings ride through as-is for future wall props.
   const gatehouses: CtxGatehouse[] = ground.gatehouses.map((g) => ({
@@ -145,6 +167,7 @@ export function groundToPlacementContext(
     roads: ground.roads.map((r) => ({ points: r.points })),
     decks,
     plazas,
+    courtyards,
     // SLICE B context signals (all from data GroundWorld already carries, except
     // tavern which comes from the optional businesses map above).
     heights: ground.heights,
@@ -153,6 +176,35 @@ export function groundToPlacementContext(
     rivers: ground.rivers.map((r) => ({ points: r.points })),
     hiddenSites,
   };
+}
+
+/** Feet-to-meters conversion shared with the ground loader's town projection. */
+const FEET_TO_METERS = 0.3048;
+
+/** Project canonical artifact courts into window-local ground meters. */
+function buildCourtyardAnchors(ground: GroundWorld): CtxCourtyard[] {
+  if (!ground.townPlans || !ground.boundsFeet) return [];
+  const anchors: CtxCourtyard[] = [];
+  for (const { burgId, plan } of ground.townPlans) {
+    for (const court of plan.courtyards ?? []) {
+      const xM = (court.center[0] - ground.boundsFeet.x) * FEET_TO_METERS;
+      const zM = (court.center[1] - ground.boundsFeet.y) * FEET_TO_METERS;
+      // A town envelope may overlap the window while a particular court does
+      // not. Skip it instead of clamping all its props onto the window border.
+      if (xM < 0 || xM > ground.extentMetersX || zM < 0 || zM > ground.extentMetersZ) continue;
+      anchors.push({
+        id: `burg:${burgId}:${court.id}`,
+        xM,
+        zM,
+        radiusM: court.radiusFt * FEET_TO_METERS,
+        districtKey: court.districtKey,
+        wealth: court.wealth,
+        amenity: court.amenity,
+        courtyardSignature: court.courtyardSignature,
+      });
+    }
+  }
+  return anchors;
 }
 
 /**

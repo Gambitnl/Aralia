@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/06/2026, 14:05:57
+ * Last Sync: 14/07/2026, 23:20:14
  * Dependents: App.tsx
- * Imports: 25 files
+ * Imports: 44 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -71,7 +71,7 @@ import { type SceneCastMember } from './SceneCast';
 import { scheduleClockFromGameTime } from '../../systems/worldforge/roster/gameClock';
 import { GamePhase } from '../../types/core';
 import type { PlayerWorldPosition } from '../../types';
-import type { BattleMapBiome } from '../../types/combat';
+import type { BattleMapBiome, BattleMapData } from '../../types/combat';
 
 /**
  * HOSTILE-1 return-from-combat contract:
@@ -95,6 +95,12 @@ import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
 import type { WorldDelta } from '../../systems/worldforge/delta/types';
 import type { GroundWorld } from '../../systems/worldforge/bridge/groundChunkLoader';
 import type { RegionArtifact } from '../../systems/worldforge/artifacts';
+import type { BuildingEventLogsByBurg } from '../../systems/worldforge/interior/blueprintTypes';
+import {
+  buildingHistoryEventCount,
+  cloneBuildingEventHistory,
+} from '../../systems/worldforge/interior/buildingEventHistory';
+import type { TownSimRegistry } from '../../systems/worldforge/townsim/townSimRegistry';
 import { dungeonNameForEntrance } from '../../systems/worldforge/bridge/dungeonEntrances';
 import { LOCATIONS } from '../../data/world/locations';
 import { getBurgNamer } from '../../systems/worldforge/bridge/legacySubmapBridge';
@@ -160,11 +166,65 @@ const DISPATCH_INTERVAL_MS = POSITION_DISPATCH_INTERVAL_MS;
 /** FPS sampling window in ms. */
 const FPS_SAMPLE_MS = 1000;
 
+/**
+ * Mark a terrain patch as a projection of the live world before combat owns it.
+ * The painter uses this lineage to avoid inventing roads, shoreline props, and
+ * set pieces that are absent from the source GroundWorld. The atlas cell is
+ * optional because legacy grid-addressed sessions can still enter combat while
+ * their canonical cell identity is being migrated.
+ */
+function attachWorldforgeBattleMapProvenance(
+  mapData: BattleMapData,
+  worldSeed: number,
+  anchorCellId: number | undefined,
+  anchorX: number,
+  anchorZ: number,
+): BattleMapData {
+  return {
+    ...mapData,
+    provenance: {
+      kind: 'worldforge',
+      worldSeed,
+      anchorCellId,
+      anchorWorldMeters: { x: anchorX, z: anchorZ },
+      generationPath: ['World', 'Region', 'Local', 'Ground', 'Tactical patch'],
+    },
+  };
+}
+
+/**
+ * Strip the living-town registry down to worker-safe building history only.
+ * Sorted numeric keys make the serialized effect dependency stable when
+ * unrelated villagers, news, or prosperity change.
+ */
+export function compactBuildingEventLogs(
+  registry: TownSimRegistry | undefined,
+): BuildingEventLogsByBurg | undefined {
+  const result: BuildingEventLogsByBurg = {};
+  const burgIds = Object.keys(registry ?? {}).map(Number).sort((a, b) => a - b);
+  for (const burgId of burgIds) {
+    const source = registry?.[burgId]?.buildingEvents;
+    if (!source) continue;
+    const byPlot: BuildingEventLogsByBurg[number] = {};
+    for (const plotId of Object.keys(source).map(Number).sort((a, b) => a - b)) {
+      const events = source[plotId];
+      if (buildingHistoryEventCount(events) === 0) continue;
+      byPlot[plotId] = cloneBuildingEventHistory(events);
+    }
+    if (Object.keys(byPlot).length) result[burgId] = byPlot;
+  }
+  return Object.keys(result).length ? result : undefined;
+}
+
 const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkToNpc }) => {
   const { dispatch, state } = useGameState();
   const { setPosition, position } = usePlayerWorldPos();
   const { setMode } = useWorldViewMode();
   const isDevModeEnabled = state.isDevModeEnabled ?? false;
+  const buildingEventLogJson = useMemo(
+    () => JSON.stringify(compactBuildingEventLogs(state.townSim) ?? {}),
+    [state.townSim],
+  );
 
   // Tracks whether the player is currently exploring the walking-scale Ground Mode (true)
   // or flying above the global-scale Continent Mode (false).
@@ -343,8 +403,16 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
         setWorldGenError(null);
         setWorldGenStage('land');
         client = clientMod.createWorldGenClient();
+        const buildingEventLogs = JSON.parse(buildingEventLogJson) as BuildingEventLogsByBurg;
         client.generate(
-          { wfSeed, entryCellId, centerPx: anchor?.centerPx, hour, deltas },
+          {
+            wfSeed,
+            entryCellId,
+            centerPx: anchor?.centerPx,
+            hour,
+            deltas,
+            ...(Object.keys(buildingEventLogs).length ? { buildingEventLogs } : {}),
+          },
           {
             onProgress: (stage) => {
               if (!cancelled && stage === 'town') setWorldGenStage('town');
@@ -444,7 +512,14 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
     // Re-run the effect if the location, seed, or active mode scale changes.
     // HOSTILE-1: also re-run on game phase change so the ground world rebuilds
     // after a return-from-combat (BATTLE_MAP_DEMO → PLAYING transition).
-  }, [state.currentLocationId, state.worldSeed, isGroundMode, state.phase, state.entry3DAnchor]);
+  }, [
+    state.currentLocationId,
+    state.worldSeed,
+    isGroundMode,
+    state.phase,
+    state.entry3DAnchor,
+    buildingEventLogJson,
+  ]);
 
   // FPS tracking state.
   const [fps, setFps] = useState(0);
@@ -735,12 +810,13 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
                 const combatTheme = getThemeFromBiome(groundBiome);
 
                 // Extract the 40x30 terrain patch centered around the player's collision coordinate
-                const extractedMap = extractPatch(
-                  ground,
+                const worldSeed = state.worldSeed ?? 42;
+                const extractedMap = attachWorldforgeBattleMapProvenance(
+                  extractPatch(ground, x, z, combatTheme, worldSeed),
+                  worldSeed,
+                  state.playerCell?.cellId,
                   x,
                   z,
-                  combatTheme,
-                  state.worldSeed ?? 42
                 );
 
                 // Transition to combat mode using the extracted battle map
@@ -759,7 +835,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
         }
       }
     },
-    [dispatch, wfGroundView?.tile, state.worldSeed],
+    [dispatch, wfGroundView?.tile, state.worldSeed, state.playerCell?.cellId],
   );
 
   // ==========================================================================
@@ -800,8 +876,15 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
         : (groundBiome.includes('swamp') || groundBiome.includes('wetland')) ? 'swamp'
           : 'forest';
 
+    const worldSeed = state.worldSeed ?? 42;
     const extractedMap = decision.deriveFromWorld
-      ? extractPatch(ground, x, z, theme, state.worldSeed ?? 42)
+      ? attachWorldforgeBattleMapProvenance(
+        extractPatch(ground, x, z, theme, worldSeed),
+        worldSeed,
+        state.playerCell?.cellId,
+        x,
+        z,
+      )
       : undefined;
 
     // Fight-in-place slice 2: hand the live world across the phase change so
@@ -841,7 +924,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
       // eslint-disable-next-line no-console
       console.error('[fip dev] failed to start fight:', err);
     }
-  }, [dispatch, wfGroundView, state.worldSeed, loader]);
+  }, [dispatch, wfGroundView, state.worldSeed, state.playerCell?.cellId, loader]);
 
   useEffect(() => {
     (window as unknown as { __fipTestFight?: () => void }).__fipTestFight = () => { void startFightInPlace(); };

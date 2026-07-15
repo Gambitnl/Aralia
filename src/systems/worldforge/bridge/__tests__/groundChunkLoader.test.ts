@@ -18,7 +18,7 @@ import {
 import type { LocalArtifact, RegionArtifact } from '../../artifacts';
 import { rootSeedPath } from '../../seedPath';
 import type { GroundWorld } from '../groundChunkLoader';
-import { makeGroundWorld, sampleGroundChunk, groundSlope01, extractLocalTerrainPatch, groundSurfaceY, canonicalArtifactTownForSite } from '../groundChunkLoader';
+import { makeGroundWorld, sampleGroundChunk, groundSlope01, extractLocalTerrainPatch, groundSurfaceY, canonicalArtifactTownForSite, regionPolylinesToGround } from '../groundChunkLoader';
 import { getBridgeAtlas } from '../legacySubmapBridge';
 import {
   resolveSnowLine,
@@ -30,7 +30,13 @@ import {
 } from '../../mountains/mountainTunables';
 import { groundTownAgentsAt } from '../groundAgentMotion';
 import { GROUND_METERS_PER_CELL, localArtifactToWorldData } from '../groundWorldAdapter';
-import { FACADE_PART_TAG, MOTIF_PART_TAG } from '../interiorParts';
+import {
+  FACADE_PART_TAG,
+  HISTORY_PART_TAG,
+  MATERIAL_PART_TAG,
+  MOTIF_PART_TAG,
+} from '../interiorParts';
+import { TERRACE_STEP_ENCODED } from '../terrainTerraces';
 
 // ============================================================================
 // Fixed Bridge Fixtures
@@ -219,6 +225,86 @@ function bilinearHeightAtCellSpace(
 }
 
 // ============================================================================
+// Region Route Clipping
+// ============================================================================
+// Atlas route vertices can sit thousands of feet apart. A local window may be
+// crossed by the segment even when neither endpoint falls inside it, so the
+// coarse retention pass must test segments rather than endpoint membership.
+// ============================================================================
+
+describe('regionPolylinesToGround', () => {
+  it('retains a source route whose segment crosses the local window with both endpoints outside', () => {
+    const local = makeLocalArtifact();
+    const roads = regionPolylinesToGround([{
+      centerline: [[-500, 250], [1_000, 250]],
+      widthFt: 20,
+      kind: 'trail',
+    }], local, 'region-road');
+
+    expect(roads).toHaveLength(1);
+    expect(roads[0].sourceKind).toBe('region-road');
+    expect(roads[0].points[0].x).toBeLessThan(0);
+    expect(roads[0].points[1].x).toBeGreaterThan(local.bounds.width * 0.3048);
+  });
+
+  it('projects one Region bridge receipt into both Ground crossing and 3D deck facts', () => {
+    const local = makeLocalArtifact();
+    const region: RegionArtifact = {
+      ...makeRegionArtifact(),
+      townSites: [],
+      roads: [{
+        routeId: 3,
+        centerline: [[0, 250], [500, 250]],
+        widthFt: 44,
+        kind: 'highway',
+      }],
+      rivers: [{
+        riverId: 7,
+        centerline: [[250, 0], [250, 500]],
+        widthFt: 80,
+      }],
+      crossings: [{
+        id: 'crossing:3:7:0',
+        kind: 'bridge',
+        roadRouteId: 3,
+        riverId: 7,
+        point: [250, 250],
+        roadDirection: [1, 0],
+        riverDirection: [0, 1],
+        spanFt: 112,
+        widthFt: 44,
+      }],
+    };
+
+    // makeGroundWorld is the shared seam used by production World3D and the
+    // tactical extractor, so this assertion guards against either view drifting
+    // onto independently inferred bridge geometry later.
+    const ground = makeGroundWorld(local, 42, region, { skipProps: true });
+    expect(ground.crossings).toEqual([
+      expect.objectContaining({
+        id: 'crossing:3:7:0',
+        kind: 'bridge',
+        roadRouteId: 3,
+        riverId: 7,
+        roadSourceIndex: 0,
+        riverSourceIndex: 0,
+      }),
+    ]);
+
+    const bridgeDeck = ground.decks.find(
+      (deck) => deck.sourceCrossingId === 'crossing:3:7:0',
+    );
+    expect(bridgeDeck).toMatchObject({
+      kind: 'bridge',
+      sourceCrossingId: 'crossing:3:7:0',
+      detail: expect.objectContaining({ railing: true }),
+    });
+    expect(bridgeDeck?.cornersM).toHaveLength(4);
+    expect(Number.isFinite(bridgeDeck?.topY)).toBe(true);
+  });
+});
+
+// ============================================================================
 // Occupant Site Emission
 // ============================================================================
 // This section pins the data contract used by nameplates: each resolved roster
@@ -338,7 +424,7 @@ describe('sampleGroundChunk occupant sites', () => {
 // ============================================================================
 
 describe('makeGroundWorld building terrain pads', () => {
-  it('levels every in-footprint cell to the pre-flatten centroid height', () => {
+  it('levels every footprint to its centroid or negotiated row terrace', () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
     const baseline = localArtifactToWorldData(local, 42);
@@ -347,6 +433,8 @@ describe('makeGroundWorld building terrain pads', () => {
     let unevenFootprintCells = 0;
     let wrongPadHeightBuildings = 0;
     let buildingsWithCoveredCells = 0;
+    let terracedBuildings = 0;
+    const terracesByBlock = new Map<string, typeof ground.buildings>();
 
     for (const building of ground.buildings) {
       const indexes = footprintCellIndexes(ground, building.cornersM);
@@ -357,13 +445,24 @@ describe('makeGroundWorld building terrain pads', () => {
         x: building.cornersM.reduce((sum, corner) => sum + corner.x, 0) / building.cornersM.length,
         z: building.cornersM.reduce((sum, corner) => sum + corner.z, 0) / building.cornersM.length,
       };
-      const expectedPadHeight = bilinearHeightAtCellSpace(
+      const rawPadHeight = bilinearHeightAtCellSpace(
         baseline.heights,
         baseline.gridSize.cols,
         baseline.gridSize.rows,
         centroid.x,
         centroid.z,
       );
+      const expectedPadHeight = building.terrainTerrace?.padHeightEncoded
+        ?? rawPadHeight;
+      if (building.terrainTerrace) {
+        terracedBuildings++;
+        expect(building.ensemble?.kind === 'row'
+          || building.ensemble?.kind === 'market-arcade').toBe(true);
+        expect(building.terrainTerrace.blockKey).toBe(building.ensemble?.blockKey);
+        const group = terracesByBlock.get(building.terrainTerrace.blockKey) ?? [];
+        group.push(building);
+        terracesByBlock.set(building.terrainTerrace.blockKey, group);
+      }
 
       for (const index of indexes) {
         if (Math.abs(ground.heights[index] - ground.heights[indexes[0]]) > 1e-9) {
@@ -380,6 +479,17 @@ describe('makeGroundWorld building terrain pads', () => {
     expect(buildingsWithCoveredCells).toBe(ground.buildings.length);
     expect(unevenFootprintCells).toBe(0);
     expect(wrongPadHeightBuildings).toBe(0);
+    expect(terracedBuildings).toBeGreaterThan(0);
+    for (const group of terracesByBlock.values()) {
+      for (let index = 1; index < group.length; index++) {
+        const previous = group[index - 1].terrainTerrace!;
+        const current = group[index].terrainTerrace!;
+        const stepDelta = current.stepIndex - previous.stepIndex;
+        expect(Math.abs(stepDelta)).toBeLessThanOrEqual(1);
+        expect(current.padHeightEncoded - previous.padHeightEncoded)
+          .toBeCloseTo(stepDelta * TERRACE_STEP_ENCODED, 9);
+      }
+    }
   });
 
   it('keeps padded terrain deterministic across repeated construction', () => {
@@ -612,6 +722,8 @@ describe('makeGroundWorld building terrain pads', () => {
     let visibleStamped = 0;
     let visibleFacade = 0;
     let visibleMotifs = 0;
+    let visibleHistory = 0;
+    let visibleMaterials = 0;
     for (const building of ground.buildings) {
       const plotId = Number(building.id.split('-').at(-1));
       const artifact = artifactById.get(plotId);
@@ -627,6 +739,11 @@ describe('makeGroundWorld building terrain pads', () => {
         expect(building.parts.some((part) => part.tag === FACADE_PART_TAG)).toBe(true);
         visibleFacade++;
       }
+      const materialParts = building.parts.filter((part) =>
+        part.tag === MATERIAL_PART_TAG);
+      expect(materialParts.length).toBeGreaterThan(0);
+      expect(materialParts.every((part) => part.materialDetailKind)).toBe(true);
+      visibleMaterials++;
       const motifParts = building.parts.filter((part) => part.tag === MOTIF_PART_TAG);
       if (motifParts.length > 0) {
         // Every production motif box carries its exact semantic cue, which lets
@@ -634,11 +751,19 @@ describe('makeGroundWorld building terrain pads', () => {
         expect(motifParts.every((part) => part.motifKind)).toBe(true);
         visibleMotifs++;
       }
+      const historyParts = building.parts.filter((part) =>
+        part.tag === HISTORY_PART_TAG);
+      if (artifact.architecture.ageBand !== 'new') {
+        expect(historyParts.every((part) => part.historyKind)).toBe(true);
+        if (historyParts.length > 0) visibleHistory++;
+      }
     }
 
     expect(visibleStamped).toBeGreaterThan(0);
     expect(visibleFacade).toBeGreaterThan(0);
     expect(visibleMotifs).toBeGreaterThan(0);
+    expect(visibleHistory).toBeGreaterThan(0);
+    expect(visibleMaterials).toBe(visibleStamped);
   });
 });
 
@@ -649,10 +774,164 @@ describe('makeGroundWorld building terrain pads', () => {
 // patch matching the spot's ground heights, biomes, features, and buildings.
 // ============================================================================
 describe('extractLocalTerrainPatch', () => {
-  it('keeps decorative role motifs out of tactical collision and line of sight', () => {
-    // This oversized motif deliberately covers the player's tile. Without the
-    // motif tag guard it would behave like a solid wall; with the guard the
-    // underlying floor remains a valid combat square.
+  it('projects a WorldForge road into clear, source-addressable referee cells', () => {
+    const cols = 100;
+    const rows = 100;
+    const ground = makeGroundWorldFixture({
+      cols,
+      rows,
+      heights: new Array(cols * rows).fill(0),
+      biomeIds: new Array(cols * rows).fill('plains'),
+      extentMetersX: cols * GROUND_METERS_PER_CELL,
+      extentMetersZ: rows * GROUND_METERS_PER_CELL,
+      roads: [{
+        points: [{ x: 20, z: 50 }, { x: 80, z: 50 }],
+        widthM: 3,
+        sourceKind: 'region-road',
+      }],
+      // The road footprint deliberately crosses a tree. Source route clearance
+      // wins, so the tactical road is continuous instead of becoming blocked by
+      // a stale vegetation placement from another source layer.
+      features: [{ id: 1, kind: 'tree', xM: 50, zM: 50 }],
+    });
+
+    const patch = extractLocalTerrainPatch(
+      ground,
+      50,
+      50,
+      'forest',
+      42,
+      { width: 9, height: 9 },
+    );
+    const roadTile = patch.tiles.get('4-4');
+    const offRoadTile = patch.tiles.get('4-0');
+
+    expect(roadTile?.surface).toEqual({
+      kind: 'road',
+      source: 'worldforge-road',
+      sourceRole: 'regional-route',
+      sourceIndex: 0,
+      widthMeters: 3,
+    });
+    expect(roadTile?.movementCost).toBe(1);
+    expect(roadTile?.blocksMovement).toBe(false);
+    expect(roadTile?.blocksLoS).toBe(false);
+    expect(roadTile?.decoration).toBeNull();
+    expect(offRoadTile?.surface).toBeUndefined();
+  });
+
+  it('does not invent a passable road crossing where source water has no ford or bridge', () => {
+    const cols = 40;
+    const rows = 40;
+    const ground = makeGroundWorldFixture({
+      cols,
+      rows,
+      heights: new Array(cols * rows).fill(0),
+      biomeIds: new Array(cols * rows).fill('water'),
+      extentMetersX: cols * GROUND_METERS_PER_CELL,
+      extentMetersZ: rows * GROUND_METERS_PER_CELL,
+      roads: [{
+        points: [{ x: 10, z: 30 }, { x: 50, z: 30 }],
+        widthM: 4,
+      }],
+    });
+
+    const patch = extractLocalTerrainPatch(
+      ground,
+      30,
+      30,
+      'forest',
+      42,
+      { width: 3, height: 3 },
+    );
+    const centerTile = patch.tiles.get('1-1');
+
+    expect(centerTile?.terrain).toBe('water');
+    expect(centerTile?.surface).toBeUndefined();
+    expect(centerTile?.crossing).toBeUndefined();
+    expect(centerTile?.blocksMovement).toBe(true);
+  });
+
+  it('projects source bridges and fords over water without changing the base terrain fact', () => {
+    const cols = 50;
+    const rows = 50;
+    const bridgeGround = makeGroundWorldFixture({
+      cols,
+      rows,
+      heights: new Array(cols * rows).fill(0),
+      biomeIds: new Array(cols * rows).fill('water'),
+      extentMetersX: cols * GROUND_METERS_PER_CELL,
+      extentMetersZ: rows * GROUND_METERS_PER_CELL,
+      roads: [{
+        points: [{ x: 10, z: 35 }, { x: 60, z: 35 }],
+        widthM: 4,
+        sourceKind: 'region-road',
+        sourceId: 5,
+      }],
+      crossings: [{
+        id: 'crossing:5:9:0',
+        kind: 'bridge',
+        xM: 35,
+        zM: 35,
+        roadDirection: { x: 1, z: 0 },
+        spanM: 20,
+        widthM: 4,
+        roadRouteId: 5,
+        riverId: 9,
+        roadSourceIndex: 0,
+        riverSourceIndex: 0,
+      }],
+    });
+    const bridgePatch = extractLocalTerrainPatch(
+      bridgeGround,
+      35,
+      35,
+      'forest',
+      42,
+      { width: 21, height: 9 },
+    );
+    const bridgeTile = bridgePatch.tiles.get('10-4');
+    const waterBeyondSpan = bridgePatch.tiles.get('20-4');
+
+    expect(bridgeTile?.terrain).toBe('water');
+    expect(bridgeTile?.surface?.kind).toBe('road');
+    expect(bridgeTile?.crossing).toMatchObject({
+      kind: 'bridge',
+      source: 'worldforge-crossing',
+      sourceCrossingId: 'crossing:5:9:0',
+      roadSourceIndex: 0,
+      riverSourceIndex: 0,
+    });
+    expect(bridgeTile?.movementCost).toBe(1);
+    expect(bridgeTile?.blocksMovement).toBe(false);
+    expect(waterBeyondSpan?.terrain).toBe('water');
+    expect(waterBeyondSpan?.crossing).toBeUndefined();
+    expect(waterBeyondSpan?.blocksMovement).toBe(true);
+
+    const fordGround = makeGroundWorldFixture({
+      ...bridgeGround,
+      crossings: [{ ...bridgeGround.crossings![0], kind: 'ford' }],
+    });
+    const fordPatch = extractLocalTerrainPatch(
+      fordGround,
+      35,
+      35,
+      'forest',
+      42,
+      { width: 3, height: 3 },
+    );
+    expect(fordPatch.tiles.get('1-1')).toMatchObject({
+      terrain: 'water',
+      movementCost: 2,
+      blocksMovement: false,
+      crossing: { kind: 'ford' },
+    });
+  });
+
+  it('keeps material detail, motifs, and history out of tactical collision and line of sight', () => {
+    // These oversized dressing parts deliberately cover the player's tile.
+    // Without the tag guard they would behave like solid walls; with the guard
+    // the underlying floor remains a valid combat square.
     const ground = makeGroundWorldFixture({
       cols: 100,
       rows: 100,
@@ -686,6 +965,26 @@ describe('extractLocalTerrainPatch', () => {
             tag: MOTIF_PART_TAG,
             motifKind: 'corner-turrets',
           },
+          {
+            x: 0,
+            z: 0,
+            w: 4,
+            d: 4,
+            h: 3,
+            colorHex: '#8d6f58',
+            tag: HISTORY_PART_TAG,
+            historyKind: 'later-phase',
+          },
+          {
+            x: 0,
+            z: 0,
+            w: 4,
+            d: 4,
+            h: 3,
+            colorHex: '#8eabb2',
+            tag: MATERIAL_PART_TAG,
+            materialDetailKind: 'shutter-panel',
+          },
         ],
       }],
     });
@@ -701,6 +1000,56 @@ describe('extractLocalTerrainPatch', () => {
 
     expect(centerTile.blocksMovement).toBe(false);
     expect(centerTile.blocksLoS).toBe(false);
+  });
+
+  it('keeps a render-hidden party wall authoritative for tactical collision', () => {
+    const ground = makeGroundWorldFixture({
+      cols: 100,
+      rows: 100,
+      heights: new Array(100 * 100).fill(0),
+      biomeIds: new Array(100 * 100).fill('plains'),
+      extentMetersX: 100 * GROUND_METERS_PER_CELL,
+      extentMetersZ: 100 * GROUND_METERS_PER_CELL,
+      buildings: [{
+        id: 'wf-party-wall-tactical-proof',
+        xM: 50,
+        zM: 50,
+        cornersM: [
+          { x: 45, z: 45 },
+          { x: 55, z: 45 },
+          { x: 55, z: 55 },
+          { x: 45, z: 55 },
+        ],
+        heightM: 6,
+        role: 'house',
+        wallWidthM: 8,
+        wallDepthM: 8,
+        parts: [
+          { x: 0, z: 0, w: 8, d: 8, h: 0.12, colorHex: '#9a8a72' },
+          {
+            x: 0,
+            z: 0,
+            w: 4,
+            d: 4,
+            h: 3,
+            colorHex: '#cfc7b8',
+            renderRole: 'tactical-only',
+          },
+        ],
+      }],
+    });
+    const patch = extractLocalTerrainPatch(
+      ground,
+      50,
+      50,
+      'forest',
+      42,
+      { width: 3, height: 3 },
+    );
+    const centerTile = patch.tiles.get('1-1')!;
+
+    expect(centerTile.blocksMovement).toBe(true);
+    expect(centerTile.blocksLoS).toBe(true);
   });
 
   it('extracts a 40x30 terrain patch matching the heights, biomes, and buildings of the ground world', () => {

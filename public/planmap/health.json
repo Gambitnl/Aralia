@@ -1,0 +1,281 @@
+{
+  "generatedAt": "2026-07-14T21:25:06.587Z",
+  "lastGoodRun": "2026-07-14T21:25:06.587Z",
+  "stepErrors": [],
+  "surfaces": {
+    "chronicleDaysSilent": 10,
+    "atlasDaysSilent": 1
+  },
+  "topics": {
+    "world-props": {
+      "ageDays": null
+    },
+    "perf-campaign": {
+      "ageDays": null
+    },
+    "building-generator": {
+      "ageDays": null
+    },
+    "dungeon-generator": {
+      "ageDays": null
+    },
+    "fip-slice1": {
+      "ageDays": null
+    },
+    "ambush-generation": {
+      "ageDays": null
+    },
+    "mesh-los-cover": {
+      "ageDays": null
+    },
+    "battlemap-retirement": {
+      "ageDays": null
+    },
+    "world-reactions": {
+      "ageDays": null
+    },
+    "ai-arbiter": {
+      "ageDays": null
+    },
+    "crossfire-override": {
+      "ageDays": null
+    },
+    "planmap": {
+      "ageDays": null
+    },
+    "webgpu-migration": {
+      "ageDays": null
+    },
+    "wf-interiors": {
+      "ageDays": null
+    },
+    "neighbour-streaming": {
+      "ageDays": null
+    },
+    "agent-sim-deepening": {
+      "ageDays": null
+    },
+    "maritime-remainder": {
+      "ageDays": null
+    },
+    "character-aging": {
+      "ageDays": null
+    },
+    "generational-time": {
+      "ageDays": null
+    },
+    "testkit-devtools-toolkit": {
+      "ageDays": null
+    },
+    "doc-triage": {
+      "ageDays": null
+    },
+    "image-gen": {
+      "ageDays": null
+    },
+    "shipped-grid-retirement": {
+      "ageDays": null
+    },
+    "shipped-seam-slice": {
+      "ageDays": null
+    },
+    "shipped-cartography": {
+      "ageDays": null
+    },
+    "shipped-styled-town": {
+      "ageDays": null
+    },
+    "town-streets-3d": {
+      "ageDays": null
+    },
+    "shipped-living-world": {
+      "ageDays": null
+    },
+    "shipped-combat-opening": {
+      "ageDays": null
+    },
+    "shipped-travel-provisioning": {
+      "ageDays": null
+    },
+    "provisioning-remainder": {
+      "ageDays": null
+    },
+    "doc-inventory-explorer": {
+      "ageDays": null
+    },
+    "task-harvest": {
+      "ageDays": null
+    },
+    "doc-tool-launchers": {
+      "ageDays": null
+    },
+    "planmap-date-tracker": {
+      "ageDays": null
+    },
+    "two-d-ui-reliability": {
+      "ageDays": null
+    },
+    "early-game-playable": {
+      "ageDays": null
+    },
+    "interactive-3d-world": {
+      "ageDays": null
+    },
+    "class-richness-l1-3": {
+      "ageDays": null
+    },
+    "shipped-spell-mechanics": {
+      "ageDays": null
+    },
+    "shipped-cell-provenance": {
+      "ageDays": null
+    },
+    "combat-map-reskin": {
+      "ageDays": null
+    },
+    "svg-combatant-art": {
+      "ageDays": null
+    },
+    "planmap-shipped-timeline": {
+      "ageDays": null
+    },
+    "vite-crash-guard": {
+      "ageDays": null
+    },
+    "claude-design-system": {
+      "ageDays": null
+    },
+    "master-orchestrator": {
+      "ageDays": null
+    },
+    "agent-identity": {
+      "ageDays": null
+    },
+    "agent-retrace": {
+      "ageDays": null
+    },
+    "agent-matrix-dashboard": {
+      "ageDays": null
+    },
+    "agora-operator-dashboard": {
+      "ageDays": null
+    },
+    "agent-ping": {
+      "ageDays": null
+    },
+    "combat-roads-real-terrain": {
+      "ageDays": null
+    },
+    "combat-map-nextgen": {
+      "ageDays": null
+    },
+    "combat-world-scenario-lab": {
+      "ageDays": null
+    },
+    "combat-map-shell-policy": {
+      "ageDays": null
+    },
+    "combat-targeting-interaction": {
+      "ageDays": null
+    },
+    "asset-forge": {
+      "ageDays": null
+    },
+    "combat-world-scars": {
+      "ageDays": null
+    },
+    "combat-living-terrain": {
+      "ageDays": null
+    },
+    "combat-elevation": {
+      "ageDays": null
+    },
+    "combat-chronicles": {
+      "ageDays": null
+    },
+    "combat-mass-battles": {
+      "ageDays": null
+    },
+    "combat-intent-telegraphs": {
+      "ageDays": null
+    },
+    "building-generator-v2": {
+      "ageDays": null
+    },
+    "glossary-structured-content": {
+      "ageDays": null
+    },
+    "agent-escalation": {
+      "ageDays": null
+    },
+    "groq-inference-toggle": {
+      "ageDays": null
+    },
+    "agora-fleet-coordination": {
+      "ageDays": null
+    },
+    "economy-player-surface": {
+      "ageDays": null
+    },
+    "llm-provider-config": {
+      "ageDays": null
+    },
+    "interior-lighting-live-clock": {
+      "ageDays": null
+    },
+    "interior-occupants-live-clock": {
+      "ageDays": null
+    },
+    "servants-as-npcs": {
+      "ageDays": null
+    },
+    "ai-arbitrated-ritual-casting": {
+      "ageDays": null
+    },
+    "npc-memory-reconciliation": {
+      "ageDays": null
+    },
+    "planmap-roadmap-sync": {
+      "ageDays": null
+    },
+    "npc-personality-system": {
+      "ageDays": null
+    },
+    "types-decl-twin-hygiene": {
+      "ageDays": null
+    },
+    "interiors-blindspot-pass": {
+      "ageDays": null
+    },
+    "co-orchestration-pipeline": {
+      "ageDays": null
+    },
+    "code-modularization-sweep": {
+      "ageDays": null
+    },
+    "whole-game-systems-audit": {
+      "ageDays": null
+    },
+    "entity-generator-3d": {
+      "ageDays": null
+    },
+    "road-systems": {
+      "ageDays": null
+    },
+    "forests": {
+      "ageDays": null
+    },
+    "mountains": {
+      "ageDays": null
+    },
+    "session-group-map": {
+      "ageDays": null
+    },
+    "jules-spell-icons": {
+      "ageDays": null
+    },
+    "planning-surface-freshness": {
+      "ageDays": null
+    }
+  }
+}

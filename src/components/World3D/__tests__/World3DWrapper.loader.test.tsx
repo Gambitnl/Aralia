@@ -87,4 +87,61 @@ describe('World3DWrapper chunk loader (W3DUI-1)', () => {
 
     expect(mockCreateWorkerChunkLoader).not.toHaveBeenCalled();
   });
+
+  it('compacts only non-empty building logs for the worker request', async () => {
+    const { compactBuildingEventLogs } = await import('../World3DWrapper');
+    const fire = {
+      day: 9,
+      kind: 'fire-damage' as const,
+      payload: { incidentId: 'burg:4:day:9:fire', severity: 2 as const },
+    };
+    const source = [fire];
+    const compact = compactBuildingEventLogs({
+      8: { buildingEvents: {} },
+      4: { buildingEvents: { 7: source, 2: [] } },
+    } as never);
+
+    expect(compact).toEqual({ 4: { 7: [fire] } });
+    const copied = compact?.[4][7];
+    expect(copied).not.toBe(source);
+    expect(Array.isArray(copied)).toBe(true);
+    if (!Array.isArray(copied)) throw new Error('expected legacy array copy');
+    expect(copied[0]).not.toBe(fire);
+  });
+
+  it('preserves a versioned journal while deep-cloning the worker projection', async () => {
+    const { compactBuildingEventLogs } = await import('../World3DWrapper');
+    const { generateBuilding } = await import('../../../systems/worldforge/interior/generateBuilding');
+    const { applyHistory, snapshotBuildingHistory, isBuildingHistoryJournal } =
+      await import('../../../systems/worldforge/interior/buildingEventHistory');
+    const { rootSeedPath } = await import('../../../systems/worldforge/seedPath');
+    const fire = {
+      day: 9,
+      kind: 'fire-damage' as const,
+      payload: { incidentId: 'burg:4:day:9:fire', severity: 2 as const },
+    };
+    const plan = generateBuilding({
+      buildingId: 7,
+      type: 'shop',
+      seedPath: rootSeedPath(77),
+      style: {
+        cultureType: 'River',
+        climate: 'temperate',
+        wealth: 'common',
+        ageBand: 'aged',
+      },
+    });
+    const journal = snapshotBuildingHistory(applyHistory(plan, [fire]), [fire]);
+    const compact = compactBuildingEventLogs({
+      4: { buildingEvents: { 7: journal } },
+    } as never);
+    const copied = compact?.[4][7];
+
+    expect(copied).toEqual(journal);
+    expect(copied).not.toBe(journal);
+    expect(isBuildingHistoryJournal(copied)).toBe(true);
+    if (!isBuildingHistoryJournal(copied)) throw new Error('expected journal copy');
+    expect(copied.snapshot).not.toBe(journal.snapshot);
+    expect(copied.snapshot.history.features).not.toBe(journal.snapshot.history.features);
+  });
 });

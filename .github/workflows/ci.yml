@@ -182,7 +182,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-      
+
+      - name: Run type-level tests (tsd)
+        # Seconds-fast guard over the src/types public surface; catches
+        # declaration drift (e.g. ConditionName unions) before the slow lane.
+        run: npm run test:types
+
       - name: Run complete bounded test lane
         # Four workers preserve the full Vitest discovery surface without the
         # rotating collection failures seen under automatic CPU concurrency.

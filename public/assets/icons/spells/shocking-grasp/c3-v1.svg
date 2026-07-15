@@ -1,0 +1,36 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="boltGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FCA5A5" />
+      <stop offset="50%" stop-color="#F87171" />
+      <stop offset="100%" stop-color="#991B1B" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Diamond Frame -->
+  <path d="M50 10 L90 50 L50 90 L10 50 Z" fill="#1F2937" stroke="#4B5563" stroke-width="2" />
+  
+  <!-- Inner Shards/Impact Lines -->
+  <path d="M50 20 L50 35 M80 50 L65 50 M50 80 L50 65 M20 50 L35 50" stroke="#F87171" stroke-width="3" stroke-linecap="round" opacity="0.6" />
+
+  <!-- Central Lightning Bolt Emblem -->
+  <g filter="url(#glow)">
+    <path d="M60 25 L40 50 L55 50 L45 75 L65 45 L50 45 L60 25 Z" fill="url(#boltGrad)" stroke="#FFFFFF" stroke-width="1" />
+  </g>
+
+  <!-- Electric Arcs (Aftermath) -->
+  <path d="M40 40 Q30 30 40 20" fill="none" stroke="#FCA5A5" stroke-width="2" stroke-linecap="round" />
+  <path d="M60 60 Q70 70 60 80" fill="none" stroke="#FCA5A5" stroke-width="2" stroke-linecap="round" />
+  <path d="M40 60 Q30 70 40 80" fill="none" stroke="#FCA5A5" stroke-width="2" stroke-linecap="round" />
+  <path d="M60 40 Q70 30 60 20" fill="none" stroke="#FCA5A5" stroke-width="2" stroke-linecap="round" />
+
+  <!-- Outer Decorative Accents -->
+  <circle cx="50" cy="10" r="2" fill="#F87171" />
+  <circle cx="90" cy="50" r="2" fill="#F87171" />
+  <circle cx="50" cy="90" r="2" fill="#F87171" />
+  <circle cx="10" cy="50" r="2" fill="#F87171" />
+</svg>

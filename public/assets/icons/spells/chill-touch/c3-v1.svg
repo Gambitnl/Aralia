@@ -1,0 +1,37 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#6EE7B7" />
+      <stop offset="50%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#065F46" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Diamond Frame -->
+  <path d="M50 10 L85 50 L50 90 L15 50 Z" fill="none" stroke="#064E3B" stroke-width="3" />
+  <path d="M50 15 L80 50 L50 85 L20 50 Z" fill="none" stroke="#34D399" stroke-width="1" opacity="0.6" />
+
+  <!-- The Frost-Bitten Hand Symbol (Negative Space Essence) -->
+  <g filter="url(#glow)">
+    <!-- Hand Silhouette -->
+    <path d="M40 65 L40 45 C40 40 43 38 45 38 L47 38 C50 38 52 42 52 48 L52 65 M47 42 L47 35 C47 30 49 28 51 28 L53 28 C56 28 58 32 58 38 L58 65 M52 45 L52 38 C52 33 54 31 56 31 L58 31 C61 31 63 35 63 41 L63 65 M57 50 L57 42 C57 37 59 35 61 35 L63 35 C66 35 68 39 68 45 L68 65" 
+          stroke="#34D399" stroke-width="4" stroke-linecap="round" fill="none" />
+    
+    <!-- The "Grave Chill" Core (The Palm) -->
+    <path d="M40 65 Q50 75 60 65 L60 55 Q50 65 40 55 Z" fill="url(#grad)" />
+    
+    <!-- Frost Spikes/Fractures -->
+    <path d="M50 20 L50 10 M60 25 L65 15 M40 25 L35 15 M65 40 L75 35 M35 40 L25 35" 
+          stroke="#6EE7B7" stroke-width="2" stroke-linecap="round" />
+  </g>
+
+  <!-- The Seal of No Healing (The X/Strike) -->
+  <path d="M30 30 L70 70 M70 30 L30 70" stroke="#064E3B" stroke-width="2" stroke-opacity="0.4" />
+  
+  <!-- CentralNecrotic Core -->
+  <circle cx="50" cy="50" r="4" fill="#064E3B" />
+</svg>

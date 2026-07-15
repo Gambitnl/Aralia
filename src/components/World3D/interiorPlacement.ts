@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 14/07/2026, 16:55:29
+ * Dependents: components/World3D/InteriorLights.tsx, components/World3D/InteriorOccupants.tsx
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file interiorPlacement.ts — the shared site-local → scene transform.
  *
@@ -63,6 +79,10 @@ export function planFeetToSiteLocal(
   yFt: number,
   widthFt: number,
   depthFt: number,
+  originXFt = widthFt / 2,
+  originYFt = depthFt / 2,
 ): { x: number; z: number } {
-  return { x: (xFt - widthFt / 2) * FT, z: (yFt - depthFt / 2) * FT };
+  // The optional origin is the pre-extension building center. Defaults retain
+  // the established envelope-centered transform for every legacy caller.
+  return { x: (xFt - originXFt) * FT, z: (yFt - originYFt) * FT };
 }

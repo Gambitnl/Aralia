@@ -1,21 +1,34 @@
 /**
  * @file assemble.test.ts — blueprint → live three.js entity (headless: object
- * graph only, no renderer).
+ * graph only, no renderer). Body v2: segmented skeleton, no metaballs.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import { Vector3, Mesh } from 'three';
+import { Vector3, Mesh, LineSegments } from 'three';
 import { assembleEntity } from '../three/assembleEntity';
 import { generateEntityBlueprint } from '../generateEntityBlueprint';
 import { registerAllParts } from '../parts';
 
 const WALK = { position: new Vector3(), heading: new Vector3(0, 0, 1), speed: 1.2 };
 
-describe('entities3d assembler', () => {
+/** Count fill meshes / line nodes under an object, skipping eyes + shadow. */
+function countVisuals(root: import('three').Object3D): { meshes: number; lines: number } {
+  let meshes = 0;
+  let lines = 0;
+  root.traverse((o) => {
+    if (o.name === 'eyeL' || o.name === 'eyeR' || o.name === 'blobShadow') return;
+    if (o.parent?.name === 'eyeL' || o.parent?.name === 'eyeR') return;
+    if ((o as Mesh).isMesh) meshes += 1;
+    if ((o as LineSegments).isLineSegments) lines += 1;
+  });
+  return { meshes, lines };
+}
+
+describe('entities3d assembler (body v2)', () => {
   beforeAll(() => {
     registerAllParts();
   });
 
-  it('builds a group with body, eyes, shadow, and one container per mesh part', () => {
+  it('builds a group with segment body, eyes, shadow, and one container per mesh part', () => {
     const bp = generateEntityBlueprint({
       kind: 'humanoid',
       raceId: 'infernal_tiefling',
@@ -23,43 +36,57 @@ describe('entities3d assembler', () => {
       seed: 'asm-1',
     });
     const meshPartCount = bp.parts.filter((p) =>
-      ['hornsCurved', 'earsPointed', 'staffMain', 'hatWide', 'robeSkirt', 'beltPouch'].includes(p.partId),
+      ['hornsCurved', 'staffMain', 'hatWide', 'robeSkirt', 'beltPouch'].includes(p.partId),
     ).length;
-    expect(meshPartCount).toBeGreaterThan(2); // sanity: tiefling wizard carries mesh parts
+    expect(meshPartCount).toBeGreaterThan(2);
     const handle = assembleEntity(bp);
     expect(handle.blueprint).toBe(bp);
+    expect(handle.group.getObjectByName('segmentBody'), 'segment body missing').toBeTruthy();
+    expect(handle.group.getObjectByName('seg:torso.chest'), 'chest segment missing').toBeTruthy();
+    expect(handle.group.getObjectByName('seg:legL.thigh'), 'thigh segment missing').toBeTruthy();
+    expect(handle.group.getObjectByName('seg:head'), 'head node missing').toBeTruthy();
     const partContainers = handle.group.getObjectByName('parts');
     expect(partContainers, 'parts container missing').toBeTruthy();
-    const meshContainers = partContainers!.children.length;
-    expect(meshContainers).toBeGreaterThanOrEqual(meshPartCount);
-    expect(handle.group.getObjectByName('metaballBody'), 'metaball body missing').toBeTruthy();
+    expect(partContainers!.children.length).toBeGreaterThanOrEqual(meshPartCount);
     expect(handle.group.getObjectByName('eyeL'), 'left eye missing').toBeTruthy();
     expect(handle.group.getObjectByName('eyeR'), 'right eye missing').toBeTruthy();
     expect(handle.group.getObjectByName('blobShadow'), 'shadow missing').toBeTruthy();
     handle.dispose();
   });
 
-  it('wireframe (default) draws no ink outlines', () => {
-    const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'human', classId: 'fighter', seed: 'asm-wire' });
-    const handle = assembleEntity(bp); // default render mode is wireframe
-    expect(handle.group.getObjectByName('metaballOutline'), 'wireframe should have no body outline').toBeFalsy();
-    let outlined = 0;
-    handle.group.traverse((o) => {
-      if (o.name === 'partOutline') outlined += 1;
-    });
-    expect(outlined, 'wireframe should have no part outlines').toBe(0);
+  it('a tiefling tail renders as chain segments driven per frame', () => {
+    const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'infernal_tiefling', classId: 'rogue', seed: 'asm-tail' });
+    expect(bp.parts.some((p) => p.partId === 'tailThin')).toBe(true);
+    const handle = assembleEntity(bp);
+    const tailSeg = handle.group.getObjectByName('seg:tailThin:tailThin.0');
+    expect(tailSeg, 'tail chain segment missing').toBeTruthy();
+    const z0 = tailSeg!.position.clone();
+    handle.update(2.5, 1 / 60, WALK); // wag advances with time
+    expect(tailSeg!.position.equals(z0)).toBe(false);
     handle.dispose();
   });
 
-  it('solid mode adds the body inverse-hull outline and part ink outlines', () => {
+  it('wireframe (default) renders lines only — no fill meshes, no outlines', () => {
+    const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'human', classId: 'fighter', seed: 'asm-wire' });
+    const handle = assembleEntity(bp); // global default is wireframe
+    const { meshes, lines } = countVisuals(handle.group);
+    expect(lines, 'wireframe should render line nodes').toBeGreaterThan(10);
+    expect(meshes, 'wireframe should have no fill meshes (eyes/shadow excepted)').toBe(0);
+    handle.dispose();
+  });
+
+  it('solid mode renders toon meshes with ink outlines and joint spheres', () => {
     const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'human', classId: 'fighter', seed: 'asm-solid' });
     const handle = assembleEntity(bp, { renderMode: 'solid' });
-    expect(handle.group.getObjectByName('metaballOutline'), 'solid body outline missing').toBeTruthy();
-    let outlined = 0;
+    let segOutlines = 0;
+    let partOutlines = 0;
     handle.group.traverse((o) => {
-      if (o.name === 'partOutline' && (o as Mesh).isMesh) outlined += 1;
+      if (o.name === 'segOutline') segOutlines += 1;
+      if (o.name === 'partOutline') partOutlines += 1;
     });
-    expect(outlined).toBeGreaterThan(0);
+    expect(segOutlines).toBeGreaterThan(10);
+    expect(partOutlines).toBeGreaterThan(0);
+    expect(handle.group.getObjectByName('seg:legL.thigh.jointA'), 'knee joint sphere missing').toBeTruthy();
     handle.dispose();
   });
 
@@ -93,5 +120,35 @@ describe('entities3d assembler', () => {
     handle.update(0.1, 1 / 60, WALK);
     handle.dispose();
     expect(handle.group.children.length).toBe(0);
+  });
+});
+
+describe('entities3d debug API (vistest harness)', () => {
+  beforeAll(() => {
+    registerAllParts();
+  });
+
+  it('exposes the live pose and lets the debugger scrub the gait phase', () => {
+    const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'human', classId: 'fighter', seed: 'dbg-1' });
+    const handle = assembleEntity(bp);
+    handle.setGaitPhase(0.25);
+    handle.update(1, 0, WALK);
+    const zA = handle.pose.anchors.handR.pos.z;
+    handle.setGaitPhase(0.75);
+    handle.update(1, 0, WALK);
+    const zB = handle.pose.anchors.handR.pos.z;
+    expect(Math.abs(zA - zB)).toBeGreaterThan(0.05); // opposite swing extremes
+    handle.dispose();
+  });
+
+  it('reports stats: segment count, triangles, render mode', () => {
+    const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'human', classId: 'fighter', seed: 'dbg-2' });
+    const handle = assembleEntity(bp, { renderMode: 'solid' });
+    handle.update(0.2, 1 / 60, WALK);
+    const stats = handle.stats();
+    expect(stats.segments).toBeGreaterThan(10);
+    expect(stats.triangles).toBeGreaterThan(100);
+    expect(stats.renderMode).toBe('solid');
+    handle.dispose();
   });
 });

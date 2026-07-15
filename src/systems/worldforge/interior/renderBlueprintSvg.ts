@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 14/07/2026, 15:47:14
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file renderBlueprintSvg.ts
  * @description Pure 2D module-map blueprint renderer over a BlueprintPlan.
@@ -215,7 +231,12 @@ export function renderBlueprintSvg(
   const rad = Math.hypot(gridW, gridH) * 0.62;
   s += `<defs><radialGradient id="bpf" gradientUnits="userSpaceOnUse" cx="${r2(mcx)}" cy="${r2(mcy)}" r="${r2(rad)}">` +
     `<stop offset="0" stop-color="#d3a570"/><stop offset="0.7" stop-color="#bd8f5c"/><stop offset="1" stop-color="#a3773f"/>` +
-    `</radialGradient></defs>`;
+    `</radialGradient>` +
+    `<pattern id="bphistoryscorch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(28)">` +
+    `<rect width="7" height="7" fill="#38241f" fill-opacity="0.45"/><line x1="0" y1="0" x2="0" y2="7" stroke="#17100e" stroke-width="2" opacity="0.55"/></pattern>` +
+    `<pattern id="bphistoryphase" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">` +
+    `<line x1="0" y1="0" x2="0" y2="8" stroke="#75613f" stroke-width="1.4" opacity="0.72"/></pattern>` +
+    `</defs>`;
   s += `<rect x="0" y="0" width="${W}" height="${H}" fill="${SHEET}"/>`;
 
   // ---- exterior apron: tinted ground ring around the footprint ---------------
@@ -253,6 +274,38 @@ export function renderBlueprintSvg(
     }
   }
   s += floorSvg + tint + plank + grid;
+
+  // ---- chronological history: scorched rooms + activated extension masses ---
+  // Targets come from applyHistory. No placement is inferred or rerolled here.
+  const floorHistory = (plan.liveHistory?.features ?? []).filter((feature) =>
+    (feature.kind === 'scorched-room' && feature.floorLevel === level)
+    || (feature.kind === 'extension-phase' && level >= 0));
+  if (plan.liveHistory) {
+    let historySvg = `<g data-building-history="1" data-history-status="${plan.liveHistory.status}">`;
+    for (const feature of floorHistory) {
+      if (feature.kind === 'scorched-room') {
+        const room = floor.rooms.find((candidate) => candidate.id === feature.roomId);
+        if (!room) {
+          throw new Error(
+            `renderBlueprintSvg: scorch targets missing room ${level}:${feature.roomId}`,
+          );
+        }
+        for (const cell of room.cells) {
+          historySvg += `<rect x="${X(cell.cx)}" y="${Y(cell.cy)}" width="${CELL}" height="${CELL}" fill="url(#bphistoryscorch)" data-history-kind="scorched-room" data-history-room="${room.id}"/>`;
+        }
+      } else if (feature.kind === 'extension-phase') {
+        const mass = plan.masses[feature.massIndex];
+        if (!mass) {
+          throw new Error(
+            `renderBlueprintSvg: extension targets missing mass ${feature.massIndex}`,
+          );
+        }
+        historySvg += `<rect x="${X(mass.x)}" y="${Y(mass.y)}" width="${mass.w * CELL}" height="${mass.h * CELL}" fill="url(#bphistoryphase)" stroke="${feature.colorHex}" stroke-width="1.5" stroke-dasharray="5 3" data-history-kind="extension-phase" data-history-phase="${feature.phase}"/>`;
+      }
+    }
+    historySvg += `</g>`;
+    s += historySvg;
+  }
 
   // ---- furnishings (glyphs, feet-canon centers) --------------------------------
   // Every furnishing is wrapped in a <g data-kind="…"> carrying a <title> naming
@@ -412,6 +465,29 @@ export function renderBlueprintSvg(
     else winSvg += `<rect x="${r2(px - 1.5 * PXPF)}" y="${r2(py - winT / 2)}" width="${r2(3 * PXPF)}" height="${r2(winT)}" fill="${WIN}" stroke="${WALL_EDGE}" stroke-width="0.4" data-window="1"/>`;
   }
   s += winSvg;
+
+  // Event-derived boards sit over the glazing ticks. Three planks preserve the
+  // underlying window location while making abandonment/ruin readable at a glance.
+  let boardSvg = '';
+  for (const feature of plan.liveHistory?.features ?? []) {
+    if (feature.kind !== 'boarded-window' || feature.floorLevel !== level) continue;
+    const window = floor.windows[feature.windowIndex];
+    if (!window) {
+      throw new Error(
+        `renderBlueprintSvg: boards target missing window ${level}:${feature.windowIndex}`,
+      );
+    }
+    const px = fX(window.x);
+    const py = fY(window.y);
+    for (const offset of [-4, 0, 4]) {
+      if (window.axis === 'y') {
+        boardSvg += `<line x1="${r2(px - 4)}" y1="${r2(py - 8 + offset)}" x2="${r2(px + 4)}" y2="${r2(py + 8 + offset)}" stroke="#62452d" stroke-width="2.8" stroke-linecap="square" data-history-kind="boarded-window" data-history-window="${feature.windowIndex}"/>`;
+      } else {
+        boardSvg += `<line x1="${r2(px - 8 + offset)}" y1="${r2(py - 4)}" x2="${r2(px + 8 + offset)}" y2="${r2(py + 4)}" stroke="#62452d" stroke-width="2.8" stroke-linecap="square" data-history-kind="boarded-window" data-history-window="${feature.windowIndex}"/>`;
+      }
+    }
+  }
+  s += boardSvg;
 
   // ---- entry doorstep + approach arrow (opens INTO the primary room, A2) ------
   const entry: BlueprintDoor | undefined = floor.doors.find((d) => d.isEntry);
@@ -632,6 +708,21 @@ export function renderBlueprintSvg(
         rf += `<rect x="${r2(fX(tc.x) - (tc.w / 2) * PXPF)}" y="${r2(fY(tc.y) - (tc.d / 2) * PXPF)}" width="${r2(tc.w * PXPF)}" height="${r2(tc.d * PXPF)}" fill="url(#bproofhatch)" stroke="${INK}" stroke-width="1" data-roof-cap="${i}"/>`;
       }
     }
+    // Live roof damage overlays the canonical drafting lines. A breach is a
+    // dark torn circle; ruin sag repeats its exact ridge as a broken heavy line.
+    for (const feature of plan.liveHistory?.features ?? []) {
+      if (feature.kind === 'roof-hole') {
+        rf += `<circle cx="${fX(feature.x)}" cy="${fY(feature.y)}" r="${r2(feature.radiusFt * PXPF)}" fill="#241713" fill-opacity="0.88" stroke="#5c2e23" stroke-width="2" stroke-dasharray="3 2" data-history-kind="roof-hole" data-history-plane="${feature.planeIndex}"/>`;
+      } else if (feature.kind === 'ruin-sag') {
+        const ridge = roof.ridges[feature.ridgeIndex];
+        if (!ridge) {
+          throw new Error(
+            `renderBlueprintSvg: ruin sag targets missing ridge ${feature.ridgeIndex}`,
+          );
+        }
+        rf += `<line x1="${fX(ridge.x1)}" y1="${fY(ridge.y1)}" x2="${fX(ridge.x2)}" y2="${fY(ridge.y2)}" stroke="#5c2e23" stroke-width="3" stroke-dasharray="5 3" data-history-kind="ruin-sag" data-history-ridge="${feature.ridgeIndex}"/>`;
+      }
+    }
     rf += `</g>`;
     s += rf;
   }
@@ -662,12 +753,20 @@ export function renderBlueprintSvg(
     `<text x="${r2(ML + barPx + 5)}" y="${r2(stripY + 16)}" font-family="Georgia, serif" font-size="9" fill="${WALL_O}">10 ft</text>` +
     `</g>`;
   const typeName = plan.type.charAt(0).toUpperCase() + plan.type.slice(1);
-  const seedText = options?.seed !== undefined ? ` · seed ${escapeXml(String(options.seed))}` : '';
   const tbX = ML + barPx + 60;
+  const detailText = `${floorName(level)}` +
+    `${options?.seed !== undefined ? ` · seed ${String(options.seed)}` : ''}` +
+    `${plan.liveHistory ? ` · ${plan.liveHistory.status}` : ''}` +
+    ` · ${plan.widthFt}×${plan.depthFt} ft · 1 square = 5 ft`;
+  const detailWidth = W - tbX - 24;
+  const detailFontSize = Math.max(
+    6.5,
+    Math.min(9, detailWidth / Math.max(1, detailText.length * LABEL_CHAR_W)),
+  );
   s += `<g data-title-block="1">` +
     `<rect x="${r2(tbX)}" y="${r2(stripY + 2)}" width="${r2(W - tbX - 8)}" height="${TITLE_H - 8}" fill="none" stroke="${INK}" stroke-width="1"/>` +
     `<text x="${r2(tbX + 8)}" y="${r2(stripY + 14)}" font-family="Georgia, serif" font-weight="700" font-size="11" fill="${INK}">${escapeXml(typeName)}</text>` +
-    `<text x="${r2(tbX + 8)}" y="${r2(stripY + 26)}" font-family="Georgia, serif" font-size="9" fill="${INK}">${escapeXml(floorName(level))}${seedText} · ${plan.widthFt}×${plan.depthFt} ft · 1 square = 5 ft</text>` +
+    `<text x="${r2(tbX + 8)}" y="${r2(stripY + 26)}" font-family="Georgia, serif" font-size="${r2(detailFontSize)}" fill="${INK}">${escapeXml(detailText)}</text>` +
     `</g>`;
 
   s += '</svg>';

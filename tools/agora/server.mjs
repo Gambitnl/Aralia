@@ -21,6 +21,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createStore } from './store.mjs';
 import { attachActivityMirror } from './activityMirror.mjs';
@@ -137,7 +138,7 @@ function bearerToken(req) {
 // Factory: build the server + store WITHOUT starting the listener or hooking
 // signals (so tests can boot on an ephemeral port). Call returned .listen()/.close().
 // ---------------------------------------------------------------------------
-export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFile } = {}) {
+export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFile, syncDelayMs, syncRunner } = {}) {
   // Lazy import keeps the factory synchronous for the common path while still
   // allowing tests to inject a store. Default uses the real store.mjs.
   // (storeFactory is primarily a seam for tests; production uses the default.)
@@ -147,6 +148,32 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
   }
   const store = storeFactory({ dir });
   const startedAt = Date.now();
+
+  // Freshness trigger (planning-surface-freshness Task 7): any successful task
+  // mutation schedules ONE sync-surfaces run; new events inside the window ride
+  // the same timer, so bursts coalesce. The timer is unref'd and the child is
+  // detached — a broken sync must never take the daemon with it.
+  let syncTimer = null;
+  const runSync = syncRunner ?? (() => {
+    try {
+      const child = spawn(process.execPath, [path.join(__dirname, 'sync-surfaces.mjs')], {
+        stdio: 'ignore',
+        detached: true,
+      });
+      child.unref();
+    } catch {
+      // sync failing to SPAWN is invisible here by design; the planmap page's
+      // last-sync banner is the loud surface for a sync that stops running.
+    }
+  });
+  const scheduleSyncSoon = () => {
+    if (syncTimer) return;
+    syncTimer = setTimeout(() => {
+      syncTimer = null;
+      runSync();
+    }, syncDelayMs ?? 60000);
+    if (syncTimer.unref) syncTimer.unref();
+  };
 
   // Optional cockpit bridge: mirror coordination events into the operator
   // dashboard's activity feed. Off unless an activityFile is provided (tests
@@ -379,7 +406,13 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
 
   router.get('/campaigns', async (_req, res, ctx) => {
     const state = ctx.query.get('state') || undefined;
-    sendJson(res, 200, { campaigns: store.listCampaigns({ state }) });
+    // ownerAlive mirrors the store's ownerLive under the board-tidying name so
+    // dashboards can flag campaigns whose lead has left the roster.
+    const campaigns = store.listCampaigns({ state }).map((c) => ({
+      ...c,
+      ownerAlive: Boolean(c.ownerLive),
+    }));
+    sendJson(res, 200, { campaigns });
   });
 
   router.post(
@@ -432,6 +465,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       } catch (e) {
         return sendJson(res, 400, { error: e.message }); // e.g. unknown dep
       }
+      scheduleSyncSoon();
       sendJson(res, 201, { task });
     }),
   );
@@ -458,7 +492,10 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         ? body.category
         : (ctx.query.get('category') || undefined);
       const result = store.claimNextReady({ agentId: ctx.agent.id, campaignId, category });
-      if (result.ok) return sendJson(res, 200, { task: result.task || null });
+      if (result.ok) {
+        if (result.task) scheduleSyncSoon();
+        return sendJson(res, 200, { task: result.task || null });
+      }
       return sendJson(res, 409, { error: result.error });
     }),
   );
@@ -467,7 +504,10 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     '/tasks/:id/claim',
     withAuth(async (_req, res, ctx) => {
       const result = store.claimTask({ taskId: ctx.params.id, agentId: ctx.agent.id });
-      if (result.ok) return sendJson(res, 200, { task: result.task });
+      if (result.ok) {
+        scheduleSyncSoon();
+        return sendJson(res, 200, { task: result.task });
+      }
       if (result.error === 'task not found') return sendJson(res, 404, { error: result.error });
       return sendJson(res, 409, { error: result.error });
     }),
@@ -488,7 +528,10 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         state: body.state,
         result: typeof body.result === 'string' ? body.result : undefined,
       });
-      if (result.ok) return sendJson(res, 200, { task: result.task });
+      if (result.ok) {
+        scheduleSyncSoon();
+        return sendJson(res, 200, { task: result.task });
+      }
       if (result.error === 'task not found') return sendJson(res, 404, { error: result.error });
       return sendJson(res, 400, { error: result.error });
     }),
@@ -529,8 +572,16 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         agentId: ctx.agent.id,
         toAgentId: body.toAgentId,
       });
-      if (result.ok) return sendJson(res, 200, { task: result.task });
+      if (result.ok) {
+        scheduleSyncSoon();
+        return sendJson(res, 200, { task: result.task });
+      }
       if (result.error === 'task not found') return sendJson(res, 404, { error: result.error });
+      // Handoff liveness (planning-surface-freshness Task 6): a dead or
+      // never-registered target is a semantic refusal, not a malformed request.
+      if (result.error === 'target agent is not registered or live') {
+        return sendJson(res, 422, { error: result.error });
+      }
       return sendJson(res, 400, { error: result.error });
     }),
   );
@@ -673,6 +724,17 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(renderDocPage(`gaps${project ? `: ${project}` : ''}`, md, { docNames: [], rawHref: null }));
   });
+
+  // ============================== Admin ==============================
+  // Board tidying: archive stale done tasks (store.archiveDoneTasks). Authed
+  // like every other mutation; the sync program's tidy step is the intended
+  // caller, so store files are only ever touched by the daemon that owns them.
+  router.post(
+    '/admin/tidy',
+    withAuth(async (_req, res) => {
+      sendJson(res, 200, store.archiveDoneTasks());
+    }),
+  );
 
   // ============================== Health ==============================
   router.get('/health', async (_req, res) => {

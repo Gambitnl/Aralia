@@ -17,6 +17,8 @@ import {
 } from '../townEngine';
 import { pointInPolygon, polygonBounds, type Pt } from '../../submap/submapEngine';
 import { rootSeedPath } from '../../seedPath';
+import { courtyardCentersForBlock, resolveCourtyardSpaces } from '../courtyardSpaces';
+import { resolveBuildingEnsembles } from '../buildingEnsembles';
 
 const footprint: Pt[] = [[0, 0], [120, 0], [140, 90], [70, 140], [0, 100]];
 const squareWard: Pt[] = [[0, 0], [50, 0], [50, 50], [0, 50]];
@@ -54,6 +56,31 @@ describe('packWardFrontage (party-wall plots)', () => {
     // Only the two long edges (length 60) seat plots; the width-3 edges are skipped.
     expect(new Set(plots.map((p) => p.frontageEdge)).size).toBeLessThanOrEqual(2);
     expect(plots.length).toBeGreaterThan(0);
+  });
+
+  it('negotiates one rear boundary per dense street edge', () => {
+    const plots = packWardFrontage(squareWard, rootSeedPath(71), {
+      plotWidth: 8,
+      plotDepth: 10,
+      variety: true,
+      partyWallRows: true,
+    });
+    const byEdge = new Map<number, typeof plots>();
+    for (const candidate of plots) {
+      const group = byEdge.get(candidate.frontageEdge) ?? [];
+      group.push(candidate);
+      byEdge.set(candidate.frontageEdge, group);
+    }
+
+    for (const edgePlots of byEdge.values()) {
+      const depths = edgePlots.map((candidate) =>
+        Math.hypot(
+          candidate.polygon.at(-1)![0] - candidate.polygon[0][0],
+          candidate.polygon.at(-1)![1] - candidate.polygon[0][1],
+        ));
+      expect(new Set(depths.map((depth) => depth.toFixed(6))).size).toBe(1);
+      expect(edgePlots.every((candidate) => candidate.shape === 'rect')).toBe(true);
+    }
   });
 });
 
@@ -163,6 +190,68 @@ describe('variety + interior infill (criterion #6)', () => {
       expect(p.kind).toBe('interior');
       expect(p.frontageEdge).toBe(-1);
       expect(pointInPolygon(polygonCentroid(p.polygon), bigWard)).toBe(true);
+    }
+    // Every first edge faces its intentionally empty indexed court. This edge
+    // becomes the interior building's frontage in the artifact adapter.
+    const courtCount = Math.max(...inside.map((plot) => plot.courtyardIndex ?? 0)) + 1;
+    const centers = courtyardCentersForBlock(bigWard, courtCount);
+    for (const p of inside) {
+      const center = centers[p.courtyardIndex ?? 0];
+      const frontMid: Pt = [
+        (p.polygon[0][0] + p.polygon[1][0]) / 2,
+        (p.polygon[0][1] + p.polygon[1][1]) / 2,
+      ];
+      const backMid: Pt = [
+        (p.polygon[2][0] + p.polygon[3][0]) / 2,
+        (p.polygon[2][1] + p.polygon[3][1]) / 2,
+      ];
+      expect(Math.hypot(frontMid[0] - center[0], frontMid[1] - center[1]))
+        .toBeLessThan(Math.hypot(backMid[0] - center[0], backMid[1] - center[1]));
+    }
+    for (let index = 0; index < centers.length; index++) {
+      expect(inside.some((plot) =>
+        (plot.courtyardIndex ?? 0) === index
+        && pointInPolygon(centers[index], plot.polygon))).toBe(false);
+    }
+    expect(courtCount).toBeGreaterThan(1);
+  });
+
+  it('composes three distinct courts in a genuinely large block', () => {
+    const block: Pt[] = [[0, 0], [240, 0], [240, 160], [0, 160]];
+    const plots = packWardInterior(block, rootSeedPath(2027), { plotWidth: 8 });
+    const ward = { polygon: block, block, plots };
+    const ensembles = resolveBuildingEnsembles([ward], [], 'city', rootSeedPath(2027));
+    for (const plot of plots) plot.ensemble = ensembles.get(plot);
+    const courts = resolveCourtyardSpaces([ward], rootSeedPath(2027));
+
+    expect(courts).toHaveLength(3);
+    expect(new Set(courts.map((court) => court.blockKey)).size).toBe(3);
+    expect(new Set(courts.map((court) => court.courtyardSignature)).size).toBe(3);
+    for (const court of courts) {
+      const members = plots.filter((plot) => plot.ensemble?.blockKey === court.blockKey);
+      expect(members.length).toBeGreaterThanOrEqual(3);
+      expect(members.some((plot) => pointInPolygon(court.center, plot.polygon))).toBe(false);
+    }
+  });
+
+  it('emits deterministic shared-courtyard receipts from surviving interior plots', () => {
+    const first = generateTownPlan(footprint, rootSeedPath(404), { population: 12_000 });
+    const replay = generateTownPlan(footprint, rootSeedPath(404), { population: 12_000 });
+
+    expect(first.courtyards.length).toBeGreaterThan(0);
+    expect(replay.courtyards).toEqual(first.courtyards);
+    for (let index = 1; index < first.courtyards.length; index++) {
+      expect(first.courtyards[index].amenity).not.toBe(first.courtyards[index - 1].amenity);
+    }
+    for (const court of first.courtyards) {
+      const ward = first.wards[court.wardIndex];
+      const courtPlots = ward.plots.filter((plot) =>
+        plot.kind === 'interior' && plot.ensemble?.blockKey === court.blockKey);
+      expect(courtPlots.length).toBeGreaterThanOrEqual(2);
+      expect(court.districtKey).toBe(ward.architectureDistrict?.key);
+      expect(court.wealth).toBe(ward.wealth);
+      expect(court.radius).toBeGreaterThan(0);
+      expect(courtPlots.some((plot) => pointInPolygon(court.center, plot.polygon))).toBe(false);
     }
   });
 

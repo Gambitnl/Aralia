@@ -1,0 +1,46 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="handGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#312E81" />
+      <stop offset="100%" stop-color="#4338CA" />
+    </linearGradient>
+    <radialGradient id="flameGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#C7D2FE" />
+      <stop offset="40%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#4F46E5" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background Shadow -->
+  <circle cx="50" cy="50" r="45" fill="#111827" />
+
+  <!-- Hand Silhouette -->
+  <path d="M30,85 Q35,70 40,60 L40,45 Q40,40 45,40 L55,40 Q60,40 60,45 L60,60 Q65,70 70,85 Z" fill="url(#handGrad)" />
+  <path d="M40,45 Q35,45 30,35 M45,40 Q45,30 40,25 M55,40 Q55,30 60,25 M60,45 Q65,45 70,35" stroke="#4338CA" stroke-width="4" stroke-linecap="round" fill="none" />
+
+  <!-- The Conjured Flame -->
+  <g filter="url(#glow)">
+    <!-- Outer Aura -->
+    <path d="M50,15 Q65,35 50,50 Q35,35 50,15" fill="#818CF8" opacity="0.4">
+       <animate attributeName="d" values="M50,15 Q65,35 50,50 Q35,35 50,15; M50,10 Q70,35 50,55 Q30,35 50,10; M50,15 Q65,35 50,50 Q35,35 50,15" dur="2s" repeatCount="indefinite" />
+    </path>
+    <!-- Main Body -->
+    <path d="M50,20 Q60,35 50,45 Q40,35 50,20" fill="url(#flameGrad)">
+       <animate attributeName="d" values="M50,20 Q60,35 50,45 Q40,35 50,20; M50,15 Q65,35 50,50 Q35,35 50,15; M50,20 Q60,35 50,45 Q40,35 50,20" dur="2s" repeatCount="indefinite" />
+    </path>
+    <!-- Inner Core -->
+    <path d="M50,30 Q55,37 50,42 Q45,37 50,30" fill="#E0E7FF" />
+  </g>
+
+  <!-- Light Rays -->
+  <g stroke="#818CF8" stroke-width="1" opacity="0.6">
+    <line x1="50" y1="30" x2="30" y2="15" />
+    <line x1="50" y1="30" x2="70" y2="15" />
+    <line x1="50" y1="30" x2="20" y2="30" />
+    <line x1="50" y1="30" x2="80" y2="30" />
+  </g>
+</svg>

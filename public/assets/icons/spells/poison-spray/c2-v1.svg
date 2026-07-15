@@ -1,0 +1,53 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#34D399" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#34D399" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="skin" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4a4a4a" />
+      <stop offset="100%" stop-color="#2a2a2a" />
+    </linearGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background atmospheric glow -->
+  <circle cx="65" cy="40" r="30" fill="url(#glow)" />
+
+  <!-- The Hand (Gnarled, necromantic) -->
+  <g transform="translate(10, 20)">
+    <!-- Wrist/Forearm -->
+    <path d="M0,60 Q15,55 20,40 L30,45 Q35,55 40,60 L40,80 L0,80 Z" fill="url(#skin)" stroke="#1a1a1a" stroke-width="1"/>
+    
+    <!-- Palm -->
+    <path d="M20,40 Q30,30 45,40 Q55,50 50,65 Q40,75 30,65 Z" fill="url(#skin)" stroke="#1a1a1a" stroke-width="1"/>
+    
+    <!-- Fingers in a spraying gesture (curled, open palm) -->
+    <path d="M45,40 Q55,30 60,25 Q65,20 62,35 L52,45" fill="url(#skin)" stroke="#1a1a1a" stroke-width="1"/> <!-- Index -->
+    <path d="M50,40 Q60,35 65,30 Q70,25 68,40 L58,48" fill="url(#skin)" stroke="#1a1a1a" stroke-width="1"/> <!-- Middle -->
+    <path d="M55,45 Q65,45 68,42 Q72,38 70,50 L60,55" fill="url(#skin)" stroke="#1a1a1a" stroke-width="1"/> <!-- Ring -->
+    <path d="M48,55 Q55,60 58,60 Q62,58 60,65 L50,68" fill="url(#skin)" stroke="#1a1a1a" stroke-width="1"/> <!-- Pinky -->
+    
+    <!-- Thumb -->
+    <path d="M25,50 Q20,40 30,35 Q40,30 40,40" fill="url(#skin)" stroke="#1a1a1a" stroke-width="1"/>
+  </g>
+
+  <!-- The Poison Mist emanating from the palm -->
+  <g filter="url(#softGlow)">
+    <!-- Primary mist mass -->
+    <path d="M60,40 Q75,30 85,45 Q95,60 80,70 Q65,75 55,60 Z" fill="#065f46" opacity="0.7" />
+    <path d="M65,45 Q75,35 82,50 Q85,60 75,65 Q65,65 60,55 Z" fill="#34D399" opacity="0.8" />
+    
+    <!-- Floating toxic droplets -->
+    <circle cx="78" cy="35" r="2" fill="#34D399" />
+    <circle cx="88" cy="50" r="3" fill="#34D399" />
+    <circle cx="82" cy="65" r="2" fill="#065f46" />
+    <circle cx="68" cy="30" r="1.5" fill="#34D399" />
+  </g>
+
+  <!-- Energy Veins on the hand -->
+  <path d="M35,45 L45,42 M40,50 L50,48 M42,55 L52,53" stroke="#34D399" stroke-width="0.5" opacity="0.6" />
+</svg>

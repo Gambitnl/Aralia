@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/06/2026, 03:59:51
+ * Last Sync: 14/07/2026, 17:46:52
  * Dependents: state/appState.ts
- * Imports: 17 files
+ * Imports: 25 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -30,7 +30,10 @@ import { biomeIdForCell } from '../../systems/worldforge/local/biomeForCell';
 import { nearBurgIdsForCell } from '../../systems/worldforge/local/burgProximity';
 import { advanceRegistry } from '../../systems/worldforge/townsim/townSimRegistry';
 import { raidPressureForBurg } from '../../systems/worldforge/dungeon/world/raidPressure';
-import { buildTownSimStateForBurg } from '../../systems/worldforge/townsim/townSimRegistration';
+import {
+  buildTownSimStateForBurg,
+  buildingEvolutionForBurg,
+} from '../../systems/worldforge/townsim/townSimRegistration';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
 import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
 import { DEFAULT_WEATHER } from '../../systems/environment/EnvironmentSystem';
@@ -213,7 +216,21 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       // the ADVANCE_TIME daily loop. Its history begins at the current game day.
       const { burgId } = action.payload;
       const registry = state.townSim ?? {}; // legacy saves may lack townSim
-      if (registry[burgId]) return {};
+      if (registry[burgId]) {
+        const existing = registry[burgId];
+        if (existing.buildingEvolution) return {};
+        // Old saves already own their people and history. Hydrate only the
+        // immutable lot-safe growth briefs that did not exist in that schema.
+        return {
+          townSim: {
+            ...registry,
+            [burgId]: {
+              ...existing,
+              buildingEvolution: buildingEvolutionForBurg(state.worldSeed, burgId),
+            },
+          },
+        };
+      }
       const currentDay = getGameDay(state.gameTime);
       const townState = buildTownSimStateForBurg(state.worldSeed, burgId, currentDay);
       return { townSim: { ...registry, [burgId]: townState } };

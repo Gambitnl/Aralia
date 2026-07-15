@@ -1,0 +1,36 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="spectralGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C7D2FE" />
+      <stop offset="50%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#4F46E5" />
+    </linearGradient>
+  </defs>
+
+  <!-- Diamond Frame -->
+  <path d="M50 10 L90 50 L50 90 L10 50 Z" fill="none" stroke="#4F46E5" stroke-width="2" opacity="0.6" />
+  <path d="M50 15 L85 50 L50 85 L15 50 Z" fill="none" stroke="#818CF8" stroke-width="1" opacity="0.4" />
+
+  <!-- Abstract Spectral Hand Symbol -->
+  <g filter="url(#glow)">
+    <!-- Palm center -->
+    <path d="M40 45 Q50 40 60 45 L65 65 Q50 70 35 65 Z" fill="url(#spectralGrad)" />
+    
+    <!-- Fingers (stylized as floating arcs) -->
+    <path d="M42 45 Q40 30 38 25" stroke="#C7D2FE" stroke-width="4" stroke-linecap="round" fill="none" />
+    <path d="M48 42 Q48 25 48 20" stroke="#C7D2FE" stroke-width="4" stroke-linecap="round" fill="none" />
+    <path d="M54 42 Q54 25 54 20" stroke="#C7D2FE" stroke-width="4" stroke-linecap="round" fill="none" />
+    <path d="M60 45 Q65 35 68 30" stroke="#C7D2FE" stroke-width="4" stroke-linecap="round" fill="none" />
+    
+    <!-- Thumb -->
+    <path d="M38 55 Q25 55 20 50" stroke="#C7D2FE" stroke-width="4" stroke-linecap="round" fill="none" />
+  </g>
+
+  <!-- Arc accents for conjuration energy -->
+  <path d="M30 75 Q50 85 70 75" stroke="#818CF8" stroke-width="2" fill="none" stroke-dasharray="2 4" />
+  <path d="M30 25 Q50 15 70 25" stroke="#818CF8" stroke-width="2" fill="none" stroke-dasharray="2 4" />
+</svg>

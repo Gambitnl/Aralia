@@ -1,0 +1,42 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="gradMain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E9D5FF" />
+      <stop offset="50%" stop-color="#C084FC" />
+      <stop offset="100%" stop-color="#7E22CE" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Diamond Frame -->
+  <path d="M50 5 L95 50 L50 95 L5 50 Z" fill="none" stroke="#4A044E" stroke-width="2" />
+  <path d="M50 15 L85 50 L50 85 L15 50 Z" fill="none" stroke="#C084FC" stroke-width="1" stroke-dasharray="4 2" />
+
+  <!-- Central Orb (The Core) -->
+  <circle cx="50" cy="50" r="12" fill="url(#gradMain)" filter="url(#glow)" />
+  <circle cx="50" cy="50" r="6" fill="#FFFFFF" opacity="0.6" />
+
+  <!-- Satellite Orbs (The Dancing Lights) -->
+  <!-- Top Right -->
+  <circle cx="72" cy="32" r="6" fill="#C084FC" filter="url(#glow)" />
+  <path d="M56 44 L70 34" stroke="#C084FC" stroke-width="1" opacity="0.4" />
+  
+  <!-- Bottom Right -->
+  <circle cx="72" cy="68" r="6" fill="#C084FC" filter="url(#glow)" />
+  <path d="M56 56 L70 66" stroke="#C084FC" stroke-width="1" opacity="0.4" />
+  
+  <!-- Bottom Left -->
+  <circle cx="28" cy="68" r="6" fill="#C084FC" filter="url(#glow)" />
+  <path d="M44 56 L30 66" stroke="#C084FC" stroke-width="1" opacity="0.4" />
+  
+  <!-- Top Left -->
+  <circle cx="28" cy="32" r="6" fill="#C084FC" filter="url(#glow)" />
+  <path d="M44 44 L30 34" stroke="#C084FC" stroke-width="1" opacity="0.4" />
+
+  <!-- Arc Flourishes (Motion/Magic) -->
+  <path d="M30 20 Q 50 10 70 20" fill="none" stroke="#E9D5FF" stroke-width="1.5" stroke-linecap="round" filter="url(#glow)" />
+  <path d="M30 80 Q 50 90 70 80" fill="none" stroke="#E9D5FF" stroke-width="1.5" stroke-linecap="round" filter="url(#glow)" />
+</svg>

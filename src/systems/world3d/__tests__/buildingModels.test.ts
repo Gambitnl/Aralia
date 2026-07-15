@@ -1,5 +1,16 @@
+/**
+ * This file proves that pure building and roof geometry stays deterministic,
+ * structurally valid, and faithful to blueprint openings and history damage.
+ * It exercises the shared data builders before either preview or production
+ * converts their results into rendered Three.js geometry.
+ */
+
 import { describe, it, expect } from 'vitest';
-import { buildRoofGeometry, buildRoofMeshData } from '../buildingModels';
+import {
+  buildRoofGeometry,
+  buildRoofMeshData,
+  roofDeformationForPlan,
+} from '../buildingModels';
 import type { RoofPlan } from '../../worldforge/interior/blueprintTypes';
 
 const maxY = (g: { positions: Float32Array }) => {
@@ -511,6 +522,103 @@ describe('buildRoofMeshData', () => {
 
   it('is deterministic (deep-equal on repeat)', () => {
     expect(buildRoofMeshData(roof(), WALL_TOP)).toEqual(buildRoofMeshData(roof(), WALL_TOP));
+  });
+
+  it('removes real roof triangles inside a chronological breach', () => {
+    const hole = { planeIndex: 0, x: 15, y: 8, radiusFt: 2.5 };
+    const damaged = buildRoofMeshData(roof(), WALL_TOP, { holes: [hole], sags: [] });
+    const clean = buildRoofMeshData(roof(), WALL_TOP);
+
+    // Damage refines only the affected surface, then omits every fragment whose
+    // center falls inside the replayed breach instead of laying a dark slab on it.
+    expect(damaged.tris.positions.length).toBeGreaterThan(clean.tris.positions.length);
+    for (let i = 0; i < damaged.tris.positions.length; i += 9) {
+      const centerX = (
+        damaged.tris.positions[i] +
+        damaged.tris.positions[i + 3] +
+        damaged.tris.positions[i + 6]
+      ) / 3;
+      const centerY = (
+        damaged.tris.positions[i + 2] +
+        damaged.tris.positions[i + 5] +
+        damaged.tris.positions[i + 8]
+      ) / 3;
+      expect(Math.hypot(centerX - hole.x, centerY - hole.y))
+        .toBeGreaterThanOrEqual(hole.radiusFt - 1e-6);
+    }
+    expect(buildRoofMeshData(roof(), WALL_TOP, { holes: [hole], sags: [] }))
+      .toEqual(damaged);
+  });
+
+  it('bends the canonical roof skin down at a sagging ridge center', () => {
+    const damaged = buildRoofMeshData(roof(), WALL_TOP, {
+      holes: [],
+      sags: [{ ridgeIndex: 0, deflectionFt: 1.5 }],
+    });
+    const ridgeCenterHeights: number[] = [];
+    for (let i = 0; i < damaged.tris.positions.length; i += 3) {
+      if (
+        Math.abs(damaged.tris.positions[i] - 15) < 1e-6 &&
+        Math.abs(damaged.tris.positions[i + 2] - 15) < 1e-6
+      ) {
+        ridgeCenterHeights.push(damaged.tris.positions[i + 1]);
+      }
+      expect(damaged.tris.positions[i + 1]).toBeGreaterThanOrEqual(WALL_TOP - 1e-6);
+    }
+    expect(ridgeCenterHeights.length).toBeGreaterThan(0);
+    expect(Math.min(...ridgeCenterHeights)).toBeCloseTo(WALL_TOP + 6 - 1.5, 5);
+  });
+
+  it('rejects a sag that targets a missing solved ridge', () => {
+    expect(() => buildRoofMeshData(roof(), WALL_TOP, {
+      holes: [],
+      sags: [{ ridgeIndex: 99, deflectionFt: 1 }],
+    })).toThrow('missing sag ridge 99');
+  });
+
+  it('rejects a hole that targets a missing solved plane', () => {
+    expect(() => buildRoofMeshData(roof(), WALL_TOP, {
+      holes: [{ planeIndex: 99, x: 1, y: 1, radiusFt: 1 }],
+      sags: [],
+    })).toThrow('missing hole plane 99');
+  });
+
+  it('folds permanent and replayed damage into one non-additive mesh contract', () => {
+    const plan = generateBuilding({
+      buildingId: 44,
+      type: 'manor',
+      seedPath: rootSeedPath(44),
+      storeys: 2,
+      basement: false,
+    });
+    plan.backstory = {
+      ageBand: 'old',
+      phases: [],
+      wear: [],
+      historySignature: 'test-backstory',
+      features: [{
+        kind: 'sagging-ridge',
+        ridgeIndex: 0,
+        deflectionFt: 1.25,
+        colorHex: '#443322',
+      }],
+    };
+    plan.liveHistory = {
+      lastDay: 90,
+      eventsApplied: 2,
+      status: 'ruined',
+      renovatedBackstory: false,
+      historySignature: 'test-history',
+      features: [
+        { kind: 'roof-hole', planeIndex: 0, x: 4, y: 5, radiusFt: 2 },
+        { kind: 'ruin-sag', ridgeIndex: 0, deflectionFt: 2, colorHex: '#221100' },
+      ],
+    };
+
+    expect(roofDeformationForPlan(plan)).toEqual({
+      holes: [{ planeIndex: 0, x: 4, y: 5, radiusFt: 2 }],
+      sags: [{ ridgeIndex: 0, deflectionFt: 2 }],
+    });
   });
 
   it('raises a real roof from a styled generateBuilding plan', () => {

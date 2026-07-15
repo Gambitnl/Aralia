@@ -122,10 +122,33 @@ export interface EntityBlueprint {
   label: string;
 }
 
-/** Receives metaballs. The assembler adapts this onto its MarchingCubes field. */
+/** Receives metaballs. The assembler adapts this onto its MarchingCubes field.
+ * @deprecated Body v2: dies with the field parts — use SegmentSink. */
 export interface BallSink {
   /** x/y/z in meters, entity-local (y up, z forward); r = ball radius in meters. */
   ball(x: number, y: number, z: number, r: number): void;
+}
+
+/** One rigid body bone: a tapered segment between two joints (meters,
+ * entity-local). Radii are FRAME-CONSTANT per id; only the endpoints move
+ * frame to frame, so the renderer builds one mesh per id and re-transforms it. */
+export interface BodySegment {
+  id: string;
+  ax: number;
+  ay: number;
+  az: number;
+  bx: number;
+  by: number;
+  bz: number;
+  r0: number;
+  r1: number;
+}
+
+/** Receives the body skeleton each frame: tapered bone segments plus round
+ * lumps (head, hands, feet). Ids are stable across frames. */
+export interface SegmentSink {
+  seg(id: string, ax: number, ay: number, az: number, bx: number, by: number, bz: number, r0: number, r1: number): void;
+  ball(id: string, x: number, y: number, z: number, r: number): void;
 }
 
 /** Minimal position — THREE.Vector3 satisfies this, keeping the data layer three-free. */
@@ -181,20 +204,21 @@ export interface PartMeshCtx {
   material(colorHex: string): import('three').Material;
 }
 
-/** One modular component definition.
- * `field` parts merge metaballs into the seamless body.
- * `mesh` parts are crisp attached objects, re-anchored every frame. */
+/** One modular component definition (body v2).
+ * `mesh` parts are rigid objects re-anchored every frame (horns, gear, hats).
+ * `chain` parts are animated tapered segment chains rendered by the same
+ * segment renderer as the body (tails, tentacles, antennae) — they wag. */
 export interface PartDef {
   id: string;
   /** Default anchor; a PartInstance may override. */
   anchor: Anchor;
-  kind: 'field' | 'mesh';
-  buildField?(
-    sink: BallSink,
+  kind: 'mesh' | 'chain';
+  buildMesh?(ctx: PartMeshCtx): { object: import('three').Object3D };
+  /** Per-frame segment chain. Ids must be stable and radii frame-constant. */
+  buildChain?(
     frame: Frame,
     params: Record<string, number | string>,
     phase: PartPhase,
     anchors: PartAnchors,
-  ): void;
-  buildMesh?(ctx: PartMeshCtx): { object: import('three').Object3D };
+  ): BodySegment[];
 }

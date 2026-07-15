@@ -1,12 +1,29 @@
+/**
+ * These tests protect the deterministic living-town simulation.
+ *
+ * Hand-built villagers isolate aging, relationships, economy, disasters, and
+ * building evolution, while generated-town cases prove those rules through
+ * the real roster and registry paths. Building-change comparisons pin the
+ * compatibility promise that optional evolution briefs never shift an older
+ * random outcome.
+ */
 import { SeededRandom } from '../../../../utils/random/seededRandom';
 import { initTownSimState, ageOf, rollTownDay, advanceTownDays } from '../townSim';
 import { advanceTown } from '../townSimRegistry';
 import type { TownSimState, LivingVillager } from '../types';
-import { DAYS_PER_YEAR, RETENTION_YEARS } from '../constants';
+import { COURTSHIP_DAYS, DAYS_PER_YEAR, RETENTION_YEARS } from '../constants';
 import { generateTownRoster } from '../../roster/generateTownRoster';
 import { assignFamilies } from '../../roster/family';
 import { makeSeedPath } from '../../seedPath';
 import { buildDemoTownPlan } from '../../town/demoTownPlan';
+import { isBuildingHistoryJournal } from '../../interior/buildingEventHistory';
+import type { BuildingEvent, BuildingEventHistory } from '../../interior/blueprintTypes';
+
+/** These focused fixtures stay below compaction, but accept either save shape. */
+function recentEvents(history: BuildingEventHistory | undefined): BuildingEvent[] {
+  if (!history) return [];
+  return isBuildingHistoryJournal(history) ? history.events : history;
+}
 
 // Minimal hand-built state factory (bypasses roster for focused unit tests).
 function villager(p: Partial<LivingVillager> & { occupantId: number }): LivingVillager {
@@ -293,6 +310,74 @@ describe('event-grained economy', () => {
       expect(e.summary.length).toBeGreaterThan(0);
     }
   });
+
+  /** One compact but valid saved addition for deterministic annual evolution. */
+  const evolutionBrief: NonNullable<TownSimState['buildingEvolution']> = {
+    1: {
+      districtKey: 'river-market',
+      roofForm: 'hip',
+      extensionCandidates: [{
+        phase: 1,
+        roofForm: 'hip',
+        mass: { kind: 'tower', x: 3, y: 1, w: 2, h: 2 },
+      }],
+    },
+  };
+
+  /** Find a world seed whose first annual outcome is prosperous for this fixture. */
+  function prosperousAnnualRun(source: TownSimState): { seed: number; state: TownSimState } {
+    for (let seed = 1; seed <= 500; seed += 1) {
+      const state = advanceTown(source, seed, DAYS_PER_YEAR);
+      if (state.chronicle.events.some((event) => event.kind === 'building')) {
+        return { seed, state };
+      }
+    }
+    throw new Error('test fixture could not find a prosperous annual outcome');
+  }
+
+  it('turns prosperity into one stored extension without perturbing life outcomes', () => {
+    const source = {
+      ...stateOf([villager({ occupantId: 1, homePlotId: 1 })], DAYS_PER_YEAR - 1),
+      prosperity: 50,
+      buildingEvolution: evolutionBrief,
+    };
+    const { seed, state: evolved } = prosperousAnnualRun(source);
+    const baseline = advanceTown(
+      { ...source, buildingEvolution: undefined },
+      seed,
+      DAYS_PER_YEAR,
+    );
+    const log = evolved.buildingEvents?.[1] ?? [];
+
+    expect(log).toContainEqual(expect.objectContaining({ kind: 'extension' }));
+    expect(evolved.chronicle.events.some((event) =>
+      event.kind === 'building' && event.summary.includes('hip-roofed tower'))).toBe(true);
+    expect(evolved.villagers).toEqual(baseline.villagers);
+    expect(evolved.prosperity).toBe(baseline.prosperity);
+    expect(evolved.chronicle.events.filter((event) => event.kind !== 'building'))
+      .toEqual(baseline.chronicle.events);
+  });
+
+  it('repairs an occupied fire-damaged home before funding new construction', () => {
+    const source = {
+      ...stateOf([villager({ occupantId: 1, homePlotId: 1 })], DAYS_PER_YEAR - 1),
+      prosperity: 50,
+      buildingEvolution: evolutionBrief,
+      buildingEvents: {
+        1: [{
+          day: 100,
+          kind: 'fire-damage' as const,
+          payload: { incidentId: 'fixture-fire', severity: 2 as const },
+        }],
+      },
+    };
+    const { state } = prosperousAnnualRun(source);
+    const log = recentEvents(state.buildingEvents?.[1]);
+
+    expect(log.map((event) => event.kind)).toEqual(['fire-damage', 'renovation']);
+    expect(state.chronicle.events.some((event) =>
+      event.kind === 'building' && event.summary.includes('funded repairs'))).toBe(true);
+  });
 });
 
 describe('relationships fix the demographic decline', () => {
@@ -303,6 +388,98 @@ describe('relationships fix the demographic decline', () => {
     const lateBirths = s.chronicle.events.filter((e) => e.kind === 'birth' && e.day > DAYS_PER_YEAR * 40).length;
     expect(marriages).toBeGreaterThan(0); // new couples form
     expect(lateBirths).toBeGreaterThan(0); // population still reproducing after 40 years
+  });
+});
+
+describe('household moves and building lifecycle', () => {
+  it('migrates a dead-only historic home into an explicit abandonment', () => {
+    const source = stateOf([
+      villager({ occupantId: 1, homePlotId: 7, diedDay: 0 }),
+    ]);
+    const state = rollTownDay(source, 1, new SeededRandom(12345));
+
+    expect(state.buildingEvents?.[7]).toEqual([
+      expect.objectContaining({ kind: 'abandonment', day: 1 }),
+    ]);
+    expect(state.chronicle.events.some((event) =>
+      event.kind === 'building' && event.summary.includes('plot 7'))).toBe(true);
+  });
+
+  it('moves a new family into a sound abandoned home and reopens it', () => {
+    const first = villager({
+      occupantId: 1,
+      homePlotId: 1,
+      courtingId: 2,
+      courtshipStartDay: -COURTSHIP_DAYS,
+      childIds: [3],
+    });
+    const second = villager({
+      occupantId: 2,
+      homePlotId: 2,
+      courtingId: 1,
+      courtshipStartDay: -COURTSHIP_DAYS,
+    });
+    const child = villager({
+      occupantId: 3,
+      homePlotId: 1,
+      bornDay: -10 * DAYS_PER_YEAR,
+      parentIds: [1],
+    });
+    const formerResident = villager({ occupantId: 4, homePlotId: 9, diedDay: 0 });
+    const source = {
+      ...stateOf([first, second, child, formerResident]),
+      buildingEvents: {
+        9: [{ day: 0, kind: 'abandonment' as const, payload: { reason: 'vacancy' } }],
+      },
+    };
+    const state = rollTownDay(source, 1, new SeededRandom(12345));
+
+    expect(state.villagers[1].homePlotId).toBe(9);
+    expect(state.villagers[2].homePlotId).toBe(9);
+    expect(state.villagers[3].homePlotId).toBe(9);
+    expect(recentEvents(state.buildingEvents?.[9]).map((event) => event.kind))
+      .toEqual(['abandonment', 'reoccupation']);
+    expect(recentEvents(state.buildingEvents?.[1]).at(-1)?.kind).toBe('abandonment');
+    expect(recentEvents(state.buildingEvents?.[2]).at(-1)?.kind).toBe('abandonment');
+  });
+
+  it('turns a building-specific long vacancy into a neglect ruin', () => {
+    const day = 30 * DAYS_PER_YEAR;
+    const source = {
+      ...stateOf([villager({ occupantId: 1, homePlotId: 9, diedDay: 0 })], day - 1),
+      buildingEvents: {
+        9: [{ day: 0, kind: 'abandonment' as const, payload: { reason: 'vacancy' } }],
+      },
+    };
+    const state = rollTownDay(source, day, new SeededRandom(12345));
+    const ruin = recentEvents(state.buildingEvents?.[9]).find((event) => event.kind === 'ruin');
+
+    expect(ruin).toEqual(expect.objectContaining({
+      kind: 'ruin',
+      payload: expect.objectContaining({ cause: 'neglect' }),
+    }));
+    expect(state.chronicle.events.some((event) =>
+      event.kind === 'building' && event.summary.includes('neglectful ruin'))).toBe(true);
+  });
+
+  it('records lifecycle changes without consuming an established RNG draw', () => {
+    const abandoned = stateOf([villager({ occupantId: 1, homePlotId: 7, diedDay: 0 })]);
+    const alreadyRuined = {
+      ...abandoned,
+      buildingEvents: {
+        7: [{
+          day: 0,
+          kind: 'ruin' as const,
+          payload: { cause: 'neglect' as const, severity: 1 as const },
+        }],
+      },
+    };
+    const lifecycleRng = new SeededRandom(77);
+    const controlRng = new SeededRandom(77);
+
+    rollTownDay(abandoned, 1, lifecycleRng);
+    rollTownDay(alreadyRuined, 1, controlRng);
+    expect(lifecycleRng.next()).toBe(controlRng.next());
   });
 });
 
@@ -361,6 +538,30 @@ describe('town-scale events', () => {
     for (const d of disasters) {
       expect(d.subjectId).toBe(0); // town-level announcement
       expect(d.summary.length).toBeGreaterThan(0);
+    }
+
+    // Fire consequences also persist on exact canonical home plots. These logs
+    // are deterministic without drawing from the life-event RNG, and a shared
+    // household receives only one entry for each town fire incident.
+    const buildingLogs = Object.entries(a.buildingEvents ?? {});
+    expect(buildingLogs.length).toBeGreaterThan(0);
+    const knownHomes = new Set(Object.values(a.villagers).map((v) => v.homePlotId));
+    for (const [plotId, history] of buildingLogs) {
+      const events = recentEvents(history);
+      expect(knownHomes.has(Number(plotId))).toBe(true);
+      // Prosperous years may repair earlier fire damage. No structural growth
+      // appears here because this fixture intentionally has no evolution brief.
+      expect(events.every((event) => [
+        'fire-damage',
+        'renovation',
+        'abandonment',
+        'reoccupation',
+        'ruin',
+      ].includes(event.kind))).toBe(true);
+      const incidentIds = events
+        .filter((event) => event.kind === 'fire-damage')
+        .map((event) => event.payload.incidentId);
+      expect(new Set(incidentIds).size).toBe(incidentIds.length);
     }
 
     // Population conservation still holds — disaster deaths emitted 'death'

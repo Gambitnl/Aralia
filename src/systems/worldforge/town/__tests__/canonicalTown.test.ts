@@ -114,6 +114,15 @@ describe('transformTownPlan', () => {
     if (plan.walls.ring.length) {
       expect(out.walls.ring[0][0]).toBeCloseTo(plan.walls.ring[0][0] * k + dx, 6);
     }
+    // Shared courts scale with the same affine while their district use remains
+    // canonical across the normalized 2D and region-feet 3D frames.
+    if (plan.courtyards.length) {
+      expect(out.courtyards[0].center[0]).toBeCloseTo(plan.courtyards[0].center[0] * k + dx, 6);
+      expect(out.courtyards[0].center[1]).toBeCloseTo(plan.courtyards[0].center[1] * k + dy, 6);
+      expect(out.courtyards[0].radius).toBeCloseTo(plan.courtyards[0].radius * k, 6);
+      expect(out.courtyards[0].amenity).toBe(plan.courtyards[0].amenity);
+      expect(out.courtyards[0].courtyardSignature).toBe(plan.courtyards[0].courtyardSignature);
+    }
   });
 
   it('round-trips back to the source plan (identity proof)', () => {
@@ -140,6 +149,15 @@ describe('transformTownPlan', () => {
     expect(out.plots.map((plot) => plot.architectureKey)).toEqual(
       plan.plots.map((plot) => plot.architectureKey),
     );
+    expect(out.courtyards.map((court) => ({
+      districtKey: court.districtKey,
+      amenity: court.amenity,
+      signature: court.courtyardSignature,
+    }))).toEqual(plan.courtyards.map((court) => ({
+      districtKey: court.districtKey,
+      amenity: court.amenity,
+      signature: court.courtyardSignature,
+    })));
   });
 });
 

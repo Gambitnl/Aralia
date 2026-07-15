@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 07:07:09
+ * Last Sync: 14/07/2026, 16:55:13
  * Dependents: systems/world3d/chunkBundle.ts
- * Imports: 2 files
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -104,6 +104,8 @@ export function buildSiteMeshes(data: ChunkData): ChunkSite[] {
       occupants: s.occupants,
       interiorWidthFt: s.interiorWidthFt,
       interiorDepthFt: s.interiorDepthFt,
+      interiorOriginXFt: s.interiorOriginXFt,
+      interiorOriginYFt: s.interiorOriginYFt,
     };
 
     // Oriented-box footprint (Worldforge ground mode, 2026-06-11): a

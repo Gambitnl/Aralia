@@ -415,6 +415,11 @@ export function createStore({
       t.checkpoint = p.checkpoint; // latest-wins resumable note
       t.updatedAt = p.ts;
     },
+    'task.archived'(p) {
+      // Board tidying: the task's full record lives in the archive JSONL; live
+      // state (and therefore snapshot + replay) only needs the deletion.
+      state.tasks.delete(p.taskId);
+    },
     'task.handoff'(p) {
       const t = state.tasks.get(p.taskId);
       if (!t) return;
@@ -1225,6 +1230,39 @@ export function createStore({
   }
 
   // ===========================================================================
+  // Board tidying
+  // ===========================================================================
+  // Archive done tasks that have sat untouched past the horizon: append the full
+  // task record to a monthly JSONL under <dir>/archive (git-history-independent
+  // paper trail), then delete it from live state via a journaled task.archived
+  // event so snapshot + replay reconstruct the same tidied board.
+  const archiveDir = path.join(dir, 'archive');
+  function archiveDoneTasks({ olderThanDays = 14 } = {}) {
+    const t = now();
+    const cutoff = t - olderThanDays * 86400000;
+    let archived = 0;
+    for (const task of [...state.tasks.values()]) {
+      if (task.state !== 'done') continue;
+      const stamp = new Date(task.updatedAt ?? task.createdAt ?? 0).getTime();
+      if (!(stamp < cutoff)) continue;
+      fs.mkdirSync(archiveDir, { recursive: true });
+      const month = new Date(stamp).toISOString().slice(0, 7);
+      fs.appendFileSync(path.join(archiveDir, `tasks-${month}.jsonl`), JSON.stringify(task) + '\n');
+      emit('task.archived', { taskId: task.id, ts: t, archivedTo: `tasks-${month}.jsonl` });
+      archived += 1;
+    }
+    return { archived };
+  }
+
+  // TEST-ONLY seam: backdate a task's board timestamp so archive-age tests do
+  // not have to wait out the horizon. Not journaled — the archive event that
+  // tests trigger afterwards is what replay depends on.
+  function __setTaskUpdatedAt(taskId, when) {
+    const t = state.tasks.get(taskId);
+    if (t) t.updatedAt = new Date(when).getTime();
+  }
+
+  // ===========================================================================
   // Lifecycle
   // ===========================================================================
   function sweepExpired() {
@@ -1357,6 +1395,9 @@ export function createStore({
     checkpointTask,
     handoffTask,
     listTasks,
+    archiveDoneTasks,
+    __setTaskUpdatedAt, // test-only seam
+
     // messaging
     postMessage,
     getMessages,

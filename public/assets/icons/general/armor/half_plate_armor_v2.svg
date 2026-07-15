@@ -1,0 +1,36 @@
+<svg width="128" height="128" viewBox="0 0 128 128" color="#94A3B8" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <!-- D&D Half Plate Armor: Sculpted steel breastplate with central ridge, asymmetrical pauldrons, gorget, and thigh tassets -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Padded backing coat / silhouette -->
+    <path d="M36,24 L48,15 L80,15 L92,24 L96,48 L90,84 L92,112 L64,118 L36,112 L38,84 L32,48 Z" stroke-width="3" fill="currentColor" fill-opacity="0.05"/>
+    
+    <!-- Steel Gorget (neck plate) -->
+    <path d="M46,24 C50,30 78,30 82,24 L80,15 L48,15 Z" stroke-width="2.5" fill="currentColor" fill-opacity="0.3"/>
+
+    <!-- Left Pauldron (standard plate) -->
+    <path d="M30,28 C34,22 48,24 48,34 C44,48 32,42 30,28 Z" stroke-width="2" fill="currentColor" fill-opacity="0.3"/>
+    
+    <!-- Right Pauldron with Sword-Breaker (raised fluted edge) -->
+    <path d="M98,28 C94,22 80,24 80,34 C84,48 96,42 98,28 Z" stroke-width="2" fill="currentColor" fill-opacity="0.3"/>
+    <path d="M80,24 Q82,18 84,28" stroke-width="2.5"/> <!-- Raised ridge -->
+
+    <!-- Main steel breastplate with central ridge -->
+    <path d="M44,34 C50,36 78,36 84,34 L88,78 C80,84 48,84 40,78 Z" stroke-width="3" fill="currentColor" fill-opacity="0.2"/>
+    <!-- Central ridge line -->
+    <path d="M64,34 L64,81" stroke-width="2.5"/>
+    <!-- Fluted details on plates -->
+    <path d="M52,42 C56,60 56,72 52,76" stroke-width="1.5"/>
+    <path d="M76,42 C72,60 72,72 76,76" stroke-width="1.5"/>
+
+    <!-- Waist buckle strap -->
+    <path d="M40,81 C48,84 80,84 88,81" stroke-width="2"/>
+    <rect x="61" y="79" width="6" height="7" rx="1" fill="currentColor"/>
+
+    <!-- Hanging thigh tassets (two plates) -->
+    <path d="M40,84 L40,105 L58,105 L58,84 Z" stroke-width="2" fill="currentColor" fill-opacity="0.3"/>
+    <path d="M70,84 L70,105 L88,105 L88,84 Z" stroke-width="2" fill="currentColor" fill-opacity="0.3"/>
+    <!-- Horizontal lines on tassets (articulated lames) -->
+    <line x1="40" y1="94" x2="58" y2="94" stroke-width="1.5"/>
+    <line x1="70" y1="94" x2="88" y2="94" stroke-width="1.5"/>
+  </g>
+</svg>

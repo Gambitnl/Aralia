@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 14/07/2026, 18:16:59
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, components/DesignPreview/steps/PreviewBuilding3D.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file buildingSceneModel.ts
  * @description Pure blueprint → render-ready 3D scene model for the design
@@ -20,12 +36,23 @@
 import type { BlueprintPlan } from '../worldforge/interior/blueprintTypes';
 import type { BuildingOccupancy, OccupantStation } from '../worldforge/interior/occupancy';
 import { HEARTH_KINDS } from '../worldforge/interior/occupancy';
-import { buildBuildingMeshData, buildRoofMeshData, type MeshBoxKind } from './buildingModels';
+import {
+  buildBuildingMeshData,
+  buildRoofMeshData,
+  roofDeformationForPlan,
+  type MeshBoxKind,
+} from './buildingModels';
 
 /** 'all' = every floor closed; a level = show basement..level, open-topped. */
 export type PeelLevel = number | 'all';
 
-export type SceneBoxKind = MeshBoxKind | 'hearth';
+export type SceneBoxKind = MeshBoxKind
+  | 'hearth'
+  | 'history-scorch'
+  | 'history-board'
+  | 'history-phase'
+  | 'history-roof-hole'
+  | 'history-ruin-sag';
 
 /** The solved roof as a triangle group, PLAN FEET (x/y footprint, Y up = z0).
  *  Present only when plan.roof exists and the model is NOT peeled (roof shows in
@@ -111,6 +138,11 @@ const BOX_COLOR: Record<SceneBoxKind, string> = {
   // resolved trim/roof tint; these are the bare-plan fallbacks.
   chimney: '#7c6a58',
   dormer: '#8a7663',
+  'history-scorch': '#2d1e19',
+  'history-board': '#674a31',
+  'history-phase': '#75613f',
+  'history-roof-hole': '#171311',
+  'history-ruin-sag': '#3b2922',
 };
 
 const WINDOW_GLOW = '#ffc46b';
@@ -143,7 +175,11 @@ export function buildingSceneModel(
     : Math.max(...plan.floors.map((f) => f.level).filter((lv) => visible(lv)));
   const peeled = upToLevel !== 'all';
 
-  const occupied = occupancy !== undefined && !occupancy.flags.abandoned;
+  const buildingInUse = plan.liveHistory?.status === undefined
+    || plan.liveHistory.status === 'occupied';
+  const occupied = buildingInUse
+    && occupancy !== undefined
+    && !occupancy.flags.abandoned;
   const windowsLit = occupied && hour >= 17 && hour <= 23;
   const hearthLit = occupied && occupancy!.flags.hearthLitHours[hour] === true;
 
@@ -187,12 +223,91 @@ export function buildingSceneModel(
     }
   }
 
+  // Chronological history is already resolved to exact blueprint targets.
+  // These additive boxes make the design preview read the same condition as
+  // the production SitePart bridge without changing structural mesh data.
+  for (const feature of plan.liveHistory?.features ?? []) {
+    if (feature.kind === 'scorched-room') {
+      if (!visible(feature.floorLevel)) continue;
+      const floor = plan.floors.find((candidate) =>
+        candidate.level === feature.floorLevel);
+      const room = floor?.rooms.find((candidate) => candidate.id === feature.roomId);
+      if (!room) throw new Error(`buildingSceneModel: missing scorched room ${feature.roomId}`);
+      for (const cell of room.cells) {
+        boxes.push({
+          kind: 'history-scorch',
+          level: feature.floorLevel,
+          x: cell.cx * CELL_FT + CELL_FT / 2,
+          y: cell.cy * CELL_FT + CELL_FT / 2,
+          w: CELL_FT - 0.25,
+          d: CELL_FT - 0.25,
+          z0: feature.floorLevel * storeyFt + 0.04,
+          h: 0.08 + feature.intensity * 0.03,
+          color: BOX_COLOR['history-scorch'],
+        });
+      }
+      continue;
+    }
+    if (feature.kind === 'boarded-window') {
+      if (!visible(feature.floorLevel)) continue;
+      const floor = plan.floors.find((candidate) =>
+        candidate.level === feature.floorLevel);
+      const window = floor?.windows[feature.windowIndex];
+      if (!window) throw new Error(`buildingSceneModel: missing boarded window ${feature.windowIndex}`);
+      const run = floor!.wallRuns.find((candidate) => {
+        if (candidate.kind !== 'outer' || candidate.axis !== window.axis) return false;
+        const fixed = candidate.axis === 'x' ? candidate.y1 : candidate.x1;
+        const windowFixed = window.axis === 'x' ? window.y : window.x;
+        const along = window.axis === 'x' ? window.x : window.y;
+        const lo = candidate.axis === 'x'
+          ? Math.min(candidate.x1, candidate.x2)
+          : Math.min(candidate.y1, candidate.y2);
+        const hi = candidate.axis === 'x'
+          ? Math.max(candidate.x1, candidate.x2)
+          : Math.max(candidate.y1, candidate.y2);
+        return Math.abs(fixed - windowFixed) < 1e-6 && along >= lo && along <= hi;
+      });
+      if (!run) throw new Error(`buildingSceneModel: missing wall for boarded window ${feature.windowIndex}`);
+      const outwardFt = run.thicknessFt / 2 + 0.18;
+      for (let board = 0; board < 3; board++) {
+        boxes.push({
+          kind: 'history-board',
+          level: feature.floorLevel,
+          x: window.x + run.nx * outwardFt,
+          y: window.y + run.ny * outwardFt,
+          w: window.axis === 'x' ? 3.8 : 0.28,
+          d: window.axis === 'y' ? 3.8 : 0.28,
+          z0: feature.floorLevel * storeyFt + 2.9 + board * 1.25,
+          h: 0.45,
+          color: plan.styleResolved?.trimColor ?? BOX_COLOR['history-board'],
+        });
+      }
+      continue;
+    }
+    if (feature.kind === 'extension-phase') {
+      if (!visible(0)) continue;
+      const mass = plan.masses[feature.massIndex];
+      if (!mass) throw new Error(`buildingSceneModel: missing extension mass ${feature.massIndex}`);
+      const x0 = mass.x * CELL_FT;
+      const y0 = mass.y * CELL_FT;
+      const width = mass.w * CELL_FT;
+      const depth = mass.h * CELL_FT;
+      const seam = 0.24;
+      boxes.push(
+        { kind: 'history-phase', level: 0, x: x0 + width / 2, y: y0, w: width, d: seam, z0: 0, h: 0.55, color: feature.colorHex },
+        { kind: 'history-phase', level: 0, x: x0 + width / 2, y: y0 + depth, w: width, d: seam, z0: 0, h: 0.55, color: feature.colorHex },
+        { kind: 'history-phase', level: 0, x: x0, y: y0 + depth / 2, w: seam, d: depth, z0: 0, h: 0.55, color: feature.colorHex },
+        { kind: 'history-phase', level: 0, x: x0 + width, y: y0 + depth / 2, w: seam, d: depth, z0: 0, h: 0.55, color: feature.colorHex },
+      );
+    }
+  }
+
   // Occupant dots — one per at-home member on a visible floor. Members that
   // share one station (a family ringed around the hearth) are spread on a
   // small deterministic circle so five people don't collapse into one sphere
   // buried inside the furnishing's box.
   const dots: OccupantDot[] = [];
-  if (occupancy) {
+  if (occupancy && buildingInUse) {
     const staged: { st: OccupantStation; level: number; x: number; y: number }[] = [];
     for (const st of occupancy.stationsByHour[hour] ?? []) {
       if (st.where !== 'home') continue;
@@ -245,7 +360,11 @@ export function buildingSceneModel(
   let roof: SceneRoof | undefined;
   if (plan.roof && !peeled) {
     const aboveGrade = plan.floors.filter((f) => f.level >= 0).length;
-    const rm = buildRoofMeshData(plan.roof, aboveGrade * storeyFt);
+    const rm = buildRoofMeshData(
+      plan.roof,
+      aboveGrade * storeyFt,
+      roofDeformationForPlan(plan),
+    );
     roof = {
       positions: rm.tris.positions,
       indices: rm.tris.indices,

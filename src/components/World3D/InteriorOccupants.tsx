@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/07/2026, 00:34:07
+ * Last Sync: 14/07/2026, 16:55:45
  * Dependents: components/World3D/World3DScene.tsx
  * Imports: 6 files
  *
@@ -118,6 +118,9 @@ const STOREY_M = 3;
 interface OccupantFrame {
   widthFt: number;
   depthFt: number;
+  /** Stable plot origin when the current envelope grew asymmetrically. */
+  originXFt?: number;
+  originYFt?: number;
 }
 
 /**
@@ -136,7 +139,14 @@ export function occupantScenePosition(
   const h = ((Math.floor(hour) % 24) + 24) % 24;
   const st = occ.stationsByHour[h];
   if (!st) return null;
-  const local = planFeetToSiteLocal(st.xFt, st.yFt, frame.widthFt, frame.depthFt);
+  const local = planFeetToSiteLocal(
+    st.xFt,
+    st.yFt,
+    frame.widthFt,
+    frame.depthFt,
+    frame.originXFt,
+    frame.originYFt,
+  );
   const { x, z } = siteLocalToScene(local.x, local.z, placement);
   return { x, y: surfaceY + st.level * STOREY_M, z };
 }
@@ -171,6 +181,8 @@ export function collectInteriorOccupants(loaded: LoadedChunk[], origin: SceneOri
       const frame: OccupantFrame = {
         widthFt: s.interiorWidthFt ?? 0,
         depthFt: s.interiorDepthFt ?? 0,
+        originXFt: s.interiorOriginXFt,
+        originYFt: s.interiorOriginYFt,
       };
       for (const occ of s.occupants) {
         out.push({

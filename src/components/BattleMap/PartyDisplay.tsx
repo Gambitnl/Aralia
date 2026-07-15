@@ -20,7 +20,7 @@
  * Now includes Auto-Battle toggle.
  */
 import React, { useCallback, useState } from 'react';
-import { LocateFixed } from 'lucide-react';
+import { Info, LocateFixed } from 'lucide-react';
 import { CombatCharacter } from '../../types/combat';
 import Tooltip from '../Tooltip';
 import { WindowFrame } from '../ui/WindowFrame';
@@ -157,7 +157,7 @@ const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onCl
               title="Inspect character"
               aria-label={`Inspect ${character.name}`}
           >
-              ⓘ
+              <Info className="h-4 w-4" aria-hidden="true" />
           </button>
           <button
               onClick={onToggleAuto}
@@ -194,7 +194,7 @@ const EnemyMemberDisplay: React.FC<EnemyMemberDisplayProps> = ({ character, onCl
           {/* Enemy roster cards now show the combat SVG identity used by map
               tokens, matching the mockup direction without changing HP or
               turn-selection behavior. */}
-          <div className="mb-2 flex items-center gap-2 pr-14">
+          <div className="mb-2 flex items-center gap-2">
           <CombatantPortrait character={character} tone="enemy" />
           <div className="min-w-0 leading-tight">
             <p className="truncate text-sm font-bold text-rose-300">{firstName}</p>
@@ -220,23 +220,27 @@ const EnemyMemberDisplay: React.FC<EnemyMemberDisplayProps> = ({ character, onCl
 
       {renderActionEconomy(character)}
 
-      <button
-          onClick={(e) => { e.stopPropagation(); onCenterCamera(); }}
-          className="absolute right-14 top-2 z-[var(--z-index-content-overlay-low)] flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-slate-300 transition-colors hover:border-amber-400 hover:text-amber-200"
-          title="Center map on character"
-          aria-label={`Center map on ${character.name}`}
-      >
-          <LocateFixed className="h-4 w-4" aria-hidden="true" />
-      </button>
+      {/* Enemy controls share the party card's dedicated row. The former
+          absolute placement covered names whenever the docked rail narrowed. */}
+      <div className="mt-1.5 flex items-center justify-end gap-1">
+        <button
+            onClick={(e) => { e.stopPropagation(); onCenterCamera(); }}
+            className="flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-slate-300 transition-colors hover:border-amber-400 hover:text-amber-200"
+            title="Center map on character"
+            aria-label={`Center map on ${character.name}`}
+        >
+            <LocateFixed className="h-4 w-4" aria-hidden="true" />
+        </button>
 
-      <button
-          onClick={(e) => { e.stopPropagation(); onInspect(); }}
-          className="absolute top-2 right-2 z-[var(--z-index-content-overlay-low)] flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-sm text-slate-300 transition-colors hover:border-sky-500 hover:text-sky-300"
-          title="Inspect character"
-          aria-label={`Inspect ${character.name}`}
-      >
-          ⓘ
-      </button>
+        <button
+            onClick={(e) => { e.stopPropagation(); onInspect(); }}
+            className="flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-slate-300 transition-colors hover:border-sky-500 hover:text-sky-300"
+            title="Inspect character"
+            aria-label={`Inspect ${character.name}`}
+        >
+            <Info className="h-4 w-4" aria-hidden="true" />
+        </button>
+      </div>
     </div>
   );
 };

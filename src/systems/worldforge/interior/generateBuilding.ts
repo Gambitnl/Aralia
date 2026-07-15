@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/07/2026, 12:57:06
+ * Last Sync: 14/07/2026, 22:02:02
  * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/generateInterior.ts
- * Imports: 12 files
+ * Imports: 15 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -38,23 +38,43 @@ import type {
   BlueprintRoom,
   BlueprintStair,
   BlueprintWindow,
+  BuildingBackstory,
+  BuildingEvent,
+  BuildingEventHistory,
+  BuildingEnsemble,
   BuildingType,
   Cell,
   HouseholdBrief,
   StyleContext,
 } from './blueprintTypes';
 import { cellKey } from './blueprintTypes';
-import { clampFootprint, genFootprint, type Footprint } from './footprint';
+import {
+  clampFootprint,
+  footprintForLotProfile,
+  genFootprint,
+  type Footprint,
+} from './footprint';
 import { partition, roomCapFor } from './partition';
 import { assignPurposes, assignUpperPurposes } from './program';
 import { programForBrief, type BedroomAssignment } from './briefProgram';
 import { wireDoors } from './doors';
 import { buildWalls } from './walls';
 import { furnishRooms } from './furnish';
-import { resolveStyle } from '../town/architectureStyle';
+import {
+  finishPaletteForTier,
+  resolveStyle,
+  styleFamilyForCultureType,
+} from '../town/architectureStyle';
 import { solveRoof } from './roofPlan';
-import { childSeedPath, type SeedPath } from '../seedPath';
+import { childSeedPath, streamPath, type SeedPath } from '../seedPath';
 import { metersFromFeet } from '../units';
+import { resolveBuildingBackstory } from './buildingHistory';
+import {
+  applyHistory,
+  buildingEventLogDigest,
+  buildingHistoryEventCount,
+} from './buildingEventHistory';
+import { applyStructuralExtensions } from './buildingExtensions';
 
 const CELL_FT = 5;
 
@@ -88,11 +108,21 @@ export interface GenerateBuildingInput {
    *  rooms + wealth extras and the bedroom distribution across floors. Omitted
    *  → the v1 (briefless) plan, byte-for-byte. */
   household?: HouseholdBrief;
+  /** Town-authored row/courtyard/arcade instruction; geometry remains lot-bound. */
+  ensemble?: BuildingEnsemble;
   /** Optional architectural style context (culture/climate/wealth/age). When
    *  present the plan gains a resolved dress (`styleResolved`) and a solved
-   *  `roof`; the geometry BELOW the wall-top is untouched (style-identity
-   *  invariant). Omitted → both undefined, output byte-for-byte the v1 plan. */
+   *  `roof`, then resolves permanent history from its age. Geometry below the
+   *  wall-top remains untouched (style-identity invariant). */
   style?: StyleContext;
+  /**
+   * Optional replay/save override for an already-resolved permanent history.
+   * Production normally omits it and receives a deterministic backstory from
+   * the style age plus this building's canonical geometry.
+   */
+  backstory?: BuildingBackstory;
+  /** Ordered save-side changes, either a legacy array or a compacted journal. */
+  eventLog?: BuildingEventHistory | readonly BuildingEvent[];
 }
 
 // Bounded memo: identical inputs reproduce byte-for-byte, so regeneration is
@@ -110,11 +140,15 @@ function buildFloor(
   rooms: BlueprintRoom[],
   level: number,
   blocked: Set<string>,
+  ensemble?: BuildingEnsemble,
 ): BlueprintFloor {
   // Only the ground floor opens onto the street; upper floors and basements
   // are reached by the stair shaft, never through an exterior door.
   const { doors } = wireDoors(floorPath, rg, rooms, { streetEntry: level === 0 });
-  const { walls, windows, wallRuns } = buildWalls(floorPath, rg, doors, rooms);
+  const { walls, windows, wallRuns } = buildWalls(floorPath, rg, doors, rooms, {
+    partyWallLeft: ensemble?.partyWallLeft ?? false,
+    partyWallRight: ensemble?.partyWallRight ?? false,
+  });
   const furnishings = furnishRooms(floorPath, rooms, doors, blocked);
   return {
     level,
@@ -174,6 +208,24 @@ export function styleDigest(style: StyleContext | undefined): string {
   ]);
 }
 
+/** Include every permanent history target in memo identity when one is replayed. */
+export function backstoryDigest(backstory: BuildingBackstory | undefined): string {
+  return backstory ? JSON.stringify(backstory) : '';
+}
+
+/** Include every ordered live event in memo identity without key-order drift. */
+export function eventLogDigest(
+  eventLog: BuildingEventHistory | readonly BuildingEvent[] | undefined,
+): string {
+  return buildingEventLogDigest(eventLog);
+}
+
+/** Include the town-authored block contract in memo identity. A party-wall
+ * instruction changes legal openings even when the footprint itself is equal. */
+export function ensembleDigest(ensemble: BuildingEnsemble | undefined): string {
+  return ensemble ? JSON.stringify(ensemble) : '';
+}
+
 /** A room OWNS a window when the window's outer edge lies on the boundary of
  *  one of the room's cells. Windows carry an edge-midpoint (x,y) + axis; the
  *  interior cell flanking that edge is one of the room's cells. Used to find
@@ -197,24 +249,52 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
   const storeys = Math.max(1, Math.floor(input.storeys ?? 1));
   const basement = input.basement === true;
 
+  // A replayed backstory and its style must describe the same construction
+  // age. Reject contradictory permanent data rather than silently choosing one.
+  if (input.backstory && input.style
+    && input.backstory.ageBand !== input.style.ageBand) {
+    throw new Error(
+      `generateBuilding: backstory age ${input.backstory.ageBand} conflicts ` +
+      `with style age ${input.style.ageBand} for building ${buildingId}`,
+    );
+  }
+
   const buildingPath = childSeedPath(seedPath, `building:${buildingId}`);
   const memoKey =
-    `${buildingPath}|${type}|${storeys}|${basement}|${input.maxWidthFt ?? ''}|${input.maxDepthFt ?? ''}|${briefDigest(input.household)}|${styleDigest(input.style)}`;
+    `${buildingPath}|${type}|${storeys}|${basement}|${input.maxWidthFt ?? ''}|${input.maxDepthFt ?? ''}|${briefDigest(input.household)}|${ensembleDigest(input.ensemble)}|${styleDigest(input.style)}|${backstoryDigest(input.backstory)}|${eventLogDigest(input.eventLog)}`;
   const cached = buildingMemo.get(memoKey);
   if (cached) return cached;
 
   // Brief program (RNG-free): extra ground slots, trade demands, bedroom list.
   const bp = input.household ? programForBrief(type, input.household) : undefined;
 
-  // One footprint shared by every floor; clamped into the lot when capped.
-  let fp = genFootprint(buildingPath, type);
-  if (input.maxWidthFt !== undefined || input.maxDepthFt !== undefined) {
+  // Current town receipts author directly against both snapped lot limits.
+  // Legacy, preview, and undersized detached calls retain the original
+  // roll-then-clamp path, including its frozen RNG draw order and golden output.
+  const lotProfile = input.ensemble?.lotProfile;
+  const hasCompleteLot = input.maxWidthFt !== undefined && input.maxDepthFt !== undefined;
+  let fp = lotProfile && hasCompleteLot
+    ? footprintForLotProfile(
+        lotProfile,
+        Math.floor(input.maxWidthFt! / CELL_FT),
+        Math.floor(input.maxDepthFt! / CELL_FT),
+      )
+    : genFootprint(buildingPath, type);
+  if (!lotProfile && (input.maxWidthFt !== undefined || input.maxDepthFt !== undefined)) {
     fp = clampFootprint(
       fp,
       input.maxWidthFt !== undefined ? Math.floor(input.maxWidthFt / CELL_FT) : fp.cols,
       input.maxDepthFt !== undefined ? Math.floor(input.maxDepthFt / CELL_FT) : fp.rows,
     );
   }
+  // Structural history changes the canonical footprint before any dependent
+  // geometry is derived. Its stable origin preserves the old core's position
+  // even when an extension enlarges only one side of the envelope.
+  const structural = applyStructuralExtensions(fp, input.eventLog, {
+    maxWidthFt: input.maxWidthFt,
+    maxDepthFt: input.maxDepthFt,
+  });
+  fp = structural.footprint;
 
   // Ground floor first: the stair shaft anchors at its main room's center.
   // Every occupied footprint cell belongs to a room on every level (partition
@@ -257,7 +337,7 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
   const floors: BlueprintFloor[] = levels.map((level) => {
     const floorPath = childSeedPath(buildingPath, `floor:${level}`);
     if (level === 0) {
-      return buildFloor(floorPath, groundRg, groundRooms, level, blocked);
+      return buildFloor(floorPath, groundRg, groundRooms, level, blocked, input.ensemble);
     }
     const rg = partition(floorPath, fp, {
       keepMainWhole: false,
@@ -267,7 +347,7 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
     // upper floors draw from the shared family queue.
     const queue = level < 0 ? [] : upperQueue;
     const rooms = assignUpperPurposes(floorPath, type, rg, level, queue);
-    return buildFloor(floorPath, rg, rooms, level, blocked);
+    return buildFloor(floorPath, rg, rooms, level, blocked, input.ensemble);
   });
 
   // Misfit rule (families must be SEATED, never invented rooms): any bedrooms
@@ -317,7 +397,7 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
     );
   }
 
-  const result: BlueprintPlan = {
+  let result: BlueprintPlan = {
     buildingId,
     type,
     footprintCells: fp.cells,
@@ -330,8 +410,11 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
     // solver keys off it (Phase 1B). Always set.
     masses: fp.masses,
   };
+  if (structural.siteOriginFt) result.siteOriginFt = structural.siteOriginFt;
   // Echo the brief so consumers can read the family this plan was built for.
   if (input.household) result.household = input.household;
+  // Preserve the town's block contract for map inspection and 3D ensemble trim.
+  if (input.ensemble) result.ensemble = { ...input.ensemble };
 
   // ── Style dress + roof (Phase 1B Task 4) ────────────────────────────────────
   // Purely additive: resolveStyle/solveRoof never touch floors/footprint/stairs
@@ -340,7 +423,7 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
   // a style leaves the bones byte-identical.
   if (input.style) {
     const styleResolved = resolveStyle(
-      { ...input.style, buildingType: type },
+      { ...input.style, buildingType: type, ensemble: input.ensemble },
       buildingPath,
     );
     result.styleResolved = styleResolved;
@@ -378,9 +461,52 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
       },
       hearths,
       windowlessUpperRooms,
+      // Ownerless receipts predate single-seam ownership and retain their old
+      // eaves. Current row/arcade receipts clip attached roof sides to the lot
+      // line so neighboring canonical meshes occupy disjoint plan areas.
+      partyWallLeft: input.ensemble?.partyWallOwner
+        ? input.ensemble.partyWallLeft
+        : false,
+      partyWallRight: input.ensemble?.partyWallOwner
+        ? input.ensemble.partyWallRight
+        : false,
       // Wall-top = number of built storeys × the storey height the 3D uses.
       wallTopFt: storeys * BLUEPRINT_STOREY_FT,
     });
+
+    // Phase 3 history is permanent blueprint data, not living-household state.
+    // Resolve only after walls, masses, and roof exist so every event points at
+    // a real target. Repair materials reuse the exact wealth-restricted family
+    // palettes that produced the district dress.
+    const family = styleFamilyForCultureType(input.style.cultureType);
+    result.backstory = input.backstory ?? resolveBuildingBackstory({
+      ageBand: input.style.ageBand,
+      buildingType: type,
+      masses: fp.masses,
+      floors,
+      roof: result.roof,
+      style: styleResolved,
+      allowedWallColors: finishPaletteForTier(
+        family.wallPalette,
+        input.style.wealth,
+      ),
+      allowedRoofColors: finishPaletteForTier(
+        family.roofPalette,
+        input.style.wealth,
+      ),
+    }, streamPath(buildingPath, 'backstory'));
+  }
+
+  // Save replays may carry permanent history before a style renderer is
+  // available. Preserve that data even though no history geometry can render
+  // until a style context is supplied.
+  if (!input.style && input.backstory) result.backstory = input.backstory;
+
+  // Live history is a separate ordered layer over the immutable generated
+  // plan. Empty/absent logs are a strict legacy no-op; non-empty logs return a
+  // cloned plan whose renderer targets are derived by the pure replay fold.
+  if (buildingHistoryEventCount(input.eventLog) > 0) {
+    result = applyHistory(result, input.eventLog!);
   }
 
   if (buildingMemo.size >= BUILDING_MEMO_CAP) buildingMemo.clear();

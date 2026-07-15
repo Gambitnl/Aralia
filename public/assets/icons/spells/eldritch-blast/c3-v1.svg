@@ -1,0 +1,45 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="beamGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444" />
+      <stop offset="50%" stop-color="#F87171" />
+      <stop offset="100%" stop-color="#B91C1C" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Diamond Frame -->
+  <path d="M50 10 L90 50 L50 90 L10 50 Z" fill="none" stroke="#450a0a" stroke-width="4" stroke-linejoin="round" />
+  <path d="M50 15 L85 50 L50 85 L15 50 Z" fill="none" stroke="#7f1d1d" stroke-width="2" />
+
+  <!-- The "Fracture" Core -->
+  <circle cx="50" cy="50" r="12" fill="#F87171" filter="url(#glow)" />
+  <circle cx="50" cy="50" r="6" fill="#7f1d1d" />
+
+  <!-- Radial Energy Spikes -->
+  <g stroke="url(#beamGrad)" stroke-width="3" stroke-linecap="round" filter="url(#glow)">
+    <line x1="50" y1="38" x2="50" y2="20" />
+    <line x1="50" y1="62" x2="50" y2="80" />
+    <line x1="38" y1="50" x2="20" y2="50" />
+    <line x1="62" y1="50" x2="80" y2="50" />
+    
+    <!-- Diagonal crackle -->
+    <line x1="42" y1="42" x2="30" y2="30" />
+    <line x1="58" y1="58" x2="70" y2="70" />
+    <line x1="58" y1="42" x2="70" y2="30" />
+    <line x1="42" y1="58" x2="30" y2="70" />
+  </g>
+
+  <!-- Arc Fragments -->
+  <path d="M35 35 Q 50 25 65 35" fill="none" stroke="#FCA5A5" stroke-width="1.5" stroke-dasharray="2 2" />
+  <path d="M35 65 Q 50 75 65 65" fill="none" stroke="#FCA5A5" stroke-width="1.5" stroke-dasharray="2 2" />
+
+  <!-- Impact Shards -->
+  <path d="M45 25 L48 30 L42 30 Z" fill="#F87171" />
+  <path d="M55 25 L52 30 L58 30 Z" fill="#F87171" />
+  <path d="M45 75 L48 70 L42 70 Z" fill="#F87171" />
+  <path d="M55 75 L52 70 L58 70 Z" fill="#F87171" />
+</svg>

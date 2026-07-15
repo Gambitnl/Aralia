@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 11/07/2026, 14:55:39
- * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/DungeonEntrances.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/groundChunkWorker.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/provenance/groundProvenance.ts
- * Imports: 40 files
+ * Last Sync: 15/07/2026, 00:28:54
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/DungeonEntrances.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/canopyInterior.ts, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/groundChunkWorker.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/provenance/groundProvenance.ts
+ * Imports: 46 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -35,11 +35,10 @@ import type { ChunkData, ChunkMeshBundle, VegetationScatter, LodTier, BuildingOc
 import { handleGroundChunkRequest } from "./groundChunkWorkerCore";
 import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from "../../world3d/config";
 import { biomeColor } from "../../world3d/terrainColor";
-import type { LocalArtifact, RegionArtifact, RegionTownSite, RegionMarker, RegionRoad } from "../artifacts";
+import type { LocalArtifact, RegionArtifact, RegionCrossing, RegionTownSite, RegionMarker, RegionRoad } from "../artifacts";
 import { ROAD_3D_TIERS, PATH_3D_KEEP_POINTS, PATH_3D_SKIP_POINTS } from "../travel/roadTunables";
 import { localArtifactToWorldData, GROUND_METERS_PER_CELL } from "./groundWorldAdapter";
 import { getCanonicalTownPlan, transformTownPlan, townSpanFtForBurg, CANON_TOWN_SPAN, getCanonicalTownWaterFeatures, canonicalTownSeedPath } from "../town/canonicalTown";
-import { briefForPlot } from "../town/householdBrief";
 import { occupancyScheduleForPlot } from "./buildingOccupancy";
 import type { TownPlotPopulation } from "../town/townEngine";
 import type { InteriorPlotInput } from "../interior/generateInterior";
@@ -47,7 +46,7 @@ import { buildingShellHeightM } from "../interior/generateBuilding";
 import { buildTownWaterBodies } from "../town/townWaterBodies";
 import { toArtifactPlan, type AdaptedTownPlan } from "../town/townPlanAdapter";
 import type { TownPlan } from "../artifacts";
-import { buildInterior, DOOR_LEAF_COLOR, MOTIF_PART_TAG, type SitePart, type OccupantBody, type OccupantFigure } from "./interiorParts";
+import { buildInterior, DOOR_LEAF_COLOR, ENSEMBLE_PART_TAG, HISTORY_PART_TAG, MATERIAL_PART_TAG, MOTIF_PART_TAG, WEATHERING_PART_TAG, type SitePart, type OccupantBody, type OccupantFigure } from "./interiorParts";
 import { siteOrientationFromQuad, worldOffsetToSiteLocal, sitePartLocalOffset } from "./sitePartTransform";
 import { generateTownRoster } from "../roster/generateTownRoster";
 import { occupantLocationAt, type ActivityKind } from "../roster/occupantSchedule";
@@ -61,12 +60,13 @@ import { localWithDeltas } from "./groundDeltas";
 import type { WorldDelta } from "../delta/types";
 import { getBurgNamer, getBridgeAtlas, getBurgCultureType } from "./legacySubmapBridge";
 import { styleFamilyForCultureType, styledGatehouseForm, climateForBiomeId, type StyleFamily, type GatehouseForm } from "../town/architectureStyle";
-import type { StyleContext } from "../interior/blueprintTypes";
+import type { BuildingEnsemble, BuildingEventLogsByBurg } from "../interior/blueprintTypes";
+import { buildingPlotInput } from "../town/buildingPlotInput";
 import { SeededRandom } from "../../../utils/random/seededRandom";
 import { generateBusinessName } from "../../economy/NpcBusinessManager";
 import type { BusinessType, WorldBusiness } from "../../../types/business";
 import type { RichNPC } from "../../../types/world";
-import type { BattleMapBiome, BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration } from "@/types/combat";
+import type { BattleMapBiome, BattleMapCrossing, BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration, BattleMapSurface } from "@/types/combat";
 import { generateGroundHostiles } from "./groundHostiles";
 import { buildGroundProps, imprintPropOnTile } from "./groundProps";
 import type { PropInstance } from "../props/propSchema";
@@ -79,6 +79,10 @@ import { biomeIdForCell } from "../local/biomeForCell";
 import { forestKindForCell } from "../forests/forestKindForCell";
 import type { ForestKind } from "../forests/forestClusters";
 import {
+  resolveTerrainTerraces,
+  type TerrainTerraceReceipt,
+} from './terrainTerraces';
+import {
   resolveSnowLine,
   latitudeAtGraphY,
   SNOW_LINE_H,
@@ -90,6 +94,10 @@ import {
 interface GroundPolyline {
   points: Array<{ x: number; z: number }>;
   widthM: number;
+  /** Source role retained so tactical crops can distinguish routes from streets. */
+  sourceKind?: 'region-road' | 'town-street' | 'river';
+  /** Stable Region route/river id when this run descends from one. */
+  sourceId?: number;
   /** Optional tint (e.g. town-wall runs carry the style family's wallTint). */
   colorHex?: string;
 }
@@ -118,6 +126,23 @@ export interface GroundDeck {
    * highland-stone bridge read differently in 3D.
    */
   detail?: { pilingSpacingM: number; railing: boolean; archRiseM: number };
+  /** Links regional bridge geometry back to the crossing receipt. */
+  sourceCrossingId?: string;
+}
+
+/** Ground-meter projection of one Region crossing receipt. */
+export interface GroundCrossing {
+  id: string;
+  kind: 'bridge' | 'ford';
+  xM: number;
+  zM: number;
+  roadDirection: { x: number; z: number };
+  spanM: number;
+  widthM: number;
+  roadRouteId: number;
+  riverId: number;
+  roadSourceIndex?: number;
+  riverSourceIndex?: number;
 }
 
 /** A roster person resolved to the plot center where their figure is rendered. */
@@ -244,6 +269,8 @@ export interface GroundWorld {
   /** River/road centerlines crossing the artifact, ground meters. */
   rivers: GroundPolyline[];
   roads: GroundPolyline[];
+  /** Optional for old fixtures/saves; current Region builds always provide it. */
+  crossings?: GroundCrossing[];
   /** Town defensive wall rings (closed polylines), ground meters. */
   walls: GroundPolyline[];
   /** Town water bodies (rivers/harbour), filled flat surfaces, ground meters. */
@@ -261,6 +288,10 @@ export interface GroundWorld {
     zM: number;
     /** Plot footprint corners, ground meters (quad order from the plan). */
     cornersM: Array<{ x: number; z: number }>;
+    /** Town-authored group identity used for terrain terrace negotiation. */
+    ensemble?: BuildingEnsemble;
+    /** Actual production pad datum after a viable attached row negotiates. */
+    terrainTerrace?: TerrainTerraceReceipt;
     /** Building height, meters (storeys × 3). */
     heightM: number;
     role: string;
@@ -290,6 +321,9 @@ export interface GroundWorld {
      *  stations resolve in. Present only when `occupants` is. */
     interiorWidthFt?: number;
     interiorDepthFt?: number;
+    /** Stable plan origin for occupants in asymmetrically extended buildings. */
+    interiorOriginXFt?: number;
+    interiorOriginYFt?: number;
     name?: string;
     unlabeled?: boolean;
     labelRangeM?: number;
@@ -333,21 +367,62 @@ const FEET_TO_METERS = 0.3048;
  * faint paths into a keep/skip patch cycle so they read as broken wear-lines.
  * Rivers pass no `kind` and behave exactly as before. */
 export function regionPolylinesToGround(
-  lines: Array<{ centerline: Array<[number, number]>; widthFt: number; kind?: RegionRoad['kind'] }>,
+  lines: Array<{
+    centerline: Array<[number, number]>;
+    widthFt: number;
+    kind?: RegionRoad['kind'];
+    routeId?: number;
+    riverId?: number;
+  }>,
   local: LocalArtifact,
+  sourceKind?: GroundPolyline['sourceKind'],
 ): GroundPolyline[] {
   const { bounds } = local;
   const out: GroundPolyline[] = [];
-  const push = (pts: Array<{ x: number; z: number }>, widthFt: number, colorHex?: string): void => {
+  const push = (
+    pts: Array<{ x: number; z: number }>,
+    widthFt: number,
+    colorHex?: string,
+    sourceId?: number,
+  ): void => {
     const extentX = bounds.width * FEET_TO_METERS;
     const extentZ = bounds.height * FEET_TO_METERS;
-    const touches = pts.some(
-      (p) => p.x >= -50 && p.x <= extentX + 50 && p.z >= -50 && p.z <= extentZ + 50,
+    const minX = -50;
+    const minZ = -50;
+    const maxX = extentX + 50;
+    const maxZ = extentZ + 50;
+    const inside = (p: { x: number; z: number }): boolean => (
+      p.x >= minX && p.x <= maxX && p.z >= minZ && p.z <= maxZ
     );
+    const segmentTouches = (a: { x: number; z: number }, b: { x: number; z: number }): boolean => {
+      if (inside(a) || inside(b)) return true;
+      const dx = b.x - a.x;
+      const dz = b.z - a.z;
+      const crossesVertical = (x: number): boolean => {
+        if (Math.abs(dx) <= 1e-9) return false;
+        const t = (x - a.x) / dx;
+        const z = a.z + dz * t;
+        return t >= 0 && t <= 1 && z >= minZ && z <= maxZ;
+      };
+      const crossesHorizontal = (z: number): boolean => {
+        if (Math.abs(dz) <= 1e-9) return false;
+        const t = (z - a.z) / dz;
+        const x = a.x + dx * t;
+        return t >= 0 && t <= 1 && x >= minX && x <= maxX;
+      };
+      return crossesVertical(minX)
+        || crossesVertical(maxX)
+        || crossesHorizontal(minZ)
+        || crossesHorizontal(maxZ);
+    };
+    const touches = pts.some(inside)
+      || pts.slice(1).some((point, index) => segmentTouches(pts[index], point));
     if (touches && pts.length >= 2) {
       out.push({
         points: pts,
         widthM: Math.max(1, widthFt * FEET_TO_METERS),
+        ...(sourceKind ? { sourceKind } : {}),
+        ...(sourceId != null ? { sourceId } : {}),
         ...(colorHex ? { colorHex } : {}),
       });
     }
@@ -358,17 +433,117 @@ export function regionPolylinesToGround(
       z: (fy - bounds.y) * FEET_TO_METERS,
     }));
     const colorHex = line.kind ? ROAD_3D_TIERS[line.kind].colorHex : undefined;
+    const sourceId = line.routeId ?? line.riverId;
     if (line.kind === 'path') {
       // Faint path: deterministic keep/skip cycle → broken wear-line patches.
       const cycle = PATH_3D_KEEP_POINTS + PATH_3D_SKIP_POINTS;
       for (let start = 0; start < pts.length; start += cycle) {
-        push(pts.slice(start, start + PATH_3D_KEEP_POINTS), line.widthFt, colorHex);
+        push(pts.slice(start, start + PATH_3D_KEEP_POINTS), line.widthFt, colorHex, sourceId);
       }
     } else {
-      push(pts, line.widthFt, colorHex);
+      push(pts, line.widthFt, colorHex, sourceId);
     }
   }
   return out;
+}
+
+/** Project Region crossing receipts into the same ground-meter frame as runs. */
+export function regionCrossingsToGround(
+  crossings: RegionCrossing[],
+  local: LocalArtifact,
+  roads: GroundPolyline[],
+  rivers: GroundPolyline[],
+): GroundCrossing[] {
+  const extentX = local.bounds.width * FEET_TO_METERS;
+  const extentZ = local.bounds.height * FEET_TO_METERS;
+
+  const sourceIndexAt = (
+    lines: GroundPolyline[],
+    sourceId: number,
+    point: { x: number; z: number },
+  ): number | undefined => {
+    let nearestIndex: number | undefined;
+    let nearestDistanceSq = Number.POSITIVE_INFINITY;
+    lines.forEach((line, index) => {
+      if (line.sourceId !== sourceId) return;
+      for (let pointIndex = 1; pointIndex < line.points.length; pointIndex += 1) {
+        const distanceSq = pointSegmentDistanceSq(
+          point.x,
+          point.z,
+          line.points[pointIndex - 1],
+          line.points[pointIndex],
+        );
+        if (distanceSq < nearestDistanceSq) {
+          nearestDistanceSq = distanceSq;
+          nearestIndex = index;
+        }
+      }
+    });
+    return nearestIndex;
+  };
+
+  return crossings.flatMap((crossing) => {
+    const point = {
+      x: (crossing.point[0] - local.bounds.x) * FEET_TO_METERS,
+      z: (crossing.point[1] - local.bounds.y) * FEET_TO_METERS,
+    };
+    const spanM = crossing.spanFt * FEET_TO_METERS;
+    const halfSpanM = spanM / 2;
+    if (
+      point.x + halfSpanM < 0 || point.x - halfSpanM > extentX
+      || point.z + halfSpanM < 0 || point.z - halfSpanM > extentZ
+    ) return [];
+
+    const projected: GroundCrossing = {
+      id: crossing.id,
+      kind: crossing.kind,
+      xM: point.x,
+      zM: point.z,
+      roadDirection: { x: crossing.roadDirection[0], z: crossing.roadDirection[1] },
+      spanM,
+      widthM: crossing.widthFt * FEET_TO_METERS,
+      roadRouteId: crossing.roadRouteId,
+      riverId: crossing.riverId,
+    };
+    const roadSourceIndex = sourceIndexAt(roads, crossing.roadRouteId, point);
+    const riverSourceIndex = sourceIndexAt(rivers, crossing.riverId, point);
+    if (roadSourceIndex != null) projected.roadSourceIndex = roadSourceIndex;
+    if (riverSourceIndex != null) projected.riverSourceIndex = riverSourceIndex;
+    return [projected];
+  });
+}
+
+/** Build the physical 3D deck from the same Ground crossing receipt. */
+function regionalBridgeDecks(
+  crossings: GroundCrossing[],
+  heights: number[],
+  cols: number,
+  rows: number,
+): GroundDeck[] {
+  return crossings.flatMap((crossing) => {
+    if (crossing.kind !== 'bridge') return [];
+    const along = crossing.roadDirection;
+    const across = { x: -along.z, z: along.x };
+    const halfSpan = crossing.spanM / 2;
+    const halfWidth = crossing.widthM / 2;
+    const corner = (alongSign: number, acrossSign: number) => ({
+      x: crossing.xM + along.x * halfSpan * alongSign + across.x * halfWidth * acrossSign,
+      z: crossing.zM + along.z * halfSpan * alongSign + across.z * halfWidth * acrossSign,
+    });
+    const shoreEncoded = sampleEncodedHeight(heights, cols, rows, crossing.xM, crossing.zM);
+
+    return [{
+      cornersM: [corner(-1, -1), corner(1, -1), corner(1, 1), corner(-1, 1)],
+      topY: heightToMeters(Math.max(0, shoreEncoded - WATER_SURFACE_DROP_ENC)) + DECK_CLEARANCE_M,
+      kind: 'bridge',
+      detail: {
+        pilingSpacingM: 4,
+        railing: true,
+        archRiseM: Math.min(4, crossing.spanM * 0.04),
+      },
+      sourceCrossingId: crossing.id,
+    }];
+  });
 }
 
 /**
@@ -508,6 +683,8 @@ export interface MakeGroundWorldOptions {
   deltas?: WorldDelta[];
   worldBusinesses?: Record<string, WorldBusiness>;
   generatedNpcs?: Record<string, RichNPC>;
+  /** Sparse save-side building events, grouped by burg and canonical plot id. */
+  buildingEventLogs?: BuildingEventLogsByBurg;
   /**
    * Staged 3D world entry (Stage A): skip the WAVE-1 props pass so terrain +
    * town assemble as fast as possible. A world built this way has `props: []`
@@ -664,6 +841,24 @@ export function makeGroundWorld(
     ? resolveSnowLine(anchorLatitudeDeg(seed, opts.anchorCellId))
     : SNOW_LINE_H;
 
+  // Convert the two Region networks first, then bind their crossing receipts
+  // to exact Ground run indexes. Regional bridge decks and tactical crossings
+  // now descend from this one relationship instead of matching visual overlap.
+  const regionRivers = region
+    ? regionPolylinesToGround(region.rivers, local, 'river')
+    : [];
+  const regionRoads = region
+    ? regionPolylinesToGround(region.roads, local, 'region-road')
+    : [];
+  const roads = [...regionRoads, ...townContent.planStreets];
+  const crossings = region
+    ? regionCrossingsToGround(region.crossings ?? [], local, regionRoads, regionRivers)
+    : [];
+  const decks = [
+    ...townContent.planDecks,
+    ...regionalBridgeDecks(crossings, wd.heights, wd.gridSize.cols, wd.gridSize.rows),
+  ];
+
   const world: GroundWorld = {
     cols: wd.gridSize.cols,
     rows: wd.gridSize.rows,
@@ -676,15 +871,13 @@ export function makeGroundWorld(
     hostiles,
     hiddenSites,
     dungeonEntrances,
-    rivers: region ? regionPolylinesToGround(region.rivers, local) : [],
-    // Region routes + the town plan's own streets ride the same ribbon path
-    roads: [
-      ...(region ? regionPolylinesToGround(region.roads, local) : []),
-      ...townContent.planStreets,
-    ],
+    rivers: regionRivers,
+    // Region routes + the town plan's own streets ride the same ribbon path.
+    roads,
+    crossings,
     walls: townContent.planWalls,
     waterBodies: townContent.planWaterBodies,
-    decks: townContent.planDecks,
+    decks,
     gatehouses: townContent.planGatehouses,
     towns: townContent.towns,
     buildings: townContent.buildings,
@@ -726,23 +919,39 @@ function flattenBuildingTerrainPads(
   const footprintPads = new Map<number, number>();
   const skirtPads = new Map<number, number[]>();
 
-  for (const building of buildings) {
-    if (building.cornersM.length < 3) continue;
-
-    // The plot centroid is the construction elevation. Keeping it in the
-    // 0..100 encoded domain avoids unit conversions and matches the ground
-    // sampler's later input.
+  // Sample every unmodified centroid first, then negotiate attached rows as a
+  // group. Detached, courtyard, legacy, singleton, and overly steep groups
+  // resolve to their exact historical sample.
+  const rawPads = buildings.flatMap((building, order) => {
+    if (building.cornersM.length < 3) return [];
     const centroid = {
       x: building.cornersM.reduce((sum, corner) => sum + corner.x, 0) / building.cornersM.length,
       z: building.cornersM.reduce((sum, corner) => sum + corner.z, 0) / building.cornersM.length,
     };
-    const padHeight = sampleEncodedHeight(
-      originalHeights,
-      cols,
-      rows,
-      centroid.x,
-      centroid.z,
-    );
+    return [{
+      id: building.id,
+      rawHeightEncoded: sampleEncodedHeight(
+        originalHeights,
+        cols,
+        rows,
+        centroid.x,
+        centroid.z,
+      ),
+      order,
+      blockKey: building.ensemble?.blockKey,
+      ensembleKind: building.ensemble?.kind,
+    }];
+  });
+  const resolvedPads = resolveTerrainTerraces(rawPads);
+
+  for (const building of buildings) {
+    if (building.cornersM.length < 3) continue;
+
+    // The pure resolver keeps the value in the terrain's encoded 0..100 domain.
+    const resolved = resolvedPads.get(building.id);
+    if (!resolved) continue;
+    const padHeight = resolved.padHeightEncoded;
+    building.terrainTerrace = resolved.terrace;
     const footprintIndexes = buildingFootprintCells(cols, rows, building.cornersM);
     const footprintSet = new Set(footprintIndexes);
 
@@ -1222,6 +1431,7 @@ function groundTowns(
         // 2.5 m floor: thinner ribbons vanish against grass at walking
         // scale (Remy shot-1 review) — a village lane reads at ~8 ft.
         widthM: Math.max(2.5, s.widthFt * FEET_TO_METERS),
+        sourceKind: 'town-street',
         // Street tier tint (avenue/street/lane) → vertex-colored ribbon in 3D.
         colorHex: s.colorHex,
       });
@@ -1330,7 +1540,7 @@ function groundTowns(
     // cross-references against; unpopulated towns carry no `pop`, so it is empty
     // and every building generates briefless exactly as before.
     const townSeed = canonicalTownSeedPath(worldSeed, t.burgId);
-    const pops: TownPlotPopulation[] = plan.plots
+    const pops = plan.plots
       .map((pl) => pl.pop)
       .filter((pop): pop is TownPlotPopulation => pop !== undefined);
 
@@ -1407,33 +1617,13 @@ function groundTowns(
       // household brief so the interior is designed for the real family. A plot
       // with no `pop` (unpopulated town) yields no type override and no brief —
       // briefless generation, byte-identical to before.
-      const household = p.pop ? briefForPlot(p.pop, pops, townSeed) : undefined;
-      // Style context (BGv2 Task 7 + cohesive-identity extension): burg culture
-      // and climate define the town family; the artifact's spatial district key
-      // repeats one local construction dialect; wealth narrows finishes; and the
-      // pre-filter building key owns bounded lot-by-lot variation. Legacy plans
-      // without an architecture stamp retain the former wealth/plot fallback.
-      const style: StyleContext = {
+      // Rendering and save compaction share this exact household/style input;
+      // otherwise a folded history could target a different canonical house.
+      const plotInput: InteriorPlotInput = buildingPlotInput(plan, p, townSeed, {
         cultureType: burgCultureType,
         climate: burgClimate,
-        wealth: p.architecture?.wealth ?? p.pop?.district ?? 'common',
-        ageBand: 'new',
-        architecture: {
-          settlementKey: `burg:${t.burgId}`,
-          districtKey: p.architecture?.districtKey
-            ?? `wealth:${p.pop?.district ?? 'common'}`,
-          buildingKey: p.architecture?.buildingKey ?? `plot:${p.id}`,
-        },
-      };
-      const plotInput: InteriorPlotInput = {
-        id: p.id,
-        footprint: p.footprint,
-        role: p.role ?? 'house',
-        storeys: p.storeys ?? 1,
-        ...(p.pop?.buildingType ? { buildingType: p.pop.buildingType } : {}),
-        ...(household ? { household } : {}),
-        style,
-      };
+        eventLog: opts.buildingEventLogs?.[t.burgId]?.[p.id],
+      });
       // LIVING interiors — live clock: a populated building bakes its OWN
       // family's FULL 24-hour schedule (which hours the windows glow, the hearth
       // is lit, and where each member stands every hour) instead of a single
@@ -1509,6 +1699,7 @@ function groundTowns(
         xM,
         zM,
         cornersM,
+        ...(p.ensemble ? { ensemble: { ...p.ensemble } } : {}),
         heightM,
         role: p.role ?? 'house',
         // Style stamps from the canonical plan plot (architectureStyle slice);
@@ -1535,6 +1726,12 @@ function groundTowns(
               occupants: occupantsRender,
               interiorWidthFt,
               interiorDepthFt,
+              ...(interior.envelope.siteOriginXFt !== undefined
+                ? {
+                    interiorOriginXFt: interior.envelope.siteOriginXFt,
+                    interiorOriginYFt: interior.envelope.siteOriginYFt,
+                  }
+                : {}),
             }
           : {}),
       });
@@ -1910,6 +2107,8 @@ export function sampleGroundChunk(
           occupants: b.occupants,
           interiorWidthFt: b.interiorWidthFt,
           interiorDepthFt: b.interiorDepthFt,
+          interiorOriginXFt: b.interiorOriginXFt,
+          interiorOriginYFt: b.interiorOriginYFt,
         })),
       // Mapped occupants (NPCs): these show where keepers or townsfolk are
       // standing inside their buildings during working/home hours. We guard this
@@ -2123,6 +2322,99 @@ export function buildGroundLoaderFromWorld(
 // elevations, determines biomes, detects obstacle collisions (features), and
 // maps buildings/seamless interiors directly onto the BattleMap 3D tiles.
 // ============================================================================
+
+/** Squared distance from one world point to a finite polyline segment. */
+function pointSegmentDistanceSq(
+  px: number,
+  pz: number,
+  a: { x: number; z: number },
+  b: { x: number; z: number },
+): number {
+  const dx = b.x - a.x;
+  const dz = b.z - a.z;
+  const lengthSq = dx * dx + dz * dz;
+  if (lengthSq <= 1e-9) return (px - a.x) ** 2 + (pz - a.z) ** 2;
+
+  const t = Math.max(0, Math.min(1, ((px - a.x) * dx + (pz - a.z) * dz) / lengthSq));
+  const nearestX = a.x + dx * t;
+  const nearestZ = a.z + dz * t;
+  return (px - nearestX) ** 2 + (pz - nearestZ) ** 2;
+}
+
+/**
+ * Resolve the WorldForge road footprint intersecting a five-foot referee cell.
+ *
+ * The half-cell diagonal expands the centerline radius just enough to include
+ * cells touched at a corner. This avoids diagonal one-cell holes while keeping
+ * the road width authored by the source run, not by the battle-map painter.
+ */
+function worldforgeRoadSurfaceAt(
+  roads: GroundPolyline[],
+  wx: number,
+  wz: number,
+): BattleMapSurface | undefined {
+  const tileReachM = GROUND_METERS_PER_CELL * Math.SQRT1_2;
+
+  for (let sourceIndex = 0; sourceIndex < roads.length; sourceIndex += 1) {
+    const road = roads[sourceIndex];
+    const hitRadiusM = Math.max(0, road.widthM / 2) + tileReachM;
+    const hitRadiusSq = hitRadiusM * hitRadiusM;
+
+    for (let pointIndex = 1; pointIndex < road.points.length; pointIndex += 1) {
+      if (pointSegmentDistanceSq(wx, wz, road.points[pointIndex - 1], road.points[pointIndex]) <= hitRadiusSq) {
+        return {
+          kind: 'road',
+          source: 'worldforge-road',
+          sourceRole: road.sourceKind === 'region-road'
+            ? 'regional-route'
+            : road.sourceKind === 'town-street' ? 'town-street' : 'unclassified',
+          sourceIndex,
+          widthMeters: road.widthM,
+        };
+      }
+    }
+  }
+
+  return undefined;
+}
+
+/** Resolve a source crossing footprint touching one five-foot referee cell. */
+function worldforgeCrossingAt(
+  crossings: GroundCrossing[],
+  wx: number,
+  wz: number,
+): BattleMapCrossing | undefined {
+  const tileReachM = GROUND_METERS_PER_CELL * Math.SQRT1_2;
+
+  for (const crossing of crossings) {
+    const dx = wx - crossing.xM;
+    const dz = wz - crossing.zM;
+    const along = dx * crossing.roadDirection.x + dz * crossing.roadDirection.z;
+    const across = dx * -crossing.roadDirection.z + dz * crossing.roadDirection.x;
+    if (
+      Math.abs(along) <= crossing.spanM / 2 + tileReachM
+      && Math.abs(across) <= crossing.widthM / 2 + tileReachM
+    ) {
+      return {
+        kind: crossing.kind,
+        source: 'worldforge-crossing',
+        sourceCrossingId: crossing.id,
+        ...(crossing.roadSourceIndex == null ? {} : { roadSourceIndex: crossing.roadSourceIndex }),
+        ...(crossing.riverSourceIndex == null ? {} : { riverSourceIndex: crossing.riverSourceIndex }),
+        roadDirection: {
+          x: crossing.roadDirection.x,
+          y: crossing.roadDirection.z,
+        },
+        centerWorldMeters: { x: crossing.xM, z: crossing.zM },
+        spanMeters: crossing.spanM,
+        widthMeters: crossing.widthM,
+      };
+    }
+  }
+
+  return undefined;
+}
+
 export function extractLocalTerrainPatch(
   ground: GroundWorld,
   playerX: number,
@@ -2182,6 +2474,14 @@ export function extractLocalTerrainPatch(
         terrain = 'rock';
       }
 
+      // Roads are source-backed surfaces laid over the base material. Ordinary
+      // water suppresses them; only a Region-authored crossing receipt may
+      // continue the route and make those cells traversable.
+      const candidateCrossing = worldforgeCrossingAt(ground.crossings ?? [], wx, wz);
+      const candidateRoadSurface = terrain === 'water' && !candidateCrossing
+        ? undefined
+        : worldforgeRoadSurfaceAt(ground.roads, wx, wz);
+
       // Initialize default properties for the tile
       let blocksMovement = terrain === 'water';
       let blocksLoS = false;
@@ -2189,18 +2489,20 @@ export function extractLocalTerrainPatch(
 
       // 3. Natural obstacles: Check if this tile overlaps any trees, bushes, or boulders
       // within reasonable collision ranges.
-      for (const f of ground.features) {
-        const dist = Math.hypot(wx - f.xM, wz - f.zM);
-        if (f.kind === 'tree' && dist < 1.2) {
-          decoration = 'tree';
-          blocksMovement = true;
-          blocksLoS = true;
-        } else if (f.kind === 'bush' && dist < 0.8) {
-          decoration = 'bush';
-        } else if (f.kind === 'boulder' && dist < 1.0) {
-          decoration = 'boulder';
-          blocksMovement = true;
-          blocksLoS = true;
+      if (!candidateRoadSurface && !candidateCrossing) {
+        for (const f of ground.features) {
+          const dist = Math.hypot(wx - f.xM, wz - f.zM);
+          if (f.kind === 'tree' && dist < 1.2) {
+            decoration = 'tree';
+            blocksMovement = true;
+            blocksLoS = true;
+          } else if (f.kind === 'bush' && dist < 0.8) {
+            decoration = 'bush';
+          } else if (f.kind === 'boulder' && dist < 1.0) {
+            decoration = 'boulder';
+            blocksMovement = true;
+            blocksLoS = true;
+          }
         }
       }
 
@@ -2235,11 +2537,15 @@ export function extractLocalTerrainPatch(
 
           // Iterate through interior parts (walls and furniture)
           for (const p of b.parts) {
-            // Role motifs are exterior presentation dressing. Turrets and
-            // buttresses intentionally overlap the shell corners to form one
-            // silhouette, but they must not turn valid interior floor cells
-            // into blocked tactical tiles or alter line of sight.
-            if (p.tag === MOTIF_PART_TAG) continue;
+            // Role motifs, material courses/shutters, weathering, and permanent-
+            // history evidence are exterior presentation dressing. They may
+            // overlap the shell, but none may turn a valid floor cell into a
+            // blocked tactical tile or alter line of sight.
+            if (p.tag === MOTIF_PART_TAG
+              || p.tag === MATERIAL_PART_TAG
+              || p.tag === WEATHERING_PART_TAG
+              || p.tag === ENSEMBLE_PART_TAG
+              || p.tag === HISTORY_PART_TAG) continue;
 
             // The part's render-local center: sitePartLocalOffset applies the
             // SAME -doorZSign z-flip the renderer draws with, so the walkability
@@ -2279,15 +2585,46 @@ export function extractLocalTerrainPatch(
         }
       }
 
+      // Structures retain precedence where a coarse source road footprint and
+      // a building overlap. Open road cells remain clear and normal-cost; props
+      // imprint afterward and may still obstruct a road when that obstruction
+      // is itself a source-world fact.
+      const surface = candidateRoadSurface
+        && terrain !== 'floor'
+        && terrain !== 'wall'
+        ? candidateRoadSurface
+        : undefined;
+      if (surface) {
+        decoration = null;
+        blocksMovement = false;
+        blocksLoS = false;
+      }
+
+      // A crossing is independently source-authored and may therefore make
+      // base water traversable. Structures retain precedence; explicit props
+      // still imprint afterward and can obstruct the deck when the world says so.
+      const crossing = candidateCrossing
+        && terrain !== 'floor'
+        && terrain !== 'wall'
+        ? candidateCrossing
+        : undefined;
+      if (crossing) {
+        decoration = null;
+        blocksMovement = false;
+        blocksLoS = false;
+      }
+
       const tile: BattleMapTile = {
         id: tileId,
         coordinates: { x: tx, y: ty },
         terrain,
         elevation,
-        movementCost: blocksMovement ? 0 : 1,
+        movementCost: blocksMovement ? 0 : crossing?.kind === 'ford' ? 2 : 1,
         blocksLoS,
         blocksMovement,
         decoration,
+        surface,
+        crossing,
         effects: [],
       };
 

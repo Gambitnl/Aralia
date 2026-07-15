@@ -264,7 +264,7 @@
 <body>
 <header>
   <h1>ARALIA PLAN-MAP</h1>
-  <span class="hint">solid arrow = hard prerequisite · dashed = chosen order · steps branch off their parent tile (chained = sequential) · click any tile or arrow to pin details · edit <code>public/planmap/topics.json</code> · no dates, only order</span>
+  <span class="hint">solid arrow = hard prerequisite · dashed = chosen order · steps branch off their parent tile (chained = sequential) · click any tile or arrow to pin details · edit <code>public/planmap/topics.json</code> · age heat + sync banner show freshness</span>
   <span class="hint" style="margin-left: auto;" id="header-links">
     <a id="grillprompt-link" href="#">🤖 Grill prompt</a> ·
     <a id="glossary-link" href="#">📖 Glossary</a> ·
@@ -291,6 +291,8 @@
   <button id="zoom-fit">Fit</button>
   <button id="zoom-read" aria-pressed="false" title="Jump to a close-up view centered on the nearest roadmap tile so labels are easier to read.">Read: Off</button>
   <button id="heat-toggle" aria-pressed="false" title="Show colored age shading for roadmap items based on how long they have stayed unchanged.">Age heat: Off</button>
+  <button id="tier-toggle" aria-pressed="false" title="Show the absorbed detail topics (tier: component). Off keeps the strategic picture readable.">Detail topics: Off</button>
+  <span id="sync-banner" style="margin-left:10px;font-size:11px;"></span>
   <span id="heat-legend" style="display:none;">
     <span><span class="hsw" style="background:#22d3ee;"></span>≤2d</span>
     <span><span class="hsw" style="background:#fbbf24;"></span>≤7d</span>
@@ -565,6 +567,10 @@ let lockedHighlightTopicId = null;
 // the current on/off state and the currently-selected day.
 let heatOn = false;
 
+// Detail-tier visibility (freshness task 11) — absorbed component topics stay
+// hidden by default so the strategic picture survives the absorption wave.
+let componentOn = false;
+
 // Slug — MUST match the one inside buildAndShow / tools/agora/validate-planmap.mjs.
 const tlSlug = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
 const tlEsc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -636,7 +642,31 @@ function buildTimelineSvg(tl, mom, activeIndex, x0, y0, W, H, playing) {
   return S.join('');
 }
 
-fetch('./topics.json').then(r => r.json()).then(data => {
+Promise.all([
+  fetch('./topics.json').then(r => r.json()),
+  // health.json is written by tools/agora/sync-surfaces.mjs — absence just
+  // means the sync program has never run; the banner says so.
+  fetch('./health.json').then(r => (r.ok ? r.json() : null)).catch(() => null),
+]).then(([data, health]) => {
+  window.planmapHealth = health;
+  // Sync banner: a dead sync program must be visible, never silent.
+  (() => {
+    const el = document.getElementById('sync-banner');
+    if (!el) return;
+    if (!health || !health.generatedAt) {
+      el.textContent = 'sync has never run — npm run sync';
+      el.style.color = '#f87171';
+      return;
+    }
+    const hours = Math.max(0, (Date.now() - Date.parse(health.generatedAt)) / 3600000);
+    if (hours > 48) {
+      el.textContent = `sync is stale: last run ${Math.round(hours / 24)} days ago`;
+      el.style.color = '#f87171';
+    } else {
+      el.textContent = `synced ${hours < 1 ? 'under an hour' : Math.round(hours) + 'h'} ago`;
+      el.style.color = '#4ade80';
+    }
+  })();
   const repoRoot = data.repoRoot || '';
   // Repo docs aren't under public/ — open them through Vite's /@fs bridge
   // (mounted under the app base, derived from the URL, not hardcoded).
@@ -677,6 +707,20 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     ? window.PlanmapHistory.stalenessDays(timeline.slice(0, dayIndex + 1), timeline[dayIndex].date)
     : null;
   const HEAT = d => d <= 2 ? '#22d3ee' : d <= 7 ? '#fbbf24' : d <= 21 ? '#fb923c' : '#f87171';
+  // Real freshness stamps beat git derivation — but only at "now". Scrubbed
+  // into the past, the historical derivation stays authoritative. Works even
+  // when history.json failed to load (heat null): stamps alone still shade.
+  const atNow = !timeline || dayIndex === timeline.length - 1;
+  let heatMap = heat;
+  if (heatOn && atNow) {
+    heatMap = new Map(heat ?? []);
+    const nowMs = Date.now();
+    for (const t of topics) {
+      if (t.updated && /^\d{4}-\d{2}-\d{2}$/.test(t.updated)) {
+        heatMap.set(t.id, { days: Math.max(0, Math.round((nowMs - Date.parse(t.updated)) / 86400000)) });
+      }
+    }
+  }
 
   // Deps may be plain ids or {id, kind, why, feature} objects — normalize.
   // A dep may carry `feature: "<slug>"` — it then requires that ONE feature
@@ -778,11 +822,14 @@ fetch('./topics.json').then(r => r.json()).then(data => {
 
   // Done nodes retire to the compact "Shipped" strip below the map — they
   // keep their history (and links) without occupying layout space forever.
-  const live = topics.filter(t => !isDead(t));
-  const shipped = topics.filter(t => t.status === 'done');
+  // Tier filter AFTER the problems pass (hidden component topics must still
+  // resolve as dep targets — hiding is a view choice, not a data change).
+  const tierVisible = t => componentOn || t.tier !== 'component';
+  const live = topics.filter(t => !isDead(t) && tierVisible(t));
+  const shipped = topics.filter(t => t.status === 'done' && tierVisible(t));
   // Reversed decisions go to the Graveyard, not the delete key — the
   // why-we-didn't ("killed") is often worth more than the why-we-did.
-  const graveyard = topics.filter(t => t.status === 'superseded');
+  const graveyard = topics.filter(t => t.status === 'superseded' && tierVisible(t));
 
   // Actionable = you could start this TODAY: alive, and every HARD dep is
   // dead (done or superseded — chosen-order deps don't block). Computed,
@@ -1242,7 +1289,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     const titleRows = parentTitleLines(t);
     const subRows = parentSubLines(t);
     S.push(`<g class="node${expanded ? ' expanded' : ''}" data-id="${esc(t.id)}" data-topic="${esc(t.id)}" data-campaign="${esc(t.campaign || '')}" data-subcampaign="${esc(t.subcampaign || '')}" data-status="${esc(t.status || '')}" data-expanded="${expanded}" role="button" aria-expanded="${expanded}" aria-pressed="${lockedHighlightTopicId === t.id}" aria-label="${expanded ? 'Collapse' : 'Expand'} ${esc(t.title)}">`);
-    const hk = heat && heat.get(t.id);
+    const hk = heatMap && heatMap.get(t.id);
     if (hk) S.push(`<rect x="${p.x}" y="${p.y}" width="${NODE_W}" height="${h}" rx="6" fill="${HEAT(hk.days)}" fill-opacity="0.28" pointer-events="none"/>`);
     S.push(`<rect x="${p.x}" y="${p.y}" width="${NODE_W}" height="${h}" rx="6" fill="${c.fill}" stroke="${go ? '#4ade80' : c.stroke}" stroke-width="${go ? 3 : 1.5}"/>`);
     // Top-right badge stack: READY (possibility) and FOCUS (what's actually
@@ -1289,7 +1336,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
     const dead = f.status === 'superseded';
     const spikeAttrs = f.spike ? ` stroke-dasharray="4 3" stroke-opacity="0.95"` : '';
     S.push(`<g class="node stepnode" data-id="${esc(sn.id)}" data-topic="${esc(sn.topicId)}" data-campaign="${esc(t.campaign || '')}" data-subcampaign="${esc(t.subcampaign || '')}" data-status="${esc(f.status || '')}">`);
-    const shk = heat && heat.get(sn.id);
+    const shk = heatMap && heatMap.get(sn.id);
     if (shk) S.push(`<rect x="${sn.x}" y="${sn.y}" width="${sn.w}" height="${sn.h}" rx="6" fill="${HEAT(shk.days)}" fill-opacity="0.28" pointer-events="none"/>`);
     S.push(`<rect x="${sn.x}" y="${sn.y}" width="${sn.w}" height="${sn.h}" rx="4" fill="${c.fill}" fill-opacity="0.55" stroke="${dead ? STATUS.superseded : c.stroke}"${spikeAttrs} stroke-width="1.5"/>`);
     const textTop = sn.y + Math.max(15, (sn.h - sn.lines.length * STEP_LINE_H) / 2 + 9);
@@ -1406,7 +1453,13 @@ fetch('./topics.json').then(r => r.json()).then(data => {
       statusTag(t.status) +
       (go ? `<span class="d-tag" style="color:#4ade80">▶ READY</span>` : '') +
       (t.focus ? `<span class="d-tag" style="color:#fbbf24">★ FOCUS</span>` : '') +
+      (t.tier === 'component' ? `<span class="d-tag" style="color:#94a3b8">detail tier</span>` : '') +
       `</div>`;
+    if (t.updated && /^\d{4}-\d{2}-\d{2}$/.test(t.updated)) {
+      const days = Math.max(0, Math.round((Date.now() - Date.parse(t.updated)) / 86400000));
+      html += `<p class="d-sub" style="color:${days > 30 ? '#f87171' : days > 7 ? '#fbbf24' : '#4ade80'}">last real change: ${esc(t.updated)} (${days === 0 ? 'today' : days + ' day' + (days === 1 ? '' : 's') + ' ago'})</p>`;
+    }
+    if (t.status_note) html += `<p class="d-sub">note: ${esc(t.status_note)}</p>`;
     if (t.link) html += `<p><a ${docLinkAttrs(t.link)} target="_blank">📄 ${esc(t.link)}</a></p>`;
 
     if (t.features && t.features.length) {
@@ -1415,6 +1468,7 @@ fetch('./topics.json').then(r => r.json()).then(data => {
         const bits = [];
         if (f.status) bits.push(`<span style="color:${STATUS[f.status] || '#94a3b8'}">${esc(f.status)}</span>`);
         if (f.spike) bits.push(`<span style="color:#fbbf24">⚠ spike (could invalidate)</span>`);
+        if (f.decision) bits.push(`<span style="color:#f87171">⚑ decision waiting on a human</span>`);
         if (typeof f.open === 'number' && f.open > 0) bits.push(`<span style="color:#fbbf24">?${f.open} open question(s)</span>`);
         if (f.status === 'superseded' && f.killed) bits.push(`killed: ${esc(f.killed)}`);
         html += `<div class="feat"><div class="ft">${i + 1}. ${esc(f.title)}</div>` +
@@ -1841,6 +1895,15 @@ fetch('./topics.json').then(r => r.json()).then(data => {
   // Flips module-scope heatOn and rebuilds from the CURRENTLY SELECTED day
   // (timeline[dayIndex] when history has loaded, otherwise the live topics),
   // preserving the reader's zoom/pan.
+  // Detail-tier toggle: same rebuild pattern as heat (preserve the view).
+  document.getElementById('tier-toggle').addEventListener('click', e => {
+    componentOn = !componentOn;
+    e.currentTarget.setAttribute('aria-pressed', String(componentOn));
+    e.currentTarget.textContent = `Detail topics: ${componentOn ? 'On' : 'Off'}`;
+    const tierTopics = timeline ? timeline[dayIndex].topics : data.topics;
+    buildAndShow(tierTopics, { preserveView: true });
+  });
+
   document.getElementById('heat-toggle').addEventListener('click', e => {
     heatOn = !heatOn;
     e.currentTarget.setAttribute('aria-pressed', String(heatOn));

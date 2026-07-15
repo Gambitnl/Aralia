@@ -48,6 +48,19 @@
             "type": "boolean"
           },
           "link": { "type": "string" },
+          "updated": {
+            "description": "Tooling-written: date of last real change to this topic (planmap-add and sync-surfaces stamp it). YYYY-MM-DD. Powers the page's age badges.",
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          "tier": {
+            "description": "Tooling-written: strategic = campaign-level initiative; component = absorbed detail work (the page can filter these). Absent = strategic.",
+            "enum": ["strategic", "component"]
+          },
+          "status_note": {
+            "description": "Free-text nuance the 5 status words cannot hold (for example the original wording a migration converted).",
+            "type": "string"
+          },
           "history": {
             "description": "Real dates for work that predates git-tracking, so the date-progression tracker can back-date it on the timeline/rewind. `designed` = when it was designed/planned; `built` = when it was finished. YYYY-MM-DD. `builtApprox: true` marks a derived/estimated built date (never invent a precise one — flag it).",
             "type": "object",
@@ -89,6 +102,14 @@
                 "status": { "enum": ["parked", "specced", "active", "done", "superseded"] },
                 "killed": { "type": "string" },
                 "link": { "type": "string" },
+                "status_note": {
+                  "description": "Free-text nuance the 5 status words cannot hold.",
+                  "type": "string"
+                },
+                "decision": {
+                  "description": "true = this step waits on a human call (absorbed from gap registers' decision-required flags). The page shows a decide marker.",
+                  "type": "boolean"
+                },
                 "open": {
                   "description": "Mirror of the linked subspec's '## Open' bullet count (settledness axis). Counted from the doc, never guessed; recompute when the doc changes.",
                   "type": "integer",

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 14/07/2026, 17:48:55
+ * Dependents: components/Town/Broadsheet.tsx, components/Town/NoticeBoard.tsx, components/debug/TownHistoryDevOverlay.tsx, hooks/actions/actionHandlers.ts, hooks/useChronicleRumorsSync.ts, hooks/useOverheardGossip.ts, hooks/useTownCrierAnnouncements.ts, utils/world/chronicleNewsToRumors.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file townNews.ts — the shared "news" layer that every diegetic surface reads.
  *
@@ -31,6 +47,9 @@ const PROMINENCE: Record<LifeEventKind, NewsProminence> = {
   role_succession: 'headline',
   marriage: 'notice',
   economy: 'notice',
+  // Property changes matter to neighbors, tradespeople, and notice boards, but
+  // ordinary repairs or household moves do not displace disaster headlines.
+  building: 'notice',
   death: 'gossip',
   birth: 'gossip',
   courtship: 'gossip',

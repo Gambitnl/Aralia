@@ -1,0 +1,45 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2D2D3A" />
+      <stop offset="100%" stop-color="#1A1A24" />
+    </linearGradient>
+    <radialGradient id="orbGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E9D5FF" />
+      <stop offset="40%" stop-color="#C084FC" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background shadow for depth -->
+  <circle cx="50" cy="50" r="45" fill="#0F0F1A" />
+
+  <!-- Hand Silhouette -->
+  <path d="M30,85 Q35,80 35,70 L35,50 Q35,45 40,45 L42,42 Q45,40 48,45 L50,60 Q52,40 55,42 Q58,40 60,45 L62,50 Q65,50 65,60 L65,80 Q65,90 55,90 L35,90 Z" fill="url(#skinGrad)" stroke="#000000" stroke-width="1" />
+  <path d="M40,45 Q42,30 45,35 M50,60 Q52,25 58,35 M62,50 Q65,30 68,38" fill="none" stroke="#2D2D3A" stroke-width="3" stroke-linecap="round" />
+
+  <!-- Casting Gesture: Floating Orbs generated from fingertips -->
+  <g filter="url(#glow)">
+    <!-- Main Orb in palm -->
+    <circle cx="50" cy="55" r="8" fill="url(#orbGrad)" />
+    
+    <!-- Four Satellite Lights being pulled/pushed -->
+    <circle cx="30" cy="35" r="4" fill="#C084FC" />
+    <circle cx="70" cy="35" r="4" fill="#C084FC" />
+    <circle cx="35" cy="20" r="3" fill="#E9D5FF" />
+    <circle cx="65" cy="20" r="3" fill="#E9D5FF" />
+    
+    <!-- Magic Streaks connecting fingers to orbs -->
+    <path d="M40,45 Q35,40 30,35" stroke="#C084FC" stroke-width="0.5" opacity="0.6" fill="none" />
+    <path d="M60,45 Q65,40 70,35" stroke="#C084FC" stroke-width="0.5" opacity="0.6" fill="none" />
+    <path d="M45,40 Q40,30 35,20" stroke="#E9D5FF" stroke-width="0.5" opacity="0.4" fill="none" />
+    <path d="M55,40 Q60,30 65,20" stroke="#E9D5FF" stroke-width="0.5" opacity="0.4" fill="none" />
+  </g>
+
+  <!-- Ambient Aura -->
+  <circle cx="50" cy="50" r="30" fill="#C084FC" opacity="0.1" filter="url(#glow)" />
+</svg>

@@ -1,0 +1,37 @@
+<svg width="128" height="128" viewBox="0 0 128 128" color="#94A3B8" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <!-- D&D Ring Mail: Heavy leather jerkin reinforced with large metal rings riveted directly to the leather base -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Jerkin Silhouette -->
+    <path d="M36,24 L48,15 L80,15 L92,24 L96,48 L90,84 L92,112 L64,118 L36,112 L38,84 L32,48 Z" stroke-width="3" fill="currentColor" fill-opacity="0.1"/>
+    
+    <!-- Armhole borders -->
+    <path d="M32,48 C36,44 42,46 44,52 C44,68 38,80 38,84" stroke-width="2"/>
+    <path d="M96,48 C92,44 86,46 84,52 C84,68 90,80 90,84" stroke-width="2"/>
+
+    <!-- Neck opening with leather seam -->
+    <path d="M48,15 C52,24 76,24 80,15" stroke-width="2.5" fill="currentColor" fill-opacity="0.2"/>
+    <!-- Center seam -->
+    <path d="M64,22 L64,118" stroke-width="2"/>
+
+    <!-- Large metal rings with central rivet dots -->
+    <!-- Row 1 -->
+    <circle cx="48" cy="38" r="5" stroke-width="2"/><circle cx="48" cy="38" r="1.2" fill="currentColor"/>
+    <circle cx="80" cy="38" r="5" stroke-width="2"/><circle cx="80" cy="38" r="1.2" fill="currentColor"/>
+    <!-- Row 2 -->
+    <circle cx="42" cy="54" r="5" stroke-width="2"/><circle cx="42" cy="54" r="1.2" fill="currentColor"/>
+    <circle cx="56" cy="54" r="5" stroke-width="2"/><circle cx="56" cy="54" r="1.2" fill="currentColor"/>
+    <circle cx="72" cy="54" r="5" stroke-width="2"/><circle cx="72" cy="54" r="1.2" fill="currentColor"/>
+    <circle cx="86" cy="54" r="5" stroke-width="2"/><circle cx="86" cy="54" r="1.2" fill="currentColor"/>
+    <!-- Row 3 -->
+    <circle cx="48" cy="70" r="5" stroke-width="2"/><circle cx="48" cy="70" r="1.2" fill="currentColor"/>
+    <circle cx="80" cy="70" r="5" stroke-width="2"/><circle cx="80" cy="70" r="1.2" fill="currentColor"/>
+    <!-- Row 4 -->
+    <circle cx="42" cy="86" r="5" stroke-width="2"/><circle cx="42" cy="86" r="1.2" fill="currentColor"/>
+    <circle cx="56" cy="86" r="5" stroke-width="2"/><circle cx="56" cy="86" r="1.2" fill="currentColor"/>
+    <circle cx="72" cy="86" r="5" stroke-width="2"/><circle cx="72" cy="86" r="1.2" fill="currentColor"/>
+    <circle cx="86" cy="86" r="5" stroke-width="2"/><circle cx="86" cy="86" r="1.2" fill="currentColor"/>
+    <!-- Row 5 -->
+    <circle cx="48" cy="102" r="5" stroke-width="2"/><circle cx="48" cy="102" r="1.2" fill="currentColor"/>
+    <circle cx="80" cy="102" r="5" stroke-width="2"/><circle cx="80" cy="102" r="1.2" fill="currentColor"/>
+  </g>
+</svg>

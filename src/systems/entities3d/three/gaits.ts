@@ -3,14 +3,15 @@
  * prototype's hardcoded critters to any Frame.
  *
  * A driver owns the per-frame skeleton math: it advances the gait cycle,
- * emits the body's metaballs (buildBody), and maintains the Pose — the named
+ * emits the body's bone segments (buildBody — body v2: rigid tapered segments
+ * between the IK joints, not metaballs), and maintains the Pose — the named
  * anchor transforms that modular parts attach to. Locomotion (where the
  * entity is, which way it faces, how fast it moves) comes from the caller;
  * drivers only need `speed` (and expose `verticalOffsetM` for airborne body
  * lift, applied by the assembler to the body root).
  */
 import { Quaternion, Vector3, Euler } from 'three';
-import type { Anchor, BallSink, Frame, Gait } from '../types';
+import type { Anchor, Frame, Gait, SegmentSink } from '../types';
 import { ANCHORS, FT_TO_M, headRadiusM, heightM } from '../types';
 import { smooth, solveKnee } from './ik';
 import { TreadmillLeg } from './legs';
@@ -33,10 +34,14 @@ export interface Pose {
 
 export interface GaitDriver {
   update(t: number, dt: number, loco: LocomotionState): void;
-  /** Emit this frame's body metaballs (entity-local meters, ground at y=0). */
-  buildBody(sink: BallSink): void;
+  /** Emit this frame's body skeleton (entity-local meters, ground at y=0):
+   * tapered bone segments + round lumps (head, hands, feet). Segment ids are
+   * stable across frames and radii are frame-constant per id. */
+  buildBody(sink: SegmentSink): void;
   readonly pose: Pose;
   readonly gaitPhase: number;
+  /** Debugger scrub: jump the gait cycle to `phase` (wrapped into 0–1). */
+  setPhase(phase: number): void;
   /** Wing flap angle in radians; 0 for non-flyers. */
   readonly flap: number;
   /** Extra body lift (hopper airtime, flyer altitude), applied by the assembler. */
@@ -51,23 +56,7 @@ function makePose(): Pose {
   };
 }
 
-/** Chain of interpolated balls (limb segments, spines, necks).
- * Sample count adapts to span ÷ radius so long limbs on big frames stay a
- * connected tube instead of beads on a string. */
-function chain(
-  sink: BallSink,
-  ax: number, ay: number, az: number,
-  bx: number, by: number, bz: number,
-  minN: number, r0: number, r1: number,
-): void {
-  const dist = Math.hypot(bx - ax, by - ay, bz - az);
-  const rMin = Math.max(Math.min(r0, r1), 1e-4);
-  const n = Math.max(minN, Math.min(10, Math.ceil(dist / (rMin * 1.15)) + 1));
-  for (let i = 0; i < n; i++) {
-    const u = n === 1 ? 0.5 : i / (n - 1);
-    sink.ball(ax + (bx - ax) * u, ay + (by - ay) * u, az + (bz - az) * u, r0 + (r1 - r0) * u);
-  }
-}
+// Body v2: bones go straight to the sink as segments — no interpolated balls.
 
 const EULER = new Euler();
 const V_HIP = new Vector3();
@@ -114,9 +103,13 @@ abstract class BaseDriver implements GaitDriver {
     this.advance(t, dt);
   }
 
+  setPhase(phase: number): void {
+    this.gaitPhase = ((phase % 1) + 1) % 1;
+  }
+
   /** Per-gait skeleton update; must refresh every pose anchor. */
   protected abstract advance(t: number, dt: number): void;
-  abstract buildBody(sink: BallSink): void;
+  abstract buildBody(sink: SegmentSink): void;
 
   protected setAnchor(a: Anchor, x: number, y: number, z: number): void {
     this.pose.anchors[a].pos.set(x, y, z);
@@ -187,32 +180,37 @@ class BipedDriver extends BaseDriver {
     this.setHeadAnchors(0, this.headY, this.hr * 0.25);
   }
 
-  buildBody(sink: BallSink): void {
+  buildBody(sink: SegmentSink): void {
     const r = this.baseR;
-    // torso stack: pelvis → belly → chest (chest slimmer than head to keep
-    // the silhouette readable)
-    sink.ball(this.sway, this.pelvisY, 0, r);
-    sink.ball(this.sway * 0.6, this.pelvisY + (this.chestY - this.pelvisY) * 0.5, 0.01, r * 1.0);
-    sink.ball(0, this.chestY, 0.02, r * 0.98);
-    sink.ball(0, this.headY, this.hr * 0.25, this.hr);
+    const midY = this.pelvisY + (this.chestY - this.pelvisY) * 0.5;
+    // torso: pelvis -> waist -> chest, then a neck up to the head
+    sink.seg('torso.pelvis', this.sway, this.pelvisY - r * 0.35, 0, this.sway * 0.6, midY, 0.01, r * 0.92, r * 0.8);
+    sink.seg('torso.chest', this.sway * 0.6, midY, 0.01, 0, this.chestY + r * 0.35, 0.02, r * 0.8, r * 0.95);
+    const headZ = this.hr * 0.25;
+    sink.seg('neck', 0, this.chestY + r * 0.3, 0.02, 0, this.headY - this.hr * 0.55, headZ * 0.7, r * 0.34, r * 0.3);
+    sink.ball('head', 0, this.headY, headZ, this.hr);
     const shoulderX = (this.frame.shoulderWidthFt * FT_TO_M) / 2;
     const armLen = this.frame.armLengthFt * FT_TO_M;
-    const armR = Math.max(r * 0.42, armLen * 0.1);
+    const armR = Math.max(r * 0.3, armLen * 0.085);
     for (const sgn of [-1, 1] as const) {
+      const side = sgn < 0 ? 'L' : 'R';
       const hand = this.pose.anchors[sgn < 0 ? 'handL' : 'handR'].pos;
       V_SH.set(sgn * shoulderX, this.chestY + r * 0.45, 0.02);
       V_BEND.set(sgn, 0, -0.4).normalize();
       solveKnee(V_SH, V_HAND.copy(hand), armLen * 0.52, armLen * 0.52, V_BEND, V_KNEE);
-      chain(sink, V_SH.x, V_SH.y, V_SH.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, 3, armR, armR * 0.9);
-      chain(sink, V_KNEE.x, V_KNEE.y, V_KNEE.z, hand.x, hand.y, hand.z, 3, armR * 0.9, armR * 1.25);
+      sink.seg('arm' + side + '.upper', V_SH.x, V_SH.y, V_SH.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, armR, armR * 0.85);
+      sink.seg('arm' + side + '.fore', V_KNEE.x, V_KNEE.y, V_KNEE.z, hand.x, hand.y, hand.z, armR * 0.85, armR * 0.7);
+      sink.ball('hand' + side, hand.x, hand.y, hand.z, armR * 1.15);
     }
-    const legR = Math.max(r * 0.48, this.legLenM * 0.11);
-    for (const leg of this.legs) {
+    const legR = Math.max(r * 0.36, this.legLenM * 0.105);
+    for (const [i, leg] of this.legs.entries()) {
+      const side = i === 0 ? 'L' : 'R';
       V_HIP.set(leg.pos.x * 0.8, this.pelvisY - r * 0.2, 0);
       V_BEND.set(0, 0, 1);
       solveKnee(V_HIP, V_HAND.copy(leg.pos), this.legLenM * 0.52, this.legLenM * 0.52, V_BEND, V_KNEE);
-      chain(sink, V_HIP.x, V_HIP.y, V_HIP.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, 3, legR, legR * 0.92);
-      chain(sink, V_KNEE.x, V_KNEE.y, V_KNEE.z, leg.pos.x, leg.pos.y, leg.pos.z, 3, legR * 0.92, legR * 1.2);
+      sink.seg('leg' + side + '.thigh', V_HIP.x, V_HIP.y, V_HIP.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, legR, legR * 0.85);
+      sink.seg('leg' + side + '.shin', V_KNEE.x, V_KNEE.y, V_KNEE.z, leg.pos.x, leg.pos.y, leg.pos.z, legR * 0.85, legR * 0.6);
+      sink.ball('foot' + side, leg.pos.x, leg.pos.y + legR * 0.35, leg.pos.z + legR * 0.55, legR * 0.85);
     }
   }
 }
@@ -278,27 +276,24 @@ class MultiLegDriver extends BaseDriver {
     this.setAnchor('hipR', this.legAnchorsX[0], this.bodyY - this.baseR * 0.3, -this.bodyLen * 0.3);
   }
 
-  buildBody(sink: BallSink): void {
+  buildBody(sink: SegmentSink): void {
     const r = this.baseR * (this.isHexa ? 0.85 : 1);
-    chain(
-      sink,
-      0, this.bodyY, -this.bodyLen * 0.33,
-      0, this.bodyY + this.hM * 0.04, this.bodyLen * 0.33,
-      3, r * 1.02, r,
-    );
+    // spine: rear -> mid -> front (horizontal body)
+    sink.seg('spine.rear', 0, this.bodyY, -this.bodyLen * 0.33, 0, this.bodyY + this.hM * 0.02, 0, r * 0.95, r);
+    sink.seg('spine.front', 0, this.bodyY + this.hM * 0.02, 0, 0, this.bodyY + this.hM * 0.04, this.bodyLen * 0.33, r, r * 0.85);
     const head = this.pose.anchors.head.pos;
-    // neck
-    chain(sink, 0, this.bodyY + this.hM * 0.05, this.bodyLen * 0.32, head.x, head.y, head.z, 3, r * 0.6, this.hr * 0.9);
-    sink.ball(head.x, head.y, head.z, this.hr);
-    const legR = Math.max(r * (this.isHexa ? 0.34 : 0.46), this.legLenM * (this.isHexa ? 0.08 : 0.12));
+    sink.seg('neck', 0, this.bodyY + this.hM * 0.05, this.bodyLen * 0.32, head.x, head.y - this.hr * 0.4, head.z - this.hr * 0.3, r * 0.5, r * 0.38);
+    sink.ball('head', head.x, head.y, head.z, this.hr);
+    const legR = Math.max(r * (this.isHexa ? 0.24 : 0.3), this.legLenM * (this.isHexa ? 0.06 : 0.09));
     for (let i = 0; i < this.legs.length; i++) {
       const leg = this.legs[i];
       V_HIP.set(this.legAnchorsX[i], this.bodyY - r * 0.1, this.legAnchorsZ[i]);
       V_BEND.set(this.isHexa ? Math.sign(this.legAnchorsX[i]) : 0, this.isHexa ? 0.9 : 0, this.legAnchorsZ[i] >= 0 ? 1 : -1).normalize();
       const l = this.legLenM * 0.55;
       solveKnee(V_HIP, V_HAND.copy(leg.pos), l, l, V_BEND, V_KNEE);
-      chain(sink, V_HIP.x, V_HIP.y, V_HIP.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, 3, legR, legR * 0.88);
-      chain(sink, V_KNEE.x, V_KNEE.y, V_KNEE.z, leg.pos.x, leg.pos.y, leg.pos.z, 3, legR * 0.88, legR * 1.1);
+      sink.seg('leg' + i + '.upper', V_HIP.x, V_HIP.y, V_HIP.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, legR, legR * 0.85);
+      sink.seg('leg' + i + '.lower', V_KNEE.x, V_KNEE.y, V_KNEE.z, leg.pos.x, leg.pos.y, leg.pos.z, legR * 0.85, legR * 0.6);
+      sink.ball('foot' + i, leg.pos.x, leg.pos.y + legR * 0.3, leg.pos.z + legR * 0.3, legR * 0.8);
     }
   }
 }
@@ -351,20 +346,21 @@ class HopperDriver extends BaseDriver {
     }
   }
 
-  buildBody(sink: BallSink): void {
-    const s = this.squash;
-    const ky = 1 - s * 0.55;
-    const kxz = 1 + s * 0.45;
-    const B = (x: number, y: number, z: number, r: number) =>
-      sink.ball(x * kxz, 0.02 + (y - 0.02) * ky, z * kxz * 0.6 + z * 0.4, r * (1 + s * 0.08));
+  buildBody(sink: SegmentSink): void {
+    const sq = this.squash;
+    const ky = 1 - sq * 0.55;
+    const kxz = 1 + sq * 0.45;
     const r = this.baseR * 1.25;
-    B(0, this.hM * 0.28, 0, r * 1.15);
-    B(0, this.hM * 0.55, this.hM * 0.01, r);
-    B(0, this.hM * 0.82, this.hM * 0.03, this.hr);
+    const y = (v: number) => 0.02 + (v - 0.02) * ky;
+    // squat torso column: base -> mid -> top (squash via endpoint motion)
+    sink.seg('torso.lower', 0, y(this.hM * 0.12), 0, 0, y(this.hM * 0.42), this.hM * 0.01 * kxz, r * 1.05, r * 0.95);
+    sink.seg('torso.upper', 0, y(this.hM * 0.42), this.hM * 0.01 * kxz, 0, y(this.hM * 0.66), this.hM * 0.02 * kxz, r * 0.95, r * 0.8);
+    sink.ball('head', 0, y(this.hM * 0.82), this.hM * 0.03, this.hr);
     for (const sgn of [-1, 1] as const) {
+      const side = sgn < 0 ? 'L' : 'R';
       const hand = this.pose.anchors[sgn < 0 ? 'handL' : 'handR'].pos;
-      B(hand.x, hand.y, hand.z, r * 0.32);
-      B(sgn * this.hM * 0.24, hand.y - this.hM * 0.08, this.hM * 0.12, r * 0.26);
+      sink.seg('arm' + side, sgn * this.hM * 0.2, y(this.hM * 0.5), this.hM * 0.05, hand.x, hand.y, hand.z, r * 0.26, r * 0.2);
+      sink.ball('hand' + side, hand.x, hand.y, hand.z, r * 0.28);
     }
   }
 }
@@ -397,40 +393,27 @@ class AirborneDriver extends BaseDriver {
     }
   }
 
-  buildBody(sink: BallSink): void {
+  buildBody(sink: SegmentSink): void {
     const r = this.baseR;
+    const head = this.pose.anchors.head.pos;
     if (this.flapping) {
-      sink.ball(0, 0, -this.hM * 0.02, r);
-      sink.ball(0, this.hM * 0.02, this.hM * 0.12, r * 0.9);
-      const head = this.pose.anchors.head.pos;
-      sink.ball(head.x, head.y, head.z, this.hr);
-      // tail feathers
-      sink.ball(0, this.hM * 0.02, -this.hM * 0.18, r * 0.6);
-      sink.ball(0, this.hM * 0.05, -this.hM * 0.28, r * 0.45);
-      // flapping wing lobes merge into the body
+      // bird fuselage: tail -> belly -> chest, neck to the head, tail fin
+      sink.seg('body.rear', 0, this.hM * 0.02, -this.hM * 0.18, 0, 0, -this.hM * 0.02, r * 0.55, r * 0.95);
+      sink.seg('body.front', 0, 0, -this.hM * 0.02, 0, this.hM * 0.02, this.hM * 0.13, r * 0.95, r * 0.75);
+      sink.seg('neck', 0, this.hM * 0.04, this.hM * 0.13, head.x, head.y - this.hr * 0.3, head.z - this.hr * 0.2, r * 0.4, r * 0.32);
+      sink.ball('head', head.x, head.y, head.z, this.hr);
+      sink.seg('tail', 0, this.hM * 0.03, -this.hM * 0.18, 0, this.hM * 0.06, -this.hM * 0.32, r * 0.4, r * 0.22);
+      const dang = Math.sin(this.t * 9 + 1.4) * this.hM * 0.02;
       for (const sgn of [-1, 1] as const) {
-        for (let i = 1; i <= 4; i++) {
-          const d = this.hM * (0.06 + i * 0.09);
-          const curl = this.flap * (1 + i * 0.09);
-          sink.ball(sgn * d * Math.cos(curl), this.hM * 0.04 + d * Math.sin(curl), -this.hM * 0.03, r * (0.62 - i * 0.06));
-        }
-      }
-      // dangling feet
-      for (const sgn of [-1, 1] as const) {
-        const hip = this.pose.anchors[sgn < 0 ? 'hipL' : 'hipR'].pos;
-        chain(sink, sgn * this.hM * 0.08, -this.hM * 0.08, this.hM * 0.02, hip.x, hip.y, hip.z, 2, r * 0.32, r * 0.26);
+        const side = sgn < 0 ? 'L' : 'R';
+        sink.seg('foot' + side, sgn * this.hM * 0.08, -this.hM * 0.08, this.hM * 0.02, sgn * this.hM * 0.1, -this.hM * 0.2 + dang, -this.hM * 0.02, r * 0.2, r * 0.14);
       }
     } else {
-      // floater: one big rounded mass + side lobes + head lobe, slow pulse
-      const pulse = 1 + Math.sin(this.t * 2.4) * 0.04;
-      sink.ball(0, 0, 0, r * 1.3 * pulse);
-      sink.ball(0, this.hM * 0.12, this.hM * 0.02, r * 1.05);
-      for (const sgn of [-1, 1] as const) {
-        sink.ball(sgn * r * 0.85, -this.hM * 0.02, 0, r * 0.7 * pulse);
-      }
-      sink.ball(0, -this.hM * 0.06, -r * 0.8, r * 0.65);
-      const head = this.pose.anchors.head.pos;
-      sink.ball(head.x, head.y, head.z, this.hr * 1.05);
+      // floater: a hovering mass with side lobes and a crown-ward head
+      sink.seg('body.core', 0, -this.hM * 0.08, 0, 0, this.hM * 0.14, this.hM * 0.02, r * 1.15, r * 0.95);
+      sink.seg('body.lobeL', -r * 0.9, -this.hM * 0.03, 0, -r * 0.25, this.hM * 0.05, 0, r * 0.5, r * 0.7);
+      sink.seg('body.lobeR', r * 0.9, -this.hM * 0.03, 0, r * 0.25, this.hM * 0.05, 0, r * 0.5, r * 0.7);
+      sink.ball('head', head.x, head.y, head.z, this.hr * 1.05);
     }
   }
 }

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 14/07/2026, 18:50:48
+ * Dependents: components/Worldforge/LivingWorldPreview.tsx, components/debug/TownHistoryDevOverlay.tsx, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicle.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townNews.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/townSimRegistry.ts, utils/world/chronicleNewsToRumors.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file types.ts — Data contracts for the living-world town sim (life-event core).
  *
@@ -8,9 +24,17 @@
  *  - D8 (event-grained): history is discrete facts, not a per-tick numeric sim.
  *
  * This is the foundation slice (§5 item 1: aging, death, inheritance, births,
- * role succession, coming-of-age). Economy / relationship / festival event
- * kinds are added by later plans; they pour into this same chronicle + meters.
+ * role succession, coming-of-age). Later economy, relationship, disaster, and
+ * building-evolution slices all pour into these same save-safe contracts.
+ * Exact prevalidated additions let a prosperous year grow an occupied home
+ * without rerolling or guessing its future geometry.
  */
+
+import type { BuildingEvent, BuildingEventLogsByPlot } from '../interior/blueprintTypes';
+import type { PlannedBuildingExtension } from '../interior/buildingExtensions';
+
+/** Re-exported here so town-sim callers need one contract surface for persisted state. */
+export type TownBuildingEvent = BuildingEvent;
 
 export type LifeEventKind =
   | 'birth'
@@ -23,6 +47,7 @@ export type LifeEventKind =
   | 'economy'
   | 'festival'
   | 'disaster'
+  | 'building'
   // Pillar 2, Task 8 (living ecology): an occasional worry line about the
   // uncleared dungeons around the burg (raid-pressure signal, one visible
   // symptom). Never lethal — it colors the town's mood, not its population.
@@ -90,6 +115,22 @@ export interface TownSimState {
   /** Keyed by occupantId. Includes the dead (diedDay set) for genealogy. */
   villagers: Record<number, LivingVillager>;
   chronicle: TownChronicle;
+  /**
+   * Sparse chronological logs keyed by canonical plot id. Optional for old
+   * saves. Legacy arrays migrate into versioned folded snapshots plus a short
+   * chronological tail; structural outcomes retain their absolute ordinals.
+   */
+  buildingEvents?: BuildingEventLogsByPlot;
+  /**
+   * Prevalidated future additions keyed by canonical plot id. Registration
+   * derives these from the real lot and district roof grammar; old saves may
+   * omit them and simply produce no structural growth until migrated.
+   */
+  buildingEvolution?: Record<number, {
+    districtKey: string;
+    roofForm: PlannedBuildingExtension['roofForm'];
+    extensionCandidates: PlannedBuildingExtension[];
+  }>;
   /** Town prosperity meter (0–100, ~50 typical), nudged by annual economy events. */
   prosperity?: number;
   /**

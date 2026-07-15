@@ -63,6 +63,144 @@ const createDenseFallbackMap = (): BattleMapData => {
     };
 };
 
+/** Build a small referee map whose only authored surface is one real road. */
+const createRoadAmbushMap = (): BattleMapData => {
+    const width = 30;
+    const height = 25;
+    const tiles = new Map<string, BattleMapTile>();
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const key = `${x}-${y}`;
+            tiles.set(key, {
+                id: key,
+                coordinates: { x, y },
+                terrain: 'grass',
+                elevation: 0,
+                movementCost: 5,
+                blocksLoS: false,
+                blocksMovement: false,
+                decoration: null,
+                effects: [],
+                ...(x >= 2 && x <= width - 3 && y === 12
+                    ? {
+                        surface: {
+                            kind: 'road' as const,
+                            source: 'worldforge-road' as const,
+                            sourceRole: 'regional-route' as const,
+                            sourceIndex: 3,
+                            widthMeters: 4
+                        }
+                    }
+                    : {})
+            });
+        }
+    }
+
+    // Blockers beside the expected flanks make nearby cells tactically useful
+    // without fabricating cover inside the deployment helper itself.
+    for (const [x, y] of [[13, 4], [17, 4], [13, 20], [17, 20]]) {
+        const tile = tiles.get(`${x}-${y}`)!;
+        tile.decoration = 'boulder';
+        tile.blocksLoS = true;
+        tile.blocksMovement = true;
+        tile.providesCover = true;
+    }
+
+    return {
+        dimensions: { width, height },
+        tiles,
+        targetableObjects: [],
+        theme: 'forest',
+        seed: 42,
+        encounterContext: {
+            kind: 'road-ambush',
+            source: 'worldforge-road',
+            sourceRoadRole: 'regional-route',
+            sourceRoadIndex: 3,
+            anchorTile: { x: 15, y: 12 },
+            routeDirection: { x: 1, y: 0 },
+            deployment: {
+                player: 'traveling-column',
+                enemy: 'concealed-flanks'
+            }
+        }
+    };
+};
+
+/** Build a source-backed bridge with blocked river water on either side. */
+const createRiverCrossingMap = (): BattleMapData => {
+    const width = 50;
+    const height = 30;
+    const tiles = new Map<string, BattleMapTile>();
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const key = `${x}-${y}`;
+            const isRiver = x >= 18 && x <= 31;
+            const isRoad = y === 15;
+            const isBridge = isRiver && y >= 14 && y <= 16;
+            tiles.set(key, {
+                id: key,
+                coordinates: { x, y },
+                terrain: isRiver ? 'water' : 'grass',
+                elevation: 0,
+                movementCost: isBridge ? 1 : isRiver ? 0 : 1,
+                blocksLoS: false,
+                blocksMovement: isRiver && !isBridge,
+                decoration: null,
+                effects: [],
+                ...(isRoad || isBridge
+                    ? {
+                        surface: {
+                            kind: 'road' as const,
+                            source: 'worldforge-road' as const,
+                            sourceRole: 'regional-route' as const,
+                            sourceIndex: 5,
+                            widthMeters: 4.5
+                        }
+                    }
+                    : {}),
+                ...(isBridge
+                    ? {
+                        crossing: {
+                            kind: 'bridge' as const,
+                            source: 'worldforge-crossing' as const,
+                            sourceCrossingId: 'crossing:5:9:0',
+                            roadSourceIndex: 5,
+                            riverSourceIndex: 0,
+                            roadDirection: { x: 1, y: 0 },
+                            centerWorldMeters: { x: 25 * 1.524, z: 15 * 1.524 },
+                            spanMeters: 14 * 1.524,
+                            widthMeters: 4.5
+                        }
+                    }
+                    : {})
+            });
+        }
+    }
+
+    return {
+        dimensions: { width, height },
+        tiles,
+        targetableObjects: [],
+        theme: 'forest',
+        seed: 42,
+        encounterContext: {
+            kind: 'river-crossing',
+            source: 'worldforge-crossing',
+            sourceCrossingId: 'crossing:5:9:0',
+            crossingKind: 'bridge',
+            anchorTile: { x: 25, y: 15 },
+            routeDirection: { x: 1, y: 0 },
+            deployment: {
+                player: 'near-bank',
+                enemy: 'far-bank'
+            }
+        }
+    };
+};
+
 describe('useBattleMapGeneration', () => {
     it('should be deterministic when given the same seed', () => {
         const seed = 12345;
@@ -101,6 +239,70 @@ describe('useBattleMapGeneration', () => {
         }
 
         expect(results.size).toBe(1);
+    });
+
+    it('realizes a source road ambush as travelers on-route and enemies on both flanks', () => {
+        const mapData = createRoadAmbushMap();
+        const characters = [
+            ...[1, 2, 3].map(index => createMockCombatCharacter({ id: `p${index}`, team: 'player' })),
+            ...[1, 2, 3, 4].map(index => createMockCombatCharacter({ id: `e${index}`, team: 'enemy' }))
+        ];
+
+        const first = generateBattleSetup('forest', 42, characters, mapData);
+        const second = generateBattleSetup('forest', 42, characters, mapData);
+        const players = first.positionedCharacters.filter(character => character.team === 'player');
+        const enemies = first.positionedCharacters.filter(character => character.team === 'enemy');
+
+        expect(first.positionedCharacters.map(character => character.position))
+            .toEqual(second.positionedCharacters.map(character => character.position));
+        expect(players.every(character => (
+            first.mapData.tiles.get(`${character.position.x}-${character.position.y}`)?.surface?.sourceIndex === 3
+        ))).toBe(true);
+        expect(enemies.every(character => (
+            first.mapData.tiles.get(`${character.position.x}-${character.position.y}`)?.surface == null
+        ))).toBe(true);
+        expect(enemies.some(character => character.position.y < 12)).toBe(true);
+        expect(enemies.some(character => character.position.y > 12)).toBe(true);
+        expect(new Set(first.positionedCharacters.map(character => `${character.position.x}-${character.position.y}`)).size)
+            .toBe(characters.length);
+    });
+
+    it('deploys a source river crossing on opposite walkable banks', () => {
+        const mapData = createRiverCrossingMap();
+        const characters = [
+            ...[1, 2, 3].map(index => createMockCombatCharacter({ id: `bridge-p${index}`, team: 'player' })),
+            ...[1, 2, 3, 4].map(index => createMockCombatCharacter({ id: `bridge-e${index}`, team: 'enemy' }))
+        ];
+
+        const first = generateBattleSetup('forest', 42, characters, mapData);
+        const second = generateBattleSetup('forest', 42, characters, mapData);
+        const players = first.positionedCharacters.filter(character => character.team === 'player');
+        const enemies = first.positionedCharacters.filter(character => character.team === 'enemy');
+
+        expect(first.positionedCharacters.map(character => character.position))
+            .toEqual(second.positionedCharacters.map(character => character.position));
+        expect(players.every(character => character.position.x < 18)).toBe(true);
+        expect(enemies.every(character => character.position.x > 31)).toBe(true);
+        expect(first.positionedCharacters.every(character => {
+            const tile = first.mapData.tiles.get(`${character.position.x}-${character.position.y}`);
+            return tile && !tile.blocksMovement && !tile.crossing;
+        })).toBe(true);
+        expect(new Set(first.positionedCharacters.map(character => `${character.position.x}-${character.position.y}`)).size)
+            .toBe(characters.length);
+    });
+
+    it('uses the actual center of context-sized extracted maps without an encounter frame', () => {
+        const mapData = createRoadAmbushMap();
+        mapData.encounterContext = undefined;
+        const characters = [
+            createMockCombatCharacter({ id: 'center-player', team: 'player' }),
+            createMockCombatCharacter({ id: 'nearby-enemy', team: 'enemy' })
+        ];
+
+        const { positionedCharacters } = generateBattleSetup('forest', 42, characters, mapData);
+
+        expect(positionedCharacters[0].position).toEqual({ x: 15, y: 12 });
+        expect(positionedCharacters[1].position).toEqual({ x: 19, y: 15 });
     });
 
     // Spell object targeting depends on live maps publishing object facts, not

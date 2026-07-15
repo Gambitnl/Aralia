@@ -1,13 +1,15 @@
 {
   "paused": true,
-  "name": "fleet-orchestration",
-  "nudge": "[GOAL REMINDER] Active goal: orchestrate Aralia work through the AI-agent fleet. Read .agent/orchestration/TRACKER.md for fleet readiness, dispatch rules, and the dispatch log — trust its dated statuses. Flow: keep the dashboard (misc/agent_matrix.html) current, pick open Aralia work (e.g. .agent/resume-journey/TRACKER.md tasks 3-5, worldforge lane), dispatch to the cheapest capable agent with a self-contained spec, verify the result yourself (tests + diff review), log the dispatch. Respect usage limits: check /api/agent-usage before dispatching; fall back per the rules when an agent runs dry.",
+  "name": "planning-surface-freshness",
+  "nudge": "[GOAL REMINDER] Active goal: planning surfaces — one list, always true. Read .agent/GOAL-planning-surface-freshness.md (criteria table + build order). Plan: docs/superpowers/plans/2026-07-14-planning-surface-freshness.md (tasks 5+9 canceled; 10R = absorption wave via subagents; 12R = tracker deletion last). Build order: engine core (tasks 1-4) -> roadmap revival (8) -> triggers (7) -> board tidying (6) -> absorption wave (10R, GATE: Remy approves the seeded list) -> UI (11) -> tracker deletion (12R). Fleet rules apply when dispatching wave subagents (NO Sonnet; Haiku bulk, Fable 5 judgment). Never commit; never leave topics.json invalid; lock it before editing. Update the GOAL doc's Current State table with dated evidence as criteria flip.",
   "progressPaths": [
-    ".agent/orchestration/TRACKER.md",
-    "misc/agent_matrix.html",
-    ".agent/usage-cache.json"
+    ".agent/GOAL-planning-surface-freshness.md",
+    "tools/agora/sync-surfaces.mjs",
+    "public/planmap/topics.json",
+    "public/planmap/health.json",
+    "docs/superpowers/plans/2026-07-14-planning-surface-freshness.md"
   ],
-  "capturesDir": ".agent/orchestration",
-  "goalDoc": ".agent/orchestration/TRACKER.md",
-  "trackerDoc": ".agent/orchestration/TRACKER.md"
+  "capturesDir": ".agent/scratch/freshness-baseline",
+  "goalDoc": ".agent/GOAL-planning-surface-freshness.md",
+  "trackerDoc": ".agent/GOAL-planning-surface-freshness.md"
 }

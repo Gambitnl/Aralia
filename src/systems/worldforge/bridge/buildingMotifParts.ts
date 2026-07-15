@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/07/2026, 15:04:15
+ * Last Sync: 14/07/2026, 16:53:55
  * Dependents: systems/worldforge/bridge/interiorParts.ts
  * Imports: 2 files
  *
@@ -31,6 +31,7 @@ import type {
   BuildingMotif,
   BlueprintPlan,
 } from '../interior/blueprintTypes';
+import { blueprintSiteOrigin } from '../interior/blueprintTypes';
 import { OUTER_THICKNESS_FT } from '../interior/walls';
 
 /** Tag stamped on additive building-type/culture recognition geometry. */
@@ -93,6 +94,12 @@ export function buildBuildingMotifParts(
 
   const widthM = blueprint.widthFt * FT;
   const depthM = blueprint.depthFt * FT;
+  const origin = blueprintSiteOrigin(blueprint);
+  // Motif recipes are authored around the current envelope center. Translating
+  // every resulting box by this delta keeps that recipe attached to the whole
+  // enlarged shell while the original core remains fixed on its town plot.
+  const siteOffsetX = (blueprint.widthFt / 2 - origin.x) * FT;
+  const siteOffsetZ = (blueprint.depthFt / 2 - origin.y) * FT;
   const aboveGradeStoreys = blueprint.floors.filter((floor) => floor.level >= 0).length;
   const wallTopM = Math.max(storeyHeightM, aboveGradeStoreys * storeyHeightM);
   const outerWallM = OUTER_THICKNESS_FT * FT;
@@ -115,7 +122,11 @@ export function buildBuildingMotifParts(
     motif: BuildingMotif,
     box: Omit<BuildingMotifPart, 'tag' | 'motifKind'>,
   ): void => {
-    parts.push(motifPart(motif, box));
+    parts.push(motifPart(motif, {
+      ...box,
+      x: box.x + siteOffsetX,
+      z: box.z + siteOffsetZ,
+    }));
   };
 
   /**

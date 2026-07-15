@@ -1,13 +1,14 @@
 /**
  * @file gaits.test.ts — IK correctness and gait driver behavior (pure math,
- * no renderer).
+ * no renderer). Body v2: drivers emit SEGMENTS (bones between the joints the
+ * IK computes) plus balls for head/hands/feet — not metaballs.
  */
 import { describe, it, expect } from 'vitest';
 import { Vector3 } from 'three';
 import { solveKnee } from '../three/ik';
 import { createGaitDriver } from '../three/gaits';
 import type { LocomotionState } from '../three/gaits';
-import type { BallSink, Frame, Gait } from '../types';
+import type { BodySegment, Frame, Gait } from '../types';
 import { ANCHORS, deriveFrame } from '../types';
 
 const FRAME: Frame = deriveFrame('biped', 5.5, 1, 1);
@@ -16,11 +17,24 @@ function loco(speed: number): LocomotionState {
   return { position: new Vector3(), heading: new Vector3(0, 0, 1), speed };
 }
 
-class RecordingSink implements BallSink {
-  balls: Array<{ x: number; y: number; z: number; r: number }> = [];
-  ball(x: number, y: number, z: number, r: number): void {
-    this.balls.push({ x, y, z, r });
+class RecordingSink {
+  segments: BodySegment[] = [];
+  balls: Array<{ id: string; x: number; y: number; z: number; r: number }> = [];
+  seg(id: string, ax: number, ay: number, az: number, bx: number, by: number, bz: number, r0: number, r1: number): void {
+    this.segments.push({ id, ax, ay, az, bx, by, bz, r0, r1 });
   }
+  ball(id: string, x: number, y: number, z: number, r: number): void {
+    this.balls.push({ id, x, y, z, r });
+  }
+}
+
+function collect(gait: Gait, speed = 1, t = 0.5): RecordingSink {
+  const frame = deriveFrame(gait, 5.5, 1, 1);
+  const driver = createGaitDriver(gait, frame);
+  driver.update(t, 1 / 60, loco(speed));
+  const sink = new RecordingSink();
+  driver.buildBody(sink);
+  return sink;
 }
 
 describe('solveKnee (two-bone IK)', () => {
@@ -43,7 +57,7 @@ describe('solveKnee (two-bone IK)', () => {
   });
 });
 
-describe('gait drivers', () => {
+describe('gait drivers (segment emission)', () => {
   const GAITS: Gait[] = ['biped', 'quad', 'hexapod', 'hopper', 'flyer', 'float'];
 
   it('every gait exposes every anchor with finite positions', () => {
@@ -53,27 +67,58 @@ describe('gait drivers', () => {
       driver.update(0.5, 1 / 60, loco(1));
       for (const anchor of ANCHORS) {
         const p = driver.pose.anchors[anchor].pos;
-        expect(
-          Number.isFinite(p.x + p.y + p.z),
-          `${gait} anchor "${anchor}" is not finite`,
-        ).toBe(true);
+        expect(Number.isFinite(p.x + p.y + p.z), `${gait} anchor "${anchor}" is not finite`).toBe(true);
       }
     }
   });
 
-  it('every gait builds a body of at least 5 finite balls', () => {
+  it('every gait emits segments plus a head ball, all finite with positive radii', () => {
     for (const gait of GAITS) {
-      const frame = deriveFrame(gait, 5.5, 1, 1);
-      const driver = createGaitDriver(gait, frame);
-      driver.update(0.3, 1 / 60, loco(1));
-      const sink = new RecordingSink();
-      driver.buildBody(sink);
-      expect(sink.balls.length, `${gait} body too sparse`).toBeGreaterThan(4);
+      const sink = collect(gait);
+      expect(sink.segments.length, `${gait} emitted too few segments`).toBeGreaterThanOrEqual(3);
+      expect(sink.balls.some((b) => b.id === 'head'), `${gait} has no head ball`).toBe(true);
+      for (const s of sink.segments) {
+        expect(Number.isFinite(s.ax + s.ay + s.az + s.bx + s.by + s.bz + s.r0 + s.r1), `${gait} ${s.id} not finite`).toBe(true);
+        expect(Math.min(s.r0, s.r1), `${gait} ${s.id} non-positive radius`).toBeGreaterThan(0);
+      }
       for (const b of sink.balls) {
-        expect(Number.isFinite(b.x + b.y + b.z + b.r), `${gait} emitted NaN ball`).toBe(true);
+        expect(Number.isFinite(b.x + b.y + b.z + b.r), `${gait} ball ${b.id} not finite`).toBe(true);
         expect(b.r).toBeGreaterThan(0);
       }
     }
+  });
+
+  it('biped: full humanoid part list with CONNECTED limb chains', () => {
+    const sink = collect('biped');
+    const ids = sink.segments.map((s) => s.id);
+    for (const required of ['torso.pelvis', 'torso.chest', 'neck', 'armL.upper', 'armL.fore', 'armR.upper', 'armR.fore', 'legL.thigh', 'legL.shin', 'legR.thigh', 'legR.shin']) {
+      expect(ids, `missing segment ${required}`).toContain(required);
+    }
+    for (const b of ['head', 'handL', 'handR', 'footL', 'footR']) {
+      expect(sink.balls.map((x) => x.id), `missing ball ${b}`).toContain(b);
+    }
+    const by = new Map(sink.segments.map((s) => [s.id, s]));
+    for (const side of ['L', 'R'] as const) {
+      const upper = by.get(`arm${side}.upper`)!;
+      const fore = by.get(`arm${side}.fore`)!;
+      expect(Math.hypot(fore.ax - upper.bx, fore.ay - upper.by, fore.az - upper.bz), `arm${side} elbow disconnected`).toBeLessThan(1e-6);
+      const thigh = by.get(`leg${side}.thigh`)!;
+      const shin = by.get(`leg${side}.shin`)!;
+      expect(Math.hypot(shin.ax - thigh.bx, shin.ay - thigh.by, shin.az - thigh.bz), `leg${side} knee disconnected`).toBeLessThan(1e-6);
+    }
+  });
+
+  it('segment ids are stable across frames (renderer maps meshes once)', () => {
+    const frame = deriveFrame('biped', 5.5, 1, 1);
+    const driver = createGaitDriver('biped', frame);
+    driver.update(0.2, 1 / 60, loco(1));
+    const a = new RecordingSink();
+    driver.buildBody(a);
+    driver.update(0.6, 1 / 60, loco(1));
+    const b = new RecordingSink();
+    driver.buildBody(b);
+    expect(a.segments.map((s) => s.id)).toEqual(b.segments.map((s) => s.id));
+    expect(a.balls.map((s) => s.id)).toEqual(b.balls.map((s) => s.id));
   });
 
   it('biped: head sits above the hips', () => {

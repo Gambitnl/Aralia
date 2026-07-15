@@ -131,6 +131,58 @@ describe('clipPolyToRectXY', () => {
   });
 });
 
+// ── Attached roof boundaries ────────────────────────────────────────────────
+
+describe('party-wall roof clipping', () => {
+  const mass: FootprintMass = { kind: 'main', x: 0, y: 0, w: 5, h: 8 };
+  const extents = (plan: ReturnType<typeof solveRoof>) => {
+    const points = plan.planes.flatMap((plane) => plane.pts);
+    return {
+      minX: Math.min(...points.map(([x]) => x)),
+      maxX: Math.max(...points.map(([x]) => x)),
+      minY: Math.min(...points.map(([, y]) => y)),
+      maxY: Math.max(...points.map(([, y]) => y)),
+    };
+  };
+
+  it.each(['gable', 'hip', 'steep'] as const)(
+    'clips only attached sides of a %s roof to the exact lot line',
+    (roofForm) => {
+      const free = solveRoof(mkInput({ masses: [mass], style: baseStyle(roofForm) }));
+      const attached = solveRoof(mkInput({
+        masses: [mass],
+        style: baseStyle(roofForm),
+        partyWallLeft: true,
+        partyWallRight: true,
+      }));
+
+      expect(extents(free)).toEqual({ minX: -1, maxX: 26, minY: -1, maxY: 41 });
+      expect(extents(attached)).toEqual({ minX: 0, maxX: 25, minY: -1, maxY: 41 });
+      const seamPoints = attached.planes
+        .flatMap((plane) => plane.pts)
+        .filter(([x]) => Math.abs(x) < 1e-6 || Math.abs(x - 25) < 1e-6);
+      expect(seamPoints.length).toBeGreaterThan(0);
+      expect(seamPoints.some(([, , z]) => Math.abs(z) < 1e-6)).toBe(true);
+    },
+  );
+
+  it('clips either side independently', () => {
+    const left = solveRoof(mkInput({
+      masses: [mass],
+      style: baseStyle('gable'),
+      partyWallLeft: true,
+    }));
+    const right = solveRoof(mkInput({
+      masses: [mass],
+      style: baseStyle('gable'),
+      partyWallRight: true,
+    }));
+
+    expect(extents(left)).toMatchObject({ minX: 0, maxX: 26 });
+    expect(extents(right)).toMatchObject({ minX: -1, maxX: 25 });
+  });
+});
+
 // ── The T-shape valley fixture (hand-derived) ────────────────────────────────
 //
 // Main mass: cells x[0,8) y[0,4) → feet x∈[0,40], y∈[0,20]. Shorter extent = y

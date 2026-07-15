@@ -1,3 +1,8 @@
+/**
+ * These tests prove raw town chronicle entries reach the correct public-news
+ * tier. Property changes stay visible to boards without drowning out disasters
+ * and institutional succession in the headline channel.
+ */
 import { selectTownNews } from '../townNews';
 import type { TownSimState, LifeEvent } from '../types';
 import { DAYS_PER_YEAR } from '../constants';
@@ -23,6 +28,7 @@ describe('selectTownNews', () => {
     ev({ id: 3, kind: 'marriage', day: 1005, summary: 'A married B.' }),
     ev({ id: 4, kind: 'birth', day: 1008, summary: 'C was born.' }),
     ev({ id: 5, kind: 'festival', day: 1009, summary: 'Harvest festival.' }),
+    ev({ id: 6, kind: 'building', day: 1007, summary: 'A home was rebuilt.' }),
   ]);
   const currentDay = 1010;
 
@@ -34,6 +40,7 @@ describe('selectTownNews', () => {
     expect(byId.get(3)).toBe('notice'); // marriage
     expect(byId.get(4)).toBe('gossip'); // birth
     expect(byId.get(5)).toBe('gossip'); // festival
+    expect(byId.get(6)).toBe('notice'); // property lifecycle
   });
 
   it('returns most-recent first', () => {

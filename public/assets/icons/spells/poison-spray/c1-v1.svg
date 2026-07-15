@@ -1,0 +1,45 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#34D399" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#34D399" stop-opacity="0" />
+    </radialGradient>
+    <filter id="blur">
+      <feGaussianBlur stdDeviation="2" />
+    </filter>
+    <linearGradient id="mistGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#065F46" />
+      <stop offset="50%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#A7F3D0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Ambient Glow -->
+  <circle cx="50" cy="50" r="40" fill="url(#glow)" />
+
+  <!-- Target Silhouette (The hit point) -->
+  <path d="M40 60 Q50 50 60 60 L60 80 Q50 85 40 80 Z" fill="#1a1a1a" />
+  <circle cx="50" cy="52" r="6" fill="#1a1a1a" />
+
+  <!-- Poison Spray Effect -->
+  <g filter="url(#blur)">
+    <!-- Main jet of mist -->
+    <path d="M10 40 Q30 45 45 55 L55 50 Q40 40 10 30 Z" fill="url(#mistGrad)" />
+    <path d="M10 50 Q30 55 45 65 L55 60 Q40 50 10 40 Z" fill="url(#mistGrad)" />
+    
+    <!-- Splatter impact -->
+    <circle cx="55" cy="55" r="8" fill="#34D399" />
+    <circle cx="62" cy="52" r="5" fill="#34D399" />
+    <circle cx="48" cy="48" r="6" fill="#34D399" />
+    <circle cx="58" cy="62" r="4" fill="#34D399" />
+  </g>
+
+  <!-- Sharp highlight accents for "toxicity" -->
+  <path d="M20 42 Q35 45 48 56" stroke="#A7F3D0" stroke-width="2" fill="none" stroke-linecap="round" />
+  <path d="M20 48 Q35 50 48 61" stroke="#A7F3D0" stroke-width="2" fill="none" stroke-linecap="round" />
+  
+  <!-- Toxic droplets -->
+  <circle cx="30" cy="35" r="2" fill="#065F46" />
+  <circle cx="35" cy="65" r="2" fill="#065F46" />
+  <circle cx="65" cy="58" r="3" fill="#34D399" />
+</svg>

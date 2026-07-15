@@ -75,6 +75,49 @@ describe('placementEngine — determinism', () => {
 });
 
 describe('placementEngine — placement rules', () => {
+  it('dresses each courtyard amenity inside its canonical open radius', () => {
+    const amenities = ['well', 'wash-yard', 'work-yard', 'garden'] as const;
+    const courtyards = amenities.map((amenity, index) => ({
+      id: `court:${index}`,
+      xM: 35 + index * 40,
+      zM: 35,
+      radiusM: 10,
+      districtKey: `district:${index}`,
+      wealth: amenity === 'garden' ? 'wealthy' as const : 'common' as const,
+      amenity,
+      courtyardSignature: `court-${index}`,
+    }));
+    const props = placeProps(SEED, emptyCtx({ courtyards }));
+
+    expect(props.some((prop) => prop.defId === 'well')).toBe(true);
+    expect(props.some((prop) => prop.defId === 'water-trough')).toBe(true);
+    expect(props.some((prop) => prop.defId === 'cart')).toBe(true);
+    expect(props.filter((prop) => prop.defId === 'stone-planter')).toHaveLength(4);
+    for (const prop of props) {
+      const nearestCourt = Math.min(...courtyards.map((court) =>
+        Math.hypot(prop.xM - court.xM, prop.zM - court.zM),
+      ));
+      expect(nearestCourt).toBeLessThanOrEqual(10);
+    }
+  });
+
+  it('uses stable courtyard streams and keeps unrelated courts unchanged', () => {
+    const first = {
+      id: 'court:a', xM: 40, zM: 40, radiusM: 9,
+      districtKey: 'district:a', wealth: 'common' as const,
+      amenity: 'well' as const, courtyardSignature: 'court-a',
+    };
+    const second = {
+      id: 'court:b', xM: 120, zM: 120, radiusM: 9,
+      districtKey: 'district:b', wealth: 'poor' as const,
+      amenity: 'wash-yard' as const, courtyardSignature: 'court-b',
+    };
+    const alone = placeProps(SEED, emptyCtx({ courtyards: [first] }));
+    const together = placeProps(SEED, emptyCtx({ courtyards: [first, second] }));
+
+    expect(together.filter((prop) => Math.hypot(prop.xM - 40, prop.zM - 40) <= 9)).toEqual(alone);
+  });
+
   it('a market plaza produces stalls (in the plaza) + understock goods', () => {
     const ctx = emptyCtx({ plazas: [{ id: 'p1', xM: 100, zM: 100, radiusM: 12 }] });
     const props = placeProps(SEED, ctx);

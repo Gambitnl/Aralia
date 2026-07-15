@@ -3,14 +3,16 @@
  * consumed by the 3D ground world without changing plot identity.
  *
  * It covers role mapping, street tiers, style stamps, and the architectural
- * cohesion rule: plots in one social district use a small repeated vocabulary
- * while stable plot ids still permit bounded building-level differences.
+ * cohesion rule: plots in one spatial district use a small repeated color,
+ * form, facade, and construction vocabulary while stable plot ids still
+ * permit bounded building-level differences.
  */
 import { describe, it, expect } from 'vitest';
 import { toArtifactPlan, storeysForRole, STREET_TIERS } from '../townPlanAdapter';
 
 const { avenue: AVENUE, street: STREET, lane: LANE } = STREET_TIERS;
 import { STYLE_FAMILIES } from '../architectureStyle';
+import { constructionKitsForFamily } from '../buildingMaterials';
 import type { TownPlan as EngineTownPlan } from '../townEngine';
 
 const sq = (x: number, y: number, s: number): [number, number][] =>
@@ -30,6 +32,17 @@ function makeEnginePlan(): EngineTownPlan {
     walls: { ring: sq(0, 0, 70), gatehouses: [[35, 0]] },
     civic: [{ kind: 'temple', polygon: sq(40, 40, 18), wardIndex: 0 }],
     streets: [[[0, 0], [25, 25], [50, 50]]],
+    courtyards: [{
+      id: 'ward:0:court',
+      wardIndex: 0,
+      blockKey: 'ward:0:courtyard',
+      center: [35, 35],
+      radius: 8,
+      districtKey: 'wealth:common',
+      wealth: 'common',
+      amenity: 'well',
+      courtyardSignature: 'court-fixture',
+    }],
     farmsteads: [],
   } as EngineTownPlan;
 }
@@ -39,6 +52,20 @@ describe('toArtifactPlan', () => {
 
   it('carries the burgId', () => {
     expect(plan.burgId).toBe(7);
+  });
+
+  it('carries shared courts as open-space receipts without consuming plot ids', () => {
+    expect(plan.courtyards).toEqual([{
+      id: 'ward:0:court',
+      blockKey: 'ward:0:courtyard',
+      center: [35, 35],
+      radiusFt: 8,
+      districtKey: 'wealth:common',
+      wealth: 'common',
+      amenity: 'well',
+      courtyardSignature: 'court-fixture',
+    }]);
+    expect(plan.plots.map((plot) => plot.id)).toEqual([0, 1, 2]);
   });
 
   it('maps building types into the 3D role buckets', () => {
@@ -123,6 +150,111 @@ describe('toArtifactPlan', () => {
     }
   });
 
+  it('preserves row metadata, shared eaves, and exact party-wall boundaries', () => {
+    const shared = {
+      blockKey: 'ward:0:edge:0',
+      kind: 'row' as const,
+      eaveStoreys: 3 as const,
+      ensembleSignature: 'row-shared',
+    };
+    const left = {
+      polygon: sq(0, 0, 16),
+      frontageEdge: 0,
+      buildingType: 'cottage' as const,
+      ensemble: { ...shared, partyWallLeft: false, partyWallRight: true },
+    };
+    const right = {
+      polygon: sq(16, 0, 16),
+      frontageEdge: 0,
+      buildingType: 'shop' as const,
+      ensemble: { ...shared, partyWallLeft: true, partyWallRight: false },
+    };
+    const engine = {
+      ...makeEnginePlan(),
+      wards: [{ polygon: sq(0, 0, 70), block: sq(1, 1, 68), plots: [left, right] }],
+      plots: [left, right],
+      civic: [],
+    } as EngineTownPlan;
+    const { plan: adapted } = toArtifactPlan(engine, 31, STYLE_FAMILIES.temperateFrame);
+
+    expect(adapted.plots).toHaveLength(2);
+    expect(adapted.plots.every((plot) => plot.storeys === 3)).toBe(true);
+    expect(adapted.plots.map((plot) => plot.ensemble?.ensembleSignature))
+      .toEqual(['row-shared', 'row-shared']);
+    expect(adapted.plots[0].footprint[1]).toEqual(adapted.plots[1].footprint[0]);
+    expect(adapted.plots[0].footprint[2]).toEqual(adapted.plots[1].footprint[3]);
+    expect(new Set(adapted.plots.map((plot) => plot.roofForm)).size).toBe(1);
+    expect(new Set(adapted.plots.map((plot) => plot.architecture?.pitchScale)).size).toBe(1);
+    expect(new Set(adapted.plots.map((plot) => plot.architecture?.eaveOffsetFt)).size).toBe(1);
+    expect(new Set(adapted.plots.map((plot) => plot.architecture?.buildingVariant)).size).toBe(2);
+  });
+
+  it('preserves the full cell-aligned envelope for negotiated lots', () => {
+    const lot = {
+      polygon: sq(0, 0, 15),
+      frontageEdge: 0,
+      buildingType: 'cottage' as const,
+      ensemble: {
+        blockKey: 'ward:0:edge:0',
+        kind: 'row' as const,
+        partyWallLeft: false,
+        partyWallRight: false,
+        eaveStoreys: 2 as const,
+        lotProfile: 'right-return' as const,
+        lotSignature: 'adapter-negotiated-lot',
+        ensembleSignature: 'adapter-negotiated-row',
+      },
+    };
+    const engine = {
+      ...makeEnginePlan(),
+      wards: [{ polygon: sq(0, 0, 40), block: sq(1, 1, 38), plots: [lot] }],
+      plots: [lot],
+      civic: [],
+    } as EngineTownPlan;
+    const { plan: adapted } = toArtifactPlan(engine, 32);
+    const [frontLeft, frontRight, , backLeft] = adapted.plots[0].footprint;
+
+    expect(Math.hypot(frontRight[0] - frontLeft[0], frontRight[1] - frontLeft[1]))
+      .toBeCloseTo(15, 8);
+    expect(Math.hypot(backLeft[0] - frontLeft[0], backLeft[1] - frontLeft[1]))
+      .toBeCloseTo(15, 8);
+    expect(adapted.plots[0].ensemble?.lotSignature).toBe('adapter-negotiated-lot');
+  });
+
+  it('applies an explicit detached parcel setback before building generation', () => {
+    const lot = {
+      polygon: sq(0, 0, 20),
+      frontageEdge: 0,
+      buildingType: 'cottage' as const,
+      ensemble: {
+        blockKey: 'ward:0:edge:0',
+        kind: 'detached' as const,
+        partyWallLeft: false,
+        partyWallRight: false,
+        eaveStoreys: 1 as const,
+        parcelProfile: 'lane-setback' as const,
+        parcelSignature: 'adapter-detached-parcel',
+        ensembleSignature: 'adapter-detached-block',
+      },
+    };
+    const engine = {
+      ...makeEnginePlan(),
+      wards: [{ polygon: sq(0, 0, 40), block: sq(1, 1, 38), plots: [lot] }],
+      plots: [lot],
+      civic: [],
+    } as EngineTownPlan;
+    const { plan: adapted } = toArtifactPlan(engine, 33);
+
+    expect(adapted.plots[0].footprint).toEqual([
+      [1.6, 1.6],
+      [18.4, 1.6],
+      [18.4, 17.6],
+      [1.6, 17.6],
+    ]);
+    expect(adapted.plots[0].ensemble?.parcelSignature)
+      .toBe('adapter-detached-parcel');
+  });
+
   it('stamps deterministic style fields when a family is provided', () => {
     const fam = STYLE_FAMILIES.highlandStone;
     const a = toArtifactPlan(makeEnginePlan(), 42, fam);
@@ -136,7 +268,15 @@ describe('toArtifactPlan', () => {
       expect(plot.roofForm && fam.roofForms.includes(plot.roofForm)).toBe(true);
       expect(plot.architecture?.districtSignature).toBeTruthy();
       expect(plot.architecture?.buildingVariant).toBeTruthy();
+      expect(plot.architecture?.pitchScale).toBeGreaterThanOrEqual(0.88);
+      expect(plot.architecture?.pitchScale).toBeLessThanOrEqual(1.12);
+      expect(Math.abs(plot.architecture?.eaveOffsetFt ?? 1)).toBeLessThanOrEqual(0.25);
+      expect(['new', 'aged', 'old', 'ancient'])
+        .toContain(plot.architecture?.ageBand);
       expect(fam.facadePatterns).toContain(plot.architecture?.facadePattern);
+      expect(constructionKitsForFamily(fam.id).map((kit) => kit.id))
+        .toContain(plot.architecture?.construction.kitId);
+      expect(plot.architecture?.construction.constructionSignature).toBeTruthy();
       expect(plot.wallColorHex).toBe(b.plan.plots[i].wallColorHex);
       expect(plot.roofColorHex).toBe(b.plan.plots[i].roofColorHex);
       expect(plot.roofForm).toBe(b.plan.plots[i].roofForm);
@@ -198,10 +338,52 @@ describe('toArtifactPlan', () => {
       styled.plots.map((plot) => plot.wallColorHex),
       styled.plots.map((plot) => plot.roofColorHex),
       styled.plots.map((plot) => plot.roofForm),
+      styled.plots.map((plot) => plot.architecture?.construction.kitId),
+      styled.plots.map((plot) => plot.architecture?.construction.shutters),
     ]) {
       expect(new Set(values).size).toBeGreaterThanOrEqual(2);
       expect(new Set(values).size).toBeLessThanOrEqual(2);
     }
+
+    expect(styled.plots.every((plot) => plot.architecture?.ageBand)).toBe(true);
+  });
+
+  it('carries multiple radial growth-ring ages through the artifact contract', () => {
+    const agePlots = [
+      sq(490, 490, 16),
+      sq(490, 340, 16),
+      sq(490, 190, 16),
+      sq(490, 20, 16),
+    ].map((polygon) => ({
+      polygon,
+      frontageEdge: 0,
+      buildingType: 'cottage' as const,
+    }));
+    const radialPlan = {
+      ...makeEnginePlan(),
+      footprint: sq(0, 0, 1000),
+      core: sq(0, 0, 1000),
+      wards: [{
+        polygon: sq(0, 0, 1000),
+        block: sq(1, 1, 998),
+        plots: agePlots,
+        civic: undefined,
+        wealth: 'common' as const,
+      }],
+      plots: agePlots,
+      civic: [],
+      streets: [],
+    } as EngineTownPlan;
+    const { plan: styled } = toArtifactPlan(
+      radialPlan,
+      17,
+      STYLE_FAMILIES.temperateFrame,
+    );
+    const ageBands = styled.plots.map((plot) => plot.architecture!.ageBand);
+
+    expect(new Set(ageBands).size).toBeGreaterThanOrEqual(3);
+    expect(ageBands[0]).toBe('ancient');
+    expect(ageBands.at(-1)).toBe('new');
   });
 
   it('lets two same-culture towns choose different district recipes', () => {

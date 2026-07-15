@@ -241,6 +241,67 @@ describe('renderBlueprintSvg roof overlay (BGv2 Task 6)', () => {
   });
 });
 
+describe('renderBlueprintSvg chronological building history', () => {
+  const damaged = generateBuilding({
+    buildingId: 19,
+    type: 'tavern',
+    seedPath: rootSeedPath(1919),
+    storeys: 2,
+    style: {
+      cultureType: 'River',
+      climate: 'temperate',
+      wealth: 'common',
+      ageBand: 'old',
+      architecture: {
+        settlementKey: 'history-town',
+        districtKey: 'riverfront',
+        buildingKey: 'plot-19',
+      },
+    },
+    eventLog: [
+      {
+        day: 10,
+        kind: 'fire-damage',
+        payload: { incidentId: 'svg-fire', severity: 3 },
+      },
+      { day: 20, kind: 'abandonment', payload: { boardedFraction: 1 } },
+    ],
+  });
+
+  it('draws exact scorched-room, boarded-window, and roof-hole targets', () => {
+    const svg = renderBlueprintSvg(damaged, 0, { roof: damaged.roof });
+    const ground = damaged.floors.find((floor) => floor.level === 0)!;
+    const scorchedGroundCells = damaged.liveHistory!.features
+      .filter((feature) =>
+        feature.kind === 'scorched-room' && feature.floorLevel === 0)
+      .reduce((sum, feature) => {
+        if (feature.kind !== 'scorched-room') return sum;
+        return sum + (ground.rooms.find((room) => room.id === feature.roomId)?.cells.length ?? 0);
+      }, 0);
+    const boardedGround = damaged.liveHistory!.features.filter((feature) =>
+      feature.kind === 'boarded-window' && feature.floorLevel === 0).length;
+
+    expect(svg).toContain('data-building-history="1"');
+    expect((svg.match(/data-history-kind="scorched-room"/g) ?? []).length)
+      .toBe(scorchedGroundCells);
+    expect((svg.match(/data-history-kind="boarded-window"/g) ?? []).length)
+      .toBe(boardedGround * 3);
+    expect(svg).toContain('data-history-kind="roof-hole"');
+    expect(svg).toContain('abandoned');
+  });
+
+  it('is deterministic and keeps an event-free plan free of history groups', () => {
+    const opts = { roof: damaged.roof };
+    expect(renderBlueprintSvg(damaged, 0, opts)).toBe(renderBlueprintSvg(damaged, 0, opts));
+    const clean = generateBuilding({
+      buildingId: 20,
+      type: 'cottage',
+      seedPath: rootSeedPath(2020),
+    });
+    expect(renderBlueprintSvg(clean, 0)).not.toContain('data-building-history');
+  });
+});
+
 describe('renderBlueprintSvg occupancy overlay', () => {
   // Matched (plan, household) pair — the SAME pattern the occupancy tests use:
   // the brief the plan is designed for is coarsened from the named household,

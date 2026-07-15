@@ -1,19 +1,19 @@
 /**
- * @file assembleEntity.ts — blueprint → live entity.
+ * @file assembleEntity.ts — blueprint → live entity (body v2: segments).
  *
  * Scene graph:
  *   group                (caller positions/rotates this)
  *   ├─ bodyRoot          (lifted by the gait's verticalOffsetM)
- *   │  ├─ metaballBody   (MarchingCubes field: gait body + field parts)
- *   │  ├─ metaballOutline(inverse hull sharing the field geometry — SOLID mode only)
+ *   │  ├─ segmentBody    (one rigid mesh per skeleton segment + chain parts)
  *   │  ├─ parts          (one container per mesh part, re-anchored per frame)
  *   │  └─ eyeL / eyeR    (blobfolk-style eyes with blink)
  *   └─ blobShadow        (radial ground disc, fades with airtime)
  *
- * Render mode (toon.ts ENTITY_RENDER_MODE, default 'wireframe'): 'wireframe'
- * draws every surface as edge lines and drops the ink outlines (there is no
- * filled surface to hull); 'solid' is the original toon-shaded blob look. Eyes
- * and the ground shadow stay solid in both.
+ * Render mode (toon.ts ENTITY_RENDER_MODE): 'solid' = toon-shaded segments
+ * with inverse-hull ink outlines; 'wireframe' = clean edge lines
+ * (EdgesGeometry) for body and parts alike. Eyes and the ground shadow stay
+ * solid in both. The metaball field era is over: nothing polygonizes at
+ * runtime — per frame is transform updates only.
  *
  * Framework-agnostic: no React. Entity3D.tsx wraps this for R3F scenes.
  */
@@ -28,22 +28,19 @@ import {
   SphereGeometry,
   Vector3,
 } from 'three';
-import { MarchingCubes } from 'three/examples/jsm/objects/MarchingCubes.js';
-import type { Anchor, BallSink, EntityBlueprint, PartAnchors, PartPhase, Vec3Like } from '../types';
+import type { Anchor, EntityBlueprint, PartAnchors, PartPhase, Vec3Like } from '../types';
 import { ANCHORS, headRadiusM, heightM } from '../types';
 import { getPart } from '../registry';
-import type { GaitDriver, LocomotionState } from './gaits';
+import type { GaitDriver, LocomotionState, Pose } from './gaits';
 import { createGaitDriver } from './gaits';
+import { createSegmentBody, wireframeifyPart } from './segmentBody';
 import {
   blobShadowMaterial,
   outlineMaterial,
-  entityMaterial,
+  toonMaterial,
   ENTITY_RENDER_MODE,
   type EntityRenderMode,
 } from './toon';
-
-export const SUBTRACT = 12;
-export const ISO = 80;
 
 export interface EntityHandle {
   readonly group: Group;
@@ -56,17 +53,21 @@ export interface EntityHandle {
    * mount → cleanup → remount cycle never guts a handle that is still in use. */
   retain(): void;
   release(): void;
+  /** Live anchor transforms (the gait driver's pose) — read-only debug view. */
+  readonly pose: Pose;
+  /** Debugger scrub: jump the gait cycle to `phase` (0–1). The next update
+   * (even with dt = 0) re-poses the body at that phase. */
+  setGaitPhase(phase: number): void;
+  /** Debug snapshot for the harness stats readout. */
+  stats(): { segments: number; triangles: number; renderMode: EntityRenderMode };
 }
 
 export interface AssembleOptions {
-  /** Scale on the marching-cubes resolution tiers (0.7 = ~1/3 the cells).
-   * Tactical views can afford chunkier fields. */
+  /** @deprecated Body v2 has no field to scale — accepted and ignored. */
   resolutionScale?: number;
-  /** Max metaball-field rebuilds per second. Anchor-attached gear, overlays,
-   * and eyes still track every frame; only the body re-polygonizes at this
-   * rate. Default: every frame. */
+  /** @deprecated Body v2 has no field to throttle — accepted and ignored. */
   fieldUpdateHz?: number;
-  /** Draw solid (toon blob) or wireframe. Default: the global ENTITY_RENDER_MODE. */
+  /** Draw solid (toon) or wireframe. Default: the global ENTITY_RENDER_MODE. */
   renderMode?: EntityRenderMode;
 }
 
@@ -76,37 +77,13 @@ const IDLE: LocomotionState = {
   speed: 0,
 };
 
-export class FieldSink implements BallSink {
-  constructor(
-    private readonly mc: MarchingCubes,
-    private readonly scale: number,
-    private readonly centerY: number,
-  ) {}
-
-  ball(x: number, y: number, z: number, r: number): void {
-    const s2 = 2 * this.scale;
-    // Floor tiny balls at ~2 field cells so limbs on huge frames stay
-    // connected instead of aliasing into floating fragments.
-    const rr = Math.max(r, this.scale * 0.045);
-    const strength = (SUBTRACT + ISO) * (rr / s2) * (rr / s2);
-    this.mc.addBall(x / s2 + 0.5, (y - this.centerY) / s2 + 0.5, z / s2 + 0.5, strength, SUBTRACT);
-  }
-}
-
 export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOptions = {}): EntityHandle {
   const { frame, palette, gait } = blueprint;
   const hM = heightM(frame);
   const hr = headRadiusM(frame);
   const wide = gait === 'quad' || gait === 'hexapod';
-  // The field cube spans ±fieldScale meters around its center; leave headroom
-  // for hats, tails, and wings.
-  const fieldScale = hM * (wide ? 1.15 : 0.95) + hr * 2;
-  const centerY = hM * 0.5;
-  const resolutionScale = options.resolutionScale ?? 1;
-  const fieldInterval = options.fieldUpdateHz ? 1 / options.fieldUpdateHz : 0;
   const renderMode = options.renderMode ?? ENTITY_RENDER_MODE;
   const wireframe = renderMode === 'wireframe';
-  const makeMaterial = entityMaterial(renderMode);
 
   const group = new Group();
   group.name = `entity:${blueprint.label}`;
@@ -114,67 +91,45 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   bodyRoot.name = 'bodyRoot';
   group.add(bodyRoot);
 
-  const bodyMaterial = makeMaterial(palette.skinHex);
-  // Bigger fields need more cells or limbs alias apart; tiers keep humans cheap.
-  // Wireframe reads cleaner (and cheaper) at a coarser grid — the lines carry
-  // the shape, so a smoother isosurface only adds visual noise.
-  const baseResolution = fieldScale <= 2.4 ? 48 : fieldScale <= 3.4 ? 64 : 80;
-  const wireScale = wireframe ? 0.6 : 1;
-  const resolution = Math.max(wireframe ? 20 : 28, Math.round(baseResolution * resolutionScale * wireScale));
-  // Geometry budget scales with the field: a body surface fills a small share
-  // of the cells, and a fixed huge budget would cost megabytes per entity.
-  // Floor high enough that a full biped + parts never truncates (a truncated
-  // field renders as a torn spiky mass).
-  const maxPolys = Math.min(120000, Math.max(30000, Math.round(resolution ** 3 * 0.4)));
-  const mc = new MarchingCubes(resolution, bodyMaterial, false, false, maxPolys);
-  mc.name = 'metaballBody';
-  mc.isolation = ISO;
-  mc.scale.setScalar(fieldScale);
-  mc.position.y = centerY;
-  mc.frustumCulled = false;
-  bodyRoot.add(mc);
-
-  // Inverse-hull ink outline — a solid-mode feature. In wireframe there is no
-  // filled surface to hull, so it is skipped (and there is no metaballOutline).
-  if (!wireframe) {
-    const outline = new Mesh(mc.geometry, outlineMaterial(palette.skinHex, 0.026 / fieldScale));
-    outline.name = 'metaballOutline';
-    outline.scale.setScalar(fieldScale);
-    outline.position.y = centerY;
-    outline.frustumCulled = false;
-    bodyRoot.add(outline);
-  }
+  const outlineThickness = Math.max(hM * 0.011, 0.006);
+  const body = createSegmentBody({
+    renderMode,
+    colorHex: palette.skinHex,
+    outlineThickness,
+  });
+  bodyRoot.add(body.root);
 
   const driver: GaitDriver = createGaitDriver(gait, frame);
-  const sink = new FieldSink(mc, fieldScale, centerY);
 
   // --- modular parts
   const partsRoot = new Group();
   partsRoot.name = 'parts';
   bodyRoot.add(partsRoot);
   const meshContainers: Array<{ container: Group; anchor: Anchor }> = [];
-  const fieldParts: Array<{
-    build: NonNullable<ReturnType<typeof getPart>['buildField']>;
+  const chainParts: Array<{
+    partId: string;
+    build: NonNullable<ReturnType<typeof getPart>['buildChain']>;
     params: Record<string, number | string>;
   }> = [];
-  const outlineThickness = Math.max(hM * 0.011, 0.006);
 
   for (const instance of blueprint.parts) {
     const def = getPart(instance.partId);
     const params = instance.params ?? {};
-    if (def.kind === 'field') {
-      fieldParts.push({ build: def.buildField!, params });
+    if (def.kind === 'chain') {
+      chainParts.push({ partId: instance.partId, build: def.buildChain!, params });
       continue;
     }
     const { object } = def.buildMesh!({
       frame,
       palette,
       params,
-      material: (hex) => makeMaterial(hex),
+      material: (hex) => toonMaterial(hex),
     });
-    // ink outlines for every mesh in the part (solid mode only — wireframe
-    // parts are already all-edges)
-    if (!wireframe) {
+    if (wireframe) {
+      // clean edge lines for parts too — no fill, no material.wireframe soup
+      wireframeifyPart(object);
+    } else {
+      // ink outlines for every mesh in the part
       object.traverse((o) => {
         const m = o as Mesh;
         if (m.isMesh) {
@@ -194,7 +149,7 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     meshContainers.push({ container, anchor: instance.anchor });
   }
 
-  // --- eyes (the charm organ)
+  // --- eyes (the charm organ) — solid in both render modes
   const eyeMaterial = new MeshBasicMaterial({ color: '#ffffff' });
   const pupilMaterial = new MeshBasicMaterial({ color: palette.eyeHex });
   const eyes: Mesh[] = [];
@@ -218,15 +173,13 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   const shadowBase = wide ? hM * 0.9 : hM * 0.42;
   group.add(shadow);
 
-  // anchors exposed to field parts as plain positions
+  // anchors exposed to chain parts as plain positions
   const anchorsView = Object.fromEntries(
     ANCHORS.map((a) => [a, driver.pose.anchors[a].pos as Vec3Like]),
   ) as PartAnchors;
 
   const phase: { -readonly [K in keyof PartPhase]: PartPhase[K] } = { t: 0, gaitPhase: 0, flap: 0 };
   const tmpQuat = new Quaternion();
-
-  let lastFieldT = -Infinity;
 
   function update(t: number, dt: number, loco: LocomotionState = IDLE): void {
     driver.update(t, dt, loco);
@@ -235,17 +188,15 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     phase.flap = driver.flap;
     bodyRoot.position.y = driver.verticalOffsetM;
 
-    // The body field is the expensive part; throttled callers rebuild it at
-    // fieldUpdateHz while everything anchor-driven stays per-frame smooth.
-    if (t - lastFieldT >= fieldInterval || lastFieldT === -Infinity) {
-      lastFieldT = t;
-      mc.reset();
-      driver.buildBody(sink);
-      for (const fp of fieldParts) {
-        fp.build(sink, frame, fp.params, phase, anchorsView);
+    // skeleton + animated chain parts, transform-only after the first frame
+    body.beginFrame();
+    driver.buildBody(body.sink);
+    for (const chain of chainParts) {
+      for (const s of chain.build(frame, chain.params, phase, anchorsView)) {
+        body.sink.seg(`${chain.partId}:${s.id}`, s.ax, s.ay, s.az, s.bx, s.by, s.bz, s.r0, s.r1);
       }
-      mc.update();
     }
+    body.finishFrame();
 
     for (const { container, anchor } of meshContainers) {
       const a = driver.pose.anchors[anchor];
@@ -283,13 +234,14 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   function dispose(): void {
     if (disposed) return;
     disposed = true;
+    body.dispose();
     group.traverse((o: Object3D) => {
       const m = o as Mesh;
-      if (m.isMesh) {
-        m.geometry?.dispose();
+      if (m.isMesh || (o as unknown as { isLineSegments?: boolean }).isLineSegments) {
+        (m.geometry as { dispose?: () => void })?.dispose?.();
         const mat = m.material as Material | Material[];
         if (Array.isArray(mat)) mat.forEach((x) => x.dispose());
-        else mat?.dispose();
+        else (mat as Material | undefined)?.dispose?.();
       }
     });
     group.clear();
@@ -306,9 +258,29 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     });
   }
 
+  function setGaitPhase(phaseValue: number): void {
+    driver.setPhase(phaseValue);
+  }
+
+  function stats(): { segments: number; triangles: number; renderMode: EntityRenderMode } {
+    return { segments: body.segmentCount(), triangles: body.triangles(), renderMode };
+  }
+
   // settle into a valid first frame so the handle renders even if the caller
   // forgets to update before the first paint
   update(0, 1 / 60);
 
-  return { group, blueprint, update, dispose, retain, release };
+  return {
+    group,
+    blueprint,
+    update,
+    dispose,
+    retain,
+    release,
+    get pose() {
+      return driver.pose;
+    },
+    setGaitPhase,
+    stats,
+  };
 }

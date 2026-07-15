@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 19/06/2026, 00:54:25
+ * Last Sync: 15/07/2026, 00:28:37
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx
  * Imports: 4 files
  *
@@ -501,6 +501,156 @@ function findNearestWalkableTile(
     return bestTile;
 }
 
+// ============================================================================
+// Source-Derived Encounter Deployment
+// ============================================================================
+// WorldForge maps may carry an encounter frame tied to a real map fact. This
+// selector translates that intent into legal current-map tiles. Road ambushes
+// retain their traveling column and flanks; river crossings instead place each
+// team on a different bank using the crossing's real route heading and span.
+// ============================================================================
+
+function getSourceEncounterSpawnTiles(
+    mapData: BattleMapData,
+    playerCount: number,
+    enemyCount: number
+): { playerTiles: BattleMapTile[]; enemyTiles: BattleMapTile[] } | null {
+    const context = mapData.encounterContext;
+    if (!context) return null;
+
+    const headingLength = Math.hypot(context.routeDirection.x, context.routeDirection.y);
+    if (headingLength <= 1e-9) return null;
+
+    const heading = {
+        x: context.routeDirection.x / headingLength,
+        y: context.routeDirection.y / headingLength
+    };
+    const flank = { x: -heading.y, y: heading.x };
+    const allWalkable = [...mapData.tiles.values()].filter(tile => !tile.blocksMovement);
+    const occupied = new Set<string>();
+
+    const nearestCandidate = (
+        candidates: BattleMapTile[],
+        target: { x: number; y: number },
+        preferCover: boolean
+    ): BattleMapTile | null => {
+        const available = candidates.filter(tile => !occupied.has(tileKey(tile)));
+        const ranked = available.sort((a, b) => {
+            const aScore = pointDistance(a.coordinates, target)
+                - (preferCover ? coverScore(mapData, a) * 0.8 : 0);
+            const bScore = pointDistance(b.coordinates, target)
+                - (preferCover ? coverScore(mapData, b) * 0.8 : 0);
+            if (aScore !== bScore) return aScore - bScore;
+
+            // Coordinate ordering makes equal geometric choices deterministic
+            // without importing random arena behavior into a world scenario.
+            return a.coordinates.y - b.coordinates.y || a.coordinates.x - b.coordinates.x;
+        });
+        const selected = ranked[0] ?? null;
+        if (selected) occupied.add(tileKey(selected));
+        return selected;
+    };
+
+    if (context.kind === 'river-crossing') {
+        const crossingTiles = allWalkable.filter(tile => (
+            tile.crossing?.sourceCrossingId === context.sourceCrossingId
+        ));
+        if (crossingTiles.length === 0) return null;
+
+        // Region span includes the water and its authored bridge landings. The
+        // extra three-cell clearance places tokens on usable bank terrain rather
+        // than beginning combat on the narrow crossing itself.
+        const crossingSpanMeters = crossingTiles[0].crossing?.spanMeters ?? 0;
+        const halfSpanTiles = Math.max(2, crossingSpanMeters / 1.524 / 2);
+        const signedDistance = (tile: BattleMapTile): number => (
+            (tile.coordinates.x - context.anchorTile.x) * heading.x
+            + (tile.coordinates.y - context.anchorTile.y) * heading.y
+        );
+        const nearBankTiles = allWalkable.filter(tile => (
+            !tile.crossing && signedDistance(tile) <= -halfSpanTiles
+        ));
+        const farBankTiles = allWalkable.filter(tile => (
+            !tile.crossing && signedDistance(tile) >= halfSpanTiles
+        ));
+        const roadSourceIndex = crossingTiles[0].crossing?.roadSourceIndex;
+        const bankRouteTiles = (tiles: BattleMapTile[]) => tiles.filter(tile => (
+            tile.surface?.source === 'worldforge-road'
+            && (roadSourceIndex == null || tile.surface.sourceIndex === roadSourceIndex)
+        ));
+        const nearRouteTiles = bankRouteTiles(nearBankTiles);
+        const farRouteTiles = bankRouteTiles(farBankTiles);
+
+        const deployBank = (
+            count: number,
+            direction: -1 | 1,
+            bankTiles: BattleMapTile[],
+            routeTiles: BattleMapTile[],
+        ): BattleMapTile[] => {
+            const result: BattleMapTile[] = [];
+            for (let index = 0; index < count; index++) {
+                const row = Math.floor(index / 2);
+                const side = index % 2 === 0 ? -1 : 1;
+                const target = {
+                    x: context.anchorTile.x
+                        + heading.x * direction * (halfSpanTiles + 3 + row * 2)
+                        + flank.x * side * 1.5,
+                    y: context.anchorTile.y
+                        + heading.y * direction * (halfSpanTiles + 3 + row * 2)
+                        + flank.y * side * 1.5
+                };
+                const selected = nearestCandidate(routeTiles, target, false)
+                    ?? nearestCandidate(bankTiles, target, direction === 1)
+                    ?? nearestCandidate(allWalkable, target, direction === 1);
+                if (selected) result.push(selected);
+            }
+            return result;
+        };
+
+        return {
+            playerTiles: deployBank(playerCount, -1, nearBankTiles, nearRouteTiles),
+            enemyTiles: deployBank(enemyCount, 1, farBankTiles, farRouteTiles)
+        };
+    }
+
+    if (context.kind !== 'road-ambush') return null;
+    const routeTiles = allWalkable.filter(tile => (
+        tile.surface?.source === 'worldforge-road'
+        && tile.surface.sourceIndex === context.sourceRoadIndex
+    ));
+    const offRouteTiles = allWalkable.filter(tile => tile.surface?.source !== 'worldforge-road');
+
+    const playerTiles: BattleMapTile[] = [];
+    for (let index = 0; index < playerCount; index++) {
+        // A two-cell cadence reads as a traveling column while leaving room for
+        // medium creatures and later movement previews on a five-foot grid.
+        const target = {
+            x: context.anchorTile.x - heading.x * index * 2,
+            y: context.anchorTile.y - heading.y * index * 2
+        };
+        const selected = nearestCandidate(routeTiles, target, false)
+            ?? nearestCandidate(allWalkable, target, false);
+        if (selected) playerTiles.push(selected);
+    }
+
+    const enemyTiles: BattleMapTile[] = [];
+    const flankRows = Math.max(1, Math.ceil(enemyCount / 2));
+    for (let index = 0; index < enemyCount; index++) {
+        const side = index % 2 === 0 ? 1 : -1;
+        const row = Math.floor(index / 2);
+        const alongRoute = (row - (flankRows - 1) / 2) * 4;
+        const flankDistance = 7 + (row % 2) * 1.5;
+        const target = {
+            x: context.anchorTile.x + heading.x * alongRoute + flank.x * flankDistance * side,
+            y: context.anchorTile.y + heading.y * alongRoute + flank.y * flankDistance * side
+        };
+        const selected = nearestCandidate(offRouteTiles, target, true)
+            ?? nearestCandidate(allWalkable, target, true);
+        if (selected) enemyTiles.push(selected);
+    }
+
+    return { playerTiles, enemyTiles };
+}
+
 export const generateBattleSetup = (
     biome: BattleMapBiome,
     seed: number,
@@ -520,7 +670,13 @@ export const generateBattleSetup = (
     const randomConfig = spawnConfigs[Math.floor(rng.next() * spawnConfigs.length)];
     const playerCount = initialCharacters.filter(char => char.team === 'player').length;
     const enemyCount = initialCharacters.filter(char => char.team === 'enemy').length;
-    const { playerTiles, enemyTiles } = getTacticalSpawnTiles(mapData, randomConfig, rng, playerCount, enemyCount);
+    const proceduralTiles = presetMapData
+        ? { playerTiles: [], enemyTiles: [] }
+        : getTacticalSpawnTiles(mapData, randomConfig, rng, playerCount, enemyCount);
+    const encounterTiles = presetMapData
+        ? getSourceEncounterSpawnTiles(mapData, playerCount, enemyCount)
+        : null;
+    const { playerTiles, enemyTiles } = encounterTiles ?? proceduralTiles;
 
     let playerSpawnIndex = 0;
     let enemySpawnIndex = 0;
@@ -529,12 +685,20 @@ export const generateBattleSetup = (
         let spawnTile: BattleMapTile | null = null;
 
         if (presetMapData) {
-            // For ground mode handoffs, place players near the center (20, 15)
-            // and enemies near (24, 18) (approx. 5 meters northeast) to reflect
-            // their walking positions.
-            const targetX = char.team === 'player' ? 20 : 24;
-            const targetY = char.team === 'player' ? 15 : 18;
-            spawnTile = findNearestWalkableTile(mapData, targetX, targetY, occupied);
+            if (char.team === 'player' && playerSpawnIndex < playerTiles.length) {
+                spawnTile = playerTiles[playerSpawnIndex++];
+            } else if (char.team === 'enemy' && enemySpawnIndex < enemyTiles.length) {
+                spawnTile = enemyTiles[enemySpawnIndex++];
+            } else {
+                // Extracted maps center the originating world point at the map's
+                // geometric center. This dimension-aware fallback preserves that
+                // contract for ordinary fight-in-place maps without a formation.
+                const centerX = Math.floor(mapData.dimensions.width / 2);
+                const centerY = Math.floor(mapData.dimensions.height / 2);
+                const targetX = char.team === 'player' ? centerX : centerX + 4;
+                const targetY = char.team === 'player' ? centerY : centerY + 3;
+                spawnTile = findNearestWalkableTile(mapData, targetX, targetY, occupied);
+            }
         } else {
             // Standard procedural mapping uses zone-based spawn configurations
             if (char.team === 'player' && playerSpawnIndex < playerTiles.length) {

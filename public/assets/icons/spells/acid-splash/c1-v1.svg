@@ -1,0 +1,39 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <radialGradient id="acidGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FCA5A5" />
+      <stop offset="60%" stop-color="#F87171" />
+      <stop offset="100%" stop-color="#991B1B" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background shadow for contrast -->
+  <circle cx="50" cy="50" r="40" fill="#111" opacity="0.5" />
+
+  <!-- The exploding core -->
+  <circle cx="50" cy="50" r="18" fill="url(#acidGrad)" filter="url(#glow)" />
+  
+  <!-- Splashing droplets and shards -->
+  <g fill="#F87171" filter="url(#glow)">
+    <!-- Top spray -->
+    <path d="M50 32 Q55 15 65 20 Q60 25 55 32 Z" />
+    <path d="M45 30 Q40 10 30 15 Q35 20 40 30 Z" />
+    <!-- Side splashes -->
+    <path d="M68 50 Q85 45 80 35 Q75 40 68 45 Z" />
+    <path d="M32 50 Q15 55 20 65 Q25 60 32 55 Z" />
+    <!-- Bottom runoff -->
+    <path d="M50 68 Q45 85 35 80 Q40 75 45 68 Z" />
+    <path d="M55 70 Q60 90 70 85 Q65 80 55 70 Z" />
+  </g>
+
+  <!-- Bubble fragments/caustic rings -->
+  <circle cx="50" cy="50" r="25" fill="none" stroke="#FCA5A5" stroke-width="1.5" stroke-dasharray="10 5" opacity="0.6" />
+  <circle cx="50" cy="50" r="32" fill="none" stroke="#F87171" stroke-width="1" stroke-dasharray="5 15" opacity="0.4" />
+
+  <!-- Inner highlight for "liquid" feel -->
+  <ellipse cx="45" cy="42" rx="5" ry="3" fill="#FFFFFF" opacity="0.4" />
+</svg>

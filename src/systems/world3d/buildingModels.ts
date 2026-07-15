@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 14/07/2026, 18:16:44
+ * Dependents: components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DScene.tsx, systems/world3d/buildingSceneModel.ts, systems/worldforge/bridge/interiorParts.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file buildingModels.ts
  * Procedural roof-form geometry for styled town buildings (2026-07-01).
@@ -497,6 +513,108 @@ export interface RoofMeshData {
   dormerBoxes: MeshBox[];
 }
 
+/** Exact replay targets that physically alter the solved roof triangle mesh. */
+export interface RoofMeshDeformation {
+  holes: Array<{ planeIndex: number; x: number; y: number; radiusFt: number }>;
+  sags: Array<{ ridgeIndex: number; deflectionFt: number }>;
+}
+
+/**
+ * Translate permanent and chronological history into one mesh contract shared
+ * by the preview and production bridge. Repeated sag targets retain the deepest
+ * deflection, so an old dip and later ruin cannot double-count displacement.
+ */
+export function roofDeformationForPlan(plan: BlueprintPlan): RoofMeshDeformation {
+  const holes: RoofMeshDeformation['holes'] = [];
+  const sagsByRidge = new Map<number, number>();
+  for (const feature of plan.backstory?.features ?? []) {
+    if (feature.kind !== 'sagging-ridge') continue;
+    sagsByRidge.set(
+      feature.ridgeIndex,
+      Math.max(sagsByRidge.get(feature.ridgeIndex) ?? 0, feature.deflectionFt),
+    );
+  }
+  for (const feature of plan.liveHistory?.features ?? []) {
+    if (feature.kind === 'roof-hole') {
+      holes.push({
+        planeIndex: feature.planeIndex,
+        x: feature.x,
+        y: feature.y,
+        radiusFt: feature.radiusFt,
+      });
+    } else if (feature.kind === 'ruin-sag') {
+      sagsByRidge.set(
+        feature.ridgeIndex,
+        Math.max(sagsByRidge.get(feature.ridgeIndex) ?? 0, feature.deflectionFt),
+      );
+    }
+  }
+  return {
+    holes,
+    sags: [...sagsByRidge.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([ridgeIndex, deflectionFt]) => ({ ridgeIndex, deflectionFt })),
+  };
+}
+
+type RoofPoint = [number, number, number];
+
+/** Four recursive splits make holes legible while limiting work to damaged planes. */
+const ROOF_DAMAGE_SUBDIVISION_DEPTH = 4;
+
+/** Split one triangle into a stable four-way hierarchy for local deformation. */
+function subdivideRoofTriangle(
+  a: RoofPoint,
+  b: RoofPoint,
+  c: RoofPoint,
+  depth: number,
+  output: Array<[RoofPoint, RoofPoint, RoofPoint]>,
+): void {
+  if (depth === 0) {
+    output.push([a, b, c]);
+    return;
+  }
+  const midpoint = (p: RoofPoint, q: RoofPoint): RoofPoint => [
+    (p[0] + q[0]) / 2,
+    (p[1] + q[1]) / 2,
+    (p[2] + q[2]) / 2,
+  ];
+  const ab = midpoint(a, b);
+  const bc = midpoint(b, c);
+  const ca = midpoint(c, a);
+  subdivideRoofTriangle(a, ab, ca, depth - 1, output);
+  subdivideRoofTriangle(ab, b, bc, depth - 1, output);
+  subdivideRoofTriangle(ca, bc, c, depth - 1, output);
+  subdivideRoofTriangle(ab, bc, ca, depth - 1, output);
+}
+
+/** Lower one point around every targeted ridge, strongest at each ridge center. */
+function saggedRoofPoint(
+  point: RoofPoint,
+  roof: RoofPlan,
+  sags: RoofMeshDeformation['sags'],
+): RoofPoint {
+  let deflection = 0;
+  for (const sag of sags) {
+    const ridge = roof.ridges[sag.ridgeIndex];
+    if (!ridge) throw new Error(`buildRoofMeshData: missing sag ridge ${sag.ridgeIndex}`);
+    const dx = ridge.x2 - ridge.x1;
+    const dy = ridge.y2 - ridge.y1;
+    const lengthSq = dx * dx + dy * dy;
+    if (lengthSq <= 1e-9) continue;
+    const rawT = ((point[0] - ridge.x1) * dx + (point[1] - ridge.y1) * dy) / lengthSq;
+    const t = Math.max(0, Math.min(1, rawT));
+    const nearestX = ridge.x1 + dx * t;
+    const nearestY = ridge.y1 + dy * t;
+    const distance = Math.hypot(point[0] - nearestX, point[1] - nearestY);
+    const influenceFt = Math.max(3, roof.pitchRiseFt * 1.5);
+    const across = Math.max(0, 1 - distance / influenceFt) ** 2;
+    const along = Math.sin(Math.PI * t) ** 2;
+    deflection = Math.max(deflection, sag.deflectionFt * across * along);
+  }
+  return [point[0], point[1], Math.max(0, point[2] - deflection)];
+}
+
 /** Highest roof-plane z ABOVE wall-top covering (x,y); 0 (eave/flat) if none. */
 function localRoofZ(planes: RoofPlane[], x: number, y: number): number {
   let best = 0;
@@ -544,17 +662,70 @@ function planeZAt(plane: RoofPlane, x: number, y: number): number {
  * Roof plan → pure render data (triangles + chimney/dormer boxes), PLAN FEET,
  * z lifted by wallTopFt. Deterministic.
  */
-export function buildRoofMeshData(roof: RoofPlan, wallTopFt: number): RoofMeshData {
+export function buildRoofMeshData(
+  roof: RoofPlan,
+  wallTopFt: number,
+  deformation: RoofMeshDeformation = { holes: [], sags: [] },
+): RoofMeshData {
   const P: number[][] = [];
   const tris: number[][] = [];
 
+  // Stored history must continue to address the same solved roof. Refuse stale
+  // targets here so every consumer gets the same explicit replay failure.
+  for (const hole of deformation.holes) {
+    if (!roof.planes[hole.planeIndex]) {
+      throw new Error(`buildRoofMeshData: missing hole plane ${hole.planeIndex}`);
+    }
+  }
+  for (const sag of deformation.sags) {
+    if (!roof.ridges[sag.ridgeIndex]) {
+      throw new Error(`buildRoofMeshData: missing sag ridge ${sag.ridgeIndex}`);
+    }
+  }
+
   // ── Roof planes: fan-triangulate each convex n-gon; lift z by wallTopFt. ──
-  for (const plane of roof.planes) {
-    const base = P.length;
-    // Map plan (x, y, zAboveWallTop) → mesh (x, Y=wallTopFt+z, z=y): Y is up.
-    for (const [x, y, z] of plane.pts) P.push([x, wallTopFt + z, y]);
-    // Fan-triangulate the convex n-gon: [base, base+i, base+i+1].
-    for (let i = 1; i + 1 < plane.pts.length; i++) tris.push([base, base + i, base + i + 1]);
+  // Undamaged planes keep their historical fan bytes. Affected planes alone
+  // receive enough triangles to remove a real opening or bend the roof skin.
+  for (let planeIndex = 0; planeIndex < roof.planes.length; planeIndex += 1) {
+    const plane = roof.planes[planeIndex];
+    const holes = deformation.holes.filter((hole) => hole.planeIndex === planeIndex);
+    const affected = holes.length > 0 || deformation.sags.length > 0;
+    if (!affected) {
+      const base = P.length;
+      // Map plan (x, y, zAboveWallTop) to mesh (x, Y=wallTopFt+z, z=y): Y is up.
+      for (const [x, y, z] of plane.pts) P.push([x, wallTopFt + z, y]);
+      for (let i = 1; i + 1 < plane.pts.length; i += 1) {
+        tris.push([base, base + i, base + i + 1]);
+      }
+      continue;
+    }
+
+    // The fixed tessellation makes a genuine, deterministic opening without a
+    // heavyweight boolean-mesh dependency. Its edge is intentionally faceted;
+    // future close-up damage can replace this with adaptive boundary vertices.
+    const fragments: Array<[RoofPoint, RoofPoint, RoofPoint]> = [];
+    for (let i = 1; i + 1 < plane.pts.length; i += 1) {
+      subdivideRoofTriangle(
+        plane.pts[0] as RoofPoint,
+        plane.pts[i] as RoofPoint,
+        plane.pts[i + 1] as RoofPoint,
+        ROOF_DAMAGE_SUBDIVISION_DEPTH,
+        fragments,
+      );
+    }
+    for (const fragment of fragments) {
+      const centerX = fragment.reduce((sum, point) => sum + point[0], 0) / 3;
+      const centerY = fragment.reduce((sum, point) => sum + point[1], 0) / 3;
+      if (holes.some((hole) =>
+        Math.hypot(centerX - hole.x, centerY - hole.y) < hole.radiusFt)) {
+        continue;
+      }
+      const deformed = fragment.map((point) =>
+        saggedRoofPoint(point, roof, deformation.sags)) as [RoofPoint, RoofPoint, RoofPoint];
+      const base = P.length;
+      for (const [x, y, z] of deformed) P.push([x, wallTopFt + z, y]);
+      tris.push([base, base + 1, base + 2]);
+    }
   }
 
   // ── Tower caps: pyramid (rect base) or cone-as-pyramid, apex above wall-top. ──

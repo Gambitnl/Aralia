@@ -525,3 +525,33 @@ Safer pattern:
   return to PowerShell `Remove-Item -Recurse -Force` for the temp worktree.
 - Never run recursive cleanup until the resolved temp worktree path has been
   checked against the intended temporary directory.
+
+### Encoded PowerShell Blocks Should Invoke `npx.cmd` Explicitly
+
+During the building-material verification pass, an encoded PowerShell block
+called `npx tsc --noEmit`. Windows selected the `npx.ps1` wrapper, exited 1, and
+returned no TypeScript diagnostics. Calling `npx.cmd` in the same block ran the
+real compiler and produced its expected report.
+
+Safer pattern:
+- Inside `powershell -EncodedCommand` or other nested PowerShell scripts, invoke
+  `npx.cmd` explicitly for non-interactive tooling.
+- If `npx` exits 1 with no expected tool output, inspect wrapper selection before
+  interpreting the result as a compiler or test failure.
+- Keep direct terminal commands consistent with this rule when exact exit-code
+  capture matters; it avoids execution-policy and wrapper-resolution ambiguity.
+
+### Playwright Query Strings Can Lose Ampersands Through Nested Windows Shells
+
+During blueprint visual proof, `npx.cmd ... playwright-cli open` passed through
+PowerShell and then the npm command wrapper. Even with shell quotes, a URL query
+containing `&seed=...` was split and Windows tried to execute `seed` as a command.
+The browser command worked when it opened the single-parameter route and changed
+seed or scenario controls afterward through fresh Playwright snapshot refs.
+
+Safer pattern:
+- Avoid multi-parameter URLs in nested `npx.cmd` Playwright commands when the
+  same state can be selected through the page's controls.
+- Open a simple route, capture a fresh snapshot, then use `fill`, `select`, or
+  `click` with stable refs to establish the desired proof state.
+- Do not assume PowerShell quotes survive the npm `.cmd` wrapper unchanged.

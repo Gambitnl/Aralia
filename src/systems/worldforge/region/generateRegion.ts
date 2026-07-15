@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 09:51:50
- * Dependents: components/Worldforge/AtlasDemo.tsx, systems/worldforge/bridge/legacySubmapBridge.ts
- * Imports: 8 files
+ * Last Sync: 15/07/2026, 01:59:56
+ * Dependents: components/Worldforge/AtlasDemo.tsx, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -107,6 +107,7 @@
 import {
   WORLDFORGE_SCHEMA_VERSION,
   type RegionArtifact,
+  type RegionCrossing,
   type RegionHeightfield,
   type RegionMarker,
   type RegionRiverBank,
@@ -252,6 +253,10 @@ export function generateRegion(
     bounds,
     heightfield,
   );
+  // Crossings are Region facts, not renderer guesses. Derive them only after
+  // both independently generated source networks have their final smoothed,
+  // clipped geometry so every downstream view receives the same receipt.
+  const crossings = deriveRegionCrossings(roads, rivers);
 
   // ── Markers + zones flow-down (detail-density pass, 2026-06-11) ───────
   // Points of interest inside the window inherit from the atlas marker
@@ -277,6 +282,7 @@ export function generateRegion(
     heightfield,
     rivers,
     roads,
+    crossings,
     townSites,
     markers,
     zones,
@@ -1038,6 +1044,84 @@ function generateCivData(
   flattenUnderTowns(townSites, heightfield, bounds);
 
   return { townSites, roads };
+}
+
+// ============================================================================
+// Route / River Crossing Receipts
+// ============================================================================
+// A crossing is born here, where both source networks are authoritative. The
+// Region receipt then feeds Ground 3D, tactical extraction, and diagnostics.
+// ============================================================================
+
+const FORD_MAX_RIVER_WIDTH_FT = 60;
+const CROSSING_LANDING_FT = 16;
+const MIN_CROSSING_ANGLE_SINE = 0.25;
+
+/** Derive deterministic physical crossings from final Region run geometry. */
+export function deriveRegionCrossings(
+  roads: RegionRoad[],
+  rivers: RegionRiverBank[],
+): RegionCrossing[] {
+  const crossings: RegionCrossing[] = [];
+
+  for (const road of roads) {
+    for (const river of rivers) {
+      const pairPoints: Array<[number, number]> = [];
+      for (let roadIndex = 1; roadIndex < road.centerline.length; roadIndex += 1) {
+        const roadStart = road.centerline[roadIndex - 1];
+        const roadEnd = road.centerline[roadIndex];
+        const roadDx = roadEnd[0] - roadStart[0];
+        const roadDy = roadEnd[1] - roadStart[1];
+        const roadLength = Math.hypot(roadDx, roadDy);
+        if (roadLength <= 1e-9) continue;
+
+        for (let riverIndex = 1; riverIndex < river.centerline.length; riverIndex += 1) {
+          const riverStart = river.centerline[riverIndex - 1];
+          const riverEnd = river.centerline[riverIndex];
+          const riverDx = riverEnd[0] - riverStart[0];
+          const riverDy = riverEnd[1] - riverStart[1];
+          const riverLength = Math.hypot(riverDx, riverDy);
+          if (riverLength <= 1e-9) continue;
+
+          const point = lineSegmentIntersection(
+            roadStart[0], roadStart[1], roadEnd[0], roadEnd[1],
+            riverStart[0], riverStart[1], riverEnd[0], riverEnd[1],
+          );
+          if (!point) continue;
+          if (pairPoints.some((existing) => Math.hypot(existing[0] - point[0], existing[1] - point[1]) < 1)) {
+            continue;
+          }
+          pairPoints.push(point);
+
+          const roadDirection: [number, number] = [roadDx / roadLength, roadDy / roadLength];
+          const riverDirection: [number, number] = [riverDx / riverLength, riverDy / riverLength];
+          const crossingAngleSine = Math.abs(
+            roadDirection[0] * riverDirection[1] - roadDirection[1] * riverDirection[0],
+          );
+          const kind: RegionCrossing['kind'] = (
+            river.widthFt <= FORD_MAX_RIVER_WIDTH_FT
+            && (road.kind === 'trail' || road.kind === 'path')
+          ) ? 'ford' : 'bridge';
+          const spanFt = river.widthFt / Math.max(MIN_CROSSING_ANGLE_SINE, crossingAngleSine)
+            + CROSSING_LANDING_FT * 2;
+
+          crossings.push({
+            id: `crossing:${road.routeId}:${river.riverId}:${pairPoints.length - 1}`,
+            kind,
+            roadRouteId: road.routeId,
+            riverId: river.riverId,
+            point,
+            roadDirection,
+            riverDirection,
+            spanFt,
+            widthFt: Math.max(road.widthFt, kind === 'bridge' ? 12 : 8),
+          });
+        }
+      }
+    }
+  }
+
+  return crossings;
 }
 
 /**

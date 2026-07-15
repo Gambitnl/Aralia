@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 14/07/2026, 22:02:15
+ * Dependents: components/Worldforge/TownPlanView.tsx, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file generateInterior.ts — LEGACY ADAPTER over generateBuilding.
  *
@@ -43,8 +59,19 @@
 
 import { childSeedPath, rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import type { Feet } from '../units';
-import { generateBuilding, briefDigest, styleDigest } from './generateBuilding';
+import {
+  generateBuilding,
+  backstoryDigest,
+  briefDigest,
+  ensembleDigest,
+  eventLogDigest,
+  styleDigest,
+} from './generateBuilding';
 import type {
+  BuildingBackstory,
+  BuildingEvent,
+  BuildingEventHistory,
+  BuildingEnsemble,
   BlueprintDoor,
   BlueprintFloor,
   BlueprintPlan,
@@ -76,6 +103,8 @@ export interface InteriorPlotInput {
   footprint: Array<[Feet, Feet]>;
   role: string;
   storeys: number;
+  /** Town-authored block instruction; absent for legacy and isolated plots. */
+  ensemble?: BuildingEnsemble;
   // v2 (all optional — legacy callers unchanged):
   /** Town population classification; when present it WINS over the role mapping. */
   buildingType?: BuildingType;
@@ -89,9 +118,14 @@ export interface InteriorPlotInput {
    *  biome; when absent the building generates style-less (no solved roof), and
    *  the legacy prism renders — honest absence, byte-identical to before. */
   style?: StyleContext;
+  /** Optional replay/save override for the building's permanent history. */
+  backstory?: BuildingBackstory;
+  /** Optional legacy event array or compacted journal for this canonical plot. */
+  eventLog?: BuildingEventHistory | readonly BuildingEvent[];
 }
 
-const snapDown = (v: number): number => Math.floor(v / CELL_FT) * CELL_FT;
+/** Ignore affine/rotation dust without ever rounding a genuinely short lot up. */
+const snapDown = (v: number): number => Math.floor((v + 1e-6) / CELL_FT) * CELL_FT;
 
 /**
  * Town plot role → BuildingType. Explicit and closed: an unmapped role throws
@@ -251,13 +285,17 @@ export function blueprintForPlot(plot: InteriorPlotInput, seedPath: SeedPath): B
     type,
     seedPath: interiorPath,
     storeys,
+    ensemble: plot.ensemble,
     basement: rollBasement(type, interiorPath),
     maxWidthFt: lotWidthFt,
     maxDepthFt: lotDepthFt,
     household: plot.household,
     // Style context (Task 7): when the bake supplied one, generateBuilding
-    // resolves the dress + solves the roof. Undefined → style-less plan.
+    // resolves the dress, roof, and permanent history. Undefined keeps the
+    // style-less legacy plan; an explicit backstory remains available to saves.
     style: plot.style,
+    backstory: plot.backstory,
+    eventLog: plot.eventLog,
   });
 }
 
@@ -271,13 +309,15 @@ export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): I
   const storeys = Math.max(1, Math.floor(plot.storeys || 1));
 
   // Memo key includes the resolved type override, the brief digest and the
-  // style digest (the same digests generateBuilding keys on, Task 8 + Task 4)
+  // style/backstory digests (the same digests generateBuilding keys on)
   // so a typed/briefed/styled plot never collapses onto the plain entry.
   // Style-less plots append an empty style-digest segment, so their cached
   // InteriorPlan is unchanged (byte-stable legacy behavior).
   const memoKey =
     `${interiorPath}|${plot.role}|${storeys}|${lotWidthFt}|${lotDepthFt}` +
-    `|${plot.buildingType ?? ''}|${briefDigest(plot.household)}|${styleDigest(plot.style)}`;
+    `|${plot.buildingType ?? ''}|${briefDigest(plot.household)}|${styleDigest(plot.style)}` +
+    `|${ensembleDigest(plot.ensemble)}|${backstoryDigest(plot.backstory)}` +
+    `|${eventLogDigest(plot.eventLog)}`;
   const cached = interiorMemo.get(memoKey);
   if (cached) return cached;
 
@@ -302,6 +342,9 @@ export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): I
       .filter((s) => s.fromLevel >= 0)
       .map((s): InteriorStair => ({ fromFloor: s.fromLevel, x: s.x, y: s.y })),
   };
+  // Keep legacy plans sparse, but preserve the old core's plot position when
+  // structural history enlarged only one side of the blueprint envelope.
+  if (plan.siteOriginFt) result.siteOriginFt = plan.siteOriginFt;
   if (interiorMemo.size >= INTERIOR_MEMO_CAP) interiorMemo.clear();
   interiorMemo.set(memoKey, result);
   return result;

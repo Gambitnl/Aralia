@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 14/07/2026, 20:02:51
+ * Dependents: systems/world3d/buildingModels.ts, systems/worldforge/bridge/buildingMotifParts.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/interior/generateBuilding.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file walls.ts — emit wall segments with thickness plus outward-facing windows.
  *
@@ -75,6 +91,13 @@ interface OuterSlot {
   dir: number;
 }
 
+/** Lot-edge constraints supplied by the town block composer. Party walls stay
+ * structural outer walls, but they cannot receive openings into a neighbour. */
+export interface BuildWallsOptions {
+  partyWallLeft?: boolean;
+  partyWallRight?: boolean;
+}
+
 /**
  * Build the wall segments and windows of one floor.
  *
@@ -94,6 +117,7 @@ export function buildWalls(
   rg: number[][],
   doors: BlueprintDoor[],
   rooms?: BlueprintRoom[],
+  options: BuildWallsOptions = {},
 ): { walls: WallEdge[]; windows: BlueprintWindow[]; wallRuns: WallRun[] } {
   const rng = rngFromPath(streamPath(path, 'walls'));
   const rows = rg.length;
@@ -208,6 +232,15 @@ export function buildWalls(
   const slotFits = (s: OuterSlot): boolean =>
     fitsCorner.has(edgeKey(s.axis, s.x, s.y));
 
+  // The canonical frontage is min-y, so the lot's left/right party walls are
+  // the min-x/max-x vertical runs. Keep these slots in the run iteration so
+  // random draw counts remain unchanged; only suppress their placement.
+  const isPartyWallSlot = (s: OuterSlot): boolean =>
+    s.axis === 'y' && (
+      (options.partyWallLeft === true && s.dir === -1)
+      || (options.partyWallRight === true && s.dir === 1)
+    );
+
   // ---- Windows: spaced along each open-air outer run, clear of doors.
   const nearDoor = (s: OuterSlot): boolean =>
     doors.some((d) => Math.hypot(d.x - s.x, d.y - s.y) <= DOOR_CLEARANCE_FT);
@@ -246,7 +279,7 @@ export function buildWalls(
       // untouched (identical stagger + gaps per seed), only the placement is
       // suppressed for a slot whose void would clip a run end. Draw counts stay
       // stable, so unaffected buildings keep their exact window set.
-      if (!nearDoor(s) && slotFits(s)) place(s);
+      if (!isPartyWallSlot(s) && !nearDoor(s) && slotFits(s)) place(s);
       i += 1 + rng.nextInt(1, 3); // gap of 1-2 cells between windows
     }
   }
@@ -259,7 +292,11 @@ export function buildWalls(
       // Corner clearance (Fix C): a guaranteed window must also clear its run
       // ends, so an unfittable slot is not eligible (the room honestly gets no
       // window when it owns no fittable edge).
-      if (!s.facesOpenAir || nearDoor(s) || isCellar(s.roomA) || !slotFits(s)) continue;
+      if (isPartyWallSlot(s)
+        || !s.facesOpenAir
+        || nearDoor(s)
+        || isCellar(s.roomA)
+        || !slotFits(s)) continue;
       let list = eligibleByRoom.get(s.roomA);
       if (!list) { list = []; eligibleByRoom.set(s.roomA, list); }
       list.push(s);

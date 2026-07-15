@@ -1,0 +1,44 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="spiritGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#6EE7B7" />
+      <stop offset="50%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#065F46" />
+    </linearGradient>
+  </defs>
+
+  <rect width="100" height="100" fill="#111827" />
+
+  <!-- Ethereal Aura -->
+  <path d="M30 80 Q50 90 70 80 Q85 60 75 40 Q60 20 40 30 Q20 40 30 80" fill="#064E3B" opacity="0.4" filter="url(#glow)" />
+
+  <!-- Skeletal Hand Silhouette -->
+  <g filter="url(#glow)">
+    <!-- Palm -->
+    <path d="M40 75 L55 78 L60 65 L45 62 Z" fill="#34D399" />
+    
+    <!-- Fingers (reaching forward/up) -->
+    <path d="M42 63 L35 45 Q34 40 38 42 L43 62" fill="#34D399" /> <!-- Pinky -->
+    <path d="M47 63 L42 35 Q41 30 46 32 L51 63" fill="#6EE7B7" /> <!-- Ring -->
+    <path d="M53 64 L50 30 Q49 25 54 27 L58 64" fill="#6EE7B7" /> <!-- Middle -->
+    <path d="M58 64 L65 40 Q66 35 70 38 L64 64" fill="#34D399" /> <!-- Index -->
+    
+    <!-- Thumb -->
+    <path d="M40 70 L30 60 Q28 55 32 57 L40 65" fill="#065F46" />
+  </g>
+
+  <!-- Frost/Necrotic particles drifting from fingertips -->
+  <circle cx="35" cy="40" r="1.5" fill="#A7F3D0" />
+  <circle cx="42" cy="30" r="2" fill="#A7F3D0" />
+  <circle cx="54" cy="25" r="1.5" fill="#A7F3D0" />
+  <circle cx="70" cy="35" r="2" fill="#A7F3D0" />
+  <circle cx="50" cy="50" r="1" fill="#34D399" opacity="0.6" />
+  <circle cx="60" cy="45" r="1" fill="#34D399" opacity="0.6" />
+
+  <!-- Cold mist at bottom -->
+  <path d="M20 85 Q50 75 80 85 Q90 95 50 95 Q10 95 20 85" fill="url(#spiritGrad)" opacity="0.3" />
+</svg>

@@ -15,7 +15,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { generateFmgAtlas } from '../../fmg/generateAtlas';
 import { generateFmgWorld } from '../../fmg/generateWorld';
-import { generateRegion, makeMountainRidgeField } from '../generateRegion';
+import { deriveRegionCrossings, generateRegion, makeMountainRidgeField } from '../generateRegion';
 import { RIDGE_START_N, RIDGE_AMPLITUDE } from '../../mountains/mountainTunables';
 import { rootSeedPath, fnv1a } from '../../seedPath';
 import { boundsContain } from '../../units';
@@ -26,6 +26,57 @@ import type { RegionArtifact } from '../../artifacts';
 const SEED = 'world-42';
 const WORLD_SEED = 42;
 const FEET_PER_PIXEL = 1000; // plausible test value (Lane B wires canonical)
+
+describe('deriveRegionCrossings', () => {
+  const river = {
+    riverId: 7,
+    centerline: [[50, 0], [50, 100]] as Array<[number, number]>,
+    widthFt: 50,
+  };
+
+  it('authors a route-aligned bridge receipt for a major road crossing', () => {
+    const crossings = deriveRegionCrossings([{
+      routeId: 3,
+      centerline: [[0, 50], [100, 50]],
+      widthFt: 44,
+      kind: 'highway',
+    }], [river]);
+
+    expect(crossings).toEqual([{
+      id: 'crossing:3:7:0',
+      kind: 'bridge',
+      roadRouteId: 3,
+      riverId: 7,
+      point: [50, 50],
+      roadDirection: [1, 0],
+      riverDirection: [0, 1],
+      spanFt: 82,
+      widthFt: 44,
+    }]);
+  });
+
+  it('reserves fords for narrow water on minor routes and ignores non-crossing runs', () => {
+    const crossings = deriveRegionCrossings([{
+      routeId: 9,
+      centerline: [[0, 50], [100, 50]],
+      widthFt: 20,
+      kind: 'trail',
+    }, {
+      routeId: 10,
+      centerline: [[0, 120], [100, 120]],
+      widthFt: 20,
+      kind: 'trail',
+    }], [river]);
+
+    expect(crossings).toHaveLength(1);
+    expect(crossings[0]).toMatchObject({
+      id: 'crossing:9:7:0',
+      kind: 'ford',
+      roadRouteId: 9,
+      riverId: 7,
+    });
+  });
+});
 
 describe('generateRegion', () => {
   let atlas: FmgAtlasResult;

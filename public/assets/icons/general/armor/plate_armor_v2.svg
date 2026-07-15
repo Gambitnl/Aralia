@@ -1,0 +1,40 @@
+<svg width="128" height="128" viewBox="0 0 128 128" color="#94A3B8" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <!-- D&D Plate Armor: Full gothic plate harness with fluted ribs, heavy pauldrons, gorget, and articulated faulds -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Backing/Silhouette base -->
+    <path d="M36,24 L48,15 L80,15 L92,24 L104,52 L92,58 L90,112 L64,118 L38,112 L36,58 L24,52 Z" stroke-width="3" fill="currentColor" fill-opacity="0.05"/>
+    
+    <!-- Arm plates (Vambraces/Rerebraces) -->
+    <path d="M24,52 L32,84 L38,82 L36,58" stroke-width="2" fill="currentColor" fill-opacity="0.3"/>
+    <path d="M104,52 L96,84 L90,82 L92,58" stroke-width="2" fill="currentColor" fill-opacity="0.3"/>
+
+    <!-- Neck Gorget plate -->
+    <path d="M46,24 C50,30 78,30 82,24 L80,15 L48,15 Z" stroke-width="2.5" fill="currentColor" fill-opacity="0.3"/>
+
+    <!-- Large articulated pauldrons -->
+    <path d="M28,26 C30,18 50,20 50,32 C44,48 30,42 28,26 Z" stroke-width="2.5" fill="currentColor" fill-opacity="0.35"/>
+    <path d="M100,26 C98,18 78,20 78,32 C84,48 98,42 100,26 Z" stroke-width="2.5" fill="currentColor" fill-opacity="0.35"/>
+    <!-- Ridges on Pauldrons -->
+    <path d="M28,26 Q36,32 44,24 M100,26 Q92,32 84,24" stroke-width="1.5"/>
+
+    <!-- Heavy fluted breastplate -->
+    <path d="M42,32 C50,34 78,34 86,32 L90,78 C78,82 50,82 42,78 Z" stroke-width="3" fill="currentColor" fill-opacity="0.3"/>
+    <!-- Central breastplate peak/ridge -->
+    <path d="M64,32 L64,80" stroke-width="2.5"/>
+    <!-- Gothic flutes (radial lines) -->
+    <path d="M50,42 Q58,60 56,76 M78,42 Q70,60 72,76" stroke-width="1.5"/>
+    <path d="M58,40 Q62,56 60,76 M70,40 Q66,56 68,76" stroke-width="1"/>
+
+    <!-- Waist joint belt -->
+    <path d="M41,79 Q64,83 87,79" stroke-width="2.5"/>
+
+    <!-- Articulated Hip Faulds (lames) -->
+    <path d="M42,80 C50,86 78,86 86,80 L88,96 C78,102 50,102 40,96 Z" stroke-width="2" fill="currentColor" fill-opacity="0.3"/>
+    <path d="M41,88 C50,94 78,94 87,88" stroke-width="1.5"/>
+    <path d="M40,96 C50,102 78,102 88,96" stroke-width="1.5"/>
+    
+    <!-- Tassets hanging from faulds -->
+    <path d="M40,102 L40,114 L56,114 L56,102 Z" stroke-width="2" fill="currentColor" fill-opacity="0.4"/>
+    <path d="M72,102 L72,114 L88,114 L88,102 Z" stroke-width="2" fill="currentColor" fill-opacity="0.4"/>
+  </g>
+</svg>

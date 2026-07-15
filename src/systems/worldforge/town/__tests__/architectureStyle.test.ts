@@ -11,9 +11,10 @@ import { describe, it, expect } from 'vitest';
 import {
   styleFamilyForCultureType, styledWallColor, styledRoof, styleFrameOf, hash01,
   STYLE_FAMILIES, resolveStyle, resolveArchitectureVariant,
-  climateForBiomeId, BIOME_TO_CLIMATE,
+  climateForBiomeId, BIOME_TO_CLIMATE, finishPaletteForTier,
 } from '../architectureStyle';
 import type { ResolveStyleInput } from '../architectureStyle';
+import { constructionKitsForFamily } from '../buildingMaterials';
 import { makeSeedPath } from '../../seedPath';
 
 // ============================================================================
@@ -141,6 +142,13 @@ describe('resolveStyle', () => {
     expect(poor.ornament).toBe(false);
   });
 
+  it('shares one wealth-tier palette rule with later repairs and additions', () => {
+    const palette = ['rough', 'plain', 'dressed', 'carved'];
+    expect(finishPaletteForTier(palette, 'poor')).toEqual(['rough', 'plain']);
+    expect(finishPaletteForTier(palette, 'common')).toEqual(palette);
+    expect(finishPaletteForTier(palette, 'wealthy')).toEqual(['dressed', 'carved']);
+  });
+
   it('climate consumes no draws — same tier yields same palette indices across climates', () => {
     // If climate consumed rng draws, the wall/roof colors would shift. They must not.
     const a = resolveStyle({ ...base, climate: 'temperate' }, path);
@@ -169,6 +177,23 @@ describe('resolveStyle', () => {
 
   it('passes familyId through from the culture mapping', () => {
     expect(resolveStyle(base, path).familyId).toBe('highlandStone');
+  });
+
+  it('resolves one complete material kit from the same architecture identity', () => {
+    const architecture = {
+      settlementKey: 'burg:17',
+      districtKey: 'district:2',
+      buildingKey: 'plot:9',
+    };
+    const style = resolveStyle({ ...base, architecture }, path);
+    const allowed = constructionKitsForFamily('highlandStone')
+      .map((kit) => kit.id);
+
+    expect(allowed).toContain(style.construction.kitId);
+    expect(style.construction.constructionSignature)
+      .toMatch(/^highlandStone:[0-9a-z]+$/);
+    expect(style.construction.wallCourseFt).toBeGreaterThan(0);
+    expect(style.construction.timberWidthFt).toBeGreaterThan(0);
   });
 
   it('resolves type-recognition motifs as part of the shared dress', () => {
@@ -201,11 +226,58 @@ describe('resolveArchitectureVariant', () => {
     districtKey,
     buildingKey,
   });
+  const row = (blockKey: string, kind: 'row' | 'market-arcade' = 'row') => ({
+    blockKey,
+    kind,
+    partyWallLeft: true,
+    partyWallRight: true,
+    eaveStoreys: 2 as const,
+    ensembleSignature: `ensemble:${blockKey}`,
+  });
 
   it('is deterministic for the same three-scope identity', () => {
     const a = resolveArchitectureVariant(family, 'common', identity('plot:8'));
     const b = resolveArchitectureVariant(family, 'common', identity('plot:8'));
     expect(a).toEqual(b);
+  });
+
+  it('coordinates row roof form, pitch, and eaves without cloning building dress', () => {
+    const variants = Array.from({ length: 120 }, (_, index) =>
+      resolveArchitectureVariant(
+        family,
+        'common',
+        identity(`plot:${index}`),
+        row('ward:2:edge:4'),
+      ));
+
+    expect(new Set(variants.map((variant) => variant.roofForm)).size).toBe(1);
+    expect(new Set(variants.map((variant) => variant.pitchScale)).size).toBe(1);
+    expect(new Set(variants.map((variant) => variant.eaveOffsetFt)).size).toBe(1);
+    expect(new Set(variants.map((variant) => variant.buildingVariant)).size).toBe(120);
+    expect(new Set(variants.map((variant) => variant.wallColor)).size).toBeGreaterThan(1);
+    expect(new Set(variants.map((variant) => variant.roofColor)).size).toBeGreaterThan(1);
+    expect(new Set(variants.map((variant) => variant.facadePattern)).size).toBeGreaterThan(1);
+  });
+
+  it('keeps detached roofs individual and gives different row blocks distinct rhythms', () => {
+    const detached = Array.from({ length: 80 }, (_, index) =>
+      resolveArchitectureVariant(family, 'common', identity(`plot:${index}`), {
+        ...row('detached-lots'),
+        kind: 'detached' as const,
+        partyWallLeft: false,
+        partyWallRight: false,
+      }));
+    const blocks = Array.from({ length: 40 }, (_, index) =>
+      resolveArchitectureVariant(
+        family,
+        'common',
+        identity(`plot:${index}`),
+        row(`ward:${index}:edge:0`, index % 3 === 0 ? 'market-arcade' : 'row'),
+      ));
+
+    expect(new Set(detached.map((variant) => variant.pitchScale)).size).toBeGreaterThan(70);
+    expect(new Set(blocks.map((variant) => variant.pitchScale)).size).toBeGreaterThan(30);
+    expect(new Set(blocks.map((variant) => variant.roofForm)).size).toBeGreaterThan(1);
   });
 
   it('keeps one district signature while giving every sampled building an individual token', () => {
@@ -225,6 +297,8 @@ describe('resolveArchitectureVariant', () => {
       variants.map((variant) => variant.roofColor),
       variants.map((variant) => variant.roofForm),
       variants.map((variant) => variant.facadePattern),
+      variants.map((variant) => variant.construction.kitId),
+      variants.map((variant) => variant.construction.shutters),
     ]) {
       expect(new Set(values).size).toBeGreaterThanOrEqual(2);
       expect(new Set(values).size).toBeLessThanOrEqual(2);
@@ -285,6 +359,12 @@ describe('resolveArchitectureVariant', () => {
     expect(poor.facadePattern).toBe(wealthy.facadePattern);
     expect(poor.pitchScale).toBe(wealthy.pitchScale);
     expect(poor.eaveOffsetFt).toBe(wealthy.eaveOffsetFt);
+    expect(poor.construction.kitId).toBe(wealthy.construction.kitId);
+    expect(poor.construction.wallMaterial).toBe(wealthy.construction.wallMaterial);
+    expect(poor.construction.roofCovering).toBe(wealthy.construction.roofCovering);
+    expect(poor.construction.constructionSignature)
+      .toBe(wealthy.construction.constructionSignature);
+    expect(poor.construction.glazing).not.toBe(wealthy.construction.glazing);
     expect(family.wallPalette.slice(0, 2)).toContain(poor.wallColor);
     expect(family.wallPalette.slice(2)).toContain(wealthy.wallColor);
   });

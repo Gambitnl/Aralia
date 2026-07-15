@@ -243,6 +243,8 @@ take_screenshot.js
 .agent/scratch/
 .agent/azgaar-ref/
 .agent/town-compare/
+# Testkit run history + baselines (throwaway proof, spec 2026-07-14-testkit)
+.agent/testkit/
 .understand-anything/
 public/wf-atlas-sample.html
 public/wf-*-sample.html

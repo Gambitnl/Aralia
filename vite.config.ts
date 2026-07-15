@@ -47,15 +47,6 @@ const agentSessionManager = () => ({
   },
 });
 
-// Lazy: PAT-vault status endpoint (/api/pat-status). Lazy so editing the
-// credential map doesn't restart the dev server.
-const patVaultManager = () => ({
-  name: 'pat-vault-manager-lazy',
-  async configureServer(server: unknown) {
-    const mod = await import('./scripts/vite-plugins/patVaultManager');
-    return (mod.patVaultManager() as { configureServer: (s: unknown) => void }).configureServer(server);
-  },
-});
 
 // Same lazy pattern: the sticky PTY + shell terminals hold live node-pty
 // processes and WebSocket servers. Keeping them OUT of the config-dependency
@@ -80,6 +71,8 @@ const shellTerminalManager = () => ({
 import { portraitApiManager } from './scripts/vite-plugins/portraitApiManager';
 import { sceneApiManager } from './scripts/vite-plugins/sceneApiManager';
 import { groqProxyManager } from './scripts/vite-plugins/groqProxyManager';
+import { lessonsManager } from './scripts/vite-plugins/lessonsManager';
+import { spellIconPicksManager } from './scripts/vite-plugins/spellIconPicksManager';
 
 import {
   conductorManager,
@@ -213,7 +206,8 @@ export default defineConfig(async ({ mode, command }) => {
     ptyTerminalManager(),
     shellTerminalManager(),
     agentUsageProbe(),
-    patVaultManager(),
+    lessonsManager(),
+    spellIconPicksManager(),
     agentSessionManager(),
     groqProxyManager()
   ];
@@ -239,7 +233,7 @@ export default defineConfig(async ({ mode, command }) => {
     ptyTerminalManager(),
     shellTerminalManager(),
     agentUsageProbe(),
-    patVaultManager(),
+    lessonsManager(),
     agentSessionManager()
   ];
 

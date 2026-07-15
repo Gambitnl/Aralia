@@ -17,7 +17,7 @@ import {
 import { metersFromFeet } from '../../units';
 import { EXTERIOR } from '../blueprintTypes';
 import type {
-  BlueprintPlan, BuildingType, HouseholdBrief, MemberSlot, StyleContext,
+  BlueprintPlan, BuildingEnsemble, BuildingType, HouseholdBrief, MemberSlot, StyleContext,
 } from '../blueprintTypes';
 import { mergeWallRuns } from '../walls';
 
@@ -311,6 +311,120 @@ describe('style-driven building (roof + resolved dress)', () => {
       .toBe(neighbor.styleResolved!.districtSignature);
     expect(first.styleResolved!.buildingVariant)
       .not.toBe(neighbor.styleResolved!.buildingVariant);
+  });
+
+  it('uses one production roof rhythm across a row while retaining individual variants', () => {
+    const styleFor = (buildingKey: string): StyleContext => ({
+      ...TEMPERATE_COMMON,
+      architecture: {
+        settlementKey: 'burg:12',
+        districtKey: 'district:3',
+        buildingKey,
+      },
+    });
+    const ensemble: BuildingEnsemble = {
+      blockKey: 'ward:3:edge:2',
+      kind: 'row',
+      partyWallLeft: true,
+      partyWallRight: true,
+      eaveStoreys: 2,
+      ensembleSignature: 'row-production-proof',
+    };
+    const first = generateBuilding({
+      buildingId: 12,
+      type: 'townhouse',
+      seedPath: rootSeedPath(91),
+      storeys: 2,
+      style: styleFor('plot:12'),
+      ensemble,
+    });
+    const neighbor = generateBuilding({
+      buildingId: 12,
+      type: 'townhouse',
+      seedPath: rootSeedPath(91),
+      storeys: 2,
+      style: styleFor('plot:13'),
+      ensemble,
+    });
+
+    expect(bones(first)).toBe(bones(neighbor));
+    expect(first.styleResolved?.roofForm).toBe(neighbor.styleResolved?.roofForm);
+    expect(first.styleResolved?.pitchRiseFt).toBe(neighbor.styleResolved?.pitchRiseFt);
+    expect(first.styleResolved?.eaveOverhangFt).toBe(neighbor.styleResolved?.eaveOverhangFt);
+    expect(first.styleResolved?.buildingVariant).not.toBe(neighbor.styleResolved?.buildingVariant);
+  });
+
+  it('authors disjoint roof planes at current party walls but preserves legacy eaves', () => {
+    const ensemble: BuildingEnsemble = {
+      blockKey: 'ward:3:edge:2',
+      kind: 'row',
+      partyWallLeft: true,
+      partyWallRight: true,
+      partyWallOwner: 'earlier-frontage-member',
+      eaveStoreys: 2,
+      ensembleSignature: 'row-roof-boundary-proof',
+    };
+    const make = (receipt: BuildingEnsemble) => generateBuilding({
+      buildingId: 121,
+      type: 'townhouse',
+      seedPath: rootSeedPath(9121),
+      storeys: 2,
+      style: TEMPERATE_COMMON,
+      ensemble: receipt,
+    });
+    const attached = make(ensemble);
+    const legacyReceipt = { ...ensemble };
+    delete legacyReceipt.partyWallOwner;
+    const legacy = make(legacyReceipt);
+    const attachedPoints = attached.roof!.planes.flatMap((plane) => plane.pts);
+    const legacyPoints = legacy.roof!.planes.flatMap((plane) => plane.pts);
+
+    expect(attachedPoints.every(([x]) => x >= -1e-6 && x <= attached.widthFt + 1e-6))
+      .toBe(true);
+    expect(legacyPoints.some(([x]) => x < -1e-6 || x > legacy.widthFt + 1e-6))
+      .toBe(true);
+    expect(attachedPoints.some(([, y]) => y < 0 || y > attached.depthFt)).toBe(true);
+  });
+
+  it('occupies a negotiated row lot directly while legacy receipts still clamp', () => {
+    const negotiated: BuildingEnsemble = {
+      blockKey: 'ward:7:edge:1',
+      kind: 'row',
+      partyWallLeft: true,
+      partyWallRight: true,
+      partyWallOwner: 'later-frontage-member',
+      eaveStoreys: 2,
+      lotProfile: 'rear-court',
+      lotSignature: 'lot-row-court',
+      ensembleSignature: 'row-lot-proof',
+    };
+    const plan = generateBuilding({
+      buildingId: 171,
+      type: 'townhouse',
+      seedPath: rootSeedPath(9171),
+      storeys: 2,
+      maxWidthFt: 40,
+      maxDepthFt: 35,
+      ensemble: negotiated,
+    });
+    const legacyReceipt = { ...negotiated };
+    delete legacyReceipt.lotProfile;
+    delete legacyReceipt.lotSignature;
+    const legacy = generateBuilding({
+      buildingId: 171,
+      type: 'townhouse',
+      seedPath: rootSeedPath(9171),
+      storeys: 2,
+      maxWidthFt: 40,
+      maxDepthFt: 35,
+      ensemble: legacyReceipt,
+    });
+
+    expect([plan.widthFt, plan.depthFt]).toEqual([40, 35]);
+    expect(plan.footprintCells.length).toBeLessThan(8 * 7);
+    expect(plan.footprintCells.filter((cell) => cell.cx === 0)).toHaveLength(7);
+    expect(plan.footprintCells.filter((cell) => cell.cx === 7)).toHaveLength(7);
+    expect(legacy.footprintCells).not.toEqual(plan.footprintCells);
   });
 
   it('district identity changes the local recipe while preserving one town family', () => {

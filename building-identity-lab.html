@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+    BUILDING IDENTITY LAB (Root Vite Entry Point)
+    This developer page isolates procedural architecture debugging from the main game.
+    It loads the real town, blueprint, and 3D building pipelines through
+    src/building-identity-lab.tsx so visual evidence never depends on mock buildings.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>DP: Building Identity Lab</title>
+    <!-- An empty data favicon prevents the standalone debugging page from
+         producing a misleading network error when no project icon is needed. -->
+    <link rel="icon" href="data:,">
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/src/building-identity-lab.tsx"></script>
+</body>
+</html>

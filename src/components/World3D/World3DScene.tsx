@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/07/2026, 00:34:58
+ * Last Sync: 14/07/2026, 21:08:12
  * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx
  * Imports: 29 files
  *
@@ -60,7 +60,10 @@ import { chunkOriginWorld, worldToChunk } from '@/systems/world3d/coords';
 import { rebaseChunkPositions } from '@/systems/world3d/chunkRebase';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
-import { sitePartLocalOffset } from '@/systems/worldforge/bridge/sitePartTransform';
+import {
+  isSitePartRenderable,
+  sitePartLocalOffset,
+} from '@/systems/worldforge/bridge/sitePartTransform';
 import type { PlayerWorldPosition } from '@/types';
 import { useForgeTexture, getSemanticAssetKey } from '@/systems/worldforge/bridge/forgeMaterials';
 import type { ForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
@@ -500,7 +503,11 @@ const SiteBuilding: React.FC<{
         // Seamless interior (Worldforge L4): perimeter + room walls with real
         // door gaps, plus furnishing blocks. Parts use +z = inward-from-street;
         // doorZSign maps that onto whichever face the street actually is.
-        s.parts!.map((p, i) => {
+        s.parts!
+          // A non-owning row house keeps its party wall for tactical geometry,
+          // but the owning neighbor alone draws the shared masonry.
+          .filter(isSitePartRenderable)
+          .map((p, i) => {
           const off = sitePartLocalOffset(p, s.doorZSign ?? -1);
           // Window/hearth parts carry a `lightRole` and NO baked emissive; the
           // renderer decides their glow live from the hourly schedule. All other
@@ -526,7 +533,7 @@ const SiteBuilding: React.FC<{
             />
           </mesh>
           );
-        })
+          })
       ) : (
         // Performance LOD: distant interior-bearing buildings retain their
         // footprint-true shell. Their authored parts remain in the payload and

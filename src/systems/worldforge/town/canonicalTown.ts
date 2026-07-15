@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 11/07/2026, 14:02:45
- * Dependents: components/MapPane.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Last Sync: 14/07/2026, 20:28:15
+ * Dependents: components/MapPane.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -199,6 +199,13 @@ export function transformTownPlan(plan: TownPlan, k: number, dx = 0, dy = 0): To
     },
     civic: plan.civic.map((c) => ({ ...c, polygon: mapPoly(c.polygon, k, dx, dy) })),
     streets: plan.streets.map((s) => mapPoly(s, k, dx, dy)),
+    // Court identity and amenity remain unchanged; only the spatial receipt is
+    // transformed into the destination frame used by the artifact adapter.
+    courtyards: plan.courtyards.map((court) => ({
+      ...court,
+      center: mapPt(court.center, k, dx, dy),
+      radius: court.radius * Math.abs(k),
+    })),
     farmsteads: plan.farmsteads.map((f) => ({ ...f, x: f.x * k + dx, y: f.y * k + dy })),
     demographics: plan.demographics,
   };

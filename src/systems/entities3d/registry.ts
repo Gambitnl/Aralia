@@ -19,8 +19,8 @@ export function registerPart(def: PartDef): void {
   if (!ANCHORS.includes(def.anchor)) {
     throw new Error(`entities3d: part "${def.id}" has unknown anchor "${def.anchor}"`);
   }
-  if (def.kind === 'field' && typeof def.buildField !== 'function') {
-    throw new Error(`entities3d: field part "${def.id}" must define buildField`);
+  if (def.kind === 'chain' && typeof def.buildChain !== 'function') {
+    throw new Error(`entities3d: chain part "${def.id}" must define buildChain`);
   }
   if (def.kind === 'mesh' && typeof def.buildMesh !== 'function') {
     throw new Error(`entities3d: mesh part "${def.id}" must define buildMesh`);

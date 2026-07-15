@@ -1,0 +1,51 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="grad-fire" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="50%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#C7D2FE" />
+    </linearGradient>
+    <radialGradient id="rad-aura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#818CF8" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#818CF8" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Aura background -->
+  <circle cx="50" cy="50" r="40" fill="url(#rad-aura)" />
+
+  <!-- Diamond Frame -->
+  <path d="M50 10 L85 50 L50 90 L15 50 Z" fill="none" stroke="#4F46E5" stroke-width="3" stroke-linejoin="round" />
+  <path d="M50 15 L80 50 L50 85 L20 50 Z" fill="none" stroke="#C7D2FE" stroke-width="1" stroke-dasharray="4 2" />
+
+  <!-- Stylized Flame Emblem -->
+  <g filter="url(#glow)">
+    <!-- Outer Flame Core -->
+    <path d="M50 30 
+             C65 45 65 60 50 75 
+             C35 60 35 45 50 30 Z" 
+          fill="url(#grad-fire)" />
+    
+    <!-- Inner Flame Detail -->
+    <path d="M50 40 
+             C58 50 58 60 50 68 
+             C42 60 42 50 50 40 Z" 
+          fill="#FFFFFF" opacity="0.6" />
+          
+    <!-- Projectile Trails (Representing the "hurl" aspect) -->
+    <path d="M30 40 Q40 45 45 50" stroke="#C7D2FE" stroke-width="2" stroke-linecap="round" fill="none" />
+    <path d="M70 40 Q60 45 55 50" stroke="#C7D2FE" stroke-width="2" stroke-linecap="round" fill="none" />
+    <path d="M30 60 Q40 55 45 50" stroke="#C7D2FE" stroke-width="2" stroke-linecap="round" fill="none" />
+    <path d="M70 60 Q60 55 55 50" stroke="#C7D2FE" stroke-width="2" stroke-linecap="round" fill="none" />
+  </g>
+
+  <!-- Accent points -->
+  <circle cx="50" cy="10" r="2" fill="#C7D2FE" />
+  <circle cx="50" cy="90" r="2" fill="#C7D2FE" />
+  <circle cx="15" cy="50" r="2" fill="#C7D2FE" />
+  <circle cx="85" cy="50" r="2" fill="#C7D2FE" />
+</svg>

@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { relaxNodeCollisions } from './collision.js';
 import { DOMAIN_COLORS, NODE_CATEGORIES, ROOT_X, ROOT_Y } from './constants.js';
 import { buildFeaturesByGroup } from './feature-mapping.js';
@@ -44,15 +46,103 @@ const PRIME_NODES_ONLY_VIEW = false;
 // node's id from the live /Aralia/api/roadmap/data payload, or by the deterministic
 // formula sub_<slug(pillarNodeId)>_<slug(stableLabel)>. Start empty; wire entries in
 // as they are curated. The roadmap only READS the plan-map — never the reverse.
-export const PLANMAP_TOPIC_BY_NODE_ID: Record<string, string> = {
-  // 'sub_pillar_rendering_beautification_wave': 'world-props',
-};
+// Bindings moved to DATA (freshness plan task 8): .agent/roadmap-local/
+// planmap-bindings.json. This export stays empty for compatibility; the
+// generator loads the file at run time so wiring a node needs no code edit.
+export const PLANMAP_TOPIC_BY_NODE_ID: Record<string, string> = {};
+
+export function loadPlanmapBindings(): Record<string, string> {
+  const bindingsPath = path.resolve(process.cwd(), '.agent', 'roadmap-local', 'planmap-bindings.json');
+  try {
+    const parsed = JSON.parse(fs.readFileSync(bindingsPath, 'utf8'));
+    return parsed.bindings ?? {};
+  } catch {
+    return {};
+  }
+}
 
 // Returns the node with planmapTopic set when its id is mapped; unchanged otherwise.
 export const attachPlanmapTopic = <T extends { id: string }>(
   node: T,
   map: Record<string, string> = PLANMAP_TOPIC_BY_NODE_ID
 ): T => (map[node.id] ? { ...node, planmapTopic: map[node.id] } : node);
+
+// ============================================================================
+// Planmap-born nodes (freshness plan task 8)
+// ============================================================================
+// Every planmap topic becomes a node under its campaign's home pillar, every
+// feature a child node. No curation allowlist applies here — the planmap IS
+// the curation. Status maps to the roadmap's 3 colors; the client overlay
+// still re-reads topics.json live, so these can never lag.
+// ============================================================================
+
+export const PLANMAP_STATUS_TO_BASE: Record<string, RoadmapNode['status']> = {
+  done: 'done', active: 'active', specced: 'planned', parked: 'planned', superseded: 'planned',
+};
+
+// SHARED SCHEME with tools/agora/planmap-reconcile-lib.mjs — must stay
+// identical or planmap:<topic>/<slug> refs and node ids drift apart:
+// slugs computed over the FULL features array, duplicates get -2, -3...
+const planmapSlug = (s: string) =>
+  s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+export const planmapFeatureSlugs = (features: Array<{ title: string }>): string[] => {
+  const counts = new Map<string, number>();
+  return features.map((f) => {
+    const base = planmapSlug(f.title);
+    const n = (counts.get(base) ?? 0) + 1;
+    counts.set(base, n);
+    return n === 1 ? base : `${base}-${n}`;
+  });
+};
+
+type PlanmapTopicShape = {
+  id: string; title: string; campaign?: string; status: string;
+  sub?: string; link?: string;
+  features?: Array<{ title: string; status: string }>;
+};
+
+export function buildPlanmapNodes(
+  topicsDoc: { topics: PlanmapTopicShape[] },
+  homes: Record<string, string>,
+  pillarNodeIds: Map<string, string>,
+): { nodes: RoadmapNode[]; edges: RoadmapEdge[] } {
+  const nodes: RoadmapNode[] = [];
+  const edges: RoadmapEdge[] = [];
+  const FALLBACK = 'technical-foundation-tooling';
+  let topicIndex = 0;
+  for (const topic of topicsDoc.topics ?? []) {
+    const home = homes[topic.campaign ?? ''];
+    const pillarNodeId = pillarNodeIds.get(home ?? '') ?? pillarNodeIds.get(FALLBACK);
+    if (!pillarNodeId) continue;
+    const unmappedNote = home ? '' : ` [campaign "${topic.campaign}" has no home pillar — add it to .agent/roadmap-local/campaign-homes.json]`;
+    const id = `planmap_${topic.id}`;
+    const x = ROOT_X - 900 + (topicIndex % 10) * 200;
+    const y = ROOT_Y + 1400 + Math.floor(topicIndex / 10) * 220;
+    topicIndex += 1;
+    nodes.push({
+      id, label: topic.title, type: 'milestone', category: NODE_CATEGORIES.feature,
+      sourceKind: 'planmap', feature: topic.title, featureCategory: 'Planmap',
+      status: PLANMAP_STATUS_TO_BASE[topic.status] ?? 'planned',
+      planmapTopic: topic.id,
+      initialX: x, initialY: y, color: DOMAIN_COLORS.default,
+      description: `${topic.sub ?? ''}${unmappedNote}`.trim(), link: topic.link,
+    } as RoadmapNode);
+    edges.push({ from: pillarNodeId, to: id, type: 'containment' });
+    const slugs = planmapFeatureSlugs(topic.features ?? []);
+    (topic.features ?? []).forEach((f, i) => {
+      const childId = `planmap_${topic.id}__${slugs[i]}`;
+      nodes.push({
+        id: childId, label: f.title, type: 'milestone', category: NODE_CATEGORIES.feature,
+        sourceKind: 'planmap', feature: topic.title, featureCategory: 'Planmap',
+        status: PLANMAP_STATUS_TO_BASE[f.status] ?? 'planned', planmapTopic: topic.id,
+        initialX: x - 60 + (i % 3) * 60, initialY: y + 90 + Math.floor(i / 3) * 70,
+        color: DOMAIN_COLORS.default, description: '',
+      } as RoadmapNode);
+      edges.push({ from: id, to: childId, type: 'containment' });
+    });
+  }
+  return { nodes, edges };
+}
 
 const CURATED_SUBFEATURES: Record<string, Set<string>> = {
   '3d exploration & combat': new Set([
@@ -2654,6 +2744,7 @@ export function generateRoadmapData() {
   const nodes: RoadmapNode[] = [];
   const edges: RoadmapEdge[] = [];
   const nodeIds = new RoadmapNodeIdRegistry();
+  const planmapBindings = loadPlanmapBindings();
 
   const rootId = 'aralia_chronicles';
   nodeIds.register(rootId, 'root: Aralia Game Roadmap');
@@ -2670,7 +2761,7 @@ export function generateRoadmapData() {
     initialY: ROOT_Y,
     color: '#fbbf24',
     description: 'Feature-first roadmap generated from processed game documentation.'
-  }));
+  }, planmapBindings));
 
   const featuresByGroup = buildFeaturesByGroup(docs);
   // Technical: inject synthetic dev-tool branches so they are first-class roadmap features.
@@ -2720,7 +2811,7 @@ export function generateRoadmapData() {
       initialY: y,
       color: DOMAIN_COLORS.default,
       description: `${pillar.summary} Mapped features: ${pillarFeatures.length}. Processed docs: ${docCount}.`
-    }));
+    }, planmapBindings));
     edges.push({ from: rootId, to: pillarNodeId, type: 'containment' });
 
     if (PRIME_NODES_ONLY_VIEW) {
@@ -2820,10 +2911,40 @@ export function generateRoadmapData() {
           canonicalDocs,
           componentFiles,
           link: canonicalDocs[0]
-        }));
+        }, planmapBindings));
         edges.push({ from: pillarNodeId, to: subId, type: 'containment' });
         subIndex += 1;
       }
+    }
+  }
+
+  // Planmap-born nodes: every topic under its campaign's home pillar.
+  // The client overlay re-reads topics.json on load, so status cannot lag.
+  const topicsPath = path.resolve(process.cwd(), 'public', 'planmap', 'topics.json');
+  const homesPath = path.resolve(process.cwd(), '.agent', 'roadmap-local', 'campaign-homes.json');
+  if (fs.existsSync(topicsPath)) {
+    try {
+      const topicsDoc = JSON.parse(fs.readFileSync(topicsPath, 'utf8'));
+      const homes = fs.existsSync(homesPath) ? JSON.parse(fs.readFileSync(homesPath, 'utf8')) : {};
+      delete homes._readme;
+      const pillarNodeIds = new Map(MAIN_PILLARS.map((p) => [p.id, `pillar_${slug(p.id)}`]));
+      const pm = buildPlanmapNodes(topicsDoc, homes, pillarNodeIds);
+      for (const n of pm.nodes) {
+        nodeIds.register(n.id, `planmap: ${n.label}`);
+        nodes.push(n);
+      }
+      edges.push(...pm.edges);
+    } catch (error) {
+      // A broken map must not take the whole graph down — the planmap page
+      // owns loud validation; here we render the manifest tree and say why.
+      nodes.push({
+        id: 'planmap_load_error', label: 'Planmap unreadable — run validate-planmap',
+        type: 'milestone', category: NODE_CATEGORIES.feature, sourceKind: 'planmap',
+        feature: 'Planmap', featureCategory: 'Planmap', status: 'planned',
+        initialX: ROOT_X, initialY: ROOT_Y + 1400, color: DOMAIN_COLORS.default,
+        description: String((error as Error).message ?? error),
+      } as RoadmapNode);
+      edges.push({ from: rootId, to: 'planmap_load_error', type: 'containment' });
     }
   }
 

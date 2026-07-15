@@ -4,7 +4,7 @@
  * InteriorOccupants. The values encode the render convention derived from the
  * current hearth projection: lz = localZ * -doorZSign, then a CCW yaw about +Y
  * (rx = lx*cos + lz*sin, rz = -lx*sin + lz*cos), then translate by the group
- * origin. planFeetToSiteLocal centers the blueprint frame.
+ * origin. planFeetToSiteLocal uses the stable blueprint site origin.
  */
 import { describe, it, expect } from 'vitest';
 import { siteLocalToScene, planFeetToSiteLocal } from '../interiorPlacement';
@@ -27,5 +27,11 @@ describe('planFeetToSiteLocal', () => {
   it('centers the frame', () => {
     // A point at the exact center of a 20ft x 30ft interior maps to (0,0) local.
     expect(planFeetToSiteLocal(10, 15, 20, 30)).toEqual({ x: 0, z: 0 });
+  });
+
+  it('keeps an old-core station fixed when a one-sided extension widens the envelope', () => {
+    // The envelope grew from 20ft to 30ft on its right side, but its original
+    // 10ft center remains the site origin and therefore still maps to zero.
+    expect(planFeetToSiteLocal(10, 15, 30, 30, 10, 15)).toEqual({ x: 0, z: 0 });
   });
 });

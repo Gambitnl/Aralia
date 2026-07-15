@@ -180,7 +180,9 @@ test('tasks: handoff refuses an unknown target and preserves the claimant', asyn
     token: orch.token,
     body: { toAgentId: 'missing-agent' },
   });
-  assert.equal(rejected.status, 400);
+  // 422 since planning-surface-freshness Task 6: an unknown/dead handoff target
+  // is a semantic refusal, not a malformed request.
+  assert.equal(rejected.status, 422);
   assert.match(rejected.json.error, /not registered or live/);
 
   const board = await request('GET', '/tasks');

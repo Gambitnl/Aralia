@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 14/07/2026, 20:28:55
+ * Dependents: systems/worldforge/bridge/groundProps.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file placementEngine.ts — seeded, deterministic prop placement (DATA layer).
  *
@@ -95,6 +111,18 @@ export interface CtxPlaza {
   radiusM: number;
 }
 
+/** A canonical residential-block court projected into ground meters. */
+export interface CtxCourtyard {
+  id: string;
+  xM: number;
+  zM: number;
+  radiusM: number;
+  districtKey: string;
+  wealth: 'poor' | 'common' | 'wealthy';
+  amenity: 'well' | 'wash-yard' | 'work-yard' | 'garden';
+  courtyardSignature: string;
+}
+
 /** A hidden/discovery site (SP4) — a `ruin` kind seeds ruin dressing. */
 export interface CtxHiddenSite {
   id: string;
@@ -129,6 +157,8 @@ export interface PropPlacementContext {
   decks: CtxDeck[];
   /** Explicit market plazas (open square between market plots). */
   plazas: CtxPlaza[];
+  /** Explicit residential courts authored by the canonical town engine. */
+  courtyards?: CtxCourtyard[];
   /**
    * Optional per-cell heights (0..100 encoded, row-major cols×rows) — the slope
    * signal for the `defile` context (a steep choke gets ambush cover). Absent =
@@ -296,13 +326,19 @@ function nearAnyRoad(ctx: PropPlacementContext, x: number, z: number, margin: nu
 
 /**
  * True when (x, z) is inside villager-tended ground: within margin of a
- * building plot, a plaza, or a road. Wilderness scatter never lands here.
+ * building plot, a plaza, a shared courtyard, or a road. Wilderness scatter
+ * never lands here, so authored town spaces remain legible.
  */
 function isTendedGround(ctx: PropPlacementContext, x: number, z: number): boolean {
   if (nearAnyBuilding(ctx, x, z, BUILDING_CLEAR_MARGIN_M)) return true;
   for (const p of ctx.plazas) {
     const r = p.radiusM + BUILDING_CLEAR_MARGIN_M;
     const dx = x - p.xM, dz = z - p.zM;
+    if (dx * dx + dz * dz <= r * r) return true;
+  }
+  for (const court of ctx.courtyards ?? []) {
+    const r = court.radiusM + CELL_METERS;
+    const dx = x - court.xM, dz = z - court.zM;
     if (dx * dx + dz * dz <= r * r) return true;
   }
   return nearAnyRoad(ctx, x, z, ROAD_CLEAR_MARGIN_M);
@@ -458,6 +494,52 @@ function placeMarket(basePath: SeedPath, ctx: PropPlacementContext): PropInstanc
           ...cluster(rng, ctx, pickWeighted(rng, MARKET_UNDERSTOCK), xM, zM, CELL_METERS * 1.2, 1),
         );
       }
+    }
+  }
+  return out;
+}
+
+/**
+ * Dress a canonical shared court with a compact amenity vocabulary. Props stay
+ * well inside the engine-proved open radius; they are real catalog instances,
+ * so the same well/cart/trough is visible in 3D and combat-legible on extraction.
+ */
+function placeCourtyards(basePath: SeedPath, ctx: PropPlacementContext): PropInstance[] {
+  const out: PropInstance[] = [];
+  for (const court of ctx.courtyards ?? []) {
+    const rng = rngFromPath(childSeedPath(
+      streamPath(basePath, 'courtyards'),
+      `${court.id}:${court.courtyardSignature}`,
+    ));
+    const phase = uniform(rng, 0, Math.PI * 2);
+    const add = (defId: string, radialFraction: number, angleOffset = 0): void => {
+      const angle = phase + angleOffset;
+      const radius = court.radiusM * radialFraction;
+      out.push(...emit({
+        defId,
+        xM: clamp(court.xM + Math.cos(angle) * radius, 0, ctx.extentMetersX),
+        zM: clamp(court.zM + Math.sin(angle) * radius, 0, ctx.extentMetersZ),
+        rotationRad: angle + Math.PI / 2,
+        variation: makeVariation(rng),
+      }));
+    };
+
+    if (court.amenity === 'well') {
+      add('well', 0);
+      add(court.wealth === 'wealthy' ? 'stone-bench' : 'wood-bench', 0.58, Math.PI);
+    } else if (court.amenity === 'wash-yard') {
+      add('water-trough', 0.12);
+      add('barrel', 0.5, Math.PI * 0.72);
+      add('trestle-table', 0.52, -Math.PI * 0.72);
+    } else if (court.amenity === 'work-yard') {
+      add('cart', 0.16);
+      add('woodpile', 0.55, Math.PI * 0.66);
+      add('crate-stack', 0.5, -Math.PI * 0.66);
+    } else {
+      // Four planters repeat as one formal district gesture; a bench leaves the
+      // center open enough for circulation and tactical readability.
+      for (let i = 0; i < 4; i++) add('stone-planter', 0.52, i * Math.PI / 2);
+      add('stone-bench', 0.18, Math.PI / 4);
     }
   }
   return out;
@@ -919,6 +1001,7 @@ function placeWilderness(basePath: SeedPath, ctx: PropPlacementContext): PropIns
 export function placeProps(seedPath: SeedPath, ctx: PropPlacementContext): PropInstance[] {
   const all = [
     ...placeMarket(seedPath, ctx),
+    ...placeCourtyards(seedPath, ctx),
     ...placeDocks(seedPath, ctx),
     ...placeBuildingSideProps(seedPath, ctx),
     ...placeRoadside(seedPath, ctx),

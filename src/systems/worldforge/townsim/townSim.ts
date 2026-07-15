@@ -1,13 +1,30 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 14/07/2026, 18:51:02
+ * Dependents: components/Worldforge/LivingWorldPreview.tsx, components/debug/TownHistoryDevOverlay.tsx, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/townSimRegistry.ts
+ * Imports: 13 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file townSim.ts — Life-event core: age a town's tracked villagers forward
- * day-by-day, emitting deaths, inheritance, role succession, births, and
- * coming-of-age into an append-only chronicle (D7 diary + cached wealth meters).
+ * day-by-day, emitting personal and town events plus exact saved changes on
+ * occupied homes into an append-only chronicle (D7 diary + cached meters).
  *
  * PURE & DETERMINISTIC. rollTownDay/advanceTownDays return new state and never
  * mutate inputs; all randomness comes from the caller-supplied SeededRandom,
  * drawn in a fixed (sorted-id) order so a given (state, seed) always yields the
  * same result. Production seeds the RNG path-dependently (SPEC D6); tests pin a
- * fixed seed.
+ * fixed seed. Building evolution uses named hashes and prevalidated geometry,
+ * so it does not consume or shift the established simulation draws.
  */
 import { SeededRandom } from '../../../utils/random/seededRandom';
 import type { TownRoster } from '../roster/types';
@@ -26,7 +43,7 @@ import {
   marriageableWindow,
   lifespanForRace,
 } from './lifespans';
-import { rollAnnualEconomy } from './economy';
+import { rollAnnualEconomy, type EconomyKind } from './economy';
 import {
   rollAnnualDisaster,
   disasterSummary,
@@ -36,7 +53,16 @@ import {
 } from './disasters';
 import { festivalsOnDayOfYear } from './festivals';
 import { newbornName } from './naming';
-import { makeSeedPath, seedFromPath } from '../seedPath';
+import { fnv1a, makeSeedPath, seedFromPath } from '../seedPath';
+import {
+  appendBuildingEvent,
+  buildingUseStateSince,
+  cloneBuildingEventHistory,
+  currentBuildingUse,
+  hasUnrepairedBuildingFire,
+  structuralBuildingHistoryEvents,
+} from '../interior/buildingEventHistory';
+import type { BuildingEvent } from '../interior/blueprintTypes';
 import type {
   InstitutionRole,
   LifeEvent,
@@ -74,6 +100,7 @@ export function initTownSimState(
   families: Map<number, FamilyTies>,
   keyRoles: Map<number, InstitutionRole>,
   startDay: number,
+  buildingEvolution?: TownSimState['buildingEvolution'],
 ): TownSimState {
   const villagers: Record<number, LivingVillager> = {};
   let maxId = 0;
@@ -98,6 +125,8 @@ export function initTownSimState(
     burgId,
     villagers,
     chronicle: { burgId, events: [], nextEventId: 1 },
+    buildingEvents: {},
+    ...(buildingEvolution ? { buildingEvolution } : {}),
     prosperity: 50,
     totals: { births: 0, deaths: 0 },
     lastSimDay: startDay,
@@ -112,12 +141,270 @@ function cloneState(state: TownSimState): TownSimState {
     const v = state.villagers[id];
     villagers[id] = { ...v, parentIds: [...v.parentIds], childIds: [...v.childIds] };
   }
+  const buildingEvents = Object.fromEntries(
+    Object.entries(state.buildingEvents ?? {}).map(([plotId, events]) => [
+      Number(plotId),
+      cloneBuildingEventHistory(events),
+    ]),
+  );
   return {
     ...state,
     villagers,
     chronicle: { ...state.chronicle, events: [...state.chronicle.events] },
+    buildingEvents,
+    // Evolution briefs are immutable registration metadata. Reuse the same
+    // reference across daily states; only event logs and villagers are mutable.
     totals: { ...(state.totals ?? { births: 0, deaths: 0 }) },
   };
+}
+
+/** Rank plots with a named hash so this channel never consumes life-event RNG. */
+function rankEvolutionPlots(state: TownSimState, day: number, plotIds: number[]): number[] {
+  return plotIds.slice().sort((a, b) =>
+    fnv1a(`burg:${state.burgId}:day:${day}:building:${a}`)
+      - fnv1a(`burg:${state.burgId}:day:${day}:building:${b}`)
+      || a - b);
+}
+
+// ============================================================================
+// Household Moves And Building Use
+// ============================================================================
+// A home's current use comes from the same event log the renderers replay.
+// Villagers keep their exact home ids after death, so old saves already contain
+// enough evidence to discover empty dwellings without a parallel property list.
+// ============================================================================
+
+/** Include historic and logged homes so pruning cannot erase a known residence. */
+function knownHomePlots(state: TownSimState): number[] {
+  const plots = new Set<number>();
+  for (const villager of Object.values(state.villagers)) plots.add(villager.homePlotId);
+  for (const plotId of Object.keys(state.buildingEvents ?? {})) plots.add(Number(plotId));
+  return [...plots].sort((a, b) => a - b);
+}
+
+/** Collect current residents by plot for vacancy and household decisions. */
+function livingResidentsByPlot(state: TownSimState): Map<number, LivingVillager[]> {
+  const residentsByPlot = new Map<number, LivingVillager[]>();
+  for (const villager of Object.values(state.villagers)) {
+    if (!isAlive(villager)) continue;
+    const residents = residentsByPlot.get(villager.homePlotId) ?? [];
+    residents.push(villager);
+    residentsByPlot.set(villager.homePlotId, residents);
+  }
+  return residentsByPlot;
+}
+
+/**
+ * Give a newly married couple one shared home. They prefer a sound abandoned
+ * dwelling, bringing dependent children with them; otherwise one spouse joins
+ * the other household. The named hash varies that choice without another RNG.
+ */
+function establishMarriedHousehold(
+  state: TownSimState,
+  day: number,
+  first: LivingVillager,
+  second: LivingVillager,
+): void {
+  if (first.homePlotId === second.homePlotId) return;
+  const residentsByPlot = livingResidentsByPlot(state);
+  const vacant = knownHomePlots(state).filter((plotId) =>
+    !residentsByPlot.has(plotId)
+    && currentBuildingUse(state.buildingEvents?.[plotId] ?? []) === 'abandoned'
+    && !hasUnrepairedBuildingFire(state.buildingEvents?.[plotId] ?? []));
+  const reusable = rankEvolutionPlots(state, day, vacant)[0];
+  const existingHomes = [first.homePlotId, second.homePlotId];
+  const targetPlotId = reusable ?? existingHomes[
+    fnv1a(`burg:${state.burgId}:day:${day}:marriage:${first.occupantId}:${second.occupantId}:home`) % 2
+  ];
+
+  // Keep both source properties discoverable after their last living resident
+  // moves. An empty sparse log is enough for reconciliation to board a vacated
+  // home later this same day, and it avoids a second property registry.
+  state.buildingEvents ??= {};
+  for (const plotId of existingHomes) state.buildingEvents[plotId] ??= [];
+
+  const movers = new Set<number>([first.occupantId, second.occupantId]);
+  for (const parent of [first, second]) {
+    for (const childId of parent.childIds) {
+      const child = state.villagers[childId];
+      if (!child || !isAlive(child) || child.homePlotId !== parent.homePlotId) continue;
+      if (ageOf(child, day) < lifespanForRace(child.race).comingOfAge) movers.add(childId);
+    }
+  }
+  for (const occupantId of movers) state.villagers[occupantId].homePlotId = targetPlotId;
+}
+
+/**
+ * Make persisted use state agree with actual residents. This also migrates old
+ * saves: a dead-only historic home receives its first abandonment event on the
+ * next simulated day, while an occupied abandoned home is re-opened.
+ */
+function reconcileBuildingUse(state: TownSimState, day: number): void {
+  const residentsByPlot = livingResidentsByPlot(state);
+  for (const plotId of knownHomePlots(state)) {
+    const residents = residentsByPlot.get(plotId) ?? [];
+    const currentUse = currentBuildingUse(state.buildingEvents?.[plotId] ?? []);
+    if (residents.length === 0 && currentUse === 'occupied') {
+      const boardedFraction = 0.45
+        + (fnv1a(`burg:${state.burgId}:plot:${plotId}:abandonment:${day}`) % 31) / 100;
+      const event: BuildingEvent = {
+        day,
+        kind: 'abandonment',
+        payload: { reason: 'household vacancy', boardedFraction },
+      };
+      state.buildingEvents ??= {};
+      state.buildingEvents[plotId] = appendBuildingEvent(state.buildingEvents[plotId], event);
+      addEvent(
+        state.chronicle,
+        day,
+        'building',
+        0,
+        [],
+        `The household on plot ${plotId} stood empty and was boarded up.`,
+      );
+    } else if (residents.length > 0 && currentUse === 'abandoned') {
+      const event: BuildingEvent = {
+        day,
+        kind: 'reoccupation',
+        payload: { occupantId: String(residents[0].occupantId) },
+      };
+      state.buildingEvents ??= {};
+      state.buildingEvents[plotId] = appendBuildingEvent(state.buildingEvents[plotId], event);
+      addEvent(
+        state.chronicle,
+        day,
+        'building',
+        residents[0].occupantId,
+        residents.slice(1).map((resident) => resident.occupantId),
+        `A household brought the abandoned home on plot ${plotId} back into use.`,
+      );
+    }
+  }
+}
+
+/**
+ * Long vacancy has a building-specific lifespan of eight to twenty years.
+ * Once that deterministic threshold passes, neglect becomes a real ruin event
+ * with stable severity rather than a random renderer decoration.
+ */
+function recordNeglectRuins(state: TownSimState, day: number): void {
+  if (day <= 0 || day % DAYS_PER_YEAR !== 0) return;
+  for (const plotId of knownHomePlots(state)) {
+    const events = state.buildingEvents?.[plotId] ?? [];
+    const useState = buildingUseStateSince(events);
+    if (useState.status !== 'abandoned' || useState.sinceDay === null) continue;
+    const vacantYears = 8 + (fnv1a(`burg:${state.burgId}:plot:${plotId}:neglect-years`) % 13);
+    if (day - useState.sinceDay < vacantYears * DAYS_PER_YEAR) continue;
+    const severity = (1 + (fnv1a(`burg:${state.burgId}:plot:${plotId}:neglect-severity`) % 3)) as 1 | 2 | 3;
+    const event: BuildingEvent = {
+      day,
+      kind: 'ruin',
+      payload: { cause: 'neglect', severity },
+    };
+    state.buildingEvents ??= {};
+    state.buildingEvents[plotId] = appendBuildingEvent(events, event);
+    addEvent(
+      state.chronicle,
+      day,
+      'building',
+      0,
+      [],
+      `The long-abandoned home on plot ${plotId} fell into neglectful ruin.`,
+    );
+  }
+}
+
+/**
+ * Turn a prosperous year into one visible, persisted building change. Repairs
+ * take precedence over growth; otherwise one occupied home consumes its next
+ * prevalidated district-aware extension candidate.
+ */
+function recordProsperityBuildingChange(
+  state: TownSimState,
+  day: number,
+  economyKind: EconomyKind,
+): void {
+  if (economyKind !== 'good_year' && economyKind !== 'boom') return;
+  if ((state.prosperity ?? 50) < 55) return;
+
+  const residentsByPlot = new Map<number, LivingVillager[]>();
+  for (const villager of Object.values(state.villagers)) {
+    if (!isAlive(villager)) continue;
+    const residents = residentsByPlot.get(villager.homePlotId) ?? [];
+    residents.push(villager);
+    residentsByPlot.set(villager.homePlotId, residents);
+  }
+  const occupiedPlots = [...residentsByPlot.keys()];
+  const damaged = rankEvolutionPlots(state, day, occupiedPlots.filter((plotId) =>
+    hasUnrepairedBuildingFire(state.buildingEvents?.[plotId] ?? [])));
+  const repairPlot = damaged[0];
+  if (repairPlot !== undefined) {
+    const event: BuildingEvent = { day, kind: 'renovation', payload: { scope: 'repair' } };
+    state.buildingEvents ??= {};
+    state.buildingEvents[repairPlot] = appendBuildingEvent(state.buildingEvents[repairPlot], event);
+    const residents = residentsByPlot.get(repairPlot) ?? [];
+    addEvent(
+      state.chronicle,
+      day,
+      'building',
+      residents[0]?.occupantId ?? 0,
+      residents.slice(1).map((resident) => resident.occupantId),
+      `Prosperity funded repairs to the household on plot ${repairPlot}.`,
+    );
+    return;
+  }
+
+  const extensible = rankEvolutionPlots(state, day, occupiedPlots.filter((plotId) => {
+    const brief = state.buildingEvolution?.[plotId];
+    if (!brief) return false;
+    const used = structuralBuildingHistoryEvents(
+      state.buildingEvents?.[plotId] ?? [],
+    ).length;
+    return used < brief.extensionCandidates.length;
+  }));
+  const plotId = extensible[0];
+  if (plotId === undefined) return;
+  const brief = state.buildingEvolution![plotId];
+  const used = structuralBuildingHistoryEvents(
+    state.buildingEvents?.[plotId] ?? [],
+  ).length;
+  const candidate = brief.extensionCandidates[used];
+  const event: BuildingEvent = {
+    day,
+    kind: 'extension',
+    payload: { phase: candidate.phase, mass: { ...candidate.mass } },
+  };
+  state.buildingEvents ??= {};
+  state.buildingEvents[plotId] = appendBuildingEvent(state.buildingEvents[plotId], event);
+  const residents = residentsByPlot.get(plotId) ?? [];
+  addEvent(
+    state.chronicle,
+    day,
+    'building',
+    residents[0]?.occupantId ?? 0,
+    residents.slice(1).map((resident) => resident.occupantId),
+    `A ${candidate.roofForm}-roofed ${candidate.mass.kind} expanded the household on plot ${plotId}.`,
+  );
+}
+
+/**
+ * Record one town fire against an exact canonical plot without consuming the
+ * life-event RNG. Severity is a named hash of stable incident identity, so this
+ * added persistence channel cannot reroll deaths, births, or economy outcomes.
+ */
+function recordFireDamage(state: TownSimState, day: number, plotId: number): void {
+  const incidentId = `burg:${state.burgId}:day:${day}:fire`;
+  const severity = (2 + (fnv1a(`${incidentId}:plot:${plotId}:severity`) % 2)) as 2 | 3;
+  const event: BuildingEvent = {
+    day,
+    kind: 'fire-damage',
+    payload: { incidentId, severity },
+  };
+  state.buildingEvents ??= {};
+  state.buildingEvents[plotId] = appendBuildingEvent(
+    state.buildingEvents[plotId],
+    event,
+  );
 }
 
 function addEvent(
@@ -320,6 +607,9 @@ export function rollTownDay(
     v.courtshipStartDay = undefined;
     partner.courtingId = undefined;
     partner.courtshipStartDay = undefined;
+    // Marriage creates one real household. Reusing an abandoned home gives
+    // vacancy and reoccupation a demographic cause instead of a cosmetic roll.
+    establishMarriedHousehold(next, day, v, partner);
     addEvent(next.chronicle, day, 'marriage', v.occupantId, [partner.occupantId], `${v.name} married ${partner.name}.`);
   }
 
@@ -430,6 +720,9 @@ export function rollTownDay(
       const base = next.prosperity ?? 50;
       next.prosperity = Math.max(0, Math.min(100, base + outcome.prosperityDelta));
       addEvent(next.chronicle, day, 'economy', 0, [], outcome.summary);
+      // Building evolution follows the updated prosperity meter but uses named
+      // hashes and stored geometry, preserving every existing RNG draw.
+      recordProsperityBuildingChange(next, day, outcome.kind);
     }
 
     // 5b. Annual disaster (rare + dramatic): after the economy pass so its rng
@@ -454,12 +747,21 @@ export function rollTownDay(
         const pool = livingIdsSorted(next);
         const want = disaster.kind === 'fire' ? fireDeaths(pool.length) : plagueDeaths(pool.length);
         const toKill = Math.min(want, pool.length);
+        const firePlots = new Set<number>();
         for (let k = 0; k < toKill; k++) {
           const pick = rng.nextInt(0, pool.length); // MAX-EXCLUSIVE
           const victimId = pool[pick];
           pool.splice(pick, 1);
           const victim = next.villagers[victimId];
+          if (disaster.kind === 'fire') firePlots.add(victim.homePlotId);
           killVillager(next, victim, day, `${victim.name} died in the ${disaster.kind}.`);
+        }
+        // One building event per affected household, even when several victims
+        // shared a home. Sort plot ids so object insertion order is replay-stable.
+        if (disaster.kind === 'fire') {
+          for (const plotId of [...firePlots].sort((a, b) => a - b)) {
+            recordFireDamage(next, day, plotId);
+          }
         }
       }
     }
@@ -493,6 +795,11 @@ export function rollTownDay(
       addEvent(next.chronicle, day, 'raid_worry', 0, [], line);
     }
   }
+
+  // Occupancy reconciliation runs after every cause of death, birth, and move.
+  // Annual neglect then sees the final use state for this day.
+  reconcileBuildingUse(next, day);
+  recordNeglectRuins(next, day);
 
   next.lastSimDay = day;
   return next;

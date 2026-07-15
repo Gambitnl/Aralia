@@ -5,6 +5,8 @@
  *
  * One archetype = one representative body per ancestry group, baked to
  * [idle, walkPhase0 … walkPhaseN-1] merged geometries with per-vertex colors
+ * (body v2: the segment skeleton is posed, its meshes are snapshotted —
+ * no field extraction)
  * (body = skin tone, gear/features = their part colors). A crowd renderer
  * buckets agents by (group, phase) and swaps instances between phase
  * geometries as their gait advances — the blobfolk look at instancing cost.
@@ -22,19 +24,17 @@ import {
   Quaternion,
   Vector3,
 } from 'three';
-import { MarchingCubes } from 'three/examples/jsm/objects/MarchingCubes.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { EntityBlueprint, PartAnchors, PartPhase, Vec3Like } from '../types';
 import { ANCHORS, headRadiusM, heightM } from '../types';
 import { getPart } from '../registry';
 import { createGaitDriver } from './gaits';
 import type { LocomotionState } from './gaits';
-import { FieldSink, ISO } from './assembleEntity';
+import { createSegmentBody } from './segmentBody';
 import { generateEntityBlueprint } from '../generateEntityBlueprint';
 import { recipeFromOccupant } from '../recipeFromOccupant';
 
 export const CROWD_WALK_PHASES = 8;
-const BAKE_RESOLUTION = 30;
 const WALK_SPEED = 1.15;
 
 export interface CrowdArchetype {
@@ -43,32 +43,6 @@ export interface CrowdArchetype {
   heightM: number;
 }
 
-/** Extract the marching-cubes surface (field space → entity meters) + color. */
-function fieldToGeometry(mc: MarchingCubes, fieldScale: number, centerY: number, skin: Color): BufferGeometry {
-  const src = mc.geometry;
-  const count = Math.max(0, src.drawRange.count === Infinity ? 0 : src.drawRange.count);
-  const pos = src.attributes.position;
-  const nor = src.attributes.normal;
-  const positions = new Float32Array(count * 3);
-  const normals = new Float32Array(count * 3);
-  const colors = new Float32Array(count * 3);
-  for (let i = 0; i < count; i++) {
-    positions[i * 3] = pos.getX(i) * fieldScale;
-    positions[i * 3 + 1] = pos.getY(i) * fieldScale + centerY;
-    positions[i * 3 + 2] = pos.getZ(i) * fieldScale;
-    normals[i * 3] = nor.getX(i);
-    normals[i * 3 + 1] = nor.getY(i);
-    normals[i * 3 + 2] = nor.getZ(i);
-    colors[i * 3] = skin.r;
-    colors[i * 3 + 1] = skin.g;
-    colors[i * 3 + 2] = skin.b;
-  }
-  const geo = new BufferGeometry();
-  geo.setAttribute('position', new BufferAttribute(positions, 3));
-  geo.setAttribute('normal', new BufferAttribute(normals, 3));
-  geo.setAttribute('color', new BufferAttribute(colors, 3));
-  return geo;
-}
 
 /** Colorize a part mesh's geometry (world-transformed) for merging. */
 function partMeshToGeometry(mesh: Mesh): BufferGeometry {
@@ -95,11 +69,6 @@ function partMeshToGeometry(mesh: Mesh): BufferGeometry {
 /** Bake one pose (idle, or a specific walk phase in [0,1)). */
 function bakePose(blueprint: EntityBlueprint, walkPhase: number | null): BufferGeometry {
   const { frame, palette, gait } = blueprint;
-  const hM = heightM(frame);
-  const hr = headRadiusM(frame);
-  const wide = gait === 'quad' || gait === 'hexapod';
-  const fieldScale = hM * (wide ? 1.15 : 0.95) + hr * 2;
-  const centerY = hM * 0.5;
 
   const driver = createGaitDriver(gait, frame);
   const loco: LocomotionState = {
@@ -120,11 +89,10 @@ function bakePose(blueprint: EntityBlueprint, walkPhase: number | null): BufferG
     }
   }
 
-  const mc = new MarchingCubes(BAKE_RESOLUTION, new MeshBasicMaterial(), false, false, 40000);
-  mc.isolation = ISO;
-  const sink = new FieldSink(mc, fieldScale, centerY);
-  mc.reset();
-  driver.buildBody(sink);
+  // pose the segment skeleton (solid mode) and snapshot its meshes
+  const body = createSegmentBody({ renderMode: 'solid', colorHex: palette.skinHex, outlineThickness: 0.001 });
+  body.beginFrame();
+  driver.buildBody(body.sink);
   const anchorsView = Object.fromEntries(
     ANCHORS.map((a) => [a, driver.pose.anchors[a].pos as Vec3Like]),
   ) as PartAnchors;
@@ -133,8 +101,10 @@ function bakePose(blueprint: EntityBlueprint, walkPhase: number | null): BufferG
   for (const instance of blueprint.parts) {
     const def = getPart(instance.partId);
     const params = instance.params ?? {};
-    if (def.kind === 'field') {
-      def.buildField!(sink, frame, params, phase, anchorsView);
+    if (def.kind === 'chain') {
+      for (const seg of def.buildChain!(frame, params, phase, anchorsView)) {
+        body.sink.seg(instance.partId + ':' + seg.id, seg.ax, seg.ay, seg.az, seg.bx, seg.by, seg.bz, seg.r0, seg.r1);
+      }
       continue;
     }
     const { object } = def.buildMesh!({
@@ -154,8 +124,17 @@ function bakePose(blueprint: EntityBlueprint, walkPhase: number | null): BufferG
       if (m.isMesh) geometries.push(partMeshToGeometry(m));
     });
   }
-  mc.update();
-  geometries.unshift(fieldToGeometry(mc, fieldScale, centerY, new Color(palette.skinHex)));
+  body.finishFrame();
+  body.root.updateMatrixWorld(true);
+  const bodyGeometries: BufferGeometry[] = [];
+  body.root.traverse((o) => {
+    const m = o as Mesh;
+    if (m.isMesh && m.name !== 'segOutline' && m.visible !== false && m.parent?.visible !== false) {
+      bodyGeometries.push(partMeshToGeometry(m));
+    }
+  });
+  body.dispose();
+  geometries.unshift(...bodyGeometries);
 
   const merged = mergeGeometries(geometries, false);
   if (!merged) {

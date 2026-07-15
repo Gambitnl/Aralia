@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 11/07/2026, 14:55:05
- * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewTowns.tsx, components/MapPane.tsx, components/World3D/World3DScene.tsx, components/Worldforge/TownPlanView.tsx, systems/world3d/buildingModels.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/generateBuilding.ts, systems/worldforge/town/buildingMotifs.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/registerBurgMerchants.ts
- * Imports: 4 files
+ * Last Sync: 14/07/2026, 20:47:44
+ * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewTowns.tsx, components/MapPane.tsx, components/World3D/World3DScene.tsx, components/Worldforge/TownPlanView.tsx, systems/world3d/buildingModels.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/generateBuilding.ts, systems/worldforge/town/buildingMotifs.ts, systems/worldforge/town/buildingWeathering.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -31,12 +31,19 @@ import type { Pt } from '../submap/submapEngine';
 import type {
   ArchitectureIdentity,
   BriefWealth,
+  BuildingConstruction,
+  BuildingEnsemble,
   BuildingType,
   FacadePattern,
   StyleResolved,
 } from '../interior/blueprintTypes';
 import { fnv1a, rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import { resolveBuildingMotifs } from './buildingMotifs';
+import {
+  resolveBuildingConstruction,
+  type ArchitectureFamilyId,
+} from './buildingMaterials';
+import { resolveBuildingWeathering } from './buildingWeathering';
 
 export type RoofForm = 'gable' | 'hip' | 'steep' | 'flat';
 export type GatehouseForm = 'twinTowers' | 'tunnelBlock' | 'singleTower';
@@ -50,7 +57,7 @@ export interface DeckDetail {
 }
 
 export interface StyleFamily {
-  id: 'highlandStone' | 'coastalTimber' | 'riverHalfTimber' | 'roughLog' | 'temperateFrame';
+  id: ArchitectureFamilyId;
   wallPalette: string[];
   roofPalette: string[];
   roofForms: RoofForm[];
@@ -245,25 +252,31 @@ export interface ResolveStyleInput {
   cultureType: string;
   climate: ClimateClass;
   wealth: 'poor' | 'common' | 'wealthy';
-  /**
-   * Phase 3 driver — accepted and carried in the input now, but has NO effect
-   * on the resolved style yet (weathering/patina rules land in Phase 3). Kept
-   * in the signature so callers can wire it once without a later API break.
-   */
+  /** Construction age controls visible patina without changing geometry. */
   ageBand?: 'new' | 'aged' | 'old' | 'ancient';
   /** Optional town/district/building identity for coordinated architecture. */
   architecture?: ArchitectureIdentity;
+  /** Immediate block contract; dense rows coordinate their roof rhythm here. */
+  ensemble?: BuildingEnsemble;
   buildingType: BuildingType;
 }
 
-/** Wealth-restricted slice of a palette: poor → weathered FIRST half,
- *  wealthy → dressed LAST half, common → full range. Always ≥1 long. */
-function tierSlice<T>(palette: T[], wealth: ResolveStyleInput['wealth']): T[] {
-  if (palette.length <= 1) return palette;
+/**
+ * Restrict a family palette to the materials one finish tier can afford.
+ *
+ * The history resolver reuses this exact rule for repairs and later additions,
+ * preventing an old poor house from acquiring a wealthy roof merely because a
+ * re-roofing event was rolled.
+ */
+export function finishPaletteForTier<T>(
+  palette: readonly T[],
+  wealth: BriefWealth,
+): T[] {
+  if (palette.length <= 1) return [...palette];
   const mid = Math.ceil(palette.length / 2);
   if (wealth === 'poor') return palette.slice(0, mid);
   if (wealth === 'wealthy') return palette.slice(palette.length - mid);
-  return palette;
+  return [...palette];
 }
 
 // ============================================================================
@@ -290,6 +303,8 @@ export interface ArchitectureVariant {
   pitchScale: number;
   /** Small eave change in feet; climate still supplies the dominant value. */
   eaveOffsetFt: number;
+  /** Physical material kit coordinated at district scope. */
+  construction: BuildingConstruction;
 }
 
 /** Stable 0..1 value from a readable identity string. No shared RNG is consumed. */
@@ -328,6 +343,7 @@ export function resolveArchitectureVariant(
   family: StyleFamily,
   wealth: BriefWealth,
   identity: ArchitectureIdentity,
+  ensemble?: BuildingEnsemble,
 ): ArchitectureVariant {
   // Culture + settlement + spatial district own the structural recipe. Wealth
   // deliberately stays OUT of this key: two social classes on the same street
@@ -341,12 +357,20 @@ export function resolveArchitectureVariant(
   const finishKey = `${districtKey}|wealth:${wealth}`;
   const buildingKey = `${districtKey}|${identity.buildingKey}`;
   const finishBuildingKey = `${finishKey}|${identity.buildingKey}`;
+  // Connected street rows read as one constructed frontage: their wall-top is
+  // already shared by the ensemble receipt, so roof form, pitch, and overhang
+  // now derive from that same block. Detached and courtyard buildings retain
+  // individual skyline variation from their building key.
+  const coordinatedRoof = ensemble?.kind === 'row' || ensemble?.kind === 'market-arcade';
+  const roofRhythmKey = coordinatedRoof
+    ? `${districtKey}|block:${ensemble.blockKey}`
+    : buildingKey;
 
   // Wealth limits which finishes are available, then chooses a dominant plus
   // one related secondary from that smaller set. These material choices may
   // differ inside one district without changing its construction grammar.
-  const walls = tierSlice(family.wallPalette, wealth);
-  const roofs = tierSlice(family.roofPalette, wealth);
+  const walls = finishPaletteForTier(family.wallPalette, wealth);
+  const roofs = finishPaletteForTier(family.roofPalette, wealth);
   const districtWall = pickByText(walls, `${finishKey}|wall:dominant`);
   const secondaryWall = relatedAlternative(walls, districtWall, `${finishKey}|wall:secondary`);
   const districtRoof = pickByText(roofs, `${finishKey}|roof-color:dominant`);
@@ -375,17 +399,24 @@ export function resolveArchitectureVariant(
   const roofColor = textHash01(`${finishBuildingKey}|roof-color:loyalty`) < 0.78
     ? districtRoof
     : secondaryRoof;
-  const roofForm = textHash01(`${buildingKey}|roof-form:loyalty`) < 0.78
+  const roofForm = textHash01(`${roofRhythmKey}|roof-form:loyalty`) < 0.78
     ? districtRoofForm
     : secondaryRoofForm;
   const facadePattern = textHash01(`${buildingKey}|facade:loyalty`) < 0.80
     ? districtFacade
     : secondaryFacade;
 
-  // Silhouette changes stay within a narrow band. They make adjacent roofs
-  // distinct in profile while climate and roof form remain the dominant read.
-  const pitchScale = 0.88 + textHash01(`${buildingKey}|pitch`) * 0.24;
-  const eaveOffsetFt = (textHash01(`${buildingKey}|eave`) - 0.5) * 0.5;
+  // Silhouette changes stay within a narrow band. Detached/courtyard roofs gain
+  // individual profile variation; connected rows repeat one block rhythm while
+  // climate and family roof grammar remain the dominant read everywhere.
+  const pitchScale = 0.88 + textHash01(`${roofRhythmKey}|pitch`) * 0.24;
+  const eaveOffsetFt = (textHash01(`${roofRhythmKey}|eave`) - 0.5) * 0.5;
+  const construction = resolveBuildingConstruction({
+    familyId: family.id,
+    wealth,
+    architecture: identity,
+    standaloneKey: buildingKey,
+  });
 
   return {
     wallColor,
@@ -396,6 +427,7 @@ export function resolveArchitectureVariant(
     buildingVariant: fnv1a(buildingKey).toString(36),
     pitchScale,
     eaveOffsetFt,
+    construction,
   };
 }
 
@@ -419,10 +451,10 @@ export function resolveStyle(input: ResolveStyleInput, path: SeedPath): StyleRes
   // use them; identified town buildings use the bounded variant while leaving
   // the old stream's order and draw count untouched.
   const legacyRoofForm = pick(fam.roofForms, rng.next());
-  const legacyWallColor = pick(tierSlice(fam.wallPalette, input.wealth), rng.next());
-  const legacyRoofColor = pick(tierSlice(fam.roofPalette, input.wealth), rng.next());
+  const legacyWallColor = pick(finishPaletteForTier(fam.wallPalette, input.wealth), rng.next());
+  const legacyRoofColor = pick(finishPaletteForTier(fam.roofPalette, input.wealth), rng.next());
   const variant = input.architecture
-    ? resolveArchitectureVariant(fam, input.wealth, input.architecture)
+    ? resolveArchitectureVariant(fam, input.wealth, input.architecture, input.ensemble)
     : undefined;
 
   let roofForm = variant?.roofForm ?? legacyRoofForm;
@@ -471,6 +503,24 @@ export function resolveStyle(input: ResolveStyleInput, path: SeedPath): StyleRes
     districtSignature,
     buildingVariant,
   );
+  // Construction materials use named hashes rather than the legacy style RNG.
+  // Identified buildings reuse the district-coordinated answer above; standalone
+  // previews receive a deterministic complete kit from their stable path.
+  const construction = variant?.construction ?? resolveBuildingConstruction({
+    familyId: fam.id,
+    wealth: input.wealth,
+    standaloneKey: path,
+  });
+  // Weathering uses named hashes and the already-resolved material kit. It does
+  // not consume the legacy style stream or alter any structural roof answer.
+  const weathering = resolveBuildingWeathering({
+    familyId: fam.id,
+    climate: input.climate,
+    ageBand: input.ageBand,
+    construction,
+    architecture: input.architecture,
+    standaloneKey: path,
+  });
 
   return {
     familyId: fam.id,
@@ -486,6 +536,8 @@ export function resolveStyle(input: ResolveStyleInput, path: SeedPath): StyleRes
     districtSignature,
     buildingVariant,
     facadePattern,
+    construction,
+    weathering,
     motifs: motifResolution.motifs,
     motifVariant: motifResolution.motifVariant,
     motifSignature: motifResolution.motifSignature,

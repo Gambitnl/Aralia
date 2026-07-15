@@ -1,0 +1,40 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E9D5FF" />
+      <stop offset="50%" stop-color="#C084FC" />
+      <stop offset="100%" stop-color="#7E22CE" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background shadow for contrast -->
+  <circle cx="50" cy="50" r="45" fill="#1a1a1a" opacity="0.5" />
+
+  <!-- Hand Silhouette -->
+  <path d="M30 80 Q35 75 40 80 L42 60 Q40 55 45 55 L50 40 Q52 35 58 40 L62 55 Q65 60 62 65 L60 80 Q55 85 50 80 Z" fill="#2d2d2d" stroke="#C084FC" stroke-width="1" />
+  
+  <!-- The Casting Gesture: Fingers pinching/weaving -->
+  <path d="M42 60 C40 50 45 45 50 45 M58 60 C60 50 55 45 50 45" fill="none" stroke="#C084FC" stroke-width="2" stroke-linecap="round" />
+
+  <!-- The Manifestation: Fragmented object coalescing -->
+  <g filter="url(#glow)">
+    <!-- Glitching/Fragmented Cube shape -->
+    <path d="M40 35 L60 35 L65 45 L45 45 Z" fill="url(#purpleGrad)" opacity="0.8" />
+    <path d="M45 45 L65 45 L60 55 L40 55 Z" fill="#7E22CE" opacity="0.6" />
+    <path d="M40 35 L40 55 L45 45 L40 35" fill="#E9D5FF" opacity="0.4" />
+    
+    <!-- Floating Shards -->
+    <rect x="35" y="30" width="4" height="4" fill="#C084FC" transform="rotate(45 35 30)" />
+    <rect x="62" y="32" width="3" height="3" fill="#E9D5FF" transform="rotate(15 62 32)" />
+    <rect x="55" y="58" width="5" height="2" fill="#C084FC" />
+    <rect x="38" y="52" width="2" height="5" fill="#7E22CE" />
+  </g>
+
+  <!-- Swirling Energy Lines -->
+  <path d="M30 40 Q50 20 70 40" fill="none" stroke="#C084FC" stroke-width="1" stroke-dasharray="4 2" opacity="0.6" />
+  <path d="M30 60 Q50 80 70 60" fill="none" stroke="#C084FC" stroke-width="1" stroke-dasharray="2 4" opacity="0.4" />
+</svg>

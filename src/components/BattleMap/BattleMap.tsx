@@ -85,6 +85,8 @@ interface BattleMapProps {
   showLightSourceMarkers?: boolean;
   showLineOfSightCone?: boolean;
   assetOverlayVisible?: boolean;
+  /** Debug/review surfaces may prioritize whole-map context over token size. */
+  preferFullMapFit?: boolean;
   cameraFocusRequest?: { characterId: string; requestId: number } | null;
   objectInteraction?: {
     activeObjectId: string | null;
@@ -103,7 +105,7 @@ interface BattleMapProps {
   };
 }
 
-const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLabels = false, showLightSourceMarkers = true, showLineOfSightCone = false, assetOverlayVisible = true, cameraFocusRequest = null, objectInteraction, spellMapArtifacts, combatState }) => {
+const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLabels = false, showLightSourceMarkers = true, showLineOfSightCone = false, assetOverlayVisible = true, preferFullMapFit = false, cameraFocusRequest = null, objectInteraction, spellMapArtifacts, combatState }) => {
   const { turnManager, turnState, abilitySystem, isCharacterTurn } = combatState;
   const [lineOfSightOverlayVisible, setLineOfSightOverlayVisible] = useState(showLineOfSightCone);
   const [pendingCameraCenterCharacterId, setPendingCameraCenterCharacterId] = useState<string | null>(null);
@@ -286,7 +288,10 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
   // never below the usable minimum), a number is an explicit zoom the player
   // chose via the controls or mouse wheel.
   const [userZoom, setUserZoom] = useState<number | null>(null);
-  const autoScale = fitScale < MIN_USABLE_BOARD_SCALE ? 1 : fitScale;
+  // Production combat protects token usability with the 70% floor. Scenario
+  // review can opt into a true fit so road/river continuity is visible before
+  // the reviewer zooms into mechanics.
+  const autoScale = preferFullMapFit || fitScale >= MIN_USABLE_BOARD_SCALE ? fitScale : 1;
   const boardScale = userZoom ?? autoScale;
   // Slack on the comparison: scrollbar appearance/disappearance nudges the
   // measured fit scale, so demand a real overshoot before switching the pane

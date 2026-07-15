@@ -31,7 +31,13 @@ after(async () => {
 });
 
 // --- tiny JSON HTTP helper --------------------------------------------------
-function request(method, pathname, { token, body } = {}) {
+function request(method, pathname, opts = {}) {
+  return requestOn(port, method, pathname, opts);
+}
+
+// Same helper against an explicit port, for tests that boot their own server
+// instance (e.g. the archive/replay test below).
+function requestOn(targetPort, method, pathname, { token, body } = {}) {
   return new Promise((resolve, reject) => {
     const data = body != null ? JSON.stringify(body) : null;
     const headers = {};
@@ -40,7 +46,7 @@ function request(method, pathname, { token, body } = {}) {
       headers['Content-Length'] = Buffer.byteLength(data);
     }
     if (token) headers['Authorization'] = `Bearer ${token}`;
-    const req = http.request({ host: '127.0.0.1', port, method, path: pathname, headers }, (res) => {
+    const req = http.request({ host: '127.0.0.1', port: targetPort, method, path: pathname, headers }, (res) => {
       const chunks = [];
       res.on('data', (c) => chunks.push(c));
       res.on('end', () => {
@@ -391,4 +397,145 @@ test('WF-G24: SSE hello snapshot and agent.register events carry no bearer token
     });
     req.end();
   });
+});
+
+// --- Board tidying (planning-surface-freshness Task 6) -----------------------
+
+test('handoff to unknown agent -> 422; task stays with holder', async () => {
+  const a = await registerAgent('handoff-holder');
+  const create = await request('POST', '/tasks', { token: a.token, body: { title: 'handoff probe' } });
+  assert.equal(create.status, 201);
+  const id = create.json.task.id;
+  const claim = await request('POST', `/tasks/${id}/claim`, { token: a.token });
+  assert.equal(claim.status, 200);
+
+  const r = await request('POST', `/tasks/${id}/handoff`, {
+    token: a.token,
+    body: { toAgentId: 'ghost-9999' },
+  });
+  assert.equal(r.status, 422);
+
+  const list = await request('GET', '/tasks');
+  const task = list.json.tasks.find((t) => t.id === id);
+  assert.ok(task, 'task still on the board');
+  assert.equal(task.state, 'claimed');
+  assert.equal(task.claimedBy, a.agentId, 'task stays with the holder');
+});
+
+test('archiveDoneTasks files old done tasks and survives replay', async () => {
+  // Own temp dir + server instance: the replay half reboots on the same dir,
+  // which must not disturb the shared suite server.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-archive-test-'));
+  const app1 = createAgoraServer({ dir });
+  await new Promise((resolve) => app1.listen(0, resolve));
+  const port1 = app1.server.address().port;
+  const req1 = (method, pathname, opts) => requestOn(port1, method, pathname, opts);
+
+  let app2;
+  try {
+    const reg = await req1('POST', '/agents/register', { body: { handle: 'archive-worker' } });
+    assert.equal(reg.status, 201);
+    const a = reg.json;
+
+    const create = await req1('POST', '/tasks', { token: a.token, body: { title: 'old done work' } });
+    const id = create.json.task.id;
+    await req1('POST', `/tasks/${id}/claim`, { token: a.token });
+    const done = await req1('POST', `/tasks/${id}/state`, { token: a.token, body: { state: 'done' } });
+    assert.equal(done.json.task.state, 'done');
+
+    // Backdate past the 14-day archive horizon (test-only seam).
+    app1.store.__setTaskUpdatedAt(id, Date.now() - 15 * 86400000);
+
+    // Unauthed tidy -> 401; authed tidy archives exactly the one task.
+    const unauth = await req1('POST', '/admin/tidy');
+    assert.equal(unauth.status, 401);
+    const tidy = await req1('POST', '/admin/tidy', { token: a.token });
+    assert.equal(tidy.status, 200);
+    assert.equal(tidy.json.archived, 1);
+
+    const list = await req1('GET', '/tasks');
+    assert.equal(list.json.tasks.some((t) => t.id === id), false, 'archived task left the live board');
+
+    // The monthly archive JSONL under <dir>/archive holds the full task line.
+    const archiveDir = path.join(dir, 'archive');
+    const files = fs.readdirSync(archiveDir).filter((f) => /^tasks-\d{4}-\d{2}\.jsonl$/.test(f));
+    assert.equal(files.length, 1);
+    const lines = fs.readFileSync(path.join(archiveDir, files[0]), 'utf8').trim().split('\n');
+    const archived = JSON.parse(lines[lines.length - 1]);
+    assert.equal(archived.id, id);
+    assert.equal(archived.state, 'done');
+
+    // Replay: boot a SECOND server on the same dir WITHOUT closing the first
+    // store (no snapshot rotation), so the new store must reconstruct the board
+    // from the journal — including the task.archived event.
+    app2 = createAgoraServer({ dir });
+    assert.equal(
+      app2.store.listTasks().some((t) => t.id === id),
+      false,
+      'journal replay keeps the archived task off the board',
+    );
+  } finally {
+    app1.server.closeAllConnections?.();
+    await new Promise((resolve) => app1.server.close(resolve));
+    if (app2) await app2.close();
+    try {
+      app1.store.close();
+    } catch {
+      /* first store may already be rotated out by app2's close */
+    }
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      /* best-effort cleanup on Windows */
+    }
+  }
+});
+
+test('campaigns expose ownerAlive=false when the lead is gone', async () => {
+  const a = await registerAgent('campaign-owner');
+  const claim = await request('POST', '/campaigns', {
+    token: a.token,
+    body: { id: 'tidy-probe', paths: ['tools/agora/tidy-probe.txt'], scope: 'ownerAlive test' },
+  });
+  assert.equal(claim.status, 201);
+
+  const live = await request('GET', '/campaigns');
+  const rowLive = live.json.campaigns.find((c) => c.id === 'tidy-probe');
+  assert.ok(rowLive, 'campaign listed');
+  assert.equal(rowLive.ownerAlive, true, 'live owner reads alive');
+
+  // Drop the owner from the roster; the campaign row survives it.
+  const retire = await request('POST', '/agents/retire', { token: a.token });
+  assert.equal(retire.status, 200);
+
+  const r = await request('GET', '/campaigns');
+  const row = r.json.campaigns.find((c) => c.id === 'tidy-probe');
+  assert.ok(row, 'campaign still listed after the owner is gone');
+  assert.equal(row.ownerAlive, false);
+});
+
+// ---------------------------------------------------------------------------
+// Freshness trigger (planning-surface-freshness Task 7): any successful task
+// mutation schedules ONE debounced sync-surfaces run; bursts coalesce.
+test('task mutations coalesce into one scheduled sync run', async () => {
+  const dir2 = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-sync-trigger-'));
+  let runs = 0;
+  const app2 = createAgoraServer({ dir: dir2, syncDelayMs: 60, syncRunner: () => { runs += 1; } });
+  await new Promise((resolve) => app2.listen(0, resolve));
+  const p2 = app2.server.address().port;
+  try {
+    const reg = await requestOn(p2, 'POST', '/agents/register', { body: { handle: 'sync-trig' } });
+    assert.equal(reg.status, 201);
+    const token = reg.json.token;
+    for (let i = 0; i < 3; i += 1) {
+      const r = await requestOn(p2, 'POST', '/tasks', { token, body: { title: `trigger probe ${i}` } });
+      assert.equal(r.status, 201);
+    }
+    assert.equal(runs, 0, 'debounced — no immediate run');
+    await new Promise((r) => setTimeout(r, 220));
+    assert.equal(runs, 1, 'three mutations inside the window = exactly one run');
+  } finally {
+    await app2.close();
+    fs.rmSync(dir2, { recursive: true, force: true });
+  }
 });

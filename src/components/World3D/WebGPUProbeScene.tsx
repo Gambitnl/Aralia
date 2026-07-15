@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/07/2026, 13:10:04
+ * Last Sync: 14/07/2026, 21:08:27
  * Dependents: components/World3D/WebGPUProbe.tsx
- * Imports: 19 files
+ * Imports: 20 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -87,6 +87,7 @@ import { chunkOriginWorld, worldToChunk } from '@/systems/world3d/coords';
 import { rebaseChunkPositions } from '@/systems/world3d/chunkRebase';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
+import { isSitePartRenderable } from '@/systems/worldforge/bridge/sitePartTransform';
 import { sunFromTime, DEFAULT_TIME_OF_DAY_H } from './World3DLighting';
 import { buildRoofGeometry } from '@/systems/world3d/buildingModels';
 import {
@@ -398,7 +399,11 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number]; mat
   return (
     <group position={[s.localX, s.surfaceY, s.localZ]} rotation={[0, s.rotationY ?? 0, 0]}>
       {s.parts ? (
-        s.parts.map((p, i) => (
+        s.parts
+          // Match the production WebGL renderer: tactical-only party walls
+          // remain in the payload but never become duplicate visible meshes.
+          .filter(isSitePartRenderable)
+          .map((p, i) => (
           <mesh
             key={`part-${i}`}
             position={[p.x, (p.baseY ?? 0) + p.h * 0.5, p.z * -(s.doorZSign ?? -1)]}
@@ -406,7 +411,7 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number]; mat
           >
             <boxGeometry args={[p.w, p.h, p.d]} />
           </mesh>
-        ))
+          ))
       ) : (
         <mesh position={[0, (s.boxHeight ?? 0) * 0.5, 0]} material={mat(s.colorHex ?? '#b09a72', true)}>
           <boxGeometry args={[s.boxWidth, s.boxHeight, s.boxDepth]} />

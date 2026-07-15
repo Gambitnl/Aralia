@@ -1,0 +1,46 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="fireGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#4338CA" />
+      <stop offset="50%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#C7D2FE" />
+    </linearGradient>
+    <radialGradient id="impactGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#C7D2FE" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#4338CA" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background Impact Glow -->
+  <circle cx="50" cy="50" r="30" fill="url(#impactGrad)" />
+
+  <!-- Motion Streak -->
+  <path d="M10 80 Q 30 70, 45 55" stroke="#818CF8" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.6" />
+  <path d="M5 85 Q 25 75, 40 60" stroke="#4338CA" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.4" />
+
+  <!-- The Impact Point/Flame Strike -->
+  <g filter="url(#glow)">
+    <!-- Outer Flame Petals -->
+    <path d="M50 30 Q 60 50 50 70 Q 40 50 50 30" fill="url(#fireGrad)" />
+    <path d="M50 35 Q 70 45 60 60 Q 50 55 50 35" fill="#818CF8" />
+    <path d="M50 35 Q 30 45 40 60 Q 50 55 50 35" fill="#818CF8" />
+    
+    <!-- Inner Core -->
+    <circle cx="50" cy="50" r="6" fill="#E0E7FF" />
+    
+    <!-- Shrapnel/Sparks -->
+    <line x1="50" y1="50" x2="70" y2="30" stroke="#C7D2FE" stroke-width="2" stroke-linecap="round" />
+    <line x1="50" y1="50" x2="30" y2="30" stroke="#C7D2FE" stroke-width="2" stroke-linecap="round" />
+    <line x1="50" y1="50" x2="75" y2="55" stroke="#818CF8" stroke-width="2" stroke-linecap="round" />
+    <line x1="50" y1="50" x2="25" y2="55" stroke="#818CF8" stroke-width="2" stroke-linecap="round" />
+    <line x1="50" y1="50" x2="50" y2="20" stroke="#C7D2FE" stroke-width="2" stroke-linecap="round" />
+    <line x1="50" y1="50" x2="50" y2="80" stroke="#4338CA" stroke-width="2" stroke-linecap="round" />
+  </g>
+
+  <!-- Ground/Surface Impact Ring -->
+  <ellipse cx="50" cy="75" rx="20" ry="5" fill="none" stroke="#4338CA" stroke-width="1" opacity="0.5" />
+</svg>

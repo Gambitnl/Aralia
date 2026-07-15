@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 11/07/2026, 15:04:31
- * Dependents: components/World3D/InteriorHourContext.tsx, components/World3D/OccupantFigure.tsx, systems/world3d/types.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/sitePartTransform.ts
- * Imports: 9 files
+ * Last Sync: 14/07/2026, 21:38:02
+ * Dependents: components/World3D/InteriorHourContext.tsx, systems/world3d/types.ts, systems/worldforge/bridge/buildingHistoryParts.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/sitePartTransform.ts
+ * Imports: 15 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -39,20 +39,54 @@ import { blueprintForPlot, generateInterior, type InteriorPlotInput } from '../i
 import { EXTERIOR, type InteriorRoom, type InteriorPlan } from '../interior/types';
 import type {
   BuildingMotif,
+  BuildingHistoryFeature,
+  BuildingLiveHistoryFeature,
   BlueprintPlan,
   FacadePattern,
   WallRun,
 } from '../interior/blueprintTypes';
+import { blueprintSiteOrigin } from '../interior/blueprintTypes';
 import { HEARTH_KINDS } from '../interior/occupancy';
 import { OUTER_THICKNESS_FT } from '../interior/walls';
-import { buildBuildingMeshData, buildRoofMeshData, type MeshBox } from '../../world3d/buildingModels';
+import {
+  buildBuildingMeshData,
+  buildRoofMeshData,
+  roofDeformationForPlan,
+  type MeshBox,
+} from '../../world3d/buildingModels';
 import type { ChunkGeometryArrays } from '../../world3d/types';
 import type { SeedPath } from '../seedPath';
 import { buildBuildingMotifParts } from './buildingMotifParts';
+import { buildBuildingHistoryParts } from './buildingHistoryParts';
+import {
+  buildBuildingMaterialParts,
+  glazingPaneColor,
+  type MaterialDetailKind,
+} from './buildingMaterialParts';
+import {
+  buildBuildingWeatheringParts,
+  type WeatheringDetailKind,
+} from './buildingWeatheringParts';
+import {
+  buildBuildingEnsembleParts,
+  type EnsembleDetailKind,
+} from './buildingEnsembleParts';
+import { isVisibleExteriorRun } from './buildingPartyWalls';
+import { CELL_FT } from '../units';
 
 // Preserve the bridge's public tag import while the dedicated motif module owns
 // the geometry and literal. Existing renderers and tests need no migration.
 export { MOTIF_PART_TAG } from './buildingMotifParts';
+// Permanent history has its own tag for renderer inspection and tactical
+// exclusion, parallel to the existing role-motif contract.
+export { HISTORY_PART_TAG } from './buildingHistoryParts';
+// Construction materials have their own semantic tag for renderer inspection
+// and tactical exclusion, parallel to motifs and permanent history.
+export { MATERIAL_PART_TAG } from './buildingMaterialParts';
+// Age and climate patina remains independently inspectable and nonstructural.
+export { WEATHERING_PART_TAG } from './buildingWeatheringParts';
+// Block-level eaves and arcades stay separately inspectable and nonstructural.
+export { ENSEMBLE_PART_TAG } from './buildingEnsembleParts';
 
 /** One renderable box, site-local meters (y sits on the ground). */
 export interface SitePart {
@@ -62,6 +96,12 @@ export interface SitePart {
   d: number;
   h: number;
   colorHex: string;
+  /**
+   * Tactical-only parts remain authoritative for combat extraction but are
+   * omitted by 3D renderers. Row blocks use this to keep each home enclosed
+   * without drawing two structural walls at one shared lot boundary.
+   */
+  renderRole?: 'tactical-only';
   /** Base elevation in meters (default 0 = on the floor). Lets a part float
    * above the ground — e.g. an occupant's head atop their body. */
   baseY?: number;
@@ -75,6 +115,14 @@ export interface SitePart {
   tag?: string;
   /** Exact exterior motif represented by this additive part. */
   motifKind?: BuildingMotif;
+  /** Exact permanent-history fact represented by this additive part. */
+  historyKind?: BuildingHistoryFeature['kind'] | BuildingLiveHistoryFeature['kind'];
+  /** Exact physical construction detail represented by this additive part. */
+  materialDetailKind?: MaterialDetailKind;
+  /** Exact age/exposure mark represented by this presentation-only part. */
+  weatheringDetailKind?: WeatheringDetailKind;
+  /** Exact block-level row or arcade cue represented by this additive part. */
+  ensembleDetailKind?: EnsembleDetailKind;
   /** When set, this part is a live-lit surface the renderer drives from the
    * building's hourly schedule: 'window' glass or the 'hearth' fire. Set
    * UNCONDITIONALLY at bake (independent of any hour) so the renderer can find
@@ -292,7 +340,16 @@ export function buildInterior(
   // building is occupied at a dusk/night bake hour. Decided by the caller from
   // occupancy; defaults false so daytime / briefless bakes are unchanged.
   litWindows = false,
-): { envelope: { wallWidthM: number; wallDepthM: number }; parts: SitePart[]; roof?: RoofPartGroup } {
+): {
+  envelope: {
+    wallWidthM: number;
+    wallDepthM: number;
+    siteOriginXFt?: number;
+    siteOriginYFt?: number;
+  };
+  parts: SitePart[];
+  roof?: RoofPartGroup;
+} {
   // PERF NOTE (2026-07-08): blueprintForPlot runs ~3x per populated plot — here
   // (generateInterior fetches it internally, plus the blueprintForPlot call
   // below) and once more in occupancyScheduleForPlot. It LOOKS wasteful, but
@@ -318,7 +375,15 @@ export function buildInterior(
     : { dressing: [] as SitePart[], roof: undefined };
   parts.push(...dressing);
   return {
-    envelope: { wallWidthM: plan.widthFt * FT, wallDepthM: plan.depthFt * FT },
+    envelope: {
+      wallWidthM: plan.widthFt * FT,
+      wallDepthM: plan.depthFt * FT,
+      // Legacy chunks remain sparse; only asymmetric structural history needs
+      // to carry an origin distinct from the current envelope center.
+      ...(plan.siteOriginFt
+        ? { siteOriginXFt: plan.siteOriginFt.x, siteOriginYFt: plan.siteOriginFt.y }
+        : {}),
+    },
     parts,
     ...(roof ? { roof } : {}),
   };
@@ -387,8 +452,8 @@ function facadeBandSpans(
  */
 function facadePartOnRun(
   run: WallRun,
-  planWidthFt: number,
-  planDepthFt: number,
+  originXFt: number,
+  originYFt: number,
   alongCenterFt: number,
   alongLengthFt: number,
   baseYFt: number,
@@ -407,8 +472,8 @@ function facadePartOnRun(
   if (run.axis === 'x') {
     return {
       ...common,
-      x: (alongCenterFt - planWidthFt / 2) * FT,
-      z: (run.y1 - planDepthFt / 2 + run.ny * outwardFt) * FT,
+      x: (alongCenterFt - originXFt) * FT,
+      z: (run.y1 - originYFt + run.ny * outwardFt) * FT,
       w: alongLengthFt * FT,
       d: FACADE_DEPTH_M,
     };
@@ -417,8 +482,8 @@ function facadePartOnRun(
   // Vertical wall runs extend along plan y and project along their x normal.
   return {
     ...common,
-    x: (run.x1 - planWidthFt / 2 + run.nx * outwardFt) * FT,
-    z: (alongCenterFt - planDepthFt / 2) * FT,
+    x: (run.x1 - originXFt + run.nx * outwardFt) * FT,
+    z: (alongCenterFt - originYFt) * FT,
     w: FACADE_DEPTH_M,
     d: alongLengthFt * FT,
   };
@@ -441,6 +506,7 @@ function facadeDetails(
   if (!style || style.facadePattern === 'plain') return [];
 
   const pattern: FacadePattern = style.facadePattern;
+  const origin = blueprintSiteOrigin(blueprint);
   const storeyHeightFt = storeyHeightM / FT;
   const parts: SitePart[] = [];
 
@@ -451,7 +517,7 @@ function facadeDetails(
     const floorBaseFt = floor.level * storeyHeightFt;
 
     for (const run of floor.wallRuns) {
-      if (run.kind !== 'outer') continue;
+      if (!isVisibleExteriorRun(blueprint, run)) continue;
       const [lo, hi] = wallRunSpan(run);
       const runLengthFt = hi - lo;
       if (runLengthFt <= 0) continue;
@@ -476,8 +542,8 @@ function facadeDetails(
         for (const [spanLo, spanHi] of facadeBandSpans(run, floor.windows, lo, hi)) {
           parts.push(facadePartOnRun(
             run,
-            blueprint.widthFt,
-            blueprint.depthFt,
+            origin.x,
+            origin.y,
             (spanLo + spanHi) / 2,
             spanHi - spanLo,
             floorBaseFt + offsetFt,
@@ -512,8 +578,8 @@ function facadeDetails(
           );
           parts.push(facadePartOnRun(
             run,
-            blueprint.widthFt,
-            blueprint.depthFt,
+            origin.x,
+            origin.y,
             centerFt,
             postWidthFt,
             floorBaseFt + 0.45,
@@ -547,32 +613,51 @@ function blueprintStructureParts(
   litWindows = false,
 ): SitePart[] {
   const md = buildBuildingMeshData(bp, { storeyHeightFt: storeyHeightM / FT });
-  const W = bp.widthFt;
-  const D = bp.depthFt;
+  const origin = blueprintSiteOrigin(bp);
   // Styled blueprints own their regional/district wall material. The role
   // color remains the honest fallback for legacy or synthetic plans that have
   // no resolved style.
   const exteriorWallColor = bp.styleResolved?.wallColor ?? perimeterColor;
+  const windowPaneColor = bp.styleResolved
+    ? glazingPaneColor(bp.styleResolved.construction.glazing)
+    : WINDOW_PANE_COLOR;
   const colorFor = (b: MeshBox): string => {
     switch (b.kind) {
       case 'floor': return FLOOR_COLOR;
       case 'ceiling': return CEILING_COLOR;
       case 'stair': return STAIR_COLOR;
       case 'door-lintel': return DOOR_LINTEL_COLOR;
-      case 'window-pane': return WINDOW_PANE_COLOR;
+      case 'window-pane': return windowPaneColor;
       default: return b.wallKind === 'outer' ? exteriorWallColor : INTERIOR_WALL_COLOR;
     }
   };
   const parts: SitePart[] = [];
   for (const floor of md.floors) {
     for (const b of floor.boxes) {
+      // Frontage order is stable inside a town block. When the opposite
+      // neighbor owns this side's masonry, retain the wall for tactical
+      // extraction but tell renderers not to draw the duplicate copy.
+      const ensemble = bp.ensemble;
+      const isLeftPartyWall = b.wallKind === 'outer'
+        && b.nx === -1
+        && b.ny === 0
+        && ensemble?.partyWallLeft === true;
+      const isRightPartyWall = b.wallKind === 'outer'
+        && b.nx === 1
+        && b.ny === 0
+        && ensemble?.partyWallRight === true;
+      const tacticalOnly =
+        (isLeftPartyWall && ensemble?.partyWallOwner === 'earlier-frontage-member')
+        || (isRightPartyWall && ensemble?.partyWallOwner === 'later-frontage-member');
+
       parts.push({
-        x: (b.x - W / 2) * FT,
-        z: (b.y - D / 2) * FT,
+        x: (b.x - origin.x) * FT,
+        z: (b.y - origin.y) * FT,
         w: b.w * FT,
         d: b.d * FT,
         h: b.h * FT,
         colorHex: colorFor(b),
+        ...(tacticalOnly ? { renderRole: 'tactical-only' as const } : {}),
         ...(b.z0 !== 0 ? { baseY: b.z0 * FT } : {}),
         // Window panes are ALWAYS tagged 'window' (bake-hour independent); the
         // renderer decides lit/dark live from the building's schedule.
@@ -581,10 +666,15 @@ function blueprintStructureParts(
     }
   }
 
-  // Facade grammar and role motifs are additive dressing outside the completed
-  // structural walk. Core boxes, openings, slabs, and stairs are never rewritten.
+  // Construction materials, weathering, facade grammar, role motifs, and
+  // permanent history are additive dressing outside the completed structural
+  // walk. Core boxes, openings, slabs, and stairs are never rewritten.
+  parts.push(...buildBuildingMaterialParts(bp, storeyHeightM));
+  parts.push(...buildBuildingWeatheringParts(bp, storeyHeightM));
+  parts.push(...buildBuildingEnsembleParts(bp, storeyHeightM));
   parts.push(...facadeDetails(bp, storeyHeightM));
   parts.push(...buildBuildingMotifParts(bp, storeyHeightM));
+  parts.push(...buildBuildingHistoryParts(bp, storeyHeightM));
   return parts;
 }
 
@@ -627,18 +717,19 @@ function blueprintRoof(
   perimeterColor: string,
 ): { dressing: SitePart[]; roof?: RoofPartGroup } {
   if (!bp.roof) return { dressing: [] };
-  const W = bp.widthFt;
-  const D = bp.depthFt;
+  const origin = blueprintSiteOrigin(bp);
+  const envelopeCenterX = bp.widthFt / 2;
+  const envelopeCenterY = bp.depthFt / 2;
   // Wall top = built (above-grade) storeys × storey height, in FEET — matches
   // the wallTopFt the roof solver used (generateBuilding: storeys * storeyFt).
   const storeyFt = storeyHeightM / FT;
   const aboveGradeStoreys = bp.floors.filter((f) => f.level >= 0).length;
   const wallTopFt = aboveGradeStoreys * storeyFt;
-  const rm = buildRoofMeshData(bp.roof, wallTopFt);
+  const rm = buildRoofMeshData(bp.roof, wallTopFt, roofDeformationForPlan(bp));
 
   // Roof geometry group: plan feet → meters. The mesh Y axis is vertical, so a
   // MeshBox-frame (x, Y, z) point maps to the site frame the same way the box
-  // parts do — center on the footprint (x−W/2, z−D/2) and scale by FT; Y is the
+  // parts do — anchor on the stable site origin and scale by FT; Y is the
   // world-up baseY offset the renderer applies. Positions are [x, Y, z] triples.
   //
   // Eave-overhang fix (BGv2 Phase 1B): the solver sets the eave `eaveOverhangFt`
@@ -657,15 +748,38 @@ function blueprintRoof(
   // Feet to push the eave outward past its solved position so it reaches the
   // outer wall face plus a small visible overhang.
   const pushFt = Math.max(0, OUTER_THICKNESS_FT - eaveOverhangFt) + EAVE_CLEAR_FT;
+  const roofPartyWalls = bp.ensemble?.partyWallOwner
+    ? {
+        left: bp.ensemble.partyWallLeft,
+        right: bp.ensemble.partyWallRight,
+      }
+    : { left: false, right: false };
+  const footprintMinXFt = Math.min(...bp.masses.map((mass) => mass.x * CELL_FT));
+  const footprintMaxXFt = Math.max(
+    ...bp.masses.map((mass) => (mass.x + mass.w) * CELL_FT),
+  );
   const positions = new Float32Array(src.length);
   for (let i = 0; i < src.length; i += 3) {
-    let cx = src[i] - W / 2;       // centered plan feet (x)
-    let cz = src[i + 2] - D / 2;   // centered plan feet (z)
+    let cx = src[i] - origin.x;       // site-local plan feet (x)
+    let cz = src[i + 2] - origin.y;   // site-local plan feet (z)
     // Push only eave-level vertices outward, away from center on each axis.
     if (pushFt > 0 && Math.abs(src[i + 1] - eaveZFt) < 1e-3) {
-      if (cx !== 0) cx += Math.sign(cx) * pushFt;
-      if (cz !== 0) cz += Math.sign(cz) * pushFt;
+      const envelopeX = src[i] - envelopeCenterX;
+      const envelopeZ = src[i + 2] - envelopeCenterY;
+      const sitsOnLeftPartyWall = roofPartyWalls.left
+        && Math.abs(src[i] - footprintMinXFt) < 1e-4;
+      const sitsOnRightPartyWall = roofPartyWalls.right
+        && Math.abs(src[i] - footprintMaxXFt) < 1e-4;
+      if (envelopeX !== 0 && !sitsOnLeftPartyWall && !sitsOnRightPartyWall) {
+        cx += Math.sign(envelopeX) * pushFt;
+      }
+      if (envelopeZ !== 0) cz += Math.sign(envelopeZ) * pushFt;
     }
+    // History tessellation and hip corners can add eave-level vertices close
+    // to a clipped seam. The generic clearance shift must not push those fresh
+    // vertices back through the canonical party-wall half-space.
+    if (roofPartyWalls.left) cx = Math.max(cx, footprintMinXFt - origin.x);
+    if (roofPartyWalls.right) cx = Math.min(cx, footprintMaxXFt - origin.x);
     positions[i] = cx * FT;                 // x, centered (+ eave overhang)
     positions[i + 1] = src[i + 1] * FT;     // Y (already includes wallTopFt)
     positions[i + 2] = cz * FT;             // z, centered (+ eave overhang)
@@ -685,14 +799,14 @@ function blueprintRoof(
   const dressing: SitePart[] = [];
   for (const c of rm.chimneyBoxes) {
     dressing.push({
-      x: (c.x - W / 2) * FT, z: (c.y - D / 2) * FT,
+      x: (c.x - origin.x) * FT, z: (c.y - origin.y) * FT,
       w: c.w * FT, d: c.d * FT, h: c.h * FT,
       baseY: c.z0 * FT, colorHex: trimColor, tag: ROOF_PART_TAG,
     });
   }
   for (const dm of rm.dormerBoxes) {
     dressing.push({
-      x: (dm.x - W / 2) * FT, z: (dm.y - D / 2) * FT,
+      x: (dm.x - origin.x) * FT, z: (dm.y - origin.y) * FT,
       w: dm.w * FT, d: dm.d * FT, h: dm.h * FT,
       baseY: dm.z0 * FT, colorHex: roofColor, tag: ROOF_PART_TAG,
     });
@@ -729,8 +843,9 @@ export function buildInteriorParts(
     precomputedBlueprint ?? (precomputedPlan ? undefined : blueprintForPlot(plot, seedPath));
   const W = plan.widthFt;
   const D = plan.depthFt;
-  const toX = (fx: number): number => (fx - W / 2) * FT;
-  const toZ = (fy: number): number => (fy - D / 2) * FT;
+  const origin = plan.siteOriginFt ?? { x: W / 2, y: D / 2 };
+  const toX = (fx: number): number => (fx - origin.x) * FT;
+  const toZ = (fy: number): number => (fy - origin.y) * FT;
   const parts: SitePart[] = [];
   const wallH = Math.min(shellHeightM, 3);
   // Vertical spacing between floors (the shell is divided evenly by storey).
@@ -996,8 +1111,8 @@ export function buildInteriorParts(
     for (const fl of blueprint.floors) {
       for (const r of fl.rooms) {
         anchorByKey.set(`${fl.level}:${r.id}`, {
-          x: (r.anchor.cx + 0.5) * 5,
-          y: (r.anchor.cy + 0.5) * 5,
+          x: (r.anchor.cx + 0.5) * CELL_FT,
+          y: (r.anchor.cy + 0.5) * CELL_FT,
         });
       }
     }

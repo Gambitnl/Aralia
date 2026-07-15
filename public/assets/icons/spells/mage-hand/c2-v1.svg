@@ -1,0 +1,41 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="handGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A5B4FC" />
+      <stop offset="50%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#4F46E5" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background aura -->
+  <circle cx="50" cy="50" r="35" fill="#818CF8" opacity="0.15" filter="url(#glow)" />
+  
+  <!-- The Casting Gesture: A hand weaving magic -->
+  <g filter="url(#glow)">
+    <!-- Palm/Wrist -->
+    <path d="M35 65 Q40 70 45 65 L55 60 Q60 55 55 50 L40 50 Q30 55 35 65" fill="#4F46E5" />
+    
+    <!-- Fingers in a grasping/weaving gesture -->
+    <path d="M45 50 Q42 35 48 30 Q52 25 55 30 L58 45" fill="#818CF8" />
+    <path d="M55 50 Q60 30 68 35 Q75 40 65 45 L60 50" fill="#A5B4FC" />
+    <path d="M60 55 Q75 55 78 62 Q80 70 65 65 L60 60" fill="#818CF8" />
+    
+    <!-- Thumb -->
+    <path d="M40 55 Q30 58 32 62 Q35 65 40 60" fill="#4F46E5" />
+  </g>
+  
+  <!-- Arcane energy swirls around the hand -->
+  <path d="M30 40 Q20 50 30 60" stroke="#A5B4FC" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.8" />
+  <path d="M70 40 Q80 50 70 60" stroke="#A5B4FC" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.8" />
+  <path d="M40 30 Q50 20 60 30" stroke="#A5B4FC" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.8" />
+  
+  <!-- Sparkles/Mana particles -->
+  <circle cx="35" cy="35" r="1" fill="#FFF" />
+  <circle cx="65" cy="35" r="1" fill="#FFF" />
+  <circle cx="50" cy="25" r="1" fill="#FFF" />
+  <circle cx="75" cy="50" r="1" fill="#FFF" />
+</svg>

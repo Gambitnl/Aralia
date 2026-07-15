@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 14/07/2026, 16:53:10
+ * Dependents: systems/worldforge/bridge/interiorParts.ts, systems/worldforge/interior/generateInterior.ts, systems/worldforge/roster/generateTownRoster.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file types.ts
  * @description Interior plan contract — SPEC §4 L4 / decision #10 (fully
@@ -87,6 +103,8 @@ export interface InteriorPlan {
   /** Interior envelope dims in feet (5 ft aligned, derived from footprint). */
   widthFt: Feet;
   depthFt: Feet;
+  /** Stable plot origin carried from an asymmetric structural extension. */
+  siteOriginFt?: { x: Feet; y: Feet };
   /** Echoed from the plot — total floor count (ground + upper). */
   storeys: number;
   /** Ground floor. */

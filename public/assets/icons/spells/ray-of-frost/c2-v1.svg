@@ -1,0 +1,40 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="frostGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCA5A5" />
+      <stop offset="50%" stop-color="#F87171" />
+      <stop offset="100%" stop-color="#B91C1C" />
+    </linearGradient>
+    <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#F87171" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background shadow for depth -->
+  <circle cx="50" cy="50" r="40" fill="#1a1a1a" opacity="0.5" />
+
+  <!-- The Casting Hand (Silhouette) -->
+  <path d="M30 80 Q35 70 40 75 L45 60 Q48 50 55 55 Q60 60 65 50 L75 55 Q80 60 75 70 L65 75 Q60 85 50 80 Z" fill="#2d2d2d" stroke="#F87171" stroke-width="1" />
+  
+  <!-- The Focus Crystal -->
+  <path d="M45 45 L50 30 L55 45 L50 55 Z" fill="url(#frostGrad)" filter="url(#glow)" />
+  
+  <!-- Frost Wisps emanating from the hand/crystal -->
+  <path d="M42 40 Q35 30 25 35" stroke="#F87171" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7" />
+  <path d="M58 40 Q65 30 75 35" stroke="#F87171" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7" />
+  <path d="M50 30 Q50 15 50 10" stroke="#FCA5A5" stroke-width="3" fill="none" stroke-linecap="round" filter="url(#glow)" />
+
+  <!-- The Point of Convergence (Spark) -->
+  <circle cx="50" cy="30" r="6" fill="url(#coreGlow)" filter="url(#glow)" />
+  
+  <!-- Frost Particles -->
+  <circle cx="38" cy="35" r="1.5" fill="#FFFFFF" />
+  <circle cx="62" cy="32" r="1" fill="#FFFFFF" />
+  <circle cx="44" cy="25" r="1" fill="#FCA5A5" />
+  <circle cx="56" cy="22" r="1.5" fill="#FFFFFF" />
+</svg>

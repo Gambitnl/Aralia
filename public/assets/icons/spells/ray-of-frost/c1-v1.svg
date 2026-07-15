@@ -1,0 +1,42 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="beamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F87171" stop-opacity="0" />
+      <stop offset="40%" stop-color="#F87171" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#FEE2E2" stop-opacity="1" />
+    </linearGradient>
+    <radialGradient id="impactGrad">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="40%" stop-color="#F87171" />
+      <stop offset="100%" stop-color="#991B1B" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background Depth -->
+  <rect width="100" height="100" fill="#1a1a1a" />
+
+  <!-- The Beam Path -->
+  <path d="M-10,20 L70,60" stroke="url(#beamGrad)" stroke-width="6" stroke-linecap="round" filter="url(#glow)" />
+  <path d="M-10,22 L68,62" stroke="#FCA5A5" stroke-width="2" stroke-linecap="round" opacity="0.5" />
+
+  <!-- Impact Point -->
+  <circle cx="75" cy="60" r="18" fill="url(#impactGrad)" filter="url(#glow)" />
+  <circle cx="75" cy="60" r="6" fill="#FFFFFF" filter="url(#glow)" />
+
+  <!-- Frost Shards/Splinters (The "Freezing" effect) -->
+  <g stroke="#FEE2E2" stroke-width="2" stroke-linecap="round">
+    <line x1="75" y1="60" x2="90" y2="50" />
+    <line x1="75" y1="60" x2="85" y2="40" />
+    <line x1="75" y1="60" x2="88" y2="70" />
+    <line x1="75" y1="60" x2="60" y2="45" />
+    <line x1="75" y1="60" x2="65" y2="80" />
+  </g>
+
+  <!-- Crystalline structures at impact -->
+  <path d="M70,60 L75,52 L80,60 L75,68 Z" fill="#F87171" opacity="0.8" />
+  <path d="M82,55 L87,60 L82,65 L77,60 Z" fill="#FEE2E2" opacity="0.6" />
+</svg>

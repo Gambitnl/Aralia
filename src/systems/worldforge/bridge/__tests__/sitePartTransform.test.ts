@@ -20,7 +20,15 @@ import {
   sitePartLocalOffset,
   worldOffsetToSiteLocal,
   siteOrientationFromQuad,
+  isSitePartRenderable,
 } from '../sitePartTransform';
+
+describe('site-part render visibility', () => {
+  it('keeps ordinary parts visible and excludes tactical-only party walls', () => {
+    expect(isSitePartRenderable({})).toBe(true);
+    expect(isSitePartRenderable({ renderRole: 'tactical-only' })).toBe(false);
+  });
+});
 
 describe('siteOrientationFromQuad', () => {
   it('gives yaw 0, doorZSign -1 for the default axis-aligned winding', () => {

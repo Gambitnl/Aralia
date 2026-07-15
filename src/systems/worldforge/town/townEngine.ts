@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 11/07/2026, 14:00:57
- * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewTowns.tsx, components/DesignPreview/steps/Town3DScene.tsx, components/DesignPreview/steps/townMesh.ts, components/MapPane.tsx, components/Worldforge/TownPlanView.tsx, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/town/architectureDistricts.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/householdBrief.ts, systems/worldforge/town/population.ts, systems/worldforge/town/townDiagnostics.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts
- * Imports: 4 files
+ * Last Sync: 14/07/2026, 22:15:38
+ * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewTowns.tsx, components/DesignPreview/steps/Town3DScene.tsx, components/DesignPreview/steps/townMesh.ts, components/MapPane.tsx, components/Worldforge/TownPlanView.tsx, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/town/architectureDistricts.ts, systems/worldforge/town/buildingEnsembles.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/householdBrief.ts, systems/worldforge/town/population.ts, systems/worldforge/town/townDiagnostics.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -31,13 +31,20 @@
  * Spec: docs/projects/worldforge/SPEC.md §11 item 8 (town benchmark + criteria).
  * North star: docs/projects/worldforge/subprojects/sp-t-town-generator/NORTH_STAR.md
  */
-import { rngFromPath, streamPath, type SeedPath } from '../seedPath';
+import { fnv1a, rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import { generateSubmap, polygonBounds, pointInPolygon, clipPolylineToPolygon, type Pt } from '../submap/submapEngine';
+import { CELL_FT } from '../units';
 import { assignTownPopulation, assignWardWealth } from './population';
 import {
   assignArchitectureDistricts,
   type TownArchitectureDistrict,
 } from './architectureDistricts';
+import { resolveBuildingEnsembles } from './buildingEnsembles';
+import {
+  courtyardCentersForBlock,
+  resolveCourtyardSpaces,
+  type TownCourtyardSpace,
+} from './courtyardSpaces';
 
 export interface BuildingPlot {
   /** Plot footprint polygon (graph coords, the town's frame). */
@@ -48,6 +55,8 @@ export interface BuildingPlot {
   kind?: 'frontage' | 'interior';
   /** Footprint shape: simple rectangle or a stepped/L footprint (variety, #6). */
   shape?: 'rect' | 'L';
+  /** Which shared court this ward-interior plot faces; absent on legacy plots. */
+  courtyardIndex?: number;
   /** Concrete building type (set by the population pass when a population is given). */
   buildingType?: import('./population').BuildingType;
   /** Whether this building is a home that carries population (cottage/townhouse/tenement). */
@@ -58,6 +67,8 @@ export interface BuildingPlot {
   homeId?: string;
   /** Stable architecture identity assigned before population or adapter filtering. */
   architectureKey?: string;
+  /** Block-level row/courtyard/arcade instruction authored after plot filtering. */
+  ensemble?: import('../interior/blueprintTypes').BuildingEnsemble;
   /** Social class of the ward this plot sits in (set before classification). */
   district?: import('./population').WardWealth;
   /** For a HOME: the `homeId` of the workplace its breadwinners work at (undefined = unskilled labour). */
@@ -176,6 +187,8 @@ export interface TownPlan {
   civic: CivicStructure[];
   /** Main streets continued from inherited regional roads, clipped to town (#6). */
   streets: Pt[][];
+  /** Real shared courts enclosed by interior-block buildings, including amenity use. */
+  courtyards: TownCourtyardSpace[];
   /** Rural homes seated on farm outskirts (carry the rural population). Empty if no population given. */
   farmsteads: import('./population').Farmstead[];
   /** Population accounting (who lives where) — present only when a population was given. */
@@ -207,6 +220,8 @@ export interface GenerateTownOptions {
   variety?: boolean;
   /** Pack freestanding buildings into ward interiors (courtyards). Default true (#6). */
   interiorInfill?: boolean;
+  /** Tile dense frontage lots edge-to-edge so shared party walls are real. */
+  partyWallRows?: boolean;
 }
 
 /** Area-weighted polygon centroid (falls back to vertex mean for degenerate polys). */
@@ -258,10 +273,12 @@ export function packWardFrontage(
   const plotWidth = opts.plotWidth ?? 6;
   const plotDepth = opts.plotDepth ?? 7;
   const gap = opts.gap ?? 1.2;
+  const betweenPlotGap = opts.partyWallRows === true ? 0 : gap;
   const variety = opts.variety !== false;
   const interior = polygonCentroid(ward);
   const rng = rngFromPath(streamPath(seedPath, 'frontage'));
   const plots: BuildingPlot[] = [];
+  const minNegotiatedLotFt = CELL_FT * 3;
 
   for (let e = 0; e < ward.length; e++) {
     const a = ward[e];
@@ -280,22 +297,52 @@ export function packWardFrontage(
     // Clamp depth so plots can't punch past the ward centroid on thin wards.
     const maxDepth = Math.max(2, len(a, interior) * 0.6);
     const baseDepth = Math.min(plotDepth, maxDepth);
+    const negotiatesCellGrid = opts.partyWallRows === true
+      // A source envelope of at least 1.5 cells can be rounded to the smallest
+      // useful three-cell urban lot without doubling either axis. Smaller
+      // scale-model towns keep their legacy packing and receive no fit receipt.
+      && plotWidth >= CELL_FT * 1.5
+      && baseDepth >= CELL_FT * 1.5;
+    // Attached frontage is one negotiated street envelope. A stable edge hash
+    // keeps depth variety between blocks without asking adjacent buildings to
+    // reconcile independently rolled rear boundaries later in the pipeline.
+    const rowDepthRoll = fnv1a(`${seedPath}|frontage:${e}|row-depth`) / 0xffffffff;
+    const rowDepth = variety ? baseDepth * (0.78 + rowDepthRoll * 0.44) : baseDepth;
 
     let t = corner;
     while (t + plotWidth <= L - corner) {
-      const w = plotWidth * (0.8 + rng.next() * 0.4);
+      const rolledWidth = plotWidth * (0.8 + rng.next() * 0.4);
+      const w = negotiatesCellGrid
+        // Preserve the existing width roll as a bounded 15/20 ft urban band.
+        // This adds proportion variety without introducing another RNG draw.
+        ? minNegotiatedLotFt + (rolledWidth > plotWidth * 1.05 ? CELL_FT : 0)
+        : rolledWidth;
       if (t + w > L - corner) break;
-      // Variety (#6): per-building depth jitter + occasional stepped/L footprint.
-      const depth = variety ? baseDepth * (0.78 + rng.next() * 0.44) : baseDepth;
+      // Preserve the historical frontage RNG draw order even when the current
+      // dense-block contract consumes a shared edge depth instead of this lot's
+      // individual roll. Detached settlements retain the individual value.
+      const individualDepthRoll = variety ? rng.next() : 0.5;
+      const depth = negotiatesCellGrid
+        // Depth remains shared by the edge, but deeper edge rolls receive one
+        // extra cell so neighboring blocks do not all become 15 ft squares.
+        ? minNegotiatedLotFt + (rowDepth > baseDepth ? CELL_FT : 0)
+        : variety
+          ? baseDepth * (0.78 + individualDepthRoll * 0.44)
+          : baseDepth;
       const along = (s: number): Pt => [a[0] + ux * s, a[1] + uy * s];
       const inward = (p: Pt, d: number): Pt => [p[0] + n[0] * d, p[1] + n[1] * d];
       const p0 = along(t);
       const p1 = along(t + w);
-      if (variety && rng.next() < 0.3) {
+      const shapeRoll = variety ? rng.next() : 1;
+      // A historical L-shape consumed one extra side draw. Consume it before
+      // deciding whether dense negotiation can use the shape so later lots on
+      // this edge retain their established width sequence.
+      const sideRoll = shapeRoll < 0.3 ? rng.next() : 1;
+      if (!negotiatesCellGrid && variety && shapeRoll < 0.3) {
         // Stepped footprint: one half deeper than the other (an L/return).
         const d2 = depth * 0.55;
         const mid = along(t + w / 2);
-        const polygon: Pt[] = rng.next() < 0.5
+        const polygon: Pt[] = sideRoll < 0.5
           ? [p0, p1, inward(p1, depth), inward(mid, depth), inward(mid, d2), inward(p0, d2)]
           : [p0, p1, inward(p1, d2), inward(mid, d2), inward(mid, depth), inward(p0, depth)];
         plots.push({ polygon, frontageEdge: e, kind: 'frontage', shape: 'L' });
@@ -305,16 +352,36 @@ export function packWardFrontage(
           frontageEdge: e, kind: 'frontage', shape: 'rect',
         });
       }
-      t += w + gap;
+      // Dense rows share exact side boundaries. Detached settlement profiles
+      // retain the historical breathing room between neighboring plots.
+      t += w + betweenPlotGap;
     }
   }
   return plots;
 }
 
+/** Build a court-facing rectangle whose first edge faces the shared center. */
+function courtyardRect(center: Pt, angle: number, radius: number, width: number, depth: number): Pt[] {
+  const radial: Pt = [Math.cos(angle), Math.sin(angle)];
+  const tangent: Pt = [-radial[1], radial[0]];
+  const front: Pt = [
+    center[0] + radial[0] * radius,
+    center[1] + radial[1] * radius,
+  ];
+  const back: Pt = [front[0] + radial[0] * depth, front[1] + radial[1] * depth];
+  return [
+    [front[0] - tangent[0] * width / 2, front[1] - tangent[1] * width / 2],
+    [front[0] + tangent[0] * width / 2, front[1] + tangent[1] * width / 2],
+    [back[0] + tangent[0] * width / 2, back[1] + tangent[1] * width / 2],
+    [back[0] - tangent[0] * width / 2, back[1] - tangent[1] * width / 2],
+  ];
+}
+
 /**
- * Pack freestanding buildings into a ward's interior (courtyard block infill,
- * #6) — seeded points scattered inside an inset of the ward, away from the
- * frontage band, each a small square. Count scales with the interior area.
+ * Pack ward-interior buildings around an intentionally empty shared center.
+ * The old random-square scatter could label buildings as a courtyard while
+ * placing one directly through its center. These tangent rectangles face the
+ * court and preserve their first edge as the adapter's frontage reference.
  */
 export function packWardInterior(
   ward: Pt[],
@@ -327,22 +394,77 @@ export function packWardInterior(
   const b = polygonBounds(inner);
   const size = plotWidth * 0.8;
   const area = (b.maxX - b.minX) * (b.maxY - b.minY);
-  const target = Math.max(0, Math.floor(area / (size * size * 7)));
-  if (target === 0) return [];
-  const rng = rngFromPath(streamPath(seedPath, 'interior'));
+  const minSpan = Math.min(b.maxX - b.minX, b.maxY - b.minY);
+  const rawTarget = Math.floor(area / (size * size * 7));
+  if (rawTarget === 0 || minSpan < size * 2.4) return [];
+  // Large blocks may hold several distinct shared courts. Each needs at least
+  // three facing buildings; the cap prevents an interior street grid from
+  // replacing the intentionally open block core.
+  const courtCount = rawTarget >= 18 ? 3 : rawTarget >= 10 ? 2 : 1;
+  /** Preserve the established one-center RNG stream and recipe on small/fallback blocks. */
+  const packSingleCourt = (): BuildingPlot[] => {
+    const target = Math.min(8, Math.max(3, rawTarget));
+    const singleRng = rngFromPath(streamPath(seedPath, 'interior'));
+    const phase = singleRng.next() * Math.PI * 2;
+    const courtRadius = Math.max(size * 0.72, minSpan * 0.13);
+    const singleCenter = courtyardCentersForBlock(ward, 1)[0];
+    const candidateCount = Math.max(12, target * 3);
+    const single: BuildingPlot[] = [];
+    for (let attempt = 0; attempt < candidateCount && single.length < target; attempt++) {
+      const angle = phase + (attempt / candidateCount) * Math.PI * 2;
+      const width = size * (0.72 + singleRng.next() * 0.34);
+      const depth = size * (0.72 + singleRng.next() * 0.32);
+      const polygon = courtyardRect(singleCenter, angle, courtRadius, width, depth);
+      if (!polygon.every((point) => pointInPolygon(point, inner))) continue;
+      if (single.some((plot) => polygonsIntersect(plot.polygon, polygon))) continue;
+      single.push({
+        polygon,
+        frontageEdge: -1,
+        kind: 'interior',
+        shape: 'rect',
+        courtyardIndex: 0,
+      });
+    }
+    return single;
+  };
+  if (courtCount === 1) return packSingleCourt();
+
+  const totalTarget = Math.min(18, Math.max(courtCount * 3, rawTarget));
+  // Multi-court experimentation owns a separate named stream. A failed split
+  // can therefore fall back without perturbing the established single court.
+  const rng = rngFromPath(streamPath(seedPath, 'interior:multi-court'));
   const out: BuildingPlot[] = [];
-  let attempts = 0;
-  while (out.length < target && attempts < target * 20 + 20) {
-    attempts++;
-    const x = b.minX + rng.next() * (b.maxX - b.minX);
-    const y = b.minY + rng.next() * (b.maxY - b.minY);
-    if (!pointInPolygon([x, y], inner)) continue;
-    out.push({
-      polygon: squareAt([x, y], size * (0.7 + rng.next() * 0.6)),
-      frontageEdge: -1, kind: 'interior', shape: 'rect',
-    });
+  const placedByCourt: number[] = [];
+  const centers = courtyardCentersForBlock(ward, courtCount);
+  for (let courtIndex = 0; courtIndex < centers.length; courtIndex++) {
+    const center = centers[courtIndex];
+    const target = Math.floor(totalTarget / courtCount)
+      + (courtIndex < totalTarget % courtCount ? 1 : 0);
+    const phase = rng.next() * Math.PI * 2;
+    const courtRadius = Math.max(size * 0.72, minSpan * 0.09);
+    // More candidate angles than the desired count let short/concave sides
+    // reject invalid rectangles without moving a durable cluster center.
+    const candidateCount = Math.max(12, target * 4);
+    let placed = 0;
+    for (let attempt = 0; attempt < candidateCount && placed < target; attempt++) {
+      const angle = phase + (attempt / candidateCount) * Math.PI * 2;
+      const width = size * (0.72 + rng.next() * 0.34);
+      const depth = size * (0.72 + rng.next() * 0.32);
+      const polygon = courtyardRect(center, angle, courtRadius, width, depth);
+      if (!polygon.every((point) => pointInPolygon(point, inner))) continue;
+      if (out.some((plot) => polygonsIntersect(plot.polygon, polygon))) continue;
+      out.push({
+        polygon,
+        frontageEdge: -1,
+        kind: 'interior',
+        shape: 'rect',
+        courtyardIndex: courtIndex,
+      });
+      placed++;
+    }
+    placedByCourt.push(placed);
   }
-  return out;
+  return placedByCourt.every((placed) => placed >= 3) ? out : packSingleCourt();
 }
 
 /** Squared distance from point p to segment ab. */
@@ -536,12 +658,34 @@ function polygonsIntersect(a: Pt[], b: Pt[]): boolean {
  * plot already kept. Frontage is added before interior infill, so street-facing
  * buildings win and colliding courtyard squares (or acute-corner frontage) drop.
  */
-function resolveCollisions(plots: BuildingPlot[]): BuildingPlot[] {
+function resolveCollisions(
+  plots: BuildingPlot[],
+  preservePartyWalls = false,
+): BuildingPlot[] {
   const kept: BuildingPlot[] = [];
   for (const p of plots) {
     let ok = true;
     for (let k = 0; k < kept.length; k++) {
-      if (polygonsIntersect(p.polygon, kept[k].polygon)) { ok = false; break; }
+      if (!polygonsIntersect(p.polygon, kept[k].polygon)) continue;
+
+      // Dense frontage packing intentionally makes consecutive lots share one
+      // exact endpoint on the same street edge. The generic polygon test sees
+      // that boundary contact as an intersection; preserve it while still
+      // rejecting real overlaps, corner clashes, and all infill collisions.
+      const earlier = kept[k];
+      const sameFrontage = preservePartyWalls
+        && p.kind === 'frontage'
+        && earlier.kind === 'frontage'
+        && p.frontageEdge >= 0
+        && p.frontageEdge === earlier.frontageEdge;
+      const sharedEndpoint = sameFrontage && (
+        dist2(earlier.polygon[1], p.polygon[0]) <= 1e-12
+        || dist2(p.polygon[1], earlier.polygon[0]) <= 1e-12
+      );
+      if (sharedEndpoint) continue;
+
+      ok = false;
+      break;
     }
     if (ok) kept.push(p);
   }
@@ -853,6 +997,8 @@ export function generateTownPlan(
     plotWidth: opts.plotWidth ?? Math.max(2, wardSpan * 0.16),
     plotDepth: opts.plotDepth ?? Math.max(2.5, wardSpan * 0.2),
     gap: opts.gap ?? Math.max(0.4, wardSpan * 0.035),
+    partyWallRows: opts.partyWallRows
+      ?? (profile?.typology !== 'hamlet' && profile?.typology !== 'village'),
   };
 
   // Street margin: each ward shrinks to a buildable BLOCK inset toward its
@@ -885,7 +1031,7 @@ export function generateTownPlan(
     if (opts.interiorInfill !== false) plots.push(...packWardInterior(block, wardSeed, packOpts));
     // Drop buildings that overlap each other (acute-corner frontage collisions +
     // interior squares landing on frontage); frontage is kept over infill.
-    const resolved = resolveCollisions(plots);
+    const resolved = resolveCollisions(plots, packOpts.partyWallRows === true);
     plots.length = 0;
     plots.push(...resolved);
     // Waterfront ward → seat a dock on the water-facing edge (#4).
@@ -1109,7 +1255,22 @@ export function generateTownPlan(
     demographics = pop.demographics;
   }
 
-  return { footprint, core, wards, plots: allPlots, outskirts, walls, civic, streets, farmsteads, demographics };
+  // Compose finalized lots into rows, courts, detached groups, and market
+  // arcades only after collision and population passes finish. Every consumer
+  // then receives one durable ensemble answer rather than re-deriving adjacency.
+  const ensembles = resolveBuildingEnsembles(
+    wards,
+    civic,
+    profile?.typology,
+    seedPath,
+  );
+  for (const plot of allPlots) plot.ensemble = ensembles.get(plot);
+
+  // The shared-space receipt is authored after ensemble assignment so its
+  // block key is exactly the one carried by every court-facing building.
+  const courtyards = resolveCourtyardSpaces(wards, seedPath);
+
+  return { footprint, core, wards, plots: allPlots, outskirts, walls, civic, streets, courtyards, farmsteads, demographics };
 }
 
 /** Convenience: total building plots across all wards. */

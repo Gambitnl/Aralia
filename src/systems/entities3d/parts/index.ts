@@ -6,7 +6,8 @@
  * tests and app entry points can both call it safely.
  */
 import { registerPart, allParts } from '../registry';
-import { FIELD_PARTS } from './fieldParts';
+import { CHAIN_PARTS } from './chainParts';
+import { ORGANIC_PARTS } from './organicParts';
 import { HEAD_PARTS } from './headParts';
 import { WEAPON_PARTS } from './gearWeapons';
 import { ARMOR_PARTS } from './gearArmor';
@@ -14,7 +15,7 @@ import { WING_PARTS } from './wingParts';
 
 export function registerAllParts(): void {
   const registered = new Set(allParts().map((p) => p.id));
-  for (const def of [...FIELD_PARTS, ...HEAD_PARTS, ...WEAPON_PARTS, ...ARMOR_PARTS, ...WING_PARTS]) {
+  for (const def of [...CHAIN_PARTS, ...ORGANIC_PARTS, ...HEAD_PARTS, ...WEAPON_PARTS, ...ARMOR_PARTS, ...WING_PARTS]) {
     if (!registered.has(def.id)) {
       registerPart(def);
     }

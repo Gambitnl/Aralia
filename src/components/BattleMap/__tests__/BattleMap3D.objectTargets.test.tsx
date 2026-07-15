@@ -221,4 +221,18 @@ describe('BattleMap3D object targets', () => {
     expect(screen.getByTestId('targetable-object-3d-loose-stone')).toHaveTextContent('OBJ');
     expect(screen.getByTitle('Loose Stone object - valid spell target')).toHaveClass('bg-amber-300');
   });
+
+  it('renders NO handle for objects the current ability cannot target (idle map stays quiet)', () => {
+    // Handles are aiming UI, not scenery: with nothing targetable, a forest
+    // full of registered objects must show zero OBJ cubes.
+    mockUseTargetSelection.mockReturnValue({
+      aoeSet: new Set(),
+      validTargetSet: new Set(),
+      teleportDestinationSet: new Set()
+    });
+
+    renderObjectTargetMap();
+
+    expect(screen.queryByTestId('targetable-object-3d-loose-stone')).toBeNull();
+  });
 });

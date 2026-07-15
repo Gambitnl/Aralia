@@ -1,0 +1,45 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="beamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7F1D1D" />
+      <stop offset="50%" stop-color="#F87171" />
+      <stop offset="100%" stop-color="#FCA5A5" />
+    </linearGradient>
+    <radialGradient id="impactGrad">
+      <stop offset="0%" stop-color="#FCA5A5" />
+      <stop offset="40%" stop-color="#F87171" />
+      <stop offset="100%" stop-color="#7F1D1D" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background Impact Glow -->
+  <circle cx="75" cy="50" r="25" fill="url(#impactGrad)" opacity="0.6" />
+
+  <!-- Main Beam -->
+  <path d="M10,50 L70,50 L75,45 L75,55 Z" fill="url(#beamGrad)" filter="url(#glow)" />
+  
+  <!-- Central Core of Beam -->
+  <rect x="10" y="48" width="65" height="4" fill="#FFFFFF" opacity="0.8" filter="url(#glow)" />
+
+  <!-- Impact Shards / Energy Splatter -->
+  <g fill="#F87171" filter="url(#glow)">
+    <polygon points="75,50 85,40 78,48" />
+    <polygon points="75,50 90,50 78,52" />
+    <polygon points="75,50 82,65 77,52" />
+    <polygon points="75,50 65,35 72,48" />
+    <polygon points="75,50 68,65 72,52" />
+  </g>
+
+  <!-- Crackling Energy Bolts -->
+  <g stroke="#FCA5A5" stroke-width="1.5" fill="none" filter="url(#glow)">
+    <path d="M30,50 L35,42 L40,50 L45,58 L50,50" />
+    <path d="M55,50 L60,40 L65,50 L70,60" />
+  </g>
+
+  <!-- Impact Center Point -->
+  <circle cx="75" cy="50" r="4" fill="#FFFFFF" filter="url(#glow)" />
+</svg>

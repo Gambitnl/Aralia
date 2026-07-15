@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 14/07/2026, 21:07:43
+ * Dependents: components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DScene.tsx, systems/world3d/siteGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file sitePartTransform.ts — the single source for placing a site part.
  *
@@ -18,6 +34,17 @@ import type { SitePart } from './interiorParts';
 
 /** The minimal part fields the transform reads. */
 type PartOffsetInput = Pick<SitePart, 'x' | 'z' | 'h' | 'baseY'>;
+
+/**
+ * The shared visibility rule used by both production renderers.
+ * Tactical-only walls stay in streamed data for combat extraction but must
+ * never become a visible WebGL or WebGPU mesh.
+ */
+export function isSitePartRenderable(
+  part: Pick<SitePart, 'renderRole'>,
+): boolean {
+  return part.renderRole !== 'tactical-only';
+}
 
 /** The building group transform SiteBuilding applies (scene meters + radians). */
 export interface SiteGroupTransform {

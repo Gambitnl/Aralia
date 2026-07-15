@@ -1,11 +1,13 @@
 /**
  * @file parts.test.ts — the modular part catalog builds and registers cleanly.
+ * Body v2: parts are `mesh` (rigid, anchored) or `chain` (animated segment
+ * chains); the metaball `field` kind is gone.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { MeshBasicMaterial, Object3D, Mesh } from 'three';
 import { registerAllParts } from '../parts';
 import { allParts, getPart } from '../registry';
-import type { BallSink, Frame, Palette, PartAnchors, PartPhase } from '../types';
+import type { Frame, Palette, PartAnchors, PartPhase } from '../types';
 import { ANCHORS } from '../types';
 
 const FRAME: Frame = {
@@ -40,24 +42,26 @@ const TEST_ANCHORS: PartAnchors = Object.fromEntries(
 ) as PartAnchors;
 
 const EXPECTED_PART_IDS = [
-  // field
+  // chains (animated)
+  'tailThin',
+  'tailThick',
+  'tentacles',
+  'antennae',
+  // organic meshes (were field parts)
   'snout',
   'muzzleShort',
   'tuskJaw',
   'brow',
   'belly',
-  'tailThin',
-  'tailThick',
-  'beardField',
-  'tentacles',
-  'antennae',
   'crest',
+  'beardField',
   // head mesh
   'earsPointed',
   'earsLong',
   'hornsCurved',
   'hornsStraight',
   'hornsRam',
+  'beardMesh',
   'beak',
   // weapons
   'swordMain',
@@ -84,13 +88,6 @@ const EXPECTED_PART_IDS = [
   'wingsMembrane',
 ];
 
-class RecordingSink implements BallSink {
-  balls: Array<{ x: number; y: number; z: number; r: number }> = [];
-  ball(x: number, y: number, z: number, r: number): void {
-    this.balls.push({ x, y, z, r });
-  }
-}
-
 describe('entities3d part catalog', () => {
   beforeAll(() => {
     registerAllParts();
@@ -107,15 +104,22 @@ describe('entities3d part catalog', () => {
     }
   });
 
-  it('every field part emits at least one ball with finite coordinates and positive radius', () => {
-    for (const def of allParts().filter((p) => p.kind === 'field')) {
-      const sink = new RecordingSink();
-      def.buildField!(sink, FRAME, {}, PHASE, TEST_ANCHORS);
-      expect(sink.balls.length, `field part "${def.id}" emitted no balls`).toBeGreaterThan(0);
-      for (const b of sink.balls) {
-        expect(Number.isFinite(b.x + b.y + b.z + b.r), `part "${def.id}" emitted NaN`).toBe(true);
-        expect(b.r, `part "${def.id}" emitted non-positive radius`).toBeGreaterThan(0);
+  it('has no field parts left anywhere', () => {
+    for (const def of allParts()) {
+      expect(def.kind === 'mesh' || def.kind === 'chain', `part "${def.id}" has unknown kind "${def.kind}"`).toBe(true);
+    }
+  });
+
+  it('every chain part returns finite, connected, stable-id segments', () => {
+    for (const def of allParts().filter((p) => p.kind === 'chain')) {
+      const a = def.buildChain!(FRAME, {}, PHASE, TEST_ANCHORS);
+      expect(a.length, `chain part "${def.id}" returned no segments`).toBeGreaterThan(0);
+      for (const s of a) {
+        expect(Number.isFinite(s.ax + s.ay + s.az + s.bx + s.by + s.bz), `"${def.id}" segment ${s.id} not finite`).toBe(true);
+        expect(Math.min(s.r0, s.r1), `"${def.id}" segment ${s.id} non-positive radius`).toBeGreaterThan(0);
       }
+      const b = def.buildChain!(FRAME, {}, { ...PHASE, t: 1.7 }, TEST_ANCHORS);
+      expect(a.map((s) => s.id), `chain "${def.id}" ids unstable across frames`).toEqual(b.map((s) => s.id));
     }
   });
 

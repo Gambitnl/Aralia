@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 14/07/2026, 18:51:30
+ * Dependents: components/World3D/World3DWrapper.tsx, components/Worldforge/LivingWorldPreview.tsx, state/reducers/worldReducer.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file townSimRegistry.ts — Plan C1: the multi-town persistence + cadence core.
  *
@@ -17,6 +33,7 @@ import { SeededRandom } from '../../../utils/random/seededRandom';
 import { makeSeedPath, seedFromPath } from '../seedPath';
 import { DAYS_PER_YEAR, RETENTION_YEARS } from './constants';
 import { rollTownDay } from './townSim';
+import { compactTownBuildingHistories } from './buildingHistoryCompaction';
 import type { TownSimState } from './types';
 
 /** Tracked towns keyed by burgId. */
@@ -86,7 +103,9 @@ export function advanceTown(
   }
   // Bound persisted/in-memory size once per advance (not per day): readers only
   // look back a few years; cumulative totals preserve invariants past the trim.
-  return s === state ? s : pruneTownState(s, targetDay);
+  if (s === state) return s;
+  const pruned = pruneTownState(s, targetDay);
+  return compactTownBuildingHistories(pruned, worldSeed);
 }
 
 /**

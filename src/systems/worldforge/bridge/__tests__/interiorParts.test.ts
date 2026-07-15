@@ -4,8 +4,9 @@
  *
  * It exercises the L4 bridge used by real towns. The architectural-identity
  * checks additionally prove that resolved regional wall colors and district
- * facade grammars plus building-role motifs reach rendering as additive
- * dressing, while the permanent structural geometry remains unchanged.
+ * facade grammars, physical construction kits, building-role motifs, and
+ * permanent history reach rendering as additive dressing while structural
+ * geometry remains unchanged.
  */
 
 import {
@@ -14,7 +15,10 @@ import {
   buildBlueprintParts,
   ROOF_PART_TAG,
   FACADE_PART_TAG,
+  HISTORY_PART_TAG,
+  MATERIAL_PART_TAG,
   MOTIF_PART_TAG,
+  WEATHERING_PART_TAG,
   INTERIOR_WALL_COLOR,
   PERIMETER_WALL_COLORS,
   DOOR_LEAF_COLOR,
@@ -33,6 +37,8 @@ import { isAtWork } from '../groundChunkLoader';
 import { EXTERIOR } from '../../interior/types';
 import { rootSeedPath } from '../../seedPath';
 import { STYLE_FAMILIES } from '../../town/architectureStyle';
+import { glazingPaneColor } from '../buildingMaterialParts';
+import { blueprintSiteOrigin } from '../../interior/blueprintTypes';
 
 /** Colors that identify structural walls in legacy, unstyled test fixtures. */
 const isWallColor = (color: string): boolean =>
@@ -101,6 +107,183 @@ it('produces perimeter + interior walls and furnishings', () => {
   // least one internal wall for a 60×45 multi-room house.
   expect(walls.length).toBeGreaterThanOrEqual(6);
   expect(furnishings.length).toBeGreaterThan(0);
+});
+
+describe('visible party-wall ownership', () => {
+  const rowBlueprint = (owner: 'earlier-frontage-member' | 'later-frontage-member') =>
+    generateBuilding({
+      buildingId: 314,
+      type: 'townhouse',
+      seedPath: rootSeedPath(314),
+      storeys: 2,
+      basement: false,
+      ensemble: {
+        blockKey: 'ward:1:edge:3',
+        kind: 'row',
+        partyWallLeft: true,
+        partyWallRight: true,
+        partyWallOwner: owner,
+        eaveStoreys: 2,
+        ensembleSignature: 'row-wall-owner-proof',
+      },
+    });
+
+  /** Styled rows exercise every run-driven exterior dressing bridge. */
+  const styledRowBlueprint = (owner: 'earlier-frontage-member' | 'later-frontage-member') =>
+    generateBuilding({
+      buildingId: 315,
+      type: 'townhouse',
+      seedPath: rootSeedPath(315),
+      storeys: 2,
+      basement: false,
+      style: {
+        cultureType: 'River',
+        climate: 'temperate',
+        wealth: 'common',
+        ageBand: 'ancient',
+        architecture: {
+          settlementKey: 'burg:1',
+          districtKey: 'district:row',
+          buildingKey: 'plot:315',
+        },
+      },
+      ensemble: {
+        blockKey: 'ward:1:edge:3',
+        kind: 'row',
+        partyWallLeft: true,
+        partyWallRight: true,
+        partyWallOwner: owner,
+        eaveStoreys: 2,
+        ensembleSignature: 'row-dressing-owner-proof',
+      },
+    });
+
+  it('keeps the non-owner wall tactical but gives only one frontage neighbor visible masonry', () => {
+    const earlierOwns = buildBlueprintParts(
+      rowBlueprint('earlier-frontage-member'),
+      3,
+      PERIMETER_WALL_COLORS.house,
+    ).parts;
+    const laterOwns = buildBlueprintParts(
+      rowBlueprint('later-frontage-member'),
+      3,
+      PERIMETER_WALL_COLORS.house,
+    ).parts;
+    const earlierHidden = earlierOwns.filter((part) => part.renderRole === 'tactical-only');
+    const laterHidden = laterOwns.filter((part) => part.renderRole === 'tactical-only');
+
+    expect(earlierHidden.length).toBeGreaterThan(0);
+    expect(laterHidden.length).toBeGreaterThan(0);
+    // If the earlier frontage member owns the seam, this building's left side
+    // belongs to its earlier neighbor; reversing ownership hides its right side.
+    expect(earlierHidden.every((part) => part.x < 0)).toBe(true);
+    expect(laterHidden.every((part) => part.x > 0)).toBe(true);
+    expect(earlierOwns.length).toBe(laterOwns.length);
+  });
+
+  it('leaves legacy ensemble receipts fully visible', () => {
+    const legacy = rowBlueprint('earlier-frontage-member');
+    delete legacy.ensemble!.partyWallOwner;
+    const parts = buildBlueprintParts(legacy, 3, PERIMETER_WALL_COLORS.house).parts;
+
+    expect(parts.every((part) => part.renderRole === undefined)).toBe(true);
+  });
+
+  it('keeps facade trim off the neighbor-owned side', () => {
+    for (const owner of ['earlier-frontage-member', 'later-frontage-member'] as const) {
+      const blueprint = styledRowBlueprint(owner);
+      const legacy = structuredClone(blueprint);
+      delete legacy.ensemble!.partyWallOwner;
+      const ownedFacade = buildBlueprintParts(
+        blueprint,
+        3,
+        PERIMETER_WALL_COLORS.house,
+      ).parts.filter((part) => part.tag === FACADE_PART_TAG);
+      const legacyFacade = buildBlueprintParts(
+        legacy,
+        3,
+        PERIMETER_WALL_COLORS.house,
+      ).parts.filter((part) => part.tag === FACADE_PART_TAG);
+
+      // The ownerless receipt projects every outer run. Restoring ownership
+      // must remove one seam's trim while preserving the remaining grammar.
+      expect(ownedFacade.length).toBeGreaterThan(0);
+      expect(ownedFacade.length).toBeLessThan(legacyFacade.length);
+    }
+  });
+
+  it('stores hidden-wall history without projecting it onto the shared exterior', () => {
+    const blueprint = styledRowBlueprint('earlier-frontage-member');
+    const floor = blueprint.floors.find((candidate) => candidate.level === 0)!;
+    const leftIndex = floor.wallRuns.findIndex((run) => run.kind === 'outer' && run.nx === -1);
+    const rightIndex = floor.wallRuns.findIndex((run) => run.kind === 'outer' && run.nx === 1);
+    const historyFor = (wallRunIndex: number) => ({
+      ageBand: 'old' as const,
+      phases: blueprint.masses.slice(1).map(() => 0),
+      wear: ['patched-wall' as const],
+      historySignature: `party-wall-history:${wallRunIndex}`,
+      features: [{
+        kind: 'patched-wall' as const,
+        floorLevel: 0,
+        wallRunIndex,
+        alongFt: 5,
+        widthFt: 2.5,
+        baseFt: 1,
+        heightFt: 3,
+        colorHex: '#78695a',
+      }],
+    });
+
+    expect(leftIndex).toBeGreaterThanOrEqual(0);
+    expect(rightIndex).toBeGreaterThanOrEqual(0);
+    blueprint.backstory = historyFor(leftIndex);
+    const hidden = buildBlueprintParts(blueprint, 3, PERIMETER_WALL_COLORS.house).parts;
+    blueprint.backstory = historyFor(rightIndex);
+    const visible = buildBlueprintParts(blueprint, 3, PERIMETER_WALL_COLORS.house).parts;
+
+    expect(hidden.filter((part) => part.tag === HISTORY_PART_TAG)).toEqual([]);
+    expect(visible.filter((part) => part.tag === HISTORY_PART_TAG).length).toBeGreaterThan(0);
+  });
+
+  it('keeps production roof meshes inside party sides while retaining street eaves', () => {
+    for (const owner of ['earlier-frontage-member', 'later-frontage-member'] as const) {
+      const blueprint = styledRowBlueprint(owner);
+      blueprint.backstory = {
+        ageBand: 'ancient',
+        phases: blueprint.masses.slice(1).map(() => 0),
+        wear: ['sagging-ridge'],
+        historySignature: `subdivided-row-roof:${owner}`,
+        features: [{
+          kind: 'sagging-ridge',
+          ridgeIndex: 0,
+          deflectionFt: 1,
+          colorHex: '#594a3d',
+        }],
+      };
+      const output = buildBlueprintParts(blueprint, 3, PERIMETER_WALL_COLORS.house);
+      const positions = output.roof!.positions;
+      const xs: number[] = [];
+      const zs: number[] = [];
+      for (let i = 0; i < positions.length; i += 3) {
+        xs.push(positions[i]);
+        zs.push(positions[i + 2]);
+      }
+      const halfWidthM = blueprint.widthFt * FT / 2;
+      const halfDepthM = blueprint.depthFt * FT / 2;
+
+      expect(Math.min(...xs)).toBeGreaterThanOrEqual(-halfWidthM - 1e-5);
+      expect(Math.max(...xs)).toBeLessThanOrEqual(halfWidthM + 1e-5);
+      expect(Math.min(...zs) < -halfDepthM || Math.max(...zs) > halfDepthM).toBe(true);
+    }
+
+    const legacy = styledRowBlueprint('earlier-frontage-member');
+    delete legacy.ensemble!.partyWallOwner;
+    const legacyXs = Array.from(
+      buildBlueprintParts(legacy, 3, PERIMETER_WALL_COLORS.house).roof!.positions,
+    ).filter((_, index) => index % 3 === 0);
+    expect(Math.min(...legacyXs)).toBeLessThan(-legacy.widthFt * FT / 2);
+    expect(Math.max(...legacyXs)).toBeGreaterThan(legacy.widthFt * FT / 2);
+  });
 });
 
 it('merges wall runs so no wall parts overlap on the same line', () => {
@@ -482,7 +665,9 @@ describe('solved roof parts (BGv2 Task 5)', () => {
         .filter((part) =>
           part.tag !== ROOF_PART_TAG &&
           part.tag !== FACADE_PART_TAG &&
-          part.tag !== MOTIF_PART_TAG)
+          part.tag !== MATERIAL_PART_TAG &&
+          part.tag !== MOTIF_PART_TAG &&
+          part.tag !== HISTORY_PART_TAG)
         .map((part) => ({
           x: part.x,
           z: part.z,
@@ -522,6 +707,95 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     expect(facade.every((part) => part.colorHex === style.trimColor)).toBe(true);
     expect(facade.some((part) => part.w > part.d)).toBe(true);
     expect(facade.some((part) => part.d > part.w)).toBe(true);
+  });
+
+  it('projects the resolved construction kit into material-tagged 3D evidence', () => {
+    const blueprint = styled();
+    const out = buildBlueprintParts(
+      blueprint,
+      3,
+      PERIMETER_WALL_COLORS.house,
+      false,
+    );
+    const construction = blueprint.styleResolved!.construction;
+    const materialParts = out.parts.filter((part) =>
+      part.tag === MATERIAL_PART_TAG);
+    const materialKinds = new Set(
+      materialParts.map((part) => part.materialDetailKind),
+    );
+
+    expect(materialParts.length).toBeGreaterThan(0);
+    expect(materialParts.every((part) => part.materialDetailKind)).toBe(true);
+    expect(materialKinds.has('foundation')).toBe(true);
+    expect(materialKinds.has('roof-edge')).toBe(true);
+    expect(materialParts.every((part) =>
+      part.colorHex === blueprint.styleResolved!.trimColor
+      || part.colorHex === blueprint.styleResolved!.roofColor)).toBe(true);
+
+    // Shutter panels are paired beside every real above-grade window. A kit
+    // with no shutters intentionally emits none rather than inventing closures.
+    const windowCount = blueprint.floors
+      .filter((floor) => floor.level >= 0)
+      .reduce((total, floor) => total + floor.windows.length, 0);
+    const shutterPanels = materialParts.filter((part) =>
+      part.materialDetailKind === 'shutter-panel');
+    expect(shutterPanels).toHaveLength(
+      construction.shutters === 'none' ? 0 : windowCount * 2,
+    );
+
+    // Glazing quality repaints the canonical panes instead of laying a second
+    // surface over them, so lighting can still find one exact window part.
+    const panes = out.parts.filter((part) => part.lightRole === 'window');
+    expect(panes.length).toBe(windowCount);
+    expect(panes.every((part) =>
+      part.colorHex === glazingPaneColor(construction.glazing))).toBe(true);
+  });
+
+  it('makes the five culture families visibly distinct through physical materials', () => {
+    const cultures = ['Highland', 'Naval', 'River', 'Hunting', 'Generic'] as const;
+    const proofs = cultures.map((cultureType) => {
+      const blueprint = generateBuilding({
+        buildingId: 41,
+        type: 'manor',
+        seedPath: rootSeedPath(4141),
+        storeys: 2,
+        basement: false,
+        style: {
+          cultureType,
+          climate: 'temperate',
+          wealth: 'common',
+          ageBand: 'new',
+          architecture: {
+            settlementKey: `burg:${cultureType}`,
+            districtKey: 'district:2',
+            buildingKey: 'plot:41',
+          },
+        },
+      });
+      const parts = buildBlueprintParts(
+        blueprint,
+        3,
+        PERIMETER_WALL_COLORS.house,
+        false,
+      ).parts.filter((part) => part.tag === MATERIAL_PART_TAG);
+      return {
+        construction: blueprint.styleResolved!.construction,
+        geometry: JSON.stringify(parts.map((part) => ({
+          kind: part.materialDetailKind,
+          w: part.w,
+          d: part.d,
+          h: part.h,
+          colorHex: part.colorHex,
+        }))),
+      };
+    });
+
+    expect(new Set(proofs.map((proof) => proof.construction.kitId)).size).toBe(5);
+    expect(new Set(proofs.map((proof) => proof.construction.wallMaterial)).size)
+      .toBeGreaterThan(3);
+    expect(new Set(proofs.map((proof) => proof.construction.roofCovering)).size)
+      .toBeGreaterThan(3);
+    expect(new Set(proofs.map((proof) => proof.geometry)).size).toBe(5);
   });
 
   it.each([
@@ -577,6 +851,148 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     expect(motifParts.every((part) => palette.has(part.colorHex))).toBe(true);
   });
 
+  it('renders every resolved history fact as separately tagged semantic evidence', () => {
+    const blueprint = generateBuilding({
+      buildingId: 77,
+      type: 'manor',
+      seedPath: rootSeedPath(7077),
+      storeys: 2,
+      basement: false,
+      style: {
+        cultureType: 'Generic',
+        climate: 'temperate',
+        wealth: 'common',
+        ageBand: 'ancient',
+        architecture: {
+          settlementKey: 'burg:history-proof',
+          districtKey: 'district:old-core',
+          buildingKey: 'plot:77',
+        },
+      },
+    });
+    const out = buildBlueprintParts(
+      blueprint,
+      buildingShellHeightM(2) / 2,
+      PERIMETER_WALL_COLORS.house,
+      false,
+    );
+    const historyParts = out.parts.filter((part) =>
+      part.tag === HISTORY_PART_TAG);
+    const featureKinds = new Set(
+      blueprint.backstory!.features.map((feature) => feature.kind),
+    );
+
+    expect(blueprint.backstory!.wear).toHaveLength(3);
+    expect(historyParts.length).toBeGreaterThan(0);
+    expect(historyParts.every((part) => part.historyKind)).toBe(true);
+    expect(new Set(historyParts.map((part) => part.historyKind)))
+      .toEqual(featureKinds);
+    expect(historyParts.every((part) =>
+      Number.isFinite(part.x) &&
+      Number.isFinite(part.z) &&
+      Number.isFinite(part.h) &&
+      part.w > 0 &&
+      part.d > 0 &&
+      part.h > 0)).toBe(true);
+  });
+
+  it('projects replayed fire and abandonment state without changing tactical structure', () => {
+    const blueprint = generateBuilding({
+      buildingId: 78,
+      type: 'tavern',
+      seedPath: rootSeedPath(7078),
+      storeys: 2,
+      basement: false,
+      style: {
+        cultureType: 'River',
+        climate: 'temperate',
+        wealth: 'common',
+        ageBand: 'old',
+        architecture: {
+          settlementKey: 'burg:live-history-proof',
+          districtKey: 'district:riverfront',
+          buildingKey: 'plot:78',
+        },
+      },
+      eventLog: [
+        {
+          day: 40,
+          kind: 'fire-damage',
+          payload: { incidentId: 'proof-fire', severity: 3 },
+        },
+        { day: 60, kind: 'abandonment', payload: { boardedFraction: 1 } },
+      ],
+    });
+    const out = buildBlueprintParts(
+      blueprint,
+      buildingShellHeightM(2) / 2,
+      PERIMETER_WALL_COLORS.house,
+      false,
+    );
+    const historyParts = out.parts.filter((part) => part.tag === HISTORY_PART_TAG);
+    const liveKinds = new Set(
+      blueprint.liveHistory!.features.map((feature) => feature.kind),
+    );
+
+    expect(liveKinds).toEqual(new Set(['scorched-room', 'roof-hole', 'boarded-window']));
+    expect(new Set(historyParts.map((part) => part.historyKind)))
+      .toEqual(new Set([
+        ...blueprint.backstory!.features.map((feature) => feature.kind),
+        ...liveKinds,
+      ]));
+    expect(historyParts.filter((part) => part.historyKind === 'boarded-window').length)
+      .toBe(blueprint.floors.filter((floor) => floor.level >= 0)
+        .reduce((sum, floor) => sum + floor.windows.length * 3, 0));
+    // The production bridge carries a physical opening in its roof group and
+    // retains only the four tagged charred rim bars as semantic SiteParts.
+    expect(historyParts.filter((part) => part.historyKind === 'roof-hole')).toHaveLength(4);
+    expect(out.roof).toBeDefined();
+    const hole = blueprint.liveHistory!.features.find((feature) => feature.kind === 'roof-hole');
+    expect(hole).toBeDefined();
+    const origin = blueprintSiteOrigin(blueprint);
+    for (let i = 0; i < out.roof!.positions.length; i += 9) {
+      const centerXFt = (
+        out.roof!.positions[i] + out.roof!.positions[i + 3] + out.roof!.positions[i + 6]
+      ) / (3 * 0.3048) + origin.x;
+      const centerYFt = (
+        out.roof!.positions[i + 2] + out.roof!.positions[i + 5] + out.roof!.positions[i + 8]
+      ) / (3 * 0.3048) + origin.y;
+      expect(Math.hypot(centerXFt - hole!.x, centerYFt - hole!.y))
+        .toBeGreaterThanOrEqual(hole!.radiusFt - 1e-5);
+    }
+  });
+
+  it('history dressing leaves the permanent structure byte-identical across ages', () => {
+    const make = (ageBand: 'new' | 'ancient') => generateBuilding({
+      buildingId: 15,
+      type: 'manor',
+      seedPath: rootSeedPath(1515),
+      storeys: 2,
+      basement: true,
+      style: {
+        cultureType: 'Generic',
+        climate: 'temperate',
+        wealth: 'common',
+        ageBand,
+      },
+    });
+    const structuralParts = (blueprint: ReturnType<typeof make>) =>
+      buildBlueprintParts(
+        blueprint,
+        buildingShellHeightM(2) / 2,
+        PERIMETER_WALL_COLORS.house,
+        false,
+      ).parts.filter((part) =>
+        part.tag !== ROOF_PART_TAG &&
+        part.tag !== FACADE_PART_TAG &&
+        part.tag !== MATERIAL_PART_TAG &&
+        part.tag !== MOTIF_PART_TAG &&
+        part.tag !== WEATHERING_PART_TAG &&
+        part.tag !== HISTORY_PART_TAG);
+
+    expect(structuralParts(make('ancient'))).toEqual(structuralParts(make('new')));
+  });
+
   it('horizontal log courses stop at window openings', () => {
     const source = styled();
     // generateBuilding memoizes plans, so copy the resolved style rather than
@@ -595,7 +1011,7 @@ describe('solved roof parts (BGv2 Task 5)', () => {
       false,
     ).parts;
     const bands = parts.filter((part) => part.tag === FACADE_PART_TAG);
-    const panes = parts.filter((part) => part.colorHex === WINDOW_PANE_COLOR);
+    const panes = parts.filter((part) => part.lightRole === 'window');
 
     expect(bands.length).toBeGreaterThan(0);
     expect(panes.length).toBeGreaterThan(0);

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 11/07/2026, 14:58:18
- * Dependents: components/Worldforge/TownPlanView.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 5 files
+ * Last Sync: 14/07/2026, 22:29:04
+ * Dependents: components/DesignPreview/steps/townMesh.ts, components/Worldforge/TownPlanView.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,12 +33,15 @@
 import type { TownPlan as EngineTownPlan, BuildingPlot, CivicKind } from './townEngine';
 import type { TownPlan as ArtifactTownPlan } from '../artifacts';
 import type { Pt } from '../submap/submapEngine';
+import type { BuildingAgeBand, BuildingEnsemble } from '../interior/blueprintTypes';
 import { isResidential, type BuildingType } from './population';
 import {
   resolveArchitectureVariant,
   type StyleFamily,
   type RoofForm,
 } from './architectureStyle';
+import { resolveBuildingAgeBand } from './buildingAge';
+import { detachedParcelInsets } from './detachedParcels';
 
 export interface AdaptedTownPlan {
   plan: ArtifactTownPlan;
@@ -170,20 +173,27 @@ function roleForCivic(kind: CivicKind): string | null {
 }
 
 /**
- * Oriented bounding quad (4 corners, wound CCW) aligned to the polygon's
- * longest edge. The 3D pipeline assumes 4-corner convex footprints (oriented-box
+ * Oriented bounding quad (4 corners, wound CCW) aligned to the explicit packed
+ * frontage for ensemble plots, or the polygon's longest edge for legacy/civic
+ * plots. The 3D pipeline assumes 4-corner convex footprints (oriented-box
  * geometry + point-in-convex-quad pad/coverage tests); townEngine plots may be
  * L-shaped or have extra vertices, so we reduce each to its frontage-aligned
  * rectangle. A clean 4-point rect passes through essentially unchanged.
  */
-function orientedQuad(poly: Pt[]): [Pt, Pt, Pt, Pt] {
+function orientedQuad(poly: Pt[], ensemble?: BuildingEnsemble): [Pt, Pt, Pt, Pt] {
   // Longest edge → frontage direction.
   let bestLen = -1, ang = 0;
-  for (let i = 0; i < poly.length; i++) {
-    const a = poly[i], b = poly[(i + 1) % poly.length];
-    const dx = b[0] - a[0], dy = b[1] - a[1];
-    const len = dx * dx + dy * dy;
-    if (len > bestLen) { bestLen = len; ang = Math.atan2(dy, dx); }
+  if (ensemble && poly.length >= 2) {
+    // Ensemble plots preserve the town packer's explicit 0->1 street edge.
+    ang = Math.atan2(poly[1][1] - poly[0][1], poly[1][0] - poly[0][0]);
+  } else {
+    // Legacy and civic polygons retain the historical longest-edge heuristic.
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i], b = poly[(i + 1) % poly.length];
+      const dx = b[0] - a[0], dy = b[1] - a[1];
+      const len = dx * dx + dy * dy;
+      if (len > bestLen) { bestLen = len; ang = Math.atan2(dy, dx); }
+    }
   }
   const cos = Math.cos(-ang), sin = Math.sin(-ang);
   let minU = Infinity, maxU = -Infinity, minV = Infinity, maxV = -Infinity;
@@ -193,13 +203,40 @@ function orientedQuad(poly: Pt[]): [Pt, Pt, Pt, Pt] {
     if (u < minU) minU = u; if (u > maxU) maxU = u;
     if (v < minV) minV = v; if (v > maxV) maxV = v;
   }
-  // Inset by INSET_FRAC toward the rect center so neighbouring buildings never
-  // share a ground tile (the terrain-pad pass requires non-overlapping
-  // footprints) and a readable street gap remains between plots.
+  // Inset legacy lots toward the rect center so neighboring buildings never
+  // share a ground tile. Current lot receipts are already collision-resolved,
+  // cell-aligned building envelopes; another fractional inset would sever the
+  // exact party line and turn a 15 ft authored lot into a fabricated 10 ft box.
   const INSET_FRAC = 0.12;
   const midU = (minU + maxU) / 2, midV = (minV + maxV) / 2;
-  const iMinU = minU + (midU - minU) * INSET_FRAC, iMaxU = maxU - (maxU - midU) * INSET_FRAC;
-  const iMinV = minV + (midV - minV) * INSET_FRAC, iMaxV = maxV - (maxV - midV) * INSET_FRAC;
+  const parcelInsets = ensemble?.kind === 'detached' && ensemble.parcelProfile
+    ? detachedParcelInsets(ensemble.parcelProfile)
+    : undefined;
+  const negotiated = ensemble?.lotProfile !== undefined;
+  // Shared sides remain on the exact lot boundary; exposed ends retain the
+  // historical inset. This creates real party walls without overlapping area.
+  const width = maxU - minU;
+  const depth = maxV - minV;
+  const iMinU = parcelInsets
+    ? minU + width * parcelInsets.left
+    : negotiated || ensemble?.partyWallLeft
+      ? minU
+      : minU + (midU - minU) * INSET_FRAC;
+  const iMaxU = parcelInsets
+    ? maxU - width * parcelInsets.right
+    : negotiated || ensemble?.partyWallRight
+      ? maxU
+      : maxU - (maxU - midU) * INSET_FRAC;
+  const iMinV = parcelInsets
+    ? minV + depth * parcelInsets.front
+    : negotiated
+      ? minV
+      : minV + (midV - minV) * INSET_FRAC;
+  const iMaxV = parcelInsets
+    ? maxV - depth * parcelInsets.rear
+    : negotiated
+      ? maxV
+      : maxV - (maxV - midV) * INSET_FRAC;
   // Corners in rotated frame, back-rotated into world space.
   const back = (u: number, v: number): Pt => {
     const c = Math.cos(ang), s = Math.sin(ang);
@@ -219,8 +256,11 @@ function centroidHash01(poly: Pt[]): number {
 }
 
 /** Storeys by role (taller civic/commercial), with deterministic ±1 for homes. */
-export function storeysForRole(role: string, poly: Pt[]): number {
+export function storeysForRole(role: string, poly: Pt[], ensemble?: BuildingEnsemble): number {
   if (role === 'temple' || role === 'keep') return 3;
+  // Rows and arcades share one eave target. Courtyard workshops also keep a
+  // common low wall line; detached buildings retain individual variation.
+  if (ensemble && ensemble.kind !== 'detached') return ensemble.eaveStoreys;
   if (role === 'market' || role === 'workshop' || role === 'civic') return 2;
   return centroidHash01(poly) < 0.4 ? 2 : 1; // houses: a minority are two-storey
 }
@@ -240,6 +280,8 @@ function styleStamp(
   districtLabel: string,
   buildingKey: string,
   wealth: 'poor' | 'common' | 'wealthy',
+  ageBand: BuildingAgeBand,
+  ensemble?: BuildingEnsemble,
 ): {
   wallColorHex: string;
   roofColorHex: string;
@@ -250,7 +292,7 @@ function styleStamp(
     settlementKey: `burg:${burgId}`,
     districtKey,
     buildingKey,
-  });
+  }, ensemble);
   return {
     wallColorHex: variant.wallColor,
     roofColorHex: variant.roofColor,
@@ -260,9 +302,13 @@ function styleStamp(
       districtLabel,
       buildingKey,
       wealth,
+      ageBand,
       districtSignature: variant.districtSignature,
       buildingVariant: variant.buildingVariant,
+      pitchScale: variant.pitchScale,
+      eaveOffsetFt: variant.eaveOffsetFt,
       facadePattern: variant.facadePattern,
+      construction: variant.construction,
     },
   };
 }
@@ -287,7 +333,7 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: St
     const districtKey = ward.architectureDistrict?.key ?? `wealth:${wealth}`;
     const districtLabel = ward.architectureDistrict?.label ?? `${wealth} quarter`;
     for (const pl of ward.plots) {
-      const quad = orientedQuad(pl.polygon);
+      const quad = orientedQuad(pl.polygon, pl.ensemble);
       const [w, d] = quadSides(quad);
       if (Math.min(w, d) < MIN_PLOT_SIDE_FT) continue; // sub-tile sliver — skip
       const role = roleForPlot(pl, ward.civic);
@@ -299,9 +345,24 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: St
         id: plotId,
         footprint: quad,
         role,
-        storeys: storeysForRole(role, pl.polygon),
+        storeys: storeysForRole(role, pl.polygon, pl.ensemble),
+        ...(pl.ensemble ? { ensemble: { ...pl.ensemble } } : {}),
         ...(family
-          ? styleStamp(family, burgId, districtKey, districtLabel, buildingKey, wealth)
+          ? styleStamp(
+              family,
+              burgId,
+              districtKey,
+              districtLabel,
+              buildingKey,
+              wealth,
+              resolveBuildingAgeBand({
+                polygon: pl.polygon,
+                townCore: plan.core,
+                settlementKey: `burg:${burgId}`,
+                buildingKey,
+              }),
+              pl.ensemble,
+            )
           : {}),
         // Carry the population-pass classification through to the 3D bake so it
         // can rebuild the founding household brief (BGv2 Task 11). Only when the
@@ -348,6 +409,12 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: St
             districtLabel,
             `civic:${c.kind}:${c.wardIndex}`,
             wealth,
+            resolveBuildingAgeBand({
+              polygon: c.polygon,
+              townCore: plan.core,
+              settlementKey: `burg:${burgId}`,
+              buildingKey: `civic:${c.kind}:${c.wardIndex}`,
+            }),
           )
         : {}),
     });
@@ -368,8 +435,22 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: St
     colorHex: STREET_TIERS[s.tier].colorHex,
   }));
 
+  // Shared courts are open-space receipts, not fake building plots. Carry them
+  // beside plots so prop placement can dress their exact transformed center
+  // without changing plot ids or introducing collision geometry.
+  const courtyards: NonNullable<ArtifactTownPlan['courtyards']> = plan.courtyards.map((court) => ({
+    id: court.id,
+    blockKey: court.blockKey,
+    center: [court.center[0], court.center[1]],
+    radiusFt: court.radius,
+    districtKey: court.districtKey,
+    wealth: court.wealth,
+    amenity: court.amenity,
+    courtyardSignature: court.courtyardSignature,
+  }));
+
   return {
-    plan: { burgId, streets, plots },
+    plan: { burgId, streets, courtyards, plots },
     walls: {
       ring: plan.walls.ring,
       gatehouses: plan.walls.gatehouses,

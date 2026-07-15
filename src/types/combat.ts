@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 10/07/2026, 13:11:19
- * Dependents: App.tsx, commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapFogCanvas.tsx, components/BattleMap/BattleMapGroundCanvas.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatIntentPreview.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/characters/characterActor/conditionBadges.tsx, components/BattleMap/characters/characterActor/defenseBadges.tsx, components/BattleMap/fogModel.ts, components/BattleMap/groundPainter/paintPipeline.ts, components/BattleMap/groundPainter/textures.ts, components/BattleMap/pixi/PixiBattleBoard.tsx, components/BattleMap/pixi/PixiBoardPrototype.tsx, components/BattleMap/pixi/tokenViewModel.ts, components/BattleMap/spellMapArtifacts.ts, components/BattleMap/spritePacks.ts, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/DistantTerrain.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/Combat/InPlaceCombatScene.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/World3D/World3DWrapper.tsx, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/fightInPlace/inSceneMovement.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundProps.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/combat/statusConditionUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/visuals/combatIconVisuals.ts, utils/world/religionUtils.ts
+ * Last Sync: 15/07/2026, 00:28:20
+ * Dependents: App.tsx, commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapFogCanvas.tsx, components/BattleMap/BattleMapGroundCanvas.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatIntentPreview.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/CompactTurnStrip.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/characters/characterActor/conditionBadges.tsx, components/BattleMap/characters/characterActor/defenseBadges.tsx, components/BattleMap/fogModel.ts, components/BattleMap/groundPainter/paintPipeline.ts, components/BattleMap/groundPainter/textures.ts, components/BattleMap/pixi/PixiBattleBoard.tsx, components/BattleMap/pixi/PixiBoardPrototype.tsx, components/BattleMap/pixi/tokenViewModel.ts, components/BattleMap/quickAttack.ts, components/BattleMap/spellMapArtifacts.ts, components/BattleMap/spritePacks.ts, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/DistantTerrain.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/Combat/InPlaceCombatScene.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/World3D/World3DWrapper.tsx, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/fightInPlace/inSceneMovement.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/entities3d/recipeFromCombatant.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundProps.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/battleEndActions.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/combat/statusConditionUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/visuals/combatIconVisuals.ts, utils/world/religionUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -1885,6 +1885,72 @@ export interface ActiveMoldEarthSurfaceMark {
 export type BattleMapTerrain = 'grass' | 'rock' | 'water' | 'difficult' | 'wall' | 'floor' | 'sand' | 'mud';
 export type BattleMapDecoration = 'tree' | 'boulder' | 'stalagmite' | 'pillar' | 'cactus' | 'mangrove' | 'fallen_log' | 'stump' | 'bush' | null;
 
+/**
+ * An authored/generated surface laid over a tile's underlying terrain.
+ *
+ * Roads are surfaces rather than terrain because the same route may cross
+ * grass, sand, mud, or a future ford without erasing that base material. The
+ * retained WorldForge run index and width let debug tools prove which source
+ * fact produced the tactical cells instead of inferring provenance from paint.
+ */
+export type BattleMapSurface = {
+  kind: 'road';
+  source: 'worldforge-road';
+  sourceRole: 'regional-route' | 'town-street' | 'unclassified';
+  sourceIndex: number;
+  widthMeters: number;
+};
+
+/** Physical route-over-water fact layered over the tile's water terrain. */
+export type BattleMapCrossing = {
+  kind: 'bridge' | 'ford';
+  source: 'worldforge-crossing';
+  sourceCrossingId: string;
+  roadSourceIndex?: number;
+  riverSourceIndex?: number;
+  /** Unit route heading in referee x/y coordinates. */
+  roadDirection: { x: number; y: number };
+  /** Exact source center retained for renderers and provenance inspectors. */
+  centerWorldMeters: { x: number; z: number };
+  spanMeters: number;
+  widthMeters: number;
+};
+
+/**
+ * Source-backed tactical framing for an encounter projected onto this map.
+ *
+ * The context states intent and lineage, not final character coordinates. The
+ * combat setup helper still validates every spawn against the live referee
+ * grid, which preserves later world deltas and avoids saving stale positions.
+ */
+export type BattleMapEncounterContext =
+  | {
+      kind: 'road-ambush';
+      source: 'worldforge-road';
+      sourceRoadRole: BattleMapSurface['sourceRole'];
+      sourceRoadIndex: number;
+      /** Referee cell corresponding to the selected source-world encounter point. */
+      anchorTile: { x: number; y: number };
+      /** Normalized route heading in referee x/y coordinates. */
+      routeDirection: { x: number; y: number };
+      deployment: {
+        player: 'traveling-column';
+        enemy: 'concealed-flanks';
+      };
+    }
+  | {
+      kind: 'river-crossing';
+      source: 'worldforge-crossing';
+      sourceCrossingId: string;
+      crossingKind: BattleMapCrossing['kind'];
+      anchorTile: { x: number; y: number };
+      routeDirection: { x: number; y: number };
+      deployment: {
+        player: 'near-bank';
+        enemy: 'far-bank';
+      };
+    };
+
 export interface EnvironmentalEffect {
     id: string;
     type: 'fire' | 'ice' | 'poison' | 'difficult_terrain' | 'web' | 'fog' | 'hazard';
@@ -1904,6 +1970,10 @@ export interface BattleMapTile {
   blocksLoS: boolean;
   blocksMovement: boolean;
   decoration: BattleMapDecoration;
+  /** Optional source-backed surface treatment layered over base terrain. */
+  surface?: BattleMapSurface;
+  /** Optional source-authored bridge/ford relation over base water. */
+  crossing?: BattleMapCrossing;
   effects: string[]; // IDs of active effects
   providesCover?: boolean;
   environmentalEffects?: EnvironmentalEffect[];
@@ -1921,6 +1991,32 @@ export const BATTLE_MAP_BIOMES = [
 ] as const;
 export type BattleMapBiome = (typeof BATTLE_MAP_BIOMES)[number];
 
+// ============================================================================
+// Battle Map Provenance
+// ============================================================================
+// A tactical board can now be an extracted view of an actual WorldForge
+// location. Keeping that origin on the map lets renderers and debugging tools
+// distinguish source-world facts from the older context-free arena generator.
+// The field is optional so old saves, tests, and sandbox maps remain valid.
+// ============================================================================
+
+export interface BattleMapWorldforgeProvenance {
+  /** WorldForge is authoritative for terrain and placed objects on this map. */
+  kind: 'worldforge';
+  /** Seed of the generated world the encounter belongs to. */
+  worldSeed: number;
+  /** Exact atlas cell used to build Region -> Local -> Ground, when resolved. */
+  anchorCellId?: number;
+  /** Stable harness or encounter recipe that selected the location. */
+  scenarioId?: string;
+  /** Player-facing place or scenario label when one is known. */
+  locationLabel?: string;
+  /** World-meter point that became the center tile of the tactical crop. */
+  anchorWorldMeters: { x: number; z: number };
+  /** Human-readable lineage for debug surfaces and future save inspection. */
+  generationPath: readonly string[];
+}
+
 export interface BattleMapData {
   dimensions: { width: number; height: number };
   tiles: Map<string, BattleMapTile>;
@@ -1932,6 +2028,14 @@ export interface BattleMapData {
   targetableObjects?: TargetableMapObject[];
   theme: BattleMapBiome;
   seed: number;
+  /**
+   * Present when this board was projected from a real game-world location.
+   * Renderers must not invent unrelated set dressing on these maps: anything
+   * object-like should be traceable to the source world or a later world delta.
+   */
+  provenance?: BattleMapWorldforgeProvenance;
+  /** Optional source-backed formation that the combat setup must realize. */
+  encounterContext?: BattleMapEncounterContext;
 }
 
 export interface PocketedSummon {

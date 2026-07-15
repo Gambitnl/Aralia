@@ -2,10 +2,21 @@
 
 **Date:** 2026-07-12
 **Author:** agent `fable-entitygen` (for Remy)
-**Status:** BUILT and live in every 3D surface. Current default look is a
-literal triangle-mesh wireframe, which is **not** the clean edge-line
-"wireframe system" that was actually wanted — see [Making it a real wireframe
-system](#making-it-a-real-wireframe-system), which is the most likely next job.
+**Status:** BUILT and live in every 3D surface.
+**Update 2026-07-15 — body v2 shipped; the "real wireframe" job below is DONE.**
+Metaballs (MarchingCubes) are deleted. Gait drivers now emit rigid tapered
+segment lists (`SegmentSink` in `types.ts`); `three/segmentBody.ts` builds one
+cylinder per segment id once and re-transforms it per frame, so bodies are
+articulated humanoids (head, neck, shoulders, elbows, knees, hands) and
+wireframe mode is clean `EdgesGeometry` edge lines (~784 triangles a figure).
+Field parts became chain parts (`parts/chainParts.ts`) or plain mesh parts
+(`parts/organicParts.ts`); part ids are unchanged. `stats()` now returns
+`{segments, triangles, renderMode}`; `resolutionScale`/`fieldUpdateHz` options
+are accepted but ignored (strip them from the five surfaces in a later slice).
+Spec: `docs/superpowers/specs/2026-07-15-entity-body-v2-segments-design.md`.
+The sections below describe the metaball era — still useful for the system map
+(anchors, gaits, recipes, surfaces), but the body internals they describe are
+gone.
 
 Related docs (same feature):
 - Spec: `docs/superpowers/specs/2026-07-11-entity-generator-3d-design.md`

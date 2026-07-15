@@ -343,6 +343,57 @@ At generation, each building rolls `BuildingBackstory` from its own seed path:
 - Rendering: 2D shows sealed openings, phase hatching, and ruin state; 3D shows the wear set
   (boarded windows, roof holes, scorch, sagging ridge) and per-phase materials.
 
+### Implemented event-history slice (2026-07-14)
+
+- `BuildingEvent` is now a typed chronological union for fire damage, renovation,
+  extension, abandonment, reoccupation, and ruin. `applyHistory(plan, log)` validates
+  order, replays without mutation, stores a stable history signature, and keeps an empty
+  log as a strict legacy no-op.
+- The town simulation's deterministic fire incident now appends damage to the exact home
+  plots of its victims. The sparse per-plot map crosses the worker and production-interior
+  bridge, so the generated plan, blueprint, and streamed 3D building consume the same log.
+- Live evidence is target-specific: scorched rooms, roof breaches, boarded windows,
+  extension phase seams, and ruined ridges point to existing plan facts. Fire-caused ruins
+  can scorch rooms; collapse, neglect, and war ruins do not borrow fire evidence.
+- The 2D blueprint and 3D scene both expose current, fire-damaged, restored, and ruined
+  states. Renovation clears live damage while retaining deliberate extension-phase facts.
+- Production writing now covers exact fire damage plus prosperous-year repairs and
+  extensions. Repairs take precedence when an occupied home still carries fire damage;
+  otherwise the simulation consumes one unused, pre-approved structural addition.
+- Demographic changes now write the remaining lifecycle contracts. A home with no living
+  residents is boarded as abandoned; a newly married household prefers a sound abandoned
+  home and brings dependent children; each source home is retained long enough to record
+  any resulting vacancy. Abandoned buildings have stable, per-building neglect lifespans
+  of eight to twenty years before a non-fire ruin event records their decay. These choices
+  use named hashes and do not consume the established life-event random stream.
+- Re-registering a burg from an old save now hydrates only its missing canonical evolution
+  briefs. Saved villagers, prosperity, chronicle, and existing building logs retain their
+  original references and content.
+- Structural extensions now store an explicit wing/tower rectangle in the original
+  footprint frame. The replay pre-pass validates connectivity, added cells, and lot bounds,
+  then enlarges the canonical footprint before rooms, walls, stairs, and the roof generate.
+  A stable site origin prevents a one-sided addition from moving the old core on its plot.
+  Legacy logs that activate an existing secondary mass remain supported.
+- Canonical burg registration now stores up to two deterministic future additions per
+  eligible plot. Each candidate keeps the district's resolved roof form and proportion
+  vocabulary, while the building id varies its orientation and placement. Candidate
+  planning validates the cumulative result against the real 5 ft-snapped lot; zero-setback
+  plots fill connected notches inside their existing envelope instead of overhanging a
+  street. Named hashes rank candidates without consuming town-simulation random draws.
+- The blueprint workbench exposes this as an Extended scenario in both 2D and 3D. Focused
+  proof covers canonical cell growth, every-floor room coverage, roof regeneration, stable
+  district signature/roof form, production coordinate projection, and occupant placement.
+- Roof breaches and sagging ridges now deform the shared canonical triangle mesh consumed
+  by both the preview and production bridge. Only damaged planes are deterministically
+  subdivided: breach fragments are omitted to expose a real opening, while permanent and
+  live ridge targets lower the solved surface with the deepest deflection winning. Charred
+  rim parts retain semantic history metadata without filling the opening. Undamaged roofs
+  retain their historical fan-triangulated bytes.
+- Per-building history is now storage-bounded by a version 1 journal. Legacy arrays remain
+  valid; every complete 24-event block folds into exact renderer/use/style state while a
+  short chronological tail remains. Absolute structural ordinals, same-day fire identity,
+  and a composable event digest preserve the same replay result and signature.
+
 ---
 
 ## Determinism and seed identity
@@ -356,7 +407,8 @@ At generation, each building rolls `BuildingBackstory` from its own seed path:
   re-plan once when v2 lands (acceptable — interiors are not yet player-persistent state;
   container/overlay data is derived, and the event log starts empty).
 - The overlay is derived data — never saved, always recomputable. Save data added by v2 is
-  exactly: the per-building event log + stolen-item flags (both small, both bounded).
+  versioned per-building history + stolen-item flags. History stays sparse, and deterministic
+  block compaction bounds each chronological tail without discarding structural outcomes.
 - Draw-order stability: each new module (roof solver, style resolver, brief builder,
   negotiation, backstory, manifests) gets its own stream and its own pinned-draw golden,
   per the v1 lesson.
@@ -394,10 +446,26 @@ party-wall envelopes; full lot negotiation; town-role vocabulary cutover complet
 translation deleted). Eyeball: a dense ward as row-houses, a market square with arcades,
 from street level and overview.
 
+Current Phase 2 position: the town-side ensemble foundation is implemented. Dense frontage
+packing now creates exact shared lot boundaries; every plot receives a deterministic
+detached, row, courtyard, or market-arcade receipt with one block signature and eave target.
+The adapter preserves true party-wall boundaries and shared storey heights, generated
+buildings suppress windows on shared sides without removing structural walls, and the 2D
+map plus production 3D bridge expose tagged eave/arcade evidence outside tactical collision.
+Full two-way lot bump negotiation, single-wall mesh ownership, courtyard wells/privies/yards,
+stepped slope rooflines, and the legacy town-role vocabulary cutover remain Phase 2 work.
+
 **Phase 3 — Buildings with history.** Backstory roll (age bands, build phases, wear set);
 event log + `applyHistory` transform; sim wiring (fires/abandonment/extension write events);
 age driver into the style grammar; 2D + 3D wear rendering. Eyeball: an old-core town showing
 growth rings; a burned house before/after; an extension appearing over sim decades.
+
+Current Phase 3 position: permanent backstory, chronological replay, exact fire-to-home
+writes, prosperous-year repair and extension writers, district-aware canonical extension
+planning, stable site anchoring, and live 2D/3D evidence are implemented. Abandonment,
+reoccupation, neglect-ruin writers, and old-save evolution-brief migration are also
+implemented. Canonical roof deformation and replay-preserving event-log compaction are also
+implemented; sloped repair-covering geometry remains an additive rendering expansion.
 
 Cross-phase rule: the history **storage shape** (backstory input + event log) is designed
 now (this spec) and its fields are reserved from Phase 1A, so phases 1–2 never have to be

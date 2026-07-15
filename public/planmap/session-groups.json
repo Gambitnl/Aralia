@@ -43,10 +43,11 @@
       "topics": [
         "session-group-map"
       ],
-      "sessions": 3,
+      "sessions": 5,
       "sampleTitles": [
-        "Starter: 2026-D14-M07",
-        "Preview mode starter chat"
+        "Starter: 2026-D14-M07 v3",
+        "Starter: 2026-D14-M07 v1",
+        "Starter: 2026-D14-M07 v2"
       ]
     },
     {
@@ -236,9 +237,11 @@
       "theme": "Agent onboarding / AntiGravity",
       "campaign": "agents",
       "topics": [],
-      "sessions": 2,
+      "sessions": 4,
       "sampleTitles": [
+        "AM: Codex Spark 5.3",
         "Agent Onboarding (fork)",
+        "AM: Qoder free Ultimate calls:",
         "AntiGravity Managed Agent"
       ]
     }

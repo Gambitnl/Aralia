@@ -1,0 +1,30 @@
+<svg width="128" height="128" viewBox="0 0 128 128" color="#94A3B8" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <!-- D&D Leather Cap: Paneled dome with heavy stitching, forehead band, cheek flaps, and chin strap with buckle -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Main outer dome -->
+    <path d="M28,55 C28,25 44,15 64,15 C84,15 100,25 100,55 C100,65 96,75 92,80 L96,95 L90,95 L86,83 C80,87 72,89 64,89 C56,89 48,87 42,83 L38,95 L32,95 L36,80 C32,75 28,65 28,55 Z" stroke-width="3" fill="currentColor" fill-opacity="0.1"/>
+    <!-- Dome segments (division seams) -->
+    <path d="M64,15 L64,89" stroke-width="2"/>
+    <path d="M28,55 C40,58 64,58 100,55" stroke-width="2"/>
+    <path d="M36,32 C48,40 64,40 64,15" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <path d="M92,32 C80,40 64,40 64,15" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <!-- Stitching details along central seam -->
+    <path d="M60,25 L68,29 M60,35 L68,39 M60,45 L68,49 M60,55 L68,59 M60,65 L68,69 M60,75 L68,79" stroke-width="1.5"/>
+    <!-- Brow band -->
+    <path d="M27,53 C40,56 64,57 101,53 C101,53 100,60 100,60 C75,64 53,64 28,60 Z" stroke-width="2" fill="currentColor"/>
+    <!-- Rivets on brow band -->
+    <circle cx="38" cy="57" r="2.5" fill="currentColor" stroke="none"/>
+    <circle cx="51" cy="58.5" r="2.5" fill="currentColor" stroke="none"/>
+    <circle cx="77" cy="58.5" r="2.5" fill="currentColor" stroke="none"/>
+    <circle cx="90" cy="57" r="2.5" fill="currentColor" stroke="none"/>
+    <!-- Ear/Cheek guard details -->
+    <path d="M32,60 L30,82 C30,88 38,92 42,83 L40,65" stroke-width="2" fill="currentColor" fill-opacity="0.2"/>
+    <path d="M96,60 L98,82 C98,88 90,92 86,83 L88,65" stroke-width="2" fill="currentColor" fill-opacity="0.2"/>
+    <!-- Chin strap -->
+    <path d="M35,84 C38,105 52,112 60,111" stroke-width="2"/>
+    <path d="M93,84 C90,105 76,112 68,111" stroke-width="2"/>
+    <!-- Buckle -->
+    <rect x="58" y="107" width="12" height="8" rx="2" stroke-width="2" fill="currentColor" fill-opacity="0.3"/>
+    <line x1="64" y1="105" x2="64" y2="117" stroke-width="2"/>
+  </g>
+</svg>

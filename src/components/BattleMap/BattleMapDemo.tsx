@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/07/2026, 23:23:47
- * Dependents: components/BattleMap/index.ts, components/DesignPreview/steps/PreviewBattleMap.tsx
+ * Last Sync: 14/07/2026, 23:19:51
+ * Dependents: components/BattleMap/index.ts, components/DesignPreview/steps/PreviewBattleMap.tsx, components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx
  * Imports: 25 files
  *
  * MULTI-AGENT SAFETY:
@@ -16,12 +16,14 @@
 
 /**
  * @file BattleMapDemo.tsx
- * This component serves as a demonstration and test environment for the new procedural battle map feature.
- * It allows selecting a biome and seed to generate and display a procedural battle map.
- * It now accepts the characters for the battle as a prop.
+ * This component serves as a playable demonstration and test environment for
+ * both the legacy procedural arena and real WorldForge-derived tactical maps.
+ * It owns the same turn, targeting, roster, rail, and 2D/3D controls used by
+ * combat so design-preview harnesses exercise real behavior instead of a mock.
  */
 // TODO #37: Add ARIA labels, keyboard navigation, and screen reader support for interactive elements in battle maps and UI components
 import React, { useState, useMemo, useEffect, useCallback, useRef, useContext } from 'react';
+import { MapPin } from 'lucide-react';
 import BattleMap from './BattleMap';
 import BattleMap3D from './BattleMap3D';
 import { PlayerCharacter } from '../../types';
@@ -175,6 +177,14 @@ interface BattleMapDemoProps {
   onExit: () => void;
   initialCharacters: CombatCharacter[];
   party: PlayerCharacter[]; // The full party data
+  /** A real extracted battlefield supplied by a scenario harness or handoff. */
+  initialMapData?: BattleMapData;
+  /** False keeps the source location authoritative and hides arena generation. */
+  allowSandboxGeneration?: boolean;
+  /** Compact provenance label shown in place of the sandbox biome picker. */
+  sourceLabel?: string;
+  /** Let a debug harness open on the whole map instead of the production token-size floor. */
+  preferFullMapFit?: boolean;
 }
 
 type BiomeType = BattleMapBiome;
@@ -255,10 +265,24 @@ const ControlsHelp: React.FC<{ visible: boolean }> = ({ visible }) => {
   );
 };
 
-const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters, party }) => {
-  const initialBiome: BiomeType = 'forest';
+const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
+  onExit,
+  initialCharacters,
+  party,
+  initialMapData,
+  allowSandboxGeneration = true,
+  sourceLabel,
+  preferFullMapFit = false,
+}) => {
+  // A supplied world patch owns its theme and seed. The old forest + current
+  // time defaults remain unchanged for the standalone arena sandbox.
+  const initialBiome: BiomeType = initialMapData?.theme ?? 'forest';
   const [biome, setBiome] = useState<BiomeType>(initialBiome);
   const [seed, setSeed] = useState(() => {
+    if (initialMapData) {
+      return initialMapData.seed;
+    }
+
     // Dev-only deterministic seed override so the headless capture rig can take
     // same-map before/after shots (`SEED=` in shoot.mjs → window.__BM3D_SEED).
     if (typeof window !== 'undefined' && canUseDevTools()) {
@@ -316,7 +340,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
 
   const [initialSetup] = useState(() => {
     const baseCombatants = getBaseCombatants();
-    return generateBattleSetup(initialBiome, seed, baseCombatants);
+    return generateBattleSetup(initialBiome, seed, baseCombatants, initialMapData);
   });
 
   const [mapData, setMapData] = useState<BattleMapData | null>(initialSetup.mapData);
@@ -325,6 +349,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
   const [cameraFocusRequest, setCameraFocusRequest] = useState<{ characterId: string; requestId: number } | null>(null);
   const battlefieldSectionRef = useRef<HTMLDivElement>(null);
+  const combatLayoutRef = useRef<HTMLDivElement>(null);
   const [assetOverlayVisible, setAssetOverlayVisible] = useState(true);
   // Each rail can be hidden independently, and the deliberate layout follows
   // the player into later combats. First use still shows every combat tool.
@@ -357,6 +382,19 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   useEffect(() => {
     biomeRef.current = biome;
   }, [biome]);
+
+  useEffect(() => {
+    if (!mapData || typeof window === 'undefined' || window.matchMedia('(min-width: 1024px)').matches) return;
+
+    // The stacked layout grows substantially when a generated map replaces the
+    // loading state. Disable scroll anchoring below and explicitly start at the
+    // battlefield so late canvas/asset sizing cannot strand compact users at
+    // the bottom command rail before they have seen the map.
+    const frame = window.requestAnimationFrame(() => {
+      combatLayoutRef.current?.scrollTo({ top: 0, left: 0 });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [mapData]);
 
   const handleCharacterUpdate = useCallback((updatedChar: CombatCharacter) => {
     setCharacters(prev => {
@@ -600,41 +638,56 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
             Keeping them on one short strip protects the map mode buttons and
             stops this preview chrome from reading like a full overlay panel. */}
         <div className="flex max-w-full flex-wrap items-center justify-end gap-2">
-          <div className="min-w-[6.5rem]">
-            <label htmlFor="biomeSelect" className="block text-[9px] font-semibold uppercase tracking-wide text-sky-300">
-              Biome
-            </label>
-            <select
-              id="biomeSelect"
-              value={biome}
-              onChange={(e) => {
-                const nextBiome = e.target.value as BiomeType;
-                const baseCombatants = getBaseCombatants();
-                const setup = generateBattleSetup(nextBiome, seed, baseCombatants);
+          {allowSandboxGeneration ? (
+            <>
+              <div className="min-w-[6.5rem]">
+                <label htmlFor="biomeSelect" className="block text-[9px] font-semibold uppercase tracking-wide text-sky-300">
+                  Biome
+                </label>
+                <select
+                  id="biomeSelect"
+                  value={biome}
+                  onChange={(e) => {
+                    const nextBiome = e.target.value as BiomeType;
+                    const baseCombatants = getBaseCombatants();
+                    const setup = generateBattleSetup(nextBiome, seed, baseCombatants);
 
-                setBiome(nextBiome);
-                setCombatLog([]);
-                setSheetCharacter(null);
-                setAutoCharacters(new Set());
-                setMapData(setup.mapData);
-                setCharacters(setup.positionedCharacters);
-                turnManager.initializeCombat(setup.positionedCharacters);
-              }}
-              className="mt-0.5 block h-7 w-full rounded-md border-gray-600 bg-gray-800/90 py-0.5 pl-2 pr-7 text-xs focus:border-sky-500 focus:outline-none focus:ring-sky-500"
+                    setBiome(nextBiome);
+                    setCombatLog([]);
+                    setSheetCharacter(null);
+                    setAutoCharacters(new Set());
+                    setMapData(setup.mapData);
+                    setCharacters(setup.positionedCharacters);
+                    turnManager.initializeCombat(setup.positionedCharacters);
+                  }}
+                  className="mt-0.5 block h-7 w-full rounded-md border-gray-600 bg-gray-800/90 py-0.5 pl-2 pr-7 text-xs focus:border-sky-500 focus:outline-none focus:ring-sky-500"
+                >
+                  {BATTLE_MAP_BIOMES.map((b) => (
+                    <option key={b} value={b}>
+                      {b.charAt(0).toUpperCase() + b.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={handleGenerate}
+                className="h-7 rounded-md bg-green-600 px-3 text-xs font-semibold shadow hover:bg-green-500"
+              >
+                New Map
+              </button>
+            </>
+          ) : (
+            /* A real location replaces biome/randomize controls with its
+               provenance. Rebuilding belongs to the outer scenario lab. */
+            <div
+              className="inline-flex h-7 max-w-[18rem] items-center gap-1.5 rounded-md border border-emerald-400/45 bg-emerald-950/70 px-2.5 text-xs font-semibold text-emerald-100"
+              title={sourceLabel ?? 'WorldForge-derived battlefield'}
             >
-              {BATTLE_MAP_BIOMES.map((b) => (
-                <option key={b} value={b}>
-                  {b.charAt(0).toUpperCase() + b.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            onClick={handleGenerate}
-            className="h-7 rounded-md bg-green-600 px-3 text-xs font-semibold shadow hover:bg-green-500"
-          >
-            New Map
-          </button>
+              <MapPin size={13} aria-hidden="true" className="shrink-0 text-emerald-300" />
+              <span className="truncate">{sourceLabel ?? 'WorldForge location'}</span>
+            </div>
+          )}
           <button
             onClick={turnManager.endTurn}
             disabled={!turnManager.isCharacterTurn(currentCharacter?.id || '')}
@@ -689,9 +742,10 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
           up it is the fixed 3-region tactical layout with internally-scrolling
           rails. (CombatView uses the same breakpoint — the demo mirrors it.) */}
       <div
+        ref={combatLayoutRef}
         data-testid="combat-layout-grid"
         className={`flex-grow min-h-0 grid grid-cols-1 gap-4 overflow-y-auto lg:overflow-hidden ${tacticalGridColumns}`}
-        style={tacticalGridStyle}
+        style={{ ...tacticalGridStyle, overflowAnchor: 'none' }}
       >
         {/* Left Pane */}
         <div className={`${rosterRailVisible ? 'flex' : 'hidden'} relative order-2 flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:overflow-y-auto`}>
@@ -761,6 +815,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
                 mapData={mapData}
                 characters={characters}
                 assetOverlayVisible={assetOverlayVisible}
+                preferFullMapFit={preferFullMapFit}
                 cameraFocusRequest={cameraFocusRequest}
                 combatState={{
                   turnManager: turnManager,

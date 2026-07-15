@@ -100,6 +100,25 @@ describe('WAVE-1 prop wiring into GroundWorld', () => {
     if (marketCount > 0) expect(ctx.plazas.length).toBeGreaterThan(0);
   }, 20000);
 
+  it('projects canonical courts and emits their amenity props in the live ground world', () => {
+    const ground = portGround(42);
+    const ctx = groundToPlacementContext(ground);
+    const artifactCourts = (ground.townPlans ?? []).flatMap(({ plan }) => plan.courtyards ?? []);
+
+    expect(ctx.courtyards).toHaveLength(artifactCourts.length);
+    if (ctx.courtyards!.length > 0) {
+      const amenityProps = new Set([
+        'well', 'water-trough', 'cart', 'stone-planter', 'woodpile',
+        'crate-stack', 'trestle-table', 'stone-bench', 'wood-bench', 'barrel',
+      ]);
+      expect(ground.props.some((prop) => amenityProps.has(prop.defId))).toBe(true);
+      for (const court of ctx.courtyards!) {
+        expect(court.radiusM).toBeGreaterThan(0);
+        expect(court.courtyardSignature).toMatch(/^court-/);
+      }
+    }
+  }, 20000);
+
   it('threads SLICE B context signals (walls/gatehouses/rivers/hidden/heights)', () => {
     const ground = portGround(42);
     const ctx = groundToPlacementContext(ground);

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 14/07/2026, 21:37:35
+ * Dependents: systems/worldforge/interior/generateBuilding.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file roofPlan.ts — the roof solver (Building Generator v2, Phase 1B Task 3).
  *
@@ -35,6 +51,12 @@ export interface SolveRoofInput {
   hearths: Array<{ x: Feet; y: Feet }>;
   /** Upper-floor bedrooms owning no window edge (dormer candidates). */
   windowlessUpperRooms: Cell[];
+  /**
+   * Attached frontage sides terminate at the lot line instead of carrying an
+   * eave through the neighboring roof. Structural party walls remain complete.
+   */
+  partyWallLeft?: boolean;
+  partyWallRight?: boolean;
   wallTopFt: Feet; // storeys * storey height — roof z values are ABOVE this
 }
 
@@ -359,7 +381,16 @@ function wingValleys(wing: RectFt, main: RectFt): RoofPlan['valleys'] {
 
 // ── The solver ───────────────────────────────────────────────────────────────
 export function solveRoof(input: SolveRoofInput): RoofPlan {
-  const { masses, style, hearths, windowlessUpperRooms, wallTopFt } = input;
+  const {
+    masses,
+    footprintCells,
+    style,
+    hearths,
+    windowlessUpperRooms,
+    wallTopFt,
+    partyWallLeft = false,
+    partyWallRight = false,
+  } = input;
   const { roofForm, pitchRiseFt, eaveOverhangFt } = style;
   const eave = eaveOverhangFt;
 
@@ -431,6 +462,23 @@ export function solveRoof(input: SolveRoofInput): RoofPlan {
       d: tRect.h,
       apexFt,
       form: roofForm === 'steep' ? 'cone' : 'pyramid',
+    });
+  }
+
+  // ── Step 3b: attached-lot roof boundaries ────────────────────────────────
+  // Two row members otherwise each carry their full eave across the same lot
+  // boundary, creating a four-foot overlap once production clearance is added.
+  // At a party wall, clip the canonical plane to the footprint envelope. The
+  // interpolated cut reaches z=0 at the shared wall top, while front/back eaves
+  // and every detached side retain their normal overhang.
+  if ((partyWallLeft || partyWallRight) && footprintCells.length > 0) {
+    const minXFt = Math.min(...footprintCells.map((cell) => cell.cx)) * CELL_FT;
+    const maxXFt = (Math.max(...footprintCells.map((cell) => cell.cx)) + 1) * CELL_FT;
+    planes = planes.flatMap((plane) => {
+      let pts = plane.pts;
+      if (partyWallLeft) pts = clipPolyHalfPlane(pts, 'x', minXFt, false);
+      if (partyWallRight) pts = clipPolyHalfPlane(pts, 'x', maxXFt, true);
+      return pts.length >= 3 && polyAreaXY(pts) > EPS ? [{ pts }] : [];
     });
   }
 

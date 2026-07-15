@@ -204,6 +204,34 @@ it('holds lot-fit + connectivity + alignment across many plot sizes and seeds', 
   }
 });
 
+it('does not discard a cell from a rotated or affine 15 ft lot', () => {
+  const nearlyFifteen = 15 - 1e-12;
+  const plan = blueprintForPlot({
+    id: 515,
+    footprint: [
+      [0, 0],
+      [nearlyFifteen, 0],
+      [nearlyFifteen, nearlyFifteen],
+      [0, nearlyFifteen],
+    ],
+    role: 'house',
+    storeys: 1,
+    ensemble: {
+      blockKey: 'ward:5:edge:1',
+      kind: 'row',
+      partyWallLeft: false,
+      partyWallRight: false,
+      eaveStoreys: 1,
+      lotProfile: 'full-envelope',
+      lotSignature: 'floating-lot-proof',
+      ensembleSignature: 'floating-row-proof',
+    },
+  }, rootSeedPath(515));
+
+  expect([plan.widthFt, plan.depthFt]).toEqual([15, 15]);
+  expect(plan.footprintCells).toHaveLength(9);
+});
+
 it('has exactly one entry door, into a room with the role from the plot role', () => {
   // Adapter truth: the entry sits on an outer wall of the MAIN room (any
   // side — irregular footprints retired the fixed y=0 street wall), and the

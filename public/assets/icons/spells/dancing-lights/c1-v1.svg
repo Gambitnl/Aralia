@@ -1,0 +1,47 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <radialGradient id="orbGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E9D5FF" />
+      <stop offset="60%" stop-color="#C084FC" />
+      <stop offset="100%" stop-color="#7E22CE" />
+    </radialGradient>
+    <linearGradient id="trailGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#C084FC" stop-opacity="0" />
+      <stop offset="100%" stop-color="#C084FC" stop-opacity="0.6" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background depth -->
+  <rect width="100" height="100" fill="#1a1a1a" />
+
+  <!-- Motion Trails -->
+  <path d="M20 30 Q 30 20, 40 35" stroke="#C084FC" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4" />
+  <path d="M60 70 Q 70 80, 80 65" stroke="#C084FC" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4" />
+  <path d="M60 20 Q 50 10, 40 25" stroke="#C084FC" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4" />
+
+  <!-- Four Orbs of Light -->
+  <g filter="url(#glow)">
+    <!-- Top Left -->
+    <circle cx="35" cy="30" r="6" fill="url(#orbGrad)" />
+    <circle cx="35" cy="30" r="12" fill="#C084FC" opacity="0.2" />
+    
+    <!-- Top Right -->
+    <circle cx="65" cy="25" r="7" fill="url(#orbGrad)" />
+    <circle cx="65" cy="25" r="14" fill="#C084FC" opacity="0.2" />
+    
+    <!-- Bottom Left -->
+    <circle cx="30" cy="65" r="5" fill="url(#orbGrad)" />
+    <circle cx="30" cy="65" r="10" fill="#C084FC" opacity="0.2" />
+    
+    <!-- Bottom Right -->
+    <circle cx="70" cy="70" r="8" fill="url(#orbGrad)" />
+    <circle cx="70" cy="70" r="16" fill="#C084FC" opacity="0.2" />
+  </g>
+
+  <!-- Connecting magical energy (the bond) -->
+  <path d="M35 30 L 65 25 L 70 70 L 30 65 Z" stroke="#C084FC" stroke-width="0.5" fill="none" stroke-dasharray="4 2" opacity="0.3" />
+</svg>

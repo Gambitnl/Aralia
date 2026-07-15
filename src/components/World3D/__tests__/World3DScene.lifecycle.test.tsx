@@ -99,6 +99,15 @@ vi.mock('../useChunkStreaming', () => ({
               wallDepthM: 5,
               parts: [
                 { x: 0, z: 0, w: 6, d: 0.4, h: 3, colorHex: '#b09a72' },
+                {
+                  x: 3,
+                  z: 0,
+                  w: 0.4,
+                  d: 5,
+                  h: 3,
+                  colorHex: '#b09a72',
+                  renderRole: 'tactical-only',
+                },
               ],
             },
           ],
@@ -187,6 +196,9 @@ describe('World3DScene lifecycle proof', () => {
 
     // A loaded chunk should become actual scene content, not just an empty canvas shell.
     expect(container.querySelector('mesh')).not.toBeNull();
+    // The second wall remains in the streamed payload for tactical extraction,
+    // but the owning neighbor alone is allowed to draw shared masonry.
+    expect(container.querySelector('mesh[position="3,1.5,0"]')).toBeNull();
     expect(lastCanvasDomElement?.addEventListener).toHaveBeenCalledWith(
       'webglcontextlost',
       expect.any(Function),

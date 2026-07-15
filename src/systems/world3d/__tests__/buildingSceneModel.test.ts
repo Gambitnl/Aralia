@@ -1,3 +1,9 @@
+/**
+ * This file proves that canonical blueprints become honest preview scenes.
+ * It covers floor peeling, occupancy, lighting, and chronological damage so
+ * the design workbench cannot drift from the pure building and history plans.
+ */
+
 import { describe, it, expect } from 'vitest';
 import { buildingSceneModel, DOT_RADIUS_FT, DOT_LIFT_FT } from '../buildingSceneModel';
 import { BLUEPRINT_STOREY_FT } from '../buildingModels';
@@ -20,7 +26,7 @@ function smithBundle(seed = 759381890) {
     household: brief,
   });
   const occupancy = computeOccupancy(plan, household, { worksAtHome: true });
-  return { plan, household, occupancy };
+  return { plan, household, brief, occupancy };
 }
 
 /** Bare tavern (no household) for the un-occupied cases. */
@@ -34,6 +40,26 @@ const styledPlan = (seed = 1) =>
   generateBuilding({
     buildingId: 1, type: 'tavern', seedPath: rootSeedPath(seed), storeys: 1, basement: false,
     style: { cultureType: 'Generic', climate: 'temperate', wealth: 'common', ageBand: 'new' },
+  });
+
+/** Current row receipts clip solved roof skin before the preview consumes it. */
+const styledRowPlan = () =>
+  generateBuilding({
+    buildingId: 19,
+    type: 'townhouse',
+    seedPath: rootSeedPath(1919),
+    storeys: 2,
+    basement: false,
+    style: { cultureType: 'Generic', climate: 'temperate', wealth: 'common', ageBand: 'new' },
+    ensemble: {
+      blockKey: 'ward:3:edge:2',
+      kind: 'row',
+      partyWallLeft: true,
+      partyWallRight: true,
+      partyWallOwner: 'later-frontage-member',
+      eaveStoreys: 2,
+      ensembleSignature: 'preview-row-roof-boundary-proof',
+    },
   });
 
 describe('buildingSceneModel — solved roof (BGv2 Task 5)', () => {
@@ -72,6 +98,17 @@ describe('buildingSceneModel — solved roof (BGv2 Task 5)', () => {
   it('a roofless (bare) plan yields no roof group', () => {
     const m = buildingSceneModel(barePlan(), { upToLevel: 'all', hour: 12 });
     expect(m.roof).toBeUndefined();
+  });
+
+  it('keeps an attached preview roof inside its two party-wall lot lines', () => {
+    const plan = styledRowPlan();
+    const model = buildingSceneModel(plan, { upToLevel: 'all', hour: 12 });
+    const xs = Array.from(model.roof!.positions).filter((_, index) => index % 3 === 0);
+    const zs = Array.from(model.roof!.positions).filter((_, index) => index % 3 === 2);
+
+    expect(Math.min(...xs)).toBeGreaterThanOrEqual(-1e-6);
+    expect(Math.max(...xs)).toBeLessThanOrEqual(plan.widthFt + 1e-6);
+    expect(Math.min(...zs) < 0 || Math.max(...zs) > plan.depthFt).toBe(true);
   });
 });
 
@@ -143,6 +180,102 @@ describe('buildingSceneModel — window glow', () => {
     const m = buildingSceneModel(plan, { upToLevel: 'all', hour: 19 });
     const panes = m.boxes.filter((b) => b.kind === 'window-pane');
     expect(panes.every((p) => p.emissive === undefined)).toBe(true);
+  });
+});
+
+describe('buildingSceneModel - chronological history', () => {
+  it('shows replayed damage in 3D and treats abandoned occupancy as inactive', () => {
+    const { household, brief } = smithBundle(6161);
+    const plan = generateBuilding({
+      buildingId: 1,
+      type: 'smithy',
+      seedPath: rootSeedPath(6161),
+      storeys: 2,
+      basement: true,
+      household: brief,
+      style: {
+        cultureType: 'Highland',
+        climate: 'cold',
+        wealth: 'common',
+        ageBand: 'old',
+      },
+      eventLog: [
+        {
+          day: 4,
+          kind: 'fire-damage',
+          payload: { incidentId: 'scene-fire', severity: 3 },
+        },
+        { day: 8, kind: 'abandonment', payload: { boardedFraction: 1 } },
+      ],
+    });
+    const occupancy = computeOccupancy(plan, household, { worksAtHome: true });
+    const all = buildingSceneModel(plan, { upToLevel: 'all', hour: 19, occupancy });
+    const peeled = buildingSceneModel(plan, { upToLevel: 0, hour: 19, occupancy });
+
+    expect(all.boxes.some((box) => box.kind === 'history-scorch')).toBe(true);
+    expect(all.boxes.some((box) => box.kind === 'history-board')).toBe(true);
+    // Roof damage now lives in the triangle surface itself; the old dark slab
+    // overlay must not return in either closed or peeled preview modes.
+    expect(all.boxes.some((box) => box.kind === 'history-roof-hole')).toBe(false);
+    expect(peeled.boxes.some((box) => box.kind === 'history-roof-hole')).toBe(false);
+    const roofHole = plan.liveHistory!.features.find((feature) => feature.kind === 'roof-hole');
+    expect(roofHole).toBeDefined();
+    expect(all.roof).toBeDefined();
+    for (let i = 0; i < all.roof!.positions.length; i += 9) {
+      const centerX = (
+        all.roof!.positions[i] + all.roof!.positions[i + 3] + all.roof!.positions[i + 6]
+      ) / 3;
+      const centerY = (
+        all.roof!.positions[i + 2] + all.roof!.positions[i + 5] + all.roof!.positions[i + 8]
+      ) / 3;
+      expect(Math.hypot(centerX - roofHole!.x, centerY - roofHole!.y))
+        .toBeGreaterThanOrEqual(roofHole!.radiusFt - 1e-6);
+    }
+    expect(all.windowsLit).toBe(false);
+    expect(all.dots).toEqual([]);
+  });
+
+  it('replays ruin sag into the solved ridge instead of additive cap boxes', () => {
+    const plan = generateBuilding({
+      buildingId: 2,
+      type: 'manor',
+      seedPath: rootSeedPath(7171),
+      storeys: 2,
+      basement: false,
+      style: {
+        cultureType: 'River',
+        climate: 'temperate',
+        wealth: 'common',
+        ageBand: 'old',
+      },
+      eventLog: [{
+        day: 80,
+        kind: 'ruin',
+        payload: { cause: 'neglect', severity: 3 },
+      }],
+    });
+    const sag = plan.liveHistory!.features.find((feature) => feature.kind === 'ruin-sag');
+    expect(sag).toBeDefined();
+    const ridge = plan.roof!.ridges[sag!.ridgeIndex];
+    const centerX = (ridge.x1 + ridge.x2) / 2;
+    const centerY = (ridge.y1 + ridge.y2) / 2;
+    const model = buildingSceneModel(plan, { upToLevel: 'all', hour: 12 });
+
+    expect(model.boxes.some((box) => box.kind === 'history-ruin-sag')).toBe(false);
+    const centerHeights: number[] = [];
+    for (let i = 0; i < model.roof!.positions.length; i += 3) {
+      if (
+        Math.abs(model.roof!.positions[i] - centerX) < 1e-6 &&
+        Math.abs(model.roof!.positions[i + 2] - centerY) < 1e-6
+      ) {
+        centerHeights.push(model.roof!.positions[i + 1]);
+      }
+    }
+    expect(centerHeights.length).toBeGreaterThan(0);
+    const wallTopFt = plan.floors.filter((floor) => floor.level >= 0).length
+      * BLUEPRINT_STOREY_FT;
+    expect(Math.min(...centerHeights))
+      .toBeCloseTo(wallTopFt + ridge.zFt - sag!.deflectionFt, 5);
   });
 });
 

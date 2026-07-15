@@ -1,6 +1,6 @@
 {
   "$schema": "./topics.schema.json",
-  "_readme": "Plan-map data. One entry per topic. Ten-second capture: append {id,title,campaign,status} — wire deps/links later. Viewer: /Aralia/planmap/index.html on any dev server. status: parked | specced | active | done. deps: ids this topic REQUIRES. A dep may also carry `feature: <slug>` to narrow the arrow to ONE feature of the target topic (slug = that feature's title run through the same slugifier as the ids); the `why` still explains the edge, the pointer is now structural. link: repo-relative spec doc path (opened via the dev server's /@fs bridge using repoRoot). Truth-ownership + promotion rules (who owns statuses/decisions/deps; gaps flow UP by human curation only, plan flows DOWN via planmap-to-wave): tools/agora/PLANNING-STACK.md. `open`: integer mirror of the linked subspec's '## Open' bullet count (recompute when the doc changes — it is NOT invented, it is counted). `spike: true`: research that could invalidate the approach (dashed ⚠ tile). status also allows 'superseded' (dead decision — drops to the Graveyard strip; add a one-line `killed` reason). `focus: true` on at most ONE topic = what Remy is actually touching now (★ FOCUS).",
+  "_readme": "Plan-map data. One entry per topic. Ten-second capture: append {id,title,campaign,status} â€” wire deps/links later. Viewer: /Aralia/planmap/index.html on any dev server. status: parked | specced | active | done. deps: ids this topic REQUIRES. A dep may also carry `feature: <slug>` to narrow the arrow to ONE feature of the target topic (slug = that feature's title run through the same slugifier as the ids); the `why` still explains the edge, the pointer is now structural. link: repo-relative spec doc path (opened via the dev server's /@fs bridge using repoRoot). Truth-ownership + promotion rules (who owns statuses/decisions/deps; gaps flow UP by human curation only, plan flows DOWN via planmap-to-wave): tools/agora/PLANNING-STACK.md. `open`: integer mirror of the linked subspec's '## Open' bullet count (recompute when the doc changes â€” it is NOT invented, it is counted). `spike: true`: research that could invalidate the approach (dashed âš  tile). status also allows 'superseded' (dead decision â€” drops to the Graveyard strip; add a one-line `killed` reason). `focus: true` on at most ONE topic = what Remy is actually touching now (â˜… FOCUS). Freshness fields (2026-07-14 design): `updated` (YYYY-MM-DD, tooling-written date of last real change), `tier` (strategic | component, optional), `status_note` (free-text nuance, topics and features), `decision` (boolean on features: true = waiting on human call).",
   "repoRoot": "F:/Repos/Aralia",
   "campaigns": {
     "world": {
@@ -53,14 +53,14 @@
     {
       "id": "world-props",
       "title": "Beautification wave",
-      "sub": "beauty first, perf later · anchor: BG3 · realism climbs everywhere",
+      "sub": "beauty first, perf later Â· anchor: BG3 Â· realism climbs everywhere",
       "campaign": "rendering",
       "status": "done",
       "deps": [
         {
           "id": "webgpu-migration",
           "kind": "chosen",
-          "why": "CHOSEN, mixed-grain: only the TSL code lifts (trees/grass/wind/clouds/sky/GI from fable5-world-demo, MIT) hard-require the new renderer — props/catalogs are renderer-agnostic — but building every visual packet once, on the final renderer, beats building twice"
+          "why": "CHOSEN, mixed-grain: only the TSL code lifts (trees/grass/wind/clouds/sky/GI from fable5-world-demo, MIT) hard-require the new renderer â€” props/catalogs are renderer-agnostic â€” but building every visual packet once, on the final renderer, beats building twice"
         }
       ],
       "link": "docs/superpowers/specs/2026-07-02-world-beautification-wave.md",
@@ -146,7 +146,7 @@
         {
           "id": "world-props",
           "kind": "hard",
-          "why": "Nothing to optimize before the props, trees and lighting exist — this pass instances/LODs what the wave adds"
+          "why": "Nothing to optimize before the props, trees and lighting exist â€” this pass instances/LODs what the wave adds"
         }
       ],
       "features": [
@@ -161,13 +161,13 @@
           "open": 1
         },
         {
-          "title": "3D-entry freeze fixed — off-thread staged world generation + loading screen",
+          "title": "3D-entry freeze fixed â€” off-thread staged world generation + loading screen",
           "status": "done",
           "link": "docs/superpowers/specs/2026-07-06-staged-offthread-3d-world-entry-design.md",
           "open": 1
         },
         {
-          "title": "Walking stutter fixed — off-thread ground chunk meshing",
+          "title": "Walking stutter fixed â€” off-thread ground chunk meshing",
           "status": "done",
           "link": "docs/superpowers/specs/2026-07-07-offthread-ground-chunk-meshing-design.md",
           "open": 1
@@ -188,18 +188,18 @@
         {
           "id": "wf-interiors",
           "kind": "chosen",
-          "why": "Grows the L4 interior generator into the shared building-maker rather than forking a second one: it already emits pure InteriorPlan data (rooms/doorways/furnishings/stairs, feet-canon 5 ft) and feeds the 3D build — the pipeline extends that data shape. Reverse experiment 2026-07-05 (PreviewBlueprint) proved one shared renderer serves the 2D blueprint AND the 3D build both ways"
+          "why": "Grows the L4 interior generator into the shared building-maker rather than forking a second one: it already emits pure InteriorPlan data (rooms/doorways/furnishings/stairs, feet-canon 5 ft) and feeds the 3D build â€” the pipeline extends that data shape. Reverse experiment 2026-07-05 (PreviewBlueprint) proved one shared renderer serves the 2D blueprint AND the 3D build both ways"
         },
         {
           "id": "world-props",
           "kind": "hard",
           "feature": "prop-schema-placement-engine",
-          "why": "Interior furniture IS props: beds, tables, hearths, counters, barrels place through the prop schema + placement engine (with referee data) — same system dungeon dressing uses, no prop system no furnishing"
+          "why": "Interior furniture IS props: beds, tables, hearths, counters, barrels place through the prop schema + placement engine (with referee data) â€” same system dungeon dressing uses, no prop system no furnishing"
         },
         {
           "id": "fip-slice1",
           "kind": "chosen",
-          "why": "Walls carry real thickness on the grid line so combat reads cover: the blueprint's wall model feeds the fight-in-place 5 ft tile referee — a building interior IS a combat surface"
+          "why": "Walls carry real thickness on the grid line so combat reads cover: the blueprint's wall model feeds the fight-in-place 5 ft tile referee â€” a building interior IS a combat surface"
         }
       ],
       "link": "docs/superpowers/specs/2026-07-05-building-blueprint-pipeline-design.md",
@@ -233,7 +233,7 @@
     {
       "id": "dungeon-generator",
       "title": "Procedural dungeon generator",
-      "sub": "THEME SPINE + SHEET LOOK LANDED 2026-07-06 (after critique wave + feet-canon + compound rooms/elbow corridors): 3 themes (crypt/cavern/frost) each own palette, name pools, monster table, debris vocabulary + thematic exterior glyphs; drawer has title cartouche, brooding vignette, per-room floor tones; layout invariant across themes at the same seed (verified). 11/11 tests. Remaining: 3D scene builder (Dungeon Forge poach list saved), world attachment, real bestiary, rotation/verticality/symmetric wings || AMBITION APPROVED 2026-07-07: Remy green-lit all four pillars (history-first, world-grown, diegetic map+3D, multi-level) — kickoff prompt written for a new agent; history-first is the spine, build it first. || PILLAR 1 BUILT 2026-07-06: builder-archetype intact layouts + seeded decay events with map evidence + derived text (name/blurb/notes/rumor hooks) + 2D parchment sheet + sprawl dial; 72 tests green, final review READY; Remy iteration waves folded in.",
+      "sub": "THEME SPINE + SHEET LOOK LANDED 2026-07-06 (after critique wave + feet-canon + compound rooms/elbow corridors): 3 themes (crypt/cavern/frost) each own palette, name pools, monster table, debris vocabulary + thematic exterior glyphs; drawer has title cartouche, brooding vignette, per-room floor tones; layout invariant across themes at the same seed (verified). 11/11 tests. Remaining: 3D scene builder (Dungeon Forge poach list saved), world attachment, real bestiary, rotation/verticality/symmetric wings || AMBITION APPROVED 2026-07-07: Remy green-lit all four pillars (history-first, world-grown, diegetic map+3D, multi-level) â€” kickoff prompt written for a new agent; history-first is the spine, build it first. || PILLAR 1 BUILT 2026-07-06: builder-archetype intact layouts + seeded decay events with map evidence + derived text (name/blurb/notes/rumor hooks) + 2D parchment sheet + sprawl dial; 72 tests green, final review READY; Remy iteration waves folded in.",
       "campaign": "world",
       "subcampaign": "Terrain & Regions",
       "status": "active",
@@ -241,24 +241,24 @@
         {
           "id": "wf-interiors",
           "kind": "chosen",
-          "why": "Mirrors the L4 interior generator's contract 1:1 — deterministic seed paths, pure-data POJO output, zero THREE imports, feet-canon 5 ft grid; interiors proved the pattern this reuses"
+          "why": "Mirrors the L4 interior generator's contract 1:1 â€” deterministic seed paths, pure-data POJO output, zero THREE imports, feet-canon 5 ft grid; interiors proved the pattern this reuses"
         },
         {
           "id": "world-props",
           "kind": "hard",
           "feature": "prop-schema-placement-engine",
-          "why": "Dungeon decoration IS props: pillars, torches, chests, braziers and set-dressing place through the prop schema + placement engine (with referee data) — no prop system, no dressing"
+          "why": "Dungeon decoration IS props: pillars, torches, chests, braziers and set-dressing place through the prop schema + placement engine (with referee data) â€” no prop system, no dressing"
         },
         {
           "id": "fip-slice1",
           "kind": "chosen",
-          "why": "Dungeon rooms are combat encounters: fights resolve through the fight-in-place 5 ft tile referee, and difficulty maps to a real D&D XP budget — the dungeon is the purpose-built home for in-place combat"
+          "why": "Dungeon rooms are combat encounters: fights resolve through the fight-in-place 5 ft tile referee, and difficulty maps to a real D&D XP budget â€” the dungeon is the purpose-built home for in-place combat"
         }
       ],
       "link": "docs/superpowers/specs/2026-07-06-dungeon-history-first-design.md",
       "features": [
         {
-          "title": "Pure-data generator (growth layout: door → corridor → room, loop doors through wall gaps)",
+          "title": "Pure-data generator (growth layout: door â†’ corridor â†’ room, loop doors through wall gaps)",
           "status": "done"
         },
         {
@@ -311,8 +311,8 @@
     },
     {
       "id": "fip-slice1",
-      "title": "Fight in place — slices 1–2",
-      "sub": "teleport KILLED — combat renders + moves in the streamed world (slices 1–2 done 2026-07-05)",
+      "title": "Fight in place â€” slices 1â€“2",
+      "sub": "teleport KILLED â€” combat renders + moves in the streamed world (slices 1â€“2 done 2026-07-05)",
       "campaign": "combat",
       "status": "done",
       "deps": [
@@ -385,7 +385,7 @@
           "id": "world-props",
           "kind": "hard",
           "feature": "prop-schema-placement-engine",
-          "why": "Set dressing IS props: ambush dressing places entries through the prop schema + placement engine (with referee data) — no prop system, no dressing"
+          "why": "Set dressing IS props: ambush dressing places entries through the prop schema + placement engine (with referee data) â€” no prop system, no dressing"
         }
       ],
       "link": "docs/superpowers/specs/2026-07-02-fight-in-place-combat-design.md"
@@ -393,14 +393,14 @@
     {
       "id": "mesh-los-cover",
       "title": "Mesh LOS + cover",
-      "sub": "multi-point raycasts → 5e cover tiers; LOCKED as single LOS oracle",
+      "sub": "multi-point raycasts â†’ 5e cover tiers; LOCKED as single LOS oracle",
       "campaign": "combat",
       "status": "specced",
       "deps": [
         {
           "id": "fip-slice1",
           "kind": "chosen",
-          "why": "Could technically be built today against the battle map — sequenced after slice 1 so the oracle is tested against the real streamed scene it's designed for"
+          "why": "Could technically be built today against the battle map â€” sequenced after slice 1 so the oracle is tested against the real streamed scene it's designed for"
         }
       ],
       "link": "docs/superpowers/specs/2026-07-02-fight-in-place-combat-design.md"
@@ -415,7 +415,7 @@
         {
           "id": "fip-slice1",
           "kind": "hard",
-          "why": "The arena can only retire once in-place combat passes the presentation-parity matrix — it stays as the fallback until then"
+          "why": "The arena can only retire once in-place combat passes the presentation-parity matrix â€” it stays as the fallback until then"
         },
         {
           "id": "ambush-generation",
@@ -434,13 +434,13 @@
         {
           "id": "fip-slice1",
           "kind": "hard",
-          "why": "Bystander disposition, death cascades and cleanup all react to fights happening IN the streamed world — they presume in-place combat exists"
+          "why": "Bystander disposition, death cascades and cleanup all react to fights happening IN the streamed world â€” they presume in-place combat exists"
         }
       ],
       "link": "docs/superpowers/specs/2026-07-02-fight-in-place-combat-design.md",
       "features": [
         {
-          "title": "Relationship × courage bystander disposition",
+          "title": "Relationship Ã— courage bystander disposition",
           "status": "specced",
           "link": "docs/superpowers/specs/subspecs/reactions--bystander-disposition.md",
           "open": 3
@@ -510,13 +510,13 @@
           "id": "world-reactions",
           "kind": "hard",
           "feature": "relationship-courage-bystander-dispositi",
-          "why": "The protection rule is an exception INSIDE bystander disposition — who counts as a protected civilian is exactly what that feature decides, so it must exist first"
+          "why": "The protection rule is an exception INSIDE bystander disposition â€” who counts as a protected civilian is exactly what that feature decides, so it must exist first"
         },
         {
           "id": "ai-arbiter",
           "kind": "hard",
           "feature": "npc-embodiment-think-as-the-npc",
-          "why": "The override half IS an arbiter power: authoring a civilian death requires the embodied-DM machinery (this used to hide as a feature in BOTH parents — split out 2026-07-02 because the map showed them as parallel when they are coupled)"
+          "why": "The override half IS an arbiter power: authoring a civilian death requires the embodied-DM machinery (this used to hide as a feature in BOTH parents â€” split out 2026-07-02 because the map showed them as parallel when they are coupled)"
         }
       ],
       "link": "docs/superpowers/specs/subspecs/reactions--crossfire-protection.md",
@@ -542,7 +542,51 @@
       "sub": "tech-tree roadmap: ten-second topic capture + dependency view",
       "campaign": "tooling",
       "status": "active",
-      "deps": []
+      "deps": [],
+      "features": [
+        {
+          "title": "PM-G1 Edges can only target a whole topic, never one feature (no edge-to-member)",
+          "status": "parked",
+          "decision": true,
+          "status_note": "design_decision_deferred; trigger: validator reports 3+ member-edge costume warnings; fix = optional dep.feature field wired into READY"
+        },
+        {
+          "title": "PM-G2 Wave generation serializes feature order into a false after-chain",
+          "status": "active",
+          "status_note": "fip-slice1: real critical path 2, generated chain 6; interim punch-list warning shipped; fix = optional per-feature after, default no dependency"
+        },
+        {
+          "title": "PM-G3 READY badge computed at topic grain overstates readiness when feature 1 is parked",
+          "status": "active",
+          "status_note": "roll feature statuses into the badge or show a split badge; evidence: fip-slice1 READY while 3D ground picking parked"
+        },
+        {
+          "title": "PM-G4 Doc links use dev-server /@fs bridge with hardcoded repoRoot — dead in static builds and other checkouts",
+          "status": "active",
+          "status_note": "spec links 404 outside npm run dev on this machine; derive repoRoot or document dev-only at the link site"
+        },
+        {
+          "title": "PM-G5 topics.json concurrent writes guarded by convention only",
+          "status": "done",
+          "history": {
+            "built": "2026-07-14"
+          },
+          "status_note": "planmap-add and planmap-reconcile --apply now enforce the Agora lock via lockGuard.mjs (guardWriteOrDie), stamp updated, and validate after writing; shipped after the 2026-07-14 chained-lock incident"
+        },
+        {
+          "title": "PM-G6 Wave tooling is single-topic; mixed waves need hand-splicing plan JSONs",
+          "status": "parked",
+          "status_note": "deferred until the need recurs (2-minute manual workaround exists); fix = accept multiple topic ids in planmap-to-wave"
+        },
+        {
+          "title": "PM-G7 Feature list order carries no kind and no why — third sequence channel next to edges and spec prose",
+          "status": "parked",
+          "status_note": "agreed rule: split the topic when internal order needs real branching; numbers are intent, not contract; reconcile tile numbering vs spec slice order at review time"
+        }
+      ],
+      "link": "tools/agora/PLANNING-STACK.md",
+      "status_note": "Absorbed docs/projects/planmap 2026-07-15 (gap registry from the 2026-07-02/03 model-review panels); north star = tools/agora/PLANNING-STACK.md; terms in tools/agora/GLOSSARY.md",
+      "updated": "2026-07-15"
     },
     {
       "id": "webgpu-migration",
@@ -565,12 +609,12 @@
         {
           "title": "Probe full-stack parity",
           "status": "done",
-          "note": "WHY (dep on the material parity pass): parity was proven only on flat terrain + building boxes while the ground world now ships trees, grass, the full prop set, styled roofs, walls/roads/decks. The probe (?phase=webgpuprobe) now renders the SAME full stack the live scene does at the same seed/pose, reusing the game's data (chunk bundles + GroundWorld.props) with the baked-TSL Lambert path. FAIL-FAST aligned with the battle map: pre-checks navigator.gpu + requestAdapter() before mounting; no adapter OR a non-WebGPU backend -> NO scene, an error pane ('WebGPU unavailable: <reason>') with one explicit 'View this scene in WebGL instead' button (routes to ?phase=world3d&ground=1 at the same pose; user-driven, never auto-fallback). Green 'WebGPU' + live FPS badge only on genuine success. Documented MISSING (WebGL-only, shown on-screen): real-time shadows on the node path (no LightsNode consumes a shadow map when lighting is baked into colorNode). Key node-path gotcha found + fixed: on InstancedMesh the InstanceNode multiplies instanceColor into the color pipeline UNCONDITIONALLY, so a dark per-instance scatter tint crushed lit trees/bushes to black — proven in isolation on a real WebGPU backend ([0,19,0] with dark instanceColor vs [109,158,88] without) and fixed by leaving instanceColor null (trees keep geometry leaf-green; bushes use a solid green). Headless capture correctly shows the error pane (no WebGPU adapter in headless Chromium); rendered WebGPU full-stack needs the real-GPU eyeball (RTX 2070S)."
+          "note": "WHY (dep on the material parity pass): parity was proven only on flat terrain + building boxes while the ground world now ships trees, grass, the full prop set, styled roofs, walls/roads/decks. The probe (?phase=webgpuprobe) now renders the SAME full stack the live scene does at the same seed/pose, reusing the game's data (chunk bundles + GroundWorld.props) with the baked-TSL Lambert path. FAIL-FAST aligned with the battle map: pre-checks navigator.gpu + requestAdapter() before mounting; no adapter OR a non-WebGPU backend -> NO scene, an error pane ('WebGPU unavailable: <reason>') with one explicit 'View this scene in WebGL instead' button (routes to ?phase=world3d&ground=1 at the same pose; user-driven, never auto-fallback). Green 'WebGPU' + live FPS badge only on genuine success. Documented MISSING (WebGL-only, shown on-screen): real-time shadows on the node path (no LightsNode consumes a shadow map when lighting is baked into colorNode). Key node-path gotcha found + fixed: on InstancedMesh the InstanceNode multiplies instanceColor into the color pipeline UNCONDITIONALLY, so a dark per-instance scatter tint crushed lit trees/bushes to black â€” proven in isolation on a real WebGPU backend ([0,19,0] with dark instanceColor vs [109,158,88] without) and fixed by leaving instanceColor null (trees keep geometry leaf-green; bushes use a solid green). Headless capture correctly shows the error pane (no WebGPU adapter in headless Chromium); rendered WebGPU full-stack needs the real-GPU eyeball (RTX 2070S)."
         },
         {
           "title": "Battle-map + modal scenes migration",
           "status": "active",
-          "note": "Battle-map WebGPU render path behind ?gpu=1 (WebGL default unchanged): BattleMap3D delegates to BattleMap3DGpuScene, same shared combat hooks/data, baked-TSL Lambert (no scene lights). FAIL-FAST preserved: probes navigator.gpu.requestAdapter() before mounting; no adapter -> NO scene, error panel + one explicit 'Use WebGL instead' button (user-driven, never auto-fallback); gl factory throws on a non-WebGPU backend; WebGPU badge only on genuine success. VISUAL PARITY PORT DONE (2026-07-05, rungs 1-4 + rung 5 wired): (1) procedural terrain texturing TRANSLATED from the onBeforeCompile GLSL to a TSL node graph (gpu/terrainColorNode.ts: per-type palettes, FBM/voronoi noise, organic edge blend, slope-rock, wet banks, dapple) — not a flat palette; (2) instanced grass + ground scatter (mirrors GrassLayer/GroundScatter); (3) grid + movement/path/AoE overlay translated to TSL (gpu/gridOverlayNodes.ts), fade-lerped, terrain-conforming, BattleMap3D passes validMoves/activePath/actionMode/aoeSet; (4) tokens gained team color + HP fade + selection/active rings; (5) node PostProcessing bloom+vignette wired (dynamic-imported, real-GPU-gated). Node graphs unit-tested WITHOUT a GPU (5 new tests); battle-map suites 12/8 green; tsc clean. STILL MISSING (WebGL-only, shown on-screen in a red list, no faking): real-time shadows (baked colorNode has no LightsNode for a shadow map), full animated CharacterActor rig + drei nameplates (1,491-line drei/AnimationMixer stack), GPU wind sway on grass. Captures: bm3d-port-webgl-ref.png (target look) + bm3d-port-webgpu.png (headless fail-fast pane, correct with no adapter). Rendered WebGPU battlefield still needs the real-GPU eyeball via ?gpu=1 (RTX 2070S). Modal (non-battle) scenes still parked."
+          "note": "Battle-map WebGPU render path behind ?gpu=1 (WebGL default unchanged): BattleMap3D delegates to BattleMap3DGpuScene, same shared combat hooks/data, baked-TSL Lambert (no scene lights). FAIL-FAST preserved: probes navigator.gpu.requestAdapter() before mounting; no adapter -> NO scene, error panel + one explicit 'Use WebGL instead' button (user-driven, never auto-fallback); gl factory throws on a non-WebGPU backend; WebGPU badge only on genuine success. VISUAL PARITY PORT DONE (2026-07-05, rungs 1-4 + rung 5 wired): (1) procedural terrain texturing TRANSLATED from the onBeforeCompile GLSL to a TSL node graph (gpu/terrainColorNode.ts: per-type palettes, FBM/voronoi noise, organic edge blend, slope-rock, wet banks, dapple) â€” not a flat palette; (2) instanced grass + ground scatter (mirrors GrassLayer/GroundScatter); (3) grid + movement/path/AoE overlay translated to TSL (gpu/gridOverlayNodes.ts), fade-lerped, terrain-conforming, BattleMap3D passes validMoves/activePath/actionMode/aoeSet; (4) tokens gained team color + HP fade + selection/active rings; (5) node PostProcessing bloom+vignette wired (dynamic-imported, real-GPU-gated). Node graphs unit-tested WITHOUT a GPU (5 new tests); battle-map suites 12/8 green; tsc clean. STILL MISSING (WebGL-only, shown on-screen in a red list, no faking): real-time shadows (baked colorNode has no LightsNode for a shadow map), full animated CharacterActor rig + drei nameplates (1,491-line drei/AnimationMixer stack), GPU wind sway on grass. Captures: bm3d-port-webgl-ref.png (target look) + bm3d-port-webgpu.png (headless fail-fast pane, correct with no adapter). Rendered WebGPU battlefield still needs the real-GPU eyeball via ?gpu=1 (RTX 2070S). Modal (non-battle) scenes still parked."
         },
         {
           "title": "Default flip + WebGL retirement decision",
@@ -625,7 +669,7 @@
     {
       "id": "agent-sim-deepening",
       "title": "Agent sim deepening",
-      "sub": "BUILT: needs+decisions, families, races, Voronoi town, road-following, registry. NEXT: behaviour-only mode · spatial believability · deepen-over-time · real-game wiring",
+      "sub": "BUILT: needs+decisions, families, races, Voronoi town, road-following, registry. NEXT: behaviour-only mode Â· spatial believability Â· deepen-over-time Â· real-game wiring",
       "campaign": "sim",
       "status": "active",
       "link": "docs/superpowers/specs/2026-06-26-agent-sim-deepening.md",
@@ -693,7 +737,7 @@
     {
       "id": "character-aging",
       "title": "Player-character aging",
-      "sub": "birthdate-derived age · perk bundle · non-lethal frailty floor · per-race age table",
+      "sub": "birthdate-derived age Â· perk bundle Â· non-lethal frailty floor Â· per-race age table",
       "campaign": "character",
       "status": "specced",
       "deps": [],
@@ -701,8 +745,8 @@
     },
     {
       "id": "generational-time",
-      "title": "Generational time — the world grows old with you",
-      "sub": "the world clock ages EVERYONE: NPCs gray, die, and are succeeded (the shopkeeper's daughter takes over the shop; households turn over; graveyards fill); the player ages per the aging spec and on death continues as heir/apprentice, with the old character's deeds becoming world history NPCs remember. One clock, pure rules, emergent legacy — no AI calls. Claude's pick 2026-07-06 when Remy asked for one dream feature outside combat; captured parked at Remy's request.",
+      "title": "Generational time â€” the world grows old with you",
+      "sub": "the world clock ages EVERYONE: NPCs gray, die, and are succeeded (the shopkeeper's daughter takes over the shop; households turn over; graveyards fill); the player ages per the aging spec and on death continues as heir/apprentice, with the old character's deeds becoming world history NPCs remember. One clock, pure rules, emergent legacy â€” no AI calls. Claude's pick 2026-07-06 when Remy asked for one dream feature outside combat; captured parked at Remy's request.",
       "campaign": "sim",
       "status": "parked",
       "deps": [
@@ -720,6 +764,15 @@
           "why": "living buildings give turnover somewhere visible to happen: the inherited shop, the emptied house, the new family moving in"
         }
       ]
+    },
+    {
+      "id": "testkit-devtools-toolkit",
+      "title": "Testkit DevTools toolkit",
+      "sub": "BUILT 2026-07-15: /testkit skill (troubleshoot/perf/smoke via chrome-devtools MCP) + baseline diffs; live-verified 7 surfaces 0 errors",
+      "campaign": "tooling",
+      "status": "done",
+      "deps": [],
+      "link": "docs/superpowers/specs/2026-07-14-testkit-devtools-toolkit-design.md"
     },
     {
       "id": "doc-triage",
@@ -741,7 +794,7 @@
     {
       "id": "shipped-grid-retirement",
       "title": "Grid retirement",
-      "sub": "legacy 30×20 world grid entirely gone from live code (10 commits)",
+      "sub": "legacy 30Ã—20 world grid entirely gone from live code (10 commits)",
       "campaign": "world",
       "subcampaign": "World Streaming",
       "status": "done",
@@ -755,7 +808,7 @@
     {
       "id": "shipped-seam-slice",
       "title": "Seam-first open-region slice",
-      "sub": "world-pure IDW handoff, chunk-seam hairlines fully fixed — seams exact 2026-07-02",
+      "sub": "world-pure IDW handoff, chunk-seam hairlines fully fixed â€” seams exact 2026-07-02",
       "campaign": "world",
       "subcampaign": "World Streaming",
       "status": "done",
@@ -774,8 +827,8 @@
     },
     {
       "id": "shipped-cartography",
-      "title": "Worldforge cartography (SP0–SP4)",
-      "sub": "owned SVG atlas, recursive submaps, clean-room Voronoi town gen, leaf→3D, hidden places",
+      "title": "Worldforge cartography (SP0â€“SP4)",
+      "sub": "owned SVG atlas, recursive submaps, clean-room Voronoi town gen, leafâ†’3D, hidden places",
       "campaign": "world",
       "subcampaign": "Terrain & Regions",
       "status": "done",
@@ -820,7 +873,7 @@
     {
       "id": "town-streets-3d",
       "title": "Town street grid in 3D",
-      "sub": "BUILT 2026-07-12: ward-edge network bakes as tiered ribbons — pale avenues (inherited roads), paved plaza streets, packed-dirt lanes. Was missing entirely (3D only painted inherited roads). Real game path PROVEN 2026-07-13 (seed 42: 2 avenues / 6 streets / 183 lanes). OPEN (Remy to steer on resume): unify the 2 town renderers + boost tier contrast",
+      "sub": "BUILT 2026-07-12: ward-edge network bakes as tiered ribbons â€” pale avenues (inherited roads), paved plaza streets, packed-dirt lanes. Was missing entirely (3D only painted inherited roads). Real game path PROVEN 2026-07-13 (seed 42: 2 avenues / 6 streets / 183 lanes). OPEN (Remy to steer on resume): unify the 2 town renderers + boost tier contrast",
       "campaign": "rendering",
       "status": "active",
       "history": {
@@ -831,7 +884,7 @@
         {
           "id": "shipped-styled-town",
           "kind": "hard",
-          "why": "extends the canonical town 3D bake — reuses its street-ribbon renderer + wall-gate breaks"
+          "why": "extends the canonical town 3D bake â€” reuses its street-ribbon renderer + wall-gate breaks"
         }
       ],
       "features": [
@@ -844,7 +897,7 @@
           "status": "done"
         },
         {
-          "title": "Real game ground-path proof (headless, seed 42 GroundWorld → ground.roads top-down)",
+          "title": "Real game ground-path proof (headless, seed 42 GroundWorld â†’ ground.roads top-down)",
           "status": "done"
         },
         {
@@ -852,11 +905,11 @@
           "status": "done"
         },
         {
-          "title": "DECISION (Remy): unify the 2 town renderers — preview uses game ground bake vs revert preview patch vs keep both",
+          "title": "DECISION (Remy): unify the 2 town renderers â€” preview uses game ground bake vs revert preview patch vs keep both",
           "status": "parked"
         },
         {
-          "title": "DECISION (Remy): boost tier contrast — plaza streets read almost identical to lanes",
+          "title": "DECISION (Remy): boost tier contrast â€” plaza streets read almost identical to lanes",
           "status": "parked"
         }
       ]
@@ -864,7 +917,7 @@
     {
       "id": "shipped-living-world",
       "title": "Living-world town sim",
-      "sub": "100% complete: life-events, key NPCs, economy, festivals, disasters, dialogue — 158 tests green",
+      "sub": "100% complete: life-events, key NPCs, economy, festivals, disasters, dialogue â€” 158 tests green",
       "campaign": "sim",
       "status": "done",
       "deps": [],
@@ -876,7 +929,7 @@
     {
       "id": "shipped-combat-opening",
       "title": "Combat-oriented opening",
-      "sub": "feature-complete 2026-07-02: free-text→intent→dice check, pre-roll buff offer, 125 tests green",
+      "sub": "feature-complete 2026-07-02: free-textâ†’intentâ†’dice check, pre-roll buff offer, 125 tests green",
       "campaign": "combat",
       "status": "done",
       "deps": [],
@@ -909,14 +962,14 @@
     {
       "id": "provisioning-remainder",
       "title": "Travel provisioning remainder",
-      "sub": "Fork-3 wiring audit (terrain-burn ring, weight↔speed, caches) · mounts as consumers · NPC travel consent · vendor-rapport resupply",
+      "sub": "Fork-3 wiring audit (terrain-burn ring, weightâ†”speed, caches) Â· mounts as consumers Â· NPC travel consent Â· vendor-rapport resupply",
       "campaign": "travel",
-      "status": "parked",
+      "status": "done",
       "deps": [
         {
           "id": "shipped-travel-provisioning",
           "kind": "hard",
-          "why": "extends the shipped v1.1 gate — the pure cores (reach/encumbrance/cache) already pass tests, only the map wiring + deferred consumers remain"
+          "why": "extends the shipped v1.1 gate â€” the pure cores (reach/encumbrance/cache) already pass tests, only the map wiring + deferred consumers remain"
         }
       ],
       "link": "docs/superpowers/specs/2026-06-25-travel-provisioning-design.md",
@@ -996,7 +1049,7 @@
         {
           "id": "planmap",
           "kind": "hard",
-          "why": "the tracker is three history views layered onto the plan-map viewer — no viewer, nothing to layer onto"
+          "why": "the tracker is three history views layered onto the plan-map viewer â€” no viewer, nothing to layer onto"
         }
       ],
       "link": "docs/superpowers/specs/2026-07-04-planmap-date-progression-tracker-design.md",
@@ -1064,7 +1117,7 @@
           "status": "active"
         },
         {
-          "title": "Two shared window shells consolidated: WindowFrame (20 floating content panels) + ModalDialog (5 blocking confirm/choice popups) — single-source, bespoke overlays retired",
+          "title": "Two shared window shells consolidated: WindowFrame (20 floating content panels) + ModalDialog (5 blocking confirm/choice popups) â€” single-source, bespoke overlays retired",
           "status": "done"
         },
         {
@@ -1084,7 +1137,7 @@
     {
       "id": "early-game-playable",
       "title": "Early game playable (L1-3)",
-      "sub": "GOAL: creator → town → living world; companions findable, travel works, shops have logical stock + prices; every L1-3 mechanic usable",
+      "sub": "GOAL: creator â†’ town â†’ living world; companions findable, travel works, shops have logical stock + prices; every L1-3 mechanic usable",
       "campaign": "travel",
       "status": "done",
       "deps": [],
@@ -1184,11 +1237,11 @@
       "deps": [],
       "features": [
         {
-          "title": "Click NPC in 3D → opens conversation (reuses the 2D talk flow; SceneCast figures clickable; dev hook __wf3dClickNpc)",
+          "title": "Click NPC in 3D â†’ opens conversation (reuses the 2D talk flow; SceneCast figures clickable; dev hook __wf3dClickNpc)",
           "status": "done"
         },
         {
-          "title": "Click ground → avatar walks there (GroundMovePlane pick + PlayerAvatar glide)",
+          "title": "Click ground â†’ avatar walks there (GroundMovePlane pick + PlayerAvatar glide)",
           "status": "done"
         },
         {
@@ -1214,7 +1267,7 @@
       "deps": [],
       "features": [
         {
-          "title": "All 12 classes' tier-1 (L1-3) combat features mechanically live in combat (Rage, Action Surge, Sneak Attack, Divine Smite, Flurry, Bardic Inspiration, Champion crit, …)",
+          "title": "All 12 classes' tier-1 (L1-3) combat features mechanically live in combat (Rage, Action Surge, Sneak Attack, Divine Smite, Flurry, Bardic Inspiration, Champion crit, â€¦)",
           "status": "done"
         },
         {
@@ -1291,7 +1344,7 @@
     {
       "id": "shipped-cell-provenance",
       "title": "Cell provenance audit",
-      "sub": "FMG Voronoi cell -> 3D-world provenance audit — first slice of \"3D trickles from the cell\"",
+      "sub": "FMG Voronoi cell -> 3D-world provenance audit â€” first slice of \"3D trickles from the cell\"",
       "campaign": "world",
       "subcampaign": "World Streaming",
       "status": "done",
@@ -1312,7 +1365,7 @@
       "deps": [],
       "features": [
         {
-          "title": "Chrome to reference: ⚜ BATTLE MAP toolbar (biome pill, New Map/End Turn/3D View, End Battle), Party/Enemies rail, right rail order Turn Order→Actions→Abilities→Combat Log, Intent Preview card, A–P/1–20 rulers + legend, gold frame, fit-to-view scaling, shared combatUiTheme",
+          "title": "Chrome to reference: âšœ BATTLE MAP toolbar (biome pill, New Map/End Turn/3D View, End Battle), Party/Enemies rail, right rail order Turn Orderâ†’Actionsâ†’Abilitiesâ†’Combat Log, Intent Preview card, Aâ€“P/1â€“20 rulers + legend, gold frame, fit-to-view scaling, shared combatUiTheme",
           "status": "done"
         },
         {
@@ -1336,7 +1389,7 @@
           "status": "done"
         },
         {
-          "title": "OPEN — remaining ledger items: SFX layer, canvas re-render at zoom level, ornate board frame/ruler band, biome selector surfacing, roster/initiative-strip dedup, gamma-aware overlay palette, token min-size floor at Fit",
+          "title": "OPEN â€” remaining ledger items: SFX layer, canvas re-render at zoom level, ornate board frame/ruler band, biome selector surfacing, roster/initiative-strip dedup, gamma-aware overlay palette, token min-size floor at Fit",
           "status": "parked"
         },
         {
@@ -1348,7 +1401,7 @@
     {
       "id": "svg-combatant-art",
       "title": "Procedural SVG combatant art",
-      "sub": "generate distinct combatant tokens + roster portraits as owned procedural SVG (no image assets, no reliance on the broken image-gen backend); Remy's chosen path over the 238 race images. Feeds the reskinned 2D battle map + party/enemy cards so tokens/portraits look like real characters, not letter-blobs. AMBITION EXTENDED 2026-07-06 (captured at Remy's pick): full painted top-down miniatures with idle motion, visibly bloodied at half health, visibly burning when on fire — drawn as sprites on the nextgen renderer's token layer",
+      "sub": "generate distinct combatant tokens + roster portraits as owned procedural SVG (no image assets, no reliance on the broken image-gen backend); Remy's chosen path over the 238 race images. Feeds the reskinned 2D battle map + party/enemy cards so tokens/portraits look like real characters, not letter-blobs. AMBITION EXTENDED 2026-07-06 (captured at Remy's pick): full painted top-down miniatures with idle motion, visibly bloodied at half health, visibly burning when on fire â€” drawn as sprites on the nextgen renderer's token layer",
       "campaign": "combat",
       "status": "parked",
       "deps": [
@@ -1376,7 +1429,7 @@
     {
       "id": "vite-crash-guard",
       "title": "Dev-server crash guard",
-      "sub": "dev servers no longer die on the Vite ERR_SERVER_ALREADY_LISTEN restart race — a crash-guard preload swallows the benign error, wired into every launch config",
+      "sub": "dev servers no longer die on the Vite ERR_SERVER_ALREADY_LISTEN restart race â€” a crash-guard preload swallows the benign error, wired into every launch config",
       "campaign": "tooling",
       "status": "done",
       "deps": []
@@ -1384,7 +1437,7 @@
     {
       "id": "claude-design-system",
       "title": "Claude Design UI system",
-      "sub": "canonical claude.ai/design project (id aedb018f) mirrors the real Aralia UI — token sheet, 10 components, screen mockups, brand assets; auth unblocked via /design-login into shared ~/.claude credentials; combat-view card ADDED (refreshed to current CombatView.tsx). Rescue verification DONE: window-frame matches, merchant ~80% (now WindowFrame-framed + faction pricing), town STALE (2D tile retired → Worldforge SVG+3D), design-preview superseded by repo's own DesignPreviewPage (~50 panels). OPEN: which stale screens to port/refresh; old folder (id 4c0a555c) deletion is Remy's in-browser call (handover written 2026-07-05)",
+      "sub": "canonical claude.ai/design project (id aedb018f) mirrors the real Aralia UI â€” token sheet, 10 components, screen mockups, brand assets; auth unblocked via /design-login into shared ~/.claude credentials; combat-view card ADDED (refreshed to current CombatView.tsx). Rescue verification DONE: window-frame matches, merchant ~80% (now WindowFrame-framed + faction pricing), town STALE (2D tile retired â†’ Worldforge SVG+3D), design-preview superseded by repo's own DesignPreviewPage (~50 panels). OPEN: which stale screens to port/refresh; old folder (id 4c0a555c) deletion is Remy's in-browser call (handover written 2026-07-05)",
       "campaign": "tooling",
       "status": "active",
       "deps": []
@@ -1392,15 +1445,15 @@
     {
       "id": "master-orchestrator",
       "title": "Master orchestrator",
-      "sub": "one master session manages several orchestrators: roster → rollup → conflicts → act; steps in to adopt a dead orchestrator's orphaned campaign. Doctrine + master.mjs CLI + one guarded POST /campaigns/:id/adopt (mirrors unlock --force). Specced 2026-07-06 (approach B: doctrine + tools for a driver); not built",
+      "sub": "one master session manages several orchestrators: roster â†’ rollup â†’ conflicts â†’ act; steps in to adopt a dead orchestrator's orphaned campaign. Doctrine + master.mjs CLI + one guarded POST /campaigns/:id/adopt (mirrors unlock --force). Specced 2026-07-06 (approach B: doctrine + tools for a driver); not built",
       "campaign": "agents",
-      "status": "specced",
+      "status": "active",
       "link": "docs/superpowers/plans/2026-07-06-master-orchestrator-plan.md",
       "deps": [
         {
           "id": "agent-identity",
           "kind": "chosen",
-          "why": "The master’s roster and conflicts views are only legible once agents carry real identities (type/role/spawnedBy) — otherwise it is arbitrating over cryptic handles like agent-16d417"
+          "why": "The masterâ€™s roster and conflicts views are only legible once agents carry real identities (type/role/spawnedBy) â€” otherwise it is arbitrating over cryptic handles like agent-16d417"
         }
       ],
       "features": [
@@ -1435,7 +1488,7 @@
     {
       "id": "agent-identity",
       "title": "Agent identity & provenance",
-      "sub": "Wave 1 BUILT + GREEN 2026-07-06 (store/server/client, 121 agora tests): type/spawnedBy/campaign/cwd/handleValid + validateHandle on registerAgent (on top of fable’s role) + whois/lineage/tree + clean retire (retireAgent + POST /agents/retire + `retire` cmd). Goes live on next daemon restart. Remaining: PROTOCOL.md doc + spawner stamping in orchestrate dispatch. Foundation for retrace/ping/escalation/master",
+      "sub": "Wave 1 BUILT + GREEN 2026-07-06 (store/server/client, 121 agora tests): type/spawnedBy/campaign/cwd/handleValid + validateHandle on registerAgent (on top of fableâ€™s role) + whois/lineage/tree + clean retire (retireAgent + POST /agents/retire + `retire` cmd). Goes live on next daemon restart. Remaining: PROTOCOL.md doc + spawner stamping in orchestrate dispatch. Foundation for retrace/ping/escalation/master",
       "campaign": "agents",
       "status": "active",
       "link": "docs/superpowers/plans/2026-07-06-agent-identity-provenance-plan.md",
@@ -1472,7 +1525,7 @@
         {
           "id": "agent-identity",
           "kind": "hard",
-          "why": "The dossier is only useful if it captures WHO died and where from — retrace stamps the dead agent’s full identity record, so a bare handle is not enough; identity is the prerequisite"
+          "why": "The dossier is only useful if it captures WHO died and where from â€” retrace stamps the dead agentâ€™s full identity record, so a bare handle is not enough; identity is the prerequisite"
         }
       ],
       "features": [
@@ -1501,7 +1554,7 @@
       "title": "Agent Matrix dashboard",
       "sub": "local operator-dashboard control plane at localhost:3040: live dispatch tiles, agent offerings, external review monitor, PAT Vault links, and fetch-all probe supervision. Fetch-all checklist popout built 2026-07-05 so the operator can watch each live probe run down instead of reading one changing button label.",
       "campaign": "agents",
-      "status": "active",
+      "status": "done",
       "deps": [],
       "features": [
         {
@@ -1519,13 +1572,13 @@
     {
       "id": "agora-operator-dashboard",
       "title": "Agora operator dashboard",
-      "sub": "the human's window into the agent fleet at localhost:4319: live feed, presence, locks, reservations, task board — and now a two-way surface: message composer (codex, 2026-07-06) + operator display name so Remy posts as himself, not operator-dashboard-<hash> (fable, same day). Grew out of the codex-claude live-collab session",
+      "sub": "the human's window into the agent fleet at localhost:4319: live feed, presence, locks, reservations, task board â€” and now a two-way surface: message composer (codex, 2026-07-06) + operator display name so Remy posts as himself, not operator-dashboard-<hash> (fable, same day). Grew out of the codex-claude live-collab session",
       "campaign": "agents",
       "status": "active",
       "deps": [
         {
           "id": "agent-ping",
-          "why": "dashboard posts are how the human pokes listening agents awake — the composer is only a two-way surface because the wake channel exists"
+          "why": "dashboard posts are how the human pokes listening agents awake â€” the composer is only a two-way surface because the wake channel exists"
         }
       ],
       "features": [
@@ -1542,7 +1595,7 @@
           "status": "parked"
         },
         {
-          "title": "Command channel: role-gated second feed — orchestrator/master/human may post, workers get 403; dashboard Command Feed panel with its own composer, @mention targeting (no dropdowns); say/inbox --channel; roles on register",
+          "title": "Command channel: role-gated second feed â€” orchestrator/master/human may post, workers get 403; dashboard Command Feed panel with its own composer, @mention targeting (no dropdowns); say/inbox --channel; roles on register",
           "status": "done"
         },
         {
@@ -1558,7 +1611,7 @@
     {
       "id": "agent-ping",
       "title": "Agent ping / wake",
-      "sub": "poke an agent awake across runtimes, not just message it. PROVEN 2026-07-06 (Path C): a live Claude chat arms a persistent in-session monitor on the Agora inbox — any agent's say wakes it for a turn (Codex PING → Claude PONG, no human). Claude→Codex leg: Codex on Windows cannot hold a listener, so its wake = launching a fresh codex exec worker; the awake Claude is the actuator (Leg 2 PROVEN via PONG round trip). Wake-tag convention: listeners wake only on direct address or their @tag in a broadcast. Remaining: Path B resume test, standing switchboard for dormant handles",
+      "sub": "poke an agent awake across runtimes, not just message it. PROVEN 2026-07-06 (Path C): a live Claude chat arms a persistent in-session monitor on the Agora inbox â€” any agent's say wakes it for a turn (Codex PING â†’ Claude PONG, no human). Claudeâ†’Codex leg: Codex on Windows cannot hold a listener, so its wake = launching a fresh codex exec worker; the awake Claude is the actuator (Leg 2 PROVEN via PONG round trip). Wake-tag convention: listeners wake only on direct address or their @tag in a broadcast. Remaining: Path B resume test, standing switchboard for dormant handles",
       "campaign": "agents",
       "status": "active",
       "link": "docs/superpowers/specs/2026-07-06-agent-wake-protocol.md",
@@ -1566,12 +1619,12 @@
         {
           "id": "agent-identity",
           "kind": "hard",
-          "why": "ping routes by the target’s type + contact channel (claude-session vs codex vs live-SSE) — with no identity there is nothing to route on"
+          "why": "ping routes by the targetâ€™s type + contact channel (claude-session vs codex vs live-SSE) â€” with no identity there is nothing to route on"
         }
       ],
       "features": [
         {
-          "title": "Path C: in-session Agora monitor wakes a live Claude chat on any agent's say (Codex PING → Claude PONG round trip)",
+          "title": "Path C: in-session Agora monitor wakes a live Claude chat on any agent's say (Codex PING â†’ Claude PONG round trip)",
           "status": "done",
           "link": "docs/superpowers/specs/2026-07-06-agent-wake-protocol.md"
         },
@@ -1581,7 +1634,7 @@
           "link": "docs/superpowers/specs/2026-07-06-agent-wake-protocol.md"
         },
         {
-          "title": "ping <handle> on Agora: route by identity type — SSE push (live) + relaunch (headless codex/CLI)",
+          "title": "ping <handle> on Agora: route by identity type â€” SSE push (live) + relaunch (headless codex/CLI)",
           "status": "specced",
           "link": "docs/superpowers/plans/2026-07-06-agent-ping-wake-plan.md"
         },
@@ -1592,7 +1645,7 @@
           "spike": true
         },
         {
-          "title": "master orchestrator nudge → ping (wake, not just deliver)",
+          "title": "master orchestrator nudge â†’ ping (wake, not just deliver)",
           "status": "specced",
           "link": "docs/superpowers/plans/2026-07-06-agent-ping-wake-plan.md"
         }
@@ -1605,9 +1658,49 @@
     {
       "id": "combat-roads-real-terrain",
       "title": "Roads as real combat-map terrain",
-      "sub": "promote the painted A-to-B road to generator-level terrain: tiles under it become road (movement bonus), generator routes it, enables road-ambush encounter framing. Floated 2026-07-06 during the reskin road fix; not yet chosen.",
+      "sub": "WorldForge regional routes now survive local-window clipping, reach exact five-foot referee cells as source-backed surfaces, paint from those cells, remain traversable unless another world fact blocks them, and drive route-aware encounter framing. The painter-authored replacement road remains suppressed whenever map provenance is WorldForge.",
       "campaign": "combat",
-      "status": "parked",
+      "status": "active",
+      "features": [
+        {
+          "title": "Regional route segments crossing the local window survive even when both source endpoints lie outside it",
+          "status": "done",
+          "history": {
+            "built": "2026-07-14"
+          }
+        },
+        {
+          "title": "Source road runs project to passable referee surfaces with regional-route vs town-street provenance and no fabricated water crossing",
+          "status": "done",
+          "history": {
+            "built": "2026-07-14"
+          }
+        },
+        {
+          "title": "The 2D painter renders only projected road cells; the canonical Road Ambush fixture proves 469 regional-route cells without synthetic street noise",
+          "status": "done",
+          "history": {
+            "built": "2026-07-14"
+          }
+        },
+        {
+          "title": "Road heading and anchor drive a traveling party column plus concealed enemies on both source-world flanks",
+          "status": "done",
+          "history": {
+            "built": "2026-07-14"
+          }
+        },
+        {
+          "title": "DECISION: Should ordinary road cells keep normal five-foot movement cost, grant faster travel, or vary by road material and condition? Recommended: normal cost until the movement rules own an explicit road-speed mechanic.",
+          "status": "specced",
+          "spike": true
+        },
+        {
+          "title": "DECISION: Should the painter smooth the visible road boundary while preserving the exact stepped referee-cell footprint underneath? Recommended: yes.",
+          "status": "specced",
+          "spike": true
+        }
+      ],
       "deps": [
         {
           "id": "combat-map-reskin",
@@ -1624,12 +1717,12 @@
       "link": "docs/superpowers/specs/2026-07-06-combat-map-nextgen-design.md",
       "features": [
         {
-          "title": "D1 renderer prototype (Pixi ground + tokens + fog) — BUILT, 6 tasks reviewed; final whole-plan review pending (agora 31176b2a)",
+          "title": "D1 renderer prototype (Pixi ground + tokens + fog) â€” BUILT, 6 tasks reviewed; final whole-plan review pending (agora 31176b2a)",
           "status": "active",
           "link": "docs/superpowers/specs/2026-07-06-combat-map-nextgen-design.md"
         },
         {
-          "title": "all-biome painted looks: TEN biomes; forest + desert REAL PAINTED ART (Caeora packs, generic loader); cave OPEN (forge or cave zip); other 7 procedural until packs — eyeball gate",
+          "title": "all-biome painted looks: TEN biomes; forest + desert REAL PAINTED ART (Caeora packs, generic loader); cave OPEN (forge or cave zip); other 7 procedural until packs â€” eyeball gate",
           "status": "active"
         },
         {
@@ -1637,12 +1730,12 @@
           "status": "done"
         },
         {
-          "title": "battlefield forge contract + road/river derived-map mock (D2) — eyeball gate",
+          "title": "battlefield forge contract + road/river derived-map mock (D2) â€” eyeball gate",
           "status": "specced",
           "link": "docs/superpowers/specs/2026-07-06-combat-map-nextgen-design.md"
         },
         {
-          "title": "living-board storyboard (D3) — eyeball gate",
+          "title": "living-board storyboard (D3) â€” eyeball gate",
           "status": "specced",
           "link": "docs/superpowers/specs/2026-07-06-combat-map-nextgen-design.md"
         },
@@ -1659,6 +1752,74 @@
         {
           "id": "combat-roads-real-terrain",
           "why": "pillar 2 subsumes mechanical roads"
+        }
+      ]
+    },
+    {
+      "id": "combat-world-scenario-lab",
+      "title": "World-derived battlefield scenario lab and parity harness",
+      "sub": "North star chosen 2026-07-14: a battle map is a tactical projection of an actual generated location, not a separately decorated arena. Terrain, roads, water, vegetation, structures, props, occupants, and encounter context should descend from the same WorldForge facts. The legacy generator remains only as an explicit sandbox. FIRST SLICES BUILT: ?step=battlemaplab rebuilds three real seed/cell scenarios through the off-thread WorldForge pipeline, runs the full combat shell, exposes World -> Region -> Local -> Ground -> Tactical provenance, compares source and tactical fact counts, and makes missing semantics visible. The Road Ambush fixture now centers on a real regional route and deploys combatants from its heading. Production fight-in-place maps carry the same provenance. Provenance maps keep renderer texture/lighting but suppress synthetic roads, shore props, landmarks, and per-tile object scatter.",
+      "campaign": "combat",
+      "status": "active",
+      "open": 2,
+      "deps": [
+        {
+          "id": "combat-map-nextgen",
+          "kind": "chosen",
+          "why": "the scenario lab is the proof and debugging surface for the world-derived battlefield pillar"
+        },
+        {
+          "id": "combat-roads-real-terrain",
+          "kind": "hard",
+          "why": "source road parity cannot pass until road geometry gains tactical terrain and movement meaning"
+        }
+      ],
+      "features": [
+        {
+          "title": "Deterministic real-location recipes built through the WorldForge worker and production five-foot terrain extractor",
+          "status": "done",
+          "history": {
+            "built": "2026-07-14"
+          }
+        },
+        {
+          "title": "Provenance and source-vs-tactical parity diagnostics for natural features, props, roads, rivers, structures, hostiles, cover, movement blockers, and targetable objects",
+          "status": "done",
+          "history": {
+            "built": "2026-07-14"
+          }
+        },
+        {
+          "title": "Canonical Road Ambush recipe projects one real regional route, fits the full board for review, reports route and encounter parity, and deploys the live combat roster from source heading",
+          "status": "done",
+          "history": {
+            "built": "2026-07-14"
+          }
+        },
+        {
+          "title": "Expand the harness into a scenario catalog with crop/anchor controls, layer inspection, source/tactical side-by-side comparison, semantic diffs, and saved regression captures",
+          "status": "active"
+        },
+        {
+          "title": "Register the World Battle Lab as a specialized combat scenario in the canonical visual-test-harness registry and capture runner; do not create a second general-purpose visual harness",
+          "status": "active"
+        },
+        {
+          "title": "DECISION RESOLVED: Road ambush is the first production proving ground because it forces composition, traversal, encounter framing, and source provenance to agree at once.",
+          "status": "done",
+          "history": {
+            "built": "2026-07-14"
+          }
+        },
+        {
+          "title": "DECISION: On a world-derived map, must every discrete flower, rock, prop, and landmark be a source-world fact, while only continuous texture/noise/lighting may remain renderer-authored? Recommended: yes.",
+          "status": "specced",
+          "spike": true
+        },
+        {
+          "title": "DECISION: Should missing source semantics fail production scenario parity while remaining visible warnings in the debug lab? Recommended: yes; production must not silently substitute plausible art.",
+          "status": "specced",
+          "spike": true
         }
       ]
     },
@@ -1778,7 +1939,7 @@
     {
       "id": "asset-forge",
       "title": "Procedural asset forge (owned stylized battle-map props)",
-      "sub": "code-drawn, seeded, owned art style for battle-map props as an alternative to found packs. Grew out of the cave-believability gap 2026-07-07: procedural drawers reach 'good stylized game art' (light upper-left + ink outlines throughout). BUILT: forge module (src/components/BattleMap/forge/) + design-preview showcase (?step=assetforge) with set selector / reroll / PNG export. Cave set done (ore rocks, crystal-ore nodes, chunky crystals, stalagmites, glowing mushrooms). NOT wired to the game yet — design surface only; same drawers can feed the painter's biome branches once a set is approved. Adding a set = one <name>Forge.ts + one registry entry.",
+      "sub": "code-drawn, seeded, owned art style for battle-map props as an alternative to found packs. Grew out of the cave-believability gap 2026-07-07: procedural drawers reach 'good stylized game art' (light upper-left + ink outlines throughout). BUILT: forge module (src/components/BattleMap/forge/) + design-preview showcase (?step=assetforge) with set selector / reroll / PNG export. Cave set done (ore rocks, crystal-ore nodes, chunky crystals, stalagmites, glowing mushrooms). NOT wired to the game yet â€” design surface only; same drawers can feed the painter's biome branches once a set is approved. Adding a set = one <name>Forge.ts + one registry entry.",
       "campaign": "combat",
       "status": "active",
       "features": [
@@ -1791,7 +1952,7 @@
           "status": "parked"
         },
         {
-          "title": "wire forge cave set into painter cave biome — resolves cave-believability (decision-gated forge vs cave zip; agora eca9ab35)",
+          "title": "wire forge cave set into painter cave biome â€” resolves cave-believability (decision-gated forge vs cave zip; agora eca9ab35)",
           "status": "parked"
         },
         {
@@ -1842,14 +2003,14 @@
       "deps": [
         {
           "id": "combat-map-nextgen",
-          "why": "pillar 2's battlefield forge already carries elevation samples from the worldforge cell — this makes them tactical and visible"
+          "why": "pillar 2's battlefield forge already carries elevation samples from the worldforge cell â€” this makes them tactical and visible"
         }
       ]
     },
     {
       "id": "combat-chronicles",
       "title": "Fight chronicles (replay + retellings)",
-      "sub": "a finished fight is saved as a chronicle: an animated replay you can scrub like a short film, with the narrated log as captions — and NPCs retell garbled versions in taverns via the living-world rumor machinery. Your greatest fight becomes a rumor you overhear a year later. Brainstormed 2026-07-06; captured at Remy's pick.",
+      "sub": "a finished fight is saved as a chronicle: an animated replay you can scrub like a short film, with the narrated log as captions â€” and NPCs retell garbled versions in taverns via the living-world rumor machinery. Your greatest fight becomes a rumor you overhear a year later. Brainstormed 2026-07-06; captured at Remy's pick.",
       "campaign": "combat",
       "status": "parked",
       "deps": [
@@ -1875,7 +2036,7 @@
     {
       "id": "combat-intent-telegraphs",
       "title": "Enemy intent on the board",
-      "sub": "telegraph what enemies are winding up to do — subtle threat lines / wind-up markers for the goblin's next move, tactics-game style. Turns 'why did I die' into 'I saw it coming and gambled'. Brainstormed 2026-07-06; captured at Remy's pick.",
+      "sub": "telegraph what enemies are winding up to do â€” subtle threat lines / wind-up markers for the goblin's next move, tactics-game style. Turns 'why did I die' into 'I saw it coming and gambled'. Brainstormed 2026-07-06; captured at Remy's pick.",
       "campaign": "combat",
       "status": "parked",
       "deps": [
@@ -1908,12 +2069,12 @@
           "link": "docs/superpowers/plans/2026-07-07-building-generator-v2-phase1a-inhabited.md"
         },
         {
-          "title": "Phase 1A · shared vocabulary (building types + reserved history/style fields, frozen contract)",
+          "title": "Phase 1A Â· shared vocabulary (building types + reserved history/style fields, frozen contract)",
           "status": "done",
           "link": "docs/superpowers/plans/2026-07-07-building-generator-v2-phase1a-inhabited.md"
         },
         {
-          "title": "Phase 1A · household brief pipeline (town family → blueprint brief, single source of truth)",
+          "title": "Phase 1A Â· household brief pipeline (town family â†’ blueprint brief, single source of truth)",
           "status": "done",
           "link": "docs/superpowers/plans/2026-07-07-building-generator-v2-phase1a-inhabited.md"
         },
@@ -1925,29 +2086,30 @@
           }
         },
         {
-          "title": "Phase 1A · living overlay (claims, hourly stations, hearth schedule, owned loot manifests)",
+          "title": "Phase 1A Â· living overlay (claims, hourly stations, hearth schedule, owned loot manifests)",
           "status": "done",
           "link": "docs/superpowers/plans/2026-07-07-building-generator-v2-phase1a-inhabited.md"
         },
         {
-          "title": "Phase 1A · town wiring + frontage + goldens re-freeze",
+          "title": "Phase 1A Â· town wiring + frontage + goldens re-freeze",
           "status": "done",
           "link": "docs/superpowers/plans/2026-07-07-building-generator-v2-phase1a-inhabited.md"
         },
         {
-          "title": "Phase 1A · 2D occupancy preview toggle (blueprint overlay with clock)",
+          "title": "Phase 1A Â· 2D occupancy preview toggle (blueprint overlay with clock)",
           "status": "done",
           "link": "docs/superpowers/plans/2026-07-07-building-generator-v2-phase1a-inhabited.md"
         },
         {
-          "title": "Phase 1A · 3D scene consumes the living overlay (members at stations, lit hearths) — visual eyeball pending",
+          "title": "Phase 1A Â· 3D scene consumes the living overlay (members at stations, lit hearths) â€” visual eyeball pending",
           "status": "done",
           "link": "docs/superpowers/plans/2026-07-07-building-generator-v2-phase1a-inhabited.md"
         },
         {
           "title": "Phase 1B: roofscapes + regional styles (roof solver, culture/climate/wealth grammar)",
           "status": "active",
-          "link": "docs/superpowers/plans/2026-07-07-building-generator-v2-phase1b-roofscapes.md"
+          "link": "docs/superpowers/plans/2026-07-07-building-generator-v2-phase1b-roofscapes.md",
+          "note": "Physical construction families landed 2026-07-14: five culture vocabularies now own 15 wall/roof/foundation/glazing/shutter/ornament kits, with district-dominant recipes and exact 2D/artifact/3D parity. True sloped covering surfaces and weather-reactive materials remain active Phase 1B rendering scope."
         },
         {
           "title": "Phase 2: street-aware blocks (lot negotiation, party walls, market arcades)",
@@ -1955,7 +2117,9 @@
         },
         {
           "title": "Phase 3: buildings with history (backstory roll, event log, wear rendering)",
-          "status": "parked"
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-11-building-architectural-identity.md",
+          "note": "Born-with-a-past construction ages, deterministic backstories, chronological applyHistory replay, exact town-fire-to-home targeting, and live 2D/3D wear rendering landed 2026-07-14. Non-fire simulation writers, true roof deformation, generator-created extension geometry, and event-log compaction remain active Phase 3 scope."
         },
         {
           "title": "Interior lighting slice (living overlay readability: lit rooms, hearth light, lit windows)",
@@ -1978,7 +2142,7 @@
           "status": "done"
         },
         {
-          "title": "Wall/ceiling z-fight fix (cap walls at slab underside — viewer-found)",
+          "title": "Wall/ceiling z-fight fix (cap walls at slab underside â€” viewer-found)",
           "status": "active"
         }
       ]
@@ -1986,7 +2150,7 @@
     {
       "id": "glossary-structured-content",
       "title": "Glossary structured content layer (typed model, one link primitive, build-time gate)",
-      "sub": "spec APPROVED 2026-07-06 (one bundle file; gate fails on everything day one, no grandfathered baseline; source files get fixed, not permanently auto-repaired): replace the regex + dangerouslySetInnerHTML string pipeline with a build-time compiler that parses each of the ~2,000 entries once into typed blocks, precomputes the cross-reference graph, and fails CI on broken links/malformed tables/content-less targets; one GlossaryLink primitive replaces five clickable-term implementations. Stretch (design-only): rules surface live game-state clauses via the graph. SLICE 1 DONE 2026-07-06: compiler+graph+gate live in glossary:rebuild and vitest; root-cause ingest pipe-corruption fixed; ~850 entries source-cleaned; gate green over all 1,571 entries. CROSS-SURFACE AUDIT 2026-07-07: spellbook/spell UI already clean (structured JSON, no dangerouslySetInnerHTML/markdown-at-render); only fragile render-time markdown left is a dev-only tool (PreviewMdLibrary, single terminal DOMPurify — not actually vulnerable). Down-payments landed: item registry now strips 5eTools {@item} tags at generation (0 leaked); party-condition chips (poisoned) now link to the live glossary entry via GlossaryTooltip instead of hardcoded copy (early slice-4).",
+      "sub": "spec APPROVED 2026-07-06 (one bundle file; gate fails on everything day one, no grandfathered baseline; source files get fixed, not permanently auto-repaired): replace the regex + dangerouslySetInnerHTML string pipeline with a build-time compiler that parses each of the ~2,000 entries once into typed blocks, precomputes the cross-reference graph, and fails CI on broken links/malformed tables/content-less targets; one GlossaryLink primitive replaces five clickable-term implementations. Stretch (design-only): rules surface live game-state clauses via the graph. SLICE 1 DONE 2026-07-06: compiler+graph+gate live in glossary:rebuild and vitest; root-cause ingest pipe-corruption fixed; ~850 entries source-cleaned; gate green over all 1,571 entries. CROSS-SURFACE AUDIT 2026-07-07: spellbook/spell UI already clean (structured JSON, no dangerouslySetInnerHTML/markdown-at-render); only fragile render-time markdown left is a dev-only tool (PreviewMdLibrary, single terminal DOMPurify â€” not actually vulnerable). Down-payments landed: item registry now strips 5eTools {@item} tags at generation (0 leaked); party-condition chips (poisoned) now link to the live glossary entry via GlossaryTooltip instead of hardcoded copy (early slice-4).",
       "campaign": "ui",
       "status": "active",
       "link": "docs/superpowers/specs/2026-07-06-glossary-structured-content-design.md",
@@ -2033,12 +2197,12 @@
         {
           "id": "agent-identity",
           "kind": "hard",
-          "why": "Every escalation is stamped with the asker’s full provenance so Remy sees which agent/campaign/where-from is blocked — a bare handle is not enough to decide"
+          "why": "Every escalation is stamped with the askerâ€™s full provenance so Remy sees which agent/campaign/where-from is blocked â€” a bare handle is not enough to decide"
         },
         {
           "id": "agent-ping",
           "kind": "chosen",
-          "why": "The human’s answer wakes the waiting agent via the same Path C in-session listener that ping proved — escalation reuses that wake path rather than inventing one"
+          "why": "The humanâ€™s answer wakes the waiting agent via the same Path C in-session listener that ping proved â€” escalation reuses that wake path rather than inventing one"
         }
       ],
       "features": [
@@ -2048,7 +2212,7 @@
           "link": "docs/superpowers/plans/2026-07-06-agent-human-escalation-plan.md"
         },
         {
-          "title": "master funnel: poll queue → present open blocking escalations via AskUserQuestion → record answer",
+          "title": "master funnel: poll queue â†’ present open blocking escalations via AskUserQuestion â†’ record answer",
           "status": "specced",
           "link": "docs/superpowers/plans/2026-07-06-agent-human-escalation-plan.md"
         },
@@ -2072,7 +2236,7 @@
       "link": "docs/superpowers/specs/2026-07-06-groq-inference-toggle-design.md",
       "features": [
         {
-          "title": "Key-handling the user picks: persistent localStorage / session-only / local-proxy (key never in the browser) — none in the bundle. Local-proxy path is now ALWAYS-ON in dev: the Vite dev server itself proxies /__groq/v1 (scripts/vite-plugins/groqProxyManager.ts), reading the key from Windows Credential Manager (AgentMatrix/Groq/GROQ_API_KEY) — same-origin, no separate process, no CORS, nothing to start by hand. Default proxy URL is now /__groq/v1; verified keyLoaded + proxy-ok live. Standalone tools/groq-proxy (npm run groq-proxy, :8787) still serves the same shape for non-Vite use",
+          "title": "Key-handling the user picks: persistent localStorage / session-only / local-proxy (key never in the browser) â€” none in the bundle. Local-proxy path is now ALWAYS-ON in dev: the Vite dev server itself proxies /__groq/v1 (scripts/vite-plugins/groqProxyManager.ts), reading the key from Windows Credential Manager (AgentMatrix/Groq/GROQ_API_KEY) â€” same-origin, no separate process, no CORS, nothing to start by hand. Default proxy URL is now /__groq/v1; verified keyLoaded + proxy-ok live. Standalone tools/groq-proxy (npm run groq-proxy, :8787) still serves the same shape for non-Vite use",
           "status": "done"
         },
         {
@@ -2088,7 +2252,7 @@
           "status": "done"
         },
         {
-          "title": "Active-provider banner at the top of the pane: reads 'Currently active: Groq cloud (local proxy)' in sky, or 'Ollama (local model) — the default' in gray, so the pane reflects reality instead of always reading 'Ollama required'. Updates live on switch; verified both states",
+          "title": "Active-provider banner at the top of the pane: reads 'Currently active: Groq cloud (local proxy)' in sky, or 'Ollama (local model) â€” the default' in gray, so the pane reflects reality instead of always reading 'Ollama required'. Updates live on switch; verified both states",
           "status": "done"
         },
         {
@@ -2104,7 +2268,7 @@
     {
       "id": "agora-fleet-coordination",
       "title": "Agora fleet coordination (epic)",
-      "sub": "the umbrella program that turns Agora’s peer pool into a legible, recoverable, wake-able, human-steerable fleet. Ties together identity + retrace + ping + escalation + master (+ frontier: ask-await, stall-detection, retire, attribution) into a 4-wave build order. Path C wake PROVEN 2026-07-06. Specced; build not started",
+      "sub": "the umbrella program that turns Agoraâ€™s peer pool into a legible, recoverable, wake-able, human-steerable fleet. Ties together identity + retrace + ping + escalation + master (+ frontier: ask-await, stall-detection, retire, attribution) into a 4-wave build order. Path C wake PROVEN 2026-07-06. Specced; build not started",
       "campaign": "tooling",
       "status": "specced",
       "link": "docs/superpowers/plans/2026-07-06-agora-fleet-coordination-epic.md",
@@ -2116,12 +2280,12 @@
           "link": "docs/superpowers/plans/2026-07-06-agora-fleet-coordination-epic.md"
         },
         {
-          "title": "Wave 2 Recovery & reach: agent-retrace ∥ agent-ping (dead work recoverable; agents wake-able)",
+          "title": "Wave 2 Recovery & reach: agent-retrace âˆ¥ agent-ping (dead work recoverable; agents wake-able)",
           "status": "specced",
           "link": "docs/superpowers/plans/2026-07-06-agora-fleet-coordination-epic.md"
         },
         {
-          "title": "Wave 3 Coordination: ask-and-await → agent-escalation (agents ask each other + the human)",
+          "title": "Wave 3 Coordination: ask-and-await â†’ agent-escalation (agents ask each other + the human)",
           "status": "specced",
           "link": "docs/superpowers/plans/2026-07-06-agora-fleet-coordination-epic.md"
         },
@@ -2138,19 +2302,132 @@
     {
       "id": "economy-player-surface",
       "title": "Economy player-facing UX pass",
-      "sub": "The economy engine is built + wired into worldReducer (Steps 5b/5c), but has NO honest player surface: investment board, ledger, courier pouch, trade-route dashboard, and merchant modal are dev-menu-only, and most gold movements bypass the transaction framework (OPEN_MERCHANT has zero player dispatch sites). Goal: give the economy real in-game entry points so a player earns/spends/sees gold move through the framework. DECISION-GATED / supervised UX pass (Remy in the loop, mock-up + look-approve first) — handed off, not auto-built. Unblocks economy-ui G4/G8/G9 + the merchant-haggle discount persistence (needs merchantId threaded). Handover prompt in the link.",
+      "sub": "The economy engine is built + wired into worldReducer (Steps 5b/5c), but has NO honest player surface: investment board, ledger, courier pouch, trade-route dashboard, and merchant modal are dev-menu-only, and most gold movements bypass the transaction framework (OPEN_MERCHANT has zero player dispatch sites). Goal: give the economy real in-game entry points so a player earns/spends/sees gold move through the framework. DECISION-GATED / supervised UX pass (Remy in the loop, mock-up + look-approve first) â€” handed off, not auto-built. Unblocks economy-ui G4/G8/G9 + the merchant-haggle discount persistence (needs merchantId threaded). Handover prompt in the link.",
       "campaign": "sim",
       "status": "parked",
       "link": "docs/superpowers/plans/2026-07-09-economy-ux-pass-handover.md",
       "deps": [],
       "history": {
         "captured": "2026-07-09"
-      }
+      },
+      "features": [
+        {
+          "title": "E-G1 In-world UI home for business management and trade-map affordances",
+          "status": "active",
+          "decision": true,
+          "status_note": "decide: dedicated components vs folding into LedgerBook, InvestmentBoard, TradeRouteDashboard; prove a non-debug path to inspect businesses, routes, investments, courier intel",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy.md"
+        },
+        {
+          "title": "G4 Exchange and rule audit: pricing inputs, route transitions, merchant outcomes proven",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08"
+          },
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy.md"
+        },
+        {
+          "title": "G5 Market representation fidelity: route event tags and market factors stay aligned",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08"
+          },
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy.md"
+        },
+        {
+          "title": "G1 Typed economy event contracts consumed end-to-end (affectedTags, shared factor selectors)",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08"
+          },
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy.md"
+        },
+        {
+          "title": "T3 Seed trade routes validated against regional economies deterministically",
+          "status": "done",
+          "history": {
+            "built": "2026-06-12",
+            "builtApprox": true
+          },
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy.md"
+        },
+        {
+          "title": "T4 Booming promoted into the shared trade-route status model",
+          "status": "done",
+          "history": {
+            "built": "2026-06-12",
+            "builtApprox": true
+          },
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy.md"
+        },
+        {
+          "title": "G4 In-world non-dev-menu entry points for InvestmentBoard, LedgerBook, CourierPouch",
+          "status": "parked",
+          "status_note": "deliberately deferred: do not wire in-world triggers until a product pass requests player-visible economy surfaces; proof = one economy modal reachable through a non-debug gameplay path",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy-ui.md"
+        },
+        {
+          "title": "G8 Route bypassing transaction surfaces through the economy framework",
+          "status": "active",
+          "status_note": "crafting, fencing, org upgrades, quest rewards, combat loot all move gold with direct arithmetic; define a shared resolveTransactionCost pattern and migrate one surface first; business acquisition + NPC business mgmt still need UI",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy-ui.md"
+        },
+        {
+          "title": "G9 Transaction UI integration pattern for missing gold domains (mounts, housing, hirelings, services)",
+          "status": "parked",
+          "status_note": "waits on the owning game systems; provide the economy-wiring pattern the day each domain is built",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy-ui.md"
+        },
+        {
+          "title": "G1 Ledger and courier modals mounted in GameModals with close dispatch",
+          "status": "done",
+          "history": {
+            "built": "2026-06-09"
+          },
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy-ui.md"
+        },
+        {
+          "title": "G2 InvestmentBoard mounted with caravan and loan actions wired",
+          "status": "done",
+          "history": {
+            "built": "2026-06-09"
+          },
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy-ui.md"
+        },
+        {
+          "title": "G3 Reducer ownership contract documented (uiReducer vs economyReducer split)",
+          "status": "done",
+          "history": {
+            "built": "2026-06-09"
+          },
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy-ui.md"
+        },
+        {
+          "title": "G6 TradeRouteDashboard added to the fallback Escape close chain",
+          "status": "done",
+          "history": {
+            "built": "2026-06-10",
+            "builtApprox": true
+          },
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy-ui.md"
+        },
+        {
+          "title": "G7 TOGGLE_INVESTMENT_BOARD added to actionTypes.d.ts",
+          "status": "done",
+          "history": {
+            "built": "2026-06-10",
+            "builtApprox": true
+          },
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-economy-ui.md"
+        }
+      ],
+      "status_note": "Absorbed docs/projects/economy 2026-07-15; engine architecture map in docs/superpowers/specs/2026-07-14-absorbed-economy.md; absorbed docs/projects/economy-ui 2026-07-15 (universal transaction-UI framework context in docs/superpowers/specs/2026-07-14-absorbed-economy-ui.md)",
+      "updated": "2026-07-15"
     },
     {
       "id": "llm-provider-config",
       "title": "LLM provider as a user configuration choice",
-      "sub": "Reframe (Remy 2026-07-09): the divergent Ollama model-fallback chains scattered across files (types/ollama.ts, ollama/taskProfiles.ts, useBiomeGenerator.ts hardcoded mistral/phi4-mini/gemma3, CompanionGenerator.ts) should NOT be a silent fallback — they should be a user-facing CONFIGURATION choice of LLM provider, by system + availability. Remy's own setup leverages local Ollama to avoid token/rate limits; other users may prefer a different LLM agent (Gemini/Groq/etc.) depending on their machine and access. Direction: make the provider (and its model) a user config, KEEP the no-fallback directive (fail honestly on the chosen provider, no silent model-swapping), and consolidate the currently-hardcoded divergent chains behind that one config. FIRST SLICE SHIPPED 2026-07-09 (behavior-preserving): new src/config/llmProviderConfig.ts centralizes all the scattered hardcoded model choices (global fallback chain, the 4 task-category lists, companion 'mistral:instruct', biome list) with defaults that byte-for-byte reproduce today's behavior; types/ollama.ts, taskProfiles.ts, CompanionGenerator.ts, useBiomeGenerator.ts now import from it; each chain carries a TODO(llm-provider-config) marker. Gate: tsc 635 (no regression), 8/8 config-default pins green. NEXT: the user-facing provider/model settings toggle + wiring the config to actually switch provider (aiProviderSettings.ts already holds the Groq/provider surface).",
+      "sub": "Reframe (Remy 2026-07-09): the divergent Ollama model-fallback chains scattered across files (types/ollama.ts, ollama/taskProfiles.ts, useBiomeGenerator.ts hardcoded mistral/phi4-mini/gemma3, CompanionGenerator.ts) should NOT be a silent fallback â€” they should be a user-facing CONFIGURATION choice of LLM provider, by system + availability. Remy's own setup leverages local Ollama to avoid token/rate limits; other users may prefer a different LLM agent (Gemini/Groq/etc.) depending on their machine and access. Direction: make the provider (and its model) a user config, KEEP the no-fallback directive (fail honestly on the chosen provider, no silent model-swapping), and consolidate the currently-hardcoded divergent chains behind that one config. FIRST SLICE SHIPPED 2026-07-09 (behavior-preserving): new src/config/llmProviderConfig.ts centralizes all the scattered hardcoded model choices (global fallback chain, the 4 task-category lists, companion 'mistral:instruct', biome list) with defaults that byte-for-byte reproduce today's behavior; types/ollama.ts, taskProfiles.ts, CompanionGenerator.ts, useBiomeGenerator.ts now import from it; each chain carries a TODO(llm-provider-config) marker. Gate: tsc 635 (no regression), 8/8 config-default pins green. NEXT: the user-facing provider/model settings toggle + wiring the config to actually switch provider (aiProviderSettings.ts already holds the Groq/provider surface).",
       "campaign": "tooling",
       "status": "active",
       "deps": [],
@@ -2161,7 +2438,7 @@
     {
       "id": "interior-lighting-live-clock",
       "title": "Interior lighting on the live clock",
-      "sub": "DONE 2026-07-09. Windows and the hearth now light and darken with the game clock, instead of freezing at the hour you walked in. The whole day is baked once as a schedule; the render side reads it live. Proof: 0 lit windows at noon, 26 at dusk, dark again by night — same building, clock moved.",
+      "sub": "DONE 2026-07-09. Windows and the hearth now light and darken with the game clock, instead of freezing at the hour you walked in. The whole day is baked once as a schedule; the render side reads it live. Proof: 0 lit windows at noon, 26 at dusk, dark again by night â€” same building, clock moved.",
       "campaign": "world",
       "subcampaign": "Interiors & Buildings",
       "status": "done",
@@ -2231,7 +2508,7 @@
     {
       "id": "servants-as-npcs",
       "title": "Servants as real NPCs",
-      "sub": "Today a servant is only a tag on a house's design brief: it shapes which rooms get built, then never becomes a person (blindspot finding #2 — servant slots drive room programming but place no body). Promote servants to real household NPCs with a role in the household, a daily schedule, and a body that stands and moves like any resident. This is an NPC/roster system, not a field on a building — it is why the live-clock work split occupants away from building fixtures. Direction set by Remy 2026-07-09; not yet specced.",
+      "sub": "Today a servant is only a tag on a house's design brief: it shapes which rooms get built, then never becomes a person (blindspot finding #2 â€” servant slots drive room programming but place no body). Promote servants to real household NPCs with a role in the household, a daily schedule, and a body that stands and moves like any resident. This is an NPC/roster system, not a field on a building â€” it is why the live-clock work split occupants away from building fixtures. Direction set by Remy 2026-07-09; not yet specced.",
       "campaign": "sim",
       "status": "parked",
       "deps": [
@@ -2253,7 +2530,7 @@
     {
       "id": "ai-arbitrated-ritual-casting",
       "title": "AI-arbitrated ritual casting",
-      "sub": "Remy's design 2026-07-09: rituals become a REAL feature but heavily AI-arbitrated and state-aware, NOT a progress bar the player babysits. A ritual is a background narrative process; drama comes from who is around and what is happening. SAFE place -> quiet background dice roll; interruptions are social + personality-driven (a companion who doesn't get magic / isn't aware of the ritual may cause a funny distraction -> concentration roll; a quiet/shy NPC less likely, a comedian/low-INT more likely; a companion who knows the player may head off the disruptor, but only if >1 companion present). HIGHER THREAT place -> danger-driven: waylaid by enemies, or sound/visual signals surfaced via passive perception ('you hear/see X' -> player may abort); companions roll passive perception too (background per-event DC -> auto pass/fail); noticing NPCs choose investigate / sound alarm / dismiss, driven by paranoid vs careless traits. Needs: awareness model (who's near + who knows), NPC personality traits, a NEW flexible per-event DC mechanic, AI arbitration (Ollama-gated, respects no-fallback/provider-config), and the existing ritual engine's completion payoff + backlash (currently stubs). Background clock already works. Needs a brainstorm pass then phased build. FIRST PREREQUISITE BUILT 2026-07-09 (no-decision, reusable): the flexible per-event detection mechanic — new src/systems/perception/eventDetection.ts with EventDC + difficulty bands (5e DC ladder, tunable), passivePerceptionOf (reuses the existing calculatePassiveScore; supports PC compute + NPC passivePerception field), and resolveEventDetection (passive auto-detect >= DC, optional seeded active roll, no-fallback throw). Gate: tsc 635, 17/17 tests. This is the 'companions roll passive perception (background DC -> auto pass/fail)' piece. REMAINING pieces are ritual-specific arbitration that need the brainstorm: awareness model (who's near + who knows — the memory factKey from the just-shipped merge feeds 'who knows'), personality->interruption/reaction mapping, AI narration, cast-trigger + command routing, real completion payoff, backlash.",
+      "sub": "Remy's design 2026-07-09: rituals become a REAL feature but heavily AI-arbitrated and state-aware, NOT a progress bar the player babysits. A ritual is a background narrative process; drama comes from who is around and what is happening. SAFE place -> quiet background dice roll; interruptions are social + personality-driven (a companion who doesn't get magic / isn't aware of the ritual may cause a funny distraction -> concentration roll; a quiet/shy NPC less likely, a comedian/low-INT more likely; a companion who knows the player may head off the disruptor, but only if >1 companion present). HIGHER THREAT place -> danger-driven: waylaid by enemies, or sound/visual signals surfaced via passive perception ('you hear/see X' -> player may abort); companions roll passive perception too (background per-event DC -> auto pass/fail); noticing NPCs choose investigate / sound alarm / dismiss, driven by paranoid vs careless traits. Needs: awareness model (who's near + who knows), NPC personality traits, a NEW flexible per-event DC mechanic, AI arbitration (Ollama-gated, respects no-fallback/provider-config), and the existing ritual engine's completion payoff + backlash (currently stubs). Background clock already works. Needs a brainstorm pass then phased build. FIRST PREREQUISITE BUILT 2026-07-09 (no-decision, reusable): the flexible per-event detection mechanic â€” new src/systems/perception/eventDetection.ts with EventDC + difficulty bands (5e DC ladder, tunable), passivePerceptionOf (reuses the existing calculatePassiveScore; supports PC compute + NPC passivePerception field), and resolveEventDetection (passive auto-detect >= DC, optional seeded active roll, no-fallback throw). Gate: tsc 635, 17/17 tests. This is the 'companions roll passive perception (background DC -> auto pass/fail)' piece. REMAINING pieces are ritual-specific arbitration that need the brainstorm: awareness model (who's near + who knows â€” the memory factKey from the just-shipped merge feeds 'who knows'), personality->interruption/reaction mapping, AI narration, cast-trigger + command routing, real completion payoff, backlash.",
       "campaign": "spells",
       "status": "specced",
       "link": "docs/superpowers/specs/2026-07-09-ai-arbitrated-ritual-casting.md",
@@ -2272,7 +2549,7 @@
     {
       "id": "npc-memory-reconciliation",
       "title": "NPC memory: merge or keep separate",
-      "sub": "Two NPC-memory systems exist. LIVE: world-state NpcMemory (types/world.ts) - disposition/suspicion/plain facts/goals, filled by talking/haggling/crime/gossip, ~20 consumers, drives recruitment + dossier + prices. DORMANT: richer NPCMemory (types/memory.ts) - timestamped interactions, emotion, per-fact confidence, importance, decay; self-labeled orphan, filled only in tests. world.ts is already half-extended with the richer type's optional fields. DETERMINATION 2026-07-09 = MERGE (evidence-backed): they are the SAME system forked, not separate purposes. docs/projects/memory/GAPS.md already tracks this as G1 (schema-normalization: pick one canonical shape) + G2 (retire the orphan MemorySystem); the richer NPCMemory was the intended structured upgrade (generator TODO: 'Replace NpcMemory with the structured NPCMemory when memory models merge'), parked ~6 weeks with ZERO live writes and its one read fed a hardcoded-empty memory; world.ts was deliberately half-widened 2026-07-03 to hold the richer fields (typed loosely) awaiting exactly this call. Migration sketch ready: extend KnownFact with optional richer fields (add a semantic factKey — which is what makes 'companion knows player is ritual-casting' a reliable query), finish the world.ts typing, repoint the decay/format helpers onto the canonical shape, retire MemorySystem, save/load backfill. Low blast radius (~20 live consumers keep working; richer lane has ~0 to preserve). MERGE EXECUTED + gate-green 2026-07-09: canonical = live NpcMemory; KnownFact extended with optional factKey/confidence/significance + widened source; NpcMemory half-merge fields tightened (Interaction[]/number/Record<string,number>); NPCMemory now aliases the canonical type; orphan MemorySystem.ts + test deleted; memoryUtils helpers repointed; save/load backfills from strength. tsc 635 (no regression), 28/28 memory/npc/gemini tests green. Closes memory G1 + G2. TAIL CLOSED 2026-07-10: the 3 stale .d.ts twins (memory.d.ts/world.d.ts/index.d.ts) deleted; verified not build-generated (tsconfig noEmit; node-tsconfig emitDeclarationOnly scopes only vite.config+named scripts) and not needed by any tsconfig include; sole consumer test:types repointed from index.d.ts to index.ts; tsc -b still 635 (byte-identical error set). Broader twin sweep spun off as types-decl-twin-hygiene.",
+      "sub": "Two NPC-memory systems exist. LIVE: world-state NpcMemory (types/world.ts) - disposition/suspicion/plain facts/goals, filled by talking/haggling/crime/gossip, ~20 consumers, drives recruitment + dossier + prices. DORMANT: richer NPCMemory (types/memory.ts) - timestamped interactions, emotion, per-fact confidence, importance, decay; self-labeled orphan, filled only in tests. world.ts is already half-extended with the richer type's optional fields. DETERMINATION 2026-07-09 = MERGE (evidence-backed): they are the SAME system forked, not separate purposes. docs/projects/memory/GAPS.md already tracks this as G1 (schema-normalization: pick one canonical shape) + G2 (retire the orphan MemorySystem); the richer NPCMemory was the intended structured upgrade (generator TODO: 'Replace NpcMemory with the structured NPCMemory when memory models merge'), parked ~6 weeks with ZERO live writes and its one read fed a hardcoded-empty memory; world.ts was deliberately half-widened 2026-07-03 to hold the richer fields (typed loosely) awaiting exactly this call. Migration sketch ready: extend KnownFact with optional richer fields (add a semantic factKey â€” which is what makes 'companion knows player is ritual-casting' a reliable query), finish the world.ts typing, repoint the decay/format helpers onto the canonical shape, retire MemorySystem, save/load backfill. Low blast radius (~20 live consumers keep working; richer lane has ~0 to preserve). MERGE EXECUTED + gate-green 2026-07-09: canonical = live NpcMemory; KnownFact extended with optional factKey/confidence/significance + widened source; NpcMemory half-merge fields tightened (Interaction[]/number/Record<string,number>); NPCMemory now aliases the canonical type; orphan MemorySystem.ts + test deleted; memoryUtils helpers repointed; save/load backfills from strength. tsc 635 (no regression), 28/28 memory/npc/gemini tests green. Closes memory G1 + G2. TAIL CLOSED 2026-07-10: the 3 stale .d.ts twins (memory.d.ts/world.d.ts/index.d.ts) deleted; verified not build-generated (tsconfig noEmit; node-tsconfig emitDeclarationOnly scopes only vite.config+named scripts) and not needed by any tsconfig include; sole consumer test:types repointed from index.d.ts to index.ts; tsc -b still 635 (byte-identical error set). Broader twin sweep spun off as types-decl-twin-hygiene.",
       "campaign": "sim",
       "status": "done",
       "link": "docs/superpowers/plans/2026-07-09-npc-memory-reconciliation-handover.md",
@@ -2294,7 +2571,7 @@
     {
       "id": "npc-personality-system",
       "title": "NPC personality system",
-      "sub": "Foundational NPC-behavior track, split off the ritual track by Remy 2026-07-09 ('this is more about NPC behavior, in particular their personality traits, at first'). Today characters carry only a free-text traits: string[] + real ability scores; there is NO structured personality model. Build one that drives how NPCs behave: whether a companion interrupts the player (shy/reserved less likely, boisterous/comedian more likely), how an NPC reacts to a noticed danger (paranoid investigates/alarms, careless dismisses), and more broadly dialogue tone, party dynamics, and the living-world sim. Design decisions still OPEN (brainstorm redirected here before the model was picked): numeric personality axes (Sociability/Caution/Curiosity/Impulsiveness/Confidence, behaviors derive from thresholds) vs a fixed trait-tag enum vs Big-Five. Consumed by [[ai-arbitrated-ritual-casting]] (interruption/reaction arbitration) and feeds NPC memory ([[npc-memory-reconciliation]], now merged). Needs its own brainstorm → spec → build.",
+      "sub": "Foundational NPC-behavior track, split off the ritual track by Remy 2026-07-09 ('this is more about NPC behavior, in particular their personality traits, at first'). Today characters carry only a free-text traits: string[] + real ability scores; there is NO structured personality model. Build one that drives how NPCs behave: whether a companion interrupts the player (shy/reserved less likely, boisterous/comedian more likely), how an NPC reacts to a noticed danger (paranoid investigates/alarms, careless dismisses), and more broadly dialogue tone, party dynamics, and the living-world sim. Design decisions still OPEN (brainstorm redirected here before the model was picked): numeric personality axes (Sociability/Caution/Curiosity/Impulsiveness/Confidence, behaviors derive from thresholds) vs a fixed trait-tag enum vs Big-Five. Consumed by [[ai-arbitrated-ritual-casting]] (interruption/reaction arbitration) and feeds NPC memory ([[npc-memory-reconciliation]], now merged). Needs its own brainstorm â†’ spec â†’ build.",
       "campaign": "sim",
       "status": "parked",
       "deps": [],
@@ -2305,9 +2582,9 @@
     {
       "id": "types-decl-twin-hygiene",
       "title": "Stale src/types .d.ts twin cleanup",
-      "sub": "src/types holds hand-committed .d.ts files that shadow-duplicate their .ts source; 45 of 50 .d.ts have a live .ts twin. TypeScript resolves the .ts over the .d.ts, so the twins are invisible today (0 tsc errors) but latent: if anything ever imports an explicit .d path or a build starts emitting them, they resurface retired shapes. Confirmed NOT build-generated (tsconfig noEmit; tsconfig.node emitDeclarationOnly scopes only vite.config + a few named scripts, never src/types). FIRST 3 CLEARED 2026-07-10 (the ones the NPC-memory merge desynced: memory/world/index — see [[npc-memory-reconciliation]]); tsc -b held at 635 byte-identical. REMAINING: (1) audit the other ~42 twins, delete the ones that are pure stale duplicates (some may be legitimately hand-authored ambient decls with no .ts — the 5 .d-only files — leave those), tsc-diff each batch; (2) test:types is currently RED anyway — 18 pre-existing ConditionName drift errors in src/types/__tests__/spells.test-d.ts, not run in CI — either fix the spells declaration drift and gate it in CI, or retire the script. Low blast radius, parallelizable by disjoint file batches.",
+      "sub": "src/types holds hand-committed .d.ts files that shadow-duplicate their .ts source; 45 of 50 .d.ts have a live .ts twin. TypeScript resolves the .ts over the .d.ts, so the twins are invisible today (0 tsc errors) but latent: if anything ever imports an explicit .d path or a build starts emitting them, they resurface retired shapes. Confirmed NOT build-generated (tsconfig noEmit; tsconfig.node emitDeclarationOnly scopes only vite.config + a few named scripts, never src/types). FIRST 3 CLEARED 2026-07-10 (the ones the NPC-memory merge desynced: memory/world/index â€” see [[npc-memory-reconciliation]]); tsc -b held at 635 byte-identical. REMAINING: (1) audit the other ~42 twins, delete the ones that are pure stale duplicates (some may be legitimately hand-authored ambient decls with no .ts â€” the 5 .d-only files â€” leave those), tsc-diff each batch; (2) test:types is currently RED anyway â€” 18 pre-existing ConditionName drift errors in src/types/__tests__/spells.test-d.ts, not run in CI â€” either fix the spells declaration drift and gate it in CI, or retire the script. Low blast radius, parallelizable by disjoint file batches.",
       "campaign": "tooling",
-      "status": "parked",
+      "status": "done",
       "deps": [
         {
           "id": "npc-memory-reconciliation",
@@ -2321,7 +2598,7 @@
     {
       "id": "interiors-blindspot-pass",
       "title": "Interiors blindspot pass",
-      "sub": "read-pass over WF-INTERIORS surfaced 7 gaps. SHIPPED: #1 live clock, #2 silent failures, #3 hearth transform, #4 storey height. #6 measured won't-fix. OPEN on the Agora board: #5 lossy plan, #7 lighting-hours unify/confirm",
+      "sub": "read-pass over WF-INTERIORS surfaced 7 gaps. SHIPPED: #1 live clock, #2 silent failures, #3 hearth transform, #4 storey height. #6 measured won't-fix. #5 audit DONE 2026-07-14: no live bug (production is blueprint-fed); optional dead-branch cleanup posted to board (8352cd22). OPEN: #7 lighting-hours unify/confirm",
       "campaign": "world",
       "subcampaign": "Interiors & Buildings",
       "status": "active",
@@ -2368,7 +2645,7 @@
         },
         {
           "title": "#5 Legacy InteriorPlan lossy-view consumer audit (L-room bbox, dropped windows, no basement)",
-          "status": "active"
+          "status": "done"
         },
         {
           "title": "#6 Redundant blueprint fetch measured negligible (1.9%, documented in code)",
@@ -2451,229 +2728,328 @@
       "campaign": "tooling",
       "status": "active",
       "deps": [],
-      "link": "docs/projects/game-systems-audit/NORTH_STAR.md",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md",
       "features": [
         {
           "title": "W01 Onboarding and persistence",
           "status": "done",
-          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 checkpoint tier runtime - Tiered Autosave GAP-002",
           "status": "done",
-          "link": "docs/projects/tiered-autosave/GAPS.md"
+          "link": "docs/projects/tiered-autosave/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 saved-run state restoration proof",
           "status": "done",
-          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 checkpoint history separation - Tiered Autosave GAP-003",
           "status": "done",
-          "link": "docs/projects/tiered-autosave/GAPS.md"
+          "link": "docs/projects/tiered-autosave/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 shared WindowFrame close target - Ui Primitives G4",
           "status": "done",
-          "link": "docs/projects/ui-primitives/GAPS.md"
+          "link": "docs/projects/ui-primitives/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 IndexedDB primary and recovery paths - Tiered Autosave GAP-005",
           "status": "done",
-          "link": "docs/projects/tiered-autosave/GAPS.md"
+          "link": "docs/projects/tiered-autosave/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 accurate fallback storage diagnostics - SaveLoad G8",
           "status": "done",
-          "link": "docs/projects/saveload/GAPS.md"
+          "link": "docs/projects/saveload/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 safe abandon and persistent recovery proof",
           "status": "done",
-          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 all checkpoint horizons and stable retention keys",
           "status": "done",
-          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 race backtracking draft restoration - Character Creator G24",
           "status": "done",
-          "link": "docs/projects/character-creator/GAPS.md"
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 visible-route progress ordering - Character Creator G25",
           "status": "done",
-          "link": "docs/projects/character-creator/GAPS.md"
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 mandatory feat setup stability - Character Creator G26",
           "status": "done",
-          "link": "docs/projects/character-creator/GAPS.md"
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 racial sub-choice persistence - Character Creator G27",
           "status": "done",
-          "link": "docs/projects/character-creator/GAPS.md"
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 required species choice review - Character Creator G28",
           "status": "done",
-          "link": "docs/projects/character-creator/GAPS.md"
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 representative manual creation matrix",
           "status": "done",
-          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 combat defeat to game-over recovery - Combat G33",
           "status": "done",
-          "link": "docs/projects/combat/GAPS.md"
+          "link": "docs/projects/combat/GAPS.md",
+          "open": 2,
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W01 invalid-route history recovery - Ui Primitives G5",
           "status": "done",
-          "link": "docs/projects/ui-primitives/GAPS.md"
+          "link": "docs/projects/ui-primitives/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 World and exploration",
           "status": "active",
-          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md",
+          "status_note": "remaining: cardinal/out-of-bounds movement, legacy Submap boundary+movement, compass/Action Pane commands, Enter-3D geography handoff, atlas dependency-down recovery"
         },
         {
           "title": "W02 opening dependency failure and retry recovery",
           "status": "done",
-          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 3D-to-atlas dev inspector collision - World 3D UI W3DUI-G2",
           "status": "done",
-          "link": "docs/projects/world-3d-ui/GAPS.md"
+          "link": "docs/projects/world-3d-ui/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 canonical live Worldforge atlas - Worldforge WF-G10",
           "status": "done",
-          "link": "docs/projects/worldforge/GAPS.md"
+          "link": "docs/projects/worldforge/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 keyboard Worldforge cell descent - Worldforge WF-G11",
           "status": "done",
-          "link": "docs/projects/worldforge/GAPS.md"
+          "link": "docs/projects/worldforge/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 critical World3D frame collapse - World3D W3D-G29",
           "status": "done",
-          "link": "docs/projects/world3d/GAPS.md"
+          "link": "docs/projects/world3d/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 dense opening and populated-town 1 FPS follow-up - World3D W3D-G30",
           "status": "done",
-          "link": "docs/projects/world3d/GAPS.md"
+          "link": "docs/projects/world3d/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 Classic reachable, unreachable, and supply-limited travel proof",
           "status": "done",
-          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 Classic travel save and reload continuity",
           "status": "done",
-          "link": "docs/projects/game-systems-audit/AUDIT_OR_PROOF.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 persistent cell discovery and journal handoff - Travel G7",
           "status": "done",
-          "link": "docs/projects/travel/GAPS.md"
+          "link": "docs/projects/travel/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 cell-native travel encounter combat handoff - Travel G18",
           "status": "done",
-          "link": "docs/projects/travel/GAPS.md"
+          "link": "docs/projects/travel/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 ferry destination conservation - Travel G19",
           "status": "done",
-          "link": "docs/projects/travel/GAPS.md"
+          "link": "docs/projects/travel/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 time-weighted provision halt horizon - Travel G20",
           "status": "done",
-          "link": "docs/projects/travel/GAPS.md"
+          "link": "docs/projects/travel/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 honest party transport availability - Travel G21",
           "status": "done",
-          "link": "docs/projects/travel/GAPS.md"
+          "link": "docs/projects/travel/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 Classic atlas keyboard and touch parity - Worldforge WF-G12",
           "status": "done",
-          "link": "docs/projects/worldforge/GAPS.md"
+          "link": "docs/projects/worldforge/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 legacy-save companion portrait fallback - Companions G9",
           "status": "done",
-          "link": "docs/projects/companions/GAPS.md"
+          "link": "docs/projects/companions/GAPS.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W02 Long Rest full action-pipeline and eight-hour advance - Action Pane G1",
+          "status_note": "gap register absorbed 2026-07-15; details in the linked absorbed spec",
           "status": "done",
-          "link": "docs/projects/action-pane/GAPS.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-action-pane.md",
+          "history": {
+            "built": "2026-07-11"
+          }
         },
         {
           "title": "W03 Town social and quests",
           "status": "specced",
-          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md"
         },
         {
           "title": "W04 Combat and tactical play",
           "status": "specced",
-          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md"
         },
         {
           "title": "W05 Character mechanics and progression",
           "status": "specced",
-          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md"
         },
         {
           "title": "W06 Items economy and crafting",
           "status": "specced",
-          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md"
         },
         {
           "title": "W07 Factions crime and faith",
           "status": "specced",
-          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md"
         },
         {
           "title": "W08 Extended travel and realms",
           "status": "specced",
-          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md"
         },
         {
           "title": "W09 Simulation time and environment",
           "status": "specced",
-          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md"
         },
         {
           "title": "W10 3D and rendering",
           "status": "specced",
-          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md"
         },
         {
           "title": "W11 Information and UI surfaces",
           "status": "specced",
-          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md"
         },
         {
           "title": "W12 Services resilience and closure",
           "status": "specced",
-          "link": "docs/projects/game-systems-audit/COVERAGE_INVENTORY.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md"
         }
-      ]
+      ],
+      "status_note": "Absorbed docs/projects/game-systems-audit 2026-07-15; the campaign is ACTIVE — runbook + coverage ledger now live in the linked spec; continue planmap-first",
+      "updated": "2026-07-15"
     },
     {
       "id": "entity-generator-3d",
@@ -2701,7 +3077,7 @@
     {
       "id": "road-systems",
       "title": "Road systems",
-      "sub": "four land tiers work mechanically + visually · faint forest paths can lose you · graded biome speeds",
+      "sub": "four land tiers work mechanically + visually Â· faint forest paths can lose you Â· graded biome speeds",
       "campaign": "travel",
       "status": "active",
       "deps": [],
@@ -2731,25 +3107,29 @@
         {
           "title": "Faint-path warning in the travel readout",
           "status": "done"
+        },
+        {
+          "title": "Gate: live in-game eyeball (Remy)",
+          "status": "specced"
         }
       ]
     },
     {
       "id": "forests",
       "title": "Forests",
-      "sub": "named woods with character · readable tree fills · paths lead to camps and shrines · deep canopy in 3D",
+      "sub": "named woods with character Â· readable tree fills Â· paths lead to camps and shrines Â· deep canopy in 3D",
       "campaign": "world",
       "subcampaign": "Terrain & Regions",
       "status": "active",
       "deps": [
         {
           "id": "road-systems",
-          "kind": "requires",
+          "kind": "hard",
           "why": "forest-spur paths from the road campaign get their destinations here (POIs); nav DC ladder extends for haunted/fey woods"
         }
       ],
       "link": "docs/superpowers/specs/2026-07-11-forests-design.md",
-      "open": 9,
+      "open": 10,
       "features": [
         {
           "title": "Named forests (cluster + culture naming + map label + artifact)",
@@ -2770,30 +3150,35 @@
         {
           "title": "Deep forest in 3D (thickets/clearings, undergrowth, canopy atmosphere)",
           "status": "done"
+        },
+        {
+          "title": "Gate: live 3D eyeball + 3 flavor calls (Remy)",
+          "status": "specced"
         }
-      ]
+      ],
+      "updated": "2026-07-14"
     },
     {
       "id": "mountains",
       "title": "Mountains",
-      "sub": "named ranges + peaks + passes · climb costs make passes precious · relief glyphs · real 3D high country",
+      "sub": "named ranges + peaks + passes Â· climb costs make passes precious Â· relief glyphs Â· real 3D high country",
       "campaign": "world",
       "subcampaign": "Terrain & Regions",
       "status": "active",
       "deps": [
         {
           "id": "road-systems",
-          "kind": "requires",
+          "kind": "hard",
           "why": "passes are detected where the tiered routes cross ranges; climb cost composes with tier speed factors"
         },
         {
           "id": "forests",
-          "kind": "requires",
+          "kind": "hard",
           "why": "ranges/peaks reuse the forests place-pass pattern (clustering, naming, labels, escalation slot); trip-event revival lights the haunted/fey pools too"
         }
       ],
       "link": "docs/superpowers/specs/2026-07-11-mountains-design.md",
-      "open": 7,
+      "open": 8,
       "features": [
         {
           "title": "Named ranges + peaks (adopt Mount X marker names)",
@@ -2814,8 +3199,13 @@
         {
           "title": "3D high country: elevation curve + ridges + snow + tree line + shading fixes",
           "status": "done"
+        },
+        {
+          "title": "Gate: live 3D + glyph-size eyeball (Remy)",
+          "status": "specced"
         }
-      ]
+      ],
+      "updated": "2026-07-14"
     },
     {
       "id": "session-group-map",
@@ -2825,6 +3215,260 @@
       "status": "active",
       "deps": [],
       "link": "public/planmap/session-groups.json"
+    },
+    {
+      "id": "jules-spell-icons",
+      "title": "Spell icons (9 candidates per spell)",
+      "sub": "9 SVG candidates per spell (3 concepts x v1-v3) -> design-preview Spell Icons; school-colored 100x100; click-to-pick. Panel + coverage/overlap/level/class/school filters BUILT+VERIFIED 2026-07-14 (generator-agnostic). Jules pilot ran and was REJECTED (concepts 88-94% self-identical, v3 ~= v2; model ceiling) â€” pivoted to gemini-3.5-flash; scripts/spell-icons/{generate-gemini.mjs, AI-STUDIO-PROMPT.md}. Jules no-PR delivery = inline changeSet.gitPatch (documented).",
+      "campaign": "spells",
+      "status": "active",
+      "deps": [],
+      "link": "docs/superpowers/specs/2026-07-13-jules-spell-icons-design.md"
+    },
+    {
+      "id": "planning-surface-freshness",
+      "title": "Planning surface freshness",
+      "sub": "One status list (planmap); roadmap and docs auto-fed; board tidying",
+      "campaign": "tooling",
+      "status": "specced",
+      "deps": [],
+      "link": "docs/superpowers/specs/2026-07-14-planning-surface-freshness-design.md",
+      "open": 1
+    },
+    {
+      "id": "compass-pane",
+      "title": "Compass Pane",
+      "campaign": "ui",
+      "status": "active",
+      "tier": "component",
+      "updated": "2026-07-14",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-compass-pane.md",
+      "deps": [],
+      "features": [
+        {
+          "title": "T3 Resolve navigation-affordance gap from registry",
+          "status": "done",
+          "history": {
+            "built": "2026-06-19",
+            "builtApprox": false
+          }
+        },
+        {
+          "title": "T4 Resolve G3 UI pre-check semantics",
+          "status": "done",
+          "history": {
+            "built": "2026-06-18",
+            "builtApprox": false
+          }
+        },
+        {
+          "title": "T5 Resolve G4 documentation continuity",
+          "status": "done",
+          "history": {
+            "built": "2026-06-20",
+            "builtApprox": false
+          }
+        },
+        {
+          "title": "T6 Resolve G5 context-aware toggle regression coverage",
+          "status": "done",
+          "history": {
+            "built": "2026-06-24",
+            "builtApprox": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "character-creator",
+      "title": "Character Creator",
+      "campaign": "character",
+      "status": "active",
+      "updated": "2026-07-14",
+      "deps": [],
+      "features": [
+        {
+          "title": "G1 Finish wizard/validation edge cases",
+          "status": "parked"
+        },
+        {
+          "title": "G3 Source docs historical drift (pathing assumptions)",
+          "status": "active"
+        },
+        {
+          "title": "G6 Character/race creation split candidates",
+          "status": "active"
+        },
+        {
+          "title": "G22 Remaining feat-choice contract proof",
+          "status": "active"
+        },
+        {
+          "title": "G23 Race portrait QA and regeneration",
+          "status": "active"
+        }
+      ],
+      "tier": "component"
+    },
+    {
+      "id": "character-sheet",
+      "title": "Character Sheet",
+      "campaign": "character",
+      "status": "active",
+      "tier": "component",
+      "updated": "2026-07-14",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-character-sheet.md",
+      "deps": [],
+      "features": [
+        {
+          "title": "G7 Food freshness and expiration timestamps",
+          "status": "done",
+          "history": {
+            "built": "2026-06-19",
+            "builtApprox": true
+          }
+        },
+        {
+          "title": "G5 Character/race derivation contract",
+          "status": "active"
+        },
+        {
+          "title": "G10 Container assignments need persistent global state",
+          "status": "active"
+        },
+        {
+          "title": "G12 Level-up UI flows (ASI, feat, spell choices)",
+          "status": "active"
+        },
+        {
+          "title": "G13 Class abilities and spells persist on level-up",
+          "status": "active"
+        },
+        {
+          "title": "G14 Inventory container browsing and comparison",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "id": "action-pane",
+      "title": "Action Pane",
+      "campaign": "ui",
+      "status": "parked",
+      "tier": "component",
+      "updated": "2026-07-14",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-action-pane.md",
+      "deps": [],
+      "features": [
+        {
+          "title": "G1 Route Long Rest modal confirmation through the complete gameplay action pipeline",
+          "status": "done",
+          "history": {
+            "built": "2026-07-11"
+          }
+        }
+      ]
+    },
+    {
+      "id": "code-modularization-audit",
+      "title": "Code Modularization Audit",
+      "campaign": "agents",
+      "status": "active",
+      "updated": "2026-07-14",
+      "deps": [],
+      "features": [
+        {
+          "title": "CMA-T4: Route G1-G7 candidates to owner projects",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08"
+          }
+        },
+        {
+          "title": "CMA-T5: Score G8-G13 second-tranche candidates",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08"
+          }
+        },
+        {
+          "title": "CMA-T6: Route G8-G13 to owners",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08"
+          }
+        },
+        {
+          "title": "CMA-T7: Route G14-G19 next-tranche candidates",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08"
+          }
+        }
+      ]
+    },
+    {
+      "id": "command-effects-runtime",
+      "title": "Command Effects Runtime",
+      "campaign": "combat",
+      "status": "active",
+      "tier": "component",
+      "status_note": "G1 delegated reactive payload execution implemented; G3/G5 parked follow-ups",
+      "updated": "2026-06-19",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-command-effects-runtime.md",
+      "deps": [],
+      "features": [
+        {
+          "title": "G3 Non-damage/complex riders partially routed through RegisterRiderCommand",
+          "status": "active",
+          "decision": false
+        },
+        {
+          "title": "G5 Status and condition turn cleanup lifecycle implemented outside command layer",
+          "status": "active",
+          "decision": false
+        }
+      ]
+    },
+    {
+      "id": "command-base-runtime",
+      "title": "Command Base Runtime",
+      "campaign": "combat",
+      "status": "parked",
+      "tier": "component",
+      "status_note": "0 open gaps; contract tests stable; maintenance-mode",
+      "updated": "2026-07-14",
+      "deps": [],
+      "features": [
+        {
+          "title": "T3: Rollback policy decided",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08"
+          }
+        },
+        {
+          "title": "T4: CommandExecutor.execute failure path coverage added",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08"
+          }
+        },
+        {
+          "title": "G3: Command failure-path coverage (async errors, immutability)",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08"
+          }
+        },
+        {
+          "title": "G4: State-freshness contract (snapshot vs live state)",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08"
+          }
+        }
+      ]
     }
   ]
 }

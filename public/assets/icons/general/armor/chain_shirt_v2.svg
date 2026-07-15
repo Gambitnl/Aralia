@@ -1,0 +1,30 @@
+<svg width="128" height="128" viewBox="0 0 128 128" color="#94A3B8" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <!-- D&D Chain Shirt: Waist-length mail shirt with short sleeves, leather neck guard, and crossing chest straps -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Shirt Outline -->
+    <path d="M36,24 L48,16 L80,16 L92,24 L108,44 L96,52 L92,80 L90,105 L64,110 L38,105 L36,80 L32,52 L20,44 Z" stroke-width="3" fill="currentColor" fill-opacity="0.1"/>
+    
+    <!-- Leather trim around neck -->
+    <path d="M48,16 C52,25 76,25 80,16" stroke-width="2" fill="currentColor" fill-opacity="0.3"/>
+    
+    <!-- Sleeve endings trim -->
+    <path d="M20,44 L28,38" stroke-width="2"/>
+    <path d="M108,44 L100,38" stroke-width="2"/>
+    
+    <!-- Crossed leather chest straps -->
+    <path d="M36,24 L90,105" stroke-width="2.5"/>
+    <path d="M92,24 L38,105" stroke-width="2.5"/>
+    <!-- Center strap buckle -->
+    <rect x="60" y="58" width="8" height="8" rx="1.5" fill="currentColor"/>
+
+    <!-- Hem edge binding -->
+    <path d="M38,105 C48,109 80,109 90,105" stroke-width="3" fill="currentColor" fill-opacity="0.2"/>
+
+    <!-- Mail ring pattern lines (rows of curved loops) -->
+    <path d="M34,44 C48,40 80,40 94,44" stroke-width="1.5" stroke-dasharray="2 3"/>
+    <path d="M34,56 C48,52 80,52 94,56" stroke-width="1.5" stroke-dasharray="2 3"/>
+    <path d="M35,68 C48,64 80,64 93,68" stroke-width="1.5" stroke-dasharray="2 3"/>
+    <path d="M36,80 C48,76 80,76 92,80" stroke-width="1.5" stroke-dasharray="2 3"/>
+    <path d="M37,92 C48,88 80,88 91,92" stroke-width="1.5" stroke-dasharray="2 3"/>
+  </g>
+</svg>

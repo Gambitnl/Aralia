@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 11/07/2026, 14:01:45
- * Dependents: components/World3D/World3DWrapper.tsx, components/World3D/createWorldGenClient.ts, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/LocalMapView.tsx, components/Worldforge/RegionMapView.tsx, components/Worldforge/TownAgentSnapshotView.tsx, components/Worldforge/localDraw.ts, components/Worldforge/regionDraw.ts, systems/spells/ai/MaterialTagService.ts, systems/worldforge/adapter/atlasArtifact.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundDeltas.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundWorldAdapter.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts, systems/worldforge/delta/applyDeltas.ts, systems/worldforge/delta/types.ts, systems/worldforge/generate.ts, systems/worldforge/index.ts, systems/worldforge/local/generateLocal.ts, systems/worldforge/local/stitchLocalArtifacts.ts, systems/worldforge/provenance/groundProvenance.ts, systems/worldforge/region/generateRegion.ts, systems/worldforge/roster/agentPath.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/roster/townSnapshot.ts, systems/worldforge/roster/types.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/keyNpcs.ts
+ * Last Sync: 15/07/2026, 01:59:09
+ * Dependents: components/World3D/World3DWrapper.tsx, components/World3D/createWorldGenClient.ts, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/LocalMapView.tsx, components/Worldforge/RegionMapView.tsx, components/Worldforge/TownAgentSnapshotView.tsx, components/Worldforge/localDraw.ts, components/Worldforge/regionDraw.ts, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/spells/ai/MaterialTagService.ts, systems/worldforge/adapter/atlasArtifact.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundDeltas.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundWorldAdapter.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts, systems/worldforge/delta/applyDeltas.ts, systems/worldforge/delta/types.ts, systems/worldforge/generate.ts, systems/worldforge/index.ts, systems/worldforge/local/generateLocal.ts, systems/worldforge/local/stitchLocalArtifacts.ts, systems/worldforge/provenance/groundProvenance.ts, systems/worldforge/region/generateRegion.ts, systems/worldforge/roster/agentPath.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/roster/townSnapshot.ts, systems/worldforge/roster/types.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townSimRegistration.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -202,6 +202,27 @@ export interface RegionRoad {
   kind: 'highway' | 'road' | 'trail' | 'path';
 }
 
+/**
+ * A route/river relationship authored at Region scale.
+ *
+ * Tactical and 3D consumers must not independently infer a plausible crossing
+ * from overlapping paint. This receipt records the exact source runs, crossing
+ * point, orientation, and chosen traversal form once in the generated world.
+ */
+export interface RegionCrossing {
+  id: string;
+  kind: 'bridge' | 'ford';
+  roadRouteId: number;
+  riverId: number;
+  point: [Feet, Feet];
+  /** Unit vectors in region x/y coordinates. */
+  roadDirection: [number, number];
+  riverDirection: [number, number];
+  /** Full route-aligned crossing footprint. */
+  spanFt: Feet;
+  widthFt: Feet;
+}
+
 export interface RegionTownSite {
   burgId: number;
   /** Envelope the town generator may build within (SPEC §6 pass 1). */
@@ -229,6 +250,8 @@ export interface RegionArtifact extends WorldforgeArtifact {
   heightfield: RegionHeightfield;
   rivers: RegionRiverBank[];
   roads: RegionRoad[];
+  /** Additive for older serialized regions; current generation always emits it. */
+  crossings?: RegionCrossing[];
   townSites: RegionTownSite[];
   /**
    * Markers/zones flow down from the atlas world when generateRegion gets
@@ -300,12 +323,19 @@ export interface TownPlotArchitecture {
   buildingKey: string;
   /** Ward finish tier, present even when civic plots have no population record. */
   wealth: import('./interior/blueprintTypes').BriefWealth;
+  /** Construction age from the town's radial growth rings. */
+  ageBand: import('./interior/blueprintTypes').BuildingAgeBand;
   /** Resolved district recipe token shared by every building in the district. */
   districtSignature: string;
   /** Resolved individual token proving neighboring buildings are not clones. */
   buildingVariant: string;
+  /** Roof silhouette factors; row ensembles repeat these at block scope. */
+  pitchScale: number;
+  eaveOffsetFt: number;
   /** Facade grammar shared with the blueprint and production 3D bridge. */
   facadePattern: import('./interior/blueprintTypes').FacadePattern;
+  /** Physical construction kit shared with inspectors and production 3D. */
+  construction: import('./interior/blueprintTypes').BuildingConstruction;
 }
 
 export interface TownPlan {
@@ -316,6 +346,20 @@ export interface TownPlan {
    * default packed dirt.
    */
   streets: Array<{ id: number; centerline: Array<[Feet, Feet]>; widthFt: Feet; colorHex?: string }>;
+  /**
+   * Shared residential-block courts. Optional for legacy and player-authored
+   * plans; canonical generated towns always provide the array.
+   */
+  courtyards?: Array<{
+    id: string;
+    blockKey: string;
+    center: [Feet, Feet];
+    radiusFt: Feet;
+    districtKey: string;
+    wealth: import('./interior/blueprintTypes').BriefWealth;
+    amenity: import('./town/courtyardSpaces').CourtyardAmenity;
+    courtyardSignature: string;
+  }>;
   /** Building plots with role + polygon footprint (the L3/L4 contract input). */
   plots: Array<{
     id: number;
@@ -329,6 +373,8 @@ export interface TownPlan {
     roofForm?: 'gable' | 'hip' | 'steep' | 'flat';
     /** Durable district/building identity plus resolved dialect evidence. */
     architecture?: TownPlotArchitecture;
+    /** Canonical row/courtyard/arcade membership from the town block composer. */
+    ensemble?: import('./interior/blueprintTypes').BuildingEnsemble;
     /** Population-pass fields (2026-07-07, BGv2 Task 11), carried so the 3D bake
      *  can rebuild the founding household brief for each building. Present only
      *  when the town was generated with a population; absent for unpopulated
