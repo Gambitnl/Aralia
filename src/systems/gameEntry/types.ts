@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 16/07/2026, 01:41:45
+ * Dependents: hooks/useDeEscalation.ts, hooks/useOpeningSituation.ts, state/appState.ts, state/initialState.ts, state/reducers/gameEntryReducer.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/worldScenario/openingThreatBattlefield.ts, systems/gameEntry/deEscalationToCombat.ts, systems/gameEntry/entryStateMachine.ts, systems/gameEntry/generateOpeningSituation.ts, systems/gameEntry/openingQuest.ts, systems/gameEntry/openingScenePrompt.ts, systems/gameEntry/situationNpcToRichNpc.ts, systems/social/watchReaction.ts, utils/core/factories.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -41,6 +57,29 @@ export interface SituationNPC {
     goal: string;
 }
 
+// ============================================================================
+// Canonical Opening Battlefield Source
+// ============================================================================
+// The language model writes the social predicament and enemy roster, but it is
+// never allowed to choose where the battle happens. This receipt is stamped by
+// game state before generation and follows a hostile threat into combat so the
+// mounted GroundWorld can prove it is projecting the same starting location.
+// ============================================================================
+
+export interface OpeningBattlefieldSource {
+    kind: 'worldforge-opening-location';
+    /** Stable lineage for logs, tactical provenance, and the World Battle Lab. */
+    receiptId: string;
+    /** World seed that authored the opening's atlas cell and live GroundWorld. */
+    worldSeed: number;
+    /** Canonical atlas cell occupied when the opening situation was generated. */
+    cellId: number;
+    /** Optional burg/site center used to frame the initial Locale window. */
+    centerPx?: readonly [number, number];
+    /** Player-facing location name retained without asking combat to recreate it. */
+    locationLabel: string;
+}
+
 /**
  * A hostile opening scene's combat data. Present only when the model flags the
  * scene combat-capable; absent scenes behave exactly as a peaceful opening.
@@ -54,6 +93,8 @@ export interface SituationThreat {
     deEscalationDC: number;
     /** Short cue describing what the tension is, used to judge de-escalation. */
     tension: string;
+    /** Game-authored location receipt; never accepted from model output. */
+    battlefieldSource?: OpeningBattlefieldSource;
 }
 
 /**
@@ -153,4 +194,6 @@ export interface OpeningSituationLocation {
     biome?: string;
     timeOfDay?: string;
     weather?: string;
+    /** Canonical combat source stamped from GameState, not exposed to the model. */
+    battlefieldSource?: OpeningBattlefieldSource;
 }

@@ -86,7 +86,8 @@ const wingsMembrane: PartDef = {
   anchor: 'back',
   kind: 'mesh',
   buildMesh(ctx: PartMeshCtx) {
-    const s = span(ctx.frame);
+    // planned creatures pass scale (frame height understates a long dragon)
+    const s = span(ctx.frame) * (Number(ctx.params.scale) || 1);
     const group = new Group();
     for (const [name, sgn] of [
       ['wingL', -1],

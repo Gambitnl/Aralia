@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/07/2026, 23:20:14
+ * Last Sync: 15/07/2026, 10:07:57
  * Dependents: App.tsx
- * Imports: 44 files
+ * Imports: 49 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -72,6 +72,14 @@ import { scheduleClockFromGameTime } from '../../systems/worldforge/roster/gameC
 import { GamePhase } from '../../types/core';
 import type { PlayerWorldPosition } from '../../types';
 import type { BattleMapBiome, BattleMapData } from '../../types/combat';
+import {
+  prepareActiveGroundSettlementEncounter,
+  registerActiveGroundCombatProvider,
+  registerActiveGroundOpeningCombatProvider,
+  type ActiveGroundOpeningEncounterRequest,
+  type ActiveGroundSettlementEncounterRequest,
+} from '../../systems/combat/fightInPlace/activeGroundCombatSession';
+import { findStatePatrolWorldEvent } from '../../systems/combat/worldScenario/statePatrolWorldEvent';
 
 /**
  * HOSTILE-1 return-from-combat contract:
@@ -294,12 +302,13 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
         // shop/NPC registration helpers, the combat-patch extractor). The heavy
         // world assembly runs in the world-gen worker (createWorldGenClient), so
         // this dynamic import keeps the FMG stack off PLAYING's initial chunk.
-        const [bridge, loaderMod, adapter, clientMod, groundLoaderMod] = await Promise.all([
+        const [bridge, loaderMod, adapter, clientMod, groundLoaderMod, agentMotionMod] = await Promise.all([
           import('../../systems/worldforge/bridge/legacySubmapBridge'),
           import('../../systems/worldforge/bridge/groundChunkLoader'),
           import('../../systems/worldforge/bridge/groundWorldAdapter'),
           import('./createWorldGenClient'),
           import('./createGroundWorkerChunkLoader'),
+          import('../../systems/worldforge/bridge/groundAgentMotion'),
         ]);
         if (cancelled) return;
 
@@ -426,6 +435,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
               // the live world and the extraction helper.
               groundRef.current = ground;
               extractPatchRef.current = loaderMod.extractLocalTerrainPatch;
+              groundOccupantsAtRef.current = agentMotionMod.allGroundAgentsAt;
               combatTriggered.current = false;
               // Dev hook: resolved entry anchor + rendered town burg ids for probes.
               (window as unknown as { __wfEntry?: unknown }).__wfEntry = {
@@ -444,6 +454,11 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
                 saved && saved.tileX === coords.x && saved.tileY === coords.y
                   ? { x: saved.xM, z: saved.zM }
                   : burgSpawn;
+              // Seed the combat anchor immediately. A player can click a staged
+              // watch NPC before the camera emits its first movement callback;
+              // without this assignment that fast interaction cut a patch at
+              // ground coordinate 0,0 instead of the visible spawn location.
+              lastGroundXZ.current = spawn;
               const cell = adapter.GROUND_METERS_PER_CELL;
               const sgx = Math.max(0, Math.min(ground.cols - 1, Math.round(spawn.x / cell)));
               const sgy = Math.max(0, Math.min(ground.rows - 1, Math.round(spawn.z / cell)));
@@ -474,6 +489,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
                 setLoader(undefined);
                 groundRef.current = null;
                 extractPatchRef.current = null;
+                groundOccupantsAtRef.current = null;
                 // HOSTILE-1: entering combat keeps the saved playerGroundPos as the
                 // return point, so skip the continent position override.
                 if (!combatTriggered.current) {
@@ -582,7 +598,12 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
   // References to keep track of ground world details for combat transition
   const groundRef = useRef<GroundWorld | null>(null);
   const extractPatchRef = useRef<typeof import('../../systems/worldforge/bridge/groundChunkLoader').extractLocalTerrainPatch | null>(null);
+  const groundOccupantsAtRef = useRef<typeof import('../../systems/worldforge/bridge/groundAgentMotion').allGroundAgentsAt | null>(null);
   const combatTriggered = useRef(false);
+  // State patrol scans run on a high-frequency movement callback. Remember each
+  // deterministic event attempted during this mounted ground session so a
+  // source gap or withheld provider result cannot spam the same request.
+  const statePatrolAttemptedRef = useRef<Set<string>>(new Set());
   // SP4: ids of hidden places the player has already revealed this session.
   const discoveredHiddenRef = useRef<Set<string>>(new Set());
   // Pillar 2: ids of dungeon entrances already discovered this session. Consume-
@@ -613,6 +634,233 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
   useEffect(() => {
     playerGroundPosRef.current = state.playerGroundPos;
   }, [state.playerGroundPos]);
+
+  // ========================================================================
+  // Live GroundWorld Combat Provider
+  // ========================================================================
+  // NPC and world-event actions run outside this component, but only this
+  // component owns the generated GroundWorld, exact player meters, and worker
+  // loader. Publish a provider while ground mode is live so those actions can
+  // request a source-backed fight instead of creating a placeless guard arena.
+  // ========================================================================
+
+  useEffect(() => {
+    if (!wfGroundView || !loader) return undefined;
+
+    /**
+     * Extract the tactical crop once from the player's exact live meters. Both
+     * settlement confrontations and opening threats use this same authority so
+     * their terrain, occupants, props, structures, and provenance cannot drift.
+     */
+    const extractCurrentBattlefield = () => {
+      const ground = groundRef.current;
+      const extractPatch = extractPatchRef.current;
+      if (!ground || !extractPatch) {
+        return {
+          status: 'unavailable' as const,
+          detail: 'The GroundWorld is mounted but its tactical extractor is not ready.',
+        };
+      }
+
+      const { x, z } = lastGroundXZ.current;
+      const bx = Math.max(0, Math.min(ground.cols - 1, Math.round(x / 1.524)));
+      const by = Math.max(0, Math.min(ground.rows - 1, Math.round(z / 1.524)));
+      const groundBiome = (ground.biomeIds[by * ground.cols + bx] ?? '').toLowerCase();
+      const theme: BattleMapBiome = groundBiome.includes('desert')
+        ? 'desert'
+        : groundBiome.includes('swamp') || groundBiome.includes('wetland')
+          ? 'swamp'
+          : 'forest';
+      const worldSeed = state.worldSeed ?? 42;
+      const occupantClock = state.gameTime instanceof Date
+        ? scheduleClockFromGameTime(state.gameTime)
+        : 12;
+      const liveOccupants = groundOccupantsAtRef.current?.(ground, occupantClock);
+      const mapData = attachWorldforgeBattleMapProvenance(
+        extractPatch(ground, x, z, theme, worldSeed, liveOccupants
+          ? { occupants: liveOccupants }
+          : undefined),
+        worldSeed,
+        state.playerCell?.cellId,
+        x,
+        z,
+      );
+
+      return {
+        status: 'ready' as const,
+        ground,
+        x,
+        z,
+        worldSeed,
+        mapData,
+      };
+    };
+
+    /**
+     * Freeze the exact 3D position and live scene handoff before changing phase.
+     * This is shared by every provider so returning from combat always restores
+     * the same source location that authored the tactical crop.
+     */
+    const freezeCurrentGroundForCombat = async (
+      ground: GroundWorld,
+      x: number,
+      z: number,
+      worldSeed: number,
+    ) => {
+      combatTriggered.current = true;
+      dispatch({
+        type: 'SET_PLAYER_GROUND_POS',
+        payload: {
+          position: {
+            tileX: wfGroundView.tile.x,
+            tileY: wfGroundView.tile.y,
+            xM: x,
+            zM: z,
+          },
+        },
+      });
+      const { setFightInPlaceHandoff } = await import(
+        '../../systems/combat/fightInPlace/fightInPlaceHandoff'
+      );
+      setFightInPlaceHandoff({
+        ground,
+        loader,
+        sceneOrigin: { x: wfGroundView.start[0], z: wfGroundView.start[2] },
+        anchor: { playerXM: x, playerZM: z },
+        surfaceY: groundSurfaceYM(ground, x, z),
+        worldSeed,
+      });
+    };
+
+    const prepareSettlementEncounter = async (
+      request: ActiveGroundSettlementEncounterRequest,
+    ) => {
+      const current = extractCurrentBattlefield();
+      if (current.status !== 'ready') return current;
+      const { ground, x, z, worldSeed, mapData: extractedMap } = current;
+
+      // State confrontations select the matching generated-state standing.
+      // Watch confrontations still carry all current crime records, while the
+      // resolver deliberately ignores unrelated standings for that rule.
+      const playerStanding = request.trigger.kind === 'state-confrontation'
+        ? request.playerFactionStandings[request.trigger.factionId]
+        : undefined;
+      const { projectLiveSettlementEncounter } = await import(
+        '../../systems/combat/worldScenario/liveSettlementEncounter'
+      );
+      const projection = projectLiveSettlementEncounter(ground, extractedMap, { x, z }, {
+        trigger: request.trigger,
+        knownCrimes: request.knownCrimes,
+        playerStanding,
+      });
+      if (projection.status !== 'ready') {
+        return {
+          status: projection.status,
+          detail: projection.detail,
+        };
+      }
+      if (!projection.defendingForce) {
+        return {
+          status: 'source-gap' as const,
+          detail: 'The live settlement projection was ready but supplied no defending-force receipt.',
+        };
+      }
+
+      const { createWorldDefenderCombatants } = await import(
+        '../../systems/combat/worldScenario/worldEncounterCombatants'
+      );
+      const combatants = await createWorldDefenderCombatants(projection.defendingForce);
+      if (combatants.length === 0) {
+        return {
+          status: 'source-gap' as const,
+          detail: 'Hostility was authorized, but the source regiment produced no tactical actors.',
+        };
+      }
+
+      // Freeze only after source evidence and defending actors are complete.
+      await freezeCurrentGroundForCombat(ground, x, z, worldSeed);
+
+      return {
+        status: 'ready' as const,
+        detail: projection.detail,
+        payload: {
+          monsters: [],
+          combatants,
+          extractedBattleMap: projection.mapData,
+        },
+      };
+    };
+
+    /**
+     * Validate a hostile opening against this mounted world, then add only the
+     * transparent tactical standoff frame. The threat roster stays owned by the
+     * de-escalation flow; this provider owns location truth and nothing else.
+     */
+    const prepareOpeningEncounter = async (
+      request: ActiveGroundOpeningEncounterRequest,
+    ) => {
+      const current = extractCurrentBattlefield();
+      if (current.status !== 'ready') return current;
+
+      const activeCellId = state.playerCell?.cellId;
+      if (
+        request.source.worldSeed !== current.worldSeed
+        || request.source.cellId !== activeCellId
+      ) {
+        return {
+          status: 'source-gap' as const,
+          detail: `Opening receipt ${request.source.receiptId} does not match the mounted world ${current.worldSeed}, cell ${activeCellId ?? 'unknown'}.`,
+        };
+      }
+
+      // When both sides retain a burg/site center, compare it as an additional
+      // identity check. Older saves may omit the center while still proving the
+      // seed/cell pair, so absence does not manufacture a mismatch.
+      const receiptCenter = request.source.centerPx;
+      const mountedCenter = state.entry3DAnchor?.cellId === activeCellId
+        ? state.entry3DAnchor.centerPx
+        : undefined;
+      if (
+        receiptCenter
+        && mountedCenter
+        && (receiptCenter[0] !== mountedCenter[0] || receiptCenter[1] !== mountedCenter[1])
+      ) {
+        return {
+          status: 'source-gap' as const,
+          detail: `Opening receipt ${request.source.receiptId} does not match the mounted WorldForge site center.`,
+        };
+      }
+
+      const { projectOpeningThreatBattlefield } = await import(
+        '../../systems/combat/worldScenario/openingThreatBattlefield'
+      );
+      const projection = projectOpeningThreatBattlefield(current.mapData, request.source);
+      if (projection.status !== 'ready') return projection;
+
+      await freezeCurrentGroundForCombat(
+        current.ground,
+        current.x,
+        current.z,
+        current.worldSeed,
+      );
+      return projection;
+    };
+
+    const unregisterSettlement = registerActiveGroundCombatProvider(prepareSettlementEncounter);
+    const unregisterOpening = registerActiveGroundOpeningCombatProvider(prepareOpeningEncounter);
+    return () => {
+      unregisterOpening();
+      unregisterSettlement();
+    };
+  }, [
+    dispatch,
+    loader,
+    state.entry3DAnchor,
+    state.gameTime,
+    state.playerCell?.cellId,
+    state.worldSeed,
+    wfGroundView,
+  ]);
 
   const handleGroundPositionChange = useCallback(
     (x: number, z: number) => {
@@ -757,6 +1005,93 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
       const ground = groundRef.current;
       const extractPatch = extractPatchRef.current;
 
+      // A generated state's patrol can recognize the party only when the exact
+      // GroundWorld town, stationed regiment, player position, game day, and
+      // hostile standing agree. The pure referee also checks save-backed event
+      // receipts, so combat return cannot immediately replay this interception.
+      if (ground && state.gameTime instanceof Date) {
+        const statePatrolEvent = findStatePatrolWorldEvent(ground, {
+          worldSeed: state.worldSeed ?? 42,
+          gameDay: getGameDay(state.gameTime),
+          gameTimeMs: state.gameTime.getTime(),
+          playerGroundMeters: { x, z },
+          // Older saves and focused scene fixtures predate these world-event
+          // collections. Empty inputs preserve the referee's fail-closed
+          // behavior without preventing the 3D world from rendering.
+          playerFactionStandings: state.playerFactionStandings ?? {},
+          receipts: state.worldforgeEncounterReceipts ?? [],
+        });
+
+        if (statePatrolEvent && !statePatrolAttemptedRef.current.has(statePatrolEvent.id)) {
+          statePatrolAttemptedRef.current.add(statePatrolEvent.id);
+          // Reserve the combat handoff while source regiment actors load. This
+          // prevents a nearby creature encounter from racing the patrol request.
+          combatTriggered.current = true;
+
+          void (async () => {
+            try {
+              const prepared = await prepareActiveGroundSettlementEncounter({
+                trigger: statePatrolEvent.trigger,
+                knownCrimes: state.notoriety?.knownCrimes ?? [],
+                playerFactionStandings: state.playerFactionStandings ?? {},
+              });
+
+              if (prepared.status === 'unavailable') {
+                // Provider registration can lag the first camera position tick.
+                // Release both latches so a later movement frame can try again.
+                statePatrolAttemptedRef.current.delete(statePatrolEvent.id);
+                combatTriggered.current = false;
+                return;
+              }
+
+              if (prepared.status !== 'ready') {
+                combatTriggered.current = false;
+                if (prepared.status === 'source-gap') {
+                  dispatch({
+                    type: 'ADD_NOTIFICATION',
+                    payload: {
+                      type: 'warning',
+                      message: `State patrol source gap: ${prepared.detail}`,
+                    },
+                  });
+                }
+                return;
+              }
+
+              // Persist the event before changing phases. The receipt survives
+              // World3DWrapper unmounting and suppresses this same daily patrol
+              // when exploration remounts after battle.
+              dispatch({
+                type: 'RECORD_WORLDFORGE_ENCOUNTER',
+                payload: { receipt: statePatrolEvent.receipt },
+              });
+              dispatch({
+                type: 'ADD_MESSAGE',
+                payload: {
+                  id: statePatrolEvent.receipt.triggeredAtGameTimeMs,
+                  text: `${statePatrolEvent.defense.stateName}'s patrol recognizes the party near ${statePatrolEvent.defense.burgName} and moves to intercept.`,
+                  sender: 'system',
+                  timestamp: new Date(statePatrolEvent.receipt.triggeredAtGameTimeMs),
+                },
+              });
+
+              const { handleStartBattleMapEncounter } = await import('../../hooks/actions/handleEncounter');
+              await handleStartBattleMapEncounter(dispatch, prepared.payload);
+            } catch (error) {
+              combatTriggered.current = false;
+              dispatch({
+                type: 'ADD_NOTIFICATION',
+                payload: {
+                  type: 'error',
+                  message: `State patrol encounter failed: ${error instanceof Error ? error.message : String(error)}`,
+                },
+              });
+            }
+          })();
+          return;
+        }
+      }
+
       if (ground && extractPatch) {
         for (const h of ground.hostiles) {
           const dist = Math.hypot(x - h.xM, z - h.zM);
@@ -811,8 +1146,17 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
 
                 // Extract the 40x30 terrain patch centered around the player's collision coordinate
                 const worldSeed = state.worldSeed ?? 42;
+                // Combat freezes the same resident facts the 3D scene is showing at
+                // this game-time instant. The 2D board therefore cannot silently
+                // fall back to roster home sites while visible residents are moving.
+                const occupantClock = state.gameTime instanceof Date
+                  ? scheduleClockFromGameTime(state.gameTime)
+                  : 12;
+                const liveOccupants = groundOccupantsAtRef.current?.(ground, occupantClock);
                 const extractedMap = attachWorldforgeBattleMapProvenance(
-                  extractPatch(ground, x, z, combatTheme, worldSeed),
+                  extractPatch(ground, x, z, combatTheme, worldSeed, liveOccupants
+                    ? { occupants: liveOccupants }
+                    : undefined),
                   worldSeed,
                   state.playerCell?.cellId,
                   x,
@@ -835,7 +1179,16 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
         }
       }
     },
-    [dispatch, wfGroundView?.tile, state.worldSeed, state.playerCell?.cellId],
+    [
+      dispatch,
+      wfGroundView?.tile,
+      state.worldSeed,
+      state.playerCell?.cellId,
+      state.gameTime,
+      state.playerFactionStandings,
+      state.notoriety?.knownCrimes,
+      state.worldforgeEncounterReceipts,
+    ],
   );
 
   // ==========================================================================
@@ -877,9 +1230,17 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
           : 'forest';
 
     const worldSeed = state.worldSeed ?? 42;
+    // Freeze the live schedule at combat start; residents remain stable during
+    // the encounter even if the world clock advances behind the combat phase.
+    const occupantClock = state.gameTime instanceof Date
+      ? scheduleClockFromGameTime(state.gameTime)
+      : 12;
+    const liveOccupants = groundOccupantsAtRef.current?.(ground, occupantClock);
     const extractedMap = decision.deriveFromWorld
       ? attachWorldforgeBattleMapProvenance(
-        extractPatch(ground, x, z, theme, worldSeed),
+        extractPatch(ground, x, z, theme, worldSeed, liveOccupants
+          ? { occupants: liveOccupants }
+          : undefined),
         worldSeed,
         state.playerCell?.cellId,
         x,
@@ -924,7 +1285,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
       // eslint-disable-next-line no-console
       console.error('[fip dev] failed to start fight:', err);
     }
-  }, [dispatch, wfGroundView, state.worldSeed, state.playerCell?.cellId, loader]);
+  }, [dispatch, wfGroundView, state.worldSeed, state.playerCell?.cellId, state.gameTime, loader]);
 
   useEffect(() => {
     (window as unknown as { __fipTestFight?: () => void }).__fipTestFight = () => { void startFightInPlace(); };

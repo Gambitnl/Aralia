@@ -13,6 +13,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { createAgoraServer } from './server.mjs';
+import { createStore } from './store.mjs';
 
 let app;
 let port;
@@ -89,6 +90,35 @@ test('register returns a token; authed heartbeat works; unauthed mutation -> 401
   // bad token -> 401
   const badTok = await request('POST', '/locks', { token: 'nope', body: { paths: ['x'] } });
   assert.equal(badTok.status, 401);
+});
+
+test('heartbeat endpoint returns 410 and invalidates an expired heartbeat-only lease', async () => {
+  const leaseDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-heartbeat-lease-'));
+  let currentMs = 10_000;
+  const now = () => currentMs;
+  const leaseApp = createAgoraServer({
+    dir: leaseDir,
+    storeFactory: ({ dir }) => createStore({ dir, now, heartbeatOnlyLeaseMs: 1000 }),
+  });
+  try {
+    await new Promise((resolve) => leaseApp.listen(0, resolve));
+    const leasePort = leaseApp.server.address().port;
+    const registered = await requestOn(leasePort, 'POST', '/agents/register', {
+      body: { handle: 'worker.expired-heartbeat' },
+    });
+    assert.equal(registered.status, 201);
+    currentMs += 1000;
+    const heartbeat = await requestOn(leasePort, 'POST', '/agents/heartbeat', {
+      token: registered.json.token,
+    });
+    assert.equal(heartbeat.status, 410);
+    assert.equal(heartbeat.json.code, 'heartbeat_lease_expired');
+    const roster = await requestOn(leasePort, 'GET', '/agents');
+    assert.equal(roster.json.agents.some((agent) => agent.id === registered.json.agentId), false);
+  } finally {
+    await leaseApp.close();
+    fs.rmSync(leaseDir, { recursive: true, force: true });
+  }
 });
 
 test('locks: acquire (201), overlap conflict (409), release by holder (200) / non-holder (403)', async () => {
@@ -293,7 +323,7 @@ test('GET /health returns ok:true and sensible counts', async () => {
   const h = await request('GET', '/health');
   assert.equal(h.status, 200);
   assert.equal(h.json.ok, true);
-  assert.equal(h.json.version, '0.2.0');
+  assert.equal(h.json.version, '0.3.0');
   assert.ok(typeof h.json.counts.agents === 'number');
   assert.ok(h.json.counts.agents >= 1);
   assert.ok(typeof h.json.lastSeq === 'number');

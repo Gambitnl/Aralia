@@ -35,9 +35,11 @@ node tools/agora/orchestrate.mjs agents         # WHO you may dispatch — NOT e
 node tools/agora/gapIndex.mjs --open-only --summary   # tracked work intake (all GAPS.md as data)
 ```
 
-Read `tools/agora/ORCHESTRATOR.md` §1–§3 BEFORE starting the campaign loop below. Keep a
-background heartbeat running for yourself (`node tools/agora/client.mjs heartbeat --every 600 &`)
-— agents silent >60min are reaped (locks freed, tasks reopened, token dead).
+Read `tools/agora/ORCHESTRATOR.md` §1–§3 BEFORE starting the campaign loop below. Use a bounded
+heartbeat while active (`node tools/agora/client.mjs heartbeat --every 600 --owner-pid <pid> &`
+when your harness PID is available). It stops after 30 minutes by default; renew it only while
+working. Heartbeat-only presence is capped server-side at 2 hours, and silent agents are reaped
+after 60 minutes (locks and reservations freed, tasks reopened, token dead).
 Every `orchestrate <cmd>` below means `node tools/agora/orchestrate.mjs <cmd>`.
 
 ## Grill the human BEFORE dispatching anything

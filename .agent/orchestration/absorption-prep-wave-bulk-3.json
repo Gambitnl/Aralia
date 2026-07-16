@@ -1,0 +1,138 @@
+{
+  "preparedBy": "wave-bulk-3",
+  "preparedAt": "2026-07-16",
+  "note": "Prepared absorption payloads (PREP-ONLY mode; topics.json reservation held by agent-b075c2). Apply with absorption-prep-wave-bulk-3-apply.mjs while holding the Agora lock on public/planmap/topics.json, then run tools/agora/validate-planmap.mjs (must exit 0), then delete the six docs/projects folders listed in deleteFolders.",
+  "deleteFolders": [
+    "docs/projects/glossary-ui",
+    "docs/projects/time",
+    "docs/projects/dice",
+    "docs/projects/quest-log",
+    "docs/projects/tiered-autosave",
+    "docs/projects/dialogue"
+  ],
+  "taskIds": {
+    "glossary-ui": "916561bd-28bc-45a8-a35a-911ffb96d331",
+    "time": "bf855764-dca9-43f2-a23c-915e095a7f1e",
+    "dice": "638500ad-e2c7-4202-94f5-debc8d1711c6",
+    "quest-log": "3a8bf291-2f24-48ee-96d8-eddf734d2f59",
+    "tiered-autosave": "4b9fb440-5dac-4c13-a1a1-fec1b4df80b9",
+    "dialogue": "20ddb068-2678-4a24-b1fd-3d8744089ea4"
+  },
+  "inboundRefRepairsAlreadyDone": [
+    "docs/tasks/investigations/NORTH_STAR.md",
+    "docs/tasks/investigations/TRACKER.md",
+    "docs/tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md",
+    "src/services/saveLoad.README.md",
+    "docs/tasks/glossary/NORTH_STAR.md",
+    "docs/tasks/glossary/TRACKER.md",
+    "docs/tasks/ui-features/NORTH_STAR.md",
+    "docs/tasks/ui-features/TRACKER.md"
+  ],
+  "linkRepairsInsideTopicsJson": [
+    {
+      "topic": "whole-game-systems-audit",
+      "from": "docs/projects/tiered-autosave/GAPS.md",
+      "to": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md",
+      "occurrences": 3
+    }
+  ],
+  "merges": [
+    {
+      "slug": "glossary-ui",
+      "targetTopic": "glossary-structured-content",
+      "statusNoteAppend": "absorbed docs/projects/glossary-ui 2026-07-16 (D18: item metadata stays glossary-local display-only)",
+      "addFeatures": [
+        { "title": "G2 equipment taxonomy label sync with item-categorization owners", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md" },
+        { "title": "G4 spellGateBucketDetails.ts owner-routed split plan (CMA-G2)", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md" },
+        { "title": "G5 glossary rendering/registry large-file split proof boundaries (CMA-G11)", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md" },
+        { "title": "G7 typed builder/guard for itemMetadata ingest (deferred by D18)", "status": "parked", "link": "docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md" },
+        { "title": "G8 spell-detail prose glossary term linking", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md" },
+        { "title": "Glossary UI ingestion guard for item metadata (D18 contract)", "status": "done", "link": "docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md", "history": { "built": "2026-06-19" } }
+      ]
+    },
+    {
+      "slug": "time",
+      "targetTopic": "generational-time",
+      "statusNoteAppend": "absorbed docs/projects/time 2026-07-16: implemented ADVANCE_TIME clock docs + open gaps live here",
+      "addFeatures": [
+        { "title": "G1 bounded in-world time contract (Date/Gregorian semantics)", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md" },
+        { "title": "G3 seasonal modifiers: hard global contract vs movement-only subsystem", "status": "active", "decision": true, "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md" },
+        { "title": "G4 rest/day-boundary transition regression coverage", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md" },
+        { "title": "G5 dialogue day-part label contract (UTC vs local vocabulary)", "status": "active", "decision": true, "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md" },
+        { "title": "G2 day-boundary regression test across world/ritual reducers", "status": "done", "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md", "history": { "built": "2026-07-09" } }
+      ]
+    }
+  ],
+  "newTopics": [
+    {
+      "id": "dice",
+      "title": "Dice",
+      "sub": "shipped modal + 3D visual rolling; seeded silent-path RNG landed; D-2 deterministic/history policy awaits Remy",
+      "campaign": "ui",
+      "tier": "component",
+      "status": "active",
+      "status_note": "review-required: D-2 deterministic replay + roll-history policy is an open human decision",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md",
+      "deps": [],
+      "features": [
+        { "title": "D-G2 dice roll history persistence + retention policy", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md" },
+        { "title": "D-G3 shared deterministic + audit contract for silent vs visual rolls", "status": "active", "decision": true, "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md" },
+        { "title": "D-G4 DiceBox init split: shared factory vs intentional split", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md" },
+        { "title": "D-G5 dice modal canvas style verification before CSS cleanup", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md" },
+        { "title": "Seeded silent-path RNG API + legacy roller alignment", "status": "done", "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md", "history": { "built": "2026-06-08" } }
+      ]
+    },
+    {
+      "id": "quest-log",
+      "title": "Quest Log",
+      "sub": "shipped quest modal + accept/update/complete flow; NPC quest handoff live 2026-06-19",
+      "campaign": "ui",
+      "tier": "component",
+      "status": "active",
+      "status_note": "engine-domain decisions belong to the quests domain; G2/G5 are routed follow-ups",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-quest-log.md",
+      "deps": [],
+      "features": [
+        { "title": "T7/G3 NPC quest handoff via questOffer payload (D14 Option A)", "status": "done", "link": "docs/superpowers/specs/2026-07-14-absorbed-quest-log.md", "history": { "built": "2026-06-19" } },
+        { "title": "G2 data-driven quest trigger hooks (routed to quests domain)", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-quest-log.md" },
+        { "title": "G5 legacy Quest vs staged QuestDefinition schema migration (routed to quests domain)", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-quest-log.md" }
+      ]
+    },
+    {
+      "id": "tiered-autosave",
+      "title": "Tiered Autosave",
+      "sub": "IndexedDB-first checkpoints (1/5/15/30 min tiers); all recorded gaps resolved 2026-07-11",
+      "campaign": "tooling",
+      "tier": "component",
+      "status": "active",
+      "status_note": "all recorded gaps resolved 2026-07-11 (audit W01); deferred scope: compression, cross-tab sync, export/import, save-version strategy",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md",
+      "deps": [],
+      "features": [
+        { "title": "GAP-002 checkpoint tier runtime scheduler (useAutoSave)", "status": "done", "link": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md", "history": { "built": "2026-07-11" } },
+        { "title": "GAP-003 LoadGameModal Waystones/Echoes/Chronicles separation", "status": "done", "link": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md", "history": { "built": "2026-07-11" } },
+        { "title": "GAP-005 IndexedDB primary + recovery path tests (42/42)", "status": "done", "link": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md", "history": { "built": "2026-07-11" } },
+        { "title": "GAP-006 saveLoad.README rewritten IndexedDB-first (doc-only)", "status": "done", "link": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md", "history": { "built": "2026-07-11" } }
+      ]
+    },
+    {
+      "id": "dialogue",
+      "title": "Dialogue",
+      "sub": "topic-based NPC dialogue (prereqs/costs/skill checks/unlocks); companion chat is a SEPARATE flow",
+      "campaign": "ui",
+      "tier": "component",
+      "status": "active",
+      "status_note": "highest-value open call: DIAL-002/DIAL-004 durable unlock persistence model",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md",
+      "deps": [],
+      "features": [
+        { "title": "DIAL-001 scripted dialogue graph schema direction", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md" },
+        { "title": "DIAL-002 cross-NPC unlock propagation (DiscoveryLog vs NPC KnownFact)", "status": "active", "decision": true, "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md" },
+        { "title": "DIAL-003 wire or remove sessionDispositionMod/availableTopicIds", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md" },
+        { "title": "DIAL-004 durable global unlock-fact model", "status": "active", "decision": true, "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md" },
+        { "title": "DIAL-005 dialogue vs companion-chat ownership boundary note", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md" },
+        { "title": "DIAL-006 companion banter ownership boundary before extraction (CMA-G12)", "status": "active", "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md" }
+      ]
+    }
+  ]
+}

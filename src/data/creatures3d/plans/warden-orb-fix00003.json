@@ -1,0 +1,36 @@
+{
+  "id": "fix00003",
+  "name": "Warden Orb",
+  "slug": "warden-orb-fix00003",
+  "description": "a floating warden orb with one huge eye",
+  "plan": {
+    "name": "Warden Orb",
+    "frame": {
+      "heightFt": 3.5,
+      "bulk": 0.95,
+      "stance": "floating"
+    },
+    "spine": {
+      "segments": 2,
+      "taper": 0.9,
+      "arch": 0
+    },
+    "appendages": [],
+    "heads": [
+      {
+        "sizeScale": 1.6,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 2
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#6b5b8f",
+      "accentHex": "#a08cc4",
+      "eyeHex": "#7fd4c1"
+    }
+  },
+  "status": "generated",
+  "createdAt": "2026-07-15T22:51:13.591Z"
+}

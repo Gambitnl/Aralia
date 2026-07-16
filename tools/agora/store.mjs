@@ -301,6 +301,7 @@ export function createStore({
   genId = () => crypto.randomUUID(),
   presenceTtlMs = 600000,
   presenceDropMs = 3600000,
+  heartbeatOnlyLeaseMs = 7200000,
   lockTtlMs = 1800000,
   snapshotEveryEvents = 200,
 } = {}) {
@@ -351,7 +352,10 @@ export function createStore({
     },
     'agent.touch'(p) {
       const a = state.agents.get(p.agentId);
-      if (a) a.lastSeen = p.lastSeen;
+      if (!a) return;
+      a.lastSeen = p.lastSeen;
+      if (Number.isFinite(p.lastMeaningfulAt)) a.lastMeaningfulAt = p.lastMeaningfulAt;
+      if (Number.isFinite(p.lastHeartbeatAt)) a.lastHeartbeatAt = p.lastHeartbeatAt;
     },
     'agent.drop'(p) {
       state.agents.delete(p.agentId);
@@ -562,6 +566,23 @@ export function createStore({
   // ---- bootstrap: snapshot then journal tail ----
   const snapSeq = loadSnapshot();
   replayJournal(snapSeq);
+  // Migration for snapshots/journals written before heartbeat-only leases
+  // existed. Treat the most recent legacy touch as meaningful once, granting a
+  // full lease after upgrade instead of immediately dropping active workers.
+  let migratedHeartbeatFields = false;
+  for (const agent of state.agents.values()) {
+    if (!Number.isFinite(agent.lastMeaningfulAt)) {
+      agent.lastMeaningfulAt = Number.isFinite(agent.lastSeen) ? agent.lastSeen : agent.registeredAt;
+      migratedHeartbeatFields = true;
+    }
+    if (!Number.isFinite(agent.lastHeartbeatAt)) {
+      agent.lastHeartbeatAt = null;
+      migratedHeartbeatFields = true;
+    }
+  }
+  // Persist the migration immediately. Otherwise a crash before the next normal
+  // snapshot could replay legacy state and grant a fresh lease on every restart.
+  if (migratedHeartbeatFields) snapshot();
   openJournal();
 
   // ===========================================================================
@@ -578,6 +599,8 @@ export function createStore({
       token: genId(),
       registeredAt: ts, // the "checked in" moment
       lastSeen: ts, // "last touched"; refreshed by every authed call + heartbeat
+      lastMeaningfulAt: ts, // refreshed by authenticated activity, never by heartbeat alone
+      lastHeartbeatAt: null,
       status: 'online',
       note: note || '',
       // Optional provenance: which model this agent is (usually stamped by the
@@ -603,8 +626,9 @@ export function createStore({
   }
 
   // Clean voluntary exit — the counterpart to reap (see `sweepExpired`). It releases
-  // the agent's locks. It reopens the agent's in-flight tasks with a `retired` marker,
-  // not the crash marker `reaped`, plus an optional final note. It then drops the agent.
+  // the agent's locks and reservations. It reopens the agent's in-flight tasks with a
+  // `retired` marker, not the crash marker `reaped`, plus an optional final note. It
+  // then drops the agent.
   function retireAgent(agentId, { note } = {}) {
     const agent = state.agents.get(agentId);
     if (!agent) return { ok: false, error: 'unknown agent' };
@@ -612,6 +636,11 @@ export function createStore({
     for (const lock of [...state.locks.values()]) {
       if (lock.agentId === agentId) {
         emit('lock.release', { lockId: lock.id, agentId, retired: true });
+      }
+    }
+    for (const reservation of [...state.reservations.values()]) {
+      if (reservation.agentId === agentId) {
+        emit('reservation.release', { reservationId: reservation.id, agentId, retired: true });
       }
     }
     for (const task of [...state.tasks.values()]) {
@@ -627,7 +656,59 @@ export function createStore({
 
   function touch(agentId) {
     if (!state.agents.has(agentId)) return;
-    emit('agent.touch', { agentId, lastSeen: now() });
+    const t = now();
+    emit('agent.touch', { agentId, lastSeen: t, lastMeaningfulAt: t, kind: 'activity' });
+  }
+
+  function expireHeartbeatLease(agent, t, lastMeaningfulAt, expiresAt) {
+    const agentId = agent.id;
+    for (const lock of [...state.locks.values()]) {
+      if (lock.agentId === agentId) {
+        emit('lock.release', { lockId: lock.id, agentId, heartbeatLeaseExpired: true });
+      }
+    }
+    for (const reservation of [...state.reservations.values()]) {
+      if (reservation.agentId === agentId) {
+        emit('reservation.release', { reservationId: reservation.id, agentId, heartbeatLeaseExpired: true });
+      }
+    }
+    for (const task of [...state.tasks.values()]) {
+      if (task.claimedBy === agentId && (task.state === 'claimed' || task.state === 'in_progress')) {
+        const entry = {
+          at: t,
+          by: agentId,
+          action: 'heartbeat_lease_expired',
+          state: 'open',
+          note: `Heartbeat-only lease expired after ${heartbeatOnlyLeaseMs}ms without authenticated activity.`,
+        };
+        emit('task.release', { taskId: task.id, ts: t, entry });
+      }
+    }
+    emit('agent.drop', { agentId, heartbeatLeaseExpired: true, lastMeaningfulAt, expiresAt });
+    return {
+      ok: false,
+      error: 'heartbeat-only lease expired; re-register after confirming the agent is still active',
+      code: 'heartbeat_lease_expired',
+      expiresAt,
+    };
+  }
+
+  // A heartbeat may bridge quiet work, but it cannot manufacture indefinite
+  // liveness. Once the agent has produced no meaningful authenticated activity
+  // for the configured lease, invalidate it and release its coordination claims.
+  function heartbeatAgent(agentId) {
+    const agent = state.agents.get(agentId);
+    if (!agent) return { ok: false, error: 'unknown agent' };
+    const t = now();
+    const lastMeaningfulAt = Number.isFinite(agent.lastMeaningfulAt)
+      ? agent.lastMeaningfulAt
+      : (Number.isFinite(agent.lastSeen) ? agent.lastSeen : agent.registeredAt);
+    const expiresAt = lastMeaningfulAt + heartbeatOnlyLeaseMs;
+    if (t >= expiresAt) {
+      return expireHeartbeatLease(agent, t, lastMeaningfulAt, expiresAt);
+    }
+    emit('agent.touch', { agentId, lastSeen: t, lastHeartbeatAt: t, kind: 'heartbeat' });
+    return { ok: true, expiresAt, remainingMs: expiresAt - t };
   }
 
   function computeStatus(agent, t) {
@@ -1278,6 +1359,16 @@ export function createStore({
     // a returning agent re-registers). Presence demotion (online -> stale)
     // stays lazy in listAgents().
     for (const agent of [...state.agents.values()]) {
+      const lastMeaningfulAt = Number.isFinite(agent.lastMeaningfulAt)
+        ? agent.lastMeaningfulAt
+        : (Number.isFinite(agent.lastSeen) ? agent.lastSeen : agent.registeredAt);
+      const heartbeatIsLatest = Number.isFinite(agent.lastHeartbeatAt)
+        && agent.lastHeartbeatAt >= lastMeaningfulAt;
+      const heartbeatExpiresAt = lastMeaningfulAt + heartbeatOnlyLeaseMs;
+      if (heartbeatIsLatest && t >= heartbeatExpiresAt) {
+        expireHeartbeatLease(agent, t, lastMeaningfulAt, heartbeatExpiresAt);
+        continue;
+      }
       // Grace for agents mid-work (WF-G4): an agent holding a claimed/
       // in-progress task gets DOUBLE the silence horizon before reaping —
       // quiet-but-alive workers deep in an edit are the false-positive case.
@@ -1371,6 +1462,7 @@ export function createStore({
     registerAgent,
     retireAgent,
     touch,
+    heartbeatAgent,
     listAgents,
     getAgentByToken,
     findLiveAgentByHandle,

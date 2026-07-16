@@ -260,4 +260,48 @@ describe('collectObjectTargetCandidates', () => {
     expect(result.creatures).toEqual([]);
     expect(result.objects.map(targetObject => targetObject.id)).toEqual(['loose-stone']);
   });
+
+  it('does not treat missing prop mobility or weight as proof that a restrictive spell can move it', () => {
+    const targeting: SpellTargeting = {
+      type: 'single',
+      range: 60,
+      validTargets: ['objects'],
+      lineOfSight: false,
+      filter: {
+        objectEligibility: {
+          wornOrCarried: 'excluded',
+          magicalStatus: 'nonmagical',
+          fixedToSurface: 'excluded',
+          maxWeightPounds: 5
+        }
+      }
+    };
+    const unknownProp = {
+      id: 'worldforge-crate',
+      name: 'Crate',
+      position: { x: 1, y: 0 },
+      size: 'Small',
+      isWornOrCarried: false,
+      isMagical: false
+    };
+
+    const rejection = TargetResolver.getObjectTargetRejectionReason(
+      targeting,
+      caster,
+      unknownProp,
+      emptyState
+    );
+
+    expect(rejection).toMatchObject({ code: 'object_attachment_unknown' });
+    expect(TargetResolver.getValidTargetCandidates(targeting, caster, emptyState, [unknownProp]).objects)
+      .toEqual([]);
+
+    const looseButUnweighedProp = { ...unknownProp, isFixedToSurface: false };
+    expect(TargetResolver.getObjectTargetRejectionReason(
+      targeting,
+      caster,
+      looseButUnweighedProp,
+      emptyState
+    )).toMatchObject({ code: 'object_weight_unknown' });
+  });
 });

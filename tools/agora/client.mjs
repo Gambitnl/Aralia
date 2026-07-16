@@ -36,6 +36,9 @@ const __filename = fileURLToPath(import.meta.url);
 const REPO_ROOT = path.resolve(path.dirname(__filename), '..', '..');
 const DEFAULT_BASE_URL = 'http://localhost:4319';
 const UNCATEGORIZED_TASK_CATEGORY = 'uncategorized';
+const DEFAULT_HEARTBEAT_EVERY_SEC = 600;
+const DEFAULT_HEARTBEAT_FOR_MIN = 30;
+const DEFAULT_OWNER_POLL_MS = 5000;
 
 // ---------------------------------------------------------------------------
 // argv parsing — supports `--flag value`, `--flag=value`, and bare positionals.
@@ -264,6 +267,7 @@ Env:
                          concurrent agents in one checkout don't share locks/identity
   AGORA_DIR              identity dir override (default .agent/agora)
   AGORA_URL              daemon base URL override
+  AGORA_OWNER_PID        optional owner process; heartbeat stops when it exits
 
 Commands:
   onboard <handle> [--note "..."] [--gaps [root]]
@@ -276,9 +280,10 @@ Commands:
                                           --model = which model you are (orchestrator stamps it),
                                           --session/--thread/--conversation = your own thread id
   register --random [base] [--note "..."] auto-claim a free unique handle (solo agents)
-  heartbeat [--every <sec>] [--count N | --for <min>]
-                                          keep presence fresh during long work (run in bg;
-                                          silent >60min = reaped)
+  heartbeat [--every <sec>] [--count N | --for <min> | --forever] [--owner-pid <pid>]
+                                          bounded presence bridge (default: 30 min);
+                                          --forever is explicit opt-in only
+  retire [--note "..."]                   clean exit: release claims and invalidate identity
   whoami                                  print stored identity for the current base URL
   agents                                  list agents (status, handle, note, last-seen)
 
@@ -1279,13 +1284,14 @@ const ONBOARD_RULES = `THE RULES (the whole contract):
   2. lock BEFORE editing any shared file; a 409 CONFLICT is a HARD STOP on that file.
      If you still need it later, use \`reserve <path> --reason "<why>"\` to join the FIFO
      waiting list. A reservation is not edit permission; wait until the real lock succeeds.
-  3. HEARTBEAT during long work (client.mjs heartbeat --every 600 in the background, or any
-     authed call at least every ~30 min). Silent >60 min = reaped: locks freed, your claimed
-     tasks reopened, token retired.
+  3. HEARTBEAT during long quiet work with the bounded default (or --owner-pid <pid> when the
+     harness exposes its owner). Bare heartbeat stops after 30 min; --forever is exceptional.
+     Meaningful authenticated activity (locks, tasks, messages, etc.) renews the server lease.
   4. Pull work with \`task next\`; finish with \`task done <id> --result "<files + proof>"\` —
      the result on the board is how the orchestrator learns what you did.
-  5. When done: \`unlock --mine\`, then \`say "WORKFLOW: <friction or none>"\` — and register
-     real workflow friction as a row in tools/agora/WORKFLOW_GAPS.md (schema in the file).
+  5. When done: \`unlock --mine\`, \`say "WORKFLOW: <friction or none>"\`, then
+     \`retire --note "<final state>"\`. Register real workflow friction as a row in
+     tools/agora/WORKFLOW_GAPS.md (schema in the file).
   6. No git commits/resets/branches/worktrees unless YOUR task says so.
 Full API: tools/agora/PROTOCOL.md · campaign loop: tools/agora/ORCHESTRATOR.md ·
 agent fleet registry: node tools/agora/orchestrate.mjs agents`;
@@ -1349,33 +1355,97 @@ async function cmdOnboard(out, parsed, env, baseUrl) {
 }
 
 // ---------------------------------------------------------------------------
-// heartbeat — keep presence fresh during long work so the reaper (60 min
-// silent) never fires on a live agent. Run in the background:
-//   node tools/agora/client.mjs heartbeat --every 600 &
+// heartbeat — bounded quiet-work presence bridge. Authenticated activity is the
+// primary liveness signal; this helper only covers gaps between such calls.
 // ---------------------------------------------------------------------------
-async function cmdHeartbeat(out, parsed, env, baseUrl) {
+function isProcessAlive(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function waitForHeartbeatDelay(delayMs, {
+  ownerPid,
+  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+  ownerAlive = isProcessAlive,
+  ownerPollMs = DEFAULT_OWNER_POLL_MS,
+} = {}) {
+  let remaining = Math.max(0, delayMs);
+  while (remaining > 0) {
+    const slice = ownerPid ? Math.min(ownerPollMs, remaining) : remaining;
+    await sleep(slice);
+    remaining -= slice;
+    if (ownerPid && !ownerAlive(ownerPid)) return false;
+  }
+  return true;
+}
+
+async function cmdHeartbeat(out, parsed, env, baseUrl, opts = {}) {
   const token = needToken(out, parsed, env, baseUrl);
   if (!token) return { code: 1 };
-  const everySec = Number(parsed.flags.every) > 0 ? Number(parsed.flags.every) : 600;
+  const everySec = Number(parsed.flags.every) > 0 ? Number(parsed.flags.every) : DEFAULT_HEARTBEAT_EVERY_SEC;
   const count = Number(parsed.flags.count) > 0 ? Number(parsed.flags.count) : null;
-  const forMin = Number(parsed.flags.for) > 0 ? Number(parsed.flags.for) : null;
-  const endAt = forMin ? Date.now() + forMin * 60000 : null;
+  const explicitForMin = Number(parsed.flags.for) > 0 ? Number(parsed.flags.for) : null;
+  const forever = parsed.flags.forever === true;
+  if ([Boolean(count), Boolean(explicitForMin), forever].filter(Boolean).length > 1) {
+    out.log('heartbeat accepts only one of --count, --for, or --forever');
+    return { code: 1, beats: 0 };
+  }
+
+  const ownerValue = parsed.flags['owner-pid'] ?? env.AGORA_OWNER_PID;
+  const ownerPid = ownerValue === undefined ? null : Number(ownerValue);
+  if (ownerValue !== undefined && (!Number.isInteger(ownerPid) || ownerPid <= 0)) {
+    out.log('--owner-pid (or AGORA_OWNER_PID) must be a positive integer');
+    return { code: 1, beats: 0 };
+  }
+
+  const defaultForMin = Number(opts.defaultForMin) > 0 ? Number(opts.defaultForMin) : DEFAULT_HEARTBEAT_FOR_MIN;
+  const forMin = explicitForMin || (!count && !forever ? defaultForMin : null);
+  const now = typeof opts.now === 'function' ? opts.now : Date.now;
+  const endAt = forMin ? now() + forMin * 60000 : null;
+  const ownerAlive = typeof opts.ownerAlive === 'function' ? opts.ownerAlive : isProcessAlive;
+  const waitOpts = {
+    ownerPid,
+    sleep: opts.sleep,
+    ownerAlive,
+    ownerPollMs: opts.ownerPollMs,
+  };
+
+  if (ownerPid && !ownerAlive(ownerPid)) {
+    out.log(`heartbeat owner PID ${ownerPid} is not running; no heartbeat started`);
+    return { code: 0, beats: 0, stopped: 'owner_exited' };
+  }
+  if (forever) {
+    out.log(`unbounded heartbeat explicitly enabled every ${everySec}s${ownerPid ? ` for owner PID ${ownerPid}` : ''}`);
+  } else if (forMin) {
+    out.log(`bounded heartbeat every ${everySec}s for at most ${forMin} minute(s)${ownerPid ? `; owner PID ${ownerPid}` : ''}`);
+  }
 
   let beats = 0;
   for (;;) {
+    if (endAt && now() >= endAt) break;
     const r = await api(baseUrl, 'POST', '/agents/heartbeat', { token });
     if (r.status !== 200) {
-      out.log(`heartbeat failed (${r.status}): ${r.json ? r.json.error : r.text} — re-register if your token was reaped`);
+      out.log(`heartbeat failed (${r.status}): ${r.json ? r.json.error : r.text} — re-register only after confirming the agent is active`);
       return { code: 1, beats };
     }
     beats++;
     if (count && beats >= count) break;
-    if (endAt && Date.now() >= endAt) break;
-    if (!count && !endAt && beats === 1) out.log(`heartbeating every ${everySec}s (Ctrl-C to stop)`);
-    await new Promise((resolve) => setTimeout(resolve, everySec * 1000));
+    if (endAt && now() >= endAt) break;
+    const delayMs = endAt ? Math.min(everySec * 1000, Math.max(0, endAt - now())) : everySec * 1000;
+    if (delayMs <= 0) break;
+    const ownerStillAlive = await waitForHeartbeatDelay(delayMs, waitOpts);
+    if (!ownerStillAlive) {
+      out.log(`heartbeat owner PID ${ownerPid} exited; stopping after ${beats} beat(s)`);
+      return { code: 0, beats, stopped: 'owner_exited' };
+    }
   }
   out.log(`${beats} heartbeat(s) sent`);
-  return { code: 0, beats };
+  return { code: 0, beats, stopped: count ? 'count' : (endAt ? 'duration' : 'signal') };
 }
 
 function friendlyUnreachable(baseUrl, detail) {
@@ -1386,7 +1456,7 @@ function friendlyUnreachable(baseUrl, detail) {
 // Dispatcher. `run(argv, { env, baseUrl })` -> Promise<{ code, ... }>.
 // Never calls process.exit; returns an out-buffer in result.lines.
 // ---------------------------------------------------------------------------
-export async function run(argv, { env = process.env, baseUrl: baseOverride, watchOpts } = {}) {
+export async function run(argv, { env = process.env, baseUrl: baseOverride, watchOpts, heartbeatOpts } = {}) {
   const out = makeOut();
   const command = argv[0];
   const parsed = parseArgs(argv.slice(1));
@@ -1413,7 +1483,7 @@ export async function run(argv, { env = process.env, baseUrl: baseOverride, watc
         res = await cmdOnboard(out, parsed, env, baseUrl);
         break;
       case 'heartbeat':
-        res = await cmdHeartbeat(out, parsed, env, baseUrl);
+        res = await cmdHeartbeat(out, parsed, env, baseUrl, heartbeatOpts || {});
         break;
       case 'agents':
         res = await cmdAgents(out, parsed, env, baseUrl);

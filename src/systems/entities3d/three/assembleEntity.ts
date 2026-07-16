@@ -99,7 +99,7 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   });
   bodyRoot.add(body.root);
 
-  const driver: GaitDriver = createGaitDriver(gait, frame);
+  const driver: GaitDriver = createGaitDriver(gait, frame, blueprint.planSpec);
 
   // --- modular parts
   const partsRoot = new Group();
@@ -153,14 +153,34 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   const eyeMaterial = new MeshBasicMaterial({ color: '#ffffff' });
   const pupilMaterial = new MeshBasicMaterial({ color: palette.eyeHex });
   const eyes: Mesh[] = [];
-  for (const name of ['eyeL', 'eyeR'] as const) {
-    const eye = new Mesh(new SphereGeometry(hr * 0.32, 12, 10), eyeMaterial);
-    eye.name = name;
-    const pupil = new Mesh(new SphereGeometry(hr * 0.17, 10, 8), pupilMaterial);
-    pupil.position.z = hr * 0.24;
-    eye.add(pupil);
-    bodyRoot.add(eye);
-    eyes.push(eye);
+  /** Planned bodies: eye i belongs to head socket plannedEyeHead[i], slot plannedEyeSlot[i]. */
+  const plannedEyeHead: number[] = [];
+  const plannedEyeSlot: number[] = [];
+  if (blueprint.planSpec) {
+    blueprint.planSpec.heads.forEach((headSpec, h) => {
+      const r = hr * headSpec.sizeScale * 0.32 * headSpec.eyes.sizeScale;
+      for (let k = 0; k < headSpec.eyes.count; k++) {
+        const eye = new Mesh(new SphereGeometry(Math.max(0.008, r), 12, 10), eyeMaterial);
+        eye.name = `eyeP${h}_${k}`;
+        const pupil = new Mesh(new SphereGeometry(Math.max(0.005, r * 0.55), 10, 8), pupilMaterial);
+        pupil.position.z = r * 0.72;
+        eye.add(pupil);
+        bodyRoot.add(eye);
+        eyes.push(eye);
+        plannedEyeHead.push(h);
+        plannedEyeSlot.push(k);
+      }
+    });
+  } else {
+    for (const name of ['eyeL', 'eyeR'] as const) {
+      const eye = new Mesh(new SphereGeometry(hr * 0.32, 12, 10), eyeMaterial);
+      eye.name = name;
+      const pupil = new Mesh(new SphereGeometry(hr * 0.17, 10, 8), pupilMaterial);
+      pupil.position.z = hr * 0.24;
+      eye.add(pupil);
+      bodyRoot.add(eye);
+      eyes.push(eye);
+    }
   }
   let blinkT = 2 + (blueprint.frame.heightFt % 1) * 3; // deterministic per frame
 
@@ -180,6 +200,8 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
 
   const phase: { -readonly [K in keyof PartPhase]: PartPhase[K] } = { t: 0, gaitPhase: 0, flap: 0 };
   const tmpQuat = new Quaternion();
+  const tmpVecA = new Vector3();
+  const FORWARD = new Vector3(0, 0, 1);
 
   function update(t: number, dt: number, loco: LocomotionState = IDLE): void {
     driver.update(t, dt, loco);
@@ -210,17 +232,43 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       }
     }
 
-    // eyes track the head anchor
-    const head = driver.pose.anchors.head.pos;
-    for (const [i, eye] of eyes.entries()) {
-      const sgn = i === 0 ? -1 : 1;
-      eye.position.set(head.x + sgn * hr * 0.42, head.y + hr * 0.12, head.z + hr * 0.8);
-      eye.quaternion.copy(tmpQuat.identity());
+    // eyes track their head — planned bodies read live sockets, others the anchor
+    if (blueprint.planSpec && driver.headSockets) {
+      const sockets = driver.headSockets();
+      for (const [i, eye] of eyes.entries()) {
+        const socket = sockets[plannedEyeHead[i]];
+        if (!socket) continue;
+        const K = socket.eyes.count;
+        const spread = K === 1 ? 0 : plannedEyeSlot[i] / (K - 1) - 0.5;
+        // face frame: forward f, right = f × up (horizontal)
+        const rx = -socket.fz;
+        const rz = socket.fx;
+        eye.position.set(
+          socket.x + socket.fx * socket.r * 0.72 + rx * spread * socket.r * 0.95,
+          socket.y + socket.r * 0.16,
+          socket.z + socket.fz * socket.r * 0.72 + rz * spread * socket.r * 0.95,
+        );
+        tmpVecA.set(socket.fx, socket.fy, socket.fz);
+        eye.quaternion.setFromUnitVectors(FORWARD, tmpVecA);
+      }
+    } else {
+      const head = driver.pose.anchors.head.pos;
+      for (const [i, eye] of eyes.entries()) {
+        const sgn = i === 0 ? -1 : 1;
+        eye.position.set(head.x + sgn * hr * 0.42, head.y + hr * 0.12, head.z + hr * 0.8);
+        eye.quaternion.copy(tmpQuat.identity());
+      }
     }
     blinkT -= dt;
     let eyeScaleY = 1;
-    if (blinkT < 0.12) eyeScaleY = Math.max(0.08, Math.abs(blinkT / 0.06 - 1));
-    if (blinkT <= 0) blinkT = 1.8 + ((t * 997) % 3.2);
+    if (blinkT <= 0) {
+      // A long frame (hitch, headless render) can jump far past the blink
+      // window; skip the blink rather than feed a negative phase into the
+      // squash curve (|blinkT/0.06 - 1| explodes for negatives — giant eyes).
+      blinkT = 1.8 + ((t * 997) % 3.2);
+    } else if (blinkT < 0.12) {
+      eyeScaleY = Math.max(0.08, Math.abs(blinkT / 0.06 - 1));
+    }
     for (const eye of eyes) eye.scale.y = eyeScaleY;
 
     // shadow shrinks and fades with airtime

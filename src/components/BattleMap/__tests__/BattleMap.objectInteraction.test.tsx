@@ -62,7 +62,12 @@ const createTile = (x: number, y: number) => ({
   effects: []
 });
 
-function renderObjectMap(activeObjectId: string | null, onObjectMove = vi.fn(), assetOverlayVisible = true) {
+function renderObjectMap(
+  activeObjectId: string | null,
+  onObjectMove = vi.fn(),
+  assetOverlayVisible = true,
+  showTargetableObjectFacts = false
+) {
   const mapData: BattleMapData = {
     dimensions: { width: 3, height: 1 },
     tiles: new Map([
@@ -76,6 +81,43 @@ function renderObjectMap(activeObjectId: string | null, onObjectMove = vi.fn(), 
       position: { x: 1, y: 0 },
       isFixedToSurface: false
     }],
+    worldOccupants: [
+      {
+        id: 'worldforge-occupant:14:1',
+        name: 'Resident One',
+        position: { x: 1, y: 0 },
+        activity: 'home',
+        moving: false,
+        source: {
+          kind: 'worldforge-occupant',
+          burgId: 14,
+          occupantId: 1,
+          worldMeters: { x: 50, z: 50 }
+        }
+      },
+      {
+        id: 'worldforge-occupant:14:2',
+        name: 'Resident Two',
+        position: { x: 1, y: 0 },
+        activity: 'out',
+        moving: true,
+        source: {
+          kind: 'worldforge-occupant',
+          burgId: 14,
+          occupantId: 2,
+          worldMeters: { x: 50.2, z: 50 }
+        }
+      }
+    ],
+    encounterContext: {
+      kind: 'settlement-edge',
+      source: 'worldforge-settlement',
+      sourceBurgId: 14,
+      sourceGatehouseId: 'gatehouse:14:test',
+      anchorTile: { x: 1, y: 0 },
+      routeDirection: { x: 1, y: 0 },
+      deployment: { player: 'outside-approach', enemy: 'inside-gate' }
+    },
     theme: 'dungeon',
     seed: 1
   } as BattleMapData;
@@ -102,6 +144,7 @@ function renderObjectMap(activeObjectId: string | null, onObjectMove = vi.fn(), 
       mapData={mapData}
       characters={[hero]}
       assetOverlayVisible={assetOverlayVisible}
+      showTargetableObjectFacts={showTargetableObjectFacts}
       objectInteraction={{
         activeObjectId,
         movableObjectIds: ['cover-sandbox-torch'],
@@ -175,6 +218,28 @@ describe('BattleMap object interaction', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Select Sandbox Torch object' }));
 
     expect(onObjectSelect).toHaveBeenCalledWith('cover-sandbox-torch');
+  });
+
+  it('shows the target-fact review marker only when the harness layer is enabled', () => {
+    renderObjectMap(null, vi.fn(), true, true);
+
+    expect(screen.getByTestId('targetable-object-fact-marker')).toHaveAttribute(
+      'title',
+      'Target fact: Sandbox Torch'
+    );
+  });
+
+  it('groups same-cell resident identities and labels the source encounter anchor', () => {
+    renderObjectMap(null);
+
+    expect(screen.getAllByTestId('world-occupant-marker')).toHaveLength(1);
+    expect(screen.getByTestId('world-occupant-marker')).toHaveAttribute('data-occupant-count', '2');
+    expect(screen.getByTestId('world-occupant-marker')).toHaveAttribute('data-moving-count', '1');
+    expect(screen.getByTestId('world-occupant-marker')).toHaveAccessibleName(
+      '2 source residents: Resident One, Resident Two'
+    );
+    expect(screen.getByTestId('encounter-source-anchor')).toHaveTextContent('Settlement gate');
+    expect(screen.getByTestId('world-occupant-legend')).toHaveTextContent('Residents');
   });
 
   it('moves the selected object when a destination tile is clicked', () => {

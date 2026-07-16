@@ -223,10 +223,12 @@ const World3DDemo: React.FC = () => {
     // the same viewport-fill failure TransitionController hit (fixed 2026-06-29).
     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px', height: '100dvh', boxSizing: 'border-box' }}>
       <h1 style={{ margin: 0, fontSize: '24px', fontFamily: 'Outfit, sans-serif', color: '#1a2a3a' }}>
-        {groundMode ? 'Worldforge Ground Mode — L2 terrain at walking scale' : 'World 3D Chunk Streaming Sandbox'}
+        {groundMode ? 'Developer shortcut — canonical Worldforge ground pipeline' : 'World 3D Chunk Streaming Sandbox'}
       </h1>
       <p style={{ margin: 0, fontSize: '14px', color: '#4a5a6a' }}>
-        Right-click and drag to pan the camera across the landscape. Chunks will stream in and out in real time!
+        {groundMode
+          ? 'This URL-only harness reconstructs a canonical cell-addressed Local artifact for diagnostics. Player exploration enters through Atlas and preserves its selected artifact in memory.'
+          : 'Right-click and drag to pan the camera across the landscape. Chunks will stream in and out in real time!'}
       </p>
       {/* Absolute-inset slot: gives World3DScene's height:100% root a DEFINITE
           height regardless of how the flex column resolves percentages. */}

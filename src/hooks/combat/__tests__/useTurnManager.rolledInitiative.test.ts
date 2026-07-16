@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { useTurnManager } from '../useTurnManager';
 import { SummoningCommand } from '../../../commands/effects/SummoningCommand';
@@ -17,6 +18,32 @@ import conjureAnimals from '../../../../public/data/spells/level-3/conjure-anima
  * scheduler boundary can be verified without inventing random rolling logic.
  */
 describe('useTurnManager rolled summon scheduling', () => {
+  it('uses an injected deterministic initiative total for replay and visual harnesses', () => {
+    const leader = createMockCombatCharacter({ id: 'leader', name: 'Leader' });
+    const scout = createMockCombatCharacter({ id: 'scout', name: 'Scout' });
+    const initiativeRoller = vi.fn((character: CombatCharacter) => (
+      character.id === scout.id ? 18 : 7
+    ));
+    const onCharacterUpdate = vi.fn();
+    const onLogEntry = vi.fn();
+
+    const { result } = renderHook(() => useTurnManager({
+      characters: [leader, scout],
+      mapData: null,
+      onCharacterUpdate,
+      onLogEntry,
+      initiativeRoller
+    }));
+
+    act(() => {
+      result.current.initializeCombat([leader, scout]);
+    });
+
+    expect(initiativeRoller).toHaveBeenCalledTimes(2);
+    expect(result.current.turnState.turnOrder).toEqual([scout.id, leader.id]);
+    expect(result.current.turnState.currentCharacterId).toBe(scout.id);
+  });
+
   it('places a live Conjure Animals summon by initiative instead of appending it', () => {
     const randomSpy = vi.spyOn(Math, 'random');
     randomSpy.mockReturnValueOnce(0.75);

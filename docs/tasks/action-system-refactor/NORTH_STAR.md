@@ -56,8 +56,8 @@ Planned:
 - Orchestrator: `src/hooks/useGameActions.ts` calls the registry and executes per-action handlers.
 - Source-level actions: `src/hooks/actions/*`.
 - Command runtime neighbors:
-  - `docs/projects/command-base-runtime/NORTH_STAR.md`
-  - `docs/projects/command-factory-runtime/NORTH_STAR.md`
+  - `planmap topic command-base-runtime`
+  - `docs/superpowers/specs/2026-07-14-absorbed-command-factory-runtime.md`
   - `docs/architecture/domains/commands.md`
 
 ## Current Runtime Contracts
@@ -73,7 +73,7 @@ work remains a future design decision in `GAPS.md` G4.
 Command runtime adjacency is documentation-owned unless a source change is
 needed. Action handlers may call async world-event or command-adjacent helpers,
 but command creation and command side-effect contracts remain owned by
-`docs/projects/command-base-runtime`, `docs/projects/command-factory-runtime`,
+`planmap topic command-base-runtime`, `docs/superpowers/specs/2026-07-14-absorbed-command-factory-runtime.md`,
 and `docs/architecture/domains/commands.md`.
 
 ## Scope Boundaries
@@ -105,8 +105,8 @@ Out of scope:
 - `src/hooks/actions/actionHandlerTypes.ts`
 - `src/types/actions.ts`
 - `src/App.tsx`
-- `docs/projects/command-base-runtime/NORTH_STAR.md`
-- `docs/projects/command-factory-runtime/NORTH_STAR.md`
+- `planmap topic command-base-runtime`
+- `docs/superpowers/specs/2026-07-14-absorbed-command-factory-runtime.md`
 - `docs/architecture/domains/commands.md`
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/action-system-refactor/NORTH_STAR.md","sha256WithoutMarker":"763863d64f2d72e73848939f58a4ec6e5e0c9f7b13cde9decb11013d99aae5e2","markedAtUtc":"2026-06-25T22:29:38.299Z"} -->

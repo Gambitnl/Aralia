@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 16/07/2026, 01:42:00
+ * Dependents: components/gameEntry/OpeningSituationGate.tsx
+ * Imports: 14 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -101,11 +117,30 @@ export function buildSituationLocation(state: GameState): OpeningSituationLocati
     const placeName = state.startTownName
         ? (state.startTownRegion ? `${state.startTownName}, ${state.startTownRegion}` : state.startTownName)
         : (loc?.name ?? locId);
+    // Freeze the authoritative world identity beside the human-readable place.
+    // The model sees only the ordinary location fields below; this receipt is
+    // copied onto a valid hostile threat after generation, preventing model
+    // output from relocating combat or manufacturing its own source lineage.
+    const matchingEntryCenter = state.playerCell
+        && state.entry3DAnchor?.cellId === state.playerCell.cellId
+        ? state.entry3DAnchor.centerPx
+        : undefined;
+    const battlefieldSource: OpeningSituationLocation['battlefieldSource'] = state.playerCell
+        ? {
+            kind: 'worldforge-opening-location',
+            receiptId: `opening:${state.worldSeed}:cell:${state.playerCell.cellId}`,
+            worldSeed: state.worldSeed,
+            cellId: state.playerCell.cellId,
+            ...(matchingEntryCenter ? { centerPx: matchingEntryCenter } : {}),
+            locationLabel: placeName,
+        }
+        : undefined;
     return {
         name: placeName,
         biome: cellBiome ?? loc?.biomeId,
         timeOfDay: validTime ? getTimeOfDay(validTime) : undefined,
         weather: validTime ? getTimeModifiers(validTime).description : undefined,
+        battlefieldSource,
     };
 }
 

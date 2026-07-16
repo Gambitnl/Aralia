@@ -4,11 +4,11 @@ handoff_type: agent_to_agent
 project: Battle Map
 slug: battle-map
 status: active
-last_updated: 2026-06-10
-iteration: 8
-source_agent: Codex / gpt-5.4-mini high
+last_updated: 2026-07-15
+iteration: 9
+source_agent: Codex desktop
 target_agent: next cold-start agent
-runtime_surface: MCP-subagent
+runtime_surface: application agent
 certainty: certain
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
@@ -20,7 +20,7 @@ gaps: docs/projects/battle-map/GAPS.md
 # Battle Map Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-07-15
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -39,13 +39,14 @@ docs/projects/battle-map/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Battle Map
 Project folder: docs/projects/battle-map
-iteration: 8
+iteration: 9
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
 North Star: docs/projects/battle-map/NORTH_STAR.md
 Tracker: docs/projects/battle-map/TRACKER.md
 Gaps: docs/projects/battle-map/GAPS.md
+Production source inventory: docs/projects/battle-map/WORLDFORGE_SOURCE_INVENTORY.md
 
 ## Iteration Agent Ledger
 
@@ -57,38 +58,41 @@ Gaps: docs/projects/battle-map/GAPS.md
 | 6 | gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Fallback while gpt-5.3-codex-spark remained over limit; documented the hook-shaped filename contract without renaming callers |
 | 7 | gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Built the 2D/3D parity checklist and focused renderer proof, corrected stale tile selectors, and added the safe 3D lighting guard |
 | 8 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Spawned by the foreman as a bounded living-project iteration worker; elevated the Battle Map naming contract to review-required and added the Required Review Brief |
+| 9 | Codex desktop | application agent | certain | 2026-07-15 | Established the global WorldForge-only production boundary, audited tactical launchers, and migrated road-backed land travel through the real combat shell with rendered proof |
 
 ## Previous Agent Handoff
 
-Iteration 3 completed T2 and closed the map-state/events sync contract. Iteration 4 split T3 into separate follow-up slices. Iteration 5 closed G2 by proving `ensureConnectivity()` now repairs disconnected cave/dungeon maps. Iteration 6 documented the `useBattleMapGeneration.ts` naming contract in source/docs without renaming callers, so G3 stayed a deliberate docs/naming follow-up. Iteration 7 recorded the parity checklist/proof gate, fixed stale tile-title assumptions in the 2D visibility tests, and added a null guard to the 3D lighting target so the renderer proof stays testable. Iteration 8 elevated the G3 naming choice to review-required with a Required Review Brief and kept the renderer parity gate unchanged. No broad renderer behavior expansion was made.
+Iteration 9 changed the product boundary rather than merely the painter. Production `CombatView` now requires an extracted WorldForge map or fails closed; the legacy generator remains only in labeled developer sandboxes. The production inventory audits every known launcher. Ground hostile proximity, generated-settlement watch, generated-state patrols, and road-backed land travel are source-backed. The road-travel handoff rebuilds the exact destination GroundWorld from saved seed/time/deltas, selects a real source road, and uses the normal action/reducer/combat shell. Hostile openings, static authored-town watch, sea encounters, and location-free simulation remain visible source gaps. The older naming and renderer-modularization gaps remain preserved but are not the active objective.
 
 ## Current Mission
 
 Active task:
-G3 - naming contract review gate; the helper stays hook-shaped until the decision brief is answered.
+T-WF-OPENING / G8 - trace hostile-opening attacks and failed de-escalations to an exact canonical WorldForge spawn cell/site before tactical transition.
 
 Acceptance criteria:
-Keep the G3 naming contract explicit, keep the Required Review Brief current, and preserve the parity checklist as the gate before any renderer behavior expansion.
+The opening situation either supplies deterministic World -> Region -> Local -> Ground -> Tactical provenance and rendered production-shell proof, or remains visibly withheld. It must never acquire procedural terrain or a generic center crop. Update the source inventory, tracker, gap registry, Plan Map, focused tests, and adversarial screenshot notes after the slice.
 
 Key files to touch:
+- docs/projects/battle-map/WORLDFORGE_SOURCE_INVENTORY.md
 - docs/projects/battle-map/NORTH_STAR.md
 - docs/projects/battle-map/TRACKER.md
 - docs/projects/battle-map/GAPS.md
 - docs/projects/battle-map/COLD_START_AGENT_PROMPT.md
-- docs/projects/battle-map/PARITY_CHECKLIST.md
-- src/hooks/useBattleMapGeneration.ts only if a coordinated rename is approved
+- docs/projects/battle-map/AUDIT_OR_PROOF.md
+- the opening/de-escalation launcher after its canonical source receipt is traced
+- src/App.tsx only if it owns that exact transition
 
 Scoped verification:
-Docs consistency sweep across the Battle Map handoff files plus `git diff --check`; no Battle Map runtime tests unless a rename is approved.
+Focused source-receipt, projection, encounter-launcher, reducer, and `CombatView` tests; rendered production-shell inspection at representative desktop and narrower/taller viewports; touched-file ESLint and TypeScript diagnostic filter; docs consistency plus `git diff --check`.
 
 Blocking dependencies / do-not-touch:
-Do not rename `useBattleMapGeneration.ts` blindly while callers exist. Do not expand renderer behavior unless the parity checklist is refreshed first. Route sibling-project blockers instead of editing their docs.
+Do not substitute an atlas-cell center, procedural arena, or lab-authored map when the opening receipt cannot prove a canonical location. Do not absorb repo-wide TypeScript debt, unrelated cleanup, or Atlas navigation into this workstream. Preserve the older `useBattleMapGeneration.ts` naming decision and renderer parity gates while this production-authority goal proceeds.
 
 Required-review handling:
 If this iteration discovers a human/product/policy blocker, mark the project review-required only after creating or refreshing a `Required Review Brief` in `NORTH_STAR.md`, `TRACKER.md`, or `GAPS.md`. That brief is the project-detail visual decision segment; include the decision question, issue, current behavior, blocked reason, options, evidence, decision owner, and proof-after-decision. Once marked review-required, do not assign forward implementation agents until the decision is recorded.
 
 Recent progress:
-T2 closed as a documentation-only pass. T3 remains the split decision boundary. G2 is closed with a focused seed-2 reachability/pathability regression. G3 is now review-required, with the `useBattleMapGeneration.ts` naming contract explicit in source/docs and the Required Review Brief carrying the decision. G4 now has a concrete parity checklist plus focused renderer tests, and the older visibility checks were updated to match the actual tile labels. Workflow gaps were re-read with no workflow-level update needed. The dashboard card schema stayed on the supported section-based path. No broad renderer behavior expansion was made.
+The global authority boundary and source-gap screen are rendered and covered. The production source inventory is current. Road-backed land travel is the fourth migrated class and is proved by 61/61 focused tests plus 1600x1000 and 1353x1272 production-shell captures; roadless destinations are deliberately withheld and the sea-event route has its own focused withholding proof. G8-G11 route the remaining production source gaps. The Plan Map records the authority boundary, travel migration, and hostile-opening next slice. Repository TypeScript remains a separate debt surface; touched battlefield/travel files produced no diagnostic.
 
 ## Required End State For This Iteration
 

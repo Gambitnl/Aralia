@@ -48,12 +48,12 @@ evidence-backed implementation status for:
 
 ## Owners and Acceptance Signals
 
-- Character Creator references: `docs/projects/character-creator/{NORTH_STAR.md,TRACKER.md}`
+- Character Creator references: planmap topic `character-creator`
   with owner marker `Worker B`.
 - Companion references: `docs/projects/companions/{NORTH_STAR.md,TRACKER.md}`
   with owner marker `Worker A`.
-- Merchant/economy references: `docs/projects/economy/NORTH_STAR.md`,
-  `docs/projects/economy/TRACKER.md`, and `docs/projects/economy-ui/*`
+- Merchant/economy references: `docs/superpowers/specs/2026-07-14-absorbed-economy.md`,
+  `docs/superpowers/specs/2026-07-14-absorbed-economy.md`, and `docs/superpowers/specs/2026-07-14-absorbed-economy-ui.md`
   with owner marker `Economy docs owner` / `Economy UI docs owner`.
 
 Acceptance signal for this folder pass:

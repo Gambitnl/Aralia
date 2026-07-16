@@ -310,8 +310,10 @@ say <body> | say --to <h> <body>     inbox [--since <seq>] [--mine]     watch   
   retrospective (per-packet time-to-done, reap counts, results).
 - **Fresh agents**: point them at `client.mjs onboard <handle>` (one-shot registration +
   situational briefing + the rules; `--gaps` adds tracker intake) — also now in AGENTS.md, so
-  even un-prompted agents can find the front door. Long workers keep presence with
-  `client.mjs heartbeat --every 600` in the background.
+  even un-prompted agents can find the front door. Long workers use the 30-minute bounded
+  `client.mjs heartbeat --every 600` helper, ideally with `AGORA_OWNER_PID` or
+  `--owner-pid <pid>`, and re-run it only while work remains active. Even `--forever` cannot
+  extend heartbeat-only presence past the server's 2-hour lease.
 - **Workflow friction goes in [`WORKFLOW_GAPS.md`](./WORKFLOW_GAPS.md)** — the durable,
   structured registry for gaps in the workflow ITSELF (hard row schema in the file; same
   table format as project GAPS.md, so `gapIndex.mjs --root tools/agora` parses it). A

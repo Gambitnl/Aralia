@@ -7,6 +7,7 @@ import { evaluateRecruitOffer } from '../../../systems/party/recruitConsent';
 import { npcToPartyMember, promoteCompanionToMember } from '../../../systems/party/npcToPartyMember';
 import { handleStartBattleMapEncounter } from '../handleEncounter';
 import { CrimeType } from '../../../types/crime';
+import { registerActiveGroundCombatProvider } from '../../../systems/combat/fightInPlace/activeGroundCombatSession';
 
 /**
  * This file protects NPC interaction behavior at the action-handler boundary.
@@ -532,6 +533,31 @@ describe('handleTalk guard confrontation', () => {
     expect(vi.mocked(handleStartBattleMapEncounter)).toHaveBeenCalled();
     expect(mockDispatch.mock.calls.some(([d]) => d.type === 'START_DIALOGUE_SESSION')).toBe(false);
     expect(mockAddMessage.mock.calls.some(([m]) => /wanted|surrender/i.test(m))).toBe(true);
+  });
+
+  it('uses a prepared GroundWorld encounter instead of the generic Guard fallback', async () => {
+    const sourcePayload = {
+      monsters: [],
+      combatants: [{ id: 'worldforge-defender:6:0:infantry:1' }],
+    } as unknown as Parameters<typeof handleStartBattleMapEncounter>[1];
+    const cleanup = registerActiveGroundCombatProvider(async (request) => ({
+      status: 'ready',
+      detail: `Prepared ${request.trigger.sourceId}.`,
+      payload: sourcePayload,
+    }));
+
+    try {
+      await runTalk(baseState({
+        notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [wantedCrime], bounties: [] },
+      }));
+    } finally {
+      cleanup();
+    }
+
+    expect(vi.mocked(handleStartBattleMapEncounter)).toHaveBeenCalledWith(
+      expect.any(Function),
+      sourcePayload,
+    );
   });
 
   it('talks normally to a guard when the player is NOT wanted here', async () => {

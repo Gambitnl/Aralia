@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 15/07/2026, 23:40:35
+ * Dependents: App.tsx, components/MapPane.tsx, systems/travel/applyProvision.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file travelMeta.ts — the contract MapPane hands to App on a world-travel pick.
  *
@@ -23,6 +39,18 @@ export interface TravelProvisionEffect {
 
 import type { Entry3DAnchor } from './state';
 
+/**
+ * Deterministic world-travel event asking the tactical layer to start combat.
+ * The route cells are source lineage, not merely flavor: land and sea encounters
+ * require different battlefield artifacts and must never substitute for one
+ * another when their bridge is incomplete.
+ */
+export interface TravelCombatEncounter {
+  kind: 'land-route-ambush' | 'sea-hostile';
+  monsters: Array<{ name: string; quantity: number; cr: string; description: string }>;
+  routeCells: number[];
+}
+
 /** Per-trip metadata for a world-map move. */
 export interface TravelMeta {
   /** Real trip duration in seconds (advances the game clock). */
@@ -30,11 +58,14 @@ export interface TravelMeta {
   /** Pre-rolled "danger on the road" message, if an encounter was rolled. */
   encounterMessage?: string | null;
   /**
-   * The foes for a rolled road ambush. When present, arrival starts a real fight
-   * (via handleStartBattleMapEncounter) instead of only printing the message.
+   * The foes for a rolled road ambush. When present, arrival requests tactical
+   * combat through handleStartBattleMapEncounter instead of only printing the
+   * message. App must still prove the destination's matching WorldForge
+   * battlefield artifact; an incomplete or non-road source reaches the visible
+   * source gap rather than borrowing an arena.
    * Lightweight monster stubs; the bestiary resolves them at battle start.
    */
-  encounter?: { monsters: Array<{ name: string; quantity: number; cr: string; description: string }> };
+  encounter?: TravelCombatEncounter;
   /** Provisioning effects to apply after the move (omitted when ungated). */
   provision?: TravelProvisionEffect;
   /**

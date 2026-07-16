@@ -4,8 +4,7 @@ import {
     addHistoryEvent,
     getRelevantHistory,
     findEventsByParticipant,
-    findEventsByDateRange,
-    pruneHistory
+    findEventsByDateRange
 } from '../historyUtils';
 import { WorldHistoryEvent } from '../../../types/history';
 

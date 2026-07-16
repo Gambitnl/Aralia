@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 15/07/2026, 00:28:54
+ * Last Sync: 15/07/2026, 06:34:48
  * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/DungeonEntrances.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/canopyInterior.ts, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/groundChunkWorker.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/provenance/groundProvenance.ts
- * Imports: 46 files
+ * Imports: 47 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -66,9 +66,9 @@ import { SeededRandom } from "../../../utils/random/seededRandom";
 import { generateBusinessName } from "../../economy/NpcBusinessManager";
 import type { BusinessType, WorldBusiness } from "../../../types/business";
 import type { RichNPC } from "../../../types/world";
-import type { BattleMapBiome, BattleMapCrossing, BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration, BattleMapSurface } from "@/types/combat";
+import type { BattleMapBiome, BattleMapCrossing, BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration, BattleMapSurface, BattleMapWorldOccupant, Position, TargetableMapObject } from "@/types/combat";
 import { generateGroundHostiles } from "./groundHostiles";
-import { buildGroundProps, imprintPropOnTile } from "./groundProps";
+import { buildGroundProps, imprintPropOnTile, propFootprintRadiusM, PROPS_BY_ID } from "./groundProps";
 import type { PropInstance } from "../props/propSchema";
 import type { EntranceKind } from "../dungeon/world/dungeonSites";
 import { dungeonEntrancesForWindow } from "./dungeonEntrances";
@@ -89,6 +89,10 @@ import {
   SNOW_RGB,
   SNOW_BAND,
 } from "../mountains/mountainTunables";
+import {
+  settlementDefenseForBurg,
+  type GroundSettlementDefense,
+} from './settlementDefense';
 
 /** A polyline in ground world-meters with a uniform width (meters). */
 interface GroundPolyline {
@@ -146,7 +150,7 @@ export interface GroundCrossing {
 }
 
 /** A roster person resolved to the plot center where their figure is rendered. */
-interface GroundOccupantSite {
+export interface GroundOccupantSite {
   burgId: number;
   occupantId: number;
   name: string;
@@ -154,6 +158,15 @@ interface GroundOccupantSite {
   zM: number;
   /** Schedule activity at the bake hour (drives the close-range nameplate). */
   activity?: ActivityKind;
+}
+
+/**
+ * Current resident position supplied to tactical extraction. Live callers may
+ * add movement state from `allGroundAgentsAt`; legacy callers can continue to
+ * use the static schedule-derived sites already carried by GroundWorld.
+ */
+export interface GroundOccupantProjectionInput extends GroundOccupantSite {
+  moving?: boolean;
 }
 
 /** Player-facing label for a townsperson's current activity. */
@@ -281,6 +294,8 @@ export interface GroundWorld {
   gatehouses: Array<{ xM: number; zM: number; angleRad: number; gapHalfM: number; form: GatehouseForm; colorHex: string; burgId: number }>;
   /** Town sites overlapping the artifact, center in ground meters. */
   towns: Array<{ burgId: number; name: string; xM: number; zM: number; halfM: number }>;
+  /** State and regiment facts stationed in each visible generated settlement. */
+  settlementDefenses?: GroundSettlementDefense[];
   /** Town-plan building plots (C3 generateTownPlan), centers in meters. */
   buildings: Array<{
     id: string;
@@ -880,6 +895,7 @@ export function makeGroundWorld(
     decks,
     gatehouses: townContent.planGatehouses,
     towns: townContent.towns,
+    settlementDefenses: townContent.settlementDefenses,
     buildings: townContent.buildings,
     rosters: townContent.rosters,
     occupants: townContent.occupants,
@@ -1374,6 +1390,7 @@ function groundTowns(
   planWaterBodies: GroundWaterBody[];
   planDecks: GroundDeck[];
   planGatehouses: GroundWorld["gatehouses"];
+  settlementDefenses: GroundSettlementDefense[];
   rosters: TownRoster[];
   occupants: GroundOccupantSite[];
   townPlans: Array<{ burgId: number; plan: TownPlan }>;
@@ -1388,6 +1405,7 @@ function groundTowns(
   const planWaterBodies: GroundWaterBody[] = [];
   const planDecks: GroundDeck[] = [];
   const planGatehouses: GroundWorld["gatehouses"] = [];
+  const settlementDefenses: GroundSettlementDefense[] = [];
   const rosters: TownRoster[] = [];
   const occupants: GroundOccupantSite[] = [];
   const townPlans: Array<{ burgId: number; plan: TownPlan }> = [];
@@ -1402,6 +1420,12 @@ function groundTowns(
     // show "Stren" instead of the internal "Town - wf-town-15" id.
     const burgName = getBridgeAtlas(worldSeed).pack.burgs?.[t.burgId]?.name ?? `Burg ${t.burgId}`;
     towns.push({ burgId: t.burgId, name: burgName, xM, zM, halfM });
+
+    // Keep the controlling state and stationed regiments beside the same town
+    // geometry. Combat can later choose a patrol from these facts without
+    // asking the renderer to infer guards from walls or gatehouse decoration.
+    const settlementDefense = settlementDefenseForBurg(worldSeed, t.burgId);
+    if (settlementDefense) settlementDefenses.push(settlementDefense);
 
     // CANONICAL town (Worldforge Option B): the SAME (atlas, burgId) plan the
     // 2D map drill renders — generated once in the normalized frame, then
@@ -1738,7 +1762,19 @@ function groundTowns(
     }
   }
 
-  return { towns, buildings, planStreets, planWalls, planWaterBodies, planDecks, planGatehouses, rosters, occupants, townPlans };
+  return {
+    towns,
+    buildings,
+    planStreets,
+    planWalls,
+    planWaterBodies,
+    planDecks,
+    planGatehouses,
+    settlementDefenses,
+    rosters,
+    occupants,
+    townPlans,
+  };
 }
 
 /** Encoded-height bilinear sample at world meters → true meters via heightToMeters. */
@@ -2415,6 +2451,303 @@ function worldforgeCrossingAt(
   return undefined;
 }
 
+// ============================================================================
+// WorldForge Object Targets
+// ============================================================================
+// The tactical grid already paints natural features and catalog props. This
+// section publishes those same source objects to spell targeting exactly once
+// per source fact, preserving their world identity instead of guessing later
+// from every decorated or material-bearing cell they happen to cover.
+// ============================================================================
+
+type TacticalNaturalFeatureKind = 'tree' | 'bush' | 'boulder';
+
+const NATURAL_FEATURE_TARGET_FACTS: Record<TacticalNaturalFeatureKind, {
+  name: string;
+  decoration: Exclude<BattleMapDecoration, null>;
+  size: string;
+  footprintRadiusM: number;
+  blocksMovement: boolean;
+  blocksLoS: boolean;
+}> = {
+  tree: {
+    name: 'Tree',
+    decoration: 'tree',
+    size: 'Large',
+    footprintRadiusM: 1.2,
+    blocksMovement: true,
+    blocksLoS: true,
+  },
+  bush: {
+    name: 'Bush',
+    decoration: 'bush',
+    size: 'Small',
+    footprintRadiusM: 0.8,
+    blocksMovement: false,
+    blocksLoS: false,
+  },
+  boulder: {
+    name: 'Boulder',
+    decoration: 'boulder',
+    size: 'Medium',
+    footprintRadiusM: 1,
+    blocksMovement: true,
+    blocksLoS: true,
+  },
+};
+
+const PROP_OBJECT_SIZE: Record<'S' | 'M' | 'L', string> = {
+  S: 'Small',
+  M: 'Medium',
+  L: 'Large',
+};
+
+/** Return the typed natural-feature facts only for kinds combat currently paints. */
+function naturalFeatureTargetFacts(kind: string) {
+  return NATURAL_FEATURE_TARGET_FACTS[kind as TacticalNaturalFeatureKind];
+}
+
+/**
+ * Snap one source anchor to its nearest referee cell. A footprint may touch the
+ * crop while its center sits just beyond the edge, so those objects clamp to the
+ * edge cell rather than disappearing from targeting while still affecting it.
+ */
+function tacticalPositionForWorldAnchor(
+  worldX: number,
+  worldZ: number,
+  playerX: number,
+  playerZ: number,
+  width: number,
+  height: number,
+  footprintRadiusM: number,
+): Position | null {
+  const centerX = Math.floor(width / 2);
+  const centerY = Math.floor(height / 2);
+  const exactX = centerX + (worldX - playerX) / GROUND_METERS_PER_CELL;
+  const exactY = centerY + (worldZ - playerZ) / GROUND_METERS_PER_CELL;
+  const footprintCells = footprintRadiusM / GROUND_METERS_PER_CELL;
+
+  // Refuse objects whose full footprint lies beyond the tactical crop.
+  if (
+    exactX < -0.5 - footprintCells
+    || exactX > width - 0.5 + footprintCells
+    || exactY < -0.5 - footprintCells
+    || exactY > height - 0.5 + footprintCells
+  ) {
+    return null;
+  }
+
+  return {
+    x: Math.max(0, Math.min(width - 1, Math.round(exactX))),
+    y: Math.max(0, Math.min(height - 1, Math.round(exactY))),
+  };
+}
+
+/**
+ * Find the painted cell that actually represents a natural source object.
+ * Route/building precedence can deliberately erase a stale tree, so a source
+ * feature only becomes targetable when at least one cell still draws it.
+ */
+function representedNaturalFeaturePosition(
+  feature: GroundFeature,
+  facts: (typeof NATURAL_FEATURE_TARGET_FACTS)[TacticalNaturalFeatureKind],
+  playerX: number,
+  playerZ: number,
+  width: number,
+  height: number,
+  tiles: Map<string, BattleMapTile>,
+): Position | null {
+  const snapped = tacticalPositionForWorldAnchor(
+    feature.xM,
+    feature.zM,
+    playerX,
+    playerZ,
+    width,
+    height,
+    facts.footprintRadiusM,
+  );
+  if (!snapped) return null;
+
+  let nearest: { position: Position; distance: number } | null = null;
+  for (let y = Math.max(0, snapped.y - 2); y <= Math.min(height - 1, snapped.y + 2); y += 1) {
+    for (let x = Math.max(0, snapped.x - 2); x <= Math.min(width - 1, snapped.x + 2); x += 1) {
+      const tile = tiles.get(`${x}-${y}`);
+      if (tile?.decoration !== facts.decoration) continue;
+      const wx = playerX + (x - Math.floor(width / 2)) * GROUND_METERS_PER_CELL;
+      const wz = playerZ + (y - Math.floor(height / 2)) * GROUND_METERS_PER_CELL;
+      const distance = Math.hypot(wx - feature.xM, wz - feature.zM);
+      if (distance <= facts.footprintRadiusM && (!nearest || distance < nearest.distance)) {
+        nearest = { position: { x, y }, distance };
+      }
+    }
+  }
+  return nearest?.position ?? null;
+}
+
+/** Build the explicit spell-target registry from represented source objects. */
+function projectWorldforgeTargetableObjects(
+  ground: GroundWorld,
+  playerX: number,
+  playerZ: number,
+  width: number,
+  height: number,
+  tiles: Map<string, BattleMapTile>,
+): TargetableMapObject[] {
+  const objects: TargetableMapObject[] = [];
+
+  // Natural features have complete mobility facts: generated vegetation is
+  // rooted and generated boulders are part of the terrain, never loose loot.
+  for (const feature of ground.features) {
+    const facts = naturalFeatureTargetFacts(feature.kind);
+    if (!facts) continue;
+    const position = representedNaturalFeaturePosition(
+      feature,
+      facts,
+      playerX,
+      playerZ,
+      width,
+      height,
+      tiles,
+    );
+    if (!position) continue;
+    const sourceId = `feature:${feature.id}`;
+    objects.push({
+      id: `worldforge-${sourceId}`,
+      name: facts.name,
+      position,
+      size: facts.size,
+      isWornOrCarried: false,
+      isMagical: false,
+      isFixedToSurface: true,
+      source: {
+        kind: 'worldforge-feature',
+        sourceId,
+        sourceKind: feature.kind,
+        worldMeters: { x: feature.xM, z: feature.zM },
+      },
+    });
+  }
+
+  // Catalog props supply identity, size, mundane status, and a physical
+  // footprint. The catalog does not yet distinguish a loose crate from a fixed
+  // fence or publish weight, so those fields remain absent instead of being
+  // invented; restrictive spells treat unknown facts conservatively.
+  for (const prop of ground.props) {
+    const definition = PROPS_BY_ID.get(prop.defId);
+    if (!definition) continue;
+    const footprintRadiusM = propFootprintRadiusM(definition);
+    const position = tacticalPositionForWorldAnchor(
+      prop.xM,
+      prop.zM,
+      playerX,
+      playerZ,
+      width,
+      height,
+      footprintRadiusM,
+    );
+    if (!position) continue;
+    const sourceId = [
+      'prop',
+      prop.defId,
+      Math.round(prop.xM * 100),
+      Math.round(prop.zM * 100),
+      Math.round(prop.rotationRad * 1000),
+    ].join(':');
+    objects.push({
+      id: `worldforge-${sourceId}`,
+      name: definition.name,
+      position,
+      size: PROP_OBJECT_SIZE[definition.sizeClass],
+      isWornOrCarried: false,
+      isMagical: false,
+      source: {
+        kind: 'worldforge-prop',
+        sourceId,
+        sourceKind: prop.defId,
+        worldMeters: { x: prop.xM, z: prop.zM },
+      },
+    });
+  }
+
+  return objects;
+}
+
+/**
+ * Project every named resident whose current source position touches the crop.
+ * Multiple household members may share one cell; the map retains each identity
+ * and lets the renderer cluster them instead of throwing away people here.
+ */
+function projectWorldforgeOccupants(
+  occupants: readonly GroundOccupantProjectionInput[],
+  playerX: number,
+  playerZ: number,
+  width: number,
+  height: number,
+  tiles: Map<string, BattleMapTile>,
+): BattleMapWorldOccupant[] {
+  const projected: BattleMapWorldOccupant[] = [];
+  for (const occupant of occupants) {
+    const sourcePosition = tacticalPositionForWorldAnchor(
+      occupant.xM,
+      occupant.zM,
+      playerX,
+      playerZ,
+      width,
+      height,
+      0,
+    );
+    if (!sourcePosition) continue;
+
+    // A meter-accurate resident can round onto a wall or blocking prop when the
+    // five-foot referee grid discretizes a doorway or narrow interior. Keep the
+    // exact source meters for provenance, but place the ambient marker on the
+    // nearest legal cell so combatants never reserve an impossible location.
+    const sourceTile = tiles.get(`${sourcePosition.x}-${sourcePosition.y}`);
+    let position = sourcePosition;
+    if (sourceTile?.blocksMovement) {
+      let bestDistanceSq = Number.POSITIVE_INFINITY;
+      for (const tile of tiles.values()) {
+        if (tile.blocksMovement) continue;
+        const dx = tile.coordinates.x - sourcePosition.x;
+        const dy = tile.coordinates.y - sourcePosition.y;
+        const distanceSq = dx * dx + dy * dy;
+        if (
+          distanceSq < bestDistanceSq
+          || (distanceSq === bestDistanceSq && (
+            tile.coordinates.y < position.y
+            || (tile.coordinates.y === position.y && tile.coordinates.x < position.x)
+          ))
+        ) {
+          bestDistanceSq = distanceSq;
+          position = tile.coordinates;
+        }
+      }
+    }
+    projected.push({
+      id: `worldforge-occupant:${occupant.burgId}:${occupant.occupantId}`,
+      name: occupant.name,
+      position,
+      activity: occupant.activity ?? 'unknown',
+      moving: occupant.moving ?? false,
+      source: {
+        kind: 'worldforge-occupant',
+        burgId: occupant.burgId,
+        occupantId: occupant.occupantId,
+        worldMeters: { x: occupant.xM, z: occupant.zM },
+      },
+    });
+  }
+  return projected;
+}
+
+/** Optional extraction facts beyond the referee patch dimensions. */
+export interface ExtractLocalTerrainPatchOptions {
+  width?: number;
+  height?: number;
+  /** Current live-clock residents; static GroundWorld sites remain the fallback. */
+  occupants?: readonly GroundOccupantProjectionInput[];
+}
+
 export function extractLocalTerrainPatch(
   ground: GroundWorld,
   playerX: number,
@@ -2427,10 +2760,10 @@ export function extractLocalTerrainPatch(
   // ~120×120 cells (600×600 ft) so longbow + spell ranges fit. Referee data
   // stays tiny at any size; the 2D board pans/zooms. The player always sits at
   // the geometric center tile, so callers may pass any positive dimensions.
-  dimensions?: { width: number; height: number },
+  options?: ExtractLocalTerrainPatchOptions,
 ): BattleMapData {
-  const width = dimensions?.width ?? 40;
-  const height = dimensions?.height ?? 30;
+  const width = options?.width ?? 40;
+  const height = options?.height ?? 30;
   const tiles = new Map<string, BattleMapTile>();
 
   // The player is placed at the center tile of the BattleMap. For the default
@@ -2492,17 +2825,11 @@ export function extractLocalTerrainPatch(
       if (!candidateRoadSurface && !candidateCrossing) {
         for (const f of ground.features) {
           const dist = Math.hypot(wx - f.xM, wz - f.zM);
-          if (f.kind === 'tree' && dist < 1.2) {
-            decoration = 'tree';
-            blocksMovement = true;
-            blocksLoS = true;
-          } else if (f.kind === 'bush' && dist < 0.8) {
-            decoration = 'bush';
-          } else if (f.kind === 'boulder' && dist < 1.0) {
-            decoration = 'boulder';
-            blocksMovement = true;
-            blocksLoS = true;
-          }
+          const featureFacts = naturalFeatureTargetFacts(f.kind);
+          if (!featureFacts || dist >= featureFacts.footprintRadiusM) continue;
+          decoration = featureFacts.decoration;
+          if (featureFacts.blocksMovement) blocksMovement = true;
+          if (featureFacts.blocksLoS) blocksLoS = true;
         }
       }
 
@@ -2641,9 +2968,33 @@ export function extractLocalTerrainPatch(
     }
   }
 
+  // Publish one spell-target record per represented source object after the
+  // grid is complete, so deliberate road/building precedence is respected.
+  const targetableObjects = projectWorldforgeTargetableObjects(
+    ground,
+    playerX,
+    playerZ,
+    width,
+    height,
+    tiles,
+  );
+  // Scenario harnesses and live 3D handoffs can supply fractional-clock agent
+  // positions. Older callers still receive the schedule-derived Ground sites,
+  // so production maps do not silently lose resident identity.
+  const worldOccupants = projectWorldforgeOccupants(
+    options?.occupants ?? ground.occupants,
+    playerX,
+    playerZ,
+    width,
+    height,
+    tiles,
+  );
+
   return {
     dimensions: { width, height },
     tiles,
+    targetableObjects,
+    worldOccupants,
     theme: biome,
     seed,
   };

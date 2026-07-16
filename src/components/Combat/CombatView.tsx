@@ -42,7 +42,10 @@ import ErrorBoundary from '../ui/ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useCombatLog } from '../../hooks/combat/useCombatLog';
 import { useAbilitySystem } from '../../hooks/useAbilitySystem';
-import { generateBattleSetup } from '../../hooks/useBattleMapGeneration';
+import {
+  generateProceduralSandboxBattleSetup,
+  generateWorldBattleSetup,
+} from '../../hooks/useBattleMapGeneration';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID, WINDOW_KEYS } from '../../styles/uiIds';
 import { WindowFrame } from '../ui/WindowFrame';
@@ -53,7 +56,7 @@ import CombatLog from '../BattleMap/CombatLog';
 import ActionEconomyBar from '../BattleMap/ActionEconomyBar';
 import PartyDisplay from '../BattleMap/PartyDisplay';
 import { CombatIntentPreview } from '../BattleMap/CombatIntentPreview';
-import { COMBAT_BTN_BASE, COMBAT_BTN_NEUTRAL, COMBAT_BTN_GREEN, COMBAT_BTN_ORANGE, COMBAT_BTN_INDIGO, COMBAT_BTN_RED } from '../BattleMap/combatUiTheme';
+import { COMBAT_BTN_BASE, COMBAT_BTN_NEUTRAL, COMBAT_BTN_ORANGE, COMBAT_BTN_INDIGO, COMBAT_BTN_RED } from '../BattleMap/combatUiTheme';
 import CharacterSheetModal from '../CharacterSheet/CharacterSheetModal';
 import { CombatCharacterInspector } from '../BattleMap/CombatCharacterInspector';
 import CombatRailControls from '../BattleMap/CombatRailControls';
@@ -77,6 +80,7 @@ import SpellContext from '../../context/SpellContext';
 import { motion } from 'framer-motion';
 import { useGameState } from '../../state/GameContext';
 import { CombatReligionAdapter } from '../../systems/religion/CombatReligionAdapter';
+import BattlefieldSourceGap from './BattlefieldSourceGap';
 
 // [2026-02-10] Rich combat messaging imports.
 // useCombatMessaging: React hook that manages CombatMessage[] state with filtering, configuration,
@@ -102,6 +106,11 @@ const PixiBoardPrototype = lazy(() => import('../BattleMap/pixi/PixiBoardPrototy
 // Dev flag for the next-gen renderer prototype (spec: combat-map-nextgen).
 const usePixiBoard = typeof window !== 'undefined'
   && new URLSearchParams(window.location.search).has('pixiboard');
+// The legacy arena is reachable only through the explicit developer fixture.
+// Ordinary production combat cannot opt in based on a missing map alone.
+const useProceduralCombatSandbox = typeof window !== 'undefined'
+  && canUseDevTools()
+  && new URLSearchParams(window.location.search).get('dev_combat') === '1';
 import { getFightInPlaceHandoff, clearFightInPlaceHandoff } from '../../systems/combat/fightInPlace/fightInPlaceHandoff';
 
 interface CombatViewProps {
@@ -183,15 +192,31 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // The messages are populated by the bridge adapter in handleLogEntry below.
   const messaging = useCombatMessaging();
 
-  // Initialize map and characters directly from props (Lazy Initialization)
-  // This avoids a double-render and "Preparing..." flash that occurred with useEffect
+  // Initialize the combat source directly from props. Production requires a
+  // WorldForge tactical projection; only the explicit ?dev_combat=1 fixture
+  // may construct a procedural arena. Missing source facts become a visible,
+  // non-operational gap instead of silently changing the encounter location.
   const [initialState] = useState(() => {
-    // 1. Create base characters
     const partyCombatants = party.map(p => createPlayerCombatCharacter(p, allSpells as unknown as Record<string, Spell>));
     const initialCombatants = [...partyCombatants, ...enemies];
 
-    // 2. Generate map and positions (injecting pre-extracted battle map if it exists)
-    return generateBattleSetup(biome, seed, initialCombatants, state.extractedBattleMap || undefined);
+    if (state.extractedBattleMap) {
+      return {
+        ...generateWorldBattleSetup(state.extractedBattleMap, seed, initialCombatants),
+        sourceGap: null,
+      };
+    }
+    if (useProceduralCombatSandbox) {
+      return {
+        ...generateProceduralSandboxBattleSetup(biome, seed, initialCombatants),
+        sourceGap: null,
+      };
+    }
+    return {
+      mapData: null,
+      positionedCharacters: initialCombatants,
+      sourceGap: 'The encounter supplied combatants but no extracted terrain, structures, occupants, or encounter anchor from its real location.',
+    };
   });
 
   // Single source of truth for map and characters
@@ -430,11 +455,13 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // localStorage when the same encounter key returns, so refreshes can recover
   // the in-progress history without waiting for a separate save system.
   useEffect(() => {
-    if (characters.length > 0 && turnManager.turnState.turnOrder.length === 0) {
+    // A missing WorldForge projection is a withheld encounter, not a battle
+    // with an invisible map. Do not roll initiative until terrain exists.
+    if (mapData && characters.length > 0 && turnManager.turnState.turnOrder.length === 0) {
       messaging.clearMessages();
       turnManager.initializeCombat(characters);
     }
-  }, [characters, turnManager, messaging.clearMessages]);
+  }, [characters, mapData, turnManager, messaging.clearMessages]);
 
   const handleRequestInput = useCallback((spell: Spell, onConfirm: (input: string) => void) => {
     setInputModalSpell(spell);
@@ -549,15 +576,6 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // We can pass `autoCharacters` to `useTurnManager` and it will react if we put it in dependencies.
   // Let's check `useTurnManager.ts` again.
 
-  // Regenerate the battlefield terrain and reposition the current combatants on
-  // it. Roster and HP are preserved (the same character objects are re-placed),
-  // so this is a "reshuffle the map" affordance rather than a combat reset.
-  const handleNewMap = useCallback(() => {
-    const setup = generateBattleSetup(biome, Date.now(), characters, state.extractedBattleMap || undefined);
-    setMapData(setup.mapData);
-    setCharacters(setup.positionedCharacters);
-  }, [biome, characters, state.extractedBattleMap]);
-
   const handleAbilitySelect = useCallback((ability: Ability, character: CombatCharacter) => {
     abilitySystem.startTargeting(ability, character);
 
@@ -588,7 +606,9 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     setSheetCharacter(null);
   };
 
-  const currentCharacter = turnManager.getCurrentCharacter();
+  // UI controls use null for "no active turn" so they do not inherit an
+  // undefined value while the turn order is still being prepared.
+  const currentCharacter = turnManager.getCurrentCharacter() ?? null;
 
   // Objective at a glance: the win condition should not require scrolling the
   // enemy roster below the fold.
@@ -605,7 +625,9 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
 
   useCombatAI({
     difficulty: 'normal',
-    characters,
+    // AI receives no actors while the encounter is withheld. This prevents an
+    // unsupported production caller from advancing combat behind the gap UI.
+    characters: mapData ? characters : [],
     mapData,
     currentCharacterId: turnManager.turnState.currentCharacterId,
     executeAction: turnManager.executeAction,
@@ -613,6 +635,15 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     endTurn: turnManager.endTurn,
     autoCharacters
   });
+
+  if (initialState.sourceGap) {
+    return (
+      <BattlefieldSourceGap
+        detail={initialState.sourceGap}
+        onReturn={() => dispatch({ type: 'END_BATTLE' })}
+      />
+    );
+  }
 
   return (
     <div
@@ -833,16 +864,6 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
         >
           {enemiesRemaining > 0 ? `⚔ ${enemiesRemaining} ${enemiesRemaining === 1 ? 'enemy remains' : 'enemies remain'}` : '✓ Battlefield clear'}
         </span>
-        <button
-          onClick={() => {
-            // Rerolling the battlefield mid-fight is destructive to the tactical
-            // situation; a mis-click should not silently discard positioning.
-            if (window.confirm('Generate a new battlefield? Combatants will be repositioned.')) handleNewMap();
-          }}
-          className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_GREEN}`}
-        >
-          <span>🗺</span> New Map
-        </button>
         <button
           onClick={turnManager.endTurn}
           disabled={!currentCharacter || !turnManager.isCharacterTurn(currentCharacter.id)}

@@ -402,21 +402,24 @@ describe('TargetResolver', () => {
         name: 'Tiny Stone',
         position: { x: 11, y: 10 },
         size: 'Tiny',
-        weightPounds: 2
+        weightPounds: 2,
+        isFixedToSurface: false
       }, mockGameState)).toBe(true)
       expect(TargetResolver.isValidObjectTarget(targeting, caster, {
         id: 'heavy-stone',
         name: 'Heavy Stone',
         position: { x: 11, y: 10 },
         size: 'Tiny',
-        weightPounds: 30
+        weightPounds: 30,
+        isFixedToSurface: false
       }, mockGameState)).toBe(false)
       expect(TargetResolver.getObjectTargetRejectionReason(targeting, caster, {
         id: 'heavy-stone',
         name: 'Heavy Stone',
         position: { x: 11, y: 10 },
         size: 'Tiny',
-        weightPounds: 30
+        weightPounds: 30,
+        isFixedToSurface: false
       }, mockGameState)).toMatchObject({
         code: 'object_too_heavy'
       })
@@ -425,14 +428,16 @@ describe('TargetResolver', () => {
         name: 'Large Stone',
         position: { x: 11, y: 10 },
         size: 'Large',
-        weightPounds: 2
+        weightPounds: 2,
+        isFixedToSurface: false
       }, mockGameState)).toBe(false)
       expect(TargetResolver.getObjectTargetRejectionReason(targeting, caster, {
         id: 'large-stone',
         name: 'Large Stone',
         position: { x: 11, y: 10 },
         size: 'Large',
-        weightPounds: 2
+        weightPounds: 2,
+        isFixedToSurface: false
       }, mockGameState)).toMatchObject({
         code: 'object_too_large'
       })
@@ -516,14 +521,16 @@ describe('TargetResolver', () => {
           name: 'Loose Stone',
           position: { x: 11, y: 10 },
           size: 'Tiny',
-          weightPounds: 3
+          weightPounds: 3,
+          isFixedToSurface: false
         },
         {
           id: 'heavy-stone',
           name: 'Heavy Stone',
           position: { x: 11, y: 10 },
           size: 'Medium',
-          weightPounds: 30
+          weightPounds: 30,
+          isFixedToSurface: false
         }
       ])
 

@@ -1,0 +1,92 @@
+{
+  "id": "fix00002",
+  "name": "Gutter Ooze",
+  "slug": "gutter-ooze-fix00002",
+  "description": "a squat gutter ooze trailing six tentacles",
+  "plan": {
+    "name": "Gutter Ooze",
+    "frame": {
+      "heightFt": 2.5,
+      "lengthFt": 5,
+      "bulk": 1,
+      "stance": "horizontal"
+    },
+    "spine": {
+      "segments": 3,
+      "taper": 0.7,
+      "arch": 0.3
+    },
+    "appendages": [
+      {
+        "kind": "tentacle",
+        "attach": 0.2,
+        "heightFrac": 0.4,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 1.5,
+            "r": 0.36
+          },
+          {
+            "lenFt": 1.1,
+            "r": 0.2
+          }
+        ]
+      },
+      {
+        "kind": "tentacle",
+        "attach": 0.55,
+        "heightFrac": 0.7,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 0.9,
+            "r": 0.28
+          },
+          {
+            "lenFt": 0.6,
+            "r": 0.14
+          }
+        ]
+      },
+      {
+        "kind": "tentacle",
+        "attach": 0.85,
+        "heightFrac": 0.45,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 1.9,
+            "r": 0.3
+          },
+          {
+            "lenFt": 1.4,
+            "r": 0.18
+          },
+          {
+            "lenFt": 1,
+            "r": 0.1
+          }
+        ]
+      }
+    ],
+    "heads": [
+      {
+        "sizeScale": 0.7,
+        "eyes": {
+          "count": 3,
+          "sizeScale": 0.8
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#5d7d3a",
+      "accentHex": "#8aa84e",
+      "eyeHex": "#dce34f"
+    }
+  },
+  "status": "generated",
+  "createdAt": "2026-07-15T22:51:12.590Z"
+}

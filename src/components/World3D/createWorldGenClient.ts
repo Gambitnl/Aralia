@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 15/07/2026, 23:01:56
+ * Dependents: App.tsx, components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx, components/World3D/World3DWrapper.tsx
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file createWorldGenClient.ts
  * @description Host-side client for staged, off-thread 3D world entry. Owns a
@@ -107,8 +123,19 @@ export function createWorldGenClient(
   const spawn = (): void => {
     const w = workerFactory();
     w.onmessage = handleMessage;
-    // If the worker dies, drop it so the next generate() respawns a fresh one.
-    w.onerror = () => {
+    // If the worker dies, surface the failure to the active no-fallback caller
+    // and drop it so a later generate() can respawn a fresh worker. Without the
+    // callback, one-shot production consumers would wait forever and never
+    // reach their explicit source-gap state.
+    w.onerror = (event) => {
+      const message = event instanceof ErrorEvent && event.message
+        ? event.message
+        : 'World generation worker failed before completing the source artifact.';
+      activeStages?.onError?.(message);
+      // A one-shot error callback may dispose the client synchronously. Clear
+      // the reference only afterward so that disposal can still terminate the
+      // failed worker; streaming callers that remain mounted simply respawn on
+      // their next generate() request.
       if (worker === w) worker = null;
     };
     worker = w;
@@ -140,4 +167,39 @@ export function createWorldGenClient(
   spawn();
 
   return { generate, dispose };
+}
+
+/**
+ * Build one complete GroundWorld and dispose its worker immediately afterward.
+ *
+ * World3D uses the streaming client because it can render Stage A before props
+ * arrive. Production systems such as a travel encounter need the opposite
+ * contract: do not project combat until the full source artifact is ready. This
+ * adapter preserves the same worker pipeline while giving those callers one
+ * promise and one explicit error boundary.
+ */
+export function loadCompleteGroundWorld(
+  req: WorldGenRequest,
+  workerFactory: WorkerFactory = defaultWorkerFactory,
+): Promise<GroundWorld> {
+  const client = createWorldGenClient(workerFactory);
+
+  return new Promise<GroundWorld>((resolve, reject) => {
+    let settled = false;
+    const finish = (result: { ground: GroundWorld } | { error: Error }): void => {
+      if (settled) return;
+      settled = true;
+      client.dispose();
+      if ('ground' in result) resolve(result.ground);
+      else reject(result.error);
+    };
+
+    client.generate(req, {
+      // Stage A is intentionally not exposed: travel combat must not extract a
+      // partially dressed world and then disagree with the 3D source view.
+      onStageA: () => {},
+      onStageB: (ground) => finish({ ground }),
+      onError: (message) => finish({ error: new Error(message) }),
+    });
+  });
 }

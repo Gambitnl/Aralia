@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 27/06/2026, 01:55:54
- * Dependents: state/reducers/craftingReducer.ts, types/index.ts, utils/world/sceneUtils.ts, utils/world/worldGeographyAdapter.ts
+ * Last Sync: 15/07/2026, 09:53:50
+ * Dependents: components/MapPane.tsx, components/World3D/entryCellIdentity.ts, state/appState.ts, state/reducers/craftingReducer.ts, systems/adventureLog/adventureLog.ts, systems/adventureLog/oraclePrompt.ts, systems/party/recruitConsent.ts, systems/worldforge/local/gridAtlasBridge.ts, types/index.ts, types/travelMeta.ts, utils/world/sceneUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -34,6 +34,7 @@ import { NavalState, Ship } from './naval.js';
 import { CraftingState } from './crafting.js';
 import { JournalState } from './journal.js';
 import type { WorldDelta } from '../systems/worldforge/delta/types.js';
+import type { WorldforgeEncounterReceipt } from '../systems/combat/worldScenario/statePatrolWorldEvent.js';
 import type { Notification } from './ui.js';
 import { PlayerIdentityState } from './identity.js';
 
@@ -523,6 +524,12 @@ export interface GameState {
   // Plot/building edits are stored as JSON-safe deltas so regenerated village
   // geometry can be replayed after loading a save.
   worldforgeDeltas: WorldDelta[];
+
+  // Generated-world encounter history
+  // A receipt records that one deterministic WorldForge encounter event has
+  // already fired. It stays separate from physical deltas because combat does
+  // not itself reshape the source terrain or settlement plan.
+  worldforgeEncounterReceipts: WorldforgeEncounterReceipt[];
 
   // SP4 discovery: hidden off-map places the player has revealed by 3D proximity,
   // with the tile where found. Persisted so discoveries survive reload + pin on the atlas.

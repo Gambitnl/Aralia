@@ -1,6 +1,29 @@
+// @dependencies-start
 /**
- * @file InitiativeTracker.tsx
- * Horizontal turn-order strip rendered above the battle map.
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 15/07/2026, 06:36:59
+ * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+/**
+ * This file renders the compact turn order above the battle map.
+ *
+ * It keeps every actor selectable and summarizes identity, health, and death
+ * state in a narrow horizontal strip. Source-world defenders use their military
+ * role as the short label because repeating only the faction name would make
+ * archers and infantry indistinguishable at the combat UI's main glance point.
+ *
+ * Called by: BattleMapDemo and the production combat shell
+ * Depends on: combat turn state, shared token visuals, and WindowFrame
  */
 import React, { useState } from 'react';
 import { CombatCharacter, TurnState } from '../../types/combat';
@@ -14,6 +37,24 @@ interface InitiativeTrackerProps {
   turnState: TurnState;
   onCharacterSelect?: (characterId: string) => void;
   onSkipToCharacter?: (characterId: string) => void;
+}
+
+// ============================================================================
+// Compact Identity Labels
+// ============================================================================
+// Ordinary characters retain the established first-name label. Generated
+// regiment actors instead show role + representative number, while their full
+// faction-bearing name remains available in the tooltip and accessible label.
+// ============================================================================
+
+export function initiativeShortLabel(character: CombatCharacter): string {
+  const source = character.worldSource;
+  if (source?.kind !== 'worldforge-defender') return character.name.split(' ')[0];
+
+  const role = source.unitType === 'archers'
+    ? 'Archer'
+    : source.unitType === 'infantry' ? 'Infantry' : source.unitType;
+  return `${role} ${source.representativeIndex}`;
 }
 
 export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
@@ -37,6 +78,7 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
         const initial   = char.name[0].toUpperCase();
         const canSkip   = !!onSkipToCharacter && !isCurrent;
         const visual    = getCreatureTokenVisual(char);
+        const shortLabel = initiativeShortLabel(char);
 
         return (
           <Tooltip
@@ -85,8 +127,8 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
               </div>
 
               {/* Name */}
-              <span className="text-[9px] text-gray-300 max-w-[48px] truncate leading-none">
-                {char.name.split(' ')[0]}
+              <span className="max-w-[52px] truncate text-[9px] leading-none text-gray-300">
+                {shortLabel}
               </span>
 
               {/* 

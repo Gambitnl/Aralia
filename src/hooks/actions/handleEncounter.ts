@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/06/2026, 00:38:31
- * Dependents: hooks/actions/actionHandlers.ts
- * Imports: 6 files
+ * Last Sync: 15/07/2026, 08:56:38
+ * Dependents: App.tsx, components/World3D/World3DWrapper.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/useDeEscalation.ts, hooks/useSeaEncounter.ts
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -105,14 +105,17 @@ export function handleHideEncounterModal(dispatch: React.Dispatch<AppAction>): v
 }
 
 export async function handleStartBattleMapEncounter(dispatch: React.Dispatch<AppAction>, payload: StartBattleMapEncounterPayload): Promise<void> {
-    // Build combat-ready enemies only when the player actually starts a battle.
-    // createEnemyFromMonster imports the runtime monster registry, which pulls in
-    // the generated bestiary; keeping that import here prevents the main menu
-    // from downloading monster data during startup.
-    const { createEnemyFromMonster } = await import('../../utils/combat/createEnemyFromMonster');
-    const combatants = payload.monsters.flatMap((monster) =>
-        Array.from({ length: monster.quantity }, (_, i) => createEnemyFromMonster(monster, i))
-    );
+    // A source-world encounter may already provide regiment-derived actors with
+    // stable WorldForge identities. Preserve those prepared combatants instead
+    // of rebuilding them as generic bestiary monsters. Callers without a map
+    // may still prepare their actors here, but CombatView deliberately withholds
+    // play until that encounter class supplies a real WorldForge projection.
+    const combatants = payload.combatants ?? await (async () => {
+        const { createEnemyFromMonster } = await import('../../utils/combat/createEnemyFromMonster');
+        return payload.monsters.flatMap((monster) =>
+            Array.from({ length: monster.quantity }, (_, i) => createEnemyFromMonster(monster, i))
+        );
+    })();
     dispatch({ type: 'START_BATTLE_MAP_ENCOUNTER', payload: { startBattleMapEncounterData: { ...payload, combatants } } });
 }
 

@@ -58,6 +58,25 @@ const abilityTargeting = vi.hoisted(() => ({
   cancelTargeting: vi.fn(),
 }));
 
+// Most layout tests exercise a valid source-backed encounter. Individual tests
+// can remove this map to prove the production shell fails closed instead of
+// inheriting the old procedural fallback.
+const gameContext = vi.hoisted(() => {
+  const worldBattleMap = {
+    dimensions: { width: 8, height: 8 },
+    tiles: new Map(),
+    theme: 'forest',
+    seed: 42,
+  };
+  return {
+    worldBattleMap,
+    extractedBattleMap: worldBattleMap as unknown,
+    dispatch: vi.fn(),
+  };
+});
+
+const combatAI = vi.hoisted(() => ({ useCombatAI: vi.fn() }));
+
 const targetingAbility: Ability = {
   id: 'fire-bolt',
   name: 'Fire Bolt',
@@ -94,14 +113,18 @@ vi.mock('../../Crafting/CreatureHarvestPanel', () => ({ CreatureHarvestPanel: ()
 
 vi.mock('../../../state/GameContext', () => ({
   useGameState: () => ({
-    state: { extractedBattleMap: null },
-    dispatch: vi.fn(),
+    state: { extractedBattleMap: gameContext.extractedBattleMap },
+    dispatch: gameContext.dispatch,
   }),
 }));
 
 vi.mock('../../../hooks/useBattleMapGeneration', () => ({
-  generateBattleSetup: () => ({
-    mapData: { dimensions: { width: 8, height: 8 }, tiles: [] },
+  generateWorldBattleSetup: (mapData: unknown) => ({
+    mapData,
+    positionedCharacters: [combatants.player, combatants.enemy],
+  }),
+  generateProceduralSandboxBattleSetup: () => ({
+    mapData: gameContext.worldBattleMap,
     positionedCharacters: [combatants.player, combatants.enemy],
   }),
 }));
@@ -162,7 +185,7 @@ vi.mock('../../../hooks/combat/useCombatMessaging', () => ({
   }),
 }));
 
-vi.mock('../../../hooks/combat/useCombatAI', () => ({ useCombatAI: vi.fn() }));
+vi.mock('../../../hooks/combat/useCombatAI', () => combatAI);
 vi.mock('../../../hooks/combat/useCombatOutcome', () => ({
   useCombatOutcome: () => combatOutcome,
 }));
@@ -191,6 +214,9 @@ describe('CombatView responsive layout', () => {
     abilityTargeting.targetingMode = false;
     abilityTargeting.selectedAbility = null;
     abilityTargeting.cancelTargeting.mockClear();
+    gameContext.extractedBattleMap = gameContext.worldBattleMap;
+    gameContext.dispatch.mockClear();
+    combatAI.useCombatAI.mockClear();
   });
 
   it('lets mobile combat rails expand in the page while desktop keeps bounded rail scrolling', () => {
@@ -232,10 +258,38 @@ describe('CombatView responsive layout', () => {
       </SpellContext.Provider>,
     );
 
-    expect(screen.getByRole('button', { name: /New Map/i })).toHaveClass('min-h-11');
+    // Source-authoritative production combat cannot replace its location with
+    // a rerolled arena. That command belongs only to BattleMapDemo's sandbox.
+    expect(screen.queryByRole('button', { name: /New Map/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /End Turn/i })).toHaveClass('min-h-11');
     expect(screen.getByRole('button', { name: /3D View/i })).toHaveClass('min-h-11');
     expect(screen.getByRole('button', { name: /End Battle/i })).toHaveClass('min-h-11');
+  });
+
+  it('withholds combat when the encounter has no WorldForge battlefield source', () => {
+    gameContext.extractedBattleMap = null;
+
+    render(
+      <SpellContext.Provider value={{} as any}>
+        <CombatView
+          party={[{ id: 'party-1', name: 'Dev Player' } as any]}
+          enemies={[combatants.enemy as any]}
+          biome="forest"
+          onBattleEnd={vi.fn()}
+        />
+      </SpellContext.Provider>,
+    );
+
+    expect(screen.getByTestId('battlefield-source-gap')).toHaveTextContent('WorldForge tactical projection');
+    expect(screen.getByTestId('battlefield-source-gap')).toHaveTextContent('Missing');
+    expect(screen.getByTestId('battlefield-source-gap')).toHaveTextContent('Procedural production fallback');
+    expect(screen.getByTestId('battlefield-source-gap')).toHaveTextContent('Withheld');
+    expect(screen.queryByTestId('mock-battle-map')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('mock-initiative-tracker')).not.toBeInTheDocument();
+    expect(combatAI.useCombatAI).toHaveBeenLastCalledWith(expect.objectContaining({ characters: [] }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Return to world' }));
+    expect(gameContext.dispatch).toHaveBeenCalledWith({ type: 'END_BATTLE' });
   });
 
   it('lets the player independently hide and restore both combat rails', () => {

@@ -69,7 +69,7 @@ The remaining actionable work from this roadmap was routed into durable project 
 
 - Dataset Coverage Gate versus Runtime Verification Gate thresholds now belong to `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md` as `spell-completeness-audit-G4`.
 - Deterministic roadmap node-ID conventions now belong to `docs/projects/roadmap-maintenance/GAPS.md` as `G6`.
-- Spell Detail Term Linking now belongs to `docs/projects/glossary-ui/GAPS.md` as `G8`.
+- Spell Detail Term Linking now belongs to the planmap `glossary-structured-content` topic as gap `G8` (Glossary UI project absorbed; see `docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md`).
 - Historical level-rollup drift now belongs to `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md` as part of `spell-completeness-audit-G2` and `spell-completeness-audit-G4`.
 
 This file is now reference context, not an executable backlog.

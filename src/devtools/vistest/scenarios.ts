@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 15/07/2026, 09:57:59
+ * Dependents: components/DesignPreview/steps/PreviewVisTest.tsx, devtools/vistest/runnerCore.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file scenarios.ts — the visual test scenario registry.
  *
@@ -119,10 +135,78 @@ export const SCENARIOS: VisScenario[] = [
     ],
   },
   {
+    id: 'combat-world-source-gap',
+    title: 'World battle: missing source fails closed',
+    group: 'combat',
+    url: '?dummy=1&dev_combat_source_gap=1',
+    notes: 'The real production CombatView receives actors without a WorldForge projection and must remain inert, explain the missing source, and visibly withhold the procedural fallback.',
+    capture: [
+      {
+        kind: 'waitHook',
+        expr: `document.querySelector('[data-testid="battlefield-source-gap"]')?.textContent?.includes('WorldForge tactical projection') && document.querySelector('[data-testid="battlefield-source-gap"]')?.textContent?.includes('Procedural production fallback') && document.querySelector('[data-testid="battlefield-source-gap"]')?.textContent?.includes('Withheld')`,
+        timeoutMs: 90000,
+      },
+      // The state itself is static; this brief pause lets the app transition
+      // finish so the screenshot cannot catch leftover exploration chrome.
+      { kind: 'sleep', ms: 1000 },
+      { kind: 'screenshot' },
+    ],
+  },
+  {
+    id: 'combat-world-settlement-edge',
+    title: 'World battle: Legium wanted-party watch confrontation',
+    group: 'combat',
+    url: 'misc/design.html?step=battlemaplab&scenario=legium-settlement-edge',
+    notes: 'A real Legium gatehouse anchors a settlement-edge fight; residents retain scheduled positions while a labeled witnessed-crime fixture authorizes Turino\'s source regiment patrol through the same rule a live player-state caller can use.',
+    capture: [
+      {
+        kind: 'waitHook',
+        expr: `document.querySelectorAll('[data-testid="world-occupant-marker"]').length > 0 && document.querySelector('[data-testid="scenario-occupant-facts"]')?.textContent?.includes('Projected identities') && document.querySelector('[data-testid="scenario-defender-facts"]')?.textContent?.includes('1st (Legium) Regiment') && document.querySelector('[data-testid="scenario-defender-facts"]')?.textContent?.includes('Combat verdictHostile') && document.querySelector('[data-testid="scenario-defender-facts"]')?.textContent?.includes('watch-confrontation / visual-harness') && document.querySelector('[data-testid="scenario-defender-facts"]')?.textContent?.includes('1 witnessed crime in cell_829') && document.body.textContent?.includes('Turino Archer 1') && document.querySelector('[data-testid="scenario-diagnostics"]')?.textContent?.includes('Settlement edge')`,
+        timeoutMs: 90000,
+      },
+      // Wait for whole-map fit and resident grouping to settle after the worker
+      // result mounts; the screenshot then represents the stable audit state.
+      { kind: 'sleep', ms: 3000 },
+      { kind: 'screenshot' },
+    ],
+  },
+  {
+    id: 'combat-world-live-watch',
+    title: 'World battle: live-position watch interception',
+    group: 'combat',
+    url: 'misc/design.html?step=battlemaplab&scenario=legium-watch-interception',
+    notes: 'The production settlement-watch frame keeps the party on the exact live crop anchor and deploys source Turino defenders from the town side; the deterministic crime remains visibly labeled as a visual fixture.',
+    capture: [
+      {
+        kind: 'waitHook',
+        expr: `document.querySelector('[data-testid="battle-map-scenario-lab"]')?.textContent?.includes('Live Watch') && document.querySelector('[data-testid="scenario-defender-facts"]')?.textContent?.includes('Combat verdictHostile') && document.querySelector('[data-testid="scenario-defender-facts"]')?.textContent?.includes('watch-confrontation / visual-harness') && document.body.textContent?.includes('Watch interception') && document.body.textContent?.includes('Turino Infantry 1')`,
+        timeoutMs: 90000,
+      },
+      { kind: 'sleep', ms: 3000 },
+      { kind: 'screenshot' },
+    ],
+  },
+  {
+    id: 'combat-world-state-patrol',
+    title: 'World battle: generated-state patrol interception',
+    group: 'combat',
+    url: 'misc/design.html?step=battlemaplab&scenario=legium-state-patrol',
+    notes: 'A deterministic hostile Turino standing fixture drives the production state-confrontation frame, source regiment actors, and current-position deployment without masquerading as a local watch arrest.',
+    capture: [
+      {
+        kind: 'waitHook',
+        expr: `document.querySelector('[data-testid="battle-map-scenario-lab"]')?.textContent?.includes('State Patrol') && document.querySelector('[data-testid="scenario-defender-facts"]')?.textContent?.includes('Combat verdictHostile') && document.querySelector('[data-testid="scenario-defender-facts"]')?.textContent?.includes('state-confrontation / visual-harness') && document.querySelector('[data-testid="scenario-defender-facts"]')?.textContent?.includes('HOSTILE standing -55') && document.querySelector('[data-testid="scenario-diagnostics"]')?.textContent?.includes('Encounter frameState patrol') && document.body.textContent?.includes('State patrol') && document.body.textContent?.includes('Turino Infantry 1')`,
+        timeoutMs: 90000,
+      },
+      { kind: 'sleep', ms: 3000 },
+      { kind: 'screenshot' },
+    ],
+  },
+  {
     id: 'combat-world-road-ambush',
     title: 'World battle: regional-route ambush',
     group: 'combat',
-    url: 'misc/design.html?step=battlemaplab',
+    url: 'misc/design.html?step=battlemaplab&scenario=wilderness-road-ambush',
     notes: 'A real seed-42 regional route crosses the full referee map; party tokens form a road column, enemies occupy both flanks, and projection diagnostics report source parity.',
     capture: [
       // The worker-built scenario is ready only after both the live combat shell
@@ -151,6 +235,24 @@ export const SCENARIOS: VisScenario[] = [
       },
       // Let the ground painter settle after the worker result mounts so this is
       // visual evidence of the final over-water crossing pass, not a load frame.
+      { kind: 'sleep', ms: 3000 },
+      { kind: 'screenshot' },
+    ],
+  },
+  {
+    id: 'combat-world-targetable-objects',
+    title: 'World battle: source object targets',
+    group: 'combat',
+    url: 'misc/design.html?step=battlemaplab&scenario=legium-town-skirmish',
+    notes: 'Real Legium feature and prop anchors publish provenance-bearing spell targets; cyan circles mark natural features, amber diamonds mark catalog props, and diagnostics expose incomplete mobility/weight facts.',
+    capture: [
+      {
+        kind: 'waitHook',
+        expr: `document.querySelectorAll('[data-testid="targetable-object-fact-marker"]').length > 0 && document.querySelector('[data-testid="scenario-object-facts"]')?.textContent?.includes('Incomplete mobility / weight')`,
+        timeoutMs: 90000,
+      },
+      // Object rings mount with the worker result. A short pause lets the map
+      // camera finish its initial fit before this review layer is captured.
       { kind: 'sleep', ms: 3000 },
       { kind: 'screenshot' },
     ],

@@ -31,7 +31,7 @@ Out of scope:
 - The project is registered in `docs/projects/PROJECT_TRACKER.md`.
 - Dependency links are already established to:
   - `docs/projects/phb2024_glossary_audit/NORTH_STAR.md`
-  - `docs/projects/glossary-ui/NORTH_STAR.md`
+  - `docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md` (Glossary UI project, absorbed into the planmap `glossary-structured-content` topic)
   - `docs/projects/item_categorization/NORTH_STAR.md`
 
 ## Planned State
@@ -77,10 +77,11 @@ D24 decision; it should not receive new forward iteration work. Remaining PHB
 glossary scope-overlap questions route here, while item metadata and equipment
 taxonomy decisions route to `docs/projects/item_categorization`.
 
-`docs/projects/glossary-ui` owns rendered glossary UI behavior, link rendering,
-modal/search behavior, and rebuild-pipeline proof. Runtime glossary changes
-should enter through that project unless the work is only terminology policy or
-audit-scope clarification.
+The planmap `glossary-structured-content` topic (see
+`docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md`) owns rendered
+glossary UI behavior, link rendering, modal/search behavior, and
+rebuild-pipeline proof. Runtime glossary changes should enter through that
+topic unless the work is only terminology policy or audit-scope clarification.
 
 ## Glossary Link Surface Taxonomy
 

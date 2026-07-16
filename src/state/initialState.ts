@@ -353,6 +353,12 @@ export const initialGameState: GameState = {
     // regenerated village geometry can replay saved player/world changes.
     worldforgeDeltas: [],
 
+    // Generated-world encounter receipts
+    // Fresh games have not consumed any deterministic settlement patrol events.
+    // These are saved separately from terrain deltas so combat history cannot be
+    // mistaken for a mutation of the generated town.
+    worldforgeEncounterReceipts: [],
+
     // SP4 discovery: no hidden off-map places revealed yet.
     discoveredHiddenSites: [],
 };

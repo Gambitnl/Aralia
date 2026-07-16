@@ -156,6 +156,9 @@ src/components/DesignPreview/*
 src/components/DesignPreview/steps/*
 !src/components/DesignPreview/steps/PreviewSpellDataFlow.tsx
 !src/components/DesignPreview/steps/PreviewDungeon.tsx
+# The World Battle Lab is a canonical Vistest/debug contract, not a local-only
+# preview experiment; keep this one scenario harness in shared history.
+!src/components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx
 src/design-preview.tsx
 src/components/SpellPipelineAtlas/
 src/spell-pipeline-atlas.tsx
@@ -241,6 +244,10 @@ take_screenshot.js
 # Default scratch dir for throwaway proofs is .agent/scratch/. Verify with
 # `git check-ignore <path>` before writing proof anywhere new.
 .agent/scratch/
+# Vistest also emits disposable rendered proof captures. Existing tracked images are
+# preserved for now, but future captures must remain local so daily snapshots do not
+# accidentally publish transient visual evidence.
+.agent/vistest/
 .agent/azgaar-ref/
 .agent/town-compare/
 # Testkit run history + baselines (throwaway proof, spec 2026-07-14-testkit)

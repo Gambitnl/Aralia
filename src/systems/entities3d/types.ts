@@ -16,8 +16,9 @@
 /** Feet → meters. The one conversion constant; renderers apply it, data never does. */
 export const FT_TO_M = 0.3048;
 
-/** Locomotion archetype. First five ported from the blobfolk prototype; `float` is a wingless hover. */
-export type Gait = 'biped' | 'quad' | 'hexapod' | 'hopper' | 'flyer' | 'float';
+/** Locomotion archetype. First five ported from the blobfolk prototype; `float` is a
+ * wingless hover; `plan` is driven by a compiled text-to-creature PlanSpec. */
+export type Gait = 'biped' | 'quad' | 'hexapod' | 'hopper' | 'flyer' | 'float' | 'plan';
 
 /** Named attachment points the gait runtime positions every frame. */
 export type Anchor =
@@ -110,7 +111,43 @@ export type EntityRecipe =
       seed: string;
       /** Name-derived hints, lowercase: 'spider', 'wolf', 'skeleton'… */
       cues?: string[];
+    }
+  | {
+      kind: 'planned';
+      /** A validated text-to-creature body plan (see textPlan/planSchema). */
+      plan: import('./textPlan/planSchema').CreaturePlan;
+      seed: string;
     };
+
+/** Compiled, driver-ready body plan (METERS — compilePlan converts from feet). */
+export interface PlanSpec {
+  stance: 'upright' | 'horizontal' | 'serpentine' | 'floating';
+  /** Nose-to-tail body length (uprights: derived from height). */
+  bodyLenM: number;
+  /** Base body radius; chain link radii are fractions of this. */
+  bodyRadM: number;
+  spine: { segments: number; taper: number; arch: number };
+  chains: Array<{
+    /** Stable id: 'leg0L', 'tent2', 'neck1' … */
+    id: string;
+    kind: 'leg' | 'arm' | 'tail' | 'tentacle' | 'neck' | 'wing';
+    /** -1 left / 1 right for mirrored pairs; 0 centered. */
+    side: -1 | 0 | 1;
+    /** 0 front – 1 rear along the spine; 0–1 height on the body. */
+    attach: number;
+    heightFrac: number;
+    links: Array<{ lenM: number; rM: number }>;
+    /** Stride phase for legs (distributed); 0 for other kinds. */
+    phaseOffset: number;
+  }>;
+  heads: Array<{
+    /** Neck chain this head rides; undefined = spine front. */
+    chainId?: string;
+    sizeScale: number;
+    eyes: { count: number; sizeScale: number };
+    snout?: { lengthScale: number; droop: number };
+  }>;
+}
 
 /** Fully resolved, deterministic build description. Pure data — no three.js. */
 export interface EntityBlueprint {
@@ -120,6 +157,8 @@ export interface EntityBlueprint {
   parts: PartInstance[];
   /** Human-readable: "Hill Dwarf Wizard", "Large Beast". */
   label: string;
+  /** Present when gait is 'plan' — the compiled text-to-creature body. */
+  planSpec?: PlanSpec;
 }
 
 /** Receives metaballs. The assembler adapts this onto its MarchingCubes field.

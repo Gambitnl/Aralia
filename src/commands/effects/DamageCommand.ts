@@ -74,7 +74,9 @@ const DEFAULT_VERBS = ['damages', 'hits', 'strikes', 'hurts'];
  * Command to apply damage to targets.
  * Handles damage calculation, HP reduction, and triggers concentration saves.
  */
-export class DamageCommand extends BaseEffectCommand {
+// The generic base contract keeps helper methods aligned with the same damage
+// shape that execute() already validates, without changing the runtime guard.
+export class DamageCommand extends BaseEffectCommand<DamageEffect> {
   async execute(state: CombatState): Promise<CombatState> {
     if (!isDamageEffect(this.effect)) {
       console.warn('DamageCommand received non-damage effect')

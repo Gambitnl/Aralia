@@ -525,6 +525,30 @@ describe('makeGroundWorld building terrain pads', () => {
     }
   });
 
+  it('carries atlas settlement-defense facts beside the matching ground town', () => {
+    const local = makeLocalArtifact();
+    const region = makeRegionArtifact();
+    const ground = makeGroundWorld(local, 42, region, { hour: 12 });
+    const burgId = region.townSites[0].burgId;
+    const defense = ground.settlementDefenses?.find((candidate) => candidate.burgId === burgId);
+
+    // The fixture's burg is Mevile. Its exact generated state and stationed
+    // fleet prove that Ground is forwarding atlas military facts, even though
+    // this particular settlement has no land regiment for a gate patrol.
+    expect(defense).toMatchObject({
+      burgId,
+      burgName: 'Mevile',
+      stateName: 'Mevilia',
+      stationedRegiments: [
+        expect.objectContaining({
+          name: '1st Fleet',
+          naval: true,
+          units: [{ unitType: 'fleet', count: 7 }],
+        }),
+      ],
+    });
+  });
+
   it('opens the wall ring at road gatehouses (not only water gates)', () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
@@ -818,6 +842,157 @@ describe('extractLocalTerrainPatch', () => {
     expect(roadTile?.blocksLoS).toBe(false);
     expect(roadTile?.decoration).toBeNull();
     expect(offRoadTile?.surface).toBeUndefined();
+    // The route-authority pass erased the stale tree from the referee grid, so
+    // it must not survive as an invisible spell target on the same cell.
+    expect(patch.targetableObjects).toEqual([]);
+  });
+
+  it('publishes one provenance-bearing target per represented feature and catalog prop', () => {
+    const cols = 100;
+    const rows = 100;
+    const ground = makeGroundWorldFixture({
+      cols,
+      rows,
+      heights: new Array(cols * rows).fill(0),
+      biomeIds: new Array(cols * rows).fill('plains'),
+      extentMetersX: cols * GROUND_METERS_PER_CELL,
+      extentMetersZ: rows * GROUND_METERS_PER_CELL,
+      features: [{ id: 7, kind: 'tree', xM: 50, zM: 50 }],
+      props: [{
+        defId: 'crate',
+        xM: 54,
+        zM: 50,
+        rotationRad: 0.25,
+        variation: { scale: 1, variant: 0 },
+      }],
+    });
+
+    const first = extractLocalTerrainPatch(ground, 50, 50, 'forest', 42, { width: 9, height: 9 });
+    const second = extractLocalTerrainPatch(ground, 50, 50, 'forest', 42, { width: 9, height: 9 });
+    const tree = first.targetableObjects?.find((object) => object.source?.kind === 'worldforge-feature');
+    const crate = first.targetableObjects?.find((object) => object.source?.kind === 'worldforge-prop');
+
+    expect(first.targetableObjects).toHaveLength(2);
+    expect(first.targetableObjects).toEqual(second.targetableObjects);
+    expect(tree).toMatchObject({
+      name: 'Tree',
+      size: 'Large',
+      position: { x: 4, y: 4 },
+      isWornOrCarried: false,
+      isMagical: false,
+      isFixedToSurface: true,
+      source: {
+        sourceId: 'feature:7',
+        sourceKind: 'tree',
+        worldMeters: { x: 50, z: 50 },
+      },
+    });
+    expect(crate).toMatchObject({
+      name: 'Crate',
+      size: 'Small',
+      isWornOrCarried: false,
+      isMagical: false,
+      source: {
+        sourceKind: 'crate',
+        worldMeters: { x: 54, z: 50 },
+      },
+    });
+    // Mobility and weight are intentionally absent until the prop catalog owns
+    // those facts; extraction must not guess that a crate is loose or light.
+    expect(crate?.isFixedToSurface).toBeUndefined();
+    expect(crate?.weightPounds).toBeUndefined();
+    expect(first.tiles.get(`${tree?.position.x}-${tree?.position.y}`)?.decoration).toBe('tree');
+  });
+
+  it('projects every source resident while preserving live movement and shared-cell identities', () => {
+    const ground = makeGroundWorldFixture({
+      extentMetersX: 100,
+      extentMetersZ: 100,
+      occupants: [{
+        burgId: 14,
+        occupantId: 1,
+        name: 'Static Resident',
+        xM: 50,
+        zM: 50,
+        activity: 'home',
+      }],
+    });
+    const liveResidents = [
+      {
+        burgId: 14,
+        occupantId: 1,
+        name: 'Static Resident',
+        xM: 51,
+        zM: 50,
+        activity: 'working' as const,
+        moving: true,
+      },
+      {
+        burgId: 14,
+        occupantId: 2,
+        name: 'Shared Cell Resident',
+        xM: 51.2,
+        zM: 50,
+        activity: 'out' as const,
+        moving: false,
+      },
+    ];
+
+    const staticPatch = extractLocalTerrainPatch(ground, 50, 50, 'forest', 42, { width: 9, height: 9 });
+    const livePatch = extractLocalTerrainPatch(ground, 50, 50, 'forest', 42, {
+      width: 9,
+      height: 9,
+      occupants: liveResidents,
+    });
+
+    expect(staticPatch.worldOccupants).toMatchObject([{
+      id: 'worldforge-occupant:14:1',
+      name: 'Static Resident',
+      position: { x: 4, y: 4 },
+      activity: 'home',
+      moving: false,
+    }]);
+    expect(livePatch.worldOccupants).toHaveLength(2);
+    expect(livePatch.worldOccupants?.map((occupant) => occupant.position))
+      .toEqual([{ x: 5, y: 4 }, { x: 5, y: 4 }]);
+    expect(livePatch.worldOccupants?.[0]).toMatchObject({
+      activity: 'working',
+      moving: true,
+      source: {
+        kind: 'worldforge-occupant',
+        burgId: 14,
+        occupantId: 1,
+        worldMeters: { x: 51, z: 50 },
+      },
+    });
+
+    const obstructedGround = makeGroundWorldFixture({
+      ...ground,
+      props: [{
+        defId: 'barrel',
+        xM: 51,
+        zM: 50,
+        rotationRad: 0,
+        variation: { scale: 1, variant: 0 },
+      }],
+    });
+    const snapped = extractLocalTerrainPatch(obstructedGround, 50, 50, 'forest', 42, {
+      width: 9,
+      height: 9,
+      occupants: liveResidents,
+    });
+    const snappedAgain = extractLocalTerrainPatch(obstructedGround, 50, 50, 'forest', 42, {
+      width: 9,
+      height: 9,
+      occupants: liveResidents,
+    });
+    expect(snapped.worldOccupants).toEqual(snappedAgain.worldOccupants);
+    expect(snapped.worldOccupants?.every((occupant) => (
+      !snapped.tiles.get(`${occupant.position.x}-${occupant.position.y}`)?.blocksMovement
+    ))).toBe(true);
+    // Snapping changes only the tactical placement; the exact moving-world
+    // coordinate remains available for provenance and visual comparison.
+    expect(snapped.worldOccupants?.[0].source.worldMeters).toEqual({ x: 51, z: 50 });
   });
 
   it('does not invent a passable road crossing where source water has no ford or bridge', () => {

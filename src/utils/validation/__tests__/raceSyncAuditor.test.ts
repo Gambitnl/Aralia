@@ -7,7 +7,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   auditRaceSync,
-  RaceSyncAuditResult,
   RaceSyncIssue,
 } from '../raceSyncAuditor';
 

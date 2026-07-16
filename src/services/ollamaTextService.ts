@@ -8,7 +8,7 @@
  */
 
 import { getDefaultClient } from './ollama/client';
-import type { OllamaResult, TaskType, ModelParams } from './ollama';
+import type { TaskType, ModelParams } from './ollama';
 import { isGeminiFallbackReady } from './ai/aiCredentials';
 import { generateText as generateGeminiText } from './gemini/core';
 

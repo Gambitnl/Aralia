@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 27/06/2026, 01:55:23
- * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/ConversationPanel/ConversationPanel.tsx, components/gameEntry/OpeningSituationGate.tsx, components/layout/GameModals.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleMovement.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDialogueSystem.ts, hooks/useGameActions.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useOllamaCheck.ts, hooks/useOllamaLogBridge.ts, hooks/useOpeningSituation.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/gameEntryReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, types/index.ts, utils/context/entityIntegrationUtils.ts
+ * Last Sync: 15/07/2026, 09:54:11
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/ConversationPanel/ConversationPanel.tsx, components/gameEntry/OpeningSituationGate.tsx, components/layout/GameModals.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/useChronicleRumorsSync.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDeEscalation.ts, hooks/useDialogueSystem.ts, hooks/useDungeonRumorsSync.ts, hooks/useGameActions.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useKnownPortsSync.ts, hooks/useOllamaCheck.ts, hooks/useOllamaLogBridge.ts, hooks/useOpeningSituation.ts, hooks/useOverheardGossip.ts, hooks/useSeaEncounter.ts, hooks/useTownCrierAnnouncements.ts, hooks/useTownMerchantRegistration.ts, hooks/useTownSimRegistration.ts, hooks/useVoyageArrival.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/gameEntryReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, systems/travel/applyProvision.ts, types/index.ts, utils/combat/battleEndActions.ts, utils/context/entityIntegrationUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -41,6 +41,7 @@ import { DialogueSession } from '../types/dialogue.js';
 import { WorldHistoryEvent } from '../types/history.js';
 import { CrewRole, ShipType } from '../types/naval.js';
 import type { WorldDelta } from '../systems/worldforge/delta/types.js';
+import type { WorldforgeEncounterReceipt } from '../systems/combat/worldScenario/statePatrolWorldEvent.js';
 import {
   CastSpellPayload,
   EquipItemPayload,
@@ -212,6 +213,10 @@ export type AppAction =
   // happen during generation/load handoffs, so reducers treat the id as the
   // durable de-duplication key.
   | { type: 'APPLY_WORLDFORGE_DELTA'; payload: { delta: WorldDelta } }
+  // Generated encounter receipts are narrative event history, not terrain
+  // deltas. Recording them prevents a deterministic patrol from firing again
+  // when the player returns to the same ground scene after combat.
+  | { type: 'RECORD_WORLDFORGE_ENCOUNTER'; payload: { receipt: WorldforgeEncounterReceipt } }
   // Ground positions are tile-local meter anchors for village ground mode. They
   // intentionally do not reuse playerWorldPos because that field uses continent meters.
   | { type: 'SET_PLAYER_GROUND_POS'; payload: { position: PlayerGroundPosition | null } }
@@ -412,5 +417,4 @@ export type AppAction =
   | { type: 'CLEAR_ENTRY_3D_ANCHOR' }
   | { type: 'SET_WORLD_VIEW_MODE'; payload: WorldViewMode }
   | { type: 'SET_MAP_SURFACE'; payload: MapSurface };
-
 

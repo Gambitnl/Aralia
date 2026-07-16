@@ -16,6 +16,7 @@ import { deriveFrame } from './types';
 import { profileForRace } from './raceMap';
 import { kitForClass } from './classKits';
 import { profileForCreature } from './creatureProfiles';
+import { compilePlan } from './textPlan/compilePlan';
 
 function entityPath(seed: string): SeedPath {
   // Seed strings are user-facing; hash them into one clean path segment.
@@ -31,6 +32,13 @@ function pick<T>(rng: { next(): number }, items: readonly T[]): T {
 }
 
 export function generateEntityBlueprint(recipe: EntityRecipe): EntityBlueprint {
+  if (recipe.kind === 'planned') {
+    // Text-to-creature: the stored plan is the source of truth; compiling is
+    // pure. The seed only drives per-instance variation (blink/idle offsets)
+    // downstream — never the shape.
+    return { ...compilePlan(recipe.plan) };
+  }
+
   const base = entityPath(recipe.seed);
   const frameRng = rngFromPath(streamPath(base, 'frame'));
   const paletteRng = rngFromPath(streamPath(base, 'palette'));

@@ -92,6 +92,7 @@ test('retireAgent releases locks, reopens in-flight tasks with a clean "retired"
   const a = store.registerAgent({ handle: 'worker.retire', role: 'worker' });
 
   assert.equal(store.acquireLock({ agentId: a.id, paths: ['src/x.ts'], reason: 'edit' }).ok, true);
+  assert.equal(store.reserveFiles({ agentId: a.id, paths: ['src/next.ts'], reason: 'later' }).ok, true);
   const task = store.createTask({ agentId: a.id, title: 'do x' });
   assert.equal(store.claimTask({ taskId: task.id, agentId: a.id }).ok, true);
 
@@ -100,6 +101,7 @@ test('retireAgent releases locks, reopens in-flight tasks with a clean "retired"
 
   assert.equal(store.listAgents().find((x) => x.id === a.id), undefined, 'agent dropped from roster');
   assert.equal(store.listLocks().filter((l) => l.agentId === a.id).length, 0, 'locks released');
+  assert.equal(store.listReservations().filter((r) => r.agentId === a.id).length, 0, 'reservations released');
 
   const t = store.listTasks().find((x) => x.id === task.id);
   assert.equal(t.state, 'open', 'task reopened');

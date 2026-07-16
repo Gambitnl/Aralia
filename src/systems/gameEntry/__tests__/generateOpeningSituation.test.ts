@@ -41,6 +41,18 @@ const LOCATION: OpeningSituationLocation = {
     biome: 'plains',
 };
 
+const LOCATION_WITH_SOURCE: OpeningSituationLocation = {
+    ...LOCATION,
+    battlefieldSource: {
+        kind: 'worldforge-opening-location',
+        receiptId: 'opening:42:cell:476',
+        worldSeed: 42,
+        cellId: 476,
+        centerPx: [120, 240],
+        locationLabel: 'Aralia Town Center',
+    },
+};
+
 /** Build a fake client whose generateForTask returns the given result. */
 function fakeClient(
     impl: OllamaClient['generateForTask'],
@@ -167,6 +179,38 @@ describe('generateOpeningSituation', () => {
             deEscalationDC: 13,
             tension: 'toll-collectors itching to rob you',
         });
+    });
+
+    it('stamps a hostile threat with the game-authored source receipt only', async () => {
+        const raw = JSON.stringify({
+            setting: { place: 'somewhere invented', timeOfDay: 'dusk', weather: 'cold drizzle' },
+            predicament: 'Two toll-collectors block the way, hands on their hilts.',
+            npcs: [{ name: 'Garrok', role: 'toll-collector', disposition: 'greedy', goal: 'shake you down' }],
+            openingLine: { speakerName: 'Garrok', text: 'Pay the toll or leave.' },
+            threat: {
+                hostile: true,
+                enemies: [{ name: 'Bandit', quantity: 2, cr: '1/8' }],
+                deEscalationDC: 13,
+                tension: 'toll-collectors itching to rob you',
+                // A model-authored receipt-like field is deliberately ignored;
+                // only LOCATION_WITH_SOURCE may establish tactical lineage.
+                battlefieldSource: { worldSeed: 999, cellId: 999 },
+            },
+        });
+
+        const situation = await generateOpeningSituation(
+            CHARACTER,
+            LOCATION_WITH_SOURCE,
+            makeDeps(raw),
+        );
+
+        expect(situation.setting.place).toBe(LOCATION_WITH_SOURCE.name);
+        expect(situation.threat?.battlefieldSource).toEqual(
+            LOCATION_WITH_SOURCE.battlefieldSource,
+        );
+        expect(buildOpeningSituationPrompt(CHARACTER, LOCATION_WITH_SOURCE)).not.toContain(
+            LOCATION_WITH_SOURCE.battlefieldSource?.receiptId,
+        );
     });
 
     it('drops a malformed threat but keeps the (peaceful) scene', async () => {

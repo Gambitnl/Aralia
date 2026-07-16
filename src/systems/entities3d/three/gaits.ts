@@ -11,7 +11,7 @@
  * lift, applied by the assembler to the body root).
  */
 import { Quaternion, Vector3, Euler } from 'three';
-import type { Anchor, Frame, Gait, SegmentSink } from '../types';
+import type { Anchor, Frame, Gait, PlanSpec, SegmentSink } from '../types';
 import { ANCHORS, FT_TO_M, headRadiusM, heightM } from '../types';
 import { smooth, solveKnee } from './ik';
 import { TreadmillLeg } from './legs';
@@ -32,6 +32,20 @@ export interface Pose {
   anchors: Record<Anchor, PoseAnchor>;
 }
 
+/** A planned head's live position + look direction (for per-socket eyes). */
+export interface PlanHeadSocket {
+  x: number;
+  y: number;
+  z: number;
+  /** Head ball radius in meters. */
+  r: number;
+  /** Unit look direction (where the face points). */
+  fx: number;
+  fy: number;
+  fz: number;
+  eyes: { count: number; sizeScale: number };
+}
+
 export interface GaitDriver {
   update(t: number, dt: number, loco: LocomotionState): void;
   /** Emit this frame's body skeleton (entity-local meters, ground at y=0):
@@ -46,6 +60,8 @@ export interface GaitDriver {
   readonly flap: number;
   /** Extra body lift (hopper airtime, flyer altitude), applied by the assembler. */
   readonly verticalOffsetM: number;
+  /** Plan-driven bodies: live head positions for per-socket eye placement. */
+  headSockets?(): PlanHeadSocket[];
 }
 
 function makePose(): Pose {
@@ -418,9 +434,393 @@ class AirborneDriver extends BaseDriver {
   }
 }
 
+/* ------------------------------------------------------------------- plan */
+
+/**
+ * Drives a compiled text-to-creature PlanSpec: a spine in one of four stances
+ * plus free appendage chains animated by kind — legs stride on the treadmill
+ * math, arms counter-swing, tails wag, tentacles wave, wings flap, necks bob
+ * with a head at each end. Everything is emitted as connected tapered
+ * segments with stable ids (`spine.N`, `<chainId>.N`).
+ */
+class PlanDriver extends BaseDriver {
+  private readonly spec: PlanSpec;
+  private readonly legTreads = new Map<string, TreadmillLeg>();
+  /** Spine joint positions front→rear, refreshed each advance. */
+  private readonly spinePts: Vector3[] = [];
+  private readonly sockets: PlanHeadSocket[] = [];
+  private spineTopY = 0;
+  private legReachM = 0;
+  /** Legless bulky horizontal body — breathes and mounds (oozes). */
+  private readonly moundBody: boolean;
+
+  constructor(frame: Frame, spec: PlanSpec) {
+    super(frame);
+    this.spec = spec;
+    const legs = spec.chains.filter((c) => c.kind === 'leg');
+    this.legReachM = legs.length
+      ? Math.max(...legs.map((c) => c.links.reduce((n, l) => n + l.lenM, 0)))
+      : 0;
+    this.moundBody =
+      spec.stance === 'horizontal' && legs.length === 0 && spec.bodyLenM < spec.bodyRadM * 7;
+    for (const chain of legs) {
+      const stanceX = spec.bodyRadM * 1.15 * (chain.side === 0 ? 0.3 : chain.side);
+      const restZ = this.attachZ(chain.attach);
+      this.legTreads.set(
+        chain.id,
+        new TreadmillLeg(stanceX, restZ, chain.phaseOffset, { liftH: this.hM * 0.07 }),
+      );
+    }
+    for (let i = 0; i < spec.spine.segments + 1; i++) this.spinePts.push(new Vector3());
+  }
+
+  /** attach 0 (front) – 1 (rear) → local z (+z forward). */
+  private attachZ(attach: number): number {
+    return (0.5 - attach) * this.spec.bodyLenM;
+  }
+
+  /** Body center height for the current stance. */
+  private bodyY(): number {
+    const s = this.spec;
+    switch (s.stance) {
+      case 'upright':
+        return Math.max(this.legReachM * 0.92, s.bodyRadM * 1.2);
+      case 'horizontal':
+        return this.legReachM > 0 ? this.legReachM * 0.88 : s.bodyRadM * 1.05;
+      case 'serpentine':
+        return s.bodyRadM * 1.02;
+      case 'floating':
+        return this.hM * 0.5 + Math.sin(this.t * 1.6) * this.hM * 0.05;
+    }
+  }
+
+  protected advance(): void {
+    const s = this.spec;
+    const stride = this.strideHalf();
+    for (const tread of this.legTreads.values()) tread.update(this.gaitPhase, stride);
+    this.flap = s.chains.some((c) => c.kind === 'wing')
+      ? Math.sin(this.t * 6) * (0.25 + 0.45 * this.speedFactor)
+      : 0;
+
+    // spine joints front→rear
+    const y0 = this.bodyY();
+    const upright = s.stance === 'upright';
+    const n = s.spine.segments;
+    for (let i = 0; i <= n; i++) {
+      const u = i / n; // 0 front/top → 1 rear/bottom
+      const arch = Math.sin(u * Math.PI) * s.spine.arch * s.bodyRadM * 2;
+      if (upright) {
+        const topY = Math.max(y0 + s.bodyLenM, s.bodyRadM * 2);
+        this.spinePts[i].set(0, topY - u * (topY - y0 * 0.35), arch);
+      } else {
+        // slither is the star: amplitude keys off body LENGTH, and idles softly
+        const wave =
+          s.stance === 'serpentine'
+            ? Math.sin(this.gaitPhase * Math.PI * 2 + u * 4.5) *
+              Math.max(s.bodyRadM * 0.6, s.bodyLenM * 0.05) *
+              (0.55 + 0.45 * this.speedFactor)
+            : 0;
+        // legless bulky horizontals breathe like a mound (ooze idle squash)
+        const breath = this.moundBody ? Math.sin(this.t * 2.2) * s.bodyRadM * 0.1 : 0;
+        const moundZ = this.moundBody ? 0.55 : 1;
+        this.spinePts[i].set(wave, y0 + arch + breath * Math.sin(u * Math.PI), this.attachZ(u) * moundZ);
+      }
+    }
+
+    // head sockets (needed before anchors)
+    this.refreshSockets();
+
+    // anchors — every one, every frame
+    const front = this.spinePts[0];
+    const rear = this.spinePts[n];
+    const mid = this.spinePts[Math.floor(n / 2)];
+    const first = this.sockets[0];
+    this.setHeadAnchors(first.x, first.y, first.z);
+    this.setAnchor('chest', front.x, front.y + s.bodyRadM * 0.3, front.z);
+    this.setAnchor('back', mid.x, mid.y + s.bodyRadM * 0.8, mid.z);
+    this.setAnchor('hips', rear.x, rear.y, rear.z);
+    this.setAnchor('tailRoot', rear.x, rear.y + s.bodyRadM * 0.15, rear.z);
+    const armTips = this.chainTips('arm');
+    this.setAnchor('handL', ...(armTips.L ?? [front.x - s.bodyRadM, front.y, front.z]));
+    this.setAnchor('handR', ...(armTips.R ?? [front.x + s.bodyRadM, front.y, front.z]));
+    const legRoots = this.chainTips('leg');
+    this.setAnchor('hipL', ...(legRoots.L ?? [rear.x - s.bodyRadM * 0.7, rear.y, rear.z]));
+    this.setAnchor('hipR', ...(legRoots.R ?? [rear.x + s.bodyRadM * 0.7, rear.y, rear.z]));
+  }
+
+  /** First left/right tip positions for a chain kind (anchor mapping). */
+  private chainTips(kind: 'arm' | 'leg'): { L?: [number, number, number]; R?: [number, number, number] } {
+    const out: { L?: [number, number, number]; R?: [number, number, number] } = {};
+    for (const chain of this.spec.chains) {
+      if (chain.kind !== kind) continue;
+      const pts = this.chainPoints(chain);
+      const tip = pts[pts.length - 1];
+      if (chain.side <= 0 && !out.L) out.L = [tip.x, tip.y, tip.z];
+      if (chain.side >= 0 && !out.R) out.R = [tip.x, tip.y, tip.z];
+    }
+    return out;
+  }
+
+  /** Joint positions (root first) for one chain in its current pose. */
+  private chainPoints(chain: PlanSpec['chains'][number]): Vector3[] {
+    const s = this.spec;
+    const rootZ = this.attachZ(chain.attach);
+    const upright = s.stance === 'upright';
+    // root rides the spine at attach, lifted to heightFrac on the body
+    const spineU = Math.min(1, Math.max(0, chain.attach));
+    const idx = Math.min(s.spine.segments, Math.round(spineU * s.spine.segments));
+    const sp = this.spinePts[idx];
+    const root = new Vector3(
+      sp.x + chain.side * s.bodyRadM * 0.85,
+      sp.y + (chain.heightFrac - 0.5) * s.bodyRadM * 1.6,
+      upright ? sp.z + s.bodyRadM * 0.2 : rootZ,
+    );
+    const total = chain.links.reduce((nn, l) => nn + l.lenM, 0);
+    const pts: Vector3[] = [root];
+
+    if (chain.kind === 'leg') {
+      const tread = this.legTreads.get(chain.id)!;
+      const foot = new Vector3(tread.pos.x, tread.pos.y, tread.pos.z);
+      if (chain.links.length === 2) {
+        V_BEND.set(chain.side * 0.25, 0, 1).normalize();
+        solveKnee(root, foot, chain.links[0].lenM, chain.links[1].lenM, V_BEND, V_KNEE);
+        pts.push(V_KNEE.clone(), foot);
+      } else {
+        // n links: joints along a root→foot bezier bulged toward the bend
+        const bulge = Math.max(0, total - root.distanceTo(foot)) * 0.6 + s.bodyRadM * 0.2;
+        const mid = root.clone().add(foot).multiplyScalar(0.5);
+        mid.z += bulge;
+        let acc = 0;
+        for (let j = 0; j < chain.links.length - 1; j++) {
+          acc += chain.links[j].lenM / total;
+          pts.push(bezier2(root, mid, foot, acc));
+        }
+        pts.push(foot);
+      }
+      return pts;
+    }
+
+    // direction seeds per kind (unit-ish, then per-link motion)
+    const dir = new Vector3();
+    if (chain.kind === 'tail') dir.set(chain.side * 0.15, 0.12, -1);
+    else if (chain.kind === 'tentacle') {
+      dir.set(chain.side === 0 ? 0.4 : chain.side, -0.12, 0.35);
+      // siblings fan around the body — six tentacles are a crown, not a comb
+      const sibs = this.spec.chains.filter((c) => c.kind === 'tentacle' && c.side === chain.side);
+      if (sibs.length > 1) {
+        const which = sibs.findIndex((c) => c.id === chain.id);
+        dir.applyAxisAngle(V_UP, (which / (sibs.length - 1) - 0.5) * 1.9 * (chain.side || 1));
+      }
+    }
+    else if (chain.kind === 'neck') dir.set(chain.side * 0.2, 1.15, upright ? 0.3 : 0.75);
+    else if (chain.kind === 'wing') dir.set(chain.side === 0 ? 0.9 : chain.side, 0.35, -0.15);
+    else dir.set(chain.side === 0 ? 0.5 : chain.side, -0.55, 0.5); // arm: down-forward hang
+    dir.normalize();
+
+    // Necks fan out so multi-head creatures separate their heads.
+    if (chain.kind === 'neck') {
+      const necks = this.spec.chains.filter((c) => c.kind === 'neck');
+      const which = necks.findIndex((c) => c.id === chain.id);
+      if (necks.length > 1) {
+        const spread = which / (necks.length - 1) - 0.5;
+        dir.x += spread * 1.6;
+        dir.normalize();
+      }
+    }
+
+    const cur = root.clone();
+    const perp = new Vector3(-dir.z, 0, dir.x).normalize();
+    for (let j = 0; j < chain.links.length; j++) {
+      const link = chain.links[j];
+      const step = dir.clone();
+      if (chain.kind === 'tail') {
+        const wag = Math.sin(this.t * 2.4 + j * 0.9) * (0.28 + 0.2 * this.speedFactor);
+        step.applyAxisAngle(V_UP, wag * (j + 1) * 0.35);
+        step.y -= j * 0.16; // droop toward the tip
+      } else if (chain.kind === 'tentacle') {
+        const wave = Math.sin(this.t * 3.1 + j * 1.15 + chain.attach * 6);
+        step.addScaledVector(perp, wave * 0.35).addScaledVector(V_UP, wave * 0.22 - j * 0.08);
+      } else if (chain.kind === 'wing') {
+        step.y += this.flap * (0.55 + j * 0.5);
+      } else if (chain.kind === 'neck') {
+        // arc up and outward; only ease off near the tip so heads ride high
+        step.y += Math.sin(this.t * 0.8 + chain.attach * 3) * 0.06 - j * 0.03;
+      } else if (chain.kind === 'arm') {
+        const swing = Math.sin(this.gaitPhase * Math.PI * 2 + (chain.side < 0 ? 0.5 : 0) * Math.PI * 2) *
+          0.5 * this.speedFactor;
+        step.z += swing;
+      }
+      step.normalize().multiplyScalar(link.lenM);
+      cur.add(step);
+      // keep grounded kinds from digging in
+      if (cur.y < link.rM) cur.y = link.rM;
+      pts.push(cur.clone());
+    }
+    return pts;
+  }
+
+  /** S-neck joints for neckless heads on horizontal bodies (buildBody draws them). */
+  private readonly autoNecks = new Map<number, { base: Vector3; mid: Vector3; top: Vector3 }>();
+
+  private refreshSockets(): void {
+    const s = this.spec;
+    this.sockets.length = 0;
+    this.autoNecks.clear();
+    s.heads.forEach((head, hi) => {
+      // low-slung bodies have tiny frame heights; keep heads readable
+      // relative to body thickness too
+      const baseR = Math.max(this.hr, s.bodyRadM * 0.85) * head.sizeScale;
+      if (head.chainId) {
+        const chain = s.chains.find((c) => c.id === head.chainId)!;
+        const pts = this.chainPoints(chain);
+        const tip = pts[pts.length - 1];
+        const prev = pts[pts.length - 2] ?? tip;
+        const f = tip.clone().sub(prev);
+        f.y *= 0.4; // faces look mostly outward, not skyward
+        if (f.lengthSq() < 1e-8) f.set(0, 0, 1);
+        f.normalize();
+        this.sockets.push({
+          x: tip.x + f.x * baseR * 0.5,
+          y: tip.y + baseR * 0.35,
+          z: tip.z + f.z * baseR * 0.5,
+          r: baseR,
+          fx: f.x, fy: f.y, fz: f.z,
+          eyes: head.eyes,
+        });
+        return;
+      }
+      const front = this.spinePts[0];
+      if (s.stance === 'floating' || this.moundBody) {
+        // a floating orb or an ooze mound IS the head: embed it at the core so
+        // the face lives on the mass, not a periscope lump on a neck
+        const core = this.spinePts[Math.floor(this.spinePts.length / 2)];
+        this.sockets.push({
+          x: core.x,
+          y: core.y + baseR * 0.15,
+          z: core.z + s.bodyRadM * 0.55,
+          r: baseR,
+          fx: 0, fy: 0, fz: 1,
+          eyes: head.eyes,
+        });
+        return;
+      }
+      if (s.stance === 'upright') {
+        this.sockets.push({
+          x: front.x,
+          y: front.y + baseR * 0.9,
+          z: front.z + baseR * 0.15,
+          r: baseR,
+          fx: 0, fy: 0, fz: 1,
+          eyes: head.eyes,
+        });
+        return;
+      }
+      // horizontal/serpentine neckless heads ride an auto S-neck: proud above
+      // the shoulder line, not hanging vulture-low off the spine front —
+      // diagonal, not a periscope.
+      const rise = s.bodyRadM * 1.6 + baseR * 0.7;
+      const fwd = s.bodyRadM * 1.8;
+      const bob = Math.sin(this.t * 0.8 + hi) * s.bodyRadM * 0.08;
+      const base = front.clone();
+      const mid = new Vector3(front.x, front.y + rise * 0.55 + bob * 0.4, front.z + fwd * 0.35);
+      const top = new Vector3(front.x, front.y + rise + bob, front.z + fwd);
+      this.autoNecks.set(hi, { base, mid, top });
+      this.sockets.push({
+        x: top.x,
+        y: top.y + baseR * 0.3,
+        z: top.z + baseR * 0.45,
+        r: baseR,
+        fx: 0, fy: -0.12, fz: 1,
+        eyes: head.eyes,
+      });
+    });
+  }
+
+  headSockets(): PlanHeadSocket[] {
+    return this.sockets.map((s) => ({ ...s, eyes: { ...s.eyes } }));
+  }
+
+  buildBody(sink: SegmentSink): void {
+    const s = this.spec;
+    const n = s.spine.segments;
+    // spine: rear-thick per taper, front toward heads
+    for (let i = 0; i < n; i++) {
+      const a = this.spinePts[i];
+      const b = this.spinePts[i + 1];
+      const uA = i / n;
+      const uB = (i + 1) / n;
+      const rA = Math.max(0.01, s.bodyRadM * (s.spine.taper + (1 - s.spine.taper) * uA));
+      const rB = Math.max(0.01, s.bodyRadM * (s.spine.taper + (1 - s.spine.taper) * uB));
+      sink.seg(`spine.${i}`, a.x, a.y, a.z, b.x, b.y, b.z, rA, rB);
+    }
+    // chains
+    for (const chain of s.chains) {
+      const pts = this.chainPoints(chain);
+      for (let j = 0; j < chain.links.length; j++) {
+        const a = pts[j];
+        const b = pts[j + 1];
+        const r0 = Math.max(0.008, chain.links[j].rM);
+        const r1 = Math.max(0.008, chain.links[Math.min(j + 1, chain.links.length - 1)].rM * 0.85);
+        sink.seg(`${chain.id}.${j}`, a.x, a.y, a.z, b.x, b.y, b.z, r0, r1);
+      }
+      if (chain.kind === 'leg') {
+        const tip = pts[pts.length - 1];
+        const r = Math.max(0.012, chain.links[chain.links.length - 1].rM * 1.1);
+        sink.ball(`${chain.id}.foot`, tip.x, tip.y + r * 0.3, tip.z + r * 0.4, r);
+        // toe segments: claws at silhouette level, from parts we already have
+        if (chain.links.length >= 2) {
+          for (const [ti, splay] of [-0.5, 0.5].entries()) {
+            sink.seg(
+              `${chain.id}.toe${ti}`,
+              tip.x, tip.y + r * 0.25, tip.z + r * 0.3,
+              tip.x + splay * r * 1.3, tip.y + r * 0.1, tip.z + r * 2.1,
+              r * 0.42, r * 0.2,
+            );
+          }
+        }
+      }
+    }
+    // auto S-necks for neckless horizontal heads
+    for (const [hi, neck] of this.autoNecks) {
+      const r = this.sockets[hi] ? this.sockets[hi].r : s.bodyRadM;
+      sink.seg(`head${hi}.neckS0`, neck.base.x, neck.base.y, neck.base.z, neck.mid.x, neck.mid.y, neck.mid.z, Math.min(s.bodyRadM * 0.55, r * 0.9), Math.min(s.bodyRadM * 0.46, r * 0.78));
+      sink.seg(`head${hi}.neckS1`, neck.mid.x, neck.mid.y, neck.mid.z, neck.top.x, neck.top.y, neck.top.z, Math.min(s.bodyRadM * 0.46, r * 0.78), Math.min(s.bodyRadM * 0.38, r * 0.66));
+    }
+    // heads (+ optional snouts)
+    this.sockets.forEach((socket, i) => {
+      sink.ball(`head${i}`, socket.x, socket.y, socket.z, socket.r);
+      const snout = s.heads[i].snout;
+      if (snout) {
+        const len = socket.r * snout.lengthScale;
+        sink.seg(
+          `head${i}.snout`,
+          socket.x, socket.y - socket.r * 0.15, socket.z,
+          socket.x + socket.fx * len,
+          socket.y - socket.r * 0.15 + (snout.droop - 0.15) * len * 0.6,
+          socket.z + socket.fz * len,
+          socket.r * 0.42,
+          socket.r * 0.2,
+        );
+      }
+    });
+  }
+}
+
+const V_UP = new Vector3(0, 1, 0);
+
+/** Quadratic bezier point (allocates — driver-construction and per-frame chain math only). */
+function bezier2(a: Vector3, m: Vector3, b: Vector3, u: number): Vector3 {
+  const w = 1 - u;
+  return new Vector3(
+    w * w * a.x + 2 * w * u * m.x + u * u * b.x,
+    w * w * a.y + 2 * w * u * m.y + u * u * b.y,
+    w * w * a.z + 2 * w * u * m.z + u * u * b.z,
+  );
+}
+
 /* ------------------------------------------------------------------ entry */
 
-export function createGaitDriver(gait: Gait, frame: Frame): GaitDriver {
+export function createGaitDriver(gait: Gait, frame: Frame, planSpec?: PlanSpec): GaitDriver {
   switch (gait) {
     case 'biped':
       return new BipedDriver(frame);
@@ -434,6 +834,10 @@ export function createGaitDriver(gait: Gait, frame: Frame): GaitDriver {
       return new AirborneDriver(frame, true);
     case 'float':
       return new AirborneDriver(frame, false);
+    case 'plan': {
+      if (!planSpec) throw new Error('entities3d: plan gait needs a planSpec (compile a CreaturePlan first)');
+      return new PlanDriver(frame, planSpec);
+    }
     default: {
       const never: never = gait;
       throw new Error(`entities3d: unknown gait "${never as string}"`);

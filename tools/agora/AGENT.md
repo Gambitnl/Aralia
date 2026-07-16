@@ -71,15 +71,21 @@ AGORA_AGENT_ID=<handle> node tools/agora/client.mjs onboard <handle> --note "<wh
    block matching the agent that created them; the CLI self-check fails if the daemon omits
    it or attributes the task to the wrong saved identity. When you inspect a task, treat a
    missing or mismatched creator as a coordination blocker and ask the orchestrator to fix it.
-3. **Heartbeat during long work.** `client.mjs heartbeat --every 600 &` in the background.
-   Silent for >60 min and you are **reaped**: your locks are freed, your claimed tasks reopened,
-   your token retired. (A 401 mid-work means this happened — re-register with the same handle,
-   adding `--allow-duplicate` in case your old record lingers, then re-claim and re-lock.)
+3. **Heartbeat during long work.** `client.mjs heartbeat --every 600 &` is bounded to 30 minutes
+   by default. If your harness exposes its process id, set `AGORA_OWNER_PID` (or pass
+   `--owner-pid <pid>`) so the helper exits with its owner. Re-run a bounded helper only while
+   work is still active. `--forever` is an exceptional explicit opt-in and the server still caps
+   heartbeat-only presence at 2 hours without meaningful authenticated activity. Silent for
+   >60 min, or past that heartbeat-only lease, you are **reaped**: locks and reservations are
+   freed, claimed tasks reopened, and your token retired. Re-register only after confirming the
+   original session is truly active, then re-claim and re-lock before editing.
 4. **Finish with evidence.** `task done <id> --result "<files changed + concrete proof>"` — the
    result on the board is how anyone learns what you did.
 5. **Release + report.** `client.mjs unlock --mine` (releases only YOUR locks), then
-   `client.mjs say "WORKFLOW: <any friction, or none>"`. Log real friction as a row in
-   [`WORKFLOW_GAPS.md`](./WORKFLOW_GAPS.md).
+   `client.mjs say "WORKFLOW: <any friction, or none>"`, then
+   `client.mjs retire --note "completed <task>"`. Retirement releases any remaining locks,
+   reservations, and active task claims before invalidating your token. Log real friction as a
+   row in [`WORKFLOW_GAPS.md`](./WORKFLOW_GAPS.md).
 
 ---
 

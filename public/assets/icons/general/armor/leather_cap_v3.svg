@@ -1,0 +1,37 @@
+<svg width="512" height="512" viewBox="0 0 512 512" color="#94A3B8" fill="currentColor" role="img" aria-labelledby="leather-cap-title leather-cap-description" xmlns="http://www.w3.org/2000/svg">
+  <title id="leather-cap-title">Leather cap candidate</title>
+  <desc id="leather-cap-description">A paneled medieval leather skullcap with stitched seams, a riveted brow band, ear guards, and a buckled chin strap.</desc>
+  <!--
+    This comparison candidate follows the silhouette-first language of Aralia's
+    existing Game Icons armor set. It deliberately remains separate from the
+    live leather_cap.svg so visual review cannot overwrite an accepted asset.
+
+    Broad filled forms carry the identity at inventory size; the dark gaps are
+    intentional negative space for seams, stitching, rivets, and the buckle.
+    currentColor is preserved so the registry palette can recolor it.
+  -->
+  <!-- The internal SVG mask cuts real negative space, so seams stay visible when this asset is used as a CSS mask in the registry. -->
+  <defs>
+    <mask id="leather-cap-silhouette" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+      <rect width="512" height="512" fill="black"/>
+      <!-- A broad paneled skullcap, brow band, and protective ear flaps make the medieval role clear at inventory size. -->
+      <path fill="white" d="M256 48C158 48 99 114 94 238L98 278C129 255 165 239 205 231C222 227 239 225 256 225C273 225 290 227 307 231C347 239 383 255 414 278L418 238C413 114 354 48 256 48Z"/>
+      <path fill="white" d="M99 251C92 282 87 318 90 348C93 375 108 394 135 401L169 410L179 357L195 312C158 319 126 335 102 359L99 251Z"/>
+      <path fill="white" d="M413 251C420 282 425 318 422 348C419 375 404 394 377 401L343 410L333 357L317 312C354 319 386 335 410 359L413 251Z"/>
+      <path fill="white" d="M104 244C148 217 201 204 256 204C311 204 364 217 408 244L404 291C359 269 309 258 256 258C203 258 153 269 108 291L104 244Z"/>
+      <!-- Loose strap ends suggest a fastening without turning the open cap into a closed helmet. -->
+      <path fill="white" d="M126 386L166 397L156 468L116 456L126 386Z"/>
+      <path fill="white" d="M386 386L346 397L354 446L397 437L386 386Z"/>
+      <path fill="white" fill-rule="evenodd" d="M344 425H401V475H344V425ZM359 439V461H386V439H359Z"/>
+
+      <!-- Large seam cuts and rivet holes borrow the references' bold detail scale instead of adding fragile texture. -->
+      <path d="M256 62V204M151 113L207 221M361 113L305 221" fill="none" stroke="black" stroke-width="18" stroke-linecap="round"/>
+      <path d="M110 249C153 228 203 218 256 218C309 218 359 228 402 249" fill="none" stroke="black" stroke-width="12" stroke-linecap="round"/>
+      <g fill="black">
+        <circle cx="145" cy="255" r="9"/><circle cx="191" cy="240" r="9"/><circle cx="235" cy="233" r="9"/>
+        <circle cx="277" cy="233" r="9"/><circle cx="321" cy="240" r="9"/><circle cx="367" cy="255" r="9"/>
+      </g>
+    </mask>
+  </defs>
+  <rect width="512" height="512" fill="currentColor" mask="url(#leather-cap-silhouette)"/>
+</svg>

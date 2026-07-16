@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/07/2026, 19:46:55
+ * Last Sync: 15/07/2026, 22:43:05
  * Dependents: App.tsx
- * Imports: 16 files
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -45,10 +45,12 @@ import type { AtlasOverlayMode, AtlasView } from "./atlasDraw";
 import AtlasMapView from "./AtlasMapView";
 import RegionMapView from "./RegionMapView";
 import LocalMapView from "./LocalMapView";
+import WorldforgeGroundDrilldown from "./WorldforgeGroundDrilldown";
 import CellInfoPanel from "./CellInfoPanel";
 import { describeCell } from "../../systems/worldforge/cellInfo";
 import { type OverlayMarker } from "./overlay";
 import { getBridgeAtlas, worldforgeSeedString } from "../../systems/worldforge/bridge/legacySubmapBridge";
+import { buildAtlasGroundDrilldown, type AtlasGroundDrilldown, type GroundFocus } from "../../systems/worldforge/leaf3d/atlasGroundDrilldown";
 
 // ============================================================================
 // L1 Region Viewport Sub-Component
@@ -98,7 +100,7 @@ interface AtlasDemoProps {
 
 const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed }) => {
   // Navigation & View Mode — the full zoom chain: L0 atlas → L1 region → L2 local
-  const [viewMode, setViewMode] = useState<"atlas" | "region" | "local">("atlas");
+  const [viewMode, setViewMode] = useState<"atlas" | "region" | "local" | "ground">("atlas");
   const [selectedCellId, setSelectedCellId] = useState<number | null>(null);
   // Cell selected for inspection on the atlas (drives the CellInfoPanel). Kept
   // distinct from selectedCellId, which tracks the descended region cell.
@@ -106,6 +108,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
   const [regionArtifact, setRegionArtifact] = useState<RegionArtifact | null>(null);
   const [localArtifact, setLocalArtifact] = useState<LocalArtifact | null>(null);
   const [isGeneratingLocal, setIsGeneratingLocal] = useState<boolean>(false);
+  const [groundDrilldown, setGroundDrilldown] = useState<AtlasGroundDrilldown | null>(null);
 
   // Generation configurations
   // The standalone harness keeps its editable demo seed. In live play, reuse
@@ -403,6 +406,24 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
     setLocalArtifact(null);
   };
 
+  const handleEnterGround = (focus: GroundFocus) => {
+    if (!regionArtifact || !localArtifact || selectedCellId === null) return;
+    const canonicalWorldSeed = worldSeed ?? (parseInt(seed.replace(/\D/g, "")) || 42);
+    setGroundDrilldown(buildAtlasGroundDrilldown({
+      worldSeed: canonicalWorldSeed,
+      atlasCellId: selectedCellId,
+      region: regionArtifact,
+      local: localArtifact,
+      focus,
+    }));
+    setViewMode("ground");
+  };
+
+  const handleGroundAscend = () => {
+    setViewMode("local");
+    setGroundDrilldown(null);
+  };
+
   // Ascend back to L0 world map
   const handleAscend = () => {
     // Restore previous view below the descend threshold (hysteresis) + cooldown.
@@ -424,6 +445,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
     setInspectCellId(null);
     setRegionArtifact(null);
     setLocalArtifact(null);
+    setGroundDrilldown(null);
   };
 
   useEffect(() => {
@@ -443,9 +465,9 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              {viewMode === "region" && (
+              {viewMode !== "atlas" && (
                 <span className="text-xs font-mono font-bold bg-indigo-900/60 text-indigo-300 px-2 py-0.5 rounded border border-indigo-700/40">
-                  L1 REGION
+                  {viewMode === "region" ? "L1 REGION" : viewMode === "local" ? "L2 LOCAL" : "L3 GROUND"}
                 </span>
               )}
               <h1 className="text-lg font-bold leading-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
@@ -830,37 +852,47 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
               </div>
             </>
           ) : (
-            /* L1 Region Controls Panel */
+            /* The hierarchy panel changes with the active tier so ground never
+                masquerades as a region while the same artifacts remain mounted. */
             <div className="bg-gray-900/85 backdrop-blur-md border border-gray-800 rounded-xl p-5 flex flex-col gap-4 shadow-xl">
               <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
-                <ArrowLeft size={16} className="text-indigo-400 cursor-pointer" onClick={handleAscend} />
-                <h2 className="text-sm font-bold tracking-wide text-gray-300">REGION VIEW</h2>
+                <ArrowLeft size={16} className="text-indigo-400 cursor-pointer" onClick={viewMode === "ground" ? handleGroundAscend : viewMode === "local" ? handleLocalAscend : handleAscend} />
+                <h2 className="text-sm font-bold tracking-wide text-gray-300">
+                  {viewMode === "region" ? "REGION VIEW" : viewMode === "local" ? "LOCAL MAP" : "GROUND 3D"}
+                </h2>
               </div>
 
               <div className="flex flex-col gap-3 font-sans text-xs text-gray-400 leading-relaxed bg-gray-950/40 p-3.5 rounded-lg border border-gray-800/40">
                 <div className="flex items-center gap-2 text-indigo-300 font-semibold mb-1">
                   <Info size={14} />
-                  <span>Sub-Cell Geography</span>
+                  <span>{viewMode === "ground" ? "Exact Artifact Continuity" : viewMode === "local" ? "Playable Local Artifact" : "Sub-Cell Geography"}</span>
                 </div>
-                <p>
-                  You have zoomed into the refined sub-cell heightfield map for <strong>Cell #{selectedCellId}</strong>.
-                </p>
-                <p>
-                  This terrain did not exist at the world level. It has been procedurally generated at L1 
-                  resolution (100 ft spacing) using hydraulic erosion and value noise.
-                </p>
-                <p>
-                  Solid dark bands indicate refined river banks width-scaled by local upstream flux.
-                </p>
+                {viewMode === "ground" && groundDrilldown ? (
+                  <>
+                    <p>You are standing at <strong className="text-amber-200">{groundDrilldown.focus.label}</strong>, selected from Atlas cell <strong>#{selectedCellId}</strong>.</p>
+                    <p>The scene is streaming the same Local artifact shown one level up. Its seed lineage and selected feet coordinates remain preserved for return navigation.</p>
+                  </>
+                ) : viewMode === "local" && localArtifact ? (
+                  <>
+                    <p>This 3,000 × 3,000 ft map is the shared L2 artifact for both cartography and ground 3D.</p>
+                    <p>Choose a town or site below; entering 3D keeps this map in memory so return restores the same place.</p>
+                  </>
+                ) : (
+                  <>
+                    <p>You have zoomed into the refined sub-cell heightfield map for <strong>Cell #{selectedCellId}</strong>.</p>
+                    <p>This terrain did not exist at the world level. It has been procedurally generated at L1 resolution (100 ft spacing) using hydraulic erosion and value noise.</p>
+                    <p>Solid dark bands indicate refined river banks width-scaled by local upstream flux.</p>
+                  </>
+                )}
               </div>
 
               <button
                 type="button"
-                onClick={viewMode === "local" ? handleLocalAscend : handleAscend}
+                onClick={viewMode === "ground" ? handleGroundAscend : viewMode === "local" ? handleLocalAscend : handleAscend}
                 className="w-full mt-2 bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
               >
                 <ArrowLeft size={16} />
-                {viewMode === "local" ? "Ascend to Region" : "Ascend to World Map"}
+                {viewMode === "ground" ? "Return to Local Map" : viewMode === "local" ? "Ascend to Region" : "Ascend to World Map"}
               </button>
             </div>
           )}
@@ -904,7 +936,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
                     <span className="text-indigo-400 font-semibold">Cell:</span> #{selectedCellId}
                   </>
                 )}
-                {viewMode === "local" && localArtifact && (
+                {(viewMode === "local" || viewMode === "ground") && localArtifact && (
                   <>
                     <span className="text-gray-600">/</span>
                     <span className="text-indigo-400 font-semibold">Local:</span>{" "}
@@ -920,7 +952,9 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
                     ? "Click any land cell to zoom-descend into region details"
                     : viewMode === "region"
                     ? "Click anywhere to descend into the 5 ft local area; Esc ascends"
-                    : "Esc or zoom out to return to the region"}
+                    : viewMode === "local"
+                    ? "Choose the exact town or site to enter ground 3D"
+                    : "Ground renders this Local artifact; Esc returns to its map"}
                 </span>
               </div>
             </div>
@@ -1009,7 +1043,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
                   biomeColor={anchorBiomeColor}
                 />
               )
-            ) : (
+            ) : viewMode === "local" ? (
               localArtifact && (
                 <LocalMapView
                   local={localArtifact}
@@ -1017,6 +1051,16 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
                   height={mapSize.height}
                   onAscend={handleLocalAscend}
                   biomeColor={anchorBiomeColor}
+                  onEnterGround={handleEnterGround}
+                />
+              )
+            ) : (
+              groundDrilldown && localArtifact && regionArtifact && (
+                <WorldforgeGroundDrilldown
+                  drilldown={groundDrilldown}
+                  local={localArtifact}
+                  region={regionArtifact}
+                  onAscend={handleGroundAscend}
                 />
               )
             )}

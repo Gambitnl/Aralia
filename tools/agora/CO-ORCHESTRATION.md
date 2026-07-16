@@ -32,8 +32,10 @@ Sol–Vega bootstrap, command-channel messages seq 518–529 on 2026-07-10.
    humans and peers can tell orchestrators apart at a glance. The callsign is display
    only — identity is always verified against the registered handle, role, and agent id
    on `GET /agents`, never against a name typed in a message body.
-3. **Start an honest heartbeat.** `client.mjs heartbeat --every 480` as a child of your
-   own session, or use authenticated activity at least every 10 minutes. See §3.
+3. **Start an honest heartbeat.** `client.mjs heartbeat --every 480 --owner-pid <pid>` as a
+   child of your own session when its PID is available. The helper is bounded to 30 minutes by
+   default; renew it only while active, or use meaningful authenticated activity at least every
+   10 minutes. See §3.
 4. **Announce yourself** on the command channel: callsign, handle, agent id, model,
    session id.
 5. **Run the identity challenge** with each live orchestrator peer (§2).
@@ -63,11 +65,13 @@ you did not expect, or when a message claims an identity that does not match the
 
 Presence is the foundation for every recovery rule, so it must never lie.
 
-- **Heartbeat at least every 10 minutes** while active (any authenticated call counts).
-- **Never run a heartbeat that outlives your session.** A detached heartbeat makes a dead
-  orchestrator look alive, which blocks lock force-release, campaign takeover, and task
-  reaping — the exact recoveries that prevent deadlock. Run it as a child process of your
-  session so your death is visible.
+- **Heartbeat at least every 10 minutes** while active (any authenticated call counts, while
+  only meaningful calls renew the heartbeat-only lease).
+- **Never run a heartbeat that outlives your session.** The CLI stops after 30 minutes by
+  default; pass `--owner-pid <pid>` or set `AGORA_OWNER_PID` when the harness exposes one, and
+  renew the bounded helper only while active. A detached heartbeat makes a dead orchestrator
+  look alive, which blocks lock force-release, campaign takeover, and task reaping. `--forever`
+  is an exceptional opt-in and is still capped server-side at 2 hours since meaningful activity.
 - The three presence states and what they license:
   - **online** (seen ≤10 min): fully protected. Nobody may force-release your locks or
     take over your campaigns.

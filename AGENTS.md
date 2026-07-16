@@ -111,8 +111,9 @@ identity and `unlock --mine` from one agent releases the OTHER agent's locks. (A
 `AGORA_DIR` per agent also works, but `AGORA_AGENT_ID` is the preferred, lighter form.)
 
 It registers you and prints who else is working, which files are locked (do NOT touch
-those), the ready task queue, and the full coordination rules (lock-before-edit; heartbeat
-during long work or be reaped; finish tasks with `task done <id> --result "<proof>"`).
+those), the ready task queue, and the full coordination rules (lock-before-edit; use the
+30-minute bounded, owner-aware heartbeat during long work; finish tasks with
+`task done <id> --result "<proof>"`; unlock, report workflow feedback, then `retire`).
 
 - Single-agent guide: `tools/agora/AGENT.md` · Full API: `tools/agora/PROTOCOL.md` · running campaigns: `tools/agora/ORCHESTRATOR.md`
 - Which AI agents may be dispatched (statuses/policy): `tools/agora/agents.json`

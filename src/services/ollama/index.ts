@@ -67,7 +67,6 @@ import { getDefaultClient } from './client';
 import { generateBanter, generateBanterLine, generatePlayerDirectedLine, generateEscalationLine } from './banter';
 import { continueConversation, summarizeConversation } from './conversation';
 import { generateReaction } from './reaction';
-import { extractDiscoveredFacts } from './facts';
 
 // Re-export feature functions for direct use
 export { extractDiscoveredFacts } from './facts';

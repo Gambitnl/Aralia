@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Dispatch } from 'react';
-import { handleEndBattle } from '../handleEncounter';
+import { handleEndBattle, handleStartBattleMapEncounter } from '../handleEncounter';
 import type { GameState } from '../../../types';
 import type { AppAction } from '../../../state/actionTypes';
 import type { RichNPC } from '../../../types/world';
 import type { RecruitPayload } from '../../../systems/party/recruitTypes';
+import type { CombatCharacter } from '../../../types/combat';
 
 /**
  * Protects the encounter resolution boundary — specifically the ADDITIVE
@@ -138,5 +139,47 @@ describe('handleEndBattle', () => {
     const types = dispatch.mock.calls.map((c) => (c[0] as AppAction).type);
     expect(types).toEqual(['END_BATTLE']);
     expect(npcToPartyMember).not.toHaveBeenCalled();
+  });
+});
+
+// ============================================================================
+// Prepared Source-World Combatants
+// ============================================================================
+// WorldForge adapters have already selected bestiary mechanics and stamped
+// durable regiment identity. The encounter launcher must preserve those actors
+// instead of regenerating anonymous enemies from the Monster[] fallback.
+// ============================================================================
+
+describe('handleStartBattleMapEncounter', () => {
+  it('preserves prepared WorldForge combatants in the reducer payload', async () => {
+    const dispatch = vi.fn() as unknown as Dispatch<AppAction>;
+    const defender = {
+      id: 'worldforge-defender:6:0:infantry:1',
+      name: 'Turino Infantry 1',
+      team: 'enemy',
+      worldSource: {
+        kind: 'worldforge-defender',
+        burgId: 14,
+        stateId: 6,
+        regimentIndex: 0,
+        unitType: 'infantry',
+        representativeIndex: 1,
+      },
+    } as unknown as CombatCharacter;
+
+    await handleStartBattleMapEncounter(dispatch, {
+      monsters: [],
+      combatants: [defender],
+    });
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: 'START_BATTLE_MAP_ENCOUNTER',
+      payload: {
+        startBattleMapEncounterData: {
+          monsters: [],
+          combatants: [defender],
+        },
+      },
+    });
   });
 });

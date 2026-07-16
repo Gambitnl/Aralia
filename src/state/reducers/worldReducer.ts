@@ -195,6 +195,21 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       };
     }
 
+    case 'RECORD_WORLDFORGE_ENCOUNTER': {
+      const currentReceipts = state.worldforgeEncounterReceipts ?? [];
+
+      // React effects and movement callbacks can observe the same event during
+      // one render boundary. The deterministic event id is the durable receipt
+      // key, so duplicate dispatches keep the original chronology unchanged.
+      if (currentReceipts.some((receipt) => receipt.id === action.payload.receipt.id)) {
+        return { worldforgeEncounterReceipts: currentReceipts };
+      }
+
+      return {
+        worldforgeEncounterReceipts: [...currentReceipts, action.payload.receipt],
+      };
+    }
+
     case 'SET_LAST_NPC_INTERACTION':
       return {
         lastInteractedNpcId: (action.payload as { npcId: string | null }).npcId,

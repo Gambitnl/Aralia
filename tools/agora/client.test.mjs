@@ -189,6 +189,48 @@ test('help / no command prints usage', async () => {
   assert.match(res.lines.join('\n'), /register <handle>/);
 });
 
+test('heartbeat is finite by default and stops at the bounded duration', async () => {
+  const reg = await cli(['register', 'worker.bounded-heartbeat']);
+  assert.equal(reg.code, 0);
+  let currentMs = 0;
+  const res = await cli(['heartbeat', '--every', '60'], {
+    heartbeatOpts: {
+      defaultForMin: 1,
+      now: () => currentMs,
+      sleep: async (ms) => { currentMs += ms; },
+    },
+  });
+  assert.equal(res.code, 0);
+  assert.equal(res.beats, 1);
+  assert.equal(res.stopped, 'duration');
+  assert.match(res.lines.join('\n'), /bounded heartbeat.*at most 1 minute/);
+});
+
+test('heartbeat stops when its explicit owner process exits', async () => {
+  const reg = await cli(['register', 'worker.owned-heartbeat']);
+  assert.equal(reg.code, 0);
+  let ownerRunning = true;
+  const res = await cli(['heartbeat', '--every', '1', '--count', '2', '--owner-pid', '4242'], {
+    heartbeatOpts: {
+      ownerAlive: () => ownerRunning,
+      sleep: async () => { ownerRunning = false; },
+    },
+  });
+  assert.equal(res.code, 0);
+  assert.equal(res.beats, 1);
+  assert.equal(res.stopped, 'owner_exited');
+  assert.match(res.lines.join('\n'), /owner PID 4242 exited/);
+});
+
+test('heartbeat requires explicit, unambiguous lifetime mode', async () => {
+  const reg = await cli(['register', 'worker.heartbeat-flags']);
+  assert.equal(reg.code, 0);
+  const res = await cli(['heartbeat', '--forever', '--count', '1']);
+  assert.equal(res.code, 1);
+  assert.equal(res.beats, 0);
+  assert.match(res.lines.join('\n'), /only one of --count, --for, or --forever/);
+});
+
 test('watch connects, receives the hello event, then disconnects', { timeout: 8000 }, async () => {
   // Drive watch with maxEvents:1 so it settles on the `hello` event.
   const res = await run(['watch'], {

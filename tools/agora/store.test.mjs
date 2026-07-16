@@ -89,6 +89,78 @@ test('getAgentByToken returns the agent or null', () => {
   rm(dir);
 });
 
+test('heartbeat-only lease expires an agent and releases its coordination claims', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  const store = createStore({ dir, now, heartbeatOnlyLeaseMs: 2000 });
+  const a = store.registerAgent({ handle: 'worker.heartbeat-lease' });
+  const lock = store.acquireLock({ agentId: a.id, paths: ['src/lease.ts'] });
+  const reservation = store.reserveFiles({ agentId: a.id, paths: ['src/later.ts'] });
+  const task = store.createTask({ agentId: a.id, title: 'lease work' });
+  store.claimTask({ taskId: task.id, agentId: a.id });
+  assert.equal(lock.ok, true);
+  assert.equal(reservation.ok, true);
+
+  now.advance(1000);
+  assert.equal(store.heartbeatAgent(a.id).ok, true, 'heartbeat works inside the lease');
+  now.advance(1000);
+  const expired = store.heartbeatAgent(a.id);
+  assert.equal(expired.ok, false);
+  assert.equal(expired.code, 'heartbeat_lease_expired');
+  assert.equal(store.getAgentByToken(a.token), null, 'expired token is invalidated');
+  assert.equal(store.listLocks().some((row) => row.agentId === a.id), false);
+  assert.equal(store.listReservations().some((row) => row.agentId === a.id), false);
+  const reopened = store.listTasks().find((row) => row.id === task.id);
+  assert.equal(reopened.state, 'open');
+  assert.equal(reopened.history.at(-1).action, 'heartbeat_lease_expired');
+
+  store.close();
+  rm(dir);
+});
+
+test('meaningful authenticated activity renews the heartbeat-only lease', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  const store = createStore({ dir, now, heartbeatOnlyLeaseMs: 2000 });
+  const a = store.registerAgent({ handle: 'worker.heartbeat-renewal' });
+
+  now.advance(1500);
+  assert.equal(store.heartbeatAgent(a.id).ok, true);
+  store.touch(a.id);
+  now.advance(1500);
+  assert.equal(store.heartbeatAgent(a.id).ok, true, 'activity resets the heartbeat-only lease');
+
+  store.close();
+  rm(dir);
+});
+
+test('sweep proactively enforces the heartbeat-only lease for a detached helper', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  const store = createStore({
+    dir,
+    now,
+    heartbeatOnlyLeaseMs: 2000,
+    presenceDropMs: 10000,
+  });
+  const a = store.registerAgent({ handle: 'worker.detached-heartbeat' });
+  const task = store.createTask({ agentId: a.id, title: 'detached work' });
+  store.claimTask({ taskId: task.id, agentId: a.id });
+
+  now.advance(500);
+  assert.equal(store.heartbeatAgent(a.id).ok, true);
+  now.advance(1500);
+  store.sweepExpired();
+
+  assert.equal(store.getAgentByToken(a.token), null);
+  const reopened = store.listTasks().find((row) => row.id === task.id);
+  assert.equal(reopened.state, 'open');
+  assert.equal(reopened.history.at(-1).action, 'heartbeat_lease_expired');
+
+  store.close();
+  rm(dir);
+});
+
 // --- locks -----------------------------------------------------------------
 
 test('locks: free path succeeds, different agent overlap conflicts, holder releases', () => {

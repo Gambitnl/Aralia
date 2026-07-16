@@ -67,7 +67,8 @@ const hornsCurved: PartDef = {
   anchor: 'head',
   kind: 'mesh',
   buildMesh(ctx) {
-    const r = hr(ctx.frame);
+    // planned creatures pass scale — frame head radius understates big heads
+    const r = hr(ctx.frame) * num(ctx, 'scale', 1);
     const hex = str(ctx, 'colorHex', HORN_HEX);
     const group = new Group();
     for (const sgn of [-1, 1]) {

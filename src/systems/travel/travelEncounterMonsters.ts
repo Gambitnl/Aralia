@@ -5,8 +5,9 @@
  * level-1-appropriate monster group deterministically from the trip seed so the
  * same trip always yields the same foes. Kept pure (no React/bestiary import):
  * it returns lightweight monster stubs ({name, quantity, cr}) that
- * handleStartBattleMapEncounter resolves against the runtime bestiary (with a
- * generic-enemy fallback for unknown names).
+ * handleStartBattleMapEncounter resolves against the runtime bestiary. Actor
+ * selection does not authorize terrain; the travel caller must independently
+ * provide the destination's WorldForge tactical projection.
  *
  * Before this, a rolled encounter only PRINTED "danger finds you — an encounter!"
  * and no fight ever started; the fake message was worse than none.

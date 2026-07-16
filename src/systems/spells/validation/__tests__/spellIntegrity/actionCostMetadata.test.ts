@@ -2,6 +2,15 @@ import { describe, it, expect } from 'vitest';
 import { SpellIntegrityValidator } from '../../SpellIntegrityValidator';
 import { Spell } from '../../../../../types/spells';
 
+/**
+ * This file proves that spell action-cost metadata remains internally consistent.
+ *
+ * The spell integrity suite calls the production validator with representative
+ * good and bad spell records. These cases protect casting costs, sustained
+ * effects, and granted actions while preserving the older numeric reactive-cost
+ * shape that some unfinished spell systems still use.
+ */
+
 // Split from SpellIntegrityValidator.test.ts — suite overview lives in ./spellFixtures.ts.
 
 describe('SpellIntegrityValidator', () => {
@@ -65,6 +74,36 @@ describe('SpellIntegrityValidator', () => {
 
       const errors = SpellIntegrityValidator.validate(badSpell);
       expect(errors).toContain('Action Cost Invalid: effect 0 sustainCost.optional must be boolean');
+    });
+
+    it('preserves legacy numeric sustain costs on reactive effects', () => {
+      // Older reactive spell rows use a number rather than an action descriptor.
+      // This fixture proves the action-metadata audit leaves that supported shape
+      // alone instead of treating it as a malformed modern action cost.
+      const legacyReactiveSpell = {
+        id: 'legacy-reactive-sustain-cost',
+        castingTime: {
+          value: 1,
+          unit: 'reaction'
+        },
+        duration: { concentration: false },
+        tags: [],
+        effects: [
+          {
+            type: 'REACTIVE',
+            trigger: {
+              type: 'on_caster_action',
+              sustainCost: 1
+            },
+            description: 'A legacy reactive effect with a numeric sustain cost.'
+          }
+        ]
+      } as unknown as Spell;
+
+      const actionCostErrors = SpellIntegrityValidator.validate(legacyReactiveSpell)
+        .filter(error => error.startsWith('Action Cost'));
+
+      expect(actionCostErrors).toHaveLength(0);
     });
 
     it('fails if a granted action has no action label', () => {

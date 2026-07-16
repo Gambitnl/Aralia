@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 13/06/2026, 11:08:05
+ * Last Sync: 15/07/2026, 22:29:48
  * Dependents: None (Orphan)
  * Imports: 1 files
  *
@@ -373,7 +373,12 @@ export class SpellIntegrityValidator {
     (spell.effects ?? []).forEach((effect, effectIndex) => {
       const sustainCost = effect.trigger?.sustainCost;
 
-      if (sustainCost !== undefined) {
+      // Reactive effects still carry a legacy numeric sustain cost, while newer
+      // on-caster-action triggers describe the exact action and whether it is
+      // optional. Only the structured form can be checked by this rule; keeping
+      // the numeric form untouched preserves old reactive spell data until that
+      // model is intentionally migrated.
+      if (typeof sustainCost === 'object' && sustainCost !== null) {
         if (!knownActionCosts.includes(sustainCost.actionType)) {
           errors.push(`Action Cost Invalid: effect ${effectIndex} sustainCost uses unknown actionType "${String(sustainCost.actionType)}"`);
         }

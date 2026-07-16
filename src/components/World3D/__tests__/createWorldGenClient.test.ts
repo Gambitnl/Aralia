@@ -11,7 +11,7 @@
  * See docs/superpowers/specs/2026-07-06-staged-offthread-3d-world-entry-design.md.
  */
 import { describe, it, expect } from 'vitest';
-import { createWorldGenClient } from '../createWorldGenClient';
+import { createWorldGenClient, loadCompleteGroundWorld } from '../createWorldGenClient';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import type { PropInstance } from '@/systems/worldforge/props/propSchema';
 
@@ -26,6 +26,9 @@ class FakeWorker {
   }
   emit(data: unknown) {
     this.onmessage?.({ data });
+  }
+  fail(message: string) {
+    this.onerror?.({ message });
   }
   terminate() {
     this.terminated = true;
@@ -135,5 +138,41 @@ describe('createWorldGenClient', () => {
     fw.emit({ type: 'error', id, message: 'village entry failed: boom' });
 
     expect(errMsg).toBe('village entry failed: boom');
+  });
+
+  it('loads one complete GroundWorld and disposes its worker after Stage B', async () => {
+    const fw = new FakeWorker();
+    const completed = loadCompleteGroundWorld(req, () => fw as unknown as Worker);
+    const id = fw.sent[0].id;
+    const ground = cannedGround();
+
+    fw.emit({ type: 'stageA', id, ground, local: {}, region: {} });
+    expect(fw.terminated).toBe(false);
+    fw.emit({ type: 'stageB', id, props: cannedProps() });
+
+    await expect(completed).resolves.toBe(ground);
+    expect(ground.props).toEqual(cannedProps());
+    expect(fw.terminated).toBe(true);
+  });
+
+  it('rejects one-shot loading and disposes its worker on a source error', async () => {
+    const fw = new FakeWorker();
+    const completed = loadCompleteGroundWorld(req, () => fw as unknown as Worker);
+    const id = fw.sent[0].id;
+
+    fw.emit({ type: 'error', id, message: 'cell source unavailable' });
+
+    await expect(completed).rejects.toThrow('cell source unavailable');
+    expect(fw.terminated).toBe(true);
+  });
+
+  it('rejects one-shot loading when the worker itself crashes', async () => {
+    const fw = new FakeWorker();
+    const completed = loadCompleteGroundWorld(req, () => fw as unknown as Worker);
+
+    fw.fail('worker crashed');
+
+    await expect(completed).rejects.toThrow('World generation worker failed');
+    expect(fw.terminated).toBe(true);
   });
 });

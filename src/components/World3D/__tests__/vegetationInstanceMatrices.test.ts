@@ -26,9 +26,14 @@ const chunk = (biome: string): ChunkData => ({
 class FakeInstancedMesh implements VegetationInstanceMatrixTarget {
   instanceMatrix = { needsUpdate: false };
   writes: Array<{ index: number; matrix: THREE.Matrix4 }> = [];
+  boundsRefreshes = 0;
 
   setMatrixAt(index: number, matrix: THREE.Matrix4): void {
     this.writes.push({ index, matrix: matrix.clone() });
+  }
+
+  computeBoundingSphere(): void {
+    this.boundsRefreshes += 1;
   }
 }
 
@@ -42,12 +47,14 @@ describe('syncVegetationInstanceMatrices', () => {
     expect(firstPass).toBe(true);
     expect(mesh.writes).toHaveLength(scatter.positions.length / 3);
     expect(cacheRef.current).toBe(scatter.cacheKey);
+    expect(mesh.boundsRefreshes).toBe(1);
 
     mesh.instanceMatrix.needsUpdate = false;
     const secondPass = syncVegetationInstanceMatrices(mesh, scatter, cacheRef);
     expect(secondPass).toBe(false);
     expect(mesh.writes).toHaveLength(scatter.positions.length / 3);
     expect(mesh.instanceMatrix.needsUpdate).toBe(false);
+    expect(mesh.boundsRefreshes).toBe(1);
   });
 
   it('repaints when the stable scatter key changes', () => {
@@ -62,5 +69,6 @@ describe('syncVegetationInstanceMatrices', () => {
     expect(syncVegetationInstanceMatrices(mesh, secondScatter, cacheRef)).toBe(true);
     expect(mesh.writes.length).toBeGreaterThan(firstWriteCount);
     expect(cacheRef.current).toBe(secondScatter.cacheKey);
+    expect(mesh.boundsRefreshes).toBe(2);
   });
 });

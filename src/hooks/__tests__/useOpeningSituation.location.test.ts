@@ -1,3 +1,9 @@
+/**
+ * These tests prove the opening location comes from canonical game state rather
+ * than model invention or the retired grid. The same builder now freezes a
+ * WorldForge seed/cell/site receipt so a later hostile resolution can project
+ * the exact mounted GroundWorld or fail closed.
+ */
 import { describe, it, expect } from 'vitest';
 import { buildSituationLocation } from '../useOpeningSituation';
 import { initialGameState } from '../../state/initialState';
@@ -41,5 +47,39 @@ describe('buildSituationLocation — chosen start town names the opening scene',
     const loc = buildSituationLocation({ ...base(), startTownName: undefined, startTownRegion: undefined });
     const expected = LOCATIONS[STARTING_LOCATION_ID]?.name ?? STARTING_LOCATION_ID;
     expect(loc.name).toBe(expected);
+  });
+});
+
+describe('buildSituationLocation - tactical source receipt', () => {
+  it('freezes the matching world seed, atlas cell, site center, and place label', () => {
+    const loc = buildSituationLocation({
+      ...base(),
+      worldSeed: SEED,
+      playerCell: { cellId: BURG_CELL, localeCoords: null },
+      entry3DAnchor: { cellId: BURG_CELL, centerPx: [125, 250] },
+      startTownName: 'Pinsk',
+      startTownRegion: 'See of Helsia',
+    });
+
+    expect(loc.battlefieldSource).toEqual({
+      kind: 'worldforge-opening-location',
+      receiptId: `opening:${SEED}:cell:${BURG_CELL}`,
+      worldSeed: SEED,
+      cellId: BURG_CELL,
+      centerPx: [125, 250],
+      locationLabel: 'Pinsk, See of Helsia',
+    });
+  });
+
+  it('does not attach a stale entry center from another atlas cell', () => {
+    const loc = buildSituationLocation({
+      ...base(),
+      worldSeed: SEED,
+      playerCell: { cellId: BURG_CELL, localeCoords: null },
+      entry3DAnchor: { cellId: BURG_CELL + 1, centerPx: [125, 250] },
+    });
+
+    expect(loc.battlefieldSource?.cellId).toBe(BURG_CELL);
+    expect(loc.battlefieldSource?.centerPx).toBeUndefined();
   });
 });

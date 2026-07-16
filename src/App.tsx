@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 05/07/2026, 08:24:03
+ * Last Sync: 15/07/2026, 23:25:39
  * Dependents: None (Orphan)
- * Imports: 75 files
+ * Imports: 81 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -46,8 +46,9 @@
 // useEffect for side effects
 import React, { useReducer, useCallback, useEffect, useRef, lazy, Suspense, useState } from 'react';
 import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase, Notification, DiscoveryType } from './types';
-import type { TravelMeta } from './types/travelMeta';
-import { BATTLE_MAP_BIOMES, type BattleMapBiome } from './types/combat';
+import type { GameState } from './types/state';
+import type { TravelCombatEncounter, TravelMeta } from './types/travelMeta';
+import { BATTLE_MAP_BIOMES, type BattleMapBiome, type BattleMapData } from './types/combat';
 import { buildProvisionActions } from './systems/travel/applyProvision';
 import { resolveForcedMarch } from './systems/travel/forcedMarch';
 import { rollD20 } from './utils/combat/combatUtils';
@@ -169,6 +170,64 @@ const CombatMessagingDemo = lazy(() => import('./components/demo/CombatMessaging
  * but bounded so a hung or offline backend can't lock the menus forever.
  */
 const LOADING_WATCHDOG_MS = 60_000;
+
+interface TravelBattlefieldPreparation {
+  extractedBattleMap?: BattleMapData;
+  sourceGapDetail?: string;
+}
+
+/**
+ * Resolve one travel combat request against the exact destination WorldForge
+ * artifact. Both normal travel and the deterministic visual fixture call this
+ * boundary, so the proof route cannot quietly diverge from production.
+ */
+async function prepareTravelBattlefield(
+  encounter: TravelCombatEncounter,
+  destination: TravelMeta['destinationCell'],
+  sourceState: Pick<GameState, 'worldSeed' | 'gameTime' | 'worldforgeDeltas'>,
+): Promise<TravelBattlefieldPreparation> {
+  if (encounter.kind === 'sea-hostile') {
+    return {
+      sourceGapDetail: 'The hostile sea-travel event has no authoritative sea surface, vessel deck, or boarding geometry for tactical combat.',
+    };
+  }
+  if (!destination || sourceState.worldSeed == null) {
+    return {
+      sourceGapDetail: 'The land-travel encounter did not retain both its destination atlas cell and world seed.',
+    };
+  }
+
+  try {
+    const [{ loadCompleteGroundWorld }, { createTravelAmbushBattlefield }] = await Promise.all([
+      import('./components/World3D/createWorldGenClient'),
+      import('./systems/combat/worldScenario/travelAmbushBattlefield'),
+    ]);
+    const hour = sourceState.gameTime instanceof Date
+      ? sourceState.gameTime.getHours() + sourceState.gameTime.getMinutes() / 60
+      : 12;
+    const ground = await loadCompleteGroundWorld({
+      wfSeed: sourceState.worldSeed,
+      entryCellId: destination.cellId,
+      centerPx: destination.anchor.centerPx,
+      hour,
+      deltas: sourceState.worldforgeDeltas,
+    });
+    const projection = createTravelAmbushBattlefield(ground, {
+      worldSeed: sourceState.worldSeed,
+      destinationCellId: destination.cellId,
+      destinationCenterPx: destination.anchor.centerPx,
+      routeCells: encounter.routeCells,
+      hour,
+    });
+    return projection.status === 'ready'
+      ? { extractedBattleMap: projection.mapData }
+      : { sourceGapDetail: projection.detail };
+  } catch (error) {
+    return {
+      sourceGapDetail: `WorldForge could not project the travel encounter location: ${error instanceof Error ? error.message : String(error)}`,
+    };
+  }
+}
 
 const App: React.FC = () => {
   const AUTO_SAVE_PREF_KEY = 'aralia_rpg_pref_auto_save_enabled';
@@ -566,21 +625,60 @@ const App: React.FC = () => {
     handleLegacyDummyAutoStart,
   ]);
 
-  // Dev combat fixture (?dev_combat=1): once the save is loaded into PLAYING,
-  // start a deterministic battle-map encounter directly (bestiary monsters,
-  // no AI generation). Exists for headless combat proofs — 3d-combat-map G7:
-  // the autosave lands on the exploration surface, leaving CombatView
-  // unreachable without UI driving. Decision Blitz "items converted to work".
+  // Dev combat fixtures: ?dev_combat=1 is the explicitly procedural sandbox,
+  // ?dev_combat_source_gap=1 proves the production fail-closed state, and
+  // ?dev_travel_ambush=1 drives the real travel projection at canonical cell
+  // 373. All stay behind dev permissions and bypass AI for stable captures.
   const devCombatFiredRef = useRef(false);
   useEffect(() => {
     if (!canUseDevTools() || devCombatFiredRef.current) return;
     if (gameState.phase !== GamePhase.PLAYING) return;
     const params = new URLSearchParams(window.location.search);
-    if (params.get('dev_combat') !== '1') return;
+    const sandboxFixture = params.get('dev_combat') === '1';
+    const sourceGapFixture = params.get('dev_combat_source_gap') === '1';
+    const travelFixture = params.get('dev_travel_ambush') === '1';
+    if (!sandboxFixture && !sourceGapFixture && !travelFixture) return;
     devCombatFiredRef.current = true;
+
+    if (travelFixture) {
+      const monsters = [
+        { name: 'Bandit', quantity: 3, cr: '1/8', description: 'Deterministic road-interception fixture' },
+      ];
+      const encounter: TravelCombatEncounter = {
+        kind: 'land-route-ambush',
+        monsters,
+        routeCells: [112, 201, 373],
+      };
+      void (async () => {
+        const { extractedBattleMap, sourceGapDetail } = await prepareTravelBattlefield(
+          encounter,
+          { cellId: 373, anchor: { cellId: 373 } },
+          {
+            worldSeed: 42,
+            gameTime: gameState.gameTime,
+            worldforgeDeltas: gameState.worldforgeDeltas,
+          },
+        );
+        if (sourceGapDetail) {
+          addMessage(`Travel fixture source gap: ${sourceGapDetail}`, 'system');
+        }
+        await processAction({
+          type: 'START_BATTLE_MAP_ENCOUNTER',
+          label: 'WorldForge Travel Ambush Fixture',
+          payload: {
+            startBattleMapEncounterData: {
+              monsters,
+              ...(extractedBattleMap ? { extractedBattleMap } : {}),
+            },
+          },
+        });
+      })();
+      return;
+    }
+
     processAction({
       type: 'START_BATTLE_MAP_ENCOUNTER',
-      label: 'Dev Combat Fixture',
+      label: sourceGapFixture ? 'World Battle Source Gap Fixture' : 'Procedural Combat Sandbox',
       payload: {
         startBattleMapEncounterData: {
           monsters: [
@@ -590,7 +688,7 @@ const App: React.FC = () => {
         },
       },
     });
-  }, [gameState.phase, processAction]);
+  }, [addMessage, gameState.gameTime, gameState.phase, gameState.worldforgeDeltas, processAction]);
 
   useEffect(() => {
     // This effect handles the timed transition from the welcome screen to the main game.
@@ -774,16 +872,33 @@ const App: React.FC = () => {
       const te = travelMeta?.tripEvent;
       if (te?.message) addMessage(te.message, 'system');
     };
-    // A rolled road ambush now starts a REAL fight on arrival (it used to only
-    // print the message and nothing happened). Fired after the move so combat
-    // resolves at the destination; the handler pulls in the bestiary lazily.
+    // A rolled road ambush now reaches the combat authority boundary on arrival
+    // instead of only printing a message. It is fired after movement so the
+    // destination cell is known. Until this caller projects that cell into a
+    // tactical map, CombatView shows the explicit source gap rather than an arena.
     const triggerTravelEncounter = () => {
       const enc = travelMeta?.encounter;
       if (!enc?.monsters?.length) return;
       void (async () => {
+        const { extractedBattleMap, sourceGapDetail } = await prepareTravelBattlefield(
+          enc,
+          travelMeta?.destinationCell,
+          {
+            worldSeed: gameState.worldSeed,
+            gameTime: gameState.gameTime,
+            worldforgeDeltas: gameState.worldforgeDeltas,
+          },
+        );
+
         try {
+          if (sourceGapDetail) {
+            addMessage(`Tactical combat withheld: ${sourceGapDetail}`, 'system');
+          }
           const { handleStartBattleMapEncounter } = await import('./hooks/actions/handleEncounter');
-          await handleStartBattleMapEncounter(dispatch, { monsters: enc.monsters });
+          await handleStartBattleMapEncounter(dispatch, {
+            monsters: enc.monsters,
+            ...(extractedBattleMap ? { extractedBattleMap } : {}),
+          });
         } catch (err) {
           console.error('[travel encounter] failed to start battle:', err);
         }
@@ -940,7 +1055,7 @@ const App: React.FC = () => {
       addMessage('That place lies beyond the known map — scout closer before you can travel there.', 'system');
     }
 
-  }, [gameState.currentLocationId, gameState.companions, gameState.party, gameState.discoveryLog, gameState.gameTime, addMessage, dispatch]);
+  }, [gameState.currentLocationId, gameState.companions, gameState.party, gameState.discoveryLog, gameState.gameTime, gameState.worldSeed, gameState.worldforgeDeltas, addMessage, dispatch]);
 
   /**
    * Atlas "Enter 3D" mode: place the player in the streamed world at the clicked cell.

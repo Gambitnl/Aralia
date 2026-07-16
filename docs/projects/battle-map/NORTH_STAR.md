@@ -6,13 +6,13 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-20
-iteration: 8
+last_updated: 2026-07-16
+iteration: 10
 confidence: medium
 evidence: docs/projects/battle-map
-gap_signal: "2 open gaps; G5 and CMA-G15 remain open after G6 tactical spawn scoring landed (2026-06-19) and D17 utility-contract documentation (2026-06-20)"
+gap_signal: "WorldForge is the sole production battlefield authority and five encounter classes are source-backed. Static authored-town watch, sea encounters, and location-free simulation remain fail-closed; opening-threat enemy positions, monster ecology, and older renderer/module gaps remain explicit debt."
 protocol: living project doc set
-next_step: "D17 utility contract documented in NORTH_STAR.md ('D17 Utility Contract: `generateBattleSetup`'); G6 tactical spawn scoring implemented 2026-06-19. Next bounded slices are G5 VFX renderer-boundary proof and CMA-G15 actor/terrain render-parity proof (both routed from `docs/projects/code-modularization-audit/GAPS.md`); parity overlay follow-up stays gated by `PARITY_CHECKLIST.md`."
+next_step: "Give opening threats authored WorldForge entity placement and ecological group semantics, then migrate the next withheld production launcher without weakening the global fail-closed gate. Keep WORLDFORGE_SOURCE_INVENTORY.md current and reject visually artificial maps during screenshot review."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -21,6 +21,7 @@ required_docs:
   - COLD_START_AGENT_PROMPT.md
   - DECISIONS.md
   - AUDIT_OR_PROOF.md
+  - WORLDFORGE_SOURCE_INVENTORY.md
   - RUNBOOK.md
 optional_docs:
   - PARITY_CHECKLIST.md
@@ -29,8 +30,9 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-08
-workflow_gaps_reviewed: 2026-06-10
+  - scoped_tests
+last_proof: 2026-07-15
+workflow_gaps_reviewed: 2026-07-15
 compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -40,8 +42,8 @@ human_decision_required: "no"
 ---
 # Battle Map North Star
 
-Status: active (D17 utility contract documented 2026-06-20; G6 tactical spawn scoring implemented 2026-06-19; awaiting routed CMA slices G5 and CMA-G15)
-Last updated: 2026-06-20
+Status: active (WorldForge production authority and hostile-opening projection migrated; three audited production source gaps remain)
+Last updated: 2026-07-16
 
 ## Why This Project Exists
 
@@ -54,21 +56,70 @@ Maintain a cold-start handoff for Battle Map by documenting:
 - integration boundaries into combat orchestration,
 - concrete gaps that must not be dropped during future slices.
 
+## WorldForge Battlefield Authority Amendment
+
+The current product direction is world-first. Production tactical combat is not
+allowed to decorate an encounter roster with an unrelated generated arena.
+Every launcher must either provide a deterministic tactical projection of the
+actual WorldForge location or reach the visible fail-closed state.
+
+`docs/projects/battle-map/WORLDFORGE_SOURCE_INVENTORY.md` is the completion
+ledger for that contract. It records every known tactical entry path, its source
+facts, current migrated/withheld classification, deterministic proof, and next
+bridge. Five production classes are currently source-backed: Ground hostile
+proximity, generated-settlement wanted watch, generated-state patrols, and
+road-backed land-travel ambushes, plus hostile openings/failed de-escalations.
+A roadless travel destination is intentionally withheld because no source road
+exists to justify road-ambush framing.
+
+The legacy `BattleMapGenerator` remains available only through explicitly
+labeled developer sandbox surfaces. `CombatView` is the global safety boundary:
+an absent extracted map mounts `BattlefieldSourceGap`, gives combat AI no actors,
+and exposes only a safe return command.
+
+Hostile openings now freeze a game-authored seed/cell/site receipt and ask the
+mounted GroundWorld for the exact live player-position crop. Static authored-town
+watch encounters, naval/sea encounters, and location-free encounter simulation
+remain audited gaps. Opening enemy world positions and approach direction also
+remain explicitly unauthored; the current terrain-fit constellation is a labeled
+tactical policy, not a fabricated source fact.
+
+## Adversarial Render Review Contract
+
+Rendered output is judged as a game scene, not as proof that React mounted. Every
+canonical scenario needs browser captures at a normal desktop viewport and a
+constrained viewport. Review must compare the source facts, tactical projection,
+monster composition, and surrounding UI as one image.
+
+Reject a technically valid render when it shows compass-perfect or repeated spawn
+geometry, hodgepodge asset scatter, empty terrain without encounter storytelling,
+repeated monster silhouettes, unreadable dark tokens, weak threat hierarchy,
+implausible group behavior, or panels masking the engagement. Record the rejected
+state and the correction rather than keeping only the flattering final capture.
+
+Monster improvements should extend WorldForge instead of pasting cosmetics over
+the board. High-value unusual directions include source-authored ecological wakes
+(tracks, scent, disturbed vegetation, alarmed wildlife), social topology (handler,
+scout, pack lead, wounded member, escape lane), staged perception where evidence
+appears before the body, and persistent terrain memory left by burrowing, nesting,
+feeding, or crude traps. These must be facts or labeled referee policies; visual
+plausibility is not permission to invent history.
+
 ## Dashboard Card Schema
 
 Project: Battle Map
 Slug: battle-map
 Category: Feature/UI Projects
-Status: active (D17 utility contract documented 2026-06-20; G6 tactical spawn scoring implemented 2026-06-19)
+Status: active (WorldForge production authority and hostile openings migrated; three production source gaps remain fail closed)
 Confidence: medium
 Evidence: docs/projects/battle-map
-Gap signal: 2 open gaps (G5 VFX renderer-boundary proof, CMA-G15 actor/terrain render-parity proof); G6 done 2026-06-19; G3 decided 2026-06-10 (D17, keep-as-is)
+Gap signal: G9-G13 cover the three withheld launchers, opening-threat spatial authority, and monster ecology/readability; older G5, G7, and CMA-G15 remain preserved adjacent work.
 Protocol: living project doc set
-Next step: D17 utility contract documented in NORTH_STAR.md ('D17 Utility Contract: `generateBattleSetup`'); G6 tactical spawn scoring implemented 2026-06-19. Next bounded slices are G5 VFX renderer-boundary proof and CMA-G15 actor/terrain render-parity proof (both routed from `docs/projects/code-modularization-audit/GAPS.md`); parity overlay follow-up stays gated by `PARITY_CHECKLIST.md`.
+Next step: Author opening-threat entity placement and ecological group semantics in WorldForge, then migrate one remaining withheld launcher without weakening the global source gate.
 Required verification: scoped_tests, docs_consistency
-Completed verification: docs_consistency
-Last proof: 2026-06-19
-Workflow gaps reviewed: 2026-06-20
+Completed verification: scoped_tests, docs_consistency
+Last proof: 2026-07-16
+Workflow gaps reviewed: 2026-07-16
 
 ## Required Review Brief
 

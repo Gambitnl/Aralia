@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 27/06/2026, 01:55:23
- * Dependents: hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, types/index.ts
+ * Last Sync: 15/07/2026, 23:02:49
+ * Dependents: hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, types/index.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -272,9 +272,10 @@ export interface StartBattleMapEncounterPayload {
    */
   combatants?: CombatCharacter[];
   /**
-   * Optional pre-extracted 3D battle map. When entering combat from ground mode,
-   * the local terrain is extracted and stored here to bypass procedural generation
-   * of the battle map.
+   * Tactical projection of the encounter's real WorldForge location. The field
+   * remains optional at the action boundary so incomplete encounter classes can
+   * reach the visible source-gap state, but production CombatView never replaces
+   * an omission with procedural terrain.
    */
   extractedBattleMap?: BattleMapData;
 }

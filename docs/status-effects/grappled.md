@@ -129,7 +129,7 @@
 | 30 | `- **Conditions Applied**: Grappled` |
 | 32 | `- **Description**: You conjure a vine that sprouts from a surface in an unoccupied space that you can see within range. The vine lasts for the duratio...` |
 
-### `docs/projects/character-creator/GAPS.md`
+### planmap topic `character-creator` (absorbed from docs/projects/character-creator/GAPS.md, 2026-07-15)
 
 | Line | Snippet |
 |---|---|

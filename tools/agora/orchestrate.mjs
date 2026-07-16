@@ -448,8 +448,9 @@ ${taskId
   node tools/agora/client.mjs task claim "$TID" --url $B`}
   node tools/agora/client.mjs lock ${files} --reason "${pkt.id}" --url $B
   node tools/agora/client.mjs say "starting ${pkt.id}" --url $B
-If work will take >20 minutes, keep presence alive in the background (silent >60min = reaped):
-  node tools/agora/client.mjs heartbeat --every 600 --url $B &
+If work will take >20 minutes, use a bounded heartbeat helper (30-minute default; renew only while active):
+  node tools/agora/client.mjs heartbeat --every 600 --for 30 --url $B &
+  # If your harness exposes its PID, also pass --owner-pid <pid> (or set AGORA_OWNER_PID).
 FAILURE HANDLING:
 - task claim fails (409 = someone else claimed it): say "409 on task ${pkt.id} — standing down" and STOP; do not create a replacement task.
 - lock returns CONFLICT/409: do NOT edit that file; say "409 CONFLICT: <file> held by <holder>" and skip that file.
@@ -464,6 +465,7 @@ STEP 4 — Wrap up + REQUIRED workflow feedback (BOTH the say broadcast — live
   node tools/agora/client.mjs task done "$TID" --result "<files changed + concrete proof (e.g. 'a.tsx,b.ts; self-reviewed, matches M1 spec')>" --url $B
   node tools/agora/client.mjs unlock --mine --url $B
   node tools/agora/client.mjs say "WORKFLOW: <any friction with THIS coordination workflow itself, or 'none'>" --url $B
+  node tools/agora/client.mjs retire --note "completed ${pkt.id}" --url $B
 ${external ? `\nFINALLY write a <=8-line report to .agent/scratch/orchestrate/${pkt.handle}.md: what you changed per file + your WORKFLOW feedback.` : ''}
 RETURN: per issue what you changed (file + concrete change), any cross-file follow-ups, any 409s, and your WORKFLOW feedback.`;
 }

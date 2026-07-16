@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 19/06/2026, 00:47:24
+ * Last Sync: 15/07/2026, 08:56:55
  * Dependents: hooks/actions/actionHandlers.ts
- * Imports: 14 files
+ * Imports: 22 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -40,6 +40,7 @@ import { npcToPartyMember, promoteCompanionToMember } from '../../systems/party/
 import { isInParty } from '../../systems/party/recruitTypes';
 import { isWatchRole, isWantedInTown } from '../../systems/social/watchReaction';
 import { handleStartBattleMapEncounter } from './handleEncounter';
+import { prepareActiveGroundSettlementEncounter } from '../../systems/combat/fightInPlace/activeGroundCombatSession';
 
 /**
  * Guard confrontation (item 1): when the player is WANTED in this town and tries
@@ -65,10 +66,43 @@ async function tryWatchConfrontation(
     'system',
   );
   dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
-  // Reuse the hostile-opening → tactical-combat handoff: confront with guards.
-  await handleStartBattleMapEncounter(dispatch, {
-    monsters: [{ name: 'Guard', quantity: 2, cr: '1/8', description: 'Town watch · CR 1/8' }],
+  // When the player is walking a generated GroundWorld, ask that live world to
+  // supply the exact terrain and controlling regiment. Current crimes and all
+  // generated-state standings cross the boundary as evidence; the provider
+  // selects only the relation matching this confrontation.
+  const sourceEncounter = await prepareActiveGroundSettlementEncounter({
+    trigger: {
+      kind: 'watch-confrontation',
+      source: 'player-interaction',
+      sourceId: `talk:${npcName}`,
+      locationId: gameState.currentLocationId,
+      summary: `${npcName} identifies the wanted party and moves to arrest them.`,
+    },
+    knownCrimes: gameState.notoriety?.knownCrimes ?? [],
+    playerFactionStandings: gameState.playerFactionStandings ?? {},
   });
+
+  if (sourceEncounter.status === 'ready') {
+    await handleStartBattleMapEncounter(dispatch, sourceEncounter.payload);
+    return true;
+  }
+
+  // Static authored towns and non-3D interactions have no GroundWorld provider.
+  // Preserve their established guard actors as encounter intent, but the global
+  // battlefield boundary will withhold play until those towns gain a canonical
+  // WorldForge site projection. A mounted generated settlement that rejected
+  // the source bridge stays in the dialogue flow and never substitutes guards.
+  if (sourceEncounter.status === 'unavailable' || sourceEncounter.status === 'not-applicable') {
+    await handleStartBattleMapEncounter(dispatch, {
+      monsters: [{ name: 'Guard', quantity: 2, cr: '1/8', description: 'Town watch, CR 1/8' }],
+    });
+    return true;
+  }
+
+  addMessage(
+    `The confrontation cannot enter tactical combat: ${sourceEncounter.detail}`,
+    'system',
+  );
   return true;
 }
 

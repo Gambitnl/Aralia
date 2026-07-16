@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 00:29:15
- * Dependents: components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx
- * Imports: 2 files
+ * Last Sync: 16/07/2026, 01:43:48
+ * Dependents: components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx, systems/combat/worldScenario/travelAmbushBattlefield.ts
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,12 +32,26 @@ import type {
   BattleMapData,
   BattleMapDecoration,
   BattleMapEncounterContext,
+  BattleMapSettlementHostility,
   BattleMapTerrain,
 } from '@/types/combat';
 import {
   extractLocalTerrainPatch,
+  type GroundOccupantProjectionInput,
   type GroundWorld,
 } from '@/systems/worldforge/bridge/groundChunkLoader';
+import { GROUND_METERS_PER_CELL } from '@/systems/worldforge/bridge/groundWorldAdapter';
+import { PROPS_BY_ID, propFootprintRadiusM } from '@/systems/worldforge/bridge/groundProps';
+import { allGroundAgentsAt } from '@/systems/worldforge/bridge/groundAgentMotion';
+import { projectSettlementDefendingForce } from './settlementDefenderProjection';
+import {
+  createVisualHarnessHostileStateInput,
+  createVisualHarnessWantedWatchInput,
+  resolveSettlementEncounterHostility,
+  type SettlementEncounterHostilityInput,
+} from './settlementEncounterHostility';
+import { projectLiveSettlementEncounter } from './liveSettlementEncounter';
+import { projectOpeningThreatBattlefield } from './openingThreatBattlefield';
 
 // ============================================================================
 // Reproducible Scenario Recipes
@@ -55,12 +69,22 @@ export interface WorldBattleScenarioPreset {
   worldSeed: number;
   entryCellId: number;
   centerPx?: readonly [number, number];
+  /** Fractional world clock used for source residents and visual reproducibility. */
+  hour?: number;
   theme: BattleMapBiome;
   dimensions: { width: number; height: number };
   /** How the tactical crop chooses its exact location inside the generated ground window. */
-  anchorMode?: 'ground-center' | 'nearest-road' | 'nearest-crossing';
+  anchorMode?: 'ground-center' | 'nearest-road' | 'nearest-crossing' | 'nearest-gatehouse';
   /** Machine-readable encounter framing expected from the selected world fact. */
   encounterKind?: BattleMapEncounterContext['kind'];
+  /** Deterministic non-world fixture available only when the visual harness opts in. */
+  visualHostilityFixture?: 'wanted-watch-confrontation' | 'hostile-state-standing';
+  /** Explicit model-roster substitute used only to render a hostile opening in the lab. */
+  visualOpeningThreatFixture?: ReadonlyArray<{
+    name: string;
+    quantity: number;
+    cr: string;
+  }>;
   sourceRouteQuery: string;
 }
 
@@ -103,6 +127,73 @@ export const WORLD_BATTLE_SCENARIO_PRESETS: readonly WorldBattleScenarioPreset[]
     sourceRouteQuery: 'phase=world3d&ground=1&dcell=476&wfseed=42',
   },
   {
+    id: 'legium-hostile-opening',
+    label: 'Hostile Opening',
+    encounterFrame: 'Directionless standoff',
+    description: 'A hostile opening at Legium\'s exact generated start location. The game-authored seed/cell/site receipt is real; the goblin-and-wolf roster is an explicitly labeled model substitute whose world positions and approach direction remain unauthored.',
+    worldSeed: 42,
+    entryCellId: 829,
+    centerPx: [641.2, 149.42],
+    hour: 17.25,
+    theme: 'forest',
+    dimensions: { width: 80, height: 60 },
+    anchorMode: 'ground-center',
+    encounterKind: 'opening-standoff',
+    visualOpeningThreatFixture: [
+      { name: 'Goblin', quantity: 3, cr: '1/4' },
+      { name: 'Wolf', quantity: 1, cr: '1/4' },
+    ],
+    sourceRouteQuery: 'phase=world3d&ground=1&gx=16&gy=4&wfseed=42',
+  },
+  {
+    id: 'legium-settlement-edge',
+    label: 'Settlement Edge',
+    encounterFrame: 'Gate approach',
+    description: 'Legium at the nearest real gatehouse during the evening commute, with a labeled wanted-party fixture proving source structures, residents, and Turino regiment facts drive the same playable encounter.',
+    worldSeed: 42,
+    entryCellId: 829,
+    centerPx: [641.2, 149.42],
+    hour: 17.25,
+    theme: 'forest',
+    dimensions: { width: 80, height: 60 },
+    anchorMode: 'nearest-gatehouse',
+    encounterKind: 'settlement-edge',
+    visualHostilityFixture: 'wanted-watch-confrontation',
+    sourceRouteQuery: 'phase=world3d&ground=1&gx=16&gy=4&wfseed=42',
+  },
+  {
+    id: 'legium-watch-interception',
+    label: 'Live Watch',
+    encounterFrame: 'Player-position arrest',
+    description: 'Legium at the exact live crop center, proving the production watch frame keeps the party in place while a source Turino patrol intercepts from the town side.',
+    worldSeed: 42,
+    entryCellId: 829,
+    centerPx: [641.2, 149.42],
+    hour: 17.25,
+    theme: 'forest',
+    dimensions: { width: 80, height: 60 },
+    anchorMode: 'ground-center',
+    encounterKind: 'settlement-watch',
+    visualHostilityFixture: 'wanted-watch-confrontation',
+    sourceRouteQuery: 'phase=world3d&ground=1&gx=16&gy=4&wfseed=42',
+  },
+  {
+    id: 'legium-state-patrol',
+    label: 'State Patrol',
+    encounterFrame: 'Political interception',
+    description: 'Legium at the exact live crop center, proving a hostile Turino standing can emit a deterministic world event and deploy the real stationed regiment without being mislabeled as a crime response.',
+    worldSeed: 42,
+    entryCellId: 829,
+    centerPx: [641.2, 149.42],
+    hour: 17.25,
+    theme: 'forest',
+    dimensions: { width: 80, height: 60 },
+    anchorMode: 'ground-center',
+    encounterKind: 'settlement-state-patrol',
+    visualHostilityFixture: 'hostile-state-standing',
+    sourceRouteQuery: 'phase=world3d&ground=1&gx=16&gy=4&wfseed=42',
+  },
+  {
     id: 'legium-town-skirmish',
     label: 'Legium',
     encounterFrame: 'Town skirmish',
@@ -128,6 +219,10 @@ export interface WorldBattleParityCheck {
 export interface WorldBattleSourceFacts {
   naturalFeatures: number;
   placedProps: number;
+  /** Source feature anchors whose nearest five-foot cell lies in this crop. */
+  naturalFeaturesInCrop: number;
+  /** Source prop footprints that touch at least one five-foot cell in this crop. */
+  placedPropsInCrop: number;
   roadRuns: number;
   regionalRoadRuns: number;
   townStreetRuns: number;
@@ -136,8 +231,14 @@ export interface WorldBattleSourceFacts {
   bridges: number;
   fords: number;
   buildings: number;
+  buildingsInCrop: number;
+  gatehouses: number;
+  gatehousesInCrop: number;
   towns: number;
   hostiles: number;
+  occupants: number;
+  occupantsInCrop: number;
+  movingOccupantsInCrop: number;
 }
 
 export interface WorldBattleTacticalFacts {
@@ -146,6 +247,13 @@ export interface WorldBattleTacticalFacts {
   coverTiles: number;
   decoratedTiles: number;
   targetableObjects: number;
+  targetableFeatures: number;
+  targetableProps: number;
+  incompleteTargetFacts: number;
+  worldOccupants: number;
+  occupiedOccupantCells: number;
+  movingOccupants: number;
+  occupantsOnBlockedTiles: number;
   roadTiles: number;
   regionalRoadTiles: number;
   townStreetTiles: number;
@@ -162,7 +270,32 @@ export interface WorldBattleTacticalFacts {
 export interface WorldBattleScenarioDiagnostics {
   source: WorldBattleSourceFacts;
   tactical: WorldBattleTacticalFacts;
+  defense: WorldBattleDefenseFacts;
   parity: WorldBattleParityCheck[];
+}
+
+export interface WorldBattleDefenseFacts {
+  stateName: string | null;
+  stateFullName: string | null;
+  stateAlert: number | null;
+  stationedRegiments: number;
+  stationedTroops: number;
+  selectedRegiment: string | null;
+  selectedRegimentTroops: number;
+  tacticalActors: number;
+  tacticalUnits: string[];
+  excludedUnits: string[];
+  hostility: {
+    verdict: BattleMapSettlementHostility['verdict'] | 'none';
+    rule: BattleMapSettlementHostility['rule'] | 'none';
+    triggerKind: BattleMapSettlementHostility['trigger']['kind'];
+    triggerSource: BattleMapSettlementHostility['trigger']['source'];
+    triggerSummary: string;
+    relationKind: BattleMapSettlementHostility['relation']['kind'];
+    relationSummary: string;
+    detail: string;
+    inputKind: 'visual-harness-fixture' | 'live-player-state' | 'none';
+  };
 }
 
 export interface WorldBattleScenario {
@@ -171,6 +304,13 @@ export interface WorldBattleScenario {
   locationLabel: string;
   mapData: BattleMapData;
   diagnostics: WorldBattleScenarioDiagnostics;
+}
+
+export interface WorldBattleScenarioOptions {
+  /** Live callers can provide the current confrontation and player relation. */
+  settlementHostility?: SettlementEncounterHostilityInput;
+  /** Developer-only switch that enables the preset's deterministic player-state fixture. */
+  useVisualHostilityFixture?: boolean;
 }
 
 // ============================================================================
@@ -192,9 +332,76 @@ const emptyTerrainCounts = (): Record<BattleMapTerrain, number> => ({
   mud: 0,
 });
 
+/** Convert the typed relation receipt into a compact inspector sentence. */
+function hostilityRelationSummary(
+  hostility: BattleMapSettlementHostility | undefined,
+): string {
+  const relation = hostility?.relation;
+  if (!relation) return 'No settlement force requires a hostility relation.';
+  if (relation.kind === 'none') return relation.detail;
+  if (relation.kind === 'wanted-in-location') {
+    const count = relation.witnessedCrimeIds.length;
+    return `${count} witnessed ${count === 1 ? 'crime' : 'crimes'} in ${relation.locationId}`;
+  }
+  return `${relation.tier} standing ${relation.publicStanding} for ${relation.factionId} (hostile at ${relation.hostileThreshold} or lower)`;
+}
+
+/** Count source footprints independently of the target registry they should produce. */
+function sourceFootprintTouchesCrop(
+  x: number,
+  z: number,
+  mapData: BattleMapData,
+  footprintRadiusM = 0,
+): boolean {
+  const anchor = mapData.provenance?.anchorWorldMeters;
+  if (!anchor) return false;
+  const centerX = Math.floor(mapData.dimensions.width / 2);
+  const centerY = Math.floor(mapData.dimensions.height / 2);
+  const exactX = centerX + (x - anchor.x) / GROUND_METERS_PER_CELL;
+  const exactY = centerY + (z - anchor.z) / GROUND_METERS_PER_CELL;
+  const footprintCells = footprintRadiusM / GROUND_METERS_PER_CELL;
+  return exactX >= -0.5 - footprintCells
+    && exactX <= mapData.dimensions.width - 0.5 + footprintCells
+    && exactY >= -0.5 - footprintCells
+    && exactY <= mapData.dimensions.height - 0.5 + footprintCells;
+}
+
+/** Detect a source polygon whose footprint overlaps the exact referee bounds. */
+function sourcePolygonTouchesCrop(
+  points: readonly { x: number; z: number }[],
+  mapData: BattleMapData,
+): boolean {
+  const anchor = mapData.provenance?.anchorWorldMeters;
+  if (!anchor || points.length === 0) return false;
+  const centerX = Math.floor(mapData.dimensions.width / 2);
+  const centerY = Math.floor(mapData.dimensions.height / 2);
+  const crop = {
+    minX: anchor.x + (-centerX - 0.5) * GROUND_METERS_PER_CELL,
+    maxX: anchor.x + (mapData.dimensions.width - centerX - 0.5) * GROUND_METERS_PER_CELL,
+    minZ: anchor.z + (-centerY - 0.5) * GROUND_METERS_PER_CELL,
+    maxZ: anchor.z + (mapData.dimensions.height - centerY - 0.5) * GROUND_METERS_PER_CELL,
+  };
+  const bounds = points.reduce((result, point) => ({
+    minX: Math.min(result.minX, point.x),
+    maxX: Math.max(result.maxX, point.x),
+    minZ: Math.min(result.minZ, point.z),
+    maxZ: Math.max(result.maxZ, point.z),
+  }), {
+    minX: Number.POSITIVE_INFINITY,
+    maxX: Number.NEGATIVE_INFINITY,
+    minZ: Number.POSITIVE_INFINITY,
+    maxZ: Number.NEGATIVE_INFINITY,
+  });
+  return bounds.maxX >= crop.minX
+    && bounds.minX <= crop.maxX
+    && bounds.maxZ >= crop.minZ
+    && bounds.minZ <= crop.maxZ;
+}
+
 export function summarizeWorldBattleScenario(
   ground: GroundWorld,
   mapData: BattleMapData,
+  sourceOccupants: readonly GroundOccupantProjectionInput[] = ground.occupants,
 ): WorldBattleScenarioDiagnostics {
   const terrain = emptyTerrainCounts();
   const decorations: WorldBattleTacticalFacts['decorations'] = {};
@@ -234,9 +441,59 @@ export function summarizeWorldBattleScenario(
   }
 
   const sourceCrossings = ground.crossings ?? [];
+  const naturalFeaturesInCrop = ground.features.filter((feature) => (
+    sourceFootprintTouchesCrop(feature.xM, feature.zM, mapData)
+  )).length;
+  const placedPropsInCrop = ground.props.filter((prop) => {
+    const definition = PROPS_BY_ID.get(prop.defId);
+    const footprintRadiusM = definition ? propFootprintRadiusM(definition) : 0;
+    return sourceFootprintTouchesCrop(prop.xM, prop.zM, mapData, footprintRadiusM);
+  }).length;
+  const buildingsInCrop = ground.buildings.filter((building) => (
+    sourcePolygonTouchesCrop(building.cornersM, mapData)
+  )).length;
+  const gatehousesInCrop = ground.gatehouses.filter((gatehouse) => (
+    sourceFootprintTouchesCrop(gatehouse.xM, gatehouse.zM, mapData, gatehouse.gapHalfM)
+  )).length;
+  const occupantsInCrop = sourceOccupants.filter((occupant) => (
+    sourceFootprintTouchesCrop(occupant.xM, occupant.zM, mapData)
+  ));
+  const targetableObjects = mapData.targetableObjects ?? [];
+  const targetableFeatures = targetableObjects.filter((object) => (
+    object.source?.kind === 'worldforge-feature'
+  )).length;
+  const targetableProps = targetableObjects.filter((object) => (
+    object.source?.kind === 'worldforge-prop'
+  )).length;
+  const incompleteTargetFacts = targetableObjects.filter((object) => (
+    object.isWornOrCarried == null
+    || object.isMagical == null
+    || object.isFixedToSurface == null
+    || (object.isFixedToSurface === false && object.weightPounds == null)
+  )).length;
+  const worldOccupants = mapData.worldOccupants ?? [];
+  const occupiedOccupantCells = new Set(worldOccupants.map((occupant) => (
+    `${occupant.position.x}-${occupant.position.y}`
+  ))).size;
+  const occupantsOnBlockedTiles = worldOccupants.filter((occupant) => (
+    mapData.tiles.get(`${occupant.position.x}-${occupant.position.y}`)?.blocksMovement
+  )).length;
+  const settlementContext = mapData.encounterContext?.kind === 'settlement-edge'
+    || mapData.encounterContext?.kind === 'settlement-watch'
+    || mapData.encounterContext?.kind === 'settlement-state-patrol'
+    ? mapData.encounterContext
+    : undefined;
+  const defendingForce = settlementContext?.defendingForce;
+  const settlementDefense = settlementContext
+    ? ground.settlementDefenses?.find((candidate) => (
+      candidate.burgId === settlementContext.sourceBurgId
+    ))
+    : undefined;
   const source: WorldBattleSourceFacts = {
     naturalFeatures: ground.features.length,
     placedProps: ground.props.length,
+    naturalFeaturesInCrop,
+    placedPropsInCrop,
     roadRuns: ground.roads.length,
     regionalRoadRuns: ground.roads.filter((road) => road.sourceKind === 'region-road').length,
     townStreetRuns: ground.roads.filter((road) => road.sourceKind === 'town-street').length,
@@ -245,15 +502,28 @@ export function summarizeWorldBattleScenario(
     bridges: sourceCrossings.filter((crossing) => crossing.kind === 'bridge').length,
     fords: sourceCrossings.filter((crossing) => crossing.kind === 'ford').length,
     buildings: ground.buildings.length,
+    buildingsInCrop,
+    gatehouses: ground.gatehouses.length,
+    gatehousesInCrop,
     towns: ground.towns.length,
     hostiles: ground.hostiles.length,
+    occupants: sourceOccupants.length,
+    occupantsInCrop: occupantsInCrop.length,
+    movingOccupantsInCrop: occupantsInCrop.filter((occupant) => occupant.moving).length,
   };
   const tactical: WorldBattleTacticalFacts = {
     tiles: mapData.tiles.size,
     blockedTiles,
     coverTiles,
     decoratedTiles,
-    targetableObjects: mapData.targetableObjects?.length ?? 0,
+    targetableObjects: targetableObjects.length,
+    targetableFeatures,
+    targetableProps,
+    incompleteTargetFacts,
+    worldOccupants: worldOccupants.length,
+    occupiedOccupantCells,
+    movingOccupants: worldOccupants.filter((occupant) => occupant.moving).length,
+    occupantsOnBlockedTiles,
     roadTiles,
     regionalRoadTiles,
     townStreetTiles,
@@ -266,8 +536,49 @@ export function summarizeWorldBattleScenario(
     terrain,
     decorations,
   };
+  const defense: WorldBattleDefenseFacts = {
+    stateName: settlementDefense?.stateName ?? null,
+    stateFullName: settlementDefense?.stateFullName ?? null,
+    stateAlert: settlementDefense?.stateAlert ?? null,
+    stationedRegiments: settlementDefense?.stationedRegiments.length ?? 0,
+    stationedTroops: settlementDefense?.stationedRegiments.reduce(
+      (total, regiment) => total + regiment.totalTroops,
+      0,
+    ) ?? 0,
+    selectedRegiment: defendingForce?.source.regimentName ?? null,
+    selectedRegimentTroops: defendingForce?.source.regimentTroops ?? 0,
+    tacticalActors: defendingForce?.projection.tacticalActors ?? 0,
+    tacticalUnits: defendingForce?.projection.units.map((unit) => {
+      const role = unit.roleLabel.toLowerCase();
+      const readableRole = unit.tacticalActors === 1 || role === 'infantry'
+        ? role
+        : `${role}s`;
+      return `${unit.tacticalActors} ${readableRole}`;
+    }) ?? [],
+    excludedUnits: defendingForce?.projection.excludedUnits.map((unit) => (
+      `${unit.sourceTroops.toLocaleString()} ${unit.sourceUnitType}`
+    )) ?? [],
+    hostility: {
+      verdict: defendingForce?.projection.hostility.verdict ?? 'none',
+      rule: defendingForce?.projection.hostility.rule ?? 'none',
+      triggerKind: defendingForce?.projection.hostility.trigger.kind ?? 'none',
+      triggerSource: defendingForce?.projection.hostility.trigger.source ?? 'none',
+      triggerSummary: defendingForce?.projection.hostility.trigger.summary
+        ?? 'No settlement force requires a confrontation trigger.',
+      relationKind: defendingForce?.projection.hostility.relation.kind ?? 'none',
+      relationSummary: hostilityRelationSummary(defendingForce?.projection.hostility),
+      detail: defendingForce?.projection.hostility.detail
+        ?? 'No settlement force requires a hostility decision.',
+      inputKind: defendingForce?.projection.hostility.trigger.source === 'visual-harness'
+        ? 'visual-harness-fixture'
+        : defendingForce?.projection.hostility.trigger.source === 'none' || !defendingForce
+          ? 'none'
+          : 'live-player-state',
+    },
+  };
 
-  const hasSourceObjects = source.naturalFeatures > 0 || source.placedProps > 0;
+  const sourceObjectsInCrop = source.naturalFeaturesInCrop + source.placedPropsInCrop;
+  const projectedSourceObjects = tactical.targetableFeatures + tactical.targetableProps;
   const hasProjectedStructures = terrain.floor > 0 || terrain.wall > 0;
 
   // Every warning is an actionable bridge question, not a generic quality
@@ -285,22 +596,22 @@ export function summarizeWorldBattleScenario(
     {
       id: 'natural-features',
       label: 'Natural features projected',
-      status: source.naturalFeatures === 0
+      status: source.naturalFeaturesInCrop === 0
         ? 'warning'
         : decoratedTiles > 0 ? 'pass' : 'gap',
-      detail: source.naturalFeatures === 0
-        ? 'This location has no source-world natural features to evaluate.'
-        : `${decoratedTiles.toLocaleString()} tactical cells inherit trees, bushes, or boulders from ${source.naturalFeatures.toLocaleString()} world features.`,
+      detail: source.naturalFeaturesInCrop === 0
+        ? 'This tactical crop has no source-world natural feature anchors to evaluate.'
+        : `${decoratedTiles.toLocaleString()} tactical cells inherit trees, bushes, or boulders from ${source.naturalFeaturesInCrop.toLocaleString()} source anchors in the crop.`,
     },
     {
       id: 'structures',
       label: 'Structures projected',
-      status: source.buildings === 0 || hasProjectedStructures ? 'pass' : 'gap',
-      detail: source.buildings === 0
-        ? 'No buildings are present in this source location.'
+      status: source.buildingsInCrop === 0 || hasProjectedStructures ? 'pass' : 'gap',
+      detail: source.buildingsInCrop === 0
+        ? 'No source building footprint touches this tactical crop.'
         : hasProjectedStructures
-          ? `${source.buildings.toLocaleString()} source buildings produce floor and wall referee cells.`
-          : `${source.buildings.toLocaleString()} source buildings exist, but no tactical floor or wall cells were produced.`,
+          ? `${source.buildingsInCrop.toLocaleString()} source building footprints produce floor and wall referee cells.`
+          : `${source.buildingsInCrop.toLocaleString()} source buildings touch the crop, but no tactical floor or wall cells were produced.`,
     },
     {
       id: 'road-semantics',
@@ -315,19 +626,37 @@ export function summarizeWorldBattleScenario(
     {
       id: 'encounter-framing',
       label: 'Encounter framing uses source facts',
-      status: source.roadRuns === 0 && source.crossings === 0
+      status: source.roadRuns === 0 && source.crossings === 0 && source.gatehousesInCrop === 0
         ? 'pass'
         : mapData.encounterContext?.source === 'worldforge-road'
           || mapData.encounterContext?.source === 'worldforge-crossing'
+          || mapData.encounterContext?.source === 'worldforge-settlement'
+          || mapData.encounterContext?.source === 'worldforge-opening'
           ? 'pass'
           : 'warning',
-      detail: source.roadRuns === 0 && source.crossings === 0
-        ? 'This location has no route or crossing requiring source-aware deployment.'
+      detail: source.roadRuns === 0 && source.crossings === 0 && source.gatehousesInCrop === 0
+        ? 'This location has no route, crossing, or settlement gate requiring source-aware deployment.'
         : mapData.encounterContext?.kind === 'road-ambush'
           ? `The ${mapData.encounterContext.sourceRoadRole} heading drives a traveling party column and concealed flanks.`
           : mapData.encounterContext?.kind === 'river-crossing'
             ? `The ${mapData.encounterContext.crossingKind} heading divides deployment between the near and far banks.`
-            : 'Source routes reach the referee grid, but this scenario does not yet provide a source-derived deployment frame.',
+            : mapData.encounterContext?.kind === 'settlement-edge'
+              ? `Gate ${mapData.encounterContext.sourceGatehouseId} places the party outside and defenders inside ${mapData.encounterContext.defendingForce?.source.burgName ?? `burg ${mapData.encounterContext.sourceBurgId}`}'s real boundary.`
+              : mapData.encounterContext?.kind === 'settlement-watch'
+                ? `The party remains on its live crop anchor while ${mapData.encounterContext.defendingForce?.source.burgName ?? `burg ${mapData.encounterContext.sourceBurgId}`} defenders intercept from the settlement side.`
+              : mapData.encounterContext?.kind === 'settlement-state-patrol'
+                ? `${mapData.encounterContext.sourceFactionId} authorizes a political patrol interception from ${mapData.encounterContext.defendingForce?.source.burgName ?? `burg ${mapData.encounterContext.sourceBurgId}`} toward the party's live crop anchor.`
+                : mapData.encounterContext?.kind === 'opening-standoff'
+                  ? `Opening receipt ${mapData.encounterContext.sourceReceiptId} keeps the party on its exact live crop anchor without pretending the model authored an approach direction.`
+                  : 'Source routes reach the referee grid, but this scenario does not yet provide a source-derived deployment frame.',
+    },
+    {
+      id: 'opening-threat-spatial-authority',
+      label: 'Opening enemy positions are source-authored',
+      status: mapData.encounterContext?.kind === 'opening-standoff' ? 'warning' : 'pass',
+      detail: mapData.encounterContext?.kind === 'opening-standoff'
+        ? 'The location and player anchor are real. Enemy world positions and approach direction are not authored; combat uses a labeled terrain-fit standoff policy until a scene-placement system supplies those facts.'
+        : 'This scenario is not a model-authored hostile opening.',
     },
     {
       id: 'river-semantics',
@@ -354,16 +683,96 @@ export function summarizeWorldBattleScenario(
     {
       id: 'object-targeting',
       label: 'World objects are spell-targetable',
-      status: !hasSourceObjects || tactical.targetableObjects > 0 ? 'pass' : 'gap',
-      detail: !hasSourceObjects
-        ? 'No source objects require tactical object facts.'
-        : tactical.targetableObjects > 0
-          ? `${tactical.targetableObjects.toLocaleString()} explicit object facts are available to spells.`
-          : 'World features and props are visible, but the extracted patch does not yet publish TargetableMapObject facts for them.',
+      status: sourceObjectsInCrop === 0
+        ? 'pass'
+        : projectedSourceObjects === 0
+          ? 'gap'
+          : projectedSourceObjects < sourceObjectsInCrop || tactical.incompleteTargetFacts > 0
+            ? 'warning'
+            : 'pass',
+      detail: sourceObjectsInCrop === 0
+        ? 'No source object anchors fall inside this tactical crop.'
+        : projectedSourceObjects === 0
+          ? `${sourceObjectsInCrop.toLocaleString()} source object anchors exist in the crop, but none publish spell-target facts.`
+          : tactical.incompleteTargetFacts > 0
+            ? `${projectedSourceObjects.toLocaleString()} source objects publish tactical targets; ${tactical.incompleteTargetFacts.toLocaleString()} catalog props still lack explicit mobility or weight facts.`
+            : projectedSourceObjects < sourceObjectsInCrop
+              ? `${projectedSourceObjects.toLocaleString()} of ${sourceObjectsInCrop.toLocaleString()} source anchors publish targets; inspect route, structure, and edge precedence for the remainder.`
+              : `${projectedSourceObjects.toLocaleString()} source objects publish provenance-bearing target facts for spells.`,
+    },
+    {
+      id: 'occupant-projection',
+      label: 'Named occupants retain location',
+      status: source.occupantsInCrop === 0
+        ? 'warning'
+        : tactical.worldOccupants !== source.occupantsInCrop
+          ? 'gap'
+          : tactical.occupantsOnBlockedTiles > 0 ? 'warning' : 'pass',
+      detail: source.occupantsInCrop === 0
+        ? 'No named resident falls inside this tactical crop at the selected world clock.'
+        : tactical.worldOccupants !== source.occupantsInCrop
+          ? `${source.occupantsInCrop.toLocaleString()} source residents are in the crop, but only ${tactical.worldOccupants.toLocaleString()} retain tactical identities.`
+          : tactical.occupantsOnBlockedTiles > 0
+            ? `${tactical.worldOccupants.toLocaleString()} residents retain identity across ${tactical.occupiedOccupantCells.toLocaleString()} cells, but ${tactical.occupantsOnBlockedTiles.toLocaleString()} snapped onto blocked referee cells.`
+            : `${tactical.worldOccupants.toLocaleString()} residents retain identity across ${tactical.occupiedOccupantCells.toLocaleString()} cells; ${tactical.movingOccupants.toLocaleString()} were commuting at the encounter clock.`,
+    },
+    {
+      id: 'occupant-combat-semantics',
+      label: 'Neutral occupant combat policy',
+      status: tactical.worldOccupants > 0 ? 'warning' : 'pass',
+      detail: tactical.worldOccupants > 0
+        ? 'Residents are reserved ambient facts, not initiative actors or creature targets; fleeing, harm, and allegiance still need an explicit neutral-actor policy.'
+        : 'No resident in this crop requires neutral combat semantics.',
+    },
+    {
+      id: 'settlement-defender-source',
+      label: 'Settlement defenders retain regiment source',
+      status: settlementContext == null
+        ? 'pass'
+        : defendingForce ? 'pass' : 'gap',
+      detail: settlementContext == null
+        ? 'This scenario does not require a settlement defending force.'
+        : defendingForce
+          ? `${defendingForce.projection.tacticalActors} tactical defenders descend from ${defendingForce.source.regimentName}, a ${defendingForce.source.regimentTroops.toLocaleString()}-troop ${defendingForce.source.stateName} regiment.`
+          : 'A settlement gate frames this encounter, but no stationed land regiment supplies its defenders.',
+    },
+    {
+      id: 'settlement-defender-unit-bridges',
+      label: 'Military roles have tactical bridges',
+      status: defendingForce == null || defendingForce.projection.excludedUnits.length === 0
+        ? 'pass'
+        : 'warning',
+      detail: defendingForce == null
+        ? 'No source regiment requires military-role projection.'
+        : defendingForce.projection.excludedUnits.length === 0
+          ? 'Every selected source military role maps to a combat-ready bestiary actor.'
+          : `${defendingForce.projection.excludedUnits.map((unit) => `${unit.sourceTroops.toLocaleString()} ${unit.sourceUnitType}`).join(' and ')} remain source facts but are not represented in a static gate patrol.`,
+    },
+    {
+      id: 'faction-hostility',
+      label: 'Combat hostility has explicit authority',
+      status: 'pass',
+      detail: defendingForce == null
+        ? 'No projected faction force requires a hostility decision.'
+        : defendingForce.projection.hostility.verdict === 'hostile'
+          ? `${defendingForce.projection.hostility.trigger.kind} plus ${defendingForce.projection.hostility.relation.kind} evidence authorizes the enemy roster.`
+          : `${defendingForce.source.stateFullName}'s regiment remains non-combat context because the hostility rule returned withhold-combat.`,
+    },
+    {
+      id: 'faction-hostility-live-input',
+      label: 'Hostility reads live player state',
+      status: defendingForce?.projection.hostility.trigger.source === 'visual-harness'
+        ? 'gap'
+        : 'pass',
+      detail: defendingForce?.projection.hostility.trigger.source === 'visual-harness'
+        ? 'The deterministic wanted-party fixture proves the semantic bridge, but the production fight-in-place caller does not yet supply its live crime or faction-standing state.'
+        : defendingForce
+          ? 'The hostility receipt does not depend on a visual-harness fixture.'
+          : 'No projected faction force requires live player-state hostility input.',
     },
   ];
 
-  return { source, tactical, parity };
+  return { source, tactical, defense, parity };
 }
 
 // ============================================================================
@@ -389,6 +798,12 @@ type ScenarioAnchor = {
     riverSourceIndex?: number;
     direction: { x: number; z: number };
   };
+  settlement?: {
+    burgId: number;
+    gatehouseId: string;
+    /** Unit heading from the exterior side of the gate toward town center. */
+    inwardDirection: { x: number; z: number };
+  };
 };
 
 const roadSourceRole = (
@@ -405,6 +820,35 @@ function scenarioAnchor(
   ground: GroundWorld,
 ): ScenarioAnchor {
   const center = { x: ground.extentMetersX / 2, z: ground.extentMetersZ / 2 };
+  if (preset.anchorMode === 'nearest-gatehouse') {
+    const gatehouse = [...ground.gatehouses].sort((a, b) => (
+      (a.xM - center.x) ** 2 + (a.zM - center.z) ** 2
+      - ((b.xM - center.x) ** 2 + (b.zM - center.z) ** 2)
+    ))[0];
+    const town = gatehouse
+      ? ground.towns.find((candidate) => candidate.burgId === gatehouse.burgId)
+      : undefined;
+    if (!gatehouse || !town) return center;
+    const inwardLength = Math.hypot(town.xM - gatehouse.xM, town.zM - gatehouse.zM);
+    if (inwardLength <= 1e-9) return center;
+    return {
+      x: gatehouse.xM,
+      z: gatehouse.zM,
+      settlement: {
+        burgId: gatehouse.burgId,
+        gatehouseId: [
+          'gatehouse',
+          gatehouse.burgId,
+          Math.round(gatehouse.xM * 100),
+          Math.round(gatehouse.zM * 100),
+        ].join(':'),
+        inwardDirection: {
+          x: (town.xM - gatehouse.xM) / inwardLength,
+          z: (town.zM - gatehouse.zM) / inwardLength,
+        },
+      },
+    };
+  }
   if (preset.anchorMode === 'nearest-crossing') {
     const crossings = ground.crossings ?? [];
     // Prefer a physical bridge when a window happens to contain both crossing
@@ -438,8 +882,8 @@ function scenarioAnchor(
   const regionalRoads = indexedRoads.filter(({ road }) => road.sourceKind === 'region-road');
   const roads = regionalRoads.length > 0 ? regionalRoads : indexedRoads;
   const patchClearanceM = Math.hypot(
-    preset.dimensions.width * 1.524 / 2,
-    preset.dimensions.height * 1.524 / 2,
+    preset.dimensions.width * GROUND_METERS_PER_CELL / 2,
+    preset.dimensions.height * GROUND_METERS_PER_CELL / 2,
   ) + 12;
   const clearsSettlements = (candidate: { x: number; z: number }): boolean => (
     ground.towns.every((town) => (
@@ -493,12 +937,94 @@ function scenarioEncounterContext(
   preset: WorldBattleScenarioPreset,
   anchor: ScenarioAnchor,
   mapData: BattleMapData,
+  ground: GroundWorld,
+  options: WorldBattleScenarioOptions,
 ): BattleMapEncounterContext | undefined {
   const center = {
     x: Math.floor(mapData.dimensions.width / 2),
     y: Math.floor(mapData.dimensions.height / 2),
   };
   const centerTile = mapData.tiles.get(`${center.x}-${center.y}`);
+
+  if (preset.encounterKind === 'settlement-watch'
+    || preset.encounterKind === 'settlement-state-patrol') {
+    const sourceDefense = ground.settlementDefenses?.[0];
+    const fixtureInput = sourceDefense && options.useVisualHostilityFixture
+      ? preset.visualHostilityFixture === 'wanted-watch-confrontation'
+        ? createVisualHarnessWantedWatchInput(
+            sourceDefense,
+            `visual-harness:${preset.id}`,
+          )
+        : preset.visualHostilityFixture === 'hostile-state-standing'
+          ? createVisualHarnessHostileStateInput(
+              sourceDefense,
+              `visual-harness:${preset.id}`,
+            )
+          : undefined
+      : undefined;
+    const hostilityInput = options.settlementHostility ?? fixtureInput;
+    if (!hostilityInput) return undefined;
+
+    // This deterministic recipe exercises the same production projection used
+    // by the mounted GroundWorld provider. The crime/standing record remains
+    // explicitly labeled as a visual fixture; only production framing is shared.
+    const projection = projectLiveSettlementEncounter(
+      ground,
+      mapData,
+      { x: anchor.x, z: anchor.z },
+      hostilityInput,
+    );
+    return projection.mapData.encounterContext?.kind === preset.encounterKind
+      ? projection.mapData.encounterContext
+      : undefined;
+  }
+
+  if (preset.encounterKind === 'settlement-edge' && anchor.settlement) {
+    const anchorTile = centerTile && !centerTile.blocksMovement
+      ? centerTile
+      : [...mapData.tiles.values()]
+        .filter((tile) => !tile.blocksMovement)
+        .sort((a, b) => (
+          Math.hypot(a.coordinates.x - center.x, a.coordinates.y - center.y)
+          - Math.hypot(b.coordinates.x - center.x, b.coordinates.y - center.y)
+        ))[0];
+    if (!anchorTile) return undefined;
+    const sourceDefense = ground.settlementDefenses?.find((candidate) => (
+      candidate.burgId === anchor.settlement?.burgId
+    ));
+    const fixtureInput = sourceDefense
+      && options.useVisualHostilityFixture
+      && preset.visualHostilityFixture === 'wanted-watch-confrontation'
+      ? createVisualHarnessWantedWatchInput(
+          sourceDefense,
+          `visual-harness:${preset.id}`,
+        )
+      : undefined;
+    const hostilityInput = options.settlementHostility ?? fixtureInput;
+    const defendingForce = sourceDefense
+      ? projectSettlementDefendingForce(
+          sourceDefense,
+          resolveSettlementEncounterHostility(sourceDefense, hostilityInput),
+        )
+      : undefined;
+
+    return {
+      kind: 'settlement-edge',
+      source: 'worldforge-settlement',
+      sourceBurgId: anchor.settlement.burgId,
+      sourceGatehouseId: anchor.settlement.gatehouseId,
+      anchorTile: anchorTile.coordinates,
+      routeDirection: {
+        x: anchor.settlement.inwardDirection.x,
+        y: anchor.settlement.inwardDirection.z,
+      },
+      deployment: {
+        player: 'outside-approach',
+        enemy: 'inside-gate',
+      },
+      ...(defendingForce ? { defendingForce } : {}),
+    };
+  }
 
   if (preset.encounterKind === 'river-crossing' && anchor.crossing) {
     const matchingCrossingTiles = [...mapData.tiles.values()].filter((tile) => (
@@ -564,11 +1090,18 @@ function scenarioEncounterContext(
 export function createWorldBattleScenarioFromGround(
   preset: WorldBattleScenarioPreset,
   ground: GroundWorld,
+  options: WorldBattleScenarioOptions = {},
 ): WorldBattleScenario {
   const anchor = scenarioAnchor(preset, ground);
   const anchorX = anchor.x;
   const anchorZ = anchor.z;
   const locationLabel = ground.towns[0]?.name ?? preset.label;
+  const liveOccupants = allGroundAgentsAt(ground, preset.hour ?? 12);
+  // Real worlds carry town plans and resolve live positions. Lightweight tests
+  // and old serialized worlds may only carry the static schedule-derived sites.
+  const sourceOccupants: readonly GroundOccupantProjectionInput[] = liveOccupants.length > 0
+    ? liveOccupants
+    : ground.occupants;
 
   // Use the same production extractor as fight-in-place combat. The adapter
   // adds provenance after extraction because the lower-level bridge remains a
@@ -579,9 +1112,12 @@ export function createWorldBattleScenarioFromGround(
     anchorZ,
     preset.theme,
     preset.worldSeed,
-    preset.dimensions,
+    {
+      ...preset.dimensions,
+      occupants: sourceOccupants,
+    },
   );
-  const mapData: BattleMapData = {
+  let mapData: BattleMapData = {
     ...extracted,
     provenance: {
       kind: 'worldforge',
@@ -593,13 +1129,28 @@ export function createWorldBattleScenarioFromGround(
       generationPath: ['World', 'Region', 'Local', 'Ground', 'Tactical patch'],
     },
   };
-  mapData.encounterContext = scenarioEncounterContext(preset, anchor, mapData);
+  if (preset.encounterKind === 'opening-standoff') {
+    // The lab exercises the production opening projector with a deterministic
+    // receipt. Only the roster is a visual fixture; terrain and source identity
+    // still come from this exact WorldForge build.
+    const projection = projectOpeningThreatBattlefield(mapData, {
+      kind: 'worldforge-opening-location',
+      receiptId: `opening:${preset.worldSeed}:cell:${preset.entryCellId}`,
+      worldSeed: preset.worldSeed,
+      cellId: preset.entryCellId,
+      ...(preset.centerPx ? { centerPx: preset.centerPx } : {}),
+      locationLabel,
+    });
+    if (projection.status === 'ready') mapData = projection.mapData;
+  } else {
+    mapData.encounterContext = scenarioEncounterContext(preset, anchor, mapData, ground, options);
+  }
 
   return {
     key: `${preset.id}:${preset.worldSeed}:${preset.entryCellId}`,
     preset,
     locationLabel,
     mapData,
-    diagnostics: summarizeWorldBattleScenario(ground, mapData),
+    diagnostics: summarizeWorldBattleScenario(ground, mapData, sourceOccupants),
   };
 }

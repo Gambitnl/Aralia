@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/07/2026, 14:04:08
+ * Last Sync: 15/07/2026, 23:04:19
  * Dependents: components/layout/GameModals.tsx
- * Imports: 46 files
+ * Imports: 50 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -79,7 +79,7 @@ import type { MultiModalRoute, TenderOptions } from '@/systems/travel/multiModal
 import { dockSizeForPort, dockClassForShipSize } from '@/systems/travel/dockTiers';
 import { availableTransports } from '@/systems/travel/availableTransports';
 import { rollTravelEncounter, rollSeaEncounter } from '@/systems/travel/travelEncounter';
-import { pickTravelEncounterMonsters, type TravelEncounterMonster } from '@/systems/travel/travelEncounterMonsters';
+import { pickTravelEncounterMonsters } from '@/systems/travel/travelEncounterMonsters';
 import { formatTravelTime, ferryFare } from '@/systems/travel/travelReadout';
 import { calculateForcedMarchStatus } from '@/systems/travel/TravelCalculations';
 import { generateFmgWorld } from '@/systems/worldforge/fmg/generateWorld';
@@ -309,7 +309,7 @@ const MapPane: React.FC<MapPaneProps> = ({
     cellId: number;
     route: RoutePlan;
     encounterMessage?: string | null;
-    encounter?: { monsters: TravelEncounterMonster[] };
+    encounter?: NonNullable<TravelMeta['encounter']>;
     /** Hired-ferry fare (gp) to deduct on a FULL-completion commit (travel G15). */
     ferryFareGp?: number;
   } | null>(null);
@@ -619,7 +619,11 @@ const MapPane: React.FC<MapPaneProps> = ({
       if (seaRoll.encounter && seaRoll.outcome) {
         return {
           encounter: seaRoll.outcome.hostile
-            ? { monsters: seaRoll.outcome.monsters ?? [] }
+            ? {
+                kind: 'sea-hostile',
+                monsters: seaRoll.outcome.monsters ?? [],
+                routeCells: [...route.cells],
+              }
             : undefined,
           encounterMessage: `After ${formatTravelTime(route.minutes)} at sea — ${seaRoll.outcome.summary}`,
         };
@@ -630,7 +634,11 @@ const MapPane: React.FC<MapPaneProps> = ({
     const roll = rollTravelEncounter(route, seed);
     return {
       encounter: roll.encounter
-        ? { monsters: pickTravelEncounterMonsters(route, seed) }
+        ? {
+            kind: 'land-route-ambush',
+            monsters: pickTravelEncounterMonsters(route, seed),
+            routeCells: [...route.cells],
+          }
         : undefined,
       encounterMessage: roll.encounter
         ? `After ${formatTravelTime(route.minutes)} on the road, danger finds you — an encounter!`

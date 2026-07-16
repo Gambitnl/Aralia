@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/07/2026, 23:19:30
+ * Last Sync: 15/07/2026, 03:27:50
  * Dependents: components/BattleMap/groundPainter.ts
  * Imports: 3 files
  *

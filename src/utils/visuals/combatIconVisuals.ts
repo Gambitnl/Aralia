@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 04/07/2026, 21:51:30
- * Dependents: components/BattleMap/AbilityButton.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, utils/visuals/spellVisuals.ts
+ * Last Sync: 15/07/2026, 06:36:42
+ * Dependents: components/BattleMap/AbilityButton.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatIntentPreview.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, utils/visuals/spellVisuals.ts
  * Imports: 19 files
  *
  * MULTI-AGENT SAFETY:
@@ -205,6 +205,25 @@ export const getAbilityIconVisual = (ability: Ability): VisualAsset => {
 export const getCreatureTokenVisual = (character: CombatCharacter): VisualAsset => {
   const nameKey = normalizeVisualKey(character.name);
   const typeKey = normalizeVisualKey(character.creatureTypes?.join(' '));
+
+  // A source-state defender is a known military role, not a generic monster.
+  // Use the neutral weapon emblem until the art pack gains dedicated human
+  // archer and infantry portraits; falling through to the enemy default would
+  // falsely depict Turino's generated humanoid regiment as orcs.
+  if (character.worldSource?.kind === 'worldforge-defender') {
+    const role = character.worldSource.unitType === 'archers'
+      ? 'archer'
+      : character.worldSource.unitType === 'infantry'
+        ? 'infantry'
+        : character.worldSource.unitType;
+    return {
+      src: spellAttackIcon,
+      fallbackContent: role.slice(0, 1).toUpperCase(),
+      primaryColor: '#f59e0b',
+      secondaryColor: '#fef3c7',
+      label: `${character.name} ${role} from a WorldForge regiment`,
+    };
+  }
 
   if (nameKey.includes('cult') || nameKey.includes('magus')) {
     return { src: creatureCultistIcon, fallbackContent: 'C', primaryColor: '#ef4444', secondaryColor: '#fca5a5', label: `${character.name} cult caster token` };

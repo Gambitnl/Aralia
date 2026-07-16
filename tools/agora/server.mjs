@@ -7,7 +7,8 @@
 //
 // Auth: `register` is open; all other MUTATING endpoints require
 // `Authorization: Bearer <token>` resolved via store.getAgentByToken(token) (401 otherwise).
-// Every authenticated request also refreshes presence via store.touch(agent.id).
+// Authenticated activity refreshes meaningful presence via store.touch(agent.id).
+// Heartbeats use a separate bounded lease path and cannot extend liveness forever.
 // GET read endpoints (/agents,/locks,/tasks,/messages,/health,/events,/) are open so the
 // dashboard works token-free; /messages may take an optional token to resolve `to=me`.
 //
@@ -31,7 +32,7 @@ import { indexGaps } from './gapIndex.mjs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 const DEFAULT_PORT = 4319;
 // Repo root is two levels up from tools/agora/server.mjs.
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
@@ -201,8 +202,9 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     if (eventRing.length > EVENT_RING_MAX) eventRing.shift();
   });
 
-  // --- auth wrapper: resolves bearer -> agent, 401 if missing/invalid, touches presence ---
-  function withAuth(handler) {
+  // --- auth wrapper: resolves bearer -> agent, 401 if missing/invalid, and
+  // records meaningful activity unless the caller is the heartbeat route. ---
+  function withAuth(handler, { touchPresence = true } = {}) {
     return async (req, res, ctx) => {
       const token = bearerToken(req);
       const agent = token ? store.getAgentByToken(token) : null;
@@ -210,7 +212,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         sendJson(res, 401, { error: 'unauthorized: missing or invalid bearer token' });
         return;
       }
-      store.touch(agent.id);
+      if (touchPresence) store.touch(agent.id);
       ctx.agent = agent;
       return handler(req, res, ctx);
     };
@@ -267,10 +269,14 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
 
   router.post(
     '/agents/heartbeat',
-    withAuth(async (_req, res) => {
-      // touch() already happened in withAuth.
-      sendJson(res, 200, { ok: true });
-    }),
+    withAuth(async (_req, res, ctx) => {
+      const result = store.heartbeatAgent(ctx.agent.id);
+      if (!result.ok) {
+        const status = result.code === 'heartbeat_lease_expired' ? 410 : 404;
+        return sendJson(res, status, result);
+      }
+      sendJson(res, 200, result);
+    }, { touchPresence: false }),
   );
 
   router.get('/agents', async (_req, res) => {

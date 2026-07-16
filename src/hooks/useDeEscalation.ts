@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 16/07/2026, 01:42:31
+ * Dependents: components/ConversationPanel/ConversationPanel.tsx
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/hooks/useDeEscalation.ts
  * Orchestrates a hostile opening's resolution: intent → (roll) → route to
@@ -15,6 +31,7 @@ import { computeSkillModifier, resolveCheck, getActiveCheckBoosts } from '../sys
 import { handleStartBattleMapEncounter } from './actions/handleEncounter';
 import { generateId } from '../utils/core/idGenerator';
 import { useDice } from '../contexts/DiceContext';
+import { prepareActiveGroundOpeningEncounter } from '../systems/combat/fightInPlace/activeGroundCombatSession';
 
 /** A bonus die owed to the check by an active boost (Guidance's 1d4 etc.). */
 export interface CheckDiceRequest {
@@ -41,21 +58,48 @@ export interface DeEscalationFlowArgs {
   rollCheckDice: (advantage: boolean, bonusDice: CheckDiceRequest[]) => Promise<CheckDiceResult>;
   /** Injectable for tests; defaults to the real encounter launcher. */
   startEncounter?: typeof handleStartBattleMapEncounter;
+  /** Injectable live-GroundWorld projector for deterministic source-path tests. */
+  prepareOpeningEncounter?: typeof prepareActiveGroundOpeningEncounter;
 }
 
 export async function runDeEscalationFlow(args: DeEscalationFlowArgs): Promise<void> {
   const { intent, character, threat, dispatch, rollCheckDice } = args;
   const startEncounter = args.startEncounter ?? handleStartBattleMapEncounter;
+  const prepareOpeningEncounter = args.prepareOpeningEncounter ?? prepareActiveGroundOpeningEncounter;
 
   // Every terminal route below resolves the standoff for good, so the opening
   // threat must be cleared: leaving it in place let the conversation re-trigger
   // the SAME fight after the battle ended (verified live — an infinite XP loop).
   const clearThreat = () => dispatch({ type: 'SKIP_OPENING_SITUATION' });
 
+  // The threat owns only its bestiary roster. Location authority comes from the
+  // frozen receipt and the currently mounted GroundWorld. If either is absent or
+  // rejects the receipt, launch without a map so CombatView presents the global
+  // source-gap boundary; never replace it with procedural terrain.
+  const startThreatCombat = async () => {
+    const monsters = threatToMonsters(threat);
+    const source = threat.battlefieldSource;
+    if (!source) {
+      await startEncounter(dispatch, { monsters });
+      return;
+    }
+
+    const projection = await prepareOpeningEncounter({ source });
+    if (projection.status === 'ready') {
+      await startEncounter(dispatch, {
+        monsters,
+        extractedBattleMap: projection.mapData,
+      });
+      return;
+    }
+
+    await startEncounter(dispatch, { monsters });
+  };
+
   // Only skill/flee intents produce a check. Attack — and an unresolved
   // ambiguous intent that reached this point — go straight to combat.
   if (intent.kind === 'attack' || intent.kind === 'ambiguous') {
-    await startEncounter(dispatch, { monsters: threatToMonsters(threat) });
+    await startThreatCombat();
     clearThreat();
     return;
   }
@@ -91,7 +135,7 @@ export async function runDeEscalationFlow(args: DeEscalationFlowArgs): Promise<v
   if (success) {
     clearThreat();
   } else {
-    await startEncounter(dispatch, { monsters: threatToMonsters(threat) });
+    await startThreatCombat();
     clearThreat();
   }
 }

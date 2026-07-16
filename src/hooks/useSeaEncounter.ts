@@ -1,3 +1,29 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 15/07/2026, 23:41:37
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+/**
+ * @file useSeaEncounter.ts
+ * Routes one pending hostile naval event to the shared tactical-combat
+ * authority boundary, then clears the pending receipt so it cannot fire twice.
+ *
+ * Naval travel already owns the event and enemy roster, but it does not yet
+ * own a WorldForge sea/deck battlefield artifact. This hook therefore preserves
+ * the request while relying on CombatView's visible fail-closed state instead
+ * of supplying unrelated land terrain.
+ */
 import { useEffect } from 'react';
 import type { Dispatch } from 'react';
 import { AppAction } from '../state/actionTypes';
@@ -14,9 +40,10 @@ export interface UseSeaEncounterArgs {
  * The navalReducer's per-day sea-encounter roll (Plan 3D) sets
  * `naval.pendingSeaEncounter` with the foes. This hook watches that marker and,
  * exactly like the land road-ambush path, hands the monsters to the existing
- * `handleStartBattleMapEncounter` flow — a placeless battle-map arena fight (the
- * fight-in-place context-picker resolves a placeless sea fight to the arena). It
- * then clears the marker so the same fight cannot re-fire.
+ * `handleStartBattleMapEncounter` boundary. Sea encounters do not yet publish
+ * authoritative sea/deck geometry, so CombatView visibly withholds tactical
+ * play instead of turning them into a placeless land arena. The hook still
+ * clears the marker so the same encounter request cannot re-fire.
  *
  * Idempotent by construction: NAVAL_CLEAR_SEA_ENCOUNTER nulls the field, so the
  * effect's dependency changes and it will not run again for the same encounter.

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 13:33:58
+ * Last Sync: 15/07/2026, 10:26:09
  * Dependents: components/World3D/World3DScene.tsx
  * Imports: 1 files
  *
@@ -45,6 +45,8 @@ const FALLBACK_COLOR = new THREE.Color('#2f5d2f');
 export interface VegetationInstanceMatrixTarget {
   setMatrixAt(index: number, matrix: THREE.Matrix4): void;
   setColorAt?(index: number, color: THREE.Color): void;
+  /** Refreshes the aggregate instance bounds used by Three.js frustum culling. */
+  computeBoundingSphere?(): void;
   instanceMatrix: {
     needsUpdate: boolean;
   };
@@ -118,6 +120,12 @@ export function syncVegetationInstanceMatrices(
   }
 
   target.instanceMatrix.needsUpdate = true;
+  // InstancedMesh computes its aggregate sphere lazily, often during the first
+  // render while every instance still has its constructor-time transform. A
+  // later worker payload can therefore leave a stale sphere at the chunk
+  // origin, causing the whole bush batch to blink out as the camera pans even
+  // while some instances remain on-screen. Refresh only when matrices changed.
+  target.computeBoundingSphere?.();
   if (target.instanceColor) {
     target.instanceColor.needsUpdate = true;
     // Force a recompile so the shader picks up USE_INSTANCING_COLOR — the

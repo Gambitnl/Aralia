@@ -1,4 +1,5 @@
 import { request as httpRequest } from 'http';
+import { execFile } from 'child_process';
 import { Socket } from 'net';
 import { stripMarkdownInline } from '../utils';
 import type { DevHubRouteContext } from './routeContext';
@@ -20,6 +21,93 @@ const DEV_SERVER_SCAN_TARGETS = {
   11434: 'Ollama',
 };
 const DEV_SERVER_SCAN_LABELS = Object.keys(DEV_SERVER_SCAN_TARGETS).map((value) => Number(value));
+
+type NodeProcessRow = {
+  pid: number;
+  parentPid: number;
+  parentName: string;
+  parentCommandLine: string;
+  launcherPid: number;
+  launcherName: string;
+  launcherCommandLine: string;
+  executablePath: string;
+  commandLine: string;
+};
+
+const runCommand = (file: string, args: string[]) => new Promise<string>((resolve, reject) => {
+  execFile(file, args, { windowsHide: true, maxBuffer: 1024 * 1024 }, (error, stdout) => {
+    if (error) {
+      reject(error);
+      return;
+    }
+    resolve(String(stdout || ''));
+  });
+});
+
+// This dashboard runs from the local Vite process, which can inspect the host
+// process table. Keeping the query here (instead of in the browser) preserves
+// the existing static dashboard approach while never exposing a mutation route.
+const listNodeProcesses = async (): Promise<NodeProcessRow[]> => {
+  if (process.platform === 'win32') {
+    const script = [
+      "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8",
+      "$all = Get-CimInstance Win32_Process",
+      '$byId = @{}',
+      'foreach ($process in $all) { $byId[[int]$process.ProcessId] = $process }',
+      '$nodes = @($all | Where-Object { $_.Name -ieq \'node.exe\' -or $_.Name -ieq \'node\' } | ForEach-Object {',
+      '  $parent = $byId[[int]$_.ParentProcessId]',
+      '  $launcher = if ($parent) { $byId[[int]$parent.ParentProcessId] } else { $null }',
+      '  [PSCustomObject]@{',
+      '    pid = [int]$_.ProcessId',
+      '    parentPid = [int]$_.ParentProcessId',
+      '    parentName = if ($parent) { [string]$parent.Name } else { \'<exited>\' }',
+      '    parentCommandLine = if ($parent) { [string]$parent.CommandLine } else { \'\' }',
+      '    launcherPid = if ($parent) { [int]$parent.ParentProcessId } else { 0 }',
+      '    launcherName = if ($launcher) { [string]$launcher.Name } else { \'<exited>\' }',
+      '    launcherCommandLine = if ($launcher) { [string]$launcher.CommandLine } else { \'\' }',
+      '    executablePath = [string]$_.ExecutablePath',
+      '    commandLine = [string]$_.CommandLine',
+      '  }',
+      '})',
+      "if ($nodes.Count -eq 0) { '[]' } else { $nodes | ConvertTo-Json -Compress -Depth 3 }",
+    ].join('\n');
+    const output = await runCommand('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script]);
+    const parsed = JSON.parse(output.trim() || '[]');
+    return (Array.isArray(parsed) ? parsed : [parsed]).map((row: Partial<NodeProcessRow>) => ({
+      pid: Number(row.pid) || 0,
+      parentPid: Number(row.parentPid) || 0,
+      parentName: String(row.parentName || '<exited>'),
+      parentCommandLine: String(row.parentCommandLine || ''),
+      launcherPid: Number(row.launcherPid) || 0,
+      launcherName: String(row.launcherName || '<exited>'),
+      launcherCommandLine: String(row.launcherCommandLine || ''),
+      executablePath: String(row.executablePath || ''),
+      commandLine: String(row.commandLine || ''),
+    }));
+  }
+
+  const output = await runCommand('ps', ['-axo', 'pid=,ppid=,comm=,args=']);
+  const processes = output.split(/\r?\n/).map((line) => {
+    const match = line.match(/^\s*(\d+)\s+(\d+)\s+(\S+)\s*(.*)$/);
+    if (!match) return null;
+    return { pid: Number(match[1]), parentPid: Number(match[2]), executablePath: match[3], commandLine: match[4] || match[3] };
+  }).filter((row): row is Omit<NodeProcessRow, 'parentName'> => Boolean(row));
+  const processesByPid = new Map(processes.map((row) => [row.pid, row]));
+  return processes
+    .filter((row) => /(^|[\\/])node(?:\.exe)?$/i.test(row.executablePath) || /(^|\s)node(?:\s|$)/i.test(row.commandLine))
+    .map((row) => {
+      const parent = processesByPid.get(row.parentPid);
+      const launcher = parent ? processesByPid.get(parent.parentPid) : undefined;
+      return {
+        ...row,
+        parentName: parent?.executablePath || '<exited>',
+        parentCommandLine: parent?.commandLine || '',
+        launcherPid: parent?.parentPid || 0,
+        launcherName: launcher?.executablePath || '<exited>',
+        launcherCommandLine: launcher?.commandLine || '',
+      };
+    });
+};
 
 const toTitleFromHtml = (value: string) => {
   const match = String(value || '').match(/<title>([\s\S]*?)<\/title>/i);
@@ -269,6 +357,20 @@ const scanDevServerTargets = async (targets: Array<{ port: number; label: string
 
 export async function handleDevServerRoutes(ctx: DevHubRouteContext): Promise<boolean> {
   const { json, parsedUrl, urlPath } = ctx;
+
+  if (urlPath === '/api/dev/node-processes' || urlPath === '/Aralia/api/dev/node-processes') {
+    try {
+      const processes = await listNodeProcesses();
+      json({
+        scannedAt: new Date().toISOString(),
+        count: processes.length,
+        processes: processes.sort((left, right) => left.pid - right.pid),
+      });
+    } catch (error) {
+      json({ error: `Could not inspect Node.js processes: ${String(error)}` }, 500);
+    }
+    return true;
+  }
 
   if (urlPath === '/api/dev/active-servers' || urlPath === '/Aralia/api/dev/active-servers') {
     try {

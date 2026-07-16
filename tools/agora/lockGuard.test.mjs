@@ -58,3 +58,25 @@ test('daemon unreachable proceeds (advisory system offline)', async () => {
   });
   assert.deepEqual(r, { ok: true, reason: 'daemon-unreachable' });
 });
+
+test('AGORA_HELD_LOCK matching the covering lock id is writable (abbdc943)', async () => {
+  const r = await checkAgoraLock('public/planmap/topics.json', {
+    fetchImpl: fetchWith([lock()]), env: { AGORA_HELD_LOCK: 'lock-1' },
+  });
+  assert.deepEqual(r, { ok: true, reason: 'held-lock-id' });
+});
+
+test('AGORA_HELD_LOCK with a WRONG id still refuses', async () => {
+  const r = await checkAgoraLock('public/planmap/topics.json', {
+    fetchImpl: fetchWith([lock()]), env: { AGORA_HELD_LOCK: 'lock-999', ...identityEnv('agent-me') },
+  });
+  assert.equal(r.ok, false);
+  assert.equal(r.holderAgentId, 'agent-other');
+});
+
+test('refusal reports which identity the guard read (missed-prefix debugging)', async () => {
+  const r = await checkAgoraLock('public/planmap/topics.json', {
+    fetchImpl: fetchWith([lock()]), env: identityEnv('agent-me'),
+  });
+  assert.equal(r.identityRead, 'agent-me');
+});

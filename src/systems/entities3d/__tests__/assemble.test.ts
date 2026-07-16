@@ -54,6 +54,26 @@ describe('entities3d assembler (body v2)', () => {
     handle.dispose();
   });
 
+  it('blink never stretches the eyes, even across huge frame gaps', () => {
+    const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'human', classId: 'fighter', seed: 'asm-blink' });
+    const handle = assembleEntity(bp);
+    const eyeL = handle.group.getObjectByName('eyeL')!;
+    const eyeR = handle.group.getObjectByName('eyeR')!;
+    // long frames (hitches, headless renders) drive the blink phase deep
+    // negative; the squash curve must never see that (scale exploded to ~80).
+    let t = 0;
+    for (let i = 0; i < 40; i++) {
+      const dt = i % 3 === 0 ? 5 : 0.016; // mix hitches with normal frames
+      t += dt;
+      handle.update(t, dt, WALK);
+      for (const eye of [eyeL, eyeR]) {
+        expect(eye.scale.y, `frame ${i}: eye scale must stay in the squash range`).toBeGreaterThanOrEqual(0.08);
+        expect(eye.scale.y, `frame ${i}: eye scale must never stretch past 1`).toBeLessThanOrEqual(1);
+      }
+    }
+    handle.dispose();
+  });
+
   it('a tiefling tail renders as chain segments driven per frame', () => {
     const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'infernal_tiefling', classId: 'rogue', seed: 'asm-tail' });
     expect(bp.parts.some((p) => p.partId === 'tailThin')).toBe(true);

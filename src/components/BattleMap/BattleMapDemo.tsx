@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/07/2026, 23:19:51
+ * Last Sync: 15/07/2026, 05:20:45
  * Dependents: components/BattleMap/index.ts, components/DesignPreview/steps/PreviewBattleMap.tsx, components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx
  * Imports: 25 files
  *
@@ -31,7 +31,10 @@ import { Ability, BATTLE_MAP_BIOMES, BattleMapBiome, BattleMapData, CombatCharac
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useAbilitySystem } from '../../hooks/useAbilitySystem';
-import { generateBattleSetup } from '../../hooks/useBattleMapGeneration';
+import {
+  generateProceduralSandboxBattleSetup,
+  generateWorldBattleSetup,
+} from '../../hooks/useBattleMapGeneration';
 import InitiativeTracker from './InitiativeTracker';
 import AbilityPalette from './AbilityPalette';
 import CombatLog from './CombatLog';
@@ -58,6 +61,25 @@ import CombatRailControls from './CombatRailControls';
 import CompactTurnStrip from './CompactTurnStrip';
 import CombatRailResizeHandle from './CombatRailResizeHandle';
 import { CombatIntentPreview } from './CombatIntentPreview';
+import BattlefieldSourceGap from '../Combat/BattlefieldSourceGap';
+
+// ============================================================================
+// Deterministic World-Scenario Initiative
+// ============================================================================
+// The visual lab rebuilds the same world seed repeatedly. A stable d20 face per
+// character keeps the active token, palette, and combat log identical across
+// screenshots while standalone/production combat continues to roll normally.
+// ============================================================================
+
+function deterministicWorldInitiative(worldSeed: number, character: CombatCharacter): number {
+  let hash = worldSeed >>> 0;
+  for (const characterCode of character.id) {
+    hash = Math.imul(hash ^ characterCode.charCodeAt(0), 16_777_619) >>> 0;
+  }
+  const d20 = (hash % 20) + 1;
+  const dexterityModifier = Math.floor((character.stats.dexterity - 10) / 2);
+  return d20 + dexterityModifier + character.stats.baseInitiative;
+}
 
 // Dev-only: when the demo is opened without real enemies, spawn a small opposing
 // force so the 3D battle map shows both teams (team colors, spawn spread, class
@@ -185,6 +207,10 @@ interface BattleMapDemoProps {
   sourceLabel?: string;
   /** Let a debug harness open on the whole map instead of the production token-size floor. */
   preferFullMapFit?: boolean;
+  /** Lab-owned review layer for explicit source object facts. */
+  showTargetableObjectFacts?: boolean;
+  /** Lab-owned review layer for source-backed noncombat residents. */
+  showWorldOccupants?: boolean;
 }
 
 type BiomeType = BattleMapBiome;
@@ -273,6 +299,8 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
   allowSandboxGeneration = true,
   sourceLabel,
   preferFullMapFit = false,
+  showTargetableObjectFacts = false,
+  showWorldOccupants = true,
 }) => {
   // A supplied world patch owns its theme and seed. The old forest + current
   // time defaults remain unchanged for the standalone arena sandbox.
@@ -340,7 +368,23 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
 
   const [initialSetup] = useState(() => {
     const baseCombatants = getBaseCombatants();
-    return generateBattleSetup(initialBiome, seed, baseCombatants, initialMapData);
+    if (initialMapData) {
+      return {
+        ...generateWorldBattleSetup(initialMapData, seed, baseCombatants),
+        sourceGap: null,
+      };
+    }
+    if (allowSandboxGeneration) {
+      return {
+        ...generateProceduralSandboxBattleSetup(initialBiome, seed, baseCombatants),
+        sourceGap: null,
+      };
+    }
+    return {
+      mapData: null,
+      positionedCharacters: baseCombatants,
+      sourceGap: 'This review requested a source-backed battlefield, but no WorldForge projection was supplied.',
+    };
   });
 
   const [mapData, setMapData] = useState<BattleMapData | null>(initialSetup.mapData);
@@ -350,6 +394,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
   const [cameraFocusRequest, setCameraFocusRequest] = useState<{ characterId: string; requestId: number } | null>(null);
   const battlefieldSectionRef = useRef<HTMLDivElement>(null);
   const combatLayoutRef = useRef<HTMLDivElement>(null);
+  const commandRailRef = useRef<HTMLDivElement>(null);
   const [assetOverlayVisible, setAssetOverlayVisible] = useState(true);
   // Each rail can be hidden independently, and the deliberate layout follows
   // the player into later combats. First use still shows every combat tool.
@@ -408,12 +453,19 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
     setCombatLog(prev => [...prev, entry]);
   }, []);
 
+  const initiativeRoller = useMemo(() => {
+    const worldSeed = initialMapData?.provenance?.worldSeed;
+    if (worldSeed == null) return undefined;
+    return (character: CombatCharacter) => deterministicWorldInitiative(worldSeed, character);
+  }, [initialMapData?.provenance?.worldSeed]);
+
   const turnManager = useTurnManager({
     characters,
     mapData,
     onCharacterUpdate: handleCharacterUpdate,
     onLogEntry: handleLogEntry,
     onMapUpdate: setMapData,
+    initiativeRoller,
     autoCharacters,
     difficulty: 'normal'
   });
@@ -421,12 +473,27 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
   const initializeCombat = turnManager.initializeCombat;
   const turnOrderLength = turnManager.turnState.turnOrder.length;
 
+  useEffect(() => {
+    if (turnOrderLength === 0 || typeof window === 'undefined') return;
+
+    // Initiative and the active ability palette mount in the same update. Some
+    // browsers preserve the lower palette as the scroll anchor, which opens a
+    // fresh command rail with Turn Order clipped above its viewport. Reset once
+    // after initialization; later user scrolling remains untouched.
+    const frame = window.requestAnimationFrame(() => {
+      commandRailRef.current?.scrollTo({ top: 0, left: 0 });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [turnOrderLength]);
+
   // Initialize combat once when the turn order is empty.
   useEffect(() => {
-    if (characters.length > 0 && turnOrderLength === 0) {
+    // A source-review harness without a map is intentionally non-operational.
+    // Do not let its roster start a hidden turn sequence behind the gap screen.
+    if (mapData && characters.length > 0 && turnOrderLength === 0) {
       initializeCombat(characters);
     }
-  }, [characters, initializeCombat, turnOrderLength]);
+  }, [characters, initializeCombat, mapData, turnOrderLength]);
 
   // Removed the useEffect that incorrectly attempted to reset the demo component's state when props changed.
   // Because App.tsx advances passive time in the background, props like `party` and `initialCharacters`
@@ -485,7 +552,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
   const handleGenerate = () => {
     const nextSeed = Date.now();
     const baseCombatants = getBaseCombatants();
-    const setup = generateBattleSetup(biome, nextSeed, baseCombatants);
+    const setup = generateProceduralSandboxBattleSetup(biome, nextSeed, baseCombatants);
 
     setSeed(nextSeed);
     setCombatLog([]); // Clear log on new map
@@ -615,6 +682,10 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
     return () => { delete w.__bm3dTargeting; };
   }, []);
 
+  if (initialSetup.sourceGap) {
+    return <BattlefieldSourceGap detail={initialSetup.sourceGap} onReturn={onExit} />;
+  }
+
   return (
     <div className="bg-gray-900 text-white h-full flex flex-col p-4 overflow-hidden">
       {sheetCharacter && (
@@ -650,7 +721,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
                   onChange={(e) => {
                     const nextBiome = e.target.value as BiomeType;
                     const baseCombatants = getBaseCombatants();
-                    const setup = generateBattleSetup(nextBiome, seed, baseCombatants);
+                    const setup = generateProceduralSandboxBattleSetup(nextBiome, seed, baseCombatants);
 
                     setBiome(nextBiome);
                     setCombatLog([]);
@@ -815,6 +886,8 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
                 mapData={mapData}
                 characters={characters}
                 assetOverlayVisible={assetOverlayVisible}
+                showTargetableObjectFacts={showTargetableObjectFacts}
+                showWorldOccupants={showWorldOccupants}
                 preferFullMapFit={preferFullMapFit}
                 cameraFocusRequest={cameraFocusRequest}
                 combatState={{
@@ -830,7 +903,10 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
         </div>
 
         {/* Right Pane */}
-        <div className={`${commandRailVisible ? 'flex' : 'hidden'} relative order-3 flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:overflow-y-auto`}>
+        <div
+          ref={commandRailRef}
+          className={`${commandRailVisible ? 'flex' : 'hidden'} relative order-3 flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:overflow-y-auto`}
+        >
           <CombatRailResizeHandle
             side="command"
             value={commandRailWidth}

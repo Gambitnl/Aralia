@@ -1,0 +1,91 @@
+{
+  "id": "78ca1683",
+  "name": "Basalt Ember Beetle",
+  "slug": "basalt-ember-beetle-78ca1683",
+  "description": "a squat six-legged basalt beetle with one glowing eye",
+  "plan": {
+    "name": "Basalt Ember Beetle",
+    "frame": {
+      "heightFt": 2.5,
+      "lengthFt": 6,
+      "bulk": 0.9,
+      "stance": "horizontal"
+    },
+    "spine": {
+      "segments": 5,
+      "taper": 0.7,
+      "arch": 0.25
+    },
+    "appendages": [
+      {
+        "kind": "leg",
+        "attach": 0.15,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 0.9,
+            "r": 0.18
+          },
+          {
+            "lenFt": 0.8,
+            "r": 0.12
+          }
+        ]
+      },
+      {
+        "kind": "leg",
+        "attach": 0.5,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 0.9,
+            "r": 0.18
+          },
+          {
+            "lenFt": 0.8,
+            "r": 0.12
+          }
+        ]
+      },
+      {
+        "kind": "leg",
+        "attach": 0.85,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 1,
+            "r": 0.2
+          },
+          {
+            "lenFt": 0.9,
+            "r": 0.13
+          }
+        ]
+      }
+    ],
+    "heads": [
+      {
+        "sizeScale": 0.8,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 1.8
+        },
+        "snout": {
+          "lengthScale": 0.4,
+          "droop": 0.1
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#2b2b30",
+      "accentHex": "#4a4a52",
+      "bellyHex": "#1c1c20",
+      "eyeHex": "#ff7a1a"
+    }
+  },
+  "status": "approved",
+  "createdAt": "2026-07-15T23:00:54.596Z"
+}

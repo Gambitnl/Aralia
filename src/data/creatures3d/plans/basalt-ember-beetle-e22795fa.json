@@ -1,0 +1,92 @@
+{
+  "id": "e22795fa",
+  "name": "Basalt Ember Beetle",
+  "slug": "basalt-ember-beetle-e22795fa",
+  "description": "make the legs twice as long and the eye even bigger",
+  "plan": {
+    "name": "Basalt Ember Beetle",
+    "frame": {
+      "heightFt": 2.5,
+      "lengthFt": 6,
+      "bulk": 0.9,
+      "stance": "horizontal"
+    },
+    "spine": {
+      "segments": 5,
+      "taper": 0.7,
+      "arch": 0.25
+    },
+    "appendages": [
+      {
+        "kind": "leg",
+        "attach": 0.15,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 1.8,
+            "r": 0.18
+          },
+          {
+            "lenFt": 1.6,
+            "r": 0.12
+          }
+        ]
+      },
+      {
+        "kind": "leg",
+        "attach": 0.5,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 1.8,
+            "r": 0.18
+          },
+          {
+            "lenFt": 1.6,
+            "r": 0.12
+          }
+        ]
+      },
+      {
+        "kind": "leg",
+        "attach": 0.85,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 2,
+            "r": 0.2
+          },
+          {
+            "lenFt": 1.8,
+            "r": 0.13
+          }
+        ]
+      }
+    ],
+    "heads": [
+      {
+        "sizeScale": 0.8,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 2
+        },
+        "snout": {
+          "lengthScale": 0.4,
+          "droop": 0.1
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#2b2b30",
+      "accentHex": "#4a4a52",
+      "bellyHex": "#1c1c20",
+      "eyeHex": "#ff7a1a"
+    }
+  },
+  "status": "generated",
+  "createdAt": "2026-07-15T23:01:45.411Z",
+  "revisedFrom": "78ca1683"
+}

@@ -18,7 +18,7 @@ Last updated: 2026-06-25
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
 | T1 | done | Rebuild this cluster as a concise cold-start operating surface for future investigations. | Codex | 2026-06-25 | `TRACKER.md` (this), `NORTH_STAR.md` Inquiry Packet Output Contract, `GAPS.md`, `docs/projects/PROJECT_TRACKER.md`, `docs/registry/@DOC-REVIEW-LEDGER.md` | Apply the output contract when the next inquiry packet is requested. | Cold-start path remains `NORTH_STAR.md` -> `TRACKER.md` -> `GAPS.md`; G1 is done and G2 remains adjacent. |
-| T2 | done | Route retired dice investigation follow-ups to the owning Dice project. | Codex | 2026-06-25 | `docs/projects/dice/GAPS.md` D-G4/D-G5; deleted `DICE_ROLLER_ANALYSIS.md` | No active dice backlog remains in this folder. | `rg` reference check only leaves historical ledger and routed notes. |
+| T2 | done | Route retired dice investigation follow-ups to the owning Dice project. | Codex | 2026-06-25 | `docs/superpowers/specs/2026-07-14-absorbed-dice.md` D-G4/D-G5 (Dice project absorbed into planmap); deleted `DICE_ROLLER_ANALYSIS.md` | No active dice backlog remains in this folder. | `rg` reference check only leaves historical ledger and routed notes. |
 
 ## Gap Log
 

@@ -3,17 +3,17 @@ schema_version: 1
 gap_schema: project_gap_registry
 project: Battle Map
 slug: battle-map
-status: "active (G6 tactical spawn scoring implemented 2026-06-19)"
+status: "active (WorldForge production battlefield authority established; three launcher gaps and two monster-world gaps remain)"
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-25"
-gap_count: 4
-open_gap_count: 3
-resolved_gap_count: 1
+last_updated: "2026-07-16"
+gap_count: 10
+open_gap_count: 8
+resolved_gap_count: 2
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
-visual_proof_required_count: 0
+visual_proof_required_count: 2
 highest_severity: high
 proof_freshness: recorded
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
@@ -101,8 +101,8 @@ supported_optional_sections:
 ---
 # Battle Map Gap Registry
 
-Status: active (G6 tactical spawn scoring implemented 2026-06-19)
-Last updated: 2026-06-25
+Status: active (WorldForge production battlefield authority established; three launcher gaps and two monster-world gaps remain)
+Last updated: 2026-07-16
 
 Use this file for durable unresolved findings that genuinely belong to this project.
 
@@ -119,6 +119,12 @@ Research triage note, 2026-06-10: the useful spawn-placement part of the AAA-lit
 | G6 | done | adjacent_follow_up | Battle Map owner | `docs/projects/battle-map/GAPS.md` | AAA-lite visual readability research triage (2026-06-10) | Spawn placement now uses deterministic tactical scoring for cover/blocked-line proximity, elevation, chokepoints, enemy distance bands, and fallback-to-nearest-walkable behavior when preferred zones are exhausted. | `src/hooks/useBattleMapGeneration.ts` (`getTacticalSpawnTiles`, `MIN_SEP`, tactical scoring helpers), `src/hooks/__tests__/useBattleMapGeneration.test.ts`, `docs/projects/battle-map/AUDIT_OR_PROOF.md` | Fights start from tactically stronger positions while preserving deterministic setup, team separation, and no-undefined character placement on dense maps. | Re-check only if spawn-zone shapes, terrain facts, or battle-map dimensions change. | `npx vitest run src/hooks/__tests__/useBattleMapGeneration.test.ts` passed 2026-06-19 with fixed-seed determinism, dense-map fallback, separation, tactical-score, and <=50ms 40x30 budget coverage. |
 | CMA-G15 | not_started | adjacent_follow_up | battle-map owner | `docs/projects/code-modularization-audit/GAPS.md` CMA-G15 | Code modularization audit routing | `CharacterActor.tsx` (~697 lines) and `TerrainMesh.tsx` (~675 lines) are large 3D files mixing animation, selection decals, and terrain generation; modularization needs frame/render parity before any split. | `src/components/BattleMap/characters/CharacterActor.tsx`; `src/components/BattleMap/terrain/TerrainMesh.tsx`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G15 | A split that moves actor animation or terrain helpers without preserving render parity can break 3D battle-map visuals. | Accept or defer the inbound CMA-G15 route; if accepting, create a narrow split plan with actor/terrain render-parity proof. | Owner gap row exists and CMA-G15 status is updated to reflect acceptance or deferral. |
 | G7 | not_started | adjacent_follow_up | battle-map / presentation owner | `docs/improvements/SPRITE-POSE-CONTROL-VARIANTS.md` retirement 2026-06-25 | Control-option commands have gameplay proof, but no shared visual pose/variant path exists for affected creatures. | Retired `docs/improvements/SPRITE-POSE-CONTROL-VARIANTS.md`; `src/commands/effects/UtilityCommand.ts`; `src/commands/__tests__/UtilityCommand.test.ts`; `src/hooks/useAbilitySystem.ts`; BattleMap sprite/actor surfaces | Command-control effects such as approach, flee, drop, grovel, and halt already alter gameplay. Without an optional presentation path, visual feedback can remain generic or fragment into bespoke per-effect hacks. | Define a non-blocking visual-state contract for one control option, including cache/fallback/restore behavior and whether the 2D sprite or 3D actor surface owns the first slice. | Focused command/UI proof showing gameplay still resolves if no variant exists, and rendered proof that one selected control option visibly swaps/restores presentation when an asset or state marker is available. |
+| G8 | done | in_scope_now | world battle authority | Production battlefield source inventory 2026-07-15 | Hostile-opening attacks and failed de-escalations now carry a game-authored world seed/cell/site receipt through the mounted GroundWorld into an exact player-position crop. | `src/hooks/useOpeningSituation.ts`; `src/hooks/useDeEscalation.ts`; `src/systems/combat/fightInPlace/activeGroundCombatSession.ts`; `src/systems/combat/worldScenario/openingThreatBattlefield.ts`; focused tests; Hostile Opening lab recipe | The opening combat route no longer needs a placeless arena, and missing or mismatched receipts still fail closed. | Preserve this boundary; route missing enemy world placement to G12 instead of pretending the tactical policy is source history. | 64/64 focused integration/projection/parity tests and 1600x1000 plus 1353x1272 adversarial captures passed 2026-07-16 after the compass ring was rejected. |
+| G9 | waiting | adjacent_follow_up | battle-map owner | Production battlefield source inventory 2026-07-15 | Static authored-town wanted-watch fallback still prepares generic Guards without a canonical authored-town-to-WorldForge location bridge. | `src/hooks/actions/handleNpcInteraction.ts`; `docs/projects/battle-map/WORLDFORGE_SOURCE_INVENTORY.md` | Generic actors alone cannot justify terrain, structures, population, or approach direction. | Map authored towns into canonical WorldForge sites/cells or keep the encounter visibly unsupported. | Town-specific deterministic projection and watch-confrontation proof. |
+| G10 | waiting | architecture | WorldForge/naval owner | Production battlefield source inventory 2026-07-15 | Daily sea encounters have foes but no authoritative sea surface, vessel decks, relative headings, weather footprint, or boarding context. | `src/hooks/useSeaEncounter.ts`; `docs/projects/battle-map/WORLDFORGE_SOURCE_INVENTORY.md` | A forest/land map standing in for a naval event would materially falsify both geometry and mechanics. | Define a canonical naval tactical location artifact before routing sea encounters into tactical `CombatView`. | Deterministic vessel/sea projection with rendered boarding or ranged-sea proof. |
+| G11 | waiting | architecture | battle-map / encounter owner | Production battlefield source inventory 2026-07-15 | Encounter-modal custom, bestiary, and AI simulation can author a roster without selecting a real WorldForge location. | `src/components/EncounterModal`; `src/hooks/actions/handleEncounter.ts`; `docs/projects/battle-map/WORLDFORGE_SOURCE_INVENTORY.md` | A location-free production launcher cannot satisfy the sole-authority contract and must not inherit terrain implicitly. | Require a canonical location choice or move the surface behind an explicitly labeled developer sandbox entry. | UI/action/reducer proof that no roster-only production request can mount a tactical board. |
+| G12 | active | in_scope_now | WorldForge encounter owner | Hostile Opening adversarial review 2026-07-16 | The opening source proves the location and exact player anchor but does not author enemy world positions, approach direction, or group relationships. | `src/systems/combat/worldScenario/openingThreatBattlefield.ts`; Hostile Opening lab diagnostics and captures | The terrain-fit constellation is an honest interim referee policy, but it cannot support world persistence, pursuit, reinforcements, or evidence of how the threat arrived. | Author threat entities or a scene-placement receipt with positions, approach evidence, and group relations; retain fail-closed behavior for stale scene identity. | Deterministic source-to-tactical position parity plus combat-return persistence proof. |
+| G13 | active | in_scope_now | monster presentation / WorldForge | Hostile Opening adversarial review 2026-07-16 | Bestiary-backed Goblins remain repeated circular stamps, the Wolf is nearly black on dark ground, and the group has no visible handler/pack ecology or environmental trace. | Hostile Opening 1600x1000 and 1353x1272 captures; World Battle Lab bestiary roster | Correct mechanics cannot compensate for monsters that read as interchangeable UI markers detached from the generated world. | Build one source-authored ecological-wake/social-topology slice: tracks or scent and disturbed vegetation before the body, pack lead/handler/scout relationships, asymmetric posture, and persistent nest/feeding/burrow/trap terrain memory. | Side-by-side captures prove species/role readability at play scale, evidence-before-body staging, meaningful group topology, and zero renderer-only invented set dressing. |
 
 ## Classification Reference
 

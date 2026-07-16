@@ -16,7 +16,7 @@ import type { BattleMapData, CombatCharacter, LightSource } from '../../../types
 const mockUseBattleMap = vi.fn();
 const mockUseTargetSelection = vi.fn();
 const mockUseVisibility = vi.fn();
-const mockBattleMapOverlay = vi.fn(() => <div data-testid="battle-map-overlay" />);
+const mockBattleMapOverlay = vi.fn((_props: unknown) => <div data-testid="battle-map-overlay" />);
 
 vi.mock('../../../hooks/useBattleMap', () => ({
   useBattleMap: (...args: unknown[]) => mockUseBattleMap(...args)
@@ -162,14 +162,14 @@ describe('BattleMap parity proof', () => {
             spellMovementVisuals: [],
             spellDeliveryVisuals: [],
             canAffordAction: vi.fn(() => true)
-          } as any,
+          } as unknown as React.ComponentProps<typeof BattleMap>['combatState']['turnManager'],
           turnState: {
             currentTurn: 0,
             turnOrder: [hero.id, enemy.id],
             currentCharacterId: hero.id,
             phase: 'action',
             actionsThisTurn: []
-          } as any,
+          } as unknown as React.ComponentProps<typeof BattleMap>['combatState']['turnState'],
           abilitySystem: {
             targetingMode: true,
             selectedAbility: { id: 'fireball', name: 'Fireball', range: 6 } as any,
@@ -194,7 +194,7 @@ describe('BattleMap parity proof', () => {
             isValidTarget: vi.fn(),
             cancelTargeting: vi.fn(),
             startTargeting: vi.fn()
-          } as any,
+          } as unknown as React.ComponentProps<typeof BattleMap>['combatState']['abilitySystem'],
           isCharacterTurn: vi.fn(() => false),
           onCharacterUpdate: vi.fn()
         }}
@@ -238,5 +238,98 @@ describe('BattleMap parity proof', () => {
         ]
       })
     );
+  });
+
+  it('renders a directionless opening receipt without claiming a route arrow', () => {
+    const hero = {
+      id: 'opening-hero',
+      name: 'Opening Hero',
+      team: 'player',
+      position: { x: 0, y: 0 },
+      currentHP: 10,
+      maxHP: 10,
+      abilities: [],
+      statusEffects: [],
+      stats: {
+        strength: 10,
+        dexterity: 10,
+        constitution: 10,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 10,
+        speed: 30,
+        baseInitiative: 0
+      },
+      actionEconomy: { action: {}, bonusAction: {}, reaction: {}, movement: {} }
+    } as unknown as CombatCharacter;
+    const mapData = {
+      dimensions: { width: 1, height: 1 },
+      tiles: new Map([['0-0', makeTile('0-0', 0, 0)]]),
+      theme: 'forest',
+      seed: 42,
+      encounterContext: {
+        kind: 'opening-standoff',
+        source: 'worldforge-opening',
+        sourceReceiptId: 'opening:42:cell:476',
+        sourceWorldCellId: 476,
+        anchorTile: { x: 0, y: 0 },
+        deployment: {
+          player: 'current-position',
+          enemy: 'terrain-fit-standoff-constellation'
+        },
+        omittedFacts: {
+          enemyWorldPositions: 'not-authored',
+          approachDirection: 'not-authored'
+        }
+      }
+    } as BattleMapData;
+
+    render(
+      <BattleMap
+        mapData={mapData}
+        characters={[hero]}
+        combatState={{
+          turnManager: {
+            turnState: {
+              currentTurn: 0,
+              turnOrder: [hero.id],
+              currentCharacterId: hero.id,
+              phase: 'action',
+              actionsThisTurn: []
+            },
+            activeLightSources: [],
+            reactiveTriggers: [],
+            damageNumbers: [],
+            animations: [],
+            spellZones: [],
+            scheduledSpellEffects: [],
+            movementDebuffs: [],
+            spellMovementVisuals: [],
+            spellDeliveryVisuals: [],
+            canAffordAction: vi.fn(() => true)
+          } as unknown as React.ComponentProps<typeof BattleMap>['combatState']['turnManager'],
+          turnState: {
+            currentTurn: 0,
+            turnOrder: [hero.id],
+            currentCharacterId: hero.id,
+            phase: 'action',
+            actionsThisTurn: []
+          } as unknown as React.ComponentProps<typeof BattleMap>['combatState']['turnState'],
+          abilitySystem: {
+            targetingMode: false,
+            cancelTargeting: vi.fn(),
+            startTargeting: vi.fn(),
+            isValidTarget: vi.fn()
+          } as unknown as React.ComponentProps<typeof BattleMap>['combatState']['abilitySystem'],
+          isCharacterTurn: vi.fn(() => false),
+          onCharacterUpdate: vi.fn()
+        }}
+      />
+    );
+
+    expect(screen.getByLabelText(
+      "Opening standoff; marks the party's exact source-world position; enemy direction is not authored"
+    )).toBeInTheDocument();
+    expect(screen.queryByLabelText(/arrow points/)).not.toBeInTheDocument();
   });
 });

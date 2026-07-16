@@ -1,0 +1,84 @@
+{
+  "id": "fix00001",
+  "name": "Threefold Fen Serpent",
+  "slug": "threefold-fen-serpent-fix00001",
+  "description": "a three-headed fen serpent, low and sinuous",
+  "plan": {
+    "name": "Threefold Fen Serpent",
+    "frame": {
+      "heightFt": 2.5,
+      "lengthFt": 26,
+      "bulk": 0.6,
+      "stance": "serpentine"
+    },
+    "spine": {
+      "segments": 8,
+      "taper": 0.4,
+      "arch": 0
+    },
+    "appendages": [
+      {
+        "kind": "neck",
+        "attach": 0.04,
+        "heightFrac": 0.8,
+        "count": 3,
+        "chain": [
+          {
+            "lenFt": 2.4,
+            "r": 0.3
+          },
+          {
+            "lenFt": 2.1,
+            "r": 0.22
+          }
+        ]
+      }
+    ],
+    "heads": [
+      {
+        "neckIndex": 0,
+        "sizeScale": 1.25,
+        "eyes": {
+          "count": 2,
+          "sizeScale": 1.1
+        },
+        "snout": {
+          "lengthScale": 1.4,
+          "droop": 0
+        }
+      },
+      {
+        "neckIndex": 0,
+        "sizeScale": 1.25,
+        "eyes": {
+          "count": 2,
+          "sizeScale": 1.1
+        },
+        "snout": {
+          "lengthScale": 1.4,
+          "droop": 0
+        }
+      },
+      {
+        "neckIndex": 0,
+        "sizeScale": 1.25,
+        "eyes": {
+          "count": 2,
+          "sizeScale": 1.1
+        },
+        "snout": {
+          "lengthScale": 1.4,
+          "droop": 0
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#3e6b4f",
+      "accentHex": "#87a94f",
+      "bellyHex": "#cfd8a3",
+      "eyeHex": "#e8d44d"
+    }
+  },
+  "status": "generated",
+  "createdAt": "2026-07-15T22:51:11.589Z"
+}

@@ -368,6 +368,42 @@ describe('worldReducer', () => {
         expect(duplicateResult.worldforgeDeltas).toBe(appendResult.worldforgeDeltas);
     });
 
+    // ============================================================================
+    // Generated Encounter Receipt Persistence
+    // ============================================================================
+    // Combat-event receipts use their deterministic event id as a save-safe
+    // de-duplication key. They are intentionally separate from terrain deltas.
+    // ============================================================================
+
+    it('records generated encounter receipts once without changing their causal order', () => {
+        const receipt = {
+            id: 'worldforge-state-patrol:42:829:14:7:day-12',
+            kind: 'state-patrol-interception' as const,
+            worldSeed: 42,
+            gameDay: 12,
+            triggeredAtGameTimeMs: 123_456,
+            sourceCellId: 829,
+            burgId: 14,
+            stateId: 7,
+            factionId: 'worldforge-state:7',
+            playerGroundMeters: { x: 10, z: 20 },
+        };
+        const baseState = createMockGameState({ worldforgeEncounterReceipts: [] });
+        const action: AppAction = {
+            type: 'RECORD_WORLDFORGE_ENCOUNTER',
+            payload: { receipt },
+        };
+
+        const first = worldReducer(baseState, action);
+        const repeated = worldReducer({
+            ...baseState,
+            worldforgeEncounterReceipts: first.worldforgeEncounterReceipts!,
+        }, action);
+
+        expect(first.worldforgeEncounterReceipts).toEqual([receipt]);
+        expect(repeated.worldforgeEncounterReceipts).toBe(first.worldforgeEncounterReceipts);
+    });
+
     it('should trigger processWorldEvents when time advances by a day', () => {
         const baseState = createMockGameState({
             gameTime: new Date('2024-01-01T12:00:00Z')

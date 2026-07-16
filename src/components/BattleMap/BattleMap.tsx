@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 11/07/2026, 23:51:15
+ * Last Sync: 15/07/2026, 09:55:52
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
  * Imports: 17 files
  *
@@ -33,7 +33,7 @@
  * - No texture atlas consolidation for sprite batching
  */
 import React, { useMemo, useCallback, useEffect, useRef, useState, useLayoutEffect } from 'react';
-import { Footprints, Swords } from 'lucide-react';
+import { ArrowRight, Footprints, MapPinned, Swords, UsersRound } from 'lucide-react';
 import { BattleMapData, CombatCharacter, BattleMapTile as BattleMapTileData, CombatState, LightSource, Position } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
@@ -85,6 +85,10 @@ interface BattleMapProps {
   showLightSourceMarkers?: boolean;
   showLineOfSightCone?: boolean;
   assetOverlayVisible?: boolean;
+  /** Visual harness layer that marks every explicit source-backed object fact. */
+  showTargetableObjectFacts?: boolean;
+  /** Source-backed noncombat residents, grouped by tactical cell for legibility. */
+  showWorldOccupants?: boolean;
   /** Debug/review surfaces may prioritize whole-map context over token size. */
   preferFullMapFit?: boolean;
   cameraFocusRequest?: { characterId: string; requestId: number } | null;
@@ -105,7 +109,7 @@ interface BattleMapProps {
   };
 }
 
-const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLabels = false, showLightSourceMarkers = true, showLineOfSightCone = false, assetOverlayVisible = true, preferFullMapFit = false, cameraFocusRequest = null, objectInteraction, spellMapArtifacts, combatState }) => {
+const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLabels = false, showLightSourceMarkers = true, showLineOfSightCone = false, assetOverlayVisible = true, showTargetableObjectFacts = false, showWorldOccupants = true, preferFullMapFit = false, cameraFocusRequest = null, objectInteraction, spellMapArtifacts, combatState }) => {
   const { turnManager, turnState, abilitySystem, isCharacterTurn } = combatState;
   const [lineOfSightOverlayVisible, setLineOfSightOverlayVisible] = useState(showLineOfSightCone);
   const [pendingCameraCenterCharacterId, setPendingCameraCenterCharacterId] = useState<string | null>(null);
@@ -162,6 +166,46 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
   const tileArray = useMemo(() => {
     if (!mapData) return [];
     return Array.from(mapData.tiles.values());
+  }, [mapData]);
+
+  // Residents are identity-rich world facts, but several people can occupy one
+  // five-foot tactical cell. Group only for rendering so the model retains all
+  // identities while the board avoids stacks of indistinguishable markers.
+  const worldOccupantGroups = useMemo(() => {
+    const groups = new Map<string, {
+      position: Position;
+      occupants: NonNullable<BattleMapData['worldOccupants']>;
+    }>();
+    for (const occupant of mapData?.worldOccupants ?? []) {
+      const key = `${occupant.position.x}-${occupant.position.y}`;
+      const group = groups.get(key);
+      if (group) {
+        group.occupants.push(occupant);
+      } else {
+        groups.set(key, { position: occupant.position, occupants: [occupant] });
+      }
+    }
+    return Array.from(groups.values());
+  }, [mapData]);
+  const encounterMarker = useMemo(() => {
+    const context = mapData?.encounterContext;
+    if (!context) return null;
+    if (context.kind === 'opening-standoff') {
+      return { label: 'Opening standoff', className: 'border-cyan-300 bg-cyan-950/95 text-cyan-100' };
+    }
+    if (context.kind === 'settlement-edge') {
+      return { label: 'Settlement gate', className: 'border-amber-300 bg-amber-950/95 text-amber-100' };
+    }
+    if (context.kind === 'settlement-watch') {
+      return { label: 'Watch interception', className: 'border-red-300 bg-red-950/95 text-red-100' };
+    }
+    if (context.kind === 'settlement-state-patrol') {
+      return { label: 'State patrol', className: 'border-rose-300 bg-rose-950/95 text-rose-100' };
+    }
+    if (context.kind === 'river-crossing') {
+      return { label: context.crossingKind === 'bridge' ? 'Bridge crossing' : 'Ford crossing', className: 'border-sky-300 bg-sky-950/95 text-sky-100' };
+    }
+    return { label: 'Route heading', className: 'border-orange-300 bg-orange-950/95 text-orange-100' };
   }, [mapData]);
 
   const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
@@ -685,6 +729,116 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
             )
           })}
 
+          {/* The scenario lab can reveal the object registry as a dedicated
+              review layer. Transparent rings preserve the underlying art while
+              cyan circles identify natural features and amber diamonds identify
+              catalog props; normal combat leaves this layer disabled. */}
+          {showTargetableObjectFacts && (mapData.targetableObjects ?? []).map((targetObject) => {
+            const sourceKind = targetObject.source?.kind;
+            const isProp = sourceKind === 'worldforge-prop';
+            return (
+              <div
+                key={`targetable-object-fact-${targetObject.id}`}
+                data-testid="targetable-object-fact-marker"
+                data-source-kind={sourceKind ?? 'unclassified'}
+                title={`Target fact: ${targetObject.name}`}
+                className={`pointer-events-none absolute z-[8] h-5 w-5 -translate-x-1/2 -translate-y-1/2 border-2 shadow-[0_0_7px_rgba(0,0,0,0.85)] ${
+                  isProp
+                    ? 'rotate-45 rounded-sm border-amber-300 bg-amber-500/10'
+                    : 'rounded-full border-cyan-300 bg-cyan-500/10'
+                }`}
+                style={{
+                  left: targetObject.position.x * TILE_SIZE_PX + TILE_SIZE_PX / 2,
+                  top: targetObject.position.y * TILE_SIZE_PX + TILE_SIZE_PX / 2,
+                }}
+              >
+                <span
+                  className={`absolute left-1/2 top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full ${
+                    isProp ? 'bg-amber-100' : 'bg-cyan-100'
+                  }`}
+                />
+              </div>
+            );
+          })}
+
+          {/* Occupants are ambient source facts rather than combat tokens. The
+              violet grouped marker distinguishes them from blue/red combatants
+              and keeps dense households readable without discarding identity. */}
+          {showWorldOccupants && worldOccupantGroups.map((group) => {
+            const movingCount = group.occupants.filter((occupant) => occupant.moving).length;
+            const names = group.occupants.map((occupant) => occupant.name);
+            const summary = names.length > 3
+              ? `${names.slice(0, 3).join(', ')} and ${names.length - 3} more`
+              : names.join(', ');
+            return (
+              <div
+                key={`world-occupants-${group.position.x}-${group.position.y}`}
+                data-testid="world-occupant-marker"
+                data-occupant-count={group.occupants.length}
+                data-moving-count={movingCount}
+                aria-label={`${group.occupants.length} source resident${group.occupants.length === 1 ? '' : 's'}: ${summary}`}
+                title={summary}
+                className={`pointer-events-none absolute z-[12] flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 bg-violet-950/90 text-violet-100 shadow-[0_0_8px_rgba(0,0,0,0.95)] ${
+                  movingCount > 0 ? 'border-fuchsia-300 ring-1 ring-fuchsia-300/60' : 'border-violet-300'
+                }`}
+                style={{
+                  left: group.position.x * TILE_SIZE_PX + TILE_SIZE_PX / 2,
+                  top: group.position.y * TILE_SIZE_PX + TILE_SIZE_PX / 2,
+                }}
+              >
+                <UsersRound size={11} strokeWidth={2.5} aria-hidden="true" />
+                {group.occupants.length > 1 && (
+                  <span className="absolute -right-1.5 -top-1.5 flex min-h-3 min-w-3 items-center justify-center rounded-full border border-violet-100 bg-violet-500 px-0.5 text-[7px] font-black leading-none text-white">
+                    {group.occupants.length}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+
+          {/* A source-framed encounter needs one explicit visual receipt. The
+              inverse scale keeps this marker readable at whole-map review zoom,
+              while its tile anchor still follows the transformed board. */}
+          {encounterMarker && mapData.encounterContext && (
+            <div
+              data-testid="encounter-source-anchor"
+              aria-label={mapData.encounterContext.kind === 'opening-standoff'
+                ? `${encounterMarker.label}; marks the party's exact source-world position; enemy direction is not authored`
+                : `${encounterMarker.label}; arrow points from the exterior or near side toward the interior or far side`}
+              className="pointer-events-none absolute z-[16]"
+              style={{
+                left: mapData.encounterContext.anchorTile.x * TILE_SIZE_PX + TILE_SIZE_PX / 2,
+                top: mapData.encounterContext.anchorTile.y * TILE_SIZE_PX + TILE_SIZE_PX / 2,
+                // Lift the fixed-size receipt above its exact tile so whole-map
+                // fit never hides the combat tokens deployed around the anchor.
+                // Live settlement interceptions start on the player's tile, so
+                // their receipt needs more clearance than a gate/crossing marker.
+                // Keep the anchor exact while moving only the label treatment.
+                transform: `translate(-50%, ${mapData.encounterContext.kind === 'opening-standoff' || mapData.encounterContext.kind === 'settlement-watch' || mapData.encounterContext.kind === 'settlement-state-patrol' ? '-220%' : '-120%'}) scale(${1 / Math.max(boardScale, 0.01)})`,
+                transformOrigin: 'center',
+              }}
+            >
+              <div className={`relative flex h-7 w-7 items-center justify-center rounded-full border-2 shadow-[0_0_12px_rgba(0,0,0,0.9)] ${encounterMarker.className}`}>
+                <MapPinned size={15} strokeWidth={2.5} aria-hidden="true" />
+                {'routeDirection' in mapData.encounterContext && (
+                  <ArrowRight
+                    size={13}
+                    strokeWidth={3}
+                    aria-hidden="true"
+                    className="absolute -right-4 top-1.5"
+                    style={{
+                      transform: `rotate(${Math.atan2(mapData.encounterContext.routeDirection.y, mapData.encounterContext.routeDirection.x)}rad)`,
+                      transformOrigin: 'center',
+                    }}
+                  />
+                )}
+                <span className={`absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase ${encounterMarker.className}`}>
+                  {encounterMarker.label}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Targetable map assets are a teaching/editing overlay, not the
               ground art itself. The surrounding combat screen owns the header
               toggle so these pins can be hidden without crowding the legend. */}
@@ -828,6 +982,14 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
             </div>
           );
         })}
+        {showWorldOccupants && worldOccupantGroups.length > 0 && (
+          <div className="flex items-center gap-1.5" data-testid="world-occupant-legend">
+            <span className="inline-flex h-3 w-3 items-center justify-center rounded-full border border-violet-300 bg-violet-950 text-violet-100">
+              <UsersRound size={8} strokeWidth={2.5} aria-hidden="true" />
+            </span>
+            <span>Residents</span>
+          </div>
+        )}
       </div>
     </div>
   );

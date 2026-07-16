@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/06/2026, 01:52:47
+ * Last Sync: 15/07/2026, 09:54:28
  * Dependents: App.tsx
- * Imports: 43 files
+ * Imports: 50 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -707,6 +707,10 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // Saves predating the living-world sim have no townSim; default it
                 // so registration/advance never dereference undefined.
                 townSim: loadedState.townSim ?? {},
+                // Patrol receipts were introduced after physical WorldForge
+                // deltas. Older saves begin with no consumed encounter events;
+                // current saves preserve their deterministic daily receipts.
+                worldforgeEncounterReceipts: loadedState.worldforgeEncounterReceipts ?? [],
                 shortRestTracker: resolvedShortRestTracker,
                 underdark: loadedState.underdark || INITIAL_UNDERDARK_STATE,
                 naval: loadedState.naval || { ...INITIAL_NAVAL_STATE },

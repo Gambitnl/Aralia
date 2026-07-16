@@ -59,6 +59,14 @@ export const devHubApiManager = () => ({
       const { handleDocsRoutes } = await import('./devhub/docsRoutes.ts');
       if (await handleDocsRoutes(ctx)) return;
 
+      const { handleCreaturePlanRoutes } = await import('./devhub/creaturePlanRoutes.ts');
+      if (await handleCreaturePlanRoutes(ctx)) return;
+
+      // Character Review uses the canonical charset scanner but never exposes a
+      // write route, so policy decisions remain separate from inspection.
+      const { handleCharsetRoutes } = await import('./devhub/charsetRoutes.ts');
+      if (await handleCharsetRoutes(ctx)) return;
+
       next();
     });
   }

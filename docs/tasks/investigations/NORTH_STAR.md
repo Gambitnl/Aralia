@@ -18,7 +18,7 @@ Define and maintain a cold-start map for investigation work.
 - `NORTH_STAR.md`: project purpose, boundaries, evidence links, and resume path.
 - `TRACKER.md`: active task queue, status updates, and next checks.
 - `GAPS.md`: project-owned unresolved findings.
-- Dice roller investigation packet: retired 2026-06-25 after valid follow-ups were routed to `docs/projects/dice/GAPS.md` D-G4 and D-G5.
+- Dice roller investigation packet: retired 2026-06-25 after valid follow-ups were routed to the Dice project as D-G4 and D-G5 (now absorbed into the planmap `dice` topic; see `docs/superpowers/specs/2026-07-14-absorbed-dice.md`).
 
 ## Current State
 

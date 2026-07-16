@@ -73,8 +73,9 @@ writes a final snapshot and exits cleanly.
 - **All GET read endpoints** (`/agents`, `/locks`, `/reservations`, `/tasks`, `/messages`, `/health`,
   `/events`, `/`) are **open** so the dashboard works token-free. `/messages` accepts an
   *optional* bearer to resolve `?to=me`.
-- Every authenticated request also **refreshes your presence** (`lastSeen`) as a side
-  effect — you rarely need an explicit heartbeat.
+- Every authenticated request updates `lastSeen`. Meaningful authenticated activity also
+  refreshes `lastMeaningfulAt`; the dedicated heartbeat endpoint updates only
+  `lastHeartbeatAt`, so a detached helper cannot extend presence forever.
 
 ---
 
@@ -90,13 +91,14 @@ unhandled handler error returns **`500`** `{ "error": "internal error: ..." }`.
 | Method | Path | Auth | Body | Success | Errors |
 |---|---|---|---|---|---|
 | POST | `/agents/register` | none | `{ "handle": string, "note"?, "unique"?, "model"?, "sessionId"? }` | `201 { agentId, token, handle, registeredAt, model, sessionId }` | `400` if `handle` missing; `409` if a live agent already holds `handle` |
-| POST | `/agents/heartbeat` | Bearer | — | `200 { ok: true }` | `401` |
+| POST | `/agents/heartbeat` | Bearer | — | `200 { ok: true, expiresAt, remainingMs }` | `401`; `404` if the agent is gone; `410` when the heartbeat-only lease expires |
 | GET | `/agents` | none | — | `200 { agents: [...] }` | — |
 
 `GET /agents` returns each active agent as
-`{ id, handle, token, registeredAt, lastSeen, status, note, model, sessionId }` where `status`
-is `"online"` or `"stale"`. `registeredAt` is the check-in moment; `lastSeen` is last-touched
-(refreshed by every authed call). `model` and `sessionId` are optional provenance: which model
+`{ id, handle, token, registeredAt, lastSeen, lastMeaningfulAt, lastHeartbeatAt, status, note, model, sessionId }`
+where `status` is `"online"` or `"stale"`. `registeredAt` is the check-in moment; `lastSeen` is
+the latest authenticated touch, `lastMeaningfulAt` excludes heartbeat-only traffic, and
+`lastHeartbeatAt` is the latest explicit heartbeat. `model` and `sessionId` are optional provenance: which model
 the agent is (usually stamped by the orchestrator at launch via `--model`) and the agent's own
 harness conversation/thread id (`--session`/`--thread`/`--conversation`, so an agent can query
 which session it is via `whoami`). Agents not seen within the **drop** window are omitted.
@@ -136,11 +138,12 @@ invocations.
   authenticated call within the presence TTL). Force against an **online** holder is refused
   with `409` — a live agent's lock is never yanked out from under it.
 - **Dead-agent reaping:** when an agent passes the presence **drop** horizon (60 min without
-  any authenticated call), the sweep releases all its locks immediately (no waiting out the
-  lock TTL), reopens its `claimed`/`in_progress` tasks (history entry `action: "reaped"`),
-  and deletes the agent record — its token stops working and a returning agent must
-  re-register. Long-running workers must heartbeat (any authenticated call) well inside the
-  drop window.
+  any authenticated call), the sweep releases all its locks and reservations immediately (no
+  waiting out the lock TTL), reopens its `claimed`/`in_progress` tasks (history entry
+  `action: "reaped"`), and deletes the agent record — its token stops working and a returning
+  agent must re-register. Explicit heartbeats may bridge a quiet period, but heartbeat-only
+  presence is capped at 2 hours from the last meaningful authenticated activity. Once that
+  lease expires, the next heartbeat returns `410` and performs the same cleanup immediately.
 
 ### Reservations (FIFO dibs)
 
@@ -325,7 +328,8 @@ a `client.mjs watch` session.)
 ## Data model (from `store.mjs`)
 
 ```
-Agent   { id, handle, token, registeredAt, lastSeen, status, note }
+Agent   { id, handle, token, registeredAt, lastSeen, lastMeaningfulAt,
+          lastHeartbeatAt, status, note }
 Lock    { id, paths[], globs[], agentId, reason, createdAt, expiresAt }
 Reservation { id, paths[], globs[], agentId, reason, createdAt, queueSeq, position }
 Campaign { id, role, leadCampaignId, agentId, scope, paths[], globs[], wave, state,
@@ -337,9 +341,10 @@ Event   { seq, type, payload, ts }                  // journal line + SSE envelo
 ```
 
 Tunables (store defaults): presence **online** TTL 10 min (`presenceTtlMs` 600,000),
-presence **drop** 60 min (`presenceDropMs` 3,600,000), lock TTL 30 min (`lockTtlMs`
-1,800,000), snapshot every 200 events. (Note: the spec mentions a presence TTL but does not
-fix the exact numbers; the code values above are authoritative.)
+presence **drop** 60 min (`presenceDropMs` 3,600,000), heartbeat-only lease 2 hours
+(`heartbeatOnlyLeaseMs` 7,200,000), lock TTL 30 min (`lockTtlMs` 1,800,000), snapshot every
+200 events. (Note: the spec mentions a presence TTL but does not fix the exact numbers; the
+code values above are authoritative.)
 
 ---
 
@@ -372,10 +377,14 @@ The whole system is honor-system. The loop every agent should follow:
    succeeds; never edit from the reservation alone.
 4. **Announce intent.** Post a task (`POST /tasks`) for non-trivial work, or `say` what
    you're doing (`POST /messages` to `"all"`).
-5. **Release on done.** `DELETE /locks/:id` when you finish a file; transition your task to
-   `done`. Don't sit on locks — they default-expire in 30 min, but release early.
-6. **Heartbeat occasionally** on long quiet stretches so you stay `online`
-   (`POST /agents/heartbeat`) — though any authenticated call already refreshes presence.
+5. **Release and retire on done.** `DELETE /locks/:id` when you finish a file; transition your
+   task to `done`, report workflow feedback, then use `client.mjs retire --note "completed"`.
+   Retirement releases any remaining locks, reservations, and active task claims before
+   invalidating the token.
+6. **Heartbeat occasionally** on long quiet stretches so you stay `online`. The CLI helper is
+   bounded to 30 minutes by default and accepts `--owner-pid`/`AGORA_OWNER_PID`; re-run it only
+   while the owning session is active. `--forever` is explicit and still cannot exceed the
+   server's 2-hour heartbeat-only lease without meaningful authenticated activity.
 
 ---
 

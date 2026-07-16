@@ -8,8 +8,8 @@ import { createEmptyHistory } from '../../utils/historyUtils';
 // World State Shape Defaults
 // ============================================================================
 // These tests protect the save/load boundary for world-owned fields that older
-// saves may omit. Runtime systems can still treat rumors, history, notifications,
-// and merchant UI data as present after boot or load without narrowing every use.
+// saves may omit. Runtime systems can still treat rumors, history, encounter
+// receipts, notifications, and merchant UI data as present after boot or load.
 // ============================================================================
 
 describe('appState world state shape defaults', () => {
@@ -17,6 +17,7 @@ describe('appState world state shape defaults', () => {
     expect(initialGameState.activeRumors).toEqual([]);
     expect(initialGameState.worldHistory).toEqual(createEmptyHistory());
     expect(initialGameState.notifications).toEqual([]);
+    expect(initialGameState.worldforgeEncounterReceipts).toEqual([]);
     expect(initialGameState.merchantModal).toEqual({
       isOpen: false,
       merchantName: '',
@@ -33,6 +34,9 @@ describe('appState world state shape defaults', () => {
       }),
       notifications: undefined,
       merchantModal: undefined,
+      // This predates generated-state patrol persistence. Loading it must not
+      // make the 3D movement referee dereference a missing receipt list.
+      worldforgeEncounterReceipts: undefined,
     };
 
     const result = appReducer(createMockGameState({ phase: GamePhase.MAIN_MENU }), {
@@ -43,6 +47,7 @@ describe('appState world state shape defaults', () => {
     expect(result.activeRumors).toEqual([]);
     expect(result.worldHistory).toEqual(createEmptyHistory());
     expect(result.notifications).toEqual([]);
+    expect(result.worldforgeEncounterReceipts).toEqual([]);
     expect(result.merchantModal).toEqual({
       isOpen: false,
       merchantName: '',

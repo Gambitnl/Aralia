@@ -629,6 +629,9 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       // Worldforge plot edits start empty in test states; reducers append JSON-safe
       // deltas here so save/load tests do not need a live generator.
       worldforgeDeltas: [],
+      // Deterministic WorldForge encounters begin unconsumed in test states.
+      // Individual event-policy tests override this list with saved receipts.
+      worldforgeEncounterReceipts: [],
       // SP4 discovery: no hidden places revealed yet.
       discoveredHiddenSites: [],
 
@@ -811,6 +814,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       playerGroundPos: null,
       // Keep the fallback GameState structurally complete even if factory setup fails.
       worldforgeDeltas: [],
+      // Fallback states also begin without consumed generated-world encounters.
+      worldforgeEncounterReceipts: [],
       discoveredHiddenSites: []
     };
   }

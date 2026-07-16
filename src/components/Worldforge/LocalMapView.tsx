@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 05/07/2026, 10:13:14
+ * Last Sync: 15/07/2026, 22:42:10
  * Dependents: components/Worldforge/AtlasDemo.tsx
- * Imports: 3 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,10 +15,11 @@
 // @dependencies-end
 
 import React, { useRef, useEffect, useState } from "react";
-import { ZoomIn, ZoomOut, Maximize } from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize, Footprints } from "lucide-react";
 import { drawLocalFeatures, rasterizeLocalTerrain } from "./localDraw";
 import { computeRegionFitView } from "./regionDraw";
 import type { LocalArtifact } from "../../systems/worldforge/artifacts";
+import { groundFocusesForLocal, type GroundFocus } from "../../systems/worldforge/leaf3d/atlasGroundDrilldown";
 
 /**
  * Interactive viewport for the L2 LOCAL layer (3,000 ft / 600×600 5-ft
@@ -39,6 +40,7 @@ export interface LocalMapViewProps {
   onAscend: () => void;
   /** Atlas biome hue — carries the L0→L1→L2 coherence chain (localDraw). */
   biomeColor?: string;
+  onEnterGround?: (focus: GroundFocus) => void;
 }
 
 /**
@@ -61,6 +63,7 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
   height = 540,
   onAscend,
   biomeColor,
+  onEnterGround,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const terrainCacheRef = useRef<{ seedPath: string; biomeColor?: string; canvas: HTMLCanvasElement } | null>(null);
@@ -259,6 +262,21 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
       <div className="absolute bottom-4 left-4 z-10 bg-gray-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-gray-800 text-[10px] text-gray-400 font-mono select-none">
         Press <span className="text-indigo-400 font-bold bg-gray-950 px-1 py-0.5 rounded border border-gray-800">ESC</span> or zoom out past floor to ascend
       </div>
+
+      {onEnterGround && (
+        <div className="absolute bottom-20 left-2 right-2 z-20 flex flex-wrap gap-2 rounded-xl border border-amber-400/30 bg-gray-950/90 p-2 shadow-xl backdrop-blur sm:left-4 sm:right-auto sm:max-w-[70%]">
+          {groundFocusesForLocal(local).map((focus) => (
+            <button
+              key={`${focus.kind}:${String(focus.id)}`}
+              type="button"
+              onClick={() => onEnterGround(focus)}
+              className="flex min-h-11 items-center gap-2 rounded-lg border border-amber-300/40 bg-amber-950/80 px-3 text-xs font-semibold text-amber-100 hover:bg-amber-900"
+            >
+              <Footprints size={16} /> Enter 3D: {focus.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Zoom controls. Keep icon-only map controls at the shared 44px target
           size so cramped panes remain usable without changing map behavior. */}

@@ -1,0 +1,113 @@
+{
+  "id": "fix00000",
+  "name": "Emberwing Dragon",
+  "slug": "emberwing-dragon-fix00000",
+  "description": "a huge ember-scaled dragon with curved horns and a long lashing tail",
+  "plan": {
+    "name": "Emberwing Dragon",
+    "frame": {
+      "heightFt": 9,
+      "lengthFt": 22,
+      "bulk": 0.85,
+      "stance": "horizontal"
+    },
+    "spine": {
+      "segments": 6,
+      "taper": 0.55,
+      "arch": 0.15
+    },
+    "appendages": [
+      {
+        "kind": "leg",
+        "attach": 0.22,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 4,
+            "r": 0.42
+          },
+          {
+            "lenFt": 3.4,
+            "r": 0.28
+          }
+        ]
+      },
+      {
+        "kind": "leg",
+        "attach": 0.78,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 4.4,
+            "r": 0.5
+          },
+          {
+            "lenFt": 3.6,
+            "r": 0.3
+          }
+        ]
+      },
+      {
+        "kind": "tail",
+        "attach": 1,
+        "heightFrac": 0.5,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 4.5,
+            "r": 0.4
+          },
+          {
+            "lenFt": 4,
+            "r": 0.28
+          },
+          {
+            "lenFt": 3.5,
+            "r": 0.18
+          },
+          {
+            "lenFt": 3,
+            "r": 0.09
+          }
+        ]
+      }
+    ],
+    "heads": [
+      {
+        "sizeScale": 1.15,
+        "eyes": {
+          "count": 2,
+          "sizeScale": 0.9
+        },
+        "snout": {
+          "lengthScale": 1.8,
+          "droop": -0.1
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#8c3b2e",
+      "accentHex": "#d98e3a",
+      "bellyHex": "#d8c49a",
+      "eyeHex": "#f2c14e"
+    },
+    "garnish": [
+      {
+        "partId": "hornsCurved",
+        "params": {
+          "scale": 2.6
+        }
+      },
+      {
+        "partId": "wingsMembrane",
+        "params": {
+          "scale": 1.6
+        }
+      }
+    ]
+  },
+  "status": "generated",
+  "createdAt": "2026-07-15T22:51:10.586Z"
+}

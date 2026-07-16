@@ -56,7 +56,7 @@ This pass verified that the combat domain already has:
 
 ## Known Limitations
 
-Tracked gaps in the current implementation belong in `docs/projects/combat/GAPS.md` or in the owning child/system project.
+Tracked gaps in the current implementation belong on the planmap topic `world-reactions` (combat lane; see `docs/superpowers/specs/2026-07-14-absorbed-combat.md` for the absorbed combat project context) or in the owning child/system project.
 
 ### Player-to-Combat Bridge (`createPlayerCombatCharacter`)
 

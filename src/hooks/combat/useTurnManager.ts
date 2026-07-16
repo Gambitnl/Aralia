@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 02/07/2026, 11:54:58
+ * Last Sync: 15/07/2026, 03:28:39
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 12 files
  *
@@ -52,6 +52,8 @@ interface UseTurnManagerProps {
   onCharacterRemove?: (characterId: string) => void;
   autoCharacters?: Set<string>;
   onMapUpdate?: (mapData: BattleMapData) => void;
+  /** Optional deterministic full initiative total for visual/replay harnesses. */
+  initiativeRoller?: (character: CombatCharacter) => number;
   requestReaction?: (
     attackerId: string,
     targetId: string,
@@ -170,6 +172,7 @@ export const useTurnManager = ({
   onCharacterRemove,
   autoCharacters,
   onMapUpdate,
+  initiativeRoller,
   difficulty = 'normal',
   requestReaction,
   executeReactionSpell
@@ -336,10 +339,16 @@ export const useTurnManager = ({
 
   // --- Initialization & Setup ---
   const rollInitiative = useCallback((character: CombatCharacter): number => {
+    // Production combat keeps real d20 randomness. Deterministic scenario and
+    // replay harnesses may inject a stable total so identical world seeds do
+    // not produce visually different active turns between captures.
+    if (initiativeRoller) {
+      return initiativeRoller(character);
+    }
     const dexModifier = Math.floor((character.stats.dexterity - 10) / 2);
     const roll = Math.floor(Math.random() * 20) + 1;
     return roll + dexModifier + character.stats.baseInitiative;
-  }, []);
+  }, [initiativeRoller]);
 
   const startTurnFor = useCallback((character: CombatCharacter) => {
     // Ray of Frost expires at the source caster's next turn start, so clear

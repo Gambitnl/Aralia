@@ -58,11 +58,19 @@ export async function checkAgoraLock(file, {
   if (!covering) return { ok: true, reason: 'unlocked' };
   const mine = identityAgentId(env);
   if (mine && covering.agentId === mine) return { ok: true, reason: 'held-by-me' };
+  // WF fix (task abbdc943): a missed AGORA_AGENT_ID prefix makes the identity
+  // read miss, and the guard then refuses the caller's OWN lock. Possession of
+  // the covering lock's id is acquirer-only knowledge (the daemon returns it
+  // only from a successful lock call), so an explicit AGORA_HELD_LOCK id that
+  // MATCHES the covering lock is proof enough — verified, unlike --force-no-lock.
+  const heldId = typeof env.AGORA_HELD_LOCK === 'string' ? env.AGORA_HELD_LOCK.trim() : '';
+  if (heldId && covering.id === heldId) return { ok: true, reason: 'held-lock-id' };
   return {
     ok: false,
     holderAgentId: covering.agentId,
     lockReason: covering.reason ?? '',
     lockId: covering.id,
+    identityRead: mine,
   };
 }
 
@@ -74,7 +82,9 @@ export async function guardWriteOrDie(file, { toolName = 'planmap tool', force =
   console.error(
     `${toolName}: REFUSING to write ${file} — Agora lock held by agent ${r.holderAgentId}` +
     (r.lockReason ? ` (reason: ${r.lockReason})` : '') +
-    `\n  Coordinate via \`node tools/agora/client.mjs say\`, wait for the release, or pass --force-no-lock if you are CERTAIN.`,
+    `\n  If this is YOUR lock: your AGORA_AGENT_ID prefix probably went missing (guard read identity: ${r.identityRead ?? 'none'}).` +
+    `\n  Safe self-service: export AGORA_HELD_LOCK=<your lockId> (printed by the lock call) and re-run.` +
+    `\n  Otherwise coordinate via \`node tools/agora/client.mjs say\`, wait for the release, or pass --force-no-lock if you are CERTAIN.`,
   );
   process.exit(2);
 }

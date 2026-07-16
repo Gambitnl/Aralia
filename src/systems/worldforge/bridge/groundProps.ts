@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/07/2026, 20:29:08
- * Dependents: systems/worldforge/bridge/groundChunkLoader.ts
+ * Last Sync: 15/07/2026, 03:31:24
+ * Dependents: systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/bridge/groundChunkLoader.ts
  * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
@@ -337,7 +337,7 @@ function decorationForDef(def: PropDefinition): BattleMapDecoration {
  * class S imprints its own cell only; M/L imprint a small footprint disc so a
  * crate-stack or fence run marks the cells it truly spans.
  */
-function footprintRadiusM(def: PropDefinition): number {
+export function propFootprintRadiusM(def: PropDefinition): number {
   switch (def.sizeClass) {
     case 'S':
       return CELL_METERS * 0.5; // its own cell
@@ -373,7 +373,7 @@ export function imprintPropOnTile(
   // real dry road network. (Rendering of new prop FORMS remains a later slice.)
   const def = PROPS_BY_ID.get(prop.defId);
   if (!def) return false;
-  const r = footprintRadiusM(def);
+  const r = propFootprintRadiusM(def);
   if (Math.hypot(wx - prop.xM, wz - prop.zM) > r) return false;
 
   const ref = def.referee;

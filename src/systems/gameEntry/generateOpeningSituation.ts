@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 16/07/2026, 01:42:15
+ * Dependents: hooks/useOpeningSituation.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -305,8 +321,14 @@ export async function generateOpeningSituation(
     return situation;
 }
 
-/** Validate a raw threat block. Returns undefined (peaceful scene) if malformed. */
-function mapThreat(raw: RawSituation['threat']): SituationThreat | undefined {
+/**
+ * Validate a model-authored threat roster, then attach only the game-authored
+ * battlefield receipt. The model cannot submit or modify source-world identity.
+ */
+function mapThreat(
+    raw: RawSituation['threat'],
+    battlefieldSource?: OpeningSituationLocation['battlefieldSource'],
+): SituationThreat | undefined {
     if (!raw || raw.hostile !== true) return undefined;
     const enemies = (Array.isArray(raw.enemies) ? raw.enemies : [])
         .filter((e) => e && typeof e.name === 'string' && e.name.trim().length > 0)
@@ -319,7 +341,13 @@ function mapThreat(raw: RawSituation['threat']): SituationThreat | undefined {
     const dc = Number(raw.deEscalationDC);
     if (!Number.isFinite(dc) || dc < 5 || dc > 25) return undefined;
     const tension = typeof raw.tension === 'string' ? raw.tension.trim() : '';
-    return { hostile: true, enemies, deEscalationDC: Math.round(dc), tension };
+    return {
+        hostile: true,
+        enemies,
+        deEscalationDC: Math.round(dc),
+        tension,
+        ...(battlefieldSource ? { battlefieldSource } : {}),
+    };
 }
 
 /**
@@ -382,6 +410,6 @@ function mapRawSituation(
         npcs,
         openingLine: { speakerId: speaker.id, text: lineText },
         suggestedReplies: suggestedReplies && suggestedReplies.length > 0 ? suggestedReplies : undefined,
-        threat: mapThreat(raw.threat),
+        threat: mapThreat(raw.threat, location?.battlefieldSource),
     };
 }

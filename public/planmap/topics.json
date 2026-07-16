@@ -429,7 +429,7 @@
       "title": "Combat world reactions",
       "sub": "the world answers for every fight",
       "campaign": "combat",
-      "status": "parked",
+      "status": "active",
       "deps": [
         {
           "id": "fip-slice1",
@@ -462,8 +462,46 @@
           "status": "parked",
           "link": "docs/superpowers/specs/subspecs/reactions--post-fight-cleanup.md",
           "open": 1
+        },
+        {
+          "title": "G30 Combat invariants + focused regression tests (rules, action sequencing, reactions, log) handed to the CMA split plan before any useAbilitySystem/useCombatEngine code movement",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-combat.md"
+        },
+        {
+          "title": "CMA-G18 Accept/defer the useActionExecutor / CombatView / EncounterModal / types-combat split route under the D6 ownership model",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-combat.md"
+        },
+        {
+          "title": "G31 Allied party-member combat AI tactics (first policy slice + deterministic AI scoring tests)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-combat.md"
+        },
+        {
+          "title": "G32 AttackRiderSystem predicate extraction behind focused tests + narrow rider type export (dead-import/singleton work already landed)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-combat.md"
+        },
+        {
+          "title": "G30: Combat invariants for useAbilitySystem/useCombatEngine split (decision: awaiting CMA plan)",
+          "status": "active"
+        },
+        {
+          "title": "CMA-G18: useActionExecutor/CombatView/EncounterModal split (decision: awaiting CMA route acceptance)",
+          "status": "active"
+        },
+        {
+          "title": "G31: Allied party-member combat tactics (AI behavior routing)",
+          "status": "active"
+        },
+        {
+          "title": "G32: AttackRiderSystem refactor (maintainability cleanup)",
+          "status": "active"
         }
-      ]
+      ],
+      "status_note": "Absorbed docs/projects/combat 2026-07-16 (engine ownership map + durable rules decisions D-01..D-10 in docs/superpowers/specs/2026-07-14-absorbed-combat.md); G33 defeat->GAME_OVER already recorded done under whole-game-systems-audit W01; fight-in-place reaction features remain specced/parked",
+      "updated": "2026-07-15"
     },
     {
       "id": "ai-arbiter",
@@ -748,7 +786,7 @@
       "title": "Generational time â€” the world grows old with you",
       "sub": "the world clock ages EVERYONE: NPCs gray, die, and are succeeded (the shopkeeper's daughter takes over the shop; households turn over; graveyards fill); the player ages per the aging spec and on death continues as heir/apprentice, with the old character's deeds becoming world history NPCs remember. One clock, pure rules, emergent legacy â€” no AI calls. Claude's pick 2026-07-06 when Remy asked for one dream feature outside combat; captured parked at Remy's request.",
       "campaign": "sim",
-      "status": "parked",
+      "status": "active",
       "deps": [
         {
           "id": "character-aging",
@@ -763,7 +801,41 @@
           "kind": "chosen",
           "why": "living buildings give turnover somewhere visible to happen: the inherited shop, the emptied house, the new family moving in"
         }
-      ]
+      ],
+      "features": [
+        {
+          "title": "G1 bounded in-world time contract (Date/Gregorian semantics)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md"
+        },
+        {
+          "title": "G3 seasonal modifiers: hard global contract vs movement-only subsystem",
+          "status": "active",
+          "decision": true,
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md"
+        },
+        {
+          "title": "G4 rest/day-boundary transition regression coverage",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md"
+        },
+        {
+          "title": "G5 dialogue day-part label contract (UTC vs local vocabulary)",
+          "status": "active",
+          "decision": true,
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md"
+        },
+        {
+          "title": "G2 day-boundary regression test across world/ritual reducers",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md",
+          "history": {
+            "built": "2026-07-09"
+          }
+        }
+      ],
+      "status_note": "absorbed docs/projects/time 2026-07-16: implemented ADVANCE_TIME clock docs + open gaps live here",
+      "updated": "2026-07-15"
     },
     {
       "id": "testkit-devtools-toolkit",
@@ -833,13 +905,17 @@
       "subcampaign": "Terrain & Regions",
       "status": "done",
       "deps": [],
-      "link": "docs/projects/worldforge/SPEC.md",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-worldforge.md",
       "history": {
         "designed": "2026-06-11",
         "built": "2026-07-02",
         "builtApprox": true
       },
       "features": [
+        {
+          "title": "Atlas-owned world -> region -> local -> town/site -> exact ground 3D drilldown with deterministic provenance and return",
+          "status": "done"
+        },
         {
           "title": "Bridge capping (TG1) keeps river crossings from over-generating bridges in town plans",
           "status": "done"
@@ -1395,8 +1471,63 @@
         {
           "title": "Bigger battlefield + robust zoom + flowing water: 120x90 map (10.8k tiles), zoom 15-300% anchored at cursor/center, scroll-extent leak fixed (spacer clip), water painted as merged rounded blobs with feather + crisp sandy shorelines, square water tile-tint removed; road re-routed as an A-to-B west-east trail with small wobble + water dodging (was aimless sine squiggles)",
           "status": "done"
+        },
+        {
+          "title": "G14 Production bloom dependency decision (npm run build fails in BloomNode.js: three has no PostProcessingUtils export) — Option A align/pin deps, B optional bloom + Vignette/ContactShadows fallback, C compat shim",
+          "status": "active",
+          "decision": true,
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md"
+        },
+        {
+          "title": "G9 Character silhouette pop at tactical zoom (try material Fresnel/rim first; SSAO stays out) with per-biome screenshot proof",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md"
+        },
+        {
+          "title": "G10 Status/defeat readability proof at ~20 world units (compact billboard/tint/prone cues over particle clutter)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md"
+        },
+        {
+          "title": "G11 Targeting-decal durable before/after PNG proof (implemented + live-eye 2026-06-11; capture rig timed out on heavy frame)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md"
+        },
+        {
+          "title": "G12 Generator-side elevation contrast so slope-rock/high-ground reads at tactical zoom (deterministic, seed 424242 A/B)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md"
+        },
+        {
+          "title": "G13 3D range/ruler/movement-legality overlays proven against the 2D/rules path",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md"
+        },
+        {
+          "title": "G5 Joint visual standard note across BattleMap3D / World3D / ThreeDModal (or keep explicit boundaries)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md"
+        },
+        {
+          "title": "NC1 3D combat visual smoke: SSAO/NormalPass removed, ContactShadows ground darkening, clean console",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md",
+          "history": {
+            "built": "2026-06-08"
+          }
+        },
+        {
+          "title": "NC2 CombatView pop-out lifecycle keeps renderMode/turn order/inspected token + ?dev_combat=1 deterministic fixture",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md",
+          "history": {
+            "built": "2026-06-11"
+          }
         }
-      ]
+      ],
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md",
+      "status_note": "Absorbed docs/projects/3d-combat-map 2026-07-16 (3D renderer lane: code map, capture rig, D9/D10 decisions and the G14 bloom review brief live in docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md)",
+      "updated": "2026-07-16"
     },
     {
       "id": "svg-combatant-art",
@@ -1758,10 +1889,10 @@
     {
       "id": "combat-world-scenario-lab",
       "title": "World-derived battlefield scenario lab and parity harness",
-      "sub": "North star chosen 2026-07-14: a battle map is a tactical projection of an actual generated location, not a separately decorated arena. Terrain, roads, water, vegetation, structures, props, occupants, and encounter context should descend from the same WorldForge facts. The legacy generator remains only as an explicit sandbox. FIRST SLICES BUILT: ?step=battlemaplab rebuilds three real seed/cell scenarios through the off-thread WorldForge pipeline, runs the full combat shell, exposes World -> Region -> Local -> Ground -> Tactical provenance, compares source and tactical fact counts, and makes missing semantics visible. The Road Ambush fixture now centers on a real regional route and deploys combatants from its heading. Production fight-in-place maps carry the same provenance. Provenance maps keep renderer texture/lighting but suppress synthetic roads, shore props, landmarks, and per-tile object scatter.",
+      "sub": "North star chosen 2026-07-14: a battle map is a tactical projection of an actual generated location, not a separately decorated arena. Terrain, roads, water, vegetation, structures, props, occupants, factions, defenders, and encounter context should descend from the same WorldForge facts. The legacy generator remains only as an explicit sandbox. ?step=battlemaplab rebuilds real seed/cell scenarios through the off-thread WorldForge pipeline, runs the full combat shell, exposes World -> Region -> Local -> Ground -> Tactical provenance, compares source and tactical facts, and makes missing semantics visible. Built recipes cover road ambush, river crossing, wilderness, Legium objects, settlement edge, live watch, state patrol, and hostile opening. Production authority fails closed without a WorldForge projection. Road-backed travel rebuilds the committed destination and route; roadless destinations remain withheld. Hostile openings now freeze a game-authored seed/cell/site receipt and project the exact live player-position crop through the mounted GroundWorld. Enemy world positions and approach direction remain visibly unauthored, with a deterministic terrain-fit tactical policy. Adversarial screenshot review rejects technically valid but artificial composition, including repeated monster stamps, unreadable silhouettes, compass-perfect deployment, hodgepodge scatter, and weak encounter storytelling.",
       "campaign": "combat",
       "status": "active",
-      "open": 2,
+      "open": 8,
       "deps": [
         {
           "id": "combat-map-nextgen",
@@ -1797,12 +1928,170 @@
           }
         },
         {
+          "title": "Canonical River Crossing recipe projects seed 42 cell 853 through one Region bridge receipt into a Ground masonry deck, 479 passable water-backed referee cells, opposite-bank deployment, crossing parity diagnostics, and a deterministic capture",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Screenshot acceptance loop records visible defects and iterates: the crossing crop is inspectable at 80x60, the bridge is one oriented masonry span, parity status stays above the fold, and roster controls no longer cover enemy names",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "WorldForge natural features and catalog props project once per source object into TargetableMapObject facts with stable provenance, conservative unknown-fact spell filtering, crop-vs-window counts, and a dedicated object inspection layer",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Targetable-object visual acceptance loop: source footprint counts match 298 projected Legium props, object warnings stay above the fold, identical seed captures keep deterministic initiative, the command rail opens at Turn Order, and 1353px layouts move diagnostics below rather than shrinking the board to 15%",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Canonical Settlement Edge recipe anchors on Legium's real gatehouse and projects 94 named residents into 38 grouped walkable cells at 17:15, including four moving residents, while reserving civilian cells and deploying the party outside and defenders inside",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Settlement-edge visual acceptance loop: source-object pins default off for resident review, all 43 initially blocked resident placements snap deterministically to legal cells, the real gate and inward heading have a zoom-stable receipt, and 1600x1000 plus 1353x1272 captures retain readable composition without masking tokens",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Production fight-in-place extraction snapshots the same fractional-clock resident positions shown by the live 3D ground scene instead of falling back to static home sites",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "WorldForge settlement defenses retain burg, controlling state, government, generated alert, and every regiment physically stationed in the burg cell; Settlement Edge selects the real 1st (Legium) Regiment instead of the generic combat-demo enemy roster",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "The gate-patrol-alert-sample-v1 policy rounds generated state alert to a bounded tactical actor budget, samples eligible regiment composition proportionally, creates source-stamped Guard/Scout combatants, and reports cavalry/artillery exclusions without pretending one token equals one troop",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Defender visual acceptance loop: rejected generic orc portraits and faction-only turn labels, replaced them with a neutral regiment emblem plus Archer/Infantry role identity, and verified readable 1600x1000 and 1353x1272 compositions with the force provenance above the fold",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Settlement hostility authority requires an explicit watch/state confrontation plus a matching witnessed crime in the generated settlement cell or hostile player standing with the generated controlling-state faction; absent and mismatched evidence preserve the regiment as context but cannot create enemy actors",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Hostility visual acceptance loop separates two claims: the Defending Force badge reports whether the real regiment and hostility authority are valid, while the independent live-player-state row remains an explicit gap when a deterministic fixture supplies the relation; screenshots no longer make a valid source force look broken",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Production wanted-watch interactions ask the mounted GroundWorld for the exact player-position crop, current crime records, generated-state standings, matching source settlement defense, and regiment-derived combatants; static authored towns retain the bounded generic Guard fallback",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Live Watch visual acceptance loop: rejected a 24% full-map frame where 248 resident markers and the source receipt hid the engagement, opened the production-like recipe at 100%, defaulted residents off, lifted the receipt, and verified the party anchor plus all four intercepting defenders beside an honestly retained fixture GAP",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Generated-state patrol world events now require the exact source-town envelope, a real stationed land regiment, a hostile standing with that generated controlling state, and the current game day; a deterministic save-backed receipt limits each settlement interception to once per day and prevents immediate combat-return loops",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Production 3D movement emits state-confrontation through the mounted GroundWorld provider, freezes the exact player-position crop and live occupants, records the event receipt, and starts source-regiment combatants; missing providers retry, while source gaps surface explicitly instead of substituting generic guards",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "State Patrol visual acceptance loop: the first readiness hook exposed a case-sensitive fixture label, and the first screenshot exposed a misleading Defending Force GAP plus Encounter frame None; the accepted 1600x1000 capture shows a PASS source force, a separate honest live-input gap, the state-patrol frame, the exact party anchor, and all four intercepting defenders without battlefield overlap or clipping",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Production battlefield authority fails closed globally: a caller without extracted WorldForge terrain receives a dedicated missing-source state with no board, initiative, AI actors, or procedural fallback; an audited inventory classifies every known tactical launcher as migrated, withheld, developer-only, or separate-system",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Road-backed land-travel ambushes rebuild the exact committed destination from saved seed, time, deltas, and route-cell receipt, select a real source road, preserve cell/crop provenance, and pass through the production action, reducer, and CombatView; deterministic 1600x1000 and 1353x1272 review proves party-on-road and enemy-flank composition, while no-road destinations fail closed",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "Hostile-opening and failed-de-escalation situations now carry a game-authored WorldForge seed/cell/site receipt through the mounted Ground provider into the exact player-position tactical crop; missing or mismatched receipts fail closed",
+          "status": "done",
+          "history": {
+            "built": "2026-07-16"
+          }
+        },
+        {
+          "title": "Hostile Opening visual acceptance loop rejected generic bestiary fallbacks and a compass-perfect enemy ring, loaded the real Goblin/Wolf records, replaced the ring with a deterministic terrain-fit constellation, and retained explicit Not authored diagnostics for enemy world positions and approach direction at 1600x1000 and 1353x1272",
+          "status": "done",
+          "history": {
+            "built": "2026-07-16"
+          }
+        },
+        {
+          "title": "AUTHOR MONSTER ECOLOGY: replace interim tactical constellations and repeated token stamps with WorldForge threat entities, positions, approach evidence, social topology, ecological wakes, staged perception, and persistent nest/feeding/burrow/trap terrain memory",
+          "status": "active"
+        },
+        {
           "title": "Expand the harness into a scenario catalog with crop/anchor controls, layer inspection, source/tactical side-by-side comparison, semantic diffs, and saved regression captures",
           "status": "active"
         },
         {
-          "title": "Register the World Battle Lab as a specialized combat scenario in the canonical visual-test-harness registry and capture runner; do not create a second general-purpose visual harness",
+          "title": "HARDEN: make tools/vistest/shoot.ts implement a real --help path and refuse accidental writes to tracked capture directories; the current unknown flag behavior starts the full runner",
           "status": "active"
+        },
+        {
+          "title": "Register the World Battle Lab as a specialized combat scenario in the canonical visual-test-harness registry and capture runner; do not create a second general-purpose visual harness",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
         },
         {
           "title": "DECISION RESOLVED: Road ambush is the first production proving ground because it forces composition, traversal, encounter framing, and source provenance to agree at once.",
@@ -1818,6 +2107,82 @@
         },
         {
           "title": "DECISION: Should missing source semantics fail production scenario parity while remaining visible warnings in the debug lab? Recommended: yes; production must not silently substitute plausible art.",
+          "status": "specced",
+          "spike": true
+        },
+        {
+          "title": "DECISION: Should authored fords remain deterministic difficult terrain at movement cost 2, or add an Athletics check and failure risk? Recommended: keep cost 2 first; add risk only through an explicit traversal action later.",
+          "status": "specced",
+          "spike": true
+        },
+        {
+          "title": "DECISION: Should a destroyed bridge persist as a WorldDelta that removes the Ground deck and invalidates tactical crossing traversal on later visits? Recommended: yes.",
+          "status": "specced",
+          "spike": true
+        },
+        {
+          "title": "DECISION RESOLVED: The next canonical world-battle slice closed the TargetableMapObject gap for source features and props before moving to settlement-edge encounters.",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "DECISION: Should every prop catalog entry gain explicit fixed/loose mobility and weight facts before Catapult-style spells may select it? Recommended: yes; unknown facts should remain targetable by general object spells but fail restrictive movement filters.",
+          "status": "specced",
+          "spike": true
+        },
+        {
+          "title": "DECISION: Should natural features displaced by roads, plots, and structures be removed or relocated in the shared Local/Ground facts instead of only being suppressed by tactical extraction? Recommended: yes so 3D Ground and combat cannot disagree about stale trees or bushes.",
+          "status": "specced",
+          "spike": true
+        },
+        {
+          "title": "DECISION RESOLVED: Settlement edge and source occupants became the next canonical scenario before deeper object destruction, proving structures, population provenance, deployment, and the real combat UI together.",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "DECISION RESOLVED: Snapshot resident schedules at combat start and keep those tactical positions stable for the encounter; resample from the world clock after returning to exploration.",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "DECISION RESOLVED: Settlement-edge defenders come from generated burg, controlling-state, alert, and stationed-regiment facts; becoming enemy actors is a separate explicit-trigger-plus-matching-relation decision.",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "DECISION RESOLVED: A generated state regiment becomes hostile only when an explicit confrontation trigger and matching player-state relation agree; military presence, wanted status elsewhere, or bad standing without a current confrontation never silently creates enemies.",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "HARDEN COMPLETE: production wanted-watch fight-in-place encounters provide current witnessed-crime and generated-state standing inputs through the mounted GroundWorld provider; the visual lab fixture remains visibly labeled and is never a production fallback",
+          "status": "done",
+          "history": {
+            "built": "2026-07-15"
+          }
+        },
+        {
+          "title": "DECISION: Should hostile generated-state patrols remain limited to one interception per settlement per game day, or should combat outcome, escape, bribes, and standing changes drive a longer event cooldown? Recommended: keep the deterministic daily receipt until those outcomes have authoritative world consequences, then replace cadence with outcome-driven cooldowns.",
+          "status": "specced",
+          "spike": true
+        },
+        {
+          "title": "HARDEN: add mounted-combat and siege-engine object semantics before cavalry or artillery may become tactical representatives; until then retain their exact source counts as visible projection exclusions.",
+          "status": "active"
+        },
+        {
+          "title": "DECISION: Before neutral combat semantics exist, should resident markers be inspect-only identity/activity facts or entirely passive? Recommended: inspect-only, without initiative or targetability, until fleeing, harm, allegiance, and rescue rules are explicit.",
           "status": "specced",
           "spike": true
         }
@@ -2183,8 +2548,63 @@
         {
           "title": "live game-state rules layer over the link graph",
           "status": "parked"
+        },
+        {
+          "title": "G2 equipment taxonomy label sync with item-categorization owners",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md"
+        },
+        {
+          "title": "G4 spellGateBucketDetails.ts owner-routed split plan (CMA-G2)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md"
+        },
+        {
+          "title": "G5 glossary rendering/registry large-file split proof boundaries (CMA-G11)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md"
+        },
+        {
+          "title": "G7 typed builder/guard for itemMetadata ingest (deferred by D18)",
+          "status": "parked",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md"
+        },
+        {
+          "title": "G8 spell-detail prose glossary term linking",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md"
+        },
+        {
+          "title": "Glossary UI ingestion guard for item metadata (D18 contract)",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md",
+          "history": {
+            "built": "2026-06-19"
+          }
+        },
+        {
+          "title": "G2: Equipment taxonomy sync with item-categorization owners",
+          "status": "active"
+        },
+        {
+          "title": "G4: Spell gate bucket details split planning (decision: awaiting CMA routing)",
+          "status": "active"
+        },
+        {
+          "title": "G5: Glossary rendering split with icon/spell-card proof",
+          "status": "active"
+        },
+        {
+          "title": "G7: itemMetadata typing enforcement in ingest",
+          "status": "active"
+        },
+        {
+          "title": "G8: Live glossary term linking in spell detail rendering",
+          "status": "active"
         }
-      ]
+      ],
+      "status_note": "absorbed docs/projects/glossary-ui 2026-07-16 (D18: item metadata stays glossary-local display-only)",
+      "updated": "2026-07-15"
     },
     {
       "id": "agent-escalation",
@@ -2304,7 +2724,7 @@
       "title": "Economy player-facing UX pass",
       "sub": "The economy engine is built + wired into worldReducer (Steps 5b/5c), but has NO honest player surface: investment board, ledger, courier pouch, trade-route dashboard, and merchant modal are dev-menu-only, and most gold movements bypass the transaction framework (OPEN_MERCHANT has zero player dispatch sites). Goal: give the economy real in-game entry points so a player earns/spends/sees gold move through the framework. DECISION-GATED / supervised UX pass (Remy in the loop, mock-up + look-approve first) â€” handed off, not auto-built. Unblocks economy-ui G4/G8/G9 + the merchant-haggle discount persistence (needs merchantId threaded). Handover prompt in the link.",
       "campaign": "sim",
-      "status": "parked",
+      "status": "active",
       "link": "docs/superpowers/plans/2026-07-09-economy-ux-pass-handover.md",
       "deps": [],
       "history": {
@@ -2551,13 +2971,43 @@
       "title": "NPC memory: merge or keep separate",
       "sub": "Two NPC-memory systems exist. LIVE: world-state NpcMemory (types/world.ts) - disposition/suspicion/plain facts/goals, filled by talking/haggling/crime/gossip, ~20 consumers, drives recruitment + dossier + prices. DORMANT: richer NPCMemory (types/memory.ts) - timestamped interactions, emotion, per-fact confidence, importance, decay; self-labeled orphan, filled only in tests. world.ts is already half-extended with the richer type's optional fields. DETERMINATION 2026-07-09 = MERGE (evidence-backed): they are the SAME system forked, not separate purposes. docs/projects/memory/GAPS.md already tracks this as G1 (schema-normalization: pick one canonical shape) + G2 (retire the orphan MemorySystem); the richer NPCMemory was the intended structured upgrade (generator TODO: 'Replace NpcMemory with the structured NPCMemory when memory models merge'), parked ~6 weeks with ZERO live writes and its one read fed a hardcoded-empty memory; world.ts was deliberately half-widened 2026-07-03 to hold the richer fields (typed loosely) awaiting exactly this call. Migration sketch ready: extend KnownFact with optional richer fields (add a semantic factKey â€” which is what makes 'companion knows player is ritual-casting' a reliable query), finish the world.ts typing, repoint the decay/format helpers onto the canonical shape, retire MemorySystem, save/load backfill. Low blast radius (~20 live consumers keep working; richer lane has ~0 to preserve). MERGE EXECUTED + gate-green 2026-07-09: canonical = live NpcMemory; KnownFact extended with optional factKey/confidence/significance + widened source; NpcMemory half-merge fields tightened (Interaction[]/number/Record<string,number>); NPCMemory now aliases the canonical type; orphan MemorySystem.ts + test deleted; memoryUtils helpers repointed; save/load backfills from strength. tsc 635 (no regression), 28/28 memory/npc/gemini tests green. Closes memory G1 + G2. TAIL CLOSED 2026-07-10: the 3 stale .d.ts twins (memory.d.ts/world.d.ts/index.d.ts) deleted; verified not build-generated (tsconfig noEmit; node-tsconfig emitDeclarationOnly scopes only vite.config+named scripts) and not needed by any tsconfig include; sole consumer test:types repointed from index.d.ts to index.ts; tsc -b still 635 (byte-identical error set). Broader twin sweep spun off as types-decl-twin-hygiene.",
       "campaign": "sim",
-      "status": "done",
+      "status": "active",
       "link": "docs/superpowers/plans/2026-07-09-npc-memory-reconciliation-handover.md",
       "deps": [],
       "history": {
         "captured": "2026-07-09",
         "built": "2026-07-09"
-      }
+      },
+      "features": [
+        {
+          "title": "G1 Canonical NpcMemory shape merge (NPCMemory aliased, KnownFact factKey/confidence/significance, save/load backfill)",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-memory.md",
+          "history": {
+            "built": "2026-07-09"
+          }
+        },
+        {
+          "title": "G2 npcReducer lane confirmed runtime owner; orphan MemorySystem.ts + test deleted, memoryUtils repointed",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-memory.md",
+          "history": {
+            "built": "2026-07-09"
+          }
+        },
+        {
+          "title": "G3 Save/load memory-field migration policy + invariants (only legacy knownFacts string arrays migrate today) with a migration fixture test",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-memory.md"
+        },
+        {
+          "title": "G4 Action-to-memory mapping matrix: combat and ritual branches still do not emit memory actions (recency slices proven for social-check / first-contact / targeted-prompt / witness-gossip)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-memory.md"
+        }
+      ],
+      "status_note": "Absorbed docs/projects/memory 2026-07-16: the G1/G2 reconciliation itself is DONE (2026-07-09), topic reopened as active only for the two absorbed follow-ups G3 (save/load migration policy) and G4 (action-to-memory coverage matrix); file map + settled decisions in docs/superpowers/specs/2026-07-14-absorbed-memory.md",
+      "updated": "2026-07-16"
     },
     {
       "id": "planmap-roadmap-sync",
@@ -2741,7 +3191,7 @@
         {
           "title": "W01 checkpoint tier runtime - Tiered Autosave GAP-002",
           "status": "done",
-          "link": "docs/projects/tiered-autosave/GAPS.md",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md",
           "history": {
             "built": "2026-07-11"
           }
@@ -2757,7 +3207,7 @@
         {
           "title": "W01 checkpoint history separation - Tiered Autosave GAP-003",
           "status": "done",
-          "link": "docs/projects/tiered-autosave/GAPS.md",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md",
           "history": {
             "built": "2026-07-11"
           }
@@ -2765,15 +3215,15 @@
         {
           "title": "W01 shared WindowFrame close target - Ui Primitives G4",
           "status": "done",
-          "link": "docs/projects/ui-primitives/GAPS.md",
           "history": {
             "built": "2026-07-11"
-          }
+          },
+          "status_note": "ui-primitives project absorbed; see planmap topic for details"
         },
         {
           "title": "W01 IndexedDB primary and recovery paths - Tiered Autosave GAP-005",
           "status": "done",
-          "link": "docs/projects/tiered-autosave/GAPS.md",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md",
           "history": {
             "built": "2026-07-11"
           }
@@ -2781,10 +3231,10 @@
         {
           "title": "W01 accurate fallback storage diagnostics - SaveLoad G8",
           "status": "done",
-          "link": "docs/projects/saveload/GAPS.md",
           "history": {
             "built": "2026-07-11"
-          }
+          },
+          "status_note": "SaveLoad project absorbed into planmap; see saveload topic for details"
         },
         {
           "title": "W01 safe abandon and persistent recovery proof",
@@ -2848,8 +3298,7 @@
         {
           "title": "W01 combat defeat to game-over recovery - Combat G33",
           "status": "done",
-          "link": "docs/projects/combat/GAPS.md",
-          "open": 2,
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-combat.md",
           "history": {
             "built": "2026-07-11"
           }
@@ -2857,10 +3306,10 @@
         {
           "title": "W01 invalid-route history recovery - Ui Primitives G5",
           "status": "done",
-          "link": "docs/projects/ui-primitives/GAPS.md",
           "history": {
             "built": "2026-07-11"
-          }
+          },
+          "status_note": "ui-primitives project absorbed; see planmap topic for details"
         },
         {
           "title": "W02 World and exploration",
@@ -2879,15 +3328,15 @@
         {
           "title": "W02 3D-to-atlas dev inspector collision - World 3D UI W3DUI-G2",
           "status": "done",
-          "link": "docs/projects/world-3d-ui/GAPS.md",
           "history": {
             "built": "2026-07-11"
-          }
+          },
+          "status_note": "world-3d-ui project absorbed; see planmap topic for details"
         },
         {
           "title": "W02 canonical live Worldforge atlas - Worldforge WF-G10",
           "status": "done",
-          "link": "docs/projects/worldforge/GAPS.md",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-worldforge.md",
           "history": {
             "built": "2026-07-11"
           }
@@ -2895,7 +3344,7 @@
         {
           "title": "W02 keyboard Worldforge cell descent - Worldforge WF-G11",
           "status": "done",
-          "link": "docs/projects/worldforge/GAPS.md",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-worldforge.md",
           "history": {
             "built": "2026-07-11"
           }
@@ -2903,18 +3352,18 @@
         {
           "title": "W02 critical World3D frame collapse - World3D W3D-G29",
           "status": "done",
-          "link": "docs/projects/world3d/GAPS.md",
           "history": {
             "built": "2026-07-11"
-          }
+          },
+          "status_note": "world3d project absorbed; see planmap topic for details"
         },
         {
           "title": "W02 dense opening and populated-town 1 FPS follow-up - World3D W3D-G30",
           "status": "done",
-          "link": "docs/projects/world3d/GAPS.md",
           "history": {
             "built": "2026-07-11"
-          }
+          },
+          "status_note": "world3d project absorbed; see planmap topic for details"
         },
         {
           "title": "W02 Classic reachable, unreachable, and supply-limited travel proof",
@@ -2935,7 +3384,7 @@
         {
           "title": "W02 persistent cell discovery and journal handoff - Travel G7",
           "status": "done",
-          "link": "docs/projects/travel/GAPS.md",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-travel.md",
           "history": {
             "built": "2026-07-11"
           }
@@ -2943,7 +3392,7 @@
         {
           "title": "W02 cell-native travel encounter combat handoff - Travel G18",
           "status": "done",
-          "link": "docs/projects/travel/GAPS.md",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-travel.md",
           "history": {
             "built": "2026-07-11"
           }
@@ -2951,7 +3400,7 @@
         {
           "title": "W02 ferry destination conservation - Travel G19",
           "status": "done",
-          "link": "docs/projects/travel/GAPS.md",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-travel.md",
           "history": {
             "built": "2026-07-11"
           }
@@ -2959,7 +3408,7 @@
         {
           "title": "W02 time-weighted provision halt horizon - Travel G20",
           "status": "done",
-          "link": "docs/projects/travel/GAPS.md",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-travel.md",
           "history": {
             "built": "2026-07-11"
           }
@@ -2967,7 +3416,7 @@
         {
           "title": "W02 honest party transport availability - Travel G21",
           "status": "done",
-          "link": "docs/projects/travel/GAPS.md",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-travel.md",
           "history": {
             "built": "2026-07-11"
           }
@@ -2975,7 +3424,7 @@
         {
           "title": "W02 Classic atlas keyboard and touch parity - Worldforge WF-G12",
           "status": "done",
-          "link": "docs/projects/worldforge/GAPS.md",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-worldforge.md",
           "history": {
             "built": "2026-07-11"
           }
@@ -2983,7 +3432,7 @@
         {
           "title": "W02 legacy-save companion portrait fallback - Companions G9",
           "status": "done",
-          "link": "docs/projects/companions/GAPS.md",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-companions.md",
           "history": {
             "built": "2026-07-11"
           }
@@ -3049,7 +3498,7 @@
         }
       ],
       "status_note": "Absorbed docs/projects/game-systems-audit 2026-07-15; the campaign is ACTIVE — runbook + coverage ledger now live in the linked spec; continue planmap-first",
-      "updated": "2026-07-15"
+      "updated": "2026-07-16"
     },
     {
       "id": "entity-generator-3d",
@@ -3239,9 +3688,9 @@
       "id": "compass-pane",
       "title": "Compass Pane",
       "campaign": "ui",
-      "status": "active",
+      "status": "done",
       "tier": "component",
-      "updated": "2026-07-14",
+      "updated": "2026-07-15",
       "link": "docs/superpowers/specs/2026-07-14-absorbed-compass-pane.md",
       "deps": [],
       "features": [
@@ -3354,9 +3803,9 @@
       "id": "action-pane",
       "title": "Action Pane",
       "campaign": "ui",
-      "status": "parked",
+      "status": "done",
       "tier": "component",
-      "updated": "2026-07-14",
+      "updated": "2026-07-15",
       "link": "docs/superpowers/specs/2026-07-14-absorbed-action-pane.md",
       "deps": [],
       "features": [
@@ -3373,8 +3822,8 @@
       "id": "code-modularization-audit",
       "title": "Code Modularization Audit",
       "campaign": "agents",
-      "status": "active",
-      "updated": "2026-07-14",
+      "status": "done",
+      "updated": "2026-07-15",
       "deps": [],
       "features": [
         {
@@ -3434,10 +3883,10 @@
       "id": "command-base-runtime",
       "title": "Command Base Runtime",
       "campaign": "combat",
-      "status": "parked",
+      "status": "done",
       "tier": "component",
       "status_note": "0 open gaps; contract tests stable; maintenance-mode",
-      "updated": "2026-07-14",
+      "updated": "2026-07-15",
       "deps": [],
       "features": [
         {
@@ -3469,6 +3918,1001 @@
           }
         }
       ]
+    },
+    {
+      "id": "conversation-panel",
+      "title": "Conversation Panel",
+      "campaign": "ui",
+      "status": "active",
+      "tier": "component",
+      "status_note": "companion-chat lane built; remaining work is banter exclusivity policy owned by CMA-G12",
+      "updated": "2026-07-16",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-conversation-panel.md",
+      "deps": [],
+      "features": [
+        {
+          "title": "CP-004 Companion banter and companion chat can overlap; exclusivity policy owned by CMA-G12",
+          "status": "active"
+        },
+        {
+          "title": "Companion talk opens ConversationPanel via START_CONVERSATION (handleNpcInteraction)",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08",
+            "builtApprox": true
+          }
+        },
+        {
+          "title": "Player-turn and pending-response gating enforced in hook and panel UI",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08",
+            "builtApprox": true
+          }
+        },
+        {
+          "title": "Stale conversation state cleared on phase change, movement, and load",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08",
+            "builtApprox": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "command-factory-runtime",
+      "title": "Command Factory Runtime",
+      "campaign": "combat",
+      "status": "active",
+      "tier": "component",
+      "status_note": "Creation lane spell/ability->commands; registry live; G3/G5/G6 follow-ups",
+      "updated": "2026-06-18",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-command-factory-runtime.md",
+      "deps": [],
+      "features": [
+        {
+          "title": "G3 Standardize factory scaling helpers with shared number resolution",
+          "status": "active",
+          "decision": false
+        },
+        {
+          "title": "G5 Unify split ability-effect mapping pathways under AbilityEffectMapper",
+          "status": "active",
+          "decision": false
+        },
+        {
+          "title": "G6 Move WeaponAttackCommand out of AbilityCommandFactory into commands/effects",
+          "status": "active",
+          "decision": false
+        },
+        {
+          "title": "G1 commandFactoryRegistry added to src/commands/index.ts",
+          "status": "done",
+          "history": {
+            "built": "2026-06-18"
+          }
+        },
+        {
+          "title": "G2 matchesFilter callers redirected to TargetValidationUtils",
+          "status": "done",
+          "history": {
+            "built": "2026-06-14"
+          }
+        },
+        {
+          "title": "G4 AbilityCommandFactory test matrix expanded (+7 arbitration/mode-choice edge tests)",
+          "status": "done",
+          "history": {
+            "built": "2026-06-18"
+          }
+        }
+      ],
+      "open": 3
+    },
+    {
+      "id": "crafting",
+      "title": "Crafting System",
+      "campaign": "world",
+      "status": "active",
+      "tier": "component",
+      "status_note": "Dual craft engines intentionally separate; compatibility adapter proven",
+      "updated": "2026-06-12",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-crafting.md",
+      "deps": [],
+      "features": [
+        {
+          "title": "G5 Assign Refining/Enchanting a crafting-UI panel owner",
+          "status": "active",
+          "decision": true
+        },
+        {
+          "title": "G6 Crafting-state save/load migration/backfill path",
+          "status": "active",
+          "decision": false
+        },
+        {
+          "title": "G1 Legacy-to-enhanced quality compatibility contract proven",
+          "status": "done",
+          "history": {
+            "built": "2026-06-09"
+          }
+        }
+      ],
+      "open": 2
+    },
+    {
+      "id": "crafting-ui",
+      "title": "Crafting UI",
+      "campaign": "ui",
+      "status": "active",
+      "tier": "component",
+      "status_note": "Alchemy bench live; this topic is the routed owner for salvage UI (G8)",
+      "updated": "2026-06-26",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-crafting-ui.md",
+      "deps": [],
+      "features": [
+        {
+          "title": "G4 Reconcile UI windowing pattern",
+          "status": "active",
+          "decision": false
+        },
+        {
+          "title": "G6 Modularize alchemy bench recipe-browser surface",
+          "status": "active",
+          "decision": false
+        },
+        {
+          "title": "G7 Feed crafter stats from all craft surfaces, not only AlchemyBenchPanel",
+          "status": "active",
+          "decision": false
+        },
+        {
+          "title": "G8 Salvage UI player-facing inventory entry point",
+          "status": "active",
+          "decision": false
+        },
+        {
+          "title": "G2 Typed UPDATE_CRAFTING_STATS payload unions",
+          "status": "done",
+          "history": {
+            "built": "2026-06-26"
+          }
+        },
+        {
+          "title": "G3 Experimental damage routes through MODIFY_PARTY_HEALTH",
+          "status": "done",
+          "history": {
+            "built": "2026-06-17"
+          }
+        },
+        {
+          "title": "G5 craftingReducer contract test (9 cases)",
+          "status": "done",
+          "history": {
+            "built": "2026-06-26"
+          }
+        }
+      ],
+      "open": 4
+    },
+    {
+      "id": "creatures",
+      "title": "Creatures System",
+      "campaign": "ui",
+      "status": "done",
+      "tier": "component",
+      "status_note": "Idle; binary include/exclude targeting canonical, hybrid semantics deferred (D11)",
+      "updated": "2026-07-15",
+      "deps": [],
+      "features": [
+        {
+          "title": "G4 Hybrid creature-type semantics deferred; binary targeting stays canonical",
+          "status": "done",
+          "history": {
+            "built": "2026-06-10"
+          }
+        }
+      ]
+    },
+    {
+      "id": "crime",
+      "title": "Crime System",
+      "campaign": "sim",
+      "status": "done",
+      "tier": "component",
+      "status_note": "Complete for current gap set; fresh source scan before new crime work",
+      "updated": "2026-06-25",
+      "deps": [],
+      "features": [
+        {
+          "title": "G1 Expired-bounty cleanup",
+          "status": "done",
+          "history": {
+            "built": "2026-06-25"
+          }
+        },
+        {
+          "title": "G2 Dedicated crime fence transaction contract (no generic SELL_ITEM)",
+          "status": "done",
+          "history": {
+            "built": "2026-06-25"
+          }
+        },
+        {
+          "title": "G3 BlackMarket/Fence utility ownership resolved",
+          "status": "done",
+          "history": {
+            "built": "2026-06-25"
+          }
+        },
+        {
+          "title": "G4 Heat/severity unit boundary documented",
+          "status": "done",
+          "history": {
+            "built": "2026-06-25"
+          }
+        },
+        {
+          "title": "G5 Crime lint-intent type-debt classified",
+          "status": "done",
+          "history": {
+            "built": "2026-06-25"
+          }
+        },
+        {
+          "title": "G6 Suspect/report aggregate deferred until a structured-data caller exists",
+          "status": "done",
+          "history": {
+            "built": "2026-06-25"
+          }
+        }
+      ]
+    },
+    {
+      "id": "crime-ui",
+      "title": "Crime UI",
+      "campaign": "ui",
+      "status": "done",
+      "tier": "component",
+      "status_note": "Complete for current gap set; fresh source scan before new work",
+      "updated": "2026-06-25",
+      "deps": [],
+      "features": [
+        {
+          "title": "G1 Suspect/report routing decision resolved",
+          "status": "done",
+          "history": {
+            "built": "2026-06-25"
+          }
+        },
+        {
+          "title": "G2 Fence sales dispatch dedicated crime fence action with heat semantics",
+          "status": "done",
+          "history": {
+            "built": "2026-06-25"
+          }
+        },
+        {
+          "title": "G3 Heist plan field typing hardened (no local cast)",
+          "status": "done",
+          "history": {
+            "built": "2026-06-25"
+          }
+        },
+        {
+          "title": "G4 Safehouse services sourced from ThievesGuildSystem.getAvailableServices()",
+          "status": "done",
+          "history": {
+            "built": "2026-06-25"
+          }
+        },
+        {
+          "title": "G5 Modal/heist phase lifecycle rules reconciled across uiReducer and crimeReducer",
+          "status": "done",
+          "history": {
+            "built": "2026-06-25"
+          }
+        }
+      ]
+    },
+    {
+      "id": "dice",
+      "title": "Dice",
+      "sub": "shipped modal + 3D visual rolling; seeded silent-path RNG landed; D-2 deterministic/history policy awaits Remy",
+      "campaign": "ui",
+      "tier": "component",
+      "status": "active",
+      "status_note": "review-required: D-2 deterministic replay + roll-history policy is an open human decision",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md",
+      "deps": [],
+      "features": [
+        {
+          "title": "D-G2 dice roll history persistence + retention policy",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md"
+        },
+        {
+          "title": "D-G3 shared deterministic + audit contract for silent vs visual rolls",
+          "status": "active",
+          "decision": true,
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md"
+        },
+        {
+          "title": "D-G4 DiceBox init split: shared factory vs intentional split",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md"
+        },
+        {
+          "title": "D-G5 dice modal canvas style verification before CSS cleanup",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md"
+        },
+        {
+          "title": "Seeded silent-path RNG API + legacy roller alignment",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md",
+          "history": {
+            "built": "2026-06-08"
+          }
+        }
+      ],
+      "updated": "2026-07-15"
+    },
+    {
+      "id": "quest-log",
+      "title": "Quest Log",
+      "sub": "shipped quest modal + accept/update/complete flow; NPC quest handoff live 2026-06-19",
+      "campaign": "ui",
+      "tier": "component",
+      "status": "active",
+      "status_note": "engine-domain decisions belong to the quests domain; G2/G5 are routed follow-ups",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-quest-log.md",
+      "deps": [],
+      "features": [
+        {
+          "title": "T7/G3 NPC quest handoff via questOffer payload (D14 Option A)",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-quest-log.md",
+          "history": {
+            "built": "2026-06-19"
+          }
+        },
+        {
+          "title": "G2 data-driven quest trigger hooks (routed to quests domain)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-quest-log.md"
+        },
+        {
+          "title": "G5 legacy Quest vs staged QuestDefinition schema migration (routed to quests domain)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-quest-log.md"
+        }
+      ],
+      "updated": "2026-07-15"
+    },
+    {
+      "id": "tiered-autosave",
+      "title": "Tiered Autosave",
+      "sub": "IndexedDB-first checkpoints (1/5/15/30 min tiers); all recorded gaps resolved 2026-07-11",
+      "campaign": "tooling",
+      "tier": "component",
+      "status": "done",
+      "status_note": "all recorded gaps resolved 2026-07-11 (audit W01); deferred scope: compression, cross-tab sync, export/import, save-version strategy",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md",
+      "deps": [],
+      "features": [
+        {
+          "title": "GAP-002 checkpoint tier runtime scheduler (useAutoSave)",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md",
+          "history": {
+            "built": "2026-07-11"
+          }
+        },
+        {
+          "title": "GAP-003 LoadGameModal Waystones/Echoes/Chronicles separation",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md",
+          "history": {
+            "built": "2026-07-11"
+          }
+        },
+        {
+          "title": "GAP-005 IndexedDB primary + recovery path tests (42/42)",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md",
+          "history": {
+            "built": "2026-07-11"
+          }
+        },
+        {
+          "title": "GAP-006 saveLoad.README rewritten IndexedDB-first (doc-only)",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md",
+          "history": {
+            "built": "2026-07-11"
+          }
+        }
+      ],
+      "updated": "2026-07-15"
+    },
+    {
+      "id": "dialogue",
+      "title": "Dialogue",
+      "sub": "topic-based NPC dialogue (prereqs/costs/skill checks/unlocks); companion chat is a SEPARATE flow",
+      "campaign": "ui",
+      "tier": "component",
+      "status": "active",
+      "status_note": "highest-value open call: DIAL-002/DIAL-004 durable unlock persistence model",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md",
+      "deps": [],
+      "features": [
+        {
+          "title": "DIAL-001 scripted dialogue graph schema direction",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md"
+        },
+        {
+          "title": "DIAL-002 cross-NPC unlock propagation (DiscoveryLog vs NPC KnownFact)",
+          "status": "active",
+          "decision": true,
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md"
+        },
+        {
+          "title": "DIAL-003 wire or remove sessionDispositionMod/availableTopicIds",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md"
+        },
+        {
+          "title": "DIAL-004 durable global unlock-fact model",
+          "status": "active",
+          "decision": true,
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md"
+        },
+        {
+          "title": "DIAL-005 dialogue vs companion-chat ownership boundary note",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md"
+        },
+        {
+          "title": "DIAL-006 companion banter ownership boundary before extraction (CMA-G12)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md"
+        }
+      ],
+      "updated": "2026-07-15"
+    },
+    {
+      "id": "companions",
+      "title": "Companions System",
+      "campaign": "ui",
+      "status": "active",
+      "tier": "component",
+      "status_note": "absorbed 2026-07-16; open lanes = G6 hysteresis romance exit, G7 recruit/leave reducer contract, G8 producer-side recruit-offer wiring",
+      "updated": "2026-07-16",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-companions.md",
+      "deps": [],
+      "features": [
+        {
+          "title": "G6 Romance can stay locked in after approval collapses; encode the decided hysteresis exit in RelationshipManager with a romance-to-hostile regression",
+          "status": "active"
+        },
+        {
+          "title": "G7 Party recruit and leave need a proven gameplay-owned reducer contract (payloads, duplicate prevention, approval side effects)",
+          "status": "active"
+        },
+        {
+          "title": "G8 Recruit offers never surface in live play; wire producer-side triggers into dialogue/gameplay and prove with an end-to-end playtest",
+          "status": "active"
+        },
+        {
+          "title": "Relationship-bounded reactions, FIFO reaction queue with duplicate suppression, and -500..500 scale reconciliation across types/runtime/UI",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08",
+            "builtApprox": true
+          }
+        },
+        {
+          "title": "Loyalty retention floor, approval source provenance routing, shared ID-helper generation, and player-directed banter response-window regression",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08",
+            "builtApprox": true
+          }
+        },
+        {
+          "title": "G6 romance-exit policy decided: hysteresis (Remy, DECISION_BLITZ D10)",
+          "status": "done",
+          "history": {
+            "built": "2026-06-10"
+          }
+        },
+        {
+          "title": "Companion banter modularization documented as a split contract preserving the companion-owned hook shell",
+          "status": "done",
+          "history": {
+            "built": "2026-06-10",
+            "builtApprox": true
+          }
+        },
+        {
+          "title": "G9 Legacy-save companion portrait 404s fixed with initials fallback at both render boundaries",
+          "status": "done",
+          "history": {
+            "built": "2026-07-11"
+          }
+        }
+      ]
+    },
+    {
+      "id": "demo-area",
+      "title": "Demo Area",
+      "sub": "CombatMessagingDemo + BattleMapDemo + World3DDemo mounted to Dev Menu; reference-only, all gaps resolved",
+      "campaign": "world",
+      "tier": "component",
+      "status": "superseded",
+      "updated": "2026-07-16",
+      "deps": [],
+      "history": {
+        "designed": "2026-06-08",
+        "built": "2026-06-11"
+      },
+      "status_note": "Resolved as reference-only; demo components retained in codebase and mounted to Dev Menu",
+      "killed": "Orphaned reference-only demo component; retained as reference artifact per decision D19"
+    },
+    {
+      "id": "design-preview",
+      "title": "Design Preview",
+      "campaign": "ui",
+      "status": "done",
+      "updated": "2026-07-15",
+      "deps": [],
+      "features": [
+        {
+          "title": "Route Tactical Sandbox scenarios into parent-with-subprojects project (DP-T4)",
+          "status": "done",
+          "history": {
+            "built": "2026-06-22",
+            "builtApprox": false
+          }
+        }
+      ],
+      "tier": "component",
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-design-preview.md"
+    },
+    {
+      "id": "documentation-cleanup",
+      "title": "Documentation Cleanup",
+      "campaign": "ui",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "encounter-generator",
+      "title": "Encounter Generator",
+      "campaign": "combat",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "environment",
+      "title": "Environment System",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "design-preview-scenarios",
+      "title": "Design Preview Scenarios",
+      "campaign": "ui",
+      "status": "active",
+      "updated": "2026-07-16",
+      "deps": [],
+      "features": [
+        {
+          "title": "DPS-G1 Dashboard rendering for parent/subproject cards",
+          "status": "active",
+          "status_note": "Adjacent follow-up; all implementation done"
+        },
+        {
+          "title": "DPS-T1 Create parent project with scenario child packets",
+          "status": "done",
+          "history": {
+            "built": "2026-06-22",
+            "builtApprox": false
+          }
+        },
+        {
+          "title": "DPS-T3 Implement expanded Tactical Sandbox scenario set",
+          "status": "done",
+          "history": {
+            "built": "2026-06-22",
+            "builtApprox": false
+          }
+        },
+        {
+          "title": "DPS-T4 Project-tracker iteration across 18 scenario lanes",
+          "status": "done",
+          "history": {
+            "built": "2026-06-22",
+            "builtApprox": false
+          }
+        },
+        {
+          "title": "DPS-T5 Verify mechanics per scenario child subproject",
+          "status": "done",
+          "history": {
+            "built": "2026-06-23",
+            "builtApprox": false
+          }
+        }
+      ],
+      "tier": "component"
+    },
+    {
+      "id": "events",
+      "title": "Events System",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "gemini-service",
+      "title": "Gemini Service",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "history",
+      "title": "History System",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "intrigue",
+      "title": "Intrigue System",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "layout",
+      "title": "Layout System",
+      "campaign": "ui",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "item-categorization",
+      "title": "Item Categorization",
+      "campaign": "character",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "logbook",
+      "title": "Logbook",
+      "campaign": "tooling",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "logic",
+      "title": "Logic System",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "naval",
+      "title": "Naval System",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "naval-ui",
+      "title": "Naval UI",
+      "campaign": "ui",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "ollama-service",
+      "title": "Ollama Service",
+      "campaign": "ui",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "organization",
+      "title": "Organization",
+      "campaign": "ui",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "party-ui",
+      "title": "Party UI",
+      "campaign": "ui",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "phb2024-glossary-audit",
+      "title": "PHB 2024 Glossary Audit",
+      "campaign": "tooling",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "physics",
+      "title": "Physics System",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "planar",
+      "title": "Planar System",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "providers",
+      "title": "Providers",
+      "campaign": "ui",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "puzzles",
+      "title": "Puzzles System",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "quests",
+      "title": "Quests System",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "racial-mechanics",
+      "title": "Racial Mechanics / Race Hierarchy",
+      "campaign": "tooling",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "realmsmith-service",
+      "title": "RealmSmith Service",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "religion",
+      "title": "Religion System",
+      "campaign": "ui",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "rituals",
+      "title": "Rituals System",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "roadmap-maintenance",
+      "title": "Roadmap Maintenance",
+      "campaign": "tooling",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "saveload",
+      "title": "SaveLoad",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "script-tests",
+      "title": "Script Tests",
+      "campaign": "tooling",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "scripts-archive",
+      "title": "\"Scripts: Archive\"",
+      "campaign": "tooling",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "scripts-audits",
+      "title": "\"Scripts: Audits\"",
+      "campaign": "ui",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "scripts-git",
+      "title": "\"Scripts: Git\"",
+      "campaign": "agents",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "scripts-quality",
+      "title": "\"Scripts: Quality\"",
+      "campaign": "agents",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "scripts-spell-runtime-template-audit",
+      "title": "\"Scripts: Spell Runtime Template Audit\"",
+      "campaign": "spells",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "scripts-tooling",
+      "title": "\"Scripts: Tooling\"",
+      "campaign": "agents",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "scripts-workflows",
+      "title": "\"Scripts: Workflows\"",
+      "campaign": "tooling",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "spells",
+      "title": "Spells",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "submap",
+      "title": "Submap and Tile-Grid Retirement",
+      "campaign": "ui",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "submap-generation",
+      "title": "Submap Generation",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "three-d-modal",
+      "title": "Three D Modal",
+      "campaign": "ui",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "town-description-system",
+      "title": "Town Description System",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "trade-ui",
+      "title": "Trade Ui",
+      "campaign": "ui",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "ui-primitives",
+      "title": "Ui Primitives",
+      "campaign": "ui",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "underdark",
+      "title": "Underdark",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "visibility",
+      "title": "Visibility",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "world-3d-ui",
+      "title": "World 3D UI",
+      "campaign": "rendering",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "world3d",
+      "title": "World3d",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
+    },
+    {
+      "id": "worldsim-service",
+      "title": "Worldsim Service",
+      "campaign": "world",
+      "status": "parked",
+      "updated": "2026-07-15",
+      "deps": []
     }
   ]
 }

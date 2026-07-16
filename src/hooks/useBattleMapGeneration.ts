@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 00:28:37
+ * Last Sync: 16/07/2026, 01:43:16
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx
  * Imports: 4 files
  *
@@ -461,7 +461,12 @@ const getTacticalSpawnTiles = (
         zoneCenter: enemyCenter,
         enemyAnchor: playerCenter
     };
-    const occupied = new Set<string>();
+    // Ambient source residents are physical location facts even before neutral
+    // initiative rules exist. Reserve their cells so combat never starts with a
+    // party member or defender stacked on a named civilian household cluster.
+    const occupied = new Set<string>((mapData.worldOccupants ?? []).map((occupant) => (
+        `${occupant.position.x}-${occupant.position.y}`
+    )));
     // Reserve only the positions needed by the current roster. This matters on
     // dense maps where a fixed oversized reservation could consume every
     // fallback tile for one team before the other team gets a chance to place.
@@ -518,16 +523,10 @@ function getSourceEncounterSpawnTiles(
     const context = mapData.encounterContext;
     if (!context) return null;
 
-    const headingLength = Math.hypot(context.routeDirection.x, context.routeDirection.y);
-    if (headingLength <= 1e-9) return null;
-
-    const heading = {
-        x: context.routeDirection.x / headingLength,
-        y: context.routeDirection.y / headingLength
-    };
-    const flank = { x: -heading.y, y: heading.x };
     const allWalkable = [...mapData.tiles.values()].filter(tile => !tile.blocksMovement);
-    const occupied = new Set<string>();
+    const occupied = new Set<string>((mapData.worldOccupants ?? []).map((occupant) => (
+        `${occupant.position.x}-${occupant.position.y}`
+    )));
 
     const nearestCandidate = (
         candidates: BattleMapTile[],
@@ -550,6 +549,182 @@ function getSourceEncounterSpawnTiles(
         if (selected) occupied.add(tileKey(selected));
         return selected;
     };
+
+    if (context.kind === 'opening-standoff') {
+        // The opening source authors the exact player anchor but no enemy world
+        // coordinates or approach heading. Gather the party around that anchor,
+        // then let nearby cover choose a compact, irregular standoff cluster.
+        // This avoids the fake precision of a compass-perfect ring while the
+        // context still labels every enemy tile as referee policy, not history.
+        const partyOffsets = [
+            { x: 0, y: 0 },
+            { x: -1, y: 0 },
+            { x: 1, y: 0 },
+            { x: 0, y: -1 },
+            { x: 0, y: 1 },
+            { x: -1, y: -1 },
+            { x: 1, y: -1 },
+            { x: -1, y: 1 },
+            { x: 1, y: 1 },
+        ];
+        const playerTiles: BattleMapTile[] = [];
+        for (let index = 0; index < playerCount; index++) {
+            const offset = partyOffsets[index % partyOffsets.length]!;
+            const ring = Math.floor(index / partyOffsets.length);
+            const target = {
+                x: context.anchorTile.x + offset.x * (1 + ring),
+                y: context.anchorTile.y + offset.y * (1 + ring),
+            };
+            const selected = nearestCandidate(allWalkable, target, false);
+            if (selected) playerTiles.push(selected);
+        }
+
+        const standoffCandidates = allWalkable.filter((tile) => {
+            const distance = pointDistance(tile.coordinates, context.anchorTile);
+            return distance >= 4.5 && distance <= 8;
+        });
+        const rankedContactAnchors = standoffCandidates
+            .filter((tile) => !occupied.has(tileKey(tile)))
+            .sort((a, b) => {
+                const aDistance = pointDistance(a.coordinates, context.anchorTile);
+                const bDistance = pointDistance(b.coordinates, context.anchorTile);
+                const aScore = Math.abs(aDistance - 5.5) * 0.45 - coverScore(mapData, a) * 1.35;
+                const bScore = Math.abs(bDistance - 5.5) * 0.45 - coverScore(mapData, b) * 1.35;
+                if (aScore !== bScore) return aScore - bScore;
+                return a.coordinates.y - b.coordinates.y || a.coordinates.x - b.coordinates.x;
+            });
+
+        const enemyTiles: BattleMapTile[] = [];
+        const contactAnchor = rankedContactAnchors[0] ?? null;
+        if (contactAnchor) {
+            occupied.add(tileKey(contactAnchor));
+            enemyTiles.push(contactAnchor);
+        }
+
+        for (let index = enemyTiles.length; index < enemyCount; index++) {
+            const available = standoffCandidates.filter((tile) => (
+                !occupied.has(tileKey(tile))
+                && enemyTiles.every((selected) => pointDistance(tile.coordinates, selected.coordinates) >= 1.5)
+            ));
+            const ranked = available.sort((a, b) => {
+                const anchorDistanceA = contactAnchor
+                    ? pointDistance(a.coordinates, contactAnchor.coordinates)
+                    : pointDistance(a.coordinates, context.anchorTile);
+                const anchorDistanceB = contactAnchor
+                    ? pointDistance(b.coordinates, contactAnchor.coordinates)
+                    : pointDistance(b.coordinates, context.anchorTile);
+                const partyDistanceA = pointDistance(a.coordinates, context.anchorTile);
+                const partyDistanceB = pointDistance(b.coordinates, context.anchorTile);
+                const desiredClusterDistance = 2 + Math.floor(index / 3) * 1.5;
+                const aScore = Math.abs(anchorDistanceA - desiredClusterDistance) * 0.9
+                    + Math.abs(partyDistanceA - 5.75) * 0.35
+                    - coverScore(mapData, a) * 1.1;
+                const bScore = Math.abs(anchorDistanceB - desiredClusterDistance) * 0.9
+                    + Math.abs(partyDistanceB - 5.75) * 0.35
+                    - coverScore(mapData, b) * 1.1;
+                if (aScore !== bScore) return aScore - bScore;
+                return a.coordinates.y - b.coordinates.y || a.coordinates.x - b.coordinates.x;
+            });
+            const selected = ranked[0]
+                ?? nearestCandidate(allWalkable, context.anchorTile, true);
+            if (selected) {
+                occupied.add(tileKey(selected));
+                enemyTiles.push(selected);
+            }
+        }
+
+        return { playerTiles, enemyTiles };
+    }
+
+    const headingLength = Math.hypot(context.routeDirection.x, context.routeDirection.y);
+    if (headingLength <= 1e-9) return null;
+
+    const heading = {
+        x: context.routeDirection.x / headingLength,
+        y: context.routeDirection.y / headingLength
+    };
+    const flank = { x: -heading.y, y: heading.x };
+
+    if (context.kind === 'settlement-edge') {
+        const signedDistance = (tile: BattleMapTile): number => (
+            (tile.coordinates.x - context.anchorTile.x) * heading.x
+            + (tile.coordinates.y - context.anchorTile.y) * heading.y
+        );
+        const outsideTiles = allWalkable.filter((tile) => signedDistance(tile) <= -2);
+        const insideTiles = allWalkable.filter((tile) => signedDistance(tile) >= 2);
+
+        const deploySide = (
+            count: number,
+            direction: -1 | 1,
+            candidates: BattleMapTile[],
+            preferCover: boolean,
+        ): BattleMapTile[] => {
+            const result: BattleMapTile[] = [];
+            for (let index = 0; index < count; index++) {
+                const row = Math.floor(index / 2);
+                const side = index % 2 === 0 ? -1 : 1;
+                const target = {
+                    x: context.anchorTile.x
+                        + heading.x * direction * (5 + row * 2)
+                        + flank.x * side * 1.75,
+                    y: context.anchorTile.y
+                        + heading.y * direction * (5 + row * 2)
+                        + flank.y * side * 1.75
+                };
+                const selected = nearestCandidate(candidates, target, preferCover)
+                    ?? nearestCandidate(allWalkable, target, preferCover);
+                if (selected) result.push(selected);
+            }
+            return result;
+        };
+
+        return {
+            playerTiles: deploySide(playerCount, -1, outsideTiles, false),
+            enemyTiles: deploySide(enemyCount, 1, insideTiles, true)
+        };
+    }
+
+    if (context.kind === 'settlement-watch' || context.kind === 'settlement-state-patrol') {
+        // The crop center is the player's exact live-world position. Keep the
+        // lead party member on that anchor, gather companions immediately
+        // behind them, and place the responding watch/patrol toward town.
+        // This differs from the gate recipe above: an interior arrest must not
+        // teleport the party to opposite sides of a boundary they never crossed.
+        const deployParty = (): BattleMapTile[] => {
+            const result: BattleMapTile[] = [];
+            for (let index = 0; index < playerCount; index++) {
+                const row = Math.ceil(index / 2);
+                const side = index === 0 ? 0 : (index % 2 === 0 ? 1 : -1);
+                const target = {
+                    x: context.anchorTile.x - heading.x * row * 1.5 + flank.x * side * 1.5,
+                    y: context.anchorTile.y - heading.y * row * 1.5 + flank.y * side * 1.5
+                };
+                const selected = nearestCandidate(allWalkable, target, false);
+                if (selected) result.push(selected);
+            }
+            return result;
+        };
+
+        const deployInterceptors = (): BattleMapTile[] => {
+            const result: BattleMapTile[] = [];
+            for (let index = 0; index < enemyCount; index++) {
+                const row = Math.floor(index / 2);
+                const side = index % 2 === 0 ? -1 : 1;
+                const target = {
+                    x: context.anchorTile.x + heading.x * (4 + row * 2) + flank.x * side * 1.75,
+                    y: context.anchorTile.y + heading.y * (4 + row * 2) + flank.y * side * 1.75
+                };
+                const selected = nearestCandidate(allWalkable, target, true);
+                if (selected) result.push(selected);
+            }
+            return result;
+        };
+
+        return {
+            playerTiles: deployParty(),
+            enemyTiles: deployInterceptors()
+        };
+    }
 
     if (context.kind === 'river-crossing') {
         const crossingTiles = allWalkable.filter(tile => (
@@ -651,32 +826,53 @@ function getSourceEncounterSpawnTiles(
     return { playerTiles, enemyTiles };
 }
 
-export const generateBattleSetup = (
-    biome: BattleMapBiome,
+export interface BattleSetup {
+    mapData: BattleMapData;
+    positionedCharacters: CombatCharacter[];
+}
+
+type BattleSetupSource = 'world-derived' | 'procedural-sandbox';
+
+/**
+ * Positions one roster on an already-selected battlefield.
+ *
+ * Source-aware maps use their encounter receipt and exact world anchor. The
+ * procedural sandbox deliberately retains its seeded arena formations, but it
+ * reaches this helper only through the explicitly named sandbox export below.
+ */
+const positionBattleSetup = (
+    mapData: BattleMapData,
     seed: number,
     initialCharacters: CombatCharacter[],
-    presetMapData?: BattleMapData
-): { mapData: BattleMapData, positionedCharacters: CombatCharacter[] } => {
-    // Use the preset map directly if provided (from ground-mode handoff);
-    // otherwise, generate a new procedural map using the biome and seed.
-    const mapData = presetMapData || new BattleMapGenerator(BATTLE_MAP_DIMENSIONS.width, BATTLE_MAP_DIMENSIONS.height).generate(biome, seed);
+    source: BattleSetupSource,
+): BattleSetup => {
     const rng = new SeededRandom(seed);
 
     const newPositions = new Map<string, CharacterPosition>();
-    const occupied = new Set<string>();
+    // Keep ambient residents reserved during the final character assignment as
+    // well as during encounter-plan selection. This also protects the generic
+    // nearest-walkable fallback if a source deployment zone is exhausted.
+    const occupied = new Set<string>((mapData.worldOccupants ?? []).map((occupant) => (
+        `${occupant.position.x}-${occupant.position.y}`
+    )));
 
-    // For procedural maps, choose a random spawn configuration and get spawn zones
+    // The two sources have intentionally different deployment authorities:
+    // WorldForge maps use source encounter facts; sandbox arenas use a seeded
+    // generic formation because they have no source-world event to project.
     const spawnConfigs: SpawnConfig[] = ['left-right', 'top-bottom', 'corners-tl-br', 'corners-tr-bl'];
     const randomConfig = spawnConfigs[Math.floor(rng.next() * spawnConfigs.length)];
     const playerCount = initialCharacters.filter(char => char.team === 'player').length;
     const enemyCount = initialCharacters.filter(char => char.team === 'enemy').length;
-    const proceduralTiles = presetMapData
-        ? { playerTiles: [], enemyTiles: [] }
-        : getTacticalSpawnTiles(mapData, randomConfig, rng, playerCount, enemyCount);
-    const encounterTiles = presetMapData
+    // Older extracted maps can be genuine WorldForge crops without a richer
+    // encounter receipt. Empty planned lists deliberately fall through to the
+    // generic center-relative placement below; only the terrain source is
+    // mandatory, not every newer deployment annotation.
+    const sourceTiles = source === 'world-derived'
         ? getSourceEncounterSpawnTiles(mapData, playerCount, enemyCount)
         : null;
-    const { playerTiles, enemyTiles } = encounterTiles ?? proceduralTiles;
+    const { playerTiles, enemyTiles } = source === 'world-derived'
+        ? (sourceTiles ?? { playerTiles: [], enemyTiles: [] })
+        : getTacticalSpawnTiles(mapData, randomConfig, rng, playerCount, enemyCount);
 
     let playerSpawnIndex = 0;
     let enemySpawnIndex = 0;
@@ -684,7 +880,7 @@ export const generateBattleSetup = (
     const positionedCharacters = initialCharacters.map(char => {
         let spawnTile: BattleMapTile | null = null;
 
-        if (presetMapData) {
+        if (source === 'world-derived') {
             if (char.team === 'player' && playerSpawnIndex < playerTiles.length) {
                 spawnTile = playerTiles[playerSpawnIndex++];
             } else if (char.team === 'enemy' && enemySpawnIndex < enemyTiles.length) {
@@ -718,4 +914,31 @@ export const generateBattleSetup = (
     });
 
     return { mapData, positionedCharacters };
+};
+
+/**
+ * Production setup contract: callers must provide the tactical projection of
+ * a real WorldForge location. There is no optional map and no arena fallback.
+ */
+export const generateWorldBattleSetup = (
+    mapData: BattleMapData,
+    seed: number,
+    initialCharacters: CombatCharacter[],
+): BattleSetup => positionBattleSetup(mapData, seed, initialCharacters, 'world-derived');
+
+/**
+ * Explicit developer-only arena generator used by BattleMapDemo and QA deep
+ * links. Keeping construction behind this name makes accidental production
+ * fallback visible in code review and dependency searches.
+ */
+export const generateProceduralSandboxBattleSetup = (
+    biome: BattleMapBiome,
+    seed: number,
+    initialCharacters: CombatCharacter[],
+): BattleSetup => {
+    const mapData = new BattleMapGenerator(
+        BATTLE_MAP_DIMENSIONS.width,
+        BATTLE_MAP_DIMENSIONS.height,
+    ).generate(biome, seed);
+    return positionBattleSetup(mapData, seed, initialCharacters, 'procedural-sandbox');
 };

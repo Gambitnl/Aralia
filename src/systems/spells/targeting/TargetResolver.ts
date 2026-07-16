@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/06/2026, 03:48:43
+ * Last Sync: 15/07/2026, 03:30:49
  * Dependents: hooks/combat/useTargetValidator.ts, hooks/useAbilitySystem.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/index.ts
  * Imports: 5 files
  *
@@ -541,10 +541,21 @@ export class TargetResolver {
       }
     }
 
-    if (eligibility.fixedToSurface === 'excluded' && targetObject.isFixedToSurface) {
-      return {
-        code: 'object_fixed_to_surface',
-        message: 'This spell cannot target an object fixed to a surface.'
+    if (eligibility.fixedToSurface === 'excluded') {
+      if (targetObject.isFixedToSurface) {
+        return {
+          code: 'object_fixed_to_surface',
+          message: 'This spell cannot target an object fixed to a surface.'
+        }
+      }
+      // Unknown attachment is not evidence that an object is loose. Generated
+      // props remain targetable by general object spells, but Catapult-style
+      // filters must wait for an explicit loose-object fact from the catalog.
+      if (targetObject.isFixedToSurface !== false) {
+        return {
+          code: 'object_attachment_unknown',
+          message: 'This spell requires an object known to be loose, but its attachment is not recorded.'
+        }
       }
     }
 
@@ -561,14 +572,20 @@ export class TargetResolver {
         ? groupedEligibility.weightLimit.maxWeightPounds
         : undefined
 
-    if (
-      typeof maxWeightPounds === 'number' &&
-      typeof targetObject.weightPounds === 'number' &&
-      targetObject.weightPounds > maxWeightPounds
-    ) {
-      return {
-        code: 'object_too_heavy',
-        message: `Object weighs ${targetObject.weightPounds} pounds, above this spell's ${maxWeightPounds}-pound limit.`
+    if (typeof maxWeightPounds === 'number') {
+      // A maximum weight is a hard eligibility fact. Missing source weight must
+      // not silently pass as though it were zero pounds.
+      if (typeof targetObject.weightPounds !== 'number') {
+        return {
+          code: 'object_weight_unknown',
+          message: `This spell requires an object known to weigh no more than ${maxWeightPounds} pounds.`
+        }
+      }
+      if (targetObject.weightPounds > maxWeightPounds) {
+        return {
+          code: 'object_too_heavy',
+          message: `Object weighs ${targetObject.weightPounds} pounds, above this spell's ${maxWeightPounds}-pound limit.`
+        }
       }
     }
 

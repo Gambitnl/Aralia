@@ -152,4 +152,4 @@ The service is used by:
 
 * **`src/services/indexedDBStorageService.ts`** — the raw IndexedDB wrapper (open, put, get, delete, list keys, clear, availability check).
 * **`src/utils/storageUtils.ts`** — the `SafeStorage` / `SafeSession` wrappers used for localStorage and sessionStorage.
-* **`docs/projects/tiered-autosave/`** — the project north star, tracker, and gap registry for the tiered autosave work.
+* **`docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md`** — the absorbed tiered-autosave project record (the old `docs/projects/tiered-autosave/` folder now lives on the planmap `tiered-autosave` topic).

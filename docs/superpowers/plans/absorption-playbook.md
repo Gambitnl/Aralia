@@ -39,10 +39,12 @@ Project folder: docs/projects/<SLUG>/. Acquire the Agora lock on public/planmap/
 - planmap-add now refuses to write when another agent holds the lock, stamps
   `updated` automatically, and validates after writing — do not pass
   `--no-validate` in wave work, ever
-- `--force-no-lock` is banned EXCEPT one case (known guard bug, board task
-  filed 2026-07-15): if the guard refuses while `node tools/agora/client.mjs
-  locks` shows YOUR OWN agentId as the holder of the topics.json lock, you may
-  force — and you MUST say so in your final report and completion message
+- `--force-no-lock` is BANNED, no exceptions (the old own-lock guard bug is
+  FIXED 2026-07-16, task abbdc943). When you acquire the topics.json lock,
+  capture the printed lock id and export it in the same command chain:
+  `export AGORA_HELD_LOCK=<lockId>` — the guard then recognizes your lock even
+  if an AGORA_AGENT_ID prefix goes missing. A wrong id still refuses, so this
+  is verified, not a force. Unset it after unlock.
 - DELETE ONLY AFTER the validator exits 0 — a folder is unrecoverable outside
   git history, so the map must be provably right first
 - wave concurrency: at most 3 agents at once (topics.json lock is serial;

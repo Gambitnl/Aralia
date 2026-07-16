@@ -19,12 +19,12 @@ import { generateId } from '../../utils/idGenerator'
  *
  * @see SpellCommand for the interface definition.
  */
-export abstract class BaseEffectCommand implements SpellCommand {
+export abstract class BaseEffectCommand<TEffect extends SpellEffect = SpellEffect> implements SpellCommand {
   public readonly id: string
   public readonly metadata: CommandMetadata
 
   constructor(
-    protected effect: SpellEffect,
+    protected effect: TEffect,
     protected context: CommandContext
   ) {
     this.id = generateId()
