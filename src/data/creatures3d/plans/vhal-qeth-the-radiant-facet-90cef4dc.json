@@ -1,0 +1,147 @@
+{
+  "id": "90cef4dc",
+  "name": "Vhal'Qeth, the Radiant Facet",
+  "slug": "vhal-qeth-the-radiant-facet-90cef4dc",
+  "description": "3D asset, full body character model, T-pose baseline posture, isolated on a solid neutral gray background. A surreal Lovecraftian cosmic horror creature. \n\nThe main body is an asymmetric, floating polyhedron crystalline cluster made of iridescent, semi-translucent obsidian glass that shifts between deep violet and oily teal. Projecting outward from the non-Euclidean facets are twelve elongated, jointed spider-like appendages, but instead of joints, the limbs are connected by hovering, unattached glowing magenta energy rings. Each limb terminates in a finely detailed, hyper-realistic human hand pointing outward in a stiff, radial pattern.\n\nAt the epicenter of the crystalline cluster is a massive, wet, hyper-detailed mammalian eye with an inverted, horizontal goat-like pupil, surrounded by an ring of twitching, fleshy cilia instead of eyelids. Drooping from the bottom of the central mass are several thin, dangling sea-anemone tentacles with micro-sucker textures. \n\nHigh-resolution 3D mesh, clean topology, organic-meets-geometric hard surface details, digital sculpting style, unreal engine 5 material render, PBR textures, subsurface scattering on the eye and tentacles, sharp specular highlights on the crystal facets. No pedestal, no background artifacts, clean silhouette boundary.",
+  "plan": {
+    "name": "Vhal'Qeth, the Radiant Facet",
+    "frame": {
+      "heightFt": 10,
+      "bulk": 0.75,
+      "stance": "floating"
+    },
+    "spine": {
+      "segments": 3,
+      "taper": 0.85,
+      "arch": 0
+    },
+    "appendages": [
+      {
+        "kind": "arm",
+        "attach": 0.2,
+        "heightFrac": 0.6,
+        "perSide": true,
+        "count": 2,
+        "chain": [
+          {
+            "lenFt": 2.5,
+            "r": 0.14
+          },
+          {
+            "lenFt": 3,
+            "r": 0.11
+          },
+          {
+            "lenFt": 2.5,
+            "r": 0.08
+          },
+          {
+            "lenFt": 0.8,
+            "r": 0.06
+          }
+        ]
+      },
+      {
+        "kind": "arm",
+        "attach": 0.5,
+        "heightFrac": 0.5,
+        "perSide": true,
+        "count": 2,
+        "chain": [
+          {
+            "lenFt": 2.8,
+            "r": 0.14
+          },
+          {
+            "lenFt": 3.2,
+            "r": 0.11
+          },
+          {
+            "lenFt": 2.6,
+            "r": 0.08
+          },
+          {
+            "lenFt": 0.8,
+            "r": 0.06
+          }
+        ]
+      },
+      {
+        "kind": "arm",
+        "attach": 0.8,
+        "heightFrac": 0.6,
+        "perSide": true,
+        "count": 2,
+        "chain": [
+          {
+            "lenFt": 2.5,
+            "r": 0.14
+          },
+          {
+            "lenFt": 3,
+            "r": 0.11
+          },
+          {
+            "lenFt": 2.5,
+            "r": 0.08
+          },
+          {
+            "lenFt": 0.8,
+            "r": 0.06
+          }
+        ]
+      },
+      {
+        "kind": "tentacle",
+        "attach": 0.45,
+        "heightFrac": 0.05,
+        "perSide": true,
+        "count": 3,
+        "chain": [
+          {
+            "lenFt": 1.5,
+            "r": 0.05
+          },
+          {
+            "lenFt": 1.5,
+            "r": 0.04
+          },
+          {
+            "lenFt": 1.2,
+            "r": 0.03
+          },
+          {
+            "lenFt": 1,
+            "r": 0.02
+          }
+        ]
+      }
+    ],
+    "heads": [
+      {
+        "sizeScale": 1.8,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 2
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#2b1440",
+      "accentHex": "#ff2fd6",
+      "bellyHex": "#0f6b66",
+      "eyeHex": "#e8c25a"
+    },
+    "garnish": [
+      {
+        "partId": "tentacles",
+        "params": {
+          "length": 2.5,
+          "count": 6
+        }
+      }
+    ]
+  },
+  "status": "generated",
+  "createdAt": "2026-07-16T07:08:56.147Z"
+}

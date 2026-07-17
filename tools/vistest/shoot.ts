@@ -4,6 +4,7 @@
  *   npx tsx tools/vistest/shoot.ts                        # capture every scenario
  *   npx tsx tools/vistest/shoot.ts --only crowd-commute   # one (comma-list ok)
  *   npx tsx tools/vistest/shoot.ts --base http://localhost:5174/Aralia/ --out .agent/vistest/captures
+ *   npx tsx tools/vistest/shoot.ts --width 1353 --height 1272 # constrained layout proof
  *
  * Interprets each scenario's declarative capture recipe from
  * src/devtools/vistest/scenarios.ts against a running dev server and writes
@@ -31,9 +32,22 @@ function arg(name: string, fallback: string): string {
   return v;
 }
 
+/** Parse viewport dimensions strictly so a typo cannot produce a misleading capture. */
+function positiveIntegerArg(name: string, fallback: number): number {
+  const raw = arg(name, String(fallback));
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value <= 0) {
+    console.error(`vistest: --${name} must be a positive integer, received "${raw}"`);
+    process.exit(1);
+  }
+  return value;
+}
+
 const base = arg('base', 'http://localhost:5174/Aralia/');
 const outDir = arg('out', '.agent/vistest/captures');
 const only = arg('only', '');
+const viewportWidth = positiveIntegerArg('width', 1600);
+const viewportHeight = positiveIntegerArg('height', 1000);
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -44,7 +58,6 @@ async function runStep(page: Page, s: VisScenario, index: number, step: CaptureS
       return;
     case 'waitHook': {
       const deadline = Date.now() + (step.timeoutMs ?? 60000);
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         const ok = await page.evaluate(`!!(${step.expr})`);
         if (ok) return;
@@ -126,7 +139,9 @@ async function main(): Promise<void> {
   });
   let failed = 0;
   for (const s of wanted) {
-    const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
+    const page = await browser.newPage({
+      viewport: { width: viewportWidth, height: viewportHeight },
+    });
     try {
       await page.goto(scenarioUrl(base, s), { waitUntil: 'domcontentloaded', timeout: 30000 });
       for (const [i, step] of s.capture.entries()) {

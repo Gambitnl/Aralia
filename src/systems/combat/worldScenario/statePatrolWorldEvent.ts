@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 09:53:33
+ * Last Sync: 16/07/2026, 03:22:10
  * Dependents: components/World3D/World3DWrapper.tsx
- * Imports: 4 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -35,6 +35,12 @@ import {
   worldforgeStateFactionId,
   type SettlementEncounterTrigger,
 } from './settlementEncounterHostility';
+import type {
+  StatePatrolEncounterReceipt,
+  WorldforgeEncounterReceipt,
+} from './worldforgeEncounterReceipt';
+
+export type { WorldforgeEncounterReceipt } from './worldforgeEncounterReceipt';
 
 // ============================================================================
 // Durable Event Receipt
@@ -44,23 +50,10 @@ import {
 // history, not a mutation of a road, building, or other generated artifact.
 // ============================================================================
 
-export interface WorldforgeEncounterReceipt {
-  id: string;
-  kind: 'state-patrol-interception';
-  worldSeed: number;
-  gameDay: number;
-  triggeredAtGameTimeMs: number;
-  sourceCellId: number;
-  burgId: number;
-  stateId: number;
-  factionId: string;
-  playerGroundMeters: { x: number; z: number };
-}
-
 export interface StatePatrolWorldEvent {
   id: string;
   trigger: Extract<SettlementEncounterTrigger, { kind: 'state-confrontation' }>;
-  receipt: WorldforgeEncounterReceipt;
+  receipt: StatePatrolEncounterReceipt;
   defense: GroundSettlementDefense;
   standing: PlayerFactionStanding;
   distanceFromTownCenterM: number;

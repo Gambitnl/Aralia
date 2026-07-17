@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 08/06/2026, 15:20:55
- * Dependents: components/BattleMap/terrain/index.ts
- * Imports: 2 files
+ * Last Sync: 16/07/2026, 11:54:41
+ * Dependents: components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/terrain/index.ts
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -29,11 +29,12 @@
  *
  * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md — "Terrain System" section
  */
-import React, { useEffect, useMemo, useRef } from 'react';
-import { ThreeEvent } from '@react-three/fiber';
-import * as THREE from 'three';
-import { BattleMapData, BattleMapTile } from '../../../types/combat';
-import { resolveTerrainTileCoordinates } from './terrainTileMapping';
+import React, { useEffect, useMemo, useRef } from "react";
+import { ThreeEvent } from "@react-three/fiber";
+import * as THREE from "three";
+import { BattleMapData, BattleMapTile } from "../../../types/combat";
+import { BATTLE_MAP_ELEVATION_METERS_PER_UNIT } from "../../../config/mapConfig";
+import { resolveTerrainTileCoordinates } from "./terrainTileMapping";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -48,9 +49,6 @@ const SUBDIVISIONS_PER_TILE = 4;
 const FRINGE_TILES = 12;
 // Must match the ground-apron plane Y in BattleMap3D (-0.15).
 const FRINGE_APRON_Y = -0.15;
-
-/** Vertical scale factor: elevation 1 → this many world units height */
-const ELEVATION_SCALE = 0.3;
 
 /** Small noise amplitude to add organic micro-detail to terrain surface */
 const MICRO_NOISE_AMPLITUDE = 0.04;
@@ -71,14 +69,21 @@ export const WATER_BASIN_DEPTH = 1.4;
 // Helpers — interpolation & noise (CPU side, for geometry generation)
 // ---------------------------------------------------------------------------
 
-function cubicInterpolate(v0: number, v1: number, v2: number, v3: number, t: number): number {
+function cubicInterpolate(
+  v0: number,
+  v1: number,
+  v2: number,
+  v3: number,
+  t: number,
+): number {
   const t2 = t * t;
   const t3 = t2 * t;
-  return 0.5 * (
-    (2 * v1) +
-    (-v0 + v2) * t +
-    (2 * v0 - 5 * v1 + 4 * v2 - v3) * t2 +
-    (-v0 + 3 * v1 - 3 * v2 + v3) * t3
+  return (
+    0.5 *
+    (2 * v1 +
+      (-v0 + v2) * t +
+      (2 * v0 - 5 * v1 + 4 * v2 - v3) * t2 +
+      (-v0 + 3 * v1 - 3 * v2 + v3) * t3)
   );
 }
 
@@ -151,12 +156,17 @@ export function makeTerrainHeightSampler(
     const cy = Math.max(0, Math.min(height - 1, ty));
     const tile = tileGrid[cy]?.[cx];
     const elev = tile?.elevation ?? 0;
-    return tile?.terrain === 'water' ? elev - WATER_BASIN_DEPTH : elev;
+    return tile?.terrain === "water" ? elev - WATER_BASIN_DEPTH : elev;
   };
   return (tileX: number, tileZ: number): number => {
     const smoothElev = bicubicSample(getElevation, tileX, tileZ, width, height);
     const noise = smoothNoise(tileX * 3.7, tileZ * 3.7, seed) * 2 - 1;
-    return smoothElev * ELEVATION_SCALE + noise * MICRO_NOISE_AMPLITUDE;
+    // Recover the same real vertical metres that the 2D elevation readout
+    // presents in feet; a shared constant keeps both renderers in agreement.
+    return (
+      smoothElev * BATTLE_MAP_ELEVATION_METERS_PER_UNIT +
+      noise * MICRO_NOISE_AMPLITUDE
+    );
   };
 }
 
@@ -190,7 +200,7 @@ function createTerrainTypeTexture(
     for (let x = 0; x < width; x++) {
       const idx = (y * width + x) * 4;
       const tile = mapData.tiles.get(`${x}-${y}`);
-      const terrainType = tile?.terrain ?? 'grass';
+      const terrainType = tile?.terrain ?? "grass";
       data[idx] = TERRAIN_TYPE_INDEX[terrainType] ?? 0;
       data[idx + 1] = 0;
       data[idx + 2] = 0;
@@ -581,34 +591,35 @@ function createTerrainMaterial(
 
     // --- Vertex shader: pass world position + world normal (for slope) ---
     shader.vertexShader = shader.vertexShader.replace(
-      '#include <common>',
-      '#include <common>\nvarying vec3 vTerrainWorldPos;\nvarying vec3 vTerrainNormal;',
+      "#include <common>",
+      "#include <common>\nvarying vec3 vTerrainWorldPos;\nvarying vec3 vTerrainNormal;",
     );
     shader.vertexShader = shader.vertexShader.replace(
-      '#include <begin_vertex>',
-      '#include <begin_vertex>\nvTerrainWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvTerrainNormal = normalize(mat3(modelMatrix) * objectNormal);',
+      "#include <begin_vertex>",
+      "#include <begin_vertex>\nvTerrainWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvTerrainNormal = normalize(mat3(modelMatrix) * objectNormal);",
     );
 
     // --- Fragment shader: inject noise functions + uniforms ---
     shader.fragmentShader = shader.fragmentShader.replace(
-      '#include <common>',
+      "#include <common>",
       `#include <common>\n${TERRAIN_GLSL_PREAMBLE}`,
     );
 
     // Replace vertex-color fragment with procedural terrain color
     shader.fragmentShader = shader.fragmentShader.replace(
-      '#include <color_fragment>',
+      "#include <color_fragment>",
       TERRAIN_COLOR_FRAGMENT,
     );
 
     // Add normal perturbation after normal mapping
     shader.fragmentShader = shader.fragmentShader.replace(
-      '#include <normal_fragment_maps>',
+      "#include <normal_fragment_maps>",
       `#include <normal_fragment_maps>\n${TERRAIN_NORMAL_FRAGMENT}`,
     );
   };
 
-  mat.customProgramCacheKey = () => `terrain-pbr-v7-${mapWidth}-${mapHeight}-${seed}-${dapple}`;
+  mat.customProgramCacheKey = () =>
+    `terrain-pbr-v7-${mapWidth}-${mapHeight}-${seed}-${dapple}`;
   return mat;
 }
 
@@ -620,7 +631,7 @@ interface TerrainMeshProps {
   mapData: BattleMapData;
   validMoves: Set<string>;
   activePath: { id: string }[];
-  actionMode: 'move' | 'ability' | null;
+  actionMode: "move" | "ability" | null;
   onTileClick: (tile: BattleMapTile) => void;
   /**
    * Tile-hover callback (AoE template preview while targeting). Pass it ONLY
@@ -687,8 +698,8 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
       const vx = positions.getX(i);
       const vz = positions.getZ(i);
 
-      const tileX = (vx / TILE_SIZE) + width / 2;
-      const tileZ = (vz / TILE_SIZE) + height / 2;
+      const tileX = vx / TILE_SIZE + width / 2;
+      const tileZ = vz / TILE_SIZE + height / 2;
 
       let vy = getVertexY(tileX, tileZ);
 
@@ -703,7 +714,8 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
         const s = t * t * (3 - 2 * t);
         const roll =
           (smoothNoise(tileX * 0.3 + 17.7, tileZ * 0.3 + 41.3, seed) * 2 - 1) *
-          1.1 * Math.sin(Math.PI * s);
+          1.1 *
+          Math.sin(Math.PI * s);
         vy = vy * (1 - s) + FRINGE_APRON_Y * s + roll * s;
       }
 
@@ -731,26 +743,43 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
   // Biome drives the dapple strength
   const biome = useMemo(() => {
     const m = mapData as BattleMapData & { biome?: string; theme?: string };
-    return m.biome ?? m.theme ?? 'forest';
+    return m.biome ?? m.theme ?? "forest";
   }, [mapData]);
 
   // Canopy dapple only where trees plausibly overhang the ground
-  const dapple = biome === 'forest' ? 1.0 : biome === 'swamp' ? 0.45 : 0.0;
+  const dapple = biome === "forest" ? 1.0 : biome === "swamp" ? 0.45 : 0.0;
 
   // Custom material with procedural GLSL texturing
   const material = useMemo(
-    () => createTerrainMaterial(terrainTypeTex, width, height, mapData.seed ?? 42, dapple),
+    () =>
+      createTerrainMaterial(
+        terrainTypeTex,
+        width,
+        height,
+        mapData.seed ?? 42,
+        dapple,
+      ),
     [terrainTypeTex, width, height, mapData.seed, dapple],
   );
 
   // Dispose GPU resources on change/unmount
-  useEffect(() => () => { terrainTypeTex.dispose(); }, [terrainTypeTex]);
-  useEffect(() => () => { material.dispose(); }, [material]);
+  useEffect(
+    () => () => {
+      terrainTypeTex.dispose();
+    },
+    [terrainTypeTex],
+  );
+  useEffect(
+    () => () => {
+      material.dispose();
+    },
+    [material],
+  );
 
   // Active path set for quick lookup
   const activePathSet = useMemo(() => {
     const set = new Set<string>();
-    activePath.forEach(p => set.add(p.id));
+    activePath.forEach((p) => set.add(p.id));
     return set;
   }, [activePath]);
 
@@ -762,7 +791,11 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
       // ray lands on a steeply displaced surface. Clamping the derived tile
       // coordinate keeps valid edge clicks from falling out of bounds.
       const tileCoords = resolveTerrainTileCoordinates(
-        { x: event.point.x / TILE_SIZE, y: event.point.y, z: event.point.z / TILE_SIZE },
+        {
+          x: event.point.x / TILE_SIZE,
+          y: event.point.y,
+          z: event.point.z / TILE_SIZE,
+        },
         { width, height },
         { sampleHeight: terrainHeightSampler },
       );

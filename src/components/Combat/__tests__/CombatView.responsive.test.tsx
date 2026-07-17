@@ -71,6 +71,13 @@ const gameContext = vi.hoisted(() => {
   return {
     worldBattleMap,
     extractedBattleMap: worldBattleMap as unknown,
+    battlefieldSourceGap: null as null | {
+      code: string;
+      encounterLabel: string;
+      locationLabel: string;
+      missingSourceFacts: string[];
+      detail: string;
+    },
     dispatch: vi.fn(),
   };
 });
@@ -113,7 +120,10 @@ vi.mock('../../Crafting/CreatureHarvestPanel', () => ({ CreatureHarvestPanel: ()
 
 vi.mock('../../../state/GameContext', () => ({
   useGameState: () => ({
-    state: { extractedBattleMap: gameContext.extractedBattleMap },
+    state: {
+      extractedBattleMap: gameContext.extractedBattleMap,
+      battlefieldSourceGap: gameContext.battlefieldSourceGap,
+    },
     dispatch: gameContext.dispatch,
   }),
 }));
@@ -215,6 +225,7 @@ describe('CombatView responsive layout', () => {
     abilityTargeting.selectedAbility = null;
     abilityTargeting.cancelTargeting.mockClear();
     gameContext.extractedBattleMap = gameContext.worldBattleMap;
+    gameContext.battlefieldSourceGap = null;
     gameContext.dispatch.mockClear();
     combatAI.useCombatAI.mockClear();
   });
@@ -290,6 +301,43 @@ describe('CombatView responsive layout', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Return to world' }));
     expect(gameContext.dispatch).toHaveBeenCalledWith({ type: 'END_BATTLE' });
+  });
+
+  it('renders the exact authored-town source gap without an enemy roster', () => {
+    gameContext.extractedBattleMap = null;
+    gameContext.battlefieldSourceGap = {
+      code: 'authored-town-watch-no-worldforge-location',
+      encounterLabel: 'Wanted watch confrontation',
+      locationLabel: 'Authored town "oakhaven"',
+      missingSourceFacts: [
+        'WorldForge cell',
+        'settlement site',
+        'tactical terrain projection',
+      ],
+      detail: 'Town Guard belongs to an authored town with no canonical WorldForge mapping.',
+    };
+
+    render(
+      <SpellContext.Provider value={{} as any}>
+        <CombatView
+          party={[{ id: 'party-1', name: 'Dev Player' } as any]}
+          enemies={[]}
+          biome="forest"
+          onBattleEnd={vi.fn()}
+        />
+      </SpellContext.Provider>,
+    );
+
+    const gap = screen.getByTestId('battlefield-source-gap');
+    expect(gap).toHaveAttribute('data-source-gap-code', 'authored-town-watch-no-worldforge-location');
+    expect(gap).toHaveTextContent('Wanted watch confrontation');
+    expect(gap).toHaveTextContent('Authored town "oakhaven"');
+    expect(gap).toHaveTextContent('WorldForge cell, settlement site, tactical terrain projection');
+    expect(gap).toHaveTextContent('Enemy roster');
+    expect(gap).toHaveTextContent('Not fabricated');
+    expect(screen.queryByTestId('mock-battle-map')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('mock-initiative-tracker')).not.toBeInTheDocument();
+    expect(combatAI.useCombatAI).toHaveBeenLastCalledWith(expect.objectContaining({ characters: [] }));
   });
 
   it('lets the player independently hide and restore both combat rails', () => {

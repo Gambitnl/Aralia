@@ -5,7 +5,8 @@ import type { GameState } from '../../../types';
 import type { AppAction } from '../../../state/actionTypes';
 import type { RichNPC } from '../../../types/world';
 import type { RecruitPayload } from '../../../systems/party/recruitTypes';
-import type { CombatCharacter } from '../../../types/combat';
+import type { CombatCharacter, WorldforgeCombatantSource } from '../../../types/combat';
+import { createAuthoredTownWatchSourceGap } from '../../../systems/combat/fightInPlace/authoredTownWatchSourceGap';
 
 /**
  * Protects the encounter resolution boundary — specifically the ADDITIVE
@@ -151,6 +152,38 @@ describe('handleEndBattle', () => {
 // ============================================================================
 
 describe('handleStartBattleMapEncounter', () => {
+  it('dispatches a declared source gap with no prepared enemy roster', async () => {
+    const dispatch = vi.fn() as unknown as Dispatch<AppAction>;
+    const sourceGap = createAuthoredTownWatchSourceGap('oakhaven', 'Town Guard');
+
+    await handleStartBattleMapEncounter(dispatch, {
+      monsters: [],
+      sourceGap,
+    });
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: 'START_BATTLE_MAP_ENCOUNTER',
+      payload: {
+        startBattleMapEncounterData: {
+          monsters: [],
+          combatants: [],
+          sourceGap,
+        },
+      },
+    });
+  });
+
+  it('rejects any actor or map smuggled into a declared source gap', async () => {
+    const dispatch = vi.fn() as unknown as Dispatch<AppAction>;
+    const sourceGap = createAuthoredTownWatchSourceGap('oakhaven', 'Town Guard');
+
+    await expect(handleStartBattleMapEncounter(dispatch, {
+      monsters: [{ name: 'Guard', quantity: 2, cr: '1/8', description: 'Counterfeit roster' }],
+      sourceGap,
+    })).rejects.toThrow(/cannot include monsters, combatants, source identities, or extracted terrain/i);
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
   it('preserves prepared WorldForge combatants in the reducer payload', async () => {
     const dispatch = vi.fn() as unknown as Dispatch<AppAction>;
     const defender = {
@@ -181,5 +214,74 @@ describe('handleStartBattleMapEncounter', () => {
         },
       },
     });
+  });
+
+  it('joins saved opening-scene identities to prepared actors in roster order', async () => {
+    const dispatch = vi.fn() as unknown as Dispatch<AppAction>;
+    const goblin = {
+      id: 'opening-goblin-1',
+      name: 'Goblin',
+      team: 'enemy',
+    } as unknown as CombatCharacter;
+    const wolf = {
+      id: 'opening-wolf-1',
+      name: 'Wolf',
+      team: 'enemy',
+    } as unknown as CombatCharacter;
+    const sources: WorldforgeCombatantSource[] = [
+      {
+        kind: 'worldforge-opening-threat',
+        sceneReceiptId: 'worldforge-opening-scene:test',
+        sourceOpeningReceiptId: 'opening:42:cell:829',
+        entityId: 'opening:goblin:1',
+        monsterName: 'Goblin',
+        monsterOrdinal: 1,
+        socialRole: 'contact-lead',
+        worldGroundMeters: { x: 100, z: 200 },
+      },
+      {
+        kind: 'worldforge-opening-threat',
+        sceneReceiptId: 'worldforge-opening-scene:test',
+        sourceOpeningReceiptId: 'opening:42:cell:829',
+        entityId: 'opening:wolf:1',
+        monsterName: 'Wolf',
+        monsterOrdinal: 1,
+        socialRole: 'scent-flanker',
+        worldGroundMeters: { x: 106, z: 197 },
+      },
+    ];
+
+    await handleStartBattleMapEncounter(dispatch, {
+      monsters: [],
+      combatants: [goblin, wolf],
+      combatantWorldSources: sources,
+    });
+
+    const action = (dispatch as unknown as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as Extract<
+      AppAction,
+      { type: 'START_BATTLE_MAP_ENCOUNTER' }
+    >;
+    expect(action.payload.startBattleMapEncounterData.combatants).toEqual([
+      { ...goblin, worldSource: sources[0] },
+      { ...wolf, worldSource: sources[1] },
+    ]);
+  });
+
+  it('fails closed when source identities cannot cover the prepared roster exactly', async () => {
+    const dispatch = vi.fn() as unknown as Dispatch<AppAction>;
+    const actor = {
+      id: 'opening-goblin-1',
+      name: 'Goblin',
+      team: 'enemy',
+    } as unknown as CombatCharacter;
+
+    // A partial join would assign the wrong ecology and history to later actors.
+    // Reject the encounter before the reducer can display counterfeit identities.
+    await expect(handleStartBattleMapEncounter(dispatch, {
+      monsters: [],
+      combatants: [actor],
+      combatantWorldSources: [],
+    })).rejects.toThrow(/supplied 0 combatant sources for 1 prepared actors/i);
+    expect(dispatch).not.toHaveBeenCalled();
   });
 });

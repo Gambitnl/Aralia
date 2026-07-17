@@ -126,11 +126,15 @@ export interface PlanSpec {
   bodyLenM: number;
   /** Base body radius; chain link radii are fractions of this. */
   bodyRadM: number;
-  spine: { segments: number; taper: number; arch: number };
+  spine: { segments: number; taper: number; arch: number; shape?: 'round' | 'box'; bulge?: number };
+  /** Body translucency (ghosts, oozes); eyes stay solid. */
+  opacity?: number;
   chains: Array<{
     /** Stable id: 'leg0L', 'tent2', 'neck1' … */
     id: string;
-    kind: 'leg' | 'arm' | 'tail' | 'tentacle' | 'neck' | 'wing';
+    kind: 'leg' | 'arm' | 'tail' | 'tentacle' | 'neck' | 'wing' | 'torso';
+    /** Torso chain this one roots on (the tauric seam). */
+    parentId?: string;
     /** -1 left / 1 right for mirrored pairs; 0 centered. */
     side: -1 | 0 | 1;
     /** 0 front – 1 rear along the spine; 0–1 height on the body. */
@@ -139,13 +143,21 @@ export interface PlanSpec {
     links: Array<{ lenM: number; rM: number }>;
     /** Stride phase for legs (distributed); 0 for other kinds. */
     phaseOffset: number;
+    /** 'hand' = stylized palm + fingers at the tip. */
+    tips?: 'hand';
+    /** Accent energy rings hovering at interior joints. */
+    jointRings?: boolean;
   }>;
   heads: Array<{
     /** Neck chain this head rides; undefined = spine front. */
     chainId?: string;
+    /** Sculpted head form; undefined = plain ball. */
+    form?: 'serpent' | 'beast' | 'blunt' | 'skull';
     sizeScale: number;
-    eyes: { count: number; sizeScale: number };
+    eyes: { count: number; sizeScale: number; pupil?: 'round' | 'slit' | 'goat' };
     snout?: { lengthScale: number; droop: number };
+    /** Ring of fleshy lash segments around the eye. */
+    cilia?: boolean;
   }>;
 }
 
@@ -188,6 +200,18 @@ export interface BodySegment {
 export interface SegmentSink {
   seg(id: string, ax: number, ay: number, az: number, bx: number, by: number, bz: number, r0: number, r1: number): void;
   ball(id: string, x: number, y: number, z: number, r: number): void;
+  /** Floating accent-colored energy ring at (x,y,z), facing along its normal
+   * (nx,ny,nz). radius/tube are frame-constant per id, like segment radii.
+   * Optional: only the full body renderer draws rings; bake/collector sinks
+   * may omit it. */
+  ring?(id: string, x: number, y: number, z: number, nx: number, ny: number, nz: number, radius: number, tube: number): void;
+  /** Rectangular slab from a to b (its depth axis), w×h cross-section —
+   * box-bodied creatures (cubes, chests, golems). Optional like ring(). */
+  box?(id: string, ax: number, ay: number, az: number, bx: number, by: number, bz: number, w: number, h: number): void;
+  /** Continuous swept tube through control points (flat xyz triples) with a
+   * radius profile (knots spread evenly along the curve) — smooth spines and
+   * chains. Optional: sinks without it receive per-segment seg() fallbacks. */
+  tube?(id: string, points: number[], radii: number[]): void;
 }
 
 /** Minimal position — THREE.Vector3 satisfies this, keeping the data layer three-free. */

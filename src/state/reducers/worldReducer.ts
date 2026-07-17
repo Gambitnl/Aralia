@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/07/2026, 17:46:52
+ * Last Sync: 16/07/2026, 08:57:09
  * Dependents: state/appState.ts
- * Imports: 25 files
+ * Imports: 26 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -18,34 +18,38 @@
  * @file src/state/reducers/worldReducer.ts
  * A slice reducer that handles world-related state changes.
  */
-import { GameState } from '../../types';
-import { withLegacyWeatherBridge } from '../../types/environment';
-import { AppAction } from '../actionTypes';
-import { LOCATIONS } from '../../data/world/locations';
-import { NPCS } from '../../data/world/npcs';
-import { appendAdventureLogEntry } from '../../systems/adventureLog/adventureLog';
-import { getTimeOfDay, getGameDay } from '../../utils/core';
-import { groundPosToLocaleFeet } from '../../systems/worldforge/local/localePosition';
-import { biomeIdForCell } from '../../systems/worldforge/local/biomeForCell';
-import { nearBurgIdsForCell } from '../../systems/worldforge/local/burgProximity';
-import { advanceRegistry } from '../../systems/worldforge/townsim/townSimRegistry';
-import { raidPressureForBurg } from '../../systems/worldforge/dungeon/world/raidPressure';
+import { GameState } from "../../types";
+import { withLegacyWeatherBridge } from "../../types/environment";
+import { AppAction } from "../actionTypes";
+import { LOCATIONS } from "../../data/world/locations";
+import { NPCS } from "../../data/world/npcs";
+import { appendAdventureLogEntry } from "../../systems/adventureLog/adventureLog";
+import { getTimeOfDay, getGameDay } from "../../utils/core";
+import { groundPosToLocaleFeet } from "../../systems/worldforge/local/localePosition";
+import { biomeIdForCell } from "../../systems/worldforge/local/biomeForCell";
+import { nearBurgIdsForCell } from "../../systems/worldforge/local/burgProximity";
+import { advanceRegistry } from "../../systems/worldforge/townsim/townSimRegistry";
+import { raidPressureForBurg } from "../../systems/worldforge/dungeon/world/raidPressure";
 import {
   buildTownSimStateForBurg,
   buildingEvolutionForBurg,
-} from '../../systems/worldforge/townsim/townSimRegistration';
-import { processWorldEvents } from '../../systems/world/WorldEventManager';
-import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
-import { DEFAULT_WEATHER } from '../../systems/environment/EnvironmentSystem';
-import { updateWeather } from '../../systems/environment/WeatherSystem';
-import { ritualReducer } from './ritualReducer';
-import { addHistoryEvent, createEmptyHistory } from '../../utils/historyUtils';
-import { processAllStrongholds, strongholdSummariesToMessages } from '../../services/strongholdService';
-import { processAllBusinesses } from '../../systems/economy/BusinessSimulation';
-import { processAllInvestments } from '../../systems/economy/InvestmentManager';
-import { processAllNpcBusinesses } from '../../systems/economy/NpcBusinessManager';
-import { processPlayerBusinessManagement } from '../../systems/economy/BusinessManagement';
-import { SeededRandom } from '@/utils/random';
+} from "../../systems/worldforge/townsim/townSimRegistration";
+import { processWorldEvents } from "../../systems/world/WorldEventManager";
+import { UnderdarkMechanics } from "../../systems/underdark/UnderdarkMechanics";
+import { DEFAULT_WEATHER } from "../../systems/environment/EnvironmentSystem";
+import { updateWeather } from "../../systems/environment/WeatherSystem";
+import { ritualReducer } from "./ritualReducer";
+import { addHistoryEvent, createEmptyHistory } from "../../utils/historyUtils";
+import {
+  processAllStrongholds,
+  strongholdSummariesToMessages,
+} from "../../services/strongholdService";
+import { processAllBusinesses } from "../../systems/economy/BusinessSimulation";
+import { processAllInvestments } from "../../systems/economy/InvestmentManager";
+import { processAllNpcBusinesses } from "../../systems/economy/NpcBusinessManager";
+import { processPlayerBusinessManagement } from "../../systems/economy/BusinessManagement";
+import { SeededRandom } from "@/utils/random";
+import { resolveOpeningThreatSceneAfterCombat } from "@/systems/combat/worldScenario/openingThreatOutcome";
 
 /** Distance-LOD radius in atlas GRAPH units: tracked towns within this of the
  *  player's cell tick daily; farther towns catch up on approach (identical
@@ -70,24 +74,27 @@ const hashStringToSeed = (value: string): number => {
 const parseShelfLifeMillis = (shelfLife?: string): number | null => {
   if (!shelfLife) return null;
 
-  const match = /^(\d+(?:\.\d+)?)\s*(minute|minutes|hour|hours|day|days)$/i.exec(shelfLife.trim());
+  const match =
+    /^(\d+(?:\.\d+)?)\s*(minute|minutes|hour|hours|day|days)$/i.exec(
+      shelfLife.trim(),
+    );
   if (!match) return null;
 
   const quantity = Number(match[1]);
   const unit = match[2].toLowerCase();
 
   if (!Number.isFinite(quantity) || quantity <= 0) return null;
-  if (unit.startsWith('minute')) return quantity * MILLIS_PER_MINUTE;
-  if (unit.startsWith('hour')) return quantity * MILLIS_PER_HOUR;
-  if (unit.startsWith('day')) return quantity * MILLIS_PER_DAY;
+  if (unit.startsWith("minute")) return quantity * MILLIS_PER_MINUTE;
+  if (unit.startsWith("hour")) return quantity * MILLIS_PER_HOUR;
+  if (unit.startsWith("day")) return quantity * MILLIS_PER_DAY;
 
   return null;
 };
 
 const removeExpiredPerishableInventory = (
-  inventory: GameState['inventory'],
-  currentTime: Date
-): GameState['inventory'] => {
+  inventory: GameState["inventory"],
+  currentTime: Date,
+): GameState["inventory"] => {
   const currentTimeMs = currentTime.getTime();
 
   return inventory.filter((item) => {
@@ -101,21 +108,24 @@ const removeExpiredPerishableInventory = (
 };
 
 export const resolveBiomeId = (state: GameState): string => {
-    const staticLocation = LOCATIONS[state.currentLocationId];
-    if (staticLocation?.biomeId) return staticLocation.biomeId;
+  const staticLocation = LOCATIONS[state.currentLocationId];
+  if (staticLocation?.biomeId) return staticLocation.biomeId;
 
-    // Cell-native: the biome is the player's canonical atlas cell's biome.
-    // (Stage 6: the legacy coord_X_Y → mapData.tiles grid lookup is removed.)
-    if (state.playerCell?.cellId != null) {
-      const cellBiome = biomeIdForCell(state.worldSeed, state.playerCell.cellId);
-      if (cellBiome) return cellBiome;
-    }
-    return 'plains';
+  // Cell-native: the biome is the player's canonical atlas cell's biome.
+  // (Stage 6: the legacy coord_X_Y → mapData.tiles grid lookup is removed.)
+  if (state.playerCell?.cellId != null) {
+    const cellBiome = biomeIdForCell(state.worldSeed, state.playerCell.cellId);
+    if (cellBiome) return cellBiome;
+  }
+  return "plains";
 };
 
-export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
+export function worldReducer(
+  state: GameState,
+  action: AppAction,
+): Partial<GameState> {
   switch (action.type) {
-    case 'SET_PLAYER_GROUND_POS': {
+    case "SET_PLAYER_GROUND_POS": {
       // Ground mode reports camera anchors in tile-local meters. Store them in
       // their own field so atlas/world travel never consumes them as continent
       // meters from playerWorldPos.
@@ -136,7 +146,9 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       // is a derived shadow of `playerGroundPos` (removed at Stage 6 when the cell
       // becomes the sole truth). No-op when no cell is recorded yet (honest
       // "unknown" — the mirror never invents a cell).
-      const slice: Partial<GameState> = { playerGroundPos: { ...nextPosition } };
+      const slice: Partial<GameState> = {
+        playerGroundPos: { ...nextPosition },
+      };
       if (state.playerCell) {
         slice.playerCell = {
           ...state.playerCell,
@@ -146,7 +158,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       return slice;
     }
 
-    case 'LOCALE_CROSS_TO_CELL': {
+    case "LOCALE_CROSS_TO_CELL": {
       // Stage 5 (seamless edges): walking off a Locale edge re-anchors the
       // canonical cell to the neighbour. Seat the player at the new Locale's entry
       // feet and DROP the old cell's ground anchor (null = honest "unknown until
@@ -156,12 +168,15 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       // this is movement, not a travel commit.
       const { cellId, enterFeet } = action.payload;
       return {
-        playerCell: { cellId, localeCoords: { x: enterFeet.x, y: enterFeet.y } },
+        playerCell: {
+          cellId,
+          localeCoords: { x: enterFeet.x, y: enterFeet.y },
+        },
         playerGroundPos: null,
       };
     }
 
-    case 'REVEAL_HIDDEN_SITE': {
+    case "REVEAL_HIDDEN_SITE": {
       // SP4 discovery: record a hidden place the player revealed by 3D proximity.
       // Deduped by id so re-entering its radius is idempotent and saves don't grow.
       const discovered = state.discoveredHiddenSites ?? [];
@@ -169,7 +184,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       return { discoveredHiddenSites: [...discovered, action.payload] };
     }
 
-    case 'DUNGEON_CLEARED': {
+    case "DUNGEON_CLEARED": {
       // Pillar 2, Task 8: record a dungeon site the party has cleared. Deduped by
       // sitePath so re-triggering the clear is idempotent and saves don't grow —
       // exactly the REVEAL_HIDDEN_SITE persistence pattern.
@@ -178,13 +193,13 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       return { clearedDungeons: [...cleared, action.payload.sitePath] };
     }
 
-    case 'APPLY_WORLDFORGE_DELTA': {
+    case "APPLY_WORLDFORGE_DELTA": {
       const currentDeltas = state.worldforgeDeltas ?? [];
 
       // Deltas can be replayed by load/generation bridges, so the id is treated
       // as the stable event key. Returning the same array for duplicates keeps
       // replay idempotent and avoids accidental save growth.
-      if (currentDeltas.some(delta => delta.id === action.payload.delta.id)) {
+      if (currentDeltas.some((delta) => delta.id === action.payload.delta.id)) {
         return { worldforgeDeltas: currentDeltas };
       }
 
@@ -195,37 +210,150 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       };
     }
 
-    case 'RECORD_WORLDFORGE_ENCOUNTER': {
+    case "RESOLVE_WORLDFORGE_OPENING_SCENE": {
+      const openingSnapshots = action.payload.finalEnemyState.filter(
+        (snapshot) =>
+          snapshot.worldSource?.kind === "worldforge-opening-threat",
+      );
+
+      // Other encounter classes pass through untouched. Once any opening-scene
+      // identity is present, however, mixing it with anonymous or unrelated
+      // enemies is a hard source mismatch rather than a partial reconciliation.
+      if (openingSnapshots.length === 0) return {};
+      const appendSourceGap = (detail: string): Partial<GameState> => ({
+        messages: [
+          ...state.messages,
+          {
+            id: state.gameTime.getTime() + state.messages.length + 1,
+            text: `WorldForge outcome source gap: ${detail}`,
+            sender: "system",
+            timestamp: new Date(state.gameTime),
+          },
+        ],
+      });
+      if (openingSnapshots.length !== action.payload.finalEnemyState.length) {
+        return appendSourceGap(
+          "one combat mixed opening-scene creatures with unrelated enemy identities",
+        );
+      }
+
+      const sceneIds = new Set(
+        openingSnapshots.map((snapshot) =>
+          snapshot.worldSource?.kind === "worldforge-opening-threat"
+            ? snapshot.worldSource.sceneReceiptId
+            : "",
+        ),
+      );
+      if (sceneIds.size !== 1) {
+        return appendSourceGap(
+          "final enemy snapshots refer to more than one opening scene",
+        );
+      }
+      const sceneId = [...sceneIds][0]!;
+      const currentReceipts = state.worldforgeEncounterReceipts ?? [];
+      const receiptIndex = currentReceipts.findIndex(
+        (receipt) => receipt.id === sceneId,
+      );
+      const receipt = currentReceipts[receiptIndex];
+      if (
+        !receipt ||
+        receipt.kind !== "opening-threat-scene" ||
+        receipt.policyVersion !== "opening-threat-scene-v2"
+      ) {
+        return appendSourceGap(
+          `final combat identities refer to missing current scene ${sceneId}`,
+        );
+      }
+      if (!state.extractedBattleMap) {
+        return appendSourceGap(
+          `opening scene ${sceneId} ended after its WorldForge tactical map was lost`,
+        );
+      }
+
+      const reconciliation = resolveOpeningThreatSceneAfterCombat(
+        receipt,
+        state.extractedBattleMap,
+        openingSnapshots,
+        action.payload.result,
+        state.gameTime.getTime(),
+      );
+      if (reconciliation.status !== "ready") {
+        return appendSourceGap(reconciliation.detail);
+      }
+      if (reconciliation.receipt === receipt) return {};
+
+      // Replace the same historical event in place. The encounter chronology
+      // remains stable while the once-unresolved scene gains its final state.
+      const resolvedReceipts = [...currentReceipts];
+      resolvedReceipts[receiptIndex] = reconciliation.receipt;
+      return { worldforgeEncounterReceipts: resolvedReceipts };
+    }
+
+    case "RECORD_WORLDFORGE_ENCOUNTER": {
       const currentReceipts = state.worldforgeEncounterReceipts ?? [];
 
       // React effects and movement callbacks can observe the same event during
       // one render boundary. The deterministic event id is the durable receipt
       // key, so duplicate dispatches keep the original chronology unchanged.
-      if (currentReceipts.some((receipt) => receipt.id === action.payload.receipt.id)) {
+      const existingReceiptIndex = currentReceipts.findIndex(
+        (receipt) => receipt.id === action.payload.receipt.id,
+      );
+      if (existingReceiptIndex >= 0) {
+        const existingReceipt = currentReceipts[existingReceiptIndex];
+        const incomingReceipt = action.payload.receipt;
+
+        // Opening v2 adds a persistent physical activity site, later saves add
+        // terrain imprints, and combat completion adds one immutable outcome.
+        // Replace only a matching incomplete contract in place so upgrades keep
+        // event chronology; complete duplicate receipts remain idempotent.
+        if (
+          existingReceipt?.kind === "opening-threat-scene" &&
+          incomingReceipt.kind === "opening-threat-scene" &&
+          incomingReceipt.policyVersion === "opening-threat-scene-v2" &&
+          (existingReceipt.policyVersion === "opening-threat-scene-v1" ||
+            (existingReceipt.policyVersion === "opening-threat-scene-v2" &&
+              !existingReceipt.terrainImprints?.length &&
+              Boolean(incomingReceipt.terrainImprints?.length)) ||
+            (existingReceipt.policyVersion === "opening-threat-scene-v2" &&
+              !existingReceipt.resolution &&
+              Boolean(incomingReceipt.resolution)))
+        ) {
+          const upgradedReceipts = [...currentReceipts];
+          upgradedReceipts[existingReceiptIndex] = incomingReceipt;
+          return { worldforgeEncounterReceipts: upgradedReceipts };
+        }
+
         return { worldforgeEncounterReceipts: currentReceipts };
       }
 
       return {
-        worldforgeEncounterReceipts: [...currentReceipts, action.payload.receipt],
+        worldforgeEncounterReceipts: [
+          ...currentReceipts,
+          action.payload.receipt,
+        ],
       };
     }
 
-    case 'SET_LAST_NPC_INTERACTION':
+    case "SET_LAST_NPC_INTERACTION":
       return {
         lastInteractedNpcId: (action.payload as { npcId: string | null }).npcId,
-        lastNpcResponse: (action.payload as { response: string | null }).response,
+        lastNpcResponse: (action.payload as { response: string | null })
+          .response,
       };
 
-    case 'RESET_NPC_INTERACTION_CONTEXT':
+    case "RESET_NPC_INTERACTION_CONTEXT":
       return {
         lastInteractedNpcId: null,
         lastNpcResponse: null,
       };
 
-    case 'SET_GEMINI_ACTIONS':
-      return { geminiGeneratedActions: action.payload as GameState['geminiGeneratedActions'] };
+    case "SET_GEMINI_ACTIONS":
+      return {
+        geminiGeneratedActions:
+          action.payload as GameState["geminiGeneratedActions"],
+      };
 
-    case 'TOWNSIM_REGISTER_BURG': {
+    case "TOWNSIM_REGISTER_BURG": {
       // Plan D: the player has entered a town — start (or keep) tracking its
       // living-world history. Idempotent: a town is built once, then advanced by
       // the ADVANCE_TIME daily loop. Its history begins at the current game day.
@@ -241,17 +369,24 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
             ...registry,
             [burgId]: {
               ...existing,
-              buildingEvolution: buildingEvolutionForBurg(state.worldSeed, burgId),
+              buildingEvolution: buildingEvolutionForBurg(
+                state.worldSeed,
+                burgId,
+              ),
             },
           },
         };
       }
       const currentDay = getGameDay(state.gameTime);
-      const townState = buildTownSimStateForBurg(state.worldSeed, burgId, currentDay);
+      const townState = buildTownSimStateForBurg(
+        state.worldSeed,
+        burgId,
+        currentDay,
+      );
       return { townSim: { ...registry, [burgId]: townState } };
     }
 
-    case 'ADVANCE_TIME': {
+    case "ADVANCE_TIME": {
       // RALPH: The Chronos Loop.
       // Advancing time isn't just updating a clock; it triggers a chain reaction:
       // 1. Ritual Progression: Some spells tick down per second.
@@ -283,11 +418,12 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
 
       // 2. Underdark Mechanics
       // Processes light decay and sanity.
-      const { underdark: newUnderdark, messages: underdarkMessages } = UnderdarkMechanics.processTime(nextState, action.payload.seconds);
-      nextState = { 
-        ...nextState, 
+      const { underdark: newUnderdark, messages: underdarkMessages } =
+        UnderdarkMechanics.processTime(nextState, action.payload.seconds);
+      nextState = {
+        ...nextState,
         underdark: newUnderdark,
-        messages: [...nextState.messages, ...underdarkMessages]
+        messages: [...nextState.messages, ...underdarkMessages],
       };
 
       if (daysPassed > 0) {
@@ -296,24 +432,33 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         let nextWeather = nextState.environment || DEFAULT_WEATHER;
 
         for (let dayOffset = 0; dayOffset < daysPassed; dayOffset++) {
-          const dayProgressTime = new Date(newTime.getTime() - ((daysPassed - dayOffset - 1) * MILLIS_PER_DAY));
-          const weatherSeed = hashStringToSeed([
-            nextState.worldSeed,
+          const dayProgressTime = new Date(
+            newTime.getTime() - (daysPassed - dayOffset - 1) * MILLIS_PER_DAY,
+          );
+          const weatherSeed = hashStringToSeed(
+            [
+              nextState.worldSeed,
+              biomeId,
+              dayProgressTime.toISOString(),
+              nextWeather.precipitation,
+              nextWeather.temperature,
+              nextWeather.wind.direction,
+              nextWeather.wind.speed,
+            ].join("|"),
+          );
+          nextWeather = updateWeather(
+            nextWeather,
             biomeId,
-            dayProgressTime.toISOString(),
-            nextWeather.precipitation,
-            nextWeather.temperature,
-            nextWeather.wind.direction,
-            nextWeather.wind.speed
-          ].join('|'));
-          nextWeather = updateWeather(nextWeather, biomeId, getTimeOfDay(dayProgressTime), new SeededRandom(weatherSeed));
+            getTimeOfDay(dayProgressTime),
+            new SeededRandom(weatherSeed),
+          );
         }
 
         nextState = {
           ...nextState,
           // Reattach the legacy label bridge so older narrative consumers keep
           // seeing a string while the reducer still owns the canonical weather state.
-          environment: withLegacyWeatherBridge(nextWeather)
+          environment: withLegacyWeatherBridge(nextWeather),
         };
 
         // 4. Daily World Simulation
@@ -322,14 +467,15 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
           nextState = {
             ...nextState,
             shortRestTracker: {
-                ...currentRestTracker,
-                restsTakenToday: 0,
-                lastRestDay: newDay,
-            }
+              ...currentRestTracker,
+              restsTakenToday: 0,
+              lastRestDay: newDay,
+            },
           };
         }
-        
-        const { state: simulatedWorldState, logs: worldLogs } = processWorldEvents(nextState, daysPassed);
+
+        const { state: simulatedWorldState, logs: worldLogs } =
+          processWorldEvents(nextState, daysPassed);
 
         // Preserve the full daily simulation result so economy, rumors, history,
         // couriers, and other world-owned fields survive the reducer boundary.
@@ -338,7 +484,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         nextState = {
           ...nextState,
           ...simulatedWorldState,
-          messages: [...nextState.messages, ...worldLogs]
+          messages: [...nextState.messages, ...worldLogs],
         };
 
         // 4b. Living-world town sim: advance tracked towns' multi-day history up
@@ -348,9 +494,14 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         // batch == daily). With no cell yet, advance all (conservative, correct).
         // No-op until a town is first tracked. (Stage 6: grid coord LOD removed.)
         if (nextState.townSim && Object.keys(nextState.townSim).length > 0) {
-          const nearBurgIds = nextState.playerCell?.cellId != null
-            ? nearBurgIdsForCell(nextState.worldSeed, nextState.playerCell.cellId, NEAR_SIM_GRAPH_RADIUS)
-            : undefined;
+          const nearBurgIds =
+            nextState.playerCell?.cellId != null
+              ? nearBurgIdsForCell(
+                  nextState.worldSeed,
+                  nextState.playerCell.cellId,
+                  NEAR_SIM_GRAPH_RADIUS,
+                )
+              : undefined;
           // Pillar 2, Task 8 (living ecology): feed each ticking town its raid
           // pressure from uncleared dungeons, so a beset burg occasionally frets
           // in its chronicle. Cheap (plan-free site distance) + cached per seed;
@@ -371,22 +522,37 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         }
 
         // 5. Stronghold Daily Processing
-        if (nextState.strongholds && Object.keys(nextState.strongholds).length > 0) {
-          const { updatedStrongholds, summaries } = processAllStrongholds(nextState.strongholds);
-          const strongholdMessages = strongholdSummariesToMessages(summaries, newTime);
+        if (
+          nextState.strongholds &&
+          Object.keys(nextState.strongholds).length > 0
+        ) {
+          const { updatedStrongholds, summaries } = processAllStrongholds(
+            nextState.strongholds,
+          );
+          const strongholdMessages = strongholdSummariesToMessages(
+            summaries,
+            newTime,
+          );
           nextState = {
             ...nextState,
             strongholds: updatedStrongholds,
-            messages: [...nextState.messages, ...strongholdMessages]
+            messages: [...nextState.messages, ...strongholdMessages],
           };
         }
 
         // 6. Business Daily Processing
         const currentBusinesses = nextState.businesses;
         const currentStrongholds = nextState.strongholds;
-        if (currentBusinesses && Object.keys(currentBusinesses).length > 0 && currentStrongholds) {
+        if (
+          currentBusinesses &&
+          Object.keys(currentBusinesses).length > 0 &&
+          currentStrongholds
+        ) {
           const businessRng = new SeededRandom(state.worldSeed + newDay + 7777);
-          let bizState = { businesses: currentBusinesses, strongholds: currentStrongholds };
+          let bizState = {
+            businesses: currentBusinesses,
+            strongholds: currentStrongholds,
+          };
           for (let d = 0; d < daysPassed; d++) {
             const bizResult = processAllBusinesses(
               bizState.businesses,
@@ -394,14 +560,17 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
               nextState.economy,
               nextState.factions,
               newDay - daysPassed + d + 1,
-              businessRng
+              businessRng,
             );
-            bizState = { businesses: bizResult.businesses, strongholds: bizResult.strongholds };
+            bizState = {
+              businesses: bizResult.businesses,
+              strongholds: bizResult.strongholds,
+            };
           }
           nextState = {
             ...nextState,
             businesses: bizState.businesses,
-            strongholds: bizState.strongholds
+            strongholds: bizState.strongholds,
           };
         }
 
@@ -416,7 +585,10 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         // the single consumer. See src/systems/worldforge/bridge/townEconomy.ts for helpers and
         // src/systems/worldforge/bridge/__tests__/townEconomy.test.ts for regression coverage.
         const currentWorldBusinesses = nextState.worldBusinesses;
-        if (currentWorldBusinesses && Object.keys(currentWorldBusinesses).length > 0) {
+        if (
+          currentWorldBusinesses &&
+          Object.keys(currentWorldBusinesses).length > 0
+        ) {
           const npcBizRng = new SeededRandom(state.worldSeed + newDay + 8888);
           let wbState = currentWorldBusinesses;
           for (let d = 0; d < daysPassed; d++) {
@@ -425,7 +597,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
               nextState.economy,
               nextState.factions,
               newDay - daysPassed + d + 1,
-              npcBizRng
+              npcBizRng,
             );
             wbState = wbResult.worldBusinesses;
             // Clear businessId on NPCs whose businesses closed
@@ -449,7 +621,10 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         // random business events (theft, festivals, competitor changes), and customer ramp-up
         // caps for newly founded businesses. Events generate courier messages for the player.
         const wbAfterNpc = nextState.worldBusinesses;
-        if (wbAfterNpc && Object.values(wbAfterNpc).some(b => b.ownerType === 'player')) {
+        if (
+          wbAfterNpc &&
+          Object.values(wbAfterNpc).some((b) => b.ownerType === "player")
+        ) {
           const mgmtRng = new SeededRandom(state.worldSeed + newDay + 6666);
           let mgmtWb = wbAfterNpc;
           for (let d = 0; d < daysPassed; d++) {
@@ -457,23 +632,26 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
               mgmtWb,
               nextState.economy,
               newDay - daysPassed + d + 1,
-              mgmtRng
+              mgmtRng,
             );
             mgmtWb = mgmtResult.worldBusinesses;
             // Convert events to courier messages
             for (const evt of mgmtResult.events) {
-              const urgency = evt.type === 'negative' ? 0 : 1; // Negative events = immediate
+              const urgency = evt.type === "negative" ? 0 : 1; // Negative events = immediate
               const courier = {
                 id: `courier_evt_${evt.id}`,
-                sourceRegionId: nextState.currentLocationId || 'unknown',
+                sourceRegionId: nextState.currentLocationId || "unknown",
                 deliveryDay: newDay + urgency,
                 messageText: `[${evt.name}] ${evt.description}`,
                 accuracy: 1,
-                type: 'business_report' as const,
+                type: "business_report" as const,
               };
               nextState = {
                 ...nextState,
-                pendingCouriers: [...(nextState.pendingCouriers || []), courier]
+                pendingCouriers: [
+                  ...(nextState.pendingCouriers || []),
+                  courier,
+                ],
               };
             }
           }
@@ -490,18 +668,21 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
               investState,
               nextState.economy,
               newDay - daysPassed + d + 1,
-              investRng
+              investRng,
             );
             investState = investResult.investments;
             for (const logText of investResult.logs) {
               nextState = {
                 ...nextState,
-                messages: [...nextState.messages, {
-                  id: Date.now() + investRng.next(),
-                  text: logText,
-                  sender: 'system',
-                  timestamp: newTime
-                }]
+                messages: [
+                  ...nextState.messages,
+                  {
+                    id: Date.now() + investRng.next(),
+                    text: logText,
+                    sender: "system",
+                    timestamp: newTime,
+                  },
+                ],
               };
             }
           }
@@ -514,24 +695,28 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       // from durable inventory without adding a parallel spell-specific timer.
       nextState = {
         ...nextState,
-        inventory: removeExpiredPerishableInventory(nextState.inventory, newTime),
+        inventory: removeExpiredPerishableInventory(
+          nextState.inventory,
+          newTime,
+        ),
       };
 
       // Return ONLY the fields that changed to satisfy the slice reducer contract
-      // Actually, since we produced a full state, we could return it all, 
+      // Actually, since we produced a full state, we could return it all,
       // but Partial<GameState> is expected.
       return nextState;
     }
 
-    case 'SHORT_REST': {
-      const restPayload = action.payload as { shortRestTracker?: GameState['shortRestTracker'] } | undefined;
+    case "SHORT_REST": {
+      const restPayload = action.payload as
+        { shortRestTracker?: GameState["shortRestTracker"] } | undefined;
       // Update party-level rest pacing if the handler supplied it.
       return restPayload?.shortRestTracker
         ? { shortRestTracker: restPayload.shortRestTracker }
         : {};
     }
 
-    case 'ADD_MET_NPC': {
+    case "ADD_MET_NPC": {
       const { npcId } = action.payload;
       if (state.metNpcIds.includes(npcId)) {
         return {}; // Already met, no state change
@@ -540,18 +725,18 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         NPCS[npcId]?.name ||
         state.generatedNpcs?.[npcId]?.name ||
         state.dynamicNPCs?.[npcId]?.name ||
-        'someone new';
+        "someone new";
       return {
         metNpcIds: [...state.metNpcIds, npcId],
         ...appendAdventureLogEntry(state, {
-          kind: 'met-npc',
+          kind: "met-npc",
           summary: `Met ${metName}.`,
           npcIds: [npcId],
         }),
       };
     }
 
-    case 'ADD_LOCATION_RESIDUE': {
+    case "ADD_LOCATION_RESIDUE": {
       const { locationId, residue } = action.payload;
       return {
         locationResidues: {
@@ -561,7 +746,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       };
     }
 
-    case 'REMOVE_LOCATION_RESIDUE': {
+    case "REMOVE_LOCATION_RESIDUE": {
       const { locationId } = action.payload;
       const newResidues = { ...state.locationResidues };
       delete newResidues[locationId];
@@ -570,49 +755,54 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       };
     }
 
-    case 'REGISTER_DYNAMIC_ENTITY': {
+    case "REGISTER_DYNAMIC_ENTITY": {
       // Discriminated union handling without ts-ignore
-      if (action.payload.entityType === 'location') {
+      if (action.payload.entityType === "location") {
         return {
           dynamicLocations: {
             ...state.dynamicLocations,
-            [action.payload.entity.id]: action.payload.entity
-          }
+            [action.payload.entity.id]: action.payload.entity,
+          },
         };
-      } else if (action.payload.entityType === 'faction') {
+      } else if (action.payload.entityType === "faction") {
         return {
           factions: {
             ...state.factions,
-            [action.payload.entity.id]: action.payload.entity
-          }
+            [action.payload.entity.id]: action.payload.entity,
+          },
         };
-      } else if (action.payload.entityType === 'npc') {
+      } else if (action.payload.entityType === "npc") {
         return {
           dynamicNPCs: {
             ...(state.dynamicNPCs || {}),
-            [action.payload.entity.id]: action.payload.entity
-          }
+            [action.payload.entity.id]: action.payload.entity,
+          },
         };
       }
       return {};
     }
 
-    case 'ADD_RUMORS': {
+    case "ADD_RUMORS": {
       // Append chronicle-sourced (or any) rumors, deduped BY ID so re-running the
       // living-world sync on the same town news never grows activeRumors. Stable
       // rumor ids make this idempotent across repeated dispatches.
       const existing = state.activeRumors ?? [];
       const existingIds = new Set(existing.map((r) => r.id));
-      const newOnes = action.payload.rumors.filter((r) => !existingIds.has(r.id));
+      const newOnes = action.payload.rumors.filter(
+        (r) => !existingIds.has(r.id),
+      );
       if (newOnes.length === 0) return {};
       return { activeRumors: [...existing, ...newOnes] };
     }
 
-    case 'ADD_WORLD_HISTORY_EVENT': {
+    case "ADD_WORLD_HISTORY_EVENT": {
       const currentHistory = state.worldHistory || createEmptyHistory();
-      const updatedHistory = addHistoryEvent(currentHistory, action.payload.event);
+      const updatedHistory = addHistoryEvent(
+        currentHistory,
+        action.payload.event,
+      );
       return {
-        worldHistory: updatedHistory
+        worldHistory: updatedHistory,
       };
     }
 

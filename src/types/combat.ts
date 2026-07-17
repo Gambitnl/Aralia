@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 16/07/2026, 01:43:01
- * Dependents: App.tsx, commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapFogCanvas.tsx, components/BattleMap/BattleMapGroundCanvas.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatIntentPreview.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/CompactTurnStrip.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/characters/characterActor/conditionBadges.tsx, components/BattleMap/characters/characterActor/defenseBadges.tsx, components/BattleMap/fogModel.ts, components/BattleMap/groundPainter/paintPipeline.ts, components/BattleMap/groundPainter/textures.ts, components/BattleMap/pixi/PixiBattleBoard.tsx, components/BattleMap/pixi/PixiBoardPrototype.tsx, components/BattleMap/pixi/tokenViewModel.ts, components/BattleMap/quickAttack.ts, components/BattleMap/spellMapArtifacts.ts, components/BattleMap/spritePacks.ts, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/DistantTerrain.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/Combat/InPlaceCombatScene.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/World3D/World3DWrapper.tsx, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/inSceneMovement.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/openingThreatBattlefield.ts, systems/combat/worldScenario/settlementDefenderProjection.ts, systems/combat/worldScenario/settlementEncounterHostility.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/combat/worldScenario/worldEncounterCombatants.ts, systems/entities3d/recipeFromCombatant.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundProps.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/battleEndActions.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/combat/statusConditionUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/visuals/combatIconVisuals.ts, utils/world/religionUtils.ts
+ * Last Sync: 16/07/2026, 08:56:42
+ * Dependents: App.tsx, commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapFogCanvas.tsx, components/BattleMap/BattleMapGroundCanvas.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatIntentPreview.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/CompactTurnStrip.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/characters/characterActor/conditionBadges.tsx, components/BattleMap/characters/characterActor/defenseBadges.tsx, components/BattleMap/fogModel.ts, components/BattleMap/groundPainter/paintPipeline.ts, components/BattleMap/groundPainter/textures.ts, components/BattleMap/pixi/PixiBattleBoard.tsx, components/BattleMap/pixi/PixiBoardPrototype.tsx, components/BattleMap/pixi/tokenViewModel.ts, components/BattleMap/quickAttack.ts, components/BattleMap/spellMapArtifacts.ts, components/BattleMap/spritePacks.ts, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/DistantTerrain.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/Combat/InPlaceCombatScene.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/World3D/World3DWrapper.tsx, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/inSceneMovement.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/openingThreatBattlefield.ts, systems/combat/worldScenario/openingThreatOutcome.ts, systems/combat/worldScenario/settlementDefenderProjection.ts, systems/combat/worldScenario/settlementEncounterHostility.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/combat/worldScenario/worldEncounterCombatants.ts, systems/combat/worldScenario/worldforgeEncounterReceipt.ts, systems/entities3d/recipeFromCombatant.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundProps.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/battleEndActions.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/combat/statusConditionUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/visuals/combatIconVisuals.ts, utils/world/religionUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -19,14 +19,40 @@
  * This file contains all combat-related TypeScript type definitions and interfaces
  * used throughout the Aralia RPG application's battle map feature.
  */
-import type { AbilityScoreName, CharacterStats } from './core.js';
-import type { Class, SpellbookData, SpellSlots, FeatChoice, HitPointDicePool, LimitedUses, RacialBreathWeapon } from './character.js';
-import type { Item } from './items.js';
+import type { AbilityScoreName, CharacterStats } from "./core.js";
+import type {
+  Class,
+  SpellbookData,
+  SpellSlots,
+  FeatChoice,
+  HitPointDicePool,
+  LimitedUses,
+  RacialBreathWeapon,
+} from "./character.js";
+import type { Item } from "./items.js";
 import type { MaterialType } from "./materials.js";
-import type { Spell, DamageType, ConditionName, EffectDuration, SpellEffect, RepeatSave, EscapeCheck, ConditionBreakTrigger, TargetFilter, AbilityCheckModifier, CreatedObject, IllusionMetadata, SensoryManifestation, TerrainManipulation, ConditionalEnding, BindingControl, DominationControl } from './spells.js'; // Import Spell
-import { StateTag } from './elemental.js';
-import { Plane } from './planes.js';
-import { RitualState } from './rituals.js';
+import type {
+  Spell,
+  DamageType,
+  ConditionName,
+  EffectDuration,
+  SpellEffect,
+  RepeatSave,
+  EscapeCheck,
+  ConditionBreakTrigger,
+  TargetFilter,
+  AbilityCheckModifier,
+  CreatedObject,
+  IllusionMetadata,
+  SensoryManifestation,
+  TerrainManipulation,
+  ConditionalEnding,
+  BindingControl,
+  DominationControl,
+} from "./spells.js"; // Import Spell
+import { StateTag } from "./elemental.js";
+import { Plane } from "./planes.js";
+import { RitualState } from "./rituals.js";
 
 export type { CharacterStats };
 
@@ -39,7 +65,7 @@ export type { CharacterStats };
 export interface TargetConditionFilter {
   conditions?: ConditionName[];
   creatureTypes?: string[];
-  hpStatus?: 'full' | 'bloodied' | 'unconscious';
+  hpStatus?: "full" | "bloodied" | "unconscious";
   stats?: Partial<CharacterStats>;
   alignment?: string[]; // e.g., ['Evil', 'Chaotic']
 }
@@ -55,7 +81,7 @@ export interface RepeatSaveProgressState {
 export interface StatusEffect {
   id: string;
   name: ConditionName | string;
-  type: 'buff' | 'debuff' | 'neutral' | 'dot' | 'hot';
+  type: "buff" | "debuff" | "neutral" | "dot" | "hot";
   description?: string;
   duration: number; // in rounds
   source?: string; // Ability or spell name
@@ -80,7 +106,12 @@ export interface StatusEffect {
   dominationControl?: DominationControl;
   // Simple effect structure (for spellAbilityFactory compatibility)
   effect?: {
-    type: 'stat_modifier' | 'damage_per_turn' | 'heal_per_turn' | 'skip_turn' | 'condition';
+    type:
+      | "stat_modifier"
+      | "damage_per_turn"
+      | "heal_per_turn"
+      | "skip_turn"
+      | "condition";
     value?: number;
     stat?: string;
   };
@@ -92,8 +123,8 @@ export interface StatusEffect {
     attackBonus?: number;
     acBonus?: number;
     movementSpeed?: number;
-    advantage?: ('attack' | 'save' | 'check')[];
-    disadvantage?: ('attack' | 'save' | 'check')[];
+    advantage?: ("attack" | "save" | "check")[];
+    disadvantage?: ("attack" | "save" | "check")[];
     resistance?: DamageType[];
     vulnerability?: DamageType[];
     immunity?: DamageType[];
@@ -109,14 +140,14 @@ export interface StatusEffect {
   light?: {
     brightRadius: number;
     dimRadius?: number;
-    attachedTo?: 'caster' | 'target' | 'point';
+    attachedTo?: "caster" | "target" | "point";
     color?: string;
     opaqueCoverBlocks?: boolean;
   };
   savePenalty?: {
     dice: string;
     flat?: number;
-    applies: 'next_save' | 'all_saves';
+    applies: "next_save" | "all_saves";
   };
   /**
    * Hit-point state riders such as Chill Touch's "No Healing" rule.
@@ -138,7 +169,7 @@ export interface HitPointStateRider {
 }
 
 export interface SocialSpellLifecycle {
-  kind: 'friends_charm' | string;
+  kind: "friends_charm" | string;
   targetKnowsOnEnd?: boolean;
   recastMemoryDurationRounds?: number;
   durationDays?: number;
@@ -150,7 +181,7 @@ export interface SocialSpellLifecycle {
  * Represents an active, ongoing effect on a character (e.g., from a spell like Shield of Faith or Mage Armor).
  * These are distinct from Conditions (Prone, Stunned) as they often carry specific mechanics or durations.
  */
-  export interface ActiveEffect {
+export interface ActiveEffect {
   id: string;
   spellId: string;
   casterId: string;
@@ -268,10 +299,11 @@ export interface SocialSpellLifecycle {
      */
     attackRollDirection?: "incoming" | "outgoing";
     attackRollModifier?: "advantage" | "disadvantage" | "bonus" | "penalty";
-    attackRollKind?: "any" | "weapon" | "melee_weapon" | "ranged_weapon" | "spell";
+    attackRollKind?:
+      "any" | "weapon" | "melee_weapon" | "ranged_weapon" | "spell";
     attackRollConsumption?: "next_attack" | "first_attack" | "while_active";
     attackRollValue?: number;
-        attackRollDice?: string;
+    attackRollDice?: string;
     /**
      * Optional target gate for outgoing attack-roll riders.
      *
@@ -296,7 +328,13 @@ export interface SocialSpellLifecycle {
     savingThrowConsumption?: "next_save" | "while_active";
     savingThrowValue?: number;
     savingThrowDice?: string;
-    savingThrowAbility?: "Strength" | "Dexterity" | "Constitution" | "Intelligence" | "Wisdom" | "Charisma";
+    savingThrowAbility?:
+      | "Strength"
+      | "Dexterity"
+      | "Constitution"
+      | "Intelligence"
+      | "Wisdom"
+      | "Charisma";
     /**
      * Find Familiar-style observer handoff. The active effect marks that the
      * caster is currently using a familiar's senses, while the actual 2D/3D
@@ -306,7 +344,7 @@ export interface SocialSpellLifecycle {
     familiarSharedSenses?: boolean;
     observerCharacterId?: string;
     telepathyRange?: number;
-    sharedSensesCost?: 'action' | 'bonus_action' | 'free' | 'none';
+    sharedSensesCost?: "action" | "bonus_action" | "free" | "none";
   };
 }
 
@@ -319,7 +357,7 @@ export interface Position {
   y: number;
 }
 
-export type LightLevel = 'bright' | 'dim' | 'darkness' | 'magical_darkness';
+export type LightLevel = "bright" | "dim" | "darkness" | "magical_darkness";
 
 export interface ActionEconomyState {
   action: { used: boolean; remaining: number };
@@ -330,12 +368,20 @@ export interface ActionEconomyState {
   freeActions: number;
 }
 
-export type Direction = 'north' | 'south' | 'east' | 'west' | 'northeast' | 'northwest' | 'southeast' | 'southwest';
+export type Direction =
+  | "north"
+  | "south"
+  | "east"
+  | "west"
+  | "northeast"
+  | "northwest"
+  | "southeast"
+  | "southwest";
 
 /** Tracks 5e conditions (prone, restrained, custom, etc.) currently affecting a character. */
 export interface ActiveCondition {
   name: ConditionName | string;
-  duration: EffectDuration | { type: 'permanent'; value?: number };
+  duration: EffectDuration | { type: "permanent"; value?: number };
   appliedTurn: number;
   source?: string; // Spell or effect that applied the condition
   /** Character id that applied this condition, preserved for caster-relative repeat-save and break rules. */
@@ -364,7 +410,7 @@ export interface SpellMemoryEntry {
   casterId: string;
   affectedTurn: number;
   expiresAtTurn: number;
-  kind: 'cast_by_caster' | string;
+  kind: "cast_by_caster" | string;
 }
 
 export interface SocialAwarenessEntry {
@@ -372,7 +418,7 @@ export interface SocialAwarenessEntry {
   sourceSpellName?: string;
   casterId: string;
   learnedTurn: number;
-  kind: 'post_charm_awareness' | string;
+  kind: "post_charm_awareness" | string;
   targetKnows: string;
 }
 
@@ -390,19 +436,88 @@ export interface CombatPartySnapshotEntry {
 }
 
 /**
+ * Final mutable state for one enemy when combat leaves the tactical screen.
+ *
+ * The application-level outcome bridge needs more than an enemy id: WorldForge
+ * must know which saved creature the token represented and where it was last
+ * seen. The bridge deliberately carries the original source receipt unchanged
+ * so a mismatched or anonymous enemy can fail closed instead of being attached
+ * to the nearest plausible monster scene.
+ */
+export interface CombatEnemySnapshotEntry {
+  id: string;
+  currentHP: number;
+  position: Position;
+  worldSource?: WorldforgeCombatantSource;
+}
+
+/**
  * Optional source-world identity for combatants projected from a generated
  * regiment. Combat rules still use the normal character fields; this receipt
  * lets diagnostics and later world-delta handling trace a token back to the
  * exact state, regiment, and military unit that authorized it.
  */
 export interface WorldforgeDefenderSource {
-  kind: 'worldforge-defender';
+  kind: "worldforge-defender";
   burgId: number;
   stateId: number;
   regimentIndex: number;
   unitType: string;
   representativeIndex: number;
 }
+
+/** Social function authored for one creature in a generated threat scene. */
+export type OpeningThreatSocialRole =
+  | "contact-lead"
+  | "screen-left"
+  | "screen-right"
+  | "escape-guard"
+  | "pack-scout"
+  | "scent-flanker";
+
+/** Map-scale posture frozen into an opening scene instead of inferred by UI. */
+export type OpeningThreatBodyPosture =
+  | "upright"
+  | "crouched-left"
+  | "crouched-right"
+  | "rear-lean"
+  | "low-scout"
+  | "scenting";
+
+/** Physical load that changes a creature's silhouette at tactical scale. */
+export type OpeningThreatCarriedProfile =
+  "none" | "salvage-pack" | "long-tool" | "buckler" | "rolled-bedding";
+
+/**
+ * Source-authored body facts for one opening creature. This stays optional on
+ * the shared combat source so old v1/v2 saves remain loadable; every newly
+ * authored scene writes it and strict replay preserves it exactly.
+ */
+export interface OpeningThreatBodyState {
+  posture: OpeningThreatBodyPosture;
+  carriedProfile: OpeningThreatCarriedProfile;
+  facingDirection: { x: number; z: number };
+}
+
+/**
+ * Persistent source identity for a monster placed by WorldForge rather than by
+ * the tactical spawn referee. Combat rules remain ordinary CombatCharacter
+ * fields; this record preserves the scene, role, and exact world position.
+ */
+export interface WorldforgeOpeningThreatSource {
+  kind: "worldforge-opening-threat";
+  sceneReceiptId: string;
+  sourceOpeningReceiptId: string;
+  entityId: string;
+  monsterName: string;
+  monsterOrdinal: number;
+  socialRole: OpeningThreatSocialRole;
+  worldGroundMeters: { x: number; z: number };
+  bodyState?: OpeningThreatBodyState;
+}
+
+export type WorldforgeCombatantSource =
+  WorldforgeDefenderSource | WorldforgeOpeningThreatSource;
 
 export interface CombatCharacter {
   id: string;
@@ -423,8 +538,8 @@ export interface CombatCharacter {
   position: Position;
   stats: CharacterStats;
   abilities: Ability[];
-  team: 'player' | 'enemy';
-  worldSource?: WorldforgeDefenderSource;
+  team: "player" | "enemy";
+  worldSource?: WorldforgeCombatantSource;
   currentHP: number;
   maxHP: number;
   /** Minimum d20 roll for a critical hit (default 20; 19 for Champion fighters). */
@@ -493,17 +608,17 @@ export interface CombatCharacter {
     formName?: string;
     sourceName?: string;
     persistent?: boolean;
-    dismissAction?: 'action' | 'bonus_action' | 'free' | 'none';
-    commandCost?: 'action' | 'bonus_action' | 'free' | 'none';
+    dismissAction?: "action" | "bonus_action" | "free" | "none";
+    commandCost?: "action" | "bonus_action" | "free" | "none";
     commandsPerTurn?: number;
     commandsUsedThisTurn?: number;
-    initiativePolicy?: 'immediate' | 'rolled' | 'shared';
+    initiativePolicy?: "immediate" | "rolled" | "shared";
     followDistance?: number;
     hoverHeight?: number;
     carriedWeightPounds?: number;
     telepathyRange?: number;
     sharedSenses?: boolean;
-    sharedSensesCost?: 'action' | 'bonus_action' | 'free' | 'none';
+    sharedSensesCost?: "action" | "bonus_action" | "free" | "none";
     travelDetails?: Record<string, unknown>;
     conditionalEndings?: ConditionalEnding[];
     lifecycle?: {
@@ -532,26 +647,28 @@ export interface CombatCharacter {
       canAttack?: boolean;
       canDeliverTouchSpells?: boolean;
       touchDeliveryRangeFeet?: number;
-      touchDeliveryCost?: 'reaction' | 'action' | 'bonus_action' | 'free' | 'none';
+      touchDeliveryCost?:
+        "reaction" | "action" | "bonus_action" | "free" | "none";
       independentInitiative?: boolean;
       obeysCasterCommands?: boolean;
       notes?: string;
     };
     formTraits?: Array<{
-        name: string;
-        appliesToForms?: string[];
-        opportunityAttackPolicy?: 'does_not_provoke_when_flying_out_of_reach' | 'normal';
-        movementModeRequired?: 'fly' | 'walk' | 'swim' | 'climb' | 'any';
-        notes?: string;
-      }>;
-      aftermathState?: Record<string, unknown>;
-      durationRemaining?: number;
-      dismissable?: boolean;
-    };
+      name: string;
+      appliesToForms?: string[];
+      opportunityAttackPolicy?:
+        "does_not_provoke_when_flying_out_of_reach" | "normal";
+      movementModeRequired?: "fly" | "walk" | "swim" | "climb" | "any";
+      notes?: string;
+    }>;
+    aftermathState?: Record<string, unknown>;
+    durationRemaining?: number;
+    dismissable?: boolean;
+  };
 
   // Defensive tracking (for DefensiveCommand)
-  armorClass?: number;      // Current AC (including bonuses)
-  baseAC?: number;          // Base AC before temporary bonuses
+  armorClass?: number; // Current AC (including bonuses)
+  baseAC?: number; // Base AC before temporary bonuses
   resistances?: DamageType[];
   vulnerabilities?: DamageType[]; // Added for full 5e mechanics support
   immunities?: DamageType[];
@@ -560,7 +677,7 @@ export interface CombatCharacter {
   /** Damage types that grant immunity only against nonmagical attacks. */
   nonMagicalImmunities?: string[];
   conditionImmunities?: ConditionName[];
-  tempHP?: number;          // Temporary hit points
+  tempHP?: number; // Temporary hit points
   /** Spell or feature that supplied the current temporary hit points. */
   temporaryHitPointSource?: {
     spellId: string;
@@ -575,8 +692,8 @@ export interface CombatCharacter {
    * this derived flag without forcing an inventory-wide migration first.
    */
   hasMetalArmor?: boolean;
-  activeEffects?: ActiveEffect[];  // Active spell effects
-  riders?: ActiveRider[];   // Active damage riders (smites, hex, etc)
+  activeEffects?: ActiveEffect[]; // Active spell effects
+  riders?: ActiveRider[]; // Active damage riders (smites, hex, etc)
   damagedThisTurn?: boolean; // Track if character took damage this turn (for concentration/repeat saves)
   weaponProficiencies?: string[];
   armorProficiencies?: string[];
@@ -612,9 +729,23 @@ export interface CombatCharacter {
   additionalSavingThrowProficiencies?: AbilityScoreName[];
 }
 
-export type AbilityType = 'attack' | 'spell' | 'skill' | 'movement' | 'utility';
-export type TargetingType = 'single_enemy' | 'single_ally' | 'single_any' | 'area' | 'self' | 'all_enemies' | 'all_allies';
-export type ActionCostType = 'action' | 'bonus' | 'reaction' | 'legendary' | 'lair' | 'free' | 'movement-only';
+export type AbilityType = "attack" | "spell" | "skill" | "movement" | "utility";
+export type TargetingType =
+  | "single_enemy"
+  | "single_ally"
+  | "single_any"
+  | "area"
+  | "self"
+  | "all_enemies"
+  | "all_allies";
+export type ActionCostType =
+  | "action"
+  | "bonus"
+  | "reaction"
+  | "legendary"
+  | "lair"
+  | "free"
+  | "movement-only";
 
 export interface AbilityCost {
   type: ActionCostType;
@@ -622,7 +753,7 @@ export interface AbilityCost {
   spellSlotLevel?: number;
   quantity?: number;
   castSource?: {
-    type: 'racial';
+    type: "racial";
     spellId: string;
     allowSlotFallback?: boolean;
   };
@@ -634,68 +765,153 @@ export interface AbilityCost {
 }
 
 export interface AreaOfEffect {
-  shape: 'circle' | 'cone' | 'line' | 'square';
+  shape: "circle" | "cone" | "line" | "square";
   size: number; // radius for circle, length for line/cone, side for square
   angle?: number; // for cone abilities
   followsCaster?: boolean;
 }
 
 export interface AbilityEffect {
-  type: 'damage' | 'heal' | 'status' | 'movement' | 'teleport' | 'familiar_pocket' | 'familiar_shared_senses' | 'commanded_summon' | 'granted_action' | 'summon_dismiss' | 'summon_return_home';
+  type:
+    | "damage"
+    | "heal"
+    | "status"
+    | "movement"
+    | "teleport"
+    | "familiar_pocket"
+    | "familiar_shared_senses"
+    | "commanded_summon"
+    | "granted_action"
+    | "summon_dismiss"
+    | "summon_return_home";
   value?: number;
   dice?: string; // Dice formula (e.g. "1d8+2") to be rolled at execution time
-  damageType?: 'physical' | 'bludgeoning' | 'piercing' | 'slashing' | 'magical' | 'fire' | 'ice' | 'lightning' | 'acid' | 'poison' | 'necrotic' | 'radiant' | 'force' | 'psychic' | 'thunder';
+  damageType?:
+    | "physical"
+    | "bludgeoning"
+    | "piercing"
+    | "slashing"
+    | "magical"
+    | "fire"
+    | "ice"
+    | "lightning"
+    | "acid"
+    | "poison"
+    | "necrotic"
+    | "radiant"
+    | "force"
+    | "psychic"
+    | "thunder";
   statusEffect?: StatusEffect;
   duration?: number;
-  familiarPocketAction?: 'dismiss' | 'recall';
+  familiarPocketAction?: "dismiss" | "recall";
   familiarId?: string;
-  sharedSensesAction?: 'activate';
-  commandedSummonAction?: 'issue_command';
+  sharedSensesAction?: "activate";
+  commandedSummonAction?: "issue_command";
   summonCommandDescription?: string;
   summonId?: string;
-  summonDismissAction?: 'dismiss';
-  summonReturnHomeAction?: 'no_agreement' | 'service_complete';
+  summonDismissAction?: "dismiss";
+  summonReturnHomeAction?: "no_agreement" | "service_complete";
   grantedActionLabel?: string;
-  grantedActionCost?: 'action' | 'bonus_action' | 'reaction';
-  grantedActionFrequency?: 'once' | 'each_turn' | 'while_active';
+  grantedActionCost?: "action" | "bonus_action" | "reaction";
+  grantedActionFrequency?: "once" | "each_turn" | "while_active";
   grantedActionRangeLimit?: number;
-  grantedActionPrerequisites?: ('target_object_within_spell_range' | 'target_within_spell_range' | 'not_applicable')[];
-  grantedActionAttackType?: 'ranged_spell_attack' | 'melee_spell_attack' | 'not_applicable';
-  grantedActionAreaShape?: 'Cone' | 'Line' | 'Sphere' | 'Cube' | 'Cylinder' | 'not_applicable';
-  grantedActionAreaSize?: number | 'not_applicable';
-  grantedActionAreaSizeUnit?: 'feet' | 'miles' | 'not_applicable';
+  grantedActionPrerequisites?: (
+    | "target_object_within_spell_range"
+    | "target_within_spell_range"
+    | "not_applicable"
+  )[];
+  grantedActionAttackType?:
+    "ranged_spell_attack" | "melee_spell_attack" | "not_applicable";
+  grantedActionAreaShape?:
+    "Cone" | "Line" | "Sphere" | "Cube" | "Cylinder" | "not_applicable";
+  grantedActionAreaSize?: number | "not_applicable";
+  grantedActionAreaSizeUnit?: "feet" | "miles" | "not_applicable";
   grantedActionDamageDice?: string;
-  grantedActionDamageType?: 'physical' | 'bludgeoning' | 'piercing' | 'slashing' | 'magical' | 'fire' | 'ice' | 'lightning' | 'acid' | 'poison' | 'necrotic' | 'radiant' | 'force' | 'psychic' | 'thunder';
-  grantedActionSaveType?: 'Strength' | 'Dexterity' | 'Constitution' | 'Intelligence' | 'Wisdom' | 'Charisma';
-  grantedActionSaveEffect?: 'none' | 'half' | 'negates_condition';
-  grantedActionDamageAbilityModifier?: 'spellcasting_ability' | 'not_applicable';
+  grantedActionDamageType?:
+    | "physical"
+    | "bludgeoning"
+    | "piercing"
+    | "slashing"
+    | "magical"
+    | "fire"
+    | "ice"
+    | "lightning"
+    | "acid"
+    | "poison"
+    | "necrotic"
+    | "radiant"
+    | "force"
+    | "psychic"
+    | "thunder";
+  grantedActionSaveType?:
+    | "Strength"
+    | "Dexterity"
+    | "Constitution"
+    | "Intelligence"
+    | "Wisdom"
+    | "Charisma";
+  grantedActionSaveEffect?: "none" | "half" | "negates_condition";
+  grantedActionDamageAbilityModifier?:
+    "spellcasting_ability" | "not_applicable";
   grantedActionWallLengthReduction?: number;
   grantedActionEndsWhenLengthZero?: boolean;
   grantedActionNotes?: string;
 }
 
 export interface AbilityGrantedAction {
-  type: 'action' | 'bonus_action' | 'reaction';
+  type: "action" | "bonus_action" | "reaction";
   action: string;
-  frequency: 'once' | 'each_turn' | 'while_active';
-  actor?: 'caster' | 'target' | 'summoned_entity' | 'affected_creature';
-  actionKind?: 'magic_action' | 'standard_action' | 'bonus_action' | 'reaction' | 'not_applicable';
-  areaShape?: 'Cone' | 'Line' | 'Sphere' | 'Cube' | 'Cylinder' | 'not_applicable';
-  areaSize?: number | 'not_applicable';
-  areaSizeUnit?: 'feet' | 'miles' | 'not_applicable';
+  frequency: "once" | "each_turn" | "while_active";
+  actor?: "caster" | "target" | "summoned_entity" | "affected_creature";
+  actionKind?:
+    | "magic_action"
+    | "standard_action"
+    | "bonus_action"
+    | "reaction"
+    | "not_applicable";
+  areaShape?:
+    "Cone" | "Line" | "Sphere" | "Cube" | "Cylinder" | "not_applicable";
+  areaSize?: number | "not_applicable";
+  areaSizeUnit?: "feet" | "miles" | "not_applicable";
   effectIndices?: number[];
-  prerequisites?: ('target_object_within_spell_range' | 'target_within_spell_range' | 'not_applicable')[];
+  prerequisites?: (
+    | "target_object_within_spell_range"
+    | "target_within_spell_range"
+    | "not_applicable"
+  )[];
   rangeLimit?: number;
-  attackType?: 'ranged_spell_attack' | 'melee_spell_attack' | 'not_applicable';
-  saveType?: 'Strength' | 'Dexterity' | 'Constitution' | 'Intelligence' | 'Wisdom' | 'Charisma';
-  saveEffect?: 'none' | 'half' | 'negates_condition';
+  attackType?: "ranged_spell_attack" | "melee_spell_attack" | "not_applicable";
+  saveType?:
+    | "Strength"
+    | "Dexterity"
+    | "Constitution"
+    | "Intelligence"
+    | "Wisdom"
+    | "Charisma";
+  saveEffect?: "none" | "half" | "negates_condition";
   damageDice?: string;
-  damageType?: 'physical' | 'bludgeoning' | 'piercing' | 'slashing' | 'magical' | 'fire' | 'ice' | 'lightning' | 'acid' | 'poison' | 'necrotic' | 'radiant' | 'force' | 'psychic' | 'thunder';
+  damageType?:
+    | "physical"
+    | "bludgeoning"
+    | "piercing"
+    | "slashing"
+    | "magical"
+    | "fire"
+    | "ice"
+    | "lightning"
+    | "acid"
+    | "poison"
+    | "necrotic"
+    | "radiant"
+    | "force"
+    | "psychic"
+    | "thunder";
   damage?: {
     dice: string;
     type: string;
   };
-  damageAbilityModifier?: 'spellcasting_ability' | 'not_applicable';
+  damageAbilityModifier?: "spellcasting_ability" | "not_applicable";
   wallLengthReduction?: number;
   endsWhenLengthZero?: boolean;
   notes?: string;
@@ -719,11 +935,11 @@ export interface Ability {
   cost: AbilityCost;
   alternativeCosts?: AbilityCost[];
   prerequisites?: {
-    position?: 'adjacent' | 'range';
+    position?: "adjacent" | "range";
     otherAbilityUsed?: string;
     minimumMovement?: number;
   };
-  movementType?: 'before' | 'after' | 'integrated';
+  movementType?: "before" | "after" | "integrated";
   interruptsMovement?: boolean;
   tags?: string[];
   /** Original spell id that created this runtime ability, when different from the button id. */
@@ -736,7 +952,7 @@ export interface Ability {
    * abilities do not need to specify them. When present they should always align
    * with D&D 5e templates (5 ft grid squares). size is expressed in tiles.
    */
-  areaShape?: 'circle' | 'cone' | 'line' | 'square';
+  areaShape?: "circle" | "cone" | "line" | "square";
   areaSize?: number;
   areaOfEffect?: AreaOfEffect;
   effects: AbilityEffect[];
@@ -765,7 +981,7 @@ export interface Ability {
    * next-weapon-attack riders such as Lightning Arrow do not wake up from a
    * ranged spell attack.
    */
-  attackType?: 'weapon' | 'spell' | 'unarmed';
+  attackType?: "weapon" | "spell" | "unarmed";
   recharge?: {
     /** Recharge threshold (e.g. 5 = must roll 5+ to recharge) */
     threshold: number;
@@ -786,7 +1002,7 @@ export interface Ability {
    */
   createdObjectExpiresAtRound?: number;
   createdObjectDuration?: {
-    type: 'rounds' | 'minutes' | 'hours' | 'days' | 'special';
+    type: "rounds" | "minutes" | "hours" | "days" | "special";
     value?: number;
   };
   icon?: string;
@@ -819,7 +1035,7 @@ export interface TurnState {
   currentTurn: number;
   turnOrder: string[]; // character IDs in initiative order
   currentCharacterId: string | null;
-  phase: 'planning' | 'action' | 'resolution' | 'end_turn';
+  phase: "planning" | "action" | "resolution" | "end_turn";
   actionsThisTurn: CombatAction[];
 }
 
@@ -873,7 +1089,7 @@ export interface SelectedSpellObjectTarget {
  * durability pool.
  */
 export interface SelectedSpellObjectDamageState {
-  kind: 'break_or_tear' | 'broken' | 'torn' | string;
+  kind: "break_or_tear" | "broken" | "torn" | string;
   breakOrTearDimensionFeet?: number;
 }
 
@@ -887,7 +1103,7 @@ export interface SelectedSpellObjectDamageState {
 
 export interface BattleMapObjectSource {
   /** Source layer that owns the object fact. */
-  kind: 'worldforge-feature' | 'worldforge-prop';
+  kind: "worldforge-feature" | "worldforge-prop" | "worldforge-monster-site";
   /** Stable identity within that source layer. */
   sourceId: string;
   /** Original feature kind or prop catalog definition id. */
@@ -910,14 +1126,25 @@ export interface TargetableMapObject extends SelectedSpellObjectTarget {
 
 /** First-class selected spell target reference used by combat action handoff. */
 export type SelectedSpellTarget =
-  | { kind: 'creature'; id: string }
-  | { kind: 'object'; id: string; position: Position; name?: string; object?: SelectedSpellObjectTarget }
-  | { kind: 'point'; position: Position; purpose?: 'ground_target' | 'area_origin' | 'teleport_destination' | string };
+  | { kind: "creature"; id: string }
+  | {
+      kind: "object";
+      id: string;
+      position: Position;
+      name?: string;
+      object?: SelectedSpellObjectTarget;
+    }
+  | {
+      kind: "point";
+      position: Position;
+      purpose?:
+        "ground_target" | "area_origin" | "teleport_destination" | string;
+    };
 
 export interface CombatAction {
   id: string;
   characterId: string;
-  type: 'move' | 'ability' | 'end_turn' | 'sustain' | 'break_free';
+  type: "move" | "ability" | "end_turn" | "sustain" | "break_free";
   abilityId?: string;
   targetEffectId?: string; // ID of the status effect to break free from
   targetPosition?: Position;
@@ -935,7 +1162,7 @@ export interface CombatAction {
    * shared reaction rules know whether the creature walked, flew, swam, or
    * climbed out of reach.
    */
-  movementMode?: 'fly' | 'walk' | 'swim' | 'climb' | 'any';
+  movementMode?: "fly" | "walk" | "swim" | "climb" | "any";
   targetCharacterIds?: string[];
   /** Rich spell target refs for creature, object, and point selections. */
   selectedSpellTargets?: SelectedSpellTarget[];
@@ -960,9 +1187,9 @@ export interface CombatAction {
     isHit: boolean;
     isCritical?: boolean;
     /** Whether the resolved attack was a weapon, spell, or Unarmed Strike. */
-    attackType?: 'weapon' | 'spell' | 'unarmed' | 'any';
+    attackType?: "weapon" | "spell" | "unarmed" | "any";
     /** Whether the resolved attack was melee, ranged, or unarmed. */
-    weaponType?: 'melee' | 'ranged' | 'unarmed' | 'any';
+    weaponType?: "melee" | "ranged" | "unarmed" | "any";
     rollResult?: number;
     total?: number;
   }>;
@@ -970,7 +1197,6 @@ export interface CombatAction {
   cost: AbilityCost;
   timestamp: number;
 }
-
 
 export interface ReactiveTrigger {
   id: string;
@@ -990,7 +1216,8 @@ export interface ActiveRider {
   sourceName: string;
   targetId?: string;
   effect: SpellEffect; // Changed to SpellEffect to be more generic, though usually DamageEffect
-  consumption: "unlimited" | "first_hit" | "per_turn" | "per_instance_hit_or_miss";
+  consumption:
+    "unlimited" | "first_hit" | "per_turn" | "per_instance_hit_or_miss";
   attackFilter: {
     weaponType?: "melee" | "ranged" | "any";
     attackType?: "weapon" | "spell" | "any";
@@ -1011,8 +1238,8 @@ export interface SavePenaltyRider {
   spellId: string;
   casterId: string;
   sourceName: string;
-  dice?: string;         // e.g. "1d4" - rolled and subtracted from save
-  flat?: number;         // e.g. -2 - flat penalty
+  dice?: string; // e.g. "1d4" - rolled and subtracted from save
+  flat?: number; // e.g. -2 - flat penalty
   applies: "next_save" | "all_saves";
   duration: {
     type: "rounds" | "minutes" | "special";
@@ -1027,17 +1254,17 @@ export interface SavePenaltyRider {
  */
 export interface LightSource {
   id: string;
-  sourceSpellId: string;       // ID of the spell that created this light
-  casterId: string;            // Character ID of the caster
-  brightRadius: number;        // Radius of bright light in feet
-  dimRadius: number;           // Additional radius of dim light in feet
+  sourceSpellId: string; // ID of the spell that created this light
+  casterId: string; // Character ID of the caster
+  brightRadius: number; // Radius of bright light in feet
+  dimRadius: number; // Additional radius of dim light in feet
   attachedTo: "caster" | "target" | "point";
-  attachedToCharacterId?: string;  // If attached to caster or target
-  position?: Position;         // Fixed position if attachedTo is "point"
-  color?: string;              // Optional color tint
+  attachedToCharacterId?: string; // If attached to caster or target
+  position?: Position; // Fixed position if attachedTo is "point"
+  color?: string; // Optional color tint
   opaqueCoverBlocks?: boolean; // Tracks object-mounted sources that should stop emitting when covered.
-  createdTurn: number;         // Turn when this was created
-  expiresAtRound?: number;     // Optional expiration (for concentration tracking)
+  createdTurn: number; // Turn when this was created
+  expiresAtRound?: number; // Optional expiration (for concentration tracking)
   /**
    * Optional clustered-light metadata for spells whose "light source" is a
    * movable created artifact rather than a single torch-like glow.
@@ -1097,10 +1324,10 @@ export interface SpellObjectRepair {
   sourceSpellName?: string;
   casterId: string;
   createdTurn: number;
-  outcome: 'repaired' | 'no_damage' | 'too_large' | 'missing_target';
+  outcome: "repaired" | "no_damage" | "too_large" | "missing_target";
   repairState: {
-    targetKind: 'object' | string;
-    repairLimit: 'single_break_or_tear' | string;
+    targetKind: "object" | string;
+    repairLimit: "single_break_or_tear" | string;
     maxDamageDimensionFeet: number;
     leavesNoTrace: boolean;
     canPhysicallyRepairMagicItem: boolean;
@@ -1127,7 +1354,13 @@ export interface SpellObjectAccessChange {
   sourceSpellName?: string;
   casterId: string;
   createdTurn: number;
-  outcome: 'unlocked' | 'unstuck' | 'unbarred' | 'suppressed_magical_lock' | 'magically_locked' | 'access_changed';
+  outcome:
+    | "unlocked"
+    | "unstuck"
+    | "unbarred"
+    | "suppressed_magical_lock"
+    | "magically_locked"
+    | "access_changed";
   mundaneStateChanges?: string[];
   suppressesMagicalClosure?: string;
   suppressionDuration?: EffectDuration;
@@ -1166,7 +1399,7 @@ export interface SpellCommunicationExchange {
   privateRecipientIds: string[];
   replyRecipientIds: string[];
   createdTurn: number;
-  outcome: 'delivered' | 'blocked' | 'missing_target';
+  outcome: "delivered" | "blocked" | "missing_target";
   blockerReason?: string;
   throughBarrier?: boolean;
   familiarWithTarget?: boolean;
@@ -1187,12 +1420,12 @@ export interface ActiveIllusionEffect {
   spellId: string;
   spellName?: string;
   casterId: string;
-  mode: 'sound' | 'image' | string;
+  mode: "sound" | "image" | string;
   position: Position;
   description: string;
   createdTurn: number;
   expiresAtRound?: number;
-  revealRules?: IllusionMetadata['revealRules'];
+  revealRules?: IllusionMetadata["revealRules"];
   sensoryManifestation?: SensoryManifestation;
   physicalInteractionReveals: boolean;
   investigationReveal?: {
@@ -1201,7 +1434,7 @@ export interface ActiveIllusionEffect {
     skill?: string;
     dc?: string;
   };
-  discernedState?: IllusionMetadata['discernedState'];
+  discernedState?: IllusionMetadata["discernedState"];
   discernedByCreatureIds: string[];
   faintToCreatureIds: string[];
   recastGroup: string;
@@ -1224,7 +1457,7 @@ export interface ActiveFireEffect {
   position: Position;
   createdTurn: number;
   expiresAtRound?: number;
-  kind: 'hazard' | 'ignited_object';
+  kind: "hazard" | "ignited_object";
   objectId?: string;
   objectName?: string;
   objectType?: string;
@@ -1238,7 +1471,7 @@ export interface ActiveFireEffect {
   };
   ignitesTouchedObjects: boolean;
   excludesWornOrCarriedObjects: boolean;
-  suppressedReason?: 'worn_or_carried' | 'not_flammable';
+  suppressedReason?: "worn_or_carried" | "not_flammable";
 }
 
 export interface SpellWeaponEnchantment {
@@ -1250,10 +1483,13 @@ export interface SpellWeaponEnchantment {
   itemName?: string;
   createdTurn: number;
   expiresAtRound?: number;
-  heldWeaponAugment: NonNullable<NonNullable<ActiveEffect['mechanics']>['heldWeaponAugment']>;
+  heldWeaponAugment: NonNullable<
+    NonNullable<ActiveEffect["mechanics"]>["heldWeaponAugment"]
+  >;
 }
 
-export type ShapeWaterMode = 'move_or_flow' | 'shape_and_animate' | 'color_or_opacity' | 'freeze';
+export type ShapeWaterMode =
+  "move_or_flow" | "shape_and_animate" | "color_or_opacity" | "freeze";
 
 export interface ActiveShapeWaterEffect {
   id: string;
@@ -1273,12 +1509,12 @@ export interface ActiveShapeWaterEffect {
 }
 
 export type ThaumaturgyMode =
-  | 'altered_eyes'
-  | 'booming_voice'
-  | 'fire_play'
-  | 'invisible_hand'
-  | 'phantom_sound'
-  | 'tremors';
+  | "altered_eyes"
+  | "booming_voice"
+  | "fire_play"
+  | "invisible_hand"
+  | "phantom_sound"
+  | "tremors";
 
 export interface ActiveThaumaturgyEffect {
   id: string;
@@ -1343,7 +1579,7 @@ export interface ActiveSpellHelper {
   spellId: string;
   spellName?: string;
   casterId: string;
-  kind: 'mage_hand' | string;
+  kind: "mage_hand" | string;
   entityType: string;
   position: Position;
   size: string;
@@ -1361,17 +1597,17 @@ export interface ActiveSpellHelper {
   restrictions?: {
     canAttack?: boolean;
     canActivateMagicItems?: boolean;
-    carryCapacityPounds?: number | 'not_applicable';
+    carryCapacityPounds?: number | "not_applicable";
     allowedInteractions?: string[];
   };
   separationEnding?: {
-    trigger: 'beyond_max_distance' | string;
-    scope: 'spell' | string;
+    trigger: "beyond_max_distance" | string;
+    scope: "spell" | string;
     maxDistanceFeet: number;
   };
   recastEnding?: {
-    trigger: 'end_on_recast' | string;
-    scope: 'spell' | string;
+    trigger: "end_on_recast" | string;
+    scope: "spell" | string;
   };
 }
 
@@ -1380,7 +1616,7 @@ export interface ActiveSpellForce {
   spellId: string;
   spellName?: string;
   casterId: string;
-  kind: 'spiritual_weapon' | string;
+  kind: "spiritual_weapon" | string;
   entityType: string;
   position: Position;
   size?: string;
@@ -1427,7 +1663,7 @@ export interface ActiveSpellGuardian {
   spellId: string;
   spellName?: string;
   casterId: string;
-  kind: 'guardian_of_faith' | string;
+  kind: "guardian_of_faith" | string;
   position: Position;
   size: string;
   occupiesSpace: boolean;
@@ -1437,7 +1673,7 @@ export interface ActiveSpellGuardian {
   createdTurn: number;
   expiresAtRound?: number;
   triggerPolicy: {
-    targets: 'enemy_creatures' | string;
+    targets: "enemy_creatures" | string;
     onEnterFrequency?: string;
     onEnterTrigger?: boolean;
     turnStartTrigger?: boolean;
@@ -1495,7 +1731,7 @@ export interface ActiveSpellEmanation {
   spellId: string;
   spellName?: string;
   casterId: string;
-  kind: 'elemental_spirit_emanation' | 'nature_spirit_emanation' | string;
+  kind: "elemental_spirit_emanation" | "nature_spirit_emanation" | string;
   entityType: string;
   radiusFeet: number;
   combatEntity: false;
@@ -1504,24 +1740,24 @@ export interface ActiveSpellEmanation {
   createdTurn: number;
   expiresAtRound?: number;
   damageRider?: {
-    trigger: 'on_attack_hit' | string;
+    trigger: "on_attack_hit" | string;
     dice: string;
     damageTypeChoices: string[];
     chosenDamageType?: string;
     slotScaling?: string;
   };
   terrain?: {
-    terrainType: 'difficult' | string;
+    terrainType: "difficult" | string;
     appliesTo: string;
     followsCaster?: boolean;
     createsDifficultTerrain?: boolean;
   };
   damageAura?: {
-    trigger: 'emanation_entry_or_turn_end' | string;
+    trigger: "emanation_entry_or_turn_end" | string;
     dice: string;
     damageType: string;
     saveAbility: string;
-    saveOutcome: 'half' | 'none' | string;
+    saveOutcome: "half" | "none" | string;
     oncePerTurn: boolean;
     slotScaling?: string;
   };
@@ -1545,7 +1781,7 @@ export interface ActiveCommunicationControl {
   spellId: string;
   spellName?: string;
   casterId: string;
-  kind: 'speak_with_dead' | 'speak_with_plants' | string;
+  kind: "speak_with_dead" | "speak_with_plants" | string;
   entityType: string;
   active: boolean;
   createdTurn: number;
@@ -1601,7 +1837,7 @@ export interface ActiveEnvironmentalControl {
   spellId: string;
   spellName?: string;
   casterId: string;
-  kind: 'wrath_of_nature' | string;
+  kind: "wrath_of_nature" | string;
   entityType: string;
   originPosition: Position;
   active: boolean;
@@ -1657,13 +1893,13 @@ export interface ActiveExtradimensionalSpace {
   spellId: string;
   spellName?: string;
   casterId: string;
-  kind: 'magnificent_mansion' | string;
+  kind: "magnificent_mansion" | string;
   entrancePosition: Position;
   entranceDimensions: {
     widthFeet: number;
     heightFeet: number;
   };
-  doorState: 'open' | 'closed' | string;
+  doorState: "open" | "closed" | string;
   imperceptibleWhenClosed: boolean;
   designatedCreatureIds: string[];
   floorPlan: {
@@ -1698,10 +1934,10 @@ export interface ActiveSpellStructure {
   spellId: string;
   spellName?: string;
   casterId: string;
-  kind: 'mighty_fortress' | string;
+  kind: "mighty_fortress" | string;
   originPosition: Position;
   footprint: {
-    shape: 'square' | string;
+    shape: "square" | string;
     sizeFeet: number;
     placementRequirement?: string;
   };
@@ -1750,7 +1986,7 @@ export interface ActiveSpellWard {
   spellId: string;
   spellName?: string;
   casterId: string;
-  kind: 'druid_grove' | string;
+  kind: "druid_grove" | string;
   originPosition: Position;
   active: boolean;
   createdTurn: number;
@@ -1774,7 +2010,7 @@ export interface ActiveSpellWard {
     rerootsWhenSpellEndsIfPossible?: boolean;
   };
   ending?: {
-    trigger: 'spell_ends' | string;
+    trigger: "spell_ends" | string;
     dispelRemovesOneEffectOnly?: boolean;
     endsWhenAllEffectsRemoved?: boolean;
   };
@@ -1805,8 +2041,8 @@ export interface ActiveAnimatedObject {
   size: string;
   sizeCost: number;
   creatureType: string;
-  allegiance: 'ally' | 'enemy' | 'neutral' | string;
-  initiativePolicy: 'immediate' | 'rolled' | 'shared' | string;
+  allegiance: "ally" | "enemy" | "neutral" | string;
+  initiativePolicy: "immediate" | "rolled" | "shared" | string;
   armorClass: number;
   maxHitPoints: number;
   currentHitPoints: number;
@@ -1864,7 +2100,7 @@ export interface ActiveAwakenedCreature {
   humanlikeSenses?: boolean;
   createdTurn: number;
   charmedRelationship: {
-    condition: 'Charmed' | string;
+    condition: "Charmed" | string;
     durationDays: number;
     endsIfDamagedByCasterOrAllies: boolean;
     attitudeChosenAfterCharmEnds: boolean;
@@ -1875,7 +2111,7 @@ export interface ActiveAwakenedCreature {
 
 export interface ActiveTruePolymorphTransformation {
   id: string;
-  mode?: 'object_to_creature' | 'creature_to_creature' | 'creature_to_object';
+  mode?: "object_to_creature" | "creature_to_creature" | "creature_to_object";
   spellId: string;
   spellName?: string;
   casterId: string;
@@ -1912,7 +2148,7 @@ export interface ActiveTruePolymorphTransformation {
  */
 export interface ActiveMoldEarthSurfaceMark {
   id: string;
-  spellId: 'mold-earth' | string;
+  spellId: "mold-earth" | string;
   spellName?: string;
   casterId: string;
   position: Position;
@@ -1922,8 +2158,19 @@ export interface ActiveMoldEarthSurfaceMark {
 }
 
 // Battle Map Types
-export type BattleMapTerrain = 'grass' | 'rock' | 'water' | 'difficult' | 'wall' | 'floor' | 'sand' | 'mud';
-export type BattleMapDecoration = 'tree' | 'boulder' | 'stalagmite' | 'pillar' | 'cactus' | 'mangrove' | 'fallen_log' | 'stump' | 'bush' | null;
+export type BattleMapTerrain =
+  "grass" | "rock" | "water" | "difficult" | "wall" | "floor" | "sand" | "mud";
+export type BattleMapDecoration =
+  | "tree"
+  | "boulder"
+  | "stalagmite"
+  | "pillar"
+  | "cactus"
+  | "mangrove"
+  | "fallen_log"
+  | "stump"
+  | "bush"
+  | null;
 
 /**
  * An authored/generated surface laid over a tile's underlying terrain.
@@ -1934,17 +2181,17 @@ export type BattleMapDecoration = 'tree' | 'boulder' | 'stalagmite' | 'pillar' |
  * fact produced the tactical cells instead of inferring provenance from paint.
  */
 export type BattleMapSurface = {
-  kind: 'road';
-  source: 'worldforge-road';
-  sourceRole: 'regional-route' | 'town-street' | 'unclassified';
+  kind: "road";
+  source: "worldforge-road";
+  sourceRole: "regional-route" | "town-street" | "unclassified";
   sourceIndex: number;
   widthMeters: number;
 };
 
 /** Physical route-over-water fact layered over the tile's water terrain. */
 export type BattleMapCrossing = {
-  kind: 'bridge' | 'ford';
-  source: 'worldforge-crossing';
+  kind: "bridge" | "ford";
+  source: "worldforge-crossing";
   sourceCrossingId: string;
   roadSourceIndex?: number;
   riverSourceIndex?: number;
@@ -1957,7 +2204,8 @@ export type BattleMapCrossing = {
 };
 
 /** Schedule vocabulary retained when a source-world resident enters a tactical crop. */
-export type BattleMapOccupantActivity = 'sleeping' | 'home' | 'working' | 'out' | 'unknown';
+export type BattleMapOccupantActivity =
+  "sleeping" | "home" | "working" | "out" | "unknown";
 
 /**
  * A named WorldForge resident visible on the tactical board without silently
@@ -1972,7 +2220,7 @@ export interface BattleMapWorldOccupant {
   activity: BattleMapOccupantActivity;
   moving: boolean;
   source: {
-    kind: 'worldforge-occupant';
+    kind: "worldforge-occupant";
     burgId: number;
     occupantId: number;
     worldMeters: { x: number; z: number };
@@ -1992,26 +2240,26 @@ export interface BattleMapDefenderProjectionUnit {
 export interface BattleMapExcludedDefenderUnit {
   sourceUnitType: string;
   sourceTroops: number;
-  reason: 'not-gate-patrol-role' | 'missing-bestiary-bridge';
+  reason: "not-gate-patrol-role" | "missing-bestiary-bridge";
 }
 
 /** The explicit scene event asking a generated settlement force to confront the party. */
 export type BattleMapSettlementHostilityTrigger =
   | {
-      kind: 'none';
-      source: 'none';
+      kind: "none";
+      source: "none";
       summary: string;
     }
   | {
-      kind: 'watch-confrontation';
-      source: 'player-interaction' | 'quest' | 'world-event' | 'visual-harness';
+      kind: "watch-confrontation";
+      source: "player-interaction" | "quest" | "world-event" | "visual-harness";
       sourceId: string;
       locationId: string;
       summary: string;
     }
   | {
-      kind: 'state-confrontation';
-      source: 'player-interaction' | 'quest' | 'world-event' | 'visual-harness';
+      kind: "state-confrontation";
+      source: "player-interaction" | "quest" | "world-event" | "visual-harness";
       sourceId: string;
       factionId: string;
       summary: string;
@@ -2020,22 +2268,29 @@ export type BattleMapSettlementHostilityTrigger =
 /** Matching player-state evidence that can authorize the confrontation. */
 export type BattleMapSettlementHostilityRelation =
   | {
-      kind: 'none';
-      source: 'none';
+      kind: "none";
+      source: "none";
       detail: string;
     }
   | {
-      kind: 'wanted-in-location';
-      source: 'player-crime-state';
+      kind: "wanted-in-location";
+      source: "player-crime-state";
       locationId: string;
       witnessedCrimeIds: string[];
     }
   | {
-      kind: 'state-standing';
-      source: 'player-faction-standing';
+      kind: "state-standing";
+      source: "player-faction-standing";
       factionId: string;
       publicStanding: number;
-      tier: 'NEMESIS' | 'HOSTILE' | 'UNFRIENDLY' | 'NEUTRAL' | 'FRIENDLY' | 'HONORED' | 'REVERED';
+      tier:
+        | "NEMESIS"
+        | "HOSTILE"
+        | "UNFRIENDLY"
+        | "NEUTRAL"
+        | "FRIENDLY"
+        | "HONORED"
+        | "REVERED";
       hostileThreshold: number;
       qualifiesAsHostile: boolean;
     };
@@ -2047,8 +2302,8 @@ export type BattleMapSettlementHostilityRelation =
  * evidence does not authorize the tactical layer to invent hostility.
  */
 export interface BattleMapSettlementHostility {
-  rule: 'explicit-trigger-plus-matching-relation-v1';
-  verdict: 'hostile' | 'withhold-combat';
+  rule: "explicit-trigger-plus-matching-relation-v1";
+  verdict: "hostile" | "withhold-combat";
   trigger: BattleMapSettlementHostilityTrigger;
   relation: BattleMapSettlementHostilityRelation;
   detail: string;
@@ -2063,7 +2318,7 @@ export interface BattleMapSettlementHostility {
  */
 export interface BattleMapDefendingForce {
   source: {
-    kind: 'worldforge-state-regiment';
+    kind: "worldforge-state-regiment";
     burgId: number;
     burgName: string;
     stateId: number;
@@ -2077,7 +2332,7 @@ export interface BattleMapDefendingForce {
     sourceCellId: number;
   };
   projection: {
-    kind: 'gate-patrol-alert-sample-v1';
+    kind: "gate-patrol-alert-sample-v1";
     /** Rounded state alert, clamped to a readable 2-6 actor encounter. */
     tacticalActorBudget: number;
     tacticalActors: number;
@@ -2088,80 +2343,204 @@ export interface BattleMapDefendingForce {
   };
 }
 
+/** Evidence left in the opening scene before initiative begins. */
+export interface BattleMapOpeningEcologicalTrace {
+  id: string;
+  kind: "tracks" | "disturbed-vegetation" | "scent-mark" | "territorial-scrape";
+  /** Relative freshness authored with the scene, without inventing a timestamp. */
+  ageBand?: "fresh" | "recent" | "weathered";
+  label: string;
+  position: { x: number; y: number };
+  worldGroundMeters: { x: number; z: number };
+  sourceEntityIds: string[];
+}
+
+/**
+ * Ground deformation left by monsters occupying one WorldForge location.
+ *
+ * Unlike tactical highlights, these are saved world facts. Start and end
+ * anchors let both the 2D and 3D renderers draw the same flattened hollow,
+ * traffic lane, dragged load, or refuse scatter without inventing placement.
+ */
+export interface BattleMapOpeningTerrainImprint {
+  id: string;
+  kind: "flattened-ground" | "trampled-run" | "drag-furrow" | "refuse-scatter";
+  label: string;
+  position: { x: number; y: number };
+  endPosition: { x: number; y: number };
+  worldGroundMeters: { x: number; z: number };
+  endWorldGroundMeters: { x: number; z: number };
+  direction: { x: number; y: number };
+  extentCells: { length: number; width: number };
+  ageBand: "fresh" | "recent";
+  sourceEntityIds: string[];
+  activitySiteId: string;
+}
+
+/** Physical monster activity that remains at this source location across visits. */
+export interface BattleMapOpeningActivitySite {
+  id: string;
+  kind: "claimed-cache" | "feeding-site" | "resting-hollow";
+  label: string;
+  position: { x: number; y: number };
+  worldGroundMeters: { x: number; z: number };
+  ageBand: "fresh" | "recent";
+  claimedByEntityIds: string[];
+  contents: Array<
+    | "salvaged-container"
+    | "torn-bedding"
+    | "gnawed-remains"
+    | "flattened-ground"
+  >;
+}
+
+/** What became of one exact WorldForge creature when the battle ended. */
+export type BattleMapOpeningEntityOutcomeStatus =
+  "downed" | "withdrew" | "holding-ground";
+
+/**
+ * Save-backed combat result for one opening-scene creature.
+ *
+ * `lastSeenWorldGroundMeters` is derived from the final referee cell rather
+ * than guessed by a return renderer. A withdrawal therefore means "left this
+ * scene after last being seen here", while a downed creature leaves a physical
+ * body at the stored location.
+ */
+export interface BattleMapOpeningEntityOutcome {
+  sourceEntityId: string;
+  combatantId: string;
+  status: BattleMapOpeningEntityOutcomeStatus;
+  finalHitPoints: number;
+  finalTacticalPosition: { x: number; y: number };
+  lastSeenWorldGroundMeters: { x: number; z: number };
+}
+
+/** Physical churn authored from the final positions of the combat participants. */
+export interface BattleMapOpeningCombatDisturbance {
+  kind: "combat-churn";
+  position: { x: number; y: number };
+  worldGroundMeters: { x: number; z: number };
+  direction: { x: number; y: number };
+  extentCells: { length: number; width: number };
+  severity: "scattered" | "heavy";
+  sourceEntityIds: string[];
+}
+
+/**
+ * Durable resolution of an opening scene.
+ *
+ * A resolved receipt is historical evidence, not permission to launch the
+ * same combat again. Production projection refuses it; the World Battle Lab
+ * may explicitly request a return-site projection to inspect the aftermath.
+ */
+export interface BattleMapOpeningSceneResolution {
+  outcome: "party-victory" | "party-defeat";
+  resolvedAtGameTimeMs: number;
+  entityOutcomes: BattleMapOpeningEntityOutcome[];
+  activitySiteCondition: "abandoned-disturbed" | "held-disturbed";
+  combatDisturbance: BattleMapOpeningCombatDisturbance;
+}
+
+/** Exact tactical/world position of one source-authored opening creature. */
+export interface BattleMapOpeningThreatEntity extends WorldforgeOpeningThreatSource {
+  position: { x: number; y: number };
+}
+
 /**
  * Source-backed tactical framing for an encounter projected onto this map.
  *
- * The context states intent and lineage, not final character coordinates. The
- * combat setup helper still validates every spawn against the live referee
- * grid, which preserves later world deltas and avoids saving stale positions.
+ * Most contexts state intent and lineage while combat chooses legal final
+ * coordinates. Opening threat scenes are stricter: their persisted WorldForge
+ * entity receipt carries exact source positions which combat must consume.
  */
 export type BattleMapEncounterContext =
   | {
-      kind: 'opening-standoff';
-      source: 'worldforge-opening';
+      kind: "opening-standoff";
+      source: "worldforge-opening";
       /** Stable receipt copied from the game-authored opening location. */
       sourceReceiptId: string;
+      /** Frozen WorldForge entity scene accepted into save-backed history. */
+      sourceSceneReceiptId: string;
+      /** Whether this map authored the scene now or replayed its saved world facts. */
+      sceneContinuity?: "authored" | "saved-replay" | "resolved-return";
       /** Canonical atlas cell validated against tactical provenance. */
       sourceWorldCellId: number;
       /** Walkable tactical cell nearest the exact live player position. */
       anchorTile: { x: number; y: number };
+      /** Direction the authored threat group faces as it closes on the party. */
+      approachDirection: { x: number; y: number };
+      /** Exact source entities in the same order as the opening threat roster. */
+      sourceEntities: BattleMapOpeningThreatEntity[];
+      /** Source-authored signs that make the encounter legible before the body. */
+      ecologicalTraces: BattleMapOpeningEcologicalTrace[];
+      /**
+       * Persistent ground deformation connecting the activity site to creature
+       * behavior. Old combat snapshots can omit it; current scenes require it.
+       */
+      terrainImprints?: BattleMapOpeningTerrainImprint[];
+      /**
+       * Persisted physical activity site. Legacy v1 combat snapshots can omit
+       * this, while every current v2 WorldForge projection must provide it.
+       */
+      activitySite?: BattleMapOpeningActivitySite;
+      /** Combat-authored aftermath. Its presence means this is a return view, not a live standoff. */
+      sceneResolution?: BattleMapOpeningSceneResolution;
       deployment: {
-        player: 'current-position';
-        enemy: 'terrain-fit-standoff-constellation';
+        player: "current-position";
+        enemy: "source-world-entities" | "resolved-source-bodies";
       };
       /**
-       * Facts the opening narrative does not author. Tactical placement uses a
-       * transparent standoff policy and must not masquerade as world geometry.
+       * The v1 contact scene authors current positions and approach evidence,
+       * but does not invent the threat's earlier travel history.
        */
       omittedFacts: {
-        enemyWorldPositions: 'not-authored';
-        approachDirection: 'not-authored';
+        preContactHistory: "not-authored";
       };
     }
   | {
-      kind: 'road-ambush';
-      source: 'worldforge-road';
-      sourceRoadRole: BattleMapSurface['sourceRole'];
+      kind: "road-ambush";
+      source: "worldforge-road";
+      sourceRoadRole: BattleMapSurface["sourceRole"];
       sourceRoadIndex: number;
       /** Referee cell corresponding to the selected source-world encounter point. */
       anchorTile: { x: number; y: number };
       /** Normalized route heading in referee x/y coordinates. */
       routeDirection: { x: number; y: number };
       deployment: {
-        player: 'traveling-column';
-        enemy: 'concealed-flanks';
+        player: "traveling-column";
+        enemy: "concealed-flanks";
       };
     }
   | {
-      kind: 'river-crossing';
-      source: 'worldforge-crossing';
+      kind: "river-crossing";
+      source: "worldforge-crossing";
       sourceCrossingId: string;
-      crossingKind: BattleMapCrossing['kind'];
+      crossingKind: BattleMapCrossing["kind"];
       anchorTile: { x: number; y: number };
       routeDirection: { x: number; y: number };
       deployment: {
-        player: 'near-bank';
-        enemy: 'far-bank';
+        player: "near-bank";
+        enemy: "far-bank";
       };
     }
   | {
-      kind: 'settlement-edge';
-      source: 'worldforge-settlement';
+      kind: "settlement-edge";
+      source: "worldforge-settlement";
       sourceBurgId: number;
       sourceGatehouseId: string;
       anchorTile: { x: number; y: number };
       /** Normalized heading from the gate exterior toward the town interior. */
       routeDirection: { x: number; y: number };
       deployment: {
-        player: 'outside-approach';
-        enemy: 'inside-gate';
+        player: "outside-approach";
+        enemy: "inside-gate";
       };
       /** Present only when a real stationed regiment can supply this encounter. */
       defendingForce?: BattleMapDefendingForce;
     }
   | {
-      kind: 'settlement-watch';
-      source: 'worldforge-settlement';
+      kind: "settlement-watch";
+      source: "worldforge-settlement";
       sourceBurgId: number;
       /** The live interaction or world event that caused the watch to intervene. */
       sourceConfrontationId: string;
@@ -2170,15 +2549,15 @@ export type BattleMapEncounterContext =
       /** Normalized heading from the party toward the settlement's responding force. */
       routeDirection: { x: number; y: number };
       deployment: {
-        player: 'current-position';
-        enemy: 'watch-interception';
+        player: "current-position";
+        enemy: "watch-interception";
       };
       /** Present only when a real stationed regiment can supply this encounter. */
       defendingForce?: BattleMapDefendingForce;
     }
   | {
-      kind: 'settlement-state-patrol';
-      source: 'worldforge-settlement';
+      kind: "settlement-state-patrol";
+      source: "worldforge-settlement";
       sourceBurgId: number;
       /** Generated-state faction whose standing authorized this interception. */
       sourceFactionId: string;
@@ -2189,22 +2568,22 @@ export type BattleMapEncounterContext =
       /** Normalized heading from the party toward the settlement's responding force. */
       routeDirection: { x: number; y: number };
       deployment: {
-        player: 'current-position';
-        enemy: 'state-patrol-interception';
+        player: "current-position";
+        enemy: "state-patrol-interception";
       };
       /** Present only when a real stationed regiment can supply this encounter. */
       defendingForce?: BattleMapDefendingForce;
     };
 
 export interface EnvironmentalEffect {
-    id: string;
-    type: 'fire' | 'ice' | 'poison' | 'difficult_terrain' | 'web' | 'fog' | 'hazard';
-    duration: number;
-    effect: StatusEffect;
-    sourceSpellId?: string;
+  id: string;
+  type:
+    "fire" | "ice" | "poison" | "difficult_terrain" | "web" | "fog" | "hazard";
+  duration: number;
+  effect: StatusEffect;
+  sourceSpellId?: string;
   casterId?: string;
 }
-
 
 export interface BattleMapTile {
   id: string; // "x-y"
@@ -2231,8 +2610,16 @@ export interface BattleMapTile {
  * the painter, the biome pill, and the dev override all derive from it.
  */
 export const BATTLE_MAP_BIOMES = [
-  'forest', 'cave', 'dungeon', 'desert', 'swamp',
-  'snow', 'jungle', 'coast', 'ruins', 'volcanic',
+  "forest",
+  "cave",
+  "dungeon",
+  "desert",
+  "swamp",
+  "snow",
+  "jungle",
+  "coast",
+  "ruins",
+  "volcanic",
 ] as const;
 export type BattleMapBiome = (typeof BATTLE_MAP_BIOMES)[number];
 
@@ -2247,7 +2634,7 @@ export type BattleMapBiome = (typeof BATTLE_MAP_BIOMES)[number];
 
 export interface BattleMapWorldforgeProvenance {
   /** WorldForge is authoritative for terrain and placed objects on this map. */
-  kind: 'worldforge';
+  kind: "worldforge";
   /** Seed of the generated world the encounter belongs to. */
   worldSeed: number;
   /** Exact atlas cell used to build Region -> Local -> Ground, when resolved. */
@@ -2291,7 +2678,7 @@ export interface PocketedSummon {
   spellId: string;
   dismissedTurn: number;
   lastKnownPosition: Position;
-  reason: 'familiar_pocket' | 'manual_dismissal';
+  reason: "familiar_pocket" | "manual_dismissal";
 }
 
 export interface CombatState {
@@ -2319,7 +2706,7 @@ export interface CombatState {
   turnState: TurnState;
   selectedCharacterId: string | null;
   selectedAbilityId: string | null;
-  actionMode: 'select' | 'move' | 'target_ability' | 'preview_aoe';
+  actionMode: "select" | "move" | "target_ability" | "preview_aoe";
   validTargets: Position[];
   validMoves: Position[];
   aoePreview?: {
@@ -2329,7 +2716,7 @@ export interface CombatState {
   };
   combatLog: CombatLogEntry[];
   reactiveTriggers: ReactiveTrigger[];
-  activeLightSources: LightSource[];    // Active light sources on the map
+  activeLightSources: LightSource[]; // Active light sources on the map
   /** Spell effects that resolved against map objects instead of creatures. */
   spellObjectImpacts?: SpellObjectImpact[];
   /** Spell effects that repaired map objects instead of damaging them. */
@@ -2440,13 +2827,13 @@ export interface SpellEffectAnimationData {
 
 export interface DamageNumberAnimationData {
   value: number;
-  type: 'physical' | 'magical' | 'heal' | 'miss';
+  type: "physical" | "magical" | "heal" | "miss";
   isCrit?: boolean;
 }
 
 export interface StatusEffectAnimationData {
   statusId: string;
-  action: 'apply' | 'remove' | 'tick';
+  action: "apply" | "remove" | "tick";
   icon?: string;
 }
 
@@ -2463,7 +2850,7 @@ export type AnimationData =
 
 export interface Animation {
   id: string;
-  type: 'move' | 'attack' | 'spell_effect' | 'damage_number' | 'status_effect';
+  type: "move" | "attack" | "spell_effect" | "damage_number" | "status_effect";
   characterId?: string;
   startPosition?: Position;
   endPosition?: Position;
@@ -2476,7 +2863,7 @@ export interface DamageNumber {
   id: string;
   value: number;
   position: Position;
-  type: 'damage' | 'heal' | 'miss' | 'save' | 'resist' | 'immune';
+  type: "damage" | "heal" | "miss" | "save" | "resist" | "immune";
   startTime: number;
   duration: number;
 }
@@ -2485,7 +2872,7 @@ export interface SpellMovementVisual {
   id: string;
   spellId: string;
   targetId: string;
-  type: 'teleport' | 'forced_movement';
+  type: "teleport" | "forced_movement";
   from: Position;
   to: Position;
   path?: Position[];
@@ -2533,7 +2920,14 @@ export interface CombatLogData {
 export interface CombatLogEntry {
   id: string;
   timestamp: number;
-  type: 'action' | 'damage' | 'heal' | 'status' | 'summon' | 'turn_start' | 'turn_end';
+  type:
+    | "action"
+    | "damage"
+    | "heal"
+    | "status"
+    | "summon"
+    | "turn_start"
+    | "turn_end";
   message: string;
   characterId?: string;
   targetIds?: string[];

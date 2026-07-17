@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 15/07/2026, 09:53:50
- * Dependents: components/MapPane.tsx, components/World3D/entryCellIdentity.ts, state/appState.ts, state/reducers/craftingReducer.ts, systems/adventureLog/adventureLog.ts, systems/adventureLog/oraclePrompt.ts, systems/party/recruitConsent.ts, systems/worldforge/local/gridAtlasBridge.ts, types/index.ts, types/travelMeta.ts, utils/world/sceneUtils.ts
+ * Last Sync: 16/07/2026, 13:27:56
+ * Dependents: App.tsx, components/MapPane.tsx, components/World3D/entryCellIdentity.ts, state/appState.ts, state/reducers/craftingReducer.ts, systems/adventureLog/adventureLog.ts, systems/adventureLog/oraclePrompt.ts, systems/party/recruitConsent.ts, systems/worldforge/local/gridAtlasBridge.ts, types/index.ts, types/travelMeta.ts, utils/world/sceneUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -23,7 +23,7 @@ import { DivineFavor, Temple, ReligionState } from './religion.js';
 import { Fence, GuildMembership, HeistPlan, Crime, Bounty } from './crime/index.js';
 import { UnderdarkState } from './underdark.js';
 import { EconomyState } from './economy.js';
-import { Action, GroundingChunk } from './actions.js';
+import { Action, BattlefieldSourceGapReason, GroundingChunk } from './actions.js';
 import { GameMessage, MapData, NpcMemory, DiscoveryResidue, Location, WorldRumor, NPC, RichNPC } from './world.js';
 import { Quest } from './quests.js';
 import { RitualState } from './rituals.js';
@@ -34,7 +34,7 @@ import { NavalState, Ship } from './naval.js';
 import { CraftingState } from './crafting.js';
 import { JournalState } from './journal.js';
 import type { WorldDelta } from '../systems/worldforge/delta/types.js';
-import type { WorldforgeEncounterReceipt } from '../systems/combat/worldScenario/statePatrolWorldEvent.js';
+import type { WorldforgeEncounterReceipt } from '../systems/combat/worldScenario/worldforgeEncounterReceipt.js';
 import type { Notification } from './ui.js';
 import { PlayerIdentityState } from './identity.js';
 
@@ -322,6 +322,8 @@ export interface GameState {
   encounterError: string | null;
 
   currentEnemies: import('./combat.js').CombatCharacter[] | null;
+  /** Exact reason an unsupported production encounter was withheld. */
+  battlefieldSourceGap?: BattlefieldSourceGapReason | null;
   /**
    * Pre-extracted 3D battle map data to override procedural generation.
    * Captured from ground mode terrain centered around player-hostile collision.

@@ -528,11 +528,52 @@ describe('handleTalk guard confrontation', () => {
 
   beforeEach(() => vi.clearAllMocks());
 
-  it('confronts a wanted player into combat instead of opening dialogue', async () => {
+  it('fails a static authored-town confrontation closed without generic guards', async () => {
     await runTalk(baseState({ notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [wantedCrime], bounties: [] } }));
-    expect(vi.mocked(handleStartBattleMapEncounter)).toHaveBeenCalled();
+    expect(vi.mocked(handleStartBattleMapEncounter)).toHaveBeenCalledWith(
+      expect.any(Function),
+      {
+        monsters: [],
+        sourceGap: expect.objectContaining({
+          code: 'authored-town-watch-no-worldforge-location',
+          encounterLabel: 'Wanted watch confrontation',
+          locationLabel: 'Authored town "oakhaven"',
+          missingSourceFacts: [
+            'WorldForge cell',
+            'settlement site',
+            'tactical terrain projection',
+          ],
+        }),
+      },
+    );
+    expect(JSON.stringify(vi.mocked(handleStartBattleMapEncounter).mock.calls[0]?.[1])).not.toMatch(/"name":"Guard"/);
     expect(mockDispatch.mock.calls.some(([d]) => d.type === 'START_DIALOGUE_SESSION')).toBe(false);
     expect(mockAddMessage.mock.calls.some(([m]) => /wanted|surrender/i.test(m))).toBe(true);
+  });
+
+  it('uses the same source-gap record when a mounted world says the authored town is not applicable', async () => {
+    const cleanup = registerActiveGroundCombatProvider(async () => ({
+      status: 'not-applicable',
+      detail: 'The interaction is not inside a generated settlement.',
+    }));
+
+    try {
+      await runTalk(baseState({
+        notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [wantedCrime], bounties: [] },
+      }));
+    } finally {
+      cleanup();
+    }
+
+    expect(vi.mocked(handleStartBattleMapEncounter)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({
+        monsters: [],
+        sourceGap: expect.objectContaining({
+          code: 'authored-town-watch-no-worldforge-location',
+        }),
+      }),
+    );
   });
 
   it('uses a prepared GroundWorld encounter instead of the generic Guard fallback', async () => {

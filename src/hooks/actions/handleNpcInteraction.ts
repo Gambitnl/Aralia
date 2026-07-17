@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 08:56:55
+ * Last Sync: 16/07/2026, 13:30:02
  * Dependents: hooks/actions/actionHandlers.ts
- * Imports: 22 files
+ * Imports: 23 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -41,6 +41,7 @@ import { isInParty } from '../../systems/party/recruitTypes';
 import { isWatchRole, isWantedInTown } from '../../systems/social/watchReaction';
 import { handleStartBattleMapEncounter } from './handleEncounter';
 import { prepareActiveGroundSettlementEncounter } from '../../systems/combat/fightInPlace/activeGroundCombatSession';
+import { createAuthoredTownWatchSourceGap } from '../../systems/combat/fightInPlace/authoredTownWatchSourceGap';
 
 /**
  * Guard confrontation (item 1): when the player is WANTED in this town and tries
@@ -88,13 +89,16 @@ async function tryWatchConfrontation(
   }
 
   // Static authored towns and non-3D interactions have no GroundWorld provider.
-  // Preserve their established guard actors as encounter intent, but the global
-  // battlefield boundary will withhold play until those towns gain a canonical
-  // WorldForge site projection. A mounted generated settlement that rejected
-  // the source bridge stays in the dialogue flow and never substitutes guards.
+  // Enter the explicit inert source-gap state without creating generic guards:
+  // a roster is not a location, and displaying one would still counterfeit a
+  // production encounter before this town has a canonical WorldForge mapping.
   if (sourceEncounter.status === 'unavailable' || sourceEncounter.status === 'not-applicable') {
     await handleStartBattleMapEncounter(dispatch, {
-      monsters: [{ name: 'Guard', quantity: 2, cr: '1/8', description: 'Town watch, CR 1/8' }],
+      monsters: [],
+      sourceGap: createAuthoredTownWatchSourceGap(
+        gameState.currentLocationId,
+        npcName,
+      ),
     });
     return true;
   }

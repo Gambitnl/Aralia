@@ -75,8 +75,8 @@ describe('active GroundWorld combat session', () => {
 // ============================================================================
 // Opening Threat Provider
 // ============================================================================
-// The opening path has its own lifecycle because it projects terrain only; the
-// social threat already owns the bestiary roster and de-escalation outcome.
+// The opening path has its own lifecycle because the social threat owns the
+// roster while GroundWorld alone may author its positions and scene evidence.
 // ============================================================================
 
 const openingRequest = {
@@ -87,6 +87,7 @@ const openingRequest = {
     cellId: 476,
     locationLabel: 'Legium',
   },
+  enemies: [{ name: 'Goblin', quantity: 2, cr: '1/4' }],
 };
 
 describe('active GroundWorld opening session', () => {

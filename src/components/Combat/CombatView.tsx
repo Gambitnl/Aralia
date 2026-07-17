@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/07/2026, 23:24:21
+ * Last Sync: 16/07/2026, 08:57:11
  * Dependents: components/Combat/index.ts
- * Imports: 45 files
+ * Imports: 46 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -28,41 +28,76 @@
  * IMPORTANT: Do not remove inline comments from this file unless the associated code is modified.
  * If code changes, update the comment with the new date and a description of the change.
  */
-import React, { useState, useEffect, useCallback, useContext, useRef, lazy, Suspense } from 'react';
-import BattleMap from '../BattleMap/BattleMap';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useContext,
+  useRef,
+  lazy,
+  Suspense,
+} from "react";
+import BattleMap from "../BattleMap/BattleMap";
 // The 3D surfaces (R3F + three.js, a large chunk) are only needed when the
 // player switches the combat map into a 3D mode. Loading them lazily keeps the
 // default 2D combat map — the correctness surface and the reskin target — off
 // the heavy three.js graph, so the 2D board loads without pulling WebGPU/TSL
 // modules onto its critical path.
-const BattleMap3D = lazy(() => import('../BattleMap/BattleMap3D'));
-import { PlayerCharacter, Item } from '../../types';
-import { Ability, ActiveAnimatedObject, ActiveExtradimensionalSpace, ActiveFireEffect, ActiveSpellEmanation, ActiveSpellForce, ActiveSpellGuardian, ActiveSpellHelper, ActiveSpellStructure, ActiveTruePolymorphTransformation, BattleMapBiome, BattleMapData, CombatCharacter, CombatLogEntry, CombatPartySnapshotEntry, PocketedSummon, SpellObjectImpact, SpellObjectRepair, SpellObjectAccessChange } from '../../types/combat';
-import ErrorBoundary from '../ui/ErrorBoundary';
-import { useTurnManager } from '../../hooks/combat/useTurnManager';
-import { useCombatLog } from '../../hooks/combat/useCombatLog';
-import { useAbilitySystem } from '../../hooks/useAbilitySystem';
+const BattleMap3D = lazy(() => import("../BattleMap/BattleMap3D"));
+import { PlayerCharacter, Item } from "../../types";
+import {
+  Ability,
+  ActiveAnimatedObject,
+  ActiveExtradimensionalSpace,
+  ActiveFireEffect,
+  ActiveSpellEmanation,
+  ActiveSpellForce,
+  ActiveSpellGuardian,
+  ActiveSpellHelper,
+  ActiveSpellStructure,
+  ActiveTruePolymorphTransformation,
+  BattleMapBiome,
+  BattleMapData,
+  CombatCharacter,
+  CombatEnemySnapshotEntry,
+  CombatLogEntry,
+  CombatPartySnapshotEntry,
+  PocketedSummon,
+  SpellObjectImpact,
+  SpellObjectRepair,
+  SpellObjectAccessChange,
+} from "../../types/combat";
+import ErrorBoundary from "../ui/ErrorBoundary";
+import { useTurnManager } from "../../hooks/combat/useTurnManager";
+import { useCombatLog } from "../../hooks/combat/useCombatLog";
+import { useAbilitySystem } from "../../hooks/useAbilitySystem";
 import {
   generateProceduralSandboxBattleSetup,
   generateWorldBattleSetup,
-} from '../../hooks/useBattleMapGeneration';
-import { Z_INDEX } from '../../styles/zIndex';
-import { UI_ID, WINDOW_KEYS } from '../../styles/uiIds';
-import { WindowFrame } from '../ui/WindowFrame';
-import { useCombatAI } from '../../hooks/combat/useCombatAI';
-import InitiativeTracker from '../BattleMap/InitiativeTracker';
-import AbilityPalette from '../BattleMap/AbilityPalette';
-import CombatLog from '../BattleMap/CombatLog';
-import ActionEconomyBar from '../BattleMap/ActionEconomyBar';
-import PartyDisplay from '../BattleMap/PartyDisplay';
-import { CombatIntentPreview } from '../BattleMap/CombatIntentPreview';
-import { COMBAT_BTN_BASE, COMBAT_BTN_NEUTRAL, COMBAT_BTN_ORANGE, COMBAT_BTN_INDIGO, COMBAT_BTN_RED } from '../BattleMap/combatUiTheme';
-import CharacterSheetModal from '../CharacterSheet/CharacterSheetModal';
-import { CombatCharacterInspector } from '../BattleMap/CombatCharacterInspector';
-import CombatRailControls from '../BattleMap/CombatRailControls';
-import CompactTurnStrip from '../BattleMap/CompactTurnStrip';
-import CombatRailResizeHandle from '../BattleMap/CombatRailResizeHandle';
-import MaplessTerrainSummary from './MaplessTerrainSummary';
+} from "../../hooks/useBattleMapGeneration";
+import { Z_INDEX } from "../../styles/zIndex";
+import { UI_ID, WINDOW_KEYS } from "../../styles/uiIds";
+import { WindowFrame } from "../ui/WindowFrame";
+import { useCombatAI } from "../../hooks/combat/useCombatAI";
+import InitiativeTracker from "../BattleMap/InitiativeTracker";
+import AbilityPalette from "../BattleMap/AbilityPalette";
+import CombatLog from "../BattleMap/CombatLog";
+import ActionEconomyBar from "../BattleMap/ActionEconomyBar";
+import PartyDisplay from "../BattleMap/PartyDisplay";
+import { CombatIntentPreview } from "../BattleMap/CombatIntentPreview";
+import {
+  COMBAT_BTN_BASE,
+  COMBAT_BTN_NEUTRAL,
+  COMBAT_BTN_ORANGE,
+  COMBAT_BTN_INDIGO,
+  COMBAT_BTN_RED,
+} from "../BattleMap/combatUiTheme";
+import CharacterSheetModal from "../CharacterSheet/CharacterSheetModal";
+import { CombatCharacterInspector } from "../BattleMap/CombatCharacterInspector";
+import CombatRailControls from "../BattleMap/CombatRailControls";
+import CompactTurnStrip from "../BattleMap/CompactTurnStrip";
+import CombatRailResizeHandle from "../BattleMap/CombatRailResizeHandle";
+import MaplessTerrainSummary from "./MaplessTerrainSummary";
 import {
   COMBAT_COMMAND_WIDTH_DEFAULT,
   COMBAT_COMMAND_WIDTH_MAX,
@@ -72,68 +107,80 @@ import {
   COMBAT_ROSTER_WIDTH_MIN,
   createCombatRailGridStyle,
   useCombatRailLayout,
-} from '../../hooks/useCombatRailLayout';
-import { canUseDevTools } from '../../utils/permissions';
-import { logger } from '../../utils/logger';
-import { createPlayerCombatCharacter } from '../../utils/combatUtils';
-import SpellContext from '../../context/SpellContext';
-import { motion } from 'framer-motion';
-import { useGameState } from '../../state/GameContext';
-import { CombatReligionAdapter } from '../../systems/religion/CombatReligionAdapter';
-import BattlefieldSourceGap from './BattlefieldSourceGap';
+} from "../../hooks/useCombatRailLayout";
+import { canUseDevTools } from "../../utils/permissions";
+import { logger } from "../../utils/logger";
+import { createPlayerCombatCharacter } from "../../utils/combatUtils";
+import SpellContext from "../../context/SpellContext";
+import { motion } from "framer-motion";
+import { useGameState } from "../../state/GameContext";
+import { CombatReligionAdapter } from "../../systems/religion/CombatReligionAdapter";
+import BattlefieldSourceGap from "./BattlefieldSourceGap";
 
 // [2026-02-10] Rich combat messaging imports.
 // useCombatMessaging: React hook that manages CombatMessage[] state with filtering, configuration,
 //   and convenience methods. Instantiated here in CombatView to hold the parallel rich message array.
 // convertLogEntryToMessage: Bridge adapter function that converts a simple CombatLogEntry into a
 //   rich CombatMessage. Called inside handleLogEntry on every log emission to populate the messaging state.
-import { useCombatMessaging } from '../../hooks/combat/useCombatMessaging';
-import { convertLogEntryToMessage } from '../../utils/combat/combatLogToMessageAdapter';
+import { useCombatMessaging } from "../../hooks/combat/useCombatMessaging";
+import { convertLogEntryToMessage } from "../../utils/combat/combatLogToMessageAdapter";
 
-import AISpellInputModal from '../BattleMap/AISpellInputModal';
-import { Spell } from '../../types/spells';
-import { ReactionPrompt } from './ReactionPrompt';
-import { Plane } from '../../types/planes';
-import { useCombatOutcome } from '../../hooks/combat/useCombatOutcome';
-import { CreatureHarvestPanel } from '../Crafting/CreatureHarvestPanel';
-import { HARVESTABLE_CREATURES } from '../../systems/crafting/creatureHarvestData';
+import AISpellInputModal from "../BattleMap/AISpellInputModal";
+import { Spell } from "../../types/spells";
+import { ReactionPrompt } from "./ReactionPrompt";
+import { Plane } from "../../types/planes";
+import { useCombatOutcome } from "../../hooks/combat/useCombatOutcome";
+import { CreatureHarvestPanel } from "../Crafting/CreatureHarvestPanel";
+import { HARVESTABLE_CREATURES } from "../../systems/crafting/creatureHarvestData";
 // Fight-in-place slice 2: the in-scene combat surface + the World3D → CombatView
 // world handoff. When present, the fight renders IN the streamed world.
-const InPlaceCombatScene = lazy(() => import('./InPlaceCombatScene'));
+const InPlaceCombatScene = lazy(() => import("./InPlaceCombatScene"));
 // Next-gen combat renderer prototype (PixiJS, spec: combat-map-nextgen). Lazy
 // so pixi.js stays off the eager 2D path; only mounted under ?pixiboard=1.
-const PixiBoardPrototype = lazy(() => import('../BattleMap/pixi/PixiBoardPrototype'));
+const PixiBoardPrototype = lazy(
+  () => import("../BattleMap/pixi/PixiBoardPrototype"),
+);
 // Dev flag for the next-gen renderer prototype (spec: combat-map-nextgen).
-const usePixiBoard = typeof window !== 'undefined'
-  && new URLSearchParams(window.location.search).has('pixiboard');
+const usePixiBoard =
+  typeof window !== "undefined" &&
+  new URLSearchParams(window.location.search).has("pixiboard");
 // The legacy arena is reachable only through the explicit developer fixture.
 // Ordinary production combat cannot opt in based on a missing map alone.
-const useProceduralCombatSandbox = typeof window !== 'undefined'
-  && canUseDevTools()
-  && new URLSearchParams(window.location.search).get('dev_combat') === '1';
-import { getFightInPlaceHandoff, clearFightInPlaceHandoff } from '../../systems/combat/fightInPlace/fightInPlaceHandoff';
+const useProceduralCombatSandbox =
+  typeof window !== "undefined" &&
+  canUseDevTools() &&
+  new URLSearchParams(window.location.search).get("dev_combat") === "1";
+import {
+  getFightInPlaceHandoff,
+  clearFightInPlaceHandoff,
+} from "../../systems/combat/fightInPlace/fightInPlaceHandoff";
 
 interface CombatViewProps {
   party: PlayerCharacter[];
   enemies: CombatCharacter[];
   biome: BattleMapBiome;
   onRoundElapsed?: (seconds: number) => void;
-  onBattleEnd: (result: 'victory' | 'defeat', rewards?: { gold: number; items: Item[]; xp: number }, finalPartyState?: CombatPartySnapshotEntry[]) => void;
+  onBattleEnd: (
+    result: "victory" | "defeat",
+    rewards?: { gold: number; items: Item[]; xp: number },
+    finalPartyState?: CombatPartySnapshotEntry[],
+    finalEnemyState?: CombatEnemySnapshotEntry[],
+  ) => void;
   currentPlane?: Plane;
 }
 
 // Biome pill labels/icons for the toolbar.
 const BIOME_META: Record<string, { icon: string; label: string }> = {
-  forest: { icon: '🌲', label: 'Forest' },
-  cave: { icon: '🕳️', label: 'Cave' },
-  dungeon: { icon: '🏰', label: 'Dungeon' },
-  desert: { icon: '🏜️', label: 'Desert' },
-  swamp: { icon: '🥀', label: 'Swamp' },
-  snow: { icon: '❄️', label: 'Snowfield' },
-  jungle: { icon: '🌴', label: 'Jungle' },
-  coast: { icon: '🌊', label: 'Coast' },
-  ruins: { icon: '🏛️', label: 'Ruins' },
-  volcanic: { icon: '🌋', label: 'Volcanic' },
+  forest: { icon: "🌲", label: "Forest" },
+  cave: { icon: "🕳️", label: "Cave" },
+  dungeon: { icon: "🏰", label: "Dungeon" },
+  desert: { icon: "🏜️", label: "Desert" },
+  swamp: { icon: "🥀", label: "Swamp" },
+  snow: { icon: "❄️", label: "Snowfield" },
+  jungle: { icon: "🌴", label: "Jungle" },
+  coast: { icon: "🌊", label: "Coast" },
+  ruins: { icon: "🏛️", label: "Ruins" },
+  volcanic: { icon: "🌋", label: "Volcanic" },
 };
 
 // Shown while the lazy 3D combat surfaces (R3F + three.js) stream in. The 2D
@@ -144,12 +191,20 @@ const Battle3DLoadingFallback: React.FC = () => (
   </div>
 );
 
-const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundElapsed, onBattleEnd, currentPlane }) => {
+const CombatView: React.FC<CombatViewProps> = ({
+  party,
+  enemies,
+  biome,
+  onRoundElapsed,
+  onBattleEnd,
+  currentPlane,
+}) => {
   // NEW: Get spell data to hydrate combat abilities
   const allSpells = useContext(SpellContext);
 
   // Ensure we have spell data (guaranteed by SpellProvider, but type safety check)
-  if (!allSpells) throw new Error("CombatView must be used within a SpellProvider");
+  if (!allSpells)
+    throw new Error("CombatView must be used within a SpellProvider");
 
   // Hook into Global State for Religion and pre-extracted map data
   // Note: GameProvider must be above CombatView in tree (usually is in App)
@@ -161,29 +216,37 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // should survive HP changes and turn order updates, but it still needs a
   // stable boundary so a new encounter does not inherit the previous one.
   const combatLogStorageKey = React.useMemo(() => {
-    const serializeCombatant = (combatant: { id: string; name: string; level?: number; maxHP?: number; maxHp?: number }) =>
+    const serializeCombatant = (combatant: {
+      id: string;
+      name: string;
+      level?: number;
+      maxHP?: number;
+      maxHp?: number;
+    }) =>
       `${combatant.id}:${combatant.name}:${combatant.level ?? 0}:${combatant.maxHP ?? combatant.maxHp ?? 0}`;
 
     const partySignature = party
-      .map(combatant => `player:${serializeCombatant(combatant)}`)
+      .map((combatant) => `player:${serializeCombatant(combatant)}`)
       .sort()
-      .join('|');
+      .join("|");
     const enemySignature = enemies
-      .map(combatant => `enemy:${serializeCombatant(combatant)}`)
+      .map((combatant) => `enemy:${serializeCombatant(combatant)}`)
       .sort()
-      .join('|');
+      .join("|");
 
     return [
-      'aralia_combat_log',
-      currentPlane ?? 'none',
+      "aralia_combat_log",
+      currentPlane ?? "none",
       biome,
       partySignature,
       enemySignature,
-    ].join('::');
+    ].join("::");
   }, [biome, currentPlane, enemies, party]);
 
   const [seed] = useState(() => Date.now()); // Generate map once
-  const { logs: combatLog, addLogEntry: baseLogEntry } = useCombatLog({ storageKey: combatLogStorageKey });
+  const { logs: combatLog, addLogEntry: baseLogEntry } = useCombatLog({
+    storageKey: combatLogStorageKey,
+  });
 
   // [2026-02-10] Rich messaging system state.
   // Instantiates the useCombatMessaging hook which manages a parallel CombatMessage[] array.
@@ -197,12 +260,21 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // may construct a procedural arena. Missing source facts become a visible,
   // non-operational gap instead of silently changing the encounter location.
   const [initialState] = useState(() => {
-    const partyCombatants = party.map(p => createPlayerCombatCharacter(p, allSpells as unknown as Record<string, Spell>));
+    const partyCombatants = party.map((p) =>
+      createPlayerCombatCharacter(
+        p,
+        allSpells as unknown as Record<string, Spell>,
+      ),
+    );
     const initialCombatants = [...partyCombatants, ...enemies];
 
     if (state.extractedBattleMap) {
       return {
-        ...generateWorldBattleSetup(state.extractedBattleMap, seed, initialCombatants),
+        ...generateWorldBattleSetup(
+          state.extractedBattleMap,
+          seed,
+          initialCombatants,
+        ),
         sourceGap: null,
       };
     }
@@ -215,13 +287,28 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     return {
       mapData: null,
       positionedCharacters: initialCombatants,
-      sourceGap: 'The encounter supplied combatants but no extracted terrain, structures, occupants, or encounter anchor from its real location.',
+      sourceGap: state.battlefieldSourceGap ?? {
+        code: "unclassified-missing-worldforge-projection",
+        encounterLabel: "Production encounter",
+        locationLabel: "No canonical location supplied",
+        missingSourceFacts: [
+          "WorldForge terrain",
+          "encounter anchor",
+          "structures and occupants",
+        ],
+        detail:
+          "The encounter did not supply an extracted WorldForge battlefield or a structured missing-source reason.",
+      },
     };
   });
 
   // Single source of truth for map and characters
-  const [mapData, setMapData] = useState<BattleMapData | null>(initialState.mapData);
-  const [characters, setCharacters] = useState<CombatCharacter[]>(initialState.positionedCharacters);
+  const [mapData, setMapData] = useState<BattleMapData | null>(
+    initialState.mapData,
+  );
+  const [characters, setCharacters] = useState<CombatCharacter[]>(
+    initialState.positionedCharacters,
+  );
   // Dismissed familiars leave the visible roster but remain bound to the
   // caster. CombatView owns this off-map list until a broader combat-state
   // owner replaces the current character-array-first structure.
@@ -229,45 +316,72 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // Non-creature spell records are map-relevant state but not combatants. Keep
   // them beside the visible roster until the combat-state owner grows a shared
   // active-artifact store.
-  const [activeSpellHelpers, setActiveSpellHelpers] = useState<ActiveSpellHelper[]>([]);
-  const [activeSpellForces, setActiveSpellForces] = useState<ActiveSpellForce[]>([]);
-  const [activeSpellGuardians, setActiveSpellGuardians] = useState<ActiveSpellGuardian[]>([]);
-  const [activeAnimatedObjects, setActiveAnimatedObjects] = useState<ActiveAnimatedObject[]>([]);
-  const [activeSpellStructures, setActiveSpellStructures] = useState<ActiveSpellStructure[]>([]);
-  const [activeExtradimensionalSpaces, setActiveExtradimensionalSpaces] = useState<ActiveExtradimensionalSpace[]>([]);
-  const [activeSpellEmanations, setActiveSpellEmanations] = useState<ActiveSpellEmanation[]>([]);
-  const [spellObjectImpacts, setSpellObjectImpacts] = useState<SpellObjectImpact[]>([]);
-  const [spellObjectRepairs, setSpellObjectRepairs] = useState<SpellObjectRepair[]>([]);
-  const [spellObjectAccessChanges, setSpellObjectAccessChanges] = useState<SpellObjectAccessChange[]>([]);
-  const [activeFireEffects, setActiveFireEffects] = useState<ActiveFireEffect[]>([]);
-  const [activeTruePolymorphTransformations, setActiveTruePolymorphTransformations] = useState<ActiveTruePolymorphTransformation[]>([]);
-  const spellMapArtifacts = React.useMemo(() => ({
-    helpers: activeSpellHelpers,
-    forces: activeSpellForces,
-    guardians: activeSpellGuardians,
-    animatedObjects: activeAnimatedObjects,
-    structures: activeSpellStructures,
-    extradimensionalSpaces: activeExtradimensionalSpaces,
-    emanations: activeSpellEmanations,
-    objectImpacts: spellObjectImpacts,
-    objectRepairs: spellObjectRepairs,
-    objectAccessChanges: spellObjectAccessChanges,
-    fireEffects: activeFireEffects,
-    truePolymorphTransformations: activeTruePolymorphTransformations
-  }), [
-    activeSpellHelpers,
-    activeSpellForces,
-    activeSpellGuardians,
-    activeAnimatedObjects,
-    activeSpellStructures,
-    activeExtradimensionalSpaces,
-    activeSpellEmanations,
-    spellObjectImpacts,
-    spellObjectRepairs,
-    spellObjectAccessChanges,
-    activeFireEffects,
-    activeTruePolymorphTransformations
-  ]);
+  const [activeSpellHelpers, setActiveSpellHelpers] = useState<
+    ActiveSpellHelper[]
+  >([]);
+  const [activeSpellForces, setActiveSpellForces] = useState<
+    ActiveSpellForce[]
+  >([]);
+  const [activeSpellGuardians, setActiveSpellGuardians] = useState<
+    ActiveSpellGuardian[]
+  >([]);
+  const [activeAnimatedObjects, setActiveAnimatedObjects] = useState<
+    ActiveAnimatedObject[]
+  >([]);
+  const [activeSpellStructures, setActiveSpellStructures] = useState<
+    ActiveSpellStructure[]
+  >([]);
+  const [activeExtradimensionalSpaces, setActiveExtradimensionalSpaces] =
+    useState<ActiveExtradimensionalSpace[]>([]);
+  const [activeSpellEmanations, setActiveSpellEmanations] = useState<
+    ActiveSpellEmanation[]
+  >([]);
+  const [spellObjectImpacts, setSpellObjectImpacts] = useState<
+    SpellObjectImpact[]
+  >([]);
+  const [spellObjectRepairs, setSpellObjectRepairs] = useState<
+    SpellObjectRepair[]
+  >([]);
+  const [spellObjectAccessChanges, setSpellObjectAccessChanges] = useState<
+    SpellObjectAccessChange[]
+  >([]);
+  const [activeFireEffects, setActiveFireEffects] = useState<
+    ActiveFireEffect[]
+  >([]);
+  const [
+    activeTruePolymorphTransformations,
+    setActiveTruePolymorphTransformations,
+  ] = useState<ActiveTruePolymorphTransformation[]>([]);
+  const spellMapArtifacts = React.useMemo(
+    () => ({
+      helpers: activeSpellHelpers,
+      forces: activeSpellForces,
+      guardians: activeSpellGuardians,
+      animatedObjects: activeAnimatedObjects,
+      structures: activeSpellStructures,
+      extradimensionalSpaces: activeExtradimensionalSpaces,
+      emanations: activeSpellEmanations,
+      objectImpacts: spellObjectImpacts,
+      objectRepairs: spellObjectRepairs,
+      objectAccessChanges: spellObjectAccessChanges,
+      fireEffects: activeFireEffects,
+      truePolymorphTransformations: activeTruePolymorphTransformations,
+    }),
+    [
+      activeSpellHelpers,
+      activeSpellForces,
+      activeSpellGuardians,
+      activeAnimatedObjects,
+      activeSpellStructures,
+      activeExtradimensionalSpaces,
+      activeSpellEmanations,
+      spellObjectImpacts,
+      spellObjectRepairs,
+      spellObjectAccessChanges,
+      activeFireEffects,
+      activeTruePolymorphTransformations,
+    ],
+  );
 
   // [2026-02-10] Ref for characters to avoid dependency churn in handleLogEntry.
   // The bridge adapter (convertLogEntryToMessage) needs the current characters array to look up
@@ -279,7 +393,9 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   charactersRef.current = characters;
   const combatViewRef = useRef<HTMLDivElement>(null);
   const battlefieldSectionRef = useRef<HTMLDivElement>(null);
-  const [_selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
+  const [_selectedCharacterId, setSelectedCharacterId] = useState<
+    string | null
+  >(null);
   const [inspectedCharId, setInspectedCharId] = useState<string | null>(null);
   const [isBattleMapExpanded, setIsBattleMapExpanded] = useState(false);
   // [2026-05-21] 3D combat map toggle — renders BattleMap3D (R3F scene) instead of 2D grid.
@@ -288,20 +404,29 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // separate diorama. It's the default when a fight-in-place handoff is present
   // (the fight started from the live ground world); the 2D board stays one toggle
   // away and is the always-available correctness surface.
-  const hasInPlaceHandoff = React.useMemo(() => getFightInPlaceHandoff() != null, []);
+  const hasInPlaceHandoff = React.useMemo(
+    () => getFightInPlaceHandoff() != null,
+    [],
+  );
   // The in-place world handoff is consumed for the lifetime of this fight; clear
   // it when CombatView unmounts so a later placeless fight never mis-renders
   // in-place with stale world context.
-  useEffect(() => () => { clearFightInPlaceHandoff(); }, []);
-  const [renderMode, setRenderMode] = useState<'2d' | '3d' | 'inplace'>(
-    hasInPlaceHandoff ? 'inplace' : state.extractedBattleMap ? '2d' : '2d',
+  useEffect(
+    () => () => {
+      clearFightInPlaceHandoff();
+    },
+    [],
+  );
+  const [renderMode, setRenderMode] = useState<"2d" | "3d" | "inplace">(
+    hasInPlaceHandoff ? "inplace" : state.extractedBattleMap ? "2d" : "2d",
   );
 
   useEffect(() => {
     // The 2D board fits itself after mount; keep the root anchored to the
     // tactical toolbar instead of letting browser scroll anchoring jump down
     // into the roster panels while the map settles.
-    const resetScroll = () => combatViewRef.current?.scrollTo({ top: 0, left: 0 });
+    const resetScroll = () =>
+      combatViewRef.current?.scrollTo({ top: 0, left: 0 });
     resetScroll();
     const frameId = window.requestAnimationFrame(resetScroll);
     const timeoutId = window.setTimeout(resetScroll, 300);
@@ -311,17 +436,22 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
       window.clearTimeout(timeoutId);
     };
   }, [mapData?.dimensions.width, mapData?.dimensions.height]);
-  const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
+  const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(
+    null,
+  );
 
   // Battle State managed by hook
   const { battleState, rewards, forceOutcome } = useCombatOutcome({
     characters,
-    initialEnemies: enemies // Pass the initial enemies prop to compare against
+    initialEnemies: enemies, // Pass the initial enemies prop to compare against
   });
 
   // Auto-Battle State
   const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
-  const [cameraFocusRequest, setCameraFocusRequest] = useState<{ characterId: string; requestId: number } | null>(null);
+  const [cameraFocusRequest, setCameraFocusRequest] = useState<{
+    characterId: string;
+    requestId: number;
+  } | null>(null);
   // The asset overlay is tactical map chrome, so CombatView owns the header
   // switch and passes the setting into every 2D BattleMap instance.
   const [assetOverlayVisible, setAssetOverlayVisible] = useState(true);
@@ -345,44 +475,62 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // released by either rail. CSS variables supply remembered, bounded widths.
   const tacticalGridColumns = rosterRailVisible
     ? commandRailVisible
-      ? 'lg:grid-cols-[var(--combat-roster-width)_minmax(0,1fr)_var(--combat-command-width)]'
-      : 'lg:grid-cols-[var(--combat-roster-width)_minmax(0,1fr)]'
+      ? "lg:grid-cols-[var(--combat-roster-width)_minmax(0,1fr)_var(--combat-command-width)]"
+      : "lg:grid-cols-[var(--combat-roster-width)_minmax(0,1fr)]"
     : commandRailVisible
-      ? 'lg:grid-cols-[minmax(0,1fr)_var(--combat-command-width)]'
-      : 'lg:grid-cols-[minmax(0,1fr)]';
-  const tacticalGridStyle = createCombatRailGridStyle(rosterRailWidth, commandRailWidth);
+      ? "lg:grid-cols-[minmax(0,1fr)_var(--combat-command-width)]"
+      : "lg:grid-cols-[minmax(0,1fr)]";
+  const tacticalGridStyle = createCombatRailGridStyle(
+    rosterRailWidth,
+    commandRailWidth,
+  );
 
   // AI Spell Input State
   // Tracks the spell currently requesting player input (for AI-DM arbitration)
   const [inputModalSpell, setInputModalSpell] = useState<Spell | null>(null);
   // Callback to resume execution once input is confirmed
-  const [inputModalCallback, setInputModalCallback] = useState<((input: string) => void) | null>(null);
+  const [inputModalCallback, setInputModalCallback] = useState<
+    ((input: string) => void) | null
+  >(null);
 
   // Creature Harvesting State
   const [isHarvestPanelOpen, setIsHarvestPanelOpen] = useState(false);
-  const [selectedHarvestCreature, setSelectedHarvestCreature] = useState<string | null>(null);
+  const [selectedHarvestCreature, setSelectedHarvestCreature] = useState<
+    string | null
+  >(null);
 
   // Determine which defeated enemies can be harvested
   // Match enemy names (normalized) against HARVESTABLE_CREATURES
   const harvestableEnemies = React.useMemo(() => {
-    const harvestableIds = HARVESTABLE_CREATURES.map(c => c.id);
+    const harvestableIds = HARVESTABLE_CREATURES.map((c) => c.id);
     return enemies
-      .filter(enemy => {
-        const normalizedName = enemy.name.toLowerCase().replace(/\s+/g, '_').replace(/_\d+$/, ''); // Remove trailing numbers like "Ankheg 1" -> "ankheg"
+      .filter((enemy) => {
+        const normalizedName = enemy.name
+          .toLowerCase()
+          .replace(/\s+/g, "_")
+          .replace(/_\d+$/, ""); // Remove trailing numbers like "Ankheg 1" -> "ankheg"
         return harvestableIds.includes(normalizedName);
       })
-      .map(enemy => enemy.name.toLowerCase().replace(/\s+/g, '_').replace(/_\d+$/, ''));
+      .map((enemy) =>
+        enemy.name.toLowerCase().replace(/\s+/g, "_").replace(/_\d+$/, ""),
+      );
   }, [enemies]);
 
   // When harvest panel opens, select the first harvestable creature
   React.useEffect(() => {
-    if (isHarvestPanelOpen && harvestableEnemies.length > 0 && !selectedHarvestCreature) {
+    if (
+      isHarvestPanelOpen &&
+      harvestableEnemies.length > 0 &&
+      !selectedHarvestCreature
+    ) {
       setSelectedHarvestCreature(harvestableEnemies[0]);
     }
   }, [isHarvestPanelOpen, harvestableEnemies, selectedHarvestCreature]);
 
   const handleCharacterUpdate = useCallback((updatedChar: CombatCharacter) => {
-    setCharacters(prev => prev.map(c => c.id === updatedChar.id ? updatedChar : c));
+    setCharacters((prev) =>
+      prev.map((c) => (c.id === updatedChar.id ? updatedChar : c)),
+    );
   }, []);
 
   // [2026-02-10] Central log entry handler — three responsibilities:
@@ -399,18 +547,31 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   //   - dispatch: Stable (from useGameState context).
   //   - messaging.addMessage: Stable (useCallback in useCombatMessaging).
   //   - charactersRef: Ref, not a dependency — always reads current value.
-  const handleLogEntry = useCallback((entry: CombatLogEntry) => {
-    baseLogEntry(entry);
-    CombatReligionAdapter.processLogEntry(entry, dispatch);
+  const handleLogEntry = useCallback(
+    (entry: CombatLogEntry) => {
+      baseLogEntry(entry);
+      CombatReligionAdapter.processLogEntry(entry, dispatch);
 
-    // Bridge: convert simple log entry to rich CombatMessage.
-    // charactersRef.current is used instead of the `characters` state variable to avoid
-    // adding `characters` as a dependency (see ref comment above for reasoning).
-    const richMessage = convertLogEntryToMessage(entry, charactersRef.current);
-    messaging.addMessage(richMessage);
-  }, [baseLogEntry, dispatch, messaging.addMessage]);
+      // Bridge: convert simple log entry to rich CombatMessage.
+      // charactersRef.current is used instead of the `characters` state variable to avoid
+      // adding `characters` as a dependency (see ref comment above for reasoning).
+      const richMessage = convertLogEntryToMessage(
+        entry,
+        charactersRef.current,
+      );
+      messaging.addMessage(richMessage);
+    },
+    [baseLogEntry, dispatch, messaging.addMessage],
+  );
   const requestReactionRef = useRef<any>(null);
-  const executeReactionSpellRef = useRef<((attacker: CombatCharacter, target: CombatCharacter, spellAbility: Ability) => Promise<void>) | null>(null);
+  const executeReactionSpellRef = useRef<
+    | ((
+        attacker: CombatCharacter,
+        target: CombatCharacter,
+        spellAbility: Ability,
+      ) => Promise<void>)
+    | null
+  >(null);
 
   const turnManager = useTurnManager({
     characters,
@@ -424,29 +585,50 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     autoCharacters, // Pass auto characters to turn manager if needed, but easier to modify turnManager props to accept "isAuto" check
     onMapUpdate: setMapData,
     // TODO #57: Feature: Bind difficulty to user settings or campaign state instead of hardcoding 'normal'.
-    difficulty: 'normal',
-    requestReaction: useCallback((
-      attackerId: string,
-      targetId: string,
-      triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage' | 'opportunity_attack',
-      spells?: Array<import('../../types/spells').Spell | Ability>,
-      weapons?: import('../../types/combat').Ability[]
-    ) => {
-      if (requestReactionRef.current) {
-        return requestReactionRef.current(attackerId, targetId, triggerType, spells, weapons);
-      }
-      return Promise.resolve(null);
-    }, []),
-    executeReactionSpell: useCallback((
-      attacker: CombatCharacter,
-      target: CombatCharacter,
-      spellAbility: Ability
-    ) => {
-      if (executeReactionSpellRef.current) {
-        return executeReactionSpellRef.current(attacker, target, spellAbility);
-      }
-      return Promise.resolve();
-    }, [])
+    difficulty: "normal",
+    requestReaction: useCallback(
+      (
+        attackerId: string,
+        targetId: string,
+        triggerType:
+          | "on_hit"
+          | "on_cast"
+          | "on_move"
+          | "on_take_damage"
+          | "opportunity_attack",
+        spells?: Array<import("../../types/spells").Spell | Ability>,
+        weapons?: import("../../types/combat").Ability[],
+      ) => {
+        if (requestReactionRef.current) {
+          return requestReactionRef.current(
+            attackerId,
+            targetId,
+            triggerType,
+            spells,
+            weapons,
+          );
+        }
+        return Promise.resolve(null);
+      },
+      [],
+    ),
+    executeReactionSpell: useCallback(
+      (
+        attacker: CombatCharacter,
+        target: CombatCharacter,
+        spellAbility: Ability,
+      ) => {
+        if (executeReactionSpellRef.current) {
+          return executeReactionSpellRef.current(
+            attacker,
+            target,
+            spellAbility,
+          );
+        }
+        return Promise.resolve();
+      },
+      [],
+    ),
   });
 
   // Initialize turn manager when characters are ready.
@@ -457,17 +639,24 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   useEffect(() => {
     // A missing WorldForge projection is a withheld encounter, not a battle
     // with an invisible map. Do not roll initiative until terrain exists.
-    if (mapData && characters.length > 0 && turnManager.turnState.turnOrder.length === 0) {
+    if (
+      mapData &&
+      characters.length > 0 &&
+      turnManager.turnState.turnOrder.length === 0
+    ) {
       messaging.clearMessages();
       turnManager.initializeCombat(characters);
     }
   }, [characters, mapData, turnManager, messaging.clearMessages]);
 
-  const handleRequestInput = useCallback((spell: Spell, onConfirm: (input: string) => void) => {
-    setInputModalSpell(spell);
-    // Wrap callback to ensure we set state correctly
-    setInputModalCallback(() => onConfirm);
-  }, []);
+  const handleRequestInput = useCallback(
+    (spell: Spell, onConfirm: (input: string) => void) => {
+      setInputModalSpell(spell);
+      // Wrap callback to ensure we set state correctly
+      setInputModalCallback(() => onConfirm);
+    },
+    [],
+  );
 
   const handleInputSubmit = (input: string) => {
     if (inputModalCallback) {
@@ -493,7 +682,11 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     // bridge used by the turn manager. This preserves one visible log path
     // for attacks, spell commands, and invalid-target warnings.
     onLogEntry: handleLogEntry,
-    onNotification: (message, type) => dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now().toString(), message, type, duration: 4000 } }),
+    onNotification: (message, type) =>
+      dispatch({
+        type: "ADD_NOTIFICATION",
+        payload: { id: Date.now().toString(), message, type, duration: 4000 },
+      }),
     onRequestInput: handleRequestInput,
     reactiveTriggers: turnManager.reactiveTriggers,
     onReactiveTriggerUpdate: turnManager.setReactiveTriggers,
@@ -524,7 +717,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     activeFireEffects,
     onActiveFireEffectsUpdate: setActiveFireEffects,
     activeTruePolymorphTransformations,
-    onActiveTruePolymorphTransformationsUpdate: setActiveTruePolymorphTransformations,
+    onActiveTruePolymorphTransformationsUpdate:
+      setActiveTruePolymorphTransformations,
     onMapUpdate: setMapData,
     onAddSpellZone: turnManager.addSpellZone,
     spellZones: turnManager.spellZones,
@@ -534,9 +728,9 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     onAddSpellMovementVisual: turnManager.addSpellMovementVisual,
     onAddSpellDeliveryVisual: turnManager.addSpellDeliveryVisual,
     onSpellCreatedInventoryItems: (items) => {
-      dispatch({ type: 'ADD_SPELL_CREATED_ITEMS', payload: { items } });
+      dispatch({ type: "ADD_SPELL_CREATED_ITEMS", payload: { items } });
     },
-    currentPlane
+    currentPlane,
   });
 
   requestReactionRef.current = abilitySystem.requestReaction;
@@ -545,14 +739,19 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
       ...spellAbility,
       cost: {
         ...spellAbility.cost,
-        type: 'reaction' as const
-      }
+        type: "reaction" as const,
+      },
     };
-    return abilitySystem.executeAbility(reactionSpell, attacker, target.position, [target.id]);
+    return abilitySystem.executeAbility(
+      reactionSpell,
+      attacker,
+      target.position,
+      [target.id],
+    );
   };
 
   const handleToggleAuto = useCallback((characterId: string) => {
-    setAutoCharacters(prev => {
+    setAutoCharacters((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(characterId)) {
         newSet.delete(characterId);
@@ -566,7 +765,10 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   const handleCenterCharacterCamera = useCallback((characterId: string) => {
     // The roster focus button should work even if the same combatant is clicked
     // repeatedly, so each click gets a fresh request id for BattleMap to observe.
-    setCameraFocusRequest(prev => ({ characterId, requestId: (prev?.requestId ?? 0) + 1 }));
+    setCameraFocusRequest((prev) => ({
+      characterId,
+      requestId: (prev?.requestId ?? 0) + 1,
+    }));
   }, []);
 
   // Update Turn Manager with auto status
@@ -576,27 +778,33 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // We can pass `autoCharacters` to `useTurnManager` and it will react if we put it in dependencies.
   // Let's check `useTurnManager.ts` again.
 
-  const handleAbilitySelect = useCallback((ability: Ability, character: CombatCharacter) => {
-    abilitySystem.startTargeting(ability, character);
+  const handleAbilitySelect = useCallback(
+    (ability: Ability, character: CombatCharacter) => {
+      abilitySystem.startTargeting(ability, character);
 
-    // On stacked combat layouts the command rail sits far below the tactical
-    // board. Bring the board back into view after choosing an ability so the
-    // player sees the targetable surface instead of a detached button state.
-    if (typeof window !== 'undefined' && window.innerWidth < 1280) {
-      battlefieldSectionRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }
-  }, [abilitySystem]);
+      // On stacked combat layouts the command rail sits far below the tactical
+      // board. Bring the board back into view after choosing an ability so the
+      // player sees the targetable surface instead of a detached button state.
+      if (typeof window !== "undefined" && window.innerWidth < 1280) {
+        battlefieldSectionRef.current?.scrollIntoView({
+          block: "start",
+          behavior: "smooth",
+        });
+      }
+    },
+    [abilitySystem],
+  );
 
   const handleCharacterSelect = (charId: string) => {
     setSelectedCharacterId(charId);
-  }
+  };
 
   const handleCharacterInspect = (charId: string) => {
-    setInspectedCharId(prev => prev === charId ? null : charId);
+    setInspectedCharId((prev) => (prev === charId ? null : charId));
   };
 
   const handleSheetOpen = (charId: string) => {
-    const playerToShow = party.find(p => p.id === charId);
+    const playerToShow = party.find((p) => p.id === charId);
     if (playerToShow) {
       setSheetCharacter(playerToShow);
     }
@@ -612,19 +820,29 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
 
   // Objective at a glance: the win condition should not require scrolling the
   // enemy roster below the fold.
-  const enemiesRemaining = characters.filter(c => c.team === 'enemy' && c.currentHP > 0).length;
+  const enemiesRemaining = characters.filter(
+    (c) => c.team === "enemy" && c.currentHP > 0,
+  ).length;
 
   // One-time coach line for a player's first fight; dismissing persists.
   const [coachDismissed, setCoachDismissed] = useState<boolean>(() => {
-    try { return localStorage.getItem('aralia-combat-coach-dismissed') === '1'; } catch { return true; }
+    try {
+      return localStorage.getItem("aralia-combat-coach-dismissed") === "1";
+    } catch {
+      return true;
+    }
   });
   const dismissCoach = useCallback(() => {
     setCoachDismissed(true);
-    try { localStorage.setItem('aralia-combat-coach-dismissed', '1'); } catch { /* storage unavailable */ }
+    try {
+      localStorage.setItem("aralia-combat-coach-dismissed", "1");
+    } catch {
+      /* storage unavailable */
+    }
   }, []);
 
   useCombatAI({
-    difficulty: 'normal',
+    difficulty: "normal",
     // AI receives no actors while the encounter is withheld. This prevents an
     // unsupported production caller from advancing combat behind the gap UI.
     characters: mapData ? characters : [],
@@ -633,14 +851,14 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     executeAction: turnManager.executeAction,
     executeAbility: abilitySystem.executeAbility,
     endTurn: turnManager.endTurn,
-    autoCharacters
+    autoCharacters,
   });
 
   if (initialState.sourceGap) {
     return (
       <BattlefieldSourceGap
-        detail={initialState.sourceGap}
-        onReturn={() => dispatch({ type: 'END_BATTLE' })}
+        sourceGap={initialState.sourceGap}
+        onReturn={() => dispatch({ type: "END_BATTLE" })}
       />
     );
   }
@@ -651,10 +869,10 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
       id={UI_ID.COMBAT_VIEW}
       data-testid={UI_ID.COMBAT_VIEW}
       className="bg-gray-900 text-white h-screen flex flex-col p-4 relative overflow-y-auto lg:overflow-hidden"
-      style={{ overflowAnchor: 'none' }}
+      style={{ overflowAnchor: "none" }}
     >
       {/* Victory / Defeat Modal */}
-      {battleState !== 'active' && (
+      {battleState !== "active" && (
         <div
           data-testid="combat-outcome-modal"
           className="fixed inset-0 bg-black/80 z-[var(--z-index-modal-background)] flex items-center justify-center overflow-y-auto p-4"
@@ -664,20 +882,26 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             animate={{ scale: 1, opacity: 1 }}
             className="bg-gray-800 p-8 rounded-xl border-2 border-amber-500 max-h-[calc(100vh-2rem)] max-w-md w-full overflow-y-auto text-center"
           >
-            <h2 className={`text-4xl font-cinzel mb-4 ${battleState === 'victory' ? 'text-amber-400' : 'text-red-500'}`}>
-              {battleState === 'victory' ? 'Victory!' : 'Defeat!'}
+            <h2
+              className={`text-4xl font-cinzel mb-4 ${battleState === "victory" ? "text-amber-400" : "text-red-500"}`}
+            >
+              {battleState === "victory" ? "Victory!" : "Defeat!"}
             </h2>
 
-            {battleState === 'victory' && rewards && (
+            {battleState === "victory" && rewards && (
               <div className="mb-6 text-left bg-gray-900/50 p-4 rounded-lg">
-                <h3 className="text-sky-300 font-bold mb-2 border-b border-gray-700 pb-1">Rewards</h3>
+                <h3 className="text-sky-300 font-bold mb-2 border-b border-gray-700 pb-1">
+                  Rewards
+                </h3>
                 <p className="text-yellow-200">🪙 {rewards.gold} Gold</p>
                 <p className="text-purple-300">✨ {rewards.xp} XP</p>
                 {rewards.items.length > 0 && (
                   <div className="mt-2">
                     <p className="text-gray-400 text-sm">Items Found:</p>
                     <ul className="list-disc list-inside text-green-300 text-sm">
-                      {rewards.items.map((item, i) => <li key={i}>{item.name}</li>)}
+                      {rewards.items.map((item, i) => (
+                        <li key={i}>{item.name}</li>
+                      ))}
                     </ul>
                   </div>
                 )}
@@ -685,14 +909,17 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             )}
 
             {/* Harvest Button - Only show if there are harvestable enemies */}
-            {battleState === 'victory' && harvestableEnemies.length > 0 && !isHarvestPanelOpen && (
-              <button
-                onClick={() => setIsHarvestPanelOpen(true)}
-                className="w-full py-3 mb-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-lg shadow-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <span>🦴</span> Harvest Creature Parts ({harvestableEnemies.length})
-              </button>
-            )}
+            {battleState === "victory" &&
+              harvestableEnemies.length > 0 &&
+              !isHarvestPanelOpen && (
+                <button
+                  onClick={() => setIsHarvestPanelOpen(true)}
+                  className="w-full py-3 mb-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-lg shadow-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>🦴</span> Harvest Creature Parts (
+                  {harvestableEnemies.length})
+                </button>
+              )}
 
             <button
               onClick={() => {
@@ -700,18 +927,37 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                 // to the persistent character so HP, spent spell slots, and used
                 // abilities stick instead of resetting on the transient copies.
                 const finalPartyState: CombatPartySnapshotEntry[] = characters
-                  .filter(c => c.team === 'player')
-                  .map(c => ({
+                  .filter((c) => c.team === "player")
+                  .map((c) => ({
                     id: c.id,
                     currentHP: c.currentHP,
                     spellSlots: c.spellSlots,
                     limitedUses: c.limitedUses,
                   }));
-                onBattleEnd(battleState, rewards || undefined, finalPartyState);
+                // Preserve every final enemy token before App tears combat down.
+                // Source-backed encounters use these exact identities and cells
+                // to update their WorldForge scene; anonymous combatants remain
+                // visible to the reconciliation gate instead of being guessed.
+                const finalEnemyState: CombatEnemySnapshotEntry[] = characters
+                  .filter((c) => c.team === "enemy")
+                  .map((c) => ({
+                    id: c.id,
+                    currentHP: c.currentHP,
+                    position: { ...c.position },
+                    worldSource: c.worldSource,
+                  }));
+                onBattleEnd(
+                  battleState,
+                  rewards || undefined,
+                  finalPartyState,
+                  finalEnemyState,
+                );
               }}
               className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg shadow-lg transition-colors"
             >
-              {battleState === 'victory' ? 'Collect & Continue' : 'Return to Title'}
+              {battleState === "victory"
+                ? "Collect & Continue"
+                : "Return to Title"}
             </button>
           </motion.div>
         </div>
@@ -719,15 +965,21 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
 
       {/* Creature Harvest Panel Modal */}
       {isHarvestPanelOpen && selectedHarvestCreature && (
-        <div className={`absolute inset-0 bg-black/80 z-[${Z_INDEX.COMBAT_OVERLAY}] flex items-center justify-center`}>
+        <div
+          className={`absolute inset-0 bg-black/80 z-[${Z_INDEX.COMBAT_OVERLAY}] flex items-center justify-center`}
+        >
           <div className="relative">
             <CreatureHarvestPanel
               creatureId={selectedHarvestCreature}
               onClose={() => {
                 // Move to next harvestable creature or close
-                const currentIdx = harvestableEnemies.indexOf(selectedHarvestCreature);
+                const currentIdx = harvestableEnemies.indexOf(
+                  selectedHarvestCreature,
+                );
                 if (currentIdx < harvestableEnemies.length - 1) {
-                  setSelectedHarvestCreature(harvestableEnemies[currentIdx + 1]);
+                  setSelectedHarvestCreature(
+                    harvestableEnemies[currentIdx + 1],
+                  );
                 } else {
                   setIsHarvestPanelOpen(false);
                   setSelectedHarvestCreature(null);
@@ -736,7 +988,9 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             />
             {harvestableEnemies.length > 1 && (
               <div className="mt-2 text-center text-gray-400 text-sm">
-                Creature {harvestableEnemies.indexOf(selectedHarvestCreature) + 1} of {harvestableEnemies.length}
+                Creature{" "}
+                {harvestableEnemies.indexOf(selectedHarvestCreature) + 1} of{" "}
+                {harvestableEnemies.length}
               </div>
             )}
           </div>
@@ -756,8 +1010,16 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
       {/* Reaction Prompt Modal */}
       {abilitySystem.pendingReaction && (
         <ReactionPrompt
-          attackerName={characters.find(c => c.id === abilitySystem.pendingReaction!.attackerId)?.name || 'Unknown'}
-          targetName={characters.find(c => c.id === abilitySystem.pendingReaction!.targetId)?.name || 'Unknown'}
+          attackerName={
+            characters.find(
+              (c) => c.id === abilitySystem.pendingReaction!.attackerId,
+            )?.name || "Unknown"
+          }
+          targetName={
+            characters.find(
+              (c) => c.id === abilitySystem.pendingReaction!.targetId,
+            )?.name || "Unknown"
+          }
           reactionSpells={abilitySystem.pendingReaction.reactionSpells || []}
           reactionWeapons={abilitySystem.pendingReaction.reactionWeapons || []}
           triggerType={abilitySystem.pendingReaction.triggerType}
@@ -765,15 +1027,16 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
         />
       )}
 
-      {inspectedCharId && (() => {
-        const inspected = characters.find(c => c.id === inspectedCharId);
-        return inspected ? (
-          <CombatCharacterInspector
-            character={inspected}
-            onClose={() => setInspectedCharId(null)}
-          />
-        ) : null;
-      })()}
+      {inspectedCharId &&
+        (() => {
+          const inspected = characters.find((c) => c.id === inspectedCharId);
+          return inspected ? (
+            <CombatCharacterInspector
+              character={inspected}
+              onClose={() => setInspectedCharId(null)}
+            />
+          ) : null;
+        })()}
 
       {isBattleMapExpanded && characters.length > 0 && mapData && (
         <WindowFrame
@@ -794,13 +1057,13 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             )}
             {/* [2026-05-21] 2D/3D toggle in pop-out window */}
             <button
-              onClick={() => setRenderMode(renderMode === '2d' ? '3d' : '2d')}
+              onClick={() => setRenderMode(renderMode === "2d" ? "3d" : "2d")}
               className="absolute top-2 right-2 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded bg-gray-800/60 px-3 py-2 text-sm font-bold text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white"
-              title={`Switch to ${renderMode === '2d' ? '3D' : '2D'} view`}
+              title={`Switch to ${renderMode === "2d" ? "3D" : "2D"} view`}
             >
-              {renderMode === '2d' ? '3D' : '2D'}
+              {renderMode === "2d" ? "3D" : "2D"}
             </button>
-            {renderMode === '3d' ? (
+            {renderMode === "3d" ? (
               <Suspense fallback={<Battle3DLoadingFallback />}>
                 <BattleMap3D
                   mapData={mapData}
@@ -811,7 +1074,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                     turnState: turnManager.turnState,
                     abilitySystem: abilitySystem,
                     isCharacterTurn: turnManager.isCharacterTurn,
-                    onCharacterUpdate: handleCharacterUpdate
+                    onCharacterUpdate: handleCharacterUpdate,
                   }}
                 />
               </Suspense>
@@ -827,7 +1090,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                   turnState: turnManager.turnState,
                   abilitySystem: abilitySystem,
                   isCharacterTurn: turnManager.isCharacterTurn,
-                  onCharacterUpdate: handleCharacterUpdate
+                  onCharacterUpdate: handleCharacterUpdate,
                 }}
               />
             )}
@@ -844,7 +1107,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
           onClose={handleSheetClose}
           onAction={(action) => {
             if (canUseDevTools()) {
-              logger.debug('Action from sheet:', { action });
+              logger.debug("Action from sheet:", { action });
             }
           }}
         />
@@ -853,42 +1116,56 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
           matching the tactical mockup's header row. */}
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <h1 className="font-cinzel text-2xl font-bold tracking-wide text-amber-300">
-          <span className="text-amber-500">⚜</span> Battle Map <span className="text-amber-500">⚜</span>
+          <span className="text-amber-500">⚜</span> Battle Map{" "}
+          <span className="text-amber-500">⚜</span>
         </h1>
         <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600/70 bg-slate-800/80 px-3 py-1.5 text-sm font-semibold text-slate-200">
-          {BIOME_META[biome]?.icon ?? '🗺'} {BIOME_META[biome]?.label ?? biome}
+          {BIOME_META[biome]?.icon ?? "🗺"} {BIOME_META[biome]?.label ?? biome}
         </span>
         <span
-          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold ${enemiesRemaining > 0 ? 'border-rose-700/70 bg-rose-950/60 text-rose-200' : 'border-emerald-700/70 bg-emerald-950/60 text-emerald-200'}`}
+          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold ${enemiesRemaining > 0 ? "border-rose-700/70 bg-rose-950/60 text-rose-200" : "border-emerald-700/70 bg-emerald-950/60 text-emerald-200"}`}
           role="status"
         >
-          {enemiesRemaining > 0 ? `⚔ ${enemiesRemaining} ${enemiesRemaining === 1 ? 'enemy remains' : 'enemies remain'}` : '✓ Battlefield clear'}
+          {enemiesRemaining > 0
+            ? `⚔ ${enemiesRemaining} ${enemiesRemaining === 1 ? "enemy remains" : "enemies remain"}`
+            : "✓ Battlefield clear"}
         </span>
         <button
           onClick={turnManager.endTurn}
-          disabled={!currentCharacter || !turnManager.isCharacterTurn(currentCharacter.id)}
+          disabled={
+            !currentCharacter ||
+            !turnManager.isCharacterTurn(currentCharacter.id)
+          }
           className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_ORANGE} disabled:cursor-not-allowed disabled:opacity-40`}
         >
           <span>⚔</span> End Turn
         </button>
         <button
-          onClick={() => setRenderMode(renderMode === '2d' ? (hasInPlaceHandoff ? 'inplace' : '3d') : '2d')}
+          onClick={() =>
+            setRenderMode(
+              renderMode === "2d"
+                ? hasInPlaceHandoff
+                  ? "inplace"
+                  : "3d"
+                : "2d",
+            )
+          }
           className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_INDIGO}`}
         >
-          <span>🎲</span> {renderMode === '2d' ? '3D View' : '2D View'}
+          <span>🎲</span> {renderMode === "2d" ? "3D View" : "2D View"}
         </button>
-        {renderMode === '2d' && !usePixiBoard && (
+        {renderMode === "2d" && !usePixiBoard && (
           <button
             type="button"
-            aria-label={`${assetOverlayVisible ? 'Hide' : 'Show'} asset overlay`}
+            aria-label={`${assetOverlayVisible ? "Hide" : "Show"} asset overlay`}
             aria-pressed={assetOverlayVisible}
-            onClick={() => setAssetOverlayVisible(visible => !visible)}
+            onClick={() => setAssetOverlayVisible((visible) => !visible)}
             className={`${COMBAT_BTN_BASE} ${
               assetOverlayVisible
-                ? 'border border-amber-400/70 bg-amber-700 text-amber-50 hover:bg-amber-600'
+                ? "border border-amber-400/70 bg-amber-700 text-amber-50 hover:bg-amber-600"
                 : COMBAT_BTN_NEUTRAL
             }`}
-            title={`${assetOverlayVisible ? 'Hide' : 'Show'} asset overlay`}
+            title={`${assetOverlayVisible ? "Hide" : "Show"} asset overlay`}
           >
             Assets
           </button>
@@ -896,15 +1173,20 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
         <CombatRailControls
           rosterVisible={rosterRailVisible}
           commandVisible={commandRailVisible}
-          onToggleRoster={() => setRosterRailVisible(visible => !visible)}
-          onToggleCommand={() => setCommandRailVisible(visible => !visible)}
+          onToggleRoster={() => setRosterRailVisible((visible) => !visible)}
+          onToggleCommand={() => setCommandRailVisible((visible) => !visible)}
           onResetLayout={resetRailLayout}
           layoutIsDefault={railLayoutIsDefault}
         />
         {/* TODO #58: Wrap debug buttons with process.env.NODE_ENV check to hide in production builds. */}
         <button
           onClick={() => {
-            if (window.confirm('End the battle now? Remaining enemies will be discarded.')) forceOutcome('victory');
+            if (
+              window.confirm(
+                "End the battle now? Remaining enemies will be discarded.",
+              )
+            )
+              forceOutcome("victory");
           }}
           className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_RED} ml-auto`}
         >
@@ -914,20 +1196,30 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
 
       {/* First-fight coach line: the busiest screen in the game answers
           "what do I do now?" once, then never again after dismissal. */}
-      {!coachDismissed && currentCharacter && currentCharacter.team === 'player' && turnManager.isCharacterTurn(currentCharacter.id) && (
-        <div className="flex items-center justify-center gap-3 border-b border-amber-800/40 bg-amber-950/40 px-4 py-1.5 text-sm text-amber-100" role="status">
-          <span>
-            <span className="font-bold">Your turn, {currentCharacter.name.split(' ')[0]}</span> — click a green tile to move, or pick an ability on the right. Red hatching provokes attacks.
-          </span>
-          <button
-            onClick={dismissCoach}
-            className="rounded border border-amber-700/60 px-2 py-0.5 text-xs font-semibold text-amber-200 hover:bg-amber-900/50"
-            aria-label="Dismiss combat hint"
+      {!coachDismissed &&
+        currentCharacter &&
+        currentCharacter.team === "player" &&
+        turnManager.isCharacterTurn(currentCharacter.id) && (
+          <div
+            className="flex items-center justify-center gap-3 border-b border-amber-800/40 bg-amber-950/40 px-4 py-1.5 text-sm text-amber-100"
+            role="status"
           >
-            Got it
-          </button>
-        </div>
-      )}
+            <span>
+              <span className="font-bold">
+                Your turn, {currentCharacter.name.split(" ")[0]}
+              </span>{" "}
+              — click a green tile to move, or pick an ability on the right. Red
+              hatching provokes attacks.
+            </span>
+            <button
+              onClick={dismissCoach}
+              className="rounded border border-amber-700/60 px-2 py-0.5 text-xs font-semibold text-amber-200 hover:bg-amber-900/50"
+              aria-label="Dismiss combat hint"
+            >
+              Got it
+            </button>
+          </div>
+        )}
 
       {/* Below the desktop three-column layout, show the battlefield first.
           Small screens use one normal page scroll so roster cards cannot be
@@ -941,7 +1233,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
         {/* Left Pane */}
         <div
           data-testid="combat-roster-rail"
-          className={`${rosterRailVisible ? 'flex' : 'hidden'} relative order-2 min-h-[18rem] max-h-none flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:min-h-0 lg:max-h-none lg:overflow-y-auto`}
+          className={`${rosterRailVisible ? "flex" : "hidden"} relative order-2 min-h-[18rem] max-h-none flex-col gap-4 overflow-visible scrollable-content p-1 lg:order-none lg:min-h-0 lg:max-h-none lg:overflow-y-auto`}
         >
           <CombatRailResizeHandle
             side="roster"
@@ -974,27 +1266,32 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
           {!commandRailVisible && (
             <CompactTurnStrip
               character={currentCharacter}
-              isCharactersTurn={Boolean(currentCharacter && turnManager.isCharacterTurn(currentCharacter.id))}
+              isCharactersTurn={Boolean(
+                currentCharacter &&
+                turnManager.isCharacterTurn(currentCharacter.id),
+              )}
               onEndTurn={turnManager.endTurn}
               onRestoreCommands={() => setCommandRailVisible(true)}
             />
           )}
           <div
             className={`relative flex min-h-0 flex-1 items-center justify-center overflow-hidden ${
-              renderMode !== '2d'
-                ? 'rounded-lg border border-sky-500/35 bg-slate-950 shadow-[0_0_0_1px_rgba(15,23,42,0.85),0_18px_50px_rgba(0,0,0,0.35)]'
-                : ''
+              renderMode !== "2d"
+                ? "rounded-lg border border-sky-500/35 bg-slate-950 shadow-[0_0_0_1px_rgba(15,23,42,0.85),0_18px_50px_rgba(0,0,0,0.35)]"
+                : ""
             }`}
           >
             {/* Intent preview: shows what the selected ability will do while the
                 player is picking a target on the grid. */}
-            {!isBattleMapExpanded && abilitySystem.targetingMode && abilitySystem.selectedAbility && (
-              <CombatIntentPreview
-                ability={abilitySystem.selectedAbility}
-                casterName={currentCharacter?.name}
-                onCancel={abilitySystem.cancelTargeting}
-              />
-            )}
+            {!isBattleMapExpanded &&
+              abilitySystem.targetingMode &&
+              abilitySystem.selectedAbility && (
+                <CombatIntentPreview
+                  ability={abilitySystem.selectedAbility}
+                  casterName={currentCharacter?.name}
+                  onCancel={abilitySystem.cancelTargeting}
+                />
+              )}
             {/* Map controls: view toggle + Pop-out */}
             {!isBattleMapExpanded && (
               <div className="absolute top-2 right-2 z-10 flex gap-2">
@@ -1005,42 +1302,75 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                 <button
                   onClick={() =>
                     setRenderMode(
-                      renderMode === '2d' ? (hasInPlaceHandoff ? 'inplace' : '3d') : '2d',
+                      renderMode === "2d"
+                        ? hasInPlaceHandoff
+                          ? "inplace"
+                          : "3d"
+                        : "2d",
                     )
                   }
                   className="inline-flex min-h-11 min-w-11 items-center justify-center rounded bg-gray-800/60 px-3 py-2 text-sm font-bold text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white"
-                  title={`Switch to ${renderMode === '2d' ? (hasInPlaceHandoff ? 'in-world' : '3D') : '2D'} view`}
+                  title={`Switch to ${renderMode === "2d" ? (hasInPlaceHandoff ? "in-world" : "3D") : "2D"} view`}
                 >
-                  {renderMode === '2d' ? (hasInPlaceHandoff ? 'World' : '3D') : '2D'}
+                  {renderMode === "2d"
+                    ? hasInPlaceHandoff
+                      ? "World"
+                      : "3D"
+                    : "2D"}
                 </button>
                 <button
                   onClick={() => setIsBattleMapExpanded(true)}
                   className="inline-flex h-11 w-11 items-center justify-center rounded bg-gray-800/60 text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white"
                   title="Pop out battle map into resizable window"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                    />
                   </svg>
                 </button>
               </div>
             )}
             <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
               {isBattleMapExpanded ? (
-                <div className="text-gray-400 text-sm italic">Battle map is popped out.</div>
+                <div className="text-gray-400 text-sm italic">
+                  Battle map is popped out.
+                </div>
               ) : characters.length > 0 && mapData ? (
-                renderMode === 'inplace' ? (
+                renderMode === "inplace" ? (
                   <Suspense fallback={<Battle3DLoadingFallback />}>
                     <InPlaceCombatScene
                       characters={characters}
                       mapData={mapData}
-                      currentCharacterId={turnManager.turnState.currentCharacterId}
-                      onCommitMove={(action) => { void turnManager.executeAction(action); }}
+                      currentCharacterId={
+                        turnManager.turnState.currentCharacterId
+                      }
+                      onCommitMove={(action) => {
+                        void turnManager.executeAction(action);
+                      }}
                       onNotify={(message) =>
-                        dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now().toString(), message, type: 'warning', duration: 2500 } })
+                        dispatch({
+                          type: "ADD_NOTIFICATION",
+                          payload: {
+                            id: Date.now().toString(),
+                            message,
+                            type: "warning",
+                            duration: 2500,
+                          },
+                        })
                       }
                     />
                   </Suspense>
-                ) : renderMode === '3d' ? (
+                ) : renderMode === "3d" ? (
                   <Suspense fallback={<Battle3DLoadingFallback />}>
                     <BattleMap3D
                       mapData={mapData}
@@ -1051,7 +1381,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                         turnState: turnManager.turnState,
                         abilitySystem: abilitySystem,
                         isCharacterTurn: turnManager.isCharacterTurn,
-                        onCharacterUpdate: handleCharacterUpdate
+                        onCharacterUpdate: handleCharacterUpdate,
                       }}
                     />
                   </Suspense>
@@ -1066,7 +1396,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                         turnState: turnManager.turnState,
                         abilitySystem: abilitySystem,
                         isCharacterTurn: turnManager.isCharacterTurn,
-                        onCharacterUpdate: handleCharacterUpdate
+                        onCharacterUpdate: handleCharacterUpdate,
                       }}
                     />
                   </Suspense>
@@ -1082,7 +1412,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                       turnState: turnManager.turnState,
                       abilitySystem: abilitySystem,
                       isCharacterTurn: turnManager.isCharacterTurn,
-                      onCharacterUpdate: handleCharacterUpdate
+                      onCharacterUpdate: handleCharacterUpdate,
                     }}
                   />
                 )
@@ -1100,7 +1430,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             the same top-to-bottom order as the mockup's right rail. */}
         <div
           data-testid="combat-command-rail"
-          className={`${commandRailVisible ? 'grid' : 'hidden'} relative order-3 min-h-[18rem] max-h-none grid-cols-1 gap-3 overflow-visible scrollable-content p-1 sm:grid-cols-2 lg:order-none lg:min-h-0 lg:max-h-none lg:flex-col lg:overflow-y-auto ${commandRailVisible ? 'lg:flex' : 'lg:hidden'}`}
+          className={`${commandRailVisible ? "grid" : "hidden"} relative order-3 min-h-[18rem] max-h-none grid-cols-1 gap-3 overflow-visible scrollable-content p-1 sm:grid-cols-2 lg:order-none lg:min-h-0 lg:max-h-none lg:flex-col lg:overflow-y-auto ${commandRailVisible ? "lg:flex" : "lg:hidden"}`}
         >
           <CombatRailResizeHandle
             side="command"
@@ -1116,7 +1446,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             onCharacterSelect={handleSheetOpen}
             onSkipToCharacter={turnManager.skipToCharacter}
           />
-          {currentCharacter && currentCharacter.team === 'player' && (
+          {currentCharacter && currentCharacter.team === "player" && (
             <>
               {/* WHO the command rail belongs to: without this banner the
                   Actions/Abilities panels are anonymous. */}
@@ -1125,7 +1455,9 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
                   {currentCharacter.name.charAt(0)}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-bold text-amber-100">{currentCharacter.name}</div>
+                  <div className="truncate text-sm font-bold text-amber-100">
+                    {currentCharacter.name}
+                  </div>
                   <div className="text-[11px] font-semibold text-slate-300">
                     HP {currentCharacter.currentHP}/{currentCharacter.maxHP}
                   </div>
@@ -1140,13 +1472,21 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
               />
             </>
           )}
-          {currentCharacter && currentCharacter.team === 'player' && (
+          {currentCharacter && currentCharacter.team === "player" && (
             <AbilityPalette
               character={currentCharacter}
-              onSelectAbility={(ability) => handleAbilitySelect(ability, currentCharacter)}
-              selectedAbilityId={abilitySystem.targetingMode ? abilitySystem.selectedAbility?.id : null}
+              onSelectAbility={(ability) =>
+                handleAbilitySelect(ability, currentCharacter)
+              }
+              selectedAbilityId={
+                abilitySystem.targetingMode
+                  ? abilitySystem.selectedAbility?.id
+                  : null
+              }
               onCancelAbility={abilitySystem.cancelTargeting}
-              canAffordAction={(cost) => turnManager.canAffordAction(currentCharacter, cost)}
+              canAffordAction={(cost) =>
+                turnManager.canAffordAction(currentCharacter, cost)
+              }
             />
           )}
           {/* [2026-02-10] CombatLog now receives both the legacy log entries and rich messages.
@@ -1155,7 +1495,11 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
               - useRichDisplay: When true, CombatLog renders richMessages with type-based
                 color coding (via getMessageColor) and priority-based left borders.
                 Set to false to revert to the original simple text display. */}
-          <CombatLog logEntries={combatLog} richMessages={messaging.messages} useRichDisplay={true} />
+          <CombatLog
+            logEntries={combatLog}
+            richMessages={messaging.messages}
+            useRichDisplay={true}
+          />
         </div>
       </div>
     </div>

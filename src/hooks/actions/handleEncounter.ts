@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 15/07/2026, 08:56:38
+ * Last Sync: 16/07/2026, 13:29:09
  * Dependents: App.tsx, components/World3D/World3DWrapper.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/useDeEscalation.ts, hooks/useSeaEncounter.ts
  * Imports: 9 files
  *
@@ -105,17 +105,60 @@ export function handleHideEncounterModal(dispatch: React.Dispatch<AppAction>): v
 }
 
 export async function handleStartBattleMapEncounter(dispatch: React.Dispatch<AppAction>, payload: StartBattleMapEncounterPayload): Promise<void> {
+    // A declared source gap is an inert production state, not a partially built
+    // encounter. Reject contradictory payloads here so no caller can smuggle a
+    // generic roster or unrelated terrain behind the fail-closed UI.
+    if (payload.sourceGap) {
+        const hasPreparedActors = payload.monsters.length > 0
+            || (payload.combatants?.length ?? 0) > 0
+            || (payload.combatantWorldSources?.length ?? 0) > 0;
+        if (hasPreparedActors || payload.extractedBattleMap) {
+            throw new Error(
+                `Battlefield source gap "${payload.sourceGap.code}" cannot include monsters, combatants, source identities, or extracted terrain.`,
+            );
+        }
+
+        dispatch({
+            type: 'START_BATTLE_MAP_ENCOUNTER',
+            payload: {
+                startBattleMapEncounterData: {
+                    ...payload,
+                    monsters: [],
+                    combatants: [],
+                },
+            },
+        });
+        return;
+    }
+
     // A source-world encounter may already provide regiment-derived actors with
     // stable WorldForge identities. Preserve those prepared combatants instead
     // of rebuilding them as generic bestiary monsters. Callers without a map
     // may still prepare their actors here, but CombatView deliberately withholds
     // play until that encounter class supplies a real WorldForge projection.
-    const combatants = payload.combatants ?? await (async () => {
+    const preparedCombatants = payload.combatants ?? await (async () => {
         const { createEnemyFromMonster } = await import('../../utils/combat/createEnemyFromMonster');
         return payload.monsters.flatMap((monster) =>
             Array.from({ length: monster.quantity }, (_, i) => createEnemyFromMonster(monster, i))
         );
     })();
+    // Scene receipts and bestiary construction intentionally live on opposite
+    // sides of this bridge. Join them by stable flattened order, and fail
+    // closed when a caller claims source identities for a different roster.
+    if (
+        payload.combatantWorldSources
+        && payload.combatantWorldSources.length !== preparedCombatants.length
+    ) {
+        throw new Error(
+            `WorldForge supplied ${payload.combatantWorldSources.length} combatant sources for ${preparedCombatants.length} prepared actors.`,
+        );
+    }
+    const combatants = preparedCombatants.map((combatant, index) => ({
+        ...combatant,
+        ...(payload.combatantWorldSources?.[index]
+            ? { worldSource: payload.combatantWorldSources[index] }
+            : {}),
+    }));
     dispatch({ type: 'START_BATTLE_MAP_ENCOUNTER', payload: { startBattleMapEncounterData: { ...payload, combatants } } });
 }
 

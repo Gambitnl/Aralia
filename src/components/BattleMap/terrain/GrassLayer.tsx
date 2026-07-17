@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 16/07/2026, 10:29:54
+ * Dependents: components/BattleMap/terrain/index.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file GrassLayer.tsx
  * Instanced grass blades scattered across grass-type tiles with GPU wind animation.
@@ -264,6 +280,104 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData }) => {
   // Total blade count
   const instanceCount = grassTiles.length * BLADES_PER_TILE;
 
+  // Saved opening scenes physically alter vegetation. The base grass pass must
+  // therefore leave readable clearings around flattened ground, trampled runs,
+  // the activity site, combat churn, and resolved bodies. This is not a visual
+  // test exception: each zone comes directly from the encounter receipt.
+  const openingSceneGrassSuppression = useMemo(() => {
+    const context = mapData.encounterContext;
+    if (context?.kind !== 'opening-standoff') return () => 0;
+
+    const pointZones: Array<{ x: number; z: number; radius: number; strength: number }> = [];
+    const lineZones: Array<{
+      ax: number;
+      az: number;
+      bx: number;
+      bz: number;
+      radius: number;
+      strength: number;
+    }> = [];
+
+    for (const imprint of context.terrainImprints ?? []) {
+      if (imprint.kind === 'trampled-run' || imprint.kind === 'drag-furrow') {
+        lineZones.push({
+          ax: imprint.position.x + 0.5,
+          az: imprint.position.y + 0.5,
+          bx: imprint.endPosition.x + 0.5,
+          bz: imprint.endPosition.y + 0.5,
+          radius: imprint.kind === 'drag-furrow' ? 0.24 : Math.max(0.42, imprint.extentCells.width * 0.45),
+          strength: imprint.kind === 'drag-furrow' ? 0.72 : 0.82,
+        });
+      } else {
+        pointZones.push({
+          x: imprint.position.x + 0.5,
+          z: imprint.position.y + 0.5,
+          radius: Math.max(0.72, Math.min(1.35, imprint.extentCells.length * 0.5)),
+          strength: imprint.kind === 'flattened-ground' ? 0.94 : 0.58,
+        });
+      }
+    }
+
+    if (context.activitySite) {
+      pointZones.push({
+        x: context.activitySite.position.x + 0.5,
+        z: context.activitySite.position.y + 0.5,
+        radius: 1.05,
+        strength: 0.96,
+      });
+    }
+    if (context.sceneResolution) {
+      const disturbance = context.sceneResolution.combatDisturbance;
+      pointZones.push({
+        x: disturbance.position.x + 0.5,
+        z: disturbance.position.y + 0.5,
+        radius: Math.max(0.9, disturbance.extentCells.length * 0.42),
+        strength: disturbance.severity === 'heavy' ? 0.9 : 0.72,
+      });
+      const physicalIds = new Set(
+        context.sceneResolution.entityOutcomes
+          .filter((outcome) => outcome.status === 'downed' || outcome.status === 'holding-ground')
+          .map((outcome) => outcome.sourceEntityId),
+      );
+      for (const entity of context.sourceEntities) {
+        if (!physicalIds.has(entity.entityId)) continue;
+        pointZones.push({
+          x: entity.position.x + 0.5,
+          z: entity.position.y + 0.5,
+          radius: 0.72,
+          strength: 0.97,
+        });
+      }
+    }
+
+    const segmentDistance = (
+      x: number,
+      z: number,
+      zone: (typeof lineZones)[number],
+    ): number => {
+      const dx = zone.bx - zone.ax;
+      const dz = zone.bz - zone.az;
+      const lengthSquared = dx * dx + dz * dz;
+      const t = lengthSquared > 0
+        ? Math.max(0, Math.min(1, ((x - zone.ax) * dx + (z - zone.az) * dz) / lengthSquared))
+        : 0;
+      return Math.hypot(x - (zone.ax + dx * t), z - (zone.az + dz * t));
+    };
+
+    return (x: number, z: number): number => {
+      let suppression = 0;
+      for (const zone of pointZones) {
+        const normalized = Math.hypot(x - zone.x, z - zone.z) / zone.radius;
+        if (normalized < 1) suppression = Math.max(suppression, zone.strength * (1 - normalized * 0.45));
+      }
+      for (const zone of lineZones) {
+        const normalized = segmentDistance(x, z, zone) / zone.radius;
+        if (normalized < 1) suppression = Math.max(suppression, zone.strength * (1 - normalized * 0.5));
+      }
+      return suppression;
+    };
+  }, [mapData]);
+
   // Same surface formula as the rendered mesh — blades root IN the ground by
   // construction. Flat per-tile `elevation * 0.3` left blades hovering or
   // buried beside elevation steps (task-71/79 grounding pattern; required
@@ -343,8 +457,10 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData }) => {
         const rotY = rand() * Math.PI * 2;
         const randHeight = rand();
         const tintR = rand();
+        const sceneSuppression = openingSceneGrassSuppression(worldX, worldZ);
+        const scenePattern = clusterNoise(worldX * 2.13 + 431, worldZ * 2.13 + 197);
 
-        if (b >= effectiveBlades) {
+        if (b >= effectiveBlades || scenePattern < sceneSuppression) {
           // Place blade at scale 0 (invisible) to keep instance count consistent
           dummy.position.set(worldX, worldY, worldZ);
           dummy.rotation.set(0, rotY, 0);
@@ -387,7 +503,7 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData }) => {
 
     return { matrices: mats, tints: tintArr };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [grassTiles, instanceCount, mapData.seed, groundSampler]);
+  }, [grassTiles, instanceCount, mapData.seed, groundSampler, openingSceneGrassSuppression]);
 
   // Shader material
   const shaderMaterial = useMemo(() => {

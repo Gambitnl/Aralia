@@ -1,0 +1,39 @@
+{
+  "id": "fix00005",
+  "name": "Gelatinous Cube",
+  "slug": "gelatinous-cube-fix00005",
+  "description": "a translucent gelatinous cube",
+  "plan": {
+    "name": "Gelatinous Cube",
+    "frame": {
+      "heightFt": 9,
+      "lengthFt": 9,
+      "bulk": 1,
+      "stance": "horizontal"
+    },
+    "spine": {
+      "segments": 2,
+      "taper": 1,
+      "arch": 0,
+      "shape": "box"
+    },
+    "appendages": [],
+    "heads": [
+      {
+        "sizeScale": 0.55,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 0.9
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#8fd4a2",
+      "accentHex": "#c8f2d2",
+      "eyeHex": "#3f6b4a",
+      "opacity": 0.35
+    }
+  },
+  "status": "generated",
+  "createdAt": "2026-07-16T20:54:33.040Z"
+}

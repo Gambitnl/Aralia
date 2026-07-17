@@ -1,0 +1,122 @@
+{
+  "id": "fix00004",
+  "name": "Gladefoot Centaur",
+  "slug": "gladefoot-centaur-fix00004",
+  "description": "a centaur — humanoid torso and arms rising from a horse body",
+  "plan": {
+    "name": "Gladefoot Centaur",
+    "frame": {
+      "heightFt": 7,
+      "lengthFt": 8,
+      "bulk": 0.65,
+      "stance": "horizontal"
+    },
+    "spine": {
+      "segments": 4,
+      "taper": 0.78,
+      "arch": 0.08
+    },
+    "appendages": [
+      {
+        "kind": "leg",
+        "attach": 0.18,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 2.1,
+            "r": 0.24
+          },
+          {
+            "lenFt": 1.9,
+            "r": 0.16
+          }
+        ]
+      },
+      {
+        "kind": "leg",
+        "attach": 0.82,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 2.1,
+            "r": 0.26
+          },
+          {
+            "lenFt": 1.9,
+            "r": 0.17
+          }
+        ]
+      },
+      {
+        "kind": "torso",
+        "attach": 0.06,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 1.6,
+            "r": 0.6
+          },
+          {
+            "lenFt": 1.4,
+            "r": 0.5
+          }
+        ]
+      },
+      {
+        "kind": "arm",
+        "attach": 0.06,
+        "parent": 2,
+        "perSide": true,
+        "count": 1,
+        "tips": "hand",
+        "chain": [
+          {
+            "lenFt": 1.5,
+            "r": 0.14
+          },
+          {
+            "lenFt": 1.3,
+            "r": 0.1
+          }
+        ]
+      },
+      {
+        "kind": "tail",
+        "attach": 1,
+        "heightFrac": 0.6,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 1.4,
+            "r": 0.12
+          },
+          {
+            "lenFt": 1.2,
+            "r": 0.07
+          }
+        ]
+      }
+    ],
+    "heads": [
+      {
+        "neckIndex": 2,
+        "form": "blunt",
+        "sizeScale": 0.95,
+        "eyes": {
+          "count": 2,
+          "sizeScale": 1
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#7a5236",
+      "accentHex": "#caa06b",
+      "bellyHex": "#a9825d",
+      "eyeHex": "#2e2418"
+    }
+  },
+  "status": "generated",
+  "createdAt": "2026-07-16T20:54:32.040Z"
+}

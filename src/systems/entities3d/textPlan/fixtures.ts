@@ -45,6 +45,7 @@ const dragon: CreaturePlan = {
   ],
   heads: [
     {
+      form: 'serpent',
       sizeScale: 1.15,
       eyes: { count: 2, sizeScale: 0.9 },
       snout: { lengthScale: 1.8, droop: -0.1 },
@@ -76,9 +77,9 @@ const threeHeadedSerpent: CreaturePlan = {
     },
   ],
   heads: [
-    { neckIndex: 0, sizeScale: 1.25, eyes: { count: 2, sizeScale: 1.1 }, snout: { lengthScale: 1.4, droop: 0 } },
-    { neckIndex: 0, sizeScale: 1.25, eyes: { count: 2, sizeScale: 1.1 }, snout: { lengthScale: 1.4, droop: 0 } },
-    { neckIndex: 0, sizeScale: 1.25, eyes: { count: 2, sizeScale: 1.1 }, snout: { lengthScale: 1.4, droop: 0 } },
+    { neckIndex: 0, form: 'serpent', sizeScale: 1.25, eyes: { count: 2, sizeScale: 1.1 }, snout: { lengthScale: 1.4, droop: 0 } },
+    { neckIndex: 0, form: 'serpent', sizeScale: 1.25, eyes: { count: 2, sizeScale: 1.1 }, snout: { lengthScale: 1.4, droop: 0 } },
+    { neckIndex: 0, form: 'serpent', sizeScale: 1.25, eyes: { count: 2, sizeScale: 1.1 }, snout: { lengthScale: 1.4, droop: 0 } },
   ],
   palette: { bodyHex: '#3e6b4f', accentHex: '#87a94f', bellyHex: '#cfd8a3', eyeHex: '#e8d44d' },
 };
@@ -138,9 +139,96 @@ const floatingEye: CreaturePlan = {
   palette: { bodyHex: '#6b5b8f', accentHex: '#a08cc4', eyeHex: '#7fd4c1' },
 };
 
+/** v1.2 stress creature: tauric — humanoid torso with arms riding a quad body. */
+const centaur: CreaturePlan = {
+  name: 'Gladefoot Centaur',
+  frame: { heightFt: 7, lengthFt: 8, bulk: 0.65, stance: 'horizontal' },
+  spine: { segments: 4, taper: 0.78, arch: 0.08 },
+  appendages: [
+    {
+      kind: 'leg', attach: 0.18, perSide: true, count: 1,
+      chain: [{ lenFt: 2.1, r: 0.24 }, { lenFt: 1.9, r: 0.16 }],
+    },
+    {
+      kind: 'leg', attach: 0.82, perSide: true, count: 1,
+      chain: [{ lenFt: 2.1, r: 0.26 }, { lenFt: 1.9, r: 0.17 }],
+    },
+    {
+      kind: 'torso', attach: 0.06, count: 1,
+      chain: [{ lenFt: 1.6, r: 0.6 }, { lenFt: 1.4, r: 0.5 }],
+    },
+    {
+      kind: 'arm', attach: 0.06, parent: 2, perSide: true, count: 1, tips: 'hand',
+      chain: [{ lenFt: 1.5, r: 0.14 }, { lenFt: 1.3, r: 0.1 }],
+    },
+    {
+      kind: 'tail', attach: 1, heightFrac: 0.6, count: 1,
+      chain: [{ lenFt: 1.4, r: 0.12 }, { lenFt: 1.2, r: 0.07 }],
+    },
+  ],
+  heads: [{ neckIndex: 2, form: 'blunt', sizeScale: 0.95, eyes: { count: 2, sizeScale: 1 } }],
+  palette: { bodyHex: '#7a5236', accentHex: '#caa06b', bellyHex: '#a9825d', eyeHex: '#2e2418' },
+};
+
+/** v1.2 stress creature: box body + translucency. */
+const gelatinousCube: CreaturePlan = {
+  name: 'Gelatinous Cube',
+  frame: { heightFt: 9, lengthFt: 9, bulk: 1, stance: 'horizontal' },
+  spine: { segments: 2, taper: 1, arch: 0, shape: 'box' },
+  appendages: [],
+  heads: [{ sizeScale: 0.55, eyes: { count: 1, sizeScale: 0.9 } }],
+  palette: { bodyHex: '#8fd4a2', accentHex: '#c8f2d2', eyeHex: '#3f6b4a', opacity: 0.35 },
+};
+
+/** v1.2 stress creature: 11 heads — a floating orb ringed by eyestalks. */
+const beholder: CreaturePlan = {
+  name: 'Tyrant Orb',
+  frame: { heightFt: 8, bulk: 0.95, stance: 'floating' },
+  spine: { segments: 3, taper: 0.9, arch: 0 },
+  appendages: [
+    {
+      kind: 'neck', attach: 0.15, heightFrac: 0.9, perSide: true, count: 3,
+      chain: [{ lenFt: 1.6, r: 0.09 }, { lenFt: 1.3, r: 0.06 }],
+    },
+    {
+      kind: 'neck', attach: 0.6, heightFrac: 0.85, perSide: true, count: 2,
+      chain: [{ lenFt: 1.5, r: 0.09 }, { lenFt: 1.2, r: 0.06 }],
+    },
+  ],
+  heads: [
+    { sizeScale: 1.7, eyes: { count: 1, sizeScale: 2, pupil: 'goat' }, cilia: true },
+    ...Array.from({ length: 6 }, () => ({ neckIndex: 0, sizeScale: 0.45, eyes: { count: 1, sizeScale: 1.6 } })),
+    ...Array.from({ length: 4 }, () => ({ neckIndex: 1, sizeScale: 0.45, eyes: { count: 1, sizeScale: 1.6 } })),
+  ],
+  palette: { bodyHex: '#8a4a3b', accentHex: '#d98e3a', eyeHex: '#e8d44d' },
+};
+
+/** v1.2 stress creature: translucent trailing spirit — no legs, wisp taper. */
+const ghost: CreaturePlan = {
+  name: 'Barrow Wisp',
+  frame: { heightFt: 6, bulk: 0.55, stance: 'floating' },
+  spine: { segments: 5, taper: 0.3, arch: -0.15 },
+  appendages: [
+    {
+      kind: 'arm', attach: 0.25, perSide: true, count: 1, tips: 'hand',
+      chain: [{ lenFt: 1.6, r: 0.14 }, { lenFt: 1.4, r: 0.09 }],
+    },
+    {
+      kind: 'tail', attach: 0.95, heightFrac: 0.3, count: 1,
+      chain: [{ lenFt: 1.8, r: 0.2 }, { lenFt: 1.5, r: 0.12 }, { lenFt: 1.2, r: 0.05 }],
+    },
+  ],
+  heads: [{ sizeScale: 1.1, eyes: { count: 2, sizeScale: 1.3 } }],
+  palette: { bodyHex: '#9fb8d8', accentHex: '#d8e8f8', eyeHex: '#1a2a3f', opacity: 0.42 },
+};
+
 export const PLAN_FIXTURES = {
   dragon,
   threeHeadedSerpent,
   tentacledOoze,
   floatingEye,
+  centaur,
+  gelatinousCube,
+  beholder,
+  ghost,
 } as const satisfies Record<string, CreaturePlan>;

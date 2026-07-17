@@ -3,8 +3,9 @@
  * graph only, no renderer). Body v2: segmented skeleton, no metaballs.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import { Vector3, Mesh, LineSegments } from 'three';
+import { Vector3, Mesh, LineSegments, MeshBasicMaterial } from 'three';
 import { assembleEntity } from '../three/assembleEntity';
+import { createSegmentBody } from '../three/segmentBody';
 import { generateEntityBlueprint } from '../generateEntityBlueprint';
 import { registerAllParts } from '../parts';
 
@@ -170,5 +171,91 @@ describe('entities3d debug API (vistest harness)', () => {
     expect(stats.triangles).toBeGreaterThan(100);
     expect(stats.renderMode).toBe('solid');
     handle.dispose();
+  });
+
+  describe('ring primitive (energy rings)', () => {
+    it('solid: a ring renders as an unlit accent mesh, no outline shell', () => {
+      const body = createSegmentBody({ renderMode: 'solid', colorHex: '#446688', accentHex: '#ff2ea6', outlineThickness: 0.01 });
+      body.beginFrame();
+      body.sink.ring!('ring0', 0, 1, 0, 0, 1, 0, 0.3, 0.03);
+      body.finishFrame();
+      const node = body.root.getObjectByName('seg:ring0')!;
+      expect(node, 'ring node missing').toBeTruthy();
+      const meshes: Mesh[] = [];
+      node.traverse((o) => { if ((o as Mesh).isMesh) meshes.push(o as Mesh); });
+      expect(meshes).toHaveLength(1); // no ink shell — rings glow
+      expect((meshes[0].material as MeshBasicMaterial).isMeshBasicMaterial).toBe(true);
+      body.dispose();
+    });
+
+    it('wireframe: a ring renders as accent-colored lines', () => {
+      const body = createSegmentBody({ renderMode: 'wireframe', colorHex: '#446688', accentHex: '#ff2ea6', outlineThickness: 0.01 });
+      body.beginFrame();
+      body.sink.ring!('ring0', 0.5, 1, 0, 1, 0, 0, 0.25, 0.02);
+      body.finishFrame();
+      const node = body.root.getObjectByName('seg:ring0')!;
+      let lines = 0;
+      let meshes = 0;
+      node.traverse((o) => {
+        if ((o as LineSegments).isLineSegments) lines++;
+        if ((o as Mesh).isMesh) meshes++;
+      });
+      expect(lines).toBe(1);
+      expect(meshes).toBe(0);
+      body.dispose();
+    });
+
+    it('box primitive: a slab mesh in solid mode, edge lines in wireframe', () => {
+      const solid = createSegmentBody({ renderMode: 'solid', colorHex: '#7fae72', outlineThickness: 0.01 });
+      solid.beginFrame();
+      solid.sink.box!('slab0', 0, 1, 0, 0, 2, 0, 1.4, 1.4);
+      solid.finishFrame();
+      const node = solid.root.getObjectByName('seg:slab0')!;
+      expect(node, 'box node missing').toBeTruthy();
+      let meshes = 0;
+      node.traverse((o) => { if ((o as Mesh).isMesh) meshes++; });
+      expect(meshes).toBeGreaterThanOrEqual(1);
+      solid.dispose();
+
+      const wire = createSegmentBody({ renderMode: 'wireframe', colorHex: '#7fae72', outlineThickness: 0.01 });
+      wire.beginFrame();
+      wire.sink.box!('slab0', 0, 1, 0, 0, 2, 0, 1.4, 1.4);
+      wire.finishFrame();
+      const wnode = wire.root.getObjectByName('seg:slab0')!;
+      let lines = 0;
+      wnode.traverse((o) => { if ((o as LineSegments).isLineSegments) lines++; });
+      expect(lines).toBe(1);
+      wire.dispose();
+    });
+
+    it('opacity: body materials go translucent; a planned ghost body renders transparent fills', () => {
+      const body = createSegmentBody({ renderMode: 'solid', colorHex: '#88aacc', outlineThickness: 0.01, opacity: 0.4 });
+      body.beginFrame();
+      body.sink.seg('torso', 0, 0.5, 0, 0, 1.5, 0, 0.3, 0.25);
+      body.finishFrame();
+      const node = body.root.getObjectByName('seg:torso')!;
+      const mats: Mesh[] = [];
+      node.traverse((o) => { if ((o as Mesh).isMesh) mats.push(o as Mesh); });
+      const fill = mats.find((m) => m.name !== 'segOutline')!;
+      const material = fill.material as { transparent?: boolean; opacity?: number };
+      expect(material.transparent).toBe(true);
+      expect(material.opacity).toBeCloseTo(0.4, 5);
+      body.dispose();
+    });
+
+    it('rings orient to their normal and hide when unwritten', () => {
+      const body = createSegmentBody({ renderMode: 'solid', colorHex: '#446688', accentHex: '#ff2ea6', outlineThickness: 0.01 });
+      body.beginFrame();
+      body.sink.ring!('r', 0, 1, 0, 1, 0, 0, 0.2, 0.02); // normal +X
+      body.finishFrame();
+      const node = body.root.getObjectByName('seg:r')!;
+      expect(Math.abs(node.quaternion.length() - 1)).toBeLessThan(1e-6);
+      expect(node.position.x).toBeCloseTo(0, 6);
+      expect(node.position.y).toBeCloseTo(1, 6);
+      body.beginFrame();
+      body.finishFrame(); // not written this frame
+      expect(node.visible).toBe(false);
+      body.dispose();
+    });
   });
 });

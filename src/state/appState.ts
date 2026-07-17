@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 09:54:28
+ * Last Sync: 16/07/2026, 13:30:41
  * Dependents: App.tsx
  * Imports: 50 files
  *
@@ -861,6 +861,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...state,
                 phase: GamePhase.COMBAT, // Now transitions to the actual combat phase
                 currentEnemies: combatants,
+                // Preserve the caller's exact missing-source diagnosis. A
+                // normal source-backed encounter clears any older gap record.
+                battlefieldSourceGap: encounterPayload.sourceGap ?? null,
                 // Store the pre-extracted battle map (if present) to bypass procedural generation
                 extractedBattleMap: encounterPayload.extractedBattleMap ?? null,
                 isEncounterModalVisible: false,
@@ -875,6 +878,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...state,
                 phase: GamePhase.PLAYING,
                 currentEnemies: null,
+                battlefieldSourceGap: null,
                 // Reset the pre-extracted battle map when combat ends
                 extractedBattleMap: null,
             };

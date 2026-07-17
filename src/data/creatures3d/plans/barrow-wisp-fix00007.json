@@ -1,0 +1,75 @@
+{
+  "id": "fix00007",
+  "name": "Barrow Wisp",
+  "slug": "barrow-wisp-fix00007",
+  "description": "a translucent barrow wisp trailing into mist",
+  "plan": {
+    "name": "Barrow Wisp",
+    "frame": {
+      "heightFt": 6,
+      "bulk": 0.55,
+      "stance": "floating"
+    },
+    "spine": {
+      "segments": 5,
+      "taper": 0.3,
+      "arch": -0.15
+    },
+    "appendages": [
+      {
+        "kind": "arm",
+        "attach": 0.25,
+        "perSide": true,
+        "count": 1,
+        "tips": "hand",
+        "chain": [
+          {
+            "lenFt": 1.6,
+            "r": 0.14
+          },
+          {
+            "lenFt": 1.4,
+            "r": 0.09
+          }
+        ]
+      },
+      {
+        "kind": "tail",
+        "attach": 0.95,
+        "heightFrac": 0.3,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 1.8,
+            "r": 0.2
+          },
+          {
+            "lenFt": 1.5,
+            "r": 0.12
+          },
+          {
+            "lenFt": 1.2,
+            "r": 0.05
+          }
+        ]
+      }
+    ],
+    "heads": [
+      {
+        "sizeScale": 1.1,
+        "eyes": {
+          "count": 2,
+          "sizeScale": 1.3
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#9fb8d8",
+      "accentHex": "#d8e8f8",
+      "eyeHex": "#1a2a3f",
+      "opacity": 0.42
+    }
+  },
+  "status": "generated",
+  "createdAt": "2026-07-16T20:54:35.042Z"
+}

@@ -34,6 +34,7 @@ import { getPart } from '../registry';
 import type { GaitDriver, LocomotionState, Pose } from './gaits';
 import { createGaitDriver } from './gaits';
 import { createSegmentBody, wireframeifyPart } from './segmentBody';
+import { buildHeadForm } from './headForms';
 import {
   blobShadowMaterial,
   outlineMaterial,
@@ -95,7 +96,9 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   const body = createSegmentBody({
     renderMode,
     colorHex: palette.skinHex,
+    accentHex: palette.accentHex,
     outlineThickness,
+    opacity: blueprint.planSpec?.opacity,
   });
   bodyRoot.add(body.root);
 
@@ -149,6 +152,19 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     meshContainers.push({ container, anchor: instance.anchor });
   }
 
+  // --- sculpted head forms (planned bodies) — posed at live sockets per frame
+  const formHeads: Array<{ group: Group; head: number }> = [];
+  if (blueprint.planSpec && !wireframe) {
+    const toothMaterial = toonMaterial('#e8e2d4');
+    blueprint.planSpec.heads.forEach((headSpec, h) => {
+      if (!headSpec.form) return;
+      const formGroup = buildHeadForm(headSpec.form, toonMaterial(palette.skinHex), toothMaterial);
+      formGroup.name = `head${h}:form`;
+      bodyRoot.add(formGroup);
+      formHeads.push({ group: formGroup, head: h });
+    });
+  }
+
   // --- eyes (the charm organ) — solid in both render modes
   const eyeMaterial = new MeshBasicMaterial({ color: '#ffffff' });
   const pupilMaterial = new MeshBasicMaterial({ color: palette.eyeHex });
@@ -164,6 +180,10 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
         eye.name = `eyeP${h}_${k}`;
         const pupil = new Mesh(new SphereGeometry(Math.max(0.005, r * 0.55), 10, 8), pupilMaterial);
         pupil.position.z = r * 0.72;
+        // pupil character: slit (reptile) is tall-thin, goat is wide-flat
+        const pupilShape = headSpec.eyes.pupil ?? 'round';
+        if (pupilShape === 'slit') pupil.scale.set(0.38, 1.55, 0.8);
+        else if (pupilShape === 'goat') pupil.scale.set(1.55, 0.42, 0.8);
         eye.add(pupil);
         bodyRoot.add(eye);
         eyes.push(eye);
@@ -235,6 +255,15 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     // eyes track their head — planned bodies read live sockets, others the anchor
     if (blueprint.planSpec && driver.headSockets) {
       const sockets = driver.headSockets();
+      // sculpted head forms ride their sockets
+      for (const fh of formHeads) {
+        const socket = sockets[fh.head];
+        if (!socket) continue;
+        fh.group.position.set(socket.x, socket.y, socket.z);
+        tmpVecA.set(socket.fx, socket.fy, socket.fz);
+        fh.group.quaternion.setFromUnitVectors(FORWARD, tmpVecA);
+        fh.group.scale.setScalar(socket.r);
+      }
       for (const [i, eye] of eyes.entries()) {
         const socket = sockets[plannedEyeHead[i]];
         if (!socket) continue;

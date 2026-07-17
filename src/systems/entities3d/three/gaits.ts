@@ -453,6 +453,8 @@ class PlanDriver extends BaseDriver {
   private legReachM = 0;
   /** Legless bulky horizontal body — breathes and mounds (oozes). */
   private readonly moundBody: boolean;
+  /** Spine runs vertically this frame (upright, or a compact floater). */
+  private verticalBody = false;
 
   constructor(frame: Frame, spec: PlanSpec) {
     super(frame);
@@ -504,14 +506,20 @@ class PlanDriver extends BaseDriver {
 
     // spine joints front→rear
     const y0 = this.bodyY();
-    const upright = s.stance === 'upright';
+    // floating bodies hang VERTICAL (head up, wisp down) — ghosts, orbs,
+    // eyestalk tyrants; horizontal float stays available via lengthFt (the
+    // compiler marks it in bodyLenM vs height)
+    this.verticalBody = s.stance === 'upright' || (s.stance === 'floating' && s.bodyLenM <= s.bodyRadM * 4.2);
+    const upright = this.verticalBody;
     const n = s.spine.segments;
     for (let i = 0; i <= n; i++) {
       const u = i / n; // 0 front/top → 1 rear/bottom
       const arch = Math.sin(u * Math.PI) * s.spine.arch * s.bodyRadM * 2;
       if (upright) {
-        const topY = Math.max(y0 + s.bodyLenM, s.bodyRadM * 2);
-        this.spinePts[i].set(0, topY - u * (topY - y0 * 0.35), arch);
+        const half = s.bodyLenM * 0.5;
+        const topY = s.stance === 'floating' ? y0 + half : Math.max(y0 + s.bodyLenM, s.bodyRadM * 2);
+        const bottomY = s.stance === 'floating' ? y0 - half : y0 * 0.35;
+        this.spinePts[i].set(0, topY - u * (topY - bottomY), arch);
       } else {
         // slither is the star: amplitude keys off body LENGTH, and idles softly
         const wave =
@@ -566,15 +574,32 @@ class PlanDriver extends BaseDriver {
     const s = this.spec;
     const rootZ = this.attachZ(chain.attach);
     const upright = s.stance === 'upright';
-    // root rides the spine at attach, lifted to heightFrac on the body
-    const spineU = Math.min(1, Math.max(0, chain.attach));
-    const idx = Math.min(s.spine.segments, Math.round(spineU * s.spine.segments));
-    const sp = this.spinePts[idx];
-    const root = new Vector3(
-      sp.x + chain.side * s.bodyRadM * 0.85,
-      sp.y + (chain.heightFrac - 0.5) * s.bodyRadM * 1.6,
-      upright ? sp.z + s.bodyRadM * 0.2 : rootZ,
-    );
+    // root rides the spine at attach, lifted to heightFrac on the body —
+    // unless the chain is PARENTED to a torso (the tauric seam), in which
+    // case it roots near that torso's tip (shoulders below the head seat).
+    let root: Vector3;
+    if (chain.parentId) {
+      const parent = s.chains.find((c) => c.id === chain.parentId)!;
+      const pts = this.chainPoints(parent); // depth 1 by validation (no torso towers)
+      const tip = pts[pts.length - 1];
+      const below = pts.length > 1 ? pts[pts.length - 2] : tip;
+      const shoulder = tip.clone().lerp(below, 0.18);
+      const parentR = parent.links[parent.links.length - 1].rM;
+      root = new Vector3(
+        shoulder.x + chain.side * (parentR + s.bodyRadM * 0.12),
+        shoulder.y,
+        shoulder.z,
+      );
+    } else {
+      const spineU = Math.min(1, Math.max(0, chain.attach));
+      const idx = Math.min(s.spine.segments, Math.round(spineU * s.spine.segments));
+      const sp = this.spinePts[idx];
+      root = new Vector3(
+        sp.x + chain.side * s.bodyRadM * 0.85,
+        sp.y + (this.verticalBody ? 0 : (chain.heightFrac - 0.5) * s.bodyRadM * 1.6),
+        this.verticalBody ? sp.z + s.bodyRadM * 0.2 : rootZ,
+      );
+    }
     const total = chain.links.reduce((nn, l) => nn + l.lenM, 0);
     const pts: Vector3[] = [root];
 
@@ -602,7 +627,12 @@ class PlanDriver extends BaseDriver {
 
     // direction seeds per kind (unit-ish, then per-link motion)
     const dir = new Vector3();
-    if (chain.kind === 'tail') dir.set(chain.side * 0.15, 0.12, -1);
+    if (chain.kind === 'torso') {
+      // an upright sub-spine: straight up with a slight forward lean and a
+      // gentle gait sway (the rider's torso)
+      const sway = Math.sin(this.gaitPhase * Math.PI * 2) * 0.04 * this.speedFactor;
+      dir.set(sway, 1, 0.16);
+    } else if (chain.kind === 'tail') dir.set(chain.side * 0.15, 0.12, -1);
     else if (chain.kind === 'tentacle') {
       dir.set(chain.side === 0 ? 0.4 : chain.side, -0.12, 0.35);
       // siblings fan around the body — six tentacles are a crown, not a comb
@@ -614,17 +644,35 @@ class PlanDriver extends BaseDriver {
     }
     else if (chain.kind === 'neck') dir.set(chain.side * 0.2, 1.15, upright ? 0.3 : 0.75);
     else if (chain.kind === 'wing') dir.set(chain.side === 0 ? 0.9 : chain.side, 0.35, -0.15);
-    else dir.set(chain.side === 0 ? 0.5 : chain.side, -0.55, 0.5); // arm: down-forward hang
+    else {
+      // arm: down-forward hang for walkers; a gentle drape for floaters —
+      // level enough to radiate when many, hanging enough to read spectral
+      // when few
+      const droop = this.spec.stance === 'floating' ? -0.22 : -0.55;
+      dir.set(chain.side === 0 ? 0.5 : chain.side, droop, 0.5);
+      // siblings fan around the body — twelve radial arms are a starburst,
+      // not two bundled brooms (same treatment tentacles get)
+      const sibs = this.spec.chains.filter((c) => c.kind === 'arm' && c.side === chain.side);
+      if (sibs.length > 1) {
+        const which = sibs.findIndex((c) => c.id === chain.id);
+        dir.applyAxisAngle(V_UP, (which / (sibs.length - 1) - 0.5) * 2.4 * (chain.side || 1));
+      }
+    }
     dir.normalize();
 
-    // Necks fan out so multi-head creatures separate their heads.
+    // Necks fan out so multi-head creatures separate their heads. Floaters
+    // (beholders) crown FULL CIRCLE; walkers fan forward.
     if (chain.kind === 'neck') {
       const necks = this.spec.chains.filter((c) => c.kind === 'neck');
       const which = necks.findIndex((c) => c.id === chain.id);
       if (necks.length > 1) {
-        const spread = which / (necks.length - 1) - 0.5;
-        dir.x += spread * 1.6;
-        dir.normalize();
+        if (this.spec.stance === 'floating') {
+          dir.applyAxisAngle(V_UP, (which / necks.length) * Math.PI * 2);
+        } else {
+          const spread = which / (necks.length - 1) - 0.5;
+          dir.x += spread * 1.6;
+          dir.normalize();
+        }
       }
     }
 
@@ -668,8 +716,9 @@ class PlanDriver extends BaseDriver {
     this.autoNecks.clear();
     s.heads.forEach((head, hi) => {
       // low-slung bodies have tiny frame heights; keep heads readable
-      // relative to body thickness too
-      const baseR = Math.max(this.hr, s.bodyRadM * 0.85) * head.sizeScale;
+      // relative to body thickness too (0.4: eyestalk heads must stay small
+      // on bulky bodies — the neck-carry floor matches this in compile)
+      const baseR = Math.max(this.hr, s.bodyRadM * 0.4) * head.sizeScale;
       if (head.chainId) {
         const chain = s.chains.find((c) => c.id === head.chainId)!;
         const pts = this.chainPoints(chain);
@@ -743,25 +792,116 @@ class PlanDriver extends BaseDriver {
   buildBody(sink: SegmentSink): void {
     const s = this.spec;
     const n = s.spine.segments;
-    // spine: rear-thick per taper, front toward heads
-    for (let i = 0; i < n; i++) {
-      const a = this.spinePts[i];
-      const b = this.spinePts[i + 1];
-      const uA = i / n;
-      const uB = (i + 1) / n;
-      const rA = Math.max(0.01, s.bodyRadM * (s.spine.taper + (1 - s.spine.taper) * uA));
-      const rB = Math.max(0.01, s.bodyRadM * (s.spine.taper + (1 - s.spine.taper) * uB));
-      sink.seg(`spine.${i}`, a.x, a.y, a.z, b.x, b.y, b.z, rA, rB);
+    const boxBody = s.spine.shape === 'box';
+    if (boxBody && !sink.box) {
+      throw new Error('entities3d: this creature has a box body — the sink must implement box()');
+    }
+    // Smooth mode (Dragon Forge technique): sinks that implement tube() get
+    // continuous swept bodies; others (crowd bake, collectors, wireframe)
+    // keep the rigid per-segment fallback. Translucent bodies also stay on
+    // segments — the layered pale look reads as mist, while a translucent
+    // tube + ink shell reads as carved stone.
+    const smooth = !boxBody && (s.opacity === undefined || s.opacity >= 1) && typeof sink.tube === 'function';
+    const bulge = s.spine.bulge ?? 0;
+    // spine: rear-thick per taper, front toward heads; bulge swells mid-body
+    if (smooth) {
+      const flat: number[] = [];
+      const radii: number[] = [];
+      for (let i = 0; i <= n; i++) {
+        const p = this.spinePts[i];
+        flat.push(p.x, p.y, p.z);
+        const u = i / n;
+        const base = Math.max(0.01, s.bodyRadM * (s.spine.taper + (1 - s.spine.taper) * u));
+        const muscle = 1 + bulge * Math.sin(Math.min(1, Math.max(0, (u - 0.08) / 0.84)) * Math.PI) * 0.55;
+        radii.push(base * muscle);
+      }
+      sink.tube!('spine', flat, radii);
+    } else {
+      for (let i = 0; i < n; i++) {
+        const a = this.spinePts[i];
+        const b = this.spinePts[i + 1];
+        const uA = i / n;
+        const uB = (i + 1) / n;
+        const rA = Math.max(0.01, s.bodyRadM * (s.spine.taper + (1 - s.spine.taper) * uA));
+        const rB = Math.max(0.01, s.bodyRadM * (s.spine.taper + (1 - s.spine.taper) * uB));
+        if (boxBody) {
+          const side = Math.max(rA, rB) * 2.15;
+          sink.box!(`spine.${i}`, a.x, a.y, a.z, b.x, b.y, b.z, side, side);
+        } else {
+          sink.seg(`spine.${i}`, a.x, a.y, a.z, b.x, b.y, b.z, rA, rB);
+        }
+      }
     }
     // chains
+    const SMOOTH_KINDS = new Set(['tail', 'tentacle', 'neck', 'torso']);
     for (const chain of s.chains) {
       const pts = this.chainPoints(chain);
-      for (let j = 0; j < chain.links.length; j++) {
-        const a = pts[j];
-        const b = pts[j + 1];
-        const r0 = Math.max(0.008, chain.links[j].rM);
-        const r1 = Math.max(0.008, chain.links[Math.min(j + 1, chain.links.length - 1)].rM * 0.85);
-        sink.seg(`${chain.id}.${j}`, a.x, a.y, a.z, b.x, b.y, b.z, r0, r1);
+      if (smooth && SMOOTH_KINDS.has(chain.kind)) {
+        // one continuous tube per organic chain; limbs (legs/arms/wings) keep
+        // crisp rigid bones + IK joints
+        const flat: number[] = [];
+        const radii: number[] = [];
+        for (let j = 0; j < pts.length; j++) {
+          flat.push(pts[j].x, pts[j].y, pts[j].z);
+          const link = chain.links[Math.min(j, chain.links.length - 1)];
+          const tipTaper = j === pts.length - 1 ? 0.55 : 1;
+          radii.push(Math.max(0.008, link.rM * tipTaper));
+        }
+        sink.tube!(chain.id, flat, radii);
+      } else {
+        for (let j = 0; j < chain.links.length; j++) {
+          const a = pts[j];
+          const b = pts[j + 1];
+          const r0 = Math.max(0.008, chain.links[j].rM);
+          const r1 = Math.max(0.008, chain.links[Math.min(j + 1, chain.links.length - 1)].rM * 0.85);
+          sink.seg(`${chain.id}.${j}`, a.x, a.y, a.z, b.x, b.y, b.z, r0, r1);
+        }
+      }
+      // energy rings hover at interior joints, facing along the chain
+      if (chain.jointRings && sink.ring) {
+        for (let j = 1; j < chain.links.length; j++) {
+          const joint = pts[j];
+          const prev = pts[j - 1];
+          const next = pts[j + 1];
+          const nx = next.x - prev.x;
+          const ny = next.y - prev.y;
+          const nz = next.z - prev.z;
+          const rM = chain.links[j].rM;
+          sink.ring(
+            `${chain.id}.ring${j - 1}`,
+            joint.x, joint.y, joint.z,
+            nx, ny, nz,
+            Math.max(0.03, rM * 2.4),
+            Math.max(0.008, rM * 0.28),
+          );
+        }
+      }
+      // stylized hand: palm ball + three splayed fingers at the tip
+      if (chain.tips === 'hand') {
+        const tip = pts[pts.length - 1];
+        const prev = pts[pts.length - 2] ?? tip;
+        V_HAND.set(tip.x - prev.x, tip.y - prev.y, tip.z - prev.z);
+        if (V_HAND.lengthSq() < 1e-8) V_HAND.set(0, 0, 1);
+        V_HAND.normalize();
+        const lastR = chain.links[chain.links.length - 1].rM;
+        const palmR = Math.max(0.02, lastR * 1.5);
+        sink.ball(`${chain.id}.palm`, tip.x, tip.y, tip.z, palmR);
+        const fingerLen = palmR * 1.9;
+        const fingerR = Math.max(0.006, lastR * 0.38);
+        for (let f = 0; f < 3; f++) {
+          V_BEND.copy(V_HAND).applyAxisAngle(V_UP, (f - 1) * 0.42);
+          sink.seg(
+            `${chain.id}.finger${f}`,
+            tip.x + V_HAND.x * palmR * 0.6,
+            tip.y + V_HAND.y * palmR * 0.6,
+            tip.z + V_HAND.z * palmR * 0.6,
+            tip.x + V_BEND.x * (palmR * 0.6 + fingerLen),
+            tip.y + V_BEND.y * (palmR * 0.6 + fingerLen),
+            tip.z + V_BEND.z * (palmR * 0.6 + fingerLen),
+            fingerR,
+            fingerR * 0.7,
+          );
+        }
       }
       if (chain.kind === 'leg') {
         const tip = pts[pts.length - 1];
@@ -786,10 +926,44 @@ class PlanDriver extends BaseDriver {
       sink.seg(`head${hi}.neckS0`, neck.base.x, neck.base.y, neck.base.z, neck.mid.x, neck.mid.y, neck.mid.z, Math.min(s.bodyRadM * 0.55, r * 0.9), Math.min(s.bodyRadM * 0.46, r * 0.78));
       sink.seg(`head${hi}.neckS1`, neck.mid.x, neck.mid.y, neck.mid.z, neck.top.x, neck.top.y, neck.top.z, Math.min(s.bodyRadM * 0.46, r * 0.78), Math.min(s.bodyRadM * 0.38, r * 0.66));
     }
-    // heads (+ optional snouts)
+    // heads (+ optional snouts, cilia lash rings)
     this.sockets.forEach((socket, i) => {
-      sink.ball(`head${i}`, socket.x, socket.y, socket.z, socket.r);
-      const snout = s.heads[i].snout;
+      // formed heads are sculpted meshes owned by the assembler — a ball here
+      // would poke through the skull
+      if (!s.heads[i].form) sink.ball(`head${i}`, socket.x, socket.y, socket.z, socket.r);
+      if (s.heads[i].cilia) {
+        // a ring of twitching lashes around the face rim, in the plane facing
+        // the look direction
+        const rimR = socket.r * 0.98;
+        const upX = 0;
+        const upY = 1;
+        const upZ = 0;
+        // right = forward × up (socket forward is near-horizontal by contract)
+        const rx = socket.fz * upY - socket.fy * upZ;
+        const ry = socket.fx * upZ - socket.fz * upX;
+        const rz = socket.fy * upX - socket.fx * upY;
+        const lashCount = 10;
+        for (let c = 0; c < lashCount; c++) {
+          const ang = (c / lashCount) * Math.PI * 2;
+          const twitch = Math.sin(this.t * 7 + c * 1.7) * 0.12;
+          const ox = rx * Math.cos(ang) + upX * Math.sin(ang);
+          const oy = ry * Math.cos(ang) + upY * Math.sin(ang);
+          const oz = rz * Math.cos(ang) + upZ * Math.sin(ang);
+          const baseX = socket.x + ox * rimR * 0.82 + socket.fx * socket.r * 0.45;
+          const baseY = socket.y + oy * rimR * 0.82 + socket.fy * socket.r * 0.45;
+          const baseZ = socket.z + oz * rimR * 0.82 + socket.fz * socket.r * 0.45;
+          const len = socket.r * (0.34 + twitch);
+          sink.seg(
+            `head${i}.cilia${c}`,
+            baseX, baseY, baseZ,
+            baseX + ox * len, baseY + oy * len, baseZ + oz * len,
+            Math.max(0.006, socket.r * 0.07),
+            Math.max(0.004, socket.r * 0.03),
+          );
+        }
+      }
+      // formed heads carry their own muzzle/jaw — the cone snout would double it
+      const snout = s.heads[i].form ? undefined : s.heads[i].snout;
       if (snout) {
         const len = socket.r * snout.lengthScale;
         sink.seg(

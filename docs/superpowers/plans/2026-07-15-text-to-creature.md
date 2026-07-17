@@ -244,3 +244,12 @@ Forge additions — two new `Mode` values `'describe' | 'library'` in the existi
 - Live CLI gotchas (all fixed in creaturePlanRoutes.ts): (1) prompt must go via STDIN — as an argv with the Windows .cmd shim (shell:true), newlines mangle the command line; (2) neutral cwd (tmpdir) — from the repo the CLI loads this project's CLAUDE.md and follows Remy's rules instead of emitting JSON; (3) strip CLAUDE*/MCP_ env vars — a dev server running inside a Claude session splices the child CLI into the parent conversation; (4) devhub modules are bundled into the vite config at startup — edits need a config-graph touch (devHubApiManager.ts) to hot-restart.
 - Added beyond plan (Remy request): contact-sheet review tooling — window.__entitydebug.contactSheet() renders ¾/front/side(+6ft ghost)/top/face/silhouette auto-framed from the live bounding box into one PNG; capture script .agent/scratch/shoot-contact-sheet.mjs. Harsh-critique iterations landed: auto S-necks, head-bearing neck thickening, mound bodies with embedded heads, tentacle crown fanning, serpentine wave from body length, toe segments, part scale params (wingsMembrane, hornsCurved).
 - Live E2E proof: "a squat six-legged basalt beetle with one glowing eye" → Basalt Ember Beetle (3 leg pairs, black, one orange eye); revise "legs twice as long, eye bigger" → legs exactly 0.9/0.8→1.8/1.6 ft, eye 1.8→2 (schema cap respected); approve flipped on disk. Library: src/data/creatures3d/plans/.
+
+## Parts wave v1.1 (2026-07-16, Remy: "parts wave now")
+
+Driven by the Lovecraftian stress test (library lineage 214b68cf → 5987d7d0 → 104c4981):
+- Language: `PlanAppendage.tips?: 'hand'` (stylized palm + 3 fingers at non-leg tips), `jointRings?: boolean` (accent energy rings hovering at interior joints), `PlanHead.cilia?: boolean` (twitching lash ring around eyes). Validator + prompt updated.
+- Renderer: `SegmentSink.ring()` (optional) + TorusGeometry support in segmentBody — unlit accent material (glow read), no ink shell; wireframe = accent edge lines. `SegmentBodyOptions.accentHex`.
+- Driver: hand/ring/cilia emissions; arm sibling fanning (starburst, not broom-bundles); floating arms level, not dangling.
+- New part: `crystalSpikes` (jagged accent shards, params scale/jaggedness/count).
+- 143 tests green (entities3d + devhub). Proof sheets: .agent/vistest/sheet-horror*.png (v1 dangle → v4 ringed starburst).

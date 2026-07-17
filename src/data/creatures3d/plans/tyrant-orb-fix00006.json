@@ -1,0 +1,153 @@
+{
+  "id": "fix00006",
+  "name": "Tyrant Orb",
+  "slug": "tyrant-orb-fix00006",
+  "description": "a floating tyrant orb ringed by ten eyestalks with one great central eye",
+  "plan": {
+    "name": "Tyrant Orb",
+    "frame": {
+      "heightFt": 8,
+      "bulk": 0.95,
+      "stance": "floating"
+    },
+    "spine": {
+      "segments": 3,
+      "taper": 0.9,
+      "arch": 0
+    },
+    "appendages": [
+      {
+        "kind": "neck",
+        "attach": 0.15,
+        "heightFrac": 0.9,
+        "perSide": true,
+        "count": 3,
+        "chain": [
+          {
+            "lenFt": 1.6,
+            "r": 0.09
+          },
+          {
+            "lenFt": 1.3,
+            "r": 0.06
+          }
+        ]
+      },
+      {
+        "kind": "neck",
+        "attach": 0.6,
+        "heightFrac": 0.85,
+        "perSide": true,
+        "count": 2,
+        "chain": [
+          {
+            "lenFt": 1.5,
+            "r": 0.09
+          },
+          {
+            "lenFt": 1.2,
+            "r": 0.06
+          }
+        ]
+      }
+    ],
+    "heads": [
+      {
+        "sizeScale": 1.7,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 2,
+          "pupil": "goat"
+        },
+        "cilia": true
+      },
+      {
+        "neckIndex": 0,
+        "sizeScale": 0.45,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 1.6
+        }
+      },
+      {
+        "neckIndex": 0,
+        "sizeScale": 0.45,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 1.6
+        }
+      },
+      {
+        "neckIndex": 0,
+        "sizeScale": 0.45,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 1.6
+        }
+      },
+      {
+        "neckIndex": 0,
+        "sizeScale": 0.45,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 1.6
+        }
+      },
+      {
+        "neckIndex": 0,
+        "sizeScale": 0.45,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 1.6
+        }
+      },
+      {
+        "neckIndex": 0,
+        "sizeScale": 0.45,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 1.6
+        }
+      },
+      {
+        "neckIndex": 1,
+        "sizeScale": 0.45,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 1.6
+        }
+      },
+      {
+        "neckIndex": 1,
+        "sizeScale": 0.45,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 1.6
+        }
+      },
+      {
+        "neckIndex": 1,
+        "sizeScale": 0.45,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 1.6
+        }
+      },
+      {
+        "neckIndex": 1,
+        "sizeScale": 0.45,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 1.6
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#8a4a3b",
+      "accentHex": "#d98e3a",
+      "eyeHex": "#e8d44d"
+    }
+  },
+  "status": "generated",
+  "createdAt": "2026-07-16T20:54:34.042Z"
+}

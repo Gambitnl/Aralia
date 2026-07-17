@@ -1,0 +1,105 @@
+{
+  "id": "786600c7",
+  "name": "Beholder Tyrant Orb",
+  "slug": "beholder-tyrant-orb-786600c7",
+  "description": "A 3D game asset of a classic fantasy Beholder monster, isolated on a solid white background. The creature is a floating, perfect spherical fleshy orb. In the exact center is one giant, wide-open cyclopean eyeball. Below the main eye is a large, gaping mouth filled with rows of sharp, pointed, triangular teeth. Ten flexible, thick, worm-like eye-stalks emerge symmetrically from the top half of the sphere, each stalk ending in a small, distinct eyeball pointing forward. The skin texture is bumpy, leathery, reptilian, and scaled, colored in deep purple and dark green tones. Clean watertight mesh, highly detailed digital sculpt, neutral studio lighting, no shadows, 3D model style.",
+  "plan": {
+    "name": "Beholder Tyrant Orb",
+    "frame": {
+      "heightFt": 8,
+      "bulk": 1,
+      "stance": "floating"
+    },
+    "spine": {
+      "segments": 2,
+      "taper": 1,
+      "arch": 0
+    },
+    "appendages": [
+      {
+        "kind": "neck",
+        "attach": 0.25,
+        "heightFrac": 0.95,
+        "perSide": true,
+        "count": 3,
+        "chain": [
+          {
+            "lenFt": 1.1,
+            "r": 0.14
+          },
+          {
+            "lenFt": 1,
+            "r": 0.12
+          },
+          {
+            "lenFt": 0.8,
+            "r": 0.1
+          }
+        ]
+      },
+      {
+        "kind": "neck",
+        "attach": 0.55,
+        "heightFrac": 0.9,
+        "perSide": true,
+        "count": 2,
+        "chain": [
+          {
+            "lenFt": 1.2,
+            "r": 0.14
+          },
+          {
+            "lenFt": 1,
+            "r": 0.12
+          },
+          {
+            "lenFt": 0.8,
+            "r": 0.1
+          }
+        ]
+      }
+    ],
+    "heads": [
+      {
+        "sizeScale": 2,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 2
+        },
+        "snout": {
+          "lengthScale": 0.3,
+          "droop": 0.2
+        }
+      },
+      {
+        "neckIndex": 0,
+        "sizeScale": 0.4,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 1.8
+        }
+      },
+      {
+        "neckIndex": 1,
+        "sizeScale": 0.4,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 1.8
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#4b2160",
+      "accentHex": "#2e4d2b",
+      "bellyHex": "#3a5233",
+      "eyeHex": "#e8d84a"
+    },
+    "garnish": [
+      {
+        "partId": "tuskJaw"
+      }
+    ]
+  },
+  "status": "generated",
+  "createdAt": "2026-07-16T07:32:08.883Z"
+}

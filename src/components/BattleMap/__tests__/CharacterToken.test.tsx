@@ -1,11 +1,12 @@
 /**
- * These tests pin the compact token-level defense badges that G20 now exposes.
+ * These tests pin compact token-level defense and source-role posture.
  *
  * The goal is not to retest combat math. The badge row simply mirrors the
  * existing resistance, vulnerability, and immunity fields in a tiny overlay so
  * players do not have to open the inspector for every target check. The tests
- * keep that presentation slice visible while leaving the 3D follow-up for a
- * later parity pass.
+ * keep that presentation slice visible. Opening monsters additionally expose
+ * their authored group choreography without changing their combat mechanics;
+ * the 3D follow-up remains a later parity pass.
  */
 import React from 'react';
 import { render, screen } from '@testing-library/react';
@@ -137,5 +138,46 @@ describe('CharacterToken status and concentration markers', () => {
 
     expect(screen.getByLabelText('Enhance Ability: Bear status marker')).toBeInTheDocument();
     expect(screen.getByLabelText('Concentrating on Enhance Ability')).toBeInTheDocument();
+  });
+});
+
+describe('CharacterToken opening-scene choreography', () => {
+  it('renders source-authored body geometry and carried equipment without a role ring', () => {
+    render(
+      <CharacterToken
+        character={buildCharacter({
+          id: 'opening-goblin-2',
+          name: 'Goblin 2',
+          worldSource: {
+            kind: 'worldforge-opening-threat',
+            sceneReceiptId: 'worldforge-opening-scene:test',
+            sourceOpeningReceiptId: 'opening:42:cell:829',
+            entityId: 'opening:goblin:2',
+            monsterName: 'Goblin',
+            monsterOrdinal: 2,
+            socialRole: 'screen-left',
+            worldGroundMeters: { x: 106, z: 197 },
+            bodyState: {
+              posture: 'crouched-left',
+              carriedProfile: 'long-tool',
+              facingDirection: { x: 1, z: 0 },
+            },
+          }
+        })}
+        position={{ x: 4, y: 3 }}
+        isSelected={false}
+        isTargetable={false}
+        targetingMode={false}
+        isTurn={false}
+        onCharacterClick={() => undefined}
+      />
+    );
+
+    expect(screen.getByTestId('opening-threat-body')).toHaveAttribute('data-opening-role', 'screen-left');
+    expect(screen.getByTestId('opening-threat-body')).toHaveAttribute('data-body-posture', 'crouched-left');
+    expect(screen.getByTestId('opening-threat-body')).toHaveAttribute('data-carried-profile', 'long-tool');
+    expect(screen.getByTestId('opening-threat-body')).toHaveAttribute('data-facing-degrees', '90.0');
+    expect(screen.getByTestId('opening-threat-carried-long-tool')).toBeInTheDocument();
+    expect(screen.queryByTestId('opening-threat-role-ring')).not.toBeInTheDocument();
   });
 });

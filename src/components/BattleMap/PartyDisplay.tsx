@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 15/07/2026, 03:27:18
+ * Last Sync: 16/07/2026, 03:19:52
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
  * Imports: 6 files
  *
@@ -183,6 +183,18 @@ const EnemyMemberDisplay: React.FC<EnemyMemberDisplayProps> = ({ character, onCl
   const healthPercentage = (character.currentHP / character.maxHP) * 100;
 
   const [firstName, ...restName] = character.name.split(' ');
+  // Opening-scene roles distinguish repeated species without fabricating new
+  // names. This compact roster line mirrors the maneuver identity drawn around
+  // each token and carried into the turn strip.
+  const openingRoleLabel = character.worldSource?.kind === 'worldforge-opening-threat'
+    ? character.worldSource.socialRole
+      .split('-')
+      .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
+      .join(' ')
+    : null;
+  const secondaryLabel = [restName.join(' '), openingRoleLabel]
+    .filter(Boolean)
+    .join(' / ');
 
   return (
     <div className={`relative w-full ${COMBAT_CARD} p-2.5 border-2 ${isTurn ? COMBAT_TURN_RING_ENEMY : 'border-slate-700/70'} transition-all`}>
@@ -198,8 +210,13 @@ const EnemyMemberDisplay: React.FC<EnemyMemberDisplayProps> = ({ character, onCl
           <CombatantPortrait character={character} tone="enemy" />
           <div className="min-w-0 leading-tight">
             <p className="truncate text-sm font-bold text-rose-300">{firstName}</p>
-            {restName.length > 0 && (
-              <p className="truncate text-[11px] font-semibold text-rose-300/70">{restName.join(' ')}</p>
+            {secondaryLabel && (
+              <p
+                data-testid={openingRoleLabel ? 'opening-threat-roster-role' : undefined}
+                className={`truncate text-[11px] font-semibold ${openingRoleLabel ? 'text-cyan-200' : 'text-rose-300/70'}`}
+              >
+                {secondaryLabel}
+              </p>
             )}
           </div>
           </div>

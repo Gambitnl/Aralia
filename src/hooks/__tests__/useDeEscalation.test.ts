@@ -39,6 +39,28 @@ const SOURCE_MAP = {
     generationPath: ['WorldForge', 'GroundWorld', 'Tactical crop'],
   },
 } as BattleMapData;
+const SOURCE_RECEIPT = {
+  id: 'worldforge-opening-scene:1234',
+  kind: 'opening-threat-scene' as const,
+  policyVersion: 'opening-threat-scene-v1' as const,
+  sourceOpeningReceiptId: OPENING_SOURCE.receiptId,
+  worldSeed: 42,
+  sourceCellId: 476,
+  playerGroundMeters: { x: 100, z: 100 },
+  approachDirection: { x: -1, z: 0 },
+  entities: [1, 2].map((ordinal) => ({
+    kind: 'worldforge-opening-threat' as const,
+    sceneReceiptId: 'worldforge-opening-scene:1234',
+    sourceOpeningReceiptId: OPENING_SOURCE.receiptId,
+    entityId: `worldforge-opening-scene:1234:entity:${ordinal}`,
+    monsterName: 'Bandit',
+    monsterOrdinal: ordinal,
+    socialRole: ordinal === 1 ? 'contact-lead' as const : 'screen-left' as const,
+    worldGroundMeters: { x: 110, z: 100 + ordinal },
+    sourcePatchTile: { x: 10, y: 9 + ordinal },
+  })),
+  ecologicalTraces: [],
+};
 
 const diceRoller = (d20: number, bonusValue = 0) =>
   vi.fn(async (_advantage: boolean, bonusDice: CheckDiceRequest[]) => ({
@@ -119,6 +141,7 @@ it('failed de-escalation carries the validated live WorldForge map into combat',
     status: 'ready' as const,
     detail: 'Opening location validated.',
     mapData: SOURCE_MAP,
+    receipt: SOURCE_RECEIPT,
   }));
 
   await runDeEscalationFlow({
@@ -131,10 +154,18 @@ it('failed de-escalation carries the validated live WorldForge map into combat',
     prepareOpeningEncounter,
   });
 
-  expect(prepareOpeningEncounter).toHaveBeenCalledWith({ source: OPENING_SOURCE });
+  expect(prepareOpeningEncounter).toHaveBeenCalledWith({
+    source: OPENING_SOURCE,
+    enemies: SOURCE_THREAT.enemies,
+  });
+  expect(dispatch).toHaveBeenCalledWith({
+    type: 'RECORD_WORLDFORGE_ENCOUNTER',
+    payload: { receipt: SOURCE_RECEIPT },
+  });
   expect(startEncounter).toHaveBeenCalledWith(dispatch, {
     monsters: [expect.objectContaining({ name: 'Bandit', quantity: 2, cr: '1/8' })],
     extractedBattleMap: SOURCE_MAP,
+    combatantWorldSources: SOURCE_RECEIPT.entities.map(({ sourcePatchTile: _tile, ...source }) => source),
   });
 });
 

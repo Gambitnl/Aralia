@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 01:42:31
+ * Last Sync: 16/07/2026, 03:21:08
  * Dependents: components/ConversationPanel/ConversationPanel.tsx
  * Imports: 10 files
  *
@@ -84,11 +84,26 @@ export async function runDeEscalationFlow(args: DeEscalationFlowArgs): Promise<v
       return;
     }
 
-    const projection = await prepareOpeningEncounter({ source });
+    const projection = await prepareOpeningEncounter({
+      source,
+      enemies: threat.enemies,
+    });
     if (projection.status === 'ready') {
+      // Accept the generated scene into save-backed world history before the
+      // combat phase replaces the opening conversation. The receipt survives
+      // return-to-world even though the tactical board itself is transient.
+      dispatch({
+        type: 'RECORD_WORLDFORGE_ENCOUNTER',
+        payload: { receipt: projection.receipt },
+      });
+      const combatantWorldSources = projection.receipt.entities.map((entity) => {
+        const { sourcePatchTile: _sourcePatchTile, ...sourceIdentity } = entity;
+        return sourceIdentity;
+      });
       await startEncounter(dispatch, {
         monsters,
         extractedBattleMap: projection.mapData,
+        combatantWorldSources,
       });
       return;
     }

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 15/07/2026, 06:36:59
+ * Last Sync: 16/07/2026, 06:10:37
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -18,16 +18,18 @@
  * This file renders the compact turn order above the battle map.
  *
  * It keeps every actor selectable and summarizes identity, health, and death
- * state in a narrow horizontal strip. Source-world defenders use their military
- * role as the short label because repeating only the faction name would make
- * archers and infantry indistinguishable at the combat UI's main glance point.
+ * state in a narrow horizontal strip. Source-world actors use military or
+ * social roles as their short label because repeated faction/species names
+ * would make a coordinated group indistinguishable at the main glance point.
  *
  * Called by: BattleMapDemo and the production combat shell
  * Depends on: combat turn state, shared token visuals, and WindowFrame
  */
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import { CombatCharacter, TurnState } from '../../types/combat';
 import Tooltip from '../Tooltip';
+import { Button } from '../ui/Button';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { getCreatureTokenVisual } from '../../utils/visuals/combatIconVisuals';
@@ -43,12 +45,24 @@ interface InitiativeTrackerProps {
 // Compact Identity Labels
 // ============================================================================
 // Ordinary characters retain the established first-name label. Generated
-// regiment actors instead show role + representative number, while their full
-// faction-bearing name remains available in the tooltip and accessible label.
+// regiment actors show military role + representative number; opening monsters
+// show their contact-scene function + species ordinal. Full names remain in the
+// tooltip and accessible label.
 // ============================================================================
 
 export function initiativeShortLabel(character: CombatCharacter): string {
   const source = character.worldSource;
+  if (source?.kind === 'worldforge-opening-threat') {
+    const role = {
+      'contact-lead': 'Lead',
+      'screen-left': 'Left',
+      'screen-right': 'Right',
+      'escape-guard': 'Guard',
+      'pack-scout': 'Scout',
+      'scent-flanker': 'Scent',
+    }[source.socialRole];
+    return `${role} ${source.monsterOrdinal}`;
+  }
   if (source?.kind !== 'worldforge-defender') return character.name.split(' ')[0];
 
   const role = source.unitType === 'archers'
@@ -64,13 +78,50 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
   onSkipToCharacter,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [canScrollEarlier, setCanScrollEarlier] = useState(false);
+  const [canScrollLater, setCanScrollLater] = useState(true);
+  const stripRef = useRef<HTMLDivElement>(null);
 
   const ordered = turnState.turnOrder
     .map(id => characters.find(c => c.id === id))
     .filter((c): c is CombatCharacter => !!c);
 
+  const updateScrollBounds = useCallback(() => {
+    const node = stripRef.current;
+    if (!node) return;
+    setCanScrollEarlier(node.scrollLeft > 2);
+    setCanScrollLater(node.scrollLeft + node.clientWidth < node.scrollWidth - 2);
+  }, []);
+
+  // The compact rail often cannot show a whole encounter. Keep the current
+  // actor centered and expose explicit arrows so clipped combatants never look
+  // missing. ResizeObserver is optional for tests and older embedded browsers.
+  useEffect(() => {
+    const node = stripRef.current;
+    if (!node) return undefined;
+    const current = node.querySelector<HTMLElement>(
+      `[data-character-id="${turnState.currentCharacterId}"]`,
+    );
+    if (current) {
+      node.scrollLeft = Math.max(0, current.offsetLeft - (node.clientWidth - current.offsetWidth) / 2);
+    }
+    updateScrollBounds();
+    if (typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(updateScrollBounds);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [isExpanded, ordered.length, turnState.currentCharacterId, updateScrollBounds]);
+
+  const scrollStrip = (direction: -1 | 1) => {
+    stripRef.current?.scrollBy({ left: direction * 132, behavior: 'smooth' });
+  };
+
   const strip = (
-    <div className="flex items-center gap-1 overflow-x-auto scrollable-content min-w-0 flex-1">
+    <div
+      ref={stripRef}
+      className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto scrollable-content"
+      onScroll={updateScrollBounds}
+    >
       {ordered.map((char, index) => {
         const isCurrent = char.id === turnState.currentCharacterId;
         const isPlayer  = char.team === 'player';
@@ -88,6 +139,7 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
               : `${char.name} — ${char.currentHP}/${char.maxHP} HP`}
           >
             <button
+              data-character-id={char.id}
               onClick={() => {
                 if (canSkip) {
                   onSkipToCharacter(char.id);
@@ -173,11 +225,28 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
       className="flex h-11 w-11 shrink-0 items-center justify-center rounded text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
       title="Pop out into resizable window"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-      </svg>
+      <Maximize2 size={18} aria-hidden="true" />
     </button>
   );
+
+  const scrollButton = (direction: -1 | 1) => {
+    const earlier = direction === -1;
+    const enabled = earlier ? canScrollEarlier : canScrollLater;
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => scrollStrip(direction)}
+        disabled={!enabled}
+        className="!flex !h-9 !w-5 shrink-0 !items-center !justify-center !rounded !p-0 text-slate-300 hover:bg-slate-700 hover:text-white disabled:cursor-default disabled:opacity-20"
+        aria-label={earlier ? 'Show earlier combatants' : 'Show later combatants'}
+        title={earlier ? 'Earlier combatants' : 'Later combatants'}
+      >
+        {earlier ? <ChevronLeft size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
+      </Button>
+    );
+  };
 
   return (
     <>
@@ -187,7 +256,13 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
         </span>
         {isExpanded ? (
           <span className="text-gray-400 text-xs italic flex-1">Turn order is popped out.</span>
-        ) : strip}
+        ) : (
+          <>
+            {scrollButton(-1)}
+            {strip}
+            {scrollButton(1)}
+          </>
+        )}
         {!isExpanded && expandButton}
       </div>
 

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/07/2026, 04:53:16
+ * Last Sync: 16/07/2026, 10:29:18
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
- * Imports: 16 files
+ * Imports: 19 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -57,6 +57,7 @@ import { selectVisibilityObserver } from './visibilityObserverPolicy';
 import { SpellArtifact3DMarker } from './SpellArtifact3DMarker';
 import { buildSpellMapArtifactMarkers, type SpellMapArtifacts } from './spellMapArtifacts';
 import { isWebGpuBattleMapEnabled } from './webgpuBattleMapFlag';
+import OpeningThreatScene3D, { selectOpeningThreatScene3DFacts } from './OpeningThreatScene3D';
 
 // Experimental WebGPU render path (opt-in via ?gpu=1). Lazily imported so
 // `three/webgpu` + TSL are never pulled onto the default WebGL battle-map path.
@@ -511,6 +512,23 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
     return makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
   }, [mapData]);
 
+  // Keep scene-wide helpers centered on the map's horizontal midpoint, but
+  // calculate a separate terrain-aware camera spawn. Raising the entire scene
+  // center would float the apron, sky, and distant terrain; only the camera
+  // needs to follow the local WorldForge surface.
+  const initialCameraPosition = useMemo(() => {
+    const [centerX, , centerZ] = cameraTarget;
+    const spawnX = centerX + 8;
+    const spawnZ = centerZ + 8;
+    const anchorY = groundSampler?.(centerX, centerZ) ?? 0;
+    const spawnGroundY = groundSampler?.(spawnX, spawnZ) ?? anchorY;
+
+    // The camera clears both the point it is looking at and the point it is
+    // standing over. This prevents a steep nearby ridge from swallowing the
+    // first frame even when the map center itself is comparatively low.
+    return [spawnX, Math.max(anchorY, spawnGroundY) + 10, spawnZ] as const;
+  }, [cameraTarget, groundSampler]);
+
   // Detect biome from mapData. The generator stores it on `theme`; older callers
   // may pass `biome`. Reading the wrong field silently fell back to 'forest', so
   // every biome rendered with forest lighting/fog/sky/apron — fixed here.
@@ -522,6 +540,13 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
   const spellArtifactMarkers = useMemo(
     () => buildSpellMapArtifactMarkers(spellMapArtifacts, characters),
     [characters, spellMapArtifacts]
+  );
+  // The renderer consumes the same opening context as 2D. This selection is
+  // also reflected into hidden capture metadata so the visual harness can fail
+  // before taking a flattering but semantically incomplete canvas image.
+  const openingSceneFacts3D = useMemo(
+    () => (mapData ? selectOpeningThreatScene3DFacts(mapData) : null),
+    [mapData]
   );
 
   // Half the map diagonal in world units — the single scale everything
@@ -578,6 +603,25 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
       className="relative h-full min-h-[320px] w-full overflow-hidden rounded-lg bg-slate-950"
       style={{ flex: '1 1 0%' }}
     >
+      {openingSceneFacts3D && (
+        <span
+          hidden
+          aria-hidden="true"
+          data-testid="opening-threat-scene-3d-facts"
+          data-scene-continuity={openingSceneFacts3D.context.sceneContinuity ?? 'authored'}
+          data-body-count={openingSceneFacts3D.resolvedBodies.length}
+          data-terrain-imprint-count={openingSceneFacts3D.context.terrainImprints?.length ?? 0}
+          data-trace-count={openingSceneFacts3D.context.ecologicalTraces.length}
+          data-site-condition={openingSceneFacts3D.siteCondition}
+          data-has-disturbance={Boolean(openingSceneFacts3D.context.sceneResolution?.combatDisturbance)}
+          data-focus-x={openingSceneFacts3D.focus.x.toFixed(3)}
+          data-focus-ground-y={(groundSampler?.(
+            openingSceneFacts3D.focus.x + 0.5,
+            openingSceneFacts3D.focus.y + 0.5
+          ) ?? 0).toFixed(3)}
+          data-focus-z={openingSceneFacts3D.focus.y.toFixed(3)}
+        />
+      )}
       {visibilityObserverSelection.sharedSenses && (
         <div
           className="pointer-events-none absolute left-3 top-3 rounded-full border border-cyan-300/80 bg-slate-950/88 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.38)]"
@@ -607,11 +651,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
           // Far plane pushed out so the enlarged sky dome and the distant-terrain
           // ridge band are not clipped; scales with the map.
           far: Math.max(220, mapHalfDiag * 5.2),
-          position: [
-            cameraTarget[0] + 8,
-            10,
-            cameraTarget[2] + 8,
-          ],
+          position: initialCameraPosition,
         }}
         gl={{
           antialias: true,
@@ -667,6 +707,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
         {/* Camera controller — BG3-style orbit with snap-to-character and cinematic cam */}
         <CameraController
           mapCenter={cameraTarget}
+          groundYAt={groundSampler ?? undefined}
           activeCharacter={currentCharacter ?? null}
           selectedCharacter={selectedCharacter}
           characters={characters}
@@ -711,6 +752,10 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
         <DecorationProps mapData={mapData} />
         <EzTreeLayer mapData={mapData} />
         <GroundScatter mapData={mapData} />
+
+        {/* Saved opening ecology and aftermath. This layer owns only static
+            world facts; live combatants remain CharacterActor instances. */}
+        <OpeningThreatScene3D mapData={mapData} groundSampler={groundSampler} />
 
         {/* Low-hanging animated mist — biome-gated (swamp thick, forest faint,
             cave/dungeon subtle, desert none). Flat depth-tested layers pool in

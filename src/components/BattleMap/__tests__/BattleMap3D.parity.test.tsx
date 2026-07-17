@@ -26,6 +26,7 @@ const mockCameraController = vi.fn<(...args: unknown[]) => null>(() => null);
 const mockVFXSystem = vi.fn<(...args: unknown[]) => null>(() => null);
 const mockLivingWorld = vi.fn<(...args: unknown[]) => null>(() => null);
 const mockTargetingDecals = vi.fn<(props: unknown) => void>();
+const mockOpeningThreatScene3D = vi.fn<(...args: unknown[]) => null>(() => null);
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-canvas">{children}</div>
@@ -86,6 +87,11 @@ vi.mock('../camera', () => ({
 vi.mock('../vfx', () => ({
   VFXSystem: (...args: unknown[]) => mockVFXSystem(...args),
   LivingWorld: (...args: unknown[]) => mockLivingWorld(...args)
+}));
+
+vi.mock('../OpeningThreatScene3D', () => ({
+  default: (...args: unknown[]) => mockOpeningThreatScene3D(...args),
+  selectOpeningThreatScene3DFacts: () => null
 }));
 
 const makeTile = (id: string, x: number, y: number) => ({
@@ -294,6 +300,16 @@ describe('BattleMap3D parity proof', () => {
       actionMode: 'move'
     }));
     expect(mockCharacterActor).toHaveBeenCalled();
+    expect(mockOpeningThreatScene3D.mock.calls[0]?.[0]).toEqual(expect.objectContaining({
+      mapData: expect.objectContaining({ theme: 'forest', seed: 1 }),
+      groundSampler: expect.any(Function)
+    }));
+    // The camera receives the same terrain sampler as the actors and terrain
+    // mesh, so raised WorldForge scenes no longer aim their first orbit target
+    // at the obsolete flat y = 0 plane.
+    expect(mockCameraController.mock.calls[0]?.[0]).toEqual(expect.objectContaining({
+      groundYAt: expect.any(Function)
+    }));
     expect(document.body.textContent).toContain('This spell can only target enemies.');
 
     const enemyActorCall = mockCharacterActor.mock.calls.find(([props]) => (props as { character: CombatCharacter }).character.id === enemy.id);

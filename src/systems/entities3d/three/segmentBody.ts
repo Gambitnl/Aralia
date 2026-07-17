@@ -15,6 +15,7 @@
  *    no fill, no joint spheres (lines read connected without them).
  */
 import {
+  BoxGeometry,
   CylinderGeometry,
   EdgesGeometry,
   Group,
@@ -22,20 +23,27 @@ import {
   LineSegments,
   Material,
   Mesh,
+  MeshBasicMaterial,
   Object3D,
   Quaternion,
   SphereGeometry,
+  TorusGeometry,
   Vector3,
 } from 'three';
 import type { SegmentSink } from '../types';
+import { createSweptTube, type SweptTube } from './sweptTube';
 import { outlineMaterial, toonMaterial, type EntityRenderMode } from './toon';
 import { Color } from 'three';
 
 export interface SegmentBodyOptions {
   renderMode: EntityRenderMode;
   colorHex: string;
+  /** Energy rings and other glow accents render in this color, unlit. */
+  accentHex?: string;
   /** Inverse-hull outline thickness (solid mode), meters. */
   outlineThickness: number;
+  /** Body translucency (< 1 = ghosts, oozes). Solid mode only; wireframe ignores. */
+  opacity?: number;
 }
 
 export interface SegmentBody {
@@ -54,9 +62,42 @@ interface Node {
   group: Group;
   seen: boolean;
   triangles: number;
+  /** Cache key when the geometry is shared; absent = owned (wire mode). */
+  geoKey?: string;
+}
+
+/**
+ * Module-wide refcounted geometry cache. Segment radii repeat constantly
+ * across entities (crowds of the same creature, mirrored limbs), so identical
+ * quantized dimensions share ONE BufferGeometry. dispose() releases; the last
+ * release frees GPU memory.
+ */
+type CachedGeometry = CylinderGeometry | SphereGeometry | BoxGeometry;
+const GEO_CACHE = new Map<string, { geometry: CachedGeometry; refs: number }>();
+const q = (v: number) => Math.round(v * 500); // 2 mm buckets
+
+function acquireGeometry(key: string, build: () => CachedGeometry): CachedGeometry {
+  let hit = GEO_CACHE.get(key);
+  if (!hit) {
+    hit = { geometry: build(), refs: 0 };
+    GEO_CACHE.set(key, hit);
+  }
+  hit.refs++;
+  return hit.geometry;
+}
+
+function releaseGeometry(key: string): void {
+  const hit = GEO_CACHE.get(key);
+  if (!hit) return;
+  hit.refs--;
+  if (hit.refs <= 0) {
+    hit.geometry.dispose();
+    GEO_CACHE.delete(key);
+  }
 }
 
 const UP = new Vector3(0, 1, 0);
+const FORWARD_Z = new Vector3(0, 0, 1);
 const DIR = new Vector3();
 const MID = new Vector3();
 const QUAT = new Quaternion();
@@ -67,16 +108,26 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
   root.name = 'segmentBody';
 
   const fillMaterial = wire ? null : toonMaterial(options.colorHex);
+  if (fillMaterial && options.opacity !== undefined && options.opacity < 1) {
+    fillMaterial.transparent = true;
+    fillMaterial.opacity = options.opacity;
+    fillMaterial.depthWrite = false; // translucent bodies must not self-occlude harshly
+  }
   const inkMaterial = wire ? null : outlineMaterial(options.colorHex, options.outlineThickness);
   const lineMaterial = wire
     ? new LineBasicMaterial({ color: new Color(options.colorHex).lerp(new Color('#ffffff'), 0.22) })
     : null;
+  const accentHex = options.accentHex ?? options.colorHex;
+  // unlit = reads as glow against the toon world; built lazily (rings are rare)
+  let accentMaterial: MeshBasicMaterial | null = null;
+  let accentLineMaterial: LineBasicMaterial | null = null;
 
   const nodes = new Map<string, Node>();
+  const tubes = new Map<string, { tube: SweptTube; node: Node; pts: Vector3[] }>();
   let triangleTotal = 0;
 
   /** Wrap a base geometry as this body's render node(s). */
-  function makeNode(id: string, geometry: CylinderGeometry | SphereGeometry): Node {
+  function makeNode(id: string, geometry: CylinderGeometry | SphereGeometry | BoxGeometry, geoKey?: string): Node {
     const group = new Group();
     group.name = `seg:${id}`;
     let triangles = 0;
@@ -93,10 +144,16 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
       triangles = (geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3) * 2;
     }
     triangleTotal += triangles;
-    const node: Node = { group, seen: true, triangles };
+    const node: Node = { group, seen: true, triangles, geoKey: wire ? undefined : geoKey };
     nodes.set(id, node);
     root.add(group);
     return node;
+  }
+
+  /** Solid mode shares quantized geometry; wire mode owns fresh (edges replace it). */
+  function bodyGeometry(key: string, build: () => CachedGeometry): { geometry: CachedGeometry; key?: string } {
+    if (wire) return { geometry: build() };
+    return { geometry: acquireGeometry(key, build), key };
   }
 
   const sink: SegmentSink = {
@@ -104,14 +161,15 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
       let node = nodes.get(id);
       if (!node) {
         // unit-height tapered bone; joint spheres round the ends in solid mode
-        const geometry = new CylinderGeometry(r1, r0, 1, 10, 1);
-        node = makeNode(id, geometry);
+        const cyl = bodyGeometry(`c:${q(r1)}:${q(r0)}`, () => new CylinderGeometry(r1, r0, 1, 10, 1));
+        node = makeNode(id, cyl.geometry, cyl.key);
         if (!wire) {
           for (const [endId, r] of [
             [`${id}.jointA`, r0],
             [`${id}.jointB`, r1],
           ] as const) {
-            makeNode(endId, new SphereGeometry(r * 0.98, 8, 6));
+            const sph = bodyGeometry(`j:${q(r)}`, () => new SphereGeometry(r * 0.98, 8, 6));
+            makeNode(endId, sph.geometry, sph.key);
           }
         }
       }
@@ -139,10 +197,96 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
     ball(id, x, y, z, r) {
       let node = nodes.get(id);
       if (!node) {
-        node = makeNode(id, new SphereGeometry(r, 12, 9));
+        const sph = bodyGeometry(`s:${q(r)}`, () => new SphereGeometry(r, 12, 9));
+        node = makeNode(id, sph.geometry, sph.key);
       }
       node.seen = true;
       node.group.position.set(x, y, z);
+    },
+    box(id, ax, ay, az, bx, by, bz, w, h) {
+      let node = nodes.get(id);
+      if (!node) {
+        // unit-depth slab; scale.z carries the live a→b length
+        const slab = bodyGeometry(`b:${q(w)}:${q(h)}`, () => new BoxGeometry(w, h, 1));
+        node = makeNode(id, slab.geometry, slab.key);
+      }
+      node.seen = true;
+      DIR.set(bx - ax, by - ay, bz - az);
+      const len = Math.max(DIR.length(), 1e-4);
+      MID.set((ax + bx) / 2, (ay + by) / 2, (az + bz) / 2);
+      QUAT.setFromUnitVectors(FORWARD_Z, DIR.normalize());
+      node.group.position.copy(MID);
+      node.group.quaternion.copy(QUAT);
+      node.group.scale.set(1, 1, len);
+    },
+    // smooth swept bodies (solid mode; wireframe mode omits tube() entirely so
+    // drivers fall back to crisp rigid segments)
+    ...(wire
+      ? {}
+      : {
+          tube(id: string, points: number[], radii: number[]) {
+            let entry = tubes.get(id);
+            if (!entry) {
+              const stations = Math.min(64, Math.max(16, points.length * 6));
+              const built = createSweptTube({
+                stations,
+                radial: 8,
+                material: fillMaterial!,
+                outlineMaterial: inkMaterial,
+              });
+              const group = new Group();
+              group.name = `seg:${id}`;
+              group.add(built.mesh);
+              if (built.outline) group.add(built.outline);
+              const node: Node = { group, seen: true, triangles: built.triangles() * 2 };
+              triangleTotal += node.triangles;
+              nodes.set(id, node);
+              root.add(group);
+              entry = { tube: built, node, pts: [] };
+              tubes.set(id, entry);
+            }
+            entry.node.seen = true;
+            const n = points.length / 3;
+            while (entry.pts.length < n) entry.pts.push(new Vector3());
+            entry.pts.length = n;
+            for (let i = 0; i < n; i++) {
+              entry.pts[i].set(points[i * 3], points[i * 3 + 1], points[i * 3 + 2]);
+            }
+            entry.tube.update(entry.pts, radii);
+          },
+        }),
+    ring(id, x, y, z, nx, ny, nz, radius, tube) {
+      let node = nodes.get(id);
+      if (!node) {
+        const geometry = new TorusGeometry(radius, tube, 8, 18);
+        const group = new Group();
+        group.name = `seg:${id}`;
+        let triangles = 0;
+        if (wire) {
+          accentLineMaterial ??= new LineBasicMaterial({
+            color: new Color(accentHex).lerp(new Color('#ffffff'), 0.15),
+          });
+          group.add(new LineSegments(new EdgesGeometry(geometry, 30), accentLineMaterial));
+          triangles = geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
+          geometry.dispose();
+        } else {
+          accentMaterial ??= new MeshBasicMaterial({ color: accentHex });
+          // no ink shell: rings glow, they are not inked bodies
+          group.add(new Mesh(geometry, accentMaterial));
+          triangles = geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
+        }
+        triangleTotal += triangles;
+        node = { group, seen: true, triangles };
+        nodes.set(id, node);
+        root.add(group);
+      }
+      node.seen = true;
+      DIR.set(nx, ny, nz);
+      if (DIR.lengthSq() < 1e-8) DIR.set(0, 1, 0);
+      // TorusGeometry lies in the XY plane facing +Z
+      QUAT.setFromUnitVectors(FORWARD_Z, DIR.normalize());
+      node.group.position.set(x, y, z);
+      node.group.quaternion.copy(QUAT);
     },
   };
 
@@ -155,13 +299,20 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
   }
 
   function dispose(): void {
-    root.traverse((o: Object3D) => {
-      const m = o as Mesh;
-      if ((m as Mesh).isMesh || (o as LineSegments).isLineSegments) {
-        (m.geometry as { dispose?: () => void })?.dispose?.();
+    for (const { tube } of tubes.values()) tube.dispose();
+    for (const node of nodes.values()) {
+      if (node.geoKey) {
+        releaseGeometry(node.geoKey);
+        continue;
       }
-    });
-    for (const material of [fillMaterial, inkMaterial, lineMaterial]) {
+      node.group.traverse((o: Object3D) => {
+        const m = o as Mesh;
+        if ((m as Mesh).isMesh || (o as LineSegments).isLineSegments) {
+          (m.geometry as { dispose?: () => void })?.dispose?.();
+        }
+      });
+    }
+    for (const material of [fillMaterial, inkMaterial, lineMaterial, accentMaterial, accentLineMaterial]) {
       (material as Material | null)?.dispose();
     }
     root.clear();

@@ -220,7 +220,7 @@ Recorded so future readers don't trip on the same things:
 - **Battle-map domain doc.** `docs/architecture/domains/battle-map.md` previously described only the 2D map. It now points at this document for the 3D engine.
 - **In-component README link.** `BattleMap.README.md` previously linked to a non-existent `docs/changelogs/BATTLEMAP_CHANGELOG.md`. It now points at the colocated `./CHANGELOG.md`.
 - **`useBattleMapGeneration.ts` naming.** Exports stateless setup logic despite the hook-shaped filename. Tracked in the battle-map domain doc.
-- **`ensureConnectivity()` in the generator.** This is no longer a known stub gap. `docs/projects/battle-map/NORTH_STAR.md` and `docs/projects/battle-map/GAPS.md` record the G2 proof that cave/dungeon maps now repair disconnected walkable regions with focused seed coverage. Re-check that project proof if generation density or pathability rules change.
+- **`ensureConnectivity()` in the generator.** This is no longer a known stub gap. `docs/superpowers/specs/2026-07-14-absorbed-battle-map.md` (the absorbed battle-map project record) keeps the G2 proof that cave/dungeon maps now repair disconnected walkable regions with focused seed coverage. Re-check that proof if generation density or pathability rules change.
 
 ---
 

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 10:07:57
+ * Last Sync: 16/07/2026, 05:17:52
  * Dependents: App.tsx
- * Imports: 49 files
+ * Imports: 51 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -80,6 +80,7 @@ import {
   type ActiveGroundSettlementEncounterRequest,
 } from '../../systems/combat/fightInPlace/activeGroundCombatSession';
 import { findStatePatrolWorldEvent } from '../../systems/combat/worldScenario/statePatrolWorldEvent';
+import type { OpeningThreatSceneReceipt } from '../../systems/combat/worldScenario/worldforgeEncounterReceipt';
 
 /**
  * HOSTILE-1 return-from-combat contract:
@@ -792,9 +793,9 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
     };
 
     /**
-     * Validate a hostile opening against this mounted world, then add only the
-     * transparent tactical standoff frame. The threat roster stays owned by the
-     * de-escalation flow; this provider owns location truth and nothing else.
+     * Validate a hostile opening against this mounted world, then author its
+     * exact entity scene from the live referee crop. The model still owns only
+     * the roster; WorldForge owns every position, role, and ecological trace.
      */
     const prepareOpeningEncounter = async (
       request: ActiveGroundOpeningEncounterRequest,
@@ -834,7 +835,21 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
       const { projectOpeningThreatBattlefield } = await import(
         '../../systems/combat/worldScenario/openingThreatBattlefield'
       );
-      const projection = projectOpeningThreatBattlefield(current.mapData, request.source);
+      // Repeated preparation of the same opening reuses its saved world-meter
+      // scene. The projector validates every body, trace, and activity site
+      // against the live crop before accepting it, so stale scenes fail closed.
+      const existingOpeningScene = [...(state.worldforgeEncounterReceipts ?? [])]
+        .reverse()
+        .find((receipt): receipt is OpeningThreatSceneReceipt => (
+          receipt.kind === 'opening-threat-scene'
+          && receipt.sourceOpeningReceiptId === request.source.receiptId
+        ));
+      const projection = projectOpeningThreatBattlefield(
+        current.mapData,
+        request.source,
+        request.enemies,
+        existingOpeningScene,
+      );
       if (projection.status !== 'ready') return projection;
 
       await freezeCurrentGroundForCombat(
@@ -859,6 +874,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
     state.gameTime,
     state.playerCell?.cellId,
     state.worldSeed,
+    state.worldforgeEncounterReceipts,
     wfGroundView,
   ]);
 

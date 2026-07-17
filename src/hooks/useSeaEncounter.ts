@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 23:41:37
+ * Last Sync: 16/07/2026, 14:01:32
  * Dependents: components/layout/GameModals.tsx
- * Imports: 3 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -28,6 +28,7 @@ import { useEffect } from 'react';
 import type { Dispatch } from 'react';
 import { AppAction } from '../state/actionTypes';
 import type { PendingSeaEncounter } from '../types/naval';
+import { createSeaEncounterSourceGap } from '../systems/combat/unsupportedBattlefieldSources';
 
 export interface UseSeaEncounterArgs {
   pendingSeaEncounter: PendingSeaEncounter | null | undefined;
@@ -39,11 +40,11 @@ export interface UseSeaEncounterArgs {
  *
  * The navalReducer's per-day sea-encounter roll (Plan 3D) sets
  * `naval.pendingSeaEncounter` with the foes. This hook watches that marker and,
- * exactly like the land road-ambush path, hands the monsters to the existing
+ * hands an exact missing-source record to the existing
  * `handleStartBattleMapEncounter` boundary. Sea encounters do not yet publish
- * authoritative sea/deck geometry, so CombatView visibly withholds tactical
- * play instead of turning them into a placeless land arena. The hook still
- * clears the marker so the same encounter request cannot re-fire.
+ * authoritative sea/deck geometry, so the proposed foes never become combat
+ * actors and CombatView visibly withholds tactical play. The hook still clears
+ * the marker so the same encounter request cannot re-fire.
  *
  * Idempotent by construction: NAVAL_CLEAR_SEA_ENCOUNTER nulls the field, so the
  * effect's dependency changes and it will not run again for the same encounter.
@@ -55,14 +56,16 @@ export function useSeaEncounter({ pendingSeaEncounter, dispatch }: UseSeaEncount
   useEffect(() => {
     if (!pendingSeaEncounter?.monsters?.length) return;
 
-    const monsters = pendingSeaEncounter.monsters;
     // Clear first so re-render on the battle-start dispatch can't double-fire.
     dispatch({ type: 'NAVAL_CLEAR_SEA_ENCOUNTER' });
 
     void (async () => {
       try {
         const { handleStartBattleMapEncounter } = await import('./actions/handleEncounter');
-        await handleStartBattleMapEncounter(dispatch, { monsters });
+        await handleStartBattleMapEncounter(dispatch, {
+          monsters: [],
+          sourceGap: createSeaEncounterSourceGap(pendingSeaEncounter),
+        });
       } catch (err) {
         console.error('[sea encounter] failed to start battle:', err);
       }

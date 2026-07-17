@@ -114,4 +114,49 @@ describe('EncounterModal', () => {
     expect(screen.getByText('encounter_modal.simulate')).toBeInTheDocument();
     expect(screen.getByText('encounter_modal.close')).toBeInTheDocument();
   });
+
+  it('keeps an AI roster out of combat when no WorldForge location was selected', () => {
+    const mockEncounter = [
+      { name: 'Goblin', quantity: 2, cr: '1/4', description: 'Small and angry', hp: 7, ac: 15, actions: [] },
+    ];
+
+    render(
+      <EncounterModal
+        isOpen={true}
+        onClose={mockOnClose}
+        encounter={mockEncounter}
+        sources={null}
+        error={null}
+        isLoading={false}
+        onAction={mockOnAction}
+      />,
+    );
+
+    openAiGeneratedTab();
+    fireEvent.click(screen.getByRole('button', { name: 'encounter_modal.simulate' }));
+
+    expect(mockOnAction).toHaveBeenCalledWith({
+      type: 'START_BATTLE_MAP_ENCOUNTER',
+      label: 'Simulate Battle',
+      payload: {
+        startBattleMapEncounterData: {
+          monsters: [],
+          sourceGap: {
+            code: 'location-free-simulation-no-worldforge-location',
+            encounterLabel: 'AI-generated encounter simulation',
+            locationLabel: 'No WorldForge battlefield selected',
+            missingSourceFacts: [
+              'selected WorldForge cell',
+              'tactical crop anchor',
+              'encounter-to-location receipt',
+            ],
+            detail: expect.stringContaining(
+              '2 proposed combatants remain a simulation request',
+            ),
+          },
+        },
+      },
+    });
+    expect(JSON.stringify(mockOnAction.mock.calls[0]?.[0])).not.toContain('Goblin');
+  });
 });

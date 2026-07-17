@@ -26,6 +26,8 @@ function collect(driver: ReturnType<typeof createGaitDriver>): Collected {
   driver.buildBody({
     seg: (id, ax, ay, az, bx, by, bz, r0, r1) => segs.set(id, { id, ax, ay, az, bx, by, bz, r0, r1 }),
     ball: (id, x, y, z, r) => balls.set(id, { x, y, z, r }),
+    // box slabs count as segments for coverage purposes
+    box: (id, ax, ay, az, bx, by, bz, w, h) => segs.set(id, { id, ax, ay, az, bx, by, bz, r0: w / 2, r1: h / 2 }),
   });
   return { segs, balls };
 }
@@ -65,7 +67,9 @@ describe('plan gait driver', () => {
       expect(c.segs.size, `${key} segments`).toBeGreaterThanOrEqual(
         compiled.planSpec!.spine.segments + expectedLinks,
       );
-      expect(c.balls.size, `${key} head balls`).toBeGreaterThanOrEqual(compiled.planSpec!.heads.length);
+      // formed heads render as sculpted assembler meshes, not driver balls
+      const unformedHeads = compiled.planSpec!.heads.filter((h) => !h.form).length;
+      expect(c.balls.size, `${key} head balls`).toBeGreaterThanOrEqual(unformedHeads);
       expect(allFinite(c), `${key} finite`).toBe(true);
     }
   });
@@ -157,6 +161,101 @@ describe('plan gait driver', () => {
       expect(s.r).toBeGreaterThan(0);
       expect(s.eyes.count).toBe(2);
     }
+  });
+
+  it('v1.1: hand tips, joint rings, and eye cilia all emit', () => {
+    const compiled = compilePlan({
+      name: 'Ring Bearer',
+      frame: { heightFt: 10, bulk: 0.6, stance: 'floating' },
+      spine: { segments: 3, taper: 0.8, arch: 0 },
+      appendages: [
+        {
+          kind: 'arm', attach: 0.5, perSide: true, count: 1, tips: 'hand', jointRings: true,
+          chain: [
+            { lenFt: 3, r: 0.12 },
+            { lenFt: 2.5, r: 0.09 },
+            { lenFt: 2, r: 0.07 },
+          ],
+        },
+      ],
+      heads: [{ sizeScale: 1.4, eyes: { count: 1, sizeScale: 1.8 }, cilia: true }],
+      palette: { bodyHex: '#3a1c52', accentHex: '#ff2ea6', eyeHex: '#d8b03a' },
+    });
+    // compile carries the flags
+    expect(compiled.planSpec!.chains[0].tips).toBe('hand');
+    expect(compiled.planSpec!.chains[0].jointRings).toBe(true);
+    expect(compiled.planSpec!.heads[0].cilia).toBe(true);
+
+    const driver = createGaitDriver('plan', compiled.frame, compiled.planSpec);
+    driver.update(0.4, 1 / 60, IDLE);
+    const segs = new Map<string, BodySegment>();
+    const balls = new Map<string, { r: number }>();
+    const rings: string[] = [];
+    driver.buildBody({
+      seg: (id, ax, ay, az, bx, by, bz, r0, r1) => segs.set(id, { id, ax, ay, az, bx, by, bz, r0, r1 }),
+      ball: (id, _x, _y, _z, r) => balls.set(id, { r }),
+      ring: (id) => rings.push(id),
+    });
+    // hands: palm ball + finger segments at each arm tip
+    expect(balls.has('arm0L.palm'), 'left palm').toBe(true);
+    expect(segs.has('arm0L.finger0'), 'left finger 0').toBe(true);
+    expect(segs.has('arm0R.finger2'), 'right finger 2').toBe(true);
+    // rings: one per INTERIOR joint (3 links → 2 interior joints per arm)
+    expect(rings.filter((id) => id.startsWith('arm0L.ring'))).toHaveLength(2);
+    // cilia: a ring of short lash segments around the eye socket
+    expect([...segs.keys()].filter((id) => id.startsWith('head0.cilia')).length).toBeGreaterThanOrEqual(8);
+  });
+
+  it('v1.2 tauric: the torso rises above the spine; parented arms root near its top; the head rides it', () => {
+    const compiled = compilePlan({
+      name: 'Test Centaur',
+      frame: { heightFt: 6, lengthFt: 8, bulk: 0.7, stance: 'horizontal' },
+      spine: { segments: 4, taper: 0.75, arch: 0.05 },
+      appendages: [
+        { kind: 'leg', attach: 0.2, perSide: true, count: 1, chain: [{ lenFt: 2, r: 0.2 }, { lenFt: 1.8, r: 0.14 }] },
+        { kind: 'leg', attach: 0.8, perSide: true, count: 1, chain: [{ lenFt: 2, r: 0.2 }, { lenFt: 1.8, r: 0.14 }] },
+        { kind: 'torso', attach: 0.08, count: 1, chain: [{ lenFt: 1.5, r: 0.55 }, { lenFt: 1.3, r: 0.45 }] },
+        { kind: 'arm', attach: 0.08, parent: 2, perSide: true, count: 1, chain: [{ lenFt: 1.4, r: 0.12 }, { lenFt: 1.2, r: 0.09 }] },
+      ],
+      heads: [{ neckIndex: 2, sizeScale: 1, eyes: { count: 2, sizeScale: 1 } }],
+      palette: { bodyHex: '#7a5236', eyeHex: '#2e2418' },
+    });
+    const driver = createGaitDriver('plan', compiled.frame, compiled.planSpec);
+    driver.update(0.5, 1 / 60, WALK);
+    const c = collect(driver);
+    const torsoTip = c.segs.get('torso0.1')!;
+    const spineFront = c.segs.get('spine.0')!;
+    expect(torsoTip, 'torso segments missing').toBeTruthy();
+    // torso rises well above the horizontal spine line
+    expect(torsoTip.by).toBeGreaterThan(spineFront.ay + 0.5);
+    // arms root near the torso tip, not down at the spine
+    const armRoot = c.segs.get('arm0L.0')!;
+    expect(armRoot.ay).toBeGreaterThan(torsoTip.by - 0.6);
+    // the head socket sits above the torso tip
+    const sockets = driver.headSockets!();
+    expect(sockets[0].y).toBeGreaterThan(torsoTip.by - 0.1);
+  });
+
+  it('smooth mode: tube-capable sinks get ONE spine tube + organic chain tubes; limbs stay rigid', () => {
+    const compiled = compilePlan(PLAN_FIXTURES.dragon);
+    const driver = createGaitDriver('plan', compiled.frame, compiled.planSpec);
+    driver.update(0.5, 1 / 60, WALK);
+    const tubes = new Map<string, { pts: number[]; radii: number[] }>();
+    const segs: string[] = [];
+    driver.buildBody({
+      seg: (id) => segs.push(id),
+      ball: () => {},
+      tube: (id, pts, radii) => tubes.set(id, { pts, radii }),
+    });
+    expect([...tubes.keys()]).toContain('spine');
+    expect([...tubes.keys()]).toContain('tail0');
+    // legs remain rigid segments for crisp IK
+    expect(segs.some((id) => id.startsWith('leg0L.'))).toBe(true);
+    // the spine profile carries the muscle bulge: mid radius > end radii
+    const spine = tubes.get('spine')!;
+    const mid = spine.radii[Math.floor(spine.radii.length / 2)];
+    expect(mid).toBeGreaterThan(spine.radii[0]);
+    expect(spine.pts.length / 3).toBe(spine.radii.length);
   });
 
   it('wings flap: the wing tip moves between phases while walking', () => {

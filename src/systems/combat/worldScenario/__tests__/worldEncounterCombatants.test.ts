@@ -94,7 +94,13 @@ describe('createWorldDefenderCombatants', () => {
       'worldforge-defender:14:0:infantry:2',
     ]);
     expect(combatants.every((combatant) => combatant.team === 'enemy')).toBe(true);
-    expect(combatants.every((combatant) => combatant.worldSource?.stateId === 14)).toBe(true);
+    // Combatants can now also carry opening-scene identities. This regiment
+    // bridge must still prove that every actor has the defender-specific source
+    // kind before reading military fields from that branch of the union.
+    expect(combatants.every((combatant) => (
+      combatant.worldSource?.kind === 'worldforge-defender'
+      && combatant.worldSource.stateId === 14
+    ))).toBe(true);
     // The canonical Scout stat block uses a longbow; the source role remains
     // "archers" without narrowing the generated regiment to one weapon model.
     expect(combatants[0].abilities.some((ability) => ability.name.toLowerCase().includes('longbow')))

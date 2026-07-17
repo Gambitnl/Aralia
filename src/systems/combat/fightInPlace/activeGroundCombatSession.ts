@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 01:42:46
+ * Last Sync: 16/07/2026, 03:21:39
  * Dependents: components/World3D/World3DWrapper.tsx, hooks/actions/handleNpcInteraction.ts, hooks/useDeEscalation.ts
- * Imports: 6 files
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,6 +32,8 @@ import type { Crime } from '@/types/crime';
 import type { PlayerFactionStanding } from '@/types/factions';
 import type { BattleMapData } from '@/types/combat';
 import type { OpeningBattlefieldSource } from '@/systems/gameEntry/types';
+import type { OpeningThreatRosterEntry } from '@/systems/combat/worldScenario/openingThreatBattlefield';
+import type { OpeningThreatSceneReceipt } from '@/systems/combat/worldScenario/worldforgeEncounterReceipt';
 import type { SettlementEncounterTrigger } from '@/systems/combat/worldScenario/settlementEncounterHostility';
 
 // ============================================================================
@@ -62,6 +64,8 @@ export type ActiveGroundCombatProvider = (
 /** Hostile openings carry only a game-authored location receipt and roster. */
 export interface ActiveGroundOpeningEncounterRequest {
   source: OpeningBattlefieldSource;
+  /** Validated model roster; GroundWorld authors only its spatial scene. */
+  enemies: readonly OpeningThreatRosterEntry[];
 }
 
 export type ActiveGroundOpeningEncounterResult =
@@ -69,6 +73,7 @@ export type ActiveGroundOpeningEncounterResult =
       status: 'ready';
       detail: string;
       mapData: BattleMapData;
+      receipt: OpeningThreatSceneReceipt;
     }
   | {
       status: 'unavailable' | 'source-gap';

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 16/07/2026, 18:24:08
+ * Dependents: components/BattleMap/camera/index.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file CameraController.tsx
  * BG3-style camera controller for the 3D combat map.
@@ -47,6 +63,11 @@ const CINEMATIC_DURATION = 1.5;     // Seconds to hold close-up
 interface CameraControllerProps {
   /** Center of the map for initial camera positioning */
   mapCenter: readonly [number, number, number];
+  /**
+   * Samples the rendered terrain surface. Flat callers can omit it, but
+   * WorldForge maps provide it so the camera never focuses through raised land.
+   */
+  groundYAt?: (worldX: number, worldZ: number) => number;
   /** Currently active character (whose turn it is) */
   activeCharacter: CombatCharacter | null;
   /** Currently selected character (clicked by player) */
@@ -70,6 +91,7 @@ type CameraMode = 'tactical' | 'panning' | 'cinematic' | 'returning';
 
 const CameraController: React.FC<CameraControllerProps> = ({
   mapCenter,
+  groundYAt,
   activeCharacter,
   selectedCharacter,
   characters,
@@ -80,9 +102,18 @@ const CameraController: React.FC<CameraControllerProps> = ({
   const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
 
-  // Camera state
+  // Camera targets need the same heightfield as terrain and actors. If a caller
+  // has no terrain sample, retain the original flat-map y coordinate instead.
+  const getGroundY = useCallback((worldX: number, worldZ: number): number => {
+    const sampledY = groundYAt?.(worldX, worldZ);
+    return Number.isFinite(sampledY) ? sampledY as number : mapCenter[1];
+  }, [groundYAt, mapCenter]);
+  const mapCenterGroundY = getGroundY(mapCenter[0], mapCenter[2]);
+
+  // Camera state starts on the visible terrain surface, replacing the old
+  // hard-coded y = 0 target that placed raised WorldForge maps underground.
   const modeRef = useRef<CameraMode>('tactical');
-  const targetPositionRef = useRef(new THREE.Vector3(mapCenter[0], 0, mapCenter[2]));
+  const targetPositionRef = useRef(new THREE.Vector3(mapCenter[0], mapCenterGroundY, mapCenter[2]));
   const savedCameraPositionRef = useRef(new THREE.Vector3());
   const savedTargetRef = useRef(new THREE.Vector3());
   const cinematicTimerRef = useRef(0);
@@ -97,12 +128,14 @@ const CameraController: React.FC<CameraControllerProps> = ({
    * Get world position for a character
    */
   const getCharacterWorldPos = useCallback((char: CombatCharacter): THREE.Vector3 => {
+    const worldX = char.position.x * TILE_SIZE + TILE_SIZE / 2;
+    const worldZ = char.position.y * TILE_SIZE + TILE_SIZE / 2;
     return new THREE.Vector3(
-      char.position.x * TILE_SIZE + TILE_SIZE / 2,
-      0,
-      char.position.y * TILE_SIZE + TILE_SIZE / 2,
+      worldX,
+      getGroundY(worldX, worldZ),
+      worldZ,
     );
-  }, []);
+  }, [getGroundY]);
 
   /**
    * Smoothly pan camera target to a world position
@@ -161,11 +194,15 @@ const CameraController: React.FC<CameraControllerProps> = ({
     cinematicTargetPosRef.current.copy(
       new THREE.Vector3().lerpVectors(attackerPos, targetPos, 0.4), // Look between attacker and target
     );
-    cinematicTargetPosRef.current.y = 0.5; // Slightly above ground
+    // Aim just above the local terrain, rather than the obsolete y = 0 plane.
+    cinematicTargetPosRef.current.y = getGroundY(
+      cinematicTargetPosRef.current.x,
+      cinematicTargetPosRef.current.z,
+    ) + 0.5;
 
     cinematicTimerRef.current = 0;
     modeRef.current = 'cinematic';
-  }, [cinematicEnabled, camera, getCharacterWorldPos]);
+  }, [cinematicEnabled, camera, getCharacterWorldPos, getGroundY]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -210,16 +247,23 @@ const CameraController: React.FC<CameraControllerProps> = ({
   useEffect(() => {
     if (!import.meta.env?.DEV) return;
     const w = window as unknown as { __bm3dCam?: unknown };
-    const poseAround = (tx: number, tz: number, distance: number, polarDeg: number, azimuthDeg: number) => {
+    const poseAround = (
+      tx: number,
+      tz: number,
+      distance: number,
+      polarDeg: number,
+      azimuthDeg: number,
+      targetY = getGroundY(tx, tz),
+    ) => {
       const controls = controlsRef.current;
       if (!controls) return false;
       const polar = THREE.MathUtils.degToRad(polarDeg);
       const azim = THREE.MathUtils.degToRad(azimuthDeg);
-      controls.target.set(tx, 0, tz);
+      controls.target.set(tx, targetY, tz);
       const sinP = Math.sin(polar);
       camera.position.set(
         tx + distance * sinP * Math.sin(azim),
-        distance * Math.cos(polar),
+        targetY + distance * Math.cos(polar),
         tz + distance * sinP * Math.cos(azim),
       );
       // Stop the smooth-pan state machine from yanking the camera back.
@@ -229,13 +273,13 @@ const CameraController: React.FC<CameraControllerProps> = ({
     };
     w.__bm3dCam = {
       pose(distance: number, polarDeg: number, azimuthDeg: number) {
-        return poseAround(mapCenter[0], mapCenter[2], distance, polarDeg, azimuthDeg);
+        return poseAround(mapCenter[0], mapCenter[2], distance, polarDeg, azimuthDeg, mapCenterGroundY);
       },
       // Frame the centroid of a team (e.g. 'player') — used to reliably capture
       // the dev race-lineup regardless of which side it spawns on.
       poseTeam(team: string, distance: number, polarDeg: number, azimuthDeg: number) {
         const members = characters.filter(c => c.team === team);
-        if (members.length === 0) return poseAround(mapCenter[0], mapCenter[2], distance, polarDeg, azimuthDeg);
+        if (members.length === 0) return poseAround(mapCenter[0], mapCenter[2], distance, polarDeg, azimuthDeg, mapCenterGroundY);
         const tx = members.reduce((s, c) => s + c.position.x + 0.5, 0) / members.length;
         const tz = members.reduce((s, c) => s + c.position.y + 0.5, 0) / members.length;
         return poseAround(tx, tz, distance, polarDeg, azimuthDeg);
@@ -243,7 +287,13 @@ const CameraController: React.FC<CameraControllerProps> = ({
       // Frame an arbitrary world-space point (e.g. a specific tile) — lets the
       // rig verify tile-anchored effects like targeting decals deterministically.
       poseAt(tx: number, tz: number, distance: number, polarDeg: number, azimuthDeg: number) {
-        return poseAround(tx, tz, distance, polarDeg, azimuthDeg);
+        return poseAround(tx, tz, distance, polarDeg, azimuthDeg, getGroundY(tx, tz));
+      },
+      // Elevation-aware variant for source-authored WorldForge terrain. Keeping
+      // the target Y explicit prevents deterministic captures from looking
+      // through an elevated battlefield while preserving the flat-map helper.
+      poseAtHeight(tx: number, targetY: number, tz: number, distance: number, polarDeg: number, azimuthDeg: number) {
+        return poseAround(tx, tz, distance, polarDeg, azimuthDeg, targetY);
       },
       // Dev profiling: renderer.info snapshot for headless FPS/draw-call capture.
       // render.calls/triangles reset each frame, so force one explicit render
@@ -343,7 +393,7 @@ const CameraController: React.FC<CameraControllerProps> = ({
       },
     };
     return () => { delete (window as unknown as { __bm3dCam?: unknown }).__bm3dCam; };
-  }, [camera, gl, scene, mapCenter, characters]);
+  }, [camera, gl, scene, mapCenter, mapCenterGroundY, characters, getGroundY]);
 
   // Frame update: smooth camera transitions
   useFrame((_, delta) => {
@@ -404,7 +454,7 @@ const CameraController: React.FC<CameraControllerProps> = ({
   return (
     <MapControls
       ref={controlsRef}
-      target={[mapCenter[0], 0, mapCenter[2]]}
+      target={[mapCenter[0], mapCenterGroundY, mapCenter[2]]}
       minDistance={5}
       maxDistance={maxDistance}
       minPolarAngle={Math.PI * 0.15}   // ~27° from horizon

@@ -84,6 +84,45 @@ describe('compilePlan', () => {
   });
 });
 
+describe('compilePlan v1.2 — tauric, box, opacity', () => {
+  const centaurish: Parameters<typeof compilePlan>[0] = {
+    name: 'Test Centaur',
+    frame: { heightFt: 6, lengthFt: 8, bulk: 0.7, stance: 'horizontal' },
+    spine: { segments: 4, taper: 0.75, arch: 0.05 },
+    appendages: [
+      { kind: 'leg', attach: 0.2, perSide: true, count: 1, chain: [{ lenFt: 2, r: 0.2 }, { lenFt: 1.8, r: 0.14 }] },
+      { kind: 'leg', attach: 0.8, perSide: true, count: 1, chain: [{ lenFt: 2, r: 0.2 }, { lenFt: 1.8, r: 0.14 }] },
+      { kind: 'torso', attach: 0.08, count: 1, chain: [{ lenFt: 1.5, r: 0.55 }, { lenFt: 1.3, r: 0.45 }] },
+      { kind: 'arm', attach: 0.08, parent: 2, perSide: true, count: 1, tips: 'hand', chain: [{ lenFt: 1.4, r: 0.12 }, { lenFt: 1.2, r: 0.09 }] },
+    ],
+    heads: [{ neckIndex: 2, sizeScale: 1, eyes: { count: 2, sizeScale: 1 } }],
+    palette: { bodyHex: '#7a5236', accentHex: '#caa06b', eyeHex: '#2e2418' },
+  };
+
+  it('centaur: torso chain compiled; arms carry parentId; head binds to the torso chain', () => {
+    const out = compilePlan(centaurish);
+    const torso = out.planSpec!.chains.find((c) => c.kind === 'torso')!;
+    expect(torso, 'torso chain missing').toBeTruthy();
+    const arms = out.planSpec!.chains.filter((c) => c.kind === 'arm');
+    expect(arms).toHaveLength(2);
+    for (const arm of arms) expect(arm.parentId).toBe(torso.id);
+    expect(out.planSpec!.heads[0].chainId).toBe(torso.id);
+  });
+
+  it('box + opacity flow into the planSpec', () => {
+    const out = compilePlan({
+      name: 'Test Cube',
+      frame: { heightFt: 10, lengthFt: 10, bulk: 1, stance: 'horizontal' },
+      spine: { segments: 2, taper: 1, arch: 0, shape: 'box' },
+      appendages: [],
+      heads: [{ sizeScale: 0.6, eyes: { count: 1, sizeScale: 1 } }],
+      palette: { bodyHex: '#7fae72', eyeHex: '#333333', opacity: 0.35 },
+    });
+    expect(out.planSpec!.spine.shape).toBe('box');
+    expect(out.planSpec!.opacity).toBe(0.35);
+  });
+});
+
 describe('generateEntityBlueprint kind planned', () => {
   it('returns the compiled blueprint with the plan name as label', () => {
     const bp = generateEntityBlueprint({ kind: 'planned', plan: PLAN_FIXTURES.dragon, seed: 't' });

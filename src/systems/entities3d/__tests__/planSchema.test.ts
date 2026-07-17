@@ -78,6 +78,54 @@ describe('validateCreaturePlan — accepts', () => {
     });
     expect(validateCreaturePlan(p, KNOWN_PARTS)).toEqual([]);
   });
+
+  it('accepts v1.2: torso with parented arms and a torso-bound head (centaur shape)', () => {
+    const p = mut((p) => {
+      p.frame = { heightFt: 6, lengthFt: 8, bulk: 0.7, stance: 'horizontal' };
+      p.appendages = [
+        { kind: 'leg', attach: 0.2, perSide: true, count: 1, chain: [{ lenFt: 2, r: 0.2 }, { lenFt: 1.8, r: 0.14 }] },
+        { kind: 'leg', attach: 0.8, perSide: true, count: 1, chain: [{ lenFt: 2, r: 0.2 }, { lenFt: 1.8, r: 0.14 }] },
+        { kind: 'torso', attach: 0.08, count: 1, chain: [{ lenFt: 1.4, r: 0.55 }, { lenFt: 1.2, r: 0.45 }] },
+        { kind: 'arm', attach: 0.08, parent: 2, perSide: true, count: 1, tips: 'hand', chain: [{ lenFt: 1.4, r: 0.12 }, { lenFt: 1.2, r: 0.09 }] },
+      ];
+      p.heads = [{ neckIndex: 2, sizeScale: 1, eyes: { count: 2, sizeScale: 1 } }];
+    });
+    expect(validateCreaturePlan(p, KNOWN_PARTS)).toEqual([]);
+  });
+
+  it('accepts v1.2: box spine with opacity (gelatinous cube shape) and 12 heads', () => {
+    const p = mut((p) => {
+      p.frame = { heightFt: 10, lengthFt: 10, bulk: 1, stance: 'horizontal' };
+      p.spine = { segments: 2, taper: 1, arch: 0, shape: 'box' };
+      p.appendages = [{ kind: 'neck', attach: 0.1, count: 4, perSide: true, chain: [{ lenFt: 1, r: 0.12 }] }];
+      p.heads = Array.from({ length: 12 }, (_, i) => ({
+        neckIndex: i < 8 ? 0 : undefined,
+        sizeScale: 0.5,
+        eyes: { count: 1, sizeScale: 1.5 },
+      }));
+      p.palette.opacity = 0.35;
+    });
+    expect(validateCreaturePlan(p, KNOWN_PARTS)).toEqual([]);
+  });
+
+  it('accepts v1.1 fields: hand tips, joint rings, eye cilia', () => {
+    const p = mut((p) => {
+      p.appendages.push({
+        kind: 'arm',
+        attach: 0.3,
+        perSide: true,
+        count: 2,
+        tips: 'hand',
+        jointRings: true,
+        chain: [
+          { lenFt: 2, r: 0.15 },
+          { lenFt: 1.6, r: 0.1 },
+        ],
+      });
+      p.heads[0].cilia = true;
+    });
+    expect(validateCreaturePlan(p, KNOWN_PARTS)).toEqual([]);
+  });
 });
 
 describe('validateCreaturePlan — rejects, one named error per rule', () => {
@@ -159,6 +207,76 @@ describe('validateCreaturePlan — rejects, one named error per rule', () => {
 
   it('unknown top-level field', () => {
     expectError(mut((p) => { (p as unknown as Record<string, unknown>).motion = 'bouncy'; }), 'unknown field motion');
+  });
+
+  it('parent must point at a torso appendage', () => {
+    expectError(
+      mut((p) => {
+        p.appendages.push({ kind: 'arm', attach: 0.3, count: 1, parent: 0, chain: [{ lenFt: 1, r: 0.1 }] });
+      }),
+      'appendages[1].parent',
+    );
+  });
+
+  it('a torso cannot have a parent (no torso towers)', () => {
+    expectError(
+      mut((p) => {
+        p.appendages.push({ kind: 'torso', attach: 0.2, count: 1, chain: [{ lenFt: 1, r: 0.4 }] });
+        p.appendages.push({ kind: 'torso', attach: 0.2, count: 1, parent: 1, chain: [{ lenFt: 1, r: 0.3 }] });
+      }),
+      'appendages[2].parent',
+    );
+  });
+
+  it('legs cannot be parented to a torso', () => {
+    expectError(
+      mut((p) => {
+        p.appendages.push({ kind: 'torso', attach: 0.2, count: 1, chain: [{ lenFt: 1, r: 0.4 }] });
+        p.appendages.push({ kind: 'leg', attach: 0.2, count: 1, parent: 1, chain: [{ lenFt: 1, r: 0.1 }] });
+      }),
+      'appendages[2].parent',
+    );
+  });
+
+  it('heads may bind to torsos, but neckIndex at a tail still fails', () => {
+    const good = mut((p) => {
+      p.appendages.push({ kind: 'torso', attach: 0.15, count: 1, chain: [{ lenFt: 1.2, r: 0.5 }] });
+      p.heads = [{ neckIndex: 1, sizeScale: 1, eyes: { count: 2, sizeScale: 1 } }];
+    });
+    expect(validateCreaturePlan(good, KNOWN_PARTS)).toEqual([]);
+  });
+
+  it('bad spine shape', () => {
+    expectError(mut((p) => { (p.spine as unknown as Record<string, unknown>).shape = 'dodecahedron'; }), 'spine.shape');
+  });
+
+  it('opacity out of range', () => {
+    expectError(mut((p) => { p.palette.opacity = 0.05; }), 'palette.opacity');
+  });
+
+  it('thirteen heads is too many', () => {
+    expectError(
+      mut((p) => {
+        p.heads = Array.from({ length: 13 }, () => ({ sizeScale: 0.5, eyes: { count: 1, sizeScale: 1 } }));
+      }),
+      'heads',
+    );
+  });
+
+  it('bad tips value', () => {
+    expectError(mut((p) => { (p.appendages[0] as unknown as Record<string, unknown>).tips = 'lasers'; }), 'appendages[0].tips');
+  });
+
+  it('tips not allowed on legs', () => {
+    expectError(mut((p) => { p.appendages[0].tips = 'hand'; }), 'appendages[0].tips');
+  });
+
+  it('non-boolean jointRings', () => {
+    expectError(mut((p) => { (p.appendages[0] as unknown as Record<string, unknown>).jointRings = 'yes'; }), 'appendages[0].jointRings');
+  });
+
+  it('non-boolean cilia', () => {
+    expectError(mut((p) => { (p.heads[0] as unknown as Record<string, unknown>).cilia = 3; }), 'heads[0].cilia');
   });
 
   it('unknown nested field', () => {

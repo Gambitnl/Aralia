@@ -1,0 +1,170 @@
+{
+  "id": "5987d7d0",
+  "name": "Vhal'Qereth, the Radiant Facet",
+  "slug": "vhal-qereth-the-radiant-facet-5987d7d0",
+  "description": "The twelve limbs must radiate stiffly OUTWARD from the body in all directions like a starburst � use arm appendages, not legs, so they do not dangle toward the ground. Keep everything else.",
+  "plan": {
+    "name": "Vhal'Qereth, the Radiant Facet",
+    "frame": {
+      "heightFt": 14,
+      "bulk": 0.65,
+      "stance": "floating"
+    },
+    "spine": {
+      "segments": 6,
+      "taper": 0.55,
+      "arch": -0.2
+    },
+    "appendages": [
+      {
+        "kind": "arm",
+        "attach": 0.15,
+        "heightFrac": 0.85,
+        "perSide": true,
+        "count": 2,
+        "chain": [
+          {
+            "lenFt": 3.5,
+            "r": 0.09
+          },
+          {
+            "lenFt": 4,
+            "r": 0.07
+          },
+          {
+            "lenFt": 3,
+            "r": 0.05
+          },
+          {
+            "lenFt": 0.8,
+            "r": 0.06
+          }
+        ]
+      },
+      {
+        "kind": "arm",
+        "attach": 0.5,
+        "heightFrac": 0.5,
+        "perSide": true,
+        "count": 2,
+        "chain": [
+          {
+            "lenFt": 4,
+            "r": 0.09
+          },
+          {
+            "lenFt": 4.5,
+            "r": 0.07
+          },
+          {
+            "lenFt": 3.2,
+            "r": 0.05
+          },
+          {
+            "lenFt": 0.8,
+            "r": 0.06
+          }
+        ]
+      },
+      {
+        "kind": "arm",
+        "attach": 0.85,
+        "heightFrac": 0.15,
+        "perSide": true,
+        "count": 2,
+        "chain": [
+          {
+            "lenFt": 3.5,
+            "r": 0.09
+          },
+          {
+            "lenFt": 4,
+            "r": 0.07
+          },
+          {
+            "lenFt": 3,
+            "r": 0.05
+          },
+          {
+            "lenFt": 0.8,
+            "r": 0.06
+          }
+        ]
+      },
+      {
+        "kind": "tentacle",
+        "attach": 0.45,
+        "heightFrac": 0.05,
+        "count": 4,
+        "chain": [
+          {
+            "lenFt": 2.5,
+            "r": 0.04
+          },
+          {
+            "lenFt": 2,
+            "r": 0.03
+          },
+          {
+            "lenFt": 1.5,
+            "r": 0.02
+          }
+        ]
+      },
+      {
+        "kind": "tentacle",
+        "attach": 0.6,
+        "heightFrac": 0.05,
+        "count": 3,
+        "chain": [
+          {
+            "lenFt": 2,
+            "r": 0.035
+          },
+          {
+            "lenFt": 1.8,
+            "r": 0.025
+          },
+          {
+            "lenFt": 1.2,
+            "r": 0.02
+          }
+        ]
+      }
+    ],
+    "heads": [
+      {
+        "sizeScale": 1.6,
+        "eyes": {
+          "count": 1,
+          "sizeScale": 2
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#3a1c52",
+      "accentHex": "#ff2ea6",
+      "bellyHex": "#1f6b66",
+      "eyeHex": "#d8b03a"
+    },
+    "garnish": [
+      {
+        "partId": "tentacles",
+        "params": {
+          "lengthScale": 1.2,
+          "count": 6
+        }
+      },
+      {
+        "partId": "crest",
+        "params": {
+          "heightScale": 1.4,
+          "jaggedness": 0.9
+        }
+      }
+    ]
+  },
+  "status": "generated",
+  "createdAt": "2026-07-16T07:15:46.016Z",
+  "revisedFrom": "214b68cf"
+}

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 16/07/2026, 10:30:12
+ * Dependents: components/BattleMap/terrain/index.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file GridOverlay.tsx
  * Transparent grid overlay that appears on the terrain during movement mode.
@@ -16,7 +32,7 @@
  *
  * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md — "Grid Overlay" section
  */
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { BattleMapData, BattleMapTile } from '../../../types/combat';
@@ -143,8 +159,12 @@ const GridOverlay: React.FC<GridOverlayProps> = ({
 
   const { width, height } = mapData.dimensions;
 
-  // Grid visible only during movement mode, and faintly during ability targeting
-  targetOpacity.current = actionMode === 'move' ? 1.0 : actionMode === 'ability' ? 0.4 : 0.0;
+  // Grid visible only during movement mode, and faintly during ability
+  // targeting. Update the animation target after render; mutating a ref while
+  // React is rendering makes state transitions harder to reason about.
+  useEffect(() => {
+    targetOpacity.current = actionMode === 'move' ? 1.0 : actionMode === 'ability' ? 0.4 : 0.0;
+  }, [actionMode]);
 
   // Active path set
   const activePathSet = useMemo(() => {
@@ -163,7 +183,10 @@ const GridOverlay: React.FC<GridOverlayProps> = ({
         const tileId = `${x}-${y}`;
         const tile = mapData.tiles.get(tileId);
 
-        data[idx] = validMoves.has(tileId) ? 255 : 0;       // R: valid move
+        // Ability mode has its own TargetingDecals. Reusing the movement mask
+        // here produced a cyan wash underneath attacks and obscured physical
+        // scene evidence; only movement mode may encode valid-move fill.
+        data[idx] = actionMode === 'move' && validMoves.has(tileId) ? 255 : 0; // R: valid move
         data[idx + 1] = activePathSet.has(tileId) ? 255 : 0; // G: active path
         data[idx + 2] = tile?.blocksMovement ? 255 : 0;       // B: blocks movement
         data[idx + 3] = 255;                                   // A: unused
@@ -175,7 +198,7 @@ const GridOverlay: React.FC<GridOverlayProps> = ({
     tex.minFilter = THREE.NearestFilter;
     tex.needsUpdate = true;
     return tex;
-  }, [mapData, validMoves, activePathSet, width, height]);
+  }, [mapData, validMoves, activePathSet, actionMode, width, height]);
 
   // Shader material uniforms
   const uniforms = useMemo(() => ({

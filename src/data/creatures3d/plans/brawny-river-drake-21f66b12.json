@@ -1,0 +1,167 @@
+{
+  "id": "21f66b12",
+  "name": "Brawny River Drake",
+  "slug": "brawny-river-drake-21f66b12",
+  "description": "a brawny river drake with a sculpted serpent head and sagging bat wings",
+  "plan": {
+    "name": "Brawny River Drake",
+    "frame": {
+      "heightFt": 7,
+      "lengthFt": 22,
+      "bulk": 0.75,
+      "stance": "horizontal"
+    },
+    "spine": {
+      "segments": 7,
+      "taper": 0.55,
+      "arch": 0.15,
+      "bulge": 0.7
+    },
+    "appendages": [
+      {
+        "kind": "leg",
+        "attach": 0.2,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 2.5,
+            "r": 0.4
+          },
+          {
+            "lenFt": 2.2,
+            "r": 0.3
+          },
+          {
+            "lenFt": 1.2,
+            "r": 0.22
+          }
+        ]
+      },
+      {
+        "kind": "leg",
+        "attach": 0.75,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 2.8,
+            "r": 0.45
+          },
+          {
+            "lenFt": 2.4,
+            "r": 0.32
+          },
+          {
+            "lenFt": 1.3,
+            "r": 0.24
+          }
+        ]
+      },
+      {
+        "kind": "wing",
+        "attach": 0.3,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 4,
+            "r": 0.18
+          },
+          {
+            "lenFt": 3.5,
+            "r": 0.12
+          },
+          {
+            "lenFt": 2.5,
+            "r": 0.08
+          }
+        ]
+      },
+      {
+        "kind": "neck",
+        "attach": 0,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 2.5,
+            "r": 0.5
+          },
+          {
+            "lenFt": 2,
+            "r": 0.42
+          },
+          {
+            "lenFt": 1.5,
+            "r": 0.36
+          }
+        ]
+      },
+      {
+        "kind": "tail",
+        "attach": 1,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 3,
+            "r": 0.5
+          },
+          {
+            "lenFt": 2.5,
+            "r": 0.35
+          },
+          {
+            "lenFt": 2,
+            "r": 0.22
+          },
+          {
+            "lenFt": 1.5,
+            "r": 0.1
+          }
+        ]
+      }
+    ],
+    "heads": [
+      {
+        "neckIndex": 3,
+        "sizeScale": 1.15,
+        "eyes": {
+          "count": 2,
+          "sizeScale": 0.9,
+          "pupil": "slit"
+        },
+        "snout": {
+          "lengthScale": 1.8,
+          "droop": 0.1
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#3f6b52",
+      "accentHex": "#8a5a3c",
+      "bellyHex": "#cfc39a",
+      "eyeHex": "#e8c14a"
+    },
+    "garnish": [
+      {
+        "partId": "wingsMembrane",
+        "params": {
+          "scale": 1.2,
+          "droop": 0.7
+        }
+      },
+      {
+        "partId": "crest",
+        "params": {
+          "scale": 0.8
+        }
+      },
+      {
+        "partId": "tailThick"
+      }
+    ]
+  },
+  "status": "generated",
+  "createdAt": "2026-07-16T20:59:55.840Z",
+  "sizeCategory": "Gargantuan"
+}

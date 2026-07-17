@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 15/07/2026, 23:02:49
- * Dependents: hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, types/index.ts
+ * Last Sync: 16/07/2026, 13:27:17
+ * Dependents: components/Combat/BattlefieldSourceGap.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/authoredTownWatchSourceGap.ts, types/index.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -21,7 +21,11 @@ import { TempPartyMember, PlayerCharacter, HitPointDiceSpendMap } from './charac
 import { Faction } from './factions.js';
 import { DialogueSession } from './dialogue.js';
 import type { Lock, Puzzle } from '../systems/puzzles/types.js';
-import type { CombatCharacter, BattleMapData } from './combat.js';
+import type {
+  BattleMapData,
+  CombatCharacter,
+  WorldforgeCombatantSource,
+} from './combat.js';
 
 // -----------------------------------------------------------------------------
 // Actions & payloads
@@ -263,14 +267,46 @@ export interface ShowEncounterModalPayload {
   partyUsed?: TempPartyMember[];
 }
 
+/**
+ * Structured explanation for a production encounter that cannot supply its
+ * real WorldForge battlefield. The action boundary carries this record into
+ * CombatView so the fail-closed screen can name the exact encounter and source
+ * facts that are missing instead of showing a generic placeless-combat error.
+ */
+export interface BattlefieldSourceGapReason {
+  /** Stable diagnostic code for inventory, tests, and deterministic fixtures. */
+  code: string;
+  /** Player-readable encounter class, such as a wanted watch confrontation. */
+  encounterLabel: string;
+  /** The authored location that needs a canonical WorldForge mapping. */
+  locationLabel: string;
+  /** Source facts required before tactical play can start honestly. */
+  missingSourceFacts: string[];
+  /** Complete human-readable reason; must never suggest substitute terrain. */
+  detail: string;
+}
+
 export interface StartBattleMapEncounterPayload {
   monsters: Monster[];
+  /**
+   * Declares that production combat is intentionally withheld. A source-gap
+   * payload is mutually exclusive with monsters, prepared combatants, source
+   * identities, and extracted terrain; the encounter launcher enforces that
+   * invariant before dispatch.
+   */
+  sourceGap?: BattlefieldSourceGapReason;
   /**
    * Combat-ready enemy instances can be prepared by the action layer so the
    * root reducer does not need to import the full combat utility stack during
    * the main-menu startup path.
    */
   combatants?: CombatCharacter[];
+  /**
+   * Optional source identities in the same flattened order as the encounter
+   * roster. The encounter bridge attaches them after bestiary construction so
+   * generated-world roles and positions survive into combat diagnostics.
+   */
+  combatantWorldSources?: WorldforgeCombatantSource[];
   /**
    * Tactical projection of the encounter's real WorldForge location. The field
    * remains optional at the action boundary so incomplete encounter classes can

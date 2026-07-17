@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 15/07/2026, 06:34:48
- * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/DungeonEntrances.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/canopyInterior.ts, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/groundChunkWorker.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/provenance/groundProvenance.ts
- * Imports: 47 files
+ * Last Sync: 16/07/2026, 11:55:01
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/DungeonEntrances.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/canopyInterior.ts, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/groundChunkWorker.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/statePatrolWorldEvent.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/provenance/groundProvenance.ts
+ * Imports: 48 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -31,14 +31,46 @@
  * axis (CHUNK_WORLD_SIZE = 128 m). Vertices beyond the artifact clamp to its
  * edge values (flat continuation), mirroring chunkSampler's clamping.
  */
-import type { ChunkData, ChunkMeshBundle, VegetationScatter, LodTier, BuildingOccupantRender } from "../../world3d/types";
+import type {
+  ChunkData,
+  ChunkMeshBundle,
+  VegetationScatter,
+  LodTier,
+  BuildingOccupantRender,
+} from "../../world3d/types";
 import { handleGroundChunkRequest } from "./groundChunkWorkerCore";
-import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from "../../world3d/config";
+import {
+  WORLD3D_CONFIG,
+  heightToMeters,
+  resolutionForLod,
+} from "../../world3d/config";
+import { BATTLE_MAP_ELEVATION_METERS_PER_UNIT } from "../../../config/mapConfig";
 import { biomeColor } from "../../world3d/terrainColor";
-import type { LocalArtifact, RegionArtifact, RegionCrossing, RegionTownSite, RegionMarker, RegionRoad } from "../artifacts";
-import { ROAD_3D_TIERS, PATH_3D_KEEP_POINTS, PATH_3D_SKIP_POINTS } from "../travel/roadTunables";
-import { localArtifactToWorldData, GROUND_METERS_PER_CELL } from "./groundWorldAdapter";
-import { getCanonicalTownPlan, transformTownPlan, townSpanFtForBurg, CANON_TOWN_SPAN, getCanonicalTownWaterFeatures, canonicalTownSeedPath } from "../town/canonicalTown";
+import type {
+  LocalArtifact,
+  RegionArtifact,
+  RegionCrossing,
+  RegionTownSite,
+  RegionMarker,
+  RegionRoad,
+} from "../artifacts";
+import {
+  ROAD_3D_TIERS,
+  PATH_3D_KEEP_POINTS,
+  PATH_3D_SKIP_POINTS,
+} from "../travel/roadTunables";
+import {
+  localArtifactToWorldData,
+  GROUND_METERS_PER_CELL,
+} from "./groundWorldAdapter";
+import {
+  getCanonicalTownPlan,
+  transformTownPlan,
+  townSpanFtForBurg,
+  CANON_TOWN_SPAN,
+  getCanonicalTownWaterFeatures,
+  canonicalTownSeedPath,
+} from "../town/canonicalTown";
 import { occupancyScheduleForPlot } from "./buildingOccupancy";
 import type { TownPlotPopulation } from "../town/townEngine";
 import type { InteriorPlotInput } from "../interior/generateInterior";
@@ -46,29 +78,79 @@ import { buildingShellHeightM } from "../interior/generateBuilding";
 import { buildTownWaterBodies } from "../town/townWaterBodies";
 import { toArtifactPlan, type AdaptedTownPlan } from "../town/townPlanAdapter";
 import type { TownPlan } from "../artifacts";
-import { buildInterior, DOOR_LEAF_COLOR, ENSEMBLE_PART_TAG, HISTORY_PART_TAG, MATERIAL_PART_TAG, MOTIF_PART_TAG, WEATHERING_PART_TAG, type SitePart, type OccupantBody, type OccupantFigure } from "./interiorParts";
-import { siteOrientationFromQuad, worldOffsetToSiteLocal, sitePartLocalOffset } from "./sitePartTransform";
+import {
+  buildInterior,
+  DOOR_LEAF_COLOR,
+  ENSEMBLE_PART_TAG,
+  HISTORY_PART_TAG,
+  MATERIAL_PART_TAG,
+  MOTIF_PART_TAG,
+  WEATHERING_PART_TAG,
+  type SitePart,
+  type OccupantBody,
+  type OccupantFigure,
+} from "./interiorParts";
+import {
+  siteOrientationFromQuad,
+  worldOffsetToSiteLocal,
+  sitePartLocalOffset,
+} from "./sitePartTransform";
 import { generateTownRoster } from "../roster/generateTownRoster";
-import { occupantLocationAt, type ActivityKind } from "../roster/occupantSchedule";
+import {
+  occupantLocationAt,
+  type ActivityKind,
+} from "../roster/occupantSchedule";
 import type { TownRoster, Occupant } from "../roster/types";
 import { generateBody } from "../body/generateBody";
 import type { BodyPlan } from "../body/types";
 import { childSeedPath, rootSeedPath } from "../seedPath";
-import { generateHiddenPlaces, type HiddenPlaceKind } from "../discovery/hiddenPlaces";
+import {
+  generateHiddenPlaces,
+  type HiddenPlaceKind,
+} from "../discovery/hiddenPlaces";
 import type { Pt } from "../submap/submapEngine";
 import { localWithDeltas } from "./groundDeltas";
 import type { WorldDelta } from "../delta/types";
-import { getBurgNamer, getBridgeAtlas, getBurgCultureType } from "./legacySubmapBridge";
-import { styleFamilyForCultureType, styledGatehouseForm, climateForBiomeId, type StyleFamily, type GatehouseForm } from "../town/architectureStyle";
-import type { BuildingEnsemble, BuildingEventLogsByBurg } from "../interior/blueprintTypes";
+import {
+  getBurgNamer,
+  getBridgeAtlas,
+  getBurgCultureType,
+} from "./legacySubmapBridge";
+import {
+  styleFamilyForCultureType,
+  styledGatehouseForm,
+  climateForBiomeId,
+  type StyleFamily,
+  type GatehouseForm,
+} from "../town/architectureStyle";
+import type {
+  BuildingEnsemble,
+  BuildingEventLogsByBurg,
+} from "../interior/blueprintTypes";
 import { buildingPlotInput } from "../town/buildingPlotInput";
 import { SeededRandom } from "../../../utils/random/seededRandom";
 import { generateBusinessName } from "../../economy/NpcBusinessManager";
 import type { BusinessType, WorldBusiness } from "../../../types/business";
 import type { RichNPC } from "../../../types/world";
-import type { BattleMapBiome, BattleMapCrossing, BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration, BattleMapSurface, BattleMapWorldOccupant, Position, TargetableMapObject } from "@/types/combat";
+import type {
+  BattleMapBiome,
+  BattleMapCrossing,
+  BattleMapData,
+  BattleMapTile,
+  BattleMapTerrain,
+  BattleMapDecoration,
+  BattleMapSurface,
+  BattleMapWorldOccupant,
+  Position,
+  TargetableMapObject,
+} from "@/types/combat";
 import { generateGroundHostiles } from "./groundHostiles";
-import { buildGroundProps, imprintPropOnTile, propFootprintRadiusM, PROPS_BY_ID } from "./groundProps";
+import {
+  buildGroundProps,
+  imprintPropOnTile,
+  propFootprintRadiusM,
+  PROPS_BY_ID,
+} from "./groundProps";
 import type { PropInstance } from "../props/propSchema";
 import type { EntranceKind } from "../dungeon/world/dungeonSites";
 import { dungeonEntrancesForWindow } from "./dungeonEntrances";
@@ -81,7 +163,7 @@ import type { ForestKind } from "../forests/forestClusters";
 import {
   resolveTerrainTerraces,
   type TerrainTerraceReceipt,
-} from './terrainTerraces';
+} from "./terrainTerraces";
 import {
   resolveSnowLine,
   latitudeAtGraphY,
@@ -92,14 +174,14 @@ import {
 import {
   settlementDefenseForBurg,
   type GroundSettlementDefense,
-} from './settlementDefense';
+} from "./settlementDefense";
 
 /** A polyline in ground world-meters with a uniform width (meters). */
 interface GroundPolyline {
   points: Array<{ x: number; z: number }>;
   widthM: number;
   /** Source role retained so tactical crops can distinguish routes from streets. */
-  sourceKind?: 'region-road' | 'town-street' | 'river';
+  sourceKind?: "region-road" | "town-street" | "river";
   /** Stable Region route/river id when this run descends from one. */
   sourceId?: number;
   /** Optional tint (e.g. town-wall runs carry the style family's wallTint). */
@@ -123,7 +205,7 @@ export interface GroundDeck {
    * the 3D renderer can tint a weathered-timber quay distinctly from a lighter
    * bridge span — they must not share one identical slab material.
    */
-  kind: 'dock' | 'bridge';
+  kind: "dock" | "bridge";
   /**
    * Style-family deck detailing (piling spacing / railing / bridge-arch rise),
    * stamped from the burg's architecture family so a coastal-timber quay and a
@@ -137,7 +219,7 @@ export interface GroundDeck {
 /** Ground-meter projection of one Region crossing receipt. */
 export interface GroundCrossing {
   id: string;
-  kind: 'bridge' | 'ford';
+  kind: "bridge" | "ford";
   xM: number;
   zM: number;
   roadDirection: { x: number; z: number };
@@ -171,10 +253,10 @@ export interface GroundOccupantProjectionInput extends GroundOccupantSite {
 
 /** Player-facing label for a townsperson's current activity. */
 const ACTIVITY_LABEL: Record<ActivityKind, string> = {
-  sleeping: 'asleep',
-  home: 'at home',
-  working: 'working',
-  out: 'out & about',
+  sleeping: "asleep",
+  home: "at home",
+  working: "working",
+  out: "out & about",
 };
 
 /** An artifact feature in ground meters (world space, origin = artifact NW). */
@@ -247,7 +329,7 @@ export interface GroundCanopy {
   /** True by construction — a canopy only exists where the def says shade. */
   shade: boolean;
   /** Fog grade from the biome def ('light' when the def shades without fog). */
-  fog: 'light' | 'medium' | 'heavy';
+  fog: "light" | "medium" | "heavy";
   /** Named-forest kind of the cell; null inside anonymous/unnamed woods. */
   forestKind: ForestKind | null;
 }
@@ -291,9 +373,23 @@ export interface GroundWorld {
   /** Town dock/bridge deck slabs, ground meters. */
   decks: GroundDeck[];
   /** Town road-gate placements (ground meters) for gatehouse meshes (styled-architecture slice). */
-  gatehouses: Array<{ xM: number; zM: number; angleRad: number; gapHalfM: number; form: GatehouseForm; colorHex: string; burgId: number }>;
+  gatehouses: Array<{
+    xM: number;
+    zM: number;
+    angleRad: number;
+    gapHalfM: number;
+    form: GatehouseForm;
+    colorHex: string;
+    burgId: number;
+  }>;
   /** Town sites overlapping the artifact, center in ground meters. */
-  towns: Array<{ burgId: number; name: string; xM: number; zM: number; halfM: number }>;
+  towns: Array<{
+    burgId: number;
+    name: string;
+    xM: number;
+    zM: number;
+    halfM: number;
+  }>;
   /** State and regiment facts stationed in each visible generated settlement. */
   settlementDefenses?: GroundSettlementDefense[];
   /** Town-plan building plots (C3 generateTownPlan), centers in meters. */
@@ -313,7 +409,7 @@ export interface GroundWorld {
     /** Architecture-style stamps (Task 7): absent on legacy/unstyled plans. */
     wallColorHex?: string;
     roofColorHex?: string;
-    roofForm?: 'gable' | 'hip' | 'steep' | 'flat';
+    roofForm?: "gable" | "hip" | "steep" | "flat";
     /** The burg's style family builds chimneys. */
     chimney?: boolean;
     /** Interior wall envelope, meters (≤ plot; roofs/floors fit THIS). */
@@ -323,7 +419,12 @@ export interface GroundWorld {
     parts: SitePart[];
     /** Solved roof group, site-local meters (BGv2 Task 5); undefined until a
      *  style resolves. When set, the renderer skips the legacy roof prism. */
-    solvedRoof?: { positions: Float32Array; indices: Uint32Array; normals: Float32Array; colorHex: string };
+    solvedRoof?: {
+      positions: Float32Array;
+      indices: Uint32Array;
+      normals: Float32Array;
+      colorHex: string;
+    };
     /** Living-interiors live clock: length-24 window-lit / hearth-lit schedules,
      *  baked once; the renderer re-resolves them against the live game hour.
      *  Present only for populated plots. */
@@ -385,12 +486,12 @@ export function regionPolylinesToGround(
   lines: Array<{
     centerline: Array<[number, number]>;
     widthFt: number;
-    kind?: RegionRoad['kind'];
+    kind?: RegionRoad["kind"];
     routeId?: number;
     riverId?: number;
   }>,
   local: LocalArtifact,
-  sourceKind?: GroundPolyline['sourceKind'],
+  sourceKind?: GroundPolyline["sourceKind"],
 ): GroundPolyline[] {
   const { bounds } = local;
   const out: GroundPolyline[] = [];
@@ -406,10 +507,12 @@ export function regionPolylinesToGround(
     const minZ = -50;
     const maxX = extentX + 50;
     const maxZ = extentZ + 50;
-    const inside = (p: { x: number; z: number }): boolean => (
-      p.x >= minX && p.x <= maxX && p.z >= minZ && p.z <= maxZ
-    );
-    const segmentTouches = (a: { x: number; z: number }, b: { x: number; z: number }): boolean => {
+    const inside = (p: { x: number; z: number }): boolean =>
+      p.x >= minX && p.x <= maxX && p.z >= minZ && p.z <= maxZ;
+    const segmentTouches = (
+      a: { x: number; z: number },
+      b: { x: number; z: number },
+    ): boolean => {
       if (inside(a) || inside(b)) return true;
       const dx = b.x - a.x;
       const dz = b.z - a.z;
@@ -425,13 +528,16 @@ export function regionPolylinesToGround(
         const x = a.x + dx * t;
         return t >= 0 && t <= 1 && x >= minX && x <= maxX;
       };
-      return crossesVertical(minX)
-        || crossesVertical(maxX)
-        || crossesHorizontal(minZ)
-        || crossesHorizontal(maxZ);
+      return (
+        crossesVertical(minX) ||
+        crossesVertical(maxX) ||
+        crossesHorizontal(minZ) ||
+        crossesHorizontal(maxZ)
+      );
     };
-    const touches = pts.some(inside)
-      || pts.slice(1).some((point, index) => segmentTouches(pts[index], point));
+    const touches =
+      pts.some(inside) ||
+      pts.slice(1).some((point, index) => segmentTouches(pts[index], point));
     if (touches && pts.length >= 2) {
       out.push({
         points: pts,
@@ -449,11 +555,16 @@ export function regionPolylinesToGround(
     }));
     const colorHex = line.kind ? ROAD_3D_TIERS[line.kind].colorHex : undefined;
     const sourceId = line.routeId ?? line.riverId;
-    if (line.kind === 'path') {
+    if (line.kind === "path") {
       // Faint path: deterministic keep/skip cycle → broken wear-line patches.
       const cycle = PATH_3D_KEEP_POINTS + PATH_3D_SKIP_POINTS;
       for (let start = 0; start < pts.length; start += cycle) {
-        push(pts.slice(start, start + PATH_3D_KEEP_POINTS), line.widthFt, colorHex, sourceId);
+        push(
+          pts.slice(start, start + PATH_3D_KEEP_POINTS),
+          line.widthFt,
+          colorHex,
+          sourceId,
+        );
       }
     } else {
       push(pts, line.widthFt, colorHex, sourceId);
@@ -481,7 +592,11 @@ export function regionCrossingsToGround(
     let nearestDistanceSq = Number.POSITIVE_INFINITY;
     lines.forEach((line, index) => {
       if (line.sourceId !== sourceId) return;
-      for (let pointIndex = 1; pointIndex < line.points.length; pointIndex += 1) {
+      for (
+        let pointIndex = 1;
+        pointIndex < line.points.length;
+        pointIndex += 1
+      ) {
         const distanceSq = pointSegmentDistanceSq(
           point.x,
           point.z,
@@ -505,16 +620,22 @@ export function regionCrossingsToGround(
     const spanM = crossing.spanFt * FEET_TO_METERS;
     const halfSpanM = spanM / 2;
     if (
-      point.x + halfSpanM < 0 || point.x - halfSpanM > extentX
-      || point.z + halfSpanM < 0 || point.z - halfSpanM > extentZ
-    ) return [];
+      point.x + halfSpanM < 0 ||
+      point.x - halfSpanM > extentX ||
+      point.z + halfSpanM < 0 ||
+      point.z - halfSpanM > extentZ
+    )
+      return [];
 
     const projected: GroundCrossing = {
       id: crossing.id,
       kind: crossing.kind,
       xM: point.x,
       zM: point.z,
-      roadDirection: { x: crossing.roadDirection[0], z: crossing.roadDirection[1] },
+      roadDirection: {
+        x: crossing.roadDirection[0],
+        z: crossing.roadDirection[1],
+      },
       spanM,
       widthM: crossing.widthFt * FEET_TO_METERS,
       roadRouteId: crossing.roadRouteId,
@@ -536,28 +657,44 @@ function regionalBridgeDecks(
   rows: number,
 ): GroundDeck[] {
   return crossings.flatMap((crossing) => {
-    if (crossing.kind !== 'bridge') return [];
+    if (crossing.kind !== "bridge") return [];
     const along = crossing.roadDirection;
     const across = { x: -along.z, z: along.x };
     const halfSpan = crossing.spanM / 2;
     const halfWidth = crossing.widthM / 2;
     const corner = (alongSign: number, acrossSign: number) => ({
-      x: crossing.xM + along.x * halfSpan * alongSign + across.x * halfWidth * acrossSign,
-      z: crossing.zM + along.z * halfSpan * alongSign + across.z * halfWidth * acrossSign,
+      x:
+        crossing.xM +
+        along.x * halfSpan * alongSign +
+        across.x * halfWidth * acrossSign,
+      z:
+        crossing.zM +
+        along.z * halfSpan * alongSign +
+        across.z * halfWidth * acrossSign,
     });
-    const shoreEncoded = sampleEncodedHeight(heights, cols, rows, crossing.xM, crossing.zM);
+    const shoreEncoded = sampleEncodedHeight(
+      heights,
+      cols,
+      rows,
+      crossing.xM,
+      crossing.zM,
+    );
 
-    return [{
-      cornersM: [corner(-1, -1), corner(1, -1), corner(1, 1), corner(-1, 1)],
-      topY: heightToMeters(Math.max(0, shoreEncoded - WATER_SURFACE_DROP_ENC)) + DECK_CLEARANCE_M,
-      kind: 'bridge',
-      detail: {
-        pilingSpacingM: 4,
-        railing: true,
-        archRiseM: Math.min(4, crossing.spanM * 0.04),
+    return [
+      {
+        cornersM: [corner(-1, -1), corner(1, -1), corner(1, 1), corner(-1, 1)],
+        topY:
+          heightToMeters(Math.max(0, shoreEncoded - WATER_SURFACE_DROP_ENC)) +
+          DECK_CLEARANCE_M,
+        kind: "bridge",
+        detail: {
+          pilingSpacingM: 4,
+          railing: true,
+          archRiseM: Math.min(4, crossing.spanM * 0.04),
+        },
+        sourceCrossingId: crossing.id,
       },
-      sourceCrossingId: crossing.id,
-    }];
+    ];
   });
 }
 
@@ -575,42 +712,42 @@ function regionalBridgeDecks(
 /** Player-facing label per hidden-place kind (mirrors hiddenPlaces' KIND_NAME,
  * kept local to avoid a cross-module export just for marker-derived sites). */
 const HIDDEN_KIND_NAME: Record<HiddenPlaceKind, string> = {
-  ruin: 'Ruins',
-  cave: 'Cave',
-  shrine: 'Shrine',
-  camp: 'Camp',
-  grove: 'Hidden Grove',
-  wreck: 'Wreck',
+  ruin: "Ruins",
+  cave: "Cave",
+  shrine: "Shrine",
+  camp: "Camp",
+  grove: "Hidden Grove",
+  wreck: "Wreck",
 };
 
 const MARKER_KIND_MAP: Record<string, HiddenPlaceKind> = {
-  ruins: 'ruin',
-  statues: 'ruin',
-  battlefields: 'ruin',
-  libraries: 'ruin',
-  'sacred-mountains': 'shrine',
-  'sacred-forests': 'grove',
-  'sacred-pineries': 'grove',
-  'sacred-palm-groves': 'grove',
-  'hot-springs': 'shrine',
-  'water-sources': 'grove',
-  waterfalls: 'grove',
-  volcanoes: 'cave',
-  mines: 'cave',
-  portals: 'shrine',
-  lighthouses: 'wreck',
-  canoes: 'wreck',
-  inns: 'camp',
-  fairs: 'camp',
-  circuses: 'camp',
-  jousts: 'camp',
-  migration: 'camp',
+  ruins: "ruin",
+  statues: "ruin",
+  battlefields: "ruin",
+  libraries: "ruin",
+  "sacred-mountains": "shrine",
+  "sacred-forests": "grove",
+  "sacred-pineries": "grove",
+  "sacred-palm-groves": "grove",
+  "hot-springs": "shrine",
+  "water-sources": "grove",
+  waterfalls: "grove",
+  volcanoes: "cave",
+  mines: "cave",
+  portals: "shrine",
+  lighthouses: "wreck",
+  canoes: "wreck",
+  inns: "camp",
+  fairs: "camp",
+  circuses: "camp",
+  jousts: "camp",
+  migration: "camp",
   // Forests campaign (T8b): forest POI markers (forestsPass) surface as
   // proximity discoveries through the existing kinds — no new machinery.
-  'hunter-camp': 'camp',
-  'hermit-hollow': 'camp',
-  'forest-shrine': 'shrine',
-  'beast-den': 'cave',
+  "hunter-camp": "camp",
+  "hermit-hollow": "camp",
+  "forest-shrine": "shrine",
+  "beast-den": "cave",
 };
 
 /**
@@ -667,11 +804,21 @@ function markerDerivedHiddenSites(
 export function resolveCanopy(
   legacyBiomeId: string | undefined,
   forestKind: ForestKind | null,
-  biomes: Record<string, { visibilityModifiers?: { fog?: 'light' | 'medium' | 'heavy'; canopyShade?: boolean } }>,
+  biomes: Record<
+    string,
+    {
+      visibilityModifiers?: {
+        fog?: "light" | "medium" | "heavy";
+        canopyShade?: boolean;
+      };
+    }
+  >,
 ): GroundCanopy | null {
-  const vis = legacyBiomeId ? biomes[legacyBiomeId]?.visibilityModifiers : undefined;
+  const vis = legacyBiomeId
+    ? biomes[legacyBiomeId]?.visibilityModifiers
+    : undefined;
   if (!vis?.canopyShade) return null;
-  return { shade: true, fog: vis.fog ?? 'light', forestKind };
+  return { shade: true, fog: vis.fog ?? "light", forestKind };
 }
 
 /**
@@ -737,7 +884,16 @@ export function makeGroundWorld(
   opts: MakeGroundWorldOptions = {},
 ): GroundWorld {
   const wd = localArtifactToWorldData(local, seed);
-  const townContent = groundTowns(local, region, opts.hour ?? 12, opts.deltas ?? [], seed, opts, wd.gridSize.cols, wd.gridSize.rows);
+  const townContent = groundTowns(
+    local,
+    region,
+    opts.hour ?? 12,
+    opts.deltas ?? [],
+    seed,
+    opts,
+    wd.gridSize.cols,
+    wd.gridSize.rows,
+  );
 
   // Each makeGroundWorld call receives a freshly allocated height array from
   // localArtifactToWorldData. Flattening mutates only that per-call array, so
@@ -810,10 +966,16 @@ export function makeGroundWorld(
     const boundsPoly: Pt[] = [
       [local.bounds.x, local.bounds.y],
       [local.bounds.x + local.bounds.width, local.bounds.y],
-      [local.bounds.x + local.bounds.width, local.bounds.y + local.bounds.height],
+      [
+        local.bounds.x + local.bounds.width,
+        local.bounds.y + local.bounds.height,
+      ],
       [local.bounds.x, local.bounds.y + local.bounds.height],
     ];
-    const hiddenSeed = childSeedPath(rootSeedPath(seed), `hidden:${Math.round(local.bounds.x)}:${Math.round(local.bounds.y)}`);
+    const hiddenSeed = childSeedPath(
+      rootSeedPath(seed),
+      `hidden:${Math.round(local.bounds.x)}:${Math.round(local.bounds.y)}`,
+    );
     const scattered = generateHiddenPlaces(boundsPoly, hiddenSeed, {
       count: topUpNeeded,
       discoveryRadius: HIDDEN_RADIUS_FT, // feet
@@ -839,39 +1001,51 @@ export function makeGroundWorld(
   // anchor cell. Both cell lookups ride the bridge's per-seed atlas cache the
   // caller already warmed by resolving this window; without an anchor cell
   // (tests, legacy paths) the canopy is null and nothing downstream changes.
-  const canopy = opts.anchorCellId != null
-    ? resolveCanopy(
-        biomeIdForCell(seed, opts.anchorCellId),
-        forestKindForCell(seed, opts.anchorCellId),
-        BIOMES,
-      )
-    : null;
+  const canopy =
+    opts.anchorCellId != null
+      ? resolveCanopy(
+          biomeIdForCell(seed, opts.anchorCellId),
+          forestKindForCell(seed, opts.anchorCellId),
+          BIOMES,
+        )
+      : null;
 
   // Snow line (Task 10 MOUNTAINS): resolved ONCE per window from the anchor
   // cell's atlas latitude (spec §5's 3-band table), reusing the SAME per-seed
   // atlas cache the canopy seam warmed. Without an anchor (tests/legacy) or a
   // pack that carries no map coordinates, `resolveSnowLine(null)` yields the
   // temperate baseline — behavior unchanged.
-  const snowLineH = opts.anchorCellId != null
-    ? resolveSnowLine(anchorLatitudeDeg(seed, opts.anchorCellId))
-    : SNOW_LINE_H;
+  const snowLineH =
+    opts.anchorCellId != null
+      ? resolveSnowLine(anchorLatitudeDeg(seed, opts.anchorCellId))
+      : SNOW_LINE_H;
 
   // Convert the two Region networks first, then bind their crossing receipts
   // to exact Ground run indexes. Regional bridge decks and tactical crossings
   // now descend from this one relationship instead of matching visual overlap.
   const regionRivers = region
-    ? regionPolylinesToGround(region.rivers, local, 'river')
+    ? regionPolylinesToGround(region.rivers, local, "river")
     : [];
   const regionRoads = region
-    ? regionPolylinesToGround(region.roads, local, 'region-road')
+    ? regionPolylinesToGround(region.roads, local, "region-road")
     : [];
   const roads = [...regionRoads, ...townContent.planStreets];
   const crossings = region
-    ? regionCrossingsToGround(region.crossings ?? [], local, regionRoads, regionRivers)
+    ? regionCrossingsToGround(
+        region.crossings ?? [],
+        local,
+        regionRoads,
+        regionRivers,
+      )
     : [];
   const decks = [
     ...townContent.planDecks,
-    ...regionalBridgeDecks(crossings, wd.heights, wd.gridSize.cols, wd.gridSize.rows),
+    ...regionalBridgeDecks(
+      crossings,
+      wd.heights,
+      wd.gridSize.cols,
+      wd.gridSize.rows,
+    ),
   ];
 
   const world: GroundWorld = {
@@ -910,7 +1084,9 @@ export function makeGroundWorld(
   // at the region's seed path when present so props share the town's identity.
   // Staged 3D entry: Stage A skips this so terrain + town appear fast; Stage B
   // fills props in via computeGroundProps (the SAME call), keeping them identical.
-  world.props = opts.skipProps ? [] : computeGroundProps(world, seed, region, opts);
+  world.props = opts.skipProps
+    ? []
+    : computeGroundProps(world, seed, region, opts);
 
   return world;
 }
@@ -941,22 +1117,28 @@ function flattenBuildingTerrainPads(
   const rawPads = buildings.flatMap((building, order) => {
     if (building.cornersM.length < 3) return [];
     const centroid = {
-      x: building.cornersM.reduce((sum, corner) => sum + corner.x, 0) / building.cornersM.length,
-      z: building.cornersM.reduce((sum, corner) => sum + corner.z, 0) / building.cornersM.length,
+      x:
+        building.cornersM.reduce((sum, corner) => sum + corner.x, 0) /
+        building.cornersM.length,
+      z:
+        building.cornersM.reduce((sum, corner) => sum + corner.z, 0) /
+        building.cornersM.length,
     };
-    return [{
-      id: building.id,
-      rawHeightEncoded: sampleEncodedHeight(
-        originalHeights,
-        cols,
-        rows,
-        centroid.x,
-        centroid.z,
-      ),
-      order,
-      blockKey: building.ensemble?.blockKey,
-      ensembleKind: building.ensemble?.kind,
-    }];
+    return [
+      {
+        id: building.id,
+        rawHeightEncoded: sampleEncodedHeight(
+          originalHeights,
+          cols,
+          rows,
+          centroid.x,
+          centroid.z,
+        ),
+        order,
+        blockKey: building.ensemble?.blockKey,
+        ensembleKind: building.ensemble?.kind,
+      },
+    ];
   });
   const resolvedPads = resolveTerrainTerraces(rawPads);
 
@@ -968,7 +1150,11 @@ function flattenBuildingTerrainPads(
     if (!resolved) continue;
     const padHeight = resolved.padHeightEncoded;
     building.terrainTerrace = resolved.terrace;
-    const footprintIndexes = buildingFootprintCells(cols, rows, building.cornersM);
+    const footprintIndexes = buildingFootprintCells(
+      cols,
+      rows,
+      building.cornersM,
+    );
     const footprintSet = new Set(footprintIndexes);
 
     // Every cell whose center falls inside the plot is made perfectly level.
@@ -987,7 +1173,13 @@ function flattenBuildingTerrainPads(
           if (dx === 0 && dz === 0) continue;
           const neighborCol = col + dx;
           const neighborRow = row + dz;
-          if (neighborCol < 0 || neighborCol >= cols || neighborRow < 0 || neighborRow >= rows) continue;
+          if (
+            neighborCol < 0 ||
+            neighborCol >= cols ||
+            neighborRow < 0 ||
+            neighborRow >= rows
+          )
+            continue;
           const neighborIndex = neighborRow * cols + neighborCol;
           if (footprintSet.has(neighborIndex)) continue;
           const pads = skirtPads.get(neighborIndex) ?? [];
@@ -1006,15 +1198,18 @@ function flattenBuildingTerrainPads(
   }
   for (const [index, padHeights] of skirtPads) {
     if (footprintPads.has(index)) continue;
-    const averagePadHeight = padHeights.reduce((sum, height) => sum + height, 0) / padHeights.length;
-    heights[index] = originalHeights[index] + (averagePadHeight - originalHeights[index]) * 0.5;
+    const averagePadHeight =
+      padHeights.reduce((sum, height) => sum + height, 0) / padHeights.length;
+    heights[index] =
+      originalHeights[index] +
+      (averagePadHeight - originalHeights[index]) * 0.5;
   }
 }
 
 /** Encoded-height drops (0..100 domain) that shape town water + its banks. */
 const WATER_SURFACE_DROP_ENC = 1.5; // water surface sits this far below the shore
-const WATER_BED_DROP_ENC = 4;       // carved bed sits this far below the shore
-const DECK_CLEARANCE_M = 0.4;       // deck top stands this far above the water
+const WATER_BED_DROP_ENC = 4; // carved bed sits this far below the shore
+const DECK_CLEARANCE_M = 0.4; // deck top stands this far above the water
 
 /**
  * Walkable head clearance (meters) for the 2D combat-patch extractor (IN guard).
@@ -1026,12 +1221,19 @@ const DECK_CLEARANCE_M = 0.4;       // deck top stands this far above the water
 const COMBAT_HEAD_CLEARANCE_M = 1.9;
 
 /** Even-odd point-in-polygon on the X/Z plane (handles concave channels). */
-function pointInPolygonXZ(px: number, pz: number, poly: Array<{ x: number; z: number }>): boolean {
+function pointInPolygonXZ(
+  px: number,
+  pz: number,
+  poly: Array<{ x: number; z: number }>,
+): boolean {
   let inside = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const a = poly[i], b = poly[j];
-    if ((a.z > pz) !== (b.z > pz) &&
-        px < ((b.x - a.x) * (pz - a.z)) / (b.z - a.z) + a.x) {
+    const a = poly[i],
+      b = poly[j];
+    if (
+      a.z > pz !== b.z > pz &&
+      px < ((b.x - a.x) * (pz - a.z)) / (b.z - a.z) + a.x
+    ) {
       inside = !inside;
     }
   }
@@ -1039,12 +1241,28 @@ function pointInPolygonXZ(px: number, pz: number, poly: Array<{ x: number; z: nu
 }
 
 /** Grid cell indices whose centers fall inside a (possibly concave) polygon. */
-function polygonCellIndices(cols: number, rows: number, poly: Array<{ x: number; z: number }>): number[] {
+function polygonCellIndices(
+  cols: number,
+  rows: number,
+  poly: Array<{ x: number; z: number }>,
+): number[] {
   if (poly.length < 3) return [];
-  const minCol = Math.max(0, Math.floor(Math.min(...poly.map((p) => p.x)) / GROUND_METERS_PER_CELL) - 1);
-  const maxCol = Math.min(cols - 1, Math.ceil(Math.max(...poly.map((p) => p.x)) / GROUND_METERS_PER_CELL) + 1);
-  const minRow = Math.max(0, Math.floor(Math.min(...poly.map((p) => p.z)) / GROUND_METERS_PER_CELL) - 1);
-  const maxRow = Math.min(rows - 1, Math.ceil(Math.max(...poly.map((p) => p.z)) / GROUND_METERS_PER_CELL) + 1);
+  const minCol = Math.max(
+    0,
+    Math.floor(Math.min(...poly.map((p) => p.x)) / GROUND_METERS_PER_CELL) - 1,
+  );
+  const maxCol = Math.min(
+    cols - 1,
+    Math.ceil(Math.max(...poly.map((p) => p.x)) / GROUND_METERS_PER_CELL) + 1,
+  );
+  const minRow = Math.max(
+    0,
+    Math.floor(Math.min(...poly.map((p) => p.z)) / GROUND_METERS_PER_CELL) - 1,
+  );
+  const maxRow = Math.min(
+    rows - 1,
+    Math.ceil(Math.max(...poly.map((p) => p.z)) / GROUND_METERS_PER_CELL) + 1,
+  );
   const out: number[] = [];
   for (let row = minRow; row <= maxRow; row++) {
     for (let col = minCol; col <= maxCol; col++) {
@@ -1080,14 +1298,17 @@ function carveTownWaterBasins(
   const protectedCells = new Set<number>();
   for (const b of buildings) {
     if (b.cornersM.length < 3) continue;
-    for (const idx of buildingFootprintCells(cols, rows, b.cornersM)) protectedCells.add(idx);
+    for (const idx of buildingFootprintCells(cols, rows, b.cornersM))
+      protectedCells.add(idx);
   }
 
   for (const body of waterBodies) {
     if (body.pointsM.length < 3) continue;
     const c = centroidOf(body.pointsM);
     const shoreEnc = sampleEncodedHeight(original, cols, rows, c.x, c.z);
-    body.surfaceY = heightToMeters(Math.max(0, shoreEnc - WATER_SURFACE_DROP_ENC));
+    body.surfaceY = heightToMeters(
+      Math.max(0, shoreEnc - WATER_SURFACE_DROP_ENC),
+    );
     const bedEnc = Math.max(0, shoreEnc - WATER_BED_DROP_ENC);
     for (const idx of polygonCellIndices(cols, rows, body.pointsM)) {
       if (protectedCells.has(idx)) continue; // buildings win — keep their level pad
@@ -1099,7 +1320,9 @@ function carveTownWaterBasins(
     if (deck.cornersM.length < 3) continue;
     const c = centroidOf(deck.cornersM);
     const shoreEnc = sampleEncodedHeight(original, cols, rows, c.x, c.z);
-    deck.topY = heightToMeters(Math.max(0, shoreEnc - WATER_SURFACE_DROP_ENC)) + DECK_CLEARANCE_M;
+    deck.topY =
+      heightToMeters(Math.max(0, shoreEnc - WATER_SURFACE_DROP_ENC)) +
+      DECK_CLEARANCE_M;
   }
 }
 
@@ -1174,13 +1397,22 @@ function splitWallRingAtGates(
 }
 
 /** Yaw of the wall at the ring point nearest to `p` (segment direction). */
-function wallTangentAt(ring: Array<{ x: number; z: number }>, p: { x: number; z: number }): number {
-  let best = 0, bestD = Infinity;
+function wallTangentAt(
+  ring: Array<{ x: number; z: number }>,
+  p: { x: number; z: number },
+): number {
+  let best = 0,
+    bestD = Infinity;
   for (let i = 0; i < ring.length; i++) {
-    const a = ring[i], b = ring[(i + 1) % ring.length];
-    const mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2;
+    const a = ring[i],
+      b = ring[(i + 1) % ring.length];
+    const mx = (a.x + b.x) / 2,
+      mz = (a.z + b.z) / 2;
     const d = (mx - p.x) ** 2 + (mz - p.z) ** 2;
-    if (d < bestD) { bestD = d; best = Math.atan2(b.z - a.z, b.x - a.x); }
+    if (d < bestD) {
+      bestD = d;
+      best = Math.atan2(b.z - a.z, b.x - a.x);
+    }
   }
   return best;
 }
@@ -1192,10 +1424,30 @@ function buildingFootprintCells(
 ): number[] {
   // The bounds trim the scan to the plot's neighborhood; the quad test below
   // remains the source of truth for rotated or skewed footprints.
-  const minCol = Math.max(0, Math.floor(Math.min(...corners.map((corner) => corner.x)) / GROUND_METERS_PER_CELL) - 1);
-  const maxCol = Math.min(cols - 1, Math.ceil(Math.max(...corners.map((corner) => corner.x)) / GROUND_METERS_PER_CELL) + 1);
-  const minRow = Math.max(0, Math.floor(Math.min(...corners.map((corner) => corner.z)) / GROUND_METERS_PER_CELL) - 1);
-  const maxRow = Math.min(rows - 1, Math.ceil(Math.max(...corners.map((corner) => corner.z)) / GROUND_METERS_PER_CELL) + 1);
+  const minCol = Math.max(
+    0,
+    Math.floor(
+      Math.min(...corners.map((corner) => corner.x)) / GROUND_METERS_PER_CELL,
+    ) - 1,
+  );
+  const maxCol = Math.min(
+    cols - 1,
+    Math.ceil(
+      Math.max(...corners.map((corner) => corner.x)) / GROUND_METERS_PER_CELL,
+    ) + 1,
+  );
+  const minRow = Math.max(
+    0,
+    Math.floor(
+      Math.min(...corners.map((corner) => corner.z)) / GROUND_METERS_PER_CELL,
+    ) - 1,
+  );
+  const maxRow = Math.min(
+    rows - 1,
+    Math.ceil(
+      Math.max(...corners.map((corner) => corner.z)) / GROUND_METERS_PER_CELL,
+    ) + 1,
+  );
   const indexes: number[] = [];
 
   for (let row = minRow; row <= maxRow; row++) {
@@ -1204,14 +1456,18 @@ function buildingFootprintCells(
         x: (col + 0.5) * GROUND_METERS_PER_CELL,
         z: (row + 0.5) * GROUND_METERS_PER_CELL,
       };
-      if (pointInsideConvexQuad(center, corners)) indexes.push(row * cols + col);
+      if (pointInsideConvexQuad(center, corners))
+        indexes.push(row * cols + col);
     }
   }
 
   return indexes;
 }
 
-function pointInsideConvexQuad(point: { x: number; z: number }, corners: Array<{ x: number; z: number }>): boolean {
+function pointInsideConvexQuad(
+  point: { x: number; z: number },
+  corners: Array<{ x: number; z: number }>,
+): boolean {
   // Generated plot corners form convex quads. A point inside the plot stays on
   // the same side of every directed edge.
   let sign = 0;
@@ -1270,10 +1526,18 @@ function bodyPlanToOccupantBody(plan: BodyPlan): OccupantBody {
 }
 
 function getBusinessTypeForPlot(role: string, plotId: number): BusinessType {
-  const types: BusinessType[] = role === 'market'
-    ? ['general_store', 'tavern', 'apothecary', 'trading_company', 'enchanter_shop']
-    : ['smithy', 'mine', 'farm', 'trading_company'];
-  const index = Math.abs(Math.imul(plotId + 17, 2654435761) >>> 8) % types.length;
+  const types: BusinessType[] =
+    role === "market"
+      ? [
+          "general_store",
+          "tavern",
+          "apothecary",
+          "trading_company",
+          "enchanter_shop",
+        ]
+      : ["smithy", "mine", "farm", "trading_company"];
+  const index =
+    Math.abs(Math.imul(plotId + 17, 2654435761) >>> 8) % types.length;
   return types[index];
 }
 
@@ -1302,7 +1566,9 @@ export function canonicalArtifactTownForSite(
   const feetPlan = transformTownPlan(enginePlan, placeScale, placeDx, placeDy);
   // Architecture style: the burg's FMG culture TYPE picks the family; per-plot
   // stamps are hashed frame-invariantly so the 2D map picks the same styles.
-  const family = styleFamilyForCultureType(getBurgCultureType(worldSeed, site.burgId));
+  const family = styleFamilyForCultureType(
+    getBurgCultureType(worldSeed, site.burgId),
+  );
   const adapted = toArtifactPlan(feetPlan, site.burgId, family);
   return { ...adapted, family };
 }
@@ -1357,12 +1623,19 @@ export function canonicalTownWaterAndDecks(
   // The burg's architecture family (same resolution as canonicalArtifactTownForSite)
   // supplies the deck detailing — pilings/railings/arch — for docks AND bridges;
   // the renderer decides what applies per kind.
-  const family = styleFamilyForCultureType(getBurgCultureType(worldSeed, site.burgId));
+  const family = styleFamilyForCultureType(
+    getBurgCultureType(worldSeed, site.burgId),
+  );
   const decks: GroundDeck[] = [];
   for (const c of feetPlan.civic) {
-    if (c.kind !== 'dock' && c.kind !== 'bridge') continue;
+    if (c.kind !== "dock" && c.kind !== "bridge") continue;
     // Preserve the civic kind end-to-end (TG5) — it tints the deck downstream.
-    decks.push({ cornersM: c.polygon.map(([fx, fy]) => toM(fx, fy)), topY: 0, kind: c.kind, detail: family.deckDetail });
+    decks.push({
+      cornersM: c.polygon.map(([fx, fy]) => toM(fx, fy)),
+      topY: 0,
+      kind: c.kind,
+      detail: family.deckDetail,
+    });
   }
   return { waterBodies, decks };
 }
@@ -1411,14 +1684,20 @@ function groundTowns(
   const townPlans: Array<{ burgId: number; plan: TownPlan }> = [];
 
   for (const t of region?.townSites ?? []) {
-    const xM = (t.envelope.x + t.envelope.width / 2 - local.bounds.x) * FEET_TO_METERS;
-    const zM = (t.envelope.y + t.envelope.height / 2 - local.bounds.y) * FEET_TO_METERS;
-    const halfM = (Math.max(t.envelope.width, t.envelope.height) / 2) * FEET_TO_METERS;
-    if (xM < -halfM || xM > exX + halfM || zM < -halfM || zM > exZ + halfM) continue;
+    const xM =
+      (t.envelope.x + t.envelope.width / 2 - local.bounds.x) * FEET_TO_METERS;
+    const zM =
+      (t.envelope.y + t.envelope.height / 2 - local.bounds.y) * FEET_TO_METERS;
+    const halfM =
+      (Math.max(t.envelope.width, t.envelope.height) / 2) * FEET_TO_METERS;
+    if (xM < -halfM || xM > exX + halfM || zM < -halfM || zM > exZ + halfM)
+      continue;
 
     // Real burg name from the bridge atlas so 3D surfaces (nameplates) can
     // show "Stren" instead of the internal "Town - wf-town-15" id.
-    const burgName = getBridgeAtlas(worldSeed).pack.burgs?.[t.burgId]?.name ?? `Burg ${t.burgId}`;
+    const burgName =
+      getBridgeAtlas(worldSeed).pack.burgs?.[t.burgId]?.name ??
+      `Burg ${t.burgId}`;
     towns.push({ burgId: t.burgId, name: burgName, xM, zM, halfM });
 
     // Keep the controlling state and stationed regiments beside the same town
@@ -1455,7 +1734,7 @@ function groundTowns(
         // 2.5 m floor: thinner ribbons vanish against grass at walking
         // scale (Remy shot-1 review) — a village lane reads at ~8 ft.
         widthM: Math.max(2.5, s.widthFt * FEET_TO_METERS),
-        sourceKind: 'town-street',
+        sourceKind: "town-street",
         // Street tier tint (avenue/street/lane) → vertex-colored ribbon in 3D.
         colorHex: s.colorHex,
       });
@@ -1488,10 +1767,19 @@ function groundTowns(
       const allGates = [...gatesM, ...roadGatesM];
       if (allGates.length === 0) {
         ringM.push(ringM[0]); // no gate — keep the ring closed
-        planWalls.push({ points: ringM, widthM: 1.2, colorHex: adapted.family.wallTint });
+        planWalls.push({
+          points: ringM,
+          widthM: 1.2,
+          colorHex: adapted.family.wallTint,
+        });
       } else {
         for (const run of splitWallRingAtGates(ringM, allGates)) {
-          if (run.length >= 2) planWalls.push({ points: run, widthM: 1.2, colorHex: adapted.family.wallTint });
+          if (run.length >= 2)
+            planWalls.push({
+              points: run,
+              widthM: 1.2,
+              colorHex: adapted.family.wallTint,
+            });
         }
       }
       // Record each road gate as a gatehouse placement (mesh task consumes
@@ -1534,7 +1822,7 @@ function groundTowns(
           // Fallback deterministic name generation if not in state
           const seedValue = worldSeed + t.burgId + o.workPlotId;
           const rng = new SeededRandom(seedValue);
-          const pPlot = plan.plots.find(pl => pl.id === o.workPlotId);
+          const pPlot = plan.plots.find((pl) => pl.id === o.workPlotId);
           if (pPlot) {
             const tempNpcName = o.name || nameFor(rng);
             o.name = tempNpcName;
@@ -1544,15 +1832,27 @@ function groundTowns(
     }
 
     rosters.push(roster);
-    const byPlot = new Map<number, Array<Occupant & { atWork: boolean; resolvedPlotId: number; activity: ActivityKind }>>();
+    const byPlot = new Map<
+      number,
+      Array<
+        Occupant & {
+          atWork: boolean;
+          resolvedPlotId: number;
+          activity: ActivityKind;
+        }
+      >
+    >();
     for (const o of roster.occupants) {
       // Place via the CANONICAL schedule (`occupantLocationAt`) — the same source
       // of truth the 2D agent-sim uses — so the 3D scene and the overlay never
       // disagree about where someone is (was a cruder, divergent `isAtWork`).
       const block = occupantLocationAt(o, hour);
       const placeAt = block.plotId;
-      const atWork = block.activity === 'working';
-      byPlot.set(placeAt, [...(byPlot.get(placeAt) ?? []), { ...o, atWork, resolvedPlotId: placeAt, activity: block.activity }]);
+      const atWork = block.activity === "working";
+      byPlot.set(placeAt, [
+        ...(byPlot.get(placeAt) ?? []),
+        { ...o, atWork, resolvedPlotId: placeAt, activity: block.activity },
+      ]);
     }
 
     // Founding-household briefs (BGv2 Task 11): each building generates FROM the
@@ -1579,14 +1879,17 @@ function groundTowns(
     // folded in inside the plot loop. Populated towns always have a resolvable
     // burg + biome; this is the one real path, no style-less shortcut for them.
     const styleAtlas = getBridgeAtlas(worldSeed);
-    const styleBurg = styleAtlas.pack.burgs?.[t.burgId] as { cell?: number } | undefined;
+    const styleBurg = styleAtlas.pack.burgs?.[t.burgId] as
+      { cell?: number } | undefined;
     const burgCultureType = getBurgCultureType(worldSeed, t.burgId);
     const burgBiomeId =
-      styleBurg?.cell !== undefined ? styleAtlas.pack.cells.biome?.[styleBurg.cell] : undefined;
+      styleBurg?.cell !== undefined
+        ? styleAtlas.pack.cells.biome?.[styleBurg.cell]
+        : undefined;
     if (burgBiomeId === undefined) {
       throw new Error(
         `groundChunkLoader: cannot resolve biome for burg ${t.burgId} in world ${worldSeed} ` +
-        `(cell ${styleBurg?.cell ?? 'none'}) — required for the building StyleContext.`,
+          `(cell ${styleBurg?.cell ?? "none"}) — required for the building StyleContext.`,
       );
     }
     const burgClimate = climateForBiomeId(burgBiomeId);
@@ -1603,10 +1906,15 @@ function groundTowns(
       // Skip plots that cover no ground tile (sub-5ft slivers): they can't get a
       // level pad, so they'd render as ungrounded boxes. Every kept building is
       // guaranteed a pad (invariant the terrain-pad pass relies on).
-      if (gridCols > 0 && gridRows > 0 && buildingFootprintCells(gridCols, gridRows, cornersM).length === 0) continue;
+      if (
+        gridCols > 0 &&
+        gridRows > 0 &&
+        buildingFootprintCells(gridCols, gridRows, cornersM).length === 0
+      )
+        continue;
       const heightM = buildingShellHeightM(p.storeys ?? 1);
 
-      const isBiz = p.role === 'market' || p.role === 'workshop';
+      const isBiz = p.role === "market" || p.role === "workshop";
       let bizName: string | undefined;
 
       if (isBiz) {
@@ -1643,11 +1951,16 @@ function groundTowns(
       // briefless generation, byte-identical to before.
       // Rendering and save compaction share this exact household/style input;
       // otherwise a folded history could target a different canonical house.
-      const plotInput: InteriorPlotInput = buildingPlotInput(plan, p, townSeed, {
-        cultureType: burgCultureType,
-        climate: burgClimate,
-        eventLog: opts.buildingEventLogs?.[t.burgId]?.[p.id],
-      });
+      const plotInput: InteriorPlotInput = buildingPlotInput(
+        plan,
+        p,
+        townSeed,
+        {
+          cultureType: burgCultureType,
+          climate: burgClimate,
+          eventLog: opts.buildingEventLogs?.[t.burgId]?.[p.id],
+        },
+      );
       // LIVING interiors — live clock: a populated building bakes its OWN
       // family's FULL 24-hour schedule (which hours the windows glow, the hearth
       // is lit, and where each member stands every hour) instead of a single
@@ -1671,7 +1984,7 @@ function groundTowns(
               name: member?.name ?? o.name,
               // AgeBand-typed for generateBody: mirror the old inline bake
               // (member.ageBand, 'adult' when a member slot is missing).
-              ageBand: member?.ageBand ?? 'adult',
+              ageBand: member?.ageBand ?? "adult",
               homePlotId: p.id,
               occupation: o.occupation,
             };
@@ -1681,7 +1994,10 @@ function groundTowns(
               // Ancestry group — the entity renderer turns it into a real body
               ...(member?.race ? { race: member.race } : {}),
               body: bodyPlanToOccupantBody(
-                generateBody(occLike, childSeedPath(townSeed, `member:${p.id}:${o.memberIndex}`)),
+                generateBody(
+                  occLike,
+                  childSeedPath(townSeed, `member:${p.id}:${o.memberIndex}`),
+                ),
               ),
               stationsByHour: o.stationsByHour,
             };
@@ -1712,7 +2028,14 @@ function groundTowns(
       // Window/hearth parts are now tagged with lightRole and the renderer
       // decides emissive live from the schedule — buildInterior no longer paints
       // lit flags, so pass false/false.
-      const interior = buildInterior(plotInput, townSeed, heightM, occFigures, false, false);
+      const interior = buildInterior(
+        plotInput,
+        townSeed,
+        heightM,
+        occFigures,
+        false,
+        false,
+      );
       // Interior envelope in PLAN FEET (blueprint frame): the frame occupant
       // stations resolve in. envelope.wallWidthM = plan.widthFt * FEET_TO_METERS,
       // so dividing recovers the exact plan-feet frame.
@@ -1725,7 +2048,7 @@ function groundTowns(
         cornersM,
         ...(p.ensemble ? { ensemble: { ...p.ensemble } } : {}),
         heightM,
-        role: p.role ?? 'house',
+        role: p.role ?? "house",
         // Style stamps from the canonical plan plot (architectureStyle slice);
         // the family flag says whether this burg's buildings get chimneys.
         wallColorHex: p.wallColorHex,
@@ -1778,7 +2101,11 @@ function groundTowns(
 }
 
 /** Encoded-height bilinear sample at world meters → true meters via heightToMeters. */
-export function groundSurfaceY(ground: GroundWorld, wxM: number, wzM: number): number {
+export function groundSurfaceY(
+  ground: GroundWorld,
+  wxM: number,
+  wzM: number,
+): number {
   const { cols, rows, heights: H } = ground;
   const clampX = (v: number) => Math.max(0, Math.min(cols - 1, v));
   const clampY = (v: number) => Math.max(0, Math.min(rows - 1, v));
@@ -1791,8 +2118,9 @@ export function groundSurfaceY(ground: GroundWorld, wxM: number, wzM: number): n
   const fx = gx - x0;
   const fy = gy - y0;
   const h = (xx: number, yy: number) => H[yy * cols + xx] ?? 0;
-  const enc = (h(x0, y0) * (1 - fx) + h(x1, y0) * fx) * (1 - fy) +
-              (h(x0, y1) * (1 - fx) + h(x1, y1) * fx) * fy;
+  const enc =
+    (h(x0, y0) * (1 - fx) + h(x1, y0) * fx) * (1 - fy) +
+    (h(x0, y1) * (1 - fx) + h(x1, y1) * fx) * fy;
   return heightToMeters(enc);
 }
 
@@ -1854,7 +2182,8 @@ export function buildGroundVegetation(
 
   for (const f of ground.features) {
     if (f.kind !== "tree" && f.kind !== "bush") continue;
-    if (f.xM < minX || f.xM >= minX + S || f.zM < minZ || f.zM >= minZ + S) continue;
+    if (f.xM < minX || f.xM >= minX + S || f.zM < minZ || f.zM >= minZ + S)
+      continue;
     const surfaceY = groundSurfaceY(ground, f.xM, f.zM);
     const rot = fhash01(f.id, 11) * Math.PI * 2;
     if (f.kind === "tree") {
@@ -2062,14 +2391,26 @@ export function sampleGroundChunk(
     lakes: ground.waterBodies.flatMap((b) => {
       const clipped = clipPolygonToChunk(b.pointsM, cx, cy);
       return clipped.length >= 3
-        ? [{ points: clipped.map((p) => pseudoGrid(p.x, p.z)), surfaceY: b.surfaceY }]
+        ? [
+            {
+              points: clipped.map((p) => pseudoGrid(p.x, p.z)),
+              surfaceY: b.surfaceY,
+            },
+          ]
         : [];
     }),
     decks: ground.decks.flatMap((d) => {
       const clipped = clipPolygonToChunk(d.cornersM, cx, cy);
       // Carry the dock/bridge kind through (TG5) so the geometry tints each deck.
       return clipped.length >= 3
-        ? [{ points: clipped.map((p) => pseudoGrid(p.x, p.z)), topY: d.topY, kind: d.kind, detail: d.detail }]
+        ? [
+            {
+              points: clipped.map((p) => pseudoGrid(p.x, p.z)),
+              topY: d.topY,
+              kind: d.kind,
+              detail: d.detail,
+            },
+          ]
         : [];
     }),
     // Road-gate gatehouses whose center falls in this chunk (sampler
@@ -2119,7 +2460,8 @@ export function sampleGroundChunk(
           surfaceY: groundSurfaceY(ground, b.xM, b.zM),
           heightM: b.heightM,
           role: b.role,
-          colorHex: b.wallColorHex ?? (b.role === 'market' ? '#c8923f' : '#b09a72'), // legacy-compat for unstyled producers, not a style fallback
+          colorHex:
+            b.wallColorHex ?? (b.role === "market" ? "#c8923f" : "#b09a72"), // legacy-compat for unstyled producers, not a style fallback
           roofForm: b.roofForm,
           roofColorHex: b.roofColorHex,
           chimney: b.chimney,
@@ -2165,7 +2507,9 @@ export function sampleGroundChunk(
           // the person's current activity (from the unified schedule) so walking
           // up reads e.g. "Mara Fen · asleep".
           markerOnly: true,
-          name: o.activity ? `${o.name} · ${ACTIVITY_LABEL[o.activity]}` : o.name,
+          name: o.activity
+            ? `${o.name} · ${ACTIVITY_LABEL[o.activity]}`
+            : o.name,
           labelRangeM: 12,
         })),
       // Mapped hostiles: these render as high-contrast red boxes on the
@@ -2211,7 +2555,10 @@ function clipPolygonToChunk(
   cy: number,
 ): Array<{ x: number; z: number }> {
   const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
-  const minX = cx * S, minZ = cy * S, maxX = minX + S, maxZ = minZ + S;
+  const minX = cx * S,
+    minZ = cy * S,
+    maxX = minX + S,
+    maxZ = minZ + S;
   type P = { x: number; z: number };
   // inside-tests + intersection per rectangle edge (left, right, top, bottom).
   const clipEdge = (
@@ -2234,16 +2581,38 @@ function clipPolygonToChunk(
     }
     return out;
   };
-  const lerpX = (a: P, b: P, x: number): P => ({ x, z: a.z + (b.z - a.z) * ((x - a.x) / (b.x - a.x)) });
-  const lerpZ = (a: P, b: P, z: number): P => ({ x: a.x + (b.x - a.x) * ((z - a.z) / (b.z - a.z)), z });
+  const lerpX = (a: P, b: P, x: number): P => ({
+    x,
+    z: a.z + (b.z - a.z) * ((x - a.x) / (b.x - a.x)),
+  });
+  const lerpZ = (a: P, b: P, z: number): P => ({
+    x: a.x + (b.x - a.x) * ((z - a.z) / (b.z - a.z)),
+    z,
+  });
   let ring: P[] = poly.map((p) => ({ x: p.x, z: p.z }));
-  ring = clipEdge(ring, (p) => p.x >= minX, (a, b) => lerpX(a, b, minX));
+  ring = clipEdge(
+    ring,
+    (p) => p.x >= minX,
+    (a, b) => lerpX(a, b, minX),
+  );
   if (ring.length < 3) return [];
-  ring = clipEdge(ring, (p) => p.x <= maxX, (a, b) => lerpX(a, b, maxX));
+  ring = clipEdge(
+    ring,
+    (p) => p.x <= maxX,
+    (a, b) => lerpX(a, b, maxX),
+  );
   if (ring.length < 3) return [];
-  ring = clipEdge(ring, (p) => p.z >= minZ, (a, b) => lerpZ(a, b, minZ));
+  ring = clipEdge(
+    ring,
+    (p) => p.z >= minZ,
+    (a, b) => lerpZ(a, b, minZ),
+  );
   if (ring.length < 3) return [];
-  ring = clipEdge(ring, (p) => p.z <= maxZ, (a, b) => lerpZ(a, b, maxZ));
+  ring = clipEdge(
+    ring,
+    (p) => p.z <= maxZ,
+    (a, b) => lerpZ(a, b, maxZ),
+  );
   return ring.length >= 3 ? ring : [];
 }
 
@@ -2259,7 +2628,11 @@ function clipGroundPolylineToChunk(
   line: GroundPolyline,
   cx: number,
   cy: number,
-): Array<{ points: { x: number; y: number }[]; width: number[]; colorHex?: string }> {
+): Array<{
+  points: { x: number; y: number }[];
+  width: number[];
+  colorHex?: string;
+}> {
   const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
   const M = WORLD3D_CONFIG.METERS_PER_CELL;
   const minX = cx * S;
@@ -2274,9 +2647,13 @@ function clipGroundPolylineToChunk(
   const out: Array<{ x: number; z: number }> = [];
   const push = (p: { x: number; z: number }) => {
     const last = out[out.length - 1];
-    if (!last || Math.abs(last.x - p.x) > 1e-6 || Math.abs(last.z - p.z) > 1e-6) out.push(p);
+    if (!last || Math.abs(last.x - p.x) > 1e-6 || Math.abs(last.z - p.z) > 1e-6)
+      out.push(p);
   };
-  const edgeHits = (a: { x: number; z: number }, b: { x: number; z: number }) => {
+  const edgeHits = (
+    a: { x: number; z: number },
+    b: { x: number; z: number },
+  ) => {
     const hits: Array<{ t: number; x: number; z: number }> = [];
     const dx = b.x - a.x;
     const dz = b.z - a.z;
@@ -2284,12 +2661,23 @@ function clipGroundPolylineToChunk(
       if (t <= 0 || t >= 1 || !Number.isFinite(t)) return;
       const x = a.x + dx * t;
       const z = a.z + dz * t;
-      if (x >= minX - 1e-6 && x <= maxX + 1e-6 && z >= minZ - 1e-6 && z <= maxZ + 1e-6) {
+      if (
+        x >= minX - 1e-6 &&
+        x <= maxX + 1e-6 &&
+        z >= minZ - 1e-6 &&
+        z <= maxZ + 1e-6
+      ) {
         hits.push({ t, x, z });
       }
     };
-    if (dx !== 0) { tryEdge((minX - a.x) / dx); tryEdge((maxX - a.x) / dx); }
-    if (dz !== 0) { tryEdge((minZ - a.z) / dz); tryEdge((maxZ - a.z) / dz); }
+    if (dx !== 0) {
+      tryEdge((minX - a.x) / dx);
+      tryEdge((maxX - a.x) / dx);
+    }
+    if (dz !== 0) {
+      tryEdge((minZ - a.z) / dz);
+      tryEdge((maxZ - a.z) / dz);
+    }
     hits.sort((p, q) => p.t - q.t);
     return hits;
   };
@@ -2303,13 +2691,15 @@ function clipGroundPolylineToChunk(
   }
 
   if (out.length < 2) return [];
-  return [{
-    points: out.map((p) => ({ x: p.x / M, y: p.z / M })),
-    width: out.map(() => line.widthM / M),
-    // Style-family tint (e.g. wall runs) rides through so wallGeometry can
-    // vertex-color the extruded barrier per town.
-    colorHex: line.colorHex,
-  }];
+  return [
+    {
+      points: out.map((p) => ({ x: p.x / M, y: p.z / M })),
+      width: out.map(() => line.widthM / M),
+      // Style-family tint (e.g. wall runs) rides through so wallGeometry can
+      // vertex-color the extruded barrier per town.
+      colorHex: line.colorHex,
+    },
+  ];
 }
 
 /**
@@ -2346,8 +2736,16 @@ export function buildGroundLoaderFromWorld(
   // runs — so the inline (main-thread) mesh and the worker mesh are identical.
   // Honors the requested LOD tier's resolution (W3D-G10 / T7): distant chunks
   // build coarser, near ones stay full-detail.
-  return async (cx: number, cy: number, lod?: LodTier): Promise<ChunkMeshBundle> =>
-    handleGroundChunkRequest(ground, { cx, cy, resolution: resolutionForLod(lod) });
+  return async (
+    cx: number,
+    cy: number,
+    lod?: LodTier,
+  ): Promise<ChunkMeshBundle> =>
+    handleGroundChunkRequest(ground, {
+      cx,
+      cy,
+      resolution: resolutionForLod(lod),
+    });
 }
 
 // ============================================================================
@@ -2371,7 +2769,10 @@ function pointSegmentDistanceSq(
   const lengthSq = dx * dx + dz * dz;
   if (lengthSq <= 1e-9) return (px - a.x) ** 2 + (pz - a.z) ** 2;
 
-  const t = Math.max(0, Math.min(1, ((px - a.x) * dx + (pz - a.z) * dz) / lengthSq));
+  const t = Math.max(
+    0,
+    Math.min(1, ((px - a.x) * dx + (pz - a.z) * dz) / lengthSq),
+  );
   const nearestX = a.x + dx * t;
   const nearestZ = a.z + dz * t;
   return (px - nearestX) ** 2 + (pz - nearestZ) ** 2;
@@ -2397,13 +2798,23 @@ function worldforgeRoadSurfaceAt(
     const hitRadiusSq = hitRadiusM * hitRadiusM;
 
     for (let pointIndex = 1; pointIndex < road.points.length; pointIndex += 1) {
-      if (pointSegmentDistanceSq(wx, wz, road.points[pointIndex - 1], road.points[pointIndex]) <= hitRadiusSq) {
+      if (
+        pointSegmentDistanceSq(
+          wx,
+          wz,
+          road.points[pointIndex - 1],
+          road.points[pointIndex],
+        ) <= hitRadiusSq
+      ) {
         return {
-          kind: 'road',
-          source: 'worldforge-road',
-          sourceRole: road.sourceKind === 'region-road'
-            ? 'regional-route'
-            : road.sourceKind === 'town-street' ? 'town-street' : 'unclassified',
+          kind: "road",
+          source: "worldforge-road",
+          sourceRole:
+            road.sourceKind === "region-road"
+              ? "regional-route"
+              : road.sourceKind === "town-street"
+                ? "town-street"
+                : "unclassified",
           sourceIndex,
           widthMeters: road.widthM,
         };
@@ -2426,17 +2837,22 @@ function worldforgeCrossingAt(
     const dx = wx - crossing.xM;
     const dz = wz - crossing.zM;
     const along = dx * crossing.roadDirection.x + dz * crossing.roadDirection.z;
-    const across = dx * -crossing.roadDirection.z + dz * crossing.roadDirection.x;
+    const across =
+      dx * -crossing.roadDirection.z + dz * crossing.roadDirection.x;
     if (
-      Math.abs(along) <= crossing.spanM / 2 + tileReachM
-      && Math.abs(across) <= crossing.widthM / 2 + tileReachM
+      Math.abs(along) <= crossing.spanM / 2 + tileReachM &&
+      Math.abs(across) <= crossing.widthM / 2 + tileReachM
     ) {
       return {
         kind: crossing.kind,
-        source: 'worldforge-crossing',
+        source: "worldforge-crossing",
         sourceCrossingId: crossing.id,
-        ...(crossing.roadSourceIndex == null ? {} : { roadSourceIndex: crossing.roadSourceIndex }),
-        ...(crossing.riverSourceIndex == null ? {} : { riverSourceIndex: crossing.riverSourceIndex }),
+        ...(crossing.roadSourceIndex == null
+          ? {}
+          : { roadSourceIndex: crossing.roadSourceIndex }),
+        ...(crossing.riverSourceIndex == null
+          ? {}
+          : { riverSourceIndex: crossing.riverSourceIndex }),
         roadDirection: {
           x: crossing.roadDirection.x,
           y: crossing.roadDirection.z,
@@ -2460,46 +2876,49 @@ function worldforgeCrossingAt(
 // from every decorated or material-bearing cell they happen to cover.
 // ============================================================================
 
-type TacticalNaturalFeatureKind = 'tree' | 'bush' | 'boulder';
+type TacticalNaturalFeatureKind = "tree" | "bush" | "boulder";
 
-const NATURAL_FEATURE_TARGET_FACTS: Record<TacticalNaturalFeatureKind, {
-  name: string;
-  decoration: Exclude<BattleMapDecoration, null>;
-  size: string;
-  footprintRadiusM: number;
-  blocksMovement: boolean;
-  blocksLoS: boolean;
-}> = {
+const NATURAL_FEATURE_TARGET_FACTS: Record<
+  TacticalNaturalFeatureKind,
+  {
+    name: string;
+    decoration: Exclude<BattleMapDecoration, null>;
+    size: string;
+    footprintRadiusM: number;
+    blocksMovement: boolean;
+    blocksLoS: boolean;
+  }
+> = {
   tree: {
-    name: 'Tree',
-    decoration: 'tree',
-    size: 'Large',
+    name: "Tree",
+    decoration: "tree",
+    size: "Large",
     footprintRadiusM: 1.2,
     blocksMovement: true,
     blocksLoS: true,
   },
   bush: {
-    name: 'Bush',
-    decoration: 'bush',
-    size: 'Small',
+    name: "Bush",
+    decoration: "bush",
+    size: "Small",
     footprintRadiusM: 0.8,
     blocksMovement: false,
     blocksLoS: false,
   },
   boulder: {
-    name: 'Boulder',
-    decoration: 'boulder',
-    size: 'Medium',
+    name: "Boulder",
+    decoration: "boulder",
+    size: "Medium",
     footprintRadiusM: 1,
     blocksMovement: true,
     blocksLoS: true,
   },
 };
 
-const PROP_OBJECT_SIZE: Record<'S' | 'M' | 'L', string> = {
-  S: 'Small',
-  M: 'Medium',
-  L: 'Large',
+const PROP_OBJECT_SIZE: Record<"S" | "M" | "L", string> = {
+  S: "Small",
+  M: "Medium",
+  L: "Large",
 };
 
 /** Return the typed natural-feature facts only for kinds combat currently paints. */
@@ -2529,10 +2948,10 @@ function tacticalPositionForWorldAnchor(
 
   // Refuse objects whose full footprint lies beyond the tactical crop.
   if (
-    exactX < -0.5 - footprintCells
-    || exactX > width - 0.5 + footprintCells
-    || exactY < -0.5 - footprintCells
-    || exactY > height - 0.5 + footprintCells
+    exactX < -0.5 - footprintCells ||
+    exactX > width - 0.5 + footprintCells ||
+    exactY < -0.5 - footprintCells ||
+    exactY > height - 0.5 + footprintCells
   ) {
     return null;
   }
@@ -2569,14 +2988,26 @@ function representedNaturalFeaturePosition(
   if (!snapped) return null;
 
   let nearest: { position: Position; distance: number } | null = null;
-  for (let y = Math.max(0, snapped.y - 2); y <= Math.min(height - 1, snapped.y + 2); y += 1) {
-    for (let x = Math.max(0, snapped.x - 2); x <= Math.min(width - 1, snapped.x + 2); x += 1) {
+  for (
+    let y = Math.max(0, snapped.y - 2);
+    y <= Math.min(height - 1, snapped.y + 2);
+    y += 1
+  ) {
+    for (
+      let x = Math.max(0, snapped.x - 2);
+      x <= Math.min(width - 1, snapped.x + 2);
+      x += 1
+    ) {
       const tile = tiles.get(`${x}-${y}`);
       if (tile?.decoration !== facts.decoration) continue;
       const wx = playerX + (x - Math.floor(width / 2)) * GROUND_METERS_PER_CELL;
-      const wz = playerZ + (y - Math.floor(height / 2)) * GROUND_METERS_PER_CELL;
+      const wz =
+        playerZ + (y - Math.floor(height / 2)) * GROUND_METERS_PER_CELL;
       const distance = Math.hypot(wx - feature.xM, wz - feature.zM);
-      if (distance <= facts.footprintRadiusM && (!nearest || distance < nearest.distance)) {
+      if (
+        distance <= facts.footprintRadiusM &&
+        (!nearest || distance < nearest.distance)
+      ) {
         nearest = { position: { x, y }, distance };
       }
     }
@@ -2620,7 +3051,7 @@ function projectWorldforgeTargetableObjects(
       isMagical: false,
       isFixedToSurface: true,
       source: {
-        kind: 'worldforge-feature',
+        kind: "worldforge-feature",
         sourceId,
         sourceKind: feature.kind,
         worldMeters: { x: feature.xM, z: feature.zM },
@@ -2647,12 +3078,12 @@ function projectWorldforgeTargetableObjects(
     );
     if (!position) continue;
     const sourceId = [
-      'prop',
+      "prop",
       prop.defId,
       Math.round(prop.xM * 100),
       Math.round(prop.zM * 100),
       Math.round(prop.rotationRad * 1000),
-    ].join(':');
+    ].join(":");
     objects.push({
       id: `worldforge-${sourceId}`,
       name: definition.name,
@@ -2661,7 +3092,7 @@ function projectWorldforgeTargetableObjects(
       isWornOrCarried: false,
       isMagical: false,
       source: {
-        kind: 'worldforge-prop',
+        kind: "worldforge-prop",
         sourceId,
         sourceKind: prop.defId,
         worldMeters: { x: prop.xM, z: prop.zM },
@@ -2712,11 +3143,11 @@ function projectWorldforgeOccupants(
         const dy = tile.coordinates.y - sourcePosition.y;
         const distanceSq = dx * dx + dy * dy;
         if (
-          distanceSq < bestDistanceSq
-          || (distanceSq === bestDistanceSq && (
-            tile.coordinates.y < position.y
-            || (tile.coordinates.y === position.y && tile.coordinates.x < position.x)
-          ))
+          distanceSq < bestDistanceSq ||
+          (distanceSq === bestDistanceSq &&
+            (tile.coordinates.y < position.y ||
+              (tile.coordinates.y === position.y &&
+                tile.coordinates.x < position.x)))
         ) {
           bestDistanceSq = distanceSq;
           position = tile.coordinates;
@@ -2727,10 +3158,10 @@ function projectWorldforgeOccupants(
       id: `worldforge-occupant:${occupant.burgId}:${occupant.occupantId}`,
       name: occupant.name,
       position,
-      activity: occupant.activity ?? 'unknown',
+      activity: occupant.activity ?? "unknown",
       moving: occupant.moving ?? false,
       source: {
-        kind: 'worldforge-occupant',
+        kind: "worldforge-occupant",
         burgId: occupant.burgId,
         occupantId: occupant.occupantId,
         worldMeters: { x: occupant.xM, z: occupant.zM },
@@ -2785,38 +3216,50 @@ export function extractLocalTerrainPatch(
 
       // 1. Elevation calculation: Sample the ground surface height in meters,
       // then convert it back to the BattleMap's internal elevation units.
-      // BattleMap renders with a vertical ELEVATION_SCALE of 0.3, so we divide
-      // the real height in meters by 0.3.
+      // BattleMap stores relief in renderer units, so divide by the shared
+      // metres-per-unit constant. TerrainMesh and the 2D player readout both
+      // import this contract instead of repeating a magic 0.3 value.
       const realHeightM = groundSurfaceY(ground, wx, wz);
-      const elevation = realHeightM / 0.3;
+      const elevation = realHeightM / BATTLE_MAP_ELEVATION_METERS_PER_UNIT;
 
       // 2. Biome lookup: Sample the nearest biome from the GroundWorld grid.
-      const bx = Math.max(0, Math.min(ground.cols - 1, Math.round(wx / GROUND_METERS_PER_CELL)));
-      const by = Math.max(0, Math.min(ground.rows - 1, Math.round(wz / GROUND_METERS_PER_CELL)));
+      const bx = Math.max(
+        0,
+        Math.min(ground.cols - 1, Math.round(wx / GROUND_METERS_PER_CELL)),
+      );
+      const by = Math.max(
+        0,
+        Math.min(ground.rows - 1, Math.round(wz / GROUND_METERS_PER_CELL)),
+      );
       const groundBiome = ground.biomeIds[by * ground.cols + bx] ?? "plains";
 
       // Map GroundWorld biome to a valid BattleMapTerrain value
-      let terrain: BattleMapTerrain = 'grass';
-      if (groundBiome === 'ocean' || groundBiome === 'water') {
-        terrain = 'water';
-      } else if (groundBiome === 'desert') {
-        terrain = 'sand';
-      } else if (groundBiome === 'swamp' || groundBiome === 'wetland') {
-        terrain = 'mud';
-      } else if (groundBiome === 'mountain' || groundBiome === 'tundra') {
-        terrain = 'rock';
+      let terrain: BattleMapTerrain = "grass";
+      if (groundBiome === "ocean" || groundBiome === "water") {
+        terrain = "water";
+      } else if (groundBiome === "desert") {
+        terrain = "sand";
+      } else if (groundBiome === "swamp" || groundBiome === "wetland") {
+        terrain = "mud";
+      } else if (groundBiome === "mountain" || groundBiome === "tundra") {
+        terrain = "rock";
       }
 
       // Roads are source-backed surfaces laid over the base material. Ordinary
       // water suppresses them; only a Region-authored crossing receipt may
       // continue the route and make those cells traversable.
-      const candidateCrossing = worldforgeCrossingAt(ground.crossings ?? [], wx, wz);
-      const candidateRoadSurface = terrain === 'water' && !candidateCrossing
-        ? undefined
-        : worldforgeRoadSurfaceAt(ground.roads, wx, wz);
+      const candidateCrossing = worldforgeCrossingAt(
+        ground.crossings ?? [],
+        wx,
+        wz,
+      );
+      const candidateRoadSurface =
+        terrain === "water" && !candidateCrossing
+          ? undefined
+          : worldforgeRoadSurfaceAt(ground.roads, wx, wz);
 
       // Initialize default properties for the tile
-      let blocksMovement = terrain === 'water';
+      let blocksMovement = terrain === "water";
       let blocksLoS = false;
       let decoration: BattleMapDecoration = null;
 
@@ -2848,7 +3291,7 @@ export function extractLocalTerrainPatch(
         // Perform the convex polygon point-in-polygon check
         if (pointInsideConvexQuad({ x: wx, z: wz }, b.cornersM)) {
           // Inside a building boundary: make it a floor tile and remove nature decorations.
-          terrain = 'floor';
+          terrain = "floor";
           blocksMovement = false;
           blocksLoS = false;
           decoration = null;
@@ -2860,7 +3303,11 @@ export function extractLocalTerrainPatch(
           // inverse of the render yaw — so `lz` lands in the SAME render-local
           // frame the renderer draws each part in. See sitePartTransform.ts.
           const { rotationY, doorZSign } = siteOrientationFromQuad(b.cornersM);
-          const { lx, lz } = worldOffsetToSiteLocal(wx - b.xM, wz - b.zM, rotationY);
+          const { lx, lz } = worldOffsetToSiteLocal(
+            wx - b.xM,
+            wz - b.zM,
+            rotationY,
+          );
 
           // Iterate through interior parts (walls and furniture)
           for (const p of b.parts) {
@@ -2868,19 +3315,24 @@ export function extractLocalTerrainPatch(
             // history evidence are exterior presentation dressing. They may
             // overlap the shell, but none may turn a valid floor cell into a
             // blocked tactical tile or alter line of sight.
-            if (p.tag === MOTIF_PART_TAG
-              || p.tag === MATERIAL_PART_TAG
-              || p.tag === WEATHERING_PART_TAG
-              || p.tag === ENSEMBLE_PART_TAG
-              || p.tag === HISTORY_PART_TAG) continue;
+            if (
+              p.tag === MOTIF_PART_TAG ||
+              p.tag === MATERIAL_PART_TAG ||
+              p.tag === WEATHERING_PART_TAG ||
+              p.tag === ENSEMBLE_PART_TAG ||
+              p.tag === HISTORY_PART_TAG
+            )
+              continue;
 
             // The part's render-local center: sitePartLocalOffset applies the
             // SAME -doorZSign z-flip the renderer draws with, so the walkability
             // band matches the drawn cells (not their mirror through the origin).
             const off = sitePartLocalOffset(p, doorZSign);
             // Add a small 0.1m tolerance buffer to ensure adjacent cells align cleanly
-            const inX = lx >= off.x - p.w / 2 - 0.1 && lx <= off.x + p.w / 2 + 0.1;
-            const inZ = lz >= off.z - p.d / 2 - 0.1 && lz <= off.z + p.d / 2 + 0.1;
+            const inX =
+              lx >= off.x - p.w / 2 - 0.1 && lx <= off.x + p.w / 2 + 0.1;
+            const inZ =
+              lz >= off.z - p.d / 2 - 0.1 && lz <= off.z + p.d / 2 + 0.1;
 
             // IN guard: only parts that intrude into the walkable band below head
             // height block the floor tile. Overhead parts — the door lintel
@@ -2902,9 +3354,12 @@ export function extractLocalTerrainPatch(
             if (inX && inZ && p.h > 0.5 && intrudesWalkBand && !isDoorLeaf) {
               blocksMovement = true;
               // Check if this part has a wall-colored hex code to determine LoS blocking
-              const isWall = p.colorHex === '#cfc7b8' || p.colorHex === '#c8923f' || p.colorHex === '#b09a72';
+              const isWall =
+                p.colorHex === "#cfc7b8" ||
+                p.colorHex === "#c8923f" ||
+                p.colorHex === "#b09a72";
               if (isWall) {
-                terrain = 'wall';
+                terrain = "wall";
                 blocksLoS = true;
               }
             }
@@ -2916,11 +3371,10 @@ export function extractLocalTerrainPatch(
       // a building overlap. Open road cells remain clear and normal-cost; props
       // imprint afterward and may still obstruct a road when that obstruction
       // is itself a source-world fact.
-      const surface = candidateRoadSurface
-        && terrain !== 'floor'
-        && terrain !== 'wall'
-        ? candidateRoadSurface
-        : undefined;
+      const surface =
+        candidateRoadSurface && terrain !== "floor" && terrain !== "wall"
+          ? candidateRoadSurface
+          : undefined;
       if (surface) {
         decoration = null;
         blocksMovement = false;
@@ -2930,11 +3384,10 @@ export function extractLocalTerrainPatch(
       // A crossing is independently source-authored and may therefore make
       // base water traversable. Structures retain precedence; explicit props
       // still imprint afterward and can obstruct the deck when the world says so.
-      const crossing = candidateCrossing
-        && terrain !== 'floor'
-        && terrain !== 'wall'
-        ? candidateCrossing
-        : undefined;
+      const crossing =
+        candidateCrossing && terrain !== "floor" && terrain !== "wall"
+          ? candidateCrossing
+          : undefined;
       if (crossing) {
         decoration = null;
         blocksMovement = false;
@@ -2946,7 +3399,7 @@ export function extractLocalTerrainPatch(
         coordinates: { x: tx, y: ty },
         terrain,
         elevation,
-        movementCost: blocksMovement ? 0 : crossing?.kind === 'ford' ? 2 : 1,
+        movementCost: blocksMovement ? 0 : crossing?.kind === "ford" ? 2 : 1,
         blocksLoS,
         blocksMovement,
         decoration,

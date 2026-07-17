@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/07/2026, 14:00:36
+ * Last Sync: 16/07/2026, 14:02:24
  * Dependents: components/layout/GameModals.tsx
- * Imports: 10 files
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -34,6 +34,7 @@ import {
   BestiaryEncounterResult,
   EncounterDifficultyTarget,
 } from '../../utils/world/bestiaryEncounterGenerator';
+import { createLocationFreeSimulationSourceGap } from '../../systems/combat/unsupportedBattlefieldSources';
 
 interface EncounterModalProps {
   isOpen: boolean;
@@ -213,10 +214,26 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
 
     if (monsters.length === 0) return;
 
+    const proposedCombatantCount = monsters.reduce(
+      (total, monster) => total + Math.max(0, monster.quantity),
+      0,
+    );
+
+    // The builder may propose encounter content, but it has no location picker
+    // and therefore cannot create a production battlefield. Preserve the mode
+    // and count in an explicit refusal instead of preparing placeless actors.
     onAction({
       type: 'START_BATTLE_MAP_ENCOUNTER',
       label: 'Simulate Battle',
-      payload: { startBattleMapEncounterData: { monsters } }
+      payload: {
+        startBattleMapEncounterData: {
+          monsters: [],
+          sourceGap: createLocationFreeSimulationSourceGap(
+            tab,
+            proposedCombatantCount,
+          ),
+        },
+      },
     });
   };
 

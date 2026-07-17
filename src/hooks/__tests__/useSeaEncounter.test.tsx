@@ -46,7 +46,7 @@ describe('useSeaEncounter', () => {
     expect(startBattleMock).not.toHaveBeenCalled();
   });
 
-  it('clears the marker and starts a battle-map fight for a hostile encounter', async () => {
+  it('clears the marker and enters an exact no-roster source gap', async () => {
     const pending = makePending();
     renderHook(() => useSeaEncounter({ pendingSeaEncounter: pending, dispatch }));
 
@@ -59,7 +59,24 @@ describe('useSeaEncounter', () => {
 
     expect(startBattleMock).toHaveBeenCalledTimes(1);
     const [, payload] = startBattleMock.mock.calls[0];
-    expect(payload).toEqual({ monsters: pending.monsters });
+    expect(payload).toEqual({
+      monsters: [],
+      sourceGap: {
+        code: 'sea-encounter-no-worldforge-battlefield',
+        encounterLabel: 'Daily sea encounter: pirates',
+        locationLabel: 'Open-sea voyage without a tactical location artifact',
+        missingSourceFacts: [
+          'WorldForge sea surface',
+          'vessel deck geometry',
+          'relative vessel headings',
+          'weather and boarding context',
+        ],
+        detail: expect.stringContaining(
+          '3 proposed foes were not converted into combatants',
+        ),
+      },
+    });
+    expect(JSON.stringify(payload)).not.toContain('Bandit');
   });
 
   it('does not re-fire for the same encounter id on re-render', async () => {

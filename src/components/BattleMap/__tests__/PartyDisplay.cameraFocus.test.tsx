@@ -10,7 +10,8 @@ import type { CombatCharacter } from '../../../types/combat';
  * The Party panel is visually separate from the BattleMap canvas, but players
  * expect each roster row to be a reliable way to find the matching creature on
  * a large scrollable board. These tests keep the small focus button from
- * accidentally behaving like the whole-card selection button.
+ * accidentally behaving like the whole-card selection button and preserve the
+ * source-authored role that distinguishes repeated opening monsters.
  */
 
 const makeCharacter = (id: string, name: string, team: 'player' | 'enemy'): CombatCharacter => ({
@@ -66,5 +67,35 @@ describe('PartyDisplay camera focus controls', () => {
 
     expect(onCenterCharacter).toHaveBeenCalledWith('hero');
     expect(onCharacterSelect).not.toHaveBeenCalled();
+  });
+
+  it('names an opening monster by its authored social function', () => {
+    const goblin = {
+      ...makeCharacter('opening-goblin-2', 'Goblin 2', 'enemy'),
+      worldSource: {
+        kind: 'worldforge-opening-threat' as const,
+        sceneReceiptId: 'worldforge-opening-scene:test',
+        sourceOpeningReceiptId: 'opening:42:cell:829',
+        entityId: 'opening:goblin:2',
+        monsterName: 'Goblin',
+        monsterOrdinal: 2,
+        socialRole: 'screen-left' as const,
+        worldGroundMeters: { x: 101, z: 198 },
+      },
+    };
+
+    render(
+      <PartyDisplay
+        characters={[goblin]}
+        onCharacterSelect={vi.fn()}
+        onCharacterInspect={vi.fn()}
+        currentTurnCharacterId={null}
+        autoCharacters={new Set()}
+        onToggleAuto={vi.fn()}
+        onCenterCharacter={vi.fn()}
+      />
+    );
+
+    expect(screen.getByTestId('opening-threat-roster-role')).toHaveTextContent('2 / Screen Left');
   });
 });

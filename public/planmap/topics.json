@@ -410,7 +410,7 @@
       "title": "Battle-map retirement",
       "sub": "after in-place passes the presentation-parity matrix",
       "campaign": "combat",
-      "status": "parked",
+      "status": "active",
       "deps": [
         {
           "id": "fip-slice1",
@@ -422,7 +422,55 @@
           "kind": "hard",
           "why": "Placeless fights (travel ambushes, story encounters) need their streamed-real-spot replacement before the conjured arena dies"
         }
-      ]
+      ],
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-battle-map.md",
+      "status_note": "Absorbed docs/projects/battle-map 2026-07-16 (post-codex state). Legacy-renderer debt gaps live here; the codex WorldForge battlefield-authority work (G8-G11 done) and G12/G13 monster-lifecycle continuation are recorded on combat-world-scenario-lab, and G14/G15 elevation/lab-viewport gaps on combat-elevation.",
+      "features": [
+        {
+          "title": "D17 generateBattleSetup utility contract: keep useBattleMapGeneration.ts filename, stateless helper documented (signature, determinism order, spawn zones, tactical scoring, MIN_SEP, <=50ms budget)",
+          "status": "done",
+          "history": {
+            "designed": "2026-06-10",
+            "built": "2026-06-20"
+          }
+        },
+        {
+          "title": "2D/3D renderer parity checklist + focused parity/visibility tests gate any movement/targeting/overlay/highlight change",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08"
+          }
+        },
+        {
+          "title": "G2 cave/dungeon connectivity guarantee: ensureConnectivity() carves deterministic corridors, seed-2 regression keeps it visible",
+          "status": "done",
+          "history": {
+            "built": "2026-06-08",
+            "builtApprox": true
+          }
+        },
+        {
+          "title": "G6 deterministic tactical spawn scoring: cover/elevation/chokepoint/enemy-distance ranking with MIN_SEP spread and dense-map fallback",
+          "status": "done",
+          "history": {
+            "built": "2026-06-19"
+          }
+        },
+        {
+          "title": "G5 VFXSystem.tsx (~1083 lines) split needs a renderer-boundary proof first: buildTileVisibilityOverlays export and spell-zone parity are the test anchors (routed from code-modularization-audit CMA-G5)",
+          "status": "active"
+        },
+        {
+          "title": "CMA-G15 CharacterActor.tsx / TerrainMesh.tsx splits need actor/terrain render-parity proof before any code moves",
+          "status": "active"
+        },
+        {
+          "title": "G7 control-option commands (approach, flee, drop, grovel, halt) need a non-blocking visual pose/variant contract with cache/fallback/restore, and a call on whether the 2D sprite or 3D actor surface owns the first slice",
+          "status": "active",
+          "decision": true
+        }
+      ],
+      "updated": "2026-07-16"
     },
     {
       "id": "world-reactions",
@@ -1889,10 +1937,10 @@
     {
       "id": "combat-world-scenario-lab",
       "title": "World-derived battlefield scenario lab and parity harness",
-      "sub": "North star chosen 2026-07-14: a battle map is a tactical projection of an actual generated location, not a separately decorated arena. Terrain, roads, water, vegetation, structures, props, occupants, factions, defenders, and encounter context should descend from the same WorldForge facts. The legacy generator remains only as an explicit sandbox. ?step=battlemaplab rebuilds real seed/cell scenarios through the off-thread WorldForge pipeline, runs the full combat shell, exposes World -> Region -> Local -> Ground -> Tactical provenance, compares source and tactical facts, and makes missing semantics visible. Built recipes cover road ambush, river crossing, wilderness, Legium objects, settlement edge, live watch, state patrol, and hostile opening. Production authority fails closed without a WorldForge projection. Road-backed travel rebuilds the committed destination and route; roadless destinations remain withheld. Hostile openings now freeze a game-authored seed/cell/site receipt and project the exact live player-position crop through the mounted GroundWorld. Enemy world positions and approach direction remain visibly unauthored, with a deterministic terrain-fit tactical policy. Adversarial screenshot review rejects technically valid but artificial composition, including repeated monster stamps, unreadable silhouettes, compass-perfect deployment, hodgepodge scatter, and weak encounter storytelling.",
+      "sub": "North star chosen 2026-07-14: a battle map is a tactical projection of an actual generated location, not a separately decorated arena. Terrain, roads, water, vegetation, structures, props, occupants, factions, defenders, and encounter context descend from the same WorldForge facts; the legacy generator remains an explicit sandbox. ?step=battlemaplab rebuilds real seed/cell scenarios through the off-thread WorldForge pipeline, mounts the full combat shell, exposes World -> Region -> Local -> Ground -> Tactical provenance, compares source and tactical facts, and makes missing semantics visible. Production authority fails closed without a WorldForge projection. Every audited production launcher is now source-backed or has a distinct deterministic no-roster refusal; static authored towns, sea encounters, and location-free simulations no longer prepare substitute actors. Hostile openings author exact threat bodies, roles, approach, posture/load/facing, ecology, and one immutable combat resolution; the deterministic aftermath return removes withdrawals and preserves source bodies, site condition, and disturbance outside initiative in both 2D and WebGL 3D. Tactical relief reports selected-relative feet with five-foot contours and hillshade. Adversarial review remains unforgiving: steep cliff/slope mechanics, active/WebGPU actor parity, diagrammatic churn, dark grid-dominant terrain, pre-contact/weather/avoidance gaps, and broader pursuit/reinforcement lifecycle remain active defects.",
       "campaign": "combat",
       "status": "active",
-      "open": 8,
+      "open": 9,
       "deps": [
         {
           "id": "combat-map-nextgen",
@@ -2012,10 +2060,10 @@
           }
         },
         {
-          "title": "Production wanted-watch interactions ask the mounted GroundWorld for the exact player-position crop, current crime records, generated-state standings, matching source settlement defense, and regiment-derived combatants; static authored towns retain the bounded generic Guard fallback",
+          "title": "Production wanted-watch interactions ask the mounted GroundWorld for the exact player-position crop, current crime records, generated-state standings, matching source settlement defense, and regiment-derived combatants; unsupported static authored towns now enter a structured no-roster source gap with permanent production-shell desktop/mobile proof",
           "status": "done",
           "history": {
-            "built": "2026-07-15"
+            "built": "2026-07-16"
           }
         },
         {
@@ -2054,6 +2102,13 @@
           }
         },
         {
+          "title": "Remaining unsupported launchers are explicit no-roster boundaries: static authored-town watch, daily sea encounters, and location-free AI/custom/bestiary simulation each name their distinct missing WorldForge facts and pass permanent production-shell desktop/mobile Vistest proof",
+          "status": "done",
+          "history": {
+            "built": "2026-07-16"
+          }
+        },
+        {
           "title": "Road-backed land-travel ambushes rebuild the exact committed destination from saved seed, time, deltas, and route-cell receipt, select a real source road, preserve cell/crop provenance, and pass through the production action, reducer, and CombatView; deterministic 1600x1000 and 1353x1272 review proves party-on-road and enemy-flank composition, while no-road destinations fail closed",
           "status": "done",
           "history": {
@@ -2075,7 +2130,53 @@
           }
         },
         {
-          "title": "AUTHOR MONSTER ECOLOGY: replace interim tactical constellations and repeated token stamps with WorldForge threat entities, positions, approach evidence, social topology, ecological wakes, staged perception, and persistent nest/feeding/burrow/trap terrain memory",
+          "title": "Hostile openings author and save exact threat entities, approach, social topology, and ecological contact traces; combat consumes exact positions, while role-aware tokens, roster, turn order, evidence trails, and establishing camera framing survive adversarial desktop and constrained captures",
+          "status": "done",
+          "history": {
+            "built": "2026-07-16"
+          }
+        },
+        {
+          "title": "Hostile openings freeze a targetable physical activity site and age-banded traces in a v2 scene receipt; production re-entry validates exact world-meter bodies, site, evidence, crop, and roster, while the lab and permanent Vistest prove saved-replay continuity rather than recapturing the authored frame",
+          "status": "done",
+          "history": {
+            "built": "2026-07-16"
+          }
+        },
+        {
+          "title": "Opening entities freeze body posture, carried profile, and facing; 2D combat renders distinct top-down Goblin/Wolf miniatures without role rings, the compact turn strip exposes clipped actors with current-centered navigation, and permanent desktop plus constrained captures pass the body/load readiness gate",
+          "status": "done",
+          "history": {
+            "built": "2026-07-16"
+          }
+        },
+        {
+          "title": "Opening scenes persist flattened ground, a cache-to-contact traffic run, dragged-salvage furrows, and refuse in world meters; 2D renders physical tracks, territorial scraping, broken growth, and a terrain-integrated cache while perimeter-led movement range restores map hierarchy",
+          "status": "done",
+          "history": {
+            "built": "2026-07-16"
+          }
+        },
+        {
+          "title": "Exact hostile-opening teardown reconciles every saved source enemy into downed, withdrew, or holding-ground state with final world position, site condition, and combat disturbance; resolved receipts cannot restart combat, and the deterministic return keeps one Goblin plus Wolf body while removing two withdrawals from initiative",
+          "status": "done",
+          "history": {
+            "built": "2026-07-16"
+          }
+        },
+        {
+          "title": "Resolved hostile-opening returns now project the exact terrain memory, traces, disturbed cache, combat churn, downed Goblin, and downed Wolf into WebGL 3D; source disturbance clears grass, ground-aware camera framing replaces a rejected empty-terrain false positive, and permanent proof requires named scene roots, nonblank pixels, plus camera-motion response",
+          "status": "done",
+          "history": {
+            "built": "2026-07-16"
+          }
+        },
+        {
+          "title": "CONTINUE MONSTER ECOLOGY: extend receipt-level outcomes into pursuit, regrouping, reinforcements, ecological time, and broader WorldForge entities; author pre-contact routes plus weather-facing and behavioral negative-space evidence; make active WebGL actors and WebGPU consume body state",
+          "status": "active"
+        },
+        {
+          "title": "Player-readable selected-relative feet, local relief, five-foot contours, and hillshade are implemented and visually proven; continue with source-backed slope/cliff risk, climb, line-of-sight, and waterline consequences instead of inferring mechanics from paint",
           "status": "active"
         },
         {
@@ -2362,15 +2463,30 @@
     {
       "id": "combat-elevation",
       "title": "Elevation as a tactical dimension",
-      "sub": "painted relief (ridgelines, hollows, cliff edges, hand-drawn-map shading) with mechanical truth: high ground helps, falls hurt, hills block sight, ambush-from-above becomes real. The world already knows its elevations; combat isn't listening yet. Brainstormed 2026-07-06; captured at Remy's pick.",
+      "sub": "The readable source-height layer is active: WorldForge elevation is converted to feet, each tactical crop derives a real zero-foot floor, and the hover inspector puts the tile, selected creature, and map floor on one arithmetic-consistent ruler. Hillshade and five-foot contours preserve relief without raw renderer values. Mechanical truth remains open for cliffs, climbing, falls, high ground, and elevation-aware line of sight; compact World Battle Lab proof also remains invalid until its 390px battle viewport stops collapsing into a nested scroller.",
       "campaign": "combat",
-      "status": "parked",
+      "status": "active",
+      "features": [
+        {
+          "title": "Readable WorldForge relief: tile / selected creature / map-floor ruler, hillshade, and five-foot contours",
+          "status": "done"
+        },
+        {
+          "title": "Compact World Battle Lab inspection mode with a usable map viewport instead of a 90px nested scroller",
+          "status": "active"
+        },
+        {
+          "title": "Source-backed steep slope and cliff semantics with climb, fall, high-ground, and line-of-sight consequences",
+          "status": "active"
+        }
+      ],
       "deps": [
         {
           "id": "combat-map-nextgen",
           "why": "pillar 2's battlefield forge already carries elevation samples from the worldforge cell â€” this makes them tactical and visible"
         }
-      ]
+      ],
+      "updated": "2026-07-16"
     },
     {
       "id": "combat-chronicles",
@@ -3520,8 +3636,14 @@
         {
           "title": "Wireframe render look (global default; ?wire=0 = solid)",
           "status": "done"
+        },
+        {
+          "title": "Smooth-body quality (Dragon Forge technique): swept-tube bodies w/ muscle bulge, flat shading, sculpted head forms, membrane wings v2",
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-16-creature-space-expansion.md"
         }
-      ]
+      ],
+      "updated": "2026-07-16"
     },
     {
       "id": "road-systems",

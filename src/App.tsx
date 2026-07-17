@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 15/07/2026, 23:25:39
+ * Last Sync: 16/07/2026, 08:57:39
  * Dependents: None (Orphan)
  * Imports: 81 files
  *
@@ -20,7 +20,7 @@
  *
  * @file App.tsx
  * EXECUTION FLOW SEGMENT 2: Root Application Component
- * 
+ *
  * This is the root component of the Aralia RPG application, loaded by index.tsx.
  * It manages all game state, phases (menu, character creation, gameplay), and orchestrates
  * the rendering of all other components.
@@ -28,10 +28,10 @@
 
 /**
  * This is the master coordinator for the entire game UI.
- * 
+ *
  * It holds the primary game state (via useReducer) and chooses which "view"
- * the player sees — whether it's the main menu, the character creator, or 
- * the world map. It also manages global overlays like the dice roller and 
+ * the player sees — whether it's the main menu, the character creator, or
+ * the world map. It also manages global overlays like the dice roller and
  * notification systems.
  *
  * Called by: index.tsx (entry point)
@@ -44,116 +44,180 @@
 // ============================================================================
 // React hooks - useReducer for complex state management, useCallback for memoized functions,
 // useEffect for side effects
-import React, { useReducer, useCallback, useEffect, useRef, lazy, Suspense, useState } from 'react';
-import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase, Notification, DiscoveryType } from './types';
-import type { GameState } from './types/state';
-import type { TravelCombatEncounter, TravelMeta } from './types/travelMeta';
-import { BATTLE_MAP_BIOMES, type BattleMapBiome, type BattleMapData } from './types/combat';
-import { buildProvisionActions } from './systems/travel/applyProvision';
-import { resolveForcedMarch } from './systems/travel/forcedMarch';
-import { rollD20 } from './utils/combat/combatUtils';
-import { createBattleEndActions } from './utils/combat/battleEndActions';
-import { loadMonstersData } from './data/monsters';
+import React, {
+  useReducer,
+  useCallback,
+  useEffect,
+  useRef,
+  lazy,
+  Suspense,
+  useState,
+} from "react";
+import {
+  Location,
+  GameMessage,
+  NPC,
+  MapTile,
+  Item,
+  PlayerCharacter,
+  GamePhase,
+  Notification,
+  DiscoveryType,
+} from "./types";
+import type { GameState } from "./types/state";
+import type { TravelCombatEncounter, TravelMeta } from "./types/travelMeta";
+import {
+  BATTLE_MAP_BIOMES,
+  type BattleMapBiome,
+  type BattleMapData,
+} from "./types/combat";
+import { buildProvisionActions } from "./systems/travel/applyProvision";
+import { resolveForcedMarch } from "./systems/travel/forcedMarch";
+import { rollD20 } from "./utils/combat/combatUtils";
+import { createBattleEndActions } from "./utils/combat/battleEndActions";
+import { loadMonstersData } from "./data/monsters";
 // State management - appReducer handles all state updates via actions, initialGameState provides defaults
-import { appReducer } from './state/appState';
-import { initialGameState } from './state/initialState';
+import { appReducer } from "./state/appState";
+import { initialGameState } from "./state/initialState";
 // Custom hooks - encapsulate reusable logic for audio, game actions, and initialization
-import { useAudio } from './hooks/useAudio';
-import { useGameActions } from './hooks/useGameActions';
-import { useGameInitialization } from './hooks/useGameInitialization';
-import { useOllamaLogBridge } from './hooks/useOllamaLogBridge';
-import { useHistorySync } from './hooks/useHistorySync';
-import { isWorldGenDeepLink, isDummyAutoStartDeepLink, getPhaseTitle } from './routes';
-import { useCompanionCommentary } from './hooks/useCompanionCommentary';
-import { useCompanionBanter } from './hooks/useCompanionBanter';
-import { useTownCrierAnnouncements } from './hooks/useTownCrierAnnouncements';
-import { useOverheardGossip } from './hooks/useOverheardGossip';
-import { useMissingChoice } from './hooks/useMissingChoice';
-import { useOllamaCheck } from './hooks/useOllamaCheck';
-import { useAutoSave } from './hooks/useAutoSave';
-import { t } from './utils/i18n';
+import { useAudio } from "./hooks/useAudio";
+import { useGameActions } from "./hooks/useGameActions";
+import { useGameInitialization } from "./hooks/useGameInitialization";
+import { useOllamaLogBridge } from "./hooks/useOllamaLogBridge";
+import { useHistorySync } from "./hooks/useHistorySync";
+import {
+  isWorldGenDeepLink,
+  isDummyAutoStartDeepLink,
+  getPhaseTitle,
+} from "./routes";
+import { useCompanionCommentary } from "./hooks/useCompanionCommentary";
+import { useCompanionBanter } from "./hooks/useCompanionBanter";
+import { useTownCrierAnnouncements } from "./hooks/useTownCrierAnnouncements";
+import { useOverheardGossip } from "./hooks/useOverheardGossip";
+import { useMissingChoice } from "./hooks/useMissingChoice";
+import { useOllamaCheck } from "./hooks/useOllamaCheck";
+import { useAutoSave } from "./hooks/useAutoSave";
+import { t } from "./utils/i18n";
 
 // Utility functions
-import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
+import { determineActiveDynamicNpcsForLocation } from "@/utils/spatial";
 
 // Context providers - wrap the app to provide glossary and spell data to all child components
-import { AppProviders } from './components/providers/AppProviders';
-import { DataLoaderGate } from './components/providers/DataLoaderGate';
+import { AppProviders } from "./components/providers/AppProviders";
+import { DataLoaderGate } from "./components/providers/DataLoaderGate";
+import { STARTING_LOCATION_ID, LOCATIONS } from "./data/world/locations";
+import { NPCS } from "./data/world/npcs";
+import { BIOMES } from "./data/biomes";
+import { applyWfSpawnToMap } from "@/systems/worldforge/local/resolveSpawn";
+import { biomeIdForCell } from "@/systems/worldforge/local/biomeForCell";
+import { wfBiomeIndexToLegacyId } from "@/systems/worldforge/local/wfBiomeToLegacy";
+import { burgIdForCell } from "@/systems/worldforge/townsim/chronicleForLocation";
+import { townMerchantNpcsForCell } from "@/systems/worldforge/townsim/npcsForCell";
 import {
-  STARTING_LOCATION_ID,
-  LOCATIONS,
-} from './data/world/locations';
-import { NPCS } from './data/world/npcs';
-import { BIOMES } from './data/biomes';
-import { applyWfSpawnToMap } from '@/systems/worldforge/local/resolveSpawn';
-import { biomeIdForCell } from '@/systems/worldforge/local/biomeForCell';
-import { wfBiomeIndexToLegacyId } from '@/systems/worldforge/local/wfBiomeToLegacy';
-import { burgIdForCell } from '@/systems/worldforge/townsim/chronicleForLocation';
-import { townMerchantNpcsForCell } from '@/systems/worldforge/townsim/npcsForCell';
-import { makeCellLocationId, parseCellLocationId, isWildernessLocationId } from './utils/location/cellLocationId';
-import { parseCoordinateLocationId } from './utils/locationUtils';
-import { canUseDevTools } from './utils/permissions';
-import { validateEnv } from './config/env';
-import { DiceOverlay } from './components/dice/DiceOverlay';
-import { Z_INDEX, applyZIndexCssVariables } from './styles/zIndex';
+  makeCellLocationId,
+  parseCellLocationId,
+  isWildernessLocationId,
+} from "./utils/location/cellLocationId";
+import { parseCoordinateLocationId } from "./utils/locationUtils";
+import { canUseDevTools } from "./utils/permissions";
+import { validateEnv } from "./config/env";
+import { DiceOverlay } from "./components/dice/DiceOverlay";
+import { Z_INDEX, applyZIndexCssVariables } from "./styles/zIndex";
 
-import { GameProvider } from './state/GameContext';
-import { WORLD3D_CONFIG } from './systems/world3d/config';
-import MainMenu from './components/layout/MainMenu';
-import ErrorBoundary from './components/ui/ErrorBoundary';
-import * as SaveLoadService from './services/saveLoadService';
-import { LoadingSpinner } from './components/ui/LoadingSpinner';
-import { ConversationPanel } from './components/ConversationPanel';
-import { OpeningSituationGate } from './components/gameEntry/OpeningSituationGate';
-import { SafeStorage } from './utils/core/storageUtils';
-import { shouldPassiveGameClockRun } from './utils/core/timekeeperUtils';
+import { GameProvider } from "./state/GameContext";
+import { WORLD3D_CONFIG } from "./systems/world3d/config";
+import MainMenu from "./components/layout/MainMenu";
+import ErrorBoundary from "./components/ui/ErrorBoundary";
+import * as SaveLoadService from "./services/saveLoadService";
+import { LoadingSpinner } from "./components/ui/LoadingSpinner";
+import { ConversationPanel } from "./components/ConversationPanel";
+import { OpeningSituationGate } from "./components/gameEntry/OpeningSituationGate";
+import { SafeStorage } from "./utils/core/storageUtils";
+import { shouldPassiveGameClockRun } from "./utils/core/timekeeperUtils";
 
-import { CollapsibleBanterPanel } from './components/ui/CollapsibleBanterPanel';
-import { BanterAttentionBanner } from './components/ui/BanterAttentionBanner';
-import { generateMap } from './services/mapService';
-import { generateWorldSeed } from './utils/random/generateWorldSeed';
+import { CollapsibleBanterPanel } from "./components/ui/CollapsibleBanterPanel";
+import { BanterAttentionBanner } from "./components/ui/BanterAttentionBanner";
+import { generateMap } from "./services/mapService";
+import { generateWorldSeed } from "./utils/random/generateWorldSeed";
 
 // Lazy load large components to reduce initial bundle size
 // Grid retirement: the legacy 2D village view (TownCanvas) is retired — town
 // entry is the cell-native 3D town (Enter-3D on the world map). No lazy import.
-const CombatView = lazy(() => import('./components/Combat').then(module => ({ default: module.CombatView })));
-const CharacterCreator = lazy(() => import('./components/CharacterCreator/CharacterCreator'));
-const GameLayout = lazy(() => import('./components/layout/GameLayout'));
-const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(module => ({ default: module.LoadGameTransition })));
-const NotFound = lazy(() => import('./components/ui/NotFound'));
-const World3DDemo = lazy(() => import('./components/World3D/World3DDemo'));
-const WebGPUProbe = lazy(() => import('./components/World3D/WebGPUProbe'));
-const StartPointSelection = lazy(() => import('./components/Worldforge/StartPointSelection'));
-const NotificationSystem = lazy(() => import('./components/ui/NotificationSystem').then(module => ({ default: module.NotificationSystem })));
-const CompanionReaction = lazy(() => import('./components/ui/CompanionReaction').then(module => ({ default: module.CompanionReaction })));
-const GameModals = lazy(() => import('./components/layout/GameModals'));
+const CombatView = lazy(() =>
+  import("./components/Combat").then((module) => ({
+    default: module.CombatView,
+  })),
+);
+const CharacterCreator = lazy(
+  () => import("./components/CharacterCreator/CharacterCreator"),
+);
+const GameLayout = lazy(() => import("./components/layout/GameLayout"));
+const LoadGameTransition = lazy(() =>
+  import("./components/SaveLoad").then((module) => ({
+    default: module.LoadGameTransition,
+  })),
+);
+const NotFound = lazy(() => import("./components/ui/NotFound"));
+const World3DDemo = lazy(() => import("./components/World3D/World3DDemo"));
+const WebGPUProbe = lazy(() => import("./components/World3D/WebGPUProbe"));
+const StartPointSelection = lazy(
+  () => import("./components/Worldforge/StartPointSelection"),
+);
+const NotificationSystem = lazy(() =>
+  import("./components/ui/NotificationSystem").then((module) => ({
+    default: module.NotificationSystem,
+  })),
+);
+const CompanionReaction = lazy(() =>
+  import("./components/ui/CompanionReaction").then((module) => ({
+    default: module.CompanionReaction,
+  })),
+);
+const GameModals = lazy(() => import("./components/layout/GameModals"));
 // Worldforge atlas cartographer demo (?phase=worldforge) — lazy: pulls the
 // whole ported-FMG generation stack, which the main bundle must not pay for.
-const WorldforgeAtlasDemo = lazy(() => import('./components/Worldforge/AtlasDemo'));
+const WorldforgeAtlasDemo = lazy(
+  () => import("./components/Worldforge/AtlasDemo"),
+);
 // Spawn-on-land preview harness (?phase=spawnpreview) — lazy: pulls the ported-FMG
 // generation stack like the cartographer demo, kept off the main bundle.
-const SpawnPreview = lazy(() => import('./components/Worldforge/SpawnPreview'));
+const SpawnPreview = lazy(() => import("./components/Worldforge/SpawnPreview"));
 // Agent-sim motion preview (?phase=agentsim) — lazy: town/roster generation stack.
-const AgentSimPreview = lazy(() => import('./components/Worldforge/AgentSimPreview'));
+const AgentSimPreview = lazy(
+  () => import("./components/Worldforge/AgentSimPreview"),
+);
 // Standalone 3D agent-walking proof (?phase=agentsim3d).
-const AgentSim3DPreview = lazy(() => import('./components/Worldforge/AgentSim3DPreview'));
+const AgentSim3DPreview = lazy(
+  () => import("./components/Worldforge/AgentSim3DPreview"),
+);
 // Living-world town sim chronicle preview (?phase=livingworld).
-const LivingWorldPreview = lazy(() => import('./components/Worldforge/LivingWorldPreview'));
-const TransitionController = lazy(() => import('./components/World3D/TransitionController'));
-const World3DWrapper = lazy(() => import('./components/World3D/World3DWrapper'));
+const LivingWorldPreview = lazy(
+  () => import("./components/Worldforge/LivingWorldPreview"),
+);
+const TransitionController = lazy(
+  () => import("./components/World3D/TransitionController"),
+);
+const World3DWrapper = lazy(
+  () => import("./components/World3D/World3DWrapper"),
+);
 // Classic ↔ Worldforge 2D-surface toggle (small, eager — no generation stack).
-const MapSurfaceToggle = lazy(() => import('./components/Worldforge/MapSurfaceToggle'));
+const MapSurfaceToggle = lazy(
+  () => import("./components/Worldforge/MapSurfaceToggle"),
+);
 // Combat Messaging Demo handles mock logging events to visualize unified messages in dev mode.
-const CombatMessagingDemo = lazy(() => import('./components/demo/CombatMessagingDemo').then(module => ({ default: module.CombatMessagingDemo })));
+const CombatMessagingDemo = lazy(() =>
+  import("./components/demo/CombatMessagingDemo").then((module) => ({
+    default: module.CombatMessagingDemo,
+  })),
+);
 // --- Decoupled Developer Tools Registry ---
-// Some developer tools have been decoupled from the main application bundle to 
+// Some developer tools have been decoupled from the main application bundle to
 // optimize production builds and prevent build-time dependencies on local-only files.
-// 
+//
 // Access these tools directly via their entry points:
 // - Design Preview: /Aralia/misc/design.html
 // - Developer Hub:  /Aralia/misc/dev_hub.html (Central landing page)
 // -------------------------------------------
-
 
 // TODO #1: Add AI model OPTIONALITY settings to allow players to choose between local (Ollama) or cloud (Gemini) models
 // PROGRESS: Most AI functions (location descriptions, NPC interactions, etc.) now use local Ollama instead of Gemini,
@@ -183,28 +247,33 @@ interface TravelBattlefieldPreparation {
  */
 async function prepareTravelBattlefield(
   encounter: TravelCombatEncounter,
-  destination: TravelMeta['destinationCell'],
-  sourceState: Pick<GameState, 'worldSeed' | 'gameTime' | 'worldforgeDeltas'>,
+  destination: TravelMeta["destinationCell"],
+  sourceState: Pick<GameState, "worldSeed" | "gameTime" | "worldforgeDeltas">,
 ): Promise<TravelBattlefieldPreparation> {
-  if (encounter.kind === 'sea-hostile') {
+  if (encounter.kind === "sea-hostile") {
     return {
-      sourceGapDetail: 'The hostile sea-travel event has no authoritative sea surface, vessel deck, or boarding geometry for tactical combat.',
+      sourceGapDetail:
+        "The hostile sea-travel event has no authoritative sea surface, vessel deck, or boarding geometry for tactical combat.",
     };
   }
   if (!destination || sourceState.worldSeed == null) {
     return {
-      sourceGapDetail: 'The land-travel encounter did not retain both its destination atlas cell and world seed.',
+      sourceGapDetail:
+        "The land-travel encounter did not retain both its destination atlas cell and world seed.",
     };
   }
 
   try {
-    const [{ loadCompleteGroundWorld }, { createTravelAmbushBattlefield }] = await Promise.all([
-      import('./components/World3D/createWorldGenClient'),
-      import('./systems/combat/worldScenario/travelAmbushBattlefield'),
-    ]);
-    const hour = sourceState.gameTime instanceof Date
-      ? sourceState.gameTime.getHours() + sourceState.gameTime.getMinutes() / 60
-      : 12;
+    const [{ loadCompleteGroundWorld }, { createTravelAmbushBattlefield }] =
+      await Promise.all([
+        import("./components/World3D/createWorldGenClient"),
+        import("./systems/combat/worldScenario/travelAmbushBattlefield"),
+      ]);
+    const hour =
+      sourceState.gameTime instanceof Date
+        ? sourceState.gameTime.getHours() +
+          sourceState.gameTime.getMinutes() / 60
+        : 12;
     const ground = await loadCompleteGroundWorld({
       wfSeed: sourceState.worldSeed,
       entryCellId: destination.cellId,
@@ -219,7 +288,7 @@ async function prepareTravelBattlefield(
       routeCells: encounter.routeCells,
       hour,
     });
-    return projection.status === 'ready'
+    return projection.status === "ready"
       ? { extractedBattleMap: projection.mapData }
       : { sourceGapDetail: projection.detail };
   } catch (error) {
@@ -230,7 +299,7 @@ async function prepareTravelBattlefield(
 }
 
 const App: React.FC = () => {
-  const AUTO_SAVE_PREF_KEY = 'aralia_rpg_pref_auto_save_enabled';
+  const AUTO_SAVE_PREF_KEY = "aralia_rpg_pref_auto_save_enabled";
   // Validate environment variables on startup
   useEffect(() => {
     validateEnv();
@@ -265,7 +334,7 @@ const App: React.FC = () => {
     // The item registry includes generated glossary-backed items, so keep it
     // out of the main-menu startup path and load it only for playable screens
     // that can actually show location item interactions.
-    import('./data/items').then(({ ITEMS: loadedItems }) => {
+    import("./data/items").then(({ ITEMS: loadedItems }) => {
       if (!cancelled) {
         setItemsById(loadedItems);
       }
@@ -280,8 +349,11 @@ const App: React.FC = () => {
   // This keeps the massive generated bestiary chunk completely out of the Main Menu bundle.
   useEffect(() => {
     if (gameState.phase === GamePhase.MAIN_MENU) return;
-    loadMonstersData().catch(err => {
-      console.error('Failed to pre-load dynamic monster data in background:', err);
+    loadMonstersData().catch((err) => {
+      console.error(
+        "Failed to pre-load dynamic monster data in background:",
+        err,
+      );
     });
   }, [gameState.phase]);
 
@@ -290,8 +362,9 @@ const App: React.FC = () => {
     const stored = SafeStorage.getItem(AUTO_SAVE_PREF_KEY);
     if (stored) {
       const normalized = stored.trim().toLowerCase();
-      const enabled = normalized === '1' || normalized === 'true' || normalized === 'on';
-      dispatch({ type: 'SET_AUTO_SAVE_ENABLED', payload: enabled });
+      const enabled =
+        normalized === "1" || normalized === "true" || normalized === "on";
+      dispatch({ type: "SET_AUTO_SAVE_ENABLED", payload: enabled });
     }
     setIsAutoSavePrefHydrated(true);
   }, []);
@@ -299,7 +372,7 @@ const App: React.FC = () => {
   // Persist preference any time the user toggles it.
   useEffect(() => {
     if (!isAutoSavePrefHydrated) return;
-    SafeStorage.trySetItem(AUTO_SAVE_PREF_KEY, autoSaveEnabled ? '1' : '0');
+    SafeStorage.trySetItem(AUTO_SAVE_PREF_KEY, autoSaveEnabled ? "1" : "0");
   }, [autoSaveEnabled, isAutoSavePrefHydrated]);
 
   // Best-effort autosave for refresh safety.
@@ -339,12 +412,11 @@ const App: React.FC = () => {
   // Keep the check side-effect active; UI wiring can consume this state later.
   const {
     ollamaWarningDismissed: _ollamaWarningDismissed,
-    setOllamaWarningDismissed: _setOllamaWarningDismissed
+    setOllamaWarningDismissed: _setOllamaWarningDismissed,
   } = useOllamaCheck(dispatch);
 
-
   const addMessage = useCallback(
-    (text: string, sender: 'system' | 'player' | 'npc' = 'system') => {
+    (text: string, sender: "system" | "player" | "npc" = "system") => {
       const newMessage: GameMessage = {
         id: Date.now() + Math.random(),
         text,
@@ -353,7 +425,7 @@ const App: React.FC = () => {
         // value is a placeholder that the reducer overrides.
         timestamp: new Date(),
       };
-      dispatch({ type: 'ADD_MESSAGE', payload: newMessage });
+      dispatch({ type: "ADD_MESSAGE", payload: newMessage });
     },
     [],
   );
@@ -363,7 +435,7 @@ const App: React.FC = () => {
     missingChoiceModal,
     setMissingChoiceModal,
     handleFixMissingChoice,
-    handleConfirmMissingChoice
+    handleConfirmMissingChoice,
   } = useMissingChoice(dispatch, addMessage);
 
   const { playPcmAudio, cleanupAudioContext } = useAudio(addMessage);
@@ -387,10 +459,10 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!gameState.isLoading) return;
     const timer = setTimeout(() => {
-      dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
+      dispatch({ type: "SET_LOADING", payload: { isLoading: false } });
       addMessage(
-        'The world took too long to respond — controls re-enabled. (Is the AI backend running?)',
-        'system',
+        "The world took too long to respond — controls re-enabled. (Is the AI backend running?)",
+        "system",
       );
     }, LOADING_WATCHDOG_MS);
     return () => clearTimeout(timer);
@@ -402,7 +474,10 @@ const App: React.FC = () => {
       const baseLocation = LOCATIONS[currentId];
       return {
         ...baseLocation,
-        itemIds: gameState.dynamicLocationItemIds[currentId] || baseLocation.itemIds || []
+        itemIds:
+          gameState.dynamicLocationItemIds[currentId] ||
+          baseLocation.itemIds ||
+          [],
       };
     }
 
@@ -410,16 +485,24 @@ const App: React.FC = () => {
       // Cell-native (grid retirement): the wilderness location is the player's
       // atlas cell. Biome from the cell; a legacy coord_X_Y id still yields its
       // display coords, while a cell_<id> id labels by cell.
-      const cellId = gameState.playerCell?.cellId ?? parseCellLocationId(currentId) ?? undefined;
+      const cellId =
+        gameState.playerCell?.cellId ??
+        parseCellLocationId(currentId) ??
+        undefined;
       const legacyCoord = parseCoordinateLocationId(currentId);
-      const biomeId = (cellId != null ? biomeIdForCell(gameState.worldSeed, cellId) : undefined) ?? 'plains';
+      const biomeId =
+        (cellId != null
+          ? biomeIdForCell(gameState.worldSeed, cellId)
+          : undefined) ?? "plains";
       const biome = BIOMES[biomeId];
-      const where = legacyCoord ? `(${legacyCoord.x},${legacyCoord.y})` : `(cell ${cellId ?? '?'})`;
+      const where = legacyCoord
+        ? `(${legacyCoord.x},${legacyCoord.y})`
+        : `(cell ${cellId ?? "?"})`;
 
       return {
         id: currentId,
-        name: `${biome?.name || 'Unknown Biome'} sector ${where}`,
-        baseDescription: `You are in the ${biome?.name || 'unknown terrain'} world sector ${where}. ${biome?.description || ''}`,
+        name: `${biome?.name || "Unknown Biome"} sector ${where}`,
+        baseDescription: `You are in the ${biome?.name || "unknown terrain"} world sector ${where}. ${biome?.description || ""}`,
         exits: {},
         itemIds: gameState.dynamicLocationItemIds[currentId] || [],
         npcIds: [],
@@ -429,23 +512,33 @@ const App: React.FC = () => {
     const fallbackLoc = LOCATIONS[STARTING_LOCATION_ID];
     return {
       ...fallbackLoc,
-      itemIds: gameState.dynamicLocationItemIds[STARTING_LOCATION_ID] || fallbackLoc.itemIds || []
+      itemIds:
+        gameState.dynamicLocationItemIds[STARTING_LOCATION_ID] ||
+        fallbackLoc.itemIds ||
+        [],
     };
-  }, [gameState.currentLocationId, gameState.playerCell?.cellId, gameState.worldSeed, gameState.dynamicLocationItemIds]);
+  }, [
+    gameState.currentLocationId,
+    gameState.playerCell?.cellId,
+    gameState.worldSeed,
+    gameState.dynamicLocationItemIds,
+  ]);
 
   const getCurrentNPCs = useCallback((): NPC[] => {
     const location = getCurrentLocation();
     let npcList: NPC[] = [];
 
     if (location?.npcIds && !isWildernessLocationId(location.id)) {
-      npcList = location.npcIds.map((npcId) => NPCS[npcId]).filter(Boolean) as NPC[];
+      npcList = location.npcIds
+        .map((npcId) => NPCS[npcId])
+        .filter(Boolean) as NPC[];
     }
 
     if (gameState.currentLocationActiveDynamicNpcIds) {
       const dynamicNpcs = gameState.currentLocationActiveDynamicNpcIds
         // Resolve static NPCs first, then runtime-generated ones (situational
         // opening NPCs, town-gen NPCs) so they render in the scene too.
-        .map(npcId => NPCS[npcId] || gameState.generatedNpcs?.[npcId])
+        .map((npcId) => NPCS[npcId] || gameState.generatedNpcs?.[npcId])
         .filter(Boolean) as NPC[];
       npcList = [...npcList, ...dynamicNpcs];
     }
@@ -465,43 +558,54 @@ const App: React.FC = () => {
     npcList = [...npcList, ...townKeepers];
 
     const uniqueNpcList = npcList.reduce((acc, current) => {
-      if (!acc.find(item => item.id === current.id)) {
+      if (!acc.find((item) => item.id === current.id)) {
         acc.push(current);
       }
       return acc;
     }, [] as NPC[]);
 
     return uniqueNpcList;
-  }, [getCurrentLocation, gameState.currentLocationActiveDynamicNpcIds, gameState.generatedNpcs, gameState.worldBusinesses, gameState.worldSeed, gameState.playerCell?.cellId]);
+  }, [
+    getCurrentLocation,
+    gameState.currentLocationActiveDynamicNpcIds,
+    gameState.generatedNpcs,
+    gameState.worldBusinesses,
+    gameState.worldSeed,
+    gameState.playerCell?.cellId,
+  ]);
 
   const getTileTooltipText = useCallback((worldMapTile: MapTile): string => {
     const biome = BIOMES[worldMapTile.biomeId];
     if (!worldMapTile.discovered) {
-      return t('app.tooltip.undiscovered', {
+      return t("app.tooltip.undiscovered", {
         x: worldMapTile.x,
         y: worldMapTile.y,
-        biome: biome?.name || t('app.tooltip.undiscovered_biome_unknown')
+        biome: biome?.name || t("app.tooltip.undiscovered_biome_unknown"),
       });
     }
-    let tooltip = t('app.tooltip.discovered', {
-      biome: biome?.name || t('app.tooltip.biome_unknown'),
+    let tooltip = t("app.tooltip.discovered", {
+      biome: biome?.name || t("app.tooltip.biome_unknown"),
       x: worldMapTile.x,
-      y: worldMapTile.y
+      y: worldMapTile.y,
     });
 
     if (worldMapTile.locationId && LOCATIONS[worldMapTile.locationId]) {
-      tooltip += t('app.tooltip.location', { locationName: LOCATIONS[worldMapTile.locationId].name });
+      tooltip += t("app.tooltip.location", {
+        locationName: LOCATIONS[worldMapTile.locationId].name,
+      });
     } else {
-      tooltip += t('app.tooltip.dot');
+      tooltip += t("app.tooltip.dot");
     }
     if (biome?.description) {
-      tooltip += t('app.tooltip.description', { description: biome.description });
+      tooltip += t("app.tooltip.description", {
+        description: biome.description,
+      });
     }
     return tooltip;
   }, []);
 
   // TODO #2(QOL): If re-render hotspots appear, profile callback dependencies here and in useGameActions/useGameInitialization (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
-// TODO #3(FEATURES): Add AI model optionality settings to allow players to choose between local (Ollama) or cloud (Gemini) models in settings, with graceful fallback between models based on availability and preference.
+  // TODO #3(FEATURES): Add AI model optionality settings to allow players to choose between local (Ollama) or cloud (Gemini) models in settings, with graceful fallback between models based on availability and preference.
   const { processAction } = useGameActions({
     gameState,
     dispatch,
@@ -534,7 +638,7 @@ const App: React.FC = () => {
   // headless harness compare the live state against the saved payload without
   // reaching into React internals. Summary fields only — never mutate.
   useEffect(() => {
-    if (typeof window === 'undefined' || !canUseDevTools()) return;
+    if (typeof window === "undefined" || !canUseDevTools()) return;
     (window as unknown as { __araliaState?: unknown }).__araliaState = {
       phase: GamePhase[gameState.phase],
       worldViewMode: gameState.worldViewMode ?? null,
@@ -546,10 +650,10 @@ const App: React.FC = () => {
       startTownName: gameState.startTownName ?? null,
       startTownRegion: gameState.startTownRegion ?? null,
       partySize: gameState.party.length,
-      partyNames: gameState.party.map(p => p.name),
+      partyNames: gameState.party.map((p) => p.name),
       // PRV9 verification surface: HP + active conditions per member, so the
       // starvation drain / long-rest recovery can be proven headlessly.
-      partyVitals: gameState.party.map(p => ({
+      partyVitals: gameState.party.map((p) => ({
         name: p.name,
         hp: p.hp,
         maxHp: p.maxHp,
@@ -557,9 +661,10 @@ const App: React.FC = () => {
       })),
       gold: gameState.gold,
       inventoryCount: gameState.inventory.length,
-      gameTime: gameState.gameTime instanceof Date
-        ? gameState.gameTime.toISOString()
-        : String(gameState.gameTime),
+      gameTime:
+        gameState.gameTime instanceof Date
+          ? gameState.gameTime.toISOString()
+          : String(gameState.gameTime),
       isMapVisible: gameState.isMapVisible,
       // World identity, so a browser rig can pick a real burg cell to travel to
       // and prove town-merchant registration on arrival.
@@ -567,9 +672,13 @@ const App: React.FC = () => {
       playerCellId: gameState.playerCell?.cellId ?? null,
       // Cell-native discovery proof: expose only durable numeric cell flags,
       // never the full journal text, so browser rigs can verify dedupe/reload.
-      exploredCellIds: gameState.discoveryLog.flatMap((entry) => entry.flags
-        .filter((flag) => flag.key === 'cellId' && typeof flag.value === 'number')
-        .map((flag) => flag.value as number)),
+      exploredCellIds: gameState.discoveryLog.flatMap((entry) =>
+        entry.flags
+          .filter(
+            (flag) => flag.key === "cellId" && typeof flag.value === "number",
+          )
+          .map((flag) => flag.value as number),
+      ),
       discoveryCount: gameState.discoveryLog.length,
       unreadDiscoveryCount: gameState.unreadDiscoveryCount ?? 0,
       // Interactive-3D locomotion proof: the live ground-move state a click-to-walk
@@ -590,7 +699,8 @@ const App: React.FC = () => {
     // Dev-only action dispatch handle, for headless visual-verification rigs to
     // set up scenarios (e.g. add provisions before screenshotting the travel
     // map). Dev-gated; absent in production builds.
-    (window as unknown as { __araliaDispatch?: unknown }).__araliaDispatch = dispatch;
+    (window as unknown as { __araliaDispatch?: unknown }).__araliaDispatch =
+      dispatch;
   }, [gameState, dispatch]);
 
   // Dev dummy auto-start — now OPT-IN. A brand-new player (no save) must land on
@@ -611,8 +721,8 @@ const App: React.FC = () => {
     // current MAIN_MENU phase back into the URL, and treating that as a deep-link
     // would wrongly suppress the ?dummy=1 opt-in below.
     const urlParams = new URLSearchParams(window.location.search);
-    const urlPhase = urlParams.get('phase');
-    if (urlPhase && urlPhase !== 'main_menu') return; // real deep-link wins
+    const urlPhase = urlParams.get("phase");
+    if (urlPhase && urlPhase !== "main_menu") return; // real deep-link wins
 
     // Without the explicit opt-in flag, do nothing: the Main Menu stays up.
     if (!isDummyAutoStartDeepLink()) return;
@@ -626,45 +736,148 @@ const App: React.FC = () => {
   ]);
 
   // Dev combat fixtures: ?dev_combat=1 is the explicitly procedural sandbox,
-  // ?dev_combat_source_gap=1 proves the production fail-closed state, and
-  // ?dev_travel_ambush=1 drives the real travel projection at canonical cell
-  // 373. All stay behind dev permissions and bypass AI for stable captures.
+  // ?dev_combat_source_gap=1 proves the generic production fail-closed state,
+  // ?dev_static_town_watch_source_gap=1 proves the authored-town wanted-watch
+  // boundary, ?dev_sea_encounter_source_gap=1 and
+  // ?dev_location_free_encounter_source_gap=1 prove the remaining unsupported
+  // production launchers, and ?dev_travel_ambush=1 drives the real travel
+  // projection at canonical cell 373. All stay behind dev permissions and
+  // bypass AI for stable captures.
   const devCombatFiredRef = useRef(false);
   useEffect(() => {
     if (!canUseDevTools() || devCombatFiredRef.current) return;
     if (gameState.phase !== GamePhase.PLAYING) return;
     const params = new URLSearchParams(window.location.search);
-    const sandboxFixture = params.get('dev_combat') === '1';
-    const sourceGapFixture = params.get('dev_combat_source_gap') === '1';
-    const travelFixture = params.get('dev_travel_ambush') === '1';
-    if (!sandboxFixture && !sourceGapFixture && !travelFixture) return;
+    const sandboxFixture = params.get("dev_combat") === "1";
+    const sourceGapFixture = params.get("dev_combat_source_gap") === "1";
+    const authoredTownWatchSourceGapFixture =
+      params.get("dev_static_town_watch_source_gap") === "1";
+    const seaEncounterSourceGapFixture =
+      params.get("dev_sea_encounter_source_gap") === "1";
+    const locationFreeEncounterSourceGapFixture =
+      params.get("dev_location_free_encounter_source_gap") === "1";
+    const travelFixture = params.get("dev_travel_ambush") === "1";
+    if (
+      !sandboxFixture &&
+      !sourceGapFixture &&
+      !authoredTownWatchSourceGapFixture &&
+      !seaEncounterSourceGapFixture &&
+      !locationFreeEncounterSourceGapFixture &&
+      !travelFixture
+    ) {
+      return;
+    }
     devCombatFiredRef.current = true;
+
+    if (authoredTownWatchSourceGapFixture) {
+      // Exercise the same action, reducer, and CombatView boundary as the live
+      // authored-town interaction. The fixture supplies a reason only: no
+      // enemy roster or terrain is allowed to enter production state.
+      void (async () => {
+        const { createAuthoredTownWatchSourceGap } = await import(
+          "./systems/combat/fightInPlace/authoredTownWatchSourceGap"
+        );
+        await processAction({
+          type: "START_BATTLE_MAP_ENCOUNTER",
+          label: "Authored Town Watch Source Gap Fixture",
+          payload: {
+            startBattleMapEncounterData: {
+              monsters: [],
+              sourceGap: createAuthoredTownWatchSourceGap(
+                "oakhaven",
+                "Town Guard",
+              ),
+            },
+          },
+        });
+      })();
+      return;
+    }
+
+    if (seaEncounterSourceGapFixture) {
+      // Use the same reason builder as useSeaEncounter while crossing the real
+      // application action/reducer/CombatView path for deterministic proof.
+      void (async () => {
+        const { createSeaEncounterSourceGap } = await import(
+          "./systems/combat/unsupportedBattlefieldSources"
+        );
+        await processAction({
+          type: "START_BATTLE_MAP_ENCOUNTER",
+          label: "Sea Encounter Source Gap Fixture",
+          payload: {
+            startBattleMapEncounterData: {
+              monsters: [],
+              sourceGap: createSeaEncounterSourceGap({
+                id: "pirates",
+                summary: "A pirate cutter runs up the black flag!",
+                monsters: [
+                  {
+                    name: "Bandit",
+                    quantity: 3,
+                    cr: "1/8",
+                    description: "Proposed naval foe",
+                  },
+                ],
+              }),
+            },
+          },
+        });
+      })();
+      return;
+    }
+
+    if (locationFreeEncounterSourceGapFixture) {
+      // EncounterModal and this fixture share the reason builder; neither path
+      // promotes an independently authored roster into production combat.
+      void (async () => {
+        const { createLocationFreeSimulationSourceGap } = await import(
+          "./systems/combat/unsupportedBattlefieldSources"
+        );
+        await processAction({
+          type: "START_BATTLE_MAP_ENCOUNTER",
+          label: "Location-Free Encounter Source Gap Fixture",
+          payload: {
+            startBattleMapEncounterData: {
+              monsters: [],
+              sourceGap: createLocationFreeSimulationSourceGap("bestiary", 4),
+            },
+          },
+        });
+      })();
+      return;
+    }
 
     if (travelFixture) {
       const monsters = [
-        { name: 'Bandit', quantity: 3, cr: '1/8', description: 'Deterministic road-interception fixture' },
+        {
+          name: "Bandit",
+          quantity: 3,
+          cr: "1/8",
+          description: "Deterministic road-interception fixture",
+        },
       ];
       const encounter: TravelCombatEncounter = {
-        kind: 'land-route-ambush',
+        kind: "land-route-ambush",
         monsters,
         routeCells: [112, 201, 373],
       };
       void (async () => {
-        const { extractedBattleMap, sourceGapDetail } = await prepareTravelBattlefield(
-          encounter,
-          { cellId: 373, anchor: { cellId: 373 } },
-          {
-            worldSeed: 42,
-            gameTime: gameState.gameTime,
-            worldforgeDeltas: gameState.worldforgeDeltas,
-          },
-        );
+        const { extractedBattleMap, sourceGapDetail } =
+          await prepareTravelBattlefield(
+            encounter,
+            { cellId: 373, anchor: { cellId: 373 } },
+            {
+              worldSeed: 42,
+              gameTime: gameState.gameTime,
+              worldforgeDeltas: gameState.worldforgeDeltas,
+            },
+          );
         if (sourceGapDetail) {
-          addMessage(`Travel fixture source gap: ${sourceGapDetail}`, 'system');
+          addMessage(`Travel fixture source gap: ${sourceGapDetail}`, "system");
         }
         await processAction({
-          type: 'START_BATTLE_MAP_ENCOUNTER',
-          label: 'WorldForge Travel Ambush Fixture',
+          type: "START_BATTLE_MAP_ENCOUNTER",
+          label: "WorldForge Travel Ambush Fixture",
           payload: {
             startBattleMapEncounterData: {
               monsters,
@@ -677,29 +890,46 @@ const App: React.FC = () => {
     }
 
     processAction({
-      type: 'START_BATTLE_MAP_ENCOUNTER',
-      label: sourceGapFixture ? 'World Battle Source Gap Fixture' : 'Procedural Combat Sandbox',
+      type: "START_BATTLE_MAP_ENCOUNTER",
+      label: sourceGapFixture
+        ? "World Battle Source Gap Fixture"
+        : "Procedural Combat Sandbox",
       payload: {
         startBattleMapEncounterData: {
           monsters: [
-            { name: 'Goblin', quantity: 3, cr: '1/4', description: 'Dev fixture goblin' },
-            { name: 'Orc', quantity: 2, cr: '1/2', description: 'Dev fixture orc' },
+            {
+              name: "Goblin",
+              quantity: 3,
+              cr: "1/4",
+              description: "Dev fixture goblin",
+            },
+            {
+              name: "Orc",
+              quantity: 2,
+              cr: "1/2",
+              description: "Dev fixture orc",
+            },
           ],
         },
       },
     });
-  }, [addMessage, gameState.gameTime, gameState.phase, gameState.worldforgeDeltas, processAction]);
+  }, [
+    addMessage,
+    gameState.gameTime,
+    gameState.phase,
+    gameState.worldforgeDeltas,
+    processAction,
+  ]);
 
   useEffect(() => {
     // This effect handles the timed transition from the welcome screen to the main game.
     if (gameState.phase === GamePhase.LOAD_TRANSITION) {
       const timer = setTimeout(() => {
-        dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.PLAYING });
+        dispatch({ type: "SET_GAME_PHASE", payload: GamePhase.PLAYING });
       }, 2000); // 2-second duration for the welcome screen
       return () => clearTimeout(timer);
     }
   }, [gameState.phase, dispatch]);
-
 
   useEffect(() => {
     let timerId: number | undefined;
@@ -726,10 +956,9 @@ const App: React.FC = () => {
       isMissingChoiceModalOpen: missingChoiceModal.isOpen,
     });
 
-
     if (shouldClockRun) {
       timerId = window.setInterval(() => {
-        dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 1 } });
+        dispatch({ type: "ADVANCE_TIME", payload: { seconds: 1 } });
       }, 1000);
     }
 
@@ -755,65 +984,99 @@ const App: React.FC = () => {
     gameState.isInvestmentBoardVisible,
     gameState.merchantModal.isOpen,
     missingChoiceModal.isOpen,
-    dispatch
+    dispatch,
   ]);
 
-  const handleCombatRoundElapsed = useCallback((seconds: number) => {
-    // Combat reports elapsed time in completed D&D rounds, but the world still
-    // changes through the same ADVANCE_TIME action used by waiting, travel,
-    // resting, crafting, and passive exploration.
-    dispatch({ type: 'ADVANCE_TIME', payload: { seconds } });
-  }, [dispatch]);
+  const handleCombatRoundElapsed = useCallback(
+    (seconds: number) => {
+      // Combat reports elapsed time in completed D&D rounds, but the world still
+      // changes through the same ADVANCE_TIME action used by waiting, travel,
+      // resting, crafting, and passive exploration.
+      dispatch({ type: "ADVANCE_TIME", payload: { seconds } });
+    },
+    [dispatch],
+  );
 
-
-  const handleOpenGlossary = useCallback((initialTermId?: string) => {
-    if (initialTermId) {
-      dispatch({ type: 'SET_GLOSSARY_TERM_FOR_MODAL', payload: initialTermId });
-    }
-    processAction({ type: 'TOGGLE_GLOSSARY_VISIBILITY', label: 'Toggle Glossary', payload: { initialTermId } });
-  }, [dispatch, processAction]);
-
+  const handleOpenGlossary = useCallback(
+    (initialTermId?: string) => {
+      if (initialTermId) {
+        dispatch({
+          type: "SET_GLOSSARY_TERM_FOR_MODAL",
+          payload: initialTermId,
+        });
+      }
+      processAction({
+        type: "TOGGLE_GLOSSARY_VISIBILITY",
+        label: "Toggle Glossary",
+        payload: { initialTermId },
+      });
+    },
+    [dispatch, processAction],
+  );
 
   const handleExitCharacterCreatorToMainMenu = useCallback(() => {
-    dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
+    dispatch({ type: "SET_GAME_PHASE", payload: GamePhase.MAIN_MENU });
   }, [dispatch]);
 
   // Holds the freshly-created character + inventory while the player chooses a
   // start town (Start Point Selection), before startGame boots into play.
-  const pendingNewGameRef = useRef<{ character: PlayerCharacter; inventory: Item[] } | null>(null);
+  const pendingNewGameRef = useRef<{
+    character: PlayerCharacter;
+    inventory: Item[];
+  } | null>(null);
 
   // Character creation finished → hold the build and let the player pick where in
   // the world to begin (a town), rather than auto-dropping them at the capital.
-  const handleCharacterCreated = useCallback((character: PlayerCharacter, inventory: Item[]) => {
-    pendingNewGameRef.current = { character, inventory };
-    dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.START_POINT_SELECTION });
-  }, [dispatch]);
+  const handleCharacterCreated = useCallback(
+    (character: PlayerCharacter, inventory: Item[]) => {
+      pendingNewGameRef.current = { character, inventory };
+      dispatch({
+        type: "SET_GAME_PHASE",
+        payload: GamePhase.START_POINT_SELECTION,
+      });
+    },
+    [dispatch],
+  );
 
   // Player confirmed a start town → boot into play spawning at that town.
-  const handleStartTownConfirmed = useCallback((town: { atlasCellId: number; name?: string; stateName?: string; x?: number; y?: number }) => {
-    const pending = pendingNewGameRef.current;
-    if (!pending) {
-      // No pending character (e.g. a reload landed here) — bounce to creation.
-      dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.CHARACTER_CREATION });
-      return;
-    }
-    pendingNewGameRef.current = null;
-    // Cell-native 3D entry: carry the chosen burg's POSITION so the first 3D entry
-    // frames the town (cells are far larger than the Locale window). Threaded
-    // through startGame → START_GAME_SUCCESS so it's set atomically with the spawn
-    // (a separate dispatch would be clobbered by the reducer's state rebuild).
-    startGame(pending.character, pending.inventory, gameState.worldSeed, {
-      atlasCellId: town.atlasCellId,
-      name: town.name,
-      region: town.stateName,
-      ...(town.x != null && town.y != null ? { centerPx: [town.x, town.y] as [number, number] } : {}),
-    });
-  }, [dispatch, startGame, gameState.worldSeed]);
+  const handleStartTownConfirmed = useCallback(
+    (town: {
+      atlasCellId: number;
+      name?: string;
+      stateName?: string;
+      x?: number;
+      y?: number;
+    }) => {
+      const pending = pendingNewGameRef.current;
+      if (!pending) {
+        // No pending character (e.g. a reload landed here) — bounce to creation.
+        dispatch({
+          type: "SET_GAME_PHASE",
+          payload: GamePhase.CHARACTER_CREATION,
+        });
+        return;
+      }
+      pendingNewGameRef.current = null;
+      // Cell-native 3D entry: carry the chosen burg's POSITION so the first 3D entry
+      // frames the town (cells are far larger than the Locale window). Threaded
+      // through startGame → START_GAME_SUCCESS so it's set atomically with the spawn
+      // (a separate dispatch would be clobbered by the reducer's state rebuild).
+      startGame(pending.character, pending.inventory, gameState.worldSeed, {
+        atlasCellId: town.atlasCellId,
+        name: town.name,
+        region: town.stateName,
+        ...(town.x != null && town.y != null
+          ? { centerPx: [town.x, town.y] as [number, number] }
+          : {}),
+      });
+    },
+    [dispatch, startGame, gameState.worldSeed],
+  );
 
   // Back out of start selection to re-roll the character.
   const handleStartSelectionBack = useCallback(() => {
     pendingNewGameRef.current = null;
-    dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.CHARACTER_CREATION });
+    dispatch({ type: "SET_GAME_PHASE", payload: GamePhase.CHARACTER_CREATION });
   }, [dispatch]);
 
   const handleClearAllSaves = useCallback(async () => {
@@ -821,212 +1084,266 @@ const App: React.FC = () => {
     // the async IndexedDB wipe, so refreshing the menu before completion shows
     // the old saves and makes the wipe look like it needs two clicks.
     await SaveLoadService.clearAllSaves();
-    dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
+    dispatch({ type: "SET_GAME_PHASE", payload: GamePhase.MAIN_MENU });
   }, [dispatch]);
 
   const handleAbandonRun = useCallback(() => {
-    dispatch({ type: 'ABANDON_RUN' });
+    dispatch({ type: "ABANDON_RUN" });
   }, [dispatch]);
 
-  const handleTileClick = useCallback((x: number, y: number, tile: MapTile, travelMeta?: TravelMeta) => {
-    const targetBiome = BIOMES[tile.biomeId];
-    // Travel-mode picks carry the planned route's real duration + a pre-rolled
-    // "danger on the road" message; fall back to the legacy flat hour otherwise.
-    // Navigation drift (travel G2): when MapPane's get-lost roll failed, the party
-    // wanders for extra hours before finding the path again. That lost time is
-    // added to the trip's clock advance (present ONLY when lost; a found trip
-    // carries no navDrift, so short/on-road trips are unaffected).
-    const driftSeconds = travelMeta?.navDrift?.lost
-      ? Math.max(0, Math.round(travelMeta.navDrift.extraSeconds))
-      : 0;
-    // Trip event (mountains §3): MapPane rolled one seeded event for this land
-    // trip. A `delay` outcome (rockslide, storm) costs extra hours on the clock,
-    // added like drift; flavor-only events carry extraSeconds 0. Present only
-    // when an event fired, so quiet trips are unaffected.
-    const tripEventSeconds = travelMeta?.tripEvent
-      ? Math.max(0, Math.round(travelMeta.tripEvent.extraSeconds))
-      : 0;
-    const travelSeconds = (travelMeta?.seconds != null ? Math.max(0, Math.round(travelMeta.seconds)) : 3600) + driftSeconds + tripEventSeconds;
-    const announceEncounter = () => {
-      if (travelMeta?.encounterMessage) addMessage(travelMeta.encounterMessage, 'system');
-    };
-    // Announce the navigation drift after the move: the party still arrives at the
-    // intended cell, but the log tells them they lost their way and the time cost.
-    const announceNavDrift = () => {
-      const nd = travelMeta?.navDrift;
-      if (!nd?.lost) return;
-      const hours = nd.extraSeconds / 3600;
-      const rounded = Math.max(1, Math.round(hours));
-      // Word by cause: a path that faded under the trees reads differently from
-      // trackless wilds; both keep the drift heading + hours-lost structure.
-      const lead = nd.cause === 'faint-path'
-        ? 'The path fades among the trees — you lose the trail'
-        : 'You lose your way';
-      addMessage(`${lead} and drift ${nd.driftDirection}, costing you about ${rounded} extra hour${rounded === 1 ? '' : 's'} before you find the path again.`, 'system');
-    };
-    // Announce the trip event after the move (mountains §3): the event's own
-    // message already reads as a resolved beat (e.g. a rockslide the party
-    // climbed past, or failed and lost hours to). The delay is already folded
-    // into travelSeconds above; this just tells the story.
-    const announceTripEvent = () => {
-      const te = travelMeta?.tripEvent;
-      if (te?.message) addMessage(te.message, 'system');
-    };
-    // A rolled road ambush now reaches the combat authority boundary on arrival
-    // instead of only printing a message. It is fired after movement so the
-    // destination cell is known. Until this caller projects that cell into a
-    // tactical map, CombatView shows the explicit source gap rather than an arena.
-    const triggerTravelEncounter = () => {
-      const enc = travelMeta?.encounter;
-      if (!enc?.monsters?.length) return;
-      void (async () => {
-        const { extractedBattleMap, sourceGapDetail } = await prepareTravelBattlefield(
-          enc,
-          travelMeta?.destinationCell,
-          {
-            worldSeed: gameState.worldSeed,
-            gameTime: gameState.gameTime,
-            worldforgeDeltas: gameState.worldforgeDeltas,
-          },
+  const handleTileClick = useCallback(
+    (x: number, y: number, tile: MapTile, travelMeta?: TravelMeta) => {
+      const targetBiome = BIOMES[tile.biomeId];
+      // Travel-mode picks carry the planned route's real duration + a pre-rolled
+      // "danger on the road" message; fall back to the legacy flat hour otherwise.
+      // Navigation drift (travel G2): when MapPane's get-lost roll failed, the party
+      // wanders for extra hours before finding the path again. That lost time is
+      // added to the trip's clock advance (present ONLY when lost; a found trip
+      // carries no navDrift, so short/on-road trips are unaffected).
+      const driftSeconds = travelMeta?.navDrift?.lost
+        ? Math.max(0, Math.round(travelMeta.navDrift.extraSeconds))
+        : 0;
+      // Trip event (mountains §3): MapPane rolled one seeded event for this land
+      // trip. A `delay` outcome (rockslide, storm) costs extra hours on the clock,
+      // added like drift; flavor-only events carry extraSeconds 0. Present only
+      // when an event fired, so quiet trips are unaffected.
+      const tripEventSeconds = travelMeta?.tripEvent
+        ? Math.max(0, Math.round(travelMeta.tripEvent.extraSeconds))
+        : 0;
+      const travelSeconds =
+        (travelMeta?.seconds != null
+          ? Math.max(0, Math.round(travelMeta.seconds))
+          : 3600) +
+        driftSeconds +
+        tripEventSeconds;
+      const announceEncounter = () => {
+        if (travelMeta?.encounterMessage)
+          addMessage(travelMeta.encounterMessage, "system");
+      };
+      // Announce the navigation drift after the move: the party still arrives at the
+      // intended cell, but the log tells them they lost their way and the time cost.
+      const announceNavDrift = () => {
+        const nd = travelMeta?.navDrift;
+        if (!nd?.lost) return;
+        const hours = nd.extraSeconds / 3600;
+        const rounded = Math.max(1, Math.round(hours));
+        // Word by cause: a path that faded under the trees reads differently from
+        // trackless wilds; both keep the drift heading + hours-lost structure.
+        const lead =
+          nd.cause === "faint-path"
+            ? "The path fades among the trees — you lose the trail"
+            : "You lose your way";
+        addMessage(
+          `${lead} and drift ${nd.driftDirection}, costing you about ${rounded} extra hour${rounded === 1 ? "" : "s"} before you find the path again.`,
+          "system",
         );
+      };
+      // Announce the trip event after the move (mountains §3): the event's own
+      // message already reads as a resolved beat (e.g. a rockslide the party
+      // climbed past, or failed and lost hours to). The delay is already folded
+      // into travelSeconds above; this just tells the story.
+      const announceTripEvent = () => {
+        const te = travelMeta?.tripEvent;
+        if (te?.message) addMessage(te.message, "system");
+      };
+      // A rolled road ambush now reaches the combat authority boundary on arrival
+      // instead of only printing a message. It is fired after movement so the
+      // destination cell is known. Until this caller projects that cell into a
+      // tactical map, CombatView shows the explicit source gap rather than an arena.
+      const triggerTravelEncounter = () => {
+        const enc = travelMeta?.encounter;
+        if (!enc?.monsters?.length) return;
+        void (async () => {
+          const { extractedBattleMap, sourceGapDetail } =
+            await prepareTravelBattlefield(enc, travelMeta?.destinationCell, {
+              worldSeed: gameState.worldSeed,
+              gameTime: gameState.gameTime,
+              worldforgeDeltas: gameState.worldforgeDeltas,
+            });
 
-        try {
-          if (sourceGapDetail) {
-            addMessage(`Tactical combat withheld: ${sourceGapDetail}`, 'system');
+          try {
+            if (sourceGapDetail) {
+              addMessage(
+                `Tactical combat withheld: ${sourceGapDetail}`,
+                "system",
+              );
+            }
+            const { handleStartBattleMapEncounter } =
+              await import("./hooks/actions/handleEncounter");
+            await handleStartBattleMapEncounter(dispatch, {
+              monsters: enc.monsters,
+              ...(extractedBattleMap ? { extractedBattleMap } : {}),
+            });
+          } catch (err) {
+            console.error("[travel encounter] failed to start battle:", err);
           }
-          const { handleStartBattleMapEncounter } = await import('./hooks/actions/handleEncounter');
-          await handleStartBattleMapEncounter(dispatch, {
-            monsters: enc.monsters,
-            ...(extractedBattleMap ? { extractedBattleMap } : {}),
+        })();
+      };
+      // Apply the trip's provisioning consequences (food/water spend, starvation,
+      // companion morale). MapPane resolved these against the route + supplies; here
+      // we just execute them after the move so the move and its cost stay atomic.
+      const applyProvisionEffects = () => {
+        const prov = travelMeta?.provision;
+        if (!prov) return;
+        const companionViews = Object.values(gameState.companions ?? {}).map(
+          (c) => ({ id: c.id, loyalty: c.loyalty }),
+        );
+        // PRV9: member HP views let a starving march apply its non-lethal HP drain.
+        const healthViews = gameState.party
+          .filter((pc) => pc.id)
+          .map((pc) => ({ id: pc.id as string, hp: pc.hp }));
+        for (const action of buildProvisionActions(
+          prov,
+          companionViews,
+          healthViews,
+        ))
+          dispatch(action);
+        if (prov.note) addMessage(prov.note, "system");
+      };
+      // Deduct the hired-ferry fare on departure (travel G15). MapPane already
+      // gated affordability and only stamps `ferryFareGp` when the committed trip
+      // crossed a sea leg on a hired ferry, so here we just spend the gold and note
+      // it — kept alongside the move so the trip and its cost stay atomic.
+      const applyFerryFare = () => {
+        const fare = travelMeta?.ferryFareGp;
+        if (!fare || fare <= 0) return;
+        dispatch({ type: "MODIFY_GOLD", payload: { amount: -fare } });
+        addMessage(
+          `You pay the ferry master ${fare} gp for passage.`,
+          "system",
+        );
+      };
+      // Forced-march exhaustion (travel G1). MapPane stamped `forcedMarch` only when
+      // the committed leg pushed past the safe 8-hour day, carrying the derived Con
+      // save DC. Here each party member rolls a Constitution save vs that DC; a party
+      // whose members buckle takes the 'exhaustion' condition (the same party-wide
+      // condition path as travel's 'fatigued'/'starving'). Fired after the move so
+      // the leg and its toll stay atomic.
+      const applyForcedMarch = () => {
+        const fm = travelMeta?.forcedMarch;
+        if (!fm) return;
+        const outcome = resolveForcedMarch(gameState.party, fm.saveDC, () =>
+          rollD20(),
+        );
+        if (!outcome.anyFailed) {
+          addMessage(
+            `You push on past ${Math.round(fm.hours)} hours of travel, but the party endures the forced march (DC ${fm.saveDC} Constitution saves).`,
+            "system",
+          );
+          return;
+        }
+        dispatch({
+          type: "SET_PARTY_CONDITION",
+          payload: { condition: "exhaustion" },
+        });
+        const worn = outcome.failedNames.join(", ");
+        addMessage(
+          `The forced march past ${Math.round(fm.hours)} hours takes its toll — ${worn} fail a DC ${fm.saveDC} Constitution save and grow exhausted.`,
+          "system",
+        );
+      };
+
+      // A reached atlas cell becomes durable player knowledge exactly once. The
+      // existing discovery log is the single saved source for both Logbook memory
+      // and MapPane fog; locationId + cellId flags make reducer dedupe explicit.
+      const recordCellDiscovery = (cellId: number, locationId: string) => {
+        const alreadyKnown = gameState.discoveryLog.some(
+          (entry) =>
+            entry.type === DiscoveryType.LOCATION_DISCOVERY &&
+            entry.flags.some(
+              (flag) => flag.key === "cellId" && flag.value === cellId,
+            ),
+        );
+        if (alreadyKnown) return;
+        const placeName =
+          travelMeta?.destinationCell?.name ??
+          targetBiome?.name ??
+          `Cell ${cellId}`;
+        dispatch({
+          type: "ADD_DISCOVERY_ENTRY",
+          payload: {
+            gameTime: gameState.gameTime.toISOString(),
+            type: DiscoveryType.LOCATION_DISCOVERY,
+            title: `Location Discovered: ${placeName}`,
+            content: `You reached ${placeName} and added this atlas cell to your explored world.`,
+            source: { type: "LOCATION", id: locationId, name: placeName },
+            flags: [
+              { key: "locationId", value: locationId, label: placeName },
+              { key: "cellId", value: cellId, label: `Atlas cell ${cellId}` },
+            ],
+            isQuestRelated: false,
+            associatedLocationId: locationId,
+          },
+        });
+      };
+
+      if (!targetBiome) {
+        addMessage("The nature of this terrain is unknown.", "system");
+        return;
+      }
+
+      if (!targetBiome.passable) {
+        const reason =
+          targetBiome.impassableReason ||
+          `You cannot travel to the ${targetBiome.name}. It is impassable by normal means.`;
+        addMessage(reason, "system");
+        return;
+      }
+
+      if (
+        tile.discovered &&
+        tile.locationId &&
+        tile.locationId !== gameState.currentLocationId
+      ) {
+        // Check if this is a town location - prevent direct quick travel to towns
+        const townKeywords = [
+          "town",
+          "village",
+          "city",
+          "settlement",
+          "hamlet",
+        ];
+        const targetLocation = LOCATIONS[tile.locationId];
+        const isTownLocation =
+          targetLocation &&
+          townKeywords.some(
+            (keyword) =>
+              targetLocation.name.toLowerCase().includes(keyword) ||
+              targetLocation.id.toLowerCase().includes(keyword),
+          );
+
+        if (isTownLocation) {
+          addMessage(
+            `You cannot quick travel directly into ${targetLocation.name}. Towns must be approached carefully on foot.`,
+            "system",
+          );
+          return;
+        }
+
+        // Grid retirement: no mapData tile mutation (isPlayerCurrent is the canonical
+        // cell; fog is cell-native). The destinationCell carries the exact arrival cell.
+        dispatch({
+          type: "MOVE_PLAYER",
+          payload: {
+            newLocationId: tile.locationId,
+            activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(
+              tile.locationId,
+              LOCATIONS,
+            ),
+            destinationCell: travelMeta?.destinationCell,
+          },
+        });
+        if (travelSeconds > 0)
+          dispatch({
+            type: "ADVANCE_TIME",
+            payload: { seconds: travelSeconds },
           });
-        } catch (err) {
-          console.error('[travel encounter] failed to start battle:', err);
-        }
-      })();
-    };
-    // Apply the trip's provisioning consequences (food/water spend, starvation,
-    // companion morale). MapPane resolved these against the route + supplies; here
-    // we just execute them after the move so the move and its cost stay atomic.
-    const applyProvisionEffects = () => {
-      const prov = travelMeta?.provision;
-      if (!prov) return;
-      const companionViews = Object.values(gameState.companions ?? {}).map(c => ({ id: c.id, loyalty: c.loyalty }));
-      // PRV9: member HP views let a starving march apply its non-lethal HP drain.
-      const healthViews = gameState.party
-        .filter(pc => pc.id)
-        .map(pc => ({ id: pc.id as string, hp: pc.hp }));
-      for (const action of buildProvisionActions(prov, companionViews, healthViews)) dispatch(action);
-      if (prov.note) addMessage(prov.note, 'system');
-    };
-    // Deduct the hired-ferry fare on departure (travel G15). MapPane already
-    // gated affordability and only stamps `ferryFareGp` when the committed trip
-    // crossed a sea leg on a hired ferry, so here we just spend the gold and note
-    // it — kept alongside the move so the trip and its cost stay atomic.
-    const applyFerryFare = () => {
-      const fare = travelMeta?.ferryFareGp;
-      if (!fare || fare <= 0) return;
-      dispatch({ type: 'MODIFY_GOLD', payload: { amount: -fare } });
-      addMessage(`You pay the ferry master ${fare} gp for passage.`, 'system');
-    };
-    // Forced-march exhaustion (travel G1). MapPane stamped `forcedMarch` only when
-    // the committed leg pushed past the safe 8-hour day, carrying the derived Con
-    // save DC. Here each party member rolls a Constitution save vs that DC; a party
-    // whose members buckle takes the 'exhaustion' condition (the same party-wide
-    // condition path as travel's 'fatigued'/'starving'). Fired after the move so
-    // the leg and its toll stay atomic.
-    const applyForcedMarch = () => {
-      const fm = travelMeta?.forcedMarch;
-      if (!fm) return;
-      const outcome = resolveForcedMarch(gameState.party, fm.saveDC, () => rollD20());
-      if (!outcome.anyFailed) {
-        addMessage(`You push on past ${Math.round(fm.hours)} hours of travel, but the party endures the forced march (DC ${fm.saveDC} Constitution saves).`, 'system');
-        return;
-      }
-      dispatch({ type: 'SET_PARTY_CONDITION', payload: { condition: 'exhaustion' } });
-      const worn = outcome.failedNames.join(', ');
-      addMessage(`The forced march past ${Math.round(fm.hours)} hours takes its toll — ${worn} fail a DC ${fm.saveDC} Constitution save and grow exhausted.`, 'system');
-    };
-
-    // A reached atlas cell becomes durable player knowledge exactly once. The
-    // existing discovery log is the single saved source for both Logbook memory
-    // and MapPane fog; locationId + cellId flags make reducer dedupe explicit.
-    const recordCellDiscovery = (cellId: number, locationId: string) => {
-      const alreadyKnown = gameState.discoveryLog.some((entry) =>
-        entry.type === DiscoveryType.LOCATION_DISCOVERY
-        && entry.flags.some((flag) => flag.key === 'cellId' && flag.value === cellId));
-      if (alreadyKnown) return;
-      const placeName = travelMeta?.destinationCell?.name ?? targetBiome?.name ?? `Cell ${cellId}`;
-      dispatch({
-        type: 'ADD_DISCOVERY_ENTRY',
-        payload: {
-          gameTime: gameState.gameTime.toISOString(),
-          type: DiscoveryType.LOCATION_DISCOVERY,
-          title: `Location Discovered: ${placeName}`,
-          content: `You reached ${placeName} and added this atlas cell to your explored world.`,
-          source: { type: 'LOCATION', id: locationId, name: placeName },
-          flags: [
-            { key: 'locationId', value: locationId, label: placeName },
-            { key: 'cellId', value: cellId, label: `Atlas cell ${cellId}` },
-          ],
-          isQuestRelated: false,
-          associatedLocationId: locationId,
-        },
-      });
-    };
-
-    if (!targetBiome) {
-      addMessage("The nature of this terrain is unknown.", 'system');
-      return;
-    }
-
-    if (!targetBiome.passable) {
-      const reason = targetBiome.impassableReason || `You cannot travel to the ${targetBiome.name}. It is impassable by normal means.`;
-      addMessage(reason, 'system');
-      return;
-    }
-
-    if (tile.discovered && tile.locationId && tile.locationId !== gameState.currentLocationId) {
-      // Check if this is a town location - prevent direct quick travel to towns
-      const townKeywords = ['town', 'village', 'city', 'settlement', 'hamlet'];
-      const targetLocation = LOCATIONS[tile.locationId];
-      const isTownLocation = targetLocation && townKeywords.some(keyword =>
-        targetLocation.name.toLowerCase().includes(keyword) ||
-        targetLocation.id.toLowerCase().includes(keyword)
-      );
-
-      if (isTownLocation) {
-        addMessage(`You cannot quick travel directly into ${targetLocation.name}. Towns must be approached carefully on foot.`, 'system');
-        return;
-      }
-
-      // Grid retirement: no mapData tile mutation (isPlayerCurrent is the canonical
-      // cell; fog is cell-native). The destinationCell carries the exact arrival cell.
-      dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: tile.locationId, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(tile.locationId, LOCATIONS), destinationCell: travelMeta?.destinationCell } });
-      if (travelSeconds > 0) dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
-      if (travelMeta?.destinationCell) recordCellDiscovery(travelMeta.destinationCell.cellId, tile.locationId);
-      dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
-      applyProvisionEffects();
-      applyFerryFare();
-      applyForcedMarch();
-      announceNavDrift();
-      announceTripEvent();
-      announceEncounter();
-      triggerTravelEncounter();
-    } else if (tile.discovered && !tile.locationId) {
-      // Grid retirement: the wilderness location id is the cell-native id of the
-      // clicked atlas cell (carried by destinationCell), not a coord_X_Y tile.
-      const destCellId = travelMeta?.destinationCell?.cellId;
-      const targetLocId = destCellId != null ? makeCellLocationId(destCellId) : null;
-      if (targetLocId) {
-        const moved = targetLocId !== gameState.currentLocationId;
-        if (moved) {
-          dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: targetLocId, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetLocId, LOCATIONS), destinationCell: travelMeta?.destinationCell } });
-          recordCellDiscovery(destCellId!, targetLocId);
-        }
-        // A zero-supply push can honestly halt in the origin cell. It still
-        // applies starvation/loyalty effects, but receives no free edge or time.
-        if (travelSeconds > 0) dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
-        dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
+        if (travelMeta?.destinationCell)
+          recordCellDiscovery(
+            travelMeta.destinationCell.cellId,
+            tile.locationId,
+          );
+        dispatch({ type: "TOGGLE_MAP_VISIBILITY" });
         applyProvisionEffects();
         applyFerryFare();
         applyForcedMarch();
@@ -1034,92 +1351,184 @@ const App: React.FC = () => {
         announceTripEvent();
         announceEncounter();
         triggerTravelEncounter();
-        if (!moved && !travelMeta?.provision?.note) {
-          addMessage(`You remain in ${targetBiome.name.toLowerCase()} country.`, 'system');
+      } else if (tile.discovered && !tile.locationId) {
+        // Grid retirement: the wilderness location id is the cell-native id of the
+        // clicked atlas cell (carried by destinationCell), not a coord_X_Y tile.
+        const destCellId = travelMeta?.destinationCell?.cellId;
+        const targetLocId =
+          destCellId != null ? makeCellLocationId(destCellId) : null;
+        if (targetLocId) {
+          const moved = targetLocId !== gameState.currentLocationId;
+          if (moved) {
+            dispatch({
+              type: "MOVE_PLAYER",
+              payload: {
+                newLocationId: targetLocId,
+                activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(
+                  targetLocId,
+                  LOCATIONS,
+                ),
+                destinationCell: travelMeta?.destinationCell,
+              },
+            });
+            recordCellDiscovery(destCellId!, targetLocId);
+          }
+          // A zero-supply push can honestly halt in the origin cell. It still
+          // applies starvation/loyalty effects, but receives no free edge or time.
+          if (travelSeconds > 0)
+            dispatch({
+              type: "ADVANCE_TIME",
+              payload: { seconds: travelSeconds },
+            });
+          dispatch({ type: "TOGGLE_MAP_VISIBILITY" });
+          applyProvisionEffects();
+          applyFerryFare();
+          applyForcedMarch();
+          announceNavDrift();
+          announceTripEvent();
+          announceEncounter();
+          triggerTravelEncounter();
+          if (!moved && !travelMeta?.provision?.note) {
+            addMessage(
+              `You remain in ${targetBiome.name.toLowerCase()} country.`,
+              "system",
+            );
+          }
+        } else {
+          // Grid retirement: no coordinates in player-facing text — name the place.
+          const settlementName = tile.locationId
+            ? LOCATIONS[tile.locationId]?.name
+            : undefined;
+          addMessage(
+            settlementName
+              ? `You arrive at ${settlementName}.`
+              : `You arrive in ${targetBiome.name.toLowerCase()}.`,
+            "system",
+          );
         }
-      } else {
-        // Grid retirement: no coordinates in player-facing text — name the place.
-        const settlementName = tile.locationId ? LOCATIONS[tile.locationId]?.name : undefined;
+      } else if (tile.discovered) {
         addMessage(
-          settlementName
-            ? `You arrive at ${settlementName}.`
-            : `You arrive in ${targetBiome.name.toLowerCase()}.`,
-          'system',
+          `This is ${targetBiome.name.toLowerCase()} country. ${targetBiome.description}`,
+          "system",
+        );
+      } else {
+        // Travel failure mode: a pick landed on an unexplored cell. Never silently
+        // no-op — tell the player why the trip didn't happen.
+        addMessage(
+          "That place lies beyond the known map — scout closer before you can travel there.",
+          "system",
         );
       }
-    } else if (tile.discovered) {
-      addMessage(`This is ${targetBiome.name.toLowerCase()} country. ${targetBiome.description}`, 'system');
-    } else {
-      // Travel failure mode: a pick landed on an unexplored cell. Never silently
-      // no-op — tell the player why the trip didn't happen.
-      addMessage('That place lies beyond the known map — scout closer before you can travel there.', 'system');
-    }
-
-  }, [gameState.currentLocationId, gameState.companions, gameState.party, gameState.discoveryLog, gameState.gameTime, gameState.worldSeed, gameState.worldforgeDeltas, addMessage, dispatch]);
+    },
+    [
+      gameState.currentLocationId,
+      gameState.companions,
+      gameState.party,
+      gameState.discoveryLog,
+      gameState.gameTime,
+      gameState.worldSeed,
+      gameState.worldforgeDeltas,
+      addMessage,
+      dispatch,
+    ],
+  );
 
   /**
    * Atlas "Enter 3D" mode: place the player in the streamed world at the clicked cell.
    */
-  const handleEnter3DAtCell = useCallback((_x: number, _y: number, tile: MapTile, anchor?: import('./types/state').Entry3DAnchor) => {
-    if (!tile.discovered) {
-      addMessage('You cannot enter the 3D world in undiscovered areas.', 'system');
-      return;
-    }
+  const handleEnter3DAtCell = useCallback(
+    (
+      _x: number,
+      _y: number,
+      tile: MapTile,
+      anchor?: import("./types/state").Entry3DAnchor,
+    ) => {
+      if (!tile.discovered) {
+        addMessage(
+          "You cannot enter the 3D world in undiscovered areas.",
+          "system",
+        );
+        return;
+      }
 
-    // 3D entry is an atomic location transition, not just a render hint. A
-    // selected explored cell must become the canonical playerCell/location too,
-    // otherwise saves, NPC context and hidden discoveries describe the old cell
-    // while the loader renders the new one.
-    if (anchor) {
-      const targetLocationId = makeCellLocationId(anchor.cellId);
-      if (gameState.playerCell?.cellId !== anchor.cellId || gameState.currentLocationId !== targetLocationId) {
+      // 3D entry is an atomic location transition, not just a render hint. A
+      // selected explored cell must become the canonical playerCell/location too,
+      // otherwise saves, NPC context and hidden discoveries describe the old cell
+      // while the loader renders the new one.
+      if (anchor) {
+        const targetLocationId = makeCellLocationId(anchor.cellId);
+        if (
+          gameState.playerCell?.cellId !== anchor.cellId ||
+          gameState.currentLocationId !== targetLocationId
+        ) {
+          dispatch({
+            type: "MOVE_PLAYER",
+            payload: {
+              newLocationId: targetLocationId,
+              activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(
+                targetLocationId,
+                LOCATIONS,
+              ),
+              destinationCell: { cellId: anchor.cellId, anchor },
+            },
+          });
+        } else {
+          dispatch({ type: "SET_ENTRY_3D_ANCHOR", payload: anchor });
+        }
+        // Locale meters belong to the old cell; the destination ground session
+        // will establish a fresh local position after it loads.
         dispatch({
-          type: 'MOVE_PLAYER',
-          payload: {
-            newLocationId: targetLocationId,
-            activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetLocationId, LOCATIONS),
-            destinationCell: { cellId: anchor.cellId, anchor },
-          },
+          type: "SET_PLAYER_GROUND_POS",
+          payload: { position: null },
         });
-      } else {
-        dispatch({ type: 'SET_ENTRY_3D_ANCHOR', payload: anchor });
+        // Living-world sim: if the entered cell holds a town, start tracking its
+        // history. Resolved straight from the cell — no grid tile lookup.
+        const burgId = burgIdForCell(gameState.worldSeed ?? 0, anchor.cellId);
+        if (burgId !== undefined) {
+          dispatch({ type: "TOWNSIM_REGISTER_BURG", payload: { burgId } });
+        }
       }
-      // Locale meters belong to the old cell; the destination ground session
-      // will establish a fresh local position after it loads.
-      dispatch({ type: 'SET_PLAYER_GROUND_POS', payload: { position: null } });
-      // Living-world sim: if the entered cell holds a town, start tracking its
-      // history. Resolved straight from the cell — no grid tile lookup.
-      const burgId = burgIdForCell(gameState.worldSeed ?? 0, anchor.cellId);
-      if (burgId !== undefined) {
-        dispatch({ type: 'TOWNSIM_REGISTER_BURG', payload: { burgId } });
+      // The legacy continent position is vestigial, but keep its compatibility
+      // value at the origin while the cell-native anchor frames the ground world.
+      dispatch({ type: "SET_PLAYER_WORLD_POS", payload: { x: 0, y: 0, z: 0 } });
+      dispatch({ type: "SET_WORLD_VIEW_MODE", payload: "3d" });
+      if (gameState.isMapVisible) {
+        dispatch({ type: "TOGGLE_MAP_VISIBILITY" });
       }
-    }
-    // The legacy continent position is vestigial, but keep its compatibility
-    // value at the origin while the cell-native anchor frames the ground world.
-    dispatch({ type: 'SET_PLAYER_WORLD_POS', payload: { x: 0, y: 0, z: 0 } });
-    dispatch({ type: 'SET_WORLD_VIEW_MODE', payload: '3d' });
-    if (gameState.isMapVisible) {
-      dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
-    }
 
-    addMessage('Entering the 3D world.', 'system');
-  }, [addMessage, dispatch, gameState.currentLocationId, gameState.isMapVisible, gameState.playerCell?.cellId, gameState.worldSeed]);
+      addMessage("Entering the 3D world.", "system");
+    },
+    [
+      addMessage,
+      dispatch,
+      gameState.currentLocationId,
+      gameState.isMapVisible,
+      gameState.playerCell?.cellId,
+      gameState.worldSeed,
+    ],
+  );
 
-  const handleOpenCharacterSheet = useCallback((character: PlayerCharacter) => {
-    dispatch({ type: 'OPEN_CHARACTER_SHEET', payload: character });
-  }, [dispatch]);
+  const handleOpenCharacterSheet = useCallback(
+    (character: PlayerCharacter) => {
+      dispatch({ type: "OPEN_CHARACTER_SHEET", payload: character });
+    },
+    [dispatch],
+  );
 
   const handleCloseCharacterSheet = useCallback(() => {
-    dispatch({ type: 'CLOSE_CHARACTER_SHEET' });
+    dispatch({ type: "CLOSE_CHARACTER_SHEET" });
   }, [dispatch]);
 
   const handleClosePartyOverlay = useCallback(() => {
-    dispatch({ type: 'TOGGLE_PARTY_OVERLAY' });
+    dispatch({ type: "TOGGLE_PARTY_OVERLAY" });
   }, [dispatch]);
 
-  const handleDismissMember = useCallback((id: string) => {
-    dispatch({ type: 'DISMISS_PARTY_MEMBER', payload: { memberId: id } });
-  }, [dispatch]);
+  const handleDismissMember = useCallback(
+    (id: string) => {
+      dispatch({ type: "DISMISS_PARTY_MEMBER", payload: { memberId: id } });
+    },
+    [dispatch],
+  );
 
   const handleTransitionComplete = useCallback(() => {
     // Transition complete — player now has control in 3D world.
@@ -1129,53 +1538,73 @@ const App: React.FC = () => {
   const hasActiveRunInMemory = gameState.party.length > 0;
   const canRegenerateWorldMap = !hasStoredSaveGame && !hasActiveRunInMemory;
   const worldGenerationLockedReason = hasActiveRunInMemory
-    ? 'World generation is locked while an active game session is in memory.'
+    ? "World generation is locked while an active game session is in memory."
     : hasStoredSaveGame
-      ? 'World generation is locked because save data exists. Clear saves to unlock it.'
+      ? "World generation is locked because save data exists. Clear saves to unlock it."
       : null;
 
-  const buildDynamicLocationItemSnapshot = useCallback((): Record<string, string[]> => {
+  const buildDynamicLocationItemSnapshot = useCallback((): Record<
+    string,
+    string[]
+  > => {
     const snapshot: Record<string, string[]> = {};
-    Object.values(LOCATIONS).forEach(loc => {
+    Object.values(LOCATIONS).forEach((loc) => {
       snapshot[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
     });
     return snapshot;
   }, []);
 
-  const createWorldFromSeed = useCallback((seed: number) => {
-    const normalizedSeed = Number.isFinite(seed) && seed > 0 ? Math.floor(seed) : generateWorldSeed();
-    // Grid retirement: the world IS the atlas derived from the seed
-    // (`getBridgeAtlas(seed)`); there is no 30x20 mapData grid to generate or
-    // store. Setting the seed regenerates the map view (MapPane reads the atlas
-    // from worldSeed) and re-resolves the cell-native spawn at game start.
-    dispatch({ type: 'SET_WORLD_SEED', payload: normalizedSeed });
-    return { seed: normalizedSeed };
-  }, [dispatch]);
+  const createWorldFromSeed = useCallback(
+    (seed: number) => {
+      const normalizedSeed =
+        Number.isFinite(seed) && seed > 0
+          ? Math.floor(seed)
+          : generateWorldSeed();
+      // Grid retirement: the world IS the atlas derived from the seed
+      // (`getBridgeAtlas(seed)`); there is no 30x20 mapData grid to generate or
+      // store. Setting the seed regenerates the map view (MapPane reads the atlas
+      // from worldSeed) and re-resolves the cell-native spawn at game start.
+      dispatch({ type: "SET_WORLD_SEED", payload: normalizedSeed });
+      return { seed: normalizedSeed };
+    },
+    [dispatch],
+  );
 
-  const handleRegenerateWorldMap = useCallback((requestedSeed?: number) => {
-    if (!canRegenerateWorldMap) {
+  const handleRegenerateWorldMap = useCallback(
+    (requestedSeed?: number) => {
+      if (!canRegenerateWorldMap) {
+        dispatch({
+          type: "ADD_NOTIFICATION",
+          payload: {
+            type: "warning",
+            message:
+              worldGenerationLockedReason ||
+              "World generation is currently locked.",
+          },
+        });
+        return;
+      }
+
+      const seedToUse =
+        Number.isFinite(requestedSeed) && (requestedSeed ?? 0) > 0
+          ? Math.floor(requestedSeed as number)
+          : generateWorldSeed();
+      const { seed } = createWorldFromSeed(seedToUse);
       dispatch({
-        type: 'ADD_NOTIFICATION',
+        type: "ADD_NOTIFICATION",
         payload: {
-          type: 'warning',
-          message: worldGenerationLockedReason || 'World generation is currently locked.',
+          type: "success",
+          message: `World regenerated with seed ${seed}.`,
         },
       });
-      return;
-    }
-
-    const seedToUse = Number.isFinite(requestedSeed) && (requestedSeed ?? 0) > 0
-      ? Math.floor(requestedSeed as number)
-      : generateWorldSeed();
-    const { seed } = createWorldFromSeed(seedToUse);
-    dispatch({
-      type: 'ADD_NOTIFICATION',
-      payload: {
-        type: 'success',
-        message: `World regenerated with seed ${seed}.`,
-      },
-    });
-  }, [canRegenerateWorldMap, createWorldFromSeed, dispatch, worldGenerationLockedReason]);
+    },
+    [
+      canRegenerateWorldMap,
+      createWorldFromSeed,
+      dispatch,
+      worldGenerationLockedReason,
+    ],
+  );
 
   const handleOpenWorldGenerationFromMainMenu = useCallback(() => {
     // Grid retirement: "world generated yet?" is now "do we have a world seed?"
@@ -1185,13 +1614,13 @@ const App: React.FC = () => {
     }
 
     if (!gameState.isMapVisible) {
-      dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
+      dispatch({ type: "TOGGLE_MAP_VISIBILITY" });
     }
     if (!canRegenerateWorldMap && worldGenerationLockedReason) {
       dispatch({
-        type: 'ADD_NOTIFICATION',
+        type: "ADD_NOTIFICATION",
         payload: {
-          type: 'warning',
+          type: "warning",
           message: worldGenerationLockedReason,
         },
       });
@@ -1228,9 +1657,13 @@ const App: React.FC = () => {
   const handleNewGame = useCallback(() => {
     // Grid retirement: carry the previewed world by SEED (the atlas source), not a
     // mapData grid. A seed present means the World Generation menu set one up.
-    if (canRegenerateWorldMap && Number.isFinite(gameState.worldSeed) && gameState.worldSeed > 0) {
+    if (
+      canRegenerateWorldMap &&
+      Number.isFinite(gameState.worldSeed) &&
+      gameState.worldSeed > 0
+    ) {
       dispatch({
-        type: 'START_NEW_GAME_SETUP',
+        type: "START_NEW_GAME_SETUP",
         payload: {
           dynamicLocationItemIds: buildDynamicLocationItemSnapshot(),
           worldSeed: gameState.worldSeed,
@@ -1248,141 +1681,199 @@ const App: React.FC = () => {
     initializeNewGame,
   ]);
 
-  const handleDevMenuAction = useCallback(async (actionType: string) => {
-    const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'combat_messaging_demo', 'generate_encounter', 'restart_dynamic_party', 'quick_start_dev', 'open_ai_provider_config'];
+  const handleDevMenuAction = useCallback(
+    async (actionType: string) => {
+      const actionsThatNeedMenuToggle = [
+        "save",
+        "battle_map_demo",
+        "combat_messaging_demo",
+        "generate_encounter",
+        "restart_dynamic_party",
+        "quick_start_dev",
+        "open_ai_provider_config",
+      ];
 
-    if (actionsThatNeedMenuToggle.includes(actionType)) {
-      dispatch({ type: 'TOGGLE_DEV_MENU' });
-    }
+      if (actionsThatNeedMenuToggle.includes(actionType)) {
+        dispatch({ type: "TOGGLE_DEV_MENU" });
+      }
 
-    switch (actionType as typeof actionsThatNeedMenuToggle[number] | 'main_menu' | 'char_creator' | 'toggle_log_viewer' | 'toggle_unified_log_viewer' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'load' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'toggle_economy_ledger' | 'toggle_courier_pouch' | 'combat_messaging_demo') {
-      case 'restart_dynamic_party':
-        dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Generating new party..." } });
-        try {
-          // Load the procedural companion generator only for this dev action.
-          // It pulls in character, NPC, and local-AI helpers that the main menu
-          // does not need during normal startup.
-          const { generateCompanion } = await import('./services/CompanionGenerator');
-          const newParty: PlayerCharacter[] = [];
-          // Generate a party of 3 for now
-          const configs = [
-            { level: 1, classId: 'fighter', raceId: 'human' },
-            { level: 1, classId: 'rogue', raceId: 'tiefling' },
-            { level: 1, classId: 'wizard', raceId: 'elf' },
-          ];
+      switch (
+        actionType as
+          | (typeof actionsThatNeedMenuToggle)[number]
+          | "main_menu"
+          | "char_creator"
+          | "toggle_log_viewer"
+          | "toggle_unified_log_viewer"
+          | "toggle_party_editor"
+          | "toggle_npc_test_plan"
+          | "inspect_noble_houses"
+          | "load"
+          | "toggle_naval_dashboard"
+          | "toggle_trade_route_dashboard"
+          | "toggle_economy_ledger"
+          | "toggle_courier_pouch"
+          | "combat_messaging_demo"
+      ) {
+        case "restart_dynamic_party":
+          dispatch({
+            type: "SET_LOADING",
+            payload: { isLoading: true, message: "Generating new party..." },
+          });
+          try {
+            // Load the procedural companion generator only for this dev action.
+            // It pulls in character, NPC, and local-AI helpers that the main menu
+            // does not need during normal startup.
+            const { generateCompanion } =
+              await import("./services/CompanionGenerator");
+            const newParty: PlayerCharacter[] = [];
+            // Generate a party of 3 for now
+            const configs = [
+              { level: 1, classId: "fighter", raceId: "human" },
+              { level: 1, classId: "rogue", raceId: "tiefling" },
+              { level: 1, classId: "wizard", raceId: "elf" },
+            ];
 
-          for (const config of configs) {
-            const companion = await generateCompanion(config);
-            if (companion) {
-              newParty.push(companion);
+            for (const config of configs) {
+              const companion = await generateCompanion(config);
+              if (companion) {
+                newParty.push(companion);
+              }
             }
-          }
 
-          if (newParty.length === configs.length) {
-            dispatch({ type: 'RESTART_WITH_PROCEDURAL_PARTY', payload: newParty });
-          } else {
-            throw new Error("Failed to generate one or more companions.");
+            if (newParty.length === configs.length) {
+              dispatch({
+                type: "RESTART_WITH_PROCEDURAL_PARTY",
+                payload: newParty,
+              });
+            } else {
+              throw new Error("Failed to generate one or more companions.");
+            }
+          } catch (error) {
+            console.error("Failed to restart with procedural party:", error);
+            window.alert(`Failed to restart with procedural party: ${error}`);
+            dispatch({
+              type: "SET_ERROR",
+              payload:
+                "Failed to generate a new party. Check the console for details.",
+            });
+          } finally {
+            dispatch({ type: "SET_LOADING", payload: { isLoading: false } });
           }
-
-        } catch (error) {
-          console.error("Failed to restart with procedural party:", error);
-          window.alert(`Failed to restart with procedural party: ${error}`);
-          dispatch({ type: 'SET_ERROR', payload: "Failed to generate a new party. Check the console for details." });
-        } finally {
-          dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
-        }
-        break;
-      case 'main_menu':
-        dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
-        break;
-      case 'char_creator':
-        handleNewGame();
-        break;
-      case 'quick_start_dev':
-        // This route used to be a standalone main-menu button. It now lives inside the
-        // shared Dev Menu so all developer-only start flows are grouped in one place.
-        await handleSkipCharacterCreator();
-        break;
-      case 'save':
-        processAction({ type: 'save_game', label: 'Force Save' });
-        break;
-      case 'load':
-        handleLoadGameFlow();
-        break;
-      case 'toggle_log_viewer':
-        dispatch({ type: 'TOGGLE_GEMINI_LOG_VIEWER' });
-        break;
-      case 'toggle_unified_log_viewer':
-        dispatch({ type: 'TOGGLE_UNIFIED_LOG_VIEWER' });
-        break;
-      case 'open_ai_provider_config':
-        // Reuse the shared provider pane so Gemini fallback and Groq cloud
-        // setup stay in one place instead of drifting across debug surfaces.
-        dispatch({ type: 'SHOW_OLLAMA_DEPENDENCY_MODAL' });
-        break;
-      // 'design_preview' removed - access via /Aralia/misc/design.html
-      // 'battle_map_demo' moved to the design preview - misc/design.html?step=battlemap
-      case 'combat_messaging_demo':
-        dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.COMBAT_MESSAGING_DEMO });
-        break;
-      case 'toggle_party_editor':
-        dispatch({ type: 'TOGGLE_PARTY_EDITOR_MODAL' });
-        break;
-      case 'generate_encounter':
-        processAction({ type: 'GENERATE_ENCOUNTER', label: 'Generate Encounter' });
-        break;
-      case 'toggle_npc_test_plan':
-        processAction({ type: 'TOGGLE_NPC_TEST_MODAL', label: 'Toggle NPC Test Plan' });
-        break;
-      case 'inspect_noble_houses':
-        dispatch({ type: 'TOGGLE_NOBLE_HOUSE_LIST' });
-        break;
-      case 'toggle_naval_dashboard':
-        dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' });
-        break;
-      case 'toggle_trade_route_dashboard':
-        dispatch({ type: 'TOGGLE_TRADE_ROUTE_DASHBOARD' });
-        break;
-      case 'toggle_economy_ledger':
-        dispatch({ type: 'TOGGLE_ECONOMY_LEDGER' });
-        break;
-      case 'toggle_courier_pouch':
-        dispatch({ type: 'TOGGLE_COURIER_POUCH' });
-        break;
-      case 'test_lockpicking':
-        // Open lockpicking modal with a sample test lock
-        dispatch({
-          type: 'OPEN_LOCKPICKING_MODAL',
-          payload: {
-            id: 'test-lock-1',
-            dc: 15,
-            breakDC: 20,
-            isLocked: true,
-            isBroken: false,
-            isTrapped: true,
-            trap: {
-              id: 'test-trap-1',
-              name: 'Poison Needle Trap',
-              detectionDC: 12,
-              disarmDC: 14,
-              triggerCondition: 'touch',
-              effect: { damage: { count: 1, sides: 4, bonus: 0 }, damageType: 'poison' },
-              resetable: false,
-              isDisarmed: false,
-              isTriggered: false,
+          break;
+        case "main_menu":
+          dispatch({ type: "SET_GAME_PHASE", payload: GamePhase.MAIN_MENU });
+          break;
+        case "char_creator":
+          handleNewGame();
+          break;
+        case "quick_start_dev":
+          // This route used to be a standalone main-menu button. It now lives inside the
+          // shared Dev Menu so all developer-only start flows are grouped in one place.
+          await handleSkipCharacterCreator();
+          break;
+        case "save":
+          processAction({ type: "save_game", label: "Force Save" });
+          break;
+        case "load":
+          handleLoadGameFlow();
+          break;
+        case "toggle_log_viewer":
+          dispatch({ type: "TOGGLE_GEMINI_LOG_VIEWER" });
+          break;
+        case "toggle_unified_log_viewer":
+          dispatch({ type: "TOGGLE_UNIFIED_LOG_VIEWER" });
+          break;
+        case "open_ai_provider_config":
+          // Reuse the shared provider pane so Gemini fallback and Groq cloud
+          // setup stay in one place instead of drifting across debug surfaces.
+          dispatch({ type: "SHOW_OLLAMA_DEPENDENCY_MODAL" });
+          break;
+        // 'design_preview' removed - access via /Aralia/misc/design.html
+        // 'battle_map_demo' moved to the design preview - misc/design.html?step=battlemap
+        case "combat_messaging_demo":
+          dispatch({
+            type: "SET_GAME_PHASE",
+            payload: GamePhase.COMBAT_MESSAGING_DEMO,
+          });
+          break;
+        case "toggle_party_editor":
+          dispatch({ type: "TOGGLE_PARTY_EDITOR_MODAL" });
+          break;
+        case "generate_encounter":
+          processAction({
+            type: "GENERATE_ENCOUNTER",
+            label: "Generate Encounter",
+          });
+          break;
+        case "toggle_npc_test_plan":
+          processAction({
+            type: "TOGGLE_NPC_TEST_MODAL",
+            label: "Toggle NPC Test Plan",
+          });
+          break;
+        case "inspect_noble_houses":
+          dispatch({ type: "TOGGLE_NOBLE_HOUSE_LIST" });
+          break;
+        case "toggle_naval_dashboard":
+          dispatch({ type: "TOGGLE_NAVAL_DASHBOARD" });
+          break;
+        case "toggle_trade_route_dashboard":
+          dispatch({ type: "TOGGLE_TRADE_ROUTE_DASHBOARD" });
+          break;
+        case "toggle_economy_ledger":
+          dispatch({ type: "TOGGLE_ECONOMY_LEDGER" });
+          break;
+        case "toggle_courier_pouch":
+          dispatch({ type: "TOGGLE_COURIER_POUCH" });
+          break;
+        case "test_lockpicking":
+          // Open lockpicking modal with a sample test lock
+          dispatch({
+            type: "OPEN_LOCKPICKING_MODAL",
+            payload: {
+              id: "test-lock-1",
+              dc: 15,
+              breakDC: 20,
+              isLocked: true,
+              isBroken: false,
+              isTrapped: true,
+              trap: {
+                id: "test-trap-1",
+                name: "Poison Needle Trap",
+                detectionDC: 12,
+                disarmDC: 14,
+                triggerCondition: "touch",
+                effect: {
+                  damage: { count: 1, sides: 4, bonus: 0 },
+                  damageType: "poison",
+                },
+                resetable: false,
+                isDisarmed: false,
+                isTriggered: false,
+              },
             },
-          },
-        });
-        break;
-      case 'test_dice_roller':
-        dispatch({ type: 'TOGGLE_DICE_ROLLER' });
-        break;
-    }
-  }, [dispatch, handleNewGame, processAction, handleLoadGameFlow, handleSkipCharacterCreator]);
+          });
+          break;
+        case "test_dice_roller":
+          dispatch({ type: "TOGGLE_DICE_ROLLER" });
+          break;
+      }
+    },
+    [
+      dispatch,
+      handleNewGame,
+      processAction,
+      handleLoadGameFlow,
+      handleSkipCharacterCreator,
+    ],
+  );
 
-  const handleModelChange = useCallback((model: string | null) => {
-    dispatch({ type: 'SET_DEV_MODEL_OVERRIDE', payload: model });
-  }, [dispatch]);
+  const handleModelChange = useCallback(
+    (model: string | null) => {
+      dispatch({ type: "SET_DEV_MODEL_OVERRIDE", payload: model });
+    },
+    [dispatch],
+  );
 
   // The main-menu dev entry now opens the same shared developer modal that gameplay uses,
   // but it should not silently change the user's Dev Mode choice just because the modal
@@ -1390,20 +1881,24 @@ const App: React.FC = () => {
   // the shared surface and preserves whatever state the user last chose.
   const handleOpenDevMenuFromMainMenu = useCallback(() => {
     if (!gameState.isDevMenuVisible) {
-      dispatch({ type: 'TOGGLE_DEV_MENU' });
+      dispatch({ type: "TOGGLE_DEV_MENU" });
     }
   }, [dispatch, gameState.isDevMenuVisible]);
 
-
-  const handleNavigateToGlossaryFromTooltip = useCallback((termId: string) => {
-    if (!gameState.isGlossaryVisible) {
-      dispatch({ type: 'SET_GLOSSARY_TERM_FOR_MODAL', payload: termId });
-      processAction({ type: 'TOGGLE_GLOSSARY_VISIBILITY', label: 'Open Glossary' });
-    } else {
-      dispatch({ type: 'SET_GLOSSARY_TERM_FOR_MODAL', payload: termId });
-    }
-  }, [dispatch, processAction, gameState.isGlossaryVisible]);
-
+  const handleNavigateToGlossaryFromTooltip = useCallback(
+    (termId: string) => {
+      if (!gameState.isGlossaryVisible) {
+        dispatch({ type: "SET_GLOSSARY_TERM_FOR_MODAL", payload: termId });
+        processAction({
+          type: "TOGGLE_GLOSSARY_VISIBILITY",
+          label: "Open Glossary",
+        });
+      } else {
+        dispatch({ type: "SET_GLOSSARY_TERM_FOR_MODAL", payload: termId });
+      }
+    },
+    [dispatch, processAction, gameState.isGlossaryVisible],
+  );
 
   // --- Main Content Rendering Logic ---
   // The 'mainContent' variable determines the primary view of the application based on the current 'gamePhase'.
@@ -1419,14 +1914,15 @@ const App: React.FC = () => {
     if (!itemsById) return [];
     const locId = currentLocationData.id;
     const ids = isWildernessLocationId(locId)
-      ? gameState.dynamicLocationItemIds[locId] ?? []
-      : currentLocationData.itemIds ?? [];
+      ? (gameState.dynamicLocationItemIds[locId] ?? [])
+      : (currentLocationData.itemIds ?? []);
     return ids.map((id) => itemsById[id]).filter(Boolean) as Item[];
   })();
 
   // Determine if the UI should be interactive based on modal/loading states.
   // This boolean is passed down to disable controls when overlays are active.
-  const isUIInteractive = !gameState.isLoading &&
+  const isUIInteractive =
+    !gameState.isLoading &&
     !gameState.isImageLoading &&
     !gameState.characterSheetModal.isOpen &&
     !gameState.isMapVisible &&
@@ -1450,7 +1946,7 @@ const App: React.FC = () => {
   const handleGoBackFromMainMenu = useCallback(() => {
     const prevPhase: GamePhase | undefined = gameState.previousPhase;
     if (prevPhase !== undefined && prevPhase !== GamePhase.MAIN_MENU) {
-      dispatch({ type: 'SET_GAME_PHASE', payload: prevPhase });
+      dispatch({ type: "SET_GAME_PHASE", payload: prevPhase });
     }
   }, [gameState.previousPhase, dispatch]);
 
@@ -1497,7 +1993,9 @@ const App: React.FC = () => {
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred during Character Creation.">
         <CharacterCreator
-          onCharacterCreate={(character, inventory) => handleCharacterCreated(character, inventory)}
+          onCharacterCreate={(character, inventory) =>
+            handleCharacterCreated(character, inventory)
+          }
           onExitToMainMenu={handleExitCharacterCreatorToMainMenu}
           dispatch={dispatch}
         />
@@ -1576,7 +2074,11 @@ const App: React.FC = () => {
     // Render the unified Combat Messaging System Demo
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred in the Combat Messaging Demo.">
-        <CombatMessagingDemo onExit={() => dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU })} />
+        <CombatMessagingDemo
+          onExit={() =>
+            dispatch({ type: "SET_GAME_PHASE", payload: GamePhase.MAIN_MENU })
+          }
+        />
       </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.COMBAT) {
@@ -1585,14 +2087,18 @@ const App: React.FC = () => {
     // Dev-only override (?biome=swamp) so headless proofs can shoot every
     // painted biome without needing a save located in one.
     const devBiomeParam = canUseDevTools()
-      ? new URLSearchParams(window.location.search).get('biome')
+      ? new URLSearchParams(window.location.search).get("biome")
       : null;
     const combatBiome: BattleMapBiome =
-      (devBiomeParam && allowedBiomes.includes(devBiomeParam as typeof allowedBiomes[number]))
-        ? (devBiomeParam as typeof allowedBiomes[number])
-        : (currentLocationData.biomeId && allowedBiomes.includes(currentLocationData.biomeId as typeof allowedBiomes[number]))
-          ? (currentLocationData.biomeId as typeof allowedBiomes[number])
-          : 'forest';
+      devBiomeParam &&
+      allowedBiomes.includes(devBiomeParam as (typeof allowedBiomes)[number])
+        ? (devBiomeParam as (typeof allowedBiomes)[number])
+        : currentLocationData.biomeId &&
+            allowedBiomes.includes(
+              currentLocationData.biomeId as (typeof allowedBiomes)[number],
+            )
+          ? (currentLocationData.biomeId as (typeof allowedBiomes)[number])
+          : "forest";
 
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred during Combat.">
@@ -1601,32 +2107,55 @@ const App: React.FC = () => {
           enemies={gameState.currentEnemies || []}
           biome={combatBiome}
           onRoundElapsed={handleCombatRoundElapsed}
-          onBattleEnd={(result, rewards, finalPartyState) => {
-            addMessage(result === 'victory' ? 'Victory! The enemies are defeated.' : 'Defeat! The party has fallen.', 'system');
-            // Defeat must enter GAME_OVER after combat teardown; victory keeps
-            // the existing reward settlement and exploration return.
-            for (const action of createBattleEndActions(result, rewards, finalPartyState)) dispatch(action);
+          onBattleEnd={(result, rewards, finalPartyState, finalEnemyState) => {
+            addMessage(
+              result === "victory"
+                ? "Victory! The enemies are defeated."
+                : "Defeat! The party has fallen.",
+              "system",
+            );
+            // Source-authored enemy results settle before combat teardown so
+            // WorldForge can still validate the exact tactical map and roster.
+            // Defeat then enters GAME_OVER; victory resumes exploration.
+            for (const action of createBattleEndActions(
+              result,
+              rewards,
+              finalPartyState,
+              finalEnemyState,
+            ))
+              dispatch(action);
           }}
         />
       </ErrorBoundary>
     );
-  } else if (gameState.phase === GamePhase.PLAYING && gameState.party.length > 0) {
+  } else if (
+    gameState.phase === GamePhase.PLAYING &&
+    gameState.party.length > 0
+  ) {
     // Render the Main Game Layout (Exploration Mode)
     // <GameLayout> extracts the complexity of the Compass, Action, World, and Minimap panes.
     // When worldViewMode === '3d', render the 3D world instead of the 2D atlas.
     // mapSurface ('classic' | 'worldforge') swaps the 2D surface between the
     // legacy GameLayout and the native ported-FMG Worldforge cartographer.
     const openingGateOwnsMainView =
-      gameState.gameEntry?.status === 'generating' ||
-      gameState.gameEntry?.status === 'model-unavailable';
-    const useWorldforgeSurface = (gameState.mapSurface ?? 'classic') === 'worldforge';
+      gameState.gameEntry?.status === "generating" ||
+      gameState.gameEntry?.status === "model-unavailable";
+    const useWorldforgeSurface =
+      (gameState.mapSurface ?? "classic") === "worldforge";
 
     const atlasContent = useWorldforgeSurface ? (
-      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <div style={{ position: "relative", width: "100%", height: "100%" }}>
         <Suspense fallback={<LoadingSpinner />}>
           <WorldforgeAtlasDemo embeddedInGame worldSeed={gameState.worldSeed} />
         </Suspense>
-        <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 40 }}>
+        <div
+          style={{
+            position: "absolute",
+            top: "12px",
+            right: "12px",
+            zIndex: 40,
+          }}
+        >
           <MapSurfaceToggle />
         </div>
       </div>
@@ -1675,7 +2204,10 @@ const App: React.FC = () => {
       // generating or unavailable. Do not render the normal game panes underneath:
       // they require the opening context and would throw into the generic error
       // boundary, visually competing with the real blocker.
-      <div data-testid="opening-gate-backdrop" className="min-h-screen bg-gray-950" />
+      <div
+        data-testid="opening-gate-backdrop"
+        className="min-h-screen bg-gray-950"
+      />
     ) : (
       <ErrorBoundary fallbackMessage="An error occurred in the main game view.">
         <Suspense fallback={<LoadingSpinner />}>
@@ -1686,17 +2218,22 @@ const App: React.FC = () => {
             // Grid retirement: the legacy continent-3D terrain (derived from the
             // 30x20 mapData) is gone; the streamed cell-native ground
             // (getWorldforgeLocalForCell) is the world. No worldData prop.
-            sceneContent={(
+            sceneContent={
               <World3DWrapper
                 entryPosition={entryPosition}
                 // Interactive 3D: clicking a townsperson/stranger in the world runs
                 // the SAME talk action as the 2D "Talk to X" button, so the
                 // conversation opens with full met/disposition/recruit bookkeeping.
                 onTalkToNpc={(npcId) =>
-                  processAction({ type: 'talk', label: 'Talk', payload: { targetNpcId: npcId }, targetId: npcId })
+                  processAction({
+                    type: "talk",
+                    label: "Talk",
+                    payload: { targetNpcId: npcId },
+                    targetId: npcId,
+                  })
                 }
               />
-            )}
+            }
           />
         </Suspense>
       </ErrorBoundary>
@@ -1704,7 +2241,7 @@ const App: React.FC = () => {
   } else if (gameState.phase === GamePhase.GAME_OVER) {
     mainContent = (
       <div className="flex flex-col items-center justify-center h-screen bg-black text-red-600 font-serif gap-8">
-        <h1 className="text-6xl tracking-wider">{t('app.game_over')}</h1>
+        <h1 className="text-6xl tracking-wider">{t("app.game_over")}</h1>
         <button
           // Clear the defeated in-memory run while preserving stored saves for recovery.
           onClick={handleAbandonRun}
@@ -1714,18 +2251,24 @@ const App: React.FC = () => {
         </button>
       </div>
     );
-  } else if (gameState.phase === GamePhase.LOAD_TRANSITION && gameState.party[0]) {
+  } else if (
+    gameState.phase === GamePhase.LOAD_TRANSITION &&
+    gameState.party[0]
+  ) {
     mainContent = <LoadGameTransition character={gameState.party[0]} />;
   } else if (gameState.phase === GamePhase.NOT_FOUND) {
     mainContent = (
       <NotFound
-        onReturnToMainMenu={() => dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU })}
+        onReturnToMainMenu={() =>
+          dispatch({ type: "SET_GAME_PHASE", payload: GamePhase.MAIN_MENU })
+        }
       />
     );
   }
 
   const notifications = (gameState.notifications as Notification[]) || [];
-  const shouldLoadGlossaryData = gameState.phase !== GamePhase.MAIN_MENU || gameState.isGlossaryVisible;
+  const shouldLoadGlossaryData =
+    gameState.phase !== GamePhase.MAIN_MENU || gameState.isGlossaryVisible;
   const shouldLoadSpellData = gameState.phase !== GamePhase.MAIN_MENU;
   const areNotificationsSuppressed = Boolean(
     // Blocking modal surfaces should own visual focus. Keep toast state intact,
@@ -1752,7 +2295,7 @@ const App: React.FC = () => {
     gameState.isNoticeBoardVisible ||
     gameState.isBroadsheetVisible ||
     gameState.isEconomyLedgerVisible ||
-    gameState.isCourierPouchVisible
+    gameState.isCourierPouchVisible,
   );
   const isBanterCollapsedTabSuppressed = Boolean(
     // Modal windows claim the visual focus layer. The collapsed party-chat tab
@@ -1780,15 +2323,18 @@ const App: React.FC = () => {
     gameState.isBroadsheetVisible ||
     gameState.isEconomyLedgerVisible ||
     gameState.isCourierPouchVisible ||
-    gameState.gameEntry?.status === 'generating' ||
-    gameState.gameEntry?.status === 'model-unavailable'
+    gameState.gameEntry?.status === "generating" ||
+    gameState.gameEntry?.status === "model-unavailable",
   );
 
   // --- Root Render ---
   // Wraps the application in <AppProviders> for context access.
   // Renders global notifications, the computed 'mainContent', and the manager for <GameModals>.
   return (
-    <AppProviders loadGlossaryData={shouldLoadGlossaryData} loadSpellData={shouldLoadSpellData}>
+    <AppProviders
+      loadGlossaryData={shouldLoadGlossaryData}
+      loadSpellData={shouldLoadSpellData}
+    >
       <GameProvider state={gameState} dispatch={dispatch}>
         <div className="App min-h-screen bg-gray-900">
           <Suspense fallback={null}>
@@ -1799,13 +2345,29 @@ const App: React.FC = () => {
           </Suspense>
 
           {/* Global Loading Spinner */}
-          {(gameState.isLoading || gameState.isImageLoading) && <LoadingSpinner message={gameState.loadingMessage || (gameState.isImageLoading ? t('app.ui.loading.image') : t('app.ui.loading.default'))} />}
+          {(gameState.isLoading || gameState.isImageLoading) && (
+            <LoadingSpinner
+              message={
+                gameState.loadingMessage ||
+                (gameState.isImageLoading
+                  ? t("app.ui.loading.image")
+                  : t("app.ui.loading.default"))
+              }
+            />
+          )}
 
           {/* Global Error Message Banner */}
           {gameState.error && (
-            <div className={`bg-red-800 text-white p-4 fixed top-0 left-0 right-0 z-[${Z_INDEX.ERROR_OVERLAY}] text-center`}>
-              {t('app.ui.error.message', { message: gameState.error })}
-              <button onClick={() => dispatch({ type: 'SET_ERROR', payload: null })} className="ml-4 bg-red-600 px-2 py-1 rounded">{t('app.ui.error.dismiss')}</button>
+            <div
+              className={`bg-red-800 text-white p-4 fixed top-0 left-0 right-0 z-[${Z_INDEX.ERROR_OVERLAY}] text-center`}
+            >
+              {t("app.ui.error.message", { message: gameState.error })}
+              <button
+                onClick={() => dispatch({ type: "SET_ERROR", payload: null })}
+                className="ml-4 bg-red-600 px-2 py-1 rounded"
+              >
+                {t("app.ui.error.dismiss")}
+              </button>
             </div>
           )}
 
@@ -1814,16 +2376,15 @@ const App: React.FC = () => {
             {gameState.phase === GamePhase.MAIN_MENU ? (
               mainContent
             ) : (
-              <DataLoaderGate>
-                {mainContent}
-              </DataLoaderGate>
+              <DataLoaderGate>{mainContent}</DataLoaderGate>
             )}
           </Suspense>
 
           {/* Interactive Companion Conversation Panel */}
-          {gameState.phase === GamePhase.PLAYING && gameState.activeConversation && (
-            <ConversationPanel gameState={gameState} dispatch={dispatch} />
-          )}
+          {gameState.phase === GamePhase.PLAYING &&
+            gameState.activeConversation && (
+              <ConversationPanel gameState={gameState} dispatch={dispatch} />
+            )}
 
           {/* Opening-situation entry gate (GAME-ENTRY-SITUATION): runs the
               generator and renders the generating overlay / honest model block. */}
@@ -1846,7 +2407,13 @@ const App: React.FC = () => {
               itemsInLocation={itemsInCurrentLocation}
               isUIInteractive={isUIInteractive}
               missingChoiceModal={missingChoiceModal}
-              onCloseMissingChoice={() => setMissingChoiceModal({ isOpen: false, character: null, missingChoice: null })}
+              onCloseMissingChoice={() =>
+                setMissingChoiceModal({
+                  isOpen: false,
+                  character: null,
+                  missingChoice: null,
+                })
+              }
               onConfirmMissingChoice={handleConfirmMissingChoice}
               onFixMissingChoice={handleFixMissingChoice}
               handleCloseCharacterSheet={handleCloseCharacterSheet}
@@ -1854,14 +2421,18 @@ const App: React.FC = () => {
               handleDismissMember={handleDismissMember}
               handleDevMenuAction={handleDevMenuAction}
               handleModelChange={handleModelChange}
-              handleNavigateToGlossaryFromTooltip={handleNavigateToGlossaryFromTooltip}
+              handleNavigateToGlossaryFromTooltip={
+                handleNavigateToGlossaryFromTooltip
+              }
               handleOpenGlossary={handleOpenGlossary}
               handleOpenCharacterSheet={handleOpenCharacterSheet}
 
               onForceBanterTrigger={forceBanter}
-              onClearBanterLogs={() => dispatch({ type: 'CLEAR_BANTER_DEBUG_LOG' })}
+              onClearBanterLogs={() =>
+                dispatch({ type: "CLEAR_BANTER_DEBUG_LOG" })
+              }
               isBanterPaused={isBanterPaused}
-              toggleBanterPause={() => setIsBanterPaused(prev => !prev)}
+              toggleBanterPause={() => setIsBanterPaused((prev) => !prev)}
               canRegenerateWorldMap={canRegenerateWorldMap}
               worldGenerationLockedReason={worldGenerationLockedReason}
               onRegenerateWorldMap={handleRegenerateWorldMap}
@@ -1873,7 +2444,9 @@ const App: React.FC = () => {
             <Suspense fallback={null}>
               <CompanionReaction
                 companions={gameState.companions}
-                latestMessage={gameState.messages[gameState.messages.length - 1]}
+                latestMessage={
+                  gameState.messages[gameState.messages.length - 1]
+                }
               />
             </Suspense>
           )}
@@ -1898,7 +2471,7 @@ const App: React.FC = () => {
               onExtendDeadline={extendPlayerResponseDeadline}
               onExtendNpcDelay={extendNpcLineDelay}
               isBanterPaused={isBanterPaused}
-              onToggleBanterPause={() => setIsBanterPaused(prev => !prev)}
+              onToggleBanterPause={() => setIsBanterPaused((prev) => !prev)}
               suppressCollapsedTab={isBanterCollapsedTabSuppressed}
             />
           )}
@@ -1914,7 +2487,9 @@ const App: React.FC = () => {
             isPlayerDirected &&
             isWaitingForPlayerResponse && (
               <BanterAttentionBanner
-                speakerName={banterHistory[banterHistory.length - 1]?.speakerName}
+                speakerName={
+                  banterHistory[banterHistory.length - 1]?.speakerName
+                }
                 lastLine={banterHistory[banterHistory.length - 1]?.text}
                 deadlineSeconds={playerResponseDeadlineSeconds}
                 onExtendDeadline={extendPlayerResponseDeadline}

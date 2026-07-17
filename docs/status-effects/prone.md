@@ -194,7 +194,7 @@
 |---|---|
 | 10 | `It captures a coordination style that was useful for parallel agent work, especially when shared docs and registry files were prone to merge conflicts...` |
 
-### `docs/projects/battle-map/GAPS.md`
+### `docs/superpowers/specs/2026-07-14-absorbed-battle-map.md` (formerly `docs/projects/battle-map/GAPS.md`, folder absorbed 2026-07-16)
 
 | Line | Snippet |
 |---|---|

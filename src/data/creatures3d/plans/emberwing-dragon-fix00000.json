@@ -76,6 +76,7 @@
     ],
     "heads": [
       {
+        "form": "serpent",
         "sizeScale": 1.15,
         "eyes": {
           "count": 2,
@@ -109,5 +110,5 @@
     ]
   },
   "status": "generated",
-  "createdAt": "2026-07-15T22:51:10.586Z"
+  "createdAt": "2026-07-16T20:54:28.037Z"
 }

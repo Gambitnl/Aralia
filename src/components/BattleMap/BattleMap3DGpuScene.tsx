@@ -668,6 +668,18 @@ const BattleMap3DGpuScene: React.FC<Props> = ({
     return makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
   }, [mapData, width, height]);
 
+  // WebGPU is experimental, but it shares the WorldForge heightfield contract.
+  // Keep its first frame above both the map anchor and the physical camera
+  // location so toggling render backends cannot put the player underground.
+  const initialCameraPosition = useMemo(() => {
+    const [centerX, , centerZ] = cameraTarget;
+    const spawnX = centerX + 8;
+    const spawnZ = centerZ + 8;
+    const anchorY = groundSampler(centerX, centerZ);
+    const spawnGroundY = groundSampler(spawnX, spawnZ);
+    return [spawnX, Math.max(anchorY, spawnGroundY) + 10, spawnZ] as const;
+  }, [cameraTarget, groundSampler]);
+
   const fogHex = BIOME_FOG[biome] ?? BIOME_FOG.forest;
 
   // Honest on-screen MISSING list (parity gaps that are NOT faked). PostFx may
@@ -813,7 +825,7 @@ const BattleMap3DGpuScene: React.FC<Props> = ({
           fov: 50,
           near: 0.1,
           far: Math.max(220, mapHalfDiag * 5.2),
-          position: [cameraTarget[0] + 8, 10, cameraTarget[2] + 8],
+          position: initialCameraPosition,
         }}
         gl={async (props) => {
           // NO FALLBACK: construct WebGPURenderer and await async init. The
@@ -847,6 +859,7 @@ const BattleMap3DGpuScene: React.FC<Props> = ({
         <fog attach="fog" args={[fogHex, mapHalfDiag * 1.4, mapHalfDiag * 4]} />
         <CameraController
           mapCenter={cameraTarget}
+          groundYAt={groundSampler}
           activeCharacter={activeCharacter}
           selectedCharacter={selectedCharacter}
           characters={characters}

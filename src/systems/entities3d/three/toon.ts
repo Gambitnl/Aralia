@@ -39,7 +39,13 @@ export function toonGradient(): DataTexture {
 }
 
 export function toonMaterial(colorHex: string): MeshToonMaterial {
-  return new MeshToonMaterial({ color: colorHex, gradientMap: toonGradient() });
+  // flatShading: the Dragon Forge trick — low-poly facets read as sculpted
+  // form under lighting, for free (set post-construction: the 0.172 typings
+  // omit it from the toon constructor props)
+  const material = new MeshToonMaterial({ color: colorHex, gradientMap: toonGradient() });
+  // runtime-supported on every lit material; this repo's 0.172 typings omit it
+  (material as unknown as { flatShading: boolean }).flatShading = true;
+  return material;
 }
 
 /**

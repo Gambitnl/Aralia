@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/06/2026, 01:55:54
+ * Last Sync: 16/07/2026, 13:32:10
  * Dependents: App.tsx, state/appState.ts
  * Imports: 15 files
  *
@@ -146,6 +146,9 @@ export const initialGameState: GameState = {
 
     // Battle Map State
     currentEnemies: null,
+    // Unsupported production encounters carry a structured reason into the
+    // inert source-gap screen instead of preparing anonymous enemies.
+    battlefieldSourceGap: null,
     // Pre-extracted 3D battle map data to override procedural generation.
     // Captured from ground mode terrain centered around player-hostile collision.
     extractedBattleMap: null,

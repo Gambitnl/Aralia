@@ -147,4 +147,30 @@ const beardField: PartDef = {
   },
 };
 
-export const ORGANIC_PARTS: PartDef[] = [snout, muzzleShort, tuskJaw, brow, belly, crest, beardField];
+/** A jagged cluster of crystal shards jutting from the back — the stylized
+ * answer to "crystalline/faceted" creature descriptions. Accent-colored.
+ * Params: scale (overall size), jaggedness (0–1 rotation chaos), count (3–9). */
+const crystalSpikes: PartDef = {
+  id: 'crystalSpikes',
+  anchor: 'back',
+  kind: 'mesh',
+  buildMesh(ctx) {
+    const r = hr(ctx.frame) * num(ctx, 'scale', 1);
+    const jag = num(ctx, 'jaggedness', 0.5);
+    const count = Math.max(3, Math.min(9, Math.round(num(ctx, 'count', 5))));
+    const group = new Group();
+    for (let i = 0; i < count; i++) {
+      const u = i / Math.max(1, count - 1);
+      // deterministic pseudo-jitter from the index — no RNG in parts
+      const wob = Math.sin(i * 12.9898) * 0.5;
+      const h = r * (0.9 + Math.sin(i * 4.7) * 0.35) * (1 + jag * 0.4);
+      const shard = new Mesh(new ConeGeometry(r * 0.22, h, 5), ctx.material(ctx.palette.accentHex));
+      shard.position.set((u - 0.5) * r * 1.6, h * 0.32, wob * r * 0.5);
+      shard.rotation.set(wob * jag * 0.9, i * 1.3, (u - 0.5) * jag * 1.2);
+      group.add(shard);
+    }
+    return { object: group };
+  },
+};
+
+export const ORGANIC_PARTS: PartDef[] = [snout, muzzleShort, tuskJaw, brow, belly, crest, beardField, crystalSpikes];
