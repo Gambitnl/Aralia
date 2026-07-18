@@ -250,6 +250,7 @@
                         "conditionalEndings":  [
                                                    {
                                                        "trigger":  "wall_height_reaches_0_feet",
+                                                       "scope":  "area",
                                                        "result":  "spell_ends"
                                                    }
                                                ],

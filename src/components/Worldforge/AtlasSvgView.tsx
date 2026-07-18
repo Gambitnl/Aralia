@@ -915,6 +915,11 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           <stop offset="55%" stopColor="#000000" stopOpacity={0} />
           <stop offset="100%" stopColor="#000000" stopOpacity={0.55} />
         </radialGradient>
+        {/* Smooth radial ocean depth gradient. */}
+        <radialGradient id="ocean-radial" cx="50%" cy="50%" r="70%">
+          <stop offset="0%" stopColor="#3d6ea4" />
+          <stop offset="100%" stopColor="#15375d" />
+        </radialGradient>
         {/* PROTOTYPE: diagonal red hatch for the derived danger overlay. A pattern
             (not a flat tint) so threat reads as a warning texture layered OVER the
             base coloring. userSpaceOnUse keeps the hatch pitch constant in map units. */}
@@ -931,7 +936,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           under everything, so the world, depth bands and coast still draw on top
           exactly as before. In 'cover' mode the world covers the viewport and
           this is simply hidden. */}
-      <rect x={0} y={0} width={width} height={height} fill="#1f4a73" pointerEvents="none" />
+      <rect x={0} y={0} width={width} height={height} fill="#15375d" pointerEvents="none" />
       {/* The glyph layers' zoom ramps ride in as CSS custom properties:
           AtlasLayers is memoized with no zoom access (the freeze fix), so its
           forest/relief groups read var(--forest-glyph-opacity) /
@@ -945,7 +950,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
         } as React.CSSProperties}
       >
         {/* Deep base ocean; shallow depth bands (T3b) layer on top near coasts. */}
-        <rect x={0} y={0} width={model.width} height={model.height} fill="#1f4a73" />
+        <rect x={0} y={0} width={model.width} height={model.height} fill="url(#ocean-radial)" />
         {/* Heavy static layers, memoized so hover/pan/zoom don't reconcile the
             whole (4k–18k node) subtree — the World Map freeze fix. */}
         <AtlasLayers model={model} visible={visible} softenActive={softenStdDev > 0} />

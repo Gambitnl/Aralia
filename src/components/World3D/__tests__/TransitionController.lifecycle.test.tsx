@@ -29,9 +29,11 @@ vi.mock('framer-motion', () => ({
 function Harness({
   initialMode = 'atlas' as 'atlas' | '3d',
   onComplete = vi.fn(),
+  onAtlasRestored = vi.fn(),
 }: {
   initialMode?: 'atlas' | '3d';
   onComplete?: () => void;
+  onAtlasRestored?: () => void;
 }) {
   const [mode, setMode] = useState<'atlas' | '3d'>(initialMode);
   return (
@@ -45,6 +47,7 @@ function Harness({
       <TransitionController
         mode={mode}
         onComplete={onComplete}
+        onAtlasRestored={onAtlasRestored}
         atlasContent={<div data-testid="atlas-stub">atlas</div>}
         sceneContent={<div data-testid="scene-stub">scene</div>}
       />
@@ -94,7 +97,8 @@ describe('TransitionController lifecycle (W3DUI-3)', () => {
   });
 
   it('unmounts scene after exit sequence when returning to atlas', () => {
-    render(<Harness initialMode="3d" />);
+    const onAtlasRestored = vi.fn();
+    render(<Harness initialMode="3d" onAtlasRestored={onAtlasRestored} />);
     expect(screen.getByTestId('transition-scene-layer')).toBeInTheDocument();
 
     act(() => {
@@ -107,6 +111,9 @@ describe('TransitionController lifecycle (W3DUI-3)', () => {
 
     expect(screen.queryByTestId('transition-scene-layer')).not.toBeInTheDocument();
     expect(screen.getByTestId('transition-atlas-layer')).toBeInTheDocument();
+    // App may clear its transient exact-artifact carrier only after Atlas has
+    // remounted and the fading PLAYING scene is truly gone.
+    expect(onAtlasRestored).toHaveBeenCalledTimes(1);
   });
 
   it('clears pending entry timers when unmounted mid-transition', () => {

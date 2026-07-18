@@ -34,6 +34,7 @@ import { getPart } from '../registry';
 import type { GaitDriver, LocomotionState, Pose } from './gaits';
 import { createGaitDriver } from './gaits';
 import { createSegmentBody, wireframeifyPart } from './segmentBody';
+import { createSkinnedBiped } from './skinnedBody';
 import { buildHeadForm } from './headForms';
 import {
   blobShadowMaterial,
@@ -63,6 +64,13 @@ export interface EntityHandle {
   stats(): { segments: number; triangles: number; renderMode: EntityRenderMode };
 }
 
+/** How the body is constructed (skeleton pivot slice 1).
+ * 'segments' — body v2: one rigid mesh per skeleton segment (the default;
+ * unchanged behavior). 'skinned' — a THREE.Bone hierarchy driving one
+ * rigid-weight SkinnedMesh + one ink-shell SkinnedMesh (biped, solid only for
+ * now; the segment renderer still draws chain parts like tails). */
+export type BodyTech = 'segments' | 'skinned';
+
 export interface AssembleOptions {
   /** @deprecated Body v2 has no field to scale — accepted and ignored. */
   resolutionScale?: number;
@@ -70,6 +78,9 @@ export interface AssembleOptions {
   fieldUpdateHz?: number;
   /** Draw solid (toon) or wireframe. Default: the global ENTITY_RENDER_MODE. */
   renderMode?: EntityRenderMode;
+  /** Body construction technique. Default 'segments' — opting in is the only
+   * way to get the slice-1 skinned body; nothing else changes. */
+  bodyTech?: BodyTech;
 }
 
 const IDLE: LocomotionState = {
@@ -85,6 +96,16 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   const wide = gait === 'quad' || gait === 'hexapod';
   const renderMode = options.renderMode ?? ENTITY_RENDER_MODE;
   const wireframe = renderMode === 'wireframe';
+  const bodyTech = options.bodyTech ?? 'segments';
+  // Slice 1 scope guards — fail honestly instead of falling back:
+  // creature/plan skeletons are slice 4, and skinned wireframe is an open
+  // design decision (the spec parks it), so neither pretends to work.
+  if (bodyTech === 'skinned' && gait !== 'biped') {
+    throw new Error(`bodyTech 'skinned' supports only the biped gait in slice 1 (got '${gait}')`);
+  }
+  if (bodyTech === 'skinned' && wireframe) {
+    throw new Error("bodyTech 'skinned' has no wireframe path in slice 1 — use renderMode 'solid'");
+  }
 
   const group = new Group();
   group.name = `entity:${blueprint.label}`;
@@ -93,6 +114,10 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   group.add(bodyRoot);
 
   const outlineThickness = Math.max(hM * 0.011, 0.006);
+  // The segment renderer stays even in skinned mode: chain parts (tails,
+  // beards) are procedural wagging chains outside the skeleton until slice 4.
+  // In skinned mode the DRIVER's emissions bypass it (they feed the bones),
+  // so it only ever draws chain-part segments there.
   const body = createSegmentBody({
     renderMode,
     colorHex: palette.skinHex,
@@ -101,6 +126,16 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     opacity: blueprint.planSpec?.opacity,
   });
   bodyRoot.add(body.root);
+
+  const skinnedBody =
+    bodyTech === 'skinned'
+      ? createSkinnedBiped(frame, {
+          colorHex: palette.skinHex,
+          outlineThickness,
+          opacity: blueprint.planSpec?.opacity,
+        })
+      : null;
+  if (skinnedBody) bodyRoot.add(skinnedBody.root);
 
   const driver: GaitDriver = createGaitDriver(gait, frame, blueprint.planSpec);
 
@@ -230,9 +265,16 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     phase.flap = driver.flap;
     bodyRoot.position.y = driver.verticalOffsetM;
 
-    // skeleton + animated chain parts, transform-only after the first frame
+    // skeleton + animated chain parts, transform-only after the first frame.
+    // Skinned mode: the driver's emissions drive the bones (pose adapter);
+    // chain parts still render through the segment renderer either way.
     body.beginFrame();
-    driver.buildBody(body.sink);
+    if (skinnedBody) {
+      driver.buildBody(skinnedBody.sink);
+      skinnedBody.finishFrame();
+    } else {
+      driver.buildBody(body.sink);
+    }
     for (const chain of chainParts) {
       for (const s of chain.build(frame, chain.params, phase, anchorsView)) {
         body.sink.seg(`${chain.partId}:${s.id}`, s.ax, s.ay, s.az, s.bx, s.by, s.bz, s.r0, s.r1);
@@ -312,6 +354,9 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     if (disposed) return;
     disposed = true;
     body.dispose();
+    // skinned extras: shared geometry/materials plus the skeleton's bone
+    // texture; the traverse below re-hits the meshes harmlessly
+    skinnedBody?.dispose();
     group.traverse((o: Object3D) => {
       const m = o as Mesh;
       if (m.isMesh || (o as unknown as { isLineSegments?: boolean }).isLineSegments) {
@@ -340,7 +385,13 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   }
 
   function stats(): { segments: number; triangles: number; renderMode: EntityRenderMode } {
-    return { segments: body.segmentCount(), triangles: body.triangles(), renderMode };
+    // skinned mode: segment count only covers chain parts (honest — the body
+    // is not segments there); triangles add the skinned fill + shell
+    return {
+      segments: body.segmentCount(),
+      triangles: body.triangles() + (skinnedBody?.triangles() ?? 0),
+      renderMode,
+    };
   }
 
   // settle into a valid first frame so the handle renders even if the caller

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 22:42:10
+ * Last Sync: 17/07/2026, 22:34:53
  * Dependents: components/Worldforge/AtlasDemo.tsx
- * Imports: 4 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -20,6 +20,7 @@ import { drawLocalFeatures, rasterizeLocalTerrain } from "./localDraw";
 import { computeRegionFitView } from "./regionDraw";
 import type { LocalArtifact } from "../../systems/worldforge/artifacts";
 import { groundFocusesForLocal, type GroundFocus } from "../../systems/worldforge/leaf3d/atlasGroundDrilldown";
+import { drawOverlay, type OverlayMarker } from "./overlay";
 
 /**
  * Interactive viewport for the L2 LOCAL layer (3,000 ft / 600×600 5-ft
@@ -41,6 +42,8 @@ export interface LocalMapViewProps {
   /** Atlas biome hue — carries the L0→L1→L2 coherence chain (localDraw). */
   biomeColor?: string;
   onEnterGround?: (focus: GroundFocus) => void;
+  /** Exact-feet discoveries belonging to this canonical world/Local. */
+  markers?: OverlayMarker[];
 }
 
 /**
@@ -64,6 +67,7 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
   onAscend,
   biomeColor,
   onEnterGround,
+  markers = [],
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const terrainCacheRef = useRef<{ seedPath: string; biomeColor?: string; canvas: HTMLCanvasElement } | null>(null);
@@ -76,6 +80,15 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
   const lastPointerPos = useRef({ x: 0, y: 0 });
   const initialScaleRef = useRef(1);
   const viewRef = useRef(view);
+  const townIdentity = local.townPlan?.identity;
+  const townRelationships = townIdentity
+    ? [
+        townIdentity.settlementType,
+        townIdentity.hasRoadAccess ? 'road-linked' : null,
+        townIdentity.hasRiverAccess ? 'river-linked' : null,
+        townIdentity.isCoastal ? 'coastal' : null,
+      ].filter((label): label is string => label !== null)
+    : [];
   useEffect(() => {
     viewRef.current = view;
   }, [view]);
@@ -209,7 +222,14 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
       offsetX: view.offsetX,
       offsetY: view.offsetY,
     });
-  }, [local, view, width, height, biomeColor]);
+    // Persistent discoveries share the same absolute-feet coordinate space as
+    // Local features, so the overlay lands on the precise ground source.
+    drawOverlay(ctx, markers, {
+      scale: view.scale,
+      offsetX: view.offsetX,
+      offsetY: view.offsetY,
+    }, local.bounds);
+  }, [local, view, width, height, biomeColor, markers]);
 
   const zoomAtCenter = (zoomIn: boolean) => {
     const cx = width / 2;
@@ -251,12 +271,29 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
 
       {/* Info chip — L2 identity */}
       <div className={localMapInfoChipClassName}>
+        {local.townPlan && (
+          <div className="mb-1 flex flex-wrap items-baseline gap-x-2">
+            <span className="text-sm font-bold text-amber-100">
+              {townIdentity?.name ?? `Town ${local.townPlan.burgId}`}
+            </span>
+            <span className="text-[10px] uppercase tracking-wider text-amber-400/80">
+              {townIdentity
+                ? `${townIdentity.sourceKind} #${townIdentity.sourceId}`
+                : `burg #${local.townPlan.burgId}`}
+            </span>
+          </div>
+        )}
         <div className="text-xs text-gray-400">
           Local Area: <span className="text-white font-bold">{Math.round(local.bounds.width).toLocaleString()} × {Math.round(local.bounds.height).toLocaleString()} ft</span>
         </div>
         <div className="text-[10px] text-gray-400 mt-0.5">
           Grid: {local.terrain.widthCells}×{local.terrain.heightCells} @ 5 ft | Features: {local.features.length}
         </div>
+        {townIdentity && (
+          <div className="mt-1 text-[10px] capitalize text-sky-200/80">
+            Biome #{townIdentity.biomeId} / {townRelationships.join(' / ')}
+          </div>
+        )}
       </div>
 
       <div className="absolute bottom-4 left-4 z-10 bg-gray-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-gray-800 text-[10px] text-gray-400 font-mono select-none">
@@ -270,9 +307,14 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
               key={`${focus.kind}:${String(focus.id)}`}
               type="button"
               onClick={() => onEnterGround(focus)}
+              aria-label={`Enter ${focus.label} on Ground`}
               className="flex min-h-11 items-center gap-2 rounded-lg border border-amber-300/40 bg-amber-950/80 px-3 text-xs font-semibold text-amber-100 hover:bg-amber-900"
             >
-              <Footprints size={16} /> Enter 3D: {focus.label}
+              <Footprints size={16} />
+              <span className="flex flex-col items-start leading-tight">
+                <span>Enter Ground</span>
+                <span className="text-[10px] font-normal text-amber-200/80">{focus.label}</span>
+              </span>
             </button>
           ))}
         </div>

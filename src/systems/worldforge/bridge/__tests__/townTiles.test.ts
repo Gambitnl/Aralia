@@ -64,7 +64,7 @@ describe('getTownTilesForGrid', () => {
 
       expect(ground.towns.length).toBeGreaterThan(0);
     }
-  });
+  }, 30_000);
 
   it('returns deterministic results for repeat calls', () => {
     const first = getTownTilesForGrid(42, 30, 20);

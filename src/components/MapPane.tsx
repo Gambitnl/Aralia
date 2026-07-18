@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 23:04:19
+ * Last Sync: 17/07/2026, 22:34:53
  * Dependents: components/layout/GameModals.tsx
- * Imports: 50 files
+ * Imports: 51 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -83,9 +83,15 @@ import { pickTravelEncounterMonsters } from '@/systems/travel/travelEncounterMon
 import { formatTravelTime, ferryFare } from '@/systems/travel/travelReadout';
 import { calculateForcedMarchStatus } from '@/systems/travel/TravelCalculations';
 import { generateFmgWorld } from '@/systems/worldforge/fmg/generateWorld';
+import { discoveredSiteBelongsToWorld } from '@/systems/worldforge/leaf3d/atlasGroundContinuity';
 import { shipTravelAvailability, shipVoyageFromDestination } from '@/systems/worldforge/travel/shipEmbark';
 import { shipSpeedMph } from '@/utils/naval/navalUtils';
 import type { Ship } from '@/types/naval';
+
+// The shared 600 by 400 frame minimum leaves this control-heavy surface with
+// barely a strip of map. Keep a useful desktop map viewport while still letting
+// WindowFrame clamp down to the available width and height on small screens.
+const WORLD_MAP_MINIMUM_WINDOW_SIZE = { width: 840, height: 640 } as const;
 
 /**
  * Derive the `forcedMarch` trip-meta (travel G1) from a committed leg's duration.
@@ -702,6 +708,9 @@ const MapPane: React.FC<MapPaneProps> = ({
     const span = (worldforgeAtlas.graphWidth || 960) / 100;
     const pins: { x: number; y: number; label?: string }[] = [];
     for (const s of discoveredHiddenSites) {
+      // New Atlas pins are bound to one world seed. Classic legacy records have
+      // no provenance and deliberately retain their prior visibility behavior.
+      if (!discoveredSiteBelongsToWorld(s, worldforgeSeed)) continue;
       const site = s.cellId >= 0 ? cells.p?.[s.cellId] : undefined;
       if (!site) continue;
       const offX = s.offsetX ?? 0;
@@ -1288,6 +1297,7 @@ const MapPane: React.FC<MapPaneProps> = ({
       title={isPreviewOnly ? 'World Preview' : 'World Map'}
       onClose={onClose}
       storageKey={WINDOW_KEYS.WORLD_MAP}
+      minimumSize={WORLD_MAP_MINIMUM_WINDOW_SIZE}
     >
       <div
         className="bg-gray-800 p-4 md:p-6 flex h-full w-full flex-col overflow-y-auto scrollable-content"

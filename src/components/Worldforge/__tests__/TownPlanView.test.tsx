@@ -348,4 +348,59 @@ describe('TownPlanView', () => {
     expect(fam.wallPalette.some((c) => fills.has(c))).toBe(false);
     expect(container.querySelectorAll('[data-architecture-building-key]').length).toBe(0);
   });
+
+  it('supports map selection clicks and renders selected building outline', () => {
+    const plan = generateTownPlan(footprint, rootSeedPath(42), { population: 4000 });
+    let selectedId: number | undefined;
+    const handleSelect = (id: number) => {
+      selectedId = id;
+    };
+    const fam = STYLE_FAMILIES.temperateFrame;
+    const artifact = toArtifactPlan(plan, 42, fam).plan;
+
+    const { getByTestId, rerender, container } = render(
+      <TownPlanView
+        plan={plan}
+        width={600}
+        height={400}
+        styleFamily={fam}
+        artifactPlan={artifact}
+        onSelectPlot={handleSelect}
+      />,
+    );
+
+    // Let's verify that SVG title elements exist for buildings (svgTitleCount > 0)
+    const titles = container.querySelectorAll('path title');
+    expect(titles.length).toBeGreaterThan(0);
+    expect(titles[0].textContent).toContain('#');
+
+    // Find a building path element and trigger click on it via mousedown + mouseup
+    const buildingPath = container.querySelector('[data-testid^="town-building-"]');
+    expect(buildingPath).toBeTruthy();
+    if (buildingPath) {
+      // Click the building path
+      fireEvent.click(buildingPath);
+      
+      // The click handler should have fired and mapped it to a valid plot ID
+      expect(selectedId).toBeDefined();
+
+      if (selectedId !== undefined) {
+        // Rerender with the selectedPlotId prop
+        rerender(
+          <TownPlanView
+            plan={plan}
+            width={600}
+            height={400}
+            styleFamily={fam}
+            artifactPlan={artifact}
+            onSelectPlot={handleSelect}
+            selectedPlotId={selectedId}
+          />,
+        );
+
+        // Verify the selected highlight path is rendered
+        expect(getByTestId('town-selected-highlight')).toBeTruthy();
+      }
+    }
+  });
 });

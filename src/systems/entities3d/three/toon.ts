@@ -63,7 +63,14 @@ export function entityMaterial(mode: EntityRenderMode): (colorHex: string) => Me
   return mode === 'wireframe' ? wireframeMaterial : toonMaterial;
 }
 
-/** Inverse-hull ink outline: render the same geometry inflated, back faces only. */
+/** Inverse-hull ink outline: render the same geometry inflated, back faces only.
+ *
+ * Skeleton pivot slice 1: the vertex shader now includes the three.js skinning
+ * chunks. On a plain Mesh nothing changes (every chunk is guarded by
+ * USE_SKINNING, which three only defines when the object is a SkinnedMesh),
+ * but on a skinned body the ink shell follows the bones instead of freezing in
+ * bind pose. The inflation happens in bind space along the bind normal, then
+ * the bone transform carries the inflated vertex — exact for rigid weights. */
 export function outlineMaterial(colorHex: string, thickness = 0.02): ShaderMaterial {
   return new ShaderMaterial({
     side: BackSide,
@@ -73,9 +80,12 @@ export function outlineMaterial(colorHex: string, thickness = 0.02): ShaderMater
     },
     vertexShader: `
       uniform float uT;
+      #include <skinning_pars_vertex>
       void main() {
-        vec3 p = position + normalize(normal) * uT;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+        #include <skinbase_vertex>
+        vec3 transformed = position + normalize(normal) * uT;
+        #include <skinning_vertex>
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
       }`,
     fragmentShader: `
       uniform vec3 uC;

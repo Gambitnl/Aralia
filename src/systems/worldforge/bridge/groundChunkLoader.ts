@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 16/07/2026, 11:55:01
+ * Last Sync: 17/07/2026, 21:36:10
  * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/DungeonEntrances.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/canopyInterior.ts, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/groundChunkWorker.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/statePatrolWorldEvent.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/provenance/groundProvenance.ts
  * Imports: 48 files
  *
@@ -70,13 +70,14 @@ import {
   CANON_TOWN_SPAN,
   getCanonicalTownWaterFeatures,
   canonicalTownSeedPath,
+  canonicalArtifactTownForSiteFromAtlas,
 } from "../town/canonicalTown";
 import { occupancyScheduleForPlot } from "./buildingOccupancy";
 import type { TownPlotPopulation } from "../town/townEngine";
 import type { InteriorPlotInput } from "../interior/generateInterior";
 import { buildingShellHeightM } from "../interior/generateBuilding";
 import { buildTownWaterBodies } from "../town/townWaterBodies";
-import { toArtifactPlan, type AdaptedTownPlan } from "../town/townPlanAdapter";
+import type { AdaptedTownPlan } from "../town/townPlanAdapter";
 import type { TownPlan } from "../artifacts";
 import {
   buildInterior,
@@ -203,9 +204,12 @@ export interface GroundDeck {
   /**
    * Civic role of the deck (TG5). Carried from the canonical plan's civic kind so
    * the 3D renderer can tint a weathered-timber quay distinctly from a lighter
-   * bridge span — they must not share one identical slab material.
+   * bridge span — they must not share one identical slab material. Ford
+   * crossings ride the same seam: `ford` is the wet gravel bar of the crossing
+   * and `fordStone` its individual stepping stones (matching the 2D painter's
+   * submerged-causeway-plus-stones language).
    */
-  kind: "dock" | "bridge";
+  kind: "dock" | "bridge" | "ford" | "fordStone";
   /**
    * Style-family deck detailing (piling spacing / railing / bridge-arch rise),
    * stamped from the burg's architecture family so a coastal-timber quay and a
@@ -214,6 +218,12 @@ export interface GroundDeck {
   detail?: { pilingSpacingM: number; railing: boolean; archRiseM: number };
   /** Links regional bridge geometry back to the crossing receipt. */
   sourceCrossingId?: string;
+  /**
+   * Optional per-deck tint override (0..1 RGB). Ford causeway strips use it to
+   * darken as they submerge (wet→dry gradient) and stones to break the
+   * rivet-line uniformity; absent decks fall back to their kind color.
+   */
+  color?: [number, number, number];
 }
 
 /** Ground-meter projection of one Region crossing receipt. */
@@ -657,35 +667,55 @@ function regionalBridgeDecks(
   rows: number,
 ): GroundDeck[] {
   return crossings.flatMap((crossing) => {
-    if (crossing.kind !== "bridge") return [];
     const along = crossing.roadDirection;
     const across = { x: -along.z, z: along.x };
     const halfSpan = crossing.spanM / 2;
     const halfWidth = crossing.widthM / 2;
-    const corner = (alongSign: number, acrossSign: number) => ({
-      x:
-        crossing.xM +
-        along.x * halfSpan * alongSign +
-        across.x * halfWidth * acrossSign,
-      z:
-        crossing.zM +
-        along.z * halfSpan * alongSign +
-        across.z * halfWidth * acrossSign,
+    const at = (alongM: number, acrossM: number) => ({
+      x: crossing.xM + along.x * alongM + across.x * acrossM,
+      z: crossing.zM + along.z * alongM + across.z * acrossM,
     });
-    const shoreEncoded = sampleEncodedHeight(
-      heights,
-      cols,
-      rows,
-      crossing.xM,
-      crossing.zM,
-    );
+    const corner = (alongSign: number, acrossSign: number) =>
+      at(halfSpan * alongSign, halfWidth * acrossSign);
+
+    // Anchor every crossing to the CARVED RIVERBED terrain — in ground 3D the
+    // river's visible surface IS the water-tinted bed (the ribbon mesh sits
+    // 0.5 m under it). The town shore convention (carveTownWaterBasins) clamps
+    // at absolute zero, which buries an inland crossing meters under its
+    // river — a regional deck must never use it. A crossing can also sit
+    // partly OUTSIDE the heights grid (rivers hug window edges); rendered
+    // terrain out there is the edge falloff, so the sampler applies the same
+    // drop — a plain clamped sample reads BANK height and floats geometry in
+    // the air over the falloff plain.
+    const extentXM = cols * GROUND_METERS_PER_CELL;
+    const extentZM = rows * GROUND_METERS_PER_CELL;
+    const surfaceYAt = (x: number, z: number) => {
+      const enc = sampleEncodedHeight(heights, cols, rows, x, z);
+      const edgeT = edgeFalloffT(x, z, extentXM, extentZM);
+      return heightToMeters(Math.max(0, enc - EDGE_DROP_H * edgeT));
+    };
+
+    if (crossing.kind === "ford") {
+      return fordCrossingDecks(crossing, at, halfSpan, surfaceYAt);
+    }
+
+    // Bridge deck: the roadway must MEET the dry landings at both ends —
+    // spanFt bakes a landing into each end, so the highest terrain along the
+    // full deck centerline is where a flat deck end has to rest. Anchoring to
+    // that ceiling (plus the deck clearance) keeps the ends flush with the
+    // banks while the arch clears the carved channel; anchoring to the water
+    // or bed instead would strand the deck below its own road on any river
+    // carved deeper than the clearance.
+    let spanCeilY = Number.NEGATIVE_INFINITY;
+    for (let i = -8; i <= 8; i += 1) {
+      const p = at((i / 8) * halfSpan, 0);
+      spanCeilY = Math.max(spanCeilY, surfaceYAt(p.x, p.z));
+    }
 
     return [
       {
         cornersM: [corner(-1, -1), corner(1, -1), corner(1, 1), corner(-1, 1)],
-        topY:
-          heightToMeters(Math.max(0, shoreEncoded - WATER_SURFACE_DROP_ENC)) +
-          DECK_CLEARANCE_M,
+        topY: spanCeilY + DECK_CLEARANCE_M,
         kind: "bridge",
         detail: {
           pilingSpacingM: 4,
@@ -696,6 +726,204 @@ function regionalBridgeDecks(
       },
     ];
   });
+}
+
+// Ford look constants (3D twin of the 2D painter's submerged causeway): the
+// gravel bar's crown stands barely proud of the water so it reads as a shallow
+// shoal rather than a dry deck, and the stepping-stone line rides one side of
+// the bar the way the 2D painter puts walkers' stones upstream of cart traffic.
+// The ground-3D "water surface" is sloping water-tinted terrain, so a flat bar
+// hugging the bed (+0.04 was tried) drowns along most of its length and the
+// ford vanishes at tactical distance. 0.35 m over the deepest channel point
+// reads as a gravel bank at low water: clearly visible over the wet stretch,
+// submerging into any rising bed/bank — nothing like a dry deck.
+const FORD_BAR_PROUD_M = 0.35; // bar crown above the deepest in-window bed point
+const FORD_BAR_MIN_HALF_WIDTH_M = 1.6; // never thinner than a footpath bar
+const FORD_STONE_OFFSET_M = 0.9; // stone-line gap outside the bar edge
+const FORD_STONE_STEP_M = 1.1; // base center-to-center stone spacing
+// Hard cap per crossing. Counts marched steps, not emitted stones, so it must
+// cover the longest span (~92 m at ~1.27 m average step) with headroom — a
+// lower cap silently truncates the far end of the stone line.
+const FORD_STONE_MAX = 96;
+// Dry-approach length baked into each end of spanFt by deriveRegionCrossings
+// (generateRegion CROSSING_LANDING_FT — not exported; kept in step manually).
+const FORD_LANDING_M = 16 * FEET_TO_METERS;
+// Causeway strip length along the span. Strips let the bar RIDE a rising bed
+// instead of letting terrain wedges knife through one long flat slab, and give
+// the coarse per-patch color variation the 2D painter gets from mottling.
+const FORD_STRIP_LEN_M = 5;
+// A strip's crown clears its own bed hump by at least this.
+const FORD_BAR_BED_CLEAR_M = 0.08;
+// Causeway strips and stones exist only where the bed is within this of the
+// deepest channel point — a causeway on dry land is just a weird wall, and
+// stepping stones on grass read as fence posts.
+const FORD_WET_MARGIN_M = 1.0;
+// Wet→dry sand for the causeway (a strip darkens as the bed rises toward its
+// crown) and the stone base gray, jittered per stone against the rivet-line
+// read. Dry sand matches deckGeometry's DECK_COLOR.ford fallback.
+const FORD_DRY_SAND_RGB: [number, number, number] = [0xb3 / 255, 0xa3 / 255, 0x7d / 255];
+const FORD_WET_SAND_RGB: [number, number, number] = [0x86 / 255, 0x77 / 255, 0x58 / 255];
+const FORD_STONE_RGB: [number, number, number] = [0x5c / 255, 0x55 / 255, 0x4a / 255];
+
+/** Linear blend of two 0..1 RGB triples, with a brightness jitter, clamped. */
+function tintLerp(
+  a: [number, number, number],
+  b: [number, number, number],
+  t: number,
+  brightness: number,
+): [number, number, number] {
+  const mix = (i: number) => (a[i] + (b[i] - a[i]) * t) * brightness;
+  return [
+    Math.min(1, Math.max(0, mix(0))),
+    Math.min(1, Math.max(0, mix(1))),
+    Math.min(1, Math.max(0, mix(2))),
+  ];
+}
+
+/**
+ * A ford's 3D body: a gravel causeway spanning the river at water level plus
+ * a single-file line of stepping stones beside it. All pieces are ordinary
+ * deck quads, so they ride the existing chunk clip → deck mesh path
+ * untouched; irregularity comes from the crossing's route/river ids, keeping
+ * the layout deterministic per world seed.
+ *
+ * The causeway is a chain of short strips. Each strip stands a low step above
+ * the DEEPEST bed point of the whole span (the crossing's shared waterline)
+ * but also clears ITS OWN bed hump, so a rising bed lifts the causeway in
+ * steps instead of knifing through one long flat slab. Strips and stones
+ * exist only in the WET zone (bed within FORD_WET_MARGIN_M of the channel
+ * floor) — the dry landing quarters of the span belong to the trail, not the
+ * ford. Strip color runs wet→dry: a strip whose bed nearly reaches its crown
+ * is awash and darkens toward wet sand.
+ *
+ * A single center-point bed sample is NOT enough for the waterline: a
+ * crossing can sit at the window edge where the center column is bank-height
+ * while the wet channel runs a few meters over — the dense min keeps the
+ * causeway on the water.
+ */
+function fordCrossingDecks(
+  crossing: GroundCrossing,
+  at: (alongM: number, acrossM: number) => { x: number; z: number },
+  halfSpan: number,
+  surfaceYAt: (x: number, z: number) => number,
+): GroundDeck[] {
+  const seed = crossing.roadRouteId * 131071 + crossing.riverId * 8209;
+  const barHalfWidth = Math.max(
+    crossing.widthM * 0.6,
+    FORD_BAR_MIN_HALF_WIDTH_M,
+  );
+
+  // Deepest bed point along the landing-trimmed span (the wet channel —
+  // spanFt includes CROSSING_LANDING_FT of dry approach each end).
+  const landingTrimM = Math.min(halfSpan * 0.4, FORD_LANDING_M);
+  let channelFloorY = Number.POSITIVE_INFINITY;
+  const sampleHalf = halfSpan - landingTrimM;
+  for (let i = -8; i <= 8; i += 1) {
+    const p = at((i / 8) * sampleHalf, 0);
+    channelFloorY = Math.min(channelFloorY, surfaceYAt(p.x, p.z));
+  }
+
+  const decks: GroundDeck[] = [];
+
+  // Causeway strips.
+  const stripCount = Math.max(1, Math.ceil(crossing.spanM / FORD_STRIP_LEN_M));
+  const stripLen = crossing.spanM / stripCount;
+  for (let s = 0; s < stripCount; s += 1) {
+    const a0 = -halfSpan + s * stripLen;
+    const a1 = a0 + stripLen;
+    let bedMin = Number.POSITIVE_INFINITY;
+    let bedMax = Number.NEGATIVE_INFINITY;
+    for (const alongM of [a0, (a0 + a1) / 2, a1]) {
+      const p = at(alongM, 0);
+      const y = surfaceYAt(p.x, p.z);
+      bedMin = Math.min(bedMin, y);
+      bedMax = Math.max(bedMax, y);
+    }
+    // Dry landing — the trail's job, not the causeway's.
+    if (bedMin > channelFloorY + FORD_WET_MARGIN_M) continue;
+
+    const topY = Math.max(
+      channelFloorY + FORD_BAR_PROUD_M,
+      bedMax + FORD_BAR_BED_CLEAR_M,
+    );
+    // 0 = full crown standing over deep water (dry sand), 1 = bed at the
+    // crown (awash, wet sand). Small per-strip brightness jitter breaks the
+    // single-flat-quad read the same way the 2D painter's mottling does.
+    const wetness = Math.min(
+      1,
+      Math.max(0, 1 - (topY - bedMax) / FORD_BAR_PROUD_M),
+    );
+    decks.push({
+      cornersM: [
+        at(a0, -barHalfWidth),
+        at(a1, -barHalfWidth),
+        at(a1, barHalfWidth),
+        at(a0, barHalfWidth),
+      ],
+      topY,
+      kind: "ford",
+      color: tintLerp(
+        FORD_DRY_SAND_RGB,
+        FORD_WET_SAND_RGB,
+        wetness,
+        0.96 + fhash01(seed + 300 + s, 17) * 0.08,
+      ),
+      sourceCrossingId: crossing.id,
+    });
+  }
+  // Nothing wet along the whole span → no visible river to ford here.
+  if (decks.length === 0) return [];
+
+  // Stepping stones: irregular sizes, drunk spacing, ~1 in 5 washed away —
+  // mirrors the 2D painter's stone line. Side of the bar is a deterministic
+  // coin flip (Ground carries no flow direction to call "upstream"). Stones
+  // exist only in the wet zone — on dry bank they read as fence posts.
+  const side = fhash01(seed, 41) < 0.5 ? -1 : 1;
+  let alongM = -halfSpan + 0.6;
+  let stoneIdx = 0;
+  while (alongM < halfSpan - 0.6 && stoneIdx < FORD_STONE_MAX) {
+    stoneIdx += 1;
+    const step =
+      FORD_STONE_STEP_M * (0.75 + fhash01(seed + stoneIdx, 7) * 0.8);
+    if (fhash01(seed + stoneIdx, 6) >= 0.2) {
+      const acrossM =
+        side *
+        (barHalfWidth +
+          FORD_STONE_OFFSET_M +
+          (fhash01(seed + stoneIdx, 9) - 0.5) * 1.2);
+      const center = at(alongM, acrossM);
+      const bedY = surfaceYAt(center.x, center.z);
+      if (bedY > channelFloorY + FORD_WET_MARGIN_M) {
+        alongM += step;
+        continue;
+      }
+      const radius = 0.2 + fhash01(seed + stoneIdx, 10) * 0.25;
+      const rot = fhash01(seed + stoneIdx, 12) * Math.PI * 2;
+      const cornersM = [0, 1, 2, 3, 4].map((k) => {
+        const ang = rot + (k / 5) * Math.PI * 2;
+        const r = radius * (0.75 + fhash01(seed + stoneIdx * 5 + k, 13) * 0.5);
+        return {
+          x: center.x + Math.cos(ang) * r,
+          z: center.z + Math.sin(ang) * r,
+        };
+      });
+      decks.push({
+        cornersM,
+        topY: bedY + 0.35 + fhash01(seed + stoneIdx, 14) * 0.2,
+        kind: "fordStone",
+        color: tintLerp(
+          FORD_STONE_RGB,
+          FORD_STONE_RGB,
+          0,
+          0.85 + fhash01(seed + stoneIdx, 15) * 0.3,
+        ),
+        sourceCrossingId: crossing.id,
+      });
+    }
+    alongM += step;
+  }
+
+  return decks;
 }
 
 /**
@@ -1557,20 +1785,14 @@ export function canonicalArtifactTownForSite(
   worldSeed: number,
   site: RegionTownSite,
 ): AdaptedTownPlan & { family: StyleFamily } {
-  const townAtlas = getBridgeAtlas(worldSeed);
-  const enginePlan = getCanonicalTownPlan(townAtlas, worldSeed, site.burgId);
-  const spanFt = townSpanFtForBurg(townAtlas, site.burgId);
-  const placeScale = spanFt / CANON_TOWN_SPAN;
-  const placeDx = site.envelope.x + site.envelope.width / 2;
-  const placeDy = site.envelope.y + site.envelope.height / 2;
-  const feetPlan = transformTownPlan(enginePlan, placeScale, placeDx, placeDy);
-  // Architecture style: the burg's FMG culture TYPE picks the family; per-plot
-  // stamps are hashed frame-invariantly so the 2D map picks the same styles.
-  const family = styleFamilyForCultureType(
-    getBurgCultureType(worldSeed, site.burgId),
+  // Keep the historical public wrapper for registration and tests, but make
+  // the Atlas-accepting town module the one implementation. Native Local
+  // generation can now call that same implementation with its retained Atlas.
+  return canonicalArtifactTownForSiteFromAtlas(
+    getBridgeAtlas(worldSeed),
+    worldSeed,
+    site,
   );
-  const adapted = toArtifactPlan(feetPlan, site.burgId, family);
-  return { ...adapted, family };
 }
 
 /**
@@ -1693,11 +1915,11 @@ function groundTowns(
     if (xM < -halfM || xM > exX + halfM || zM < -halfM || zM > exZ + halfM)
       continue;
 
-    // Real burg name from the bridge atlas so 3D surfaces (nameplates) can
-    // show "Stren" instead of the internal "Town - wf-town-15" id.
-    const burgName =
-      getBridgeAtlas(worldSeed).pack.burgs?.[t.burgId]?.name ??
-      `Burg ${t.burgId}`;
+    // Ground displays the Region site's Atlas-owned identity. The canonical
+    // adapter below centralizes the legacy fallback, so current generation
+    // never asks 3D to rediscover a second name from a separate world lookup.
+    const adapted = canonicalArtifactTownForSite(worldSeed, t);
+    const burgName = adapted.plan.identity?.name ?? `Burg ${t.burgId}`;
     towns.push({ burgId: t.burgId, name: burgName, xM, zM, halfM });
 
     // Keep the controlling state and stationed regiments beside the same town
@@ -1711,7 +1933,6 @@ function groundTowns(
     // scaled by population and placed into THIS town's envelope so the 3D town
     // is the same place. Shared with World3DWrapper's business/NPC registration
     // via `canonicalArtifactTownForSite`, so plot IDs never diverge.
-    const adapted = canonicalArtifactTownForSite(worldSeed, t);
     // Town water (filled surfaces) + dock/bridge decks from the SAME canonical
     // plan/water — surface/top Y filled by the terrain-carve pass below.
     const wd = canonicalTownWaterAndDecks(worldSeed, t, local.bounds);
@@ -2220,6 +2441,31 @@ export function buildGroundVegetation(
 }
 
 /**
+ * Edge treatment shared by terrain sampling and ford decks: chunks beyond the
+ * artifact window would otherwise extend the clamped border heights as an
+ * infinite plateau. Instead terrain eases downward (and tints toward haze)
+ * over EDGE_FALL_M past the border, so the detail window reads as land
+ * falling away toward the horizon. `edgeFalloffT` is the eased 0..1 factor;
+ * anything sampling heights for geometry that can sit outside the window
+ * (ford bars/stones) must apply the SAME drop or it floats over the falloff.
+ */
+const EDGE_FALL_M = 256;
+const EDGE_DROP_H = 14;
+
+function edgeFalloffT(
+  worldX: number,
+  worldZ: number,
+  extentX: number,
+  extentZ: number,
+): number {
+  const ox = Math.max(0, -worldX, worldX - extentX);
+  const oz = Math.max(0, -worldZ, worldZ - extentZ);
+  if (ox <= 0 && oz <= 0) return 0;
+  const t = Math.min(1, Math.hypot(ox, oz) / EDGE_FALL_M);
+  return t * (2 - t);
+}
+
+/**
  * Ground-mode steepness → [0,1], CALIBRATED to agree with chunkGeometry's
  * normal-derived `1 − n·up` convention on a linear ramp.
  *
@@ -2280,12 +2526,6 @@ export function sampleGroundChunk(
   const clampY = (v: number) => Math.max(0, Math.min(rows - 1, v));
   const h = (xx: number, yy: number) => H[yy * cols + xx] ?? 0;
 
-  // Edge treatment: chunks beyond the artifact window would otherwise
-  // extend the clamped border heights as an infinite plateau. Instead, ease
-  // terrain downward and blend the tint toward haze over EDGE_FALL_M, so
-  // the detail window reads as land falling away toward the horizon.
-  const EDGE_FALL_M = 256;
-  const EDGE_DROP_H = 14;
   const HAZE_RGB: [number, number, number] = [0.64, 0.67, 0.64];
   const extentX = cols * GROUND_METERS_PER_CELL;
   const extentZ = rows * GROUND_METERS_PER_CELL;
@@ -2323,12 +2563,8 @@ export function sampleGroundChunk(
 
       // Out-of-window falloff (eased) — 0 inside the artifact, 1 at
       // EDGE_FALL_M past its border.
-      const ox = Math.max(0, -worldX, worldX - extentX);
-      const oz = Math.max(0, -worldZ, worldZ - extentZ);
-      let edgeT = 0;
-      if (ox > 0 || oz > 0) {
-        const t = Math.min(1, Math.hypot(ox, oz) / EDGE_FALL_M);
-        edgeT = t * (2 - t);
+      const edgeT = edgeFalloffT(worldX, worldZ, extentX, extentZ);
+      if (edgeT > 0) {
         height = Math.max(0, height - EDGE_DROP_H * edgeT);
       }
 
@@ -2401,7 +2637,8 @@ export function sampleGroundChunk(
     }),
     decks: ground.decks.flatMap((d) => {
       const clipped = clipPolygonToChunk(d.cornersM, cx, cy);
-      // Carry the dock/bridge kind through (TG5) so the geometry tints each deck.
+      // Carry the deck kind (TG5) and any per-deck tint through so the
+      // geometry can color each deck (ford wet/dry strips, stone jitter).
       return clipped.length >= 3
         ? [
             {
@@ -2409,6 +2646,7 @@ export function sampleGroundChunk(
               topY: d.topY,
               kind: d.kind,
               detail: d.detail,
+              color: d.color,
             },
           ]
         : [];

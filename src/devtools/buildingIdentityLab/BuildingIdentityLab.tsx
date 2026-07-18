@@ -34,6 +34,7 @@ import {
   HARNESS_CLIMATES,
   HARNESS_STYLES,
   HARNESS_TOWNS,
+  type BuildingFactField,
   type HarnessPlot,
   type HarnessStyleId,
 } from './buildingIdentityLabModel';
@@ -101,6 +102,69 @@ function plotLabel(plot: HarnessPlot): string {
   return plot.pop?.buildingType ?? plot.role;
 }
 
+/** Draw a custom SVG silhouette representing the building's roof form, massing, and storeys. */
+const BuildingSilhouette: React.FC<{ plot: HarnessPlot }> = ({ plot }) => {
+  const roofForm = plot.roofForm ?? 'gable';
+  const storeys = plot.storeys ?? 1;
+  const wallColor = plot.wallColorHex ?? '#8a7663';
+  const roofColor = plot.roofColorHex ?? '#5f4527';
+
+  // Determine roof height based on form
+  let roofHeight = 7;
+  if (roofForm === 'steep') roofHeight = 11;
+  else if (roofForm === 'flat') roofHeight = 2;
+
+  // Wall height scales with storey count
+  let wallHeight = 8;
+  if (storeys === 2) wallHeight = 12;
+  else if (storeys >= 3) wallHeight = 16;
+
+  // Baseline of the SVG frame is at y = 28
+  const baselineY = 28;
+  const wallY = baselineY - wallHeight;
+  const roofY = wallY - roofHeight;
+
+  // Build the SVG path for the selected roof shape
+  let roofPath = '';
+  if (roofForm === 'flat') {
+    roofPath = `M 2,${wallY - 2} L 40,${wallY - 2} L 40,${wallY} L 2,${wallY} Z`;
+  } else if (roofForm === 'hip') {
+    roofPath = `M 4,${wallY} L 12,${roofY} L 30,${roofY} L 38,${wallY} Z`;
+  } else if (roofForm === 'steep' || roofForm === 'gable') {
+    roofPath = `M 4,${wallY} L 21,${roofY} L 38,${wallY} Z`;
+  }
+
+  return (
+    <svg width="42" height="28" viewBox="0 0 42 28" className="bil-mini-building-svg" aria-hidden="true">
+      {/* Wall Rect */}
+      <rect
+        x="6"
+        y={wallY}
+        width="30"
+        height={wallHeight}
+        fill={wallColor}
+        stroke="rgba(255,255,255,0.18)"
+        strokeWidth="0.5"
+      />
+      {/* Windows to display massing/storeys visually */}
+      {storeys >= 2 && (
+        <rect x="10" y={wallY + 2} width="4" height="4" fill="rgba(255,255,255,0.3)" />
+      )}
+      {storeys >= 2 && (
+        <rect x="28" y={wallY + 2} width="4" height="4" fill="rgba(255,255,255,0.3)" />
+      )}
+      {storeys >= 3 && (
+        <rect x="10" y={wallY + 7} width="4" height="4" fill="rgba(255,255,255,0.3)" />
+      )}
+      {storeys >= 3 && (
+        <rect x="28" y={wallY + 7} width="4" height="4" fill="rgba(255,255,255,0.3)" />
+      )}
+      {/* Roof Path */}
+      <path d={roofPath} fill={roofColor} stroke="rgba(0,0,0,0.15)" strokeWidth="0.5" />
+    </svg>
+  );
+};
+
 // ============================================================================
 // Measured Town Map
 // ============================================================================
@@ -110,7 +174,9 @@ function plotLabel(plot: HarnessPlot): string {
 
 const MeasuredTownMap: React.FC<{
   model: ReturnType<typeof buildHarnessTown>;
-}> = ({ model }) => {
+  selectedPlotId: number;
+  onSelectPlot: (plotId: number) => void;
+}> = ({ model, selectedPlotId, onSelectPlot }) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 640, height: 430 });
 
@@ -139,6 +205,9 @@ const MeasuredTownMap: React.FC<{
         seedPath={`wf:${model.seed}`}
         settlementKey={`burg:${model.seed}`}
         styleFamily={model.styleFamily}
+        selectedPlotId={selectedPlotId}
+        onSelectPlot={onSelectPlot}
+        artifactPlan={model.artifactPlan}
       />
     </div>
   );
@@ -159,16 +228,44 @@ const BuildingIdentityLab: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [floorLevel, setFloorLevel] = useState(0);
 
+  // Active generation inputs that actually drive the rendered model.
+  // This separation lets us show a busy state before starting the heavy generation.
+  const [activeOptions, setActiveOptions] = useState({
+    seed: initialSeed(),
+    population: initialPopulation(),
+    styleId: initialStyle(),
+    climate: initialClimate(),
+    withRiver: initialRiver(),
+    generationRevision: 0,
+  });
+
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Yield to the browser paint cycle to display a loading/busy overlay
+  useEffect(() => {
+    setIsGenerating(true);
+    const timer = setTimeout(() => {
+      setActiveOptions({
+        seed,
+        population,
+        styleId,
+        climate,
+        withRiver,
+        generationRevision,
+      });
+      setIsGenerating(false);
+    }, 40);
+    return () => clearTimeout(timer);
+  }, [seed, population, styleId, climate, withRiver, generationRevision]);
+
   // Every visible surface below shares this one deterministic production model.
-  // The revision supports a manual same-seed rebuild, useful when verifying
-  // determinism or after hot-module replacement changes a generator module.
   const model = useMemo(() => buildHarnessTown({
-    seed,
-    population,
-    styleId,
-    climate,
-    withRiver,
-  }), [seed, population, styleId, climate, withRiver, generationRevision]);
+    seed: activeOptions.seed,
+    population: activeOptions.population,
+    styleId: activeOptions.styleId,
+    climate: activeOptions.climate,
+    withRiver: activeOptions.withRiver,
+  }), [activeOptions]);
 
   const selectedPlot = model.artifactPlan.plots.find((plot) => plot.id === selectedPlotId)
     ?? model.artifactPlan.plots[0];
@@ -208,8 +305,7 @@ const BuildingIdentityLab: React.FC = () => {
   const style = blueprint.styleResolved;
   const selectedDistrictKey = selectedDistrict ?? selectedPlot?.architecture?.districtKey;
   const comparisonPlots = model.artifactPlan.plots
-    .filter((plot) => plot.architecture?.districtKey === selectedDistrictKey)
-    .slice(0, 8);
+    .filter((plot) => plot.architecture?.districtKey === selectedDistrictKey);
   const coherentDistricts = model.districts.filter((district) => district.coherent).length;
   const uniqueVariants = new Set(model.artifactPlan.plots
     .map((plot) => plot.architecture?.buildingVariant)
@@ -231,6 +327,12 @@ const BuildingIdentityLab: React.FC = () => {
 
   return (
     <main className="bil-shell">
+      {isGenerating && (
+        <div className="bil-busy-overlay" data-testid="bil-busy-indicator">
+          <RefreshCw size={24} className="bil-spinner" />
+          <span>Regenerating Settlement...</span>
+        </div>
+      )}
       <header className="bil-header">
         <div className="bil-brand">
           <div className="bil-mark" aria-hidden="true"><Layers3 size={19} /></div>
@@ -241,40 +343,40 @@ const BuildingIdentityLab: React.FC = () => {
         </div>
         <div className="bil-header-actions">
           <span className="bil-status"><span /> deterministic</span>
-          <button type="button" className="bil-icon-button" title="Reroll town seed" onClick={() => setSeed(nextSeed)}>
+          <button type="button" className="bil-icon-button" title="Reroll town seed" aria-label="Reroll town seed" onClick={() => setSeed(nextSeed)}>
             <Dices size={18} />
           </button>
-          <button type="button" className="bil-icon-button" title="Regenerate current seed" onClick={() => setGenerationRevision((revision) => revision + 1)}>
+          <button type="button" className="bil-icon-button" title="Regenerate current seed" aria-label="Regenerate current seed" onClick={() => setGenerationRevision((revision) => revision + 1)}>
             <RefreshCw size={17} />
           </button>
         </div>
       </header>
 
       <section className="bil-controls" aria-label="Generation controls">
-        <label>
+        <label htmlFor="bil-control-seed">
           <span>Seed</span>
-          <input type="number" value={seed} onChange={(event) => setSeed(Number(event.target.value) || 1)} />
+          <input id="bil-control-seed" name="seed" type="number" value={seed} onChange={(event) => setSeed(Number(event.target.value) || 1)} />
         </label>
-        <label>
+        <label htmlFor="bil-control-settlement">
           <span>Settlement</span>
-          <select value={population} onChange={(event) => setPopulation(Number(event.target.value))}>
+          <select id="bil-control-settlement" name="settlement" value={population} onChange={(event) => setPopulation(Number(event.target.value))}>
             {HARNESS_TOWNS.map((town) => <option key={town.population} value={town.population}>{town.label}</option>)}
           </select>
         </label>
-        <label>
+        <label htmlFor="bil-control-architecture">
           <span>Architecture</span>
-          <select value={styleId} onChange={(event) => setStyleId(event.target.value as HarnessStyleId)}>
+          <select id="bil-control-architecture" name="architecture" value={styleId} onChange={(event) => setStyleId(event.target.value as HarnessStyleId)}>
             {HARNESS_STYLES.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
           </select>
         </label>
-        <label>
+        <label htmlFor="bil-control-climate">
           <span>Climate</span>
-          <select value={climate} onChange={(event) => setClimate(event.target.value as ClimateClass)}>
+          <select id="bil-control-climate" name="climate" value={climate} onChange={(event) => setClimate(event.target.value as ClimateClass)}>
             {HARNESS_CLIMATES.map((option) => <option key={option} value={option}>{option}</option>)}
           </select>
         </label>
-        <label className="bil-toggle">
-          <input type="checkbox" checked={withRiver} onChange={() => setWithRiver((current) => !current)} />
+        <label className="bil-toggle" htmlFor="bil-control-waterfront">
+          <input id="bil-control-waterfront" name="waterfront" type="checkbox" checked={withRiver} onChange={() => setWithRiver((current) => !current)} />
           <span aria-hidden="true" />
           Waterfront anatomy
         </label>
@@ -332,7 +434,7 @@ const BuildingIdentityLab: React.FC = () => {
           <div className="bil-stage-grid">
             <article className="bil-viewport-card">
               <div className="bil-card-bar"><span><Map size={14} /> Town plan</span><small>same seed / same districts</small></div>
-              <MeasuredTownMap model={model} />
+              <MeasuredTownMap model={model} selectedPlotId={selectedPlot?.id ?? 0} onSelectPlot={setSelectedPlotId} />
             </article>
             <article className="bil-viewport-card">
               <div className="bil-card-bar"><span><Box size={14} /> Selected building</span><small>orbit / exact blueprint</small></div>
@@ -355,8 +457,7 @@ const BuildingIdentityLab: React.FC = () => {
                   onClick={() => setSelectedPlotId(plot.id)}
                 >
                   <span className="bil-mini-building">
-                    <i style={{ background: plot.wallColorHex }} />
-                    <i style={{ background: plot.roofColorHex }} />
+                    <BuildingSilhouette plot={plot} />
                   </span>
                   <b>#{plot.id} {plotLabel(plot)}</b>
                   <span>{plot.roofForm} / {plot.architecture?.facadePattern}</span>
@@ -372,7 +473,15 @@ const BuildingIdentityLab: React.FC = () => {
           <div className="bil-panel-title"><Layers3 size={15} /><h2>Building receipt</h2><span>#{selectedPlot?.id}</span></div>
           <div className="bil-blueprint-toolbar">
             <span>{plotLabel(selectedPlot)}</span>
-            <select value={floorLevel} onChange={(event) => setFloorLevel(Number(event.target.value))} aria-label="Blueprint floor">
+            {/* GG-38 control-naming repair (2026-07-18): this floor selector was
+                the last form field in the lab without an id/name attribute —
+                Chrome's issues audit flags such fields ("A form field element
+                should have an id or name attribute") because unnamed fields
+                defeat autofill/label association tooling. The five generation
+                controls above were already named (bil-control-*); this select
+                joins the same scheme. aria-label kept — it remains the
+                accessible name; nothing visual changes. */}
+            <select id="bil-control-floor" name="blueprintFloor" value={floorLevel} onChange={(event) => setFloorLevel(Number(event.target.value))} aria-label="Blueprint floor">
               {blueprint.floors.map((floor) => (
                 <option key={floor.level} value={floor.level}>{floor.level < 0 ? 'Basement' : floor.level === 0 ? 'Ground' : `Floor ${floor.level}`}</option>
               ))}
@@ -413,4 +522,4 @@ declare global {
   }
 }
 
-export default BuildingIdentityLab;
+export def

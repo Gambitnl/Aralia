@@ -25,6 +25,8 @@ import type {
   BattleMapTile,
   CombatEnemySnapshotEntry,
 } from "../../../types/combat";
+import type { AtlasGroundAddress } from "../../../systems/worldforge/leaf3d/atlasGroundDrilldown";
+import { atlasHiddenSiteForAddress } from "../../../systems/worldforge/leaf3d/atlasGroundContinuity";
 
 // Mock WorldEventManager to avoid RNG and check integration
 vi.mock("../../../systems/world/WorldEventManager", () => ({
@@ -277,6 +279,81 @@ describe("worldReducer", () => {
       { type: "REVEAL_HIDDEN_SITE", payload: b },
     );
     expect(second.discoveredHiddenSites).toEqual([a, b]);
+  });
+
+  it("keeps movement, seamless interiors, and combat return tied to one Atlas Local", () => {
+    const atlasGroundAddress: AtlasGroundAddress = {
+      schemaVersion: 1,
+      worldSeed: 91,
+      atlasCellId: 23,
+      regionSeedPath: "91/region:23",
+      regionBounds: { x: 0, y: 0, width: 25_000, height: 25_000 },
+      localSeedPath: "91/region:23/local:1000,2000",
+      localBounds: { x: 1000, y: 2000, width: 3000, height: 3000 },
+      focus: { kind: "site", id: 8, xFt: 1200, yFt: 2300 },
+      returnTier: "local",
+    };
+    const state = createMockGameState({
+      atlasGroundAddress,
+      playerCell: { cellId: 23, localeCoords: null },
+    });
+
+    // Crossing a shop threshold and walking back outside are ordinary ground
+    // movement writes. Both preserve the immutable address while updating the
+    // separate current-position receipt used after combat/remount.
+    const inside = worldReducer(state, {
+      type: "SET_PLAYER_GROUND_POS",
+      payload: { position: { tileX: 23, tileY: 0, xM: 80, zM: 120 } },
+    });
+    expect(inside.atlasGroundPosition).toMatchObject({
+      worldSeed: 91,
+      atlasCellId: 23,
+      localSeedPath: atlasGroundAddress.localSeedPath,
+      xM: 80,
+      zM: 120,
+    });
+    expect(state.atlasGroundAddress).toBe(atlasGroundAddress);
+
+    const afterCombat = worldReducer({ ...state, ...inside }, {
+      type: "SET_PLAYER_GROUND_POS",
+      payload: { position: { tileX: 23, tileY: 0, xM: 95, zM: 140 } },
+    });
+    expect(afterCombat.atlasGroundPosition).toMatchObject({ xM: 95, zM: 140 });
+  });
+
+  it("stores same-source hidden places from different Atlas Locals without collision", () => {
+    const baseAddress: AtlasGroundAddress = {
+      schemaVersion: 1,
+      worldSeed: 91,
+      atlasCellId: 23,
+      regionSeedPath: "91/region:23",
+      regionBounds: { x: 0, y: 0, width: 25_000, height: 25_000 },
+      localSeedPath: "91/region:23/local:a",
+      localBounds: { x: 1000, y: 2000, width: 3000, height: 3000 },
+      focus: { kind: "local", id: "a", xFt: 1200, yFt: 2300 },
+      returnTier: "local",
+    };
+    const first = atlasHiddenSiteForAddress({
+      address: baseAddress,
+      sourceId: "hp:0",
+      sourceKind: "hidden-site",
+      xM: 10,
+      zM: 20,
+    })!;
+    const second = atlasHiddenSiteForAddress({
+      address: { ...baseAddress, localSeedPath: "91/region:23/local:b" },
+      sourceId: "hp:0",
+      sourceKind: "hidden-site",
+      xM: 10,
+      zM: 20,
+    })!;
+    const state = createMockGameState({ discoveredHiddenSites: [] });
+    const one = worldReducer(state, { type: "REVEAL_HIDDEN_SITE", payload: first });
+    const two = worldReducer(
+      { ...state, discoveredHiddenSites: one.discoveredHiddenSites! },
+      { type: "REVEAL_HIDDEN_SITE", payload: second },
+    );
+    expect(two.discoveredHiddenSites).toHaveLength(2);
   });
 
   it("DUNGEON_CLEARED records a cleared site (by sitePath), deduped, round-trips (Task 8)", () => {

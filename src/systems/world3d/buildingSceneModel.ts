@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/07/2026, 18:16:59
+ * Last Sync: 17/07/2026, 19:01:15
  * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, components/DesignPreview/steps/PreviewBuilding3D.tsx
- * Imports: 3 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,6 +33,20 @@
  * (x, y, z0/h) onto three space as (x, z, y) and renders in feet.
  */
 
+/**
+ * ARCHITECTURAL COMMENTARY:
+ * WHAT CHANGED: Added support for rendering resolved architectural identity dressing
+ * (materials, facade trim, motifs, weathering, and permanent history) in the lab's 3D pane.
+ * Overrode outer wall box colors with styleResolved.wallColor.
+ * WHY: The Building Identity Lab must render the actual production 3D parts to honestly
+ * prove the procedural generation layer instead of rendering a flat tan box mockup.
+ * WHAT WAS PRESERVED: Legacy plans without styleResolved remain a strict no-op, preserving
+ * the original v1 colors and layout. Structural geometry remains completely untouched, as pinned
+ * by invariants tests. Floor peel, window lighting, and hearth glowing schedules remain fully intact.
+ * WHAT REMAINS DEFERRED: The 2D vs 3D climate parity roof seam, town-map selection behavior,
+ * and streamed production ground pipeline details remain deferred to separate repair/feature lanes.
+ */
+
 import type { BlueprintPlan } from '../worldforge/interior/blueprintTypes';
 import type { BuildingOccupancy, OccupantStation } from '../worldforge/interior/occupancy';
 import { HEARTH_KINDS } from '../worldforge/interior/occupancy';
@@ -42,6 +56,14 @@ import {
   roofDeformationForPlan,
   type MeshBoxKind,
 } from './buildingModels';
+import {
+  buildBlueprintParts,
+  MATERIAL_PART_TAG,
+  FACADE_PART_TAG,
+  MOTIF_PART_TAG,
+  WEATHERING_PART_TAG,
+  HISTORY_PART_TAG,
+} from '../worldforge/bridge/interiorParts';
 
 /** 'all' = every floor closed; a level = show basement..level, open-topped. */
 export type PeelLevel = number | 'all';
@@ -52,7 +74,12 @@ export type SceneBoxKind = MeshBoxKind
   | 'history-board'
   | 'history-phase'
   | 'history-roof-hole'
-  | 'history-ruin-sag';
+  | 'history-ruin-sag'
+  | 'construction-material'
+  | 'facade-trim'
+  | 'motif'
+  | 'weathering'
+  | 'permanent-history';
 
 /** The solved roof as a triangle group, PLAN FEET (x/y footprint, Y up = z0).
  *  Present only when plan.roof exists and the model is NOT peeled (roof shows in
@@ -143,6 +170,11 @@ const BOX_COLOR: Record<SceneBoxKind, string> = {
   'history-phase': '#75613f',
   'history-roof-hole': '#171311',
   'history-ruin-sag': '#3b2922',
+  'construction-material': '#8a7663',
+  'facade-trim': '#7c6a58',
+  motif: '#8a7663',
+  weathering: '#8a7663',
+  'permanent-history': '#8a7663',
 };
 
 const WINDOW_GLOW = '#ffc46b';
@@ -191,10 +223,11 @@ export function buildingSceneModel(
       // Open the selected floor: drop its ceiling lid when peeling. (Higher
       // floors' slabs — the usual lids — are already gone with their floors.)
       if (peeled && b.kind === 'ceiling' && floor.level === topVisible) continue;
+      const wallColor = plan.styleResolved?.wallColor ?? BOX_COLOR.wall;
       const box: SceneBox = {
         kind: b.kind, level: floor.level,
         x: b.x, y: b.y, w: b.w, d: b.d, z0: b.z0, h: b.h,
-        color: BOX_COLOR[b.kind],
+        color: b.kind === 'wall' ? wallColor : BOX_COLOR[b.kind],
       };
       if (b.kind === 'window-pane' && windowsLit) {
         box.emissive = WINDOW_GLOW;
@@ -299,6 +332,75 @@ export function buildingSceneModel(
         { kind: 'history-phase', level: 0, x: x0, y: y0 + depth / 2, w: seam, d: depth, z0: 0, h: 0.55, color: feature.colorHex },
         { kind: 'history-phase', level: 0, x: x0 + width, y: y0 + depth / 2, w: seam, d: depth, z0: 0, h: 0.55, color: feature.colorHex },
       );
+    }
+  }
+
+  // Additive architectural dressing parts (BGv2 Phase 1B / Selected identity).
+  // Sourced directly from the production site part bridge to ensure rendering parity.
+  if (plan.styleResolved) {
+    const FT = 0.3048;
+    const storeyHeightM = storeyFt * FT;
+    const perimeterColor = plan.styleResolved.wallColor;
+    const blueprintParts = buildBlueprintParts(plan, storeyHeightM, perimeterColor, windowsLit);
+    const basementLevel = Math.min(...plan.floors.map((f) => f.level));
+
+    for (const part of blueprintParts.parts) {
+      // Dressing parts carry a tag. Structural parts from buildBlueprintParts
+      // do not, so we skip them to avoid duplicating wall/floor boxes.
+      if (!part.tag) continue;
+
+      let kind: SceneBoxKind | undefined;
+      if (part.tag === MATERIAL_PART_TAG) {
+        kind = 'construction-material';
+      } else if (part.tag === FACADE_PART_TAG) {
+        kind = 'facade-trim';
+      } else if (part.tag === MOTIF_PART_TAG) {
+        kind = 'motif';
+      } else if (part.tag === WEATHERING_PART_TAG) {
+        kind = 'weathering';
+      } else if (part.tag === HISTORY_PART_TAG) {
+        kind = 'permanent-history';
+      }
+
+      if (!kind) continue;
+
+      // Extract the level of this part based on its vertical position.
+      const partBaseYFt = part.baseY ? part.baseY / FT : 0;
+      const partLevel = Math.max(
+        basementLevel,
+        Math.min(topVisible, Math.floor(partBaseYFt / storeyFt))
+      );
+
+      // Verify that this part is on a visible floor during floor-peel.
+      if (!visible(partLevel)) continue;
+
+      // Map meters back to plan feet, offset by the stable origin.
+      const origin = plan.siteOriginFt ?? { x: plan.widthFt / 2, y: plan.depthFt / 2 };
+      const x = part.x / FT + origin.x;
+      const y = part.z / FT + origin.y;
+      const w = part.w / FT;
+      const d = part.d / FT;
+      const z0 = partBaseYFt;
+      const h = part.h / FT;
+
+      const box: SceneBox = {
+        kind,
+        level: partLevel,
+        x,
+        y,
+        w,
+        d,
+        z0,
+        h,
+        color: part.colorHex,
+      };
+
+      if (part.emissiveHex) {
+        box.emissive = part.emissiveHex;
+        box.emissiveIntensity = 1.2;
+      }
+
+      boxes.push(box);
     }
   }
 

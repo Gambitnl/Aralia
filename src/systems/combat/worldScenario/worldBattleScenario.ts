@@ -133,6 +133,20 @@ export const WORLD_BATTLE_SCENARIO_PRESETS: readonly WorldBattleScenarioPreset[]
       sourceRouteQuery: "phase=world3d&ground=1&dcell=853&wfseed=42",
     },
     {
+      id: "river-ford-crossing",
+      label: "Stream Ford",
+      encounterFrame: "Ford interception",
+      description:
+        "A real atlas trail fording a narrow stream, proving a ford crossing receipt drives stepping-stone paint, wade-cost tiles, and bank-aware deployment without a bridge deck.",
+      worldSeed: 42,
+      entryCellId: 587,
+      theme: "forest",
+      dimensions: { width: 80, height: 60 },
+      anchorMode: "nearest-crossing",
+      encounterKind: "river-crossing",
+      sourceRouteQuery: "phase=world3d&ground=1&dcell=587&wfseed=42",
+    },
+    {
       id: "boreal-woodland",
       label: "Boreal Woodland",
       encounterFrame: "Wilderness patrol",
@@ -143,6 +157,18 @@ export const WORLD_BATTLE_SCENARIO_PRESETS: readonly WorldBattleScenarioPreset[]
       theme: "forest",
       dimensions: { width: 80, height: 60 },
       sourceRouteQuery: "phase=world3d&ground=1&dcell=476&wfseed=42",
+    },
+    {
+      id: "hillside-overlook",
+      label: "Hillside",
+      encounterFrame: "High-ground skirmish",
+      description:
+        "A steep roadless taiga flank (atlas slope 36), proving source elevation drives the whole relief story: contours, hillshade, sun-cast slope shadows, and high-ground tactical reads.",
+      worldSeed: 42,
+      entryCellId: 1419,
+      theme: "forest",
+      dimensions: { width: 80, height: 60 },
+      sourceRouteQuery: "phase=world3d&ground=1&dcell=1419&wfseed=42",
     },
     {
       id: "legium-hostile-opening",

@@ -51,6 +51,27 @@ import { type DungeonTheme, type RoomType } from '../../../systems/worldforge/du
 import { DEFAULT_OVERLAYS, TYPE_COLOR, type Overlays } from './previewDungeon/theme';
 import { keyedRooms } from './previewDungeon/geometry';
 import { renderSheet, SHEET_CSS_W, SHEET_CSS_H } from './previewDungeon/compositor';
+import { Dungeon3DPreview } from '../../BattleMap/dungeon/Dungeon3DPreview';
+
+// ── shared 2D / 3D inspection contract ───────────────────────────────────────
+// The dungeon is generated once and can be inspected through two presentations.
+// 3D is now the default design surface, while the parchment remains available as
+// the diegetic player-facing map rather than being replaced or forked.
+
+type DungeonViewMode = 'three-d' | 'parchment';
+
+interface DungeonPreviewWindow extends Window {
+  render_game_to_text?: () => string;
+  advanceTime?: (milliseconds: number) => Promise<void>;
+  __dungeon3dReady?: boolean;
+  __dungeon3dViewState?: {
+    preset: string;
+    autoRotate: boolean;
+    fullscreen: boolean;
+    visibleProps: number;
+    totalProps: number;
+  };
+}
 
 // ── interactive zoom + pan viewport ─────────────────────────────────────────
 // The sheet is composed ONCE ({@link renderSheet}) to a supersampled buffer;
@@ -95,8 +116,11 @@ function blitViewport(canvas: HTMLCanvasElement, buffer: HTMLCanvasElement, view
   const cssH = SHEET_CSS_H;
   canvas.width = Math.round(cssW * dpr);
   canvas.height = Math.round(cssH * dpr);
-  canvas.style.width = `${cssW}px`;
-  canvas.style.height = `${cssH}px`;
+  // Preserve the canonical desktop size while allowing the parchment to fit a narrow preview
+  // pane. Pointer math already reads the rendered rectangle, so zoom and pan remain accurate.
+  canvas.style.width = `min(100%, ${cssW}px)`;
+  canvas.style.height = 'auto';
+  canvas.style.aspectRatio = `${cssW} / ${cssH}`;
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -118,6 +142,7 @@ const Toggle: React.FC<{ label: string; on: boolean; onClick: () => void; color?
   <button
     type="button"
     onClick={onClick}
+    data-testid={`dungeon-toggle-${label.toLowerCase().replace(/\s+/g, '-')}`}
     className={`h-7 rounded px-2 text-xs font-semibold transition-colors ${on ? 'bg-sky-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
   >
     {color && <span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: color }} />}
@@ -145,6 +170,12 @@ function initialSeed(): number {
 
 const THEME_OPTIONS: DungeonTheme[] = ['crypt', 'cavern', 'frost', 'sewer', 'fungal'];
 
+/** Optional `?dtheme=` pin makes cross-theme visual proof reproducible, just like dseed. */
+function initialTheme(): DungeonTheme {
+  const raw = new URLSearchParams(window.location.search).get('dtheme');
+  return THEME_OPTIONS.includes(raw as DungeonTheme) ? raw as DungeonTheme : 'crypt';
+}
+
 export const PreviewDungeon: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // The supersampled sheet buffer: composed once per plan/overlay change, then
@@ -158,7 +189,7 @@ export const PreviewDungeon: React.FC = () => {
   // Cursor feedback only (grab ↔ grabbing). Flips twice per drag, never per move.
   const [dragging, setDragging] = useState(false);
   const [seed, setSeed] = useState<number>(initialSeed);
-  const [theme, setTheme] = useState<DungeonTheme>('crypt');
+  const [theme, setTheme] = useState<DungeonTheme>(initialTheme);
   const [roomCount, setRoomCount] = useState(42);
   const [loopChance, setLoopChance] = useState(0.25);
   const [decorDensity, setDecorDensity] = useState(0.6);
@@ -167,21 +198,28 @@ export const PreviewDungeon: React.FC = () => {
   const [asOfYearsAgo, setAsOfYearsAgo] = useState(0);
   const [overlays, setOverlays] = useState<Overlays>(DEFAULT_OVERLAYS);
   const [showHistory, setShowHistory] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<DungeonViewMode>('three-d');
+  // Desktop opens the full workbench, while phones begin with one compact tuning button so
+  // the generated dungeon—not a wall of sliders—is the first meaningful viewport content.
+  const [showTuning, setShowTuning] = useState(() => window.matchMedia('(min-width: 640px)').matches);
 
-  const plan = useMemo(() => {
+  // Generation can honestly fail after its bounded retries. Derive the plan and
+  // error together so rendering stays pure; setting state inside useMemo caused
+  // a React feedback risk in the earlier local-only workbench implementation.
+  const { plan, error } = useMemo<{ plan: ReturnType<typeof generateDungeon> | null; error: string | null }>(() => {
     try {
-      setError(null);
-      return generateDungeon({
-        seed,
-        params: {
-          roomCount, loopChance, decorDensity, theme, asOfYearsAgo,
-          ...(sprawl !== null ? { sprawl } : {}),
-        },
-      });
+      return {
+        plan: generateDungeon({
+          seed,
+          params: {
+            roomCount, loopChance, decorDensity, theme, asOfYearsAgo,
+            ...(sprawl !== null ? { sprawl } : {}),
+          },
+        }),
+        error: null,
+      };
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      return null;
+      return { plan: null, error: e instanceof Error ? e.message : String(e) };
     }
   }, [seed, theme, roomCount, loopChance, decorDensity, asOfYearsAgo, sprawl]);
 
@@ -189,11 +227,14 @@ export const PreviewDungeon: React.FC = () => {
   // viewport to Fit (a fresh plan is a fresh sheet — the eye should start whole),
   // and blit. Heavy work stays here, off the zoom/pan hot path.
   useEffect(() => {
+    // The canvas is absent while 3D is active, so a plan-only effect cannot paint
+    // the fresh canvas created when the user returns to the parchment view.
+    if (viewMode !== 'parchment') return;
     if (!plan) { bufferRef.current = null; return; }
     bufferRef.current = renderSheet(plan, overlays);
     setView(FIT_VIEW);
     if (canvasRef.current) blitViewport(canvasRef.current, bufferRef.current, FIT_VIEW);
-  }, [plan, overlays]);
+  }, [plan, overlays, viewMode]);
 
   // Re-blit whenever the viewport moves (wheel zoom, +/−, Fit, or the end of a
   // pan). Cheap: one drawImage of the already-composed buffer.
@@ -288,21 +329,86 @@ export const PreviewDungeon: React.FC = () => {
 
   const keyed = useMemo(() => (plan ? keyedRooms(plan) : []), [plan]);
 
+  // Publish the same concise state that is visible in the workbench. The browser
+  // verification loop uses this to prove that the rendered 3D scene belongs to
+  // the current seed and that control changes update the actual dungeon plan.
+  useEffect(() => {
+    const previewWindow = window as DungeonPreviewWindow;
+    previewWindow.render_game_to_text = () => JSON.stringify({
+      coordinateSystem: 'origin is dungeon center; +x east, +z south; one scene unit is one 5 ft cell',
+      mode: viewMode,
+      sceneReady: viewMode === 'three-d' ? previewWindow.__dungeon3dReady === true : Boolean(canvasRef.current),
+      dungeon: plan ? {
+        seed: plan.seed,
+        name: plan.name,
+        theme: plan.params.theme,
+        archetype: plan.archetype,
+        sizeCells: { width: plan.W, depth: plan.H },
+        entranceRoomId: plan.entranceId,
+        objectiveRoomId: plan.bossId,
+        rooms: plan.stats.rooms,
+        loops: plan.stats.loops,
+        historyEvents: plan.stats.events,
+        props: plan.stats.props,
+        encounters: plan.stats.spawns,
+      } : null,
+      overlays,
+      camera: previewWindow.__dungeon3dViewState ?? null,
+    });
+
+    // Outside the specialized test client, provide a small real-time stepping
+    // hook so automated observers can wait for R3F damping and canvas paint.
+    if (!previewWindow.advanceTime) {
+      previewWindow.advanceTime = (milliseconds: number) => new Promise((resolve) => {
+        const start = performance.now();
+        const step = (now: number) => {
+          if (now - start >= milliseconds) resolve();
+          else requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      });
+    }
+
+    return () => {
+      delete previewWindow.render_game_to_text;
+    };
+  }, [overlays, plan, viewMode]);
+
+
   return (
     <div className="flex h-full flex-col bg-gray-900 text-gray-200">
       {/* header controls */}
-      <div className="flex-shrink-0 space-y-2 border-b border-gray-700 bg-gray-800 px-6 py-3 shadow-md">
-        <div className="flex items-center justify-between gap-4">
-          <div>
+      <div className="max-h-[46vh] flex-shrink-0 space-y-2 overflow-y-auto border-b border-gray-700 bg-gray-800 px-3 py-2 shadow-md sm:max-h-none sm:overflow-visible sm:px-6 sm:py-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="min-w-0">
             <h2 className="text-lg font-bold uppercase tracking-wider text-white">Dungeon</h2>
             <p className="text-xs text-gray-400">
               {plan ? <span className="italic text-amber-300">{plan.name}</span> : 'procedural dungeon generator'} &middot; each cell = 5&nbsp;ft &middot; deterministic by seed (pin with ?dseed=)
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <div className="flex w-full rounded-lg border border-gray-600 bg-gray-900 p-1 sm:mr-2 sm:w-auto" aria-label="Dungeon presentation">
+              <button
+                type="button"
+                onClick={() => setViewMode('three-d')}
+                data-testid="dungeon-view-3d"
+                className={`h-7 flex-1 rounded px-3 text-xs font-bold transition-colors sm:flex-none ${viewMode === 'three-d' ? 'bg-amber-500 text-gray-950' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
+              >
+                3D Expedition
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('parchment')}
+                data-testid="dungeon-view-parchment"
+                className={`h-7 flex-1 rounded px-3 text-xs font-bold transition-colors sm:flex-none ${viewMode === 'parchment' ? 'bg-amber-500 text-gray-950' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
+              >
+                Parchment
+              </button>
+            </div>
             <select
               value={theme}
               onChange={(e) => setTheme(e.target.value as DungeonTheme)}
+              aria-label="Dungeon theme"
               className="h-9 rounded-md border border-gray-600 bg-gray-700 px-2 text-sm capitalize text-gray-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
             >
               {THEME_OPTIONS.map((t) => (
@@ -313,13 +419,24 @@ export const PreviewDungeon: React.FC = () => {
               type="number"
               value={seed}
               onChange={(e) => setSeed(parseInt(e.target.value, 10) || 0)}
-              className="h-9 w-32 rounded-md border border-gray-600 bg-gray-700 px-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              aria-label="Dungeon seed"
+              className="h-9 min-w-0 flex-1 rounded-md border border-gray-600 bg-gray-700 px-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-sky-500 sm:w-32 sm:flex-none"
             />
-            <button type="button" onClick={reroll} className="h-9 rounded-md bg-sky-600 px-4 text-sm font-bold text-white hover:bg-sky-500">
+            <button type="button" onClick={reroll} data-testid="dungeon-reroll" className="h-9 rounded-md bg-sky-600 px-3 text-sm font-bold text-white hover:bg-sky-500 sm:px-4">
               Reroll 🎲
             </button>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={() => setShowTuning((visible) => !visible)}
+          className="flex h-8 w-full items-center justify-between rounded-md border border-gray-600 bg-gray-900 px-3 text-xs font-bold uppercase tracking-wide text-gray-300 sm:hidden"
+          aria-expanded={showTuning}
+        >
+          Tuning &amp; overlays
+          <span aria-hidden="true">{showTuning ? '−' : '+'}</span>
+        </button>
+        {showTuning && <>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
           <Slider label="Rooms" value={roomCount} min={8} max={80} step={1} onChange={setRoomCount} />
           <Slider label="Loop chance" value={loopChance} min={0} max={0.6} step={0.01} onChange={setLoopChance} fmt={(v) => v.toFixed(2)} />
@@ -374,10 +491,11 @@ export const PreviewDungeon: React.FC = () => {
           <span className="mx-1 text-gray-600">|</span>
           <Toggle label="History" on={showHistory} onClick={() => setShowHistory((v) => !v)} color="#d8b33a" />
         </div>
+        </>}
       </div>
 
       {/* canvas + keyed notes + history */}
-      <div className="flex-grow overflow-auto bg-gray-950 p-4">
+      <div className="flex-grow overflow-auto bg-gray-950 p-2 sm:p-4">
         {error ? (
           <div className="mx-auto max-w-md rounded-md border border-red-700 bg-red-950/60 p-4 text-sm text-red-300">
             <strong className="block font-bold text-red-200">Generation failed (honest, no fallback)</strong>
@@ -385,7 +503,10 @@ export const PreviewDungeon: React.FC = () => {
           </div>
         ) : (
           <div className="flex flex-col items-center gap-4">
-            <div className="relative">
+            {viewMode === 'three-d' && plan ? (
+              <Dungeon3DPreview plan={plan} overlays={overlays} />
+            ) : (
+              <div className="relative w-full max-w-[800px]">
               <canvas
                 ref={canvasRef}
                 onPointerDown={onPointerDown}
@@ -429,7 +550,8 @@ export const PreviewDungeon: React.FC = () => {
                   Fit
                 </button>
               </div>
-            </div>
+              </div>
+            )}
 
             {plan && keyed.length > 0 && (
               <div className="w-full max-w-3xl rounded-md border border-gray-800 bg-gray-900/80 p-4">

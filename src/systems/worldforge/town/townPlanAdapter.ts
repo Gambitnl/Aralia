@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 14/07/2026, 22:29:04
- * Dependents: components/DesignPreview/steps/townMesh.ts, components/Worldforge/TownPlanView.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 8 files
+ * Last Sync: 17/07/2026, 21:35:50
+ * Dependents: components/DesignPreview/steps/townMesh.ts, components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,15 +33,17 @@
 import type { TownPlan as EngineTownPlan, BuildingPlot, CivicKind } from './townEngine';
 import type { TownPlan as ArtifactTownPlan } from '../artifacts';
 import type { Pt } from '../submap/submapEngine';
-import type { BuildingAgeBand, BuildingEnsemble } from '../interior/blueprintTypes';
-import { isResidential, type BuildingType } from './population';
+import type { BuildingAgeBand, BuildingEnsemble, BuildingType } from '../interior/blueprintTypes';
+import { isResidential, type BuildingType as PopulationBuildingType } from './population';
 import {
   resolveArchitectureVariant,
   type StyleFamily,
   type RoofForm,
+  type ClimateClass,
 } from './architectureStyle';
 import { resolveBuildingAgeBand } from './buildingAge';
 import { detachedParcelInsets } from './detachedParcels';
+import { buildingTypeForRole } from '../interior/generateInterior';
 
 export interface AdaptedTownPlan {
   plan: ArtifactTownPlan;
@@ -282,17 +284,26 @@ function styleStamp(
   wealth: 'poor' | 'common' | 'wealthy',
   ageBand: BuildingAgeBand,
   ensemble?: BuildingEnsemble,
+  climate?: ClimateClass,
+  buildingType?: BuildingType,
 ): {
   wallColorHex: string;
   roofColorHex: string;
   roofForm: RoofForm;
   architecture: NonNullable<ArtifactTownPlan['plots'][number]['architecture']>;
 } {
-  const variant = resolveArchitectureVariant(family, wealth, {
-    settlementKey: `burg:${burgId}`,
-    districtKey,
-    buildingKey,
-  }, ensemble);
+  const variant = resolveArchitectureVariant(
+    family,
+    climate ?? 'temperate',
+    wealth,
+    {
+      settlementKey: `burg:${burgId}`,
+      districtKey,
+      buildingKey,
+    },
+    ensemble,
+    buildingType,
+  );
   return {
     wallColorHex: variant.wallColor,
     roofColorHex: variant.roofColor,
@@ -322,7 +333,12 @@ function styleStamp(
  * style fields. Styling NEVER changes plot ids/filters/footprints — the plot-ID
  * identity between the 3D renderer and business registration is load-bearing.
  */
-export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: StyleFamily): AdaptedTownPlan {
+export function toArtifactPlan(
+  plan: EngineTownPlan,
+  burgId: number,
+  family?: StyleFamily,
+  climate?: ClimateClass,
+): AdaptedTownPlan {
   const plots: ArtifactTownPlan['plots'] = [];
   let id = 0;
 
@@ -341,6 +357,7 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: St
       // refer to the exact same building. The increment order is unchanged.
       const plotId = id++;
       const buildingKey = pl.architectureKey ?? `plot:${plotId}`;
+      const buildingType = pl.buildingType ?? buildingTypeForRole(role);
       plots.push({
         id: plotId,
         footprint: quad,
@@ -362,6 +379,8 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: St
                 buildingKey,
               }),
               pl.ensemble,
+              climate,
+              buildingType,
             )
           : {}),
         // Carry the population-pass classification through to the 3D bake so it
@@ -396,6 +415,7 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: St
     const districtKey = civicWard?.architectureDistrict?.key ?? `wealth:${wealth}`;
     const districtLabel = civicWard?.architectureDistrict?.label ?? `${wealth} quarter`;
     const plotId = id++;
+    const buildingType = buildingTypeForRole(role);
     plots.push({
       id: plotId,
       footprint: orientedQuad(c.polygon),
@@ -415,6 +435,9 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number, family?: St
               settlementKey: `burg:${burgId}`,
               buildingKey: `civic:${c.kind}:${c.wardIndex}`,
             }),
+            undefined,
+            climate,
+            buildingType,
           )
         : {}),
     });

@@ -26,6 +26,7 @@ import { Vector3 } from 'three';
 import type { EntityBlueprint } from '../types';
 import type { LocomotionState } from './gaits';
 import { assembleEntity } from './assembleEntity';
+import type { BodyTech } from './assembleEntity';
 import type { EntityRenderMode } from './toon';
 
 export interface Entity3DProps {
@@ -51,6 +52,9 @@ export interface Entity3DProps {
   fieldUpdateHz?: number;
   /** Draw solid (toon blob) or wireframe. Default: the global ENTITY_RENDER_MODE. */
   renderMode?: EntityRenderMode;
+  /** Body construction (skeleton pivot slice 1): rigid segment meshes
+   * (default) or the skinned skeleton body. Omitting it changes nothing. */
+  bodyTech?: BodyTech;
 }
 
 export function Entity3D({
@@ -63,13 +67,14 @@ export function Entity3D({
   resolutionScale,
   fieldUpdateHz,
   renderMode,
+  bodyTech,
 }: Entity3DProps) {
   // Keep the numeric performance settings as explicit dependencies. Callers
   // can tune a foreground hero differently from a conversational crowd
   // without rebuilding the handle merely because an options object changed.
   const handle = useMemo(
-    () => assembleEntity(blueprint, { resolutionScale, fieldUpdateHz, renderMode }),
-    [blueprint, fieldUpdateHz, resolutionScale, renderMode],
+    () => assembleEntity(blueprint, { resolutionScale, fieldUpdateHz, renderMode, bodyTech }),
+    [blueprint, fieldUpdateHz, resolutionScale, renderMode, bodyTech],
   );
   useEffect(() => {
     handle.retain();

@@ -25,7 +25,7 @@ describe('AtlasSvgView', () => {
     const paths = container.querySelectorAll('path');
     // 1 merged biome region (filled) + 2 coastline strokes (shelf glow + crisp, T3)
     expect(paths).toHaveLength(3);
-    expect(paths[0].getAttribute('fill')).toBe('#11aa33');           // biome region
+    expect(paths[0].getAttribute('fill')).toBe('rgb(17,170,51)');           // biome region
     const coasts = Array.from(paths).filter((p) => p.getAttribute('fill') === 'none');
     expect(coasts).toHaveLength(2);                                   // double-stroke coast
     expect(coasts.some((p) => p.getAttribute('stroke') === '#1a3d66')).toBe(true);
@@ -386,13 +386,13 @@ describe('AtlasSvgView', () => {
     );
     const hasFill = (f: string) =>
       Array.from(container.querySelectorAll('path')).some((p) => p.getAttribute('fill') === f);
-    expect(hasFill('#11aa33')).toBe(true);  // biome region shown by default
+    expect(hasFill('rgb(17,170,51)')).toBe(true);  // biome region shown by default
     expect(hasFill('#d9d2bd')).toBe(false); // no neutral base while biomes is the coloring
 
     fireEvent.click(getByTestId('atlas-layers-toggle'));    // open the panel
     fireEvent.click(getByLabelText('None (plain land)'));   // exclusive: deselects Biomes
 
-    expect(hasFill('#11aa33')).toBe(false); // biome region gone
+    expect(hasFill('rgb(17,170,51)')).toBe(false); // biome region gone
     expect(hasFill('#d9d2bd')).toBe(true);  // land still drawn (neutral base) — never blank
   });
 
@@ -474,7 +474,7 @@ describe('AtlasSvgView', () => {
     fireEvent.click(danger);
     expect(hatched()).toBeGreaterThan(0); // threatened cell(s) now hatched
     // Danger is a feature toggle (blends), so the biome coloring is still present.
-    expect(Array.from(container.querySelectorAll('path')).some((p) => p.getAttribute('fill') === '#11aa33')).toBe(true);
+    expect(Array.from(container.querySelectorAll('path')).some((p) => (p.getAttribute('fill') ?? '').startsWith('rgb('))).toBe(true);
   });
 
   it('persists layer prefs per scope (different worlds remember different colorings)', () => {

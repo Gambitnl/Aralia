@@ -1,0 +1,6 @@
+{
+  "id": "glass-label-runner",
+  "displayName": "Glass Label Runner",
+  "description": "A compact glass label runner with a smooth blank inset and clean rounded corners.",
+  "spritesheetPath": "spritesheet.webp"
+}

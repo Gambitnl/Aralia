@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 05:17:52
+ * Last Sync: 17/07/2026, 22:34:52
  * Dependents: App.tsx
- * Imports: 51 files
+ * Imports: 53 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -104,6 +104,16 @@ import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
 import type { WorldDelta } from '../../systems/worldforge/delta/types';
 import type { GroundWorld } from '../../systems/worldforge/bridge/groundChunkLoader';
 import type { RegionArtifact } from '../../systems/worldforge/artifacts';
+import {
+  artifactsForAtlasGroundDrilldown,
+  atlasGroundAddressFromDrilldown,
+  groundStartForFocus,
+  type AtlasGroundDrilldown,
+} from '../../systems/worldforge/leaf3d/atlasGroundDrilldown';
+import {
+  atlasGroundSpawnForAddress,
+  atlasHiddenSiteForAddress,
+} from '../../systems/worldforge/leaf3d/atlasGroundContinuity';
 import type { BuildingEventLogsByBurg } from '../../systems/worldforge/interior/blueprintTypes';
 import {
   buildingHistoryEventCount,
@@ -161,12 +171,63 @@ const WF_SEED: number | null = (() => {
 interface World3DWrapperProps {
   /** Initial world position to start at. */
   entryPosition: { x: number; y: number; z: number };
+  /** Exact transient Atlas selection; absent for Classic map and developer entry. */
+  atlasGroundDrilldown?: AtlasGroundDrilldown | null;
   /**
    * Click-to-talk: called with an NPC figure's id when the player clicks a
    * townsperson/stranger in the 3D world. App wires this to the same `talk`
    * action the 2D action pane runs, so the dialogue opens with full bookkeeping.
    */
   onTalkToNpc?: (npcId: string) => void;
+}
+
+// ============================================================================
+// Exact Atlas receipt projection
+// ============================================================================
+// PLAYING owns gameplay, but Atlas owns the selected Region and Local objects.
+// This boundary proves the ground adapter receives those exact references and
+// derives the spawn from the selected focus rather than a regenerated center.
+export type GroundLoaderFactory = typeof import('../../systems/worldforge/bridge/groundChunkLoader').createGroundChunkLoader;
+
+export function createAtlasReceiptGroundSession(
+  drilldown: AtlasGroundDrilldown,
+  createGroundLoader: GroundLoaderFactory,
+  options: Parameters<GroundLoaderFactory>[3] = {},
+): {
+  ground: GroundWorld;
+  start: readonly [number, number, number];
+  surfaceY: number;
+} {
+  // Validate lineage first, then pass the retained object references straight
+  // through to the existing Ground adapter. The injected factory is also the
+  // narrow proof seam used by the deterministic identity test.
+  const { region, local } = artifactsForAtlasGroundDrilldown(drilldown);
+  const { ground } = createGroundLoader(
+    local,
+    drilldown.worldSeed,
+    region,
+    options,
+  );
+
+  // Focus coordinates are authored in absolute Atlas feet. Convert them once
+  // to Local meters, then sample the corresponding height for the camera spawn.
+  const [xM, zM] = groundStartForFocus(local, drilldown.focus);
+  const groundX = Math.max(
+    0,
+    Math.min(ground.cols - 1, Math.round((xM / ground.extentMetersX) * (ground.cols - 1))),
+  );
+  const groundY = Math.max(
+    0,
+    Math.min(ground.rows - 1, Math.round((zM / ground.extentMetersZ) * (ground.rows - 1))),
+  );
+
+  // Return the already-assembled GroundWorld so PLAYING can attach its worker
+  // mesher and full interaction stack without a second terrain generation.
+  return {
+    ground,
+    start: [xM, 0, zM],
+    surfaceY: heightToMeters(ground.heights[groundY * ground.cols + groundX] ?? 0),
+  };
 }
 
 /** Throttle interval in ms (~10Hz) — see transitionTiming.ts for perf budget. */
@@ -225,7 +286,30 @@ export function compactBuildingEventLogs(
   return Object.keys(result).length ? result : undefined;
 }
 
-const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkToNpc }) => {
+/**
+ * Name the registered business owners that belong to the retained GroundWorld.
+ *
+ * The Atlas entry cell can sit beside a town's own cell, so cell-only NPC
+ * selectors can omit the exact Local's keepers. These ids use the same burg and
+ * plot identity as registerTownContent, giving PLAYING a small clickable cast
+ * that routes through the existing talk/dialogue and merchant systems.
+ */
+export function retainedTownNpcIdsForGround(ground: GroundWorld | null): string[] {
+  const ids: string[] = [];
+  for (const town of ground?.townPlans ?? []) {
+    for (const plot of town.plan.plots) {
+      if (plot.role !== 'market' && plot.role !== 'workshop') continue;
+      ids.push(`npc_burg_${town.burgId}_plot_${plot.id}`);
+    }
+  }
+  return ids;
+}
+
+const World3DWrapper: React.FC<World3DWrapperProps> = ({
+  entryPosition,
+  atlasGroundDrilldown,
+  onTalkToNpc,
+}) => {
   const { dispatch, state } = useGameState();
   const { setPosition, position } = usePlayerWorldPos();
   const { setMode } = useWorldViewMode();
@@ -313,7 +397,9 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
         ]);
         if (cancelled) return;
 
-        const wfSeed = WF_SEED ?? state.worldSeed;
+        // Atlas receipt authority wins over URL and reducer hints. Classic map
+        // entry keeps the established cell-addressed resolution unchanged.
+        const wfSeed = atlasGroundDrilldown?.worldSeed ?? WF_SEED ?? state.worldSeed;
         // Grid retirement (2026-07-01): 3D entry is fully cell-native. The entry
         // CELL is the anchor's cell (map click / start-selection / travel carry an
         // Entry3DAnchor) or — for a toggle-to-3D from gameplay with no anchor — the
@@ -321,7 +407,9 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
         // resolving that coordinate back through Voronoi geometry could redirect
         // the worker to a neighbour and contradict the saved/2D player cell.
         const anchor = state.entry3DAnchor;
-        const entryCellId = resolveGroundEntryCellId(anchor, state.playerCell);
+        const entryCellId =
+          atlasGroundDrilldown?.atlasCellId ??
+          resolveGroundEntryCellId(anchor, state.playerCell);
         // The ground session's tile identity is the entry cell (opaque {x: cellId,
         // y: 0}) — cell-native, no grid coord. Feeds wfGroundView.tile + the
         // ground-position save/restore below.
@@ -407,13 +495,107 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
           }
         };
 
+        const buildingEventLogs = JSON.parse(buildingEventLogJson) as BuildingEventLogsByBurg;
+
+        // Native Atlas entry is the canonical exact-artifact path. Assemble
+        // GroundWorld directly from the retained Local and Region, then hand
+        // it to PLAYING's avatar, NPC, HUD, movement, and combat systems.
+        if (atlasGroundDrilldown) {
+          setWorldGenError(null);
+          setWorldGenStage('land');
+          const exactSession = createAtlasReceiptGroundSession(
+            atlasGroundDrilldown,
+            loaderMod.createGroundChunkLoader,
+            {
+              hour,
+              deltas,
+              buildingEventLogs,
+              anchorCellId: entryCellId,
+            },
+          );
+          if (cancelled) return;
+
+          const ground = exactSession.ground;
+          groundRef.current = ground;
+          extractPatchRef.current = loaderMod.extractLocalTerrainPatch;
+          groundOccupantsAtRef.current = agentMotionMod.allGroundAgentsAt;
+          combatTriggered.current = false;
+
+          // Developer probes can distinguish the player-facing retained-artifact
+          // route from the explicit URL reconstruction harness.
+          (window as unknown as { __wfEntry?: unknown }).__wfEntry = {
+            anchor: anchor ?? null,
+            usedCellEntry: true,
+            source: 'atlas-receipt',
+            localSeedPath: atlasGroundDrilldown.localSeedPath,
+            groundTownBurgs: (ground.towns ?? []).map((town) => town.burgId),
+          };
+
+          // Initial descent uses the selected focus. Combat return remains exact
+          // by preferring saved meters when they belong to this same Atlas cell.
+          const address = atlasGroundAddressFromDrilldown(atlasGroundDrilldown);
+          const canonicalSpawn = atlasGroundSpawnForAddress(
+            address,
+            state.atlasGroundPosition,
+            [exactSession.start[0], exactSession.start[2]],
+          );
+          const spawn = { x: canonicalSpawn.xM, z: canonicalSpawn.zM };
+          lastGroundXZ.current = spawn;
+          const cell = adapter.GROUND_METERS_PER_CELL;
+          const spawnX = Math.max(0, Math.min(ground.cols - 1, Math.round(spawn.x / cell)));
+          const spawnY = Math.max(0, Math.min(ground.rows - 1, Math.round(spawn.z / cell)));
+          setWfGroundView({
+            start: [spawn.x, 0, spawn.z],
+            surfaceY:
+              spawn.x === exactSession.start[0] && spawn.z === exactSession.start[2]
+                ? exactSession.surfaceY
+                : heightToMeters(ground.heights[spawnY * ground.cols + spawnX] ?? 0),
+            tile: { x: coords.x, y: coords.y },
+            localeExtent: { cols: ground.cols, rows: ground.rows },
+          });
+
+          // PLAYING keeps chunk meshing off the main thread even though Atlas
+          // already authored the retained Local artifact on the main thread.
+          const disposable = groundLoaderMod.createGroundWorkerChunkLoader(ground);
+          setLoader(() => disposable);
+          setWorldGenStage(null);
+
+          // Town registration uses the same retained Region that produced the
+          // rendered ground, preserving dialogue and business interactions.
+          const requestIdle = (window as unknown as {
+            requestIdleCallback?: (callback: () => void) => number;
+          }).requestIdleCallback ?? ((callback: () => void) => window.setTimeout(callback, 0));
+          requestIdle(() => {
+            if (!cancelled) registerTownContent(atlasGroundDrilldown.region);
+          });
+
+          // Teardown matches the established generated-ground path so combat
+          // return and continent compatibility state retain their behavior.
+          const exitTile = { x: coords.x, y: coords.y };
+          activeCleanup = () => {
+            disposable.dispose();
+            setLoader(undefined);
+            groundRef.current = null;
+            extractPatchRef.current = null;
+            groundOccupantsAtRef.current = null;
+            if (!combatTriggered.current) {
+              setPosition({
+                x: (exitTile.x + 0.5) * WORLD3D_CONFIG.METERS_PER_CELL,
+                y: 0,
+                z: (exitTile.y + 0.5) * WORLD3D_CONFIG.METERS_PER_CELL,
+              });
+            }
+            combatTriggered.current = false;
+          };
+          return;
+        }
+
         // Off-thread staged assembly. The loading screen animates while the worker
         // builds terrain + town (Stage A), then props (Stage B). No-fallback: a
         // worker failure surfaces plainly instead of a silent legacy substitute.
         setWorldGenError(null);
         setWorldGenStage('land');
         client = clientMod.createWorldGenClient();
-        const buildingEventLogs = JSON.parse(buildingEventLogJson) as BuildingEventLogsByBurg;
         client.generate(
           {
             wfSeed,
@@ -536,6 +718,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
     state.phase,
     state.entry3DAnchor,
     buildingEventLogJson,
+    atlasGroundDrilldown,
   ]);
 
   // FPS tracking state.
@@ -935,9 +1118,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
       const gwForDiscovery = groundRef.current;
       if (gwForDiscovery?.hiddenSites?.length) {
         for (const hs of gwForDiscovery.hiddenSites) {
-          if (discoveredHiddenRef.current.has(hs.id)) continue;
           if (Math.hypot(x - hs.xM, z - hs.zM) <= hs.discoveryRadiusM) {
-            discoveredHiddenRef.current.add(hs.id);
             // The ground session IS this world tile's local surface, so every
             // hidden site it contains belongs to `tile` — pinning to the player's
             // current tile is correct at world-tile resolution (do NOT "fix" this
@@ -953,7 +1134,34 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
             // grid tile. Need a cell to record it; skip if somehow unknown.
             const siteCellId = state.playerCell?.cellId;
             if (siteCellId == null) continue;
-            dispatch({ type: 'REVEAL_HIDDEN_SITE', payload: { id: hs.id, cellId: siteCellId, name: hs.name, kind: hs.kind, offsetX, offsetY } });
+            // Atlas discoveries carry the exact retained hierarchy and absolute
+            // feet. Classic sessions deliberately keep their established legacy
+            // payload because they have no Atlas-owned Local to cite.
+            const atlasAddress = atlasGroundDrilldown
+              ? atlasGroundAddressFromDrilldown(atlasGroundDrilldown)
+              : null;
+            const discovery = atlasAddress
+              ? atlasHiddenSiteForAddress({
+                  address: atlasAddress,
+                  sourceId: hs.id,
+                  sourceKind: 'hidden-site',
+                  name: hs.name,
+                  kind: hs.kind,
+                  xM: hs.xM,
+                  zM: hs.zM,
+                  offsetX,
+                  offsetY,
+                })
+              : { id: hs.id, cellId: siteCellId, name: hs.name, kind: hs.kind, offsetX, offsetY };
+            if (!discovery) continue;
+            if (
+              discoveredHiddenRef.current.has(discovery.id) ||
+              state.discoveredHiddenSites.some((known) => known.id === discovery.id)
+            ) {
+              continue;
+            }
+            discoveredHiddenRef.current.add(discovery.id);
+            dispatch({ type: 'REVEAL_HIDDEN_SITE', payload: discovery });
             // Surface the discovery in the game log (SP4 in-game message).
             dispatch({
               type: 'ADD_MESSAGE',
@@ -1204,6 +1412,8 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
       state.playerFactionStandings,
       state.notoriety?.knownCrimes,
       state.worldforgeEncounterReceipts,
+      state.discoveredHiddenSites,
+      atlasGroundDrilldown,
     ],
   );
 
@@ -1384,7 +1594,14 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
   // only in ground/walking mode, where figures are at a visible scale. Resolves
   // names from generatedNpcs; the conversation's first participant is the speaker.
   const sceneCast = useMemo<SceneCastMember[]>(() => {
-    const activeIds = state.currentLocationActiveDynamicNpcIds;
+    // Native Atlas ground adds the retained Local's actual keepers to the
+    // existing opening cast. The generated-NPC lookup below admits only owners
+    // that registerTownContent has completed, so no parallel placeholder NPCs
+    // are created for this interaction surface.
+    const activeIds = Array.from(new Set([
+      ...(state.currentLocationActiveDynamicNpcIds ?? []),
+      ...(atlasGroundDrilldown ? retainedTownNpcIdsForGround(groundRef.current) : []),
+    ]));
     if (!activeIds || activeIds.length === 0) return [];
     const speakerId = state.activeConversation?.kind === 'situation'
       ? state.activeConversation.participants?.[0]
@@ -1411,7 +1628,13 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
     }
     cast.push(...npcs);
     return cast;
-  }, [state.currentLocationActiveDynamicNpcIds, state.generatedNpcs, state.party, state.activeConversation]);
+  }, [
+    state.currentLocationActiveDynamicNpcIds,
+    state.generatedNpcs,
+    state.party,
+    state.activeConversation,
+    atlasGroundDrilldown,
+  ]);
 
   // Cell-native world, Stage 3 — 2D Locale view click-to-move. The 2D pane and
   // the 3D ground are TWO SYNCED VIEWS of ONE movement state (`playerGroundPos`).
@@ -1571,6 +1794,11 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, onTalkTo
         onExitToMenu={() => dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU })}
         isGroundMode={isGroundMode}
         onToggleGroundMode={() => setIsGroundMode(prev => !prev)}
+        // The PLAYING title is the same canonical focus and Atlas burg receipt
+        // shown by Local. Classic ground and the developer URL have no retained
+        // focus, so they keep the established generic 3D label.
+        groundFocus={atlasGroundDrilldown?.focus ?? null}
+        groundTownIdentity={atlasGroundDrilldown?.local.townPlan?.identity ?? null}
         // Only meaningful in ground/village mode (a town to frame); pulls the
         // camera up to the spawn town's overhead "cell" view without leaving 3D.
         onFrameTownCell={wfGroundView ? () => setFrameTownCellNonce((n) => n + 1) : undefined}

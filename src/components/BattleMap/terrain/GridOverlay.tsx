@@ -126,6 +126,13 @@ const gridFragmentShader = /* glsl */ `
       alpha = max(alpha, 0.2);
     }
 
+    // Open water: no one can stand there, so the movement grid has nothing
+    // to say — fade to a whisper instead of stamping lines on the river.
+    float isOpenWater = tileState.a;
+    if (isOpenWater > 0.5) {
+      alpha *= 0.12;
+    }
+
     // Apply global opacity (for fade in/out transition)
     alpha *= uOpacity;
 
@@ -189,7 +196,11 @@ const GridOverlay: React.FC<GridOverlayProps> = ({
         data[idx] = actionMode === 'move' && validMoves.has(tileId) ? 255 : 0; // R: valid move
         data[idx + 1] = activePathSet.has(tileId) ? 255 : 0; // G: active path
         data[idx + 2] = tile?.blocksMovement ? 255 : 0;       // B: blocks movement
-        data[idx + 3] = 255;                                   // A: unused
+        // A: open water (impassable, no crossing). The grid is a MOVEMENT
+        // instrument; ruling lines over unenterable deep water just stamps a
+        // checker on the river, so the shader fades there.
+        data[idx + 3] =
+          tile?.terrain === 'water' && !tile.crossing ? 255 : 0;
       }
     }
 

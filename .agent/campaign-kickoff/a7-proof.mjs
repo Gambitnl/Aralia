@@ -14,7 +14,9 @@ const clicked = await page.evaluate(() => {
 });
 console.log('overlay toggle clicked:', clicked);
 await new Promise(r => setTimeout(r, 2500));
-await page.screenshot({ path: '../../docs/projects/worldforge/orchestration/proof/laneA7-overlay-atlas.png' });
+// Keep temporary proof under the ignored scratch boundary instead of rebuilding the
+// absorbed Worldforge project folder inside tracked documentation.
+await page.screenshot({ path: '../scratch/worldforge-laneA7-overlay-atlas.png' });
 console.log('atlas overlay proof saved');
 // Descend: find the map canvas and wheel-zoom in over land (center-left mass)
 const canvas = await page.locator('canvas').first().boundingBox();
@@ -25,7 +27,7 @@ if (canvas) {
   await new Promise(r => setTimeout(r, 9000)); // region generation overlay
   const text = await page.evaluate(() => document.body.innerText.slice(0, 150));
   console.log('after descend:', JSON.stringify(text));
-  await page.screenshot({ path: '../../docs/projects/worldforge/orchestration/proof/laneA7-overlay-region.png' });
+  await page.screenshot({ path: '../scratch/worldforge-laneA7-overlay-region.png' });
   console.log('region overlay proof saved');
 }
 await browser.close();

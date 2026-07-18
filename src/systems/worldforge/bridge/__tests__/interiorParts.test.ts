@@ -37,7 +37,7 @@ import { isAtWork } from '../groundChunkLoader';
 import { EXTERIOR } from '../../interior/types';
 import { rootSeedPath } from '../../seedPath';
 import { STYLE_FAMILIES } from '../../town/architectureStyle';
-import { glazingPaneColor } from '../buildingMaterialParts';
+import { dressingContrastTone, glazingPaneColor } from '../buildingMaterialParts';
 import { blueprintSiteOrigin } from '../../interior/blueprintTypes';
 
 /** Colors that identify structural walls in legacy, unstyled test fixtures. */
@@ -700,11 +700,13 @@ describe('solved roof parts (BGv2 Task 5)', () => {
       .toBeGreaterThan(0);
 
     // This fixture resolves to half-timber: shallow horizontal courses plus
-    // vertical bays, all in the family's shared trim color.
+    // vertical bays, all in the family trim pushed to the contrast tone
+    // (town-look-slice1) so the grammar actually reads against the wall color.
     expect(style.facadePattern).toBe('half-timber');
     const facade = out.parts.filter((part) => part.tag === FACADE_PART_TAG);
     expect(facade.length).toBeGreaterThan(0);
-    expect(facade.every((part) => part.colorHex === style.trimColor)).toBe(true);
+    expect(facade.every((part) =>
+      part.colorHex === dressingContrastTone(style.trimColor, style.wallColor))).toBe(true);
     expect(facade.some((part) => part.w > part.d)).toBe(true);
     expect(facade.some((part) => part.d > part.w)).toBe(true);
   });
@@ -728,8 +730,13 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     expect(materialParts.every((part) => part.materialDetailKind)).toBe(true);
     expect(materialKinds.has('foundation')).toBe(true);
     expect(materialKinds.has('roof-edge')).toBe(true);
+    // Wall-mounted material dressing renders in the contrast-derived trim tone
+    // (town-look-slice1); roof-edge dressing keeps the covering color.
     expect(materialParts.every((part) =>
-      part.colorHex === blueprint.styleResolved!.trimColor
+      part.colorHex === dressingContrastTone(
+        blueprint.styleResolved!.trimColor,
+        blueprint.styleResolved!.wallColor,
+      )
       || part.colorHex === blueprint.styleResolved!.roofColor)).toBe(true);
 
     // Shutter panels are paired beside every real above-grade window. A kit

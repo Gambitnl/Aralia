@@ -302,6 +302,175 @@ describe('regionPolylinesToGround', () => {
     expect(bridgeDeck?.cornersM).toHaveLength(4);
     expect(Number.isFinite(bridgeDeck?.topY)).toBe(true);
   });
+
+  it('anchors the bridge deck to the highest carved terrain along its own span, never the absolute-zero shore convention', () => {
+    // On this sloped fixture the crossing terrain sits ~8 m above the artifact
+    // minimum. The old anchor (center sample minus a 27 m water-surface drop,
+    // clamped at absolute zero) put the deck at 0.4 m — meters BELOW the
+    // carved riverbed, burying the bridge (live repro: seed 42, dcell 4214,
+    // deck 0.4 m vs bed 18.3 m). A deck must instead ride its own span: top
+    // just above the highest sampled centerline terrain (the dry landings),
+    // so the roadway meets both banks and the arch clears the water.
+    const local = makeLocalArtifact();
+    const region: RegionArtifact = {
+      ...makeRegionArtifact(),
+      townSites: [],
+      roads: [{
+        routeId: 3,
+        centerline: [[0, 250], [500, 250]],
+        widthFt: 44,
+        kind: 'highway',
+      }],
+      rivers: [{
+        riverId: 7,
+        centerline: [[250, 0], [250, 500]],
+        widthFt: 80,
+      }],
+      crossings: [{
+        id: 'crossing:3:7:0',
+        kind: 'bridge',
+        roadRouteId: 3,
+        riverId: 7,
+        point: [250, 250],
+        roadDirection: [1, 0],
+        riverDirection: [0, 1],
+        spanFt: 112,
+        widthFt: 44,
+      }],
+    };
+
+    const ground = makeGroundWorld(local, 42, region, { skipProps: true });
+    const crossing = ground.crossings![0];
+    const deck = ground.decks.find(
+      (d) => d.kind === 'bridge' && d.sourceCrossingId === 'crossing:3:7:0',
+    );
+    expect(deck).toBeDefined();
+
+    // Recompute the span ceiling with the production sampling rule (bilinear
+    // over the final carved grid; the crossing sits inside the window so the
+    // edge falloff term is zero here).
+    const halfSpanM = crossing.spanM / 2;
+    let spanCeilM = Number.NEGATIVE_INFINITY;
+    for (let i = -8; i <= 8; i += 1) {
+      const enc = bilinearHeightAtCellSpace(
+        ground.heights,
+        ground.cols,
+        ground.rows,
+        crossing.xM + crossing.roadDirection.x * (i / 8) * halfSpanM,
+        crossing.zM + crossing.roadDirection.z * (i / 8) * halfSpanM,
+      );
+      spanCeilM = Math.max(spanCeilM, heightToMeters(enc));
+    }
+
+    // Above the carved bed it spans (the buried-bridge regression)…
+    const bedM = heightToMeters(bilinearHeightAtCellSpace(
+      ground.heights,
+      ground.cols,
+      ground.rows,
+      crossing.xM,
+      crossing.zM,
+    ));
+    expect(deck!.topY).toBeGreaterThan(bedM);
+    // …and anchored to its own span with the deck clearance, not floating.
+    expect(deck!.topY).toBeGreaterThan(spanCeilM + 0.1);
+    expect(deck!.topY).toBeLessThan(spanCeilM + 0.9);
+  });
+
+  it('projects one Region ford receipt into a gravel bar plus stepping stones on the riverbed', () => {
+    const local = makeLocalArtifact();
+    const region: RegionArtifact = {
+      ...makeRegionArtifact(),
+      townSites: [],
+      roads: [{
+        routeId: 5,
+        centerline: [[0, 250], [500, 250]],
+        widthFt: 20,
+        kind: 'trail',
+      }],
+      rivers: [{
+        riverId: 9,
+        centerline: [[250, 0], [250, 500]],
+        widthFt: 80,
+      }],
+      crossings: [{
+        id: 'crossing:5:9:0',
+        kind: 'ford',
+        roadRouteId: 5,
+        riverId: 9,
+        point: [250, 250],
+        roadDirection: [1, 0],
+        riverDirection: [0, 1],
+        spanFt: 112,
+        widthFt: 20,
+      }],
+    };
+
+    const ground = makeGroundWorld(local, 42, region, { skipProps: true });
+    expect(ground.crossings).toEqual([
+      expect.objectContaining({ id: 'crossing:5:9:0', kind: 'ford' }),
+    ]);
+
+    // The causeway is a chain of short strips confined to the WET stretch of
+    // the span (dry landings belong to the trail), each hugging the riverbed:
+    // a low step above the deepest channel point, lifted only where its own
+    // bed hump rises — never a bridge-style deck on a bank/clearance
+    // convention. Recompute the channel floor with the production sampling
+    // rule (bilinear over the final carved grid).
+    const strips = ground.decks.filter((deck) => deck.kind === 'ford');
+    expect(strips.length).toBeGreaterThanOrEqual(3);
+    expect(strips.length).toBeLessThanOrEqual(7); // span 34 m / 5 m strips
+    const crossing = ground.crossings![0];
+    const halfSpanM = crossing.spanM / 2;
+    const sampleHalfM = halfSpanM - Math.min(halfSpanM * 0.4, 16 * 0.3048);
+    let channelFloorM = Number.POSITIVE_INFINITY;
+    for (let i = -8; i <= 8; i += 1) {
+      const enc = bilinearHeightAtCellSpace(
+        ground.heights,
+        ground.cols,
+        ground.rows,
+        crossing.xM + crossing.roadDirection.x * (i / 8) * sampleHalfM,
+        crossing.zM + crossing.roadDirection.z * (i / 8) * sampleHalfM,
+      );
+      channelFloorM = Math.min(channelFloorM, heightToMeters(enc));
+    }
+    for (const strip of strips) {
+      expect(strip.sourceCrossingId).toBe('crossing:5:9:0');
+      expect(strip.cornersM).toHaveLength(4);
+      expect(strip.topY).toBeGreaterThan(channelFloorM + 0.3);
+      // Strips may step up over bed humps but stay causeway-low, and each
+      // carries a wet/dry tint so awash strips darken.
+      expect(strip.topY).toBeLessThan(channelFloorM + 2);
+      expect(strip.color).toHaveLength(3);
+    }
+    // At least one strip rides the shared waterline (deep-channel crown).
+    expect(Math.min(...strips.map((s) => s.topY))).toBeLessThan(channelFloorM + 0.45);
+
+    // A single-file stepping-stone line rides beside the bar: small irregular
+    // polygons, each just proud of the bed at its OWN spot.
+    const stones = ground.decks.filter((deck) => deck.kind === 'fordStone');
+    expect(stones.length).toBeGreaterThan(5);
+    for (const stone of stones) {
+      expect(stone.sourceCrossingId).toBe('crossing:5:9:0');
+      expect(stone.cornersM.length).toBeGreaterThanOrEqual(4);
+      const centroid = stone.cornersM.reduce(
+        (acc, c) => ({ x: acc.x + c.x / stone.cornersM.length, z: acc.z + c.z / stone.cornersM.length }),
+        { x: 0, z: 0 },
+      );
+      const bedM = heightToMeters(bilinearHeightAtCellSpace(
+        ground.heights,
+        ground.cols,
+        ground.rows,
+        centroid.x,
+        centroid.z,
+      ));
+      expect(stone.topY).toBeGreaterThan(bedM + 0.2);
+      expect(stone.topY).toBeLessThan(bedM + 0.8);
+    }
+
+    // Deterministic per seed: the same inputs must lay the same stones.
+    const again = makeGroundWorld(local, 42, region, { skipProps: true });
+    expect(again.decks).toEqual(ground.decks);
+  });
 });
 
 // ============================================================================
@@ -703,6 +872,12 @@ describe('makeGroundWorld building terrain pads', () => {
 
     // Registration source: the SHARED helper World3DWrapper now calls.
     const { plan } = canonicalArtifactTownForSite(42, site);
+    const atlasBurg = getBridgeAtlas(42).pack.burgs?.[burgId];
+    expect(plan.identity).toMatchObject({
+      sourceKind: 'atlas-burg',
+      sourceId: burgId,
+      name: atlasBurg?.name,
+    });
     const shopPlots = plan.plots.filter((p) => p.role === 'market' || p.role === 'workshop');
     expect(shopPlots.length).toBeGreaterThan(0);
 
@@ -715,6 +890,7 @@ describe('makeGroundWorld building terrain pads', () => {
     // Render source: makeGroundWorld derives its plots from the same helper and
     // looks each business up by plot id.
     const ground = makeGroundWorld(local, 42, region, { hour: 12, worldBusinesses });
+    expect(ground.towns.find((town) => town.burgId === burgId)?.name).toBe(plan.identity?.name);
 
     // Every shop building that the renderer kept must carry its registered name —
     // i.e. the registration IDs and the rendered plot IDs are the same space.

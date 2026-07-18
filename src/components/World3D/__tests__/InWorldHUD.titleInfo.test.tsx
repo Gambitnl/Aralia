@@ -44,4 +44,37 @@ describe('InWorldHUD title info disclosure', () => {
     fireEvent.click(button);
     expect(screen.queryByTestId('hud-world-view-info-panel')).toBeNull();
   });
+
+  it('shows the retained Atlas place name, source identity, and visual relationships in PLAYING', () => {
+    render(
+      <InWorldHUD
+        {...baseProps}
+        isDevModeEnabled={false}
+        isGroundMode
+        groundFocus={{
+          kind: 'town',
+          id: 31,
+          label: 'Alderwatch',
+          xFt: 1200,
+          yFt: 2400,
+        }}
+        groundTownIdentity={{
+          kind: 'town',
+          sourceKind: 'atlas-burg',
+          sourceId: 31,
+          name: 'Alderwatch',
+          settlementType: 'port',
+          biomeId: 6,
+          hasRoadAccess: true,
+          hasRiverAccess: true,
+          isCoastal: true,
+        }}
+      />,
+    );
+
+    const place = screen.getByTestId('hud-ground-place');
+    expect(place).toHaveTextContent('Alderwatch');
+    expect(place).toHaveTextContent('Ground / port / road-linked / river-linked / coastal');
+    expect(place).toHaveTextContent('biome #6 / atlas-burg #31');
+  });
 });

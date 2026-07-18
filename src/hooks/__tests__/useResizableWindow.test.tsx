@@ -13,12 +13,17 @@ function setViewport(width: number, height: number): void {
   window.dispatchEvent(new Event('resize'));
 }
 
-const WindowProbe: React.FC<{ storageKey: string; initialMaximized?: boolean }> = ({
+const WindowProbe: React.FC<{
+  storageKey: string;
+  initialMaximized?: boolean;
+  minimumSize?: { width: number; height: number };
+}> = ({
   storageKey,
   initialMaximized = true,
+  minimumSize,
 }) => {
   const windowRef = useRef<HTMLDivElement>(null);
-  const { size, position } = useResizableWindow(windowRef, storageKey, { initialMaximized });
+  const { size, position } = useResizableWindow(windowRef, storageKey, { initialMaximized, minimumSize });
 
   return (
     <div
@@ -60,6 +65,40 @@ describe('useResizableWindow', () => {
     await waitFor(() => {
       expect(probe).toHaveAttribute('data-width', '440');
       expect(probe).toHaveAttribute('data-left', '20');
+    });
+  });
+
+  it('raises an undersized saved window to a caller-specific desktop minimum', async () => {
+    localStorage.setItem('saved-small-map-window', JSON.stringify({ width: 600, height: 400 }));
+
+    render(
+      <WindowProbe
+        storageKey="saved-small-map-window"
+        minimumSize={{ width: 840, height: 640 }}
+      />,
+    );
+
+    const probe = screen.getByTestId('window-probe');
+    await waitFor(() => {
+      expect(probe).toHaveAttribute('data-width', '840');
+      expect(probe).toHaveAttribute('data-height', '640');
+    });
+  });
+
+  it('keeps a caller-specific minimum responsive when the viewport is smaller', async () => {
+    setViewport(480, 640);
+
+    render(
+      <WindowProbe
+        storageKey="responsive-map-window"
+        minimumSize={{ width: 840, height: 640 }}
+      />,
+    );
+
+    const probe = screen.getByTestId('window-probe');
+    await waitFor(() => {
+      expect(probe).toHaveAttribute('data-width', '440');
+      expect(probe).toHaveAttribute('data-height', '600');
     });
   });
 });

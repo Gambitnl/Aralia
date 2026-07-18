@@ -1,0 +1,6 @@
+{
+  "id": "opal-file-ledger",
+  "displayName": "Opal File Ledger",
+  "description": "A compact opal file ledger with a low front shelf and clean rounded corners.",
+  "spritesheetPath": "spritesheet.webp"
+}

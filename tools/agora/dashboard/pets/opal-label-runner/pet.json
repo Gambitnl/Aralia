@@ -1,0 +1,6 @@
+{
+  "id": "opal-label-runner",
+  "displayName": "Opal Label Runner",
+  "description": "A tiny opal label-runner object mascot with chibi pet proportions.",
+  "spritesheetPath": "spritesheet.webp"
+}

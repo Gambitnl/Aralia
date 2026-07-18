@@ -212,6 +212,7 @@
                         "conditionalEndings":  [
                                                    {
                                                        "trigger":  "strong_wind",
+                                                       "scope":  "area",
                                                        "result":  "fog_disperses_and_spell_ends",
                                                        "examples":  [
                                                                         "Gust of Wind"

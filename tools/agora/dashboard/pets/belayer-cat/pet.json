@@ -1,0 +1,7 @@
+{
+  "id": "cat-belayer",
+  "displayName": "Cat Belayer",
+  "description": "A vigilant black-and-white cat kitted out with a belay device and harness, keeping a watchful eye on every climb.",
+  "spritesheetPath": "spritesheet.webp",
+  "kind": "animal"
+}

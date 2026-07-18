@@ -12,6 +12,7 @@
  * marker and cell-pick are later SP0 tasks (T3+).
  */
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
+import { getTerrainKey, getTerrainColor } from './terrainColor';
 import type { ForestKind } from '../../systems/worldforge/forests/forestClusters';
 import {
   FOREST_LABEL_FONT_MAX,
@@ -289,7 +290,8 @@ export function oceanDepthDistance(atlas: FmgAtlasResult): number[] {
 function depthBandFill(band: number, maxBands: number): string {
   const t = (band - 1) / Math.max(1, maxBands - 1);
   const lerp = (a: number, b: number) => Math.round(a + (b - a) * t);
-  return `rgb(${lerp(0x8a, 0x33)},${lerp(0xbe, 0x6e)},${lerp(0xe2, 0xa4)})`;
+  // Return translucent rgba color to let the radial gradient ocean backdrop shine through.
+  return `rgba(${lerp(0x8a, 0x33)},${lerp(0xbe, 0x6e)},${lerp(0xe2, 0xa4)},0.45)`;
 }
 
 /**
@@ -1147,10 +1149,13 @@ export function buildAtlasSvgModel(
 ): AtlasSvgModel {
   const cells = atlas.pack.cells;
   const isLand = (i: number): boolean => cells.h[i] >= LAND_THRESHOLD;
-  const biomeKey = (i: number): number | null => (isLand(i) ? (cells.biome?.[i] ?? -1) : null);
-  const fillOf = (key: string | number): string =>
-    atlas.biomesData.color[key as number] ?? '#888888';
-  const regions = buildMergedRegions(atlas, biomeKey, fillOf);
+  // Merge regions using a combined key: biome + elevation bucket + NW slope bucket
+  // to avoid emitting individual polygons per cell while capturing rich terrain details.
+  const regions = buildMergedRegions(
+    atlas,
+    (i) => getTerrainKey(atlas, i),
+    (key) => getTerrainColor(atlas, key as string),
+  );
   // Coastline: the outer boundary of ALL land treated as one group — a single
   // stroked path (SP0 T3a), Azgaar's inked coast. Reuses the same boundary
   // tracer with a constant land key so inter-biome edges drop out.

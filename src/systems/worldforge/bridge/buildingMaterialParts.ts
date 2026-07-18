@@ -68,7 +68,12 @@ export interface BuildingMaterialPart {
 }
 
 const FT = 0.3048;
-const DETAIL_DEPTH_M = 0.065;
+// Streamed-town readability (town-look-slice1, 2026-07-18): raised from 0.065 m.
+// At street distance the old 6.5 cm projection rendered courses as sub-pixel
+// dotted noise (proof: .agent/scratch/town-look-slice1/before-street2.png).
+// 9 cm keeps the dressing shallow — well inside the eave clearance and door
+// reveals — while surviving one pixel at ~25 m.
+const DETAIL_DEPTH_M = 0.09;
 const WINDOW_HALF_FT = 1.5;
 const WINDOW_MARGIN_FT = 0.2;
 const WINDOW_SILL_FT = 3;
@@ -76,6 +81,82 @@ const WINDOW_HEAD_FT = 6.5;
 // Six visible rows are enough to distinguish brick, stone, boards, and logs at
 // town scale while keeping a tall, window-rich building below the dressing cap.
 const MAX_COURSES_PER_STOREY = 6;
+
+// ============================================================================
+// Dressing Contrast Tone
+// ============================================================================
+// Every family's `trimColor` is its rampart tint (`fam.wallTint`), which sits
+// within a few luma points of the same family's wall palette — highland stone
+// walls are #8d8a83 while its trim is #8a877f. Painted with that raw tone, the
+// courses/shutters/foundations this module builds were invisible against the
+// wall they dress (streamed-town critique 2026-07-17, finding 2). The helpers
+// below derive a RENDER tone for wall-mounted dressing: the family trim hue,
+// pushed away from the actual resolved wall color until a bounded minimum
+// lightness separation holds. Pure hex→hex derivation — no RNG, no change to
+// StyleResolved receipts, signatures, or which kit/motif was chosen.
+// ============================================================================
+
+/** sRGB luma (0..1) — the perceptual-lightness proxy the contrast rule uses. */
+function hexLuma01(hex: string): number {
+  const v = parseInt(hex.slice(1), 16);
+  return (
+    (0.2126 * ((v >> 16) & 255)) / 255
+    + (0.7152 * ((v >> 8) & 255)) / 255
+    + (0.0722 * (v & 255)) / 255
+  );
+}
+
+/**
+ * Minimum luma separation between wall-mounted dressing and its wall. 0.22 is
+ * enough to read a 10 cm course at street distance under the warm sun key
+ * without turning trim into black-on-white graphics.
+ */
+const TRIM_MIN_LUMA_DELTA = 0.22;
+/** Trim already leaning at least this far keeps its own direction. */
+const TRIM_LEAN_RESPECT = 0.1;
+
+/**
+ * Derive the render tone for wall-mounted dressing from the resolved palette.
+ *
+ * - A trim already separated by >= TRIM_MIN_LUMA_DELTA is returned unchanged.
+ * - A trim with a clear lean (>= TRIM_LEAN_RESPECT toward light or dark) is
+ *   pushed FURTHER in its own direction to exactly the minimum separation, so
+ *   a family that chose "lighter than walls" stays lighter.
+ * - Near-tied trims pick the direction with headroom: dark walls (luma < 0.45)
+ *   take lighter dressing (log chinking, limewash bands); light walls take
+ *   darker dressing (half-timber beams, dressed-stone courses).
+ *
+ * Hue is preserved: darkening scales toward black, lightening lerps toward
+ * white, so each family's trim stays recognizably its own material.
+ */
+export function dressingContrastTone(trimHex: string, wallHex: string): string {
+  const trimLuma = hexLuma01(trimHex);
+  const wallLuma = hexLuma01(wallHex);
+  const delta = trimLuma - wallLuma;
+  if (Math.abs(delta) >= TRIM_MIN_LUMA_DELTA) return trimHex;
+
+  const lighten = Math.abs(delta) >= TRIM_LEAN_RESPECT ? delta > 0 : wallLuma < 0.45;
+  const target = Math.min(
+    0.92,
+    Math.max(0.08, wallLuma + (lighten ? TRIM_MIN_LUMA_DELTA : -TRIM_MIN_LUMA_DELTA)),
+  );
+
+  const v = parseInt(trimHex.slice(1), 16);
+  let r = ((v >> 16) & 255) / 255;
+  let g = ((v >> 8) & 255) / 255;
+  let b = (v & 255) / 255;
+  if (target <= trimLuma) {
+    // Darken: scale toward black, which preserves hue and saturation ratio.
+    const k = trimLuma > 0 ? target / trimLuma : 0;
+    r *= k; g *= k; b *= k;
+  } else {
+    // Lighten: lerp toward white by the fraction that lands luma on target.
+    const k = trimLuma < 1 ? (target - trimLuma) / (1 - trimLuma) : 0;
+    r += (1 - r) * k; g += (1 - g) * k; b += (1 - b) * k;
+  }
+  const to255 = (x: number): number => Math.round(Math.min(1, Math.max(0, x)) * 255);
+  return `#${(((1 << 24) | (to255(r) << 16) | (to255(g) << 8) | to255(b)) >>> 0).toString(16).slice(1)}`;
+}
 
 // ============================================================================
 // Geometry Helpers
@@ -233,7 +314,9 @@ function foundationParts(
         0,
         heightFt,
         colorHex,
-        construction.foundation === 'battered-stone' ? 0.55 : 0.38,
+        // Slab foundations project 0.5 ft (was 0.38) so the plinth line still
+        // reads at street distance; battered stone keeps its stronger 0.55.
+        construction.foundation === 'battered-stone' ? 0.55 : 0.5,
       ));
       continue;
     }
@@ -280,13 +363,18 @@ function wallCourseParts(
   const desiredRows = Math.floor(usableHeightFt / construction.wallCourseFt);
   const rowCount = Math.max(1, Math.min(MAX_COURSES_PER_STOREY, desiredRows));
   const spacingFt = usableHeightFt / (rowCount + 1);
+  // Streamed-town readability (town-look-slice1): course strips roughly doubled
+  // from 0.28/0.16/0.13 ft — the old 4-8.5 cm rows vanished below one pixel at
+  // play distance. New rows (13/9/8 cm) stay far below the ~1.3 ft row spacing,
+  // so courses never merge, and the material ranking (logs > boards > masonry)
+  // is preserved.
   const courseHeightFt = construction.wallMaterial === 'round-log'
     || construction.wallMaterial === 'hewn-log'
-    ? 0.28
+    ? 0.42
     : construction.wallMaterial === 'weatherboard'
       || construction.wallMaterial === 'tarred-board'
-      ? 0.16
-      : 0.13;
+      ? 0.3
+      : 0.26;
 
   for (const floor of blueprint.floors) {
     if (floor.level < 0) continue;
@@ -568,20 +656,25 @@ export function buildBuildingMaterialParts(
   if (!style) return [];
   const storeyHeightFt = storeyHeightM / FT;
   const construction = style.construction;
+  // Wall-mounted dressing renders in the contrast-derived trim tone rather than
+  // the raw family tint, which sat within a few luma points of the wall color
+  // and made every course/shutter/foundation invisible (town-look-slice1).
+  // Roof-edge dressing keeps style.roofColor — it must read as the covering.
+  const wallDressingTone = dressingContrastTone(style.trimColor, style.wallColor);
 
   const centeredParts = [
-    ...foundationParts(blueprint, construction, style.trimColor),
+    ...foundationParts(blueprint, construction, wallDressingTone),
     ...wallCourseParts(
       blueprint,
       construction,
       storeyHeightFt,
-      style.trimColor,
+      wallDressingTone,
     ),
     ...shutterParts(
       blueprint,
       construction,
       storeyHeightFt,
-      style.trimColor,
+      wallDressingTone,
     ),
     ...roofEdgeParts(
       blueprint,
@@ -593,7 +686,7 @@ export function buildBuildingMaterialParts(
       blueprint,
       construction,
       storeyHeightFt,
-      style.trimColor,
+      wallDressingTone,
     ),
   ];
   // Material recipes predate asymmetric envelopes and are expressed around

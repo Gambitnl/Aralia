@@ -64,16 +64,54 @@ interface WindowWorkspaceBounds {
     maxHeight: number;
 }
 
+export interface ResizableWindowOptions {
+    initialMaximized?: boolean;
+    /**
+     * Lets content-heavy windows ask for more usable room than the shared
+     * 600 by 400 default. The viewport still wins on phones and small screens.
+     */
+    minimumSize?: Partial<WindowSize>;
+}
+
+// ============================================================================
+// GG-38 layout-thrash repair (2026-07-18)
+// ============================================================================
+// getTopChromeOffset() is the hook's only forced-layout read (querySelectorAll
+// + getBoundingClientRect on page headers). A single WindowFrame mount used to
+// run it three or more times — both state initializers, the center-on-mount
+// effect, and the immediate resize-clamp pass — each read interleaved with
+// React's style writes. That read/write/read pattern is what the Building Lab
+// performance trace billed as 39 ms of forced reflow in this file. The header
+// measurement is now cached for the current frame and invalidated on the next
+// animation frame, so any number of geometry computations within one frame
+// cost one real layout pass. Behavior is preserved: values are identical
+// within a frame, and viewport/header changes arrive in later frames, which
+// always re-measure. Environments without requestAnimationFrame (non-visual
+// test runners) skip caching and keep the original always-measure behavior.
+// ============================================================================
+let topChromeOffsetCache: number | null = null;
+
 function getTopChromeOffset(): number {
     if (typeof document === 'undefined') return 0;
+    if (topChromeOffsetCache !== null) return topChromeOffsetCache;
 
     const topHeaders = Array.from(document.querySelectorAll('header'))
         .map((header) => header.getBoundingClientRect())
         .filter((rect) => rect.top <= 1 && rect.bottom > 0 && rect.bottom < window.innerHeight * 0.5);
 
-    if (topHeaders.length === 0) return 0;
+    const offset = topHeaders.length === 0
+        ? 0
+        : Math.max(...topHeaders.map((rect) => rect.bottom)) + TOP_CHROME_GAP;
 
-    return Math.max(...topHeaders.map((rect) => rect.bottom)) + TOP_CHROME_GAP;
+    // Only hold the cached value when a frame boundary exists to clear it.
+    // Deliberately caches just the header offset — never innerWidth/innerHeight,
+    // which stay live so viewport-clamping semantics (and their tests) are untouched.
+    if (typeof requestAnimationFrame === 'function') {
+        topChromeOffsetCache = offset;
+        requestAnimationFrame(() => { topChromeOffsetCache = null; });
+    }
+
+    return offset;
 }
 
 function getWorkspaceBounds(): WindowWorkspaceBounds {
@@ -88,17 +126,24 @@ function getWorkspaceBounds(): WindowWorkspaceBounds {
     };
 }
 
-function getResponsiveMinimumSize(bounds: WindowWorkspaceBounds): WindowSize {
+function getResponsiveMinimumSize(
+    bounds: WindowWorkspaceBounds,
+    requestedMinimum: WindowSize = { width: MIN_WIDTH, height: MIN_HEIGHT },
+): WindowSize {
     return {
-        width: Math.min(MIN_WIDTH, bounds.maxWidth),
-        height: Math.min(MIN_HEIGHT, bounds.maxHeight),
+        width: Math.min(requestedMinimum.width, bounds.maxWidth),
+        height: Math.min(requestedMinimum.height, bounds.maxHeight),
     };
 }
 
-function clampSizeToWorkspace(size: WindowSize, bounds: WindowWorkspaceBounds): WindowSize {
+function clampSizeToWorkspace(
+    size: WindowSize,
+    bounds: WindowWorkspaceBounds,
+    requestedMinimum?: WindowSize,
+): WindowSize {
     // Keep the normal desktop minimums, but let the frame shrink to the available
     // workspace on cramped viewports so title-bar controls and primary actions stay reachable.
-    const minimumSize = getResponsiveMinimumSize(bounds);
+    const minimumSize = getResponsiveMinimumSize(bounds, requestedMinimum);
 
     return {
         width: Math.min(Math.max(size.width, minimumSize.width), bounds.maxWidth),
@@ -146,9 +191,13 @@ function clampPositionToWorkspace(
 export function useResizableWindow(
     windowRef: RefObject<HTMLDivElement | null>,
     storageKey: string = 'generic-window-size',
-    options: { initialMaximized?: boolean } = {}
+    options: ResizableWindowOptions = {}
 ) {
-    const { initialMaximized = false } = options;
+    const { initialMaximized = false, minimumSize } = options;
+    const requestedMinimum: WindowSize = {
+        width: minimumSize?.width ?? MIN_WIDTH,
+        height: minimumSize?.height ?? MIN_HEIGHT,
+    };
 
     // Only consider maximized if initialMaximized is set AND there's no saved data
     const hasSavedData = !!SafeStorage.getItem(storageKey);
@@ -204,7 +253,7 @@ export function useResizableWindow(
     useEffect(() => {
         if (position) return;
         const bounds = getWorkspaceBounds();
-        const clampedSize = clampSizeToWorkspace(size, bounds);
+        const clampedSize = clampSizeToWorkspace(size, bounds, requestedMinimum);
         setSize(clampedSize);
         setPosition(centerWindowInWorkspace(clampedSize, bounds));
     }, []); // Run once on mount (or if position is explicitly nullified)
@@ -224,7 +273,7 @@ export function useResizableWindow(
             }
 
             setSize((currentSize) => {
-                const clampedSize = clampSizeToWorkspace(currentSize, bounds);
+                const clampedSize = clampSizeToWorkspace(currentSize, bounds, requestedMinimum);
                 setPosition((currentPosition) => {
                     if (!currentPosition) return currentPosition;
                     const clampedPosition = clampPositionToWorkspace(currentPosition, clampedSize, bounds);
@@ -237,7 +286,7 @@ export function useResizableWindow(
         handleWindowResize();
         window.addEventListener('resize', handleWindowResize);
         return () => window.removeEventListener('resize', handleWindowResize);
-    }, [isMaximized]);
+    }, [isMaximized, requestedMinimum.height, requestedMinimum.width]);
 
 
     // Handle Resize Start
@@ -276,20 +325,20 @@ export function useResizableWindow(
             const bounds = getWorkspaceBounds();
             const maxWidth = bounds.maxWidth;
             const maxHeight = bounds.maxHeight;
-            const minimumSize = getResponsiveMinimumSize(bounds);
+            const responsiveMinimumSize = getResponsiveMinimumSize(bounds, requestedMinimum);
 
-            if (handle?.includes('right')) newWidth = Math.min(Math.max(startWidth + deltaX, minimumSize.width), maxWidth);
+            if (handle?.includes('right')) newWidth = Math.min(Math.max(startWidth + deltaX, responsiveMinimumSize.width), maxWidth);
             if (handle?.includes('left')) {
                 const widthChange = startWidth - deltaX;
-                if (widthChange >= minimumSize.width && widthChange <= maxWidth) {
+                if (widthChange >= responsiveMinimumSize.width && widthChange <= maxWidth) {
                     newWidth = widthChange;
                     newLeft = Math.max(bounds.minLeft, startLeft + deltaX);
                 }
             }
-            if (handle?.includes('bottom')) newHeight = Math.min(Math.max(startHeight + deltaY, minimumSize.height), maxHeight);
+            if (handle?.includes('bottom')) newHeight = Math.min(Math.max(startHeight + deltaY, responsiveMinimumSize.height), maxHeight);
             if (handle?.includes('top')) {
                 const heightChange = startHeight - deltaY;
-                if (heightChange >= minimumSize.height && heightChange <= maxHeight) {
+                if (heightChange >= responsiveMinimumSize.height && heightChange <= maxHeight) {
                     newHeight = heightChange;
                     newTop = Math.max(bounds.minTop, startTop + deltaY);
                 }
@@ -312,7 +361,7 @@ export function useResizableWindow(
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [resizeState, size, storageKey]);
+    }, [requestedMinimum.height, requestedMinimum.width, resizeState, size, storageKey]);
 
     // Handle Drag Start
     const handleDragStart = useCallback((e: React.MouseEvent) => {
@@ -338,10 +387,18 @@ export function useResizableWindow(
     useEffect(() => {
         if (!dragState.isDragging) return;
 
+        // GG-38 layout-thrash repair: the frame's rect was re-measured on every
+        // mousemove, forcing a synchronous layout per pointer event right after
+        // the previous move's setPosition style write. The window cannot change
+        // size mid-drag (resizing and dragging are mutually exclusive), so
+        // measure once when the drag activates and reuse the dimensions for
+        // clamping. Clamp math and drag behavior are unchanged.
+        const draggedRect = windowRef.current?.getBoundingClientRect();
+
         const handleMouseMove = (e: MouseEvent) => {
             const deltaX = e.clientX - dragState.startX;
             const deltaY = e.clientY - dragState.startY;
-            const rect = windowRef.current?.getBoundingClientRect();
+            const rect = draggedRect;
             if (!rect) return;
 
             const bounds = getWorkspaceBounds();
@@ -372,7 +429,7 @@ export function useResizableWindow(
         if (isMaximized) {
             // Toggle to smaller default size
             const bounds = getWorkspaceBounds();
-            const defaultSize = clampSizeToWorkspace(DEFAULT_SIZE, bounds);
+            const defaultSize = clampSizeToWorkspace(DEFAULT_SIZE, bounds, requestedMinimum);
             setSize(defaultSize);
             setPosition(centerWindowInWorkspace(defaultSize, bounds));
             setIsMaximized(false);
@@ -383,15 +440,15 @@ export function useResizableWindow(
             setPosition(maximized.position);
             setIsMaximized(true);
         }
-    }, [isMaximized]);
+    }, [isMaximized, requestedMinimum.height, requestedMinimum.width]);
 
     const handleReset = useCallback(() => {
         const bounds = getWorkspaceBounds();
-        const defaultSize = clampSizeToWorkspace(DEFAULT_SIZE, bounds);
+        const defaultSize = clampSizeToWorkspace(DEFAULT_SIZE, bounds, requestedMinimum);
         setSize(defaultSize);
         setPosition(centerWindowInWorkspace(defaultSize, bounds));
         SafeStorage.removeItem(storageKey);
-    }, [storageKey]);
+    }, [requestedMinimum.height, requestedMinimum.width, storageKey]);
 
     return {
         size,

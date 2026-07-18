@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 16/07/2026, 08:56:42
+ * Last Sync: 17/07/2026, 22:11:03
  * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/ConversationPanel/ConversationPanel.tsx, components/gameEntry/OpeningSituationGate.tsx, components/layout/GameModals.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/useChronicleRumorsSync.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDeEscalation.ts, hooks/useDialogueSystem.ts, hooks/useDungeonRumorsSync.ts, hooks/useGameActions.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useKnownPortsSync.ts, hooks/useOllamaCheck.ts, hooks/useOllamaLogBridge.ts, hooks/useOpeningSituation.ts, hooks/useOverheardGossip.ts, hooks/useSeaEncounter.ts, hooks/useTownCrierAnnouncements.ts, hooks/useTownMerchantRegistration.ts, hooks/useTownSimRegistration.ts, hooks/useVoyageArrival.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/gameEntryReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, systems/travel/applyProvision.ts, types/index.ts, utils/combat/battleEndActions.ts, utils/context/entityIntegrationUtils.ts
  * Imports: None
  *
@@ -91,6 +91,7 @@ import { WorldHistoryEvent } from "../types/history.js";
 import { CrewRole, ShipType } from "../types/naval.js";
 import type { WorldDelta } from "../systems/worldforge/delta/types.js";
 import type { WorldforgeEncounterReceipt } from "../systems/combat/worldScenario/worldforgeEncounterReceipt.js";
+import type { AtlasGroundAddress } from "../systems/worldforge/leaf3d/atlasGroundDrilldown.js";
 import {
   CastSpellPayload,
   EquipItemPayload,
@@ -916,5 +917,8 @@ export type AppAction =
   | { type: "CLEAR_PLAYER_WORLD_POS" }
   | { type: "SET_ENTRY_3D_ANCHOR"; payload: Entry3DAnchor }
   | { type: "CLEAR_ENTRY_3D_ANCHOR" }
+  // Native Atlas descent stores only its compact deterministic address. The
+  // object-rich runtime receipt remains App-owned and never enters save JSON.
+  | { type: "SET_ATLAS_GROUND_ADDRESS"; payload: AtlasGroundAddress | null }
   | { type: "SET_WORLD_VIEW_MODE"; payload: WorldViewMode }
   | { type: "SET_MAP_SURFACE"; payload: MapSurface };

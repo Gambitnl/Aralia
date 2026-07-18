@@ -345,6 +345,17 @@ describe('generateRegion (C2: civilization)', () => {
 
     // Should have at least 1 town site (anchor is a burg cell)
     expect(region.townSites.length).toBeGreaterThanOrEqual(1);
+    // The Region owns the one canonical player-facing identity that every
+    // deeper artifact and renderer carries unchanged.
+    const firstSite = region.townSites[0];
+    const sourceBurg = world.pack.burgs?.[firstSite.burgId];
+    expect(firstSite.identity).toMatchObject({
+      kind: 'town',
+      sourceKind: 'atlas-burg',
+      sourceId: firstSite.burgId,
+      name: sourceBurg?.name,
+      biomeId: Number(world.pack.cells.biome?.[sourceBurg!.cell]),
+    });
     // Roads may or may not pass through (depends on routes near this burg)
     expect(region.roads).toBeDefined();
   }, 30_000);
@@ -384,6 +395,7 @@ describe('generateRegion (C2: civilization)', () => {
     expect(a.townSites.length).toBe(b.townSites.length);
     for (let i = 0; i < a.townSites.length; i++) {
       expect(a.townSites[i].burgId).toBe(b.townSites[i].burgId);
+      expect(a.townSites[i].identity).toEqual(b.townSites[i].identity);
       expect(a.townSites[i].envelope).toEqual(b.townSites[i].envelope);
       expect(a.townSites[i].gates).toEqual(b.townSites[i].gates);
     }

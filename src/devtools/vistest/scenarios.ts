@@ -407,6 +407,93 @@ export const SCENARIOS: VisScenario[] = [
     ],
   },
   {
+    id: "combat-world-stream-ford",
+    title: "World battle: regional stream ford",
+    group: "combat",
+    url: "misc/design.html?step=battlemaplab&scenario=river-ford-crossing",
+    notes:
+      "A real seed-42 trail fords a narrow stream through one shared Region receipt; the crossing paints stepping stones and a wet band instead of a bridge deck while staying traversable.",
+    capture: [
+      {
+        kind: "waitHook",
+        expr: `document.querySelector('[data-testid="battle-map-scenario-lab"]') && document.querySelector('[data-testid="scenario-diagnostics"]')?.textContent?.includes('River crossing') && document.querySelector('[data-testid="scenario-diagnostics"]')?.textContent?.includes('Crossings')`,
+        timeoutMs: 90000,
+      },
+      { kind: "sleep", ms: 3000 },
+      { kind: "screenshot" },
+    ],
+  },
+  {
+    id: "combat-world-hillside",
+    title: "World battle: steep hillside trail",
+    group: "combat",
+    url: "misc/design.html?step=battlemaplab&scenario=hillside-overlook",
+    notes:
+      "A steep roadless taiga flank (seed 42 cell 1419, atlas slope 36): contours, hillshade, and positional-sun cast shadows must make the slope read at tactical zoom.",
+    capture: [
+      {
+        kind: "waitHook",
+        // First generation of this cell takes a while: wait for the BUILT
+        // battle map (source label carries the resolved cell), not the shell.
+        expr: `document.querySelector('[data-testid="battle-map-scenario-lab"]') && document.body.textContent.includes('World 42 / Cell 1419') && document.querySelector('[role="button"][aria-label^="Tile "]')`,
+        timeoutMs: 120000,
+      },
+      { kind: "sleep", ms: 4000 },
+      { kind: "screenshot" },
+    ],
+  },
+  {
+    id: "combat-world-hillside-3d",
+    title: "World battle 3D: steep hillside trail",
+    group: "combat",
+    url: "misc/design.html?step=battlemaplab&scenario=hillside-overlook&render=3d",
+    notes:
+      "The WebGL heightfield must show a real slope with the trail traversing it; slope-exposed rock and terrain shadows carry the hillside read.",
+    capture: [
+      {
+        kind: "waitHook",
+        expr: `document.querySelector('[data-testid="battle-map-scenario-lab"]') && document.querySelector('canvas') && window.__bm3dCam?.pose`,
+        timeoutMs: 90000,
+      },
+      { kind: "sleep", ms: 5000 },
+      { kind: "eval", js: `(() => window.__bm3dCam.pose(30, 55, 210) ? 'posed hillside' : 'missing pose')()` },
+      { kind: "sleep", ms: 6000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "combat-world-stream-ford-3d",
+    title: "World battle 3D: stream ford crossing detail",
+    group: "combat",
+    url: "misc/design.html?step=battlemaplab&scenario=river-ford-crossing&render=3d",
+    notes:
+      "The WebGL scene must present the same ford story as 2D: a shallow pale gravel bar under visible water, stepping stones breaking the surface on the upstream side, and churned mud approaches — not a grass causeway or open deep water.",
+    capture: [
+      {
+        kind: "waitHook",
+        expr: `document.querySelector('[data-testid="battle-map-scenario-lab"]') && document.querySelector('canvas') && window.__bm3dCam?.poseTeam`,
+        timeoutMs: 90000,
+      },
+      { kind: "sleep", ms: 4000 },
+      {
+        // The crossing receipt centers the tactical crop, so the map center
+        // IS the ford: a mid-distance three-quarter view puts the bar, the
+        // stone line, and one mud mouth in the same frame.
+        kind: "eval",
+        js: `(() => window.__bm3dCam.pose(24, 56, 150) ? 'posed ford' : 'missing pose')()`,
+      },
+      { kind: "sleep", ms: 6000 },
+      {
+        // Ford-specific structure + generic contrast: the stone group must
+        // exist in the scene graph, and the framebuffer must show a real
+        // multi-value frame (not a blank or single-tone canvas).
+        kind: "eval",
+        js: `(async () => { const api = window.__bm3dCam; if (!api?.capture) return 'missing 3D capture hook'; if (!(Number(window.__fordStonesCount) > 5)) return 'missing ford stones (count=' + window.__fordStonesCount + ')'; const dataUrl = api.capture(); if (!dataUrl || dataUrl.length < 10000) return 'missing 3D framebuffer'; const image = new Image(); await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; image.src = dataUrl; }); const probe = document.createElement('canvas'); probe.width = 64; probe.height = 64; const ctx = probe.getContext('2d', { willReadFrequently: true }); if (!ctx) return 'missing pixel probe'; ctx.drawImage(image, 0, 0, 64, 64); const pixels = ctx.getImageData(0, 0, 64, 64).data; let opaque = 0, min = 255, max = 0; for (let i = 0; i < pixels.length; i += 16) { const alpha = pixels[i + 3]; if (alpha < 16) continue; opaque += 1; const luma = Math.round(pixels[i] * 0.2126 + pixels[i + 1] * 0.7152 + pixels[i + 2] * 0.0722); min = Math.min(min, luma); max = Math.max(max, luma); } if (opaque < 700 || max - min < 30) return 'missing canvas contrast'; return 'ford 3D ok'; })()`,
+      },
+      { kind: "readback" },
+    ],
+  },
+  {
     id: "combat-world-river-elevation",
     title: "World battle: readable river-bank elevation",
     group: "combat",

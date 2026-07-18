@@ -41,6 +41,8 @@ export interface PlanAppendage {
 export interface PlanHead {
     /** Index of a 'neck' appendage to ride; omitted = spine front. */
     neckIndex?: number;
+    /** Sculpted head form (platonic-solid skull + jaw + teeth); omitted = plain ball. */
+    form?: 'serpent' | 'beast' | 'blunt' | 'skull';
     /** 0.4–2 of the frame-derived head radius. */
     sizeScale: number;
     eyes: {
@@ -65,12 +67,14 @@ export interface CreaturePlan {
         bulk: number;
         stance: 'upright' | 'horizontal' | 'serpentine' | 'floating';
     };
-    /** shape 'box' renders the body as rectangular slabs (cubes, chests, golems). */
+    /** shape 'box' renders the body as rectangular slabs (cubes, chests, golems);
+     * bulge 0–1 swells the mid-body (muscle mass). */
     spine: {
         segments: number;
         taper: number;
         arch: number;
         shape?: 'round' | 'box';
+        bulge?: number;
     };
     appendages: PlanAppendage[];
     heads: PlanHead[];
@@ -96,6 +100,7 @@ export declare const PLAN_LIMITS: {
     readonly spineSegments: readonly [2, 8];
     readonly spineTaper: readonly [0.3, 1];
     readonly spineArch: readonly [-0.5, 0.5];
+    readonly spineBulge: readonly [0, 1];
     readonly appendages: readonly [0, 12];
     readonly attach: readonly [0, 1];
     readonly heightFrac: readonly [0, 1];

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 05/07/2026, 08:10:30
- * Dependents: App.tsx
+ * Last Sync: 17/07/2026, 22:16:44
+ * Dependents: App.tsx, components/DesignPreview/steps/PreviewCharacterCreator.tsx
  * Imports: 43 files
  *
  * MULTI-AGENT SAFETY:
@@ -106,6 +106,24 @@ interface CharacterCreatorProps {
   onCharacterCreate: (character: PlayerCharacter, startingInventory: Item[]) => void;
   onExitToMainMenu: () => void;
   dispatch: React.Dispatch<AppAction>;
+  /**
+   * Stores unfinished choices separately when the live creator is embedded in
+   * a tool such as Design Preview. Normal gameplay keeps the established key,
+   * so existing player drafts continue to resume exactly as before.
+   */
+  draftStorageKey?: string;
+  /**
+   * Reports the complete in-progress choice record to an embedding tool.
+   * Gameplay does not supply this callback; Design Preview uses it to export
+   * exactly what is currently selected, including incomplete characters.
+   */
+  onDraftChange?: (state: CharacterCreationState) => void;
+  /**
+   * Adds a tool-owned action beside Auto-Fill without copying the creator's
+   * title bar. The live game leaves this empty, while Design Preview supplies
+   * its export button.
+   */
+  previewHeaderActions?: React.ReactNode;
 }
 
 const STORAGE_KEY = 'aralia_character_creation_state';
@@ -173,10 +191,19 @@ function rehydrateCharacterCreatorState(
   return merged;
 }
 
-const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, onExitToMainMenu, dispatch: appDispatch }) => {
+const CharacterCreator: React.FC<CharacterCreatorProps> = ({
+  onCharacterCreate,
+  onExitToMainMenu,
+  dispatch: appDispatch,
+  draftStorageKey = STORAGE_KEY,
+  onDraftChange,
+  previewHeaderActions,
+}) => {
+  // Load only the draft owned by this creator surface. Design Preview supplies
+  // its own key so experimenting there cannot overwrite a player's live draft.
   const [state, dispatch] = useReducer(characterCreatorReducer, initialCharacterCreatorState, (initial) => {
     try {
-      const persisted = SafeStorage.getItem(STORAGE_KEY);
+      const persisted = SafeStorage.getItem(draftStorageKey);
       return persisted ? rehydrateCharacterCreatorState(initial, JSON.parse(persisted)) : initial;
     } catch (e) {
       console.warn('Failed to load character creation state', e);
@@ -184,10 +211,12 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
     }
   });
 
-  // Persist state on change
+  // Persist every choice and mirror it to an embedding design tool. The
+  // production game supplies no observer, so its runtime behavior is unchanged.
   React.useEffect(() => {
-    SafeStorage.trySetItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    SafeStorage.trySetItem(draftStorageKey, JSON.stringify(state));
+    onDraftChange?.(state);
+  }, [draftStorageKey, onDraftChange, state]);
 
   const allSpells = useContext(SpellContext);
   const [showSidebar, setShowSidebar] = useState(true);
@@ -648,6 +677,9 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
           >
             Auto-Fill (Random)
           </Button>
+          {/* Only tool surfaces such as Design Preview provide this slot. It
+              stays absent in normal gameplay, preserving the production UI. */}
+          {previewHeaderActions}
           <Button
             variant="ghost"
             size="sm"

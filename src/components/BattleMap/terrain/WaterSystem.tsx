@@ -77,8 +77,10 @@ function getBiomeWaterColors(biome: string): WaterColors {
       };
     default: // forest, dungeon, unknown
       return {
-        shallow:     new THREE.Color(0.10, 0.42, 0.58),
-        deep:        new THREE.Color(0.04, 0.16, 0.32),
+        // Saturated enough to survive fog + canopy dapple: desaturating here
+        // made broad rivers read as tinted grass from tactical distance.
+        shallow:     new THREE.Color(0.08, 0.40, 0.62),
+        deep:        new THREE.Color(0.02, 0.13, 0.34),
         causticTint: new THREE.Color(0.40, 0.80, 1.00),
       };
   }
@@ -186,8 +188,11 @@ const WATER_FRAGMENT_COLOR = /* glsl */ `
   float _cau  = pow((_cauA + _cauB) * 0.5, 2.4) * 0.40;
   _wCol += uWaterCaustic * _cau * (1.0 - _dF * 0.55);
 
-  // Wave crest brightening — peaks catch light
-  _wCol += vec3(max(vWaterWaveDisp, 0.0) * 5.0);
+  // Wave crest brightening — peaks catch light. Modulated by noise and kept
+  // small: the raw sine interference at *5.0 stamped a mechanical egg-crate
+  // dot grid across every broad water body.
+  float _crestN = wFbm(_wxz * 0.9 + vec2(uWaterTime * 0.05, -uWaterTime * 0.04));
+  _wCol += vec3(max(vWaterWaveDisp, 0.0) * 1.6 * smoothstep(0.35, 0.75, _crestN));
 
   // Shoreline foam — animated breakup in a thin band where depth → 0
   float _foamBand = 1.0 - smoothstep(0.0, 0.09, _depth);
@@ -199,8 +204,10 @@ const WATER_FRAGMENT_COLOR = /* glsl */ `
 
   diffuseColor.rgb = _wCol;
 
-  // Depth-based transparency: shallow edges reveal the bed, deep water reads solid
-  diffuseColor.a *= mix(0.42, 1.0, _dF);
+  // Depth-based transparency: shallow edges reveal the bed, deep water reads
+  // solid. The floor here is deliberately high — water must stay unmistakably
+  // WATER at tactical distance even where it is ankle-deep (fords, shores).
+  diffuseColor.a *= mix(0.58, 1.0, _dF);
   diffuseColor.a = max(diffuseColor.a, _foam * 0.9);
 `;
 
@@ -321,13 +328,28 @@ const WaterSystem: React.FC<WaterSystemProps> = ({ mapData }) => {
     }
     for (const [, tile] of mapData.tiles) {
       if (tile.terrain === 'water') {
-        tiles.push({
-          x: tile.coordinates.x,
-          y: tile.coordinates.y,
-          elevation: tile.elevation,
-        });
         set.add(`${tile.coordinates.x}-${tile.coordinates.y}`);
       }
+    }
+    // Smooth each sheet's height over its 3×3 water neighborhood: raw tile
+    // elevations are quantized in whole feet, and flat per-tile sheets at
+    // stepped heights serrate every diagonal shoreline and ford bar into a
+    // sawtooth. Water finds its level; neighboring sheets should too.
+    for (const [, tile] of mapData.tiles) {
+      if (tile.terrain !== 'water') continue;
+      const tx = tile.coordinates.x;
+      const ty = tile.coordinates.y;
+      let sum = 0;
+      let n = 0;
+      for (let oy = -1; oy <= 1; oy++) {
+        for (let ox = -1; ox <= 1; ox++) {
+          const neighbor = grid[ty + oy]?.[tx + ox];
+          if (neighbor?.terrain !== 'water') continue;
+          sum += neighbor.elevation;
+          n++;
+        }
+      }
+      tiles.push({ x: tx, y: ty, elevation: n > 0 ? sum / n : tile.elevation });
     }
     return { waterTiles: tiles, waterSet: set, tileGrid: grid };
   }, [mapData, width, height]);
@@ -344,6 +366,58 @@ const WaterSystem: React.FC<WaterSystemProps> = ({ mapData }) => {
       tileGrid, width, height, mapData.seed ?? 42,
     );
     const isWater = (x: number, y: number) => waterSet.has(`${x}-${y}`);
+
+    // Continuous surface level: a per-tile-center lattice of the smoothed
+    // water elevations, bilinearly sampled per VERTEX. Flat per-tile sheets
+    // at stepped heights serrated every diagonal edge into a tile-period
+    // sawtooth no amount of per-tile smoothing could remove.
+    const levelLattice = new Float32Array(width * height);
+    const levelKnown = new Uint8Array(width * height);
+    for (const tile of waterTiles) {
+      levelLattice[tile.y * width + tile.x] = tile.elevation;
+      levelKnown[tile.y * width + tile.x] = 1;
+    }
+    // Land lattice points bordering water take their nearest water level so
+    // shore-extended vertices stay continuous with the sheet.
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (levelKnown[y * width + x]) continue;
+        let sum = 0;
+        let n = 0;
+        for (let oy = -1; oy <= 1; oy++) {
+          for (let ox = -1; ox <= 1; ox++) {
+            const nx = x + ox;
+            const ny = y + oy;
+            if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+            if (!levelKnown[ny * width + nx]) continue;
+            sum += levelLattice[ny * width + nx];
+            n++;
+          }
+        }
+        if (n > 0) levelLattice[y * width + x] = sum / n;
+        else levelLattice[y * width + x] = tileGrid[y]?.[x]?.elevation ?? 0;
+      }
+    }
+    const levelAt = (tx: number, tz: number): number => {
+      // Lattice points sit at tile centers (tx - 0.5 maps center to index).
+      const fx = Math.min(width - 1.001, Math.max(0, tx - 0.5));
+      const fz = Math.min(height - 1.001, Math.max(0, tz - 0.5));
+      const ix = Math.floor(fx);
+      const iz = Math.floor(fz);
+      const ax = fx - ix;
+      const az = fz - iz;
+      const i00 = levelLattice[iz * width + ix];
+      const i10 = levelLattice[iz * width + Math.min(width - 1, ix + 1)];
+      const i01 = levelLattice[Math.min(height - 1, iz + 1) * width + ix];
+      const i11 =
+        levelLattice[Math.min(height - 1, iz + 1) * width + Math.min(width - 1, ix + 1)];
+      return (
+        i00 * (1 - ax) * (1 - az) +
+        i10 * ax * (1 - az) +
+        i01 * (1 - ax) * az +
+        i11 * ax * az
+      );
+    };
 
     const allPositions: number[] = [];
     const allUVs: number[] = [];
@@ -362,12 +436,13 @@ const WaterSystem: React.FC<WaterSystemProps> = ({ mapData }) => {
       const spanZ = z1 - z0;
       const subX = Math.max(1, Math.round(spanX * WATER_SUBDIVISIONS));
       const subZ = Math.max(1, Math.round(spanZ * WATER_SUBDIVISIONS));
-      const y = tile.elevation * ELEVATION_SCALE + WATER_SURFACE_OFFSET;
-
       for (let iz = 0; iz <= subZ; iz++) {
         for (let ix = 0; ix <= subX; ix++) {
           const x = (x0 + (ix / subX) * spanX) * TILE_SIZE;
           const z = (z0 + (iz / subZ) * spanZ) * TILE_SIZE;
+          const y =
+            levelAt(x / TILE_SIZE, z / TILE_SIZE) * ELEVATION_SCALE +
+            WATER_SURFACE_OFFSET;
           allPositions.push(x, y, z);
           // UVs in world scale so noise frequencies are consistent across tiles
           allUVs.push(x, z);

@@ -43,6 +43,7 @@ import React, {
 import {
   ArrowRight,
   Bone,
+  CloudFog,
   Footprints,
   Leaf,
   MapPinned,
@@ -76,6 +77,7 @@ import type { SpellMapArtifacts } from "./spellMapArtifacts";
 import { selectQuickAttack } from "./quickAttack";
 import {
   describeBattleMapElevation,
+  describeBattleMapTerrain,
   findBattleMapElevationBaseline,
 } from "./elevationPresentation";
 
@@ -177,6 +179,10 @@ const BattleMap: React.FC<BattleMapProps> = ({
     combatState;
   const [lineOfSightOverlayVisible, setLineOfSightOverlayVisible] =
     useState(showLineOfSightCone);
+  // Render-only switch for the fog-of-war veil. Visual review needs to judge
+  // the painted ground on dense-forest maps where most tiles sit outside line
+  // of sight; referee visibility data is untouched when the veil is hidden.
+  const [fogOfWarVisible, setFogOfWarVisible] = useState(true);
   const [pendingCameraCenterCharacterId, setPendingCameraCenterCharacterId] =
     useState<string | null>(null);
   const [hoveredTile, setHoveredTile] = useState<BattleMapTileData | null>(
@@ -949,6 +955,21 @@ const BattleMap: React.FC<BattleMapProps> = ({
             <Swords size={14} aria-hidden="true" />
             <span>Attack</span>
           </button>
+          <button
+            onClick={() => setFogOfWarVisible((visible) => !visible)}
+            type="button"
+            aria-pressed={fogOfWarVisible}
+            aria-label="Toggle fog of war"
+            title={
+              fogOfWarVisible
+                ? "Hide the fog-of-war veil (render only)"
+                : "Show the fog-of-war veil"
+            }
+            className={`inline-flex h-9 items-center gap-1.5 rounded px-3 text-xs font-semibold transition-colors ${fogOfWarVisible ? "bg-sky-700 text-white ring-2 ring-sky-300" : "bg-gray-600 hover:bg-gray-500"}`}
+          >
+            <CloudFog size={14} aria-hidden="true" />
+            <span>Fog</span>
+          </button>
         </div>
       )}
 
@@ -1035,14 +1056,17 @@ const BattleMap: React.FC<BattleMapProps> = ({
                 />
                 {/* Soft fog-of-war above the tiles, below the tokens: the same
             visibility data as before, feathered into light pools instead of
-            per-tile black squares. */}
-                <BattleMapFogCanvas
-                  mapData={mapData}
-                  tileSize={TILE_SIZE_PX}
-                  visibleTiles={visibility.visibleTiles}
-                  getLightLevel={visibility.getLightLevel}
-                  className="pointer-events-none absolute inset-0 z-[2] h-full w-full"
-                />
+            per-tile black squares. The toolbar's Fog chip can hide this layer
+            so reviewers can judge the painted ground underneath. */}
+                {fogOfWarVisible && (
+                  <BattleMapFogCanvas
+                    mapData={mapData}
+                    tileSize={TILE_SIZE_PX}
+                    visibleTiles={visibility.visibleTiles}
+                    getLightLevel={visibility.getLightLevel}
+                    className="pointer-events-none absolute inset-0 z-[2] h-full w-full"
+                  />
+                )}
                 <div
                   className="battle-map-grid"
                   style={{
@@ -1904,6 +1928,7 @@ const BattleMap: React.FC<BattleMapProps> = ({
           }
           data-relative-height-feet={hoveredElevation.relativeFeet ?? undefined}
           data-map-floor-feet="0"
+          data-tile-terrain={hoveredTile.terrain}
           className="pointer-events-none absolute bottom-24 left-3 flex w-[20rem] max-w-[calc(100%_-_1.5rem)] items-start gap-2 rounded-md border border-amber-300/55 bg-slate-950 px-2.5 py-2 text-slate-100 shadow-lg sm:bottom-12"
           style={{ zIndex: Z_INDEX.COMBAT_OVERLAY }}
         >
@@ -1918,7 +1943,15 @@ const BattleMap: React.FC<BattleMapProps> = ({
                 {hoveredTile.coordinates.x + 1}
               </span>
             </span>
-            <span className="mt-1 grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 border-b border-slate-800 pb-0.5">
+            {/* Name the ground before measuring it: crossings and roads are
+                physical facts that outrank the base terrain word. */}
+            <span className="mt-1 grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-3 border-b border-slate-800 pb-0.5">
+              <span className="text-[11px] text-slate-300">Terrain</span>
+              <span className="text-right text-xs font-black text-slate-100">
+                {describeBattleMapTerrain(hoveredTile)}
+              </span>
+            </span>
+            <span className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 border-b border-slate-800 pb-0.5">
               <span className="text-[11px] font-bold text-amber-200">
                 This tile
               </span>

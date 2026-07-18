@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 15/07/2026, 01:59:09
- * Dependents: components/World3D/World3DWrapper.tsx, components/World3D/createWorldGenClient.ts, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/LocalMapView.tsx, components/Worldforge/RegionMapView.tsx, components/Worldforge/TownAgentSnapshotView.tsx, components/Worldforge/localDraw.ts, components/Worldforge/regionDraw.ts, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/spells/ai/MaterialTagService.ts, systems/worldforge/adapter/atlasArtifact.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundDeltas.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundWorldAdapter.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts, systems/worldforge/delta/applyDeltas.ts, systems/worldforge/delta/types.ts, systems/worldforge/generate.ts, systems/worldforge/index.ts, systems/worldforge/local/generateLocal.ts, systems/worldforge/local/stitchLocalArtifacts.ts, systems/worldforge/provenance/groundProvenance.ts, systems/worldforge/region/generateRegion.ts, systems/worldforge/roster/agentPath.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/roster/townSnapshot.ts, systems/worldforge/roster/types.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Last Sync: 17/07/2026, 23:24:45
+ * Dependents: components/World3D/InWorldHUD.tsx, components/World3D/World3DWrapper.tsx, components/World3D/createWorldGenClient.ts, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/LocalMapView.tsx, components/Worldforge/RegionMapView.tsx, components/Worldforge/TownAgentSnapshotView.tsx, components/Worldforge/localDraw.ts, components/Worldforge/regionDraw.ts, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/spells/ai/MaterialTagService.ts, systems/worldforge/adapter/atlasArtifact.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundDeltas.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundWorldAdapter.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts, systems/worldforge/delta/applyDeltas.ts, systems/worldforge/delta/types.ts, systems/worldforge/generate.ts, systems/worldforge/index.ts, systems/worldforge/leaf3d/atlasGroundDrilldown.ts, systems/worldforge/local/generateLocal.ts, systems/worldforge/local/stitchLocalArtifacts.ts, systems/worldforge/provenance/groundProvenance.ts, systems/worldforge/region/generateRegion.ts, systems/worldforge/roster/agentPath.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/roster/townSnapshot.ts, systems/worldforge/roster/types.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townSimRegistration.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -203,6 +203,26 @@ export interface RegionRoad {
 }
 
 /**
+ * Stable player-facing identity for one generated settlement.
+ *
+ * The Atlas burg is the owner of the name and source id. Region, Local, and
+ * Ground carry this same receipt instead of asking each renderer to invent a
+ * label. Relationship flags are generated facts used to keep the Local map,
+ * entry controls, and 3D HUD visually honest about ports, rivers, and roads.
+ */
+export interface CanonicalTownIdentity {
+  kind: 'town';
+  sourceKind: 'atlas-burg';
+  sourceId: number;
+  name: string;
+  settlementType: 'capital' | 'port' | 'town';
+  biomeId: number;
+  hasRoadAccess: boolean;
+  hasRiverAccess: boolean;
+  isCoastal: boolean;
+}
+
+/**
  * A route/river relationship authored at Region scale.
  *
  * Tactical and 3D consumers must not independently infer a plausible crossing
@@ -225,6 +245,8 @@ export interface RegionCrossing {
 
 export interface RegionTownSite {
   burgId: number;
+  /** Canonical Atlas-owned identity; optional only for older fixtures/saves. */
+  identity?: CanonicalTownIdentity;
   /** Envelope the town generator may build within (SPEC §6 pass 1). */
   envelope: BoundsFt;
   /** Route entry points on the envelope edge, feet. */
@@ -340,6 +362,12 @@ export interface TownPlotArchitecture {
 
 export interface TownPlan {
   burgId: number;
+  /**
+   * The exact Region-site identity represented by this plan. Current native
+   * generation always supplies it; optionality preserves legacy authoring and
+   * old test fixtures that predate Atlas-owned names.
+   */
+  identity?: CanonicalTownIdentity;
   /**
    * Organic street centerlines, feet. `colorHex` carries the street's tier tint
    * (avenue / street / lane) so the 3D bake vertex-colors each ribbon; absent =

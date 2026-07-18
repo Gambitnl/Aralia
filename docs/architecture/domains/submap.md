@@ -13,7 +13,8 @@ Local exploration now belongs to the Worldforge tiered-navigation stack:
 - `src/components/Worldforge/SubmapSvgView.tsx` renders generated submaps.
 - `src/components/Worldforge/NeighbourhoodSvgView.tsx` renders neighbourhood tiers.
 - `src/systems/worldforge/submap/` owns deterministic Voronoi generation.
-- `docs/projects/worldforge/GAPS.md` owns successor interaction and 3D-handoff gaps.
+- The absorbed Worldforge specification at `docs/superpowers/specs/2026-07-14-absorbed-worldforge.md`
+  and Plan Map topic `shipped-cartography` own successor interaction and 3D-handoff gaps.
 
 ## Verified Reachable Flow
 

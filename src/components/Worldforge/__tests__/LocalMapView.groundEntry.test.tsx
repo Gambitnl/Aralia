@@ -29,7 +29,9 @@ describe('LocalMapView ground navigation', () => {
   it('enters ground with the exact selected local site', () => {
     const onEnterGround = vi.fn();
     render(<LocalMapView local={local} width={320} height={520} onAscend={vi.fn()} onEnterGround={onEnterGround} />);
-    fireEvent.click(screen.getByRole('button', { name: /Enter 3D: Ash Shrine/i }));
+    // Wave 4 names the semantic Ground tier directly while preserving the exact site label.
+    // Querying the public accessible name keeps this proof aligned with the player-facing contract.
+    fireEvent.click(screen.getByRole('button', { name: /Enter Ash Shrine on Ground/i }));
     expect(onEnterGround).toHaveBeenCalledWith({ kind: 'site', id: 7, label: 'Ash Shrine', xFt: 1300, yFt: 1100 });
   });
 });

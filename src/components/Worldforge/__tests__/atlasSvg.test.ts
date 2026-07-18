@@ -67,7 +67,7 @@ describe('buildAtlasSvgModel', () => {
     expect(model.height).toBe(100);
     const land = model.layers.find((l) => l.id === 'land');
     expect(land!.regions).toHaveLength(1);             // only cell 1 is land (h>=20)
-    expect(land!.regions![0].fill).toBe('#11aa33');
+    expect(land!.regions![0].fill).toBe('rgb(22,172,55)');
     expect(land!.regions![0].d.startsWith('M')).toBe(true);
     expect(land!.regions![0].d.endsWith('Z')).toBe(true);
     expect(land!.polygons).toHaveLength(0);            // merged, not per-cell

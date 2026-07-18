@@ -14,11 +14,12 @@
  * Technique: Playwright canvas pattern (see .agent/campaign-kickoff/fmg-render-atlas.ts).
  *
  * Usage: npx tsx scripts/worldforge/renderRegionProof.ts
- * Output: docs/projects/worldforge/orchestration/proof/laneC-*.png
+ * Output: .agent/scratch/worldforge-region-proof/laneC-*.png
  *
  * What changed: C2 — added town proof showing envelope outline + gates + roads.
  */
 import { chromium } from 'playwright';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generateFmgAtlas } from '../../src/systems/worldforge/fmg/generateAtlas';
@@ -28,7 +29,11 @@ import { rootSeedPath } from '../../src/systems/worldforge/seedPath';
 import type { RegionArtifact, RegionRiverBank, RegionTownSite, RegionRoad } from '../../src/systems/worldforge/artifacts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PROOF_DIR = path.resolve(__dirname, '../../docs/projects/worldforge/orchestration/proof');
+// These images are transient review evidence, so the renderer writes only beneath the
+// repository's ignored scratch boundary and cannot resurrect the absorbed project folder.
+const PROOF_DIR = path.resolve(__dirname, '../../.agent/scratch/worldforge-region-proof');
+// A clean checkout may not have this disposable folder yet, so create it before capture.
+fs.mkdirSync(PROOF_DIR, { recursive: true });
 
 const W = 960;
 const H = 540;

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 08:57:09
+ * Last Sync: 17/07/2026, 22:34:15
  * Dependents: state/appState.ts
- * Imports: 26 files
+ * Imports: 27 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -50,6 +50,10 @@ import { processAllNpcBusinesses } from "../../systems/economy/NpcBusinessManage
 import { processPlayerBusinessManagement } from "../../systems/economy/BusinessManagement";
 import { SeededRandom } from "@/utils/random";
 import { resolveOpeningThreatSceneAfterCombat } from "@/systems/combat/worldScenario/openingThreatOutcome";
+import {
+  atlasGroundPositionForAddress,
+  normalizeDiscoveredHiddenSite,
+} from "@/systems/worldforge/leaf3d/atlasGroundContinuity";
 
 /** Distance-LOD radius in atlas GRAPH units: tracked towns within this of the
  *  player's cell tick daily; farther towns catch up on approach (identical
@@ -135,7 +139,7 @@ export function worldReducer(
       // or invalidating a tile-scoped ground view. The cell presence outlives a
       // transient ground-anchor clear, so playerCell is left untouched here.
       if (nextPosition === null) {
-        return { playerGroundPos: null };
+        return { playerGroundPos: null, atlasGroundPosition: null };
       }
 
       // GRID-RETIRE: BA-3 — Stage 3 makes `playerGroundPos` the single live
@@ -148,6 +152,16 @@ export function worldReducer(
       // "unknown" — the mirror never invents a cell).
       const slice: Partial<GameState> = {
         playerGroundPos: { ...nextPosition },
+        // Native Atlas play enriches the established Classic position instead
+        // of changing its shape. Out-of-bounds meters fail closed to null; the
+        // next mount then returns to the selected focus rather than another Local.
+        atlasGroundPosition: state.atlasGroundAddress
+          ? atlasGroundPositionForAddress(
+              state.atlasGroundAddress,
+              nextPosition.xM,
+              nextPosition.zM,
+            )
+          : null,
       };
       if (state.playerCell) {
         slice.playerCell = {
@@ -173,15 +187,20 @@ export function worldReducer(
           localeCoords: { x: enterFeet.x, y: enterFeet.y },
         },
         playerGroundPos: null,
+        atlasGroundPosition: null,
       };
     }
 
     case "REVEAL_HIDDEN_SITE": {
       // SP4 discovery: record a hidden place the player revealed by 3D proximity.
-      // Deduped by id so re-entering its radius is idempotent and saves don't grow.
+      // Versioned Atlas records are normalized here before storage; malformed or
+      // future provenance is rejected rather than becoming a cross-world pin.
+      // Legacy Classic records remain valid and keep their original shape.
+      const candidate = normalizeDiscoveredHiddenSite(action.payload);
+      if (!candidate) return {};
       const discovered = state.discoveredHiddenSites ?? [];
-      if (discovered.some((s) => s.id === action.payload.id)) return {};
-      return { discoveredHiddenSites: [...discovered, action.payload] };
+      if (discovered.some((s) => s.id === candidate.id)) return {};
+      return { discoveredHiddenSites: [...discovered, candidate] };
     }
 
     case "DUNGEON_CLEARED": {

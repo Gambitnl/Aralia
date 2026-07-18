@@ -57,6 +57,7 @@ vi.mock('../terrain', () => ({
   EzTreeLayer: () => null,
   DistantTerrain: () => null,
   GroundMist: () => null,
+  FordStones: () => null,
   makeTerrainHeightSampler: () => () => 0
 }));
 

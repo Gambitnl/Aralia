@@ -32,6 +32,8 @@ const hud = await page.evaluate(() => {
   return el ? el.textContent : '(no HUD found)';
 });
 console.log('HUD:', hud);
-await page.screenshot({ path: '../../docs/projects/worldforge/orchestration/proof/laneA8-region-ingame.png' });
+// Disposable proof belongs in the ignored scratch area so a rerun cannot recreate
+// the absorbed Worldforge documentation tree or leak a capture into a snapshot commit.
+await page.screenshot({ path: '../scratch/worldforge-laneA8-region-ingame.png' });
 console.log('saved; ascend-present:', await page.getByRole('button', { name: /ascend/i }).count());
 await browser.close();

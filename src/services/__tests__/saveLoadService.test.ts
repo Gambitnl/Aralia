@@ -5,6 +5,11 @@ import { GameState, GamePhase, DiscoveryEntry, DiscoveryType } from '../../types
 
 import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
 import type { WorldDelta } from '../../systems/worldforge/delta/types';
+import type { AtlasGroundAddress } from '../../systems/worldforge/leaf3d/atlasGroundDrilldown';
+import {
+    atlasGroundPositionForAddress,
+    atlasHiddenSiteForAddress,
+} from '../../systems/worldforge/leaf3d/atlasGroundContinuity';
 import { MAX_DISCOVERY_LOG_ENTRIES } from '../../state/reducers/logReducer';
 import { logger } from '../../utils/logger';
 
@@ -115,6 +120,20 @@ const createWorldforgeDelta = (id: string, sequence: number): WorldDelta => ({
         storeys: sequence + 1,
     },
 });
+
+// Compact Atlas address fixture: deliberately contains no generated Region or
+// Local objects, so the real serializer proves it cannot grow artifact graphs.
+const atlasGroundAddress: AtlasGroundAddress = {
+    schemaVersion: 1,
+    worldSeed: 12345,
+    atlasCellId: 9,
+    regionSeedPath: 'wf:12345/cell:9',
+    regionBounds: { x: 0, y: 0, width: 25_000, height: 25_000 },
+    localSeedPath: 'wf:12345/cell:9/local:5000-5000',
+    localBounds: { x: 3_500, y: 3_500, width: 3_000, height: 3_000 },
+    focus: { kind: 'site', id: 7, xFt: 4_000, yFt: 4_500 },
+    returnTier: 'local',
+};
 
 // ============================================================================
 // Discovery Log Save Fixtures
@@ -316,6 +335,116 @@ describe('SaveLoadService', () => {
             expect(result.success).toBe(true);
             expect(JSON.stringify(result.data?.worldforgeDeltas)).toBe(JSON.stringify(worldforgeDeltas));
             expect(JSON.stringify(result.data?.playerGroundPos)).toBe(JSON.stringify(playerGroundPos));
+        });
+
+        it('round-trips the compact Atlas ground address without serializing artifact graphs', async () => {
+            const stateWithAtlasGround = {
+                ...mockGameState,
+                worldViewMode: '3d' as const,
+                mapSurface: 'worldforge' as const,
+                atlasGroundAddress,
+            };
+
+            await SaveLoadService.saveGame(stateWithAtlasGround, 'atlas_ground_slot');
+            const result = await SaveLoadService.loadGame('atlas_ground_slot');
+            const serialized = localStorage.getItem('aralia_rpg_slot_atlas_ground_slot') ?? '';
+
+            expect(result.success).toBe(true);
+            expect(result.data?.atlasGroundAddress).toEqual(atlasGroundAddress);
+            expect(serialized).not.toContain('heightfield');
+            expect(serialized).not.toContain('materialIndex');
+        });
+
+        it('round-trips current ground meters and an exact hidden pin through save/reload', async () => {
+            const atlasGroundPosition = atlasGroundPositionForAddress(atlasGroundAddress, 80, 120)!;
+            const hiddenPin = atlasHiddenSiteForAddress({
+                address: atlasGroundAddress,
+                sourceId: 'hp:0',
+                sourceKind: 'hidden-site',
+                name: 'Whisper Cave',
+                kind: 'cave',
+                xM: 80,
+                zM: 120,
+            })!;
+            await SaveLoadService.saveGame({
+                ...mockGameState,
+                worldViewMode: '3d',
+                mapSurface: 'worldforge',
+                atlasGroundAddress,
+                atlasGroundPosition,
+                discoveredHiddenSites: [hiddenPin],
+            }, 'atlas_ground_wave3_slot');
+
+            const result = await SaveLoadService.loadGame('atlas_ground_wave3_slot');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.atlasGroundPosition).toEqual(atlasGroundPosition);
+            expect(result.data?.discoveredHiddenSites).toEqual([hiddenPin]);
+        });
+
+        it('drops corrupt Atlas pin provenance while preserving legacy Classic pins', async () => {
+            const validPin = atlasHiddenSiteForAddress({
+                address: atlasGroundAddress,
+                sourceId: 'hp:0',
+                sourceKind: 'hidden-site',
+                xM: 80,
+                zM: 120,
+            })!;
+            await SaveLoadService.saveGame({
+                ...mockGameState,
+                discoveredHiddenSites: [
+                    { id: 'legacy-cave', cellId: 4, name: 'Old Cave' },
+                    validPin,
+                ],
+            }, 'atlas_ground_corrupt_pin_slot');
+            const key = SaveLoadService.getSlotStorageKey('atlas_ground_corrupt_pin_slot');
+            const payload = JSON.parse(localStorage.getItem(key)!);
+            payload.state.discoveredHiddenSites[1].atlasGround.schemaVersion = 99;
+            delete payload.checksum;
+            localStorage.setItem(key, JSON.stringify(payload));
+
+            const result = await SaveLoadService.loadGame('atlas_ground_corrupt_pin_slot');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.discoveredHiddenSites).toEqual([
+                { id: 'legacy-cave', cellId: 4, name: 'Old Cave' },
+            ]);
+        });
+
+        it('defaults an older save with no Atlas address to null without changing Classic mode', async () => {
+            await SaveLoadService.saveGame({
+                ...mockGameState,
+                worldViewMode: '3d',
+                mapSurface: 'classic',
+            } as GameState, 'legacy_atlas_absence_slot');
+
+            const result = await SaveLoadService.loadGame('legacy_atlas_absence_slot');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.atlasGroundAddress).toBeNull();
+            expect(result.data?.worldViewMode).toBe('3d');
+            expect(result.data?.mapSurface).toBe('classic');
+        });
+
+        it('fails closed to native Atlas when a saved address schema is corrupt', async () => {
+            await SaveLoadService.saveGame({
+                ...mockGameState,
+                worldViewMode: '3d',
+                mapSurface: 'worldforge',
+                atlasGroundAddress,
+            } as GameState, 'corrupt_atlas_address_slot');
+            const key = SaveLoadService.getSlotStorageKey('corrupt_atlas_address_slot');
+            const payload = JSON.parse(localStorage.getItem(key)!);
+            payload.state.atlasGroundAddress.schemaVersion = 99;
+            delete payload.checksum;
+            localStorage.setItem(key, JSON.stringify(payload));
+
+            const result = await SaveLoadService.loadGame('corrupt_atlas_address_slot');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.atlasGroundAddress).toBeNull();
+            expect(result.data?.worldViewMode).toBe('atlas');
+            expect(result.data?.mapSurface).toBe('worldforge');
         });
 
         it('round-trips open player-facing overlays (map/journal) so resume reopens them', async () => {

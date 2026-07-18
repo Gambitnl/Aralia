@@ -134,7 +134,9 @@
       "history": {
         "designed": "2026-07-02",
         "built": "2026-07-04"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-04"
     },
     {
       "id": "perf-campaign",
@@ -175,7 +177,9 @@
       ],
       "history": {
         "built": "2026-07-07"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-07"
     },
     {
       "id": "building-generator",
@@ -228,12 +232,13 @@
           "title": "Irregular footprints (L-shapes, wings, tower) raised in 3D",
           "status": "done"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "dungeon-generator",
       "title": "Procedural dungeon generator",
-      "sub": "THEME SPINE + SHEET LOOK LANDED 2026-07-06 (after critique wave + feet-canon + compound rooms/elbow corridors): 3 themes (crypt/cavern/frost) each own palette, name pools, monster table, debris vocabulary + thematic exterior glyphs; drawer has title cartouche, brooding vignette, per-room floor tones; layout invariant across themes at the same seed (verified). 11/11 tests. Remaining: 3D scene builder (Dungeon Forge poach list saved), world attachment, real bestiary, rotation/verticality/symmetric wings || AMBITION APPROVED 2026-07-07: Remy green-lit all four pillars (history-first, world-grown, diegetic map+3D, multi-level) â€” kickoff prompt written for a new agent; history-first is the spine, build it first. || PILLAR 1 BUILT 2026-07-06: builder-archetype intact layouts + seeded decay events with map evidence + derived text (name/blurb/notes/rumor hooks) + 2D parchment sheet + sprawl dial; 72 tests green, final review READY; Remy iteration waves folded in.",
+      "sub": "THEME SPINE + SHEET LOOK LANDED 2026-07-06 (after critique wave + feet-canon + compound rooms/elbow corridors): 3 themes (crypt/cavern/frost) each own palette, name pools, monster table, debris vocabulary + thematic exterior glyphs; drawer has title cartouche, brooding vignette, per-room floor tones; layout invariant across themes at the same seed (verified). 11/11 tests. Remaining: production WebGPU/TSL scene integration, rotation/verticality/symmetric wings || AMBITION APPROVED 2026-07-07: Remy green-lit all four pillars (history-first, world-grown, diegetic map+3D, multi-level) â€” kickoff prompt written for a new agent; history-first is the spine, build it first. || PILLAR 1 BUILT 2026-07-06: builder-archetype intact layouts + seeded decay events with map evidence + derived text (name/blurb/notes/rumor hooks) + 2D parchment sheet + sprawl dial; 72 tests green, final review READY; Remy iteration waves folded in. || 3D EXPEDITION PREVIEW LANDED 2026-07-17: the design workbench now raises the shared DungeonPlan as instanced floors, walls, doors, history surfaces, props and encounter overlays with theme atmosphere, tactical/entrance/objective cameras, fullscreen, and preserved parchment switching; focused model tests + 199 dungeon tests + rendered browser interaction proofs green.",
       "campaign": "world",
       "subcampaign": "Terrain & Regions",
       "status": "active",
@@ -278,6 +283,10 @@
           "status": "specced"
         },
         {
+          "title": "3D expedition design preview (shared DungeonPlan, instanced architecture/props, theme atmosphere, camera presets, overlays, fullscreen)",
+          "status": "done"
+        },
+        {
           "title": "Decoration richness + real monster/CR sourcing from the bestiary",
           "status": "done"
         },
@@ -307,7 +316,8 @@
           "title": "Multi-level descent: stairs to deeper seedPath levels, pits, balconies; multi-page sheet, boss at the bottom",
           "status": "specced"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "fip-slice1",
@@ -372,7 +382,9 @@
         "designed": "2026-07-02",
         "built": "2026-07-04",
         "builtApprox": true
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-04"
     },
     {
       "id": "ambush-generation",
@@ -388,7 +400,8 @@
           "why": "Set dressing IS props: ambush dressing places entries through the prop schema + placement engine (with referee data) â€” no prop system, no dressing"
         }
       ],
-      "link": "docs/superpowers/specs/2026-07-02-fight-in-place-combat-design.md"
+      "link": "docs/superpowers/specs/2026-07-02-fight-in-place-combat-design.md",
+      "tier": "strategic"
     },
     {
       "id": "mesh-los-cover",
@@ -403,7 +416,8 @@
           "why": "Could technically be built today against the battle map â€” sequenced after slice 1 so the oracle is tested against the real streamed scene it's designed for"
         }
       ],
-      "link": "docs/superpowers/specs/2026-07-02-fight-in-place-combat-design.md"
+      "link": "docs/superpowers/specs/2026-07-02-fight-in-place-combat-design.md",
+      "tier": "strategic"
     },
     {
       "id": "battlemap-retirement",
@@ -470,7 +484,8 @@
           "decision": true
         }
       ],
-      "updated": "2026-07-16"
+      "updated": "2026-07-16",
+      "tier": "strategic"
     },
     {
       "id": "world-reactions",
@@ -549,7 +564,8 @@
         }
       ],
       "status_note": "Absorbed docs/projects/combat 2026-07-16 (engine ownership map + durable rules decisions D-01..D-10 in docs/superpowers/specs/2026-07-14-absorbed-combat.md); G33 defeat->GAME_OVER already recorded done under whole-game-systems-audit W01; fight-in-place reaction features remain specced/parked",
-      "updated": "2026-07-15"
+      "updated": "2026-07-15",
+      "tier": "strategic"
     },
     {
       "id": "ai-arbiter",
@@ -583,7 +599,8 @@
           "title": "Story-hook powers (authoring beats)",
           "status": "specced"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "crossfire-override",
@@ -620,7 +637,8 @@
           "link": "docs/superpowers/specs/subspecs/reactions--crossfire-protection.md",
           "open": 3
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "planmap",
@@ -672,7 +690,8 @@
       ],
       "link": "tools/agora/PLANNING-STACK.md",
       "status_note": "Absorbed docs/projects/planmap 2026-07-15 (gap registry from the 2026-07-02/03 model-review panels); north star = tools/agora/PLANNING-STACK.md; terms in tools/agora/GLOSSARY.md",
-      "updated": "2026-07-15"
+      "updated": "2026-07-15",
+      "tier": "strategic"
     },
     {
       "id": "webgpu-migration",
@@ -706,7 +725,8 @@
           "title": "Default flip + WebGL retirement decision",
           "status": "parked"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "wf-interiors",
@@ -740,7 +760,9 @@
       ],
       "history": {
         "built": "2026-07-09"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-09"
     },
     {
       "id": "neighbour-streaming",
@@ -750,7 +772,8 @@
       "subcampaign": "World Streaming",
       "status": "specced",
       "deps": [],
-      "link": "docs/superpowers/specs/2026-06-30-stage5-seamless-edges-design.md"
+      "link": "docs/superpowers/specs/2026-06-30-stage5-seamless-edges-design.md",
+      "tier": "strategic"
     },
     {
       "id": "agent-sim-deepening",
@@ -809,7 +832,9 @@
           "status": "parked"
         }
       ],
-      "open": 5
+      "open": 5,
+      "tier": "strategic",
+      "updated": "2026-06-26"
     },
     {
       "id": "maritime-remainder",
@@ -818,7 +843,8 @@
       "campaign": "travel",
       "status": "active",
       "deps": [],
-      "link": "docs/superpowers/plans/2026-06-30-maritime-travel-status.md"
+      "link": "docs/superpowers/plans/2026-06-30-maritime-travel-status.md",
+      "tier": "strategic"
     },
     {
       "id": "character-aging",
@@ -827,7 +853,8 @@
       "campaign": "character",
       "status": "specced",
       "deps": [],
-      "link": "docs/superpowers/specs/2026-06-29-player-character-aging-design.md"
+      "link": "docs/superpowers/specs/2026-06-29-player-character-aging-design.md",
+      "tier": "strategic"
     },
     {
       "id": "generational-time",
@@ -883,7 +910,8 @@
         }
       ],
       "status_note": "absorbed docs/projects/time 2026-07-16: implemented ADVANCE_TIME clock docs + open gaps live here",
-      "updated": "2026-07-15"
+      "updated": "2026-07-15",
+      "tier": "strategic"
     },
     {
       "id": "testkit-devtools-toolkit",
@@ -892,7 +920,8 @@
       "campaign": "tooling",
       "status": "done",
       "deps": [],
-      "link": "docs/superpowers/specs/2026-07-14-testkit-devtools-toolkit-design.md"
+      "link": "docs/superpowers/specs/2026-07-14-testkit-devtools-toolkit-design.md",
+      "tier": "strategic"
     },
     {
       "id": "doc-triage",
@@ -901,7 +930,8 @@
       "campaign": "tooling",
       "status": "active",
       "deps": [],
-      "link": "docs/superpowers/specs/2026-07-01-doc-sprawl-triage-design.md"
+      "link": "docs/superpowers/specs/2026-07-01-doc-sprawl-triage-design.md",
+      "tier": "strategic"
     },
     {
       "id": "image-gen",
@@ -909,7 +939,8 @@
       "sub": "scene-gen API exists (/api/scenes/generate), display pending; portrait backend broken",
       "campaign": "tooling",
       "status": "active",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "shipped-grid-retirement",
@@ -923,7 +954,9 @@
       "history": {
         "designed": "2026-06-30",
         "built": "2026-07-01"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-01"
     },
     {
       "id": "shipped-seam-slice",
@@ -943,7 +976,9 @@
           "title": "Open-region seam visual slice",
           "status": "done"
         }
-      ]
+      ],
+      "tier": "strategic",
+      "updated": "2026-07-02"
     },
     {
       "id": "shipped-cartography",
@@ -971,8 +1006,16 @@
         {
           "title": "Hidden sites from markers (PV2)",
           "status": "done"
+        },
+        {
+          "title": "Wave 4 canonical place identity, hierarchy continuity, and Local-to-Ground visual correspondence",
+          "status": "done",
+          "note": "One Region-owned name/source and one exact town artifact now drive Local labels/footprints, Ground entry/HUD/town context, provenance, and return. Remaining: true travel cell flow, durable units contract, agent-walking rendered proof, and shared roof lighting/occlusion."
         }
-      ]
+      ],
+      "tier": "strategic",
+      "updated": "2026-07-17",
+      "status_note": "Waves 1-4 complete for canonical Atlas descent, fail-closed replay, gameplay/provenance continuity, artifact-owned naming, responsive hierarchy, and exact Local/Ground correspondence. Open candidates are classified in the absorbed specification; do not recreate docs/projects/worldforge."
     },
     {
       "id": "shipped-styled-town",
@@ -992,7 +1035,9 @@
           "title": "Town water geometry (TG5/TG6/TG7)",
           "status": "done"
         }
-      ]
+      ],
+      "tier": "strategic",
+      "updated": "2026-07-02"
     },
     {
       "id": "town-streets-3d",
@@ -1036,7 +1081,9 @@
           "title": "DECISION (Remy): boost tier contrast â€” plaza streets read almost identical to lanes",
           "status": "parked"
         }
-      ]
+      ],
+      "tier": "strategic",
+      "updated": "2026-07-12"
     },
     {
       "id": "shipped-living-world",
@@ -1048,7 +1095,9 @@
       "history": {
         "designed": "2026-06-29",
         "built": "2026-07-03"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-03"
     },
     {
       "id": "shipped-combat-opening",
@@ -1061,7 +1110,9 @@
       "history": {
         "designed": "2026-06-29",
         "built": "2026-07-02"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-02"
     },
     {
       "id": "shipped-travel-provisioning",
@@ -1081,7 +1132,9 @@
           "title": "Provisions acquisition (PRV1/PRV2)",
           "status": "done"
         }
-      ]
+      ],
+      "tier": "strategic",
+      "updated": "2026-07-02"
     },
     {
       "id": "provisioning-remainder",
@@ -1102,7 +1155,8 @@
           "title": "Merchant fallback + manual-PC provisions (PRV1)",
           "status": "done"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "doc-inventory-explorer",
@@ -1131,7 +1185,8 @@
           "title": "Filters + confidence surfacing",
           "status": "done"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "task-harvest",
@@ -1146,7 +1201,8 @@
           "why": "needs A's per-doc open-task count + Atlas role classification"
         }
       ],
-      "link": "docs/superpowers/specs/2026-07-03-doc-inventory-explorer-design.md"
+      "link": "docs/superpowers/specs/2026-07-03-doc-inventory-explorer-design.md",
+      "tier": "strategic"
     },
     {
       "id": "doc-tool-launchers",
@@ -1161,7 +1217,8 @@
           "why": "extends the plan-map header link row"
         }
       ],
-      "link": "docs/superpowers/specs/2026-07-03-doc-inventory-explorer-design.md"
+      "link": "docs/superpowers/specs/2026-07-03-doc-inventory-explorer-design.md",
+      "tier": "strategic"
     },
     {
       "id": "planmap-date-tracker",
@@ -1198,7 +1255,8 @@
           "title": "Staleness heat overlay",
           "status": "specced"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "two-d-ui-reliability",
@@ -1256,7 +1314,8 @@
           "title": "Party overlay and pane expose dismiss controls with soft-cap awareness",
           "status": "done"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "early-game-playable",
@@ -1350,7 +1409,9 @@
       "history": {
         "designed": "2026-07-04",
         "built": "2026-07-04"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-04"
     },
     {
       "id": "interactive-3d-world",
@@ -1380,7 +1441,8 @@
           "title": "3D HUD contrast, letterbox, and exits stay readable",
           "status": "done"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "class-richness-l1-3",
@@ -1419,7 +1481,9 @@
       "history": {
         "designed": "2026-07-04",
         "built": "2026-07-04"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-04"
     },
     {
       "id": "shipped-spell-mechanics",
@@ -1463,7 +1527,9 @@
           "title": "Spare the Dying stabilization and range scaling",
           "status": "done"
         }
-      ]
+      ],
+      "tier": "strategic",
+      "updated": "2026-06-29"
     },
     {
       "id": "shipped-cell-provenance",
@@ -1478,7 +1544,9 @@
         "built": "2026-07-01",
         "builtApprox": true
       },
-      "link": "docs/superpowers/plans/2026-06-27-cell-provenance-audit.md"
+      "link": "docs/superpowers/plans/2026-06-27-cell-provenance-audit.md",
+      "tier": "strategic",
+      "updated": "2026-07-01"
     },
     {
       "id": "combat-map-reskin",
@@ -1575,7 +1643,8 @@
       ],
       "link": "docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md",
       "status_note": "Absorbed docs/projects/3d-combat-map 2026-07-16 (3D renderer lane: code map, capture rig, D9/D10 decisions and the G14 bloom review brief live in docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md)",
-      "updated": "2026-07-16"
+      "updated": "2026-07-16",
+      "tier": "strategic"
     },
     {
       "id": "svg-combatant-art",
@@ -1589,7 +1658,8 @@
           "kind": "chosen",
           "why": "The reskin left tokens/roster as letter-blobs and race images are not meant for tokens (Remy 2026-07-05); owned SVG generation is the chosen art track that fills that gap on the reskinned surface"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "planmap-shipped-timeline",
@@ -1603,7 +1673,8 @@
           "kind": "chosen",
           "why": "enhances the plan-map: retires the bottom Shipped strip into in-lane dated tiles"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "vite-crash-guard",
@@ -1611,7 +1682,8 @@
       "sub": "dev servers no longer die on the Vite ERR_SERVER_ALREADY_LISTEN restart race â€” a crash-guard preload swallows the benign error, wired into every launch config",
       "campaign": "tooling",
       "status": "done",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "claude-design-system",
@@ -1619,7 +1691,8 @@
       "sub": "canonical claude.ai/design project (id aedb018f) mirrors the real Aralia UI â€” token sheet, 10 components, screen mockups, brand assets; auth unblocked via /design-login into shared ~/.claude credentials; combat-view card ADDED (refreshed to current CombatView.tsx). Rescue verification DONE: window-frame matches, merchant ~80% (now WindowFrame-framed + faction pricing), town STALE (2D tile retired â†’ Worldforge SVG+3D), design-preview superseded by repo's own DesignPreviewPage (~50 panels). OPEN: which stale screens to port/refresh; old folder (id 4c0a555c) deletion is Remy's in-browser call (handover written 2026-07-05)",
       "campaign": "tooling",
       "status": "active",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "master-orchestrator",
@@ -1662,7 +1735,9 @@
       ],
       "history": {
         "designed": "2026-07-06"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-06"
     },
     {
       "id": "agent-identity",
@@ -1691,7 +1766,9 @@
       ],
       "history": {
         "designed": "2026-07-06"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-06"
     },
     {
       "id": "agent-retrace",
@@ -1726,7 +1803,9 @@
       ],
       "history": {
         "designed": "2026-07-06"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-06"
     },
     {
       "id": "agent-matrix-dashboard",
@@ -1746,7 +1825,9 @@
       ],
       "history": {
         "designed": "2026-07-05"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-05"
     },
     {
       "id": "agora-operator-dashboard",
@@ -1785,7 +1866,9 @@
       "history": {
         "designed": "2026-07-06",
         "activated": "2026-07-06"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-06"
     },
     {
       "id": "agent-ping",
@@ -1832,7 +1915,9 @@
       "history": {
         "designed": "2026-07-06",
         "activated": "2026-07-06"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-06"
     },
     {
       "id": "combat-roads-real-terrain",
@@ -1885,7 +1970,8 @@
           "id": "combat-map-reskin",
           "why": "the reskin's painted road is the visual proof; this makes it mechanical"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "combat-map-nextgen",
@@ -1932,7 +2018,8 @@
           "id": "combat-roads-real-terrain",
           "why": "pillar 2 subsumes mechanical roads"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "combat-world-scenario-lab",
@@ -2286,8 +2373,17 @@
           "title": "DECISION: Before neutral combat semantics exist, should resident markers be inspect-only identity/activity facts or entirely passive? Recommended: inspect-only, without initiative or targetability, until fleeing, harm, allegiance, and rescue rules are explicit.",
           "status": "specced",
           "spike": true
+        },
+        {
+          "title": "Canonical Stream Ford recipe: ford crossings exist in real worlds again (FORD_MAX_RIVER_WIDTH_FT retuned 60 to 225 against the measured 167-1100ft crossing width range; seed 42 now yields 124 fords of 515 crossings), proven by a cell-587 lab preset with stepping-stone paint, 479 passable ford tiles, and a deterministic vistest capture",
+          "status": "done",
+          "history": {
+            "built": "2026-07-17"
+          },
+          "status_note": "3D still renders no ford dressing (bridge decks only) - follow-up task chip filed"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "combat-map-shell-policy",
@@ -2337,7 +2433,8 @@
           "spike": true,
           "parallel": true
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "combat-targeting-interaction",
@@ -2400,7 +2497,8 @@
           "spike": true,
           "parallel": true
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "asset-forge",
@@ -2432,7 +2530,8 @@
           "kind": "chosen",
           "why": "the painted-pack look upgrade exposed the gap this fills; forge props would feed the same painter that stamps the Caeora packs"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "combat-world-scars",
@@ -2445,7 +2544,8 @@
           "id": "combat-map-nextgen",
           "why": "needs the battlefield forge's canonical site identity (same place = same battlefield) so a scar has somewhere durable to live"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "combat-living-terrain",
@@ -2458,7 +2558,8 @@
           "id": "combat-map-nextgen",
           "why": "every terrain state is another layer the single-scene renderer can draw; the DOM grid could never afford it"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "combat-elevation",
@@ -2486,7 +2587,8 @@
           "why": "pillar 2's battlefield forge already carries elevation samples from the worldforge cell â€” this makes them tactical and visible"
         }
       ],
-      "updated": "2026-07-16"
+      "updated": "2026-07-16",
+      "tier": "strategic"
     },
     {
       "id": "combat-chronicles",
@@ -2499,7 +2601,8 @@
           "id": "combat-map-nextgen",
           "why": "pillar 3's narrated log and cinematic turn animations are the raw material a chronicle replays"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "combat-mass-battles",
@@ -2512,7 +2615,8 @@
           "id": "combat-map-nextgen",
           "why": "hard perf prerequisite: chunked GPU rendering is what makes 30+ combatants and bigger boards affordable"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "combat-intent-telegraphs",
@@ -2525,7 +2629,8 @@
           "id": "combat-map-nextgen",
           "why": "drawn on the tactical-overlay layer of the new renderer; needs the enemy AI to expose its chosen action a turn early"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "building-generator-v2",
@@ -2625,8 +2730,34 @@
         {
           "title": "Wall/ceiling z-fight fix (cap walls at slab underside â€” viewer-found)",
           "status": "active"
+        },
+        {
+          "title": "Climate parity seam: artifact resolver never sees climate while resolveStyle overrides roofForm (cold=steep, arid=flat) so 2D and 3D disagree on the same building",
+          "status": "done",
+          "note": "REPAIRED 2026-07-17 (wave lane A, supervisor-verified): climate threads into resolveArchitectureVariant via toArtifactPlan from the burg biome (groundChunkLoader/legacySubmapBridge/TownPlanView/lab model). Rendered proof: highland+cold receipt Steep/11.2ft AND strip steep; roughLog+arid both flat; temperate receipts byte-identical (all four signatures unchanged). 96/96 focused tests.",
+          "history": { "built": "2026-07-17" }
+        },
+        {
+          "title": "Building Lab: town-map click selects the building (most buildings currently unreachable)",
+          "status": "done",
+          "note": "REPAIRED 2026-07-17 (wave lane B): additive TownPlanView onPlotClick/selectedPlotId props + selected outline; verified live (map click switched selection plot 0 to 74).",
+          "history": { "built": "2026-07-17" }
+        },
+        {
+          "title": "Building Lab: comparison strip shows silhouettes, not two color chips per building",
+          "status": "done",
+          "note": "REPAIRED 2026-07-17 (wave lane B): per-specimen SVG elevation glyphs (roof form + storeys + resolved colors); steep/gable/hip/flat visibly distinct. Busy overlay + a11y naming landed in the same lane (Chrome unnamed-control count 5 to 1; residue folded into GG-38).",
+          "history": { "built": "2026-07-17" }
+        },
+        {
+          "title": "Decision: what the coherent-districts pass badge may claim (signature equality currently reads as visual proof)",
+          "status": "specced",
+          "decision": true
         }
-      ]
+      ],
+      "status_note": "Harsh critic audit + THREE supervised Matrix repair lanes all landed 2026-07-17 (canonical seed 792767481): (1) lab 3D pane renders resolved identity via production interiorParts projectors (walls styleResolved.wallColor, 198/125 dressing parts A/B, canonical-geometry byte-identity pinned); (2) climate parity seam closed - artifact and blueprint share one climate-aware roof resolution, temperate byte-stable, cold=steep/arid=flat agree in strip+receipt+3D; (3) lab UX batch - town-map click-to-select, SVG silhouette strip, busy overlay (no sky-flash), a11y naming (5 issues to 1). Still open from the audit: coherence-badge decision (Remy), streamed production street readability (flat brown walls - campaign slice), GG-38/GG-39 cross-project rows. Full evidence: .agent/scratch/buildinglab-critic/REPORT.md (session-local).",
+      "updated": "2026-07-17",
+      "tier": "strategic"
     },
     {
       "id": "glossary-structured-content",
@@ -2720,7 +2851,8 @@
         }
       ],
       "status_note": "absorbed docs/projects/glossary-ui 2026-07-16 (D18: item metadata stays glossary-local display-only)",
-      "updated": "2026-07-15"
+      "updated": "2026-07-15",
+      "tier": "strategic"
     },
     {
       "id": "agent-escalation",
@@ -2760,7 +2892,9 @@
       ],
       "history": {
         "designed": "2026-07-06"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-06"
     },
     {
       "id": "groq-inference-toggle",
@@ -2799,7 +2933,8 @@
           "title": "CSP connect-src allows api.groq.com (Groq fetch was blocked); localhost:* already covers the proxy option",
           "status": "done"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "agora-fleet-coordination",
@@ -2833,7 +2968,9 @@
       ],
       "history": {
         "designed": "2026-07-06"
-      }
+      },
+      "tier": "strategic",
+      "updated": "2026-07-06"
     },
     {
       "id": "economy-player-surface",
@@ -2958,7 +3095,8 @@
         }
       ],
       "status_note": "Absorbed docs/projects/economy 2026-07-15; engine architecture map in docs/superpowers/specs/2026-07-14-absorbed-economy.md; absorbed docs/projects/economy-ui 2026-07-15 (universal transaction-UI framework context in docs/superpowers/specs/2026-07-14-absorbed-economy-ui.md)",
-      "updated": "2026-07-15"
+      "updated": "2026-07-15",
+      "tier": "strategic"
     },
     {
       "id": "llm-provider-config",
@@ -2969,7 +3107,8 @@
       "deps": [],
       "history": {
         "captured": "2026-07-09"
-      }
+      },
+      "tier": "strategic"
     },
     {
       "id": "interior-lighting-live-clock",
@@ -3002,7 +3141,9 @@
           "title": "Live in-engine day and night eyeball",
           "status": "parked"
         }
-      ]
+      ],
+      "tier": "strategic",
+      "updated": "2026-07-08"
     },
     {
       "id": "interior-occupants-live-clock",
@@ -3039,7 +3180,9 @@
           "title": "Merge interior occupants into the street agent sim",
           "status": "parked"
         }
-      ]
+      ],
+      "tier": "strategic",
+      "updated": "2026-07-08"
     },
     {
       "id": "servants-as-npcs",
@@ -3061,7 +3204,8 @@
       ],
       "history": {
         "captured": "2026-07-09"
-      }
+      },
+      "tier": "strategic"
     },
     {
       "id": "ai-arbitrated-ritual-casting",
@@ -3080,7 +3224,9 @@
       "history": {
         "designed": "2026-07-09"
       },
-      "open": 4
+      "open": 4,
+      "tier": "strategic",
+      "updated": "2026-07-09"
     },
     {
       "id": "npc-memory-reconciliation",
@@ -3123,7 +3269,8 @@
         }
       ],
       "status_note": "Absorbed docs/projects/memory 2026-07-16: the G1/G2 reconciliation itself is DONE (2026-07-09), topic reopened as active only for the two absorbed follow-ups G3 (save/load migration policy) and G4 (action-to-memory coverage matrix); file map + settled decisions in docs/superpowers/specs/2026-07-14-absorbed-memory.md",
-      "updated": "2026-07-16"
+      "updated": "2026-07-16",
+      "tier": "strategic"
     },
     {
       "id": "planmap-roadmap-sync",
@@ -3132,7 +3279,8 @@
       "campaign": "tooling",
       "status": "specced",
       "deps": [],
-      "link": "docs/superpowers/specs/2026-07-09-planmap-roadmap-live-status.md"
+      "link": "docs/superpowers/specs/2026-07-09-planmap-roadmap-live-status.md",
+      "tier": "strategic"
     },
     {
       "id": "npc-personality-system",
@@ -3143,7 +3291,8 @@
       "deps": [],
       "history": {
         "captured": "2026-07-09"
-      }
+      },
+      "tier": "strategic"
     },
     {
       "id": "types-decl-twin-hygiene",
@@ -3159,7 +3308,8 @@
       ],
       "history": {
         "captured": "2026-07-10"
-      }
+      },
+      "tier": "strategic"
     },
     {
       "id": "interiors-blindspot-pass",
@@ -3224,7 +3374,8 @@
           "title": "#7 Unified 24-hour interior lighting schedule (hearth vs window hours reconciled)",
           "status": "active"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "co-orchestration-pipeline",
@@ -3264,7 +3415,8 @@
           "title": "Daemon auth: strip bearer tokens from public /agents (WF-G24)",
           "status": "done"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "code-modularization-sweep",
@@ -3286,7 +3438,8 @@
           "title": "High fan-in splits behind facades",
           "status": "parked"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "whole-game-systems-audit",
@@ -3614,7 +3767,8 @@
         }
       ],
       "status_note": "Absorbed docs/projects/game-systems-audit 2026-07-15; the campaign is ACTIVE — runbook + coverage ledger now live in the linked spec; continue planmap-first",
-      "updated": "2026-07-16"
+      "updated": "2026-07-16",
+      "tier": "strategic"
     },
     {
       "id": "entity-generator-3d",
@@ -3643,7 +3797,8 @@
           "link": "docs/superpowers/specs/2026-07-16-creature-space-expansion.md"
         }
       ],
-      "updated": "2026-07-16"
+      "updated": "2026-07-16",
+      "tier": "strategic"
     },
     {
       "id": "road-systems",
@@ -3683,7 +3838,8 @@
           "title": "Gate: live in-game eyeball (Remy)",
           "status": "specced"
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "forests",
@@ -3727,7 +3883,8 @@
           "status": "specced"
         }
       ],
-      "updated": "2026-07-14"
+      "updated": "2026-07-14",
+      "tier": "strategic"
     },
     {
       "id": "mountains",
@@ -3776,7 +3933,8 @@
           "status": "specced"
         }
       ],
-      "updated": "2026-07-14"
+      "updated": "2026-07-14",
+      "tier": "strategic"
     },
     {
       "id": "session-group-map",
@@ -3785,7 +3943,8 @@
       "campaign": "tooling",
       "status": "active",
       "deps": [],
-      "link": "public/planmap/session-groups.json"
+      "link": "public/planmap/session-groups.json",
+      "tier": "strategic"
     },
     {
       "id": "jules-spell-icons",
@@ -3794,7 +3953,8 @@
       "campaign": "spells",
       "status": "active",
       "deps": [],
-      "link": "docs/superpowers/specs/2026-07-13-jules-spell-icons-design.md"
+      "link": "docs/superpowers/specs/2026-07-13-jules-spell-icons-design.md",
+      "tier": "strategic"
     },
     {
       "id": "planning-surface-freshness",
@@ -3804,7 +3964,8 @@
       "status": "specced",
       "deps": [],
       "link": "docs/superpowers/specs/2026-07-14-planning-surface-freshness-design.md",
-      "open": 1
+      "open": 1,
+      "tier": "strategic"
     },
     {
       "id": "compass-pane",
@@ -3976,7 +4137,8 @@
             "built": "2026-06-08"
           }
         }
-      ]
+      ],
+      "tier": "strategic"
     },
     {
       "id": "command-effects-runtime",
@@ -4610,7 +4772,8 @@
       "campaign": "ui",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "encounter-generator",
@@ -4618,7 +4781,8 @@
       "campaign": "combat",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "environment",
@@ -4626,7 +4790,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "design-preview-scenarios",
@@ -4682,7 +4847,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "gemini-service",
@@ -4690,7 +4856,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "history",
@@ -4698,7 +4865,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "intrigue",
@@ -4706,7 +4874,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "layout",
@@ -4714,7 +4883,8 @@
       "campaign": "ui",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "item-categorization",
@@ -4722,7 +4892,8 @@
       "campaign": "character",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "logbook",
@@ -4730,7 +4901,8 @@
       "campaign": "tooling",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "logic",
@@ -4738,7 +4910,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "naval",
@@ -4746,7 +4919,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "naval-ui",
@@ -4754,7 +4928,8 @@
       "campaign": "ui",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "ollama-service",
@@ -4762,7 +4937,8 @@
       "campaign": "ui",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "organization",
@@ -4770,7 +4946,8 @@
       "campaign": "ui",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "party-ui",
@@ -4778,7 +4955,8 @@
       "campaign": "ui",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "phb2024-glossary-audit",
@@ -4786,7 +4964,8 @@
       "campaign": "tooling",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "physics",
@@ -4794,7 +4973,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "planar",
@@ -4802,7 +4982,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "providers",
@@ -4810,7 +4991,8 @@
       "campaign": "ui",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "puzzles",
@@ -4818,7 +5000,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "quests",
@@ -4826,7 +5009,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "racial-mechanics",
@@ -4834,7 +5018,8 @@
       "campaign": "tooling",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "realmsmith-service",
@@ -4842,7 +5027,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "religion",
@@ -4850,7 +5036,8 @@
       "campaign": "ui",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "rituals",
@@ -4858,7 +5045,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "roadmap-maintenance",
@@ -4866,7 +5054,8 @@
       "campaign": "tooling",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "saveload",
@@ -4874,7 +5063,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "script-tests",
@@ -4882,7 +5072,8 @@
       "campaign": "tooling",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "scripts-archive",
@@ -4890,7 +5081,8 @@
       "campaign": "tooling",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "scripts-audits",
@@ -4898,7 +5090,8 @@
       "campaign": "ui",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "scripts-git",
@@ -4906,7 +5099,8 @@
       "campaign": "agents",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "scripts-quality",
@@ -4914,7 +5108,8 @@
       "campaign": "agents",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "scripts-spell-runtime-template-audit",
@@ -4922,7 +5117,8 @@
       "campaign": "spells",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "scripts-tooling",
@@ -4930,7 +5126,8 @@
       "campaign": "agents",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "scripts-workflows",
@@ -4938,7 +5135,8 @@
       "campaign": "tooling",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "spells",
@@ -4946,7 +5144,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "submap",
@@ -4954,7 +5153,8 @@
       "campaign": "ui",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "submap-generation",
@@ -4962,7 +5162,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "three-d-modal",
@@ -4970,7 +5171,8 @@
       "campaign": "ui",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "town-description-system",
@@ -4978,7 +5180,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "trade-ui",
@@ -4986,7 +5189,8 @@
       "campaign": "ui",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "ui-primitives",
@@ -4994,7 +5198,8 @@
       "campaign": "ui",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "underdark",
@@ -5002,7 +5207,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "visibility",
@@ -5010,7 +5216,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "world-3d-ui",
@@ -5018,7 +5225,8 @@
       "campaign": "rendering",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "world3d",
@@ -5026,7 +5234,8 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
     },
     {
       "id": "worldsim-service",
@@ -5034,7 +5243,53 @@
       "campaign": "world",
       "status": "parked",
       "updated": "2026-07-15",
-      "deps": []
+      "deps": [],
+      "tier": "strategic"
+    },
+    {
+      "id": "entity-skeleton-pivot",
+      "title": "Entity skeletons (body v3)",
+      "sub": "real Bone/Skeleton/SkinnedMesh under every entity · Mixamo clips play natively · one-piece creased bodies · segments die like metaballs",
+      "campaign": "rendering",
+      "status": "specced",
+      "deps": [
+        {
+          "id": "entity-generator-3d",
+          "kind": "hard",
+          "why": "pivots body v2's segment renderer to real skeletons; gait/IK math, parts, recipes, and all five surfaces carry over"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-17-entity-skeleton-pivot-design.md",
+      "open": 4,
+      "features": [
+        {
+          "title": "Substrate: skeleton builder + rigid-weight skinned biped (A/B parity vs segments)",
+          "status": "specced"
+        },
+        {
+          "title": "Mixamo clip playback: retarget map + mixer + in-place speed sync (first payoff)",
+          "status": "specced"
+        },
+        {
+          "title": "Smooth joint weights: one-piece creased bodies",
+          "status": "specced"
+        },
+        {
+          "title": "Creature skeletons: plan chains become bone chains",
+          "status": "specced"
+        },
+        {
+          "title": "Crowd bake from bone transforms + segment renderer deletion",
+          "status": "specced"
+        },
+        {
+          "title": "Decision: wireframe look on deforming bodies (current game default)",
+          "status": "specced",
+          "decision": true
+        }
+      ],
+      "updated": "2026-07-17",
+      "tier": "strategic"
     }
   ]
 }

@@ -92,13 +92,15 @@ export interface ChunkData {
   decks?: {
     points: { x: number; y: number }[];
     topY: number;
-    kind: 'dock' | 'bridge';
+    kind: 'dock' | 'bridge' | 'ford' | 'fordStone';
     /**
      * Style-family deck detailing (styled-architecture slice): support-piling
      * spacing, edge railings, and parabolic bridge-arch rise. Absent decks
      * keep the plain flat slab.
      */
     detail?: { pilingSpacingM: number; railing: boolean; archRiseM: number };
+    /** Optional per-deck tint (0..1 RGB) overriding the kind color. */
+    color?: [number, number, number];
   }[];
   /**
    * Lake polygons clipped to this chunk (grid space) with a shared flat water surface.

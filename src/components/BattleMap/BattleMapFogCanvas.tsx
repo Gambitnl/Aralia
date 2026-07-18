@@ -12,7 +12,7 @@
  */
 import React, { useEffect, useRef } from 'react';
 import type { BattleMapData, LightLevel } from '../../types/combat';
-import { buildFogAlphaGrid, FOG_TINT } from './fogModel';
+import { blurFogAlphaGrid, buildFogAlphaGrid, FOG_TINT, FOG_TINT_WATER } from './fogModel';
 
 interface BattleMapFogCanvasProps {
   mapData: BattleMapData;
@@ -48,12 +48,22 @@ export const BattleMapFogCanvas: React.FC<BattleMapFogCanvasProps> = ({ mapData,
     mini.height = H;
     const mctx = mini.getContext('2d');
     if (!mctx) return;
-    const grid = buildFogAlphaGrid(mapData, visibleTiles, getLightLevel);
+    // Two blur passes melt the one-tile staircase a diagonal sight boundary
+    // leaves (e.g. vision breaking over a crest) into a smooth penumbra.
+    const grid = blurFogAlphaGrid(
+      buildFogAlphaGrid(mapData, visibleTiles, getLightLevel),
+      2,
+    );
     for (let y = 0; y < grid.height; y++) {
       for (let x = 0; x < grid.width; x++) {
         const alpha = grid.alphas[y * grid.width + x];
         if (alpha <= 0) continue;
-        mctx.fillStyle = `rgba(${FOG_TINT.r},${FOG_TINT.g},${FOG_TINT.b},${alpha})`;
+        // Water keeps its own hue family under fog — see FOG_TINT_WATER.
+        const tint =
+          mapData.tiles.get(`${x}-${y}`)?.terrain === 'water'
+            ? FOG_TINT_WATER
+            : FOG_TINT;
+        mctx.fillStyle = `rgba(${tint.r},${tint.g},${tint.b},${alpha})`;
         mctx.fillRect(x, y, 1, 1);
       }
     }

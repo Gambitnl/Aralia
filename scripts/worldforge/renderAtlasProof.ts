@@ -106,8 +106,9 @@ async function main() {
   const centerY = landCellCount > 0 ? sumY / landCellCount : H / 2;
   console.log(`Land centroid computed at: (${Math.round(centerX)}, ${Math.round(centerY)})`);
 
-  // Ensure output directory exists
-  const proofDir = path.join(__dirname, "../../docs/projects/worldforge/orchestration/proof");
+  // Proof renders are disposable review artifacts. Keeping them under the ignored scratch
+  // boundary prevents this reusable script from recreating the absorbed project-doc tree.
+  const proofDir = path.join(__dirname, "../../.agent/scratch/worldforge-atlas-proof");
   fs.mkdirSync(proofDir, { recursive: true });
 
   // --------------------------------------------------------------------------

@@ -18,6 +18,8 @@ for (let i = 0; i < 25; i++) {
   if (i === 24) console.log('NO region view after 25s');
 }
 await new Promise(r => setTimeout(r, 15000));
-await page.screenshot({ path: '../../docs/projects/worldforge/orchestration/proof/laneA7-overlay-region.png' });
+// Keep temporary proof under the ignored scratch boundary instead of rebuilding the
+// absorbed Worldforge project folder inside tracked documentation.
+await page.screenshot({ path: '../scratch/worldforge-laneA7-overlay-region.png' });
 console.log('saved; ascend-present:', await page.getByRole('button', { name: /ascend/i }).count());
 await browser.close();

@@ -1037,7 +1037,33 @@ function generateCivData(
       for (const pt of entryPoints) gates.push(pt);
     }
 
-    townSites.push({ burgId: burg.i, envelope, gates });
+    // Stamp the Atlas burg's identity once at the first generated artifact
+    // boundary. Every deeper tier reuses this receipt, including the fallback
+    // label when an imported FMG burg has no authored name, so Atlas and Ground
+    // can never independently choose different display names.
+    const biomeId = Number(
+      (pack.cells as unknown as { biome?: ArrayLike<number> }).biome?.[cellId] ?? 0,
+    );
+    const hasRiverAccess = Boolean(
+      (pack.cells as unknown as { r?: ArrayLike<number> }).r?.[cellId],
+    );
+    const isCoastal = Boolean(burg.port);
+    townSites.push({
+      burgId: burg.i,
+      identity: {
+        kind: 'town',
+        sourceKind: 'atlas-burg',
+        sourceId: burg.i,
+        name: burg.name ?? `Burg ${burg.i}`,
+        settlementType: burg.capital ? 'capital' : isCoastal ? 'port' : 'town',
+        biomeId,
+        hasRoadAccess: gates.length > 0,
+        hasRiverAccess,
+        isCoastal,
+      },
+      envelope,
+      gates,
+    });
   }
 
   // ── Heightfield interaction: flatten gently under town envelopes ───────
@@ -1053,7 +1079,13 @@ function generateCivData(
 // Region receipt then feeds Ground 3D, tactical extraction, and diagnostics.
 // ============================================================================
 
-const FORD_MAX_RIVER_WIDTH_FT = 60;
+// The river width mapping (widthFt = 50 + sqrt(discharge)*20) has a 50ft
+// floor and produces no river narrower than ~167ft in practice (seed-42 scan:
+// widths at crossings run 167–1100ft), so the old 60ft cap made every
+// crossing a bridge. 225ft admits only the narrowest quarter of crossings
+// (124 of 515 on seed 42), so trails and paths ford small streams while
+// anything substantial still gets a bridge.
+const FORD_MAX_RIVER_WIDTH_FT = 225;
 const CROSSING_LANDING_FT = 16;
 const MIN_CROSSING_ANGLE_SINE = 0.25;
 

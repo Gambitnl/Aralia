@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 13:30:41
+ * Last Sync: 17/07/2026, 22:34:53
  * Dependents: App.tsx
- * Imports: 50 files
+ * Imports: 52 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -48,6 +48,11 @@ import { deriveWatchReaction } from '../systems/social/watchReaction';
 import { CrimeSystem } from '../systems/crime/CrimeSystem';
 import { INITIAL_GAME_ENTRY_STATE } from '../systems/gameEntry/types';
 import { MOCK_SHIP_SLOOP } from '../data/dev/mockShips';
+import { normalizeAtlasGroundAddress } from '../systems/worldforge/leaf3d/atlasGroundDrilldown';
+import {
+    normalizeAtlasGroundPosition,
+    normalizeDiscoveredHiddenSites,
+} from '../systems/worldforge/leaf3d/atlasGroundContinuity';
 
 // Import slice reducers
 import { uiReducer } from './reducers/uiReducer';
@@ -625,8 +630,31 @@ export function appReducer(state: GameState, action: AppAction): GameState {
 
             // Validate and preserve 3D view state (world-3d-ui).
             // Legacy saves may not have these fields, so provide safe defaults.
-            const loadedWorldViewMode = loadedState.worldViewMode ?? 'atlas';
-            const loadedMapSurface = loadedState.mapSurface ?? 'classic';
+            // Wave 2 save migration: old saves simply have no native-Atlas
+            // address, while malformed/newer address versions are discarded.
+            // Semantic generator drift is checked by App before 3D can mount.
+            const loadedAtlasGroundAddress = normalizeAtlasGroundAddress(
+                loadedState.atlasGroundAddress,
+            );
+            const rejectedAtlasGroundAddress =
+                loadedState.atlasGroundAddress != null && loadedAtlasGroundAddress === null;
+            // Current meters are usable only when every lineage field matches the
+            // accepted address. Wave 1/2 saves legitimately omit this new field
+            // and safely resume at their selected focus.
+            const loadedAtlasGroundPosition = loadedAtlasGroundAddress
+                ? normalizeAtlasGroundPosition(
+                    loadedState.atlasGroundPosition,
+                    loadedAtlasGroundAddress,
+                )
+                : null;
+            // A malformed address must never fall through to Classic's 3D
+            // reconstruction. Legacy saves with no address keep their old mode.
+            const loadedWorldViewMode = rejectedAtlasGroundAddress
+                ? 'atlas'
+                : (loadedState.worldViewMode ?? 'atlas');
+            const loadedMapSurface = rejectedAtlasGroundAddress
+                ? 'worldforge'
+                : (loadedState.mapSurface ?? 'classic');
             const loadedPlayerWorldPos = loadedState.playerWorldPos ?? null;
 
             // If loading into 3D mode, validate that position is complete —
@@ -653,6 +681,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 worldViewMode: loadedWorldViewMode,
                 mapSurface: loadedMapSurface,
                 playerWorldPos: validatedPlayerWorldPos,
+                atlasGroundAddress: loadedAtlasGroundAddress,
+                atlasGroundPosition: loadedAtlasGroundPosition,
                 // Streamed 3D and legacy ThreeDModal must not both be active after load (W3DUI-22).
                 isThreeDVisible:
                     loadedWorldViewMode === '3d' ? false : (loadedState.isThreeDVisible ?? false),
@@ -685,6 +715,11 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 geminiInteractionLog: loadedState.geminiInteractionLog || [],
                 ollamaInteractionLog: loadedState.ollamaInteractionLog || [],
                 discoveryLog: loadedState.discoveryLog || [],
+                // Legacy Classic pins survive; malformed/future Atlas provenance
+                // is removed before any map can render it in the wrong world.
+                discoveredHiddenSites: normalizeDiscoveredHiddenSites(
+                    loadedState.discoveredHiddenSites,
+                ),
                 unreadDiscoveryCount: loadedState.unreadDiscoveryCount || 0,
                 metNpcIds: loadedState.metNpcIds || [],
                 locationResidues: loadedState.locationResidues || {},
@@ -755,6 +790,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // Keeping them across atlas travel/remote 3D entry lets the new
                 // ground scene spawn at coordinates from the previous locale.
                 playerGroundPos: dest ? null : state.playerGroundPos,
+                atlasGroundPosition: dest ? null : state.atlasGroundPosition,
                 // Moving invalidates a start-selection / click entry anchor so a later 3D
                 // entry doesn't snap back to the old town; an atlas-travel arrival
                 // instead stamps the destination's anchor so Enter-3D frames that town.
@@ -1114,6 +1150,24 @@ export function appReducer(state: GameState, action: AppAction): GameState {
 
         case 'CLEAR_ENTRY_3D_ANCHOR':
             return { ...state, entry3DAnchor: null };
+
+        case 'SET_ATLAS_GROUND_ADDRESS': {
+            // The action accepts only the compact schema; normalizing again
+            // protects reducer tests and future dispatchers that bypass Atlas.
+            const nextAtlasGroundAddress = normalizeAtlasGroundAddress(action.payload);
+            return {
+                ...state,
+                atlasGroundAddress: nextAtlasGroundAddress,
+                // Clearing or replacing an address also invalidates foreign live
+                // meters. A matching position survives phase-only round trips.
+                atlasGroundPosition: nextAtlasGroundAddress
+                    ? normalizeAtlasGroundPosition(
+                        state.atlasGroundPosition,
+                        nextAtlasGroundAddress,
+                    )
+                    : null,
+            };
+        }
 
         case 'SET_WORLD_VIEW_MODE':
             // PLAYING streamed 3D owns the canvas; never stack legacy ThreeDModal on top (W3DUI-22).

@@ -151,12 +151,37 @@ export function makeTerrainHeightSampler(
   height: number,
   seed: number,
 ): (tileX: number, tileZ: number) => number {
+  // Raw per-tile carve: full basin for open water, near-none for a ford bed
+  // (a ford IS a raised bed — the shallow sheet above it drives WaterSystem's
+  // bright color and foam for free).
+  const rawCarve = (tx: number, ty: number): number => {
+    const tile = tileGrid[ty]?.[tx];
+    if (tile?.terrain !== "water") return 0;
+    return tile.crossing?.kind === "ford"
+      ? WATER_BASIN_DEPTH * 0.18
+      : WATER_BASIN_DEPTH;
+  };
   const getElevation = (tx: number, ty: number): number => {
     const cx = Math.max(0, Math.min(width - 1, tx));
     const cy = Math.max(0, Math.min(height - 1, ty));
     const tile = tileGrid[cy]?.[cx];
     const elev = tile?.elevation ?? 0;
-    return tile?.terrain === "water" ? elev - WATER_BASIN_DEPTH : elev;
+    if (tile?.terrain !== "water") return elev;
+    // Smooth the carve over the 3×3 water neighborhood: the binary
+    // ford-vs-deep depth quantized to square tiles put a sawtooth terrace
+    // along any diagonal bar edge. Averaging turns it into a bank slope.
+    let sum = 0;
+    let n = 0;
+    for (let oy = -1; oy <= 1; oy++) {
+      for (let ox = -1; ox <= 1; ox++) {
+        const nx = cx + ox;
+        const ny = cy + oy;
+        if (tileGrid[ny]?.[nx]?.terrain !== "water") continue;
+        sum += rawCarve(nx, ny);
+        n++;
+      }
+    }
+    return elev - (n > 0 ? sum / n : WATER_BASIN_DEPTH);
   };
   return (tileX: number, tileZ: number): number => {
     const smoothElev = bicubicSample(getElevation, tileX, tileZ, width, height);
@@ -202,9 +227,55 @@ function createTerrainTypeTexture(
       const tile = mapData.tiles.get(`${x}-${y}`);
       const terrainType = tile?.terrain ?? "grass";
       data[idx] = TERRAIN_TYPE_INDEX[terrainType] ?? 0;
-      data[idx + 1] = 0;
+      // G channel flags a ford crossing so the shader can trade the deep
+      // silt bed for pale gravel — the bed a traveler actually wades on.
+      data[idx + 1] = tile?.crossing?.kind === "ford" ? 255 : 0;
       data[idx + 2] = 0;
-      data[idx + 3] = 255;
+      data[idx + 3] = 0; // A: woodland-floor intensity, filled below
+    }
+  }
+
+  // B channel: churned mud at ford approaches. Land tiles within reach of a
+  // ford cell are the funnel every crossing animal and cart tramples — the
+  // 2D painter draws mud fans there; this keeps 3D in the same story.
+  const MUD_REACH = 2.5;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const tile = mapData.tiles.get(`${x}-${y}`);
+      if (!tile || tile.terrain === "water") continue;
+      let nearFord = false;
+      for (let oy = -3; oy <= 3 && !nearFord; oy++) {
+        for (let ox = -3; ox <= 3 && !nearFord; ox++) {
+          if (Math.hypot(ox, oy) > MUD_REACH) continue;
+          const n = mapData.tiles.get(`${x + ox}-${y + oy}`);
+          if (n?.crossing?.kind === "ford") nearFord = true;
+        }
+      }
+      if (nearFord) data[(y * width + x) * 4 + 2] = 255;
+    }
+  }
+
+  // A channel: woodland-floor intensity. Ground under and around source
+  // trees darkens toward humus so tree clusters read as a wood, not lone
+  // glyphs on lawn — the 3D twin of the 2D painter's litter halos.
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const tile = mapData.tiles.get(`${x}-${y}`);
+      if (!tile || tile.terrain === "water") continue;
+      let floor = 0;
+      for (let oy = -2; oy <= 2; oy++) {
+        for (let ox = -2; ox <= 2; ox++) {
+          const n = mapData.tiles.get(`${x + ox}-${y + oy}`);
+          if (!n?.decoration) continue;
+          const d = Math.hypot(ox, oy);
+          if (n.decoration === "tree" && d <= 2.2) {
+            floor += Math.max(0, 1 - d / 2.2);
+          } else if (n.decoration === "bush" && d <= 1.3) {
+            floor += Math.max(0, 1 - d / 1.3) * 0.5;
+          }
+        }
+      }
+      data[(y * width + x) * 4 + 3] = Math.min(255, Math.round(floor * 170));
     }
   }
 
@@ -296,6 +367,17 @@ const TERRAIN_GLSL_PREAMBLE = /* glsl */ `
     vec3 c = mix(lush, field, smoothstep(0.25, 0.65, macro));
     c      = mix(c, faded,   smoothstep(0.58, 0.82, macro) * 0.65);
 
+    // Heather/scrub moment (GOAL #30): rare multi-tile olive-purple sweeps so
+    // grassland has distinct "different plant community" zones, not one green.
+    float heather = smoothstep(0.68, 0.84, fbm4(wXZ * 0.11 + vec2(57.0, 5.0)));
+    c = mix(c, vec3(0.26, 0.24, 0.20), heather * 0.55);
+
+    // Continent-scale value drift: at tactical distance the mid/fine noise
+    // averages into one uniform tone; multi-tile light/dark meadow sweeps
+    // keep far grass alive without touching close-up texture.
+    float sweep = fbm4(wXZ * 0.045 + vec2(3.1, 9.7));
+    c *= 0.88 + 0.24 * sweep;
+
     // Mid-scale brightening in open patches
     c += vec3(0.0, 0.03, 0.0) * smoothstep(0.48, 0.72, mid);
 
@@ -320,7 +402,9 @@ const TERRAIN_GLSL_PREAMBLE = /* glsl */ `
     vec3 dark  = vec3(0.24, 0.22, 0.20);
     vec3 ochre = vec3(0.48, 0.38, 0.26);  // iron-oxide mineral stain
 
-    vec3 c = mix(dark, light, macro * 0.45 + 0.38);
+    // Wider mineral-zone contrast (GOAL #30): granite vs basalt zones now span
+    // most of the light↔dark range so a rocky area reads as distinct formations.
+    vec3 c = mix(dark, light, smoothstep(0.22, 0.78, macro) * 0.72 + 0.16);
 
     // Crack darkening — large cracks clearly visible at viewing distance
     c *= 0.55 + 0.45 * smoothstep(0.0, 0.18, crack);
@@ -461,7 +545,51 @@ const TERRAIN_COLOR_FRAGMENT = /* glsl */ `
     (floor(vTerrainWorldPos.z) + 0.5) / uMapHeight
   );
   float _terrainIdx = texture2D(uTerrainTypeMap, _tileUV).r * 255.0;
+  // Ford flag sampled BILINEARLY by hand (the data texture must stay
+  // nearest-filtered for the type index): a per-tile hard flag draws the
+  // gravel bar as a tile-staircase along any diagonal crossing.
+  float _fordFlag;
+  {
+    vec2 _fTile = vTerrainWorldPos.xz - 0.5;
+    vec2 _fBase = floor(_fTile);
+    vec2 _fFrac = _fTile - _fBase;
+    vec2 _mapWH = vec2(uMapWidth, uMapHeight);
+    float _f00 = texture2D(uTerrainTypeMap, (_fBase + vec2(0.5, 0.5)) / _mapWH).g;
+    float _f10 = texture2D(uTerrainTypeMap, (_fBase + vec2(1.5, 0.5)) / _mapWH).g;
+    float _f01 = texture2D(uTerrainTypeMap, (_fBase + vec2(0.5, 1.5)) / _mapWH).g;
+    float _f11 = texture2D(uTerrainTypeMap, (_fBase + vec2(1.5, 1.5)) / _mapWH).g;
+    _fordFlag = mix(mix(_f00, _f10, _fFrac.x), mix(_f01, _f11, _fFrac.x), _fFrac.y);
+  }
   vec3 _terrainColor = getTerrainColor(_terrainIdx, vTerrainWorldPos.xz);
+  // Ford bed: pale waded gravel instead of deep silt — reads through the
+  // ankle-deep water as the raised crossing bar it is.
+  if (int(_terrainIdx + 0.5) == 4 && _fordFlag > 0.03) {
+    vec3 _gravel = getSandColor(vTerrainWorldPos.xz) * vec3(0.92, 0.88, 0.78);
+    float _pebble = voronoi(vTerrainWorldPos.xz * 2.4);
+    _gravel *= 0.82 + 0.18 * smoothstep(0.0, 0.12, _pebble);
+    // Ragged organic margin: noise perturbs the interpolated flag so the
+    // bar's edge wanders instead of tracing tile geometry.
+    float _fEdge = fbm4(vTerrainWorldPos.xz * 1.9 + vec2(11.0, 53.0));
+    float _fMix = smoothstep(0.25, 0.75, _fordFlag + (_fEdge - 0.5) * 0.5);
+    _terrainColor = mix(_terrainColor, _gravel, 0.78 * _fMix);
+  }
+  // Churned mud at ford approaches (B flag): dark trampled wet earth with
+  // noise breakup so the fan reads organic, mirroring the 2D mud mouths.
+  float _mudFlag = texture2D(uTerrainTypeMap, _tileUV).b;
+  if (_mudFlag > 0.5 && int(_terrainIdx + 0.5) != 4) {
+    float _mudN = fbm4(vTerrainWorldPos.xz * 1.4 + vec2(23.0, 47.0));
+    vec3 _mud = vec3(0.23, 0.17, 0.11) * (0.8 + 0.4 * _mudN);
+    _terrainColor = mix(_terrainColor, _mud, 0.30 + 0.30 * _mudN);
+  }
+  // Woodland floor (A intensity): humus/needle litter under tree clusters —
+  // the 3D twin of the 2D painter's litter halos. Noise keeps the blend from
+  // reading as a stamped disc around each trunk.
+  float _floorI = texture2D(uTerrainTypeMap, _tileUV).a;
+  if (_floorI > 0.03 && int(_terrainIdx + 0.5) == 0) {
+    float _fN = fbm4(vTerrainWorldPos.xz * 1.1 + vec2(61.0, 29.0));
+    vec3 _humus = vec3(0.10, 0.13, 0.06) * (0.85 + 0.3 * _fN);
+    _terrainColor = mix(_terrainColor, _humus, clamp(_floorI * (0.55 + 0.45 * _fN), 0.0, 0.75));
+  }
 
   // Edge blending: organic borders between terrain types (GOAL #23). The
   // original straight, evenly-soft strip along tile edges read as a grid seam;
@@ -826,26 +954,4 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
       lastHoverTileId.current = tileId;
       const tile = mapData.tiles.get(tileId);
       if (tile) onTileHover(tile);
-    };
-  }, [height, mapData, onTileHover, terrainHeightSampler, width]);
-
-  return (
-    <>
-      <mesh
-        ref={meshRef}
-        geometry={geometry}
-        material={material}
-        receiveShadow
-        onClick={(e: ThreeEvent<MouseEvent>) => {
-          e.stopPropagation();
-          if (e.intersections[0]) {
-            handleClick(e.intersections[0]);
-          }
-        }}
-        onPointerMove={handlePointerMove}
-      />
-    </>
-  );
-};
-
-export default TerrainMesh;
+  

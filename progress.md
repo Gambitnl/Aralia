@@ -1,5 +1,12 @@
 Original prompt: Set a goal to make the start of the game playable. Think of core Concepts that should work first and the set the goal to run the game and try
 
+## 2026-07-17 full Character Creator design preview
+
+- Confirmed the Design Preview hub had style-study pages for individual character-creation steps, but no page that mounted the complete production Character Creator.
+- Added `design.html?step=charactercreator` as a live full-flow preview. It uses the real production component, keeps preview drafts under a separate local-storage key, and contains completion/Main Menu callbacks so the standalone preview cannot launch or mutate a game session.
+- Added a Design Preview-only `Export Sheet` action. It downloads a self-contained, printable HTML character sheet with readable identity, abilities, training, spells, and appearance sections plus the complete current choice record for conditional and future fields.
+- Proof completed: the focused Character Creator suite passes 9/9; touched-file ESLint reports zero errors; dependency headers and sync-check pass; desktop, Auto-Fill-to-review, export-confirmation, exported-sheet, and 390x844 browser captures show the live component with no captured console errors. The downloaded HTML was re-opened and verified to contain identity, abilities, race, class, name, and the complete choice record. Broad TypeScript still fails on the repository's existing cross-domain debt, with no error naming the touched Character Creator or Design Preview files.
+
 ## 2026-07-16 truthful and readable tactical elevation
 
 - Direct user confusion exposed a semantic defect in the first elevation HUD: River Crossing displayed 22-50 ft while claiming the values were above a local low point. The source crop actually spans 28 ft, but its wider-world offset had never been removed from presentation.

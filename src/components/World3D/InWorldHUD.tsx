@@ -20,6 +20,8 @@ import World3DMinimap from './World3DMinimap';
 import type { WorldData } from '../../services/worldSim/types';
 import type { PlayerWorldPosition } from '../../types';
 import type { WorldGenDiagnostics } from '../../types/world';
+import type { CanonicalTownIdentity } from '../../systems/worldforge/artifacts';
+import type { GroundFocus } from '../../systems/worldforge/leaf3d/atlasGroundDrilldown';
 
 interface InWorldHUDProps {
   /** Whether dev mode is enabled (controls DebugHUD visibility). */
@@ -64,6 +66,10 @@ interface InWorldHUDProps {
    * is standing in. Only provided in ground mode (otherwise hides).
    */
   onOpenTownPlan?: () => void;
+  /** Canonical retained-Local focus shown as the PLAYING place identity. */
+  groundFocus?: GroundFocus | null;
+  /** Atlas burg identity copied through Region and Local without renaming. */
+  groundTownIdentity?: CanonicalTownIdentity | null;
 }
 
 /**
@@ -74,8 +80,10 @@ interface InWorldHUDProps {
  */
 const WorldViewTitle: React.FC<{
   isDevModeEnabled: boolean;
+  title: string;
+  subtitle?: string;
   children: React.ReactNode;
-}> = ({ isDevModeEnabled, children }) => {
+}> = ({ isDevModeEnabled, title, subtitle, children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -105,8 +113,22 @@ const WorldViewTitle: React.FC<{
     fontFamily: 'Outfit, sans-serif',
   };
 
+  const titleContent = (
+    <span
+      data-testid="hud-ground-place"
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+    >
+      <span>{title}</span>
+      {subtitle ? (
+        <span style={{ fontSize: '10px', fontWeight: 500, color: '#cbd5e1' }}>
+          {subtitle}
+        </span>
+      ) : null}
+    </span>
+  );
+
   if (!isDevModeEnabled) {
-    return <div style={pillStyle}>3D World View</div>;
+    return <div style={pillStyle}>{titleContent}</div>;
   }
 
   return (
@@ -122,7 +144,10 @@ const WorldViewTitle: React.FC<{
           cursor: 'pointer',
         }}
       >
-        3D World View {isOpen ? '▲' : '▼'}
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {titleContent}
+          <span aria-hidden="true">{isOpen ? '▲' : '▼'}</span>
+        </span>
       </button>
       {isOpen && (
         <div
@@ -158,7 +183,26 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
   onFrameTownCell,
   onOpenCellMap,
   onOpenTownPlan,
+  groundFocus,
+  groundTownIdentity,
 }) => {
+  // Ground place identity comes from the retained Local receipt. Relationship
+  // facts stay compact so the HUD names the place and its visual cues without
+  // covering the scene with developer diagnostics.
+  const groundRelationship = groundTownIdentity
+    ? [
+        groundTownIdentity.settlementType,
+        groundTownIdentity.hasRoadAccess ? 'road-linked' : null,
+        groundTownIdentity.hasRiverAccess ? 'river-linked' : null,
+        groundTownIdentity.isCoastal ? 'coastal' : null,
+      ].filter((label): label is string => label !== null).join(' / ')
+    : null;
+  const groundSubtitle = groundFocus
+    ? groundTownIdentity
+      ? `Ground / ${groundRelationship} / biome #${groundTownIdentity.biomeId} / ${groundTownIdentity.sourceKind} #${groundTownIdentity.sourceId}`
+      : `Ground / ${groundFocus.kind} #${String(groundFocus.id)}`
+    : undefined;
+
   return (
     <div
       data-testid="world-3d-hud"
@@ -187,7 +231,11 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           pointerEvents: 'auto', // Re-enable pointer events for interactive elements
         }}
       >
-        <WorldViewTitle isDevModeEnabled={isDevModeEnabled}>
+        <WorldViewTitle
+          isDevModeEnabled={isDevModeEnabled}
+          title={groundFocus?.label ?? '3D World View'}
+          subtitle={groundSubtitle}
+        >
           <DebugHUD
             chunkCount={chunkCount ?? 0}
             fps={fps ?? 0}

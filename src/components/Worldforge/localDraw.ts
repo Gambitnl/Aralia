@@ -217,6 +217,72 @@ export function drawLocalFeatures(
   const tx = (xFeet: number) => (xFeet - bounds.x) * scale + offsetX;
   const ty = (yFeet: number) => (yFeet - bounds.y) * scale + offsetY;
 
+  // Draw the canonical settlement plan before foliage glyphs. These are the
+  // exact artifact streets and footprints Ground 3D consumes, so water/terrain
+  // stays visible underneath while the selected place reads as the same town.
+  if (local.townPlan) {
+    const plan = local.townPlan;
+    for (const street of plan.streets) {
+      if (street.centerline.length < 2) continue;
+      ctx.beginPath();
+      street.centerline.forEach(([xFeet, yFeet], index) => {
+        const x = tx(xFeet);
+        const y = ty(yFeet);
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = Math.max(1.25, street.widthFt * scale);
+      ctx.strokeStyle = street.colorHex ?? '#b09a72';
+      ctx.stroke();
+    }
+
+    // Plot wall and roof stamps mirror the generated 3D architecture palette;
+    // civic roles keep their authored footprint, making landmark cues visible
+    // without building a second schematic town renderer.
+    for (const plot of plan.plots) {
+      if (plot.footprint.length < 3) continue;
+      ctx.beginPath();
+      plot.footprint.forEach(([xFeet, yFeet], index) => {
+        const x = tx(xFeet);
+        const y = ty(yFeet);
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.globalAlpha = 0.84;
+      ctx.fillStyle = plot.wallColorHex ?? '#a06a4a';
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = Math.max(0.75, 1.5 * scale);
+      ctx.strokeStyle = plot.roofColorHex ?? '#5d3428';
+      ctx.stroke();
+    }
+
+    // The town centroid is the selected-focus marker used by the entry CTA and
+    // initial Ground spawn. Its canonical name makes the correspondence visible
+    // even at fit zoom, while source id remains in the surrounding UI receipt.
+    const points = plan.plots.flatMap((plot) => plot.footprint);
+    if (points.length > 0) {
+      const centerX = points.reduce((sum, point) => sum + point[0], 0) / points.length;
+      const centerY = points.reduce((sum, point) => sum + point[1], 0) / points.length;
+      const markerX = tx(centerX);
+      const markerY = ty(centerY);
+      const markerRadius = Math.max(5, 18 * scale);
+      ctx.beginPath();
+      ctx.arc(markerX, markerY, markerRadius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.24)';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#fbbf24';
+      ctx.stroke();
+      ctx.font = '600 12px Outfit, sans-serif';
+      ctx.fillStyle = '#fff7d6';
+      ctx.fillText(plan.identity?.name ?? `Town ${plan.burgId}`, markerX + markerRadius + 4, markerY - 4);
+    }
+  }
+
   {
     for (const f of local.features) {
       const style = FEATURE_STYLE[f.kind];

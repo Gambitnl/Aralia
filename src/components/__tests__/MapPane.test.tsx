@@ -10,6 +10,18 @@ import MapPane from '../MapPane';
 // player-facing MapPane should no longer expose the old square grid renderer.
 
 describe('MapPane', () => {
+  it('restores an undersized saved map window to a usable desktop viewport', async () => {
+    localStorage.setItem('world-map-window', JSON.stringify({ width: 600, height: 400 }));
+
+    render(<MapPane onTileClick={vi.fn()} onClose={vi.fn()} allowTravel={false} />);
+
+    const frame = screen.getByTestId('window-world-map-window');
+    await waitFor(() => {
+      expect(frame).toHaveStyle({ width: '840px', height: '640px' });
+    });
+    localStorage.removeItem('world-map-window');
+  });
+
   it('renders the native Worldforge atlas as the sole map (no legacy grid, no Azgaar iframe)', () => {
     const onTileClick = vi.fn();
     const onClose = vi.fn();

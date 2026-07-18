@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 13:32:10
+ * Last Sync: 17/07/2026, 22:34:52
  * Dependents: App.tsx, state/appState.ts
  * Imports: 15 files
  *
@@ -342,6 +342,12 @@ export const initialGameState: GameState = {
     mapSurface: 'classic' as const,
     playerWorldPos: null,
     entry3DAnchor: null,
+    // Native Atlas ground saves retain only deterministic lineage. The large
+    // Region/Local artifacts stay transient and are rebuilt after load.
+    atlasGroundAddress: null,
+    // Live meters are versioned separately from the immutable selected focus.
+    // Fresh games have not entered a canonical Atlas Local yet.
+    atlasGroundPosition: null,
     // Canonical player presence (cell-native world, Stage 2). Source of truth for
     // the player's atlas cell + Locale position; null until spawn. `currentLocationId`
     // remains the derived legacy shadow readers use this stage.

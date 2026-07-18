@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 16/07/2026, 13:27:56
- * Dependents: App.tsx, components/MapPane.tsx, components/World3D/entryCellIdentity.ts, state/appState.ts, state/reducers/craftingReducer.ts, systems/adventureLog/adventureLog.ts, systems/adventureLog/oraclePrompt.ts, systems/party/recruitConsent.ts, systems/worldforge/local/gridAtlasBridge.ts, types/index.ts, types/travelMeta.ts, utils/world/sceneUtils.ts
+ * Last Sync: 17/07/2026, 22:33:44
+ * Dependents: App.tsx, components/MapPane.tsx, components/World3D/entryCellIdentity.ts, components/Worldforge/AtlasDemo.tsx, state/appState.ts, state/reducers/craftingReducer.ts, systems/adventureLog/adventureLog.ts, systems/adventureLog/oraclePrompt.ts, systems/party/recruitConsent.ts, systems/worldforge/local/gridAtlasBridge.ts, types/index.ts, types/travelMeta.ts, utils/world/sceneUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -35,6 +35,11 @@ import { CraftingState } from './crafting.js';
 import { JournalState } from './journal.js';
 import type { WorldDelta } from '../systems/worldforge/delta/types.js';
 import type { WorldforgeEncounterReceipt } from '../systems/combat/worldScenario/worldforgeEncounterReceipt.js';
+import type { AtlasGroundAddress } from '../systems/worldforge/leaf3d/atlasGroundDrilldown.js';
+import type {
+  AtlasGroundDiscoveryProvenance,
+  AtlasGroundPosition,
+} from '../systems/worldforge/leaf3d/atlasGroundContinuity.js';
 import type { Notification } from './ui.js';
 import { PlayerIdentityState } from './identity.js';
 
@@ -251,6 +256,11 @@ export interface DiscoveredHiddenSite {
    */
   offsetX?: number;
   offsetY?: number;
+  /**
+   * Wave 3 exact-world provenance. Legacy Classic discoveries omit this field
+   * and retain their established cell/offset behavior.
+   */
+  atlasGround?: AtlasGroundDiscoveryProvenance;
 }
 
 // -----------------------------------------------------------------------------
@@ -511,6 +521,22 @@ export interface GameState {
    * cleared on 3D exit. Null → fall back to the legacy tile-derived entry.
    */
   entry3DAnchor: Entry3DAnchor | null;
+
+  /**
+   * Compact native-Atlas ground lineage for save/reload.
+   *
+   * Region and Local artifacts never enter GameState. App reconstructs those
+   * exact objects from this versioned address before PLAYING ground mounts.
+   * Optional only for backward compatibility with saves written before Wave 2.
+   */
+  atlasGroundAddress?: AtlasGroundAddress | null;
+
+  /**
+   * Versioned current meters inside the exact saved Atlas Local.
+   * Kept separate from the selected focus so walking, interiors, and combat do
+   * not rewrite the immutable destination identity used by Wave 2 restore.
+   */
+  atlasGroundPosition?: AtlasGroundPosition | null;
 
   /**
    * Canonical player presence (cell-native world, Stage 2): the atlas cell +

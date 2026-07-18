@@ -226,6 +226,33 @@ function paintElevationRelief(
   shadeCanvas.height = height;
   const shadeContext = shadeCanvas.getContext("2d");
   if (shadeContext) {
+    // Positional-sun cast shadows: march each tile's eye-line toward the sun
+    // (upper-left, matching every baked prop/token shadow) and accumulate how
+    // far terrain rises above it. Slope shading says "this face tilts away";
+    // a cast shadow says "that hill over there blocks the light" — together
+    // they make landforms read as volumes instead of tint.
+    const SUN_DIR = { x: -0.78, y: -0.62 }; // normalized-ish toward the sun
+    const SUN_SLOPE_FT_PER_TILE = 0.9; // low sun: 10 ft knoll throws ~11 tiles
+    const MAX_SHADOW_MARCH_TILES = 24;
+    const castShadowAt = (x: number, y: number): number => {
+      const base = elevationAt(x, y);
+      let blockedBy = 0;
+      for (let step = 1; step <= MAX_SHADOW_MARCH_TILES; step += 1) {
+        const sampleX = Math.round(x + SUN_DIR.x * step);
+        const sampleY = Math.round(y + SUN_DIR.y * step);
+        if (
+          sampleX < 0 ||
+          sampleY < 0 ||
+          sampleX >= width ||
+          sampleY >= height
+        )
+          break;
+        const eyeLine = base + SUN_SLOPE_FT_PER_TILE * step;
+        blockedBy = Math.max(blockedBy, elevationAt(sampleX, sampleY) - eyeLine);
+      }
+      // 0 = fully lit; saturates at 1 when terrain rises 6+ ft over the ray.
+      return Math.max(0, Math.min(1, blockedBy / 6));
+    };
     const image = shadeContext.createImageData(width, height);
     for (let y = 0; y < height; y += 1) {
       for (let x = 0; x < width; x += 1) {
@@ -239,13 +266,18 @@ function paintElevationRelief(
           -1,
           Math.min(1, -slopeX * 0.7 - slopeY * 0.55),
         );
+        const shadow = castShadowAt(x, y);
         const offset = (y * width + x) * 4;
-        const bright = directional > 0;
-        image.data[offset] = bright ? 255 : 4;
-        image.data[offset + 1] = bright ? 239 : 10;
-        image.data[offset + 2] = bright ? 194 : 14;
+        const slopeAlpha = Math.abs(directional) * (directional > 0 ? 42 : 66);
+        const shadowAlpha = shadow * 58;
+        // Cast shadow always darkens; a lit slope inside a cast shadow loses
+        // its highlight instead of glowing through the shade.
+        const bright = directional > 0 && shadow < 0.15;
+        image.data[offset] = bright ? 255 : 6;
+        image.data[offset + 1] = bright ? 239 : 12;
+        image.data[offset + 2] = bright ? 194 : 20;
         image.data[offset + 3] = Math.round(
-          Math.abs(directional) * (bright ? 34 : 56),
+          bright ? slopeAlpha : Math.min(96, (directional > 0 ? 0 : slopeAlpha) + shadowAlpha),
         );
       }
     }
@@ -270,13 +302,53 @@ function paintElevationRelief(
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   traceContours();
-  ctx.strokeStyle = "rgba(4,10,12,0.42)";
+  ctx.strokeStyle = "rgba(4,10,12,0.5)";
   ctx.lineWidth = 3.5;
   ctx.stroke();
   traceContours();
-  ctx.strokeStyle = "rgba(244,211,145,0.52)";
+  ctx.strokeStyle = "rgba(244,211,145,0.62)";
   ctx.lineWidth = 1.5;
   ctx.stroke();
+
+  // Inline elevation labels, USGS topo style: without a number on the line a
+  // contour reads as an accidental scratch. Labels repeat along each level so
+  // one is visible in any reasonable viewport crop, rotated to follow the
+  // line, kept upright, with a casing halo so they survive busy terrain.
+  const LABEL_SPACING_TILES = 22;
+  const byLevel = new Map<number, ElevationContourSegment[]>();
+  for (const segment of contours) {
+    const bucket = byLevel.get(segment.reliefFeet) ?? [];
+    bucket.push(segment);
+    byLevel.set(segment.reliefFeet, bucket);
+  }
+  ctx.font = `700 ${Math.max(9, tileSize * 0.5)}px "Segoe UI", sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (const [reliefFeet, segments] of byLevel) {
+    let sinceLabel = LABEL_SPACING_TILES * 0.6; // stagger the first label in
+    for (const segment of segments) {
+      const dx = segment.x2 - segment.x1;
+      const dy = segment.y2 - segment.y1;
+      sinceLabel += Math.hypot(dx, dy);
+      if (sinceLabel < LABEL_SPACING_TILES) continue;
+      sinceLabel = 0;
+      const midX = ((segment.x1 + segment.x2) / 2) * tileSize;
+      const midY = ((segment.y1 + segment.y2) / 2) * tileSize;
+      let angle = Math.atan2(dy, dx);
+      if (angle > Math.PI / 2) angle -= Math.PI;
+      if (angle < -Math.PI / 2) angle += Math.PI;
+      ctx.save();
+      ctx.translate(midX, midY);
+      ctx.rotate(angle);
+      const text = `${reliefFeet} ft`;
+      ctx.strokeStyle = "rgba(28,34,24,0.85)";
+      ctx.lineWidth = 3;
+      ctx.strokeText(text, 0, 0);
+      ctx.fillStyle = "rgba(248,222,160,0.95)";
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
+  }
   ctx.restore();
 }
 
@@ -1137,51 +1209,117 @@ export function paintGround(
     (tile) => tile.surface?.kind === "road",
   );
   if (roadCells.length > 0) {
-    const roadCellIds = new Set(roadCells.map((tile) => tile.id));
-    const traceRoadCellUnion = (): void => {
-      ctx.beginPath();
-      for (const tile of roadCells) {
-        const x = (tile.coordinates.x + 0.5) * tileSize;
-        const y = (tile.coordinates.y + 0.5) * tileSize;
-
-        // A zero-length rounded segment paints isolated cells, while east and
-        // south links join the rasterized footprint without double tracing.
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + 0.01, y);
-        if (
-          roadCellIds.has(`${tile.coordinates.x + 1}-${tile.coordinates.y}`)
-        ) {
-          ctx.moveTo(x, y);
-          ctx.lineTo(x + tileSize, y);
-        }
-        if (
-          roadCellIds.has(`${tile.coordinates.x}-${tile.coordinates.y + 1}`)
-        ) {
-          ctx.moveTo(x, y);
-          ctx.lineTo(x, y + tileSize);
-        }
-      }
+    // Stroke-union painting (center-to-center segments per cell) could never
+    // read smooth: every direction change left cap lobes and notch steps on
+    // the band's boundary. Instead, trace the road cells' OUTLINE as vector
+    // contours (marching-squares over the tile mask) and round it with two
+    // Chaikin passes — one continuous curved silhouette, then fill it. The
+    // footprint stays exactly the source-fact cells, quarter-tile rounded.
+    const inRoad = new Set<string>();
+    for (const tile of roadCells) {
+      inRoad.add(`${tile.coordinates.x},${tile.coordinates.y}`);
+    }
+    const filled = (x: number, y: number) => inRoad.has(`${x},${y}`);
+    // Boundary edges between a filled cell and an unfilled neighbor, keyed by
+    // corner-lattice endpoints, chained into closed loops. Consistent
+    // orientation (filled cell on the left of travel) makes chaining exact.
+    type Pt = readonly [number, number];
+    const segs = new Map<string, Pt[]>(); // startKey -> [end, ...] (branching safe)
+    const key = (p: Pt) => `${p[0]},${p[1]}`;
+    const addSeg = (a: Pt, b: Pt) => {
+      const list = segs.get(key(a));
+      if (list) list.push(b);
+      else segs.set(key(a), [b]);
     };
+    for (const tile of roadCells) {
+      const x = tile.coordinates.x;
+      const y = tile.coordinates.y;
+      // Each open side contributes one lattice edge, oriented so the road
+      // interior stays on the LEFT: top L→R, right T→B, bottom R→L, left B→T.
+      if (!filled(x, y - 1)) addSeg([x, y], [x + 1, y]);
+      if (!filled(x + 1, y)) addSeg([x + 1, y], [x + 1, y + 1]);
+      if (!filled(x, y + 1)) addSeg([x + 1, y + 1], [x, y + 1]);
+      if (!filled(x - 1, y)) addSeg([x, y + 1], [x, y]);
+    }
+    const loops: Pt[][] = [];
+    while (segs.size > 0) {
+      const [startKey, ends] = segs.entries().next().value as [string, Pt[]];
+      const start = startKey.split(",").map(Number) as unknown as Pt;
+      const loop: Pt[] = [start];
+      let cur = ends.pop()!;
+      if (ends.length === 0) segs.delete(startKey);
+      let guard = 0;
+      while (key(cur) !== startKey && guard++ < 100000) {
+        loop.push(cur);
+        const nexts = segs.get(key(cur));
+        if (!nexts || nexts.length === 0) break; // open chain (map edge): stop
+        // At a checkerboard corner two continuations exist; taking the last
+        // keeps loops consistent because orientation already disambiguates.
+        const next = nexts.pop()!;
+        if (nexts.length === 0) segs.delete(key(cur));
+        cur = next;
+      }
+      if (loop.length >= 4) loops.push(loop);
+    }
+    // Corner rounding alone still ripples at 1-tile wavelength (a rounded
+    // staircase is still a staircase). Low-pass the contour FIRST — a few
+    // Laplacian passes flatten the stair ripple into straights and long
+    // curves — then one Chaikin pass rounds what remains.
+    const laplacian = (pts: Pt[], iterations: number): Pt[] => {
+      let cur = pts;
+      for (let it = 0; it < iterations; it++) {
+        const next: Pt[] = new Array(cur.length);
+        for (let i = 0; i < cur.length; i++) {
+          const p = cur[i];
+          const a = cur[(i - 1 + cur.length) % cur.length];
+          const b = cur[(i + 1) % cur.length];
+          next[i] = [
+            p[0] * 0.5 + (a[0] + b[0]) * 0.25,
+            p[1] * 0.5 + (a[1] + b[1]) * 0.25,
+          ];
+        }
+        cur = next;
+      }
+      return cur;
+    };
+    const chaikin = (pts: Pt[]): Pt[] => {
+      const out: Pt[] = [];
+      for (let i = 0; i < pts.length; i++) {
+        const a = pts[i];
+        const b = pts[(i + 1) % pts.length];
+        out.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25]);
+        out.push([a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
+      }
+      return out;
+    };
+    const roadPath = new Path2D();
+    for (let loop of loops) {
+      loop = chaikin(laplacian(loop, 4));
+      roadPath.moveTo(loop[0][0] * tileSize, loop[0][1] * tileSize);
+      for (let i = 1; i < loop.length; i++) {
+        roadPath.lineTo(loop[i][0] * tileSize, loop[i][1] * tileSize);
+      }
+      roadPath.closePath();
+    }
 
     ctx.save();
-    ctx.lineCap = "round";
     ctx.lineJoin = "round";
-
-    traceRoadCellUnion();
+    // Soft dark ground shadow straddling the boundary.
     ctx.strokeStyle = "rgba(38,28,17,0.42)";
-    ctx.lineWidth = tileSize * 1.32;
-    ctx.stroke();
-
-    traceRoadCellUnion();
-    ctx.strokeStyle = dirtPat ?? "#72563a";
-    ctx.lineWidth = tileSize * 1.12;
-    ctx.stroke();
-
-    traceRoadCellUnion();
-    ctx.strokeStyle =
-      biome === "desert" ? "rgba(224,194,137,0.38)" : "rgba(157,122,76,0.32)";
-    ctx.lineWidth = tileSize;
-    ctx.stroke();
+    ctx.lineWidth = tileSize * 0.34;
+    ctx.stroke(roadPath);
+    // The bed itself.
+    ctx.fillStyle = dirtPat ?? "#72563a";
+    ctx.fill(roadPath, "evenodd");
+    // Sun-bleached center wash + a worn inner rim, clipped to the bed so
+    // both fade at the true curved edge.
+    ctx.clip(roadPath, "evenodd");
+    ctx.fillStyle =
+      biome === "desert" ? "rgba(224,194,137,0.24)" : "rgba(157,122,76,0.2)";
+    ctx.fillRect(0, 0, px, py);
+    ctx.strokeStyle = "rgba(30,22,13,0.35)";
+    ctx.lineWidth = tileSize * 0.3;
+    ctx.stroke(roadPath);
     ctx.restore();
   }
 
@@ -1521,7 +1659,13 @@ export function paintGround(
       depthTiny.height = H;
       const depthCtx = depthTiny.getContext("2d");
       if (depthCtx) {
-        depthCtx.fillStyle = wl.depth;
+        // Graded depth: BFS distance from the nearest land tile. A binary
+        // "interior vs bank" band paints any river wider than two tiles as
+        // one flat wash; grading by bank distance gives shallows a bright
+        // margin and the channel a dark spine, which is what makes broad
+        // water read as water instead of blue paint.
+        const dist = new Map<string, number>();
+        const queue: Array<[number, number]> = [];
         mapData.tiles.forEach((tile) => {
           if (terrainToGround(tile.terrain) !== "water") return;
           const tx = tile.coordinates.x;
@@ -1531,10 +1675,82 @@ export function paintGround(
             isLand(tx, ty + 1) ||
             isLand(tx - 1, ty) ||
             isLand(tx + 1, ty)
-          )
-            return;
-          depthCtx.fillRect(tx, ty, 1, 1);
+          ) {
+            dist.set(`${tx},${ty}`, 1);
+            queue.push([tx, ty]);
+          }
         });
+        for (let qi = 0; qi < queue.length; qi++) {
+          const [qx, qy] = queue[qi];
+          const d = dist.get(`${qx},${qy}`)!;
+          for (const [nx, ny] of [
+            [qx, qy - 1],
+            [qx, qy + 1],
+            [qx - 1, qy],
+            [qx + 1, qy],
+          ] as const) {
+            const key = `${nx},${ny}`;
+            if (dist.has(key)) continue;
+            const g = groundAt.get(key);
+            if (g !== "water") continue;
+            dist.set(key, d + 1);
+            queue.push([nx, ny]);
+          }
+        }
+        const depthMatch = /^rgba\((\d+),(\d+),(\d+),([\d.]+)\)$/.exec(
+          wl.depth.replace(/\s/g, ""),
+        );
+        const [dr, dg, db, da] = depthMatch
+          ? [
+              Number(depthMatch[1]),
+              Number(depthMatch[2]),
+              Number(depthMatch[3]),
+              Number(depthMatch[4]),
+            ]
+          : [8, 30, 52, 0.4];
+        const DEPTH_FULL_AT = 4; // bank distance where the wash saturates
+        // Raw ring distances terrace into visible stair-step bands on broad
+        // water; a box blur over the water mask melts the rings into one
+        // continuous shallow-to-deep ramp before the bilinear upscale.
+        const alphaAt = new Float32Array(W * H);
+        mapData.tiles.forEach((tile) => {
+          if (terrainToGround(tile.terrain) !== "water") return;
+          const tx = tile.coordinates.x;
+          const ty = tile.coordinates.y;
+          // Crossing cells are the raised bed itself — a ford is SHALLOW by
+          // definition, so the deep-water wash must not paint over it.
+          if (tile.crossing) return;
+          const d = dist.get(`${tx},${ty}`) ?? DEPTH_FULL_AT + 1;
+          const t = d <= 1 ? 0 : Math.min(1, (d - 1) / DEPTH_FULL_AT);
+          alphaAt[ty * W + tx] = d <= 1 ? 0 : da * (0.35 + 0.65 * t);
+        });
+        const blurred = new Float32Array(W * H);
+        for (let by = 0; by < H; by++) {
+          for (let bx = 0; bx < W; bx++) {
+            if (groundAt.get(`${bx},${by}`) !== "water") continue;
+            let sum = 0;
+            let n = 0;
+            for (let oy = -1; oy <= 1; oy++) {
+              for (let ox = -1; ox <= 1; ox++) {
+                const sx = bx + ox;
+                const sy = by + oy;
+                if (sx < 0 || sy < 0 || sx >= W || sy >= H) continue;
+                if (groundAt.get(`${sx},${sy}`) !== "water") continue;
+                sum += alphaAt[sy * W + sx];
+                n++;
+              }
+            }
+            blurred[by * W + bx] = n > 0 ? sum / n : 0;
+          }
+        }
+        for (let by = 0; by < H; by++) {
+          for (let bx = 0; bx < W; bx++) {
+            const a = blurred[by * W + bx];
+            if (a <= 0.004) continue;
+            depthCtx.fillStyle = `rgba(${dr},${dg},${db},${a.toFixed(3)})`;
+            depthCtx.fillRect(bx, by, 1, 1);
+          }
+        }
         wctx.imageSmoothingEnabled = true;
         wctx.imageSmoothingQuality = "high";
         wctx.drawImage(depthTiny, 0, 0, W, H, 0, 0, px, py);
@@ -1799,6 +2015,16 @@ export function paintGround(
       // while leaving collision and movement on those exact cells unchanged.
       ctx.translate(center.x, center.y);
       ctx.rotate(Math.atan2(direction.y, direction.x));
+      // Cast shadow onto the water first: a deck several feet above the
+      // surface throws a soft offset band. Without it the span reads as
+      // paint on the water, not a structure over it.
+      ctx.save();
+      ctx.shadowColor = "rgba(4,10,22,0.55)";
+      ctx.shadowBlur = tileSize * 0.55;
+      ctx.shadowOffsetY = tileSize * 0.45;
+      ctx.fillStyle = "rgba(4,10,22,0.28)";
+      ctx.fillRect(-halfSpan, -halfWidth, spanPx, widthPx);
+      ctx.restore();
       ctx.shadowColor = "rgba(8,5,3,0.62)";
       ctx.shadowBlur = tileSize * 0.18;
       ctx.shadowOffsetY = tileSize * 0.12;
@@ -1823,8 +2049,8 @@ export function paintGround(
       // World3D already treats Ground decks as town masonry. Repeating joints
       // and restrained value changes keep this view materially consistent and
       // flat, avoiding the false rounded-log read of a strong wood gradient.
-      ctx.strokeStyle = "rgba(38,36,32,0.42)";
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(38,36,32,0.62)";
+      ctx.lineWidth = Math.max(1, tileSize * 0.06);
       for (
         let x = -halfSpan + tileSize * 0.7;
         x < halfSpan;
@@ -1847,8 +2073,8 @@ export function paintGround(
       // edge instead of allowing its broad route width to resemble floor paint.
       for (const side of [-1, 1]) {
         const railY = side * (halfWidth - Math.max(2, tileSize * 0.08));
-        ctx.strokeStyle = "#34322d";
-        ctx.lineWidth = Math.max(3, tileSize * 0.18);
+        ctx.strokeStyle = "#26241f";
+        ctx.lineWidth = Math.max(3, tileSize * 0.22);
         ctx.beginPath();
         ctx.moveTo(-halfSpan, railY);
         ctx.lineTo(halfSpan, railY);
@@ -1870,27 +2096,200 @@ export function paintGround(
         }
       }
     } else {
-      // Fords remain visibly wet: a translucent shallow band and irregular
-      // stepping stones communicate difficult terrain rather than a dry deck.
-      traceCellUnion();
-      ctx.strokeStyle = "rgba(188,166,112,0.42)";
-      ctx.lineWidth = tileSize * 1.02;
-      ctx.stroke();
-      for (const tile of group.cells) {
-        const tx = tile.coordinates.x;
-        const ty = tile.coordinates.y;
-        ctx.fillStyle = "rgba(104,94,72,0.76)";
-        ctx.beginPath();
-        ctx.ellipse(
-          (tx + 0.34 + rand(tx, ty, 611) * 0.3) * tileSize,
-          (ty + 0.34 + rand(tx, ty, 612) * 0.3) * tileSize,
-          tileSize * (0.13 + rand(tx, ty, 613) * 0.08),
-          tileSize * (0.09 + rand(tx, ty, 614) * 0.05),
-          rand(tx, ty, 615) * Math.PI,
-          0,
-          Math.PI * 2,
-        );
+      // Ford, modeled on historic crossings (Roman paved fords, packhorse
+      // fords): the riverBED rises — a pale gravel causeway continuing the
+      // road line UNDER shallow water — it is never a dry deck. Water keeps
+      // flowing over it: crown shading, transverse ripples where the current
+      // quickens over the shallows, wheel ruts from cart traffic, and a
+      // single-file line of stepping stones upstream for walkers.
+      const fordCrossing = group.cells[0].crossing;
+      const fordAnchor = mapData.provenance?.anchorWorldMeters;
+      if (fordCrossing && fordAnchor) {
+        const dirLen =
+          Math.hypot(
+            fordCrossing.roadDirection.x,
+            fordCrossing.roadDirection.y,
+          ) || 1;
+        const dir = {
+          x: fordCrossing.roadDirection.x / dirLen,
+          y: fordCrossing.roadDirection.y / dirLen,
+        };
+        const center = {
+          x:
+            (Math.floor(W / 2) +
+              (fordCrossing.centerWorldMeters.x - fordAnchor.x) / 1.524) *
+            tileSize,
+          y:
+            (Math.floor(H / 2) +
+              (fordCrossing.centerWorldMeters.z - fordAnchor.z) / 1.524) *
+            tileSize,
+        };
+        const spanPx = (fordCrossing.spanMeters / 1.524) * tileSize;
+        const widthPx = (fordCrossing.widthMeters / 1.524) * tileSize;
+        const halfSpan = spanPx / 2;
+        const halfWidth = widthPx / 2;
+        ctx.translate(center.x, center.y);
+        ctx.rotate(Math.atan2(dir.y, dir.x));
+
+        // The bar must survive TACTICAL zoom, not just close-ups. That means:
+        // a NARROW committed line (chokepoint read), a crisp wet-sand edge
+        // with a dark drop-off rim where the bed falls away (the danger
+        // boundary IS the feature), coarse mottling instead of sub-pixel
+        // speckle, churned mud mouths where traffic funnels in, and
+        // irregular stones — not a rivet line.
+        const barHalf = Math.max(halfWidth * 0.85, tileSize * 0.9);
+        const edgeSegs = Math.max(8, Math.floor(spanPx / (tileSize * 0.6)));
+        const edgeAt = (side: -1 | 1, fx: number) =>
+          side *
+          (barHalf +
+            (rand(Math.round(fx * 7), side, 621) - 0.5) * tileSize * 0.7);
+        const traceBar = (inflate: number) => {
+          ctx.beginPath();
+          for (let s = 0; s <= edgeSegs; s++) {
+            const fx = -halfSpan + (s / edgeSegs) * spanPx;
+            const fy = edgeAt(-1, fx) - inflate;
+            if (s === 0) ctx.moveTo(fx, fy);
+            else ctx.lineTo(fx, fy);
+          }
+          for (let s = edgeSegs; s >= 0; s--) {
+            const fx = -halfSpan + (s / edgeSegs) * spanPx;
+            ctx.lineTo(fx, edgeAt(1, fx) + inflate);
+          }
+          ctx.closePath();
+        };
+        // Drop-off rim FIRST: a dark deep-water line hugging the bar, so the
+        // shallow/deep boundary reads as a hard edge, not a gradient.
+        traceBar(tileSize * 0.34);
+        ctx.fillStyle = "rgba(6,20,34,0.4)";
         ctx.fill();
+        // The bar itself: flat wet sand, one honest value, crisp silhouette.
+        traceBar(0);
+        ctx.fillStyle = "rgba(206,188,142,0.5)";
+        ctx.fill();
+        // Coarse mottling — patches sized in THIRDS of a tile so texture
+        // still reads when the whole map is on screen.
+        traceBar(0);
+        ctx.save();
+        ctx.clip();
+        for (let g = 0; g < Math.floor(spanPx / (tileSize * 0.45)); g++) {
+          const gx = -halfSpan + rand(g, 1, 622) * spanPx;
+          const gy = (rand(g, 2, 623) - 0.5) * barHalf * 1.8;
+          const gr = tileSize * (0.2 + rand(g, 4, 625) * 0.3);
+          ctx.fillStyle =
+            rand(g, 3, 624) > 0.5
+              ? "rgba(226,210,164,0.32)"
+              : "rgba(112,96,66,0.28)";
+          ctx.beginPath();
+          ctx.ellipse(gx, gy, gr * 1.5, gr * 0.8, rand(g, 5, 631) * Math.PI, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // Wheel ruts: carts take the crown; two darker wet lines.
+        ctx.strokeStyle = "rgba(92,80,52,0.45)";
+        ctx.lineWidth = Math.max(1.5, tileSize * 0.1);
+        for (const lane of [-0.3, 0.3]) {
+          ctx.beginPath();
+          ctx.moveTo(-halfSpan, barHalf * lane);
+          ctx.lineTo(halfSpan, barHalf * lane);
+          ctx.stroke();
+        }
+        // Thin water film over the bar — the crossing is still SUBMERGED;
+        // without this the crisp sand reads as a dry causeway. Strongest
+        // mid-channel, fading toward the banks where the bed emerges.
+        const filmG = ctx.createLinearGradient(-halfSpan, 0, halfSpan, 0);
+        filmG.addColorStop(0, "rgba(62,120,158,0.06)");
+        filmG.addColorStop(0.25, "rgba(62,120,158,0.3)");
+        filmG.addColorStop(0.5, "rgba(62,120,158,0.36)");
+        filmG.addColorStop(0.75, "rgba(62,120,158,0.3)");
+        filmG.addColorStop(1, "rgba(62,120,158,0.06)");
+        ctx.fillStyle = filmG;
+        ctx.fillRect(-halfSpan, -barHalf - tileSize, spanPx, (barHalf + tileSize) * 2);
+        ctx.restore();
+        // Broken white water on the downstream lip — the current tripping
+        // over the drop-off. Chunky dashes, not hairlines.
+        ctx.strokeStyle = "rgba(238,246,250,0.6)";
+        ctx.lineWidth = Math.max(1.5, tileSize * 0.12);
+        for (
+          let wx = -halfSpan;
+          wx < halfSpan;
+          wx += tileSize * (0.6 + rand(Math.round(wx), 5, 626) * 0.7)
+        ) {
+          ctx.beginPath();
+          ctx.moveTo(wx, edgeAt(1, wx) + tileSize * 0.42);
+          ctx.lineTo(wx + tileSize * 0.4, edgeAt(1, wx) + tileSize * 0.55);
+          ctx.stroke();
+        }
+        // Churned mud mouths: traffic funnels into the crossing, so both
+        // approaches get a dark trampled fan reaching onto the banks.
+        for (const end of [-1, 1] as const) {
+          const mx = end * halfSpan;
+          const mudG = ctx.createRadialGradient(mx, 0, 0, mx, 0, barHalf * 2.6);
+          mudG.addColorStop(0, "rgba(58,44,28,0.5)");
+          mudG.addColorStop(0.6, "rgba(58,44,28,0.24)");
+          mudG.addColorStop(1, "rgba(58,44,28,0)");
+          ctx.fillStyle = mudG;
+          ctx.beginPath();
+          ctx.ellipse(mx, 0, barHalf * 2.6, barHalf * 1.7, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // Upstream pool: water piles up and stills against the bar before
+        // spilling over — a smooth, slightly darker band with none of the
+        // open river's texture. Downstream gets broken water; upstream gets
+        // calm. The asymmetry is what makes the current direction readable.
+        const poolG = ctx.createLinearGradient(0, -barHalf - tileSize * 2.6, 0, -barHalf - tileSize * 0.2);
+        poolG.addColorStop(0, "rgba(10,30,52,0)");
+        poolG.addColorStop(0.55, "rgba(10,30,52,0.24)");
+        poolG.addColorStop(1, "rgba(10,30,52,0.34)");
+        ctx.fillStyle = poolG;
+        ctx.fillRect(-halfSpan, -barHalf - tileSize * 2.6, spanPx, tileSize * 2.4);
+        // A single stillness sheen line in the pool — glassy, not rippled.
+        ctx.strokeStyle = "rgba(210,228,240,0.18)";
+        ctx.lineWidth = Math.max(1, tileSize * 0.07);
+        ctx.beginPath();
+        ctx.moveTo(-halfSpan + tileSize, -barHalf - tileSize * 1.3);
+        ctx.quadraticCurveTo(0, -barHalf - tileSize * 1.05, halfSpan - tileSize, -barHalf - tileSize * 1.4);
+        ctx.stroke();
+
+        // Stepping stones: irregular sizes, drunk spacing, ~1 in 5 missing
+        // (washed away), occasional doubled stone. Upstream side.
+        let sx = -halfSpan + tileSize * 0.5;
+        let stoneIdx = 0;
+        while (sx < halfSpan) {
+          stoneIdx++;
+          const skip = rand(stoneIdx, 6, 632) < 0.2;
+          const step = tileSize * (0.65 + rand(stoneIdx, 7, 633) * 0.75);
+          if (!skip) {
+            const stones = rand(stoneIdx, 8, 634) < 0.18 ? 2 : 1;
+            for (let st = 0; st < stones; st++) {
+              const jx = sx + st * tileSize * 0.28;
+              const sy =
+                -barHalf -
+                tileSize * (0.5 + (rand(stoneIdx + st, 9, 635) - 0.5) * 0.45);
+              const sr = tileSize * (0.12 + rand(stoneIdx + st, 10, 636) * 0.14);
+              ctx.fillStyle = "rgba(235,245,250,0.4)";
+              ctx.beginPath();
+              ctx.moveTo(jx + sr * 0.4, sy + sr * 0.7);
+              ctx.lineTo(jx + sr * 1.7, sy + sr * 1.5);
+              ctx.lineTo(jx + sr * 0.1, sy + sr * 1.1);
+              ctx.closePath();
+              ctx.fill();
+              ctx.fillStyle = "#5c554a";
+              ctx.beginPath();
+              ctx.ellipse(jx, sy, sr, sr * (0.62 + rand(stoneIdx, 11, 637) * 0.3), rand(stoneIdx + st, 12, 638) * Math.PI, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.fillStyle = "rgba(182,174,158,0.75)";
+              ctx.beginPath();
+              ctx.ellipse(jx - sr * 0.25, sy - sr * 0.22, sr * 0.5, sr * 0.32, 0, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+          sx += step;
+        }
+      } else {
+        // Legacy/test maps without crossing receipts keep the simple wet band.
+        traceCellUnion();
+        ctx.strokeStyle = "rgba(188,166,112,0.42)";
+        ctx.lineWidth = tileSize * 1.02;
+        ctx.stroke();
       }
     }
     ctx.restore();
@@ -2049,6 +2448,43 @@ export function paintGround(
           );
       }
     }
+  }
+
+  // 2f. Woodland floor: a humus/needle-litter halo under every source tree,
+  // drawn BEFORE the trees so overlapping halos merge into continuous forest-
+  // floor masses. Lone tree glyphs on bright meadow grass read as scribbles;
+  // the same trees over a shared dark floor read as a wood. This is
+  // renderer-authored continuous texture keyed to source tree positions —
+  // no synthetic objects are invented.
+  if (
+    options.showDecorations !== false &&
+    (biome === "forest" || biome === "jungle" || biome === "swamp")
+  ) {
+    const floorInk =
+      biome === "swamp" ? "rgba(18,28,14," : "rgba(22,38,18,";
+    mapData.tiles.forEach((tile) => {
+      if (tile.decoration !== "tree" && tile.decoration !== "bush") return;
+      const tx = tile.coordinates.x;
+      const ty = tile.coordinates.y;
+      const cx = (tx + 0.5) * tileSize;
+      const cy = (ty + 0.5) * tileSize;
+      const big = tile.decoration === "tree";
+      // Two stacked soft blobs: a wide faint litter spread and a tighter,
+      // darker humus core. Jitter keeps merged masses organic.
+      for (const [radiusTiles, alpha] of big
+        ? ([[2.1, 0.16], [1.15, 0.22]] as const)
+        : ([[1.2, 0.12], [0.7, 0.16]] as const)) {
+        const jx = cx + (rand(tx, ty, 641) - 0.5) * tileSize * 0.5;
+        const jy = cy + (rand(ty, tx, 642) - 0.5) * tileSize * 0.5;
+        const r = tileSize * radiusTiles * (0.85 + rand(tx, ty, 643) * 0.3);
+        const g = ctx.createRadialGradient(jx, jy, 0, jx, jy, r);
+        g.addColorStop(0, `${floorInk}${alpha})`);
+        g.addColorStop(0.7, `${floorInk}${alpha * 0.6})`);
+        g.addColorStop(1, `${floorInk}0)`);
+        ctx.fillStyle = g;
+        ctx.fillRect(jx - r, jy - r, r * 2, r * 2);
+      }
+    });
   }
 
   // 3. Foliage + rocks from tile decorations (drawn large, top-down).

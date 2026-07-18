@@ -9,7 +9,7 @@
  * @component-owner UI Team / Core UI
  */
 import React, { useRef } from 'react';
-import { useResizableWindow } from '../../hooks/useResizableWindow';
+import { useResizableWindow, type WindowSize } from '../../hooks/useResizableWindow';
 import Tooltip from './Tooltip';
 import { ResizeHandles } from './ResizeHandles';
 import { Z_INDEX } from '../../styles/zIndex';
@@ -27,6 +27,7 @@ interface WindowFrameProps {
     storageKey?: string;
     headerActions?: React.ReactNode;
     initialMaximized?: boolean;
+    minimumSize?: Partial<WindowSize>;
 }
 
 export const WindowFrame: React.FC<WindowFrameProps> = ({
@@ -35,7 +36,8 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
     onClose,
     storageKey = 'generic-window',
     headerActions,
-    initialMaximized = true
+    initialMaximized = true,
+    minimumSize,
 }) => {
     // The hook owns persisted size, drag state, resize state, and viewport
     // clamping. The frame uses those values directly as fixed-position chrome.
@@ -50,7 +52,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
         handleDragStart,
         handleMaximize,
         handleReset
-    } = useResizableWindow(windowRef, storageKey, { initialMaximized });
+    } = useResizableWindow(windowRef, storageKey, { initialMaximized, minimumSize });
 
     // If position is not calculated yet, center the frame temporarily so the
     // first paint does not jump from a corner to the stored or clamped position.

@@ -412,6 +412,20 @@ const ROOFLESS =
   new URLSearchParams(window.location.search).get('wf_roofless') === '1';
 
 /**
+ * Covering-color floor for roof materials (town-look-slice1, 2026-07-18).
+ *
+ * Away-from-sun roof planes receive only the hemisphere fill (~0.4 effective),
+ * and the style families' coverings are dark albedos (slate #3f444b, aged clay
+ * #5e3a2c) — the product rendered near-black at play distance (proof:
+ * .agent/scratch/town-look-slice1/before-street.png, top-right roof). A bounded
+ * self-illumination floor derived from the covering color itself keeps slate,
+ * clay, and thatch reading as their material on every face while the sun side
+ * still shades visibly brighter. Material-local by design: no scene light was
+ * added or retuned, so this cannot affect any other surface.
+ */
+const ROOF_EMISSIVE_FLOOR = 0.3;
+
+/**
  * One footprint-true building (Worldforge town plan): rotated walls/parts +
  * hip roof + door/windows. The roof AUTO-HIDES when the camera moves inside
  * the building so the player can look around an interior without the
@@ -551,7 +565,16 @@ const SiteBuilding: React.FC<{
       {hasSolvedRoof ? (
         <group scale={[1, 1, -(s.doorZSign ?? -1)]}>
           <mesh ref={roofRef} geometry={solvedRoofGeom!} castShadow={castsLocalShadow}>
-            <meshStandardMaterial color={s.solvedRoof!.colorHex} flatShading side={THREE.DoubleSide} map={roofTex || null} />
+            {/* Covering-color floor: see ROOF_EMISSIVE_FLOOR — dark coverings
+                on hemisphere-only faces read as their material, not black. */}
+            <meshStandardMaterial
+              color={s.solvedRoof!.colorHex}
+              flatShading
+              side={THREE.DoubleSide}
+              map={roofTex || null}
+              emissive={s.solvedRoof!.colorHex}
+              emissiveIntensity={ROOF_EMISSIVE_FLOOR}
+            />
           </mesh>
         </group>
       ) : (
@@ -560,7 +583,16 @@ const SiteBuilding: React.FC<{
            building whose plan resolved no style (no solved roof). visible is
            driven per-frame by the camera-inside test above. */
         <mesh ref={roofRef} position={[0, s.boxHeight ?? 0, 0]} geometry={roofGeom} castShadow={castsLocalShadow}>
-          <meshStandardMaterial color={s.roofColorHex ?? '#7a4a32'} flatShading side={THREE.DoubleSide} map={roofTex || null} />
+          {/* Same covering-color floor as the solved roof so legacy prisms and
+              solved roofs stay tonally consistent across one street. */}
+          <meshStandardMaterial
+            color={s.roofColorHex ?? '#7a4a32'}
+            flatShading
+            side={THREE.DoubleSide}
+            map={roofTex || null}
+            emissive={s.roofColorHex ?? '#7a4a32'}
+            emissiveIntensity={ROOF_EMISSIVE_FLOOR}
+          />
         </mesh>
       )}
       {/* Chimney: style-family flag, solid shells only (interior-parts buildings

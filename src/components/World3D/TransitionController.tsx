@@ -32,6 +32,8 @@ export interface TransitionControllerProps {
   mode: 'atlas' | '3d';
   /** Called when the entry transition completes and player gains control. */
   onComplete: () => void;
+  /** Called after the 3D scene fully unmounts and Atlas owns its retained state. */
+  onAtlasRestored?: () => void;
   /** The 2D atlas content (MapPane + GameLayout). */
   atlasContent: React.ReactNode;
   /** The 3D scene content (World3DScene + InWorldHUD). */
@@ -41,6 +43,7 @@ export interface TransitionControllerProps {
 const TransitionController: React.FC<TransitionControllerProps> = ({
   mode,
   onComplete,
+  onAtlasRestored,
   atlasContent,
   sceneContent,
 }) => {
@@ -54,6 +57,10 @@ const TransitionController: React.FC<TransitionControllerProps> = ({
 
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
+  // Keep the cleanup callback current without restarting in-flight animation
+  // timers when App re-renders around the transient Atlas receipt.
+  const onAtlasRestoredRef = useRef(onAtlasRestored);
+  onAtlasRestoredRef.current = onAtlasRestored;
 
   // Ref avoids re-running this effect when mount state flips mid-transition (which would clear timers).
   const isSceneMountedRef = useRef(isSceneMounted);
@@ -91,6 +98,10 @@ const TransitionController: React.FC<TransitionControllerProps> = ({
         schedule(() => {
           setIsSceneMounted(false);
           setTransitionPhase('idle');
+          // Atlas has already remounted and copied the exact receipt artifacts
+          // into its own hierarchy state. The transient App carrier is now safe
+          // to clear without rebuilding the fading ground scene underneath it.
+          onAtlasRestoredRef.current?.();
         }, ATLAS_FADE_IN_MS);
       }, CAMERA_LERP_UP_MS);
     }

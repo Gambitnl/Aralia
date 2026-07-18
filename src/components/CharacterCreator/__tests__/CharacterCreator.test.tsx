@@ -20,7 +20,7 @@
  * @file src/components/CharacterCreator/__tests__/CharacterCreator.test.tsx
  */
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import CharacterCreator from '../CharacterCreator';
 import SpellContext from '../../../context/SpellContext';
@@ -269,5 +269,65 @@ describe('CharacterCreator Flow', () => {
 
     expect(screen.getByText(LOCKED_STEP_MESSAGES.missingReviewData)).toBeInTheDocument();
     consoleErrorSpy.mockRestore();
+  });
+
+  it('keeps a preview draft separate from the player character-creation draft', () => {
+    const previewStorageKey = 'aralia_test_character_creator_preview_state';
+    const onDraftChange = vi.fn();
+    const playerDraft = JSON.stringify({
+      ...initialCharacterCreatorState,
+      step: CreationStep.AgeSelection,
+    });
+    localStorage.setItem(STORAGE_KEY, playerDraft);
+
+    // Supplying a preview key must start from the preview's own state rather
+    // than resuming or overwriting the unfinished character from the main game.
+    render(
+      <TestWrapper>
+        <CharacterCreator
+          onCharacterCreate={mockOnCharacterCreate}
+          onExitToMainMenu={mockOnExitToMainMenu}
+          dispatch={mockDispatch}
+          draftStorageKey={previewStorageKey}
+          onDraftChange={onDraftChange}
+          previewHeaderActions={<span>Preview action</span>}
+        />
+      </TestWrapper>
+    );
+
+    expect(screen.getByText('Choose Your Race')).toBeInTheDocument();
+    expect(localStorage.getItem(STORAGE_KEY)).toBe(playerDraft);
+    expect(localStorage.getItem(previewStorageKey)).not.toBeNull();
+    expect(screen.getByText('Preview action')).toBeInTheDocument();
+    expect(onDraftChange).toHaveBeenLastCalledWith(expect.objectContaining({
+      step: CreationStep.Race,
+      selectedRace: null,
+    }));
+  });
+
+  it('reports changed choices to an embedding design tool', async () => {
+    const onDraftChange = vi.fn();
+
+    render(
+      <TestWrapper>
+        <CharacterCreator
+          onCharacterCreate={mockOnCharacterCreate}
+          onExitToMainMenu={mockOnExitToMainMenu}
+          dispatch={mockDispatch}
+          onDraftChange={onDraftChange}
+        />
+      </TestWrapper>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /^Confirm /i }));
+
+    // Exporting tools need the confirmed choice, not the initial empty snapshot
+    // that was reported when the creator first mounted.
+    await waitFor(() => {
+      expect(onDraftChange).toHaveBeenLastCalledWith(expect.objectContaining({
+        selectedRace: expect.objectContaining({ name: expect.any(String) }),
+        step: CreationStep.AgeSelection,
+      }));
+    });
   });
 });

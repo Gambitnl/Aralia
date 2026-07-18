@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 22:43:05
+ * Last Sync: 17/07/2026, 21:43:47
  * Dependents: components/Worldforge/AtlasDemo.tsx
- * Imports: 5 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -19,8 +19,11 @@ import { ArrowLeft, MapPin } from 'lucide-react';
 import World3DScene from '../World3D/World3DScene';
 import { createGroundChunkLoader } from '../../systems/worldforge/bridge/groundChunkLoader';
 import { heightToMeters } from '../../systems/world3d/config';
-import type { LocalArtifact, RegionArtifact } from '../../systems/worldforge/artifacts';
-import { groundStartForFocus, type AtlasGroundDrilldown } from '../../systems/worldforge/leaf3d/atlasGroundDrilldown';
+import {
+  artifactsForAtlasGroundDrilldown,
+  groundStartForFocus,
+  type AtlasGroundDrilldown,
+} from '../../systems/worldforge/leaf3d/atlasGroundDrilldown';
 
 /**
  * This file renders the ground-level continuation of an Atlas drilldown.
@@ -32,18 +35,15 @@ import { groundStartForFocus, type AtlasGroundDrilldown } from '../../systems/wo
 
 interface Props {
   drilldown: AtlasGroundDrilldown;
-  local: LocalArtifact;
-  region: RegionArtifact;
   onAscend: () => void;
 }
 
-const WorldforgeGroundDrilldown: React.FC<Props> = ({ drilldown, local, region, onAscend }) => {
-  // Build the streamed scene from the retained artifact only when its lineage still
-  // matches the receipt. A mismatch is safer to stop than to regenerate another place.
+const WorldforgeGroundDrilldown: React.FC<Props> = ({ drilldown, onAscend }) => {
+  // The standalone developer cartographer still needs a ground renderer. It now
+  // consumes the same self-contained receipt as PLAYING, so this harness cannot
+  // accidentally establish a second artifact handoff contract.
   const scene = useMemo(() => {
-    if (local.seedPath !== drilldown.localSeedPath || region.seedPath !== drilldown.regionSeedPath) {
-      throw new Error('Atlas ground handoff no longer matches the selected artifacts. Ascend and select the location again.');
-    }
+    const { local, region } = artifactsForAtlasGroundDrilldown(drilldown);
     const { ground, loader } = createGroundChunkLoader(local, drilldown.worldSeed, region);
     const [xM, zM] = groundStartForFocus(local, drilldown.focus);
     const gx = Math.max(0, Math.min(ground.cols - 1, Math.round((xM / ground.extentMetersX) * (ground.cols - 1))));
@@ -54,7 +54,7 @@ const WorldforgeGroundDrilldown: React.FC<Props> = ({ drilldown, local, region, 
       start: [xM, 0, zM] as const,
       startSurfaceY: heightToMeters(ground.heights[gy * ground.cols + gx] ?? 0),
     };
-  }, [drilldown, local, region]);
+  }, [drilldown]);
 
   // Escape follows the same single-level ascent rule as the cartographic tiers.
   useEffect(() => {

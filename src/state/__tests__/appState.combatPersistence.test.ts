@@ -3,6 +3,8 @@ import { appReducer } from '../appState';
 import { GamePhase } from '../../types';
 import { createMockGameState } from '../../utils/core/factories';
 import type { PlayerCharacter } from '../../types/character';
+import type { AtlasGroundAddress } from '../../systems/worldforge/leaf3d/atlasGroundDrilldown';
+import { atlasGroundPositionForAddress } from '../../systems/worldforge/leaf3d/atlasGroundContinuity';
 
 /**
  * WS2 — Fights that stick: combat runs on transient CombatCharacter copies, so
@@ -83,5 +85,40 @@ describe('END_BATTLE combat attrition persistence', () => {
       payload: { rewards: { gold: 0, items: [], xp: 0 }, finalPartyState: [{ id: 'pc1', currentHP: 999 }] },
     });
     expect(next.party[0].hp).toBe(12);
+  });
+
+  it('returns to PLAYING with the same Atlas hierarchy and exact ground meters', () => {
+    const atlasGroundAddress: AtlasGroundAddress = {
+      schemaVersion: 1,
+      worldSeed: 91,
+      atlasCellId: 23,
+      regionSeedPath: '91/region:23',
+      regionBounds: { x: 0, y: 0, width: 25_000, height: 25_000 },
+      localSeedPath: '91/region:23/local:1000,2000',
+      localBounds: { x: 1000, y: 2000, width: 3000, height: 3000 },
+      focus: { kind: 'site', id: 8, xFt: 1200, yFt: 2300 },
+      returnTier: 'local',
+    };
+    const atlasGroundPosition = atlasGroundPositionForAddress(atlasGroundAddress, 95, 140)!;
+    const state = createMockGameState({
+      phase: GamePhase.COMBAT,
+      party: [partyMember()],
+      worldViewMode: '3d',
+      mapSurface: 'worldforge',
+      atlasGroundAddress,
+      atlasGroundPosition,
+      playerGroundPos: { tileX: 23, tileY: 0, xM: 95, zM: 140 },
+    });
+
+    const next = appReducer(state, {
+      type: 'END_BATTLE',
+      payload: { rewards: { gold: 0, items: [], xp: 0 } },
+    });
+
+    expect(next.phase).toBe(GamePhase.PLAYING);
+    expect(next.worldViewMode).toBe('3d');
+    expect(next.atlasGroundAddress).toBe(atlasGroundAddress);
+    expect(next.atlasGroundPosition).toBe(atlasGroundPosition);
+    expect(next.playerGroundPos).toEqual({ tileX: 23, tileY: 0, xM: 95, zM: 140 });
   });
 });

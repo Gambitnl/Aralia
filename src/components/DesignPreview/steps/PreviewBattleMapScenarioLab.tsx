@@ -440,6 +440,15 @@ export const PreviewBattleMapScenarioLab: React.FC = () => {
               {preset.encounterFrame}
             </span>
           </div>
+          {/* Every scene carries an authored description; keeping it visible
+              (not just a hover tooltip) tells reviewers what the scenario is
+              meant to prove before they judge the map. */}
+          <p
+            className="mt-0.5 max-w-3xl text-xs leading-snug text-slate-400"
+            data-testid="scenario-description"
+          >
+            {preset.description}
+          </p>
         </div>
 
         {/* Scenario choices are a compact segmented control because they switch

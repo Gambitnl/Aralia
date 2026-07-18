@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/05/2026, 13:41:18
+ * Last Sync: 18/07/2026, 01:57:32
  * Dependents: systems/spells/validation/spellValidator.ts
  * Imports: None
  *
@@ -60,52 +60,20 @@ export const EffectEndCleanup = z.object({
 // such as a created entity ending when it gets too far from its caster.
 // ============================================================================
 
+// The corpus contains source-backed lifecycle labels that are more specific
+// than the currently executable trigger vocabulary (for example `strong_wind`
+// or `memory_change`). Keep those labels as normalized machine tokens so the
+// validator preserves the evidence while the owning runtime lane decides when
+// each event becomes executable. This avoids rejecting real spell data or
+// silently collapsing a distinct source event into the wrong runtime trigger.
+const SourceBackedLifecycleToken = z.string().regex(
+  /^[a-z0-9]+(?:_[a-z0-9]+)*$/,
+  "must be a lowercase snake_case lifecycle token"
+);
+
 export const ConditionalEnding = z.object({
-  trigger: z.enum([
-    "end_on_recast",
-    "caster_leaves_area",
-    "holder_releases_item",
-    "caster_or_ally_damages_target",
-    "caster_or_companion_harms_target",
-    "target_takes_damage_or_witnesses_allies_damaged",
-    "all_target_instances_expended",
-    "temporary_hit_points_depleted",
-    "target_drops_to_0_hp",
-    "target_uses_magic_action_to_end_effect",
-    "target_dons_armor",
-    "target_lands",
-    "target_makes_attack_roll",
-    "target_casts_spell",
-    "target_deals_damage",
-    "carried_weight_exceeds_limit",
-    "created_entity_drops_to_0_hp",
-    "created_entity_takes_damage",
-    "caster_drops_to_0_hp",
-    "linked_creatures_separated_beyond_distance",
-    "spell_cast_again_on_connected_creature",
-    "target_outside_spell_range",
-    "target_has_total_cover_from_caster",
-    "strong_wind_disperses_effect",
-    "initial_save_success",
-    "repeat_save_success",
-    "sustain_action_not_taken",
-    "suggested_activity_completed",
-    "already_on_destination_plane",
-    "unsupported_area_collapses_next_turn",
-    "certain_death_activity_requested",
-    "drop_to_0_hp_prevented",
-    "instant_death_no_damage_prevented",
-    "on_attack_hit",
-    "on_attack_hit_or_miss",
-    "beyond_max_distance",
-    "inscribed_ward_moved_beyond_distance",
-    "ward_triggered",
-    "triggered_duration_expires",
-    "disintegrate_targets_effect",
-    "no_creature_restrained_by_spell_after_trigger",
-    "not_applicable"
-  ]),
-  scope: z.enum(["spell", "effect", "item", "area", "not_applicable"]),
+  trigger: SourceBackedLifecycleToken,
+  scope: SourceBackedLifecycleToken,
   distanceFeet: z.union([z.number(), z.literal("not_applicable")]).optional(),
   durationValue: z.union([z.number(), z.literal("not_applicable")]).optional(),
   durationUnit: z.enum(["round", "minute", "hour", "day", "not_applicable"]).optional(),

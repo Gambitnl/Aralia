@@ -70,17 +70,11 @@ function AtlasLayersImpl({ model, visible, softenActive = true }: AtlasLayersPro
       {(ocean?.regions ?? []).map((r, i) => (
         <path key={`o${i}`} d={r.d} fill={r.fill} fillRule="evenodd" />
       ))}
-      {/* Neutral land base. Drawn whenever Biomes is NOT the active coloring, so
-          partial overlays (cultures/religions/provinces/population) and the
-          "None" mode never leave land invisible against the ocean. */}
-      {!visible.biomes ? (
-        <g>
-          {(land.regions ?? []).map((r, i) => (
-            <path key={`lb${i}`} d={r.d} fill="#d9d2bd" fillRule="evenodd" />
-          ))}
-        </g>
-      ) : null}
-      {visible.biomes ? (
+      {/* Terrain Base: either the real colored biome/elevation/slope terrain or the
+          neutral parchment background, depending on whether we want biomes/overlays
+          to blend with the terrain.
+          Drawn under overlays so they can blend at roughly a 55% terrain / 45% overlay ratio. */}
+      {visible.biomes || visible.states || visible.cultures || visible.religions || visible.provinces ? (
         <>
           <g filter={softenFilter}>
             {(land.regions ?? []).map((r, i) => (
@@ -91,30 +85,39 @@ function AtlasLayersImpl({ model, visible, softenActive = true }: AtlasLayersPro
             <polygon key={`p${i}`} points={p.points} fill={p.fill} />
           ))}
         </>
-      ) : null}
+      ) : (
+        <g>
+          {(land.regions ?? []).map((r, i) => (
+            <path key={`lb${i}`} d={r.d} fill="#d9d2bd" fillRule="evenodd" />
+          ))}
+        </g>
+      )}
+
+      {/* Discrete Overlays: blended at approximately the retiring renderer's 55/45 ratio
+          (0.45 opacity) over the real terrain base above. */}
       {visible.states ? (
-        <g filter={softenFilter} opacity={0.7}>
+        <g filter={softenFilter} opacity={0.45}>
           {(model.stateRegions ?? []).map((r, i) => (
             <path key={`st${i}`} d={r.d} fill={r.fill} fillRule="evenodd" />
           ))}
         </g>
       ) : null}
       {visible.cultures ? (
-        <g filter={softenFilter} opacity={0.65}>
+        <g filter={softenFilter} opacity={0.45}>
           {(model.cultureRegions ?? []).map((r, i) => (
             <path key={`cu${i}`} d={r.d} fill={r.fill} fillRule="evenodd" />
           ))}
         </g>
       ) : null}
       {visible.religions ? (
-        <g filter={softenFilter} opacity={0.6}>
+        <g filter={softenFilter} opacity={0.45}>
           {(model.religionRegions ?? []).map((r, i) => (
             <path key={`rel${i}`} d={r.d} fill={r.fill} fillRule="evenodd" />
           ))}
         </g>
       ) : null}
       {visible.provinces ? (
-        <g filter={softenFilter} opacity={0.6}>
+        <g filter={softenFilter} opacity={0.45}>
           {(model.provinceRegions ?? []).map((r, i) => (
             <path key={`prov${i}`} d={r.d} fill={r.fill} fillRule="evenodd" />
           ))}

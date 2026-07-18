@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/06/2026, 03:46:27
+ * Last Sync: 17/07/2026, 22:34:53
  * Dependents: utils/core/index.ts, utils/factories.ts
- * Imports: 8 files
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -620,6 +620,10 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       mapSurface: 'classic',
       playerWorldPos: null,
       entry3DAnchor: null,
+      // Native Atlas continuity begins empty; focused tests opt into an exact
+      // address/current-position pair when proving ground round trips.
+      atlasGroundAddress: null,
+      atlasGroundPosition: null,
       // Canonical player presence (cell-native world, Stage 2). Null until a
       // spawn/move records it; readers still use the derived legacy fields.
       playerCell: null,
@@ -808,6 +812,9 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       mapSurface: 'classic',
       playerWorldPos: null,
       entry3DAnchor: null,
+      // Match the real initial state even when the factory falls back.
+      atlasGroundAddress: null,
+      atlasGroundPosition: null,
       // Canonical player presence (cell-native world, Stage 2); null in fallback.
       playerCell: null,
       // Keep the tile-local ground resume field present even in fallback states.

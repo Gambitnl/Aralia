@@ -241,6 +241,7 @@
                         "conditionalEndings":  [
                                                    {
                                                        "trigger":  "caster_goes_indoors",
+                                                       "scope":  "area",
                                                        "result":  "spell_ends_early_and_weather_gradually_returns_to_normal"
                                                    }
                                                ],

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 16/07/2026, 08:57:39
+ * Last Sync: 17/07/2026, 22:34:53
  * Dependents: None (Orphan)
- * Imports: 81 files
+ * Imports: 85 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -52,6 +52,7 @@ import React, {
   lazy,
   Suspense,
   useState,
+  useMemo,
 } from "react";
 import {
   Location,
@@ -111,6 +112,11 @@ import { BIOMES } from "./data/biomes";
 import { applyWfSpawnToMap } from "@/systems/worldforge/local/resolveSpawn";
 import { biomeIdForCell } from "@/systems/worldforge/local/biomeForCell";
 import { wfBiomeIndexToLegacyId } from "@/systems/worldforge/local/wfBiomeToLegacy";
+import {
+  atlasGroundAddressFromDrilldown,
+  type AtlasGroundDrilldown,
+} from "@/systems/worldforge/leaf3d/atlasGroundDrilldown";
+import { restoreAtlasGroundDrilldown } from "@/systems/worldforge/leaf3d/atlasGroundRestore";
 import { burgIdForCell } from "@/systems/worldforge/townsim/chronicleForLocation";
 import { townMerchantNpcsForCell } from "@/systems/worldforge/townsim/npcsForCell";
 import {
@@ -310,6 +316,65 @@ const App: React.FC = () => {
   }, []);
 
   const [gameState, dispatch] = useReducer(appReducer, initialGameState);
+
+  // The object-rich receipt remains transient even though Wave 2 now saves its
+  // compact address. A fresh Atlas descent keeps the exact retained objects;
+  // reload reconstructs equivalent objects through the canonical pipeline.
+  const [atlasGroundDrilldown, setAtlasGroundDrilldown] =
+    useState<AtlasGroundDrilldown | null>(null);
+
+  const atlasGroundRuntime = useMemo(() => {
+    // Wave 1 object identity wins during the live descent. This also avoids an
+    // unnecessary regeneration between the address dispatch and 3D mounting.
+    if (atlasGroundDrilldown && gameState.atlasGroundAddress) {
+      const transientAddress = atlasGroundAddressFromDrilldown(atlasGroundDrilldown);
+      // Loading another slot can replace reducer state without remounting App.
+      // Keep Wave 1 object identity only when it belongs to the active address;
+      // otherwise reconstruct the newly loaded slot instead of leaking objects.
+      if (
+        JSON.stringify(transientAddress) ===
+        JSON.stringify(gameState.atlasGroundAddress)
+      ) {
+        return { drilldown: atlasGroundDrilldown, rejected: false };
+      }
+    }
+
+    const restored = restoreAtlasGroundDrilldown(
+      gameState.atlasGroundAddress,
+      gameState.worldSeed,
+    );
+    return {
+      drilldown: restored.status === "ready" ? restored.drilldown : null,
+      rejected: restored.status === "rejected",
+    };
+  }, [atlasGroundDrilldown, gameState.atlasGroundAddress, gameState.worldSeed]);
+
+  // A structurally valid but stale address is discovered only after canonical
+  // generation. Heal back to native Atlas before TransitionController can mount
+  // Classic's cell-centred fallback and accidentally show a different Local.
+  useEffect(() => {
+    if (!atlasGroundRuntime.rejected) return;
+
+    dispatch({ type: "SET_ATLAS_GROUND_ADDRESS", payload: null });
+    dispatch({ type: "SET_PLAYER_GROUND_POS", payload: { position: null } });
+    dispatch({ type: "SET_MAP_SURFACE", payload: "worldforge" });
+    if (gameState.worldViewMode === "3d") {
+      dispatch({ type: "SET_WORLD_VIEW_MODE", payload: "atlas" });
+    }
+    dispatch({
+      type: "ADD_NOTIFICATION",
+      payload: {
+        type: "warning",
+        message: "The saved Atlas location is no longer valid. Select the location again.",
+      },
+    });
+  }, [atlasGroundRuntime.rejected, dispatch, gameState.worldViewMode]);
+
+  const activeAtlasGroundDrilldown = atlasGroundRuntime.drilldown;
+  const safeWorldViewMode =
+    atlasGroundRuntime.rejected && gameState.worldViewMode === "3d"
+      ? "atlas"
+      : gameState.worldViewMode;
 
   // Mirror every Ollama task call into the in-app log viewer via the central
   // sink (see useOllamaLogBridge). One subscription covers all AI traffic.
@@ -1490,6 +1555,9 @@ const App: React.FC = () => {
       }
       // The legacy continent position is vestigial, but keep its compatibility
       // value at the origin while the cell-native anchor frames the ground world.
+      // Classic entry supersedes any earlier native-Atlas return receipt.
+      setAtlasGroundDrilldown(null);
+      dispatch({ type: "SET_ATLAS_GROUND_ADDRESS", payload: null });
       dispatch({ type: "SET_PLAYER_WORLD_POS", payload: { x: 0, y: 0, z: 0 } });
       dispatch({ type: "SET_WORLD_VIEW_MODE", payload: "3d" });
       if (gameState.isMapVisible) {
@@ -1505,6 +1573,74 @@ const App: React.FC = () => {
       gameState.isMapVisible,
       gameState.playerCell?.cellId,
       gameState.worldSeed,
+    ],
+  );
+
+  /**
+   * Enter PLAYING ground from the native Atlas using its exact retained artifacts.
+   *
+   * This mirrors the established Classic-map state transition (player cell,
+   * ground reset, view mode, interactions) while retaining the richer Atlas
+   * receipt for World3DWrapper and stores only its compact Wave 2 address.
+   */
+  const handleEnterPlayingGroundFromAtlas = useCallback(
+    (drilldown: AtlasGroundDrilldown) => {
+      const targetLocationId = makeCellLocationId(drilldown.atlasCellId);
+      const anchor = { cellId: drilldown.atlasCellId };
+
+      // The selected Atlas cell becomes canonical game presence before the 3D
+      // scene mounts, so NPCs, travel, discovery, and combat all see one place.
+      if (
+        gameState.playerCell?.cellId !== drilldown.atlasCellId ||
+        gameState.currentLocationId !== targetLocationId
+      ) {
+        dispatch({
+          type: "MOVE_PLAYER",
+          payload: {
+            newLocationId: targetLocationId,
+            activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(
+              targetLocationId,
+              LOCATIONS,
+            ),
+            destinationCell: { cellId: drilldown.atlasCellId, anchor },
+          },
+        });
+      } else {
+        dispatch({ type: "SET_ENTRY_3D_ANCHOR", payload: anchor });
+      }
+
+      // A fresh Atlas descent starts at the selected focus, not stale meters
+      // from a previous Local. The receipt is assigned before switching modes
+      // so TransitionController mounts PLAYING with the exact source available.
+      dispatch({ type: "SET_PLAYER_GROUND_POS", payload: { position: null } });
+      setAtlasGroundDrilldown(drilldown);
+      dispatch({
+        type: "SET_ATLAS_GROUND_ADDRESS",
+        payload: atlasGroundAddressFromDrilldown(drilldown),
+      });
+
+      // Register the exact retained town when present; wilderness and site
+      // entries keep the existing cell-derived fallback behavior.
+      const burgId =
+        drilldown.local.townPlan?.burgId ??
+        burgIdForCell(drilldown.worldSeed, drilldown.atlasCellId);
+      if (burgId !== undefined) {
+        dispatch({ type: "TOWNSIM_REGISTER_BURG", payload: { burgId } });
+      }
+
+      dispatch({ type: "SET_PLAYER_WORLD_POS", payload: { x: 0, y: 0, z: 0 } });
+      dispatch({ type: "SET_WORLD_VIEW_MODE", payload: "3d" });
+      if (gameState.isMapVisible) {
+        dispatch({ type: "TOGGLE_MAP_VISIBILITY" });
+      }
+      addMessage(`Entering ${drilldown.focus.label} in the 3D world.`, "system");
+    },
+    [
+      addMessage,
+      dispatch,
+      gameState.currentLocationId,
+      gameState.isMapVisible,
+      gameState.playerCell?.cellId,
     ],
   );
 
@@ -2002,11 +2138,19 @@ const App: React.FC = () => {
       </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.WORLD3D_DEMO) {
-    // Render the 3D Sandbox Demo
-    mainContent = (
+    // `?phase=world3d&ground=1` remains an explicit developer reconstruction
+    // harness. Player-facing Atlas descent routes through PLAYING and its exact
+    // receipt; production builds must not expose this approximation shortcut.
+    mainContent = canUseDevTools() ? (
       <ErrorBoundary fallbackMessage="An error occurred in the 3D Sandbox.">
         <World3DDemo />
       </ErrorBoundary>
+    ) : (
+      <NotFound
+        onReturnToMainMenu={() =>
+          dispatch({ type: "SET_GAME_PHASE", payload: GamePhase.MAIN_MENU })
+        }
+      />
     );
   } else if (gameState.phase === GamePhase.WEBGPU_PROBE) {
     // WebGPU render probe (?phase=webgpuprobe): the streamed ground world drawn
@@ -2146,7 +2290,13 @@ const App: React.FC = () => {
     const atlasContent = useWorldforgeSurface ? (
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
         <Suspense fallback={<LoadingSpinner />}>
-          <WorldforgeAtlasDemo embeddedInGame worldSeed={gameState.worldSeed} />
+          <WorldforgeAtlasDemo
+            embeddedInGame
+            worldSeed={gameState.worldSeed}
+            onEnterPlayingGround={handleEnterPlayingGroundFromAtlas}
+            groundReturnReceipt={activeAtlasGroundDrilldown}
+            discoveredHiddenSites={gameState.discoveredHiddenSites}
+          />
         </Suspense>
         <div
           style={{
@@ -2212,8 +2362,17 @@ const App: React.FC = () => {
       <ErrorBoundary fallbackMessage="An error occurred in the main game view.">
         <Suspense fallback={<LoadingSpinner />}>
           <TransitionController
-            mode={gameState.worldViewMode}
+            mode={safeWorldViewMode}
             onComplete={handleTransitionComplete}
+            // Atlas has copied the receipt's exact artifacts into its Local
+            // hierarchy by this point and PLAYING ground is fully unmounted.
+            // Atlas has copied the receipt into component state. Clear both the
+            // transient carrier and compact address so a later root-Atlas page
+            // reload does not reopen a Local the player already ascended from.
+            onAtlasRestored={() => {
+              setAtlasGroundDrilldown(null);
+              dispatch({ type: "SET_ATLAS_GROUND_ADDRESS", payload: null });
+            }}
             atlasContent={atlasContent}
             // Grid retirement: the legacy continent-3D terrain (derived from the
             // 30x20 mapData) is gone; the streamed cell-native ground
@@ -2221,6 +2380,7 @@ const App: React.FC = () => {
             sceneContent={
               <World3DWrapper
                 entryPosition={entryPosition}
+                atlasGroundDrilldown={activeAtlasGroundDrilldown}
                 // Interactive 3D: clicking a townsperson/stranger in the world runs
                 // the SAME talk action as the 2D "Talk to X" button, so the
                 // conversation opens with full met/disposition/recruit bookkeeping.

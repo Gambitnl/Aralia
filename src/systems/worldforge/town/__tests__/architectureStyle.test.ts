@@ -12,10 +12,16 @@ import {
   styleFamilyForCultureType, styledWallColor, styledRoof, styleFrameOf, hash01,
   STYLE_FAMILIES, resolveStyle, resolveArchitectureVariant,
   climateForBiomeId, BIOME_TO_CLIMATE, finishPaletteForTier,
+  CLIMATE_KIT_FITNESS, applyClimateKitFitness,
 } from '../architectureStyle';
-import type { ResolveStyleInput } from '../architectureStyle';
+import type { ClimateClass, ResolveStyleInput } from '../architectureStyle';
 import { constructionKitsForFamily } from '../buildingMaterials';
-import { makeSeedPath } from '../../seedPath';
+import type {
+  BriefWealth,
+  BuildingConstruction,
+  BuildingEnsemble,
+} from '../../interior/blueprintTypes';
+import { fnv1a, makeSeedPath } from '../../seedPath';
 
 // ============================================================================
 // Culture Families And Frame-Stable Town Map Styling
@@ -236,8 +242,8 @@ describe('resolveArchitectureVariant', () => {
   });
 
   it('is deterministic for the same three-scope identity', () => {
-    const a = resolveArchitectureVariant(family, 'common', identity('plot:8'));
-    const b = resolveArchitectureVariant(family, 'common', identity('plot:8'));
+    const a = resolveArchitectureVariant(family, 'temperate', 'common', identity('plot:8'));
+    const b = resolveArchitectureVariant(family, 'temperate', 'common', identity('plot:8'));
     expect(a).toEqual(b);
   });
 
@@ -245,6 +251,7 @@ describe('resolveArchitectureVariant', () => {
     const variants = Array.from({ length: 120 }, (_, index) =>
       resolveArchitectureVariant(
         family,
+        'temperate',
         'common',
         identity(`plot:${index}`),
         row('ward:2:edge:4'),
@@ -261,7 +268,7 @@ describe('resolveArchitectureVariant', () => {
 
   it('keeps detached roofs individual and gives different row blocks distinct rhythms', () => {
     const detached = Array.from({ length: 80 }, (_, index) =>
-      resolveArchitectureVariant(family, 'common', identity(`plot:${index}`), {
+      resolveArchitectureVariant(family, 'temperate', 'common', identity(`plot:${index}`), {
         ...row('detached-lots'),
         kind: 'detached' as const,
         partyWallLeft: false,
@@ -270,6 +277,7 @@ describe('resolveArchitectureVariant', () => {
     const blocks = Array.from({ length: 40 }, (_, index) =>
       resolveArchitectureVariant(
         family,
+        'temperate',
         'common',
         identity(`plot:${index}`),
         row(`ward:${index}:edge:0`, index % 3 === 0 ? 'market-arcade' : 'row'),
@@ -284,7 +292,7 @@ describe('resolveArchitectureVariant', () => {
     // A long street sample makes the intended majority/minority rules visible
     // without depending on one specially chosen pair of building ids.
     const variants = Array.from({ length: 120 }, (_, index) =>
-      resolveArchitectureVariant(family, 'common', identity(`plot:${index}`)));
+      resolveArchitectureVariant(family, 'temperate', 'common', identity(`plot:${index}`)));
 
     expect(new Set(variants.map((variant) => variant.districtSignature)).size).toBe(1);
     expect(new Set(variants.map((variant) => variant.buildingVariant)).size).toBe(120);
@@ -313,11 +321,13 @@ describe('resolveArchitectureVariant', () => {
   it('lets districts differ visibly while keeping the same town culture family', () => {
     const common = resolveArchitectureVariant(
       family,
+      'temperate',
       'common',
       identity('plot:4', 'wealth:common'),
     );
     const harbor = resolveArchitectureVariant(
       family,
+      'temperate',
       'common',
       identity('plot:4', 'harbor'),
     );
@@ -339,8 +349,8 @@ describe('resolveArchitectureVariant', () => {
   });
 
   it('does not repeat the same district recipe across two towns of one culture', () => {
-    const first = resolveArchitectureVariant(family, 'common', identity('plot:1'));
-    const second = resolveArchitectureVariant(family, 'common', {
+    const first = resolveArchitectureVariant(family, 'temperate', 'common', identity('plot:1'));
+    const second = resolveArchitectureVariant(family, 'temperate', 'common', {
       ...identity('plot:1'),
       settlementKey: 'burg:18',
     });
@@ -348,8 +358,8 @@ describe('resolveArchitectureVariant', () => {
   });
 
   it('keeps one structural dialect across wealth while finishes respect each tier', () => {
-    const poor = resolveArchitectureVariant(family, 'poor', identity('plot:11', 'district:2'));
-    const wealthy = resolveArchitectureVariant(family, 'wealthy', identity('plot:11', 'district:2'));
+    const poor = resolveArchitectureVariant(family, 'temperate', 'poor', identity('plot:11', 'district:2'));
+    const wealthy = resolveArchitectureVariant(family, 'temperate', 'wealthy', identity('plot:11', 'district:2'));
 
     // Wealth changes the available material slice, not the builders' shared
     // district grammar or the stable identity of this individual building.
@@ -411,5 +421,235 @@ describe('climateForBiomeId (BGv2 Task 7 — burg biome → ClimateClass)', () =
     expect(() => climateForBiomeId(13)).toThrow(/biome/i);
     expect(() => climateForBiomeId(-1)).toThrow(/biome/i);
     expect(() => climateForBiomeId(99)).toThrow(/biome/i);
+  });
+});
+
+// ============================================================================
+// Climate-Constrained Construction Kits
+// ============================================================================
+// Operator decision 2026-07-18: a construction kit must survive its climate.
+// Arid bans reed/sod coverings, marsh bans mud walls, cold bans reed thatch
+// and remaps toward the family's heaviest covering. Temperate is the pinned
+// byte-identical baseline; a ban remaps deterministically to ONE specific
+// sibling kit of the same family — it never rerolls a named-hash draw.
+// ============================================================================
+
+describe('climate-constrained construction kits', () => {
+  const ALL_CLIMATES: ClimateClass[] = ['temperate', 'arid', 'cold', 'marsh'];
+  const WEALTH_TIERS: BriefWealth[] = ['poor', 'common', 'wealthy'];
+  const CULTURE_TYPES = ['Highland', 'Naval', 'River', 'Hunting', 'Generic'];
+  const identityOf = (districtKey: string, buildingKey: string) => ({
+    settlementKey: 'burg:17',
+    districtKey,
+    buildingKey,
+  });
+  const rowEnsemble = (blockKey: string): BuildingEnsemble => ({
+    blockKey,
+    kind: 'row',
+    partyWallLeft: true,
+    partyWallRight: true,
+    eaveStoreys: 2,
+    ensembleSignature: `ensemble:${blockKey}`,
+  });
+  /** Rebuild one family kit as a resolved construction for direct fitness calls. */
+  const constructionFromKit = (
+    familyId: keyof typeof STYLE_FAMILIES,
+    covering: string,
+    wealth: BriefWealth = 'common',
+  ): BuildingConstruction => {
+    const kit = constructionKitsForFamily(familyId)
+      .find((candidate) => candidate.roofCovering === covering);
+    if (!kit) throw new Error(`${familyId} offers no ${covering} kit`);
+    const wealthIndex = wealth === 'poor' ? 0 : wealth === 'wealthy' ? 2 : 1;
+    return {
+      kitId: kit.id,
+      wallMaterial: kit.wallMaterial,
+      wallCourseFt: kit.wallCourseFt,
+      timberWidthFt: kit.timberWidthFt,
+      roofCovering: kit.roofCovering,
+      foundation: kit.foundation,
+      glazing: kit.glazingByWealth[wealthIndex],
+      shutters: kit.shutters[0],
+      ornamentKit: kit.ornamentByWealth[wealthIndex],
+      constructionSignature: `${familyId}:test`,
+    };
+  };
+
+  // The exact 270-sample recipe frozen BEFORE the climate-kit change landed
+  // (identified variants across all families/wealths/districts, one row
+  // ensemble each, plus identified and standalone resolveStyle calls). The
+  // digest below was captured from the pre-change code; the temperate branch
+  // of the fitness table bans nothing, so this byte surface must never move.
+  // Re-freezing this digest is only legitimate alongside proof that every
+  // changed byte comes from a NEW additive field, never a shifted existing one.
+  function sampleClimateOutputs(climate: ClimateClass): unknown[] {
+    const out: unknown[] = [];
+    for (const fam of Object.values(STYLE_FAMILIES)) {
+      for (const wealth of WEALTH_TIERS) {
+        for (let d = 0; d < 3; d++) {
+          for (let b = 0; b < 5; b++) {
+            out.push(resolveArchitectureVariant(
+              fam, climate, wealth, identityOf(`district:${d}`, `plot:${b}`)));
+          }
+        }
+        out.push(resolveArchitectureVariant(
+          fam, climate, wealth,
+          identityOf('district:0', 'plot:9'),
+          rowEnsemble('ward:2:edge:4'),
+        ));
+      }
+    }
+    for (const cultureType of CULTURE_TYPES) {
+      for (const wealth of WEALTH_TIERS) {
+        const seedPath = makeSeedPath(1337, 'cell:71-8', 'local:2-1', `bldg:${cultureType}:${wealth}`);
+        out.push(resolveStyle({
+          cultureType, climate, wealth, buildingType: 'cottage', ageBand: 'old',
+          architecture: identityOf('district:1', 'plot:3'),
+        }, seedPath));
+        out.push(resolveStyle({ cultureType, climate, wealth, buildingType: 'shop' }, seedPath));
+      }
+    }
+    return out;
+  }
+
+  it('temperate output is byte-identical to the pre-change baseline (digest pin)', () => {
+    const samples = sampleClimateOutputs('temperate');
+    expect(samples).toHaveLength(270);
+    expect(fnv1a(JSON.stringify(samples, null, 1)).toString(36)).toBe('4ckbfw');
+  });
+
+  it('an allowed kit passes through as the SAME object — the fitness pass adds nothing', () => {
+    const slate = constructionFromKit('highlandStone', 'slate');
+    for (const climate of ALL_CLIMATES) {
+      expect(applyClimateKitFitness('highlandStone', climate, 'common', slate)).toBe(slate);
+    }
+    const thatch = constructionFromKit('temperateFrame', 'reed-thatch');
+    expect(applyClimateKitFitness('temperateFrame', 'temperate', 'common', thatch)).toBe(thatch);
+  });
+
+  it('arid never resolves a thatch/reed (or sod) covering across 200 sampled resolutions', () => {
+    let resolutions = 0;
+    for (const fam of Object.values(STYLE_FAMILIES)) {
+      for (let b = 0; b < 40; b++) {
+        const variant = resolveArchitectureVariant(
+          fam, 'arid', WEALTH_TIERS[b % 3], identityOf(`district:${b % 4}`, `plot:${b}`));
+        expect(variant.construction.roofCovering).not.toBe('reed-thatch');
+        expect(variant.construction.roofCovering).not.toBe('sod');
+        resolutions += 1;
+      }
+    }
+    expect(resolutions).toBe(200);
+    // The standalone preview path shares the same rule.
+    for (const cultureType of CULTURE_TYPES) {
+      const style = resolveStyle(
+        { cultureType, climate: 'arid', wealth: 'common', buildingType: 'cottage' },
+        makeSeedPath(9, 'cell:1-1', `bldg:${cultureType}`));
+      expect(style.construction.roofCovering).not.toBe('reed-thatch');
+      expect(style.construction.roofCovering).not.toBe('sod');
+    }
+  });
+
+  it('marsh never resolves a banned (mud/earth) wall material', () => {
+    for (const fam of Object.values(STYLE_FAMILIES)) {
+      for (let b = 0; b < 40; b++) {
+        const variant = resolveArchitectureVariant(
+          fam, 'marsh', WEALTH_TIERS[b % 3], identityOf(`district:${b % 4}`, `plot:${b}`));
+        for (const banned of CLIMATE_KIT_FITNESS.marsh.bannedWallMaterials) {
+          expect(variant.construction.wallMaterial).not.toBe(banned);
+        }
+      }
+    }
+    // wattle-daub is today's only mud/earth wall — pin it explicitly so a
+    // table edit cannot silently drop the operator's minimum ban.
+    expect(CLIMATE_KIT_FITNESS.marsh.bannedWallMaterials).toContain('wattle-daub');
+  });
+
+  it('cold bans reed thatch and remaps a banned pick to the family HEAVIEST covering', () => {
+    expect(CLIMATE_KIT_FITNESS.cold.bannedCoverings).toContain('reed-thatch');
+    // roughLog offers sod + wood-shingle beyond its banned thatch kit; sod is
+    // the heavier covering and must win the remap.
+    const roughSwap = applyClimateKitFitness(
+      'roughLog', 'cold', 'common', constructionFromKit('roughLog', 'reed-thatch'));
+    expect(roughSwap.kitId).toBe('rough-round-log-sod');
+    expect(roughSwap.roofCovering).toBe('sod');
+    // temperateFrame offers clay-tile + wood-shingle; clay tile is heavier.
+    const frameSwap = applyClimateKitFitness(
+      'temperateFrame', 'cold', 'common', constructionFromKit('temperateFrame', 'reed-thatch'));
+    expect(frameSwap.kitId).toBe('temperate-brick-tile');
+    expect(frameSwap.roofCovering).toBe('clay-tile');
+    // coastalTimber's two remaining kits share wood-shingle; declaration order
+    // breaks the tie so the remap still names ONE exact kit.
+    const coastSwap = applyClimateKitFitness(
+      'coastalTimber', 'cold', 'common', constructionFromKit('coastalTimber', 'reed-thatch'));
+    expect(coastSwap.kitId).toBe('coastal-weatherboard-shingle');
+  });
+
+  it('a swap is deterministic and remaps to one specific sibling — never a reroll', () => {
+    // Find identities whose TEMPERATE pick is arid-banned; the arid resolution
+    // of the same identity must be the family's single arid-fit kit.
+    let swappedCases = 0;
+    for (let b = 0; b < 60; b++) {
+      const identity = identityOf(`district:${b % 5}`, `plot:${b}`);
+      const temperate = resolveArchitectureVariant(STYLE_FAMILIES.roughLog, 'temperate', 'common', identity);
+      const arid = resolveArchitectureVariant(STYLE_FAMILIES.roughLog, 'arid', 'common', identity);
+      const arid2 = resolveArchitectureVariant(STYLE_FAMILIES.roughLog, 'arid', 'common', identity);
+      expect(arid).toEqual(arid2); // same inputs twice → deep-equal
+      if (['reed-thatch', 'sod'].includes(temperate.construction.roofCovering)) {
+        swappedCases += 1;
+        // roughLog keeps exactly one arid-legal kit; every banned pick lands there.
+        expect(arid.construction.kitId).toBe('rough-hewn-log-shingle');
+        expect(arid.construction.wallMaterial).toBe('hewn-log');
+        expect(arid.construction.roofCovering).toBe('wood-shingle');
+        // Operator's exact complaint: desert timber piles left with the thatch.
+        expect(arid.construction.foundation).toBe('fieldstone');
+      }
+      // Scope pin: ONLY kit-selection facts may move. Identity, coordination,
+      // and every non-kit trait must match the temperate resolution.
+      expect(arid.construction.constructionSignature).toBe(temperate.construction.constructionSignature);
+      expect(arid.construction.shutters).toBe(temperate.construction.shutters);
+      expect(arid.districtSignature).toBe(temperate.districtSignature);
+      expect(arid.buildingVariant).toBe(temperate.buildingVariant);
+      expect(arid.wallColor).toBe(temperate.wallColor);
+      expect(arid.roofColor).toBe(temperate.roofColor);
+      expect(arid.facadePattern).toBe(temperate.facadePattern);
+      expect(arid.pitchScale).toBe(temperate.pitchScale);
+      expect(arid.eaveOffsetFt).toBe(temperate.eaveOffsetFt);
+    }
+    expect(swappedCases).toBeGreaterThan(0); // the sample genuinely exercised bans
+  });
+
+  it('cross-family leakage remains zero under every climate', () => {
+    for (const fam of Object.values(STYLE_FAMILIES)) {
+      const kits = constructionKitsForFamily(fam.id);
+      const kitIds = new Set(kits.map((kit) => kit.id));
+      const walls = new Set(kits.map((kit) => kit.wallMaterial));
+      const coverings = new Set(kits.map((kit) => kit.roofCovering));
+      const foundations = new Set(kits.map((kit) => kit.foundation));
+      for (const climate of ALL_CLIMATES) {
+        for (let b = 0; b < 25; b++) {
+          const variant = resolveArchitectureVariant(
+            fam, climate, WEALTH_TIERS[b % 3], identityOf(`district:${b % 3}`, `plot:${b}`));
+          expect(kitIds.has(variant.construction.kitId)).toBe(true);
+          expect(walls.has(variant.construction.wallMaterial)).toBe(true);
+          expect(coverings.has(variant.construction.roofCovering)).toBe(true);
+          expect(foundations.has(variant.construction.foundation)).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('every family keeps at least one buildable kit under every climate (table invariant)', () => {
+    // Guards future fitness-table edits: applyClimateKitFitness throws (no
+    // fallback) if a climate bans a family's entire vocabulary, so the data
+    // must never reach that state.
+    for (const fam of Object.values(STYLE_FAMILIES)) {
+      for (const climate of ALL_CLIMATES) {
+        const fitness = CLIMATE_KIT_FITNESS[climate];
+        const allowed = constructionKitsForFamily(fam.id).filter((kit) =>
+          !fitness.bannedCoverings.includes(kit.roofCovering)
+          && !fitness.bannedWallMaterials.includes(kit.wallMaterial));
+        expect(allowed.length, `${fam.id} in ${climate}`).toBeGreaterThan(0);
+      }
+    }
   });
 });

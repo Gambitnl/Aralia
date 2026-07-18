@@ -48,7 +48,7 @@ import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
 import { useVisibility } from '../../hooks/combat/useVisibility';
 import type { useTurnManager } from '../../hooks/combat/useTurnManager';
 import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
-import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, DecorationProps, GroundScatter, EzTreeLayer, DistantTerrain, GroundMist, makeTerrainHeightSampler } from './terrain';
+import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, FordStones, DecorationProps, GroundScatter, EzTreeLayer, DistantTerrain, GroundMist, makeTerrainHeightSampler } from './terrain';
 import { CharacterActor } from './characters';
 import TargetingDecals from './TargetingDecals';
 import { CameraController } from './camera';
@@ -155,7 +155,9 @@ const BIOME_LIGHTING: Record<string, BiomeLighting> = {
     hemisphereTop: 0x87ceeb, hemisphereBottom: 0x3a2a1a,
     // Fog pushed back so the battlefield reads clearly at tactical zoom; fog now
     // only hazes the far map edges instead of swallowing the play area.
-    fogColor: 0x8fa07a, fogNear: 22, fogFar: 60,
+    // Hue: cool airy sage — the old 0x8fa07a khaki tinted every horizon and
+    // water edge like dust; distance haze should read as atmosphere.
+    fogColor: 0x9db8b0, fogNear: 22, fogFar: 60,
   },
   cave: {
     // Readability pass: cave was never actually lit before (biome bug rendered it
@@ -749,6 +751,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
         />
         <GrassLayer mapData={mapData} />
         <WaterSystem mapData={mapData} />
+        <FordStones mapData={mapData} />
         <DecorationProps mapData={mapData} />
         <EzTreeLayer mapData={mapData} />
         <GroundScatter mapData={mapData} />

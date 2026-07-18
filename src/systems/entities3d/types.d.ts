@@ -86,6 +86,7 @@ export interface PlanSpec {
         taper: number;
         arch: number;
         shape?: 'round' | 'box';
+        bulge?: number;
     };
     /** Body translucency (ghosts, oozes); eyes stay solid. */
     opacity?: number;
@@ -114,6 +115,8 @@ export interface PlanSpec {
     heads: Array<{
         /** Neck chain this head rides; undefined = spine front. */
         chainId?: string;
+        /** Sculpted head form; undefined = plain ball. */
+        form?: 'serpent' | 'beast' | 'blunt' | 'skull';
         sizeScale: number;
         eyes: {
             count: number;
@@ -172,6 +175,10 @@ export interface SegmentSink {
     /** Rectangular slab from a to b (its depth axis), w×h cross-section —
      * box-bodied creatures (cubes, chests, golems). Optional like ring(). */
     box?(id: string, ax: number, ay: number, az: number, bx: number, by: number, bz: number, w: number, h: number): void;
+    /** Continuous swept tube through control points (flat xyz triples) with a
+     * radius profile (knots spread evenly along the curve) — smooth spines and
+     * chains. Optional: sinks without it receive per-segment seg() fallbacks. */
+    tube?(id: string, points: number[], radii: number[]): void;
 }
 /** Minimal position — THREE.Vector3 satisfies this, keeping the data layer three-free. */
 export interface Vec3Like {

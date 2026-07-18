@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 14/07/2026, 20:47:44
- * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewTowns.tsx, components/MapPane.tsx, components/World3D/World3DScene.tsx, components/Worldforge/TownPlanView.tsx, systems/world3d/buildingModels.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/generateBuilding.ts, systems/worldforge/town/buildingMotifs.ts, systems/worldforge/town/buildingWeathering.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Last Sync: 17/07/2026, 21:35:30
+ * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewTowns.tsx, components/MapPane.tsx, components/World3D/World3DScene.tsx, components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/BuildingIdentityLab.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/world3d/buildingModels.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/generateBuilding.ts, systems/worldforge/town/buildingMotifs.ts, systems/worldforge/town/buildingWeathering.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
  * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
@@ -25,7 +25,10 @@
  * family, a settlement/district key chooses a dominant local dialect, and the
  * building key permits bounded exceptions. A burg's family comes from its FMG
  * culture TYPE — deterministic, and per the no-fallback directive an unknown
- * type is an ERROR, not a default.
+ * type is an ERROR, not a default. Climate additionally constrains the
+ * physical construction kits (CLIMATE_KIT_FITNESS): a desert town cannot keep
+ * reed-thatch, a marsh cannot keep mud walls — banned picks remap
+ * deterministically inside the same family's closed kit vocabulary.
  */
 import type { Pt } from '../submap/submapEngine';
 import type {
@@ -35,11 +38,14 @@ import type {
   BuildingEnsemble,
   BuildingType,
   FacadePattern,
+  RoofCovering,
   StyleResolved,
+  WallMaterial,
 } from '../interior/blueprintTypes';
 import { fnv1a, rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import { resolveBuildingMotifs } from './buildingMotifs';
 import {
+  constructionKitsForFamily,
   resolveBuildingConstruction,
   type ArchitectureFamilyId,
 } from './buildingMaterials';
@@ -280,6 +286,151 @@ export function finishPaletteForTier<T>(
 }
 
 // ============================================================================
+// Climate-Constrained Construction Kits
+// ============================================================================
+// What changed (2026-07-18): construction-kit selection is now constrained by
+// climate. Before this, an arid desert town could resolve reed-thatch roofs on
+// timber piles and only its WEATHERING label adapted; the physical kit ignored
+// climate entirely (operator decision: kits MUST be climate-constrained).
+// Why here: both production kit-selection sites live in this file (the variant
+// resolver and resolveStyle's standalone branch), and climate already reaches
+// both — this extends the shared climate roof-form override pattern landed
+// 2026-07-17 rather than forking a second climate path.
+// What was preserved: every named-hash draw in buildingMaterials.ts still runs
+// unchanged, so temperate output is byte-identical and non-temperate buildings
+// whose picked kit is allowed keep their exact former result. A ban REMAPS the
+// already-picked kit to one specific allowed sibling — it never rerolls draws.
+// What remains deferred: foundation-specific bans (e.g. timber piles in arid
+// when covering and wall are both allowed) — add a bannedFoundations column to
+// this data table if the operator wants them.
+// ============================================================================
+
+/**
+ * The construction bans one climate imposes, plus its ranked replacement
+ * preference. Pure editable DATA — extend the ban lists or reorder the
+ * preference without touching the remap algorithm below.
+ */
+export interface ClimateKitFitness {
+  /** Roof coverings this climate cannot keep functional. */
+  bannedCoverings: readonly RoofCovering[];
+  /** Wall materials this climate destroys. */
+  bannedWallMaterials: readonly WallMaterial[];
+  /**
+   * Best-fit-first covering order used to choose the replacement kit when a
+   * ban fires. A covering missing from the list ranks last; remaining ties are
+   * broken by the family's kit declaration order, so the remap is a pure
+   * lookup — deterministic, no hash draw consumed.
+   */
+  coveringPreference: readonly RoofCovering[];
+}
+
+/**
+ * Per-climate fitness table (closed over the 4 ClimateClass values).
+ *
+ * - temperate: bans nothing — the guaranteed byte-identical baseline.
+ * - arid: reeds and living sod cannot exist in a desert; baked/mineral
+ *   coverings (clay tile first) are the near fit.
+ * - cold: reed thatch rots under snow-melt soak; the preference lists the
+ *   family's HEAVIEST covering first (stone slab, then turf/sod, slate, tile)
+ *   per the snow-load rule.
+ * - marsh: mud/earth walls (wattle-daub) dissolve in standing water; reed
+ *   thatch is the marsh-native covering and ranks first for replacements.
+ */
+export const CLIMATE_KIT_FITNESS: Readonly<Record<ClimateClass, ClimateKitFitness>> = {
+  temperate: {
+    bannedCoverings: [],
+    bannedWallMaterials: [],
+    coveringPreference: [],
+  },
+  arid: {
+    bannedCoverings: ['reed-thatch', 'sod'],
+    bannedWallMaterials: [],
+    coveringPreference: ['clay-tile', 'stone-slab', 'slate', 'wood-shingle'],
+  },
+  cold: {
+    bannedCoverings: ['reed-thatch'],
+    bannedWallMaterials: [],
+    coveringPreference: ['stone-slab', 'sod', 'slate', 'clay-tile', 'wood-shingle'],
+  },
+  marsh: {
+    bannedCoverings: [],
+    bannedWallMaterials: ['wattle-daub'],
+    coveringPreference: ['reed-thatch', 'wood-shingle', 'sod', 'clay-tile', 'slate', 'stone-slab'],
+  },
+};
+
+/** Same wealth→index rule as buildingMaterials' private table (glazing/ornament triplets). */
+const CLIMATE_SWAP_WEALTH_INDEX: Readonly<Record<BriefWealth, 0 | 1 | 2>> = {
+  poor: 0,
+  common: 1,
+  wealthy: 2,
+};
+
+/**
+ * Enforce the climate fitness table on one already-resolved construction kit.
+ *
+ * When the picked kit survives its climate the INPUT OBJECT is returned
+ * untouched (temperate always takes this path — byte-identical by
+ * construction). When the kit's covering or wall is banned, the whole kit is
+ * remapped to the family's best-fit allowed sibling: swapping the complete kit
+ * (not just the covering) keeps kitId/wall/covering/foundation receipts
+ * self-consistent and also fixes companion absurdities the operator called out
+ * (desert timber piles ride along with desert thatch). The replacement is a
+ * pure function of (family, climate) — same inputs always remap to the same
+ * kit, never a reroll. Shutters stay as resolved (they are a family-wide
+ * district trait, not kit-bound) and constructionSignature keeps naming the
+ * district's picked recipe. Vocabulary stays closed: the replacement comes
+ * from the SAME family's three kits. A table that bans every kit of a family
+ * throws (no-fallback directive) instead of borrowing another family's kit.
+ */
+export function applyClimateKitFitness(
+  familyId: ArchitectureFamilyId,
+  climate: ClimateClass,
+  wealth: BriefWealth,
+  construction: BuildingConstruction,
+): BuildingConstruction {
+  const fitness = CLIMATE_KIT_FITNESS[climate];
+  const coveringBanned = fitness.bannedCoverings.includes(construction.roofCovering);
+  const wallBanned = fitness.bannedWallMaterials.includes(construction.wallMaterial);
+  if (!coveringBanned && !wallBanned) return construction;
+
+  const kits = constructionKitsForFamily(familyId);
+  const allowed = kits.filter((kit) =>
+    !fitness.bannedCoverings.includes(kit.roofCovering)
+    && !fitness.bannedWallMaterials.includes(kit.wallMaterial));
+  if (allowed.length === 0) {
+    throw new Error(
+      `applyClimateKitFitness: every ${familyId} construction kit is banned in a `
+      + `${climate} climate — widen the family vocabulary or relax the fitness table`,
+    );
+  }
+
+  const rank = (covering: RoofCovering): number => {
+    const index = fitness.coveringPreference.indexOf(covering);
+    return index === -1 ? fitness.coveringPreference.length : index;
+  };
+  let replacement = allowed[0];
+  for (const kit of allowed) {
+    if (rank(kit.roofCovering) < rank(replacement.roofCovering)) replacement = kit;
+  }
+
+  const wealthIndex = CLIMATE_SWAP_WEALTH_INDEX[wealth];
+  return {
+    // Spread first: shutters and constructionSignature survive, and key order
+    // matches an unswapped result so serialized receipts stay diffable.
+    ...construction,
+    kitId: replacement.id,
+    wallMaterial: replacement.wallMaterial,
+    wallCourseFt: replacement.wallCourseFt,
+    timberWidthFt: replacement.timberWidthFt,
+    roofCovering: replacement.roofCovering,
+    foundation: replacement.foundation,
+    glazing: replacement.glazingByWealth[wealthIndex],
+    ornamentKit: replacement.ornamentByWealth[wealthIndex],
+  };
+}
+
+// ============================================================================
 // District Dialect And Building Variation
 // ============================================================================
 // A district first chooses a small, repeated vocabulary from its culture
@@ -341,9 +492,11 @@ function relatedAlternative<T>(values: T[], dominant: T, key: string): T {
  */
 export function resolveArchitectureVariant(
   family: StyleFamily,
+  climate: ClimateClass,
   wealth: BriefWealth,
   identity: ArchitectureIdentity,
   ensemble?: BuildingEnsemble,
+  buildingType?: BuildingType,
 ): ArchitectureVariant {
   // Culture + settlement + spatial district own the structural recipe. Wealth
   // deliberately stays OUT of this key: two social classes on the same street
@@ -399,24 +552,51 @@ export function resolveArchitectureVariant(
   const roofColor = textHash01(`${finishBuildingKey}|roof-color:loyalty`) < 0.78
     ? districtRoof
     : secondaryRoof;
-  const roofForm = textHash01(`${roofRhythmKey}|roof-form:loyalty`) < 0.78
+  let roofForm = textHash01(`${roofRhythmKey}|roof-form:loyalty`) < 0.78
     ? districtRoofForm
     : secondaryRoofForm;
   const facadePattern = textHash01(`${buildingKey}|facade:loyalty`) < 0.80
     ? districtFacade
     : secondaryFacade;
 
+  // ============================================================================
+  // Climate-Aware Roof Form Override
+  // ============================================================================
+  // This section ensures that climate (cold, arid, etc.) and type (temple, etc.)
+  // overrides are applied directly to the variant. This guarantees that both the
+  // 2D/artifact and 3D/blueprint views resolve identical roof facts.
+  //
+  // What changed: Added climate and buildingType overrides to roofForm in variant.
+  // Why: Resolve discrepancy between 2D/artifact and 3D/blueprint.
+  // What was preserved: Standard picking logic and legacy fallback in resolveStyle.
+  // ============================================================================
+  const offers = (f: RoofForm) => family.roofForms.includes(f);
+  if (climate === 'cold' && offers('steep')) {
+    roofForm = 'steep';
+  } else if (climate === 'arid' && offers('flat')) {
+    roofForm = 'flat';
+  }
+
+  // Temple must never present a flat roof (temples get a pitched top); keep MAY
+  // be flat (parapet). If a flat form slipped through for a temple, lift it to
+  // the family's first non-flat form (or 'gable' as the universal pitched form).
+  if (roofForm === 'flat' && buildingType === 'temple') {
+    roofForm = family.roofForms.find((f) => f !== 'flat') ?? 'gable';
+  }
+
   // Silhouette changes stay within a narrow band. Detached/courtyard roofs gain
   // individual profile variation; connected rows repeat one block rhythm while
   // climate and family roof grammar remain the dominant read everywhere.
   const pitchScale = 0.88 + textHash01(`${roofRhythmKey}|pitch`) * 0.24;
   const eaveOffsetFt = (textHash01(`${roofRhythmKey}|eave`) - 0.5) * 0.5;
-  const construction = resolveBuildingConstruction({
+  // Kit draws stay exactly as before; the fitness pass only remaps a
+  // climate-banned pick to its family's best-fit sibling (temperate: no-op).
+  const construction = applyClimateKitFitness(family.id, climate, wealth, resolveBuildingConstruction({
     familyId: family.id,
     wealth,
     architecture: identity,
     standaloneKey: buildingKey,
-  });
+  }));
 
   return {
     wallColor,
@@ -454,7 +634,7 @@ export function resolveStyle(input: ResolveStyleInput, path: SeedPath): StyleRes
   const legacyWallColor = pick(finishPaletteForTier(fam.wallPalette, input.wealth), rng.next());
   const legacyRoofColor = pick(finishPaletteForTier(fam.roofPalette, input.wealth), rng.next());
   const variant = input.architecture
-    ? resolveArchitectureVariant(fam, input.wealth, input.architecture, input.ensemble)
+    ? resolveArchitectureVariant(fam, input.climate, input.wealth, input.architecture, input.ensemble, input.buildingType)
     : undefined;
 
   let roofForm = variant?.roofForm ?? legacyRoofForm;
@@ -504,13 +684,20 @@ export function resolveStyle(input: ResolveStyleInput, path: SeedPath): StyleRes
     buildingVariant,
   );
   // Construction materials use named hashes rather than the legacy style RNG.
-  // Identified buildings reuse the district-coordinated answer above; standalone
-  // previews receive a deterministic complete kit from their stable path.
-  const construction = variant?.construction ?? resolveBuildingConstruction({
-    familyId: fam.id,
-    wealth: input.wealth,
-    standaloneKey: path,
-  });
+  // Identified buildings reuse the district-coordinated answer above (already
+  // climate-fitted); standalone previews receive a deterministic complete kit
+  // from their stable path, passed through the same climate fitness rule so a
+  // preview desert building cannot show a kit the game path would remap.
+  const construction = variant?.construction ?? applyClimateKitFitness(
+    fam.id,
+    input.climate,
+    input.wealth,
+    resolveBuildingConstruction({
+      familyId: fam.id,
+      wealth: input.wealth,
+      standaloneKey: path,
+    }),
+  );
   // Weathering uses named hashes and the already-resolved material kit. It does
   // not consume the legacy style stream or alter any structural roof answer.
   const weathering = resolveBuildingWeathering({

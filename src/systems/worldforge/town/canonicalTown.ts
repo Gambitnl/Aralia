@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 14/07/2026, 20:28:15
- * Dependents: components/MapPane.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 5 files
+ * Last Sync: 17/07/2026, 23:25:14
+ * Dependents: components/MapPane.tsx, components/Worldforge/AtlasDemo.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -40,6 +40,13 @@ import { polygonBounds, type Pt } from '../submap/submapEngine';
 import type { FmgWorldResult } from '../fmg/generateWorld';
 import { rootSeedPath, childSeedPath, streamPath } from '../seedPath';
 import { burgCellPolygon, cellWaterPolylines, cellWaterFeatures, cellRoadPolylines } from './cellFeatures';
+import type { RegionTownSite } from '../artifacts';
+import { toArtifactPlan, type AdaptedTownPlan } from './townPlanAdapter';
+import {
+  climateForBiomeId,
+  styleFamilyForCultureType,
+  type StyleFamily,
+} from './architectureStyle';
 
 export { burgCellPolygon } from './cellFeatures';
 
@@ -208,5 +215,84 @@ export function transformTownPlan(plan: TownPlan, k: number, dx = 0, dy = 0): To
     })),
     farmsteads: plan.farmsteads.map((f) => ({ ...f, x: f.x * k + dx, y: f.y * k + dy })),
     demographics: plan.demographics,
+  };
+}
+
+/**
+ * Adapt one Atlas burg into the exact feet-space artifact consumed by both the
+ * Local map and Ground 3D.
+ *
+ * Callers provide the Atlas they already own. This keeps standalone Atlas
+ * inspection, native PLAYING descent, save reconstruction, and the 3D bake on
+ * one plan source without forcing them through a second cell-addressed world.
+ */
+export function canonicalArtifactTownForSiteFromAtlas(
+  atlas: TownAtlas,
+  worldSeed: number,
+  site: RegionTownSite,
+): AdaptedTownPlan & { family: StyleFamily } {
+  const burg = atlas.pack.burgs?.[site.burgId];
+  if (!burg || burg.removed || !burg.i) {
+    throw new Error(`Cannot resolve canonical Atlas burg ${site.burgId} in world ${worldSeed}`);
+  }
+
+  // Resolve culture and biome from this same Atlas object. These are visual
+  // identity inputs, so silently consulting another cached world would make
+  // the Local plan and 3D architecture disagree even if their burg ids match.
+  const cultureId = burg.culture ?? 0;
+  const culture = atlas.pack.cultures?.[cultureId] as { type?: string } | undefined;
+  if (!culture?.type) {
+    throw new Error(
+      `Cannot resolve culture ${cultureId} for canonical burg ${site.burgId} in world ${worldSeed}`,
+    );
+  }
+  const biomeId = (atlas.pack.cells as unknown as { biome?: ArrayLike<number> }).biome?.[burg.cell];
+  if (biomeId === undefined) {
+    throw new Error(
+      `Cannot resolve biome for canonical burg ${site.burgId} in world ${worldSeed}`,
+    );
+  }
+
+  // Generate in the normalized burg frame once, then place that exact result
+  // into the Region envelope used by the retained Local and Ground window.
+  const enginePlan = getCanonicalTownPlan(atlas, worldSeed, site.burgId);
+  const spanFt = townSpanFtForBurg(atlas, site.burgId);
+  const placeScale = spanFt / CANON_TOWN_SPAN;
+  const placeDx = site.envelope.x + site.envelope.width / 2;
+  const placeDy = site.envelope.y + site.envelope.height / 2;
+  const feetPlan = transformTownPlan(enginePlan, placeScale, placeDx, placeDy);
+  const family = styleFamilyForCultureType(culture.type);
+  const adapted = toArtifactPlan(
+    feetPlan,
+    site.burgId,
+    family,
+    climateForBiomeId(Number(biomeId)),
+  );
+
+  // Current Regions already carry this exact receipt. The legacy construction
+  // branch is deliberately centralized here so old fixtures gain one stable
+  // name instead of making each renderer fall back independently.
+  const isCoastal = Boolean(burg.port);
+  const identity = site.identity ?? {
+    kind: 'town' as const,
+    sourceKind: 'atlas-burg' as const,
+    sourceId: site.burgId,
+    name: burg.name ?? `Burg ${site.burgId}`,
+    settlementType: burg.capital ? 'capital' as const : isCoastal ? 'port' as const : 'town' as const,
+    biomeId: Number(biomeId),
+    hasRoadAccess: site.gates.length > 0,
+    hasRiverAccess: Boolean(
+      (atlas.pack.cells as unknown as { r?: ArrayLike<number> }).r?.[burg.cell],
+    ),
+    isCoastal,
+  };
+
+  return {
+    ...adapted,
+    plan: {
+      ...adapted.plan,
+      identity,
+    },
+    family,
   };
 }

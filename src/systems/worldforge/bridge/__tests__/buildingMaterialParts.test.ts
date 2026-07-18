@@ -10,12 +10,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildBuildingMaterialParts,
+  dressingContrastTone,
   MATERIAL_PART_TAG,
 } from '../buildingMaterialParts';
 import { buildBlueprintParts, PERIMETER_WALL_COLORS } from '../interiorParts';
 import { generateBuilding } from '../../interior/generateBuilding';
 import type { BuildingType, StyleContext } from '../../interior/blueprintTypes';
 import { rootSeedPath } from '../../seedPath';
+import { STYLE_FAMILIES } from '../../town/architectureStyle';
 
 // ============================================================================
 // Production Sample
@@ -168,6 +170,63 @@ describe('buildBuildingMaterialParts', () => {
       seedPath: rootSeedPath(1),
     });
     expect(buildBuildingMaterialParts(bare, 3)).toEqual([]);
+  });
+
+  // ==========================================================================
+  // Dressing Contrast (town-look-slice1)
+  // ==========================================================================
+  // The raw family trim (`fam.wallTint`) sits within a few luma points of the
+  // same family's wall palette, which rendered courses/shutters invisible in
+  // the streamed town. These tests pin the render-tone guarantee: every family
+  // x wall-color pair yields dressing separated from its wall by the bounded
+  // minimum, without inventing randomness.
+  // ==========================================================================
+
+  const luma01 = (hex: string): number => {
+    const v = parseInt(hex.slice(1), 16);
+    return (0.2126 * ((v >> 16) & 255)) / 255
+      + (0.7152 * ((v >> 8) & 255)) / 255
+      + (0.0722 * (v & 255)) / 255;
+  };
+
+  it('separates the dressing tone from every family wall color by the bounded minimum', () => {
+    for (const family of Object.values(STYLE_FAMILIES)) {
+      for (const wall of family.wallPalette) {
+        const tone = dressingContrastTone(family.wallTint, wall);
+        const separation = Math.abs(luma01(tone) - luma01(wall));
+        expect(separation, `${family.id} wall ${wall} tone ${tone}`)
+          .toBeGreaterThanOrEqual(0.22 - 1e-2);
+        // Pure derivation: same inputs, same tone (no RNG anywhere).
+        expect(dressingContrastTone(family.wallTint, wall)).toBe(tone);
+      }
+    }
+  });
+
+  it('preserves a trim that already carries enough contrast', () => {
+    // Near-white trim on a dark wall is already separated well past the
+    // minimum, so the family's exact authored tone must pass through.
+    expect(dressingContrastTone('#e8e2d8', '#4a3a2c')).toBe('#e8e2d8');
+  });
+
+  it('lightens dressing on dark walls and darkens it on light walls', () => {
+    // roughLog walls are dark: chinking must move toward limewash, not black.
+    const logTone = dressingContrastTone('#6b5a43', '#6f5a41');
+    expect(luma01(logTone)).toBeGreaterThan(luma01('#6f5a41'));
+    // riverHalfTimber plaster is light: beams must move toward dark timber.
+    const beamTone = dressingContrastTone('#a09680', '#cfc0a2');
+    expect(luma01(beamTone)).toBeLessThan(luma01('#cfc0a2'));
+  });
+
+  it('paints wall dressing in the derived tone and roof edges in the covering color', () => {
+    const blueprint = styledBuilding(11);
+    const style = blueprint.styleResolved!;
+    const parts = buildBuildingMaterialParts(blueprint, 3);
+    const derived = dressingContrastTone(style.trimColor, style.wallColor);
+    for (const part of parts) {
+      expect(part.colorHex).toBe(
+        part.materialDetailKind === 'roof-edge' ? style.roofColor : derived,
+      );
+    }
   });
 
   it('omits material courses and edges from the neighbor-owned party wall', () => {

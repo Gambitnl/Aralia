@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import {
   describeBattleMapElevation,
+  describeBattleMapTerrain,
   elevationContourBand,
   elevationUnitsToFeet,
   findBattleMapElevationBaseline,
@@ -82,5 +83,34 @@ describe("battle-map elevation presentation", () => {
     expect(elevationContourBand(5)).toBe(0);
     expect(elevationContourBand(5.1)).toBe(1);
     expect(elevationContourBand(10.2)).toBe(2);
+  });
+
+  it("names tile ground for the inspector, physical facts first", () => {
+    expect(describeBattleMapTerrain({ terrain: "grass" })).toBe("Grass");
+    expect(describeBattleMapTerrain({ terrain: "water" })).toBe(
+      "Water (impassable)",
+    );
+    expect(describeBattleMapTerrain({ terrain: "difficult" })).toBe(
+      "Difficult ground (slow going)",
+    );
+    expect(describeBattleMapTerrain({ terrain: "wall" })).toBe(
+      "Wall (blocks movement and sight)",
+    );
+    expect(
+      describeBattleMapTerrain({ terrain: "grass", surface: { kind: "road" } }),
+    ).toBe("Road (grass under a worn route)");
+    expect(
+      describeBattleMapTerrain({
+        terrain: "water",
+        crossing: { kind: "ford" },
+      }),
+    ).toBe("Water — ford crossing (passable, slow)");
+    expect(
+      describeBattleMapTerrain({
+        terrain: "water",
+        surface: { kind: "road" },
+        crossing: { kind: "bridge" },
+      }),
+    ).toBe("Water — bridge deck (passable)");
   });
 });

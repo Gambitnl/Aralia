@@ -60,6 +60,7 @@ import { buildBuildingMotifParts } from './buildingMotifParts';
 import { buildBuildingHistoryParts } from './buildingHistoryParts';
 import {
   buildBuildingMaterialParts,
+  dressingContrastTone,
   glazingPaneColor,
   type MaterialDetailKind,
 } from './buildingMaterialParts';
@@ -154,12 +155,19 @@ const WALL_T = 0.3;
 /** Extra roof-eave overhang past the outer wall face, feet — a small readable
  *  eave so the roof caps the wall top instead of stopping flush/inside it. */
 const EAVE_CLEAR_FT = 0.5;
-/** Shallow projection of facade trim beyond the structural wall face. */
-const FACADE_DEPTH_M = 0.08;
-/** Width of one vertical structural bay marker, feet. */
-const FACADE_POST_WIDTH_FT = 0.55;
-/** Height of one horizontal facade course, feet. */
-const FACADE_BAND_HEIGHT_FT = 0.42;
+/** Shallow projection of facade trim beyond the structural wall face.
+ * town-look-slice1: raised 0.08 → 0.12 m so bay posts and belt courses stay
+ * PROUD of the thickened material courses (DETAIL_DEPTH_M 0.09 in
+ * buildingMaterialParts) — preserving the trim-over-course layering — and
+ * survive a pixel at street distance. */
+const FACADE_DEPTH_M = 0.12;
+/** Width of one vertical structural bay marker, feet.
+ * town-look-slice1: 0.55 → 0.75 ft (17→23 cm) so half-timber posts read as
+ * structure rather than hairlines at play distance. */
+const FACADE_POST_WIDTH_FT = 0.75;
+/** Height of one horizontal facade course, feet.
+ * town-look-slice1: 0.42 → 0.55 ft so belt courses keep a visible line. */
+const FACADE_BAND_HEIGHT_FT = 0.55;
 /** Maximum distance between vertical bay markers, feet. */
 const FACADE_BAY_SPACING_FT = 10;
 /** Window void width used by walls.ts and buildingModels.ts, plus trim clearance. */
@@ -508,6 +516,11 @@ function facadeDetails(
   const pattern: FacadePattern = style.facadePattern;
   const origin = blueprintSiteOrigin(blueprint);
   const storeyHeightFt = storeyHeightM / FT;
+  // Facade grammar renders in the same contrast-derived trim tone as the
+  // material courses (town-look-slice1): the raw family tint sat nearly on the
+  // wall color, so belt courses and half-timber bays never read in 3D. The
+  // resolved style receipt itself is untouched — this is a render tone only.
+  const facadeTone = dressingContrastTone(style.trimColor, style.wallColor);
   const parts: SitePart[] = [];
 
   // Each floor owns its own wall runs, so details follow upper-storey shells as
@@ -548,7 +561,7 @@ function facadeDetails(
             spanHi - spanLo,
             floorBaseFt + offsetFt,
             FACADE_BAND_HEIGHT_FT,
-            style.trimColor,
+            facadeTone,
           ));
         }
       }
@@ -584,7 +597,7 @@ function facadeDetails(
             postWidthFt,
             floorBaseFt + 0.45,
             Math.max(0.5, storeyHeightFt - 0.9),
-            style.trimColor,
+            facadeTone,
           ));
         }
       }

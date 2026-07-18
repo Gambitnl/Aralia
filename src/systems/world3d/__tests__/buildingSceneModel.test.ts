@@ -374,3 +374,78 @@ describe('buildingSceneModel — invariants', () => {
     expect(m.depthFt).toBe(plan.depthFt);
   });
 });
+
+describe('buildingSceneModel — identity and dressing (BGv2 Phase 1B)', () => {
+  it('wall color equals styleResolved.wallColor when present; equals legacy constant when absent', () => {
+    // Present case:
+    const planStyled = styledPlan();
+    expect(planStyled.styleResolved).toBeDefined();
+    const mStyled = buildingSceneModel(planStyled, { upToLevel: 'all', hour: 12 });
+    const wallsStyled = mStyled.boxes.filter((b) => b.kind === 'wall');
+    expect(wallsStyled.length).toBeGreaterThan(0);
+    for (const w of wallsStyled) {
+      expect(w.color).toBe(planStyled.styleResolved!.wallColor);
+    }
+
+    // Absent case (legacy / bare plan):
+    const planBare = barePlan();
+    expect(planBare.styleResolved).toBeUndefined();
+    const mBare = buildingSceneModel(planBare, { upToLevel: 'all', hour: 12 });
+    const wallsBare = mBare.boxes.filter((b) => b.kind === 'wall');
+    expect(wallsBare.length).toBeGreaterThan(0);
+    for (const w of wallsBare) {
+      expect(w.color).toBe('#8a7663'); // legacy BOX_COLOR.wall constant
+    }
+  });
+
+  it('canonical box set (walls/floors/stairs) and roof geometry byte-identical with dressing on vs off', () => {
+    const plan = styledPlan();
+    
+    // Dressing ON:
+    const mOn = buildingSceneModel(plan, { upToLevel: 'all', hour: 12 });
+    
+    // Dressing OFF (by cloning the plan and removing styleResolved):
+    const planOff = { ...plan, styleResolved: undefined };
+    const mOff = buildingSceneModel(planOff, { upToLevel: 'all', hour: 12 });
+
+    const canonicalKinds = ['wall', 'floor', 'ceiling', 'stair', 'jamb', 'door-lintel', 'sill', 'window-head', 'window-pane'];
+
+    const canonicalBoxesOn = mOn.boxes
+      .filter((b) => canonicalKinds.includes(b.kind))
+      .map((b) => ({ kind: b.kind, level: b.level, x: b.x, y: b.y, w: b.w, d: b.d, z0: b.z0, h: b.h }));
+
+    const canonicalBoxesOff = mOff.boxes
+      .filter((b) => canonicalKinds.includes(b.kind))
+      .map((b) => ({ kind: b.kind, level: b.level, x: b.x, y: b.y, w: b.w, d: b.d, z0: b.z0, h: b.h }));
+
+    expect(canonicalBoxesOn).toEqual(canonicalBoxesOff);
+
+    // Roof geometry remains identical:
+    expect(mOn.roof).toBeDefined();
+    expect(mOff.roof).toBeDefined();
+    expect(mOn.roof!.positions).toEqual(mOff.roof!.positions);
+    expect(mOn.roof!.indices).toEqual(mOff.roof!.indices);
+  });
+
+  it('dressing part count is deterministic for a fixed plan (two builds, deep-equal)', () => {
+    const plan = styledPlan();
+    const m1 = buildingSceneModel(plan, { upToLevel: 'all', hour: 12 });
+    const m2 = buildingSceneModel(plan, { upToLevel: 'all', hour: 12 });
+
+    const dressingKinds = ['construction-material', 'facade-trim', 'motif', 'weathering', 'permanent-history'];
+    const d1 = m1.boxes.filter((b) => dressingKinds.includes(b.kind));
+    const d2 = m2.boxes.filter((b) => dressingKinds.includes(b.kind));
+
+    expect(d1.length).toBeGreaterThan(0);
+    expect(d1).toEqual(d2);
+  });
+
+  it('a legacy plan (no styleResolved) produces zero dressing parts', () => {
+    const plan = barePlan();
+    const m = buildingSceneModel(plan, { upToLevel: 'all', hour: 12 });
+    const dressingKinds = ['construction-material', 'facade-trim', 'motif', 'weathering', 'permanent-history'];
+    const dressingBoxes = m.boxes.filter((b) => dressingKinds.includes(b.kind));
+    expect(dressingBoxes.length).toBe(0);
+  });
+});
+

@@ -27,6 +27,11 @@ import {
   BATTLE_MAP_CONTOUR_INTERVAL_FEET,
   BATTLE_MAP_ELEVATION_METERS_PER_UNIT,
 } from "../../config/mapConfig";
+import type {
+  BattleMapCrossing,
+  BattleMapSurface,
+  BattleMapTerrain,
+} from "../../types/combat";
 
 const FEET_PER_METER = 3.280839895;
 
@@ -150,4 +155,51 @@ export function describeBattleMapElevation(
     primaryText: `${magnitude} ft ${relativeFeet > 0 ? "higher" : "lower"} than ${referenceLabel}`,
     secondaryText: `${localReliefFeet} ft above this map's lowest ground (0 ft)`,
   };
+}
+
+/**
+ * The physical tile facts that decide the inspector's terrain wording. A full
+ * BattleMapTile satisfies this shape; tests can pass just the deciding fields.
+ */
+export interface BattleMapTerrainFacts {
+  terrain: BattleMapTerrain;
+  surface?: Pick<BattleMapSurface, "kind"> | null;
+  crossing?: Pick<BattleMapCrossing, "kind"> | null;
+}
+
+/**
+ * Name a tile's ground in plain language for the tile inspector.
+ *
+ * Physical facts outrank the base terrain word: a bridge or ford is the most
+ * useful thing to say about a water tile, and a road matters more than the
+ * ground it was worn into. Special terrains carry a short movement qualifier
+ * so the player learns the rule with the name.
+ */
+export function describeBattleMapTerrain(tile: BattleMapTerrainFacts): string {
+  if (tile.crossing) {
+    return tile.crossing.kind === "ford"
+      ? "Water \u2014 ford crossing (passable, slow)"
+      : "Water \u2014 bridge deck (passable)";
+  }
+  if (tile.surface?.kind === "road") {
+    return `Road (${tile.terrain} under a worn route)`;
+  }
+  switch (tile.terrain) {
+    case "water":
+      return "Water (impassable)";
+    case "difficult":
+      return "Difficult ground (slow going)";
+    case "wall":
+      return "Wall (blocks movement and sight)";
+    case "grass":
+      return "Grass";
+    case "rock":
+      return "Rock";
+    case "floor":
+      return "Floor";
+    case "sand":
+      return "Sand";
+    case "mud":
+      return "Mud";
+  }
 }

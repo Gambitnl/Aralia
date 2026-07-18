@@ -212,9 +212,10 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
       width={mapSize.width}
       height={mapSize.height}
       onPickCell={handlePickCell}
+      prefsScope={worldSeed}
     />
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [world, markerKey, mapSize.width, mapSize.height, handlePickCell, pulseToken]);
+  ), [world, markerKey, mapSize.width, mapSize.height, handlePickCell, pulseToken, worldSeed]);
 
   const rootStyle: React.CSSProperties = {
     display: 'flex',

@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 12/06/2026, 07:53:07
- * Dependents: components/Submap/SubmapPane.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx
- * Imports: 9 files
+ * Last Sync: 17/07/2026, 23:25:40
+ * Dependents: components/DesignPreview/steps/PreviewStartSelect.tsx, components/MapPane.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/SpawnPreview.tsx, components/Worldforge/StartPointSelection.tsx, hooks/useKnownPortsSync.ts, hooks/useVoyageArrival.ts, systems/spells/ai/MaterialTagService.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/settlementDefense.ts, systems/worldforge/chronicle/worldChronicle.ts, systems/worldforge/dungeon/world/chronicle.ts, systems/worldforge/dungeon/world/deriveIdentity.ts, systems/worldforge/dungeon/world/dungeonSites.ts, systems/worldforge/dungeon/world/raidPressure.ts, systems/worldforge/dungeon/world/rumors.ts, systems/worldforge/forests/forestKindForCell.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/local/biomeForCell.ts, systems/worldforge/local/burgProximity.ts, systems/worldforge/local/resolveSpawn.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -45,10 +45,11 @@ import { generateLocal } from "../local/generateLocal";
 import { rootSeedPath } from "../seedPath";
 import { FEET_PER_FMG_PIXEL } from "../adapter/atlasArtifact";
 import { LOCAL_SIZE_FT } from "../units";
-import type { LocalArtifact, RegionArtifact } from "../artifacts";
+import type { LocalArtifact, RegionArtifact, RegionTownSite } from "../artifacts";
 import type { Burg } from "../fmg/burgs-generator";
 import { NamesGenerator } from "../fmg/names-generator";
 import Alea from "alea";
+import { canonicalArtifactTownForSiteFromAtlas } from "../town/canonicalTown";
 
 /** FMG canvas the bridge generates against (the demo's standard frame). */
 const FMG_WIDTH = 960;
@@ -143,6 +144,39 @@ export function getBurgCultureType(worldSeed: number, burgId: number): string {
   }
   return culture.type;
 }
+
+// ============================================================================
+// Burg Biome Resolution
+// ============================================================================
+// This section resolves the FMG biome ID for a specific burg. It is used to
+// determine the climate class of a town (e.g. cold, arid, temperate, marsh)
+// so that the 2D and 3D renderers can build identical climate-specific roof
+// styles and eave features.
+//
+// What changed: Added getBurgBiomeId.
+// Why it changed: To allow the 2D and 3D architectural style pipelines to resolve
+// the same climate-aware building characteristics.
+// What was preserved: Follows the same no-fallback throw posture as getBurgCultureType.
+// ============================================================================
+
+/**
+ * FMG biome id for a burg — drives the climate class per town.
+ * Throws when the burg or its cell biome can't be resolved (no-fallback).
+ */
+export function getBurgBiomeId(worldSeed: number, burgId: number): number {
+  const atlas = getBridgeAtlas(worldSeed);
+  const burg = atlas.pack.burgs?.[burgId] as Burg | undefined;
+  if (!burg) {
+    throw new Error(`Cannot resolve burg ${burgId} in world ${worldSeed}`);
+  }
+  const cellId = burg.cell;
+  const biomeId = (atlas.pack.cells as any).biome?.[cellId];
+  if (biomeId === undefined) {
+    throw new Error(`Cannot resolve biome for cell ${cellId} (burg ${burgId}, world ${worldSeed})`);
+  }
+  return biomeId;
+}
+
 
 export function getBridgeAtlas(worldSeed: number): FmgWorldResult {
   const seedStr = worldforgeSeedString(worldSeed);
@@ -295,11 +329,57 @@ export function getWorldforgeLocalForCell(
   const localKey = `${regionKey}/local:${Math.round(center.x)}-${Math.round(center.y)}`;
   let local = localCache.get(localKey);
   if (!local) {
-    local = generateLocal(region, center, region.seedPath, { biomeId });
+    const generatedLocal = generateLocal(region, center, region.seedPath, { biomeId });
+    const townSite = canonicalTownSiteForLocal(region, generatedLocal);
+    // The L2 artifact owns the exact canonical plan whenever its window contains
+    // a generated settlement. Ground uses the same Atlas-accepting adapter, so
+    // plan ids, footprints, architecture, and display identity stay identical.
+    local = townSite
+      ? {
+          ...generatedLocal,
+          townPlan: canonicalArtifactTownForSiteFromAtlas(
+            atlas,
+            worldSeed,
+            townSite,
+          ).plan,
+        }
+      : generatedLocal;
     localCache.set(localKey, local);
   }
 
   return { local, region, anchorCellId, biomeId };
+}
+
+/**
+ * Select the settlement represented by a Local window.
+ *
+ * Envelopes can overlap a 3,000 ft Local. The nearest overlapping burg wins,
+ * with source id as the deterministic tie-breaker, which preserves room for
+ * denser future settlement layouts without making array order into identity.
+ */
+export function canonicalTownSiteForLocal(
+  region: RegionArtifact,
+  local: Pick<LocalArtifact, 'bounds'>,
+): RegionTownSite | undefined {
+  const centerX = local.bounds.x + local.bounds.width / 2;
+  const centerY = local.bounds.y + local.bounds.height / 2;
+  const overlaps = (site: RegionTownSite): boolean =>
+    site.envelope.x <= local.bounds.x + local.bounds.width &&
+    site.envelope.x + site.envelope.width >= local.bounds.x &&
+    site.envelope.y <= local.bounds.y + local.bounds.height &&
+    site.envelope.y + site.envelope.height >= local.bounds.y;
+
+  return region.townSites
+    .filter(overlaps)
+    .sort((a, b) => {
+      const ax = a.envelope.x + a.envelope.width / 2;
+      const ay = a.envelope.y + a.envelope.height / 2;
+      const bx = b.envelope.x + b.envelope.width / 2;
+      const by = b.envelope.y + b.envelope.height / 2;
+      const aDistance = (ax - centerX) ** 2 + (ay - centerY) ** 2;
+      const bDistance = (bx - centerX) ** 2 + (by - centerY) ** 2;
+      return aDistance - bDistance || a.burgId - b.burgId;
+    })[0];
 }
 
 /**
@@ -553,4 +633,3 @@ export function clearBridgeCaches(): void {
   localCache.clear();
   townTileCache.clear();
 }
-

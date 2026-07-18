@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 14/07/2026, 20:48:40
- * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewTowns.tsx, components/MapPane.tsx
+ * Last Sync: 17/07/2026, 21:36:50
+ * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewTowns.tsx, components/MapPane.tsx, devtools/buildingIdentityLab/BuildingIdentityLab.tsx
  * Imports: 15 files
  *
  * MULTI-AGENT SAFETY:
@@ -31,7 +31,7 @@ import {
 } from '../../systems/worldforge/town/buildingMotifs';
 import { fnv1a, type SeedPath } from '../../systems/worldforge/seedPath';
 import { buildingTypeForRole } from '../../systems/worldforge/interior/generateInterior';
-import { roleForPlot } from '../../systems/worldforge/town/townPlanAdapter';
+import { roleForPlot, toArtifactPlan } from '../../systems/worldforge/town/townPlanAdapter';
 import { resolveBuildingAgeBand } from '../../systems/worldforge/town/buildingAge';
 import { resolveBuildingWeathering } from '../../systems/worldforge/town/buildingWeathering';
 import type {
@@ -68,6 +68,12 @@ export interface TownPlanViewProps {
   settlementKey?: string;
   /** Atlas climate used by the same patina resolver as generated 3D buildings. */
   climate?: ClimateClass;
+  /** Callback fired when a building plot is clicked. */
+  onSelectPlot?: (plotId: number) => void;
+  /** Currently selected building plot ID (stamped with a visual highlight). */
+  selectedPlotId?: number;
+  /** Authoritative artifact plan, containing exact plot IDs and oriented quads. */
+  artifactPlan?: import('../../systems/worldforge/artifacts').TownPlan;
 }
 
 const CIVIC_COLOR: Record<CivicKind, string> = {
@@ -469,6 +475,9 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
   styleFamily,
   settlementKey,
   climate = 'temperate',
+  onSelectPlot,
+  selectedPlotId,
+  artifactPlan,
 }) => {
   const { layers, toggle } = useTownLayers(prefsScope);
   const bounds = useMemo(() => polygonBounds(plan.footprint), [plan]);
@@ -488,16 +497,20 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
         const buildingKey = plot.architectureKey
           ?? plot.homeId
           ?? `ward:${wardIndex}/plot:${plotIndex}`;
-        const variant = resolveArchitectureVariant(styleFamily, wealth, {
-          settlementKey: townKey,
-          districtKey,
-          buildingKey,
-        }, plot.ensemble);
         // Population normally supplies the exact type. For an unpopulated plot,
         // reuse the production interior bridge's closed role mapping so the map
         // never advertises a motif recipe different from the eventual 3D bake.
         const buildingType = plot.buildingType
           ?? buildingTypeForRole(roleForPlot(plot, ward.civic));
+
+        // What changed: Passed climate and buildingType to resolveArchitectureVariant.
+        // Why: To align 2D artifact plan metadata with 3D/blueprint's climate-specific roofs.
+        // What was preserved: Bounded variant picking and identity keys.
+        const variant = resolveArchitectureVariant(styleFamily, climate, wealth, {
+          settlementKey: townKey,
+          districtKey,
+          buildingKey,
+        }, plot.ensemble, buildingType);
         const motifResolution = resolveBuildingMotifs(
           styleFamily.id,
           buildingType,
@@ -693,8 +706,51 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
   const [view, setView] = useState(fit);
   useEffect(() => setView(fit), [fit]);
   const drag = useRef<{ x: number; y: number } | null>(null);
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
+  const lastDragDistance = useRef<number>(0);
   const svgRef = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<HoverInfo | null>(null);
+
+  // Find the corresponding artifact plot ID for a given engine building plot.
+  // We match plots by comparing footprint/polygon centroids to resolve their IDs.
+  const findPlotIdForBuildingPlot = (pl: BuildingPlot): number | undefined => {
+    const activeArtifactPlan = artifactPlan ?? (styleFamily ? toArtifactPlan(plan, 0, styleFamily).plan : null);
+    if (!activeArtifactPlan) return undefined;
+    const centroid = centroidOf(pl.polygon);
+    let closestPlot = null;
+    let minDistance = Infinity;
+    for (const ap of activeArtifactPlan.plots) {
+      const apCentroid = centroidOf(ap.footprint);
+      const dist = Math.hypot(apCentroid[0] - centroid[0], apCentroid[1] - centroid[1]);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestPlot = ap;
+      }
+    }
+    if (closestPlot && minDistance < 50) {
+      return closestPlot.id;
+    }
+    return undefined;
+  };
+
+  // Find the original polygon of the selected plot so we can draw the selection outline on the map.
+  const selectedPoly = useMemo(() => {
+    if (selectedPlotId === undefined) return null;
+    const activeArtifactPlan = artifactPlan ?? (styleFamily ? toArtifactPlan(plan, 0, styleFamily).plan : null);
+    if (!activeArtifactPlan) return null;
+    const ap = activeArtifactPlan.plots.find(p => p.id === selectedPlotId);
+    if (!ap) return null;
+    const apCentroid = centroidOf(ap.footprint);
+    for (const w of plan.wards) {
+      for (const pl of w.plots) {
+        const centroid = centroidOf(pl.polygon);
+        if (Math.hypot(apCentroid[0] - centroid[0], apCentroid[1] - centroid[1]) < 50) {
+          return pl.polygon;
+        }
+      }
+    }
+    return null;
+  }, [plan.wards, selectedPlotId, artifactPlan, styleFamily, plan]);
 
   // Native non-passive wheel listener so preventDefault works (React's onWheel
   // prop is passive — preventDefault is a no-op there and warns). Zoom anchors on
@@ -780,7 +836,11 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
     return null;
   };
 
-  const onDown = (e: React.MouseEvent) => { drag.current = { x: e.clientX - view.x, y: e.clientY - view.y }; };
+  const onDown = (e: React.MouseEvent) => {
+    drag.current = { x: e.clientX - view.x, y: e.clientY - view.y };
+    dragStart.current = { x: e.clientX, y: e.clientY };
+    lastDragDistance.current = 0;
+  };
   const onMove = (e: React.MouseEvent) => {
     // Capture the drag origin locally: the setView updater runs asynchronously,
     // and onUp/onLeave can null drag.current before it flushes (the crash that
@@ -794,8 +854,20 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
     }
     setHover(inspectAt(e.clientX, e.clientY));
   };
-  const onUp = () => { drag.current = null; };
-  const onLeave = () => { drag.current = null; setHover(null); };
+  const onUp = (e: React.MouseEvent) => {
+    if (dragStart.current) {
+      const dx = Math.abs(e.clientX - dragStart.current.x);
+      const dy = Math.abs(e.clientY - dragStart.current.y);
+      lastDragDistance.current = Math.max(dx, dy);
+    }
+    drag.current = null;
+    dragStart.current = null;
+  };
+  const onLeave = () => {
+    drag.current = null;
+    dragStart.current = null;
+    setHover(null);
+  };
 
   // Tooltip anchor in viewBox space (constant-size, follows the hovered shape).
   const tipX = hover ? hover.px * view.k + view.x : 0;
@@ -867,6 +939,11 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
             : pl.buildingType
               ? BUILDING_FILL[pl.buildingType]
               : pl.kind === 'interior' ? '#b89a72' : '#9c7b54';
+          const plotId = findPlotIdForBuildingPlot(pl);
+          const plotIdStr = plotId !== undefined ? `#${plotId}` : '';
+          const titleText = pl.buildingType 
+            ? `${BUILDING_LABEL[pl.buildingType]} ${plotIdStr}`.trim()
+            : `Building ${plotIdStr}`.trim();
           return (
             <path key={`p${wi}-${pi}`} d={poly(pl.polygon)}
               fill={fill}
@@ -911,7 +988,17 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
               data-architecture-motif-variant={architecture?.motifVariant}
               data-architecture-roof-form={architecture?.roofForm}
               data-architecture-wall-color={architecture?.wallColor}
-              data-architecture-roof-color={architecture?.roofColor} />
+              data-architecture-roof-color={architecture?.roofColor}
+              onClick={(e) => {
+                if (lastDragDistance.current >= 5) return;
+                const plotId = findPlotIdForBuildingPlot(pl);
+                if (plotId !== undefined && onSelectPlot) {
+                  onSelectPlot(plotId);
+                }
+              }}
+            >
+              <title>{titleText}</title>
+            </path>
           );
         }))}
         {/* Rural farmsteads: scattered homes out on the farm parcels (where the
@@ -932,6 +1019,11 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
           <rect key={`g${i}`} x={g[0] - 4} y={g[1] - 4} width={8} height={8} fill="#5a4a2a" stroke="#2a1f10" strokeWidth={1} vectorEffect="non-scaling-stroke" />
         ))}
         <path d={poly(plan.footprint)} fill="none" stroke="#3a2a14" strokeWidth={2} vectorEffect="non-scaling-stroke" />
+        {/* Selected building highlight outline */}
+        {selectedPoly && (
+          <path d={poly(selectedPoly)} fill="#ffe08a44" stroke="#ffe08a" strokeWidth={3}
+            strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none" data-testid="town-selected-highlight" />
+        )}
         {/* Hover highlight — drawn last so it sits above the building it traces. */}
         {hover && (
           <path d={poly(hover.poly)} fill="#fff3" stroke="#ffe08a" strokeWidth={2.5}

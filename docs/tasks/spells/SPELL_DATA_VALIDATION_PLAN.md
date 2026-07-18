@@ -1,12 +1,25 @@
 # Spell Data Validation Plan
 
-Last Updated: 2026-04-09
+Last Updated: 2026-07-18
 
 This file captures the current plan for validating spell JSON structure and spell reference parity.
 
 ## Current Status Snapshot
 
-- `npm run validate:spells` is currently green: `459 / 459` valid spell JSON files.
+- Fresh replay on 2026-07-18 reports `473` total spell JSON files, `361` valid,
+  and `112` invalid. The earlier `459 / 459` statements below are historical
+  routing context and must not be used as current corpus proof.
+- The `effects[].conditionalEndings[]` family is now clear in the live replay:
+  source-backed lowercase snake_case trigger/scope tokens validate, and seven
+  cloud/weather/wall records now carry explicit `area` scope. Focused schema
+  proof passed in `src/systems/spells/validation/__tests__/conditionalEndings.test.ts`.
+- Remaining invalid files belong to other validator families, including
+  created-object metadata, ability-check modifiers, controlled entities,
+  summon control, condition overrides, mode choice, targeting placement, and
+  recurring/trigger metadata; those remain open evidence for G14's child lanes.
+
+- Historical snapshot: `npm run validate:spells` was green at `459 / 459` valid
+  spell JSON files before the corpus and schema drift recorded above.
 - Backlog-retirement freshness note, 2026-06-25: `npm run validate:spells --
   --spell public\data\spells\level-1\grease.json` again reported `459` valid
   and `0` invalid spell JSON files. The older report-count bullets below remain

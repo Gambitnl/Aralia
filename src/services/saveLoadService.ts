@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 20/06/2026, 01:45:37
+ * Last Sync: 17/07/2026, 22:34:52
  * Dependents: App.tsx, components/SaveLoad/LoadGameModal.tsx, components/SaveLoad/SaveSlotSelector.tsx, components/layout/MainMenu.tsx, hooks/actions/handleSystemAndUi.ts, hooks/useAutoSave.ts, hooks/useGameInitialization.ts, state/appState.ts
- * Imports: 11 files
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -45,6 +45,11 @@ import { simpleHash } from '../utils/hashUtils';
 import * as IDBStorage from './indexedDBStorageService';
 import { migratePlayerCell } from '@/state/migrations/playerCellMigration';
 import { countUnreadDiscoveryEntries, retainDiscoveryLogEntries } from '@/state/reducers/logReducer';
+import { normalizeAtlasGroundAddress } from '@/systems/worldforge/leaf3d/atlasGroundDrilldown';
+import {
+  normalizeAtlasGroundPosition,
+  normalizeDiscoveredHiddenSites,
+} from '@/systems/worldforge/leaf3d/atlasGroundContinuity';
 
 //
 // Save slot configuration
@@ -402,6 +407,32 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     // currentLocationId (a `cell_<id>` id recovers it directly; anything else
     // loads with a null cell).
     migratePlayerCell(loadedState);
+    // Native Atlas Wave 2 uses its own additive schema version inside GameState,
+    // so the global save format stays backward-compatible. Missing legacy data
+    // and malformed/future address versions both become an explicit null.
+    const rawAtlasGroundAddress = loadedState.atlasGroundAddress;
+    loadedState.atlasGroundAddress = normalizeAtlasGroundAddress(rawAtlasGroundAddress);
+    loadedState.atlasGroundPosition = loadedState.atlasGroundAddress
+      ? normalizeAtlasGroundPosition(
+          loadedState.atlasGroundPosition,
+          loadedState.atlasGroundAddress,
+        )
+      : null;
+    // Hidden pins use an additive schema inside the existing saved array.
+    // Classic entries survive; Atlas entries with corrupt/future provenance
+    // fail closed before either map surface can render them.
+    loadedState.discoveredHiddenSites = normalizeDiscoveredHiddenSites(
+      loadedState.discoveredHiddenSites,
+    );
+    if (rawAtlasGroundAddress != null && loadedState.atlasGroundAddress === null) {
+      // A corrupt native-Atlas address cannot safely use the ordinary cell-centred
+      // 3D fallback. Return to the cartographer; legacy saves with no address are
+      // intentionally unaffected and retain their established Classic behavior.
+      loadedState.worldViewMode = 'atlas';
+      loadedState.mapSurface = 'worldforge';
+      loadedState.playerGroundPos = null;
+      loadedState.atlasGroundPosition = null;
+    }
     // Ensure new rest pacing fields exist when loading older saves.
     const restTrackerSeedTime = loadedState.gameTime instanceof Date
       ? loadedState.gameTime

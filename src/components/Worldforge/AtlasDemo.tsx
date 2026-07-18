@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 22:43:05
+ * Last Sync: 17/07/2026, 22:34:53
  * Dependents: App.tsx
- * Imports: 18 files
+ * Imports: 20 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -49,8 +49,20 @@ import WorldforgeGroundDrilldown from "./WorldforgeGroundDrilldown";
 import CellInfoPanel from "./CellInfoPanel";
 import { describeCell } from "../../systems/worldforge/cellInfo";
 import { type OverlayMarker } from "./overlay";
-import { getBridgeAtlas, worldforgeSeedString } from "../../systems/worldforge/bridge/legacySubmapBridge";
-import { buildAtlasGroundDrilldown, type AtlasGroundDrilldown, type GroundFocus } from "../../systems/worldforge/leaf3d/atlasGroundDrilldown";
+import {
+  canonicalTownSiteForLocal,
+  getBridgeAtlas,
+  worldforgeSeedString,
+} from "../../systems/worldforge/bridge/legacySubmapBridge";
+import { canonicalArtifactTownForSiteFromAtlas } from "../../systems/worldforge/town/canonicalTown";
+import {
+  artifactsForAtlasGroundDrilldown,
+  buildAtlasGroundDrilldown,
+  type AtlasGroundDrilldown,
+  type GroundFocus,
+} from "../../systems/worldforge/leaf3d/atlasGroundDrilldown";
+import type { DiscoveredHiddenSite } from "../../types/state";
+import { discoveredSiteBelongsToWorld } from "../../systems/worldforge/leaf3d/atlasGroundContinuity";
 
 // ============================================================================
 // L1 Region Viewport Sub-Component
@@ -91,22 +103,145 @@ export const atlasDemoBreadcrumbIdentityClassName =
 export const atlasDemoBreadcrumbHintClassName =
   "flex max-w-full items-start gap-1.5 text-[10px] text-gray-500 sm:items-center";
 
+export interface AtlasHierarchyCrumb {
+  tier: 'world' | 'cell' | 'region' | 'local' | 'town' | 'ground';
+  label: string;
+  current: boolean;
+}
+
+/**
+ * Build the visible hierarchy from the artifacts currently retained by Atlas.
+ * The list is additive rather than hard-coded to a terminal depth: future site,
+ * building, room, and interior tiers can append crumbs without redefining the
+ * existing World -> Cell -> Region -> Local -> Town -> Ground contract.
+ */
+export function atlasHierarchyCrumbs(input: {
+  viewMode: 'atlas' | 'region' | 'local' | 'ground';
+  selectedCellId: number | null;
+  local: LocalArtifact | null;
+  groundFocus?: GroundFocus | null;
+}): AtlasHierarchyCrumb[] {
+  const { viewMode, selectedCellId, local, groundFocus } = input;
+  const crumbs: AtlasHierarchyCrumb[] = [
+    { tier: 'world', label: 'World', current: viewMode === 'atlas' },
+  ];
+  if (selectedCellId === null) return crumbs;
+
+  crumbs.push(
+    { tier: 'cell', label: `Cell #${selectedCellId}`, current: false },
+    { tier: 'region', label: 'Region', current: viewMode === 'region' },
+  );
+  if (!local) return crumbs;
+
+  crumbs.push({ tier: 'local', label: 'Local', current: viewMode === 'local' && !local.townPlan });
+  if (local.townPlan) {
+    crumbs.push({
+      tier: 'town',
+      label: local.townPlan.identity?.name ?? `Town ${local.townPlan.burgId}`,
+      current: viewMode === 'local',
+    });
+  }
+  if (viewMode === 'ground') {
+    crumbs.push({
+      tier: 'ground',
+      label: groundFocus ? `Ground: ${groundFocus.label}` : 'Ground',
+      current: true,
+    });
+  }
+  return crumbs;
+}
+
 interface AtlasDemoProps {
   /** Bind the atlas to the active run instead of exposing the standalone generator. */
   embeddedInGame?: boolean;
   /** Canonical game seed used by start selection, travel, 3D, and persistence. */
   worldSeed?: number;
+  /** Hand the exact selected hierarchy to PLAYING's established ground scene. */
+  onEnterPlayingGround?: (drilldown: AtlasGroundDrilldown) => void;
+  /** Transient receipt used to restore the same Local after PLAYING ground closes. */
+  groundReturnReceipt?: AtlasGroundDrilldown | null;
+  /** Persistent hidden places discovered through the exact PLAYING Local. */
+  discoveredHiddenSites?: DiscoveredHiddenSite[];
 }
 
-const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed }) => {
+/**
+ * Project versioned ground discoveries into the native Atlas overlay space.
+ * Exact absolute feet work unchanged on L0, Region, and Local canvases because
+ * their shared overlay renderer owns the feet-to-screen conversion.
+ */
+export function atlasDiscoveryMarkersForWorld(
+  sites: DiscoveredHiddenSite[],
+  worldSeed: number,
+): OverlayMarker[] {
+  return sites.flatMap((site) => {
+    if (!site.atlasGround || !discoveredSiteBelongsToWorld(site, worldSeed)) return [];
+    return [{
+      kind: 'quest' as const,
+      x: site.atlasGround.xFt,
+      y: site.atlasGround.yFt,
+      label: site.name ? `Discovered: ${site.name}` : 'Discovered hidden place',
+    }];
+  });
+}
+
+/**
+ * Resolve the exact Atlas hierarchy represented by a PLAYING return receipt.
+ * This pure boundary makes object identity and the one-level Local return rule
+ * deterministic enough to test without mounting the full FMG canvas.
+ */
+export function atlasHierarchyForGroundReturn(drilldown: AtlasGroundDrilldown | null | undefined): {
+  viewMode: "atlas" | "local";
+  selectedCellId: number | null;
+  regionArtifact: RegionArtifact | null;
+  localArtifact: LocalArtifact | null;
+} {
+  if (!drilldown) {
+    return {
+      viewMode: "atlas",
+      selectedCellId: null,
+      regionArtifact: null,
+      localArtifact: null,
+    };
+  }
+
+  const { region, local } = artifactsForAtlasGroundDrilldown(drilldown);
+  return {
+    viewMode: drilldown.returnTarget.tier,
+    selectedCellId: drilldown.returnTarget.atlasCellId,
+    regionArtifact: region,
+    localArtifact: local,
+  };
+}
+
+const AtlasDemo: React.FC<AtlasDemoProps> = ({
+  embeddedInGame = false,
+  worldSeed,
+  onEnterPlayingGround,
+  groundReturnReceipt,
+  discoveredHiddenSites = [],
+}) => {
+  // TransitionController unmounts Atlas while 3D owns the viewport. Seed the
+  // remounted cartographer from the transient receipt so return opens the exact
+  // retained Local rather than silently resetting to the Atlas root.
+  const initialHierarchy = atlasHierarchyForGroundReturn(
+    embeddedInGame ? groundReturnReceipt : null,
+  );
   // Navigation & View Mode — the full zoom chain: L0 atlas → L1 region → L2 local
-  const [viewMode, setViewMode] = useState<"atlas" | "region" | "local" | "ground">("atlas");
-  const [selectedCellId, setSelectedCellId] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<"atlas" | "region" | "local" | "ground">(
+    initialHierarchy.viewMode,
+  );
+  const [selectedCellId, setSelectedCellId] = useState<number | null>(
+    initialHierarchy.selectedCellId,
+  );
   // Cell selected for inspection on the atlas (drives the CellInfoPanel). Kept
   // distinct from selectedCellId, which tracks the descended region cell.
   const [inspectCellId, setInspectCellId] = useState<number | null>(null);
-  const [regionArtifact, setRegionArtifact] = useState<RegionArtifact | null>(null);
-  const [localArtifact, setLocalArtifact] = useState<LocalArtifact | null>(null);
+  const [regionArtifact, setRegionArtifact] = useState<RegionArtifact | null>(
+    initialHierarchy.regionArtifact,
+  );
+  const [localArtifact, setLocalArtifact] = useState<LocalArtifact | null>(
+    initialHierarchy.localArtifact,
+  );
   const [isGeneratingLocal, setIsGeneratingLocal] = useState<boolean>(false);
   const [groundDrilldown, setGroundDrilldown] = useState<AtlasGroundDrilldown | null>(null);
 
@@ -165,7 +300,12 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
   // style) so the canvas gets the full area.
   const workspaceRef = useRef<HTMLElement | null>(null);
   const [mapSize, setMapSize] = useState<{ width: number; height: number }>({ width: 960, height: 540 });
-  const [panelOpen, setPanelOpen] = useState<boolean>(true);
+  // Phones need the map, hierarchy, and selected artifact visible before the
+  // explanatory sheet. Keep desktop's expanded guidance, while starting the
+  // same existing panel collapsed below Tailwind's `sm` breakpoint.
+  const [panelOpen, setPanelOpen] = useState<boolean>(() =>
+    typeof window === "undefined" || window.innerWidth >= 640
+  );
 
   useEffect(() => {
     const el = workspaceRef.current;
@@ -259,7 +399,10 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
     ];
   };
 
-  const demoMarkers = getDemoMarkers();
+  const discoveryMarkers = worldSeed != null
+    ? atlasDiscoveryMarkersForWorld(discoveredHiddenSites, worldSeed)
+    : [];
+  const demoMarkers = [...getDemoMarkers(), ...discoveryMarkers];
 
   // Atlas-coherence: the descended region tints with the SAME biome color
   // the atlas shows at the clicked cell (drawRegion options.biomeColor).
@@ -384,12 +527,27 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
       try {
         const biomeId =
           (atlas?.pack.cells as unknown as { biome?: ArrayLike<number> }).biome?.[selectedCellId] ?? 6;
-        const localData = generateLocal(
+        const generatedLocal = generateLocal(
           regionArtifact,
           { x: xFt, y: yFt },
           regionArtifact.seedPath,
           { biomeId: Number(biomeId) },
         );
+        const townSite = canonicalTownSiteForLocal(regionArtifact, generatedLocal);
+        const canonicalWorldSeed = worldSeed ?? (parseInt(seed.replace(/\D/g, "")) || 42);
+        // Retain the exact canonical plan and its Atlas-owned identity in L2.
+        // Ground's adapter calls the same function, so Local footprints, roads,
+        // landmark roles, architecture palette, and source name correspond.
+        const localData = townSite && atlas
+          ? {
+              ...generatedLocal,
+              townPlan: canonicalArtifactTownForSiteFromAtlas(
+                atlas,
+                canonicalWorldSeed,
+                townSite,
+              ).plan,
+            }
+          : generatedLocal;
         setLocalArtifact(localData);
         setViewMode("local");
       } catch (err) {
@@ -409,13 +567,29 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
   const handleEnterGround = (focus: GroundFocus) => {
     if (!regionArtifact || !localArtifact || selectedCellId === null) return;
     const canonicalWorldSeed = worldSeed ?? (parseInt(seed.replace(/\D/g, "")) || 42);
-    setGroundDrilldown(buildAtlasGroundDrilldown({
+    const drilldown = buildAtlasGroundDrilldown({
       worldSeed: canonicalWorldSeed,
       atlasCellId: selectedCellId,
       region: regionArtifact,
       local: localArtifact,
       focus,
-    }));
+    });
+
+    // Live play has one gameplay-complete ground authority: App's PLAYING
+    // World3DWrapper. The standalone cartographer keeps its diagnostic host,
+    // but embedded Atlas never mounts that incomplete parallel scene.
+    if (embeddedInGame) {
+      // Fail closed if a future embedded caller forgets the PLAYING boundary.
+      // Falling through would quietly resurrect the gameplay-incomplete host.
+      if (!onEnterPlayingGround) {
+        setHintMessage("PLAYING ground entry is unavailable. Return to the Atlas and try again.");
+        return;
+      }
+      onEnterPlayingGround(drilldown);
+      return;
+    }
+
+    setGroundDrilldown(drilldown);
     setViewMode("ground");
   };
 
@@ -454,6 +628,13 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
     if (embeddedInGame) return;
     handleGenerate();
   }, []);
+
+  const hierarchyCrumbs = atlasHierarchyCrumbs({
+    viewMode,
+    selectedCellId,
+    local: localArtifact,
+    groundFocus: groundDrilldown?.focus,
+  });
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
@@ -928,23 +1109,29 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
           {/* Breadcrumb Navigation Strip — floats top-right over the map */}
           {atlas && (
             <div className={atlasDemoBreadcrumbClassName}>
-              <div className={atlasDemoBreadcrumbIdentityClassName}>
-                <span className="text-indigo-400 font-semibold">Seed:</span> {seed}
-                {viewMode !== "atlas" && (
-                  <>
-                    <span className="text-gray-600">/</span>
-                    <span className="text-indigo-400 font-semibold">Cell:</span> #{selectedCellId}
-                  </>
-                )}
-                {(viewMode === "local" || viewMode === "ground") && localArtifact && (
-                  <>
-                    <span className="text-gray-600">/</span>
-                    <span className="text-indigo-400 font-semibold">Local:</span>{" "}
-                    {Math.round(localArtifact.bounds.x + localArtifact.bounds.width / 2).toLocaleString()},
-                    {Math.round(localArtifact.bounds.y + localArtifact.bounds.height / 2).toLocaleString()} ft
-                  </>
-                )}
-              </div>
+              <nav className={atlasDemoBreadcrumbIdentityClassName} aria-label="World hierarchy">
+                <span className="text-[10px] uppercase tracking-wider text-slate-500">Hierarchy</span>
+                {hierarchyCrumbs.map((crumb, index) => (
+                  <React.Fragment key={`${crumb.tier}:${crumb.label}`}>
+                    {index > 0 && <span className="text-gray-600" aria-hidden="true">&rsaquo;</span>}
+                    <span
+                      data-tier={crumb.tier}
+                      aria-current={crumb.current ? 'location' : undefined}
+                      className={crumb.current
+                        ? "rounded bg-indigo-500/20 px-1.5 py-0.5 font-semibold text-indigo-200 ring-1 ring-indigo-400/40"
+                        : "text-slate-400"}
+                    >
+                      {crumb.label}
+                    </span>
+                  </React.Fragment>
+                ))}
+                <span className="basis-full text-[10px] text-slate-500">
+                  Seed {seed}
+                  {localArtifact
+                    ? ` Â· ${Math.round(localArtifact.bounds.x + localArtifact.bounds.width / 2).toLocaleString()},${Math.round(localArtifact.bounds.y + localArtifact.bounds.height / 2).toLocaleString()} ft`
+                    : ''}
+                </span>
+              </nav>
               <div className={atlasDemoBreadcrumbHintClassName}>
                 <HelpCircle size={12} className="mt-0.5 shrink-0 sm:mt-0" />
                 <span className="min-w-0">
@@ -1052,14 +1239,13 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({ embeddedInGame = false, worldSeed
                   onAscend={handleLocalAscend}
                   biomeColor={anchorBiomeColor}
                   onEnterGround={handleEnterGround}
+                  markers={discoveryMarkers}
                 />
               )
             ) : (
               groundDrilldown && localArtifact && regionArtifact && (
                 <WorldforgeGroundDrilldown
                   drilldown={groundDrilldown}
-                  local={localArtifact}
-                  region={regionArtifact}
                   onAscend={handleGroundAscend}
                 />
               )

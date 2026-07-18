@@ -226,10 +226,12 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(
     // shows through; a faint terrain tint keeps type legibility and gives the
     // move/attack overlays something to sit on. Trees/rocks are drawn on the
     // canvas now, so the tile no longer renders emoji decorations.
-    // Warm low-alpha ink line instead of flat gray, so the grid sits IN the
-    // painted illustration rather than on top of it like a spreadsheet.
+    // Neutral DARK low-alpha ink: a warm light line disappears on midtone
+    // terrain but flips hyper-visible over dark paint (bridge shadow, wet
+    // banks, mud) — light-over-dark reads as a glowing grid. Black at the
+    // same weight deepens midtones imperceptibly and adds nothing on dark.
     const tileBaseClasses =
-      "w-full h-full flex items-center justify-center border border-[#8a6b42]/[0.06]";
+      "w-full h-full flex items-center justify-center border border-black/[0.07]";
     const terrainColor = getTerrainColor(tile.terrain);
     const environmentalVisual = getEnvironmentalEffectVisual(tile);
     const coverVisual = showCoverLabel ? getCoverTileVisual(tile) : null;

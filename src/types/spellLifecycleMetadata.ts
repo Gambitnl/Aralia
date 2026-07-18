@@ -75,52 +75,14 @@ export interface EffectEndCleanup {
 
 /** Rules that end a spell or effect before its ordinary duration expires. */
 export interface ConditionalEnding {
-  /** Event that ends the spell, effect, item enchantment, or area early. */
-  trigger:
-    | "end_on_recast"
-    | "caster_leaves_area"
-    | "holder_releases_item"
-    | "caster_or_ally_damages_target"
-    | "caster_or_companion_harms_target"
-    | "target_takes_damage_or_witnesses_allies_damaged"
-    | "all_target_instances_expended"
-    | "temporary_hit_points_depleted"
-    | "target_drops_to_0_hp"
-    | "target_uses_magic_action_to_end_effect"
-    | "target_dons_armor"
-    | "target_lands"
-    | "target_makes_attack_roll"
-    | "target_casts_spell"
-    | "target_deals_damage"
-    | "carried_weight_exceeds_limit"
-    | "created_entity_drops_to_0_hp"
-    | "created_entity_takes_damage"
-    | "caster_drops_to_0_hp"
-    | "linked_creatures_separated_beyond_distance"
-    | "spell_cast_again_on_connected_creature"
-    | "target_outside_spell_range"
-    | "target_has_total_cover_from_caster"
-    | "strong_wind_disperses_effect"
-    | "initial_save_success"
-    | "repeat_save_success"
-    | "sustain_action_not_taken"
-    | "suggested_activity_completed"
-    | "already_on_destination_plane"
-    | "unsupported_area_collapses_next_turn"
-    | "certain_death_activity_requested"
-    | "drop_to_0_hp_prevented"
-    | "instant_death_no_damage_prevented"
-    | "on_attack_hit"
-    | "on_attack_hit_or_miss"
-    | "beyond_max_distance"
-    | "inscribed_ward_moved_beyond_distance"
-    | "ward_triggered"
-    | "triggered_duration_expires"
-    | "disintegrate_targets_effect"
-    | "no_creature_restrained_by_spell_after_trigger"
-    | "not_applicable";
-  /** What surface ends when the trigger occurs. */
-  scope: "spell" | "effect" | "item" | "area" | "not_applicable";
+  /**
+   * Source-backed lowercase snake_case event label. Known executable labels
+   * remain stable, while more specific labels stay available until their
+   * owning runtime lane defines a trigger adapter.
+   */
+  trigger: string;
+  /** Source-backed lowercase snake_case surface label. */
+  scope: string;
   /** Distance threshold for range- or leash-based endings, when canonical prose gives one. */
   distanceFeet?: number | "not_applicable";
   /** Duration that runs after a trigger before the spell or effect ends. */
