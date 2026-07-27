@@ -1,0 +1,6 @@
+{
+  "id": "battle-damaged-idle",
+  "displayName": "Battle-Damaged Idle",
+  "description": "A ruined version of the original Idle pet with half a head, one surviving arm, and a nearly legless broken lower body.",
+  "spritesheetPath": "spritesheet.webp"
+}

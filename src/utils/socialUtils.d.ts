@@ -1,0 +1,17 @@
+/**
+ * ARCHITECTURAL ADVISORY:
+ * DEPRECATED BRIDGE / MIDDLEMAN: Redirects to a new location. (Clean me up!)
+ *
+ * Last Sync: 27/02/2026, 09:33:50
+ * Dependents: handleGeminiCustom.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+/**
+ * @deprecated Import from '@/utils/world' instead.
+ */
+export * from './world/socialUtils';

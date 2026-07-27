@@ -422,10 +422,23 @@
                       "playerInputRequired":  true
                   },
     "modeChoice":  {
-                       "selectionType":  "choose_one_per_target",
+                       "type":  "choose_one_per_target",
+                       "timing":  "on_area_entry_or_turn_start",
+                       "optionCount":  2,
+                       "optionsSource":  "effects[3].controlOptions",
                        "options":  [
-                                       "Healing Light",
-                                       "Searing Light"
+                                       {
+                                           "label":  "Healing Light",
+                                           "summary":  "The chosen target regains Hit Points equal to 4d12 plus the caster's spellcasting ability modifier.",
+                                           "effectIndices":  [1],
+                                           "effectTypes":  ["HEALING"]
+                                       },
+                                       {
+                                           "label":  "Searing Light",
+                                           "summary":  "The chosen target makes a Dexterity save, taking 6d12 Radiant damage on a failed save or half as much on a success.",
+                                           "effectIndices":  [0],
+                                           "effectTypes":  ["DAMAGE"]
+                                       }
                                    ],
                        "secondaryChoices":  [
                                                 "initial cylinder point",

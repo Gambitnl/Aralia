@@ -226,12 +226,13 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(
     // shows through; a faint terrain tint keeps type legibility and gives the
     // move/attack overlays something to sit on. Trees/rocks are drawn on the
     // canvas now, so the tile no longer renders emoji decorations.
-    // Neutral DARK low-alpha ink: a warm light line disappears on midtone
-    // terrain but flips hyper-visible over dark paint (bridge shadow, wet
-    // banks, mud) — light-over-dark reads as a glowing grid. Black at the
-    // same weight deepens midtones imperceptibly and adds nothing on dark.
+    // Grid readability over the busy forest art needs a DUAL-TONE line: a light
+    // border edge stays visible over dark paint (shadow, wet banks, mud) while
+    // a dark inset halo (added via boxShadow below) keeps the same line visible
+    // over bright grass. Either tone alone disappears on half the map; together
+    // they read as a crisp square grid without burying the illustration.
     const tileBaseClasses =
-      "w-full h-full flex items-center justify-center border border-black/[0.07]";
+      "w-full h-full flex items-center justify-center border border-white/[0.16]";
     const terrainColor = getTerrainColor(tile.terrain);
     const environmentalVisual = getEnvironmentalEffectVisual(tile);
     const coverVisual = showCoverLabel ? getCoverTileVisual(tile) : null;
@@ -309,6 +310,10 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(
         }
         data-local-relief-feet={elevationPresentation.localReliefFeet}
         style={{
+          // Dark inset halo paired with the light border above: the grid line
+          // now has both a light and a dark component, so it stays legible over
+          // bright grass and dark shadow alike.
+          boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.24)",
           cursor: targetingMode
             ? "crosshair"
             : isInteractive

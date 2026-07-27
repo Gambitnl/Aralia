@@ -28,7 +28,7 @@ before(async () => {
   app = createAgoraServer({ dir: serverDir });
   await new Promise((resolve) => app.listen(0, resolve));
   baseUrl = `http://127.0.0.1:${app.server.address().port}`;
-  env = { AGORA_DIR: idDir };
+  env = { AGORA_DIR: idDir, AGORA_PET: 'gf-sd' };
 });
 
 after(async () => {
@@ -50,7 +50,7 @@ test('onboard: registers and prints the full situational briefing in one shot', 
   // Fresh identity dir = a truly fresh agent.
   const freshId = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-onboard-fresh-'));
   const r = await run(['onboard', 'newcomer', '--note', 'fresh worker', '--gaps', gapsRoot], {
-    env: { AGORA_DIR: freshId },
+    env: { AGORA_DIR: freshId, AGORA_PET: 'dream-girl' },
     baseUrl,
   });
   assert.equal(r.code, 0);
@@ -65,6 +65,9 @@ test('onboard: registers and prints the full situational briefing in one shot', 
   assert.match(out, /OPEN GAPS/i);
   assert.match(out, /spells/); // fixture project surfaced
   assert.match(out, /THE RULES/i);
+  assert.match(out, /Presence requires a pet identity/i);
+  assert.match(out, /Self-check both values with `whoami`/i);
+  assert.match(out, /--session <id>/i);
   assert.match(out, /lock BEFORE editing/i);
   assert.match(out, /--result/); // done-with-proof is part of the taught contract
   fs.rmSync(freshId, { recursive: true, force: true });

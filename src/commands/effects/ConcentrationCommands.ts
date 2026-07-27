@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 02/07/2026, 05:06:19
+ * Last Sync: 19/07/2026, 23:21:31
  * Dependents: commands/effects/DamageCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/StatusConditionCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/useAbilitySystem.ts
  * Imports: 6 files
  *
@@ -64,51 +64,43 @@ export class StartConcentrationCommand extends BaseEffectCommand {
             // For now, simple iteration is fine given log size usually isn't massive within a turn
 
             if (!entry.data) continue;
-            const data = entry.data as Record<string, unknown>;
 
-            // 1. Status Effects (StatusConditionCommand)
-            const condition = data.condition;
-            const statusId = typeof data.statusId === 'string' ? data.statusId : null;
-            if (statusId && condition && typeof condition === 'object' && 'source' in condition) {
-                const source = (condition as { source?: string }).source;
-                // TODO #4: formalize combat log data shapes so we don't have to duck-type log entries here.
-                if (source === spellId || source === this.context.spellName) {
+            // Status records carry concentration-owned conditions, lightweight
+            // status mirrors, delayed attack riders and light sources. The log
+            // discriminator now exposes each of these links without casts.
+            if (entry.type === 'status') {
+                const { condition, lightSource, rider, sourceSpellId, statusId } = entry.data;
+
+                if (
+                    statusId &&
+                    (condition?.source === spellId || condition?.source === this.context.spellName)
+                ) {
                     effectIds.push(statusId);
                 }
-            }
 
-            // Guidance-style utility spells log their own status mirror instead
-            // of a legacy condition payload. Keep those effect ids on the same
-            // concentration cleanup path so a recast or concentration break can
-            // remove the target-side bonus cleanly.
-            if (statusId && typeof data.sourceSpellId === 'string' && data.sourceSpellId === spellId) {
-                effectIds.push(statusId);
-            }
+                // Guidance-style utility spells log a status mirror instead of
+                // a condition. It still belongs to the same cleanup path.
+                if (statusId && sourceSpellId === spellId) {
+                    effectIds.push(statusId);
+                }
 
-            // 2. Riders (RegisterRiderCommand)
-            const rider = data.rider;
-            if (rider && typeof rider === 'object' && 'spellId' in rider && (rider as { spellId?: string }).spellId === spellId) {
-                const riderId = (rider as { id?: string }).id;
-                if (riderId) {
-                    effectIds.push(riderId);
+                if (rider?.spellId === spellId) {
+                    effectIds.push(rider.id);
+                }
+
+                if (lightSource?.sourceSpellId === spellId) {
+                    effectIds.push(lightSource.id);
                 }
             }
 
-            // 3. Light Sources (UtilityCommand)
-            const lightSource = data.lightSource;
-            if (lightSource && typeof lightSource === 'object' && 'sourceSpellId' in lightSource) {
-                if ((lightSource as { sourceSpellId?: string }).sourceSpellId === spellId) {
-                    const lightId = (lightSource as { id?: string }).id;
-                    if (lightId) {
-                        effectIds.push(lightId);
-                    }
-                }
-            }
-
-            // 4. Summons (SummoningCommand)
-            const summonedId = typeof data.summonedId === 'string' ? data.summonedId : null;
-            if (summonedId && data.spellId === spellId) {
-                effectIds.push(summonedId);
+            // Creature summons are recorded as either deliberate actions or
+            // persistent summon records. Both use the same typed spell link.
+            if (
+                (entry.type === 'action' || entry.type === 'summon') &&
+                entry.data.summonedId &&
+                entry.data.spellId === spellId
+            ) {
+                effectIds.push(entry.data.summonedId);
             }
         }
 

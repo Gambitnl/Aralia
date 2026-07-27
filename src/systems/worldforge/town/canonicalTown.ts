@@ -36,6 +36,7 @@
  * sourced.
  */
 import { generateTownPlan, type TownPlan } from './townEngine';
+import { townSpanFtForPeople, POPULATION_RATE } from './townScale';
 import { polygonBounds, type Pt } from '../submap/submapEngine';
 import type { FmgWorldResult } from '../fmg/generateWorld';
 import { rootSeedPath, childSeedPath, streamPath } from '../seedPath';
@@ -67,9 +68,10 @@ export const CANON_TOWN_SPAN = 1000;
  * generateWorld.ts). FMG stores burg `population` in POINTS (~0.01–60); the
  * town generator's typology bands (`townEngine.typologyForPopulation`) and ward
  * count expect real PEOPLE, so we scale here. (Urbanization is 1 in the bridge
- * atlas, so it drops out.)
+ * atlas, so it drops out.) Canonical value lives in townScale.ts; re-exported
+ * here so existing importers keep working.
  */
-export const POPULATION_RATE = 1000;
+export { POPULATION_RATE };
 
 /** Real urban population (people) for a burg. */
 export function peopleForBurg(atlas: TownAtlas, burgId: number): number {
@@ -78,12 +80,14 @@ export function peopleForBurg(atlas: TownAtlas, burgId: number): number {
 
 /**
  * Physical town span (feet) by population — drives the 3D footprint size so a
- * city reads bigger than a hamlet and wards aren't crammed. Clamped to a sane
- * walkable range.
+ * city reads bigger than a hamlet and wards aren't crammed. The formula lives
+ * in townScale.ts (2026-07-22 town-scale lift: the old `sqrt(people) × 6`,
+ * floor 800 ft packed ~330 people/ha — every town under ~18k people rendered
+ * as the same 244 m doll-house square) and is shared with the region pass's
+ * envelope so the flattening pad and gates always contain the town.
  */
 export function townSpanFtForBurg(atlas: TownAtlas, burgId: number): number {
-  const people = peopleForBurg(atlas, burgId);
-  return Math.max(800, Math.min(6000, Math.sqrt(Math.max(people, 1)) * 6));
+  return townSpanFtForPeople(peopleForBurg(atlas, burgId));
 }
 
 /**

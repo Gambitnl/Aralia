@@ -4,11 +4,15 @@
  */
 import { Recipe } from '../types';
 
+// Item ids resolve against ALL_ITEMS: 'dagger', 'silver_ring', and
+// 'ring_of_protection' are long-standing catalog items; the materials live in
+// src/data/craftingMaterials.ts. (The original draft referenced 'dagger_iron' /
+// 'ring_silver_plain' ids that never existed in the item registry.)
 export const ENCHANTING_RECIPES: Recipe[] = [
   {
     id: 'enchant_dagger_plus_one',
     name: 'Enchant Dagger +1',
-    description: 'Imbue a simple iron dagger with arcane energy to enhance its edge.',
+    description: 'Imbue a simple dagger with arcane energy to enhance its edge.',
     station: 'enchanters_table',
     recipeType: 'enchant',
     timeMinutes: 240, // 4 hours
@@ -18,7 +22,7 @@ export const ENCHANTING_RECIPES: Recipe[] = [
     },
     // Convention: First input is the Base Item (saved on standard fail).
     inputs: [
-      { itemId: 'dagger_iron', quantity: 1, consumed: true },
+      { itemId: 'dagger', quantity: 1, consumed: true },
       { itemId: 'dust_arcane', quantity: 5, consumed: true },
       { itemId: 'gem_ruby', quantity: 1, consumed: true } // Focus
     ],
@@ -38,12 +42,12 @@ export const ENCHANTING_RECIPES: Recipe[] = [
       dc: 18
     },
     inputs: [
-      { itemId: 'ring_silver_plain', quantity: 1, consumed: true },
+      { itemId: 'silver_ring', quantity: 1, consumed: true },
       { itemId: 'essence_earth', quantity: 2, consumed: true },
       { itemId: 'parchment_warding', quantity: 1, consumed: true }
     ],
     outputs: [
-      { itemId: 'ring_protection_plus_one', quantity: 1 }
+      { itemId: 'ring_of_protection', quantity: 1 }
     ]
   }
 ];

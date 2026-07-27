@@ -90,12 +90,15 @@ export const STYLE_FAMILIES: Record<StyleFamily['id'], StyleFamily> = {
   },
   coastalTimber: {
     id: 'coastalTimber',
-    wallPalette: ['#9a8a6e', '#a89478', '#8c7a5e', '#b3a184'],
-    roofPalette: ['#5e4a38', '#6d5540', '#514031'],
+    // Sunlit timber boards, charcoal roof tiles, and sea-blue trim keep a
+    // coastal district readable at a glance. Palette values change appearance
+    // only: the existing named hashes still choose the same stable indices.
+    wallPalette: ['#e0c792', '#d2ad6a', '#c09252', '#f0d9a8'],
+    roofPalette: ['#3a2f29', '#4d3c31', '#2f2723'],
     roofForms: ['gable', 'hip'],
     facadePatterns: ['vertical-bays', 'half-timber', 'plain'],
     gatehouseForms: ['singleTower', 'twinTowers'],
-    wallTint: '#93865f',
+    wallTint: '#1e6378',
     chimneys: true,
     deckDetail: { pilingSpacingM: 2.5, railing: true, archRiseM: 0.6 },
   },

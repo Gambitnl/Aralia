@@ -39,8 +39,8 @@ import { Z_INDEX } from '../../styles/zIndex';
 import { Canvas } from '@react-three/fiber';
 // MapControls now handled by CameraController
 import { ContactShadows, Html } from '@react-three/drei';
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
-import { BlendFunction } from 'postprocessing';
+import { EffectComposer, Bloom, Vignette, N8AO, ToneMapping } from '@react-three/postprocessing';
+import { BlendFunction, ToneMappingMode } from 'postprocessing';
 import * as THREE from 'three';
 import { BattleMapData, BattleMapTile, CombatCharacter, CombatState, LightSource, TargetableMapObject } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
@@ -350,29 +350,53 @@ const SkyDome: React.FC<{ biome: string; mapCenter: readonly [number, number, nu
 };
 
 /**
- * Postprocessing stack — Bloom + Vignette for BG3 atmosphere.
+ * Postprocessing stack — N8AO + Bloom + tone mapping + Vignette.
  *
- * SSAO + enableNormalPass were removed: under WebGL2 with three r170 +
- * @react-three/postprocessing 3.x, that combination caused glBlitFramebuffer
- * to fire `GL_INVALID_OPERATION: Read and write depth stencil attachments
- * cannot be the same image` on every rendered frame, eventually exhausting
- * the WebGL context. ContactShadows (mounted in the main scene) provides
- * the soft ground darkening SSAO used to give.
+ * SSAO history: the postprocessing SSAOEffect needed enableNormalPass, and
+ * under WebGL2 with three r170 + @react-three/postprocessing 3.x that
+ * combination fired `GL_INVALID_OPERATION: Read and write depth stencil
+ * attachments cannot be the same image` on every frame (gap #1). N8AO
+ * reconstructs normals from depth in its own pass, so it needs no
+ * NormalPass and sidesteps the bug entirely.
+ *
+ * Tone mapping MUST live in this stack: while mounted, EffectComposer sets
+ * `gl.toneMapping = NoToneMapping`, silently disabling the ACESFilmic
+ * setting on the Canvas — that un-tone-mapped output was the "raw 3D, not
+ * composited" look (GOAL #60). The ToneMapping effect restores ACES at the
+ * end of the chain.
  */
-const PostProcessingStack: React.FC = () => (
-  <EffectComposer>
-    <Bloom
-      luminanceThreshold={0.8}
-      luminanceSmoothing={0.3}
-      intensity={0.4}
-    />
-    <Vignette
-      offset={0.3}
-      darkness={0.6}
-      blendFunction={BlendFunction.NORMAL}
-    />
-  </EffectComposer>
-);
+const PostProcessingStack: React.FC<{ biome: string }> = ({ biome }) => {
+  const dark = biome === 'cave' || biome === 'dungeon';
+  return (
+    <EffectComposer>
+      {/* Half-res + performance mode keeps the 60fps gate; radius/falloff are
+          world units tuned to ~1-tile creases (rocks, tree roots, wall bases). */}
+      <N8AO
+        halfRes
+        quality="performance"
+        aoRadius={1.8}
+        distanceFalloff={3.5}
+        intensity={dark ? 2.2 : 3.2}
+      />
+      {/* Threshold lowered from 0.8 so additive daylight motes and bright
+          highlights actually cross it (GOAL #57 residual); mipmapBlur gives
+          the soft wide halo instead of a tight ring. Dark biomes get a lower
+          threshold + more intensity so torch/crystal pools glow. */}
+      <Bloom
+        mipmapBlur
+        luminanceThreshold={dark ? 0.45 : 0.62}
+        luminanceSmoothing={0.25}
+        intensity={dark ? 0.9 : 0.65}
+      />
+      <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+      <Vignette
+        offset={0.3}
+        darkness={0.6}
+        blendFunction={BlendFunction.NORMAL}
+      />
+    </EffectComposer>
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -714,7 +738,15 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
           selectedCharacter={selectedCharacter}
           characters={characters}
           cinematicEnabled={true}
-          maxDistance={Math.max(35, mapHalfDiag * 1.6)}
+          // Dark biomes (cave/dungeon) get a lower zoom-out cap: at the open-biome
+          // max distance their heavy fog/ambient swallows the whole field into
+          // black (gap #21). Clamping keeps overview inside the readable range
+          // without touching the close-zoom mood lighting.
+          maxDistance={
+            biome === 'cave' || biome === 'dungeon'
+              ? Math.max(20, mapHalfDiag * 0.9)
+              : Math.max(35, mapHalfDiag * 1.6)
+          }
           onCameraSelectCharacter={handleCharacterClick ? (id) => {
             const char = characters.find(c => c.id === id);
             if (char) handleCharacterClick(char);
@@ -863,7 +895,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
         <LivingWorld mapData={mapData} />
 
         {/* Postprocessing */}
-        <PostProcessingStack />
+        <PostProcessingStack biome={biome} />
       </Canvas>
     </div>
   );

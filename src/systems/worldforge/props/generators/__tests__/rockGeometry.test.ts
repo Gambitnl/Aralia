@@ -2,7 +2,7 @@
  * @file rockGeometry.test.ts — determinism + sanity for the owned prop
  * geometry generators (world-props slice 1).
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createRockGeometry } from '../rockGeometry';
 import { createLogGeometry } from '../logGeometry';
 import { createBushGeometry } from '../bushGeometry';
@@ -65,5 +65,22 @@ describe('owned prop geometry generators', () => {
     expect(positions(a)).toEqual(positions(b));
     const pos = a.getAttribute('position').array as Float32Array;
     for (let i = 0; i < pos.length; i++) expect(Number.isFinite(pos[i])).toBe(true);
+  });
+
+  it('does not request a redundant non-indexed conversion from Three.js', () => {
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const geometries = [
+      createRockGeometry(5),
+      createBushGeometry(6),
+      createLogGeometry(7),
+    ];
+    try {
+      expect(warning).not.toHaveBeenCalledWith(
+        expect.stringContaining('BufferGeometry is already non-indexed'),
+      );
+    } finally {
+      geometries.forEach((geometry) => geometry.dispose());
+      warning.mockRestore();
+    }
   });
 });

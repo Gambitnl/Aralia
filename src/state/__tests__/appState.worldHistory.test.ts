@@ -8,7 +8,7 @@ import { createMockGameState, createMockPlayerCharacter } from '../../utils/core
 // intact and fall back safely when older callers do not.
 describe('appState world history bootstrap', () => {
   it('keeps first-build history on standard game start', () => {
-    const worldHistory = { events: [{ id: 'hist-1', timestamp: 1, realtime: 1, type: 'DISCOVERY', title: 'Born', description: 'World birth', participants: [], importance: 10, tags: ['world_birth'] }] };
+    const worldHistory = { events: [{ id: 'hist-1', timestamp: 1, realtime: 1, type: 'DISCOVERY' as any, title: 'Born', description: 'World birth', participants: [], importance: 10, tags: ['world_birth'] }] };
     const result = appReducer(createMockGameState({ phase: GamePhase.CHARACTER_CREATION }), {
       type: 'START_GAME_SUCCESS',
       payload: {

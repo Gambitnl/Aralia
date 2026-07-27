@@ -1,4 +1,3 @@
-// TODO #84(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 import React, { useEffect, useMemo, useState, useContext } from 'react';
 // Dedicated modal for showing a single glossary entry with navigation controls
 import { GlossaryEntry } from '../../types';

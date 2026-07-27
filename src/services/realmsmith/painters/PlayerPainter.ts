@@ -56,7 +56,7 @@ export class PlayerPainter {
                 const w = img.width * scale;
                 const h = img.height * scale;
                 this.ctx.drawImage(img, cx - w / 2, cy - h / 2 - 4, w, h);
-            // TODO #480(lint-intent): Consider adding a fallback sprite once asset loading is expanded.
+            // TODO(lint-intent): Consider adding a fallback sprite once asset loading is expanded.
             } catch {
                 // Silently fail if image not loaded yet or failed
             }

@@ -74,6 +74,12 @@ export interface TownPlanViewProps {
   selectedPlotId?: number;
   /** Authoritative artifact plan, containing exact plot IDs and oriented quads. */
   artifactPlan?: import('../../systems/worldforge/artifacts').TownPlan;
+  /**
+   * Inherited water polylines in the SAME frame as the plan (the polylines fed
+   * to `generateTownPlan`). Drawn as a river channel so the docks, bridges, and
+   * water-gates the generator seats against them are visibly IN water.
+   */
+  water?: Pt[][];
 }
 
 const CIVIC_COLOR: Record<CivicKind, string> = {
@@ -478,6 +484,7 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
   onSelectPlot,
   selectedPlotId,
   artifactPlan,
+  water,
 }) => {
   const { layers, toggle } = useTownLayers(prefsScope);
   const bounds = useMemo(() => polygonBounds(plan.footprint), [plan]);
@@ -927,6 +934,23 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
             backed by the same canonical receipt consumed by production props. */}
         {layers.buildings && (plan.courtyards ?? []).map((court) => (
           <CourtyardGlyph key={court.id} court={court} />
+        ))}
+        {/* River channel over the ground/blocks but under roads and civic, so
+            bridge decks and dock piers draw ON the water. Width matches the 3D
+            channel (spanFt * 0.06) and scales with zoom — it is real geometry,
+            not a screen-space stroke. The plot carve keeps buildings out of it. */}
+        {layers.water && (water ?? []).map((line, i) => (
+          <path
+            key={`wtr${i}`}
+            d={open(line)}
+            fill="none"
+            stroke="#4a7d9e"
+            strokeWidth={stats.span * 0.06}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity={0.92}
+            data-testid="town-water"
+          />
         ))}
         {/* Inherited main roads on top of the street grid (wider, distinct). */}
         {layers.roads && plan.streets.map((s, i) => (

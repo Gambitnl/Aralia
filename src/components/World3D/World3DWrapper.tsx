@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 22:34:52
+ * Last Sync: 19/07/2026, 08:34:15
  * Dependents: App.tsx
- * Imports: 53 files
+ * Imports: 56 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -51,6 +51,8 @@ if (urlParams.get('stubForgeAssets') === '1') {
 }
 
 import InWorldHUD from './InWorldHUD';
+import DungeonExpeditionOverlay from './DungeonExpeditionOverlay';
+import { Button } from '../ui/Button';
 import WorldGenLoadingScreen, { type WorldGenLoadingStage } from './WorldGenLoadingScreen';
 import type { DisposableWorldGenClient } from './createWorldGenClient';
 import LocaleMovePane from './LocaleMovePane';
@@ -102,7 +104,10 @@ import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
 // initial chunk (and the unit-test module graph) never pays for them; the
 // same reason AtlasDemo is lazy. Only types may be imported statically.
 import type { WorldDelta } from '../../systems/worldforge/delta/types';
-import type { GroundWorld } from '../../systems/worldforge/bridge/groundChunkLoader';
+import type {
+  GroundDungeonEntrance,
+  GroundWorld,
+} from '../../systems/worldforge/bridge/groundChunkLoader';
 import type { RegionArtifact } from '../../systems/worldforge/artifacts';
 import {
   artifactsForAtlasGroundDrilldown,
@@ -121,6 +126,11 @@ import {
 } from '../../systems/worldforge/interior/buildingEventHistory';
 import type { TownSimRegistry } from '../../systems/worldforge/townsim/townSimRegistry';
 import { dungeonNameForEntrance } from '../../systems/worldforge/bridge/dungeonEntrances';
+import {
+  createDungeonEntry,
+  nearestEnterableDungeon,
+  type ActiveDungeonEntry,
+} from './dungeonEntryRuntime';
 import { LOCATIONS } from '../../data/world/locations';
 import { getBurgNamer } from '../../systems/worldforge/bridge/legacySubmapBridge';
 import { generateTownRoster } from '../../systems/worldforge/roster/generateTownRoster';
@@ -329,6 +339,19 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
   // framing of the spawn town (stays in the scene — see World3DScene.frameTownCellNonce).
   const [frameTownCellNonce, setFrameTownCellNonce] = useState(0);
 
+  // ========================================================================
+  // Persistent Dungeon Entry
+  // ========================================================================
+  // The world remains mounted underneath the expedition overlay. Keeping its loader, tile, and
+  // movement state alive makes return an exact restoration rather than a second world-generation
+  // request. GameState owns the canonical lifecycle receipt while generated geometry remains the
+  // deterministic plan owned by the existing entry runtime. Deeper-level traversal remains later.
+  // ========================================================================
+  const [nearbyDungeonEntrance, setNearbyDungeonEntrance] =
+    useState<GroundDungeonEntrance | null>(null);
+  const [activeDungeonEntry, setActiveDungeonEntry] = useState<ActiveDungeonEntry | null>(null);
+  const [dungeonEntryError, setDungeonEntryError] = useState<string | null>(null);
+
   // Worker-backed loader for PLAYING — keeps chunk mesh generation off the main thread.
   // Created and disposed inside ONE effect (the React-correct disposable-resource pattern): under
   // StrictMode's dev double-mount (setup → cleanup → setup) each setup builds a fresh loader+worker
@@ -416,8 +439,10 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
         const coords = entryCellId != null ? { x: entryCellId, y: 0 } : null;
         if (!(coords && wfSeed != null && entryCellId != null)) return;
 
+        // Game clock is an in-world UTC Date; read UTC hours so the initial
+        // lighting hour matches the HUD clock (never host-machine getHours()).
         const hour =
-          state.gameTime instanceof Date ? state.gameTime.getHours() : 12;
+          state.gameTime instanceof Date ? state.gameTime.getUTCHours() : 12;
         const deltas =
           (state as { worldforgeDeltas?: WorldDelta[] }).worldforgeDeltas ?? [];
 
@@ -1061,6 +1086,29 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
     wfGroundView,
   ]);
 
+  /**
+   * Refresh the doorway action from one accepted player position.
+   *
+   * Camera walking, the 2D Locale destination, and the real 3D ground click all report the same
+   * tile-local meter coordinates through this boundary. Keeping the radius check here prevents
+   * those movement producers from drifting into separate dungeon-entry rules while preserving the
+   * canonical entrance receipt and the later persistence/gameplay lanes.
+   */
+  const refreshNearbyDungeonEntrance = useCallback((xM: number, zM: number) => {
+    const enterableDungeon = nearestEnterableDungeon(
+      groundRef.current?.dungeonEntrances ?? [],
+      xM,
+      zM,
+    );
+
+    // Reuse the existing entrance object while the player remains near the same doorway. React can
+    // then skip a redundant prompt render during high-frequency camera movement.
+    setNearbyDungeonEntrance((current) => {
+      if (current?.id === enterableDungeon?.id) return current;
+      return enterableDungeon;
+    });
+  }, []);
+
   const handleGroundPositionChange = useCallback(
     (x: number, z: number) => {
       const tile = wfGroundView?.tile;
@@ -1101,6 +1149,10 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
         }
       }
 
+      // The camera is allowed to author the player position on this frame. Refresh the doorway
+      // action from those same accepted coordinates before the dispatch throttle can defer state.
+      refreshNearbyDungeonEntrance(x, z);
+
       // Fight-in-place dev entry: always track the freshest ground position,
       // even on throttled frames, so a test fight starts exactly where we stand.
       lastGroundXZ.current = { x, z };
@@ -1116,6 +1168,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
       // (off-map sites placed by makeGroundWorld; revealed by 3D proximity).
       // Persist to GameState so discoveries survive reload and pin on the atlas.
       const gwForDiscovery = groundRef.current;
+
       if (gwForDiscovery?.hiddenSites?.length) {
         for (const hs of gwForDiscovery.hiddenSites) {
           if (Math.hypot(x - hs.xM, z - hs.zM) <= hs.discoveryRadiusM) {
@@ -1414,6 +1467,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
       state.worldforgeEncounterReceipts,
       state.discoveredHiddenSites,
       atlasGroundDrilldown,
+      refreshNearbyDungeonEntrance,
     ],
   );
 
@@ -1656,12 +1710,13 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
       // too, so it must survive a subsequent camera pan just like a 3D click.
       // Record the tile it was armed on so a tile crossing can retire it.
       clickMoveIntent.current = { xM, zM, tileX: tile.x, tileY: tile.y };
+      refreshNearbyDungeonEntrance(xM, zM);
       dispatch({
         type: 'SET_PLAYER_GROUND_POS',
         payload: { position: { tileX: tile.x, tileY: tile.y, xM, zM } },
       });
     },
-    [dispatch, wfGroundView?.tile],
+    [dispatch, refreshNearbyDungeonEntrance, wfGroundView?.tile],
   );
 
   // Interactive-3D locomotion: a click on open ground in the 3D world walks the
@@ -1678,13 +1733,83 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
       // next click re-arms). Record the tile it was armed on so a tile crossing
       // can retire it. See clickMoveAuthority.ts / handleGroundPositionChange.
       clickMoveIntent.current = { xM, zM, tileX: tile.x, tileY: tile.y };
+      refreshNearbyDungeonEntrance(xM, zM);
       dispatch({
         type: 'SET_PLAYER_GROUND_POS',
         payload: { position: { tileX: tile.x, tileY: tile.y, xM, zM } },
       });
     },
-    [dispatch, wfGroundView?.tile],
+    [dispatch, refreshNearbyDungeonEntrance, wfGroundView?.tile],
   );
+
+  /**
+   * Enter the nearby canonical dungeon and freeze an exact return point.
+   *
+   * Generation validates the entrance receipt against the active world. Any stale or unavailable
+   * attachment becomes a visible prompt error; the player never receives a preview-seed fallback.
+   */
+  const handleEnterDungeon = useCallback(() => {
+    const entrance = nearbyDungeonEntrance;
+    const tile = wfGroundView?.tile;
+    if (!entrance || !tile) return;
+
+    // The state ref is the authoritative avatar position when it belongs to this tile. During the
+    // small interval before its throttled dispatch, the live ground tracker is the freshest value.
+    const savedPosition = playerGroundPosRef.current;
+    const origin =
+      savedPosition && savedPosition.tileX === tile.x && savedPosition.tileY === tile.y
+        ? { xM: savedPosition.xM, zM: savedPosition.zM }
+        : { xM: lastGroundXZ.current.x, zM: lastGroundXZ.current.z };
+
+    try {
+      const entry = createDungeonEntry(entrance, {
+        worldSeed: state.worldSeed ?? 42,
+        cellId: state.playerCell?.cellId ?? entrance.cellId,
+        tileX: tile.x,
+        tileY: tile.y,
+        xM: origin.xM,
+        zM: origin.zM,
+      });
+      // Persist only after canonical generation validates the world attachment. A failed or stale
+      // entrance therefore cannot leave a detached lifecycle record in the save.
+      dispatch({ type: 'DUNGEON_ENTERED', payload: { identity: entry.identity } });
+      setDungeonEntryError(null);
+      setActiveDungeonEntry(entry);
+    } catch (error) {
+      setDungeonEntryError(
+        `This dungeon entrance is unavailable: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }, [dispatch, nearbyDungeonEntrance, state.playerCell?.cellId, state.worldSeed, wfGroundView?.tile]);
+
+  /** Return to the exact tile-local position recorded before the dungeon overlay opened. */
+  const handleReturnFromDungeon = useCallback(() => {
+    if (!activeDungeonEntry) return;
+    const origin = activeDungeonEntry.returnContext;
+
+    // Reassert the saved movement state before closing the overlay. The GroundWorld stayed mounted,
+    // so this restores the avatar without regenerating the world or selecting a different entrance.
+    clickMoveIntent.current = null;
+    lastGroundXZ.current = { x: origin.xM, z: origin.zM };
+    dispatch({
+      type: 'SET_PLAYER_GROUND_POS',
+      payload: {
+        position: {
+          tileX: origin.tileX,
+          tileY: origin.tileY,
+          xM: origin.xM,
+          zM: origin.zM,
+        },
+      },
+    });
+    // Returning is the only retreat rule current gameplay can honestly support. It closes the
+    // active visit while leaving completion and all future authored progress untouched.
+    dispatch({
+      type: 'DUNGEON_RETREATED',
+      payload: { dungeonId: activeDungeonEntry.identity.dungeonId },
+    });
+    setActiveDungeonEntry(null);
+  }, [activeDungeonEntry, dispatch]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -1830,6 +1955,65 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
           dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
         } : undefined}
       />
+
+      {/* Walking close to a discovered doorway exposes one explicit entry action. The prompt is
+          separate from discovery/pinning so finding a dungeon never forces the player inside. */}
+      {nearbyDungeonEntrance && !activeDungeonEntry ? (
+        <aside
+          data-testid="dungeon-entry-prompt"
+          style={{
+            position: 'absolute',
+            left: '50%',
+            bottom: '24px',
+            zIndex: 60,
+            width: 'min(520px, calc(100% - 32px))',
+            transform: 'translateX(-50%)',
+            padding: '14px 16px',
+            border: '1px solid rgba(251, 191, 36, 0.7)',
+            borderRadius: '12px',
+            background: 'rgba(12, 10, 8, 0.94)',
+            boxShadow: '0 12px 36px rgba(0, 0, 0, 0.55)',
+            color: '#f7ecd1',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ color: '#fbbf24', fontSize: '11px', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+            Dungeon Entrance
+          </div>
+          <div style={{ margin: '4px 0 10px', fontSize: '13px', color: '#d6c7aa' }}>
+            {nearbyDungeonEntrance.id}
+          </div>
+          <Button
+            type="button"
+            onClick={handleEnterDungeon}
+            data-testid="enter-dungeon"
+            variant="action"
+            size="md"
+            style={{
+              border: '1px solid #fbbf24',
+              background: '#92400e',
+              color: '#fff7db',
+              fontWeight: 800,
+            }}
+          >
+            Enter Dungeon
+          </Button>
+          {dungeonEntryError ? (
+            <div role="alert" style={{ marginTop: '10px', color: '#fca5a5', fontSize: '12px' }}>
+              {dungeonEntryError}
+            </div>
+          ) : null}
+        </aside>
+      ) : null}
+
+      {/* The generated interior covers the world visually but does not unmount it. Returning closes
+          this layer and restores the saved tile-local position through the existing movement action. */}
+      {activeDungeonEntry ? (
+        <DungeonExpeditionOverlay
+          entry={activeDungeonEntry}
+          onReturn={handleReturnFromDungeon}
+        />
+      ) : null}
     </div>
   );
 };

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 01:32:09
+ * Last Sync: 18/07/2026, 02:11:15
  * Dependents: devtools/buildingIdentityLab/BuildingIdentityLab.tsx
  * Imports: 9 files
  *
@@ -387,4 +387,5 @@ export function buildHarnessTown(options: BuildHarnessTownOptions): HarnessTownM
 export function blueprintForHarnessPlot(model: HarnessTownModel, plotId: number): BlueprintPlan {
   const plot = model.artifactPlan.plots.find((candidate) => candidate.id === plotId);
   if (!plot) throw new Error(`Building Identity Lab has no plot ${plotId}`);
-  return buildProductionBlueprint(model.artifactPlan, model.seed, model.style, 
+  return buildProductionBlueprint(model.artifactPlan, model.seed, model.style, model.climate, plot);
+}

@@ -15,6 +15,7 @@ import { createAgoraServer } from './server.mjs';
 let app;
 let port;
 let tmpDir;
+const TEST_PET = 'gf-sd';
 
 before(async () => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-orch-test-'));
@@ -58,7 +59,7 @@ function request(method, pathname, { token, body } = {}) {
 }
 
 async function registerAgent(handle) {
-  const r = await request('POST', '/agents/register', { body: { handle } });
+  const r = await request('POST', '/agents/register', { body: { handle, petSlug: TEST_PET } });
   assert.equal(r.status, 201);
   return r.json;
 }
@@ -244,7 +245,7 @@ test('docs: /docs lists the whitelisted reference files; /docs/:name serves them
   const list = await request('GET', '/docs');
   assert.equal(list.status, 200);
   const names = list.json.docs.map((d) => d.name).sort();
-  assert.deepEqual(names, ['CO-ORCHESTRATION.md', 'COLD_START_ORCHESTRATOR_PROMPT.md', 'ORCHESTRATOR.md', 'PROTOCOL.md', 'WORKFLOW_GAPS.md']);
+  assert.deepEqual(names, ['CO-ORCHESTRATION.md', 'COLD_START_ORCHESTRATOR_PROMPT.md', 'ORCHESTRATOR.md', 'PROTOCOL.md', 'VEGA.md', 'WORKFLOW_GAPS.md']);
   assert.ok(list.json.docs.every((d) => d.path.includes('tools')), 'absolute paths returned');
 
   // Default is the pretty HTML page for humans; ?raw=1 is the plain markdown.

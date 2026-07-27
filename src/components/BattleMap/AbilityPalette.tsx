@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 11/07/2026, 23:23:10
+ * Last Sync: 23/07/2026, 20:12:27
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
  * Imports: 4 files
  *
@@ -118,7 +118,11 @@ const AbilityPalette: React.FC<AbilityPaletteProps> = ({
         // should enter the normal target-selection flow instead of logging as a
         // self-only utility. Area follow-ups, such as Melf's meteors, route to
         // the normal area picker so their later point/area payload is visible.
-        targeting: areaOfEffect
+        targeting: grantedAction.targeting === 'single_any'
+          ? 'single_any'
+          : grantedAction.targeting === 'single_ally'
+            ? 'single_ally'
+            : areaOfEffect
           ? 'area'
           : grantedAction.rangeLimit
             ? (grantedAction.prerequisites?.includes('target_object_within_spell_range') ? 'single_any' : 'single_enemy')
@@ -146,6 +150,8 @@ const AbilityPalette: React.FC<AbilityPaletteProps> = ({
           grantedActionDamageAbilityModifier: grantedAction.damageAbilityModifier,
           grantedActionWallLengthReduction: grantedAction.wallLengthReduction,
           grantedActionEndsWhenLengthZero: grantedAction.endsWhenLengthZero,
+          grantedActionTargeting: grantedAction.targeting,
+          grantedActionSocialServiceRequest: grantedAction.socialServiceRequest,
           grantedActionNotes: grantedAction.notes
         }],
         tags: ['spell-granted-action', ability.id],

@@ -47,7 +47,7 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
         const serviceItem: Item = {
             id: `rumor_${rumor.id}`, // Unique ID linking back to the rumor
             name: rumor.type === 'secret' ? 'Secret Info' : rumor.type === 'lead' ? 'Lead' : 'Rumor',
-            type: 'note', // TODO #137(Intriguer): Promote to a dedicated "service" item type once taxonomy expands.
+            type: 'note', // TODO: Promote to a dedicated "service" item type once the item taxonomy expands.
             cost: '0', // Resell value is 0 (info degrades)
             description: `Purchased from ${merchantName}: "${rumor.content}"`, // Store content here!
             weight: 0,
@@ -64,7 +64,7 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
         // Log specific event for intrigue system hook (optional, handled by BUY_ITEM logs generally)
         // [Sentinel] Removed console.log that exposed secret payload
 
-        // TODO #138(Intriguer): If type is 'lead', trigger a QUEST_START or add a map marker here via custom action.
+        // TODO: If type is 'lead', trigger a QUEST_START or add a map marker here via custom action.
     };
 
     return (

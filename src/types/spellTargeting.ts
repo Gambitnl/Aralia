@@ -66,7 +66,7 @@ export interface Range {
 /**
  * A number-like spell count used for targets and other scalable spell facts.
  */
-export type ScalableNumber = number | "unlimited" | ScalableNumberObject;
+export type ScalableNumber = number | "unlimited" | "any_number" | ScalableNumberObject;
 
 /** Object form of ScalableNumber with explicit scaling thresholds. */
 export interface ScalableNumberObject {
@@ -84,7 +84,7 @@ export interface ScalableNumberObject {
 export function resolveScalableNumber(value: ScalableNumber, level: number): number {
   // Unlimited counts become Infinity so callers can compare capacity without a
   // fake finite cap such as 999.
-  if (value === "unlimited") {
+  if (value === "unlimited" || value === "any_number") {
     return Number.POSITIVE_INFINITY;
   }
 
@@ -127,7 +127,11 @@ export function isScalableNumberObject(value: ScalableNumber): value is Scalable
 //==============================================================================
 
 /** Specifies filters for what can be targeted by a spell. */
-export type TargetFilter = "creatures" | "objects" | "allies" | "enemies" | "self" | "point" | "ground";
+/**
+ * Normalized target categories plus source-backed labels such as `corpse` or
+ * `surfaces` that await a dedicated target adapter.
+ */
+export type TargetFilter = "creatures" | "objects" | "allies" | "enemies" | "self" | "point" | "ground" | string;
 
 /** Defines how complex target selection, such as Sleep pools, is allocated. */
 export interface TargetAllocation {

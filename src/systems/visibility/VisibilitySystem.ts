@@ -195,9 +195,10 @@ export class VisibilitySystem {
       return false;
     }
 
+    const srcPos = source.position;
     const coveredObject = mapData.targetableObjects?.some(object =>
-      object.position.x === source.position.x &&
-      object.position.y === source.position.y &&
+      object.position.x === srcPos.x &&
+      object.position.y === srcPos.y &&
       object.isCoveredByOpaqueMaterial === true
     );
 

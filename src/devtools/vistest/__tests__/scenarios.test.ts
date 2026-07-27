@@ -293,8 +293,11 @@ describe("vistest runner helpers", () => {
   });
 
   it("builds the copyable capture command", () => {
+    // The placeholder is deliberately honest: a copied command must make the
+    // operator choose source changed by this task instead of blessing a stable,
+    // unrelated file as generic freshness proof.
     expect(captureCommand(s)).toBe(
-      "npx tsx tools/vistest/shoot.ts --only demo-one",
+      'npx tsx tools/vistest/shoot.ts --fresh-module "<changed-source-module>" --only demo-one',
     );
   });
 

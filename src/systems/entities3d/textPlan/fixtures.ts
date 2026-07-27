@@ -64,6 +64,8 @@ const threeHeadedSerpent: CreaturePlan = {
   name: 'Threefold Fen Serpent',
   frame: { heightFt: 2.5, lengthFt: 26, bulk: 0.6, stance: 'serpentine' },
   spine: { segments: 8, taper: 0.4, arch: 0 },
+  // scaled hide: necks join with hard clean seams (junction blend floor)
+  skin: { blend: 0 },
   appendages: [
     {
       kind: 'neck',
@@ -88,6 +90,8 @@ const tentacledOoze: CreaturePlan = {
   name: 'Gutter Ooze',
   frame: { heightFt: 2.5, lengthFt: 5, bulk: 1, stance: 'horizontal' },
   spine: { segments: 3, taper: 0.7, arch: 0.3 },
+  // amorphous: tentacles melt into the mound (junction blend showcase)
+  skin: { blend: 1 },
   // IRREGULAR arms — symmetric equal tentacles around a mound read SPIDER.
   // An ooze is lazy and lopsided: varied lengths, attach points, and heights.
   appendages: [

@@ -13,8 +13,14 @@ multi-agent fix/build campaign across the Aralia repo using **three systems toge
    that visualizes/dispatches the external fleet is a separate app on `http://127.0.0.1:3040`
    (`misc/agent_matrix.html` → `Aralia-operator-dashboard`); Agora mirrors its events into
    that cockpit's activity feed.
-3. **Project tracker** — the work backlog: `docs/projects/PROJECT_TRACKER.md` (gitignored,
-   local) is the durable inventory; per-project `GAPS.md`/`TRACKER.md` hold the open items.
+3. **Planning surfaces** — where the work backlog lives:
+   - **Plan Map** (`public/planmap/`) — the live roadmap-capture surface; append topics/features
+     there (task refs use `planmap:<topic>/<feature>`).
+   - **Roadmap** (`devtools/roadmap/`) — the generated node graph (capability-doc → manifest →
+     generator → UI).
+   - **Project tracker** (`docs/projects/PROJECT_TRACKER.md` + per-project `GAPS.md`/`TRACKER.md`)
+     — DEPRECATED but still live; being absorbed into the Plan Map by the planning-surface-freshness
+     campaign. Read it, but log new planning gaps against Plan Map / Roadmap.
    Ad-hoc issue logs (e.g. `.agent/scratch/ux-pass/ISSUES.md`) are another work source.
 
 This file is the missing link that ties them together. Read `PROTOCOL.md` for exact API
@@ -33,12 +39,18 @@ curl -s http://localhost:4319/health        # {"ok":true,...}
 #    Cockpit:    http://127.0.0.1:3040/agent_matrix.html  (external fleet + the Agora activity bridge)
 # 3. Register yourself as the orchestrator (own identity key so you don't clobber a worker's)
 export AGORA_AGENT_ID=orchestrator
-node tools/agora/client.mjs register orchestrator --note "campaign coordinator" --url http://localhost:4319
+node tools/agora/client.mjs pets
+node tools/agora/client.mjs register orchestrator --role orchestrator --pet <chosen-pet-slug> --session <your-task-or-thread-id> --note "campaign coordinator" --url http://localhost:4319
 ```
 
-**You own identity allocation for the fleet.** Every worker you dispatch MUST get a
-unique `AGORA_AGENT_ID` — use its packet handle (`validatePlan` already enforces
-handle uniqueness, and the daemon 409s a duplicate live handle, so this is belt-and-braces).
+**You own identity allocation for the fleet.** Use `client.mjs pets` to prefer an available
+pet slug for yourself and every worker packet. Every worker you dispatch MUST also get a unique
+`AGORA_AGENT_ID` — use its packet handle (`validatePlan` already enforces handle uniqueness,
+and the daemon 409s a duplicate live handle, so this is belt-and-braces). Pet uniqueness is a
+store invariant: if a requested pet becomes occupied before registration, Agora assigns the next
+free identity and the client reports it. Inspect `client.mjs agents` before dispatch continues;
+stop if a row lacks a pet or if two live rows share one `pet.slug`. Workers self-check `whoami`
+against the returned assignment, not merely the originally requested slug.
 A worker never invents its own name; you hand it one. This is what stops two workers in the
 one shared checkout from sharing an identity and having `unlock --mine` free each other's
 locks. `orchestrate.mjs`'s generated prompts already bake `export AGORA_AGENT_ID=<handle>`
@@ -47,11 +59,39 @@ into STEP 1 — if you hand-write a worker prompt, include it yourself.
 **Stamp the model at launch.** You know which model each worker is before it starts, so its
 register line carries `--model <model>` (generated prompts use `pkt.model || pkt.agent`). That
 puts the model on the roster (`client.mjs agents` shows `[model]`) so a human — or you — can see
-what each lane is running. A worker may also self-report its own conversation id with
-`--session <id>`; both surface in `whoami` and `GET /agents`.
+what each lane is running. A Codex worker must report its own task/thread id with
+`--session <id>`; orchestrator/master roles must always do so regardless of runtime. The
+daemon rejects missing required provenance before Presence, and both values surface in
+`whoami` and `GET /agents`.
 
 `.agent/agora/` (the daemon's snapshot/journal + per-agent identity files) is **gitignored**
 so a sibling's `git reset --hard` can't nuke live coordination state.
+
+---
+
+## 0a. Arm event-driven Codex wake and desktop surfacing
+
+Agora can wake a dormant Codex task without private desktop injection. Register the exact
+technical thread UUID against the version-matched one-shot adapter:
+
+```powershell
+node tools/agora/watchdog.mjs register-target `
+  --handle <agora-handle> --agent <agora-agent-id> --callsign <callsign> `
+  --adapter codex-session-turn-once --session <codex-thread-uuid> `
+  --cwd F:\Repos\Aralia --grace 120000
+```
+
+The target announces `CALLSIGN DORMANT` before its harness goes idle. A later human command,
+direct message, or exact `@callsign` mention makes the watchdog resume one turn using the saved
+session's matching Codex engine and last successful model. Only after that child exits cleanly
+does the watchdog open `codex://threads/<thread-uuid>`, which brings the same saved task forward
+in the desktop app. The `WAKE-AUDIT` completion message reports `surface=desktop-thread-opened`.
+
+The terms **conversation id**, **session id**, **task id**, and **thread id** all refer to that
+same technical UUID in this workflow. The deep link is only the desktop address for that UUID;
+it does not send a prompt. `/app` is also not an unattended wake command: it hands the currently
+open interactive CLI session to the desktop app. Do not run simultaneous CLI and desktop turns
+on one UUID; the watchdog waits for the one-shot CLI turn to finish before opening the app.
 
 ---
 
@@ -70,6 +110,7 @@ and coordinate with that lead, or create a deputy plan with explicit boundaries:
 ```json
 {
   "wave": "ui-deputy-window-frame",
+  "pet": "gf-sd",
   "campaign": {
     "id": "ui-deputy-window-frame",
     "role": "deputy",
@@ -81,6 +122,7 @@ and coordinate with that lead, or create a deputy plan with explicit boundaries:
     {
       "id": "PK-window-frame",
       "handle": "window-frame-deputy",
+      "pet": "dream-girl",
       "agent": "claude",
       "scope": "Fix WindowFrame lane only",
       "files": ["src/components/ui/WindowFrame.tsx"]
@@ -112,10 +154,10 @@ node tools/agora/orchestrate.mjs feedback plan.json        # dump the WORKFLOW: 
 
 PLAN shape (see [`example-plan.json`](./example-plan.json)):
 ```json
-{ "wave": "name", "baseUrl": "http://localhost:4319", "baseline": 219,
+{ "wave": "name", "pet": "orchestrator-pet-slug", "baseUrl": "http://localhost:4319", "baseline": 219,
   "campaign": { "id": "optional-non-roadmap-override", "role": "lead", "scope": "one-line orchestrator scope" },
   "packets": [
-    { "id": "PK-x", "handle": "fix-x", "agent": "claude|codex|gemini",
+    { "id": "PK-x", "handle": "fix-x", "pet": "worker-pet-slug", "agent": "claude|codex|gemini",
       "scope": "one-line", "files": ["src/a.ts"], "refs": ["planmap:topic-id/feature-slug"], "guidance": "optional extra instructions" } ] }
 ```
 
@@ -134,7 +176,8 @@ in the background itself.
 This is the sequence that ran ~90 fixes across 5 waves with **zero lock conflicts**:
 
 ### Step A — Pick the work
-From the project tracker (`docs/projects/PROJECT_TRACKER.md` → a project's `GAPS.md`) or an
+From a planning surface — the Plan Map (`public/planmap/`), the Roadmap (`devtools/roadmap/`),
+the deprecated project tracker (`docs/projects/PROJECT_TRACKER.md` → a project's `GAPS.md`), or an
 issue log. Keep a running status ledger somewhere (a `FIX_PLAN.md` or a ledger at the top of
 the issue log) so each wave's outcome is recorded.
 
@@ -183,7 +226,7 @@ coordination contract**:
 ```bash
 export AGORA_AGENT_ID=<unique-handle>     # MUST be unique per agent (see gotchas)
 B=http://localhost:4319
-node tools/agora/client.mjs register <handle> --note "<scope>" --url $B
+node tools/agora/client.mjs register <handle> --pet <assigned-pet-slug> --session <worker-task-or-thread-id> --note "<scope>" --url $B
 TID=$(node tools/agora/client.mjs task new "<scope>" --id-only --url $B)   # --id-only = bare id, no grep
 node tools/agora/client.mjs task claim "$TID" --url $B
 node tools/agora/client.mjs lock <every owned file> --reason "<packet>" --url $B   # 409 => STOP + report
@@ -271,7 +314,7 @@ your peer-coordination events show up there alongside external dispatches automa
 ## 3. Agora client cheat-sheet (full API in PROTOCOL.md)
 
 ```
-register <handle> [--note]      whoami        agents
+pets                            register <handle> --pet <slug> [--note]      whoami        agents
 lock <path...> [--ttl min]      unlock <id|path> | --mine | <id> --force       locks
 campaign claim <id> [--role lead|deputy] [--lead <id>] [--path <p>...] [--glob <g>...]
 campaign state <id> done|blocked|active     campaigns [--state active]
@@ -308,7 +351,7 @@ say <body> | say --to <h> <body>     inbox [--since <seq>] [--mine]     watch   
 - **Wave lifecycle**: `orchestrate watch <plan>` blocks until every seeded task is
   done/blocked and prints the collected results; `orchestrate report <plan>` is the
   retrospective (per-packet time-to-done, reap counts, results).
-- **Fresh agents**: point them at `client.mjs onboard <handle>` (one-shot registration +
+- **Fresh agents**: assign a catalog pet and task/thread id, then point them at `client.mjs onboard <handle> --pet <slug> --session <id>` (one-shot registration +
   situational briefing + the rules; `--gaps` adds tracker intake) — also now in AGENTS.md, so
   even un-prompted agents can find the front door. Long workers use the 30-minute bounded
   `client.mjs heartbeat --every 600` helper, ideally with `AGORA_OWNER_PID` or
@@ -318,7 +361,10 @@ say <body> | say --to <h> <body>     inbox [--since <seq>] [--mine]     watch   
   structured registry for gaps in the workflow ITSELF (hard row schema in the file; same
   table format as project GAPS.md, so `gapIndex.mjs --root tools/agora` parses it). A
   `say "WORKFLOW: ..."` message that matters should ALSO become a row there; tag fixing
-  tasks with `--ref workflow:WF-G<n>`.
+  tasks with `--ref workflow:WF-G<n>`. Every new row names one `Suggested agent` using an
+  exact `agents.json` key, plus the registrant's exact Agora handle, full agent UUID, and
+  task/thread ID from `client.mjs whoami`. Generic labels such as `orchestrator` are roles,
+  not provenance, and must not be written in `Registered by`.
 
 ---
 

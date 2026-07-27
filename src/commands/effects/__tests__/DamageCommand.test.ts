@@ -162,6 +162,83 @@ describe('DamageCommand', () => {
         expect(logEntry?.message).toMatch(/Hero (batters|crushes|bludgeons|pummels) Goblin/);
     });
 
+    // ========================================================================
+    // Heavy Armor Master equipment gate
+    // ========================================================================
+    // These cases prove that the feat reads the projected torso armour rather
+    // than granting its reduction to every character who owns the feat.
+    describe('Heavy Armor Master', () => {
+        const executeArmorMasterHit = async (
+            armorCategory: 'Light' | 'Medium' | 'Heavy' | undefined,
+            isMagical = false,
+            hasFeat = true
+        ): Promise<number | undefined> => {
+            const target = createMockCombatCharacter({
+                ...mockTarget,
+                level: 5,
+                currentHP: 20,
+                maxHP: 20,
+                feats: hasFeat ? ['heavy_armor_master'] : [],
+                equipment: armorCategory
+                    ? {
+                        wornArmor: {
+                            itemId: `${armorCategory.toLowerCase()}-armor`,
+                            itemName: `${armorCategory} Armor`,
+                            slot: 'Torso',
+                            category: armorCategory,
+                            magicStatus: 'unknown',
+                            properties: []
+                        }
+                    }
+                    : undefined
+            });
+            const state = createMockCombatState({
+                characters: [mockCaster, target],
+                combatLog: []
+            });
+            const effect: SpellEffect = {
+                type: 'DAMAGE',
+                damage: { dice: '1d10', type: 'Slashing' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            };
+            const command = new DamageCommand(effect, {
+                ...mockContext,
+                spellId: 'longsword-hit',
+                spellName: 'Longsword',
+                targets: [target],
+                weaponProperties: ['Versatile'],
+                isMagical
+            });
+
+            const result = await command.execute(state);
+            return result.characters.find(character => character.id === target.id)?.currentHP;
+        };
+
+        it.each([
+            ['Heavy', 13],
+            ['Medium', 10],
+            ['Light', 10],
+            [undefined, 10]
+        ] as const)(
+            'applies the correct reduction for %s armour',
+            async (armorCategory, expectedHitPoints) => {
+                // The mocked 1d10 deals 10 damage. A level-5 heavy-armour
+                // wearer reduces it by proficiency bonus 3 and ends on 13 HP.
+                // Every other armour state takes the full hit and ends on 10 HP.
+                expect(await executeArmorMasterHit(armorCategory)).toBe(expectedHitPoints);
+            }
+        );
+
+        it('does not reduce magical weapon damage through heavy armour', async () => {
+            expect(await executeArmorMasterHit('Heavy', true)).toBe(10);
+        });
+
+        it('does not reduce damage when the heavy-armour wearer lacks the feat', async () => {
+            expect(await executeArmorMasterHit('Heavy', false, false)).toBe(10);
+        });
+    });
+
     describe('Hit-point-state damage branches (Toll the Dead)', () => {
         it('uses the normal d8 branch when the target is not missing hit points', async () => {
             const effect: SpellEffect = {

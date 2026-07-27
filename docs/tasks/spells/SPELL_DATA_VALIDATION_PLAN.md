@@ -1,22 +1,134 @@
 # Spell Data Validation Plan
 
-Last Updated: 2026-07-18
+Last Updated: 2026-07-23
 
 This file captures the current plan for validating spell JSON structure and spell reference parity.
 
 ## Current Status Snapshot
 
-- Fresh replay on 2026-07-18 reports `473` total spell JSON files, `361` valid,
-  and `112` invalid. The earlier `459 / 459` statements below are historical
+- Fresh replay on 2026-07-23 reports `473` total spell JSON files, `473` valid,
+  and `0` invalid. The earlier `459 / 459` statements below are historical
   routing context and must not be used as current corpus proof.
 - The `effects[].conditionalEndings[]` family is now clear in the live replay:
   source-backed lowercase snake_case trigger/scope tokens validate, and seven
   cloud/weather/wall records now carry explicit `area` scope. Focused schema
   proof passed in `src/systems/spells/validation/__tests__/conditionalEndings.test.ts`.
-- Remaining invalid files belong to other validator families, including
-  created-object metadata, ability-check modifiers, controlled entities,
-  summon control, condition overrides, mode choice, targeting placement, and
-  recurring/trigger metadata; those remain open evidence for G14's child lanes.
+- The `effects[].createdObjects[]` family is now clear in the live replay:
+  source-backed object labels and placement/shape units validate, and legacy
+  `kind` packets such as Mighty Fortress remain lossless until their runtime
+  adapter is complete. Focused proof passed in
+  `src/systems/spells/validation/__tests__/createdObjects.test.ts` (2 tests).
+- The `effects[].abilityCheckModifier` family is now clear in the live replay:
+  executable riders and partial source-backed metadata validate, while the
+  shared check path handles Guidance dice and fixed-skill or advantage riders.
+  Focused schema proof passed in
+  `src/systems/spells/validation/__tests__/abilityCheckModifier.test.ts` (2
+  tests), and focused roll proof passed in
+  `src/utils/character/__tests__/checkUtils.test.ts` (3 tests).
+- The `effects[].condition.saveOutcomeOverrides[]` family is now clear in the
+  live replay: canonical auto-outcome rows and source-backed metadata validate,
+  while the save-resolution consumer remains a separate deferred runtime lane.
+  Focused proof passed in
+  `src/systems/spells/validation/__tests__/saveOutcomeOverrides.test.ts` (2
+  tests).
+- The `effects[].controlledEntity` family is now clear in the live replay:
+  executable helper packets and richer emanation/environment metadata validate
+  without losing source labels. Direct focused proof passes for Mage Hand and
+  Wrath of Nature records; the controlled-entity runtime adapters remain
+  responsible for their narrower executable fields.
+- The top-level `modeChoice` family is now clear for all 71 authored menus:
+  Commune with Nature and Conjure Celestial now have explicit option summaries
+  and effect/control indexes, with focused mode-choice proof passing.
+- The `condition.saveEffect` family is now clear for the live `negates` alias:
+  Gust of Wind, Heat Metal, and Zone of Truth validate, focused corpus proof
+  passes, and damage resolution maps `negates`/`negates_effect` to the existing
+  zero-on-success behavior. Other save-resolution wording remains owned by its
+  command-specific adapter.
+- The `endCleanup` family now preserves both normalized cleanup arrays and the
+  source-backed compact object used by Animal Messenger. Focused proof passes
+  for Animal Messenger and Heroism, while the source-backed result remains
+  deferred to a lifecycle cleanup adapter.
+- The defensive `savingThrow` family now preserves executable ability names,
+  source-backed condition labels, and structured modifier packets. Focused proof
+  passes for Protection from Evil and Good, Warding Bond, Aura of Purity, and
+  Circle of Power; no runtime save resolver consumes this metadata field yet.
+- The targeting metadata family now preserves source-backed target labels such
+  as `corpse`, `surfaces`, and `magical_effects`, accepts source consent and
+  perception values, and normalizes `any_number` to an unlimited runtime count.
+  Focused proof passes for Dispel Magic, Glyph of Warding, Meld into Stone,
+  Speak with Dead, Incite Greed, Compulsion, Nondetection, Tenser's Floating
+  Disk, Flaming Sphere, and Find Steed; placement and target-label replay
+  errors are gone.
+- The utility `summonControl` family now accepts the live Tiny Servant,
+  controlled-undead, domination, binding, transformation, and Wish-routing
+  packets while rejecting empty control objects. Focused proof covers eight
+  representative live records, and the replay emits no `summonControl` errors;
+  command consumers still narrow executable fields by effect family.
+- The utility `controlOptions` family now preserves source-backed `mode` and
+  `label` packets alongside executable `name`/`effect` menus. Source-only rows
+  are excluded from command and modal selection, and focused proof passes with
+  the existing utility-control tests; the replay emits no `controlOptions`
+  errors.
+- The `objectAccessChange` family now accepts Arcane Lock's source-shaped
+  `targetObjects`/`newState` packet alongside normalized lock-removal rows.
+  Focused proof passes with existing object-command tests, and the replay emits
+  no `objectAccessChange` errors.
+- The effect-trigger family now preserves composite source labels such as
+  `area_entry_or_turn_start`, `emanation_entry_or_turn_end`, and
+  `immediate_or_later_bonus_action`, including their `areaTiming` and
+  `repeatAction` payloads. Focused proof covers seven live records, and the
+  replay emits no `trigger.type` errors. Source-backed `turn_start` and
+  `turn_end` recurring payloads now use the existing scheduled-effect contract
+  and combat engine; composite labels still require event-specific adapters.
+- The attack-augment family now preserves both normalized weapon bridges and
+  source-backed summon/control/spell-attack packets, requiring a nonempty
+  discriminator while allowing richer fields such as `attackKinds`,
+  `attackBonusSource`, and `criticalHitThreshold`. Focused proof covers eight
+  live records plus three existing runtime bridge tests, and the replay emits no
+  attack-augment errors.
+- The recurring/save-metadata family now preserves compact recurring objects,
+  source timing labels, prose-backed save modifiers, and nested source options;
+  focused proof covers seven live records and the replay emits no errors.
+- The remaining scalar source vocabulary is now accepted losslessly for
+  instantaneous duration, one-way light opacity, object opposed-check labels,
+  and multi-ability escape checks; focused proof covers Thunderwave, Leomund's
+  Tiny Hut, Telekinesis, and Whirlwind.
+- Source-shaped healing now preserves pool, all-hit-points, target, exclusion,
+  and revival metadata. HealingCommand has bounded fallbacks for pool sharing
+  and all-hit-points records; focused HealingCommand and corpus proof pass.
+- No validator-invalid spell records remain in the current 473-file replay;
+  deferred runtime adapters and canonical-source gaps remain separate G14 work.
+  Direct recurring singleton normalization, area `turn_start`/`turn_end`/
+  `on_move_in_area` execution, and target-bound `turn_start`/`turn_end`
+  scheduling now have
+  focused trigger-handler, hook, and combat-engine proof; composite labels
+  such as `on_damage` and prose-conditioned save modifiers remain
+  unimplemented. Conjure
+  Animals' singleton `on_entity_proximity` damage now routes through the same
+  tracker for entry and end-of-turn occupancy, with source save context and
+  first-per-turn proof; selected point placement and the authored 10-foot
+  emanation are preserved, and the movement owner now recenters the threat zone
+  when the pack relocates, with focused proof in
+  `useActionExecutor.conjureAnimalsRelocation.test.ts`. Source
+  `target_takes_damage` repeat-save records for the domination
+  spell family now bridge into the existing `on_damage` status path with
+  focused live-data proof. Summon Greater Demon's end-turn Charisma control
+  save now enters the shared repeat-save engine, including true-name
+  disadvantage, with focused live-data and combat-engine proof; its
+  optional blood circle now persists a protected tile and the target validator
+  rejects demon attacks against creatures inside it; direct movement, ability
+  execution, and AI routing also reject or avoid the protected tile. Area damage
+  now filters protected creatures at the shared execution boundary, including an
+  all-blocked rejection, with focused proof in
+  `useAbilitySystem.bloodCircleArea.test.ts`. Power Word Pain's source `on_target_cast` Constitution gate
+  now persists on its special-duration status and resolves before command
+  creation, with focused status-command and hook proof.
+- Scrying now consumes the authored knowledge and physical-connection options
+  through `SpellCommandFactory`, honors voluntary failure when the target knows
+  the spell is being cast, creates stationary or 10-foot following sensors, and
+  persists the successful-save 24-hour retarget lockout. Focused proof is in
+  `SpellCommandFactory.scryingLiveData.test.ts`; the remaining G14 work is in
+  other runtime families and canonical-source deferrals.
 
 - Historical snapshot: `npm run validate:spells` was green at `459 / 459` valid
   spell JSON files before the corpus and schema drift recorded above.

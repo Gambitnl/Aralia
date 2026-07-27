@@ -5,13 +5,22 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { buildingSceneModel, DOT_RADIUS_FT, DOT_LIFT_FT } from '../buildingSceneModel';
+import {
+  buildingSceneModel,
+  DOT_RADIUS_FT,
+  DOT_LIFT_FT,
+  planarRoofUvs,
+  ROOF_TEXTURE_TILE_FT,
+} from '../buildingSceneModel';
 import { BLUEPRINT_STOREY_FT } from '../buildingModels';
 import { generateBuilding } from '../../worldforge/interior/generateBuilding';
 import { rootSeedPath } from '../../worldforge/seedPath';
 import { generateHousehold } from '../../worldforge/town/household';
 import { briefFromHousehold } from '../../worldforge/town/householdBrief';
 import { computeOccupancy, HEARTH_KINDS } from '../../worldforge/interior/occupancy';
+import { windowsLitAt } from '../../worldforge/bridge/buildingOccupancy';
+import { getSemanticAssetKey } from '../../worldforge/bridge/forgeMaterials';
+import type { BuildingAgeBand } from '../../worldforge/interior/blueprintTypes';
 
 /** Smith-family bundle — the same matched (plan, household, occupancy)
  *  pattern the design-preview page builds for its occupancy overlay. */
@@ -42,6 +51,30 @@ const styledPlan = (seed = 1) =>
     style: { cultureType: 'Generic', climate: 'temperate', wealth: 'common', ageBand: 'new' },
   });
 
+/** Same production building recipe with only age and durable lot identity varied. */
+const weatheredPlan = (
+  seed: number,
+  ageBand: BuildingAgeBand,
+  buildingKey = `plot:${seed}`,
+) => generateBuilding({
+  buildingId: seed + 100,
+  type: 'tavern',
+  seedPath: rootSeedPath(seed),
+  storeys: 2,
+  basement: false,
+  style: {
+    cultureType: 'Generic',
+    climate: 'temperate',
+    wealth: 'common',
+    ageBand,
+    architecture: {
+      settlementKey: 'burg:weather-proof',
+      districtKey: 'district:market',
+      buildingKey,
+    },
+  },
+});
+
 /** Current row receipts clip solved roof skin before the preview consumes it. */
 const styledRowPlan = () =>
   generateBuilding({
@@ -63,6 +96,16 @@ const styledRowPlan = () =>
   });
 
 describe('buildingSceneModel — solved roof (BGv2 Task 5)', () => {
+  it('projects roof footprint positions into deterministic repeating UV coordinates', () => {
+    const positions = new Float32Array([
+      0, 12, 0,
+      ROOF_TEXTURE_TILE_FT * 2, 18, ROOF_TEXTURE_TILE_FT * 3,
+    ]);
+
+    expect([...planarRoofUvs(positions)]).toEqual([0, 0, 2, 3]);
+    expect([...planarRoofUvs(positions)]).toEqual([0, 0, 2, 3]);
+  });
+
   it('"all" mode raises the solved roof group + chimney/dormer boxes', () => {
     const plan = styledPlan();
     expect(plan.roof).toBeDefined();
@@ -70,6 +113,8 @@ describe('buildingSceneModel — solved roof (BGv2 Task 5)', () => {
     expect(m.roof).toBeDefined();
     expect(m.roof!.positions.length).toBeGreaterThan(0);
     expect(m.roof!.positions.length % 3).toBe(0);
+    expect(m.roof!.uvs.length).toBe((m.roof!.positions.length / 3) * 2);
+    expect([...m.roof!.uvs].some((value) => Math.abs(value) > 1)).toBe(true);
     expect(m.roof!.color).toBe(plan.styleResolved!.roofColor);
     // Roof planes sit on the wall top; the ONLY honest exception is the eave
     // overhang, which drops below the plate by at most eaveOverhang × pitch
@@ -180,6 +225,74 @@ describe('buildingSceneModel — window glow', () => {
     const m = buildingSceneModel(plan, { upToLevel: 'all', hour: 19 });
     const panes = m.boxes.filter((b) => b.kind === 'window-pane');
     expect(panes.every((p) => p.emissive === undefined)).toBe(true);
+  });
+});
+
+/**
+ * Blindspot #7: the window schedule (exterior dusk-read, 17–23h via the
+ * canonical `windowsLitAt`) and the hearth schedule (fire burning, 06–08 ∪
+ * 17–22h) are DELIBERATELY distinct. They agree in the evening and disagree at
+ * the day's edges. These tests pin the full 24-hour boundary so the intentional
+ * disagreement can't be "fixed" by accident, and prove the two edge states
+ * (lit morning hearth behind dark windows; interior lit at 23 after the fire is
+ * banked) are modeled, not bugs.
+ */
+describe('buildingSceneModel — window vs hearth schedule boundary', () => {
+  const litWindows = (plan: Parameters<typeof buildingSceneModel>[0], occupancy: ReturnType<typeof computeOccupancy>, hour: number) =>
+    buildingSceneModel(plan, { upToLevel: 'all', hour, occupancy })
+      .boxes.filter((b) => b.kind === 'window-pane' && b.emissive).length;
+  const litHearths = (plan: Parameters<typeof buildingSceneModel>[0], occupancy: ReturnType<typeof computeOccupancy>, hour: number) =>
+    buildingSceneModel(plan, { upToLevel: 'all', hour, occupancy })
+      .boxes.filter((b) => b.kind === 'hearth' && b.emissive).length;
+
+  it('morning band 06–08: hearth lit, windows dark (cook-fire in daylight)', () => {
+    const { plan, occupancy } = smithBundle();
+    for (const hour of [6, 7, 8]) {
+      expect(litHearths(plan, occupancy, hour)).toBeGreaterThan(0);
+      expect(litWindows(plan, occupancy, hour)).toBe(0);
+    }
+  });
+
+  it('05 and 09 flank the morning hearth band with everything dark', () => {
+    const { plan, occupancy } = smithBundle();
+    for (const hour of [5, 9]) {
+      expect(litHearths(plan, occupancy, hour)).toBe(0);
+      expect(litWindows(plan, occupancy, hour)).toBe(0);
+    }
+  });
+
+  it('evening band 17–22: windows AND hearth lit together', () => {
+    const { plan, occupancy } = smithBundle();
+    for (const hour of [17, 18, 20, 22]) {
+      expect(litHearths(plan, occupancy, hour)).toBeGreaterThan(0);
+      expect(litWindows(plan, occupancy, hour)).toBeGreaterThan(0);
+    }
+  });
+
+  it('16 is fully dark; 17 is the dusk on-edge for windows', () => {
+    const { plan, occupancy } = smithBundle();
+    expect(litWindows(plan, occupancy, 16)).toBe(0);
+    expect(litWindows(plan, occupancy, 17)).toBeGreaterThan(0);
+  });
+
+  it('23: windows still lit but hearth banked (interior reads lit after fire out)', () => {
+    const { plan, occupancy } = smithBundle();
+    expect(litWindows(plan, occupancy, 23)).toBeGreaterThan(0);
+    expect(litHearths(plan, occupancy, 23)).toBe(0);
+  });
+
+  it('00 wraps back to fully dark (both schedules off)', () => {
+    const { plan, occupancy } = smithBundle();
+    expect(litWindows(plan, occupancy, 0)).toBe(0);
+    expect(litHearths(plan, occupancy, 0)).toBe(0);
+  });
+
+  it('the cutaway window glow tracks the canonical windowsLitAt band exactly', () => {
+    const { plan, occupancy } = smithBundle();
+    for (let hour = 0; hour < 24; hour++) {
+      const expected = windowsLitAt(true, hour); // occupied smith family
+      expect(litWindows(plan, occupancy, hour) > 0).toBe(expected);
+    }
   });
 });
 
@@ -449,3 +562,142 @@ describe('buildingSceneModel — identity and dressing (BGv2 Phase 1B)', () => {
   });
 });
 
+// ============================================================================
+// Resolved Material Texture Receipts
+// ============================================================================
+// Texture ownership stays at model level. This proves one wall key can serve
+// every structural wall instead of attaching one allocation request per box.
+// ============================================================================
+
+describe('buildingSceneModel - resolved material textures', () => {
+  it('publishes one deterministic wall and roof key from the resolved construction kit', () => {
+    const plan = styledPlan();
+    const construction = plan.styleResolved!.construction;
+    const model = buildingSceneModel(plan, { upToLevel: 'all', hour: 12 });
+
+    expect(model.materialTextures).toEqual({
+      wall: getSemanticAssetKey({
+        surface: 'wall',
+        wallMaterial: construction.wallMaterial,
+      }),
+      roof: getSemanticAssetKey({
+        surface: 'roof',
+        roofCovering: construction.roofCovering,
+      }),
+    });
+    expect(model.boxes.filter((box) => box.kind === 'wall').length).toBeGreaterThan(1);
+    expect(model.boxes.every((box) => !('textureKey' in box))).toBe(true);
+  });
+
+  it('leaves legacy plans texture-free instead of inventing a construction answer', () => {
+    const model = buildingSceneModel(barePlan(), { upToLevel: 'all', hour: 12 });
+    expect(model.materialTextures).toBeUndefined();
+  });
+});
+
+// ============================================================================
+// Dressing-3 Weathered Surface Integration
+// ============================================================================
+// These checks prove age and stable lot identity change the real wall and roof
+// mesh colors while semantic textures, geometry, and new construction remain
+// untouched. Tagged bridge effects must also survive into the scene model.
+// ============================================================================
+
+function colorStats(hex: string): { average: number; chroma: number } {
+  const normalized = hex.slice(1);
+  const channels = [0, 2, 4].map((offset) =>
+    Number.parseInt(normalized.slice(offset, offset + 2), 16));
+  return {
+    average: channels.reduce((sum, channel) => sum + channel, 0) / channels.length,
+    chroma: Math.max(...channels) - Math.min(...channels),
+  };
+}
+
+describe('buildingSceneModel - Dressing-3 weathered surfaces', () => {
+  it('keeps new construction byte-identical and preserves semantic texture keys', () => {
+    const plan = weatheredPlan(811, 'new');
+    const model = buildingSceneModel(plan, { upToLevel: 'all', hour: 12 });
+
+    expect(model.boxes.filter((box) => box.kind === 'wall')
+      .every((box) => box.color === plan.styleResolved!.wallColor)).toBe(true);
+    expect(model.roof!.color).toBe(plan.styleResolved!.roofColor);
+    expect(model.boxes.filter((box) => box.kind === 'weathering')).toEqual([]);
+    expect(model.materialTextures).toEqual({
+      wall: getSemanticAssetKey({
+        surface: 'wall',
+        wallMaterial: plan.styleResolved!.construction.wallMaterial,
+      }),
+      roof: getSemanticAssetKey({
+        surface: 'roof',
+        roofCovering: plan.styleResolved!.construction.roofCovering,
+      }),
+    });
+  });
+
+  it('fades the same wall progressively through aged, old, and ancient', () => {
+    const ages: BuildingAgeBand[] = ['new', 'aged', 'old', 'ancient'];
+    const colors = ages.map((ageBand) => {
+      const model = buildingSceneModel(
+        weatheredPlan(812, ageBand, 'plot:same-age-row'),
+        { upToLevel: 'all', hour: 12 },
+      );
+      return model.boxes.find((box) => box.kind === 'wall')!.color;
+    });
+    const stats = colors.map(colorStats);
+
+    expect(new Set(colors).size).toBe(4);
+    expect(stats[1].average).toBeGreaterThan(stats[0].average);
+    expect(stats[2].average).toBeGreaterThan(stats[1].average);
+    expect(stats[3].average).toBeGreaterThan(stats[2].average);
+    expect(stats[1].chroma).toBeLessThanOrEqual(stats[0].chroma);
+    expect(stats[2].chroma).toBeLessThanOrEqual(stats[1].chroma);
+    expect(stats[3].chroma).toBeLessThanOrEqual(stats[2].chroma);
+  });
+
+  it('gives one roof stock four distinct replay-stable lot shades', () => {
+    const plans = ['a', 'b', 'c', 'd'].map((suffix) =>
+      weatheredPlan(813, 'old', `plot:seed-${suffix}`));
+    const commonStock = '#765b46';
+    const commonConstruction = plans[0].styleResolved!.construction;
+
+    // Hold stock and construction constant so this cluster isolates only the
+    // existing per-building weathering variant, not district kit variation.
+    plans.forEach((plan) => {
+      plan.styleResolved!.roofColor = commonStock;
+      plan.styleResolved!.construction = commonConstruction;
+    });
+
+    const firstPass = plans.map((plan) =>
+      buildingSceneModel(plan, { upToLevel: 'all', hour: 12 }));
+    const replay = plans.map((plan) =>
+      buildingSceneModel(plan, { upToLevel: 'all', hour: 12 }));
+    const roofColors = firstPass.map((model) => model.roof!.color);
+
+    expect(new Set(roofColors).size).toBe(plans.length);
+    expect(replay.map((model) => model.roof!.color)).toEqual(roofColors);
+    expect(new Set(firstPass.map((model) => JSON.stringify(model.materialTextures))).size).toBe(1);
+  });
+
+  it('carries every generated effect kind into tagged scene boxes', () => {
+    const seen = new Set<string>();
+    for (let seed = 820; seed < 900; seed++) {
+      const model = buildingSceneModel(
+        weatheredPlan(seed, 'ancient'),
+        { upToLevel: 'all', hour: 12 },
+      );
+      model.boxes
+        .filter((box) => box.kind === 'weathering')
+        .forEach((box) => seen.add(box.weatheringDetailKind ?? 'missing'));
+    }
+
+    expect(seen).toEqual(new Set([
+      'wall-patina-band',
+      'wall-weather-streak',
+      'north-wall-grime',
+      'roof-patina-edge',
+      'roof-valley-grime',
+      'roof-soot-patch',
+      'roof-repair-patch',
+    ]));
+  }, 20000);
+});

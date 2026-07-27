@@ -1,8 +1,8 @@
 /**
  * @file WebGPUProbe.tsx
  * @description Host for the WebGPU render probe (?phase=webgpuprobe). Reuses the
- * SAME streamed ground world the game uses — createGroundChunkLoader over a
- * bridged L2 LocalArtifact — but renders it through WebGPUProbeScene, which
+ * SAME streamed ground world the game uses — worker-backed chunk meshing over
+ * a bridged L2 LocalArtifact — but renders it through WebGPUProbeScene, which
  * drives three.js WebGPURenderer instead of the default WebGL path.
  *
  * FULL-STACK PARITY (2026-07-04): the probe no longer renders only terrain +
@@ -20,12 +20,14 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import WebGPUProbeScene from './WebGPUProbeScene';
+import {
+  createGroundWorkerChunkLoader,
+  type DisposableChunkLoader,
+} from './createGroundWorkerChunkLoader';
 import { heightToMeters } from '@/systems/world3d/config';
-import type { ChunkLoader } from '@/systems/world3d/types';
 import { getWorldforgeLocalForLocation } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import {
-  createGroundChunkLoader,
-  type GroundWorld,
+  makeGroundWorld,
 } from '@/systems/worldforge/bridge/groundChunkLoader';
 
 /** Worldforge world seed for the ground sandbox (matches World3DDemo). */
@@ -52,6 +54,7 @@ const WebGPUProbe: React.FC = () => {
   // Runtime failure surfaced by the scene (renderer inited but backend != WebGPU,
   // or init threw). FAIL-FAST: any such case tears the scene down to the error pane.
   const [runtimeError, setRuntimeError] = useState<string | null>(null);
+  const [loader, setLoader] = useState<DisposableChunkLoader | null>(null);
 
   // ── FAIL-FAST pre-flight (no fallback) ──────────────────────────────────────
   // three.js WebGPURenderer silently falls back to WebGL2 when no WebGPU adapter
@@ -82,7 +85,7 @@ const WebGPUProbe: React.FC = () => {
     };
   }, []);
 
-  const { loader, ground, start, startSurfaceY } = useMemo(() => {
+  const { ground, start, startSurfaceY } = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     const gx = Number(params.get('gx') ?? 16);
     const gy = Number(params.get('gy') ?? 4);
@@ -90,7 +93,7 @@ const WebGPUProbe: React.FC = () => {
     const wfSeed = Number(params.get('wfseed') ?? PROBE_WF_SEED);
 
     const bridged = getWorldforgeLocalForLocation(wfSeed, gx, gy, 25, 16);
-    const { ground: groundWorld, loader: groundLoader } = createGroundChunkLoader(
+    const groundWorld = makeGroundWorld(
       bridged.local,
       wfSeed,
       bridged.region,
@@ -103,12 +106,28 @@ const WebGPUProbe: React.FC = () => {
     const cgy = Math.round(groundWorld.rows / 2);
     const centerH = groundWorld.heights[cgy * groundWorld.cols + cgx] ?? 0;
     return {
-      loader: groundLoader as ChunkLoader,
-      ground: groundWorld as GroundWorld,
+      ground: groundWorld,
       start: [startX, 0, startZ] as const,
       startSurfaceY: heightToMeters(centerH),
     };
   }, []);
+
+  // The inline loader computes each requested chunk before its Promise resolves,
+  // starving both WebGPU and an empty canvas while the 9×9 window is prepared.
+  // Use the same disposable worker-backed mesher as the live PLAYING path.
+  useEffect(() => {
+    let active = true;
+    let workerLoader: DisposableChunkLoader | null = null;
+    queueMicrotask(() => {
+      if (!active) return;
+      workerLoader = createGroundWorkerChunkLoader(ground);
+      setLoader(() => workerLoader);
+    });
+    return () => {
+      active = false;
+      workerLoader?.dispose();
+    };
+  }, [ground]);
 
   const backendOk = status.backend === 'webgpu';
 
@@ -132,7 +151,7 @@ const WebGPUProbe: React.FC = () => {
   // pane, never a WebGL-fallback render.
   const failureReason =
     gpu.state === 'unavailable' ? gpu.reason : runtimeError ?? null;
-  const showScene = gpu.state === 'ok' && !runtimeError;
+  const showScene = gpu.state === 'ok' && !runtimeError && loader !== null;
 
   return (
     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', height: '100dvh', boxSizing: 'border-box' }}>

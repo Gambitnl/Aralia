@@ -3,8 +3,7 @@
  * This component displays a guided test plan for the "Living NPC" system.
  */
 import React, { useState, useEffect, useRef } from 'react';
-// TODO #76(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-import { motion, MotionProps } from 'framer-motion';
+import { MotionProps } from 'framer-motion';
 import { Action } from '../types';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';

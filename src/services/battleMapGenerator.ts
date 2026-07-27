@@ -193,18 +193,43 @@ export class BattleMapGenerator {
             validTilesForObstacles.push(tile);
         }
     });
-    
-    for (let i = validTilesForObstacles.length - 1; i > 0; i--) {
-        const j = Math.floor(this.random.next() * (i + 1));
-        [validTilesForObstacles[i], validTilesForObstacles[j]] = [validTilesForObstacles[j], validTilesForObstacles[i]];
-    }
 
-    const numObstacles = Math.floor(validTilesForObstacles.length * config.density);
+    // Density field (GOAL #39): the old pass sprinkled obstacles uniformly, so
+    // forests read as an even stipple — no clearings, no thickets. A smooth
+    // low-frequency value-noise field now scales the per-tile placement chance:
+    // troughs get almost nothing (clearings), peaks get ~2.5× the base density
+    // (thickets). The remap keeps the field's mean near 1 so the total obstacle
+    // budget stays close to the old uniform count.
+    const fieldSeed = this.random.next() * 1000;
+    const hash2 = (x: number, y: number): number => {
+      const n = Math.sin(x * 127.1 + y * 311.7 + fieldSeed * 74.7) * 43758.5453;
+      return n - Math.floor(n);
+    };
+    const valueNoise = (x: number, y: number): number => {
+      const x0 = Math.floor(x), y0 = Math.floor(y);
+      const fx = x - x0, fy = y - y0;
+      const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+      const a = hash2(x0, y0), b = hash2(x0 + 1, y0);
+      const c = hash2(x0, y0 + 1), d = hash2(x0 + 1, y0 + 1);
+      return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
+    };
+    const densityMult = (tx: number, ty: number): number => {
+      // ~9-tile wavelength body + a half-scale octave so thicket edges are
+      // ragged, not blobby.
+      const t = 0.65 * valueNoise(tx / 9, ty / 9)
+              + 0.35 * valueNoise(tx / 4.5 + 13.7, ty / 4.5 + 7.3);
+      if (t < 0.35) return (t / 0.35) * 0.2;                 // clearings
+      if (t < 0.60) return 0.2 + ((t - 0.35) / 0.25) * 1.0;  // normal cover
+      return 1.2 + ((t - 0.60) / 0.40) * 1.6;                // thickets
+    };
 
-    for (let i = 0; i < numObstacles && i < validTilesForObstacles.length; i++) {
-        const tile = validTilesForObstacles[i];
-        const obstacleType = config.types[Math.floor(this.random.next() * config.types.length)];
-        this.addObstacle(tile, obstacleType as BattleMapDecoration);
+    for (const tile of validTilesForObstacles) {
+        const mult = densityMult(tile.coordinates.x, tile.coordinates.y);
+        const chance = Math.min(0.5, config.density * mult);
+        if (this.random.next() < chance) {
+            const obstacleType = config.types[Math.floor(this.random.next() * config.types.length)];
+            this.addObstacle(tile, obstacleType as BattleMapDecoration);
+        }
     }
   }
 

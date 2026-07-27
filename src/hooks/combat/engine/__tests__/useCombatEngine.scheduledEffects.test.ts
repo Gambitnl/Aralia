@@ -85,6 +85,83 @@ const renderEngine = (characters: CombatCharacter[]) => {
 };
 
 describe('useCombatEngine scheduled spell effects', () => {
+  it('executes a source-backed recurring damage payload through the scheduled engine', () => {
+    const caster = createCharacter({ id: 'caster', name: 'Caster', team: 'player', position: { x: 0, y: 0 } });
+    const target = createCharacter();
+    const scheduledEffect: ScheduledSpellEffect = {
+      id: 'scheduled-recurring-damage',
+      spellId: 'conjure-elemental',
+      casterId: caster.id,
+      targetId: target.id,
+      timing: 'turn_start',
+      createdAtRound: 1,
+      effects: [{
+        type: 'DAMAGE',
+        condition: { type: 'always' }
+      } as any],
+      recurringMechanic: {
+        timing: 'turn_start',
+        frequency: 'every_time',
+        damage: { dice: '1', type: 'Fire' }
+      }
+    };
+    const { props, result } = renderEngine([caster, target]);
+
+    act(() => {
+      result.current.addScheduledSpellEffect(scheduledEffect);
+    });
+
+    let updatedTarget = target;
+    act(() => {
+      updatedTarget = result.current.processScheduledSpellEffects(target, 'turn_start', 2);
+    });
+
+    expect(updatedTarget.currentHP).toBe(19);
+    expect(props.onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+      message: expect.stringContaining('conjure-elemental'),
+      data: expect.objectContaining({ trigger: 'turn_start', damageType: 'Fire' })
+    }));
+  });
+
+  it('executes a source-backed recurring area turn-start payload', () => {
+    const caster = createCharacter({ id: 'caster', name: 'Caster', team: 'player', position: { x: 0, y: 0 } });
+    const target = createCharacter();
+    const zone = {
+      id: 'area-recurring-start',
+      spellId: 'wall-of-light',
+      casterId: caster.id,
+      position: { x: 1, y: 0 },
+      areaOfEffect: { shape: 'sphere', size: 10 },
+      effects: [{
+        type: 'DAMAGE',
+        trigger: { type: 'immediate' },
+        condition: { type: 'always' },
+        recurringMechanics: {
+          timing: 'turn_start',
+          frequency: 'first_per_turn',
+          damage: { dice: '1', type: 'Radiant' }
+        }
+      }],
+      triggeredThisTurn: new Set<string>(),
+      triggeredEver: new Set<string>()
+    } as any;
+    const { props, result } = renderEngine([caster, target]);
+
+    act(() => {
+      result.current.addSpellZone(zone);
+    });
+
+    let updatedTarget = target;
+    act(() => {
+      updatedTarget = result.current.processStartOfTurnEffects(target, 2);
+    });
+
+    expect(updatedTarget.currentHP).toBe(19);
+    expect(props.onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ trigger: 'on_start_turn_in_area', damageType: 'Radiant' })
+    }));
+  });
+
   it('preserves status metadata when a scheduled condition applies', () => {
     const caster = createCharacter({ id: 'caster', name: 'Caster', team: 'player', position: { x: 0, y: 0 } });
     const target = createCharacter();

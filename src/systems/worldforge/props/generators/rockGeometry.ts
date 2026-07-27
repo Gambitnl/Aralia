@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 21/07/2026, 14:20:35
+ * Dependents: components/World3D/GroundProps.tsx, components/World3D/WebGPUProbeScene.tsx
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file rockGeometry.ts — owned, seeded procedural rock/boulder geometry.
  *
@@ -77,8 +93,11 @@ export function createRockGeometry(seed: number, opts: RockOptions = {}): THREE.
     }
   }
 
-  const flat = geo.toNonIndexed();
-  geo.dispose();
+  // Current Three.js may already return non-indexed icosahedra. Reuse that
+  // geometry instead of asking Three to perform a no-op conversion and emit a
+  // warning for every streamed rock.
+  const flat = geo.index ? geo.toNonIndexed() : geo;
+  if (flat !== geo) geo.dispose();
   flat.computeVertexNormals();
   return flat;
 }

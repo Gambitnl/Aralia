@@ -286,6 +286,39 @@ describe('AreaEffectTracker', () => {
         expect(results.length).toBe(1)
         expect(results[0].triggerType).toBe('on_move_in_area')
     })
+
+    it('routes singleton proximity mechanics through movement and end-turn processing', () => {
+        const effect = {
+            type: 'SUMMONING',
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' },
+            recurringMechanics: {
+                timing: 'on_entity_proximity',
+                frequency: 'first_per_turn',
+                saveType: 'Dexterity',
+                saveEffect: 'half',
+                damage: { dice: '3d10', type: 'Slashing' }
+            }
+        } as unknown as SpellEffect
+        const zone = makeZone([effect], { x: 0, y: 0 }, { shape: 'sphere', size: 10 })
+        const tracker = new AreaEffectTracker([zone])
+        const character = makeCharacter({ x: 2, y: 0 })
+
+        const entry = tracker.handleMovement(character, { x: 2, y: 0 }, { x: 3, y: 0 }, 1)
+        expect(entry).toHaveLength(1)
+        expect(entry[0].triggerType).toBe('on_entity_proximity')
+        expect(entry[0].effects[0]).toMatchObject({
+            type: 'damage',
+            dice: '3d10',
+            damageType: 'Slashing',
+            requiresSave: true,
+            saveType: 'Dexterity'
+        })
+
+        expect(tracker.processEndTurn(character, 1)).toHaveLength(0)
+        tracker.resetTurnTracking()
+        expect(tracker.processEndTurn(character, 2)).toHaveLength(1)
+    })
 })
 
 

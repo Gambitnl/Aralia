@@ -87,9 +87,14 @@ describe('entities3d assembler (body v2)', () => {
     handle.dispose();
   });
 
-  it('wireframe (default) renders lines only — no fill meshes, no outlines', () => {
+  it('wireframe (opt-in) renders lines only — no fill meshes, no outlines', () => {
     const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'human', classId: 'fighter', seed: 'asm-wire' });
-    const handle = assembleEntity(bp); // global default is wireframe
+    // solid is the global default since the creature-quality pass; wireframe
+    // remains as an explicit opt-in
+    const fallback = assembleEntity(bp);
+    expect(countVisuals(fallback.group).meshes, 'default render should be solid fill meshes').toBeGreaterThan(10);
+    fallback.dispose();
+    const handle = assembleEntity(bp, { renderMode: 'wireframe' });
     const { meshes, lines } = countVisuals(handle.group);
     expect(lines, 'wireframe should render line nodes').toBeGreaterThan(10);
     expect(meshes, 'wireframe should have no fill meshes (eyes/shadow excepted)').toBe(0);
@@ -128,10 +133,37 @@ describe('entities3d assembler (body v2)', () => {
   });
 
   it('lifts the body root for airborne gaits', () => {
-    const bp = generateEntityBlueprint({ kind: 'creature', creatureType: 'Aberration', size: 'Medium', seed: 'asm-3' });
+    // the flyer is the remaining legacy airborne gait (plan-driven floaters
+    // carry their altitude inside the driver, not on the body root)
+    const bp = generateEntityBlueprint({ kind: 'creature', creatureType: 'Beast', size: 'Medium', seed: 'asm-3', cues: ['bird'] });
     const handle = assembleEntity(bp);
     handle.update(0.5, 1 / 60, { ...WALK, speed: 0.5 });
     expect(handle.group.getObjectByName('bodyRoot')!.position.y).toBeGreaterThan(0.2);
+    handle.dispose();
+  });
+
+  it('a walking dragon beats its wings (grounded flap reaches the wing parts)', () => {
+    const bp = generateEntityBlueprint({ kind: 'creature', creatureType: 'Dragon', size: 'Huge', seed: 'asm-wings' });
+    // dragons route through a compiled plan whose wings are GARNISH parts, not
+    // chain appendages — the regression this pins: the plan driver could not
+    // see them, so the membrane wings froze (flap 0 forever)
+    expect(bp.gait).toBe('plan');
+    expect(bp.parts.some((p) => p.partId === 'wingsMembrane')).toBe(true);
+    const handle = assembleEntity(bp);
+    const wings = handle.group
+      .getObjectByName('parts')!
+      .children.find((c) => c.name === 'part:wingsMembrane')!;
+    const wingL = wings.getObjectByName('wingL')!;
+    const wingR = wings.getObjectByName('wingR')!;
+    let min = Infinity;
+    let max = -Infinity;
+    for (let t = 0; t < 1.2; t += 1 / 60) {
+      handle.update(t, 1 / 60, WALK);
+      min = Math.min(min, wingL.rotation.z);
+      max = Math.max(max, wingL.rotation.z);
+      expect(wingR.rotation.z, 'right wing must mirror the left').toBeCloseTo(-wingL.rotation.z, 10);
+    }
+    expect(max - min, 'dragon wings never move while walking').toBeGreaterThan(0.5);
     handle.dispose();
   });
 

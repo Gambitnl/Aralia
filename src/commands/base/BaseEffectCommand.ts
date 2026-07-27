@@ -1,6 +1,22 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 19/07/2026, 23:21:01
+ * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/index.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { SpellCommand, CommandMetadata, CommandContext } from './SpellCommand'
 import { SpellEffect } from '@/types/spells'
-import { CombatState, CombatCharacter, CombatLogEntry } from '@/types/combat'
+import { CombatState, CombatCharacter, CombatLogEntryInput } from '@/types/combat'
 import { generateId } from '../../utils/idGenerator'
 
 /**
@@ -127,7 +143,7 @@ export abstract class BaseEffectCommand<TEffect extends SpellEffect = SpellEffec
    */
   protected addLogEntry(
     state: CombatState,
-    entry: Omit<CombatLogEntry, 'id' | 'timestamp'>
+    entry: CombatLogEntryInput
   ): CombatState {
     return {
       ...state,

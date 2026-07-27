@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 22:34:53
+ * Last Sync: 18/07/2026, 18:13:07
  * Dependents: App.tsx
  * Imports: 52 files
  *
@@ -62,6 +62,7 @@ import { worldReducer } from './reducers/worldReducer';
 import { logReducer } from './reducers/logReducer';
 import { encounterReducer } from './reducers/encounterReducer';
 import { npcReducer } from './reducers/npcReducer';
+import { factReducer } from './reducers/factReducer';
 import { questReducer } from './reducers/questReducer';
 import { townReducer } from './reducers/townReducer';
 import { crimeReducer } from './reducers/crimeReducer';
@@ -576,6 +577,11 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     ? [loadedState.playerCharacter]
                     : [];
 
+            // NPC-memory load policy (G3): this migration owns only `knownFacts`.
+            // Legacy string arrays become canonical fact records, and structured
+            // facts receive only the two optional strength-derived fields below.
+            // Disposition, suspicion, goals, lightweight facts, interaction
+            // history, and their timestamps remain exactly as the save supplied.
             for (const npcId in loadedState.npcMemory) {
                 const memory = loadedState.npcMemory[npcId];
                 if (memory.knownFacts.length > 0 && typeof memory.knownFacts[0] === 'string') {
@@ -595,10 +601,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     }));
                 }
 
-                // Memory-merge backfill: the merged KnownFact carries optional confidence/significance
-                // fields that pre-merge saves lack. Default them from the existing `strength` so the
-                // new "does this NPC know X" query lane has usable values. Purely additive — no live
-                // reader consumed these fields before, so runtime behavior is unchanged.
+                // Structured facts retain their IDs and every saved content field.
+                // Only missing confidence/significance values are added, using the
+                // established strength-based calculation from the memory merge.
                 if (Array.isArray(memory.knownFacts)) {
                     memory.knownFacts = memory.knownFacts.map((fact) => {
                         if (typeof fact !== 'object' || fact === null) return fact;
@@ -1200,6 +1205,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             // Specific Domain Systems
             nextState = { ...nextState, ...encounterReducer(nextState, action) };
             nextState = { ...nextState, ...npcReducer(nextState, action) };
+            // Durable world-level fact store (DIAL-002/DIAL-004)
+            nextState = { ...nextState, ...factReducer(nextState, action) };
             nextState = { ...nextState, ...questReducer(nextState, action) };
             nextState = { ...nextState, ...townReducer(nextState, action) };
             nextState = { ...nextState, ...crimeReducer(nextState, action) };

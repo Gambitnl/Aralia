@@ -15,15 +15,23 @@ import { assembleEntity } from '@/systems/entities3d/three/assembleEntity';
 import type { LocomotionState } from '@/systems/entities3d/three/gaits';
 import type { AnimationState } from './models';
 import { combatOverlayPose } from './entityOverlays';
+import {
+  easeActorPose,
+  type AppliedActorPose,
+  type ControlPose,
+} from '../../controlOptionPose';
 
 interface EntityModelProps {
   blueprint: EntityBlueprint;
   animState: AnimationState;
   /** Live animation clock — a ref so per-frame time never goes stale. */
   animTimeRef: React.MutableRefObject<number>;
+  /** G7 shared contract: sustained control-option pose (grovel/halt/…), eased
+   * on per frame and eased back off when the directive expires. Null = base. */
+  controlPose?: ControlPose | null;
 }
 
-export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, animTimeRef }) => {
+export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, animTimeRef, controlPose = null }) => {
   // Tactical camera distance affords chunkier fields, and stationary tokens
   // don't need 60 Hz body rebuilds — a whole encounter must stay cheap.
   const handle = useMemo(
@@ -41,6 +49,10 @@ export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, 
     speed: 0,
   });
   const settledRef = useRef(false);
+  // G7: the eased control-option pose lives in a ref so per-frame updates
+  // allocate nothing; easeActorPose walks it toward the target (or back to
+  // zero on expiry — the restore half of the contract).
+  const appliedControlRef = useRef<AppliedActorPose>({ pitch: 0, yOffset: 0 });
 
   useEffect(() => {
     // leaving death (revive) unfreezes the corpse
@@ -49,8 +61,14 @@ export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, 
 
   useFrame((state, delta) => {
     const pose = combatOverlayPose(animState, animTimeRef.current);
-    handle.group.rotation.x = pose.pitch;
-    handle.group.position.y = pose.yOffset;
+    // Death overrides any standing directive — a corpse does not grovel.
+    const control = easeActorPose(
+      appliedControlRef.current,
+      animState === 'death' ? null : controlPose,
+      delta,
+    );
+    handle.group.rotation.x = pose.pitch + control.pitch;
+    handle.group.position.y = pose.yOffset + control.yOffset;
     if (pose.settled) {
       settledRef.current = true;
       return; // corpse is down — keep the last body frame, skip field rebuilds

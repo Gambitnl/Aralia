@@ -323,10 +323,23 @@ export function rollSavingThrow(
 /**
  * Calculates final damage based on saving throw result.
  */
+// These labels are the small executable subset currently understood by damage
+// resolution. The authored corpus also uses `negates` and `negates_effect`;
+// both mean that a successful save prevents the effect in this damage path.
+export type SaveEffectOutcome =
+    | 'none'
+    | 'half'
+    | 'negates_condition'
+    | 'negates_effect'
+    | 'negates';
+
+// Convert source-backed save wording to the normalized outcome used by damage
+// commands. This keeps Heat Metal-style live data from silently dealing full
+// damage after a successful save simply because its label was not canonical.
 export function calculateSaveDamage(
     initialDamage: number,
     saveResult: SavingThrowResult,
-    effectType: 'none' | 'half' | 'negates_condition' = 'half'
+    effectType: SaveEffectOutcome = 'half'
 ): number {
     // Failed save = full damage always
     if (!saveResult.success) {
@@ -335,9 +348,17 @@ export function calculateSaveDamage(
 
     // --- SUCCESSFUL SAVE OUTCOMES ---
 
+    // Source-backed aliases all represent a fully negated effect in this
+    // damage-only function. Other richer save metadata remains owned by the
+    // status, movement, or utility command that understands its full wording.
+    const normalizedEffectType =
+        effectType === 'negates' || effectType === 'negates_effect'
+            ? 'negates_condition'
+            : effectType;
+
     // 'half': Standard for most leveled spells (Fireball, Lightning Bolt, etc.)
     // Successful save reduces damage to half (rounded down)
-    if (effectType === 'half') {
+    if (normalizedEffectType === 'half') {
         return Math.floor(initialDamage / 2);
     }
 
@@ -345,13 +366,13 @@ export function calculateSaveDamage(
     // Sacred Flame, Thunderclap, Word of Radiance, and similar rows rely on this
     // shared convention so the failure branch still hits for full damage while the
     // success branch collapses to zero.
-    if (effectType === 'none') {
+    if (normalizedEffectType === 'none') {
         return 0;
     }
 
     // 'negates_condition': Used for effects where a save completely avoids the effect.
     // For damage context, this also means 0 damage on success.
-    if (effectType === 'negates_condition') {
+    if (normalizedEffectType === 'negates_condition') {
         return 0;
     }
 

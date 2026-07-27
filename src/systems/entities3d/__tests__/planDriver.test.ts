@@ -279,3 +279,49 @@ describe('plan gait driver', () => {
     expect(Math.abs(tip1.by - tip2.by)).toBeGreaterThan(0.02);
   });
 });
+
+describe('junction blend collars (slice 1)', () => {
+  it('emits one collar per chain with blendM, at the chain root, with reach = blendM', () => {
+    const compiled = compilePlan(PLAN_FIXTURES.dragon);
+    const driver = createGaitDriver('plan', compiled.frame, compiled.planSpec);
+    driver.update(0.5, 1 / 60, WALK);
+    const collars = new Map<string, { x: number; y: number; z: number; limbR: number; reach: number }>();
+    const segs = new Map<string, BodySegment>();
+    driver.buildBody({
+      seg: (id, ax, ay, az, bx, by, bz, r0, r1) => segs.set(id, { id, ax, ay, az, bx, by, bz, r0, r1 }),
+      ball: () => {},
+      collar: (id, x, y, z, _ax, _ay, _az, limbR, reach) => collars.set(id, { x, y, z, limbR, reach }),
+    });
+    const spec = compiled.planSpec!;
+    for (const chain of spec.chains) {
+      const collar = collars.get(`${chain.id}.collar`);
+      expect(collar, `${chain.id} collar`).toBeTruthy();
+      expect(collar!.reach).toBeCloseTo(chain.blendM, 6);
+      expect(collar!.limbR).toBeCloseTo(chain.links[0].rM, 6);
+      // sits at the chain's root joint = the first emitted segment start
+      const rootSeg = segs.get(`${chain.id}.0`);
+      if (rootSeg) {
+        expect(collar!.x).toBeCloseTo(rootSeg.ax, 6);
+        expect(collar!.y).toBeCloseTo(rootSeg.ay, 6);
+        expect(collar!.z).toBeCloseTo(rootSeg.az, 6);
+      }
+    }
+  });
+
+  it('blend 0 emits no collar; sinks without collar() are untouched', () => {
+    const plan = JSON.parse(JSON.stringify(PLAN_FIXTURES.dragon));
+    plan.skin = { blend: 0 };
+    const compiled = compilePlan(plan);
+    const driver = createGaitDriver('plan', compiled.frame, compiled.planSpec);
+    driver.update(0.5, 1 / 60, WALK);
+    const collars: string[] = [];
+    driver.buildBody({
+      seg: () => {},
+      ball: () => {},
+      collar: (id) => collars.push(id),
+    });
+    expect(collars).toEqual([]);
+    // and a sink without collar() must not crash
+    driver.buildBody({ seg: () => {}, ball: () => {} });
+  });
+});

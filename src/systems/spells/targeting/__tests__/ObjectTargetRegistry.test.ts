@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { collectObjectTargetCandidates, withObjectTargetCandidates } from '../ObjectTargetRegistry';
 import { TargetResolver } from '../TargetResolver';
@@ -124,7 +124,7 @@ describe('collectObjectTargetCandidates', () => {
             name: 'Stone Altar',
             description: 'A heavy altar carved with lunar script.',
             type: 'landmark',
-            interaction: { canInteract: true }
+            interaction: { canInteract: true } as any
           },
           position: { x: 2, y: 2 },
           targetFacts: {
@@ -141,7 +141,7 @@ describe('collectObjectTargetCandidates', () => {
             name: 'Flavor Tapestry',
             description: 'A decorative tapestry with no object-targeting facts yet.',
             type: 'furniture',
-            interaction: { canInteract: true }
+            interaction: { canInteract: true } as any
           },
           position: { x: 3, y: 2 }
         }
@@ -211,7 +211,7 @@ describe('collectObjectTargetCandidates', () => {
           name: 'Stone Altar',
           description: 'A fixed altar with explicit target facts.',
           type: 'landmark',
-          interaction: { canInteract: true }
+          interaction: { canInteract: true } as any
         },
         position: { x: 2, y: 2 },
         targetFacts: {
@@ -243,8 +243,8 @@ describe('collectObjectTargetCandidates', () => {
           wornOrCarried: 'excluded',
           magicalStatus: 'nonmagical',
           fixedToSurface: 'excluded',
-          sizeLimit: { maxSize: 'Small' },
-          weightLimit: { maxWeightPounds: 5 }
+          maxSize: 'Small',
+          maxWeightPounds: 5
         }
       }
     };

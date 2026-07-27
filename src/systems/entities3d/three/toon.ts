@@ -19,12 +19,14 @@ import {
 export type EntityRenderMode = 'solid' | 'wireframe';
 
 /**
- * The global default look for generated entities. `wireframe` replaced the
- * solid metaball ("blob") surface 2026-07-12 (Remy): every consumer that does
- * not pass its own `renderMode` inherits this. Flip to `'solid'` to restore
- * the toon-shaded blobfolk body across the whole game in one line.
+ * The global default look for generated entities. Every consumer that does
+ * not pass its own `renderMode` inherits this. `'solid'` (toon-shaded bodies
+ * with ink outlines) is the shipping look; `'wireframe'` remains available as
+ * an explicit opt-in (forge debug toggle) — it was the global default from
+ * 2026-07-12 until the creature-quality pass made solid bodies the better
+ * first impression everywhere.
  */
-export const ENTITY_RENDER_MODE: EntityRenderMode = 'wireframe';
+export const ENTITY_RENDER_MODE: EntityRenderMode = 'solid';
 
 let gradient: DataTexture | null = null;
 

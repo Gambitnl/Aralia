@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 26/06/2026, 20:16:29
+ * Last Sync: 23/07/2026, 21:24:49
  * Dependents: hooks/useAbilitySystem.ts
- * Imports: 6 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -55,6 +55,24 @@ const formatTileDistance = (distance: number): string => {
 // generic label for empty-ground clicks and malformed map state.
 const getTargetLabel = (targetCharacter: CombatCharacter | null): string => {
     return targetCharacter?.name ?? 'That target';
+};
+
+export const getBloodCircleRejection = (
+    caster: CombatCharacter,
+    targetCharacter: CombatCharacter | null
+): string | null => {
+    const protectedTiles = caster.summonMetadata?.bloodCircle?.protectedTiles;
+    if (!targetCharacter || !protectedTiles?.length) {
+        return null;
+    }
+
+    const targetTiles = getOccupiedTiles(targetCharacter);
+    const isInsideCircle = targetTiles.some(targetTile => protectedTiles.some(protectedTile =>
+        protectedTile.x === targetTile.x && protectedTile.y === targetTile.y
+    ));
+    return isInsideCircle
+        ? `${caster.name} cannot target creatures inside its protective blood circle.`
+        : null;
 };
 
 // Spell-created abilities can carry the original structured spell data. When
@@ -189,6 +207,11 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
         }
 
         const targetCharacter = getCharacterAtPosition(targetPosition);
+
+        const bloodCircleRejection = getBloodCircleRejection(caster, targetCharacter);
+        if (bloodCircleRejection) {
+            return { isValid: false, reason: bloodCircleRejection };
+        }
 
         // 2. Range Check
         // If we targeted a character, use character-to-character distance (closest tiles).
@@ -339,7 +362,7 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
                 }
                 return { isValid: true };
             case 'single_any':
-                if (!targetCharacter) {
+                if (!targetCharacter && ability.spell?.id !== 'scrying') {
                     return {
                         isValid: false,
                         reason: `${ability.name} needs a creature target.`

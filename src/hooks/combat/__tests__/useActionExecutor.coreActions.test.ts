@@ -139,4 +139,41 @@ describe('useActionExecutor', () => {
             message: expect.stringContaining('Blocker is in the way')
         }));
     });
+
+    it('should reject demon movement that crosses a protected blood-circle tile', async () => {
+        const demon: CombatCharacter = {
+            ...mockCharacter,
+            id: 'summoned-demon',
+            name: 'Summoned Demon',
+            summonMetadata: {
+                casterId: 'caster',
+                spellId: 'summon-greater-demon',
+                bloodCircle: {
+                    center: { x: 1, y: 0 },
+                    protectedTiles: [{ x: 1, y: 0 }]
+                }
+            }
+        };
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [demon]
+        }));
+        const action: CombatAction = {
+            id: 'cross-circle',
+            characterId: demon.id,
+            type: 'move',
+            targetPosition: { x: 2, y: 0 },
+            movementPath: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }],
+            cost: { type: 'movement-only', movementCost: 10 },
+            timestamp: Date.now()
+        };
+
+        const success = await result.current.executeAction(action);
+
+        expect(success).toBe(false);
+        expect(mockConsumeAction).not.toHaveBeenCalled();
+        expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            message: 'Summoned Demon cannot cross its protective blood circle.'
+        }));
+    });
 });

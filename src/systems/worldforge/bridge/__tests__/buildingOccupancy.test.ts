@@ -12,6 +12,19 @@ import {
   DUSK_END_HOUR,
 } from '../buildingOccupancy';
 
+/**
+ * This file proves the 3D building-occupancy bridge keeps every household
+ * member inside real blueprint rooms and produces one deterministic 24-hour
+ * lighting and station schedule.
+ *
+ * The production ground loader and the one-hour preview resolver both depend
+ * on these contracts. The reuse regression also checks that a blueprint already
+ * owned by the load packet produces the same schedule as standalone resolution.
+ *
+ * Called by: the focused Worldforge bridge test suite.
+ * Depends on: buildingOccupancy, blueprintForPlot, and household generation.
+ */
+
 /** A generous rectangular lot (feet), corners 0-1 = street frontage. */
 const footprint: InteriorPlotInput['footprint'] = [
   [0, 0], [40, 0], [40, 55], [0, 55],
@@ -136,6 +149,9 @@ describe('occupancyForPlot', () => {
   });
 
   it('litWindows implies occupancy AND the dusk band, across every hour', () => {
+    // WF-INTERIORS #7 was resolved (Remy, 2026-07-21) to KEEP window and hearth
+    // schedules separate: windows glow only in the dusk/night band when occupied,
+    // independent of the hearth's morning burn.
     const { plotPop, allPlots, plotInput } = populatedPlot(6);
     for (let hour = 0; hour < 24; hour++) {
       const occ = occupancyForPlot(plotPop, allPlots, plotInput, seedPath, town, hour)!;
@@ -180,6 +196,33 @@ describe('occupancyScheduleForPlot', () => {
         .sort((a, b) => a - b);
       expect(single.stations.map((s) => s.memberIndex).sort((a, b) => a - b)).toEqual(homeThisHour);
     }
+  });
+
+  test('reuses a precomputed blueprint without changing the full-day schedule', () => {
+    const f = makePopulatedHousePlotFixture();
+
+    // This is the production handoff: the world-load packet resolves one plan,
+    // then occupancy projects its schedule from that exact blueprint instance.
+    const blueprint = blueprintForPlot(f.plotInput, f.seedPath);
+    const precomputed = occupancyScheduleForPlot(
+      f.plotPop,
+      f.allPlots,
+      f.plotInput,
+      f.seedPath,
+      f.townSeed,
+      blueprint,
+    );
+
+    // The optional handoff remains byte-equivalent to the standalone helper so
+    // previews and isolated tests that omit a plan keep the old deterministic answer.
+    const standalone = occupancyScheduleForPlot(
+      f.plotPop,
+      f.allPlots,
+      f.plotInput,
+      f.seedPath,
+      f.townSeed,
+    );
+    expect(precomputed).toEqual(standalone);
   });
 
   test('an unpopulated plot (no household) yields undefined', () => {

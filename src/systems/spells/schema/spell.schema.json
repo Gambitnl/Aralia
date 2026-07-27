@@ -204,7 +204,8 @@
             {
               "type": "string",
               "enum": [
-                "unlimited"
+                "unlimited",
+                "any_number"
               ]
             },
             {
@@ -247,15 +248,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": [
-              "self",
-              "creatures",
-              "allies",
-              "enemies",
-              "objects",
-              "point",
-              "ground"
-            ]
+            "minLength": 1
           }
         },
         "lineOfSight": {
@@ -280,10 +273,14 @@
           "type": "object",
           "properties": {
             "willing": {
-              "type": "string",
-              "enum": [
-                "required",
-                "not_applicable"
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "boolean"
+                }
               ]
             },
             "objectEligibility": {
@@ -291,10 +288,7 @@
               "properties": {
                 "wornOrCarried": {
                   "type": "string",
-                  "enum": [
-                    "excluded",
-                    "not_applicable"
-                  ]
+                  "minLength": 1
                 },
                 "magicalStatus": {
                   "type": "string",
@@ -344,24 +338,36 @@
               "type": "object",
               "properties": {
                 "canHearCaster": {
-                  "type": "string",
-                  "enum": [
-                    "required",
-                    "not_applicable"
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "boolean"
+                    }
                   ]
                 },
                 "canUnderstandCaster": {
-                  "type": "string",
-                  "enum": [
-                    "required",
-                    "not_applicable"
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "boolean"
+                    }
                   ]
                 },
                 "canSeeCaster": {
-                  "type": "string",
-                  "enum": [
-                    "required",
-                    "not_applicable"
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "boolean"
+                    }
                   ]
                 }
               },
@@ -866,15 +872,15 @@
           {
             "$ref": "#/definitions/DamageEffect"
           },
-            {
-              "$ref": "#/definitions/HealingEffect"
-            },
-            {
-              "$ref": "#/definitions/AttackRollModifierEffect"
-            },
-            {
-              "$ref": "#/definitions/StatusConditionEffect"
-            },
+          {
+            "$ref": "#/definitions/HealingEffect"
+          },
+          {
+            "$ref": "#/definitions/AttackRollModifierEffect"
+          },
+          {
+            "$ref": "#/definitions/StatusConditionEffect"
+          },
           {
             "$ref": "#/definitions/MovementEffect"
           },
@@ -953,33 +959,18 @@
       "properties": {
         "timing": {
           "type": "string",
-          "enum": [
-            "turn_start",
-            "turn_end",
-            "on_damage",
-            "on_move_in_area",
-            "on_entity_proximity",
-            "on_target_cast"
-          ]
+          "minLength": 1
         },
         "frequency": {
           "type": "string",
-          "enum": [
-            "every_time",
-            "first_per_turn",
-            "once_per_creature"
-          ]
+          "minLength": 1
         },
         "saveType": {
           "type": "string"
         },
         "saveEffect": {
           "type": "string",
-          "enum": [
-            "none",
-            "half",
-            "negates_condition"
-          ]
+          "minLength": 1
         },
         "damage": {
           "type": "object",
@@ -1016,39 +1007,51 @@
           "type": "string"
         }
       },
-      "required": [
-        "timing"
+      "anyOf": [
+        {
+          "required": [
+            "timing"
+          ]
+        },
+        {
+          "required": [
+            "trigger"
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ]
+        }
+      ]
+    },
+    "RecurringMechanics": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RecurringMechanic"
+          }
+        },
+        {
+          "$ref": "#/definitions/RecurringMechanic"
+        }
       ]
     },
     "ModeChoice": {
       "type": "object",
       "properties": {
         "type": {
-          "type": "string",
-          "enum": [
-            "choose_one"
-          ]
+          "type": "string"
         },
         "timing": {
-          "type": "string",
-          "enum": [
-            "on_cast",
-            "on_cast_or_later_action"
-          ]
+          "type": "string"
         },
         "optionCount": {
           "type": "number"
         },
         "optionsSource": {
-          "type": "string",
-          "enum": [
-            "modeChoice.options",
-            "effects",
-            "controlOptions",
-            "mixed",
-            "summon.formOptions",
-            "effects[0].summon.formOptions"
-          ]
+          "type": "string"
         },
         "maxActiveNonInstantaneous": {
           "oneOf": [
@@ -1342,6 +1345,172 @@
         "requiresDamageRoll"
       ]
     },
+    "SpellCastingTrigger": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "after_attack_hit",
+            "when_visible_creature_casts_spell"
+          ]
+        },
+        "timing": {
+          "type": "string"
+        },
+        "requiredCost": {
+          "type": "string",
+          "enum": [
+            "action",
+            "bonus_action",
+            "reaction",
+            "free"
+          ]
+        },
+        "attackFilter": {
+          "type": "object",
+          "properties": {
+            "weaponType": {
+              "type": "string",
+              "enum": [
+                "melee",
+                "ranged",
+                "any"
+              ]
+            },
+            "attackType": {
+              "type": "string",
+              "enum": [
+                "weapon",
+                "spell",
+                "any"
+              ]
+            }
+          }
+        },
+        "targetBinding": {
+          "type": "string"
+        },
+        "maxRangeFeet": {
+          "type": "number"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "PendingAttackTrigger": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "next_attack"
+          ]
+        },
+        "attackFilter": {
+          "type": "object",
+          "properties": {
+            "attackType": {
+              "type": "string",
+              "enum": [
+                "weapon",
+                "spell",
+                "any"
+              ]
+            },
+            "weaponType": {
+              "type": "string",
+              "enum": [
+                "melee",
+                "ranged",
+                "any"
+              ]
+            }
+          }
+        },
+        "resolvesOn": {
+          "type": "string",
+          "enum": [
+            "hit",
+            "miss",
+            "hit_or_miss"
+          ]
+        },
+        "primaryTargetBinding": {
+          "type": "string"
+        },
+        "consumption": {
+          "type": "string",
+          "enum": [
+            "first_matching_attack",
+            "every_matching_attack"
+          ]
+        },
+        "missResolution": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "resolvesOn"
+      ]
+    },
+    "SpellInterruptionState": {
+      "type": "object",
+      "properties": {
+        "event": {
+          "type": "string",
+          "enum": [
+            "visible_creature_casts_spell"
+          ]
+        },
+        "saveType": {
+          "type": "string",
+          "enum": [
+            "Strength",
+            "Dexterity",
+            "Constitution",
+            "Intelligence",
+            "Wisdom",
+            "Charisma"
+          ]
+        },
+        "failedSaveOutcome": {
+          "type": "string"
+        },
+        "slotPolicy": {
+          "type": "string"
+        },
+        "actionPolicy": {
+          "type": "string"
+        },
+        "visibilityRequired": {
+          "type": "boolean"
+        },
+        "rangeFeet": {
+          "type": "number"
+        },
+        "runtimeBoundary": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "event",
+        "saveType",
+        "failedSaveOutcome",
+        "slotPolicy",
+        "actionPolicy",
+        "visibilityRequired",
+        "rangeFeet"
+      ]
+    },
     "DamageEffect": {
       "type": "object",
       "properties": {
@@ -1429,10 +1598,7 @@
           ]
         },
         "recurringMechanics": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/RecurringMechanic"
-          }
+          "$ref": "#/definitions/RecurringMechanics"
         },
         "secondaryTargeting": {
           "$ref": "#/definitions/SecondaryTargeting"
@@ -1563,10 +1729,7 @@
           ]
         },
         "recurringMechanics": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/RecurringMechanic"
-          }
+          "$ref": "#/definitions/RecurringMechanics"
         },
         "trigger": {
           "$ref": "#/definitions/EffectTrigger"
@@ -1688,6 +1851,13 @@
                 "skill": {
                   "type": "string"
                 },
+                "abilityOptions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
                 "dc": {
                   "oneOf": [
                     {
@@ -1695,16 +1865,16 @@
                     },
                     {
                       "type": "string",
-                      "const": "spell_save_dc"
+                      "minLength": 1
                     }
                   ]
                 },
                 "actionCost": {
                   "type": "string",
-                  "enum": [
-                    "action",
-                    "bonus_action"
-                  ]
+                  "minLength": 1
+                },
+                "success": {
+                  "type": "string"
                 },
                 "eligibleActors": {
                   "type": "array",
@@ -1840,10 +2010,7 @@
               ]
             },
             "recurringMechanics": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/RecurringMechanic"
-              }
+              "$ref": "#/definitions/RecurringMechanics"
             }
           },
           "required": [
@@ -1852,10 +2019,7 @@
           ]
         },
         "recurringMechanics": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/RecurringMechanic"
-          }
+          "$ref": "#/definitions/RecurringMechanics"
         },
         "trigger": {
           "$ref": "#/definitions/EffectTrigger"
@@ -2082,19 +2246,13 @@
     },
     "CreatedObject": {
       "type": "object",
+      "minProperties": 1,
       "properties": {
+        "kind": {
+          "type": "string"
+        },
         "objectType": {
-          "type": "string",
-          "enum": [
-            "food",
-            "water",
-            "ammunition",
-            "weapon",
-            "portal",
-            "structure",
-            "hazard",
-            "other"
-          ]
+          "type": "string"
         },
         "name": {
           "type": "string"
@@ -2102,28 +2260,26 @@
         "count": {
           "type": "number"
         },
-        "countUnit": {
-          "type": "string",
-          "enum": [
-            "item",
-            "pound",
-            "gallon",
-            "cubic_foot",
-            "square_foot",
-            "structure",
-            "not_applicable"
+        "countScaling": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "slot_level"
+            },
+            "bonusPerLevel": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "bonusPerLevel"
           ]
         },
+        "countUnit": {
+          "type": "string"
+        },
         "appearsIn": {
-          "type": "string",
-          "enum": [
-            "caster_hand",
-            "target_container",
-            "ground",
-            "unoccupied_space",
-            "spell_area",
-            "not_applicable"
-          ]
+          "type": "string"
         },
         "shapeOptions": {
           "type": "array",
@@ -2218,6 +2374,42 @@
         "canCreateFineMechanicalDetail": {
           "type": "boolean"
         },
+        "levels": {
+          "type": "number"
+        },
+        "levelScaling": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "slot_level"
+            },
+            "bonusPerLevel": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "bonusPerLevel"
+          ]
+        },
+        "levelHeightFeet": {
+          "type": "number"
+        },
+        "areaPerLevelSquareFeet": {
+          "type": "number"
+        },
+        "accessBetweenLevels": {
+          "type": "boolean"
+        },
+        "secureOpenings": {
+          "type": "boolean"
+        },
+        "furnished": {
+          "type": "boolean"
+        },
+        "weatherProtected": {
+          "type": "boolean"
+        },
         "dedicationSource": {
           "type": "string"
         },
@@ -2268,6 +2460,21 @@
         "portalHeightFeet": {
           "type": "number"
         },
+        "extradimensionalSpace": {
+          "type": "boolean"
+        },
+        "capacityCreatures": {
+          "type": "number"
+        },
+        "capacityCreatureMaxSize": {
+          "type": "string"
+        },
+        "blocksCrossBoundaryEffects": {
+          "type": "boolean"
+        },
+        "occupantsCanSeeOut": {
+          "type": "boolean"
+        },
         "contentsDropOutOnEnd": {
           "type": "boolean"
         },
@@ -2277,14 +2484,64 @@
         "preservesStructuralStability": {
           "type": "boolean"
         },
-        "orbitsCaster": {
+        "requiresAnchoring": {
           "type": "boolean"
         },
-        "expendable": {
+        "anchoringOptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "collapsesIfUnsupported": {
           "type": "boolean"
         },
-        "maxExpendedPerAction": {
+        "collapseTiming": {
+          "type": "string"
+        },
+        "obscuresArea": {
+          "type": "string",
+          "enum": [
+            "lightly",
+            "heavily",
+            "not_applicable"
+          ]
+        },
+        "providesCover": {
+          "type": "string",
+          "enum": [
+            "half",
+            "three_quarters",
+            "total",
+            "not_applicable"
+          ]
+        },
+        "spaceIsDifficultTerrain": {
+          "type": "boolean"
+        },
+        "rangedWeaponAttacksThroughHaveDisadvantage": {
+          "type": "boolean"
+        },
+        "reducesPassingDamageType": {
+          "type": "string"
+        },
+        "passingDamageMultiplier": {
           "type": "number"
+        },
+        "canFreezeFromDamageType": {
+          "type": "string"
+        },
+        "frozenSectionSizeFeet": {
+          "type": "number"
+        },
+        "frozenSectionArmorClass": {
+          "type": "number"
+        },
+        "frozenSectionHitPoints": {
+          "type": "number"
+        },
+        "destroyedFrozenSectionsDoNotRefill": {
+          "type": "boolean"
         },
         "wallLengthFeet": {
           "type": "number"
@@ -2518,42 +2775,6 @@
         "pushesCreaturesToChosenSide": {
           "type": "boolean"
         },
-        "providesCover": {
-          "type": "string",
-          "enum": [
-            "half",
-            "three_quarters",
-            "total",
-            "not_applicable"
-          ]
-        },
-        "spaceIsDifficultTerrain": {
-          "type": "boolean"
-        },
-        "rangedWeaponAttacksThroughHaveDisadvantage": {
-          "type": "boolean"
-        },
-        "reducesPassingDamageType": {
-          "type": "string"
-        },
-        "passingDamageMultiplier": {
-          "type": "number"
-        },
-        "canFreezeFromDamageType": {
-          "type": "string"
-        },
-        "frozenSectionSizeFeet": {
-          "type": "number"
-        },
-        "frozenSectionArmorClass": {
-          "type": "number"
-        },
-        "frozenSectionHitPoints": {
-          "type": "number"
-        },
-        "destroyedFrozenSectionsDoNotRefill": {
-          "type": "boolean"
-        },
         "enclosureEscapeSaveType": {
           "type": "string",
           "enum": [
@@ -2600,7 +2821,8 @@
           "enum": [
             "none",
             "half",
-            "negates_condition"
+            "negates_condition",
+            "negates"
           ]
         },
         "lingeringHazardFrequency": {
@@ -2765,14 +2987,7 @@
           }
         },
         "affectedVolumeShape": {
-          "type": "string",
-          "enum": [
-            "Cube",
-            "Sphere",
-            "Line",
-            "Wall",
-            "not_applicable"
-          ]
+          "type": "string"
         },
         "affectedVolumeSizeFeet": {
           "type": "number"
@@ -2866,6 +3081,30 @@
         "ignitesTouchedObjects": {
           "type": "boolean"
         },
+        "depthFeet": {
+          "type": "number"
+        },
+        "flammable": {
+          "type": "boolean"
+        },
+        "burnUnitSizeFeet": {
+          "type": "number"
+        },
+        "burnDurationRounds": {
+          "type": "number"
+        },
+        "burnDamage": {
+          "$ref": "#/definitions/DamageData"
+        },
+        "orbitsCaster": {
+          "type": "boolean"
+        },
+        "expendable": {
+          "type": "boolean"
+        },
+        "maxExpendedPerAction": {
+          "type": "number"
+        },
         "consumeAction": {
           "type": "string",
           "enum": [
@@ -2901,6 +3140,30 @@
         },
         "harvestBenefitLimit": {
           "type": "string"
+        },
+        "inventoryItemId": {
+          "type": "string"
+        },
+        "inventoryQuantity": {
+          "type": "number"
+        },
+        "inventoryQuantityScaling": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "slot_level"
+            },
+            "bonusPerLevel": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "bonusPerLevel"
+          ]
+        },
+        "perishable": {
+          "type": "boolean"
         },
         "expiresWithSpell": {
           "type": "boolean"
@@ -2942,10 +3205,7 @@
           "type": "string"
         },
         "recurringMechanics": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/RecurringMechanic"
-          }
+          "$ref": "#/definitions/RecurringMechanics"
         },
         "conditionRemoval": {
           "type": "array",
@@ -2975,6 +3235,16 @@
             },
             "maxLocksAffected": {
               "type": "number"
+            },
+            "targetObjects": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "newState": {
+              "type": "string",
+              "minLength": 1
             },
             "suppressesMagicalClosure": {
               "type": "string"
@@ -3026,10 +3296,20 @@
               ]
             }
           },
-          "required": [
-            "eligibleObjectTypes",
-            "mundaneStateChanges",
-            "maxLocksAffected"
+          "anyOf": [
+            {
+              "required": [
+                "eligibleObjectTypes",
+                "mundaneStateChanges",
+                "maxLocksAffected"
+              ]
+            },
+            {
+              "required": [
+                "targetObjects",
+                "newState"
+              ]
+            }
           ]
         },
         "attackAugments": {
@@ -3049,6 +3329,74 @@
         },
         "controlledEntity": {
           "$ref": "#/definitions/ControlledEntity"
+        },
+        "summonControl": {
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "entityType": {
+              "type": "string",
+              "minLength": 1
+            },
+            "mode": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "entityType"
+              ]
+            },
+            {
+              "required": [
+                "mode"
+              ]
+            }
+          ]
+        },
+        "controlOptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "effect": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mode": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "anyOf": [
+              {
+                "required": [
+                  "name",
+                  "effect"
+                ]
+              },
+              {
+                "required": [
+                  "mode"
+                ]
+              },
+              {
+                "required": [
+                  "label"
+                ]
+              }
+            ]
+          }
         },
         "createdObjects": {
           "type": "array",
@@ -3222,10 +3570,17 @@
           "$ref": "#/definitions/DeathPrevention"
         },
         "endCleanup": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/EffectEndCleanup"
-          }
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/EffectEndCleanup"
+              }
+            },
+            {
+              "$ref": "#/definitions/EffectEndCleanup"
+            }
+          ]
         },
         "sustainRequirement": {
           "$ref": "#/definitions/SustainRequirement"
@@ -3491,10 +3846,17 @@
           "$ref": "#/definitions/DeathPrevention"
         },
         "endCleanup": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/EffectEndCleanup"
-          }
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/EffectEndCleanup"
+              }
+            },
+            {
+              "$ref": "#/definitions/EffectEndCleanup"
+            }
+          ]
         },
         "conditionImmunity": {
           "type": "array",
@@ -3511,7 +3873,17 @@
         "savingThrow": {
           "type": "array",
           "items": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": true
+              }
+            ]
           }
         },
         "defenseSourceFilter": {
@@ -3558,24 +3930,7 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": [
-            "immediate",
-            "after_primary",
-            "turn_start",
-            "turn_end",
-            "on_enter_area",
-            "on_exit_area",
-            "on_end_turn_in_area",
-            "on_move_in_area",
-            "on_target_move",
-            "on_target_takes_damage",
-            "on_attack_hit",
-            "on_target_attack",
-            "on_target_cast",
-            "on_entity_proximity",
-            "on_caster_action",
-            "on_granted_action"
-          ]
+          "minLength": 1
         },
         "frequency": {
           "type": "string",
@@ -3643,6 +3998,22 @@
             "actionType",
             "optional"
           ]
+        },
+        "areaTiming": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "repeatAction": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "onlyIf": {
+          "type": "string"
+        },
+        "oncePerTurn": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -3767,7 +4138,8 @@
           "enum": [
             "none",
             "half",
-            "negates_condition"
+            "negates_condition",
+            "negates"
           ]
         },
         "damageAbilityModifier": {
@@ -4682,11 +5054,7 @@
       "properties": {
         "attackType": {
           "type": "string",
-          "enum": [
-            "weapon",
-            "melee_weapon",
-            "ranged_weapon"
-          ]
+          "minLength": 1
         },
         "weaponRequirement": {
           "type": "object",
@@ -4838,127 +5206,170 @@
         },
         "appliesOn": {
           "type": "string",
-          "enum": [
-            "hit"
-          ]
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "trigger": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attackKinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "attackBonusSource": {
+          "type": "string"
+        },
+        "attackRollModifier": {
+          "type": "string"
+        },
+        "damageRollModifier": {
+          "type": "string"
+        },
+        "damageBonus": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "damagePenalty": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "criticalHitThreshold": {
+          "type": "number"
         },
         "notes": {
           "type": "string"
         }
       },
-      "required": [
-        "attackType"
+      "anyOf": [
+        {
+          "required": [
+            "attackType"
+          ]
+        },
+        {
+          "required": [
+            "name"
+          ]
+        },
+        {
+          "required": [
+            "trigger"
+          ]
+        },
+        {
+          "required": [
+            "attackKinds"
+          ]
+        },
+        {
+          "required": [
+            "attackBonusSource"
+          ]
+        },
+        {
+          "required": [
+            "attackRollModifier"
+          ]
+        },
+        {
+          "required": [
+            "damageRollModifier"
+          ]
+        },
+        {
+          "required": [
+            "criticalHitThreshold"
+          ]
+        }
       ]
     },
     "AbilityCheckModifier": {
       "type": "object",
+      "minProperties": 1,
       "properties": {
         "appliesTo": {
-          "type": "string",
-          "enum": [
-            "ability_check"
-          ]
+          "type": "string"
         },
         "bonusDice": {
           "type": "string"
         },
         "flatModifier": {
-          "type": "number"
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
         },
         "skillSelection": {
-          "type": "string",
-          "enum": [
-            "chosen_skill",
-            "not_applicable"
-          ]
+          "type": "string"
         },
         "skillChooser": {
-          "type": "string",
-          "enum": [
-            "caster"
-          ]
+          "type": "string"
         },
         "skillPool": {
-          "type": "string",
-          "enum": [
-            "any_skill"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ]
         },
         "frequency": {
-          "type": "string",
-          "enum": [
-            "every_matching_check",
-            "once"
-          ]
+          "type": "string"
         },
         "durationScope": {
-          "type": "string",
-          "enum": [
-            "while_active",
-            "next_check"
-          ]
+          "type": "string"
         },
         "notes": {
           "type": "string"
         }
       },
-      "required": [
-        "appliesTo",
-        "skillSelection",
-        "frequency",
-        "durationScope"
-      ]
+      "additionalProperties": true
     },
     "ControlledEntity": {
       "type": "object",
+      "minProperties": 1,
       "properties": {
         "entityType": {
-          "type": "string",
-          "enum": [
-            "spectral_hand",
-            "unseen_servant"
-          ]
+          "type": "string"
         },
         "count": {
           "type": "number"
         },
         "appearsAt": {
-          "type": "string",
-          "enum": [
-            "chosen_point"
-          ]
+          "type": "string"
         },
         "durationScope": {
-          "type": "string",
-          "enum": [
-            "spell_duration"
-          ]
+          "type": "string"
         },
         "controlActionType": {
-          "type": "string",
-          "enum": [
-            "magic_action",
-            "action",
-            "bonus_action"
-          ]
+          "type": "string"
         },
         "initialUseOnCast": {
           "type": "boolean"
         },
         "laterControlTiming": {
-          "type": "string",
-          "enum": [
-            "later_turns"
-          ]
+          "type": "string"
         },
         "movementDistance": {
           "type": "number"
         },
         "movementUnit": {
-          "type": "string",
-          "enum": [
-            "feet"
-          ]
+          "type": "string"
         },
         "maxDistanceFromCaster": {
           "type": "number"
@@ -4975,10 +5386,7 @@
               "type": "number"
             },
             {
-              "type": "string",
-              "enum": [
-                "not_applicable"
-              ]
+              "type": "string"
             }
           ]
         },
@@ -4991,213 +5399,14 @@
         "endingTriggers": {
           "type": "array",
           "items": {
-            "type": "string",
-            "enum": [
-              "caster_recasts",
-              "beyond_max_distance",
-              "drops_to_0_hp"
-            ]
+            "type": "string"
           }
         },
         "notes": {
           "type": "string"
         }
       },
-      "required": [
-        "entityType",
-        "count",
-        "appearsAt",
-        "durationScope",
-        "controlActionType",
-        "initialUseOnCast",
-        "laterControlTiming",
-        "movementDistance",
-        "movementUnit",
-        "maxDistanceFromCaster",
-        "canAttack",
-        "canActivateMagicItems",
-        "carryCapacityPounds",
-        "allowedInteractions",
-        "endingTriggers"
-      ]
-    },
-    "SpellCastingTrigger": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "after_attack_hit",
-            "when_visible_creature_casts_spell"
-          ]
-        },
-        "timing": {
-          "type": "string"
-        },
-        "requiredCost": {
-          "type": "string",
-          "enum": [
-            "action",
-            "bonus_action",
-            "reaction",
-            "free"
-          ]
-        },
-        "attackFilter": {
-          "type": "object",
-          "properties": {
-            "weaponType": {
-              "type": "string",
-              "enum": [
-                "melee",
-                "ranged",
-                "any"
-              ]
-            },
-            "attackType": {
-              "type": "string",
-              "enum": [
-                "weapon",
-                "spell",
-                "any"
-              ]
-            }
-          }
-        },
-        "targetBinding": {
-          "type": "string"
-        },
-        "maxRangeFeet": {
-          "type": "number"
-        },
-        "notes": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "type"
-      ]
-    },
-    "PendingAttackTrigger": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "next_attack"
-          ]
-        },
-        "attackFilter": {
-          "type": "object",
-          "properties": {
-            "attackType": {
-              "type": "string",
-              "enum": [
-                "weapon",
-                "spell",
-                "any"
-              ]
-            },
-            "weaponType": {
-              "type": "string",
-              "enum": [
-                "melee",
-                "ranged",
-                "any"
-              ]
-            }
-          }
-        },
-        "resolvesOn": {
-          "type": "string",
-          "enum": [
-            "hit",
-            "miss",
-            "hit_or_miss"
-          ]
-        },
-        "primaryTargetBinding": {
-          "type": "string"
-        },
-        "consumption": {
-          "type": "string",
-          "enum": [
-            "first_matching_attack",
-            "every_matching_attack"
-          ]
-        },
-        "missResolution": {
-          "type": "string"
-        },
-        "notes": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "resolvesOn"
-      ]
-    },
-    "SpellInterruptionState": {
-      "type": "object",
-      "properties": {
-        "event": {
-          "type": "string",
-          "enum": [
-            "visible_creature_casts_spell"
-          ]
-        },
-        "saveType": {
-          "type": "string",
-          "enum": [
-            "Strength",
-            "Dexterity",
-            "Constitution",
-            "Intelligence",
-            "Wisdom",
-            "Charisma"
-          ]
-        },
-        "failureOutcome": {
-          "type": "string",
-          "enum": [
-            "spell_has_no_effect"
-          ]
-        },
-        "failedSaveOutcome": {
-          "type": "string"
-        },
-        "slotPolicy": {
-          "type": "string"
-        },
-        "preservesInterruptedSlot": {
-          "type": "boolean"
-        },
-        "actionPolicy": {
-          "type": "string"
-        },
-        "visibilityRequired": {
-          "type": "boolean"
-        },
-        "rangeFeet": {
-          "type": "number"
-        },
-        "runtimeBoundary": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "event",
-        "saveType",
-        "failedSaveOutcome",
-        "slotPolicy",
-        "actionPolicy",
-        "visibilityRequired",
-        "rangeFeet"
-      ]
+      "additionalProperties": true
     }
   }
 }
-
-
-

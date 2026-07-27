@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 17/07/2026, 22:11:03
+ * Last Sync: 19/07/2026, 08:31:32
  * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/ConversationPanel/ConversationPanel.tsx, components/gameEntry/OpeningSituationGate.tsx, components/layout/GameModals.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/useChronicleRumorsSync.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDeEscalation.ts, hooks/useDialogueSystem.ts, hooks/useDungeonRumorsSync.ts, hooks/useGameActions.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useKnownPortsSync.ts, hooks/useOllamaCheck.ts, hooks/useOllamaLogBridge.ts, hooks/useOpeningSituation.ts, hooks/useOverheardGossip.ts, hooks/useSeaEncounter.ts, hooks/useTownCrierAnnouncements.ts, hooks/useTownMerchantRegistration.ts, hooks/useTownSimRegistration.ts, hooks/useVoyageArrival.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/gameEntryReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, systems/travel/applyProvision.ts, types/index.ts, utils/combat/battleEndActions.ts, utils/context/entityIntegrationUtils.ts
  * Imports: None
  *
@@ -78,8 +78,19 @@ import type {
   CombatEnemySnapshotEntry,
   CombatPartySnapshotEntry,
 } from "../types/combat.js";
-// TODO #564(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
-type RitualEvent = unknown;
+/**
+ * A disturbance fed into INTERRUPT_RITUAL. Mirrors the arguments of
+ * `RitualManager.checkRitualInterrupt(ritual, type, value, conditionName)`.
+ */
+export interface RitualEvent {
+  type: "damage" | "movement" | "condition";
+  /** Magnitude of the disturbance (damage taken, feet moved). */
+  value?: number;
+  /** Condition name when type is "condition" (e.g. "Incapacitated"). */
+  conditionName?: string;
+  /** The affected combatant, when known. */
+  targetId?: string;
+}
 import {
   CreateAliasPayload,
   EquipDisguisePayload,
@@ -91,6 +102,8 @@ import { WorldHistoryEvent } from "../types/history.js";
 import { CrewRole, ShipType } from "../types/naval.js";
 import type { WorldDelta } from "../systems/worldforge/delta/types.js";
 import type { WorldforgeEncounterReceipt } from "../systems/combat/worldScenario/worldforgeEncounterReceipt.js";
+import type { DungeonIdentity } from "../systems/worldforge/dungeon/world/deriveIdentity.js";
+import type { DungeonProgressPatch } from "../systems/worldforge/dungeon/world/dungeonLifecycle.js";
 import type { AtlasGroundAddress } from "../systems/worldforge/leaf3d/atlasGroundDrilldown.js";
 import {
   CastSpellPayload,
@@ -458,6 +471,16 @@ export type AppAction =
   // Pillar 2, Task 8 (living ecology): mark a dungeon site cleared (deduped by
   // sitePath). Cleared sites stop feeding the danger overlay + raid pressure.
   | { type: "DUNGEON_CLEARED"; payload: { sitePath: string } }
+  // Dungeon lifecycle state is keyed by the canonical world-entrance receipt. Entry and retreat
+  // are wired today; progress and completion are ready for the future playable-interaction lane
+  // but require that lane to supply stable authored ids and an authoritative completion rule.
+  | { type: "DUNGEON_ENTERED"; payload: { identity: DungeonIdentity } }
+  | {
+      type: "DUNGEON_PROGRESS_RECORDED";
+      payload: { dungeonId: string; progress: DungeonProgressPatch };
+    }
+  | { type: "DUNGEON_RETREATED"; payload: { dungeonId: string } }
+  | { type: "DUNGEON_COMPLETED"; payload: { dungeonId: string } }
   // Gemini Intelligence Action
   | { type: "ANALYZE_SITUATION" }
   // Dynamic Actions
@@ -690,6 +713,13 @@ export type AppAction =
       payload: { topicId: string; npcId: string; date: number };
     }
   | { type: "END_DIALOGUE_SESSION" }
+  // World fact store (DIAL-002/DIAL-004): durable cross-NPC unlock knowledge.
+  // Dispatched by dialogue outcomes (and any future system granting the player
+  // world knowledge); handled by factReducer.
+  | {
+      type: "LEARN_WORLD_FACT";
+      payload: { fact: import("../types/facts.js").LearnWorldFactInput };
+    }
   // Ritual Actions
   | { type: "START_RITUAL"; payload: RitualState }
   // Ritual advancement now accepts seconds, minutes, or rounds so whichever
@@ -723,6 +753,7 @@ export type AppAction =
   | { type: "TOGGLE_NAVAL_DASHBOARD" }
   | { type: "TOGGLE_TRADE_ROUTE_DASHBOARD" }
   | { type: "TOGGLE_INVESTMENT_BOARD" }
+  | { type: "TOGGLE_COMMERCE_DESK" }
   // Economy & Investment Actions
   | {
       type: "INVEST_IN_CARAVAN";

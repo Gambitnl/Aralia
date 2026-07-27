@@ -60,6 +60,15 @@ import {
   ROCK_SAND,
   ROCK_DARK,
 } from "./props";
+import {
+  drawRock as caveDrawRock,
+  drawCrystal as caveDrawCrystal,
+  drawStalagmite as caveDrawStalagmite,
+  drawGlowMushroom as caveDrawGlowMushroom,
+  drawGemNode as caveDrawGemNode,
+  CRYSTAL_BLUE,
+  CRYSTAL_PURPLE,
+} from "../forge/caveForge";
 
 export interface PaintGroundOptions {
   /** Whether to draw decorative asset props such as trees, rocks, bushes, logs, and loose scatter. */
@@ -230,29 +239,10 @@ function paintElevationRelief(
     // (upper-left, matching every baked prop/token shadow) and accumulate how
     // far terrain rises above it. Slope shading says "this face tilts away";
     // a cast shadow says "that hill over there blocks the light" — together
-    // they make landforms read as volumes instead of tint.
-    const SUN_DIR = { x: -0.78, y: -0.62 }; // normalized-ish toward the sun
-    const SUN_SLOPE_FT_PER_TILE = 0.9; // low sun: 10 ft knoll throws ~11 tiles
-    const MAX_SHADOW_MARCH_TILES = 24;
-    const castShadowAt = (x: number, y: number): number => {
-      const base = elevationAt(x, y);
-      let blockedBy = 0;
-      for (let step = 1; step <= MAX_SHADOW_MARCH_TILES; step += 1) {
-        const sampleX = Math.round(x + SUN_DIR.x * step);
-        const sampleY = Math.round(y + SUN_DIR.y * step);
-        if (
-          sampleX < 0 ||
-          sampleY < 0 ||
-          sampleX >= width ||
-          sampleY >= height
-        )
-          break;
-        const eyeLine = base + SUN_SLOPE_FT_PER_TILE * step;
-        blockedBy = Math.max(blockedBy, elevationAt(sampleX, sampleY) - eyeLine);
-      }
-      // 0 = fully lit; saturates at 1 when terrain rises 6+ ft over the ray.
-      return Math.max(0, Math.min(1, blockedBy / 6));
-    };
+    // they make landforms read as volumes instead of tint. The march itself is
+    // the shared castShadowAmount model, so the over-water overlay agrees.
+    const castShadowAt = (x: number, y: number): number =>
+      castShadowAmount(elevationAt, width, height, x, y);
     const image = shadeContext.createImageData(width, height);
     for (let y = 0; y < height; y += 1) {
       for (let x = 0; x < width; x += 1) {
@@ -372,6 +362,195 @@ export function collectCrossingPaintGroups(
     groups.set(group.id, group);
   }
   return [...groups.values()];
+}
+
+// Positional-sun cast-shadow model, shared by the land relief pass and the
+// over-water shadow overlay so both agree on where a hill's shadow falls. The
+// sun sits upper-left, matching every baked prop/token shadow on the board.
+const CAST_SUN_DIR = { x: -0.78, y: -0.62 }; // normalized-ish toward the sun
+const CAST_SUN_SLOPE_FT_PER_TILE = 0.9; // low sun: 10 ft knoll throws ~11 tiles
+const CAST_MAX_SHADOW_MARCH_TILES = 24;
+// A hill's cast shadow crosses onto water at reduced strength (water sits below
+// the land it shades, and specular water eats some shadow). Tuned by eye.
+const WATER_CAST_SHADOW_STRENGTH = 0.5;
+
+/**
+ * March a tile's eye-line toward the sun and accumulate how far terrain rises
+ * above it. Returns 0 (fully lit) .. 1 (saturated, terrain rises 6+ ft over the
+ * ray). Kept pure and parameterized on `elevationAt` so callers control the
+ * (clamped) sampling — this keeps the land relief output byte-for-byte stable.
+ */
+export function castShadowAmount(
+  elevationAt: (x: number, y: number) => number,
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+): number {
+  const base = elevationAt(x, y);
+  let blockedBy = 0;
+  for (let step = 1; step <= CAST_MAX_SHADOW_MARCH_TILES; step += 1) {
+    const sampleX = Math.round(x + CAST_SUN_DIR.x * step);
+    const sampleY = Math.round(y + CAST_SUN_DIR.y * step);
+    if (sampleX < 0 || sampleY < 0 || sampleX >= width || sampleY >= height) {
+      break;
+    }
+    const eyeLine = base + CAST_SUN_SLOPE_FT_PER_TILE * step;
+    blockedBy = Math.max(blockedBy, elevationAt(sampleX, sampleY) - eyeLine);
+  }
+  return Math.max(0, Math.min(1, blockedBy / 6));
+}
+
+/** A corner-lattice point on the tile grid (tile-space, integer at cell corners). */
+export type LatticePoint = readonly [number, number];
+
+/**
+ * Trace a boolean tile mask into closed lattice loops using marching-squares
+ * boundary edges. Every filled cell contributes its open sides as oriented
+ * segments (road/mask interior on the LEFT of travel), and the segments are
+ * chained into loops.
+ *
+ * The only ambiguity is a checkerboard corner — a corner-lattice point where two
+ * mask cells meet only diagonally, so two continuations leave the same point. We
+ * take the continuation that turns most sharply toward the interior (the largest
+ * signed turn in the winding direction). That keeps the interior on the left and
+ * splits the diagonal touch into two simple, non-self-intersecting loops instead
+ * of one pinched figure-eight.
+ *
+ * With correctly oriented edges every boundary closes, including masks that
+ * touch the map edge (off-map cells read as unfilled, so the outer side is still
+ * a boundary). An open chain therefore means a malformed mask; we close it
+ * explicitly and warn once rather than dropping geometry.
+ */
+export function traceMaskContourLoops(
+  filled: (x: number, y: number) => boolean,
+  cells: Iterable<{ x: number; y: number }>,
+): LatticePoint[][] {
+  const out = new Map<string, LatticePoint[]>();
+  const key = (x: number, y: number) => `${x},${y}`;
+  const addSeg = (a: LatticePoint, b: LatticePoint) => {
+    const k = key(a[0], a[1]);
+    const list = out.get(k);
+    if (list) list.push(b);
+    else out.set(k, [b]);
+  };
+  let totalSegs = 0;
+  for (const cell of cells) {
+    const { x, y } = cell;
+    // Each open side is one lattice edge oriented so the interior is on the
+    // LEFT: top L→R, right T→B, bottom R→L, left B→T.
+    if (!filled(x, y - 1)) {
+      addSeg([x, y], [x + 1, y]);
+      totalSegs += 1;
+    }
+    if (!filled(x + 1, y)) {
+      addSeg([x + 1, y], [x + 1, y + 1]);
+      totalSegs += 1;
+    }
+    if (!filled(x, y + 1)) {
+      addSeg([x + 1, y + 1], [x, y + 1]);
+      totalSegs += 1;
+    }
+    if (!filled(x - 1, y)) {
+      addSeg([x, y + 1], [x, y]);
+      totalSegs += 1;
+    }
+  }
+
+  const loops: LatticePoint[][] = [];
+  let consumed = 0;
+  let warnedOpen = false;
+  const guardMax = totalSegs + 8;
+  while (consumed < totalSegs) {
+    // Any vertex that still has an outgoing segment can seed the next loop.
+    let startKey: string | undefined;
+    for (const [k, list] of out) {
+      if (list.length > 0) {
+        startKey = k;
+        break;
+      }
+    }
+    if (startKey === undefined) break;
+    const [sx, sy] = startKey.split(",").map(Number);
+    const start: LatticePoint = [sx, sy];
+    const loop: LatticePoint[] = [start];
+    let prev: LatticePoint = start;
+    let cur: LatticePoint = out.get(startKey)!.pop()!;
+    consumed += 1;
+    let guard = 0;
+    while (guard++ < guardMax) {
+      if (cur[0] === start[0] && cur[1] === start[1]) break; // closed
+      loop.push(cur);
+      const nexts = out.get(key(cur[0], cur[1]));
+      if (!nexts || nexts.length === 0) {
+        if (!warnedOpen) {
+          console.warn(
+            "traceMaskContourLoops: open chain closed explicitly (malformed mask)",
+          );
+          warnedOpen = true;
+        }
+        break; // loop already carries the run; treat first→last as closing edge
+      }
+      let bestIdx = 0;
+      if (nexts.length > 1) {
+        const din: LatticePoint = [cur[0] - prev[0], cur[1] - prev[1]];
+        let bestScore = -Infinity;
+        for (let i = 0; i < nexts.length; i++) {
+          const e = nexts[i];
+          const dout: LatticePoint = [e[0] - cur[0], e[1] - cur[1]];
+          const cross = din[0] * dout[1] - din[1] * dout[0];
+          const dot = din[0] * dout[0] + din[1] * dout[1];
+          // Sharpest turn toward the interior (max cross in the winding sense);
+          // penalize an outright U-turn so a straight-through wins over reversing.
+          const score = cross * 2 - (dot < 0 ? 1 : 0);
+          if (score > bestScore) {
+            bestScore = score;
+            bestIdx = i;
+          }
+        }
+      }
+      const next = nexts.splice(bestIdx, 1)[0];
+      consumed += 1;
+      prev = cur;
+      cur = next;
+    }
+    if (loop.length >= 4) loops.push(loop);
+  }
+  return loops;
+}
+
+/**
+ * Taubin λ|μ smoothing: a low-pass over a closed loop that removes the
+ * marching-squares stair ripple WITHOUT the inward shrink of repeated Laplacian
+ * passes. Each iteration is a shrinking step (λ>0) followed by an inflating step
+ * (μ<0, |μ|>λ); collinear points on straight runs stay put (zero net movement),
+ * so painted road edges hug the true cell boundary.
+ */
+export function taubinSmoothLoop(
+  loop: LatticePoint[],
+  iterations = 6,
+  lambda = 0.5,
+  mu = -0.53,
+): LatticePoint[] {
+  let cur: Array<[number, number]> = loop.map((p) => [p[0], p[1]]);
+  const relax = (src: Array<[number, number]>, factor: number) => {
+    const next: Array<[number, number]> = new Array(src.length);
+    for (let i = 0; i < src.length; i++) {
+      const p = src[i];
+      const a = src[(i - 1 + src.length) % src.length];
+      const b = src[(i + 1) % src.length];
+      next[i] = [
+        p[0] + factor * ((a[0] + b[0]) * 0.5 - p[0]),
+        p[1] + factor * ((a[1] + b[1]) * 0.5 - p[1]),
+      ];
+    }
+    return next;
+  };
+  for (let it = 0; it < iterations; it++) {
+    cur = relax(cur, lambda);
+    cur = relax(cur, mu);
+  }
+  return cur.map((p) => [p[0], p[1]] as LatticePoint);
 }
 
 /**
@@ -1212,76 +1391,24 @@ export function paintGround(
     // Stroke-union painting (center-to-center segments per cell) could never
     // read smooth: every direction change left cap lobes and notch steps on
     // the band's boundary. Instead, trace the road cells' OUTLINE as vector
-    // contours (marching-squares over the tile mask) and round it with two
-    // Chaikin passes — one continuous curved silhouette, then fill it. The
-    // footprint stays exactly the source-fact cells, quarter-tile rounded.
+    // contours (marching-squares over the tile mask), low-pass it, and round
+    // it — one continuous curved silhouette, then fill it. The footprint stays
+    // exactly the source-fact cells, quarter-tile rounded.
     const inRoad = new Set<string>();
     for (const tile of roadCells) {
       inRoad.add(`${tile.coordinates.x},${tile.coordinates.y}`);
     }
     const filled = (x: number, y: number) => inRoad.has(`${x},${y}`);
-    // Boundary edges between a filled cell and an unfilled neighbor, keyed by
-    // corner-lattice endpoints, chained into closed loops. Consistent
-    // orientation (filled cell on the left of travel) makes chaining exact.
-    type Pt = readonly [number, number];
-    const segs = new Map<string, Pt[]>(); // startKey -> [end, ...] (branching safe)
-    const key = (p: Pt) => `${p[0]},${p[1]}`;
-    const addSeg = (a: Pt, b: Pt) => {
-      const list = segs.get(key(a));
-      if (list) list.push(b);
-      else segs.set(key(a), [b]);
-    };
-    for (const tile of roadCells) {
-      const x = tile.coordinates.x;
-      const y = tile.coordinates.y;
-      // Each open side contributes one lattice edge, oriented so the road
-      // interior stays on the LEFT: top L→R, right T→B, bottom R→L, left B→T.
-      if (!filled(x, y - 1)) addSeg([x, y], [x + 1, y]);
-      if (!filled(x + 1, y)) addSeg([x + 1, y], [x + 1, y + 1]);
-      if (!filled(x, y + 1)) addSeg([x + 1, y + 1], [x, y + 1]);
-      if (!filled(x - 1, y)) addSeg([x, y + 1], [x, y]);
-    }
-    const loops: Pt[][] = [];
-    while (segs.size > 0) {
-      const [startKey, ends] = segs.entries().next().value as [string, Pt[]];
-      const start = startKey.split(",").map(Number) as unknown as Pt;
-      const loop: Pt[] = [start];
-      let cur = ends.pop()!;
-      if (ends.length === 0) segs.delete(startKey);
-      let guard = 0;
-      while (key(cur) !== startKey && guard++ < 100000) {
-        loop.push(cur);
-        const nexts = segs.get(key(cur));
-        if (!nexts || nexts.length === 0) break; // open chain (map edge): stop
-        // At a checkerboard corner two continuations exist; taking the last
-        // keeps loops consistent because orientation already disambiguates.
-        const next = nexts.pop()!;
-        if (nexts.length === 0) segs.delete(key(cur));
-        cur = next;
-      }
-      if (loop.length >= 4) loops.push(loop);
-    }
+    const loops = traceMaskContourLoops(
+      filled,
+      roadCells.map((tile) => tile.coordinates),
+    );
     // Corner rounding alone still ripples at 1-tile wavelength (a rounded
-    // staircase is still a staircase). Low-pass the contour FIRST — a few
-    // Laplacian passes flatten the stair ripple into straights and long
-    // curves — then one Chaikin pass rounds what remains.
-    const laplacian = (pts: Pt[], iterations: number): Pt[] => {
-      let cur = pts;
-      for (let it = 0; it < iterations; it++) {
-        const next: Pt[] = new Array(cur.length);
-        for (let i = 0; i < cur.length; i++) {
-          const p = cur[i];
-          const a = cur[(i - 1 + cur.length) % cur.length];
-          const b = cur[(i + 1) % cur.length];
-          next[i] = [
-            p[0] * 0.5 + (a[0] + b[0]) * 0.25,
-            p[1] * 0.5 + (a[1] + b[1]) * 0.25,
-          ];
-        }
-        cur = next;
-      }
-      return cur;
-    };
+    // staircase is still a staircase). Taubin λ|μ smoothing flattens the stair
+    // ripple into straights and long curves WITHOUT the inward shrink of plain
+    // Laplacian — so painted edges keep hugging the true cell boundary — then
+    // one Chaikin pass rounds what remains.
+    type Pt = LatticePoint;
     const chaikin = (pts: Pt[]): Pt[] => {
       const out: Pt[] = [];
       for (let i = 0; i < pts.length; i++) {
@@ -1293,8 +1420,8 @@ export function paintGround(
       return out;
     };
     const roadPath = new Path2D();
-    for (let loop of loops) {
-      loop = chaikin(laplacian(loop, 4));
+    for (const rawLoop of loops) {
+      const loop = chaikin(taubinSmoothLoop(rawLoop, 6));
       roadPath.moveTo(loop[0][0] * tileSize, loop[0][1] * tileSize);
       for (let i = 1; i < loop.length; i++) {
         roadPath.lineTo(loop[i][0] * tileSize, loop[i][1] * tileSize);
@@ -1717,9 +1844,10 @@ export function paintGround(
           if (terrainToGround(tile.terrain) !== "water") return;
           const tx = tile.coordinates.x;
           const ty = tile.coordinates.y;
-          // Crossing cells are the raised bed itself — a ford is SHALLOW by
-          // definition, so the deep-water wash must not paint over it.
-          if (tile.crossing) return;
+          // A ford's crossing cells ARE the raised bed — genuinely shallow, so
+          // the deep-water wash must not paint over them. A bridge's water is
+          // still deep (the deck merely covers it), so it keeps its depth wash.
+          if (tile.crossing?.kind === "ford") return;
           const d = dist.get(`${tx},${ty}`) ?? DEPTH_FULL_AT + 1;
           const t = d <= 1 ? 0 : Math.min(1, (d - 1) / DEPTH_FULL_AT);
           alphaAt[ty * W + tx] = d <= 1 ? 0 : da * (0.35 + 0.65 * t);
@@ -1845,6 +1973,46 @@ export function paintGround(
       ctx.drawImage(waterCanvas, 0, 0, px, py);
       ctx.filter = "none";
       ctx.restore();
+
+      // Extend the terrain cast shadow across water. Relief paints before the
+      // water sheet, so without this a hillside's shadow stops dead at the
+      // shoreline. Recompute the same positional-sun march for water tiles only
+      // and lay it over the composited water at reduced strength, so a shadow
+      // crosses the bank plausibly. Rendered through a 1px-per-tile canvas and
+      // bilinearly upscaled — cheap, deterministic, and soft-edged.
+      const shadowTiny = document.createElement("canvas");
+      shadowTiny.width = W;
+      shadowTiny.height = H;
+      const shadowTinyCtx = shadowTiny.getContext("2d");
+      if (shadowTinyCtx) {
+        const elevAt = (ex: number, ey: number): number =>
+          elevationUnitsToFeet(
+            mapData.tiles.get(
+              `${Math.max(0, Math.min(W - 1, ex))}-${Math.max(0, Math.min(H - 1, ey))}`,
+            )?.elevation ?? 0,
+          );
+        const shImg = shadowTinyCtx.createImageData(W, H);
+        mapData.tiles.forEach((tile) => {
+          if (terrainToGround(tile.terrain) !== "water") return;
+          const wtx = tile.coordinates.x;
+          const wty = tile.coordinates.y;
+          const s = castShadowAmount(elevAt, W, H, wtx, wty);
+          if (s <= 0) return;
+          const o = (wty * W + wtx) * 4;
+          shImg.data[o] = 6;
+          shImg.data[o + 1] = 12;
+          shImg.data[o + 2] = 20;
+          // Land shadow tops out near alpha 58/255; water rides at half that so
+          // the shadow reads continuous across the shore without over-darkening.
+          shImg.data[o + 3] = Math.round(s * 58 * WATER_CAST_SHADOW_STRENGTH);
+        });
+        shadowTinyCtx.putImageData(shImg, 0, 0);
+        ctx.save();
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(shadowTiny, 0, 0, W, H, 0, 0, px, py);
+        ctx.restore();
+      }
 
       // Shore growth: clumps of bushes and reeds hugging the land side of
       // the waterline, overhanging the edge like the reference maps. Frozen
@@ -2015,22 +2183,48 @@ export function paintGround(
       // while leaving collision and movement on those exact cells unchanged.
       ctx.translate(center.x, center.y);
       ctx.rotate(Math.atan2(direction.y, direction.x));
-      // Cast shadow onto the water first: a deck several feet above the
-      // surface throws a soft offset band. Without it the span reads as
-      // paint on the water, not a structure over it.
+      // The cast-shadow offset is computed in WORLD space and rotated into this
+      // deck-local frame, so the shadow always falls to the world SOUTHEAST
+      // (sun upper-left, matching every baked prop/token shadow) instead of
+      // flipping with the bridge's orientation. We offset the dark band's
+      // GEOMETRY (not ctx.shadowOffset, whose CTM handling is inconsistent
+      // across canvas implementations) so the direction is honest everywhere.
+      const worldSEToDeck = (amount: number) => ({
+        // rotate world vector (amount, amount) by -θ; cosθ=direction.x, sinθ=direction.y
+        x: amount * direction.x + amount * direction.y,
+        y: -amount * direction.y + amount * direction.x,
+      });
+      // Cast shadow onto the water first: a deck several feet above the surface
+      // throws a soft offset band. Without it the span reads as paint on the
+      // water, not a structure over it.
       ctx.save();
+      const castBand = worldSEToDeck(tileSize * 0.42);
       ctx.shadowColor = "rgba(4,10,22,0.55)";
       ctx.shadowBlur = tileSize * 0.55;
-      ctx.shadowOffsetY = tileSize * 0.45;
       ctx.fillStyle = "rgba(4,10,22,0.28)";
-      ctx.fillRect(-halfSpan, -halfWidth, spanPx, widthPx);
+      ctx.fillRect(
+        -halfSpan + castBand.x,
+        -halfWidth + castBand.y,
+        spanPx,
+        widthPx,
+      );
       ctx.restore();
+      const castLip = worldSEToDeck(tileSize * 0.12);
+      ctx.save();
       ctx.shadowColor = "rgba(8,5,3,0.62)";
       ctx.shadowBlur = tileSize * 0.18;
-      ctx.shadowOffsetY = tileSize * 0.12;
+      ctx.fillStyle = "#292720";
+      ctx.fillRect(
+        -halfSpan - 2 + castLip.x,
+        -halfWidth - 2 + castLip.y,
+        spanPx + 4,
+        widthPx + 4,
+      );
+      ctx.restore();
+      // Redraw the deck body with no cast offset so the plank surface sits
+      // exactly on its cells; the offset copy above is the shadow it throws.
       ctx.fillStyle = "#292720";
       ctx.fillRect(-halfSpan - 2, -halfWidth - 2, spanPx + 4, widthPx + 4);
-      ctx.shadowColor = "transparent";
 
       const deckGradient = ctx.createLinearGradient(
         0,
@@ -2114,6 +2308,22 @@ export function paintGround(
           x: fordCrossing.roadDirection.x / dirLen,
           y: fordCrossing.roadDirection.y / dirLen,
         };
+        // True downstream, from the Region crossing receipt — not a guess. The
+        // rotated frame puts the road on +x, so the road-perpendicular is
+        // rotated-y. Project the river-flow heading onto it: dir × river gives
+        // the rotated-y component, and its sign says which side of the road is
+        // downstream. The drawing code below authors downstream as +y; a
+        // ctx.scale(1, downstreamSign) after the rotate flips the whole
+        // asymmetric set (broken water, ripple bow, calm pool, stepping stones)
+        // to the real bank when the receipt says downstream is -y. Older
+        // fixtures without riverDirection keep the prior +y convention.
+        let downstreamSign = 1;
+        const river = fordCrossing.riverDirection;
+        if (river) {
+          const rlen = Math.hypot(river.x, river.y) || 1;
+          const rperp = dir.x * (river.y / rlen) - dir.y * (river.x / rlen);
+          if (Math.abs(rperp) > 1e-6) downstreamSign = rperp >= 0 ? 1 : -1;
+        }
         const center = {
           x:
             (Math.floor(W / 2) +
@@ -2130,6 +2340,10 @@ export function paintGround(
         const halfWidth = widthPx / 2;
         ctx.translate(center.x, center.y);
         ctx.rotate(Math.atan2(dir.y, dir.x));
+        // Flip the drawing y-axis so authored-downstream (+y) lands on the real
+        // downstream bank. Symmetric features (the bar, mottling, wheel ruts,
+        // approach mud) are unaffected; only the current-direction cues flip.
+        ctx.scale(1, downstreamSign);
 
         // The bar must survive TACTICAL zoom, not just close-ups. That means:
         // a NARROW committed line (chokepoint read), a crisp wet-sand edge
@@ -2992,65 +3206,65 @@ export function paintGround(
               0.25,
             );
           } else if (biome === "cave" && ground === "dirt") {
-            if (roll < 0.03) {
-              drawStalagmite(
+            // Cave props from the owned forge cave set (caveForge): bold ink
+            // outlines, light from the upper-left, one stylized language. This
+            // replaces the older thin scatter that read as "not believable".
+            const cjx = (salt: number, span: number) =>
+              cx + (rand(seed, 1, salt) - 0.5) * tileSize * span;
+            const cjy = (salt: number, span: number) =>
+              cy + (rand(seed, 2, salt) - 0.5) * tileSize * span;
+            if (roll < 0.05) {
+              // Stalagmites: floor spires rising toward the light.
+              caveDrawStalagmite(
                 ctx,
-                cx + (rand(seed, 1, 62) - 0.5) * tileSize * 0.4,
-                cy + (rand(seed, 2, 63) - 0.5) * tileSize * 0.4,
-                tileSize * 0.22,
+                cjx(62, 0.4),
+                cjy(63, 0.4),
+                tileSize * (0.28 + rand(seed, 3, 64) * 0.14),
                 seed,
               );
-            } else if (roll < 0.07) {
+            } else if (roll < 0.1) {
               // Crystal clusters: cold glowing shards — the cavern's jewelry.
-              drawCrystal(
+              const pal = rand(seed, 4, 256) > 0.5 ? CRYSTAL_BLUE : CRYSTAL_PURPLE;
+              caveDrawCrystal(
                 ctx,
-                cx + (rand(seed, 1, 254) - 0.5) * tileSize * 0.5,
-                cy + (rand(seed, 2, 255) - 0.5) * tileSize * 0.5,
-                tileSize * (0.16 + rand(seed, 3, 256) * 0.1),
+                cjx(254, 0.5),
+                cjy(255, 0.5),
+                tileSize * (0.18 + rand(seed, 3, 256) * 0.12),
                 seed,
+                pal,
               );
-            } else if (roll < 0.13) {
-              drawRock(
+            } else if (roll < 0.14) {
+              // Gem-ore nodes: faceted mineral pockets set in the rock.
+              const pal = rand(seed, 5, 257) > 0.5 ? CRYSTAL_BLUE : CRYSTAL_PURPLE;
+              caveDrawGemNode(
                 ctx,
-                cx + (rand(seed, 7, 68) - 0.5) * tileSize * 0.5,
-                cy + (rand(seed, 8, 69) - 0.5) * tileSize * 0.5,
-                tileSize * (0.08 + rand(seed, 9, 70) * 0.07),
+                cjx(64, 0.5),
+                cjy(65, 0.5),
+                tileSize * (0.12 + rand(seed, 6, 66) * 0.08),
                 seed,
-                ROCK_DARK,
+                pal,
               );
-            } else if (roll < 0.24) {
-              // Glow fungus cluster: cave life, and its scattered light.
-              const gx2 = cx + (rand(seed, 1, 211) - 0.5) * tileSize * 0.6;
-              const gy2 = cy + (rand(seed, 2, 212) - 0.5) * tileSize * 0.6;
-              const halo = ctx.createRadialGradient(
-                gx2,
-                gy2,
-                0,
-                gx2,
-                gy2,
-                tileSize * 0.5,
+            } else if (roll < 0.2) {
+              // Ore rocks: dark boulders shot with gold veins.
+              caveDrawRock(
+                ctx,
+                cjx(68, 0.5),
+                cjy(69, 0.5),
+                tileSize * (0.12 + rand(seed, 9, 70) * 0.1),
+                seed,
+                rand(seed, 10, 71) > 0.4,
               );
-              halo.addColorStop(0, "rgba(90,220,200,0.2)");
-              halo.addColorStop(1, "rgba(90,220,200,0)");
-              ctx.fillStyle = halo;
-              ctx.fillRect(
-                gx2 - tileSize * 0.5,
-                gy2 - tileSize * 0.5,
-                tileSize,
-                tileSize,
+            } else if (roll < 0.28) {
+              // Glow mushrooms: cave life, and its scattered light.
+              const glow = rand(seed, 7, 213) > 0.5 ? "#6ee0c8" : "#7fd6ef";
+              caveDrawGlowMushroom(
+                ctx,
+                cjx(211, 0.6),
+                cjy(212, 0.6),
+                tileSize * (0.14 + rand(seed, 8, 214) * 0.08),
+                seed,
+                glow,
               );
-              ctx.fillStyle = "rgba(140,240,220,0.85)";
-              for (let m = 0; m < 3; m++) {
-                ctx.beginPath();
-                ctx.arc(
-                  gx2 + (rand(seed, m, 213) - 0.5) * tileSize * 0.25,
-                  gy2 + (rand(seed, m, 214) - 0.5) * tileSize * 0.25,
-                  1.2 + rand(seed, m, 215) * 1.6,
-                  0,
-                  Math.PI * 2,
-                );
-                ctx.fill();
-              }
             } else if (roll < 0.3) {
               // Mineral vein: a thin amber or cyan seam in the floor.
               ctx.strokeStyle =

@@ -8,6 +8,7 @@
 import { PlayerCharacter } from '../types';
 import { generateCharacterFromConfig, CharacterGenerationConfig } from './characterGenerator';
 import { OllamaClient } from './ollama/client';
+import { isGroqActive, routeGenerateForTask } from './ai/textProviderRouter';
 import { parseJsonRobustly } from './ollama/jsonParser';
 import { CompanionSoulSchema, CompanionSoul } from '../types/companion';
 import { generateNPC, NPCGenerationConfig } from './npcGenerator';
@@ -95,7 +96,8 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
      window.location.search.includes('wf_legacy'));
 
   if (useMock) {
-    const mockName = `${skeleton.gender === 'female' ? 'Vala' : 'Kaelen'} the ${skeleton.race.name} ${skeleton.class.name}`;
+    const gender = (skeleton as { gender?: string }).gender;
+    const mockName = `${gender === 'female' ? 'Vala' : 'Kaelen'} the ${skeleton.race.name} ${skeleton.class.name}`;
     const mockSoul: CompanionSoul = {
       name: mockName,
       physicalDescription: `A tall, imposing ${skeleton.race.name} ${skeleton.class.name} with weathered features.`,
@@ -114,16 +116,24 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
     return mockSoul;
   }
 
-  const client = new OllamaClient();
+  // Provider selection: when the player has switched text generation to Groq
+  // (including the keyless local proxy), route this call through the shared
+  // provider router so companion souls generate without a local Ollama. The
+  // router returns the identical result shape and logs through the same central
+  // sink. When Groq is not active, use the local Ollama path unchanged.
+  const useGroq = isGroqActive();
 
   // Use mistral:instruct specifically for character generation (better at structured JSON output).
   // Sourced from the canonical LLM provider config — value unchanged. See src/config/llmProviderConfig.ts.
   const model = COMPANION_GENERATION_MODEL;
-  const isAvailable = await client.isAvailable();
 
-  if (!isAvailable) {
-    console.error("Ollama service not available.");
-    return null;
+  const client = useGroq ? null : new OllamaClient();
+  if (client) {
+    const isAvailable = await client.isAvailable();
+    if (!isAvailable) {
+      console.error("Ollama service not available.");
+      return null;
+    }
   }
 
   const prompt = `
@@ -153,12 +163,19 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
   `;
 
   for (let i = 0; i < 3; i++) { // Retry logic
-    const result = await client.generate({
-      model,
-      prompt,
-      format: 'json',
-      numPredict: 1024, // Ensure enough tokens for complete JSON output
-    });
+    const result = useGroq
+      ? await routeGenerateForTask({
+          taskType: 'fact_extraction', // structured-JSON utility profile; Groq uses its own default model
+          prompt,
+          format: 'json',
+          overrides: { numPredict: 1024 },
+        })
+      : await client!.generate({
+          model,
+          prompt,
+          format: 'json',
+          numPredict: 1024, // Ensure enough tokens for complete JSON output
+        });
 
     if (result.ok) {
       console.log(`[CompanionGenerator] Attempt ${i + 1} Raw Output:`, result.data.response);

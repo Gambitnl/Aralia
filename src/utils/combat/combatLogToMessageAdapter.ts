@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 12:30:04
+ * Last Sync: 19/07/2026, 23:24:10
  * Dependents: components/Combat/CombatView.tsx
  * Imports: 2 files
  *
@@ -32,8 +32,8 @@
 
 // --- Imports ---
 // CombatLogEntry: The simple log entry structure emitted by the existing combat hooks.
-//   Contains: id, timestamp, type ('action'|'damage'|'heal'|'status'|'turn_start'|'turn_end'),
-//   message (string), characterId, targetIds, and a flexible data bag (CombatLogData).
+//   Contains: id, timestamp, a discriminated type, message, actor/target ids,
+//   and the category-checked payload selected by that type.
 // CombatCharacter: The full character model used during combat, needed here to look up
 //   entity IDs by name when the log entry only provides a name string (e.g. data.source).
 import type { CombatLogEntry, CombatCharacter } from '../../types/combat';
@@ -297,6 +297,15 @@ function classifyEntry(entry: CombatLogEntry): MessageMapping {
       };
     }
 
+    // Guardian and forced-movement systems already emit this runtime category.
+    // Treat it as a routine ability event while preserving typed position data.
+    case 'movement':
+      return {
+        type: CombatMessageType.ABILITY_USED,
+        priority: MessagePriority.LOW,
+        channels: [MessageChannel.COMBAT_LOG],
+      };
+
     // --- FALLBACK ---
     // Safety net for any unexpected entry.type values. Should not normally be reached
     // since CombatLogEntry.type is a union literal, but guards against future additions.
@@ -314,18 +323,17 @@ function classifyEntry(entry: CombatLogEntry): MessageMapping {
 // =============================================================================
 
 /**
- * buildDataPayload — Constructs a typed data payload from the loose CombatLogData bag.
+ * buildDataPayload — Constructs a typed display payload from a combat-log record.
  *
- * CombatLogEntry.data is a flexible object with optional fields (damage, damageType,
- * healAmount, statusEffectName, etc.) plus a catch-all index signature. This function
- * reads those fields and builds the appropriate discriminated union member
+ * CombatLogEntry.data is selected by CombatLogEntry.type. This function reads
+ * the shared display fields and builds the appropriate discriminated union member
  * (DamageMessageData, HealMessageData, StatusMessageData, or BaseMessageData).
  *
  * The mapping.type (output of classifyEntry) determines which payload shape to build.
  * Multiple CombatMessageType values can map to the same payload shape — e.g. DAMAGE_DEALT,
  * CRITICAL_HIT, KILLING_BLOW, and ENVIRONMENTAL_DAMAGE all produce DamageMessageData.
  *
- * @param entry   - The original CombatLogEntry with its data bag.
+ * @param entry   - The original CombatLogEntry with its category-checked data.
  * @param mapping - The classification result that tells us which payload shape to build.
  * @returns A typed data payload matching one of the CombatMessageData union members.
  */
@@ -341,14 +349,14 @@ function buildDataPayload(
     // We extract the numeric damage and damage type string from the data bag.
     // The data bag uses two different field names for damage amount depending on the source:
     //   - handleDamage() writes `data.damage`
-    //   - CombatLogData interface defines `data.damageAmount`
+    //   - DamageCombatLogData also accepts the canonical `data.damageAmount`
     // We check both with nullish coalescing, falling back to 0.
     case CombatMessageType.DAMAGE_DEALT:
     case CombatMessageType.CRITICAL_HIT:
     case CombatMessageType.KILLING_BLOW:
     case CombatMessageType.ENVIRONMENTAL_DAMAGE: {
-      const damage = data?.damage as number ?? data?.damageAmount ?? 0;
-      const damageType = (data?.damageType as string) ?? '';
+      const damage = data?.damage ?? data?.damageAmount ?? 0;
+      const damageType = data?.damageType ?? '';
       const isCritical = Boolean(data?.isCritical ?? data?.isCrit);
       return {
         rawValue: damage,
@@ -369,9 +377,9 @@ function buildDataPayload(
     // The heal amount also uses two field names: `healAmount` (canonical) and `heal` (legacy).
     case CombatMessageType.HEALING_RECEIVED: {
       const heal = data?.healAmount ?? data?.heal ?? 0;
-      const source = (data?.source as string) ?? '';
+      const source = data?.source ?? '';
       return {
-        rawValue: heal as number,
+        rawValue: heal,
         formattedValue: `${heal} HP`,
         healType: 'hit_points',
         isCritical: false,
@@ -389,7 +397,7 @@ function buildDataPayload(
     case CombatMessageType.STATUS_RESISTED:
     case CombatMessageType.STATUS_EXPIRED:
     case CombatMessageType.CONDITION_CLEARED: {
-      const statusName = (data?.statusEffectName as string) ?? extractStatusName(entry.message);
+      const statusName = data?.statusEffectName ?? extractStatusName(entry.message);
       return {
         rawValue: statusName,
         formattedValue: statusName,
@@ -534,7 +542,7 @@ export function convertLogEntryToMessage(
   // Step 1: Classify — determine the message type, priority, and channels.
   const mapping = classifyEntry(entry);
 
-  // Step 2: Build data payload — extract structured data from the loose data bag.
+  // Step 2: Build data payload — extract the record's structured display fields.
   const dataPayload = buildDataPayload(entry, mapping);
 
   // Step 3: Derive title — generate a short title for compact display.
@@ -551,7 +559,7 @@ export function convertLogEntryToMessage(
   // attacker's name is stored as a string in data.source (not as an ID).
   // We look up the attacker by name in the characters array to get their ID.
   if (entry.type === 'damage' && entry.data?.source) {
-    const sourceName = entry.data.source as string;
+    const sourceName = entry.data.source;
     const sourceChar = characters.find(c => c.name === sourceName);
     targetEntityId = entry.characterId;       // The character taking damage is the target
     sourceEntityId = sourceChar?.id;           // The attacker is the source (may be undefined if name not found)

@@ -121,6 +121,7 @@ const TreasuryPage: React.FC<{
         .filter(i => i.status === 'active' && i.type === 'loan_taken')
         .reduce((sum, i) => sum + i.currentValue, 0);
     const businessCount = Object.keys(businesses).length;
+    const netWorth = gold + totalInvested - totalDebt;
 
     return (
         <div className="space-y-6">
@@ -132,7 +133,7 @@ const TreasuryPage: React.FC<{
                 <LedgerEntry label="Gold on Hand" value={formatGpAsCoins(gold)} highlight />
                 <LedgerEntry label="Invested Capital" value={formatGpAsCoins(totalInvested)} />
                 <LedgerEntry label="Outstanding Debts" value={formatGpAsCoins(totalDebt)} negative={totalDebt > 0} />
-                <LedgerEntry label="Net Worth" value={formatGpAsCoins(gold + totalInvested - totalDebt)} highlight />
+                <LedgerEntry label="Net Worth" value={`${netWorth < 0 ? '−' : ''}${formatGpAsCoins(Math.abs(netWorth))}`} highlight negative={netWorth < 0} />
             </div>
 
             <div className="mt-6 pt-4 border-t border-amber-700/30">
@@ -207,7 +208,7 @@ const BusinessesPage: React.FC<{ businesses: Record<string, BusinessState> }> = 
                     <div className="flex justify-between items-start mb-3">
                         <p className="font-cinzel text-amber-200 capitalize">{biz.businessType.replace('_', ' ')}</p>
                         <span className={`text-sm font-bold ${biz.lastDailyReport.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {biz.lastDailyReport.profit >= 0 ? '+' : ''}{formatGpAsCoins(biz.lastDailyReport.profit)}/day
+                            {biz.lastDailyReport.profit >= 0 ? '+' : '−'}{formatGpAsCoins(Math.abs(biz.lastDailyReport.profit))}/day
                         </span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs">

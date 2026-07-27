@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 16/07/2026, 08:56:42
- * Dependents: App.tsx, commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapFogCanvas.tsx, components/BattleMap/BattleMapGroundCanvas.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatIntentPreview.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/CompactTurnStrip.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/characters/characterActor/conditionBadges.tsx, components/BattleMap/characters/characterActor/defenseBadges.tsx, components/BattleMap/fogModel.ts, components/BattleMap/groundPainter/paintPipeline.ts, components/BattleMap/groundPainter/textures.ts, components/BattleMap/pixi/PixiBattleBoard.tsx, components/BattleMap/pixi/PixiBoardPrototype.tsx, components/BattleMap/pixi/tokenViewModel.ts, components/BattleMap/quickAttack.ts, components/BattleMap/spellMapArtifacts.ts, components/BattleMap/spritePacks.ts, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/DistantTerrain.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/Combat/InPlaceCombatScene.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/World3D/World3DWrapper.tsx, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/inSceneMovement.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/openingThreatBattlefield.ts, systems/combat/worldScenario/openingThreatOutcome.ts, systems/combat/worldScenario/settlementDefenderProjection.ts, systems/combat/worldScenario/settlementEncounterHostility.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/combat/worldScenario/worldEncounterCombatants.ts, systems/combat/worldScenario/worldforgeEncounterReceipt.ts, systems/entities3d/recipeFromCombatant.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundProps.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/battleEndActions.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/combat/statusConditionUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/visuals/combatIconVisuals.ts, utils/world/religionUtils.ts
+ * Last Sync: 23/07/2026, 21:24:49
+ * Dependents: App.tsx, commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapFogCanvas.tsx, components/BattleMap/BattleMapGroundCanvas.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatIntentPreview.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/CompactTurnStrip.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/OpeningThreatScene3D.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/characters/characterActor/conditionBadges.tsx, components/BattleMap/characters/characterActor/defenseBadges.tsx, components/BattleMap/elevationPresentation.ts, components/BattleMap/fogModel.ts, components/BattleMap/groundPainter/paintPipeline.ts, components/BattleMap/groundPainter/textures.ts, components/BattleMap/pixi/PixiBattleBoard.tsx, components/BattleMap/pixi/PixiBoardPrototype.tsx, components/BattleMap/pixi/tokenViewModel.ts, components/BattleMap/quickAttack.ts, components/BattleMap/spellMapArtifacts.ts, components/BattleMap/spritePacks.ts, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/DistantTerrain.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/FordStones.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/Combat/InPlaceCombatScene.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/World3D/World3DWrapper.tsx, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/inSceneMovement.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/combat/tauntConstraint.ts, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/openingThreatBattlefield.ts, systems/combat/worldScenario/openingThreatOutcome.ts, systems/combat/worldScenario/settlementDefenderProjection.ts, systems/combat/worldScenario/settlementEncounterHostility.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/combat/worldScenario/worldEncounterCombatants.ts, systems/combat/worldScenario/worldforgeEncounterReceipt.ts, systems/entities3d/recipeFromCombatant.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/socialServiceResolution.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundProps.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/battleEndActions.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/combat/statusConditionUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/visuals/combatIconVisuals.ts, utils/world/religionUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -38,6 +38,7 @@ import type {
   EffectDuration,
   SpellEffect,
   RepeatSave,
+  SpellcastingRestriction,
   EscapeCheck,
   ConditionBreakTrigger,
   TargetFilter,
@@ -49,6 +50,10 @@ import type {
   ConditionalEnding,
   BindingControl,
   DominationControl,
+  ControlOption,
+  TauntEffect,
+  TauntBreakEvent,
+  UtilityEffect,
 } from "./spells.js"; // Import Spell
 import { StateTag } from "./elemental.js";
 import { Plane } from "./planes.js";
@@ -85,8 +90,12 @@ export interface StatusEffect {
   description?: string;
   duration: number; // in rounds
   source?: string; // Ability or spell name
+  /** Spell id that created this status, used for concentration-owned cleanup. */
+  sourceSpellId?: string;
   /** Character id that applied this status, needed for caster-relative rules such as Fear's line-of-sight repeat-save gate. */
   sourceCasterId?: string;
+  /** Structured compelled-target rule read by attacks, movement and break events. */
+  taunt?: TauntEffect;
   icon?: string;
   /**
    * Spell-condition metadata that must survive the bridge into the legacy
@@ -96,6 +105,8 @@ export interface StatusEffect {
    * spell payload.
    */
   repeatSave?: RepeatSave;
+  /** Source-backed save required before this creature can cast a spell. */
+  spellcastingRestriction?: SpellcastingRestriction;
   /** Runtime counters for repeat-save progressions such as Flesh to Stone's three successes / three failures. */
   repeatSaveProgress?: RepeatSaveProgressState;
   escapeCheck?: EscapeCheck;
@@ -175,6 +186,12 @@ export interface SocialSpellLifecycle {
   durationDays?: number;
   endsIfDamagedByCasterOrAllies?: boolean;
   targetChoosesAttitudeOnEnd?: boolean;
+  service?: {
+    targetPerformsRequestedServices?: boolean;
+    performanceManner?: string;
+    requestCannotCauseCertainDeath?: boolean;
+    requestChannel?: string;
+  };
 }
 
 /**
@@ -383,6 +400,12 @@ export interface ActiveCondition {
   name: ConditionName | string;
   duration: EffectDuration | { type: "permanent"; value?: number };
   appliedTurn: number;
+  /**
+   * Counts affected-creature turn ends for turn-relative durations. This is
+   * separate from round duration so effects applied during a creature's turn
+   * can distinguish the current turn end from the next turn end.
+   */
+  turnEndEventsRemaining?: number;
   source?: string; // Spell or effect that applied the condition
   /** Character id that applied this condition, preserved for caster-relative repeat-save and break rules. */
   sourceCasterId?: string;
@@ -392,6 +415,8 @@ export interface ActiveCondition {
    * field prevents the newer conditions array from becoming a lossy copy.
    */
   repeatSave?: RepeatSave;
+  /** Source-backed save required before this condition's target can cast a spell. */
+  spellcastingRestriction?: SpellcastingRestriction;
   escapeCheck?: EscapeCheck;
   breakTriggers?: ConditionBreakTrigger[];
   /** Existing-target command or service relationship mirrored from statusEffects for non-lossy condition state. */
@@ -518,6 +543,39 @@ export interface WorldforgeOpeningThreatSource {
 
 export type WorldforgeCombatantSource =
   WorldforgeDefenderSource | WorldforgeOpeningThreatSource;
+
+// ============================================================================
+// Combat equipment projection
+// ============================================================================
+// Combat rules need a stable view of worn protective equipment, but they do
+// not need inventory quantities, containers, prices or item-management state.
+// This projection carries the rule-facing armour facts into combat while the
+// persistent character remains the owner of the complete equipped item.
+
+export interface CombatArmorEquipmentState {
+  /** Stable inventory identity used to trace a combat modifier to its source. */
+  itemId: string;
+  itemName: string;
+  slot: "Torso" | "OffHand";
+  category?: NonNullable<Item["armorCategory"]>;
+  /**
+   * `unknown` is deliberate for older/imported items without magic metadata.
+   * Combat must not infer magic from an item's name, rarity or description.
+   */
+  magicStatus: "magical" | "nonmagical" | "unknown";
+  properties: string[];
+  baseArmorClass?: number;
+  armorClassBonus?: number;
+  strengthRequirement?: number;
+  stealthDisadvantage?: boolean;
+}
+
+export interface CombatEquipmentState {
+  /** The torso item that establishes light, medium or heavy armour rules. */
+  wornArmor?: CombatArmorEquipmentState;
+  /** A shield is kept separate because it supplements rather than replaces armour. */
+  shield?: CombatArmorEquipmentState;
+}
 
 export interface CombatCharacter {
   id: string;
@@ -653,6 +711,11 @@ export interface CombatCharacter {
       obeysCasterCommands?: boolean;
       notes?: string;
     };
+    /** Optional ground protection created by a summoned creature's casting component. */
+    bloodCircle?: {
+      center: Position;
+      protectedTiles: Position[];
+    };
     formTraits?: Array<{
       name: string;
       appliesToForms?: string[];
@@ -669,6 +732,12 @@ export interface CombatCharacter {
   // Defensive tracking (for DefensiveCommand)
   armorClass?: number; // Current AC (including bonuses)
   baseAC?: number; // Base AC before temporary bonuses
+  /**
+   * Rule-facing equipment facts projected from the persistent character.
+   * This supports armour, shield and item-property rules without copying the
+   * complete inventory into the tactical state.
+   */
+  equipment?: CombatEquipmentState;
   resistances?: DamageType[];
   vulnerabilities?: DamageType[]; // Added for full 5e mechanics support
   immunities?: DamageType[];
@@ -815,6 +884,8 @@ export interface AbilityEffect {
   grantedActionLabel?: string;
   grantedActionCost?: "action" | "bonus_action" | "reaction";
   grantedActionFrequency?: "once" | "each_turn" | "while_active";
+  grantedActionTargeting?: "single_any" | "single_enemy" | "single_ally";
+  grantedActionSocialServiceRequest?: "fast_friends" | string;
   grantedActionRangeLimit?: number;
   grantedActionPrerequisites?: (
     | "target_object_within_spell_range"
@@ -864,6 +935,10 @@ export interface AbilityGrantedAction {
   action: string;
   frequency: "once" | "each_turn" | "while_active";
   actor?: "caster" | "target" | "summoned_entity" | "affected_creature";
+  /** Targeting mode for follow-up actions that may select an ally or neutral creature. */
+  targeting?: "single_any" | "single_enemy" | "single_ally";
+  /** Names the canonical social-request adapter that should resolve this action. */
+  socialServiceRequest?: "fast_friends" | string;
   actionKind?:
     | "magic_action"
     | "standard_action"
@@ -1609,6 +1684,26 @@ export interface ActiveSpellHelper {
     trigger: "end_on_recast" | string;
     scope: "spell" | string;
   };
+  /** Remote-sensor facts used by Scrying-style helpers and map presentation. */
+  remoteSensor?: {
+    mode: "creature_following" | "location_stationary" | string;
+    targetId?: string;
+    followDistanceFeet?: number;
+    senses?: string[];
+    visibility?: string;
+    visibleAs?: string;
+  };
+}
+
+/** Durable target-specific lockouts for spells whose successful save blocks retargeting. */
+export interface ActiveSpellTargetLockout {
+  id: string;
+  spellId: string;
+  targetId: string;
+  targetName?: string;
+  createdAtTimestamp: number;
+  expiresAtTimestamp: number;
+  reason: string;
 }
 
 export interface ActiveSpellForce {
@@ -2197,6 +2292,13 @@ export type BattleMapCrossing = {
   riverSourceIndex?: number;
   /** Unit route heading in referee x/y coordinates. */
   roadDirection: { x: number; y: number };
+  /**
+   * Unit river-flow heading in the same referee x/y frame as roadDirection.
+   * Carries the Region crossing receipt's real downstream so tactical painters
+   * put broken water / ripples on the true downstream side instead of guessing.
+   * Optional only for older fixtures/saves that predate the field.
+   */
+  riverDirection?: { x: number; y: number };
   /** Exact source center retained for renderers and provenance inspectors. */
   centerWorldMeters: { x: number; z: number };
   spanMeters: number;
@@ -2776,6 +2878,8 @@ export interface CombatState {
   activeMinorUtilityEffects?: ActiveMinorUtilityEffect[];
   /** Active non-creature utility helpers created by spells such as Mage Hand. */
   activeSpellHelpers?: ActiveSpellHelper[];
+  /** Target-specific spell lockouts that outlive one command execution. */
+  activeSpellTargetLockouts?: ActiveSpellTargetLockout[];
   /** Active spell-created force objects such as Spiritual Weapon. */
   activeSpellForces?: ActiveSpellForce[];
   /** Active stationary guardian manifestations such as Guardian of Faith. */
@@ -2899,40 +3003,519 @@ export interface SpellDeliveryVisual {
   createdAt: number;
 }
 
-export interface CombatLogData {
-  damageAmount?: number;
-  damageType?: string;
-  healAmount?: number;
-  heal?: number; // Legacy, kept for compatibility if needed
-  statusEffectName?: string;
+// ============================================================================
+// Combat log payload contract
+// ============================================================================
+// Combat records are read by concentration cleanup, the message adapter, combat
+// history and tests. The outer `type` field is the discriminator, so producers
+// keep their existing runtime shape while TypeScript checks the allowed payload
+// for that record category. There is deliberately no catch-all index signature:
+// a renamed field now fails at the producer instead of silently breaking a reader.
+
+export type CombatLogType =
+  | "action"
+  | "damage"
+  | "heal"
+  | "status"
+  | "summon"
+  | "movement"
+  | "turn_start"
+  | "turn_end";
+
+/**
+ * Fields used across more than one combat-log category.
+ *
+ * These include the stable concentration links that let the game remove an
+ * effect when its spell ends. Keeping their domain types here removes the old
+ * casts and shape guessing from concentration cleanup.
+ */
+export interface CommonCombatLogData {
   abilityName?: string;
-  rollResult?: number;
-  // Religion/Trigger Extensions
+  advantageFromCombat?: boolean;
+  blockerReason?: string;
+  condition?: ActiveCondition;
+  certainDeath?: boolean;
+  conflictsWithDesires?: boolean;
+  currentHitPoints?: number;
+  damage?: number;
+  damageAmount?: number;
+  damageIgnored?: boolean;
+  damageType?: string;
+  damagedStructureId?: string;
+  heal?: number;
+  healAmount?: number;
+  grantedAction?: string;
+  grantedActionAreaShape?: unknown;
+  grantedActionAreaSize?: number;
+  grantedActionAreaSizeUnit?: string;
+  grantedActionAttackType?: string;
+  grantedActionCost?: unknown;
+  grantedActionDamageAbilityModifier?: boolean;
+  grantedActionDamageDice?: string;
+  grantedActionDamageType?: string;
+  grantedActionEndsWhenLengthZero?: boolean;
+  grantedActionFrequency?: string;
+  grantedActionPrerequisites?: unknown;
+  grantedActionRangeLimit?: number;
+  grantedActionSaveEffect?: string;
+  grantedActionSaveType?: string;
+  grantedActionWallLengthReduction?: number;
+  isCrit?: boolean;
+  isCritical?: boolean;
   isDeath?: boolean;
-  targetTags?: string[]; // e.g. ['Undead', 'Humanoid', 'Elf']
-  spellSchool?: string;
+  lightSource?: LightSource;
+  notes?: string;
+  privateRecipientIds?: string[];
+  rider?: ActiveRider;
+  rollResult?: number;
+  source?: string;
+  sourceSpellId?: string;
+  spellId?: string;
+  spellCommunicationExchange?: SpellCommunicationExchange;
   spellName?: string;
-  source?: string; // Explicitly adding source to interface
-  // Allow for flexibility while we transition from 'any'
-  [key: string]: string | number | boolean | undefined | object;
+  spellSchool?: string;
+  socialServiceRequest?: string;
+  statusEffectName?: string;
+  statusId?: string;
+  structureSurface?: string;
+  summonedId?: string;
+  targetTags?: string[];
+  targetId?: string;
+  outcome?: string;
+  harmful?: boolean;
+  repeatSaveTiming?: string;
+  dc?: number;
+  firstRoll?: number;
+  secondRoll?: number;
+  sectionDestroyed?: boolean;
+  sectionId?: string;
 }
 
-export interface CombatLogEntry {
+/** Records for attacks, abilities, summons and other deliberate actions. */
+export interface ActionCombatLogData extends CommonCombatLogData {
+  activeTargetId?: string;
+  actionType?: string;
+  affectedPositions?: Position[];
+  allocationApplied?: boolean;
+  attackModifier?: number;
+  attackRoll?: number;
+  attackTotal?: number;
+  attackType?: string;
+  availableControlOptions?: string[];
+  casterId?: string;
+  commandDescription?: string;
+  commandSurface?: string;
+  commandsPerTurn?: number;
+  commandsUsedThisTurn?: number;
+  currentTurn?: number;
+  destination?: Position;
+  dismissAction?: string;
+  entityType?: string;
+  familiarId?: string;
+  from?: Position;
+  forcedMovement?: unknown;
+  formName?: string;
+  grantedAction?: string;
+  grantedActionAreaShape?: unknown;
+  grantedActionAreaSize?: number;
+  grantedActionAreaSizeUnit?: string;
+  grantedActionAttackType?: string;
+  grantedActionCost?: unknown;
+  grantedActionDamageAbilityModifier?: boolean;
+  grantedActionDamageDice?: string;
+  grantedActionDamageType?: string;
+  grantedActionEndsWhenLengthZero?: boolean;
+  grantedActionFrequency?: string;
+  grantedActionPrerequisites?: unknown;
+  grantedActionRangeLimit?: number;
+  grantedActionSaveEffect?: string;
+  grantedActionSaveType?: string;
+  grantedActionWallLengthReduction?: number;
+  interruptedSpellId?: string;
+  isAutoMiss?: boolean;
+  isHit?: boolean;
+  manipulation?: TerrainManipulation;
+  maplessBoundsPolicy?: string;
+  maxDistance?: number;
+  movedDancingLights?: unknown;
+  movedHelperId?: string;
+  movementFeet?: number;
+  movementGain?: number;
+  notes?: string;
+  pendingGap?: string;
+  pocketState?: string;
+  position?: Position;
+  primalSavageryDamageDice?: string;
+  rejectedControlOption?: string;
+  removedSummonId?: string;
+  removedSummonIds?: string[];
+  returnHomeOutcome?: string;
+  saveSucceeded?: boolean;
+  sharedSenses?: unknown;
+  sourceName?: string;
+  spellAttackInstanceCount?: number;
+  spellAttackInstanceIndex?: number;
+  spellAttackInstanceType?: string;
+  summonDismissAction?: string;
+  summonEffect?: SpellEffect;
+  summonLabel?: string;
+  summonReturnHomeAction?: string;
+  surfaceMark?: ActiveMoldEarthSurfaceMark;
+  targetArmorClass?: number;
+  /** Voluntary movement rule that rejected the action. */
+  tauntConstraint?: string;
+  telepathyRange?: number;
+  teleportedSummonId?: string;
+  terrainEffect?: EnvironmentalEffect;
+  to?: Position;
+  total?: number;
+  attemptedDestination?: Position;
+  requestedDestination?: Position;
+  requestedDistanceFeet?: number;
+  requestedBudgetTiles?: number;
+  actualDistanceTiles?: number;
+  actualDistanceFeet?: number;
+  budgetSpentFeet?: number;
+  budgetRemainingFeet?: number;
+  clampedByBounds?: boolean;
+  usedFallbackDestination?: boolean;
+  utilityEffect?: Extract<SpellEffect, { type: "UTILITY" }>;
+  vanishedDancingLights?: unknown;
+  weaponType?: string;
+}
+
+/** Records for hit-point loss and damage dealt to combat objects. */
+export interface DamageCombatLogData extends CommonCombatLogData {
+  currentHitPoints?: number;
+  damageDealt?: number;
+  damageDice?: string;
+  damagedSpellForceId?: string;
+  guardianId?: string;
+  objectImpact?: SpellObjectImpact;
+  repeatSaveOutcome?: string;
+  spellForceSurface?: string;
+  spellGuardianSurface?: string;
+  targetId?: string;
+  totalDamageDealt?: number;
+  trigger?: string;
+  type?: string;
+  value?: number;
+}
+
+/** Records for hit-point and temporary-hit-point recovery. */
+export interface HealCombatLogData extends CommonCombatLogData {
+  healing?: number;
+  trigger?: string;
+  type?: string;
+  value?: number;
+}
+
+/**
+ * Records for conditions, spell-owned effects and lifecycle decisions.
+ *
+ * Status records cover the widest feature surface. Rare feature payloads stay
+ * `unknown` until a reader needs their internal fields, but their field names
+ * are still closed and checked at every producer.
+ */
+export interface StatusCombatLogData extends CommonCombatLogData {
+  abilityCheckModifier?: AbilityCheckModifier;
+  active?: boolean;
+  activeIllusionEffect?: ActiveIllusionEffect;
+  activeNonInstantaneousCount?: number;
+  advantageText?: string;
+  animatedObjectSurface?: string;
+  animatedObjects?: unknown;
+  animatingSpiritOnly?: boolean;
+  attemptedMoveFeet?: number;
+  attitude?: string;
+  availableModes?: string[];
+  awakenedCreature?: unknown;
+  awakenedCreatureId?: string;
+  awakenedCreatureSurface?: string;
+  cannotCrossElevationChangeFeet?: boolean;
+  carriedWeightPounds?: number;
+  casterId?: string;
+  chosenAbility?: AbilityScoreName;
+  chosenSkill?: string;
+  cleanup?: string;
+  commandSurface?: string;
+  commandsPerTurn?: number;
+  commandsUsedThisTurn?: number;
+  communicationControl?: unknown;
+  communicationControlSurface?: string;
+  companionSurface?: string;
+  conditionName?: string;
+  controlDirective?: string;
+  controlOptions?: ControlOption[];
+  controlState?: string;
+  createdObjects?: CreatedObject[];
+  creationState?: string;
+  crumbleReason?: string;
+  crumblesSafely?: boolean;
+  currentHP?: number;
+  currentTurn?: number;
+  damageDealt?: number;
+  damageDice?: string;
+  dc?: number;
+  deathSaves?: unknown;
+  destination?: Position;
+  destinationPosition?: Position;
+  destinationPreference?: string;
+  destroyedSpellForceId?: string;
+  detail?: string;
+  dismissedShapeWaterEffectId?: string;
+  distanceFeet?: number;
+  distanceFromCasterFeet?: number;
+  durationRemaining?: number;
+  elapsedHours?: number;
+  earlyEndReason?: string;
+  effectId?: string;
+  eligibleWeaponTypes?: string[];
+  empoweredWeaponId?: string;
+  empoweredWeaponName?: string;
+  endReason?: string;
+  endedHelperId?: string;
+  endingReason?: string;
+  entityType?: string;
+  environmentalControlSurface?: string;
+  excessDamageCarriedOver?: number;
+  existingHomunculusId?: string;
+  expelledCreatureIds?: string[];
+  expelledObjectIds?: string[];
+  expulsionSurface?: string;
+  failureOutcome?: string;
+  familiarId?: string;
+  feature?: string;
+  fireEffect?: ActiveFireEffect;
+  formName?: string;
+  grantedAction?: string;
+  guardianId?: string;
+  handled?: boolean;
+  leashDistanceFeet?: number;
+  maxActiveNonInstantaneous?: number;
+  maxCasterSeparationFeet?: number;
+  maxDistanceFeet?: number;
+  maxLoadPounds?: number;
+  minorUtilityEffect?: ActiveMinorUtilityEffect;
+  missingMinorUtilityMode?: string;
+  modifiersApplied?: unknown;
+  movementLimitFeet?: number;
+  objectAccessChange?: unknown;
+  objectRepair?: unknown;
+  pendingAftermath?: string;
+  pendingRise?: unknown;
+  rangeLimit?: number;
+  rejectedAttackAugment?: string;
+  rejectedConjureFeyTeleport?: string;
+  rejectedDancingLightsMove?: string;
+  rejectedHelperMoveId?: string;
+  rejectedHitPointState?: string;
+  rejectedMinorUtilityMode?: string;
+  rejectedObjectAccessChange?: string;
+  rejectedPrestidigitationMode?: string;
+  rejectedReason?: string;
+  rejectedRepairState?: string;
+  rejectedShapeWaterDismissal?: string;
+  rejectedShapeWaterMode?: string;
+  rejectedShapeWaterTarget?: string;
+  rejectedThaumaturgyMode?: string;
+  rejectedThaumaturgyTarget?: string;
+  releasedTargetId?: string;
+  removedExtradimensionalSpaceId?: string;
+  removedRecastCommunicationControls?: number;
+  removedRecastIllusions?: number;
+  removedRecastLightSources?: number;
+  removedStructureId?: string;
+  removedSummonId?: string;
+  removedSummonIds?: string[];
+  removedWardId?: string;
+  repeatPrerequisites?: unknown;
+  repeatSave?: RepeatSave;
+  repeatSaveOutcome?: string;
+  repeatSaveProgress?: unknown;
+  repeatSaveType?: string;
+  replyText?: string;
+  rerootReason?: string;
+  rerootedGuardianIds?: string[];
+  rerootsWhenSpellEndsIfPossible?: boolean;
+  restrainedTargetId?: string;
+  reversionReason?: string;
+  revertedAnimatedObjectId?: string;
+  saveOutcomeOverride?: string;
+  saveSucceeded?: boolean;
+  saveTotal?: number;
+  saveType?: string;
+  separationFeet?: number;
+  shapeWaterEffect?: ActiveShapeWaterEffect;
+  soulReturned?: boolean;
+  sourceCasterId?: string;
+  sourceName?: string;
+  speedDelta?: number;
+  spellCommunicationExchangeId?: string;
+  spellForceSurface?: string;
+  spellGuardianSurface?: string;
+  status?: string;
+  statusCondition?: string;
+  statusName?: string;
+  stateTags?: StateTag[];
+  structureSurface?: string;
+  summonCondition?: unknown;
+  summonId?: string;
+  summonReturnHomeAction?: string;
+  suppressedConditionBenefit?: string;
+  suppressedFireEffect?: unknown;
+  targetId?: string;
+  taunt?: TauntEffect;
+  /** Structured reason a taunt-owned spell ended early. */
+  tauntBreakEvent?: TauntBreakEvent;
+  telepathyRange?: number;
+  tempHp?: number;
+  terrainControl?: unknown;
+  thaumaturgyEffect?: ActiveThaumaturgyEffect;
+  totalDamageDealt?: number;
+  transientTransformation?: string;
+  travelRule?: string;
+  trigger?: string;
+  truePolymorphTransformation?: ActiveTruePolymorphTransformation | string;
+  utilityEffect?: unknown;
+  vanishReason?: string;
+  wardSurface?: string;
+}
+
+/** Records for creatures and persistent spell-created entities. */
+export interface SummonCombatLogData extends CommonCombatLogData {
+  animatedCount?: number;
+  bloodCircleUsed?: boolean;
+  bondLimit?: string | number;
+  commandChannel?: string;
+  companionSurface?: string;
+  controlDurationHours?: number;
+  controlState?: string;
+  corpseIds?: string[];
+  createdResource?: unknown;
+  demonForm?: string;
+  devilForm?: string;
+  durationRemaining?: number;
+  environmentalControl?: unknown;
+  environmentalControlSurface?: string;
+  expulsionSurface?: string;
+  extradimensionalSpace?: unknown;
+  formName?: string;
+  hasTalisman?: boolean;
+  hitPointState?: UtilityEffect["hitPointState"];
+  maxTargets?: number;
+  pendingAftermath?: string;
+  removedBondedMountIds?: string[];
+  removedRecastEnvironmentalControls?: number;
+  removedRecastForces?: number;
+  removedRecastGuardians?: number;
+  removedRecastHelpers?: number;
+  removedRecastSpaces?: number;
+  removedRecastStructures?: number;
+  removedRecastWards?: number;
+  rolledCount?: number;
+  sourceTargetId?: string;
+  spellForce?: unknown;
+  spellForceSurface?: string;
+  spellGuardian?: unknown;
+  spellGuardianSurface?: string;
+  spellHelper?: unknown;
+  spellHelperSurface?: string;
+  spellStructure?: unknown;
+  spellWard?: unknown;
+  statScaling?: unknown;
+  structureLifecycle?: unknown;
+  structureSurface?: string;
+  summonSurface?: string;
+  transformedCreatureId?: string;
+  travelDetails?: UtilityEffect["travelDetails"];
+  trueNameSpoken?: boolean;
+  truePolymorphTransformation?: ActiveTruePolymorphTransformation;
+  wardSurface?: string;
+}
+
+/** Records for map movement emitted by guardian and forced-movement systems. */
+export interface MovementCombatLogData extends CommonCombatLogData {
+  guardianId?: string;
+  moveReason?: string;
+  position?: Position;
+  spellGuardianSurface?: string;
+}
+
+/** Records that establish initiative, joins and round boundaries. */
+export interface TurnStartCombatLogData extends CommonCombatLogData {
+  initiative?: number;
+  initiatives?: Array<{ id: string; initiative: number }>;
+  round?: number;
+  turnOrder?: string[];
+}
+
+/** Turn-end records currently need no category-specific payload fields. */
+export type TurnEndCombatLogData = CommonCombatLogData;
+
+export interface CombatLogDataByType {
+  action: ActionCombatLogData;
+  damage: DamageCombatLogData;
+  heal: HealCombatLogData;
+  status: StatusCombatLogData;
+  summon: SummonCombatLogData;
+  movement: MovementCombatLogData;
+  turn_start: TurnStartCombatLogData;
+  turn_end: TurnEndCombatLogData;
+}
+
+type CombatLogCategoryData = CombatLogDataByType[keyof CombatLogDataByType];
+type KeysOfUnion<Union> = Union extends Union ? keyof Union : never;
+type ValueOfUnionField<Union, Field extends PropertyKey> = Union extends Union
+  ? Field extends keyof Union
+    ? Union[Field]
+    : never
+  : never;
+type CombatLogCategoryField = KeysOfUnion<CombatLogCategoryData>;
+
+/**
+ * Closed readable view used by consumers that search across log categories.
+ *
+ * Existing history screens and tests often find a record by a payload field
+ * before checking its outer type. This mapped view exposes every declared field
+ * and the union of its declared value types. It does not restore an open string
+ * index signature, so unknown field names still fail compilation.
+ */
+export type CombatLogData = {
+  [Field in CombatLogCategoryField]?: ValueOfUnionField<CombatLogCategoryData, Field>;
+};
+
+interface CombatLogEntryBase {
   id: string;
   timestamp: number;
-  type:
-    | "action"
-    | "damage"
-    | "heal"
-    | "status"
-    | "summon"
-    | "turn_start"
-    | "turn_end";
   message: string;
   characterId?: string;
   targetIds?: string[];
+}
+
+/**
+ * Stored combat history uses the closed readable payload view.
+ *
+ * New records enter through CombatLogEntryInput below, where the outer type
+ * selects the category-specific payload. The stored view remains compatible
+ * with history readers that inspect a declared field before its category.
+ */
+export interface CombatLogEntry extends CombatLogEntryBase {
+  type: CombatLogType;
   data?: CombatLogData;
 }
+
+/**
+ * Producer-facing union used before the log assigns its ID and timestamp.
+ * Unlike the readable stored form, this keeps each category's input payload
+ * separate so a producer cannot invent an undeclared field.
+ */
+export type CombatLogEntryInput = {
+  [Type in CombatLogType]: Omit<CombatLogEntryBase, "id" | "timestamp"> & {
+    type: Type;
+    data?: CombatLogDataByType[Type];
+  };
+}[CombatLogType];
 
 export interface CharacterPosition {
   characterId: string;

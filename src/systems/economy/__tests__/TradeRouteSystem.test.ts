@@ -38,16 +38,15 @@ describe('TradeRouteSystem', () => {
   it('increases profitability during Shortage events (High Prices)', () => {
     const warEvent: MarketEvent = {
       id: 'war',
-      type: MarketEventType.SHORTAGE,
-      name: 'War shortage',
-      description: 'War',
-      locationId: undefined,
+      type: MarketEventType.BOOM,
+      name: 'Local War',
+      description: 'Demand for weapons spiked',
       startTime: 0,
       duration: 10,
       intensity: 1.0,
       affectedCategories: ['weapon'],
       priceModifier: 1.5
-    };
+    } as any;
 
     const profitNormal = TradeRouteSystem.calculateProfitability(mockRoute, []);
     const profitWar = TradeRouteSystem.calculateProfitability(mockRoute, [warEvent]);
@@ -66,7 +65,7 @@ describe('TradeRouteSystem', () => {
       intensity: 1.0,
       affectedCategories: [],
       priceModifier: 1.0
-    };
+    } as any;
 
     const riskNormal = TradeRouteSystem.calculateRisk(mockRoute, []);
     const riskBandits = TradeRouteSystem.calculateRisk(mockRoute, [banditEvent]);

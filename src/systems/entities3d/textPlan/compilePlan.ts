@@ -12,7 +12,7 @@
 import { FT_TO_M, deriveFrame, headRadiusM } from '../types';
 import type { EntityBlueprint, PartInstance, PlanSpec } from '../types';
 import { getPart } from '../registry';
-import { PLAN_DEFAULT_HEIGHT_FRAC, type CreaturePlan } from './planSchema';
+import { PLAN_DEFAULT_BLEND, PLAN_DEFAULT_HEIGHT_FRAC, type CreaturePlan } from './planSchema';
 
 /** Short chain-id stems per kind ('tent2', 'leg0L' …). */
 const KIND_STEM: Record<CreaturePlan['appendages'][number]['kind'], string> = {
@@ -43,6 +43,19 @@ export function compilePlan(
     pf.stance === 'horizontal' && legless ? heightM * 0.36 * (0.4 + 0.6 * pf.bulk) : 0,
   );
 
+  // Junction blend: resolve the softness fraction per appendage (override →
+  // creature skin.blend → per-kind default) and the hull tube radius at an
+  // attach fraction (mirrors the driver's spine profile: rear-thick per
+  // taper, muscle bulge mid-body) so chains carry collar reach in meters.
+  const spineBulge = plan.spine.bulge ?? (plan.spine.shape === 'box' ? 0 : 0.3);
+  const blendFrac = (a: CreaturePlan['appendages'][number]): number =>
+    a.blend ?? plan.skin?.blend ?? PLAN_DEFAULT_BLEND[a.kind];
+  const hullRadiusAt = (attach: number): number => {
+    const base = Math.max(0.01, bodyRadM * (plan.spine.taper + (1 - plan.spine.taper) * attach));
+    const muscle = 1 + spineBulge * Math.sin(Math.min(1, Math.max(0, (attach - 0.08) / 0.84)) * Math.PI) * 0.55;
+    return base * muscle;
+  };
+
   // Expand appendages into concrete chains with stable ids. Mirrored pairs
   // yield L before R; per-kind counters run in appendage order.
   const kindCounters: Record<string, number> = {};
@@ -66,6 +79,7 @@ export function compilePlan(
       for (const side of sides) {
         const id = `${KIND_STEM[a.kind]}${n}${side === -1 ? 'L' : side === 1 ? 'R' : ''}`;
         ids.push(id);
+        const rootRM = a.chain[0].r * bodyRadM;
         chains.push({
           id,
           kind: a.kind,
@@ -73,6 +87,7 @@ export function compilePlan(
           attach,
           heightFrac,
           links: a.chain.map((l) => ({ lenM: l.lenFt * FT_TO_M, rM: l.r * bodyRadM })),
+          blendM: blendFrac(a) * Math.min(rootRM, hullRadiusAt(attach)) * 2,
           phaseOffset: 0,
           tips: a.tips,
           jointRings: a.jointRings,
@@ -90,8 +105,12 @@ export function compilePlan(
     if (!parentId) {
       throw new Error(`appendages[${ai}].parent ${a.parent} resolved to no chain`);
     }
+    const parentRootRM = chains.find((c) => c.id === parentId)!.links[0].rM;
     for (const id of chainsByAppendage[ai]) {
-      chains.find((c) => c.id === id)!.parentId = parentId;
+      const chain = chains.find((c) => c.id === id)!;
+      chain.parentId = parentId;
+      // tauric seam: the junction is against the torso, not the spine hull
+      chain.blendM = blendFrac(a) * Math.min(chain.links[0].rM, parentRootRM) * 2;
     }
   });
 
@@ -145,9 +164,10 @@ export function compilePlan(
       arch: plan.spine.arch,
       shape: plan.spine.shape,
       // muscle bulge: authored, or a gentle default on round bodies
-      bulge: plan.spine.bulge ?? (plan.spine.shape === 'box' ? 0 : 0.3),
+      bulge: spineBulge,
     },
     opacity: plan.palette.opacity,
+    skinBlend: plan.skin?.blend,
     chains,
     heads,
   };

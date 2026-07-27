@@ -142,6 +142,12 @@ interface BattleMapProps {
   showWorldOccupants?: boolean;
   /** Debug/review surfaces may prioritize whole-map context over token size. */
   preferFullMapFit?: boolean;
+  /**
+   * Dev/review affordance: shows the render-only fog-of-war veil toggle chip in
+   * the command toolbar. Off by default so it never ships in real-game combat;
+   * only the design-lab demo path opts in.
+   */
+  showFogToggle?: boolean;
   cameraFocusRequest?: { characterId: string; requestId: number } | null;
   objectInteraction?: {
     activeObjectId: string | null;
@@ -170,6 +176,7 @@ const BattleMap: React.FC<BattleMapProps> = ({
   showTargetableObjectFacts = false,
   showWorldOccupants = true,
   preferFullMapFit = false,
+  showFogToggle = false,
   cameraFocusRequest = null,
   objectInteraction,
   spellMapArtifacts,
@@ -864,9 +871,12 @@ const BattleMap: React.FC<BattleMapProps> = ({
     return <div>Generating map...</div>;
   }
 
-  // TODO #33(Ritualist): Implement ritual progress visualization in the map overlay or UI panel.
-  // The 'activeRitual' state is now available in GameState. Render a progress bar if activeRitual is present and !isComplete.
-  // Ensure the progress bar clearly shows interruption conditions (e.g., "Damage breaks concentration").
+  // TODO: Implement ritual progress visualization in the map overlay or UI panel.
+  // GameState.activeRitual holds the data, but BattleMap is props-driven (also used
+  // by design-preview harnesses outside GameProvider), so the ritual state must be
+  // plumbed in as a prop via CombatView. Render a progress bar when a ritual is
+  // active and incomplete, and surface its interruption conditions
+  // (e.g., "Damage breaks concentration").
   return (
     <div
       id={UI_ID.BATTLE_MAP}
@@ -955,21 +965,23 @@ const BattleMap: React.FC<BattleMapProps> = ({
             <Swords size={14} aria-hidden="true" />
             <span>Attack</span>
           </button>
-          <button
-            onClick={() => setFogOfWarVisible((visible) => !visible)}
-            type="button"
-            aria-pressed={fogOfWarVisible}
-            aria-label="Toggle fog of war"
-            title={
-              fogOfWarVisible
-                ? "Hide the fog-of-war veil (render only)"
-                : "Show the fog-of-war veil"
-            }
-            className={`inline-flex h-9 items-center gap-1.5 rounded px-3 text-xs font-semibold transition-colors ${fogOfWarVisible ? "bg-sky-700 text-white ring-2 ring-sky-300" : "bg-gray-600 hover:bg-gray-500"}`}
-          >
-            <CloudFog size={14} aria-hidden="true" />
-            <span>Fog</span>
-          </button>
+          {showFogToggle && (
+            <button
+              onClick={() => setFogOfWarVisible((visible) => !visible)}
+              type="button"
+              aria-pressed={fogOfWarVisible}
+              aria-label="Toggle fog of war"
+              title={
+                fogOfWarVisible
+                  ? "Hide the fog-of-war veil (render only)"
+                  : "Show the fog-of-war veil"
+              }
+              className={`inline-flex h-9 items-center gap-1.5 rounded px-3 text-xs font-semibold transition-colors ${fogOfWarVisible ? "bg-sky-700 text-white ring-2 ring-sky-300" : "bg-gray-600 hover:bg-gray-500"}`}
+            >
+              <CloudFog size={14} aria-hidden="true" />
+              <span>Fog</span>
+            </button>
+          )}
         </div>
       )}
 

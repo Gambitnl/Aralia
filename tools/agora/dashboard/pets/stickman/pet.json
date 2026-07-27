@@ -1,0 +1,6 @@
+{
+  "id": "stickman",
+  "displayName": "stickman",
+  "description": "A lively stickman Codex companion with bold readable limbs and expressive poses.",
+  "spritesheetPath": "spritesheet.webp"
+}

@@ -242,6 +242,8 @@
       "campaign": "world",
       "subcampaign": "Terrain & Regions",
       "status": "active",
+      "status_note": "Procedural-dungeon critic follow-up recorded 2026-07-19: 10 unresolved production gaps are linked to open Agora tasks in the dungeon-generator category; completed generator and design-preview work remains preserved.",
+      "updated": "2026-07-21",
       "deps": [
         {
           "id": "wf-interiors",
@@ -309,12 +311,87 @@
           "status": "done"
         },
         {
+          "title": "World-to-interior dungeon identity continuity",
+          "status": "done",
+          "status_note": "BUILT 2026-07-19: Agora task c6a26158-3dfa-4535-928a-2d2912e1682b gives each world entrance one canonical dungeon id and frozen site seed path; runtime resolution validates the receipt before regenerating the same plan. Worker proof: 52 focused tests passed; coordinator rerun: 3/3 identity tests passed. Playable entry and expedition lifecycle remain separate dependent tasks."
+        },
+        {
+          "title": "Playable dungeon entry from a world entrance",
+          "status": "done",
+          "status_note": "BUILT + REPAIRED 2026-07-19: world entrances open their canonical dungeon receipt and restore the mounted 3D world at the saved cell and position. Supervisor found and repair task c00dc6b1 fixed the real click-to-move seam: camera, Locale, and ground-click movement now share prompt refresh. Coordinator reran 4 focused tests; headed mounted proof shows no prompt before movement, Enter Dungeon afterward, the canonical Tomb of House Saricapina, and returned world state. Persistence and dungeon gameplay remain separate tasks.",
+          "after": [
+            "world-to-interior-dungeon-identity-conti"
+          ]
+        },
+        {
+          "title": "Persistent dungeon entry, progress, retreat, completion, and revisit state",
+          "status": "done",
+          "status_note": "Foundation built 2026-07-19: canonical expedition identity, entry and retreat records, durable progress, cleared-state migration, save/load healing, and revisit were verified by 56 focused tests. Extended by completed task 49719f08: authoritative one-cell movement and a canonical treasure event now persist through retreat and revisit. Active for the remaining product behavior: encounters, traps, door actions, objectives, inventory rewards, combat, completion rules, and deeper levels.",
+          "after": [
+            "playable-dungeon-entry-from-a-world-entr"
+          ]
+        },
+        {
+          "title": "Player movement and interaction with encounters, traps, doors, treasure, and objectives",
+          "status": "done",
+          "status_note": "Done 2026-07-19 by Agora task 49719f08-a669-4af7-8f85-d99636eb0a32: mounted canonical dungeons support authoritative one-cell movement and a deterministic treasure event keyed by canonical dungeon and room identity. Independent verification: 11 focused tests and headed before/after proof show movement, claim, retreat, and revisit retention. Encounters, traps, door actions, objectives, inventory rewards, combat, completion rules, and deeper levels remain separate work.",
+          "after": [
+            "playable-dungeon-entry-from-a-world-entr"
+          ]
+        },
+        {
           "title": "Diegetic map: same plan renders 3D level AND parchment sheet; sheet inks in with exploration (fog-of-war on the drawing)",
-          "status": "specced"
+          "status": "done",
+          "status_note": "Done 2026-07-20 by Agora task 765696f3-166a-444e-b704-b3c0c90be5cb: mounted movement now inks canonical DungeonPlan cells into the existing expedition ledger under an explicit level key; the player can unroll a parchment sheet that emits only explored topology, known non-secret doors, and discovered entrance, treasure, or shrine landmarks. Focused model, reducer, save/load, movement, and UI verification passed 58 tests. Headed ignored proof records 5 initial cells, 19 after movement, 104 plus a remembered treasure landmark after 37 moves, and the same 104 cells after save/load and revisit. Multi-level descent, level pages, stairs, pits, bosses, and unsupported interaction rules remain separate lanes.",
+          "after": [
+            "persistent-dungeon-entry-progress-retrea",
+            "player-movement-and-interaction-with-enc"
+          ]
         },
         {
           "title": "Multi-level descent: stairs to deeper seedPath levels, pits, balconies; multi-page sheet, boss at the bottom",
-          "status": "specced"
+          "status": "done",
+          "status_note": "Done 2026-07-21 by Agora task 41b35228-f9e4-42b0-94fd-f45386101288: the canonical entrance plan now grows deterministic /level:1 and /level:2 child DungeonPlans through the existing generator. Compact root-ledger receipts preserve parent links, exact ascent coordinates, opened vertical routes, save/load, and revisit state; reached levels render as isolated parchment pages, and only the deepest generated boss room is exposed as the objective. Focused model, reducer, save/load, and UI verification passed 15 tests. Inspected headed ignored proof shows stable child identities, level-1 return to parent cell 103,28, page discovery counts 10/15/5 after save/load and revisit, deepest objective cell 57,77, and a clean console. The proof plan had no authored hoist, ladder shaft, or maintenance walk, so it truthfully reports no vertical sightline; plans with those room purposes expose the supported sightline annotation. Combat, falling, pit traversal, and automatic completion remain separate work.",
+          "after": [
+            "persistent-dungeon-entry-progress-retrea",
+            "player-movement-and-interaction-with-enc"
+          ]
+        },
+        {
+          "title": "Non-blocky dungeon architecture with rotation, arches, curves, and vertical form",
+          "status": "done",
+          "status_note": "Done 2026-07-19 by Agora task 37027b62-c31c-455e-8b08-52135a8a6a85: deterministic rotated walls and doorway arches, crypt supports, cavern rock curves, and frost vertical forms now render through the existing scene. Worker matrix: 46 focused tests; coordinator reran 10 architecture-model and 8 movement/lifecycle regression tests. Headed proof confirms the three forms and the mounted route preserves movement and treasure. Curves remain visual shells over canonical grid collision; true curved collision needs a data-model redesign."
+        },
+        {
+          "title": "Room-purpose readability at tactical range",
+          "status": "done",
+          "status_note": "Done 2026-07-19 by Agora task b5089835-c294-4a84-81b4-5fd2664bad9a: deterministic room-purpose landmarks, localized dressing, and purpose-prioritized lighting now make tactical crypt, cavern, and frost rooms legible through the existing renderer. Coordinator verification: 12 focused model tests, clean scoped lint/diff, and headed before/after tactical plus mounted proof. Grid collision, routes, room metadata, movement, treasure, and architectural forms were preserved; deeper gameplay semantics remain separate work.",
+          "after": [
+            "non-blocky-dungeon-architecture-with-rot"
+          ]
+        },
+        {
+          "title": "Representative low-end dungeon frame profiling",
+          "status": "done",
+          "status_note": "Agora task f265867e-fdd8-4791-ba06-5d0a85d09340 is open; record repeatable p50/p95 frame time, draw calls, triangles, and instance counts against an explicit budget.",
+          "after": [
+            "playable-dungeon-entry-from-a-world-entr",
+            "player-movement-and-interaction-with-enc",
+            "non-blocky-dungeon-architecture-with-rot",
+            "room-purpose-readability-at-tactical-ran"
+          ]
+        },
+        {
+          "title": "Integration tests for entering, completing, and revisiting a dungeon",
+          "status": "done",
+          "status_note": "Done 2026-07-21 by Agora task fcf68789-36e2-4373-8d42-6ab628ccc66b: one test-only production regression now follows a real world entrance into its canonical DungeonPlan, walks and claims stable treasure, traverses the three-level stack, records the stable deepest-boss objective, emits the explicit completion event, exits, save/loads, and revisits with identity, progress, and cleared state intact. Failure coverage rejects stale entrance links, blocked routes, completion before entry, and malformed level ancestry. Focused verification passed 2 integration tests. Mounted combat and automatic objective completion remain unsupported and are not inferred from preview UI.",
+          "after": [
+            "world-to-interior-dungeon-identity-conti",
+            "playable-dungeon-entry-from-a-world-entr",
+            "persistent-dungeon-entry-progress-retrea",
+            "player-movement-and-interaction-with-enc",
+            "multi-level-descent-stairs-to-deeper-see"
+          ]
         }
       ],
       "tier": "strategic"
@@ -481,7 +558,7 @@
         {
           "title": "G7 control-option commands (approach, flee, drop, grovel, halt) need a non-blocking visual pose/variant contract with cache/fallback/restore, and a call on whether the 2D sprite or 3D actor surface owns the first slice",
           "status": "active",
-          "decision": true
+          "status_note": "RESOLVED 2026-07-21 (Remy): shared pose/variant contract built on BOTH 2D sprite and 3D actor surfaces together."
         }
       ],
       "updated": "2026-07-16",
@@ -650,24 +727,23 @@
       "features": [
         {
           "title": "PM-G1 Edges can only target a whole topic, never one feature (no edge-to-member)",
-          "status": "parked",
-          "decision": true,
-          "status_note": "design_decision_deferred; trigger: validator reports 3+ member-edge costume warnings; fix = optional dep.feature field wired into READY"
+          "status": "done",
+          "status_note": "RESOLVED 2026-07-21 (Remy chose: add feature-level edges). Found ALREADY IMPLEMENTED across all layers: READY resolves dep.feature (ready-derive.mjs:15-33), validate-planmap.mjs type-checks + resolves it and emits the member-edge costume advisory (138-151, 265-283). No build needed."
         },
         {
           "title": "PM-G2 Wave generation serializes feature order into a false after-chain",
-          "status": "active",
-          "status_note": "fip-slice1: real critical path 2, generated chain 6; interim punch-list warning shipped; fix = optional per-feature after, default no dependency"
+          "status": "done",
+          "status_note": "DONE 2026-07-21: existing shared wave generation leaves after empty by default and resolves only explicit predecessor slugs, rejecting malformed, unknown, done/skipped, duplicate, and self references. Focused Node proof passed 5/5 tests."
         },
         {
           "title": "PM-G3 READY badge computed at topic grain overstates readiness when feature 1 is parked",
-          "status": "active",
-          "status_note": "roll feature statuses into the badge or show a split badge; evidence: fip-slice1 READY while 3D ground picking parked"
+          "status": "done",
+          "status_note": "BUILT 2026-07-18: topicReadiness treats parent dependencies and unfinished non-parked features as blockers; focused tests 14/14 plus ESLint passed; headed before/after proof is ignored under .agent/scratch/proof/planmap/ready-badge."
         },
         {
           "title": "PM-G4 Doc links use dev-server /@fs bridge with hardcoded repoRoot — dead in static builds and other checkouts",
-          "status": "active",
-          "status_note": "spec links 404 outside npm run dev on this machine; derive repoRoot or document dev-only at the link site"
+          "status": "done",
+          "status_note": "BUILT 2026-07-19: Vite keeps /@fs for the active checkout; static Plan Map copies use canonical GitHub blob links and raw Markdown fetches. Focused resolver tests 3/3 and headed static before/after proof passed under ignored .agent/scratch/proof/planmap/doc-links."
         },
         {
           "title": "PM-G5 topics.json concurrent writes guarded by convention only",
@@ -743,26 +819,31 @@
         },
         {
           "title": "Bad interior data fails loudly, never silently dropped",
-          "status": "parked"
+          "status": "done",
+          "status_note": "Agora 675a86fa completed the fail-loud boundaries for invalid furnishings and corner-station placement; servant placement remained a separate task."
         },
         {
           "title": "Old floor-plan format keeps L-rooms, windows and basements",
-          "status": "parked"
+          "status": "superseded",
+          "killed": "The lossy InteriorPlan reader was retired; canonical BlueprintPlan is now the only production interior contract.",
+          "status_note": "Agora 8352cd22 completed the blueprint-only migration; duplicate verification 896b032d proved that L-rooms, real windows and basement stairs remain preserved."
         },
         {
           "title": "Each building's blueprint is built once, not four times",
-          "status": "parked"
+          "status": "done",
+          "status_note": "Agora 41195d7a resolves one canonical BlueprintPlan per kept plot and passes that exact object to occupancy and interior consumers."
         },
         {
           "title": "Hearth glow and window light share one daily schedule",
-          "status": "parked"
+          "status": "done",
+          "status_note": "DONE 2026-07-22: confirmed code keeps the schedules separate per Remy's decision (buildingOccupancy.ts litHours = windowsLitAt(hearth||anyHome, h); dusk band 17-23 is the sole window driver). A stale Agora task (81bd80dc) briefly reopened this to 'unify'; that change was reverted to honor the decision. | RESOLVED 2026-07-21 (Remy): keep the separate schedules (hearth 06-08/17-22, window 17-23). | prior: Decision-blocked by Agora 81bd80dc after verdict 4b99ef94: keep the intentional separate schedules unless Remy chooses otherwise; hearths burn 06-08 and 17-22, while exterior window glow reads 17-23."
         }
       ],
       "history": {
         "built": "2026-07-09"
       },
       "tier": "strategic",
-      "updated": "2026-07-09"
+      "updated": "2026-07-18"
     },
     {
       "id": "neighbour-streaming",
@@ -778,7 +859,7 @@
     {
       "id": "agent-sim-deepening",
       "title": "Agent sim deepening",
-      "sub": "BUILT: needs+decisions, families, races, Voronoi town, road-following, registry. NEXT: behaviour-only mode Â· spatial believability Â· deepen-over-time Â· real-game wiring",
+      "sub": "BUILT: needs+decisions, families, races, Voronoi town, road-following, registry, behaviour-only clock re-sim. NEXT: spatial believability Â· deepen-over-time Â· real-game wiring",
       "campaign": "sim",
       "status": "active",
       "link": "docs/superpowers/specs/2026-06-26-agent-sim-deepening.md",
@@ -797,7 +878,7 @@
           "title": "Behaviour sim: needs, decisions, family coordination",
           "status": "done",
           "link": "docs/superpowers/specs/2026-06-26-agent-sim-deepening.md",
-          "open": 5
+          "open": 7
         },
         {
           "title": "Villagers with ages, races, and family ties",
@@ -813,11 +894,17 @@
         },
         {
           "title": "Collapse to one behaviour mode (scrub re-simulates the day)",
-          "status": "active"
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-06-26-agent-sim-deepening.md",
+          "status_note": "BUILT 2026-07-18 (task 187c0fa3): toggle removed, simulateMindsTo replays the day deterministically on scrub; live in-browser eyeball still owed (blocked on concurrent generateInterior rename, WF-G33)",
+          "open": 7
         },
         {
           "title": "Front doors and door-to-door routing",
-          "status": "parked"
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-06-26-agent-sim-deepening.md",
+          "status_note": "BUILT 2026-07-18 (task f2622365): each plot gets a wall-centred entrance on its street-facing edge; routes join exact street-segment projections and walk entrance-to-entrance. Focused consumers 40/40 green; real seed-42 route proof starts and ends at doors with zero browser errors.",
+          "open": 7
         },
         {
           "title": "Deepen over time: economy, evolving relationships, town events",
@@ -829,12 +916,13 @@
         },
         {
           "title": "Populate the town the player enters: real-game wiring, 3D, talk to NPCs",
-          "status": "parked"
+          "status": "done",
+          "status_note": "VERIFIED 2026-07-18 (task 0577ee88; authority exception Agora seq 1220): exact Atlas receipt Ousloret/cell 3352 rendered a 12-person GroundAgents crowd; mounted __wf3dClickNpc opened Lasdes dialogue for registered npc_burg_1_plot_1 with disposition 50 and zero current-route errors. Proof: .agent/scratch/0577ee88-town-npc-talk-final.png + JSON receipt."
         }
       ],
-      "open": 5,
+      "open": 7,
       "tier": "strategic",
-      "updated": "2026-06-26"
+      "updated": "2026-07-18"
     },
     {
       "id": "maritime-remainder",
@@ -886,19 +974,20 @@
         {
           "title": "G3 seasonal modifiers: hard global contract vs movement-only subsystem",
           "status": "active",
-          "decision": true,
-          "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md",
+          "status_note": "RESOLVED 2026-07-21 (Remy): hard global contract — every system reads seasonal modifiers."
         },
         {
           "title": "G4 rest/day-boundary transition regression coverage",
-          "status": "active",
-          "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md"
+          "status": "done",
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md",
+          "status_note": "DONE 2026-07-21: test-first coverage exposed the defect, then repair task 8ce1571b-4abf-4543-bdef-47e813bd720d made the short-rest cap and tracker use the finish day while preserving start-based cooldown and the authoritative one-hour ADVANCE_TIME. All 12 focused tests passed."
         },
         {
           "title": "G5 dialogue day-part label contract (UTC vs local vocabulary)",
           "status": "active",
-          "decision": true,
-          "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-time.md",
+          "status_note": "RESOLVED 2026-07-21 (Remy): use the character local in-world time to pick the day-part word."
         },
         {
           "title": "G2 day-boundary regression test across world/ritual reducers",
@@ -1018,6 +1107,85 @@
       "status_note": "Waves 1-4 complete for canonical Atlas descent, fail-closed replay, gameplay/provenance continuity, artifact-owned naming, responsive hierarchy, and exact Local/Ground correspondence. Open candidates are classified in the absorbed specification; do not recreate docs/projects/worldforge."
     },
     {
+      "id": "world-map-quality",
+      "title": "World map quality, access and performance",
+      "sub": "one canonical browser atlas across Design Preview, world generation and live play, with resolved route, viewport, density, accessibility, generation, retirement and verification defects",
+      "campaign": "world",
+      "subcampaign": "Terrain & Regions",
+      "status": "done",
+      "deps": [
+        {
+          "id": "shipped-cartography",
+          "kind": "hard",
+          "why": "Quality work extends the canonical Atlas pipeline and must not recreate a parallel world representation."
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-14-absorbed-worldforge.md",
+      "features": [
+        {
+          "title": "World map route preference parity",
+          "status": "done",
+          "status_note": "Owner: World cartography UI. Agora task 31449786-98a2-4a3b-950a-978291c9a14e is done. Design Preview, main-menu World Generation and MapPane now share seed-scoped AtlasSvgView preferences and canonical getBridgeAtlas data; controlled seed 1337 proves the same stored mode across current routes. Evidence: StartPointSelection.tsx, MapPane.tsx, AtlasSvgView.tsx and .agent/scratch/worldmap-audit/after/metrics-after.json.",
+          "history": {
+            "designed": "2026-07-18",
+            "built": "2026-07-18"
+          }
+        },
+        {
+          "title": "World map viewport floor",
+          "status": "done",
+          "parallel": true,
+          "status_note": "Owner: World map shell UX. Agora task 4424999c-8d57-402f-8766-b434c1198b62 is done. A restored 600x400 map window now expands to the 840x640 map-specific floor, yielding a 790x377 desktop atlas viewport while the 390x844 stress layout remains contained at about 316x443. Evidence: MapPane.tsx and .agent/scratch/worldmap-audit/after/metrics-after.json.",
+          "history": {
+            "designed": "2026-07-18",
+            "built": "2026-07-18"
+          }
+        },
+        {
+          "title": "Settlement and label decluttering",
+          "status": "done",
+          "parallel": true,
+          "link": "docs/projects/GLOBAL_GAPS.md",
+          "status_note": "Completed 2026-07-19 by Agora task ecf4acd6-4dc2-4a67-bef5-7ac7c18f5fff. Seed 1337 headed proof reduced fit view from 149 burg markers to a 26-marker capital/city hierarchy with 13 state labels and zero collisions or clipping. At 2.14x fit zoom, 104 markers and 54 labels progressively include towns, with zero label-label collisions, zero unrelated label-marker collisions and zero clipping; the only two measured contacts pair a town name with its own marker. All 888 canonical burg ids, names and exact cells remain deterministic, the existing town card still opens, and GG-41 worker preparation plus steady compositor pan remain preserved. Ignored proof: .agent/scratch/proof/world-map-quality/settlement-labels/after/.",
+          "history": {
+            "designed": "2026-07-18",
+            "built": "2026-07-19"
+          }
+        },
+        {
+          "title": "Accessible town selection at scale",
+          "status": "done",
+          "parallel": true,
+          "link": "docs/projects/GLOBAL_GAPS.md",
+          "status_note": "Completed and re-audited 2026-07-21 through Agora tasks 26dda522-9563-4367-aad5-51a5713613c4 and d1ed265a-53e0-4921-9b24-cb13ef1f6e49. The single-focus listbox renders at most 150 towns per page even for broad searches, every canonical town remains reachable through search or paging, the labelled search reports result and page changes, and selection is synchronized so Enter cannot confirm a town hidden by a filter. Ten focused tests plus current desktop and 390 x 844 headed proof cover keyboard selection, exact-town confirmation, no-results behavior and the bounded accessibility tree without changing geography."
+        },
+        {
+          "title": "Responsive atlas generation",
+          "status": "done",
+          "parallel": true,
+          "link": "docs/projects/GLOBAL_GAPS.md",
+          "status_note": "Completed and re-audited 2026-07-21 through Agora tasks 2905ba1c-7401-4d84-ac09-fd05c7f60cd2 and 5dee2e27-7327-41cb-8d69-73e61e567739. Seed 1337 generation runs in a worker and progressively mounts pure decorative SVG work; the final current-tree headed run recorded a 145 ms longest task with zero tasks over 200 ms. The structured-clone atlas boundary matched all 5,497,125 canonical bytes and SHA-256 d3078dced519bd787f3dfbcdb85dac3089834fedac151dd2080b9bfbede6f012; the rebuilt quadtree now has direct multi-cell nearest-neighbor parity coverage. Five-second steady headed pan and zoom recorded 16.7 ms median and 16.8 ms p95, with six scheduling outliers retained in the ignored proof rather than hidden."
+        },
+        {
+          "title": "Retire the duplicate canvas world map",
+          "status": "done",
+          "parallel": true,
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-worldforge.md",
+          "status_note": "Completed and re-audited 2026-07-21 through Agora tasks ed31c3f1-0482-422e-9d33-f99904c9a4c5, 765c8825-5a97-48c2-95aa-298828e1da6c and c758b3df-da54-463b-af51-13c59b41c0c1. The former phase=worldforge route fails closed, including its save-compatible numeric ordinal; Design Preview, World Generation, live MapPane and Atlas explorer all use getBridgeAtlas plus AtlasSvgView at L0. Player-facing copy now distinguishes Play from Atlas explorer instead of implying two maps, while saved classic and worldforge values remain compatible. Current headed proof completes World to Region to Local to Ground and back to Local; Ground prop conversion no longer emits repeated Three.js warnings. AtlasMapView has no runtime import and remains isolated reference-only code pending a separate deletion audit."
+        },
+        {
+          "title": "Live-game world map verification harness",
+          "status": "done",
+          "parallel": true,
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-worldforge.md",
+          "status_note": "Completed and re-audited 2026-07-21 through Agora tasks 7a74762b-b5f7-4d03-ac50-19c9a2b31b3b and a987c3eb-4111-4611-b1c6-fb89dd11fb48. Run node scripts/world-map/live-game-harness.mjs for cold-start, headed proof of the real PLAYING MapPane at seed 1337. The harness waits for the enabled visible UI button without coupling its click to SPA URL normalization, then requires the live party, open modal, canonical MapPane to viewport to AtlasSvgView ancestry, populated SVG, zero canvas descendants, responsive containment, active seed-scoped States preference and a current source fingerprint; missing evidence exits non-zero. Fifteen focused tests pass, and current screenshot, JSON, Markdown and separate console evidence are under ignored .agent/scratch/proof/world-map-quality/live-game-harness/."
+        }
+      ],
+      "tier": "component",
+      "updated": "2026-07-21",
+      "status_note": "Completion audit 2026-07-21: all seven original world-map findings and the six strict-audit repairs are implemented, verified and tied back to this topic through Agora planmap refs. Repair tasks are 29effe0c-8cb3-454e-ab5f-2689d71cd0b8, d1ed265a-53e0-4921-9b24-cb13ef1f6e49, a987c3eb-4111-4611-b1c6-fb89dd11fb48, 5dee2e27-7327-41cb-8d69-73e61e567739, 765c8825-5a97-48c2-95aa-298828e1da6c and c758b3df-da54-463b-af51-13c59b41c0c1. The former canvas route is fail-closed; the canonical L0 is getBridgeAtlas plus AtlasSvgView across Design Preview, World Generation, live play and Atlas explorer; Region, Local and Ground descent remains intact. Current inspected desktop and 390 x 844 proof, bounded town selection, deterministic worker preparation, source-fingerprinted live harness and separate console assessment are stored under ignored .agent/scratch/proof/world-map-quality/."
+    },
+    {
       "id": "shipped-styled-town",
       "title": "Canonical town styled architecture",
       "sub": "5 culture-keyed style families, road gates, dock pilings, 2D/3D palette parity",
@@ -1042,12 +1210,12 @@
     {
       "id": "town-streets-3d",
       "title": "Town street grid in 3D",
-      "sub": "BUILT 2026-07-12: ward-edge network bakes as tiered ribbons â€” pale avenues (inherited roads), paved plaza streets, packed-dirt lanes. Was missing entirely (3D only painted inherited roads). Real game path PROVEN 2026-07-13 (seed 42: 2 avenues / 6 streets / 183 lanes). OPEN (Remy to steer on resume): unify the 2 town renderers + boost tier contrast",
+      "sub": "UNIFIED + 4-tier contrast BUILT 2026-07-18 (Remy decided both): shared pure streetRibbons.ts feeds game path AND town3d schematic - plaza flagstone / edged avenue / cobble street / rutted lane, hexes disjoint from region roads. HEADLINE FIX: town streets were NEVER visible in the streamed game (down-facing winding front-culled every ribbon; heights sampled to ~0.4m under terrain) - the 2026-07-13 proof was data-only. Region roads shared the mesh builder and gained both fixes: re-eyeball roads/forests/mountains. Seed-42 census now 6 plaza/2 avenue/8 street/175 lane. Open: groundChunkLoader width-floor swap (lock-held), 2% stitch-band fringe, legacy voronoiTownAdapter third copy preserved.",
       "campaign": "rendering",
-      "status": "active",
+      "status": "done",
       "history": {
         "designed": "2026-07-12",
-        "built": "2026-07-12"
+        "built": "2026-07-18"
       },
       "deps": [
         {
@@ -1098,6 +1266,19 @@
       },
       "tier": "strategic",
       "updated": "2026-07-03"
+    },
+    {
+      "id": "village-biome-flavor-coverage",
+      "title": "Village personality profiles cover every biome",
+      "sub": "resolveVillageIntegrationProfile gained a biome-aware fallback tier (exact -> biome -> culture -> default) so tundra/jungle/volcanic/blighted/highland/polar/arid/coastal/swampy villages read with their own flavor instead of snapping to the temperate default. Fixes 6 biome profiles that were authored but unreachable (found via codex QA audit).",
+      "campaign": "sim",
+      "status": "done",
+      "deps": [],
+      "history": {
+        "built": "2026-07-22"
+      },
+      "status_note": "BUILT 2026-07-22: added the biome fallback tier + 4 tests (villagePersonalityProfiles.test.ts). Surfaced by a codex QA pass over a TODO sweep — the 6 new biome profiles (packet6 TODO #247) were inert without it.",
+      "tier": "component"
     },
     {
       "id": "shipped-combat-opening",
@@ -1591,8 +1772,8 @@
         {
           "title": "G14 Production bloom dependency decision (npm run build fails in BloomNode.js: three has no PostProcessingUtils export) — Option A align/pin deps, B optional bloom + Vignette/ContactShadows fallback, C compat shim",
           "status": "active",
-          "decision": true,
-          "link": "docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md",
+          "status_note": "RESOLVED 2026-07-21 (Remy): no dep change needed — three 0.172.0 already fixes this (BloomNode imports RendererUtils, not PostProcessingUtils); verify bloom bundles once the separate agent_docs.html build-entry blocker is fixed."
         },
         {
           "title": "G9 Character silhouette pop at tactical zoom (try material Fresnel/rim first; SSAO stays out) with per-biome screenshot proof",
@@ -1773,9 +1954,10 @@
     {
       "id": "agent-retrace",
       "title": "Agent retrace",
-      "sub": "Store-core BUILT+GREEN 2026-07-06 (125 agora tests): preserve-on-reap dossier (identity + filesHeld + sayTail + checkpoint) + reapCount + checkpointTask (latest-wins) in sweepExpired; a clean retire stays clean (no crash dossier). Remaining: `retrace <id>` command (dossier + git diff) + task checkpoint command/endpoint + successor-flag on claim. Depends on agent-identity (built).",
+      "sub": "COMPLETE 2026-07-18. Store-core was BUILT+GREEN 2026-07-06; the client/server wiring landed 2026-07-18 (task 3d15b1ad): POST /tasks/:id/checkpoint endpoint + `task checkpoint --did --next --files` cmd + read-only `retrace <id>` cmd (dossier + git diff scoped to held files) + `⚠ reaped from <handle>` successor flag on task claim/next. Tests: retrace.wiring.test.mjs (8/8 with store.retrace, 27/27 client+server, 0 regressions). Checkpoint ENDPOINT proven in-process only until the next daemon restart (live daemon predates the route; no-restart rule = WF-G31). Depends on agent-identity (built).",
       "campaign": "agents",
-      "status": "active",
+      "status": "done",
+      "updated": "2026-07-06",
       "link": "docs/superpowers/plans/2026-07-06-agent-retrace-plan.md",
       "deps": [
         {
@@ -1792,20 +1974,19 @@
         },
         {
           "title": "task checkpoint --did --next --files (latest-wins resumable note) + reapCount escalation",
-          "status": "specced",
+          "status": "done",
           "link": "docs/superpowers/plans/2026-07-06-agent-retrace-plan.md"
         },
         {
           "title": "retrace <taskId> command: dossier + live git diff of files held + successor resume protocol",
-          "status": "specced",
+          "status": "done",
           "link": "docs/superpowers/plans/2026-07-06-agent-retrace-plan.md"
         }
       ],
       "history": {
         "designed": "2026-07-06"
       },
-      "tier": "strategic",
-      "updated": "2026-07-06"
+      "tier": "strategic"
     },
     {
       "id": "agent-matrix-dashboard",
@@ -1861,6 +2042,75 @@
         {
           "title": "File reservations tile: FIFO dibs queue for contested paths, enforced before lock acquisition, visible in dashboard, health, SSE, CLI, and protocol docs",
           "status": "done"
+        },
+        {
+          "title": "Humanoid Codex Pets tab: exactly 50 locally served, visually reviewed humanoid pet packages with search and atlas previews",
+          "status": "done"
+        },
+        {
+          "title": "Automatic task-claim pets: first claim assigns a persistent live-agent companion, tasks and handoffs snapshot ownership, CLI and dashboard expose it, replay migration preserves it",
+          "status": "done",
+          "status_note": "Original claim-time assignment shipped; the later strict presence gate preserves task snapshots while moving explicit pet selection to registration"
+        },
+        {
+          "title": "Action-aware assigned pets: Agora tasks, locks, reservations, campaigns, handoffs, messages, and failures drive all nine Codex pet atlas animations with durable-state fallback and reduced-motion support",
+          "status": "done"
+        },
+        {
+          "title": "Strict presence pet identity gate: agents choose a valid catalog pet before registration; CLI, dashboard, orchestrator plans, generated Plan Map waves, and watchdog registration reject or prevent petless presence",
+          "status": "done",
+          "status_note": "Missing and unknown pet slugs fail before token allocation or roster mutation; orchestrators verify the roster and workers self-check whoami",
+          "history": {
+            "built": "2026-07-18"
+          }
+        },
+        {
+          "title": "Presence pet arrival and departure ceremony: roster portraits stay still; live check-in walks in, waves, approaches and taps the sign-in pad; checkout reverses the sequence",
+          "status": "done",
+          "status_note": "Finite ceremonies reuse approved directional-walk and wave atlas rows, queue serially, and never run during initial REST hydration",
+          "history": {
+            "built": "2026-07-18"
+          }
+        },
+        {
+          "title": "Presence pet speech bubbles: check-in, checkout, and task-claim ceremonies resolve live agent and task names into readable activity announcements",
+          "status": "done",
+          "status_note": "Each announcement holds the pet stationary for at least three seconds, including reduced-motion sessions, and remains serialized through the existing ceremony queue",
+          "history": {
+            "built": "2026-07-18"
+          }
+        },
+        {
+          "title": "Mandatory Codex task/thread identity: Codex workers and orchestrator/master roles must register their exact current task or thread ID before entering Presence",
+          "status": "done",
+          "status_note": "The shared store/CLI policy rejects missing provenance before token allocation or roster mutation; Presence, whoami, agents, generated worker prompts, and canonical docs expose the required sessionId",
+          "history": {
+            "built": "2026-07-18"
+          }
+        },
+        {
+          "title": "Human-readable task inspector: readable status facts, owners, prose, references, dependencies, activity, and messages with raw JSON collapsed by default",
+          "status": "done",
+          "status_note": "The 680px responsive inspector now leads with a work brief and keeps exact machine records in closed Raw data disclosures; rendered proof covers the formerly unreadable blocked TODO card",
+          "history": {
+            "built": "2026-07-19"
+          }
+        },
+        {
+          "title": "Unique live Presence pets: occupied choices receive a reported free substitute, availability is discoverable, retirement releases ownership, and restart migration repairs legacy duplicates",
+          "status": "done",
+          "status_note": "Store-level serialization enforces one pet.slug per live agent; GET /pets, CLI, dashboard choice controls, docs, and task snapshots agree on the actual assignment",
+          "history": {
+            "built": "2026-07-19"
+          }
+        },
+        {
+          "title": "Workflow-gap routing and provenance: every live gap names the best agent lane and the exact registering Presence identity and task/thread",
+          "status": "done",
+          "status_note": "Suggested agent values are validated against agents.json; generic role labels and short registrant IDs fail validation, while unrecoverable historical identities are explicitly marked legacy-unknown",
+          "history": {
+            "built": "2026-07-21"
+          }
         }
       ],
       "history": {
@@ -1868,7 +2118,7 @@
         "activated": "2026-07-06"
       },
       "tier": "strategic",
-      "updated": "2026-07-06"
+      "updated": "2026-07-21"
     },
     {
       "id": "agent-ping",
@@ -1976,13 +2226,13 @@
     {
       "id": "combat-map-nextgen",
       "title": "Next-gen 2D combat map (one renderer, world-derived battlefields, living board)",
-      "sub": "three-pillar ambition chosen 2026-07-06: single-scene renderer replacing the 10.8k-DOM-tile grid; battlefields derived from the actual Worldforge cell; ambient life + cinematic turns + narrated log + sound. STATE 2026-07-07: D1 Pixi prototype BUILT (6 tasks reviewed, ?pixiboard=1). TEN biomes painted; forest + desert now REAL PAINTED ART (Caeora packs via a generic per-biome sprite-pack loader). Combat demo relocated to the design preview (?step=battlemap) + window-frame layout fixed; combat 3-col layout survives >=1024px. OPEN: cave still 'not believable' (fix via forge or a Caeora cave zip); Remy eyeball verdicts on water round 6 + biome looks; D1 final whole-plan review; then D2 battlefield forge + D3 living board. Open work is on the Agora board (category combat-map-visual).",
+      "sub": "three-pillar ambition chosen 2026-07-06: single-scene renderer replacing the 10.8k-DOM-tile grid; battlefields derived from the actual Worldforge cell; ambient life + cinematic turns + narrated log + sound. STATE 2026-07-07: D1 Pixi prototype BUILT (6 tasks reviewed, ?pixiboard=1). D1 final whole-plan review PASSED 2026-07-18 after restoring Pixi fog parity with the later DOM look churn. TEN biomes painted; forest + desert now REAL PAINTED ART (Caeora packs via a generic per-biome sprite-pack loader). Combat demo relocated to the design preview (?step=battlemap) + window-frame layout fixed; combat 3-col layout survives >=1024px. OPEN: cave still 'not believable' (fix via forge or a Caeora cave zip); Remy eyeball verdicts on water round 6 + biome looks; then D2 battlefield forge + D3 living board. Open work is on the Agora board (category combat-map-visual).",
       "campaign": "combat",
       "status": "active",
       "link": "docs/superpowers/specs/2026-07-06-combat-map-nextgen-design.md",
       "features": [
         {
-          "title": "D1 renderer prototype (Pixi ground + tokens + fog) â€” BUILT, 6 tasks reviewed; final whole-plan review pending (agora 31176b2a)",
+          "title": "D1 renderer prototype (Pixi ground + tokens + fog) â€” BUILT; 6 task reviews + final whole-plan review passed 2026-07-18 (agora 31176b2a); Remy eyeball verdict still pending",
           "status": "active",
           "link": "docs/superpowers/specs/2026-07-06-combat-map-nextgen-design.md"
         },
@@ -2503,7 +2753,7 @@
     {
       "id": "asset-forge",
       "title": "Procedural asset forge (owned stylized battle-map props)",
-      "sub": "code-drawn, seeded, owned art style for battle-map props as an alternative to found packs. Grew out of the cave-believability gap 2026-07-07: procedural drawers reach 'good stylized game art' (light upper-left + ink outlines throughout). BUILT: forge module (src/components/BattleMap/forge/) + design-preview showcase (?step=assetforge) with set selector / reroll / PNG export. Cave set done (ore rocks, crystal-ore nodes, chunky crystals, stalagmites, glowing mushrooms). NOT wired to the game yet â€” design surface only; same drawers can feed the painter's biome branches once a set is approved. Adding a set = one <name>Forge.ts + one registry entry.",
+      "sub": "code-drawn, seeded, owned art style for battle-map props as an alternative to found packs. Grew out of the cave-believability gap 2026-07-07: procedural drawers reach 'good stylized game art' (light upper-left + ink outlines throughout). BUILT: forge module (src/components/BattleMap/forge/) + design-preview showcase (?step=assetforge) with set selector / reroll / PNG export. Cave set done and refined (ore rocks, crystal-ore nodes, chunky crystals, rock-faced stalagmites, glowing mushrooms). Dungeon set done (flagstones, pillars, doors, crates, chests, lit braziers). NOT wired to the game yet â€” design surface only; same drawers can feed the painter's biome branches once a set is approved. Adding a set = one <name>Forge.ts + one registry entry.",
       "campaign": "combat",
       "status": "active",
       "features": [
@@ -2513,15 +2763,16 @@
         },
         {
           "title": "refine cave set: stalagmite texture, crystal tips, cohesion pass (agora eab6558d)",
-          "status": "parked"
+          "status": "done"
         },
         {
           "title": "wire forge cave set into painter cave biome â€” resolves cave-believability (decision-gated forge vs cave zip; agora eca9ab35)",
-          "status": "parked"
+          "status": "active",
+          "status_note": "BUILT 2026-07-22: chose the owned forge cave set over waiting on the external Caeora zip. groundPainter cave scatter (paintPipeline.ts) now stamps caveForge drawers — stalagmites, blue/purple crystals, gem-ore nodes, gold-veined ore rocks, glow mushrooms. Drawers eyeballed via live :3000 render. GATE: in-game cave-battlemap eyeball for final density/scale."
         },
         {
-          "title": "expand to more sets (dungeon next; one <name>Forge.ts + one registry entry) (agora 9f21f450)",
-          "status": "parked"
+          "title": "dungeon set + registry entry: flagstones, pillars, doors, crates, chests, lit braziers (agora 9f21f450)",
+          "status": "done"
         }
       ],
       "deps": [
@@ -2735,28 +2986,73 @@
           "title": "Climate parity seam: artifact resolver never sees climate while resolveStyle overrides roofForm (cold=steep, arid=flat) so 2D and 3D disagree on the same building",
           "status": "done",
           "note": "REPAIRED 2026-07-17 (wave lane A, supervisor-verified): climate threads into resolveArchitectureVariant via toArtifactPlan from the burg biome (groundChunkLoader/legacySubmapBridge/TownPlanView/lab model). Rendered proof: highland+cold receipt Steep/11.2ft AND strip steep; roughLog+arid both flat; temperate receipts byte-identical (all four signatures unchanged). 96/96 focused tests.",
-          "history": { "built": "2026-07-17" }
+          "history": {
+            "built": "2026-07-17"
+          }
         },
         {
           "title": "Building Lab: town-map click selects the building (most buildings currently unreachable)",
           "status": "done",
           "note": "REPAIRED 2026-07-17 (wave lane B): additive TownPlanView onPlotClick/selectedPlotId props + selected outline; verified live (map click switched selection plot 0 to 74).",
-          "history": { "built": "2026-07-17" }
+          "history": {
+            "built": "2026-07-17"
+          }
         },
         {
           "title": "Building Lab: comparison strip shows silhouettes, not two color chips per building",
           "status": "done",
           "note": "REPAIRED 2026-07-17 (wave lane B): per-specimen SVG elevation glyphs (roof form + storeys + resolved colors); steep/gable/hip/flat visibly distinct. Busy overlay + a11y naming landed in the same lane (Chrome unnamed-control count 5 to 1; residue folded into GG-38).",
-          "history": { "built": "2026-07-17" }
+          "history": {
+            "built": "2026-07-17"
+          }
         },
         {
           "title": "Decision: what the coherent-districts pass badge may claim (signature equality currently reads as visual proof)",
-          "status": "specced",
-          "decision": true
+          "status": "done",
+          "note": "DECIDED 2026-07-18 (Remy): keep the pass framing but back it with a rendered-fact check. BUILT same day (bil-badge-check lane, supervisor-verified): badge is now 'verified districts' - per district a deterministic 3-plot sample rebuilds through the production blueprint and must match the artifact on roofForm/wall/roof colors/signature/variant ('missing' counts as a mismatch); fail state names the first offending plot and field; costs 0.5-1.3 ms; cold-highland URL doubles as a climate-parity regression tripwire.",
+          "history": {
+            "built": "2026-07-18"
+          }
+        },
+        {
+          "title": "Palette contrast pass: coastalTimber wall/roof hexes + trim luma separation",
+          "status": "done",
+          "note": "BUILT 2026-07-19: coastal timber now uses sunlit board walls, dark roof tiles, and sea-blue trim while preserving deterministic named-hash palette indexing. Focused architecture-style tests pass (40/40); headed Building Identity Lab inspection captured the same seed across all five families under the gitignored proof path.",
+          "history": {
+            "built": "2026-07-19"
+          }
+        },
+        {
+          "title": "Lab 3D lighting: shadow-casting sun + contact shadow/AO in PreviewBuilding3D",
+          "status": "done"
+        },
+        {
+          "title": "Dressing-1 NPR/toon style pass: outlines + banded shading + grain",
+          "status": "done",
+          "link": "docs/superpowers/briefs/2026-07-08-dressing-1-npr-style.md"
+        },
+        {
+          "title": "Dressing-2 dressing kit: jetties, bargeboards, mullions, signs that read",
+          "status": "done",
+          "link": "docs/superpowers/briefs/2026-07-08-dressing-2-dressing-kit.md"
+        },
+        {
+          "title": "Dressing-3 weathering pass: patina and grime layer (brief unintegrated)",
+          "status": "done",
+          "link": "docs/superpowers/briefs/2026-07-08-dressing-3-weathering.md"
+        },
+        {
+          "title": "Dressing-4 atmosphere pass: fog, light mood, sky (brief unintegrated)",
+          "status": "done",
+          "link": "docs/superpowers/briefs/2026-07-08-dressing-4-atmosphere.md"
+        },
+        {
+          "title": "Lab 3D textures: wire forgeMaterials into preview keyed to resolved wall/roof materials",
+          "status": "done"
         }
       ],
-      "status_note": "Harsh critic audit + THREE supervised Matrix repair lanes all landed 2026-07-17 (canonical seed 792767481): (1) lab 3D pane renders resolved identity via production interiorParts projectors (walls styleResolved.wallColor, 198/125 dressing parts A/B, canonical-geometry byte-identity pinned); (2) climate parity seam closed - artifact and blueprint share one climate-aware roof resolution, temperate byte-stable, cold=steep/arid=flat agree in strip+receipt+3D; (3) lab UX batch - town-map click-to-select, SVG silhouette strip, busy overlay (no sky-flash), a11y naming (5 issues to 1). Still open from the audit: coherence-badge decision (Remy), streamed production street readability (flat brown walls - campaign slice), GG-38/GG-39 cross-project rows. Full evidence: .agent/scratch/buildinglab-critic/REPORT.md (session-local).",
-      "updated": "2026-07-17",
+      "status_note": "Harsh critic audit + THREE supervised Matrix repair lanes all landed 2026-07-17 (canonical seed 792767481): (1) lab 3D pane renders resolved identity via production interiorParts projectors (walls styleResolved.wallColor, 198/125 dressing parts A/B, canonical-geometry byte-identity pinned); (2) climate parity seam closed - artifact and blueprint share one climate-aware roof resolution, temperate byte-stable, cold=steep/arid=flat agree in strip+receipt+3D; (3) lab UX batch - town-map click-to-select, SVG silhouette strip, busy overlay (no sky-flash), a11y naming (5 issues to 1). UPDATE 2026-07-18 - four more supervised lanes landed: verified-districts badge (rendered-fact cross-check per district, 0.5-1.3ms, doctored-receipt tested); climate-constrained kits (no thatch/sod in arid, no wattle-daub in marsh, whole-kit remap, temperate byte-stable); streamed-town readability ROOT CAUSE - ALL wall dressing was projected INSIDE the wall slabs since the identity waves shipped (receipts real, pixels never existed) - unburied + dressingContrastTone + thicker courses + covering-colored roofs; history/weathering parts unburied same day (sealed doors/patches/patina proud of facades, mutation-checked tests). GG-38/GG-39 closed. Remaining: 18m dressing LOD radius + true sloped coverings/textures (campaign slice); course boldness = Remy eyeball call; groundChunkLoader width-floor swap when its lock frees. Evidence: .agent/scratch/buildinglab-critic/ + per-lane scratch dirs (session-local).",
+      "updated": "2026-07-19",
       "tier": "strategic"
     },
     {
@@ -2932,6 +3228,10 @@
         {
           "title": "CSP connect-src allows api.groq.com (Groq fetch was blocked); localhost:* already covers the proxy option",
           "status": "done"
+        },
+        {
+          "title": "Auto-start fix (2026-07-18): the dev-server proxy came up but stayed keyless (live /__groq/health showed keyLoaded:false while readWinCred returned a real key). Root cause: getKey() cached a failed (null) read forever, so one bad first read during startup churn poisoned the proxy until a full restart. Fixed by extracting createGroqKeyLoader in groqProxyManager.ts, which caches only a SUCCESSFUL key and drops a null/thrown read so the next request retries and the proxy self-heals. Proven live: health flipped to keyLoaded:true and a keyless /__groq/v1/models call returned 200 with 15 Groq models. Covered by 5 new unit tests (scripts/vite-plugins/__tests__/groqProxyManager.test.ts). Also added 3 modal tests pinning the banner + collapsible-explainer defaults/toggle (previously untested); rendered proof captured for both provider states",
+          "status": "done"
         }
       ],
       "tier": "strategic"
@@ -2987,8 +3287,7 @@
         {
           "title": "E-G1 In-world UI home for business management and trade-map affordances",
           "status": "active",
-          "decision": true,
-          "status_note": "decide: dedicated components vs folding into LedgerBook, InvestmentBoard, TradeRouteDashboard; prove a non-debug path to inspect businesses, routes, investments, courier intel",
+          "status_note": "RESOLVED 2026-07-21 (Remy): dedicated components (Commerce Desk) — BUILT 2026-07-21. | prior: decide: dedicated components vs folding into LedgerBook, InvestmentBoard, TradeRouteDashboard; prove a non-debug path to inspect businesses, routes, investments, courier intel",
           "link": "docs/superpowers/specs/2026-07-14-absorbed-economy.md"
         },
         {
@@ -3174,7 +3473,7 @@
         },
         {
           "title": "Occupants walk between stations",
-          "status": "parked"
+          "status": "done"
         },
         {
           "title": "Merge interior occupants into the street agent sim",
@@ -3182,7 +3481,7 @@
         }
       ],
       "tier": "strategic",
-      "updated": "2026-07-08"
+      "updated": "2026-07-18"
     },
     {
       "id": "servants-as-npcs",
@@ -3317,7 +3616,7 @@
       "sub": "read-pass over WF-INTERIORS surfaced 7 gaps. SHIPPED: #1 live clock, #2 silent failures, #3 hearth transform, #4 storey height. #6 measured won't-fix. #5 audit DONE 2026-07-14: no live bug (production is blueprint-fed); optional dead-branch cleanup posted to board (8352cd22). OPEN: #7 lighting-hours unify/confirm",
       "campaign": "world",
       "subcampaign": "Interiors & Buildings",
-      "status": "active",
+      "status": "done",
       "deps": [
         {
           "id": "wf-interiors",
@@ -3372,10 +3671,12 @@
         },
         {
           "title": "#7 Unified 24-hour interior lighting schedule (hearth vs window hours reconciled)",
-          "status": "active"
+          "status": "done",
+          "status_note": "RESOLVED 2026-07-22 as WON'T-UNIFY: Remy decided (2026-07-21) to KEEP hearth (06-08/17-22) and window (dusk 17-23) schedules separate, so no reconciliation is wanted. Code verified to honor the separate schedules; a stale Agora task that unified them was reverted."
         }
       ],
-      "tier": "strategic"
+      "tier": "strategic",
+      "updated": "2026-07-21"
     },
     {
       "id": "co-orchestration-pipeline",
@@ -3795,9 +4096,24 @@
           "title": "Smooth-body quality (Dragon Forge technique): swept-tube bodies w/ muscle bulge, flat shading, sculpted head forms, membrane wings v2",
           "status": "done",
           "link": "docs/superpowers/specs/2026-07-16-creature-space-expansion.md"
+        },
+        {
+          "title": "Hero-look pipeline: reference image → TRELLIS → optimize → library hero display (staged, per-stage artifacts)",
+          "status": "active",
+          "link": "docs/superpowers/specs/2026-07-16-hero-look-pipeline-design.md",
+          "status_note": "Code-sculpt hero v5 LIVE 2026-07-23: Remy caught the model rendering INSIDE-OUT (sweep() wound triangles inward since v1; front faces culled, interiors drawn — convexity masked it). One index-order swap fixed every part; signed-volume gate script added; lighting now computed from real outward normals. 28,952 tris, verified solid at the exact break angles. Open: Remy verdict on v5. TRELLIS compare DROPPED by Remy 2026-07-23 (free ZeroGPU dead; no paid route wanted) — code-sculpt IS the image-to-3D stage."
+        },
+        {
+          "title": "Code-sculpt hero route: img2threejs skill — agent-vision gated three.js factory → GLB, no GPU",
+          "status": "done",
+          "status_note": "Proven end-to-end 2026-07-23: 8 gated passes + Kimi polish + v3 critique pass, hero.glb 29,032 tris through optimize.mjs, sheeted via ?hero=1 on the live debugger; this route IS the shipped hero (ZeroGPU comparison shot never got compute)"
+        },
+        {
+          "title": "Accepted-entities runtime source: approved creatures load by name in combat, never regenerated",
+          "status": "done"
         }
       ],
-      "updated": "2026-07-16",
+      "updated": "2026-07-23",
       "tier": "strategic"
     },
     {
@@ -3837,9 +4153,14 @@
         {
           "title": "Gate: live in-game eyeball (Remy)",
           "status": "specced"
+        },
+        {
+          "title": "In-game 3D eyeball 2026-07-27: network reads from above, flat hovering bands at ground level",
+          "status": "done"
         }
       ],
-      "tier": "strategic"
+      "tier": "strategic",
+      "updated": "2026-07-26"
     },
     {
       "id": "forests",
@@ -3881,9 +4202,17 @@
         {
           "title": "Gate: live 3D eyeball + 3 flavor calls (Remy)",
           "status": "specced"
+        },
+        {
+          "title": "In-game 3D eyeball 2026-07-27 PARTIAL: trees read faceted+flat-shaded up close; canopy still unjudged",
+          "status": "parked"
+        },
+        {
+          "title": "Tree silhouette variety: 2 forms per species, drooped+yawed conifer tiers, pad foliage primitive (2026-07-27)",
+          "status": "done"
         }
       ],
-      "updated": "2026-07-14",
+      "updated": "2026-07-27",
       "tier": "strategic"
     },
     {
@@ -3961,11 +4290,18 @@
       "title": "Planning surface freshness",
       "sub": "One status list (planmap); roadmap and docs auto-fed; board tidying",
       "campaign": "tooling",
-      "status": "specced",
+      "status": "done",
       "deps": [],
       "link": "docs/superpowers/specs/2026-07-14-planning-surface-freshness-design.md",
       "open": 1,
-      "tier": "strategic"
+      "tier": "strategic",
+      "features": [
+        {
+          "title": "Sync engine outage: board step EPERM froze health.json for 3 days (cleared 2026-07-26)",
+          "status": "done"
+        }
+      ],
+      "updated": "2026-07-26"
     },
     {
       "id": "compass-pane",
@@ -4308,7 +4644,7 @@
         {
           "title": "G5 Assign Refining/Enchanting a crafting-UI panel owner",
           "status": "active",
-          "decision": true
+          "status_note": "RESOLVED 2026-07-21 (Remy): dedicated crafting panel (Refinery & Enchanter Table) — BUILT 2026-07-21."
         },
         {
           "title": "G6 Crafting-state save/load migration/backfill path",
@@ -4519,8 +4855,8 @@
         {
           "title": "D-G3 shared deterministic + audit contract for silent vs visual rolls",
           "status": "active",
-          "decision": true,
-          "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dice.md",
+          "status_note": "RESOLVED 2026-07-21 (Remy): one shared deterministic + audit contract; visual rolls add presentation on top."
         },
         {
           "title": "D-G4 DiceBox init split: shared factory vs intentional split",
@@ -4617,9 +4953,13 @@
           "history": {
             "built": "2026-07-11"
           }
+        },
+        {
+          "title": "Rolling auto-save starved by the 1-second world clock (fixed 2026-07-26)",
+          "status": "done"
         }
       ],
-      "updated": "2026-07-15"
+      "updated": "2026-07-26"
     },
     {
       "id": "dialogue",
@@ -4640,8 +4980,8 @@
         {
           "title": "DIAL-002 cross-NPC unlock propagation (DiscoveryLog vs NPC KnownFact)",
           "status": "active",
-          "decision": true,
-          "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md",
+          "status_note": "RESOLVED 2026-07-21 (Remy): durable global fact store (world-level, save-safe); resolves DIAL-002 + DIAL-004 together."
         },
         {
           "title": "DIAL-003 wire or remove sessionDispositionMod/availableTopicIds",
@@ -4651,8 +4991,8 @@
         {
           "title": "DIAL-004 durable global unlock-fact model",
           "status": "active",
-          "decision": true,
-          "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md"
+          "link": "docs/superpowers/specs/2026-07-14-absorbed-dialogue.md",
+          "status_note": "RESOLVED 2026-07-21 (Remy): durable global fact store (world-level, save-safe); resolves DIAL-002 + DIAL-004 together."
         },
         {
           "title": "DIAL-005 dialogue vs companion-chat ownership boundary note",
@@ -4890,10 +5230,17 @@
       "id": "item-categorization",
       "title": "Item Categorization",
       "campaign": "character",
-      "status": "parked",
-      "updated": "2026-07-15",
+      "status": "done",
+      "updated": "2026-07-26",
       "deps": [],
-      "tier": "strategic"
+      "tier": "strategic",
+      "status_note": "Glossary stubs no longer override hand-authored items in ALL_ITEMS; 10 base items (lantern, torch, tinderbox, poisons, amulets, cloaks) restored to correct types/slots. Precedence locked by test.",
+      "features": [
+        {
+          "title": "Hand-authored items win over generated glossary stubs",
+          "status": "done"
+        }
+      ]
     },
     {
       "id": "logbook",
@@ -5251,7 +5598,7 @@
       "title": "Entity skeletons (body v3)",
       "sub": "real Bone/Skeleton/SkinnedMesh under every entity · Mixamo clips play natively · one-piece creased bodies · segments die like metaballs",
       "campaign": "rendering",
-      "status": "specced",
+      "status": "active",
       "deps": [
         {
           "id": "entity-generator-3d",
@@ -5264,19 +5611,26 @@
       "features": [
         {
           "title": "Substrate: skeleton builder + rigid-weight skinned biped (A/B parity vs segments)",
-          "status": "specced"
+          "status": "done",
+          "note": "BUILT 2026-07-18: 17-bone skeletonBuilder + rigid-weight skinnedBody (2 draw calls vs ~60), pose adapter consumes the driver's own emissions (0.0000 measured drift), bodyTech switch default segments, skinning-aware outline. Side-by-side at ?step=entityforge&sidebyside=1 — awaiting Remy eyeball (also settles the wireframe decision).",
+          "history": {
+            "built": "2026-07-18"
+          }
         },
         {
           "title": "Mixamo clip playback: retarget map + mixer + in-place speed sync (first payoff)",
-          "status": "specced"
+          "status": "parked",
+          "status_note": "Deferred by Remy 2026-07-23 (clip acquisition needs an Adobe login or a CC0 pack; neither chosen). The converter/retarget design stands; slices reordered — smooth bodies first."
         },
         {
           "title": "Smooth joint weights: one-piece creased bodies",
-          "status": "specced"
+          "status": "active",
+          "status_note": "BUILT 2026-07-24 (Agora task 31b275e7-bfea-467e-b502-031ebcd231cd, kimi-skeleton-20260724): plan docs/superpowers/plans/2026-07-23-skeleton-smooth-bodies.md complete — smoothBipedGeometry lofts one tube per chain with ≤2-influence smoothstep joint blends behind weights: rigid|smooth. Proof: 234/234 entities3d vitest tests green, scoped eslint clean, tsc -b clean on slice files, headed mounted A/B at design.html?step=entityforge&sidebyside=1&weights=smooth (walk + idle, gitignored captures in .agent/scratch/skeleton-smooth-20260724/) shows one-piece torso-to-arm continuity and a creased loaded elbow with no tearing or collapse. Rigid stays the DEFAULT: the Remy eyeball gate is still open, and the full melee × side/¾/face contact-sheet matrix is not exposed by forge URL params yet."
         },
         {
           "title": "Creature skeletons: plan chains become bone chains",
-          "status": "specced"
+          "status": "specced",
+          "status_note": "DRAFT plan written 2026-07-24 (Agora task e249ddaa-4a17-433c-8143-452410cfad62): docs/superpowers/plans/2026-07-24-skeleton-creature-skeletons.md — plan rest pose, bone chains, pose sink, rigid-weight skinned plan body, heads on bones, stress-fixture acceptance contracts. Implementation blocked on Remy review of one flagged design choice (decorative emissions stay on the anchor path). Mixamo slice stays parked; species gaits out of scope."
         },
         {
           "title": "Crowd bake from bone transforms + segment renderer deletion",
@@ -5285,11 +5639,147 @@
         {
           "title": "Decision: wireframe look on deforming bodies (current game default)",
           "status": "specced",
-          "decision": true
+          "status_note": "RESOLVED 2026-07-21 (Remy): switch to solid shaded on deforming skinned meshes."
         }
       ],
-      "updated": "2026-07-17",
+      "updated": "2026-07-24",
       "tier": "strategic"
+    },
+    {
+      "id": "combat-3d-visual-quality",
+      "title": "3D combat map visual quality (phases 1-3)",
+      "campaign": "combat",
+      "status": "active",
+      "sub": "Long-running eye-test campaign driving the 3D battle map from monochrome heightmap to game-grade: terrain PBR + bluffs, biome lighting/mist, character readability, targeting decals, tactical spawns. Phase 3 (2026-07-18) = 5 packets Q1-Q5: SSAO/postfx, damage numbers, forest density+boulders, terrain close-up, map utilization. Q5 landed 2026-07-18: spawn engagement window (72x72) — closest-unit gap 60-96 -> 38-50 tiles at pinned seeds. 2026-07-19 lab-driven pass (design.html?step=battlemaplab): 3D ford (shallow-carved gravel bar + stepping stones), positional-sun terrain cast shadows, graded water depth; verified sloped-river water reads continuous (no fix needed); Hillside scenario added; fixed tools/vistest/shoot.ts outDir bug that broke ALL 3D readback captures. FINDING: no sun/moon/sky-clock system exists (battle map fully static; open world clock-capable but frozen 10.5h); full day/night incl stars/moon already in ThreeDModal (getLightingForTime + TakramSkySystem) = reuse path for a future clock-driven-sky campaign.",
+      "link": ".agent/GOAL-3d-visual-quality.md",
+      "updated": "2026-07-19"
+    },
+    {
+      "id": "ground3d-water-surface",
+      "title": "Ground 3D real water surface",
+      "campaign": "world",
+      "status": "specced",
+      "sub": "Rivers in ground 3D have no water surface: the ribbon mesh hides 0.5 m under the carved bed, so water is just blue-tinted terrain and nothing can read as submerged (found during the 3D ford + bridge-burial work 2026-07-17/18). Plan: one shared per-river waterline computed in the ground loader, ribbon rendered AT it and widened to the water-biome extent, and a riverWaterlineAt(x,z) query that fords, bridges, and docks anchor to. Fixes ford, bridge, and riverbank reads in one move.",
+      "link": "docs/superpowers/specs/2026-07-18-ground3d-water-surface-design.md",
+      "open": 4
+    },
+    {
+      "id": "lot-dressing-yards-commons",
+      "title": "Lot dressing: yards, alleys, wedge commons",
+      "campaign": "world",
+      "status": "specced",
+      "sub": "Remy direction 2026-07-21: a building should not fill its whole lot. Two lot regimes: (1) packed row houses on prime street edges — full lot WIDTH, party walls, packed-city instinct — with lots gaining DEPTH for a back yard; (2) detached lots grow all around (more squares) so the building stands free inside its dressing. The action is 'grow the lot, not shrink the building'. Surround buildings with yards (fences, gardens, stalls) and possibly alleys; clipped wedge slivers on corner lots become signposted 'government-owned' commons. Origin: wedge corner plots re-inflated to bounding rects overlapped neighbor wards (fixed via clampQuadInsidePolygon in townPlanAdapter, 2026-07-21) — the honest fix leaves visible unbuilt lot area, which this slice turns into intentional town fabric. Packer already has dense vs detached profiles and a single plotDepth parameter; adapter should seat the building quad at the street end of a deepened lot. Applies to both 2D town map and 3D ground bake.",
+      "updated": "2026-07-21"
+    },
+    {
+      "id": "magic-item-boons",
+      "title": "Magic Item Boons + Attunement",
+      "sub": "items grant their mechanical benefits; attunement gates them",
+      "campaign": "character",
+      "status": "active",
+      "updated": "2026-07-26",
+      "status_note": "Enforcement machinery is built and tested, but NO item data fills the fields it reads, so magic items are inert in play. Flat-vs-nested attunement field mismatch; fix lives mostly in the glossary ingest.",
+      "deps": [
+        {
+          "id": "item-categorization",
+          "kind": "hard",
+          "why": "boons need items to carry correct types/slots and mechanical fields first — same glossary-stub / ingest pipeline"
+        }
+      ],
+      "link": "docs/tasks/magic-items/magic-item-boons-and-attunement.md",
+      "tier": "strategic",
+      "features": [
+        {
+          "title": "Attunement Enforcement Per Character",
+          "status": "done"
+        },
+        {
+          "title": "Ability Score Boons From Equipment",
+          "status": "parked"
+        },
+        {
+          "title": "Weapon Magical Attack Bonuses",
+          "status": "parked"
+        },
+        {
+          "title": "Ingested Mechanical Field Population",
+          "status": "parked"
+        },
+        {
+          "title": "Unified Attunement Field Shape",
+          "status": "parked"
+        }
+      ]
+    },
+    {
+      "id": "ask-aralia-lore-search",
+      "title": "Ask Aralia (credit-funded lore search)",
+      "sub": "grounded Q&A with citations over docs, memory, spells, glossary",
+      "campaign": "agents",
+      "status": "done",
+      "updated": "2026-07-23",
+      "status_note": "LIVE 2026-07-23: 3,446 docs indexed (import gotcha: importer maps MIME from file extension — corpus staged as .md.txt). Proven on :3000 design.html?step=asklore with grounded cited answers (spell rules + street-rendering decision trail). Refresh: node tools/loreSearch/prepare-corpus.mjs --upload. Credit covers ~280k searches to March 2027.",
+      "deps": [],
+      "link": "tools/loreSearch/prepare-corpus.mjs",
+      "tier": "component",
+      "features": [
+        {
+          "title": "Corpus prep (JSON to markdown render)",
+          "status": "done"
+        },
+        {
+          "title": "Data store + Ask Aralia app (eu)",
+          "status": "done"
+        },
+        {
+          "title": "Devhub proxy + asklore page",
+          "status": "done"
+        },
+        {
+          "title": "Live grounded answer proof",
+          "status": "done"
+        },
+        {
+          "title": "Corpus refresh script cadence",
+          "status": "parked"
+        }
+      ]
+    },
+    {
+      "id": "junction-blend",
+      "title": "Junction blend (creature softness dial)",
+      "sub": "one 0-1 number melts parts together where they meet; slime to golem",
+      "campaign": "character",
+      "status": "active",
+      "updated": "2026-07-23",
+      "status_note": "Slice 1 LIVE 2026-07-23: skin.blend + per-appendage blend in the language, compiled blendM, collar skirts in the segment renderer (frame-updated like tubes). Proven: ooze at 1 melts, dragon defaults get muscle fillets, serpent at 0 stays sharp; 425 entity+devhub tests green. Slice 2 fused skin parked on the skeleton pivot. Debugger gained ?fixture=<key>.",
+      "deps": [
+        {
+          "id": "entity-generator-3d",
+          "kind": "hard",
+          "why": "extends the creature language and segment renderer"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-23-junction-blend-design.md",
+      "tier": "component",
+      "features": [
+        {
+          "title": "Language field skin.blend + per-appendage override",
+          "status": "done"
+        },
+        {
+          "title": "Slice 1: collars in the segment renderer",
+          "status": "done"
+        },
+        {
+          "title": "Slice 2: fused one-skin body (needs skeleton pivot)",
+          "status": "parked"
+        },
+        {
+          "title": "Hero-route reuse of blend values",
+          "status": "parked"
+        }
+      ]
     }
   ]
 }

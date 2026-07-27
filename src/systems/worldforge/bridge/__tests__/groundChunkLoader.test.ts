@@ -6,37 +6,52 @@
  * The bridge owns which Worldforge people become chunk sites, while the
  * renderer only consumes the resulting ChunkData records.
  */
-import { describe, expect, it } from 'vitest';
-import { WORLD3D_CONFIG, heightToMeters } from '../../../world3d/config';
-import { buildPlaceholderHeightfield } from '../../../world3d/chunkGeometry';
-import type { ChunkData } from '../../../world3d/types';
+import { describe, expect, it } from "vitest";
+import { WORLD3D_CONFIG, heightToMeters } from "../../../world3d/config";
+import { buildPlaceholderHeightfield } from "../../../world3d/chunkGeometry";
+import type { ChunkData } from "../../../world3d/types";
 import {
   WORLD_DELTA_OPERATION_VERSION,
   WORLD_DELTA_SCHEMA_VERSION,
   type WorldDelta,
-} from '../../delta/types';
-import type { LocalArtifact, RegionArtifact } from '../../artifacts';
-import { rootSeedPath } from '../../seedPath';
-import type { GroundWorld } from '../groundChunkLoader';
-import { makeGroundWorld, sampleGroundChunk, groundSlope01, extractLocalTerrainPatch, groundSurfaceY, canonicalArtifactTownForSite, regionPolylinesToGround } from '../groundChunkLoader';
-import { getBridgeAtlas } from '../legacySubmapBridge';
+} from "../../delta/types";
+import type { LocalArtifact, RegionArtifact } from "../../artifacts";
+import { rootSeedPath } from "../../seedPath";
+import type { GroundWorld } from "../groundChunkLoader";
+import {
+  GROUND_RIVER_CHANNEL_DEPTH_M,
+  canonicalArtifactTownForSite,
+  computeGroundRiverWaterlines,
+  extractLocalTerrainPatch,
+  groundSlope01,
+  groundSurfaceY,
+  makeGroundWorld,
+  regionPolylinesToGround,
+  riverWaterlineAt,
+  sampleGroundChunk,
+} from "../groundChunkLoader";
+import { getBridgeAtlas } from "../legacySubmapBridge";
 import {
   resolveSnowLine,
+  resolveSnowLineFt,
   latitudeAtGraphY,
   SNOW_LINE_H,
   SNOW_LINE_POLAR,
   SNOW_LINE_TROPICAL,
   SNOW_RGB,
-} from '../../mountains/mountainTunables';
-import { groundTownAgentsAt } from '../groundAgentMotion';
-import { GROUND_METERS_PER_CELL, localArtifactToWorldData } from '../groundWorldAdapter';
+} from "../../mountains/mountainTunables";
+import { groundTownAgentsAt } from "../groundAgentMotion";
+import {
+  GROUND_METERS_PER_CELL,
+  localArtifactToWorldData,
+} from "../groundWorldAdapter";
 import {
   FACADE_PART_TAG,
   HISTORY_PART_TAG,
   MATERIAL_PART_TAG,
   MOTIF_PART_TAG,
-} from '../interiorParts';
-import { TERRACE_STEP_ENCODED } from '../terrainTerraces';
+} from "../interiorParts";
+import { TERRACE_STEP_ENCODED } from "../terrainTerraces";
 
 // ============================================================================
 // Fixed Bridge Fixtures
@@ -46,7 +61,9 @@ import { TERRACE_STEP_ENCODED } from '../terrainTerraces';
 // meter-space data shape that makeGroundWorld normally returns.
 // ============================================================================
 
-function makeGroundWorldFixture(overrides: Partial<GroundWorld> = {}): GroundWorld {
+function makeGroundWorldFixture(
+  overrides: Partial<GroundWorld> = {},
+): GroundWorld {
   const cols = 4;
   const rows = 4;
 
@@ -54,7 +71,7 @@ function makeGroundWorldFixture(overrides: Partial<GroundWorld> = {}): GroundWor
     cols,
     rows,
     heights: new Array(cols * rows).fill(0),
-    biomeIds: new Array(cols * rows).fill('plains'),
+    biomeIds: new Array(cols * rows).fill("plains"),
     extentMetersX: cols,
     extentMetersZ: rows,
     features: [],
@@ -92,7 +109,7 @@ function makeLocalArtifact(): LocalArtifact {
   }
 
   return {
-    layer: 'local',
+    layer: "local",
     schemaVersion: 1,
     seedPath: SEED_PATH,
     bounds: { x: 0, y: 0, width: 500, height: 500 },
@@ -101,7 +118,7 @@ function makeLocalArtifact(): LocalArtifact {
       heightCells,
       elevationFt,
       materialIndex: new Uint8Array(widthCells * heightCells),
-      materials: ['grass'],
+      materials: ["grass"],
     },
     features: [],
   };
@@ -111,7 +128,7 @@ function makeRegionArtifact(): RegionArtifact {
   // A compact town envelope with two gates reliably generates a few plots and
   // rostered workers without invoking the heavier atlas pipeline.
   return {
-    layer: 'region',
+    layer: "region",
     schemaVersion: 1,
     seedPath: SEED_PATH,
     bounds: { x: 0, y: 0, width: 500, height: 500 },
@@ -152,15 +169,18 @@ function makeMarketDelta(plotId: number): WorldDelta {
     entityKey: `plot:${plotId}`,
     sequence: 1,
     operation: {
-      kind: 'modify-plot',
+      kind: "modify-plot",
       plotId,
-      role: 'market',
+      role: "market",
       storeys: 2,
     },
   };
 }
 
-function pointInsideConvexQuad(point: { x: number; z: number }, corners: Array<{ x: number; z: number }>): boolean {
+function pointInsideConvexQuad(
+  point: { x: number; z: number },
+  corners: Array<{ x: number; z: number }>,
+): boolean {
   // Generated plot footprints are convex quads, so every edge should turn the
   // same way around a point that belongs to the plot interior.
   let sign = 0;
@@ -176,13 +196,32 @@ function pointInsideConvexQuad(point: { x: number; z: number }, corners: Array<{
   return true;
 }
 
-function footprintCellIndexes(ground: GroundWorld, corners: Array<{ x: number; z: number }>): number[] {
+function footprintCellIndexes(
+  ground: GroundWorld,
+  corners: Array<{ x: number; z: number }>,
+): number[] {
   // Cell centers are what the pad contract promises to flatten. Restricting to
   // the plot bounds keeps the assertion focused even on larger terrain grids.
-  const minCol = Math.max(0, Math.floor(Math.min(...corners.map((c) => c.x)) / GROUND_METERS_PER_CELL) - 1);
-  const maxCol = Math.min(ground.cols - 1, Math.ceil(Math.max(...corners.map((c) => c.x)) / GROUND_METERS_PER_CELL) + 1);
-  const minRow = Math.max(0, Math.floor(Math.min(...corners.map((c) => c.z)) / GROUND_METERS_PER_CELL) - 1);
-  const maxRow = Math.min(ground.rows - 1, Math.ceil(Math.max(...corners.map((c) => c.z)) / GROUND_METERS_PER_CELL) + 1);
+  const minCol = Math.max(
+    0,
+    Math.floor(Math.min(...corners.map((c) => c.x)) / GROUND_METERS_PER_CELL) -
+      1,
+  );
+  const maxCol = Math.min(
+    ground.cols - 1,
+    Math.ceil(Math.max(...corners.map((c) => c.x)) / GROUND_METERS_PER_CELL) +
+      1,
+  );
+  const minRow = Math.max(
+    0,
+    Math.floor(Math.min(...corners.map((c) => c.z)) / GROUND_METERS_PER_CELL) -
+      1,
+  );
+  const maxRow = Math.min(
+    ground.rows - 1,
+    Math.ceil(Math.max(...corners.map((c) => c.z)) / GROUND_METERS_PER_CELL) +
+      1,
+  );
   const indexes: number[] = [];
 
   for (let row = minRow; row <= maxRow; row++) {
@@ -191,7 +230,8 @@ function footprintCellIndexes(ground: GroundWorld, corners: Array<{ x: number; z
         x: (col + 0.5) * GROUND_METERS_PER_CELL,
         z: (row + 0.5) * GROUND_METERS_PER_CELL,
       };
-      if (pointInsideConvexQuad(center, corners)) indexes.push(row * ground.cols + col);
+      if (pointInsideConvexQuad(center, corners))
+        indexes.push(row * ground.cols + col);
     }
   }
 
@@ -232,58 +272,291 @@ function bilinearHeightAtCellSpace(
 // coarse retention pass must test segments rather than endpoint membership.
 // ============================================================================
 
-describe('regionPolylinesToGround', () => {
-  it('retains a source route whose segment crosses the local window with both endpoints outside', () => {
+describe("ground river waterlines", () => {
+  it("adds the constant channel depth and preserves an already-downhill river", () => {
+    const heights = [6, 4, 2];
+    const [river] = computeGroundRiverWaterlines(
+      [
+        {
+          points: [
+            { x: 0, z: 0 },
+            { x: GROUND_METERS_PER_CELL, z: 0 },
+            { x: GROUND_METERS_PER_CELL * 2, z: 0 },
+          ],
+          widthM: 8,
+          sourceKind: "river",
+        },
+      ],
+      heights,
+      3,
+      1,
+    );
+
+    // A physically downhill run needs no smoothing, so every point remains
+    // exactly one configured channel depth above its carved centerline bed.
+    expect(river.waterlineY).toEqual(
+      heights.map(
+        (height) => heightToMeters(height) + GROUND_RIVER_CHANNEL_DEPTH_M,
+      ),
+    );
+  });
+
+  it("pools an uphill reach and exposes the same interpolated surface query", () => {
+    const ground = makeGroundWorldFixture({
+      rivers: computeGroundRiverWaterlines(
+        [
+          {
+            points: [
+              { x: 0, z: 0 },
+              { x: GROUND_METERS_PER_CELL, z: 0 },
+              { x: GROUND_METERS_PER_CELL * 2, z: 0 },
+            ],
+            widthM: 8,
+            sourceKind: "river",
+          },
+        ],
+        [2, 6, 1],
+        3,
+        1,
+      ),
+    });
+    const waterline = ground.rivers[0].waterlineY!;
+
+    // The rising first reach becomes a flat pool, while the final downstream
+    // sample remains lower. The public query interpolates this stored surface
+    // and declines dry points outside the widened wet corridor.
+    expect(waterline[0]).toBeCloseTo(waterline[1], 6);
+    expect(waterline[1]).toBeGreaterThanOrEqual(waterline[2]);
+    expect(riverWaterlineAt(ground, GROUND_METERS_PER_CELL / 2, 0)).toBeCloseTo(
+      waterline[0],
+      6,
+    );
+    expect(riverWaterlineAt(ground, 0, 20)).toBeUndefined();
+  });
+});
+
+describe("regionPolylinesToGround", () => {
+  it("retains a source route whose segment crosses the local window with both endpoints outside", () => {
     const local = makeLocalArtifact();
-    const roads = regionPolylinesToGround([{
-      centerline: [[-500, 250], [1_000, 250]],
-      widthFt: 20,
-      kind: 'trail',
-    }], local, 'region-road');
+    const roads = regionPolylinesToGround(
+      [
+        {
+          centerline: [
+            [-500, 250],
+            [1_000, 250],
+          ],
+          widthFt: 20,
+          kind: "trail",
+        },
+      ],
+      local,
+      "region-road",
+    );
 
     expect(roads).toHaveLength(1);
-    expect(roads[0].sourceKind).toBe('region-road');
+    expect(roads[0].sourceKind).toBe("region-road");
     expect(roads[0].points[0].x).toBeLessThan(0);
     expect(roads[0].points[1].x).toBeGreaterThan(local.bounds.width * 0.3048);
   });
 
-  it('projects one Region bridge receipt into both Ground crossing and 3D deck facts', () => {
+  it.each(["ford", "bridge"] as const)(
+    "clips the %s ribbon only across wet crossing cells and replays both land approaches",
+    (crossingKind) => {
+      const local = makeLocalArtifact();
+      const routeId = crossingKind === "ford" ? 15 : 16;
+
+      // Paint one authoritative vertical water stripe through the crossing.
+      // Dry cells on both sides remain grass, making it possible to prove that
+      // clipping removes only the wet gap and keeps both authored approaches.
+      local.terrain.materials = ["grass", "water"];
+      const waterFirstCol = 45;
+      const waterLastCol = 55;
+      for (let row = 0; row < local.terrain.heightCells; row += 1) {
+        for (let col = waterFirstCol; col <= waterLastCol; col += 1) {
+          local.terrain.materialIndex[row * local.terrain.widthCells + col] = 1;
+        }
+      }
+
+      const region: RegionArtifact = {
+        ...makeRegionArtifact(),
+        townSites: [],
+        roads: [
+          {
+            routeId,
+            centerline: [
+              [0, 250],
+              [500, 250],
+            ],
+            widthFt: 20,
+            // The ford case deliberately uses a faint path so the regression
+            // also proves wet clipping still flows through the old keep/skip
+            // patch emitter instead of replacing that route style.
+            kind: crossingKind === "ford" ? "path" : "highway",
+          },
+        ],
+        rivers: [
+          {
+            riverId: 19,
+            centerline: [
+              [250, 0],
+              [250, 500],
+            ],
+            widthFt: 80,
+          },
+        ],
+        crossings: [
+          {
+            id: `crossing:${routeId}:19:0`,
+            kind: crossingKind,
+            roadRouteId: routeId,
+            riverId: 19,
+            point: [250, 250],
+            roadDirection: [1, 0],
+            riverDirection: [0, 1],
+            spanFt: 112,
+            widthFt: 20,
+          },
+        ],
+      };
+
+      const ground = makeGroundWorld(local, 42, region, { skipProps: true });
+      const routeRuns = ground.roads.filter((road) => road.sourceId === routeId);
+      expect(routeRuns).toHaveLength(2);
+
+      // The west and east source endpoints survive exactly, proving the land
+      // approaches were not discarded with the wet crossing interval.
+      expect(routeRuns[0].points[0]).toEqual({ x: 0, z: 250 * 0.3048 });
+      const eastRun = routeRuns[routeRuns.length - 1];
+      expect(eastRun.points[eastRun.points.length - 1]).toEqual({
+        x: 500 * 0.3048,
+        z: 250 * 0.3048,
+      });
+
+      // Sample the surviving ribbons more densely than the terrain grid. No
+      // point may resolve to a water material, while the deck remains present
+      // to carry the authored ford or bridge across that deliberate gap.
+      const pointIsWet = (point: { x: number; z: number }): boolean => {
+        const col = Math.max(
+          0,
+          Math.min(
+            local.terrain.widthCells - 1,
+            Math.round(point.x / GROUND_METERS_PER_CELL),
+          ),
+        );
+        const row = Math.max(
+          0,
+          Math.min(
+            local.terrain.heightCells - 1,
+            Math.round(point.z / GROUND_METERS_PER_CELL),
+          ),
+        );
+        const materialIndex =
+          local.terrain.materialIndex[row * local.terrain.widthCells + col];
+        return local.terrain.materials[materialIndex] === "water";
+      };
+      for (const run of routeRuns) {
+        for (let pointIndex = 1; pointIndex < run.points.length; pointIndex += 1) {
+          const start = run.points[pointIndex - 1];
+          const end = run.points[pointIndex];
+          for (let sample = 0; sample <= 16; sample += 1) {
+            const t = sample / 16;
+            expect(
+              pointIsWet({
+                x: start.x + (end.x - start.x) * t,
+                z: start.z + (end.z - start.z) * t,
+              }),
+            ).toBe(false);
+          }
+        }
+      }
+      expect(ground.decks.some((deck) => deck.kind === crossingKind)).toBe(true);
+
+      // Same seed and artifacts must reproduce the exact fragment boundaries
+      // and deck facts; the clip may not depend on mutable traversal state.
+      const again = makeGroundWorld(local, 42, region, { skipProps: true });
+      expect(again.roads.filter((road) => road.sourceId === routeId)).toEqual(
+        routeRuns,
+      );
+      expect(again.decks).toEqual(ground.decks);
+    },
+    // The first full ground build pays the shared module's cold town/terrain
+    // setup cost; the product assertions are deterministic, not time-sensitive.
+    15_000,
+  );
+
+  it("projects one Region bridge receipt into both Ground crossing and 3D deck facts", () => {
     const local = makeLocalArtifact();
     const region: RegionArtifact = {
       ...makeRegionArtifact(),
       townSites: [],
-      roads: [{
-        routeId: 3,
-        centerline: [[0, 250], [500, 250]],
-        widthFt: 44,
-        kind: 'highway',
-      }],
-      rivers: [{
-        riverId: 7,
-        centerline: [[250, 0], [250, 500]],
-        widthFt: 80,
-      }],
-      crossings: [{
-        id: 'crossing:3:7:0',
-        kind: 'bridge',
-        roadRouteId: 3,
-        riverId: 7,
-        point: [250, 250],
-        roadDirection: [1, 0],
-        riverDirection: [0, 1],
-        spanFt: 112,
-        widthFt: 44,
-      }],
+      roads: [
+        {
+          routeId: 3,
+          centerline: [
+            [0, 250],
+            [500, 250],
+          ],
+          widthFt: 44,
+          kind: "highway",
+        },
+      ],
+      rivers: [
+        {
+          riverId: 7,
+          centerline: [
+            [250, 0],
+            [250, 500],
+          ],
+          widthFt: 80,
+        },
+      ],
+      crossings: [
+        {
+          id: "crossing:3:7:0",
+          kind: "bridge",
+          roadRouteId: 3,
+          riverId: 7,
+          point: [250, 250],
+          roadDirection: [1, 0],
+          riverDirection: [0, 1],
+          spanFt: 112,
+          widthFt: 44,
+        },
+      ],
     };
 
     // makeGroundWorld is the shared seam used by production World3D and the
     // tactical extractor, so this assertion guards against either view drifting
     // onto independently inferred bridge geometry later.
     const ground = makeGroundWorld(local, 42, region, { skipProps: true });
+    const river = ground.rivers[0];
+    expect(river.waterlineY).toHaveLength(river.points.length);
+    for (let index = 1; index < river.waterlineY!.length; index += 1) {
+      expect(river.waterlineY![index]).toBeLessThanOrEqual(
+        river.waterlineY![index - 1],
+      );
+    }
+    const crossingWaterlineY = riverWaterlineAt(
+      ground,
+      250 * 0.3048,
+      250 * 0.3048,
+    );
+    expect(Number.isFinite(crossingWaterlineY)).toBe(true);
+
+    // Chunk clipping carries the same Y samples into waterGeometry and widens
+    // only the visual ribbon by one classified cell per bank. GroundWorld keeps
+    // the source river width for crossing/referee geometry.
+    const chunk = sampleGroundChunk(ground, 0, 0, 8);
+    expect(chunk.rivers[0].waterlineY).toHaveLength(
+      chunk.rivers[0].points.length,
+    );
+    expect(
+      chunk.rivers[0].width[0] * WORLD3D_CONFIG.METERS_PER_CELL,
+    ).toBeCloseTo(river.widthM + GROUND_METERS_PER_CELL * 2, 6);
     expect(ground.crossings).toEqual([
       expect.objectContaining({
-        id: 'crossing:3:7:0',
-        kind: 'bridge',
+        id: "crossing:3:7:0",
+        kind: "bridge",
         roadRouteId: 3,
         riverId: 7,
         roadSourceIndex: 0,
@@ -292,18 +565,18 @@ describe('regionPolylinesToGround', () => {
     ]);
 
     const bridgeDeck = ground.decks.find(
-      (deck) => deck.sourceCrossingId === 'crossing:3:7:0',
+      (deck) => deck.sourceCrossingId === "crossing:3:7:0",
     );
     expect(bridgeDeck).toMatchObject({
-      kind: 'bridge',
-      sourceCrossingId: 'crossing:3:7:0',
+      kind: "bridge",
+      sourceCrossingId: "crossing:3:7:0",
       detail: expect.objectContaining({ railing: true }),
     });
     expect(bridgeDeck?.cornersM).toHaveLength(4);
     expect(Number.isFinite(bridgeDeck?.topY)).toBe(true);
   });
 
-  it('anchors the bridge deck to the highest carved terrain along its own span, never the absolute-zero shore convention', () => {
+  it("anchors the bridge deck to the highest carved terrain along its own span, never the absolute-zero shore convention", () => {
     // On this sloped fixture the crossing terrain sits ~8 m above the artifact
     // minimum. The old anchor (center sample minus a 27 m water-surface drop,
     // clamped at absolute zero) put the deck at 0.4 m — meters BELOW the
@@ -315,34 +588,46 @@ describe('regionPolylinesToGround', () => {
     const region: RegionArtifact = {
       ...makeRegionArtifact(),
       townSites: [],
-      roads: [{
-        routeId: 3,
-        centerline: [[0, 250], [500, 250]],
-        widthFt: 44,
-        kind: 'highway',
-      }],
-      rivers: [{
-        riverId: 7,
-        centerline: [[250, 0], [250, 500]],
-        widthFt: 80,
-      }],
-      crossings: [{
-        id: 'crossing:3:7:0',
-        kind: 'bridge',
-        roadRouteId: 3,
-        riverId: 7,
-        point: [250, 250],
-        roadDirection: [1, 0],
-        riverDirection: [0, 1],
-        spanFt: 112,
-        widthFt: 44,
-      }],
+      roads: [
+        {
+          routeId: 3,
+          centerline: [
+            [0, 250],
+            [500, 250],
+          ],
+          widthFt: 44,
+          kind: "highway",
+        },
+      ],
+      rivers: [
+        {
+          riverId: 7,
+          centerline: [
+            [250, 0],
+            [250, 500],
+          ],
+          widthFt: 80,
+        },
+      ],
+      crossings: [
+        {
+          id: "crossing:3:7:0",
+          kind: "bridge",
+          roadRouteId: 3,
+          riverId: 7,
+          point: [250, 250],
+          roadDirection: [1, 0],
+          riverDirection: [0, 1],
+          spanFt: 112,
+          widthFt: 44,
+        },
+      ],
     };
 
     const ground = makeGroundWorld(local, 42, region, { skipProps: true });
     const crossing = ground.crossings![0];
     const deck = ground.decks.find(
-      (d) => d.kind === 'bridge' && d.sourceCrossingId === 'crossing:3:7:0',
+      (d) => d.kind === "bridge" && d.sourceCrossingId === "crossing:3:7:0",
     );
     expect(deck).toBeDefined();
 
@@ -363,60 +648,73 @@ describe('regionPolylinesToGround', () => {
     }
 
     // Above the carved bed it spans (the buried-bridge regression)…
-    const bedM = heightToMeters(bilinearHeightAtCellSpace(
-      ground.heights,
-      ground.cols,
-      ground.rows,
-      crossing.xM,
-      crossing.zM,
-    ));
+    const bedM = heightToMeters(
+      bilinearHeightAtCellSpace(
+        ground.heights,
+        ground.cols,
+        ground.rows,
+        crossing.xM,
+        crossing.zM,
+      ),
+    );
     expect(deck!.topY).toBeGreaterThan(bedM);
     // …and anchored to its own span with the deck clearance, not floating.
     expect(deck!.topY).toBeGreaterThan(spanCeilM + 0.1);
     expect(deck!.topY).toBeLessThan(spanCeilM + 0.9);
   });
 
-  it('projects one Region ford receipt into a gravel bar plus stepping stones on the riverbed', () => {
+  it("projects one Region ford receipt into a gravel bar plus stepping stones on the riverbed", () => {
     const local = makeLocalArtifact();
     const region: RegionArtifact = {
       ...makeRegionArtifact(),
       townSites: [],
-      roads: [{
-        routeId: 5,
-        centerline: [[0, 250], [500, 250]],
-        widthFt: 20,
-        kind: 'trail',
-      }],
-      rivers: [{
-        riverId: 9,
-        centerline: [[250, 0], [250, 500]],
-        widthFt: 80,
-      }],
-      crossings: [{
-        id: 'crossing:5:9:0',
-        kind: 'ford',
-        roadRouteId: 5,
-        riverId: 9,
-        point: [250, 250],
-        roadDirection: [1, 0],
-        riverDirection: [0, 1],
-        spanFt: 112,
-        widthFt: 20,
-      }],
+      roads: [
+        {
+          routeId: 5,
+          centerline: [
+            [0, 250],
+            [500, 250],
+          ],
+          widthFt: 20,
+          kind: "trail",
+        },
+      ],
+      rivers: [
+        {
+          riverId: 9,
+          centerline: [
+            [250, 0],
+            [250, 500],
+          ],
+          widthFt: 80,
+        },
+      ],
+      crossings: [
+        {
+          id: "crossing:5:9:0",
+          kind: "ford",
+          roadRouteId: 5,
+          riverId: 9,
+          point: [250, 250],
+          roadDirection: [1, 0],
+          riverDirection: [0, 1],
+          spanFt: 112,
+          widthFt: 20,
+        },
+      ],
     };
 
     const ground = makeGroundWorld(local, 42, region, { skipProps: true });
     expect(ground.crossings).toEqual([
-      expect.objectContaining({ id: 'crossing:5:9:0', kind: 'ford' }),
+      expect.objectContaining({ id: "crossing:5:9:0", kind: "ford" }),
     ]);
 
     // The causeway is a chain of short strips confined to the WET stretch of
-    // the span (dry landings belong to the trail), each hugging the riverbed:
-    // a low step above the deepest channel point, lifted only where its own
-    // bed hump rises — never a bridge-style deck on a bank/clearance
-    // convention. Recompute the channel floor with the production sampling
-    // rule (bilinear over the final carved grid).
-    const strips = ground.decks.filter((deck) => deck.kind === 'ford');
+    // the span (dry landings belong to the trail). Its shared floor comes from
+    // the real river waterline, while local bed humps may lift individual
+    // strips — never a bridge-style deck on a bank/clearance convention.
+    // Recompute the legacy floor too, keeping the pre-waterline safety bounds.
+    const strips = ground.decks.filter((deck) => deck.kind === "ford");
     expect(strips.length).toBeGreaterThanOrEqual(3);
     expect(strips.length).toBeLessThanOrEqual(7); // span 34 m / 5 m strips
     const crossing = ground.crossings![0];
@@ -434,7 +732,7 @@ describe('regionPolylinesToGround', () => {
       channelFloorM = Math.min(channelFloorM, heightToMeters(enc));
     }
     for (const strip of strips) {
-      expect(strip.sourceCrossingId).toBe('crossing:5:9:0');
+      expect(strip.sourceCrossingId).toBe("crossing:5:9:0");
       expect(strip.cornersM).toHaveLength(4);
       expect(strip.topY).toBeGreaterThan(channelFloorM + 0.3);
       // Strips may step up over bed humps but stay causeway-low, and each
@@ -442,33 +740,189 @@ describe('regionPolylinesToGround', () => {
       expect(strip.topY).toBeLessThan(channelFloorM + 2);
       expect(strip.color).toHaveLength(3);
     }
-    // At least one strip rides the shared waterline (deep-channel crown).
-    expect(Math.min(...strips.map((s) => s.topY))).toBeLessThan(channelFloorM + 0.45);
+    // At least one strip rides just below the shared visible surface: the bar
+    // reads as submerged gravel rather than a dry deck over blue terrain.
+    const crossingWaterlineY = riverWaterlineAt(
+      ground,
+      crossing.xM,
+      crossing.zM,
+    );
+    expect(crossingWaterlineY).toBeDefined();
+    expect(Math.min(...strips.map((strip) => strip.topY))).toBeLessThan(
+      crossingWaterlineY!,
+    );
 
     // A single-file stepping-stone line rides beside the bar: small irregular
     // polygons, each just proud of the bed at its OWN spot.
-    const stones = ground.decks.filter((deck) => deck.kind === 'fordStone');
+    const stones = ground.decks.filter((deck) => deck.kind === "fordStone");
     expect(stones.length).toBeGreaterThan(5);
     for (const stone of stones) {
-      expect(stone.sourceCrossingId).toBe('crossing:5:9:0');
+      expect(stone.sourceCrossingId).toBe("crossing:5:9:0");
       expect(stone.cornersM.length).toBeGreaterThanOrEqual(4);
       const centroid = stone.cornersM.reduce(
-        (acc, c) => ({ x: acc.x + c.x / stone.cornersM.length, z: acc.z + c.z / stone.cornersM.length }),
+        (acc, c) => ({
+          x: acc.x + c.x / stone.cornersM.length,
+          z: acc.z + c.z / stone.cornersM.length,
+        }),
         { x: 0, z: 0 },
       );
-      const bedM = heightToMeters(bilinearHeightAtCellSpace(
-        ground.heights,
-        ground.cols,
-        ground.rows,
-        centroid.x,
-        centroid.z,
-      ));
+      const bedM = heightToMeters(
+        bilinearHeightAtCellSpace(
+          ground.heights,
+          ground.cols,
+          ground.rows,
+          centroid.x,
+          centroid.z,
+        ),
+      );
       expect(stone.topY).toBeGreaterThan(bedM + 0.2);
-      expect(stone.topY).toBeLessThan(bedM + 0.8);
+      expect(stone.topY).toBeLessThan(bedM + 1.3);
+      const stoneWaterlineY = riverWaterlineAt(ground, centroid.x, centroid.z);
+      if (stoneWaterlineY != null) {
+        expect(stone.topY).toBeGreaterThan(stoneWaterlineY);
+      }
     }
 
     // Deterministic per seed: the same inputs must lay the same stones.
     const again = makeGroundWorld(local, 42, region, { skipProps: true });
+    expect(again.decks).toEqual(ground.decks);
+  });
+
+  it("renders one widest treatment for shared-corridor receipts while preserving every mechanics crossing", () => {
+    const local = makeLocalArtifact();
+    const region: RegionArtifact = {
+      ...makeRegionArtifact(),
+      townSites: [],
+      // Three routes share the first corridor, while the fourth crosses the
+      // same river farther downstream and must keep its own visible treatment.
+      roads: [
+        {
+          routeId: 5,
+          centerline: [[0, 200], [500, 200]],
+          widthFt: 18,
+          kind: "trail",
+        },
+        {
+          routeId: 6,
+          centerline: [[0, 201], [500, 201]],
+          widthFt: 26,
+          kind: "trail",
+        },
+        {
+          routeId: 7,
+          centerline: [[0, 199], [500, 199]],
+          widthFt: 22,
+          kind: "trail",
+        },
+        {
+          routeId: 8,
+          centerline: [[0, 340], [500, 340]],
+          widthFt: 20,
+          kind: "road",
+        },
+      ],
+      rivers: [
+        {
+          riverId: 9,
+          centerline: [
+            [250, 0],
+            [250, 500],
+          ],
+          widthFt: 80,
+        },
+      ],
+      crossings: [
+        {
+          id: "crossing:5:9:0",
+          kind: "ford",
+          roadRouteId: 5,
+          riverId: 9,
+          point: [250, 200],
+          roadDirection: [1, 0],
+          riverDirection: [0, 1],
+          spanFt: 112,
+          widthFt: 18,
+        },
+        {
+          id: "crossing:6:9:0",
+          kind: "ford",
+          roadRouteId: 6,
+          riverId: 9,
+          point: [250, 201],
+          roadDirection: [1, 0],
+          riverDirection: [0, 1],
+          spanFt: 112,
+          widthFt: 26,
+        },
+        {
+          id: "crossing:7:9:0",
+          kind: "ford",
+          roadRouteId: 7,
+          riverId: 9,
+          point: [250, 199],
+          roadDirection: [1, 0],
+          riverDirection: [0, 1],
+          spanFt: 112,
+          widthFt: 22,
+        },
+        {
+          id: "crossing:8:9:0",
+          kind: "bridge",
+          roadRouteId: 8,
+          riverId: 9,
+          point: [250, 340],
+          roadDirection: [1, 0],
+          riverDirection: [0, 1],
+          spanFt: 112,
+          widthFt: 20,
+        },
+      ],
+    };
+
+    const ground = makeGroundWorld(local, 42, region, { skipProps: true });
+
+    // Mechanics keeps all four authored receipts, including the three route
+    // identities at the shared corridor; tactical extraction still sees them.
+    expect(ground.crossings?.map(({ id }) => id)).toEqual([
+      "crossing:5:9:0",
+      "crossing:6:9:0",
+      "crossing:7:9:0",
+      "crossing:8:9:0",
+    ]);
+
+    // Rendering chooses the 26-foot route as the shared representative and
+    // keeps the downstream crossing. No strip or stone may survive from the
+    // two narrower shared receipts, which would restack the treatment.
+    const renderedTreatmentIds = [
+      ...new Set(
+        ground.decks
+          .filter(
+            ({ kind }) =>
+              kind === "ford" || kind === "fordStone" || kind === "bridge",
+          )
+          .map(({ sourceCrossingId }) => sourceCrossingId),
+      ),
+    ];
+    expect(renderedTreatmentIds).toEqual([
+      "crossing:6:9:0",
+      "crossing:8:9:0",
+    ]);
+    expect(
+      ground.decks.some(
+        ({ kind, sourceCrossingId }) =>
+          kind === "ford" && sourceCrossingId === "crossing:6:9:0",
+      ),
+    ).toBe(true);
+    expect(
+      ground.decks.some(
+        ({ kind, sourceCrossingId }) =>
+          kind === "bridge" && sourceCrossingId === "crossing:8:9:0",
+      ),
+    ).toBe(true);
+
+    // Same seed and receipts must produce the exact same strips and stones.
+    const again = makeGroundWorld(local, 42, region, { skipProps: true });
+    expect(again.crossings).toEqual(ground.crossings);
     expect(again.decks).toEqual(ground.decks);
   });
 });
@@ -480,8 +934,8 @@ describe('regionPolylinesToGround', () => {
 // occupant becomes a marker-only site in only the chunk containing their plot.
 // ============================================================================
 
-describe('sampleGroundChunk occupant sites', () => {
-  it('emits named marker-only occupant sites in the resolved plot chunk', () => {
+describe("sampleGroundChunk occupant sites", () => {
+  it("emits named marker-only occupant sites in the resolved plot chunk", () => {
     const inChunkX = WORLD3D_CONFIG.CHUNK_WORLD_SIZE + 10;
     const inChunkZ = 20;
     const outsideChunkX = 10;
@@ -492,14 +946,14 @@ describe('sampleGroundChunk occupant sites', () => {
           {
             burgId: 7,
             occupantId: 3,
-            name: 'Mara Fen',
+            name: "Mara Fen",
             xM: inChunkX,
             zM: inChunkZ,
           },
           {
             burgId: 7,
             occupantId: 4,
-            name: 'Noro Bel',
+            name: "Noro Bel",
             xM: outsideChunkX,
             zM: inChunkZ,
           },
@@ -512,24 +966,37 @@ describe('sampleGroundChunk occupant sites', () => {
 
     expect(chunk.sites).toContainEqual(
       expect.objectContaining({
-        id: 'wf-occ-7-3',
-        kind: 'landmark',
+        id: "wf-occ-7-3",
+        kind: "landmark",
         markerOnly: true,
-        name: 'Mara Fen',
+        name: "Mara Fen",
         labelRangeM: 12,
       }),
     );
-    expect(chunk.sites.some((site) => site.id === 'wf-occ-7-4')).toBe(false);
+    expect(chunk.sites.some((site) => site.id === "wf-occ-7-4")).toBe(false);
   });
 
-  it('appends the schedule activity to the occupant nameplate when present', () => {
+  it("appends the schedule activity to the occupant nameplate when present", () => {
     const inChunkX = WORLD3D_CONFIG.CHUNK_WORLD_SIZE + 10;
     const inChunkZ = 20;
     const chunk = sampleGroundChunk(
       makeGroundWorldFixture({
         occupants: [
-          { burgId: 7, occupantId: 3, name: 'Mara Fen', xM: inChunkX, zM: inChunkZ, activity: 'sleeping' },
-          { burgId: 7, occupantId: 5, name: 'Tomas', xM: inChunkX, zM: inChunkZ }, // no activity → clean name
+          {
+            burgId: 7,
+            occupantId: 3,
+            name: "Mara Fen",
+            xM: inChunkX,
+            zM: inChunkZ,
+            activity: "sleeping",
+          },
+          {
+            burgId: 7,
+            occupantId: 5,
+            name: "Tomas",
+            xM: inChunkX,
+            zM: inChunkZ,
+          }, // no activity → clean name
         ],
       }),
       1,
@@ -537,20 +1004,23 @@ describe('sampleGroundChunk occupant sites', () => {
       2,
     );
     expect(chunk.sites).toContainEqual(
-      expect.objectContaining({ id: 'wf-occ-7-3', name: 'Mara Fen · asleep' }),
+      expect.objectContaining({ id: "wf-occ-7-3", name: "Mara Fen · asleep" }),
     );
     expect(chunk.sites).toContainEqual(
-      expect.objectContaining({ id: 'wf-occ-7-5', name: 'Tomas' }),
+      expect.objectContaining({ id: "wf-occ-7-5", name: "Tomas" }),
     );
   });
 
-  it('uses the generated roster placement map for work hours and home hours', () => {
+  it("uses the generated roster placement map for work hours and home hours", () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
     const deltas = [makeMarketDelta(1)];
 
     const noonGround = makeGroundWorld(local, 42, region, { hour: 12, deltas });
-    const eveningGround = makeGroundWorld(local, 42, region, { hour: 20, deltas });
+    const eveningGround = makeGroundWorld(local, 42, region, {
+      hour: 20,
+      deltas,
+    });
     const worker = noonGround.rosters[0].occupants.find(
       (occupant) => occupant.workPlotId !== undefined,
     );
@@ -582,6 +1052,116 @@ describe('sampleGroundChunk occupant sites', () => {
       zM: homeBuilding?.zM,
     });
   });
+
+  it("binds each wealthy-home servant roster row to one named body and nameplate site", () => {
+    const local = makeLocalArtifact();
+    const region = makeRegionArtifact();
+    // 02:00 keeps residents at home, so body and marker proofs target the same
+    // wealthy house instead of depending on a daytime activity transition.
+    const ground = makeGroundWorld(local, 42, region, { hour: 2 });
+    const roster = ground.rosters[0];
+    const servants = roster.occupants.filter((occupant) =>
+      occupant.householdMemberId?.includes(":servant:"),
+    );
+
+    expect(servants.length).toBeGreaterThan(0);
+    for (const servant of servants) {
+      const building = ground.buildings.find(
+        (candidate) =>
+          candidate.id === `wf-plot-${roster.burgId}-${servant.homePlotId}`,
+      );
+      const body = building?.occupants?.find(
+        (candidate) =>
+          candidate.householdMemberId === servant.householdMemberId,
+      );
+      const marker = ground.occupants.find(
+        (candidate) => candidate.occupantId === servant.id,
+      );
+
+      // Stable household key, numeric render/nameplate id, and full name all
+      // agree. This is the exact correspondence the old split generators lost.
+      expect(body).toMatchObject({
+        burgId: roster.burgId,
+        id: servant.id,
+        name: servant.name,
+        householdMemberId: servant.householdMemberId,
+      });
+      expect(marker).toMatchObject({
+        occupantId: servant.id,
+        name: servant.name,
+        xM: building?.xM,
+        zM: building?.zM,
+      });
+
+      const chunk = sampleGroundChunk(
+        ground,
+        Math.floor((building?.xM ?? 0) / WORLD3D_CONFIG.CHUNK_WORLD_SIZE),
+        Math.floor((building?.zM ?? 0) / WORLD3D_CONFIG.CHUNK_WORLD_SIZE),
+        2,
+      );
+      const nameplateSite = chunk.sites.find(
+        (site) => site.id === `wf-occ-${roster.burgId}-${servant.id}`,
+      );
+      expect(nameplateSite?.name).toContain(servant.name);
+    }
+
+    // Each staffed home contributes exactly two canonical servants to both
+    // sides; neither a roster-only row nor an extra body can hide in the count.
+    const servantHomeIds = new Set(
+      servants.map((servant) => servant.homePlotId),
+    );
+    for (const homePlotId of servantHomeIds) {
+      const rosterAtHome = servants.filter(
+        (servant) => servant.homePlotId === homePlotId,
+      );
+      const bodyAtHome =
+        ground.buildings
+          .find(
+            (building) =>
+              building.id === `wf-plot-${roster.burgId}-${homePlotId}`,
+          )
+          ?.occupants?.filter((body) =>
+            body.householdMemberId?.includes(":servant:"),
+          ) ?? [];
+      expect(rosterAtHome).toHaveLength(2);
+      expect(bodyAtHome.map((body) => body.householdMemberId).sort()).toEqual(
+        rosterAtHome.map((servant) => servant.householdMemberId).sort(),
+      );
+    }
+  });
+
+  it("bakes each joined body's owner hours from the canonical town roster", () => {
+    const ground = makeGroundWorld(makeLocalArtifact(), 42, makeRegionArtifact(), {
+      hour: 7,
+    });
+    const roster = ground.rosters[0];
+    const joined = roster.occupants.filter(
+      (member) => member.householdMemberId !== undefined,
+    );
+
+    expect(joined.length).toBeGreaterThan(0);
+    for (const member of joined) {
+      const body = ground.buildings
+        .find(
+          (building) =>
+            building.id === `wf-plot-${roster.burgId}-${member.homePlotId}`,
+        )
+        ?.occupants?.find(
+          (candidate) =>
+            candidate.householdMemberId === member.householdMemberId,
+        );
+      const expected = body?.stationsByHour.map(
+        (station) =>
+          station !== null &&
+          station.activity !== "work" &&
+          station.activity !== "out",
+      );
+
+      // Authored work/out points identify the exterior owner even when they
+      // retain a useful doorway pose; meals and chores remain interior-owned.
+      expect(body?.interiorOwnedByHour).toEqual(expected);
+    }
+  });
 });
 
 // ============================================================================
@@ -592,8 +1172,8 @@ describe('sampleGroundChunk occupant sites', () => {
 // building sites, interiors, and occupant labels read from it.
 // ============================================================================
 
-describe('makeGroundWorld building terrain pads', () => {
-  it('levels every footprint to its centroid or negotiated row terrace', () => {
+describe("makeGroundWorld building terrain pads", () => {
+  it("levels every footprint to its centroid or negotiated row terrace", () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
     const baseline = localArtifactToWorldData(local, 42);
@@ -611,8 +1191,12 @@ describe('makeGroundWorld building terrain pads', () => {
       buildingsWithCoveredCells++;
 
       const centroid = {
-        x: building.cornersM.reduce((sum, corner) => sum + corner.x, 0) / building.cornersM.length,
-        z: building.cornersM.reduce((sum, corner) => sum + corner.z, 0) / building.cornersM.length,
+        x:
+          building.cornersM.reduce((sum, corner) => sum + corner.x, 0) /
+          building.cornersM.length,
+        z:
+          building.cornersM.reduce((sum, corner) => sum + corner.z, 0) /
+          building.cornersM.length,
       };
       const rawPadHeight = bilinearHeightAtCellSpace(
         baseline.heights,
@@ -621,20 +1205,27 @@ describe('makeGroundWorld building terrain pads', () => {
         centroid.x,
         centroid.z,
       );
-      const expectedPadHeight = building.terrainTerrace?.padHeightEncoded
-        ?? rawPadHeight;
+      const expectedPadHeight =
+        building.terrainTerrace?.padHeightEncoded ?? rawPadHeight;
       if (building.terrainTerrace) {
         terracedBuildings++;
-        expect(building.ensemble?.kind === 'row'
-          || building.ensemble?.kind === 'market-arcade').toBe(true);
-        expect(building.terrainTerrace.blockKey).toBe(building.ensemble?.blockKey);
-        const group = terracesByBlock.get(building.terrainTerrace.blockKey) ?? [];
+        expect(
+          building.ensemble?.kind === "row" ||
+            building.ensemble?.kind === "market-arcade",
+        ).toBe(true);
+        expect(building.terrainTerrace.blockKey).toBe(
+          building.ensemble?.blockKey,
+        );
+        const group =
+          terracesByBlock.get(building.terrainTerrace.blockKey) ?? [];
         group.push(building);
         terracesByBlock.set(building.terrainTerrace.blockKey, group);
       }
 
       for (const index of indexes) {
-        if (Math.abs(ground.heights[index] - ground.heights[indexes[0]]) > 1e-9) {
+        if (
+          Math.abs(ground.heights[index] - ground.heights[indexes[0]]) > 1e-9
+        ) {
           unevenFootprintCells++;
         }
       }
@@ -655,13 +1246,14 @@ describe('makeGroundWorld building terrain pads', () => {
         const current = group[index].terrainTerrace!;
         const stepDelta = current.stepIndex - previous.stepIndex;
         expect(Math.abs(stepDelta)).toBeLessThanOrEqual(1);
-        expect(current.padHeightEncoded - previous.padHeightEncoded)
-          .toBeCloseTo(stepDelta * TERRACE_STEP_ENCODED, 9);
+        expect(
+          current.padHeightEncoded - previous.padHeightEncoded,
+        ).toBeCloseTo(stepDelta * TERRACE_STEP_ENCODED, 9);
       }
     }
   });
 
-  it('keeps padded terrain deterministic across repeated construction', () => {
+  it("keeps padded terrain deterministic across repeated construction", () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
     const first = makeGroundWorld(local, 42, region);
@@ -672,7 +1264,7 @@ describe('makeGroundWorld building terrain pads', () => {
     expect(second.heights).toEqual(first.heights);
   });
 
-  it('exposes townPlans + boundsFeet that drive ground-meters agent motion', () => {
+  it("exposes townPlans + boundsFeet that drive ground-meters agent motion", () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
     const ground = makeGroundWorld(local, 42, region, { hour: 12 });
@@ -686,7 +1278,13 @@ describe('makeGroundWorld building terrain pads', () => {
     // Feed the exposed inputs into the motion primitive → positioned agents.
     const { burgId, plan } = ground.townPlans![0];
     const roster = ground.rosters.find((r) => r.burgId === burgId)!;
-    const agents = groundTownAgentsAt(burgId, plan, roster, ground.boundsFeet!, 12.25);
+    const agents = groundTownAgentsAt(
+      burgId,
+      plan,
+      roster,
+      ground.boundsFeet!,
+      12.25,
+    );
     expect(agents.length).toBe(roster.occupants.length);
     for (const a of agents) {
       expect(Number.isFinite(a.xM)).toBe(true);
@@ -694,31 +1292,33 @@ describe('makeGroundWorld building terrain pads', () => {
     }
   });
 
-  it('carries atlas settlement-defense facts beside the matching ground town', () => {
+  it("carries atlas settlement-defense facts beside the matching ground town", () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
     const ground = makeGroundWorld(local, 42, region, { hour: 12 });
     const burgId = region.townSites[0].burgId;
-    const defense = ground.settlementDefenses?.find((candidate) => candidate.burgId === burgId);
+    const defense = ground.settlementDefenses?.find(
+      (candidate) => candidate.burgId === burgId,
+    );
 
     // The fixture's burg is Mevile. Its exact generated state and stationed
     // fleet prove that Ground is forwarding atlas military facts, even though
     // this particular settlement has no land regiment for a gate patrol.
     expect(defense).toMatchObject({
       burgId,
-      burgName: 'Mevile',
-      stateName: 'Mevilia',
+      burgName: "Mevile",
+      stateName: "Mevilia",
       stationedRegiments: [
         expect.objectContaining({
-          name: '1st Fleet',
+          name: "1st Fleet",
           naval: true,
-          units: [{ unitType: 'fleet', count: 7 }],
+          units: [{ unitType: "fleet", count: 7 }],
         }),
       ],
     });
   });
 
-  it('opens the wall ring at road gatehouses (not only water gates)', () => {
+  it("opens the wall ring at road gatehouses (not only water gates)", () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
     const ground = makeGroundWorld(local, 42, region);
@@ -731,7 +1331,7 @@ describe('makeGroundWorld building terrain pads', () => {
       expect(Number.isFinite(g.zM)).toBe(true);
       expect(Number.isFinite(g.angleRad)).toBe(true);
       expect(g.gapHalfM).toBeGreaterThan(0);
-      expect(['twinTowers', 'tunnelBlock', 'singleTower']).toContain(g.form);
+      expect(["twinTowers", "tunnelBlock", "singleTower"]).toContain(g.form);
       expect(g.colorHex).toMatch(/^#/);
       expect(g.burgId).toBe(7);
     }
@@ -743,7 +1343,9 @@ describe('makeGroundWorld building terrain pads', () => {
     for (const g of ground.gatehouses) {
       for (const run of ground.walls) {
         for (const p of run.points) {
-          expect(Math.hypot(p.x - g.xM, p.z - g.zM)).toBeGreaterThan(g.gapHalfM * 0.99);
+          expect(Math.hypot(p.x - g.xM, p.z - g.zM)).toBeGreaterThan(
+            g.gapHalfM * 0.99,
+          );
         }
       }
     }
@@ -754,7 +1356,7 @@ describe('makeGroundWorld building terrain pads', () => {
     }
   });
 
-  it('places SP4 hidden sites in-bounds, deterministically (proximity discovery)', () => {
+  it("places SP4 hidden sites in-bounds, deterministically (proximity discovery)", () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
     const a = makeGroundWorld(local, 42, region);
@@ -770,15 +1372,15 @@ describe('makeGroundWorld building terrain pads', () => {
     expect(b.hiddenSites).toEqual(a.hiddenSites); // deterministic per seed + window
   });
 
-  it('surfaces forest POI markers as marker-derived hidden sites (forests T8b)', () => {
+  it("surfaces forest POI markers as marker-derived hidden sites (forests T8b)", () => {
     const local = makeLocalArtifact();
     const region: RegionArtifact = {
       ...makeRegionArtifact(),
       markers: [
-        { type: 'hunter-camp', icon: '🏕️', x: 120, y: 80 },
-        { type: 'hermit-hollow', icon: '🛖', x: 200, y: 150 },
-        { type: 'forest-shrine', icon: '⛩️', x: 300, y: 220 },
-        { type: 'beast-den', icon: '🐾', x: 400, y: 320 },
+        { type: "hunter-camp", icon: "🏕️", x: 120, y: 80 },
+        { type: "hermit-hollow", icon: "🛖", x: 200, y: 150 },
+        { type: "forest-shrine", icon: "⛩️", x: 300, y: 220 },
+        { type: "beast-den", icon: "🐾", x: 400, y: 320 },
       ],
     };
     const ground = makeGroundWorld(local, 42, region);
@@ -787,24 +1389,30 @@ describe('makeGroundWorld building terrain pads', () => {
     // of kind 'camp' at the marker's feet→meters spot, revealed by the existing
     // proximity bridge — no new discovery machinery.
     const FEET_TO_METERS = 0.3048;
-    const camp = ground.hiddenSites.find((s) => s.id.includes('hunter-camp'));
+    const camp = ground.hiddenSites.find((s) => s.id.includes("hunter-camp"));
     expect(camp).toBeDefined();
-    expect(camp?.kind).toBe('camp');
-    expect(camp?.name).toBe('Camp');
+    expect(camp?.kind).toBe("camp");
+    expect(camp?.name).toBe("Camp");
     expect(camp?.xM).toBeCloseTo(120 * FEET_TO_METERS, 6);
     expect(camp?.zM).toBeCloseTo(80 * FEET_TO_METERS, 6);
 
     // The other three forest POI types map onto existing kinds the same way.
-    expect(ground.hiddenSites.find((s) => s.id.includes('hermit-hollow'))?.kind).toBe('camp');
-    expect(ground.hiddenSites.find((s) => s.id.includes('forest-shrine'))?.kind).toBe('shrine');
-    expect(ground.hiddenSites.find((s) => s.id.includes('beast-den'))?.kind).toBe('cave');
+    expect(
+      ground.hiddenSites.find((s) => s.id.includes("hermit-hollow"))?.kind,
+    ).toBe("camp");
+    expect(
+      ground.hiddenSites.find((s) => s.id.includes("forest-shrine"))?.kind,
+    ).toBe("shrine");
+    expect(
+      ground.hiddenSites.find((s) => s.id.includes("beast-den"))?.kind,
+    ).toBe("cave");
 
     // Task 11 guard: with no atlas-cell anchor provided, the canopy stays null
     // — non-forest / anchor-less builds keep exactly the pre-canopy behavior.
     expect(ground.canopy ?? null).toBeNull();
   });
 
-  it('correctly maps worldBusinesses and NPC owner names to buildings and keepers', () => {
+  it("correctly maps worldBusinesses and NPC owner names to buildings and keepers", () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
     const deltas = [makeMarketDelta(1)]; // makes plot 1 a market
@@ -816,22 +1424,42 @@ describe('makeGroundWorld building terrain pads', () => {
 
     const mockNpc: any = {
       id: npcId,
-      name: 'Olaf the Keeper',
-      role: 'merchant',
-      biography: { level: 3, age: 34, backgroundId: 'merchant', classId: 'merchant', family: [] },
-      stats: { hp: 10, maxHp: 10, armorClass: 10, speed: 30, initiativeBonus: 0, passivePerception: 10, proficiencyBonus: 2 },
+      name: "Olaf the Keeper",
+      role: "merchant",
+      biography: {
+        level: 3,
+        age: 34,
+        backgroundId: "merchant",
+        classId: "merchant",
+        family: [],
+      },
+      stats: {
+        hp: 10,
+        maxHp: 10,
+        armorClass: 10,
+        speed: 30,
+        initiativeBonus: 0,
+        passivePerception: 10,
+        proficiencyBonus: 2,
+      },
     };
 
     const mockBusiness: any = {
       id: bizId,
-      name: 'The Rusty Anvil',
-      locationId: 'coord_0_0',
+      name: "The Rusty Anvil",
+      locationId: "coord_0_0",
       ownerId: npcId,
-      ownerType: 'npc',
+      ownerType: "npc",
       burgId,
       plotId,
-      businessType: 'smithy',
-      metrics: { customerSatisfaction: 80, reputation: 80, competitorPressure: 10, supplyChainHealth: 80, staffEfficiency: 80 },
+      businessType: "smithy",
+      metrics: {
+        customerSatisfaction: 80,
+        reputation: 80,
+        competitorPressure: 10,
+        supplyChainHealth: 80,
+        staffEfficiency: 80,
+      },
     };
 
     const ground = makeGroundWorld(local, 42, region, {
@@ -842,23 +1470,27 @@ describe('makeGroundWorld building terrain pads', () => {
     });
 
     // Verify building for plot 1 got the business name
-    const building = ground.buildings.find((b) => b.id === `wf-plot-${burgId}-${plotId}`);
+    const building = ground.buildings.find(
+      (b) => b.id === `wf-plot-${burgId}-${plotId}`,
+    );
     expect(building).toBeDefined();
-    expect(building?.name).toBe('The Rusty Anvil');
+    expect(building?.name).toBe("The Rusty Anvil");
     expect(building?.unlabeled).toBe(false);
 
     // Find the worker assigned to plot 1 and check that name matches NPC owner
-    const worker = ground.rosters[0].occupants.find((o) => o.workPlotId === plotId);
+    const worker = ground.rosters[0].occupants.find(
+      (o) => o.workPlotId === plotId,
+    );
     expect(worker).toBeDefined();
-    expect(worker?.name).toBe('Olaf the Keeper');
+    expect(worker?.name).toBe("Olaf the Keeper");
 
     // Check that the ground occupant site got Olaf's name
     const occupant = ground.occupants.find((o) => o.occupantId === worker!.id);
     expect(occupant).toBeDefined();
-    expect(occupant?.name).toBe('Olaf the Keeper');
+    expect(occupant?.name).toBe("Olaf the Keeper");
   });
 
-  it('binds businesses registered against canonicalArtifactTownForSite plot IDs (no rect-generator drift)', () => {
+  it("binds businesses registered against canonicalArtifactTownForSite plot IDs (no rect-generator drift)", () => {
     // World3DWrapper pre-registers a business per market/workshop plot, keyed by
     // `biz_burg_<id>_plot_<plotId>`, and the renderer (makeGroundWorld) looks
     // businesses up by the SAME key. Both must derive plots from ONE generator —
@@ -874,29 +1506,42 @@ describe('makeGroundWorld building terrain pads', () => {
     const { plan } = canonicalArtifactTownForSite(42, site);
     const atlasBurg = getBridgeAtlas(42).pack.burgs?.[burgId];
     expect(plan.identity).toMatchObject({
-      sourceKind: 'atlas-burg',
+      sourceKind: "atlas-burg",
       sourceId: burgId,
       name: atlasBurg?.name,
     });
-    const shopPlots = plan.plots.filter((p) => p.role === 'market' || p.role === 'workshop');
+    const shopPlots = plan.plots.filter(
+      (p) => p.role === "market" || p.role === "workshop",
+    );
     expect(shopPlots.length).toBeGreaterThan(0);
 
     const worldBusinesses: Record<string, any> = {};
     for (const p of shopPlots) {
       const bizId = `biz_burg_${burgId}_plot_${p.id}`;
-      worldBusinesses[bizId] = { id: bizId, name: `Shop ${p.id}`, ownerId: `npc_${p.id}` };
+      worldBusinesses[bizId] = {
+        id: bizId,
+        name: `Shop ${p.id}`,
+        ownerId: `npc_${p.id}`,
+      };
     }
 
     // Render source: makeGroundWorld derives its plots from the same helper and
     // looks each business up by plot id.
-    const ground = makeGroundWorld(local, 42, region, { hour: 12, worldBusinesses });
-    expect(ground.towns.find((town) => town.burgId === burgId)?.name).toBe(plan.identity?.name);
+    const ground = makeGroundWorld(local, 42, region, {
+      hour: 12,
+      worldBusinesses,
+    });
+    expect(ground.towns.find((town) => town.burgId === burgId)?.name).toBe(
+      plan.identity?.name,
+    );
 
     // Every shop building that the renderer kept must carry its registered name —
     // i.e. the registration IDs and the rendered plot IDs are the same space.
     let bound = 0;
     for (const p of shopPlots) {
-      const building = ground.buildings.find((b) => b.id === `wf-plot-${burgId}-${p.id}`);
+      const building = ground.buildings.find(
+        (b) => b.id === `wf-plot-${burgId}-${p.id}`,
+      );
       if (!building) continue; // culled (covers no ground tile) — not a binding failure
       expect(building.name).toBe(`Shop ${p.id}`);
       bound++;
@@ -904,7 +1549,7 @@ describe('makeGroundWorld building terrain pads', () => {
     expect(bound).toBeGreaterThan(0);
   });
 
-  it('carries spatial district identity into visible production building parts', () => {
+  it("carries spatial district identity into visible production building parts", () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
     const site = region.townSites[0];
@@ -912,10 +1557,12 @@ describe('makeGroundWorld building terrain pads', () => {
     const stamped = plan.plots.filter((plot) => plot.architecture);
 
     expect(stamped.length).toBeGreaterThan(0);
-    expect(new Set(stamped.map((plot) => plot.architecture!.districtKey)).size)
-      .toBeGreaterThan(1);
-    expect(new Set(stamped.map((plot) => plot.architecture!.buildingKey)).size)
-      .toBe(stamped.length);
+    expect(
+      new Set(stamped.map((plot) => plot.architecture!.districtKey)).size,
+    ).toBeGreaterThan(1);
+    expect(
+      new Set(stamped.map((plot) => plot.architecture!.buildingKey)).size,
+    ).toBe(stamped.length);
 
     const ground = makeGroundWorld(local, 42, region, { hour: 12 });
     const artifactById = new Map(stamped.map((plot) => [plot.id, plot]));
@@ -925,7 +1572,7 @@ describe('makeGroundWorld building terrain pads', () => {
     let visibleHistory = 0;
     let visibleMaterials = 0;
     for (const building of ground.buildings) {
-      const plotId = Number(building.id.split('-').at(-1));
+      const plotId = Number(building.id.split("-").at(-1));
       const artifact = artifactById.get(plotId);
       if (!artifact?.architecture) continue;
       visibleStamped++;
@@ -933,27 +1580,34 @@ describe('makeGroundWorld building terrain pads', () => {
       // The artifact material reaches the real structural wall parts, while a
       // non-plain district grammar reaches separately tagged facade dressing.
       expect(building.wallColorHex).toBe(artifact.wallColorHex);
-      expect(building.parts.some((part) => part.colorHex === artifact.wallColorHex))
-        .toBe(true);
-      if (artifact.architecture.facadePattern !== 'plain') {
-        expect(building.parts.some((part) => part.tag === FACADE_PART_TAG)).toBe(true);
+      expect(
+        building.parts.some((part) => part.colorHex === artifact.wallColorHex),
+      ).toBe(true);
+      if (artifact.architecture.facadePattern !== "plain") {
+        expect(
+          building.parts.some((part) => part.tag === FACADE_PART_TAG),
+        ).toBe(true);
         visibleFacade++;
       }
-      const materialParts = building.parts.filter((part) =>
-        part.tag === MATERIAL_PART_TAG);
+      const materialParts = building.parts.filter(
+        (part) => part.tag === MATERIAL_PART_TAG,
+      );
       expect(materialParts.length).toBeGreaterThan(0);
       expect(materialParts.every((part) => part.materialDetailKind)).toBe(true);
       visibleMaterials++;
-      const motifParts = building.parts.filter((part) => part.tag === MOTIF_PART_TAG);
+      const motifParts = building.parts.filter(
+        (part) => part.tag === MOTIF_PART_TAG,
+      );
       if (motifParts.length > 0) {
         // Every production motif box carries its exact semantic cue, which lets
         // render proofs distinguish a sign from a vent without color guessing.
         expect(motifParts.every((part) => part.motifKind)).toBe(true);
         visibleMotifs++;
       }
-      const historyParts = building.parts.filter((part) =>
-        part.tag === HISTORY_PART_TAG);
-      if (artifact.architecture.ageBand !== 'new') {
+      const historyParts = building.parts.filter(
+        (part) => part.tag === HISTORY_PART_TAG,
+      );
+      if (artifact.architecture.ageBand !== "new") {
         expect(historyParts.every((part) => part.historyKind)).toBe(true);
         if (historyParts.length > 0) visibleHistory++;
       }
@@ -973,43 +1627,44 @@ describe('makeGroundWorld building terrain pads', () => {
 // This section verifies that extractLocalTerrainPatch extracts a 40x30 local
 // patch matching the spot's ground heights, biomes, features, and buildings.
 // ============================================================================
-describe('extractLocalTerrainPatch', () => {
-  it('projects a WorldForge road into clear, source-addressable referee cells', () => {
+describe("extractLocalTerrainPatch", () => {
+  it("projects a WorldForge road into clear, source-addressable referee cells", () => {
     const cols = 100;
     const rows = 100;
     const ground = makeGroundWorldFixture({
       cols,
       rows,
       heights: new Array(cols * rows).fill(0),
-      biomeIds: new Array(cols * rows).fill('plains'),
+      biomeIds: new Array(cols * rows).fill("plains"),
       extentMetersX: cols * GROUND_METERS_PER_CELL,
       extentMetersZ: rows * GROUND_METERS_PER_CELL,
-      roads: [{
-        points: [{ x: 20, z: 50 }, { x: 80, z: 50 }],
-        widthM: 3,
-        sourceKind: 'region-road',
-      }],
+      roads: [
+        {
+          points: [
+            { x: 20, z: 50 },
+            { x: 80, z: 50 },
+          ],
+          widthM: 3,
+          sourceKind: "region-road",
+        },
+      ],
       // The road footprint deliberately crosses a tree. Source route clearance
       // wins, so the tactical road is continuous instead of becoming blocked by
       // a stale vegetation placement from another source layer.
-      features: [{ id: 1, kind: 'tree', xM: 50, zM: 50 }],
+      features: [{ id: 1, kind: "tree", xM: 50, zM: 50 }],
     });
 
-    const patch = extractLocalTerrainPatch(
-      ground,
-      50,
-      50,
-      'forest',
-      42,
-      { width: 9, height: 9 },
-    );
-    const roadTile = patch.tiles.get('4-4');
-    const offRoadTile = patch.tiles.get('4-0');
+    const patch = extractLocalTerrainPatch(ground, 50, 50, "forest", 42, {
+      width: 9,
+      height: 9,
+    });
+    const roadTile = patch.tiles.get("4-4");
+    const offRoadTile = patch.tiles.get("4-0");
 
     expect(roadTile?.surface).toEqual({
-      kind: 'road',
-      source: 'worldforge-road',
-      sourceRole: 'regional-route',
+      kind: "road",
+      source: "worldforge-road",
+      sourceRole: "regional-route",
       sourceIndex: 0,
       widthMeters: 3,
     });
@@ -1023,53 +1678,65 @@ describe('extractLocalTerrainPatch', () => {
     expect(patch.targetableObjects).toEqual([]);
   });
 
-  it('publishes one provenance-bearing target per represented feature and catalog prop', () => {
+  it("publishes one provenance-bearing target per represented feature and catalog prop", () => {
     const cols = 100;
     const rows = 100;
     const ground = makeGroundWorldFixture({
       cols,
       rows,
       heights: new Array(cols * rows).fill(0),
-      biomeIds: new Array(cols * rows).fill('plains'),
+      biomeIds: new Array(cols * rows).fill("plains"),
       extentMetersX: cols * GROUND_METERS_PER_CELL,
       extentMetersZ: rows * GROUND_METERS_PER_CELL,
-      features: [{ id: 7, kind: 'tree', xM: 50, zM: 50 }],
-      props: [{
-        defId: 'crate',
-        xM: 54,
-        zM: 50,
-        rotationRad: 0.25,
-        variation: { scale: 1, variant: 0 },
-      }],
+      features: [{ id: 7, kind: "tree", xM: 50, zM: 50 }],
+      props: [
+        {
+          defId: "crate",
+          xM: 54,
+          zM: 50,
+          rotationRad: 0.25,
+          variation: { scale: 1, variant: 0 },
+        },
+      ],
     });
 
-    const first = extractLocalTerrainPatch(ground, 50, 50, 'forest', 42, { width: 9, height: 9 });
-    const second = extractLocalTerrainPatch(ground, 50, 50, 'forest', 42, { width: 9, height: 9 });
-    const tree = first.targetableObjects?.find((object) => object.source?.kind === 'worldforge-feature');
-    const crate = first.targetableObjects?.find((object) => object.source?.kind === 'worldforge-prop');
+    const first = extractLocalTerrainPatch(ground, 50, 50, "forest", 42, {
+      width: 9,
+      height: 9,
+    });
+    const second = extractLocalTerrainPatch(ground, 50, 50, "forest", 42, {
+      width: 9,
+      height: 9,
+    });
+    const tree = first.targetableObjects?.find(
+      (object) => object.source?.kind === "worldforge-feature",
+    );
+    const crate = first.targetableObjects?.find(
+      (object) => object.source?.kind === "worldforge-prop",
+    );
 
     expect(first.targetableObjects).toHaveLength(2);
     expect(first.targetableObjects).toEqual(second.targetableObjects);
     expect(tree).toMatchObject({
-      name: 'Tree',
-      size: 'Large',
+      name: "Tree",
+      size: "Large",
       position: { x: 4, y: 4 },
       isWornOrCarried: false,
       isMagical: false,
       isFixedToSurface: true,
       source: {
-        sourceId: 'feature:7',
-        sourceKind: 'tree',
+        sourceId: "feature:7",
+        sourceKind: "tree",
         worldMeters: { x: 50, z: 50 },
       },
     });
     expect(crate).toMatchObject({
-      name: 'Crate',
-      size: 'Small',
+      name: "Crate",
+      size: "Small",
       isWornOrCarried: false,
       isMagical: false,
       source: {
-        sourceKind: 'crate',
+        sourceKind: "crate",
         worldMeters: { x: 54, z: 50 },
       },
     });
@@ -1077,65 +1744,78 @@ describe('extractLocalTerrainPatch', () => {
     // those facts; extraction must not guess that a crate is loose or light.
     expect(crate?.isFixedToSurface).toBeUndefined();
     expect(crate?.weightPounds).toBeUndefined();
-    expect(first.tiles.get(`${tree?.position.x}-${tree?.position.y}`)?.decoration).toBe('tree');
+    expect(
+      first.tiles.get(`${tree?.position.x}-${tree?.position.y}`)?.decoration,
+    ).toBe("tree");
   });
 
-  it('projects every source resident while preserving live movement and shared-cell identities', () => {
+  it("projects every source resident while preserving live movement and shared-cell identities", () => {
     const ground = makeGroundWorldFixture({
       extentMetersX: 100,
       extentMetersZ: 100,
-      occupants: [{
-        burgId: 14,
-        occupantId: 1,
-        name: 'Static Resident',
-        xM: 50,
-        zM: 50,
-        activity: 'home',
-      }],
+      occupants: [
+        {
+          burgId: 14,
+          occupantId: 1,
+          name: "Static Resident",
+          xM: 50,
+          zM: 50,
+          activity: "home",
+        },
+      ],
     });
     const liveResidents = [
       {
         burgId: 14,
         occupantId: 1,
-        name: 'Static Resident',
+        name: "Static Resident",
         xM: 51,
         zM: 50,
-        activity: 'working' as const,
+        activity: "working" as const,
         moving: true,
       },
       {
         burgId: 14,
         occupantId: 2,
-        name: 'Shared Cell Resident',
+        name: "Shared Cell Resident",
         xM: 51.2,
         zM: 50,
-        activity: 'out' as const,
+        activity: "out" as const,
         moving: false,
       },
     ];
 
-    const staticPatch = extractLocalTerrainPatch(ground, 50, 50, 'forest', 42, { width: 9, height: 9 });
-    const livePatch = extractLocalTerrainPatch(ground, 50, 50, 'forest', 42, {
+    const staticPatch = extractLocalTerrainPatch(ground, 50, 50, "forest", 42, {
+      width: 9,
+      height: 9,
+    });
+    const livePatch = extractLocalTerrainPatch(ground, 50, 50, "forest", 42, {
       width: 9,
       height: 9,
       occupants: liveResidents,
     });
 
-    expect(staticPatch.worldOccupants).toMatchObject([{
-      id: 'worldforge-occupant:14:1',
-      name: 'Static Resident',
-      position: { x: 4, y: 4 },
-      activity: 'home',
-      moving: false,
-    }]);
+    expect(staticPatch.worldOccupants).toMatchObject([
+      {
+        id: "worldforge-occupant:14:1",
+        name: "Static Resident",
+        position: { x: 4, y: 4 },
+        activity: "home",
+        moving: false,
+      },
+    ]);
     expect(livePatch.worldOccupants).toHaveLength(2);
-    expect(livePatch.worldOccupants?.map((occupant) => occupant.position))
-      .toEqual([{ x: 5, y: 4 }, { x: 5, y: 4 }]);
+    expect(
+      livePatch.worldOccupants?.map((occupant) => occupant.position),
+    ).toEqual([
+      { x: 5, y: 4 },
+      { x: 5, y: 4 },
+    ]);
     expect(livePatch.worldOccupants?.[0]).toMatchObject({
-      activity: 'working',
+      activity: "working",
       moving: true,
       source: {
-        kind: 'worldforge-occupant',
+        kind: "worldforge-occupant",
         burgId: 14,
         occupantId: 1,
         worldMeters: { x: 51, z: 50 },
@@ -1144,142 +1824,174 @@ describe('extractLocalTerrainPatch', () => {
 
     const obstructedGround = makeGroundWorldFixture({
       ...ground,
-      props: [{
-        defId: 'barrel',
-        xM: 51,
-        zM: 50,
-        rotationRad: 0,
-        variation: { scale: 1, variant: 0 },
-      }],
+      props: [
+        {
+          defId: "barrel",
+          xM: 51,
+          zM: 50,
+          rotationRad: 0,
+          variation: { scale: 1, variant: 0 },
+        },
+      ],
     });
-    const snapped = extractLocalTerrainPatch(obstructedGround, 50, 50, 'forest', 42, {
-      width: 9,
-      height: 9,
-      occupants: liveResidents,
-    });
-    const snappedAgain = extractLocalTerrainPatch(obstructedGround, 50, 50, 'forest', 42, {
-      width: 9,
-      height: 9,
-      occupants: liveResidents,
-    });
+    const snapped = extractLocalTerrainPatch(
+      obstructedGround,
+      50,
+      50,
+      "forest",
+      42,
+      {
+        width: 9,
+        height: 9,
+        occupants: liveResidents,
+      },
+    );
+    const snappedAgain = extractLocalTerrainPatch(
+      obstructedGround,
+      50,
+      50,
+      "forest",
+      42,
+      {
+        width: 9,
+        height: 9,
+        occupants: liveResidents,
+      },
+    );
     expect(snapped.worldOccupants).toEqual(snappedAgain.worldOccupants);
-    expect(snapped.worldOccupants?.every((occupant) => (
-      !snapped.tiles.get(`${occupant.position.x}-${occupant.position.y}`)?.blocksMovement
-    ))).toBe(true);
+    expect(
+      snapped.worldOccupants?.every(
+        (occupant) =>
+          !snapped.tiles.get(`${occupant.position.x}-${occupant.position.y}`)
+            ?.blocksMovement,
+      ),
+    ).toBe(true);
     // Snapping changes only the tactical placement; the exact moving-world
     // coordinate remains available for provenance and visual comparison.
-    expect(snapped.worldOccupants?.[0].source.worldMeters).toEqual({ x: 51, z: 50 });
+    expect(snapped.worldOccupants?.[0].source.worldMeters).toEqual({
+      x: 51,
+      z: 50,
+    });
   });
 
-  it('does not invent a passable road crossing where source water has no ford or bridge', () => {
+  it("does not invent a passable road crossing where source water has no ford or bridge", () => {
     const cols = 40;
     const rows = 40;
     const ground = makeGroundWorldFixture({
       cols,
       rows,
       heights: new Array(cols * rows).fill(0),
-      biomeIds: new Array(cols * rows).fill('water'),
+      biomeIds: new Array(cols * rows).fill("water"),
       extentMetersX: cols * GROUND_METERS_PER_CELL,
       extentMetersZ: rows * GROUND_METERS_PER_CELL,
-      roads: [{
-        points: [{ x: 10, z: 30 }, { x: 50, z: 30 }],
-        widthM: 4,
-      }],
+      roads: [
+        {
+          points: [
+            { x: 10, z: 30 },
+            { x: 50, z: 30 },
+          ],
+          widthM: 4,
+        },
+      ],
     });
 
-    const patch = extractLocalTerrainPatch(
-      ground,
-      30,
-      30,
-      'forest',
-      42,
-      { width: 3, height: 3 },
-    );
-    const centerTile = patch.tiles.get('1-1');
+    const patch = extractLocalTerrainPatch(ground, 30, 30, "forest", 42, {
+      width: 3,
+      height: 3,
+    });
+    const centerTile = patch.tiles.get("1-1");
 
-    expect(centerTile?.terrain).toBe('water');
+    expect(centerTile?.terrain).toBe("water");
     expect(centerTile?.surface).toBeUndefined();
     expect(centerTile?.crossing).toBeUndefined();
     expect(centerTile?.blocksMovement).toBe(true);
   });
 
-  it('projects source bridges and fords over water without changing the base terrain fact', () => {
+  it("projects source bridges and fords over water without changing the base terrain fact", () => {
     const cols = 50;
     const rows = 50;
     const bridgeGround = makeGroundWorldFixture({
       cols,
       rows,
       heights: new Array(cols * rows).fill(0),
-      biomeIds: new Array(cols * rows).fill('water'),
+      biomeIds: new Array(cols * rows).fill("water"),
       extentMetersX: cols * GROUND_METERS_PER_CELL,
       extentMetersZ: rows * GROUND_METERS_PER_CELL,
-      roads: [{
-        points: [{ x: 10, z: 35 }, { x: 60, z: 35 }],
-        widthM: 4,
-        sourceKind: 'region-road',
-        sourceId: 5,
-      }],
-      crossings: [{
-        id: 'crossing:5:9:0',
-        kind: 'bridge',
-        xM: 35,
-        zM: 35,
-        roadDirection: { x: 1, z: 0 },
-        spanM: 20,
-        widthM: 4,
-        roadRouteId: 5,
-        riverId: 9,
-        roadSourceIndex: 0,
-        riverSourceIndex: 0,
-      }],
+      roads: [
+        {
+          points: [
+            { x: 10, z: 35 },
+            { x: 60, z: 35 },
+          ],
+          widthM: 4,
+          sourceKind: "region-road",
+          sourceId: 5,
+        },
+      ],
+      crossings: [
+        {
+          id: "crossing:5:9:0",
+          kind: "bridge",
+          xM: 35,
+          zM: 35,
+          roadDirection: { x: 1, z: 0 },
+          riverDirection: { x: 0, z: 1 },
+          spanM: 20,
+          widthM: 4,
+          roadRouteId: 5,
+          riverId: 9,
+          roadSourceIndex: 0,
+          riverSourceIndex: 0,
+        },
+      ],
     });
     const bridgePatch = extractLocalTerrainPatch(
       bridgeGround,
       35,
       35,
-      'forest',
+      "forest",
       42,
       { width: 21, height: 9 },
     );
-    const bridgeTile = bridgePatch.tiles.get('10-4');
-    const waterBeyondSpan = bridgePatch.tiles.get('20-4');
+    const bridgeTile = bridgePatch.tiles.get("10-4");
+    const waterBeyondSpan = bridgePatch.tiles.get("20-4");
 
-    expect(bridgeTile?.terrain).toBe('water');
-    expect(bridgeTile?.surface?.kind).toBe('road');
+    expect(bridgeTile?.terrain).toBe("water");
+    expect(bridgeTile?.surface?.kind).toBe("road");
     expect(bridgeTile?.crossing).toMatchObject({
-      kind: 'bridge',
-      source: 'worldforge-crossing',
-      sourceCrossingId: 'crossing:5:9:0',
+      kind: "bridge",
+      source: "worldforge-crossing",
+      sourceCrossingId: "crossing:5:9:0",
       roadSourceIndex: 0,
       riverSourceIndex: 0,
     });
     expect(bridgeTile?.movementCost).toBe(1);
     expect(bridgeTile?.blocksMovement).toBe(false);
-    expect(waterBeyondSpan?.terrain).toBe('water');
+    expect(waterBeyondSpan?.terrain).toBe("water");
     expect(waterBeyondSpan?.crossing).toBeUndefined();
     expect(waterBeyondSpan?.blocksMovement).toBe(true);
 
     const fordGround = makeGroundWorldFixture({
       ...bridgeGround,
-      crossings: [{ ...bridgeGround.crossings![0], kind: 'ford' }],
+      crossings: [{ ...bridgeGround.crossings![0], kind: "ford" }],
     });
     const fordPatch = extractLocalTerrainPatch(
       fordGround,
       35,
       35,
-      'forest',
+      "forest",
       42,
       { width: 3, height: 3 },
     );
-    expect(fordPatch.tiles.get('1-1')).toMatchObject({
-      terrain: 'water',
+    expect(fordPatch.tiles.get("1-1")).toMatchObject({
+      terrain: "water",
       movementCost: 2,
       blocksMovement: false,
-      crossing: { kind: 'ford' },
+      crossing: { kind: "ford" },
     });
   });
 
-  it('keeps material detail, motifs, and history out of tactical collision and line of sight', () => {
+  it("keeps material detail, motifs, and history out of tactical collision and line of sight", () => {
     // These oversized dressing parts deliberately cover the player's tile.
     // Without the tag guard they would behave like solid walls; with the guard
     // the underlying floor remains a valid combat square.
@@ -1287,142 +1999,138 @@ describe('extractLocalTerrainPatch', () => {
       cols: 100,
       rows: 100,
       heights: new Array(100 * 100).fill(0),
-      biomeIds: new Array(100 * 100).fill('plains'),
+      biomeIds: new Array(100 * 100).fill("plains"),
       extentMetersX: 100 * GROUND_METERS_PER_CELL,
       extentMetersZ: 100 * GROUND_METERS_PER_CELL,
-      buildings: [{
-        id: 'wf-plot-motif-collision-proof',
-        xM: 50,
-        zM: 50,
-        cornersM: [
-          { x: 45, z: 45 },
-          { x: 55, z: 45 },
-          { x: 55, z: 55 },
-          { x: 45, z: 55 },
-        ],
-        heightM: 6,
-        role: 'house',
-        wallWidthM: 8,
-        wallDepthM: 8,
-        parts: [
-          { x: 0, z: 0, w: 8, d: 8, h: 0.12, colorHex: '#9a8a72' },
-          {
-            x: 0,
-            z: 0,
-            w: 4,
-            d: 4,
-            h: 3,
-            colorHex: '#cfc7b8',
-            tag: MOTIF_PART_TAG,
-            motifKind: 'corner-turrets',
-          },
-          {
-            x: 0,
-            z: 0,
-            w: 4,
-            d: 4,
-            h: 3,
-            colorHex: '#8d6f58',
-            tag: HISTORY_PART_TAG,
-            historyKind: 'later-phase',
-          },
-          {
-            x: 0,
-            z: 0,
-            w: 4,
-            d: 4,
-            h: 3,
-            colorHex: '#8eabb2',
-            tag: MATERIAL_PART_TAG,
-            materialDetailKind: 'shutter-panel',
-          },
-        ],
-      }],
+      buildings: [
+        {
+          id: "wf-plot-motif-collision-proof",
+          xM: 50,
+          zM: 50,
+          cornersM: [
+            { x: 45, z: 45 },
+            { x: 55, z: 45 },
+            { x: 55, z: 55 },
+            { x: 45, z: 55 },
+          ],
+          heightM: 6,
+          role: "house",
+          wallWidthM: 8,
+          wallDepthM: 8,
+          parts: [
+            { x: 0, z: 0, w: 8, d: 8, h: 0.12, colorHex: "#9a8a72" },
+            {
+              x: 0,
+              z: 0,
+              w: 4,
+              d: 4,
+              h: 3,
+              colorHex: "#cfc7b8",
+              tag: MOTIF_PART_TAG,
+              motifKind: "corner-turrets",
+            },
+            {
+              x: 0,
+              z: 0,
+              w: 4,
+              d: 4,
+              h: 3,
+              colorHex: "#8d6f58",
+              tag: HISTORY_PART_TAG,
+              historyKind: "later-phase",
+            },
+            {
+              x: 0,
+              z: 0,
+              w: 4,
+              d: 4,
+              h: 3,
+              colorHex: "#8eabb2",
+              tag: MATERIAL_PART_TAG,
+              materialDetailKind: "shutter-panel",
+            },
+          ],
+        },
+      ],
     });
-    const patch = extractLocalTerrainPatch(
-      ground,
-      50,
-      50,
-      'forest',
-      42,
-      { width: 3, height: 3 },
-    );
-    const centerTile = patch.tiles.get('1-1')!;
+    const patch = extractLocalTerrainPatch(ground, 50, 50, "forest", 42, {
+      width: 3,
+      height: 3,
+    });
+    const centerTile = patch.tiles.get("1-1")!;
 
     expect(centerTile.blocksMovement).toBe(false);
     expect(centerTile.blocksLoS).toBe(false);
   });
 
-  it('keeps a render-hidden party wall authoritative for tactical collision', () => {
+  it("keeps a render-hidden party wall authoritative for tactical collision", () => {
     const ground = makeGroundWorldFixture({
       cols: 100,
       rows: 100,
       heights: new Array(100 * 100).fill(0),
-      biomeIds: new Array(100 * 100).fill('plains'),
+      biomeIds: new Array(100 * 100).fill("plains"),
       extentMetersX: 100 * GROUND_METERS_PER_CELL,
       extentMetersZ: 100 * GROUND_METERS_PER_CELL,
-      buildings: [{
-        id: 'wf-party-wall-tactical-proof',
-        xM: 50,
-        zM: 50,
-        cornersM: [
-          { x: 45, z: 45 },
-          { x: 55, z: 45 },
-          { x: 55, z: 55 },
-          { x: 45, z: 55 },
-        ],
-        heightM: 6,
-        role: 'house',
-        wallWidthM: 8,
-        wallDepthM: 8,
-        parts: [
-          { x: 0, z: 0, w: 8, d: 8, h: 0.12, colorHex: '#9a8a72' },
-          {
-            x: 0,
-            z: 0,
-            w: 4,
-            d: 4,
-            h: 3,
-            colorHex: '#cfc7b8',
-            renderRole: 'tactical-only',
-          },
-        ],
-      }],
+      buildings: [
+        {
+          id: "wf-party-wall-tactical-proof",
+          xM: 50,
+          zM: 50,
+          cornersM: [
+            { x: 45, z: 45 },
+            { x: 55, z: 45 },
+            { x: 55, z: 55 },
+            { x: 45, z: 55 },
+          ],
+          heightM: 6,
+          role: "house",
+          wallWidthM: 8,
+          wallDepthM: 8,
+          parts: [
+            { x: 0, z: 0, w: 8, d: 8, h: 0.12, colorHex: "#9a8a72" },
+            {
+              x: 0,
+              z: 0,
+              w: 4,
+              d: 4,
+              h: 3,
+              colorHex: "#cfc7b8",
+              renderRole: "tactical-only",
+            },
+          ],
+        },
+      ],
     });
-    const patch = extractLocalTerrainPatch(
-      ground,
-      50,
-      50,
-      'forest',
-      42,
-      { width: 3, height: 3 },
-    );
-    const centerTile = patch.tiles.get('1-1')!;
+    const patch = extractLocalTerrainPatch(ground, 50, 50, "forest", 42, {
+      width: 3,
+      height: 3,
+    });
+    const centerTile = patch.tiles.get("1-1")!;
 
     expect(centerTile.blocksMovement).toBe(true);
     expect(centerTile.blocksLoS).toBe(true);
   });
 
-  it('extracts a 40x30 terrain patch matching the heights, biomes, and buildings of the ground world', () => {
+  it("extracts a 40x30 terrain patch matching the heights, biomes, and buildings of the ground world", () => {
     // 1. Create a fixture ground world with custom height, biome, feature, and building
     const cols = 100;
     const rows = 100;
-    
+
     // Create a terrain height map that rises linearly
     const heights = new Array(cols * rows).fill(0).map((_, idx) => {
       const col = idx % cols;
       const row = Math.floor(idx / cols);
       return (col + row) * 0.5; // encoded height
     });
-    
+
     // Create a biome map (desert in top-left, plains elsewhere)
     const biomeIds = new Array(cols * rows).fill(0).map((_, idx) => {
       const col = idx % cols;
       const row = Math.floor(idx / cols);
-      return (col < 20 && row < 20) ? 'desert' : 'plains';
+      return col < 20 && row < 20 ? "desert" : "plains";
     });
 
-    const buildingId = 'wf-plot-test-building';
+    const buildingId = "wf-plot-test-building";
     const buildings = [
       {
         id: buildingId,
@@ -1435,19 +2143,17 @@ describe('extractLocalTerrainPatch', () => {
           { x: 45, z: 55 },
         ],
         heightM: 6,
-        role: 'house',
+        role: "house",
         wallWidthM: 8,
         wallDepthM: 8,
         parts: [
-          { x: 0, z: 0, w: 8, d: 8, h: 0.12, colorHex: '#9a8a72' }, // floor
-          { x: 0, z: 4, w: 8, d: 0.3, h: 3, colorHex: '#cfc7b8' }, // wall
+          { x: 0, z: 0, w: 8, d: 8, h: 0.12, colorHex: "#9a8a72" }, // floor
+          { x: 0, z: 4, w: 8, d: 0.3, h: 3, colorHex: "#cfc7b8" }, // wall
         ],
       },
     ];
 
-    const features = [
-      { id: 99, kind: 'tree', xM: 40, zM: 40 },
-    ];
+    const features = [{ id: 99, kind: "tree", xM: 40, zM: 40 }];
 
     const ground = makeGroundWorldFixture({
       cols,
@@ -1464,22 +2170,28 @@ describe('extractLocalTerrainPatch', () => {
     // Player is at (40, 40)
     const playerX = 40;
     const playerZ = 40;
-    const patch = extractLocalTerrainPatch(ground, playerX, playerZ, 'forest', 42);
+    const patch = extractLocalTerrainPatch(
+      ground,
+      playerX,
+      playerZ,
+      "forest",
+      42,
+    );
 
     expect(patch.dimensions).toEqual({ width: 40, height: 30 });
     expect(patch.tiles.size).toBe(40 * 30);
 
     // 3. Verify player center tile at (20, 15) maps to the player's position
-    const centerTile = patch.tiles.get('20-15');
+    const centerTile = patch.tiles.get("20-15");
     expect(centerTile).toBeDefined();
     expect(centerTile?.coordinates).toEqual({ x: 20, y: 15 });
-    
+
     // Verify elevation maps correctly: realHeightM / 0.3
     const expectedHeightM = groundSurfaceY(ground, playerX, playerZ);
     expect(centerTile?.elevation).toBeCloseTo(expectedHeightM / 0.3, 4);
 
     // 4. Verify feature mapping (tree feature is at (40, 40) which matches center tile (20, 15))
-    expect(centerTile?.decoration).toBe('tree');
+    expect(centerTile?.decoration).toBe("tree");
     expect(centerTile?.blocksMovement).toBe(true);
     expect(centerTile?.blocksLoS).toBe(true);
 
@@ -1489,10 +2201,10 @@ describe('extractLocalTerrainPatch', () => {
     // Tile offset: tx = 20 + 10 / 1.524 = 26.56 -> tile 27.
     // ty = 15 + 10 / 1.524 = 21.56 -> tile 22.
     // Let's test a tile inside the building (e.g. tile 27, 22)
-    const buildingTile = patch.tiles.get('27-22');
+    const buildingTile = patch.tiles.get("27-22");
     expect(buildingTile).toBeDefined();
     // It should be mapped to floor or wall
-    expect(['floor', 'wall']).toContain(buildingTile?.terrain);
+    expect(["floor", "wall"]).toContain(buildingTile?.terrain);
   });
 
   // ==========================================================================
@@ -1501,23 +2213,31 @@ describe('extractLocalTerrainPatch', () => {
   // catalog referee data (cover / blocks-sight / blocks-move) onto the tile —
   // this is the invisible 5-ft referee reading the SAME world the player sees.
   // ==========================================================================
-  it('imprints a placed cover prop (barrel) onto the referee tile at the player position', () => {
+  it("imprints a placed cover prop (barrel) onto the referee tile at the player position", () => {
     const cols = 100;
     const rows = 100;
     const ground = makeGroundWorldFixture({
       cols,
       rows,
       heights: new Array(cols * rows).fill(0),
-      biomeIds: new Array(cols * rows).fill('plains'),
+      biomeIds: new Array(cols * rows).fill("plains"),
       extentMetersX: cols * GROUND_METERS_PER_CELL,
       extentMetersZ: rows * GROUND_METERS_PER_CELL,
       // A barrel from the catalog: cover 'half', blocksLoS + blocksMovement.
       // Place it exactly on the player's spot so it lands on the center tile.
-      props: [{ defId: 'barrel', xM: 40, zM: 40, rotationRad: 0, variation: { scale: 1, variant: 0 } }],
+      props: [
+        {
+          defId: "barrel",
+          xM: 40,
+          zM: 40,
+          rotationRad: 0,
+          variation: { scale: 1, variant: 0 },
+        },
+      ],
     });
 
-    const patch = extractLocalTerrainPatch(ground, 40, 40, 'forest', 42);
-    const centerTile = patch.tiles.get('20-15');
+    const patch = extractLocalTerrainPatch(ground, 40, 40, "forest", 42);
+    const centerTile = patch.tiles.get("20-15");
     expect(centerTile).toBeDefined();
     // The prop is born combat-legible: the referee tile now grants cover and
     // blocks sight + movement, exactly as the catalog barrel def declares.
@@ -1527,7 +2247,7 @@ describe('extractLocalTerrainPatch', () => {
 
     // A tile far from the barrel stays open — the imprint is footprint-bounded,
     // not global. (5 tiles east ≈ 7.6 m, well outside the barrel footprint.)
-    const openTile = patch.tiles.get('25-15');
+    const openTile = patch.tiles.get("25-15");
     expect(openTile?.providesCover).toBeFalsy();
     expect(openTile?.blocksMovement).toBe(false);
   });
@@ -1537,28 +2257,31 @@ describe('extractLocalTerrainPatch', () => {
   // An open/ranged encounter extracts a larger referee patch; the player stays
   // centered and the referee data stays a plain Map at any size.
   // ==========================================================================
-  it('extracts a context-sized (larger) patch with the player still centered', () => {
+  it("extracts a context-sized (larger) patch with the player still centered", () => {
     const cols = 200;
     const rows = 200;
     const ground = makeGroundWorldFixture({
       cols,
       rows,
       heights: new Array(cols * rows).fill(0),
-      biomeIds: new Array(cols * rows).fill('plains'),
+      biomeIds: new Array(cols * rows).fill("plains"),
       extentMetersX: cols * GROUND_METERS_PER_CELL,
       extentMetersZ: rows * GROUND_METERS_PER_CELL,
-      features: [{ id: 7, kind: 'tree', xM: 120, zM: 120 }],
+      features: [{ id: 7, kind: "tree", xM: 120, zM: 120 }],
     });
 
-    const patch = extractLocalTerrainPatch(ground, 120, 120, 'forest', 42, { width: 120, height: 120 });
+    const patch = extractLocalTerrainPatch(ground, 120, 120, "forest", 42, {
+      width: 120,
+      height: 120,
+    });
     expect(patch.dimensions).toEqual({ width: 120, height: 120 });
     expect(patch.tiles.size).toBe(120 * 120);
 
     // Player sits at the geometric center (60, 60); the tree at the player's
     // meters lands on that center tile.
-    const centerTile = patch.tiles.get('60-60');
+    const centerTile = patch.tiles.get("60-60");
     expect(centerTile).toBeDefined();
-    expect(centerTile?.decoration).toBe('tree');
+    expect(centerTile?.decoration).toBe("tree");
     expect(centerTile?.blocksMovement).toBe(true);
   });
 
@@ -1570,7 +2293,7 @@ describe('extractLocalTerrainPatch', () => {
   // therefore block the drawn side of the building, not its mirror through the
   // building origin.
   // ==========================================================================
-  it('blocks the cells the renderer draws an off-center wall on, not their mirror', () => {
+  it("blocks the cells the renderer draws an off-center wall on, not their mirror", () => {
     const cols = 100;
     const rows = 100;
     // Axis-aligned quad in the fixture winding [SW, SE, NE, NW]. This yields
@@ -1588,7 +2311,7 @@ describe('extractLocalTerrainPatch', () => {
     // An off-center interior wall: p.z = +2. The renderer draws it at local
     // z = 2 * -doorZSign = +2, i.e. world z = 52. The buggy mirror would land it
     // at world z = 48.
-    const wall = { x: 0, z: 2, w: 8, d: 2, h: 3, colorHex: '#cfc7b8' };
+    const wall = { x: 0, z: 2, w: 8, d: 2, h: 3, colorHex: "#cfc7b8" };
     const drawnWorld = { x: bXM + wall.x, z: bZM + wall.z * -doorZSign }; // (50, 52)
     const mirrorWorld = { x: bXM + wall.x, z: bZM + wall.z * doorZSign }; // (50, 48)
 
@@ -1596,21 +2319,21 @@ describe('extractLocalTerrainPatch', () => {
       cols,
       rows,
       heights: new Array(cols * rows).fill(0),
-      biomeIds: new Array(cols * rows).fill('plains'),
+      biomeIds: new Array(cols * rows).fill("plains"),
       extentMetersX: cols * GROUND_METERS_PER_CELL,
       extentMetersZ: rows * GROUND_METERS_PER_CELL,
       buildings: [
         {
-          id: 'wf-plot-drift-test',
+          id: "wf-plot-drift-test",
           xM: bXM,
           zM: bZM,
           cornersM,
           heightM: 6,
-          role: 'house',
+          role: "house",
           wallWidthM: 10,
           wallDepthM: 10,
           parts: [
-            { x: 0, z: 0, w: 10, d: 10, h: 0.12, colorHex: '#9a8a72' }, // floor
+            { x: 0, z: 0, w: 10, d: 10, h: 0.12, colorHex: "#9a8a72" }, // floor
             wall,
           ],
         },
@@ -1619,7 +2342,13 @@ describe('extractLocalTerrainPatch', () => {
 
     const playerX = 40;
     const playerZ = 40;
-    const patch = extractLocalTerrainPatch(ground, playerX, playerZ, 'forest', 42);
+    const patch = extractLocalTerrainPatch(
+      ground,
+      playerX,
+      playerZ,
+      "forest",
+      42,
+    );
 
     // Nearest tile center to a world point, for the default 40x30 patch.
     const tileIdForWorld = (wx: number, wz: number): string => {
@@ -1628,16 +2357,20 @@ describe('extractLocalTerrainPatch', () => {
       return `${tx}-${ty}`;
     };
 
-    const drawnTile = patch.tiles.get(tileIdForWorld(drawnWorld.x, drawnWorld.z));
-    const mirrorTile = patch.tiles.get(tileIdForWorld(mirrorWorld.x, mirrorWorld.z));
+    const drawnTile = patch.tiles.get(
+      tileIdForWorld(drawnWorld.x, drawnWorld.z),
+    );
+    const mirrorTile = patch.tiles.get(
+      tileIdForWorld(mirrorWorld.x, mirrorWorld.z),
+    );
 
     expect(drawnTile).toBeDefined();
     expect(mirrorTile).toBeDefined();
     // The wall blocks where the renderer draws it...
-    expect(drawnTile?.terrain).toBe('wall');
+    expect(drawnTile?.terrain).toBe("wall");
     expect(drawnTile?.blocksMovement).toBe(true);
     // ...and the mirror cell stays open floor.
-    expect(mirrorTile?.terrain).toBe('floor');
+    expect(mirrorTile?.terrain).toBe("floor");
     expect(mirrorTile?.blocksMovement).toBe(false);
   });
 });
@@ -1649,7 +2382,11 @@ describe('extractLocalTerrainPatch', () => {
 // the 128 m chunk), so no edge-haze contaminates the tint under test.
 // ============================================================================
 
-function flatColorWorld(height: number, biome = 'grassland', extra: Partial<GroundWorld> = {}): GroundWorld {
+function flatColorWorld(
+  height: number,
+  biome = "grassland",
+  extra: Partial<GroundWorld> = {},
+): GroundWorld {
   const cols = 100;
   const rows = 100;
   return makeGroundWorldFixture({
@@ -1663,8 +2400,8 @@ function flatColorWorld(height: number, biome = 'grassland', extra: Partial<Grou
   });
 }
 
-describe('sampleGroundChunk relief shading (unit-bug fix)', () => {
-  it('high ground reads distinctly brighter than low ground (dead ~2% today → live)', () => {
+describe("sampleGroundChunk relief shading (unit-bug fix)", () => {
+  it("high ground reads distinctly brighter than low ground (dead ~2% today → live)", () => {
     // Same biome, same (flat → zero slope, sub-snow-line) everything: only the
     // encoded height differs. Pre-fix the height/100 call collapsed the shade
     // swing to ~2%; the raw-height call restores the intended relief contrast.
@@ -1676,8 +2413,8 @@ describe('sampleGroundChunk relief shading (unit-bug fix)', () => {
   });
 });
 
-describe('groundSlope01 ↔ chunkGeometry normal convention (calibration)', () => {
-  it('agrees with the mesh normal-derived (1 − ny) slope on a linear ramp', () => {
+describe("groundSlope01 ↔ chunkGeometry normal convention (calibration)", () => {
+  it("agrees with the mesh normal-derived (1 − ny) slope on a linear ramp", () => {
     const res = 5;
     const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
     const spacingM = S / (res - 1);
@@ -1693,7 +2430,11 @@ describe('groundSlope01 ↔ chunkGeometry normal convention (calibration)', () =
     };
 
     // Geometry convention: the up-component of the flat-shaded vertex normal.
-    const geomSlope01 = (heights: Float32Array, i: number, j: number): number => {
+    const geomSlope01 = (
+      heights: Float32Array,
+      i: number,
+      j: number,
+    ): number => {
       const geo = buildPlaceholderHeightfield(
         { resolution: res, heights } as unknown as ChunkData,
         { skirtDepth: 0 },
@@ -1718,8 +2459,8 @@ describe('groundSlope01 ↔ chunkGeometry normal convention (calibration)', () =
   });
 });
 
-describe('sampleGroundChunk snow caps (Task 10)', () => {
-  it('blends toward SNOW_RGB above the snow line, full white past the band, and leaves geometry alone', () => {
+describe("sampleGroundChunk snow caps (Task 10)", () => {
+  it("blends toward SNOW_RGB above the snow line, full white past the band, and leaves geometry alone", () => {
     // snowLineH defaults to the temperate baseline (SNOW_LINE_H = 55), band 12.
     const below = sampleGroundChunk(flatColorWorld(50), 0, 0, 2);
     const mid = sampleGroundChunk(flatColorWorld(61), 0, 0, 2); // t ≈ 0.5
@@ -1741,19 +2482,29 @@ describe('sampleGroundChunk snow caps (Task 10)', () => {
     expect(full.heights[0]).toBeCloseTo(67, 5);
   });
 
-  it('honors a per-world snowLineH (polar caps snow lower)', () => {
+  it("honors a per-world snowLineH (polar caps snow lower)", () => {
     // At height 45 a temperate window (line 55) has no snow, but a polar window
     // (line 35, band 12 → t = min(1,(45-35)/12) ≈ 0.83) is nearly white.
-    const temperate = sampleGroundChunk(flatColorWorld(45, 'grassland'), 0, 0, 2);
-    const polar = sampleGroundChunk(flatColorWorld(45, 'grassland', { snowLineH: SNOW_LINE_POLAR }), 0, 0, 2);
+    const temperate = sampleGroundChunk(
+      flatColorWorld(45, "grassland"),
+      0,
+      0,
+      2,
+    );
+    const polar = sampleGroundChunk(
+      flatColorWorld(45, "grassland", { snowLineH: SNOW_LINE_POLAR }),
+      0,
+      0,
+      2,
+    );
     expect(temperate.biomeColors![2]).toBeLessThan(0.8);
     expect(polar.biomeColors![2]).toBeGreaterThan(temperate.biomeColors![2]);
     expect(polar.biomeColors![0]).toBeGreaterThan(temperate.biomeColors![0]);
   });
 });
 
-describe('snow-line latitude band (pure helpers)', () => {
-  it('resolveSnowLine: polar low, temperate baseline, tropical high, null → temperate fallback', () => {
+describe("snow-line latitude band (pure helpers)", () => {
+  it("resolveSnowLine: polar low, temperate baseline, tropical high, null → temperate fallback", () => {
     expect(resolveSnowLine(75)).toBe(SNOW_LINE_POLAR); // |lat| > 60 polar
     expect(resolveSnowLine(-75)).toBe(SNOW_LINE_POLAR); // southern hemisphere
     expect(resolveSnowLine(45)).toBe(SNOW_LINE_H); // 25..60 temperate
@@ -1763,7 +2514,7 @@ describe('snow-line latitude band (pure helpers)', () => {
     expect(resolveSnowLine(null)).toBe(SNOW_LINE_H); // no mapCoordinates → baseline
   });
 
-  it('latitudeAtGraphY: north edge = latN, south edge = latS, linear between (climate convention)', () => {
+  it("latitudeAtGraphY: north edge = latN, south edge = latS, linear between (climate convention)", () => {
     const coords = { latN: 60, latS: 20 };
     expect(latitudeAtGraphY(0, 100, coords)).toBeCloseTo(60, 6);
     expect(latitudeAtGraphY(100, 100, coords)).toBeCloseTo(20, 6);
@@ -1773,26 +2524,41 @@ describe('snow-line latitude band (pure helpers)', () => {
   });
 });
 
-describe('makeGroundWorld snow-line threading (anchor seam, mirrors canopy)', () => {
-  it('falls back to the temperate baseline without an anchor cell', () => {
+describe("makeGroundWorld snow-line threading (anchor seam, mirrors canopy)", () => {
+  it("falls back to the temperate baseline without an anchor cell", () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
     const ground = makeGroundWorld(local, 42, region);
     expect(ground.snowLineH ?? SNOW_LINE_H).toBe(SNOW_LINE_H);
   });
 
-  it('resolves snowLineH from the anchor cell latitude, reading the same atlas the canopy seam does', () => {
+  it("resolves snowLineH from the anchor latitude as WINDOW-RELATIVE encoded units (absolute ft − window floor)", () => {
+    // 2026-07-21 rework: the adapter re-bases window heights to the artifact
+    // minimum, so the threaded threshold must be (absolute snow-line feet −
+    // window floor feet) in the same re-based encoding the sampler compares
+    // against. The old pack-h passthrough could never fire in practice.
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
     const anchorCellId = 110;
     const atlas = getBridgeAtlas(42); // same per-seed cache makeGroundWorld uses
     const [, cellY] = atlas.pack.cells.p[anchorCellId];
-    const expected = resolveSnowLine(
+    const snowLineFt = resolveSnowLineFt(
       latitudeAtGraphY(cellY, atlas.graphHeight, atlas.mapCoordinates),
     );
+    let baseElevFt = Infinity;
+    for (const v of local.terrain.elevationFt) {
+      if (v < baseElevFt) baseElevFt = v;
+    }
+    const heightDomainM =
+      WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M * WORLD3D_CONFIG.VERTICAL_EXAGGERATION;
+    const expected = (((snowLineFt - baseElevFt) * 0.3048) / heightDomainM) * 100;
 
     const ground = makeGroundWorld(local, 42, region, { anchorCellId });
-    expect(ground.snowLineH).toBe(expected);
-    expect([SNOW_LINE_POLAR, SNOW_LINE_H, SNOW_LINE_TROPICAL]).toContain(ground.snowLineH);
+    expect(ground.snowLineH).toBeCloseTo(expected, 9);
+    // The threshold is a real relative-encoded height, not the old pack-h
+    // constant passthrough (which this fixture would have surfaced as 35/55/75).
+    expect([SNOW_LINE_POLAR, SNOW_LINE_H, SNOW_LINE_TROPICAL]).not.toContain(
+      ground.snowLineH,
+    );
   });
 });

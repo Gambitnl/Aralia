@@ -65,7 +65,7 @@ export function getSpellVisual(spell: Spell): VisualAsset {
 
   // Determine fallback content (could be damage type based in future)
   const fallback = schoolIcon;
-  if (spell.damageType) {
+  if ('damageType' in spell && (spell as { damageType?: string }).damageType) {
     // Override fallback icon for specific damage types if desired
     // For now, sticking to school identity for consistency
   }

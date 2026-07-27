@@ -9,11 +9,11 @@ import { ExtendedGenerationConfig, GeminiTextData, StandardizedResult } from "./
 const API_TIMEOUT_MS = 20000; // 20 seconds
 
 // --- Adaptive Rate Limiting State ---
-// TODO #417: The `lastRequestTimestamp` is the single source of truth for adaptive throttling.
-// However, `generateEncounter` in encounters.ts does NOT update this timestamp after its API calls.
-// This can cause drift: encounter generation doesn't reset the timer, so subsequent calls (e.g., NPC chat)
-// might incorrectly think enough time has passed. Consider refactoring to ensure ALL API calls
-// funnel through a single timestamp-updating pathway, or have encounters.ts call a shared updater.
+// TODO: `lastRequestTimestamp` is the single source of truth for adaptive throttling,
+// but `generateEncounter` in encounters.ts makes its own API calls without updating it,
+// so subsequent calls (e.g., NPC chat) may incorrectly think enough time has passed.
+// Funnel ALL API calls through a single timestamp-updating pathway, or have
+// encounters.ts call a shared updater exported from this module.
 let lastRequestTimestamp = 0;
 let globalCooldownUntil = 0; // Timestamp when cooldown ends (0 = no cooldown)
 
@@ -46,21 +46,11 @@ function activateGlobalCooldown(): void {
 }
 
 /**
- * Resets rate limit tracking after a successful request.
- * TODO #418: This function is a no-op stub. If it was intended to reset state after successful requests,
- * it should be implemented or removed to avoid confusion. Consider:
- * 1. Resetting `globalCooldownUntil` here, OR
- * 2. Removing the call at L212 if no reset is truly needed.
- */
-function resetRateLimitTracking(): void {
-}
-
-/**
  * Calculates exponential backoff delay for retries.
  * @param attemptNumber The current retry attempt (0-indexed)
  * @returns Delay in milliseconds
  */
-function calculateBackoffDelay(attemptNumber: number): number {
+export function calculateBackoffDelay(attemptNumber: number): number {
   const delay = RATE_LIMIT_CONFIG.BASE_RETRY_DELAY_MS * Math.pow(RATE_LIMIT_CONFIG.COOLDOWN_MULTIPLIER, attemptNumber);
   return Math.min(delay, RATE_LIMIT_CONFIG.MAX_RETRY_DELAY_MS);
 }
@@ -68,7 +58,7 @@ function calculateBackoffDelay(attemptNumber: number): number {
 /**
  * Utility to wait for a specified duration.
  */
-function sleep(ms: number): Promise<void> {
+export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -218,7 +208,6 @@ export async function generateText(
       });
 
       lastRequestTimestamp = Date.now();
-      resetRateLimitTracking();
 
       const responseText = response.text?.trim();
 

@@ -69,10 +69,9 @@ NPC Context: ${npcContext}
 
 Respond in-character in 1-2 sentences.`;
 
-  // TODO #428: This function hardcodes FAST_MODEL. Previous session work intended to use adaptive selection
-  // via `chooseModelForComplexity`. Was this reverted intentionally? If adaptive logic is still desired,
-  // refactor to: `const model = chooseModelForComplexity(COMPLEX_MODEL, playerAction);`
-  // Otherwise, document why FAST_MODEL is always used here.
+  // FAST_MODEL is intentionally used here for performance, as generateNPCResponse
+  // requires a concise (1-2 sentences) and rapid response. Adaptive model selection
+  // via `chooseModelForComplexity` would likely introduce unnecessary latency for this use case.
   return await generateText(prompt, systemInstruction, false, 'generateNPCResponse', devModelOverride, FAST_MODEL);
 }
 

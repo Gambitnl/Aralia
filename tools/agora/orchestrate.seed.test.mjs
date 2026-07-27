@@ -34,11 +34,12 @@ after(async () => {
 function makePlan() {
   return {
     wave: 'seed-test',
+    pet: 'gf-sd',
     baseUrl,
     packets: [
       // Qualified refs — bare ids are ambiguity-checked against the REAL index at seed time.
-      { id: 'PK-a', handle: 'w-a', agent: 'claude', scope: 'prep shared types', files: ['src/t.ts'], issues: ['seedtest:X1'], priority: 9 },
-      { id: 'PK-b', handle: 'w-b', agent: 'claude', scope: 'build on the types', files: ['src/u.ts'], issues: ['seedtest:X2'], after: ['PK-a'] },
+      { id: 'PK-a', handle: 'w-a', pet: 'dream-girl', agent: 'claude', scope: 'prep shared types', files: ['src/t.ts'], issues: ['seedtest:X1'], priority: 9 },
+      { id: 'PK-b', handle: 'w-b', pet: 'nous-girl', agent: 'claude', scope: 'build on the types', files: ['src/u.ts'], issues: ['seedtest:X2'], after: ['PK-a'] },
     ],
   };
 }
@@ -78,7 +79,7 @@ test('seedPlan creates one board task per packet with priority/refs/deps wired',
 });
 
 test('seedPlan refuses to seed when another lead owns an overlapping campaign scope', async () => {
-  const blocker = app.store.registerAgent({ handle: 'seed-blocker' });
+  const blocker = app.store.registerAgent({ handle: 'seed-blocker', petSlug: 'cyberman' });
   app.store.claimCampaign({
     agentId: blocker.id,
     campaignId: 'seed-blocker-campaign',
@@ -109,11 +110,13 @@ test('seedPlan derives campaign identity and task refs from Plan Map topic refs'
   };
   const plan = {
     wave: 'roadmap-topic-wave',
+    pet: 'fiufiu-witch-2',
     baseUrl,
     packets: [
       {
         id: 'PK-roadmap',
         handle: 'roadmap-worker',
+        pet: 'explorer-zombie',
         agent: 'claude',
         scope: 'Build the roadmap-tracked feature',
         files: ['tools/agora/roadmap-feature.mjs'],

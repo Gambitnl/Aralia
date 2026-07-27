@@ -259,3 +259,10 @@ Captured 2026-07-06 as plan-map node `combat-chronicles` (parked).
 everyone: NPCs gray, die and are succeeded, the player ages and can
 continue as an heir, and a dead character's deeds become world history.
 Captured 2026-07-06 as node `generational-time` (parked).
+
+**Far shells** — the two static backdrop terrain rings that replace the 3D
+ground mode's visible world edge (2026-07-21): a "region shell" built from
+the region heightfield (continues terrain to ~7.6 km, seam-blended to the
+streamed window) and a "horizon shell" from the atlas grid heightmap
+(distant ranges to ~20 km). Built once per window entry in
+src/systems/worldforge/bridge/farShells.ts; no streaming, no per-frame cost.

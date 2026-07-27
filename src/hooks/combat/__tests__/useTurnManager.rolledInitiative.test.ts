@@ -1,5 +1,4 @@
 import { act, renderHook } from '@testing-library/react';
-import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { useTurnManager } from '../useTurnManager';
 import { SummoningCommand } from '../../../commands/effects/SummoningCommand';
@@ -83,8 +82,8 @@ describe('useTurnManager rolled summon scheduling', () => {
         cr: '0'
       }
     });
-    const summonEffect = conjureAnimals.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect;
-    const context = {
+    const summonEffect = (conjureAnimals.effects.find(effect => effect.type === 'SUMMONING') as unknown) as SummoningEffect;
+    const context: any = {
       spellId: conjureAnimals.id,
       spellName: conjureAnimals.name,
       castAtLevel: 3,

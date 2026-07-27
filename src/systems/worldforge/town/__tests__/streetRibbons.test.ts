@@ -154,9 +154,23 @@ describe('ribbon triangle emitters', () => {
     for (const v of pos) expect(Number.isFinite(v)).toBe(true);
   });
 
-  it('indexed strip pattern matches the game path\'s historical (l0,l1,r0)(r0,l1,r1) layout', () => {
-    expect(ribbonStripIndices(2, 0)).toEqual([0, 2, 1, 1, 2, 3]);
-    expect(ribbonStripIndices(3, 10)).toEqual([10, 12, 11, 11, 12, 13, 12, 14, 13, 13, 14, 15]);
+  it('indexed strip triangles face UP (the game path\'s historical pattern was down-wound and culled)', () => {
+    expect(ribbonStripIndices(2, 0)).toEqual([0, 1, 2, 1, 3, 2]);
+    expect(ribbonStripIndices(3, 10)).toEqual([10, 11, 12, 11, 13, 12, 12, 13, 14, 13, 15, 14]);
     expect(ribbonStripIndices(1, 0)).toEqual([]); // a dead point emits no segment
+
+    // Winding proof: assemble a straight (right,left)-interleaved strip and
+    // check every indexed triangle's normal points +Y (CCW seen from above) —
+    // this is the regression the shared module fixes; the old inline pattern
+    // produced −Y (back-face culled from every above-ground camera).
+    const edges = ribbonEdgeOffsets([[0, 0], [10, 0], [20, 0]], () => 2);
+    const verts: Array<[number, number, number]> = [];
+    for (const e of edges) { verts.push([e.rx, 0, e.rz]); verts.push([e.lx, 0, e.lz]); }
+    const idx = ribbonStripIndices(edges.length, 0);
+    for (let t = 0; t < idx.length; t += 3) {
+      const [a, b, c] = [verts[idx[t]], verts[idx[t + 1]], verts[idx[t + 2]]];
+      const uy = (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]);
+      expect(uy).toBeGreaterThan(0);
+    }
   });
 });

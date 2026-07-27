@@ -272,9 +272,97 @@
   .agent-handle { font-weight: 600; }
   .agent-handle .id { color: var(--text-faint); font-family: var(--mono); font-size: 11px; font-weight: 400; margin-left: 6px; }
   .agent-note { color: var(--text-dim); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .agent-thread { color: #9fd0ff; font-family: var(--mono); }
   .agent-seen { color: var(--text-faint); font-size: 11px; font-family: var(--mono); white-space: nowrap; }
+  .assigned-pet {
+    --pet-end-x: -228px;
+    --pet-duration: 1100ms;
+    width: 38px; height: 42px; flex: 0 0 auto; border-radius: 6px;
+    border: 1px solid #31527a; background-color: #0c1622;
+    background-size: 304px 378px;
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+  }
+  .assigned-pet.is-animated {
+    animation: assigned-pet-action var(--pet-duration) steps(var(--pet-frames)) infinite;
+  }
+  .assigned-pet.mini {
+    width: 22px; height: 24px; border-radius: 4px; vertical-align: middle;
+    background-size: 176px 216px;
+  }
+  @keyframes assigned-pet-action {
+    to { background-position-x: var(--pet-end-x); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .assigned-pet { animation: none; background-position-x: 0; }
+  }
+  .pet-owner { color: #7dd3fc; display: inline-flex; align-items: center; gap: 5px; }
   .inspectable { cursor: pointer; }
   .inspectable:focus-visible { outline: 2px solid var(--accent-2); outline-offset: -2px; }
+
+  /* ---------- Presence ceremony ---------- */
+  /* The roster stays readable underneath this temporary, pointer-free stage.
+     A fixed sign-in pad anchors both the arrival and departure choreography. */
+  #presence-panel { position: relative; }
+  .presence-ceremony {
+    position: absolute; inset: 42px 0 0; z-index: 5; overflow: hidden;
+    pointer-events: none;
+    background: rgba(7, 15, 27, 0.78);
+    box-shadow: inset 0 1px 0 rgba(96, 165, 250, 0.24);
+  }
+  .presence-ceremony[hidden] { display: none; }
+  .presence-ceremony-pad {
+    position: absolute; right: 14px; bottom: 12px;
+    width: 30px; height: 42px; border: 2px solid #50729a; border-radius: 5px;
+    background: #0a1422;
+    box-shadow: inset 0 0 0 3px #13243a, 0 0 0 1px rgba(4, 8, 16, 0.75);
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+  }
+  .presence-ceremony-pad::before {
+    content: ""; position: absolute; left: 8px; top: 7px;
+    width: 10px; height: 10px; border: 2px solid #7996b6; border-radius: 50%;
+  }
+  .presence-ceremony-pad::after {
+    content: ""; position: absolute; left: 8px; bottom: 7px;
+    width: 10px; height: 2px; background: #7996b6;
+    box-shadow: 0 -5px 0 #7996b6;
+  }
+  .presence-ceremony-pad.is-active {
+    border-color: var(--green);
+    box-shadow: inset 0 0 0 3px #13243a, 0 0 12px rgba(46, 194, 126, 0.72);
+  }
+  .presence-ceremony-bubble {
+    position: absolute; left: 50%; bottom: 74px; z-index: 2;
+    width: max-content; max-width: calc(100% - 48px); padding: 9px 12px;
+    color: #0d1725; background: #f7fbff; border: 2px solid #8ecbff;
+    border-radius: 8px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.42);
+    font-size: 13px; font-weight: 700; line-height: 1.35;
+    white-space: normal; overflow-wrap: anywhere;
+    transform: translateX(-50%);
+  }
+  .presence-ceremony-bubble[hidden] { display: none; }
+  .presence-ceremony-bubble::after {
+    content: ""; position: absolute; left: 50%; bottom: -8px;
+    width: 12px; height: 12px; background: #f7fbff;
+    border-right: 2px solid #8ecbff; border-bottom: 2px solid #8ecbff;
+    transform: translateX(-50%) rotate(45deg);
+  }
+  .presence-ceremony-pet.assigned-pet {
+    position: absolute; left: -48px; bottom: 11px;
+    border: 0; border-radius: 0; background-color: transparent;
+    transition: left var(--ceremony-ms, 800ms) linear, transform 140ms ease;
+    filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.55));
+  }
+  .presence-ceremony-pet.at-start,
+  .presence-ceremony-pet.at-end { left: -48px; }
+  .presence-ceremony-pet.at-mid { left: 42%; }
+  .presence-ceremony-pet.at-pad { left: calc(100% - 73px); }
+  .presence-ceremony-pet.is-tapping { transform: translateX(7px); }
+  @media (prefers-reduced-motion: reduce) {
+    .presence-ceremony-pet.assigned-pet { transition-duration: 1ms; }
+    .presence-ceremony-pad { transition-duration: 1ms; }
+  }
 
   /* ---------- Locks ---------- */
   .lock-row, .reservation-row {
@@ -480,7 +568,7 @@
     padding: 10px;
     background: rgba(12, 18, 34, 0.72);
     display: grid;
-    grid-template-columns: minmax(80px, 120px) 1fr auto;
+    grid-template-columns: minmax(80px, 120px) minmax(140px, 200px) 1fr auto;
   }
   .message-composer.cmd-composer {
     grid-template-columns: 1fr auto;
@@ -560,7 +648,7 @@
   }
   #docs-panel.open { transform: translateX(0); }
   #entry-inspector {
-    position: fixed; top: 0; right: 0; bottom: 0; width: 520px; max-width: 92vw;
+    position: fixed; top: 0; right: 0; bottom: 0; width: 680px; max-width: 96vw;
     background: #0f1728; border-left: 1px solid var(--border, #232a3a);
     box-shadow: -10px 0 30px rgba(0,0,0,.5); z-index: 60;
     transform: translateX(100%); transition: transform .18s ease-out;
@@ -571,21 +659,40 @@
     display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
     padding: 13px 14px; border-bottom: 1px solid var(--border, #232a3a);
   }
-  .inspector-head h2 { margin: 0; font-size: 14px; }
-  .inspector-subtitle { margin-top: 4px; color: var(--text-faint); font-family: var(--mono); font-size: 11px; word-break: break-all; }
+  .inspector-head h2 { margin: 0; font-size: 16px; line-height: 1.35; }
+  .inspector-subtitle { margin-top: 5px; color: var(--text-faint); font-family: var(--mono); font-size: 11px; word-break: break-all; }
   #entry-inspector-close { background: transparent; border: none; color: var(--text-dim, #9aa4b2); font-size: 14px; cursor: pointer; }
-  .inspector-body { flex: 1; overflow-y: auto; padding: 12px 14px 18px; }
+  .inspector-body { flex: 1; overflow-y: auto; padding: 16px 18px 24px; }
   .inspector-facts {
-    display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 10px;
-    margin-bottom: 12px; font-size: 12px;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
+    margin: 0 0 16px; font-size: 12px;
   }
-  .inspector-facts dt { color: var(--text-faint); }
-  .inspector-facts dd { margin: 0; color: var(--text); word-break: break-word; }
-  .inspector-block { border: 1px solid var(--border-soft); border-radius: 8px; margin: 0 0 10px; overflow: hidden; background: rgba(8, 13, 26, .62); }
-  .inspector-block h3 { margin: 0; padding: 8px 10px; font-size: 11px; text-transform: uppercase; color: var(--text-dim); background: rgba(116,181,255,.08); }
+  .inspector-fact { min-width: 0; padding: 9px 10px; border: 1px solid var(--border-soft); background: rgba(8, 13, 26, .45); }
+  .inspector-facts dt { margin-bottom: 3px; color: var(--text-faint); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+  .inspector-facts dd { margin: 0; color: var(--text); font-size: 13px; line-height: 1.35; word-break: break-word; }
+  .inspector-facts dd[data-state="blocked"] { color: #ff9da5; font-weight: 700; }
+  .inspector-facts dd[data-state="done"] { color: #67e8a7; font-weight: 700; }
+  .inspector-facts dd[data-state="open"], .inspector-facts dd[data-state="claimed"], .inspector-facts dd[data-state="in_progress"] { color: #8fc7ff; font-weight: 700; }
+  .inspector-block { border: 1px solid var(--border-soft); border-radius: 6px; margin: 0 0 12px; overflow: hidden; background: rgba(8, 13, 26, .62); }
+  .inspector-block > h3 { margin: 0; padding: 9px 11px; font-size: 11px; text-transform: uppercase; color: var(--text-dim); background: rgba(116,181,255,.08); }
+  .inspector-prose { margin: 0; padding: 12px; color: var(--text); font: 13px/1.65 var(--sans); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .inspector-empty { color: var(--text-faint); font-style: italic; }
+  .inspector-list { list-style: none; margin: 0; padding: 6px 0; }
+  .inspector-list li { padding: 7px 11px; border-top: 1px solid rgba(116,181,255,.1); color: var(--text); font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+  .inspector-list li:first-child { border-top: 0; }
+  .inspector-list .list-meta { color: var(--text-faint); font-family: var(--mono); font-size: 10px; }
+  .inspector-people { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .inspector-person { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 9px; align-items: center; padding: 10px; border: 1px solid var(--border-soft); background: rgba(8,13,26,.5); }
+  .inspector-person-role { color: var(--text-faint); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+  .inspector-person-name { margin-top: 2px; color: var(--text); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+  .inspector-person-meta { margin-top: 3px; color: var(--text-faint); font: 10px/1.4 var(--mono); overflow-wrap: anywhere; }
+  details.inspector-raw > summary { padding: 9px 11px; cursor: pointer; color: var(--text-dim); font-size: 11px; font-weight: 700; text-transform: uppercase; background: rgba(116,181,255,.05); }
   .inspector-json {
     margin: 0; padding: 10px; color: #c9d7f8; font: 11px/1.45 var(--mono);
     white-space: pre-wrap; word-break: break-word;
+  }
+  @media (max-width: 560px) {
+    .inspector-facts, .inspector-people { grid-template-columns: minmax(0, 1fr); }
   }
   .docs-head { display: flex; align-items: center; justify-content: space-between;
     padding: 12px 14px; border-bottom: 1px solid var(--border, #232a3a); }
@@ -801,9 +908,14 @@
   </header>
 
   <main>
-    <section class="panel">
+    <section class="panel" id="presence-panel">
       <h2>👥 Presence <span class="badge" id="b-agents">0</span></h2>
       <div class="body" id="presence"></div>
+      <div class="presence-ceremony" id="presence-ceremony" hidden aria-live="polite">
+        <div class="presence-ceremony-pad" id="presence-ceremony-pad" title="Presence sign-in pad" aria-hidden="true"></div>
+        <div class="presence-ceremony-bubble" id="presence-ceremony-bubble" role="status" hidden></div>
+        <div id="presence-ceremony-pet-slot"></div>
+      </div>
     </section>
 
     <section class="panel">
@@ -849,6 +961,9 @@
       <div class="body feed-body" id="feed"></div>
       <form class="message-composer" id="message-composer">
         <input type="text" id="composer-name" maxlength="24" placeholder="Your name" title="Display name used as your sender handle" autocomplete="off">
+        <select id="composer-pet" title="Pet identity required before joining Agora presence">
+          <option value="">Choose pet identity</option>
+        </select>
         <textarea id="composer-body" rows="2" maxlength="4000" placeholder="Write to the feed — start with @handle to DM an agent" title="Start with @handle (partial ok) to send direct; otherwise broadcasts"></textarea>
         <button id="composer-send" type="submit">Send</button>
         <div class="composer-status" id="composer-status"></div>
@@ -891,7 +1006,17 @@
     <div class="inspector-body" id="entry-inspector-body"></div>
   </aside>
 
-<script>
+<script type="module">
+import {
+  PET_ACTIONS,
+  PET_REACTION_MS,
+  PRESENCE_CEREMONIES,
+  petReactionsForEvent,
+  presenceCeremonyForEvent,
+  steadyAgentPetAction,
+  taskPetAction,
+} from "/dashboard/pet-actions.mjs";
+
 (() => {
   "use strict";
 
@@ -900,7 +1025,7 @@
     agents: [],            // [{id,handle,note,status,lastSeen,...}]
     locks: [],             // [{id,paths,globs,agentId,reason,createdAt,expiresAt}]
     reservations: [],      // [{id,paths,globs,agentId,reason,createdAt,position}]
-    tasks: [],             // [{id,title,state,createdBy,claimedBy,updatedAt,...}]
+    tasks: [],             // [{id,title,state,createdBy,claimedBy,assignedPet,updatedAt,...}]
     campaigns: [],         // [{id,role,leadCampaignId,agentId,scope,paths,globs,wave,state,...}]
     messages: [],          // [{id,seq,from,to,body,createdAt}]
     docsNames: [],         // names served by GET /docs (pact strip links the pact when present)
@@ -921,6 +1046,9 @@
     pets: [],             // downloaded Codex pet packages shown on the separate Pets tab
     petQuery: "",
     petKindFilter: "all",
+    petActionOverrides: new Map(), // agent id -> short live-event reaction and expiry
+    presenceCeremonyQueue: [], // live arrivals/departures, drained serially over the Presence panel
+    presenceCeremonyBusy: false,
   };
 
   const $ = (id) => document.getElementById(id);
@@ -1083,6 +1211,7 @@
   // messages go through the same authenticated Agora path as `client.mjs say`.
   const DASHBOARD_IDENTITY_KEY = "agora.dashboard.identity.v1";
   const DASHBOARD_NAME_KEY = "agora.dashboard.displayName.v1";
+  const DASHBOARD_PET_KEY = "agora.dashboard.petSlug.v1";
   const DASHBOARD_COLLAPSED_PANELS_KEY = "agora.dashboard.collapsedPanels.v1";
 
   function storedDisplayName() {
@@ -1091,6 +1220,14 @@
 
   function saveDisplayName(name) {
     try { localStorage.setItem(DASHBOARD_NAME_KEY, name); } catch (e) {}
+  }
+
+  function storedPetSlug() {
+    try { return localStorage.getItem(DASHBOARD_PET_KEY) || ""; } catch (e) { return ""; }
+  }
+
+  function savePetSlug(slug) {
+    try { localStorage.setItem(DASHBOARD_PET_KEY, slug); } catch (e) {}
   }
 
   // Handles travel through CLI args and URLs, so keep them to safe characters.
@@ -1182,7 +1319,7 @@
 
   async function loadPets() {
     try {
-      const data = await getJSON("/dashboard/pets/pets.json");
+      const data = await getJSON("/pets");
       ST.pets = Array.isArray(data.pets) ? data.pets : [];
       renderPets();
     } catch (e) {
@@ -1201,6 +1338,23 @@
     $("pet-kind-filter").innerHTML = options.join("");
     $("pet-kind-filter").value = kinds.includes(ST.petKindFilter) ? ST.petKindFilter : "all";
     ST.petKindFilter = $("pet-kind-filter").value;
+
+    // The message composer is itself an Agora presence claimant. It must make
+    // an explicit choice from the same validated local catalog before sending.
+    const composerPet = $("composer-pet");
+    if (composerPet) {
+      const wanted = composerPet.value || storedPetSlug();
+      const ownedSlug = ST.userAgent && ST.userAgent.pet ? ST.userAgent.pet.slug : storedPetSlug();
+      composerPet.innerHTML = [
+        '<option value="">Choose pet identity</option>',
+        ...ST.pets.map((pet) => {
+          const occupiedByOther = pet.available === false && pet.slug !== ownedSlug;
+          const suffix = occupiedByOther && pet.claimedBy ? ` — in use by ${pet.claimedBy.handle}` : "";
+          return `<option value="${esc(pet.slug)}"${occupiedByOther ? " disabled" : ""}>${esc(pet.displayName || pet.slug)}${esc(suffix)}</option>`;
+        }),
+      ].join("");
+      composerPet.value = ST.pets.some((pet) => pet.slug === wanted) ? wanted : "";
+    }
 
     const query = ST.petQuery.trim().toLowerCase();
     const visible = ST.pets.filter((pet) => {
@@ -1225,9 +1379,146 @@
           <div class="pet-name">${esc(pet.displayName || pet.slug)}</div>
           <div class="pet-sub">${esc(pet.slug)}${pet.submittedBy ? ` · by ${esc(pet.submittedBy)}` : ""}</div>
           <span class="pet-kind">${esc(pet.kind || "unknown")}</span>
+          <span class="pet-kind">${pet.available === false ? `in use by ${esc(pet.claimedBy ? pet.claimedBy.handle : "agent")}` : "available"}</span>
         </div>
       </article>`;
     }).join("");
+  }
+
+  // Assigned pets render directly from the fixed nine-row Codex atlas. Callers
+  // opt into animation: the Presence roster deliberately keeps a still first
+  // frame, while tasks and the finite sign-in stage retain expressive motion.
+  function assignedPetAvatar(pet, { action = "idle", extraClass = "", animated = true } = {}) {
+    if (!pet || !pet.localSpritesheet) return "";
+    const sprite = `/dashboard/${pet.localSpritesheet}`;
+    const atlas = PET_ACTIONS[action] || PET_ACTIONS.idle;
+    const petName = pet.displayName || pet.slug;
+    const mini = String(extraClass).split(/\s+/).includes("mini");
+    const cellWidth = mini ? 22 : 38;
+    const cellHeight = mini ? 24 : 42;
+    extraClass = [animated ? "is-animated" : "", extraClass].filter(Boolean).join(" ");
+    return `<span class="assigned-pet ${esc(extraClass)}" role="img" data-pet-action="${esc(action)}" aria-label="${esc(petName)}: ${esc(atlas.label)}" title="${esc(petName)} · ${esc(atlas.label)}" style="background-image:url('${esc(sprite)}');background-position-y:${-atlas.row * cellHeight}px;--pet-frames:${atlas.frames};--pet-end-x:${-atlas.frames * cellWidth}px;--pet-duration:${atlas.durationMs}ms"></span>`;
+  }
+
+  // The presence tile reflects durable board state after any short SSE reaction
+  // expires. Overrides are deliberately browser-local: they communicate a live
+  // gesture without changing the daemon's durable task or agent schema.
+  function currentAgentPetAction(agentId) {
+    const reaction = ST.petActionOverrides.get(agentId);
+    if (reaction && reaction.expiresAt > Date.now()) return reaction.action;
+    if (reaction) ST.petActionOverrides.delete(agentId);
+    return steadyAgentPetAction({
+      agentId,
+      tasks: ST.tasks,
+      locks: ST.locks,
+      reservations: ST.reservations,
+      campaigns: ST.campaigns,
+    });
+  }
+
+  // Momentary events get several animation loops before the pet settles back to
+  // its board-derived action. The expiry check prevents an older timer from
+  // cancelling a newer reaction for the same agent.
+  function showPetReactions(type, data) {
+    for (const reaction of petReactionsForEvent(type, data)) {
+      const expiresAt = Date.now() + (PET_REACTION_MS[reaction.action] || 2200);
+      ST.petActionOverrides.set(reaction.agentId, { action: reaction.action, expiresAt });
+      setTimeout(() => {
+        const current = ST.petActionOverrides.get(reaction.agentId);
+        if (current && current.expiresAt === expiresAt) {
+          ST.petActionOverrides.delete(reaction.agentId);
+          renderPresence();
+        }
+      }, Math.max(0, expiresAt - Date.now()) + 20);
+    }
+  }
+
+  // Presence ceremonies are intentionally finite and serialized. A burst of
+  // registrations therefore becomes a readable queue instead of pets sharing
+  // one stage or leaving a perpetual animation behind in the roster.
+  function waitForCeremony(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function setCeremonyAction(petNode, action) {
+    const atlas = PET_ACTIONS[action] || PET_ACTIONS.idle;
+    petNode.dataset.petAction = action;
+    petNode.style.backgroundPositionY = `${-atlas.row * 42}px`;
+    petNode.style.setProperty("--pet-frames", atlas.frames);
+    petNode.style.setProperty("--pet-end-x", `${-atlas.frames * 38}px`);
+    petNode.style.setProperty("--pet-duration", `${atlas.durationMs}ms`);
+    // Restart each authored row at frame one when the ceremony changes action.
+    petNode.classList.remove("is-animated");
+    void petNode.offsetWidth;
+    petNode.classList.add("is-animated");
+  }
+
+  async function playPresenceCeremony(ceremony) {
+    const panel = $("presence-panel");
+    const layer = $("presence-ceremony");
+    const pad = $("presence-ceremony-pad");
+    const bubble = $("presence-ceremony-bubble");
+    const slot = $("presence-ceremony-pet-slot");
+    const steps = PRESENCE_CEREMONIES[ceremony.kind] || [];
+    if (!panel || !layer || !pad || !bubble || !slot || !steps.length || panel.classList.contains("collapsed")) return;
+
+    const petName = ceremony.agent.pet.displayName || ceremony.agent.pet.slug;
+    slot.innerHTML = assignedPetAvatar(ceremony.agent.pet, {
+      action: steps[0].action,
+      extraClass: `presence-ceremony-pet at-${ceremony.initialPosition}`,
+      animated: true,
+    });
+    const petNode = slot.querySelector(".presence-ceremony-pet");
+    if (!petNode) return;
+    layer.hidden = false;
+    layer.setAttribute("aria-label", ceremony.speech || `${petName} ${ceremony.kind}`);
+    bubble.hidden = true;
+    bubble.textContent = "";
+    void petNode.offsetWidth;
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    for (const step of steps) {
+      setCeremonyAction(petNode, step.action);
+      petNode.classList.remove("at-start", "at-mid", "at-pad", "at-end", "is-tapping");
+      petNode.classList.add(`at-${step.position}`);
+      petNode.classList.toggle("is-tapping", Boolean(step.tap));
+      petNode.style.setProperty("--ceremony-ms", `${step.durationMs}ms`);
+      pad.classList.toggle("is-active", Boolean(step.tap));
+      const isSpeaking = Boolean(step.speech && ceremony.speech);
+      bubble.textContent = isSpeaking ? ceremony.speech : "";
+      bubble.hidden = !isSpeaking;
+      layer.dataset.phase = step.phase;
+      // Travel may collapse for reduced motion, but speech always receives the
+      // full reading interval promised by the operator-facing interaction.
+      const visibleDuration = step.speech
+        ? Math.max(3000, step.durationMs)
+        : (reducedMotion ? Math.min(step.durationMs, 180) : step.durationMs);
+      await waitForCeremony(visibleDuration);
+    }
+
+    pad.classList.remove("is-active");
+    bubble.hidden = true;
+    bubble.textContent = "";
+    layer.hidden = true;
+    layer.removeAttribute("aria-label");
+    delete layer.dataset.phase;
+    slot.replaceChildren();
+  }
+
+  function queuePresenceCeremony(ceremony) {
+    if (!ceremony) return;
+    ST.presenceCeremonyQueue.push(ceremony);
+    if (ST.presenceCeremonyBusy) return;
+    ST.presenceCeremonyBusy = true;
+    (async () => {
+      try {
+        while (ST.presenceCeremonyQueue.length) {
+          await playPresenceCeremony(ST.presenceCeremonyQueue.shift());
+        }
+      } finally {
+        ST.presenceCeremonyBusy = false;
+      }
+    })();
   }
 
   function setComposerStatus(text, kind = "", statusId = "composer-status") {
@@ -1269,13 +1560,61 @@
     else setComposerStatus(r.matches.length ? `@${r.query} is ambiguous: ${r.matches.slice(0, 5).join(", ")}` : `no agent matches @${r.query} — will broadcast as text`, "error", c.status);
   }
 
+  // Raw records are still available for debugging, but they no longer dominate
+  // the human reading path. Every dump starts collapsed behind a clear label.
   function jsonBlock(title, value) {
-    return `<section class="inspector-block"><h3>${esc(title)}</h3><pre class="inspector-json">${esc(JSON.stringify(value, null, 2))}</pre></section>`;
+    return '<details class="inspector-block inspector-raw"><summary>' + esc(title)
+      + '</summary><pre class="inspector-json">' + esc(JSON.stringify(value, null, 2)) + '</pre></details>';
   }
 
+  // Facts read as small labeled cards instead of a compressed two-column data
+  // dictionary. State receives a semantic color without changing its wording.
   function factRows(rows) {
-    return `<dl class="inspector-facts">${rows.filter((r) => r[1] !== undefined && r[1] !== null && r[1] !== "").map((r) =>
-      `<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join("")}</dl>`;
+    const facts = rows
+      .filter((row) => row[1] !== undefined && row[1] !== null && row[1] !== "")
+      .map((row) => {
+        const state = row[0] === "state" ? ' data-state="' + esc(row[1]) + '"' : "";
+        return '<div class="inspector-fact"><dt>' + esc(row[0]) + '</dt><dd' + state + '>' + esc(row[1]) + '</dd></div>';
+      })
+      .join("");
+    return '<dl class="inspector-facts">' + facts + '</dl>';
+  }
+
+  // Long task instructions and results retain their authored line breaks. Some
+  // imported TODO cards contain literal backslash-n markers, so normalize those
+  // legacy records only for display while leaving the stored task untouched.
+  function proseBlock(title, value, emptyLabel = "No details recorded.") {
+    const text = String(value || "").replace(/\\n/g, "\n").trim();
+    return '<section class="inspector-block"><h3>' + esc(title) + '</h3><div class="inspector-prose'
+      + (text ? '' : ' inspector-empty') + '">' + esc(text || emptyLabel) + '</div></section>';
+  }
+
+  function listBlock(title, rows, emptyLabel = "None") {
+    const items = (rows || []).filter(Boolean);
+    const body = items.length
+      ? '<ul class="inspector-list">' + items.map((row) => '<li>' + row + '</li>').join("") + '</ul>'
+      : '<div class="inspector-prose inspector-empty">' + esc(emptyLabel) + '</div>';
+    return '<section class="inspector-block"><h3>' + esc(title) + '</h3>' + body + '</section>';
+  }
+
+  // People are shown as recognizable owners rather than opaque UUIDs. The pet
+  // portrait is a still frame here so inspector reading never becomes noisy.
+  function personCard(label, agent) {
+    if (!agent) {
+      return '<div class="inspector-person"><div><div class="inspector-person-role">' + esc(label)
+        + '</div><div class="inspector-person-name">Unassigned</div></div></div>';
+    }
+    const pet = agent.pet || null;
+    const meta = [
+      agent.model,
+      agent.reasoningEffort ? 'reasoning ' + agent.reasoningEffort : '',
+      agent.sessionId ? 'task/thread ' + agent.sessionId : '',
+      agent.id ? 'id ' + shortId(agent.id) : '',
+    ].filter(Boolean).join(' · ');
+    return '<div class="inspector-person">' + assignedPetAvatar(pet, { action: "idle", animated: false })
+      + '<div><div class="inspector-person-role">' + esc(label) + '</div><div class="inspector-person-name">'
+      + esc(agent.handle || shortId(agent.id)) + '</div><div class="inspector-person-meta">'
+      + esc(meta || agent.note || "No additional identity details") + '</div></div></div>';
   }
 
   function agentInspector(agentId) {
@@ -1292,13 +1631,17 @@
           ["handle", agent.handle],
           ["status", agent.status],
           ["model", agent.model],
+          ["reasoning effort", agent.reasoningEffort],
+          ["Codex task/thread ID", agent.sessionId || (agent.threadIdRequired ? "MISSING (legacy registration)" : "")],
           ["note", agent.note],
+          ["assigned pet", agent.pet ? agent.pet.displayName : "missing registration pet"],
           ["last seen", clockTime(agent.lastSeen)],
           ["locks", locks.length],
           ["tasks", tasks.length],
           ["messages", messages.length],
         ]),
         jsonBlock("agent record", agent),
+        jsonBlock("assigned pet", agent.pet || null),
         jsonBlock("locks held", locks),
         jsonBlock("created or claimed tasks", tasks),
         jsonBlock("messages from or to agent", messages),
@@ -1370,31 +1713,53 @@
     };
   }
 
+  // A task opens as a work brief: what it is, who owns it, what must happen,
+  // and how it reached its current state. Machine records remain at the bottom.
   function taskInspector(taskId) {
-    const task = ST.tasks.find((t) => t.id === taskId);
+    const task = ST.tasks.find((row) => row.id === taskId);
     if (!task) return null;
     const createdBy = resolvedAgentRecord(task.createdBy, task.creatorAgent);
     const claimedBy = task.claimedBy ? resolvedAgentRecord(task.claimedBy, task.claimedAgent) : null;
-    const deps = (task.deps || []).map((id) => ST.tasks.find((t) => t.id === id) || { id, missing: true });
-    const messages = ST.messages.filter((m) => String(m.body || "").includes(task.id));
+    const deps = (task.deps || []).map((id) => ST.tasks.find((row) => row.id === id) || { id, missing: true });
+    const messages = ST.messages.filter((message) => String(message.body || "").includes(task.id));
+
+    const references = (task.refs || []).map((ref) => '<strong>' + esc(ref) + '</strong>');
+    const dependencyRows = deps.map((dep) => {
+      const title = dep.title || "Missing task record";
+      const state = dep.missing ? "missing" : dep.state;
+      return '<strong>' + esc(title) + '</strong><div class="list-meta">' + esc(state) + ' · ' + esc(dep.id) + '</div>';
+    });
+    const activityRows = (task.history || []).slice().reverse().map((entry) => {
+      const actor = entry.by === "system" ? "system" : handleOf(entry.by);
+      const detail = [entry.action, entry.state, entry.note, entry.reason].filter(Boolean).join(" · ");
+      return '<strong>' + esc(detail || "task updated") + '</strong><div class="list-meta">'
+        + esc(clockTime(entry.at)) + ' · by ' + esc(actor) + '</div>';
+    });
+    const messageRows = messages.map((message) => '<strong>' + esc(handleOf(message.from)) + '</strong>: '
+      + esc(message.body) + '<div class="list-meta">' + esc(clockTime(message.createdAt)) + '</div>');
+
     return {
-      title: `Task: ${task.title || shortId(task.id)}`,
-      subtitle: task.id,
+      title: task.title || "Task details",
+      subtitle: "Task " + task.id,
       html: [
         factRows([
           ["state", task.state],
           ["priority", task.priority],
-          ["created by", createdBy ? createdBy.handle : task.createdBy],
-          ["claimed by", claimedBy ? claimedBy.handle : task.claimedBy],
           ["updated", clockTime(task.updatedAt)],
-          ["refs", (task.refs || []).join(", ")],
-          ["deps", (task.deps || []).join(", ")],
+          ["campaign", task.campaignId],
+          ["wave", task.wave],
+          ["category", task.category],
         ]),
-        jsonBlock("task record", task),
-        jsonBlock("creator agent", createdBy),
-        jsonBlock("claiming agent", claimedBy),
-        jsonBlock("dependency tasks", deps),
-        jsonBlock("messages mentioning task id", messages),
+        '<div class="inspector-people">' + personCard("Created by", createdBy) + personCard("Claimed by", claimedBy) + '</div>',
+        proseBlock("What needs doing", task.body),
+        task.result ? proseBlock("Recorded outcome", task.result) : "",
+        listBlock("References", references, "No references recorded."),
+        listBlock("Dependencies", dependencyRows, "No dependencies."),
+        listBlock("Activity", activityRows, "No activity recorded."),
+        listBlock("Messages mentioning this task", messageRows, "No messages mention this task ID."),
+        jsonBlock("Raw task data", task),
+        jsonBlock("Raw related people", { creator: createdBy, claimant: claimedBy }),
+        jsonBlock("Raw related records", { dependencies: deps, messages }),
       ].join(""),
     };
   }
@@ -1543,11 +1908,16 @@
     ).map((a) => {
       const status = a.status === "online" ? "online" : "stale";
       const role = roleOf(a);
+      const petAction = currentAgentPetAction(a.id);
       return `<div class="agent-row inspectable" role="button" tabindex="0" data-entry-kind="agent" data-entry-id="${esc(a.id)}">
         <span class="sdot ${status}" title="${status}"></span>
+        ${assignedPetAvatar(a.pet, { action: "idle", animated: false })}
         <div class="agent-main">
-          <div class="agent-handle">${esc(a.handle)}${role !== "worker" ? roleChip(role) : ""}${a.model ? `<span class="model-chip">${esc(a.model)}</span>` : ""}<span class="id">${esc((a.id||"").slice(0,8))}</span></div>
+          <div class="agent-handle">${esc(a.handle)}${role !== "worker" ? roleChip(role) : ""}${a.model ? `<span class="model-chip">${esc(a.model)}</span>` : ""}${a.reasoningEffort ? `<span class="model-chip">${esc(a.reasoningEffort)}</span>` : ""}<span class="id">${esc((a.id||"").slice(0,8))}</span></div>
           ${a.note ? `<div class="agent-note">${esc(a.note)}</div>` : ""}
+          ${a.sessionId || a.threadIdRequired ? `<div class="agent-note agent-thread">task/thread: ${esc(a.sessionId || "MISSING (legacy registration)")}</div>` : ""}
+          ${a.capacityRecoverable ? `<div class="agent-note">stale and idle · an orchestrator can retire this presence to free its pet</div>` : ""}
+          ${a.pet ? `<div class="agent-note">pet: ${esc(a.pet.displayName || a.pet.slug)} · ${esc(PET_ACTIONS[petAction].label)}</div>` : ""}
         </div>
         <span class="agent-seen">${relTime(a.lastSeen)}</span>
       </div>`;
@@ -1686,6 +2056,7 @@
         <div class="task-title">${gapChip}${esc(t.title)}${t.priority ? `<span class="task-pri">p${esc(String(t.priority))}</span>` : ""}</div>
         <div class="task-sub">
           ${t.claimedBy ? `<span class="who">▸ ${esc(handleOf(t.claimedBy))}</span>` : `<span>by ${esc(handleOf(t.createdBy))}</span>`}
+          ${t.assignedPet ? `<span class="pet-owner">${assignedPetAvatar(t.assignedPet, { action: taskPetAction(t), extraClass: "mini" })} ${esc(t.assignedPet.displayName || t.assignedPet.slug)}</span>` : ""}
           <span>updated ${relTime(t.updatedAt)}</span>
           ${waitingOn.length && t.state === "open" ? `<span class="task-waiting">⏳ waiting on ${waitingOn.length} dep(s)</span>` : ""}
           ${(t.refs || []).length ? `<span class="task-refs">⛓ ${t.refs.map(esc).join(", ")}</span>` : ""}
@@ -1982,9 +2353,11 @@
   async function ensureDashboardIdentity(forceNew = false) {
     const wantedName = sanitizeHandle($("composer-name") ? $("composer-name").value : storedDisplayName());
     const wantedHandle = wantedName || `operator-dashboard-${randomSuffix()}`;
+    const wantedPet = $("composer-pet") ? $("composer-pet").value : storedPetSlug();
+    if (!wantedPet) throw new Error("Choose a pet identity before joining presence");
     const current = (!forceNew && ST.userAgent && ST.userAgent.token) ? ST.userAgent : (!forceNew ? storedDashboardIdentity() : null);
-    // Reuse the saved identity only while it still matches the chosen name.
-    if (current && current.token && (!wantedName || current.handle === wantedName)) {
+    // Reuse the saved identity only while both human and pet identities match.
+    if (current && current.token && (!wantedName || current.handle === wantedName) && current.pet && current.pet.slug === wantedPet) {
       ST.userAgent = current;
       return current;
     }
@@ -1996,6 +2369,7 @@
         unique: true,
         model: "human-dashboard",
         role: "human", // unlocks the command channel
+        petSlug: wantedPet,
       });
     } catch (e) {
       // A live agent already holds this name; keep it recognizable but unique.
@@ -2006,9 +2380,15 @@
         unique: true,
         model: "human-dashboard",
         role: "human",
+        petSlug: wantedPet,
       });
     }
     if (wantedName) saveDisplayName(wantedName);
+    // The server may substitute an occupied choice. Persist and display the
+    // actual assignment so the next send does not repeatedly re-register.
+    const assignedPetSlug = identity.pet && identity.pet.slug ? identity.pet.slug : wantedPet;
+    savePetSlug(assignedPetSlug);
+    if ($("composer-pet")) $("composer-pet").value = assignedPetSlug;
     saveDashboardIdentity(identity);
     return identity;
   }
@@ -2067,7 +2447,8 @@
       refreshAgents();
       refreshHealth();
     } catch (e) {
-      setComposerStatus("send failed", "error", c.status);
+      const missingPet = e && e.message === "Choose a pet identity before joining presence";
+      setComposerStatus(missingPet ? e.message : "send failed", "error", c.status);
     } finally {
       ST.sendBusy = false;
       button.disabled = false;
@@ -2131,6 +2512,19 @@
   }
 
   function handleEvent(type, data) {
+    // Resolve checkout before refreshAgents removes the departing roster row.
+    // Initial REST hydration never passes here, so page loads stay quiet.
+    queuePresenceCeremony(presenceCeremonyForEvent(type, data, ST.agents, ST.tasks));
+
+    // Release and expiry events carry only a lock id in some daemon versions.
+    // Recover the holder from the last good snapshot before the structural
+    // refresh removes that lock, so the correct pet can react.
+    if ((type === "lock.release" || type === "lock.expired") && data && data.lockId) {
+      const priorLock = ST.locks.find((lock) => lock.id === data.lockId);
+      if (priorLock && priorLock.agentId) data = { ...data, agentId: priorLock.agentId };
+    }
+    showPetReactions(type, data);
+
     switch (type) {
       case "agent.register":
       case "agent.touch":
@@ -2153,6 +2547,7 @@
       case "task.release": // dead-agent reap reopened a task
       case "task.handoff":
       case "task.categories":
+      case "task.checkpoint":
         onStructural("task"); break;
       case "message.post": {
         // Incremental append from payload; resolve handles from current agents.
@@ -2202,7 +2597,7 @@
       "lock.acquire", "lock.release", "lock.expired",
       "reservation.create", "reservation.release", "reservation.fulfill",
       "campaign.claim", "campaign.state",
-      "task.create", "task.claim", "task.state", "task.release", "task.handoff", "task.categories",
+      "task.create", "task.claim", "task.state", "task.release", "task.handoff", "task.categories", "task.checkpoint",
       "message.post",
     ];
     for (const name of NAMED) {
@@ -2251,6 +2646,10 @@
   $("composer-body").addEventListener("input", () => mentionHint("main"));
   $("cmd-composer-body").addEventListener("input", () => mentionHint("command"));
   $("composer-name").value = storedDisplayName();
+  $("composer-pet").addEventListener("change", () => {
+    savePetSlug($("composer-pet").value || "");
+    ST.userAgent = null;
+  });
   $("composer-name").addEventListener("change", () => {
     const name = sanitizeHandle($("composer-name").value);
     $("composer-name").value = name;

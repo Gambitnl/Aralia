@@ -58,7 +58,7 @@ const spikeGrowthEffect: SpellEffect = {
         type: 'rounds',
         value: 10
     }
-};
+} as any;
 
 const spikeGrowthZone: ActiveSpellZone = {
     id: 'spike-growth-zone',

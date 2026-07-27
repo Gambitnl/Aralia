@@ -353,6 +353,11 @@ export function buildActionHandlers({
     TOGGLE_QUEST_LOG: () => {
       handleToggleQuestLog(dispatch);
     },
+    TOGGLE_COMMERCE_DESK: () => {
+      // Commerce Desk — dedicated non-debug home for businesses, trade routes,
+      // ventures, and courier intel (economy E-G1).
+      dispatch({ type: 'TOGGLE_COMMERCE_DESK' });
+    },
     OPEN_NOTICE_BOARD: () => {
       // Open the living-world town news modal; the modal computes its own news
       // live from gameState, so no payload is snapshotted here.

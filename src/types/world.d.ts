@@ -1,0 +1,360 @@
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 27/06/2026, 01:55:55
+ * Dependents: components/CharacterSheet/Family/FamilyTreeTab.tsx, components/World3D/DebugHUD.tsx, components/World3D/InWorldHUD.tsx, services/strongholdService.ts, state/migrations/worldDataMigration.ts, systems/economy/TradeRouteSystem.ts, systems/gameEntry/situationNpcToRichNpc.ts, systems/spells/ai/AISpellArbitrator.ts, systems/worldforge/bridge/groundChunkLoader.ts, types/index.ts, utils/mapDataToWorldData.ts, utils/world/worldGeographyAdapter.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+import type { NPCVisualSpec } from './visuals.js';
+import type { NPCKnowledgeProfile } from './dialogue.js';
+import type { Position as CombatPosition } from './combat.js';
+import type { Interaction } from './memory.js';
+import type { AbilityScores } from './character.js';
+import type { EquipmentSlotType, Item } from './items.js';
+import type { WorldData } from '../services/worldSim/types';
+import type { Lock, Puzzle } from '../systems/puzzles/types.js';
+export type Position = CombatPosition;
+export interface FamilyMember {
+    id: string;
+    name: string;
+    relation: 'parent' | 'spouse' | 'child' | 'sibling' | 'grandparent' | 'grandchild';
+    age: number;
+    isAlive: boolean;
+    occupation?: string;
+}
+/**
+ * Extended NPC interface that includes detailed biographical and mechanical data.
+ * Used by the generator to provide a complete character profile.
+ */
+export interface RichNPC extends NPC {
+    biography: {
+        age: number;
+        backgroundId: string;
+        classId: string;
+        level: number;
+        family: FamilyMember[];
+        abilityScores: AbilityScores;
+    };
+    stats: {
+        hp: number;
+        maxHp: number;
+        armorClass: number;
+        speed: number;
+        initiativeBonus: number;
+        passivePerception: number;
+        proficiencyBonus: number;
+    };
+    equippedItems: Partial<Record<EquipmentSlotType, Item>>;
+}
+export interface LocationDynamicNpcConfig {
+    possibleNpcIds: string[];
+    maxSpawnCount: number;
+    baseSpawnChance: number;
+}
+export interface InteractableFeature {
+    id: string;
+    type: 'lock';
+    label: string;
+    lock: Lock;
+}
+export interface InteractablePuzzleFeature {
+    id: string;
+    type: 'puzzle';
+    label: string;
+    puzzle: Puzzle;
+}
+export interface Exit {
+    direction: string;
+    targetId: string;
+    travelTime?: number;
+    description?: string;
+    isHidden?: boolean;
+}
+export interface Location {
+    id: string;
+    name: string;
+    baseDescription: string;
+    exits: {
+        [direction: string]: string | Exit;
+    };
+    itemIds?: string[];
+    npcIds?: string[];
+    dynamicNpcConfig?: LocationDynamicNpcConfig;
+    interactableFeatures?: Array<InteractableFeature | InteractablePuzzleFeature>;
+    biomeId: string;
+    gossipLinks?: string[];
+    planeId?: string;
+    regionId?: string;
+}
+export interface TTSVoiceOption {
+    name: string;
+    characteristic: string;
+}
+export declare enum SuspicionLevel {
+    Unaware = 0,
+    Suspicious = 1,
+    Alert = 2
+}
+export declare enum GoalStatus {
+    Unknown = "Unknown",
+    Active = "Active",
+    Completed = "Completed",
+    Failed = "Failed"
+}
+export interface Goal {
+    id: string;
+    description: string;
+    status: GoalStatus;
+}
+export interface GoalUpdatePayload {
+    npcId: string;
+    goalId: string;
+    newStatus: GoalStatus;
+}
+export interface KnownFact {
+    id: string;
+    text: string;
+    /**
+     * Provenance of the fact. 'direct'/'gossip' are the original live-lane values;
+     * 'witnessed'/'told_by_player'/'inference' were merged in from the retired richer model.
+     */
+    source: 'direct' | 'gossip' | 'witnessed' | 'told_by_player' | 'inference';
+    sourceNpcId?: string;
+    isPublic: boolean;
+    timestamp: number;
+    strength: number;
+    lifespan: number;
+    sourceDiscoveryId?: string;
+    /**
+     * Semantic key for reliable "does this NPC know X" queries (e.g. 'player_is_ritual_casting').
+     * The key contribution of the memory merge. Optional so existing writers stay unaffected.
+     */
+    factKey?: string;
+    /** How confident the NPC is in this fact (0.0 - 1.0). Optional; backfilled from `strength` on load. */
+    confidence?: number;
+    /** Importance score (0 - 10) governing retention/priority. Optional; backfilled from `strength` on load. */
+    significance?: number;
+}
+export interface WorldRumor {
+    id: string;
+    text: string;
+    sourceFactionId?: string;
+    targetFactionId?: string;
+    type: 'skirmish' | 'market' | 'event' | 'misc';
+    timestamp: number;
+    expiration: number;
+    region?: string;
+    locationId?: string;
+    spreadDistance?: number;
+    virality?: number;
+}
+export interface DiscoveryResidue {
+    text: string;
+    discoveryDc: number;
+    discovererNpcId: string;
+}
+export interface NpcMemory {
+    disposition: number;
+    knownFacts: KnownFact[];
+    suspicion: SuspicionLevel;
+    goals: Goal[];
+    /** Optional lightweight fact list used by AI helpers (distinct from structured KnownFacts). */
+    facts?: string[];
+    lastInteractionTimestamp?: number;
+    /** Chronological rich interaction records merged in from the retired richer memory model. */
+    interactions?: Interaction[];
+    /** Overall attitude toward the player, -100 (hostile) .. 100 (devoted). Optional; defaults to 0. */
+    attitude?: number;
+    /** Topics already discussed, keyed by topic id -> game-day timestamp, to avoid repetition. */
+    discussedTopics?: Record<string, number>;
+    lastInteractionDate?: string | number | Date | null;
+}
+/**
+ * Historically a union of the two forked memory shapes. After the memory merge there is a single
+ * canonical shape (`NpcMemory`); the alias is retained so existing importers keep resolving.
+ */
+export type ConsolidatedNpcMemory = NpcMemory;
+export interface GossipUpdatePayload {
+    [npcId: string]: {
+        newFacts: KnownFact[];
+        dispositionNudge: number;
+    };
+}
+export interface NPC {
+    id: string;
+    name: string;
+    baseDescription: string;
+    initialPersonalityPrompt: string;
+    role: 'merchant' | 'quest_giver' | 'guard' | 'civilian' | 'unique';
+    faction?: string;
+    dialoguePromptSeed?: string;
+    voice?: TTSVoiceOption;
+    goals?: Goal[];
+    knowledgeProfile?: NPCKnowledgeProfile;
+    visual?: NPCVisualSpec;
+    /**
+     * Supports both legacy and current memory payloads during migration to consolidated persistence.
+     */
+    memory?: ConsolidatedNpcMemory;
+    businessId?: string;
+}
+export interface Biome {
+    id: string;
+    name: string;
+    color: string;
+    rgbaColor?: string;
+    icon?: string;
+    description: string;
+    passable: boolean;
+    impassableReason?: string;
+    family?: string;
+    variant?: string;
+    climate?: 'tropical' | 'temperate' | 'arid' | 'polar' | 'subtropical';
+    moisture?: 'arid' | 'dry' | 'temperate' | 'wet' | 'saturated';
+    elevation?: 'low' | 'mid' | 'high' | 'subterranean' | 'aquatic';
+    magic?: 'mundane' | 'fey' | 'arcane' | 'necrotic' | 'elemental' | 'wild';
+    waterFrequency?: 'none' | 'rare' | 'low' | 'medium' | 'high';
+    spawnWeight?: number;
+    tags?: string[];
+    movementModifiers?: {
+        speedMultiplier?: number;
+        difficultTerrain?: boolean;
+        requiresClimb?: boolean;
+        requiresSwim?: boolean;
+    };
+    visibilityModifiers?: {
+        fog?: 'light' | 'medium' | 'heavy';
+        haze?: boolean;
+        canopyShade?: boolean;
+        snowBlindness?: boolean;
+        darkness?: boolean;
+    };
+    hazards?: string[];
+    elementalInteractions?: string[];
+    encounterWeights?: Record<string, number>;
+    resourceWeights?: Record<string, number>;
+}
+export interface MapTile {
+    x: number;
+    y: number;
+    biomeId: string;
+    locationId?: string;
+    discovered: boolean;
+    isPlayerCurrent: boolean;
+}
+export interface AzgaarWorldRenderData {
+    version: 1;
+    templateId: string;
+    heights: number[];
+    temperatures: number[];
+    moisture: number[];
+    rivers: boolean[];
+}
+/**
+ * Provenance of a generated world, used to surface degraded/fallback generation in the
+ * (dev) DebugHUD instead of silently shipping a flat world. See worldsim-service WSS-004.
+ */
+export interface WorldGenDiagnostics {
+    /**
+     * Which generator produced this world:
+     * - `azgaar-derived`: primary, faithful path (real heightfield + biomes).
+     * - `legacy-fallback`: Azgaar generation threw; legacy generator used instead.
+     * - `biome-derived`: no Azgaar terrain was available, so heights were derived from the
+     *   per-cell biome elevation bands (coarser relief than Azgaar, but not flat). Reachable
+     *   via legacy fallback or loading an old save. See `heightFromBiomes`.
+     */
+    source: 'azgaar-derived' | 'legacy-fallback' | 'biome-derived';
+    /** Human-readable reason the non-primary path was taken (fallback/backfill only). */
+    reason?: string;
+    /** Epoch ms when this provenance was recorded. */
+    at: number;
+}
+export interface MapData {
+    gridSize: {
+        rows: number;
+        cols: number;
+    };
+    tiles: MapTile[][];
+    /** @deprecated Use `worldData` instead. Kept for one release for migration. */
+    azgaarWorld?: AzgaarWorldRenderData;
+    /** Rich world artifact — produced by worldSim. Required for new saves; populated by migration on load for old saves. */
+    worldData?: WorldData;
+    /** How this world was generated (primary vs fallback). Surfaced in the DebugHUD. */
+    generation?: WorldGenDiagnostics;
+}
+export interface PointOfInterest {
+    /** Unique ID to reference this POI within UI elements. */
+    id: string;
+    /** Human readable name shown inside tooltips and legends. */
+    name: string;
+    /** Short description for hover tooltips. */
+    description: string;
+    /** World-map aligned coordinates (tile space, not pixels). */
+    coordinates: {
+        x: number;
+        y: number;
+    };
+    /** Emoji or small string icon used on the map surface. */
+    icon: string;
+    /** Category helps the legend group similar markers. */
+    category: 'settlement' | 'landmark' | 'ruin' | 'cave' | 'wilderness';
+    /** Optional link back to a formal Location entry. */
+    locationId?: string;
+}
+export interface MapMarker {
+    /** ID of the originating POI or generated marker. */
+    id: string;
+    /** Tile-space coordinates where the marker should render. */
+    coordinates: {
+        x: number;
+        y: number;
+    };
+    /** Icon rendered on both the minimap canvas and the large map grid. */
+    icon: string;
+    /** Text label shown in tooltips or alongside the icon. */
+    label: string;
+    /** Optional grouping used by the legend to style or describe the marker. */
+    category?: string;
+    /** Whether the marker should render as "known" (tile discovered or player present). */
+    isDiscovered: boolean;
+    /** Associated Location ID, if any, to aid tooltips. */
+    relatedLocationId?: string;
+}
+export interface VillageActionContext {
+    worldX: number;
+    worldY: number;
+    biomeId: string;
+    buildingId?: string;
+    buildingType: string;
+    description: string;
+    integrationProfileId: string;
+    integrationPrompt: string;
+    integrationTagline: string;
+    culturalSignature: string;
+    encounterHooks: string[];
+}
+export interface Monster {
+    name: string;
+    quantity: number;
+    cr: string;
+    description: string;
+    /** Optional loot-table link when source data is available. */
+    lootTableId?: string;
+}
+export interface GameMessage {
+    id: number;
+    text: string;
+    sender: 'system' | 'player' | 'npc';
+    timestamp: Date;
+    metadata?: {
+        companionId?: string;
+        reactionType?: string;
+        [key: string]: unknown;
+    };
+}

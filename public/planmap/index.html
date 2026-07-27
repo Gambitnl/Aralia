@@ -378,8 +378,10 @@
 <!-- Shared readiness derivation (isDead / isActionable). Attaches
      window.PlanmapReady; the same module is imported by vitest and the
      roadmap tool, so "what counts as READY" has exactly one home. -->
-<script type="module" src="./ready-derive.mjs"></script>
-<script>
+<script type="module">
+import { isDead as deriveIsDead, topicReadiness } from './ready-derive.mjs';
+import { createDocLinkResolver } from './doc-link-derive.mjs';
+
 const COLORS = {
   purple: { fill: '#2e1065', stroke: '#a78bfa', title: '#ede9fe', sub: '#c4b5fd' },
   teal:   { fill: '#042f2e', stroke: '#2dd4bf', title: '#ccfbf1', sub: '#5eead4' },
@@ -668,10 +670,18 @@ Promise.all([
     }
   })();
   const repoRoot = data.repoRoot || '';
-  // Repo docs aren't under public/ — open them through Vite's /@fs bridge
-  // (mounted under the app base, derived from the URL, not hardcoded).
-  const docHref = link => APP_BASE + '/@fs/' + repoRoot + '/' + link;
+  // Document cards need two destinations: Vite can read the active checkout,
+  // but static hosts cannot see that local disk path. The resolver preserves
+  // fast local drawer loading and gives published maps a working GitHub view.
+  const docLinks = createDocLinkResolver({
+    appBase: APP_BASE,
+    repoRoot,
+    useFsBridge: Boolean(import.meta.hot),
+  });
+  const docHref = link => docLinks.href(link);
+  const docFetchUrl = link => docLinks.fetchUrl(link);
   window.docHref = docHref;
+  window.docFetchUrl = docFetchUrl;
   window.repoRoot = repoRoot;
 
   // ---- Wire header links off repoRoot / APP_BASE (item 5) --------------
@@ -728,7 +738,7 @@ Promise.all([
   const depList = t => (t.deps || []).map(d => typeof d === 'string' ? { id: d, kind: 'hard' } : d);
   // "Dead" = out of the live graph: done (Shipped strip) or superseded (Graveyard).
   // Delegates to the shared module so the viewer, tests, and roadmap tool agree.
-  const isDead = t => window.PlanmapReady.isDead(t);
+  const isDead = t => deriveIsDead(t);
 
   // Feature slug — MUST match tools/agora/validate-planmap.mjs's slug() exactly
   // (lowercase → non-alphanumeric runs to '-' → trim '-' → cap 40 chars).
@@ -836,7 +846,17 @@ Promise.all([
   // never stored — can't rot.
   // A feature-targeted hard dep is satisfied when THAT feature is dead, not the
   // whole target topic. If the slug doesn't resolve, fall back to whole-topic.
-  const isActionable = t => window.PlanmapReady.isActionable(t, byId);
+  // A READY parent needs a satisfiable dependency graph and at least one
+  // unfinished child that has not been explicitly parked. Feature list order
+  // remains informational, so the badge reports availability rather than a chain.
+  const readinessOf = t => topicReadiness(t, byId);
+  const isActionable = t => readinessOf(t).ready;
+  const readyLabel = t => {
+    const readiness = readinessOf(t);
+    return readiness.hasFeatures
+      ? `▶ READY ${readiness.readyFeatureCount}/${readiness.pendingFeatureCount}`
+      : '▶ READY';
+  };
 
   // ============= Stable campaign-lane layout (item 2) ================
   // Horizontal band per campaign (in campaigns-object order); x = dependency
@@ -1295,7 +1315,7 @@ Promise.all([
     // Top-right badge stack: READY (possibility) and FOCUS (what's actually
     // in hand — at most one topic, validator-enforced) are different claims.
     const badges = [];
-    if (go) badges.push(['▶ READY', '#4ade80']);
+    if (go) badges.push([readyLabel(t), '#4ade80']);
     if (t.focus) badges.push(['★ FOCUS', '#fbbf24']);
     badges.forEach(([txt, col], bi) =>
       S.push(`<text class="status" x="${p.x + NODE_W - 12}" y="${p.y + 20 + bi * 13}" text-anchor="end" fill="${col}">${txt}</text>`));
@@ -1451,7 +1471,7 @@ Promise.all([
       `<span class="d-tag">${esc(campLabel(t.campaign))}</span>` +
       (t.subcampaign ? `<span class="d-tag">${esc(t.subcampaign)}</span>` : '') +
       statusTag(t.status) +
-      (go ? `<span class="d-tag" style="color:#4ade80">▶ READY</span>` : '') +
+      (go ? `<span class="d-tag" style="color:#4ade80">${readyLabel(t)}</span>` : '') +
       (t.focus ? `<span class="d-tag" style="color:#fbbf24">★ FOCUS</span>` : '') +
       (t.tier === 'component' ? `<span class="d-tag" style="color:#94a3b8">detail tier</span>` : '') +
       `</div>`;
@@ -2124,11 +2144,14 @@ Promise.all([
     return out.join('');
   };
 
-  const docUrl = path => (window.docHref
-    ? window.docHref(path)
-    : appBase + '/@fs/' + (window.repoRoot || 'F:/Repos/Aralia') + '/' + path);
-  // Windows absolute path, for handing to an agent ("read this file").
-  const absPath = path => ((window.repoRoot || 'F:/Repos/Aralia') + '/' + path).replace(/\//g, '\\');
+  // The first module publishes a fetch-specific URL. Keep the link destination
+  // separate so static readers see GitHub while the drawer receives raw Markdown.
+  const docUrl = path => (window.docFetchUrl ? window.docFetchUrl(path) : window.docHref(path));
+  // Static readers do not have a checkout path. Preserve a useful relative path
+  // instead of inventing F:\\Repos\\Aralia in agent-facing copy text.
+  const absPath = path => (window.repoRoot
+    ? (window.repoRoot + '/' + path).replace(/\//g, '\\')
+    : path);
 
   const loadDoc = (doc) => {
     if (cache[doc.path]) return Promise.resolve(cache[doc.path]);

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 10/07/2026, 14:00:52
+ * Last Sync: 18/07/2026, 11:28:30
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/CharacterSheet/index.ts, components/Combat/CombatView.tsx, components/layout/GameModals.tsx
  * Imports: 14 files
  *
@@ -277,8 +277,15 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           {activeTab === 'family' && (
             <FamilyTreeTab character={character} />
           )}
+          {/* The modal already owns the application-level glossary route, so
+              the Spellbook tab can send structured rule links through it. */}
           {activeTab === 'spellbook' && (
-            <SpellbookTab character={character} onAction={onAction} party={party} />
+            <SpellbookTab
+              character={character}
+              onAction={onAction}
+              party={party}
+              onNavigateToGlossary={onNavigateToGlossary}
+            />
           )}
           {activeTab === 'crafting' && (
             <CraftingTab />

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
     getSeason,
     getTimeOfDay,
-    getTimeModifiers,
+    getDayPartLabel,
     Season,
     TimeOfDay,
     getGameEpoch,
@@ -101,34 +101,29 @@ describe('timeUtils', () => {
             expect(getTimeOfDay(new Date(Date.UTC(351, 0, 1, 2, 0)))).toBe(TimeOfDay.Night);
         });
 
-        it('should calculate modifiers correctly for Winter Night', () => {
-            // Winter Night: Jan 1st, 22:00
-            const date = new Date(Date.UTC(351, 0, 1, 22, 0));
-            const mods = getTimeModifiers(date);
+        // getTimeModifiers moved to systems/time/seasonContract (G3) — its
+        // combined season × time-of-day tests live in seasonContract.test.ts.
 
-            expect(getSeason(date)).toBe(Season.Winter);
-            expect(getTimeOfDay(date)).toBe(TimeOfDay.Night);
-
-            // Winter (1.25) * Night (1.5) = 1.875
-            expect(mods.travelCostMultiplier).toBeCloseTo(1.25 * 1.5);
-            expect(mods.visionModifier).toBe(0.2);
-            expect(mods.description).toContain('biting cold');
-            expect(mods.description).toContain('Darkness');
+        it('picks day-part words from the local in-world clock (UTC fields)', () => {
+            // G5: the word must match the HUD clock, which renders gameTime in
+            // UTC — so the label derives from getUTCHours, never host-local hours.
+            expect(getDayPartLabel(new Date(Date.UTC(351, 0, 1, 0, 0)))).toBe('Night');
+            expect(getDayPartLabel(new Date(Date.UTC(351, 0, 1, 5, 59)))).toBe('Night');
+            expect(getDayPartLabel(new Date(Date.UTC(351, 0, 1, 6, 0)))).toBe('Morning');
+            expect(getDayPartLabel(new Date(Date.UTC(351, 0, 1, 11, 59)))).toBe('Morning');
+            expect(getDayPartLabel(new Date(Date.UTC(351, 0, 1, 12, 0)))).toBe('Afternoon');
+            expect(getDayPartLabel(new Date(Date.UTC(351, 0, 1, 17, 59)))).toBe('Afternoon');
+            expect(getDayPartLabel(new Date(Date.UTC(351, 0, 1, 18, 0)))).toBe('Evening');
+            expect(getDayPartLabel(new Date(Date.UTC(351, 0, 1, 23, 30)))).toBe('Evening');
         });
 
-        it('should calculate modifiers correctly for Summer Day', () => {
-            // Summer Day: Jul 1st, 12:00
-            const date = new Date(Date.UTC(351, 6, 1, 12, 0));
-            const mods = getTimeModifiers(date);
-
-            expect(getSeason(date)).toBe(Season.Summer);
-            expect(getTimeOfDay(date)).toBe(TimeOfDay.Day);
-
-            // Summer (1.0) * Day (1.0) = 1.0
-            expect(mods.travelCostMultiplier).toBe(1.0);
-            expect(mods.visionModifier).toBe(1.0);
-            expect(mods.description).toContain('warm');
-            expect(mods.description).toContain('sun is high');
+        it('day-part words ignore the host timezone entirely', () => {
+            // A given instant has ONE in-world label, whatever machine renders it.
+            // 21:00 UTC on the game clock is Evening even when the host's local
+            // rendering of the same instant crosses midnight (e.g. UTC+5).
+            const t = new Date(Date.UTC(351, 5, 10, 21, 0));
+            expect(getDayPartLabel(t)).toBe('Evening');
+            expect(getDayPartLabel(new Date(t.getTime()))).toBe('Evening');
         });
     });
 });

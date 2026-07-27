@@ -102,7 +102,8 @@ were dispatched with a coordination contract in your prompt, follow it. If you a
 agent with no contract, run the one-command orientation FIRST:
 
 ```bash
-AGORA_AGENT_ID=<your-unique-handle> node tools/agora/client.mjs onboard <your-unique-handle> --note "<what you are doing>"
+node tools/agora/client.mjs pets
+AGORA_AGENT_ID=<your-unique-handle> node tools/agora/client.mjs onboard <your-unique-handle> --pet <chosen-pet-slug> --session <your-codex-task-or-thread-id> --note "<what you are doing>"
 ```
 
 Set `AGORA_AGENT_ID` on EVERY client call (export it once in your session). It scopes your
@@ -114,6 +115,13 @@ It registers you and prints who else is working, which files are locked (do NOT 
 those), the ready task queue, and the full coordination rules (lock-before-edit; use the
 30-minute bounded, owner-aware heartbeat during long work; finish tasks with
 `task done <id> --result "<proof>"`; unlock, report workflow feedback, then `retire`).
+Presence is pet-gated: pick a valid identity from `client.mjs pets` and pass `--pet`; the
+daemon rejects missing or unknown pets before creating an agent record. Live pet ownership is
+unique. If your choice was claimed first, Agora reports and saves a free substitute; verify the
+actual assignment with `whoami` and ensure no other live roster row has that `pet.slug`.
+Codex identities and all orchestrator/master roles are also task/thread-gated: pass the exact
+current Codex task/thread id as `--session <id>`, then verify it with `whoami`. The daemon rejects
+missing required provenance before creating the Presence row.
 
 - Single-agent guide: `tools/agora/AGENT.md` · Full API: `tools/agora/PROTOCOL.md` · running campaigns: `tools/agora/ORCHESTRATOR.md`
 - Which AI agents may be dispatched (statuses/policy): `tools/agora/agents.json`

@@ -181,3 +181,50 @@ describe('CharacterToken opening-scene choreography', () => {
     expect(screen.queryByTestId('opening-threat-role-ring')).not.toBeInTheDocument();
   });
 });
+
+describe('CharacterToken control-option poses (G7)', () => {
+  const renderToken = (character: CombatCharacter) =>
+    render(
+      <CharacterToken
+        character={character}
+        position={{ x: 2, y: 1 }}
+        isSelected={false}
+        isTargetable={false}
+        targetingMode={false}
+        isTurn={false}
+        onCharacterClick={() => undefined}
+      />
+    );
+
+  const poseDisc = (container: HTMLElement) =>
+    container.querySelector('[data-control-pose]') as HTMLElement | null;
+
+  it('poses the token disc while a Command: Grovel status is active', () => {
+    const { container } = renderToken(
+      buildCharacter({
+        statusEffects: [
+          {
+            id: 's1',
+            name: 'Command: Grovel',
+            type: 'debuff',
+            duration: 1,
+            description: 'grovels',
+            effect: { type: 'skip_turn' }
+          } as CombatCharacter['statusEffects'][number]
+        ]
+      })
+    );
+
+    const disc = poseDisc(container);
+    expect(disc).not.toBeNull();
+    expect(disc).toHaveAttribute('data-control-pose', 'grovel');
+    // flattened, toppled transform composed after the base scale
+    expect(disc!.style.transform).toContain('scale(1, 0.62)');
+    expect(disc!.style.filter).toContain('brightness(0.8)');
+  });
+
+  it('restores the base look when no directive is active (fallback/restore)', () => {
+    const { container } = renderToken(buildCharacter({ statusEffects: [] }));
+    expect(poseDisc(container)).toBeNull();
+  });
+});

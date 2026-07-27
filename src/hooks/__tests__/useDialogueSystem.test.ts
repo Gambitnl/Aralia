@@ -75,3 +75,63 @@ describe('useDialogueSystem - inviteToParty', () => {
         expect(typeof result.current.inviteToParty).toBe('function');
     });
 });
+
+describe('useDialogueSystem - handleTopicOutcome unlock propagation (DIAL-002/DIAL-004)', () => {
+    const makeSessionState = (): GameState =>
+        ({
+            activeDialogueSession: {
+                npcId: 'npc-teller',
+                availableTopicIds: [],
+                discussedTopicIds: [],
+                sessionDispositionMod: 0,
+            },
+            gameTime: 5000,
+            npcMemory: {},
+        } as unknown as GameState);
+
+    it('dispatches a durable LEARN_WORLD_FACT for every unlocked topic, with provenance', () => {
+        const dispatch = vi.fn();
+        const { result } = renderHook(() => useDialogueSystem(makeSessionState(), dispatch));
+
+        act(() => {
+            result.current.handleTopicOutcome(
+                {
+                    status: 'success',
+                    responsePrompt: 'You did not hear this from me...',
+                    unlocks: ['ask_about_ruins', 'ask_about_smugglers'],
+                },
+                'bribe_guard'
+            );
+        });
+
+        const factActions = dispatch.mock.calls
+            .map(call => call[0])
+            .filter(a => a.type === 'LEARN_WORLD_FACT');
+
+        expect(factActions).toHaveLength(2);
+        expect(factActions[0].payload.fact).toEqual({
+            key: 'topic_unlocked:ask_about_ruins',
+            sourceNpcId: 'npc-teller',
+            sourceTopicId: 'bribe_guard',
+            learnedAt: 5000,
+        });
+        expect(factActions[1].payload.fact.key).toBe('topic_unlocked:ask_about_smugglers');
+    });
+
+    it('dispatches no fact actions when the outcome unlocks nothing', () => {
+        const dispatch = vi.fn();
+        const { result } = renderHook(() => useDialogueSystem(makeSessionState(), dispatch));
+
+        act(() => {
+            result.current.handleTopicOutcome(
+                { status: 'neutral', responsePrompt: 'Nice weather.', unlocks: [] },
+                'weather'
+            );
+        });
+
+        const factActions = dispatch.mock.calls
+            .map(call => call[0])
+            .filter(a => a.type === 'LEARN_WORLD_FACT');
+        expect(factActions).toHaveLength(0);
+    });
+});

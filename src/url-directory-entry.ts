@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 20/07/2026, 00:37:27
+ * Dependents: None (Orphan)
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * URL Directory — a dev-hub tool that surfaces every reachable URL in the app.
  *
@@ -17,7 +33,12 @@
  */
 
 import { GamePhase } from './types';
-import { getPhaseSlug, getPhaseTitle, PHASE_SLUG_OVERRIDES } from './routes';
+import {
+  getPhaseSlug,
+  getPhaseTitle,
+  isPhaseRouteRetired,
+  PHASE_SLUG_OVERRIDES,
+} from './routes';
 
 const BASE = import.meta.env.BASE_URL; // '/Aralia/'
 
@@ -41,7 +62,11 @@ type Groups = {
 // ── Build-time groups (instant first paint + offline fallback) ──────────────
 function staticGroups(): Groups {
   const overrideSlugs = new Set(Object.values(PHASE_SLUG_OVERRIDES));
-  const phaseValues = Object.values(GamePhase).filter((v): v is GamePhase => typeof v === 'number');
+  // Stable enum slots can outlive their UI. Omit those retired slots entirely
+  // so the developer directory cannot advertise a dead or duplicate renderer.
+  const phaseValues = Object.values(GamePhase).filter(
+    (v): v is GamePhase => typeof v === 'number' && !isPhaseRouteRetired(v),
+  );
 
   const phaseRoutes: LinkRow[] = phaseValues.map((phase) => {
     const slug = getPhaseSlug(phase);

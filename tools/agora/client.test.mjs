@@ -30,7 +30,7 @@ before(async () => {
   const port = app.server.address().port;
   baseUrl = `http://127.0.0.1:${port}`;
   // Client identity file lands in clientDir/client-identity.json.
-  env = { AGORA_DIR: clientDir };
+  env = { AGORA_DIR: clientDir, AGORA_PET: 'gf-sd' };
 });
 
 after(async () => {
@@ -60,17 +60,20 @@ test('happy path: register -> lock -> locks -> task -> say -> inbox', async () =
   assert.ok(ids[baseUrl], 'identity keyed by baseUrl');
   assert.equal(ids[baseUrl].handle, 'tester');
   assert.equal(ids[baseUrl].agentId, reg.identity.agentId);
+  assert.equal(ids[baseUrl].pet.slug, 'gf-sd');
 
   // --- whoami (local, reads the stored identity) ---
   const who = await cli(['whoami']);
   assert.equal(who.code, 0);
   assert.match(who.lines.join('\n'), /handle:\s+tester/);
+  assert.match(who.lines.join('\n'), /pet:.*\(gf-sd\)/);
 
   // --- agents ---
   const agents = await cli(['agents']);
   assert.equal(agents.code, 0);
   assert.equal(agents.agents.length, 1);
   assert.equal(agents.agents[0].handle, 'tester');
+  assert.equal(agents.agents[0].pet.slug, 'gf-sd');
 
   // --- lock (uses stored token automatically) ---
   const lock = await cli(['lock', 'src/foo.ts', '--reason', 'refactor', '--ttl', '5']);
@@ -109,6 +112,9 @@ test('happy path: register -> lock -> locks -> task -> say -> inbox', async () =
   // --- lock conflict: a SECOND agent locking the same path -> 409 + exit 1 ---
   const reg2 = await cli(['register', 'rival']); // overwrites identity for this baseUrl
   assert.equal(reg2.code, 0);
+  assert.notEqual(reg2.identity.pet.slug, 'gf-sd', 'the already-claimed pet is substituted');
+  assert.equal(reg2.identity.petSubstituted, true);
+  assert.match(reg2.lines.join('\n'), /already claimed; Agora assigned/);
   const conflict = await cli(['lock', 'src/foo.ts']);
   assert.equal(conflict.code, 1, 'conflicting lock exits non-zero');
   assert.ok(conflict.conflict, 'conflict surfaced');
@@ -126,6 +132,8 @@ test('happy path: register -> lock -> locks -> task -> say -> inbox', async () =
   const tclaim = await cli(['task', 'claim', taskId, '--token', testerToken]);
   assert.equal(tclaim.code, 0);
   assert.equal(tclaim.task.state, 'claimed');
+  assert.equal(tclaim.task.assignedPet.kind, 'humanoid');
+  assert.match(tclaim.lines.join('\n'), /pet: .+ \(.+\)/);
 
   const tstate = await cli(['task', 'state', taskId, 'in_progress', '--token', testerToken]);
   assert.equal(tstate.code, 0);
@@ -175,6 +183,50 @@ test('happy path: register -> lock -> locks -> task -> say -> inbox', async () =
   assert.equal(unlock.code, 0);
 });
 
+test('pet discovery works before registration and the CLI refuses petless presence', async () => {
+  const pets = await run(['pets'], { env: { AGORA_DIR: clientDir }, baseUrl });
+  assert.equal(pets.code, 0);
+  assert.ok(pets.pets.length >= 50);
+  assert.match(pets.lines.join('\n'), /^gf-sd\s+/m);
+
+  const petlessDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-petless-'));
+  try {
+    const rejected = await run(['register', 'petless-cli-worker'], {
+      env: { AGORA_DIR: petlessDir, AGORA_AGENT_ID: 'petless-cli-worker' },
+      baseUrl,
+    });
+    assert.equal(rejected.code, 1);
+    assert.match(rejected.lines.join('\n'), /--pet <slug> is required/);
+    assert.equal(fs.existsSync(path.join(petlessDir, 'client-identity.petless-cli-worker.json')), false);
+    const roster = await fetch(`${baseUrl}/agents`).then((response) => response.json());
+    assert.equal(roster.agents.some((agent) => agent.handle === 'petless-cli-worker'), false);
+  } finally {
+    fs.rmSync(petlessDir, { recursive: true, force: true });
+  }
+});
+
+test('CLI refuses Codex and orchestrator presence without the current task/thread id', async () => {
+  const gateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-thread-gate-'));
+  const gateEnv = { AGORA_DIR: gateDir, AGORA_AGENT_ID: 'codex-cli-thread-gate', AGORA_PET: 'gf-sd' };
+  try {
+    const rejected = await run(['register', 'codex-cli-thread-gate', '--model', 'gpt-5.6-sol'], {
+      env: gateEnv,
+      baseUrl,
+    });
+    assert.equal(rejected.code, 1);
+    assert.match(rejected.lines.join('\n'), /task\/thread id.*required/i);
+    assert.equal(fs.existsSync(path.join(gateDir, 'client-identity.codex-cli-thread-gate.json')), false);
+
+    const accepted = await run([
+      'register', 'codex-cli-thread-gate', '--model', 'gpt-5.6-sol', '--session', 'thread-cli-proof',
+    ], { env: gateEnv, baseUrl });
+    assert.equal(accepted.code, 0);
+    assert.equal(accepted.identity.sessionId, 'thread-cli-proof');
+  } finally {
+    fs.rmSync(gateDir, { recursive: true, force: true });
+  }
+});
+
 test('unreachable daemon -> friendly error + non-zero exit', async () => {
   // Point at a dead port; register hits the network and should fail gracefully.
   const res = await run(['agents'], { env, baseUrl: 'http://127.0.0.1:1' });
@@ -204,6 +256,73 @@ test('heartbeat is finite by default and stops at the bounded duration', async (
   assert.equal(res.beats, 1);
   assert.equal(res.stopped, 'duration');
   assert.match(res.lines.join('\n'), /bounded heartbeat.*at most 1 minute/);
+});
+
+test('workflow-gap client surface preserves provenance, evidence, checkpoints, and bounded ownership', async () => {
+  const scopedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-gap-surface-'));
+  const scopedEnv = { AGORA_DIR: scopedDir, AGORA_AGENT_ID: 'gap-surface', AGORA_PET: 'gf-sd' };
+  try {
+    const reg = await run([
+      'register', 'gap-surface', '--model', 'gpt-5.3-codex-spark', '--reasoning', 'high', '--session', 'thread-gap-surface',
+    ], { env: scopedEnv, baseUrl });
+    assert.equal(reg.code, 0);
+    assert.equal(reg.identity.reasoningEffort, 'high');
+
+    const who = await run(['whoami'], { env: scopedEnv, baseUrl });
+    assert.equal(who.code, 0);
+    assert.equal('token' in who.identity, false);
+    assert.doesNotMatch(who.lines.join('\n'), /token:/i);
+    assert.match(who.lines.join('\n'), /reasoning:\s+high/);
+
+    const lock = await run(['lock', 'src/gap-surface.ts', '--ttl', '1'], { env: scopedEnv, baseUrl });
+    const renewed = await run(['lock', '--renew', lock.lock.id, '--ttl', '5'], { env: scopedEnv, baseUrl });
+    assert.equal(renewed.code, 0);
+    assert.ok(renewed.lock.expiresAt > lock.lock.expiresAt);
+    const ambiguous = await run(['lock', 'src/not-a-lock.ts', '--reason', 'unquoted', 'reason'], { env: scopedEnv, baseUrl });
+    assert.equal(ambiguous.code, 1);
+    assert.match(ambiguous.lines.join('\n'), /quote the complete --reason/);
+    const phantomPaths = await run([
+      'lock', 'src/not-a-lock.ts', 'inspector', 'and', 'assignment', '--reason', 'Readable',
+    ], { env: scopedEnv, baseUrl });
+    assert.equal(phantomPaths.code, 1);
+    assert.match(phantomPaths.lines.join('\n'), /unrecognised bare path token/);
+
+    const task = await run(['task', 'new', 'Gap surface task'], { env: scopedEnv, baseUrl });
+    await run(['task', 'claim', task.task.id], { env: scopedEnv, baseUrl });
+    const started = await run(['task', 'start', task.task.id, '--result', 'inspection started'], { env: scopedEnv, baseUrl });
+    assert.equal(started.code, 0);
+    assert.equal(started.task.state, 'in_progress');
+    assert.equal(started.task.result, 'inspection started');
+
+    const checkpoint = await run([
+      'task', 'checkpoint', task.task.id, '--did', 'one', '--next', 'two', '--files', 'a.ts', '--files', 'b.ts,c.ts',
+    ], { env: scopedEnv, baseUrl });
+    assert.deepEqual(checkpoint.checkpoint.files, ['a.ts', 'b.ts', 'c.ts']);
+    const rejectedCheckpoint = await run([
+      'task', 'checkpoint', task.task.id, '--did', 'one', '--next', 'two', '--files', 'a.ts', 'b.ts',
+    ], { env: scopedEnv, baseUrl });
+    assert.equal(rejectedCheckpoint.code, 1);
+    assert.match(rejectedCheckpoint.lines.join('\n'), /comma-separated or repeated --files/);
+
+    const spawns = [];
+    const detached = await run(['heartbeat', '--daemonize', '--every', '600'], {
+      env: scopedEnv,
+      baseUrl,
+      heartbeatOpts: {
+        spawnDetached: (...args) => {
+          spawns.push(args);
+          return { pid: 4242, unref() {} };
+        },
+      },
+    });
+    assert.equal(detached.code, 0);
+    assert.equal(detached.detached, true);
+    assert.equal(spawns.length, 1);
+    assert.equal(spawns[0][2].detached, true);
+    assert.equal(spawns[0][1].includes('--daemonize'), false);
+  } finally {
+    fs.rmSync(scopedDir, { recursive: true, force: true });
+  }
 });
 
 test('heartbeat stops when its explicit owner process exits', async () => {
@@ -248,8 +367,8 @@ test('AGORA_AGENT_ID scopes identity: unlock --mine cannot release another agent
   // AGORA_AGENT_ID values. Regression for 2026-07-04: with a shared identity
   // file, `unlock --mine` from agent B released agent A's locks mid-edit.
   const sharedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-shared-'));
-  const envA = { AGORA_DIR: sharedDir, AGORA_AGENT_ID: 'prop-agent' };
-  const envB = { AGORA_DIR: sharedDir, AGORA_AGENT_ID: 'veg-agent' };
+  const envA = { AGORA_DIR: sharedDir, AGORA_AGENT_ID: 'prop-agent', AGORA_PET: 'gf-sd' };
+  const envB = { AGORA_DIR: sharedDir, AGORA_AGENT_ID: 'veg-agent', AGORA_PET: 'dream-girl' };
   try {
     const regA = await run(['register', 'prop-agent'], { env: envA, baseUrl });
     const regB = await run(['register', 'veg-agent'], { env: envB, baseUrl });
@@ -288,23 +407,23 @@ test('handle-claim uniqueness: registering a live agent\'s handle -> 409; --rand
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-claim-'));
   try {
     // First agent claims "solo-worker".
-    const first = await run(['register', 'solo-worker'], { env: { AGORA_DIR: dir, AGORA_AGENT_ID: 'first' }, baseUrl });
+    const first = await run(['register', 'solo-worker'], { env: { AGORA_DIR: dir, AGORA_AGENT_ID: 'first', AGORA_PET: 'gf-sd' }, baseUrl });
     assert.equal(first.code, 0);
 
     // A second agent trying the SAME live handle is refused (no silent shared identity).
-    const clash = await run(['register', 'solo-worker'], { env: { AGORA_DIR: dir, AGORA_AGENT_ID: 'second' }, baseUrl });
+    const clash = await run(['register', 'solo-worker'], { env: { AGORA_DIR: dir, AGORA_AGENT_ID: 'second', AGORA_PET: 'dream-girl' }, baseUrl });
     assert.equal(clash.code, 1);
     assert.match(clash.lines.join('\n'), /already claimed/);
 
     // --random claims a distinct, unique handle instead.
-    const rnd = await run(['register', '--random', 'solo-worker'], { env: { AGORA_DIR: dir, AGORA_AGENT_ID: 'second' }, baseUrl });
+    const rnd = await run(['register', '--random', 'solo-worker'], { env: { AGORA_DIR: dir, AGORA_AGENT_ID: 'second', AGORA_PET: 'dream-girl' }, baseUrl });
     assert.equal(rnd.code, 0);
     assert.notEqual(rnd.identity.handle, 'solo-worker');
     assert.match(rnd.identity.handle, /^solo-worker-[0-9a-f]{6}$/);
     assert.notEqual(rnd.identity.agentId, first.identity.agentId);
 
     // --allow-duplicate opts out of the claim check (legacy escape hatch).
-    const dup = await run(['register', 'solo-worker', '--allow-duplicate'], { env: { AGORA_DIR: dir, AGORA_AGENT_ID: 'third' }, baseUrl });
+    const dup = await run(['register', 'solo-worker', '--allow-duplicate'], { env: { AGORA_DIR: dir, AGORA_AGENT_ID: 'third', AGORA_PET: 'nous-girl' }, baseUrl });
     assert.equal(dup.code, 0);
     assert.equal(dup.identity.handle, 'solo-worker');
   } finally {
@@ -314,7 +433,7 @@ test('handle-claim uniqueness: registering a live agent\'s handle -> 409; --rand
 
 test('agent provenance: register stamps model + session id; whoami and agents surface them', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-prov-'));
-  const e = { AGORA_DIR: dir, AGORA_AGENT_ID: 'prov' };
+  const e = { AGORA_DIR: dir, AGORA_AGENT_ID: 'prov', AGORA_PET: 'gf-sd' };
   try {
     const reg = await run(
       ['register', 'prov-agent', '--model', 'claude-opus-4-8', '--session', 'conv-abc123'],

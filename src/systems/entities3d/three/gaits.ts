@@ -56,7 +56,10 @@ export interface GaitDriver {
   readonly gaitPhase: number;
   /** Debugger scrub: jump the gait cycle to `phase` (wrapped into 0–1). */
   setPhase(phase: number): void;
-  /** Wing flap angle in radians; 0 for non-flyers. */
+  /** Wing flap angle in radians. Flyers own the power stroke; grounded
+   * gaits emit a gentle speed-scaled wing beat (harmless on wingless
+   * bodies — the assembler only applies flap to parts with wingL/wingR
+   * groups); hopper stays 0 (no winged hopper profiles exist). */
   readonly flap: number;
   /** Extra body lift (hopper airtime, flyer altitude), applied by the assembler. */
   readonly verticalOffsetM: number;
@@ -131,6 +134,15 @@ abstract class BaseDriver implements GaitDriver {
     this.pose.anchors[a].pos.set(x, y, z);
   }
 
+  /** Grounded wing beat: a slow sway at idle that deepens with speed. The
+   * flyer's 9 rad/s power stroke stays airborne-only; this is the "alive on
+   * the ground" beat for winged walkers (dragon, celestial, fiend, fairy,
+   * aarakocra). Drivers without winged profiles leave flap at 0. The formula
+   * matches the plan driver's wing beat so both dragon paths move alike. */
+  protected groundedWingBeat(): number {
+    return Math.sin(this.t * 6) * (0.25 + 0.45 * this.speedFactor);
+  }
+
   /** Standard head-cluster anchors around a head center. */
   protected setHeadAnchors(hx: number, hy: number, hz: number): void {
     const r = this.hr;
@@ -166,6 +178,8 @@ class BipedDriver extends BaseDriver {
   protected advance(): void {
     const stride = this.strideHalf();
     for (const leg of this.legs) leg.update(this.gaitPhase, stride);
+    // grounded wing beat (celestial, fiend, fairy, aarakocra carry wing parts)
+    this.flap = this.groundedWingBeat();
     this.bob = Math.sin(this.gaitPhase * Math.PI * 4) * this.hM * 0.014 * (0.4 + this.speedFactor);
     this.sway = Math.sin(this.gaitPhase * Math.PI * 2) * this.hM * 0.011;
     this.pelvisY = this.legLenM * 1.0 + this.bob;
@@ -277,6 +291,8 @@ class MultiLegDriver extends BaseDriver {
   protected advance(): void {
     const stride = this.strideHalf();
     for (const leg of this.legs) leg.update(this.gaitPhase, stride);
+    // grounded wing beat (the quad dragon carries membrane wing parts)
+    this.flap = this.groundedWingBeat();
     this.bob = Math.sin(this.gaitPhase * Math.PI * 4) * this.hM * 0.02;
     this.bodyY = this.hM * (this.isHexa ? 0.55 : 0.8) + this.bob;
     const headZ = this.bodyLen * 0.55;
@@ -455,10 +471,15 @@ class PlanDriver extends BaseDriver {
   private readonly moundBody: boolean;
   /** Spine runs vertically this frame (upright, or a compact floater). */
   private verticalBody = false;
+  /** True when the plan animates wings — chain wings OR polished wing mesh
+   * parts (the Emberwing lesson: big bodies hang wingsMembrane as garnish,
+   * which the driver cannot see; the assembler passes the hint). */
+  private readonly winged: boolean;
 
-  constructor(frame: Frame, spec: PlanSpec) {
+  constructor(frame: Frame, spec: PlanSpec, wingedHint = false) {
     super(frame);
     this.spec = spec;
+    this.winged = wingedHint || spec.chains.some((c) => c.kind === 'wing');
     const legs = spec.chains.filter((c) => c.kind === 'leg');
     this.legReachM = legs.length
       ? Math.max(...legs.map((c) => c.links.reduce((n, l) => n + l.lenM, 0)))
@@ -500,9 +521,7 @@ class PlanDriver extends BaseDriver {
     const s = this.spec;
     const stride = this.strideHalf();
     for (const tread of this.legTreads.values()) tread.update(this.gaitPhase, stride);
-    this.flap = s.chains.some((c) => c.kind === 'wing')
-      ? Math.sin(this.t * 6) * (0.25 + 0.45 * this.speedFactor)
-      : 0;
+    this.flap = this.winged ? this.groundedWingBeat() : 0;
 
     // spine joints front→rear
     const y0 = this.bodyY();
@@ -518,7 +537,11 @@ class PlanDriver extends BaseDriver {
       if (upright) {
         const half = s.bodyLenM * 0.5;
         const topY = s.stance === 'floating' ? y0 + half : Math.max(y0 + s.bodyLenM, s.bodyRadM * 2);
-        const bottomY = s.stance === 'floating' ? y0 - half : y0 * 0.35;
+        // A creature WITH legs stands on them: the torso tube runs hips→crown
+        // and legs root at hip height (y0). Legless uprights keep the robed
+        // column that nearly reaches the ground (wraiths, mounds).
+        const bottomY =
+          s.stance === 'floating' ? y0 - half : this.legTreads.size > 0 ? y0 : y0 * 0.35;
         this.spinePts[i].set(0, topY - u * (topY - bottomY), arch);
       } else {
         // slither is the star: amplitude keys off body LENGTH, and idles softly
@@ -857,6 +880,29 @@ class PlanDriver extends BaseDriver {
           sink.seg(`${chain.id}.${j}`, a.x, a.y, a.z, b.x, b.y, b.z, r0, r1);
         }
       }
+      // junction blend collar: a smoothing skirt where the chain root meets
+      // the body (slice 1 of the softness dial — reach comes compiled as
+      // blendM meters; 0 = hard clip, nothing emitted)
+      if (chain.blendM > 0.02 && sink.collar) {
+        const rootPt = pts[0];
+        const nextPt = pts[1] ?? rootPt;
+        let ax = nextPt.x - rootPt.x;
+        let ay = nextPt.y - rootPt.y;
+        let az = nextPt.z - rootPt.z;
+        const alen = Math.hypot(ax, ay, az);
+        if (alen < 1e-6) {
+          ax = 0; ay = -1; az = 0;
+        } else {
+          ax /= alen; ay /= alen; az /= alen;
+        }
+        sink.collar(
+          `${chain.id}.collar`,
+          rootPt.x, rootPt.y, rootPt.z,
+          ax, ay, az,
+          Math.max(0.008, chain.links[0].rM),
+          chain.blendM,
+        );
+      }
       // energy rings hover at interior joints, facing along the chain
       if (chain.jointRings && sink.ring) {
         for (let j = 1; j < chain.links.length; j++) {
@@ -994,7 +1040,15 @@ function bezier2(a: Vector3, m: Vector3, b: Vector3, u: number): Vector3 {
 
 /* ------------------------------------------------------------------ entry */
 
-export function createGaitDriver(gait: Gait, frame: Frame, planSpec?: PlanSpec): GaitDriver {
+export function createGaitDriver(
+  gait: Gait,
+  frame: Frame,
+  planSpec?: PlanSpec,
+  /** Body-level facts the driver cannot derive from a Frame. `winged`: the
+   * blueprint carries wing mesh parts (garnish) — plan drivers need this to
+   * beat wings that are not chain appendages. */
+  opts?: { winged?: boolean },
+): GaitDriver {
   switch (gait) {
     case 'biped':
       return new BipedDriver(frame);
@@ -1010,7 +1064,7 @@ export function createGaitDriver(gait: Gait, frame: Frame, planSpec?: PlanSpec):
       return new AirborneDriver(frame, false);
     case 'plan': {
       if (!planSpec) throw new Error('entities3d: plan gait needs a planSpec (compile a CreaturePlan first)');
-      return new PlanDriver(frame, planSpec);
+      return new PlanDriver(frame, planSpec, opts?.winged);
     }
     default: {
       const never: never = gait;

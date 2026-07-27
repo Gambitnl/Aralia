@@ -1,0 +1,95 @@
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 19/07/2026, 23:21:01
+ * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/index.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+import { SpellCommand, CommandMetadata, CommandContext } from './SpellCommand';
+import { SpellEffect } from '@/types/spells';
+import { CombatState, CombatCharacter, CombatLogEntryInput } from '@/types/combat';
+/**
+ * Abstract base class for all spell effect commands.
+ *
+ * Implements the Command Pattern to encapsulate spell effects as objects that modify CombatState.
+ * This class provides standardized helper methods for common operations like retrieving
+ * fresh character data, updating state immutably, and writing to the combat log.
+ *
+ * Snapshot-vs-live contract:
+ * - `CommandContext` stores caster/target snapshots captured at command creation time.
+ * - Any mutable game values (HP, statuses, resources, position, etc.) must be read from
+ *   the `CombatState` passed to execute-time helpers, never directly from `this.context`.
+ *
+ * Subclasses must implement `execute(state)` to define specific effect logic (damage, healing, etc.).
+ *
+ * @see SpellCommand for the interface definition.
+ */
+export declare abstract class BaseEffectCommand<TEffect extends SpellEffect = SpellEffect> implements SpellCommand {
+    protected effect: TEffect;
+    protected context: CommandContext;
+    readonly id: string;
+    readonly metadata: CommandMetadata;
+    constructor(effect: TEffect, context: CommandContext);
+    /**
+     * Executes the command logic against the current combat state.
+     * Must be implemented by concrete subclasses to apply specific effects.
+     *
+     * @param state - The current immutable CombatState.
+     * @returns A new CombatState with the effects applied.
+     */
+    abstract execute(state: CombatState): CombatState | Promise<CombatState>;
+    /**
+     * Returns a human-readable description of what this command does.
+     * Used for debugging and potential UI previews.
+     */
+    abstract get description(): string;
+    /**
+     * Retrieves the up-to-date Caster object from the current state.
+     *
+     * @remarks
+     * Always use this instead of `this.context.caster` inside `execute()`.
+     * The context object contains the caster state *at the time of command creation*,
+     * which may be stale if previous commands in the chain have modified the caster
+     * (e.g. costs paid, damage taken).
+     *
+     * @param state - The current combat state.
+     * @returns The fresh CombatCharacter object for the caster.
+     */
+    protected getCaster(state: CombatState): CombatCharacter;
+    /**
+     * Retrieves the list of up-to-date Target objects from the current state.
+     *
+     * @remarks
+     * Always use this instead of `this.context.targets` inside `execute()`.
+     * Ensures that effects are calculated against the target's current values (HP, position, etc.),
+     * which may have changed due to previous effects in the same chain.
+     *
+     * @param state - The current combat state.
+     * @returns Array of fresh CombatCharacter objects for all valid targets.
+     */
+    protected getTargets(state: CombatState): CombatCharacter[];
+    /**
+     * Helper to immutably update a character in the combat state.
+     *
+     * @param state - The current combat state.
+     * @param characterId - The ID of the character to update.
+     * @param updates - Partial object containing the properties to change.
+     * @returns A new CombatState with the character updated.
+     */
+    protected updateCharacter(state: CombatState, characterId: string, updates: Partial<CombatCharacter>): CombatState;
+    /**
+     * Helper to append an entry to the combat log.
+     * Automatically generates an ID and timestamp for the entry.
+     *
+     * @param state - The current combat state.
+     * @param entry - The log entry data (excluding id and timestamp).
+     * @returns A new CombatState with the log entry added.
+     */
+    protected addLogEntry(state: CombatState, entry: CombatLogEntryInput): CombatState;
+}

@@ -58,6 +58,24 @@ describe('architectureStyle', () => {
     }
   });
 
+  it('keeps coastal timber walls, roofs, and trim visually distinct', () => {
+    // Coastal buildings need a bright facade, a dark roof silhouette, and a
+    // sea-blue frame so their structural details do not dissolve into one mud tone.
+    const coastal = STYLE_FAMILIES.coastalTimber;
+    const luminance = (hex: string) => {
+      const channels = [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255);
+      const linear = (value: number) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+      const [red, green, blue] = channels.map(linear);
+      return red * 0.2126 + green * 0.7152 + blue * 0.0722;
+    };
+    const darkestWall = Math.min(...coastal.wallPalette.map(luminance));
+    const brightestRoof = Math.max(...coastal.roofPalette.map(luminance));
+
+    expect(darkestWall - brightestRoof).toBeGreaterThan(0.18);
+    expect(coastal.roofPalette).not.toContain(coastal.wallTint);
+    expect(coastal.wallPalette).not.toContain(coastal.wallTint);
+  });
+
   it('per-plot picks are deterministic from the polygon + frame', () => {
     const poly: Array<[number, number]> = [[10, 10], [40, 10], [40, 30], [10, 30]];
     const frame = styleFrameOf([[0, 0], [100, 0], [100, 100], [0, 100]]);
@@ -512,10 +530,13 @@ describe('climate-constrained construction kits', () => {
     return out;
   }
 
-  it('temperate output is byte-identical to the pre-change baseline (digest pin)', () => {
+  it('pins the approved temperate output after the coastal contrast pass', () => {
+    // The coastalTimber palette deliberately changes the generated colors while
+    // preserving every deterministic selection index. This new digest records
+    // that reviewed visual change and still catches any future unapproved drift.
     const samples = sampleClimateOutputs('temperate');
     expect(samples).toHaveLength(270);
-    expect(fnv1a(JSON.stringify(samples, null, 1)).toString(36)).toBe('4ckbfw');
+    expect(fnv1a(JSON.stringify(samples, null, 1)).toString(36)).toBe('1yaurve');
   });
 
   it('an allowed kit passes through as the SAME object — the fitness pass adds nothing', () => {

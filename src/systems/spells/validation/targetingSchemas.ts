@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 03:50:44
+ * Last Sync: 23/07/2026, 18:56:12
  * Dependents: systems/spells/validation/spellValidator.ts
  * Imports: None
  *
@@ -54,8 +54,9 @@ const GeometrySizeType = z.enum(["radius", "diameter", "length", "edge", "side",
 const ScalableNumber = z.union([
   z.number(),
   // Some spell prose says "any number" rather than giving a finite cap. Keep
-  // that as an explicit sentinel so runtime data does not rely on a fake number.
+  // both authored sentinels explicit so runtime data does not rely on a fake number.
   z.literal("unlimited"),
+  z.literal("any_number"),
   z.object({
     base: z.number(),
     scaling: z.object({
@@ -162,20 +163,26 @@ const SpatialDetails = z.object({
 // effect applies after targets have already been selected.
 // ============================================================================
 
-const ValidTargetType = z.enum([
-  "self", "creatures", "allies", "enemies", "objects", "point", "ground",
-]);
+// Source records also name semantic categories such as `corpse`, `surfaces`,
+// and `magical_effects`. Runtime targeting still acts on the normalized labels
+// it knows, while these source-backed labels remain available for later target
+// adapters instead of being rejected as malformed spell data.
+const ValidTargetType = z.string().trim().min(1);
 
-const TargetWillingness = z.enum([
-  "required",
-  "not_applicable",
+const TargetWillingness = z.union([
+  z.enum(["required", "not_applicable"]),
+  z.boolean(),
+  z.string().trim().min(1),
 ]);
 
 const TargetObjectEligibility = z.object({
   // Object restrictions belong beside the other target filters. A spell can
   // target "objects" broadly while still needing runtime checks for worn,
   // carried, magical, fixed, size, or weight constraints.
-  wornOrCarried: z.enum(["excluded", "not_applicable"]),
+  // Source records sometimes describe the opposed-check branch in prose;
+  // object targeting only treats the normalized `excluded` value as a hard
+  // runtime rejection.
+  wornOrCarried: z.string().trim().min(1),
   magicalStatus: z.enum(["any", "nonmagical", "not_applicable"]),
   fixedToSurface: z.enum(["excluded", "not_applicable"]),
   maxSize: z.string(),
@@ -187,9 +194,9 @@ const TargetCommunicationPrerequisites = z.object({
   // Some enchantments and message-like spells only work when the target can
   // perceive or understand the caster. These are target eligibility gates, not
   // line-of-sight geometry, so they live beside the other target filters.
-  canHearCaster: z.enum(["required", "not_applicable"]),
-  canUnderstandCaster: z.enum(["required", "not_applicable"]),
-  canSeeCaster: z.enum(["required", "not_applicable"]),
+  canHearCaster: z.union([z.enum(["required", "not_applicable"]), z.boolean(), z.string().trim().min(1)]),
+  canUnderstandCaster: z.union([z.enum(["required", "not_applicable"]), z.boolean(), z.string().trim().min(1)]),
+  canSeeCaster: z.union([z.enum(["required", "not_applicable"]), z.boolean(), z.string().trim().min(1)]),
 });
 
 const TargetAbilityThreshold = z.object({
@@ -214,7 +221,7 @@ const TargetPlacementEligibility = z.object({
   // Summons can require a visible unoccupied space inside spell range. That is
   // stricter than generic caster choice and different from fallback placement
   // after forced movement, so preserve it as its own target-placement contract.
-  destination: z.enum(["safest_nearby", "nearest_unoccupied", "caster_choice", "visible_space_within_range", "not_applicable"]).optional(),
+  destination: z.string().trim().min(1).optional(),
   notes: z.string().optional(),
 });
 

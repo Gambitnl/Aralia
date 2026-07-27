@@ -1,34 +1,18 @@
-// @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 27/02/2026, 09:31:09
- * Dependents: None (Orphan)
- * Imports: 2 files
+ * Last Sync: 01/06/2026, 17:38:35
+ * Dependents: components/CharacterCreator/SkillSelection.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, components/Party/PartyPane/PartyMemberCard.tsx, utils/character/characterUtils.ts, utils/character/checkUtils.ts, utils/character/index.ts, utils/character/savingThrowUtils.ts, utils/character/skillModifierUtils.ts, utils/combat/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/statUtils.ts
+ * Imports: None
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
  * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
-// @dependencies-end
-
-/**
- * ARCHITECTURAL ADVISORY:
- * This file is part of a complex dependency web.
- *
- * Last Sync: 26/01/2026, 01:37:47
- * Dependents: PartyMemberCard.tsx, PreviewCombatSandbox.tsx, character/index.ts, characterUtils.ts, combatUtils.ts, npcGenerator.ts, partyStatUtils.ts, quickCharacterGenerator.ts, savingThrowUtils.ts, statUtils.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-import { AbilityScores, Race, PlayerCharacter, Item, EquipmentSlotType } from '../../types';
-import { ActiveEffect } from '../../types/effects';
+import { AbilityScores, Race, PlayerCharacter, Item, EquipmentSlotType } from '../../types/index.js';
+import { ActiveEffect } from '../../types/effects.js';
 /**
  * Calculates the D&D ability score modifier as a number.
  * @param {number} score - The ability score.
@@ -71,13 +55,23 @@ export interface ACComponents {
     maxDexBonus?: number;
     unarmoredBonus?: number;
     shieldBonus?: number;
-    activeEffects?: {
-        type: string;
-        value?: number;
-        acBonus?: number;
-        acMinimum?: number;
-    }[];
+    activeEffects?: ACRelevantActiveEffect[];
     stdBaseIncludesDex?: boolean;
+}
+/**
+ * This is the small AC-facing view of an active effect.
+ *
+ * Aralia currently has two active-effect shapes: older character effects store
+ * AC values directly on the effect, while combat spell commands store richer
+ * spell mechanics under `mechanics`. This view lets AC calculation read both
+ * shapes while the broader active-effect model is still being unified.
+ */
+export interface ACRelevantActiveEffect {
+    type: string;
+    value?: number;
+    acBonus?: number;
+    acMinimum?: number;
+    mechanics?: Record<string, unknown>;
 }
 /**
  * Core function to calculate AC from components.

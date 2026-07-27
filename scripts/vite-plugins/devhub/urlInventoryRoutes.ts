@@ -25,6 +25,15 @@ export async function handleUrlInventoryRoutes(ctx: DevHubRouteContext): Promise
         .filter((name): name is string => Boolean(name));
 
       const routesSrc = fs.readFileSync(path.resolve(root, 'src/routes.ts'), 'utf-8');
+      // The enum remains numerically stable for saves, but retired phase names
+      // are not developer URLs. Read the explicit list from routes.ts so this
+      // live filesystem inventory matches the browser's build-time directory.
+      // Every non-retired inventory row is preserved; deleting the isolated
+      // canvas source remains deferred to a separate evidence-backed audit.
+      const retiredNamesBlock = routesSrc.match(/RETIRED_PHASE_ROUTE_NAMES\s*=\s*\[([\s\S]*?)\]/)?.[1] ?? '';
+      const retiredNames = new Set(
+        [...retiredNamesBlock.matchAll(/'([A-Z][A-Z0-9_]*)'/g)].map((match) => match[1]),
+      );
       // Only read entries inside the PHASE_SLUG_OVERRIDES object literal. routes.ts
       // has other maps with the same `[GamePhase.X]: '...'` shape (e.g. PHASE_TITLES),
       // so an unscoped match would mistake tab titles for URL slugs.
@@ -33,7 +42,7 @@ export async function handleUrlInventoryRoutes(ctx: DevHubRouteContext): Promise
       for (const m of overridesBlock.matchAll(/\[GamePhase\.([A-Z0-9_]+)\]:\s*'([^']+)'/g)) {
         overrides[m[1]] = m[2];
       }
-      const phaseRoutes = phaseNames.map((name) => {
+      const phaseRoutes = phaseNames.filter((name) => !retiredNames.has(name)).map((name) => {
         const slug = overrides[name] ?? name.toLowerCase();
         return { label: name, slug, url: `${base}?phase=${slug}`, clean: name in overrides };
       });

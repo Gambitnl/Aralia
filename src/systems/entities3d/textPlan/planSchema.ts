@@ -39,6 +39,10 @@ export interface PlanAppendage {
   tips?: 'hand';
   /** Floating accent-colored energy rings hovering at each interior joint. */
   jointRings?: boolean;
+  /** 0–1 junction softness override for THIS appendage: how much its root
+   * melts into the body (0 hard clip, 1 full melt). Falls back to skin.blend,
+   * then to the per-kind default. */
+  blend?: number;
 }
 
 export interface PlanHead {
@@ -71,6 +75,10 @@ export interface CreaturePlan {
   heads: PlanHead[];
   /** opacity < 1 = translucent body (ghosts, oozes); eyes stay solid. */
   palette: { bodyHex: string; accentHex?: string; bellyHex?: string; eyeHex: string; opacity?: number };
+  /** Creature-level junction softness default: how much parts melt together
+   * where they meet (0 bony/mechanical, 1 amorphous). Per-appendage `blend`
+   * overrides it; omitted = per-kind defaults. */
+  skin?: { blend: number };
   garnish?: Array<{ partId: string; params?: Record<string, number> }>;
 }
 
@@ -99,6 +107,7 @@ export const PLAN_LIMITS = {
   snoutLengthScale: [0.3, 2.5],
   snoutDroop: [-0.6, 0.8],
   garnish: [0, 8],
+  blend: [0, 1],
 } as const;
 
 /** Default attachment height on the body, per appendage kind. */
@@ -110,6 +119,19 @@ export const PLAN_DEFAULT_HEIGHT_FRAC: Record<PlanAppendage['kind'], number> = {
   neck: 0.9,
   wing: 0.8,
   torso: 0.85,
+};
+
+/** Default junction softness per appendage kind (0 hard clip – 1 full melt),
+ * used when neither the appendage nor skin.blend says otherwise: fleshy
+ * kinds flow into the body, wings stay near-crisp. */
+export const PLAN_DEFAULT_BLEND: Record<PlanAppendage['kind'], number> = {
+  leg: 0.35,
+  arm: 0.35,
+  tail: 0.4,
+  tentacle: 0.5,
+  neck: 0.5,
+  wing: 0.15,
+  torso: 0.35,
 };
 
 const APPENDAGE_KINDS = new Set(['leg', 'arm', 'tail', 'tentacle', 'neck', 'wing', 'torso']);
@@ -153,7 +175,17 @@ function checkHex(errs: Errs, v: unknown, path: string): void {
 export function validateCreaturePlan(input: unknown, knownPartIds: ReadonlySet<string>): string[] {
   const errs: Errs = [];
   if (!isObj(input)) return ['plan is not an object'];
-  checkKeys(errs, input, ['name', 'frame', 'spine', 'appendages', 'heads', 'palette', 'garnish'], '');
+  checkKeys(errs, input, ['name', 'frame', 'spine', 'appendages', 'heads', 'palette', 'skin', 'garnish'], '');
+
+  // skin (junction softness default)
+  if (input.skin !== undefined) {
+    if (!isObj(input.skin)) {
+      errs.push('skin must be an object');
+    } else {
+      checkKeys(errs, input.skin, ['blend'], 'skin');
+      checkRange(errs, input.skin.blend, PLAN_LIMITS.blend, 'skin.blend');
+    }
+  }
 
   // name
   if (typeof input.name !== 'string' || input.name.length < PLAN_LIMITS.nameChars[0] || input.name.length > PLAN_LIMITS.nameChars[1]) {
@@ -206,7 +238,8 @@ export function validateCreaturePlan(input: unknown, knownPartIds: ReadonlySet<s
       errs.push(`${path} must be an object`);
       return;
     }
-    checkKeys(errs, a, ['kind', 'attach', 'heightFrac', 'perSide', 'count', 'chain', 'tips', 'jointRings', 'parent'], path);
+    checkKeys(errs, a, ['kind', 'attach', 'heightFrac', 'perSide', 'count', 'chain', 'tips', 'jointRings', 'parent', 'blend'], path);
+    if (a.blend !== undefined) checkRange(errs, a.blend, PLAN_LIMITS.blend, `${path}.blend`);
     if (typeof a.kind !== 'string' || !APPENDAGE_KINDS.has(a.kind)) {
       errs.push(`${path}.kind must be one of leg|arm|tail|tentacle|neck|wing|torso`);
     }

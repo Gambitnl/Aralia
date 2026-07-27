@@ -15,6 +15,7 @@ import { createAgoraServer } from './server.mjs';
 let app;
 let port;
 let tmpDir;
+const TEST_PET = 'gf-sd';
 
 before(async () => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-srv-id-'));
@@ -55,7 +56,7 @@ function request(method, pathname, { token, body } = {}) {
 
 test('register accepts and echoes the identity fields', async () => {
   const r = await request('POST', '/agents/register', {
-    body: { handle: 'orch.planmap', type: 'claude-subagent', spawnedBy: 'master.desktop', campaign: 'planmap-ui', cwd: 'F:/Repos/Aralia' },
+    body: { handle: 'orch.planmap', type: 'claude-subagent', spawnedBy: 'master.desktop', campaign: 'planmap-ui', cwd: 'F:/Repos/Aralia', petSlug: TEST_PET },
   });
   assert.equal(r.status, 201);
   assert.equal(r.json.type, 'claude-subagent');
@@ -63,18 +64,21 @@ test('register accepts and echoes the identity fields', async () => {
   assert.equal(r.json.campaign, 'planmap-ui');
   assert.equal(r.json.cwd, 'F:/Repos/Aralia');
   assert.equal(r.json.handleValid, true);
+  assert.equal(r.json.pet.slug, TEST_PET);
 });
 
 test('GET /agents surfaces the identity fields', async () => {
-  await request('POST', '/agents/register', { body: { handle: 'worker.srv', type: 'codex', campaign: 'c1' } });
+  await request('POST', '/agents/register', { body: { handle: 'worker.srv', type: 'codex', sessionId: 'thread-worker-srv', campaign: 'c1', petSlug: TEST_PET } });
   const r = await request('GET', '/agents');
   const a = r.json.agents.find((x) => x.handle === 'worker.srv');
   assert.equal(a.type, 'codex');
   assert.equal(a.campaign, 'c1');
+  assert.equal(a.sessionId, 'thread-worker-srv');
+  assert.equal(a.threadIdRequired, true);
 });
 
 test('POST /agents/retire drops the agent and frees its locks', async () => {
-  const reg = await request('POST', '/agents/register', { body: { handle: 'worker.retire-srv' } });
+  const reg = await request('POST', '/agents/register', { body: { handle: 'worker.retire-srv', petSlug: TEST_PET } });
   const token = reg.json.token;
   const lock = await request('POST', '/locks', { token, body: { paths: ['src/a.ts'], reason: 'edit' } });
   assert.equal(lock.status, 201);

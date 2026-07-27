@@ -22,6 +22,17 @@ import { calculateAffectedTiles, AoEParams } from '../../utils/combat/aoeCalcula
 import { mapShapeToStandard } from '../../utils/spatial/targetingUtils'
 import { generateId } from '../../utils/idGenerator'
 
+/**
+ * Applies terrain spell effects to battle-map tiles and records the result in the combat log.
+ *
+ * Map-present encounters are handled here because this command owns tile mutation. When no
+ * battle map exists, `useAbilitySystem` preserves the same terrain effects as an
+ * `ActiveSpellZone` through `createTerrainSpellZoneFromAoEParams`, keeping mapless terrain
+ * durable without creating a second persistence system inside this command.
+ *
+ * Called by: SpellCommandFactory and ReactiveEffectCommand.
+ * Depends on: shared area geometry, combat-map tile state, and spell effect definitions.
+ */
 export class TerrainCommand extends BaseEffectCommand {
     constructor(
         effect: TerrainEffect,
@@ -57,7 +68,6 @@ export class TerrainCommand extends BaseEffectCommand {
              newMapData.tiles = newTiles
              newState.mapData = newMapData
         }
-        // TODO #9: When map data is absent, persist a lightweight terrain zone so the effect survives beyond logging (e.g., for battle map-less encounters).
 
         // Handle structured manipulation logging if present
         if (this.hasIntentionalManipulation(effect)) {

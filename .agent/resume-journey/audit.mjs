@@ -5,28 +5,27 @@
 // JSON + console transcript + before/after screenshots into ./evidence/.
 //
 // Usage: node .agent/resume-journey/audit.mjs [label]
+//        HEADED=1 node .agent/resume-journey/audit.mjs [label]   ← watch it run
+//        BASE_URL=http://localhost:5174/Aralia/ ...              ← another port
 import { chromium } from 'playwright';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
+import { BASE, seededContextOptions, hasSeedState, launchOptions } from './rigContext.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const label = process.argv[2] || 'audit';
-const BASE = 'http://localhost:5174/Aralia/';
-const STATE = path.join(__dirname, '..', '3d-visual-quality', 'captures', 'storageState.json');
 const EVIDENCE = path.join(__dirname, 'evidence');
 fs.mkdirSync(EVIDENCE, { recursive: true });
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-const browser = await chromium.launch({
-  headless: true,
-  args: ['--ignore-gpu-blocklist', '--enable-unsafe-swiftshader', '--use-gl=angle', '--use-angle=swiftshader'],
-});
-const ctxOpts = { viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 };
-if (fs.existsSync(STATE)) ctxOpts.storageState = STATE;
-else console.warn('WARNING: no storageState.json — running without a saved session');
-const ctx = await browser.newContext(ctxOpts);
+const browser = await chromium.launch(launchOptions());
+if (!hasSeedState()) console.warn('WARNING: no storageState.json — running without a saved session');
+console.log('target:', BASE);
+const ctx = await browser.newContext(
+  seededContextOptions({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 }),
+);
 const page = await ctx.newPage();
 
 const consoleLog = [];

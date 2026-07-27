@@ -1,4 +1,5 @@
-type CanonicalReviewState = 'clean' | 'mismatch' | 'detail_fetch_incomplete' | 'listing_unmatched' | 'not_reviewed';
+type CanonicalReviewState = 'clean' | 'mismatch' | 'not_reviewed';
+type StructuredJsonReviewState = 'clean' | 'mismatch' | 'not_reviewed';
 interface SpellGateArtifactEntry {
     spellId: string;
     spellName: string;
@@ -17,7 +18,13 @@ interface SpellGateArtifactEntry {
     canonicalReview: {
         state: CanonicalReviewState;
         generatedAt?: string;
-        listingUrl?: string;
+        mismatchCount: number;
+        mismatchFields: string[];
+        mismatchSummaries: string[];
+    };
+    structuredJsonReview: {
+        state: StructuredJsonReviewState;
+        generatedAt?: string;
         mismatchCount: number;
         mismatchFields: string[];
         mismatchSummaries: string[];

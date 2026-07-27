@@ -8,11 +8,7 @@
       "properties": {
         "attackType": {
           "type": "string",
-          "enum": [
-            "weapon",
-            "melee_weapon",
-            "ranged_weapon"
-          ]
+          "minLength": 1
         },
         "weaponRequirement": {
           "type": "object",
@@ -164,127 +160,159 @@
         },
         "appliesOn": {
           "type": "string",
-          "enum": [
-            "hit"
-          ]
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "trigger": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attackKinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "attackBonusSource": {
+          "type": "string"
+        },
+        "attackRollModifier": {
+          "type": "string"
+        },
+        "damageRollModifier": {
+          "type": "string"
+        },
+        "damageBonus": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "damagePenalty": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "criticalHitThreshold": {
+          "type": "number"
         },
         "notes": {
           "type": "string"
         }
       },
-      "required": [
-        "attackType"
+      "anyOf": [
+        {
+          "required": [
+            "attackType"
+          ]
+        },
+        {
+          "required": [
+            "name"
+          ]
+        },
+        {
+          "required": [
+            "trigger"
+          ]
+        },
+        {
+          "required": [
+            "attackKinds"
+          ]
+        },
+        {
+          "required": [
+            "attackBonusSource"
+          ]
+        },
+        {
+          "required": [
+            "attackRollModifier"
+          ]
+        },
+        {
+          "required": [
+            "damageRollModifier"
+          ]
+        },
+        {
+          "required": [
+            "criticalHitThreshold"
+          ]
+        }
       ]
     },
     "AbilityCheckModifier": {
       "type": "object",
+      "minProperties": 1,
       "properties": {
         "appliesTo": {
-          "type": "string",
-          "enum": [
-            "ability_check"
-          ]
+          "type": "string"
         },
         "bonusDice": {
           "type": "string"
         },
         "flatModifier": {
-          "type": "number"
+          "oneOf": [
+            { "type": "number" },
+            { "type": "string" }
+          ]
         },
         "skillSelection": {
-          "type": "string",
-          "enum": [
-            "chosen_skill",
-            "not_applicable"
-          ]
+          "type": "string"
         },
         "skillChooser": {
-          "type": "string",
-          "enum": [
-            "caster"
-          ]
+          "type": "string"
         },
         "skillPool": {
-          "type": "string",
-          "enum": [
-            "any_skill"
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
           ]
         },
         "frequency": {
-          "type": "string",
-          "enum": [
-            "every_matching_check",
-            "once"
-          ]
+          "type": "string"
         },
         "durationScope": {
-          "type": "string",
-          "enum": [
-            "while_active",
-            "next_check"
-          ]
+          "type": "string"
         },
         "notes": {
           "type": "string"
         }
       },
-      "required": [
-        "appliesTo",
-        "skillSelection",
-        "frequency",
-        "durationScope"
-      ]
+      "additionalProperties": true
     },
     "ControlledEntity": {
       "type": "object",
+      "minProperties": 1,
       "properties": {
         "entityType": {
-          "type": "string",
-          "enum": [
-            "spectral_hand",
-            "unseen_servant"
-          ]
+          "type": "string"
         },
         "count": {
           "type": "number"
         },
         "appearsAt": {
-          "type": "string",
-          "enum": [
-            "chosen_point"
-          ]
+          "type": "string"
         },
         "durationScope": {
-          "type": "string",
-          "enum": [
-            "spell_duration"
-          ]
+          "type": "string"
         },
         "controlActionType": {
-          "type": "string",
-          "enum": [
-            "magic_action",
-            "action",
-            "bonus_action"
-          ]
+          "type": "string"
         },
         "initialUseOnCast": {
           "type": "boolean"
         },
         "laterControlTiming": {
-          "type": "string",
-          "enum": [
-            "later_turns"
-          ]
+          "type": "string"
         },
         "movementDistance": {
           "type": "number"
         },
         "movementUnit": {
-          "type": "string",
-          "enum": [
-            "feet"
-          ]
+          "type": "string"
         },
         "maxDistanceFromCaster": {
           "type": "number"
@@ -301,10 +329,7 @@
               "type": "number"
             },
             {
-              "type": "string",
-              "enum": [
-                "not_applicable"
-              ]
+              "type": "string"
             }
           ]
         },
@@ -317,35 +342,14 @@
         "endingTriggers": {
           "type": "array",
           "items": {
-            "type": "string",
-            "enum": [
-              "caster_recasts",
-              "beyond_max_distance",
-              "drops_to_0_hp"
-            ]
+            "type": "string"
           }
         },
         "notes": {
           "type": "string"
         }
       },
-      "required": [
-        "entityType",
-        "count",
-        "appearsAt",
-        "durationScope",
-        "controlActionType",
-        "initialUseOnCast",
-        "laterControlTiming",
-        "movementDistance",
-        "movementUnit",
-        "maxDistanceFromCaster",
-        "canAttack",
-        "canActivateMagicItems",
-        "carryCapacityPounds",
-        "allowedInteractions",
-        "endingTriggers"
-      ]
+      "additionalProperties": true
     }
   }
 }

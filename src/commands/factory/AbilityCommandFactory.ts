@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/07/2026, 11:39:15
+ * Last Sync: 23/07/2026, 20:12:17
  * Dependents: commands/factory/SpellCommandFactory.ts, commands/index.ts
- * Imports: 27 files
+ * Imports: 28 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -59,6 +59,7 @@ import { createMovementDebuff, type MovementTriggerDebuff } from '@/systems/spel
 import { isBoomingBladeRuntimeAbility } from './boomingBladeAttackBridge';
 import { isGreenFlameBladeRuntimeAbility } from './greenFlameBladeAttackBridge';
 import { canAffordActionCost, consumeActionCost } from '@/utils/combat/actionEconomyUtils';
+import { breakTauntsForEvent, hasTauntAttackDisadvantage } from '@/systems/combat/tauntConstraint';
 
 type HeldWeaponAugment = NonNullable<NonNullable<NonNullable<CombatCharacter['activeEffects']>[number]['mechanics']>['heldWeaponAugment']>;
 
@@ -440,6 +441,30 @@ export class WeaponAttackCommand implements SpellCommand {
 
     // 1. Process each target (Weapon attacks are usually single target, but could be cleave)
     for (const target of this.targets) {
+      const tauntBreak = breakTauntsForEvent(newState.characters, {
+        event: 'caster_attacks_other',
+        casterId: this.caster.id,
+        targetIds: [target.id]
+      });
+      if (tauntBreak.characters !== newState.characters) {
+        newState = {
+          ...newState,
+          characters: tauntBreak.characters,
+          combatLog: [
+            ...newState.combatLog,
+            ...tauntBreak.breaks.map(record => ({
+              id: generateId(),
+              timestamp: Date.now(),
+              type: 'status' as const,
+              message: `${record.spellName} ends because its caster attacks another creature.`,
+              characterId: record.casterId,
+              targetIds: [record.targetId],
+              data: { spellId: record.spellId, tauntBreakEvent: record.event }
+            }))
+          ]
+        };
+      }
+
       newState = await breakFriendsConcentrationForCaster(
         newState,
         this.caster,
@@ -464,6 +489,11 @@ export class WeaponAttackCommand implements SpellCommand {
         // removing that legacy export yet.
         return !attackerFilter || TargetValidationUtils.matchesFilter(this.caster, attackerFilter);
       }) || false;
+
+      const liveAttacker = newState.characters.find(character => character.id === this.caster.id) ?? this.caster;
+      if (hasTauntAttackDisadvantage(liveAttacker, currentTarget.id)) {
+        hasDisadvantage = true;
+      }
 
       let hasAdvantage = false;
 
@@ -1326,6 +1356,7 @@ export class AbilityCommandFactory {
         damageAbilityModifier: effect.grantedActionDamageAbilityModifier,
         wallLengthReduction: effect.grantedActionWallLengthReduction,
         endsWhenLengthZero: effect.grantedActionEndsWhenLengthZero,
+        socialServiceRequest: effect.grantedActionSocialServiceRequest,
         notes: effect.grantedActionNotes
       });
     }

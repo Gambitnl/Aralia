@@ -5,6 +5,7 @@ import type { CombatCharacter, CombatState, Position } from '@/types/combat';
 import type { StatusConditionEffect } from '@/types/spells';
 import type { Class, GameState } from '@/types';
 import { createMockGameState, createMockPlayerCharacter } from '../../utils/factories';
+import powerWordPain from '../../../public/data/spells/level-7/power-word-pain.json';
 
 /**
  * This file proves that status-condition commands apply, log, and refresh
@@ -174,5 +175,84 @@ describe('StatusConditionCommand', () => {
     expect(updated?.conditions?.[0]?.appliedTurn).toBe(3);
     expect(updated?.statusEffects).toHaveLength(1);
     expect(updated?.statusEffects[0]?.duration).toBe(1);
+  });
+
+  it('preserves an end-of-current-turn boundary without flattening it to a round', async () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 });
+    const target = makeCharacter('target', { x: 1, y: 0 });
+    const baseState = makeState([caster, target]);
+    const state: CombatState = {
+      ...baseState,
+      turnState: { ...baseState.turnState, currentCharacterId: target.id }
+    };
+    const effect: StatusConditionEffect = {
+      type: 'STATUS_CONDITION',
+      statusCondition: {
+        name: 'Poisoned',
+        duration: { type: 'until_end_of_current_turn', value: 0 }
+      },
+      trigger: { type: 'turn_start' },
+      condition: { type: 'always' }
+    };
+
+    // Stinking Cloud applies during the affected creature's turn. The command
+    // keeps the authored boundary and schedules its first turn end for expiry.
+    const result = await new StatusConditionCommand(effect, makeContext(caster, [target])).execute(state);
+    const updated = result.characters.find(character => character.id === target.id);
+
+    expect(updated?.conditions?.[0]?.duration).toEqual({ type: 'until_end_of_current_turn', value: 0 });
+    expect(updated?.conditions?.[0]?.turnEndEventsRemaining).toBe(1);
+    expect(updated?.statusEffects[0]?.duration).toBe(1);
+  });
+
+  it('keeps a next-turn boundary beyond the target current turn end', async () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 });
+    const target = makeCharacter('target', { x: 1, y: 0 });
+    const baseState = makeState([target, caster]);
+    const state: CombatState = {
+      ...baseState,
+      turnState: { ...baseState.turnState, currentCharacterId: target.id }
+    };
+    const effect: StatusConditionEffect = {
+      type: 'STATUS_CONDITION',
+      statusCondition: { name: 'Blinded', duration: { type: 'turn_end', value: 1 } },
+      trigger: { type: 'on_attack_hit' },
+      condition: { type: 'always' }
+    };
+
+    // Holy Aura can blind an attacker during its own turn. The current turn
+    // end consumes the first boundary and the condition ends on the next one.
+    const result = await new StatusConditionCommand(effect, makeContext(caster, [target])).execute(state);
+    const updated = result.characters.find(character => character.id === target.id);
+
+    expect(updated?.conditions?.[0]?.duration).toEqual({ type: 'turn_end', value: 1 });
+    expect(updated?.conditions?.[0]?.turnEndEventsRemaining).toBe(2);
+  });
+
+  it('preserves Power Word Pain on-target-cast saves as a pre-cast restriction', async () => {
+    const caster = makeCharacter('pain-caster', { x: 0, y: 0 });
+    const target = makeCharacter('pain-target', { x: 1, y: 0 });
+    const state = makeState([caster, target]);
+    const effect = powerWordPain.effects.find(candidate =>
+      candidate.type === 'STATUS_CONDITION' && candidate.statusCondition?.name === 'Crippling Pain'
+    ) as unknown as StatusConditionEffect;
+    const context = {
+      ...makeContext(caster, [target]),
+      spellId: powerWordPain.id,
+      spellName: powerWordPain.name
+    };
+
+    const result = await new StatusConditionCommand(effect, context).execute(state);
+    const updated = result.characters.find(character => character.id === target.id);
+
+    expect(updated?.statusEffects[0]?.spellcastingRestriction).toEqual(expect.objectContaining({
+      saveType: 'Constitution',
+      dc: expect.any(Number),
+      successOutcome: 'spell_casting_continues',
+      failureOutcome: 'casting_fails_and_spell_is_wasted'
+    }));
+    expect(updated?.conditions?.[0]?.spellcastingRestriction).toEqual(
+      updated?.statusEffects[0]?.spellcastingRestriction
+    );
   });
 });

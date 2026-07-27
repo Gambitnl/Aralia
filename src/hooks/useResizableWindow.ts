@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/06/2026, 13:47:37
+ * Last Sync: 18/07/2026, 02:34:24
  * Dependents: components/ui/WindowFrame.tsx
  * Imports: 2 files
  *

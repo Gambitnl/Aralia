@@ -1,19 +1,21 @@
 /**
- * Proves the schedule→space bridge: occupants are placed at the centroid of the
- * plot the schedule assigns them, activities match the schedule, and a worker
- * physically moves between home and work plots across the day.
+ * Proves the schedule→space bridge: point snapshots use plot centroids, motion
+ * snapshots walk the real street router from door to door, settled agents remain
+ * at those same doors, and activities continue to match the schedule.
  */
 import { describe, it, expect } from 'vitest';
 import { townSnapshotAt, activityTallyAt, townMotionSnapshotAt } from '../townSnapshot';
 import { occupantLocationAt } from '../occupantSchedule';
-import { buildStreetGraph } from '../agentPath';
+import { buildStreetGraph, frontDoorForPlot } from '../agentPath';
 import type { TownPlan } from '../../artifacts';
 import type { TownRoster } from '../types';
 
 // Minimal plan: a home plot (id 10) at the origin, a work plot (id 20) far east.
 const plan = {
   burgId: 1,
-  streets: [],
+  // One real street makes the motion tests exercise the production entrance
+  // resolver and router rather than the disconnected straight-line fallback.
+  streets: [{ id: 1, widthFt: 8, centerline: [[-20, 0], [130, 0]] }],
   plots: [
     { id: 10, role: 'house', footprint: [[0, 0], [10, 0], [10, 10], [0, 10]] },
     { id: 20, role: 'market', footprint: [[100, 0], [110, 0], [110, 10], [100, 10]] },
@@ -153,11 +155,27 @@ describe('townMotionSnapshotAt — street movement between plots', () => {
     expect(mid.x).toBeLessThan(Math.max(homeX, workX));
   });
 
-  it('settles at the destination centroid once the commute window passes', () => {
+  it('settles at the destination door once the commute window passes', () => {
     const settled = townMotionSnapshotAt(plan, graph, roster, transitionHour + 0.75).find((a) => a.occupantId === aldric.id)!;
     expect(settled.moving).toBe(false);
     const dest = occupantLocationAt(aldric, transitionHour).plotId === 20 ? workX : homeX;
     expect(settled.x).toBeCloseTo(dest);
+  });
+
+  it('keeps both real-router endpoints at their canonical doors', () => {
+    const previousPlotId = occupantLocationAt(aldric, transitionHour - 1).plotId;
+    const destinationPlotId = occupantLocationAt(aldric, transitionHour).plotId;
+    const departureDoor = frontDoorForPlot(graph, previousPlotId)!;
+    const arrivalDoor = frontDoorForPlot(graph, destinationPlotId)!;
+
+    // The first commute frame starts exactly where the previous settled frame
+    // waited, and the post-commute frame remains exactly at the route's last point.
+    const departure = townMotionSnapshotAt(plan, graph, roster, transitionHour).find((a) => a.occupantId === aldric.id)!;
+    const arrival = townMotionSnapshotAt(plan, graph, roster, transitionHour + 0.75).find((a) => a.occupantId === aldric.id)!;
+    expect([departure.x, departure.y]).toEqual(departureDoor);
+    expect([arrival.x, arrival.y]).toEqual(arrivalDoor);
+    expect(departure.y).not.toBe(5); // the plot centroid would reintroduce the visible pop
+    expect(arrival.y).not.toBe(5);
   });
 
   it('is stationary at a non-transition hour', () => {

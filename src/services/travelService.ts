@@ -47,13 +47,13 @@ export class TravelService {
 
       // Filter out null/undefined travelers or those missing critical stats to prevent crashes
       // in calculateGroupTravelStats which expects valid PlayerCharacter objects
-      const safeTravelers = (travelers as PlayerCharacter[]).filter(t => t && t.id && t.finalAbilityScores);
+      const safeTravelers = ((travelers as unknown) as PlayerCharacter[]).filter(t => t && t.id && (t as any).finalAbilityScores);
 
       if (safeTravelers.length === 0) {
           throw new Error("No valid travelers found in the group.");
       }
 
-      const safeInventories = inventories as Record<string, Item[]>;
+      const safeInventories = (inventories as unknown) as Record<string, Item[]>;
 
       const groupStats = calculateGroupTravelStats(safeTravelers, safeInventories, pace, terrain);
 
@@ -61,7 +61,7 @@ export class TravelService {
       const travelTimeHours = calculateTravelTimeHours(distanceMiles, groupStats);
 
       // 4. Encounter Checks (Standard: 1 per 4 hours)
-      // TODO #506(Navigator): Integrate with dynamic map data to auto-detect terrain type for route segments.
+      // TODO(Navigator): Integrate with dynamic map data to auto-detect terrain type for route segments.
       const encounterChecks = Math.ceil(travelTimeHours / 4);
 
       return {

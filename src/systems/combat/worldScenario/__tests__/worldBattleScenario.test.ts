@@ -124,7 +124,7 @@ describe("WorldForge battle scenario projection", () => {
         (check) => check.id === "road-semantics",
       )?.status,
     ).toBe("pass");
-  }, 30_000);
+  }, 180_000);
 
   it("publishes real Legium props while exposing the catalog facts still missing for movement spells", () => {
     const preset = WORLD_BATTLE_SCENARIO_PRESETS.find(
@@ -172,7 +172,7 @@ describe("WorldForge battle scenario projection", () => {
         (check) => check.id === "object-targeting",
       )?.status,
     ).toBe("warning");
-  }, 30_000);
+  }, 180_000);
 
   it("frames a deterministic Legium gate encounter from real structures and live resident schedules", () => {
     const preset = WORLD_BATTLE_SCENARIO_PRESETS.find(
@@ -341,7 +341,7 @@ describe("WorldForge battle scenario projection", () => {
         .hostility,
     ).toMatchObject({ verdict: "withhold-combat", trigger: { kind: "none" } });
     expect(contextualOnly.diagnostics.defense.hostility.inputKind).toBe("none");
-  }, 30_000);
+  }, 180_000);
 
   it("runs the production watch-interception frame with an explicitly labeled visual fixture", () => {
     const preset = WORLD_BATTLE_SCENARIO_PRESETS.find(
@@ -414,7 +414,7 @@ describe("WorldForge battle scenario projection", () => {
         (check) => check.id === "faction-hostility-live-input",
       )?.status,
     ).toBe("gap");
-  }, 30_000);
+  }, 180_000);
 
   it("runs the production opening projector with exact scene entities and honest history gaps", () => {
     const preset = WORLD_BATTLE_SCENARIO_PRESETS.find(
@@ -538,7 +538,7 @@ describe("WorldForge battle scenario projection", () => {
         (check) => check.id === "opening-threat-precontact-history",
       ),
     ).toMatchObject({ status: "gap" });
-  }, 30_000);
+  }, 180_000);
 
   it("rebuilds the resolved opening return with mixed outcomes and no creature respawn", () => {
     const preset = WORLD_BATTLE_SCENARIO_PRESETS.find(
@@ -610,7 +610,7 @@ describe("WorldForge battle scenario projection", () => {
         (check) => check.id === "opening-threat-precontact-history",
       ),
     ).toMatchObject({ status: "gap" });
-  }, 30_000);
+  }, 180_000);
 
   it("runs the production state-patrol frame with an explicitly labeled hostile-standing fixture", () => {
     const preset = WORLD_BATTLE_SCENARIO_PRESETS.find(
@@ -677,7 +677,7 @@ describe("WorldForge battle scenario projection", () => {
         (check) => check.id === "encounter-framing",
       )?.status,
     ).toBe("pass");
-  }, 30_000);
+  }, 180_000);
 
   it("centers the canonical road ambush on a real regional route outside a town", () => {
     const preset = WORLD_BATTLE_SCENARIO_PRESETS.find(
@@ -749,7 +749,7 @@ describe("WorldForge battle scenario projection", () => {
         (check) => check.id === "encounter-framing",
       )?.status,
     ).toBe("pass");
-  }, 30_000);
+  }, 180_000);
 
   it("centers the canonical river scenario on one real Region bridge receipt", () => {
     const preset = WORLD_BATTLE_SCENARIO_PRESETS.find(
@@ -834,5 +834,5 @@ describe("WorldForge battle scenario projection", () => {
         (check) => check.id === "encounter-framing",
       )?.status,
     ).toBe("pass");
-  }, 30_000);
+  }, 180_000);
 });

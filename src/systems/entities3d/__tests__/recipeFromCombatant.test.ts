@@ -6,10 +6,12 @@
  * creatureTypes tags + name); everything else takes the creature path via
  * canonical creature type + size + name cues.
  */
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach } from 'vitest';
 import { recipeFromCombatant, raceIdFromTags } from '../recipeFromCombatant';
 import { generateEntityBlueprint } from '../generateEntityBlueprint';
 import { registerAllParts } from '../parts';
+import { __setEntriesForTests, type AcceptedEntity } from '../library/acceptedEntities';
+import type { CreaturePlan } from '../textPlan/planSchema';
 import type { CombatCharacter } from '../../../types/combat';
 
 const combatant = (over: Partial<CombatCharacter> & { id: string; name: string }): CombatCharacter =>
@@ -63,7 +65,7 @@ describe('recipeFromCombatant', () => {
     expect(r.classId).toBe('fighter');
   });
 
-  it('maps a beast monster to a quad creature of its size', () => {
+  it('maps a beast monster to a plan-bodied creature of its size', () => {
     const r = recipeFromCombatant(
       combatant({
         id: 'w1',
@@ -79,7 +81,7 @@ describe('recipeFromCombatant', () => {
     expect(r.creatureType).toBe('Beast');
     expect(r.size).toBe('Large');
     expect(r.cues).toContain('wolf');
-    expect(generateEntityBlueprint(r).gait).toBe('quad');
+    expect(generateEntityBlueprint(r).gait).toBe('plan');
   });
 
   it('maps undead and dragons through their canonical types', () => {
@@ -98,7 +100,7 @@ describe('recipeFromCombatant', () => {
       }),
     );
     if (dragon.kind !== 'creature') return;
-    expect(generateEntityBlueprint(dragon).gait).toBe('quad');
+    expect(generateEntityBlueprint(dragon).gait).toBe('plan');
   });
 
   it('is deterministic per combatant id', () => {
@@ -113,5 +115,85 @@ describe('recipeFromCombatant', () => {
         combatant({ id: 'z', name: 'Blorb', class: { id: 'monster', name: 'M' } as never, creatureTypes: ['Slaadi'], team: 'enemy' }),
       ),
     ).toThrow(/Blorb/);
+  });
+});
+
+describe('recipeFromCombatant — approved library priority', () => {
+  /** Minimal valid plan (shape copied from textPlan/fixtures.ts floatingEye). */
+  const makePlan = (name: string): CreaturePlan => ({
+    name,
+    frame: { heightFt: 3.5, bulk: 0.95, stance: 'floating' },
+    spine: { segments: 2, taper: 0.9, arch: 0 },
+    appendages: [],
+    heads: [{ sizeScale: 1.6, eyes: { count: 1, sizeScale: 2 } }],
+    palette: { bodyHex: '#6b5b8f', accentHex: '#a08cc4', eyeHex: '#7fd4c1' },
+  });
+
+  const libEntry = (id: string, name: string): AcceptedEntity => ({ id, name, plan: makePlan(name) });
+
+  afterEach(() => __setEntriesForTests(null));
+
+  it('a monster whose name matches an approved entry gets that planned recipe, seeded by the entry id', () => {
+    const entry = libEntry('lib-beetle-1', 'Basalt Ember Beetle');
+    __setEntriesForTests([entry]);
+    const r = recipeFromCombatant(
+      combatant({
+        id: 'm1',
+        name: 'Basalt Ember Beetle',
+        class: { id: 'monster', name: 'M' } as never,
+        creatureTypes: ['Beast'],
+        team: 'enemy',
+      }),
+    );
+    expect(r).toEqual({ kind: 'planned', plan: entry.plan, seed: 'lib-beetle-1' });
+  });
+
+  it('the library match ignores case and padding on the combatant name', () => {
+    __setEntriesForTests([libEntry('lib-beetle-2', 'Basalt Ember Beetle')]);
+    const r = recipeFromCombatant(
+      combatant({
+        id: 'm2',
+        name: '  BASALT ember beetle ',
+        class: { id: 'monster', name: 'M' } as never,
+        creatureTypes: ['Beast'],
+        team: 'enemy',
+      }),
+    );
+    expect(r.kind).toBe('planned');
+    if (r.kind !== 'planned') return;
+    expect(r.seed).toBe('lib-beetle-2');
+  });
+
+  it('a monster with no library match still takes the legacy creature path unchanged', () => {
+    // Library holds an unrelated creature — the Dire Wolf misses and must come
+    // out exactly as the legacy test above expects.
+    __setEntriesForTests([libEntry('lib-other', 'Basalt Ember Beetle')]);
+    const r = recipeFromCombatant(
+      combatant({
+        id: 'w1',
+        name: 'Dire Wolf',
+        class: { id: 'monster', name: 'Monster' } as never,
+        creatureTypes: ['Beast'],
+        stats: { size: 'Large' } as never,
+        team: 'enemy',
+      }),
+    );
+    expect(r.kind).toBe('creature');
+    if (r.kind !== 'creature') return;
+    expect(r.creatureType).toBe('Beast');
+    expect(r.size).toBe('Large');
+    expect(r.seed).toBe('combat:w1');
+    expect(r.cues).toContain('wolf');
+  });
+
+  it('the PC/humanoid path never consults the library, even on a name hit', () => {
+    // An approved entry named after a PC must not hijack the humanoid body.
+    __setEntriesForTests([libEntry('lib-mira', 'Mira')]);
+    const r = recipeFromCombatant(
+      combatant({ id: 'pc1', name: 'Mira', creatureTypes: ['Humanoid', 'Hill Dwarf'] }),
+    );
+    expect(r.kind).toBe('humanoid');
+    if (r.kind !== 'humanoid') return;
+    expect(r.raceId).toBe('hill_dwarf');
   });
 });

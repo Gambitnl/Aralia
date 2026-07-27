@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/07/2026, 13:59:36
+ * Last Sync: 23/07/2026, 19:32:43
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 9 files
  *
@@ -74,8 +74,15 @@ export class SummoningCommand extends BaseEffectCommand {
             newState = this.removeExistingPersistentSummon(newState, caster.id)
         }
 
+        // Point-targeted summons, such as Conjure Animals, anchor their actor
+        // at the selected point rather than silently falling back to the
+        // caster. Keeping the fallback preserves older summon callers that do
+        // not provide the richer selected-target envelope.
+        const summonOrigin = this.context.selectedSpellTargets?.find(target => target.kind === 'point')?.position
+            ?? caster.position
+
         for (let i = 0; i < count; i++) {
-            const spawnPosition = this.findSpawnPosition(newState, caster.position)
+            const spawnPosition = this.findSpawnPosition(newState, summonOrigin)
 
             if (!spawnPosition) {
                 // If no space is available, log failure and stop spawning

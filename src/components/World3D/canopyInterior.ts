@@ -31,9 +31,13 @@ export interface CanopyInterior {
 
 /** Base ground-profile fog distances (World3DLighting's open-air values).
  * The canopy damp converges to THESE when leaving the woods, so the handoff
- * back to `interior: null` (byte-identical base behavior) cannot pop. */
-export const GROUND_FOG_NEAR = 450;
-export const GROUND_FOG_FAR = 2000;
+ * back to `interior: null` (byte-identical base behavior) cannot pop.
+ * 2026-07-21 far-shells lift: open-air fog moved from 450/2000 out to
+ * 600/15000 so the region ring and atlas horizon actually show — distant
+ * ranges silhouette through the haze instead of the old 2 km white-out.
+ * Canopy fog grades (forest draw-in) are absolute values and unaffected. */
+export const GROUND_FOG_NEAR = 600;
+export const GROUND_FOG_FAR = 15000;
 
 /** The no-canopy resting state the damp converges to outside the woods. */
 export const NEUTRAL_INTERIOR: Readonly<CanopyInterior> = Object.freeze({

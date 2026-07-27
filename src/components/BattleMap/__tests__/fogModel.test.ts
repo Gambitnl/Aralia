@@ -53,3 +53,79 @@ describe('blurFogAlphaGrid', () => {
     for (const a of blurred.alphas) expect(a).toBeCloseTo(0.3, 5);
   });
 });
+
+describe('blur honesty bound', () => {
+  // The two-pass blur trades a little referee-truth for a smooth penumbra: it
+  // pulls fully-hidden cells near a visibility boundary toward their visible
+  // neighbours. This measures HOW FAR that lie reaches so the doc comments in
+  // fogModel.ts / BattleMapFogCanvas.tsx can state a proven number instead of a
+  // hand-wave. A fully-hidden cell's exact alpha is 0.55 (see fogAlpha); we find
+  // the greatest tile-distance from any visible cell at which the blurred alpha
+  // still deviates from 0.55 by more than 0.05.
+  const HIDDEN = 0.55;
+
+  /** Max Chebyshev distance-to-visible at which a hidden cell deviates >0.05. */
+  const measureHonestyBound = (
+    width: number,
+    height: number,
+    isVisible: (x: number, y: number) => boolean,
+    passes = 2,
+  ): number => {
+    const alphas = new Array<number>(width * height);
+    const visibleCells: Array<[number, number]> = [];
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const vis = isVisible(x, y);
+        alphas[y * width + x] = vis ? 0 : HIDDEN;
+        if (vis) visibleCells.push([x, y]);
+      }
+    }
+    const blurred = blurFogAlphaGrid({ width, height, alphas }, passes);
+    let maxDist = 0;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (isVisible(x, y)) continue;
+        const dev = Math.abs(blurred.alphas[y * width + x] - HIDDEN);
+        if (dev <= 0.05) continue;
+        let dist = Infinity;
+        for (const [vx, vy] of visibleCells) {
+          dist = Math.min(dist, Math.max(Math.abs(vx - x), Math.abs(vy - y)));
+        }
+        maxDist = Math.max(maxDist, dist);
+      }
+    }
+    return maxDist;
+  };
+
+  const SIZE = 15;
+  const MID = 7;
+
+  it('reaches only 1 tile past a straight sight boundary', () => {
+    // Vertical split: left lit, right hidden. The classic crest-line boundary.
+    expect(measureHonestyBound(SIZE, SIZE, (x) => x < MID)).toBe(1);
+  });
+
+  it('reaches at most 2 tiles at a concave boundary corner (worst case)', () => {
+    // Visible wraps the hidden quadrant in an L — light on two sides of a cell
+    // compounds the pull, the worst geometry the blur can face.
+    expect(measureHonestyBound(SIZE, SIZE, (x, y) => x < MID || y < MID)).toBe(2);
+  });
+
+  it('never shifts a fully-hidden cell more than 2 tiles from its truth', () => {
+    // The bound the doc comments cite: across straight edges, diagonal edges,
+    // convex and concave corners, and thin spikes, no fully-hidden cell more
+    // than 2 tiles from light deviates from 0.55 by more than 0.05.
+    const geometries: Array<(x: number, y: number) => boolean> = [
+      (x) => x < MID, // straight vertical
+      (x, y) => x + y < MID + 6, // diagonal
+      (x, y) => x < MID && y < MID, // convex (visible quarter)
+      (x, y) => x < MID || y < MID, // concave (visible L)
+      (x, y) => y === MID && x <= MID, // thin visible spike
+      (x, y) => x === MID && y === MID, // single visible cell
+    ];
+    const worst = Math.max(
+      ...geometries.map((g) => measureHonestyBound(SIZE, SIZE, g)),
+    );
+    expect(worst).toBeLessThanOrEqual(2);
+  });
+});

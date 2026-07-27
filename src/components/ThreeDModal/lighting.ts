@@ -46,7 +46,9 @@ const getFogDensity = (biomeId: string | null | undefined, sunHeight: number): n
 };
 
 export const getLightingForTime = (gameTime: Date, biomeId: string | null | undefined, biomeRgba?: string) => {
-  const hours = gameTime.getHours() + gameTime.getMinutes() / 60 + gameTime.getSeconds() / 3600;
+  // Game clock is an in-world UTC Date; read UTC fields so lighting matches the
+  // HUD clock (never host-machine getHours()).
+  const hours = gameTime.getUTCHours() + gameTime.getUTCMinutes() / 60 + gameTime.getUTCSeconds() / 3600;
   const dayProgress = hours / 24;
   const sunAngle = (dayProgress - 0.25) * Math.PI * 2;
   const sunHeight = Math.sin(sunAngle);

@@ -31,7 +31,7 @@ const createFavor = (score: number, rank: DivineFavor['rank'] = 'Neutral'): Divi
 const createInitialState = (overrides: Partial<GameState> = {}): GameState => ({
     ...overrides,
     ...(() => {
-        const overrideReligion = overrides.religion ?? {};
+        const overrideReligion = (overrides.religion ?? {}) as any;
         return {
             religion: {
                 divineFavor: {
@@ -49,7 +49,7 @@ const createInitialState = (overrides: Partial<GameState> = {}): GameState => ({
     messages: overrides.messages ?? [],
     party: overrides.party ?? [],
     temples: overrides.temples ?? {},
-    phase: overrides.phase ?? ('MAIN_MENU' as GameState['phase'])
+    phase: (overrides.phase ?? 'MAIN_MENU') as unknown as GameState['phase']
 } as GameState);
 
 describe('religionReducer', () => {
@@ -107,7 +107,9 @@ describe('religionReducer', () => {
     it('keeps USE_TEMPLE_SERVICE favor writes synchronized while preserving legacy fallback reads', () => {
         const state = createInitialState({
             religion: {
-                divineFavor: {}
+                divineFavor: {},
+                discoveredDeities: [],
+                activeBlessings: []
             },
             divineFavor: {
                 pelor: createFavor(2, 'Neutral')

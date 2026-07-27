@@ -8,6 +8,7 @@ import { assembleEntity } from '../three/assembleEntity';
 import { generateEntityBlueprint } from '../generateEntityBlueprint';
 import { registerAllParts } from '../parts';
 import { PLAN_FIXTURES } from '../textPlan/fixtures';
+import { HUMANOID_TRIANGLE_BUDGET, PLAN_TRIANGLE_BUDGET } from '../textPlan/budgets';
 
 registerAllParts();
 
@@ -16,7 +17,7 @@ describe('triangle budgets (solid mode)', () => {
     const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'human', classId: 'fighter', seed: 'perf-1' });
     const handle = assembleEntity(bp, { renderMode: 'solid' });
     handle.update(0.5, 1 / 60);
-    expect(handle.stats().triangles).toBeLessThan(12_000);
+    expect(handle.stats().triangles).toBeLessThan(HUMANOID_TRIANGLE_BUDGET);
     handle.dispose();
   });
 
@@ -24,7 +25,7 @@ describe('triangle budgets (solid mode)', () => {
     for (const [key, plan] of Object.entries(PLAN_FIXTURES)) {
       const handle = assembleEntity(generateEntityBlueprint({ kind: 'planned', plan, seed: 'perf' }), { renderMode: 'solid' });
       handle.update(0.5, 1 / 60);
-      expect(handle.stats().triangles, `${key} budget`).toBeLessThan(30_000);
+      expect(handle.stats().triangles, `${key} budget`).toBeLessThan(PLAN_TRIANGLE_BUDGET);
       handle.dispose();
     }
   });

@@ -3,26 +3,26 @@
 // Continue Journey → assert the surface change survived the round trip.
 //
 // Usage: node .agent/resume-journey/roundtrip.mjs [label]
+//        HEADED=1 node .agent/resume-journey/roundtrip.mjs [label]  ← watch it run
+//        BASE_URL=http://localhost:5174/Aralia/ ...                 ← another port
 import { chromium } from 'playwright';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
+import { BASE, seededContextOptions, hasSeedState, launchOptions } from './rigContext.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const label = process.argv[2] || 'roundtrip';
-const BASE = 'http://localhost:5174/Aralia/';
-const STATE = path.join(__dirname, '..', '3d-visual-quality', 'captures', 'storageState.json');
 const EVIDENCE = path.join(__dirname, 'evidence');
 fs.mkdirSync(EVIDENCE, { recursive: true });
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-const browser = await chromium.launch({
-  headless: true,
-  args: ['--ignore-gpu-blocklist', '--enable-unsafe-swiftshader', '--use-gl=angle', '--use-angle=swiftshader'],
-});
-const ctxOpts = { viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 };
-if (fs.existsSync(STATE)) ctxOpts.storageState = STATE;
-const ctx = await browser.newContext(ctxOpts);
+const browser = await chromium.launch(launchOptions());
+if (!hasSeedState()) console.warn('WARNING: no storageState.json — running without a saved session');
+console.log('target:', BASE);
+const ctx = await browser.newContext(
+  seededContextOptions({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 }),
+);
 const page = await ctx.newPage();
 const consoleLog = [];
 page.on('console', m => consoleLog.push({ t: Date.now(), type: m.type(), text: m.text().slice(0, 300) }));
@@ -64,16 +64,27 @@ await page.screenshot({ path: path.join(EVIDENCE, `${label}-atlas.png`) });
 const switchedMode = live?.worldViewMode;
 
 // ── Leg C: wait for the autosave to capture the change ─────────────────────
-const saveDeadline = Date.now() + 20000;
+// Watch for the slot index to move PAST the timestamp it held before the
+// mutation, rather than testing wall-clock freshness — the seeded session's
+// own lastSaved is months old, and the rolling autosave's latency is variable
+// (the 1-second clock tick keeps resetting its debounce; see GAPS #4). A
+// fixed-freshness test against a short window reported "NOT OBSERVED" for
+// saves that had simply not landed yet.
+const readAutoSlot = () => page.evaluate(() => {
+  try {
+    const idx = JSON.parse(localStorage.getItem('aralia_rpg_save_slots_index') || '[]');
+    return idx.find((s) => s.slotId === 'aralia_rpg_autosave')?.lastSaved ?? null;
+  } catch { return null; }
+});
+const baselineSavedAt = await readAutoSlot();
+const saveDeadline = Date.now() + 60000;
 let savedAt = null;
 while (Date.now() < saveDeadline) {
   await sleep(1500);
-  const idx = await page.evaluate(() => {
-    try { return JSON.parse(localStorage.getItem('aralia_rpg_save_slots_index') || '[]'); } catch { return []; }
-  });
-  const auto = idx.find(s => s.slotId === 'aralia_rpg_autosave');
-  if (auto && Date.now() - auto.lastSaved < 19000) { savedAt = auto.lastSaved; break; }
+  const lastSaved = await readAutoSlot();
+  if (lastSaved && lastSaved !== baselineSavedAt) { savedAt = lastSaved; break; }
 }
+console.log('[autosave] baseline slot timestamp:', baselineSavedAt ? new Date(baselineSavedAt).toISOString() : 'none');
 console.log('[autosave] captured:', savedAt ? new Date(savedAt).toISOString() : 'NOT OBSERVED');
 
 // ── Leg D: reload → Continue Journey → verify the surface survived ─────────

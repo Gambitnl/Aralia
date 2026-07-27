@@ -139,6 +139,12 @@
       "taunt": {
         "disadvantageAgainstOthers": true,
         "leashRangeFeet": 30,
+        "breakEvents": [
+          "caster_attacks_other",
+          "caster_casts_spell_on_other_enemy",
+          "caster_ally_damages_target",
+          "caster_ends_turn_outside_leash"
+        ],
         "breakConditions": [
           "You attack another creature",
           "You cast a spell on an enemy other than the target",

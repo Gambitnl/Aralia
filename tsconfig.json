@@ -33,16 +33,13 @@
     "noEmit": true
   },
   "include": [
-    "src"
+    "src",
+    "vite.config.ts",
+    "scripts/**/*.ts"
   ],
   "exclude": [
     "scripts/**/*.js",
     "src/md-library-entry.tsx",
     "**/*.test-d.ts"
-  ],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
   ]
 }

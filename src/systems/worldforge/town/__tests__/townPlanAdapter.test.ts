@@ -10,7 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { toArtifactPlan, storeysForRole, STREET_TIERS } from '../townPlanAdapter';
 
-const { avenue: AVENUE, street: STREET, lane: LANE } = STREET_TIERS;
+const { plaza: PLAZA, avenue: AVENUE, street: STREET, lane: LANE } = STREET_TIERS;
 import { STYLE_FAMILIES } from '../architectureStyle';
 import { constructionKitsForFamily } from '../buildingMaterials';
 import type { TownPlan as EngineTownPlan } from '../townEngine';
@@ -111,7 +111,9 @@ describe('toArtifactPlan', () => {
     }
   });
 
-  it('promotes plaza-ward frontage to paved streets', () => {
+  it('promotes plaza-ward frontage to the widest plaza tier (streets-unify slice)', () => {
+    // Before the four-tier hierarchy this frontage was the mid 'street' tier and
+    // read like a back lane; the market square's ring is now the plaza tier.
     const plaza = {
       ...makeEnginePlan(),
       wards: [{ polygon: sq(0, 0, 40), block: sq(1, 1, 38), plots: [{ polygon: sq(4, 4, 16), frontageEdge: 0, buildingType: 'shop' as const }], civic: 'plaza' as const }],
@@ -121,9 +123,49 @@ describe('toArtifactPlan', () => {
     const { plan: p } = toArtifactPlan(plaza, 3);
     expect(p.streets.length).toBe(4); // the plaza ward's 4 edges, no inherited road
     for (const s of p.streets) {
+      expect(s.widthFt).toBe(PLAZA.widthFt);
+      expect(s.colorHex).toBe(PLAZA.colorHex);
+    }
+  });
+
+  it('paves the other civic wards\' frontage as the mid street tier', () => {
+    const temple = {
+      ...makeEnginePlan(),
+      wards: [{ polygon: sq(0, 0, 40), block: sq(1, 1, 38), plots: [], civic: 'temple' as const }],
+      plots: [],
+      civic: [{ kind: 'temple' as const, polygon: sq(10, 10, 18), wardIndex: 0 }],
+      streets: [],
+    } as EngineTownPlan;
+    const { plan: p } = toArtifactPlan(temple, 5);
+    expect(p.streets.length).toBe(4);
+    for (const s of p.streets) {
       expect(s.widthFt).toBe(STREET.widthFt);
       expect(s.colorHex).toBe(STREET.colorHex);
     }
+  });
+
+  it('lets the plaza win a frontage edge it shares with another civic ward', () => {
+    const shared = {
+      ...makeEnginePlan(),
+      wards: [
+        { polygon: sq(0, 0, 20), block: sq(1, 1, 18), plots: [], civic: 'plaza' as const },
+        { polygon: sq(20, 0, 20), block: sq(21, 1, 18), plots: [], civic: 'temple' as const },
+      ],
+      plots: [],
+      civic: [],
+      streets: [],
+    } as EngineTownPlan;
+    const { plan: p } = toArtifactPlan(shared, 6);
+    // 4 + 4 edges, one shared → 7 streets: 4 plaza (incl. the shared edge), 3 street.
+    expect(p.streets.length).toBe(7);
+    expect(p.streets.filter((s) => s.colorHex === PLAZA.colorHex).length).toBe(4);
+    expect(p.streets.filter((s) => s.colorHex === STREET.colorHex).length).toBe(3);
+  });
+
+  it('orders tier widths strictly plaza > avenue > street > lane', () => {
+    expect(PLAZA.widthFt).toBeGreaterThan(AVENUE.widthFt);
+    expect(AVENUE.widthFt).toBeGreaterThan(STREET.widthFt);
+    expect(STREET.widthFt).toBeGreaterThan(LANE.widthFt);
   });
 
   it('dedups ward edges shared between two adjacent wards', () => {

@@ -9,7 +9,8 @@ import { validatePlan, loadRegistry, staleConstraints } from './orchestrate.mjs'
 function planWith(agent) {
   return {
     wave: 'w',
-    packets: [{ id: 'PK-1', handle: 'h-1', agent, scope: 's', files: ['src/x.ts'] }],
+    pet: 'gf-sd',
+    packets: [{ id: 'PK-1', handle: 'h-1', pet: 'dream-girl', agent, scope: 's', files: ['src/x.ts'] }],
   };
 }
 

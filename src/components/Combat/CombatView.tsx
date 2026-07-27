@@ -584,7 +584,7 @@ const CombatView: React.FC<CombatViewProps> = ({
     onRoundElapsed,
     autoCharacters, // Pass auto characters to turn manager if needed, but easier to modify turnManager props to accept "isAuto" check
     onMapUpdate: setMapData,
-    // TODO #57: Feature: Bind difficulty to user settings or campaign state instead of hardcoding 'normal'.
+    // TODO: Bind difficulty to user settings or campaign state instead of hardcoding 'normal'.
     difficulty: "normal",
     requestReaction: useCallback(
       (
@@ -1178,20 +1178,21 @@ const CombatView: React.FC<CombatViewProps> = ({
           onResetLayout={resetRailLayout}
           layoutIsDefault={railLayoutIsDefault}
         />
-        {/* TODO #58: Wrap debug buttons with process.env.NODE_ENV check to hide in production builds. */}
-        <button
-          onClick={() => {
-            if (
-              window.confirm(
-                "End the battle now? Remaining enemies will be discarded.",
+        {process.env.NODE_ENV !== 'production' && (
+          <button
+            onClick={() => {
+              if (
+                window.confirm(
+                  "End the battle now? Remaining enemies will be discarded.",
+                )
               )
-            )
-              forceOutcome("victory");
-          }}
-          className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_RED} ml-auto`}
-        >
-          End Battle
-        </button>
+                forceOutcome("victory");
+            }}
+            className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_RED} ml-auto`}
+          >
+            End Battle
+          </button>
+        )}
       </div>
 
       {/* First-fight coach line: the busiest screen in the game answers

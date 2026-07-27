@@ -40,10 +40,16 @@ export function deriveGameDay(gameTime: Date): number {
   return epochDay;
 }
 
-/** Format the in-game clock as "HH:MM" (24h), matching other UI surfaces. */
+/**
+ * Format the in-game clock as "HH:MM" (24h), matching other UI surfaces.
+ * G5: `gameTime` is the in-world UTC clock and every player-visible rendering
+ * uses UTC fields (`formatGameTime` passes `timeZone: 'UTC'`) — so this stamp
+ * reads UTC hours too. Host-local `getHours()` would shift log timestamps away
+ * from the HUD clock by the machine's timezone offset.
+ */
 export function formatGameClock(gameTime: Date): string {
-  const hh = String(gameTime.getHours()).padStart(2, '0');
-  const mm = String(gameTime.getMinutes()).padStart(2, '0');
+  const hh = String(gameTime.getUTCHours()).padStart(2, '0');
+  const mm = String(gameTime.getUTCMinutes()).padStart(2, '0');
   return `${hh}:${mm}`;
 }
 

@@ -108,7 +108,19 @@ function wallSurfacePart(
   colorHex: string,
   depthM = WALL_SURFACE_DEPTH_M,
 ): SitePart {
-  const outwardFt = run.thicknessFt / 2 + depthM / FT / 2;
+  // BURIED-DRESSING FIX (town-look-slice1 follow-up, 2026-07-18): structural
+  // wall boxes grow OUTWARD from the run line by the FULL thickness (runBox in
+  // buildingModels.ts: center = line + n*thickness/2 — the line is the wall's
+  // INNER face, not its centerline). The former half-thickness offset therefore
+  // centered every sealed-door infill, wall patch, and char streak INSIDE the
+  // wall slab: the history receipts existed but no pixel ever showed. Matching
+  // materialPartOnRun (buildingMaterialParts.ts) and facadePartOnRun
+  // (interiorParts.ts), the full-thickness offset lands each part's inner face
+  // exactly on the wall's outer face, so deeper trim (sealed-door jambs and
+  // lintel pass depthM + 0.025) still reads proud of the flush infill panel.
+  // Offset only: sizes, colors, tags, feature targets, and the frozen
+  // historySignature receipts are unchanged.
+  const outwardFt = run.thicknessFt + depthM / FT / 2;
   const baseY = feature.floorLevel * storeyHeightM + baseFt * FT;
   const common = {
     h: heightFt * FT,
@@ -474,7 +486,12 @@ function boardedWindowParts(
   const { floor, run } = windowRun(blueprint, feature);
   const window = floor.windows[feature.windowIndex];
   const depthM = 0.09;
-  const outwardFt = run.thicknessFt / 2 + depthM / FT / 2;
+  // BURIED-DRESSING FIX (town-look-slice1 follow-up, 2026-07-18): same
+  // full-thickness outward offset as wallSurfacePart above — the run line is
+  // the wall's INNER face, so the former half-thickness offset nailed every
+  // abandonment board inside the structural slab. The stored boarded-window
+  // targets and board sizes are unchanged; only the projection moved.
+  const outwardFt = run.thicknessFt + depthM / FT / 2;
   const boardColor = blueprint.styleResolved?.trimColor ?? '#674a31';
 
   return [0, 1, 2].map((index) => {

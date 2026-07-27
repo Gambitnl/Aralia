@@ -127,7 +127,7 @@ describe('characterReducer', () => {
     it('should apply racial rest choices (e.g. Astral Knowledge) on long rest', () => {
         const character = createMockPlayerCharacter({
             id: 'long-rest-githyanki',
-            skills: [{ name: 'Athletics', proficiencyLevel: 'proficient' }],
+            skills: [{ name: 'Athletics', proficiencyLevel: 'proficient' } as any],
             weaponProficiencies: ['Shortsword']
         });
         const state = { ...initialState, party: [character] } as GameState;
@@ -462,7 +462,7 @@ describe('characterReducer', () => {
         });
 
         expect(equipState.party?.[0].equippedItems.MainHand?.id).toBe('steel_sword');
-        expect(equipState.inventory.some(item => item.id === 'steel_sword')).toBe(false);
+        expect(equipState.inventory?.some(item => item.id === 'steel_sword')).toBe(false);
 
         const dropState = characterReducer({
             ...equipState,
@@ -473,8 +473,8 @@ describe('characterReducer', () => {
             payload: { itemId: 'dried_meat', characterId: 'equip-drop-char' },
         });
 
-        expect(dropState.inventory.some(item => item.id === 'dried_meat')).toBe(false);
-        expect(dropState.dynamicLocationItemIds.town_square).toContain('dried_meat');
+        expect(dropState.inventory?.some(item => item.id === 'dried_meat')).toBe(false);
+        expect(dropState.dynamicLocationItemIds?.town_square).toContain('dried_meat');
     });
 
     it('should consume spell material components when materialComponentItemIdToConsume is provided in CAST_SPELL', () => {
@@ -496,6 +496,7 @@ describe('characterReducer', () => {
         const diamondItem: Item = {
             id: 'diamond_300gp',
             name: 'Diamond (300 gp)',
+            description: 'A brilliant gem.',
             type: 'spell_component',
             costInGp: 300
         };
@@ -526,8 +527,8 @@ describe('characterReducer', () => {
         const character = createMockPlayerCharacter({
             id: 'junk-char',
         });
-        const item1: Item = { id: 'rusty_nail', name: 'Rusty Nail', type: 'junk', isJunk: false };
-        const item2: Item = { id: 'silver_chalice', name: 'Silver Chalice', type: 'valuable', isJunk: false };
+        const item1: Item = { id: 'rusty_nail', name: 'Rusty Nail', description: '', type: 'accessory' as any, isJunk: false };
+        const item2: Item = { id: 'silver_chalice', name: 'Silver Chalice', description: '', type: 'accessory' as any, isJunk: false };
         let state = {
             ...initialState,
             party: [character],
@@ -607,6 +608,7 @@ describe('characterReducer', () => {
         const heavyArmor: Item = {
             id: 'plate_armor',
             name: 'Plate Armor',
+            description: '',
             type: 'armor',
             slot: 'Torso',
             armorCategory: 'Heavy',

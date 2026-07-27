@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/07/2026, 13:11:34
- * Dependents: types/spells.ts
+ * Last Sync: 23/07/2026, 20:59:28
+ * Dependents: hooks/spellEffectUtils.ts, systems/spells/effects/triggerHandler.ts, types/spells.ts
  * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
@@ -56,12 +56,26 @@ export type ConditionName = `${ConditionType}` | "Slowed" | "Slasher Slow";
 
 /** Modifiers that adjust how a saving throw is made. */
 export interface SaveModifier {
-  type: "advantage" | "disadvantage" | "bonus" | "penalty" | "cover_bypass";
+  /** Known executable kinds plus source-backed labels awaiting normalization. */
+  type?: "advantage" | "disadvantage" | "bonus" | "penalty" | "cover_bypass" | string;
+  /** Some authored rows use `modifier` instead of the normalized `type`. */
+  modifier?: string;
   value?: number;
-  appliesTo?: TargetConditionFilter;
+  appliesTo?: TargetConditionFilter | string;
   reason?: string;
+  condition?: string;
+  source?: string;
+  options?: { label: string; modifier: number; [key: string]: unknown }[];
   /** Cover grades ignored by spells such as Sacred Flame when resolving Dexterity saves. */
   ignoredCover?: ("half" | "three_quarters" | "total")[];
+  [key: string]: unknown;
+}
+
+/** Source-backed outcomes that need a runtime owner before they can be treated as executable rules. */
+export interface SaveOutcomeOverride {
+  outcome: string;
+  effect: string;
+  [key: string]: unknown;
 }
 
 /** Timings that can ask an affected target to repeat a saving throw or check. */
@@ -70,11 +84,16 @@ export type RepeatSaveTiming =
   | "turn_start"
   | "on_damage"
   | "on_action"
-  | "after_forced_movement";
+  | "after_forced_movement"
+  | "on_social_service_request";
 
 /** Modifiers that only apply to repeat-save attempts, not the initial save. */
 export interface RepeatSaveModifiers {
   advantageOnDamage?: boolean;
+  /** Source-owned disadvantage that applies to every attempt in this repeat-save lifecycle. */
+  disadvantage?: boolean;
+  /** Fast Friends grants Advantage when the caster or allies are fighting the target. */
+  advantageWhenCasterOrCompanionsFightingTarget?: boolean;
   sizeAdvantage?: string[];
   sizeDisadvantage?: string[];
 }
@@ -109,20 +128,34 @@ export interface RepeatSave {
 
 /** Describes repeated non-save mechanics that ride on an existing spell effect. */
 export interface RecurringMechanic {
-  timing: "turn_start" | "turn_end" | "on_damage" | "on_move_in_area" | "on_entity_proximity" | "on_target_cast";
-  frequency?: "every_time" | "first_per_turn" | "once_per_creature";
-  saveType?: SavingThrowAbility;
-  saveEffect?: "none" | "half" | "negates_condition";
+  /** Runtime events plus source-backed timing labels awaiting an adapter. */
+  timing?: "turn_start" | "turn_end" | "on_damage" | "on_move_in_area" | "on_entity_proximity" | "on_target_cast" | string;
+  frequency?: "every_time" | "first_per_turn" | "once_per_creature" | string;
+  saveType?: SavingThrowAbility | string;
+  /** Source-backed `negates` remains available until every runtime adapter uses one normalized name. */
+  saveEffect?: "none" | "half" | "negates_condition" | "negates" | string;
   damage?: DamageData;
   healing?: HealingData;
   successOutcome?: string;
   failureOutcome?: string;
   restriction?: string;
   notes?: string;
+  [key: string]: unknown;
+}
+
+/** A source-backed save required before an affected creature can cast a spell. */
+export interface SpellcastingRestriction {
+  saveType: SavingThrowAbility | string;
+  /** The original spell save DC, captured when the restriction is applied. */
+  dc?: number;
+  successOutcome?: string;
+  failureOutcome?: string;
+  notes?: string;
 }
 
 /** Defines the trigger for an effect. */
 export interface EffectTrigger {
+  /** Known runtime events plus source-backed composite labels awaiting an adapter. */
   type:
   | "immediate"
   | "after_primary"
@@ -142,7 +175,8 @@ export interface EffectTrigger {
   | "on_entity_proximity"
   | "on_caster_action"
   | "on_granted_action"
-  | "on_attack_hit";
+  | "on_attack_hit"
+  | string;
   /**
    * Controls how often this trigger can fire.
    * Defaults to 'every_time' if not specified.
@@ -170,19 +204,27 @@ export interface EffectTrigger {
     actionType: "action" | "bonus_action" | "reaction";
     optional: boolean;
   };
+  /** Source-backed composite area timing details. */
+  areaTiming?: string[];
+  repeatAction?: Record<string, unknown>;
+  onlyIf?: string;
+  oncePerTurn?: boolean;
 }
 
 /** Defines the condition under which an effect applies. */
 export interface EffectCondition {
   type: "hit" | "save" | "always";
   saveType?: SavingThrowAbility;
-  saveEffect?: "none" | "half" | "negates_condition";
+  /** Source-backed `negates` is normalized by save-resolution runtimes when executed. */
+  saveEffect?: "none" | "half" | "negates_condition" | "negates";
   /** Filter to apply effect only to specific target types. */
   targetFilter?: TargetConditionFilter;
   /** Require that the target already has certain conditions for this effect to apply. */
   requiresStatus?: ConditionName[];
   /** Adjustments applied when making a saving throw. */
   saveModifiers?: SaveModifier[];
+  /** Source-backed save outcomes, including voluntary failure and success lockouts. */
+  saveOutcomeOverrides?: SaveOutcomeOverride[];
 }
 
 /** Filter for conditional effects based on target properties. */
@@ -206,7 +248,8 @@ export interface TargetConditionFilter {
   /** Plane-native restriction used by banishment-style and summoning-adjacent effects. */
   isNativeToPlane?: boolean;
   /** Whether the spell requires a willing target, rejects willing targets, or does not care. */
-  willing?: "required" | "willing" | "unwilling" | "not_applicable";
+  /** Source-backed willingness labels and booleans remain available until conditional consent is executable. */
+  willing?: "required" | "willing" | "unwilling" | "not_applicable" | string | boolean;
   /** Object-specific gates such as worn, carried, magical, fixed, size, and weight limits. */
   objectEligibility?: {
     wornOrCarried?: string;
@@ -220,7 +263,8 @@ export interface TargetConditionFilter {
   placementEligibility?: {
     unoccupied?: "required" | "not_applicable";
     surface?: "ground" | "liquid" | "any_solid" | "not_applicable";
-    destination?: "safest_nearby" | "nearest_unoccupied" | "caster_choice" | "visible_space_within_range" | "not_applicable";
+    /** Source-backed placement labels remain lossless until a placement adapter owns them. */
+    destination?: string;
     notes?: string;
   };
   /** Narrow identity filters beyond broad creature types (e.g. humanoid-only, corpse-only, or specific reaction triggers). */
@@ -232,9 +276,9 @@ export interface TargetConditionFilter {
   };
   /** Communication and perception gates that make social/control targeting explicit. */
   communicationPrerequisites?: {
-    canHearCaster?: "required" | "not_applicable";
-    canUnderstandCaster?: "required" | "not_applicable";
-    canSeeCaster?: "required" | "not_applicable";
+    canHearCaster?: "required" | "not_applicable" | string | boolean;
+    canUnderstandCaster?: "required" | "not_applicable" | string | boolean;
+    canSeeCaster?: "required" | "not_applicable" | string | boolean;
   };
   /** Ability-score threshold gates such as "Intelligence 4 or higher." */
   abilityThreshold?: {
@@ -295,7 +339,8 @@ export interface BaseEffect {
   /** Secondary target relationship for leap, chain, or splash-like follow-up effects. */
   secondaryTargeting?: SecondaryTargeting;
   /** Repeated secondary mechanics, such as turn-start temp HP or first-per-turn rider damage. */
-  recurringMechanics?: RecurringMechanic[];
+  /** Source rows may use one recurring record; runtime consumers normalize arrays only. */
+  recurringMechanics?: RecurringMechanic[] | RecurringMechanic;
   /** Sound is a sensory mechanic when it has gameplay-facing radius, source, or timing. */
   soundEmission?: SoundEmission;
   /** Sensory manifestation limits, such as which senses an illusion can or cannot create. */
@@ -315,7 +360,8 @@ export interface BaseEffect {
   /** Last-moment death safeguards, such as Death Ward preventing 0 HP or instant death. */
   deathPrevention?: DeathPrevention;
   /** Cleanup rules that remove spell-created state when the spell or effect ends. */
-  endCleanup?: EffectEndCleanup[];
+  /** Normalized cleanup arrays and compact source-backed cleanup objects coexist until lifecycle adapters converge. */
+  endCleanup?: EffectEndCleanup[] | EffectEndCleanup;
   /** Spell aftermath state that should survive beyond immediate effect resolution. */
   aftermathState?: Record<string, unknown>;
   /** Ongoing action costs required to keep a spell or effect active after casting. */
@@ -463,8 +509,17 @@ export interface HealingEffect extends BaseEffect {
 
 /** Contains the details of the healing done. */
 export interface HealingData {
-  dice: string; // e.g., "2d8+5"
+  /** Normalized dice formula; source-backed healing can use pool or amount. */
+  dice?: string; // e.g., "2d8+5"
   isTemporaryHp?: boolean;
+  pool?: number;
+  distribution?: string;
+  amount?: string;
+  target?: string;
+  exclusions?: string[];
+  cannotAffect?: string[];
+  trigger?: string;
+  [key: string]: unknown;
 }
 
 /** An effect that applies a status condition. */
@@ -650,7 +705,7 @@ export interface AttackRollModifierEffect extends BaseEffect {
     attachedTo?: "caster" | "target" | "point";
     color?: string;
     colorChoice?: "caster_choice" | "fixed" | "not_applicable";
-    opaqueCoverBlocks?: boolean | "not_applicable";
+    opaqueCoverBlocks?: boolean | string;
     emitsHeat?: boolean | "not_applicable";
     ignitesObjects?: boolean | "not_applicable";
     consumesFuel?: boolean | "not_applicable";
@@ -693,18 +748,26 @@ export interface StatusCondition {
   };
 }
 
-/** Defines how long an effect-specific condition lasts. */
+/**
+ * Defines how long an effect-specific condition lasts.
+ *
+ * Turn-relative forms keep rule text such as "until the end of this turn"
+ * distinct from a whole combat round. For `turn_end`, the value counts future
+ * ends of the affected creature's turn, so a value of 1 means its next turn.
+ */
 export interface EffectDuration {
-  type: "rounds" | "minutes" | "special";
+  type: "rounds" | "minutes" | "special" | "until_end_of_current_turn" | "turn_end" | "instantaneous" | string;
   value?: number;
 }
 
 /** Requirements to end a condition through an action or check. */
 export interface EscapeCheck {
   ability?: SavingThrowAbility;
+  abilityOptions?: string[];
   skill?: string;
-  dc: number | "spell_save_dc";
-  actionCost: "action" | "bonus_action";
+  dc: number | "spell_save_dc" | string;
+  actionCost: "action" | "bonus_action" | string;
+  success?: string;
   /** Who is allowed to spend the action/check to end the condition. */
   eligibleActors?: ("affected_creature" | "creature_that_can_reach_affected_creature")[];
 }
@@ -971,14 +1034,18 @@ export interface UtilityEffect extends BaseEffect {
     };
   };
   /**
-   * Tiny Servant's live control packet stays alongside the utility effect so
-   * the validated spell keeps the command range, cadence, and no-command
-   * behavior visible to future runtime consumers.
+   * Source-backed summon/control packets stay alongside the utility effect so
+   * runtime consumers can narrow command fields without losing richer
+   * domination, binding, transformation, or Wish-routing metadata.
    */
   summonControl?: {
-    entityType: string;
+    entityType?: string;
+    mode?: string;
     source?: string;
-    commandAction?: "Bonus Action" | string;
+    directSummonControl?: boolean;
+    reason?: string;
+    routing?: string;
+    commandAction?: string;
     commandRangeFeet?: number;
     multiCommand?: string;
     commandOptions?: string;
@@ -988,6 +1055,7 @@ export interface UtilityEffect extends BaseEffect {
     permanence?: string;
     deathOrDestruction?: string;
     controlEndsAfter?: string;
+    [key: string]: unknown;
   };
   /** True Polymorph-style transformation durability and retained-stat text. */
   transformationState?: {
@@ -1122,7 +1190,7 @@ export interface UtilityEffect extends BaseEffect {
     dimRadius?: number;     // Additional radius of dim light in feet
     attachedTo?: "caster" | "target" | "point";
     color?: string;         // e.g., "warm", "cold", "#RRGGBB"
-    opaqueCoverBlocks?: boolean | "not_applicable"; // Tracks if opaque cover blocks the light emission
+  opaqueCoverBlocks?: boolean | string; // Tracks if opaque cover blocks the light emission
   };
   /**
    * Runtime-facing movement contract for utility-created light artifacts.
@@ -1291,11 +1359,11 @@ export interface RepairState {
 /** Machine-readable changes to doors, chests, locks, bars, seals, and similar access-blocking objects. */
 export interface ObjectAccessChange {
   /** Object families the spell can affect, kept as player-facing labels because map object taxonomies are still expanding. */
-  eligibleObjectTypes: string[];
+  eligibleObjectTypes?: string[];
   /** Mundane object states the spell can remove or change. */
-  mundaneStateChanges: ("unlock" | "unstick" | "unbar")[];
+  mundaneStateChanges?: ("unlock" | "unstick" | "unbar")[];
   /** Maximum number of mundane locks the spell opens on a multiply locked object. */
-  maxLocksAffected: number;
+  maxLocksAffected?: number;
   /** Magical closure that is suppressed instead of permanently removed. */
   suppressesMagicalClosure?: string;
   /** How long the named magical closure is suppressed. */
@@ -1318,14 +1386,21 @@ export interface ObjectAccessChange {
   passwordUnlockDuration?: string;
   expiresWithSpell?: boolean;
   notes?: string;
+  /** Arcane Lock-style source packet for a newly magical-locked object. */
+  targetObjects?: string[];
 }
 
 /** Machine-readable object stacks created by utility spells such as Goodberry. */
 export interface CreatedObject {
   /** Legacy live packets may carry a narrow kind before full objectType normalization. */
   kind?: string;
-  /** The gameplay family of object created by the spell. */
-  objectType: "food" | "water" | "ammunition" | "weapon" | "portal" | "structure" | "hazard" | "fire" | "fire_state_change" | "sensory_effect" | "plant_effect" | "nature_ward_area" | "force_object" | "other";
+  /**
+   * The source-backed family label for the created object. The corpus also
+   * carries spell-specific labels such as sensory_effect and storm_cloud that
+   * do not yet have dedicated runtime adapters, so the type preserves the
+   * label instead of forcing an incorrect narrow union.
+   */
+  objectType: string;
   /** Player-facing object name, for example "Goodberry". */
   name: string;
   /** How many instances or units are created. */
@@ -1335,10 +1410,10 @@ export interface CreatedObject {
     type: "slot_level";
     bonusPerLevel: number;
   };
-  /** Unit used by the count so pounds, gallons, and discrete objects stay distinct. */
-  countUnit: "item" | "pound" | "gallon" | "cubic_foot" | "square_foot" | "structure" | "area" | "hand" | "not_applicable";
-  /** Where the object appears relative to the cast. */
-  appearsIn: "caster_hand" | "target_container" | "ground" | "unoccupied_space" | "spell_area" | "target_object" | "outdoor_or_underground_area" | "visible_unoccupied_space_within_range" | "not_applicable";
+  /** Unit used by the count, retained verbatim for source-specific units. */
+  countUnit: string;
+  /** Where the object appears relative to the cast, retained as source data. */
+  appearsIn: string;
   /** Live fortress packets keep the 120-foot square placement rule here. */
   footprint?: string;
   /** Live fortress packets keep the permanence cadence summary here. */
@@ -1726,7 +1801,8 @@ export interface CreatedObject {
   /** Runtime events that can cause the created object's hazard damage. */
   hazardTriggers?: ("enter" | "end_turn_inside" | "end_turn_within_radius" | "first_per_turn")[];
   /** Shape of a manipulated fluid or loose-material volume, such as Shape Water's cube. */
-  affectedVolumeShape?: "Tiny" | "Cube" | "Sphere" | "Line" | "Wall" | "not_applicable";
+  /** Source-backed area labels may be richer than the current geometry union. */
+  affectedVolumeShape?: string;
   /** Size of the manipulated volume in feet, usually the cube edge or radius. */
   affectedVolumeSizeFeet?: number;
   /** Distance the affected material can be moved or redirected by the spell. */
@@ -1872,7 +1948,11 @@ export interface DefensiveEffect extends BaseEffect {
   conditionImmunity?: ConditionName[];
   /** Conditions this defensive effect suppresses without removing, such as Calm Emotions pausing Charmed. */
   conditionSuppression?: ConditionName[];
-  savingThrow?: SavingThrowAbility[]; // For advantage on saves
+  /**
+   * Ability names remain executable; source-backed labels and modifier packets
+   * are preserved until the defensive-runtime lane owns their interpretation.
+   */
+  savingThrow?: Array<SavingThrowAbility | string | Record<string, unknown>>;
   duration: EffectDuration;
   attackerFilter?: TargetConditionFilter;
   /** Filters the incoming source this defense applies to, such as nonmagical attacks only. */
@@ -1901,7 +1981,7 @@ export interface DefensiveEffect extends BaseEffect {
 export interface ReactiveEffect extends Omit<BaseEffect, 'trigger'> {
   type: "REACTIVE";
   trigger: {
-    type: 'on_target_move' | 'on_target_attack' | 'on_any_cast' | 'on_caster_action';
+    type: 'on_target_move' | 'on_target_attack' | 'on_target_cast' | 'on_caster_action';
     movementType?: string;
     sustainCost?: number;
   };
@@ -1923,6 +2003,10 @@ export interface GrantedAction {
   frequency: "once" | "each_turn" | "while_active";
   /** Who can use the action granted by the spell. */
   actor?: "caster" | "target" | "summoned_entity" | "affected_creature";
+  /** Targeting mode for follow-up actions that may select an ally or neutral creature. */
+  targeting?: "single_any" | "single_enemy" | "single_ally";
+  /** Names the canonical social-request adapter that should resolve this action. */
+  socialServiceRequest?: "fast_friends" | string;
   /** Whether the granted action is a Magic action or another named action kind. */
   actionKind?: "magic_action" | "standard_action" | "bonus_action" | "reaction" | "not_applicable";
   /** Area shape produced by the granted action, when the action emits an area effect. */
@@ -1947,7 +2031,8 @@ export interface GrantedAction {
   /** Saving throw used by the granted action when it resolves later. */
   saveType?: SavingThrowAbility;
   /** What a successful save does for the granted action payload. */
-  saveEffect?: "none" | "half" | "negates_condition";
+  /** Preserve the authored alias for granted actions until their command adapter consumes it. */
+  saveEffect?: "none" | "half" | "negates_condition" | "negates";
   /** Optional ability modifier added to the granted action's damage roll. */
   damageAbilityModifier?: "spellcasting_ability" | "not_applicable";
   /** Wall length removed after this granted action is used, hit or miss. */
@@ -1959,19 +2044,45 @@ export interface GrantedAction {
 
 /** Models specific one-word command options for spells like Command. */
 export interface ControlOption {
-  name: string;
-  effect: "approach" | "drop" | "flee" | "grovel" | "halt" | string;
+  /** Executable command menus provide both fields. */
+  name?: string;
+  effect?: "approach" | "drop" | "flee" | "grovel" | "halt" | string;
+  /** Source-backed menus may use a mode or human-readable label instead. */
+  mode?: string;
+  label?: string;
   details?: string;
+  summary?: string;
   /**
    * Optional status condition applied by this specific option (e.g., Grovel applying Prone).
    */
   statusCondition?: StatusCondition;
+  [key: string]: unknown;
 }
 
+export type ExecutableControlOption = ControlOption & {
+  name: string;
+  effect: string;
+};
+
+/** Keeps source-backed metadata out of command execution until it has an adapter. */
+export const isExecutableControlOption = (option: ControlOption): option is ExecutableControlOption => (
+  typeof option.name === "string" && option.name.trim().length > 0
+  && typeof option.effect === "string" && option.effect.trim().length > 0
+);
+
 /** Captures taunt/leash mechanics such as Compelled Duel. */
+export type TauntBreakEvent =
+  | "caster_attacks_other"
+  | "caster_casts_spell_on_other_enemy"
+  | "caster_ally_damages_target"
+  | "caster_ends_turn_outside_leash";
+
 export interface TauntEffect {
   disadvantageAgainstOthers?: boolean;
   leashRangeFeet?: number;
+  /** Machine-readable events that end the taunt's source spell. */
+  breakEvents?: TauntBreakEvent[];
+  /** Source wording retained for spellbook and migration displays. */
   breakConditions?: string[];
 }
 

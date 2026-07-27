@@ -3,6 +3,7 @@ import { planFastestRoute, planRoutesFrom, routeHaltIndex, transportSpeedMph, ty
 import type { TravelTerrain } from '../../../types/travel';
 import { STANDARD_VEHICLES } from '../../../types/travel';
 import { climbFactorFor } from '../../worldforge/travel/routeTerrain';
+import { getSeasonalTravelCostMultiplier } from '../../time/seasonContract';
 
 /**
  * These tests protect the generic travel route planner.
@@ -208,6 +209,36 @@ describe('planRoutesFrom (single-source field)', () => {
     };
     const field = planRoutesFrom(g, 0, { milesPerUnit: 1, speedMph: 3 });
     expect(field.to(2)).toBeNull();
+  });
+});
+
+// Season contract movement hook (generational-time G3): a global time-cost
+// multiplier scales every edge, so winter honestly slows whole routes.
+describe('timeCostMultiplier (season contract hook)', () => {
+  it('defaults to neutral and scales both minutes and the cumulative ledger', () => {
+    const g = lineGraph({});
+    const neutral = planFastestRoute(g, 0, 2, { milesPerUnit: 0.1, speedMph: 3 })!;
+    const winter = planFastestRoute(g, 0, 2, { milesPerUnit: 0.1, speedMph: 3, timeCostMultiplier: 1.5 })!;
+    expect(neutral.minutes).toBeCloseTo(40, 6);
+    expect(winter.minutes).toBeCloseTo(60, 6);
+    expect(winter.cumulativeMinutes!.map((m) => Math.round(m))).toEqual([0, 30, 60]);
+    expect(winter.cells).toEqual(neutral.cells); // scaling never reroutes
+  });
+
+  it('scales edgeMinutes graphs (multi-modal sea legs share the season)', () => {
+    const g: TravelGraph = { ...lineGraph({}), edgeMinutes: () => 7 };
+    expect(planFastestRoute(g, 0, 1, { milesPerUnit: 0.1, speedMph: 3 })!.minutes).toBe(7);
+    expect(planFastestRoute(g, 0, 1, { milesPerUnit: 0.1, speedMph: 3, timeCostMultiplier: 1.5 })!.minutes)
+      .toBeCloseTo(10.5, 6);
+  });
+
+  it('a winter game clock read through the contract slows the route 1.5x vs summer', () => {
+    const g = lineGraph({});
+    const winterMult = getSeasonalTravelCostMultiplier(new Date(Date.UTC(351, 0, 10)));
+    const summerMult = getSeasonalTravelCostMultiplier(new Date(Date.UTC(351, 6, 10)));
+    const winter = planFastestRoute(g, 0, 2, { milesPerUnit: 0.1, speedMph: 3, timeCostMultiplier: winterMult })!;
+    const summer = planFastestRoute(g, 0, 2, { milesPerUnit: 0.1, speedMph: 3, timeCostMultiplier: summerMult })!;
+    expect(winter.minutes / summer.minutes).toBeCloseTo(1.5, 6);
   });
 });
 

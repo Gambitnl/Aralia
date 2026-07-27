@@ -33,6 +33,20 @@ const repo = path.resolve(here, '..', '..');
 const args = process.argv.slice(2);
 const STATUSES = ['parked', 'specced', 'active', 'done'];
 const die = (msg) => { console.error(`planmap-add: ${msg}`); process.exit(1); };
+const runValidation = (targetFile) => {
+  try {
+    const output = execFileSync(process.execPath, [path.join(here, 'validate-planmap.mjs'), '--file', targetFile], {
+      encoding: 'utf8',
+      stdio: 'pipe',
+    });
+    return { ok: true, output };
+  } catch (err) {
+    return {
+      ok: false,
+      output: `${err.stdout ?? ''}${err.stderr ?? ''}`,
+    };
+  }
+};
 const flag = (name) => {
   const i = args.indexOf(`--${name}`);
   if (i < 0) return undefined;
@@ -44,15 +58,15 @@ const flag = (name) => {
 };
 
 // --file overrides the map location (tests point at a fixture).
-const file = flag('file')
-  ? path.resolve(flag('file'))
-  : path.join(repo, 'public', 'planmap', 'topics.json');
+const fileFlag = flag('file');
+const file = fileFlag ? path.resolve(fileFlag) : path.join(repo, 'public', 'planmap', 'topics.json');
 const noValidate = args.includes('--no-validate');
 // Freshness stamp: every mutation marks the touched topic's last real change.
 const today = new Date().toISOString().slice(0, 10);
 
 const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-const byId = Object.fromEntries(data.topics.map((t) => [t.id, t]));
+const working = structuredClone(data);
+const byId = Object.fromEntries(working.topics.map((t) => [t.id, t]));
 
 const newTopicId = flag('new-topic');
 const topicId = flag('topic');
@@ -64,14 +78,23 @@ if (setStatus && !STATUSES.includes(setStatus)) die(`invalid --set-status "${set
 
 if (args[args.length - 1] === '--dep') die('missing value for --dep');
 
+if (!noValidate) {
+  const baseValidation = runValidation(file);
+  if (!baseValidation.ok) {
+    console.error('planmap-add: pre-existing plan-map validation errors detected; refusing to write to avoid unscoped drift.');
+    console.error(baseValidation.output);
+    process.exit(1);
+  }
+}
+
 if (newTopicId) {
   if (byId[newTopicId]) die(`topic "${newTopicId}" already exists`);
   const campaign = flag('campaign') ?? die('--campaign required for a new topic');
-  if (!data.campaigns[campaign]) die(`unknown campaign "${campaign}" (known: ${Object.keys(data.campaigns).join(', ')})`);
+  if (!working.campaigns[campaign]) die(`unknown campaign "${campaign}" (known: ${Object.keys(working.campaigns).join(', ')})`);
   // A nested lane is optional, but when the campaign publishes an ordered list
   // the capture command rejects typos instead of creating a near-duplicate band.
   const subcampaign = flag('subcampaign');
-  const allowedSubcampaigns = data.campaigns[campaign].subcampaigns ?? [];
+  const allowedSubcampaigns = working.campaigns[campaign].subcampaigns ?? [];
   if (subcampaign && allowedSubcampaigns.length && !allowedSubcampaigns.includes(subcampaign)) {
     die(`unknown subcampaign "${subcampaign}" for "${campaign}" (known: ${allowedSubcampaigns.join(', ')})`);
   }
@@ -91,7 +114,7 @@ if (newTopicId) {
     }),
     ...(flag('link') ? { link: flag('link') } : {}),
   };
-  data.topics.push(topic);
+  working.topics.push(topic);
   console.log(`added topic "${newTopicId}" (${status})`);
 } else if (topicId && feature) {
   const t = byId[topicId] ?? die(`topic "${topicId}" not found`);
@@ -123,11 +146,21 @@ await guardWriteOrDie(path.relative(repo, file).replace(/\\/g, '/'), {
   toolName: 'planmap-add',
   force: args.includes('--force-no-lock'),
 });
-// Atomic write: tmp then rename, so a crash mid-write never truncates the map.
+
+// Write into a staging file and validate before replacing the real file,
+// so any validation failure leaves no caller-visible change.
 const tmp = `${file}.tmp`;
-fs.writeFileSync(tmp, JSON.stringify(data, null, 2) + '\n');
-fs.renameSync(tmp, file);
-// Validate what we just wrote — a bad write should scream immediately.
+fs.writeFileSync(tmp, JSON.stringify(working, null, 2) + '\n');
 if (!noValidate) {
-  execFileSync(process.execPath, [path.join(here, 'validate-planmap.mjs'), '--file', file], { stdio: 'inherit' });
+  const mutatedValidation = runValidation(tmp);
+  if (!mutatedValidation.ok) {
+    try {
+      fs.unlinkSync(tmp);
+    } catch {}
+    console.error(mutatedValidation.output);
+    console.error('planmap-add: caller-scoped validation failed; refusing to write.');
+    process.exit(1);
+  }
+  console.log(mutatedValidation.output.trim());
 }
+fs.renameSync(tmp, file);

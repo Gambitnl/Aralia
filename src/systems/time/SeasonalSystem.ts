@@ -3,10 +3,16 @@
  * Licensed under the MIT License
  *
  * @file src/systems/time/SeasonalSystem.ts
- * Manages seasonal environmental effects, resource scarcity, and survival mechanics.
+ * Foraging/survival read points over the season contract.
+ *
+ * Since generational-time G3 (2026-07) the canonical seasonal numbers live in
+ * `seasonContract.ts` — this module is a thin consumer that keeps the historic
+ * `SeasonalEffect` shape for existing callers. Do NOT add seasonal numbers
+ * here; extend the contract instead.
  */
 
-import { Season, getSeason } from '../../utils/core';
+import { Season } from '../../utils/core';
+import { SEASON_CONTRACT, getSeasonState } from './seasonContract';
 
 export interface SeasonalEffect {
   season: Season;
@@ -18,66 +24,44 @@ export interface SeasonalEffect {
   elements: string[];           // Environmental elements (e.g. 'cold', 'heat')
 }
 
+const toSeasonalEffect = (season: Season): Omit<SeasonalEffect, 'season'> => {
+  const entry = SEASON_CONTRACT[season];
+  return {
+    travelCostMultiplier: entry.modifiers.travelCostMultiplier,
+    resourceScarcity: entry.modifiers.forageScarcityMultiplier,
+    resourceYield: entry.modifiers.forageYieldMultiplier,
+    survivalDCModifier: entry.modifiers.survivalDcModifier,
+    description: entry.description,
+    elements: [...entry.elements],
+  };
+};
+
+/** Legacy view of the contract table, kept for existing callers. */
 export const SEASONAL_CONFIG: Record<Season, Omit<SeasonalEffect, 'season'>> = {
-  [Season.Spring]: {
-    travelCostMultiplier: 1.0,
-    resourceScarcity: 0.9,     // Easier to find food
-    resourceYield: 1.2,        // Abundant new growth
-    survivalDCModifier: 0,
-    description: 'The world is blooming with new life. Rains are frequent.',
-    elements: []
-  },
-  [Season.Summer]: {
-    travelCostMultiplier: 1.0,
-    resourceScarcity: 1.0,     // Standard
-    resourceYield: 1.0,        // Standard
-    survivalDCModifier: 0,
-    description: 'The air is warm and heavy. Days are long.',
-    elements: ['heat']
-  },
-  [Season.Autumn]: {
-    travelCostMultiplier: 1.0,
-    resourceScarcity: 0.8,     // Harvest season - very easy to find food
-    resourceYield: 1.5,        // Bountiful harvest
-    survivalDCModifier: 0,
-    description: 'The harvest is ready. The air turns crisp.',
-    elements: []
-  },
-  [Season.Winter]: {
-    travelCostMultiplier: 1.5, // Snow and ice slow travel significantly
-    resourceScarcity: 1.5,     // Hard to find food
-    resourceYield: 0.5,        // Very little to gather
-    survivalDCModifier: 2,     // Harder to survive exposure
-    description: 'Biting cold winds scour the land. Snow covers the paths.',
-    elements: ['cold']
-  }
+  [Season.Spring]: toSeasonalEffect(Season.Spring),
+  [Season.Summer]: toSeasonalEffect(Season.Summer),
+  [Season.Autumn]: toSeasonalEffect(Season.Autumn),
+  [Season.Winter]: toSeasonalEffect(Season.Winter),
 };
 
 /**
- * Retrieves the mechanical effects of the current season.
+ * Retrieves the mechanical effects of the current season (from the contract).
  * @param date The current game date
  * @returns SeasonalEffect object with modifiers
  */
 export const getSeasonalEffects = (date: Date): SeasonalEffect => {
-  const season = getSeason(date);
-  const config = SEASONAL_CONFIG[season];
-
-  return {
-    season,
-    ...config
-  };
+  const { season } = getSeasonState(date);
+  return { season, ...SEASONAL_CONFIG[season] };
 };
 
 /**
  * Calculates the final Difficulty Class (DC) for a foraging check based on season.
+ * Winter = high DC (scarcity 1.5x + flat +2); autumn = low DC (scarcity 0.8x).
  * @param baseDC The base DC of the region/biome
  * @param date The current game date
  * @returns Modified DC
  */
 export const getForagingDC = (baseDC: number, date: Date): number => {
-  // RALPH: Modifies survival difficulty dynamically.
-  // Winter = High DC (Scarcity 1.5x + Flat 2).
-  // Autumn = Low DC (Scarcity 0.8x).
   const effects = getSeasonalEffects(date);
   // Apply scarcity multiplier to base DC, then add flat modifier
   return Math.ceil(baseDC * effects.resourceScarcity) + effects.survivalDCModifier;

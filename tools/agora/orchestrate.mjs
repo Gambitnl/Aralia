@@ -13,9 +13,9 @@
 //   help                                this message
 //
 // A PLAN is JSON:
-//   { "wave": "name", "baseUrl": "http://localhost:4319", "baseline": 220,
+//   { "wave": "name", "pet": "orchestrator-pet-slug", "baseUrl": "http://localhost:4319", "baseline": 220,
 //     "packets": [ { "id":"PK-x", "handle":"fixer-x", "agent":"claude|codex|gemini",
-//                    "scope":"one-line", "files":["src/a.ts"], "issues":["X1"],
+//                    "pet":"worker-pet-slug", "scope":"one-line", "files":["src/a.ts"], "issues":["X1"],
 //                    "guidance":"optional extra instructions" } ] }
 
 import fs from 'node:fs';
@@ -29,6 +29,7 @@ const DEFAULT_URL = 'http://localhost:4319';
 const REPO = process.cwd();
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_FILE = path.join(MODULE_DIR, 'agents.json');
+const PET_MANIFEST_FILE = path.join(MODULE_DIR, 'dashboard', 'pets', 'pets.json');
 
 // ------------------------------------------------------------- agent registry
 // agents.json is the machine-readable Agent Matrix: which agents exist, their
@@ -36,12 +37,23 @@ const REGISTRY_FILE = path.join(MODULE_DIR, 'agents.json');
 // validatePlan enforces it so a deprecated / orchestrator-only / unwired agent
 // fails at PLAN time, not mid-campaign.
 let registryCache = null;
+let petSlugCache = null;
 export function loadRegistry(file = REGISTRY_FILE) {
   if (file === REGISTRY_FILE && registryCache) return registryCache;
   const reg = JSON.parse(fs.readFileSync(file, 'utf8'));
   if (!reg || typeof reg.agents !== 'object') throw new Error('agents.json: missing "agents" map');
   if (file === REGISTRY_FILE) registryCache = reg;
   return reg;
+}
+
+// Presence registration now requires a real pet identity. Validate plan slugs
+// against the same local manifest the daemon and dashboard use, so a typo fails
+// before an orchestrator seeds tasks or launches a worker.
+function loadPetSlugs() {
+  if (petSlugCache) return petSlugCache;
+  const manifest = JSON.parse(fs.readFileSync(PET_MANIFEST_FILE, 'utf8'));
+  petSlugCache = new Set((manifest.pets || []).map((pet) => pet.slug).filter(Boolean));
+  return petSlugCache;
 }
 
 /** Constraints whose expiresAt date has passed — they need re-verification, not trust. */
@@ -81,6 +93,9 @@ function loadPlan(file) {
 export function validatePlan(plan, { registry, onWarn } = {}) {
   if (!plan || typeof plan !== 'object') throw new Error('plan must be an object');
   if (!Array.isArray(plan.packets) || plan.packets.length === 0) throw new Error('plan.packets must be a non-empty array');
+  const petSlugs = loadPetSlugs();
+  if (!plan.pet || typeof plan.pet !== 'string') throw new Error('plan.pet is required for the orchestrator presence identity');
+  if (!petSlugs.has(plan.pet)) throw new Error(`plan.pet "${plan.pet}" is not in dashboard/pets/pets.json`);
   const reg = registry || loadRegistry();
   const warn = onWarn || (() => {});
   const seenFiles = new Map(); // file -> packetId (disjointness check)
@@ -88,6 +103,8 @@ export function validatePlan(plan, { registry, onWarn } = {}) {
   for (const p of plan.packets) {
     if (!p.id || !p.handle || !p.scope) throw new Error(`packet missing id/handle/scope: ${JSON.stringify(p)}`);
     if (!Array.isArray(p.files) || p.files.length === 0) throw new Error(`packet ${p.id} has no files`);
+    if (!p.pet || typeof p.pet !== 'string') throw new Error(`packet ${p.id} is missing required pet identity`);
+    if (!petSlugs.has(p.pet)) throw new Error(`packet ${p.id}: pet "${p.pet}" is not in dashboard/pets/pets.json`);
     if (seenHandles.has(p.handle)) throw new Error(`duplicate handle "${p.handle}" (each agent needs a unique identity)`);
     seenHandles.add(p.handle);
     p.agent = p.agent || 'claude';
@@ -232,7 +249,11 @@ export async function seedPlan(plan, { env, planMapData } = {}) {
   const baseUrl = plan.baseUrl || DEFAULT_URL;
   const planMapCampaign = planMapCampaignForPlan(plan, planMapData);
   validateRefsAgainstIndex(plan); // WF-G12: fail on ambiguous refs, warn on unknown
-  const reg = await clientRun(['register', `orchestrator-${plan.wave || 'unnamed'}`, '--note', `wave:${plan.wave || 'unnamed'} coordinator`], { env, baseUrl });
+  const reg = await clientRun([
+    'register', `orchestrator-${plan.wave || 'unnamed'}`,
+    '--pet', plan.pet,
+    '--note', `wave:${plan.wave || 'unnamed'} coordinator`,
+  ], { env, baseUrl });
   if (reg.code !== 0) throw new Error(`seed: orchestrator registration failed: ${(reg.lines || []).join(' / ')}`);
 
   const campaignId = campaignIdForPlan(plan, planMapCampaign);
@@ -439,8 +460,8 @@ STEP 1 — Join Agora (run via shell; set AGORA_AGENT_ID each call — shell sta
 Your identity "${pkt.handle}" is ASSIGNED to you by the orchestrator and is unique across the fleet — always use it, never invent your own:
   export AGORA_AGENT_ID=${pkt.handle}
   B=${B}
-  node tools/agora/client.mjs register ${pkt.handle} --note "${oneLine(pkt.scope)}" --model ${pkt.model || pkt.agent} --url $B
-  #  (optional) add --session <your conversation/thread id> so peers can trace which session you are
+  # Replace the placeholder with this worker's exact harness task/thread id; Presence rejects omission.
+  node tools/agora/client.mjs register ${pkt.handle} --pet ${pkt.pet} --note "${oneLine(pkt.scope)}" --model ${pkt.model || pkt.agent} --session <your-task-or-thread-id> --url $B
 ${taskId
     ? `  TID=${taskId}
   node tools/agora/client.mjs task claim "$TID" --url $B`
@@ -449,12 +470,12 @@ ${taskId
   node tools/agora/client.mjs lock ${files} --reason "${pkt.id}" --url $B
   node tools/agora/client.mjs say "starting ${pkt.id}" --url $B
 If work will take >20 minutes, use a bounded heartbeat helper (30-minute default; renew only while active):
-  node tools/agora/client.mjs heartbeat --every 600 --for 30 --url $B &
+  node tools/agora/client.mjs heartbeat --daemonize --every 600 --for 30 --url $B
   # If your harness exposes its PID, also pass --owner-pid <pid> (or set AGORA_OWNER_PID).
 FAILURE HANDLING:
 - task claim fails (409 = someone else claimed it): say "409 on task ${pkt.id} — standing down" and STOP; do not create a replacement task.
 - lock returns CONFLICT/409: do NOT edit that file; say "409 CONFLICT: <file> held by <holder>" and skip that file.
-- any call returns 401 mid-work: you were reaped (too long silent). Re-register with the SAME handle (add --allow-duplicate in case your old record lingers), then re-claim "$TID" and re-lock before continuing.
+- any call returns 401 mid-work: you were reaped (too long silent). Re-register with the SAME handle and pet (--pet ${pkt.pet}; add --allow-duplicate only if the old record lingers), then re-claim "$TID" and re-lock before continuing.
 
 STEP 2 — Fix the issue(s) in ONLY your owned (successfully-locked) files, matching surrounding style. If a fix needs a file you don't own, do NOT edit it — report it as a cross-file follow-up.
 

@@ -187,7 +187,7 @@ export const INITIAL_FACTION_STANDINGS: Record<string, PlayerFactionStanding> = 
         rankId: 'outsider', // Default to outsider
         favorsOwed: 0,
         renown: 0,
-        history: [] // TODO #203(preserve-lint): backfill with meaningful reputation events when faction gameplay is wired up.
+        history: [] // Starts empty by design; reputation events are appended at runtime (see utils/world/factionUtils).
     };
     return acc;
 }, {} as Record<string, PlayerFactionStanding>);

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 18/07/2026, 02:38:27
+ * Dependents: components/Worldforge/atlasSvg.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * This file calculates the terrain colors for cells on the overworld map.
  *
@@ -152,7 +168,10 @@ export function getTerrainColor(atlas: FmgAtlasResult, key: string): string {
 
   // Use midpoint/representative values for the bucket.
   const hRep = 30 + elevBucket * 20;
-  const shadeRep = slopeBucket === 0 ? -0.035 : slopeBucket === 2 ? 0.035 : 0;
+  // The SVG renderer merges many cells into one path. Use a restrained
+  // representative slope so that those large regions read as modeled terrain,
+  // not hard light-and-dark camouflage patches.
+  const shadeRep = slopeBucket === 0 ? -0.02 : slopeBucket === 2 ? 0.02 : 0;
 
   let rFinal = r;
   let gFinal = g;
@@ -161,14 +180,17 @@ export function getTerrainColor(atlas: FmgAtlasResult, key: string): string {
   // Apply elevation grey-lift (highlands lift toward rock-grey #ecebe8).
   const elev = Math.max(0, (hRep - 40) / 60);
   if (elev > 0) {
-    const tLift = elev * elev * 0.85;
+    // The retiring canvas shaded individual cells and could carry a stronger
+    // rock lift. Merged SVG regions need a gentler lift to avoid broad grey
+    // slabs while still making high ground visibly cooler and paler.
+    const tLift = elev * elev * 0.45;
     rFinal = rFinal + (236 - rFinal) * tLift;
     gFinal = gFinal + (235 - gFinal) * tLift;
     bFinal = bFinal + (232 - bFinal) * tLift;
   }
 
   // Apply slope shadow/light adjustment.
-  const adjust = Math.max(0.75, Math.min(1.25, 1 - shadeRep * 6.0));
+  const adjust = Math.max(0.85, Math.min(1.15, 1 - shadeRep * 5.0));
 
   // Bright biome colors can cross 255 after the lit-slope multiplier. Clamp
   // every channel so the browser receives a valid, deterministic RGB color.

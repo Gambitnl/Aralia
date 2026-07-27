@@ -7,8 +7,8 @@
  * Provides both silent (Math.random) and visual (3D DiceBox) rolling.
  */
 
-import { rollDice as silentRollDice } from '../utils/combat/combatUtils';
 import { ENV } from '../config/env';
+import { DiceAuditLog, RollAuditRecord } from '../systems/dice/rollContract';
 
 // Dynamic import to avoid SSR issues
 let DiceBox: any = null;
@@ -33,10 +33,28 @@ export interface RollResult {
 export interface VisualRollOptions {
     /** Additional modifier to add to the result */
     modifier?: number;
+    /** Human-readable purpose recorded in the roll audit log (e.g. "persuasion check"). */
+    context?: string;
     /** Callback when animation starts */
     onRollStart?: () => void;
     /** Callback when dice finish rolling */
     onRollComplete?: (result: RollResult) => void;
+}
+
+/**
+ * Builds the caller-facing RollResult from an authoritative audit record.
+ * Dropped dice (advantage/disadvantage discards) are excluded from the
+ * breakdown the UI shows; they remain inspectable in the audit log.
+ */
+function toRollResult(record: RollAuditRecord, modifier: number): RollResult {
+    return {
+        notation: record.spec.notation,
+        total: record.outcome.total + modifier,
+        rolls: record.outcome.dice
+            .filter(d => !d.dropped)
+            .map(d => ({ die: `d${d.sides}`, value: d.value, sides: d.sides })),
+        modifier,
+    };
 }
 
 /**
@@ -139,37 +157,43 @@ class DiceServiceClass {
 
     /**
      * Perform a silent dice roll (no animation).
-     * Uses the existing Math.random-based rolling.
+     * Routed through the shared deterministic + audit contract (D-G3): the
+     * roll is seeded, recorded, and reproducible after the fact.
      */
-    roll(notation: string): number {
-        return silentRollDice(notation);
+    roll(notation: string, context?: string): number {
+        return DiceAuditLog.perform({ notation }, { mode: 'silent', context }).outcome.total;
     }
 
     /**
      * Perform a visual dice roll with 3D animation.
      * Returns a Promise that resolves when dice settle.
+     *
+     * D-G3 contract: the AUTHORITATIVE result is decided up front by the same
+     * deterministic seeded contract the silent path uses; the 3D physics roll
+     * is presentation on top. This dice-box build cannot be forced to land on
+     * predetermined faces, so the faces the player sees are attached to the
+     * audit record (`presented`, with a matchesOutcome flag) instead of being
+     * allowed to decide the result.
      */
     async visualRoll(notation: string, options: VisualRollOptions = {}): Promise<RollResult> {
-        const { modifier = 0, onRollStart, onRollComplete } = options;
-
-        // Fallback to silent roll if not initialized
-        if (!this.isReady) {
-            console.warn('DiceService not ready, falling back to silent roll');
-            const total = this.roll(notation);
-            const result: RollResult = {
-                notation,
-                total: total + modifier,
-                rolls: [],
-                modifier,
-            };
-            onRollComplete?.(result);
-            return result;
-        }
+        const { modifier = 0, context, onRollStart, onRollComplete } = options;
 
         // One roll at a time: pendingResolve is a single slot, so a second
         // concurrent roll would orphan the first caller's promise forever.
-        if (this.pendingResolve) {
+        // Checked before recording so an aborted attempt never pollutes the audit.
+        if (this.isReady && this.pendingResolve) {
             return Promise.reject(new Error('A dice roll is already in progress.'));
+        }
+
+        // The one underlying roll — shared contract, mode 'visual'.
+        const record = DiceAuditLog.perform({ notation }, { mode: 'visual', context });
+        const result = toRollResult(record, modifier);
+
+        // No renderer available: same roll, just without the animation.
+        if (!this.isReady) {
+            console.warn('DiceService not ready, resolving visual roll without animation');
+            onRollComplete?.(result);
+            return result;
         }
 
         onRollStart?.();
@@ -178,27 +202,37 @@ class DiceServiceClass {
             // Watchdog: the physics promise resolves only when the dice settle.
             // A lost WebGL context or a background-throttled tab can freeze the
             // simulation, which previously hung every awaiting caller forever
-            // (observed live in the opening-standoff flow). Reject honestly so
-            // callers can surface a retry — never fabricate a result here.
+            // (observed live in the opening-standoff flow). The authoritative
+            // roll already exists (and is audited), so resolve with it rather
+            // than losing the roll to a rendering stall.
             const watchdog = window.setTimeout(() => {
                 if (this.pendingResolve) {
                     this.pendingResolve = null;
-                    reject(new Error('The dice never settled (renderer stalled) — try again.'));
+                    console.warn('Dice renderer stalled; resolving with the audited contract roll.');
+                    onRollComplete?.(result);
+                    resolve(result);
                 }
             }, 30000);
 
-            this.pendingResolve = (baseResult) => {
+            this.pendingResolve = (physicsResult) => {
                 window.clearTimeout(watchdog);
-                const result: RollResult = {
-                    ...baseResult,
-                    total: baseResult.total + modifier,
-                    modifier,
-                };
+                // Record what the physics dice displayed; the contract outcome
+                // stays authoritative.
+                DiceAuditLog.attachPresentation(
+                    record.id,
+                    physicsResult.rolls.map(r => r.value)
+                );
                 onRollComplete?.(result);
                 resolve(result);
             };
 
-            this.diceBox.roll(notation);
+            try {
+                this.diceBox.roll(notation);
+            } catch (err) {
+                window.clearTimeout(watchdog);
+                this.pendingResolve = null;
+                reject(err instanceof Error ? err : new Error(String(err)));
+            }
         });
     }
 

@@ -12,6 +12,7 @@ import { GameState, QuestStatus, Item, NPC, WorldRumor } from '../types/index';
 import { rollDice } from '../utils/combatUtils';
 import { INITIAL_TOPICS } from '../data/dialogue/topics';
 import { getGameDay } from '../utils/core';
+import { hasWorldFact, topicUnlockKey } from '../systems/facts/worldFactStore';
 
 const TOPIC_REGISTRY: Record<string, ConversationTopic> = {};
 
@@ -52,9 +53,15 @@ export function checkTopicPrerequisites(
       }
 
       case 'topic_known': {
-        met = gameState.discoveryLog.some(entry =>
-           entry.flags.some(f => f.key === 'topic_unlocked' && f.value === prereq.targetId)
-        );
+        // Durable world-level fact store first (DIAL-002/DIAL-004): unlocks
+        // learned from ANY NPC gate topics with every other NPC and survive
+        // save/reload. Legacy discovery-log flags keep older saves working.
+        met =
+          (!!prereq.targetId &&
+            hasWorldFact(gameState.worldFacts, topicUnlockKey(prereq.targetId))) ||
+          gameState.discoveryLog.some(entry =>
+            entry.flags.some(f => f.key === 'topic_unlocked' && f.value === prereq.targetId)
+          );
         break;
       }
 
@@ -442,4 +449,4 @@ export function processTopicSelection(
   };
 }
 
-// TODO #416(Dialogist): Integrate with AI service to generate dynamic responses based on NPC Knowledge Profile.
+// TODO: Dialogist — integrate with the AI service to generate dynamic responses based on the NPC Knowledge Profile.

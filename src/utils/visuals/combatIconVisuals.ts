@@ -93,7 +93,7 @@ const normalizeVisualKey = (value?: string): string => (
 // generic arcane fallback. More exact spell-name matches can be added here.
 // ============================================================================
 
-export const getSpellIconAsset = (spell: Pick<Spell, 'id' | 'name' | 'school' | 'damageType'>): string => {
+export const getSpellIconAsset = (spell: Pick<Spell, 'id' | 'name' | 'school'> & { damageType?: string }): string => {
   const spellKey = normalizeVisualKey(`${spell.id ?? ''} ${spell.name ?? ''}`);
   const damageKey = normalizeVisualKey(spell.damageType);
 
@@ -109,7 +109,7 @@ export const getSpellIconAsset = (spell: Pick<Spell, 'id' | 'name' | 'school' | 
   return spellArcaneIcon;
 };
 
-export const getSpellIconColor = (spell: Pick<Spell, 'school' | 'damageType'>): string => {
+export const getSpellIconColor = (spell: Pick<Spell, 'school'> & { damageType?: string }): string => {
   const damageKey = normalizeVisualKey(spell.damageType);
 
   if (damageKey.includes('fire')) return '#fb923c';

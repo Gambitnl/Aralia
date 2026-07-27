@@ -25,6 +25,23 @@ describe('TownPlanView', () => {
     expect(container.querySelectorAll('path').length).toBeGreaterThan(plan.wards.length);
   });
 
+  it('draws the river channel when water polylines are passed', () => {
+    const water: Pt[][] = [[[-20, 60], [60, 70], [150, 55]]];
+    const plan = generateTownPlan(footprint, rootSeedPath(42), { population: 4000, water });
+    const { container } = render(
+      <TownPlanView plan={plan} width={600} height={400} water={water} />,
+    );
+    // One channel path per polyline — the dock/bridge civic anatomy the
+    // generator seats against the water is finally visibly IN water.
+    expect(container.querySelectorAll('[data-testid="town-water"]').length).toBe(1);
+  });
+
+  it('draws no water when the plan has none', () => {
+    const plan = generateTownPlan(footprint, rootSeedPath(42), { population: 4000 });
+    const { container } = render(<TownPlanView plan={plan} width={600} height={400} />);
+    expect(container.querySelectorAll('[data-testid="town-water"]').length).toBe(0);
+  });
+
   it('colors buildings by their population-assigned type and seats rural farmsteads', () => {
     const plan = generateTownPlan(footprint, rootSeedPath(42), { population: 4000 });
     const { container } = render(<TownPlanView plan={plan} width={600} height={400} />);

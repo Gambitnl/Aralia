@@ -37,6 +37,8 @@ import { z } from 'zod';
 // every spell to duplicate the full effect payload in two places.
 // ============================================================================
 
+const SourceBackedModeChoiceLabel = z.string().trim().min(1);
+
 const ModeChoiceOption = z.object({
   label: z.string(),
   summary: z.string(),
@@ -48,21 +50,17 @@ const ModeChoiceOption = z.object({
 });
 
 export const ModeChoice = z.object({
-  type: z.enum(["choose_one"]),
-  timing: z.enum(["on_cast", "on_cast_or_later_action"]),
+  // The executable menu shape stays required, while its source labels remain
+  // extensible for menus that switch on later actions, bonuses, or per-target
+  // resolution timing.
+  type: SourceBackedModeChoiceLabel,
+  timing: SourceBackedModeChoiceLabel,
   optionCount: z.number(),
   // Summon-form menus often keep their selectable forms inside summon payloads
   // instead of duplicating them into top-level mode options. Keep those source
   // pointers valid so Find Familiar and Summon Beast can prove live form-choice
   // data without weakening ordinary effect/control-option menus.
-  optionsSource: z.enum([
-    "modeChoice.options",
-    "effects",
-    "controlOptions",
-    "mixed",
-    "summon.formOptions",
-    "effects[0].summon.formOptions"
-  ]),
+  optionsSource: SourceBackedModeChoiceLabel,
   maxActiveNonInstantaneous: z.union([z.number(), z.literal("not_applicable")]).optional(),
   canDismissActive: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
   options: z.array(ModeChoiceOption),

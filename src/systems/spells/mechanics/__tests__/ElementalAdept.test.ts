@@ -13,26 +13,26 @@ describe('Elemental Adept Mechanics', () => {
         selectedDamageType: 'Fire'
       }
     }
-  } as CombatCharacter;
+  } as unknown as CombatCharacter;
 
   const attackerWithoutFeat: CombatCharacter = {
     id: 'attacker-2',
     name: 'Novice',
     featChoices: {}
-  } as CombatCharacter;
+  } as unknown as CombatCharacter;
 
   const resistantTarget: CombatCharacter = {
     id: 'target-1',
     name: 'Fire Demon',
     resistances: ['Fire', 'Cold'],
     immunities: ['Poison']
-  } as CombatCharacter;
+  } as unknown as CombatCharacter;
   const _normalTarget: CombatCharacter = {
     id: 'target-2',
     name: 'Dummy',
     resistances: [],
     immunities: []
-  } as CombatCharacter;
+  } as unknown as CombatCharacter;
 
   describe('ResistanceCalculator', () => {
     it('should halve damage for resistant target normally', () => {

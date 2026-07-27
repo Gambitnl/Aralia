@@ -283,6 +283,7 @@ export const agentSessionManager = () => ({
           id: opts.id, title: opts.title, agent: opts.agent, cmd: opts.cmd,
           cwd: process.cwd(), startedAt: Date.now(), status: 'running',
           exitCode: null, proc: null, buffer: '', clients: new Set(),
+          pending: '', flushTimer: null,
         };
         sessions.set(opts.id, session);
         logActivity({ kind: 'spawn', id: opts.id, agent: opts.agent, title: opts.title, external: true });

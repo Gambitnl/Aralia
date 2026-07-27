@@ -9,25 +9,31 @@ The shipped dice feature set: modal controls and 3D visual rolling used by gamep
 Silent rolls support seeded RNG injection (`combatUtils`, `DiceRoller`); visual rolls go
 through `DiceService`/`DiceOverlay`/`useDiceBox` (DiceBox engine randomness).
 
-## Pending human decision (D-2 review brief — still open)
+## Decision resolved (Remy, 2026-07-21): Option B — one shared contract
 
-Question: should deterministic behavior cover only silent/system rolls, or also visual
-`DiceBox` rolls with a persisted roll-history model?
+Silent and visual rolls go through the SAME deterministic seed + audit contract;
+a visual roll is presentation on top of the same underlying roll. Built 2026-07-21:
 
-| Decision axis | Option A | Option B | Option C |
-|---|---|---|---|
-| Deterministic policy scope | Silent/system only (implemented) | Silent + visual seeded through `DiceService` contract | No deterministic policy |
-| Roll-history scope | None for now | Session-only ring buffer + optional export | Persist every roll in gameplay state |
-| Consequence | Test/replay for non-visual logic first; visual audits limited | Unified audit/replay; needs API contract + storage migration | High debugging/replay risk |
+- `src/systems/dice/rollContract.ts` — pure `executeRoll(spec, seed)` core plus the
+  `DiceAuditLog` session ring buffer (capacity 500). Every roll records its exact
+  seed/spec/mode/context/outcome and can be reproduced after the fact via
+  `reproduce()`. Roll-history scope = session-only ring buffer (Option B middle column).
+- `src/services/DiceService.ts` — both `roll()` (silent) and `visualRoll()` route
+  through the contract. The bundled `@3d-dice/dice-box` cannot be forced to land on
+  predetermined faces (verified against the shipped bundle), so the contract outcome
+  is authoritative and the physics faces are attached to the audit record
+  (`presented`, with a `matchesOutcome` flag) instead of deciding the result.
+- Tests: `src/systems/dice/__tests__/rollContract.test.ts` (16),
+  `src/services/__tests__/DiceService.audit.test.ts` (4).
 
-Blocked work: D-G2 (roll-history persistence) should not start before this decision.
+D-G2 (persist roll history beyond the session) is now unblocked if wanted.
 
 ## Open gaps carried into the planmap
 
 | Gap | Summary | Evidence |
 |---|---|---|
 | D-G2 | No dice roll history persistence for users or replay logs | `src/components/dice/DiceRollerModal.tsx`, `src/services/DiceService.ts` |
-| D-G3 | Silent and visual roll paths lack a shared deterministic + audit contract (blocked on human decision above) | `DiceService.ts`, `useDiceBox.ts`, `DiceOverlay.tsx` |
+| D-G3 | RESOLVED 2026-07-21 — shared deterministic + audit contract live (`src/systems/dice/rollContract.ts`); silent + visual both route through it via `DiceService`. Residual: the recreational `DiceRollerModal`/`useDiceBox` path stays presentation-only (fold under D-G4's factory decision) | `rollContract.ts`, `DiceService.ts` |
 | D-G4 | DiceBox initialization split between modal hook and overlay service; decide shared factory vs intentional split | `src/hooks/useDiceBox.ts`, `src/services/DiceService.ts` |
 | D-G5 | Dice roller modal carries local canvas style concerns; verify rendered modal before CSS cleanup (pointer-events + canvas layering) | `src/components/dice/DiceRollerModal.tsx` |
 

@@ -6,7 +6,7 @@ import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
 
 // Helpers
-const mockChar = (id: string, speed: number = 30): PlayerCharacter => ({
+const mockChar = (id: string, speed: number = 30): any => ({
   id,
   name: `Char_${id}`,
   race: { id: 'human', name: 'Human', description: '', traits: [] },
@@ -24,7 +24,7 @@ const mockChar = (id: string, speed: number = 30): PlayerCharacter => ({
   statusEffects: [],
 });
 
-const mockItem = (weight: number): Item => ({
+const mockItem = (weight: number): any => ({
   id: 'item',
   name: 'Item',
   description: '',

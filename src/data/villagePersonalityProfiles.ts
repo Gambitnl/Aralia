@@ -35,7 +35,6 @@ const buildPrompt = (personality: VillagePersonality, summary: string) =>
 
 const DEFAULT_VILLAGE_PROFILE_ID = 'stoic_poor_temperate';
 
-// TODO #247(QOL): Expand biome-specific profiles (arid/forest/coastal/mountain, etc.) so each biome has distinct hooks and flavor (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
 export const villageIntegrationProfiles: Record<string, VillageIntegrationProfile> = {
   [DEFAULT_VILLAGE_PROFILE_ID]: {
     id: DEFAULT_VILLAGE_PROFILE_ID,
@@ -93,6 +92,48 @@ export const villageIntegrationProfiles: Record<string, VillageIntegrationProfil
     aiPrompt: buildPrompt(normalizePersonality({ wealth: 'comfortable', culture: 'scholarly', biomeStyle: 'coastal', population: 'medium' }), 'curious about the wider world and the secrets of the deep'),
     culturalSignature: 'Scrimshaw art and collections of exotic shells reveal a fascination with the sea.',
     encounterHooks: ['A cartographer believes a treasure fleet sank nearby and wants to hire a diver.', 'A scholar is studying tidal patterns and needs help placing research instruments.']
+  },
+  stoic_poor_tundra: {
+    id: 'stoic_poor_tundra',
+    tagline: 'Smoke rises from low sod houses banked against the wind.',
+    aiPrompt: buildPrompt(normalizePersonality({ wealth: 'poor', culture: 'stoic', biomeStyle: 'tundra', population: 'small' }), 'quiet, frostbitten, and unbreakably patient'),
+    culturalSignature: 'Racks of drying fish and carefully rationed peat stacks speak of winters survived by counting everything.',
+    encounterHooks: ['A herder asks for help finding reindeer scattered by last night\'s storm.', 'The village\'s only fire-keeper has fallen ill, and the coals must not go out.']
+  },
+  festive_comfortable_jungle: {
+    id: 'festive_comfortable_jungle',
+    tagline: 'Drums and birdsong tangle above stilt-walk verandas.',
+    aiPrompt: buildPrompt(normalizePersonality({ wealth: 'comfortable', culture: 'festive', biomeStyle: 'jungle', population: 'medium' }), 'loud, generous, and at ease with the wild green around it'),
+    culturalSignature: 'Garlands of dyed feathers and communal cook-fires show a village that celebrates surviving the canopy together.',
+    encounterHooks: ['A fruit-wine maker wants an escort to a grove deep in the canopy.', 'Tonight\'s masked dance needs one more drummer, and outsiders bring luck.']
+  },
+  martial_comfortable_volcanic: {
+    id: 'martial_comfortable_volcanic',
+    tagline: 'Forge-glow and vent-steam blur the line between smithy and mountain.',
+    aiPrompt: buildPrompt(normalizePersonality({ wealth: 'comfortable', culture: 'martial', biomeStyle: 'volcanic', population: 'medium' }), 'hardened, industrious, and respectful of the fire beneath its feet'),
+    culturalSignature: 'Obsidian-edged tools and ash-swept watch platforms show a people who arm themselves against both raiders and eruptions.',
+    encounterHooks: ['A smith seeks volunteers to recover a bloom of star-iron from a cooling lava field.', 'The tremor-warden swears the mountain\'s rhythm has changed and wants proof for the council.']
+  },
+  stoic_poor_blighted: {
+    id: 'stoic_poor_blighted',
+    tagline: 'Grey fields end at a fence of charms that no one discusses.',
+    aiPrompt: buildPrompt(normalizePersonality({ wealth: 'poor', culture: 'stoic', biomeStyle: 'blighted', population: 'small' }), 'haunted, tight-lipped, and stubbornly rooted to cursed ground'),
+    culturalSignature: 'Salt lines on doorsteps and crops grown in raised, blessed soil betray a long negotiation with something wrong in the land.',
+    encounterHooks: ['A farmer pays in heirlooms to have the withered orchard\'s heart examined.', 'The charm-fence failed on the north side, and nobody who repairs it comes back unchanged.']
+  },
+  martial_comfortable_highland: {
+    id: 'martial_comfortable_highland',
+    tagline: 'Stone crofts crown the ridgeline like a row of watchful teeth.',
+    aiPrompt: buildPrompt(normalizePersonality({ wealth: 'comfortable', culture: 'martial', biomeStyle: 'highland', population: 'medium' }), 'clannish, weather-bitten, and proud of holding the high ground'),
+    culturalSignature: 'Signal cairns and generations of feud-ballads mark a people who defend their passes and remember every slight.',
+    encounterHooks: ['A shepherd wants dangerous company on the high path where travelers keep vanishing.', 'Two clans ask an outsider to judge a boundary dispute older than either chief.']
+  },
+  scholarly_comfortable_polar: {
+    id: 'scholarly_comfortable_polar',
+    tagline: 'Lens-domes glitter over the ice, aimed at the aurora.',
+    aiPrompt: buildPrompt(normalizePersonality({ wealth: 'comfortable', culture: 'scholarly', biomeStyle: 'polar', population: 'small' }), 'insular, meticulous, and fascinated by the long dark'),
+    culturalSignature: 'Star charts etched into whalebone and heated archive vaults show a settlement that studies the night it lives inside.',
+    encounterHooks: ['An astronomer needs help hauling a brass lens to a ridge before the aurora peaks.', 'Something answered the survey team\'s echo-soundings from beneath the ice shelf.']
   }
 };
 
@@ -105,6 +146,15 @@ export const villageIntegrationProfiles: Record<string, VillageIntegrationProfil
 export const resolveVillageIntegrationProfile = (personality: VillagePersonality): VillageIntegrationProfile => {
   const exactKey = `${personality.culture}_${personality.wealth}_${personality.biomeStyle}`;
   if (villageIntegrationProfiles[exactKey]) return villageIntegrationProfiles[exactKey];
+
+  // Biome-aware fallback: any profile authored for this biome (keys are
+  // `${culture}_${wealth}_${biomeStyle}`). This runs BEFORE the culture fallback
+  // so a non-temperate village (tundra, jungle, volcanic, blighted, highland,
+  // polar, arid, coastal, swampy) reads with its own biome flavor instead of
+  // snapping to the temperate default — every biomeStyle has a dedicated profile.
+  const biomeSuffix = `_${personality.biomeStyle}`;
+  const biomeKey = Object.keys(villageIntegrationProfiles).find((k) => k.endsWith(biomeSuffix));
+  if (biomeKey) return villageIntegrationProfiles[biomeKey];
 
   const cultureKey = `${personality.culture}_comfortable_temperate`;
   if (villageIntegrationProfiles[cultureKey]) return villageIntegrationProfiles[cultureKey];

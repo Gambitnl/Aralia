@@ -3,20 +3,44 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { EventEmitter } from 'node:events';
 
 import { createAgoraServer } from './server.mjs';
 
 import {
   buildWakePrompt,
+  codexThreadDeepLink,
+  codexThreadOpenSpec,
   expandTemplate,
   failureBackoffMs,
   isWakeWorthy,
   lifecycleSignal,
+  openCodexThread,
   planTargetMessages,
   readSessionCliVersion,
   runCycle,
   selectCompatibleCodex,
+  withCodexResumeModel,
 } from './watchdog.mjs';
+
+/**
+ * This file proves the Agora wake watchdog reacts only to genuine wake requests.
+ *
+ * The focused checks cover message classification, lifecycle planning, adapter
+ * selection, and end-to-end audit behavior against a temporary Agora daemon.
+ * They protect dormant orchestrators from missed wakes, duplicate launches, and
+ * repeated audit noise when a configured wake adapter cannot currently deliver.
+ *
+ * Exercises: watchdog.mjs planning and delivery helpers
+ * Depends on: server.mjs for isolated message-bus integration tests
+ */
+
+// ============================================================================
+// Shared Watchdog Fixtures
+// ============================================================================
+// These records model one orchestrator, its peers, and the human operator. Each
+// planner test can then focus on the message sequence that changes behavior.
+// ============================================================================
 
 const target = {
   handle: 'codex-sol-56',
@@ -31,6 +55,13 @@ const agents = new Map([
   ['peer-id', { id: 'peer-id', role: 'orchestrator', status: 'online' }],
   ['sol-id', { id: 'sol-id', role: 'orchestrator', status: 'online' }],
 ]);
+
+// ============================================================================
+// Message Classification and Wake Planning
+// ============================================================================
+// These checks prove which board messages can wake a target and how lifecycle,
+// liveness, cooldown, grace, and retry state shape one delivery batch.
+// ============================================================================
 
 test('human, direct and exact callsign messages are wake-worthy', () => {
   assert.equal(isWakeWorthy({ from: 'human-id', to: 'all', body: 'hello' }, target, agents), true);
@@ -64,6 +95,32 @@ test('dormant target batches pending wakes into one launch plan', () => {
   assert.equal(plan.cursor, 14);
   assert.equal(plan.dormant, true);
   assert.deepEqual(plan.wakes.map((message) => message.seq), [13, 14]);
+});
+
+test('own dormancy announcement with a callsign example is never its own wake', () => {
+  // Dormancy posts often explain how peers can wake the target. The watchdog
+  // must consume that lifecycle message even though the explanation includes
+  // the same exact @callsign syntax that ordinary peer messages use to wake it.
+  const plan = planTargetMessages({
+    messages: [{
+      seq: 11,
+      from: 'sol-id',
+      to: 'all',
+      body: 'SOL DORMANT — peers can use @sol to wake me',
+    }],
+    target,
+    agentsById: agents,
+    targetState: { cursor: 10, dormant: false, lastLaunchAt: 0 },
+    now: 100_000,
+    cooldownMs: 30_000,
+  });
+
+  // The message arms dormancy and advances safely, but creates no launch batch.
+  assert.equal(plan.kind, 'active');
+  assert.equal(plan.cursor, 11);
+  assert.equal(plan.safeCursor, 11);
+  assert.equal(plan.dormant, true);
+  assert.deepEqual(plan.wakes, []);
 });
 
 test('online non-dormant target advances without a duplicate launch', () => {
@@ -159,6 +216,13 @@ test('native watcher gets a grace window and AWAKE cancels fallback launch', () 
   assert.equal(delivered.dormant, false);
 });
 
+// ============================================================================
+// Adapter and Session Configuration
+// ============================================================================
+// These checks keep generated handoffs tied to the correct conversation engine
+// and ensure unavailable capabilities remain explicit instead of being faked.
+// ============================================================================
+
 test('template and prompt include the exact session handoff facts', () => {
   assert.equal(
     expandTemplate('{handle}:{sessionId}:{prompt}:{script}', {
@@ -172,15 +236,39 @@ test('template and prompt include the exact session handoff facts', () => {
   assert.match(prompt, /does not broaden/);
 });
 
-test('one-shot Codex adapter selects the engine version stored in session metadata', () => {
+test('Codex adapters preserve the last successfully completed session model', () => {
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'agora-watchdog-session-'));
   try {
     const sessions = path.join(tmpDir, 'sessions', '2026', '07', '10');
     mkdirSync(sessions, { recursive: true });
-    writeFileSync(path.join(sessions, 'rollout-test-thread-1.jsonl'), `${JSON.stringify({
-      type: 'session_meta', payload: { cli_version: '0.144.0-alpha.4' },
-    })}\n${JSON.stringify({ type: 'turn_context' })}\n`);
-    assert.equal(readSessionCliVersion('thread-1', tmpDir).version, '0.144.0-alpha.4');
+    const records = [
+      { type: 'session_meta', payload: { cli_version: '0.144.0-alpha.4' } },
+      { type: 'turn_context', payload: { turn_id: 'good-turn', model: 'gpt-5.3-codex-spark' } },
+      { type: 'event_msg', payload: { type: 'task_complete', turn_id: 'good-turn', last_agent_message: 'done' } },
+      { type: 'turn_context', payload: { turn_id: 'failed-turn', model: 'gpt-5.6-sol' } },
+      { type: 'event_msg', payload: { type: 'task_complete', turn_id: 'failed-turn', last_agent_message: null } },
+    ];
+    writeFileSync(
+      path.join(sessions, 'rollout-test-thread-1.jsonl'),
+      `${records.map((record) => JSON.stringify(record)).join('\n')}\n`,
+    );
+
+    // The failed newer-model attempt must not replace the model from the last
+    // turn that actually completed and produced an answer.
+    const metadata = readSessionCliVersion('thread-1', tmpDir);
+    assert.equal(metadata.version, '0.144.0-alpha.4');
+    assert.equal(metadata.model, 'gpt-5.3-codex-spark');
+    assert.deepEqual(
+      withCodexResumeModel(
+        'codex.exe',
+        ['exec', 'resume', '--skip-git-repo-check', 'thread-1', 'wake'],
+        metadata.model,
+      ),
+      ['exec', 'resume', '-m', 'gpt-5.3-codex-spark', '--skip-git-repo-check', 'thread-1', 'wake'],
+    );
+
+    // Version matching remains independent: the saved engine version still
+    // selects the executable that can understand this transcript format.
     const selected = selectCompatibleCodex(
       '0.144.0-alpha.4',
       ['old-codex', 'desktop-codex'],
@@ -208,6 +296,7 @@ test('tracked adapter registry is explicit about verified and unavailable capabi
   assert.equal(codex.compatibleSessionSurface, 'cli-native-only');
   assert.deepEqual(codexOnce.args.slice(0, 4), ['{script}', 'codex-turn-once', '--session', '{sessionId}']);
   assert.equal(codexOnce.capabilities.start, 'event-driven-single-turn');
+  assert.equal(codexOnce.completionAction.type, 'codex-thread-deep-link');
   assert.equal(codexApp.capabilities.resume, 'app-owned-thread');
   assert.equal(codexApp.status, 'paused');
   assert.equal(claudeDesktop.capabilities.resume, 'native-watcher-only');
@@ -215,6 +304,43 @@ test('tracked adapter registry is explicit about verified and unavailable capabi
   assert.equal(claude.desktopInjection, 'wake-unavailable');
   assert.equal(codex.capabilities.stop, 'wake-unavailable');
 });
+
+test('Codex completion surfacing uses only the documented technical-thread deep link', async () => {
+  const threadId = '019f75de-f721-7e11-91a7-66dc63fc7439';
+  assert.equal(codexThreadDeepLink(threadId), `codex://threads/${threadId}`);
+  assert.deepEqual(codexThreadOpenSpec(threadId, 'win32'), {
+    command: 'explorer.exe',
+    args: [`codex://threads/${threadId}`],
+    uri: `codex://threads/${threadId}`,
+  });
+  assert.throws(() => codexThreadDeepLink('friendly-thread-name'), /technical thread UUID/);
+
+  // Replace the operating-system launcher with a tiny event source. This proves
+  // the exact command without opening or focusing the real desktop app in tests.
+  let captured;
+  const child = new EventEmitter();
+  child.unref = () => { child.unreferenced = true; };
+  const opened = openCodexThread(threadId, {
+    platform: 'win32',
+    spawnProcess(command, args, options) {
+      captured = { command, args, options };
+      queueMicrotask(() => child.emit('spawn'));
+      return child;
+    },
+  });
+  assert.equal((await opened).outcome, 'desktop-thread-opened');
+  assert.equal(captured.command, 'explorer.exe');
+  assert.deepEqual(captured.args, [`codex://threads/${threadId}`]);
+  assert.equal(captured.options.shell, false);
+  assert.equal(child.unreferenced, true);
+});
+
+// ============================================================================
+// End-to-End Delivery and Audit Behavior
+// ============================================================================
+// Temporary Agora daemons prove cursor, retry, child-exit, and visible audit
+// behavior together while keeping the live coordination board untouched.
+// ============================================================================
 
 test('child exit failure keeps the wake pending, backs off and posts a follow-up audit', async () => {
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'agora-watchdog-exit-'));
@@ -236,10 +362,10 @@ test('child exit failure keeps the wake pending, backs off and posts a follow-up
 
   try {
     const targetAgent = await request('/agents/register', {
-      method: 'POST', body: { handle: 'orch.test', role: 'orchestrator' },
+      method: 'POST', body: { handle: 'orch.test', role: 'orchestrator', sessionId: 'thread-orch-test', petSlug: 'gf-sd' },
     });
     const human = await request('/agents/register', {
-      method: 'POST', body: { handle: 'human.test', role: 'human' },
+      method: 'POST', body: { handle: 'human.test', role: 'human', petSlug: 'dream-girl' },
     });
     await request('/messages', {
       method: 'POST', token: human.token,
@@ -273,7 +399,7 @@ test('child exit failure keeps the wake pending, backs off and posts a follow-up
 
     const launched = await runCycle({
       baseUrl, registryPath, targetsPath, statePath, auditPath,
-      logDir: path.join(tmpDir, 'logs'), cooldownMs: 10,
+      logDir: path.join(tmpDir, 'logs'), cooldownMs: 10, processList: '',
     });
     assert.equal(launched[0].outcome, 'launched');
 
@@ -298,6 +424,148 @@ test('child exit failure keeps the wake pending, backs off and posts a follow-up
     assert.match(audits[1].body, /outcome=child-failed/);
     assert.match(audits[1].body, /adapter-boom/);
   } finally {
+    await app.close();
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('unavailable adapter audits once and retries the original wakes after recovery', async () => {
+  // Run against an isolated daemon so both durable cursor movement and visible
+  // WAKE-AUDIT messages are proven together without touching the live board.
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'agora-watchdog-unavailable-'));
+  const app = createAgoraServer({ dir: path.join(tmpDir, 'daemon') });
+  await new Promise((resolve) => app.listen(0, resolve));
+  const port = app.server.address().port;
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const request = async (route, { method = 'GET', token, body } = {}) => {
+    const response = await fetch(`${baseUrl}${route}`, {
+      method,
+      headers: {
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
+        ...(body ? { 'content-type': 'application/json' } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    return response.json();
+  };
+  const surfacedThreads = [];
+  const resumedThreadId = '019f75de-f721-7e11-91a7-66dc63fc7439';
+
+  try {
+    // A paused adapter truthfully reports that delivery is unavailable. It has
+    // no launch command because the watchdog must not pretend it can wake this
+    // harness until a supported adapter is configured.
+    const targetAgent = await request('/agents/register', {
+      method: 'POST', body: { handle: 'orch.paused', role: 'orchestrator', sessionId: 'thread-orch-paused', petSlug: 'gf-sd' },
+    });
+    const human = await request('/agents/register', {
+      method: 'POST', body: { handle: 'human.test', role: 'human', petSlug: 'dream-girl' },
+    });
+    const firstWake = await request('/messages', {
+      method: 'POST', token: human.token,
+      body: { channel: 'command', body: 'first wake batch' },
+    });
+
+    const registryPath = path.join(tmpDir, 'registry.json');
+    const targetsPath = path.join(tmpDir, 'targets.json');
+    const statePath = path.join(tmpDir, 'state.json');
+    const auditPath = path.join(tmpDir, 'audit.jsonl');
+    writeFileSync(registryPath, JSON.stringify({
+      wakeAdapters: { paused: { status: 'paused', processNames: [] } },
+    }));
+    writeFileSync(targetsPath, JSON.stringify({
+      targets: [{
+        handle: 'orch.paused', callsign: 'paused', agentId: targetAgent.agentId,
+        adapter: 'paused', sessionId: resumedThreadId, cwd: tmpDir,
+      }],
+    }));
+    writeFileSync(statePath, JSON.stringify({
+      version: 1,
+      targets: { 'orch.paused': { cursor: 0, dormant: true, lastLaunchAt: 0 } },
+    }));
+
+    // The first cycle reports the unavailable adapter without moving the
+    // delivery cursor past the human wake. A separate receipt suppresses audit
+    // repeats while leaving that exact message available for later delivery.
+    const firstCycle = await runCycle({
+      baseUrl, registryPath, targetsPath, statePath, auditPath,
+      logDir: path.join(tmpDir, 'logs'), cooldownMs: 10, processList: '',
+    });
+    assert.equal(firstCycle[0].outcome, 'wake-unavailable');
+    const afterFirstCycle = JSON.parse(readFileSync(statePath, 'utf8'));
+    assert.equal(afterFirstCycle.targets['orch.paused'].cursor, 0);
+    assert.deepEqual(
+      afterFirstCycle.targets['orch.paused'].auditedUndelivered.seqs,
+      [firstWake.message.seq],
+    );
+    assert.equal(afterFirstCycle.targets['orch.paused'].failureCount, 0);
+    assert.equal(afterFirstCycle.targets['orch.paused'].backoffUntil, 0);
+
+    const repeatedCycle = await runCycle({
+      baseUrl, registryPath, targetsPath, statePath, auditPath,
+      logDir: path.join(tmpDir, 'logs'), cooldownMs: 10, processList: '',
+    });
+    assert.equal(repeatedCycle[0].outcome, 'wake-unavailable-audited');
+    let messages = await request('/messages?channel=all');
+    let audits = messages.messages.filter((message) => message.body.startsWith('WAKE-AUDIT'));
+    assert.equal(audits.length, 1);
+    assert.match(audits[0].body, /outcome=wake-unavailable/);
+
+    // A later operator message adds one genuinely new wake id. It receives one
+    // fresh audit, while the earlier request remains pending without re-audit.
+    const secondWake = await request('/messages', {
+      method: 'POST', token: human.token,
+      body: { channel: 'command', body: 'second wake batch' },
+    });
+    const secondCycle = await runCycle({
+      baseUrl, registryPath, targetsPath, statePath, auditPath,
+      logDir: path.join(tmpDir, 'logs'), cooldownMs: 10, processList: '',
+    });
+    assert.equal(secondCycle[0].outcome, 'wake-unavailable');
+    assert.deepEqual(secondCycle[0].seqs, [secondWake.message.seq]);
+    messages = await request('/messages?channel=all');
+    audits = messages.messages.filter((message) => message.body.startsWith('WAKE-AUDIT'));
+    assert.equal(audits.length, 2);
+
+    // Recover the same adapter in place. The next cycle must launch with both
+    // original human wake sequences, proving audit suppression never consumed
+    // delivery. A clean child exit then advances the cursor and clears receipt.
+    writeFileSync(registryPath, JSON.stringify({
+      wakeAdapters: {
+        paused: {
+          status: 'ready',
+          command: process.execPath,
+          args: ['-e', 'process.exit(0)'],
+          processNames: [],
+          completionAction: { type: 'codex-thread-deep-link' },
+        },
+      },
+    }));
+    const recoveredCycle = await runCycle({
+      baseUrl, registryPath, targetsPath, statePath, auditPath,
+      logDir: path.join(tmpDir, 'logs'), cooldownMs: 10, processList: '',
+      openThread: async (threadId) => {
+        surfacedThreads.push(threadId);
+        return { ok: true, outcome: 'desktop-thread-opened', uri: `codex://threads/${threadId}` };
+      },
+    });
+    assert.equal(recoveredCycle[0].outcome, 'launched');
+    assert.deepEqual(recoveredCycle[0].seqs, [firstWake.message.seq, secondWake.message.seq]);
+
+    let recoveredState;
+    const deadline = Date.now() + 3000;
+    do {
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      recoveredState = JSON.parse(readFileSync(statePath, 'utf8'));
+    } while (recoveredState.targets['orch.paused'].outcome !== 'child-completed' && Date.now() < deadline);
+    assert.equal(recoveredState.targets['orch.paused'].outcome, 'child-completed');
+    assert.equal(recoveredState.targets['orch.paused'].surfaceOutcome, 'desktop-thread-opened');
+    assert.deepEqual(surfacedThreads, [resumedThreadId]);
+    assert.ok(recoveredState.targets['orch.paused'].cursor >= secondWake.message.seq);
+    assert.equal(recoveredState.targets['orch.paused'].auditedUndelivered, undefined);
+  } finally {
+    // The temporary daemon and files are always removed so the focused test
+    // cannot leak processes or local state into later Agora work.
     await app.close();
     rmSync(tmpDir, { recursive: true, force: true });
   }

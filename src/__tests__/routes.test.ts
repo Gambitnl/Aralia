@@ -6,6 +6,7 @@ import {
   getPhaseTitle,
   isWorldGenDeepLink,
   isDummyAutoStartDeepLink,
+  isPhaseRouteRetired,
   PHASE_SLUG_OVERRIDES,
 } from '../routes';
 
@@ -18,12 +19,15 @@ describe('routes — phase slugs', () => {
 
   it('serializes overridden phases as their clean slug', () => {
     expect(getPhaseSlug(GamePhase.WORLD3D_DEMO)).toBe('world3d');
-    expect(getPhaseSlug(GamePhase.WORLDFORGE_DEMO)).toBe('worldforge');
     expect(getPhaseSlug(GamePhase.SPAWN_PREVIEW)).toBe('spawnpreview');
   });
 
-  it('round-trips every phase: slug -> phase -> slug', () => {
-    const phases = Object.values(GamePhase).filter((v): v is GamePhase => typeof v === 'number');
+  it('round-trips every reachable phase: slug -> phase -> slug', () => {
+    // Retired enum slots remain numerically stable for old saves but must never
+    // be manufactured into a fresh URL by the current application.
+    const phases = Object.values(GamePhase).filter(
+      (v): v is GamePhase => typeof v === 'number' && !isPhaseRouteRetired(v),
+    );
     for (const phase of phases) {
       const slug = getPhaseSlug(phase);
       expect(getPhaseFromSlug(slug)).toBe(phase);
@@ -32,8 +36,20 @@ describe('routes — phase slugs', () => {
 
   it('resolves clean slugs back to their phase', () => {
     expect(getPhaseFromSlug('world3d')).toBe(GamePhase.WORLD3D_DEMO);
-    expect(getPhaseFromSlug('worldforge')).toBe(GamePhase.WORLDFORGE_DEMO);
     expect(getPhaseFromSlug('spawnpreview')).toBe(GamePhase.SPAWN_PREVIEW);
+  });
+
+  it('fails every legacy canvas-atlas spelling closed', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // The retired slot stays fixed so old numeric save data cannot shift into a
+    // different phase even though new URLs can no longer reach this renderer.
+    expect(GamePhase.WORLDFORGE_DEMO).toBe(10);
+    expect(getPhaseSlug(GamePhase.WORLDFORGE_DEMO)).toBe('');
+    expect(getPhaseFromSlug('worldforge')).toBeNull();
+    expect(getPhaseFromSlug('worldforge_demo')).toBeNull();
+    expect(getPhaseFromSlug(String(GamePhase.WORLDFORGE_DEMO))).toBeNull();
+    expect(warn).toHaveBeenCalledTimes(3);
+    warn.mockRestore();
   });
 
   it('is case-insensitive and accepts legacy numeric indexes', () => {
@@ -56,7 +72,9 @@ describe('routes — phase slugs', () => {
 
   it('keeps the override map bidirectionally consistent', () => {
     for (const [phase, slug] of Object.entries(PHASE_SLUG_OVERRIDES)) {
-      expect(getPhaseFromSlug(slug!)).toBe(Number(phase));
+      const phaseValue = Number(phase) as GamePhase;
+      if (isPhaseRouteRetired(phaseValue)) continue;
+      expect(getPhaseFromSlug(slug!)).toBe(phaseValue);
     }
   });
 });

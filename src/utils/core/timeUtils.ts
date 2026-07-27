@@ -127,12 +127,6 @@ export enum TimeOfDay {
   Night = 'Night',
 }
 
-export interface TimeModifiers {
-  travelCostMultiplier: number; // > 1 is slower
-  visionModifier: number; // -1 to 1 (conceptually) or light level 0-1
-  description: string;
-}
-
 export const getSeason = (date: Date): Season => {
   const month = date.getUTCMonth(); // 0-11
   // Winter: Dec (11), Jan (0), Feb (1)
@@ -153,56 +147,30 @@ export const getTimeOfDay = (date: Date): TimeOfDay => {
   return TimeOfDay.Night;
 };
 
-// TODO #1335(FEATURES): Extend season/time modifiers beyond travel cost (encounters, visuals, resource yields) and surface them in UI (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
-export const getTimeModifiers = (date: Date): TimeModifiers => {
-  // RALPH: Environmental Difficulty Engine.
-  // Combines Season + Time of Day into a single cost multiplier.
-  // Night + Winter = 1.25 * 1.5 = ~1.87x Travel Cost.
-  const season = getSeason(date);
-  const timeOfDay = getTimeOfDay(date);
-  let travelCostMultiplier = 1.0;
-  let description = '';
+// NOTE: `getTimeModifiers` / `TimeModifiers` moved to
+// src/systems/time/seasonContract.ts (generational-time G3): the seasonal
+// travel component now reads the one canonical season table instead of
+// duplicating a diverged number here.
 
-  // Season Modifiers
-  switch (season) {
-    case Season.Winter:
-      // RALPH: Snow and cold impact movement efficiency.
-      travelCostMultiplier *= 1.25; // Snow/Cold slows travel
-      description += 'The air is biting cold. ';
-      break;
-    case Season.Summer:
-      // travelCostMultiplier *= 1.0; // Standard
-      description += 'The air is warm and heavy. ';
-      break;
-    case Season.Autumn:
-      description += 'Leaves crunch underfoot. ';
-      break;
-    case Season.Spring:
-      description += 'The world is blooming. ';
-      break;
-  }
+/**
+ * Player-facing day-part vocabulary for dialogue/social context (G5).
+ * Distinct from `TimeOfDay` (Dawn/Day/Dusk/Night), which drives mechanics.
+ */
+export type DayPartLabel = 'Morning' | 'Afternoon' | 'Evening' | 'Night';
 
-  // Time of Day Modifiers
-  switch (timeOfDay) {
-    case TimeOfDay.Night:
-      // RALPH: Visibility penalty. Lack of light slows navigation significantly.
-      travelCostMultiplier *= 1.5; // Difficult to navigate in dark
-      description += 'Darkness covers the land.';
-      break;
-    case TimeOfDay.Dawn:
-      description += 'The sun is rising.';
-      break;
-    case TimeOfDay.Dusk:
-      description += 'Shadows are lengthening.';
-      break;
-    case TimeOfDay.Day:
-      description += 'The sun is high.';
-      break;
-  }
-
-  return {
-    travelCostMultiplier,
-    visionModifier: timeOfDay === TimeOfDay.Night ? 0.2 : 1.0,
-    description: description.trim(),
-  };
+/**
+ * THE way to pick a time-of-day word (generational-time G5): derive it from
+ * the character's local in-world clock — the same clock the player sees on the
+ * HUD. `gameTime` is a UTC `Date` and every player-visible rendering of it
+ * uses UTC fields (`formatGameTime` passes `timeZone: 'UTC'`), so the label
+ * must read `getUTCHours()`. Never use `.getHours()` on the game clock for a
+ * player-visible word: that applies the HOST MACHINE's timezone and shifts
+ * "morning"/"evening" away from the clock the player is looking at.
+ */
+export const getDayPartLabel = (gameTime: Date): DayPartLabel => {
+  const hour = gameTime.getUTCHours();
+  if (hour < 6) return 'Night';
+  if (hour < 12) return 'Morning';
+  if (hour < 18) return 'Afternoon';
+  return 'Evening';
 };

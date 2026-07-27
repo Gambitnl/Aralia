@@ -145,6 +145,8 @@ export const WINDOW_KEYS = {
   LEDGER_BOOK: 'ledger-book-window',
   INVESTMENT_BOARD: 'investment-board-window',
   COURIER_POUCH: 'courier-pouch-window',
+  COMMERCE_DESK: 'commerce-desk-window',
+  REFINING_ENCHANTING: 'refining-enchanting-window',
   SPELLBOOK_OVERLAY: 'spellbook-window',
   LEVEL_UP: 'level-up-window',
   NOTICE_BOARD: 'notice-board-window',

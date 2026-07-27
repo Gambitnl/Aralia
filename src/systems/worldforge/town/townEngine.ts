@@ -53,8 +53,8 @@ export interface BuildingPlot {
   frontageEdge: number;
   /** Where the plot sits: street frontage vs ward-interior infill (#6). */
   kind?: 'frontage' | 'interior';
-  /** Footprint shape: simple rectangle or a stepped/L footprint (variety, #6). */
-  shape?: 'rect' | 'L';
+  /** Footprint shape: rectangle, stepped/L, or a block-clipped corner wedge. */
+  shape?: 'rect' | 'L' | 'wedge';
   /** Which shared court this ward-interior plot faces; absent on legacy plots. */
   courtyardIndex?: number;
   /** Concrete building type (set by the population pass when a population is given). */
@@ -246,6 +246,120 @@ function len(a: Pt, b: Pt): number {
   return Math.hypot(b[0] - a[0], b[1] - a[1]);
 }
 
+/**
+ * Half-width of the inherited main-road carve corridor, as a fraction of the
+ * footprint span. Matches the 3D avenue ribbon (22 ft at the 1000 ft canonical
+ * span ≈ 0.011) plus a small shoulder so buildings don't kiss the roadside.
+ */
+export const MAIN_ROAD_CARVE_HALF_FRAC = 0.014;
+
+/**
+ * Half-width of the river-channel carve, as a fraction of the footprint span.
+ * Matches the 3D water channel (`channelHalfWidth = spanFt * 0.03`) plus a
+ * shoulder so waterfront buildings hug the bank without standing in the water.
+ */
+export const WATER_CARVE_HALF_FRAC = 0.035;
+
+/** Distance from a point to the nearest edge of a polygon boundary. */
+function distToPolyBoundary(p: Pt, poly: Pt[]): number {
+  let best = Infinity;
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i];
+    const b = poly[(i + 1) % poly.length];
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const L2 = dx * dx + dy * dy || 1;
+    const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2));
+    best = Math.min(best, Math.hypot(p[0] - (a[0] + dx * t), p[1] - (a[1] + dy * t)));
+  }
+  return best;
+}
+
+/** Signed shoelace area (positive CCW). */
+function polyArea(poly: Pt[]): number {
+  let a = 0;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    a += poly[j][0] * poly[i][1] - poly[i][0] * poly[j][1];
+  }
+  return a / 2;
+}
+
+/**
+ * TRUE inset of a convex polygon: every edge slides inward by exactly `margin`
+ * along its own normal, and adjacent offset edges are re-intersected. Unlike
+ * centroid-scaling (the old block inset), the margin is uniform — an off-center
+ * or elongated ward no longer leaves one block edge sitting in the street.
+ * Returns null when the margin swallows the polygon (caller decides fallback).
+ */
+export function insetConvexPolygon(poly: Pt[], margin: number): Pt[] | null {
+  const n = poly.length;
+  if (n < 3) return null;
+  const c = polygonCentroid(poly);
+  // Offset line per edge: a point on it + its direction.
+  const lines = poly.map((a, i) => {
+    const b = poly[(i + 1) % n];
+    const nm = inwardNormal(a, b, c);
+    return {
+      px: a[0] + nm[0] * margin, py: a[1] + nm[1] * margin,
+      dx: b[0] - a[0], dy: b[1] - a[1],
+    };
+  });
+  const out: Pt[] = [];
+  for (let i = 0; i < n; i++) {
+    // Vertex i = intersection of offset-edge (i-1) with offset-edge i.
+    const A = lines[(i - 1 + n) % n];
+    const B = lines[i];
+    const det = A.dx * B.dy - A.dy * B.dx;
+    if (Math.abs(det) < 1e-9) {
+      // Near-parallel edges: fall back to sliding the shared vertex inward.
+      const nm = inwardNormal(poly[(i - 1 + n) % n], poly[(i + 1) % n], c);
+      out.push([poly[i][0] + nm[0] * margin, poly[i][1] + nm[1] * margin]);
+      continue;
+    }
+    const t = ((B.px - A.px) * B.dy - (B.py - A.py) * B.dx) / det;
+    out.push([A.px + A.dx * t, A.py + A.dy * t]);
+  }
+  // Degenerate when the margin swallows the shape: area collapses, flips
+  // orientation, or a vertex escapes the original polygon.
+  const a0 = polyArea(poly);
+  const a1 = polyArea(out);
+  if (Math.sign(a1) !== Math.sign(a0) || Math.abs(a1) < Math.abs(a0) * 0.05) return null;
+  for (const v of out) if (!pointInPolygon(v, poly)) return null;
+  return out;
+}
+
+/**
+ * Sutherland–Hodgman clip of a polygon against a CONVEX clip polygon. Used to
+ * trim corner frontage plots to their ward block, turning rectangles into
+ * street-hugging wedges/trapezoids at angled Voronoi edges.
+ */
+function clipPolygonToConvex(subject: Pt[], clip: Pt[]): Pt[] {
+  const c = polygonCentroid(clip);
+  let out = subject;
+  for (let i = 0; i < clip.length && out.length > 0; i++) {
+    const a = clip[i];
+    const b = clip[(i + 1) % clip.length];
+    const nm = inwardNormal(a, b, c);
+    const inside = (p: Pt): boolean => (p[0] - a[0]) * nm[0] + (p[1] - a[1]) * nm[1] >= -1e-9;
+    const dist = (p: Pt): number => (p[0] - a[0]) * nm[0] + (p[1] - a[1]) * nm[1];
+    const next: Pt[] = [];
+    for (let j = 0; j < out.length; j++) {
+      const p = out[j];
+      const q = out[(j + 1) % out.length];
+      const pIn = inside(p);
+      const qIn = inside(q);
+      if (pIn) next.push(p);
+      if (pIn !== qIn) {
+        const dp = dist(p);
+        const t = dp / (dp - dist(q));
+        next.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t]);
+      }
+    }
+    out = next;
+  }
+  return out;
+}
+
 /** Unit normal of edge a→b that points toward `interior` (into the ward). */
 function inwardNormal(a: Pt, b: Pt, interior: Pt): Pt {
   const dx = b[0] - a[0];
@@ -280,11 +394,25 @@ export function packWardFrontage(
   const plots: BuildingPlot[] = [];
   const minNegotiatedLotFt = CELL_FT * 3;
 
+  // Corner lots may poke past the ADJACENT block edge. Instead of clearing a
+  // whole plot-depth around every corner (the old rule — it left bald corners),
+  // pack close and clip the polygon to the block: an unchanged plot keeps its
+  // exact vertices (party-wall endpoint contract), a trimmed one becomes a
+  // street-hugging 'wedge' that follows the angled Voronoi edge.
+  const finishPlot = (polygon: Pt[], e: number, shape: 'rect' | 'L'): void => {
+    const clipped = clipPolygonToConvex(polygon, ward);
+    if (clipped.length < 3) return;
+    const ratio = Math.abs(polyArea(clipped)) / (Math.abs(polyArea(polygon)) || 1);
+    if (ratio >= 0.999) { plots.push({ polygon, frontageEdge: e, kind: 'frontage', shape }); return; }
+    if (ratio < 0.45) return; // sliver after the trim — not a usable building
+    plots.push({ polygon: clipped, frontageEdge: e, kind: 'frontage', shape: 'wedge' });
+  };
+
   for (let e = 0; e < ward.length; e++) {
     const a = ward[e];
     const b = ward[(e + 1) % ward.length];
     const L = len(a, b);
-    const corner = gap + plotDepth * 0.5; // keep clear of corners (depth-aware)
+    const corner = gap; // pack right up to corners; the block clip trims overshoot into wedges
     if (L <= 2 * corner + plotWidth) continue; // edge too short for even one plot
     if (opts.heightAt && opts.maxGrade != null) {
       // Slope-aware (#4): skip frontage on streets too steep to build along.
@@ -345,12 +473,9 @@ export function packWardFrontage(
         const polygon: Pt[] = sideRoll < 0.5
           ? [p0, p1, inward(p1, depth), inward(mid, depth), inward(mid, d2), inward(p0, d2)]
           : [p0, p1, inward(p1, d2), inward(mid, d2), inward(mid, depth), inward(p0, depth)];
-        plots.push({ polygon, frontageEdge: e, kind: 'frontage', shape: 'L' });
+        finishPlot(polygon, e, 'L');
       } else {
-        plots.push({
-          polygon: [p0, p1, inward(p1, depth), inward(p0, depth)],
-          frontageEdge: e, kind: 'frontage', shape: 'rect',
-        });
+        finishPlot([p0, p1, inward(p1, depth), inward(p0, depth)], e, 'rect');
       }
       // Dense rows share exact side boundaries. Detached settlement profiles
       // retain the historical breathing room between neighboring plots.
@@ -1010,6 +1135,13 @@ export function generateTownPlan(
     const b = polygonBounds(poly);
     const span = Math.max(b.maxX - b.minX, b.maxY - b.minY) || 1;
     const streetHalf = Math.min(span * 0.5 - 1e-3, Math.max(wardSpan * 0.06, 1.2)); // clamp so the block stays valid
+    // TRUE inset (uniform street margin). The old centroid-scale left the block
+    // nearly touching the street on off-center wards — buildings in the road.
+    // Tiny wards retry at half margin (a narrower but still real street) before
+    // the legacy centroid-scale fallback keeps the very smallest buildable.
+    const inset = insetConvexPolygon(poly, streetHalf)
+      ?? insetConvexPolygon(poly, streetHalf / 2);
+    if (inset) return inset;
     const k = Math.max(0.55, 1 - (2 * streetHalf) / span);
     return scalePolygon(poly, c, k);
   };
@@ -1032,8 +1164,18 @@ export function generateTownPlan(
     // Drop buildings that overlap each other (acute-corner frontage collisions +
     // interior squares landing on frontage); frontage is kept over infill.
     const resolved = resolveCollisions(plots, packOpts.partyWallRows === true);
+    // Street-margin guard: boundary wards inherit slightly CONCAVE edges from
+    // the blob core, where the convex inset/clip can under-shoot. Any plot that
+    // still ends up hugging the ward edge (= the street centerline) is a
+    // building in the road — drop it rather than draw it.
+    const wb2 = polygonBounds(polygon);
+    const wspan = Math.max(wb2.maxX - wb2.minX, wb2.maxY - wb2.minY) || 1;
+    const guard = Math.min(wspan * 0.5 - 1e-3, Math.max(wardSpan * 0.06, 1.2)) * 0.5;
+    const offStreet = resolved.filter((p) =>
+      p.polygon.every((v) => distToPolyBoundary(v, polygon) > guard),
+    );
     plots.length = 0;
-    plots.push(...resolved);
+    plots.push(...offStreet);
     // Waterfront ward → seat a dock on the water-facing edge (#4).
     const waterEdge = wardWaterEdge(polygon, water, waterMargin);
     if (waterEdge != null) {
@@ -1205,6 +1347,35 @@ export function generateTownPlan(
   // Road continuation (#6): inherited regional roads clipped to the town become
   // its main streets (entering at the gatehouses).
   const streets = (opts.roads ?? []).flatMap((r) => clipPolylineToPolygon(r, footprint));
+
+  // Buildings off the highway and out of the water: inherited main roads and
+  // the river channel cut ACROSS wards, and the frontage packer (which only
+  // knows ward edges) can seat plots straddling them. Drop any plot touching a
+  // corridor so the avenue stays clear and no building stands in the river.
+  const corridorQuads = (lines: Pt[][], half: number): Pt[][] => {
+    const quads: Pt[][] = [];
+    for (const s of lines) {
+      for (let i = 0; i < s.length - 1; i++) {
+        const [x1, y1] = s[i];
+        const [x2, y2] = s[i + 1];
+        const L = Math.hypot(x2 - x1, y2 - y1);
+        if (L < 1e-6) continue;
+        const nx = (-(y2 - y1) / L) * half;
+        const ny = ((x2 - x1) / L) * half;
+        quads.push([[x1 - nx, y1 - ny], [x2 - nx, y2 - ny], [x2 + nx, y2 + ny], [x1 + nx, y1 + ny]]);
+      }
+    }
+    return quads;
+  };
+  const carveQuads = [
+    ...corridorQuads(streets, fpSpan * MAIN_ROAD_CARVE_HALF_FRAC),
+    ...corridorQuads(water, fpSpan * WATER_CARVE_HALF_FRAC),
+  ];
+  if (carveQuads.length > 0) {
+    for (const w of wards) {
+      w.plots = w.plots.filter((p) => !carveQuads.some((q) => polygonsIntersect(p.polygon, q)));
+    }
+  }
 
   // Outskirts: the ring between the built core and the cell edge → farm/pasture/scrub.
   const outskirtCount = Math.max(18, Math.min(80, Math.round(wardCount * 1.1)));

@@ -64,38 +64,101 @@ function modifierAppliesToCheck(text: string, ability: AbilityScoreName, skill?:
     return normalized.includes('ability check');
 }
 
-function collectStructuredAbilityCheckBonuses(
-    character: PlayerCharacter | CombatCharacter,
+interface StructuredAbilityCheckModifier {
+    source: string;
+    value?: number;
+    bonusDice?: string;
+    advantage?: boolean;
+    disadvantage?: boolean;
+}
+
+function normalizedLabel(value: string): string {
+    return value.trim().toLowerCase().replace(/[_-]+/g, ' ');
+}
+
+function labelList(value: string | string[] | undefined): string[] {
+    return (Array.isArray(value) ? value : value ? [value] : []).map(normalizedLabel);
+}
+
+function abilityCheckModifierApplies(
+    modifier: NonNullable<StatusEffect['abilityCheckModifier']>,
+    statusEffect: StatusEffect,
+    ability: AbilityScoreName,
     skill?: string
-): { source: string; value: number }[] {
+): boolean {
+    const selection = normalizedLabel(modifier.skillSelection || '');
+    const selected = statusEffect.modifiers?.skill?.trim();
+    const pool = labelList(modifier.skillPool);
+    const requestedAbility = normalizedLabel(ability);
+    const requestedSkill = skill ? normalizedLabel(skill) : undefined;
+    const appliesTo = normalizedLabel(modifier.appliesTo || '');
+    const poolMatches = (value: string | undefined): boolean => Boolean(value && pool.includes(value));
+
+    if (selection === 'chosen skill') {
+        return Boolean(requestedSkill && selected && normalizedLabel(selected) === requestedSkill);
+    }
+
+    if (selection === 'chosen ability') {
+        return Boolean(selected && normalizedLabel(selected) === requestedAbility);
+    }
+
+    if (selection === 'all abilities') {
+        return pool.length === 0 || poolMatches(requestedAbility);
+    }
+
+    if (selection === 'fixed skill' || selection === 'fixed skills') {
+        return Boolean(requestedSkill && (poolMatches(requestedSkill) || appliesTo.includes(requestedSkill)));
+    }
+
+    if (selection === 'not applicable' || selection === '') {
+        return appliesTo === 'ability check' || (requestedSkill ? appliesTo.includes(requestedSkill) : appliesTo.includes(requestedAbility));
+    }
+
+    // Preserve future selection labels while still allowing source text that
+    // names a concrete skill or ability to participate in a matching check.
+    return poolMatches(requestedSkill) || poolMatches(requestedAbility) ||
+        (requestedSkill ? appliesTo.includes(requestedSkill) : appliesTo.includes(requestedAbility));
+}
+
+function collectStructuredAbilityCheckModifiers(
+    character: PlayerCharacter | CombatCharacter,
+    ability: AbilityScoreName,
+    skill?: string
+): StructuredAbilityCheckModifier[] {
     const statusEffects = 'statusEffects' in character ? character.statusEffects ?? [] : []
-    const applied: { source: string; value: number }[] = []
+    const applied: StructuredAbilityCheckModifier[] = []
 
     for (const effect of statusEffects as StatusEffect[]) {
         const modifier = effect.abilityCheckModifier
-        if (!modifier || modifier.appliesTo !== 'ability_check') {
-            continue
-        }
-
-        const chosenSkill = effect.modifiers?.skill?.trim()
-        if (modifier.skillSelection === 'chosen_skill') {
-            if (!skill || !chosenSkill || chosenSkill.toLowerCase() !== skill.toLowerCase()) {
-                continue
-            }
-        } else if (skill && chosenSkill && chosenSkill.toLowerCase() !== skill.toLowerCase()) {
-            continue
-        }
-
+        const statusModifiers = effect.modifiers
         const source = effect.source || effect.name
-        const bonusDice = modifier.bonusDice?.trim()
-        if (bonusDice) {
-            const val = rollDice(bonusDice)
-            applied.push({ source, value: val })
-            continue
+
+        if (modifier && abilityCheckModifierApplies(modifier, effect, ability, skill)) {
+            const bonusDice = modifier.bonusDice?.trim()
+            if (bonusDice) {
+                applied.push({ source, bonusDice })
+            } else if (typeof modifier.flatModifier === 'number') {
+                applied.push({ source, value: modifier.flatModifier })
+            } else if (modifier.flatModifier === 'advantage' || modifier.flatModifier === 'disadvantage') {
+                applied.push({
+                    source,
+                    [modifier.flatModifier]: true,
+                })
+            }
         }
 
-        if (modifier.flatModifier !== undefined) {
-            applied.push({ source, value: modifier.flatModifier })
+        // Some command bridges expose advantage/disadvantage as a status
+        // modifier without duplicating the full source payload. Honor that
+        // packet here so pre-roll offers and Enhance Ability share one roll path.
+        const statusSkill = statusModifiers?.skill
+        const statusScopeMatches = !statusSkill ||
+            normalizedLabel(statusSkill) === normalizedLabel(ability) ||
+            normalizedLabel(statusSkill) === normalizedLabel(skill || '');
+        if (statusScopeMatches && statusModifiers?.advantage?.includes('check')) {
+            applied.push({ source, advantage: true })
+        }
+        if (statusScopeMatches && statusModifiers?.disadvantage?.includes('check')) {
+            applied.push({ source, disadvantage: true })
         }
     }
 
@@ -113,6 +176,15 @@ export function rollAbilityCheck(
 ): CheckResult {
     let hasAdvantage = options?.advantage || false;
     let hasDisadvantage = options?.disadvantage || false;
+
+    // Read structured spell riders before rolling so advantage/disadvantage
+    // changes the d20 selection while numeric and dice riders are applied to
+    // the final modifier below.
+    const structuredModifiers = collectStructuredAbilityCheckModifiers(character, ability, skill)
+    for (const modifier of structuredModifiers) {
+        hasAdvantage ||= modifier.advantage === true
+        hasDisadvantage ||= modifier.disadvantage === true
+    }
 
     // Check racial advantage/disadvantage
     character.modifiers?.advantage.forEach(adv => {
@@ -194,9 +266,11 @@ export function rollAbilityCheck(
     // effects so concentration cleanup can remove them without re-parsing
     // combat log text. They still feed the same modifier list here so the
     // shared check roll stays the single consumer of the bonus dice.
-    for (const modifier of collectStructuredAbilityCheckBonuses(character, skill)) {
-        mod += modifier.value;
-        modifiersApplied.push(modifier);
+    for (const modifier of structuredModifiers) {
+        const value = modifier.value ?? (modifier.bonusDice ? rollDice(modifier.bonusDice) : undefined)
+        if (value === undefined) continue
+        mod += value
+        modifiersApplied.push({ source: modifier.source, value })
     }
 
     return {

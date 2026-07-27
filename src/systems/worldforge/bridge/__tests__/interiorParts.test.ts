@@ -30,28 +30,41 @@ import {
   type OccupantFigure,
   type OccupantBody,
 } from '../interiorParts';
-import { generateBuilding, buildingShellHeightM } from '../../interior/generateBuilding';
+import {
+  generateBuilding,
+  buildingShellHeightM,
+} from '../../interior/generateBuilding';
 import { FURNISHING_RECIPE_KINDS } from '../../interior/furnish';
-import { blueprintForPlot, generateInterior, type InteriorPlotInput } from '../../interior/generateInterior';
+import {
+  blueprintForPlot,
+  type InteriorPlotInput,
+} from '../../interior/generateInterior';
 import { isAtWork } from '../groundChunkLoader';
-import { EXTERIOR } from '../../interior/types';
 import { rootSeedPath } from '../../seedPath';
 import { STYLE_FAMILIES } from '../../town/architectureStyle';
-import { dressingContrastTone, glazingPaneColor } from '../buildingMaterialParts';
-import { blueprintSiteOrigin } from '../../interior/blueprintTypes';
+import {
+  dressingContrastTone,
+  glazingPaneColor,
+} from '../buildingMaterialParts';
+import { blueprintSiteOrigin, EXTERIOR } from '../../interior/blueprintTypes';
 
 /** Colors that identify structural walls in legacy, unstyled test fixtures. */
 const isWallColor = (color: string): boolean =>
-  color === INTERIOR_WALL_COLOR || Object.values(PERIMETER_WALL_COLORS).includes(color);
+  color === INTERIOR_WALL_COLOR ||
+  Object.values(PERIMETER_WALL_COLORS).includes(color);
 
 describe('furnishing render coverage (no-fallback)', () => {
   it('every kind the recipes can emit has a 3D render spec', () => {
-    const missing = [...FURNISHING_RECIPE_KINDS].filter((kind) => !(kind in FURNITURE)).sort();
+    const missing = [...FURNISHING_RECIPE_KINDS]
+      .filter((kind) => !(kind in FURNITURE))
+      .sort();
     expect(missing).toEqual([]);
   });
 
   it('resolving an unknown furnishing kind throws instead of dropping it', () => {
-    expect(() => furnishingSpec('no-such-furniture')).toThrow(/unknown furnishing kind/i);
+    expect(() => furnishingSpec('no-such-furniture')).toThrow(
+      /unknown furnishing kind/i,
+    );
   });
 
   it('resolves a known kind to its spec', () => {
@@ -93,16 +106,25 @@ const fig = (
   id: number,
   ageBand: 'child' | 'adult' | 'elder',
   atWork?: boolean,
-): OccupantFigure => ({ id, ageBand, atWork, body: body() });
+): OccupantFigure => ({
+  id,
+  ageBand,
+  atWork,
+  body: body(),
+});
 
 it('is deterministic', () => {
-  expect(buildInteriorParts(plot(), SEED_PATH, 3)).toEqual(buildInteriorParts(plot(), SEED_PATH, 3));
+  expect(buildInteriorParts(plot(), SEED_PATH, 3)).toEqual(
+    buildInteriorParts(plot(), SEED_PATH, 3),
+  );
 });
 
 it('produces perimeter + interior walls and furnishings', () => {
   const parts = buildInteriorParts(plot(), SEED_PATH, 3);
   const walls = parts.filter((p) => isWallColor(p.colorHex));
-  const furnishings = parts.filter((p) => !isWallColor(p.colorHex) && p.colorHex !== FLOOR_COLOR);
+  const furnishings = parts.filter(
+    (p) => !isWallColor(p.colorHex) && p.colorHex !== FLOOR_COLOR,
+  );
   // 4 perimeter lines (front split by the door = at least 5 runs) plus at
   // least one internal wall for a 60×45 multi-room house.
   expect(walls.length).toBeGreaterThanOrEqual(6);
@@ -110,7 +132,9 @@ it('produces perimeter + interior walls and furnishings', () => {
 });
 
 describe('visible party-wall ownership', () => {
-  const rowBlueprint = (owner: 'earlier-frontage-member' | 'later-frontage-member') =>
+  const rowBlueprint = (
+    owner: 'earlier-frontage-member' | 'later-frontage-member',
+  ) =>
     generateBuilding({
       buildingId: 314,
       type: 'townhouse',
@@ -129,7 +153,9 @@ describe('visible party-wall ownership', () => {
     });
 
   /** Styled rows exercise every run-driven exterior dressing bridge. */
-  const styledRowBlueprint = (owner: 'earlier-frontage-member' | 'later-frontage-member') =>
+  const styledRowBlueprint = (
+    owner: 'earlier-frontage-member' | 'later-frontage-member',
+  ) =>
     generateBuilding({
       buildingId: 315,
       type: 'townhouse',
@@ -169,8 +195,12 @@ describe('visible party-wall ownership', () => {
       3,
       PERIMETER_WALL_COLORS.house,
     ).parts;
-    const earlierHidden = earlierOwns.filter((part) => part.renderRole === 'tactical-only');
-    const laterHidden = laterOwns.filter((part) => part.renderRole === 'tactical-only');
+    const earlierHidden = earlierOwns.filter(
+      (part) => part.renderRole === 'tactical-only',
+    );
+    const laterHidden = laterOwns.filter(
+      (part) => part.renderRole === 'tactical-only',
+    );
 
     expect(earlierHidden.length).toBeGreaterThan(0);
     expect(laterHidden.length).toBeGreaterThan(0);
@@ -184,13 +214,20 @@ describe('visible party-wall ownership', () => {
   it('leaves legacy ensemble receipts fully visible', () => {
     const legacy = rowBlueprint('earlier-frontage-member');
     delete legacy.ensemble!.partyWallOwner;
-    const parts = buildBlueprintParts(legacy, 3, PERIMETER_WALL_COLORS.house).parts;
+    const parts = buildBlueprintParts(
+      legacy,
+      3,
+      PERIMETER_WALL_COLORS.house,
+    ).parts;
 
     expect(parts.every((part) => part.renderRole === undefined)).toBe(true);
   });
 
   it('keeps facade trim off the neighbor-owned side', () => {
-    for (const owner of ['earlier-frontage-member', 'later-frontage-member'] as const) {
+    for (const owner of [
+      'earlier-frontage-member',
+      'later-frontage-member',
+    ] as const) {
       const blueprint = styledRowBlueprint(owner);
       const legacy = structuredClone(blueprint);
       delete legacy.ensemble!.partyWallOwner;
@@ -215,52 +252,77 @@ describe('visible party-wall ownership', () => {
   it('stores hidden-wall history without projecting it onto the shared exterior', () => {
     const blueprint = styledRowBlueprint('earlier-frontage-member');
     const floor = blueprint.floors.find((candidate) => candidate.level === 0)!;
-    const leftIndex = floor.wallRuns.findIndex((run) => run.kind === 'outer' && run.nx === -1);
-    const rightIndex = floor.wallRuns.findIndex((run) => run.kind === 'outer' && run.nx === 1);
+    const leftIndex = floor.wallRuns.findIndex(
+      (run) => run.kind === 'outer' && run.nx === -1,
+    );
+    const rightIndex = floor.wallRuns.findIndex(
+      (run) => run.kind === 'outer' && run.nx === 1,
+    );
     const historyFor = (wallRunIndex: number) => ({
       ageBand: 'old' as const,
       phases: blueprint.masses.slice(1).map(() => 0),
       wear: ['patched-wall' as const],
       historySignature: `party-wall-history:${wallRunIndex}`,
-      features: [{
-        kind: 'patched-wall' as const,
-        floorLevel: 0,
-        wallRunIndex,
-        alongFt: 5,
-        widthFt: 2.5,
-        baseFt: 1,
-        heightFt: 3,
-        colorHex: '#78695a',
-      }],
+      features: [
+        {
+          kind: 'patched-wall' as const,
+          floorLevel: 0,
+          wallRunIndex,
+          alongFt: 5,
+          widthFt: 2.5,
+          baseFt: 1,
+          heightFt: 3,
+          colorHex: '#78695a',
+        },
+      ],
     });
 
     expect(leftIndex).toBeGreaterThanOrEqual(0);
     expect(rightIndex).toBeGreaterThanOrEqual(0);
     blueprint.backstory = historyFor(leftIndex);
-    const hidden = buildBlueprintParts(blueprint, 3, PERIMETER_WALL_COLORS.house).parts;
+    const hidden = buildBlueprintParts(
+      blueprint,
+      3,
+      PERIMETER_WALL_COLORS.house,
+    ).parts;
     blueprint.backstory = historyFor(rightIndex);
-    const visible = buildBlueprintParts(blueprint, 3, PERIMETER_WALL_COLORS.house).parts;
+    const visible = buildBlueprintParts(
+      blueprint,
+      3,
+      PERIMETER_WALL_COLORS.house,
+    ).parts;
 
     expect(hidden.filter((part) => part.tag === HISTORY_PART_TAG)).toEqual([]);
-    expect(visible.filter((part) => part.tag === HISTORY_PART_TAG).length).toBeGreaterThan(0);
+    expect(
+      visible.filter((part) => part.tag === HISTORY_PART_TAG).length,
+    ).toBeGreaterThan(0);
   });
 
   it('keeps production roof meshes inside party sides while retaining street eaves', () => {
-    for (const owner of ['earlier-frontage-member', 'later-frontage-member'] as const) {
+    for (const owner of [
+      'earlier-frontage-member',
+      'later-frontage-member',
+    ] as const) {
       const blueprint = styledRowBlueprint(owner);
       blueprint.backstory = {
         ageBand: 'ancient',
         phases: blueprint.masses.slice(1).map(() => 0),
         wear: ['sagging-ridge'],
         historySignature: `subdivided-row-roof:${owner}`,
-        features: [{
-          kind: 'sagging-ridge',
-          ridgeIndex: 0,
-          deflectionFt: 1,
-          colorHex: '#594a3d',
-        }],
+        features: [
+          {
+            kind: 'sagging-ridge',
+            ridgeIndex: 0,
+            deflectionFt: 1,
+            colorHex: '#594a3d',
+          },
+        ],
       };
-      const output = buildBlueprintParts(blueprint, 3, PERIMETER_WALL_COLORS.house);
+      const output = buildBlueprintParts(
+        blueprint,
+        3,
+        PERIMETER_WALL_COLORS.house,
+      );
       const positions = output.roof!.positions;
       const xs: number[] = [];
       const zs: number[] = [];
@@ -268,21 +330,24 @@ describe('visible party-wall ownership', () => {
         xs.push(positions[i]);
         zs.push(positions[i + 2]);
       }
-      const halfWidthM = blueprint.widthFt * FT / 2;
-      const halfDepthM = blueprint.depthFt * FT / 2;
+      const halfWidthM = (blueprint.widthFt * FT) / 2;
+      const halfDepthM = (blueprint.depthFt * FT) / 2;
 
       expect(Math.min(...xs)).toBeGreaterThanOrEqual(-halfWidthM - 1e-5);
       expect(Math.max(...xs)).toBeLessThanOrEqual(halfWidthM + 1e-5);
-      expect(Math.min(...zs) < -halfDepthM || Math.max(...zs) > halfDepthM).toBe(true);
+      expect(
+        Math.min(...zs) < -halfDepthM || Math.max(...zs) > halfDepthM,
+      ).toBe(true);
     }
 
     const legacy = styledRowBlueprint('earlier-frontage-member');
     delete legacy.ensemble!.partyWallOwner;
     const legacyXs = Array.from(
-      buildBlueprintParts(legacy, 3, PERIMETER_WALL_COLORS.house).roof!.positions,
+      buildBlueprintParts(legacy, 3, PERIMETER_WALL_COLORS.house).roof!
+        .positions,
     ).filter((_, index) => index % 3 === 0);
-    expect(Math.min(...legacyXs)).toBeLessThan(-legacy.widthFt * FT / 2);
-    expect(Math.max(...legacyXs)).toBeGreaterThan(legacy.widthFt * FT / 2);
+    expect(Math.min(...legacyXs)).toBeLessThan((-legacy.widthFt * FT) / 2);
+    expect(Math.max(...legacyXs)).toBeGreaterThan((legacy.widthFt * FT) / 2);
   });
 });
 
@@ -298,14 +363,19 @@ it('merges wall runs so no wall parts overlap on the same line', () => {
     for (let j = i + 1; j < walls.length; j++) {
       const a = walls[i];
       const b = walls[j];
-      const bothHorizontal = a.d === WALL_THICKNESS_M && b.d === WALL_THICKNESS_M;
+      const bothHorizontal =
+        a.d === WALL_THICKNESS_M && b.d === WALL_THICKNESS_M;
       const bothVertical = a.w === WALL_THICKNESS_M && b.w === WALL_THICKNESS_M;
       if (bothHorizontal && Math.abs(a.z - b.z) < 0.001) {
-        const overlap = Math.min(a.x + a.w / 2, b.x + b.w / 2) - Math.max(a.x - a.w / 2, b.x - b.w / 2);
+        const overlap =
+          Math.min(a.x + a.w / 2, b.x + b.w / 2) -
+          Math.max(a.x - a.w / 2, b.x - b.w / 2);
         if (overlap > 0.001) overlaps++;
       }
       if (bothVertical && Math.abs(a.x - b.x) < 0.001) {
-        const overlap = Math.min(a.z + a.d / 2, b.z + b.d / 2) - Math.max(a.z - a.d / 2, b.z - b.d / 2);
+        const overlap =
+          Math.min(a.z + a.d / 2, b.z + b.d / 2) -
+          Math.max(a.z - a.d / 2, b.z - b.d / 2);
         if (overlap > 0.001) overlaps++;
       }
     }
@@ -317,15 +387,16 @@ it('merges wall runs so no wall parts overlap on the same line', () => {
 it('emits per-cell floor slabs covering the blueprint footprint (Task 12)', () => {
   // The blueprint path replaces the single envelope-spanning plank with one
   // 5 ft slab per footprint cell, following the (possibly irregular) shell.
-  const plan = generateInterior(plot(), SEED_PATH);
   const bp = blueprintForPlot(plot(), SEED_PATH);
   const parts = buildInteriorParts(plot(), SEED_PATH, 3);
-  const floors = parts.filter((p) => p.colorHex === FLOOR_COLOR && (p.baseY ?? 0) === 0);
+  const floors = parts.filter(
+    (p) => p.colorHex === FLOOR_COLOR && (p.baseY ?? 0) === 0,
+  );
 
   expect(floors.length).toBe(bp.footprintCells.length);
   expect(parts[0]).toBe(floors[0]); // slabs come first, under walls and props
-  const hw = (plan.widthFt / 2) * FT;
-  const hd = (plan.depthFt / 2) * FT;
+  const hw = (bp.widthFt / 2) * FT;
+  const hd = (bp.depthFt / 2) * FT;
   for (const slab of floors) {
     expect(slab.h).toBeLessThanOrEqual(0.15);
     expect(Math.abs(slab.x) + slab.w / 2).toBeLessThanOrEqual(hw + 0.01);
@@ -334,25 +405,23 @@ it('emits per-cell floor slabs covering the blueprint footprint (Task 12)', () =
 });
 
 it('leaves a real door gap in the entry WALL and dresses it with a door leaf', () => {
-  // Task 10 adapter truth: the entry sits on an outer wall of the main room,
-  // no longer pinned to the h:0 street line — so assert relative to the
-  // entry door's OWN wall line, whichever side it landed on.
-  const plan = generateInterior(plot(), SEED_PATH);
-  const entry = plan.doorways.find((d) => d.a === EXTERIOR)!;
+  // The canonical entry sits on an outer wall of the main room, so assert
+  // relative to its own wall line rather than assuming the min-y edge.
+  const plan = blueprintForPlot(plot(), SEED_PATH);
+  const groundFloor = plan.floors.find((floor) => floor.level === 0)!;
+  const entry = groundFloor.doors.find((door) => door.a === EXTERIOR)!;
+  const origin = blueprintSiteOrigin(plan);
   const parts = buildInteriorParts(plot(), SEED_PATH, 3);
 
   const isX = entry.axis === 'x';
   // The entry wall line and door position along it, in part coords (meters).
-  const wallLine = isX
-    ? (entry.y - plan.depthFt / 2) * FT
-    : (entry.x - plan.widthFt / 2) * FT;
-  const doorAlong = isX
-    ? (entry.x - plan.widthFt / 2) * FT
-    : (entry.y - plan.depthFt / 2) * FT;
+  const wallLine = isX ? (entry.y - origin.y) * FT : (entry.x - origin.x) * FT;
+  const doorAlong = isX ? (entry.x - origin.x) * FT : (entry.y - origin.y) * FT;
   // Blueprint walls sit t/2 OUTWARD of their grid line (outer walls are
   // 1.5 ft thick → up to ~0.23 m off the line), so match with that slack.
   const onLine = parts.filter(
-    (p) => isWallColor(p.colorHex) && Math.abs((isX ? p.z : p.x) - wallLine) < 0.25,
+    (p) =>
+      isWallColor(p.colorHex) && Math.abs((isX ? p.z : p.x) - wallLine) < 0.25,
   );
   // No WALL run blocks the gap (the wall is still cut open — the camera walks
   // through it; IN1's door leaf is a separate, thin dressing, not a wall).
@@ -367,8 +436,8 @@ it('leaves a real door gap in the entry WALL and dresses it with a door leaf', (
   expect(onLine.length).toBeGreaterThanOrEqual(1);
 
   // IN1: the entry gap is now dressed with a door leaf at the opening.
-  const doorX = (entry.x - plan.widthFt / 2) * FT;
-  const doorZ = (entry.y - plan.depthFt / 2) * FT;
+  const doorX = (entry.x - origin.x) * FT;
+  const doorZ = (entry.y - origin.y) * FT;
   const leaf = parts.find(
     (p) =>
       p.colorHex === DOOR_LEAF_COLOR &&
@@ -406,8 +475,24 @@ it('every window pane carries lightRole "window" and NO baked emissive (live lig
   // The bake tags window panes unconditionally; the renderer decides lit/dark
   // live from the building schedule. Build both "lit" and "unlit" (the litWindows
   // flag is now inert): the structural tagging must be identical either way.
-  const dark = buildInteriorParts(plot(), SEED_PATH, 3, [], undefined, undefined, false, false);
-  const lit = buildInteriorParts(plot(), SEED_PATH, 3, [], undefined, undefined, false, true);
+  const dark = buildInteriorParts(
+    plot(),
+    SEED_PATH,
+    3,
+    [],
+    undefined,
+    false,
+    false,
+  );
+  const lit = buildInteriorParts(
+    plot(),
+    SEED_PATH,
+    3,
+    [],
+    undefined,
+    false,
+    true,
+  );
   const litWindows = lit.filter((p) => p.lightRole === 'window');
   const darkWindows = dark.filter((p) => p.lightRole === 'window');
   // Same tagged panes, same count — window identity no longer depends on the
@@ -420,23 +505,57 @@ it('every window pane carries lightRole "window" and NO baked emissive (live lig
     expect(w.emissiveHex).toBeUndefined();
   }
   // Conversely: every window pane is tagged 'window'.
-  const untaggedPanes = lit.filter((p) => p.colorHex === WINDOW_PANE_COLOR && p.lightRole !== 'window');
+  const untaggedPanes = lit.filter(
+    (p) => p.colorHex === WINDOW_PANE_COLOR && p.lightRole !== 'window',
+  );
   expect(untaggedPanes).toEqual([]);
 });
 
 it('the now-inert litWindows flag no longer changes any baked part', () => {
   // Lighting is a live render decision, so the bake output is byte-identical
   // whether or not litWindows is set — including the lightRole tags themselves.
-  const dark = buildInteriorParts(plot(), SEED_PATH, 3, [], undefined, undefined, false, false);
-  const lit = buildInteriorParts(plot(), SEED_PATH, 3, [], undefined, undefined, false, true);
+  const dark = buildInteriorParts(
+    plot(),
+    SEED_PATH,
+    3,
+    [],
+    undefined,
+    false,
+    false,
+  );
+  const lit = buildInteriorParts(
+    plot(),
+    SEED_PATH,
+    3,
+    [],
+    undefined,
+    false,
+    true,
+  );
   expect(lit).toEqual(dark);
 });
 
 it('every hearth furnishing carries lightRole "hearth" and NO baked emissive', () => {
   // The bake tags hearths unconditionally; hearthLit is now inert. The renderer
   // drives the fire live from the building's hearth schedule.
-  const cold = buildInteriorParts(plot(), SEED_PATH, 3, [], undefined, undefined, false, false);
-  const warm = buildInteriorParts(plot(), SEED_PATH, 3, [], undefined, undefined, true, false);
+  const cold = buildInteriorParts(
+    plot(),
+    SEED_PATH,
+    3,
+    [],
+    undefined,
+    false,
+    false,
+  );
+  const warm = buildInteriorParts(
+    plot(),
+    SEED_PATH,
+    3,
+    [],
+    undefined,
+    true,
+    false,
+  );
   const coldHearths = cold.filter((p) => p.lightRole === 'hearth');
   const warmHearths = warm.filter((p) => p.lightRole === 'hearth');
   // Same hearths whether the (now-inert) hearthLit flag is set or not.
@@ -454,7 +573,9 @@ it('places occupant figures inside the envelope with stable heights', () => {
   // Each villager is now two parts: a clothed body box + a skin-toned head.
   expect(withPeople.length).toBe(base.length + occupants.length * 2);
   const figures = withPeople.slice(base.length);
-  const plan = generateInterior(plot(), SEED_PATH);
+  const plan = blueprintForPlot(plot(), SEED_PATH);
+  const groundFloor = plan.floors.find((floor) => floor.level === 0)!;
+  const origin = blueprintSiteOrigin(plan);
   const hw = (plan.widthFt / 2) * FT;
   const hd = (plan.depthFt / 2) * FT;
   const bad = figures.filter(
@@ -466,38 +587,57 @@ it('places occupant figures inside the envelope with stable heights', () => {
   // entry door (Task 10 adapter truth: the entry room is the main room on
   // whichever wall the entry landed, not necessarily nearest the street) —
   // while the same person at home stands in a different room.
-  const entryDoor = plan.doorways.find((d) => d.a === EXTERIOR)!;
-  // Task 12: occupants stand at the blueprint room ANCHOR (a cell guaranteed
-  // inside the room), not the legacy bbox center which can sit on a wall of
-  // an L-shaped room.
-  const bp = blueprintForPlot(plot(), SEED_PATH);
-  const bpEntryRoom = bp.floors.find((f) => f.level === 0)!.rooms
-    .find((r) => r.id === entryDoor.b)!;
-  const expectedX = ((bpEntryRoom.anchor.cx + 0.5) * 5 - plan.widthFt / 2) * FT;
-  const expectedZ = ((bpEntryRoom.anchor.cy + 0.5) * 5 - plan.depthFt / 2) * FT;
+  const entryDoor = groundFloor.doors.find((door) => door.a === EXTERIOR)!;
+  // Occupants stand at the blueprint room anchor, a cell guaranteed inside
+  // irregular rooms, rather than at a bounding-box center.
+  const bpEntryRoom = groundFloor.rooms.find((r) => r.id === entryDoor.b)!;
+  const expectedX = ((bpEntryRoom.anchor.cx + 0.5) * 5 - origin.x) * FT;
+  const expectedZ = ((bpEntryRoom.anchor.cy + 0.5) * 5 - origin.y) * FT;
   const homeParts = buildInteriorParts(plot(), SEED_PATH, 3, [fig(1, 'adult')]);
-  const workParts = buildInteriorParts(plot(), SEED_PATH, 3, [fig(1, 'adult', true)]);
+  const workParts = buildInteriorParts(plot(), SEED_PATH, 3, [
+    fig(1, 'adult', true),
+  ]);
   const home = homeParts[homeParts.length - 2]; // body box (head is last)
   const atWork = workParts[workParts.length - 2];
   expect(Math.abs(atWork.x - expectedX)).toBeLessThan(0.01);
   expect(Math.abs(atWork.z - expectedZ)).toBeLessThan(0.01);
-  expect(Math.abs(home.x - atWork.x) + Math.abs(home.z - atWork.z)).toBeGreaterThan(0.1);
+  expect(
+    Math.abs(home.x - atWork.x) + Math.abs(home.z - atWork.z),
+  ).toBeGreaterThan(0.1);
 });
 
 it('renders each occupant from its parametric body, not a uniform crate', () => {
   const tall: OccupantFigure = {
     id: 1,
     ageBand: 'adult',
-    body: body({ heightM: 1.95, shoulderWidthM: 0.52, depthM: 0.34, headSizeM: 0.27, skinToneHex: '#8d5524', clothingHex: '#4a5e6e' }),
+    body: body({
+      heightM: 1.95,
+      shoulderWidthM: 0.52,
+      depthM: 0.34,
+      headSizeM: 0.27,
+      skinToneHex: '#8d5524',
+      clothingHex: '#4a5e6e',
+    }),
   };
   const small: OccupantFigure = {
     id: 2,
     ageBand: 'child',
-    body: body({ heightM: 1.05, shoulderWidthM: 0.3, depthM: 0.2, headSizeM: 0.2, skinToneHex: '#ffdbac', clothingHex: '#5e6e4a' }),
+    body: body({
+      heightM: 1.05,
+      shoulderWidthM: 0.3,
+      depthM: 0.2,
+      headSizeM: 0.2,
+      skinToneHex: '#ffdbac',
+      clothingHex: '#5e6e4a',
+    }),
   };
   const base = buildInteriorParts(plot(), SEED_PATH, 3).length;
-  const [bodyTall, headTall] = buildInteriorParts(plot(), SEED_PATH, 3, [tall]).slice(base);
-  const [bodySmall] = buildInteriorParts(plot(), SEED_PATH, 3, [small]).slice(base);
+  const [bodyTall, headTall] = buildInteriorParts(plot(), SEED_PATH, 3, [
+    tall,
+  ]).slice(base);
+  const [bodySmall] = buildInteriorParts(plot(), SEED_PATH, 3, [small]).slice(
+    base,
+  );
 
   // Dimensions and palette track the body, not a hardcoded constant.
   expect(bodyTall.h).toBeGreaterThan(bodySmall.h); // taller body → taller box
@@ -525,7 +665,10 @@ it('a populated-household occupant (station identity) is NOT baked into parts', 
 it('roster occupants (no station) are still baked and tagged "occupant"', () => {
   // The street/commuter roster fallback stays baked so the "no occupant boxes"
   // assertion elsewhere can key precisely off the 'occupant' tag.
-  const parts = buildInteriorParts(plot(), SEED_PATH, 3, [fig(1, 'adult'), fig(2, 'adult')]);
+  const parts = buildInteriorParts(plot(), SEED_PATH, 3, [
+    fig(1, 'adult'),
+    fig(2, 'adult'),
+  ]);
   const occ = parts.filter((p) => p.tag === 'occupant');
   // Two figures × (body box + head box) = 4 tagged parts.
   expect(occ.length).toBe(4);
@@ -554,7 +697,7 @@ it('places every occupant center away from wall rectangles', () => {
 });
 
 it('keeps every part inside the interior envelope (plus wall thickness)', () => {
-  const plan = generateInterior(plot(), SEED_PATH);
+  const plan = blueprintForPlot(plot(), SEED_PATH);
   const parts = buildInteriorParts(plot(), SEED_PATH, 3);
   const hw = (plan.widthFt / 2) * FT + 0.31;
   const hd = (plan.depthFt / 2) * FT + 0.31;
@@ -589,13 +732,15 @@ it('staggered work hours: per-occupant start 7-9, end 16-19, deterministic', () 
 });
 
 it('interior doorway gaps are open through coincident duplicate walls', () => {
-  const plan = generateInterior(plot(), SEED_PATH);
+  const plan = blueprintForPlot(plot(), SEED_PATH);
+  const groundFloor = plan.floors.find((floor) => floor.level === 0)!;
+  const origin = blueprintSiteOrigin(plan);
   const parts = buildInteriorParts(plot(), SEED_PATH, 3);
   let blocked = 0;
-  for (const door of plan.doorways) {
+  for (const door of groundFloor.doors) {
     if (door.a === EXTERIOR) continue;
-    const dx = (door.x - plan.widthFt / 2) * FT;
-    const dz = (door.y - plan.depthFt / 2) * FT;
+    const dx = (door.x - origin.x) * FT;
+    const dz = (door.y - origin.y) * FT;
     for (const p of parts) {
       if (!isWallColor(p.colorHex)) continue;
       const inX = dx > p.x - p.w / 2 + 0.01 && dx < p.x + p.w / 2 - 0.01;
@@ -610,8 +755,11 @@ describe('solved roof parts (BGv2 Task 5)', () => {
   // A styled plan carries plan.roof + plan.styleResolved; a bare plan does not.
   const styled = () =>
     generateBuilding({
-      buildingId: 7, type: 'manor', seedPath: rootSeedPath(7),
-      storeys: 2, basement: false,
+      buildingId: 7,
+      type: 'manor',
+      seedPath: rootSeedPath(7),
+      storeys: 2,
+      basement: false,
       style: {
         cultureType: 'Generic',
         climate: 'temperate',
@@ -626,8 +774,11 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     });
   const bare = () =>
     generateBuilding({
-      buildingId: 7, type: 'manor', seedPath: rootSeedPath(7),
-      storeys: 2, basement: false,
+      buildingId: 7,
+      type: 'manor',
+      seedPath: rootSeedPath(7),
+      storeys: 2,
+      basement: false,
     });
 
   it('a roofless plan yields NO roof group and byte-stable parts', () => {
@@ -661,13 +812,14 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     // wall/floor/stair boxes against the bare building.
     const structuralGeometry = (bp: ReturnType<typeof styled>) =>
       buildBlueprintParts(bp, 3, PERIMETER_WALL_COLORS.house, false)
-        .parts
-        .filter((part) =>
-          part.tag !== ROOF_PART_TAG &&
-          part.tag !== FACADE_PART_TAG &&
-          part.tag !== MATERIAL_PART_TAG &&
-          part.tag !== MOTIF_PART_TAG &&
-          part.tag !== HISTORY_PART_TAG)
+        .parts.filter(
+          (part) =>
+            part.tag !== ROOF_PART_TAG &&
+            part.tag !== FACADE_PART_TAG &&
+            part.tag !== MATERIAL_PART_TAG &&
+            part.tag !== MOTIF_PART_TAG &&
+            part.tag !== HISTORY_PART_TAG,
+        )
         .map((part) => ({
           x: part.x,
           z: part.z,
@@ -693,11 +845,14 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     // The production bridge formerly discarded style.wallColor and painted
     // every blueprint wall with a generic role color. At least one real outer
     // wall must now carry the resolved district material.
-    expect(out.parts.filter((part) =>
-      part.tag !== FACADE_PART_TAG &&
-      part.tag !== MOTIF_PART_TAG &&
-      part.colorHex === style.wallColor).length)
-      .toBeGreaterThan(0);
+    expect(
+      out.parts.filter(
+        (part) =>
+          part.tag !== FACADE_PART_TAG &&
+          part.tag !== MOTIF_PART_TAG &&
+          part.colorHex === style.wallColor,
+      ).length,
+    ).toBeGreaterThan(0);
 
     // This fixture resolves to half-timber: shallow horizontal courses plus
     // vertical bays, all in the family trim pushed to the contrast tone
@@ -705,8 +860,13 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     expect(style.facadePattern).toBe('half-timber');
     const facade = out.parts.filter((part) => part.tag === FACADE_PART_TAG);
     expect(facade.length).toBeGreaterThan(0);
-    expect(facade.every((part) =>
-      part.colorHex === dressingContrastTone(style.trimColor, style.wallColor))).toBe(true);
+    expect(
+      facade.every(
+        (part) =>
+          part.colorHex ===
+          dressingContrastTone(style.trimColor, style.wallColor),
+      ),
+    ).toBe(true);
     expect(facade.some((part) => part.w > part.d)).toBe(true);
     expect(facade.some((part) => part.d > part.w)).toBe(true);
   });
@@ -720,8 +880,9 @@ describe('solved roof parts (BGv2 Task 5)', () => {
       false,
     );
     const construction = blueprint.styleResolved!.construction;
-    const materialParts = out.parts.filter((part) =>
-      part.tag === MATERIAL_PART_TAG);
+    const materialParts = out.parts.filter(
+      (part) => part.tag === MATERIAL_PART_TAG,
+    );
     const materialKinds = new Set(
       materialParts.map((part) => part.materialDetailKind),
     );
@@ -732,20 +893,25 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     expect(materialKinds.has('roof-edge')).toBe(true);
     // Wall-mounted material dressing renders in the contrast-derived trim tone
     // (town-look-slice1); roof-edge dressing keeps the covering color.
-    expect(materialParts.every((part) =>
-      part.colorHex === dressingContrastTone(
-        blueprint.styleResolved!.trimColor,
-        blueprint.styleResolved!.wallColor,
-      )
-      || part.colorHex === blueprint.styleResolved!.roofColor)).toBe(true);
+    expect(
+      materialParts.every(
+        (part) =>
+          part.colorHex ===
+            dressingContrastTone(
+              blueprint.styleResolved!.trimColor,
+              blueprint.styleResolved!.wallColor,
+            ) || part.colorHex === blueprint.styleResolved!.roofColor,
+      ),
+    ).toBe(true);
 
     // Shutter panels are paired beside every real above-grade window. A kit
     // with no shutters intentionally emits none rather than inventing closures.
     const windowCount = blueprint.floors
       .filter((floor) => floor.level >= 0)
       .reduce((total, floor) => total + floor.windows.length, 0);
-    const shutterPanels = materialParts.filter((part) =>
-      part.materialDetailKind === 'shutter-panel');
+    const shutterPanels = materialParts.filter(
+      (part) => part.materialDetailKind === 'shutter-panel',
+    );
     expect(shutterPanels).toHaveLength(
       construction.shutters === 'none' ? 0 : windowCount * 2,
     );
@@ -754,12 +920,21 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     // surface over them, so lighting can still find one exact window part.
     const panes = out.parts.filter((part) => part.lightRole === 'window');
     expect(panes.length).toBe(windowCount);
-    expect(panes.every((part) =>
-      part.colorHex === glazingPaneColor(construction.glazing))).toBe(true);
+    expect(
+      panes.every(
+        (part) => part.colorHex === glazingPaneColor(construction.glazing),
+      ),
+    ).toBe(true);
   });
 
   it('makes the five culture families visibly distinct through physical materials', () => {
-    const cultures = ['Highland', 'Naval', 'River', 'Hunting', 'Generic'] as const;
+    const cultures = [
+      'Highland',
+      'Naval',
+      'River',
+      'Hunting',
+      'Generic',
+    ] as const;
     const proofs = cultures.map((cultureType) => {
       const blueprint = generateBuilding({
         buildingId: 41,
@@ -787,21 +962,27 @@ describe('solved roof parts (BGv2 Task 5)', () => {
       ).parts.filter((part) => part.tag === MATERIAL_PART_TAG);
       return {
         construction: blueprint.styleResolved!.construction,
-        geometry: JSON.stringify(parts.map((part) => ({
-          kind: part.materialDetailKind,
-          w: part.w,
-          d: part.d,
-          h: part.h,
-          colorHex: part.colorHex,
-        }))),
+        geometry: JSON.stringify(
+          parts.map((part) => ({
+            kind: part.materialDetailKind,
+            w: part.w,
+            d: part.d,
+            h: part.h,
+            colorHex: part.colorHex,
+          })),
+        ),
       };
     });
 
-    expect(new Set(proofs.map((proof) => proof.construction.kitId)).size).toBe(5);
-    expect(new Set(proofs.map((proof) => proof.construction.wallMaterial)).size)
-      .toBeGreaterThan(3);
-    expect(new Set(proofs.map((proof) => proof.construction.roofCovering)).size)
-      .toBeGreaterThan(3);
+    expect(new Set(proofs.map((proof) => proof.construction.kitId)).size).toBe(
+      5,
+    );
+    expect(
+      new Set(proofs.map((proof) => proof.construction.wallMaterial)).size,
+    ).toBeGreaterThan(3);
+    expect(
+      new Set(proofs.map((proof) => proof.construction.roofCovering)).size,
+    ).toBeGreaterThan(3);
     expect(new Set(proofs.map((proof) => proof.geometry)).size).toBe(5);
   });
 
@@ -812,51 +993,52 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     ['farmstead', 'side-shed', 1],
     ['temple', 'bell-cote', 2],
     ['keep', 'battlements', 3],
-  ] as const)('renders the %s recognition program as palette-bound motif parts', (
-    buildingType,
-    expectedCoreMotif,
-    storeys,
-  ) => {
-    // The same district and culture frame every role. The role resolver is the
-    // only changing input, so these assertions prove a shop sign or keep crown
-    // survives all the way into the production 3D box list.
-    const blueprint = generateBuilding({
-      buildingId: 800 + storeys,
-      type: buildingType,
-      seedPath: rootSeedPath(1800 + storeys),
-      storeys,
-      basement: false,
-      style: {
-        cultureType: 'Generic',
-        climate: 'temperate',
-        wealth: 'common',
-        ageBand: 'new',
-        architecture: {
-          settlementKey: 'burg:motif-proof',
-          districtKey: 'district:market-east',
-          buildingKey: `plot:${buildingType}`,
+  ] as const)(
+    'renders the %s recognition program as palette-bound motif parts',
+    (buildingType, expectedCoreMotif, storeys) => {
+      // The same district and culture frame every role. The role resolver is the
+      // only changing input, so these assertions prove a shop sign or keep crown
+      // survives all the way into the production 3D box list.
+      const blueprint = generateBuilding({
+        buildingId: 800 + storeys,
+        type: buildingType,
+        seedPath: rootSeedPath(1800 + storeys),
+        storeys,
+        basement: false,
+        style: {
+          cultureType: 'Generic',
+          climate: 'temperate',
+          wealth: 'common',
+          ageBand: 'new',
+          architecture: {
+            settlementKey: 'burg:motif-proof',
+            districtKey: 'district:market-east',
+            buildingKey: `plot:${buildingType}`,
+          },
         },
-      },
-    });
-    const out = buildBlueprintParts(
-      blueprint,
-      3,
-      PERIMETER_WALL_COLORS.house,
-      false,
-    );
-    const motifParts = out.parts.filter((part) => part.tag === MOTIF_PART_TAG);
-    const renderedMotifs = new Set(motifParts.map((part) => part.motifKind));
-    const palette = new Set([
-      blueprint.styleResolved!.wallColor,
-      blueprint.styleResolved!.roofColor,
-      blueprint.styleResolved!.trimColor,
-    ]);
+      });
+      const out = buildBlueprintParts(
+        blueprint,
+        3,
+        PERIMETER_WALL_COLORS.house,
+        false,
+      );
+      const motifParts = out.parts.filter(
+        (part) => part.tag === MOTIF_PART_TAG,
+      );
+      const renderedMotifs = new Set(motifParts.map((part) => part.motifKind));
+      const palette = new Set([
+        blueprint.styleResolved!.wallColor,
+        blueprint.styleResolved!.roofColor,
+        blueprint.styleResolved!.trimColor,
+      ]);
 
-    expect(motifParts.length).toBeGreaterThan(0);
-    expect(renderedMotifs.has(expectedCoreMotif)).toBe(true);
-    expect(renderedMotifs).toEqual(new Set(blueprint.styleResolved!.motifs));
-    expect(motifParts.every((part) => palette.has(part.colorHex))).toBe(true);
-  });
+      expect(motifParts.length).toBeGreaterThan(0);
+      expect(renderedMotifs.has(expectedCoreMotif)).toBe(true);
+      expect(renderedMotifs).toEqual(new Set(blueprint.styleResolved!.motifs));
+      expect(motifParts.every((part) => palette.has(part.colorHex))).toBe(true);
+    },
+  );
 
   it('renders every resolved history fact as separately tagged semantic evidence', () => {
     const blueprint = generateBuilding({
@@ -883,8 +1065,9 @@ describe('solved roof parts (BGv2 Task 5)', () => {
       PERIMETER_WALL_COLORS.house,
       false,
     );
-    const historyParts = out.parts.filter((part) =>
-      part.tag === HISTORY_PART_TAG);
+    const historyParts = out.parts.filter(
+      (part) => part.tag === HISTORY_PART_TAG,
+    );
     const featureKinds = new Set(
       blueprint.backstory!.features.map((feature) => feature.kind),
     );
@@ -892,15 +1075,20 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     expect(blueprint.backstory!.wear).toHaveLength(3);
     expect(historyParts.length).toBeGreaterThan(0);
     expect(historyParts.every((part) => part.historyKind)).toBe(true);
-    expect(new Set(historyParts.map((part) => part.historyKind)))
-      .toEqual(featureKinds);
-    expect(historyParts.every((part) =>
-      Number.isFinite(part.x) &&
-      Number.isFinite(part.z) &&
-      Number.isFinite(part.h) &&
-      part.w > 0 &&
-      part.d > 0 &&
-      part.h > 0)).toBe(true);
+    expect(new Set(historyParts.map((part) => part.historyKind))).toEqual(
+      featureKinds,
+    );
+    expect(
+      historyParts.every(
+        (part) =>
+          Number.isFinite(part.x) &&
+          Number.isFinite(part.z) &&
+          Number.isFinite(part.h) &&
+          part.w > 0 &&
+          part.d > 0 &&
+          part.h > 0,
+      ),
+    ).toBe(true);
   });
 
   it('projects replayed fire and abandonment state without changing tactical structure', () => {
@@ -936,68 +1124,94 @@ describe('solved roof parts (BGv2 Task 5)', () => {
       PERIMETER_WALL_COLORS.house,
       false,
     );
-    const historyParts = out.parts.filter((part) => part.tag === HISTORY_PART_TAG);
+    const historyParts = out.parts.filter(
+      (part) => part.tag === HISTORY_PART_TAG,
+    );
     const liveKinds = new Set(
       blueprint.liveHistory!.features.map((feature) => feature.kind),
     );
 
-    expect(liveKinds).toEqual(new Set(['scorched-room', 'roof-hole', 'boarded-window']));
-    expect(new Set(historyParts.map((part) => part.historyKind)))
-      .toEqual(new Set([
+    expect(liveKinds).toEqual(
+      new Set(['scorched-room', 'roof-hole', 'boarded-window']),
+    );
+    expect(new Set(historyParts.map((part) => part.historyKind))).toEqual(
+      new Set([
         ...blueprint.backstory!.features.map((feature) => feature.kind),
         ...liveKinds,
-      ]));
-    expect(historyParts.filter((part) => part.historyKind === 'boarded-window').length)
-      .toBe(blueprint.floors.filter((floor) => floor.level >= 0)
-        .reduce((sum, floor) => sum + floor.windows.length * 3, 0));
+      ]),
+    );
+    expect(
+      historyParts.filter((part) => part.historyKind === 'boarded-window')
+        .length,
+    ).toBe(
+      blueprint.floors
+        .filter((floor) => floor.level >= 0)
+        .reduce((sum, floor) => sum + floor.windows.length * 3, 0),
+    );
     // The production bridge carries a physical opening in its roof group and
     // retains only the four tagged charred rim bars as semantic SiteParts.
-    expect(historyParts.filter((part) => part.historyKind === 'roof-hole')).toHaveLength(4);
+    expect(
+      historyParts.filter((part) => part.historyKind === 'roof-hole'),
+    ).toHaveLength(4);
     expect(out.roof).toBeDefined();
-    const hole = blueprint.liveHistory!.features.find((feature) => feature.kind === 'roof-hole');
+    const hole = blueprint.liveHistory!.features.find(
+      (feature) => feature.kind === 'roof-hole',
+    );
     expect(hole).toBeDefined();
     const origin = blueprintSiteOrigin(blueprint);
     for (let i = 0; i < out.roof!.positions.length; i += 9) {
-      const centerXFt = (
-        out.roof!.positions[i] + out.roof!.positions[i + 3] + out.roof!.positions[i + 6]
-      ) / (3 * 0.3048) + origin.x;
-      const centerYFt = (
-        out.roof!.positions[i + 2] + out.roof!.positions[i + 5] + out.roof!.positions[i + 8]
-      ) / (3 * 0.3048) + origin.y;
-      expect(Math.hypot(centerXFt - hole!.x, centerYFt - hole!.y))
-        .toBeGreaterThanOrEqual(hole!.radiusFt - 1e-5);
+      const centerXFt =
+        (out.roof!.positions[i] +
+          out.roof!.positions[i + 3] +
+          out.roof!.positions[i + 6]) /
+          (3 * 0.3048) +
+        origin.x;
+      const centerYFt =
+        (out.roof!.positions[i + 2] +
+          out.roof!.positions[i + 5] +
+          out.roof!.positions[i + 8]) /
+          (3 * 0.3048) +
+        origin.y;
+      expect(
+        Math.hypot(centerXFt - hole!.x, centerYFt - hole!.y),
+      ).toBeGreaterThanOrEqual(hole!.radiusFt - 1e-5);
     }
   });
 
   it('history dressing leaves the permanent structure byte-identical across ages', () => {
-    const make = (ageBand: 'new' | 'ancient') => generateBuilding({
-      buildingId: 15,
-      type: 'manor',
-      seedPath: rootSeedPath(1515),
-      storeys: 2,
-      basement: true,
-      style: {
-        cultureType: 'Generic',
-        climate: 'temperate',
-        wealth: 'common',
-        ageBand,
-      },
-    });
+    const make = (ageBand: 'new' | 'ancient') =>
+      generateBuilding({
+        buildingId: 15,
+        type: 'manor',
+        seedPath: rootSeedPath(1515),
+        storeys: 2,
+        basement: true,
+        style: {
+          cultureType: 'Generic',
+          climate: 'temperate',
+          wealth: 'common',
+          ageBand,
+        },
+      });
     const structuralParts = (blueprint: ReturnType<typeof make>) =>
       buildBlueprintParts(
         blueprint,
         buildingShellHeightM(2) / 2,
         PERIMETER_WALL_COLORS.house,
         false,
-      ).parts.filter((part) =>
-        part.tag !== ROOF_PART_TAG &&
-        part.tag !== FACADE_PART_TAG &&
-        part.tag !== MATERIAL_PART_TAG &&
-        part.tag !== MOTIF_PART_TAG &&
-        part.tag !== WEATHERING_PART_TAG &&
-        part.tag !== HISTORY_PART_TAG);
+      ).parts.filter(
+        (part) =>
+          part.tag !== ROOF_PART_TAG &&
+          part.tag !== FACADE_PART_TAG &&
+          part.tag !== MATERIAL_PART_TAG &&
+          part.tag !== MOTIF_PART_TAG &&
+          part.tag !== WEATHERING_PART_TAG &&
+          part.tag !== HISTORY_PART_TAG,
+      );
 
-    expect(structuralParts(make('ancient'))).toEqual(structuralParts(make('new')));
+    expect(structuralParts(make('ancient'))).toEqual(
+      structuralParts(make('new')),
+    );
   });
 
   it('horizontal log courses stop at window openings', () => {
@@ -1042,15 +1256,17 @@ describe('solved roof parts (BGv2 Task 5)', () => {
         const paneAlong = paneRunsAlongX
           ? [pane.x - pane.w / 2, pane.x + pane.w / 2]
           : [pane.z - pane.d / 2, pane.z + pane.d / 2];
-        const overlapsAlong = bandAlong[0] < paneAlong[1] - 1e-6
-          && bandAlong[1] > paneAlong[0] + 1e-6;
+        const overlapsAlong =
+          bandAlong[0] < paneAlong[1] - 1e-6 &&
+          bandAlong[1] > paneAlong[0] + 1e-6;
         // SitePart permits an omitted baseY for ground-seated legacy boxes.
         // Generated facade and pane parts set it, but using the contract's
         // zero default here keeps this assertion honest for either shape.
         const bandBaseY = band.baseY ?? 0;
         const paneBaseY = pane.baseY ?? 0;
-        const overlapsVertically = bandBaseY < paneBaseY + pane.h - 1e-6
-          && bandBaseY + band.h > paneBaseY + 1e-6;
+        const overlapsVertically =
+          bandBaseY < paneBaseY + pane.h - 1e-6 &&
+          bandBaseY + band.h > paneBaseY + 1e-6;
         expect(overlapsAlong && overlapsVertically).toBe(false);
       }
     }
@@ -1059,27 +1275,41 @@ describe('solved roof parts (BGv2 Task 5)', () => {
   it('chimney dressing is tagged and colored from the resolved trim', () => {
     // A single-storey tavern raises its hearth chimney on the (only) top floor.
     const bp = generateBuilding({
-      buildingId: 1, type: 'tavern', seedPath: rootSeedPath(1),
-      storeys: 1, basement: false,
-      style: { cultureType: 'Generic', climate: 'temperate', wealth: 'common', ageBand: 'new' },
+      buildingId: 1,
+      type: 'tavern',
+      seedPath: rootSeedPath(1),
+      storeys: 1,
+      basement: false,
+      style: {
+        cultureType: 'Generic',
+        climate: 'temperate',
+        wealth: 'common',
+        ageBand: 'new',
+      },
     });
     expect(bp.roof!.chimneys.length).toBeGreaterThan(0);
     const out = buildBlueprintParts(bp, 3, PERIMETER_WALL_COLORS.house, false);
     const roofParts = out.parts.filter((p) => p.tag === ROOF_PART_TAG);
     expect(roofParts.length).toBeGreaterThan(0);
     // At least one trim-colored roof part = the chimney flue.
-    const chimneys = roofParts.filter((p) => p.colorHex === bp.styleResolved!.trimColor);
+    const chimneys = roofParts.filter(
+      (p) => p.colorHex === bp.styleResolved!.trimColor,
+    );
     expect(chimneys.length).toBe(bp.roof!.chimneys.length);
     // Every roof-dressing part is either trim (chimney) or roof (dormer) tinted.
     for (const p of roofParts) {
-      expect([bp.styleResolved!.trimColor, bp.styleResolved!.roofColor]).toContain(p.colorHex);
+      expect([
+        bp.styleResolved!.trimColor,
+        bp.styleResolved!.roofColor,
+      ]).toContain(p.colorHex);
     }
   });
 
   it('is deterministic', () => {
     const bp = styled();
-    expect(buildBlueprintParts(bp, 3, PERIMETER_WALL_COLORS.house, false))
-      .toEqual(buildBlueprintParts(bp, 3, PERIMETER_WALL_COLORS.house, false));
+    expect(
+      buildBlueprintParts(bp, 3, PERIMETER_WALL_COLORS.house, false),
+    ).toEqual(buildBlueprintParts(bp, 3, PERIMETER_WALL_COLORS.house, false));
   });
 });
 
@@ -1101,15 +1331,26 @@ describe('roof eave seats on the above-grade wall top (town bake)', () => {
   // A styled house plot (style ⇒ the plan resolves a solved roof).
   const stylePlot = (storeys: number): InteriorPlotInput => ({
     id: 7,
-    footprint: [[1000, 2000], [1060, 2000], [1060, 2045], [1000, 2045]],
+    footprint: [
+      [1000, 2000],
+      [1060, 2000],
+      [1060, 2045],
+      [1000, 2045],
+    ],
     role: 'house',
     storeys,
-    style: { cultureType: 'Generic', climate: 'temperate', wealth: 'common', ageBand: 'new' },
+    style: {
+      cultureType: 'Generic',
+      climate: 'temperate',
+      wealth: 'common',
+      ageBand: 'new',
+    },
   });
 
   const roofMinY = (roof: { positions: Float32Array }): number => {
     let m = Infinity;
-    for (let i = 1; i < roof.positions.length; i += 3) m = Math.min(m, roof.positions[i]);
+    for (let i = 1; i < roof.positions.length; i += 3)
+      m = Math.min(m, roof.positions[i]);
     return m;
   };
 
@@ -1137,10 +1378,20 @@ describe('roof eave seats on the above-grade wall top (town bake)', () => {
     // floor must NOT push the roof down: the eave stays on the ABOVE-grade top.
     const plot: InteriorPlotInput = {
       id: 9,
-      footprint: [[1000, 2000], [1060, 2000], [1060, 2045], [1000, 2045]],
+      footprint: [
+        [1000, 2000],
+        [1060, 2000],
+        [1060, 2045],
+        [1000, 2045],
+      ],
       role: 'tavern',
       storeys: 2,
-      style: { cultureType: 'Generic', climate: 'temperate', wealth: 'common', ageBand: 'new' },
+      style: {
+        cultureType: 'Generic',
+        climate: 'temperate',
+        wealth: 'common',
+        ageBand: 'new',
+      },
     };
     const shellHeightM = 2 * METERS_PER_STOREY; // above-grade storeys only
     const built = buildInterior(plot, SEED_PATH, shellHeightM);
@@ -1170,16 +1421,27 @@ describe('roof eave overhangs the exterior wall (no exposed rim)', () => {
 
   const stylePlot = (storeys: number, role = 'house'): InteriorPlotInput => ({
     id: 3,
-    footprint: [[1000, 2000], [1060, 2000], [1060, 2045], [1000, 2045]],
+    footprint: [
+      [1000, 2000],
+      [1060, 2000],
+      [1060, 2045],
+      [1000, 2045],
+    ],
     role,
     storeys,
-    style: { cultureType: 'Generic', climate: 'temperate', wealth: 'common', ageBand: 'new' },
+    style: {
+      cultureType: 'Generic',
+      climate: 'temperate',
+      wealth: 'common',
+      ageBand: 'new',
+    },
   });
 
   // Half-extent (max |coord| + half-size) of the perimeter walls vs the roof
   // eave ring (roof vertices at the minimum Y), in the shared site-local frame.
   const extents = (built: ReturnType<typeof buildInterior>) => {
-    let wallX = -Infinity, wallZ = -Infinity;
+    let wallX = -Infinity,
+      wallZ = -Infinity;
     for (const p of built.parts) {
       // Eave coverage is a wall-shell invariant. Attached sheds, bays, and
       // other role motifs may intentionally project beyond the main roof.
@@ -1192,7 +1454,8 @@ describe('roof eave overhangs the exterior wall (no exposed rim)', () => {
     const pos = built.roof!.positions;
     let eaveY = Infinity;
     for (let i = 1; i < pos.length; i += 3) eaveY = Math.min(eaveY, pos[i]);
-    let eaveX = -Infinity, eaveZ = -Infinity;
+    let eaveX = -Infinity,
+      eaveZ = -Infinity;
     for (let i = 0; i < pos.length; i += 3) {
       if (Math.abs(pos[i + 1] - eaveY) < 0.05) {
         eaveX = Math.max(eaveX, Math.abs(pos[i]));
@@ -1204,7 +1467,11 @@ describe('roof eave overhangs the exterior wall (no exposed rim)', () => {
 
   for (const storeys of [1, 2, 3]) {
     it(`${storeys}-storey: roof eave reaches beyond the outer wall face`, () => {
-      const built = buildInterior(stylePlot(storeys), SEED_PATH, buildingShellHeightM(storeys));
+      const built = buildInterior(
+        stylePlot(storeys),
+        SEED_PATH,
+        buildingShellHeightM(storeys),
+      );
       expect(built.roof).toBeDefined();
       const { wallX, wallZ, eaveX, eaveZ } = extents(built);
       // The eave must cover the wall top — reach AT LEAST the outer face (a hair
@@ -1219,7 +1486,12 @@ describe('multi-storey parts', () => {
   const STAIR_COLOR = '#7a5a36';
   const tall = (storeys: number): InteriorPlotInput => ({
     id: 7,
-    footprint: [[1000, 2000], [1055, 2000], [1055, 2040], [1000, 2040]],
+    footprint: [
+      [1000, 2000],
+      [1055, 2000],
+      [1055, 2040],
+      [1000, 2040],
+    ],
     role: 'house',
     storeys,
   });
@@ -1248,7 +1520,9 @@ describe('multi-storey parts', () => {
     const slabYs = parts
       .filter((p) => p.colorHex === FLOOR_COLOR && (p.baseY ?? 0) > 0)
       .map((p) => p.baseY as number);
-    const uniqueYs = [...new Set(slabYs.map((y) => Math.round(y * 1e6) / 1e6))].sort((a, b) => a - b);
+    const uniqueYs = [
+      ...new Set(slabYs.map((y) => Math.round(y * 1e6) / 1e6)),
+    ].sort((a, b) => a - b);
     expect(uniqueYs.length).toBe(2);
     expect(uniqueYs[0]).toBeCloseTo(storeyH, 5);
     expect(uniqueYs[1]).toBeCloseTo(2 * storeyH, 5);
@@ -1279,12 +1553,14 @@ describe('multi-storey parts', () => {
     expect(flightBases[1]).toBeCloseTo(storeyH, 5);
 
     // Upper floors contribute interior walls + furniture above the ground.
-    const elevatedWalls = parts.filter((p) => p.colorHex === INTERIOR_WALL_COLOR && (p.baseY ?? 0) > 0);
+    const elevatedWalls = parts.filter(
+      (p) => p.colorHex === INTERIOR_WALL_COLOR && (p.baseY ?? 0) > 0,
+    );
     expect(elevatedWalls.length).toBeGreaterThan(0);
   });
 
   it('keeps every elevated part within the interior envelope (x/z bounds)', () => {
-    const plan = generateInterior(tall(3), SEED_PATH);
+    const plan = blueprintForPlot(tall(3), SEED_PATH);
     const halfW = (plan.widthFt / 2) * FT + WALL_THICKNESS_M;
     const halfD = (plan.depthFt / 2) * FT + WALL_THICKNESS_M;
     for (const p of buildInteriorParts(tall(3), SEED_PATH, 9)) {
@@ -1295,12 +1571,16 @@ describe('multi-storey parts', () => {
   });
 
   it('is deterministic for a multi-storey building', () => {
-    expect(buildInteriorParts(tall(4), SEED_PATH, 12)).toEqual(buildInteriorParts(tall(4), SEED_PATH, 12));
+    expect(buildInteriorParts(tall(4), SEED_PATH, 12)).toEqual(
+      buildInteriorParts(tall(4), SEED_PATH, 12),
+    );
   });
 
   it('houses resident occupants on the upper floors, not just the ground', () => {
     // Enough residents that the room cycle spills upstairs.
-    const residents = Array.from({ length: 14 }, (_, i) => fig(i + 1, 'adult', false));
+    const residents = Array.from({ length: 14 }, (_, i) =>
+      fig(i + 1, 'adult', false),
+    );
     const shellH = 9;
     const parts = buildInteriorParts(tall(3), SEED_PATH, shellH);
     const clothing = body().clothingHex;
@@ -1356,13 +1636,15 @@ describe('basements (blueprint-primary path, v1)', () => {
     expect(Math.max(...stairTops)).toBeCloseTo(0, 5); // top tread reaches grade
     expect(Math.min(...stairTops)).toBeGreaterThan(-3); // lowest tread climbs
     // Below-grade walls top out AT grade (never poke through the ground floor).
-    for (const p of below) expect((p.baseY ?? 0) + p.h).toBeLessThanOrEqual(1e-6 + 0);
+    for (const p of below)
+      expect((p.baseY ?? 0) + p.h).toBeLessThanOrEqual(1e-6 + 0);
   });
 
   it('the ground slab has a stair HOLE over the cellar stair; the cellar slab is solid', () => {
     const parts = buildInteriorParts(tavern(), SEED_PATH, SHELL_H);
     const slabCells = (pred: (b: number) => boolean): number =>
-      parts.filter((p) => p.colorHex === FLOOR_COLOR && pred(p.baseY ?? 0)).length;
+      parts.filter((p) => p.colorHex === FLOOR_COLOR && pred(p.baseY ?? 0))
+        .length;
     const groundCells = slabCells((b) => b === 0);
     const cellarCells = slabCells((b) => b < 0);
     // Same footprint on every level; the ground slab is short exactly the
@@ -1386,7 +1668,8 @@ describe('basements (blueprint-primary path, v1)', () => {
   });
 
   it('is deterministic including the basement roll', () => {
-    expect(buildInteriorParts(tavern(), SEED_PATH, SHELL_H))
-      .toEqual(buildInteriorParts(tavern(), SEED_PATH, SHELL_H));
+    expect(buildInteriorParts(tavern(), SEED_PATH, SHELL_H)).toEqual(
+      buildInteriorParts(tavern(), SEED_PATH, SHELL_H),
+    );
   });
 });

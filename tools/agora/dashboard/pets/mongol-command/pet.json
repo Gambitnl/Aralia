@@ -1,0 +1,6 @@
+{
+  "id": "mongol-command",
+  "displayName": "Mongol Command",
+  "description": "A tiny synthwave Mongol command warrior inspired by steppe conqueror armor, built as a Codex desktop pet.",
+  "spritesheetPath": "spritesheet.webp"
+}

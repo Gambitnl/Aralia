@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 21/07/2026, 14:21:02
+ * Dependents: components/World3D/GroundProps.tsx, components/World3D/WebGPUProbeScene.tsx
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file bushGeometry.ts — owned, seeded bush/shrub geometry.
  *
@@ -35,8 +51,10 @@ function makeLobe(
     v.add(offset);
     pos.setXYZ(i, v.x, v.y, v.z);
   }
-  const flat = geo.toNonIndexed();
-  geo.dispose();
+  // Three.js versions differ on whether IcosahedronGeometry starts indexed.
+  // Preserve either representation without a warning-producing no-op.
+  const flat = geo.index ? geo.toNonIndexed() : geo;
+  if (flat !== geo) geo.dispose();
   const arr = new Float32Array((flat.getAttribute('position') as THREE.BufferAttribute).array as Float32Array);
   flat.dispose();
   return arr;

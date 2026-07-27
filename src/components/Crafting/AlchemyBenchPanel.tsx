@@ -37,7 +37,7 @@ import {
 import { CraftingRecipe, CraftingTool, getResearchCost } from '../../systems/crafting/alchemyRecipes';
 import { CraftingQuality } from '../../systems/crafting/crafterProgression';
 import { attemptBatchCraft, generateBatchCraftActions, getBatchDCDisplay, DEFAULT_BATCH_CONFIG } from '../../systems/crafting/batchCrafting';
-import { CraftingLocationType } from '../../systems/crafting/craftingLocations';
+import { CRAFTING_LOCATIONS, CraftingLocationType } from '../../systems/crafting/craftingLocations';
 import { ExperimentPanel } from './ExperimentPanel';
 import { IngredientGlossaryPanel } from './IngredientGlossaryPanel';
 import { CraftingState } from '../../types/crafting';

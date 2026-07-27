@@ -19,7 +19,7 @@ describe('FenceSystem', () => {
       speed: 30,
       cr: '1/4'
     }
-  });
+  } as any);
 
   const mockFence: Fence = {
     id: 'fence-1',
@@ -103,9 +103,9 @@ describe('FenceSystem', () => {
 
   it('processTransaction updates player gold, inventory, and fence gold', () => {
     // Ensure player has the item
-    const playerWithItem = { ...mockPlayer, inventory: [mockItem] } as unknown as _PlayerCharacter;
+    const playerWithItem = { ...mockPlayer, inventory: [mockItem] } as unknown as any;
     const { updatedPlayer, updatedFence, result } = FenceSystem.processTransaction(mockItem, mockFence, playerWithItem) as unknown as {
-      updatedPlayer: _PlayerCharacter & { gold: number; inventory: unknown[] };
+      updatedPlayer: any & { gold: number; inventory: unknown[] };
       updatedFence: Fence;
       result: ReturnType<typeof FenceSystem.processTransaction>['result'];
     };

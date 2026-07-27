@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 22:34:53
+ * Last Sync: 19/07/2026, 08:32:34
  * Dependents: utils/core/index.ts, utils/factories.ts
  * Imports: 10 files
  *
@@ -24,6 +24,7 @@ import {
 } from '@/types/spells';
 
 import { getGameEpoch, getGameDay } from '@/utils/core/timeUtils';
+import { createEmptyWorldFactStore } from '../../systems/facts/worldFactStore';
 import {
   GameState,
   GamePhase,
@@ -501,6 +502,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isGlossaryVisible: false,
 
       npcMemory: {},
+      worldFacts: createEmptyWorldFactStore(),
+      battlefieldSourceGap: null,
 
       locationResidues: {},
 
@@ -573,6 +576,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isInvestmentBoardVisible: false,
       isEconomyLedgerVisible: false,
       isCourierPouchVisible: false,
+      isCommerceDeskVisible: false,
       activeDialogueSession: null,
       isDialogueInterfaceOpen: false,
       activeRumors: [],
@@ -638,6 +642,10 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       worldforgeEncounterReceipts: [],
       // SP4 discovery: no hidden places revealed yet.
       discoveredHiddenSites: [],
+      // Dungeon lifecycle tests begin with no entered canonical receipts.
+      dungeonExpeditions: {},
+      // Ecology clearing remains separate from expedition details but starts in sync.
+      clearedDungeons: [],
 
       archivedBanters: [],
 
@@ -679,6 +687,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
     base.businesses = base.businesses ?? {};
     base.isEconomyLedgerVisible = base.isEconomyLedgerVisible ?? false;
     base.isCourierPouchVisible = base.isCourierPouchVisible ?? false;
+    base.isCommerceDeskVisible = base.isCommerceDeskVisible ?? false;
 
     return base as GameState;
   } catch (error) {
@@ -781,6 +790,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isInvestmentBoardVisible: false,
       isEconomyLedgerVisible: false,
       isCourierPouchVisible: false,
+      isCommerceDeskVisible: false,
       activeDialogueSession: null,
       isDialogueInterfaceOpen: false,
       activeRumors: [],
@@ -823,7 +833,10 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       worldforgeDeltas: [],
       // Fallback states also begin without consumed generated-world encounters.
       worldforgeEncounterReceipts: [],
-      discoveredHiddenSites: []
+      discoveredHiddenSites: [],
+      // Keep fallback states structurally complete for dungeon lifecycle consumers.
+      dungeonExpeditions: {},
+      clearedDungeons: []
     };
   }
 }

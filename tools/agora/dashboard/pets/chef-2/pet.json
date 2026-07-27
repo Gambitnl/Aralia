@@ -1,0 +1,7 @@
+{
+  "id": "chef",
+  "displayName": "Chef",
+  "description": "A tiny Codex digital pet inspired by Steph Curry with number 30 on his jersey, basketball handles, shooting poses, and a night-night celebration.",
+  "spritesheetPath": "spritesheet.webp",
+  "kind": "person"
+}

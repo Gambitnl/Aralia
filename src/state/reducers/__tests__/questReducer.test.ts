@@ -61,7 +61,7 @@ describe('questReducer', () => {
       }
     );
 
-    expect(completedState.questLog[0]?.status).toBe(QuestStatus.Completed);
+    expect(completedState.questLog?.[0]?.status).toBe(QuestStatus.Completed);
     expect(completedState.journal?.pendingEvents).toHaveLength(2);
     expect(completedState.journal?.pendingEvents[1]).toMatchObject({
       type: 'quest_completed',

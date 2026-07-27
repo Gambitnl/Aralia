@@ -22,7 +22,7 @@ import { sanitizeAIInput, cleanAIJSON, safeJSONParse, redactSensitiveData } from
 import { logger } from "../../utils/logger";
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, COMPLEX_MODEL, FAST_MODEL } from "../../config/geminiConfig";
 import { MonsterSchema, CustomActionSchema, SocialOutcomeSchema } from "../geminiSchemas";
-import { chooseModelForComplexity, generateText } from "./core";
+import { chooseModelForComplexity, generateText, calculateBackoffDelay, sleep } from "./core";
 import { ExtendedGenerationConfig, GeminiCustomActionData, GeminiEncounterData, GeminiMetadata, GeminiSocialCheckData, GeminiTextData, StandardizedResult } from "./types";
 import { Action, GoalStatus, GroundingChunk, Monster, NPCMemory, TempPartyMember, VillageActionContext } from "../../types";
 import { MAX_ENCOUNTER_MONSTER_COUNT } from "../../utils/world/encounterUtils";
@@ -101,17 +101,18 @@ export async function generateEncounter(
 
   let lastError: unknown = null;
   let rateLimitHitInChain = false;
+  let attemptNumber = 0; // Initialize attempt counter
 
   const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, null);
   const initialModel = devModelOverride || adaptiveModel;
   const modelsToTry = [initialModel, ...GEMINI_TEXT_MODEL_FALLBACK_CHAIN.filter(m => m !== initialModel)];
 
-  // TODO #419: Unlike `generateText` in core.ts, this loop does NOT implement exponential backoff (sleep)
-  // between model fallback attempts. All models are tried in rapid succession, which may:
-  // 1. Trigger additional rate limits immediately.
-  // 2. Waste retries if the server is overloaded momentarily.
-  // Consider integrating the `calculateBackoffDelay` and `sleep` utilities from core.ts.
   for (const model of modelsToTry) {
+    if (attemptNumber > 0 && rateLimitHitInChain) {
+      const backoffDelay = calculateBackoffDelay(attemptNumber - 1);
+      logger.debug(`Waiting ${backoffDelay}ms before trying next model...`, { model, attemptNumber });
+      await sleep(backoffDelay);
+    }
     try {
       const useThinking = model.includes('gemini-2.5') || model.includes('gemini-3');
       const config: ExtendedGenerationConfig = {
@@ -161,6 +162,7 @@ export async function generateEncounter(
       };
     } catch (error: unknown) {
       lastError = error;
+      attemptNumber++; // Increment attempt number here
 
       let errorString = "";
       if (typeof error === 'object' && error !== null) {

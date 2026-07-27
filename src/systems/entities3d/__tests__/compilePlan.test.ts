@@ -132,3 +132,48 @@ describe('generateEntityBlueprint kind planned', () => {
     expect(bp.frame.heightFt).toBe(PLAN_FIXTURES.dragon.frame.heightFt);
   });
 });
+
+describe('junction blend resolution (blendM)', () => {
+  it('applies per-kind defaults: dragon legs get 0.35 against the smaller junction radius', () => {
+    const out = compilePlan(PLAN_FIXTURES.dragon);
+    const s = out.planSpec!;
+    const leg = s.chains.find((c) => c.kind === 'leg')!;
+    const hullR = Math.max(
+      0.01,
+      s.bodyRadM * (s.spine.taper + (1 - s.spine.taper) * leg.attach),
+    ) * (1 + (s.spine.bulge ?? 0) * Math.sin(Math.min(1, Math.max(0, (leg.attach - 0.08) / 0.84)) * Math.PI) * 0.55);
+    const expected = 0.35 * Math.min(leg.links[0].rM, hullR) * 2;
+    expect(leg.blendM).toBeCloseTo(expected, 6);
+  });
+
+  it('creature-level skin.blend beats per-kind defaults', () => {
+    const plan = JSON.parse(JSON.stringify(PLAN_FIXTURES.dragon));
+    plan.skin = { blend: 1 };
+    const a = compilePlan(plan).planSpec!;
+    const b = compilePlan(PLAN_FIXTURES.dragon).planSpec!;
+    const legA = a.chains.find((c) => c.kind === 'leg')!;
+    const legB = b.chains.find((c) => c.kind === 'leg')!;
+    expect(legA.blendM).toBeCloseTo((legB.blendM / 0.35) * 1, 6);
+    expect(a.skinBlend).toBe(1);
+  });
+
+  it('appendage blend override beats skin.blend, and 0 kills the collar', () => {
+    const plan = JSON.parse(JSON.stringify(PLAN_FIXTURES.dragon));
+    plan.skin = { blend: 1 };
+    plan.appendages[0].blend = 0;
+    const s = compilePlan(plan).planSpec!;
+    // appendages[0] is the FRONT leg pair only — its collars die, the rear
+    // pair still gets the creature-level skin.blend
+    const frontIds = new Set(['leg0L', 'leg0R']);
+    for (const c of s.chains) {
+      if (c.kind !== 'leg') continue;
+      expect(frontIds.has(c.id) ? c.blendM === 0 : c.blendM > 0).toBe(true);
+    }
+  });
+
+  it('is deterministic', () => {
+    const a = compilePlan(PLAN_FIXTURES.tentacledOoze).planSpec!;
+    const b = compilePlan(PLAN_FIXTURES.tentacledOoze).planSpec!;
+    expect(a.chains.map((c) => c.blendM)).toEqual(b.chains.map((c) => c.blendM));
+  });
+});

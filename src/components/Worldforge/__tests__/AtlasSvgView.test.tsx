@@ -3,6 +3,13 @@ import { render, fireEvent } from '@testing-library/react';
 import AtlasSvgView, { labelBudgetForViewport } from '../AtlasSvgView';
 import { requestMapCenterOnPlayer, consumeMapCenterOnPlayer } from '../mapFocusSignal';
 import type { MultiModalRoute } from '../../../systems/travel/multiModalRoute';
+import type { AtlasSvgModel } from '../atlasSvg';
+
+/**
+ * These tests exercise the interactive canonical SVG atlas as a player sees it.
+ * GG-40 adds rendered zoom-budget coverage while preserving the established
+ * keyboard, touch, exact-cell, worker-model, and town-card contracts below.
+ */
 
 // Layer prefs persist to localStorage (real behavior); clear between tests so
 // one test's coloring choice doesn't leak into the next.
@@ -377,7 +384,59 @@ describe('AtlasSvgView', () => {
   it('budgets only one overview label in phone-sized map panes', () => {
     expect(labelBudgetForViewport(300, 220)).toBe(1);
     expect(labelBudgetForViewport(246, 228)).toBe(1);
-    expect(labelBudgetForViewport(640, 360)).toBeUndefined();
+    expect(labelBudgetForViewport(640, 360)).toBe(8);
+  });
+
+  it('renders a bounded fit hierarchy and progressively reveals exact minor burgs', () => {
+    const tiers = Array.from({ length: 60 }, (_, index) => (
+      index < 2 ? 'capital' : index < 20 ? 'city' : index < 40 ? 'town' : 'village'
+    )) as Array<'capital' | 'city' | 'town' | 'village'>;
+    const preparedModel: AtlasSvgModel = {
+      width: 400,
+      height: 200,
+      // AtlasLayers always expects the canonical ocean/land slots even when a
+      // focused UI fixture has no terrain paths to paint.
+      layers: [
+        { id: 'ocean', polygons: [] },
+        { id: 'land', polygons: [], regions: [] },
+      ],
+      labels: [],
+      burgs: tiers.map((tier, index) => ({
+        id: index + 1,
+        x: 10 + (index % 20) * 12,
+        y: 10 + Math.floor(index / 20) * 20,
+        cell: 1000 + index,
+        name: `Burg ${index + 1}`,
+        capital: tier === 'capital',
+        tier,
+      })),
+    };
+    const { getByTestId, queryAllByTestId } = render(
+      <AtlasSvgView atlas={stub} preparedModel={preparedModel} width={600} height={300} />,
+    );
+    const svg = getByTestId('atlas-svg-view');
+
+    // Fit view is capped at twelve political anchors on this viewport.
+    expect(queryAllByTestId('atlas-burg')).toHaveLength(12);
+    expect(queryAllByTestId('atlas-burg').every((node) => node.dataset.tier !== 'town')).toBe(true);
+
+    // Six wheel steps cross the tactical town threshold. The DOM keeps the
+    // canonical ids/cells rather than renumbering the visible subset.
+    for (let step = 0; step < 6; step += 1) {
+      fireEvent.wheel(svg, { deltaY: -120, clientX: 0, clientY: 0 });
+    }
+    const tactical = queryAllByTestId('atlas-burg');
+    expect(tactical.length).toBeGreaterThan(12);
+    expect(tactical.some((node) => node.dataset.tier === 'town')).toBe(true);
+    expect(tactical.some((node) => node.dataset.tier === 'village')).toBe(false);
+    expect(new Set(tactical.map((node) => node.dataset.burgId)).size).toBe(tactical.length);
+    expect(tactical.every((node) => Number(node.dataset.cellId) >= 1000)).toBe(true);
+
+    // Four more steps cross the close-view village threshold.
+    for (let step = 0; step < 4; step += 1) {
+      fireEvent.wheel(svg, { deltaY: -120, clientX: 0, clientY: 0 });
+    }
+    expect(queryAllByTestId('atlas-burg').some((node) => node.dataset.tier === 'village')).toBe(true);
   });
 
   it('map coloring is an exclusive radio: picking "None" replaces biomes with the neutral land base', () => {

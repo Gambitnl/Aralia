@@ -1,0 +1,6 @@
+{
+  "id": "badoboy",
+  "displayName": "Badoboy",
+  "description": "A tiny pixel-style Badoboy companion based on the provided original sprites.",
+  "spritesheetPath": "spritesheet.webp"
+}

@@ -230,6 +230,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
       { action: { type: 'TOGGLE_LOGBOOK', label: 'Dossiers' } },
       { action: { type: 'TOGGLE_GLOSSARY_VISIBILITY', label: 'Glossary' } },
       { action: { type: 'toggle_party_overlay', label: 'Party' } },
+      { action: { type: 'TOGGLE_COMMERCE_DESK', label: 'Commerce' } },
       { action: { type: 'TOGGLE_GAME_GUIDE', label: 'Game Guide' } },
 
       // Middle section: Persistence (Save/Quit).
@@ -315,7 +316,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
             >
               {systemMenuActions.map(({ action, badgeCount, hasNotification }, idx) => (
                 <React.Fragment key={`${action.type}-${idx}`}>
-                  {idx === 6 && <div className="h-px bg-gray-600 my-1" aria-hidden="true"></div>}
+                  {idx === 7 && <div className="h-px bg-gray-600 my-1" aria-hidden="true"></div>}
                   <ActionButton
                     className={`!h-11 w-full !px-4 !py-2 text-left !text-base ${menuItemColorFor(action)}`}
                     action={action}

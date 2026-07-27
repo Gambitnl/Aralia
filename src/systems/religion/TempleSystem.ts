@@ -59,10 +59,10 @@ type TempleEffectResolution = {
  * explicit about what is and is not a heal.
  */
 const LEGACY_TEMPLE_EFFECT_HANDLERS: Record<
-  TempleLegacyExactEffect,
+  string,
   (context: TempleEffectContext) => TempleEffectResolution
 > = {
-  grant_blessing_minor: ({ dispatch }) => {
+  grant_blessing_minor: ({ dispatch }: TempleEffectContext) => {
     dispatch({
       type: 'ADD_NOTIFICATION',
       payload: {

@@ -13,6 +13,13 @@ import { createStore } from './store.mjs';
 
 // --- helpers ---------------------------------------------------------------
 
+// A tiny catalog makes ownership assertions deterministic without coupling
+// unit-test meaning to whichever 50 humanoids are currently in the gallery.
+const TEST_PETS = [
+  { slug: 'test-mage', displayName: 'Test Mage', kind: 'humanoid', localSpritesheet: 'pets/test-mage/spritesheet.webp' },
+  { slug: 'test-knight', displayName: 'Test Knight', kind: 'humanoid', localSpritesheet: 'pets/test-knight/spritesheet.webp' },
+];
+
 function tmpDir() {
   const d = path.join(os.tmpdir(), 'agora-test', crypto.randomUUID());
   fs.mkdirSync(d, { recursive: true });
@@ -49,7 +56,7 @@ test('presence: online -> stale -> dropped as the clock advances', () => {
   const now = makeClock();
   const store = createStore({ dir, now, presenceTtlMs: 1000, presenceDropMs: 5000 });
 
-  const a = store.registerAgent({ handle: 'alice', note: 'hi' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'alice', note: 'hi' });
   assert.equal(a.handle, 'alice');
   assert.equal(a.status, 'online');
   assert.ok(a.token);
@@ -81,7 +88,7 @@ test('presence: online -> stale -> dropped as the clock advances', () => {
 test('getAgentByToken returns the agent or null', () => {
   const dir = tmpDir();
   const store = createStore({ dir, now: makeClock() });
-  const a = store.registerAgent({ handle: 'bob' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'bob' });
   assert.equal(store.getAgentByToken(a.token).id, a.id);
   assert.equal(store.getAgentByToken('nope'), null);
   assert.equal(store.getAgentByToken(), null);
@@ -93,7 +100,7 @@ test('heartbeat-only lease expires an agent and releases its coordination claims
   const dir = tmpDir();
   const now = makeClock();
   const store = createStore({ dir, now, heartbeatOnlyLeaseMs: 2000 });
-  const a = store.registerAgent({ handle: 'worker.heartbeat-lease' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker.heartbeat-lease' });
   const lock = store.acquireLock({ agentId: a.id, paths: ['src/lease.ts'] });
   const reservation = store.reserveFiles({ agentId: a.id, paths: ['src/later.ts'] });
   const task = store.createTask({ agentId: a.id, title: 'lease work' });
@@ -122,7 +129,7 @@ test('meaningful authenticated activity renews the heartbeat-only lease', () => 
   const dir = tmpDir();
   const now = makeClock();
   const store = createStore({ dir, now, heartbeatOnlyLeaseMs: 2000 });
-  const a = store.registerAgent({ handle: 'worker.heartbeat-renewal' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker.heartbeat-renewal' });
 
   now.advance(1500);
   assert.equal(store.heartbeatAgent(a.id).ok, true);
@@ -143,7 +150,7 @@ test('sweep proactively enforces the heartbeat-only lease for a detached helper'
     heartbeatOnlyLeaseMs: 2000,
     presenceDropMs: 10000,
   });
-  const a = store.registerAgent({ handle: 'worker.detached-heartbeat' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker.detached-heartbeat' });
   const task = store.createTask({ agentId: a.id, title: 'detached work' });
   store.claimTask({ taskId: task.id, agentId: a.id });
 
@@ -167,8 +174,8 @@ test('locks: free path succeeds, different agent overlap conflicts, holder relea
   const dir = tmpDir();
   const now = makeClock();
   const store = createStore({ dir, now });
-  const a = store.registerAgent({ handle: 'a' });
-  const b = store.registerAgent({ handle: 'b' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'a' });
+  const b = store.registerAgent({ petSlug: 'gf-sd', handle: 'b' });
 
   const r1 = store.acquireLock({ agentId: a.id, paths: ['src/foo.ts'], reason: 'edit' });
   assert.equal(r1.ok, true);
@@ -206,8 +213,8 @@ test('locks: free path succeeds, different agent overlap conflicts, holder relea
 test('locks: glob overlap — A locks src/**/*.ts, B locking src/foo.ts conflicts', () => {
   const dir = tmpDir();
   const store = createStore({ dir, now: makeClock() });
-  const a = store.registerAgent({ handle: 'a' });
-  const b = store.registerAgent({ handle: 'b' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'a' });
+  const b = store.registerAgent({ petSlug: 'gf-sd', handle: 'b' });
 
   const r1 = store.acquireLock({ agentId: a.id, globs: ['src/**/*.ts'] });
   assert.equal(r1.ok, true);
@@ -235,7 +242,7 @@ test('locks: auto-expiry — sweepExpired drops past-TTL lock and emits lock.exp
   const dir = tmpDir();
   const now = makeClock();
   const store = createStore({ dir, now });
-  const a = store.registerAgent({ handle: 'a' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'a' });
 
   const events = [];
   store.subscribe((e) => events.push(e));
@@ -267,8 +274,8 @@ test('locks: auto-expiry — sweepExpired drops past-TTL lock and emits lock.exp
 test('reservations: queued agents keep FIFO dibs and the head is fulfilled by locking', () => {
   const dir = tmpDir();
   const store = createStore({ dir, now: makeClock() });
-  const a = store.registerAgent({ handle: 'a' });
-  const b = store.registerAgent({ handle: 'b' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'a' });
+  const b = store.registerAgent({ petSlug: 'gf-sd', handle: 'b' });
 
   const first = store.reserveFiles({ agentId: a.id, paths: ['tools/agora/dashboard/index.html'], reason: 'dashboard edit' });
   assert.equal(first.ok, true);
@@ -301,7 +308,7 @@ test('reservations: queued agents keep FIFO dibs and the head is fulfilled by lo
 test('reservations: holder can cancel by id or covered path', () => {
   const dir = tmpDir();
   const store = createStore({ dir, now: makeClock() });
-  const a = store.registerAgent({ handle: 'a' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'a' });
 
   const first = store.reserveFiles({ agentId: a.id, paths: ['src/a.ts'], reason: 'later' });
   assert.equal(first.ok, true);
@@ -321,13 +328,146 @@ test('reservations: holder can cancel by id or covered path', () => {
   rm(dir);
 });
 
+test('workflow-gap coordination: canonical FIFO, stale force release, lock renewal, and reasoning provenance', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  const workspaceRoot = path.resolve('F:/Repos/Aralia');
+  const store = createStore({
+    dir,
+    now,
+    presenceTtlMs: 1000,
+    workspaceRoot,
+    petCatalog: TEST_PETS,
+  });
+  const a = store.registerAgent({
+    petSlug: 'test-mage',
+    handle: 'codex-canonical-a',
+    model: 'gpt-5.6-sol',
+    reasoningEffort: 'medium',
+    sessionId: 'thread-a',
+  });
+  const b = store.registerAgent({ petSlug: 'test-knight', handle: 'canonical-b' });
+  assert.equal(store.listAgents().find((agent) => agent.id === a.id).reasoningEffort, 'medium');
+
+  const reservation = store.reserveFiles({ agentId: a.id, paths: ['public/planmap/topics.json'] });
+  assert.equal(reservation.ok, true);
+  const absoluteEquivalent = path.join(workspaceRoot, 'public', 'planmap', 'topics.json');
+  const leapfrog = store.acquireLock({ agentId: b.id, paths: [absoluteEquivalent] });
+  assert.equal(leapfrog.ok, false);
+  assert.equal(leapfrog.conflict.type, 'reservation');
+
+  const onlineForce = store.releaseReservation({ agentId: b.id, target: reservation.reservation.id, force: true });
+  assert.equal(onlineForce.ok, false);
+  assert.match(onlineForce.error, /online/);
+  now.advance(1001);
+  const staleForce = store.releaseReservation({ agentId: b.id, target: reservation.reservation.id, force: true });
+  assert.equal(staleForce.ok, true);
+
+  const lock = store.acquireLock({ agentId: b.id, paths: ['src/renew.ts'], ttlMs: 500 });
+  assert.equal(lock.ok, true);
+  now.advance(100);
+  const renewed = store.renewLock({ lockId: lock.lock.id, agentId: b.id, ttlMs: 2000 });
+  assert.equal(renewed.ok, true);
+  assert.equal(renewed.lock.expiresAt, now() + 2000);
+  const deniedRenewal = store.renewLock({ lockId: lock.lock.id, agentId: a.id, ttlMs: 2000 });
+  assert.equal(deniedRenewal.ok, false);
+
+  store.close();
+  rm(dir);
+});
+
+test('sweep releases stale reservations without reaping the holder lock or task', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  const store = createStore({
+    dir,
+    now,
+    presenceTtlMs: 1000,
+    presenceDropMs: 5000,
+    petCatalog: TEST_PETS,
+  });
+  const holder = store.registerAgent({ petSlug: 'test-mage', handle: 'stale-reserver' });
+  const successor = store.registerAgent({ petSlug: 'test-knight', handle: 'queued-successor' });
+
+  // Give the soon-to-be-stale worker a reservation plus unrelated durable work.
+  // The stale sweep should unblock the queue without treating quiet work as dead.
+  const head = store.reserveFiles({ agentId: holder.id, paths: ['src/queued.ts'] });
+  const queued = store.reserveFiles({ agentId: successor.id, paths: ['src/queued.ts'] });
+  const heldLock = store.acquireLock({ agentId: holder.id, paths: ['src/in-progress.ts'] });
+  const heldTask = store.createTask({ agentId: holder.id, title: 'preserve quiet work' });
+  store.claimTask({ taskId: heldTask.id, agentId: holder.id });
+
+  // Exactly at the ten-minute-equivalent boundary the holder is still online,
+  // matching the force-release rule's inclusive protection.
+  now.advance(1000);
+  store.touch(successor.id);
+  store.sweepExpired();
+  assert.deepEqual(store.listReservations().map((row) => row.id), [head.reservation.id, queued.reservation.id]);
+
+  // One millisecond later only the stale holder loses its queue position. The
+  // online successor becomes head and can take the requested lock immediately.
+  now.advance(1);
+  store.touch(successor.id);
+  store.sweepExpired();
+  const reservations = store.listReservations();
+  assert.equal(reservations.length, 1);
+  assert.equal(reservations[0].id, queued.reservation.id);
+  assert.equal(reservations[0].position, 1);
+  const successorLock = store.acquireLock({ agentId: successor.id, paths: ['src/queued.ts'] });
+  assert.equal(successorLock.ok, true);
+
+  // Reservation recovery is intentionally narrower than agent reaping: the
+  // stale worker's unrelated lock and claimed task remain protected.
+  assert.equal(store.listLocks().some((lock) => lock.id === heldLock.lock.id), true);
+  assert.equal(store.listTasks().find((task) => task.id === heldTask.id).state, 'claimed');
+
+  store.close();
+  rm(dir);
+});
+
+test('pet capacity recovery retires only stale idle presence', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  const store = createStore({ dir, now, presenceTtlMs: 1000, petCatalog: TEST_PETS });
+  const orchestrator = store.registerAgent({
+    petSlug: 'test-mage',
+    handle: 'capacity-orchestrator',
+    role: 'orchestrator',
+    sessionId: 'capacity-thread',
+  });
+  const target = store.registerAgent({ petSlug: 'test-knight', handle: 'capacity-target' });
+
+  const online = store.retireStaleIdleAgent({ requesterId: orchestrator.id, targetAgentId: target.id });
+  assert.equal(online.ok, false);
+  assert.match(online.error, /online/);
+
+  const held = store.acquireLock({ agentId: target.id, paths: ['src/capacity.ts'] });
+  now.advance(1001);
+  store.touch(orchestrator.id);
+  assert.equal(store.listAgents().find((agent) => agent.id === target.id).capacityRecoverable, false);
+  const owning = store.retireStaleIdleAgent({ requesterId: orchestrator.id, targetAgentId: target.id });
+  assert.equal(owning.ok, false);
+  assert.match(owning.error, /holds locks/);
+
+  store.releaseLock({ lockId: held.lock.id, agentId: target.id });
+  assert.equal(store.listAgents().find((agent) => agent.id === target.id).capacityRecoverable, true);
+  const recovered = store.retireStaleIdleAgent({ requesterId: orchestrator.id, targetAgentId: target.id });
+  assert.equal(recovered.ok, true);
+  const replacement = store.registerAgent({ petSlug: 'test-knight', handle: 'capacity-replacement' });
+  assert.equal(replacement.pet.slug, 'test-knight');
+  assert.equal(new Set(store.listAgents().map((agent) => agent.pet.slug)).size, store.listAgents().length);
+
+  store.close();
+  rm(dir);
+});
+
 // --- tasks -----------------------------------------------------------------
 
 test('task lifecycle: create -> claim -> in_progress -> done; double-claim rejected; handoff', () => {
   const dir = tmpDir();
-  const store = createStore({ dir, now: makeClock() });
-  const a = store.registerAgent({ handle: 'a' });
-  const b = store.registerAgent({ handle: 'b' });
+  const store = createStore({ dir, now: makeClock(), petCatalog: TEST_PETS });
+  const a = store.registerAgent({ handle: 'a', petSlug: 'test-mage' });
+  const b = store.registerAgent({ handle: 'b', petSlug: 'test-knight' });
 
   const t = store.createTask({ agentId: a.id, title: 'do thing', body: 'details' });
   assert.equal(t.state, 'open');
@@ -351,6 +491,10 @@ test('task lifecycle: create -> claim -> in_progress -> done; double-claim rejec
   assert.equal(c.ok, true);
   assert.equal(c.task.state, 'claimed');
   assert.equal(c.task.claimedBy, a.id);
+  assert.ok(TEST_PETS.some((pet) => pet.slug === c.task.assignedPet.slug));
+  assert.equal(c.task.claimedAgent.pet.slug, c.task.assignedPet.slug);
+  assert.equal(c.task.history.at(-1).petSlug, c.task.assignedPet.slug);
+  assert.equal(store.listAgents().find((agent) => agent.id === a.id).pet.slug, c.task.assignedPet.slug);
 
   // double-claim by another agent rejected
   const c2 = store.claimTask({ taskId: t.id, agentId: b.id });
@@ -377,10 +521,108 @@ test('task lifecycle: create -> claim -> in_progress -> done; double-claim rejec
   const h = store.handoffTask({ taskId: t2.id, agentId: a.id, toAgentId: b.id });
   assert.equal(h.ok, true);
   assert.equal(h.task.claimedBy, b.id);
+  assert.equal(h.task.claimedAgent.id, b.id);
+  assert.equal(h.task.claimedAgent.pet.slug, h.task.assignedPet.slug);
+  assert.notEqual(h.task.assignedPet.slug, c.task.assignedPet.slug, 'live agents receive different pets while the catalog has room');
+  assert.equal(store.listAgents().find((agent) => agent.id === b.id).pet.slug, h.task.assignedPet.slug);
+
+  // A released task has no current owner or pet; the historical handoff entry
+  // still retains the pet slug that accompanied the assignment.
+  store.retireAgent(b.id, { note: 'test release' });
+  const reopened = store.listTasks().find((task) => task.id === t2.id);
+  assert.equal(reopened.state, 'open');
+  assert.equal(reopened.claimedBy, null);
+  assert.equal(reopened.claimedAgent, null);
+  assert.equal(reopened.assignedPet, null);
+  assert.ok(reopened.history.some((entry) => entry.action === 'handoff' && entry.petSlug));
 
   // listTasks filter
   assert.equal(store.listTasks({ state: 'done' }).length, 1);
   assert.equal(store.listTasks().length, 2);
+
+  store.close();
+  rm(dir);
+});
+
+test('presence registration requires an explicit pet at the store boundary', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir, now: makeClock() });
+  assert.throws(
+    () => store.registerAgent({ handle: 'petless-worker' }),
+    /petSlug.*required/,
+  );
+  assert.equal(store.listAgents().length, 0);
+
+  store.close();
+  rm(dir);
+});
+
+test('presence registration fails honestly when no pet catalog is available', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir, now: makeClock(), petCatalog: [] });
+  assert.throws(
+    () => store.registerAgent({ handle: 'catalogless-worker', petSlug: 'test-mage' }),
+    /unknown petSlug/,
+  );
+  assert.equal(store.listAgents().length, 0);
+
+  store.close();
+  rm(dir);
+});
+
+test('presence pets stay unique, substitute occupied choices, and become reusable after retirement', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir, now: makeClock(), petCatalog: TEST_PETS });
+
+  const first = store.registerAgent({ handle: 'first-worker', petSlug: 'test-mage' });
+  const second = store.registerAgent({ handle: 'second-worker', petSlug: 'test-mage' });
+  assert.equal(first.pet.slug, 'test-mage');
+  assert.equal(second.pet.slug, 'test-knight');
+  assert.equal(second.requestedPetSlug, 'test-mage');
+  assert.equal(second.petSubstituted, true);
+  assert.equal(new Set(store.listAgents().map((agent) => agent.pet.slug)).size, 2);
+
+  const catalog = store.listPetIdentities();
+  assert.equal(catalog.find((pet) => pet.slug === 'test-mage').available, false);
+  assert.equal(catalog.find((pet) => pet.slug === 'test-mage').claimedBy.handle, 'first-worker');
+  assert.throws(
+    () => store.registerAgent({ handle: 'third-worker', petSlug: 'test-mage' }),
+    (error) => error && error.code === 'AGORA_PET_CATALOG_EXHAUSTED',
+  );
+
+  // Retiring the original owner releases its identity for the next explicit
+  // choice; the substituted second agent keeps its own assignment.
+  store.retireAgent(first.id);
+  const replacement = store.registerAgent({ handle: 'third-worker', petSlug: 'test-mage' });
+  assert.equal(replacement.pet.slug, 'test-mage');
+  assert.equal(replacement.petSubstituted, false);
+
+  store.close();
+  rm(dir);
+});
+
+test('Codex and governance registrations require task/thread provenance at the store boundary', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir, now: makeClock() });
+  for (const registration of [
+    { petSlug: 'gf-sd', handle: 'codex-worker' },
+    { petSlug: 'gf-sd', handle: 'typed-worker', type: 'codex' },
+    { petSlug: 'gf-sd', handle: 'model-worker', model: 'gpt-5.6-sol' },
+    { petSlug: 'gf-sd', handle: 'lead', role: 'orchestrator' },
+  ]) {
+    assert.throws(() => store.registerAgent(registration), /task\/thread id.*required/i);
+  }
+  assert.equal(store.listAgents().length, 0);
+
+  const codex = store.registerAgent({
+    petSlug: 'gf-sd', handle: 'codex-worker', sessionId: '  thread-codex  ',
+  });
+  const orchestrator = store.registerAgent({
+    petSlug: 'gf-sd', handle: 'lead', role: 'orchestrator', sessionId: 'thread-lead',
+  });
+  assert.equal(codex.sessionId, 'thread-codex');
+  assert.equal(orchestrator.sessionId, 'thread-lead');
+  assert.equal(store.listAgents().find((agent) => agent.id === codex.id).threadIdRequired, true);
 
   store.close();
   rm(dir);
@@ -391,10 +633,10 @@ test('task lifecycle: create -> claim -> in_progress -> done; double-claim rejec
 test('messages: command channel is role-gated and filtered separately', () => {
   const dir = tmpDir();
   const store = createStore({ dir, now: makeClock() });
-  const worker = store.registerAgent({ handle: 'w' }); // role defaults to worker
-  const orch = store.registerAgent({ handle: 'o', role: 'orchestrator' });
-  const human = store.registerAgent({ handle: 'h', role: 'human' });
-  const master = store.registerAgent({ handle: 'm', role: 'master' });
+  const worker = store.registerAgent({ petSlug: 'gf-sd', handle: 'w' }); // role defaults to worker
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'o', role: 'orchestrator', sessionId: 'thread-o' });
+  const human = store.registerAgent({ petSlug: 'gf-sd', handle: 'h', role: 'human' });
+  const master = store.registerAgent({ petSlug: 'gf-sd', handle: 'm', role: 'master', sessionId: 'thread-m' });
 
   // Workers may not post on the command channel.
   const refused = store.postMessage({ agentId: worker.id, to: 'all', body: 'sneak', channel: 'command' });
@@ -424,9 +666,9 @@ test('messages: command channel is role-gated and filtered separately', () => {
 test('messages: broadcast + direct routing, since cursor', () => {
   const dir = tmpDir();
   const store = createStore({ dir, now: makeClock() });
-  const a = store.registerAgent({ handle: 'a' });
-  const b = store.registerAgent({ handle: 'b' });
-  const c = store.registerAgent({ handle: 'c' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'a' });
+  const b = store.registerAgent({ petSlug: 'gf-sd', handle: 'b' });
+  const c = store.registerAgent({ petSlug: 'gf-sd', handle: 'c' });
 
   const m1 = store.postMessage({ agentId: a.id, to: 'all', body: 'hello all' });
   assert.equal(m1.ok, true);
@@ -470,7 +712,7 @@ test('subscribe: subscriber receives an event per mutation; unsubscribe stops th
   const events = [];
   const unsub = store.subscribe((e) => events.push(e));
 
-  const a = store.registerAgent({ handle: 'a' }); // agent.register
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'a' }); // agent.register
   store.acquireLock({ agentId: a.id, paths: ['p'] }); // lock.acquire
   store.postMessage({ agentId: a.id, to: 'all', body: 'x' }); // message.post
 
@@ -497,8 +739,8 @@ test('durability: snapshot + journal replay reconstructs identical state', () =>
 
   // First store: a bunch of mutations, then close (final snapshot).
   let s1 = createStore({ dir, now });
-  const a = s1.registerAgent({ handle: 'alice' });
-  const b = s1.registerAgent({ handle: 'bob' });
+  const a = s1.registerAgent({ petSlug: 'gf-sd', handle: 'alice' });
+  const b = s1.registerAgent({ petSlug: 'gf-sd', handle: 'bob' });
   s1.acquireLock({ agentId: a.id, globs: ['src/**/*.ts'], reason: 'refactor' });
   const t = s1.createTask({ agentId: a.id, title: 'task one', body: 'body' });
   s1.claimTask({ taskId: t.id, agentId: a.id });
@@ -541,7 +783,7 @@ test('durability: replay works without a snapshot (journal-only, mid-session cra
 
   // Mutate but DO NOT close (no snapshot) — simulate a crash by abandoning s1.
   const s1 = createStore({ dir, now });
-  const a = s1.registerAgent({ handle: 'alice' });
+  const a = s1.registerAgent({ petSlug: 'gf-sd', handle: 'alice' });
   s1.acquireLock({ agentId: a.id, paths: ['x.ts'] });
   s1.createTask({ agentId: a.id, title: 'survive' });
   // no s1.close() — snapshot.json absent, journal.jsonl has the events.

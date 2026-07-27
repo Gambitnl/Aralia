@@ -136,15 +136,29 @@ const EzTreeLayer: React.FC<EzTreeLayerProps> = ({ mapData }) => {
   const biomeConfig = BIOME_TREES[biome] ?? DEFAULT_BIOME_TREES;
 
   // --- Collect tile positions that have tree decoration ---
+  // Thicket understory (GOAL #39): tree tiles surrounded by other tree tiles
+  // (≥4 of 8 neighbors) get a second, smaller visual-only tree. The generator's
+  // density field makes thickets exist; this makes them read as undergrowth
+  // rather than the same stipple at a higher count. Gameplay is untouched —
+  // the tile was already a blocking tree tile.
   const treeTiles = useMemo(() => {
-    const tiles: { x: number; y: number; elevation: number }[] = [];
+    const treeSet = new Set<string>();
+    for (const [key, tile] of mapData.tiles) {
+      if (tile.decoration === 'tree') treeSet.add(key);
+    }
+    const tiles: { x: number; y: number; elevation: number; understory: boolean }[] = [];
     for (const [, tile] of mapData.tiles) {
       if (tile.decoration === 'tree') {
-        tiles.push({
-          x: tile.coordinates.x,
-          y: tile.coordinates.y,
-          elevation: tile.elevation,
-        });
+        const { x, y } = tile.coordinates;
+        let neighbors = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            if ((dx !== 0 || dy !== 0) && treeSet.has(`${x + dx}-${y + dy}`)) neighbors++;
+          }
+        }
+        const base = { x, y, elevation: tile.elevation };
+        tiles.push({ ...base, understory: false });
+        if (neighbors >= 4) tiles.push({ ...base, understory: true });
       }
     }
     return tiles;
@@ -257,7 +271,7 @@ const EzTreeLayer: React.FC<EzTreeLayerProps> = ({ mapData }) => {
     const numVariants = biomeConfig.variants.length;
 
     // Assign each tile to a variant by weighted random
-    const buckets: { x: number; y: number; elevation: number }[][] =
+    const buckets: { x: number; y: number; elevation: number; understory: boolean }[][] =
       Array.from({ length: numVariants }, () => []);
     treeTiles.forEach((tile, i) => {
       const vi = pickVariant(biomeConfig.variants, i);
@@ -276,12 +290,16 @@ const EzTreeLayer: React.FC<EzTreeLayerProps> = ({ mapData }) => {
       const geo = variantGeometries[vi];
       const mat = variantMaterials[vi];
 
-      const setMatrix = (mesh: THREE.InstancedMesh, idx: number, tile: { x: number; y: number; elevation: number }) => {
-        const jx = (stableRand(idx, vi + 1) - 0.5) * 2 * POSITION_JITTER;
-        const jz = (stableRand(idx, vi + 2) - 0.5) * 2 * POSITION_JITTER;
+      const setMatrix = (mesh: THREE.InstancedMesh, idx: number, tile: { x: number; y: number; elevation: number; understory: boolean }) => {
+        // Understory trees push toward the tile edge (wider jitter) so the
+        // pair doesn't intersect, and run ~55% scale — sapling under canopy.
+        const jitter = tile.understory ? POSITION_JITTER * 1.5 : POSITION_JITTER;
+        const jx = (stableRand(idx, vi + 1) - 0.5) * 2 * jitter;
+        const jz = (stableRand(idx, vi + 2) - 0.5) * 2 * jitter;
         const rotY = stableRand(idx, vi + 3) * Math.PI * 2;
         // Scale variation ±22%
-        const sv = cfg.scale * (0.82 + stableRand(idx, vi + 4) * 0.40);
+        const sv = cfg.scale * (0.82 + stableRand(idx, vi + 4) * 0.40)
+          * (tile.understory ? 0.55 : 1);
 
         const wx = tile.x * TILE_SIZE + 0.5 * TILE_SIZE + jx;
         const wz = tile.y * TILE_SIZE + 0.5 * TILE_SIZE + jz;

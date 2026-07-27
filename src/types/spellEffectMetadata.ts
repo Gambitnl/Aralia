@@ -110,14 +110,14 @@ export interface ModeChoiceOption {
 
 /** Top-level mode menu for spells that ask the caster to choose one operation. */
 export interface ModeChoice {
-  /** Current menu shape: the caster chooses exactly one operation. */
-  type: "choose_one";
-  /** When the spell asks the caster to choose or change the operation. */
-  timing: "on_cast" | "on_cast_or_later_action";
+  /** Source-backed menu shape, including choose_multiple variants. */
+  type: string;
+  /** Source-backed timing label for cast-time or later-action choices. */
+  timing: string;
   /** Number of options in the canonical menu. */
   optionCount: number;
   /** Where the option payloads live so runtime/UI code can follow them. */
-  optionsSource: "modeChoice.options" | "effects" | "controlOptions" | "mixed" | "summon.formOptions" | "effects[0].summon.formOptions";
+  optionsSource: string;
   /** Active cap for non-instantaneous options, or a sentinel when none exists. */
   maxActiveNonInstantaneous?: number | "not_applicable";
   /** Whether the spell allows active non-instantaneous options to be dismissed. */

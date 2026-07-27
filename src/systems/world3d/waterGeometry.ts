@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 13:48:54
+ * Last Sync: 18/07/2026, 19:30:57
  * Dependents: systems/world3d/chunkBundle.ts
  * Imports: 3 files
  *
@@ -16,11 +16,11 @@
 
 /**
  * @file waterGeometry.ts
- * Build flat ribbon meshes along clipped river polylines. Each polyline point
- * produces a left/right vertex pair offset perpendicular to the local direction
- * by half the river width (grid→meters). Lake polygons are filled as flat
- * triangulated surfaces first, so the river ribbons can still read on top.
- * Output is chunk-local.
+ * Build visible water surfaces for clipped rivers and lake polygons. Ground
+ * rivers arrive with a loader-computed waterline that crossings can query too,
+ * so this file renders that shared truth instead of hiding a second guessed
+ * ribbon beneath the carved bed. Legacy continent rivers keep their previous
+ * terrain-following fallback. Output is chunk-local.
  */
 import type { ChunkData, ChunkGeometryArrays, ClippedPolyline } from './types';
 import earcut from 'earcut';
@@ -28,8 +28,11 @@ import { WORLD3D_CONFIG, heightToMeters } from './config';
 import { gridPointToLocal } from './coords';
 
 const M = WORLD3D_CONFIG.METERS_PER_CELL;
-const WATER_DROP_M = 0.5;
-const LAKE_DROP_M = WATER_DROP_M + 0.05;
+// Legacy continent rivers do not yet carry the ground-mode waterline contract.
+// Keep their historical buried offset rather than changing a separate renderer
+// as a side effect of this walking-scale feature.
+const LEGACY_RIVER_DROP_M = 0.5;
+const LAKE_DROP_M = LEGACY_RIVER_DROP_M + 0.05;
 
 const EMPTY: ChunkGeometryArrays = {
   positions: new Float32Array(0),
@@ -109,7 +112,13 @@ function emitRibbon(
     const halfW = ((ribbon.width[i] ?? 0.01) * M) / 2;
 
     const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
-    const y = waterHeightAt(data, p.x, p.y) - WATER_DROP_M;
+    // Ground-mode chunks carry the authoritative per-point surface. Older
+    // callers remain byte-compatible by falling back to their original bed
+    // sample and drop when no shared waterline is present.
+    const sharedWaterlineY = ribbon.waterlineY?.[i];
+    const y = typeof sharedWaterlineY === 'number' && Number.isFinite(sharedWaterlineY)
+      ? sharedWaterlineY
+      : waterHeightAt(data, p.x, p.y) - LEGACY_RIVER_DROP_M;
 
     positions.push(local.x - perpX * halfW, y, local.z - perpZ * halfW);
     normals.push(0, 1, 0);

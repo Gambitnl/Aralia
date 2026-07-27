@@ -9,13 +9,15 @@
  *     stamped by the programmer; we resolve those tags back to members using
  *     the SAME tag scheme briefFromHousehold used (members in order, counting
  *     per role: 'head', 'spouse', then '<role>:<n>'). A member with no tagged
- *     room claims the MAIN room — the visible-misfit rule. Servant tags have no
- *     named member and resolve to no claim.
+ *     room claims the MAIN room — the visible-misfit rule. Named servants share
+ *     the purpose-built servant room even though ground program slots do not
+ *     carry bedroom-style `forSlot` tags.
  *   - STATIONS: a fixed medieval day per member, a deterministic scan (no RNG):
  *     sleep 22–06 at the claimed room's bed; meals 07 & 18 at the largest table
  *     in the kitchen/main room; work 08–17 (worksAtHome heads/spouses at the
  *     trade room's workstation, everyone else `out`); children alternate
- *     chores/out by day; evenings 19–21 hearthside; the rest home idle.
+ *     chores/out by day; servants serve meals and do daytime household chores;
+ *     evenings 19–21 hearthside; the rest home idle.
  *   - FLAGS: abandoned (zero members) and the 24-hour hearth-lit schedule.
  *
  * Determinism: identical (plan, household) always yields identical occupancy —
@@ -117,6 +119,8 @@ function resolveClaims(
   const claims: RoomClaim[] = [];
   const roomByMember: (number | undefined)[] = new Array(household.members.length).fill(undefined);
   const levelByMember: (number | undefined)[] = new Array(household.members.length).fill(undefined);
+  const tagByMember = new Map<number, string>();
+  for (const [tag, idx] of tagMap) tagByMember.set(idx, tag);
 
   for (const floor of plan.floors) {
     for (const room of floor.rooms) {
@@ -125,7 +129,7 @@ function resolveClaims(
         const t = tag.trim();
         if (!t) continue;
         const memberIdx = tagMap.get(t);
-        if (memberIdx === undefined) continue; // servant tags have no named member
+        if (memberIdx === undefined) continue;
         // A member already seated keeps their first-scanned room (stable order).
         if (roomByMember[memberIdx] !== undefined) continue;
         roomByMember[memberIdx] = room.id;
@@ -140,11 +144,28 @@ function resolveClaims(
     }
   }
 
+  // Ground program slots do not carry bedroom assignment tags. Bind every
+  // named servant to the first purpose-built servant room so the shared room
+  // is visibly occupied instead of falling through to the family hall.
+  const servantRoom = plan.floors
+    .flatMap((floor) => floor.rooms.map((room) => ({ floor, room })))
+    .find(({ room }) => room.purpose === 'servant-room');
+  if (servantRoom) {
+    household.members.forEach((member, memberIdx) => {
+      if (member.role !== 'servant' || roomByMember[memberIdx] !== undefined) return;
+      roomByMember[memberIdx] = servantRoom.room.id;
+      levelByMember[memberIdx] = servantRoom.floor.level;
+      claims.push({
+        slotTag: tagByMember.get(memberIdx) ?? `servant:${memberIdx}`,
+        memberName: member.name,
+        level: servantRoom.floor.level,
+        roomId: servantRoom.room.id,
+      });
+    });
+  }
+
   // Misfit rule: any member without a tagged room claims the main room.
   const { floor: mainFloor, room: mainRoom } = findMain(plan);
-  const rebuiltTags = tagToMember(household);
-  const tagByMember = new Map<number, string>();
-  for (const [tag, idx] of rebuiltTags) tagByMember.set(idx, tag);
   household.members.forEach((m, i) => {
     if (roomByMember[i] !== undefined) return;
     roomByMember[i] = mainRoom.id;
@@ -265,6 +286,7 @@ export function computeOccupancy(
     for (let i = 0; i < members.length; i++) {
       const m = members[i];
       const isChild = m.ageBand === 'child';
+      const isServant = m.role === 'servant';
       const worksTrade = opts.worksAtHome && (m.role === 'head' || m.role === 'spouse');
 
       // Sleep 22:00–06:59 at the claimed room's bed.
@@ -279,6 +301,12 @@ export function computeOccupancy(
       }
       // Work band 08:00–17:59.
       if (hour >= 8 && hour <= 17) {
+        // Live-in servants remain visible doing household work in the shared
+        // meal-room area; street-agent routing must not send them to a fake job.
+        if (isServant) {
+          row.push(homeStation(i, hour, 'chores', { level: meal.level, roomId: meal.roomId }));
+          continue;
+        }
         if (isChild) {
           // Children alternate chores (even hours) at home and out (odd hours).
           if (hour % 2 === 0) {

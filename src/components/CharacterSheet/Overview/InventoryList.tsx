@@ -87,7 +87,7 @@ const isEquippableItemType = (item: InventoryEntry): boolean =>
  */
 const _warnedSlotlessEquippable = new Set<string>();
 
-// TODO #53(FEATURES): Add container browsing UI and item comparison panels for inventory entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+// TODO: Add container browsing UI and item comparison panels for inventory entries.
 // ============================================================================
 // Item Tooltip Generator
 // ============================================================================

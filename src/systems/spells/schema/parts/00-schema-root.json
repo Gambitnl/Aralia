@@ -207,7 +207,8 @@
               {
                 "type": "string",
                 "enum": [
-                  "unlimited"
+                  "unlimited",
+                  "any_number"
                 ]
               },
               {
@@ -250,15 +251,7 @@
             "type": "array",
             "items": {
               "type": "string",
-              "enum": [
-                "self",
-                "creatures",
-                "allies",
-                "enemies",
-                "objects",
-                "point",
-                "ground"
-              ]
+              "minLength": 1
             }
           },
           "lineOfSight": {
@@ -283,10 +276,14 @@
             "type": "object",
             "properties": {
               "willing": {
-                "type": "string",
-                "enum": [
-                  "required",
-                  "not_applicable"
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "boolean"
+                  }
                 ]
               },
               "objectEligibility": {
@@ -294,10 +291,7 @@
                 "properties": {
                   "wornOrCarried": {
                     "type": "string",
-                    "enum": [
-                      "excluded",
-                      "not_applicable"
-                    ]
+                    "minLength": 1
                   },
                   "magicalStatus": {
                     "type": "string",
@@ -347,24 +341,36 @@
                 "type": "object",
                 "properties": {
                   "canHearCaster": {
-                    "type": "string",
-                    "enum": [
-                      "required",
-                      "not_applicable"
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "boolean"
+                      }
                     ]
                   },
                   "canUnderstandCaster": {
-                    "type": "string",
-                    "enum": [
-                      "required",
-                      "not_applicable"
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "boolean"
+                      }
                     ]
                   },
                   "canSeeCaster": {
-                    "type": "string",
-                    "enum": [
-                      "required",
-                      "not_applicable"
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "boolean"
+                      }
                     ]
                   }
                 },

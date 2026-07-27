@@ -3,7 +3,8 @@
 **Reference for any agent (or human) sharing the `F:\Repos\Aralia` checkout.**
 Design spec (source of truth): [`docs/superpowers/specs/2026-06-27-agora-agent-coordination-design.md`](../../docs/superpowers/specs/2026-06-27-agora-agent-coordination-design.md)
 **Orchestrating a multi-agent campaign?** Read [`ORCHESTRATOR.md`](./ORCHESTRATOR.md) — the
-board + agent matrix (external CLIs) + project tracker, end to end. This file is the per-agent API.
+board + agent matrix (external CLIs) + planning surfaces (Plan Map, Roadmap; project tracker is
+deprecated), end to end. This file is the per-agent API.
 
 ---
 
@@ -65,12 +66,13 @@ writes a final snapshot and exits cleanly.
 
 ## Authentication
 
-- `POST /agents/register` is **open** (no token) and returns your `token`.
+- `GET /pets` and `POST /agents/register` are **open** so an agent can choose a pet
+  before it has a token. Registration returns the token only after the selected pet is valid.
 - **All mutating endpoints** (`POST /locks`, `DELETE /locks/:id`, `POST /reservations`,
   `DELETE /reservations/:id`, `POST /tasks*`, `POST /messages`, `POST /agents/heartbeat`) require
   `Authorization: Bearer <token>`. Missing/invalid → **`401`**
   `{ "error": "unauthorized: missing or invalid bearer token" }`.
-- **All GET read endpoints** (`/agents`, `/locks`, `/reservations`, `/tasks`, `/messages`, `/health`,
+- **All GET read endpoints** (`/pets`, `/agents`, `/locks`, `/reservations`, `/tasks`, `/messages`, `/health`,
   `/events`, `/`) are **open** so the dashboard works token-free. `/messages` accepts an
   *optional* bearer to resolve `?to=me`.
 - Every authenticated request updates `lastSeen`. Meaningful authenticated activity also
@@ -90,18 +92,62 @@ unhandled handler error returns **`500`** `{ "error": "internal error: ..." }`.
 
 | Method | Path | Auth | Body | Success | Errors |
 |---|---|---|---|---|---|
-| POST | `/agents/register` | none | `{ "handle": string, "note"?, "unique"?, "model"?, "sessionId"? }` | `201 { agentId, token, handle, registeredAt, model, sessionId }` | `400` if `handle` missing; `409` if a live agent already holds `handle` |
+| GET | `/pets` | none | - | `200 { pets: [{ slug, displayName, ... }] }` | - |
+| POST | `/agents/register` | none | `{ "handle": string, "petSlug": string, "note"?, "unique"?, "model"?, "reasoningEffort"?, "sessionId"?, "role"?, "type"? }` | `201 { agentId, token, handle, registeredAt, model, reasoningEffort, sessionId, pet }` | `400` if identity requirements are missing/invalid; `409` if a live agent already holds `handle` |
 | POST | `/agents/heartbeat` | Bearer | — | `200 { ok: true, expiresAt, remainingMs }` | `401`; `404` if the agent is gone; `410` when the heartbeat-only lease expires |
+| POST | `/agents/:id/retire-stale` | Bearer | — | `200 { ok: true, agentId }` | `403` unless requester is orchestrator/master/human; `409` when target is online or owns locks, reservations, or in-flight tasks; `404` |
 | GET | `/agents` | none | — | `200 { agents: [...] }` | — |
 
 `GET /agents` returns each active agent as
-`{ id, handle, token, registeredAt, lastSeen, lastMeaningfulAt, lastHeartbeatAt, status, note, model, sessionId }`
+`{ id, handle, registeredAt, lastSeen, lastMeaningfulAt, lastHeartbeatAt, status, note, model, reasoningEffort, sessionId, threadIdRequired, threadIdRequirement, pet }`
 where `status` is `"online"` or `"stale"`. `registeredAt` is the check-in moment; `lastSeen` is
 the latest authenticated touch, `lastMeaningfulAt` excludes heartbeat-only traffic, and
-`lastHeartbeatAt` is the latest explicit heartbeat. `model` and `sessionId` are optional provenance: which model
-the agent is (usually stamped by the orchestrator at launch via `--model`) and the agent's own
-harness conversation/thread id (`--session`/`--thread`/`--conversation`, so an agent can query
-which session it is via `whoami`). Agents not seen within the **drop** window are omitted.
+`lastHeartbeatAt` is the latest explicit heartbeat. `model` records which model the agent is
+(usually stamped by the orchestrator via `--model`), `reasoningEffort` records the runtime thinking
+level (`--reasoning`), while `sessionId` records the agent's own
+task/thread or harness conversation id (`--session`/`--thread`/`--conversation`).
+`threadIdRequired` and `threadIdRequirement` expose the daemon's provenance classification to
+the dashboard without exposing the bearer token. Agents not seen within the **drop** window are omitted.
+
+**Pet identity gate (2026-07-18, uniqueness hardened 2026-07-19):** an agent cannot enter
+presence without choosing a catalog identity from `GET /pets`. Missing or unknown `petSlug`
+values return `400` before the daemon emits a registration event, allocates a token, or adds a
+roster row. Each catalog pet may belong to only one live Presence row. `GET /pets` includes
+`available` and token-free `claimedBy` metadata. When a requested pet is occupied, registration
+returns `201` with the next free pet plus `requestedPetSlug` and `petSubstituted: true`; when all
+catalog identities are occupied it returns `409 AGORA_PET_CATALOG_EXHAUSTED`. The CLI explains
+substitutions and saves the actual assignment. Agents verify `whoami`; orchestrators verify that
+the active `agents` roster has unique `pet.slug` values before assigning work. A task claim
+snapshots the already registered assignment; it never creates a second pet identity.
+When all catalog pets are occupied, `capacityRecoverable` marks only stale roster rows that own no
+locks, reservations, or in-flight tasks. An orchestrator, master, or human may retire exactly one
+such row through `/agents/:id/retire-stale`; online or coordination-owning targets are refused.
+
+**Live capacity-recovery validation (2026-07-19):** after a journal-preserving daemon restart,
+the shared service refused retirement of an online presence and then refused the same disposable
+stale presence while it owned a lock, reservation, or in-flight task. Once those disposable records
+were cleared, the roster marked it `stale-idle`, retirement freed its pet, and a new Sol 5.6 medium
+Codex worker registered with that same pet and its exact task/thread UUID. Public roster inspection
+confirmed that every live pet slug remained unique; the proof worker then retired normally.
+
+**Codex task/thread identity gate (2026-07-18):** every new Codex registration and every
+`orchestrator`/`master` registration must provide its exact current task/thread id in
+`sessionId`. The daemon recognizes Codex identities from a `type` containing `codex`, a model
+containing `codex` or beginning with `gpt-`, or a conventional `codex-*` handle; `role: human`
+is explicitly exempt for the browser operator. Missing required provenance returns `400`
+before token allocation, `agent.register`, or roster mutation. The CLI mirrors the gate with
+`--session <id>` (aliases: `--thread`, `--conversation`, env: `AGORA_SESSION_ID`). Agents must
+self-check `whoami`; orchestrators must reject worker roster rows whose required `sessionId`
+is missing or does not match the dispatched task/thread.
+
+**Codex runtime metadata gate (2026-07-19):** before inspecting a task or the repository, a
+Codex worker must query its authoritative runtime metadata and compare the exact model,
+reasoning effort, and task/thread UUID with the dispatch contract. After a match, it registers
+those three values and checks that `whoami` and the public roster or dashboard Presence show
+the same structured values. The operator must compare all three fields before allowing a task
+claim. A missing or mismatched value must be visible in Presence with the actual-runtime
+warning, and that worker must remain taskless: it must not inspect, create, claim, or start a
+task, or lock files.
 
 **Handle-claim uniqueness (2026-07-04):** register **refuses a handle a still-live agent
 already holds** — `409 { error, conflict: { handle, heldBy, status } }`. This is the daemon
@@ -114,8 +160,8 @@ daemon already assigns a unique `agentId`+`token` and records `claimedBy`/`histo
 the client-side `AGORA_AGENT_ID` only decides which local file caches your token between
 invocations.
 
-> Note: the registration `token` IS returned in the `GET /agents` payload (the store does
-> not strip it). Treat the local daemon as trusted; tokens are not secrets across agents.
+The registration token is returned only to the registering caller and retained in its local identity
+file. Public `GET /agents`, SSE payloads, `whoami`, dashboards, and task logs must remain token-free.
 
 ### Locks (advisory)
 
@@ -123,16 +169,24 @@ invocations.
 |---|---|---|---|---|---|
 | POST | `/locks` | Bearer | `{ "paths"?: string[], "globs"?: string[], "reason"?: string, "ttlMs"?: number }` | `201 { lock }` | `409 { conflict }` on overlap; `400` if neither paths nor globs given; `401` |
 | GET | `/locks` | none | — | `200 { locks: [...] }` | — |
+| POST | `/locks/:id/renew` | Bearer | `{ "ttlMs"?: number }` | `200 { lock }` | `404` if not found; `403` if you are not the holder; `401` |
 | DELETE | `/locks/:id` | Bearer | — (query `?force=1`) | `200 { ok: true }` | `404` if not found; `403` if you are not the holder (non-force); `409` if `force=1` but the holder is still online; `401` |
 
 - A lock is `{ id, paths[], globs[], agentId, reason, createdAt, expiresAt }`.
 - **Default TTL is 30 min** (1,800,000 ms); pass `ttlMs` to override. Locks auto-expire so a
   dead agent never deadlocks the tree. Expired locks are swept (`lock.expired` event) every
   30 s and are excluded from `GET /locks`.
+- Renew a lock before it expires with `lock --renew <lockId> --ttl <minutes>`. Only the lock
+  owner can renew it. Leave minute-scale headroom rather than renewing at the expiry boundary.
+  A presence heartbeat does not renew locks. Any lock that is not renewed still expires.
 - **Conflict shape** (`409`): `{ "conflict": { "path": <offending token>, "heldBy": <agentId>, "lock": <full held lock> } }`.
-- **Overlap rules** (see `globToRegExp`/`tokensOverlap` in `store.mjs`): exact path == path;
+- **Overlap rules** (see `globToRegExp`/`tokensOverlap` in `store.mjs`): repository-relative and
+  equivalent absolute paths are canonicalised before comparison; exact path == path;
   a glob (`*`, `**`, `?`) matched against a path; two **equal** globs. `**` crosses `/`;
   `*`/`?` do not. An agent may freely re-lock paths it **already holds** (no self-conflict).
+- **Reason parsing:** quote the complete value passed to `--reason`. The client refuses trailing
+  bare words or unexplained path-like arguments before it sends a lock or reservation request,
+  so prose cannot silently become extra locked paths.
 - **Only the holder may release** (`DELETE`) — with one escape hatch: `DELETE /locks/:id?force=1`
   lets any authenticated agent release a lock whose holder is **stale or gone** (no
   authenticated call within the presence TTL). Force against an **online** holder is refused
@@ -151,7 +205,7 @@ invocations.
 |---|---|---|---|---|---|
 | POST | `/reservations` | Bearer | `{ "paths"?: string[], "globs"?: string[], "reason"?: string }` | `201 { reservation }` | `400` if neither paths nor globs given; `401` |
 | GET | `/reservations` | none | — | `200 { reservations: [...] }` | — |
-| DELETE | `/reservations/:id` | Bearer | — | `200 { ok: true }` | `404` if not found; `403` if you are not the reserver; `401` |
+| DELETE | `/reservations/:id` | Bearer | query `?force=1` optional | `200 { ok: true }` | `404` if not found; `403` if you are not the reserver; `409` if force targets an online reserver; `401` |
 
 - A reservation is `{ id, paths[], globs[], agentId, reason, createdAt, queueSeq, position }`.
   `queueSeq` is the durable insertion order; `position` is the current # in the overlapping
@@ -163,8 +217,25 @@ invocations.
   `409 { conflict: { type: "reservation", path, reservation } }`.
 - When the #1 reserver successfully locks an overlapping file, that reservation is fulfilled
   and removed automatically. Remaining agents move up one position.
-- Reservations owned by a dropped agent are released by the same reaper that releases its
-  locks and reopens its claimed tasks.
+- The sweep releases reservations as soon as their owner crosses the stale threshold. It does
+  not wait for the longer drop horizon, and it does not release that owner's unrelated locks or
+  reopen their tasks until the normal drop rules apply.
+- **Operator recovery:** first inspect the reservation and its owner's current presence. Use
+  `unreserve <id> --force` only for a stale or gone owner. The daemon returns `409` for an online
+  owner; stop and coordinate instead. A successful stale force release removes only the named
+  reservation and promotes the next queued worker. Confirm that unrelated locks, reservations,
+  and tasks remain in place after either a force release or an automatic stale-threshold sweep.
+- **Live stale-recovery validation (2026-07-19):** daemon PID 118268 at 622095 ms uptime retained
+  both test reservations. Forced release of the online owner's reservation returned `409`.
+  Forced release of the stale owner's reservation promoted the queued worker, which then acquired
+  lock `5cf32474-5a50-46ef-b063-c1496fa9a05c`. After the approved restart, PID 120552 retained
+  449 tasks and its startup sweep removed the sole disposable reservation `506bdcd2`; no
+  non-disposable reservation was lost. Focused reservation recovery tests passed 23/23.
+- **Live canonical-FIFO validation (2026-07-19):** a relative-path reservation at position 1
+  blocked a later absolute-path lock for the same repository file. The first reserver then locked
+  the absolute spelling, its reservation was fulfilled, and the second reserver moved to position
+  1 before acquiring the relative spelling. An unquoted multi-word reason was rejected without
+  creating a lock; the quoted form created one intended path and preserved the full reason.
 
 ### Campaign governance
 
@@ -204,12 +275,13 @@ lead explicitly and declare their own bounded paths/globs.
 | POST | `/tasks` | Bearer | `{ "title": string, "body"?: string, "deps"?: taskId[], "priority"?: number, "refs"?: string[], "campaignId"?, "wave"? }` | `201 { task }` (state `open`) | `400` if `title` missing/not a string, a dep id is unknown, or campaignId is unknown; `401` |
 | POST | `/tasks/:id/claim` | Bearer | — | `200 { task }` (state `claimed`) | `404` not found; `409` if already claimed by another agent; `401` |
 | POST | `/tasks/claim-next` | Bearer | optional `{ "campaignId"?: string, "category"?: string }` (the same filters are accepted as query parameters) | `200 { task }` — the top-priority matching READY task, atomically claimed; `200 { task: null }` when nothing is ready | `400` invalid JSON; `401` |
+| POST | `/tasks/:id/checkpoint` | Bearer | `{ "did"?: string, "next"?: string, "files"?: string[] }` | `200 { checkpoint }` | `404` not found; `403` caller is not the current claimant; `409` task is open, blocked, or done; `400` invalid body; `401` |
 | POST | `/tasks/:id/state` | Bearer | `{ "state": "open"|"claimed"|"in_progress"|"blocked"|"done", "result"?: string }` | `200 { task }` | `404` not found; `400` invalid state; `401` |
 | POST | `/tasks/:id/handoff` | Bearer | `{ "toAgentId": string }` | `200 { task }` | `404` not found; `400` if the target is missing, unregistered, or beyond the drop horizon; `401` |
 | GET | `/tasks` | none | — (query `?state=`, `?ready=1`) | `200 { tasks: [...] }` | — |
 
 - A task is
-  `{ id, title, body, campaignId, wave, state, createdBy, creatorAgent, claimedBy, deps[], priority, refs[], result, createdAt, updatedAt, history[] }`.
+  `{ id, title, body, campaignId, wave, state, createdBy, creatorAgent, claimedBy, claimedAgent, assignedPet, deps[], priority, refs[], result, checkpoint, retraceFiles[], retrace, reapCount, createdAt, updatedAt, history[] }`.
 - `state` ∈ `open | claimed | in_progress | blocked | done`.
 - **`creatorAgent` is mandatory on new tasks.** It is a token-free snapshot of the registered
   creator `{ id, handle, note, model, sessionId }`, stamped when the task is created so the
@@ -219,11 +291,29 @@ lead explicitly and declare their own bounded paths/globs.
 - **`deps`** (task ids) gate readiness: a task is **ready** when it is `open` and every dep
   is `done`. Creating a task with an unknown dep id → `400` (fail honestly, no dangling
   references). **`priority`** (number, default 0, higher first) orders the ready queue.
-  **`refs`** (free strings, e.g. `spells:G12` or a doc path) link the task to project-tracker
-  artifacts — see `tools/agora/gapIndex.mjs` for the GAPS.md side of the bridge.
+  **`refs`** (free strings, e.g. `planmap:<topic>/<feature>`, `spells:G12`, or a doc path) link
+  the task to a planning surface — the Plan Map, the Roadmap, or the deprecated project-tracker
+  `GAPS.md` artifacts (see `tools/agora/gapIndex.mjs` for the GAPS.md side of the bridge).
 - **`result`**: pass it with `state: "done"` to record WHAT was done (files touched, proof,
   test counts) on the task itself — orchestrators read results from the board instead of
   scraping chat messages. Stored on the task and in the history entry.
+- **`checkpoint`** is the latest claimant-authored resumable note
+  `{ at, by, did, next, files[] }`. Only the task's exact current `claimedBy` agent may write
+  it, and only while state is `claimed` or `in_progress`. Cross-agent writes return `403`;
+  open/unclaimed, `blocked`, and `done` writes return `409`. Latest valid note wins.
+- **`retraceFiles[]`** is durable candidate work scope accumulated from lock paths/globs seen
+  while the task is active plus every checkpoint `files[]` entry. It is a union, so a later
+  checkpoint that omits an earlier file does not erase evidence. This field exists because
+  the 30-minute lock TTL normally expires before the 120-minute active-task reap horizon.
+- **`retrace`** is stamped when a dead claimant is reaped:
+  `{ reapedAt, lastSeenAt, agent, filesHeld[], files[], checkpoint, sayTail[] }`.
+  `filesHeld[]` is the structured set of locks still live at reap; `files[]` is the complete
+  union of durable task evidence, current locks, and checkpoint files. Clients should scope
+  unstaged, staged, and untracked/new Git inspection to `files[]`, falling back to
+  `filesHeld[]` for dossiers written by older daemons.
+- **`reapCount`** increments only when a reap attaches a retrace dossier. It survives repeated
+  claims/reaps so orchestrators can distinguish a one-off crash from a repeatedly failing task;
+  clean retirement/release does not increment it.
 - `GET /tasks?ready=1` returns only ready tasks, **sorted by priority desc, then FIFO** —
   the dispatch queue view. `POST /tasks/claim-next` claims its head atomically. Optional
   `campaignId` and `category` filters restrict that atomic pull to one lane; omitting both
@@ -235,6 +325,32 @@ lead explicitly and declare their own bounded paths/globs.
 - `GET /tasks?state=in_progress` filters by state.
 - Claiming a task already `claimed`/`in_progress` by **another** agent → `409`. Re-claiming
   your own is allowed.
+- A successful claim snapshots the live agent's registration pet from
+  `dashboard/pets/pets.json`. The public agent record exposes it as `agent.pet`; the task
+  stores the same snapshot as `assignedPet` and inside `claimedAgent.pet`. A handoff snapshots
+  the recipient's registered pet. Reaping or retiring reopens the task and
+  clears its current `claimedAgent`/`assignedPet`, while claim and handoff history retain
+  `petSlug`. Legacy journal records are deterministically migrated to a catalog pet during
+  replay, but every new HTTP/CLI registration must explicitly select one.
+- The dashboard animates that assigned pet from durable board state plus short SSE reactions.
+  This is presentation state only; it does not add mutable status to the agent record or event
+  log. The action contract is:
+
+  | Pet action | Agora meaning |
+  |---|---|
+  | `idle` | no active task, lock, reservation, or campaign |
+  | `waiting` | claimed task or queued file reservation |
+  | `running` | in-progress task or held file lock |
+  | `review` | active campaign ownership, task creation/category/checkpoint work |
+  | `waving` | registration, message post, or the sender side of a handoff |
+  | `jumping` | task claim/completion, fulfilled reservation, or handoff recipient |
+  | `failed` | blocked task, expired lock, or released/reaped task |
+  | `running-right` | file lock acquired |
+  | `running-left` | file lock or reservation released |
+
+  Live reactions run for several atlas loops, then presence returns to the durable state above.
+  Heartbeats deliberately do not trigger an animation, because doing so would keep every pet
+  waving or resetting instead of showing useful work state.
 - Each sweep also reopens a claimed/in-progress task whose `claimedBy` identity has no roster
   record. The `reaped` history entry records `reason: "orphan claimant missing from roster"`
   and the previous claimant id, repairing strands created before target validation existed.
@@ -253,13 +369,80 @@ lead explicitly and declare their own bounded paths/globs.
 - **The command channel is a role-gated control plane.** Only agents registered with
   `role` `orchestrator`, `master`, or `human` may POST with `channel: "command"`; the
   default `worker` role gets `403`. Register a role via `POST /agents/register`
-  `{ ..., "role": "orchestrator" }` or `client.mjs register <handle> --role orchestrator`.
+  `{ ..., "petSlug": "gf-sd", "role": "orchestrator", "sessionId": "<task-thread-id>" }` or
+  `client.mjs register <handle> --pet gf-sd --role orchestrator --session <task-thread-id>`.
   GET defaults to `channel=main`, so workers polling their inbox never see command
   traffic unless they ask (`--channel command|all`) — the gate is on posting, not reading.
   CLI: `say --channel command <body>`, `inbox --channel command`.
 - `?to=all` (or omitted) → unfiltered. `?to=me` resolves your agent id from the bearer (no
   token ⇒ behaves like `all`). `?to=<agentId>` returns messages where that id is the
   sender **or** recipient, plus all broadcasts.
+
+### Dormant orchestrator wake bridge
+
+`watchdog.mjs` turns durable command-feed messages into one bounded orchestrator turn. A target
+must first be registered in the machine-local `.agent/agora/watchdog-targets.json` through
+`watchdog.mjs register-target`; technical thread UUIDs never belong in tracked `agents.json`.
+
+For `codex-session-turn-once`, delivery has two separate stages:
+
+1. The watchdog selects the Codex executable matching the saved session's `cli_version`, pins
+   the model from its last successful turn, and runs `codex exec resume` once.
+2. After exit code 0, the watchdog asks the operating system to open the documented
+   `codex://threads/<thread-uuid>` route. This launches or focuses the desktop app on the same
+   saved task. A surface failure is audited but does not erase the successfully delivered turn.
+
+The deep link is navigation, not execution. Opening it manually is safe when the task is idle:
+
+```powershell
+Start-Process 'codex://threads/<thread-uuid>'
+```
+
+`/app` is different: it is typed inside an active Codex TUI and hands that current session to the
+desktop app. It is useful for a human handoff but cannot service an unattended Agora wake. Never
+start a desktop turn while the one-shot CLI child is still active on the same thread.
+
+Wake proof is durable and visible: the delivery cursor advances only after `CALLSIGN AWAKE` or a
+clean child exit, and the follow-up `WAKE-AUDIT` includes `surface=desktop-thread-opened`,
+`desktop-surface-error`, or `desktop-surface-unavailable` when a completion action was requested.
+
+### Visual-proof server freshness and recovery
+
+A running process and an HTTP 200 response are not enough to trust a screenshot. Before a new
+visual capture, name a repository source file changed by the current task and run the shared
+gate:
+
+```powershell
+node scripts/dev-server-watchdog.cjs probe --base http://127.0.0.1:3000/Aralia/ --module <changed-source-module>
+```
+
+`tools/vistest/shoot.ts` requires the equivalent `--fresh-module <path>` argument. It runs this
+gate before it creates an output directory, opens Chromium, or writes a PNG. The gate reports a
+`LIVENESS_FAILURE` when the server does not respond and a `FRESHNESS_FAILURE` when cache-busted
+Vite `?raw` source bytes do not have the same SHA-256 digest as the checkout. It records the
+result in an ignored `.agent` evidence log.
+
+The watchdog's `watch` mode diagnoses only. Its `supervise` mode requires
+`--consent-restart-owned-child` and can replace only a Vite child process that the same watchdog
+started. It never stops or restarts a foreign process or port owner. Recovering an existing
+shared server remains an operator action.
+
+Focused watchdog, capture, and copy-command tests pass 30/30. A live port-3000 probe matched the
+checkout hash while leaving the existing server PID unchanged. Dead and stale test servers
+failed before any capture output was created. This proves freshness immediately before a new
+capture; it does not prove that an already-open page applied an earlier HMR update.
+
+### Heavy-page performance traces
+
+Warm a heavy development page once before measuring it. Start the trace with
+`performance_start_trace(reload=false, autoStop=false)`. Then call
+`navigate_page(type=reload, timeout=120000)` explicitly and wait for a specific rendered marker
+from the target page. Stop the trace with `performance_stop_trace()` and do not supply a file
+path unless the operator agreed that path in advance.
+
+Accept the measurement only when the trace has exactly one navigation. Reject traces with
+multiple navigations or page-reload churn. They show an unstable run, not usable performance
+evidence.
 
 ### Real-time (SSE)
 
@@ -329,13 +512,14 @@ a `client.mjs watch` session.)
 
 ```
 Agent   { id, handle, token, registeredAt, lastSeen, lastMeaningfulAt,
-          lastHeartbeatAt, status, note }
+          lastHeartbeatAt, status, note, pet }
 Lock    { id, paths[], globs[], agentId, reason, createdAt, expiresAt }
 Reservation { id, paths[], globs[], agentId, reason, createdAt, queueSeq, position }
 Campaign { id, role, leadCampaignId, agentId, scope, paths[], globs[], wave, state,
            warnings[], createdAt, updatedAt, history[] }
-Task    { id, title, body, campaignId, wave, state, createdBy, creatorAgent, claimedBy, deps[], priority, refs[],
-          result, createdAt, updatedAt, history[] }
+Task    { id, title, body, campaignId, wave, state, createdBy, creatorAgent, claimedBy,
+          claimedAgent, assignedPet, deps[], priority, refs[], result, checkpoint,
+          retraceFiles[], retrace, reapCount, createdAt, updatedAt, history[] }
 Message { id, seq, from, to, body, createdAt }     // to = agentId | "all"
 Event   { seq, type, payload, ts }                  // journal line + SSE envelope
 ```
@@ -382,9 +566,18 @@ The whole system is honor-system. The loop every agent should follow:
    Retirement releases any remaining locks, reservations, and active task claims before
    invalidating the token.
 6. **Heartbeat occasionally** on long quiet stretches so you stay `online`. The CLI helper is
-   bounded to 30 minutes by default and accepts `--owner-pid`/`AGORA_OWNER_PID`; re-run it only
+   bounded to 30 minutes by default; `--daemonize` survives harness background cleanup and accepts
+   `--owner-pid`/`AGORA_OWNER_PID`; re-run it only
    while the owning session is active. `--forever` is explicit and still cannot exceed the
    server's 2-hour heartbeat-only lease without meaningful authenticated activity.
+
+### Verification contract for new server routes
+
+Before a shared-daemon restart, prove a route with a fresh in-process `createAgoraServer` wiring
+test and record `AWAITS LIVE DAEMON RESTART` in the task result. Only the daemon owner performs the
+restart. Once the installed daemon serves the new source, call the real port-4319 route and amend
+the result with its status and response shape. In-process proof is authoritative for wiring but is
+not presented as live deployment proof.
 
 ---
 
@@ -395,9 +588,10 @@ The whole system is honor-system. The loop every agent should follow:
 curl -s http://localhost:4319/health
 
 # 1. Register (open) — capture the token
+curl -s http://localhost:4319/pets
 TOKEN=$(curl -s -X POST http://localhost:4319/agents/register \
   -H 'Content-Type: application/json' \
-  -d '{"handle":"claude-A","note":"worldforge interiors"}' | \
+  -d '{"handle":"claude-A","petSlug":"gf-sd","note":"worldforge interiors"}' | \
   node -pe 'JSON.parse(require("fs").readFileSync(0)).token')
 
 # 2. Lock files before editing (201 lock, or 409 conflict)
@@ -446,7 +640,8 @@ curl -s -X DELETE http://localhost:4319/locks/<lockId> -H "Authorization: Bearer
 > wraps the same endpoints; the intended commands for the common loop are:
 
 ```bash
-node tools/agora/client.mjs register <handle>        # POST /agents/register
+node tools/agora/client.mjs pets                     # GET  /pets
+node tools/agora/client.mjs register <handle> --pet <slug> # POST /agents/register
 node tools/agora/client.mjs lock src/foo.ts          # POST /locks
 node tools/agora/client.mjs reserve src/foo.ts       # POST /reservations
 node tools/agora/client.mjs reservations             # GET  /reservations

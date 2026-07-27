@@ -159,6 +159,9 @@ src/components/DesignPreview/steps/*
 # The World Battle Lab is a canonical Vistest/debug contract, not a local-only
 # preview experiment; keep this one scenario harness in shared history.
 !src/components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx
+# The tracked Building Identity Lab imports this renderer, so keep its complete
+# visual contract reproducible from a fresh checkout rather than local-only.
+!src/components/DesignPreview/steps/PreviewBuilding3D.tsx
 src/design-preview.tsx
 src/components/SpellPipelineAtlas/
 src/spell-pipeline-atlas.tsx

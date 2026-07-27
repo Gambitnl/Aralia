@@ -1,11 +1,39 @@
 import { describe, it, expect } from 'vitest';
 import simulacrum from '../../../../public/data/spells/level-7/simulacrum.json';
+import conjureAnimals from '../../../../public/data/spells/level-3/conjure-animals.json';
 import { SummoningCommand } from '../SummoningCommand';
 import { CommandContext } from '../../base/SpellCommand';
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories';
 import type { SummoningEffect } from '@/types/spells';
 
 describe('SummoningCommand', () => {
+  it('anchors a point-targeted summon at its selected point', () => {
+    const caster = createMockCombatCharacter({
+      id: 'caster',
+      name: 'Druid',
+      position: { x: 2, y: 2 },
+      initiative: 14
+    });
+    const state = createMockCombatState({ characters: [caster] });
+    const effect = conjureAnimals.effects.find((entry): entry is SummoningEffect => entry.type === 'SUMMONING');
+
+    expect(effect).toBeDefined();
+
+    const command = new SummoningCommand(effect!, {
+      spellId: conjureAnimals.id,
+      spellName: conjureAnimals.name,
+      castAtLevel: 3,
+      caster,
+      targets: [],
+      selectedSpellTargets: [{ kind: 'point', position: { x: 8, y: 6 }, purpose: 'area_origin' }],
+      gameState: createMockGameState()
+    } satisfies CommandContext);
+
+    const summon = command.execute(state).characters.find(character => character.isSummon);
+
+    expect(summon?.position).toEqual({ x: 8, y: 6 });
+  });
+
   it('preserves Simulacrum lifecycle and control metadata on the spawned summon actor', () => {
     const caster = createMockCombatCharacter({
       id: 'caster',

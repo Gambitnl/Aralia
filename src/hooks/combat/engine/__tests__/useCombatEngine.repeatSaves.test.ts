@@ -135,6 +135,60 @@ describe('useCombatEngine repeat-save timings', () => {
     expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalledTimes(2);
   });
 
+  it('applies true-name disadvantage to Summon Greater Demon control saves', () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow)
+      .mockReturnValueOnce({ total: 18, success: true, modifiersApplied: [] } as any)
+      .mockReturnValueOnce({ total: 17, success: true, modifiersApplied: [] } as any);
+
+    const demon = makeCharacter({
+      id: 'summoned-demon',
+      name: 'Summoned Demon',
+      summonMetadata: {
+        casterId: 'caster',
+        spellId: 'summon-greater-demon',
+        commandsPerTurn: 1,
+        commandsUsedThisTurn: 0,
+        control: {
+          allegiance: 'caster_commanded_until_control_break',
+          obedience: 'no-action verbal command each caster turn'
+        },
+        aftermathState: {
+          kind: 'summon_greater_demon_control',
+          trueNameSpoken: true
+        }
+      } as any,
+      statusEffects: [{
+        id: 'summon-greater-demon-control-test',
+        name: 'Summon Greater Demon Control',
+        type: 'neutral',
+        duration: 600,
+        sourceCasterId: 'caster',
+        repeatSave: {
+          timing: 'turn_end',
+          saveType: 'Charisma',
+          successEnds: true,
+          useOriginalDC: true,
+          modifiers: { disadvantage: true }
+        }
+      }]
+    });
+    const caster = makeCharacter({ id: 'caster', name: 'Caster', team: 'player' });
+    const { result } = renderEngine(demon, vi.fn(), { characters: [caster, demon] });
+
+    const updated = result.current.processRepeatSaves(demon, 'turn_end');
+
+    expect(updated.statusEffects).toHaveLength(0);
+    expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalledTimes(2);
+    expect(updated.summonMetadata).toEqual(expect.objectContaining({
+      commandsPerTurn: 0,
+      control: expect.objectContaining({ allegiance: 'uncontrolled_hostile' }),
+      aftermathState: expect.objectContaining({
+        kind: 'summon_greater_demon_uncontrolled',
+        controlBroken: true
+      })
+    }));
+  });
+
   it('runs repeat saves when the current lifecycle is listed in additionalTimings', () => {
     vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
       total: 18,

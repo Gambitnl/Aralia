@@ -387,8 +387,17 @@ const DamageNumber: React.FC<{
 
   useFrame((_, delta) => {
     timeRef.current += delta;
-    setOffsetY(timeRef.current * 0.8); // Float upward
-    setOpacity(Math.max(0, 1 - timeRef.current / durationSeconds));
+    // Slower rise + hold-then-fade (GOAL #16): the old linear fade meant a
+    // number was already half-transparent halfway through its life, which at
+    // tactical zoom read as a flicker. Hold full opacity for the first 40%,
+    // then fade out over the remainder.
+    setOffsetY(timeRef.current * 0.5);
+    const holdSeconds = durationSeconds * 0.4;
+    setOpacity(
+      timeRef.current <= holdSeconds
+        ? 1
+        : Math.max(0, 1 - (timeRef.current - holdSeconds) / (durationSeconds - holdSeconds))
+    );
 
     if (timeRef.current > durationSeconds) {
       onComplete();
@@ -414,24 +423,29 @@ const DamageNumber: React.FC<{
     : damageType === 'immune' ? 'IMMUNE'
     : `${damageType === 'heal' ? '+' : '-'}${amount}`;
 
+  // No distanceFactor: like the 2D overlay's fixed 24px numbers, combat
+  // feedback keeps a constant screen size at every zoom. The old
+  // distanceFactor={10} shrank a 13px number to ~4.6px at the 30u tactical
+  // distance (scale = 10 / (2·tan(fov/2)·dist)) — invisible over foliage
+  // (GOAL #16). Hard 4-way outline mirrors the 2D overlay's '2px 2px 0 #000'
+  // language so the number survives any terrain color behind it.
   return (
     <Html
       position={[position.x, position.y + 0.5 + offsetY, position.z]}
       center
-      distanceFactor={10}
       style={{ pointerEvents: 'none' }}
     >
       <div style={{
         color,
-        fontSize: isCritical ? '16px' : '13px',
+        fontSize: isCritical ? '22px' : '16px',
         fontWeight: 700,
-        textShadow: '0 0 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.5)',
+        textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 2px 2px 3px rgba(0,0,0,0.7)',
         opacity,
         transform: `scale(${isCritical ? 1.2 : 1})`,
         whiteSpace: 'nowrap',
       }}>
         {label}
-        {isCritical && <span style={{ fontSize: '10px', marginLeft: '2px' }}>CRIT!</span>}
+        {isCritical && <span style={{ fontSize: '12px', marginLeft: '2px' }}>CRIT!</span>}
       </div>
     </Html>
   );

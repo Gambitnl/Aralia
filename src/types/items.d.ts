@@ -1,0 +1,241 @@
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 19/06/2026, 00:48:21
+ * Dependents: components/Crime/ThievesGuild/FenceInterface.tsx, components/puzzles/LockpickingModal.tsx, services/travelService.ts, systems/crafting/alchemySystem.ts, systems/crafting/craftingService.ts, systems/crime/BlackMarketSystem.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/travel/TravelCalculations.ts, types/index.ts, utils/world/provenanceUtils.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+import type { AbilityScoreName, AbilityScores } from './core.js';
+import type { MagicItemProperties } from './magicItems.js';
+import type { ItemProvenance } from './provenance.js';
+import type { ItemVisualSpec } from './visuals.js';
+/**
+ * Equipment and inventory focused types.
+ */
+export type EquipmentSlotType = 'Head' | 'Neck' | 'Torso' | 'Cloak' | 'Belt' | 'MainHand' | 'OffHand' | 'Wrists' | 'Ring' | 'Ring1' | 'Ring2' | 'Feet' | 'Legs' | 'Hands';
+export type ArmorCategory = 'Light' | 'Medium' | 'Heavy' | 'Shield';
+export interface Mastery {
+    id: string;
+    name: string;
+    description: string;
+}
+/**
+ * The standard rarity tiers for items.
+ * Used to determine value, availability, and power level.
+ * Source: DMG
+ */
+export declare enum ItemRarity {
+    Common = "Common",
+    Uncommon = "Uncommon",
+    Rare = "Rare",
+    VeryRare = "Very Rare",
+    Legendary = "Legendary",
+    Artifact = "Artifact"
+}
+export interface ItemRarityTraits {
+    /** Color code associated with the rarity (Hex). */
+    color: string;
+    /** Minimum gold piece value (approximate guide). */
+    minPrice: number;
+    /** Maximum gold piece value (approximate guide). */
+    maxPrice: number;
+}
+/**
+ * Trait definitions for ItemRarity.
+ * Value ranges based on D&D 5e DMG.
+ * Colors based on standard RPG conventions.
+ */
+export declare const ItemRarityDefinitions: Record<ItemRarity, ItemRarityTraits>;
+/**
+ * Classification of items in the game world.
+ * Each type carries inherent properties like equippability or stackability.
+ */
+export declare enum ItemType {
+    Weapon = "weapon",
+    Armor = "armor",
+    Accessory = "accessory",
+    Clothing = "clothing",
+    Consumable = "consumable",
+    Potion = "potion",
+    FoodDrink = "food_drink",
+    PoisonToxin = "poison_toxin",
+    Tool = "tool",
+    LightSource = "light_source",
+    Ammunition = "ammunition",
+    Trap = "trap",
+    Note = "note",
+    Book = "book",
+    Map = "map",
+    Scroll = "scroll",
+    Key = "key",
+    SpellComponent = "spell_component",
+    CraftingMaterial = "crafting_material",
+    Treasure = "treasure"
+}
+export interface ItemTypeTraits {
+    isEquippable?: boolean;
+    isStackable?: boolean;
+    isConsumable?: boolean;
+    description: string;
+}
+/**
+ * Trait definitions for ItemTypes.
+ */
+export declare const ItemTypeDefinitions: Record<ItemType, ItemTypeTraits>;
+export type ItemEffect = {
+    type: 'heal';
+    value: number;
+    dice?: string;
+} | {
+    type: 'buff';
+    stat?: AbilityScoreName;
+    value: number;
+    duration?: number;
+} | {
+    type: 'damage';
+    damageType: string;
+    dice: string;
+    value?: number;
+} | {
+    type: 'restore_resource';
+    resource: string;
+    amount: number;
+} | {
+    type: 'utility';
+    description: string;
+} | string;
+export interface Item {
+    id: string;
+    name: string;
+    description: string;
+    /** Legacy price field used by some data sources. Prefer cost for new items. */
+    value?: number | string;
+    /** Optional stack size for legacy inventory math; kept flexible for encumbrance tests. */
+    quantity?: number;
+    /**
+     * The classification of the item.
+     * Prefer using ItemType enum values.
+     *
+     * // TODO(Taxonomist): Refactor codebase to strictly use ItemType enum and remove magic strings
+     */
+    type: ItemType | 'weapon' | 'armor' | 'accessory' | 'clothing' | 'consumable' | 'potion' | 'food_drink' | 'poison_toxin' | 'tool' | 'light_source' | 'ammunition' | 'trap' | 'note' | 'book' | 'map' | 'scroll' | 'key' | 'spell_component' | 'reagent' | 'crafting_material' | 'treasure';
+    /**
+     * The rarity of the item.
+     * Controls value, color coding, and availability.
+     * Defaults to ItemRarity.Common if undefined.
+     */
+    rarity?: ItemRarity;
+    icon?: string;
+    visual?: ItemVisualSpec;
+    slot?: EquipmentSlotType;
+    effect?: ItemEffect;
+    mastery?: string;
+    category?: string;
+    /** homeId of the household this item was stolen from; set when taken from an owned container. */
+    stolenFrom?: string;
+    /** Optional pointer to the container/bag this item currently resides in. */
+    containerId?: string;
+    /** When true, this item behaves like a container capable of holding other items. */
+    isContainer?: boolean;
+    /** Slot capacity limit if the item is a container. */
+    capacitySlots?: number;
+    /** Weight capacity limit if the item is a container. */
+    capacityWeight?: number;
+    /** Restrict what item types can be placed in this container. */
+    allowedItemTypes?: Item['type'][];
+    /** Reference to a Lock (see mechanics.ts) */
+    lockId?: string;
+    armorCategory?: ArmorCategory;
+    baseArmorClass?: number;
+    addsDexterityModifier?: boolean;
+    maxDexterityBonus?: number;
+    strengthRequirement?: number;
+    stealthDisadvantage?: boolean;
+    armorClassBonus?: number;
+    damageDice?: string;
+    damageType?: string;
+    properties?: string[];
+    isMartial?: boolean;
+    donTime?: string;
+    doffTime?: string;
+    weight?: number;
+    cost?: string;
+    costInGp?: number;
+    isConsumed?: boolean;
+    substitutable?: boolean;
+    /**
+     * Real-world epoch milliseconds for when this item entered the inventory.
+     * Optional keeps older saves and template data valid while new item instances
+     * can carry durable freshness timing for perishable food.
+     */
+    acquiredAt?: number;
+    shelfLife?: string;
+    nutritionValue?: number;
+    perishable?: boolean;
+    statBonuses?: Partial<AbilityScores>;
+    /**
+     * For items that set an ability score to a fixed value (e.g., Gauntlets of Ogre Power setting Strength to 19).
+     * D&D 5e Rules: The score becomes X unless it is already higher.
+     */
+    statOverrides?: Partial<AbilityScores>;
+    requirements?: {
+        minLevel?: number;
+        classId?: string[];
+        minStrength?: number;
+        minDexterity?: number;
+        minConstitution?: number;
+        minIntelligence?: number;
+        minWisdom?: number;
+        minCharisma?: number;
+    };
+    /**
+     * Magical properties for the item.
+     * Defined in src/types/magicItems.ts
+     */
+    magicProperties?: MagicItemProperties;
+    /** Optional history and origin tracking for the item. */
+    provenance?: ItemProvenance;
+    /** If true, this item is stolen and can only be sold to a Fence. */
+    isStolen?: boolean;
+    /** If true, this item requires attunement before its magic properties/bonuses function. */
+    requiresAttunement?: boolean;
+    /** If true, this item is actively attuned by a character. */
+    isAttuned?: boolean;
+    /** The ID of the character who has attuned this item. */
+    attunedCharacterId?: string;
+    /** If true, the item is marked as junk for quick merchant selling. */
+    isJunk?: boolean;
+    /**
+     * Frozen, readable text carried by an in-world readable item (e.g. a Book).
+     * Currently a JSON-serialized snapshot for the takeable town broadsheet; when
+     * present on a Book item, the inventory UI offers a "Read" affordance that
+     * opens the relevant reader (the broadsheet modal) showing this snapshot.
+     * Non-breaking: optional, so existing items and saves remain valid.
+     */
+    readableContent?: string;
+}
+/**
+ * ItemContainer is a specialization of Item that can hold other items.
+ * It keeps the base Item contract intact so existing inventory logic can
+ * treat containers as regular items while UI-specific code can read the
+ * additional metadata to build hierarchies.
+ */
+export interface ItemContainer extends Item {
+    isContainer: true;
+    capacitySlots?: number;
+    capacityWeight?: number;
+    allowedItemTypes?: Item['type'][];
+    contents?: Item[];
+}
+/** Helper discriminated union for any inventory entry (bag or loose item). */
+export type InventoryEntry = Item | ItemContainer;
+export interface CanEquipResult {
+    can: boolean;
+    reason?: string;
+}

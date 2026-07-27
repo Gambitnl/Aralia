@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 15/07/2026, 03:28:39
+ * Last Sync: 23/07/2026, 21:41:39
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
- * Imports: 12 files
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -41,6 +41,7 @@ import { useActionExecutor } from './useActionExecutor';
 import { ROUND_DURATION_SECONDS } from '../../utils/core/spellTimeUtils';
 import { evaluateCombatTurn } from '../../utils/combat/combatAI';
 import { getAbilityModifierValue } from '../../utils/characterUtils';
+import { breakTauntsForEvent } from '../../systems/combat/tauntConstraint';
 
 interface UseTurnManagerProps {
   difficulty?: keyof typeof AI_THINKING_DELAY_MS;
@@ -70,6 +71,60 @@ interface UseTurnManagerProps {
 
 const RAY_OF_FROST_SLOW_NAME = 'Ray of Frost Slow';
 const RAY_OF_FROST_SOURCE_NAMES = new Set(['Ray of Frost', 'ray-of-frost']);
+
+// ============================================================================
+// Turn-boundary condition expiry
+// ============================================================================
+// These helpers keep "end of this turn" and "end of the next turn" separate
+// from ordinary round countdowns. They update both condition mirrors together
+// so player-facing labels and rules-facing state cannot disagree.
+// ============================================================================
+
+const isTurnBoundaryCondition = (condition: NonNullable<CombatCharacter['conditions']>[number]): boolean => (
+  condition.duration.type === 'until_end_of_current_turn' ||
+  condition.duration.type === 'turn_end'
+);
+
+export const advanceTurnEndConditionExpiry = (
+  character: CombatCharacter
+): { character: CombatCharacter; expiredNames: string[] } => {
+  const expiredNames: string[] = [];
+  let changed = false;
+
+  // Only the affected creature's own turn end advances this countdown. A
+  // value of two therefore survives the current turn and expires next turn.
+  const conditions = (character.conditions || []).flatMap(condition => {
+    if (!isTurnBoundaryCondition(condition)) {
+      return [condition];
+    }
+
+    const remaining = condition.turnEndEventsRemaining ?? 1;
+    if (remaining <= 1) {
+      changed = true;
+      expiredNames.push(String(condition.name));
+      return [];
+    }
+
+    changed = true;
+    return [{ ...condition, turnEndEventsRemaining: remaining - 1 }];
+  });
+
+  if (!changed) {
+    return { character, expiredNames };
+  }
+
+  const expiredNameSet = new Set(expiredNames);
+  return {
+    character: {
+      ...character,
+      conditions,
+      statusEffects: expiredNameSet.size > 0
+        ? character.statusEffects.filter(effect => !expiredNameSet.has(String(effect.name)))
+        : character.statusEffects
+    },
+    expiredNames
+  };
+};
 
 /**
  * Clears the Ray of Frost rider from one combatant when the source caster's
@@ -101,7 +156,7 @@ const removeRayOfFrostSlow = (character: CombatCharacter, sourceCasterId: string
 
 const createNegativeEnergyFloodZombie = (
   caster: CombatCharacter,
-  rise: NonNullable<NonNullable<CombatCharacter['activeEffects']>[number]['mechanics']>['negativeEnergyFloodZombieRise']
+  rise: any
 ): CombatCharacter => ({
   id: `negative_energy_flood_zombie_${rise.targetId}_${generateId()}`,
   name: `${rise.targetName} Zombie`,
@@ -320,6 +375,7 @@ export const useTurnManager = ({
     handleDamage,
     processRepeatSaves,
     processScheduledSpellEffects,
+    processStartOfTurnEffects,
     processTileEffects,
     processEndOfTurnEffects,
     updateRoundBasedEffects,
@@ -509,15 +565,25 @@ export const useTurnManager = ({
       updatedChar.temporaryHitPointSource?.spellId === effect.spellId
     );
 
+    // Turn-boundary conditions use the structured countdown at end of turn.
+    // Their legacy status mirror must not lose a round at turn start.
+    const turnBoundaryConditionNames = new Set(
+      (updatedChar.conditions || [])
+        .filter(isTurnBoundaryCondition)
+        .map(condition => String(condition.name))
+    );
+
     // Tick down legacy status effects first, but keep track of what expires.
     // Spell conditions are mirrored in both `statusEffects` and `conditions`;
     // if one mirror expires without the other, the map label and the gameplay
     // rules can disagree about whether the spell is still active.
     const expiredStatusNames = new Set<string>();
     const tickedStatusEffects = updatedChar.statusEffects
-      .map(effect => ({ ...effect, duration: effect.duration - 1 }))
+      .map(effect => turnBoundaryConditionNames.has(String(effect.name))
+        ? effect
+        : { ...effect, duration: effect.duration - 1 })
       .filter(effect => {
-        const keepEffect = effect.duration > 0;
+        const keepEffect = turnBoundaryConditionNames.has(String(effect.name)) || effect.duration > 0;
         if (!keepEffect) {
           expiredStatusNames.add(String(effect.name));
         }
@@ -655,7 +721,7 @@ export const useTurnManager = ({
     // coordinator invokes that existing path here instead of duplicating save
     // logic in the scheduling layer.
     updatedChar = processRepeatSaves(updatedChar, 'turn_start');
-    updatedChar = processScheduledSpellEffects(updatedChar, 'turn_start', turnState.currentTurn);
+    updatedChar = processStartOfTurnEffects(updatedChar, turnState.currentTurn);
 
     handleCharacterUpdateWrapped(updatedChar);
 
@@ -666,7 +732,7 @@ export const useTurnManager = ({
       message: `${character.name}'s turn.`,
       characterId: character.id
     });
-  }, [characters, handleCharacterUpdateWrapped, onLogEntry, processRepeatSaves, processScheduledSpellEffects, turnState.currentTurn]);
+  }, [characters, handleCharacterUpdateWrapped, onLogEntry, processRepeatSaves, processStartOfTurnEffects, turnState.currentTurn]);
 
   const initializeCombat = useCallback((initialCharacters: CombatCharacter[]) => {
     // 1. Roll initiatives
@@ -741,7 +807,49 @@ export const useTurnManager = ({
     if (!currentCharacter) return;
 
     // 1. Apply end-of-turn effects to the current character (Delegated to Engine)
-    const processedChar = processEndOfTurnEffects(currentCharacter, turnState.currentTurn);
+    let processedChar = processEndOfTurnEffects(currentCharacter, turnState.currentTurn);
+
+    // Advance target-relative condition boundaries after all end-of-turn
+    // effects have resolved. This lets the condition govern the full turn and
+    // then removes both runtime mirrors before the next actor starts.
+    const turnBoundaryResult = advanceTurnEndConditionExpiry(processedChar);
+    if (turnBoundaryResult.character !== processedChar) {
+      processedChar = turnBoundaryResult.character;
+      onCharacterUpdate(processedChar);
+    }
+
+    turnBoundaryResult.expiredNames.forEach(conditionName => {
+      onLogEntry({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'status',
+        message: `${processedChar.name}'s ${conditionName} condition ends.`,
+        characterId: processedChar.id,
+        targetIds: [processedChar.id],
+        data: { conditionName, cleanup: 'turn_boundary_condition_expiry' }
+      });
+    });
+
+    // Compelled Duel checks the caster's distance at the end of the caster's
+    // turn. Apply every returned character update because ending concentration
+    // can remove the tracked taunt from a different creature.
+    const tauntBreak = breakTauntsForEvent(characters, {
+      event: 'caster_ends_turn_outside_leash',
+      casterId: currentCharacter.id
+    });
+    if (tauntBreak.characters !== characters) {
+      tauntBreak.characters.forEach(character => onCharacterUpdate(character));
+      processedChar = tauntBreak.characters.find(character => character.id === processedChar.id) ?? processedChar;
+      tauntBreak.breaks.forEach(record => onLogEntry({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'status',
+        message: `${record.spellName} ends because its caster ends the turn more than the allowed distance away.`,
+        characterId: record.casterId,
+        targetIds: [record.targetId],
+        data: { spellId: record.spellId, tauntBreakEvent: record.event }
+      }));
+    }
 
     // 2. Expire save penalties originating from this character
     expireSavePenaltiesForCaster(characters, currentCharacter.id, turnState.currentTurn);
@@ -770,7 +878,7 @@ export const useTurnManager = ({
           return;
         }
 
-        const remainingRounds = aftermathState.remainingRounds ?? 0;
+        const remainingRounds = Number(aftermathState.remainingRounds ?? 0);
         if (remainingRounds <= 1) {
           onCharacterRemove?.(character.id);
           removeFromTurnOrder(character.id);
@@ -792,7 +900,7 @@ export const useTurnManager = ({
               ...aftermathState,
               remainingRounds: remainingRounds - 1
             }
-          }
+          } as any
         });
       });
 
@@ -842,17 +950,10 @@ export const useTurnManager = ({
 
       // Fix for stale closure: If the next character is the one we just processed (e.g. solo combat),
       // use the updated state returned from processEndOfTurnEffects instead of the stale one from 'characters'.
-      // TODO #282(Stability): Refactor this Stale Closure Workaround.
-      // Instead of patching `nextCharacter` with `processedChar` based on ID match,
-      // `processEndOfTurnEffects` should return the definitive state or `useTurnOrder` 
-      // should manage the "active" character reference more robustly to avoid race conditions.
-      // Original FIXME: This workaround is fragile. A cleaner solution would be to have processEndOfTurnEffects
-      // return the updated character ID alongside the updated character, or use a ref to track the latest
-      // character state. This workaround will break if processEndOfTurnEffects ever returns a different
-      // character (e.g., summoned creature).
-      // TODO #283(Stability): Fix Stale Closure Workaround
-      // This block patches `nextCharacter` with `processedChar` to handle cases where `processEndOfTurnEffects` updates state that `characters` array doesn't reflect yet.
-      // This is fragile. `processEndOfTurnEffects` should ideally return a comprehensive state update or we should ensure `characters` is fresh using a ref or correct dependency flow.
+      // TODO: Refactor this stale-closure workaround. Instead of patching `nextCharacter` with
+      // `processedChar` on an ID match, `processEndOfTurnEffects` should return the definitive
+      // character state (or `useTurnOrder` should track the active character via a ref), so the
+      // patch cannot silently miss when a different character (e.g. a summon) is returned.
       if (nextCharacter && processedChar && nextCharacter.id === processedChar.id) {
         nextCharacter = processedChar;
       }
@@ -888,6 +989,7 @@ export const useTurnManager = ({
     processRepeatSaves,
     processTileEffects,
     spellZones,
+    setSpellZones,
     movementDebuffs,
     reactiveTriggers,
     setMovementDebuffs,
@@ -909,9 +1011,10 @@ export const useTurnManager = ({
     turnState,
     initializeCombat,
     joinCombat,
-    // TODO #284(Refactor): Extract Reactive Trigger Processing
-    // The logic for filtering and executing `reactiveTriggers` is duplicated/inlined across 'sustain', 'move', and 'attack'.
-    // Create a dedicated helper `processReactiveTriggers(type, context, state)` to centralize this logic, ensuring consistent logging, damage application, and error handling.
+    // TODO: Extract reactive trigger processing. The logic for filtering and executing
+    // `reactiveTriggers` is duplicated/inlined across 'sustain', 'move', and 'attack' in the
+    // action executor; a shared `processReactiveTriggers(type, context, state)` helper would
+    // centralize logging, damage application, and error handling.
     executeAction,
     endTurn,
     skipToCharacter,

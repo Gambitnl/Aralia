@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 22:34:15
+ * Last Sync: 19/07/2026, 08:32:04
  * Dependents: state/appState.ts
- * Imports: 27 files
+ * Imports: 28 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -54,6 +54,12 @@ import {
   atlasGroundPositionForAddress,
   normalizeDiscoveredHiddenSite,
 } from "@/systems/worldforge/leaf3d/atlasGroundContinuity";
+import {
+  completeDungeonExpedition,
+  enterDungeonExpedition,
+  recordDungeonProgress,
+  retreatDungeonExpedition,
+} from "@/systems/worldforge/dungeon/world/dungeonLifecycle";
 
 /** Distance-LOD radius in atlas GRAPH units: tracked towns within this of the
  *  player's cell tick daily; farther towns catch up on approach (identical
@@ -210,6 +216,64 @@ export function worldReducer(
       const cleared = state.clearedDungeons ?? [];
       if (cleared.includes(action.payload.sitePath)) return {};
       return { clearedDungeons: [...cleared, action.payload.sitePath] };
+    }
+
+    case "DUNGEON_ENTERED": {
+      // The live entry boundary has already resolved this receipt to a real world site. Persist the
+      // same receipt here and advance only visit metadata; completed or collected content survives.
+      const ledger = state.dungeonExpeditions ?? {};
+      const identity = action.payload.identity;
+      return {
+        dungeonExpeditions: {
+          ...ledger,
+          [identity.dungeonId]: enterDungeonExpedition(identity, ledger[identity.dungeonId]),
+        },
+      };
+    }
+
+    case "DUNGEON_PROGRESS_RECORDED": {
+      // No progress record may exist before canonical entry. This prevents future room systems from
+      // creating detached treasure, route, encounter, or objective state under an invented key.
+      const ledger = state.dungeonExpeditions ?? {};
+      const current = ledger[action.payload.dungeonId];
+      if (!current) return {};
+      return {
+        dungeonExpeditions: {
+          ...ledger,
+          [action.payload.dungeonId]: recordDungeonProgress(current, action.payload.progress),
+        },
+      };
+    }
+
+    case "DUNGEON_RETREATED": {
+      // Returning to the world closes the active visit but never clears durable dungeon progress.
+      const ledger = state.dungeonExpeditions ?? {};
+      const current = ledger[action.payload.dungeonId];
+      if (!current) return {};
+      return {
+        dungeonExpeditions: {
+          ...ledger,
+          [action.payload.dungeonId]: retreatDungeonExpedition(current),
+        },
+      };
+    }
+
+    case "DUNGEON_COMPLETED": {
+      // Completion requires a previously entered receipt. The same atomic transition also feeds
+      // the existing ecology contract, so a completed dungeon is genuinely cleared for danger,
+      // raid-pressure, and rumor consumers instead of creating two competing truths.
+      const ledger = state.dungeonExpeditions ?? {};
+      const current = ledger[action.payload.dungeonId];
+      if (!current) return {};
+      const cleared = state.clearedDungeons ?? [];
+      const sitePath = current.identity.seedPath;
+      return {
+        dungeonExpeditions: {
+          ...ledger,
+          [action.payload.dungeonId]: completeDungeonExpedition(current),
+        },
+        clearedDungeons: cleared.includes(sitePath) ? cleared : [...cleared, sitePath],
+      };
     }
 
     case "APPLY_WORLDFORGE_DELTA": {

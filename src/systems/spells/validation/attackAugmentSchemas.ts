@@ -57,7 +57,10 @@ const ScalingFormula = z.object({
 // ============================================================================
 
 export const AttackAugment = z.object({
-  attackType: z.enum(["weapon", "melee_weapon", "ranged_weapon"]),
+  // Normalized weapon bridges use this field; source-backed spell-created
+  // attack packets may use a richer discriminator such as `attackKinds` or
+  // `attackBonusSource` instead.
+  attackType: z.string().trim().min(1).optional(),
   weaponRequirement: z.object({
     weaponTypes: z.array(z.enum(["club", "quarterstaff", "pebble", "sling", "any_weapon", "proficient_weapon"])),
     proficiencyRequired: z.boolean().optional(),
@@ -92,6 +95,20 @@ export const AttackAugment = z.object({
     notes: z.string().optional(),
   }).optional(),
   additionalDamage: DamageData.optional(),
-  appliesOn: z.enum(["hit"]).optional(),
+  appliesOn: z.string().trim().min(1).optional(),
   notes: z.string().optional(),
-});
+}).passthrough().refine(
+  (value) => [
+    value.attackType,
+    (value as Record<string, unknown>).name,
+    (value as Record<string, unknown>).trigger,
+    (value as Record<string, unknown>).attackKinds,
+    (value as Record<string, unknown>).attackBonusSource,
+    (value as Record<string, unknown>).attackRollModifier,
+    (value as Record<string, unknown>).damageRollModifier,
+    (value as Record<string, unknown>).damageBonus,
+    (value as Record<string, unknown>).damagePenalty,
+    (value as Record<string, unknown>).criticalHitThreshold,
+  ].some((field) => field !== undefined),
+  { message: "attack augment requires a normalized or source-backed discriminator" },
+);

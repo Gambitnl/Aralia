@@ -4,7 +4,7 @@
  * in the Aralia RPG. This includes base Dragonborn traits and specific details
  * for each ancestry type (e.g., damage resistance, breath weapon type).
  */
-import { Race, DraconicAncestorType, DraconicAncestryInfo } from '../../types';
+import { Race, DraconicAncestorType, DraconicAncestryInfo } from '../../types/index.js';
 /**
  * A record mapping each Draconic Ancestor type to its specific information,
  * including the damage type associated with its resistance and breath weapon.

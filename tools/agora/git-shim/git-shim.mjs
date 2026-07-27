@@ -17,7 +17,7 @@ const args = process.argv.slice(2);
 const command = 'git ' + args.join(' ');
 
 if (process.env.GIT_GUARD_ALLOW !== '1') {
-  const d = decide(command);
+  const d = await decide(command);
   if (d.deny) {
     process.stderr.write(`git-shim: ${d.reason}\n`);
     process.exit(2);

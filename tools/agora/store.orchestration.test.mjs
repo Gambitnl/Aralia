@@ -41,7 +41,7 @@ function makeClock(start = 1_000_000) {
 test('tasks: deps gate readiness; done deps unlock; priority orders the ready queue', () => {
   const dir = tmpDir();
   const store = createStore({ dir });
-  const me = store.registerAgent({ handle: 'orch' });
+  const me = store.registerAgent({ petSlug: 'gf-sd', handle: 'orch' });
 
   const a = store.createTask({ agentId: me.id, title: 'A: prep' });
   const b = store.createTask({ agentId: me.id, title: 'B: build', deps: [a.id], priority: 5 });
@@ -70,7 +70,7 @@ test('tasks: deps gate readiness; done deps unlock; priority orders the ready qu
 test('tasks: creating with an unknown dep fails honestly', () => {
   const dir = tmpDir();
   const store = createStore({ dir });
-  const me = store.registerAgent({ handle: 'orch' });
+  const me = store.registerAgent({ petSlug: 'gf-sd', handle: 'orch' });
   assert.throws(
     () => store.createTask({ agentId: me.id, title: 'bad', deps: ['nope-no-such-task'] }),
     /unknown dep/,
@@ -82,7 +82,7 @@ test('tasks: creating with an unknown dep fails honestly', () => {
 test('tasks: done accepts a structured result, stored on the task and in history', () => {
   const dir = tmpDir();
   const store = createStore({ dir });
-  const me = store.registerAgent({ handle: 'worker' });
+  const me = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker' });
   const t = store.createTask({ agentId: me.id, title: 'fix the thing' });
   store.claimTask({ taskId: t.id, agentId: me.id });
   const r = store.setTaskState({
@@ -102,8 +102,8 @@ test('tasks: done accepts a structured result, stored on the task and in history
 test('tasks: claimNextReady atomically claims the top-priority ready task', () => {
   const dir = tmpDir();
   const store = createStore({ dir });
-  const me = store.registerAgent({ handle: 'orch' });
-  const w = store.registerAgent({ handle: 'worker' });
+  const me = store.registerAgent({ petSlug: 'gf-sd', handle: 'orch' });
+  const w = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker' });
 
   store.createTask({ agentId: me.id, title: 'low', priority: 1 });
   const high = store.createTask({ agentId: me.id, title: 'high', priority: 9 });
@@ -124,8 +124,8 @@ test('tasks: claimNextReady atomically claims the top-priority ready task', () =
 test('tasks: claimNextReady can stay inside one campaign and category lane', () => {
   const dir = tmpDir();
   const store = createStore({ dir });
-  const orch = store.registerAgent({ handle: 'orch-filter' });
-  const worker = store.registerAgent({ handle: 'worker-filter' });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'orch-filter' });
+  const worker = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker-filter' });
 
   store.claimCampaign({
     agentId: orch.id,
@@ -172,8 +172,8 @@ test('reaping: a dropped agent frees its locks, reopens its tasks, and loses its
   const now = makeClock();
   const store = createStore({ dir, now, presenceTtlMs: 1000, presenceDropMs: 5000 });
 
-  const orch = store.registerAgent({ handle: 'orch' });
-  const w = store.registerAgent({ handle: 'doomed-worker' });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'orch' });
+  const w = store.registerAgent({ petSlug: 'gf-sd', handle: 'doomed-worker' });
   const t = store.createTask({ agentId: orch.id, title: 'packet-1' });
   store.claimTask({ taskId: t.id, agentId: w.id });
   store.setTaskState({ taskId: t.id, agentId: w.id, state: 'in_progress' });
@@ -213,7 +213,7 @@ test('reaping: done tasks are NOT reopened when their agent drops', () => {
   const dir = tmpDir();
   const now = makeClock();
   const store = createStore({ dir, now, presenceTtlMs: 1000, presenceDropMs: 5000 });
-  const w = store.registerAgent({ handle: 'worker' });
+  const w = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker' });
   const t = store.createTask({ agentId: w.id, title: 'finished work' });
   store.claimTask({ taskId: t.id, agentId: w.id });
   store.setTaskState({ taskId: t.id, agentId: w.id, state: 'done', result: 'shipped' });
@@ -231,10 +231,10 @@ test('reaping: done tasks are NOT reopened when their agent drops', () => {
 test('handoff authorization: only the claimant or the creator may reassign', () => {
   const dir = tmpDir();
   const store = createStore({ dir });
-  const orch = store.registerAgent({ handle: 'orch' });
-  const w1 = store.registerAgent({ handle: 'w1' });
-  const w2 = store.registerAgent({ handle: 'w2' });
-  const rogue = store.registerAgent({ handle: 'rogue' });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'orch' });
+  const w1 = store.registerAgent({ petSlug: 'gf-sd', handle: 'w1' });
+  const w2 = store.registerAgent({ petSlug: 'gf-sd', handle: 'w2' });
+  const rogue = store.registerAgent({ petSlug: 'gf-sd', handle: 'rogue' });
 
   const t = store.createTask({ agentId: orch.id, title: 'seeded packet' });
   store.claimTask({ taskId: t.id, agentId: w1.id });
@@ -258,9 +258,9 @@ test('handoff rejects missing or dropped targets without changing ownership', ()
   const dir = tmpDir();
   const now = makeClock();
   const store = createStore({ dir, now, presenceDropMs: 5000 });
-  const orch = store.registerAgent({ handle: 'orch-handoff' });
-  const claimant = store.registerAgent({ handle: 'claimant-handoff' });
-  const target = store.registerAgent({ handle: 'target-handoff' });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'orch-handoff' });
+  const claimant = store.registerAgent({ petSlug: 'gf-sd', handle: 'claimant-handoff' });
+  const target = store.registerAgent({ petSlug: 'gf-sd', handle: 'target-handoff' });
   const task = store.createTask({ agentId: orch.id, title: 'safe handoff' });
   store.claimTask({ taskId: task.id, agentId: claimant.id });
 
@@ -284,8 +284,8 @@ test('sweep repairs a legacy task claimed by an identity with no roster record',
   const dir = tmpDir();
   const now = makeClock();
   let store = createStore({ dir, now });
-  const orch = store.registerAgent({ handle: 'orch-orphan' });
-  const worker = store.registerAgent({ handle: 'worker-orphan' });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'orch-orphan' });
+  const worker = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker-orphan' });
   const task = store.createTask({ agentId: orch.id, title: 'legacy orphan' });
   store.claimTask({ taskId: task.id, agentId: worker.id });
   store.close();
@@ -316,9 +316,9 @@ test('sweep repairs a legacy task claimed by an identity with no roster record',
 test('campaigns: overlapping leads are refused; a deputy may join the named lead', () => {
   const dir = tmpDir();
   const store = createStore({ dir });
-  const lead = store.registerAgent({ handle: 'lead-orch' });
-  const rival = store.registerAgent({ handle: 'rival-orch' });
-  const deputy = store.registerAgent({ handle: 'deputy-orch' });
+  const lead = store.registerAgent({ petSlug: 'gf-sd', handle: 'lead-orch' });
+  const rival = store.registerAgent({ petSlug: 'gf-sd', handle: 'rival-orch' });
+  const deputy = store.registerAgent({ petSlug: 'gf-sd', handle: 'deputy-orch' });
 
   // A lead campaign reserves an advisory file domain for the wave it supervises.
   const first = store.claimCampaign({
@@ -365,8 +365,8 @@ test('campaigns: owner status is tri-state and gone owners can be adopted with h
   const dir = tmpDir();
   const now = makeClock();
   const store = createStore({ dir, now, presenceTtlMs: 1000, presenceDropMs: 5000 });
-  const firstOwner = store.registerAgent({ handle: 'first-owner' });
-  const successor = store.registerAgent({ handle: 'successor-owner' });
+  const firstOwner = store.registerAgent({ petSlug: 'gf-sd', handle: 'first-owner' });
+  const successor = store.registerAgent({ petSlug: 'gf-sd', handle: 'successor-owner' });
 
   const first = store.claimCampaign({
     agentId: firstOwner.id,
@@ -410,7 +410,7 @@ test('campaigns: owner status is tri-state and gone owners can be adopted with h
 test('campaigns: tasks can be namespaced to a claimed campaign and survive restart', () => {
   const dir = tmpDir();
   let store = createStore({ dir });
-  const orch = store.registerAgent({ handle: 'governance-orch' });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'governance-orch' });
 
   store.claimCampaign({
     agentId: orch.id,
@@ -448,8 +448,8 @@ test('locks: force release works only when the holder is stale or gone', () => {
   const dir = tmpDir();
   const now = makeClock();
   const store = createStore({ dir, now, presenceTtlMs: 1000, presenceDropMs: 60000 });
-  const holder = store.registerAgent({ handle: 'holder' });
-  const other = store.registerAgent({ handle: 'other' });
+  const holder = store.registerAgent({ petSlug: 'gf-sd', handle: 'holder' });
+  const other = store.registerAgent({ petSlug: 'gf-sd', handle: 'other' });
   const { lock } = store.acquireLock({ agentId: holder.id, paths: ['src/x.ts'] });
 
   // Holder online -> force refused.
@@ -477,7 +477,7 @@ test('locks: force release works only when the holder is stale or gone', () => {
 test('persistence: deps/priority/refs/result survive snapshot + journal replay', () => {
   const dir = tmpDir();
   let store = createStore({ dir });
-  const me = store.registerAgent({ handle: 'orch' });
+  const me = store.registerAgent({ petSlug: 'gf-sd', handle: 'orch' });
   const a = store.createTask({ agentId: me.id, title: 'A' });
   const b = store.createTask({
     agentId: me.id, title: 'B', deps: [a.id], priority: 7, refs: ['worldforge:G3'],

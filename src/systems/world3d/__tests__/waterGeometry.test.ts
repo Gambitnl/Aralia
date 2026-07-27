@@ -1,3 +1,8 @@
+/**
+ * This file proves that river and lake payloads become deterministic water
+ * triangles. Ground-mode rivers now supply their real shared waterline, while
+ * legacy payloads retain the old terrain-relative fallback.
+ */
 import { buildWaterMesh } from '../waterGeometry';
 import type { ChunkData } from '../types';
 
@@ -27,6 +32,28 @@ it('builds a ribbon with 2 vertices per polyline point', () => {
   expect(mesh.positions).toHaveLength(4 * 3);
   expect(mesh.indices).toHaveLength(6);
   for (const v of mesh.positions) expect(Number.isFinite(v)).toBe(true);
+});
+
+it('renders a ground river at its shared per-point waterline', () => {
+  const data = baseChunk();
+  data.rivers = [
+    {
+      points: [{ x: 0.0, y: 0.05 }, { x: 0.1, y: 0.05 }],
+      width: [0.01, 0.01],
+      waterlineY: [7.25, 6.75],
+    },
+  ];
+
+  const mesh = buildWaterMesh(data);
+
+  // Each centerline point emits a left/right pair at exactly the same shared
+  // height, allowing fords and bridges to meet the rendered surface precisely.
+  expect(Array.from(mesh.positions).filter((_, index) => index % 3 === 1)).toEqual([
+    7.25,
+    7.25,
+    6.75,
+    6.75,
+  ]);
 });
 
 it('fills lake polygons as triangulated water surfaces', () => {

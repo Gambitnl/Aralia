@@ -143,6 +143,62 @@ describe('combatAI', () => {
     expect(result.targetPosition).not.toEqual(enemy.position);
   });
 
+  it('should not target a creature inside a summoned demon blood circle', () => {
+    const demonAttack = { ...basicAttack, id: 'demon-attack' };
+    const demon = createMockCombatCharacter({
+      id: 'summoned-demon',
+      team: 'enemy',
+      position: { x: 3, y: 3 },
+      abilities: [demonAttack],
+      isSummon: true,
+      summonMetadata: {
+        casterId: 'caster',
+        spellId: 'summon-greater-demon',
+        bloodCircle: {
+          center: { x: 0, y: 0 },
+          protectedTiles: [{ x: 0, y: 0 }]
+        }
+      }
+    });
+    const protectedCreature = createMockCombatCharacter({
+      id: 'protected-creature',
+      team: 'player',
+      position: { x: 0, y: 0 }
+    });
+
+    const result = evaluateCombatTurn(demon, [demon, protectedCreature], mapData);
+
+    expect(result.type).toBe('end_turn');
+  });
+
+  it('routes summoned demon movement around protected blood-circle tiles', () => {
+    const demon = createMockCombatCharacter({
+      id: 'summoned-demon',
+      team: 'enemy',
+      position: { x: 0, y: 1 },
+      abilities: [{ ...basicAttack, id: 'short-demon-attack', range: 1 }],
+      isSummon: true,
+      summonMetadata: {
+        casterId: 'caster',
+        spellId: 'summon-greater-demon',
+        bloodCircle: {
+          center: { x: 1, y: 1 },
+          protectedTiles: [{ x: 1, y: 1 }]
+        }
+      }
+    });
+    const enemyAhead = createMockCombatCharacter({
+      id: 'enemy-ahead',
+      team: 'player',
+      position: { x: 4, y: 1 }
+    });
+
+    const result = evaluateCombatTurn(demon, [demon, enemyAhead], mapData);
+
+    expect(result.type).toBe('move');
+    expect(result.movementPath).not.toContainEqual({ x: 1, y: 1 });
+  });
+
   it('should attack enemy if in range', () => {
     hero = createMockCombatCharacter({
       id: 'hero',

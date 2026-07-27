@@ -148,5 +148,13 @@ describe('Domination control live data bridge', () => {
       ]));
     }
     expect(charmedCondition?.dominationControl).toEqual(charmedStatus?.dominationControl);
+    expect(charmedStatus?.repeatSave).toEqual(expect.objectContaining({
+      timing: 'on_damage',
+      saveType: 'Wisdom',
+      successEnds: true,
+      useOriginalDC: true,
+      dc: 15
+    }));
+    expect(charmedCondition?.repeatSave).toEqual(charmedStatus?.repeatSave);
   });
 });

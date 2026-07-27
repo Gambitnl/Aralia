@@ -1,24 +1,8 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
- *
- * Last Sync: 27/02/2026, 09:28:57
- * Dependents: None (Orphan)
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 21/02/2026, 02:40:35
+ * Last Sync: 27/02/2026, 09:28:59
  * Dependents: CompanionGenerator.ts, ThreeDModal.tsx, handleMerchantInteraction.ts, handleNpcInteraction.ts
  * Imports: 12 files
  *
@@ -27,8 +11,8 @@
  * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
-import { TTSVoiceOption, RichNPC } from '../types/world';
-import { NPCVisualSpec } from '../types/visuals';
+import { RichNPC, TTSVoiceOption } from '../types/world.js';
+import { NPCVisualSpec } from '../types/visuals.js';
 /**
  * Configuration options for the NPC generator.
  */

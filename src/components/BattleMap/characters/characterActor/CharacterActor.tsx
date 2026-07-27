@@ -19,6 +19,7 @@ import { registerAllParts } from '@/systems/entities3d/parts';
 import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
 import { recipeFromCombatant } from '@/systems/entities3d/recipeFromCombatant';
 import { heightM } from '@/systems/entities3d/types';
+import { resolveControlPose } from '../../controlOptionPose';
 
 registerAllParts();
 
@@ -115,6 +116,9 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
   /** Body height in map units — pips and nameplates ride above the real head. */
   const heightUnits = heightM(blueprint.frame) * MODEL_SCALE;
   const pipY = Math.max(1.85, heightUnits + 0.45);
+  // G7 shared pose contract — the SAME resolver the 2D token uses. Cached per
+  // statusEffects array; null = base look; expiry restores via easeActorPose.
+  const controlPose = resolveControlPose(character.statusEffects);
 
   const activeCharacter = useMemo(() => {
     if (!activeCharacterId) return undefined;
@@ -281,6 +285,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
           blueprint={blueprint}
           animState={isAlive ? animState : 'death'}
           animTimeRef={animTimeRef}
+          controlPose={controlPose}
         />
       </group>
 

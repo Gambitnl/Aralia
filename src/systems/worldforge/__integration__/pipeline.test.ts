@@ -6,7 +6,10 @@
  * boundary is caught where the player-facing pipeline actually crosses it.
  */
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_WORLD_GEN_OPTIONS, type WorldGenOptions } from '../adapter/worldGenOptions';
+import {
+  DEFAULT_WORLD_GEN_OPTIONS,
+  type WorldGenOptions,
+} from '../adapter/worldGenOptions';
 import { applyDeltas } from '../delta/applyDeltas';
 import {
   WORLD_DELTA_OPERATION_VERSION,
@@ -18,10 +21,9 @@ import {
   type FmgWorldOptions,
   type FmgWorldResult,
 } from '../fmg/generateWorld';
-import { generateInterior } from '../interior/generateInterior';
 import { blueprintForPlot } from '../interior/generateInterior';
 import { briefForPlot } from '../town/householdBrief';
-import { EXTERIOR } from '../interior/types';
+import { EXTERIOR, type BlueprintPlan } from '../interior/blueprintTypes';
 import { generateLocal } from '../local/generateLocal';
 import { generateRegion } from '../region/generateRegion';
 import { rootSeedPath } from '../seedPath';
@@ -31,7 +33,12 @@ import { boundsCenter } from '../units';
 import { createWorld } from '../world/createWorld';
 import { WorldStore } from '../world/worldStore';
 import { makeGroundWorld } from '../bridge/groundChunkLoader';
-import type { LocalArtifact, RegionArtifact, RegionTownSite, TownPlan } from '../artifacts';
+import type {
+  LocalArtifact,
+  RegionArtifact,
+  RegionTownSite,
+  TownPlan,
+} from '../artifacts';
 
 // The artifact town plan for a region town site, via the owned Voronoi-ward
 // generator (`townEngine`) + `toArtifactPlan` — the same path the live 2D/3D
@@ -46,7 +53,10 @@ function townPlanForSite(site: RegionTownSite, seedPath: string): TownPlan {
     [e.x + e.width, e.y + e.height],
     [e.x, e.y + e.height],
   ];
-  return toArtifactPlan(generateEngineTown(footprint, seedPath, { population: 4000 }), site.burgId).plan;
+  return toArtifactPlan(
+    generateEngineTown(footprint, seedPath, { population: 4000 }),
+    site.burgId,
+  ).plan;
 }
 
 // ---------------------------------------------------------------------------
@@ -88,9 +98,14 @@ function buildPrimaryPipeline(): Pipeline {
     feetPerPixel: FEET_PER_PIXEL,
     world,
   });
-  const local = generateLocal(region, boundsCenter(region.bounds), region.seedPath, {
-    biomeId: world.pack.cells.biome![ANCHOR_CELL],
-  });
+  const local = generateLocal(
+    region,
+    boundsCenter(region.bounds),
+    region.seedPath,
+    {
+      biomeId: world.pack.cells.biome![ANCHOR_CELL],
+    },
+  );
 
   cachedPipeline = { created, world, region, local };
   return cachedPipeline;
@@ -108,9 +123,14 @@ function buildRoadProbePipeline(): Pipeline {
       world,
     },
   );
-  const local = generateLocal(region, boundsCenter(region.bounds), region.seedPath, {
-    biomeId: world.pack.cells.biome![ROAD_PROBE_ANCHOR_CELL],
-  });
+  const local = generateLocal(
+    region,
+    boundsCenter(region.bounds),
+    region.seedPath,
+    {
+      biomeId: world.pack.cells.biome![ROAD_PROBE_ANCHOR_CELL],
+    },
+  );
 
   return { created, world, region, local };
 }
@@ -142,21 +162,22 @@ function buildTownProbePipeline(): Pipeline {
   // rejects every sample (townFeatureCount 0) — the flooded-town artifact the
   // fix exists to prevent. Fixed 2026-07-06.
   const burgId = world.pack.cells.burg![anchor];
-  const burg = (world.pack as unknown as { burgs: Array<{ x: number; y: number }> })
-    .burgs[burgId];
-  const region = generateRegion(
+  const burg = (
+    world.pack as unknown as { burgs: Array<{ x: number; y: number }> }
+  ).burgs[burgId];
+  const region = generateRegion(world, anchor, rootSeedPath(WORLD_SEED), {
+    feetPerPixel: FEET_PER_PIXEL,
     world,
-    anchor,
-    rootSeedPath(WORLD_SEED),
+    windowCenterPx: [burg.x, burg.y],
+  });
+  const local = generateLocal(
+    region,
+    boundsCenter(region.bounds),
+    region.seedPath,
     {
-      feetPerPixel: FEET_PER_PIXEL,
-      world,
-      windowCenterPx: [burg.x, burg.y],
+      biomeId: world.pack.cells.biome![anchor],
     },
   );
-  const local = generateLocal(region, boundsCenter(region.bounds), region.seedPath, {
-    biomeId: world.pack.cells.biome![anchor],
-  });
 
   return { created, world, region, local };
 }
@@ -165,13 +186,19 @@ function buildTownProbePipeline(): Pipeline {
 // same populated town probe (population 4000). makeGroundWorld runs the plot
 // loop that stamps litHours / hearthHours / occupants onto each populated
 // building record — the bake Tasks 3 + 7 add and this suite pins.
-let cachedPopulatedGroundWorld: ReturnType<typeof makeGroundWorld> | null = null;
+let cachedPopulatedGroundWorld: ReturnType<typeof makeGroundWorld> | null =
+  null;
 function buildPopulatedGroundWorld(): ReturnType<typeof makeGroundWorld> {
   if (cachedPopulatedGroundWorld) return cachedPopulatedGroundWorld;
   const probe = buildTownProbePipeline();
-  cachedPopulatedGroundWorld = makeGroundWorld(probe.local, WORLD_SEED, probe.region, {
-    hour: 12,
-  });
+  cachedPopulatedGroundWorld = makeGroundWorld(
+    probe.local,
+    WORLD_SEED,
+    probe.region,
+    {
+      hour: 12,
+    },
+  );
   return cachedPopulatedGroundWorld;
 }
 
@@ -226,9 +253,8 @@ function localMaterialAt(
     return undefined;
   }
 
-  const index = local.terrain.materialIndex[
-    cellY * local.terrain.widthCells + cellX
-  ];
+  const index =
+    local.terrain.materialIndex[cellY * local.terrain.widthCells + cellX];
   return local.terrain.materials[index];
 }
 
@@ -237,8 +263,12 @@ function regionHeightAt(
   x: number,
   y: number,
 ): number | undefined {
-  const col = Math.round((x - region.bounds.x) / region.heightfield.resolutionFt);
-  const row = Math.round((y - region.bounds.y) / region.heightfield.resolutionFt);
+  const col = Math.round(
+    (x - region.bounds.x) / region.heightfield.resolutionFt,
+  );
+  const row = Math.round(
+    (y - region.bounds.y) / region.heightfield.resolutionFt,
+  );
 
   if (
     col < 0 ||
@@ -286,7 +316,10 @@ function makeTownPlotDelta(local: LocalArtifact, plotId: number): WorldDelta {
 
 // Change an existing house into a market because L4 maps market plots to a
 // shopfloor entry room. This proves plot role deltas reach interior generation.
-function makeInteriorRoleDelta(local: LocalArtifact, plotId: number): WorldDelta {
+function makeInteriorRoleDelta(
+  local: LocalArtifact,
+  plotId: number,
+): WorldDelta {
   return {
     id: 'town-interior-role-delta',
     schemaVersion: WORLD_DELTA_SCHEMA_VERSION,
@@ -306,7 +339,10 @@ function makeInteriorRoleDelta(local: LocalArtifact, plotId: number): WorldDelta
 // Add a new building as a real plot with a shifted copy of generated geometry.
 // The shifted footprint stays deterministic while avoiding collision with the
 // source plot in the replayed TownPlan.
-function makeInteriorBuildingDelta(local: LocalArtifact, plotId: number): WorldDelta {
+function makeInteriorBuildingDelta(
+  local: LocalArtifact,
+  plotId: number,
+): WorldDelta {
   const sourcePlot = local.townPlan?.plots[0];
 
   expect(sourcePlot).toBeDefined();
@@ -347,12 +383,15 @@ function makeRemovePlotDelta(local: LocalArtifact, plotId: number): WorldDelta {
   };
 }
 
-// Interior role assertions follow the actual street door rather than assuming
-// room 0 is always the entry room.
-function entryRoomRole(plan: ReturnType<typeof generateInterior>): string | undefined {
-  const entryDoor = plan.doorways.find((doorway) => doorway.a === EXTERIOR);
+// Entry-room assertions follow the actual street door on the ground floor
+// rather than assuming room 0 is always the entrance.
+function entryRoomPurpose(plan: BlueprintPlan): string | undefined {
+  const groundFloor = plan.floors.find((floor) => floor.level === 0);
+  const entryDoor = groundFloor?.doors.find(
+    (doorway) => doorway.a === EXTERIOR,
+  );
 
-  return plan.rooms.find((room) => room.id === entryDoor?.b)?.role;
+  return groundFloor?.rooms.find((room) => room.id === entryDoor?.b)?.purpose;
 }
 
 function toFmgOptions(options: WorldGenOptions): FmgWorldOptions {
@@ -469,9 +508,14 @@ describe('worldforge pipeline integration', () => {
 
     const road = region.roads[0];
     const probe = road.centerline[Math.floor(road.centerline.length / 2)];
-    const local = generateLocal(region, { x: probe[0], y: probe[1] }, region.seedPath, {
-      biomeId: world.pack.cells.biome![ROAD_PROBE_ANCHOR_CELL],
-    });
+    const local = generateLocal(
+      region,
+      { x: probe[0], y: probe[1] },
+      region.seedPath,
+      {
+        biomeId: world.pack.cells.biome![ROAD_PROBE_ANCHOR_CELL],
+      },
+    );
 
     const material = localMaterialAt(local, probe[0], probe[1]);
     expect(['paved', 'dirt']).toContain(material);
@@ -543,7 +587,10 @@ describe('worldforge pipeline integration', () => {
     };
 
     const originalReplay = applyDeltas(localWithTownPlan, [townDelta]);
-    const restoredReplay = applyDeltas(localWithTownPlan, restoredPayload.deltas);
+    const restoredReplay = applyDeltas(
+      localWithTownPlan,
+      restoredPayload.deltas,
+    );
 
     // The byte-for-byte persistence contract: a serialized+restored replay equals
     // the in-memory replay. This is generator-independent and is the real point.
@@ -558,14 +605,20 @@ describe('worldforge pipeline integration', () => {
       firstPlotId: restoredReplay.artifact.townPlan?.plots[0]?.id,
       firstPlotRole: restoredReplay.artifact.townPlan?.plots[0]?.role,
       firstPlotStoreys: restoredReplay.artifact.townPlan?.plots[0]?.storeys,
-      firstPlotCorners: restoredReplay.artifact.townPlan?.plots[0]?.footprint.length,
+      firstPlotCorners:
+        restoredReplay.artifact.townPlan?.plots[0]?.footprint.length,
       townFeatureCount: restoredReplay.artifact.features.length,
     }).toEqual({
       burgId: 264,
       // 2026-06-27: re-pointed to the canonical Voronoi-ward generator
       // (`townEngine` + `toArtifactPlan`) after the rect `generateTownPlan.ts`
-      // was retired. The probe burg now yields 216 plots.
-      plotCount: 216,
+      // was retired. 2026-07-20: 216 → 270 after the street-true block inset +
+      // corner-wedge packing (plots pack right up to ward corners; the road
+      // carve and street-margin guard remove fewer than the corners add).
+      // 2026-07-22: 270 → 716 after the town-scale lift (townScale.ts): the
+      // roughly-doubled span means the adapter's minimum-physical-size filter
+      // discards far fewer of the authored plan's plots as slivers.
+      plotCount: 716,
       firstPlotId: 0,
       firstPlotRole: 'inn',
       firstPlotStoreys: 3,
@@ -586,7 +639,9 @@ describe('worldforge pipeline integration', () => {
       townPlan,
     };
     const housePlot = townPlan.plots.find((plot) => plot.role === 'house');
-    const plotToRemove = townPlan.plots.find((plot) => plot.id !== housePlot?.id);
+    const plotToRemove = townPlan.plots.find(
+      (plot) => plot.id !== housePlot?.id,
+    );
 
     expect(housePlot).toBeDefined();
     expect(plotToRemove).toBeDefined();
@@ -600,7 +655,10 @@ describe('worldforge pipeline integration', () => {
 
     expect(replay.warnings).toEqual([]);
 
-    const originalInterior = generateInterior(housePlot!, localWithTownPlan.seedPath);
+    const originalBlueprint = blueprintForPlot(
+      housePlot!,
+      localWithTownPlan.seedPath,
+    );
     const modifiedPlot = replay.artifact.townPlan?.plots.find(
       (plot) => plot.id === housePlot!.id,
     );
@@ -615,26 +673,37 @@ describe('worldforge pipeline integration', () => {
     expect(addedPlot).toBeDefined();
     expect(removedPlot).toBeUndefined();
 
-    const modifiedInterior = generateInterior(modifiedPlot!, replay.artifact.seedPath);
-    const addedInterior = generateInterior(addedPlot!, replay.artifact.seedPath);
-    const addedExteriorDoor = addedInterior.doorways.find(
+    const modifiedBlueprint = blueprintForPlot(
+      modifiedPlot!,
+      replay.artifact.seedPath,
+    );
+    const addedBlueprint = blueprintForPlot(
+      addedPlot!,
+      replay.artifact.seedPath,
+    );
+    const addedGroundFloor = addedBlueprint.floors.find(
+      (floor) => floor.level === 0,
+    );
+    const addedExteriorDoor = addedGroundFloor?.doors.find(
       (doorway) => doorway.a === EXTERIOR,
     );
 
-    expect(entryRoomRole(originalInterior)).toBe('hall');
-    expect(entryRoomRole(modifiedInterior)).toBe('shopfloor');
-    expect(addedInterior.rooms.length).toBeGreaterThan(0);
+    expect(['hall', 'common-room', 'great-hall']).toContain(
+      entryRoomPurpose(originalBlueprint),
+    );
+    expect(entryRoomPurpose(modifiedBlueprint)).toBe('shopfront');
+    expect(addedGroundFloor?.rooms.length).toBeGreaterThan(0);
     expect(addedExteriorDoor).toBeDefined();
     expect({
       modifiedPlotRole: modifiedPlot?.role,
-      modifiedInteriorEntryRole: entryRoomRole(modifiedInterior),
+      modifiedBlueprintEntryPurpose: entryRoomPurpose(modifiedBlueprint),
       addedPlotRole: addedPlot?.role,
-      addedInteriorRoomCount: addedInterior.rooms.length,
+      addedBlueprintRoomCount: addedGroundFloor?.rooms.length,
       hasAddedExteriorDoor: Boolean(addedExteriorDoor),
       removedPlotPresent: Boolean(removedPlot),
     }).toEqual({
       modifiedPlotRole: 'market',
-      modifiedInteriorEntryRole: 'shopfloor',
+      modifiedBlueprintEntryPurpose: 'shopfront',
       addedPlotRole: 'market',
       // 2026-06-14: the workshop role shifts the plot-id counter, so
       // newPlotId (= max plot id + 100) changed, reseeding the added
@@ -646,10 +715,16 @@ describe('worldforge pipeline integration', () => {
       // generateTownPlan.ts retired). 216 plots → max-plot-id +100 reseeds the
       // added building again → 1 room. Role/delta logic unchanged (market →
       // shopfloor); only the geometry seed moved.
-      // 2026-07-06 (Task 10): generateInterior is now an adapter over the
-      // blueprint generator (generateBuilding) — interiors re-rolled once
-      // (approved plan consequence). The added market building packs 2 rooms.
-      addedInteriorRoomCount: 2,
+      // 2026-07-06 (Task 10): the blueprint generator replaced the old interior
+      // generator, so interiors re-rolled once (approved plan consequence).
+      // The added market building packs 2 ground-floor rooms.
+      // 2026-07-21: wedge plot footprints are now clamped inside their authored
+      // polygon (townPlanAdapter) so corner buildings stop overlapping the
+      // neighbor ward. This delta copies plot 0's footprint, plot 0 is a wedge,
+      // so the smaller footprint re-packs → 1 room.
+      // 2026-07-22: 1 → 2 after the town-scale lift — the same wedge footprint
+      // now spans real house dimensions, so the interior BSP fits two rooms.
+      addedBlueprintRoomCount: 2,
       hasAddedExteriorDoor: true,
       removedPlotPresent: false,
     });
@@ -674,7 +749,10 @@ describe('worldforge pipeline integration', () => {
     expect(pops.length).toBeGreaterThan(0);
 
     const homePlot = townPlan.plots.find(
-      (plot) => plot.pop?.residential && plot.pop.homeId && (plot.pop.occupants ?? 0) > 0,
+      (plot) =>
+        plot.pop?.residential &&
+        plot.pop.homeId &&
+        (plot.pop.occupants ?? 0) > 0,
     );
     expect(homePlot).toBeDefined();
 
@@ -703,7 +781,12 @@ describe('worldforge pipeline integration', () => {
     expect(briefed.household?.homeId).toBe(brief!.homeId);
 
     const briefless = blueprintForPlot(
-      { id: homePlot!.id, footprint: homePlot!.footprint, role: homePlot!.role, storeys: homePlot!.storeys },
+      {
+        id: homePlot!.id,
+        footprint: homePlot!.footprint,
+        role: homePlot!.role,
+        storeys: homePlot!.storeys,
+      },
       seedPath,
     );
     expect(briefless.household).toBeUndefined();
@@ -730,7 +813,9 @@ describe('worldforge pipeline integration', () => {
   // occupant boxes into the static parts — the renderer moves them live.
   it('bakes an occupant render schedule and NO occupant boxes in parts', () => {
     const world = buildPopulatedGroundWorld();
-    const b = world.buildings.find((x) => x.occupants && x.occupants.length > 0);
+    const b = world.buildings.find(
+      (x) => x.occupants && x.occupants.length > 0,
+    );
     expect(b).toBeDefined();
     expect(b!.occupants![0].stationsByHour).toHaveLength(24);
     expect(b!.occupants![0].body).toBeDefined();

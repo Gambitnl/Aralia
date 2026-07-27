@@ -43,6 +43,19 @@ describe('UtilityCommand live Summon Greater Demon command economy bridge', () =
     );
 
     expect(demons).toHaveLength(1);
+    expect(demons[0].statusEffects).toEqual([
+      expect.objectContaining({
+        name: 'Summon Greater Demon Control',
+        sourceCasterId: caster.id,
+        repeatSave: {
+          timing: 'turn_end',
+          saveType: 'Charisma',
+          successEnds: true,
+          useOriginalDC: true,
+          modifiers: { disadvantage: true }
+        }
+      })
+    ]);
     expect(demons[0]).toEqual(expect.objectContaining({
       name: 'Barlgura',
       team: 'enemy',
@@ -59,6 +72,10 @@ describe('UtilityCommand live Summon Greater Demon command economy bridge', () =
       commandsPerTurn: 1,
       commandsUsedThisTurn: 0,
       persistent: false,
+      bloodCircle: {
+        center: { x: 1, y: 1 },
+        protectedTiles: [{ x: 1, y: 1 }]
+      },
       control: expect.objectContaining({
         entityType: 'chosen_demon',
         source: 'summon-greater-demon',

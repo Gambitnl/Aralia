@@ -21,7 +21,6 @@
  * It owns the same turn, targeting, roster, rail, and 2D/3D controls used by
  * combat so design-preview harnesses exercise real behavior instead of a mock.
  */
-// TODO #37: Add ARIA labels, keyboard navigation, and screen reader support for interactive elements in battle maps and UI components
 import React, {
   useState,
   useMemo,
@@ -41,6 +40,7 @@ import {
   BattleMapData,
   CombatCharacter,
   CombatLogEntry,
+  DamageNumber,
 } from "../../types/combat";
 import ErrorBoundary from "../ui/ErrorBoundary";
 import { useTurnManager } from "../../hooks/combat/useTurnManager";
@@ -56,6 +56,7 @@ import ActionEconomyBar from "./ActionEconomyBar";
 import PartyDisplay from "./PartyDisplay";
 import CharacterSheetModal from "../CharacterSheet/CharacterSheetModal";
 import { canUseDevTools } from "../../utils/permissions";
+import { CONTROL_POSES, type ControlPoseId } from "./controlOptionPose";
 import { logger } from "../../utils/logger";
 import { createPlayerCombatCharacter } from "../../utils/combatUtils";
 import {
@@ -297,6 +298,12 @@ interface BattleMapDemoProps {
   showTargetableObjectFacts?: boolean;
   /** Lab-owned review layer for source-backed noncombat residents. */
   showWorldOccupants?: boolean;
+  /**
+   * Dev/review affordance forwarded to the 2D board: shows the render-only
+   * fog-of-war veil toggle chip. Off by default; only the design lab opts in so
+   * the chip never reaches real-game combat.
+   */
+  showFogToggle?: boolean;
 }
 
 type BiomeType = BattleMapBiome;
@@ -409,6 +416,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
   preferFullMapFit = false,
   showTargetableObjectFacts = false,
   showWorldOccupants = true,
+  showFogToggle = false,
 }) => {
   // A supplied world patch owns its theme and seed. The old forest + current
   // time defaults remain unchanged for the standalone arena sandbox.
@@ -490,8 +498,48 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
     return [...partyCombatants, ...enemies];
   }, [allowFallbackEnemies, initialCharacters, party, spellsRecord]);
 
+  // Dev-only control-option pose proof hook (G7): `?controlpose=grovel` (or
+  // approach/flee/drop/halt) stamps the matching "Command: <Word>" status on
+  // every enemy so the shared pose contract can be eyeballed on the 2D token
+  // AND the 3D actor without casting Command. No-op outside dev tools.
+  const applyControlPoseProof = useCallback(
+    (combatants: CombatCharacter[]): CombatCharacter[] => {
+      if (typeof window === "undefined" || !canUseDevTools()) return combatants;
+      let directive: string | null = null;
+      try {
+        directive = new URLSearchParams(window.location.search).get(
+          "controlpose",
+        );
+      } catch {
+        return combatants;
+      }
+      const pose = directive
+        ? CONTROL_POSES[directive as ControlPoseId]
+        : undefined;
+      if (!pose) return combatants;
+      return combatants.map((c) =>
+        c.team === "enemy"
+          ? {
+              ...c,
+              statusEffects: [
+                ...c.statusEffects,
+                {
+                  id: `controlpose-proof-${c.id}`,
+                  name: pose.statusName,
+                  type: "debuff" as const,
+                  duration: 99,
+                  description: pose.label,
+                },
+              ],
+            }
+          : c,
+      );
+    },
+    [],
+  );
+
   const [initialSetup] = useState(() => {
-    const baseCombatants = getBaseCombatants();
+    const baseCombatants = applyControlPoseProof(getBaseCombatants());
     if (initialMapData) {
       return {
         ...generateWorldBattleSetup(initialMapData, seed, baseCombatants),
@@ -874,6 +922,39 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
           ability: ab.selectedAbility?.name ?? null,
         };
       },
+      // Deterministic damage-number showcase (GOAL #16 verification). Ability
+      // execution is not reachable headlessly (initiative + AI turns are not
+      // deterministic), so this drives the same turnManager.addDamageNumber the
+      // real hit path calls — one number per living character, cycling the full
+      // outcome vocabulary so a single capture judges every color/label.
+      spawnDamage: () => {
+        const { turnManager: tmNow, characters: roster } =
+          targetingHookRefs.current;
+        const types: DamageNumber["type"][] = [
+          "damage",
+          "heal",
+          "miss",
+          "save",
+          "resist",
+          "immune",
+        ];
+        const living = roster.filter((c) => c.currentHP > 0);
+        living.forEach((c, i) => {
+          const type = types[i % types.length];
+          const value =
+            type === "damage" ? 7 + i * 3 : type === "heal" ? 5 + i : 0;
+          tmNow.addDamageNumber(value, c.position, type);
+        });
+        return living.map((c, i) => ({
+          name: c.name,
+          at: c.position,
+          type: types[i % types.length],
+        }));
+      },
+      // How many damage numbers are currently live in turn-manager state —
+      // separates "state never updated" from "state updated but not rendered".
+      damageCount: () =>
+        targetingHookRefs.current.turnManager.damageNumbers?.length ?? -1,
     };
     return () => {
       delete w.__bm3dTargeting;
@@ -1108,6 +1189,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
                 assetOverlayVisible={assetOverlayVisible}
                 showTargetableObjectFacts={showTargetableObjectFacts}
                 showWorldOccupants={showWorldOccupants}
+                showFogToggle={showFogToggle}
                 preferFullMapFit={preferFullMapFit}
                 cameraFocusRequest={cameraFocusRequest}
                 combatState={{

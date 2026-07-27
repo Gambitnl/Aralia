@@ -100,10 +100,7 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
             <div className="flex flex-col h-full bg-gray-900">
 
                 {/* Flavor banner (was a header subtitle). */}
-                {/*
-                  TODO #60(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
-                  TODO #61(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
-                */}
+
                 <p className="shrink-0 bg-gray-800 px-4 py-2 border-b border-gray-700 text-xs text-gray-400">
                     &quot;I buy anything. No questions asked.&quot; (Cut: {Math.round((1 - payoutRatio) * 100)}%)
                 </p>

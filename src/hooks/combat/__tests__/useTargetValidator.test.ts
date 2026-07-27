@@ -115,7 +115,61 @@ const touchSpellAbility: Ability = {
     }
 };
 
+const scryingLocationAbility: Ability = {
+    id: 'scrying-location',
+    name: 'Scrying Location',
+    description: 'A remote sensor anchored to a chosen location.',
+    type: 'spell',
+    cost: { type: 'action' },
+    targeting: 'single_any',
+    range: 60,
+    effects: [{ type: 'status' as any, condition: 'scrying_sensor' } as any],
+    spell: {
+        id: 'scrying',
+        targeting: {
+            type: 'single',
+            range: 60,
+            validTargets: ['any'],
+            lineOfSight: false
+        }
+    }
+};
+
 describe('useTargetValidator', () => {
+    it('rejects demon attacks against creatures inside its authored blood circle', () => {
+        const demon = createMockCombatCharacter({
+            id: 'summoned-demon',
+            name: 'Summoned Demon',
+            team: 'enemy',
+            position: { x: 3, y: 3 },
+            isSummon: true,
+            summonMetadata: {
+                casterId: 'caster',
+                spellId: 'summon-greater-demon',
+                bloodCircle: {
+                    center: { x: 0, y: 0 },
+                    protectedTiles: [{ x: 0, y: 0 }]
+                }
+            }
+        });
+        const protectedCreature = createMockCombatCharacter({
+            id: 'protected-creature',
+            name: 'Protected Creature',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        });
+
+        const { result } = renderHook(() => useTargetValidator({
+            characters: [demon, protectedCreature],
+            mapData: createMap(5, 5)
+        }));
+
+        expect(result.current.getTargetValidation(meleeAttack, demon, protectedCreature.position)).toEqual({
+            isValid: false,
+            reason: 'Summoned Demon cannot target creatures inside its protective blood circle.'
+        });
+    });
+
     it('keeps existing boolean validation while explaining out-of-range enemies', () => {
         const caster = createMockCombatCharacter({
             id: 'kaelen',
@@ -458,7 +512,9 @@ describe('findTouchDeliveryActor action-cost variants', () => {
                 action: { used: false, remaining: 1 },
                 bonusAction: { used: false, remaining: 1 },
                 reaction: { used: false, remaining: 1 },
-                movement: { used: 0, total: 30 }
+                movement: { used: 0, total: 30 },
+                legendary: { used: 0, total: 0 },
+                freeActions: 1
             },
             summonMetadata: {
                 casterId: caster.id,
@@ -506,6 +562,24 @@ describe('findTouchDeliveryActor action-cost variants', () => {
         ])).toBeNull();
     });
 
+    it('allows Scrying to resolve an empty location tile for its remote sensor', () => {
+        const caster = createMockCombatCharacter({
+            id: 'scryer',
+            name: 'Scryer',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        });
+
+        const { result } = renderHook(() => useTargetValidator({
+            characters: [caster],
+            mapData: createMap(5, 5)
+        }));
+
+        expect(result.current.getTargetValidation(scryingLocationAbility, caster, { x: 2, y: 2 })).toEqual({
+            isValid: true
+        });
+    });
+
     it('rejects touch-delivery actors that cannot afford their declared action, bonus-action, or free cost', () => {
         const caster = createMockCombatCharacter({
             id: 'caster-touch-costs',
@@ -533,6 +607,7 @@ describe('findTouchDeliveryActor action-cost variants', () => {
             },
             summonMetadata: {
                 casterId: caster.id,
+                spellId: 'find-familiar',
                 entityType: 'familiar',
                 sourceName: 'Find Familiar',
                 actionPermissions: {
@@ -554,6 +629,7 @@ describe('findTouchDeliveryActor action-cost variants', () => {
             },
             summonMetadata: {
                 casterId: caster.id,
+                spellId: 'find-familiar',
                 entityType: 'familiar',
                 sourceName: 'Find Familiar',
                 actionPermissions: {
@@ -575,6 +651,7 @@ describe('findTouchDeliveryActor action-cost variants', () => {
             },
             summonMetadata: {
                 casterId: caster.id,
+                spellId: 'find-familiar',
                 entityType: 'familiar',
                 sourceName: 'Find Familiar',
                 actionPermissions: {

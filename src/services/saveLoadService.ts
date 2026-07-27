@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 17/07/2026, 22:34:52
+ * Last Sync: 19/07/2026, 08:33:04
  * Dependents: App.tsx, components/SaveLoad/LoadGameModal.tsx, components/SaveLoad/SaveSlotSelector.tsx, components/layout/MainMenu.tsx, hooks/actions/handleSystemAndUi.ts, hooks/useAutoSave.ts, hooks/useGameInitialization.ts, state/appState.ts
- * Imports: 13 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -50,6 +50,7 @@ import {
   normalizeAtlasGroundPosition,
   normalizeDiscoveredHiddenSites,
 } from '@/systems/worldforge/leaf3d/atlasGroundContinuity';
+import { normalizeDungeonExpeditionLedger } from '@/systems/worldforge/dungeon/world/dungeonLifecycle';
 
 //
 // Save slot configuration
@@ -424,6 +425,18 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     loadedState.discoveredHiddenSites = normalizeDiscoveredHiddenSites(
       loadedState.discoveredHiddenSites,
     );
+    // Dungeon expedition saves are keyed by the canonical entrance id. Legacy saves become an
+    // empty ledger; malformed cross-key receipts are dropped rather than attaching progress to a
+    // different world site. Completed receipts also heal the older ecology cleared-path list.
+    loadedState.dungeonExpeditions = normalizeDungeonExpeditionLedger(
+      loadedState.dungeonExpeditions,
+    );
+    const completedDungeonPaths = Object.values(loadedState.dungeonExpeditions)
+      .filter((expedition) => expedition.completion === 'completed')
+      .map((expedition) => expedition.identity.seedPath);
+    loadedState.clearedDungeons = [
+      ...new Set([...(loadedState.clearedDungeons ?? []), ...completedDungeonPaths]),
+    ];
     if (rawAtlasGroundAddress != null && loadedState.atlasGroundAddress === null) {
       // A corrupt native-Atlas address cannot safely use the ordinary cell-centred
       // 3D fallback. Return to the cartographer; legacy saves with no address are

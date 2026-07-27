@@ -48,6 +48,7 @@ import {
 } from "../../utils/combatUtils";
 import { Z_INDEX } from "../../styles/zIndex";
 import { getCreatureTokenVisual } from "../../utils/visuals/combatIconVisuals";
+import { resolveControlPose } from "./controlOptionPose";
 
 interface CharacterTokenProps {
   character: CombatCharacter;
@@ -542,6 +543,11 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(
   }) => {
     const multiplier = getCharacterSizeMultiplier(character.stats.size);
     const defenseBadges = buildDefenseBadges(character);
+    // G7 shared pose contract: an active control-option directive (approach /
+    // flee / drop / grovel / halt) poses the token. Resolution is cached per
+    // statusEffects array; null = base look (fallback), and status expiry
+    // restores the base look through the CSS transition below.
+    const controlPose = resolveControlPose(character.statusEffects);
     const tokenVisual = useMemo(
       () => getCreatureTokenVisual(character),
       [character],
@@ -579,33 +585,47 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(
 
     // Memoized token circle style: only recalculates when visual state changes.
     const tokenStyle = useMemo((): React.CSSProperties => {
-      // Bright faction rings + a thin light halo: the old dark-red-on-dark-slate
-      // enemy ring disappeared entirely against the painted forest, which made
-      // hostiles effectively invisible on the board.
-      let borderColor = "#9CA3AF"; // gray-400 default
+      // Readability over a busy painted forest is the whole job here. A thin
+      // faction ring on a dark disc vanished into the foliage, so every token
+      // now carries a double keyline (dark hairline + bright white ring) that
+      // reads over ANY background, plus a drop shadow to lift it off the art.
+      // The faction color is a thick, saturated band so team identity still
+      // reads at a glance: green = party, red = enemy.
+      let borderColor = "#9CA3AF"; // gray-400 neutral default
       if (character.team === "player")
-        borderColor = "#60A5FA"; // blue-400
-      else borderColor = "#EF4444"; // red-500 for enemy team
+        borderColor = "#22C55E"; // green-500 party
+      else borderColor = "#EF4444"; // red-500 enemy
       if (isTargetable) borderColor = "#F87171";
       if (isSelected) borderColor = "#FBBF24";
-      const halo = "0 0 0 1.5px rgba(255,255,255,0.4)";
+
+      // Layered outward from the token edge: dark hairline hugs the faction
+      // band, a bold white ring guarantees contrast on dark foliage, and a
+      // faint dark edge separates the white from any bright patch behind it.
+      const keyline =
+        "0 0 0 1.5px rgba(0,0,0,0.92), 0 0 0 4px rgba(255,255,255,0.95), 0 0 0 5.5px rgba(0,0,0,0.5)";
+      const drop = "0 3px 8px 2px rgba(0,0,0,0.65)";
 
       return {
-        width: "80%",
-        height: "80%",
+        width: "92%",
+        height: "92%",
         borderRadius: openingRole?.tokenRadius ?? "50%",
-        border: `3px solid ${borderColor}`,
-        backgroundColor: "#1F2937",
+        border: `4px solid ${borderColor}`,
+        backgroundColor: "#111827",
         overflow: "hidden",
         boxShadow: isSelected
-          ? `${halo}, 0 0 10px #FBBF24, 0 0 20px #FBBF24`
+          ? `${keyline}, ${drop}, 0 0 12px 3px #FBBF24`
           : isTargetable
-            ? `${halo}, 0 0 10px #EF4444`
-            : `${halo}, 0 2px 4px rgba(0,0,0,0.6)`,
-        transform: isSelected ? "scale(1.1)" : "scale(1.0)",
+            ? `${keyline}, ${drop}, 0 0 12px 3px #EF4444`
+            : `${keyline}, ${drop}`,
+        // Control-option pose (G7): composed after the selection scale so both
+        // read together; the transition makes apply AND restore smooth without
+        // blocking anything.
+        transform: `${isSelected ? "scale(1.12)" : "scale(1.0)"}${controlPose ? ` ${controlPose.token2d.transform}` : ""}`,
+        filter: controlPose && controlPose.token2d.filter !== "none" ? controlPose.token2d.filter : undefined,
+        transition: "transform 0.3s ease, filter 0.3s ease",
         animation: isTurn ? "pulseTurn 2s infinite" : "none",
       };
-    }, [character.team, isSelected, isTargetable, isTurn, openingRole]);
+    }, [character.team, isSelected, isTargetable, isTurn, openingRole, controlPose]);
 
     // HP arc around the token rim: state-at-a-glance without opening a sheet.
     const hpPct = Math.max(
@@ -652,6 +672,8 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(
             <div
               style={tokenStyle}
               className="flex items-center justify-center font-bold text-white text-lg"
+              data-control-pose={controlPose?.id}
+              aria-label={controlPose ? controlPose.label : undefined}
             >
               {tokenVisual.src ? (
                 <img

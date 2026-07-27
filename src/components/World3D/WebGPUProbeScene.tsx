@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/07/2026, 21:08:27
+ * Last Sync: 23/07/2026, 17:36:31
  * Dependents: components/World3D/WebGPUProbe.tsx
  * Imports: 20 files
  *
@@ -64,8 +64,8 @@
  * probe fails loudly; the badge shows the real backend either way.
  */
 
-import React, { useMemo, useRef, useEffect } from 'react';
-import { Canvas, extend, useFrame } from '@react-three/fiber';
+import React, { useMemo, useRef, useEffect, useLayoutEffect } from 'react';
+import { Canvas, extend, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   vec3,
@@ -87,7 +87,6 @@ import { chunkOriginWorld, worldToChunk } from '@/systems/world3d/coords';
 import { rebaseChunkPositions } from '@/systems/world3d/chunkRebase';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
-import { isSitePartRenderable } from '@/systems/worldforge/bridge/sitePartTransform';
 import { sunFromTime, DEFAULT_TIME_OF_DAY_H } from './World3DLighting';
 import { buildRoofGeometry } from '@/systems/world3d/buildingModels';
 import {
@@ -108,6 +107,13 @@ import { createLogGeometry } from '@/systems/worldforge/props/generators/logGeom
 import { createBushGeometry } from '@/systems/worldforge/props/generators/bushGeometry';
 import { buildTownPropForms } from '@/systems/worldforge/props/generators/townPropForms';
 import type { ProbeStatus } from './WebGPUProbe';
+import {
+  buildSiteBoxBatches,
+  buildSiteRoofBatches,
+  type ScalableRoofForm,
+  type SiteBoxBatch,
+  type SiteRoofBatch,
+} from '@/systems/world3d/siteBoxBatches';
 
 // Make the WebGPU THREE namespace the source for R3F JSX intrinsics. Without
 // this, <meshStandardMaterial> etc. resolve against the default WebGL namespace
@@ -384,65 +390,217 @@ function roofGeometry(form: 'gable' | 'hip' | 'steep' | 'flat', w: number, d: nu
   return geo;
 }
 
+const scalableRoofGeomCache = new Map<ScalableRoofForm, THREE.BufferGeometry>();
+function scalableRoofGeometry(form: ScalableRoofForm): THREE.BufferGeometry {
+  let geometry = scalableRoofGeomCache.get(form);
+  if (!geometry) {
+    const arrays = buildRoofGeometry(form, 1, 1, 1);
+    // buildRoofGeometry emits both triangle windings but carries the first
+    // winding's inward normal. The former derivative material corrected that
+    // implicitly; instancing reads the authored normals, so turn them outward.
+    const outwardNormals = arrays.normals.slice();
+    for (let index = 0; index < outwardNormals.length; index += 1) {
+      outwardNormals[index] *= -1;
+    }
+    geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(arrays.positions, 3));
+    geometry.setAttribute('normal', new THREE.BufferAttribute(outwardNormals, 3));
+    geometry.setIndex(new THREE.BufferAttribute(arrays.indices, 1));
+    scalableRoofGeomCache.set(form, geometry);
+  }
+  return geometry;
+}
+
 const roofHeight = (w: number, d: number): number => Math.max(1.2, Math.min(3, Math.min(w, d) * 0.5));
 const EAVE_M = 0.45;
+const NOOP_STREAM_UPDATE = (): void => {};
 
 type SolidMat = (hex: string, flat?: boolean) => THREE.MeshBasicNodeMaterial;
 
-/** Footprint-true building with a STYLED roof (parity with SiteBuilding, minus roof auto-hide). */
-const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number]; mat: SolidMat }> = ({ site: s, mat }) => {
+/**
+ * Flat parapets remain one authored mesh.
+ *
+ * Their slab, lip and rim use absolute thicknesses, so scaling one shared shape
+ * would change the design. The scale-invariant pitched forms are batched below.
+ */
+const SiteBuildingRoof: React.FC<{ site: LoadedChunk['bundle']['sites'][number]; mat: SolidMat }> = ({ site: s, mat }) => {
   const roofW = s.parts && s.wallWidthM ? s.wallWidthM + EAVE_M * 2 : (s.boxWidth ?? 0) * 1.08;
   const roofD = s.parts && s.wallDepthM ? s.wallDepthM + EAVE_M * 2 : (s.boxDepth ?? 0) * 1.08;
   const rHeight = roofHeight(roofW, roofD);
-  const roofForm = s.roofForm ?? 'hip';
-  const roofGeo = roofGeometry(roofForm, roofW, roofD, rHeight);
+  const roofGeo = roofGeometry('flat', roofW, roofD, rHeight);
   return (
     <group position={[s.localX, s.surfaceY, s.localZ]} rotation={[0, s.rotationY ?? 0, 0]}>
-      {s.parts ? (
-        s.parts
-          // Match the production WebGL renderer: tactical-only party walls
-          // remain in the payload but never become duplicate visible meshes.
-          .filter(isSitePartRenderable)
-          .map((p, i) => (
-          <mesh
-            key={`part-${i}`}
-            position={[p.x, (p.baseY ?? 0) + p.h * 0.5, p.z * -(s.doorZSign ?? -1)]}
-            material={mat(p.colorHex, true)}
-          >
-            <boxGeometry args={[p.w, p.h, p.d]} />
-          </mesh>
-          ))
-      ) : (
-        <mesh position={[0, (s.boxHeight ?? 0) * 0.5, 0]} material={mat(s.colorHex ?? '#b09a72', true)}>
-          <boxGeometry args={[s.boxWidth, s.boxHeight, s.boxDepth]} />
-        </mesh>
-      )}
       {/* Styled roof geometry (buildRoofGeometry), base at y=0, at wall-top Y. */}
       <mesh position={[0, s.boxHeight ?? 0, 0]} geometry={roofGeo} material={mat(s.roofColorHex ?? '#7a4a32', true)} />
     </group>
   );
 };
 
-const SitePieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin; mat: SolidMat }> = ({ chunk, origin, mat }) => (
-  <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-    {chunk.bundle.sites.map((s) =>
-      s.markerOnly ? null : s.boxWidth && s.boxDepth && s.boxHeight ? (
-        <SiteBuilding key={`${chunk.cx}|${chunk.cy}|${s.id}`} site={s} mat={mat} />
-      ) : (
-        <mesh
-          key={`${chunk.cx}|${chunk.cy}|${s.id}`}
-          position={[s.localX, s.surfaceY + s.radius * 0.5, s.localZ]}
-          material={mat(
-            s.kind === 'town' ? '#caa46a' : s.kind === 'dungeon' ? '#555555' : s.kind === 'monster' ? '#d9534f' : '#888888',
-            true,
-          )}
-        >
-          <boxGeometry args={[s.radius, s.radius, s.radius]} />
-        </mesh>
-      ),
-    )}
-  </group>
-);
+/** All rectangular building parts share this GPU-side unit cube. */
+const SITE_BOX_GEOMETRY = new THREE.BoxGeometry(1, 1, 1);
+
+/**
+ * Draw one colour bucket while retaining a transform and source ID per box.
+ *
+ * A raycast can still translate `instanceId` through `userData.sourceIds` to the
+ * exact building part. Bounding volumes are recomputed after matrices are written,
+ * so whole off-screen batches can be culled safely.
+ */
+const SiteBoxBatchMesh: React.FC<{
+  batch: SiteBoxBatch;
+  material: THREE.MeshBasicNodeMaterial;
+}> = ({ batch, material }) => {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const sourceIds = useMemo(
+    () => batch.instances.map((instance) => instance.sourceId),
+    [batch.instances],
+  );
+
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+
+    const matrix = new THREE.Matrix4();
+    const color = new THREE.Color(batch.colorHex);
+    const rotation = new THREE.Quaternion();
+    const up = new THREE.Vector3(0, 1, 0);
+    const position = new THREE.Vector3();
+    const scale = new THREE.Vector3();
+
+    batch.instances.forEach((instance, index) => {
+      position.set(instance.x, instance.y, instance.z);
+      rotation.setFromAxisAngle(up, instance.rotationY);
+      scale.set(instance.width, instance.height, instance.depth);
+      matrix.compose(position, rotation, scale);
+      mesh.setMatrixAt(index, matrix);
+      mesh.setColorAt(index, color);
+    });
+
+    mesh.count = batch.instances.length;
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    mesh.computeBoundingBox();
+    mesh.computeBoundingSphere();
+  }, [batch.instances, batch.colorHex]);
+
+  if (batch.instances.length === 0) return null;
+  return (
+    <instancedMesh
+      ref={ref}
+      args={[SITE_BOX_GEOMETRY, material, batch.instances.length]}
+      name={`site-box-batch:${batch.colorHex}`}
+      userData={{ sourceIds }}
+    />
+  );
+};
+
+/** Draw one pitched-roof form while retaining unique dimensions and colours. */
+const SiteRoofBatchMesh: React.FC<{
+  batch: SiteRoofBatch;
+  material: THREE.MeshBasicNodeMaterial;
+}> = ({ batch, material }) => {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const sourceIds = useMemo(
+    () => batch.instances.map((instance) => instance.sourceId),
+    [batch.instances],
+  );
+
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+
+    const matrix = new THREE.Matrix4();
+    const color = new THREE.Color();
+    const rotation = new THREE.Quaternion();
+    const up = new THREE.Vector3(0, 1, 0);
+    const position = new THREE.Vector3();
+    const scale = new THREE.Vector3();
+
+    batch.instances.forEach((instance, index) => {
+      position.set(instance.x, instance.y, instance.z);
+      rotation.setFromAxisAngle(up, instance.rotationY);
+      scale.set(instance.width, instance.rise, instance.depth);
+      matrix.compose(position, rotation, scale);
+      mesh.setMatrixAt(index, matrix);
+      mesh.setColorAt(index, color.set(instance.colorHex));
+    });
+
+    mesh.count = batch.instances.length;
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    mesh.computeBoundingBox();
+    mesh.computeBoundingSphere();
+  }, [batch.instances]);
+
+  if (batch.instances.length === 0) return null;
+  return (
+    <instancedMesh
+      ref={ref}
+      args={[scalableRoofGeometry(batch.form), material, batch.instances.length]}
+      name={`site-roof-batch:${batch.form}`}
+      userData={{ sourceIds }}
+    />
+  );
+};
+
+/**
+ * Render one streamed chunk's buildings.
+ *
+ * Rectangular parts are grouped by colour. Scale-invariant pitched roofs are
+ * grouped by form; flat parapets retain their exact authored mesh.
+ */
+const SitePieces: React.FC<{
+  chunk: LoadedChunk;
+  origin: SceneOrigin;
+  flatRoofMaterial: SolidMat;
+  roofBatchMaterial: THREE.MeshBasicNodeMaterial;
+  boxMaterial: THREE.MeshBasicNodeMaterial;
+}> = ({ chunk, origin, flatRoofMaterial, roofBatchMaterial, boxMaterial }) => {
+  // The shared streamer already classifies chunks by distance. Keep complete
+  // interiors in the walking-scale ring, and render authored shells beyond it.
+  // Distant buildings retain their individual footprint, height, yaw and roof.
+  const detail = chunk.lod === 'full' ? 'full' : 'shell';
+  const batches = useMemo(
+    () => buildSiteBoxBatches(chunk.bundle.sites, detail),
+    [chunk.bundle.sites, detail],
+  );
+  const roofBatches = useMemo(
+    () => buildSiteRoofBatches(chunk.bundle.sites),
+    [chunk.bundle.sites],
+  );
+
+  return (
+    <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
+      {batches.map((batch) => (
+        <SiteBoxBatchMesh
+          key={batch.colorHex.toLowerCase()}
+          batch={batch}
+          material={boxMaterial}
+        />
+      ))}
+      {roofBatches.map((batch) => (
+        <SiteRoofBatchMesh
+          key={batch.form}
+          batch={batch}
+          material={roofBatchMaterial}
+        />
+      ))}
+      {chunk.bundle.sites.map((site) =>
+        !site.markerOnly &&
+        site.boxWidth &&
+        site.boxDepth &&
+        site.boxHeight &&
+        site.roofForm === 'flat' ? (
+          <SiteBuildingRoof
+            key={`${chunk.cx}|${chunk.cy}|${site.id}:roof`}
+            site={site}
+            mat={flatRoofMaterial}
+          />
+        ) : null,
+      )}
+    </group>
+  );
+};
 
 // ── Vegetation: instanced trees + bushes ─────────────────────────────────────
 
@@ -860,7 +1018,11 @@ const CrateStack: React.FC<{ p: Placed; mat: SolidMat }> = ({ p, mat }) => (
 
 // ── Instrument: FPS + backend + MISSING reporter ─────────────────────────────
 
-const ProbeInstrument: React.FC<{ onStatus: (s: ProbeStatus) => void; missing: string[]; backend: ProbeStatus['backend'] }> = ({ onStatus, missing, backend }) => {
+const ProbeInstrument: React.FC<{
+  onStatus: (s: ProbeStatus) => void;
+  missing: string[];
+  backendRef: React.RefObject<ProbeStatus['backend']>;
+}> = ({ onStatus, missing, backendRef }) => {
   const frames = useRef(0);
   const last = useRef(performance.now());
   const fps = useRef(0);
@@ -872,9 +1034,70 @@ const ProbeInstrument: React.FC<{ onStatus: (s: ProbeStatus) => void; missing: s
       (window as unknown as { __webgpuProbeFps?: number }).__webgpuProbeFps = fps.current;
       frames.current = 0;
       last.current = now;
-      onStatus({ backend, fps: fps.current, missing });
+      // Read the renderer result live because the memoized scene deliberately
+      // does not rerender for each host badge update.
+      onStatus({ backend: backendRef.current, fps: fps.current, missing });
     }
   });
+  return null;
+};
+
+/**
+ * Fall back to a timer only when the embedding host visibly caps browser RAF.
+ *
+ * The Codex in-app browser reports visible/focused but schedules RAF at 1–4 Hz.
+ * A normal browser stays on display-synchronised RAF; the capped host switches
+ * this probe to manual R3F advances so the badge reflects renderer throughput.
+ */
+const AdaptiveFrameLoop: React.FC<{ forceTimer: boolean }> = ({ forceTimer }) => {
+  const advance = useThree((state) => state.advance);
+  const setFrameloop = useThree((state) => state.setFrameloop);
+  useEffect(() => {
+    let timer = 0;
+    let frameId = 0;
+    let browserFrames = 0;
+    let sampleStart = performance.now();
+
+    const startTimerLoop = (): void => {
+      setFrameloop('never');
+      const tick = (): void => {
+        advance(performance.now());
+        timer = window.setTimeout(tick, 16);
+      };
+      timer = window.setTimeout(tick, 0);
+    };
+
+    if (forceTimer) {
+      startTimerLoop();
+      return () => window.clearTimeout(timer);
+    }
+
+    const sampleRaf = (now: number): void => {
+      browserFrames += 1;
+      if (now - sampleStart >= 2000) {
+        const browserFps = (browserFrames * 1000) / (now - sampleStart);
+        if (
+          browserFps < 15 &&
+          document.visibilityState === 'visible' &&
+          document.hasFocus()
+        ) {
+          console.info(
+            `[webgpuProbe] host RAF capped at ${Math.round(browserFps)} fps; using timer scheduler`,
+          );
+          startTimerLoop();
+          return;
+        }
+        browserFrames = 0;
+        sampleStart = now;
+      }
+      frameId = requestAnimationFrame(sampleRaf);
+    };
+    frameId = requestAnimationFrame(sampleRaf);
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.clearTimeout(timer);
+    };
+  }, [advance, forceTimer, setFrameloop]);
   return null;
 };
 
@@ -895,6 +1118,21 @@ const WebGPUProbeScene: React.FC<Props> = ({ loader, ground, start, startSurface
   const { loaded, update } = useChunkStreaming(loader);
   const sceneOrigin: SceneOrigin = useMemo(() => ({ x: start[0], z: start[2] }), [start]);
   const anchorChunk: ChunkCoord = useMemo(() => worldToChunk(sceneOrigin.x, sceneOrigin.z), [sceneOrigin]);
+  // Probe-only isolation switch for finding a slow content family without
+  // maintaining separate diagnostic scenes. Omit `layers` for the full stack.
+  const layerProfile = useMemo(
+    () => new URLSearchParams(window.location.search).get('layers') ?? 'all',
+    [],
+  );
+  const layerProfiles = useMemo(() => new Set(layerProfile.split(',')), [layerProfile]);
+  const showSites = layerProfile === 'all' || layerProfiles.has('sites');
+  const showVegetation = layerProfile === 'all' || layerProfiles.has('vegetation');
+  const showProps = layerProfile === 'all' || layerProfiles.has('props');
+  const showBase = layerProfile !== 'empty';
+  const forceTimerLoop = useMemo(
+    () => new URLSearchParams(window.location.search).get('loop') === 'timer',
+    [],
+  );
   const backendRef = useRef<ProbeStatus['backend']>('unknown');
   const fatalRef = useRef(false);
 
@@ -912,6 +1150,19 @@ const WebGPUProbeScene: React.FC<Props> = ({ loader, ground, start, startSurface
     },
     [solidCache],
   );
+  // Every building box uses one white base material. Its exact generated colour
+  // arrives through InstancedMesh.instanceColor, so colour variation does not
+  // require a separate shader or material object per building.
+  const siteBoxMaterial = useMemo(
+    () => makeInstancedSolidMaterial('#ffffff', true),
+    [],
+  );
+  useEffect(() => () => siteBoxMaterial.dispose(), [siteBoxMaterial]);
+  const siteRoofMaterial = useMemo(
+    () => makeInstancedSolidMaterial('#ffffff', true),
+    [],
+  );
+  useEffect(() => () => siteRoofMaterial.dispose(), [siteRoofMaterial]);
 
   // Bush spheres carry no geometry color and their per-instance scatter tint is
   // dark palette data (crushes to black when used as albedo). Render them a solid
@@ -924,13 +1175,10 @@ const WebGPUProbeScene: React.FC<Props> = ({ loader, ground, start, startSurface
 
   const camPosition = useMemo<[number, number, number]>(() => [60, startSurfaceY + 35, 60], [startSurfaceY]);
 
-  useEffect(() => {
-    update(start[0], start[2]);
-  }, [update, start]);
-
   return (
     <div style={{ width: '100%', height: '100%', minHeight: '520px', background: '#cdd9e6', borderRadius: '12px', overflow: 'hidden' }}>
       <Canvas
+        frameloop={forceTimerLoop ? 'never' : 'always'}
         camera={{ fov: 55, near: 1, far: 60000, position: camPosition }}
         onCreated={({ scene }) => {
           (window as unknown as { __wf3dScene?: unknown }).__wf3dScene = scene;
@@ -978,7 +1226,9 @@ const WebGPUProbeScene: React.FC<Props> = ({ loader, ground, start, startSurface
           w.__webgpuProbeBackend = 'webgpu';
           onStatus({ backend: 'webgpu', fps: 0, missing });
           // eslint-disable-next-line no-console
-          console.info('[webgpuProbe] renderer backend = webgpu');
+          console.info(
+            `[webgpuProbe] renderer backend = webgpu; visibility=${document.visibilityState}; focused=${document.hasFocus()}`,
+          );
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           return renderer as any;
         }}
@@ -986,32 +1236,46 @@ const WebGPUProbeScene: React.FC<Props> = ({ loader, ground, start, startSurface
         {/* Baked lighting: no scene lights (see PARITY FIX). Fog + tone mapping
             still apply; fog color matches the World3DLighting ground profile. */}
         <fog attach="fog" args={[fogC.getHex(), 450, 2000]} />
+        <AdaptiveFrameLoop forceTimer={forceTimerLoop} />
         <FreeRoamCameraController
           initialTarget={[0, startSurfaceY, 0]}
           sceneOrigin={sceneOrigin}
-          onPositionChange={update}
+          onPositionChange={layerProfile === 'empty' ? NOOP_STREAM_UPDATE : update}
           minDistance={2}
           maxDistance={1500}
         />
-        <ProbeInstrument onStatus={onStatus} missing={missing} backend={backendRef.current} />
+        <ProbeInstrument onStatus={onStatus} missing={missing} backendRef={backendRef} />
         {loaded.map((c) => (
           <React.Fragment key={`${c.cx}|${c.cy}`}>
-            <TerrainPiece chunk={c} origin={sceneOrigin} anchor={anchorChunk} />
-            <WaterPiece chunk={c} origin={sceneOrigin} />
-            <RoadPiece chunk={c} origin={sceneOrigin} />
-            <VertexColorPiece arrays={c.bundle.walls} origin={sceneOrigin} cx={c.cx} cy={c.cy} material={wallMat} />
-            <VertexColorPiece arrays={c.bundle.gates} origin={sceneOrigin} cx={c.cx} cy={c.cy} material={wallMat} />
-            <VertexColorPiece arrays={c.bundle.decks} origin={sceneOrigin} cx={c.cx} cy={c.cy} material={wallMat} />
-            <SitePieces chunk={c} origin={sceneOrigin} mat={solidMat} />
-            <TreesPiece chunk={c} origin={sceneOrigin} material={treeMat} />
-            <BushPiece chunk={c} origin={sceneOrigin} material={bushSolidMat} />
-            <GrassPiece chunk={c} anchor={anchorChunk} origin={sceneOrigin} material={grassMat} />
+            {showBase && <TerrainPiece chunk={c} origin={sceneOrigin} anchor={anchorChunk} />}
+            {showBase && <WaterPiece chunk={c} origin={sceneOrigin} />}
+            {showBase && <RoadPiece chunk={c} origin={sceneOrigin} />}
+            {showBase && <VertexColorPiece arrays={c.bundle.walls} origin={sceneOrigin} cx={c.cx} cy={c.cy} material={wallMat} />}
+            {showBase && <VertexColorPiece arrays={c.bundle.gates} origin={sceneOrigin} cx={c.cx} cy={c.cy} material={wallMat} />}
+            {showBase && <VertexColorPiece arrays={c.bundle.decks} origin={sceneOrigin} cx={c.cx} cy={c.cy} material={wallMat} />}
+            {showSites && (
+              <SitePieces
+                chunk={c}
+                origin={sceneOrigin}
+                flatRoofMaterial={solidMat}
+                roofBatchMaterial={siteRoofMaterial}
+                boxMaterial={siteBoxMaterial}
+              />
+            )}
+            {showVegetation && <TreesPiece chunk={c} origin={sceneOrigin} material={treeMat} />}
+            {showVegetation && <BushPiece chunk={c} origin={sceneOrigin} material={bushSolidMat} />}
+            {showVegetation && (
+              <GrassPiece chunk={c} anchor={anchorChunk} origin={sceneOrigin} material={grassMat} />
+            )}
           </React.Fragment>
         ))}
-        <PropGroup ground={ground} origin={sceneOrigin} mat={solidMat} />
+        {showProps && <PropGroup ground={ground} origin={sceneOrigin} mat={solidMat} />}
       </Canvas>
     </div>
   );
 };
 
-export default WebGPUProbeScene;
+// The host updates its FPS badge from ProbeInstrument. Those badge updates do
+// not change the world, loader or camera, so keep them from reconciling the
+// entire streamed scene every half second.
+export default React.memo(WebGPUProbeScene);

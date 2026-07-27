@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 05/07/2026, 09:48:09
- * Dependents: components/DesignPreview/steps/PreviewStartSelect.tsx, components/MapPane.tsx, components/Worldforge/SpawnPreview.tsx, components/Worldforge/StartPointSelection.tsx
- * Imports: 7 files
+ * Last Sync: 20/07/2026, 00:38:58
+ * Dependents: components/DesignPreview/steps/PreviewStartSelect.tsx, components/MapPane.tsx, components/Worldforge/AtlasDemo.tsx, components/Worldforge/SpawnPreview.tsx, components/Worldforge/StartPointSelection.tsx
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -16,7 +16,12 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
-import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, buildProvisionRingPath, forestGlyphRampOpacity, reliefGlyphRampOpacity, type CellTraits, type BurgTier, type AtlasLegendEntry } from './atlasSvg';
+import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, buildProvisionRingPath, forestGlyphRampOpacity, reliefGlyphRampOpacity, type CellTraits, type BurgTier, type AtlasLegendEntry, type AtlasSvgModel } from './atlasSvg';
+import {
+  burgLabelObstacles,
+  selectVisibleBurgs,
+  settlementDisplayBudget,
+} from './settlementDeclutter';
 import { FOREST_LABEL_COLOR, FOREST_LABEL_OUTLINE } from '../../systems/worldforge/forests/forestTunables';
 import { PEAK_LABEL_COLOR, RANGE_LABEL_COLOR, RANGE_LABEL_LETTER_SPACING_EM, RANGE_LABEL_OUTLINE } from '../../systems/worldforge/mountains/mountainTunables';
 import type { DungeonDangerSite } from '../../systems/worldforge/overlays/dangerField';
@@ -25,7 +30,20 @@ import { consumeMapCenterOnPlayer } from './mapFocusSignal';
 import type { RoutePlan } from '../../systems/travel/routePlanning';
 import type { MultiModalRoute } from '../../systems/travel/multiModalRoute';
 import { formatRouteSummary, dangerRating, formatMultiModalSummary } from '../../systems/travel/travelReadout';
-import { directionalAtlasNeighbor, type AtlasKeyboardDirection } from './AtlasMapView';
+import {
+  directionalAtlasNeighbor,
+  type AtlasKeyboardDirection,
+} from './atlasKeyboardNavigation';
+
+/**
+ * This file renders and operates Aralia's canonical interactive SVG world map.
+ * MapPane and world-generation previews pass it the shared Worldforge atlas; it
+ * paints layers, supports pan/zoom and exact-cell picking, and now budgets the
+ * existing settlement hierarchy without changing any generated world facts.
+ * Keyboard graph navigation lives in a renderer-neutral helper, so importing
+ * this canonical surface can no longer pull the retired canvas component into
+ * a player or developer bundle. Canvas source deletion remains separately deferred.
+ */
 
 /** How much detail the hover info panel shows. */
 type InfoVerbosity = 'off' | 'minimal' | 'standard' | 'full';
@@ -126,6 +144,13 @@ export interface AtlasSvgViewProps {
    * field (the danger term is flag-gated — no sites means byte-identical output).
    */
   dungeonSites?: ReadonlyArray<DungeonDangerSite>;
+  /**
+   * Optional model already built by the responsive atlas worker. MapPane passes
+   * this so opening or regenerating a world never performs the pure path merge
+   * on the interaction thread. Other established callers may omit it and keep
+   * the original synchronous behavior.
+   */
+  preparedModel?: AtlasSvgModel;
 }
 
 /** Read the persisted layer prefs for a given storage key (scoped per save). */
@@ -216,16 +241,12 @@ const LAYER_PREFS_KEY = 'aralia.atlas.layerPrefs.v1';
 const MIN_LAYER_PANEL_HEIGHT = 120;
 const LAYER_PANEL_BELOW_COMFORT_PX = 240;
 /**
- * Phone-sized atlas panes cannot carry multiple state labels over dense burg
- * glyphs. Keep one orienting overview label at the smallest sizes, then let the
- * normal declutterer expand as soon as the map has enough room.
+ * Return the fit-view label budget used by the full zoom-aware display policy.
+ * This compatibility export keeps existing callers and focused tests on the
+ * same small-viewport contract while settlementDisplayBudget owns expansion.
  */
-export function labelBudgetForViewport(width: number, height: number): number | undefined {
-  if (width < 360 || height < 260) return 1;
-  if (width < 420 || height < 320) {
-    return Math.max(2, Math.floor((width * height) / 36_000));
-  }
-  return undefined;
+export function labelBudgetForViewport(width: number, height: number): number {
+  return settlementDisplayBudget(width, height, 1).maxLabels;
 }
 /** Max named swatches shown in a discrete-coloring legend before "+N more". */
 const LEGEND_SWATCH_CAP = 14;
@@ -240,9 +261,9 @@ const BURG_INK = '#2b2622';
 const BURG_FILL = '#f7f0df';
 const BURG_FLAG = '#b3322a';
 const BURG_STROKE = 0.9;
-// Below these zoom scales a tier is hidden, so the overview stays uncluttered:
-// capitals + cities always show; towns and villages reveal as you zoom in.
-const BURG_MIN_K: Record<BurgTier, number> = { capital: 0, city: 0, town: 1.4, village: 2.4 };
+// Settlement visibility no longer uses absolute map scale. The shared
+// settlementDeclutter policy compares live scale with this viewport's fit scale,
+// so desktop and phone maps reveal the same hierarchy at the same relative zoom.
 
 /** The inner glyph paths for a settlement tier (origin-centered, ~10–18px). */
 function burgGlyph(tier: BurgTier): React.ReactNode {
@@ -341,8 +362,13 @@ const LAYER_CHOICE_MARK_STYLE: React.CSSProperties = {
   background: 'rgba(15,23,42,0.9)',
 };
 
-const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], pulseToken = null, onPickCell, travelActive = false, planRoute, planMultiModalRoute, ferryFareForRoute, faintPathForRoute, forestNameForRoute, passNameForRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain', dungeonSites }) => {
-  const model = useMemo(() => buildAtlasSvgModel(atlas, dungeonSites), [atlas, dungeonSites]);
+const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], pulseToken = null, onPickCell, travelActive = false, planRoute, planMultiModalRoute, ferryFareForRoute, faintPathForRoute, forestNameForRoute, passNameForRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain', dungeonSites, preparedModel }) => {
+  // MapPane supplies the worker-built model. The fallback preserves every
+  // existing caller that owns an already-generated atlas outside that route.
+  const model = useMemo(
+    () => preparedModel ?? buildAtlasSvgModel(atlas, dungeonSites),
+    [atlas, dungeonSites, preparedModel],
+  );
 
   // Map coloring is a single exclusive choice; feature layers are independent
   // toggles. Persisted across map opens, scoped per save (prefsScope) so a
@@ -483,13 +509,6 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   }), [mapMode, features]);
 
   const activeMode = AREA_MODES.find((m) => m.id === mapMode) ?? AREA_MODES[0];
-  // Phone-sized atlas panes cannot carry every state name at the default zoom:
-  // labels crowd into town glyphs and each other. Keep the labels toggle on, but
-  // give the declutterer a viewport-based budget until the player zooms in or
-  // opens the map in a larger WindowFrame.
-  const smallLabelViewport = width < 420 || height < 320;
-  const labelBudget = labelBudgetForViewport(width, height);
-  const labelPad = smallLabelViewport ? (labelBudget === 1 ? 12 : 8) : 2;
   // Named swatches for the active discrete coloring (which color = which group).
   const discreteLegend = useMemo<AtlasLegendEntry[]>(() => {
     if (activeMode.legend !== 'discrete' || !activeMode.legendKey) return [];
@@ -521,8 +540,11 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     };
   }, [fitMode, height, model.height, model.width, width]);
   const [view, setView] = useState(fitView);
+  const viewRef = useRef(view);
   const drag = useRef<{ x: number; y: number } | null>(null);
   const downPos = useRef<{ x: number; y: number } | null>(null);
+  const pendingPanRef = useRef<{ x: number; y: number } | null>(null);
+  const panFrameRef = useRef<number | null>(null);
   // True once the pointer has moved beyond DRAG_SLOP while pressed — marks the
   // gesture a PAN so the release is never treated as a cell click (which, in
   // Travel mode, would travel + close the map). Reset on each mousedown.
@@ -533,6 +555,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   const lastPointerTypeRef = useRef<string>('mouse');
   const touchArmedCellRef = useRef<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const worldTransformRef = useRef<SVGGElement>(null);
   const [hasKeyboardFocus, setHasKeyboardFocus] = useState(false);
   // True once the player has manually zoomed/panned (or used Find Me). After that
   // we stop auto-refitting on viewport-size changes, so toggling Travel↔Explore —
@@ -540,9 +563,93 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   // longer snaps the player back out to the fully zoomed-out world. Cleared when
   // the world itself changes (below), so a brand-new atlas still fits fresh.
   const hasUserAdjustedRef = useRef(false);
+  useEffect(() => () => {
+    if (panFrameRef.current != null) window.cancelAnimationFrame(panFrameRef.current);
+  }, []);
+
+  const schedulePan = useCallback((x: number, y: number) => {
+    // Pointer hardware can report many drag positions inside one display frame.
+    // Keep only the newest coordinates and update the existing SVG transform
+    // once per frame. React receives the final position on release.
+    pendingPanRef.current = { x, y };
+    if (panFrameRef.current != null) return;
+    panFrameRef.current = window.requestAnimationFrame(() => {
+      const pending = pendingPanRef.current;
+      pendingPanRef.current = null;
+      panFrameRef.current = null;
+      if (!pending) return;
+      const next = { ...viewRef.current, ...pending };
+      viewRef.current = next;
+      if (worldTransformRef.current) {
+        worldTransformRef.current.style.transform = `translate(${next.x}px, ${next.y}px) scale(${next.k})`;
+      }
+    });
+  }, []);
+
+  const commitScheduledPan = useCallback(() => {
+    if (panFrameRef.current != null) {
+      window.cancelAnimationFrame(panFrameRef.current);
+      panFrameRef.current = null;
+    }
+    const pending = pendingPanRef.current;
+    pendingPanRef.current = null;
+    if (pending) viewRef.current = { ...viewRef.current, ...pending };
+    setView(viewRef.current);
+  }, []);
 
   // A genuinely different world should fit fresh, so forget any prior manual zoom.
   useEffect(() => { hasUserAdjustedRef.current = false; }, [atlas]);
+  useEffect(() => { viewRef.current = view; }, [view]);
+
+  // ========================================================================
+  // GG-40 settlement and label hierarchy
+  // ========================================================================
+  // Budgets are based on zoom relative to this viewport's own fit scale. This
+  // preserves one predictable reveal ladder across desktop, phone, contain,
+  // and cover layouts while leaving all canonical burg records in the model.
+  // ========================================================================
+  const fitScale = fitView().k;
+  const zoomRatio = Number.isFinite(fitScale) && fitScale > 0
+    ? Math.max(1, view.k / fitScale)
+    : 1;
+  const displayBudget = useMemo(
+    () => settlementDisplayBudget(width, height, zoomRatio),
+    [height, width, zoomRatio],
+  );
+  const visibleBurgs = useMemo(
+    () => selectVisibleBurgs(model.burgs ?? [], view, width, height, displayBudget),
+    [displayBudget, height, model.burgs, view, width],
+  );
+  const burgObstacles = useMemo(
+    () => burgLabelObstacles(visibleBurgs),
+    [visibleBurgs],
+  );
+  const labelPad = width < 420 || height < 320
+    ? (displayBudget.maxLabels === 1 ? 12 : 8)
+    : 4;
+  const placedLabels = useMemo(() => declutterLabels(model.labels ?? [], view, {
+    // Labels follow the same relative reveal ladder as marker tiers. State
+    // names orient fit view; capitals and physical geography arrive next;
+    // ordinary town and peak names wait for tactical inspection.
+    capitalMinScale: fitScale * 1.2,
+    rangeMinScale: fitScale * 1.2,
+    forestMinScale: fitScale * 1.55,
+    townMinScale: fitScale * 1.65,
+    peakMinScale: fitScale * 2.2,
+    bounds: { width, height },
+    pad: labelPad,
+    maxLabels: displayBudget.maxLabels,
+    obstacles: burgObstacles,
+  }), [
+    burgObstacles,
+    displayBudget.maxLabels,
+    fitScale,
+    height,
+    labelPad,
+    model.labels,
+    view,
+    width,
+  ]);
 
   useEffect(() => {
     // The parent MapPane measures the available panel space. Refit the atlas
@@ -605,10 +712,9 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     const rGraph = 16 / view.k;
     let best = rGraph * rGraph;
     let hit: number | null = null;
-    const burgs = model.burgs ?? [];
-    for (let bi = 0; bi < burgs.length; bi++) {
-      const b = burgs[bi];
-      if (view.k < BURG_MIN_K[b.tier]) continue; // hidden at this zoom → not pickable
+    // Pick only glyphs the player can actually see. The returned model index is
+    // still the canonical record used by the existing town card and cell path.
+    for (const { burg: b, modelIndex: bi } of visibleBurgs) {
       const dx = b.x - gx;
       const dy = b.y - gy;
       const dd = dx * dx + dy * dy;
@@ -626,7 +732,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       }
       // Capture the drag origin locally: the setView updater runs later, by which
       // time onUp/onLeave may have nulled drag.current (→ "reading 'x' of null").
-      setView((v) => ({ ...v, x: e.clientX - d.x, y: e.clientY - d.y }));
+      schedulePan(e.clientX - d.x, e.clientY - d.y);
       return;
     }
     // A touch drag has no stable hover position. Its eventual tap is armed in
@@ -644,10 +750,12 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   };
   const onUp = (e: React.PointerEvent<SVGSVGElement>) => {
     drag.current = null;
+    commitScheduledPan();
     if (e.currentTarget.hasPointerCapture?.(e.pointerId)) e.currentTarget.releasePointerCapture?.(e.pointerId);
   };
   const onLeave = (e: React.PointerEvent<SVGSVGElement>) => {
     drag.current = null;
+    commitScheduledPan();
     if (e.pointerType !== 'touch') {
       setHoveredCell(null);
       setHoveredBurg(null);
@@ -941,10 +1049,20 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           AtlasLayers is memoized with no zoom access (the freeze fix), so its
           forest/relief groups read var(--forest-glyph-opacity) /
           var(--relief-glyph-opacity) instead of props — zooming re-renders only
-          this <g>'s style, never the layer subtree. */}
+      this <g>'s style, never the layer subtree. */}
       <g
+        ref={worldTransformRef}
+        // Keep the semantic SVG transform for non-CSS hosts and established
+        // structural consumers. The equivalent CSS property below wins in
+        // Chromium so drag updates stay on the compositor path.
         transform={`translate(${view.x},${view.y}) scale(${view.k})`}
         style={{
+          // Keep the already-painted atlas on a compositor-transformable layer.
+          // Drag frames update only this property; React commits the final view
+          // on release, preserving every exact-cell and label calculation.
+          transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})`,
+          transformOrigin: '0 0',
+          willChange: 'transform',
           '--forest-glyph-opacity': forestGlyphRampOpacity(view.k),
           '--relief-glyph-opacity': reliefGlyphRampOpacity(view.k),
         } as React.CSSProperties}
@@ -953,7 +1071,12 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
         <rect x={0} y={0} width={model.width} height={model.height} fill="url(#ocean-radial)" />
         {/* Heavy static layers, memoized so hover/pan/zoom don't reconcile the
             whole (4k–18k node) subtree — the World Map freeze fix. */}
-        <AtlasLayers model={model} visible={visible} softenActive={softenStdDev > 0} />
+        <AtlasLayers
+          model={model}
+          visible={visible}
+          softenActive={softenStdDev > 0}
+          deferDecorativeGlyphs={preparedModel != null}
+        />
         {/* Provisioning rings — glowing contour of how far current supplies reach.
             Wide soft underlay + crisp colored line per resource horizon (food /
             water). Drawn above the base coloring but below routes + hover so the
@@ -1024,9 +1147,11 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           (forests T4). Range names are spaced small-caps in stony ink — SVG has
           no text-transform, so the STRING is uppercased at render — and peaks
           are tiny "▲ Name" landmarks in the same ink family (mountains T3). */}
-      {visible.labels ? declutterLabels(model.labels ?? [], view, { bounds: { width, height }, pad: labelPad, maxLabels: labelBudget }).map((l, i) => (
+      {visible.labels ? placedLabels.map((l, i) => (
         <text
           key={`lb${i}`}
+          data-testid="atlas-map-label"
+          data-label-kind={l.kind}
           x={l.sx}
           y={l.sy + (l.kind === 'capital' || l.kind === 'town' ? 15 : 0)}
           textAnchor="middle"
@@ -1055,15 +1180,15 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       {/* Burg settlement glyphs — screen space (constant size), tier-distinct,
           zoom-thresholded so the overview shows only capitals + cities. Drawn
           AFTER labels so the icon sits on top of (and just above) its name. */}
-      {visible.burgs ? (model.burgs ?? [])
-        .map((b, i) => ({ b, i }))
-        .filter(({ b }) => view.k >= BURG_MIN_K[b.tier])
-        .map(({ b, i }) => (
+      {visible.burgs ? visibleBurgs.map(({ burg: b, modelIndex: i }) => (
           <g
-            key={`burg${i}`}
+            key={`burg${b.id}`}
             transform={`translate(${b.x * view.k + view.x},${b.y * view.k + view.y})`}
             style={{ pointerEvents: 'none' }}
             data-testid="atlas-burg"
+            data-burg-id={b.id}
+            data-cell-id={b.cell}
+            data-burg-name={b.name}
             data-tier={b.tier}
           >
             {selectedBurg === i ? (

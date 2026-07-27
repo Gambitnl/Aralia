@@ -1,15 +1,32 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 19/07/2026, 23:41:09
+ * Dependents: components/MapPane.tsx, components/Worldforge/AtlasLayers.tsx, components/Worldforge/AtlasSvgView.tsx, components/Worldforge/StartPointSelection.tsx, components/Worldforge/atlasDraw.ts, components/Worldforge/responsiveAtlasCore.ts, components/Worldforge/responsiveAtlasProtocol.ts, components/Worldforge/settlementDeclutter.ts
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file atlasSvg.ts — pure, DOM-free model builder for the native SVG atlas
  * renderer (Worldforge SP0, iteration #1).
  *
  * Mirrors how `atlasDraw.ts` is a pure canvas core: this module turns an
- * `FmgAtlasResult` into an ordered SVG layer model (ocean + per-cell land
- * polygons) with no React/DOM dependency, so it unit-tests with a stub atlas
- * and runs headless in the proof script.
+ * `FmgAtlasResult` into an ordered SVG layer model (ocean, merged terrain,
+ * routes, settlements, labels, and overlays) with no React/DOM dependency, so
+ * it unit-tests with a stub atlas and runs headless in proof scripts.
  *
- * SP0 T2: land renders as merged per-biome regions (cells fused along shared
- * interior edges → no facets). Depth contours, rivers, routes, labels, filters,
- * marker and cell-pick are later SP0 tasks (T3+).
+ * Land stays merged rather than returning to one polygon per cell. The merge
+ * key now includes biome, elevation band, and directional slope, carrying the
+ * retiring canvas renderer's modeled color into the canonical SVG path without
+ * changing geography, seed determinism, or exact-cell interaction.
  */
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
 import { getTerrainKey, getTerrainColor } from './terrainColor';
@@ -75,6 +92,8 @@ export interface AtlasSvgRoute { d: string; group: string; kind: string; opacity
 /** Settlement hierarchy tier — drives which glyph the atlas draws for a burg. */
 export type BurgTier = 'capital' | 'city' | 'town' | 'village';
 export interface AtlasSvgBurg {
+  /** Exact canonical FMG burg id; display filtering must never replace it. */
+  id: number;
   x: number;
   y: number;
   capital: boolean;
@@ -513,7 +532,9 @@ export function buildBurgs(atlas: FmgAtlasResult): AtlasSvgBurg[] {
       : pop > 0 && pop >= cityCut ? 'city'
       : pop > 0 && pop >= townCut ? 'town'
       : 'village';
-    out.push({ x: b.x, y: b.y, capital, tier, name: b.name, cell: b.cell });
+    // Carry the source id and cell through the pure render model. GG-40 hides
+    // detail by view, never by manufacturing replacement settlement records.
+    out.push({ id: b.i, x: b.x, y: b.y, capital, tier, name: b.name, cell: b.cell });
   }
   return out;
 }
@@ -610,6 +631,16 @@ const LABEL_PRIORITY: Record<LabelKind, number> = {
 };
 
 export interface DeclutterView { k: number; x: number; y: number }
+/** Screen-space shape that labels must avoid, normally a visible burg glyph. */
+export interface LabelObstacle {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** Optional anchor lets a burg name ignore its own marker, but no other one. */
+  anchorX?: number;
+  anchorY?: number;
+}
 export interface DeclutterOptions {
   capitalMinScale?: number;
   townMinScale?: number;
@@ -642,6 +673,8 @@ export interface DeclutterOptions {
    * names before the player has zoomed in.
    */
   maxLabels?: number;
+  /** Already-painted screen-space shapes that labels must not materially cover. */
+  obstacles?: ReadonlyArray<LabelObstacle>;
 }
 
 /**
@@ -680,6 +713,7 @@ export function declutterLabels(
   const pad = opts.pad ?? 2;
   const bounds = opts.bounds;
   const maxLabels = opts.maxLabels ?? Infinity;
+  const obstacles = opts.obstacles ?? [];
   const visible = labels.filter((l) =>
     l.kind === 'state'
     || (l.kind === 'capital' && view.k >= capMin)
@@ -693,40 +727,69 @@ export function declutterLabels(
   const out: PlacedLabel[] = [];
   for (const l of visible) {
     const fontSize = l.fontSize ?? LABEL_FONT[l.kind];
-    const w = l.text.length * fontSize * 0.55;
+    // Georgia's mixed-case average is wider than the old 0.55 estimate. The
+    // conservative width keeps long state names inside the rendered viewport.
+    const w = l.text.length * fontSize * 0.62;
     const h = fontSize;
-    // Anchor, then clamp the CENTER so the (half-width, half-height) bbox — at
-    // the rendered baseline (LABEL_RENDER_DY) — stays inside the viewport.
-    let sx = l.x * view.k + view.x;
-    let sy = l.y * view.k + view.y;
+    // Keep the exact geographic pole as the first candidate. Any accepted
+    // candidate is later clamped so its full box stays inside the viewport.
+    const anchorX = l.x * view.k + view.x;
+    const anchorY = l.y * view.k + view.y;
     const renderDy = LABEL_RENDER_DY[l.kind];
-    if (bounds) {
-      const halfW = w / 2;
-      // Only clamp when the label actually fits; for a label wider than the
-      // viewport, left-align it so the start is readable rather than centering
-      // it off both edges.
-      if (w <= bounds.width) {
-        sx = Math.min(Math.max(sx, halfW + pad), bounds.width - halfW - pad);
-      } else {
-        sx = halfW + pad;
+    // Nudging exists only to route macro labels around painted settlements.
+    // Without marker obstacles, the established priority ladder still drops a
+    // lower-priority label instead of moving it away from its true feature.
+    const canNudge = obstacles.length > 0
+      && (l.kind === 'state' || l.kind === 'range' || l.kind === 'forest');
+    const verticalStep = h + pad * 2 + 6;
+    const horizontalStep = Math.min(36, w / 3);
+    const offsets = canNudge
+      ? [[0, 0], [0, -verticalStep], [0, verticalStep], [-horizontalStep, 0], [horizontalStep, 0]]
+      : [[0, 0]];
+    let accepted: { sx: number; sy: number; box: { x: number; y: number; w: number; h: number } } | null = null;
+
+    // Try the true pole first, then small cartographic offsets. This keeps state
+    // names available without painting them over capitals or other labels.
+    for (const [offsetX, offsetY] of offsets) {
+      let sx = anchorX + offsetX;
+      let sy = anchorY + offsetY;
+      if (bounds) {
+        const halfW = w / 2;
+        sx = w <= bounds.width
+          ? Math.min(Math.max(sx, halfW + pad), bounds.width - halfW - pad)
+          : halfW + pad;
+        const top = renderDy - h;
+        const bottom = renderDy;
+        sy = Math.min(Math.max(sy, pad - top), bounds.height - pad - bottom);
       }
-      const top = renderDy - h;        // baseline-relative top of the glyph box
-      const bottom = renderDy;          // ~baseline
-      sy = Math.min(Math.max(sy, pad - top), bounds.height - pad - bottom);
+      const box = {
+        x: sx - w / 2 - pad,
+        y: sy + renderDy - h - pad,
+        w: w + pad * 2,
+        h: h + pad * 2,
+      };
+      const hitPlacedLabel = placed.some((other) =>
+        !(box.x + box.w < other.x || other.x + other.w < box.x
+          || box.y + box.h < other.y || other.y + other.h < box.y),
+      );
+      const hitSettlement = obstacles.some((obstacle) => {
+        const ownMarker = (l.kind === 'capital' || l.kind === 'town')
+          && obstacle.anchorX != null
+          && obstacle.anchorY != null
+          && Math.abs(obstacle.anchorX - anchorX) < 0.5
+          && Math.abs(obstacle.anchorY - anchorY) < 0.5;
+        if (ownMarker) return false;
+        return !(box.x + box.w < obstacle.x || obstacle.x + obstacle.w < box.x
+          || box.y + box.h < obstacle.y || obstacle.y + obstacle.h < box.y);
+      });
+      if (!hitPlacedLabel && !hitSettlement) {
+        accepted = { sx, sy, box };
+        break;
+      }
     }
-    // Collision box at the RENDERED position (includes the baseline offset + pad).
-    const box = {
-      x: sx - w / 2 - pad,
-      y: sy + renderDy - h - pad,
-      w: w + pad * 2,
-      h: h + pad * 2,
-    };
-    const hit = placed.some((p) =>
-      !(box.x + box.w < p.x || p.x + p.w < box.x || box.y + box.h < p.y || p.y + p.h < box.y),
-    );
-    if (hit) continue;
-    placed.push(box);
-    out.push({ ...l, sx, sy, fontSize });
+    if (!accepted) continue;
+    placed.push(accepted.box);
+    out.push({ ...l, sx: accepted.sx, sy: accepted.sy, fontSize });
     if (out.length >= maxLabels) break;
   }
   return out;

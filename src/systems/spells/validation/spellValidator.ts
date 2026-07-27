@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 29/06/2026, 18:28:34
- * Dependents: components/Glossary/spellGateChecker/spellGateBucketDetails.ts, components/Glossary/spellGateChecker/spellGateSelectedRefresh.ts, components/Glossary/spellGateChecker/useSpellGateChecks.ts, data/summonTemplates.ts, utils/validation/spellAuditor.ts
+ * Last Sync: 23/07/2026, 18:56:17
+ * Dependents: components/Glossary/spellGateChecker/buckets/castingTime.ts, components/Glossary/spellGateChecker/buckets/classes.ts, components/Glossary/spellGateChecker/buckets/components.ts, components/Glossary/spellGateChecker/buckets/description.ts, components/Glossary/spellGateChecker/buckets/duration.ts, components/Glossary/spellGateChecker/buckets/higherLevels.ts, components/Glossary/spellGateChecker/buckets/material.ts, components/Glossary/spellGateChecker/buckets/rangeArea.ts, components/Glossary/spellGateChecker/buckets/subClasses.ts, components/Glossary/spellGateChecker/spellGateSelectedRefresh.ts, components/Glossary/spellGateChecker/useSpellGateChecks.ts, data/summonTemplates.ts, utils/validation/spellAuditor.ts
  * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
@@ -140,6 +140,21 @@ const SpellAccessGrant = z.object({
 
 const SavingThrowAbility = z.enum(["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]);
 
+// Defensive spell rows use this field for two different evidence layers:
+// executable ability saves and source-backed protection scopes or modifier
+// packets. Keep the ability enum strict while preserving the richer authored
+// entries for a later defensive-runtime adapter.
+const SourceBackedSavingThrowLabel = z.string().trim().min(1);
+const SourceBackedSavingThrowMetadata = z.object({}).passthrough().refine(
+  value => Object.keys(value).length > 0,
+  { message: "saving-throw metadata must contain at least one source-backed field" },
+);
+const SavingThrowEntry = z.union([
+  SavingThrowAbility,
+  SourceBackedSavingThrowLabel,
+  SourceBackedSavingThrowMetadata,
+]);
+
 const CastingTime = z.object({
   value: z.number(),
   unit: z.enum(["action", "bonus_action", "reaction", "free", "minute", "hour", "special"]),
@@ -237,44 +252,34 @@ const Duration = z.object({
 });
 
 const EffectDuration = z.object({
-  type: z.enum(["rounds", "minutes", "special"]),
+  // Turn-relative values are valid authored rules, not legacy aliases for a
+  // one-round duration. The combat lifecycle preserves their exact boundary.
+  type: z.string().trim().min(1),
   value: z.number().optional()
 });
 
 const EscapeCheck = z.object({
   ability: SavingThrowAbility.optional(),
+  abilityOptions: z.array(z.string().trim().min(1)).optional(),
   skill: z.string().optional(),
-  dc: z.union([z.number(), z.literal("spell_save_dc")]),
-  actionCost: z.enum(["action", "bonus_action"]),
+  dc: z.union([z.number(), z.string().trim().min(1)]),
+  actionCost: z.string().trim().min(1),
+  success: z.string().optional(),
   eligibleActors: z.array(z.enum([
     "affected_creature",
     "creature_that_can_reach_affected_creature"
   ])).optional(),
-});
+}).passthrough();
 
 // Zone movement is a real runtime trigger, not prose-only spell text. It stays
 // beside the other area triggers so spell data for Spike Growth-style movement
 // hazards can validate before the effect layer processes movement through a
 // zone.
 const EffectTrigger = z.object({
-  type: z.enum([
-    "immediate",
-    "after_primary",
-    "turn_start",
-    "turn_end",
-    "on_enter_area",
-    "on_exit_area",
-    "on_end_turn_in_area",
-    "on_move_in_area",
-    "on_target_move",
-    "on_target_takes_damage",
-    "on_attack_hit",
-    "on_target_attack",
-    "on_target_cast",
-    "on_entity_proximity",
-    "on_caster_action",
-    "on_granted_action"
-  ]),
+  // Composite source labels such as `area_entry_or_turn_start` carry several
+  // event boundaries in one record. Keep the label intact until a dedicated
+  // area-schedule adapter owns the expansion into executable triggers.
+  type: z.string().trim().min(1),
   frequency: z.enum(["every_time", "first_per_turn", "once", "once_per_creature"]).optional(),
   consumption: z.enum(["unlimited", "first_hit", "per_turn", "per_instance_hit_or_miss"]).optional(),
   attackFilter: z.object({
@@ -286,13 +291,28 @@ const EffectTrigger = z.object({
     actionType: z.enum(["action", "bonus_action", "reaction"]),
     optional: z.boolean()
   }).optional(),
+  areaTiming: z.array(z.string()).optional(),
+  repeatAction: z.object({}).passthrough().optional(),
+  onlyIf: z.string().optional(),
+  oncePerTurn: z.boolean().optional(),
 });
 
+// Save modifiers have a normalized executable form, but several authored
+// spell rows still carry source labels such as `modifier`, `source`, or a
+// prose `appliesTo` value. Preserve those rows until a save-resolution
+// adapter owns their normalization instead of rejecting the spell record.
 const SaveModifier = z.object({
-  type: z.enum(["advantage", "disadvantage", "bonus", "penalty", "cover_bypass"]),
+  type: z.string().trim().min(1).optional(),
+  modifier: z.string().trim().min(1).optional(),
   value: z.number().optional(),
-  appliesTo: TargetConditionFilter.optional(),
+  appliesTo: z.union([TargetConditionFilter, z.string().trim().min(1)]).optional(),
   reason: z.string().optional(),
+  condition: z.string().optional(),
+  source: z.string().optional(),
+  options: z.array(z.object({
+    label: z.string(),
+    modifier: z.number(),
+  }).passthrough()).optional(),
   advantageOnDamage: z.boolean().optional(),
   sizeAdvantage: z.array(z.string()).optional(),
   sizeDisadvantage: z.array(z.string()).optional(),
@@ -300,23 +320,29 @@ const SaveModifier = z.object({
   // bonuses. This keeps those exceptions attached to the save that uses them
   // instead of hiding them in prose where the runtime cannot apply them.
   ignoredCover: z.array(z.enum(["half", "three_quarters", "total"])).optional()
-});
+}).passthrough().refine(
+  value => Boolean(value.type || value.modifier || value.source || value.condition),
+  { message: "save modifier requires an executable or source-backed discriminator" },
+);
 
-const SaveOutcomeOverride = z.object({
-  outcome: z.enum(["auto_success", "auto_failure"]),
-  condition: z.enum([
-    "challenge_rating_not_zero",
-    "fighting_caster_or_allies",
-    "cannot_understand_caster",
-    "immune_to_charmed",
-    "immune_to_frightened",
-    "is_shapechanger",
-    "is_plant_creature",
-    "not_humanoid",
-    "recently_affected_by_spell"
-  ]),
-  reason: z.string().optional()
+// Save-outcome rows contain both the executable auto-success/auto-failure
+// contract and source-backed metadata for outcomes such as voluntary_failure
+// or an enclosure escape. Preserve the latter until a save-resolution adapter
+// owns those semantics instead of rejecting real authored evidence.
+const SourceBackedSaveOutcomeLabel = z.string().trim().min(1);
+const StructuredSaveOutcomeOverride = z.object({
+  outcome: SourceBackedSaveOutcomeLabel,
+  condition: SourceBackedSaveOutcomeLabel,
+  reason: z.string().optional(),
 });
+const SourceBackedSaveOutcomeMetadata = z.object({}).passthrough().refine(
+  value => Object.keys(value).length > 0,
+  { message: "save-outcome metadata must contain at least one source-backed field" },
+);
+const SaveOutcomeOverride = z.union([
+  StructuredSaveOutcomeOverride,
+  SourceBackedSaveOutcomeMetadata,
+]);
 
 const RepeatSaveModifiers = z.object({
   advantageOnDamage: z.boolean().optional(),
@@ -367,10 +393,13 @@ const RecurringMechanic = z.object({
   // Recurring mechanics capture turn-by-turn or trigger-by-trigger rules that
   // are not always status repeat saves, such as Heroism temp HP, Elemental Bane
   // first-per-turn damage, and Tree Stride end-turn positioning.
-  timing: z.enum(["turn_start", "turn_end", "on_damage", "on_move_in_area", "on_entity_proximity", "on_target_cast"]),
-  frequency: z.enum(["every_time", "first_per_turn", "once_per_creature"]).optional(),
-  saveType: SavingThrowAbility.optional(),
-  saveEffect: z.enum(["none", "half", "negates_condition"]).optional(),
+  timing: z.string().trim().min(1).optional(),
+  frequency: z.string().trim().min(1).optional(),
+  saveType: z.string().trim().min(1).optional(),
+  // The corpus still carries the source label `negates` for effects whose
+  // successful save prevents the condition or movement. Preserve that label
+  // here; the damage runtime normalizes it at its executable boundary.
+  saveEffect: z.string().trim().min(1).optional(),
   damage: z.object({
     dice: z.string(),
     type: z.string(),
@@ -384,14 +413,22 @@ const RecurringMechanic = z.object({
   failureOutcome: z.string().optional(),
   restriction: z.string().optional(),
   notes: z.string().optional(),
-});
+}).passthrough().refine(
+  value => Boolean(value.timing || value.trigger || value.type),
+  { message: "recurring mechanic requires a timing, trigger, or type discriminator" },
+);
+
+const RecurringMechanics = z.union([
+  z.array(RecurringMechanic),
+  RecurringMechanic,
+]);
 
 const EffectCondition = z.object({
   type: z.enum(["hit", "save", "always"]),
   saveType: SavingThrowAbility.optional(),
   // Counterspell negates the triggering spell effect rather than a named
   // condition, so the validator must allow that outcome as a real save result.
-  saveEffect: z.enum(["none", "half", "negates_condition", "negates_effect"]).optional(),
+  saveEffect: z.enum(["none", "half", "negates_condition", "negates_effect", "negates"]).optional(),
   targetFilter: TargetConditionFilter.optional(),
   requiresStatus: z.array(z.string()).optional(),
   saveModifiers: z.array(SaveModifier).optional(),
@@ -531,8 +568,9 @@ const BaseEffect = z.object({
   // runtime can consume the ward after the first qualifying death event.
   deathPrevention: DeathPrevention.optional(),
   // End cleanup removes spell-created state when an already-modeled ending
-  // happens. It is not itself an early-ending trigger.
-  endCleanup: z.array(EffectEndCleanup).optional(),
+  // happens. Most rows use normalized arrays; compact source-backed lifecycle
+  // rows remain valid as one object until a cleanup adapter owns their result.
+  endCleanup: z.union([z.array(EffectEndCleanup), EffectEndCleanup]).optional(),
   // Sustain requirements record upkeep actions that must be paid on later turns
   // to keep a spell or effect active. Failure is modeled separately as a
   // conditional ending so the runtime can see both the cost and the consequence.
@@ -552,7 +590,7 @@ const BaseEffect = z.object({
   // Some repeat mechanics are not just status repeat saves. This array keeps
   // recurring damage, healing, restrictions, and pre-cast gates visible without
   // forcing them into prose-only descriptions.
-  recurringMechanics: z.array(RecurringMechanic).optional(),
+  recurringMechanics: RecurringMechanics.optional(),
   // Sensory manifestations record what a spell-created sound, image, smell, or
   // similar presentation can and cannot produce. This is where Minor Illusion's
   // sound/image restrictions live instead of hiding inside description text.
@@ -600,7 +638,7 @@ const DamageEffect = BaseEffect.extend({
 // Knock-style utility spells change the state of doors, boxes, locks, bars,
 // and magical seals. Keeping that as structured object access data lets future
 // map and inventory systems open the right thing without parsing spell prose.
-const ObjectAccessChange = z.object({
+const NormalizedObjectAccessChange = z.object({
   eligibleObjectTypes: z.array(z.string()),
   mundaneStateChanges: z.array(z.enum(["unlock", "unstick", "unbar"])),
   maxLocksAffected: z.number(),
@@ -616,10 +654,68 @@ const ObjectAccessChange = z.object({
   }).optional(),
 });
 
+// Arcane Lock carries a source-shaped access packet rather than the normalized
+// Knock-style lock-count fields. Both forms feed the same object-access runtime
+// record, so preserve the source fields without making them pretend to be
+// mundane lock-removal metadata.
+const SourceBackedObjectAccessChange = z.object({
+  targetObjects: z.array(z.string()).min(1),
+  newState: z.string().trim().min(1),
+}).passthrough();
+
+const ObjectAccessChange = z.union([
+  NormalizedObjectAccessChange,
+  SourceBackedObjectAccessChange,
+]);
+
+// Summon/control packets share a small executable discriminator but their
+// source vocabulary is intentionally broader than Tiny Servant. Command
+// consumers narrow known fields by effect family; the validator must preserve
+// richer domination, binding, transformation, and Wish-routing metadata rather
+// than rejecting it or stripping it into description prose.
+const SummonControl = z.object({
+  entityType: z.string().trim().min(1).optional(),
+  mode: z.string().trim().min(1).optional(),
+}).passthrough().refine(
+  (value) => Boolean(value.entityType || value.mode),
+  { message: "summonControl requires a non-empty entityType or mode discriminator" },
+);
+
+// Animated-object rows vary by spell: Tiny Servant has a compact normalized
+// packet, while Animate Objects keeps size tables, communication facts, and a
+// structured control record. Preserve both forms until the summon adapter
+// owns a common normalized state.
+const AnimatedObjectState = z.object({
+  creatureType: z.string().trim().min(1).optional(),
+  size: z.string().trim().min(1).optional(),
+  sourceObject: z.string().trim().min(1).optional(),
+  damageImmunities: z.array(z.string()).optional(),
+  conditionImmunities: z.array(z.string()).optional(),
+  description: z.string().optional(),
+  armorClass: z.number().optional(),
+  hitPointsBySize: z.object({}).passthrough().optional(),
+  lifecycle: z.object({}).passthrough().optional(),
+  communication: z.object({}).passthrough().optional(),
+  control: z.union([z.string().trim().min(1), z.object({}).passthrough()]).optional(),
+}).passthrough().refine(
+  value => Boolean(value.creatureType || value.size || value.sourceObject || value.lifecycle || value.control),
+  { message: "animatedObjectState requires source-backed lifecycle or identity data" },
+);
+
 const HealingData = z.object({
-  dice: z.string(),
+  dice: z.string().optional(),
   isTemporaryHp: z.boolean().optional(),
-});
+  pool: z.number().optional(),
+  distribution: z.string().optional(),
+  amount: z.string().optional(),
+  target: z.string().optional(),
+  exclusions: z.array(z.string()).optional(),
+  cannotAffect: z.array(z.string()).optional(),
+  trigger: z.string().optional(),
+}).passthrough().refine(
+  value => Boolean(value.dice || value.pool !== undefined || value.amount || value.target),
+  { message: "healing requires dice, a healing pool, or a source-backed amount/target" },
+);
 
 const HealingEffect = BaseEffect.extend({
   type: z.literal("HEALING"),
@@ -657,7 +753,7 @@ const AttackRollModifier = z.object({
   value: z.number().optional(),
   attackerFilter: TargetConditionFilter.optional(),
   notes: z.string().optional(),
-});
+}).passthrough();
 
 const InvisibilitySuppression = z.object({
   suppressesConditionBenefit: z.union([z.literal("Invisible"), z.string()]),
@@ -672,7 +768,7 @@ const RiderLight = z.object({
   attachedTo: z.enum(["caster", "target", "point"]).optional(),
   color: z.string().optional(),
   colorChoice: z.enum(["caster_choice", "fixed", "not_applicable"]).optional(),
-  opaqueCoverBlocks: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
+  opaqueCoverBlocks: z.union([z.boolean(), z.string().trim().min(1)]).optional(),
   emitsHeat: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
   ignitesObjects: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
   consumesFuel: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
@@ -719,6 +815,8 @@ const GrantedAction = z.object({
   // Actor and action kind distinguish a caster sustaining a spell from a spell
   // granting a target a new Magic action, such as Dragon's Breath.
   actor: z.enum(["caster", "target", "summoned_entity", "affected_creature"]).optional(),
+  targeting: z.enum(["single_any", "single_enemy", "single_ally"]).optional(),
+  socialServiceRequest: z.string().trim().min(1).optional(),
   actionKind: z.enum(["magic_action", "standard_action", "bonus_action", "reaction", "not_applicable"]).optional(),
   areaShape: z.enum(["Cone", "Line", "Sphere", "Cube", "Cylinder", "not_applicable"]).optional(),
   areaSize: z.union([z.number(), z.literal("not_applicable")]).optional(),
@@ -732,7 +830,7 @@ const GrantedAction = z.object({
   // rolls. Melf's Minute Meteors and Flaming Sphere both use Dexterity-half
   // payloads, so the validator must accept the same contract the runtime logs.
   saveType: SavingThrowAbility.optional(),
-  saveEffect: z.enum(["none", "half", "negates_condition"]).optional(),
+  saveEffect: z.enum(["none", "half", "negates_condition", "negates"]).optional(),
   // Flame Blade-style conjured attacks add the caster's spellcasting ability
   // modifier to later granted-action damage. Keep it opt-in so generic beams
   // and illusion actions do not inherit modifiers by implication.
@@ -742,15 +840,30 @@ const GrantedAction = z.object({
   notes: z.string().optional(),
 });
 
+// Command menus use `name`/`effect`, while several authored source packets use
+// `mode` or `label` with richer fields. Keep both forms lossless, but require a
+// real discriminator so an empty option cannot silently enter the command UI.
 const ControlOption = z.object({
-  name: z.string(),
-  effect: z.string(),
+  name: z.string().trim().min(1).optional(),
+  effect: z.string().trim().min(1).optional(),
+  mode: z.string().trim().min(1).optional(),
+  label: z.string().trim().min(1).optional(),
   details: z.string().optional(),
-});
+  summary: z.string().optional(),
+}).passthrough().refine(
+  (value) => Boolean((value.name && value.effect) || value.mode || value.label),
+  { message: "controlOptions require name/effect, mode, or label metadata" },
+);
 
 const TauntEffect = z.object({
   disadvantageAgainstOthers: z.boolean().optional(),
   leashRangeFeet: z.number().optional(),
+  breakEvents: z.array(z.enum([
+    "caster_attacks_other",
+    "caster_casts_spell_on_other_enemy",
+    "caster_ally_damages_target",
+    "caster_ends_turn_outside_leash",
+  ])).optional(),
   breakConditions: z.array(z.string()).optional(),
 });
 
@@ -936,19 +1049,29 @@ const SavePenaltyData = z.object({
   duration: EffectDuration.optional() // Falls back to spell duration if not specified
 });
 
-const CreatedObject = z.object({
+// Created-object rows preserve source distinctions that are broader than the
+// current runtime object adapters. The corpus includes labels such as
+// "sensory_effect", "target_object", and "per target body" alongside the
+// smaller normalized vocabulary already consumed by runtime code. Keeping the
+// source label is important for future adapters, so this validator checks that
+// the field is a non-empty source-backed label without falsely rejecting a real
+// spell or collapsing it into the wrong runtime category.
+const SourceBackedCreatedObjectLabel = z.string().trim().min(1);
+
+const CreatedObjectShape = z.object({
   // Utility creation effects can now preserve object stacks without forcing
   // every created thing into summons or terrain. Goodberry is the first compact
   // consumable pilot: ten discrete food items with healing and nourishment.
-  objectType: z.enum(["food", "water", "ammunition", "weapon", "portal", "structure", "hazard", "other"]),
+  kind: SourceBackedCreatedObjectLabel.optional(),
+  objectType: SourceBackedCreatedObjectLabel,
   name: z.string(),
   count: z.number(),
   countScaling: z.object({
     type: z.literal("slot_level"),
     bonusPerLevel: z.number()
   }).optional(),
-  countUnit: z.enum(["item", "pound", "gallon", "cubic_foot", "square_foot", "structure", "not_applicable"]),
-  appearsIn: z.enum(["caster_hand", "target_container", "ground", "unoccupied_space", "spell_area", "not_applicable"]),
+  countUnit: SourceBackedCreatedObjectLabel,
+  appearsIn: SourceBackedCreatedObjectLabel,
   shapeOptions: z.array(z.string()).optional(),
   materialOptions: z.array(z.string()).optional(),
   // Creation pulls temporary nonliving matter from the Shadowfell. These fields
@@ -962,7 +1085,7 @@ const CreatedObject = z.object({
     type: z.literal("slot_level"),
     bonusPerLevel: z.number()
   }).optional(),
-  durationByMaterial: z.record(z.string()).optional(),
+  durationByMaterial: z.record(z.string(), z.string()).optional(),
   mixedMaterialsUseShortestDuration: z.boolean().optional(),
   cannotServeAsMaterialComponent: z.boolean().optional(),
   // Fabricate transforms visible raw materials into finished products. These
@@ -1111,7 +1234,7 @@ const CreatedObject = z.object({
   lingeringHazardName: z.string().optional(),
   lingeringHazardDamage: DamageData.optional(),
   lingeringHazardSaveType: SavingThrowAbility.optional(),
-  lingeringHazardSaveEffect: z.enum(["none", "half", "negates_condition"]).optional(),
+  lingeringHazardSaveEffect: z.enum(["none", "half", "negates_condition", "negates"]).optional(),
   lingeringHazardFrequency: z.enum(["first_per_turn", "every_time", "once_per_creature"]).optional(),
   // Movable hazards, such as Flaming Sphere, need enough geometry and motion
   // data for later map enforcement without being promoted to summoned actors.
@@ -1159,7 +1282,7 @@ const CreatedObject = z.object({
   // Shape Water-style utility spells alter a bounded volume of existing
   // material. These fields keep the legal volume, movement, visual, animation,
   // and freezing modes available to UI/runtime systems without interpreting prose.
-  affectedVolumeShape: z.enum(["Cube", "Sphere", "Line", "Wall", "not_applicable"]).optional(),
+  affectedVolumeShape: SourceBackedCreatedObjectLabel.optional(),
   affectedVolumeSizeFeet: z.number().optional(),
   maxManipulationDistanceFeet: z.number().optional(),
   manipulationOptions: z.array(z.string()).optional(),
@@ -1237,38 +1360,27 @@ const CreatedObject = z.object({
   notes: z.string().optional(),
 });
 
+// Older authored packets, such as Mighty Fortress, use a named `kind` packet
+// with spell-specific properties instead of the normalized object fields. Keep
+// those records valid and lossless until the structure runtime owns a complete
+// adapter; the presence of a non-empty kind still distinguishes this legacy
+// form from an arbitrary malformed object row.
+const CreatedObject = z.union([
+  CreatedObjectShape,
+  z.object({ kind: SourceBackedCreatedObjectLabel }).passthrough(),
+]);
+
 const UtilityEffect = BaseEffect.extend({
   type: z.literal("UTILITY"),
-  utilityType: z.enum(["light", "communication", "creation", "information", "control", "sensory", "other"]),
+  utilityType: z.string().trim().min(1),
   description: z.string(),
   attackAugments: z.array(AttackAugment).optional(),
   abilityCheckModifier: AbilityCheckModifier.optional(),
   controlledEntity: ControlledEntity.optional(),
-  // Tiny Servant carries its object-reversion lifecycle and command packet on
-  // the utility effect so the live spell data keeps that control state after
-  // validation instead of losing it to unknown-key stripping.
-  animatedObjectState: z.object({
-    creatureType: z.literal("Construct"),
-    size: z.literal("Tiny"),
-    sourceObject: z.string(),
-    lifecycle: z.object({
-      hitPointEnding: z.string(),
-      reversion: z.string(),
-      damageCarryover: z.string(),
-    }),
-    control: z.string(),
-  }).optional(),
-  summonControl: z.object({
-    entityType: z.literal("Tiny Servant"),
-    source: z.string(),
-    commandAction: z.literal("Bonus Action"),
-    commandRangeFeet: z.number(),
-    multiCommand: z.string(),
-    commandOptions: z.string(),
-    noCommandBehavior: z.string(),
-    persistentOrder: z.string(),
-    lifecycle: z.string(),
-  }).optional(),
+  // Tiny Servant and other source-backed control packets stay on the utility
+  // effect so command/runtime adapters can retain their family-specific state.
+  animatedObjectState: AnimatedObjectState.optional(),
+  summonControl: SummonControl.optional(),
   createdObjects: z.array(CreatedObject).optional(),
   objectAccessChange: ObjectAccessChange.optional(),
   controlOptions: z.array(ControlOption).optional(),
@@ -1280,7 +1392,7 @@ const UtilityEffect = BaseEffect.extend({
     attachedTo: z.enum(["caster", "target", "point"]).optional(),
     color: z.string().optional(),
     colorChoice: z.enum(["caster_choice", "fixed", "not_applicable"]).optional(),
-    opaqueCoverBlocks: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
+    opaqueCoverBlocks: z.union([z.boolean(), z.string().trim().min(1)]).optional(),
     emitsHeat: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
     ignitesObjects: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
     consumesFuel: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
@@ -1350,7 +1462,7 @@ const DefensiveEffect = BaseEffect.extend({
   // Condition suppression is also distinct: Calm Emotions can pause an existing
   // Charmed or Frightened condition without permanently removing it.
   conditionSuppression: z.array(z.string()).optional(),
-  savingThrow: z.array(SavingThrowAbility).optional(),
+  savingThrow: z.array(SavingThrowEntry).optional(),
   duration: EffectDuration,
   attackerFilter: TargetConditionFilter.optional(),
   defenseSourceFilter: DefenseSourceFilter.optional(),

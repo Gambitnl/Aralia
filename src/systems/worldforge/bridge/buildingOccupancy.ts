@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 18/07/2026, 19:29:53
+ * Dependents: systems/world3d/buildingSceneModel.ts, systems/world3d/types.ts, systems/worldforge/bridge/groundChunkLoader.ts
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file buildingOccupancy.ts — the living overlay, resolved for the 3D scene.
  *
@@ -185,6 +201,9 @@ export function occupationForMember(
  * @param plotInput the geometric plot input (footprint/role/storeys).
  * @param seedPath  the town's canonical seed path (blueprintForPlot's frame).
  * @param townSeed  the town seed path householdForPlot / generateHousehold key on.
+ * @param precomputedBlueprint the exact plan already resolved by the building
+ *                  load packet. Supplying it prevents this schedule pass from
+ *                  rebuilding generateBuilding's digest key for the same plot.
  */
 export function occupancyScheduleForPlot(
   plotPop: TownPlotPopulation,
@@ -192,18 +211,17 @@ export function occupancyScheduleForPlot(
   plotInput: InteriorPlotInput,
   seedPath: SeedPath,
   townSeed: SeedPath,
+  precomputedBlueprint?: BlueprintPlan,
 ): PlotOccupancySchedule | undefined {
   const resolved = householdForPlot(plotPop, allPlots, townSeed);
   if (!resolved) return undefined;
   const { household, worksAtHome } = resolved;
 
-  // PERF NOTE (2026-07-08): this is 1 of ~3 blueprintForPlot calls per populated
-  // plot (the other two are in buildInterior). generateBuilding is memoized, so
-  // the repeat calls are cache hits — measured ~17 ms total (1.9%) over a
-  // 650-plot capital bake; the real cost is cold generation (~1.3 ms/plot). Left
-  // un-threaded on purpose; full verdict in bridge/interiorParts.ts (buildInterior).
-  // Bench: .agent/scratch/bench-blueprint-fetch.ts
-  const plan = blueprintForPlot(plotInput, seedPath);
+  // Production now resolves the canonical plan once before its schedule and 3D
+  // projections fan out. Standalone callers still resolve here, preserving the
+  // public helper's old convenience without making the world-load path rebuild
+  // household/style/history digests for a plan it already owns.
+  const plan = precomputedBlueprint ?? blueprintForPlot(plotInput, seedPath);
   const occ = computeOccupancy(plan, household, { worksAtHome });
 
   const litHours: boolean[] = [];
@@ -225,6 +243,9 @@ export function occupancyScheduleForPlot(
     const hearth = occ.flags.hearthLitHours[h] ?? false;
     hearthHours[h] = hearth;
     // Occupied = the hearth is lit (implies home) OR any member stands home.
+    // NOTE: window glow and hearth glow are intentionally SEPARATE schedules
+    // (hearth 06–08/17–22, window/dusk 17–23) — Remy resolved WF-INTERIORS #7 on
+    // 2026-07-21 to keep them separate, so the dusk band is the sole window driver.
     litHours[h] = windowsLitAt(hearth || anyHome, h);
   }
 

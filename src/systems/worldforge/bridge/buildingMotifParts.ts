@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/07/2026, 16:53:55
+ * Last Sync: 19/07/2026, 23:50:32
  * Dependents: systems/worldforge/bridge/interiorParts.ts
- * Imports: 2 files
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,6 +33,12 @@ import type {
 } from '../interior/blueprintTypes';
 import { blueprintSiteOrigin } from '../interior/blueprintTypes';
 import { OUTER_THICKNESS_FT } from '../interior/walls';
+import {
+  WINDOW_HALF_FT,
+  WINDOW_HEAD_FT,
+  WINDOW_MARGIN_FT,
+  WINDOW_SILL_FT,
+} from './buildingMaterialParts';
 
 /** Tag stamped on additive building-type/culture recognition geometry. */
 export const MOTIF_PART_TAG = 'motif';
@@ -214,24 +220,121 @@ export function buildBuildingMotifParts(
         break;
       }
       case 'jettied-bay': {
-        const bayWidthM = Math.min(3.4, Math.max(1.8, widthM * 0.48)) * scale;
-        const bayDepthM = 0.62 * scale;
+        // Jettying is the strongest medieval silhouette in the Dressing-2
+        // brief, so this resolved motif now spans most of the street frontage
+        // instead of reading as another small bay window. Canonical walls stay
+        // where they are; this remains a tagged presentation shell.
+        const bayWidthM = Math.min(widthM * 0.9, Math.max(2.4, widthM * 0.76));
+        const bayDepthM = 0.68 + style.motifVariant * 0.09;
         const baseY = aboveGradeStoreys > 1
           ? Math.max(2.35, wallTopM - storeyHeightM)
           : Math.max(0.9, storeyHeightM * 0.34);
         const heightM = Math.max(1.25, Math.min(2.25, wallTopM - baseY - 0.12));
+        // Keep the established deterministic opposite-entry placement. The
+        // wider frontage naturally bounds that offset without erasing it.
+        const centerX = clampFeatureX(featureX, widthM, bayWidthM / 2);
 
+        // Split the broad projecting shell around the REAL top-floor street
+        // windows. Bottom/top bands and gap piers keep the jetty silhouette,
+        // while canonical panes and their material mullions remain visible.
+        const topFloor = [...blueprint.floors]
+          .filter((floor) => floor.level >= 0)
+          .sort((a, b) => b.level - a.level)[0];
+        const frontRunYFt = topFloor
+          ? Math.min(...topFloor.wallRuns
+            .filter((run) => run.kind === 'outer' && run.axis === 'x')
+            .map((run) => run.y1))
+          : Number.POSITIVE_INFINITY;
+        const bayLoM = centerX - bayWidthM / 2;
+        const bayHiM = centerX + bayWidthM / 2;
+        const rawOpenings = (topFloor?.windows ?? [])
+          .filter((window) =>
+            window.axis === 'x'
+            && Math.abs(window.y - frontRunYFt) <= 1e-6)
+          .map((window): [number, number] => {
+            const centerM = (window.x - blueprint.widthFt / 2) * FT;
+            const halfM = (WINDOW_HALF_FT + WINDOW_MARGIN_FT) * FT;
+            return [Math.max(bayLoM, centerM - halfM), Math.min(bayHiM, centerM + halfM)];
+          })
+          .filter(([lo, hi]) => hi - lo > 0.08)
+          .sort((a, b) => a[0] - b[0]);
+        const openings: Array<[number, number]> = [];
+        for (const interval of rawOpenings) {
+          const previous = openings[openings.length - 1];
+          if (previous && interval[0] <= previous[1] + 1e-6) {
+            previous[1] = Math.max(previous[1], interval[1]);
+          } else {
+            openings.push([...interval]);
+          }
+        }
+        const openingBaseM = Math.min(heightM, WINDOW_SILL_FT * FT);
+        const openingTopM = Math.min(heightM, WINDOW_HEAD_FT * FT);
+
+        if (openings.length === 0 || openingTopM <= openingBaseM) {
+          // A windowless frontage keeps a full shell; there is no opening to
+          // preserve and no reason to fragment the silhouette into extra boxes.
+          add(motif, {
+            x: centerX,
+            z: frontFaceZ - bayDepthM / 2,
+            w: bayWidthM,
+            d: bayDepthM,
+            h: heightM,
+            baseY,
+            colorHex: style.wallColor,
+          });
+        } else {
+          add(motif, {
+            x: centerX,
+            z: frontFaceZ - bayDepthM / 2,
+            w: bayWidthM,
+            d: bayDepthM,
+            h: openingBaseM,
+            baseY,
+            colorHex: style.wallColor,
+          });
+          if (heightM - openingTopM > 0.08) {
+            add(motif, {
+              x: centerX,
+              z: frontFaceZ - bayDepthM / 2,
+              w: bayWidthM,
+              d: bayDepthM,
+              h: heightM - openingTopM,
+              baseY: baseY + openingTopM,
+              colorHex: style.wallColor,
+            });
+          }
+
+          // Fill only the horizontal gaps between openings during the window
+          // band. At most window count + 1 piers can be emitted.
+          let cursorM = bayLoM;
+          for (const [openingLoM, openingHiM] of openings) {
+            if (openingLoM - cursorM > 0.08) {
+              add(motif, {
+                x: (cursorM + openingLoM) / 2,
+                z: frontFaceZ - bayDepthM / 2,
+                w: openingLoM - cursorM,
+                d: bayDepthM,
+                h: openingTopM - openingBaseM,
+                baseY: baseY + openingBaseM,
+                colorHex: style.wallColor,
+              });
+            }
+            cursorM = Math.max(cursorM, openingHiM);
+          }
+          if (bayHiM - cursorM > 0.08) {
+            add(motif, {
+              x: (cursorM + bayHiM) / 2,
+              z: frontFaceZ - bayDepthM / 2,
+              w: bayHiM - cursorM,
+              d: bayDepthM,
+              h: openingTopM - openingBaseM,
+              baseY: baseY + openingBaseM,
+              colorHex: style.wallColor,
+            });
+          }
+        }
         add(motif, {
-          x: clampFeatureX(featureX, widthM, bayWidthM / 2),
-          z: frontFaceZ - bayDepthM / 2,
-          w: bayWidthM,
-          d: bayDepthM,
-          h: heightM,
-          baseY,
-          colorHex: style.wallColor,
-        });
-        add(motif, {
-          x: clampFeatureX(featureX, widthM, bayWidthM / 2),
+          x: centerX,
           z: frontFaceZ - bayDepthM * 0.72,
           w: bayWidthM + 0.2,
           d: 0.18,
@@ -239,31 +342,94 @@ export function buildBuildingMotifParts(
           baseY: Math.max(0.15, baseY - 0.2),
           colorHex: style.trimColor,
         });
+
+        // Short corbel blocks create a visible support rhythm under the broad
+        // sill. Their bounded count prevents long townhouses from producing an
+        // unbounded number of parts while keeping both corners supported.
+        const corbelCount = Math.max(3, Math.min(7, Math.ceil(bayWidthM / 0.8)));
+        for (let index = 0; index < corbelCount; index += 1) {
+          const fraction = corbelCount === 1 ? 0.5 : index / (corbelCount - 1);
+          add(motif, {
+            x: centerX - bayWidthM / 2 + fraction * bayWidthM,
+            z: frontFaceZ - bayDepthM * 0.62,
+            w: 0.18,
+            d: Math.min(0.48, bayDepthM * 0.72),
+            h: 0.38,
+            baseY: Math.max(0.12, baseY - 0.5),
+            colorHex: style.trimColor,
+          });
+        }
         break;
       }
       case 'hanging-sign': {
         const signSide = entryXM <= 0 ? 1 : -1;
         const signX = clampFeatureX(entryXM + signSide * 0.85, widthM, 0.34);
-        const bracketDepthM = 0.7 + style.motifVariant * 0.12;
+        // A shop often also resolves an awning or covered gallery. Measure the
+        // deepest such motif and place the sign wholly beyond it instead of
+        // letting the shelter hide the board.
+        const shelterDepthM = Math.max(0, ...style.motifs.map((candidate) => {
+          switch (candidate) {
+            case 'front-canopy': return 1.15 * scale;
+            case 'shop-awning': return 1 * scale;
+            case 'covered-gallery': return 1.3 * scale;
+            case 'entry-portico': return 1.45 * scale;
+            case 'log-porch': return 1.45 * scale;
+            default: return 0;
+          }
+        }));
+        // The board must remain recognisable in the default Building Lab
+        // camera, not merely exist beyond the shelter. This bounded depth and
+        // taller face keep the six-part sign readable without adding geometry.
+        const boardDepthM = 0.95 * scale;
+        const boardCenterDepthM = shelterDepthM + 0.24 + boardDepthM / 2;
+        const bracketDepthM = Math.max(
+          0.7 + style.motifVariant * 0.12,
+          boardCenterDepthM,
+        );
 
         add(motif, {
           x: signX,
           z: frontFaceZ - bracketDepthM / 2,
-          w: 0.12,
+          w: 0.18,
           d: bracketDepthM,
-          h: 0.12,
+          h: 0.16,
           baseY: 2.48,
           colorHex: style.trimColor,
         });
         add(motif, {
           x: signX,
-          z: frontFaceZ - bracketDepthM * 0.82,
-          w: 0.68 * scale,
-          d: 0.14,
-          h: 0.65 + style.motifVariant * 0.08,
-          baseY: 1.78,
+          z: frontFaceZ - boardCenterDepthM,
+          w: 0.18,
+          d: boardDepthM,
+          h: 0.86 + style.motifVariant * 0.1,
+          baseY: 1.64,
           colorHex: style.roofColor,
         });
+
+        // The board is perpendicular to the facade. Twin hangers therefore
+        // follow its depth, and inset faces sit on both readable sides.
+        for (const side of [-1, 1] as const) {
+          add(motif, {
+            x: signX,
+            z: frontFaceZ - boardCenterDepthM + side * boardDepthM * 0.28,
+            w: 0.09,
+            d: 0.09,
+            h: 0.3,
+            baseY: 2.38,
+            colorHex: style.trimColor,
+          });
+        }
+        for (const side of [-1, 1] as const) {
+          add(motif, {
+            x: signX + side * 0.11,
+            z: frontFaceZ - boardCenterDepthM,
+            w: 0.05,
+            d: boardDepthM * 0.78,
+            h: 0.6 + style.motifVariant * 0.06,
+            baseY: 1.77,
+            colorHex: style.wallColor,
+          });
+        }
         break;
       }
       case 'vent-stack': {

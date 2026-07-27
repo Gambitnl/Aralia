@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 26/06/2026, 19:35:31
+ * Last Sync: 19/07/2026, 23:23:38
  * Dependents: hooks/useAbilitySystem.ts
  * Imports: 6 files
  *
@@ -14,7 +14,7 @@
  */
 // @dependencies-end
 
-import { CombatCharacter, CombatLogEntry, CombatState, Position, BattleMapData } from '../types/combat';
+import { CombatCharacter, CombatLogEntryInput, CombatState, Position, BattleMapData } from '../types/combat';
 import { MovementEffect } from '../types/spells';
 import { rollSavingThrow } from '../utils/savingThrowUtils';
 import { generateId } from '../utils/combatUtils';
@@ -58,7 +58,7 @@ export const getRepeatSaveRuntimeDc = (
 
 export const appendImmediateRepeatSaveLog = (
   state: CombatState,
-  entry: Omit<CombatLogEntry, 'id' | 'timestamp'>
+  entry: CombatLogEntryInput
 ): CombatState => ({
   ...state,
   combatLog: [

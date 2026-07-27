@@ -25,7 +25,7 @@ export interface Background {
 }
 export declare const BACKGROUNDS: Record<string, Background>;
 export declare const AGE_APPROPRIATE_BACKGROUNDS: {
-    readonly child: readonly ["child-of-the-streets", "urchin", "apprentice", "acolyte", "entertainer", "folk-hero", "noble", "sage", "inheritor", "beast-master"];
-    readonly young: readonly ["apprentice", "acolyte", "entertainer", "folk-hero", "guild-artisan", "noble", "sage", "sailor", "inheritor", "shipwright", "knight-of-the-order", "tribal-warrior", "beast-master", "revolutionary"];
-    readonly adult: readonly ["acolyte", "criminal", "entertainer", "faction-agent", "far-traveler", "folk-hero", "guild-artisan", "noble", "sage", "soldier", "archaeologist", "cloistered-scholar", "courtier", "gladiator", "hermit", "inheritor", "mercenary", "outlander", "shipwright", "spy", "tribal-warrior", "beast-master", "elemental-adept", "gravekeeper"];
+    readonly child: readonly ["urchin", "farmer", "acolyte", "entertainer", "noble", "sage", "hermit"];
+    readonly young: readonly ["acolyte", "entertainer", "farmer", "noble", "sage", "sailor", "urchin"];
+    readonly adult: readonly ["acolyte", "criminal", "entertainer", "farmer", "guide", "hermit", "noble", "sage", "soldier", "sailor", "urchin", "faction-agent"];
 };

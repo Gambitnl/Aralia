@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 17/07/2026, 21:35:50
- * Dependents: components/DesignPreview/steps/townMesh.ts, components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 9 files
+ * Last Sync: 18/07/2026, 03:52:38
+ * Dependents: components/DesignPreview/steps/townMesh.ts, components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,7 +32,7 @@
  */
 import type { TownPlan as EngineTownPlan, BuildingPlot, CivicKind } from './townEngine';
 import type { TownPlan as ArtifactTownPlan } from '../artifacts';
-import type { Pt } from '../submap/submapEngine';
+import { pointInPolygon, type Pt } from '../submap/submapEngine';
 import type { BuildingAgeBand, BuildingEnsemble, BuildingType } from '../interior/blueprintTypes';
 import { isResidential, type BuildingType as PopulationBuildingType } from './population';
 import {
@@ -44,6 +44,7 @@ import {
 import { resolveBuildingAgeBand } from './buildingAge';
 import { detachedParcelInsets } from './detachedParcels';
 import { buildingTypeForRole } from '../interior/generateInterior';
+import { STREET_TIER_SPECS } from './streetRibbons';
 
 export interface AdaptedTownPlan {
   plan: ArtifactTownPlan;
@@ -52,25 +53,37 @@ export interface AdaptedTownPlan {
 }
 
 /**
- * Street hierarchy — the town's walkable network reads as three tiers so a burg
+ * Street hierarchy — the town's walkable network reads as FOUR tiers so a burg
  * looks like a place people move through, not a uniform grid. Each tier sets a
- * ribbon width (feet) and a vertex tint the 3D bake paints:
+ * ribbon width (feet) and a tint the 3D bake paints:
  *
+ *  • plaza  — the market square ward's own frontage: the paved civic heart
+ *    ringing the plaza. Widest, bright flagstone with stone edging.
  *  • avenue — the inherited regional roads that enter through the gates: the
- *    grand thoroughfares. Widest, pale flagstone.
- *  • street — the market plaza's frontage: the paved civic heart. Medium, warm
- *    paved stone.
+ *    grand thoroughfares. Wide, pale paving with the same edging.
+ *  • street — the frontage of the OTHER civic wards (temple/keep/citadel/dock
+ *    quarters): the paved mid tier. Warm cobble.
  *  • lane   — every other ward (Voronoi) edge: the packed-dirt web threading the
- *    house blocks. Narrowest, and the same dirt tone roads used before this slice.
+ *    house blocks. Narrowest, dirt with a worn wheel-rut stripe.
+ *
+ * WHAT CHANGED (streets-unify slice, 2026-07-18): previously three near-identical
+ * tan tiers (a plaza frontage read like a back lane, per operator review); the
+ * plaza tier was added, plaza frontage promoted into it, and the other civic
+ * wards now seat the mid 'street' tier so all four tiers stay populated. Tier
+ * widths/tints/layer recipes are now OWNED by the shared street-geometry module
+ * `streetRibbons.ts` — the single source both 3D renderers (game ground bake and
+ * design-preview schematic) consume — and this table is re-exported from it as
+ * the adapter-facing plan-facts view (widthFt + colorHex only).
  *
  * The 2D map already draws this grid as the NEGATIVE SPACE between inset ward
  * blocks; the ward edges are the centerlines of those gaps, so a ribbon on each
  * edge lands exactly down the middle of the 2D street — the two views agree.
  */
 export const STREET_TIERS = {
-  avenue: { widthFt: 22, colorHex: '#c9b79a' },
-  street: { widthFt: 15, colorHex: '#b8a67f' },
-  lane: { widthFt: 10, colorHex: '#a08b62' },
+  plaza: { widthFt: STREET_TIER_SPECS.plaza.widthFt, colorHex: STREET_TIER_SPECS.plaza.colorHex },
+  avenue: { widthFt: STREET_TIER_SPECS.avenue.widthFt, colorHex: STREET_TIER_SPECS.avenue.colorHex },
+  street: { widthFt: STREET_TIER_SPECS.street.widthFt, colorHex: STREET_TIER_SPECS.street.colorHex },
+  lane: { widthFt: STREET_TIER_SPECS.lane.widthFt, colorHex: STREET_TIER_SPECS.lane.colorHex },
 } as const;
 type StreetTier = keyof typeof STREET_TIERS;
 
@@ -100,16 +113,32 @@ function subdivideEdge(a: Pt, b: Pt): Pt[] {
 }
 
 /**
+ * A ward's street tier: the plaza ward's frontage is the paved civic heart
+ * (plaza tier); the OTHER civic wards (temple/keep/citadel/dock quarters) seat
+ * the mid `street` tier; plain residential wards stay dirt lanes. Before the
+ * streets-unify slice the plaza frontage was merely 'street' and no ward
+ * produced a mid tier — the four-tier read requires both rules.
+ */
+function tierForWard(ward: EngineTownPlan['wards'][number]): StreetTier {
+  if (ward.civic === 'plaza') return 'plaza';
+  if (ward.civic) return 'street';
+  return 'lane';
+}
+
+/** Higher rank wins a shared edge (paved frontage beats dirt). */
+const TIER_RANK: Record<StreetTier, number> = { plaza: 3, avenue: 2, street: 1, lane: 0 };
+
+/**
  * The ward-edge street network: every unique Voronoi ward edge becomes a street
- * centerline. Shared edges are emitted once; an edge bordering the market plaza
- * ward upgrades from `lane` to `street` (paved frontage wins over dirt).
+ * centerline. Shared edges are emitted once; the higher-ranked bordering ward's
+ * tier wins (a plaza-frontage edge shared with a temple ward reads plaza).
  */
 function wardEdgeStreets(wards: EngineTownPlan['wards']): Array<{ centerline: Pt[]; tier: StreetTier }> {
   const tierOf = new Map<string, StreetTier>();
   const geom = new Map<string, [Pt, Pt]>();
   const order: string[] = [];
   for (const ward of wards) {
-    const tier: StreetTier = ward.civic === 'plaza' ? 'street' : 'lane';
+    const tier = tierForWard(ward);
     const poly = ward.polygon;
     for (let i = 0; i < poly.length; i++) {
       const a = poly[i];
@@ -119,8 +148,8 @@ function wardEdgeStreets(wards: EngineTownPlan['wards']): Array<{ centerline: Pt
         tierOf.set(k, tier);
         geom.set(k, [a, b]);
         order.push(k);
-      } else if (tier === 'street') {
-        tierOf.set(k, 'street'); // plaza frontage upgrades a shared edge
+      } else if (TIER_RANK[tier] > TIER_RANK[tierOf.get(k)!]) {
+        tierOf.set(k, tier); // the better-paved neighbouring ward upgrades a shared edge
       }
     }
   }
@@ -182,6 +211,21 @@ function roleForCivic(kind: CivicKind): string | null {
  * L-shaped or have extra vertices, so we reduce each to its frontage-aligned
  * rectangle. A clean 4-point rect passes through essentially unchanged.
  */
+/** Distance from a point to the nearest edge of a polygon boundary. */
+function distToBoundary(p: Pt, poly: Pt[]): number {
+  let best = Infinity;
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i];
+    const b = poly[(i + 1) % poly.length];
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const L2 = dx * dx + dy * dy || 1;
+    const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2));
+    best = Math.min(best, Math.hypot(p[0] - (a[0] + dx * t), p[1] - (a[1] + dy * t)));
+  }
+  return best;
+}
+
 function orientedQuad(poly: Pt[], ensemble?: BuildingEnsemble): [Pt, Pt, Pt, Pt] {
   // Longest edge → frontage direction.
   let bestLen = -1, ang = 0;
@@ -245,6 +289,83 @@ function orientedQuad(poly: Pt[], ensemble?: BuildingEnsemble): [Pt, Pt, Pt, Pt]
     return [u * c - v * s, u * s + v * c];
   };
   return [back(iMinU, iMinV), back(iMaxU, iMinV), back(iMaxU, iMaxV), back(iMinU, iMaxV)];
+}
+
+/**
+ * Wedge plots are block-clipped: the town packer cut their corner overshoot
+ * away at the ward boundary, and the frontage-aligned bounding rect that
+ * `orientedQuad` builds restores exactly that overshoot — seating the 3D
+ * building back over the street corner and the neighbor ward's plot (which
+ * broke the ground pad-leveling invariant: two buildings sharing a terrain
+ * cell). Shrink the quad toward the authored polygon's centroid until it fits
+ * inside. Called AFTER the min-side filter and id assignment so plot ids and
+ * filtering stay byte-identical to the unclamped plan — ids are load-bearing
+ * for businesses and interiors. Rect and L plots keep the historical bounding
+ * behavior (an L's rect intentionally spans its notch, which lies outside the
+ * polygon).
+ */
+function clampQuadInsidePolygon(quad: [Pt, Pt, Pt, Pt], poly: Pt[]): [Pt, Pt, Pt, Pt] {
+  const TOL_FT = 1e-4;
+  const inside = (pt: Pt): boolean =>
+    pointInPolygon(pt, poly) || distToBoundary(pt, poly) <= TOL_FT;
+  if (quad.every(inside)) return quad;
+
+  // Work in the quad's own frame: origin q0, U along the frontage edge q0→q1,
+  // V along the depth edge q0→q3. A wedge is convex (a convex clip of a rect),
+  // so a rect fits inside it exactly when all 4 corners do. The clip is
+  // typically a diagonal across one corner, so shrinking a single axis (or a
+  // uniform centroid shrink) starves the plot down to a sliver; instead nibble
+  // the offending corner inward on ALTERNATING axes, walking it along the cut
+  // edge to a balanced (near max-area) inscribed rect.
+  const [q0, q1, , q3] = quad;
+  const uLen = Math.hypot(q1[0] - q0[0], q1[1] - q0[1]) || 1;
+  const vLen = Math.hypot(q3[0] - q0[0], q3[1] - q0[1]) || 1;
+  const ux = (q1[0] - q0[0]) / uLen, uy = (q1[1] - q0[1]) / uLen;
+  const vx = (q3[0] - q0[0]) / vLen, vy = (q3[1] - q0[1]) / vLen;
+  const at = (u: number, v: number): Pt => [
+    q0[0] + ux * u + vx * v,
+    q0[1] + uy * u + vy * v,
+  ];
+  const bounds = { u0: 0, u1: uLen, v0: 0, v1: vLen };
+  const cornersOf = (b: typeof bounds): [Pt, Pt, Pt, Pt] => [
+    at(b.u0, b.v0), at(b.u1, b.v0), at(b.u1, b.v1), at(b.u0, b.v1),
+  ];
+  // Corner index → which bounds form it.
+  const cornerBounds: Array<['u0' | 'u1', 'v0' | 'v1']> = [
+    ['u0', 'v0'], ['u1', 'v0'], ['u1', 'v1'], ['u0', 'v1'],
+  ];
+  const stepU = uLen / 64;
+  const stepV = vLen / 64;
+  let useU = true;
+  for (let it = 0; it < 512; it++) {
+    const corners = cornersOf(bounds);
+    const bad = corners.findIndex((c) => !inside(c));
+    if (bad < 0) break;
+    const [uKey, vKey] = cornerBounds[bad];
+    if (useU) {
+      if (uKey === 'u0') bounds.u0 = Math.min(bounds.u0 + stepU, bounds.u1);
+      else bounds.u1 = Math.max(bounds.u1 - stepU, bounds.u0);
+    } else {
+      if (vKey === 'v0') bounds.v0 = Math.min(bounds.v0 + stepV, bounds.v1);
+      else bounds.v1 = Math.max(bounds.v1 - stepV, bounds.v0);
+    }
+    useU = !useU;
+  }
+  const clamped = cornersOf(bounds);
+  if (clamped.every(inside)) return clamped;
+  // Last resort (side shrinks could not contain the rect): uniform shrink
+  // toward the polygon centroid, which always converges for a convex wedge.
+  let cx = 0, cy = 0;
+  for (const [x, y] of poly) { cx += x; cy += y; }
+  cx /= poly.length || 1; cy /= poly.length || 1;
+  const scaled = (s: number): [Pt, Pt, Pt, Pt] =>
+    quad.map(([x, y]) => [cx + (x - cx) * s, cy + (y - cy) * s]) as [Pt, Pt, Pt, Pt];
+  let lo = 0, hi = 1;
+  for (let it = 0; it < 24; it++) {
+    const mid = (lo + hi) / 2;
+    if (scaled(mid).every(inside)) lo = mid; else hi = mid;
+  }
+  return scaled(lo);
 }
 
 /** Stable 0..1 hash from a polygon centroid (deterministic storey variety). */
@@ -349,9 +470,12 @@ export function toArtifactPlan(
     const districtKey = ward.architectureDistrict?.key ?? `wealth:${wealth}`;
     const districtLabel = ward.architectureDistrict?.label ?? `${wealth} quarter`;
     for (const pl of ward.plots) {
-      const quad = orientedQuad(pl.polygon, pl.ensemble);
+      let quad = orientedQuad(pl.polygon, pl.ensemble);
       const [w, d] = quadSides(quad);
       if (Math.min(w, d) < MIN_PLOT_SIDE_FT) continue; // sub-tile sliver — skip
+      // Keep wedge footprints inside their authored polygon. Runs after the
+      // sliver filter so plot ids stay identical to the unclamped plan.
+      if (pl.shape === 'wedge') quad = clampQuadInsidePolygon(quad, pl.polygon);
       const role = roleForPlot(pl, ward.civic);
       // Capture the id once so style identity and the durable artifact record
       // refer to the exact same building. The increment order is unchanged.

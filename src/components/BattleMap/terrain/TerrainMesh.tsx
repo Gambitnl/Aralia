@@ -429,7 +429,9 @@ const TERRAIN_GLSL_PREAMBLE = /* glsl */ `
     vec3 dryr = vec3(0.40, 0.30, 0.18);  // dry earth
     vec3 clay = vec3(0.50, 0.38, 0.24);  // pale clay
 
-    vec3 c = mix(wet, dryr, smoothstep(0.28, 0.72, macro));
+    // Stronger wet↔dry macro push (GOAL #30) so soil zones read as distinct
+    // materials rather than one averaged brown.
+    vec3 c = mix(wet, dryr, smoothstep(0.34, 0.66, macro));
 
     // Clay patches — mid-scale, not sub-tile
     float clayPatch = smoothstep(0.58, 0.74, fbm4(wXZ * 0.38 + vec2(29.0, 53.0)));
@@ -624,6 +626,44 @@ const TERRAIN_COLOR_FRAGMENT = /* glsl */ `
     }
   }
 
+  // ---- Blocked-tile rim: unmistakable "can't walk here" read (GOAL #29) ----
+  // Rock and wall tiles get a carved dark seam where they border walkable
+  // ground, plus a bright lip just inside it — the border reads as a raised
+  // obstacle edge, not a soft material gradient. Interior edges between two
+  // blocked tiles stay untouched so formations remain one mass.
+  {
+    int _bType = int(_terrainIdx + 0.5);
+    if (_bType == 1 || _bType == 5) {
+      float _rimDist = min(_ex, _ez); // clean (un-jittered) edge distance
+      if (_rimDist < 0.30) {
+        // Which neighbor does this fragment face?
+        vec2 _rOff = vec2(0.0);
+        if (_ex < _ez) {
+          _rOff.x = _tileFrac.x < 0.5 ? -1.0 : 1.0;
+        } else {
+          _rOff.y = _tileFrac.y < 0.5 ? -1.0 : 1.0;
+        }
+        vec2 _rUV = vec2(
+          (floor(vTerrainWorldPos.x + _rOff.x) + 0.5) / uMapWidth,
+          (floor(vTerrainWorldPos.z + _rOff.y) + 0.5) / uMapHeight
+        );
+        int _rIdx = int(texture2D(uTerrainTypeMap, _rUV).r * 255.0 + 0.5);
+        bool _rWalkable = !(_rIdx == 1 || _rIdx == 5 || _rIdx == 4);
+        if (_rWalkable && _rUV.x >= 0.0 && _rUV.x <= 1.0 && _rUV.y >= 0.0 && _rUV.y <= 1.0) {
+          // Slight organic wobble so the seam isn't a ruler line
+          float _rN = fbm4(vTerrainWorldPos.xz * 3.1 + vec2(19.0, 67.0));
+          float _rD = clamp(_rimDist + (_rN - 0.5) * 0.10, 0.0, 1.0);
+          // Dark carved seam hugging the border
+          float _seam = 1.0 - smoothstep(0.02, 0.14, _rD);
+          _terrainColor *= 1.0 - 0.62 * _seam;
+          // Bright lip just inside the seam — catches the eye as a hard edge
+          float _lip = smoothstep(0.10, 0.16, _rD) * (1.0 - smoothstep(0.16, 0.28, _rD));
+          _terrainColor += vec3(0.10, 0.095, 0.085) * _lip;
+        }
+      }
+    }
+  }
+
   // ---- Slope-exposed rock: steep ground breaks into rock faces (GOAL #28) ----
   // Geometric world normal drives a rock blend on grass/dirt/sand so hillsides
   // and carved banks read as terrain relief instead of tinted flat ground.
@@ -678,6 +718,17 @@ const TERRAIN_COLOR_FRAGMENT = /* glsl */ `
                   + _terrainColor * vec3(1.0, 0.96, 0.80) * (0.50 * uDapple) * _pool;
   }
 
+  // ---- Close-up detail octave (GOAL #26) ----
+  // Under ~8u camera distance an extra high-frequency albedo octave fades in,
+  // so leaning the camera in reveals grain instead of smooth procedural math.
+  // Zero-cost at tactical zoom: fully faded out beyond 8u.
+  float _closeUp = 1.0 - smoothstep(4.0, 8.0, length(vViewPosition));
+  if (_closeUp > 0.001) {
+    float _det = vnoise(vTerrainWorldPos.xz * 23.0) * 0.6
+               + vnoise(vTerrainWorldPos.xz * 53.0) * 0.4;
+    _terrainColor *= 1.0 + (_det - 0.5) * 0.20 * _closeUp;
+  }
+
   diffuseColor.rgb = _terrainColor;
 `;
 
@@ -692,6 +743,18 @@ const TERRAIN_NORMAL_FRAGMENT = /* glsl */ `
   vec3 _wb = normalize(vec3(-(_bh - _bhx) / 0.05 * _bs, 1.0, -(_bh - _bhz) / 0.05 * _bs));
   vec3 _vb = normalize(mat3(viewMatrix) * _wb);
   normal = normalize(mix(normal, _vb, 0.3));
+  // Close-up micro-normal (GOAL #26): a third, finer bump octave fades in
+  // under ~8u so near ground catches light like real grit, not smooth shading.
+  float _cnF = 1.0 - smoothstep(4.0, 8.0, length(vViewPosition));
+  if (_cnF > 0.001) {
+    vec2 _mu = vTerrainWorldPos.xz * 34.0;
+    float _mh  = vnoise(_mu);
+    float _mhx = vnoise(_mu + vec2(0.68, 0.0));
+    float _mhz = vnoise(_mu + vec2(0.0, 0.68));
+    vec3 _mw = normalize(vec3(-(_mh - _mhx) / 0.02 * 0.12, 1.0, -(_mh - _mhz) / 0.02 * 0.12));
+    vec3 _mv = normalize(mat3(viewMatrix) * _mw);
+    normal = normalize(mix(normal, _mv, 0.35 * _cnF));
+  }
 `;
 
 // ---------------------------------------------------------------------------
@@ -747,7 +810,7 @@ function createTerrainMaterial(
   };
 
   mat.customProgramCacheKey = () =>
-    `terrain-pbr-v7-${mapWidth}-${mapHeight}-${seed}-${dapple}`;
+    `terrain-pbr-v8-${mapWidth}-${mapHeight}-${seed}-${dapple}`;
   return mat;
 }
 
@@ -954,4 +1017,26 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
       lastHoverTileId.current = tileId;
       const tile = mapData.tiles.get(tileId);
       if (tile) onTileHover(tile);
-  
+    };
+  }, [height, mapData, onTileHover, terrainHeightSampler, width]);
+
+  return (
+    <>
+      <mesh
+        ref={meshRef}
+        geometry={geometry}
+        material={material}
+        receiveShadow
+        onClick={(e: ThreeEvent<MouseEvent>) => {
+          e.stopPropagation();
+          if (e.intersections[0]) {
+            handleClick(e.intersections[0]);
+          }
+        }}
+        onPointerMove={handlePointerMove}
+      />
+    </>
+  );
+};
+
+export default TerrainMesh;

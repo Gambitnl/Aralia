@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 20/07/2026, 00:36:33
+ * Dependents: App.tsx, hooks/useHistorySync.ts, url-directory-entry.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Single source of truth for the main app's in-app URLs.
  *
@@ -14,6 +30,10 @@
  * NOTE: standalone *pages* (the separate misc/*.html documents) are a different
  * URL layer entirely — those are registered in vite.config.ts `rollupOptions.input`,
  * not here. This file is only about routes WITHIN the main app.
+ *
+ * The Worldforge canvas phase now stays only as a stable enum slot for old save
+ * numbers. Current URLs fail it closed and point map users to `?worldmap=1`;
+ * other phase and legacy-link behavior is intentionally preserved.
  */
 
 import { GamePhase } from './types';
@@ -34,6 +54,20 @@ export const PHASE_SLUG_OVERRIDES: Partial<Record<GamePhase, string>> = {
   [GamePhase.WEBGPU_PROBE]: 'webgpuprobe',
 };
 
+/**
+ * Enum members kept only so old save-state numbers do not shift. They are not
+ * URL surfaces: the duplicate canvas atlas is replaced by `?worldmap=1`, which
+ * opens the canonical getBridgeAtlas + AtlasSvgView World Generation path.
+ */
+export const RETIRED_PHASE_ROUTE_NAMES = ['WORLDFORGE_DEMO'] as const;
+
+const RETIRED_PHASES = new Set<GamePhase>(
+  RETIRED_PHASE_ROUTE_NAMES.map((name) => GamePhase[name]),
+);
+
+/** True when a stable enum slot deliberately has no player or developer URL. */
+export const isPhaseRouteRetired = (phase: GamePhase): boolean => RETIRED_PHASES.has(phase);
+
 // Reverse lookup: clean slug -> phase. Derived from the overrides so the two
 // directions can never drift apart.
 const SLUG_TO_PHASE: Record<string, GamePhase> = Object.fromEntries(
@@ -42,7 +76,9 @@ const SLUG_TO_PHASE: Record<string, GamePhase> = Object.fromEntries(
 
 /** Convert a GamePhase to its URL slug. */
 export const getPhaseSlug = (phase: GamePhase): string =>
-  PHASE_SLUG_OVERRIDES[phase] ?? GamePhase[phase]?.toLowerCase() ?? '';
+  isPhaseRouteRetired(phase)
+    ? ''
+    : PHASE_SLUG_OVERRIDES[phase] ?? GamePhase[phase]?.toLowerCase() ?? '';
 
 /**
  * Resolve a URL slug back to a GamePhase, or null if it doesn't map to a valid
@@ -53,8 +89,24 @@ export const getPhaseFromSlug = (slug: string | null): GamePhase | null => {
   if (!slug) return null;
   const normalizedSlug = slug.toLowerCase();
 
+  // Fail every spelling of the retired canvas phase closed. This check runs
+  // before clean slugs, enum-name fallbacks, and numeric legacy links so none
+  // of the URL compatibility paths can resurrect the old renderer.
+  const retiredPhase = GamePhase.WORLDFORGE_DEMO;
+  if (
+    normalizedSlug === 'worldforge'
+    || normalizedSlug === 'worldforge_demo'
+    || normalizedSlug === String(retiredPhase)
+  ) {
+    console.warn("[World map] The canvas Worldforge route is retired. Use '?worldmap=1' for the canonical SVG atlas.");
+    return null;
+  }
+
   // Hand-mapped clean slugs first.
-  if (normalizedSlug in SLUG_TO_PHASE) return SLUG_TO_PHASE[normalizedSlug];
+  if (normalizedSlug in SLUG_TO_PHASE) {
+    const phase = SLUG_TO_PHASE[normalizedSlug];
+    return isPhaseRouteRetired(phase) ? null : phase;
+  }
 
   // Retired route: design preview is now a standalone tool at /Aralia/misc/design.html.
   if (normalizedSlug === 'design_preview') {
@@ -66,11 +118,15 @@ export const getPhaseFromSlug = (slug: string | null): GamePhase | null => {
   // reverse-map keys a TS numeric enum carries (`GamePhase['2']` is the NAME
   // 'PLAYING', not a value) by requiring the lookup to yield a number.
   const byName = GamePhase[slug.toUpperCase() as keyof typeof GamePhase];
-  if (typeof byName === 'number') return byName;
+  if (typeof byName === 'number') return isPhaseRouteRetired(byName) ? null : byName;
 
   // Legacy: bare numeric phase index (valid only if it reverse-maps to a name).
   const numeric = parseInt(slug, 10);
-  return Number.isInteger(numeric) && typeof GamePhase[numeric] === 'string' ? (numeric as GamePhase) : null;
+  return Number.isInteger(numeric)
+    && typeof GamePhase[numeric] === 'string'
+    && !isPhaseRouteRetired(numeric as GamePhase)
+    ? (numeric as GamePhase)
+    : null;
 };
 
 /** Product name used as the browser-tab title prefix. */

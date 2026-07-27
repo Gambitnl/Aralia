@@ -84,7 +84,7 @@ export function useAudio(addMessage: AddMessageFn) {
     };
   }, []); // Empty dependency array means this runs once on mount
 
-  // TODO #313(FEATURES): Add ambient music and biome-based sound layers alongside TTS playback (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  // TODO: Add ambient music and biome-based sound layers alongside TTS playback (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   const playPcmAudio = useCallback(
     async (base64PcmData: string) => {
       if (!audioContextRef.current) {

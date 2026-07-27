@@ -129,6 +129,9 @@ export interface PlanSpec {
   spine: { segments: number; taper: number; arch: number; shape?: 'round' | 'box'; bulge?: number };
   /** Body translucency (ghosts, oozes); eyes stay solid. */
   opacity?: number;
+  /** Creature-level junction softness (0–1) as authored; slice 2 (fused skin)
+   * reads it — slice 1 collars only need the per-chain blendM. */
+  skinBlend?: number;
   chains: Array<{
     /** Stable id: 'leg0L', 'tent2', 'neck1' … */
     id: string;
@@ -141,6 +144,9 @@ export interface PlanSpec {
     attach: number;
     heightFrac: number;
     links: Array<{ lenM: number; rM: number }>;
+    /** Junction collar reach in METERS at the chain root (0 = no collar).
+     * Resolved by compilePlan from blend × min(root radius, hull radius) × 2. */
+    blendM: number;
     /** Stride phase for legs (distributed); 0 for other kinds. */
     phaseOffset: number;
     /** 'hand' = stylized palm + fingers at the tip. */
@@ -212,6 +218,15 @@ export interface SegmentSink {
    * radius profile (knots spread evenly along the curve) — smooth spines and
    * chains. Optional: sinks without it receive per-segment seg() fallbacks. */
   tube?(id: string, points: number[], radii: number[]): void;
+  /** Junction smoothing skirt at a chain root (junction blend, slice 1):
+   * a flared ring bridging the limb wall into the hull wall. root = the
+   * chain's root joint, (axX,axY,axZ) = unit vector down the root link,
+   * limbR = root link radius, reach = compiled blendM. Frame-updated like
+   * tube(); cosmetic only — never collision or anchor data. Sinks without
+   * it (crowd bake, collectors) skip collars entirely. */
+  collar?(id: string, rootX: number, rootY: number, rootZ: number,
+          axX: number, axY: number, axZ: number,
+          limbR: number, reach: number): void;
 }
 
 /** Minimal position — THREE.Vector3 satisfies this, keeping the data layer three-free. */

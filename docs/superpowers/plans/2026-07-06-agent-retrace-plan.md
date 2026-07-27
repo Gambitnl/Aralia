@@ -1,7 +1,7 @@
 # Agent retrace — plan
 
 **Date:** 2026-07-06
-**Status:** store core landed and green in `store.mjs` (preserve-on-reap dossier, reapCount, checkpointTask — feed seq 376, 125/125); the client/server wiring (retrace cmd, checkpoint endpoint/cmd, successor flag) is still missing — announced seq 377 but never landed (verified 2026-07-10: zero hits in client.mjs/server.mjs)
+**Status:** COMPLETE 2026-07-18. Store core was already green in `store.mjs` (preserve-on-reap dossier, reapCount, checkpointTask). The client/server wiring — the missing half — landed 2026-07-18 (task 3d15b1ad): `POST /tasks/:id/checkpoint` endpoint in `server.mjs`; `task checkpoint` and `retrace <id>` commands + the "⚠ reaped from ..." successor flag (printed on `task claim`/`task next`) in `client.mjs`; coverage in `retrace.wiring.test.mjs` (8/8 with store.retrace, 27/27 client+server, no regressions). Verified live against the daemon: `retrace <id>` renders real dossiers (the daemon predates the new checkpoint route, so that endpoint proves out only via the in-process server test until the daemon is next restarted).
 **Campaign:** Tooling (Agora)
 **Depends on:** agent-identity (hard)
 

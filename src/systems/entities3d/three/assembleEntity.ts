@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 26/07/2026, 23:09:27
+ * Dependents: components/BattleMap/characters/characterActor/EntityModel.tsx, components/DesignPreview/steps/EntityDebugScene.tsx, components/World3D/OccupantFigure.tsx, components/World3D/PlayerAvatar.tsx, systems/entities3d/three/Entity3D.tsx
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file assembleEntity.ts — blueprint → live entity (body v2: segments).
  *
@@ -81,6 +97,10 @@ export interface AssembleOptions {
   /** Body construction technique. Default 'segments' — opting in is the only
    * way to get the slice-1 skinned body; nothing else changes. */
   bodyTech?: BodyTech;
+  /** Skinned-body weight style (slice 3). 'rigid' reproduces the segment
+   * look exactly; 'smooth' lofts one-piece chain tubes with joint-blended
+   * weights (creased elbows/knees). Default 'rigid' until the eyeball gate. */
+  skinnedWeights?: 'rigid' | 'smooth';
 }
 
 const IDLE: LocomotionState = {
@@ -97,14 +117,16 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   const renderMode = options.renderMode ?? ENTITY_RENDER_MODE;
   const wireframe = renderMode === 'wireframe';
   const bodyTech = options.bodyTech ?? 'segments';
-  // Slice 1 scope guards — fail honestly instead of falling back:
-  // creature/plan skeletons are slice 4, and skinned wireframe is an open
-  // design decision (the spec parks it), so neither pretends to work.
+  // Scope guards — fail honestly instead of falling back:
+  // creature/plan skeletons are slice 4. Wireframe on a deforming body is
+  // DECIDED (Remy 2026-07-21): skinned bodies render solid shaded, period —
+  // wireframe stays a segment-body debug look and never comes to the skeleton
+  // path, so requesting it is a caller bug, not a parked feature.
   if (bodyTech === 'skinned' && gait !== 'biped') {
     throw new Error(`bodyTech 'skinned' supports only the biped gait in slice 1 (got '${gait}')`);
   }
   if (bodyTech === 'skinned' && wireframe) {
-    throw new Error("bodyTech 'skinned' has no wireframe path in slice 1 — use renderMode 'solid'");
+    throw new Error("bodyTech 'skinned' renders solid shaded only (decided 2026-07-21) — wireframe is a segment-body debug look");
   }
 
   const group = new Group();
@@ -121,6 +143,10 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   const body = createSegmentBody({
     renderMode,
     colorHex: palette.skinHex,
+    // Plan-driven bodies (compiled CreaturePlans) carry their belly tone in
+    // secondaryHex — the tube renderer countershades with it. Segment gaits
+    // emit no tubes, so their secondaryHex (cloak lining etc.) stays unused.
+    bellyHex: blueprint.planSpec ? palette.secondaryHex : undefined,
     accentHex: palette.accentHex,
     outlineThickness,
     opacity: blueprint.planSpec?.opacity,
@@ -133,11 +159,16 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
           colorHex: palette.skinHex,
           outlineThickness,
           opacity: blueprint.planSpec?.opacity,
+          weights: options.skinnedWeights,
         })
       : null;
   if (skinnedBody) bodyRoot.add(skinnedBody.root);
 
-  const driver: GaitDriver = createGaitDriver(gait, frame, blueprint.planSpec);
+  // Wing mesh parts (wingsFeathered/wingsMembrane) are garnish the driver
+  // cannot see — plan-driven bodies (the Emberwing dragon) need the hint or
+  // their wings freeze; biped/quad drivers beat unconditionally (harmless).
+  const winged = blueprint.parts.some((p) => p.partId.startsWith('wings'));
+  const driver: GaitDriver = createGaitDriver(gait, frame, blueprint.planSpec, { winged });
 
   // --- modular parts
   const partsRoot = new Group();

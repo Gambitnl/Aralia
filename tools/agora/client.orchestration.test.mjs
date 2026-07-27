@@ -25,7 +25,7 @@ before(async () => {
   await new Promise((resolve) => app.listen(0, resolve));
   const port = app.server.address().port;
   baseUrl = `http://127.0.0.1:${port}`;
-  env = { AGORA_DIR: clientDir };
+  env = { AGORA_DIR: clientDir, AGORA_PET: 'gf-sd' };
 });
 
 after(async () => {

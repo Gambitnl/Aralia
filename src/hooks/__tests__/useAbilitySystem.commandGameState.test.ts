@@ -186,6 +186,83 @@ describe('useAbilitySystem - command game-state context', () => {
         );
     });
 
+    it('wastes a spell before command creation when a target-owned pre-cast save fails', async () => {
+        const { SpellCommandFactory, CommandExecutor } = await import('../../commands');
+        vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValueOnce({
+            total: 8,
+            success: false,
+            modifiersApplied: []
+        });
+
+        const onLogEntry = vi.fn();
+        const onNotification = vi.fn();
+        const restrictedCaster = {
+            ...attacker,
+            id: 'power-word-pain-target',
+            name: 'Pain Target',
+            statusEffects: [{
+                id: 'power-word-pain-status',
+                name: 'Crippling Pain',
+                type: 'debuff',
+                duration: 10,
+                sourceCasterId: 'pain-caster',
+                spellcastingRestriction: {
+                    saveType: 'Constitution',
+                    dc: 16,
+                    failureOutcome: 'casting_fails_and_spell_is_wasted'
+                }
+            }]
+        } as unknown as CombatCharacter;
+        const attemptedSpell = {
+            id: 'attempted-spell',
+            name: 'Attempted Spell',
+            level: 1,
+            school: 'Evocation',
+            classes: ['Wizard'],
+            description: 'A spell used to prove the pre-cast gate.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 30 },
+            components: { verbal: true, somatic: true, material: false },
+            duration: { type: 'instantaneous' },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: [{
+                type: 'DAMAGE',
+                damage: { dice: '1d6', type: 'fire' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        } as unknown as Spell;
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [restrictedCaster, defender],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry,
+            onNotification,
+            onAbilityEffect: vi.fn()
+        }));
+
+        let resolved: unknown;
+        await act(async () => {
+            resolved = await result.current.executeSpell(
+                attemptedSpell,
+                restrictedCaster,
+                [defender],
+                1
+            );
+        });
+
+        expect(resolved).toBe(false);
+        expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalledWith(restrictedCaster, 'Constitution', 16);
+        expect(vi.mocked(SpellCommandFactory.createCommands)).not.toHaveBeenCalled();
+        expect(vi.mocked(CommandExecutor.execute)).not.toHaveBeenCalled();
+        expect(onNotification).toHaveBeenCalledWith(expect.stringContaining('is wasted'), 'warning');
+        expect(onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            data: expect.objectContaining({ preCastRestriction: true, castingFailed: true })
+        }));
+    });
+
     it('registers scheduled turn effects after command creation owns the immediate cast', async () => {
         const { CommandExecutor } = await import('../../commands');
         const onAddScheduledSpellEffect = vi.fn();
@@ -213,6 +290,17 @@ describe('useAbilitySystem - command game-state context', () => {
                     statusCondition: { name: 'Dazed', duration: { type: 'rounds', value: 1 } },
                     trigger: { type: 'turn_end' },
                     condition: { type: 'always' }
+                },
+                {
+                    type: 'DAMAGE',
+                    damage: { dice: '2d6', type: 'fire' },
+                    trigger: { type: 'immediate' },
+                    condition: { type: 'always' },
+                    recurringMechanics: {
+                        timing: 'turn_start',
+                        frequency: 'first_per_turn',
+                        damage: { dice: '1d6', type: 'fire' }
+                    }
                 }
             ]
         } as unknown as Spell;
@@ -260,7 +348,7 @@ describe('useAbilitySystem - command game-state context', () => {
         // factory deliberately skips bare scheduled triggers during immediate
         // command creation, then this post-command branch registers durable
         // records for the turn manager/combat engine to resolve later.
-        expect(onAddScheduledSpellEffect).toHaveBeenCalledTimes(2);
+        expect(onAddScheduledSpellEffect).toHaveBeenCalledTimes(3);
         expect(onAddScheduledSpellEffect).toHaveBeenCalledWith(expect.objectContaining({
             spellId: scheduledSpell.id,
             casterId: attacker.id,
@@ -276,6 +364,17 @@ describe('useAbilitySystem - command game-state context', () => {
             timing: 'turn_end',
             saveDC: 17,
             effects: [expect.objectContaining({ trigger: expect.objectContaining({ type: 'turn_end' }) })]
+        }));
+        expect(onAddScheduledSpellEffect).toHaveBeenCalledWith(expect.objectContaining({
+            spellId: scheduledSpell.id,
+            casterId: attacker.id,
+            targetId: defender.id,
+            timing: 'turn_start',
+            recurringMechanic: expect.objectContaining({
+                timing: 'turn_start',
+                frequency: 'first_per_turn'
+            }),
+            effects: [expect.objectContaining({ trigger: expect.objectContaining({ type: 'immediate' }) })]
         }));
     });
 });

@@ -1,0 +1,22 @@
+{
+  "entryId": "fix00000",
+  "stages": {
+    "reference": {
+      "at": "2026-07-22T15:25:16.918Z",
+      "note": "Gemini_Generated_Image_ssysi7ssysi7ssys.png"
+    },
+    "hero": {
+      "at": "2026-07-23T16:07:02.064Z"
+    },
+    "master": {
+      "at": "2026-07-23T16:06:57.406Z",
+      "note": "code-sculpt v6: close-range punch list from Remy annotations (fan rooted, leg root steps, claw overlap, texture phase on jaw/toes/pad, blades sunk 0.3h, plates kiss + throat damp, wing wrist unknotted)"
+    }
+  },
+  "triangles": {
+    "master": 29828,
+    "hero": 29384
+  },
+  "status": "generated",
+  "prompt": "Full body 3D character concept of Emberwing Dragon, four-legged posture, about 9 feet tall and 22 feet long, four legs, one long tail, wedge-shaped reptilian head, curved horns, large bat-like membrane wings, body in red (#8c3b2e), accents in orange (#d98e3a), belly in pale yellow (#d8c49a), eyes in yellow (#f2c14e), neutral standing pose, solid neutral gray background, clean silhouette, no pedestal, single creature, stylized game sculpt, hand-painted look, high detail"
+}

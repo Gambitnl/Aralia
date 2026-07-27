@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { convertLogEntryToMessage } from '../combatLogToMessageAdapter';
 import { CombatMessageType } from '../../../types/combatMessages';
-import type { CombatCharacter, CombatLogEntry } from '../../../types/combat';
+import type { CombatCharacter, CombatLogEntry, CombatLogEntryInput } from '../../../types/combat';
 
 const characters = [
   { id: 'fighter', name: 'Fighter' },
@@ -113,5 +113,31 @@ describe('convertLogEntryToMessage', () => {
       formattedValue: '4 HP',
       spellName: 'Second Wind',
     });
+  });
+
+  it('accepts the existing movement record and keeps it as a routine ability message', () => {
+    // `satisfies` checks the producer-facing category contract without widening
+    // movement into a generic object before the log assigns its ID and timestamp.
+    const input = {
+      type: 'movement',
+      message: 'Guardian moves to protect Fighter.',
+      characterId: 'fighter',
+      data: {
+        guardianId: 'guardian',
+        moveReason: 'intercept',
+        position: { x: 3, y: 4 },
+      },
+    } satisfies CombatLogEntryInput;
+    const entry: CombatLogEntry = {
+      id: 'movement-entry',
+      timestamp: 7,
+      ...input,
+    };
+
+    const message = convertLogEntryToMessage(entry, characters);
+
+    expect(message.type).toBe(CombatMessageType.ABILITY_USED);
+    expect(message.sourceEntityId).toBe('fighter');
+    expect(message.data).toMatchObject({ rawValue: input.message });
   });
 });

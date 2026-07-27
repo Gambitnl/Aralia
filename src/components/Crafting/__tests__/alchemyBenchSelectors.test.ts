@@ -22,6 +22,13 @@ import {
  * recipes or changing batch math.
  */
 
+// ============================================================================
+// Test Fixtures
+// ============================================================================
+// These compact characters and recipes keep each selector assertion focused on
+// the bench contract rather than the much larger game-state factory.
+// ============================================================================
+
 const makeCharacter = (overrides: Partial<PlayerCharacter> = {}): PlayerCharacter => ({
     id: 'bench-lead',
     name: 'Bench Lead',
@@ -88,6 +95,13 @@ const makeCraftability = (
     missingGold: 0
 });
 
+// ============================================================================
+// Selector Contracts
+// ============================================================================
+// These tests preserve fallback, legacy-save, recipe-filter, and derived-view
+// behavior independently from the panel's rendering details.
+// ============================================================================
+
 describe('alchemyBenchSelectors', () => {
     it('reuses the starter crafting state from the live party tool proficiencies', () => {
         const party = [
@@ -112,6 +126,80 @@ describe('alchemyBenchSelectors', () => {
             expect.arrayContaining(['antitoxin', 'basic_poison'])
         );
         expect(resolvedState.currentLocation).toBe('workshop');
+    });
+
+    it('backfills a partial legacy state without losing saved progress or mutating the save', () => {
+        // This shape mirrors an older save that contains real player progress but
+        // predates several current top-level fields and nested statistic counters.
+        const partialLegacyState = {
+            level: 4,
+            xp: 45,
+            bonusModifier: 3,
+            knownRecipes: ['antitoxin'],
+            toolProficiencies: ['Herbalism Kit'],
+            stats: {
+                totalCrafted: 37,
+                categoryCounts: { potion: 19 }
+            },
+            unlockedAchievements: ['first-brew'],
+            currentLocation: 'field'
+        } as unknown as CraftingState;
+        const savedSnapshot = structuredClone(partialLegacyState);
+
+        const resolvedState = resolveAlchemyBenchCraftingState(
+            partialLegacyState,
+            ["Poisoner's Kit"]
+        );
+
+        expect(resolvedState).toMatchObject({
+            level: 4,
+            xp: 45,
+            xpToNextLevel: 100,
+            bonusModifier: 3,
+            knownRecipes: ['antitoxin'],
+            toolProficiencies: ['Herbalism Kit'],
+            unlockedAchievements: ['first-brew'],
+            currentLocation: 'field'
+        });
+        expect(resolvedState.stats).toEqual({
+            totalCrafted: 37,
+            successfulCrafts: 0,
+            failedCrafts: 0,
+            masterworkCrafts: 0,
+            legendaryRolls: 0,
+            ruinedMaterials: 0,
+            nat20Count: 0,
+            explosionsSurvived: 0,
+            recipesDiscovered: 0,
+            categoryCounts: { potion: 19 }
+        });
+
+        // The bench receives its own collections, so later UI work cannot alter
+        // the object retained by the save/load boundary.
+        expect(resolvedState).not.toBe(partialLegacyState);
+        expect(resolvedState.knownRecipes).not.toBe(partialLegacyState.knownRecipes);
+        expect(resolvedState.stats).not.toBe(partialLegacyState.stats);
+        expect(resolvedState.stats.categoryCounts).not.toBe(
+            partialLegacyState.stats.categoryCounts
+        );
+        expect(partialLegacyState).toEqual(savedSnapshot);
+    });
+
+    it('keeps a complete current state unchanged in value while isolating its collections', () => {
+        const currentState = createInitialCraftingState(['Herbalism Kit']);
+        const resolvedState = resolveAlchemyBenchCraftingState(
+            currentState,
+            ["Poisoner's Kit"]
+        );
+
+        expect(resolvedState).toEqual(currentState);
+        expect(resolvedState).not.toBe(currentState);
+        expect(resolvedState.knownRecipes).not.toBe(currentState.knownRecipes);
+        expect(resolvedState.toolProficiencies).not.toBe(currentState.toolProficiencies);
+        expect(resolvedState.unlockedAchievements).not.toBe(
+            currentState.unlockedAchievements
+        );
+        expect(resolvedState.stats).not.toBe(currentState.stats);
     });
 
     it('keeps only craftable recipes that still fit the current location cap', () => {

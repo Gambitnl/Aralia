@@ -1,12 +1,15 @@
 /**
- * Proves street-network pathing: a graph is built from street centerlines with
- * shared intersections merged, routes follow the streets (not straight lines),
- * progress sampling walks the polyline by arc length, and degenerate inputs fall
- * back safely.
+ * Proves believable town walking geometry from building to building.
+ *
+ * The tests cover street graph intersections, wall-centred front doors, joining
+ * a street between its authored vertices, deterministic shortest routes, safe
+ * fallbacks, and distance-based animation. Together they guard against the old
+ * behaviour where agents left plot centroids and snapped to distant road corners.
  */
 import { describe, it, expect } from 'vitest';
 import {
   buildStreetGraph,
+  frontDoorForPlot,
   routeAlongStreets,
   nearestNode,
   pathLength,
@@ -28,6 +31,20 @@ const plan = {
   ],
 } as unknown as TownPlan;
 
+// Two buildings face one long street whose only authored graph vertices are at
+// x=0 and x=100. A correct route joins at x=15 and x=85 instead of detouring to
+// either far corner. Plot centroids remain the legacy caller input.
+const frontagePlan = {
+  burgId: 2,
+  plots: [
+    { id: 10, role: 'house', storeys: 1, footprint: [[10, 10], [20, 10], [20, 20], [10, 20]] },
+    { id: 20, role: 'workshop', storeys: 1, footprint: [[80, 10], [90, 10], [90, 20], [80, 20]] },
+  ],
+  streets: [
+    { id: 1, widthFt: 10, centerline: [[0, 0], [100, 0]] },
+  ],
+} as unknown as TownPlan;
+
 describe('buildStreetGraph', () => {
   it('merges coincident street vertices into shared intersection nodes', () => {
     const g = buildStreetGraph(plan);
@@ -36,6 +53,19 @@ describe('buildStreetGraph', () => {
     // (0,50) and (100,50) are 3-way intersections (vertical + rung).
     const mid = nearestNode(g, [0, 50]);
     expect(g.adj[mid].length).toBe(3);
+  });
+
+  it('places each front door at the middle of its street-facing wall', () => {
+    const graph = buildStreetGraph(frontagePlan);
+
+    // The south wall faces the street at y=0, so both entrances sit halfway
+    // along that wall rather than at a corner or the plot centroid.
+    expect(frontDoorForPlot(graph, 10)).toEqual([15, 10]);
+    expect(frontDoorForPlot(graph, 20)).toEqual([85, 10]);
+    expect(graph.plotEntrances.get(10)).toMatchObject({
+      streetPoint: [15, 0],
+      connectorLengthFt: 10,
+    });
   });
 });
 
@@ -57,6 +87,28 @@ describe('routeAlongStreets', () => {
     const path = routeAlongStreets(buildStreetGraph(plan), from, to);
     expect(path[0]).toEqual(from);
     expect(path[path.length - 1]).toEqual(to);
+  });
+
+  it('routes known plots from front door to front door through mid-street projections', () => {
+    const graph = buildStreetGraph(frontagePlan);
+    const path = routeAlongStreets(graph, [15, 15], [85, 15]);
+
+    // Centroid inputs resolve to their real doors, then join the long street at
+    // the perpendicular feet. No route point visits x=0 or x=100.
+    expect(path).toEqual([[15, 10], [15, 0], [85, 0], [85, 10]]);
+    expect(pathLength(path)).toBe(90);
+    expect(path.every(([x]) => x > 0 && x < 100)).toBe(true);
+  });
+
+  it('keeps arbitrary non-plot endpoints while snapping them to street segments', () => {
+    const graph = buildStreetGraph(frontagePlan);
+    const from: Point = [25, 5];
+    const to: Point = [75, 5];
+    const path = routeAlongStreets(graph, from, to);
+
+    // Only known plot centroids become doors. Free positions remain exact while
+    // their street joins use the closest mid-segment projections.
+    expect(path).toEqual([[25, 5], [25, 0], [75, 0], [75, 5]]);
   });
 
   it('falls back to a straight segment when there are no streets', () => {

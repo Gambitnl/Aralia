@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 14/07/2026, 21:08:12
- * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx
+ * Last Sync: 18/07/2026, 20:25:42
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx
  * Imports: 29 files
  *
  * MULTI-AGENT SAFETY:
@@ -49,6 +49,7 @@ import World3DNameplates from './World3DNameplates';
 import GroundAgents from './GroundAgents';
 import GroundProps from './GroundProps';
 import DungeonEntrances from './DungeonEntrances';
+import FarShells from './FarShells';
 import SceneCast, { type SceneCastMember } from './SceneCast';
 import PlayerAvatar from './PlayerAvatar';
 import GroundMovePlane from './GroundMovePlane';
@@ -426,6 +427,21 @@ const ROOFLESS =
 const ROOF_EMISSIVE_FLOOR = 0.3;
 
 /**
+ * Smaller floor for wall-mounted construction dressing (courses, shutters,
+ * foundations, facade trim). On a building face inside its own shadow the
+ * derived contrast tones (bridge dressingContrastTone) compress back into the
+ * shaded wall and vanish (proof: after-single-se.png before this floor — 81
+ * courses in the payload, zero readable). Applies ONLY to parts tagged with
+ * the bridge's MATERIAL_PART_TAG / FACADE_PART_TAG contract strings; walls,
+ * furnishings, and light-role parts keep their exact previous response.
+ */
+const DRESSING_EMISSIVE_FLOOR = 0.22;
+/** Bridge contract strings (interiorParts MATERIAL_PART_TAG / FACADE_PART_TAG).
+ * Compared as literals so the scene bundle does not import the generator chain
+ * (see vite-chunk-eager-3d-leak); the bridge tests pin the exported values. */
+const DRESSING_TAGS = new Set(['building-material', 'facade']);
+
+/**
  * One footprint-true building (Worldforge town plan): rotated walls/parts +
  * hip roof + door/windows. The roof AUTO-HIDES when the camera moves inside
  * the building so the player can look around an interior without the
@@ -524,9 +540,12 @@ const SiteBuilding: React.FC<{
           .map((p, i) => {
           const off = sitePartLocalOffset(p, s.doorZSign ?? -1);
           // Window/hearth parts carry a `lightRole` and NO baked emissive; the
-          // renderer decides their glow live from the hourly schedule. All other
-          // parts stay dark.
+          // renderer decides their glow live from the hourly schedule. Tagged
+          // construction dressing gets the small self-color floor (see
+          // DRESSING_EMISSIVE_FLOOR) so contrast tones survive building
+          // self-shadow; every other part stays dark exactly as before.
           const em = emissiveForPart(p.lightRole, hour, s.litHours, s.hearthHours);
+          const isDressing = em.emissiveIntensity === 0 && p.tag !== undefined && DRESSING_TAGS.has(p.tag);
           return (
           <mesh
             key={`part-${i}`}
@@ -542,8 +561,8 @@ const SiteBuilding: React.FC<{
             <meshStandardMaterial
               color={p.colorHex}
               map={p.h >= 2.0 ? (wallTex || null) : null}
-              emissive={em.emissive}
-              emissiveIntensity={em.emissiveIntensity}
+              emissive={isDressing ? p.colorHex : em.emissive}
+              emissiveIntensity={isDressing ? DRESSING_EMISSIVE_FLOOR : em.emissiveIntensity}
             />
           </mesh>
           );
@@ -945,7 +964,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   }, [onGroundPick]);
 
   return (
-    <div style={{ width: '100%', height: '100%', minHeight: '520px', flex: '1 1 auto', background: '#cdd9e6', borderRadius: '12px', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '100%', minHeight: '520px', flex: '1 1 auto', background: '#0e1a2b', borderRadius: '12px', overflow: 'hidden' }}>
       <ForgeAssetContext.Provider value={forgeAssetService}>
       <Canvas
         // Avoid a 4K backing buffer on DPR-2 monitors. Ground mode draws the
@@ -1037,7 +1056,18 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             />
           ))}
         </InteriorHourProvider>
-        <GroundAgents ground={groundWorld} clock={agentClock} sceneOrigin={sceneOrigin} />
+        <GroundAgents
+          ground={groundWorld}
+          loaded={loaded}
+          clock={agentClock}
+          sceneOrigin={sceneOrigin}
+        />
+        {/* Far-distance terrain shells (2026-07-21): the region ring + atlas
+            horizon that replace the old visible world edge. Static, built once
+            per window; fog dissolves their outer rim into the sky. */}
+        {viewProfile === 'ground' && (
+          <FarShells ground={groundWorld} sceneOrigin={sceneOrigin} />
+        )}
         {viewProfile === 'ground' && (
           <GroundProps ground={groundWorld} sceneOrigin={sceneOrigin} />
         )}

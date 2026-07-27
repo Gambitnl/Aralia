@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 10/07/2026, 22:50:46
+ * Last Sync: 23/07/2026, 21:32:15
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 26 files
  *
@@ -32,6 +32,7 @@ export type { SpellMovementVisualInput };
 import { GameState } from '../types';
 import type { Item } from '../types/items';
 import type { Spell, SpellEffect, MovementEffect, TerrainEffect, UtilityEffect } from '../types/spells';
+import { isExecutableControlOption } from '../types/spells';
 import { resolveScalableNumber } from '../types/spells';
 import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
@@ -43,7 +44,7 @@ import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/spatial/targetingUtils';
 import { findPath } from '../utils/spatial/pathfinding';
 import { Plane } from '../types/planes';
-import { findTouchDeliveryActor, getTouchDeliveryActionCost, useTargetValidator } from './combat/useTargetValidator';
+import { findTouchDeliveryActor, getBloodCircleRejection, getTouchDeliveryActionCost, useTargetValidator } from './combat/useTargetValidator';
 import { canAffordActionCost, consumeActionCost } from '../utils/combat/actionEconomyUtils';
 import {
   createMovementDebuff,
@@ -61,7 +62,8 @@ import {
   hasScheduledEffectTrigger,
   hasTargetMovementTrigger,
   isMovementEffect,
-  getDurationRounds
+  getDurationRounds,
+  getRecurringMechanics
 } from './spellEffectUtils';
 
 import {
@@ -118,8 +120,95 @@ const getSpellControlOptions = (spell: Spell): NonNullable<UtilityEffect['contro
       return [];
     }
 
-    return (effect as UtilityEffect).controlOptions ?? [];
+    return ((effect as UtilityEffect).controlOptions ?? []).filter(isExecutableControlOption);
   });
+};
+
+const getPersistentSpellZoneArea = (
+  spell: Spell,
+  areaOfEffect: { shape: string },
+  aoeParams: AoEParams
+): { shape: string; size: number } => {
+  const targetingArea = getZoneAreaFromAoEParams(areaOfEffect, aoeParams);
+  if (targetingArea.size > 0) {
+    return targetingArea;
+  }
+
+  // Point-targeted summons can have a secondary threat radius that is stored
+  // in spatialDetails rather than the primary point AoE. Use that authored
+  // radius only for proximity mechanics, keeping ordinary point spells at
+  // their zero-sized anchor.
+  const hasProximityMechanic = spell.effects.some(effect =>
+    getRecurringMechanics(effect).some(mechanic => mechanic.timing === 'on_entity_proximity')
+  );
+  const proximityForm = spell.targeting.spatialDetails?.forms?.find(form =>
+    form.shape.toLowerCase() === 'emanation' &&
+    form.sizeUnit === 'feet' &&
+    typeof form.size === 'number' &&
+    form.size > 0
+  );
+
+  return hasProximityMechanic && proximityForm?.size
+    ? { shape: 'sphere', size: proximityForm.size }
+    : targetingArea;
+};
+
+/**
+ * Resolve source-backed pre-cast saves before the attempted spell reaches the
+ * command factory. This keeps "the spell is wasted" distinct from a reactive
+ * post-cast notification and gives the restriction its original spell DC.
+ */
+const resolveSpellcastingRestrictions = (
+  caster: CombatCharacter,
+  characters: CombatCharacter[],
+  spell: Spell,
+  onLogEntry?: (entry: CombatLogEntry) => void,
+  onNotification?: (message: string, type: 'info' | 'error' | 'warning' | 'success') => void
+): boolean => {
+  const liveCaster = characters.find(character => character.id === caster.id) ?? caster;
+  const restrictions = (liveCaster.statusEffects || [])
+    .map(effect => effect.spellcastingRestriction)
+    .filter((restriction): restriction is NonNullable<CombatCharacter['statusEffects'][number]['spellcastingRestriction']> => Boolean(restriction));
+
+  for (const restriction of restrictions) {
+    const sourceCaster = restriction.dc === undefined
+      ? characters.find(character => character.id === liveCaster.statusEffects?.find(effect => effect.spellcastingRestriction === restriction)?.sourceCasterId)
+      : undefined;
+    const saveDC = restriction.dc ?? (sourceCaster ? calculateSpellDC(sourceCaster) : 10);
+    const saveResult = rollSavingThrow(liveCaster, restriction.saveType as any, saveDC);
+
+    onLogEntry?.({
+      id: generateId(),
+      timestamp: Date.now(),
+      type: 'status',
+      message: `${liveCaster.name} ${saveResult.success ? 'succeeds' : 'fails'} the ${restriction.saveType} save required by ${spell.name} (${saveResult.total} vs DC ${saveDC}).`,
+      characterId: liveCaster.id,
+      targetIds: [liveCaster.id],
+      data: {
+        spellId: spell.id,
+        preCastRestriction: true,
+        saveSucceeded: saveResult.success,
+        failureOutcome: restriction.failureOutcome
+      } as any
+    });
+
+    if (!saveResult.success) {
+      const message = `${spell.name} is wasted because ${liveCaster.name} failed the required ${restriction.saveType} save.`;
+      onNotification?.(message, 'warning');
+      onLogEntry?.({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'action',
+        message,
+        characterId: liveCaster.id,
+        targetIds: [liveCaster.id],
+        data: { spellId: spell.id, preCastRestriction: true, castingFailed: true } as any
+      });
+      return false;
+    }
+  }
+
+  return true;
 };
 
 
@@ -358,8 +447,8 @@ const canSelectAreaCreature = (
 
   const visibilityTargeting: Spell['targeting'] = {
     ...spell.targeting,
-    range: Math.max(spell.targeting.range, 9999)
-  };
+    range: Math.max((spell.targeting as any).range ?? 0, 9999)
+  } as any;
 
   return TargetResolver.getTargetRejectionReason(
     visibilityTargeting,
@@ -377,7 +466,7 @@ export const resolveAreaTargetSelection = ({
   mapData,
   selectedSpellTargets
 }: AreaTargetResolutionInput): AreaTargetResolutionResult => {
-  const areaOfEffect = spell.targeting.areaOfEffect;
+  const areaOfEffect = (spell.targeting as any).areaOfEffect;
   const params = areaOfEffect ? resolveAoEParams(areaOfEffect, targetPosition, caster) : null;
 
   if (!params) {
@@ -418,7 +507,7 @@ export const resolveAreaTargetSelection = ({
 
   const resolvedSelectedSpellTargets = hasExplicitCasterChoice
     ? explicitCreatureTargets.filter(target => finalCharacters.some(character => character.id === target.id))
-    : finalCharacters.map(character => ({ kind: 'creature', id: character.id }));
+    : finalCharacters.map(character => ({ kind: 'creature', id: character.id } as SelectedSpellTarget));
 
   return {
     targetCharacterIds: finalCharacters.map(character => character.id),
@@ -867,6 +956,14 @@ export const useAbilitySystem = ({
         mapData: currentMapData ?? undefined // Add mapData to context if needed by commands
       };
 
+      // Resolve target-owned pre-cast restrictions before interruption
+      // reactions or command creation. A failed gate still consumes the
+      // attempted spell's action/slot in the caller, but no spell effects are
+      // materialized and no post-cast reactive event is emitted.
+      if (!resolveSpellcastingRestrictions(caster, commandCharacters, spell, onLogEntry, onNotification)) {
+        return false;
+      }
+
       // Spell-interruption reactions need to happen before command creation
       // applies the original spell effects. This shared gate looks for any
       // available reaction spell whose structured trigger says it can answer a
@@ -902,7 +999,7 @@ export const useAbilitySystem = ({
                 getDistance(possibleReactor.position, caster.position) <= maxRange &&
                 (!visibilityRequired || hasSpellInterruptionVisibility(possibleReactor, caster, currentMapData)) &&
                 Boolean(interruptionCost) &&
-                canAffordActionCost(possibleReactor, interruptionCost);
+                canAffordActionCost(possibleReactor, interruptionCost!);
             });
 
           if (interruptionSpells.length === 0) {
@@ -1176,7 +1273,7 @@ export const useAbilitySystem = ({
               spell.id,
               caster.id,
               zoneRegistration.aoeParams,
-              getZoneAreaFromAoEParams(zoneRegistration.areaOfEffect, zoneRegistration.aoeParams),
+              getPersistentSpellZoneArea(spell, zoneRegistration.areaOfEffect, zoneRegistration.aoeParams),
               spell.effects,
               currentState.turnState.currentTurn,
               getDurationRounds(spell),
@@ -1201,22 +1298,43 @@ export const useAbilitySystem = ({
             ));
           }
 
-          if (onAddScheduledSpellEffect && spell.effects.some(hasScheduledEffectTrigger)) {
+          const hasRecurringTurnTiming = spell.effects.some(effect =>
+            getRecurringMechanics(effect).some(mechanic =>
+              mechanic.timing === 'turn_start' || mechanic.timing === 'turn_end'
+            )
+          );
+
+          if (onAddScheduledSpellEffect && (spell.effects.some(hasScheduledEffectTrigger) || hasRecurringTurnTiming)) {
             (['turn_start', 'turn_end'] as const).forEach(timing => {
-              const scheduledEffects = spell.effects.filter(effect => effect.trigger?.type === timing);
+              const scheduledEffects = spell.effects.flatMap(effect => {
+                const direct = effect.trigger?.type === timing
+                  ? [{ effect, recurringMechanic: undefined }]
+                  : [];
+                const recurring = getRecurringMechanics(effect)
+                  .filter(mechanic => mechanic.timing === timing)
+                  // Area end-turn processing owns occupants and new entrants;
+                  // avoid registering a second target-bound copy for the same
+                  // source payload when the cast already created a zone.
+                  .filter(() => !(zoneRegistration && timing === 'turn_end'))
+                  .map(recurringMechanic => ({ effect, recurringMechanic }));
+                return [...direct, ...recurring];
+              });
               if (scheduledEffects.length === 0) return;
 
               executionTargets.forEach(target => {
-                onAddScheduledSpellEffect(createScheduledSpellEffect(
-                  spell.id,
-                  caster.id,
-                  target.id,
-                  timing,
-                  scheduledEffects,
-                  currentState.turnState.currentTurn,
-                  getDurationRounds(spell),
-                  castSaveDC
-                ));
+                scheduledEffects.forEach(({ effect, recurringMechanic }) => {
+                  onAddScheduledSpellEffect(createScheduledSpellEffect(
+                    spell.id,
+                    caster.id,
+                    target.id,
+                    timing,
+                    [effect],
+                    currentState.turnState.currentTurn,
+                    getDurationRounds(spell),
+                    castSaveDC,
+                    recurringMechanic
+                  ));
+                });
               });
             });
           }
@@ -1316,9 +1434,63 @@ export const useAbilitySystem = ({
         return;
       }
 
+      // A summoned demon's blood circle blocks harm even when the effect is an
+      // area action aimed outside the circle. Filter the expanded target list
+      // before action-cost or command creation so direct callers and the map
+      // selection flow share the same protection.
+      const isAreaDamageAbility = Boolean(ability.areaOfEffect) && (
+        ability.type === 'attack' ||
+        ability.effects.some(effect => effect.type === 'damage')
+      );
+      if (isAreaDamageAbility) {
+        const blockedTargetIds = targetCharacterIds.filter(targetId => {
+          const target = currentCharacters.find(character => character.id === targetId) ?? null;
+          return Boolean(getBloodCircleRejection(liveCaster, target));
+        });
+        if (blockedTargetIds.length > 0) {
+          const blockedTargetSet = new Set(blockedTargetIds);
+          const allowedTargetIds = targetCharacterIds.filter(targetId => !blockedTargetSet.has(targetId));
+          if (allowedTargetIds.length === 0) {
+            const message = `${liveCaster.name} cannot harm creatures inside its protective blood circle.`;
+            onNotification?.(message, 'warning');
+            onLogEntry?.({
+              id: generateId(),
+              timestamp: Date.now(),
+              type: 'action',
+              message,
+              characterId: liveCaster.id,
+              targetIds: blockedTargetIds,
+              data: { rejectedReason: 'blood_circle_area_target_blocked', spellId: ability.spell.id }
+            });
+            cancelTargeting();
+            return;
+          }
+          targetCharacterIds = allowedTargetIds;
+          selectedSpellTargets = selectedSpellTargets?.filter(target =>
+            target.kind !== 'creature' || !blockedTargetSet.has(target.id)
+          );
+        }
+      }
+
       const targets = targetCharacterIds
         .map(id => currentCharacters.find(c => c.id === id))
         .filter((c): c is CombatCharacter => !!c);
+
+      const bloodCircleRejection = getBloodCircleRejection(liveCaster, targets[0] ?? null);
+      if (bloodCircleRejection) {
+        onNotification?.(bloodCircleRejection, 'warning');
+        onLogEntry?.({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'action',
+          message: bloodCircleRejection,
+          characterId: liveCaster.id,
+          targetIds: targetCharacterIds,
+          data: { rejectedReason: 'blood_circle_target_blocked', spellId: ability.spell.id }
+        });
+        cancelTargeting();
+        return;
+      }
 
       const perTargetChoice = ability.spell.targeting.perTargetChoice;
       const existingPerTargetChoices = getPerTargetChoicesFromSpell(ability.spell);
@@ -1732,7 +1904,7 @@ export const useAbilitySystem = ({
                 attackTypeMatches &&
                 weaponTypeMatches &&
                 Boolean(triggerCost) &&
-                canAffordActionCost(currentAttacker, triggerCost);
+                canAffordActionCost(currentAttacker, triggerCost!);
             });
 
           if (afterHitReactionSpells.length === 0) {
@@ -1783,7 +1955,7 @@ export const useAbilitySystem = ({
             .filter((spellOption): spellOption is Spell =>
               Boolean(spellOption) &&
               String(spellOption.castingTime?.unit ?? '').toLowerCase().includes('reaction') &&
-              spellOption.effects.some(effect =>
+              spellOption.effects.some((effect: any) =>
                 effect.type === 'DEFENSIVE' &&
                 effect.reactionTrigger?.event === 'when_hit'
               )
@@ -2023,7 +2195,7 @@ export const useAbilitySystem = ({
       ) {
         const attackTarget = resolveTrueStrikeAttackTarget(selectedSpellTargets, charactersRef.current, caster.id);
         const weaponSnapshot = resolveTrueStrikeWeaponSnapshot(caster);
-        const trueStrikeEffect = selectedAbility.spell.effects.find(effect => effect.type === 'UTILITY') as UtilityEffect | undefined;
+        const trueStrikeEffect = selectedAbility.spell.effects.find((effect: any) => effect.type === 'UTILITY') as UtilityEffect | undefined;
         const trueStrikeAugment = trueStrikeEffect
           ? trueStrikeEffect.attackAugments?.find(augment =>
               augment.grantedAttack?.timing === 'during_cast' &&
@@ -2079,7 +2251,7 @@ export const useAbilitySystem = ({
       ? TargetResolver.getObjectTargetRejectionReason(
           selectedAbility.spell.targeting,
           caster,
-          selectedObjectTarget.object,
+          selectedObjectTarget.object as any,
           objectTargetState
         )
       : null;
@@ -2154,6 +2326,16 @@ export const useAbilitySystem = ({
           charactersRef.current,
           getValidTargets
         );
+      } else if (selectedAbility.spell?.id === 'scrying') {
+        // Scrying's location mode targets a remembered point rather than a
+        // creature. Keep the point in the rich target envelope until the mode
+        // choice is submitted; creature mode will reject the missing target at
+        // command execution instead of pretending the point is a creature.
+        resolvedSelectedSpellTargets = [{
+          kind: 'point',
+          position: targetPosition,
+          purpose: 'scrying_location'
+        }];
       }
     }
 

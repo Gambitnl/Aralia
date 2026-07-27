@@ -56,40 +56,20 @@
 - **Light Can Be Smothered Or Quenched**: not_applicable
 - **Utility Type**: other
 
-- **Description**: A nature spirit answers your call and transforms you into a powerful guardian. The transformation lasts until the spell ends. You choose one of the following forms to assume: Primal Beast or Great Tree. Primal Beast. Bestial fur covers your body, your facial features become feral, and you gain the following benefits: Great Tree. Your skin appears barky, leaves sprout from your hair, and you gain the following benefits:
+- **Description**: Choose Primal Beast or Great Tree when you cast this spell. Primal Beast grants 10 feet of walking speed, 120-foot darkvision, Advantage on Strength-based attack rolls, and an extra 1d6 Force damage on melee weapon hits. Great Tree grants 10 temporary hit points, Advantage on Constitution saves and Dexterity- or Wisdom-based attack rolls, and makes ground within 15 feet difficult terrain for enemies while you are on the ground.
 - **Higher Levels**: not_applicable
-## Canonical D&D Beyond Snapshot
+## Vendor Source Snapshot
 
-This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+This section records the user-authorized 5e.tools source so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
 
 <!--
-Name: Guardian of Nature
-Level: 4th
-Casting Time: 1 Bonus Action
-Range/Area: Self
-Components: V
-Duration: Concentration 1 Minute
-School: Transmutation
-Attack/Save: None
-Damage/Effect: Buff (...)
+Vendor: 5e.tools
+Source: Xanathar's Guide to Everything, p. 157
+Verified: 2026-07-24
 
-Rules Text:
-A nature spirit answers your call and transforms you into a powerful guardian. The transformation lasts until the spell ends. You choose one of the following forms to assume: Primal Beast or Great Tree.
-Primal Beast. Bestial fur covers your body, your facial features become feral, and you gain the following benefits:
-Great Tree. Your skin appears barky, leaves sprout from your hair, and you gain the following benefits:
+Recovered mechanics:
+- Primal Beast: +10-foot walking speed, 120-foot darkvision, Advantage on Strength-based attack rolls, and +1d6 Force damage on melee weapon hits.
+- Great Tree: 10 temporary hit points, Advantage on Constitution saves and Dexterity- or Wisdom-based attack rolls, and enemy difficult terrain within 15 feet while the caster is grounded.
 
-Spell Tags:
-Buff
-Shapechanging
-
-Available For:
-Druid
-Ranger
-
-Referenced Rules:
-temporary hit points -> /rules/76-tooltip
-difficult terrain -> /rules/86-tooltip
-
-Capture Method: http
-Legacy Page: false
+The source repair restores complete player-facing rules text. Form-specific command execution remains owned by the existing spell-runtime lanes; this reference does not claim that the generic UTILITY command now executes every recovered mechanic.
 -->

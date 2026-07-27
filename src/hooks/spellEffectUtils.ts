@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/06/2026, 11:58:45
- * Dependents: hooks/useAbilitySystem.ts
- * Imports: 1 files
+ * Last Sync: 23/07/2026, 19:08:22
+ * Dependents: commands/effects/DamageCommand.ts, hooks/useAbilitySystem.ts, systems/spells/effects/triggerHandler.ts
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,6 +15,7 @@
 // @dependencies-end
 
 import { SpellEffect, TerrainEffect, MovementEffect, Spell } from '../types/spells';
+import type { RecurringMechanic } from '../types/spellEffectTypes';
 
 const AREA_ZONE_TRIGGER_TYPES = new Set([
   'on_enter_area',
@@ -22,6 +23,32 @@ const AREA_ZONE_TRIGGER_TYPES = new Set([
   'on_end_turn_in_area',
   'on_move_in_area'
 ]);
+
+const RUNTIME_RECURRING_TIMINGS = new Set([
+  'turn_start',
+  'turn_end',
+  'on_damage',
+  'on_move_in_area',
+  'on_entity_proximity',
+  'on_target_cast'
+]);
+
+/**
+ * Normalize the source-compatible singleton form once at the runtime boundary.
+ * Source data may keep one compact recurring record, while area and command
+ * consumers need a stable collection. Unknown timing labels remain in the
+ * returned records so a later event adapter can still inspect them.
+ */
+export const getRecurringMechanics = (effect: Pick<SpellEffect, 'recurringMechanics'>): RecurringMechanic[] => {
+  const recurring = effect.recurringMechanics as RecurringMechanic[] | RecurringMechanic | undefined;
+  if (!recurring) return [];
+  return Array.isArray(recurring) ? recurring : [recurring];
+};
+
+export const getRuntimeRecurringMechanics = (effect: Pick<SpellEffect, 'recurringMechanics'>): RecurringMechanic[] =>
+  getRecurringMechanics(effect).filter(mechanic =>
+    typeof mechanic.timing === 'string' && RUNTIME_RECURRING_TIMINGS.has(mechanic.timing)
+  );
 
 export const hasPersistentAreaTrigger = (effect: SpellEffect): boolean => {
   const triggerType = (effect as { trigger?: { type?: string } }).trigger?.type;
@@ -33,8 +60,7 @@ export const hasPersistentAreaTrigger = (effect: SpellEffect): boolean => {
   // immediate cast row, then describe later area behavior in recurringMechanics.
   // Those spells still need a durable ActiveSpellZone so future turns and
   // granted actions can find the spell-created area after casting.
-  const recurringMechanics = (effect as { recurringMechanics?: Array<{ timing?: string }> }).recurringMechanics;
-  return Array.isArray(recurringMechanics) && recurringMechanics.some(mechanic =>
+  return getRuntimeRecurringMechanics(effect).some(mechanic =>
     mechanic.timing === 'turn_start' ||
     mechanic.timing === 'turn_end' ||
     mechanic.timing === 'on_move_in_area' ||

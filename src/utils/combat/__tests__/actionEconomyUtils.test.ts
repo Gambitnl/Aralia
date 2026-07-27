@@ -80,7 +80,7 @@ describe('actionEconomyUtils', () => {
           startTime: 0,
           mechanics: {
             movementSpeed: 20
-          }
+          } as any
         }]
       });
 

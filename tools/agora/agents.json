@@ -31,8 +31,12 @@
         "health": "child-exit-and-agora-awake-proof",
         "stop": "child-process-exits-after-one-turn"
       },
+      "completionAction": {
+        "type": "codex-thread-deep-link",
+        "when": "child-completed"
+      },
       "desktopInjection": "not-required",
-      "notes": "The watcher reads the saved session's cli_version, finds the matching locally installed Codex engine, resumes that session for one Agora heartbeat turn, then exits. A 0.144.0-alpha.4 desktop-session resume probe passed after the earlier 0.140.0 mismatch failed. Full dormant delivery remains live-test gated."
+      "notes": "The watcher reads the saved session's cli_version, finds the matching locally installed Codex engine, resumes that session for one Agora heartbeat turn, then opens the same technical thread through the documented codex://threads/<thread-id> desktop route. No desktop message injection or keyboard automation is required."
     },
     "codex-app-heartbeat": {
       "label": "Codex app recurring in-thread heartbeat",

@@ -347,7 +347,8 @@ describe('UtilityCommand', () => {
                 description: 'Compelled Duel',
                 taunt: {
                     disadvantageAgainstOthers: true,
-                    leashRangeFeet: 30
+                    leashRangeFeet: 30,
+                    breakEvents: ['caster_attacks_other']
                 },
                 trigger: { type: 'immediate' },
                 condition: { type: 'always' }
@@ -359,9 +360,17 @@ describe('UtilityCommand', () => {
             const targetInState = newState.characters.find(c => c.id === mockTarget.id)
             const tauntEffect = targetInState?.statusEffects.find(e => e.name === 'Taunted')
             expect(tauntEffect).toBeDefined()
+            expect(tauntEffect).toMatchObject({
+                sourceCasterId: mockContext.caster.id,
+                sourceSpellId: mockContext.spellId,
+                source: mockContext.spellName,
+                taunt: effect.taunt
+            })
 
             const logEntry = newState.combatLog.find(l => l.message.includes('is taunted'))
             expect(logEntry).toBeDefined()
+            expect(logEntry?.data?.statusId).toBe(tauntEffect?.id)
+            expect(logEntry?.data?.sourceSpellId).toBe(mockContext.spellId)
         })
     });
 })

@@ -3,8 +3,9 @@
  * Centralized configuration for status condition icons.
  */
 
-// TODO #177(Materializer): Deprecate this file in favor of `STATUS_VISUALS` and `getStatusVisual` in `src/types/visuals.ts`.
+// TODO: Deprecate this file in favor of `STATUS_VISUALS` and `getStatusVisual` in `src/types/visuals.ts`.
 // The new system provides color, description, and structured data beyond just the icon.
+// Remaining consumer: src/commands/effects/StatusConditionCommand.ts.
 
 export const STATUS_ICONS: Record<string, string> = {
     'Blinded': '👁️',

@@ -11,6 +11,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   CatmullRomCurve3,
+  Color,
   Material,
   Mesh,
   Vector3,
@@ -24,6 +25,14 @@ export interface SweptTubeOptions {
   material: Material;
   /** Optional inverse-hull ink shell sharing the same geometry. */
   outlineMaterial?: Material | null;
+  /**
+   * Countershading: when set, a vertex-color attribute blends `belly` into the
+   * underside of the tube (by how far each ring vertex points down) and `body`
+   * everywhere else. The material must have vertexColors enabled and a white
+   * base color — the attribute carries the full tint. Frenet frames twist on
+   * tightly coiled curves, so this is tuned for gentle spines/tails/necks.
+   */
+  countershade?: { body: Color; belly: Color };
 }
 
 export interface SweptTube {
@@ -62,6 +71,10 @@ export function createSweptTube(options: SweptTubeOptions): SweptTube {
   const normals = new Float32Array(vertCount * 3);
   geometry.setAttribute('position', new BufferAttribute(positions, 3));
   geometry.setAttribute('normal', new BufferAttribute(normals, 3));
+  const shade = options.countershade ?? null;
+  const colors = shade ? new Float32Array(vertCount * 3) : null;
+  if (colors) geometry.setAttribute('color', new BufferAttribute(colors, 3));
+  const TINT = shade ? new Color() : null;
 
   // index: quad grid + two end fans (winding keeps faces outward)
   const indices: number[] = [];
@@ -118,6 +131,14 @@ export function createSweptTube(options: SweptTubeOptions): SweptTube {
         normals[i] = DIR.x;
         normals[i + 1] = DIR.y;
         normals[i + 2] = DIR.z;
+        if (colors && shade && TINT) {
+          // underside factor: 1 pointing straight down, 0 from the equator up
+          const under = Math.min(1, Math.max(0, -DIR.y * 1.5 + 0.2));
+          TINT.copy(shade.body).lerp(shade.belly, under);
+          colors[i] = TINT.r;
+          colors[i + 1] = TINT.g;
+          colors[i + 2] = TINT.b;
+        }
       }
       if (s === 0) {
         curve.getTangentAt(0, DIR);
@@ -136,6 +157,14 @@ export function createSweptTube(options: SweptTubeOptions): SweptTube {
         normals[capB * 3 + 1] = DIR.y;
         normals[capB * 3 + 2] = DIR.z;
       }
+    }
+    if (colors && shade) {
+      for (const cap of [capA, capB]) {
+        colors[cap * 3] = shade.body.r;
+        colors[cap * 3 + 1] = shade.body.g;
+        colors[cap * 3 + 2] = shade.body.b;
+      }
+      geometry.attributes.color.needsUpdate = true;
     }
     geometry.attributes.position.needsUpdate = true;
     geometry.attributes.normal.needsUpdate = true;

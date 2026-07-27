@@ -76,6 +76,7 @@ export type ActionType =
   | 'TOGGLE_DISCOVERY_LOG'
   | 'TOGGLE_GLOSSARY_VISIBILITY'
   | 'TOGGLE_LOGBOOK'
+  | 'TOGGLE_COMMERCE_DESK'
   | 'ADD_MET_NPC'
   | 'EQUIP_ITEM'
   | 'UNEQUIP_ITEM'
@@ -380,6 +381,7 @@ export type Action =
   | { type: 'TOGGLE_DISCOVERY_LOG'; payload?: never; label?: string }
   | { type: 'TOGGLE_GLOSSARY_VISIBILITY'; payload?: { initialTermId?: string }; label?: string }
   | { type: 'TOGGLE_LOGBOOK'; payload?: never; label?: string }
+  | { type: 'TOGGLE_COMMERCE_DESK'; payload?: never; label?: string }
   | { type: 'ADD_MET_NPC'; payload: { npcId: string }; label?: string }
   | { type: 'EQUIP_ITEM'; payload: EquipItemPayload; label?: string }
   | { type: 'UNEQUIP_ITEM'; payload: UnequipItemPayload; label?: string }

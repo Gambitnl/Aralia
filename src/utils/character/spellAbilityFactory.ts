@@ -97,8 +97,9 @@ const inferTargeting = (spell: Spell): TargetingType => {
     // spell.range is always a Range object (typed), so .type is always available directly
     range = spell.range.type.toLowerCase();
 
+    const aoe = (spell as { areaOfEffect?: { shape: string; size?: number; followsCaster?: boolean } }).areaOfEffect;
     if (range === 'self') {
-        if (spell.areaOfEffect || desc.includes('cone') || desc.includes('sphere') || desc.includes('cube') || desc.includes('line') || desc.includes('radius')) {
+        if (aoe || desc.includes('cone') || desc.includes('sphere') || desc.includes('cube') || desc.includes('line') || desc.includes('radius')) {
             return 'area';
         }
         return 'self';
@@ -152,7 +153,8 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
     }
 
     // Also check top-level areaOfEffect property
-    if (spell.areaOfEffect) {
+    const topAoe = (spell as { areaOfEffect?: { shape: string; size?: number; followsCaster?: boolean } }).areaOfEffect;
+    if (topAoe) {
         // Map JSON AoE shape to Combat AoE shape for 2D grid rendering
         // Extended shapes map to closest basic shape for grid calculations
         const shapeMap: Record<string, 'circle' | 'cone' | 'line' | 'square'> = {
@@ -172,12 +174,12 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
         // extended AoE shapes (e.g., Emanations with followsCaster for Spirit Guardians).
         // The other branch's early return would have skipped this critical functionality.
         const result: AreaOfEffect = {
-            shape: shapeMap[spell.areaOfEffect.shape] || 'circle',
-            size: (spell.areaOfEffect.size || 0) / 5, // Convert feet to tiles (5ft = 1 tile)
+            shape: shapeMap[topAoe.shape] || 'circle',
+            size: (topAoe.size || 0) / 5, // Convert feet to tiles (5ft = 1 tile)
         };
 
         // Pass through extended semantics for downstream handlers
-        if (spell.areaOfEffect.followsCaster) {
+        if (topAoe.followsCaster) {
             result.followsCaster = true;
         }
 

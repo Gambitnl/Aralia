@@ -1599,7 +1599,7 @@ describe('SpellIntegrityValidator', () => {
       const dominateMonster = getSpells(8).find(spell => spell.id === 'dominate-monster');
       const imprisonment = getSpells(9).find(spell => spell.id === 'imprisonment');
       const divineWordDeath = divineWord?.effects.find(effect =>
-        effect.type === 'STATUS_CONDITION' && effect.statusCondition?.name === 'Dead'
+        effect.type === 'STATUS_CONDITION' && (effect.statusCondition?.name as string) === 'Dead'
       );
       const divineWordStunned = divineWord?.effects.find(effect =>
         effect.type === 'STATUS_CONDITION' && effect.statusCondition?.name === 'Stunned'
@@ -1608,7 +1608,7 @@ describe('SpellIntegrityValidator', () => {
         effect.type === 'STATUS_CONDITION' && effect.statusCondition?.name === 'Charmed'
       );
       const imprisonmentBase = imprisonment?.effects.find(effect =>
-        effect.type === 'STATUS_CONDITION' && effect.statusCondition?.name === 'Imprisoned'
+        effect.type === 'STATUS_CONDITION' && (effect.statusCondition?.name as string) === 'Imprisoned'
       );
       const imprisonmentRestrained = imprisonment?.effects.find(effect =>
         effect.type === 'STATUS_CONDITION' && effect.statusCondition?.name === 'Restrained'
@@ -1693,7 +1693,7 @@ describe('SpellIntegrityValidator', () => {
       const fireStorm = getSpells(7).find(spell => spell.id === 'fire-storm');
       const draconicTransformation = getSpells(7).find(spell => spell.id === 'draconic-transformation');
       const cripplingPain = powerWordPain?.effects.find(effect =>
-        effect.type === 'STATUS_CONDITION' && effect.statusCondition?.name === 'Crippling Pain'
+        effect.type === 'STATUS_CONDITION' && (effect.statusCondition?.name as string) === 'Crippling Pain'
       );
       const painSpeedCap = powerWordPain?.effects.find(effect => effect.type === 'MOVEMENT');
       const fireIgnition = fireStorm?.effects.find(effect => effect.type === 'TERRAIN');
@@ -1990,7 +1990,7 @@ describe('SpellIntegrityValidator', () => {
       // control data instead of prose that gets stripped on parse.
       expect(parsedTinyServant.success).toBe(true);
 
-      const servantUtility = parsedTinyServant.data.effects.find(effect => effect.type === 'UTILITY') as any;
+      const servantUtility = (parsedTinyServant.data as any)?.effects.find((effect: any) => effect.type === 'UTILITY') as any;
 
       expect(servantUtility?.summonControl).toEqual(expect.objectContaining({
         entityType: 'Tiny Servant',
@@ -2391,16 +2391,14 @@ describe('SpellIntegrityValidator', () => {
       ]);
 
       // DEBT: The current ModeChoice type only models one global choice.
-      // Commune with Nature needs choose-three-of-five semantics, while
-      // Conjure Celestial needs one choice per affected target. Keep those two
-      // exact records visible until the dashboard owner selects an extension;
-      // any new failure or a stale classification still breaks this gate.
+      // Commune with Nature needs choose-three-of-five semantics.
+      // Conjure Celestial modeChoice validation was resolved, leaving only
+      // commune-with-nature in the unreviewed mode-choice failures expectation array.
       expect(
         modeChoiceFailureIds.sort(),
         `Unreviewed mode-choice failures:\n${modeChoiceFailures.join('\n')}`
       ).toEqual([
-        'commune-with-nature',
-        'conjure-celestial'
+        'commune-with-nature'
       ]);
     });
 

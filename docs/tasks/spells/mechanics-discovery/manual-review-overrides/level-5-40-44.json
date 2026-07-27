@@ -107,28 +107,28 @@
       "recommendedJsonChange": "Add runtime resurrectionFailure data."
     },
     "scrying::choice_or_mode": {
-      "resolutionStatus": "actionable_open",
-      "issue": "The caster can target either a same-plane creature or a previously seen location; runtime has only creature targeting.",
-      "recommendedTemplateChange": "Add scrying target-mode fields for creature and location modes.",
-      "recommendedJsonChange": "Add runtime scryingTargetModes data."
+      "resolutionStatus": "closed",
+      "issue": "The caster can target either a same-plane creature or a previously seen location; the runtime now preserves both modes.",
+      "recommendedTemplateChange": "Covered by the authored sensorState locationMode and the selected point-target bridge.",
+      "recommendedJsonChange": "SpellCommandFactory now creates creature or location sensor state; focused proof is SpellCommandFactory.scryingLiveData.test.ts."
     },
     "scrying::attack_or_save_modifier": {
-      "resolutionStatus": "actionable_open",
+      "resolutionStatus": "closed",
       "issue": "The Wisdom save is modified by knowledge and physical connection, and a knowing target can voluntarily fail; runtime lacks these save modifier tables and voluntary-fail handling.",
-      "recommendedTemplateChange": "Add scrying save modifier and voluntary-fail fields.",
-      "recommendedJsonChange": "Add runtime scryingSaveModifiers data."
+      "recommendedTemplateChange": "Covered by the typed condition save-modifier and save-outcome fields.",
+      "recommendedJsonChange": "SpellCommandFactory now consumes the authored creature-mode choices; focused proof is SpellCommandFactory.scryingLiveData.test.ts."
     },
     "scrying::vision_light_sound": {
-      "resolutionStatus": "actionable_open",
-      "issue": "Scrying creates invisible remote sight/hearing, with a visible luminous-orb appearance to creatures that can see invisible objects; runtime keeps this in prose.",
-      "recommendedTemplateChange": "Add remote sensor visibility and perception fields.",
-      "recommendedJsonChange": "Add runtime scryingSensor data."
+      "resolutionStatus": "closed",
+      "issue": "Scrying creates invisible remote sight/hearing with a luminous-orb appearance to creatures that can see invisible objects; the runtime now preserves the authored sensory payload and visibility metadata.",
+      "recommendedTemplateChange": "Covered by the authored sensorState fields and ActiveSpellHelper.remoteSensor contract.",
+      "recommendedJsonChange": "Focused sensor and renderer proof is in SpellCommandFactory.scryingLiveData.test.ts."
     },
     "scrying::sensor_or_remote_perception": {
-      "resolutionStatus": "actionable_open",
-      "issue": "The invisible sensor appears within 10 feet of a failed-save target, follows it, or appears at a chosen seen location and remains stationary; runtime lacks sensor placement/movement fields.",
-      "recommendedTemplateChange": "Add remote sensor placement and follow/stationary mode fields.",
-      "recommendedJsonChange": "Add runtime remoteSensor data."
+      "resolutionStatus": "closed",
+      "issue": "The invisible sensor appears within 10 feet of a failed-save target, follows it, or appears at a chosen seen location and remains stationary; the runtime now preserves all three placement/movement facts.",
+      "recommendedTemplateChange": "Covered by the authored sensorState fields and ActiveSpellHelper.remoteSensor contract.",
+      "recommendedJsonChange": "Focused following, stationary, and moved-marker proof is in SpellCommandFactory.scryingLiveData.test.ts."
     },
     "scrying::travel_or_planar_movement": {
       "resolutionStatus": "closed",
@@ -137,16 +137,16 @@
       "recommendedJsonChange": "No travel/planar movement runtime data required."
     },
     "scrying::social_or_knowledge_effect": {
-      "resolutionStatus": "actionable_open",
-      "issue": "Knowledge of the target and physical connection modify the save, and a known casting can be voluntarily failed; runtime lacks these knowledge/social consent mechanics.",
-      "recommendedTemplateChange": "Add knowledge/connection/consent fields.",
-      "recommendedJsonChange": "Add runtime scryingKnowledgeModifiers data."
+      "resolutionStatus": "closed",
+      "issue": "Knowledge of the target and physical connection modify the save, and a known casting can be voluntarily failed; this was a duplicate of scrying::attack_or_save_modifier.",
+      "recommendedTemplateChange": "Covered by the typed condition save-modifier and save-outcome fields.",
+      "recommendedJsonChange": "SpellCommandFactory now consumes the authored creature-mode choices; focused proof is SpellCommandFactory.scryingLiveData.test.ts."
     },
     "scrying::status_or_state_change": {
-      "resolutionStatus": "actionable_open",
-      "issue": "The invisible sensor and its luminous-orb appearance to creatures that see invisible objects are state changes not represented as data.",
-      "recommendedTemplateChange": "Add sensor visibility-state fields.",
-      "recommendedJsonChange": "Add runtime sensorVisibility data."
+      "resolutionStatus": "closed",
+      "issue": "The invisible sensor and its luminous-orb appearance to creatures that see invisible objects are now represented by the active helper and remote-sensor visibility fields; this row is covered by the sensor and visibility rows.",
+      "recommendedTemplateChange": "No additional template change; this row is a duplicate of the proven sensor/visibility state.",
+      "recommendedJsonChange": "Focused sensor and renderer proof is in SpellCommandFactory.scryingLiveData.test.ts."
     }
   },
   "manualFindings": {

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 22:33:25
+ * Last Sync: 23/07/2026, 21:41:20
  * Dependents: hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionExecutor.ts
  * Imports: 3 files
  *
@@ -35,7 +35,9 @@ import {
     processAreaEntryTriggers,
     processAreaExitTriggers,
     processAreaEndTurnTriggers,
+    processAreaStartTurnTriggers,
     processAreaMoveWithinTriggers,
+    processAreaProximityTriggers,
     ActiveSpellZone,
     TriggerResult
 } from './triggerHandler';
@@ -86,6 +88,11 @@ export class AreaEffectTracker {
         // Process Movement Within third
         const movementResults = this.processMovementWithin(character, newPosition, previousPosition, movementPath);
         results.push(...movementResults);
+
+        // Source-backed proximity mechanics fire when a creature enters the
+        // threat radius. Their recurring payload is resolved by the same
+        // caller that already handles ordinary area-trigger results.
+        results.push(...processAreaProximityTriggers(this.zones, character, newPosition, previousPosition));
 
         return results;
     }
@@ -191,7 +198,18 @@ export class AreaEffectTracker {
         // so the tracker can fully delegate this decision path to the shared
         // trigger handler and preserve one source of truth for frequency gates,
         // target filters, legacy `turn_end`, and source context.
-        return processAreaEndTurnTriggers(this.zones, character, _currentRound);
+        return [
+            ...processAreaEndTurnTriggers(this.zones, character, _currentRound),
+            ...processAreaProximityTriggers(this.zones, character, character.position, undefined, true)
+        ];
+    }
+
+    /** Process turn-start effects for a creature currently inside each zone. */
+    public processStartTurn(
+        character: CombatCharacter,
+        _currentRound: number
+    ): TriggerResult[] {
+        return processAreaStartTurnTriggers(this.zones, character, _currentRound);
     }
 
     /**

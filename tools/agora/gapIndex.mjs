@@ -40,6 +40,47 @@ export const CLOSED_STATUSES = new Set([
   'routed', 'merged-reference', 'archived',
 ]);
 
+// Older registry rows predate durable Presence provenance. They may keep an
+// explicit unknown marker, but every new row must carry a full Agora UUID.
+const LEGACY_PROVENANCE = /^unknown \(legacy(?:[;)])/i;
+const AGENT_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const GENERIC_REGISTRANTS = /^(agent|claude|codex|orchestrator|worker)(?:\s*$|\s*\()/i;
+
+/**
+ * Validate the workflow registry fields that make each gap assignable and
+ * traceable. Project-specific GAPS.md files retain their existing looser schema.
+ */
+export function validateWorkflowGapRows(rows, { allowedAgentIds = [] } = {}) {
+  const allowed = new Set([...allowedAgentIds, 'human-operator']);
+  const errors = [];
+
+  for (const row of rows) {
+    if (!row.suggestedAgent) {
+      errors.push(`${row.id}: Suggested agent is required`);
+    } else if (!allowed.has(row.suggestedAgent)) {
+      errors.push(`${row.id}: Suggested agent must be an agents.json key or human-operator`);
+    }
+
+    if (!row.registeredBy) {
+      errors.push(`${row.id}: Registered by must name the exact Agora handle`);
+    } else if (GENERIC_REGISTRANTS.test(row.registeredBy)) {
+      errors.push(`${row.id}: Registered by cannot be a generic role label`);
+    }
+
+    if (!row.registrantAgentId) {
+      errors.push(`${row.id}: Registrant ID is required`);
+    } else if (!AGENT_UUID.test(row.registrantAgentId) && !LEGACY_PROVENANCE.test(row.registrantAgentId)) {
+      errors.push(`${row.id}: Registrant ID must be a full Agora UUID or an explicit legacy marker`);
+    }
+
+    if (!row.registrantTaskId) {
+      errors.push(`${row.id}: Task/thread is required`);
+    }
+  }
+
+  return errors;
+}
+
 // Loose header matching: lowercase, strip non-alphanumerics, then prefix-match.
 function normHeader(h) {
   return String(h).toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -51,6 +92,14 @@ const COLUMN_KEYS = [
   { key: 'severity', match: ['severity'] },
   { key: 'classification', match: ['classification', 'class'] },
   { key: 'owner', match: ['owner'] },
+  // Workflow gaps name the agent lane best suited to perform the repair. This
+  // is separate from classification, which only describes the kind of problem.
+  { key: 'suggestedAgent', match: ['suggestedagent', 'agentfit', 'tackleby'] },
+  // Registration provenance must identify the actual Presence row and task,
+  // not merely say that an unnamed "orchestrator" noticed the problem.
+  { key: 'registeredBy', match: ['registeredby', 'registranthandle'] },
+  { key: 'registrantAgentId', match: ['registrantid', 'registrantagentid'] },
+  { key: 'registrantTaskId', match: ['taskthread', 'registranttaskthread', 'registrantsession'] },
   { key: 'gap', match: ['gap'] },
   { key: 'evidence', match: ['evidence', 'evidencesource'] },
   { key: 'nextAction', match: ['nextaction'] },
@@ -118,6 +167,10 @@ export function parseGapsMarkdown(md) {
       severity: get('severity').toLowerCase(),
       classification: get('classification'),
       owner: get('owner'),
+      suggestedAgent: get('suggestedAgent'),
+      registeredBy: get('registeredBy'),
+      registrantAgentId: get('registrantAgentId'),
+      registrantTaskId: get('registrantTaskId'),
       gap: get('gap'),
       evidence: get('evidence'),
       nextAction: get('nextAction'),
@@ -227,6 +280,17 @@ if (isMainModule()) {
     openOnly,
     onError: (file, e) => console.error(`gapIndex: failed to parse ${file}: ${e.message}`),
   });
+
+  // Workflow rows use the agent registry as the vocabulary for executor fit.
+  // A bad row makes the command fail so orchestrators cannot silently ingest
+  // anonymous or unassignable work.
+  const workflowRows = gaps.filter((gap) => gap.project === 'workflow');
+  if (workflowRows.length) {
+    const registry = JSON.parse(fs.readFileSync(path.join(path.dirname(__filename), 'agents.json'), 'utf8'));
+    const errors = validateWorkflowGapRows(workflowRows, { allowedAgentIds: Object.keys(registry.agents || {}) });
+    for (const error of errors) console.error(`gapIndex: invalid workflow registry: ${error}`);
+    if (errors.length) process.exitCode = 1;
+  }
   if (summary) {
     const byProject = new Map();
     for (const g of gaps) {

@@ -208,28 +208,77 @@ const TREE_VARIANTS: (() => PropGeometrySet[])[] = [
   createDeadTreeGeometry,    // Dead/bare (10%)
 ];
 
+/**
+ * Boulder as a stone FORMATION, not a lumpy primitive (GOAL #46).
+ * Three overlapping lobes — one dominant block plus two satellites — each
+ * non-uniformly squashed and noise-displaced, then settled to a shared flat
+ * bottom (rocks sink into soil; they don't balance on a point). Vertex colors
+ * paint horizontal sediment strata (alternating warm/cool gray bands warped by
+ * noise) so the surface reads as layered rock under flat shading. One shared
+ * geometry; per-instance scale/tilt/tint variation (task 75) breaks repeats.
+ */
 function createBoulderGeometry(): PropGeometrySet[] {
-  const geo = new THREE.IcosahedronGeometry(0.35, 1);
-  // Jitter vertices for organic look
-  const positions = geo.attributes.position as THREE.BufferAttribute;
-  for (let i = 0; i < positions.count; i++) {
-    const x = positions.getX(i);
-    const y = positions.getY(i);
-    const z = positions.getZ(i);
-    const jitter = 0.05;
-    positions.setXYZ(
-      i,
-      x * 1.1 + (Math.sin(x * 100) * jitter),
-      Math.max(0, y * 0.6 + 0.12) + (Math.sin(y * 100) * jitter * 0.5), // Flatten bottom
-      z + (Math.sin(z * 100) * jitter),
-    );
+  // Deterministic hash noise — same convention as the bush geometry.
+  const hash3 = (x: number, y: number, z: number): number => {
+    const n = Math.sin(x * 41.7 + y * 73.3 + z * 57.1) * 43758.5453;
+    return n - Math.floor(n) - 0.5; // ±0.5
+  };
+
+  // lobe: [radius, squashX, squashY, squashZ, offsetX, offsetY, offsetZ, rotY]
+  const lobes: [number, number, number, number, number, number, number, number][] = [
+    [0.34, 1.25, 0.72, 1.05,  0.00, 0.16,  0.00, 0.0],  // dominant block
+    [0.22, 1.10, 0.80, 1.20,  0.30, 0.08,  0.12, 0.9],  // shoulder slab
+    [0.15, 1.30, 0.75, 0.95, -0.26, 0.05, -0.14, 2.1],  // toe stone
+  ];
+
+  const parts = lobes.map(([r, sx, sy, sz, ox, oy, oz, ry], li) => {
+    const g = new THREE.IcosahedronGeometry(r, 1);
+    const pos = g.attributes.position as THREE.BufferAttribute;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+      // Angular displacement — coarse noise, no smoothing, so facets stay hard.
+      const d = 1 + hash3(x * 3 + li * 17, y * 3, z * 3) * 0.30;
+      pos.setXYZ(i, x * sx * d, y * sy * d, z * sz * d);
+    }
+    g.rotateY(ry);
+    g.translate(ox, oy, oz);
+    return g;
+  });
+
+  const geo = mergeGeometries(parts);
+
+  // Flat-bottom settle: clamp everything below grade to y=0 so the cluster
+  // sits ON the ground like a half-buried formation, never on a point.
+  const pos = geo.attributes.position as THREE.BufferAttribute;
+  let maxY = 0;
+  for (let i = 0; i < pos.count; i++) maxY = Math.max(maxY, pos.getY(i));
+  const colors = new Float32Array(pos.count * 3);
+  const bandA = new THREE.Color(0x6a655c); // warm gray stratum
+  const bandB = new THREE.Color(0x4e4e52); // cool gray stratum
+  const c = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i);
+    const y = Math.max(0, pos.getY(i));
+    pos.setY(i, y);
+    // Strata: horizontal bands (~0.11 world units thick) warped slightly by
+    // noise so layers undulate like real sediment; a touch darker near grade.
+    const warp = hash3(x * 2.1, 0, z * 2.1) * 0.06;
+    const band = 0.5 + 0.5 * Math.sin((y + warp) * 57);
+    const dirt = 0.85 + 0.15 * Math.min(1, y / (maxY * 0.35));
+    c.copy(bandA).lerp(bandB, band).multiplyScalar(dirt);
+    colors[i * 3] = c.r;
+    colors[i * 3 + 1] = c.g;
+    colors[i * 3 + 2] = c.b;
   }
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   geo.computeVertexNormals();
 
   const mat = new THREE.MeshStandardMaterial({
-    color: 0x5a5a5a,
-    roughness: 0.9,
-    metalness: 0.05,
+    color: 0xffffff,
+    roughness: 0.93,
+    metalness: 0.02,
+    vertexColors: true,
+    flatShading: true,
   });
 
   return [{ geometry: geo, material: mat }];

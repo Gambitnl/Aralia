@@ -20,7 +20,20 @@ import {
 } from 'node:fs';
 import { spawn, spawnSync } from 'node:child_process';
 import path from 'node:path';
+import { StringDecoder } from 'node:string_decoder';
 import { fileURLToPath } from 'node:url';
+
+/**
+ * This file wakes dormant Agora orchestrators through explicit harness adapters.
+ *
+ * It watches the shared message feed, classifies human/direct/@callsign wake
+ * requests, keeps one durable cursor per target, and launches only the adapter
+ * registered for that target. Machine-specific session ids stay under
+ * `.agent/agora`, while the tracked registry describes reusable capabilities.
+ *
+ * Called by: the detached Agora watchdog process and focused watchdog tests
+ * Depends on: agents.json adapter definitions and the local Agora HTTP daemon
+ */
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
@@ -30,6 +43,17 @@ const DEFAULT_STATE = path.join(REPO, '.agent', 'agora', 'watchdog-state.json');
 const DEFAULT_AUDIT = path.join(REPO, '.agent', 'agora', 'watchdog-audit.jsonl');
 const DEFAULT_LOG_DIR = path.join(REPO, '.agent', 'agora', 'watchdog-logs');
 const DEFAULT_URL = process.env.AGORA_URL || 'http://127.0.0.1:4319';
+const PET_MANIFEST = path.join(HERE, 'dashboard', 'pets', 'pets.json');
+
+// The watchdog is a real presence participant and therefore needs the same
+// explicit catalog identity as interactive agents. Operators may pin a service
+// pet through AGORA_WATCHDOG_PET; otherwise the tracked manifest's first pet is
+// the deterministic service identity.
+function watchdogPetSlug() {
+  if (process.env.AGORA_WATCHDOG_PET) return process.env.AGORA_WATCHDOG_PET;
+  const manifest = readJson(PET_MANIFEST, { pets: [] });
+  return manifest.pets[0] && manifest.pets[0].slug;
+}
 
 function readJson(file, fallback) {
   if (!existsSync(file)) return fallback;
@@ -97,7 +121,14 @@ export function planTargetMessages({ messages, target, agentsById, targetState, 
     if (message.seq <= originalCursor) continue;
     proposedCursor = message.seq;
     const lifecycle = lifecycleSignal(message, target);
-    if (lifecycle === 'dormant') dormant = true;
+    if (lifecycle === 'dormant') {
+      // The target's own dormancy announcement controls lifecycle state; it is
+      // never also a wake request. This matters when the announcement teaches
+      // peers to use "@callsign", because that example mentions the target.
+      dormant = true;
+      if (!launchRequired) safeCursor = message.seq;
+      continue;
+    }
     if (lifecycle === 'awake') {
       // A native watcher may answer while the activation watchdog is holding the
       // triggering wake during its grace window. The explicit AWAKE is delivery
@@ -166,6 +197,14 @@ export function expandTemplate(value, variables) {
   return String(value).replace(/\{(sessionId|prompt|cwd|handle|callsign|script)\}/g, (_match, key) => variables[key] || '');
 }
 
+// ============================================================================
+// Codex Session Compatibility
+// ============================================================================
+// Codex resume must preserve both the engine version and the last model that
+// completed a turn. The machine-wide default can drift after a session was
+// created, and an older engine may reject that newer default before waking.
+// ============================================================================
+
 function firstJsonLine(file, maxBytes = 2 * 1024 * 1024) {
   const fd = openSync(file, 'r');
   try {
@@ -182,6 +221,43 @@ function firstJsonLine(file, maxBytes = 2 * 1024 * 1024) {
     }
     if (text.trim()) return JSON.parse(text.trim());
     throw new Error(`empty session file: ${file}`);
+  } finally {
+    closeSync(fd);
+  }
+}
+
+function visitJsonLines(file, visitor) {
+  // Read incrementally so a long-running orchestration transcript does not have
+  // to be copied into memory just to recover its last successful model.
+  const fd = openSync(file, 'r');
+  try {
+    const chunk = Buffer.alloc(64 * 1024);
+    const decoder = new StringDecoder('utf8');
+    let pending = '';
+    let offset = 0;
+    while (true) {
+      const bytesRead = readSync(fd, chunk, 0, chunk.length, offset);
+      if (bytesRead === 0) break;
+      offset += bytesRead;
+      // Preserve a multi-byte character that lands across two filesystem reads;
+      // transcripts often contain human punctuation, emoji, and localized text.
+      pending += decoder.write(chunk.subarray(0, bytesRead));
+
+      // Session transcripts are JSONL. Process complete records now and carry
+      // the final partial line into the next chunk.
+      let newline = pending.indexOf('\n');
+      while (newline >= 0) {
+        const line = pending.slice(0, newline).trim();
+        pending = pending.slice(newline + 1);
+        if (line) visitor(JSON.parse(line));
+        newline = pending.indexOf('\n');
+      }
+    }
+
+    // Flush any partial UTF-8 character, then preserve a valid final record even
+    // when the transcript writer omitted its trailing newline.
+    pending += decoder.end();
+    if (pending.trim()) visitor(JSON.parse(pending.trim()));
   } finally {
     closeSync(fd);
   }
@@ -214,7 +290,32 @@ export function readSessionCliVersion(sessionId, codexHome = process.env.CODEX_H
   if (first?.type !== 'session_meta' || !first.payload?.cli_version) {
     throw new Error(`Codex session ${sessionId} has no leading session_meta cli_version`);
   }
-  return { version: String(first.payload.cli_version), sessionFile };
+
+  // A failed resume still appends a turn_context using the incompatible model.
+  // Only promote a model after its matching task_complete carries a real final
+  // answer; otherwise retain the previous successfully completed turn.
+  let currentTurn = null;
+  let firstModel = '';
+  let lastSuccessfulModel = '';
+  visitJsonLines(sessionFile, (record) => {
+    if (record?.type === 'turn_context' && record.payload?.model) {
+      currentTurn = {
+        id: String(record.payload.turn_id || ''),
+        model: String(record.payload.model),
+      };
+      if (!firstModel) firstModel = currentTurn.model;
+      return;
+    }
+    const completed = record?.type === 'event_msg' && record.payload?.type === 'task_complete';
+    const matchingTurn = !record.payload?.turn_id || record.payload.turn_id === currentTurn?.id;
+    if (completed && matchingTurn && record.payload.last_agent_message && currentTurn?.model) {
+      lastSuccessfulModel = currentTurn.model;
+    }
+  });
+
+  const model = lastSuccessfulModel || firstModel;
+  if (!model) throw new Error(`Codex session ${sessionId} has no recorded turn model`);
+  return { version: String(first.payload.cli_version), model, sessionFile };
 }
 
 function localCodexCandidates() {
@@ -249,15 +350,101 @@ export function selectCompatibleCodex(expectedVersion, candidates = localCodexCa
   throw new Error(`No Codex engine matches session version ${expectedVersion}. Probed: ${detail}`);
 }
 
+export function withCodexResumeModel(command, args, model) {
+  // Only Codex's explicit resume command needs this guard. Other adapters keep
+  // their registry arguments byte-for-byte so Claude and future harnesses remain
+  // independent of Codex transcript conventions.
+  const executable = path.basename(String(command)).toLowerCase().replace(/\.exe$/, '');
+  const isCodexResume = executable === 'codex' && args[0] === 'exec' && args[1] === 'resume';
+  if (!isCodexResume || args.includes('-m') || args.includes('--model')) return args;
+  if (!model) throw new Error('Codex resume requires the last successfully completed session model');
+
+  // Put the model beside the resume command before any session id or prompt.
+  // This overrides a drifting machine default without changing session identity.
+  return [...args.slice(0, 2), '-m', model, ...args.slice(2)];
+}
+
+// ============================================================================
+// Codex Desktop Thread Surfacing
+// ============================================================================
+// A CLI resume can complete the requested work, but it does not bring the
+// result to the operator's foreground. Codex's documented deep-link route lets
+// the watchdog open that exact saved thread without simulating keystrokes or
+// depending on private desktop message-injection APIs.
+// ============================================================================
+
+const CODEX_THREAD_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function codexThreadDeepLink(sessionId) {
+  // Desktop routing accepts a technical thread UUID. Refusing names and loose
+  // text keeps an Agora target from turning a shell launch into an arbitrary URL.
+  const threadId = String(sessionId || '').trim();
+  if (!CODEX_THREAD_ID.test(threadId)) {
+    throw new Error(`Codex desktop surfacing requires a technical thread UUID, received: ${threadId || '(empty)'}`);
+  }
+  return `codex://threads/${threadId}`;
+}
+
+export function codexThreadOpenSpec(sessionId, platform = process.platform) {
+  // Windows Explorer and macOS `open` both delegate the documented codex:// URL
+  // to the installed desktop app. Linux has no supported Codex desktop surface.
+  const uri = codexThreadDeepLink(sessionId);
+  if (platform === 'win32') return { command: 'explorer.exe', args: [uri], uri };
+  if (platform === 'darwin') return { command: 'open', args: [uri], uri };
+  return null;
+}
+
+export function openCodexThread(sessionId, options = {}) {
+  const spec = codexThreadOpenSpec(sessionId, options.platform || process.platform);
+  if (!spec) {
+    return Promise.resolve({
+      ok: false,
+      outcome: 'desktop-surface-unavailable',
+      error: `Codex desktop deep links are not supported on ${options.platform || process.platform}`,
+    });
+  }
+
+  // Resolve as soon as the operating system accepts the deep link. The desktop
+  // app owns navigation after that point, so waiting for Explorer to exit would
+  // add no delivery proof and could hold the watchdog open unnecessarily.
+  const spawnProcess = options.spawnProcess || spawn;
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      resolve({ ...result, ...spec });
+    };
+    let child;
+    try {
+      child = spawnProcess(spec.command, spec.args, {
+        detached: true,
+        shell: false,
+        windowsHide: true,
+        stdio: 'ignore',
+      });
+    } catch (error) {
+      finish({ ok: false, outcome: 'desktop-surface-error', error: error.message });
+      return;
+    }
+    child.once('error', (error) => finish({ ok: false, outcome: 'desktop-surface-error', error: error.message }));
+    child.once('spawn', () => {
+      child.unref();
+      finish({ ok: true, outcome: 'desktop-thread-opened' });
+    });
+  });
+}
+
 function runCodexTurnOnce(flags) {
   if (!flags.session) throw new Error('codex-turn-once requires --session');
   if (!flags.prompt) throw new Error('codex-turn-once requires --prompt');
   const metadata = readSessionCliVersion(flags.session);
   const compatible = selectCompatibleCodex(metadata.version);
   console.log(`[codex-turn-once] session=${flags.session} version=${compatible.version} executable=${compatible.executable}`);
-  const result = spawnSync(compatible.executable, [
+  const args = withCodexResumeModel(compatible.executable, [
     'exec', 'resume', '--skip-git-repo-check', flags.session, flags.prompt,
-  ], {
+  ], metadata.model);
+  const result = spawnSync(compatible.executable, args, {
     cwd: path.resolve(flags.cwd || REPO),
     env: process.env,
     stdio: 'inherit',
@@ -335,7 +522,11 @@ native watcher gets that time to post CALLSIGN AWAKE before CLI fallback.
 
 First registration bootstraps the target cursor to the latest Agora message.
 It does not replay historical wake requests. Later delivery is per-target and
-crash-safe through .agent/agora/watchdog-state.json.`);
+crash-safe through .agent/agora/watchdog-state.json.
+
+The codex-session-turn-once adapter resumes the saved turn first. After a clean
+exit, Windows or macOS opens that same technical thread through the documented
+codex://threads/<thread-id> route. /app is an interactive handoff only.`);
 }
 
 function registerTarget(file, target) {
@@ -379,6 +570,7 @@ async function ensureServiceIdentity(baseUrl, state) {
       role: 'worker',
       type: 'service',
       cwd: REPO,
+      petSlug: watchdogPetSlug(),
     },
   });
   if (!registered.ok) throw new Error(`watchdog registration failed (${registered.status}): ${registered.text}`);
@@ -403,8 +595,15 @@ function adapterProcessRunning(adapter, snapshot) {
   return (adapter.processNames || []).some((name) => snapshot.includes(String(name).toLowerCase()));
 }
 
+function adapterCanLaunch(adapter) {
+  // Readiness means both policy approval and a complete command recipe. Keeping
+  // this test in one place prevents the audit-suppression path from disagreeing
+  // with the launcher about whether a recovered adapter can accept the wake.
+  return adapter?.status === 'ready' && Boolean(adapter.command) && Array.isArray(adapter.args);
+}
+
 function launchAdapter({ adapter, target, prompt, logDir }) {
-  if (adapter.status !== 'ready' || !adapter.command || !Array.isArray(adapter.args)) {
+  if (!adapterCanLaunch(adapter)) {
     return Promise.resolve({ ok: false, outcome: 'wake-unavailable', error: 'adapter is not ready' });
   }
   mkdirSync(logDir, { recursive: true });
@@ -420,7 +619,29 @@ function launchAdapter({ adapter, target, prompt, logDir }) {
     script: fileURLToPath(import.meta.url),
   };
   const command = expandTemplate(adapter.command, variables);
-  const args = adapter.args.map((arg) => expandTemplate(arg, variables));
+  let args = adapter.args.map((arg) => expandTemplate(arg, variables));
+  // Direct Codex adapters run the registry command without the version-matched
+  // wrapper, so pin their saved successful model here as the final safety step.
+  const directCodexResume = path.basename(command).toLowerCase().replace(/\.exe$/, '') === 'codex'
+    && args[0] === 'exec' && args[1] === 'resume';
+  if (directCodexResume) {
+    try {
+      const metadata = readSessionCliVersion(target.sessionId);
+      args = withCodexResumeModel(command, args, metadata.model);
+    } catch (error) {
+      // Treat unreadable session compatibility data like any other launch
+      // failure so the durable cursor, backoff, and WAKE-AUDIT path stay intact.
+      closeSync(logFd);
+      return Promise.resolve({
+        ok: false,
+        outcome: 'launch-error',
+        error: error.message,
+        command,
+        args,
+        logFile,
+      });
+    }
+  }
   return new Promise((resolve) => {
     let settled = false;
     const finish = (result) => {
@@ -470,20 +691,33 @@ function appendAudit(file, entry) {
 async function postAudit(baseUrl, service, entry) {
   const seqs = entry.seqs?.join(',') || '-';
   const detail = entry.error ? ` error=${entry.error}` : '';
+  const surface = entry.surfaceOutcome ? ` surface=${entry.surfaceOutcome}` : '';
   const response = await requestJson(baseUrl, '/messages', {
     method: 'POST', token: service.token,
     body: {
       to: 'all',
-      body: `WAKE-AUDIT target=${entry.target} seq=${seqs} outcome=${entry.outcome} presence=${entry.presence} process=${entry.processRunning ? 'running' : 'absent'}${detail}`,
+      body: `WAKE-AUDIT target=${entry.target} seq=${seqs} outcome=${entry.outcome} presence=${entry.presence} process=${entry.processRunning ? 'running' : 'absent'}${surface}${detail}`,
     },
   });
   if (!response.ok) throw new Error(`audit post failed (${response.status}): ${response.text}`);
 }
 
-function monitorChildExit({ child, exitPromise, target, statePath, auditPath, baseUrl, service, initialEntry }) {
+function monitorChildExit({ child, exitPromise, adapter, target, statePath, auditPath, baseUrl, service, initialEntry, openThread }) {
   exitPromise.then(async ({ code, signal }) => {
     const at = Date.now();
     const failed = code !== 0;
+    let surface;
+
+    // Only adapters that explicitly opt into the documented completion action
+    // may move the desktop UI. The one-shot turn remains successful even when
+    // surfacing fails, because the wake instruction itself has already run.
+    if (!failed && adapter?.completionAction?.type === 'codex-thread-deep-link') {
+      try {
+        surface = await openThread(target.sessionId);
+      } catch (error) {
+        surface = { ok: false, outcome: 'desktop-surface-error', error: error.message };
+      }
+    }
     const freshState = readJson(statePath, { version: 1, targets: {} });
     const targetState = freshState.targets[target.handle] || {};
     const pending = targetState.pending;
@@ -499,6 +733,10 @@ function monitorChildExit({ child, exitPromise, target, statePath, auditPath, ba
         targetState.backoffUntil = 0;
         targetState.dormant = false;
         targetState.outcome = 'child-completed';
+        if (surface) targetState.surfaceOutcome = surface.outcome;
+        // A clean child exit is delivery proof. The wake sequences no longer
+        // need their separate audit receipt once the delivery cursor advances.
+        delete targetState.auditedUndelivered;
       }
       delete targetState.pending;
       freshState.targets[target.handle] = targetState;
@@ -512,6 +750,8 @@ function monitorChildExit({ child, exitPromise, target, statePath, auditPath, ba
       exitCode: code,
       signal: signal || undefined,
       error: failed ? (tail || `child exited with code ${code}`) : undefined,
+      surfaceOutcome: surface?.outcome,
+      surfaceError: surface?.error,
     };
     appendAudit(auditPath, followUp);
     try {
@@ -541,6 +781,7 @@ export async function runCycle(options = {}) {
   const statePath = options.statePath || DEFAULT_STATE;
   const auditPath = options.auditPath || DEFAULT_AUDIT;
   const logDir = options.logDir || DEFAULT_LOG_DIR;
+  const openThread = options.openThread || ((sessionId) => openCodexThread(sessionId));
   const cooldownMs = Number(options.cooldownMs) || 30_000;
   const registry = readJson(registryPath, {});
   const targetsConfig = readJson(targetsPath, { targets: [] });
@@ -563,7 +804,12 @@ export async function runCycle(options = {}) {
   const messages = messagesResponse.json.messages || [];
   const latestSeq = messages.reduce((max, message) => Math.max(max, Number(message.seq) || 0), since);
   const now = Date.now();
-  const processList = processSnapshot();
+  // Tests may provide an already-captured process list so delivery behavior can
+  // be proven without depending on a slow host-wide task enumeration. Normal
+  // watchdog cycles still capture the real operating-system process snapshot.
+  const processList = typeof options.processList === 'string'
+    ? options.processList
+    : processSnapshot();
   const results = [];
 
   for (const target of targetsConfig.targets) {
@@ -580,6 +826,9 @@ export async function runCycle(options = {}) {
     if (plan.kind === 'active') {
       targetState.cursor = plan.cursor;
       targetState.outcome = 'active-harness';
+      // An active target does not need adapter delivery. Retire any unavailable
+      // receipt whose messages are now safely behind the delivery cursor.
+      delete targetState.auditedUndelivered;
       if (plan.awakeSeen) {
         delete targetState.pending;
         targetState.failureCount = 0;
@@ -596,6 +845,34 @@ export async function runCycle(options = {}) {
       continue;
     }
 
+    // Keep the delivery cursor before every pending wake, but remember which
+    // exact wake sequences already produced a wake-unavailable audit. Ordinary
+    // traffic after a wake must not look like a new batch, so sequence ids are
+    // tracked instead of the planner's broader proposed cursor.
+    const pendingWakeSeqs = plan.wakes.map((message) => Number(message.seq) || 0).filter(Boolean);
+    const auditedWakeSeqs = new Set(
+      Array.isArray(targetState.auditedUndelivered?.seqs)
+        ? targetState.auditedUndelivered.seqs.map(Number).filter(Boolean)
+        : [],
+    );
+    const unauditedWakeSeqs = pendingWakeSeqs.filter((seq) => !auditedWakeSeqs.has(seq));
+    const adapterUnavailable = !adapterCanLaunch(adapter);
+
+    if (!options.dryRun && adapterUnavailable && unauditedWakeSeqs.length === 0) {
+      // The same unavailable batch remains intentionally undelivered. Leave it
+      // retryable at the old cursor, but do not launch or post another audit
+      // until either a new wake arrives or the registry marks the adapter ready.
+      targetState.cursor = plan.safeCursor;
+      targetState.outcome = 'wake-unavailable-audited';
+      results.push({
+        target: target.handle,
+        outcome: 'wake-unavailable-audited',
+        seqs: pendingWakeSeqs,
+      });
+      persistTargetState(statePath, state, target.handle);
+      continue;
+    }
+
     const prompt = buildWakePrompt(target, plan.wakes);
     // Advisory only. A GUI process can exist while its conversation is idle;
     // DORMANT/AWAKE lifecycle and Agora presence are the launch gates.
@@ -607,7 +884,10 @@ export async function runCycle(options = {}) {
       at: new Date(now).toISOString(),
       target: target.handle,
       agentId: target.agentId,
-      seqs: plan.wakes.map((message) => message.seq),
+      // A recovered adapter receives the complete pending batch. An unavailable
+      // adapter reports only newly seen wake sequences, because earlier ones
+      // already have a durable audited-undelivered receipt.
+      seqs: adapterUnavailable ? unauditedWakeSeqs : pendingWakeSeqs,
       outcome: launch.outcome,
       presence: plan.presence,
       processRunning: running,
@@ -630,11 +910,23 @@ export async function runCycle(options = {}) {
         seqs: entry.seqs,
       };
     } else {
+      // A paused or unconfigured adapter cannot deliver this wake batch. Keep
+      // the delivery cursor before it, while recording the audited wake ids in
+      // separate durable state. Transient launch failures retain their existing
+      // retry/backoff behavior because a ready adapter attempted real delivery.
+      const wakeUnavailable = launch.outcome === 'wake-unavailable';
       targetState.cursor = plan.safeCursor;
       targetState.outcome = launch.outcome;
       if (!options.dryRun) {
-        targetState.failureCount = (Number(targetState.failureCount) || 0) + 1;
-        targetState.backoffUntil = now + failureBackoffMs(targetState.failureCount);
+        if (wakeUnavailable) {
+          const seqs = [...new Set([...auditedWakeSeqs, ...pendingWakeSeqs])].sort((a, b) => a - b);
+          targetState.auditedUndelivered = { seqs, auditedAt: now };
+          targetState.failureCount = 0;
+          targetState.backoffUntil = 0;
+        } else {
+          targetState.failureCount = (Number(targetState.failureCount) || 0) + 1;
+          targetState.backoffUntil = now + failureBackoffMs(targetState.failureCount);
+        }
       }
     }
     if (!options.dryRun) {
@@ -646,12 +938,14 @@ export async function runCycle(options = {}) {
         monitorChildExit({
           child: launch.child,
           exitPromise: launch.exitPromise,
+          adapter,
           target,
           statePath,
           auditPath,
           baseUrl,
           service,
           initialEntry: entry,
+          openThread,
         });
       }
       try {

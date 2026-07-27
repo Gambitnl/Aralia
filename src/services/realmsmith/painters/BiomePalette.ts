@@ -9,7 +9,6 @@ export interface BiomeColors {
 }
 
 export function getBiomeColors(biome: BiomeType): BiomeColors {
-    // TODO #469: Move biome palette values into shared map config/data so painter and generator stay in sync and designers can tune in one place.
     // Default palette
     let grassHue = 100; // Green
     let waterColor = '#3b82f6';

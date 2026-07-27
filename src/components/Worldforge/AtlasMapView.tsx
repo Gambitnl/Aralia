@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 11/07/2026, 19:47:09
- * Dependents: components/Worldforge/AtlasDemo.tsx
- * Imports: 3 files
+ * Last Sync: 20/07/2026, 00:39:28
+ * Dependents: None (Orphan)
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,13 +23,22 @@
  * layers onto an offscreen canvas. Panning simply copies the offscreen canvas,
  * whereas zooming invalidates the cache and triggers a redraw.
  *
- * Called by: Game screens displaying the world map.
- * Depends on: atlasDraw.ts (for map rendering), generateAtlas.ts (supplies the data prop)
+ * The duplicate world-map route no longer imports this component. It remains
+ * isolated as reference-only canvas code while a separate deletion audit can
+ * decide whether any rendering ideas still deserve migration; current game and
+ * developer surfaces use AtlasSvgView instead.
+ *
+ * Called by: no runtime screen.
+ * Depends on: atlasDraw.ts (for the retained canvas reference), generateAtlas.ts
  */
 
 import React, { useRef, useEffect, useState } from "react";
 import { ZoomIn, ZoomOut, Maximize } from "lucide-react";
 import { drawAtlas, isCacheValid, drawScaleBar, type AtlasOverlayMode, type AtlasView, type CacheView } from "./atlasDraw";
+import {
+  directionalAtlasNeighbor,
+  type AtlasKeyboardDirection,
+} from "./atlasKeyboardNavigation";
 
 // Zoom scale at which scroll-zoom hands off to the L1 region layer.
 // Raised 4.0 â†’ 16.0 (Remy, 2026-06-11): deep atlas browsing first.
@@ -89,43 +98,6 @@ export interface AtlasMapViewProps {
   cooldownActive?: boolean;
   /** Optional array of live overlay markers. */
   markers?: OverlayMarker[];
-}
-
-export type AtlasKeyboardDirection = "left" | "right" | "up" | "down";
-
-/**
- * Pick the neighboring Voronoi cell that lies furthest in the requested
- * screen-space direction. This gives keyboard users the same cell graph the
- * pointer explores without pretending the irregular atlas is a square grid.
- */
-export function directionalAtlasNeighbor(
-  currentCellId: number,
-  direction: AtlasKeyboardDirection,
-  points: ArrayLike<readonly [number, number]>,
-  neighbors: ArrayLike<ArrayLike<number>>,
-): number {
-  const origin = points[currentCellId];
-  if (!origin) return currentCellId;
-  const desired = direction === "left" ? [-1, 0]
-    : direction === "right" ? [1, 0]
-      : direction === "up" ? [0, -1]
-        : [0, 1];
-
-  let bestId = currentCellId;
-  let bestScore = 0;
-  for (const candidateId of Array.from(neighbors[currentCellId] ?? [])) {
-    const candidate = points[candidateId];
-    if (!candidate) continue;
-    const dx = candidate[0] - origin[0];
-    const dy = candidate[1] - origin[1];
-    const distance = Math.hypot(dx, dy) || 1;
-    const score = (dx * desired[0] + dy * desired[1]) / distance;
-    if (score > bestScore) {
-      bestScore = score;
-      bestId = candidateId;
-    }
-  }
-  return bestId;
 }
 
 // ============================================================================

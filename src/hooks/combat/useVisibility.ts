@@ -82,7 +82,7 @@ export const useVisibility = ({ combatState, activeCharacterId, viewerId }: UseV
     if (!mapData) return new Map<string, LightLevel>();
 
     // Determine ambient light based on theme (or default to darkness for Underdark)
-    // TODO #296: Add `ambientLight` to BattleMapData schema properly. For now, infer or default.
+    // TODO: Add `ambientLight` to BattleMapData schema properly. For now, infer or default.
     const ambient = mapData.theme === 'cave' || mapData.theme === 'dungeon' ? 'darkness' : 'bright';
 
     // If ambient is bright, we can skip calculation unless we have magical darkness (future proofing)

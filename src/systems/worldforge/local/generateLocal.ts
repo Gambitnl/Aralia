@@ -153,6 +153,19 @@ export function elevationCurveFt(n: number): number {
   return 2000 * n + highRamp * (MOUNTAIN_MAX_ELEV_FT - 2000);
 }
 
+/**
+ * Derivative of `elevationCurveFt` (ft per unit n). Exactly 2000 for n ≤ 0.5
+ * (the legacy linear side); the high-country ramp steepens toward ~24,000 at
+ * n = 1. Used to damp NORMALIZED-space micro-noise so its VERTICAL amplitude
+ * stays constant through the curve (2026-07-21 look pass: undamped ±0.017 n
+ * detail became ±235 ft needles at 25–60 ft wavelength in peak windows). Pure.
+ */
+export function elevationCurveSlopeFt(n: number): number {
+  if (n <= 0.5) return 2000;
+  const t = (n - 0.5) / 0.5;
+  return 2000 + (2.2 / 0.5) * Math.pow(t, 1.2) * (MOUNTAIN_MAX_ELEV_FT - 2000);
+}
+
 // ---------------------------------------------------------------------------
 // Generation
 // ---------------------------------------------------------------------------
@@ -206,6 +219,20 @@ export function generateLocal(
   const noiseA = makeWorldFeetNoise(worldSeed, 12 * CELL_FT); // ~60ft features
   const noiseB = makeWorldFeetNoise(worldSeed, 5 * CELL_FT); //  ~25ft features
 
+  // High-country CRAG octave (2026-07-21 look pass): ridged noise at ~800 ft
+  // wavelength whose VERTICAL amplitude is held at ~±CRAG_FT by dividing out
+  // the elevation curve's local slope. This fills the 200–1,000 ft band that
+  // makes alpine windows read as rock formations — the damped micro-detail
+  // (below) killed the needle spikes, and the region field is too smooth at
+  // window scale to carve faces on its own. Gated to EXACTLY 0 below n = 0.6,
+  // so every lowland/town window stays byte-identical.
+  const cragNoise = makeWorldFeetNoise((worldSeed ^ 0x43524147) >>> 0, 800); // 'CRAG'
+  const CRAG_FT = 130;
+  const cragGate = (base: number): number => {
+    const t = Math.max(0, Math.min(1, (base - 0.6) / 0.15));
+    return t * t * (3 - 2 * t); // smoothstep — 0 at 0.6, 1 from 0.75 up
+  };
+
   const elevationFt = new Float32Array(widthCells * heightCells);
   const materialIndex = new Uint8Array(widthCells * heightCells);
   /** Normalized base heights cached for slope/material passes. */
@@ -220,7 +247,20 @@ export function generateLocal(
       const aboveWater = Math.max(0, base - WATER_LEVEL);
       // Detail amplitude scales with height above water (flat shores, rugged hills).
       const detail = (noiseA(fx, fy) - 0.5) * 0.012 + (noiseB(fx, fy) - 0.5) * 0.005;
-      const n = base + detail * Math.min(1, aboveWater * 8);
+      // Damp the n-space detail by the curve's local slope so its VERTICAL
+      // amplitude stays ~±25 ft everywhere. For base ≤ 0.5 the slope is exactly
+      // 2000 (damp = 1) — every lowland/town window stays byte-identical.
+      const curveSlope = elevationCurveSlopeFt(base);
+      const detailDamp = 2000 / curveSlope;
+      // Crag relief: ridge-transformed noise, slope-compensated to a constant
+      // ~±CRAG_FT vertical, faded in above n = 0.6 (see cragGate above).
+      const gate = cragGate(base);
+      let cragN = 0;
+      if (gate > 0) {
+        const cn = cragNoise(fx, fy) * 2 - 1;
+        cragN = ((1 - 2 * Math.abs(cn)) * CRAG_FT * gate) / curveSlope;
+      }
+      const n = base + detail * Math.min(1, aboveWater * 8) * detailDamp + cragN;
       normalized[i] = n;
       // Normalized 0..1 ≙ FMG 0..100 height → feet of relief via elevationCurveFt
       // (Task 11): identity `n · 2000` below n = 0.5 (lowlands/towns unchanged),

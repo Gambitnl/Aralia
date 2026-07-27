@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 18/07/2026, 03:53:28
+ * Dependents: components/DesignPreview/steps/Town3DScene.tsx, components/DesignPreview/steps/townMesh.ts, systems/world3d/roadGeometry.ts, systems/worldforge/town/townPlanAdapter.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file streetRibbons.ts — the ONE shared, pure street-geometry module for town
  * streets, consumed by BOTH 3D town renderers:
@@ -250,18 +266,28 @@ export function ribbonTrianglePositions(
 
 /**
  * Index pattern for an indexed ribbon strip whose vertices are pushed
- * left,right per centerline point (the game path's layout): for each segment,
- * the two triangles (l0,l1,r0) (r0,l1,r1). `startVert` is the first vertex's
- * index in the consumer's buffer.
+ * (right, left) per centerline point — the game path's layout. Emits two
+ * UP-FACING triangles per segment: (r0,l0,r1) (l0,l1,r1), counter-clockwise
+ * seen from +Y, matching `ribbonTrianglePositions`' winding.
+ *
+ * ROOT-CAUSE NOTE (streets-unify slice): the game renderer's historical inline
+ * pattern (l0,l1,r0)(r0,l1,r1) wound these faces CLOCKWISE from above — i.e.
+ * DOWN-facing — so under default front-side culling every town street ribbon
+ * was invisible from any above-ground camera. Its explicit (0,1,0) normals made
+ * the code READ correct while the GPU culled the faces; the schematic renderer
+ * wound the same ribbons up-facing, which is exactly the kind of duplicated-
+ * math drift this shared module exists to end. Proven by the standalone
+ * render probe (walls visible, zero street pixels) and fixed here for both
+ * consumers at once. `startVert` is the first vertex's index in the buffer.
  */
 export function ribbonStripIndices(pointCount: number, startVert: number): number[] {
   const out: number[] = [];
   for (let i = 0; i < pointCount - 1; i++) {
-    const l0 = startVert + i * 2;
-    const r0 = l0 + 1;
-    const l1 = startVert + (i + 1) * 2;
-    const r1 = l1 + 1;
-    out.push(l0, l1, r0, r0, l1, r1);
+    const r0 = startVert + i * 2;
+    const l0 = r0 + 1;
+    const r1 = startVert + (i + 1) * 2;
+    const l1 = r1 + 1;
+    out.push(r0, l0, r1, l0, l1, r1);
   }
   return out;
 }

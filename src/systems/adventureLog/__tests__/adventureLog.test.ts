@@ -10,13 +10,15 @@ import { createMockGameState } from '../../../utils/core/factories';
 import type { AdventureLogEntry } from '../../../types/state';
 
 describe('adventureLog helpers', () => {
-  it('formats the game clock as HH:MM', () => {
-    const t = new Date(2024, 0, 1, 9, 5, 0);
+  it('formats the game clock as HH:MM from the in-world (UTC) clock', () => {
+    // The game clock is a UTC Date and the HUD renders it in UTC; the log
+    // stamp must match regardless of the host machine's timezone.
+    const t = new Date(Date.UTC(2024, 0, 1, 9, 5, 0));
     expect(formatGameClock(t)).toBe('09:05');
   });
 
   it('stamps a new entry with day/time and trims the summary', () => {
-    const state = createMockGameState({ gameTime: new Date(2024, 0, 1, 14, 30, 0) });
+    const state = createMockGameState({ gameTime: new Date(Date.UTC(2024, 0, 1, 14, 30, 0)) });
     const entry = makeAdventureLogEntry(state, { kind: 'opening', summary: '  It begins.  ' });
     expect(entry.kind).toBe('opening');
     expect(entry.summary).toBe('It begins.');

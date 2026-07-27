@@ -12,6 +12,8 @@ export interface CreatureLibraryEntry {
     revisedFrom?: string;
     /** D&D size derived from the plan's dimensions (combat tile footprint). */
     sizeCategory?: string;
+    /** Public URL path of the optimized hero mesh, when one exists. */
+    heroGlb?: string;
 }
 /** Injectable for tests; the default shells out to the Claude CLI. */
 export type CliRunner = (prompt: string) => Promise<string>;

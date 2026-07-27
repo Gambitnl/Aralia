@@ -66,6 +66,77 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
     expect(combatChar.stats.baseInitiative).toBe(0);
   });
 
+  it('projects torso armour and a shield into reusable combat equipment state', () => {
+    const plateArmor: Item = {
+      id: 'plate-armor',
+      name: 'Plate Armor',
+      description: 'Full interlocking metal plates.',
+      type: 'armor',
+      slot: 'Torso',
+      armorCategory: 'Heavy',
+      baseArmorClass: 18,
+      strengthRequirement: 15,
+      stealthDisadvantage: true,
+      properties: ['Metal']
+    };
+    const enchantedShield: Item = {
+      id: 'sentinel-shield',
+      name: 'Sentinel Shield',
+      description: 'A shield that requires magical attunement.',
+      type: 'armor',
+      slot: 'OffHand',
+      armorCategory: 'Shield',
+      armorClassBonus: 2,
+      requiresAttunement: true,
+      properties: ['Watchful']
+    };
+    const player = createMockPlayerCharacter({
+      equippedItems: {
+        Torso: plateArmor,
+        OffHand: enchantedShield
+      }
+    });
+
+    const combatChar = createPlayerCombatCharacter(player);
+
+    // Combat keeps only rule-facing facts. The inventory item remains the
+    // source of prices, descriptions, containers and other non-tactical state.
+    expect(combatChar.equipment).toEqual({
+      wornArmor: {
+        itemId: 'plate-armor',
+        itemName: 'Plate Armor',
+        slot: 'Torso',
+        category: 'Heavy',
+        magicStatus: 'unknown',
+        properties: ['Metal'],
+        baseArmorClass: 18,
+        armorClassBonus: undefined,
+        strengthRequirement: 15,
+        stealthDisadvantage: true
+      },
+      shield: {
+        itemId: 'sentinel-shield',
+        itemName: 'Sentinel Shield',
+        slot: 'OffHand',
+        category: 'Shield',
+        magicStatus: 'magical',
+        properties: ['Watchful'],
+        baseArmorClass: undefined,
+        armorClassBonus: 2,
+        strengthRequirement: undefined,
+        stealthDisadvantage: undefined
+      }
+    });
+  });
+
+  it('does not invent combat equipment for an empty loadout', () => {
+    const combatChar = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ equippedItems: {} })
+    );
+
+    expect(combatChar.equipment).toBeUndefined();
+  });
+
   it('gives an unarmored monk +10 speed (Unarmored Movement) at level 2+', () => {
     const baseSpeed = createPlayerCombatCharacter(
       createMockPlayerCharacter({ class: CLASSES_DATA['monk'], level: 1, equippedItems: {} }),

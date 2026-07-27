@@ -20,7 +20,8 @@ Owner: Remy. Orchestrator: `orch-vis3d` (Agora). Rev 2: 2026-07-18.
 
 ## Packets
 
-### Q1 — Postprocessing: SSAO, grade, key light (GOAL #51, #53, #60, #57 residual; GAPS #1)
+### Q1 — Postprocessing: SSAO, grade, key light — **DONE 2026-07-18 (task 86)**
+(#53/#60/#51 → OK; #57 residual narrowed, stays PARTIAL; gap #1 closed; gap #21 attempted, still open — see TRACKER task 86.)
 Fix SSAO on three ^0.170 + @react-three/postprocessing ^3.0.4 (or swap to N8AO),
 then use working bloom/grade to make the frame read composited. Daylight motes
 (#57 residual) need bloom to read — verify they light up once it works.

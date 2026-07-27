@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 18/07/2026, 19:32:47
+ * Dependents: components/Worldforge/AgentSimPreview.tsx
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file agentSim.ts — WF-AGENTSIM behaviour layer (SPEC §8).
  *
@@ -231,4 +247,61 @@ export function stepAgentSim(
   }
 
   return next;
+}
+
+/** Options for a whole-day replay. */
+export interface SimulateDayOptions {
+  /** Fixed simulation step, in hours (smaller = finer, slower). Default 0.25 (15 min). */
+  stepHours?: number;
+  /** Hour the day's replay anchors from (the "dawn" reset point). Default 0 (midnight). */
+  dayStart?: number;
+}
+
+const DEFAULT_STEP_HOURS = 0.25;
+const DEFAULT_DAY_START = 0;
+
+/**
+ * Deterministically replay the behaviour sim from the day's anchor up to `clock`
+ * and return the resulting minds. This is the "scrub anywhere" contract: instead
+ * of carrying live per-frame state, a host can ask "what does the town look like
+ * at hour H?" and always get the SAME answer for the same (roster, context, H).
+ *
+ * The replay starts every occupant fresh (`initAgentMinds`) at `dayStart` and folds
+ * `stepAgentSim` in fixed `stepHours` increments, with one final partial step to
+ * land exactly on `clock`. Because both `initAgentMinds` and `stepAgentSim` are
+ * pure and deterministic, so is this — no live clock, no accumulated frame drift.
+ *
+ * `clock` and `dayStart` are wrapped into [0,24). Replay distance is measured
+ * forward from the anchor, so a 06:00 anchor can correctly reach 03:00 by
+ * crossing midnight instead of mistaking that target for "before the day".
+ * Only a target exactly on the anchor returns the fresh minds unchanged.
+ */
+export function simulateMindsTo(
+  occupants: Occupant[],
+  context: AgentSimContext,
+  clock: number,
+  opts: SimulateDayOptions = {},
+): AgentMind[] {
+  const step = opts.stepHours ?? DEFAULT_STEP_HOURS;
+  const start = wrapHour(opts.dayStart ?? DEFAULT_DAY_START);
+  const target = wrapHour(clock);
+  const elapsedHours = wrapHour(target - start);
+
+  let minds = initAgentMinds(occupants);
+  if (!(step > 0) || elapsedHours <= 1e-9) return minds;
+
+  // Advance by elapsed time rather than comparing wall-clock numbers. The last
+  // step shrinks to the remainder, and each step's decision hour wraps naturally
+  // when an anchored day crosses midnight.
+  let elapsed = 0;
+  while (elapsed < elapsedHours - 1e-9) {
+    const nextElapsed = Math.min(elapsed + step, elapsedHours);
+    minds = stepAgentSim(minds, occupants, {
+      hour: wrapHour(start + nextElapsed),
+      dtHours: nextElapsed - elapsed,
+      context,
+    });
+    elapsed = nextElapsed;
+  }
+  return minds;
 }

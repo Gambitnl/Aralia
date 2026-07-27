@@ -1,0 +1,46 @@
+{
+  "id": "mechanical-maze-knight",
+  "displayName": "Mechanical Maze Knight",
+  "description": "A battle-worn scrap knight robot pet with a single glowing eye, asymmetrical arms, and a back-mounted ruined blade.",
+  "spritesheetPath": "spritesheet.webp",
+  "states": {
+    "idle": {
+      "atlasRow": "idle",
+      "notes": "Single eye flicker with a subtle torso tremor."
+    },
+    "walk": {
+      "atlasRows": [
+        "running-right",
+        "running-left"
+      ],
+      "notes": "Stiff, slightly jerky mechanical walking loop."
+    },
+    "happy": {
+      "atlasRow": "waving",
+      "notes": "Eye brightens and the oversized heavy arm gives a gentle wave."
+    },
+    "alert": {
+      "atlasRow": "review",
+      "notes": "Head lifts, eye sharpens, and the back weapon tenses subtly."
+    },
+    "sleep": {
+      "atlasRow": "waiting",
+      "notes": "Head lowers and the eye light dims into a quiet nodding loop."
+    },
+    "damaged": {
+      "atlasRow": "failed",
+      "notes": "Malfunction cycle with hunching posture and thin-arm seizure."
+    }
+  },
+  "atlasRowSemantics": {
+    "idle": "idle",
+    "running-right": "walk-right",
+    "running-left": "walk-left",
+    "waving": "happy",
+    "jumping": "startled-hop",
+    "failed": "damaged",
+    "waiting": "sleep",
+    "running": "busy-cycle",
+    "review": "alert"
+  }
+}

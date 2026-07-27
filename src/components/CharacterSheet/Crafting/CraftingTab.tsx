@@ -5,7 +5,7 @@
  */
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { GatheringPanel, AlchemyBenchPanel } from '../../Crafting';
+import { GatheringPanel, AlchemyBenchPanel, RefiningEnchantingPanel } from '../../Crafting';
 
 interface CraftingTabProps {
     disabled?: boolean;
@@ -14,6 +14,7 @@ interface CraftingTabProps {
 export const CraftingTab: React.FC<CraftingTabProps> = ({ disabled = false }) => {
     const [isGatheringPanelOpen, setIsGatheringPanelOpen] = useState(false);
     const [isAlchemyBenchOpen, setIsAlchemyBenchOpen] = useState(false);
+    const [isRefiningEnchantingOpen, setIsRefiningEnchantingOpen] = useState(false);
 
     return (
         <>
@@ -30,6 +31,11 @@ export const CraftingTab: React.FC<CraftingTabProps> = ({ disabled = false }) =>
                 relies on its overlay to center). */}
             {isAlchemyBenchOpen && (
                 <AlchemyBenchPanel onClose={() => setIsAlchemyBenchOpen(false)} />
+            )}
+
+            {/* Refining & Enchanting: also a WindowFrame — no backdrop wrapper needed. */}
+            {isRefiningEnchantingOpen && (
+                <RefiningEnchantingPanel onClose={() => setIsRefiningEnchantingOpen(false)} />
             )}
 
             <div className="h-full flex flex-col gap-6 p-4">
@@ -74,6 +80,26 @@ export const CraftingTab: React.FC<CraftingTabProps> = ({ disabled = false }) =>
                         <span className="text-4xl">⚗️</span>
                         <span className="text-lg font-medium">Alchemy Bench</span>
                         <span className="text-sm text-gray-300/80">Brew potions, craft poisons, and create magical items</span>
+                    </motion.button>
+
+                    {/* Refining & Enchanting Button */}
+                    <motion.button
+                        onClick={() => setIsRefiningEnchantingOpen(true)}
+                        disabled={disabled}
+                        whileTap={!disabled ? { scale: 0.98 } : undefined}
+                        whileHover={!disabled ? { scale: 1.02 } : undefined}
+                        className={`
+              flex flex-col items-center gap-3 p-6 rounded-xl
+              border-2 transition-all duration-200
+              ${!disabled
+                                ? 'bg-gradient-to-br from-orange-900/60 to-orange-800/40 border-orange-600/50 hover:border-orange-400 hover:shadow-lg hover:shadow-orange-900/30 text-white cursor-pointer'
+                                : 'bg-gray-700/50 border-gray-600/50 text-gray-400 cursor-not-allowed'
+                            }
+            `}
+                    >
+                        <span className="text-4xl">🔥</span>
+                        <span className="text-lg font-medium">Refinery &amp; Enchanting</span>
+                        <span className="text-sm text-gray-300/80">Smelt ores into ingots, then bind magic into weapons and rings</span>
                     </motion.button>
                 </div>
             </div>

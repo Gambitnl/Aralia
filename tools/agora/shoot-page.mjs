@@ -20,14 +20,27 @@ const snippet = evalIdx >= 0 ? process.argv[evalIdx + 1] : null;
 const waitIdx = process.argv.indexOf('--wait');
 const waitMs = waitIdx >= 0 ? Number(process.argv[waitIdx + 1]) : 800;
 
-const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
-await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-await page.waitForTimeout(waitMs);
-if (snippet) {
-  await page.evaluate(snippet);
-  await page.waitForTimeout(400);
+// WF-G45: guaranteed teardown. A throw (goto/eval/screenshot) or a graceful
+// SIGINT/SIGTERM must still close the browser, or it orphans and wedges the box
+// (later page.goto hangs ~180s until cleared). A hard SIGKILL bypasses this — that
+// residual case is swept by `node tools/agora/reap-capture-orphans.mjs`.
+let browser;
+async function teardown() { try { await browser?.close(); } catch { /* already gone */ } }
+for (const sig of ['SIGINT', 'SIGTERM']) {
+  process.once(sig, async () => { await teardown(); process.exit(130); });
 }
-await page.screenshot({ path: out, fullPage: full });
-console.log(`shot ${out}`);
-await browser.close();
+
+try {
+  browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.waitForTimeout(waitMs);
+  if (snippet) {
+    await page.evaluate(snippet);
+    await page.waitForTimeout(400);
+  }
+  await page.screenshot({ path: out, fullPage: full });
+  console.log(`shot ${out}`);
+} finally {
+  await teardown();
+}

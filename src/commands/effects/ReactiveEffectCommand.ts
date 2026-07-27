@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 23:50:22
+ * Last Sync: 21/07/2026, 15:11:40
  * Dependents: commands/factory/SpellCommandFactory.ts
- * Imports: 8 files
+ * Imports: 20 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,11 +22,11 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CommandContext, SpellCommand } from '../base/SpellCommand';
 import { CommandExecutor } from '../base/CommandExecutor';
 import { CombatState } from '../../types/combat';
-import { SpellEffect } from '../../types/spells';
+import { ReactiveEffect, SpellEffect } from '../../types/spells';
 import { generateId } from '../../utils/combatUtils';
-import { movementEvents, MovementEvent } from '../../systems/combat/MovementEventEmitter';
-import { attackEvents, AttackEvent } from '../../systems/combat/AttackEventEmitter';
-import { combatEvents, CastEvent } from '../../systems/events/CombatEvents';
+import { movementEvents, MovementEvent, MovementEventEmitter } from '../../systems/combat/MovementEventEmitter';
+import { attackEvents, AttackEvent, AttackEventEmitter } from '../../systems/combat/AttackEventEmitter';
+import { combatEvents, CastEvent, CombatEventEmitter } from '../../systems/events/CombatEvents';
 import { sustainActionSystem, SustainedSpell } from '../../systems/combat/SustainActionSystem';
 import { logger } from '../../utils/logger';
 import { DamageCommand } from './DamageCommand';
@@ -43,6 +43,24 @@ type ReactiveEvent = MovementEvent | AttackEvent | CastEvent;
 type DurationLike = { type?: string; unit?: string; value?: number };
 
 /**
+ * Event buses used by a reactive command.
+ *
+ * Normal game commands use the shared buses below. Tests and isolated combat
+ * simulations can provide fresh buses so listeners cannot leak between runs.
+ */
+export interface ReactiveEventEmitters {
+    movement: Pick<MovementEventEmitter, 'onMovement' | 'offMovement'>;
+    attack: Pick<AttackEventEmitter, 'onPreAttack' | 'offPreAttack'>;
+    combat: Pick<CombatEventEmitter, 'on' | 'off'>;
+}
+
+const sharedReactiveEventEmitters: ReactiveEventEmitters = {
+    movement: movementEvents,
+    attack: attackEvents,
+    combat: combatEvents
+};
+
+/**
  * Command that registers reactive triggers or sustain requirements for a spell.
  *
  * Unlike standard commands (like DamageCommand) which apply their effects immediately upon execution,
@@ -54,8 +72,16 @@ type DurationLike = { type?: string; unit?: string; value?: number };
  * - **Sustained Effects:** Spells like *Witch Bolt* or *Call Lightning* that allow/require actions in future turns.
  * - **Traps/Wards:** Effects like *Glyph of Warding* that wait for a trigger condition.
  */
-export class ReactiveEffectCommand extends BaseEffectCommand {
+export class ReactiveEffectCommand extends BaseEffectCommand<ReactiveEffect> {
     private registeredListeners: (() => void)[] = []; // Store cleanup functions
+
+    constructor(
+        effect: ReactiveEffect,
+        context: CommandContext,
+        private readonly eventEmitters: ReactiveEventEmitters = sharedReactiveEventEmitters
+    ) {
+        super(effect, context);
+    }
 
     execute(state: CombatState): CombatState {
         const trigger = this.effect.trigger;
@@ -120,8 +146,8 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
                         await this.executeReactiveEffect(event);
                     };
 
-                    movementEvents.onMovement(listener);
-                    this.registeredListeners.push(() => movementEvents.offMovement(listener));
+                    this.eventEmitters.movement.onMovement(listener);
+                    this.registeredListeners.push(() => this.eventEmitters.movement.offMovement(listener));
                 }
                 break;
 
@@ -135,8 +161,8 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
                         await this.executeReactiveEffect(event);
                     };
 
-                    attackEvents.onPreAttack(listener);
-                    this.registeredListeners.push(() => attackEvents.offPreAttack(listener));
+                    this.eventEmitters.attack.onPreAttack(listener);
+                    this.registeredListeners.push(() => this.eventEmitters.attack.offPreAttack(listener));
                 }
                 break;
 
@@ -147,8 +173,8 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
                         this.executeReactiveEffect(event);
                     };
 
-                    combatEvents.on('unit_cast', listener);
-                    this.registeredListeners.push(() => combatEvents.off('unit_cast', listener));
+                    this.eventEmitters.combat.on('unit_cast', listener);
+                    this.registeredListeners.push(() => this.eventEmitters.combat.off('unit_cast', listener));
                 }
                 break;
 

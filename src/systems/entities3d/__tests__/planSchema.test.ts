@@ -298,3 +298,47 @@ describe('validateCreaturePlan — rejects, one named error per rule', () => {
     expect(errors.length).toBeGreaterThanOrEqual(3);
   });
 });
+
+describe('junction blend (schema v1.3)', () => {
+  it('accepts a creature-level skin.blend and a per-appendage blend', () => {
+    const p = mut((p) => {
+      p.skin = { blend: 1 };
+      p.appendages[0].blend = 0.5;
+    });
+    expect(validateCreaturePlan(p, KNOWN_PARTS)).toEqual([]);
+  });
+
+  it('accepts the hard endpoints 0 and 1', () => {
+    const p = mut((p) => {
+      p.skin = { blend: 0 };
+      p.appendages[0].blend = 1;
+    });
+    expect(validateCreaturePlan(p, KNOWN_PARTS)).toEqual([]);
+  });
+
+  it('rejects skin.blend outside 0–1 with a named error', () => {
+    const errors = validateCreaturePlan(mut((p) => { p.skin = { blend: 1.4 }; }), KNOWN_PARTS);
+    expect(errors).toContain('skin.blend 1.4 outside 0–1');
+  });
+
+  it('rejects a negative appendage blend with a named error', () => {
+    const errors = validateCreaturePlan(
+      mut((p) => { p.appendages[0].blend = -0.1; }),
+      KNOWN_PARTS,
+    );
+    expect(errors).toContain('appendages[0].blend -0.1 outside 0–1');
+  });
+
+  it('rejects unknown keys inside skin', () => {
+    const errors = validateCreaturePlan(
+      mut((p) => { (p as any).skin = { blend: 0.5, wobble: 1 }; }),
+      KNOWN_PARTS,
+    );
+    expect(errors).toContain('unknown field skin.wobble');
+  });
+
+  it('rejects a non-object skin', () => {
+    const errors = validateCreaturePlan(mut((p) => { (p as any).skin = 0.5; }), KNOWN_PARTS);
+    expect(errors).toContain('skin must be an object');
+  });
+});

@@ -99,8 +99,9 @@ for (const path in raceModules) {
 // Aggregated data map (auto-populated from race files)
 export const ALL_RACES_DATA: Record<string, Race> = racesData;
 
-// Import legacy data bundles that are still used by deprecated systems
-// TODO #238: These can be removed once deprecated race selection components are cleaned up
+// Import legacy data bundles that are still consumed via RACE_DATA_BUNDLE
+// (constants.ts, characterUtils.ts, characterValidation.ts).
+// TODO: Remove these once the deprecated race selection components and RACE_DATA_BUNDLE consumers are cleaned up.
 import { DRAGONBORN_ANCESTRIES_DATA } from './dragonborn.js';
 import { GIANT_ANCESTRY_BENEFITS_DATA } from './goliath.js';
 import { FIENDISH_LEGACIES_DATA } from './tiefling.js';

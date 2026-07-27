@@ -14,6 +14,9 @@ import {
   buildTownCore,
   buildOutskirts,
   findWaterGates,
+  insetConvexPolygon,
+  MAIN_ROAD_CARVE_HALF_FRAC,
+  WATER_CARVE_HALF_FRAC,
 } from '../townEngine';
 import { pointInPolygon, polygonBounds, type Pt } from '../../submap/submapEngine';
 import { rootSeedPath } from '../../seedPath';
@@ -278,6 +281,116 @@ describe('variety + interior infill (criterion #6)', () => {
     const c = generateTownPlan(footprint, rootSeedPath(13), { wardCount: 12, roads });
     expect(countPlots(a)).toBe(countPlots(c));
     expect(a.streets).toEqual(c.streets);
+  });
+});
+
+// ── Street-true blocks + wedge plots (plot/street overlap fix) ───────────────
+
+/** Distance from a point to the nearest edge of a polygon boundary. */
+function distToBoundary(p: Pt, poly: Pt[]): number {
+  let best = Infinity;
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i], b = poly[(i + 1) % poly.length];
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const L2 = dx * dx + dy * dy || 1;
+    const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2));
+    const qx = a[0] + dx * t, qy = a[1] + dy * t;
+    best = Math.min(best, Math.hypot(p[0] - qx, p[1] - qy));
+  }
+  return best;
+}
+
+function segsCross(a1: Pt, a2: Pt, b1: Pt, b2: Pt): boolean {
+  const d = (p: Pt, q: Pt, r: Pt) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+  const d1 = d(b1, b2, a1), d2 = d(b1, b2, a2), d3 = d(a1, a2, b1), d4 = d(a1, a2, b2);
+  return ((d1 > 0) !== (d2 > 0)) && ((d3 > 0) !== (d4 > 0));
+}
+
+/** True when two simple polygons overlap (edge cross or full containment). */
+function polysIntersect(a: Pt[], b: Pt[]): boolean {
+  for (let i = 0; i < a.length; i++) for (let j = 0; j < b.length; j++) {
+    if (segsCross(a[i], a[(i + 1) % a.length], b[j], b[(j + 1) % b.length])) return true;
+  }
+  return pointInPolygon(a[0], b) || pointInPolygon(b[0], a);
+}
+
+describe('insetConvexPolygon (true street margin)', () => {
+  it('insets a square uniformly on every side', () => {
+    const inset = insetConvexPolygon(squareWard, 5)!;
+    expect(inset).not.toBeNull();
+    expect(inset.length).toBe(4);
+    for (const v of inset) expect(distToBoundary(v, squareWard)).toBeCloseTo(5, 4);
+  });
+
+  it('keeps every vertex at the margin on an irregular convex polygon', () => {
+    // Off-center convex pentagon: centroid-scaling would inset edges unevenly.
+    const poly: Pt[] = [[0, 0], [90, 10], [100, 60], [40, 85], [-5, 40]];
+    const inset = insetConvexPolygon(poly, 4)!;
+    expect(inset).not.toBeNull();
+    for (const v of inset) expect(distToBoundary(v, poly)).toBeCloseTo(4, 3);
+  });
+
+  it('returns null when the margin swallows the polygon', () => {
+    expect(insetConvexPolygon(squareWard, 30)).toBeNull();
+  });
+});
+
+describe('plots respect streets (the overlap fix)', () => {
+  const plan = generateTownPlan(footprint, rootSeedPath(137), { population: 3200 });
+
+  it('every plot keeps a real street margin from its ward boundary', () => {
+    for (const w of plan.wards) {
+      for (const pl of w.plots) {
+        for (const v of pl.polygon) {
+          // Ward edges ARE street centerlines; a vertex touching one is a
+          // building in the road. The inset street margin keeps them off it
+          // (tiny wards retry at half margin = 0.6, hence the 0.55 floor —
+          // the pre-fix centroid-scale left vertices at ~0, in the street).
+          expect(distToBoundary(v, w.polygon)).toBeGreaterThan(0.55);
+        }
+      }
+    }
+  });
+
+  it('produces wedge plots that follow angled ward edges', () => {
+    const shapes = plan.wards.flatMap((w) => w.plots.map((p) => p.shape));
+    expect(shapes).toContain('wedge');
+  });
+
+  it('carves plots off the river channel (no buildings in the water)', () => {
+    const water: Pt[][] = [[[-50, 60], [40, 70], [90, 55], [200, 80]]];
+    const p2 = generateTownPlan(footprint, rootSeedPath(137), { population: 3200, water });
+    const b = polygonBounds(footprint);
+    const half = Math.max(b.maxX - b.minX, b.maxY - b.minY) * WATER_CARVE_HALF_FRAC;
+    for (const line of water) {
+      for (let i = 0; i < line.length - 1; i++) {
+        const [x1, y1] = line[i], [x2, y2] = line[i + 1];
+        const L = Math.hypot(x2 - x1, y2 - y1) || 1;
+        const nx = -(y2 - y1) / L * half, ny = (x2 - x1) / L * half;
+        const quad: Pt[] = [[x1 - nx, y1 - ny], [x2 - nx, y2 - ny], [x2 + nx, y2 + ny], [x1 + nx, y1 + ny]];
+        for (const w of p2.wards) for (const pl of w.plots) {
+          expect(polysIntersect(pl.polygon, quad)).toBe(false);
+        }
+      }
+    }
+  });
+
+  it('carves plots off the inherited main-road corridor', () => {
+    const roads: Pt[][] = [[[-50, 60], [200, 60]], [[60, -50], [60, 200]]];
+    const p2 = generateTownPlan(footprint, rootSeedPath(137), { population: 3200, roads });
+    const b = polygonBounds(footprint);
+    const half = Math.max(b.maxX - b.minX, b.maxY - b.minY) * MAIN_ROAD_CARVE_HALF_FRAC;
+    for (const s of p2.streets) {
+      for (let i = 0; i < s.length - 1; i++) {
+        const [x1, y1] = s[i], [x2, y2] = s[i + 1];
+        const L = Math.hypot(x2 - x1, y2 - y1) || 1;
+        const nx = -(y2 - y1) / L * half, ny = (x2 - x1) / L * half;
+        const quad: Pt[] = [[x1 - nx, y1 - ny], [x2 - nx, y2 - ny], [x2 + nx, y2 + ny], [x1 + nx, y1 + ny]];
+        for (const w of p2.wards) for (const pl of w.plots) {
+          expect(polysIntersect(pl.polygon, quad)).toBe(false);
+        }
+      }
+    }
   });
 });
 

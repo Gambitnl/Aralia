@@ -4,9 +4,11 @@ import {
   createSpellZoneFromAoEParams,
   isPositionInArea,
   processAreaEndTurnTriggers,
+  processAreaStartTurnTriggers,
   processAreaEntryTriggers,
   processAreaExitTriggers,
   processAreaMoveWithinTriggers,
+  processAreaProximityTriggers,
   processMovementTriggers,
   resetZoneTurnTracking,
   type ActiveSpellZone,
@@ -213,6 +215,101 @@ describe('processAreaEndTurnTriggers', () => {
     resetZoneTurnTracking([zone])
     const nextRound = processAreaEndTurnTriggers([zone], occupant, 2)
     expect(nextRound.length).toBe(1)
+  })
+
+  it('executes a source-backed singleton recurring turn-end damage record', () => {
+    const effect = {
+      type: 'DAMAGE',
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      recurringMechanics: {
+        timing: 'turn_end',
+        frequency: 'first_per_turn',
+        damage: { dice: '4d8', type: 'Radiant' }
+      }
+    } as unknown as SpellEffect
+    const zone = makeZone([effect])
+    const occupant = makeCharacter({ x: 0, y: 0 })
+
+    const result = processAreaEndTurnTriggers([zone], occupant, 1)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].effects[0]).toMatchObject({
+      type: 'damage',
+      dice: '4d8',
+      damageType: 'Radiant'
+    })
+  })
+})
+
+describe('processAreaStartTurnTriggers', () => {
+  it('fires a source-backed recurring turn-start payload for an occupant', () => {
+    const effect = {
+      type: 'DAMAGE',
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      recurringMechanics: {
+        timing: 'turn_start',
+        frequency: 'first_per_turn',
+        damage: { dice: '2d6', type: 'Cold' }
+      }
+    } as unknown as SpellEffect
+    const zone = makeZone([effect])
+    const occupant = makeCharacter({ x: 0, y: 0 })
+
+    const result = processAreaStartTurnTriggers([zone], occupant, 1)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].triggerType).toBe('on_start_turn_in_area')
+    expect(result[0].effects[0]).toMatchObject({
+      type: 'damage',
+      dice: '2d6',
+      damageType: 'Cold'
+    })
+  })
+})
+
+describe('processAreaProximityTriggers', () => {
+  it('bridges Conjure Animals-style recurring proximity damage on entry and end turn', () => {
+    const effect = {
+      type: 'SUMMONING',
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      recurringMechanics: {
+        timing: 'on_entity_proximity',
+        frequency: 'first_per_turn',
+        saveType: 'Dexterity',
+        saveEffect: 'half',
+        damage: { dice: '3d10', type: 'Slashing' }
+      }
+    } as unknown as SpellEffect
+    const zone = {
+      ...makeZone([effect]),
+      spellId: 'conjure-animals',
+      casterId: 'druid-caster',
+      saveDC: 15,
+      areaOfEffect: { shape: 'sphere', size: 10 }
+    }
+    const target = makeCharacter({ x: 2, y: 0 })
+
+    const entry = processAreaProximityTriggers([zone], target, { x: 2, y: 0 }, { x: 3, y: 0 })
+    expect(entry).toHaveLength(1)
+    expect(entry[0].triggerType).toBe('on_entity_proximity')
+    expect(entry[0].effects[0]).toMatchObject({
+      type: 'damage',
+      dice: '3d10',
+      damageType: 'Slashing',
+      requiresSave: true,
+      saveType: 'Dexterity',
+      saveEffect: 'half',
+      sourceContext: { spellId: 'conjure-animals', casterId: 'druid-caster', saveDC: 15 }
+    })
+
+    expect(processAreaProximityTriggers([zone], target, { x: 2, y: 0 }, { x: 1, y: 0 })).toHaveLength(0)
+
+    resetZoneTurnTracking([zone])
+    const endTurn = processAreaProximityTriggers([zone], target, { x: 2, y: 0 }, undefined, true)
+    expect(endTurn).toHaveLength(1)
   })
 })
 

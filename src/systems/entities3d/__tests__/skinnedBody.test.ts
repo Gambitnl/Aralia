@@ -180,8 +180,10 @@ describe('assembleEntity bodyTech switch', () => {
     skin.dispose();
   });
 
-  it('fails honestly outside slice-1 scope: wireframe and non-biped gaits', () => {
-    expect(() => assembleEntity(bp(), { renderMode: 'wireframe', bodyTech: 'skinned' })).toThrow(/no wireframe path/);
+  it('fails honestly outside scope: wireframe (decided out — solid shaded only) and non-biped gaits', () => {
+    // Decision 2026-07-21: deforming (skinned) bodies render solid shaded;
+    // wireframe is a segment-body debug look and never reaches the skeleton.
+    expect(() => assembleEntity(bp(), { renderMode: 'wireframe', bodyTech: 'skinned' })).toThrow(/solid shaded only/);
     const wolf = generateEntityBlueprint({
       kind: 'creature',
       creatureType: 'Beast',

@@ -108,7 +108,7 @@ test('launchSpec + probeAgent are registry-driven; kilo is wired', () => {
 });
 
 test('validatePlan accepts kilo as a worker now (wired + ready)', () => {
-  const plan = { wave: 'w', packets: [{ id: 'PK-1', handle: 'h', agent: 'kilo', scope: 's', files: ['src/x.ts'] }] };
+  const plan = { wave: 'w', pet: 'gf-sd', packets: [{ id: 'PK-1', handle: 'h', pet: 'dream-girl', agent: 'kilo', scope: 's', files: ['src/x.ts'] }] };
   assert.equal(validatePlan(plan), true);
 });
 
@@ -125,7 +125,7 @@ test('validatePlan warns (via onWarn) when a packet agent has expired constraint
     },
   };
   const warnings = [];
-  const plan = { wave: 'w', packets: [{ id: 'PK-1', handle: 'h', agent: 'oldbot', scope: 's', files: ['a'] }] };
+  const plan = { wave: 'w', pet: 'gf-sd', packets: [{ id: 'PK-1', handle: 'h', pet: 'dream-girl', agent: 'oldbot', scope: 's', files: ['a'] }] };
   assert.equal(validatePlan(plan, { registry, onWarn: (m) => warnings.push(m) }), true);
   assert.equal(warnings.length, 1);
   assert.match(warnings[0], /EXPIRED constraint \(2020-01-01\)/);

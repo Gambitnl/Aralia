@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 31/05/2026, 19:21:38
- * Dependents: components/CharacterSheet/Spellbook/SpellbookOverlay.tsx, components/CharacterSheet/Spellbook/SpellbookTab.tsx, components/Party/PartyPane/PartyMemberCard.tsx, services/premadeCharacterService.ts, utils/character/characterValidation.ts, utils/character/index.ts, utils/character/spellAbilityFactory.ts, utils/character/spellUtils.ts, utils/characterUtils.ts, utils/combat/actionEconomyUtils.ts, utils/combat/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
- * Imports: 9 files
+ * Last Sync: 25/07/2026, 01:18:53
+ * Dependents: components/CharacterSheet/Spellbook/SpellbookOverlay.tsx, components/CharacterSheet/Spellbook/SpellbookTab.tsx, components/Party/PartyPane/PartyMemberCard.tsx, services/premadeCharacterService.ts, systems/party/npcToPartyMember.ts, utils/character/characterValidation.ts, utils/character/index.ts, utils/character/spellAbilityFactory.ts, utils/character/spellUtils.ts, utils/characterUtils.ts, utils/combat/actionEconomyUtils.ts, utils/combat/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -54,6 +54,7 @@ import { ALL_RACES_DATA as RACES_DATA, RACE_DATA_BUNDLE, getRacialTraitLibrary }
 import { CLASSES_DATA } from '../../data/classes';
 import { growSpellSlots, cantripsKnownForClassLevel } from '../../systems/character/spellSlotProgression';
 import { subclassesForClass } from '../../data/classes/subclasses';
+import { classFeaturesForLevel } from '../../data/classes/classFeatureProgression';
 import { SKILLS_DATA } from '../../data/skills';
 
 const {
@@ -1747,9 +1748,16 @@ export const performLevelUp = (
   // is derived (getMaxPreparedSpells / getSpellcastingAllowance) so it tracks
   // the new level automatically. Cantrips-known capacity also grows here; any
   // player-chosen cantrips/known spells are applied (capped, deduped) but we
-  // never auto-pick — unfilled capacity is surfaced via getSpellcastingAllowance
-  // for the UI to prompt.
-  // TODO #1280(FEATURES): Grant class abilities (non-spell class features) on level-up (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  // Grant class abilities (non-spell class features) on level-up.
+  // Merges level-1 base features, tier-one level 2-3 features, and subclass features.
+  const allFeaturesForLevel = classFeaturesForLevel(updatedCharacter.class, newLevel, updatedCharacter.subclassId);
+  if (allFeaturesForLevel.length > 0) {
+    updatedCharacter.class = {
+      ...updatedCharacter.class,
+      features: allFeaturesForLevel,
+    };
+  }
+
   updatedCharacter = applyLevelUpSpellLearning(updatedCharacter, choices);
 
   // Recalculate derived scores after ASI/feat adjustments.

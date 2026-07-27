@@ -49,7 +49,10 @@ export const BattleMapFogCanvas: React.FC<BattleMapFogCanvasProps> = ({ mapData,
     const mctx = mini.getContext('2d');
     if (!mctx) return;
     // Two blur passes melt the one-tile staircase a diagonal sight boundary
-    // leaves (e.g. vision breaking over a crest) into a smooth penumbra.
+    // leaves (e.g. vision breaking over a crest) into a smooth penumbra. This
+    // bends the referee's truth by >0.05 alpha only within 1 tile of a straight
+    // boundary and at most 2 tiles at a concave corner (measured bound — see
+    // fogModel.ts and fogModel.test.ts "blur honesty bound").
     const grid = blurFogAlphaGrid(
       buildFogAlphaGrid(mapData, visibleTiles, getLightLevel),
       2,

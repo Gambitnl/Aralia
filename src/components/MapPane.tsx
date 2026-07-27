@@ -37,7 +37,7 @@ import {
 import { formatProvisionLine } from '@/systems/travel/travelReadout';
 import { decideTravelProvision } from '@/systems/travel/travelProvisionDecision';
 import { forage } from '@/systems/travel/forage';
-import { cellTraits, findCellAtPoint } from './Worldforge/atlasSvg';
+import { cellTraits, findCellAtPoint, type AtlasSvgModel } from './Worldforge/atlasSvg';
 import { wfBiomeIndexToLegacyId } from '@/systems/worldforge/local/wfBiomeToLegacy';
 import { SeededRandom } from '@/utils/random';
 import type { TravelMeta, TravelProvisionEffect } from '@/types/travelMeta';
@@ -48,6 +48,12 @@ import oldPaperBg from '../assets/images/old-paper.svg';
 import type { PlayerWorldPosition, DiscoveredHiddenSite } from '../types';
 import AtlasSvgView from './Worldforge/AtlasSvgView';
 import type { CellTraits } from './Worldforge/atlasSvg';
+import {
+  canPrepareResponsiveAtlasOffThread,
+  prepareResponsiveAtlas,
+  prepareResponsiveAtlasOnCurrentThread,
+  responsiveAtlasPreparationKey,
+} from './Worldforge/responsiveAtlasPreparation';
 import { dungeonStatesForWorld } from '../systems/worldforge/dungeon/world/dungeonStates';
 import SubmapSvgView from './Worldforge/SubmapSvgView';
 import TownPlanView from './Worldforge/TownPlanView';
@@ -57,14 +63,15 @@ import { atlasCellToSubmapContext } from '@/systems/worldforge/submap/l0Adapter'
 import { buildAtlasNeighbourhood, type AtlasNeighbourhood } from '@/systems/worldforge/submap/neighbourhood';
 import { generateSubmap, submapCellToChildContext, polygonBounds, pointInPolygon, type SubmapModel, type SubmapParentContext, type Pt } from '@/systems/worldforge/submap/submapEngine';
 import { type TownPlan } from '@/systems/worldforge/town/townEngine';
-import { getCanonicalTownPlan } from '@/systems/worldforge/town/canonicalTown';
+import { getCanonicalTownPlan, getCanonicalTownWaterFeatures } from '@/systems/worldforge/town/canonicalTown';
 import { rootSeedPath } from '@/systems/worldforge/seedPath';
 import { spreadColocatedPoints, entry3DAnchorForCell } from '@/systems/worldforge/local/gridAtlasBridge';
 import { describeCell } from '@/systems/worldforge/cellInfo';
 import type { Entry3DAnchor } from '@/types/state';
-import { getBridgeAtlas, getBurgCultureType } from '@/systems/worldforge/bridge/legacySubmapBridge';
+import { getBurgCultureType } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { styleFamilyForCultureType } from '@/systems/worldforge/town/architectureStyle';
 import { buildAtlasTravelGraph, atlasMilesPerUnit, nearestLandCell, transportMobility, buildNavInfoFn } from '@/systems/worldforge/travel/atlasTravelGraph';
+import { getSeasonalTravelCostMultiplier } from '@/systems/time/seasonContract';
 import { deriveNavDrift, routeHasFaintPath } from '@/systems/travel/navDrift';
 import { rollTripEvent, bestPartyCheckTotal, type TripEventPartyMember } from '@/systems/travel/tripEvents';
 import { biomeIdForCell } from '@/systems/worldforge/local/biomeForCell';
@@ -82,11 +89,12 @@ import { rollTravelEncounter, rollSeaEncounter } from '@/systems/travel/travelEn
 import { pickTravelEncounterMonsters } from '@/systems/travel/travelEncounterMonsters';
 import { formatTravelTime, ferryFare } from '@/systems/travel/travelReadout';
 import { calculateForcedMarchStatus } from '@/systems/travel/TravelCalculations';
-import { generateFmgWorld } from '@/systems/worldforge/fmg/generateWorld';
+import type { FmgWorldResult } from '@/systems/worldforge/fmg/generateWorld';
 import { discoveredSiteBelongsToWorld } from '@/systems/worldforge/leaf3d/atlasGroundContinuity';
 import { shipTravelAvailability, shipVoyageFromDestination } from '@/systems/worldforge/travel/shipEmbark';
 import { shipSpeedMph } from '@/utils/naval/navalUtils';
 import type { Ship } from '@/types/naval';
+import { generateWorldSeed } from '@/utils/random/generateWorldSeed';
 
 // The shared 600 by 400 frame minimum leaves this control-heavy surface with
 // barely a strip of map. Keep a useful desktop map viewport while still letting
@@ -191,6 +199,20 @@ interface MapPaneProps {
    * so there is no post-spawn regression. Omit ⇒ fall back to the grid round-trip.
    */
   playerAtlasCellId?: number | null;
+  /**
+   * The in-world clock (`gameState.gameTime`). Season contract (G3): travel
+   * route planning multiplies edge minutes by the current season's
+   * travelCostMultiplier (winter routes take 1.5x as long). Omit ⇒ neutral 1x
+   * (main-menu previews and tests plan season-free).
+   */
+  gameTime?: Date | null;
+}
+
+interface PreparedMapPaneProps extends MapPaneProps {
+  /** Canonical atlas returned by the responsive worker and bridge cache. */
+  preparedAtlas: FmgWorldResult;
+  /** Pure SVG model built beside the atlas in that same worker. */
+  preparedAtlasModel: AtlasSvgModel;
 }
 
 type WorldMapInteractionMode = 'pan' | 'travel' | 'enter3d';
@@ -255,7 +277,7 @@ function synthCellTile(
   return { x, y, biomeId: wfBiomeIndexToLegacyId(biomeIdx), discovered, isPlayerCurrent: false } as MapTileType;
 }
 
-const MapPane: React.FC<MapPaneProps> = ({
+const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
   // Grid retirement: mapData is no longer read by MapPane (atlas + MAP_GRID_SIZE
   // bookkeeping replaced every tile/gridSize use). Prop kept on the interface
   // until App stops passing it in the coord_X_Y/save cut.
@@ -282,6 +304,9 @@ const MapPane: React.FC<MapPaneProps> = ({
   activeShip = null,
   onSetSail,
   playerAtlasCellId = null,
+  gameTime = null,
+  preparedAtlas: worldforgeAtlas,
+  preparedAtlasModel,
 }) => {
   // Grid retirement: MapPane is fully cell-native — it renders the atlas
   // (getBridgeAtlas(worldSeed)) and resolves picks by cellId. The onTileClick/
@@ -341,16 +366,10 @@ const MapPane: React.FC<MapPaneProps> = ({
   // legacy 30x20 mapData.tiles grid — removed; null seed is an honest 0.
   const worldforgeSeed = worldSeed ?? 0;
 
-  // Native Worldforge SVG render-port (SP0). The 2D map and the 3D ground bake
-  // MUST share ONE atlas, or a burgId means a different burg in each view and
-  // towns can't be identical (Worldforge Option B). `getBridgeAtlas` is the
-  // shared, cached canonical world — the same one the 3D pipeline + town tiles
-  // already use — so the map you see is the world you walk. (Island harbors are
-  // off in the live app; folding them into the canonical world is a follow-up.)
-  const worldforgeAtlas = useMemo(
-    () => getBridgeAtlas(worldforgeSeed),
-    [worldforgeSeed],
-  );
+  // Native Worldforge SVG render-port (SP0). The outer MapPane prepares this
+  // exact canonical atlas in a worker, then installs it in getBridgeAtlas's
+  // shared cache before this gameplay surface mounts. The 2D map, travel, exact
+  // cell entry, and 3D therefore still read one world rather than parallel data.
 
   useEffect(() => {
     const viewport = worldforgeViewportRef.current;
@@ -463,6 +482,11 @@ const MapPane: React.FC<MapPaneProps> = ({
     if (!transportChoices.some((choice) => choice.id === transportId)) setTransportId('walking');
   }, [transportChoices, transportId]);
 
+  // Season contract (G3): the current season's travel-time multiplier as a
+  // plain number. Route-field memos depend on THIS (not the ticking Date), so
+  // the Dijkstra fields only recompute when the season actually flips.
+  const seasonTravelMultiplier = gameTime ? getSeasonalTravelCostMultiplier(gameTime) : 1;
+
   const travelField = useMemo(() => {
     if (interactionMode !== 'travel' || !worldforgeAtlas || playerAtlasCell == null) return null;
     const graph = buildAtlasTravelGraph(worldforgeAtlas, { mobility: transportMobility(selectedTransport.option) });
@@ -472,8 +496,9 @@ const MapPane: React.FC<MapPaneProps> = ({
     return planRoutesFrom(graph, origin, {
       milesPerUnit: atlasMilesPerUnit(worldforgeAtlas),
       speedMph: transportSpeedMph(selectedTransport.option),
+      timeCostMultiplier: seasonTravelMultiplier,
     });
-  }, [interactionMode, worldforgeAtlas, playerAtlasCell, selectedTransport]);
+  }, [interactionMode, worldforgeAtlas, playerAtlasCell, selectedTransport, seasonTravelMultiplier]);
   const planAtlasRoute = useCallback((toCell: number) => travelField?.to(toCell) ?? null, [travelField]);
 
   // Provisioning rings (R1): the contour of cells reachable before the binding
@@ -567,8 +592,9 @@ const MapPane: React.FC<MapPaneProps> = ({
     return planRoutesFrom(graph, origin, {
       milesPerUnit: atlasMilesPerUnit(worldforgeAtlas),
       speedMph: transportSpeedMph(selectedTransport.option),
+      timeCostMultiplier: seasonTravelMultiplier,
     });
-  }, [interactionMode, seaPref, worldforgeAtlas, playerAtlasCell, selectedTransport, activeShip]);
+  }, [interactionMode, seaPref, worldforgeAtlas, playerAtlasCell, selectedTransport, activeShip, seasonTravelMultiplier]);
 
   const isAtlasLandCell = useCallback((cell: number): boolean => {
     const height = (worldforgeAtlas?.pack as unknown as { cells?: { h?: ArrayLike<number> } } | undefined)
@@ -1251,6 +1277,15 @@ const MapPane: React.FC<MapPaneProps> = ({
     return styleFamilyForCultureType(getBurgCultureType(worldforgeSeed, topTownBurgId));
   }, [topTownBurgId, worldforgeSeed]);
 
+  // The burg's inherited water in the plan's normalized frame — the SAME
+  // polylines the generator seated docks/bridges against, so the 2D drill
+  // finally shows the river those structures sit on (previously invisible).
+  const topTownWater = useMemo(() => {
+    if (topTownBurgId == null || !worldforgeAtlas) return undefined;
+    const wf = getCanonicalTownWaterFeatures(worldforgeAtlas, topTownBurgId);
+    return [...wf.rivers, ...wf.coast];
+  }, [topTownBurgId, worldforgeAtlas]);
+
   // Submap-tier travel: a route field over the drilled tier's Voronoi cells from
   // the player's sub-cell, so the same route preview works inside the drill.
   const submapTravelField = useMemo(() => {
@@ -1260,9 +1295,26 @@ const MapPane: React.FC<MapPaneProps> = ({
     return planRoutesFrom(buildSubmapTravelGraph(top.model), top.playerCellIndex, {
       milesPerUnit: 0.02, // ~20 miles across a normalized region tier
       speedMph: transportSpeedMph(selectedTransport.option),
+      timeCostMultiplier: seasonTravelMultiplier,
     });
-  }, [interactionMode, submapStack, selectedTransport]);
+  }, [interactionMode, submapStack, selectedTransport, seasonTravelMultiplier]);
   const planSubmapRoute = useCallback((idx: number) => submapTravelField?.to(idx) ?? null, [submapTravelField]);
+
+  const prepareAndRegenerate = useCallback((nextSeed: number) => {
+    // Prepare before publishing the new seed. Several established seed-change
+    // effects synchronously read getBridgeAtlas; installing the worker result
+    // first keeps those consumers exact while preventing a duplicate main-thread
+    // generation stall.
+    void prepareResponsiveAtlas({
+      seed: nextSeed,
+      clearedDungeonPaths: clearedDungeonPaths ? [...clearedDungeonPaths] : undefined,
+    }).then(
+      () => onRegenerateWorld?.(nextSeed),
+      (error: unknown) => showMapNotice(
+        `World generation failed: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    );
+  }, [clearedDungeonPaths, onRegenerateWorld, showMapNotice]);
 
   const handleRegenerateWithSeed = useCallback(() => {
     // Locked previews can still be reached from deep links or old UI state.
@@ -1271,20 +1323,19 @@ const MapPane: React.FC<MapPaneProps> = ({
     if (!canRegenerateWorld) return;
     if (!onRegenerateWorld) return;
     const parsedSeed = Number.parseInt(seedInput.trim(), 10);
-    if (Number.isFinite(parsedSeed)) {
-      onRegenerateWorld(Math.abs(parsedSeed));
-      return;
-    }
-    onRegenerateWorld();
-  }, [canRegenerateWorld, onRegenerateWorld, seedInput]);
+    const nextSeed = Number.isFinite(parsedSeed) && Math.abs(parsedSeed) > 0
+      ? Math.abs(parsedSeed)
+      : generateWorldSeed();
+    prepareAndRegenerate(nextSeed);
+  }, [canRegenerateWorld, onRegenerateWorld, prepareAndRegenerate, seedInput]);
 
   const handleRerollSeed = useCallback(() => {
     // Match the same player-facing lock as the Apply Seed button. This preserves
     // preview browsing while preventing a locked reroll from doing hidden work.
     if (!canRegenerateWorld) return;
     if (!onRegenerateWorld) return;
-    onRegenerateWorld();
-  }, [canRegenerateWorld, onRegenerateWorld]);
+    prepareAndRegenerate(generateWorldSeed());
+  }, [canRegenerateWorld, onRegenerateWorld, prepareAndRegenerate]);
 
   // The world map toolbar is often used inside a narrow WindowFrame. Keep all
   // mode, transport, and generation controls at a real touch target size.
@@ -1455,6 +1506,7 @@ const MapPane: React.FC<MapPaneProps> = ({
           ref={worldforgeViewportRef}
           className="relative min-h-[220px] flex-grow overflow-hidden rounded bg-slate-950 border border-slate-700 md:min-h-0"
           data-testid="worldforge-map-viewport"
+          data-world-seed={worldforgeSeed}
           data-island-harbors-enabled={enableIslandHarbors ? 'true' : 'false'}
         >
             {!worldforgeAtlas ? (
@@ -1469,6 +1521,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                     prefsScope={worldforgeSeed}
                     styleFamily={topTownStyleFamily}
                     settlementKey={topTownBurgId == null ? undefined : `burg:${topTownBurgId}`}
+                    water={topTownWater}
                   />
                 ) : submapStack[submapStack.length - 1].neighbourhood ? (
                   <NeighbourhoodSvgView
@@ -1564,6 +1617,7 @@ const MapPane: React.FC<MapPaneProps> = ({
             ) : (
               <AtlasSvgView
                 atlas={worldforgeAtlas}
+                preparedModel={preparedAtlasModel}
                 width={worldforgeViewportSize.width}
                 height={worldforgeViewportSize.height}
                 /* WG4: in the pre-game generation preview there is no player — pass a
@@ -1695,6 +1749,108 @@ const MapPane: React.FC<MapPaneProps> = ({
             ? 'World map: use Pan/Zoom to explore. Travel moves on the world grid; Enter 3D jumps into the streamed world at a discovered cell. Click a cell to drill into the submap.'
             : 'World preview: use Pan/Zoom and layer controls to inspect world generation before starting a game. Click cells to drill deeper.'}
         </p>
+      </div>
+    </WindowFrame>
+  );
+};
+
+// ============================================================================
+// Responsive atlas preparation shell
+// ============================================================================
+// The shell keeps the floating map responsive while generation and SVG path
+// merging run in a worker. Worker failures are shown instead of falling back to
+// a multi-second main-thread freeze. Non-worker test environments retain a
+// synchronous path so existing component contracts remain directly testable.
+// ============================================================================
+
+interface MapPanePreparationState {
+  key: string;
+  prepared: { atlas: FmgWorldResult; model: AtlasSvgModel } | null;
+  error: string | null;
+}
+
+const MapPane: React.FC<MapPaneProps> = (props) => {
+  const worldforgeSeed = props.worldSeed ?? 0;
+  const request = useMemo(() => ({
+    seed: worldforgeSeed,
+    clearedDungeonPaths: props.clearedDungeonPaths
+      ? [...props.clearedDungeonPaths]
+      : undefined,
+  }), [worldforgeSeed, props.clearedDungeonPaths]);
+  const preparationKey = responsiveAtlasPreparationKey(
+    request.seed,
+    request.clearedDungeonPaths,
+  );
+
+  const [preparation, setPreparation] = useState<MapPanePreparationState>(() => ({
+    key: preparationKey,
+    prepared: canPrepareResponsiveAtlasOffThread()
+      ? null
+      : prepareResponsiveAtlasOnCurrentThread(request),
+    error: null,
+  }));
+
+  useEffect(() => {
+    if (!canPrepareResponsiveAtlasOffThread()) return;
+
+    let cancelled = false;
+    prepareResponsiveAtlas(request).then(
+      (prepared) => {
+        if (!cancelled) setPreparation({ key: preparationKey, prepared, error: null });
+      },
+      (error: unknown) => {
+        if (!cancelled) {
+          setPreparation({
+            key: preparationKey,
+            prepared: null,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      },
+    );
+    return () => { cancelled = true; };
+  }, [preparationKey, request]);
+
+  const currentPreparation = preparation.key === preparationKey
+    ? preparation
+    : { key: preparationKey, prepared: null, error: null };
+  if (currentPreparation.prepared) {
+    return (
+      <PreparedMapPane
+        {...props}
+        preparedAtlas={currentPreparation.prepared.atlas}
+        preparedAtlasModel={currentPreparation.prepared.model}
+      />
+    );
+  }
+
+  const isPreviewOnly = props.showGenerationControls
+    && props.allowTravel === false
+    && !props.allow3DEntry;
+  return (
+    <WindowFrame
+      title={isPreviewOnly ? 'World Preview' : 'World Map'}
+      onClose={props.onClose}
+      storageKey={WINDOW_KEYS.WORLD_MAP}
+      minimumSize={WORLD_MAP_MINIMUM_WINDOW_SIZE}
+    >
+      <div
+        data-testid="atlas-preparation-status"
+        role="status"
+        aria-live="polite"
+        className="flex h-full items-center justify-center bg-slate-900 p-8 text-center text-slate-100"
+      >
+        {currentPreparation.error ? (
+          <div>
+            <p className="font-semibold text-red-300">The world atlas could not be prepared.</p>
+            <p className="mt-2 max-w-xl text-sm text-slate-300">{currentPreparation.error}</p>
+          </div>
+        ) : (
+          <div>
+            <p className="font-semibold text-amber-300">Preparing the world atlas…</p>
+            <p className="mt-2 text-sm text-slate-300">Geography and map paths are being built without freezing this window.</p>
+          </div>
+        )}
       </div>
     </WindowFrame>
   );

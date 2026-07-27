@@ -20,6 +20,16 @@ interface GroupedMismatch {
     sampleSpellIds: string[];
     sampleSummaries: string[];
 }
+interface PolicyBoundary {
+    id: string;
+    spellId: string;
+    spellName: string;
+    markdownPath: string;
+    field: string;
+    structuredValue: string;
+    canonicalValue: string;
+    policy: string;
+}
 interface StructuredVsCanonicalReport {
     generatedAt: string;
     scannedMarkdownFiles: number;
@@ -27,6 +37,8 @@ interface StructuredVsCanonicalReport {
     mismatchCount: number;
     mismatches: ComparisonMismatch[];
     groupedMismatches: GroupedMismatch[];
+    policyBoundaryCount: number;
+    policyBoundaries: PolicyBoundary[];
 }
 interface AuditOptions {
     spellId?: string;

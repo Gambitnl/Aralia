@@ -127,8 +127,10 @@ const EnhancedSkyDome = ({
 
   // Calculate time of day (0-1 cycle)
   const timeOfDay = useMemo(() => {
-    const hours = gameTime.getHours();
-    const minutes = gameTime.getMinutes();
+    // Game clock is an in-world UTC Date; read UTC fields so the sun position
+    // matches the HUD clock (never host-machine getHours()).
+    const hours = gameTime.getUTCHours();
+    const minutes = gameTime.getUTCMinutes();
     return (hours + minutes / 60) / 24;
   }, [gameTime]);
 

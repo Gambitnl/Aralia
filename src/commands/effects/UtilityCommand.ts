@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/07/2026, 05:31:50
+ * Last Sync: 19/07/2026, 23:22:00
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 8 files
  *
@@ -16,7 +16,7 @@
 
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
-import { UtilityEffect, RepairState } from '@/types/spells'
+import { UtilityEffect, RepairState, isExecutableControlOption, ExecutableControlOption } from '@/types/spells'
 import { Item } from '@/types/items'
 import { CombatState, CombatCharacter, StatusEffect, LightSource, Ability, SelectedSpellTarget, ShapeWaterMode, ThaumaturgyMode, Position, ActiveMinorUtilityEffect, SpellObjectRepair, SpellObjectAccessChange, SpellCommunicationExchange, ActiveIllusionEffect, ActiveSpellEmanation, ActiveCommunicationControl, ActiveExtradimensionalSpace, ActiveSpellHelper, ActiveSpellForce, ActiveSpellStructure, ActiveSpellWard, ActiveAnimatedObject, ActiveAwakenedCreature, ActiveTruePolymorphTransformation } from '@/types/combat'
 import { generateId } from '../../utils/idGenerator'
@@ -429,7 +429,7 @@ export class UtilityCommand extends BaseEffectCommand {
         }
 
         // Apply control options metadata for downstream enforcement.
-        const controlOptions = effect.controlOptions ?? [];
+            const controlOptions = (effect.controlOptions ?? []).filter(isExecutableControlOption);
         if (controlOptions.length > 0) {
             newState = this.addLogEntry(newState, {
                 type: 'status',
@@ -733,8 +733,7 @@ export class UtilityCommand extends BaseEffectCommand {
             ]
         }
 
-        return this.addLogEntry(nextState, {
-            type: exchange.outcome === 'delivered' ? 'action' : 'status',
+        const logDetails = {
             message,
             characterId: this.context.caster.id,
             targetIds: exchange.privateRecipientIds,
@@ -744,7 +743,14 @@ export class UtilityCommand extends BaseEffectCommand {
                 privateRecipientIds: exchange.privateRecipientIds,
                 blockerReason: exchange.blockerReason
             }
-        })
+        }
+
+        // The outcome selects the combat-log category. Keeping each branch as
+        // a literal lets the strict producer contract verify the same payload
+        // for both delivered messages and authored rejection records.
+        return exchange.outcome === 'delivered'
+            ? this.addLogEntry(nextState, { type: 'action', ...logDetails })
+            : this.addLogEntry(nextState, { type: 'status', ...logDetails })
     }
 
     private resolveMessageBlocker(input: MessageCastInput, authoredBlockers: string[]): string | undefined {
@@ -1172,7 +1178,7 @@ export class UtilityCommand extends BaseEffectCommand {
     }
 
     private applyMinorUtilityMode(state: CombatState, effect: UtilityEffect): CombatState {
-        const controlOptions = effect.controlOptions ?? []
+        const controlOptions = (effect.controlOptions ?? []).filter(isExecutableControlOption)
         const chosen = this.resolveControlOption(controlOptions)
         if (!chosen) {
             return this.addLogEntry(state, {
@@ -1277,9 +1283,9 @@ export class UtilityCommand extends BaseEffectCommand {
 
     private getMinorUtilityCreatedObject(
         effect: UtilityEffect,
-        chosen: NonNullable<UtilityEffect['controlOptions']>[number]
+        chosen: ExecutableControlOption
     ): NonNullable<UtilityEffect['createdObjects']>[number] | undefined {
-        const controlIndex = effect.controlOptions?.findIndex(option => option.name === chosen.name) ?? -1
+        const controlIndex = effect.controlOptions?.filter(isExecutableControlOption).findIndex(option => option.name === chosen.name) ?? -1
         return controlIndex >= 0
             ? effect.createdObjects?.[controlIndex]
             : undefined
@@ -1382,13 +1388,14 @@ export class UtilityCommand extends BaseEffectCommand {
 
     private resolveThaumaturgyMode(effect: UtilityEffect): ThaumaturgyMode {
         const selected = this.context.playerInput?.trim().toLowerCase()
+        const controlOptions = (effect.controlOptions ?? []).filter(isExecutableControlOption)
         const chosen = selected
-            ? effect.controlOptions?.find(option =>
+            ? controlOptions.find(option =>
                 option.name.toLowerCase() === selected ||
                 option.name.toLowerCase().replace(/\s+/g, '_') === selected.replace(/\s+/g, '_') ||
                 option.effect.toLowerCase() === selected
             )
-            : effect.controlOptions?.[0]
+            : controlOptions[0]
         const label = (chosen?.name || 'Altered Eyes').toLowerCase()
 
         if (label.includes('booming')) return 'booming_voice'
@@ -1586,13 +1593,14 @@ export class UtilityCommand extends BaseEffectCommand {
             return 'dismiss'
         }
 
+        const controlOptions = (effect.controlOptions ?? []).filter(isExecutableControlOption)
         const chosen = selected
-            ? effect.controlOptions?.find(option =>
+            ? controlOptions.find(option =>
                 option.name.toLowerCase() === selected ||
                 option.effect.toLowerCase() === selected ||
                 option.name.toLowerCase().replace(/\s+/g, '_') === selected.replace(/\s+/g, '_')
             )
-            : effect.controlOptions?.[0]
+            : controlOptions[0]
 
         const label = (chosen?.name || 'Move Or Flow').toLowerCase()
         if (label.includes('shape')) return 'shape_and_animate'
@@ -2013,7 +2021,7 @@ export class UtilityCommand extends BaseEffectCommand {
         effect: UtilityEffect,
         optionName: string
     ): string | undefined {
-        return effect.controlOptions?.find(option => option.name === optionName)?.effect
+        return effect.controlOptions?.filter(isExecutableControlOption).find(option => option.name === optionName)?.effect
     }
 
     private createTruePolymorphCreature(
@@ -3151,6 +3159,17 @@ export class UtilityCommand extends BaseEffectCommand {
                     bloodCircleUsed: this.getSummonLesserDemonsInput().useBloodCircle === true,
                     materialComponentConsumption: effect.materialComponentLifecycle?.conditionalConsumption
                 },
+                ...(input.useBloodCircle
+                    ? {
+                        bloodCircle: {
+                            center: { ...caster.position },
+                            // The circle is authored as large enough to hold the
+                            // caster's space; the current combat token model
+                            // exposes that space as the caster's anchor tile.
+                            protectedTiles: [{ ...caster.position }]
+                        }
+                    }
+                    : {}),
                 dismissable: false
             },
             activeEffects: []
@@ -3222,7 +3241,11 @@ export class UtilityCommand extends BaseEffectCommand {
             currentHP: 68,
             maxHP: 68,
             initiative: caster.initiative,
-            statusEffects: [],
+            // The demon's end-turn control save enters the shared repeat-save
+            // engine as a source-caster-bound status. Its success is converted
+            // back into summon metadata by that engine, so control resolution
+            // does not depend on parsing the summon description later.
+            statusEffects: [this.createSummonGreaterDemonControlStatus(caster, input)],
             actionEconomy: {
                 action: { used: false, remaining: 1 },
                 bonusAction: { used: false, remaining: 1 },
@@ -3273,9 +3296,46 @@ export class UtilityCommand extends BaseEffectCommand {
                     earlyConcentrationEnding: (effect.summon as any)?.concentrationBreak,
                     materialComponentConsumption: effect.materialComponentLifecycle?.conditionalConsumption
                 },
+                ...(input.useBloodCircle
+                    ? {
+                        bloodCircle: {
+                            center: { ...caster.position },
+                            // The circle is authored as large enough to hold the
+                            // caster's space; the current combat token model
+                            // exposes that space as the caster's anchor tile.
+                            protectedTiles: [{ ...caster.position }]
+                        }
+                    }
+                    : {}),
                 dismissable: false
             },
             activeEffects: []
+        }
+    }
+
+    private createSummonGreaterDemonControlStatus(
+        caster: CombatCharacter,
+        input: SummonGreaterDemonInput
+    ): StatusEffect {
+        return {
+            id: `summon-greater-demon-control-${generateId()}`,
+            name: 'Summon Greater Demon Control',
+            type: 'neutral',
+            // Summon Greater Demon lasts for one hour of concentration. The
+            // normal concentration cleanup owns early termination; this
+            // countdown only prevents a stale status from surviving a missed
+            // cleanup boundary.
+            duration: 600,
+            source: this.context.spellName,
+            sourceSpellId: this.context.spellId,
+            sourceCasterId: caster.id,
+            repeatSave: {
+                timing: 'turn_end',
+                saveType: 'Charisma',
+                successEnds: true,
+                useOriginalDC: true,
+                modifiers: input.trueNameSpoken === true ? { disadvantage: true } : undefined
+            }
         }
     }
 
@@ -4785,7 +4845,7 @@ export class UtilityCommand extends BaseEffectCommand {
     private applyControlOption(
         state: CombatState,
         target: CombatCharacter,
-        option: NonNullable<UtilityEffect['controlOptions']>[number]
+        option: ExecutableControlOption
     ): CombatState {
         switch (option.effect) {
             case 'approach':
@@ -4833,8 +4893,8 @@ export class UtilityCommand extends BaseEffectCommand {
     }
 
     private resolveControlOption(
-        controlOptions: NonNullable<UtilityEffect['controlOptions']>
-    ): NonNullable<UtilityEffect['controlOptions']>[number] | null {
+        controlOptions: ExecutableControlOption[]
+    ): ExecutableControlOption | null {
         // Player input is stored as a menu label or effect key by the caller.
         // Match either form so UI labels like "Flee" and compact keys like
         // "flee" both resolve to the same command behavior.
@@ -4959,24 +5019,44 @@ export class UtilityCommand extends BaseEffectCommand {
     }
 
     private applyTaunt(state: CombatState, target: CombatCharacter, effect: UtilityEffect): CombatState {
-        // TODO #10: Enforce taunt effects (disadvantage vs others, leash distance, break conditions) instead of only tagging a status with placeholder duration.
+        const duration = this.context.effectDuration?.type === 'minutes'
+            ? (this.context.effectDuration.value ?? 1) * 10
+            : this.context.effectDuration?.type === 'rounds'
+                ? (this.context.effectDuration.value ?? 1)
+                : 10
         const status: StatusEffect = {
             id: generateId(),
             name: 'Taunted',
             type: 'debuff',
-            duration: 10, // placeholder; full duration enforcement requires turn system integration
+            duration,
+            source: this.context.spellName,
+            sourceSpellId: this.context.spellId,
+            sourceCasterId: this.context.caster.id,
+            taunt: effect.taunt,
+            description: effect.description,
             effect: { type: 'condition' }
         }
 
         const updated = this.updateCharacter(state, target.id, {
-            statusEffects: [...target.statusEffects, status]
+            statusEffects: [
+                ...target.statusEffects.filter(existing => !(
+                    existing.sourceSpellId === status.sourceSpellId &&
+                    existing.sourceCasterId === status.sourceCasterId &&
+                    existing.taunt
+                )),
+                status
+            ]
         })
 
         return this.addLogEntry(updated, {
             type: 'status',
             message: `${target.name} is taunted: disadvantage vs others; leash ${effect.taunt?.leashRangeFeet ?? '?'} ft`,
             characterId: target.id,
-            data: { taunt: effect.taunt }
+            data: {
+                taunt: effect.taunt,
+                statusId: status.id,
+                sourceSpellId: this.context.spellId
+            }
         })
     }
 

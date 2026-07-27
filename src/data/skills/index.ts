@@ -4,7 +4,7 @@
  */
 import { Skill } from '../../types';
 
-// TODO #245: Add 'description' field to Skill type and populate SKILLS_DATA with lore/mechanics text.
+// TODO: Add a 'description' field to the Skill type (types/core.ts) and populate SKILLS_DATA with lore/mechanics text.
 export const SKILLS_DATA: Record<string, Skill> = {
   'acrobatics': { id: 'acrobatics', name: 'Acrobatics', ability: 'Dexterity' },
   'animal_handling': { id: 'animal_handling', name: 'Animal Handling', ability: 'Wisdom' },

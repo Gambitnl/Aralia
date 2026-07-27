@@ -221,6 +221,22 @@
                                                      "requestChannel":  "caster asks services in a friendly manner while target is charmed",
                                                      "harmfulRequestSave":  "target repeats save when asked to do something that would harm it"
                                                  },
+                        "grantedActions":  [
+                                                   {
+                                                       "type":  "action",
+                                                       "action":  "Request Service",
+                                                       "frequency":  "while_active",
+                                                       "actor":  "caster",
+                                                       "actionKind":  "standard_action",
+                                                       "targeting":  "single_any",
+                                                       "socialServiceRequest":  "fast_friends",
+                                                       "prerequisites":  [
+                                                                            "target_within_spell_range"
+                                                                        ],
+                                                       "rangeLimit":  30,
+                                                       "notes":  "Ask the charmed creature to undertake a service; classify the request as friendly, harmful, conflicting, or certain death."
+                                                   }
+                                               ],
                         "memoryState":  {
                                             "kind":  "post_charm_awareness",
                                             "when":  "spell_ends",

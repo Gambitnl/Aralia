@@ -24,7 +24,7 @@ before(async () => {
   app = createAgoraServer({ dir: serverDir });
   await new Promise((resolve) => app.listen(0, resolve));
   baseUrl = `http://127.0.0.1:${app.server.address().port}`;
-  env = { AGORA_DIR: clientDir };
+  env = { AGORA_DIR: clientDir, AGORA_PET: 'gf-sd' };
 });
 
 after(async () => {
@@ -35,7 +35,7 @@ after(async () => {
 const cli = (argv) => run(argv, { env, baseUrl });
 
 test('register provenance flags are stored and whois shows them', async () => {
-  const reg = await cli(['register', 'master.desktop', '--role', 'master', '--type', 'claude-session', '--campaign', 'agora-fleet', '--cwd', 'F:/Repos/Aralia']);
+  const reg = await cli(['register', 'master.desktop', '--role', 'master', '--type', 'claude-session', '--session', 'thread-master', '--campaign', 'agora-fleet', '--cwd', 'F:/Repos/Aralia']);
   assert.equal(reg.code, 0);
 
   const who = await cli(['whois', 'master.desktop']);
@@ -47,7 +47,7 @@ test('register provenance flags are stored and whois shows them', async () => {
 });
 
 test('lineage walks the spawnedBy chain, root first', async () => {
-  await cli(['register', 'orch.lin', '--type', 'codex', '--spawned-by', 'master.desktop', '--campaign', 'linc']);
+  await cli(['register', 'orch.lin', '--type', 'codex', '--session', 'thread-lin', '--spawned-by', 'master.desktop', '--campaign', 'linc']);
   await cli(['register', 'worker.lin', '--type', 'claude-subagent', '--spawned-by', 'orch.lin', '--campaign', 'linc']);
 
   const lin = await cli(['lineage', 'worker.lin']);
@@ -58,7 +58,7 @@ test('lineage walks the spawnedBy chain, root first', async () => {
 });
 
 test('tree groups agents by campaign', async () => {
-  await cli(['register', 'orch.tree', '--campaign', 'treec', '--type', 'codex']);
+  await cli(['register', 'orch.tree', '--campaign', 'treec', '--type', 'codex', '--session', 'thread-tree']);
   await cli(['register', 'worker.tree', '--campaign', 'treec', '--spawned-by', 'orch.tree']);
 
   const tr = await cli(['tree']);
@@ -70,7 +70,7 @@ test('tree groups agents by campaign', async () => {
 });
 
 test('retire removes the current agent from the roster', async () => {
-  const reg = await cli(['register', 'worker.bye', '--type', 'codex']);
+  const reg = await cli(['register', 'worker.bye', '--type', 'codex', '--session', 'thread-bye']);
   assert.equal(reg.code, 0);
 
   const ret = await cli(['retire']);

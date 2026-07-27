@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 19/07/2026, 05:57:29
+ * Dependents: components/DesignPreview/steps/PreviewDungeon.tsx, systems/worldforge/dungeon/world/deriveIdentity.ts
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file generateDungeon.ts
  * @description Deterministic procedural dungeon generator — pure data, zero
@@ -964,12 +980,27 @@ export function generateDungeon(input: DungeonInput): DungeonPlan {
   // builder (the design preview and stats surface it).
   params.archetype = params.archetype ?? THEME_ARCHETYPE[params.theme];
   const t0 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-  // A world-grown site seeds the dungeon from its own frozen sitePath
-  // (input.basePath); the standalone preview keeps the historic wf:<seed> base.
+
+  // A canonical world attachment is already a complete dungeon path, while
+  // basePath and the standalone preview intentionally keep the older behavior
+  // of appending a `dungeon` child. Accepting both would make the chosen stream
+  // ambiguous, so fail before consuming any deterministic draws.
+  if (input.seedPath !== undefined && input.basePath !== undefined) {
+    throw new Error('generateDungeon: seedPath and basePath are mutually exclusive.');
+  }
   const base = input.basePath ?? rootSeedPath(input.seed);
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    const path = attempt === 0 ? childSeedPath(base, 'dungeon') : childSeedPath(base, `dungeon:retry:${attempt}`);
+    // The first world-attached attempt consumes the exact frozen site path.
+    // Only failed retries grow beneath it; preview/base callers retain their
+    // historic `.../dungeon` and `.../dungeon:retry:n` stream grammar.
+    const path = input.seedPath !== undefined
+      ? attempt === 0
+        ? input.seedPath
+        : childSeedPath(input.seedPath, `retry:${attempt}`)
+      : attempt === 0
+        ? childSeedPath(base, 'dungeon')
+        : childSeedPath(base, `dungeon:retry:${attempt}`);
     const plan = generateOnce(path, params, input.world);
     if (plan) {
       plan.seed = input.seed;

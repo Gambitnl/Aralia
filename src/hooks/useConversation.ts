@@ -42,6 +42,7 @@ import { OllamaService, BanterContext } from '../services/ollama';
 import { townChronicleForLocation } from '../systems/worldforge/townsim/chronicleForLocation';
 import { ConversationMessage } from '../types/conversation';
 import { generateId } from '../utils/core/idGenerator';
+import { getDayPartLabel } from '../utils/core/timeUtils';
 import { OPENING_QUEST_ID, OPENING_QUEST_OBJECTIVE_ID } from '../systems/gameEntry/openingQuest';
 
 export interface UseConversationResult {
@@ -82,8 +83,9 @@ export function useConversation(
         const locId = state.currentLocationId;
         const locName = state.dynamicLocations?.[locId]?.name || locId;
         const weather = getWeatherSummary(state.environment);
-        const hour = new Date(state.gameTime).getHours();
-        const timeOfDay = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
+        // G5: day-part word from the character's local in-world clock (the HUD
+        // clock, UTC-rendered) — never host-machine getHours().
+        const timeOfDay = getDayPartLabel(new Date(state.gameTime));
         
         // WHAT CHANGED: Added case-insensitive quest status check.
         // WHY IT CHANGED: The quest engine recently switched from 'active' (lowercase) 

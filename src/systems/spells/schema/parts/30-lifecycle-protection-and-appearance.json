@@ -121,7 +121,8 @@
           "enum": [
             "none",
             "half",
-            "negates_condition"
+            "negates_condition",
+            "negates"
           ]
         },
         "damageAbilityModifier": {

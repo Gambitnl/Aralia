@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/07/2026, 14:04:24
+ * Last Sync: 23/07/2026, 20:12:56
  * Dependents: commands/factory/AbilityCommandFactory.ts
- * Imports: 10 files
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -17,6 +17,7 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { CombatState, LightSource, Position, SelectedSpellTarget, SpellObjectImpact } from '../../types/combat'
+import type { CommonCombatLogData } from '../../types/combat'
 import type { DamageEffect, DamageType, UtilityEffect } from '../../types/spells'
 import { generateId } from '../../utils/idGenerator'
 import { rollD20, resolveAttack } from '../../utils/combatUtils'
@@ -24,6 +25,7 @@ import { getAbilityModifierValue } from '../../utils/character/statUtils'
 import { calculateProficiencyBonus } from '../../utils/character/savingThrowUtils'
 import { DamageCommand } from './DamageCommand'
 import { BreakConcentrationCommand } from './ConcentrationCommands'
+import { resolveFastFriendsServiceRequest } from '../../systems/spells/socialServiceResolution'
 
 /**
  * This command records a spell-granted follow-up action being used.
@@ -54,6 +56,7 @@ export interface GrantedActionCommandOptions {
   damageAbilityModifier?: 'spellcasting_ability' | 'not_applicable';
   wallLengthReduction?: number;
   endsWhenLengthZero?: boolean;
+  socialServiceRequest?: 'fast_friends' | string;
   notes?: string;
 }
 
@@ -82,6 +85,14 @@ export class GrantedActionCommand extends BaseEffectCommand {
     const actor = this.getCaster(state)
     const actionLabel = this.options.actionLabel ?? this.context.spellName
     const targetIds = this.context.targets.map(target => target.id)
+
+    // Fast Friends is the first social spell with a real post-cast service
+    // event. Route that action into the shared adapter so harmless requests,
+    // repeat saves, Advantage conditions, and certain-death endings all use
+    // the same live status and concentration records.
+    if (this.options.socialServiceRequest === 'fast_friends') {
+      return resolveFastFriendsServiceRequest(state, this.context)
+    }
 
     // Some granted actions, such as Wall of Light's beam, include enough
     // structured payload to resolve a real spell attack and delegate hit damage
@@ -126,6 +137,7 @@ export class GrantedActionCommand extends BaseEffectCommand {
         grantedActionDamageAbilityModifier: this.options.damageAbilityModifier,
         grantedActionWallLengthReduction: this.options.wallLengthReduction,
         grantedActionEndsWhenLengthZero: this.options.endsWhenLengthZero,
+        socialServiceRequest: this.options.socialServiceRequest,
         notes: this.options.notes
       }
     })
@@ -504,28 +516,23 @@ export class GrantedActionCommand extends BaseEffectCommand {
           expiresAtRound: state.turnState.currentTurn + 1
         }
 
-        currentState = {
+        const stateWithObjectImpact: CombatState = {
           ...currentState,
           spellObjectImpacts: [
             ...(currentState.spellObjectImpacts || []),
             objectImpact
-          ],
-          combatLog: [
-            ...currentState.combatLog,
-            {
-              id: generateId(),
-              timestamp: Date.now(),
-              type: 'damage',
-              message: `${targetName} takes ${objectImpact.damage.dice} ${objectImpact.damage.type} damage from ${actionLabel}.`,
-              characterId: actor.id,
-              targetIds: [targetId],
-              data: {
-                ...this.createLogData(actionLabel),
-                objectImpact
-              }
-            }
           ]
         }
+        currentState = this.addLogEntry(stateWithObjectImpact, {
+          type: 'damage',
+          message: `${targetName} takes ${objectImpact.damage.dice} ${objectImpact.damage.type} damage from ${actionLabel}.`,
+          characterId: actor.id,
+          targetIds: [targetId],
+          data: {
+            ...this.createLogData(actionLabel),
+            objectImpact
+          }
+        })
       } else {
         const damageEffect: DamageEffect = {
           type: 'DAMAGE',
@@ -595,7 +602,7 @@ export class GrantedActionCommand extends BaseEffectCommand {
     })
   }
 
-  private createLogData(actionLabel: string): Record<string, unknown> {
+  private createLogData(actionLabel: string): CommonCombatLogData {
     return {
       spellId: this.context.spellId,
       grantedAction: actionLabel,
@@ -654,7 +661,7 @@ export class GrantedActionCommand extends BaseEffectCommand {
       }]
     })
 
-    const stateWithReducedZones = {
+    const stateWithReducedZones: CombatState = {
       ...state,
       spellZones: nextZones,
       combatLog: removedAtZero

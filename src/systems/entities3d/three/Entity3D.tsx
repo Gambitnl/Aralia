@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/07/2026, 00:33:51
+ * Last Sync: 18/07/2026, 02:39:25
  * Dependents: components/DesignPreview/steps/EntityForgeScene.tsx, components/World3D/SceneCast.tsx
- * Imports: 3 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -55,6 +55,9 @@ export interface Entity3DProps {
   /** Body construction (skeleton pivot slice 1): rigid segment meshes
    * (default) or the skinned skeleton body. Omitting it changes nothing. */
   bodyTech?: BodyTech;
+  /** Skinned weight style (slice 3): 'rigid' segment-look default or
+   * 'smooth' one-piece blended tubes. Only read when bodyTech is 'skinned'. */
+  skinnedWeights?: 'rigid' | 'smooth';
 }
 
 export function Entity3D({
@@ -68,13 +71,14 @@ export function Entity3D({
   fieldUpdateHz,
   renderMode,
   bodyTech,
+  skinnedWeights,
 }: Entity3DProps) {
   // Keep the numeric performance settings as explicit dependencies. Callers
   // can tune a foreground hero differently from a conversational crowd
   // without rebuilding the handle merely because an options object changed.
   const handle = useMemo(
-    () => assembleEntity(blueprint, { resolutionScale, fieldUpdateHz, renderMode, bodyTech }),
-    [blueprint, fieldUpdateHz, resolutionScale, renderMode, bodyTech],
+    () => assembleEntity(blueprint, { resolutionScale, fieldUpdateHz, renderMode, bodyTech, skinnedWeights }),
+    [blueprint, fieldUpdateHz, resolutionScale, renderMode, bodyTech, skinnedWeights],
   );
   useEffect(() => {
     handle.retain();

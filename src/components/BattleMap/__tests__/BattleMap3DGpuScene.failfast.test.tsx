@@ -40,10 +40,13 @@ vi.mock('@react-three/drei', () => ({
 vi.mock('@react-three/postprocessing', () => ({
   EffectComposer: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   Bloom: () => null,
+  N8AO: () => null,
+  ToneMapping: () => null,
   Vignette: () => null,
 }));
 
-vi.mock('postprocessing', () => ({ BlendFunction: { NORMAL: 'normal' } }));
+vi.mock('postprocessing', () => ({ BlendFunction: { NORMAL: 'normal' },
+  ToneMappingMode: { ACES_FILMIC: 'aces-filmic' } }));
 
 vi.mock('../../../hooks/useBattleMap', () => ({
   useBattleMap: (...args: unknown[]) => mockUseBattleMap(...args),

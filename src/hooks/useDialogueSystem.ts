@@ -18,6 +18,7 @@ import { ProcessTopicResult } from '../services/dialogueService';
 import * as OllamaTextService from '../services/ollamaTextService';
 import { NPCS } from '../data/world/npcs';
 import { sanitizeAIPromptText } from '../utils/core/securityUtils';
+import { topicUnlockKey } from '../systems/facts/worldFactStore';
 
 export const useDialogueSystem = (
     gameState: GameState,
@@ -144,18 +145,26 @@ export const useDialogueSystem = (
             });
         }
 
-        // 4. Handle Topic Unlocks (Global Discovery)
+        // 4. Handle Topic Unlocks — durable cross-NPC propagation (DIAL-002/DIAL-004)
+        // Every unlock becomes a world-level fact: what THIS NPC told the player
+        // now durably unlocks the gated topic with EVERY NPC (dialogueService's
+        // `topic_known` prerequisite reads the same store), and it survives
+        // save/reload because the store serializes with GameState. Provenance
+        // (who told you, via which topic) rides along for audits and future
+        // region-scoped ripples.
         if (result.unlocks && result.unlocks.length > 0) {
-            result.unlocks.forEach(_topicId => {
-                // We use the Discovery Log to track "Unlocked Topics" globally if they are significant
-                // For now, we assume simple topic chaining is handled by the Session state (discussedTopicIds),
-                // but if a topic unlocks a GLOBAL fact or quest, we should log it.
-
-                // Example: If a topic unlocks a 'secret', we might want to log it.
-                // Current implementation mostly relies on the session state update in the reducer,
-                // but if we need persistent cross-NPC unlocks, we'd add a KnownFact here.
-
-                // TODO #324(Dialogist): Implement cross-NPC topic propagation via ADD_NPC_KNOWN_FACT or Discovery Log.
+            result.unlocks.forEach(unlockedTopicId => {
+                dispatch({
+                    type: 'LEARN_WORLD_FACT',
+                    payload: {
+                        fact: {
+                            key: topicUnlockKey(unlockedTopicId),
+                            sourceNpcId: session.npcId,
+                            sourceTopicId: topicId,
+                            learnedAt: currentGameTime,
+                        },
+                    },
+                });
             });
         }
 

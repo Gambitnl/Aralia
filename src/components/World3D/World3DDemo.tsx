@@ -16,8 +16,15 @@
  *   spawning on flat coast/ocean or a flat plateau (W3D-G11 / T8).
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import World3DScene from './World3DScene';
+import SubmapSvgView from '../Worldforge/SubmapSvgView';
+import { atlasCellToSubmapContext } from '@/systems/worldforge/submap/l0Adapter';
+import {
+  generateSubmap,
+  normalizeParentContextScale,
+} from '@/systems/worldforge/submap/submapEngine';
+import { rootSeedPath } from '@/systems/worldforge/seedPath';
 import { createForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
 import { assetAddress } from '@/systems/worldforge/assets/assetKey';
 
@@ -95,6 +102,29 @@ const World3DDemo: React.FC = () => {
     [],
   );
 
+  // The ground harness's cell address, re-read here for the 2D zoom-out
+  // overlay (the loader memo consumes the same params internally).
+  const { dcell, wfSeed } = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const dcellParam = params.get('dcell');
+    return {
+      dcell: groundMode && dcellParam != null ? Number(dcellParam) : null,
+      wfSeed: Number(params.get('wfseed') ?? DEMO_WF_SEED),
+    };
+  }, [groundMode]);
+  // ?ground=1&dcell=N only: "zoom out" overlay showing the 2D Voronoi submap
+  // of the SAME atlas cell this window streams, via the same engine the
+  // in-game MapPane drill uses.
+  const [show2dSubmap, setShow2dSubmap] = useState(false);
+  const submapModel = useMemo(() => {
+    if (!show2dSubmap || dcell == null) return null;
+    const atlas = getBridgeAtlas(wfSeed);
+    const ctx = normalizeParentContextScale(
+      atlasCellToSubmapContext(atlas, dcell, rootSeedPath(wfSeed)),
+    );
+    return generateSubmap(ctx);
+  }, [show2dSubmap, dcell, wfSeed]);
+
   const { loader, start, startSurfaceY, ground: demoGround } = useMemo(() => {
     if (groundMode) {
       // Location is URL-tunable: ?ground=1&gx=17&gy=4 → river window;
@@ -148,7 +178,11 @@ const World3DDemo: React.FC = () => {
         dcellParam != null
           ? getWorldforgeLocalForCell(wfSeed, Number(dcellParam))
           : getWorldforgeLocalForLocation(wfSeed, gx, gy, 25, 16);
-      const { ground, loader: groundLoader } = createGroundChunkLoader(bridged.local, wfSeed, bridged.region, { hour });
+      // anchorCellId threads the per-window canopy (forests) and snow line
+      // (mountains) into dev ground entries — without it every dcell/gx-gy
+      // shoot rendered snowless, canopy-less terrain the game path never shows.
+      const { ground, loader: groundLoader } = createGroundChunkLoader(
+        bridged.local, wfSeed, bridged.region, { hour, anchorCellId: bridged.anchorCellId });
 
       // Spawn at the artifact center, on the ground surface
       const startX = ground.extentMetersX / 2;
@@ -229,10 +263,52 @@ const World3DDemo: React.FC = () => {
         {groundMode
           ? 'This URL-only harness reconstructs a canonical cell-addressed Local artifact for diagnostics. Player exploration enters through Atlas and preserves its selected artifact in memory.'
           : 'Right-click and drag to pan the camera across the landscape. Chunks will stream in and out in real time!'}
+        {dcell != null && (
+          <button
+            type="button"
+            onClick={() => setShow2dSubmap((v) => !v)}
+            style={{
+              marginLeft: '12px',
+              padding: '4px 12px',
+              fontSize: '13px',
+              fontFamily: 'Outfit, sans-serif',
+              color: '#e8eef4',
+              background: '#2c4a68',
+              border: '1px solid #1a2a3a',
+              borderRadius: '6px',
+              cursor: 'pointer',
+            }}
+          >
+            {show2dSubmap ? `Back to 3D` : `Zoom out — 2D submap of cell ${dcell}`}
+          </button>
+        )}
       </p>
       {/* Absolute-inset slot: gives World3DScene's height:100% root a DEFINITE
           height regardless of how the flex column resolves percentages. */}
       <div style={{ flex: '1 1 auto', minHeight: '520px', position: 'relative' }}>
+        {/* 2D zoom-out overlay: the streamed cell's Voronoi submap, over the
+            (kept-mounted) 3D scene so toggling back is instant. */}
+        {show2dSubmap && submapModel && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#0b1420',
+              borderRadius: '8px',
+            }}
+          >
+            <SubmapSvgView
+              model={submapModel}
+              width={Math.min(1100, window.innerWidth - 120)}
+              height={Math.min(760, window.innerHeight - 220)}
+              prefsScope={wfSeed}
+            />
+          </div>
+        )}
         <div style={{ position: 'absolute', inset: 0 }}>
           <World3DScene loader={loader} start={start} startSurfaceY={startSurfaceY} viewProfile={groundMode ? 'ground' : 'continent'}
             forgeAssetService={_stubService}

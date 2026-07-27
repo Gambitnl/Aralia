@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 06/07/2026, 09:33:48
+ * Last Sync: 23/07/2026, 20:12:26
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/DamageCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 11 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -24,7 +24,7 @@
  */
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CombatState, StatusEffect, ActiveCondition, ActiveEffect, ActiveEnvironmentalControl } from '../../types/combat';
-import { isStatusConditionEffect, EffectDuration, ConditionName, BindingControl, DominationControl, StatusCondition, StatusConditionEffect } from '../../types/spells';
+import { isStatusConditionEffect, EffectDuration, ConditionName, BindingControl, DominationControl, StatusCondition, StatusConditionEffect, RepeatSave, SpellcastingRestriction } from '../../types/spells';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import { generateId } from '../../utils/combatUtils';
 import { STATUS_ICONS, DEFAULT_STATUS_ICON } from '@/config/statusIcons';
@@ -33,8 +33,10 @@ import { ConditionToStateTag } from '../../types/elemental';
 import { applyStateToTags } from '../../systems/physics/ElementalInteractionSystem';
 import { breakFriendsConcentrationForCaster } from './ConcentrationCommands';
 import { refreshConditionsByName, refreshStatusEffectsByName } from '../../utils/combat/statusConditionUtils';
+import { getRecurringMechanics } from '../../hooks/spellEffectUtils';
 
 const FRIENDS_MEMORY_DURATION_ROUNDS = 24 * 60 * 10;
+const SPECIAL_STATUS_DURATION_ROUNDS = Number.MAX_SAFE_INTEGER;
 
 type WrathOfNatureStatusMetadata = {
   controlledEntity?: { entityType?: string };
@@ -98,7 +100,18 @@ export class StatusConditionCommand extends BaseEffectCommand {
     }
 
     const statusCondition = this.getStatusConditionPayload();
-    if (!statusCondition || statusCondition.duration.value === 0) {
+    if (!statusCondition) {
+      return currentState;
+    }
+
+    // A zero numeric duration means there is no condition to apply. Turn
+    // boundaries use zero differently: Stinking Cloud's zero means the first
+    // matching turn end, so it must reach the explicit boundary scheduler.
+    const isTurnBoundaryDuration =
+      statusCondition.duration.type === 'until_end_of_current_turn' ||
+      statusCondition.duration.type === 'turn_end';
+    const isSpecialDuration = statusCondition.duration.type === 'special';
+    if (statusCondition.duration.value === 0 && !isTurnBoundaryDuration && !isSpecialDuration) {
       return currentState;
     }
 
@@ -179,10 +192,16 @@ export class StatusConditionCommand extends BaseEffectCommand {
       }
 
       const durationRounds = this.calculateDuration(statusCondition.duration);
+      const turnEndEventsRemaining = this.calculateTurnEndEventsRemaining(
+        statusCondition.duration,
+        currentState,
+        target.id
+      );
       const appliedCondition: ActiveCondition = {
         name: statusCondition.name,
         duration: statusCondition.duration,
         appliedTurn: currentState.turnState.currentTurn,
+        ...(turnEndEventsRemaining !== undefined ? { turnEndEventsRemaining } : {}),
         source: this.context.spellName || this.context.spellId,
         sourceCasterId: this.context.caster.id,
         ...this.getStatusMetadata()
@@ -243,7 +262,6 @@ export class StatusConditionCommand extends BaseEffectCommand {
    * Apply or refresh a condition entry on the character. Re-applying the same condition name
    * refreshes duration/turn so downstream systems don't stack duplicates.
    */
-  // TODO #7(Simulator): Integrate StateSystem.applyStateToTags when applying elemental conditions (e.g. mapping 'Ignited' condition to 'Burning' state).
   private applyCondition(
     existing: ActiveCondition[] | undefined,
     condition: ActiveCondition
@@ -361,14 +379,16 @@ export class StatusConditionCommand extends BaseEffectCommand {
    * Keeping the helper local avoids rebuilding those optional copies in each
    * mirror and makes the lossy-bridge decision easy to audit.
    */
-  private getStatusMetadata(): Pick<StatusEffect, 'repeatSave' | 'escapeCheck' | 'breakTriggers' | 'bindingControl' | 'dominationControl' | 'hitPointState' | 'socialLifecycle'> {
+  private getStatusMetadata(): Pick<StatusEffect, 'repeatSave' | 'spellcastingRestriction' | 'escapeCheck' | 'breakTriggers' | 'bindingControl' | 'dominationControl' | 'hitPointState' | 'socialLifecycle'> {
     const statusCondition = this.getStatusConditionPayload();
     if (!statusCondition) {
       return {};
     }
 
-    const { repeatSave, escapeCheck } = statusCondition;
+    const { escapeCheck } = statusCondition;
+    const repeatSave = statusCondition.repeatSave ?? this.getSourceRepeatSave();
     const breakTriggers = statusCondition.breakTriggers ?? this.getAwakenBreakTriggers();
+    const spellcastingRestriction = this.getSpellcastingRestriction();
     const bindingControl = this.getBindingControlMetadata();
     const dominationControl = this.getDominationControlMetadata();
     const runtimeRepeatSave = repeatSave
@@ -383,6 +403,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
 
     return {
       ...(runtimeRepeatSave ? { repeatSave: runtimeRepeatSave } : {}),
+      ...(spellcastingRestriction ? { spellcastingRestriction } : {}),
       ...(escapeCheck ? { escapeCheck } : {}),
       ...(breakTriggers ? { breakTriggers } : {}),
       ...(bindingControl ? { bindingControl } : {}),
@@ -400,6 +421,20 @@ export class StatusConditionCommand extends BaseEffectCommand {
           }
         }
         : {}),
+      ...(this.isFastFriendsCharmedEffect()
+        ? {
+          socialLifecycle: {
+            kind: 'fast_friends',
+            targetKnowsOnEnd: true,
+            service: {
+              targetPerformsRequestedServices: true,
+              performanceManner: 'friendly_to_best_of_ability',
+              requestCannotCauseCertainDeath: true,
+              requestChannel: 'caster asks services in a friendly manner while target is charmed'
+            }
+          }
+        }
+        : {}),
       ...(this.isAwakenCharmedEffect()
         ? {
           socialLifecycle: {
@@ -410,6 +445,81 @@ export class StatusConditionCommand extends BaseEffectCommand {
           }
         }
         : {})
+    };
+  }
+
+  /**
+   * Bridge the source-shaped repeat-save record used by domination spells into
+   * the existing combat-engine timing contract. Composite service and choice
+   * labels stay untouched until their event-specific interaction exists.
+   */
+  private getSourceRepeatSave(): RepeatSave | undefined {
+    const sourceRepeat = getRecurringMechanics(this.effect).find(mechanic =>
+      typeof mechanic.saveType === 'string' &&
+      (
+        mechanic.type === 'repeat_save' ||
+        mechanic.timing === 'harmful_or_conflicting_service_requested'
+      )
+    );
+    if (!sourceRepeat || !sourceRepeat.saveType) {
+      return undefined;
+    }
+
+    const sourceTrigger = typeof sourceRepeat.trigger === 'string'
+      ? sourceRepeat.trigger
+      : sourceRepeat.timing;
+    const timing = sourceTrigger === 'target_takes_damage'
+      ? 'on_damage'
+      : sourceTrigger === 'turn_start' || sourceTrigger === 'turn_end'
+        ? sourceTrigger
+        : sourceTrigger === 'harmful_or_conflicting_service_requested'
+          ? 'on_social_service_request'
+        : undefined;
+    if (!timing) {
+      return undefined;
+    }
+
+    const successText = String(sourceRepeat.success ?? sourceRepeat.successOutcome ?? '');
+    const sourceWithModifiers = sourceRepeat as typeof sourceRepeat & {
+      saveModifiers?: Array<{ modifier?: string; condition?: string }>;
+    };
+    const advantageWhenFighting = sourceWithModifiers.saveModifiers?.some(modifier =>
+      modifier.modifier === 'advantage' && modifier.condition === 'caster_or_companions_fighting_target'
+    ) === true;
+
+    return {
+      timing,
+      saveType: sourceRepeat.saveType as RepeatSave['saveType'],
+      successEnds: sourceRepeat.successEnds === true || sourceRepeat.successEndsControl === true || /ends?/i.test(successText),
+      useOriginalDC: sourceRepeat.useOriginalDC !== false,
+      ...(advantageWhenFighting
+        ? { modifiers: { advantageWhenCasterOrCompanionsFightingTarget: true } }
+        : {})
+    };
+  }
+
+  /**
+   * Preserve pre-cast save gates as status metadata so the casting orchestrator
+   * can resolve them before it materializes the attempted spell's commands.
+   */
+  private getSpellcastingRestriction(): SpellcastingRestriction | undefined {
+    const sourceRestriction = getRecurringMechanics(this.effect).find(mechanic =>
+      mechanic.timing === 'on_target_cast' && typeof mechanic.saveType === 'string'
+    );
+    if (!sourceRestriction || typeof sourceRestriction.saveType !== 'string') {
+      return undefined;
+    }
+
+    return {
+      saveType: sourceRestriction.saveType,
+      dc: calculateSpellDC(this.context.caster),
+      ...(typeof sourceRestriction.successOutcome === 'string'
+        ? { successOutcome: sourceRestriction.successOutcome }
+        : {}),
+      ...(typeof sourceRestriction.failureOutcome === 'string'
+        ? { failureOutcome: sourceRestriction.failureOutcome }
+        : {}),
+      ...(typeof sourceRestriction.notes === 'string' ? { notes: sourceRestriction.notes } : {})
     };
   }
 
@@ -521,6 +631,12 @@ export class StatusConditionCommand extends BaseEffectCommand {
 
   private isFriendsCharmedEffect(): boolean {
     return this.context.spellId === 'friends' &&
+      this.getStatusConditionPayload()?.name === 'Charmed';
+  }
+
+  /** Fast Friends shares Friends' Charmed condition but owns a separate service-request lifecycle. */
+  private isFastFriendsCharmedEffect(): boolean {
+    return this.context.spellId === 'fast-friends' &&
       this.getStatusConditionPayload()?.name === 'Charmed';
   }
 
@@ -640,18 +756,49 @@ export class StatusConditionCommand extends BaseEffectCommand {
   }
 
   private calculateDuration(duration: EffectDuration): number {
-    const val = duration.value || 1;
+    // The legacy status mirror still needs a positive display duration. The
+    // structured condition owns exact turn-boundary expiry for the two
+    // turn-relative forms below.
+    const val = duration.value ?? 1;
     switch (duration.type) {
       case 'rounds':
         return val;
       case 'minutes':
         return val * 10;
       case 'special':
-        return val;
-      default:
-        // TODO #8(lint-intent): Legacy durations like 'hours'/'instantaneous' should be normalized before calling this command.
-        return val;
+        // A special condition has no numeric expiry. Keep the legacy mirror
+        // alive until its structured break trigger, repeat save, or owning
+        // spell cleanup removes it.
+        return SPECIAL_STATUS_DURATION_ROUNDS;
+      case 'until_end_of_current_turn':
+      case 'turn_end':
+        return Math.max(1, val);
     }
+  }
+
+  /**
+   * Convert authored turn language into a target-relative countdown.
+   *
+   * A condition applied during the target's own turn must pass the current
+   * turn end before a "next turn" boundary. Conditions applied outside the
+   * target's turn reach their next boundary at the target's first turn end.
+   */
+  private calculateTurnEndEventsRemaining(
+    duration: EffectDuration,
+    state: CombatState,
+    targetId: string
+  ): number | undefined {
+    if (duration.type === 'until_end_of_current_turn') {
+      return 1;
+    }
+
+    if (duration.type !== 'turn_end') {
+      return undefined;
+    }
+
+    const futureTurnEnds = Math.max(0, duration.value ?? 1);
+    const currentTurnEnd = state.turnState.currentCharacterId === targetId ? 1 : 0;
+    return Math.max(1, futureTurnEnds + currentTurnEnd);
   }
 
   private getIconForCondition(name: string): string {

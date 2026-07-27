@@ -95,7 +95,7 @@ export const ITEMS: Record<string, Item> = {
 
   // --- Light Sources ---
   'torch': { id: 'torch', name: 'Torch', icon: '🔥', description: 'A wooden torch wrapped in cloth and pitch. Burns for 1 hour, providing bright light for 20 feet and dim light for another 20 feet.', type: 'consumable', weight: 1, cost: '1 CP' },
-  // TODO #210(preserve-lint): confirm whether lanterns should be consumable (fuel) or a dedicated light_source type.
+  // Lanterns are the dedicated (reusable) light_source type; their fuel is the consumable oil_flask below.
   'hooded_lantern': { id: 'hooded_lantern', name: 'Hooded Lantern', icon: '🏮', description: 'A metal lantern with shutters. Burns oil for 6 hours. Can be shuttered to reduce light.', type: 'light_source', weight: 2, cost: '5 GP' },
   'oil_flask': { id: 'oil_flask', name: 'Oil (flask)', icon: '🍶', description: 'A flask of oil. Can be used to fuel a lantern or as a weapon.', type: 'consumable', weight: 1, cost: '1 SP' },
 
@@ -181,42 +181,25 @@ import { GATHERABLE_ITEMS } from '../gatherableItems.js';
 import { GENERATED_GLOSSARY_ITEMS } from './generatedGlossaryItems.js';
 import { ADVENTURING_GEAR } from './adventuringGear.js';
 import { HOUSEHOLD_GOODS } from './householdGoods.js';
+import { CRAFTING_MATERIALS } from '../craftingMaterials.js';
 
-// Combined ITEMS export including all gatherable ingredients
-// GENERATED_GLOSSARY_ITEMS is spread last so that ingested PHB items override legacy hardcoded ones.
+// Combined ITEMS export including all gatherable ingredients.
 //
-// PROVISIONS EXCEPTION (PRV2): the travel food/water gate (systems/travel/provisioning.ts)
-// counts inventory by the canonical ids 'rations' and 'water-day' and expects the
-// `food_drink` definitions above. The generated glossary, however, ALSO defines a 'rations'
-// entry — as an `accessory`/Ring — which would otherwise win because it is spread last,
-// turning trail rations into an equippable ring (wrong type/icon, and "loot all food_drink"
-// never surfaces them). We re-assert the canonical provisions AFTER the glossary so the
-// food versions always win. Keep this list in sync with the provisions block in ITEMS.
-const CANONICAL_PROVISIONS: Record<string, Item> = {
-  'rations': ITEMS['rations'],
-  'water-day': ITEMS['water-day'],
-};
-
-// CANONICAL EQUIPMENT (same rationale as CANONICAL_PROVISIONS): the bulk-ingested
-// glossary redefines many hand-authored gear ids with mechanically-incomplete
-// versions — e.g. it strips `addsDexterityModifier`/`maxDexterityBonus` off armor
-// (so a chain shirt stops adding Dex) and drops `damageDice`/`mastery` off weapons.
-// Because the glossary is spread after the authored data, those stripped versions
-// would win and silently break AC and attack math game-wide. We re-assert the
-// authored weapons and armor AFTER the glossary so real combat stats always win;
-// the glossary still fills in ids the authored data doesn't define.
-const CANONICAL_ARMOR: Record<string, Item> = Object.fromEntries(
-  Object.entries(ITEMS).filter(([, item]) => item.type === 'armor'),
-);
-
+// PRECEDENCE RULE: hand-authored definitions always win over the auto-generated
+// glossary (generatedGlossaryItems.ts). The bulk-ingested glossary redefines
+// dozens of authored ids with mechanically-incomplete stubs — it turns lanterns,
+// torches, tinderboxes, and poisons into equippable "Ring" accessories, strips
+// slot/cost off amulets and cloaks, and drops damageDice/mastery off weapons and
+// addsDexterityModifier off armor. So GENERATED_GLOSSARY_ITEMS is spread FIRST
+// (lowest priority): it only fills in ids the authored data doesn't define, and
+// every hand-authored source below overrides it. This is the single source of
+// truth for the merge order — no per-category re-asserts needed.
 export const ALL_ITEMS: Record<string, Item> = {
+  ...GENERATED_GLOSSARY_ITEMS,
   ...ITEMS,
   ...WEAPONS_DATA,
   ...ADVENTURING_GEAR,
   ...GATHERABLE_ITEMS,
-  ...GENERATED_GLOSSARY_ITEMS,
   ...HOUSEHOLD_GOODS,
-  ...WEAPONS_DATA,
-  ...CANONICAL_ARMOR,
-  ...CANONICAL_PROVISIONS,
+  ...CRAFTING_MATERIALS,
 };

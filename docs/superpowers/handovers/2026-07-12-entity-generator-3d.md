@@ -17,6 +17,38 @@ Spec: `docs/superpowers/specs/2026-07-15-entity-body-v2-segments-design.md`.
 The sections below describe the metaball era — still useful for the system map
 (anchors, gaits, recipes, surfaces), but the body internals they describe are
 gone.
+**Update 2026-07-26 — grounded wing beat shipped; the dragon item below is DONE.**
+Biped and quad/hexapod drivers now emit a gentle speed-scaled wing flap
+(`groundedWingBeat()` in `three/gaits.ts`, the same formula the plan driver
+already used), so dragons, celestials, fiends, fairies, and aarakocra move
+their wings on the ground instead of freezing mid-spread. The plan driver's
+blind spot — wings authored as garnish PARTS (the Emberwing dragon) rather
+than chain appendages — is closed by a `winged` hint on `createGaitDriver`,
+computed from `blueprint.parts` by the assembler and the crowd baker.
+Hopper stays flap-0 (no winged hopper profiles exist). Pinned by driver
+tests (beat envelope, idle-vs-walk amplitude, hopper zero) and an end-to-end
+assembler test (walking Huge dragon: `wingL.rotation.z` sweeps ≈1.4 rad and
+mirrors `wingR`).
+**Update 2026-07-27 — beast head redesigned + seeded anatomy individuality.**
+Two generator upgrades in one pass. (1) The `beast` head form is no longer a
+featureless `BoxGeometry` crate that swallowed the eyes whole: it's now a
+composed skull — shallow icosahedron cranium (front ≤0.78r so the
+assembler-seated eyes clear it), a pointed octahedron muzzle wedge below the
+eye line, and a brow pair above it (`three/headForms.ts`; the file documents
+the face-plane rule). Dragons, beasts, fiends, and monstrosities all wear it.
+(2) Generic monsters are no longer clones: a third seed stream `anatomy`
+(`generateEntityBlueprint.ts`) drives `varyPlan` in `creaturePlans.ts` —
+proportion jitter on every chain link/radius, spine bulge/taper, head size,
+and snout, plus per-type identity picks (35% of dragons roll the `serpent`
+head form; monstrosities roll goat/slit/round pupils) and seeded garnish
+swaps from `CREATURE_PART_VARIANTS` (dragons/fiends roll straight/curved/ram
+horns, beasts roll pointed/long ears). Humanoid race identities are
+untouched — the variant table only runs in the creature path, and omitting
+the rng keeps the historical fixed anatomy byte-identical (fixtures, tests,
+dev tools). Streams stay independent: frame/palette draws did not move.
+Pinned by `__tests__/headForms.test.ts` (composition + face-plane geometry)
+and `__tests__/anatomyVariety.test.ts` (determinism, 20-seed individuality,
+variant registry resolution, stream-free stability, tiefling identity guard).
 
 Related docs (same feature):
 - Spec: `docs/superpowers/specs/2026-07-11-entity-generator-3d-design.md`
@@ -241,7 +273,9 @@ pass `playerCharacter` (was `playerIdentity`); `groundChunkLoader` bakes
 - Crowd walkers snap between the 8 baked keyframes (no cross-fade).
 - Street commuters use a *seeded* ancestry (the roster doesn't persist race —
   plumb it like households did if you want real ones).
-- Quad wings (dragon) don't flap while walking (flap only drives the flyer gait).
+- ~~Quad wings (dragon) don't flap while walking~~ **RESOLVED 2026-07-26** —
+  grounded wing beat on biped/quad/hexapod + plan drivers (see the update at
+  the top); hopper intentionally stays still.
 - Forge lineup mode frames many figures from behind.
 - Combat HP pip/turn-beam scale versus the new bodies is only lightly reviewed.
 

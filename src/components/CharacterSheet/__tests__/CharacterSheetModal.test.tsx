@@ -1,3 +1,9 @@
+/**
+ * This file verifies the Character Sheet window shell and its tab wiring.
+ * Child tabs are represented by small stand-ins so these tests can prove the
+ * modal keeps its window behavior and forwards application-level callbacks,
+ * including the glossary route used by linked spell rules.
+ */
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -35,7 +41,17 @@ vi.mock('../Family', () => ({
 }));
 
 vi.mock('../Spellbook', () => ({
-  SpellbookTab: () => <div data-testid="spellbook-tab">SpellbookTab</div>,
+  // This button represents a linked rule inside the Spellbook. It lets the
+  // modal test prove the existing glossary callback reaches that child tab.
+  SpellbookTab: ({ onNavigateToGlossary }: { onNavigateToGlossary?: (termId: string) => void }) => (
+    <button
+      type="button"
+      data-testid="spellbook-tab"
+      onClick={() => onNavigateToGlossary?.('concentration')}
+    >
+      SpellbookTab
+    </button>
+  ),
 }));
 
 vi.mock('../Crafting', () => ({
@@ -198,5 +214,22 @@ describe('CharacterSheetModal', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Spellbook' }));
     expect(screen.getByTestId('spellbook-tab')).toBeInTheDocument();
     expect(screen.getByText('Test Hero')).toBeInTheDocument();
+  });
+
+  it('forwards linked spell rules through the existing glossary route', () => {
+    const onNavigateToGlossary = vi.fn();
+    render(
+      <CharacterSheetModal
+        {...defaultProps}
+        onNavigateToGlossary={onNavigateToGlossary}
+      />
+    );
+
+    // Opening Spellbook mounts the child with the same callback GameModals
+    // supplied, so a nested rule link can open the application glossary.
+    fireEvent.click(screen.getByRole('tab', { name: 'Spellbook' }));
+    fireEvent.click(screen.getByTestId('spellbook-tab'));
+
+    expect(onNavigateToGlossary).toHaveBeenCalledWith('concentration');
   });
 });

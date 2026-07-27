@@ -18,6 +18,7 @@ import { createStore } from './store.mjs';
 let app;
 let port;
 let tmpDir;
+const TEST_PET = 'gf-sd';
 
 before(async () => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-server-test-'));
@@ -68,7 +69,7 @@ function requestOn(targetPort, method, pathname, { token, body } = {}) {
 }
 
 async function registerAgent(handle) {
-  const r = await request('POST', '/agents/register', { body: { handle } });
+  const r = await request('POST', '/agents/register', { body: { handle, petSlug: TEST_PET } });
   assert.equal(r.status, 201);
   return r.json; // { agentId, token, handle }
 }
@@ -92,6 +93,75 @@ test('register returns a token; authed heartbeat works; unauthed mutation -> 401
   assert.equal(badTok.status, 401);
 });
 
+test('presence registration requires a valid pet identity before mutating the roster', async () => {
+  const before = await request('GET', '/agents');
+  const pets = await request('GET', '/pets');
+  assert.equal(pets.status, 200);
+  assert.ok(pets.json.pets.some((pet) => pet.slug === TEST_PET));
+
+  const missing = await request('POST', '/agents/register', { body: { handle: 'petless-worker' } });
+  assert.equal(missing.status, 400);
+  assert.match(missing.json.error, /petSlug.*required/i);
+
+  const unknown = await request('POST', '/agents/register', {
+    body: { handle: 'unknown-pet-worker', petSlug: 'not-in-the-catalog' },
+  });
+  assert.equal(unknown.status, 400);
+  assert.match(unknown.json.error, /unknown petSlug/i);
+
+  const afterRejected = await request('GET', '/agents');
+  assert.equal(afterRejected.json.agents.length, before.json.agents.length);
+
+  const accepted = await request('POST', '/agents/register', {
+    body: { handle: 'pet-owner', petSlug: TEST_PET },
+  });
+  assert.equal(accepted.status, 201);
+  assert.equal(accepted.json.requestedPetSlug, TEST_PET);
+  assert.equal(accepted.json.petSubstituted, true, 'the earlier alice registration already owns the requested pet');
+  assert.notEqual(accepted.json.pet.slug, TEST_PET);
+  const roster = await request('GET', '/agents');
+  assert.equal(roster.json.agents.find((agent) => agent.id === accepted.json.agentId).pet.slug, accepted.json.pet.slug);
+  assert.equal(new Set(roster.json.agents.map((agent) => agent.pet.slug)).size, roster.json.agents.length);
+
+  const availability = await request('GET', '/pets');
+  const requestedPet = availability.json.pets.find((pet) => pet.slug === TEST_PET);
+  assert.equal(requestedPet.available, false);
+  assert.equal(requestedPet.claimedBy.handle, 'alice');
+});
+
+test('Codex and orchestrator registrations require a task/thread id before mutating presence', async () => {
+  const before = await request('GET', '/agents');
+  const rejectedBodies = [
+    { handle: 'codex-missing-thread', petSlug: TEST_PET },
+    { handle: 'worker-codex-type', type: 'codex', petSlug: TEST_PET },
+    { handle: 'worker-gpt-model', model: 'gpt-5.6-sol', petSlug: TEST_PET },
+    { handle: 'fleet-lead', role: 'orchestrator', petSlug: TEST_PET },
+  ];
+  for (const body of rejectedBodies) {
+    const rejected = await request('POST', '/agents/register', { body });
+    assert.equal(rejected.status, 400);
+    assert.match(rejected.json.error, /task\/thread id.*required/i);
+  }
+  const afterRejected = await request('GET', '/agents');
+  assert.equal(afterRejected.json.agents.length, before.json.agents.length);
+
+  const accepted = await request('POST', '/agents/register', {
+    body: {
+      handle: 'codex-thread-owner',
+      model: 'gpt-5.6-sol',
+      sessionId: '019f-thread-proof',
+      petSlug: TEST_PET,
+    },
+  });
+  assert.equal(accepted.status, 201);
+  assert.equal(accepted.json.sessionId, '019f-thread-proof');
+  const roster = await request('GET', '/agents');
+  const agent = roster.json.agents.find((candidate) => candidate.id === accepted.json.agentId);
+  assert.equal(agent.sessionId, '019f-thread-proof');
+  assert.equal(agent.threadIdRequired, true);
+  assert.equal(agent.threadIdRequirement, 'codex');
+});
+
 test('heartbeat endpoint returns 410 and invalidates an expired heartbeat-only lease', async () => {
   const leaseDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-heartbeat-lease-'));
   let currentMs = 10_000;
@@ -104,7 +174,7 @@ test('heartbeat endpoint returns 410 and invalidates an expired heartbeat-only l
     await new Promise((resolve) => leaseApp.listen(0, resolve));
     const leasePort = leaseApp.server.address().port;
     const registered = await requestOn(leasePort, 'POST', '/agents/register', {
-      body: { handle: 'worker.expired-heartbeat' },
+      body: { handle: 'worker.expired-heartbeat', petSlug: TEST_PET },
     });
     assert.equal(registered.status, 201);
     currentMs += 1000;
@@ -236,6 +306,15 @@ test('tasks: create -> claim -> in_progress -> done; double-claim -> 409', async
   assert.equal(claim.status, 200);
   assert.equal(claim.json.task.state, 'claimed');
   assert.equal(claim.json.task.claimedBy, a.agentId);
+  assert.equal(claim.json.task.assignedPet.kind, 'humanoid');
+  assert.equal(claim.json.task.claimedAgent.pet.slug, claim.json.task.assignedPet.slug);
+  assert.equal(claim.json.task.history.at(-1).petSlug, claim.json.task.assignedPet.slug);
+
+  // Pet ownership is also published on the roster so the dashboard can show
+  // an agent's companion outside the individual task row.
+  const roster = await request('GET', '/agents');
+  const claimingAgent = roster.json.agents.find((agent) => agent.id === a.agentId);
+  assert.equal(claimingAgent.pet.slug, claim.json.task.assignedPet.slug);
 
   const inProg = await request('POST', `/tasks/${id}/state`, {
     token: a.token,
@@ -328,6 +407,18 @@ test('GET /health returns ok:true and sensible counts', async () => {
   assert.ok(h.json.counts.agents >= 1);
   assert.ok(typeof h.json.lastSeq === 'number');
   assert.ok(typeof h.json.uptime === 'number');
+});
+
+test('dashboard task inspector leads with a readable brief and collapses raw records', () => {
+  const dashboard = fs.readFileSync(new URL('./dashboard/index.html', import.meta.url), 'utf8');
+  assert.match(dashboard, /proseBlock\("What needs doing", task\.body\)/);
+  assert.match(dashboard, /listBlock\("Activity", activityRows/);
+  assert.match(dashboard, /personCard\("Created by", createdBy\)/);
+  assert.match(dashboard, /\["reasoning effort", agent\.reasoningEffort\]/);
+  assert.match(dashboard, /a\.reasoningEffort/);
+  assert.match(dashboard, /a\.capacityRecoverable/);
+  assert.match(dashboard, /<details class="inspector-block inspector-raw">/);
+  assert.doesNotMatch(dashboard, /<section class="inspector-block"><h3>\$\{esc\(title\)\}<\/h3><pre/);
 });
 
 test('GET / serves a dashboard placeholder when index.html is absent', async () => {
@@ -463,7 +554,7 @@ test('archiveDoneTasks files old done tasks and survives replay', async () => {
 
   let app2;
   try {
-    const reg = await req1('POST', '/agents/register', { body: { handle: 'archive-worker' } });
+    const reg = await req1('POST', '/agents/register', { body: { handle: 'archive-worker', petSlug: TEST_PET } });
     assert.equal(reg.status, 201);
     const a = reg.json;
 
@@ -554,7 +645,7 @@ test('task mutations coalesce into one scheduled sync run', async () => {
   await new Promise((resolve) => app2.listen(0, resolve));
   const p2 = app2.server.address().port;
   try {
-    const reg = await requestOn(p2, 'POST', '/agents/register', { body: { handle: 'sync-trig' } });
+    const reg = await requestOn(p2, 'POST', '/agents/register', { body: { handle: 'sync-trig', petSlug: TEST_PET } });
     assert.equal(reg.status, 201);
     const token = reg.json.token;
     for (let i = 0; i < 3; i += 1) {

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/06/2026, 01:55:55
+ * Last Sync: 18/07/2026, 11:55:46
  * Dependents: state/appState.ts
  * Imports: 4 files
  *
@@ -145,9 +145,13 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
 
     case 'TOGGLE_GLOSSARY_VISIBILITY': {
       const openingGlossary = !state.isGlossaryVisible;
+      // A requested entry travels with the opening action so selection and the
+      // conflicting-overlay reset happen atomically. Untargeted opens retain the
+      // normal default-entry behavior, while every close clears stale selection.
+      const requestedTermId = action.payload?.initialTermId;
       return {
         isGlossaryVisible: openingGlossary,
-        selectedGlossaryTermForModal: openingGlossary && action.payload?.initialTermId ? action.payload.initialTermId : undefined,
+        selectedGlossaryTermForModal: openingGlossary && requestedTermId ? requestedTermId : undefined,
         isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
         characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }
       };
@@ -247,6 +251,13 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
         isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
         characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false, isThievesGuildVisible: false, isNavalDashboardVisible: false,
         isTradeRouteDashboardVisible: false, isEconomyLedgerVisible: false, isCourierPouchVisible: false
+      };
+
+    case 'TOGGLE_COMMERCE_DESK':
+      return {
+        isCommerceDeskVisible: !state.isCommerceDeskVisible,
+        isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
+        characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false, isThievesGuildVisible: false, isNavalDashboardVisible: false
       };
 
     case 'TOGGLE_LOCKPICKING_MODAL':

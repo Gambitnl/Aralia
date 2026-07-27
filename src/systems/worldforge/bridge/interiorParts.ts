@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 14/07/2026, 21:38:02
- * Dependents: components/World3D/InteriorHourContext.tsx, systems/world3d/types.ts, systems/worldforge/bridge/buildingHistoryParts.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/sitePartTransform.ts
- * Imports: 15 files
+ * Last Sync: 18/07/2026, 19:30:19
+ * Dependents: components/World3D/InteriorHourContext.tsx, systems/world3d/buildingSceneModel.ts, systems/world3d/types.ts, systems/worldforge/bridge/buildingHistoryParts.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/sitePartTransform.ts
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,13 +15,14 @@
 // @dependencies-end
 
 /**
- * @file interiorParts.ts — L4 interior → renderable wall/furnishing parts.
+ * @file interiorParts.ts — canonical building blueprint → renderable parts.
  *
- * Turns an InteriorPlan (plot-local FEET, street wall at y=0) into a list of
+ * Turns a BlueprintPlan (plot-local FEET, street wall at y=0) into a list of
  * site-local boxes in METERS that the 3D scene renders inside a building's
- * group, replacing the solid shell box: perimeter walls with a real gap at
- * the entry door (decision #11 — seamless, the camera can walk in), interior
- * walls along room boundaries minus doorway gaps, and low furnishing blocks.
+ * group: thickness-true walls, real door and window openings, every floor and
+ * basement, furnishing blocks, and optional occupant figures. The bridge reads
+ * the same rich plan as occupancy and building previews, so irregular rooms
+ * cannot collapse into bounding boxes on a hidden fallback path.
  * Styled blueprints also carry their resolved regional wall material and an
  * additive facade grammar (courses, bays, half-timbering, or log bands). Those
  * details sit outside the structural wall boxes, so they never close a door,
@@ -35,17 +36,20 @@
  * rotated group — same convention the exterior door mesh already uses.
  */
 
-import { blueprintForPlot, generateInterior, type InteriorPlotInput } from '../interior/generateInterior';
-import { EXTERIOR, type InteriorRoom, type InteriorPlan } from '../interior/types';
+import {
+  blueprintForPlot,
+  type InteriorPlotInput,
+} from '../interior/generateInterior';
 import type {
   BuildingMotif,
   BuildingHistoryFeature,
   BuildingLiveHistoryFeature,
   BlueprintPlan,
+  BlueprintRoom,
   FacadePattern,
   WallRun,
 } from '../interior/blueprintTypes';
-import { blueprintSiteOrigin } from '../interior/blueprintTypes';
+import { blueprintSiteOrigin, EXTERIOR } from '../interior/blueprintTypes';
 import { HEARTH_KINDS } from '../interior/occupancy';
 import { OUTER_THICKNESS_FT } from '../interior/walls';
 import {
@@ -54,7 +58,6 @@ import {
   roofDeformationForPlan,
   type MeshBox,
 } from '../../world3d/buildingModels';
-import type { ChunkGeometryArrays } from '../../world3d/types';
 import type { SeedPath } from '../seedPath';
 import { buildBuildingMotifParts } from './buildingMotifParts';
 import { buildBuildingHistoryParts } from './buildingHistoryParts';
@@ -117,7 +120,8 @@ export interface SitePart {
   /** Exact exterior motif represented by this additive part. */
   motifKind?: BuildingMotif;
   /** Exact permanent-history fact represented by this additive part. */
-  historyKind?: BuildingHistoryFeature['kind'] | BuildingLiveHistoryFeature['kind'];
+  historyKind?:
+    BuildingHistoryFeature['kind'] | BuildingLiveHistoryFeature['kind'];
   /** Exact physical construction detail represented by this additive part. */
   materialDetailKind?: MaterialDetailKind;
   /** Exact age/exposure mark represented by this presentation-only part. */
@@ -172,12 +176,8 @@ const FACADE_BAND_HEIGHT_FT = 0.55;
 const FACADE_BAY_SPACING_FT = 10;
 /** Window void width used by walls.ts and buildingModels.ts, plus trim clearance. */
 const FACADE_WINDOW_HALF_CLEAR_FT = 1.6;
-/** Doorway clear width, feet (one 5 ft cell). */
-const DOOR_FT = 5;
 /** Single worn-plank floor color shared by every generated interior. */
 const FLOOR_COLOR = '#9a8a72';
-/** Thin slab height that gives interiors a visible floor without blocking walls. */
-const FLOOR_H = 0.12;
 /** Interior wall color (lime-washed plaster). */
 export const INTERIOR_WALL_COLOR = '#cfc7b8';
 /** Door leaf tint (stained timber) — dresses the entry gap so it reads as a
@@ -195,10 +195,6 @@ export const CEILING_COLOR = '#8c7d68';
 const DOOR_LEAF_FT = 4;
 /** Door leaf height, meters. */
 const DOOR_LEAF_H = 2.1;
-/** Window opening height/width, meters, and sill elevation. */
-const WINDOW_W = 0.9;
-const WINDOW_H = 1.0;
-const WINDOW_SILL_M = 1.1;
 /** Exterior (perimeter) wall tint by plot role — keeps the market/house
  * identity the solid shells used to carry. */
 export const PERIMETER_WALL_COLORS: Record<string, string> = {
@@ -207,7 +203,10 @@ export const PERIMETER_WALL_COLORS: Record<string, string> = {
   house: '#b09a72',
 };
 
-export const FURNITURE: Record<string, { w: number; d: number; h: number; colorHex: string }> = {
+export const FURNITURE: Record<
+  string,
+  { w: number; d: number; h: number; colorHex: string }
+> = {
   table: { w: 1.6, d: 0.9, h: 0.8, colorHex: '#c8a24a' },
   hearth: { w: 1.4, d: 0.7, h: 1.4, colorHex: '#b5552e' },
   'forge-hearth': { w: 1.6, d: 0.9, h: 1.2, colorHex: '#5a4636' },
@@ -234,9 +233,17 @@ export const FURNITURE: Record<string, { w: number; d: number; h: number; colorH
  * FURNISHING_RECIPE_KINDS coverage test guarantees every emitted kind resolves,
  * so this throw fires only when a new generator kind lands without a render spec.
  */
-export function furnishingSpec(kind: string): { w: number; d: number; h: number; colorHex: string } {
+export function furnishingSpec(kind: string): {
+  w: number;
+  d: number;
+  h: number;
+  colorHex: string;
+} {
   const spec = FURNITURE[kind];
-  if (!spec) throw new Error(`interiorParts: unknown furnishing kind "${kind}" — add a spec to FURNITURE`);
+  if (!spec)
+    throw new Error(
+      `interiorParts: unknown furnishing kind "${kind}" — add a spec to FURNITURE`,
+    );
   return spec;
 }
 
@@ -252,41 +259,6 @@ export const HEARTH_GLOW_HEX = '#ff8a3c';
  * rather than an open flame. Emissive-only — the pane itself glows; no light is
  * cast, so this reads town-wide from the street at zero light cost. */
 export const WINDOW_GLOW_HEX = '#ffb066';
-
-/** A 1-D wall run [lo, hi] on a fixed line, in feet. */
-interface Run {
-  lo: number;
-  hi: number;
-}
-
-/** Merge overlapping or touching wall spans on a fixed wall line. */
-function mergeRuns(runs: Run[]): Run[] {
-  const out: Run[] = [];
-  const sorted = [...runs].sort((a, b) => a.lo - b.lo || a.hi - b.hi);
-  for (const run of sorted) {
-    const last = out[out.length - 1];
-    if (!last || run.lo > last.hi) {
-      out.push({ ...run });
-      continue;
-    }
-    last.hi = Math.max(last.hi, run.hi);
-  }
-  return out;
-}
-
-/** Remove [gapLo, gapHi] from every run (splitting where needed). */
-function cutRuns(runs: Run[], gapLo: number, gapHi: number): Run[] {
-  const out: Run[] = [];
-  for (const r of runs) {
-    if (gapHi <= r.lo || gapLo >= r.hi) {
-      out.push(r);
-      continue;
-    }
-    if (gapLo > r.lo) out.push({ lo: r.lo, hi: gapLo });
-    if (gapHi < r.hi) out.push({ lo: gapHi, hi: r.hi });
-  }
-  return out;
-}
 
 /**
  * Render-ready body for one occupant, in METERS + hex — the projection of the
@@ -331,23 +303,27 @@ export interface OccupantFigure {
  * Wall envelope (in METERS — the footprint the renderer must fit roofs/floors
  * to; the plot footprint is up to 5 ft larger per axis, and sizing roofs to it
  * caused the floating-sombrero look, shots 1–2 of Remy's 2026-06-12 review)
- * AND interior parts, from a SINGLE interior generation. The 3D bake needs both
- * per plot; generating the (deterministic) interior once and reusing it here
- * avoids regenerating it — significant for large capitals (~650 plots).
+ * AND interior parts, from one canonical blueprint. The 3D bake needs both per
+ * plot, so production can supply the blueprint its load packet already resolved
+ * and this function threads that exact instance through structure, furnishing,
+ * and roof projection. Standalone callers keep the established resolver path.
  */
 export function buildInterior(
   plot: InteriorPlotInput,
   seedPath: SeedPath,
   shellHeightM: number,
   occupants: OccupantFigure[] = [],
-  // LIVING overlay (BGv2 Task 14): light the hearth furnishing when the family
-  // is home in a hearth window. Defaults false so briefless / daytime bakes are
-  // byte-identical to before.
+  // Retained positional input from the live-lighting migration. Hearth parts
+  // are always tagged now; the renderer chooses their current glow by hour.
   hearthLit = false,
   // Interior-lighting slice: light the window panes (emissive glow) when the
   // building is occupied at a dusk/night bake hour. Decided by the caller from
   // occupancy; defaults false so daytime / briefless bakes are unchanged.
   litWindows = false,
+  // The production load packet passes its one canonical plan here. Keeping this
+  // optional preserves previews and isolated tests that intentionally ask the
+  // bridge to resolve a plan for them.
+  precomputedBlueprint?: BlueprintPlan,
 ): {
   envelope: {
     wallWidthM: number;
@@ -358,38 +334,44 @@ export function buildInterior(
   parts: SitePart[];
   roof?: RoofPartGroup;
 } {
-  // PERF NOTE (2026-07-08): blueprintForPlot runs ~3x per populated plot — here
-  // (generateInterior fetches it internally, plus the blueprintForPlot call
-  // below) and once more in occupancyScheduleForPlot. It LOOKS wasteful, but
-  // generateBuilding is memoized, so calls 2 and 3 are cache hits. Measured over
-  // a 650-plot capital bake: the 2 redundant calls cost ~17 ms total (1.9% of
-  // blueprint work); the real cost is cold generation (~1.3 ms/plot). Left
-  // un-threaded ON PURPOSE — passing one plan through these three signatures
-  // would risk the determinism / byte-stability contracts the tests guard, for a
-  // 1.9% win. Re-measure before revisiting. If bake feels slow, the target is
-  // cold generation, not these fetches. Bench: .agent/scratch/bench-blueprint-fetch.ts
-  const plan = generateInterior(plot, seedPath);
-  const blueprint = blueprintForPlot(plot, seedPath);
-  const parts = buildInteriorParts(plot, seedPath, shellHeightM, occupants, plan, blueprint, hearthLit, litWindows);
+  const blueprint = precomputedBlueprint ?? blueprintForPlot(plot, seedPath);
+  const parts = buildInteriorParts(
+    plot,
+    seedPath,
+    shellHeightM,
+    occupants,
+    blueprint,
+    hearthLit,
+    litWindows,
+  );
   // Solved roof (BGv2 Task 5): when the blueprint carries plan.roof (a style
   // context was resolved), raise the triangulated roof group + chimney/dormer
   // dressing so the town building gets the solved roof instead of the legacy
   // whole-rect prism. Absent (roof undefined) when no style resolved — the
   // renderer then keeps the legacy prism, and the part list is unchanged.
-  const storeyHeightM = shellHeightM / Math.max(1, plan.storeys);
-  const perimeterColor = PERIMETER_WALL_COLORS[plot.role] ?? PERIMETER_WALL_COLORS.house;
-  const { dressing, roof } = blueprint
-    ? blueprintRoof(blueprint, storeyHeightM, perimeterColor)
-    : { dressing: [] as SitePart[], roof: undefined };
+  const aboveGroundStoreys = blueprint.floors.filter(
+    (floor) => floor.level >= 0,
+  ).length;
+  const storeyHeightM = shellHeightM / Math.max(1, aboveGroundStoreys);
+  const perimeterColor =
+    PERIMETER_WALL_COLORS[plot.role] ?? PERIMETER_WALL_COLORS.house;
+  const { dressing, roof } = blueprintRoof(
+    blueprint,
+    storeyHeightM,
+    perimeterColor,
+  );
   parts.push(...dressing);
   return {
     envelope: {
-      wallWidthM: plan.widthFt * FT,
-      wallDepthM: plan.depthFt * FT,
-      // Legacy chunks remain sparse; only asymmetric structural history needs
-      // to carry an origin distinct from the current envelope center.
-      ...(plan.siteOriginFt
-        ? { siteOriginXFt: plan.siteOriginFt.x, siteOriginYFt: plan.siteOriginFt.y }
+      wallWidthM: blueprint.widthFt * FT,
+      wallDepthM: blueprint.depthFt * FT,
+      // Only asymmetric structural history needs an origin distinct from the
+      // current envelope center, so ordinary plans keep the compact envelope.
+      ...(blueprint.siteOriginFt
+        ? {
+            siteOriginXFt: blueprint.siteOriginFt.x,
+            siteOriginYFt: blueprint.siteOriginFt.y,
+          }
         : {}),
     },
     parts,
@@ -468,7 +450,14 @@ function facadePartOnRun(
   heightFt: number,
   colorHex: string,
 ): SitePart {
-  const outwardFt = run.thicknessFt / 2 + FACADE_DEPTH_M / FT / 2;
+  // BURIED-DRESSING FIX (town-look-slice1): structural wall boxes grow OUTWARD
+  // from the run line by the FULL thickness (buildingModels runBox), so the
+  // former half-thickness offset placed every facade band and bay post INSIDE
+  // the wall slab — generated but invisible (see materialPartOnRun in
+  // buildingMaterialParts.ts for the measured proof). Full thickness lands the
+  // trim's inner face on the wall's outer face, exactly the "shallow trim
+  // outside the structural wall" this module's header promises.
+  const outwardFt = run.thicknessFt + FACADE_DEPTH_M / FT / 2;
   const common = {
     h: heightFt * FT,
     baseY: baseYFt * FT,
@@ -546,23 +535,34 @@ function facadeDetails(
       // Log districts use several close horizontal bands so the wall reads as
       // stacked construction rather than a plaster face.
       if (pattern === 'log-bands') {
-        for (let offsetFt = 1.5; offsetFt < storeyHeightFt - 0.5; offsetFt += 2) {
+        for (
+          let offsetFt = 1.5;
+          offsetFt < storeyHeightFt - 0.5;
+          offsetFt += 2
+        ) {
           bandOffsetsFt.push(offsetFt);
         }
       }
 
       for (const offsetFt of bandOffsetsFt) {
-        for (const [spanLo, spanHi] of facadeBandSpans(run, floor.windows, lo, hi)) {
-          parts.push(facadePartOnRun(
-            run,
-            origin.x,
-            origin.y,
-            (spanLo + spanHi) / 2,
-            spanHi - spanLo,
-            floorBaseFt + offsetFt,
-            FACADE_BAND_HEIGHT_FT,
-            facadeTone,
-          ));
+        for (const [spanLo, spanHi] of facadeBandSpans(
+          run,
+          floor.windows,
+          lo,
+          hi,
+        )) {
+          parts.push(
+            facadePartOnRun(
+              run,
+              origin.x,
+              origin.y,
+              (spanLo + spanHi) / 2,
+              spanHi - spanLo,
+              floorBaseFt + offsetFt,
+              FACADE_BAND_HEIGHT_FT,
+              facadeTone,
+            ),
+          );
         }
       }
 
@@ -589,16 +589,18 @@ function facadeDetails(
             lo + postWidthFt / 2,
             Math.min(hi - postWidthFt / 2, proposedFt),
           );
-          parts.push(facadePartOnRun(
-            run,
-            origin.x,
-            origin.y,
-            centerFt,
-            postWidthFt,
-            floorBaseFt + 0.45,
-            Math.max(0.5, storeyHeightFt - 0.9),
-            facadeTone,
-          ));
+          parts.push(
+            facadePartOnRun(
+              run,
+              origin.x,
+              origin.y,
+              centerFt,
+              postWidthFt,
+              floorBaseFt + 0.45,
+              Math.max(0.5, storeyHeightFt - 0.9),
+              facadeTone,
+            ),
+          );
         }
       }
     }
@@ -619,11 +621,9 @@ function blueprintStructureParts(
   bp: BlueprintPlan,
   storeyHeightM: number,
   perimeterColor: string,
-  // Interior-lighting slice: when true, window panes glow with WINDOW_GLOW_HEX
-  // so the building reads as lit from within (lamplight through the glass) at
-  // dusk/night. Emissive-only — no light cast. Deterministic (the flag is
-  // decided from occupancy at the bake hour by the caller).
-  litWindows = false,
+  // Retained for positional compatibility with bake callers. Window panes are
+  // always tagged now, and the live renderer chooses their glow by game hour.
+  _litWindows = false,
 ): SitePart[] {
   const md = buildBuildingMeshData(bp, { storeyHeightFt: storeyHeightM / FT });
   const origin = blueprintSiteOrigin(bp);
@@ -636,12 +636,18 @@ function blueprintStructureParts(
     : WINDOW_PANE_COLOR;
   const colorFor = (b: MeshBox): string => {
     switch (b.kind) {
-      case 'floor': return FLOOR_COLOR;
-      case 'ceiling': return CEILING_COLOR;
-      case 'stair': return STAIR_COLOR;
-      case 'door-lintel': return DOOR_LINTEL_COLOR;
-      case 'window-pane': return windowPaneColor;
-      default: return b.wallKind === 'outer' ? exteriorWallColor : INTERIOR_WALL_COLOR;
+      case 'floor':
+        return FLOOR_COLOR;
+      case 'ceiling':
+        return CEILING_COLOR;
+      case 'stair':
+        return STAIR_COLOR;
+      case 'door-lintel':
+        return DOOR_LINTEL_COLOR;
+      case 'window-pane':
+        return windowPaneColor;
+      default:
+        return b.wallKind === 'outer' ? exteriorWallColor : INTERIOR_WALL_COLOR;
     }
   };
   const parts: SitePart[] = [];
@@ -651,17 +657,21 @@ function blueprintStructureParts(
       // neighbor owns this side's masonry, retain the wall for tactical
       // extraction but tell renderers not to draw the duplicate copy.
       const ensemble = bp.ensemble;
-      const isLeftPartyWall = b.wallKind === 'outer'
-        && b.nx === -1
-        && b.ny === 0
-        && ensemble?.partyWallLeft === true;
-      const isRightPartyWall = b.wallKind === 'outer'
-        && b.nx === 1
-        && b.ny === 0
-        && ensemble?.partyWallRight === true;
+      const isLeftPartyWall =
+        b.wallKind === 'outer' &&
+        b.nx === -1 &&
+        b.ny === 0 &&
+        ensemble?.partyWallLeft === true;
+      const isRightPartyWall =
+        b.wallKind === 'outer' &&
+        b.nx === 1 &&
+        b.ny === 0 &&
+        ensemble?.partyWallRight === true;
       const tacticalOnly =
-        (isLeftPartyWall && ensemble?.partyWallOwner === 'earlier-frontage-member')
-        || (isRightPartyWall && ensemble?.partyWallOwner === 'later-frontage-member');
+        (isLeftPartyWall &&
+          ensemble?.partyWallOwner === 'earlier-frontage-member') ||
+        (isRightPartyWall &&
+          ensemble?.partyWallOwner === 'later-frontage-member');
 
       parts.push({
         x: (b.x - origin.x) * FT,
@@ -711,7 +721,12 @@ export function buildBlueprintParts(
   perimeterColor: string,
   litWindows = false,
 ): { parts: SitePart[]; roof?: RoofPartGroup } {
-  const parts = blueprintStructureParts(bp, storeyHeightM, perimeterColor, litWindows);
+  const parts = blueprintStructureParts(
+    bp,
+    storeyHeightM,
+    perimeterColor,
+    litWindows,
+  );
   const { dressing, roof } = blueprintRoof(bp, storeyHeightM, perimeterColor);
   parts.push(...dressing);
   return roof ? { parts, roof } : { parts };
@@ -760,29 +775,32 @@ function blueprintRoof(
   const eaveOverhangFt = bp.roof.eaveOverhangFt;
   // Feet to push the eave outward past its solved position so it reaches the
   // outer wall face plus a small visible overhang.
-  const pushFt = Math.max(0, OUTER_THICKNESS_FT - eaveOverhangFt) + EAVE_CLEAR_FT;
+  const pushFt =
+    Math.max(0, OUTER_THICKNESS_FT - eaveOverhangFt) + EAVE_CLEAR_FT;
   const roofPartyWalls = bp.ensemble?.partyWallOwner
     ? {
         left: bp.ensemble.partyWallLeft,
         right: bp.ensemble.partyWallRight,
       }
     : { left: false, right: false };
-  const footprintMinXFt = Math.min(...bp.masses.map((mass) => mass.x * CELL_FT));
+  const footprintMinXFt = Math.min(
+    ...bp.masses.map((mass) => mass.x * CELL_FT),
+  );
   const footprintMaxXFt = Math.max(
     ...bp.masses.map((mass) => (mass.x + mass.w) * CELL_FT),
   );
   const positions = new Float32Array(src.length);
   for (let i = 0; i < src.length; i += 3) {
-    let cx = src[i] - origin.x;       // site-local plan feet (x)
-    let cz = src[i + 2] - origin.y;   // site-local plan feet (z)
+    let cx = src[i] - origin.x; // site-local plan feet (x)
+    let cz = src[i + 2] - origin.y; // site-local plan feet (z)
     // Push only eave-level vertices outward, away from center on each axis.
     if (pushFt > 0 && Math.abs(src[i + 1] - eaveZFt) < 1e-3) {
       const envelopeX = src[i] - envelopeCenterX;
       const envelopeZ = src[i + 2] - envelopeCenterY;
-      const sitsOnLeftPartyWall = roofPartyWalls.left
-        && Math.abs(src[i] - footprintMinXFt) < 1e-4;
-      const sitsOnRightPartyWall = roofPartyWalls.right
-        && Math.abs(src[i] - footprintMaxXFt) < 1e-4;
+      const sitsOnLeftPartyWall =
+        roofPartyWalls.left && Math.abs(src[i] - footprintMinXFt) < 1e-4;
+      const sitsOnRightPartyWall =
+        roofPartyWalls.right && Math.abs(src[i] - footprintMaxXFt) < 1e-4;
       if (envelopeX !== 0 && !sitsOnLeftPartyWall && !sitsOnRightPartyWall) {
         cx += Math.sign(envelopeX) * pushFt;
       }
@@ -793,9 +811,9 @@ function blueprintRoof(
     // vertices back through the canonical party-wall half-space.
     if (roofPartyWalls.left) cx = Math.max(cx, footprintMinXFt - origin.x);
     if (roofPartyWalls.right) cx = Math.min(cx, footprintMaxXFt - origin.x);
-    positions[i] = cx * FT;                 // x, centered (+ eave overhang)
-    positions[i + 1] = src[i + 1] * FT;     // Y (already includes wallTopFt)
-    positions[i + 2] = cz * FT;             // z, centered (+ eave overhang)
+    positions[i] = cx * FT; // x, centered (+ eave overhang)
+    positions[i + 1] = src[i + 1] * FT; // Y (already includes wallTopFt)
+    positions[i + 2] = cz * FT; // z, centered (+ eave overhang)
   }
   const roofColor = bp.styleResolved?.roofColor ?? perimeterColor;
   const trimColor = bp.styleResolved?.trimColor ?? perimeterColor;
@@ -812,16 +830,26 @@ function blueprintRoof(
   const dressing: SitePart[] = [];
   for (const c of rm.chimneyBoxes) {
     dressing.push({
-      x: (c.x - origin.x) * FT, z: (c.y - origin.y) * FT,
-      w: c.w * FT, d: c.d * FT, h: c.h * FT,
-      baseY: c.z0 * FT, colorHex: trimColor, tag: ROOF_PART_TAG,
+      x: (c.x - origin.x) * FT,
+      z: (c.y - origin.y) * FT,
+      w: c.w * FT,
+      d: c.d * FT,
+      h: c.h * FT,
+      baseY: c.z0 * FT,
+      colorHex: trimColor,
+      tag: ROOF_PART_TAG,
     });
   }
   for (const dm of rm.dormerBoxes) {
     dressing.push({
-      x: (dm.x - origin.x) * FT, z: (dm.y - origin.y) * FT,
-      w: dm.w * FT, d: dm.d * FT, h: dm.h * FT,
-      baseY: dm.z0 * FT, colorHex: roofColor, tag: ROOF_PART_TAG,
+      x: (dm.x - origin.x) * FT,
+      z: (dm.y - origin.y) * FT,
+      w: dm.w * FT,
+      d: dm.d * FT,
+      h: dm.h * FT,
+      baseY: dm.z0 * FT,
+      colorHex: roofColor,
+      tag: ROOF_PART_TAG,
     });
   }
 
@@ -833,158 +861,60 @@ export function buildInteriorParts(
   seedPath: SeedPath,
   shellHeightM: number,
   occupants: OccupantFigure[] = [],
-  // Optional precomputed interior — lets a caller that also needs the wall
-  // envelope (the 3D bake) generate the interior ONCE and reuse it here rather
-  // than regenerating. Defaults to generating from (plot, seedPath).
-  precomputedPlan?: InteriorPlan,
-  // Optional precomputed BlueprintPlan (Task 12): when present, ALL structure
-  // (slabs, walls, windows, door reveals, stairs, ceiling) is raised from the
-  // blueprint via buildBuildingMeshData instead of the legacy room-rect walk.
-  // On the default path (no precomputedPlan) the blueprint is derived here;
-  // callers that inject a synthetic legacy plan keep the legacy geometry.
+  // The 3D bake supplies the blueprint it already resolved for the envelope and
+  // roof. Standalone callers omit it and receive the same memoized plan here.
   precomputedBlueprint?: BlueprintPlan,
-  // LIVING overlay (BGv2 Task 14): when true, the hearth furnishing part is
-  // tagged with a warm emissiveHex so the renderer glows it. False = cold.
-  hearthLit = false,
+  // Kept in this public position for callers that still supply the historical
+  // flag. Live lighting reads the unconditional hearth tag, so bake-time state
+  // must not change the generated part list.
+  _hearthLit = false,
   // Interior-lighting slice: when true, every window pane is tagged with a warm
   // emissiveHex so the shell reads as lit from within at dusk/night. False = dark
   // glass (daytime, or an unoccupied/civic building at night).
   litWindows = false,
 ): SitePart[] {
-  const plan = precomputedPlan ?? generateInterior(plot, seedPath);
-  const blueprint =
-    precomputedBlueprint ?? (precomputedPlan ? undefined : blueprintForPlot(plot, seedPath));
-  const W = plan.widthFt;
-  const D = plan.depthFt;
-  const origin = plan.siteOriginFt ?? { x: W / 2, y: D / 2 };
+  const blueprint = precomputedBlueprint ?? blueprintForPlot(plot, seedPath);
+  const groundFloor = blueprint.floors.find((floor) => floor.level === 0);
+  if (!groundFloor) {
+    throw new Error(
+      `interiorParts: blueprint for plot ${plot.id} has no ground floor`,
+    );
+  }
+
+  // Every measurement, floor count, and plan-space origin now comes from the
+  // canonical blueprint. Basements remain in the floor list but do not divide
+  // the above-ground shell height.
+  const origin = blueprintSiteOrigin(blueprint);
   const toX = (fx: number): number => (fx - origin.x) * FT;
   const toZ = (fy: number): number => (fy - origin.y) * FT;
   const parts: SitePart[] = [];
-  const wallH = Math.min(shellHeightM, 3);
-  // Vertical spacing between floors (the shell is divided evenly by storey).
-  const storeyHeightM = shellHeightM / Math.max(1, plan.storeys);
-  const perimeterColor = PERIMETER_WALL_COLORS[plot.role] ?? PERIMETER_WALL_COLORS.house;
+  const aboveGroundStoreys = blueprint.floors.filter(
+    (floor) => floor.level >= 0,
+  ).length;
+  const storeyHeightM = shellHeightM / Math.max(1, aboveGroundStoreys);
+  const perimeterColor =
+    PERIMETER_WALL_COLORS[plot.role] ?? PERIMETER_WALL_COLORS.house;
 
-  // ── Blueprint path (Task 12): the WHOLE structure — per-level floor slabs
-  // with stair holes, thickness-true walls on the irregular shell, window
-  // voids, door jamb reveals, stair flights and the top ceiling — is raised
-  // from the BlueprintPlan. The legacy room-rect walk below is skipped.
-  if (blueprint) {
-    parts.push(...blueprintStructureParts(blueprint, storeyHeightM, perimeterColor, litWindows));
-    // Basement furnishings come straight from the blueprint: the legacy
-    // InteriorPlan cannot represent level -1, so below-grade furniture (like
-    // the structure above) is raised from the BlueprintPlan directly, sunk a
-    // full storey via negative baseY. The generator guarantees basements
-    // have NO windows; the below-grade slab/walls arrive via
-    // blueprintStructureParts (MeshBox z0 < 0 → negative baseY).
-    for (const fl of blueprint.floors) {
-      if (fl.level >= 0) continue;
-      const baseY = fl.level * storeyHeightM;
-      for (const f of fl.furnishings) {
-        const spec = furnishingSpec(f.kind);
-        const rotated = f.rotation === 90 || f.rotation === 270;
-        parts.push({
-          x: toX(f.x), z: toZ(f.y),
-          w: rotated ? spec.d : spec.w, d: rotated ? spec.w : spec.d,
-          h: spec.h, colorHex: spec.colorHex, baseY,
-        });
-      }
-    }
-  } else {
+  // Raise the complete canonical structure: irregular floor slabs, real wall
+  // thickness, window and doorway voids, stair flights, ceilings, and basements.
+  parts.push(
+    ...blueprintStructureParts(
+      blueprint,
+      storeyHeightM,
+      perimeterColor,
+      litWindows,
+    ),
+  );
 
-  // Emit the full-envelope floor before walls, furniture, or people. The
-  // renderer places part bottoms on local ground, so this thin plank slab
-  // covers raw terrain without changing the frozen wall-envelope contract.
-  parts.push({
-    x: 0,
-    z: 0,
-    w: W * FT,
-    d: D * FT,
-    h: FLOOR_H,
-    colorHex: FLOOR_COLOR,
-  });
-
-  // Wall lines: key "h:<y>" (horizontal, along x) or "v:<x>" (vertical).
-  // Perimeter lines start as full runs; internal room edges accumulate runs
-  // (duplicates from adjacent rooms overlap harmlessly — gap cutting below
-  // applies to every run on the line, so doors stay open through both).
-  const lines = new Map<string, Run[]>();
-  const addRun = (key: string, lo: number, hi: number): void => {
-    const runs = lines.get(key) ?? [];
-    runs.push({ lo, hi });
-    lines.set(key, runs);
-  };
-
-  addRun('h:0', 0, W);
-  addRun(`h:${D}`, 0, W);
-  addRun('v:0', 0, D);
-  addRun(`v:${W}`, 0, D);
-  for (const r of plan.rooms) {
-    if (r.y > 0) addRun(`h:${r.y}`, r.x, r.x + r.w);
-    if (r.y + r.d < D) addRun(`h:${r.y + r.d}`, r.x, r.x + r.w);
-    if (r.x > 0) addRun(`v:${r.x}`, r.y, r.y + r.d);
-    if (r.x + r.w < W) addRun(`v:${r.x + r.w}`, r.y, r.y + r.d);
-  }
-
-  // Collapse coincident shared-wall spans before cutting doors. This keeps
-  // the old "all runs on the line are cut by a door" behavior, but removes
-  // duplicate slabs that rendered as twinned walls from inside a room.
-  for (const [key, runs] of lines) {
-    lines.set(key, mergeRuns(runs));
-  }
-
-  // Cut doorway gaps. Entry door (a === EXTERIOR) sits on h:0 — the
-  // perimeter street wall — which is what makes the building enterable.
-  for (const door of plan.doorways) {
-    const half = DOOR_FT / 2;
-    if (door.axis === 'x') {
-      const key = `h:${door.y}`;
-      if (lines.has(key)) lines.set(key, cutRuns(lines.get(key)!, door.x - half, door.x + half));
-    } else {
-      const key = `v:${door.x}`;
-      if (lines.has(key)) lines.set(key, cutRuns(lines.get(key)!, door.y - half, door.y + half));
-    }
-  }
-  // The exterior entry is also used below to choose the front-of-house room
-  // for workers, so this import remains part of the live placement contract.
-
-  // Runs → boxes. Perimeter walls rise to the shell height and carry the
-  // plot-role tint; interior walls stop at wallH in lime plaster.
-  for (const [key, runs] of lines) {
-    const horizontal = key.startsWith('h:');
-    const lineAt = Number(key.slice(2));
-    const isPerimeter =
-      (horizontal && (lineAt === 0 || lineAt === D)) ||
-      (!horizontal && (lineAt === 0 || lineAt === W));
-    const h = isPerimeter ? shellHeightM : wallH;
-    const colorHex = isPerimeter ? perimeterColor : INTERIOR_WALL_COLOR;
-    for (const r of runs) {
-      if (r.hi - r.lo < 1) continue; // skip slivers under 1 ft
-      const len = (r.hi - r.lo) * FT;
-      if (horizontal) {
-        parts.push({ x: toX((r.lo + r.hi) / 2), z: toZ(lineAt), w: len, d: WALL_T, h, colorHex });
-      } else {
-        parts.push({ x: toX(lineAt), z: toZ((r.lo + r.hi) / 2), w: WALL_T, d: len, h, colorHex });
-      }
-    }
-  }
-  } // end legacy structure path
-
-  // ── Door + windows (IN1). Without these the entry is a bare rectangular hole
-  // in the perimeter wall and the shell has no glazing — town houses read as
-  // windowless boxes. We DRESS the existing geometry: a door leaf set into the
-  // entry gap (with a lintel beam over it), and dark glazed panes recessed into
-  // the perimeter walls. These are plain SitePart boxes, so they ride the same
-  // rotation / doorZSign / z-flip the renderer already applies to every part.
-  const entry = plan.doorways.find((door) => door.a === EXTERIOR);
+  // Dress the street entry recorded on the ground floor. Structural door voids
+  // already came from the blueprint mesh; these boxes add the leaf and lintel.
+  const entry = groundFloor.doors.find((door) => door.a === EXTERIOR);
   if (entry) {
     // Entry doorway sits on h:0 (street wall) at door.x, axis x. Map to part
     // frame: x = toX(door.x), z on the toZ(0) perimeter line.
     const isX = entry.axis === 'x';
-    // The entry sits on an outer wall of its room — since the blueprint
-    // generator (Task 10 adapter) that can be ANY side of the building, not
-    // just the h:0 street line. entry.x/entry.y carry the full position for
-    // both axes (one is the wall line, the other the position along it).
+    // The canonical entry can sit on any outer side. Its full x/y position and
+    // axis place the leaf correctly without assuming a rectangular street wall.
     const dx = toX(entry.x);
     const dz = toZ(entry.y);
     const leafLen = DOOR_LEAF_FT * FT;
@@ -1013,121 +943,74 @@ export function buildInteriorParts(
     }
   }
 
-  // Windows: recessed dark panes on the perimeter walls. Place a pair on each
-  // long perimeter face, inset from the corners and clear of the entry door, so
-  // the shell reads as a glazed building rather than a blank box. Deterministic
-  // (fixed fractions), so a re-bake yields identical parts. Legacy path only:
-  // the blueprint carries REAL windows (voids + panes from the plan).
-  if (!blueprint) {
-    const entryX = entry && entry.axis === 'x' ? entry.x : null;
-    // Front (street, h:0) + back (h:D) faces span along x; left/right (v:0,v:W)
-    // span along z. Use interior fractions; skip any pane that lands on the door.
-    const fracs = [0.28, 0.72] as const;
-    const halfPaneFt = DOOR_FT / 2;
-    // Front & back walls (panes vary in x).
-    for (const lineZ of [0, D]) {
-      for (const fr of fracs) {
-        const fx = W * fr;
-        if (lineZ === 0 && entryX != null && Math.abs(fx - entryX) < halfPaneFt) continue;
-        parts.push({
-          x: toX(fx),
-          z: toZ(lineZ),
-          w: WINDOW_W,
-          d: WALL_T + 0.04,
-          h: WINDOW_H,
-          colorHex: WINDOW_PANE_COLOR,
-          baseY: WINDOW_SILL_M,
-          lightRole: 'window',
-        });
-      }
+  // Furnish every canonical floor, including basements. Each floor's level
+  // supplies its elevation, so no separate ground/upper legacy arrays are
+  // needed. Hearths keep their live-light identity independent of bake hour.
+  for (const floor of blueprint.floors) {
+    const baseY = floor.level * storeyHeightM;
+    for (const furnishing of floor.furnishings) {
+      const spec = furnishingSpec(furnishing.kind);
+      const rotated = furnishing.rotation === 90 || furnishing.rotation === 270;
+      parts.push({
+        x: toX(furnishing.x),
+        z: toZ(furnishing.y),
+        w: rotated ? spec.d : spec.w,
+        d: rotated ? spec.w : spec.d,
+        h: spec.h,
+        colorHex: spec.colorHex,
+        ...(baseY !== 0 ? { baseY } : {}),
+        ...(HEARTH_KINDS.has(furnishing.kind)
+          ? { lightRole: 'hearth' as const }
+          : {}),
+      });
     }
-    // Left & right walls (panes vary in z).
-    const entryZ = entry && entry.axis === 'y' ? entry.y : null;
-    for (const lineX of [0, W]) {
-      for (const fr of fracs) {
-        const fy = D * fr;
-        if (lineX === 0 && entryZ != null && Math.abs(fy - entryZ) < halfPaneFt) continue;
-        parts.push({
-          x: toX(lineX),
-          z: toZ(fy),
-          w: WALL_T + 0.04,
-          d: WINDOW_W,
-          h: WINDOW_H,
-          colorHex: WINDOW_PANE_COLOR,
-          baseY: WINDOW_SILL_M,
-          lightRole: 'window',
-        });
-      }
-    }
-  }
-
-  // Ceiling (IN2). A single-storey building has no upper-floor slab, so hiding
-  // the roof when the camera enters opened the interior to the sky. Cap the
-  // ground room with a thin ceiling slab at the shell top. Multi-storey
-  // buildings already get this enclosure from their upper-floor slab, so emit
-  // the ceiling only when there are no upper floors.
-  if (!blueprint && plan.upperFloors.length === 0) {
-    parts.push({
-      x: 0,
-      z: 0,
-      w: W * FT,
-      d: D * FT,
-      h: FLOOR_H,
-      colorHex: CEILING_COLOR,
-      baseY: Math.max(FLOOR_H, shellHeightM - FLOOR_H),
-    });
-  }
-
-  for (const f of plan.furnishings) {
-    const spec = furnishingSpec(f.kind);
-    const rotated = f.rotation === 90 || f.rotation === 270;
-    parts.push({
-      x: toX(f.x),
-      z: toZ(f.y),
-      w: rotated ? spec.d : spec.w,
-      d: rotated ? spec.w : spec.d,
-      h: spec.h,
-      colorHex: spec.colorHex,
-      // Hearth furnishings are ALWAYS tagged 'hearth' (bake-hour independent);
-      // the renderer glows the fire live from the building's hearth schedule.
-      ...(HEARTH_KINDS.has(f.kind) ? { lightRole: 'hearth' as const } : {}),
-    });
   }
 
   // Occupants (ROSTER-1): standing-figure boxes. Workers use the room that
   // owns the exterior doorway, while residents cycle through the remaining
   // rooms. This keeps people in real walkable room centers instead of on a
   // fixed depth line that can cross internal walls.
-  const entryDoor = plan.doorways.find((door) => door.a === EXTERIOR);
-  const fallbackRoom = plan.rooms[0];
-  const entryRoom = plan.rooms.find((room) => room.id === entryDoor?.b) ?? fallbackRoom;
+  const entryDoor = groundFloor.doors.find((door) => door.a === EXTERIOR);
+  const fallbackRoom = groundFloor.rooms[0];
+  const entryRoom =
+    groundFloor.rooms.find((room) => room.id === entryDoor?.b) ?? fallbackRoom;
   // Placeable rooms across every floor, each tagged with its elevation. Resident
   // (non-working) occupants fill the ground rooms first, then upstairs bedrooms,
   // so a multi-storey home is inhabited top to bottom. Keyed `<level>:<roomId>`
   // because each floor numbers its rooms from 0 (ids are not globally unique).
-  interface Placeable { room: InteriorRoom; baseY: number; key: string }
-  const groundResidents: Placeable[] = plan.rooms
+  interface Placeable {
+    room: BlueprintRoom;
+    baseY: number;
+    key: string;
+  }
+  const groundResidents: Placeable[] = groundFloor.rooms
     .filter((room) => room.id !== entryRoom?.id)
     .map((room) => ({ room, baseY: 0, key: `0:${room.id}` }));
-  const upperResidents: Placeable[] = plan.upperFloors.flatMap((floor) =>
-    floor.rooms.map((room) => ({ room, baseY: floor.level * storeyHeightM, key: `${floor.level}:${room.id}` })),
-  );
+  const upperResidents: Placeable[] = blueprint.floors
+    .filter((floor) => floor.level > 0)
+    .flatMap((floor) =>
+      floor.rooms.map((room) => ({
+        room,
+        baseY: floor.level * storeyHeightM,
+        key: `${floor.level}:${room.id}`,
+      })),
+    );
   const residentPool: Placeable[] = [...groundResidents, ...upperResidents];
-  const entryPlaceable: Placeable = { room: entryRoom, baseY: 0, key: `0:${entryRoom?.id ?? 0}` };
+  const entryPlaceable: Placeable = {
+    room: entryRoom,
+    baseY: 0,
+    key: `0:${entryRoom?.id ?? 0}`,
+  };
 
-  // Blueprint room anchors (Task 12): an L-shaped room's bbox center can sit
-  // ON a blueprint wall (the bbox is a loose bound), so occupants stand at the
-  // room's anchor — a cell GUARANTEED inside the room — when the blueprint is
-  // known. Keyed `${level}:${roomId}` to match Placeable.key.
+  // L-shaped room bounding-box centers can land on walls. Blueprint anchors are
+  // guaranteed walkable cells, so every occupant placement uses them directly.
   const anchorByKey = new Map<string, { x: number; y: number }>();
-  if (blueprint) {
-    for (const fl of blueprint.floors) {
-      for (const r of fl.rooms) {
-        anchorByKey.set(`${fl.level}:${r.id}`, {
-          x: (r.anchor.cx + 0.5) * CELL_FT,
-          y: (r.anchor.cy + 0.5) * CELL_FT,
-        });
-      }
+  for (const floor of blueprint.floors) {
+    for (const room of floor.rooms) {
+      anchorByKey.set(`${floor.level}:${room.id}`, {
+        x: (room.anchor.cx + 0.5) * CELL_FT,
+        y: (room.anchor.cy + 0.5) * CELL_FT,
+      });
     }
   }
 
@@ -1151,8 +1034,8 @@ export function buildInteriorParts(
     const slotInRoom = placedPerKey.get(placeable.key) ?? 0;
     placedPerKey.set(placeable.key, slotInRoom + 1);
     const anchor = anchorByKey.get(placeable.key);
-    const centerX = anchor ? anchor.x : room.x + room.w / 2;
-    const centerY = anchor ? anchor.y : room.y + room.d / 2;
+    const centerX = anchor?.x ?? (room.anchor.cx + 0.5) * CELL_FT;
+    const centerY = anchor?.y ?? (room.anchor.cy + 0.5) * CELL_FT;
     // Anchor cells are 5 ft; a tighter ring keeps the crowd clear of the
     // real-thickness blueprint walls (an inner wall protrudes its full
     // 0.5 ft into the neighbor cell: 0.762 − 0.2 − 0.1524 ≈ 0.41 m clear).
@@ -1195,91 +1078,6 @@ export function buildInteriorParts(
       tag: 'occupant',
     });
   });
-
-  // ── Upper storeys (L4 multi-storey). The exterior shell already encloses every
-  // storey, so each upper floor adds only its own floor slab, INTERNAL room-divider
-  // walls (with doorway gaps), and furniture — lifted to the floor's elevation via
-  // baseY, which the renderer already honors. A stair flight box fills each shaft
-  // gap. Single-storey buildings have no upperFloors, so this block is skipped and
-  // their part list is byte-identical to before. ──
-  if (plan.upperFloors.length > 0) {
-    const upperWallH = Math.min(storeyHeightM, 3);
-    for (const floor of plan.upperFloors) {
-      const baseY = floor.level * storeyHeightM;
-      // Blueprint path: slabs, walls and stairs already came from the
-      // blueprint structure — only the furniture is emitted per upper floor.
-      if (blueprint) {
-        for (const f of floor.furnishings) {
-          const spec = furnishingSpec(f.kind);
-          const rotated = f.rotation === 90 || f.rotation === 270;
-          parts.push({
-            x: toX(f.x), z: toZ(f.y),
-            w: rotated ? spec.d : spec.w, d: rotated ? spec.w : spec.d,
-            h: spec.h, colorHex: spec.colorHex, baseY,
-          });
-        }
-        continue;
-      }
-      parts.push({ x: 0, z: 0, w: W * FT, d: D * FT, h: FLOOR_H, colorHex: FLOOR_COLOR, baseY });
-
-      const fLines = new Map<string, Run[]>();
-      const addF = (key: string, lo: number, hi: number): void => {
-        const runs = fLines.get(key) ?? [];
-        runs.push({ lo, hi });
-        fLines.set(key, runs);
-      };
-      for (const r of floor.rooms) {
-        // Skip envelope-edge lines (h:0/h:D/v:0/v:W) — the shell wall covers them.
-        if (r.y > 0) addF(`h:${r.y}`, r.x, r.x + r.w);
-        if (r.y + r.d < D) addF(`h:${r.y + r.d}`, r.x, r.x + r.w);
-        if (r.x > 0) addF(`v:${r.x}`, r.y, r.y + r.d);
-        if (r.x + r.w < W) addF(`v:${r.x + r.w}`, r.y, r.y + r.d);
-      }
-      for (const [key, runs] of fLines) fLines.set(key, mergeRuns(runs));
-      for (const door of floor.doorways) {
-        const half = DOOR_FT / 2;
-        if (door.axis === 'x') {
-          const key = `h:${door.y}`;
-          if (fLines.has(key)) fLines.set(key, cutRuns(fLines.get(key)!, door.x - half, door.x + half));
-        } else {
-          const key = `v:${door.x}`;
-          if (fLines.has(key)) fLines.set(key, cutRuns(fLines.get(key)!, door.y - half, door.y + half));
-        }
-      }
-      for (const [key, runs] of fLines) {
-        const horizontal = key.startsWith('h:');
-        const lineAt = Number(key.slice(2));
-        for (const r of runs) {
-          if (r.hi - r.lo < 1) continue;
-          const len = (r.hi - r.lo) * FT;
-          if (horizontal) {
-            parts.push({ x: toX((r.lo + r.hi) / 2), z: toZ(lineAt), w: len, d: WALL_T, h: upperWallH, colorHex: INTERIOR_WALL_COLOR, baseY });
-          } else {
-            parts.push({ x: toX(lineAt), z: toZ((r.lo + r.hi) / 2), w: WALL_T, d: len, h: upperWallH, colorHex: INTERIOR_WALL_COLOR, baseY });
-          }
-        }
-      }
-      for (const f of floor.furnishings) {
-        const spec = furnishingSpec(f.kind);
-        const rotated = f.rotation === 90 || f.rotation === 270;
-        parts.push({
-          x: toX(f.x), z: toZ(f.y),
-          w: rotated ? spec.d : spec.w, d: rotated ? spec.w : spec.d,
-          h: spec.h, colorHex: spec.colorHex, baseY,
-        });
-      }
-    }
-    // Stair flight: one wood box per gap, rising a full storey at the shaft.
-    // Legacy only — the blueprint structure already carries stair flights.
-    if (!blueprint) {
-      for (const s of plan.stairs) {
-        parts.push({
-          x: toX(s.x), z: toZ(s.y), w: DOOR_FT * FT, d: DOOR_FT * FT,
-          h: storeyHeightM, colorHex: STAIR_COLOR, baseY: s.fromFloor * storeyHeightM,
-        });
-      }
-    }
-  }
 
   return parts;
 }

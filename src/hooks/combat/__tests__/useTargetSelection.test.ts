@@ -8,11 +8,11 @@ describe('useTargetSelection', () => {
     const mockMapData: BattleMapData = {
         dimensions: { width: 10, height: 10 },
         tiles: new Map<string, BattleMapTile>([
-            ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'floor', elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }],
-            ['0-1', { id: '0-1', coordinates: { x: 0, y: 1 }, terrain: 'floor', elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }],
-            ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'floor', elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }],
-            ['1-1', { id: '1-1', coordinates: { x: 1, y: 1 }, terrain: 'floor', elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }],
-            ['2-0', { id: '2-0', coordinates: { x: 2, y: 0 }, terrain: 'floor', elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }], // Out of range example
+            ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'floor' as any, elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }],
+            ['0-1', { id: '0-1', coordinates: { x: 0, y: 1 }, terrain: 'floor' as any, elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }],
+            ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'floor' as any, elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }],
+            ['1-1', { id: '1-1', coordinates: { x: 1, y: 1 }, terrain: 'floor' as any, elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }],
+            ['2-0', { id: '2-0', coordinates: { x: 2, y: 0 }, terrain: 'floor' as any, elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }], // Out of range example
         ]),
         theme: 'forest',
         seed: 1
@@ -24,7 +24,7 @@ describe('useTargetSelection', () => {
     });
 
     // Mock primitives
-    const mockSelectedAbility = {
+    const mockSelectedAbility: any = {
         id: 'ability-1',
         name: 'Test ability',
         description: 'Range-1 validation test ability',

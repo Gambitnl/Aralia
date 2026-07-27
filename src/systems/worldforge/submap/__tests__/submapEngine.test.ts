@@ -163,7 +163,7 @@ describe('river/road polyline projection', () => {
     const parent = {
       polygon: square,
       seedPath: rootSeedPath(42),
-      polylines: [{ kind: 'river' as const, points: [[-20, 50], [120, 50]] }],
+      polylines: [{ kind: 'river' as const, points: [[-20, 50], [120, 50]] as Array<[number, number]> }],
     };
     const m = generateSubmap(parent, { count: 40 });
     const crossed = m.cells.find((c) => {

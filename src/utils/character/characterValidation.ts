@@ -45,7 +45,7 @@ export const validateCharacterChoices = (character: PlayerCharacter): MissingCho
         const skillOptions = Object.entries(SKILLS_DATA).map(([id, skill]) => ({
           id,
           label: skill.name,
-          description: skill.description?.trim() || 'No skill description is currently available.'
+          description: (skill as { description?: string }).description?.trim() || 'No skill description is currently available.'
         }));
 
         missingChoices.push({

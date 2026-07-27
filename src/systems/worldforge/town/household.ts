@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 18/07/2026, 19:02:56
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, components/Worldforge/TownPlanView.tsx, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/interior/occupancy.ts, systems/worldforge/town/householdBrief.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file household.ts — lazy named household for one town building.
  *
@@ -6,6 +22,8 @@
  * eagerly is wasteful. Instead each building's household is generated lazily and
  * deterministically from the town seed + the building's stable `homeId`, so inspecting
  * a house always yields the same family, but unvisited houses cost nothing.
+ * Wealth is an explicit staffing input: the family stays byte-stable while a
+ * wealthy home adds two deterministic, separately named live-in servants.
  *
  * Bridges to the whole-town roster/agent-sim: ancestry is drawn from the SAME
  * `TOWNSFOLK_RACES` distribution the roster uses, and occupations come from the
@@ -15,6 +33,7 @@ import { rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import type { BuildingType } from './population';
 import type { AgeBand } from '../roster/types';
 import { TOWNSFOLK_RACES } from '../roster/family';
+import type { BriefWealth } from '../interior/blueprintTypes';
 
 export interface HouseholdMember {
   name: string;
@@ -23,7 +42,7 @@ export interface HouseholdMember {
   /** Ancestry (a `raceGroups` name) — blood relatives share it; a married-in spouse may differ. */
   race: string;
   /** Role within the household for UI flavour. */
-  role: 'head' | 'spouse' | 'child' | 'elder' | 'kin' | 'lodger';
+  role: 'head' | 'spouse' | 'child' | 'elder' | 'kin' | 'lodger' | 'servant';
   /** What they do — derived from the building's economy role (empty for children). */
   occupation: string;
 }
@@ -60,6 +79,9 @@ const SUR_B = ['bourne', 'croft', 'down', 'field', 'ford', 'hall', 'ham', 'hill'
 
 const AGE_RANGE: Record<AgeBand, [number, number]> = { child: [3, 15], adult: [19, 56], elder: [58, 86] };
 
+/** Wealthy homes employ two live-in servants; other wealth tiers employ none. */
+export const WEALTHY_HOME_SERVANT_COUNT = 2;
+
 // Trade nouns by workplace type — the proprietor's title and a staffer's role.
 const PROPRIETOR_TRADE: Partial<Record<BuildingType, string>> = {
   inn: 'innkeeper', tavern: 'taverner', shop: 'shopkeeper', smithy: 'blacksmith', workshop: 'master artisan', civic: 'town official',
@@ -86,8 +108,9 @@ function headOccupation(dwelling: BuildingType, work?: HouseholdWork): string {
 /**
  * Generate (lazily) the named household living in one building. `occupants` is the
  * resident count from {@link assignTownPopulation}; `dwelling` its building type;
- * `work` the economy role (so the head gets a real trade). Deterministic per
- * (town seed, homeId).
+ * `work` the economy role (so the head gets a real trade); `wealth` decides
+ * whether two live-in servants join the named household. Deterministic per
+ * (town seed, homeId, wealth).
  */
 export function generateHousehold(
   townSeed: SeedPath,
@@ -95,6 +118,7 @@ export function generateHousehold(
   occupants: number,
   dwelling: BuildingType = 'cottage',
   work?: HouseholdWork,
+  wealth: BriefWealth = 'common',
 ): Household {
   const rng = rngFromPath(streamPath(townSeed, `home:${homeId}`));
   const surname = pick(rng, SUR_A) + pick(rng, SUR_B);
@@ -145,13 +169,37 @@ export function generateHousehold(
     }
   }
 
+  // Wealthy households receive two real adult servants after the family has
+  // been generated. Their isolated stream preserves every pre-existing family
+  // name and age while giving staff stable identities of their own.
+  const servantCount = wealth === 'wealthy' ? WEALTHY_HOME_SERVANT_COUNT : 0;
+  const servantRng = rngFromPath(streamPath(townSeed, `home:${homeId}:servants`));
+  for (let i = 0; i < servantCount; i++) {
+    const servantSurname = pick(servantRng, SUR_A) + pick(servantRng, SUR_B);
+    members.push({
+      name: `${pick(servantRng, servantRng.next() < 0.5 ? GIVEN_M : GIVEN_F)} ${servantSurname}`,
+      ageBand: 'adult',
+      age: ageIn(servantRng, 'adult'),
+      race: pick(servantRng, TOWNSFOLK_RACES),
+      role: 'servant',
+      occupation: 'household servant',
+    });
+  }
+
   const kidCount = members.filter((m) => m.role === 'child').length;
   const trade = dwelling === 'farmstead' ? 'farming' : `${occupation}'s`;
   const article = /^[aeiou]/i.test(trade) ? 'an' : 'a';
+  const staffing = servantCount > 0
+    ? `, with ${servantCount} household servants`
+    : '';
   const summary =
-    n === 1 ? `${head.name}, ${occupation}, lives here alone`
-      : dwelling === 'tenement' ? `${members.length} lodgers crammed into a tenement`
-        : `The ${surname}s — ${article} ${trade} household of ${n}${kidCount ? `, ${kidCount} child${kidCount > 1 ? 'ren' : ''}` : ''}`;
+    n === 1
+      ? servantCount > 0
+        ? `${head.name}, ${occupation}, lives here${staffing}`
+        : `${head.name}, ${occupation}, lives here alone`
+      : dwelling === 'tenement'
+        ? `${n} lodgers crammed into a tenement${staffing}`
+        : `The ${surname}s — ${article} ${trade} household of ${n}${kidCount ? `, ${kidCount} child${kidCount > 1 ? 'ren' : ''}` : ''}${staffing}`;
 
   return { homeId, surname, dwelling, ancestry, occupation, members, summary };
 }

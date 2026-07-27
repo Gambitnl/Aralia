@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 10/07/2026, 14:02:30
+ * Last Sync: 23/07/2026, 21:41:09
  * Dependents: commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/Combat/MaplessTerrainSummary.tsx, hooks/combat/useVisibility.ts, hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts, utils/combat/resistanceUtils.ts
- * Imports: 4 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -25,6 +25,8 @@ import type { CombatCharacter, Position } from '../../../types/combat';
 import type { RepeatSave, EscapeCheck, ConditionBreakTrigger } from '../../../types/spells';
 import type { AoEParams } from '../../../utils/combat/aoeCalculations';
 import { AoECalculator } from '../targeting/AoECalculator';
+import { getRecurringMechanics } from '../../../hooks/spellEffectUtils';
+import type { RecurringMechanic } from '../../../types/spellEffectTypes';
 
 /**
  * Represents an active spell zone on the battlefield (e.g., Create Bonfire)
@@ -56,6 +58,39 @@ export interface ActiveSpellZone {
 }
 
 /**
+ * Recenter a Conjure Animals threat zone when its spectral pack moves.
+ *
+ * The zone is keyed by the same spell/caster pair as the summon actor. Keeping
+ * this ownership rule in the zone module prevents movement callers from
+ * inventing a second area representation or silently moving unrelated zones.
+ */
+export function recenterConjureAnimalsZonesForPackMove(
+    zones: ActiveSpellZone[],
+    pack: CombatCharacter
+): ActiveSpellZone[] {
+    const metadata = pack.summonMetadata;
+    if (!pack.isSummon || metadata?.spellId !== 'conjure-animals' || !metadata.casterId) {
+        return zones;
+    }
+
+    let changed = false;
+    const nextZones = zones.map(zone => {
+        if (zone.spellId !== 'conjure-animals' || zone.casterId !== metadata.casterId) {
+            return zone;
+        }
+
+        if (zone.position.x === pack.position.x && zone.position.y === pack.position.y) {
+            return zone;
+        }
+
+        changed = true;
+        return { ...zone, position: pack.position };
+    });
+
+    return changed ? nextZones : zones;
+}
+
+/**
  * Stores spell effects that should fire on a future target turn rather than at
  * cast time. This is intentionally separate from repeat-save metadata: repeat
  * saves end statuses, while scheduled spell effects apply delayed payloads such
@@ -72,6 +107,8 @@ export interface ScheduledSpellEffect {
     expiresAtRound?: number;
     /** Spell save DC captured at cast time for delayed target-bound payloads. */
     saveDC?: number;
+    /** Source-backed recurring payload selected for this scheduled timing. */
+    recurringMechanic?: RecurringMechanic;
 }
 
 /**
@@ -101,7 +138,7 @@ export interface TriggerResult {
     triggered: boolean;
     effects: ProcessedEffect[];
     sourceId?: string;
-    triggerType?: 'on_enter_area' | 'on_exit_area' | 'on_end_turn_in_area' | 'on_move_in_area' | 'on_target_move';
+    triggerType?: 'on_enter_area' | 'on_exit_area' | 'on_start_turn_in_area' | 'on_end_turn_in_area' | 'on_move_in_area' | 'on_entity_proximity' | 'on_target_move';
 }
 
 export interface ProcessedEffectSourceContext {
@@ -117,7 +154,7 @@ export interface ProcessedEffect {
     damageType?: string;
     statusName?: string;
     /** Original status duration so delayed/area trigger consumers do not invent timing. */
-    duration?: SpellEffect['duration'];
+    duration?: any;
     requiresSave?: boolean;
     saveType?: string;
     saveEffect?: string;
@@ -368,15 +405,21 @@ export function processAreaMoveWithinTriggers(
         const distanceInTiles = countMovementTilesInsideZone(zone, newPosition, previousPosition, movementPath);
 
         if (distanceInTiles > 0) {
-            const moveEffects = zone.effects.filter(effect =>
-                effect.trigger?.type === 'on_move_in_area'
-            );
+            const moveEffects = zone.effects.flatMap(effect => {
+                const direct = effect.trigger?.type === 'on_move_in_area'
+                    ? [{ effect, mechanic: undefined as RecurringMechanic | undefined }]
+                    : [];
+                const recurring = getRecurringMechanics(effect)
+                    .filter(mechanic => mechanic.timing === 'on_move_in_area')
+                    .map(mechanic => ({ effect, mechanic }));
+                return [...direct, ...recurring];
+            });
 
             for (let i = 0; i < distanceInTiles; i++) {
-                for (const effect of moveEffects) {
+                for (const { effect, mechanic } of moveEffects) {
                     // DEBT: Cast trigger to any to probe optional frequency property without complex typing in this handler.
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
+                    if (!shouldTriggerForFrequency(mechanic?.frequency ?? (effect.trigger as any)?.frequency, zone, character.id)) {
                         continue;
                     }
 
@@ -386,7 +429,7 @@ export function processAreaMoveWithinTriggers(
 
                     results.push({
                         triggered: true,
-                        effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
+                        effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }, mechanic),
                         triggerType: 'on_move_in_area'
                     });
                 }
@@ -595,14 +638,19 @@ export function processAreaEndTurnTriggers(
         const isInZone = isPositionInArea(character.position, zone.position, zone.areaOfEffect, zone.direction);
         if (!isInZone) continue;
 
-        const endTurnEffects = zone.effects.filter(effect =>
-            effect.trigger?.type === 'on_end_turn_in_area' ||
-            effect.trigger?.type === 'turn_end'
-        );
+        const endTurnEffects = zone.effects.flatMap(effect => {
+            const direct = effect.trigger?.type === 'on_end_turn_in_area' || effect.trigger?.type === 'turn_end'
+                ? [{ effect, mechanic: undefined as RecurringMechanic | undefined }]
+                : [];
+            const recurring = getRecurringMechanics(effect)
+                .filter(mechanic => mechanic.timing === 'turn_end')
+                .map(mechanic => ({ effect, mechanic }));
+            return [...direct, ...recurring];
+        });
 
-        for (const effect of endTurnEffects) {
+        for (const { effect, mechanic } of endTurnEffects) {
             // DEBT: Cast trigger to any to probe optional frequency property without complex typing in this handler.
-            if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
+            if (!shouldTriggerForFrequency(mechanic?.frequency ?? (effect.trigger as any)?.frequency, zone, character.id)) {
                 continue;
             }
 
@@ -612,8 +660,118 @@ export function processAreaEndTurnTriggers(
 
             results.push({
                 triggered: true,
-                effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
+                effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }, mechanic),
                 triggerType: 'on_end_turn_in_area'
+            });
+        }
+    }
+
+    return results;
+}
+
+/** Process source-backed or direct turn-start effects for an occupant. */
+export function processAreaStartTurnTriggers(
+    zones: ActiveSpellZone[],
+    character: CombatCharacter,
+    _round: number
+): TriggerResult[] {
+    const results: TriggerResult[] = [];
+
+    for (const zone of zones) {
+        if (!zone.areaOfEffect) continue;
+
+        const isInZone = isPositionInArea(character.position, zone.position, zone.areaOfEffect, zone.direction);
+        if (!isInZone) continue;
+
+        const startTurnEffects = zone.effects.flatMap(effect => {
+            const direct = effect.trigger?.type === 'turn_start'
+                ? [{ effect, mechanic: undefined as RecurringMechanic | undefined }]
+                : [];
+            const recurring = getRecurringMechanics(effect)
+                .filter(mechanic => mechanic.timing === 'turn_start')
+                .map(mechanic => ({ effect, mechanic }));
+            return [...direct, ...recurring];
+        });
+
+        for (const { effect, mechanic } of startTurnEffects) {
+            if (!shouldTriggerForFrequency(mechanic?.frequency ?? (effect.trigger as any)?.frequency, zone, character.id)) {
+                continue;
+            }
+
+            if (!matchesTargetFilter(effect.condition?.targetFilter, character)) {
+                continue;
+            }
+
+            results.push({
+                triggered: true,
+                effects: convertSpellEffectToProcessed(
+                    effect,
+                    { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC },
+                    mechanic
+                ),
+                triggerType: 'on_start_turn_in_area'
+            });
+        }
+    }
+
+    return results;
+}
+
+/**
+ * Process source-backed proximity mechanics for a persistent zone.
+ *
+ * Conjure Animals describes its threat radius as a recurring mechanic rather
+ * than a legacy area trigger. Movement enters and end-of-turn occupancy both
+ * use this adapter, so the source save/damage packet reaches the same delayed
+ * effect pipeline without inventing a second zone representation.
+ *
+ * A moving summoned zone is intentionally not inferred here: callers must
+ * update the zone position when the summoned actor moves before asking this
+ * helper to evaluate the next event.
+ */
+export function processAreaProximityTriggers(
+    zones: ActiveSpellZone[],
+    character: CombatCharacter,
+    currentPosition: Position,
+    previousPosition?: Position,
+    isEndTurn = false
+): TriggerResult[] {
+    const results: TriggerResult[] = [];
+
+    for (const zone of zones) {
+        if (!zone.areaOfEffect) continue;
+
+        const isInZone = isPositionInArea(currentPosition, zone.position, zone.areaOfEffect, zone.direction);
+        if (!isInZone) continue;
+
+        const wasInZone = previousPosition
+            ? isPositionInArea(previousPosition, zone.position, zone.areaOfEffect, zone.direction)
+            : false;
+        if (!isEndTurn && wasInZone) continue;
+
+        const proximityEffects = zone.effects.flatMap(effect =>
+            getRecurringMechanics(effect)
+                .filter(mechanic => mechanic.timing === 'on_entity_proximity')
+                .map(mechanic => ({ effect, mechanic }))
+        );
+
+        for (const { effect, mechanic } of proximityEffects) {
+            if (!shouldTriggerForFrequency((mechanic.frequency ?? 'once_per_turn') as TriggerFrequency, zone, character.id)) {
+                continue;
+            }
+
+            if (!matchesTargetFilter(effect.condition?.targetFilter, character)) {
+                continue;
+            }
+
+            results.push({
+                triggered: true,
+                effects: convertSpellEffectToProcessed(
+                    effect,
+                    { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC },
+                    mechanic
+                ),
+                triggerType: 'on_entity_proximity'
             });
         }
     }
@@ -626,27 +784,51 @@ export function processAreaEndTurnTriggers(
  */
 export function convertSpellEffectToProcessed(
     effect: SpellEffect,
-    sourceContext?: ProcessedEffectSourceContext
+    sourceContext?: ProcessedEffectSourceContext,
+    recurringMechanic?: RecurringMechanic
 ): ProcessedEffect[] {
     const processed: ProcessedEffect[] = [];
+    const damage = recurringMechanic?.damage ?? (effect as { damage?: any }).damage;
+    const healing = recurringMechanic?.healing ?? (effect as { healing?: any }).healing;
+    const saveType = recurringMechanic?.saveType ?? effect.condition?.saveType;
+    const saveEffect = recurringMechanic?.saveEffect ?? effect.condition?.saveEffect;
+    const requiresSave = effect.condition?.type === 'save' || Boolean(recurringMechanic?.saveType);
 
     switch (effect.type) {
         case 'DAMAGE':
             processed.push({
                 type: 'damage',
-                dice: effect.damage?.dice,
-                damageType: effect.damage?.type,
-                requiresSave: effect.condition?.type === 'save',
-                saveType: effect.condition?.saveType,
-                saveEffect: effect.condition?.saveEffect,
+                dice: damage?.dice,
+                damageType: damage?.type,
+                requiresSave,
+                saveType,
+                saveEffect,
                 sourceContext
             });
+            break;
+
+        case 'SUMMONING':
+            // Summoned actors can own a recurring threat radius, such as
+            // Conjure Animals. Preserve that delayed damage packet at the
+            // trigger boundary while leaving ordinary summon creation on its
+            // existing immediate command path.
+            if (damage) {
+                processed.push({
+                    type: 'damage',
+                    dice: damage.dice,
+                    damageType: damage.type,
+                    requiresSave,
+                    saveType,
+                    saveEffect,
+                    sourceContext
+                });
+            }
             break;
 
         case 'HEALING':
             processed.push({
                 type: 'heal',
-                dice: effect.healing?.dice,
+                dice: healing?.dice,
                 sourceContext
             });
             break;
@@ -714,8 +896,7 @@ export function createSpellZone(
         effects: effects.filter(e => {
             // DEBT: Cast trigger to any to probe optional type property without complex typing in this zone factory.
             const t = e.trigger as any;
-            const hasAreaRecurringMechanic = Array.isArray(e.recurringMechanics) &&
-                e.recurringMechanics.some(mechanic =>
+            const hasAreaRecurringMechanic = getRecurringMechanics(e).some(mechanic =>
                     mechanic.timing === 'turn_start' ||
                     mechanic.timing === 'turn_end' ||
                     mechanic.timing === 'on_move_in_area' ||
@@ -812,7 +993,8 @@ export function createScheduledSpellEffect(
     effects: SpellEffect[],
     currentRound: number,
     durationRounds?: number,
-    saveDC?: number
+    saveDC?: number,
+    recurringMechanic?: RecurringMechanic
 ): ScheduledSpellEffect {
     return {
         id: `scheduled-${spellId}-${targetId}-${timing}-${Date.now()}`,
@@ -820,10 +1002,13 @@ export function createScheduledSpellEffect(
         casterId,
         targetId,
         timing,
-        effects: effects.filter(effect => effect.trigger?.type === timing),
+        effects: recurringMechanic
+            ? effects
+            : effects.filter(effect => effect.trigger?.type === timing),
         createdAtRound: currentRound,
         expiresAtRound: durationRounds ? currentRound + durationRounds : undefined,
-        saveDC
+        saveDC,
+        recurringMechanic
     };
 }
 

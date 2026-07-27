@@ -21,10 +21,7 @@
     "properties": [
       "H|XPHB",
       "R|XPHB",
-      {
-        "uid": "2H|XPHB",
-        "note": "unless mounted"
-      }
+      "2H|XPHB (unless mounted)"
     ]
   }
 }

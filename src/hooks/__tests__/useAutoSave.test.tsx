@@ -110,6 +110,31 @@ describe('useAutoSave checkpoint tiers', () => {
     expect(saveGameMock).not.toHaveBeenCalled();
   });
 
+  it('keeps writing the rolling auto-save while the world clock ticks every second', async () => {
+    // The in-game clock dispatches a new state about once a second during
+    // exploration. Each new state re-arms the auto-save debounce, so a purely
+    // debounced timer never gets its quiet moment and the rolling save starves:
+    // 60+ seconds of real play produced zero writes, and only the reload-time
+    // emergency save persisted anything (resume-journey GAPS #4).
+    let state = playingState();
+    const { rerender } = renderHook(() => useAutoSave(state, true));
+
+    for (let second = 1; second <= 30; second += 1) {
+      state = { ...state, gameTime: new Date(second * 1000).toISOString() };
+      rerender();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1_000);
+      });
+    }
+
+    // AUTO_SAVE_THROTTLE_MS is 10s, so 30 seconds of ticking owes at least two
+    // rolling writes on top of the immediate first one.
+    const rollingWrites = saveGameMock.mock.calls.filter(
+      ([, slotId]) => slotId === SaveLoadService.AUTO_SAVE_SLOT_KEY,
+    );
+    expect(rollingWrites.length).toBeGreaterThanOrEqual(2);
+  });
+
   it('stops checkpoint timers when the player leaves exploration', async () => {
     let state = playingState();
     const { rerender } = renderHook(() => useAutoSave(state, true));

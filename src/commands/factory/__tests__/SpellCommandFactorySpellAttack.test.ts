@@ -460,7 +460,10 @@ describe('SpellCommandFactory spell attack execution', () => {
       combatLog: []
     })
 
-    const result = await commands[0].execute(state)
+    let result = state
+    for (const cmd of commands) {
+      result = await cmd.execute(result)
+    }
     const updatedCaster = result.characters.find(character => character.id === friendsCaster.id)
     const updatedCharmedTarget = result.characters.find(character => character.id === charmedTarget.id)
 

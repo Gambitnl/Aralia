@@ -583,6 +583,66 @@ export const SCENARIOS: VisScenario[] = [
       { kind: "readback" },
     ],
   },
+  {
+    id: "wilds-mountain-summit",
+    title: "Wilds: Mount Wildlands summit (snow + far shells)",
+    group: "world",
+    url: "?phase=world3d&ground=1&dcell=1199&wfseed=42",
+    notes:
+      "Snowfields with rock breaking through on steep faces; ridgelines, no needle spikes; distant ranges continue past the window (no world edge).",
+    capture: [
+      { kind: "waitHook", expr: "window.__wf3dScene && window.__wfGroundWorld && window.__wf3dSetPose", timeoutMs: 180000 },
+      { kind: "sleep", ms: 15000 },
+      { kind: "eval", js: `(() => { const gw = window.__wfGroundWorld; if (!gw.farShells) return 'MISSING farShells'; const MPC = 1.524; const c0 = Math.floor(gw.cols * 0.2), c1 = Math.ceil(gw.cols * 0.8); let best = -1, bc = 0, br = 0; for (let r = c0; r < c1; r++) for (let c = c0; c < c1; c++) { const v = gw.heights[r * gw.cols + c]; if (v > best) { best = v; bc = c; br = r; } } const fx = (bc + 0.5) * MPC - gw.extentMetersX / 2, fz = (br + 0.5) * MPC - gw.extentMetersZ / 2, y = (best / 100) * 1800; window.__wf3dSetPose([fx + 240, y + 110, fz + 240], [fx, y, fz]); return 'posed'; })()` },
+      { kind: "sleep", ms: 8000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "wilds-road-bridge",
+    title: "Wilds: inland bridge + far vista",
+    group: "world",
+    url: "?phase=world3d&ground=1&dcell=4214&wfseed=42",
+    notes:
+      "Bridge deck meets both banks; river continues past the window border as a blue course; terrain runs to a fogged horizon in every direction.",
+    capture: [
+      { kind: "waitHook", expr: "window.__wf3dScene && window.__wfGroundWorld && window.__wf3dSetPose", timeoutMs: 180000 },
+      { kind: "sleep", ms: 15000 },
+      { kind: "eval", js: `(() => { const gw = window.__wfGroundWorld; if (!gw.farShells) return 'MISSING farShells'; const c = (gw.crossings ?? []).find((x) => x.kind === 'bridge'); if (!c) return 'MISSING bridge'; const fx = c.xM - gw.extentMetersX / 2, fz = c.zM - gw.extentMetersZ / 2; const deck = (gw.decks ?? []).find((d) => d.sourceCrossingId === c.id); const y = deck ? deck.topY : 2; window.__wf3dSetPose([fx + 45, y + 24, fz + 45], [fx, y, fz]); return 'posed'; })()` },
+      { kind: "sleep", ms: 8000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "wilds-ancient-forest",
+    title: "Wilds: Slovan Ancientwood interior",
+    group: "world",
+    url: "?phase=world3d&ground=1&dcell=3023&wfseed=42",
+    notes:
+      "Thickets and clearings with undergrowth; canopy shade dims the light and pulls fog in (anchorCellId now threads on dev entries).",
+    capture: [
+      { kind: "waitHook", expr: "window.__wf3dScene && window.__wfGroundWorld && window.__wf3dSetPose", timeoutMs: 180000 },
+      { kind: "sleep", ms: 15000 },
+      { kind: "eval", js: `(() => { const gw = window.__wfGroundWorld; const MPC = 1.524; const col = Math.floor(gw.cols / 2), row = Math.floor(gw.rows / 2); const y = ((gw.heights[row * gw.cols + col] ?? 0) / 100) * 1800; window.__wf3dSetPose([30, y + 16, 30], [0, y, 0]); return 'posed'; })()` },
+      { kind: "sleep", ms: 8000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "wilds-ford-causeway",
+    title: "Wilds: stream ford causeway (cell 3090)",
+    group: "world",
+    url: "?phase=world3d&ground=1&dcell=3090&wfseed=42",
+    notes:
+      "Wet-sand causeway strips bank to bank with stepping stones confined to the water; three trails converge on the crossing.",
+    capture: [
+      { kind: "waitHook", expr: "window.__wf3dScene && window.__wfGroundWorld && window.__wf3dSetPose", timeoutMs: 180000 },
+      { kind: "sleep", ms: 15000 },
+      { kind: "eval", js: `(() => { const gw = window.__wfGroundWorld; const f = (gw.crossings ?? []).find((c) => c.kind === 'ford'); if (!f) return 'MISSING ford'; const fx = f.xM - gw.extentMetersX / 2, fz = f.zM - gw.extentMetersZ / 2; const strip = (gw.decks ?? []).find((d) => d.kind === 'ford'); const y = strip ? strip.topY : 1; window.__wf3dSetPose([fx + 32, y + 18, fz + 32], [fx, y, fz]); return 'posed'; })()` },
+      { kind: "sleep", ms: 8000 },
+      { kind: "readback" },
+    ],
+  },
   // --- interiors ----------------------------------------------------------
   {
     id: "interior-villager",

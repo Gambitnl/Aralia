@@ -36,6 +36,8 @@ export interface CreatureLibraryEntry {
   revisedFrom?: string;
   /** D&D size derived from the plan's dimensions (combat tile footprint). */
   sizeCategory?: string;
+  /** Public URL path of the optimized hero mesh, when one exists. */
+  heroGlb?: string;
 }
 
 /** Injectable for tests; the default shells out to the Claude CLI. */
@@ -142,13 +144,14 @@ function schemaPrompt(): string {
     '  "name": string,                                  // 1–40 chars, display name',
     '  "frame": { "heightFt": number, "lengthFt"?: number, "bulk": number, "stance": "upright"|"horizontal"|"serpentine"|"floating" },',
     '  "spine": { "segments": int, "taper": number, "arch": number, "bulge"?: number },',
-    '  "appendages": [ { "kind": "leg"|"arm"|"tail"|"tentacle"|"neck"|"wing", "attach": number, "heightFrac"?: number, "perSide"?: boolean, "count": int, "chain": [ { "lenFt": number, "r": number } ], "tips"?: "hand", "jointRings"?: boolean } ],',
+    '  "appendages": [ { "kind": "leg"|"arm"|"tail"|"tentacle"|"neck"|"wing", "attach": number, "heightFrac"?: number, "perSide"?: boolean, "count": int, "chain": [ { "lenFt": number, "r": number } ], "tips"?: "hand", "jointRings"?: boolean, "blend"?: number } ],',
     '  "heads": [ { "neckIndex"?: int, "form"?: "serpent"|"beast"|"blunt"|"skull", "sizeScale": number, "eyes": { "count": int, "sizeScale": number, "pupil"?: "round"|"slit"|"goat" }, "snout"?: { "lengthScale": number, "droop": number }, "cilia"?: boolean } ],',
     '  "palette": { "bodyHex": "#rrggbb", "accentHex"?: "#rrggbb", "bellyHex"?: "#rrggbb", "eyeHex": "#rrggbb" },',
+    '  "skin"?: { "blend": number },',
     '  "garnish"?: [ { "partId": string, "params"?: { [k]: number } } ]',
     '}',
     `Hard ranges: heightFt ${PLAN_LIMITS.heightFt[0]}–${PLAN_LIMITS.heightFt[1]}; lengthFt ${PLAN_LIMITS.lengthFt[0]}–${PLAN_LIMITS.lengthFt[1]} (REQUIRED for horizontal/serpentine); bulk ${PLAN_LIMITS.bulk[0]}–${PLAN_LIMITS.bulk[1]}; spine.segments ${PLAN_LIMITS.spineSegments[0]}–${PLAN_LIMITS.spineSegments[1]}; spine.taper ${PLAN_LIMITS.spineTaper[0]}–${PLAN_LIMITS.spineTaper[1]}; spine.arch ${PLAN_LIMITS.spineArch[0]}–${PLAN_LIMITS.spineArch[1]}; spine.bulge ${PLAN_LIMITS.spineBulge[0]}–${PLAN_LIMITS.spineBulge[1]} (mid-body muscle swell; ~0.3 lean, ~0.7 brawny); at most ${PLAN_LIMITS.appendages[1]} appendages; attach ${PLAN_LIMITS.attach[0]}–${PLAN_LIMITS.attach[1]} (0=front, 1=rear); count ${PLAN_LIMITS.count[0]}–${PLAN_LIMITS.count[1]} per entry (per side when perSide); chain ${PLAN_LIMITS.chainLinks[0]}–${PLAN_LIMITS.chainLinks[1]} links; lenFt ${PLAN_LIMITS.linkLenFt[0]}–${PLAN_LIMITS.linkLenFt[1]}; r ${PLAN_LIMITS.linkR[0]}–${PLAN_LIMITS.linkR[1]} (fraction of body radius); heads ${PLAN_LIMITS.heads[0]}–${PLAN_LIMITS.heads[1]}; head sizeScale ${PLAN_LIMITS.headSizeScale[0]}–${PLAN_LIMITS.headSizeScale[1]}; eyes.count ${PLAN_LIMITS.eyeCount[0]}–${PLAN_LIMITS.eyeCount[1]}; eyes.sizeScale ${PLAN_LIMITS.eyeSizeScale[0]}–${PLAN_LIMITS.eyeSizeScale[1]}; snout lengthScale ${PLAN_LIMITS.snoutLengthScale[0]}–${PLAN_LIMITS.snoutLengthScale[1]}, droop ${PLAN_LIMITS.snoutDroop[0]}–${PLAN_LIMITS.snoutDroop[1]}; at most ${PLAN_LIMITS.garnish[1]} garnish entries.`,
-    'Rules: heads[].neckIndex must point at an appendage of kind "neck" or "torso" (omit it to sit the head on the spine front). Legs make it walk; no legs + serpentine = it slithers; floating hovers (compact floaters hang vertical: head up, tail down). kind "torso" is an upright sub-body rising from the spine — give arms/necks/wings "parent": <torso index> to root on it (centaurs, driders). spine.shape "box" makes rectangular slab bodies (cubes, chests, golems). palette.opacity < 1 = translucent body (ghosts, oozes). tips:"hand" puts a stylized palm+fingers at the appendage tip (not allowed on legs — they get feet). jointRings:true hovers glowing accent-colored energy rings at the limb joints. cilia:true rings the eye with twitching fleshy lashes. heads[].form gives a sculpted skull+jaw+teeth head (serpent=wedge, beast=broad muzzle, blunt=rounded, skull=bony) — use it for any creature with a real face. Use garnish only for parts you are told exist (crystalSpikes = jagged accent crystal shards on the back, params scale/jaggedness/count). Unknown fields are rejected.',
+    'Rules: heads[].neckIndex must point at an appendage of kind "neck" or "torso" (omit it to sit the head on the spine front). Legs make it walk; no legs + serpentine = it slithers; floating hovers (compact floaters hang vertical: head up, tail down). kind "torso" is an upright sub-body rising from the spine — give arms/necks/wings "parent": <torso index> to root on it (centaurs, driders). spine.shape "box" makes rectangular slab bodies (cubes, chests, golems). palette.opacity < 1 = translucent body (ghosts, oozes). tips:"hand" puts a stylized palm+fingers at the appendage tip (not allowed on legs — they get feet). jointRings:true hovers glowing accent-colored energy rings at the limb joints. cilia:true rings the eye with twitching fleshy lashes. heads[].form gives a sculpted skull+jaw+teeth head (serpent=wedge, beast=broad muzzle, blunt=rounded, skull=bony) — use it for any creature with a real face. Use garnish only for parts you are told exist (crystalSpikes = jagged accent crystal shards on the back, params scale/jaggedness/count). skin.blend 0–1 sets how much parts melt into the body where they meet: 0 bony/chitinous/mechanical (hard seams), ~0.35 lean muscle, ~0.5 fleshy, 1 amorphous/gelatinous (one dripping mass); per-appendage "blend" overrides it for mixed bodies (a slime with one skeletal arm). Omit both for natural per-kind defaults. Unknown fields are rejected.',
     'SIZE the creature for the battle grid (1 tile = 5 ft), using its LARGEST dimension: Tiny ≤2.5 ft (half tile), Small ≤4, Medium ≤6 (1 tile), Large ≤10 (2×2 tiles), Huge ≤15 (3×3), Gargantuan >15 (4×4). Match the size the creature should occupy in combat.',
   ].join('\n');
 }
@@ -175,6 +178,8 @@ async function readBody(req: DevHubRouteContext['req']): Promise<Record<string, 
   return JSON.parse(acc) as Record<string, unknown>;
 }
 
+const HERO_DIR = path.resolve(process.cwd(), 'public/creatures3d/hero');
+
 async function listEntries(): Promise<CreatureLibraryEntry[]> {
   const dir = libraryDir();
   let files: string[] = [];
@@ -184,7 +189,17 @@ async function listEntries(): Promise<CreatureLibraryEntry[]> {
     return []; // library dir not created yet — an empty library, not an error
   }
   const entries = await Promise.all(
-    files.map(async (f) => JSON.parse(await fsp.readFile(path.join(dir, f), 'utf8')) as CreatureLibraryEntry),
+    files.map(async (f) => {
+      const entry = JSON.parse(await fsp.readFile(path.join(dir, f), 'utf8')) as CreatureLibraryEntry;
+      // a finished hero mesh surfaces as a public URL path (vite serves public/)
+      try {
+        await fsp.access(path.join(HERO_DIR, entry.id, 'hero.glb'));
+        entry.heroGlb = `creatures3d/hero/${entry.id}/hero.glb`;
+      } catch {
+        // no hero yet — field stays absent
+      }
+      return entry;
+    }),
   );
   return entries.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }

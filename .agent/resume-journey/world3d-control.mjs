@@ -6,18 +6,16 @@ import { chromium } from 'playwright';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
+import { BASE, seededContextOptions, launchOptions } from './rigContext.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const BASE = 'http://localhost:5174/Aralia/';
-const STATE = path.join(__dirname, '..', '3d-visual-quality', 'captures', 'storageState.json');
 const EVIDENCE = path.join(__dirname, 'evidence');
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-const browser = await chromium.launch({
-  headless: true,
-  args: ['--ignore-gpu-blocklist', '--enable-unsafe-swiftshader', '--use-gl=angle', '--use-angle=swiftshader'],
-});
-const ctx = await browser.newContext({ viewport: { width: 1600, height: 1000 }, storageState: STATE });
+const browser = await chromium.launch(launchOptions());
+const ctx = await browser.newContext(
+  seededContextOptions({ viewport: { width: 1600, height: 1000 } }),
+);
 const page = await ctx.newPage();
 const errors = [];
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); });

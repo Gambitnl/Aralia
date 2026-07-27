@@ -305,6 +305,31 @@ export interface SubmapModel {
 }
 
 /**
+ * Normalize a parent context to a canonical coordinate span before generating.
+ * The SP1 engine + clipping degrade at sub-unit coordinate scales (sliver /
+ * degenerate Voronoi cells), and a root atlas cell is only a few graph units
+ * across. Scaling about the polygon centroid is loss-free for consumers that
+ * render fit-to-view. MapPane keeps a local equivalent (DRILL_CANON_SPAN) for
+ * its drill stack; keep the two spans equal if either changes.
+ */
+export function normalizeParentContextScale(
+  ctx: SubmapParentContext,
+  canonSpan = 1000,
+): SubmapParentContext {
+  const b = polygonBounds(ctx.polygon);
+  const cx = (b.minX + b.maxX) / 2;
+  const cy = (b.minY + b.maxY) / 2;
+  const k = canonSpan / (Math.max(b.maxX - b.minX, b.maxY - b.minY) || 1);
+  const sc = (p: Pt): Pt => [(p[0] - cx) * k + cx, (p[1] - cy) * k + cy];
+  return {
+    ...ctx,
+    polygon: ctx.polygon.map(sc),
+    features: ctx.features?.map((f) => ({ ...f, x: (f.x - cx) * k + cx, y: (f.y - cy) * k + cy })),
+    polylines: ctx.polylines?.map((pl) => ({ ...pl, points: pl.points.map(sc) })),
+  };
+}
+
+/**
  * SP1 iteration #2: turn the deterministic site set into a Voronoi cell graph.
  * Adds a ring of bbox frame points so every real site gets a BOUNDED cell, then
  * reuses the FMG `Voronoi` traversal (`cells.v` → `vertices.p`). The inherited

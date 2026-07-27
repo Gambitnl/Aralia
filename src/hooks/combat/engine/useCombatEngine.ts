@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 06/07/2026, 09:33:48
+ * Last Sync: 23/07/2026, 21:41:30
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 13 files
  *
@@ -303,6 +303,9 @@ export const useCombatEngine = ({
             if (repeat.modifiers?.sizeDisadvantage && character.stats.size && repeat.modifiers.sizeDisadvantage.includes(character.stats.size)) {
                 hasDisadvantage = true;
             }
+            if (repeat.modifiers?.disadvantage) {
+                hasDisadvantage = true;
+            }
             if (hasNoLineOfSightPrerequisite(repeat)) {
                 const caster = characters.find(candidate => candidate.id === effect.sourceCasterId);
                 const casterTile = caster ? mapData?.tiles.get(`${caster.position.x}-${caster.position.y}`) : undefined;
@@ -522,6 +525,39 @@ export const useCombatEngine = ({
 
         if (savedEffectIds.length > 0) {
             updatedCharacter.statusEffects = updatedCharacter.statusEffects.filter(e => !savedEffectIds.includes(e.id));
+
+            const demonControlReleased = savedEffectIds.some(effectId =>
+                effectId.startsWith('summon-greater-demon-control-') &&
+                updatedCharacter.summonMetadata?.aftermathState?.kind === 'summon_greater_demon_control'
+            );
+            if (demonControlReleased && updatedCharacter.summonMetadata) {
+                updatedCharacter = {
+                    ...updatedCharacter,
+                    summonMetadata: {
+                        ...updatedCharacter.summonMetadata,
+                        commandsPerTurn: 0,
+                        commandsUsedThisTurn: 0,
+                        control: {
+                            ...updatedCharacter.summonMetadata.control,
+                            allegiance: 'uncontrolled_hostile',
+                            obedience: 'pursues_and_attacks_nearest_non_demons'
+                        },
+                        aftermathState: {
+                            ...updatedCharacter.summonMetadata.aftermathState,
+                            kind: 'summon_greater_demon_uncontrolled',
+                            controlBroken: true
+                        }
+                    }
+                };
+                onLogEntry({
+                    id: generateId(),
+                    timestamp: Date.now(),
+                    type: 'status',
+                    message: `${updatedCharacter.name}'s control ends; the demon turns hostile.`,
+                    characterId: updatedCharacter.id,
+                    data: { summonControl: 'broken', spellId: updatedCharacter.summonMetadata?.spellId } as any
+                });
+            }
         }
 
         return updatedCharacter;
@@ -589,7 +625,7 @@ export const useCombatEngine = ({
 
         return scheduledEffect.effects.some(effect => {
             const trigger = effect.trigger as { frequency?: string } | undefined;
-            const frequency = trigger?.frequency;
+            const frequency = scheduledEffect.recurringMechanic?.frequency ?? trigger?.frequency;
             return !frequency || frequency === 'every_time' || frequency === 'first_per_turn';
         });
     }, []);
@@ -606,7 +642,15 @@ export const useCombatEngine = ({
             .filter(effect => effect.targetId === character.id && effect.timing === timing)
             .forEach(scheduledEffect => {
                 const movementEffects = scheduledEffect.effects.filter((effect): effect is MovementEffect => effect.type === 'MOVEMENT');
-                const processedEffects = scheduledEffect.effects.flatMap(effect => convertSpellEffectToProcessed(effect));
+                const processedEffects = scheduledEffect.effects.flatMap(effect => convertSpellEffectToProcessed(
+                    effect,
+                    {
+                        spellId: scheduledEffect.spellId,
+                        casterId: scheduledEffect.casterId,
+                        saveDC: scheduledEffect.saveDC
+                    },
+                    scheduledEffect.recurringMechanic
+                ));
                 let didTrigger = false;
 
                 movementEffects.forEach(effect => {
@@ -899,16 +943,48 @@ export const useCombatEngine = ({
         return updatedChar;
     }, [mapData, handleDamage, onLogEntry]);
 
+    const processStartOfTurnEffects = useCallback((character: CombatCharacter, currentTurnNumber: number) => {
+        let updatedCharacter = { ...character };
+        const tracker = new AreaEffectTracker(spellZones);
+        const zoneResults = tracker.processStartTurn(updatedCharacter, currentTurnNumber);
+
+        for (const result of zoneResults) {
+            for (const effect of result.effects) {
+                if (effect.type !== 'damage' || !effect.dice) continue;
+
+                const damage = rollDice(effect.dice);
+                const updatedTarget = applyDamageAndCheckDowned(updatedCharacter, damage);
+                updatedCharacter = {
+                    ...updatedCharacter,
+                    currentHP: updatedTarget.currentHP,
+                    tempHP: updatedTarget.tempHP,
+                    deathSaves: updatedTarget.deathSaves,
+                    statusEffects: updatedTarget.statusEffects,
+                    conditions: updatedTarget.conditions,
+                    damagedThisTurn: updatedTarget.damagedThisTurn
+                };
+                addDamageNumber(damage, updatedCharacter.position, 'damage');
+                onLogEntry({
+                    id: generateId(),
+                    timestamp: Date.now(),
+                    type: 'damage',
+                    message: `${character.name} takes ${damage} ${effect.damageType || ''} damage at the start of its turn in a spell area.`,
+                    characterId: character.id,
+                    data: { damage, damageType: effect.damageType, trigger: 'on_start_turn_in_area' }
+                });
+            }
+        }
+
+        return processScheduledSpellEffects(updatedCharacter, 'turn_start', currentTurnNumber);
+    }, [addDamageNumber, onLogEntry, processScheduledSpellEffects, spellZones]);
+
     const processEndOfTurnEffects = useCallback((character: CombatCharacter, currentTurnNumber: number) => {
         let updatedCharacter = { ...character };
 
         updatedCharacter = processTileEffects(updatedCharacter, updatedCharacter.position);
 
-        // TODO #269: `AreaEffectTracker` is instantiated fresh for each movement action (`new AreaEffectTracker(spellZones)`).
-        // This is inefficient and loses any stateful tracking (though current impl doesn't hold state beyond zones).
-        // If we add stateful behavior (e.g., caching position lookups), consider:
-        // 1. Lifting `AreaEffectTracker` to a ref or context-level singleton.
-        // 2. Passing the zones array at method call time instead of constructor time.
+        // AreaEffectTracker holds no state beyond its zones, so a fresh
+        // per-call instance is cheap and safe.
         const tracker = new AreaEffectTracker(spellZones);
         const zoneResults = tracker.processEndTurn(updatedCharacter, currentTurnNumber);
         for (const result of zoneResults) {
@@ -1092,6 +1168,7 @@ export const useCombatEngine = ({
         handleDamage,
         processRepeatSaves,
         processScheduledSpellEffects,
+        processStartOfTurnEffects,
         processTileEffects,
         processEndOfTurnEffects,
         updateRoundBasedEffects,

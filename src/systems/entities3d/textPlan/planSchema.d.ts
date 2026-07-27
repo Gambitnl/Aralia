@@ -37,6 +37,10 @@ export interface PlanAppendage {
     tips?: 'hand';
     /** Floating accent-colored energy rings hovering at each interior joint. */
     jointRings?: boolean;
+    /** 0–1 junction softness override for THIS appendage: how much its root
+     * melts into the body (0 hard clip, 1 full melt). Falls back to skin.blend,
+     * then to the per-kind default. */
+    blend?: number;
 }
 export interface PlanHead {
     /** Index of a 'neck' appendage to ride; omitted = spine front. */
@@ -86,6 +90,12 @@ export interface CreaturePlan {
         eyeHex: string;
         opacity?: number;
     };
+    /** Creature-level junction softness default: how much parts melt together
+     * where they meet (0 bony/mechanical, 1 amorphous). Per-appendage `blend`
+     * overrides it; omitted = per-kind defaults. */
+    skin?: {
+        blend: number;
+    };
     garnish?: Array<{
         partId: string;
         params?: Record<string, number>;
@@ -116,9 +126,14 @@ export declare const PLAN_LIMITS: {
     readonly snoutLengthScale: readonly [0.3, 2.5];
     readonly snoutDroop: readonly [-0.6, 0.8];
     readonly garnish: readonly [0, 8];
+    readonly blend: readonly [0, 1];
 };
 /** Default attachment height on the body, per appendage kind. */
 export declare const PLAN_DEFAULT_HEIGHT_FRAC: Record<PlanAppendage['kind'], number>;
+/** Default junction softness per appendage kind (0 hard clip – 1 full melt),
+ * used when neither the appendage nor skin.blend says otherwise: fleshy
+ * kinds flow into the body, wings stay near-crisp. */
+export declare const PLAN_DEFAULT_BLEND: Record<PlanAppendage['kind'], number>;
 /**
  * Validate a candidate plan. Returns [] when valid; otherwise every named
  * problem found in one pass (the LLM retry prompt includes them all).

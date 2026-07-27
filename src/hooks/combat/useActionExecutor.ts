@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 06/07/2026, 09:33:48
+ * Last Sync: 23/07/2026, 20:44:08
  * Dependents: hooks/combat/useTurnManager.ts
- * Imports: 11 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -19,7 +19,7 @@
  * Encapsulates the logic for executing combat actions.
  * Decouples the "How" of action execution from the "When" of turn management.
  */
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
 import {
   CombatCharacter,
   CombatAction,
@@ -47,12 +47,14 @@ import { calculateMovementTotal } from '../../utils/combat/actionEconomyUtils';
 import {
   ActiveSpellZone,
   MovementTriggerDebuff,
-  processMovementTriggers
+  processMovementTriggers,
+  recenterConjureAnimalsZonesForPackMove
 } from '../../systems/spells/effects';
 import { AreaEffectTracker } from '../../systems/spells/effects/AreaEffectTracker';
 import { combatEvents } from '../../systems/events/CombatEvents';
 import { OpportunityAttackSystem } from '../../systems/combat/reactions/OpportunityAttackSystem';
 import { applyRuntimeStatusCondition } from '../../utils/combat/statusConditionUtils';
+import { validateTauntWillingMove } from '../../systems/combat/tauntConstraint';
 
 export interface UseActionExecutorProps {
   characters: CombatCharacter[];
@@ -79,6 +81,7 @@ export interface UseActionExecutorProps {
 
   // Engine State
   spellZones: ActiveSpellZone[];
+  setSpellZones?: Dispatch<SetStateAction<ActiveSpellZone[]>>;
   movementDebuffs: MovementTriggerDebuff[];
   reactiveTriggers: ReactiveTrigger[];
   setMovementDebuffs: React.Dispatch<React.SetStateAction<MovementTriggerDebuff[]>>;
@@ -173,7 +176,7 @@ const applySentinelStop = (character: CombatCharacter): CombatCharacter => {
 
   return {
     ...character,
-    statusEffects,
+    statusEffects: statusEffects as any[],
     actionEconomy: {
       ...character.actionEconomy,
       movement: {
@@ -516,7 +519,7 @@ const buildLegacyAttackResult = (
     : Math.max(2, Math.ceil((attacker.level ?? 1) / 4) + 1);
   const attackBonus = ability.attackBonus ?? (statBonus + proficiencyBonus);
   const total = d20 + attackBonus;
-  const targetAC = target.armorClass ?? target.stats.armorClass ?? 10;
+  const targetAC = target.armorClass ?? (target.stats as any)?.armorClass ?? 10;
 
   return {
     targetId: target.id,
@@ -621,6 +624,7 @@ export const useActionExecutor = ({
   processRepeatSaves,
   processTileEffects,
   spellZones,
+  setSpellZones,
   movementDebuffs,
   reactiveTriggers,
   setMovementDebuffs,
@@ -654,7 +658,7 @@ export const useActionExecutor = ({
 
     for (const trigger of triggers) {
       const effect = trigger.sourceEffect;
-      const attackFilter = effect.trigger.attackFilter;
+      const attackFilter = (effect.trigger as any)?.attackFilter;
       const explicitAttackResult = resolvedAttackResult ?? action.attackResults?.find(result => result.targetId === targetId);
 
       // Armor of Agathys stores its "melee attack only" rule in the trigger's
@@ -1008,8 +1012,16 @@ export const useActionExecutor = ({
       }
     }
 
+    // A Conjure Animals pack owns the center of its proximity zone. Recenter
+    // the live state before evaluating movement so a pack move can trigger the
+    // authored radius at its new destination in the same action.
+    const movementSpellZones = recenterConjureAnimalsZonesForPackMove(spellZones, updatedCharacter);
+    if (movementSpellZones !== spellZones) {
+      setSpellZones?.(currentZones => recenterConjureAnimalsZonesForPackMove(currentZones, updatedCharacter));
+    }
+
     // Spell-zone area effects on movement
-    areaEffectTrackerRef.current.setZones(spellZones);
+    areaEffectTrackerRef.current.setZones(movementSpellZones);
     const tracker = areaEffectTrackerRef.current;
     // Movement paths are optional so non-map callers can keep their endpoint
     // behavior, but map-driven movement can now preserve each walked tile for
@@ -1202,7 +1214,7 @@ export const useActionExecutor = ({
             spellId: metadata?.spellId,
             summonCondition: 'cannot_cross_elevation_change',
             travelRule: 'cannotCrossElevationChangeFeet',
-            cannotCrossElevationChangeFeet,
+            cannotCrossElevationChangeFeet: Boolean(cannotCrossElevationChangeFeet),
             removedSummonIds: [disk.id]
           }
         });
@@ -1235,9 +1247,9 @@ export const useActionExecutor = ({
   // Emits combat events and resolves reactive triggers (e.g., on_target_attack)
   // that fire after an ability is used. Kept separate from the resource-spending
   // path so reactive logic doesn't inflate the main coordinator.
-  // TODO #273(Ritualist): Check if ability has ritual tag or long casting time.
-  //   If so, do not execute immediately. Instead, call startRitual() and assign
-  //   to updatedCharacter.currentRitual. See src/systems/rituals/RitualManager.ts
+  // TODO: Check if ability has ritual tag or long casting time. If so, do not
+  //   execute immediately. Instead, call startRitual() and assign the result to
+  //   updatedCharacter.currentRitual. See src/systems/rituals/RitualManager.ts
   // ============================================================================
   const handleAbilityEvents = useCallback((
     action: CombatAction,
@@ -1295,8 +1307,6 @@ export const useActionExecutor = ({
   // Validates, spends resources, applies immediate effects, then delegates to
   // the appropriate handler. Each handler is independently testable and carries
   // its own focused dependency set.
-  // TODO #274(lint-intent): If map data can churn frequently, wrap executeAction with
-  //   a map snapshot to reduce recalculations.
   // ============================================================================
   const executeAction = useCallback(async (action: CombatAction): Promise<boolean> => {
     if (action.type === 'end_turn') {
@@ -1316,8 +1326,41 @@ export const useActionExecutor = ({
       return true;
     }
 
+    if (action.type === 'move' && action.targetPosition) {
+      const protectedTiles = startCharacter.summonMetadata?.bloodCircle?.protectedTiles ?? [];
+      const movementTiles = action.movementPath?.length
+        ? action.movementPath
+        : [startCharacter.position, action.targetPosition];
+      const crossedBloodCircle = movementTiles.slice(1).some(position => protectedTiles.some(protectedTile =>
+        protectedTile.x === position.x && protectedTile.y === position.y
+      ));
+      if (crossedBloodCircle) {
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'action',
+          message: `${startCharacter.name} cannot cross its protective blood circle.`,
+          characterId: startCharacter.id,
+          data: { bloodCircle: 'movement_blocked' } as any
+        });
+        return false;
+      }
+    }
+
     // Pre-move occupancy check (guard before resource spend)
     if (action.type === 'move' && action.targetPosition) {
+      const tauntMove = validateTauntWillingMove(startCharacter, action.targetPosition, characters);
+      if (!tauntMove.allowed) {
+        onLogEntry({
+          id: generateId(), timestamp: Date.now(), type: 'action',
+          message: `${startCharacter.name} cannot willingly move more than ${tauntMove.status?.taunt?.leashRangeFeet} feet from ${tauntMove.caster?.name}.`,
+          characterId: startCharacter.id,
+          targetIds: tauntMove.caster ? [tauntMove.caster.id] : [],
+          data: { spellId: tauntMove.status?.sourceSpellId, tauntConstraint: 'willing_movement_leash' }
+        });
+        return false;
+      }
+
       const multiplier = getCharacterSizeMultiplier(startCharacter.stats.size);
       for (let dx = 0; dx < multiplier; dx++) {
         for (let dy = 0; dy < multiplier; dy++) {

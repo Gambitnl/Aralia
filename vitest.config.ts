@@ -2,6 +2,8 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'fs';
+import os from 'os';
 
 /**
  * ARCHITECTURAL CONTEXT:
@@ -19,6 +21,27 @@ import path from 'path';
  * 
  * @file vitest.config.ts
  */
+const sanitizeAgentLabel = (value: string | undefined): string | undefined => {
+    const trimmed = value?.trim();
+    if (!trimmed) {
+        return undefined;
+    }
+
+    const safe = trimmed.replace(/[^a-zA-Z0-9._-]/g, '-');
+    const compact = safe.replace(/-+/g, '-');
+    return compact || undefined;
+};
+
+// Every invocation receives a private report path, even when a caller forgot to
+// set AGORA_AGENT_ID. Shared-checkout agents must never infer their result from a
+// repository-global file that a concurrent Vitest process can overwrite.
+const resolvedReportAgentId = sanitizeAgentLabel(process.env.AGORA_AGENT_ID) ?? sanitizeAgentLabel(process.env.VITEST_WORKER_ID);
+const defaultReportDir = path.join(os.tmpdir(), 'aralia-vitest-results');
+fs.mkdirSync(defaultReportDir, { recursive: true });
+const vitestJsonOutputFile =
+    process.env.VITEST_JSON_OUTPUT_FILE ??
+    path.join(defaultReportDir, `vitest-results.${resolvedReportAgentId ?? `pid-${process.pid}`}.json`);
+
 export default defineConfig({
     plugins: [react()],
     test: {
@@ -35,7 +58,7 @@ export default defineConfig({
         maxWorkers: 4,
         reporters: [
             'default',
-            ['json', { outputFile: 'vitest-results.json' }],
+            ['json', { outputFile: vitestJsonOutputFile }],
         ],
         alias: {
             '@': path.resolve(__dirname, 'src'),

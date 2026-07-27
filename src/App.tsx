@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 17/07/2026, 22:34:53
+ * Last Sync: 21/07/2026, 14:19:10
  * Dependents: None (Orphan)
  * Imports: 85 files
  *
@@ -180,8 +180,9 @@ const CompanionReaction = lazy(() =>
   })),
 );
 const GameModals = lazy(() => import("./components/layout/GameModals"));
-// Worldforge atlas cartographer demo (?phase=worldforge) — lazy: pulls the
-// whole ported-FMG generation stack, which the main bundle must not pay for.
+// The retained Atlas hierarchy is lazy because it pulls the Region/Local/Ground
+// generation stack. Its L0 now uses AtlasSvgView, and only the in-game surface
+// can mount it; the former ?phase=worldforge canvas URL fails closed below.
 const WorldforgeAtlasDemo = lazy(
   () => import("./components/Worldforge/AtlasDemo"),
 );
@@ -224,11 +225,6 @@ const CombatMessagingDemo = lazy(() =>
 // - Design Preview: /Aralia/misc/design.html
 // - Developer Hub:  /Aralia/misc/dev_hub.html (Central landing page)
 // -------------------------------------------
-
-// TODO #1: Add AI model OPTIONALITY settings to allow players to choose between local (Ollama) or cloud (Gemini) models
-// PROGRESS: Most AI functions (location descriptions, NPC interactions, etc.) now use local Ollama instead of Gemini,
-// significantly reducing internet dependency. Players should be able to configure their preferred AI model in settings
-// and have the system gracefully fall back between local and cloud models based on availability and preference.
 
 // ============================================================================
 // Main Component
@@ -275,10 +271,12 @@ async function prepareTravelBattlefield(
         import("./components/World3D/createWorldGenClient"),
         import("./systems/combat/worldScenario/travelAmbushBattlefield"),
       ]);
+    // Game clock is an in-world UTC Date; read UTC fields so the ambush
+    // battlefield lighting hour matches the HUD clock (never host getHours()).
     const hour =
       sourceState.gameTime instanceof Date
-        ? sourceState.gameTime.getHours() +
-          sourceState.gameTime.getMinutes() / 60
+        ? sourceState.gameTime.getUTCHours() +
+          sourceState.gameTime.getUTCMinutes() / 60
         : 12;
     const ground = await loadCompleteGroundWorld({
       wfSeed: sourceState.worldSeed,
@@ -669,8 +667,6 @@ const App: React.FC = () => {
     return tooltip;
   }, []);
 
-  // TODO #2(QOL): If re-render hotspots appear, profile callback dependencies here and in useGameActions/useGameInitialization (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
-  // TODO #3(FEATURES): Add AI model optionality settings to allow players to choose between local (Ollama) or cloud (Gemini) models in settings, with graceful fallback between models based on availability and preference.
   const { processAction } = useGameActions({
     gameState,
     dispatch,
@@ -2024,12 +2020,17 @@ const App: React.FC = () => {
   const handleNavigateToGlossaryFromTooltip = useCallback(
     (termId: string) => {
       if (!gameState.isGlossaryVisible) {
-        dispatch({ type: "SET_GLOSSARY_TERM_FOR_MODAL", payload: termId });
+        // Opening and selecting must be one reducer action. A separate selection
+        // dispatch is cleared by the glossary toggle while it closes the other
+        // overlays, which previously made spell links fall back to Acolyte.
         processAction({
           type: "TOGGLE_GLOSSARY_VISIBILITY",
           label: "Open Glossary",
+          payload: { initialTermId: termId },
         });
       } else {
+        // An already-open glossary only needs to move its current selection;
+        // toggling here would close the modal instead of following the link.
         dispatch({ type: "SET_GLOSSARY_TERM_FOR_MODAL", payload: termId });
       }
     },
@@ -2161,12 +2162,16 @@ const App: React.FC = () => {
       </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.WORLDFORGE_DEMO) {
-    // Worldforge atlas cartographer (?phase=worldforge): the native
-    // ported-FMG map surface (docs/projects/worldforge, orchestration Lane A).
+    // Keep the enum branch as a save-compatible fail-closed boundary. URL
+    // parsing rejects every legacy spelling, and no in-app command dispatches
+    // this phase; an old persisted value therefore reaches safety instead of
+    // mounting the retired canvas world-map route.
     mainContent = (
-      <ErrorBoundary fallbackMessage="An error occurred in the Worldforge cartographer.">
-        <WorldforgeAtlasDemo />
-      </ErrorBoundary>
+      <NotFound
+        onReturnToMainMenu={() =>
+          dispatch({ type: "SET_GAME_PHASE", payload: GamePhase.MAIN_MENU })
+        }
+      />
     );
   } else if (gameState.phase === GamePhase.START_POINT_SELECTION) {
     // Start Point Selection (?phase=startselect): after character creation, the
@@ -2279,8 +2284,9 @@ const App: React.FC = () => {
     // Render the Main Game Layout (Exploration Mode)
     // <GameLayout> extracts the complexity of the Compass, Action, World, and Minimap panes.
     // When worldViewMode === '3d', render the 3D world instead of the 2D atlas.
-    // mapSurface ('classic' | 'worldforge') swaps the 2D surface between the
-    // legacy GameLayout and the native ported-FMG Worldforge cartographer.
+    // mapSurface ('classic' | 'worldforge') is a save-compatible view choice:
+    // normal game panes or the full atlas explorer. Both world-level routes now
+    // render the same canonical getBridgeAtlas + AtlasSvgView cartography.
     const openingGateOwnsMainView =
       gameState.gameEntry?.status === "generating" ||
       gameState.gameEntry?.status === "model-unavailable";

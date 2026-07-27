@@ -26,6 +26,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createStore } from './store.mjs';
 import { attachActivityMirror } from './activityMirror.mjs';
+import { installFatalErrorHandlers } from './fatalErrorLog.mjs';
 import { renderDocPage } from './mdRender.mjs';
 import { indexGaps } from './gapIndex.mjs';
 
@@ -219,6 +220,12 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
   }
 
   // ============================== Presence ==============================
+  // Pet discovery is open because registration itself is open and now refuses
+  // any identity that does not name one of these catalog entries.
+  router.get('/pets', async (_req, res) => {
+    sendJson(res, 200, { pets: store.listPetIdentities() });
+  });
+
   router.post('/agents/register', async (req, res) => {
     let body;
     try {
@@ -228,6 +235,9 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     }
     if (!body.handle || typeof body.handle !== 'string') {
       return sendJson(res, 400, { error: 'handle (string) is required' });
+    }
+    if (!body.petSlug || typeof body.petSlug !== 'string') {
+      return sendJson(res, 400, { error: 'petSlug (string) is required before claiming presence' });
     }
     // Handle-claim uniqueness: refuse a name a still-live agent already holds, so
     // two agents can't silently share an identity (opt out with unique:false for
@@ -247,16 +257,33 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       : typeof body.threadId === 'string' ? body.threadId
       : typeof body.conversationId === 'string' ? body.conversationId
       : undefined;
-    const agent = store.registerAgent({
-      handle: body.handle, note: body.note, model: body.model, sessionId, role: body.role,
-      type: body.type, spawnedBy: body.spawnedBy, campaign: body.campaign, cwd: body.cwd,
-    });
+    let agent;
+    try {
+      agent = store.registerAgent({
+        handle: body.handle, note: body.note, model: body.model, reasoningEffort: body.reasoningEffort, sessionId, role: body.role,
+        type: body.type, spawnedBy: body.spawnedBy, campaign: body.campaign, cwd: body.cwd,
+        petSlug: body.petSlug,
+      });
+    } catch (error) {
+      if (error && error.code === 'AGORA_PET_CATALOG_EXHAUSTED') {
+        return sendJson(res, 409, { error: error.message, code: error.code });
+      }
+      if (error && (
+        error.code === 'AGORA_PET_REQUIRED'
+        || error.code === 'AGORA_PET_INVALID'
+        || error.code === 'AGORA_THREAD_ID_REQUIRED'
+      )) {
+        return sendJson(res, 400, { error: error.message });
+      }
+      throw error;
+    }
     sendJson(res, 201, {
       agentId: agent.id,
       token: agent.token,
       handle: agent.handle,
       registeredAt: agent.registeredAt,
       model: agent.model,
+      reasoningEffort: agent.reasoningEffort,
       sessionId: agent.sessionId,
       role: agent.role,
       type: agent.type,
@@ -264,6 +291,9 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       campaign: agent.campaign,
       cwd: agent.cwd,
       handleValid: agent.handleValid,
+      pet: agent.pet,
+      requestedPetSlug: agent.requestedPetSlug,
+      petSubstituted: agent.petSubstituted,
     });
   });
 
@@ -282,6 +312,17 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
   router.get('/agents', async (_req, res) => {
     sendJson(res, 200, { agents: store.listAgents() });
   });
+
+  router.post(
+    '/agents/:id/retire-stale',
+    withAuth(async (_req, res, ctx) => {
+      const result = store.retireStaleIdleAgent({ requesterId: ctx.agent.id, targetAgentId: ctx.params.id });
+      if (result.ok) return sendJson(res, 200, result);
+      if (result.error === 'agent not found') return sendJson(res, 404, { error: result.error });
+      if (/online|holds|in-flight/.test(result.error || '')) return sendJson(res, 409, { error: result.error });
+      return sendJson(res, 403, { error: result.error || 'forbidden' });
+    }),
+  );
 
   // Clean voluntary exit. The agent retires itself with its own token; the store
   // frees its locks, reopens its in-flight tasks (marked "retired", not "reaped"),
@@ -329,6 +370,26 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     sendJson(res, 200, { locks: store.listLocks() });
   });
 
+  router.post(
+    '/locks/:id/renew',
+    withAuth(async (req, res, ctx) => {
+      let body = {};
+      try {
+        body = await readJsonBody(req);
+      } catch (error) {
+        return sendJson(res, 400, { error: error.message });
+      }
+      const result = store.renewLock({
+        lockId: ctx.params.id,
+        agentId: ctx.agent.id,
+        ttlMs: typeof body.ttlMs === 'number' ? body.ttlMs : undefined,
+      });
+      if (result.ok) return sendJson(res, 200, { lock: result.lock });
+      if (result.error === 'lock not found') return sendJson(res, 404, { error: result.error });
+      return sendJson(res, 403, { error: result.error || 'forbidden' });
+    }),
+  );
+
   router.delete(
     '/locks/:id',
     withAuth(async (_req, res, ctx) => {
@@ -374,9 +435,11 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
   router.delete(
     '/reservations/:id',
     withAuth(async (_req, res, ctx) => {
-      const result = store.releaseReservation({ agentId: ctx.agent.id, target: ctx.params.id });
+      const force = ctx.query.get('force') === '1' || ctx.query.get('force') === 'true';
+      const result = store.releaseReservation({ agentId: ctx.agent.id, target: ctx.params.id, force });
       if (result.ok) return sendJson(res, 200, { ok: true });
       if (result.error === 'reservation not found') return sendJson(res, 404, { error: result.error });
+      if (/online/.test(result.error || '')) return sendJson(res, 409, { error: result.error });
       return sendJson(res, 403, { error: result.error || 'forbidden' });
     }),
   );
@@ -519,6 +582,41 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     }),
   );
 
+  // A worker leaves a resumable checkpoint on the task it is working — a short
+  // "here is what I did and what I was about to do next" note. If that worker
+  // later goes silent and gets reaped, this note is folded into the retrace
+  // dossier so whoever inherits the task is not starting blind. Latest note
+  // wins; the store overwrites any earlier checkpoint.
+  router.post(
+    '/tasks/:id/checkpoint',
+    withAuth(async (req, res, ctx) => {
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+      const result = store.checkpointTask({
+        taskId: ctx.params.id,
+        agentId: ctx.agent.id,
+        did: typeof body.did === 'string' ? body.did : undefined,
+        next: typeof body.next === 'string' ? body.next : undefined,
+        files: body.files,
+      });
+      if (result.ok) {
+        scheduleSyncSoon();
+        return sendJson(res, 200, { checkpoint: result.checkpoint });
+      }
+      if (result.error === 'task not found') return sendJson(res, 404, { error: result.error });
+      // Authentication alone does not grant checkpoint authority. A different
+      // live agent gets 403; an owned task in open/blocked/done state gets 409
+      // because its lifecycle conflicts with a live-work checkpoint.
+      if (result.code === 'not_task_claimant') return sendJson(res, 403, { error: result.error });
+      if (result.code === 'task_not_active') return sendJson(res, 409, { error: result.error });
+      return sendJson(res, 400, { error: result.error });
+    }),
+  );
+
   router.post(
     '/tasks/:id/state',
     withAuth(async (req, res, ctx) => {
@@ -646,6 +744,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     'PROTOCOL.md',
     'ORCHESTRATOR.md',
     'CO-ORCHESTRATION.md',
+    'VEGA.md',
     'WORKFLOW_GAPS.md',
     'COLD_START_ORCHESTRATOR_PROMPT.md',
   ];
@@ -994,6 +1093,11 @@ if (isMainModule()) {
   let dir = cli.dir || process.env.AGORA_DIR || DEFAULT_DIR;
   // Resolve a relative --dir against the cwd the operator launched from.
   dir = path.isAbsolute(dir) ? dir : path.resolve(process.cwd(), dir);
+
+  // Install fatal handlers before opening the store or HTTP listener. An early startup failure and
+  // every later uncaught process error will be appended synchronously beside Agora's runtime state,
+  // where a detached daemon can leave evidence even when no terminal is attached.
+  installFatalErrorHandlers({ logFile: path.join(dir, 'daemon-crash.log') });
 
   // Cockpit activity bridge: default to the operator dashboard's feed file so
   // peer-coordination events show up there. Override with --activity-file <p>

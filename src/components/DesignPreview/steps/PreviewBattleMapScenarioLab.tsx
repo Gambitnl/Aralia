@@ -442,10 +442,13 @@ export const PreviewBattleMapScenarioLab: React.FC = () => {
           </div>
           {/* Every scene carries an authored description; keeping it visible
               (not just a hover tooltip) tells reviewers what the scenario is
-              meant to prove before they judge the map. */}
+              meant to prove before they judge the map. Clamp to two lines so a
+              long authored description can never wrap far enough to crowd the
+              scenario tab strip below it; the full text stays in the title. */}
           <p
-            className="mt-0.5 max-w-3xl text-xs leading-snug text-slate-400"
+            className="mt-0.5 line-clamp-2 max-w-3xl text-xs leading-snug text-slate-400"
             data-testid="scenario-description"
+            title={preset.description}
           >
             {preset.description}
           </p>
@@ -627,6 +630,10 @@ export const PreviewBattleMapScenarioLab: React.FC = () => {
                 }
                 showTargetableObjectFacts={objectFactsVisible}
                 showWorldOccupants={occupantFactsVisible}
+                // The fog-of-war veil toggle is a review-only affordance. The
+                // lab explicitly opts in; real-game combat (CombatView) never
+                // passes this, so players never see the chip.
+                showFogToggle
               />
             </Suspense>
           )}

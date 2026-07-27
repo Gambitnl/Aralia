@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 14/07/2026, 18:51:02
- * Dependents: components/Worldforge/LivingWorldPreview.tsx, components/debug/TownHistoryDevOverlay.tsx, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/townSimRegistry.ts
+ * Last Sync: 18/07/2026, 19:57:39
+ * Dependents: components/Worldforge/LivingWorldPreview.tsx, components/debug/TownHistoryDevOverlay.tsx, systems/worldforge/roster/agentLife.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/townSimRegistry.ts
  * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
@@ -556,15 +556,28 @@ const RAID_WORRY_LINES: ReadonlyArray<string> = [
 ];
 
 export interface RollTownDayOptions {
+  /**
+   * Select the layers this day may advance. The default keeps the complete
+   * living-world simulation. `life-events` is the smaller agent-sim spine:
+   * aging, natural deaths, inheritance, succession, births, and coming of age
+   * only. It deliberately leaves relationships, economy, town events, and
+   * building history unchanged while reusing this file's canonical state and
+   * chronicle contracts.
+   */
+  mode?: 'full' | 'life-events';
   /** World seed — seeds the raid-worry stream (kept off the life-event rng). */
   worldSeed?: number;
   /** Raid pressure (0..1) the burg feels from uncleared dungeons today. */
   raidPressure?: number;
 }
 
-/** Advance one day; returns a new state (input untouched). `opts` carries the
- * optional raid-pressure signal (Task 8); omitting it reproduces the pre-Task-8
- * behavior exactly (no worry line, no extra draws on any stream). */
+/**
+ * Advance one day and return a new state without touching the input. The
+ * default runs every established town-sim layer. Callers that need only the
+ * agent life spine can select `mode: 'life-events'`; raid pressure remains an
+ * optional full-mode signal. Omitting options preserves the established draw
+ * order and behavior exactly.
+ */
 export function rollTownDay(
   state: TownSimState,
   day: number,
@@ -572,6 +585,7 @@ export function rollTownDay(
   opts?: RollTownDayOptions,
 ): TownSimState {
   const next = cloneState(state);
+  const lifeEventsOnly = opts?.mode === 'life-events';
 
   // Snapshot the cohort that existed at the start of the day (newborns added
   // later this day are not aged/killed on their birth day).
@@ -589,28 +603,30 @@ export function rollTownDay(
 
   // 1b. Resolve courtships: a matured courtship becomes a marriage; a courtship
   // whose partner died (or no longer points back) simply ends. No rng.
-  for (const id of cohort) {
-    const v = next.villagers[id];
-    if (!isAlive(v) || v.courtingId === undefined) continue;
-    const partner = next.villagers[v.courtingId];
-    if (!partner || !isAlive(partner) || partner.courtingId !== v.occupantId) {
+  if (!lifeEventsOnly) {
+    for (const id of cohort) {
+      const v = next.villagers[id];
+      if (!isAlive(v) || v.courtingId === undefined) continue;
+      const partner = next.villagers[v.courtingId];
+      if (!partner || !isAlive(partner) || partner.courtingId !== v.occupantId) {
+        v.courtingId = undefined;
+        v.courtshipStartDay = undefined;
+        continue;
+      }
+      if (v.occupantId > partner.occupantId) continue; // process the pair once
+      if (v.spouseId !== undefined || partner.spouseId !== undefined) continue;
+      if (day - (v.courtshipStartDay ?? day) < COURTSHIP_DAYS) continue;
+      v.spouseId = partner.occupantId;
+      partner.spouseId = v.occupantId;
       v.courtingId = undefined;
       v.courtshipStartDay = undefined;
-      continue;
+      partner.courtingId = undefined;
+      partner.courtshipStartDay = undefined;
+      // Marriage creates one real household. Reusing an abandoned home gives
+      // vacancy and reoccupation a demographic cause instead of a cosmetic roll.
+      establishMarriedHousehold(next, day, v, partner);
+      addEvent(next.chronicle, day, 'marriage', v.occupantId, [partner.occupantId], `${v.name} married ${partner.name}.`);
     }
-    if (v.occupantId > partner.occupantId) continue; // process the pair once
-    if (v.spouseId !== undefined || partner.spouseId !== undefined) continue;
-    if (day - (v.courtshipStartDay ?? day) < COURTSHIP_DAYS) continue;
-    v.spouseId = partner.occupantId;
-    partner.spouseId = v.occupantId;
-    v.courtingId = undefined;
-    v.courtshipStartDay = undefined;
-    partner.courtingId = undefined;
-    partner.courtshipStartDay = undefined;
-    // Marriage creates one real household. Reusing an abandoned home gives
-    // vacancy and reoccupation a demographic cause instead of a cosmetic roll.
-    establishMarriedHousehold(next, day, v, partner);
-    addEvent(next.chronicle, day, 'marriage', v.occupantId, [partner.occupantId], `${v.name} married ${partner.name}.`);
   }
 
   // 2. Births to living married couples (process once per couple, lower id leads).
@@ -674,42 +690,44 @@ export function rollTownDay(
   // 4. Form new courtships among eligible singles (affinity abstracted into the
   // courtship chance + the courtship period). rng drawn in sorted-id order;
   // partners chosen deterministically by closest age (tie-break: lower id).
-  const singles = cohort
-    .map((id) => next.villagers[id])
-    .filter((v) => isSingleMarriageable(v, day))
-    .sort((a, b) => a.occupantId - b.occupantId);
-  const pairedToday = new Set<number>();
-  const dailyCourtship = annualToDaily(ANNUAL_COURTSHIP_CHANCE);
-  for (const a of singles) {
-    if (pairedToday.has(a.occupantId)) continue;
-    if (rng.next() >= dailyCourtship) continue;
-    const ageA = ageOf(a, day);
-    let best: LivingVillager | undefined;
-    let bestGap = Infinity;
-    for (const b of singles) {
-      if (b.occupantId === a.occupantId || pairedToday.has(b.occupantId)) continue;
-      if (isCloseKin(a, b)) continue;
-      const gap = Math.abs(ageOf(b, day) - ageA);
-      if (gap < bestGap || (gap === bestGap && best !== undefined && b.occupantId < best.occupantId)) {
-        best = b;
-        bestGap = gap;
+  if (!lifeEventsOnly) {
+    const singles = cohort
+      .map((id) => next.villagers[id])
+      .filter((v) => isSingleMarriageable(v, day))
+      .sort((a, b) => a.occupantId - b.occupantId);
+    const pairedToday = new Set<number>();
+    const dailyCourtship = annualToDaily(ANNUAL_COURTSHIP_CHANCE);
+    for (const a of singles) {
+      if (pairedToday.has(a.occupantId)) continue;
+      if (rng.next() >= dailyCourtship) continue;
+      const ageA = ageOf(a, day);
+      let best: LivingVillager | undefined;
+      let bestGap = Infinity;
+      for (const b of singles) {
+        if (b.occupantId === a.occupantId || pairedToday.has(b.occupantId)) continue;
+        if (isCloseKin(a, b)) continue;
+        const gap = Math.abs(ageOf(b, day) - ageA);
+        if (gap < bestGap || (gap === bestGap && best !== undefined && b.occupantId < best.occupantId)) {
+          best = b;
+          bestGap = gap;
+        }
       }
+      if (!best) continue;
+      a.courtingId = best.occupantId;
+      a.courtshipStartDay = day;
+      best.courtingId = a.occupantId;
+      best.courtshipStartDay = day;
+      pairedToday.add(a.occupantId);
+      pairedToday.add(best.occupantId);
+      addEvent(next.chronicle, day, 'courtship', a.occupantId, [best.occupantId], `${a.name} and ${best.name} began courting.`);
     }
-    if (!best) continue;
-    a.courtingId = best.occupantId;
-    a.courtshipStartDay = day;
-    best.courtingId = a.occupantId;
-    best.courtshipStartDay = day;
-    pairedToday.add(a.occupantId);
-    pairedToday.add(best.occupantId);
-    addEvent(next.chronicle, day, 'courtship', a.occupantId, [best.occupantId], `${a.name} and ${best.name} began courting.`);
   }
 
   // 5. Annual economy (event-grained): once per game year, a town-wide outcome
   // (good/lean year, levy, boom) shifts every living villager's wealth meter and
   // the town prosperity meter, and writes one chronicle line. subjectId 0 marks
   // a town-level event (not a personal diary entry).
-  if (day > 0 && day % DAYS_PER_YEAR === 0) {
+  if (!lifeEventsOnly && day > 0 && day % DAYS_PER_YEAR === 0) {
     const outcome = rollAnnualEconomy(rng);
     if (outcome.kind !== 'steady') {
       for (const id of Object.keys(next.villagers)) {
@@ -773,33 +791,39 @@ export function rollTownDay(
   // (subjectId 0, matching the economy convention) and nudges prosperity +1
   // (clamped 0..100). Drawing no randomness keeps every other pass's RNG stream
   // — and the existing tests — unperturbed.
-  const dayOfYear = ((day % DAYS_PER_YEAR) + DAYS_PER_YEAR) % DAYS_PER_YEAR;
-  for (const name of festivalsOnDayOfYear(dayOfYear, next.burgId)) {
-    const base = next.prosperity ?? 50;
-    next.prosperity = Math.max(0, Math.min(100, base + 1));
-    addEvent(next.chronicle, day, 'festival', 0, [], `The town held ${name}.`);
+  if (!lifeEventsOnly) {
+    const dayOfYear = ((day % DAYS_PER_YEAR) + DAYS_PER_YEAR) % DAYS_PER_YEAR;
+    for (const name of festivalsOnDayOfYear(dayOfYear, next.burgId)) {
+      const base = next.prosperity ?? 50;
+      next.prosperity = Math.max(0, Math.min(100, base + 1));
+      addEvent(next.chronicle, day, 'festival', 0, [], `The town held ${name}.`);
+    }
   }
 
   // 7. Raid-worry (Task 8): the ecology signal's one visible symptom. Above the
   // pressure floor, an occasional worry line joins the chronicle. Rolled on a
   // SEPARATE per-(burg, day) stream — NEVER the life-event `rng` — so it cannot
   // shift any existing draw and leaves every pre-Task-8 test byte-identical.
-  const pressure = opts?.raidPressure ?? 0;
-  if (pressure >= RAID_WORRY_MIN_PRESSURE) {
-    const worryRng = new SeededRandom(
-      seedFromPath(makeSeedPath(opts?.worldSeed ?? 0, `burg:${next.burgId}`, `day:${day}`, 's:raidworry')),
-    );
-    const chance = RAID_WORRY_MAX_DAILY_CHANCE * pressure;
-    if (worryRng.next() < chance) {
-      const line = RAID_WORRY_LINES[worryRng.nextInt(0, RAID_WORRY_LINES.length)]; // MAX-EXCLUSIVE
-      addEvent(next.chronicle, day, 'raid_worry', 0, [], line);
+  if (!lifeEventsOnly) {
+    const pressure = opts?.raidPressure ?? 0;
+    if (pressure >= RAID_WORRY_MIN_PRESSURE) {
+      const worryRng = new SeededRandom(
+        seedFromPath(makeSeedPath(opts?.worldSeed ?? 0, `burg:${next.burgId}`, `day:${day}`, 's:raidworry')),
+      );
+      const chance = RAID_WORRY_MAX_DAILY_CHANCE * pressure;
+      if (worryRng.next() < chance) {
+        const line = RAID_WORRY_LINES[worryRng.nextInt(0, RAID_WORRY_LINES.length)]; // MAX-EXCLUSIVE
+        addEvent(next.chronicle, day, 'raid_worry', 0, [], line);
+      }
     }
   }
 
   // Occupancy reconciliation runs after every cause of death, birth, and move.
   // Annual neglect then sees the final use state for this day.
-  reconcileBuildingUse(next, day);
-  recordNeglectRuins(next, day);
+  if (!lifeEventsOnly) {
+    reconcileBuildingUse(next, day);
+    recordNeglectRuins(next, day);
+  }
 
   next.lastSimDay = day;
   return next;

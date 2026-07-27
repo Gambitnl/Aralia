@@ -1,0 +1,567 @@
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 11/07/2026, 18:52:50
+ * Dependents: components/World3D/PlayerAvatar.tsx, components/World3D/World3DDemo.tsx, components/puzzles/LockpickingModal.tsx, data/classes/classFeatureProgression.ts, data/classes/subclasses.ts, data/classes/tierOneFeatures.ts, hooks/combat/useSummons.ts, services/travelService.ts, systems/crafting/craftingService.ts, systems/crime/SmugglingSystem.ts, systems/crime/fencing/FenceSystem.ts, systems/entities3d/recipeFromCharacter.ts, systems/party/npcToPartyMember.ts, systems/party/partyConstants.ts, systems/party/recruitTypes.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/characterAbilityBridge.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/puzzles/secretDoorSystem.ts, systems/travel/TravelCalculations.ts, systems/travel/forcedMarch.ts, types/index.ts, utils/character/checkUtils.ts, utils/sandbox/quickCharacterGenerator.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+import type { DamageType, SpellSchool } from './spells.js';
+import type { ActiveEffect, StatusEffect } from './effects.js';
+import type { AbilityScoreName, AbilityScores, CharacterStats, Skill } from './core.js';
+import type { EquipmentSlotType, Item } from './items.js';
+import type { RaceVisualSpec } from './visuals.js';
+import type { FamilyMember } from './world.js';
+import type { Language } from './languages.js';
+/**
+ * ARCHITECTURAL CONTEXT:
+ * This file contains the 'Core Domain Types' for characters. It defines
+ * the structure of Players, Classes, Races, and Feats.
+ *
+ * Recent updates align the system with '2024 Rulebook' mechanics. Many
+ * feats now scale with 'Proficiency Bonus' rather than using fixed numbers.
+ * The `benefits` structure within the `Feat` interface has been expanded
+ * with flags like `initiativeBonusProficiency` and `luckyPoints` to
+ * support these dynamic scaling rules in the combat and check modules.
+ *
+ * @file src/types/character.ts
+ */
+export type { AbilityScores, AbilityScoreName } from './core.js';
+export interface RacialAbilityBonus {
+    ability: AbilityScoreName | 'Any';
+    bonus: number;
+    choiceCount?: number;
+}
+export type ElvenLineageType = 'drow' | 'high_elf' | 'wood_elf';
+export interface ElvenLineageBenefit {
+    level: number;
+    description?: string;
+    cantripId?: string;
+    spellId?: string;
+    speedIncrease?: number;
+    darkvisionRange?: number;
+    canSwapCantrip?: boolean;
+    swappableCantripSource?: 'wizard';
+}
+export interface ElvenLineage {
+    id: ElvenLineageType;
+    name: string;
+    description: string;
+    benefits: ElvenLineageBenefit[];
+}
+export type GnomeSubraceType = 'forest_gnome' | 'rock_gnome' | 'deep_gnome';
+export interface GnomeSubrace {
+    id: GnomeSubraceType;
+    name: string;
+    description: string;
+    traits: string[];
+    grantedCantrip?: {
+        id: string;
+        spellcastingAbilitySource: 'subrace_choice';
+    };
+    grantedSpell?: {
+        id: string;
+        spellcastingAbilitySource: 'subrace_choice';
+        usesDescription: string;
+        level: number;
+    };
+    superiorDarkvision?: boolean;
+}
+export type GiantAncestryType = 'Cloud' | 'Fire' | 'Frost' | 'Hill' | 'Stone' | 'Storm';
+export interface GiantAncestryBenefit {
+    id: GiantAncestryType;
+    name: string;
+    description: string;
+}
+export type FiendishLegacyType = 'abyssal' | 'chthonic' | 'infernal';
+export interface FiendishLegacy {
+    id: FiendishLegacyType;
+    name: string;
+    description: string;
+    level1Benefit: {
+        resistanceType: string;
+        cantripId: string;
+    };
+    level3SpellId: string;
+    level5SpellId: string;
+}
+export type RacialSpellCastingMethod = 'at_will' | 'once_per_long_rest' | 'once_per_short_rest';
+export interface RacialSpell {
+    minLevel: number;
+    spellId: string;
+    /**
+     * How this racial spell can be cast.
+     */
+    castingMethod?: RacialSpellCastingMethod;
+    /**
+     * Which ability score applies to this racial spell.
+     * Use 'subrace_choice' when the player-selected ability should be used.
+     */
+    spellAbility?: AbilityScoreName | 'subrace_choice';
+    /**
+     * Optional level cap when casting without explicit upcast support.
+     */
+    maxCastLevel?: number;
+    /**
+     * Whether this racial spell can be cast using higher-level spell slots.
+     */
+    upcastable?: boolean;
+    /**
+     * Whether the spell participates in standard prepared spell limits.
+     * If false, it is treated as always prepared.
+     */
+    countsAsPrepared?: boolean;
+}
+export interface RacialSpellGrant {
+    sourceRaceId: string;
+    sourceRaceName?: string;
+    minLevel: number;
+    spellId: string;
+    castingMethod: RacialSpellCastingMethod;
+    spellAbility?: AbilityScoreName | 'subrace_choice';
+    maxCastLevel?: number;
+    upcastable?: boolean;
+    countsAsPrepared: boolean;
+    traitName?: string;
+}
+export type DraconicAncestorType = 'Black' | 'Blue' | 'Brass' | 'Bronze' | 'Copper' | 'Gold' | 'Green' | 'Red' | 'Silver' | 'White';
+export type DraconicDamageType = 'Acid' | 'Lightning' | 'Fire' | 'Poison' | 'Cold';
+export interface DraconicAncestryInfo {
+    type: DraconicAncestorType;
+    damageType: DraconicDamageType;
+}
+/**
+ * A comprehensive type that bundles all race-related data, including lineages,
+ * subraces, and other unique racial choices. This provides a single, strongly-typed
+ * source for all non-core race data.
+ */
+export interface RaceDataBundle {
+    dragonbornAncestries: Record<DraconicAncestorType, DraconicAncestryInfo>;
+    goliathGiantAncestries: GiantAncestryBenefit[];
+    tieflingLegacies: FiendishLegacy[];
+    gnomeSubraces: GnomeSubrace[];
+}
+export interface Race {
+    id: string;
+    name: string;
+    description: string;
+    abilityBonuses?: RacialAbilityBonus[];
+    traits: string[];
+    /** The parent race group this race belongs to (e.g., 'dwarf' for Hill Dwarf, Mountain Dwarf, etc.) */
+    baseRace?: string;
+    /** Whether this race can be selected directly without choosing a subrace. Defaults to true if omitted. */
+    isSelectableAsBase?: boolean;
+    elvenLineages?: ElvenLineage[];
+    gnomeSubraces?: GnomeSubrace[];
+    giantAncestryChoices?: GiantAncestryBenefit[];
+    fiendishLegacies?: FiendishLegacy[];
+    /** @deprecated Use visual.illustrationPath instead */
+    imageUrl?: string;
+    visual?: RaceVisualSpec;
+    racialSpellChoice?: {
+        traitName: string;
+        traitDescription: string;
+    };
+    spellsOfTheMark?: {
+        minLevel: number;
+        spells: string[];
+    }[];
+    knownSpells?: RacialSpell[];
+    modernizationStatus?: 'official_2024' | 'modified_legacy';
+    languages?: Language[];
+}
+export interface ClassFeature {
+    id: string;
+    name: string;
+    description: string;
+    levelAvailable: number;
+}
+export interface FightingStyle extends ClassFeature {
+}
+export interface DivineOrderOption {
+    id: 'Protector' | 'Thaumaturge';
+    name: string;
+    description: string;
+}
+export interface PrimalOrderOption {
+    id: 'Magician' | 'Warden';
+    name: string;
+    description: string;
+}
+export interface WarlockPatronOption {
+    id: string;
+    name: string;
+    description: string;
+}
+export type ArmorProficiencyLevel = 'unarmored' | 'light' | 'medium' | 'heavy';
+export interface Class {
+    id: string;
+    name: string;
+    description: string;
+    hitDie: number;
+    primaryAbility: AbilityScoreName[];
+    savingThrowProficiencies: AbilityScoreName[];
+    skillProficienciesAvailable: string[];
+    numberOfSkillProficiencies: number;
+    armorProficiencies: string[];
+    weaponProficiencies: string[];
+    weaponMasterySlots?: number;
+    startingEquipment?: string[];
+    features: ClassFeature[];
+    fightingStyles?: FightingStyle[];
+    divineOrders?: DivineOrderOption[];
+    primalOrders?: PrimalOrderOption[];
+    warlockPatrons?: WarlockPatronOption[];
+    spellcasting?: {
+        ability: AbilityScoreName;
+        knownCantrips: number;
+        knownSpellsL1: number;
+        spellList: string[];
+    };
+    statRecommendationFocus?: AbilityScoreName[];
+    statRecommendationDetails?: string;
+    recommendedPointBuyPriorities?: AbilityScoreName[];
+    /** Optional subclass data for specialized casters (e.g., Eldritch Knight) */
+    subclass?: {
+        id: string;
+        name: string;
+    };
+}
+export type MagicInitiateSource = 'bard' | 'cleric' | 'druid' | 'sorcerer' | 'warlock' | 'wizard';
+/**
+ * Configuration for a spell choice requirement in a feat.
+ * Supports filtering by level, school, and attack type.
+ */
+export interface FeatSpellRequirement {
+    /** How many spells must be chosen */
+    count: number;
+    /** Spell level (0 = cantrip, 1 = 1st level, etc.) */
+    level: number;
+    /** Filter by spell school(s) */
+    schools?: SpellSchool[];
+    /** Only spells that require an attack roll */
+    requiresAttack?: boolean;
+    /** Description shown to user explaining what they can pick */
+    description: string;
+}
+/**
+ * A spell automatically granted by a feat, with usage restrictions.
+ */
+export interface FeatGrantedSpell {
+    /** The spell ID (must match spell data) */
+    spellId: string;
+    /** How often the spell can be cast */
+    castingMethod: 'at_will' | 'once_per_long_rest' | 'once_per_short_rest';
+    /** Special notes about modifications (e.g., "Range extended to 60 ft") */
+    specialNotes?: string;
+}
+/**
+ * Spell-related benefits for a feat.
+ */
+export interface FeatSpellBenefits {
+    /** For Magic Initiate: which class spell lists can be chosen from */
+    selectableSpellSource?: MagicInitiateSource[];
+    /** Spells that require player choice */
+    spellChoices?: FeatSpellRequirement[];
+    /** Spells automatically granted (no choice needed) */
+    grantedSpells?: FeatGrantedSpell[];
+}
+export interface Feat {
+    id: string;
+    name: string;
+    description: string;
+    prerequisites?: {
+        minLevel?: number;
+        abilityScores?: Partial<AbilityScores>;
+        raceId?: string;
+        classId?: string;
+        requiresFightingStyle?: boolean;
+        /**
+         * Set to true if this feat requires the Spellcasting or Pact Magic class feature.
+         * Maps to D&D 2024 prerequisites (e.g. War Caster, Elemental Adept).
+         */
+        requiresSpellcasting?: boolean;
+    };
+    benefits?: {
+        abilityScoreIncrease?: Partial<AbilityScores>;
+        selectableAbilityScores?: AbilityScoreName[];
+        skillProficiencies?: string[];
+        /** Number of skills player must choose (e.g., Skilled = 3). */
+        selectableSkillCount?: number;
+        savingThrowProficiencies?: AbilityScoreName[];
+        /** If true, saving throw proficiency matches the selected ability score (for Resilient feat). */
+        savingThrowLinkedToAbility?: boolean;
+        /** Damage types player can choose from (e.g., Elemental Adept). */
+        selectableDamageTypes?: string[];
+        speedIncrease?: number;
+        initiativeBonus?: number;
+        /** Alert (2024): Initiative bonus scales with Proficiency Bonus instead of a fixed value. */
+        initiativeBonusProficiency?: boolean;
+        hpMaxIncreasePerLevel?: number;
+        resistance?: string[];
+        /** Heavy Armor Master (2024): Nonmagical physical damage reduction equals Proficiency Bonus. */
+        damageReductionProficiency?: boolean;
+        /** Great Weapon Master (2024): Add Proficiency Bonus to damage on every Heavy weapon hit. */
+        heavyWeaponProficiencyBonus?: boolean;
+        /** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */
+        luckyPoints?: boolean;
+        spellBenefits?: FeatSpellBenefits;
+    };
+}
+export interface FeatPrerequisiteContext {
+    level: number;
+    abilityScores: AbilityScores;
+    raceId?: string;
+    classId?: string;
+    knownFeats?: string[];
+    hasFightingStyle?: boolean;
+    /**
+     * Set to true if the character has the ability to cast spells (via class Spellcasting/Pact Magic).
+     * Used to validate spellcasting-requiring feats.
+     */
+    hasSpellcasting?: boolean;
+}
+export interface FeatChoice {
+    selectedAbilityScore?: AbilityScoreName;
+    selectedSpells?: string[];
+    selectedCantrips?: string[];
+    selectedLeveledSpells?: string[];
+    selectedSpellSource?: MagicInitiateSource | string;
+    selectedSkills?: string[];
+    selectedWeapons?: string[];
+    selectedTools?: string[];
+    selectedDamageType?: string;
+    [key: string]: unknown;
+}
+export interface LevelUpChoices {
+    classId?: string;
+    abilityScoreIncreases?: Partial<AbilityScores>;
+    featId?: string;
+    /** Subclass chosen at the level-3 milestone (id from SUBCLASSES[classId]). */
+    subclassId?: string;
+    /**
+     * Cantrips the player chose to learn this level (spell ids). Only applied up
+     * to the class's derived cantrip capacity; never auto-picked. Absent means the
+     * player has not chosen yet and the allowance should be surfaced instead.
+     */
+    selectedCantrips?: string[];
+    /**
+     * Leveled spells the player chose to learn this level, for known-casters that
+     * add to a fixed spells-known list (spell ids). Never auto-picked.
+     */
+    selectedKnownSpells?: string[];
+    featChoices?: {
+        [featId: string]: FeatChoice;
+    };
+}
+export interface ResourceVial {
+    current: number;
+    max: number;
+}
+export type SpellSlots = Record<`level_${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9}`, ResourceVial>;
+export interface SpellbookData {
+    knownSpells: string[];
+    preparedSpells: string[];
+    cantrips: string[];
+    racialSpellGrants?: RacialSpellGrant[];
+}
+export type ResetCondition = 'short_rest' | 'long_rest' | 'daily' | 'combat';
+export interface LimitedUseAbility {
+    name: string;
+    current: number;
+    max: number | 'proficiency_bonus' | 'charisma_mod' | 'strength_mod' | 'dexterity_mod' | 'constitution_mod' | 'intelligence_mod' | 'wisdom_mod';
+    resetOn: ResetCondition;
+}
+export type LimitedUses = Record<string, LimitedUseAbility>;
+export type HitDieSize = 6 | 8 | 10 | 12;
+export interface HitPointDicePool {
+    die: HitDieSize;
+    current: number;
+    max: number;
+}
+export type HitPointDiceSpend = Partial<Record<HitDieSize, number>>;
+export type HitPointDiceSpendMap = Record<string, HitPointDiceSpend>;
+export interface RacialSelectionData {
+    choiceId?: string;
+    /** Explicit Small/Medium choice for species such as Changeling. */
+    size?: 'Small' | 'Medium';
+    spellAbility?: AbilityScoreName;
+    skillIds?: string[];
+    toolIds?: string[];
+    selectedSpellIds?: string[];
+}
+export interface RacialRestChoiceData {
+    choiceId?: string;
+    optionId?: string;
+    spellAbility?: AbilityScoreName;
+    skillIds?: string[];
+    toolIds?: string[];
+    weaponIds?: string[];
+    selectedSpellIds?: string[];
+}
+export type TransportMode = 'foot' | 'mounted';
+export interface RacialBreathWeapon {
+    areaShape: 'cone' | 'line';
+    areaSize: number;
+    saveAbility: AbilityScoreName;
+    damageDice: string;
+    damageType: string;
+    scaling: {
+        level: number;
+        dice: string;
+    }[];
+}
+export interface PlayerCharacter {
+    id: string;
+    name: string;
+    soul?: any;
+    age?: number;
+    ageSizeOverride?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
+    background?: string;
+    level?: number;
+    xp?: number;
+    /** The subclass chosen at level 3 (id from SUBCLASSES[class.id]). */
+    subclassId?: string;
+    /**
+     * Starting gold handed off from character creation to the new game (class
+     * package + background coin). Consumed by START_GAME_SUCCESS to seed
+     * state.gold, then stripped — it is not persisted on the live character.
+     */
+    startingGold?: number;
+    proficiencyBonus?: number;
+    race: Race;
+    class: Class;
+    modifiers?: {
+        advantage: string[];
+        disadvantage: string[];
+        bonuses: string[];
+        baseArmorClass?: number;
+        acBonus?: number;
+        reachBonus?: number;
+        powerfulBuild?: boolean;
+        unendingBreath?: boolean;
+        languages?: string[];
+        skillProficiencies?: string[];
+        weaponProficiencies?: string[];
+        armorProficiencies?: string[];
+        initiativeBonus?: number;
+        initiativeProficiency?: boolean;
+        ignoreDifficultTerrain?: boolean;
+        breathWeapon?: RacialBreathWeapon;
+        reactions?: any[];
+        savageAttacks?: boolean;
+    };
+    /**
+     * Legacy multiclass/backup class list used by older systems (puzzles/skill checks).
+     */
+    classes?: Class[];
+    /**
+     * Optional class-level breakdown used for multiclass features (e.g., Hit Dice pools).
+     * When absent, systems assume the full level belongs to `class`.
+     */
+    classLevels?: Record<string, number>;
+    abilityScores: AbilityScores;
+    finalAbilityScores: AbilityScores;
+    /**
+     * Legacy statline kept for puzzle/lock/plate systems that still rely on lowercase ability keys.
+     */
+    stats?: CharacterStats;
+    skills: Skill[];
+    toolProficiencies?: string[];
+    savingThrowProficiencies?: AbilityScoreName[];
+    weaponProficiencies?: string[];
+    armorProficiencies?: string[];
+    feats?: string[];
+    initiativeBonus?: number;
+    initiativeProficiency?: boolean;
+    ignoreDifficultTerrain?: boolean;
+    hp: number;
+    maxHp: number;
+    tempHP?: number;
+    heroicInspiration?: boolean;
+    isFlying?: boolean;
+    /**
+     * Hit Point Dice (Hit Dice) available for spending during Short Rests.
+     * 2024 rules: a character has 1 at level 1 and gains 1 each level thereafter.
+     * Long Rests restore all spent Hit Point Dice.
+     */
+    hitPointDice?: HitPointDicePool[];
+    armorClass: number;
+    speed: number;
+    darkvisionRange: number;
+    selectedWeaponMasteries?: string[];
+    transportMode: TransportMode;
+    spellcastingAbility?: 'intelligence' | 'wisdom' | 'charisma';
+    spellSlots?: SpellSlots;
+    spellbook?: SpellbookData;
+    resistances?: DamageType[];
+    immunities?: DamageType[];
+    vulnerabilities?: DamageType[];
+    limitedUses?: LimitedUses;
+    activeEffects?: ActiveEffect[];
+    statusEffects: StatusEffect[];
+    conditions?: string[];
+    selectedFightingStyle?: FightingStyle;
+    selectedDivineOrder?: 'Protector' | 'Thaumaturge';
+    selectedDruidOrder?: 'Magician' | 'Warden';
+    selectedWarlockPatron?: string;
+    racialSelections?: Record<string, RacialSelectionData>;
+    racialRestChoices?: Record<string, RacialRestChoiceData>;
+    featChoices?: {
+        [featId: string]: FeatChoice;
+    };
+    equippedItems: Partial<Record<EquipmentSlotType, Item>>;
+    /** Text description of character appearance for AI portrait generation */
+    visualDescription?: string;
+    /** URL (local path or https URL) for an AI-generated character portrait */
+    portraitUrl?: string;
+    /** Visual customization for layered sprites */
+    visuals?: {
+        gender: 'Male' | 'Female';
+        skinColor: number;
+        hairStyle?: string;
+        clothingStyle?: string;
+        pantsStyle?: string;
+        bootsStyle?: string;
+    };
+    /** Rich NPC data from the NPC generator for party members with full biography details */
+    richNpcData?: {
+        /** Character age based on race-appropriate ranges */
+        age: number;
+        /** Family members generated for the character */
+        family: FamilyMember[];
+        /** Full physical description text from NPC generator */
+        physicalDescription: string;
+        /** Background ID for the character */
+        backgroundId: string;
+    };
+}
+export interface TempPartyMember {
+    id: string;
+    name: string;
+    level: number;
+    classId: string;
+}
+export interface SelectableClass {
+    id: string;
+    name: string;
+    description: string;
+}
+export interface MissingChoiceOption {
+    id: string;
+    label: string;
+    description?: string;
+    [key: string]: unknown;
+}
+export interface MissingChoice {
+    id: string;
+    label: string;
+    description: string;
+    type: 'race' | 'class';
+    options: MissingChoiceOption[];
+}

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 17/07/2026, 22:33:44
+ * Last Sync: 19/07/2026, 08:35:11
  * Dependents: App.tsx, components/MapPane.tsx, components/World3D/entryCellIdentity.ts, components/Worldforge/AtlasDemo.tsx, state/appState.ts, state/reducers/craftingReducer.ts, systems/adventureLog/adventureLog.ts, systems/adventureLog/oraclePrompt.ts, systems/party/recruitConsent.ts, systems/worldforge/local/gridAtlasBridge.ts, types/index.ts, types/travelMeta.ts, utils/world/sceneUtils.ts
  * Imports: None
  *
@@ -35,6 +35,7 @@ import { CraftingState } from './crafting.js';
 import { JournalState } from './journal.js';
 import type { WorldDelta } from '../systems/worldforge/delta/types.js';
 import type { WorldforgeEncounterReceipt } from '../systems/combat/worldScenario/worldforgeEncounterReceipt.js';
+import type { DungeonExpeditionLedger } from '../systems/worldforge/dungeon/world/dungeonLifecycle.js';
 import type { AtlasGroundAddress } from '../systems/worldforge/leaf3d/atlasGroundDrilldown.js';
 import type {
   AtlasGroundDiscoveryProvenance,
@@ -42,6 +43,14 @@ import type {
 } from '../systems/worldforge/leaf3d/atlasGroundContinuity.js';
 import type { Notification } from './ui.js';
 import { PlayerIdentityState } from './identity.js';
+
+/**
+ * This file defines the complete plain-data shape of a running Aralia game.
+ *
+ * Reducers write these records, UI and simulation systems read them, and the save service stores
+ * them. Optional fields identify additive migrations for older saves; durable systems should still
+ * initialize their current defaults in initialState.ts and the shared test factory.
+ */
 
 // -----------------------------------------------------------------------------
 // Notoriety State
@@ -362,6 +371,16 @@ export interface GameState {
 
   npcMemory: Record<string, NpcMemory>;
 
+  /**
+   * Durable, world-level fact store (DIAL-002/DIAL-004): unlock-facts the
+   * player has learned that must ripple across NPCs and regions and survive
+   * save/reload. Distinct from per-NPC `KnownFact` (what NPCs know about the
+   * player) and from the player-facing `DiscoveryLog` (journal presentation).
+   * Optional so pre-fact-store saves load unchanged; readers and the reducer
+   * heal a missing store via `normalizeWorldFactStore`.
+   */
+  worldFacts?: import('./facts.js').WorldFactStore;
+
   locationResidues: Record<string, DiscoveryResidue | null>;
 
   metNpcIds: string[];
@@ -460,6 +479,8 @@ export interface GameState {
   isInvestmentBoardVisible: boolean;
   isEconomyLedgerVisible: boolean;
   isCourierPouchVisible: boolean;
+  /** Commerce Desk — the dedicated non-debug home for businesses, trade, ventures, and courier intel. */
+  isCommerceDeskVisible: boolean;
 
   activeRitual?: RitualState | null;
 
@@ -562,6 +583,13 @@ export interface GameState {
   // SP4 discovery: hidden off-map places the player has revealed by 3D proximity,
   // with the tile where found. Persisted so discoveries survive reload + pin on the atlas.
   discoveredHiddenSites: DiscoveredHiddenSite[];
+
+  /**
+   * Durable dungeon expedition state keyed by the canonical dungeon id from its world entrance.
+   * Optional only so saves written before the lifecycle schema can load and migrate to an empty
+   * ledger. Entry, retreat, progress, completion, and revisit all update this one receipt owner.
+   */
+  dungeonExpeditions?: DungeonExpeditionLedger;
 
   // Pillar 2, Task 8 (living ecology): frozen site paths of dungeons the party
   // has CLEARED. Default empty (every site starts uncleared). Persisted so a

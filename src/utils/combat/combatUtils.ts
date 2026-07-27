@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 09/06/2026, 03:54:07
- * Dependents: components/BattleMap/characters/CharacterActor.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, services/DiceService.ts, state/reducers/characterReducer.ts, systems/spells/mechanics/DiceRoller.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
+ * Last Sync: 19/07/2026, 23:52:35
+ * Dependents: App.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, services/DiceService.ts, state/reducers/characterReducer.ts, systems/spells/mechanics/DiceRoller.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spells/outOfCombatCasting.ts
  * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
@@ -27,7 +27,7 @@
  *
  * @file src/utils/combatUtils.ts
  */
-import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../../types/combat';
+import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect, CombatArmorEquipmentState, CombatEquipmentState } from '../../types/combat';
 import { PlayerCharacter, Item } from '../../types';
 import { Spell, DamageType } from '../../types/spells';
 import { createAbilityFromSpell } from '../character/spellAbilityFactory';
@@ -43,6 +43,66 @@ type DiceRandomSource = () => number;
 
 // Re-export for consumers
 export { createAbilityFromSpell, generateId, ResistanceCalculator };
+
+// ============================================================================
+// Combat equipment projection
+// ============================================================================
+// The inventory owns complete items. Combat receives only the torso armour and
+// shield facts that tactical rules can inspect without depending on container,
+// economy or inventory-management behavior.
+
+const projectArmorForCombat = (
+  item: Item | undefined,
+  slot: CombatArmorEquipmentState['slot']
+): CombatArmorEquipmentState | undefined => {
+  // A weapon in the off hand is not a shield. Likewise, a clothing item in the
+  // torso slot must not accidentally satisfy rules that require worn armour.
+  if (!item || (item.type !== 'armor' && item.armorCategory === undefined)) {
+    return undefined;
+  }
+
+  // Magic metadata is authoritative when present. Older and imported items
+  // often omit it, so the projection reports `unknown` instead of guessing
+  // from a name such as "+1 Shield" or from item rarity.
+  const magicStatus: CombatArmorEquipmentState['magicStatus'] =
+    item.magicProperties !== undefined || item.requiresAttunement === true
+      ? 'magical'
+      : 'unknown';
+
+  return {
+    itemId: item.id,
+    itemName: item.name,
+    slot,
+    category: item.armorCategory,
+    magicStatus,
+    properties: [...(item.properties ?? [])],
+    baseArmorClass: item.baseArmorClass,
+    armorClassBonus: item.armorClassBonus,
+    strengthRequirement: item.strengthRequirement,
+    stealthDisadvantage: item.stealthDisadvantage,
+  };
+};
+
+/**
+ * Builds the reusable tactical equipment view from a character's equipped items.
+ *
+ * Returning undefined for an empty projection keeps monsters, summons and old
+ * saves compatible while allowing future equip-in-combat flows to call the same
+ * function when they refresh a combatant.
+ */
+export function createCombatEquipmentState(
+  equippedItems: PlayerCharacter['equippedItems']
+): CombatEquipmentState | undefined {
+  const wornArmor = projectArmorForCombat(equippedItems.Torso, 'Torso');
+  const offHandArmor = projectArmorForCombat(equippedItems.OffHand, 'OffHand');
+  const shield = offHandArmor?.category === 'Shield' ? offHandArmor : undefined;
+
+  if (!wornArmor && !shield) {
+    return undefined;
+  }
+
+  return { wornArmor, shield };
+}
 
 // TODO #1312(Mechanist): Wire up physicsUtils (fall damage, jumping) into movement logic.
 // TODO #1313(Mechanist): Wire up `calculateExhaustionEffects` from `physicsUtils.ts` to `createPlayerCombatCharacter` (apply speed/d20 penalties).
@@ -1088,6 +1148,10 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     maxHP: player.maxHp,
     armorClass: player.armorClass || 10,
     baseAC: player.armorClass || 10,
+    // Project armour once at the persistent-to-combat boundary. Damage and
+    // future equipment-sensitive rules can now inspect stable tactical facts
+    // without reaching back into the player's inventory object.
+    equipment: createCombatEquipmentState(player.equippedItems),
     // Champion fighters (Improved Critical, level 3) score critical hits on a 19
     // or 20; everyone else on a natural 20.
     critThreshold: (player.subclassId === 'champion' && (player.level || 1) >= 3) ? 19 : 20,
@@ -1111,7 +1175,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     // CombatCharacter, we allow the damage calculators and action 
     // handlers to apply bonus damage or special effects during a battle.
     feats: player.feats || [], // feat IDs (e.g. ['slasher', 'great_weapon_master'])
-    resistances: player.resistances ?? player.race?.resistance,
+    resistances: player.resistances ?? (player.race as { resistance?: string[] })?.resistance,
     immunities: player.immunities,
     vulnerabilities: player.vulnerabilities,
     modifiers: player.modifiers ? {

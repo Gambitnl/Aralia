@@ -6,7 +6,7 @@ slug: spells
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-07-18"
+last_updated: "2026-07-23"
 gap_count: 53
 open_gap_count: 1
 resolved_gap_count: 52
@@ -183,12 +183,91 @@ Use this file for parent-visible imported gaps, cross-lane spell-domain gaps, an
 
 - 2026-07-06: `structured-spell-execution-G13` is resolved for G14's runtime-completion ledger. Shared status-condition replacement lives in `src/utils/combat/statusConditionUtils.ts`, and focused proof passed with `node node_modules\vitest\vitest.mjs run --dir src src\commands\effects\__tests__\StatusConditionCommand.test.ts src\hooks\combat\engine\__tests__\useCombatEngine.scheduledEffects.test.ts src\hooks\combat\__tests__\useActionExecutor.test.ts` (3 files / 44 tests), covering command, scheduled, zone/action, and tile/environment status refresh-by-name behavior. G14 remains active because canonical source, validator-data-integrity, and other child runtime rows still remain open.
 
-## Current Reconciliation (2026-07-18)
+## Current Reconciliation (2026-07-23)
 
 - This parent ledger was restored from `2033cc4c^` because the 2026-07-16 snapshot deleted `docs/projects/spells` while current registry and task documents continued to reference it. The historical parent rows are retained rather than silently recreated from memory.
 - The parent table contains 53 rows: `G14` is the sole active parent gap and `G60` remains resolved with focused Word of Radiance selection proof. The frontmatter counts now reflect that table.
-- `G14` remains open. Current pairing evidence needs a fresh live snapshot, and the current validator replay reports `473` total spell JSON files, `361` valid, and `112` invalid; the surviving task plan's `459 / 459` claim is stale.
+- `G14` remains open. Current pairing evidence still needs canonical-source and runtime-completion work, but the validator replay is now current: `473` total spell JSON files, `473` valid, and `0` invalid. The surviving task plan's `459 / 459` claim is stale.
 - The conditional-ending child slice is now proven: normalized source-backed trigger/scope tokens pass the schema, seven cloud/weather/wall records have explicit `area` scope, focused schema proof passes, and the full replay emits no `conditionalEndings` errors. The remaining validator families stay open under G14.
+- The created-object child slice is now proven: source-backed object labels and placement/shape units pass validation, the legacy Mighty Fortress `kind` packet remains lossless, focused proof passes, and the full replay emits no `createdObjects` errors. Runtime adapters for those preserved labels remain separate child work.
+- The ability-check child slice is now proven at the validator and shared-roll boundary: executable and partial source-backed riders validate, fixed-skill advantage and Guidance dice have focused proof, and the full replay emits no `abilityCheckModifier` errors. Specialized metadata such as Infernal Calling's contest packet remains deferred to its owning runtime lane.
+- The save-outcome child slice is now proven at the validator boundary: canonical and source-backed save outcome rows validate, focused Sleep/Moonbeam proof passes, and the full replay emits no `saveOutcomeOverrides` errors. Save-resolution execution remains deferred because no current runtime consumer owns this field.
+- The controlled-entity child slice is now proven at the validator boundary: executable helper and richer emanation/environment records validate, direct Mage Hand/Wrath of Nature proof passes, and the full replay emits no `controlledEntity` errors. Runtime adapters remain responsible for their narrower executable fields.
+- The mode-choice child slice is now proven for all 71 authored menus: source-backed menu labels remain lossless, Commune with Nature and Conjure Celestial now carry explicit option summaries and effect/control indexes, static schema parity passes, and focused mode-choice proof passes.
+- The save-effect child slice is now proven for the live `negates` alias: Gust of Wind, Heat Metal, and Zone of Truth pass focused validator proof, the full replay emits no `condition.saveEffect` errors, and damage resolution maps `negates`/`negates_effect` to the normalized zero-on-success outcome.
+- The end-cleanup child slice is now proven for both lifecycle shapes: Animal Messenger's compact source-backed `{trigger,result,note}` record and Heroism's normalized cleanup array pass focused proof, while the source-backed result remains deferred to a lifecycle adapter.
+- The defensive-saving-throw child slice is now proven for source-backed labels and structured modifier packets: Protection from Evil and Good, Warding Bond, Aura of Purity, and Circle of Power pass focused proof, and the full replay emits no `effects[].savingThrow` errors. The field remains metadata-only until a defensive runtime adapter owns it.
+- The targeting-metadata child slice is now proven for source-backed target labels, consent/perception values, and placement destinations: focused proof covers Dispel Magic, Glyph of Warding, Meld into Stone, Speak with Dead, Incite Greed, Compulsion, Nondetection, Tenser's Floating Disk, Flaming Sphere, and Find Steed; `any_number` resolves to an unlimited runtime count, and the full replay emits no targeting placement or target-label errors.
+- The summon-control child slice is now proven for Tiny Servant, controlled-undead,
+  domination, binding, transformation, and Wish-routing packets: focused proof
+  covers eight representative live records, empty packets are rejected, and the
+  full replay emits no `summonControl` errors. Runtime consumers still own the
+  narrower executable fields for each effect family.
+- The control-options child slice is now proven for executable `name`/`effect`
+  menus and source-backed `mode`/`label` packets: source-only metadata is
+  excluded from command/modal selection, focused proof passes with existing
+  utility-control tests, and the full replay emits no `controlOptions` errors.
+- The object-access child slice is now proven for normalized lock-removal rows
+  and Arcane Lock's source-shaped `targetObjects`/`newState` packet; focused
+  proof passes with existing object-command tests, and the full replay emits no
+  `objectAccessChange` errors.
+- The effect-trigger child slice is now proven for composite source labels and
+  timing payloads: seven live area/repeat-action records pass focused proof,
+  and the full replay emits no `trigger.type` errors. Source-backed
+  `turn_start`/`turn_end` recurring payloads now register through the existing
+  scheduled-effect contract and execute through the combat engine; composite
+  labels such as `area_entry_or_turn_start` and `on_damage` still need their
+  event-specific owners.
+- The attack-augment child slice is now proven for normalized weapon bridges and
+  source-backed summon/control/spell-attack packets: eight live records and
+  three existing runtime bridge tests pass, empty augments are rejected, and
+  the full replay emits no attack-augment errors.
+- The recurring/save-metadata validator slice is now proven for compact
+  recurring objects, source timing labels, prose-backed save modifiers, and
+  nested source options. Focused proof covers Fast Friends, Control Water,
+  Summon Greater Demon, Dominate Person, Scrying, Seeming, and Bones of the
+  Earth, and the full replay emits no recurring/save errors. A focused runtime
+  proof now covers singleton normalization, area `turn_start`/`turn_end`
+  triggers, and target-bound recurring records through the existing area
+  tracker, scheduler, and combat engine; source composite events and
+  prose-conditioned save modifiers still need their event owners and executable
+  bridges. Dominate Beast, Dominate Person, and Dominate
+  Monster now also bridge source `target_takes_damage` repeat-save records into
+  the existing `on_damage` status-engine path, with live-data and combat-engine
+  proof; choice-conditioned modifiers remain open. Conjure Animals' singleton
+  `on_entity_proximity` damage record now has an area-trigger adapter for
+  creature entry and end-of-turn occupancy, including source save context and
+  first-per-turn gating; the point-targeted summon is anchored at the selected
+  point and its authored 10-foot emanation is used for the persistent zone.
+  The movement owner now recenters the threat zone when the pack relocates,
+  with focused proof in `useActionExecutor.conjureAnimalsRelocation.test.ts`.
+  Power Word Pain's source `on_target_cast` Constitution gate now persists on
+  the special
+  duration status and resolves before command creation, with live-data/status
+  and hook proof. Fast Friends now has a source-backed Request Service granted
+  action, executable `on_social_service_request` repeat-save resolution,
+  fighting-target Advantage, friendly acceptance, and certain-death/repeat-save
+  concentration cleanup, proven by `FastFriendsLiveData.test.ts`; broader
+  choice-conditioned modifiers remain open runtime work. Summon
+  Greater Demon's end-turn Charisma save now enters the shared repeat-save
+  engine, including true-name disadvantage, with live-data and combat-engine
+  proof. Its optional blood circle now also persists a protected tile and the
+  target validator rejects demon attacks against creatures inside it; direct
+  movement, ability execution, and AI routing also reject or avoid the
+  protected tile. Area damage now filters protected creatures at the shared
+  execution boundary, including an all-blocked rejection, with focused proof
+  in `useAbilitySystem.bloodCircleArea.test.ts`.
+- The remaining scalar metadata child slice is now proven for source duration,
+  light opacity, object opposed-check, and multi-ability escape-check labels;
+  focused proof covers Thunderwave, Leomund's Tiny Hut, Telekinesis, and
+  Whirlwind.
+- The source-shaped healing child slice is now proven for Mass Heal, Power Word
+  Heal, and True Resurrection. Focused HealingCommand proof covers bounded pool
+  sharing and all-hit-points fallback, and the full replay emits no healing
+  errors.
+- Validator-data-integrity replay proof is current at `473 / 473 / 0`, and the
+  static schema aggregate passes semantic parity against all five schema parts;
+  G14 remains active for canonical-source and runtime-completion proof.
 - The former nested completeness owner path is absent from the current checkout. Until a live child packet is restored or retargeted, current child evidence is routed through `docs/tasks/spells` and `docs/tasks/spell-system-overhaul`; the deleted path is historical context only.
 - Do not close `G14` from the restored ledger alone. Close or reroute it only after the canonical-source, validator-integrity, and runtime child lanes have current proof.
 
@@ -209,3 +288,8 @@ Use this file for parent-visible imported gaps, cross-lane spell-domain gaps, an
 ## Open / Uncertain Notes
 
 - 2026-06-20: Bounded `gpt-5.3-codex-spark` candidate ranking flagged Wish, Astral Projection, Divine Word, and Destructive Wave as larger high-complexity row-clarity candidates. These are candidate slices, not registered gaps yet; inspect current rows and add a formal gap only if a future pass confirms stale, misleading, or under-specified runtime/UI text.
+- 2026-07-23: Current validation replay is 473 total / 473 valid / 0 invalid, superseding the stale 149-invalid historical note in the G14 row. Fast Friends now has focused runtime proof for its authored Request Service action, social repeat-save timing, fighting-target Advantage, and concentration-ending outcomes; G14 remains open for canonical-source recovery/deferral and the other unproven runtime families.
+- 2026-07-23: Canonical-source verification classified the 25 `Legacy Page: true` markers as explicit source-deferred records rather than missing runtime implementations. Guardian of Nature remains a real source gap: both local JSON/reference stop before the Primal Beast and Great Tree benefit bullets, so no mechanics should be invented until trustworthy canonical text is recaptured.
+- 2026-07-23: Control Water verification classified the suspected mode/runtime gap as duplicate/covered: current mode-choice tests and closed mechanics-discovery rows cover its authored options; the older manual-review override is stale and does not justify new implementation.
+- 2026-07-23: Scrying's creature and location modes are now proven through `SpellCommandFactory.scryingLiveData.test.ts`: authored save choices and voluntary failure resolve, location casts create stationary sensors, failed creature saves create 10-foot following sensors whose renderer marker follows the target, and successful saves persist a 24-hour target lockout that rejects retargeting before a new save. The child attack/save, duplicate knowledge, sensor, visibility, and state-change rows are closed; broader composite/runtime families and source deferrals remain under G14.
+- 2026-07-23: Recurring turn timing now has an executable bridge: target-bound `turn_start`/`turn_end` records register through `ScheduledSpellEffect`, while area-owned `turn_start` records run through `AreaEffectTracker` and `useTurnManager`; focused trigger-handler, hook, and combat-engine proof passes. Composite labels such as `on_damage`, choice-conditioned modifiers, and prose-only behavior remain open.

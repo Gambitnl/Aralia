@@ -1,11 +1,13 @@
 {
   "wave": "example",
+  "pet": "gf-sd",
   "baseUrl": "http://localhost:4319",
   "baseline": 219,
   "packets": [
     {
       "id": "PK-example-menu",
       "handle": "example-menu",
+      "pet": "dream-girl",
       "agent": "claude",
       "scope": "Give the main menu a semantic color system (one primary CTA, neutral secondary, red destructive)",
       "files": ["src/components/layout/MainMenu.tsx"],
@@ -16,6 +18,7 @@
     {
       "id": "PK-example-bridges",
       "handle": "example-bridges",
+      "pet": "nous-girl",
       "agent": "claude",
       "scope": "Cap town bridge over-generation by typology (mirror dockCapForTypology)",
       "files": ["src/systems/worldforge/town/townEngine.ts"],

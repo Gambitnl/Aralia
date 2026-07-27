@@ -100,7 +100,7 @@ test('attachActivityMirror writes real notes to the feed file as a live store mu
   const store = createStore({ dir: path.join(dir, 'state') });
   const detach = attachActivityMirror({ store, file: feed });
 
-  const alice = store.registerAgent({ handle: 'alice', note: '' });
+  const alice = store.registerAgent({ petSlug: 'gf-sd', handle: 'alice', note: '' });
   store.touch(alice.id); // heartbeat — must NOT appear in the feed
   store.acquireLock({ agentId: alice.id, paths: ['src/foo.ts'], reason: 'refactor' });
   const task = store.createTask({ agentId: alice.id, title: 'demo task' });
@@ -127,7 +127,7 @@ test('attachActivityMirror writes real notes to the feed file as a live store mu
   }
   // detach stops further writes
   const before = fs.readFileSync(feed, 'utf8');
-  store.registerAgent({ handle: 'late', note: '' });
+  store.registerAgent({ petSlug: 'gf-sd', handle: 'late', note: '' });
   assert.equal(fs.readFileSync(feed, 'utf8'), before, 'no writes after detach');
 
   fs.rmSync(dir, { recursive: true, force: true });

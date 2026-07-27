@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 22:34:52
+ * Last Sync: 19/07/2026, 08:31:00
  * Dependents: App.tsx, state/appState.ts
  * Imports: 15 files
  *
@@ -31,6 +31,7 @@ import { DEITIES } from '../data/deities';
 import { TEMPLES } from '../data/temples';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
 import { createEmptyHistory } from '../utils/historyUtils';
+import { createEmptyWorldFactStore } from '../systems/facts/worldFactStore';
 import { INITIAL_GAME_ENTRY_STATE } from '../systems/gameEntry/types';
 import { NavalState } from '../types/naval';
 import type { DivineFavor } from '../types/religion';
@@ -190,6 +191,10 @@ export const initialGameState: GameState = {
         return acc;
     }, {} as GameState['npcMemory']),
 
+    // Durable world-level fact store (DIAL-002/DIAL-004): cross-NPC unlock
+    // knowledge the player has learned. Serializes with saves.
+    worldFacts: createEmptyWorldFactStore(),
+
     // World State
     locationResidues: {},
 
@@ -336,6 +341,7 @@ export const initialGameState: GameState = {
     isInvestmentBoardVisible: false,
     isEconomyLedgerVisible: false,
     isCourierPouchVisible: false,
+    isCommerceDeskVisible: false,
 
     // 3D World Transition (world-3d-ui)
     worldViewMode: 'atlas' as const,
@@ -370,4 +376,13 @@ export const initialGameState: GameState = {
 
     // SP4 discovery: no hidden off-map places revealed yet.
     discoveredHiddenSites: [],
+
+    // Canonical dungeon lifecycle ledger
+    // A fresh party has not entered any world-grown dungeon. The first entry stores the entrance's
+    // existing id/seed-path receipt here; later gameplay adds progress without replacing identity.
+    dungeonExpeditions: {},
+
+    // Living ecology starts with every dungeon uncleared. Completion transitions append the same
+    // frozen seed path used by the existing danger, raid-pressure, and rumor selectors.
+    clearedDungeons: [],
 };

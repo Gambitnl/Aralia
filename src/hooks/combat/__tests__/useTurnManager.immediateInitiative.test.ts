@@ -56,8 +56,8 @@ describe('useTurnManager immediate summon scheduling', () => {
         cr: '0'
       }
     });
-    const summonEffect = fingerOfDeath.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect;
-    const context = {
+    const summonEffect = (fingerOfDeath.effects.find(effect => effect.type === 'SUMMONING') as unknown) as SummoningEffect;
+    const context: any = {
       spellId: fingerOfDeath.id,
       spellName: fingerOfDeath.name,
       castAtLevel: 7,

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 21/07/2026, 14:16:43
+ * Dependents: App.tsx, components/DesignPreview/steps/PreviewStartSelect.tsx
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file StartPointSelection.tsx — "where will your journey begin?" step.
  *
@@ -85,6 +101,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
 
   const [regionFilter, setRegionFilter] = useState<string>(ALL_REGIONS);
   const [search, setSearch] = useState<string>('');
+  const [townPage, setTownPage] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(() => towns[0]?.burgIndex ?? null);
   const [isCompactLayout, setIsCompactLayout] = useState<boolean>(() =>
     typeof window !== 'undefined' ? window.innerWidth < COMPACT_LAYOUT_MAX_WIDTH : false,
@@ -111,11 +128,6 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
     setPulseToken((t) => t + 1);
   }, [selectedIndex]);
 
-  const selected = useMemo(
-    () => towns.find((t) => t.burgIndex === selectedIndex) ?? null,
-    [towns, selectedIndex],
-  );
-
   // A world can have 700+ towns, so the list is filtered by both the region
   // dropdown and a free-text name search (either town or region name).
   const visibleTowns = useMemo(() => {
@@ -133,9 +145,88 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
     if (town) setSelectedIndex(town.burgIndex);
   }, []);
 
+  // A11y (GG-40): the town list is a single ARIA listbox — one tab stop with
+  // roving `aria-activedescendant`, not hundreds of sibling buttons — so the
+  // start-selection accessibility tree stays bounded regardless of world size.
+  // Search results remain complete through fixed-size pages: broad queries do
+  // not recreate an 888-option tree, while exact towns remain reachable.
+  const townPageCount = Math.max(1, Math.ceil(visibleTowns.length / MAX_VISIBLE_TOWNS));
+  const safeTownPage = Math.min(townPage, townPageCount - 1);
+  const renderedTowns = useMemo(
+    () => visibleTowns.slice(
+      safeTownPage * MAX_VISIBLE_TOWNS,
+      (safeTownPage + 1) * MAX_VISIBLE_TOWNS,
+    ),
+    [visibleTowns, safeTownPage],
+  );
+  const renderedRangeStart = visibleTowns.length === 0 ? 0 : safeTownPage * MAX_VISIBLE_TOWNS + 1;
+  const renderedRangeEnd = Math.min((safeTownPage + 1) * MAX_VISIBLE_TOWNS, visibleTowns.length);
+
+  // A filtered or paged list must never retain a hidden active town. Without
+  // this guard, Enter could confirm the pre-filter selection even though no
+  // option in the current results represented it.
+  const activeTown = useMemo(
+    () => renderedTowns.find((town) => town.burgIndex === selectedIndex) ?? null,
+    [renderedTowns, selectedIndex],
+  );
+  useEffect(() => {
+    if (activeTown) return;
+    setSelectedIndex(renderedTowns[0]?.burgIndex ?? null);
+  }, [activeTown, renderedTowns]);
+
   const confirm = useCallback(() => {
-    if (selected) onConfirm(selected);
-  }, [selected, onConfirm]);
+    if (activeTown) onConfirm(activeTown);
+  }, [activeTown, onConfirm]);
+
+  const listRef = useRef<HTMLDivElement>(null);
+  const activeOptionId = useMemo(
+    () =>
+      activeTown
+        ? `start-town-opt-${selectedIndex}`
+        : undefined,
+    [selectedIndex, activeTown],
+  );
+
+  const showTownPage = useCallback((nextPage: number) => {
+    const boundedPage = Math.max(0, Math.min(townPageCount - 1, nextPage));
+    const firstTown = visibleTowns[boundedPage * MAX_VISIBLE_TOWNS] ?? null;
+    setTownPage(boundedPage);
+    setSelectedIndex(firstTown?.burgIndex ?? null);
+    triggerPulse();
+    requestAnimationFrame(() => listRef.current?.focus());
+  }, [townPageCount, visibleTowns, triggerPulse]);
+
+  // Move the active option within the rendered list and keep it scrolled into view.
+  const moveActive = useCallback((delta: number) => {
+    setSelectedIndex((cur) => {
+      const list = renderedTowns;
+      if (list.length === 0) return cur;
+      const curPos = list.findIndex((t) => t.burgIndex === cur);
+      const nextPos = curPos < 0
+        ? (delta > 0 ? 0 : list.length - 1)
+        : Math.max(0, Math.min(list.length - 1, curPos + delta));
+      const town = list[nextPos];
+      requestAnimationFrame(() => {
+        listRef.current
+          ?.querySelector(`#start-town-opt-${town.burgIndex}`)
+          ?.scrollIntoView({ block: 'nearest' });
+      });
+      return town.burgIndex;
+    });
+    triggerPulse();
+  }, [renderedTowns, triggerPulse]);
+
+  const handleListKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    switch (e.key) {
+      case 'ArrowDown': e.preventDefault(); moveActive(1); break;
+      case 'ArrowUp': e.preventDefault(); moveActive(-1); break;
+      case 'Home': e.preventDefault(); moveActive(-renderedTowns.length); break;
+      case 'End': e.preventDefault(); moveActive(renderedTowns.length); break;
+      case 'Enter':
+      case ' ': e.preventDefault(); confirm(); break;
+      default: break;
+    }
+  }, [moveActive, renderedTowns.length, confirm]);
 
   // Quick-start: select a random town (clearing the filters so it's visible) —
   // the explicit, in-fiction equivalent of "just drop me somewhere sensible".
@@ -144,16 +235,20 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
     const pick = towns[Math.floor(Math.random() * towns.length)];
     setSearch('');
     setRegionFilter(ALL_REGIONS);
+    setTownPage(Math.floor(towns.findIndex((town) => town.burgIndex === pick.burgIndex) / MAX_VISIBLE_TOWNS));
     setSelectedIndex(pick.burgIndex);
   }, [towns]);
 
   const handlePickCell = useCallback((info: CellTraits) => {
     const town = nearestTown(world, towns, info.i);
     if (town) {
+      // Map picking is an explicit change of context. Clear both filters and
+      // open the exact catalogue page so the picked town is also the visible,
+      // confirmable listbox option.
+      setSearch('');
+      setRegionFilter(ALL_REGIONS);
+      setTownPage(Math.floor(towns.findIndex((entry) => entry.burgIndex === town.burgIndex) / MAX_VISIBLE_TOWNS));
       setSelectedIndex(town.burgIndex);
-      // If the snapped town is outside the active region filter, widen to All so
-      // the selection is visible in the list.
-      setRegionFilter((cur) => (cur !== ALL_REGIONS && Number(cur) !== town.stateIndex ? ALL_REGIONS : cur));
     }
   }, [world, towns]);
 
@@ -187,18 +282,18 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
       towns: () => towns,
       regions: () => regions,
       select: (burgIndex: number) => setSelectedIndex(burgIndex),
-      selected: () => selected,
+      selected: () => activeTown,
       surpriseMe,
       highlight: triggerPulse,
       confirm,
     };
     return () => { delete (window as unknown as Record<string, unknown>).__startSelect; };
-  }, [towns, regions, selected, surpriseMe, triggerPulse, confirm]);
+  }, [towns, regions, activeTown, surpriseMe, triggerPulse, confirm]);
 
   // The atlas already renders every town via its always-on burgs + labels layers,
   // so we only mark the *selected* town here (extra pins for all 700+ towns would
   // just clutter the map and cost render time).
-  const marker = selected ? { x: selected.x, y: selected.y } : null;
+  const marker = activeTown ? { x: activeTown.x, y: activeTown.y } : null;
 
   // The atlas is a very heavy SVG. Memoize the element so typing in search,
   // changing the region filter, or scrolling the 700+ town list doesn't re-render
@@ -253,17 +348,29 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
     width: isCompactLayout ? '100%' : 380,
     flex: isCompactLayout ? '1 1 auto' : undefined,
     minHeight: isCompactLayout ? 0 : undefined,
-    padding: isCompactLayout ? 16 : 20,
+    padding: isCompactLayout ? 16 : '16px 20px',
     borderLeft: isCompactLayout ? 'none' : '1px solid #1e293b',
     borderTop: isCompactLayout ? '1px solid #1e293b' : 'none',
-    overflowY: 'auto',
+    // Desktop: the panel itself does NOT scroll — the town list (the primary
+    // decision surface) flex-grows and scrolls internally, so it stays the
+    // dominant element instead of one keyhole competing with the whole form.
+    // Compact: keep the whole panel scrollable since it stacks under the map.
+    overflowY: isCompactLayout ? 'auto' : 'hidden',
     display: 'flex',
     flexDirection: 'column',
-    gap: 16,
+    gap: 10,
   };
 
   return (
     <div data-testid="start-select-layout" style={rootStyle}>
+      {/* S2: inline styles can't express :hover, so a scoped rule gives
+          non-selected rows a clear hover state for legibility/affordance. */}
+      <style>{`
+        [data-testid="start-town-row"][data-selected="0"]:hover {
+          background: #16233b !important;
+          color: #ffffff !important;
+        }
+      `}</style>
       {/* Atlas — the 16:9 map box is centered in the pane so the atlas fills it
           edge-to-edge instead of letterboxing with dark-blue margins (S3). */}
       <div
@@ -279,21 +386,28 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
       {/* Selection panel */}
       <aside data-testid="start-select-panel" style={panelStyle}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Choose your starting town</h1>
-          <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
+          <h1 style={{ fontSize: 19, fontWeight: 700, margin: 0 }}>Choose your starting town</h1>
+          <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3, marginBottom: 0 }}>
             {characterName ? `Where will ${characterName}'s journey begin?` : 'Where will your journey begin?'}
-            {' '}Click a town on the map or pick one below. You always begin inside a settlement.
+            {' '}Click the map or pick a town below.
           </p>
         </div>
 
         {/* Name search */}
-        <input
-          data-testid="start-search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search towns or regions…"
-          style={{ minHeight: 44, boxSizing: 'border-box', padding: '8px 10px', borderRadius: 6, background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155' }}
-        />
+        <label
+          htmlFor="start-town-search"
+          style={{ fontSize: 12, color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: 4 }}
+        >
+          Search towns or regions
+          <input
+            id="start-town-search"
+            data-testid="start-search"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setTownPage(0); }}
+            aria-describedby="start-town-results"
+            style={{ minHeight: 44, boxSizing: 'border-box', padding: '8px 10px', borderRadius: 6, background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155' }}
+          />
+        </label>
 
         {/* Region filter */}
         <label style={{ fontSize: 12, color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -301,7 +415,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
           <select
             data-testid="start-region-filter"
             value={regionFilter}
-            onChange={(e) => setRegionFilter(e.target.value)}
+            onChange={(e) => { setRegionFilter(e.target.value); setTownPage(0); }}
             style={{ minHeight: 44, boxSizing: 'border-box', padding: '8px', borderRadius: 6, background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155' }}
           >
             <option value={ALL_REGIONS}>All regions ({towns.length} towns)</option>
@@ -320,72 +434,147 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
           style={{ display: 'flex', gap: 16, fontSize: 12, color: '#94a3b8', alignItems: 'center', marginTop: -4 }}
         >
           <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-            <span style={{ color: '#fbbf24' }}>★</span> capital
+            <span style={{ color: '#fbbf24', fontSize: 16, lineHeight: 1 }}>★</span> capital
           </span>
           <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-            <span>⚓</span> port
+            <span style={{ color: '#7dd3fc', fontSize: 16, lineHeight: 1 }}>⚓</span> port
           </span>
         </div>
 
-        {/* Town list */}
-        <div data-testid="start-town-list" style={{ order: isCompactLayout ? 2 : undefined, flex: 1, minHeight: 120, overflowY: 'auto', border: '1px solid #1e293b', borderRadius: 8 }}>
+        <p
+          id="start-town-results"
+          data-testid="start-town-results"
+          role="status"
+          aria-live="polite"
+          style={{ fontSize: 12, color: '#94a3b8', margin: 0 }}
+        >
+          {visibleTowns.length === 0
+            ? 'No matching towns.'
+            : `Showing towns ${renderedRangeStart} to ${renderedRangeEnd} of ${visibleTowns.length}. Page ${safeTownPage + 1} of ${townPageCount}.`}
+        </p>
+
+        {/* Town list — one ARIA listbox (bounded a11y tree; GG-40) */}
+        <div
+          ref={listRef}
+          data-testid="start-town-list"
+          role="listbox"
+          aria-label={`Selectable towns, ${visibleTowns.length} result${visibleTowns.length === 1 ? '' : 's'}, page ${safeTownPage + 1} of ${townPageCount}`}
+          aria-describedby="start-town-results"
+          aria-activedescendant={activeOptionId}
+          tabIndex={0}
+          onKeyDown={handleListKeyDown}
+          style={{
+            order: isCompactLayout ? 2 : undefined,
+            flex: 1,
+            // Desktop: minHeight 0 lets the list flex-grow to fill the panel and
+            // scroll its own overflow (many more rows visible). Compact keeps a
+            // usable floor so the stacked list never collapses to nothing.
+            minHeight: isCompactLayout ? 220 : 0,
+            overflowY: 'auto',
+            border: '1px solid #334155',
+            borderRadius: 8,
+            background: '#0b1424',
+          }}
+        >
           {visibleTowns.length === 0 && (
             <p style={{ padding: 12, fontSize: 13, color: '#94a3b8', margin: 0 }}>No towns in this region.</p>
           )}
-          {visibleTowns.slice(0, MAX_VISIBLE_TOWNS).map((t) => {
+          {renderedTowns.map((t) => {
             const isSel = t.burgIndex === selectedIndex;
             return (
               <button
                 key={t.burgIndex}
+                id={`start-town-opt-${t.burgIndex}`}
                 data-testid="start-town-row"
                 data-selected={isSel ? '1' : '0'}
+                role="option"
+                aria-selected={isSel}
+                tabIndex={-1}
                 onClick={() => { selectTown(t); triggerPulse(); }}
                 onDoubleClick={() => { selectTown(t); onConfirm(t); }}
                 style={{
-                  width: '100%', minHeight: 44, textAlign: 'left', padding: '8px 12px', border: 'none', cursor: 'pointer',
-                  background: isSel ? '#1d4ed8' : 'transparent', color: isSel ? 'white' : '#cbd5e1',
-                  borderBottom: '1px solid #14203a', display: 'flex', justifyContent: 'space-between', gap: 8,
+                  width: '100%', minHeight: 44, textAlign: 'left', padding: '9px 12px', border: 'none', cursor: 'pointer',
+                  // S2: non-selected rows were dim gray (#cbd5e1) — brighter text
+                  // (#f1f5f9) reads clearly on the dark list; the selected row keeps
+                  // its blue highlight. A stronger divider separates each row.
+                  background: isSel ? '#1d4ed8' : 'transparent', color: isSel ? '#ffffff' : '#f1f5f9',
+                  fontSize: 14,
+                  borderBottom: '1px solid #24334d', display: 'flex', justifyContent: 'space-between', gap: 8,
                 }}
               >
-                <span style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0 }}>
+                <span style={{ display: 'flex', gap: 7, alignItems: 'center', minWidth: 0 }}>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
-                  {t.isCapital && <span title="Capital">★</span>}
-                  {t.isPort && <span title="Port">⚓</span>}
+                  {/* S3: tier icons were tiny — larger, colored glyphs read at a glance. */}
+                  {t.isCapital && <span title="Capital" aria-hidden style={{ fontSize: 16, lineHeight: 1, color: isSel ? '#fde68a' : '#fbbf24' }}>★</span>}
+                  {t.isPort && <span title="Port" aria-hidden style={{ fontSize: 16, lineHeight: 1, color: isSel ? '#bae6fd' : '#7dd3fc' }}>⚓</span>}
                 </span>
-                <span style={{ color: isSel ? '#dbeafe' : '#64748b', fontSize: 12, whiteSpace: 'nowrap' }}>
+                <span style={{ color: isSel ? '#dbeafe' : '#94a3b8', fontSize: 12, whiteSpace: 'nowrap' }}>
                   {formatPopulation(t.population)}
                 </span>
               </button>
             );
           })}
-          {visibleTowns.length > MAX_VISIBLE_TOWNS && (
-            <p data-testid="start-town-overflow" style={{ padding: '8px 12px', fontSize: 12, color: '#64748b', margin: 0 }}>
-              Showing {MAX_VISIBLE_TOWNS} of {visibleTowns.length}. Search or pick a region to narrow.
-            </p>
-          )}
         </div>
 
-        {/* Selected town detail */}
-        {selected && (
-          <div data-testid="start-selected-detail" style={{ order: isCompactLayout ? 3 : undefined, background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: 12, fontSize: 13 }}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>
-              {selected.name}
-              {selected.isCapital && <span style={{ color: '#fbbf24', marginLeft: 6 }}>★ capital</span>}
-            </div>
-            <div style={{ color: '#94a3b8' }}>{selected.stateName}</div>
-            <div style={{ color: '#94a3b8' }}>
-              {formatPopulation(selected.population)} inhabitants{selected.isPort ? ' · coastal port' : ''}
+        {townPageCount > 1 && (
+          <nav
+            data-testid="start-town-pagination"
+            aria-label="Town result pages"
+            style={{ order: isCompactLayout ? 2 : undefined, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}
+          >
+            <button
+              type="button"
+              onClick={() => showTownPage(safeTownPage - 1)}
+              disabled={safeTownPage === 0}
+              style={{ minHeight: 44, padding: '8px 12px', borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9' }}
+            >
+              Previous towns
+            </button>
+            <span aria-hidden style={{ color: '#94a3b8', fontSize: 12 }}>
+              {safeTownPage + 1} of {townPageCount}
+            </span>
+            <button
+              type="button"
+              onClick={() => showTownPage(safeTownPage + 1)}
+              disabled={safeTownPage >= townPageCount - 1}
+              style={{ minHeight: 44, padding: '8px 12px', borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9' }}
+            >
+              Next towns
+            </button>
+          </nav>
+        )}
+
+        {/* Selected town detail — compact single row so the town LIST above stays
+            the dominant surface (name + region/pop on the left, Highlight on the
+            right) instead of a tall card eating the panel. */}
+        {activeTown && (
+          <div
+            data-testid="start-selected-detail"
+            style={{
+              order: isCompactLayout ? 3 : undefined, background: '#0f172a', border: '1px solid #1e293b',
+              borderRadius: 8, padding: '8px 12px', fontSize: 13, flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {activeTown.name}
+                {activeTown.isCapital && <span style={{ color: '#fbbf24', marginLeft: 6, fontSize: 12 }}>★ capital</span>}
+              </div>
+              <div style={{ color: '#94a3b8', fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {activeTown.stateName} · {formatPopulation(activeTown.population)} inhabitants{activeTown.isPort ? ' · port' : ''}
+              </div>
             </div>
             <button
               data-testid="start-highlight"
               onClick={triggerPulse}
               title="Flash this town's location on the map"
               style={{
-                marginTop: 10, minHeight: 44, padding: '8px 10px', borderRadius: 6, border: '1px solid #7f1d1d',
-                background: '#1f2937', color: '#fca5a5', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+                flexShrink: 0, minHeight: 44, padding: '8px 10px', borderRadius: 6, border: '1px solid #7f1d1d',
+                background: '#1f2937', color: '#fca5a5', cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
               }}
             >
-              ◎ Highlight on map
+              ◎ Highlight
             </button>
           </div>
         )}
@@ -426,17 +615,17 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
           <button
             data-testid="start-confirm"
             onClick={confirm}
-            disabled={!selected}
+            disabled={!activeTown}
             style={{
               flex: 1, minHeight: 44, padding: isCompactLayout ? '8px 10px' : '10px 14px', borderRadius: 6, border: 'none', fontWeight: 700,
-              background: selected ? '#16a34a' : '#1e293b', color: selected ? 'white' : '#64748b',
-              cursor: selected ? 'pointer' : 'not-allowed',
+              background: activeTown ? '#16a34a' : '#1e293b', color: activeTown ? 'white' : '#64748b',
+              cursor: activeTown ? 'pointer' : 'not-allowed',
               gridColumn: isCompactLayout ? '1 / -1' : undefined,
               gridRow: isCompactLayout ? 1 : undefined,
               minWidth: 0,
             }}
           >
-            {selected ? `Begin in ${selected.name} →` : 'Select a town'}
+            {activeTown ? `Begin in ${activeTown.name} →` : 'Select a town'}
           </button>
         </div>
       </aside>

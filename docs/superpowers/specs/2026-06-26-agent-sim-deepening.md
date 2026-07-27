@@ -28,6 +28,15 @@ Reachable at `?phase=agentsim`. Pure and deterministic, ~29 tests green.
 - **Collapse to one mode: Behaviour only.** Drop the Schedule/Behaviour toggle. The
   clock slider re-simulates from dawn up to the chosen hour, so scrub-anywhere still
   works. The fixed routine becomes an internal fallback.
+  **BUILT 2026-07-18 (task 187c0fa3).** `?phase=agentsim` is now behaviour-only: the
+  toggle is gone and scrubbing/jumping the clock calls the new pure `simulateMindsTo`
+  (in `roster/agentSim.ts`), which replays the day from its anchor (hour 0) to the
+  chosen hour and snaps agents to their decided plots — the same hour always yields the
+  same town. Pressing play keeps the smooth per-frame walk, continuing from that state.
+  The fixed-schedule motion (`townMotionSnapshotAt`) stays as the internal fallback for
+  the dev overlay and 3D preview. Proof: `roster/__tests__/agentSim.test.ts`
+  (determinism/grid-equivalence/wrap) + `Worldforge/__tests__/AgentSimPreview.test.tsx`
+  (DOM: no toggle; path-independent re-sim).
 - **Deepen it over time** with all three: a real economy (wages, shop income, prices,
   rich vs poor districts), relationships that evolve (affinity from repeated contact →
   friendships, rivalries, courtship, new marriages), and town-scale events (festival,
@@ -43,7 +52,7 @@ camera). Surnames and genealogy may fall out of the deepen work.
 
 ## Build order
 
-1. Behaviour-only mode (small; simplifies the rest).
+1. Behaviour-only mode (small; simplifies the rest). **DONE 2026-07-18 (task 187c0fa3).**
 2. Front doors + door-to-door routing (finishes the movement story).
 3. Deepen-over-time engine (economy + relationships + events + life events).
 4. Wire into real gameplay (depends on a solid sim).
@@ -56,3 +65,13 @@ camera). Surnames and genealogy may fall out of the deepen work.
 - It is a preview, not wired into actual gameplay.
 - Relationship to the older headless `shipped-living-world` sim (economy/festivals)
   needs reconciling — reuse its logic or keep the visual sim separate.
+- **Follow-up (task 187c0fa3):** live in-browser eyeball of `?phase=agentsim` is still
+  owed. It was blocked on 2026-07-18 because a concurrent interior-generator migration
+  (task 8352cd22) had renamed `generateInterior` → `blueprintForPlot` without yet
+  updating `roster/generateTownRoster.ts`, so the page's real roster path threw. The
+  collapse is verified at the unit + jsdom-DOM level; re-render the page for the visual
+  sign-off once that migration lands.
+- **Deferred (task 187c0fa3):** scrubbing snaps agents to their decided plot centroids
+  (deterministic, truthful "who is where at hour H"). Street-walking is only shown during
+  playback. If we want walking *frames* under a paused scrub too, extend `simulateMindsTo`
+  to also fold the route positions (needs the street graph + centroids).

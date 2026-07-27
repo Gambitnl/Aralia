@@ -29,6 +29,7 @@ import { NPCS } from '../../constants';
 import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
 import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
 import { generateId } from '../../utils/core/idGenerator';
+import { getDayPartLabel } from '../../utils/core/timeUtils';
 import { OllamaService } from '../../services/ollama';
 import { ConversationMessage } from '../../types/conversation';
 import { getWeatherSummary } from '../../types/environment';
@@ -291,8 +292,9 @@ function buildConversationContext(state: GameState): BanterContext {
     const locId = state.currentLocationId;
     const locName = state.dynamicLocations?.[locId]?.name || locId;
     const weather = getWeatherSummary(state.environment);
-    const hour = new Date(state.gameTime).getHours();
-    const timeOfDay = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
+    // G5: day-part word from the character's local in-world clock (the HUD
+    // clock, UTC-rendered) — never host-machine getHours().
+    const timeOfDay = getDayPartLabel(new Date(state.gameTime));
 
     // WHAT CHANGED: Normalized dual-status checks for mixed save/runtime schemas.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -498,7 +500,7 @@ export async function handleTalk({
       return;
     }
 
-    // TODO #256(FEATURES): Add quest-giver hooks so NPCs can offer/advance quests through dialogue outcomes (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+
 
     // START DIALOGUE SESSION
     // Instead of immediately generating a generic response, we now open the Dialogue Interface.

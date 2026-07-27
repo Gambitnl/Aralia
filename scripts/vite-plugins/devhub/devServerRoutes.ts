@@ -24,6 +24,7 @@ const DEV_SERVER_SCAN_LABELS = Object.keys(DEV_SERVER_SCAN_TARGETS).map((value) 
 
 type NodeProcessRow = {
   pid: number;
+  name: string;
   parentPid: number;
   parentName: string;
   parentCommandLine: string;
@@ -33,6 +34,65 @@ type NodeProcessRow = {
   executablePath: string;
   commandLine: string;
 };
+
+type AnnotatedNodeProcessRow = NodeProcessRow & {
+  debugPort: number | null;
+  debugPortAlive: boolean | null;
+};
+
+// Process types the dashboard can enumerate. Keys map to the executable names
+// Windows reports; the browser requests a comma-separated subset via ?types=.
+// Only these hardcoded names ever reach the PowerShell query — the ?types keys
+// are looked up here, so no caller-supplied string is ever interpolated.
+const PROCESS_TYPE_NAMES: Record<string, string[]> = {
+  node: ['node.exe', 'node'],
+  cmd: ['cmd.exe'],
+  powershell: ['powershell.exe', 'pwsh.exe'],
+  conhost: ['conhost.exe'],
+  openconsole: ['OpenConsole.exe'],
+};
+const DEFAULT_PROCESS_NAMES = PROCESS_TYPE_NAMES.node;
+
+const resolveProcessNames = (typesParam: string | null): string[] => {
+  if (!typesParam) return DEFAULT_PROCESS_NAMES;
+  const names = new Set<string>();
+  for (const key of typesParam.split(',').map((value) => value.trim().toLowerCase()).filter(Boolean)) {
+    for (const name of PROCESS_TYPE_NAMES[key] || []) {
+      names.add(name);
+    }
+  }
+  return names.size ? Array.from(names) : DEFAULT_PROCESS_NAMES;
+};
+
+// Pull a debugger port out of a command (Chrome DevTools MCP uses
+// `--browserUrl http://127.0.0.1:9222`; other tools use
+// `--remote-debugging-port 9222`). Used to flag a tool whose target is gone.
+const extractDebugPort = (...commands: Array<string | undefined>): number | null => {
+  for (const command of commands) {
+    const text = String(command || '');
+    const browserUrl = text.match(/--browser-?url[=\s]+https?:\/\/[^\s:"']+:(\d{2,5})/i);
+    if (browserUrl) return Number(browserUrl[1]);
+    const debugPort = text.match(/--remote-debugging-port[=\s]+(\d{2,5})/i);
+    if (debugPort) return Number(debugPort[1]);
+  }
+  return null;
+};
+
+const probeTcpPort = (port: number, timeoutMs = 600): Promise<boolean> => new Promise((resolve) => {
+  const socket = new Socket();
+  let settled = false;
+  const finish = (alive: boolean) => {
+    if (settled) return;
+    settled = true;
+    socket.destroy();
+    resolve(alive);
+  };
+  socket.setTimeout(timeoutMs);
+  socket.once('connect', () => finish(true));
+  socket.once('timeout', () => finish(false));
+  socket.once('error', () => finish(false));
+  socket.connect(port, DEV_SERVER_SCAN_HOST);
+});
 
 const runCommand = (file: string, args: string[]) => new Promise<string>((resolve, reject) => {
   execFile(file, args, { windowsHide: true, maxBuffer: 1024 * 1024 }, (error, stdout) => {
@@ -44,21 +104,51 @@ const runCommand = (file: string, args: string[]) => new Promise<string>((resolv
   });
 });
 
+// Read small JSON request bodies for local dashboard mutation routes. The dev
+// hub API is intentionally lightweight and does not install a body parser, so
+// this keeps destructive actions explicit and bounded to tiny payloads.
+const readJsonBody = (req: any, maxBytes = 64 * 1024) => new Promise<any>((resolve, reject) => {
+  let body = '';
+  req.setEncoding?.('utf8');
+  req.on('data', (chunk: string) => {
+    body += String(chunk || '');
+    if (body.length > maxBytes) {
+      reject(new Error('Request body is too large.'));
+      req.destroy?.();
+    }
+  });
+  req.on('end', () => {
+    if (!body.trim()) {
+      resolve({});
+      return;
+    }
+    try {
+      resolve(JSON.parse(body));
+    } catch {
+      reject(new Error('Request body must be valid JSON.'));
+    }
+  });
+  req.on('error', reject);
+});
+
 // This dashboard runs from the local Vite process, which can inspect the host
 // process table. Keeping the query here (instead of in the browser) preserves
 // the existing static dashboard approach while never exposing a mutation route.
-const listNodeProcesses = async (): Promise<NodeProcessRow[]> => {
+const listNodeProcesses = async (names: string[] = DEFAULT_PROCESS_NAMES): Promise<NodeProcessRow[]> => {
   if (process.platform === 'win32') {
+    const namesLiteral = names.map((value) => `'${value.replace(/'/g, "''")}'`).join(', ');
     const script = [
       "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8",
+      `$targetNames = @(${namesLiteral})`,
       "$all = Get-CimInstance Win32_Process",
       '$byId = @{}',
       'foreach ($process in $all) { $byId[[int]$process.ProcessId] = $process }',
-      '$nodes = @($all | Where-Object { $_.Name -ieq \'node.exe\' -or $_.Name -ieq \'node\' } | ForEach-Object {',
+      '$nodes = @($all | Where-Object { $targetNames -icontains $_.Name } | ForEach-Object {',
       '  $parent = $byId[[int]$_.ParentProcessId]',
       '  $launcher = if ($parent) { $byId[[int]$parent.ParentProcessId] } else { $null }',
       '  [PSCustomObject]@{',
       '    pid = [int]$_.ProcessId',
+      '    name = [string]$_.Name',
       '    parentPid = [int]$_.ParentProcessId',
       '    parentName = if ($parent) { [string]$parent.Name } else { \'<exited>\' }',
       '    parentCommandLine = if ($parent) { [string]$parent.CommandLine } else { \'\' }',
@@ -75,6 +165,7 @@ const listNodeProcesses = async (): Promise<NodeProcessRow[]> => {
     const parsed = JSON.parse(output.trim() || '[]');
     return (Array.isArray(parsed) ? parsed : [parsed]).map((row: Partial<NodeProcessRow>) => ({
       pid: Number(row.pid) || 0,
+      name: String(row.name || ''),
       parentPid: Number(row.parentPid) || 0,
       parentName: String(row.parentName || '<exited>'),
       parentCommandLine: String(row.parentCommandLine || ''),
@@ -86,20 +177,24 @@ const listNodeProcesses = async (): Promise<NodeProcessRow[]> => {
     }));
   }
 
+  const wantedBases = new Set(names.map((value) => value.replace(/\.exe$/i, '').toLowerCase()));
+  const baseName = (value: string) => (String(value || '').split(/[\\/]/).pop() || '');
   const output = await runCommand('ps', ['-axo', 'pid=,ppid=,comm=,args=']);
   const processes = output.split(/\r?\n/).map((line) => {
     const match = line.match(/^\s*(\d+)\s+(\d+)\s+(\S+)\s*(.*)$/);
     if (!match) return null;
     return { pid: Number(match[1]), parentPid: Number(match[2]), executablePath: match[3], commandLine: match[4] || match[3] };
-  }).filter((row): row is Omit<NodeProcessRow, 'parentName'> => Boolean(row));
+  }).filter((row): row is { pid: number; parentPid: number; executablePath: string; commandLine: string } => Boolean(row));
   const processesByPid = new Map(processes.map((row) => [row.pid, row]));
   return processes
-    .filter((row) => /(^|[\\/])node(?:\.exe)?$/i.test(row.executablePath) || /(^|\s)node(?:\s|$)/i.test(row.commandLine))
+    .filter((row) => wantedBases.has(baseName(row.executablePath).replace(/\.exe$/i, '').toLowerCase())
+      || (wantedBases.has('node') && /(^|\s)node(?:\s|$)/i.test(row.commandLine)))
     .map((row) => {
       const parent = processesByPid.get(row.parentPid);
       const launcher = parent ? processesByPid.get(parent.parentPid) : undefined;
       return {
         ...row,
+        name: baseName(row.executablePath),
         parentName: parent?.executablePath || '<exited>',
         parentCommandLine: parent?.commandLine || '',
         launcherPid: parent?.parentPid || 0,
@@ -107,6 +202,55 @@ const listNodeProcesses = async (): Promise<NodeProcessRow[]> => {
         launcherCommandLine: launcher?.commandLine || '',
       };
     });
+};
+
+// The page may request many process types at once; keeping this helper on the
+// server ensures kill validation uses the same live process table as the read
+// endpoint instead of trusting stale browser rows.
+const listAnnotatedProcesses = async (names: string[]): Promise<AnnotatedNodeProcessRow[]> => {
+  const processes = await listNodeProcesses(names);
+  const debugPorts = new Set<number>();
+  for (const proc of processes) {
+    const port = extractDebugPort(proc.commandLine, proc.parentCommandLine, proc.launcherCommandLine);
+    if (port) debugPorts.add(port);
+  }
+  const debugPortAlive = new Map<number, boolean>();
+  await Promise.all([...debugPorts].map(async (port) => {
+    debugPortAlive.set(port, await probeTcpPort(port));
+  }));
+  return processes.map((proc) => {
+    const debugPort = extractDebugPort(proc.commandLine, proc.parentCommandLine, proc.launcherCommandLine);
+    return {
+      ...proc,
+      debugPort: debugPort ?? null,
+      debugPortAlive: debugPort ? (debugPortAlive.get(debugPort) ?? null) : null,
+    };
+  });
+};
+
+// Bulk-kill is intentionally limited to rows that still have a positive leak
+// signal. Protected local runtimes are refused even if their parent/debug state
+// looks odd, because stopping them can break the dev server or the active agent.
+const isProtectedProcess = (proc: AnnotatedNodeProcessRow) => {
+  const chain = `${proc.commandLine}\n${proc.parentCommandLine}\n${proc.launcherCommandLine}`.toLowerCase();
+  return proc.pid === process.pid
+    || /vite(?:\.js)?|\bvite\b/.test(chain)
+    || /tools[\\/]agora[\\/]server\.mjs/.test(chain)
+    || /openai[\\/]codex|codex[\\/]runtimes|cua_node|codex-command-runner/.test(chain);
+};
+
+const isLikelyLeakedProcess = (proc: AnnotatedNodeProcessRow) => {
+  if (isProtectedProcess(proc)) return false;
+  if (proc.debugPortAlive === false && Number.isFinite(Number(proc.debugPort))) return true;
+  return String(proc.parentName || '') === '<exited>';
+};
+
+const killProcessTree = async (pid: number) => {
+  if (process.platform === 'win32') {
+    await runCommand('taskkill.exe', ['/PID', String(pid), '/T', '/F']);
+    return;
+  }
+  process.kill(pid, 'SIGTERM');
 };
 
 const toTitleFromHtml = (value: string) => {
@@ -356,18 +500,74 @@ const scanDevServerTargets = async (targets: Array<{ port: number; label: string
 };
 
 export async function handleDevServerRoutes(ctx: DevHubRouteContext): Promise<boolean> {
-  const { json, parsedUrl, urlPath } = ctx;
+  const { req, json, parsedUrl, urlPath } = ctx;
+
+  if (urlPath === '/api/dev/node-processes/kill-likely-leaked' || urlPath === '/Aralia/api/dev/node-processes/kill-likely-leaked') {
+    if (String(req.method || 'GET').toUpperCase() !== 'POST') {
+      json({ error: 'Use POST to kill likely leaked processes.' }, 405);
+      return true;
+    }
+
+    try {
+      const body = await readJsonBody(req);
+      const requestedPids = Array.isArray(body?.pids) ? body.pids : [];
+      const wantedPids = new Set<number>(
+        requestedPids
+          .map((value: unknown) => Number(value))
+          .filter((value: number) => Number.isInteger(value) && value > 0 && value !== process.pid),
+      );
+      if (!wantedPids.size) {
+        json({ error: 'No valid process IDs were supplied.' }, 400);
+        return true;
+      }
+
+      const processes = await listAnnotatedProcesses(resolveProcessNames(parsedUrl.searchParams.get('types')));
+      const processByPid = new Map(processes.map((proc) => [proc.pid, proc]));
+      const killed: Array<{ pid: number; name: string }> = [];
+      const skipped: Array<{ pid: number; reason: string }> = [];
+
+      for (const pid of wantedPids) {
+        const proc = processByPid.get(pid);
+        if (!proc) {
+          skipped.push({ pid, reason: 'Process was not found in the latest snapshot.' });
+          continue;
+        }
+        if (!isLikelyLeakedProcess(proc)) {
+          skipped.push({ pid, reason: 'Process no longer matches the server-side likely-leaked rules.' });
+          continue;
+        }
+        try {
+          await killProcessTree(pid);
+          killed.push({ pid, name: proc.name });
+        } catch (error) {
+          skipped.push({ pid, reason: `Kill failed: ${String(error)}` });
+        }
+      }
+
+      json({
+        killed,
+        skipped,
+        requestedCount: wantedPids.size,
+        killedCount: killed.length,
+        skippedCount: skipped.length,
+      });
+    } catch (error) {
+      json({ error: `Could not kill likely leaked processes: ${String(error)}` }, 500);
+    }
+    return true;
+  }
 
   if (urlPath === '/api/dev/node-processes' || urlPath === '/Aralia/api/dev/node-processes') {
     try {
-      const processes = await listNodeProcesses();
+      const names = resolveProcessNames(parsedUrl.searchParams.get('types'));
+      const annotated = await listAnnotatedProcesses(names);
       json({
         scannedAt: new Date().toISOString(),
-        count: processes.length,
-        processes: processes.sort((left, right) => left.pid - right.pid),
+        count: annotated.length,
+        processes: annotated.sort((left, right) => left.pid - right.pid),
       });
     } catch (error) {
-      json({ error: `Could not inspect Node.js processes: ${String(error)}` }, 500);
+      json({ error: `Could not inspect processes: ${String(error)}` }, 500);
     }
     return true;
   }

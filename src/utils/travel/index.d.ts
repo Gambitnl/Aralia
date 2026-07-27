@@ -1,0 +1,18 @@
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/02/2026, 09:34:40
+ * Dependents: utils/index.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+/**
+ * @file src/utils/travel/index.ts
+ * Travel utilities - distance calculations, travel time, and movement rules.
+ */
+export * from './TravelCalculator';

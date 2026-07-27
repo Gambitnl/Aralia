@@ -172,6 +172,44 @@ describe('gait drivers (segment emission)', () => {
     expect(floater.flap).toBe(0);
   });
 
+  it('grounded winged gaits beat their wings: biped and quad flap, hopper does not', () => {
+    // dragons (quad) and celestials/fiends/fairies/aarakocra (biped) carry
+    // wing parts; the assembler only applies flap to wingL/wingR groups, so a
+    // nonzero beat is harmless on wingless bodies. Hopper has no winged
+    // profiles anywhere — pinned at 0.
+    for (const gait of ['biped', 'quad'] as const) {
+      const driver = createGaitDriver(gait, deriveFrame(gait, 5.5, 1, 1));
+      let min = Infinity;
+      let max = -Infinity;
+      for (let t = 0; t < 1.2; t += 1 / 60) {
+        driver.update(t, 1 / 60, loco(1.2));
+        min = Math.min(min, driver.flap);
+        max = Math.max(max, driver.flap);
+      }
+      expect(max - min, `${gait} wings never move`).toBeGreaterThan(0.5);
+      expect(max, `${gait} flap exceeds the grounded beat envelope`).toBeLessThanOrEqual(0.7 + 1e-6);
+    }
+    const hopper = createGaitDriver('hopper', deriveFrame('hopper', 5.5, 1.3, 0.9));
+    hopper.update(0.4, 1 / 60, loco(0.8));
+    expect(hopper.flap).toBe(0);
+  });
+
+  it('grounded wing beat keeps a gentle idle sway and deepens with speed', () => {
+    const amp = (speed: number): number => {
+      const driver = createGaitDriver('quad', deriveFrame('quad', 3.3, 1, 1));
+      let m = 0;
+      for (let t = 0; t < 1.2; t += 1 / 60) {
+        driver.update(t, 1 / 60, loco(speed));
+        m = Math.max(m, Math.abs(driver.flap));
+      }
+      return m;
+    };
+    const idle = amp(0);
+    const walk = amp(1.2);
+    expect(idle, 'idle wings must stay alive, not freeze').toBeGreaterThan(0.2);
+    expect(walk, 'the beat must deepen under way').toBeGreaterThan(idle + 0.2);
+  });
+
   it('gait phase advances with time while moving', () => {
     const driver = createGaitDriver('quad', deriveFrame('quad', 3.3, 1, 1));
     driver.update(0.1, 1 / 60, loco(1));

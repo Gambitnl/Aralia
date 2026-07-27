@@ -67,17 +67,20 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
         setIsThinking(true);
 
         // 1. Process Logic (Skill checks, unlocks)
-        // Helper to find skill modifier
+        // Resolve the check's governing ability from the topic's skill, then add
+        // proficiency when the character is trained in that skill.
         let skillMod = 0;
         if (topic.skillCheck) {
-            // Simplified: Use raw ability score or proficiency logic if available
-            // For now, assuming raw score modifier: (Score - 10) / 2
-            // TODO #79: Use real skill system accessor
-            const charismaScore =
-                playerCharacter.abilityScores?.Charisma ??
-                playerCharacter.finalAbilityScores?.Charisma ??
+            const checkSkill = topic.skillCheck.skill;
+            const abilityScore =
+                playerCharacter.finalAbilityScores?.[checkSkill.ability] ??
+                playerCharacter.abilityScores?.[checkSkill.ability] ??
                 10;
-            skillMod = Math.floor((charismaScore - 10) / 2);
+            const isProficient = playerCharacter.skills?.some(
+                s => s.id === checkSkill.id || s.name === checkSkill.name
+            ) ?? false;
+            skillMod = Math.floor((abilityScore - 10) / 2) +
+                (isProficient ? (playerCharacter.proficiencyBonus || 2) : 0);
         }
 
         const result = processTopicSelection(topic.id, gameState, session, skillMod, npc);

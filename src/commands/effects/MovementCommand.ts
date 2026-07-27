@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/07/2026, 14:42:32
+ * Last Sync: 19/07/2026, 23:22:31
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts
  * Imports: 11 files
  *
@@ -35,7 +35,13 @@ import { applyCommandAreaMovementEffects } from './commandAreaMovementEffects'
 interface TenserDiskRemoval {
     disk: CombatCharacter;
     condition: 'beyond_max_distance' | 'carried_weight_exceeds_limit';
-    data: Record<string, unknown>;
+    data: {
+        travelRule: string;
+        carriedWeightPounds?: number;
+        maxLoadPounds?: number;
+        separationFeet?: number;
+        maxCasterSeparationFeet?: number;
+    };
 }
 
 /**
@@ -363,7 +369,7 @@ export class MovementCommand extends BaseEffectCommand {
         casterId: string,
         casterPosition: Position
     ): TenserDiskRemoval[] {
-        return state.characters.flatMap(character => {
+        return state.characters.flatMap<TenserDiskRemoval>(character => {
             const metadata = character.summonMetadata
             if (
                 !character.isSummon ||

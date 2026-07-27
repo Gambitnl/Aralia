@@ -121,7 +121,7 @@ describe('useVisibility', () => {
             truesight: 0
         };
         state.spellZones = [{
-            id: 'zone-darkness-proof',
+            id: 'darkness-zone-1',
             spellId: 'darkness',
             casterId: 'hero',
             position: { x: 5, y: 5 },
@@ -132,7 +132,7 @@ describe('useVisibility', () => {
             } as unknown as NonNullable<CombatState['spellZones']>[number]['effects'][number]],
             triggeredThisTurn: new Set(),
             triggeredEver: new Set()
-        }];
+        } as any];
 
         const { result } = renderHook(() => useVisibility({
             combatState: state,

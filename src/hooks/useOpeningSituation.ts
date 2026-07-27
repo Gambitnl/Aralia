@@ -36,7 +36,8 @@ import { AppAction } from '../state/actionTypes';
 import { LOCATIONS, STARTING_LOCATION_ID } from '../data/world/locations';
 import { biomeIdForCell } from '../systems/worldforge/local/biomeForCell';
 import { generateId } from '../utils/core/idGenerator';
-import { getTimeOfDay, getTimeModifiers } from '../utils/core/timeUtils';
+import { getTimeOfDay } from '../utils/core/timeUtils';
+import { getTimeModifiers } from '../systems/time/seasonContract';
 import type { ConversationMessage, ConversationNpcParticipant } from '../types/conversation';
 import {
     generateOpeningSituation,

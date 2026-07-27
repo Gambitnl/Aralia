@@ -15,7 +15,8 @@ export interface StandardizedResult<T> {
   metadata?: GeminiMetadata;
 }
 
-// TODO #427: Scrub or redact user-provided text before storing GeminiMetadata (Reason: prompts can carry PII and are currently logged verbatim; Expectation: keep telemetry safe while still diagnosing model issues).
+// TODO: Scrub or redact user-provided text before storing GeminiMetadata — prompts can carry
+// PII and are currently logged verbatim; keep telemetry safe while still diagnosing model issues.
 export interface GeminiTextData extends GeminiMetadata {
   text: string;
 }

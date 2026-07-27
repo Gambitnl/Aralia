@@ -1,0 +1,7 @@
+{
+  "id": "king-solomon",
+  "displayName": "King Solomon",
+  "description": "A tiny wise ancient king with a gold crown, dark beard, and royal robe.",
+  "spritesheetPath": "spritesheet.webp",
+  "kind": "person"
+}

@@ -726,7 +726,7 @@ describe('SpellIntegrityValidator', () => {
     const divineWord = getSpells(7).find(spell => spell.id === 'divine-word');
     const harm = getSpells(6).find(spell => spell.id === 'harm');
     const divineWordDeath = divineWord?.effects.find(effect =>
-      effect.type === 'STATUS_CONDITION' && effect.statusCondition?.name === 'Dead'
+      effect.type === 'STATUS_CONDITION' && (effect.statusCondition?.name as string) === 'Dead'
     );
     const harmMaxHpReduction = harm?.effects.find(effect => effect.type === 'STATUS_CONDITION');
 

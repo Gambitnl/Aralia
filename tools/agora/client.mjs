@@ -4,7 +4,7 @@
 // Pure Node.js ESM, zero npm dependencies (node: built-ins + the global `fetch`).
 // Lets a human OR an agent drive the daemon without curl boilerplate:
 //
-//   node tools/agora/client.mjs register <handle> [--note "..."]
+//   node tools/agora/client.mjs register <handle> --pet <slug> --session <task/thread-id> [--note "..."]
 //   node tools/agora/client.mjs lock src/foo.ts --reason "refactor"
 //   node tools/agora/client.mjs watch
 //   ... (run with no args / `help` for the full list)
@@ -20,8 +20,10 @@
 //
 // Base URL precedence: --url > AGORA_URL > http://localhost:4319.
 //
-// Structured for testing: `run(argv, { env, baseUrl })` returns { code, ... } and
-// never calls process.exit; the real CLI bootstrap is guarded behind isMainModule().
+// Structured for testing: `run(argv, { env, baseUrl, repoRoot })` returns
+// `{ code, ... }` and never calls process.exit; `repoRoot` lets retrace tests use
+// an isolated temporary Git repository instead of touching the shared checkout.
+// The real CLI bootstrap is guarded behind isMainModule().
 //
 // See docs/superpowers/specs/2026-06-27-agora-agent-coordination-design.md
 
@@ -31,6 +33,9 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync, spawn } from 'node:child_process';
+
+import { validateRegistrationThreadIdentity } from './identity-policy.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const REPO_ROOT = path.resolve(path.dirname(__filename), '..', '..');
@@ -78,7 +83,27 @@ function parseArgs(argv) {
       positionals.push(a);
     }
   }
-  return { _: positionals, flags };
+  return { _: positionals, flags, raw: [...argv] };
+}
+
+// A quoted reason reaches Node as one argument. More bare words after that value
+// are almost always an accidentally unquoted reason, not extra file paths.
+function hasAmbiguousReasonTail(raw = []) {
+  const index = raw.findIndex((value) => value === '--reason');
+  if (index < 0 || index + 1 >= raw.length) return false;
+  for (let i = index + 2; i < raw.length; i++) {
+    if (raw[i].startsWith('--')) break;
+    return true;
+  }
+  return false;
+}
+
+function suspiciousBarePathTokens(values = []) {
+  if (values.length < 2) return [];
+  return values.filter((value) => {
+    if (/[\\/.*?]/.test(value) || /^[A-Za-z]:/.test(value)) return false;
+    return !fs.existsSync(path.resolve(REPO_ROOT, value));
+  });
 }
 
 function asArray(v) {
@@ -249,7 +274,7 @@ function shortId(id) {
 function needToken(out, parsed, env, baseUrl) {
   const token = resolveToken(parsed, env, baseUrl);
   if (!token) {
-    out.log(`Not registered for ${baseUrl}. Run: register <handle>  (or pass --token <token>)`);
+    out.log(`Not registered for ${baseUrl}. Run: register <handle> --pet <slug>  (or pass --token <token>)`);
   }
   return token;
 }
@@ -270,32 +295,37 @@ Env:
   AGORA_OWNER_PID        optional owner process; heartbeat stops when it exits
 
 Commands:
-  onboard <handle> [--note "..."] [--gaps [root]]
+  onboard <handle> --pet <slug> [--session <id>] [--note "..."] [--gaps [root]]
                                           START HERE if you are new: register + one-shot
                                           briefing (peers, locks, ready tasks, rules;
                                           --gaps adds the project-tracker open-gap summary)
-  register <handle> [--note "..."] [--model <m>] [--session <id>] [--role worker|orchestrator|master|human]
+  pets                                   list valid pet identities required for presence
+  register <handle> --pet <slug> [--note "..."] [--model <m>] [--reasoning <effort>] [--session <id>] [--role worker|orchestrator|master|human]
                                           register, store identity, print agentId+handle
                                           (409 if a live agent already holds <handle>);
                                           --model = which model you are (orchestrator stamps it),
-                                          --session/--thread/--conversation = your own thread id
-  register --random [base] [--note "..."] auto-claim a free unique handle (solo agents)
-  heartbeat [--every <sec>] [--count N | --for <min> | --forever] [--owner-pid <pid>]
+                                          --session/--thread/--conversation = your own task/thread id
+                                          (required for Codex and orchestrator/master presence)
+  register --random [base] --pet <slug> [--note "..."] auto-claim a free unique handle (solo agents)
+  heartbeat [--every <sec>] [--count N | --for <min> | --forever] [--owner-pid <pid>] [--daemonize]
                                           bounded presence bridge (default: 30 min);
+                                          --daemonize survives harness background cleanup;
                                           --forever is explicit opt-in only
   retire [--note "..."]                   clean exit: release claims and invalidate identity
-  whoami                                  print stored identity for the current base URL
+  whoami                                  print token-free stored identity for the current base URL
   agents                                  list agents (status, handle, note, last-seen)
+  agents --retire-stale <agentId|handle>  orchestrator-safe pet recovery for a stale idle presence
 
   lock <path...> [--glob g...] [--reason "..."] [--ttl <minutes>]
                                           acquire an advisory lock (409 -> conflict + exit 1)
+  lock --renew <lockId> [--ttl <minutes>] renew one lock you hold
   unlock <lockId|path>                    release a lock you hold (by id OR file path)
   unlock --mine                           release ALL locks you hold
   unlock <lockId> --force                 release a STALE/GONE holder's lock (refused if online)
   locks                                   list active locks
   reserve <path...> [--glob g...] [--reason "..."]
                                           claim FIFO dibs for future lock access
-  unreserve <reservationId|path>           leave a reservation queue you hold
+  unreserve <reservationId|path> [--force] leave your queue entry; force releases only a stale/gone holder
   reservations                            list active file-access reservation queues
 
   campaign claim <id> [--role lead|deputy] [--lead <id>] [--scope "..."] [--path <p>...] [--glob <g>...] [--wave <name>]
@@ -305,18 +335,27 @@ Commands:
                                           update a campaign lifecycle state
   campaigns [--state active|blocked|done] list campaign governance records
 
-  task new <title> [--body "..."] [--dep <taskId>...] [--priority N] [--ref <gapId|path>...] [--category <name>] [--campaign <id>] [--wave <name>]
-                                          create a task; deps gate readiness, priority orders it
+  task new <title> [--body "..."] [--dep <taskId>...] [--priority N] [--ref <reference>...] [--category <name>] [--campaign <id>] [--wave <name>]
+                                          create a task; lower priority numbers run first;
+                                          Plan Map refs use planmap:<topicId>/<feature-slug>
+                                          (see PLANMAP-AGENT-GUIDE section 3)
   task claim <taskId>                     claim a task
   task next [--id-only] [--campaign <id>] [--category <name>]
                                           claim the highest-priority READY task, optionally
                                           restricted to one campaign and/or category
-  task state <taskId> <state>             set state (open|claimed|in_progress|blocked|done)
+  task state <taskId> <state> [--result "..."] set state and preserve evidence
+  task start <taskId> [--result "..."]    alias for state <taskId> in_progress
+  task checkpoint <taskId> --did "..." --next "..." [--files a,b | --files a --files b]
+                                          leave a resumable note (latest wins); folded into the
+                                          retrace dossier if you are later reaped mid-task
   task done <taskId> [--result "..."]     mark done, recording WHAT was done (evidence)
   task handoff <taskId> <toAgentId>       reassign a task
   tasks [--state s] [--ready] [--category <name>] [--group-by-category]
                                           show the board (--ready: open tasks whose deps are done);
                                           --group-by-category shows optional visual sections by category
+  retrace <taskId>                        recover a reaped worker's trail: prints its dossier
+                                          (identity, durable files, checkpoint, say-tail) plus
+                                          unstaged, staged, and untracked/new Git evidence
 
   say <body>                              broadcast a message to all (e.g. "WORKFLOW: ...")
   say --to <agentId|handle> <body>        direct message
@@ -346,17 +385,27 @@ async function cmdRegister(out, parsed, env, baseUrl) {
   const wantRandom = parsed.flags.random === true || parsed._[0] === undefined;
   const base = typeof parsed.flags.random === 'string' ? parsed.flags.random : parsed._[0];
   if (!wantRandom && !parsed._[0]) {
-    out.log('Usage: register <handle> [--note "..."]   |   register --random [base]');
+    out.log('Usage: register <handle> --pet <slug> [--note "..."]   |   register --random [base] --pet <slug>');
     return { code: 1 };
   }
   const note = typeof parsed.flags.note === 'string' ? parsed.flags.note : undefined;
+  const petSlug = typeof parsed.flags.pet === 'string' ? parsed.flags.pet
+    : (typeof env.AGORA_PET === 'string' && env.AGORA_PET) ? env.AGORA_PET : undefined;
+  if (!petSlug) {
+    out.log('register failed: --pet <slug> is required before claiming presence');
+    out.log('  Run `node tools/agora/client.mjs pets`, choose one identity, then register again.');
+    return { code: 1 };
+  }
   // `--allow-duplicate` opts out of the daemon's handle-claim check (legacy flows).
   const unique = parsed.flags['allow-duplicate'] === true ? false : undefined;
   // Optional provenance. --model is usually stamped by the orchestrator at launch;
   // the agent's own conversation/thread id accepts several flag names.
   const model = typeof parsed.flags.model === 'string' ? parsed.flags.model
     : (typeof env.AGORA_MODEL === 'string' && env.AGORA_MODEL) ? env.AGORA_MODEL : undefined;
-  const sessionId = typeof parsed.flags.session === 'string' ? parsed.flags.session
+  const reasoningEffort = typeof parsed.flags.reasoning === 'string' ? parsed.flags.reasoning
+    : typeof parsed.flags['reasoning-effort'] === 'string' ? parsed.flags['reasoning-effort']
+    : (typeof env.AGORA_REASONING_EFFORT === 'string' && env.AGORA_REASONING_EFFORT) ? env.AGORA_REASONING_EFFORT : undefined;
+  let sessionId = typeof parsed.flags.session === 'string' ? parsed.flags.session
     : typeof parsed.flags.thread === 'string' ? parsed.flags.thread
     : typeof parsed.flags.conversation === 'string' ? parsed.flags.conversation
     : (typeof env.AGORA_SESSION_ID === 'string' && env.AGORA_SESSION_ID) ? env.AGORA_SESSION_ID : undefined;
@@ -372,11 +421,27 @@ async function cmdRegister(out, parsed, env, baseUrl) {
   const campaign = typeof parsed.flags.campaign === 'string' ? parsed.flags.campaign : undefined;
   const cwd = typeof parsed.flags.cwd === 'string' ? parsed.flags.cwd : undefined;
 
+  // Mirror the store's hard gate locally so a Codex worker or orchestrator gets
+  // an actionable error before the client attempts an open registration call.
+  const threadIdentity = validateRegistrationThreadIdentity({
+    handle: wantRandom ? base : parsed._[0],
+    model,
+    sessionId,
+    role,
+    type,
+  });
+  if (!threadIdentity.ok) {
+    out.log(`register failed: ${threadIdentity.error}`);
+    out.log('  Use the Codex task/thread id for this exact agent, then verify it with `whoami`.');
+    return { code: 1 };
+  }
+  sessionId = threadIdentity.sessionId;
+
   const maxTries = wantRandom ? 6 : 1;
   let last = null;
   for (let attempt = 0; attempt < maxTries; attempt++) {
     const handle = wantRandom ? randomHandle(base) : parsed._[0];
-    const r = await api(baseUrl, 'POST', '/agents/register', { body: { handle, note, unique, model, sessionId, role, type, spawnedBy, campaign, cwd } });
+    const r = await api(baseUrl, 'POST', '/agents/register', { body: { handle, note, unique, model, reasoningEffort, sessionId, role, type, spawnedBy, campaign, cwd, petSlug } });
     last = r;
     if (r.status === 201 && r.json) {
       saveIdentity(env, baseUrl, {
@@ -385,9 +450,17 @@ async function cmdRegister(out, parsed, env, baseUrl) {
         token: r.json.token,
         registeredAt: r.json.registeredAt,
         model: r.json.model || '',
+        reasoningEffort: r.json.reasoningEffort || '',
         sessionId: r.json.sessionId || '',
+        pet: r.json.pet || null,
+        requestedPetSlug: r.json.requestedPetSlug || '',
+        petSubstituted: Boolean(r.json.petSubstituted),
       });
       out.log(`Registered as "${r.json.handle}"  agentId=${r.json.agentId}`);
+      if (r.json.pet) out.log(`Pet identity: ${r.json.pet.displayName} (${r.json.pet.slug})`);
+      if (r.json.petSubstituted) {
+        out.log(`Requested pet "${r.json.requestedPetSlug}" was already claimed; Agora assigned "${r.json.pet.slug}" instead.`);
+      }
       out.log(`Identity saved to ${identityPath(env)} for ${baseUrl}`);
       // A stable per-session key is what ties this agent's LATER cli invocations
       // to this identity. If the caller didn't set one, tell them to pin it — the
@@ -398,6 +471,10 @@ async function cmdRegister(out, parsed, env, baseUrl) {
       return { code: 0, identity: r.json };
     }
     if (r.status === 409) {
+      if (r.json && r.json.code === 'AGORA_PET_CATALOG_EXHAUSTED') {
+        out.log(`register failed: ${r.json.error}`);
+        return { code: 1 };
+      }
       if (wantRandom) continue; // name got taken between tries — spin a new one
       out.log(`register failed: ${r.json ? r.json.error : 'handle already claimed'}`);
       out.log('  Pick a different handle, or `register --random` to auto-claim a free one.');
@@ -419,13 +496,36 @@ function cmdWhoami(out, parsed, env, baseUrl) {
   out.log(`agentId:   ${id.agentId}`);
   out.log(`baseUrl:   ${baseUrl}`);
   if (id.model) out.log(`model:     ${id.model}`);
+  if (id.reasoningEffort) out.log(`reasoning: ${id.reasoningEffort}`);
   if (id.sessionId) out.log(`sessionId: ${id.sessionId}`);
+  if (id.pet) out.log(`pet:       ${id.pet.displayName} (${id.pet.slug})`);
   if (id.registeredAt) out.log(`checkedIn: ${new Date(id.registeredAt).toISOString()}`);
-  out.log(`token:     ${id.token}`);
-  return { code: 0, identity: id };
+  // The token remains in the identity file for authenticated commands, but a
+  // routine provenance check must never copy it into terminal or task logs.
+  const { token: _token, ...publicIdentity } = id;
+  return { code: 0, identity: publicIdentity };
 }
 
 async function cmdAgents(out, parsed, env, baseUrl) {
+  if (typeof parsed.flags['retire-stale'] === 'string') {
+    const token = needToken(out, parsed, env, baseUrl);
+    if (!token) return { code: 1 };
+    const target = parsed.flags['retire-stale'];
+    const roster = await api(baseUrl, 'GET', '/agents');
+    const agents = (roster.json && roster.json.agents) || [];
+    const agent = agents.find((candidate) => candidate.id === target || candidate.handle === target);
+    if (!agent) {
+      out.log(`retire-stale failed: agent "${target}" not found`);
+      return { code: 1 };
+    }
+    const r = await api(baseUrl, 'POST', `/agents/${encodeURIComponent(agent.id)}/retire-stale`, { token });
+    if (r.status === 200) {
+      out.log(`retired stale idle presence ${agent.handle} (${agent.id})`);
+      return { code: 0, agentId: agent.id };
+    }
+    out.log(`retire-stale failed (${r.status}): ${r.json ? r.json.error : r.text}`);
+    return { code: 1 };
+  }
   const r = await api(baseUrl, 'GET', '/agents');
   const agents = (r.json && r.json.agents) || [];
   if (agents.length === 0) {
@@ -434,12 +534,35 @@ async function cmdAgents(out, parsed, env, baseUrl) {
   }
   const now = Date.now();
   for (const a of agents) {
-    const model = a.model ? `  [${a.model}]` : '';
+    const model = a.model ? `  [${a.model}${a.reasoningEffort ? `/${a.reasoningEffort}` : ''}]` : '';
     const inFor = a.registeredAt ? `  in ${relativeTime(a.registeredAt, now)}` : '';
     const note = a.note ? `  — ${a.note}` : '';
-    out.log(`${statusDot(a.status)} ${a.handle.padEnd(16)} ${shortId(a.id)}${model}  seen ${relativeTime(a.lastSeen, now)}${inFor}${note}`);
+    const recoverable = a.capacityRecoverable ? '  [stale-idle: retire-stale candidate]' : '';
+    const pet = a.pet ? `  pet:${a.pet.slug}` : '  pet:MISSING';
+    const thread = a.sessionId ? `  thread:${a.sessionId}` : (a.threadIdRequired ? '  thread:MISSING-LEGACY' : '');
+    out.log(`${statusDot(a.status)} ${a.handle.padEnd(16)} ${shortId(a.id)}${model}  seen ${relativeTime(a.lastSeen, now)}${inFor}${pet}${thread}${recoverable}${note}`);
   }
   return { code: 0, agents };
+}
+
+// Pet identity is a registration prerequisite, so discovery cannot require an
+// agent token. Keep output intentionally slug-first for easy `--pet` reuse.
+async function cmdPets(out, _parsed, _env, baseUrl) {
+  const r = await api(baseUrl, 'GET', '/pets');
+  const pets = (r.json && r.json.pets) || [];
+  if (r.status !== 200) {
+    out.log(`pets failed (${r.status}): ${r.json ? r.json.error : r.text}`);
+    return { code: 1, pets: [] };
+  }
+  for (const pet of pets) {
+    const availability = pet.available === false && pet.claimedBy
+      ? `claimed by ${pet.claimedBy.handle}`
+      : 'available';
+    out.log(`${String(pet.slug).padEnd(30)} ${String(pet.displayName || pet.slug).padEnd(28)} ${availability}`);
+  }
+  const availableCount = pets.filter((pet) => pet.available !== false).length;
+  out.log(`${availableCount} of ${pets.length} pet identities available`);
+  return { code: 0, pets };
 }
 
 // whois <handle> — show one agent's full identity record.
@@ -563,7 +686,32 @@ async function cmdRetire(out, parsed, env, baseUrl) {
 async function cmdLock(out, parsed, env, baseUrl) {
   const token = needToken(out, parsed, env, baseUrl);
   if (!token) return { code: 1 };
+  if (typeof parsed.flags.renew === 'string') {
+    const lockId = parsed.flags.renew;
+    const body = {};
+    if (parsed.flags.ttl !== undefined) {
+      const mins = Number(parsed.flags.ttl);
+      if (Number.isFinite(mins) && mins > 0) body.ttlMs = Math.round(mins * 60000);
+    }
+    const r = await api(baseUrl, 'POST', `/locks/${encodeURIComponent(lockId)}/renew`, { token, body });
+    if (r.status === 200 && r.json && r.json.lock) {
+      out.log(`Lock renewed: ${r.json.lock.id}`);
+      out.log(`  expires ${relativeTime(r.json.lock.expiresAt)}`);
+      return { code: 0, lock: r.json.lock };
+    }
+    out.log(`lock renew failed (${r.status}): ${r.json ? r.json.error : r.text}`);
+    return { code: 1 };
+  }
+  if (hasAmbiguousReasonTail(parsed.raw)) {
+    out.log('lock failed: quote the complete --reason value; trailing bare words are not accepted as paths');
+    return { code: 1 };
+  }
   const paths = parsed._.slice(); // all positionals are paths
+  const suspiciousPaths = suspiciousBarePathTokens(paths);
+  if (suspiciousPaths.length) {
+    out.log(`lock failed: unrecognised bare path token(s): ${suspiciousPaths.join(', ')}; put explanatory text in a quoted --reason value`);
+    return { code: 1 };
+  }
   const globs = asArray(parsed.flags.glob).filter((g) => typeof g === 'string');
   if (paths.length === 0 && globs.length === 0) {
     out.log('Usage: lock <path...> [--glob g...] [--reason "..."] [--ttl <minutes>]');
@@ -676,7 +824,16 @@ async function cmdLocks(out, parsed, env, baseUrl) {
 async function cmdReserve(out, parsed, env, baseUrl) {
   const token = needToken(out, parsed, env, baseUrl);
   if (!token) return { code: 1 };
+  if (hasAmbiguousReasonTail(parsed.raw)) {
+    out.log('reserve failed: quote the complete --reason value; trailing bare words are not accepted as paths');
+    return { code: 1 };
+  }
   const paths = parsed._.slice();
+  const suspiciousPaths = suspiciousBarePathTokens(paths);
+  if (suspiciousPaths.length) {
+    out.log(`reserve failed: unrecognised bare path token(s): ${suspiciousPaths.join(', ')}; put explanatory text in a quoted --reason value`);
+    return { code: 1 };
+  }
   const globs = asArray(parsed.flags.glob).filter((g) => typeof g === 'string');
   if (paths.length === 0 && globs.length === 0) {
     out.log('Usage: reserve <path...> [--glob g...] [--reason "..."]');
@@ -708,7 +865,8 @@ async function cmdUnreserve(out, parsed, env, baseUrl) {
     out.log('Usage: unreserve <reservationId|path>');
     return { code: 1 };
   }
-  const r = await api(baseUrl, 'DELETE', `/reservations/${encodeURIComponent(target)}`, { token });
+  const qs = parsed.flags.force === true ? '?force=1' : '';
+  const r = await api(baseUrl, 'DELETE', `/reservations/${encodeURIComponent(target)}${qs}`, { token });
   if (r.status === 200) {
     out.log(`Released reservation ${target}`);
     return { code: 0 };
@@ -813,6 +971,20 @@ async function cmdCampaigns(out, parsed, _env, baseUrl) {
   return { code: 0, campaigns };
 }
 
+// Successor flag: a task that carries a `retrace` dossier was reopened because
+// its previous worker died mid-job, leaving half-finished edits sitting in the
+// shared tree. Whoever claims it next must NOT blind-restart — they should run
+// `retrace <id>` to read the dead worker's trail (identity, durable files, last
+// checkpoint, and all working-tree surfaces) before deciding what to keep or redo. This
+// prints that one-line warning right after a claim so the doctrine is visible
+// at the exact moment it matters.
+function printSuccessorFlag(out, task) {
+  if (!task || !task.retrace) return;
+  const who = (task.retrace.agent && task.retrace.agent.handle) || 'a reaped agent';
+  const times = task.reapCount && task.reapCount > 1 ? ` (reaped ${task.reapCount}×)` : '';
+  out.log(`  ⚠ reaped from ${who}${times} — run \`retrace ${shortId(task.id)}\` before you start; do not blind-restart.`);
+}
+
 async function cmdTask(out, parsed, env, baseUrl) {
   const sub = parsed._[0];
   const rest = parsed._.slice(1);
@@ -871,6 +1043,10 @@ async function cmdTask(out, parsed, env, baseUrl) {
     const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(taskId)}/claim`, { token });
     if (r.status === 200 && r.json && r.json.task) {
       out.log(`Claimed ${r.json.task.id}  [${r.json.task.state}]`);
+      if (r.json.task.assignedPet) {
+        out.log(`  pet: ${r.json.task.assignedPet.displayName} (${r.json.task.assignedPet.slug})`);
+      }
+      printSuccessorFlag(out, r.json.task);
       return { code: 0, task: r.json.task };
     }
     out.log(`task claim failed (${r.status}): ${r.json ? r.json.error : r.text}`);
@@ -890,22 +1066,30 @@ async function cmdTask(out, parsed, env, baseUrl) {
       if (!r.json.task) { out.log('no ready tasks'); return { code: 0, task: null }; }
       if (parsed.flags['id-only']) { out.log(r.json.task.id); return { code: 0, task: r.json.task }; }
       out.log(`Claimed ${r.json.task.id}  "${r.json.task.title}"  [${r.json.task.state}]`);
+      if (r.json.task.assignedPet) {
+        out.log(`  pet: ${r.json.task.assignedPet.displayName} (${r.json.task.assignedPet.slug})`);
+      }
       if (r.json.task.body) out.log(`  ${r.json.task.body}`);
       if ((r.json.task.refs || []).length) out.log(`  refs: ${r.json.task.refs.join(', ')}`);
+      printSuccessorFlag(out, r.json.task);
       return { code: 0, task: r.json.task };
     }
     out.log(`task next failed (${r.status}): ${r.json ? r.json.error : r.text}`);
     return { code: 1 };
   }
 
-  if (sub === 'state') {
+  if (sub === 'state' || sub === 'start') {
     const taskId = rest[0];
-    const state = rest[1];
+    const state = sub === 'start' ? 'in_progress' : rest[1];
     if (!taskId || !state) {
       out.log('Usage: task state <taskId> <open|claimed|in_progress|blocked|done>');
       return { code: 1 };
     }
-    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(taskId)}/state`, { token, body: { state } });
+    const body = { state };
+    if (typeof parsed.flags.result === 'string') body.result = parsed.flags.result;
+    const refs = [...asArray(parsed.flags.ref), ...asArray(parsed.flags.refs)].filter((value) => typeof value === 'string');
+    if (refs.length) body.refs = refs;
+    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(taskId)}/state`, { token, body });
     if (r.status === 200 && r.json && r.json.task) {
       out.log(`${r.json.task.id} -> [${r.json.task.state}]`);
       return { code: 0, task: r.json.task };
@@ -936,6 +1120,44 @@ async function cmdTask(out, parsed, env, baseUrl) {
     return { code: 1 };
   }
 
+  // Leave a resumable checkpoint on a task: a short "here is what I did, here is
+  // what I was about to do next" note. Doctrine is to drop one at sub-step
+  // boundaries or before a risky move — NOT on a timer. If this worker later
+  // goes silent and is reaped, the note rides along in the retrace dossier so a
+  // successor can pick up where it left off. Latest note wins.
+  if (sub === 'checkpoint') {
+    const taskId = rest[0];
+    if (!taskId) {
+      out.log('Usage: task checkpoint <taskId> --did "what I just finished" --next "what comes next" [--files a.ts,b.ts]');
+      return { code: 1 };
+    }
+    if (rest.length > 1) {
+      out.log('task checkpoint failed: checkpoint files must use comma-separated or repeated --files flags (for example --files a.ts,b.ts)');
+      return { code: 1 };
+    }
+    const body = {};
+    if (typeof parsed.flags.did === 'string') body.did = parsed.flags.did;
+    if (typeof parsed.flags.next === 'string') body.next = parsed.flags.next;
+    // --files takes a comma-separated list; the daemon also accepts an array.
+    const files = asArray(parsed.flags.files)
+      .filter((value) => typeof value === 'string')
+      .flatMap((value) => value.split(','))
+      .map((value) => value.trim())
+      .filter(Boolean);
+    if (files.length) body.files = files;
+    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(taskId)}/checkpoint`, { token, body });
+    if (r.status === 200 && r.json && r.json.checkpoint) {
+      const cp = r.json.checkpoint;
+      out.log(`checkpoint saved on ${shortId(taskId)}`);
+      if (cp.did) out.log(`  did:   ${cp.did}`);
+      if (cp.next) out.log(`  next:  ${cp.next}`);
+      if ((cp.files || []).length) out.log(`  files: ${cp.files.join(', ')}`);
+      return { code: 0, checkpoint: cp };
+    }
+    out.log(`task checkpoint failed (${r.status}): ${r.json ? r.json.error : r.text}`);
+    return { code: 1 };
+  }
+
   // Iteration-1 (Wave-1 feedback): agents reached for `task done <id>` repeatedly;
   // alias it (and `complete`) to the state transition so it just works.
   if (sub === 'done' || sub === 'complete') {
@@ -949,8 +1171,148 @@ async function cmdTask(out, parsed, env, baseUrl) {
     return { code: 1 };
   }
 
-  out.log(`unknown task subcommand "${sub}". Use: task new|claim|next|state|done|handoff`);
+  out.log(`unknown task subcommand "${sub}". Use: task new|claim|next|state|start|checkpoint|done|handoff`);
   return { code: 1 };
+}
+
+// ---------------------------------------------------------------------------
+// retrace <taskId> — recover a dead worker's WORK, not just its task.
+//
+// When a worker goes silent and is reaped, the daemon stamps a `retrace`
+// dossier onto the task it was reopening: who the worker was, which files it
+// held, its last few `say` breadcrumbs, and its last checkpoint. But the
+// worker's half-finished EDITS are still sitting in the shared working tree —
+// the dossier only describes them. So this command prints the dossier and reads
+// unstaged, staged, and untracked/new Git state scoped to the recovered file
+// union. That lets the successor see the partial work without sweeping in files
+// owned by unrelated agents.
+//
+// Read-only: it hits the open GET /tasks endpoint and never mutates anything.
+// ---------------------------------------------------------------------------
+async function cmdRetrace(out, parsed, _env, baseUrl, repoRoot = REPO_ROOT) {
+  const wanted = parsed._[0];
+  if (!wanted) {
+    out.log('Usage: retrace <taskId>');
+    return { code: 1 };
+  }
+  // Pull the whole board and find the task by full id or short-id prefix — the
+  // same forgiving id matching the rest of the CLI uses.
+  const r = await api(baseUrl, 'GET', '/tasks');
+  const tasks = (r.json && r.json.tasks) || [];
+  const task = tasks.find((t) => t.id === wanted) || tasks.find((t) => t.id.startsWith(wanted));
+  if (!task) {
+    out.log(`retrace: no task matching "${wanted}"`);
+    return { code: 1 };
+  }
+  const rt = task.retrace;
+  if (!rt) {
+    // A task with no dossier was never reaped — nothing to retrace. Say so
+    // plainly rather than printing an empty report.
+    out.log(`retrace ${shortId(task.id)}: no retrace dossier — this task has not been reaped (nothing to recover).`);
+    return { code: 0, task };
+  }
+
+  // --- The dossier: who died and what they were doing ---
+  out.log(`retrace ${shortId(task.id)}  "${task.title}"`);
+  const a = rt.agent || {};
+  const reapedWhen = rt.reapedAt ? new Date(rt.reapedAt).toISOString() : 'unknown';
+  out.log(`  reaped:   ${a.handle || 'unknown'}${a.model ? ` (${a.model})` : ''} at ${reapedWhen}`);
+  if (a.role || a.type || a.spawnedBy) {
+    out.log(`  identity: role=${a.role || '-'} type=${a.type || '-'} spawnedBy=${a.spawnedBy || '-'}`);
+  }
+  if (task.reapCount) out.log(`  reapCount: ${task.reapCount}`);
+
+  // Recover both the locks still live at death and the longer-lived task scope.
+  const filesHeld = Array.isArray(rt.filesHeld) ? rt.filesHeld : [];
+  const heldPaths = [];
+  // `filesHeld` is the structured live-lock snapshot at reap. `files` is the
+  // durable union of every lock token and checkpoint file seen during the task,
+  // which remains complete when the shorter lock TTL elapsed before reap.
+  const durableFiles = Array.isArray(rt.files)
+    ? rt.files.filter((file) => typeof file === 'string' && file)
+    : [];
+  const heldPathspecs = [...durableFiles];
+  for (const held of filesHeld) {
+    for (const p of held.paths || []) { heldPaths.push(p); heldPathspecs.push(p); }
+    for (const g of held.globs || []) heldPathspecs.push(g);
+  }
+  if (heldPathspecs.length) {
+    out.log(`  files:     ${[...new Set(heldPathspecs)].join(', ')}`);
+  } else {
+    out.log('  files:     (none recorded)');
+  }
+  const liveHeldPathspecs = filesHeld.flatMap((held) => [...(held.paths || []), ...(held.globs || [])]);
+  if (liveHeldPathspecs.length) {
+    out.log(`  filesHeld: ${liveHeldPathspecs.join(', ')}`);
+  } else {
+    out.log('  filesHeld: (none live at reap; durable files above may come from expired locks or checkpoints)');
+  }
+
+  // Its last checkpoint, if it left one — the clearest signal of intent.
+  if (rt.checkpoint) {
+    const cp = rt.checkpoint;
+    out.log('  checkpoint:');
+    if (cp.did) out.log(`    did:   ${cp.did}`);
+    if (cp.next) out.log(`    next:  ${cp.next}`);
+    if ((cp.files || []).length) out.log(`    files: ${cp.files.join(', ')}`);
+  } else {
+    out.log('  checkpoint: (none left)');
+  }
+
+  // Its `say` breadcrumbs since it claimed the task.
+  const sayTail = Array.isArray(rt.sayTail) ? rt.sayTail : [];
+  if (sayTail.length) {
+    out.log('  sayTail:');
+    for (const m of sayTail) {
+      const when = m.at ? new Date(m.at).toISOString() : '';
+      out.log(`    [${when}] ${m.body || ''}`);
+    }
+  }
+
+  // --- The partial work itself: three live Git views over recovered files ---
+  // Unstaged, staged, and untracked/new work live in different Git surfaces.
+  // Printing each explicitly prevents a clean unstaged diff from hiding a
+  // staged repair or a brand-new file that a successor must preserve.
+  if (heldPathspecs.length) {
+    const pathspecs = [...new Set(heldPathspecs)];
+    const sections = [
+      {
+        title: 'unstaged git diff',
+        args: ['diff', '--', ...pathspecs],
+        empty: 'no unstaged changes in the recovered files',
+      },
+      {
+        title: 'staged git diff',
+        args: ['diff', '--cached', '--', ...pathspecs],
+        empty: 'no staged changes in the recovered files',
+      },
+      {
+        title: 'untracked/new files',
+        args: ['ls-files', '--others', '--exclude-standard', '--', ...pathspecs],
+        empty: 'no untracked/new files in the recovered scope',
+      },
+    ];
+    for (const section of sections) {
+      out.log('');
+      out.log(`  --- ${section.title} -- ${pathspecs.join(' ')} ---`);
+      try {
+        const text = execFileSync('git', section.args, {
+          cwd: repoRoot,
+          encoding: 'utf8',
+          maxBuffer: 32 * 1024 * 1024,
+        });
+        out.log(text.trim() ? text.trimEnd() : `  (${section.empty})`);
+      } catch (e) {
+        // Report each Git surface independently so one failure cannot masquerade
+        // as an entirely clean recovered scope.
+        out.log(`  (${section.title} failed: ${e.message.split('\n')[0]})`);
+      }
+    }
+  }
+
+  out.log('');
+  out.log(`  → decide keep / extend / revert, then: say "resuming ${shortId(task.id)} from ${a.handle || 'prev'}: keeping X, redoing Y"`);
+  return { code: 0, task, retrace: rt, heldPaths };
 }
 
 const STATE_ORDER = ['open', 'claimed', 'in_progress', 'blocked', 'done'];
@@ -1281,18 +1643,21 @@ const ONBOARD_RULES = `THE RULES (the whole contract):
      before ANY client call (or use a unique AGORA_DIR). Sharing an identity means
      \`unlock --mine\` releases ANOTHER agent's locks. No name assigned to you? Use
      \`register --random\` — the daemon rejects a name a live agent already holds.
-  2. lock BEFORE editing any shared file; a 409 CONFLICT is a HARD STOP on that file.
+  2. Presence requires a pet identity: run \`pets\` and register with \`--pet <slug>\`.
+     Codex agents and orchestrator/master roles must also pass their own task/thread id as
+     \`--session <id>\`. Self-check both values with \`whoami\`; stop if either is wrong.
+  3. lock BEFORE editing any shared file; a 409 CONFLICT is a HARD STOP on that file.
      If you still need it later, use \`reserve <path> --reason "<why>"\` to join the FIFO
      waiting list. A reservation is not edit permission; wait until the real lock succeeds.
-  3. HEARTBEAT during long quiet work with the bounded default (or --owner-pid <pid> when the
+  4. HEARTBEAT during long quiet work with the bounded default (or --owner-pid <pid> when the
      harness exposes its owner). Bare heartbeat stops after 30 min; --forever is exceptional.
      Meaningful authenticated activity (locks, tasks, messages, etc.) renews the server lease.
-  4. Pull work with \`task next\`; finish with \`task done <id> --result "<files + proof>"\` —
+  5. Pull work with \`task next\`; finish with \`task done <id> --result "<files + proof>"\` —
      the result on the board is how the orchestrator learns what you did.
-  5. When done: \`unlock --mine\`, \`say "WORKFLOW: <friction or none>"\`, then
+  6. When done: \`unlock --mine\`, \`say "WORKFLOW: <friction or none>"\`, then
      \`retire --note "<final state>"\`. Register real workflow friction as a row in
      tools/agora/WORKFLOW_GAPS.md (schema in the file).
-  6. No git commits/resets/branches/worktrees unless YOUR task says so.
+  7. No git commits/resets/branches/worktrees unless YOUR task says so.
 Full API: tools/agora/PROTOCOL.md · campaign loop: tools/agora/ORCHESTRATOR.md ·
 agent fleet registry: node tools/agora/orchestrate.mjs agents`;
 
@@ -1387,6 +1752,19 @@ async function waitForHeartbeatDelay(delayMs, {
 async function cmdHeartbeat(out, parsed, env, baseUrl, opts = {}) {
   const token = needToken(out, parsed, env, baseUrl);
   if (!token) return { code: 1 };
+  if (parsed.flags.daemonize === true) {
+    const spawnDetached = typeof opts.spawnDetached === 'function' ? opts.spawnDetached : spawn;
+    const childArgs = parsed.raw.filter((value) => value !== '--daemonize');
+    const child = spawnDetached(process.execPath, [__filename, 'heartbeat', ...childArgs], {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: true,
+      env,
+    });
+    if (child && typeof child.unref === 'function') child.unref();
+    out.log(`detached bounded heartbeat started${child && child.pid ? ` (pid ${child.pid})` : ''}`);
+    return { code: 0, detached: true, pid: child && child.pid };
+  }
   const everySec = Number(parsed.flags.every) > 0 ? Number(parsed.flags.every) : DEFAULT_HEARTBEAT_EVERY_SEC;
   const count = Number(parsed.flags.count) > 0 ? Number(parsed.flags.count) : null;
   const explicitForMin = Number(parsed.flags.for) > 0 ? Number(parsed.flags.for) : null;
@@ -1453,10 +1831,16 @@ function friendlyUnreachable(baseUrl, detail) {
 }
 
 // ---------------------------------------------------------------------------
-// Dispatcher. `run(argv, { env, baseUrl })` -> Promise<{ code, ... }>.
+// Dispatcher. `run(argv, { env, baseUrl, repoRoot })` -> Promise<{ code, ... }>.
 // Never calls process.exit; returns an out-buffer in result.lines.
 // ---------------------------------------------------------------------------
-export async function run(argv, { env = process.env, baseUrl: baseOverride, watchOpts, heartbeatOpts } = {}) {
+export async function run(argv, {
+  env = process.env,
+  baseUrl: baseOverride,
+  watchOpts,
+  heartbeatOpts,
+  repoRoot = REPO_ROOT,
+} = {}) {
   const out = makeOut();
   const command = argv[0];
   const parsed = parseArgs(argv.slice(1));
@@ -1487,6 +1871,9 @@ export async function run(argv, { env = process.env, baseUrl: baseOverride, watc
         break;
       case 'agents':
         res = await cmdAgents(out, parsed, env, baseUrl);
+        break;
+      case 'pets':
+        res = await cmdPets(out, parsed, env, baseUrl);
         break;
       case 'whois':
         res = await cmdWhois(out, parsed, env, baseUrl);
@@ -1529,6 +1916,9 @@ export async function run(argv, { env = process.env, baseUrl: baseOverride, watc
         break;
       case 'tasks':
         res = await cmdTasks(out, parsed, env, baseUrl);
+        break;
+      case 'retrace':
+        res = await cmdRetrace(out, parsed, env, baseUrl, repoRoot);
         break;
       case 'say':
         res = await cmdSay(out, parsed, env, baseUrl);

@@ -122,6 +122,7 @@ import {
 } from '../seedPath';
 import { makeWorldFeetNoise } from '../local/worldFeetNoise';
 import { RIDGE_AMPLITUDE, RIDGE_SPAN_FT, RIDGE_START_N } from '../mountains/mountainTunables';
+import { townEnvelopeHalfFtForPeople, POPULATION_RATE } from '../town/townScale';
 import { BoundsFt, Feet, REGION_SIZE_FT } from '../units';
 import type { FmgAtlasResult } from '../fmg/generateAtlas';
 import type { FmgWorldResult } from '../fmg/generateWorld';
@@ -794,9 +795,22 @@ function generateHeightfield(
     }
   }
 
-  // Clamp to 0..1 and re-enforce water discipline after noise
+  // Clamp to 0..1 and re-enforce water discipline after noise.
+  // Soft knee (2026-07-21 look pass): the hard min(1, s) clamp flattened every
+  // big peak into a co-planar mesa — around a pack-h≈86 summit the base field
+  // plus octave/ridge noise pushes MOST samples past 1, so the whole area
+  // clipped to the same value and the only visible "mountain" relief left was
+  // local micro-noise. A wide tanh knee from 0.7 keeps summits ordered and
+  // distinct (s = 1.2 → ~0.98, s = 0.86 → ~0.85) while never exceeding 1.
+  // Samples ≤ 0.7 are untouched, so lowland/town windows stay byte-identical.
+  const KNEE_START = 0.7;
+  const KNEE_SPAN = 1 - KNEE_START;
   for (let i = 0; i < samples.length; i++) {
-    samples[i] = Math.max(0, Math.min(1, samples[i]));
+    let s = samples[i];
+    if (s > KNEE_START) {
+      s = KNEE_START + KNEE_SPAN * Math.tanh((s - KNEE_START) / KNEE_SPAN);
+    }
+    samples[i] = Math.max(0, Math.min(1, s));
     if (isWaterCell[i]) {
       samples[i] = Math.min(samples[i], WATER_THRESHOLD - 0.01);
     }
@@ -1018,10 +1032,13 @@ function generateCivData(
       cy < bounds.y || cy > bounds.y + bounds.height
     ) continue;
 
-    // Envelope: sqrt(population) * 80 ft half-extent, clamped [400, 4000] ft.
-    // Small hamlet (pop 10) ≈ 253 ft → 400 (min); large city (pop 2500) ≈ 4000 ft.
+    // Envelope: half the town's physical span plus a working apron — the SAME
+    // population rule the canonical town generator scales its plan with
+    // (townScale.ts, 2026-07-22 town-scale lift). The old independent
+    // `sqrt(points) × 80` formula could produce an envelope SMALLER than the
+    // town it had to hold once spans became population-honest.
     const pop = burg.population ?? 10;
-    const halfExtent = Math.max(400, Math.min(4000, Math.sqrt(pop) * 80));
+    const halfExtent = townEnvelopeHalfFtForPeople(pop * POPULATION_RATE);
     const envelope: BoundsFt = {
       x: cx - halfExtent,
       y: cy - halfExtent,

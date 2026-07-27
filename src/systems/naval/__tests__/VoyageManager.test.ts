@@ -23,7 +23,7 @@ describe('VoyageManager', () => {
         next: () => 0.99,
         nextInt: (min: number) => min,
         pick: <T>(values: T[]) => values[0],
-    } as SeededRandom;
+    } as unknown as SeededRandom;
 
     // Mock Ship
     const createMockShip = (): Ship => {

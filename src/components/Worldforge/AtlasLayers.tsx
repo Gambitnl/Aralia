@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 19/07/2026, 22:07:05
+ * Dependents: components/Worldforge/AtlasSvgView.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React from 'react';
 import { FOREST_GLYPH_LAYER_OPACITY, RELIEF_GLYPH_LAYER_OPACITY, passMarkPath, type AtlasSvgModel } from './atlasSvg';
 import { reliefInk } from './mountainGlyphs';
@@ -29,6 +45,13 @@ export interface AtlasLayersProps {
   model: AtlasSvgModel;
   visible: Record<string, boolean>;
   /**
+   * Mount decorative relief and forest stamps in bounded animation-frame slices.
+   * MapPane enables this for a newly worker-prepared world so thousands of
+   * non-interactive paths cannot form one long browser task. Existing callers
+   * default to the original immediate render.
+   */
+  deferDecorativeGlyphs?: boolean;
+  /**
    * P1 perf — whether the `#atlas-soften` Gaussian-blur filter should be applied
    * to the biome/overlay groups. AtlasSvgView already zeroes the filter's
    * `stdDeviation` once zoomed in past ~2× the fit scale (`zoomedIn`), but a
@@ -46,6 +69,147 @@ export interface AtlasLayersProps {
   softenActive?: boolean;
 }
 
+// ============================================================================
+// Bounded decorative glyph mounting
+// ============================================================================
+// Relief and forest stamps account for most atlas DOM nodes but do not affect
+// geography, politics, labels, settlements, or exact-cell interaction. Reveal
+// them in small slices after the structural map is usable.
+// ============================================================================
+
+const DECORATIVE_GLYPHS_PER_FRAME = 150;
+
+function useProgressiveGlyphCount(
+  glyphs: readonly unknown[],
+  defer: boolean,
+): number {
+  const [count, setCount] = React.useState(() => (defer ? 0 : glyphs.length));
+
+  React.useEffect(() => {
+    if (!defer) {
+      setCount(glyphs.length);
+      return;
+    }
+
+    let frame = 0;
+    let nextCount = 0;
+    setCount(0);
+    const revealNextSlice = () => {
+      nextCount = Math.min(glyphs.length, nextCount + DECORATIVE_GLYPHS_PER_FRAME);
+      setCount(nextCount);
+      if (nextCount < glyphs.length) frame = window.requestAnimationFrame(revealNextSlice);
+    };
+    frame = window.requestAnimationFrame(revealNextSlice);
+    return () => window.cancelAnimationFrame(frame);
+  }, [defer, glyphs]);
+
+  return count;
+}
+
+function ProgressiveReliefGlyphs({
+  glyphs,
+  defer,
+}: {
+  glyphs: NonNullable<AtlasSvgModel['reliefGlyphs']>;
+  defer: boolean;
+}): React.ReactElement {
+  const count = useProgressiveGlyphCount(glyphs, defer);
+  return (
+    <g
+      data-testid="atlas-relief-glyphs"
+      data-progressive-complete={count === glyphs.length ? 'true' : 'false'}
+      style={RELIEF_GLYPH_OPACITY_VAR}
+    >
+      {glyphs.slice(0, count).map((c, i) => (
+        <React.Fragment key={`rg${i}`}>
+          <path
+            d={c.d}
+            fill="none"
+            stroke={reliefInk(c.band)}
+            strokeWidth={0.6}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+          {c.snowD ? (
+            <path
+              d={c.snowD}
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth={0.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+          ) : null}
+        </React.Fragment>
+      ))}
+    </g>
+  );
+}
+
+function ProgressiveForestGlyphs({
+  glyphs,
+  defer,
+}: {
+  glyphs: NonNullable<AtlasSvgModel['forestGlyphs']>;
+  defer: boolean;
+}): React.ReactElement {
+  const count = useProgressiveGlyphCount(glyphs, defer);
+  return (
+    <g
+      data-testid="atlas-forest-glyphs"
+      data-progressive-complete={count === glyphs.length ? 'true' : 'false'}
+      style={FOREST_GLYPH_OPACITY_VAR}
+    >
+      {glyphs.slice(0, count).map((c, i) => (
+        <path
+          key={`fg${i}`}
+          d={c.d}
+          fill={c.tint ?? '#2f5233'}
+          stroke="#2b3d2e"
+          strokeWidth={0.5}
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+    </g>
+  );
+}
+
+function ProgressiveRoutes({
+  routes,
+  defer,
+}: {
+  routes: NonNullable<AtlasSvgModel['routes']>;
+  defer: boolean;
+}): React.ReactElement {
+  const count = useProgressiveGlyphCount(routes, defer);
+  return (
+    <g
+      data-testid="atlas-routes"
+      data-progressive-complete={count === routes.length ? 'true' : 'false'}
+    >
+      {routes.slice(0, count).map((rt, i) => {
+        // Shared route stroke language (road-systems Task 8): the model carries
+        // kind + fade opacity; the table matches the canvas renderer.
+        const stroke = ROUTE_STROKES[(rt.kind ?? 'road') as keyof typeof ROUTE_STROKES]
+          ?? ROUTE_STROKES.road;
+        return (
+          <g key={`rt${i}`} opacity={rt.opacity ?? 1}>
+            {stroke.casing ? (
+              <path d={rt.d} fill="none" stroke={stroke.casing.stroke} strokeWidth={stroke.casing.width}
+                strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+            ) : null}
+            <path d={rt.d} fill="none" stroke={stroke.stroke} strokeWidth={stroke.width}
+              strokeDasharray={stroke.dash ? stroke.dash.join(' ') : undefined}
+              strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
 /**
  * The heavy static layer subtree of the atlas (ocean + biomes/cultures/.../burgs/
  * markers/military — thousands of SVG nodes when per-cell layers are on). Split
@@ -56,7 +220,7 @@ export interface AtlasLayersProps {
  * nodes on every mouse move). Props are shallow-compared: same `model` + same
  * `visible` ref ⇒ skipped.
  */
-function AtlasLayersImpl({ model, visible, softenActive = true }: AtlasLayersProps): React.ReactElement {
+function AtlasLayersImpl({ model, visible, softenActive = true, deferDecorativeGlyphs = false }: AtlasLayersProps): React.ReactElement {
   const ocean = model.layers.find((l) => l.id === 'ocean');
   const land = model.layers.find((l) => l.id === 'land')!;
   // P1 perf: only reference the expensive `#atlas-soften` blur filter when it is
@@ -151,32 +315,10 @@ function AtlasLayersImpl({ model, visible, softenActive = true }: AtlasLayersPro
           cell strokes its band-inked body, then re-strokes any snowcap sub-path
           WHITE. Crisp (no soften filter); zoom ramp via --relief-glyph-opacity. */}
       {(visible.reliefGlyphs ?? true) && (model.reliefGlyphs?.length ?? 0) > 0 ? (
-        <g data-testid="atlas-relief-glyphs" style={RELIEF_GLYPH_OPACITY_VAR}>
-          {(model.reliefGlyphs ?? []).map((c, i) => (
-            <React.Fragment key={`rg${i}`}>
-              <path
-                d={c.d}
-                fill="none"
-                stroke={reliefInk(c.band)}
-                strokeWidth={0.6}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                vectorEffect="non-scaling-stroke"
-              />
-              {c.snowD ? (
-                <path
-                  d={c.snowD}
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth={0.6}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  vectorEffect="non-scaling-stroke"
-                />
-              ) : null}
-            </React.Fragment>
-          ))}
-        </g>
+        <ProgressiveReliefGlyphs
+          glyphs={model.reliefGlyphs ?? []}
+          defer={deferDecorativeGlyphs}
+        />
       ) : null}
       {/* Forest tree glyphs (forests campaign T6) — tiny per-cell tree stamps
           for NAMED forests only, kind-tinted. Placed at the terrain-texture
@@ -185,18 +327,10 @@ function AtlasLayersImpl({ model, visible, softenActive = true }: AtlasLayersPro
           so the map ink stays on top. Crisp on purpose: no soften filter.
           Zoom ramp comes in via --forest-glyph-opacity (see the const above). */}
       {(visible.forestGlyphs ?? true) && (model.forestGlyphs?.length ?? 0) > 0 ? (
-        <g data-testid="atlas-forest-glyphs" style={FOREST_GLYPH_OPACITY_VAR}>
-          {(model.forestGlyphs ?? []).map((c, i) => (
-            <path
-              key={`fg${i}`}
-              d={c.d}
-              fill={c.tint ?? '#2f5233'}
-              stroke="#2b3d2e"
-              strokeWidth={0.5}
-              vectorEffect="non-scaling-stroke"
-            />
-          ))}
-        </g>
+        <ProgressiveForestGlyphs
+          glyphs={model.forestGlyphs ?? []}
+          defer={deferDecorativeGlyphs}
+        />
       ) : null}
       {visible.ice ? (
         <g opacity={0.8}>
@@ -249,22 +383,12 @@ function AtlasLayersImpl({ model, visible, softenActive = true }: AtlasLayersPro
         <path d={model.stateBorders} fill="none" stroke="#2d1b38" strokeOpacity={0.7}
           strokeWidth={1} strokeDasharray="3 2" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
       ) : null}
-      {visible.routes ? (model.routes ?? []).map((rt, i) => {
-        // Shared route stroke language (road-systems Task 8): the model carries
-        // kind + fade opacity; the table here matches the canvas renderer.
-        const s = ROUTE_STROKES[(rt.kind ?? 'road') as keyof typeof ROUTE_STROKES] ?? ROUTE_STROKES.road;
-        return (
-          <g key={`rt${i}`} opacity={rt.opacity ?? 1}>
-            {s.casing ? (
-              <path d={rt.d} fill="none" stroke={s.casing.stroke} strokeWidth={s.casing.width}
-                strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-            ) : null}
-            <path d={rt.d} fill="none" stroke={s.stroke} strokeWidth={s.width}
-              strokeDasharray={s.dash ? s.dash.join(' ') : undefined}
-              strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-          </g>
-        );
-      }) : null}
+      {visible.routes ? (
+        <ProgressiveRoutes
+          routes={model.routes ?? []}
+          defer={deferDecorativeGlyphs}
+        />
+      ) : null}
       {/* Pass marks (mountains campaign T9) — a paired chevron flanking each
           pass cell, drawn in the routes layer AFTER the route strokes (passes
           sit ON routes). Ink only, no fill; NOT zoom-hidden (no opacity ramp) —

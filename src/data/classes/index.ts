@@ -31,7 +31,7 @@ const CLERIC_SPELL_LIST = [
   // Level 3
   'nondetection',
 ];
-// TODO #184: Automate generation of these spell lists from spell JSON 'classes' fields to prevent sync drift.
+// TODO: Automate generation of these spell lists from spell JSON 'classes' fields to prevent sync drift.
 const DRUID_SPELL_LIST = [
   // Cantrips
   'druidcraft', 'elementalism', 'frostbite', 'guidance', 'magic-stone', 'mending', 'message', 'poison-spray', 'produce-flame', 'resistance', 'shape-water', 'shillelagh', 'spare-the-dying', 'starry-wisp', 'thorn-whip', 'thunderclap',

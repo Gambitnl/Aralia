@@ -100,6 +100,7 @@ const TradeRouteDashboard = lazy(() => import('../Trade/TradeRouteDashboard'));
 const InvestmentBoard = lazy(() => import('../Economy/InvestmentBoard'));
 const LedgerBook = lazy(() => import('../Economy/LedgerBook'));
 const CourierPouch = lazy(() => import('../Economy/CourierPouch'));
+const CommerceDesk = lazy(() => import('../Economy/CommerceDesk'));
 const NobleHouseList = lazy(() => import('../debug/NobleHouseList'));
 
 interface GameModalsProps {
@@ -237,6 +238,7 @@ const GameModals: React.FC<GameModalsProps> = ({
         if (gameState.isTradeRouteDashboardVisible) { dispatch({ type: 'TOGGLE_TRADE_ROUTE_DASHBOARD' }); return; }
         if (gameState.isCourierPouchVisible) { dispatch({ type: 'TOGGLE_COURIER_POUCH' }); return; }
         if (gameState.isEconomyLedgerVisible) { dispatch({ type: 'TOGGLE_ECONOMY_LEDGER' }); return; }
+        if (gameState.isCommerceDeskVisible) { dispatch({ type: 'TOGGLE_COMMERCE_DESK' }); return; }
         if (gameState.isMapVisible) { onAction({ type: 'toggle_map', label: 'Close Map' }); return; }
     }, [gameState, missingChoiceModal, dispatch, onAction, onCloseMissingChoice, handleOpenGlossary]);
 
@@ -328,7 +330,8 @@ const GameModals: React.FC<GameModalsProps> = ({
         gameState.isNoticeBoardVisible ||
         gameState.isBroadsheetVisible ||
         gameState.isEconomyLedgerVisible ||
-        gameState.isCourierPouchVisible
+        gameState.isCourierPouchVisible ||
+        gameState.isCommerceDeskVisible
     );
     const backgroundLockKey = [
         isMapModalOpen && 'map',
@@ -353,6 +356,7 @@ const GameModals: React.FC<GameModalsProps> = ({
         gameState.isBroadsheetVisible && 'broadsheet',
         gameState.isEconomyLedgerVisible && 'ledger',
         gameState.isCourierPouchVisible && 'courier',
+        gameState.isCommerceDeskVisible && 'commerce',
     ].filter(Boolean).join('|');
 
     useEffect(() => {
@@ -442,6 +446,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 onEnter3DAtCell={onEnter3DAtCell}
                                 playerWorldPos={playerWorldPos}
                                 playerAtlasCellId={gameState.playerCell?.cellId ?? null}
+                                gameTime={gameState.gameTime}
                                 allow3DEntry={allow3DEntry}
                                 onClose={() => onAction({ type: 'toggle_map', label: 'Close Map' })}
                                 discoveredHiddenSites={gameState.discoveredHiddenSites}
@@ -920,8 +925,6 @@ const GameModals: React.FC<GameModalsProps> = ({
                         </ErrorBoundary>
                     </Suspense>
                 ) : (
-                    // TODO #93: Extract this inline "No Data" error UI into a reusable <ModalErrorState message="" /> component.
-                    // Similar error states (missing data, loading failures) will likely be needed for other dashboards (Treasure, Trade, etc.) as we expand.
                     <div key="naval" className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/80">
                         <div className="bg-gray-800 p-6 rounded border border-sky-600 text-center shadow-xl max-w-md">
                             <h2 className="text-xl font-bold text-sky-300 mb-2">No Active Ship</h2>
@@ -1080,6 +1083,18 @@ const GameModals: React.FC<GameModalsProps> = ({
                         <CourierPouch
                             isOpen={gameState.isCourierPouchVisible}
                             onClose={() => dispatch({ type: 'TOGGLE_COURIER_POUCH' })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Commerce Desk — dedicated non-debug home for businesses, trade, ventures, couriers (E-G1) */}
+            {gameState.isCommerceDeskVisible && (
+                <Suspense key="commerce" fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Commerce Desk.">
+                        <CommerceDesk
+                            isOpen={gameState.isCommerceDeskVisible}
+                            onClose={() => dispatch({ type: 'TOGGLE_COMMERCE_DESK' })}
                         />
                     </ErrorBoundary>
                 </Suspense>

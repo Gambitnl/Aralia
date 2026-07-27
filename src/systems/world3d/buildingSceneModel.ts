@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 19:01:15
+ * Last Sync: 20/07/2026, 00:20:47
  * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, components/DesignPreview/steps/PreviewBuilding3D.tsx
- * Imports: 4 files
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,11 +22,20 @@
  * Takes the SAME BlueprintPlan the 2D drawer renders and resolves everything
  * the R3F component needs into plain data: the MeshBox list from
  * `buildBuildingMeshData` filtered by FLOOR PEEL (show basement..selected,
- * open-topped), colors + emissive resolved per box kind and hour (window
- * panes glow 17–23h when the building is occupied; hearth furnishings glow
- * when `occupancy.flags.hearthLitHours[hour]`), plus one occupant dot per
- * at-home household member at the given hour (furnishing position when the
- * station stands at a piece, else the room's anchor cell).
+ * open-topped), colors + emissive resolved per box kind and hour, plus one
+ * occupant dot per at-home household member at the given hour (furnishing
+ * position when the station stands at a piece, else the room's anchor cell).
+ *
+ * Two DELIBERATELY DISTINCT lighting schedules meet here (see the block near
+ * `windowsLit`/`hearthLit` for the full rationale):
+ *   - Window panes glow on the canonical `windowsLitAt` dusk-read band (17–23h)
+ *     — "does the interior read as lit from OUTSIDE against a dim exterior."
+ *   - Hearth furnishings glow on `occupancy.flags.hearthLitHours[hour]`
+ *     (06–08 ∪ 17–22) — "is the fire physically BURNING" (morning cook-fire +
+ *     evening warmth).
+ * They intentionally disagree at the day's edges (lit morning hearth behind
+ * daylit windows at 06–08; interior still reads lit at 23 after the fire is
+ * banked). That is modeled, not a bug — confirmed by blindspot #7.
  *
  * Pure + deterministic — no three.js, unit-tested in
  * __tests__/buildingSceneModel.test.ts. The R3F consumer maps plan feet
@@ -47,9 +56,16 @@
  * and streamed production ground pipeline details remain deferred to separate repair/feature lanes.
  */
 
-import type { BlueprintPlan } from '../worldforge/interior/blueprintTypes';
+import type {
+  BlueprintPlan,
+  BuildingWeathering,
+} from '../worldforge/interior/blueprintTypes';
 import type { BuildingOccupancy, OccupantStation } from '../worldforge/interior/occupancy';
 import { HEARTH_KINDS } from '../worldforge/interior/occupancy';
+import { windowsLitAt } from '../worldforge/bridge/buildingOccupancy';
+import { getSemanticAssetKey } from '../worldforge/bridge/forgeMaterials';
+import type { WeatheringDetailKind } from '../worldforge/bridge/buildingWeatheringParts';
+import { fnv1a } from '../worldforge/seedPath';
 import {
   buildBuildingMeshData,
   buildRoofMeshData,
@@ -90,6 +106,8 @@ export interface SceneRoof {
   positions: Float32Array;
   indices: Uint32Array;
   normals: Float32Array;
+  /** Planar footprint coordinates used to repeat resolved covering textures. */
+  uvs: Float32Array;
   color: string;
 }
 
@@ -105,6 +123,8 @@ export interface SceneBox {
   /** Set only when the box should glow (lit window pane / lit hearth). */
   emissive?: string;
   emissiveIntensity?: number;
+  /** Exact weathering effect carried from the production bridge. */
+  weatheringDetailKind?: WeatheringDetailKind;
 }
 
 /** One at-home household member at the model's hour. */
@@ -127,6 +147,13 @@ export interface BuildingSceneModel {
   windowsLit: boolean;
   boxes: SceneBox[];
   dots: OccupantDot[];
+  /** One shared semantic key per exterior surface, resolved from the generator's
+   *  final construction kit. Kept at model level so renderers never allocate a
+   *  separate texture for every wall box. */
+  materialTextures?: {
+    wall: string;
+    roof: string;
+  };
   /** Solved roof (planes + tower caps), shown in "All" mode; hidden when peeled
    *  so the interior is visible. Undefined when the plan carries no roof. */
   roof?: SceneRoof;
@@ -148,6 +175,91 @@ export const DOT_LIFT_FT = 3.6;
 /** Ring radius for spreading dots that share one station, feet. */
 const DOT_RING_FT = 1.6;
 const CELL_FT = 5;
+/** One material tile spans one blueprint cell, keeping courses readable without moire. */
+export const ROOF_TEXTURE_TILE_FT = CELL_FT;
+
+// ============================================================================
+// Weathered Surface Color
+// ============================================================================
+// The blueprint already owns the stable age and per-building variant. This
+// presentation transform fades every wall and roof mesh consistently without
+// replacing semantic material textures or consuming the generator's RNG.
+// ============================================================================
+
+/** Convert a six-digit generated palette color into numeric channels. */
+function parseHexColor(color: string): [number, number, number] | undefined {
+  const normalized = color.startsWith('#') ? color.slice(1) : color;
+  if (!/^[0-9a-f]{6}$/i.test(normalized)) return undefined;
+  return [0, 2, 4].map((offset) =>
+    Number.parseInt(normalized.slice(offset, offset + 2), 16)) as [number, number, number];
+}
+
+/** Apply age fade plus a stable roof-stock shade to one generated surface. */
+function weatheredSurfaceColor(
+  baseColor: string,
+  weathering: BuildingWeathering | undefined,
+  surface: 'wall' | 'roof',
+): string {
+  // New and legacy buildings are exact no-ops. This preserves every existing
+  // color byte until the resolved age contract says weathering is present.
+  if (!weathering || weathering.intensity === 0) return baseColor;
+  const channels = parseHexColor(baseColor);
+  if (!channels) return baseColor;
+
+  const intensity = weathering.intensity;
+  const average = (channels[0] + channels[1] + channels[2]) / 3;
+  const desaturation = intensity * 0.11;
+  const lightening = intensity * (surface === 'wall' ? 0.055 : 0.04);
+  const roofPaletteHash = fnv1a(`${weathering.weatheringVariant}|roof-palette`);
+  const seedShade = surface === 'roof'
+    ? ((roofPaletteHash & 0xff) / 0xff - 0.5) * 0.1
+    : 0;
+  const seedWarmth = surface === 'roof'
+    ? (((roofPaletteHash >>> 8) & 0xff) / 0xff - 0.5) * 0.08
+    : 0;
+
+  // First grey the material toward its own luminance, then lift it with age.
+  // Roofs receive one extra bounded shade from the building key so identical
+  // stock does not repeat perfectly down a street.
+  const adjusted = channels.map((channel, channelIndex) => {
+    const faded = channel + (average - channel) * desaturation;
+    const lifted = faded + (255 - faded) * lightening;
+    // Two independent hash bytes create both light/dark and warm/cool variation.
+    // This avoids distinct lot seeds collapsing to the same rounded RGB triplet
+    // while keeping every channel close to the approved district roof stock.
+    const warmth = channelIndex === 0
+      ? seedWarmth
+      : channelIndex === 1
+        ? seedWarmth * 0.2
+        : -seedWarmth;
+    return Math.max(0, Math.min(
+      255,
+      Math.round(lifted * (1 + seedShade + warmth)),
+    ));
+  });
+
+  return `#${adjusted.map((channel) =>
+    channel.toString(16).padStart(2, '0')).join('')}`;
+}
+
+/** Project each solved roof vertex onto the plan footprint for stable tiled UVs. */
+export function planarRoofUvs(
+  positions: Float32Array,
+  tileSizeFt = ROOF_TEXTURE_TILE_FT,
+): Float32Array {
+  const uvs = new Float32Array((positions.length / 3) * 2);
+
+  // Roof Y is elevation; footprint X/Z are the material plane. Dividing by a
+  // fixed feet scale makes the same covering repeat consistently across buildings.
+  for (let positionIndex = 0, uvIndex = 0;
+    positionIndex < positions.length;
+    positionIndex += 3, uvIndex += 2) {
+    uvs[uvIndex] = positions[positionIndex] / tileSizeFt;
+    uvs[uvIndex + 1] = positions[positionIndex + 2] / tileSizeFt;
+  }
+
+  return uvs;
+}
 
 /** Structure palette — warm gray-brown masonry, dark slabs, distinct stairs. */
 const BOX_COLOR: Record<SceneBoxKind, string> = {
@@ -207,12 +319,57 @@ export function buildingSceneModel(
     : Math.max(...plan.floors.map((f) => f.level).filter((lv) => visible(lv)));
   const peeled = upToLevel !== 'all';
 
+  // The building generator has already chosen these materials. Converting that
+  // answer to semantic keys is pure presentation work and consumes no random draw.
+  const construction = plan.styleResolved?.construction;
+  const materialTextures = construction
+    ? {
+      wall: getSemanticAssetKey({
+        surface: 'wall',
+        wallMaterial: construction.wallMaterial,
+      }),
+      roof: getSemanticAssetKey({
+        surface: 'roof',
+        roofCovering: construction.roofCovering,
+      }),
+    }
+    : undefined;
+  const resolvedWeathering = plan.styleResolved?.weathering;
+  const wallSurfaceColor = weatheredSurfaceColor(
+    plan.styleResolved?.wallColor ?? BOX_COLOR.wall,
+    resolvedWeathering,
+    'wall',
+  );
+  const roofSurfaceColor = weatheredSurfaceColor(
+    plan.styleResolved?.roofColor ?? BOX_COLOR.wall,
+    resolvedWeathering,
+    'roof',
+  );
+
   const buildingInUse = plan.liveHistory?.status === undefined
     || plan.liveHistory.status === 'occupied';
   const occupied = buildingInUse
     && occupancy !== undefined
     && !occupancy.flags.abandoned;
-  const windowsLit = occupied && hour >= 17 && hour <= 23;
+  // Two distinct, deliberately un-unified interior lighting schedules:
+  //
+  //   windowsLit — routed through the CANONICAL `windowsLitAt` helper (the same
+  //     one the live streamed ground world uses) so there is ONE documented
+  //     window rule, not a literal re-hardcoded per renderer. It models
+  //     "interior glow reads from OUTSIDE against a dim exterior" — a dusk/night
+  //     phenomenon (17–23h). In daylight the glow does not read, so morning
+  //     stays dark-glass even when the fire is lit.
+  //
+  //   hearthLit — the fire physically BURNING: morning cook-fire + evening
+  //     (06–08 ∪ 17–22, owned by occupancy.hearthLitHours). A different physical
+  //     quantity from window-read, so the two legitimately disagree at 06–08
+  //     (hearth lit, windows dark) and at 23 (windows lit, hearth banked). Both
+  //     edges are physically coherent, not a mismatch to erase (blindspot #7).
+  //
+  // Future shutters/candles state (a third, explicit "shutters closed at night"
+  // or "candle-lit past the hearth" band) would extend this by adding another
+  // schedule here — not by collapsing these two into one.
+  const windowsLit = windowsLitAt(occupied, hour);
   const hearthLit = occupied && occupancy!.flags.hearthLitHours[hour] === true;
 
   const boxes: SceneBox[] = [];
@@ -223,11 +380,10 @@ export function buildingSceneModel(
       // Open the selected floor: drop its ceiling lid when peeling. (Higher
       // floors' slabs — the usual lids — are already gone with their floors.)
       if (peeled && b.kind === 'ceiling' && floor.level === topVisible) continue;
-      const wallColor = plan.styleResolved?.wallColor ?? BOX_COLOR.wall;
       const box: SceneBox = {
         kind: b.kind, level: floor.level,
         x: b.x, y: b.y, w: b.w, d: b.d, z0: b.z0, h: b.h,
-        color: b.kind === 'wall' ? wallColor : BOX_COLOR[b.kind],
+        color: b.kind === 'wall' ? wallSurfaceColor : BOX_COLOR[b.kind],
       };
       if (b.kind === 'window-pane' && windowsLit) {
         box.emissive = WINDOW_GLOW;
@@ -393,6 +549,9 @@ export function buildingSceneModel(
         z0,
         h,
         color: part.colorHex,
+        ...(part.weatheringDetailKind
+          ? { weatheringDetailKind: part.weatheringDetailKind }
+          : {}),
       };
 
       if (part.emissiveHex) {
@@ -471,9 +630,10 @@ export function buildingSceneModel(
       positions: rm.tris.positions,
       indices: rm.tris.indices,
       normals: rm.tris.normals,
-      color: plan.styleResolved?.roofColor ?? BOX_COLOR.wall,
+      uvs: planarRoofUvs(rm.tris.positions),
+      color: roofSurfaceColor,
     };
-    const roofTint = plan.styleResolved?.roofColor ?? BOX_COLOR.wall;
+    const roofTint = roofSurfaceColor;
     const trimTint = plan.styleResolved?.trimColor ?? BOX_COLOR.wall;
     for (const c of rm.chimneyBoxes) {
       boxes.push({
@@ -496,6 +656,7 @@ export function buildingSceneModel(
     windowsLit,
     boxes,
     dots,
+    ...(materialTextures ? { materialTextures } : {}),
     ...(roof ? { roof } : {}),
   };
 }

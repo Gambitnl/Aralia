@@ -4,6 +4,7 @@
   "aliases": [],
   "level": 4,
   "school": "Transmutation",
+  "source": "XGE p. 157 (5e.tools)",
   "legacy": false,
   "classes": [
     "Druid",
@@ -181,7 +182,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "A nature spirit answers your call and transforms you into a powerful guardian. The transformation lasts until the spell ends. You choose one of the following forms to assume: Primal Beast or Great Tree. Primal Beast. Bestial fur covers your body, your facial features become feral, and you gain the following benefits: Great Tree. Your skin appears barky, leaves sprout from your hair, and you gain the following benefits:",
+  "description": "Choose Primal Beast or Great Tree when you cast this spell. Primal Beast grants 10 feet of walking speed, 120-foot darkvision, Advantage on Strength-based attack rolls, and an extra 1d6 Force damage on melee weapon hits. Great Tree grants 10 temporary hit points, Advantage on Constitution saves and Dexterity- or Wisdom-based attack rolls, and makes ground within 15 feet difficult terrain for enemies while you are on the ground.",
   "higherLevels": "",
   "tags": [
     "buff",

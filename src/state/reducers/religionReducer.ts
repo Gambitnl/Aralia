@@ -268,7 +268,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                         id: blessingId,
                         name: name,
                         description: description,
-                        effect: statusEffect
+                        effect: statusEffect as any
                     };
 
                     favorUpdates[deityId] = grantBlessing(existing, blessingRecord);

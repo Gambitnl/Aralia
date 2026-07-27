@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { slug, isDead, isActionable } from './ready-derive.mjs';
+import { slug, isDead, isActionable, topicReadiness } from './ready-derive.mjs';
 
 // byId factory
 const index = (topics) => Object.fromEntries(topics.map((t) => [t.id, t]));
@@ -10,6 +10,47 @@ describe('isDead', () => {
     expect(isDead({ status: 'superseded' })).toBe(true);
     expect(isDead({ status: 'active' })).toBe(false);
     expect(isDead({ status: 'parked' })).toBe(false);
+  });
+});
+
+describe('topicReadiness', () => {
+  it('keeps a dependency-ready featureless topic READY', () => {
+    const t = { id: 'a', status: 'active', deps: [] };
+    expect(topicReadiness(t, index([t]))).toEqual({
+      ready: true,
+      hasFeatures: false,
+      pendingFeatureCount: 0,
+      readyFeatureCount: 0,
+    });
+  });
+
+  it('withholds READY when every unfinished feature is parked', () => {
+    const t = {
+      id: 'a', status: 'active', deps: [], features: [
+        { title: 'Shipped', status: 'done' },
+        { title: 'Deferred', status: 'parked' },
+      ],
+    };
+    expect(topicReadiness(t, index([t]))).toEqual({
+      ready: false,
+      hasFeatures: true,
+      pendingFeatureCount: 1,
+      readyFeatureCount: 0,
+    });
+  });
+
+  it('reports available child work without treating stored order as a dependency', () => {
+    const t = {
+      id: 'a', status: 'active', deps: [], features: [
+        { title: 'Deferred first', status: 'parked' },
+        { title: 'Available later', status: 'specced' },
+      ],
+    };
+    expect(topicReadiness(t, index([t]))).toMatchObject({
+      ready: true,
+      pendingFeatureCount: 2,
+      readyFeatureCount: 1,
+    });
   });
 });
 

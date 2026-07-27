@@ -19,15 +19,18 @@ import {
   CylinderGeometry,
   EdgesGeometry,
   Group,
+  LatheGeometry,
   LineBasicMaterial,
   LineSegments,
   Material,
   Mesh,
   MeshBasicMaterial,
+  MeshToonMaterial,
   Object3D,
   Quaternion,
   SphereGeometry,
   TorusGeometry,
+  Vector2,
   Vector3,
 } from 'three';
 import type { SegmentSink } from '../types';
@@ -38,6 +41,9 @@ import { Color } from 'three';
 export interface SegmentBodyOptions {
   renderMode: EntityRenderMode;
   colorHex: string;
+  /** Countershaded underside for swept tubes (plan-driven bodies); omitted =
+   * uniform colorHex everywhere. Solid mode only. */
+  bellyHex?: string;
   /** Energy rings and other glow accents render in this color, unlit. */
   accentHex?: string;
   /** Inverse-hull outline thickness (solid mode), meters. */
@@ -118,12 +124,21 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
     ? new LineBasicMaterial({ color: new Color(options.colorHex).lerp(new Color('#ffffff'), 0.22) })
     : null;
   const accentHex = options.accentHex ?? options.colorHex;
+  // Countershading: tubes get a dedicated vertex-colored material (white base,
+  // the color attribute carries body→belly tint); segments stay on the shared
+  // flat fill. One material per body is enough — all its tubes share the tint.
+  const bellyColor = !wire && options.bellyHex ? new Color(options.bellyHex) : null;
+  const bodyColor = bellyColor ? new Color(options.colorHex) : null;
+  let tubeMaterial: MeshToonMaterial | null = null;
   // unlit = reads as glow against the toon world; built lazily (rings are rare)
   let accentMaterial: MeshBasicMaterial | null = null;
   let accentLineMaterial: LineBasicMaterial | null = null;
 
   const nodes = new Map<string, Node>();
   const tubes = new Map<string, { tube: SweptTube; node: Node; pts: Vector3[] }>();
+  /** Junction blend collars — geometry is frame-constant per id (limbR and
+   * reach come compiled), only position/orientation follow the root joint. */
+  const collars = new Map<string, { geometry: LatheGeometry; node: Node }>();
   let triangleTotal = 0;
 
   /** Wrap a base geometry as this body's render node(s). */
@@ -228,11 +243,21 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
             let entry = tubes.get(id);
             if (!entry) {
               const stations = Math.min(64, Math.max(16, points.length * 6));
+              let material = fillMaterial!;
+              let countershade: { body: Color; belly: Color } | undefined;
+              if (bellyColor && bodyColor) {
+                // white base + vertexColors: the tube's color attribute tints
+                tubeMaterial ??= toonMaterial('#ffffff');
+                tubeMaterial.vertexColors = true;
+                material = tubeMaterial;
+                countershade = { body: bodyColor, belly: bellyColor };
+              }
               const built = createSweptTube({
                 stations,
                 radial: 8,
-                material: fillMaterial!,
+                material,
                 outlineMaterial: inkMaterial,
+                countershade,
               });
               const group = new Group();
               group.name = `seg:${id}`;
@@ -253,6 +278,43 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
               entry.pts[i].set(points[i * 3], points[i * 3 + 1], points[i * 3 + 2]);
             }
             entry.tube.update(entry.pts, radii);
+          },
+          collar(id: string, rootX: number, rootY: number, rootZ: number,
+                 axX: number, axY: number, axZ: number,
+                 limbR: number, reach: number) {
+            let entry = collars.get(id);
+            if (!entry) {
+              // concave fillet skirt lathed around the limb axis: hull rim
+              // (limbR + reach, y 0) up to the limb wall (slightly inside it,
+              // y 0.45 reach — low profile reads as melt, tall reads as a
+              // trumpet). Profile ordered bottom-up so faces wind OUTWARD.
+              const profile: Vector2[] = [];
+              const steps = 4;
+              for (let i = 0; i <= steps; i++) {
+                const t = 1 - i / steps;
+                profile.push(new Vector2(
+                  Math.max(0.004, limbR * 0.98 + reach * (1 - Math.cos((t * Math.PI) / 2))),
+                  reach * 0.45 * Math.cos((t * Math.PI) / 2),
+                ));
+              }
+              const geometry = new LatheGeometry(profile, 14);
+              const group = new Group();
+              group.name = `seg:${id}`;
+              group.add(new Mesh(geometry, fillMaterial!));
+              const triangles = geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
+              triangleTotal += triangles;
+              const node: Node = { group, seen: true, triangles };
+              nodes.set(id, node);
+              root.add(group);
+              entry = { geometry, node };
+              collars.set(id, entry);
+            }
+            entry.node.seen = true;
+            DIR.set(axX, axY, axZ);
+            if (DIR.lengthSq() < 1e-8) DIR.set(0, 1, 0);
+            QUAT.setFromUnitVectors(UP, DIR.normalize());
+            entry.node.group.position.set(rootX, rootY, rootZ);
+            entry.node.group.quaternion.copy(QUAT);
           },
         }),
     ring(id, x, y, z, nx, ny, nz, radius, tube) {
@@ -312,7 +374,7 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
         }
       });
     }
-    for (const material of [fillMaterial, inkMaterial, lineMaterial, accentMaterial, accentLineMaterial]) {
+    for (const material of [fillMaterial, inkMaterial, lineMaterial, accentMaterial, accentLineMaterial, tubeMaterial]) {
       (material as Material | null)?.dispose();
     }
     root.clear();

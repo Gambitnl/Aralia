@@ -7,8 +7,14 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 
-import { parseGapsMarkdown, indexGaps, OPEN_STATUSES } from './gapIndex.mjs';
+import {
+  parseGapsMarkdown,
+  indexGaps,
+  OPEN_STATUSES,
+  validateWorkflowGapRows,
+} from './gapIndex.mjs';
 
 const SAMPLE = `---
 gap_schema: v2
@@ -54,16 +60,50 @@ test('parseGapsMarkdown extracts rows from the Gap ID table only', () => {
   assert.equal(rows[2].classification, 'blocked_human_decision');
 });
 
+test('workflow gap fields identify both the best repair agent and the registrant', () => {
+  const md = `| Gap ID | Status | Suggested agent | Registered by | Registrant ID | Task/thread | Gap |
+|---|---|---|---|---|---|---|
+| WF-G99 | open | claude | claude.capture-owner | 123e4567-e89b-42d3-a456-426614174000 | thread-99 | orphaned capture process |`;
+  const [row] = parseGapsMarkdown(md);
+
+  assert.equal(row.suggestedAgent, 'claude');
+  assert.equal(row.registeredBy, 'claude.capture-owner');
+  assert.equal(row.registrantAgentId, '123e4567-e89b-42d3-a456-426614174000');
+  assert.equal(row.registrantTaskId, 'thread-99');
+  assert.deepEqual(validateWorkflowGapRows([row], { allowedAgentIds: ['claude'] }), []);
+});
+
+test('workflow gap validation rejects generic registrants and unknown executor lanes', () => {
+  const errors = validateWorkflowGapRows([{
+    id: 'WF-G100',
+    suggestedAgent: 'mystery-agent',
+    registeredBy: 'orchestrator (violet-mage)',
+    registrantAgentId: 'short-id',
+    registrantTaskId: '',
+  }], { allowedAgentIds: ['claude'] });
+
+  assert.equal(errors.length, 4);
+  assert.ok(errors.some((error) => error.includes('agents.json')));
+  assert.ok(errors.some((error) => error.includes('generic role label')));
+  assert.ok(errors.some((error) => error.includes('full Agora UUID')));
+  assert.ok(errors.some((error) => error.includes('Task/thread')));
+});
+
 test('gapIndex.workflowGaps: the real WORKFLOW_GAPS.md parses; archive rows are NOT indexed', () => {
-  // The live Registry table indexes (currently empty — all WF-G1..14 resolved
-  // and moved to the archive 2026-07-02); any row that appears must be a
-  // well-formed WF-G id tagged with project 'workflow'. Schema drift fails here.
+  // Every live registry row must remain a well-formed workflow gap with enough
+  // assignment and provenance data for an orchestrator to route it safely.
   const gaps = indexGaps({ root: 'tools/agora' });
   assert.ok(Array.isArray(gaps), 'registry parses without error');
   assert.ok(gaps.every((g) => /^WF-G\d+$/.test(g.id) && g.project === 'workflow'),
     `unexpected rows: ${JSON.stringify(gaps.map((g) => g.project + ':' + g.id))}`);
   // Archived resolutions must NOT leak into the machine index.
   assert.ok(gaps.every((g) => g.id !== 'WF-G7'), 'archive table is not indexed');
+  const agentRegistry = JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'agents.json'), 'utf8'));
+  assert.deepEqual(
+    validateWorkflowGapRows(gaps, { allowedAgentIds: Object.keys(agentRegistry.agents) }),
+    [],
+    'every live workflow row has valid executor fit and registrant provenance',
+  );
 });
 
 test('indexGaps walks GAPS.md files, tags project paths, and filters open-only', () => {

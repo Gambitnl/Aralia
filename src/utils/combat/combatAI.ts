@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/07/2026, 23:05:12
+ * Last Sync: 23/07/2026, 19:55:56
  * Dependents: hooks/combat/useCombatAI.ts, hooks/combat/useTurnManager.ts, utils/combat/index.ts
  * Imports: 5 files
  *
@@ -67,6 +67,15 @@ const matchesAbilityCreatureTypes = (target: CombatCharacter, validCreatureTypes
   return validCreatureTypes.some(requiredType =>
     targetCreatureTypes.some(targetType => targetType.toLowerCase() === requiredType.toLowerCase())
   );
+};
+
+const isProtectedByBloodCircle = (caster: CombatCharacter, target: CombatCharacter): boolean => {
+  const protectedTiles = caster.summonMetadata?.bloodCircle?.protectedTiles ?? [];
+  if (protectedTiles.length === 0) return false;
+
+  return getOccupiedTiles(target).some(targetTile => protectedTiles.some(protectedTile =>
+    protectedTile.x === targetTile.x && protectedTile.y === targetTile.y
+  ));
 };
 
 /**
@@ -153,7 +162,17 @@ export function evaluateCombatTurn(
     );
     downedEnemies = [];
   }
-  const allEnemies = [...activeEnemies, ...downedEnemies];
+  let allEnemies = [...activeEnemies, ...downedEnemies];
+
+  // A protective circle is a target and movement boundary for its demon, not
+  // merely descriptive summon metadata. Remove protected targets before the
+  // planner scores attacks so AI execution cannot repeatedly choose an action
+  // that the shared action/target validators must reject later.
+  if (character.summonMetadata?.bloodCircle?.protectedTiles?.length) {
+    activeEnemies = activeEnemies.filter(enemy => !isProtectedByBloodCircle(character, enemy));
+    downedEnemies = downedEnemies.filter(enemy => !isProtectedByBloodCircle(character, enemy));
+    allEnemies = [...activeEnemies, ...downedEnemies];
+  }
 
   const activeAllies = characters.filter(c => c.team === character.team && c.currentHP > 0);
   const downedAllies = characters.filter(c => c.team === character.team && c.currentHP === 0 && c.deathSaves);
@@ -387,13 +406,13 @@ function planCommandFleeMovement(
   let bestPlan: ReachableTilePlan | null = null;
   let bestDistance = startDistance;
 
-  reachableTiles.forEach(plan => {
+  for (const plan of reachableTiles.values()) {
     const distanceFromCaster = getDistance(plan.tile.coordinates, commandCaster.position);
     if (distanceFromCaster > bestDistance) {
       bestDistance = distanceFromCaster;
       bestPlan = plan;
     }
-  });
+  }
 
   if (!bestPlan) {
     // If there is no legal tile farther away, the directive still prevents a
@@ -442,13 +461,13 @@ function planCommandApproachMovement(
   let bestPlan: ReachableTilePlan | null = null;
   let bestDistance = startDistance;
 
-  reachableTiles.forEach(plan => {
+  for (const plan of reachableTiles.values()) {
     const distanceToCaster = getDistance(plan.tile.coordinates, commandCaster.position);
     if (distanceToCaster < bestDistance && distanceToCaster >= 1) {
       bestDistance = distanceToCaster;
       bestPlan = plan;
     }
-  });
+  }
 
   if (!bestPlan) {
     return createEndTurnAction(character);
@@ -709,7 +728,7 @@ function evaluateAoEPlan(
   activeAllies: CombatCharacter[],
   downedAllies: CombatCharacter[],
   mapData: BattleMapData,
-  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>,
+  reachableTiles: Map<string, ReachableTilePlan>,
   /** Cross-ability tile cache: keyed by (shape, size, cx, cy, castTileId). Passed from decideTurn. */
   sharedAoECache?: Map<string, Position[]>,
   /** Cross-ability cast-position cache: keyed by (range, cx, cy). Passed from decideTurn. */
@@ -1086,7 +1105,10 @@ function buildReachableTileMap(
         const neighborId = `${tile.coordinates.x + dx}-${tile.coordinates.y + dy}`;
         const neighbor = mapData.tiles.get(neighborId);
         const isOccupied = occupiedTileIds.has(neighborId);
-        if (neighbor && !neighbor.blocksMovement && !visited.has(neighborId) && !isOccupied) {
+        const isProtectedCircleTile = character.summonMetadata?.bloodCircle?.protectedTiles?.some(protectedTile =>
+          protectedTile.x === neighbor?.coordinates.x && protectedTile.y === neighbor?.coordinates.y
+        ) ?? false;
+        if (neighbor && !neighbor.blocksMovement && !visited.has(neighborId) && !isOccupied && !isProtectedCircleTile) {
           const newCost = cost + neighbor.movementCost;
           if (newCost <= availableMovement) {
             visited.add(neighborId);

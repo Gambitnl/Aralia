@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 01:31:42
- * Dependents: building-identity-lab.tsx
- * Imports: 6 files
+ * Last Sync: 20/07/2026, 01:26:02
+ * Dependents: building-identity-lab.tsx, components/DesignPreview/DesignPreviewPage.tsx
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -26,7 +26,10 @@ import {
 } from 'lucide-react';
 import TownPlanView from '@/components/Worldforge/TownPlanView';
 import { renderBlueprintSvg } from '@/systems/worldforge/interior/renderBlueprintSvg';
+import { computeOccupancy } from '@/systems/worldforge/interior/occupancy';
+import { rootSeedPath } from '@/systems/worldforge/seedPath';
 import type { ClimateClass } from '@/systems/worldforge/town/architectureStyle';
+import { householdForPlot } from '@/systems/worldforge/town/householdBrief';
 import PreviewBuilding3D from '@/components/DesignPreview/steps/PreviewBuilding3D';
 import {
   blueprintForHarnessPlot,
@@ -45,6 +48,9 @@ import './buildingIdentityLab.css';
  * It lets reviewers reroll a production town, inspect district coherence, compare
  * sibling buildings, and view one exact blueprint in both 2D and 3D. All generation
  * remains in Worldforge; this component only presents its evidence and controls.
+ * Its hour slider now drives the selected building's atmosphere and canonical
+ * occupancy from the same production population receipt, without regenerating
+ * the town or introducing a second building clock.
  */
 
 // ============================================================================
@@ -86,6 +92,14 @@ function initialRiver(): boolean {
   return new URLSearchParams(window.location.search).get('river') !== 'off';
 }
 
+/** Restore a shared atmosphere hour, with noon as the unchanged default view. */
+function initialHour(): number {
+  const raw = new URLSearchParams(window.location.search).get('hour');
+  if (raw === null || raw.trim() === '') return 12;
+  const value = Number(raw);
+  return Number.isInteger(value) && value >= 0 && value <= 23 ? value : 12;
+}
+
 /** Advance through a deterministic seed sequence so rerolls are reproducible. */
 function nextSeed(seed: number): number {
   return Math.abs((Math.imul(seed, 1103515245) + 12345) | 0) || 137;
@@ -96,6 +110,15 @@ function shortReceipt(value: string | undefined): string {
   if (!value) return 'none';
   return value.length > 24 ? `${value.slice(0, 11)}...${value.slice(-8)}` : value;
 }
+
+/** Plain-language names for the cross-checked facts in the badge's fail line. */
+const FACT_LABELS: Record<BuildingFactField, string> = {
+  roofForm: 'roof form',
+  wallColor: 'wall color',
+  roofColor: 'roof color',
+  districtSignature: 'district signature',
+  buildingVariant: 'building variant',
+};
 
 /** Prefer the population-authored building type over the adapter's broad role. */
 function plotLabel(plot: HarnessPlot): string {
@@ -223,6 +246,7 @@ const BuildingIdentityLab: React.FC = () => {
   const [styleId, setStyleId] = useState<HarnessStyleId>(initialStyle);
   const [climate, setClimate] = useState<ClimateClass>(initialClimate);
   const [withRiver, setWithRiver] = useState(initialRiver);
+  const [hour, setHour] = useState(initialHour);
   const [generationRevision, setGenerationRevision] = useState(0);
   const [selectedPlotId, setSelectedPlotId] = useState(0);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
@@ -274,6 +298,29 @@ const BuildingIdentityLab: React.FC = () => {
     [model, selectedPlot?.id],
   );
 
+  // Rebuild the selected plot's named production household from its real town
+  // population receipt, then derive the same occupancy schedule the world uses.
+  // Civic, storehouse, temple, and otherwise unoccupied plots remain honestly dark.
+  const populationPlots = useMemo(
+    () => model.artifactPlan.plots.flatMap((plot) => plot.pop ? [plot.pop] : []),
+    [model],
+  );
+  const selectedPopulation = selectedPlot?.pop;
+  const householdContext = useMemo(
+    () => selectedPopulation
+      ? householdForPlot(selectedPopulation, populationPlots, rootSeedPath(model.seed))
+      : undefined,
+    [model.seed, populationPlots, selectedPopulation],
+  );
+  const occupancy = useMemo(
+    () => householdContext
+      ? computeOccupancy(blueprint, householdContext.household, {
+        worksAtHome: householdContext.worksAtHome,
+      })
+      : undefined,
+    [blueprint, householdContext],
+  );
+
   // Keep selection valid after a seed or population change replaces all receipts.
   useEffect(() => {
     if (!selectedPlot) return;
@@ -290,8 +337,9 @@ const BuildingIdentityLab: React.FC = () => {
     url.searchParams.set('climate', climate);
     url.searchParams.set('population', String(population));
     url.searchParams.set('river', withRiver ? 'on' : 'off');
+    url.searchParams.set('hour', String(hour));
     window.history.replaceState(null, '', url);
-  }, [seed, styleId, climate, population, withRiver]);
+  }, [seed, styleId, climate, population, withRiver, hour]);
 
   const blueprintSvg = useMemo(
     () => renderBlueprintSvg(blueprint, floorLevel, {
@@ -307,23 +355,38 @@ const BuildingIdentityLab: React.FC = () => {
   const comparisonPlots = model.artifactPlan.plots
     .filter((plot) => plot.architecture?.districtKey === selectedDistrictKey);
   const coherentDistricts = model.districts.filter((district) => district.coherent).length;
+  // What changed (2026-07-18): the pass badge now counts VERIFIED districts —
+  // signature equality PLUS agreement between sampled production blueprints
+  // and the town-plan stamps on roof form, colors, signature, and variant.
+  // Why: the old signature-only badge stayed green while the lab's own panes
+  // showed contradictory roof facts (critic finding 5). What was preserved:
+  // coherentDistricts still feeds the automation receipt for continuity.
+  const verifiedDistricts = model.districts.filter((district) => district.verified).length;
+  const firstMismatch = model.factMismatches[0];
   const uniqueVariants = new Set(model.artifactPlan.plots
     .map((plot) => plot.architecture?.buildingVariant)
     .filter(Boolean)).size;
 
   // Expose a concise receipt to browser automation and manual console debugging.
+  // verifiedDistricts + factMismatches let automation assert the badge's REAL
+  // claim (blueprint cross-check), not just the signature count it used to show.
   useEffect(() => {
     window.__buildingIdentityLab = {
       seed,
       buildings: model.artifactPlan.plots.length,
       districts: model.districts.length,
       coherentDistricts,
+      verifiedDistricts,
+      factMismatches: model.factMismatches,
+      crossCheckMs: Math.round(model.crossCheckMs * 10) / 10,
       uniqueVariants,
       selectedPlotId: selectedPlot?.id ?? null,
       selectedDistrictKey,
       styleFamily: style?.familyId ?? null,
+      hour,
+      occupied: occupancy !== undefined,
     };
-  }, [coherentDistricts, model, seed, selectedDistrictKey, selectedPlot, style, uniqueVariants]);
+  }, [coherentDistricts, verifiedDistricts, hour, model, occupancy, seed, selectedDistrictKey, selectedPlot, style, uniqueVariants]);
 
   return (
     <main className="bil-shell">
@@ -380,6 +443,23 @@ const BuildingIdentityLab: React.FC = () => {
           <span aria-hidden="true" />
           Waterfront anatomy
         </label>
+        <label className="bil-hour-control" htmlFor="bil-control-hour">
+          <span>
+            Atmosphere hour
+            <output htmlFor="bil-control-hour">{String(hour).padStart(2, '0')}:00</output>
+          </span>
+          <input
+            id="bil-control-hour"
+            name="hour"
+            type="range"
+            min={0}
+            max={23}
+            step={1}
+            value={hour}
+            aria-label="Atmosphere hour"
+            onChange={(event) => setHour(Number(event.target.value))}
+          />
+        </label>
       </section>
 
       <section className="bil-metrics" aria-label="Town audit summary">
@@ -387,9 +467,27 @@ const BuildingIdentityLab: React.FC = () => {
         <div><strong>{model.districts.length}</strong><span>districts</span></div>
         <div><strong>{uniqueVariants}</strong><span>unique variants</span></div>
         <div><strong>{Object.keys(model.ensembleCounts).length}</strong><span>ensemble forms</span></div>
-        <div className={coherentDistricts === model.districts.length ? 'is-pass' : 'is-fail'}>
-          {coherentDistricts === model.districts.length ? <CheckCircle2 size={18} /> : <CircleAlert size={18} />}
-          <strong>{coherentDistricts}/{model.districts.length}</strong><span>coherent districts</span>
+        <div
+          className={verifiedDistricts === model.districts.length ? 'is-pass' : 'is-fail'}
+          data-testid="bil-verified-badge"
+        >
+          {verifiedDistricts === model.districts.length ? <CheckCircle2 size={18} /> : <CircleAlert size={18} />}
+          <strong>{verifiedDistricts}/{model.districts.length}</strong><span>verified districts</span>
+          {firstMismatch && (
+            /* Fail state names the first concrete disagreement so a red badge is
+               actionable, not just alarming. Full untruncated values live in the
+               title attribute; long signature tokens are shortened for display.
+               Inline style: the note spans a new implicit grid row inside the
+               metric cell (the shared CSS file belongs to no lane lock here). */
+            <small
+              style={{ gridColumn: '1 / -1', fontSize: 10, lineHeight: 1.35, color: '#c77762' }}
+              title={`plot ${firstMismatch.plotId}: ${FACT_LABELS[firstMismatch.field]} ${firstMismatch.townPlanValue} in town plan, ${firstMismatch.blueprintValue} in blueprint`}
+            >
+              plot {firstMismatch.plotId}: {FACT_LABELS[firstMismatch.field]}{' '}
+              {shortReceipt(firstMismatch.townPlanValue)} in town plan,{' '}
+              {shortReceipt(firstMismatch.blueprintValue)} in blueprint
+            </small>
+          )}
         </div>
       </section>
 
@@ -440,7 +538,12 @@ const BuildingIdentityLab: React.FC = () => {
               <div className="bil-card-bar"><span><Box size={14} /> Selected building</span><small>orbit / exact blueprint</small></div>
               <div className="bil-3d-host">
                 <Suspense fallback={<div className="bil-loading">Loading production 3D...</div>}>
-                  <PreviewBuilding3D plan={blueprint} upToLevel="all" hour={12} />
+                  <PreviewBuilding3D
+                    plan={blueprint}
+                    upToLevel="all"
+                    hour={hour}
+                    occupancy={occupancy}
+                  />
                 </Suspense>
               </div>
             </article>
@@ -522,4 +625,4 @@ declare global {
   }
 }
 
-export def
+export default BuildingIdentityLab;

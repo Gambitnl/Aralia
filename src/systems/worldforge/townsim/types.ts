@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 14/07/2026, 18:50:48
- * Dependents: components/Worldforge/LivingWorldPreview.tsx, components/debug/TownHistoryDevOverlay.tsx, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicle.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townNews.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/townSimRegistry.ts, utils/world/chronicleNewsToRumors.ts
+ * Last Sync: 18/07/2026, 20:18:10
+ * Dependents: components/Worldforge/LivingWorldPreview.tsx, components/debug/TownHistoryDevOverlay.tsx, systems/worldforge/roster/agentDeepening.ts, systems/worldforge/roster/agentLife.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicle.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townNews.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/townSimRegistry.ts, utils/world/chronicleNewsToRumors.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -101,6 +101,55 @@ export interface LivingVillager {
   wealth: number;
 }
 
+// ============================================================================
+// Agent-Sim Deepening State
+// ============================================================================
+// The visual agent simulation can opt into a richer daily layer without
+// replacing the town's canonical villagers or chronicle. These records keep
+// only bounded, replayable meters: current market facts, a capped set of social
+// bonds, and the current weather. Births, deaths, marriages, and genealogy stay
+// on LivingVillager and TownChronicle above.
+// ============================================================================
+
+/** The social meaning currently earned by repeated contact between two people. */
+export type AgentRelationshipStatus = 'acquaintance' | 'friend' | 'rival' | 'courting';
+
+/** One stable, unordered pair of villagers whose contact has changed over time. */
+export interface AgentRelationshipBond {
+  leftId: number;
+  rightId: number;
+  /** -100 (hostile) through 100 (devoted), clamped after every contact. */
+  affinity: number;
+  /** Lifetime contact days, capped so very old saves cannot grow the counter forever. */
+  contactDays: number;
+  status: AgentRelationshipStatus;
+  lastContactDay: number;
+}
+
+/** Current bounded facts produced by wages, household costs, shops, and prices. */
+export interface AgentEconomyState {
+  /** 100 is an ordinary price level; the simulation clamps this to 60..180. */
+  priceIndex: number;
+  /** Capped cumulative shop takings, keyed only by real roster work plots. */
+  shopIncomeByPlot: Record<number, number>;
+  /** Current average resident wealth, grouped by canonical home plot. */
+  districtWealthByHomePlot: Record<number, number>;
+  lastUpdatedDay: number;
+}
+
+/** Weather is current state; notable changes are retained in the shared chronicle. */
+export interface AgentTownEventState {
+  weather: 'mild' | 'storm' | 'drought' | 'cold_snap';
+  lastUpdatedDay: number;
+}
+
+/** Optional deepening payload stored beside, never instead of, canonical town state. */
+export interface AgentDeepeningState {
+  economy: AgentEconomyState;
+  relationships: Record<string, AgentRelationshipBond>;
+  townEvents: AgentTownEventState;
+}
+
 /** A town's append-only history. */
 export interface TownChronicle {
   burgId: number;
@@ -138,6 +187,11 @@ export interface TownSimState {
    * checked even after the chronicle's old events are trimmed by retention.
    */
   totals?: { births: number; deaths: number };
+  /**
+   * Optional daily agent-sim detail. Old saves and life-event-only callers can
+   * omit it; deepened replay initializes it deterministically from the roster.
+   */
+  agentDeepening?: AgentDeepeningState;
   /** Last gameDay this state has been advanced to. */
   lastSimDay: number;
   /** Next occupant id to allocate for newborns. */

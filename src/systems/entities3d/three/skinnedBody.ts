@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 24/07/2026, 00:51:43
+ * Dependents: systems/entities3d/three/assembleEntity.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file skinnedBody.ts — slice 1 of the entity skeleton pivot: the rigid-weight
  * skinned biped body. One bind-pose BufferGeometry (the same tapered cylinders
@@ -14,8 +30,10 @@
  * before smooth weights (slice 3) change the look. What is preserved: the
  * segment renderer (segmentBody.ts) is untouched and remains the default via
  * bodyTech: 'segments'; eyes, shadow, and parts keep the anchor pathway.
- * Deferred: smooth joint weights (slice 3), a skinned wireframe answer (open
- * decision — solid only here), creature skeletons (slice 4).
+ * Deferred: smooth joint weights (slice 3), creature skeletons (slice 4).
+ * Decided (Remy 2026-07-21): deforming bodies are SOLID SHADED — there is no
+ * skinned wireframe path and none is planned; wireframe remains a
+ * segment-body debug look until the segment renderer dies.
  *
  * Known micro-divergence, accepted for slice 1: the segment renderer inflates
  * a unit cylinder and then scales it to length, which squashes the ink shell's
@@ -38,6 +56,7 @@ import {
 } from 'three';
 import type { Frame, SegmentSink } from '../types';
 import { buildBipedSkeleton, createBipedPoseSink } from './skeletonBuilder';
+import { buildSmoothBipedGeometry } from './smoothBipedGeometry';
 import { outlineMaterial, toonMaterial } from './toon';
 
 export interface SkinnedBodyOptions {
@@ -46,6 +65,9 @@ export interface SkinnedBodyOptions {
   outlineThickness: number;
   /** Body translucency (< 1 = ghosts). Mirrors segmentBody's solid-mode handling. */
   opacity?: number;
+  /** 'rigid' (default) = slice-1 segment-look pieces; 'smooth' = slice-3
+   * one-piece chain tubes with joint-blended weights. */
+  weights?: 'rigid' | 'smooth';
 }
 
 export interface SkinnedBody {
@@ -157,7 +179,10 @@ export function buildBipedBindGeometry(frame: Frame, skeleton: ReturnType<typeof
 
 export function createSkinnedBiped(frame: Frame, options: SkinnedBodyOptions): SkinnedBody {
   const built = buildBipedSkeleton(frame);
-  const geometry = buildBipedBindGeometry(frame, built);
+  const geometry =
+    options.weights === 'smooth'
+      ? buildSmoothBipedGeometry(built.restPose, built.index)
+      : buildBipedBindGeometry(frame, built);
 
   // Skeleton inverses must be captured while the bones hold their bind pose
   // in entity-local space, before anything reparents or animates them.

@@ -25,8 +25,8 @@ Key files: `src/types/dialogue.ts`, `src/data/dialogue/topics.ts`,
 | Gap | Summary | Evidence |
 |---|---|---|
 | DIAL-001 | Node-level scripted dialogue graph format not implemented; current system is topic-first | `DialogueInterface.tsx`, `dialogueService.ts` |
-| DIAL-002 | Cross-NPC topic propagation partial/stubbed (TODO); decide DiscoveryLog vs `NPC KnownFact` for durable unlocks | `useDialogueSystem.ts`, `npcReducer.ts` |
+| DIAL-002 | RESOLVED 2026-07-21 (with DIAL-004) — decision: neither DiscoveryLog nor per-NPC KnownFact; a durable WORLD-level fact store (`src/systems/facts/worldFactStore.ts`, `GameState.worldFacts`, `LEARN_WORLD_FACT` via `factReducer`). Topic unlocks from ANY NPC now satisfy `topic_known` prerequisites with every other NPC (TODO #324 closed) | `worldFactStore.ts`, `factReducer.ts`, `useDialogueSystem.ts`, `dialogueService.ts` |
 | DIAL-003 | `sessionDispositionMod` and `availableTopicIds` not fully wired; apply or remove | `src/types/dialogue.ts`, `DialogueInterface.tsx`, `dialogueService.ts` |
-| DIAL-004 | Unlock outcomes are session-local; no durable global unlock-fact model documented | NORTH_STAR session-side-effects notes (git history) |
+| DIAL-004 | RESOLVED 2026-07-21 (with DIAL-002) — durable global unlock-fact model live: `WorldFactStore` serializes with saves, heals legacy saves on read/write, keys facts semantically (`topic_unlocked:<id>`), carries provenance (source NPC + topic) and a scope field (`global`/`region`/`npc`) for future region-ripple gating | `src/types/facts.ts`, `worldFactStore.ts` |
 | DIAL-005 | Dialogue vs companion-chat ownership boundary not formalized | `ConversationPanel`, `useConversation.ts` |
 | DIAL-006 | Companion banter orchestration (`useCompanionBanter.ts`) is cross-flow; boundary note needed before extraction (CMA-G12) | `src/hooks/useCompanionBanter.ts` |

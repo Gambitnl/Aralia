@@ -233,26 +233,32 @@ describe('style-driven building (roof + resolved dress)', () => {
   const bones = (p: BlueprintPlan): string =>
     JSON.stringify({ f: p.floors, fp: p.footprintCells, s: p.stairs });
 
-  it('style in ⇒ roof + styleResolved set; chimneys ≥ 1 when the top floor has a hearth', () => {
-    for (const seed of [3, 7, 11]) {
-      const plan = generateBuilding({
-        buildingId: 1, type: 'manor', seedPath: rootSeedPath(seed),
-        storeys: 2, basement: true, style: TEMPERATE_COMMON,
-      });
-      expect(plan.roof).toBeDefined();
-      expect(plan.styleResolved).toBeDefined();
-      // resolved dress mirrors the style context's wealth tier
-      expect(plan.styleResolved!.finishTier).toBe('common');
-      // topmost habitable floor = highest level >= 0
-      const topLevel = Math.max(...plan.floors.map((f) => f.level));
-      const top = plan.floors.find((f) => f.level === topLevel)!;
-      const topHearths = top.furnishings.filter(
-        (fn) => fn.kind === 'hearth' || fn.kind === 'forge-hearth',
-      );
-      if (topHearths.length > 0) {
-        expect(plan.roof!.chimneys.length).toBeGreaterThanOrEqual(1);
-      }
-    }
+  it('style in ⇒ every habitable-floor hearth projects through the solved roof', () => {
+    const plan = generateBuilding({
+      buildingId: 1, type: 'cottage', seedPath: rootSeedPath(1),
+      storeys: 2, basement: true, style: TEMPERATE_COMMON,
+    });
+    expect(plan.roof).toBeDefined();
+    expect(plan.styleResolved).toBeDefined();
+    // Resolved dress mirrors the style context's wealth tier.
+    expect(plan.styleResolved!.finishTier).toBe('common');
+    const habitableHearths = plan.floors
+      .filter((floor) => floor.level >= 0)
+      .flatMap((floor) => floor.furnishings)
+      .filter((item) => item.kind === 'hearth' || item.kind === 'forge-hearth');
+    const topLevel = Math.max(...plan.floors.map((floor) => floor.level));
+
+    // This fixture pins the living-building rule: a ground hearth still owns a
+    // roof stack when a separate bedroom storey sits above it.
+    expect(habitableHearths).toHaveLength(1);
+    expect(plan.floors.find((floor) => floor.level === topLevel)?.furnishings).not.toContainEqual(
+      expect.objectContaining({ kind: 'hearth' }),
+    );
+    expect(plan.roof!.chimneys).toHaveLength(1);
+    expect(plan.roof!.chimneys[0]).toMatchObject({
+      x: habitableHearths[0].x,
+      y: habitableHearths[0].y,
+    });
   });
 
   it('style never moves walls: same seed under 3 styles ⇒ identical floors/footprint/stairs', () => {

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 10/07/2026, 13:59:46
+ * Last Sync: 23/07/2026, 19:09:18
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 15 files
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -43,6 +43,8 @@ import { applyDamageAndCheckDowned } from '../../utils/combat/deathSaveUtils';
 import { combatEvents } from '../../systems/events/CombatEvents';
 import { getStateTagForDamageType } from '../../types/elemental';
 import { applyStateToTags } from '../../systems/physics/ElementalInteractionSystem';
+import { breakTauntsForEvent } from '../../systems/combat/tauntConstraint';
+import { getRecurringMechanics } from '../../hooks/spellEffectUtils';
 
 /** Unique key for tracking Slasher speed reduction once-per-turn usage */
 const SLASHER_SLOW_USAGE_KEY = 'slasher_slow';
@@ -282,21 +284,20 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       finalDamage = resistanceRiderResult.damage;
       const targetAfterResistance = currentState.characters.find(character => character.id === target.id) ?? target;
 
-      // --- HAM FEAT (2024): Reduce nonmagical physical damage by Proficiency Bonus ---
-      // WHAT CHANGED: Added HAM damage reduction check.
-      // WHY IT CHANGED: To support 2024 tanking mechanics. HAM now scales 
-      // with Proficiency Bonus. By placing this check after standard 
-      // resistances, we ensure the flat reduction applies to the final 
-      // calculated damage, making it a powerful tool for heavily armored 
-      // survivors.
-      // TODO #5(FEATURES): Also gate on target wearing Heavy Armor once armor-type tracking exists.
+      // --- HAM FEAT (2024): Reduce nonmagical physical weapon damage ---
+      // Heavy Armor Master only protects a character who is actually wearing
+      // heavy torso armour. The combat equipment projection carries that fact
+      // from the persistent loadout without coupling this damage rule to the
+      // inventory model. Magical attacks remain outside this reduction.
       const physicalDamageTypes = ['bludgeoning', 'piercing', 'slashing', 'physical'];
       if (
-        target.feats?.includes('heavy_armor_master') &&
+        targetAfterResistance.feats?.includes('heavy_armor_master') &&
+        targetAfterResistance.equipment?.wornArmor?.category === 'Heavy' &&
         physicalDamageTypes.includes(this.effect.damage.type.toLowerCase()) &&
-        this.context.weaponProperties !== undefined
+        this.context.weaponProperties !== undefined &&
+        this.context.isMagical !== true
       ) {
-        const hamPB = Math.ceil((target.level || 1) / 4) + 1;
+        const hamPB = Math.ceil((targetAfterResistance.level || 1) / 4) + 1;
         finalDamage = Math.max(0, finalDamage - hamPB);
       }
 
@@ -428,6 +429,30 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
           'caster_deals_damage',
           target.name
         );
+
+        const tauntBreak = breakTauntsForEvent(currentState.characters, {
+          event: 'caster_ally_damages_target',
+          casterId: caster.id,
+          targetId: target.id
+        });
+        if (tauntBreak.characters !== currentState.characters) {
+          currentState = {
+            ...currentState,
+            characters: tauntBreak.characters,
+            combatLog: [
+              ...currentState.combatLog,
+              ...tauntBreak.breaks.map(record => ({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status' as const,
+                message: `${record.spellName} ends because an ally of its caster damages the compelled target.`,
+                characterId: record.casterId,
+                targetIds: [record.targetId],
+                data: { spellId: record.spellId, tauntBreakEvent: record.event }
+              }))
+            ]
+          };
+        }
       }
 
       currentState = await this.breakFriendsWhenTargetTakesDamage(currentState, updatedTarget, finalDamage);
@@ -700,7 +725,10 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
     );
     const element = this.resolveConjureElementalChoice();
     const damageType = this.resolveConjureElementalDamageType(element);
-    const repeatDamage = this.effect.recurringMechanics?.find(mechanic => mechanic.timing === 'turn_start')?.damage;
+    // Source-backed spell rows may keep one compact recurring record while
+    // executable damage paths only consume normalized arrays.
+    const recurringMechanics = getRecurringMechanics(this.effect);
+    const repeatDamage = recurringMechanics.find(mechanic => mechanic.timing === 'turn_start')?.damage;
     const guardian: ActiveSpellGuardian = {
       id: `spell_guardian_conjure_elemental_${generateId()}`,
       spellId: this.context.spellId || 'conjure-elemental',

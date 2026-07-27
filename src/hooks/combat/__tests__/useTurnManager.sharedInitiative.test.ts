@@ -36,8 +36,8 @@ describe('useTurnManager shared-initiative summon scheduling', () => {
         cr: '0'
       }
     });
-    const summonEffect = summonBeast.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect;
-    const context = {
+    const summonEffect = (summonBeast.effects.find(effect => effect.type === 'SUMMONING') as unknown) as SummoningEffect;
+    const context: any = {
       spellId: summonBeast.id,
       spellName: summonBeast.name,
       castAtLevel: 2,

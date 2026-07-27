@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/07/2026, 21:20:15
- * Dependents: systems/worldforge/bridge/interiorParts.ts
+ * Last Sync: 19/07/2026, 23:49:59
+ * Dependents: systems/worldforge/bridge/buildingMotifParts.ts, systems/worldforge/bridge/interiorParts.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -50,9 +50,12 @@ export const MATERIAL_PART_TAG = 'building-material';
 export type MaterialDetailKind =
   | 'foundation'
   | 'wall-course'
+  | 'window-mullion'
   | 'shutter-panel'
   | 'shutter-slat'
   | 'roof-edge'
+  | 'bargeboard'
+  | 'ridge-crest'
   | 'ornament';
 
 export interface BuildingMaterialPart {
@@ -74,10 +77,13 @@ const FT = 0.3048;
 // 9 cm keeps the dressing shallow — well inside the eave clearance and door
 // reveals — while surviving one pixel at ~25 m.
 const DETAIL_DEPTH_M = 0.09;
-const WINDOW_HALF_FT = 1.5;
-const WINDOW_MARGIN_FT = 0.2;
-const WINDOW_SILL_FT = 3;
-const WINDOW_HEAD_FT = 6.5;
+// Motif dressing reuses these exact opening proportions when it segments a
+// projecting jetty around the real upper-storey windows. Exporting one answer
+// prevents the material frame and motif shell from drifting apart later.
+export const WINDOW_HALF_FT = 1.5;
+export const WINDOW_MARGIN_FT = 0.2;
+export const WINDOW_SILL_FT = 3;
+export const WINDOW_HEAD_FT = 6.5;
 // Six visible rows are enough to distinguish brick, stone, boards, and logs at
 // town scale while keeping a tall, window-rich building below the dressing cap.
 const MAX_COURSES_PER_STOREY = 6;
@@ -183,7 +189,18 @@ function materialPartOnRun(
   colorHex: string,
   projectionFt = DETAIL_DEPTH_M / FT,
 ): BuildingMaterialPart {
-  const outwardFt = run.thicknessFt / 2 + projectionFt / 2;
+  // BURIED-DRESSING FIX (town-look-slice1, 2026-07-18): the structural wall
+  // boxes grow OUTWARD from the run line by the FULL thickness (runBox in
+  // buildingModels.ts: center = line + n*thickness/2). This helper previously
+  // treated the line as the wall CENTER (offset thickness/2 + projection/2),
+  // which placed every course, shutter, foundation, and ornament INSIDE the
+  // wall slab — measured in the live scene: course z-span -1.843..-1.753 vs
+  // wall z-span -1.981..-1.524 (probe-depth.mjs). The dressing receipts were
+  // generated but physically invisible. Offsetting by the full thickness lands
+  // each part's inner face exactly on the wall's outer face, projecting the
+  // detail outward as the identity spec always described ("shallow trim
+  // OUTSIDE the canonical outer wall runs").
+  const outwardFt = run.thicknessFt + projectionFt / 2;
   const shared = {
     h: heightFt * FT,
     baseY: baseYFt * FT,
@@ -427,6 +444,65 @@ export function glazingPaneColor(glazing: GlazingType): string {
   }
 }
 
+// ============================================================================
+// Window Joinery
+// ============================================================================
+// Canonical windows already own their openings and panes. These shallow bars
+// sit just outside those panes, so glazing reads from town distance without
+// changing light state, wall openings, or the shutter recipe below.
+// ============================================================================
+
+function mullionParts(
+  blueprint: BlueprintPlan,
+  construction: BuildingConstruction,
+  storeyHeightFt: number,
+  colorHex: string,
+): BuildingMaterialPart[] {
+  const parts: BuildingMaterialPart[] = [];
+
+  // Every above-grade window receives one upright and one crossbar. The
+  // resolved glazing still owns pane color; this is only its visible frame.
+  for (const floor of blueprint.floors) {
+    if (floor.level < 0) continue;
+    const floorBaseFt = floor.level * storeyHeightFt;
+    for (const window of floor.windows) {
+      const run = outerRunForWindow(floor, window);
+      // Row-building party walls stay blank even if old serialized data happens
+      // to contain a window target on the neighbour-owned run.
+      if (!isVisibleExteriorRun(blueprint, run)) continue;
+      const windowAlongFt = run.axis === 'x' ? window.x : window.y;
+      const projectionFt = construction.glazing === 'open-lattice' ? 0.36 : 0.4;
+
+      parts.push(materialPartOnRun(
+        'window-mullion',
+        run,
+        blueprint.widthFt,
+        blueprint.depthFt,
+        windowAlongFt,
+        0.18,
+        floorBaseFt + WINDOW_SILL_FT,
+        WINDOW_HEAD_FT - WINDOW_SILL_FT,
+        colorHex,
+        projectionFt,
+      ));
+      parts.push(materialPartOnRun(
+        'window-mullion',
+        run,
+        blueprint.widthFt,
+        blueprint.depthFt,
+        windowAlongFt,
+        WINDOW_HALF_FT * 2,
+        floorBaseFt + 4.68,
+        0.16,
+        colorHex,
+        projectionFt + 0.02,
+      ));
+    }
+  }
+
+  return parts;
+}
+
 function shutterParts(
   blueprint: BlueprintPlan,
   construction: BuildingConstruction,
@@ -459,7 +535,9 @@ function shutterParts(
           floorBaseFt + panelBaseOffsetFt,
           panelHeightFt,
           colorHex,
-          0.18,
+          // town-look-slice1: projections scaled with DETAIL_DEPTH_M so panels
+          // stay PROUD of the thicker wall courses (original layer order).
+          0.32,
         ));
 
         // Louvered shutters gain two shallow cross-slats. Paneled shutters
@@ -474,9 +552,10 @@ function shutterParts(
             panelCenterFt,
             panelWidthFt * 0.9,
             floorBaseFt + panelBaseOffsetFt + (panelHeightFt * slat) / 4,
-            0.09,
+            // Slat lines thickened with the course strips (town-look-slice1).
+            0.14,
             colorHex,
-            0.24,
+            0.38,
           ));
         }
         if (construction.shutters === 'paneled') {
@@ -490,7 +569,7 @@ function shutterParts(
             floorBaseFt + panelBaseOffsetFt + 0.65,
             panelHeightFt - 1.3,
             colorHex,
-            0.24,
+            0.38,
           ));
         }
       }
@@ -537,9 +616,21 @@ function roofEdgeParts(
   const profile = roofEdgeProfile(construction);
   const wallTopFt = (top.level + 1) * storeyHeightFt;
   const baseYFt = wallTopFt - profile.heightFt * 0.35;
+  // With the buried-dressing fix the fascia projects from the wall's OUTER
+  // face, so an uncapped covering profile (reed thatch 1.25 ft) would overhang
+  // past the solved roof eave. The eave ring sits at max(eaveOverhangFt, wall
+  // thickness) + 0.5 ft clearance outside the shared run line (interiorParts
+  // blueprintRoof pushFt), so the fascia's projection is clamped to stop at
+  // that plane. Covering identity still reads through the profile HEIGHTS.
+  const eaveOverhangFt = blueprint.roof.eaveOverhangFt;
 
   for (const run of top.wallRuns) {
     if (!isVisibleExteriorRun(blueprint, run)) continue;
+    const eavePlaneFt = Math.max(eaveOverhangFt, run.thicknessFt) + 0.5;
+    const projectionFt = Math.min(
+      profile.projectionFt,
+      Math.max(0.2, eavePlaneFt - run.thicknessFt),
+    );
     const [lo, hi] = runSpan(run);
     const lengthFt = hi - lo;
     const segmentFt = profile.segmentFt;
@@ -555,7 +646,7 @@ function roofEdgeParts(
         baseYFt,
         profile.heightFt,
         roofColorHex,
-        profile.projectionFt,
+        projectionFt,
       ));
       continue;
     }
@@ -573,8 +664,149 @@ function roofEdgeParts(
         baseYFt,
         profile.heightFt,
         roofColorHex,
-        profile.projectionFt,
+        projectionFt,
       ));
+    }
+  }
+
+  return parts;
+}
+
+// ============================================================================
+// Wealthy Roof Joinery
+// ============================================================================
+// The resolved wealthy ornament answer can add craft above the eaves without
+// changing the solved roof. Cresting follows a real ridge. Gable boards use
+// short stepped boxes because the shared SitePart contract deliberately has
+// no rotation yet; a future mesh renderer can replace the steps by tag.
+// ============================================================================
+
+function wealthyRoofDressingParts(
+  blueprint: BlueprintPlan,
+  construction: BuildingConstruction,
+  storeyHeightFt: number,
+  colorHex: string,
+): BuildingMaterialPart[] {
+  const style = blueprint.styleResolved;
+  const roof = blueprint.roof;
+  if (!style
+    || style.finishTier !== 'wealthy'
+    || !style.ornament
+    || construction.ornamentKit !== 'carved-bargeboards'
+    || !roof
+    || roof.ridges.length === 0) return [];
+
+  const top = blueprint.floors
+    .filter((floor) => floor.level >= 0)
+    .sort((a, b) => b.level - a.level)[0];
+  if (!top) return [];
+
+  // The longest solved ridge is the roof's main craft line. Sorting a copy
+  // preserves the canonical RoofPlan byte-for-byte.
+  const primary = [...roof.ridges].sort((a, b) => {
+    const aLength = (a.x2 - a.x1) ** 2 + (a.y2 - a.y1) ** 2;
+    const bLength = (b.x2 - b.x1) ** 2 + (b.y2 - b.y1) ** 2;
+    return bLength - aLength;
+  })[0];
+  const dxFt = primary.x2 - primary.x1;
+  const dyFt = primary.y2 - primary.y1;
+  const ridgeLengthFt = Math.hypot(dxFt, dyFt);
+  if (ridgeLengthFt < 0.5) return [];
+
+  // Current roofs solve their main ridge on a plan axis. A diagonal ridge is
+  // left untouched until SitePart supports rotation; approximating it with a
+  // large cross-shaped box would misrepresent the authored roof.
+  const ridgeRunsX = Math.abs(dxFt) >= Math.abs(dyFt);
+  if (Math.min(Math.abs(dxFt), Math.abs(dyFt)) > 0.2) return [];
+
+  const parts: BuildingMaterialPart[] = [];
+  const wallTopFt = (top.level + 1) * storeyHeightFt;
+  const ridgeBaseYFt = wallTopFt + primary.zFt;
+  const ridgeCenterXFt = (primary.x1 + primary.x2) / 2;
+  const ridgeCenterYFt = (primary.y1 + primary.y2) / 2;
+  const shared = {
+    colorHex,
+    tag: MATERIAL_PART_TAG,
+    materialDetailKind: 'ridge-crest',
+  } as const;
+
+  // One continuous rail makes the crest legible; bounded posts give it a
+  // handmade rhythm without scaling geometry without limit on long halls.
+  parts.push({
+    ...shared,
+    x: (ridgeCenterXFt - blueprint.widthFt / 2) * FT,
+    z: (ridgeCenterYFt - blueprint.depthFt / 2) * FT,
+    w: (ridgeRunsX ? ridgeLengthFt : 0.18) * FT,
+    d: (ridgeRunsX ? 0.18 : ridgeLengthFt) * FT,
+    h: 0.18 * FT,
+    baseY: (ridgeBaseYFt + 0.08) * FT,
+  });
+  const postCount = Math.max(3, Math.min(7, Math.ceil(ridgeLengthFt / 4) + 1));
+  for (let index = 0; index < postCount; index += 1) {
+    const fraction = postCount === 1 ? 0.5 : index / (postCount - 1);
+    parts.push({
+      ...shared,
+      x: (primary.x1 + dxFt * fraction - blueprint.widthFt / 2) * FT,
+      z: (primary.y1 + dyFt * fraction - blueprint.depthFt / 2) * FT,
+      w: 0.16 * FT,
+      d: 0.16 * FT,
+      h: (0.52 + style.motifVariant * 0.06) * FT,
+      baseY: (ridgeBaseYFt + 0.2) * FT,
+    });
+  }
+
+  // Only gable-like roofs receive slope boards. Each end is matched to a real,
+  // visible outer run, so a neighbour-owned row wall never gains decoration.
+  if (style.roofForm !== 'gable' && style.roofForm !== 'steep') return parts;
+  const gableAxis = ridgeRunsX ? 'y' : 'x';
+  const endpoints = ridgeRunsX
+    ? [primary.x1, primary.x2]
+    : [primary.y1, primary.y2];
+  const visibleGableRuns = top.wallRuns.filter((run) =>
+    run.kind === 'outer'
+    && run.axis === gableAxis
+    && isVisibleExteriorRun(blueprint, run));
+  const chosenRuns: WallRun[] = [];
+
+  for (const endpoint of endpoints) {
+    const nearest = [...visibleGableRuns].sort((a, b) => {
+      const aFixed = a.axis === 'x' ? a.y1 : a.x1;
+      const bFixed = b.axis === 'x' ? b.y1 : b.x1;
+      return Math.abs(aFixed - endpoint) - Math.abs(bFixed - endpoint);
+    })[0];
+    if (nearest && !chosenRuns.includes(nearest)) chosenRuns.push(nearest);
+  }
+
+  for (const run of chosenRuns) {
+    const [lo, hi] = runSpan(run);
+    const ridgeAcrossFt = Math.max(
+      lo,
+      Math.min(hi, ridgeRunsX ? ridgeCenterYFt : ridgeCenterXFt),
+    );
+
+    // Descend from the ridge toward both eaves in a bounded stepped line.
+    for (const edgeFt of [lo, hi]) {
+      const spanFt = Math.abs(edgeFt - ridgeAcrossFt);
+      if (spanFt < 0.4) continue;
+      const direction = Math.sign(edgeFt - ridgeAcrossFt);
+      const stepCount = Math.max(2, Math.min(5, Math.ceil(spanFt / 2.2)));
+      for (let step = 0; step < stepCount; step += 1) {
+        const fromFt = ridgeAcrossFt + direction * spanFt * (step / stepCount);
+        const toFt = ridgeAcrossFt + direction * spanFt * ((step + 1) / stepCount);
+        const slopeFraction = (step + 0.5) / stepCount;
+        parts.push(materialPartOnRun(
+          'bargeboard',
+          run,
+          blueprint.widthFt,
+          blueprint.depthFt,
+          (fromFt + toFt) / 2,
+          Math.abs(toFt - fromFt) + 0.08,
+          wallTopFt + primary.zFt * (1 - slopeFraction) - 0.12,
+          0.28,
+          colorHex,
+          0.42,
+        ));
+      }
     }
   }
 
@@ -613,7 +845,8 @@ function ornamentParts(
             floorBaseFt + 0.35,
             storeyHeightFt - 0.7,
             colorHex,
-            0.28,
+            // Quoins stay proud of the thickened wall courses (town-look-slice1).
+            0.36,
           ));
         }
       } else {
@@ -630,9 +863,10 @@ function ornamentParts(
           (lo + hi) / 2,
           runLengthFt,
           floorBaseFt + storeyHeightFt - 0.8,
-          construction.ornamentKit === 'rope-carving' ? 0.18 : 0.32,
+          construction.ornamentKit === 'rope-carving' ? 0.22 : 0.38,
           colorHex,
-          0.25,
+          // Trim lines also ride proud of the thicker courses (town-look-slice1).
+          0.34,
         ));
       }
     }
@@ -670,6 +904,12 @@ export function buildBuildingMaterialParts(
       storeyHeightFt,
       wallDressingTone,
     ),
+    ...mullionParts(
+      blueprint,
+      construction,
+      storeyHeightFt,
+      wallDressingTone,
+    ),
     ...shutterParts(
       blueprint,
       construction,
@@ -681,6 +921,12 @@ export function buildBuildingMaterialParts(
       construction,
       storeyHeightFt,
       style.roofColor,
+    ),
+    ...wealthyRoofDressingParts(
+      blueprint,
+      construction,
+      storeyHeightFt,
+      wallDressingTone,
     ),
     ...ornamentParts(
       blueprint,

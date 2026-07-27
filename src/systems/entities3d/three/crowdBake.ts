@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 26/07/2026, 23:09:39
+ * Dependents: components/World3D/GroundAgents.tsx, components/World3D/crowdInstancePlan.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file crowdBake.ts — crowd stand-ins: bake a generated entity into static
  * walk-cycle keyframe geometries so hundreds of street commuters render as
@@ -31,11 +47,13 @@ import { getPart } from '../registry';
 import { createGaitDriver } from './gaits';
 import type { LocomotionState } from './gaits';
 import { createSegmentBody } from './segmentBody';
+import { buildHeadForm } from './headForms';
 import { generateEntityBlueprint } from '../generateEntityBlueprint';
 import { recipeFromOccupant } from '../recipeFromOccupant';
 
 export const CROWD_WALK_PHASES = 8;
 const WALK_SPEED = 1.15;
+const FORWARD = new Vector3(0, 0, 1);
 
 export interface CrowdArchetype {
   /** [idle, walk phase 0 … walk phase N-1] — feet at y=0, meters. */
@@ -53,10 +71,13 @@ function partMeshToGeometry(mesh: Mesh): BufferGeometry {
   const colors = new Float32Array(count * 3);
   const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
   const c = (material as MeshBasicMaterial).color ?? new Color('#888888');
+  // Countershaded tubes carry real per-vertex colors — bake them; everything
+  // else takes its material's flat color.
+  const attrColor = geo.attributes.color as BufferAttribute | undefined;
   for (let i = 0; i < count; i++) {
-    colors[i * 3] = c.r;
-    colors[i * 3 + 1] = c.g;
-    colors[i * 3 + 2] = c.b;
+    colors[i * 3] = attrColor ? attrColor.getX(i) : c.r;
+    colors[i * 3 + 1] = attrColor ? attrColor.getY(i) : c.g;
+    colors[i * 3 + 2] = attrColor ? attrColor.getZ(i) : c.b;
   }
   geo.setAttribute('color', new BufferAttribute(colors, 3));
   // merged output only needs position/normal/color
@@ -70,7 +91,10 @@ function partMeshToGeometry(mesh: Mesh): BufferGeometry {
 function bakePose(blueprint: EntityBlueprint, walkPhase: number | null): BufferGeometry {
   const { frame, palette, gait } = blueprint;
 
-  const driver = createGaitDriver(gait, frame);
+  // same wing-garnish hint as the assembler — baked walk phases sample the
+  // flap cycle, so winged archetypes freeze mid-beat without it
+  const winged = blueprint.parts.some((p) => p.partId.startsWith('wings'));
+  const driver = createGaitDriver(gait, frame, blueprint.planSpec, { winged });
   const loco: LocomotionState = {
     position: new Vector3(),
     heading: new Vector3(0, 0, 1),
@@ -90,9 +114,33 @@ function bakePose(blueprint: EntityBlueprint, walkPhase: number | null): BufferG
   }
 
   // pose the segment skeleton (solid mode) and snapshot its meshes
-  const body = createSegmentBody({ renderMode: 'solid', colorHex: palette.skinHex, outlineThickness: 0.001 });
+  const body = createSegmentBody({
+    renderMode: 'solid',
+    colorHex: palette.skinHex,
+    bellyHex: blueprint.planSpec ? palette.secondaryHex : undefined,
+    outlineThickness: 0.001,
+  });
   body.beginFrame();
   driver.buildBody(body.sink);
+  // Sculpted head forms are assembler-owned (the driver emits no ball for
+  // them) — bake them at their live sockets or plan creatures go headless.
+  if (blueprint.planSpec && driver.headSockets) {
+    const sockets = driver.headSockets();
+    blueprint.planSpec.heads.forEach((headSpec, h) => {
+      if (!headSpec.form) return;
+      const socket = sockets[h];
+      if (!socket) return;
+      const formGroup = buildHeadForm(
+        headSpec.form,
+        new MeshBasicMaterial({ color: palette.skinHex }),
+        new MeshBasicMaterial({ color: '#e8e2d4' }),
+      );
+      formGroup.position.set(socket.x, socket.y, socket.z);
+      formGroup.quaternion.setFromUnitVectors(FORWARD, new Vector3(socket.fx, socket.fy, socket.fz));
+      formGroup.scale.setScalar(socket.r);
+      body.root.add(formGroup);
+    });
+  }
   const anchorsView = Object.fromEntries(
     ANCHORS.map((a) => [a, driver.pose.anchors[a].pos as Vec3Like]),
   ) as PartAnchors;

@@ -2,7 +2,7 @@
 
 exports[`generateRegion (C2: civilization) > matches FROZEN golden values for burg-bearing anchor > c2-region-golden 1`] = `
 {
-  "firstEnvelopeWidth": 800,
+  "firstEnvelopeWidth": 1600,
   "firstGateCount": 0,
   "roadCount": 2,
   "roadKinds": [
